@@ -4,6 +4,34 @@
 
 ---
 
+background: #F7F7F7
+card :#377DFF / gradiant (shadow) : #E9F0FE
+btn view more..get started and text: big one sitename : #1D2733
+white color : #FFFFFF
+
+background : #F7FAFF
+websitename : #090F4E
+btn : #6A35FF
+
+back : #FFFFFF
+card: #F6FAFF
+btn : #7854F7
+
+back : #FFFFFF
+cards : #F6FAFF
+learn more : #056FDB
+textcolor: #090F4E
+icon-gradiant : #4CE087-#CDFFD2 #654BFF-#DED9FF #FF4A4A-#FFD9D9 #CA33FF-#F1CBFF #FBA500-#FFEAC0
+footer : #F7FAFF
+header: #F7FAFF
+
+back : #8D8C8C #E0ECF8 #D4ECE5 #E8CEBF
+CARD:#FFFFFF #F4F4F3 #FFFBF3
+#E1EEDD #EF9273
+BTN: FEE36F
+
+BACK #DDE7F3 CARD: #F3F3F3 TITEL: #3C1874 TXT:#283747
+
 ### Author Links
 
 👋 Hello, I'm Dave Gray.
@@ -29,7 +57,7 @@
 
 📺 [YouTube Playlist](https://www.youtube.com/playlist?list=PL0Zuz27SZ-6P4dQUsoDatjEGpmBpcOW8V) for this repository.
 
-🚀 This repository shares ALL of the resources referenced during the MERN Project tutorial series. 
+🚀 This repository shares ALL of the resources referenced during the MERN Project tutorial series.
 
 ---
 
@@ -39,35 +67,41 @@
 
 ---
 
-### 💡 Suggested Pre-requisites for this course: 
+### 💡 Suggested Pre-requisites for this course:
+
 - 🔗 [Node.js Course for Beginners](https://youtu.be/f2EqECiTBL8)
 - 🔗 [React Course for Beginners](https://youtu.be/RVFAyFWO4go)
 - 🔗 [Redux Toolkit Course for Beginners](https://youtu.be/NqzdVN2tyvQ)
 - 🔗 [React Login Series](https://www.youtube.com/playlist?list=PL0Zuz27SZ-6PRCpm9clX0WiBEMB70FWwd)
 
 ### 📚 MERN Stack References
+
 - 🔗 [Official Site for MongoDB](https://mongodb.com)
 - 🔗 [Official Site for Express.js](https://expressjs.com)
 - 🔗 [Official Site for React.js](https://reactjs.org)
 - 🔗 [Official Site for Node.js](https://nodejs.org/)
 
 ### 📚 Middleware References
+
 - 🔗 [Express.js: Using Middleware](https://expressjs.com/en/guide/using-middleware.html)
 - 🔗 [cookie-parser](https://www.npmjs.com/package/cookie-parser)
 - 🔗 [cors](https://www.npmjs.com/package/cors)
 - 🔗 [express-rate-limiter](https://www.npmjs.com/package/express-rate-limiter)
 
 ### 📚 React Router References
+
 - 🔗 [Official Site for React Router](https://reactrouter.com/docs/en/v6)
 - 🔗 [React Router v6 Tutorial](https://github.com/gitdagray/react_router_v6)
 
 ### 📚 Other React Dependencies
+
 - 🔗 [Redux Toolkit](https://redux-toolkit.js.org/)
 - 🔗 [FontAwesome Icons](https://fontawesome.com/docs/web/use-with/react/)
 - 🔗 [React Spinners](https://www.npmjs.com/package/react-spinners)
 - 🔗 [@fvilers/disable-react-devtools](https://www.npmjs.com/package/@fvilers/disable-react-devtools)
 
 ### 📚 Other Node.js REST API Dependencies
+
 - 🔗 [date-fns](https://www.npmjs.com/package/date-fns)
 - 🔗 [uuid](https://www.npmjs.com/package/uuid)
 - 🔗 [dotenv](https://www.npmjs.com/package/dotenv)
@@ -79,10 +113,12 @@
 - 🔗 [express-async-errors](https://www.npmjs.com/package/express-async-errors)
 
 ### ⚙ Tools:
+
 - 🔗 [React Dev Tools Extension for Chrome](https://chrome.google.com/webstore/detail/react-developer-tools/fmkadmapgofadopljbjfkapdkoienihi)
 - 🔗 [Redux Devtools](https://github.com/reduxjs/redux-devtools)
 
 ### ⚙ VS Code Extensions I Use:
+
 - 🔗 [ES7 React JS Snippets Extension](https://marketplace.visualstudio.com/items?itemName=dsznajder.es7-react-js-snippets)
 - 🔗 [vscode-icons VS Code Extension](https://marketplace.visualstudio.com/items?itemName=vscode-icons-team.vscode-icons)
 - 🔗 [Github Themes VS Code Extension](https://marketplace.visualstudio.com/items?itemName=GitHub.github-vscode-theme)
@@ -90,6 +126,7 @@
 ---
 
 ### 💻 Source Code
+
 - 🔗 [Chapter 1 - Intro to MERN](https://github.com/gitdagray/mern_stack_course/tree/main/lesson_01)
 - 🔗 [Chapter 2 - MERN Middleware](https://github.com/gitdagray/mern_stack_course/tree/main/lesson_02)
 - 🔗 [Chapter 3 - MERN MongoDB](https://github.com/gitdagray/mern_stack_course/tree/main/lesson_03)

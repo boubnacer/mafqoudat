@@ -1,0 +1,103 @@
+.sponsored__container {
+  /* margin-top: 8rem; */
+  /* margin-bottom: 8rem; */
+  /* width: 90%; */
+}
+
+.sponsored__card {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  position: relative;
+  height: 82%;
+  background: var(--CARD-COLOR);
+  padding: 1rem;
+  border: 1px solid transparent;
+  border-radius: 1rem;
+}
+
+.sponsored__info {
+  position: absolute;
+  display: grid;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.sponsored__user__card {
+  background: var(--PRIMARY-COLOR);
+}
+
+.sponsored__found__card {
+  color: var(--STATUS-COMPLETE);
+}
+
+.sponsored__lost__card {
+  color: var(--INPUT-INVALID);
+}
+
+.card__img {
+  position: relative;
+}
+
+.card__img img {
+  height: 70%;
+  /* width: 100%; */
+  object-fit: cover;
+  border-radius: 0.8rem;
+  display: block;
+  object-fit: cover;
+}
+
+.sponsored-handle__edit {
+  display: flex;
+  position: absolute;
+  bottom: 14px;
+  align-items: center;
+  gap: 1rem;
+}
+
+.trending__img {
+  position: absolute;
+  right: 1rem;
+  bottom: 1rem;
+}
+
+.trending__img img {
+  height: 3rem;
+}
+
+.trending__date {
+  width: fit-content;
+  font-size: 1rem;
+  color: #4ce087;
+  background: #cdffd2;
+  border-radius: 10px;
+  padding: 1.5px 7px;
+  margin-top: 1rem;
+}
+
+.found__lost {
+  position: absolute;
+  left: 1rem;
+  top: 2rem;
+  width: fit-content;
+  font-size: 1rem;
+  color: #fba500;
+  background: #ffeac0;
+  border-radius: 10px;
+  padding: 1.5px 7px;
+}
+
+@media screen and (max-width: 1024px) {
+  .sponsored__container {
+    /* margin-top: 7rem; */
+  }
+  .trending__img {
+    bottom: 4.5rem;
+  }
+}
+
+@media screen and (max-width: 700px) {
+  .sponsored__container {
+    /* margin-top: 6rem; */
+  }
+}

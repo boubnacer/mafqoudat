@@ -1,0 +1,21 @@
+.login {
+  flex-grow: 1;
+  border-top: 2px solid var(--BORDER-COLOR);
+  border-bottom: 2px solid var(--BORDER-COLOR);
+  padding: 1em 0;
+}
+
+.public {
+  padding: 1em;
+  flex-grow: 1;
+}
+
+.public header {
+  display: flex;
+  justify-content: space-around;
+  align-items: center;
+}
+
+.form {
+  display: grid;
+}

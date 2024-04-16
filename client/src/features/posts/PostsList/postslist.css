@@ -1,0 +1,99 @@
+.postslist__container {
+  position: relative;
+  /* margin-top: 1rem; */
+  /* margin-bottom: 8rem; */
+  width: 90%;
+}
+.cards {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 1.5rem;
+  margin-top: 1rem;
+}
+
+/* .cards__list {
+  grid-template-columns: repeat(4, 1fr);
+} */
+
+.card {
+  position: relative;
+  background: var(--CARD-COLOR);
+  padding: 1rem;
+  border: 1px solid transparent;
+  border-radius: 1rem;
+}
+
+.user__card {
+  background: var(--PRIMARY-COLOR);
+}
+
+.found__card {
+  color: var(--STATUS-COMPLETE);
+}
+
+.lost__card {
+  color: var(--INPUT-INVALID);
+}
+
+.card img {
+  /* height: 15rem;
+  object-fit: cover; */
+  border-radius: 0.5rem;
+}
+
+.handle__edit {
+  position: absolute;
+  bottom: 0;
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+}
+
+/* .handle__edit-btn{
+  padding: ;
+} */
+
+.pagination {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.public,
+.welcome {
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+}
+
+.welcome a::before {
+  content: "➜ ";
+}
+
+.view__more {
+  display: none;
+}
+
+.show-view__more {
+  position: absolute;
+  /* right: 0; */
+  margin-top: 1rem;
+}
+
+@media screen and (max-width: 1024px) {
+  .container {
+    /* margin-top: 7rem; */
+  }
+  .cards {
+    grid-template-columns: 1fr 1fr;
+  }
+}
+
+@media screen and (max-width: 700px) {
+  .container {
+    /* margin-top: 6rem; */
+  }
+  .cards {
+    grid-template-columns: 1fr;
+  }
+}
