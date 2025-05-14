@@ -38,6 +38,9 @@ const NewPost = () => {
     }),
   });
 
+  console.log(categories, flOptions, countries);
+  
+
   if (!user || !countries || !flOptions || !categories)
     return <PulseLoader color={"#FFF"} />;
 

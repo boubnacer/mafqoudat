@@ -24,6 +24,8 @@ const RecentPosts = ({ _id, categoryname, region, image, createdAt }) => {
   const theme = useTheme();
   const navigate = useNavigate();
 
+  
+
   const handleEdit = () => navigate(`/dash/posts/${_id}`);
 
   const created = new Date(createdAt).toLocaleString("en-US", {

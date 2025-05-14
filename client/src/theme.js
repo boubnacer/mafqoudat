@@ -8,7 +8,7 @@ export const themeSettings = (mode) => {
             // palette values for dark mode
 
             primary: {
-              main: "#3C3C3C", //#242526
+              main:"#3C3C3C"  //#242526 ,
             },
             secondary: {
               main: "#3498DB",
@@ -16,25 +16,26 @@ export const themeSettings = (mode) => {
             },
             action: {
               back: "#202122", // A slightly lighter shade of dark gray 242526
-              main: "#242526",
+              main: "#FF7828",
             },
             textColor: {
-              main: "#CCCCCC", // A slightly lighter shade of dark gray
+              main: "#E0E0E0", 
+              secondary:"#B0B0B0",
               title: "#CCCCCC",
               links: "#FFFFFF", //#AAAAAA
             },
-            background: "#18191A",
+            background: "#121212",
             category: "#4E4F50",
             // found or lost options ------------------
             floptions: {
               found: {
                 back: "#D3FBD8",
                 // text: "#007C4F",
-                text: "#00FF00", // for recent icon color #ADD8E6
+                text: "#00FF00", // for recent icon color #ADD8E6 
               },
               lost: {
                 back: "#FF8B9B",
-                text: "#FFA500",
+                text: "#FFA500",  // 
               },
             },
             // caetgories -----
@@ -102,10 +103,11 @@ export const themeSettings = (mode) => {
               alt: "#E2E4E7",
             },
             action: {
-              main: "#2C2D2E", // A slightly lighter shade of dark gray
+              main: "#2C2D2E", 
             },
             textColor: {
-              main: "#000000", // A slightly lighter shade of dark gray
+              main: "#000000",
+              secondary:"#B0B0B0"
             },
             background: "#F0F2F5",
             category: "#E4E6E9",
@@ -159,6 +161,12 @@ export const themeSettings = (mode) => {
       welcome: {
         fontFamily: ["Source Code Pro", "monospace"].join(","),
       },
+
+      brandName :{
+        fontFamily: ["Agbalumo", "normal"].join(","),
+        fontSize: 24,
+        // fontWeight: 300
+      }
 
       // button: {
       //   fontFamily: ["Pacifico", "cursive"].join(","),

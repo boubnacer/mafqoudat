@@ -1,7 +1,7 @@
 import { useRef, useState, useEffect } from "react";
 import { useNavigate, Link } from "react-router-dom";
-import { useDispatch } from "react-redux";
-import { setCredentials } from "../authSlice";
+import { useDispatch, useSelector } from "react-redux";
+import { selectCurrentToken, selectIsLogedin, setCredentials } from "../authSlice";
 import { useLoginMutation } from "../authApiSlice";
 import useTitle from "../../../hooks/useTitle";
 import PulseLoader from "react-spinners/PulseLoader";
@@ -26,8 +26,9 @@ import { setMode } from "../../../app/state";
 import { DarkModeOutlined, LightModeOutlined } from "@mui/icons-material";
 import LanguageToggle from "../../../lang/LanguageToggle";
 
+
 const Login = () => {
-  useTitle("Employee Login");
+  useTitle("Employee Login"); 
 
   const userRef = useRef();
   const errRef = useRef();
@@ -39,6 +40,15 @@ const Login = () => {
   const navigate = useNavigate();
   const dispatch = useDispatch();
   const theme = useTheme();
+
+  const loggedIN = JSON.parse(localStorage.getItem('isLoggedIn'))
+
+
+  useEffect(()=>{
+    if(loggedIN){
+      navigate("/dash");
+    }
+  },[loggedIN])
 
   const [login, { isLoading, isSuccess }] = useLoginMutation();
 
@@ -61,8 +71,8 @@ const Login = () => {
   };
 
   const formValidation = Yup.object().shape({
-    username: Yup.string().required("username error message"),
-    password: Yup.string().required("password error message"),
+    username: Yup.string().required("username required"),
+    password: Yup.string().required("password required"),
     // termsOfServices: Yup.boolean()
     //   .oneOf([true], "Terms must be accepted")
     //   .required("Required"),
@@ -74,6 +84,7 @@ const Login = () => {
       // i guess we can do this in the login fonction !!
       const { accessToken } = await login(e).unwrap();
       dispatch(setCredentials({ accessToken }));
+      localStorage.setItem('isLoggedIn',true)
       // dispatch(setPersist(true));
       navigate("/dash");
     } catch (err) {
@@ -97,9 +108,13 @@ const Login = () => {
       onSubmit={handleSubmit}
     >
       <Form>
-        <Box display="grid" gridTemplateColumns="repeat(1,1fr)" gap="0.5rem">
+        <Box margin="0 auto"
+          width="60%"
+          display="grid"
+          gridTemplateColumns="repeat(1,1fr)"
+          gap="0.5rem" >
           {/* <Grid item sx={12}>
-            <Typography>mafkoudat login</Typography>
+            <Typography sx={{color: theme.palette.textColor.secondary}}>mafkoudat login</Typography>
           </Grid> */}
 
           <TextField variant="standard" name="username" label="User Name" />
@@ -111,15 +126,22 @@ const Login = () => {
             legend="Terms Of Service"
             label="I agree"
           /> */}
+
+<SubmitButton>Submit</SubmitButton>
+        
+        <Box display="flex" alignItems="center" gap="2rem">
+      <Typography mt="1rem" mb="1rem">
+        first time ?
+      </Typography>
+      <Box backgroundColor="#fe9229" px="10px" borderRadius="5px">
+      <Link className="btn" to="/signup">
+        Sign up
+      </Link>
+      </Box>
+      </Box>
         </Box>
-        <Box
-          sx={{
-            display: "flex",
-            justifyContent: "center",
-          }}
-        >
-          <SubmitButton>Submit</SubmitButton>
-        </Box>
+        
+          
       </Form>
     </Formik>
   );
@@ -130,30 +152,57 @@ const Login = () => {
 
   const content = (
     <Box
-      // marginTop="5rem"
-      height="100%"
+      // height="100%"
       display="grid"
       gridTemplateColumns="repeat(2,1fr)"
       alignItems="center"
-      gap="2rem"
+      
       sx={{ backgroundColor: theme.palette.background }}
     >
-      <Box>
-        {/* <img src={LoginPic} /> */}
-        {/* <Lottie animationData={Searching} /> */}
-        <Lottie animationData={LoginAnimation} />
-      </Box>
 
       <Box
-        width="60%"
-        sx={{
-          backgroundColor: theme.palette.primary.main,
-          padding: "4rem",
-          boxShadow: 1,
-          borderRadius: "5px",
-        }}
+      // ml="20%"
+        // width="60%"
+      //   height="80%"
+      //   sx={{
+      //     // backgroundColor: theme.palette.primary.main,
+      //     padding: "2rem",
+      //     boxShadow: 1,
+      //     borderRadius: "5px",
+        
+      //   }}
       >
-        <Box sx={{ position: "absolute", top: "2rem", right: "3rem" }}>
+        
+
+        <Box textAlign="center" mb="5rem">
+        <Typography
+          variant="brandName"
+          marginBottom="3rem"
+          sx={{color:theme.palette.textColor.main}}
+          // fontSize="26"
+        >
+          mafqoudat
+        </Typography>
+        </Box>
+        <Box>
+          <p ref={errRef} className={errClass} aria-live="assertive">
+            {errMsg}
+          </p>
+
+          {LoginForm}
+
+
+        </Box>
+        
+      </Box>
+      <Box position="relative">
+        {/* <img src={LoginPic} /> */}
+        {/* <Lottie animationData={Searching} /> */}
+        <Box>
+        <Lottie animationData={LoginAnimation} />
+        </Box>
+
+        <Box sx={{ position: "absolute", top: "2rem", right: "3rem", display:'flex', alignItems:'center' }}>
           {/* switch mode and language */}
           <LanguageToggle />
           <IconButton onClick={() => dispatch(setMode())}>
@@ -164,64 +213,6 @@ const Login = () => {
             )}
           </IconButton>
         </Box>
-
-        <Typography
-          variant="h1"
-          marginBottom="3rem"
-          textAlign="center"
-          color="#666666"
-        >
-          mafkoudat
-        </Typography>
-        <Box>
-          <p ref={errRef} className={errClass} aria-live="assertive">
-            {errMsg}
-          </p>
-
-          {LoginForm}
-
-          {/* <form className="form" onSubmit={handleSubmit}>
-            <label htmlFor="username">Username:</label>
-            <input
-              className="form__input"
-              type="text"
-              id="username"
-              ref={userRef}
-              value={username}
-              onChange={handleUserInput}
-              autoComplete="off"
-              required
-            />
-
-            <label htmlFor="password">Password:</label>
-            <input
-              className="form__input"
-              type="password"
-              id="password"
-              onChange={handlePwdInput}
-              value={password}
-              required
-            />
-            <button className="form__submit-button">Sign In</button>
-
-            <label htmlFor="persist" className="form__persist">
-              <input
-                type="checkbox"
-                className="form__checkbox"
-                id="persist"
-                onChange={handleToggle}
-                checked={persist}
-              />
-              Trust This Device
-            </label>
-          </form> */}
-        </Box>
-        <Typography mt="1rem" mb="1rem">
-          if you are new make sure to add an account first
-        </Typography>
-        <Link className="btn" to="/signup">
-          Employee Signup
-        </Link>
       </Box>
     </Box>
   );

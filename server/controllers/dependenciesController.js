@@ -73,7 +73,7 @@ const getDashboard = async (req, res) => {
       {
         $match: {
           country: new mongoose.Types.ObjectId(currentCountry),
-          foundLost: new mongoose.Types.ObjectId("63cc34613e5e7407436e09a5"),
+          foundLost: new mongoose.Types.ObjectId("66e60c25420ca2a42499b924"),
         },
       },
       {
@@ -126,7 +126,7 @@ const getDashboard = async (req, res) => {
       {
         $match: {
           country: new mongoose.Types.ObjectId(currentCountry),
-          foundLost: new mongoose.Types.ObjectId("63cc3484bc901245d3a1cb5a"),
+          foundLost: new mongoose.Types.ObjectId("66fe6a34579aa2d3a7fd81c2"),
         },
       },
       {
@@ -177,7 +177,7 @@ const getDashboard = async (req, res) => {
     // total Founds
     const totalFounds = await Post.find({
       country: currentCountry,
-      foundLost: "63cc34613e5e7407436e09a5",
+      foundLost: "66e60c25420ca2a42499b924",
     }).countDocuments();
 
     // total Losts
@@ -221,7 +221,7 @@ const getDashboard = async (req, res) => {
       }
     );
 
-    // today's founds
+    // today's total founds
     const todaysFoundPosts = await Post.find({
       country: currentCountry,
       createdAt: {
@@ -236,10 +236,10 @@ const getDashboard = async (req, res) => {
           currentDate.getDate() + 1
         ),
       },
-      foundLost: new mongoose.Types.ObjectId("63cc34613e5e7407436e09a5"),
+      foundLost: new mongoose.Types.ObjectId("66e60c25420ca2a42499b924"),
     }).countDocuments();
 
-    // today's losts
+    // today's total losts
     const todaysLostPosts = await Post.find({
       country: currentCountry,
       createdAt: {
@@ -279,7 +279,7 @@ const getflOptions = async (req, res) => {
   const flOptions = await FoundLost.find({}).lean().exec();
 
   if (!flOptions.length) {
-    return res.status(400).json({ message: "No found or lost shoices !" });
+    return res.status(400).json({ message: "No found or lost choices !" });
   }
 
   res.status(200).json(flOptions);
@@ -334,7 +334,7 @@ const postsPerDay = async () => {
         currentDate.getDate() + 1
       ),
     },
-    foundLost: new mongoose.Types.ObjectId("63cc34613e5e7407436e09a5"),
+    foundLost: new mongoose.Types.ObjectId("66e60c25420ca2a42499b924"),
   }).countDocuments();
 
   // today's losts

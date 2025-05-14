@@ -10,15 +10,22 @@ import { setCredentials } from "../authSlice";
 
 import { Formik, Form } from "formik";
 import * as Yup from "yup";
-import { Box, FormLabel, Typography } from "@mui/material";
+import { Box, FormLabel, IconButton, Typography, useTheme } from "@mui/material";
 import TextField from "../../../components/Textfield";
 import SubmitButton from "../../../components/SubmitButton";
 import SelectOption from "../../../components/SelectOption";
 import CheckBox from "../../../components/CheckBox";
 import SelectCountry from "../../../components/SelectCountry";
+import Lottie from "lottie-react";
+import LoginAnimation from '../../../animations/LoginAnimation.json'
+import LanguageToggle from "../../../lang/LanguageToggle";
+import { setMode } from "../../../app/state";
+import { DarkModeOutlined, LightModeOutlined } from "@mui/icons-material";
 
 const USER_REGEX = /^[A-z]{3,20}$/;
 const PWD_REGEX = /^[A-z0-9!@#$%]{4,12}$/;
+
+
 
 const NewUserForm = ({ countries }) => {
   useTitle("Mafkoudat | New User");
@@ -28,6 +35,8 @@ const NewUserForm = ({ countries }) => {
 
   const navigate = useNavigate();
   const dispatch = useDispatch();
+
+  const theme = useTheme()
 
   const [countryId, setCountryId] = useState(countries[0].id);
   const [username, setUsername] = useState("");
@@ -97,11 +106,11 @@ const NewUserForm = ({ countries }) => {
       initialValues={{ ...initialFormState }}
       validationSchema={formValidation}
       onSubmit={handleSubmit}
-    >
+    > 
       <Form>
         <Box
           margin="0 auto"
-          width="80%"
+          width="60%"
           display="grid"
           gridTemplateColumns="repeat(1,1fr)"
           gap="0.5rem"
@@ -110,15 +119,25 @@ const NewUserForm = ({ countries }) => {
             <Typography>mafkoudat login</Typography>
           </Grid> */}
 
-          <FormLabel>Username or Phone</FormLabel>
-          <TextField name="username" label="User Name" />
+<Typography
+          variant="brandName"
+          // marginBottom="3rem"
+          sx={{color:theme.palette.textColor.main}}
+          // fontSize="26"
+        >
+          mafqoudat
+        </Typography>
 
-          <FormLabel>Password</FormLabel>
-          <TextField name="password" label="Password" />
+          {/* <FormLabel>Username or Phone</FormLabel> */}
+          <TextField name="username" label="User Name" variant="standard"/>
 
-          <FormLabel>Country</FormLabel>
+          <TextField name="password" label="Password" variant="standard"/>
+
           {/* <SelectOption name="country" label="Country" options={countries} /> */}
-          <SelectCountry name="country" label="Country" options={countries} />
+          <Box sx={{mt:'1rem'}}>
+          <FormLabel>choose Country</FormLabel>
+          <SelectCountry name="country" label="Country" variant="standard" options={countries}/>
+          </Box>
 
           {/* <CheckBox
             name="termsOfService"
@@ -126,65 +145,60 @@ const NewUserForm = ({ countries }) => {
             label="I agree"
           /> */}
 
-          <SubmitButton>Submit</SubmitButton>
+          <SubmitButton>signup</SubmitButton>
+
+          <Box display="flex" alignItems="center" gap="2rem">
+        <Typography mt="1rem" mb="1rem">
+          Already member ?
+        </Typography>
+        <Box backgroundColor="#fe9229" px="10px" borderRadius="5px">
+        <Link className="btn" to="/">
+          Sign in
+        </Link>
+        </Box>
+        </Box>
         </Box>
       </Form>
     </Formik>
   );
 
   const content = (
-    <Box>
+    <Box display="grid"
+    gridTemplateColumns="repeat(2,1fr)"
+    alignItems="center"
+    sx={{ backgroundColor: theme.palette.background }}>
+
+      
+
+     <Box>
+     <Box>
       <p className={errClass}>{error?.data?.message}</p>
       {SignupForm}
-      {/* <form className="form" onSubmit={onSaveUserClicked}>
-        <div className="form__title-row">
-          <h2>New User</h2>
-          <div className="form__action-buttons">
-            <button className="icon-button" title="Save" disabled={!canSave}>
-              <FontAwesomeIcon icon={faSave} />
-            </button>
-          </div>
-        </div>
-        <label className="form__label" htmlFor="username">
-          Username: <span className="nowrap">[3-20 letters]</span>
-        </label>
-        <input
-          className={`form__input ${validUserClass}`}
-          id="username"
-          name="username"
-          type="text"
-          autoComplete="off"
-          value={username}
-          onChange={onUsernameChanged}
-        />
+      </Box>
 
-        <label className="form__label" htmlFor="password">
-          Password: <span className="nowrap">[4-12 chars incl. !@#$%]</span>
-        </label>
-        <input
-          className={`form__input ${validPwdClass}`}
-          id="password"
-          name="password"
-          type="password"
-          value={password}
-          onChange={onPasswordChanged}
-        />
+      
+     </Box>
 
-        <label className="form__label" htmlFor="country">
-          Country:
-        </label>
-        <select
-          id="countries"
-          name="countries"
-          className="form__select"
-          value={countryId}
-          onChange={onCountryIdChanged}
-        >
-          {countryOptions}
-        </select>
+      <Box>
+        <Box>
+          <Lottie animationData={LoginAnimation}/>
+        </Box>
 
-        <Link to="/login">Employee Login</Link>
-      </form> */}
+        <Box sx={{ position: "absolute", top: "2rem", right: "3rem", display:'flex', alignItems:'center' }}>
+          {/* switch mode and language */}
+          <LanguageToggle />
+          <IconButton onClick={() => dispatch(setMode())}>
+            {theme.palette.mode === "dark" ? (
+              <LightModeOutlined sx={{ fontSize: "25px" }} />
+            ) : (
+              <DarkModeOutlined sx={{ fontSize: "25px" }} />
+            )}
+          </IconButton>
+        </Box>
+
+        
+      </Box>
+
     </Box>
   );
 

@@ -15,6 +15,8 @@ const SeeAll = ({ foundOrlostId, totalItems }) => {
   const dispatch = useDispatch();
   const theme = useTheme();
 
+  
+
   const hanldeAddNewPost = () => navigate("/dash/posts/new");
 
   const hanldeSeeAllPosts = ({ foundOrlostId }) => {
@@ -71,6 +73,7 @@ const SeeAll = ({ foundOrlostId, totalItems }) => {
           padding: "0.5rem 1rem",
           fontSize: "14px",
           border: "1px solid #333333",
+          backgroundColor:theme.palette.action.main
         }}
       >
         {totalItems > 4 ? "See all" : "Add"}

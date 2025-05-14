@@ -1,348 +1,162 @@
 import {
-  Avatar,
   Box,
   Button,
   Card,
-  CardActions,
   CardContent,
-  CardHeader,
   CardMedia,
-  IconButton,
   Typography,
   useTheme,
 } from "@mui/material";
-import {
-  MoreVert,
-  Favorite,
-  Share,
-  TrendingUpOutlined,
-  LocationOnOutlined,
-  KeyboardArrowRightOutlined,
-} from "@mui/icons-material";
-import ma from "../../img/ma.jpg";
-import { WhatshotOutlined } from "@mui/icons-material";
 import FlexBetween from "../FlexBetween";
 import RenderIcon from "../RenderIcon";
-import Divider from "@mui/material/Divider";
+import PulseLoader from "react-spinners/PulseLoader";
+import ma from "../../img/ma.jpg";
 
 const TrendingItem = ({ trend, isLoading }) => {
-  const { categoryName, floptionName, region, image, createdAt, updatedAt } =
-    trend[0] || {};
+  const { categoryName, floptionName, region, image, createdAt } = trend[0] || {};
   const theme = useTheme();
 
-  console.log(isLoading);
-
-  const created = new Date(createdAt).toLocaleString("en-US", {
-    day: "numeric",
-    month: "long",
-    year: "numeric",
-  });
+  if (isLoading) return <PulseLoader />;
+  if (!trend[0]) return <PulseLoader />;
 
   return (
-    <Box flex={1.3} borderRadius="0.55rem">
+    <Box flex={1.3}>
       <Card
         sx={{
-          backgroundColor: "#3C3C3C",
-          // position: "relative",
-          display: "flex",
-          // boxShadow: "0 4px 8px rgba(0, 0, 0, 0.1)",
-
-          // boxShadow:
-          //   "rgba(0, 0, 0, 0.05) 0px 6px 24px 0px, rgba(0, 0, 0, 0.08) 0px 0px 0px 1px",
-
-          border: "1px solid #333333",
-          borderRadius: "0.55rem",
+          background: 'linear-gradient(135deg, rgba(60,60,60,0.95) 0%, rgba(30,30,30,0.95) 100%)',
+          backdropFilter: 'blur(10px)',
+          borderRadius: '16px',
+          border: '1px solid rgba(255,255,255,0.08)',
+          overflow: 'hidden',
+          transition: 'transform 0.3s ease',
+          '&:hover': {
+            transform: 'translateY(-5px)',
+          }
         }}
-        variant="soft"
       >
-        <Box sx={{ position: "relative" }} flex={1}>
-          <CardContent>
-            <FlexBetween>
-              <Box
-                sx={{
-                  display: "flex",
-                  alignItems: "center",
-                  backgroundColor:
-                    categoryName === "Bag"
-                      ? theme.palette.categories.bagcate.icon
-                      : categoryName === "keys"
-                      ? theme.palette.categories.keyscate.icon
-                      : categoryName === "person"
-                      ? theme.palette.categories.personcate.icon
-                      : categoryName === "Money"
-                      ? theme.palette.categories.moneycate.icon
-                      : categoryName === "Devices"
-                      ? theme.palette.categories.devicecate.icon
-                      : categoryName === "Wallet"
-                      ? theme.palette.categories.walletcate.icon
-                      : categoryName === "Vehicle"
-                      ? theme.palette.categories.vehiclecate.icon
-                      : categoryName === "Document"
-                      ? theme.palette.categories.documentcate.icon
-                      : theme.palette.categories.bagcate.icon,
-                  padding: "0 1rem",
-                  borderRadius: "5px",
-                  gap: "0.5rem",
-                }}
-              >
-                {/* <RenderIcon name={categoryName} / */}
+        <Box sx={{ display: 'flex', height: '100%' }}>
+          <Box sx={{ flex: 1, position: 'relative' }}>
+            <CardContent sx={{ height: '100%', position: 'relative' }}>
+              <FlexBetween>
                 <Box
-                  sx={
-                    {
-                      // backgroundColor: theme.palette.category,
-                      // padding: "0rem 0.8rem",
-                      // borderRadius: "9px",
-                    }
-                  }
+                  sx={{
+                    display: 'flex',
+                    alignItems: 'center',
+                    background: 'rgba(77, 77, 77, 0.5)',
+                    padding: '8px 16px',
+                    borderRadius: '12px',
+                    gap: '8px',
+                    backdropFilter: 'blur(5px)',
+                  }}
                 >
+                  <RenderIcon name={categoryName} />
                   <Typography
                     variant="category"
                     sx={{
-                      color: "#FFFFFF",
-                      // categoryName === "Bag"
-                      //   ? theme.palette.categories.bagcate.icon
-                      //   : categoryName === "keys"
-                      //   ? theme.palette.categories.keyscate.icon
-                      //   : categoryName === "person"
-                      //   ? theme.palette.categories.personcate.icon
-                      //   : categoryName === "Money"
-                      //   ? theme.palette.categories.moneycate.icon
-                      //   : categoryName === "Devices"
-                      //   ? theme.palette.categories.devicecate.icon
-                      //   : categoryName === "Wallet"
-                      //   ? theme.palette.categories.walletcate.icon
-                      //   : categoryName === "Vehicle"
-                      //   ? theme.palette.categories.vehiclecate.icon
-                      //   : categoryName === "Document"
-                      //   ? theme.palette.categories.documentcate.icon
-                      //   : theme.palette.text.white,
+                      color: '#E0E0E0',
+                      fontWeight: 500,
+                      fontSize: '14px',
                     }}
                   >
                     {categoryName}
                   </Typography>
                 </Box>
-              </Box>
-              <Box
-                sx={{
-                  display: "flex",
-                  alignItems: "center",
-                  backgroundColor: theme.palette.action.back,
-                  padding: "0 1rem",
-                  borderRadius: "50px",
-                  gap: "0.5rem",
-                }}
-              >
-                <Typography
+                <Box
                   sx={{
-                    color:
-                      floptionName === "Found"
-                        ? theme.palette.floptions.found.text
-                        : theme.palette.floptions.lost.text,
-
-                    fontSize: "14px",
-                  }}
-                  variant="floption"
-                >
-                  {floptionName}
-                </Typography>
-                <RenderIcon name={`${floptionName}fl`} />
-              </Box>
-            </FlexBetween>
-
-            <Box
-              display="flex"
-              sx={{
-                // backgroundColor: theme.palette.category,
-                borderRadius: "50px",
-                // padding: "0.2rem 1rem",
-                display: "flex",
-                justifyContent: "center",
-                alignItems: "center",
-                mt: "1rem",
-                width: "fit-content",
-              }}
-            >
-              <Box
-                sx={{
-                  backgroundColor: "#242526",
-                  p: "5px",
-                  display: "flex",
-                  justifyContent: "center",
-                  borderRadius: "5px",
-                }}
-              >
-                <RenderIcon name="location" />
-              </Box>
-              <Box>
-                <Typography
-                  ml="8px"
-                  // variant="h5"
-                  component="div"
-                  fontWeight="500"
-                  sx={{
-                    color: "#FFFFFF",
-                    fontSize: "15px",
+                    display: 'flex',
+                    alignItems: 'center',
+                    background: floptionName === "Found" 
+                      ? 'linear-gradient(135deg, #4CAF50 0%, #388E3C 100%)'
+                      : 'linear-gradient(135deg, #FF9800 0%, #F57C00 100%)',
+                    padding: '8px 16px',
+                    borderRadius: '24px',
+                    gap: '8px',
                   }}
                 >
-                  {region}
-                </Typography>
-              </Box>
-            </Box>
+                  <Typography
+                    sx={{
+                      color: '#FFFFFF',
+                      fontSize: '14px',
+                      fontWeight: 500,
+                    }}
+                  >
+                    {floptionName}
+                  </Typography>
+                  <RenderIcon name={`${floptionName}fl`} />
+                </Box>
+              </FlexBetween>
 
-            <Box
-              display="flex"
-              sx={{
-                // backgroundColor: theme.palette.category,
-                borderRadius: "50px",
-                // padding: "0.2rem 1rem",
-                display: "flex",
-                justifyContent: "center",
-                alignItems: "center",
-                mt: "0.5rem",
-                width: "fit-content",
-              }}
-            >
               <Box
                 sx={{
-                  backgroundColor: "#242526",
-                  p: "5px",
-                  display: "flex",
-                  justifyContent: "center",
-                  borderRadius: "5px",
+                  display: 'flex',
+                  alignItems: 'center',
+                  gap: '8px',
+                  mt: '24px',
                 }}
               >
                 <RenderIcon name="time" />
-              </Box>
-              <Box>
                 <Typography
-                  ml="8px"
-                  // variant="h5"
-                  component="div"
-                  fontWeight="500"
                   sx={{
-                    color: "#FFFFFF",
-                    fontSize: "15px",
+                    color: '#E0E0E0',
+                    fontSize: '14px',
+                    fontWeight: 500,
                   }}
                 >
-                  15/03/2023
+                  {new Date(createdAt).toLocaleDateString()}
                 </Typography>
               </Box>
-            </Box>
 
-            {/* <Typography
-              sx={{
-                color: theme.palette.text.description,
-                mt: "3.5rem",
-                ml: "5px",
-                fontSize: "12px",
-              }}
-            >
-              {created}
-            </Typography> */}
-
-            <Divider
-              sx={{
-                mt: "4.5rem",
-              }}
-            />
-
-            <CardActions
-              sx={{
-                // backgroundColor: theme.palette.action.back,
-                position: "absolute",
-                bottom: "0",
-                left: "0",
-                display: "flex",
-                justifyContent: "flex-end",
-                // padding: "1rem",
-                gap: "1rem",
-                width: "100%",
-
-                // ml: "5px",
-              }}
-              // disableSpacing
-            >
-              {/* <FlexBetween> */}
-              {/* <Box sx={{ ml: "5px" }}>
-                <IconButton
-                  aria-label="share"
-                  sx={{
-                    marginRight: "0.5rem",
-                    // backgroundColor: theme.palette.action.main,
-                  }}
-                >
-                  <RenderIcon name="share" />
-                </IconButton>
-              </Box> */}
-              <Box>
+              <Box
+                sx={{
+                  position: 'absolute',
+                  bottom: '16px',
+                  left: '16px',
+                  right: '16px',
+                }}
+              >
                 <Button
+                  fullWidth
                   sx={{
                     color: theme.palette.textColor.main,
-                    // backgroundColor: theme.palette.action.main,
-                    textTransform: "none",
+                    background: 'rgba(255,255,255,0.05)',
+                    backdropFilter: 'blur(5px)',
+                    borderRadius: '12px',
+                    padding: '12px',
+                    textTransform: 'none',
+                    fontSize: '14px',
+                    fontWeight: 500,
+                    '&:hover': {
+                      background: 'rgba(255,255,255,0.1)',
+                    }
                   }}
                   endIcon={<RenderIcon name="view" />}
                 >
-                  learn more
+                  Learn More
                 </Button>
               </Box>
-              {/* </FlexBetween> */}
-            </CardActions>
-          </CardContent>
-        </Box>
-        <Box sx={{ position: "relative" }} flex={1.2}>
-          <CardMedia
-            component="img"
-            height="250"
-            image={image ? `http://localhost:3500/${image}` : ma}
-            title={image}
-            sx={{
-              borderRadius: "0 10px 10px 0",
-              // padding: "5px",
-              objectFit: "cover",
-            }}
-          />
-          <Box
-            sx={{
-              position: "absolute",
-              top: "8px",
-              right: "8px",
-              backgroundColor:
-                categoryName === "Bag"
-                  ? theme.palette.categories.bagcate.back
-                  : categoryName === "keys"
-                  ? theme.palette.categories.keyscate.back
-                  : categoryName === "person"
-                  ? theme.palette.categories.personcate.back
-                  : categoryName === "Money"
-                  ? theme.palette.categories.moneycate.back
-                  : categoryName === "Devices"
-                  ? theme.palette.categories.devicecate.back
-                  : categoryName === "Wallet"
-                  ? theme.palette.categories.walletcate.back
-                  : categoryName === "Vehicle"
-                  ? theme.palette.categories.vehiclecate.back
-                  : categoryName === "Document"
-                  ? theme.palette.categories.documentcate.back
-                  : theme.palette.categories.bagcate.back,
-              display: "flex",
-              // justifyContent: "center",
-              borderRadius: "50px",
-            }}
-          >
-            <RenderIcon name={`${categoryName}rece`} />
+            </CardContent>
           </Box>
-          <Box
-            sx={{
-              position: "absolute",
-              bottom: "5px",
-              right: "5px",
-              // backgroundColor: theme.palette.category,
-              // display: "flex",
-              // justifyContent: "center",
-            }}
-          >
-            {/* <RenderIcon name="fire" /> */}
+
+          <Box sx={{ flex: 1.2, position: 'relative' }}>
+            <CardMedia
+              component="img"
+              height="100%"
+              image={image ? `http://localhost:3500/${image}` : ma}
+              title={image}
+              sx={{
+                objectFit: 'cover',
+              }}
+            />
+            <Box
+              sx={{
+                position: 'absolute',
+                top: 0,
+                left: 0,
+                right: 0,
+                bottom: 0,
+                background: 'linear-gradient(to bottom, rgba(0,0,0,0) 0%, rgba(0,0,0,0.7) 100%)',
+              }}
+            />
           </Box>
         </Box>
       </Card>

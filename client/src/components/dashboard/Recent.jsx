@@ -8,6 +8,8 @@ const Recent = ({ recent }) => {
   //   if (!recent.length) return <PulseLoader color={"#FFF"} />;
   // }, []);
 
+  
+
   return (
     <Box
       width="100%"

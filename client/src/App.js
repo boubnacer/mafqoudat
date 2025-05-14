@@ -24,7 +24,7 @@ import useAuth from "./hooks/useAuth";
 import PrefetchDependencies from "./features/PrefetchData/PrefetchDependencies";
 
 function App() {
-  useTitle("Dan D. Repairs");
+  // useTitle("Dan D. Repairs");
 
   const mode = useSelector((state) => state.global.mode);
   const theme = React.useMemo(() => {
@@ -52,8 +52,10 @@ function App() {
         <Route element={<PrefetchDependencies />}>
           <Route path="/" element={<Layout />}>
             {/* public routes */}
+
+            
             <Route index element={<Login />} />
-            <Route path="signup" element={<NewUser />} />
+            <Route path="signup" element={< NewUser />} />
 
             <Route element={<PersistLogin />}>
               <Route element={<Prefetch />}>

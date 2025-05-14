@@ -7,6 +7,7 @@ import {
   Typography,
   useMediaQuery,
   useTheme,
+  styled,
 } from "@mui/material";
 import {
   DarkModeOutlined,
@@ -43,6 +44,61 @@ import LanguageToggle from "../lang/LanguageToggle";
 import { useTranslation } from "react-i18next";
 import RenderIcon from "./RenderIcon";
 
+const StyledToolbar = styled(Toolbar)(({ theme }) => ({
+  justifyContent: "space-between",
+  background: theme.palette.mode === 'dark' 
+    ? 'linear-gradient(to right, #1a1b1c, #242526)' 
+    : 'linear-gradient(to right, #ffffff, #f8f9fa)',
+  padding: "0.75rem 2rem",
+  borderBottom: `1px solid ${theme.palette.mode === 'dark' ? '#333333' : '#e0e0e0'}`,
+  boxShadow: '0 2px 4px rgba(0,0,0,0.05)',
+}));
+
+const LogoButton = styled(Button)(({ theme }) => ({
+  color: theme.palette.mode === 'dark' ? '#fff' : '#000',
+  fontSize: '1.2rem',
+  fontWeight: 600,
+  padding: '8px 16px',
+  borderRadius: '8px',
+  transition: 'all 0.3s ease',
+  '&:hover': {
+    background: theme.palette.mode === 'dark' 
+      ? 'rgba(255,255,255,0.1)' 
+      : 'rgba(0,0,0,0.05)',
+    transform: 'translateY(-1px)',
+  },
+}));
+
+const ActionButton = styled(IconButton)(({ theme }) => ({
+  color: theme.palette.mode === 'dark' ? '#fff' : '#000',
+  transition: 'all 0.2s ease',
+  margin: '0 4px',
+  '&:hover': {
+    background: theme.palette.mode === 'dark' 
+      ? 'rgba(255,255,255,0.1)' 
+      : 'rgba(0,0,0,0.05)',
+    transform: 'scale(1.1)',
+  },
+}));
+
+const CountrySelector = styled(Box)(({ theme }) => ({
+  display: 'flex',
+  alignItems: 'center',
+  padding: '4px 8px',
+  borderRadius: '8px',
+  cursor: 'pointer',
+  transition: 'all 0.2s ease',
+  '&:hover': {
+    background: theme.palette.mode === 'dark' 
+      ? 'rgba(255,255,255,0.1)' 
+      : 'rgba(0,0,0,0.05)',
+  },
+  '& img': {
+    borderRadius: '4px',
+    marginRight: '4px',
+  },
+}));
+
 const Navbar = () => {
   const { country } = useAuth();
   const theme = useTheme();
@@ -56,11 +112,21 @@ const Navbar = () => {
 
   const [countryId, setCountryId] = useState(country);
 
+  useEffect(() => {
+    dispatch(
+      setCurrentCountry({
+        currentCountry: countryId,
+      })
+    );
+  }, [currentCountry, countryId]);
+
   const { countries } = useGetCountriesQuery("countriesList", {
     selectFromResult: ({ data }) => ({
       countries: data?.ids.map((id) => data?.entities[id]),
     }),
   });
+
+  
 
   const { code } = useGetCountriesQuery("countriesList", {
     selectFromResult: ({ data }) => ({
@@ -78,13 +144,7 @@ const Navbar = () => {
   //   );
   // });
 
-  useEffect(() => {
-    dispatch(
-      setCurrentCountry({
-        currentCountry: countryId,
-      })
-    );
-  }, [currentCountry, countryId]);
+
 
   const [sendLogout, { isLoading, isSuccess, isError, error }] =
     useSendLogoutMutation();
@@ -102,29 +162,15 @@ const Navbar = () => {
   return (
     <AppBar
       sx={{
-        // position: "static",
-        // background: theme.palette.primary,
-        boxShadow: "none",
-        // borderBottom: "1px solid #333333",
+        boxShadow: 'none',
       }}
     >
-      <Toolbar
-        sx={{
-          justifyContent: "space-between",
-          background: "#242526",
-          // padding: "0.5rem 0",
-        }}
-      >
+      <StyledToolbar>
         {/* logo ---------- */}
-        <Button
-          onClick={onGoHomeClicked}
-          sx={{
-            color: theme.palette.textColor.links,
-            "& > .css-1b9bpml-MuiButtonBase-root-MuiButton-root": {},
-          }}
-        >
+        <LogoButton onClick={onGoHomeClicked}>
           {t("mafkoudat")}
-        </Button>
+        </LogoButton>
+        
         <CountryModal
           setCountryId={setCountryId}
           countries={countries}
@@ -132,49 +178,48 @@ const Navbar = () => {
         />
 
         {/* mobile links------ */}
-        <IconButton
+        <ActionButton
           onClick={() => dispatch(setIsSidebarOpen())}
           sx={{ display: isMobile ? "block" : "none" }}
         >
           <Menu sx={{ fontSize: "25px" }} />
-        </IconButton>
+        </ActionButton>
 
         {/* nav links --------- */}
         {!isMobile && <NavLinks />}
 
-        {/* country --------- */}
-        <FlexBetween sx={{ gap: "2px" }}>
-          <Box sx={{ display: "flex", alignItems: "center" }}>
+        {/* Right side actions */}
+        <FlexBetween sx={{ gap: "16px" }}>
+          {/* country selector */}
+          <CountrySelector onClick={() => dispatch(setOpenModal())}>
             <img
-              onClick={() => dispatch(setOpenModal())}
               loading="lazy"
               width="30"
               height="20"
               src={`https://flagcdn.com/w20/${code.code.toLowerCase()}.png`}
               srcSet={`https://flagcdn.com/w40/${code.code.toLowerCase()}.png 2x`}
               alt=""
-              style={{ cursor: "pointer" }}
             />
             <RenderIcon name="arrowDown" />
-          </Box>
+          </CountrySelector>
 
           {/* language ---- */}
           <LanguageToggle />
 
           {/* light/dark mode  ------- */}
-          <IconButton onClick={() => dispatch(setMode())}>
+          <ActionButton onClick={() => dispatch(setMode())}>
             {theme.palette.mode === "dark" ? (
-              <LightModeOutlined sx={{ fontSize: "25px" }} />
+              <LightModeOutlined sx={{ fontSize: "22px" }} />
             ) : (
-              <DarkModeOutlined sx={{ fontSize: "25px" }} />
+              <DarkModeOutlined sx={{ fontSize: "22px" }} />
             )}
-          </IconButton>
+          </ActionButton>
 
-          <IconButton onClick={sendLogout}>
-            <LogoutOutlined sx={{ fontSize: "25px" }} />
-          </IconButton>
+          <ActionButton onClick={sendLogout}>
+            <LogoutOutlined sx={{ fontSize: "22px" }} />
+          </ActionButton>
         </FlexBetween>
-      </Toolbar>
+      </StyledToolbar>
     </AppBar>
   );
 };

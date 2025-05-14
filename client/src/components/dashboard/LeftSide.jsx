@@ -1,4 +1,4 @@
-import React, { useEffect } from "react";
+import React from "react";
 import TotalBox from "../TotalBox";
 import { Box, Typography, useTheme } from "@mui/material";
 import {
@@ -26,54 +26,97 @@ const LeftSide = ({
   foundsToday,
   lostsToday,
 }) => {
-  // useEffect(() => {
-  //   if (!totalFounds || !totalLosts || !totalPosts)
-  //     return <PulseLoader color={"#FFF"} />;
-  // }, []);
-
   const theme = useTheme();
 
+  // if (!totalFounds || !totalLosts || !totalPosts || !foundsToday || !lostsToday)
+  //   return <PulseLoader color={"#FFF"} />;
+
   return (
-    <Box flex={1}>
+    <Box 
+      flex={1}
+      sx={{
+        background: 'linear-gradient(135deg, rgba(255,255,255,0.05) 0%, rgba(255,255,255,0.02) 100%)',
+        backdropFilter: 'blur(10px)',
+        borderRadius: '16px',
+        border: '1px solid rgba(255,255,255,0.08)',
+        padding: '24px',
+        boxShadow: '0 8px 32px 0 rgba(0,0,0,0.1)',
+      }}
+    >
       <Box
-        gap="1rem"
+        gap="1.5rem"
         sx={{
-          display: { xs: "flex", sm: "grid" },
-          gridTemplateColumns: "repeat(2, 1fr)",
+          display: "grid",
+          gridTemplateColumns: {
+            xs: "1fr",
+            sm: "repeat(2, 1fr)",
+            md: "repeat(2, 1fr)",
+          },
           height: "100%",
         }}
       >
         <TotalBox
-          title="Total of Found things"
+          title="Found Items"
           value={totalFounds}
           increase="+14%"
-          // backgroundCol={theme.palette.floptions.back}
           description={`+ ${foundsToday} today`}
-          icon={<RenderIcon name="roadmapf" />}
+          icon={<RenderIcon name="Found" />}
+          sx={{
+            background: 'linear-gradient(135deg, #4CAF50 0%, #388E3C 100%)',
+            borderRadius: '12px',
+            transition: 'transform 0.3s ease',
+            '&:hover': {
+              transform: 'translateY(-5px)',
+            }
+          }}
         />
 
         <TotalBox
-          title="Total of Lost things"
+          title="Lost Items"
           value={totalLosts}
           increase="+21%"
           description={`+ ${lostsToday} today`}
-          icon={<RenderIcon name="roadmapl" />}
+          icon={<RenderIcon name="Lost" />}
+          sx={{
+            background: 'linear-gradient(135deg, #FF9800 0%, #F57C00 100%)',
+            borderRadius: '12px',
+            transition: 'transform 0.3s ease',
+            '&:hover': {
+              transform: 'translateY(-5px)',
+            }
+          }}
         />
 
         <TotalBox
-          title="Total"
+          title="Total Items"
           value={totalPosts}
           increase="+5%"
           description="Since last month"
           icon={<RenderIcon name="total" />}
+          sx={{
+            background: 'linear-gradient(135deg, #2196F3 0%, #1976D2 100%)',
+            borderRadius: '12px',
+            transition: 'transform 0.3s ease',
+            '&:hover': {
+              transform: 'translateY(-5px)',
+            }
+          }}
         />
 
         <TotalBox
-          title="Returned to its owner"
+          title="Returned Items"
           value="0"
           increase="+5%"
           description="Since last month"
           icon={<RenderIcon name="returned" />}
+          sx={{
+            background: 'linear-gradient(135deg, #9C27B0 0%, #7B1FA2 100%)',
+            borderRadius: '12px',
+            transition: 'transform 0.3s ease',
+            '&:hover': {
+              transform: 'translateY(-5px)',
+            }
+          }}
         />
       </Box>
 

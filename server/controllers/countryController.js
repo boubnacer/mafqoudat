@@ -10,7 +10,7 @@ const getCountries = async (req, res) => {
 };
 
 const createCountry = async (req, res) => {
-  const newcountry = { code: "Amereca" };
+  const newcountry = { code: "Morocco" };
 
   const addedCountry = await Country.create(newcountry);
 

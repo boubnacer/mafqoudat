@@ -37,13 +37,16 @@ import RoadMap from "../../components/dashboard/RoadMap";
 import Process from "../../components/dashboard/Process";
 
 const lostsId = "63cc3484bc901245d3a1cb5a";
-const foundsId = "63cc34613e5e7407436e09a5";
+const foundsId = "66e60c25420ca2a42499b924";
 
 const Dash = () => {
   const dispatch = useDispatch();
   const navigate = useNavigate();
 
   const currentCountry = useSelector(selectCurrentCountry);
+  
+
+  
 
   // currentCountry && localStorage.setItem("country", currentCountry);
   // const storedCountry = localStorage.getItem("country");
@@ -74,6 +77,10 @@ const Dash = () => {
   if (isError) console.log(data?.error?.message);
 
   if (!data) return <PulseLoader color={"#FFF"} />;
+
+  if (!currentCountry) return <PulseLoader color={"#FFF"}/>
+
+
 
   return (
     <Box pt="5.7rem" width="100%">

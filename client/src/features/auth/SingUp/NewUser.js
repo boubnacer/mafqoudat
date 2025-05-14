@@ -1,5 +1,6 @@
 import NewUserForm from "./NewUserForm";
 import { useGetCountriesQuery } from "../../countries/countriesApiSlice";
+import PulseLoader from "react-spinners/PulseLoader";
 
 const NewUser = () => {
   const { countries } = useGetCountriesQuery("countriesList", {
@@ -8,7 +9,7 @@ const NewUser = () => {
     }),
   });
 
-  if (!countries) return <p>no countries found</p>;
+  if (!countries) return <p><PulseLoader/></p>;
 
   const content = <NewUserForm countries={countries} />;
 

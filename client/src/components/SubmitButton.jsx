@@ -18,7 +18,7 @@ const SubmitButton = ({ children, ...otherProps }) => {
     <Button
       // type="submit"
       sx={{
-        backgroundColor: theme.palette.primary.main,
+        backgroundColor: theme.palette.action.main,
         color: "#fff",
         width: "40%",
         marginTop: "1.5rem",

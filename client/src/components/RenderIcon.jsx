@@ -14,6 +14,7 @@ import {
   East,
   FacebookOutlined,
   FiberManualRecord,
+  HomeOutlined,
   Instagram,
   KeyOutlined,
   KeyboardArrowRightOutlined,
@@ -23,6 +24,8 @@ import {
   NotificationsActiveOutlined,
   Person,
   PersonOutlineOutlined,
+  PersonOutlined,
+  PlaceOutlined,
   ShareOutlined,
   SouthEast,
   SwapVertOutlined,
@@ -47,33 +50,33 @@ const RenderIcon = ({ name }) => {
     ) : name === "Lost" ? (
       <SouthEast sx={{ fontSize: "20px", color: "#757575" }} />
     ) : name === "returned" ? (
-      <UndoOutlined
+      <HomeOutlined
         sx={{
           fontSize: "20px",
-          color: "#FFC107",
+          color: "#ECEFF1",
         }}
       />
     ) : name === "total" ? (
-      <SwapVertOutlined sx={{ fontSize: "26px", color: "#AAAAAA" }} />
-    ) : name === "Foundfl" ||
-      name === "Lostfl" ||
+      <TimelineOutlined sx={{ fontSize: "26px", color: "#B0BEC5" }} />
+    ) : name === "foundfl" ||
+      name === "lostfl" ||
       name === "roadmapl" ||
       name === "roadmapf" ? (
-      <FiberManualRecord
+      <NorthEast
         sx={{
           fontSize:
-            name === "roadmapf" || name === "roadmapl" ? "18px" : "12px",
+            name === "roadmapf" || name === "roadmapl" ? "18px" : "14px",
           color:
-            name === "Lostfl" || name === "roadmapl"
+            name === "lostfl" || name === "roadmapl"
               ? theme.palette.floptions.lost.text
               : theme.palette.floptions.found.text,
         }}
       />
     ) : // Categories---------------------------------------------------------------
     name === "person" || name === "personcate" || name === "personrece" ? (
-      <Person
+      <PersonOutlined
         sx={{
-          color: theme.palette.categories.personcate.icon,
+          color: "#B0BEC5",
           fontSize:
             name === "personcate"
               ? "2rem"
@@ -85,16 +88,16 @@ const RenderIcon = ({ name }) => {
           padding: name === "personrece" && "0.5rem",
         }}
       />
-    ) : name === "Bag" || name === "Bagcate" || name === "Bagrece" ? (
+    ) : name === "bag" || name === "bagcate" || name === "bagrece" ? (
       <WorkOutlineOutlined
         sx={{
-          color: theme.palette.categories.bagcate.icon,
+          color: name === "bagrece" ? theme.palette.categories.bagcate.icon : "#A8ABAF",
           fontSize:
-            name === "Bagcate"
+            name === "bagcate"
               ? "2rem"
-              : name === "Bagrece"
+              : name === "bagrece"
               ? "2.5rem"
-              : name === "Bag"
+              : name === "bag"
               ? "20px"
               : "",
 
@@ -199,10 +202,10 @@ const RenderIcon = ({ name }) => {
       />
     ) : // other
     name === "location" || name === "locat" ? (
-      <LocationOn
+      <PlaceOutlined
         sx={{
           color:
-            name === "location" ? "#e74c3c" : name === "locat" ? "#A8ABAF" : "",
+            name === "location" ? "#A8ABAF" : name === "locat" ? "#A8ABAF" : "",
           fontSize: "20px",
         }}
       /> // #777777 #A8ABAF
@@ -213,10 +216,10 @@ const RenderIcon = ({ name }) => {
     ) : name === "view" ? (
       <KeyboardArrowRightOutlined />
     ) : name == "time" || name === "timerace" ? (
-      <AccessTimeFilled
+      <AccessTimeOutlined
         sx={{
           color:
-            name === "time" ? "#ffd700" : name === "timerace" ? "#A8ABAF" : "",
+            name === "time" ? "#AFB2B7" : name === "timerace" ? "#AFB2B7" : "",
           fontSize: "20px",
         }}
       />
