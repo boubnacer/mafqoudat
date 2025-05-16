@@ -35,16 +35,16 @@ const LeftSide = ({
     <Box 
       flex={1}
       sx={{
-        background: 'linear-gradient(135deg, rgba(255,255,255,0.05) 0%, rgba(255,255,255,0.02) 100%)',
+        background: 'linear-gradient(135deg, rgba(18,18,18,0.95) 0%, rgba(28,28,28,0.95) 100%)',
         backdropFilter: 'blur(10px)',
-        borderRadius: '16px',
+        borderRadius: '24px',
         border: '1px solid rgba(255,255,255,0.08)',
-        padding: '24px',
-        boxShadow: '0 8px 32px 0 rgba(0,0,0,0.1)',
+        padding: '2rem',
+        boxShadow: '0 8px 32px 0 rgba(0,0,0,0.15)',
       }}
     >
       <Box
-        gap="1.5rem"
+        gap="2rem"
         sx={{
           display: "grid",
           gridTemplateColumns: {
@@ -62,12 +62,8 @@ const LeftSide = ({
           description={`+ ${foundsToday} today`}
           icon={<RenderIcon name="Found" />}
           sx={{
-            background: 'linear-gradient(135deg, #4CAF50 0%, #388E3C 100%)',
-            borderRadius: '12px',
-            transition: 'transform 0.3s ease',
-            '&:hover': {
-              transform: 'translateY(-5px)',
-            }
+            background: 'linear-gradient(135deg, rgba(72, 187, 120, 0.1) 0%, rgba(72, 187, 120, 0.05) 100%)',
+            border: '1px solid rgba(72, 187, 120, 0.2)',
           }}
         />
 
@@ -78,12 +74,8 @@ const LeftSide = ({
           description={`+ ${lostsToday} today`}
           icon={<RenderIcon name="Lost" />}
           sx={{
-            background: 'linear-gradient(135deg, #FF9800 0%, #F57C00 100%)',
-            borderRadius: '12px',
-            transition: 'transform 0.3s ease',
-            '&:hover': {
-              transform: 'translateY(-5px)',
-            }
+            background: 'linear-gradient(135deg, rgba(245, 101, 101, 0.1) 0%, rgba(245, 101, 101, 0.05) 100%)',
+            border: '1px solid rgba(245, 101, 101, 0.2)',
           }}
         />
 
@@ -94,12 +86,8 @@ const LeftSide = ({
           description="Since last month"
           icon={<RenderIcon name="total" />}
           sx={{
-            background: 'linear-gradient(135deg, #2196F3 0%, #1976D2 100%)',
-            borderRadius: '12px',
-            transition: 'transform 0.3s ease',
-            '&:hover': {
-              transform: 'translateY(-5px)',
-            }
+            background: 'linear-gradient(135deg, rgba(66, 153, 225, 0.1) 0%, rgba(66, 153, 225, 0.05) 100%)',
+            border: '1px solid rgba(66, 153, 225, 0.2)',
           }}
         />
 
@@ -110,12 +98,8 @@ const LeftSide = ({
           description="Since last month"
           icon={<RenderIcon name="returned" />}
           sx={{
-            background: 'linear-gradient(135deg, #9C27B0 0%, #7B1FA2 100%)',
-            borderRadius: '12px',
-            transition: 'transform 0.3s ease',
-            '&:hover': {
-              transform: 'translateY(-5px)',
-            }
+            background: 'linear-gradient(135deg, rgba(159, 122, 234, 0.1) 0%, rgba(159, 122, 234, 0.05) 100%)',
+            border: '1px solid rgba(159, 122, 234, 0.2)',
           }}
         />
       </Box>
