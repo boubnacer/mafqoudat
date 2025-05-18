@@ -8,6 +8,7 @@ import {
   useMediaQuery,
   useTheme,
   styled,
+  alpha,
 } from "@mui/material";
 import {
   DarkModeOutlined,
@@ -46,56 +47,87 @@ import RenderIcon from "./RenderIcon";
 
 const StyledToolbar = styled(Toolbar)(({ theme }) => ({
   justifyContent: "space-between",
-  background: theme.palette.mode === 'dark' 
-    ? 'linear-gradient(to right, #1a1b1c, #242526)' 
-    : 'linear-gradient(to right, #ffffff, #f8f9fa)',
-  padding: "0.75rem 2rem",
-  borderBottom: `1px solid ${theme.palette.mode === 'dark' ? '#333333' : '#e0e0e0'}`,
-  boxShadow: '0 2px 4px rgba(0,0,0,0.05)',
+  background: theme.palette.mode === 'dark'
+    ? `rgba(23, 25, 35, 0.8)`
+    : `rgba(255, 255, 255, 0.8)`,
+  backdropFilter: 'blur(12px)',
+  padding: "1rem 2rem",
+  borderBottom: `1px solid ${alpha(theme.palette.divider, 0.1)}`,
+  boxShadow: theme.palette.mode === 'dark' 
+    ? '0 4px 30px rgba(0, 0, 0, 0.1)'
+    : '0 4px 30px rgba(0, 0, 0, 0.05)',
+  transition: 'all 0.3s ease',
+  [theme.breakpoints.down('sm')]: {
+    padding: "0.75rem 1rem",
+  }
 }));
 
 const LogoButton = styled(Button)(({ theme }) => ({
   color: theme.palette.mode === 'dark' ? '#fff' : '#000',
-  fontSize: '1.2rem',
-  fontWeight: 600,
-  padding: '8px 16px',
-  borderRadius: '8px',
+  fontSize: '1.3rem',
+  fontWeight: 700,
+  padding: '10px 20px',
+  borderRadius: '12px',
   transition: 'all 0.3s ease',
+  position: 'relative',
+  overflow: 'hidden',
+  '&:before': {
+    content: '""',
+    position: 'absolute',
+    top: 0,
+    left: 0,
+    width: '100%',
+    height: '100%',
+    background: theme.palette.primary.main,
+    opacity: 0,
+    transition: 'all 0.3s ease',
+    zIndex: -1,
+  },
   '&:hover': {
-    background: theme.palette.mode === 'dark' 
-      ? 'rgba(255,255,255,0.1)' 
-      : 'rgba(0,0,0,0.05)',
-    transform: 'translateY(-1px)',
+    transform: 'translateY(-2px)',
+    '&:before': {
+      opacity: 0.1,
+    }
   },
 }));
 
 const ActionButton = styled(IconButton)(({ theme }) => ({
   color: theme.palette.mode === 'dark' ? '#fff' : '#000',
-  transition: 'all 0.2s ease',
-  margin: '0 4px',
+  transition: 'all 0.3s ease',
+  margin: '0 6px',
+  padding: '12px',
+  borderRadius: '12px',
+  background: theme.palette.mode === 'dark' 
+    ? alpha(theme.palette.common.white, 0.05)
+    : alpha(theme.palette.common.black, 0.05),
   '&:hover': {
     background: theme.palette.mode === 'dark' 
-      ? 'rgba(255,255,255,0.1)' 
-      : 'rgba(0,0,0,0.05)',
-    transform: 'scale(1.1)',
+      ? alpha(theme.palette.common.white, 0.1)
+      : alpha(theme.palette.common.black, 0.1),
+    transform: 'translateY(-2px)',
   },
 }));
 
 const CountrySelector = styled(Box)(({ theme }) => ({
   display: 'flex',
   alignItems: 'center',
-  padding: '4px 8px',
-  borderRadius: '8px',
+  padding: '8px 16px',
+  borderRadius: '12px',
   cursor: 'pointer',
-  transition: 'all 0.2s ease',
+  background: theme.palette.mode === 'dark' 
+    ? alpha(theme.palette.common.white, 0.05)
+    : alpha(theme.palette.common.black, 0.05),
+  transition: 'all 0.3s ease',
   '&:hover': {
     background: theme.palette.mode === 'dark' 
-      ? 'rgba(255,255,255,0.1)' 
-      : 'rgba(0,0,0,0.05)',
+      ? alpha(theme.palette.common.white, 0.1)
+      : alpha(theme.palette.common.black, 0.1),
+    transform: 'translateY(-2px)',
   },
   '& img': {
-    borderRadius: '4px',
-    marginRight: '4px',
+    borderRadius: '6px',
+    marginRight: '8px',
+    transition: 'all 0.3s ease',
   },
 }));
 
@@ -163,35 +195,43 @@ const Navbar = () => {
     <AppBar
       sx={{
         boxShadow: 'none',
+        position: 'fixed',
+        top: 0,
+        left: 0,
+        right: 0,
+        zIndex: (theme) => theme.zIndex.drawer + 1,
       }}
     >
       <StyledToolbar>
-        {/* logo ---------- */}
-        <LogoButton onClick={onGoHomeClicked}>
-          {t("mafkoudat")}
-        </LogoButton>
-        
-        <CountryModal
-          setCountryId={setCountryId}
-          countries={countries}
-          openModal={openModal}
-        />
+        {/* Left section: Logo */}
+        <Box sx={{ 
+          display: 'flex', 
+          alignItems: 'center',
+          gap: { xs: '0.5rem', sm: '2rem' }
+        }}>
+          <LogoButton 
+            onClick={onGoHomeClicked}
+            sx={{
+              fontSize: { xs: '1rem', sm: '1.2rem' },
+              padding: { xs: '6px 12px', sm: '8px 16px' },
+            }}
+          >
+            {t("mafkoudat")}
+          </LogoButton>
 
-        {/* mobile links------ */}
-        <ActionButton
-          onClick={() => dispatch(setIsSidebarOpen())}
-          sx={{ display: isMobile ? "block" : "none" }}
-        >
-          <Menu sx={{ fontSize: "25px" }} />
-        </ActionButton>
+          {/* Nav links - desktop only */}
+          {!isMobile && <NavLinks />}
+        </Box>
 
-        {/* nav links --------- */}
-        {!isMobile && <NavLinks />}
-
-        {/* Right side actions */}
-        <FlexBetween sx={{ gap: "16px" }}>
-          {/* country selector */}
-          <CountrySelector onClick={() => dispatch(setOpenModal())}>
+        {/* Right section: Actions */}
+        <FlexBetween sx={{ gap: { xs: '6px', sm: '12px' } }}>
+          {/* Country selector - always visible */}
+          <CountrySelector 
+            onClick={() => dispatch(setOpenModal())}
+            sx={{
+              padding: { xs: '6px 8px', sm: '8px 16px' },
+            }}
+          >
             <img
               loading="lazy"
               width="30"
@@ -203,11 +243,16 @@ const Navbar = () => {
             <RenderIcon name="arrowDown" />
           </CountrySelector>
 
-          {/* language ---- */}
+          {/* Language toggle - always visible */}
           <LanguageToggle />
 
-          {/* light/dark mode  ------- */}
-          <ActionButton onClick={() => dispatch(setMode())}>
+          {/* Theme toggle - desktop only */}
+          <ActionButton 
+            onClick={() => dispatch(setMode())}
+            sx={{
+              display: { xs: 'none', sm: 'flex' }
+            }}
+          >
             {theme.palette.mode === "dark" ? (
               <LightModeOutlined sx={{ fontSize: "22px" }} />
             ) : (
@@ -215,10 +260,33 @@ const Navbar = () => {
             )}
           </ActionButton>
 
-          <ActionButton onClick={sendLogout}>
+          {/* Mobile menu button */}
+          <ActionButton
+            onClick={() => dispatch(setIsSidebarOpen())}
+            sx={{ 
+              display: { xs: 'flex', sm: 'none' }
+            }}
+          >
+            <Menu sx={{ fontSize: "22px" }} />
+          </ActionButton>
+
+          {/* Logout button - desktop only */}
+          <ActionButton 
+            onClick={sendLogout}
+            sx={{
+              display: { xs: 'none', sm: 'flex' }
+            }}
+          >
             <LogoutOutlined sx={{ fontSize: "22px" }} />
           </ActionButton>
         </FlexBetween>
+
+        {/* Country Modal */}
+        <CountryModal
+          setCountryId={setCountryId}
+          countries={countries}
+          openModal={openModal}
+        />
       </StyledToolbar>
     </AppBar>
   );
