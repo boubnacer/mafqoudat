@@ -6,6 +6,7 @@ import {
   CardMedia,
   Typography,
   useTheme,
+  useMediaQuery,
 } from "@mui/material";
 import FlexBetween from "../FlexBetween";
 import RenderIcon from "../RenderIcon";
@@ -15,6 +16,7 @@ import ma from "../../img/ma.jpg";
 const TrendingItem = ({ trend, isLoading }) => {
   const { categoryName, floptionName, region, image, createdAt } = trend[0] || {};
   const theme = useTheme();
+  const isMobile = useMediaQuery(theme.breakpoints.down('sm'));
 
   if (isLoading) return <PulseLoader />;
   if (!trend[0]) return <PulseLoader />;
@@ -43,9 +45,48 @@ const TrendingItem = ({ trend, isLoading }) => {
           height: '100%'
         }}
       >
-        <Box sx={{ display: 'flex', height: '100%' }}>
-          <Box sx={{ flex: 1, position: 'relative' }}>
-            <CardContent sx={{ height: '100%', position: 'relative', padding: '2rem' }}>
+        <Box sx={{ 
+          display: 'flex', 
+          height: '100%',
+          flexDirection: isMobile ? 'column' : 'row'
+        }}>
+          <Box sx={{ 
+            flex: isMobile ? 'auto' : 1.2,
+            position: 'relative',
+            height: isMobile ? '200px' : 'auto'
+          }}>
+            <CardMedia
+              component="img"
+              height="100%"
+              image={image ? `http://localhost:3500/${image}` : ma}
+              title={image}
+              sx={{
+                objectFit: 'cover',
+              }}
+            />
+            <Box
+              sx={{
+                position: 'absolute',
+                top: 0,
+                left: 0,
+                right: 0,
+                bottom: 0,
+                background: 'linear-gradient(to bottom, rgba(0,0,0,0) 0%, rgba(0,0,0,0.7) 100%)',
+              }}
+            />
+          </Box>
+
+          <Box sx={{ 
+            flex: isMobile ? 'auto' : 1, 
+            position: 'relative',
+            minHeight: isMobile ? '300px' : 'auto'
+          }}>
+            <CardContent sx={{ 
+              height: '100%', 
+              position: 'relative', 
+              padding: '2rem',
+              paddingBottom: '80px' // Space for the button
+            }}>
               <FlexBetween>
                 <Box
                   sx={{
@@ -158,28 +199,6 @@ const TrendingItem = ({ trend, isLoading }) => {
                 </Button>
               </Box>
             </CardContent>
-          </Box>
-
-          <Box sx={{ flex: 1.2, position: 'relative' }}>
-            <CardMedia
-              component="img"
-              height="100%"
-              image={image ? `http://localhost:3500/${image}` : ma}
-              title={image}
-              sx={{
-                objectFit: 'cover',
-              }}
-            />
-            <Box
-              sx={{
-                position: 'absolute',
-                top: 0,
-                left: 0,
-                right: 0,
-                bottom: 0,
-                background: 'linear-gradient(to bottom, rgba(0,0,0,0) 0%, rgba(0,0,0,0.7) 100%)',
-              }}
-            />
           </Box>
         </Box>
       </Card>
