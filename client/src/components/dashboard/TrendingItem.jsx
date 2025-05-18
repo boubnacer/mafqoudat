@@ -20,29 +20,40 @@ const TrendingItem = ({ trend, isLoading }) => {
   if (!trend[0]) return <PulseLoader />;
 
   return (
-    <Box flex={1.3}>
+    <Box flex={1}>
       <Card
         sx={{
-          background: 'linear-gradient(135deg, rgba(60,60,60,0.95) 0%, rgba(30,30,30,0.95) 100%)',
+          background: theme.palette.mode === 'dark'
+            ? 'linear-gradient(135deg, rgba(18,18,18,0.95) 0%, rgba(28,28,28,0.95) 100%)'
+            : 'linear-gradient(135deg, rgba(255,255,255,0.95) 0%, rgba(248,249,250,0.95) 100%)',
           backdropFilter: 'blur(10px)',
-          borderRadius: '16px',
-          border: '1px solid rgba(255,255,255,0.08)',
+          borderRadius: '24px',
+          border: `1px solid ${theme.palette.mode === 'dark' ? 'rgba(255,255,255,0.08)' : 'rgba(0,0,0,0.08)'}`,
           overflow: 'hidden',
-          transition: 'transform 0.3s ease',
+          transition: 'transform 0.3s ease, box-shadow 0.3s ease',
+          boxShadow: theme.palette.mode === 'dark'
+            ? '0 8px 32px 0 rgba(0,0,0,0.15)'
+            : '0 8px 32px 0 rgba(0,0,0,0.05)',
           '&:hover': {
             transform: 'translateY(-5px)',
-          }
+            boxShadow: theme.palette.mode === 'dark'
+              ? '0 12px 40px 0 rgba(0,0,0,0.2)'
+              : '0 12px 40px 0 rgba(0,0,0,0.1)',
+          },
+          height: '100%'
         }}
       >
         <Box sx={{ display: 'flex', height: '100%' }}>
           <Box sx={{ flex: 1, position: 'relative' }}>
-            <CardContent sx={{ height: '100%', position: 'relative' }}>
+            <CardContent sx={{ height: '100%', position: 'relative', padding: '2rem' }}>
               <FlexBetween>
                 <Box
                   sx={{
                     display: 'flex',
                     alignItems: 'center',
-                    background: 'rgba(77, 77, 77, 0.5)',
+                    background: theme.palette.mode === 'dark'
+                      ? 'rgba(255,255,255,0.05)'
+                      : 'rgba(0,0,0,0.05)',
                     padding: '8px 16px',
                     borderRadius: '12px',
                     gap: '8px',
@@ -53,7 +64,7 @@ const TrendingItem = ({ trend, isLoading }) => {
                   <Typography
                     variant="category"
                     sx={{
-                      color: '#E0E0E0',
+                      color: theme.palette.mode === 'dark' ? '#E0E0E0' : '#2D3748',
                       fontWeight: 500,
                       fontSize: '14px',
                     }}
@@ -65,9 +76,13 @@ const TrendingItem = ({ trend, isLoading }) => {
                   sx={{
                     display: 'flex',
                     alignItems: 'center',
-                    background: floptionName === "Found" 
-                      ? 'linear-gradient(135deg, #4CAF50 0%, #388E3C 100%)'
-                      : 'linear-gradient(135deg, #FF9800 0%, #F57C00 100%)',
+                    background: floptionName === "Found"
+                      ? theme.palette.mode === 'dark'
+                        ? 'linear-gradient(135deg, rgba(72, 187, 120, 0.2) 0%, rgba(72, 187, 120, 0.1) 100%)'
+                        : 'linear-gradient(135deg, rgba(72, 187, 120, 0.3) 0%, rgba(72, 187, 120, 0.2) 100%)'
+                      : theme.palette.mode === 'dark'
+                        ? 'linear-gradient(135deg, rgba(245, 101, 101, 0.2) 0%, rgba(245, 101, 101, 0.1) 100%)'
+                        : 'linear-gradient(135deg, rgba(245, 101, 101, 0.3) 0%, rgba(245, 101, 101, 0.2) 100%)',
                     padding: '8px 16px',
                     borderRadius: '24px',
                     gap: '8px',
@@ -75,7 +90,9 @@ const TrendingItem = ({ trend, isLoading }) => {
                 >
                   <Typography
                     sx={{
-                      color: '#FFFFFF',
+                      color: floptionName === "Found"
+                        ? theme.palette.mode === 'dark' ? '#48BB78' : '#2F855A'
+                        : theme.palette.mode === 'dark' ? '#F56565' : '#C53030',
                       fontSize: '14px',
                       fontWeight: 500,
                     }}
@@ -97,7 +114,7 @@ const TrendingItem = ({ trend, isLoading }) => {
                 <RenderIcon name="time" />
                 <Typography
                   sx={{
-                    color: '#E0E0E0',
+                    color: theme.palette.mode === 'dark' ? '#A0AEC0' : '#4A5568',
                     fontSize: '14px',
                     fontWeight: 500,
                   }}
@@ -109,24 +126,30 @@ const TrendingItem = ({ trend, isLoading }) => {
               <Box
                 sx={{
                   position: 'absolute',
-                  bottom: '16px',
-                  left: '16px',
-                  right: '16px',
+                  bottom: '24px',
+                  left: '24px',
+                  right: '24px',
                 }}
               >
                 <Button
                   fullWidth
                   sx={{
-                    color: theme.palette.textColor.main,
-                    background: 'rgba(255,255,255,0.05)',
+                    color: theme.palette.mode === 'dark' ? '#E0E0E0' : '#2D3748',
+                    background: theme.palette.mode === 'dark'
+                      ? 'rgba(255,255,255,0.05)'
+                      : 'rgba(0,0,0,0.05)',
                     backdropFilter: 'blur(5px)',
                     borderRadius: '12px',
                     padding: '12px',
                     textTransform: 'none',
                     fontSize: '14px',
                     fontWeight: 500,
+                    transition: 'all 0.3s ease',
                     '&:hover': {
-                      background: 'rgba(255,255,255,0.1)',
+                      background: theme.palette.mode === 'dark'
+                        ? 'rgba(255,255,255,0.1)'
+                        : 'rgba(0,0,0,0.1)',
+                      transform: 'translateY(-2px)',
                     }
                   }}
                   endIcon={<RenderIcon name="view" />}

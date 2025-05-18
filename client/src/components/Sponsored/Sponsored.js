@@ -28,10 +28,15 @@ const Sponsored = ({ post }) => {
   };
 
   return (
-    <Link to={`/dash/posts/${post.id}`}>
+    <Link to={`/dash/posts/${post.id}`} className="sponsored__link">
       <div className="sponsored__card">
         <div className="sponsored__info">
-          <h3>{post.category}</h3>
+          <div className="sponsored__header">
+            <h3>{post.category}</h3>
+            <div className={`status-badge ${post.foundLost?.toLowerCase()}`}>
+              {post.foundLost}
+            </div>
+          </div>
           <h4>{post.region}</h4>
           <small>{post.contact}</small>
           <div className="sponsored-handle__edit">
@@ -51,9 +56,6 @@ const Sponsored = ({ post }) => {
               e.target.src = defaultImage;
             }}
           />
-          <div className={`status-badge ${post.foundLost?.toLowerCase()}`}>
-            {post.foundLost}
-          </div>
           <p className="trending__date">{formatDate(post.createdAt)}</p>
         </div>
       </div>
