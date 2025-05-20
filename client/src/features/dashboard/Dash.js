@@ -11,6 +11,14 @@ import {
   Typography,
   useMediaQuery,
   useTheme,
+  TextField,
+  InputAdornment,
+  Paper,
+  Grid,
+  Card,
+  CardContent,
+  Avatar,
+  Chip,
 } from "@mui/material";
 import { useDispatch, useSelector } from "react-redux";
 import LeftSide from "../../components/dashboard/LeftSide";
@@ -23,7 +31,18 @@ import {
   setActiveLink,
   setFoundOrLost,
 } from "../../app/state";
-import { Add, Send, WhatshotOutlined } from "@mui/icons-material";
+import { 
+  Add, 
+  Send, 
+  WhatshotOutlined, 
+  Search, 
+  LocationOn, 
+  Notifications, 
+  Help, 
+  People, 
+  EmojiEvents,
+  FilterList,
+} from "@mui/icons-material";
 import { useNavigate } from "react-router-dom";
 import Categories from "../../components/dashboard/Categories";
 
@@ -90,7 +109,114 @@ const Dash = () => {
         transition: 'padding 0.3s ease',
       }}
     >
-      {/* dash header */}
+      {/* Search and Filter Section */}
+      <Box m="0 1rem" mb="2rem">
+        <Paper 
+          elevation={3} 
+          sx={{ 
+            p: 2, 
+            display: 'flex', 
+            gap: 2, 
+            flexDirection: { xs: 'column', sm: 'row' },
+            alignItems: 'center'
+          }}
+        >
+          <TextField
+            fullWidth
+            placeholder="Search for lost or found items..."
+            InputProps={{
+              startAdornment: (
+                <InputAdornment position="start">
+                  <Search />
+                </InputAdornment>
+              ),
+            }}
+          />
+          <Button 
+            variant="contained" 
+            startIcon={<FilterList />}
+            sx={{ minWidth: '120px' }}
+          >
+            Filters
+          </Button>
+        </Paper>
+      </Box>
+
+      {/* Quick Actions Section */}
+      <Box m="0 1rem" mb="2rem">
+        <Grid container spacing={2}>
+          <Grid item xs={12} sm={6} md={3}>
+            <Card 
+              sx={{ 
+                cursor: 'pointer',
+                '&:hover': { transform: 'scale(1.02)' },
+                transition: 'transform 0.2s'
+              }}
+              onClick={() => navigate('/dash/posts/new?type=lost')}
+            >
+              <CardContent>
+                <Typography variant="h6">Report Lost Item</Typography>
+                <Typography variant="body2" color="text.secondary">
+                  Can't find something? Report it here
+                </Typography>
+              </CardContent>
+            </Card>
+          </Grid>
+          <Grid item xs={12} sm={6} md={3}>
+            <Card 
+              sx={{ 
+                cursor: 'pointer',
+                '&:hover': { transform: 'scale(1.02)' },
+                transition: 'transform 0.2s'
+              }}
+              onClick={() => navigate('/dash/posts/new?type=found')}
+            >
+              <CardContent>
+                <Typography variant="h6">Report Found Item</Typography>
+                <Typography variant="body2" color="text.secondary">
+                  Found something? Help return it
+                </Typography>
+              </CardContent>
+            </Card>
+          </Grid>
+          <Grid item xs={12} sm={6} md={3}>
+            <Card 
+              sx={{ 
+                cursor: 'pointer',
+                '&:hover': { transform: 'scale(1.02)' },
+                transition: 'transform 0.2s'
+              }}
+              onClick={() => navigate('/dash/search')}
+            >
+              <CardContent>
+                <Typography variant="h6">Search Items</Typography>
+                <Typography variant="body2" color="text.secondary">
+                  Look for lost or found items
+                </Typography>
+              </CardContent>
+            </Card>
+          </Grid>
+          <Grid item xs={12} sm={6} md={3}>
+            <Card 
+              sx={{ 
+                cursor: 'pointer',
+                '&:hover': { transform: 'scale(1.02)' },
+                transition: 'transform 0.2s'
+              }}
+              onClick={() => navigate('/dash/help')}
+            >
+              <CardContent>
+                <Typography variant="h6">Get Help</Typography>
+                <Typography variant="body2" color="text.secondary">
+                  Need assistance? We're here to help
+                </Typography>
+              </CardContent>
+            </Card>
+          </Grid>
+        </Grid>
+      </Box>
+
+      {/* Existing Header Section */}
       <Box
         m="0 1rem"
         gap="20px"
@@ -112,9 +238,45 @@ const Dash = () => {
           <TrendingItem trend={trend} isLoading={isLoading} />
         )}
       </Box>
-      {/* dash body */}
 
-      {/* Road map --------------------------------*/}
+      {/* Success Stories Section */}
+      <DashRecents cate="success-stories">
+        <Box display="flex" alignItems="center" pt="1rem">
+          <Typography
+            fontWeight="600"
+            sx={{
+              fontSize: "26px",
+              paddingLeft: "2rem",
+            }}
+          >
+            SUCCESS STORIES
+          </Typography>
+        </Box>
+        <Grid container spacing={2} p={2}>
+          {[1, 2, 3].map((story) => (
+            <Grid item xs={12} md={4} key={story}>
+              <Card>
+                <CardContent>
+                  <Box display="flex" alignItems="center" mb={2}>
+                    <Avatar sx={{ mr: 2 }} />
+                    <Box>
+                      <Typography variant="h6">Item Found!</Typography>
+                      <Typography variant="body2" color="text.secondary">
+                        Lost item was returned to its owner
+                      </Typography>
+                    </Box>
+                  </Box>
+                  <Typography variant="body2">
+                    "Thanks to Mafqoudat, I was able to find my lost wallet within 24 hours!"
+                  </Typography>
+                </CardContent>
+              </Card>
+            </Grid>
+          ))}
+        </Grid>
+      </DashRecents>
+
+      {/* Existing Road Map Section */}
       <DashRecents cate="roadmap">
         <Box display="flex" alignItems="center" pt="1rem">
           <Typography
@@ -140,7 +302,35 @@ const Dash = () => {
         </Box>
         <RoadMap />
       </DashRecents>
-      {/* Latest founds ------------------------------ */}
+
+      {/* Location-Based Section */}
+      <DashRecents cate="location">
+        <Box display="flex" alignItems="center" pt="1rem">
+          <Typography
+            fontWeight="600"
+            sx={{
+              fontSize: "26px",
+              paddingLeft: "2rem",
+            }}
+          >
+            LOCATION-BASED ITEMS
+          </Typography>
+        </Box>
+        <Box p={2}>
+          <Paper elevation={3} sx={{ p: 2, height: '300px' }}>
+            <Typography variant="h6" gutterBottom>
+              Active Areas
+            </Typography>
+            <Box display="flex" gap={1} flexWrap="wrap">
+              <Chip icon={<LocationOn />} label="Downtown" />
+              <Chip icon={<LocationOn />} label="University Area" />
+              <Chip icon={<LocationOn />} label="Shopping District" />
+            </Box>
+          </Paper>
+        </Box>
+      </DashRecents>
+
+      {/* Existing Recent Founds Section */}
       <DashRecents cate="recents" sx={{ backgroundColor: "#1B1C1D" }}>
         <Box display="flex" alignItems="center" padding="0 0 1rem">
           <Typography
@@ -165,7 +355,7 @@ const Dash = () => {
         </FlexCenter>
       </DashRecents>
 
-      {/* latest losts */}
+      {/* Existing Recent Losts Section */}
       <DashRecents
         cate="recents"
         sx={{ borderColor: theme.palette.primary.main }}
@@ -193,21 +383,73 @@ const Dash = () => {
         </FlexCenter>
       </DashRecents>
 
-      {/* Categories ---------------------  */}
-      <DashRecents
-        cate="cate"
-        sx={{
-          borderColor: theme.palette.primary.main,
-          // backgroundColor: theme.palette.secondary.alt,
-        }}
-      >
+      {/* Community Section */}
+      <DashRecents cate="community">
+        <Box display="flex" alignItems="center" pt="1rem">
+          <Typography
+            fontWeight="600"
+            sx={{
+              fontSize: "26px",
+              paddingLeft: "2rem",
+            }}
+          >
+            COMMUNITY
+          </Typography>
+        </Box>
+        <Grid container spacing={2} p={2}>
+          <Grid item xs={12} md={4}>
+            <Card>
+              <CardContent>
+                <Box display="flex" alignItems="center" mb={2}>
+                  <People sx={{ mr: 1 }} />
+                  <Typography variant="h6">Active Users</Typography>
+                </Box>
+                <Typography variant="h4">1,234</Typography>
+              </CardContent>
+            </Card>
+          </Grid>
+          <Grid item xs={12} md={4}>
+            <Card>
+              <CardContent>
+                <Box display="flex" alignItems="center" mb={2}>
+                  <EmojiEvents sx={{ mr: 1 }} />
+                  <Typography variant="h6">Top Helpers</Typography>
+                </Box>
+                <Box display="flex" gap={1} flexWrap="wrap">
+                  <Chip label="John D." />
+                  <Chip label="Sarah M." />
+                  <Chip label="Mike R." />
+                </Box>
+              </CardContent>
+            </Card>
+          </Grid>
+          <Grid item xs={12} md={4}>
+            <Card>
+              <CardContent>
+                <Box display="flex" alignItems="center" mb={2}>
+                  <Notifications sx={{ mr: 1 }} />
+                  <Typography variant="h6">Recent Activity</Typography>
+                </Box>
+                <Typography variant="body2">
+                  • 5 new items reported
+                  <br />
+                  • 3 successful matches
+                  <br />
+                  • 2 new users joined
+                </Typography>
+              </CardContent>
+            </Card>
+          </Grid>
+        </Grid>
+      </DashRecents>
+
+      {/* Existing Categories Section */}
+      <DashRecents cate="cate" sx={{ borderColor: theme.palette.primary.main }}>
         <Typography
           fontWeight="600"
           sx={{
             fontSize: "26px",
-            // paddingLeft: "2rem",
             p: "2rem 0",
-            // textAlign: "center",
           }}
         >
           CAETGORIES
@@ -216,24 +458,76 @@ const Dash = () => {
         <Categories />
       </DashRecents>
 
+      {/* Help & Support Section */}
+      <DashRecents cate="help">
+        <Box display="flex" alignItems="center" pt="1rem">
+          <Typography
+            fontWeight="600"
+            sx={{
+              fontSize: "26px",
+              paddingLeft: "2rem",
+            }}
+          >
+            HELP & SUPPORT
+          </Typography>
+        </Box>
+        <Grid container spacing={2} p={2}>
+          <Grid item xs={12} md={4}>
+            <Card>
+              <CardContent>
+                <Box display="flex" alignItems="center" mb={2}>
+                  <Help sx={{ mr: 1 }} />
+                  <Typography variant="h6">FAQ</Typography>
+                </Box>
+                <Typography variant="body2">
+                  • How to report a lost item?
+                  <br />
+                  • How to claim a found item?
+                  <br />
+                  • What information do I need?
+                </Typography>
+              </CardContent>
+            </Card>
+          </Grid>
+          <Grid item xs={12} md={4}>
+            <Card>
+              <CardContent>
+                <Box display="flex" alignItems="center" mb={2}>
+                  <Typography variant="h6">Emergency Contacts</Typography>
+                </Box>
+                <Typography variant="body2">
+                  • Police: 911
+                  <br />
+                  • Support: 24/7
+                  <br />
+                  • Email: support@mafqoudat.com
+                </Typography>
+              </CardContent>
+            </Card>
+          </Grid>
+          <Grid item xs={12} md={4}>
+            <Card>
+              <CardContent>
+                <Box display="flex" alignItems="center" mb={2}>
+                  <Typography variant="h6">Guidelines</Typography>
+                </Box>
+                <Typography variant="body2">
+                  • Be honest in your reports
+                  <br />
+                  • Provide clear descriptions
+                  <br />
+                  • Keep communication safe
+                </Typography>
+              </CardContent>
+            </Card>
+          </Grid>
+        </Grid>
+      </DashRecents>
+
+      {/* Existing Process Section */}
       <DashRecents>
         <Process />
       </DashRecents>
-
-      {/* latest losts */}
-      {/* <DashRecents sx={{ borderColor: theme.palette.primary.main }}>
-        <Box display="flex" alignItems="center" gap="2rem">
-          <Typography>Recent Founds</Typography>
-          <SeeAll foundOrlostId={foundsId} totalItems={data?.totalFounds} />
-        </Box>
-        <FlexCenter>
-          <Recent recent={data?.recentFounds} />
-        </FlexCenter>
-      </DashRecents> */}
-
-      {/* <Box>
-        <Geography data={data} />
-      </Box> */}
     </Box>
   );
 };
