@@ -4,6 +4,8 @@ import {
   ListItemButton,
   ListItemText,
   useTheme,
+  Tooltip,
+  Box,
 } from "@mui/material";
 import React from "react";
 import { useEffect } from "react";
@@ -16,6 +18,7 @@ import {
   setFoundOrLost,
 } from "../app/state";
 import { useTranslation } from "react-i18next";
+import RenderIcon from "./RenderIcon";
 
 const NAV_REGEX = /^\/dash\/posts(\/)?$/;
 const HOME_REGEX = /^\/dash(\/)?$/;
@@ -44,61 +47,92 @@ const NavLinks = () => {
   }, [pathname, activeLink]);
 
   const navlinks = [
-    { title: t("HOME"), flcode: t("HOME") },
-
-    { title: t("ALL"), flcode: t("ALL") },
-    // { title: "Home", flcode: "Home" },
-    { title: t("FOUND"), flcode: "66e60c25420ca2a42499b924" },
-    { title: t("LOST"), flcode: "63cc3484bc901245d3a1cb5a" },
-    // { title: t("Returned"), flcode: "Returned" },
+    { 
+      title: t("HOME"), 
+      flcode: t("HOME"),
+      tooltip: t("Go to dashboard"),
+      icon: "home"
+    },
+    { 
+      title: t("ALL"), 
+      flcode: t("ALL"),
+      tooltip: t("View all posts"),
+      icon: "total"
+    },
+    { 
+      title: t("FOUND"), 
+      flcode: "66e60c25420ca2a42499b924",
+      tooltip: t("View found items"),
+      icon: "Found"
+    },
+    { 
+      title: t("LOST"), 
+      flcode: "63cc3484bc901245d3a1cb5a",
+      tooltip: t("View lost items"),
+      icon: "Lost"
+    },
   ];
+
   return (
     <List
       sx={{
         display: { xs: "grid", md: "flex" },
-        // ml: "2rem",
-        // backgroundColor: theme.palette.action.back,
-        // p: "0.5rem 0.5rem",
         borderRadius: "50px",
         gap: "1rem",
+        padding: "0.5rem",
+        background: theme.palette.mode === 'dark' 
+          ? 'rgba(255, 255, 255, 0.05)'
+          : 'rgba(0, 0, 0, 0.05)',
       }}
     >
-      {navlinks.map(({ title, flcode }) => (
+      {navlinks.map(({ title, flcode, tooltip, icon }) => (
         <ListItem key={title} disablePadding>
-          <ListItemButton
-            onClick={() => {
-              navigate("/dash/posts");
-              dispatch(
-                setFoundOrLost({
-                  foundOrlost: title === t("ALL") ? "" : flcode,
-                })
-              );
-              dispatch(setActiveLink({ active: title }));
-            }}
-            sx={{
-              color:
-                activeLink === flcode
-                  ? theme.palette.textColor.links
-                  : theme.palette.textColor.links,
-              backgroundColor:
-                activeLink === flcode ? theme.palette.category : "transparent",
-              // borderBottom:
-              //   activeLink === flcode
-              //     ? `2px solid ${theme.palette.category}`
-              //     : "transparent",
-              borderRadius: { xs: "none", md: "50px" },
-              height: "1.5rem",
-            }}
+          <Tooltip 
+            title={tooltip}
+            placement="bottom"
+            arrow
           >
-            <ListItemText
-              primary={title}
-              primaryTypographyProps={{
-                fontSize: "14px",
-                fontWeight: "500",
-                padding: "0rem 0.5rem",
+            <ListItemButton
+              onClick={() => {
+                navigate("/dash/posts");
+                dispatch(
+                  setFoundOrLost({
+                    foundOrlost: title === t("ALL") ? "" : flcode,
+                  })
+                );
+                dispatch(setActiveLink({ active: title }));
               }}
-            />
-          </ListItemButton>
+              sx={{
+                color: theme.palette.mode === 'dark' ? '#fff' : '#000',
+                backgroundColor: activeLink === flcode 
+                  ? theme.palette.mode === 'dark'
+                    ? 'rgba(255, 255, 255, 0.1)'
+                    : 'rgba(0, 0, 0, 0.1)'
+                  : 'transparent',
+                borderRadius: { xs: "8px", md: "50px" },
+                height: "2.5rem",
+                transition: 'all 0.2s ease',
+                '&:hover': {
+                  backgroundColor: theme.palette.mode === 'dark'
+                    ? 'rgba(255, 255, 255, 0.15)'
+                    : 'rgba(0, 0, 0, 0.15)',
+                  transform: 'translateY(-1px)',
+                },
+                display: 'flex',
+                alignItems: 'center',
+                gap: '0.5rem',
+              }}
+            >
+              <RenderIcon name={icon} />
+              <ListItemText
+                primary={title}
+                primaryTypographyProps={{
+                  fontSize: "14px",
+                  fontWeight: activeLink === flcode ? "600" : "500",
+                }}
+              />
+            </ListItemButton>
+          </Tooltip>
         </ListItem>
       ))}
     </List>
