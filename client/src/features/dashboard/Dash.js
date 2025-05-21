@@ -1,6 +1,8 @@
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useState, useCallback } from "react";
 import { useGetDashboardQuery, useGetPostsQuery } from "../posts/postsApiSlice";
 import TotalBox from "../../components/TotalBox";
+import ma from "../../img/ma.jpg";
+import debounce from 'lodash/debounce';
 
 import "./dash.css";
 import useAuth from "../../hooks/useAuth";
@@ -19,6 +21,7 @@ import {
   CardContent,
   Avatar,
   Chip,
+  CardMedia,
 } from "@mui/material";
 import { useDispatch, useSelector } from "react-redux";
 import LeftSide from "../../components/dashboard/LeftSide";
@@ -61,6 +64,8 @@ const foundsId = "66e60c25420ca2a42499b924";
 const Dash = () => {
   const dispatch = useDispatch();
   const navigate = useNavigate();
+  const [searchQuery, setSearchQuery] = useState("");
+  const [isSearching, setIsSearching] = useState(false);
 
   const currentCountry = useSelector(selectCurrentCountry);
   
@@ -80,6 +85,38 @@ const Dash = () => {
 
   const trend = data?.trendingPost;
   const createdtoday = data?.createdToday;
+
+  const { data: searchData, isLoading: isSearchLoading } = useGetPostsQuery({
+    page: 1,
+    pageSize: 10,
+    currentCountry,
+    search: searchQuery
+  }, {
+    skip: !searchQuery
+  });
+
+  // Create a debounced search function
+  const debouncedSearch = useCallback(
+    debounce((query) => {
+      if (query.trim()) {
+        setIsSearching(true);
+      } else {
+        setIsSearching(false);
+      }
+    }, 300),
+    []
+  );
+
+  // Update search query and trigger debounced search
+  const handleSearchChange = (e) => {
+    const query = e.target.value;
+    setSearchQuery(query);
+    debouncedSearch(query);
+  };
+
+  const handleCreateNewPost = (type) => {
+    navigate(`/dash/posts/new?type=${type}`);
+  };
 
   const hanldeSeeAllPosts = ({ foundOrlostId }) => {
     navigate("/dash/posts");
@@ -123,7 +160,9 @@ const Dash = () => {
         >
           <TextField
             fullWidth
-            placeholder="Search for lost or found items..."
+            value={searchQuery}
+            onChange={handleSearchChange}
+            placeholder="Search by region, contact, or category..."
             InputProps={{
               startAdornment: (
                 <InputAdornment position="start">
@@ -141,6 +180,69 @@ const Dash = () => {
           </Button>
         </Paper>
       </Box>
+
+      {/* Search Results Section */}
+      {isSearching && (
+        <Box m="0 1rem" mb="2rem">
+          {isSearchLoading ? (
+            <PulseLoader color={"#FFF"} />
+          ) : searchData?.postsWithUser?.length > 0 ? (
+            <Box>
+              <Typography variant="h6" mb={2}>Search Results</Typography>
+              <Grid container spacing={2}>
+                {searchData.postsWithUser.map((post) => (
+                  <Grid item xs={12} sm={6} md={4} key={post._id}>
+                    <Card 
+                      sx={{ 
+                        cursor: 'pointer',
+                        '&:hover': { transform: 'scale(1.02)' },
+                        transition: 'transform 0.2s'
+                      }}
+                      onClick={() => navigate(`/dash/posts/${post._id}`)}
+                    >
+                      <CardMedia
+                        sx={{ height: 150 }}
+                        image={post.image ? `http://localhost:3500/${post.image}` : ma}
+                        title={post.image}
+                      />
+                      <CardContent>
+                        <Typography variant="h6">{post.categoryname}</Typography>
+                        <Typography variant="body2" color="text.secondary">
+                          {post.region}
+                        </Typography>
+                        <Typography variant="body2" color="text.secondary">
+                          {post.foundLost}
+                        </Typography>
+                      </CardContent>
+                    </Card>
+                  </Grid>
+                ))}
+              </Grid>
+            </Box>
+          ) : (
+            <Box textAlign="center" py={4}>
+              <Typography variant="h6" mb={2}>No items found</Typography>
+              <Typography variant="body1" mb={3}>
+                Would you like to create a new post for this item?
+              </Typography>
+              <Box display="flex" gap={2} justifyContent="center">
+                <Button 
+                  variant="contained" 
+                  onClick={() => handleCreateNewPost('lost')}
+                >
+                  Report Lost Item
+                </Button>
+                <Button 
+                  variant="contained" 
+                  onClick={() => handleCreateNewPost('found')}
+                >
+                  Report Found Item
+                </Button>
+              </Box>
+            </Box>
+          )}
+        </Box>
+      )}
 
       {/* Quick Actions Section */}
       <Box m="0 1rem" mb="2rem">
