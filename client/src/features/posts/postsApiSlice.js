@@ -12,17 +12,17 @@ export const postsApiSlice = apiSlice.injectEndpoints({
   endpoints: (builder) => ({
     // Get all post and trended one
     getPosts: builder.query({
-      query: ({ page, pageSize, fl, currentCountry, categoryId }) => ({
+      query: ({ page, pageSize, fl, currentCountry, categoryId, search }) => ({
         url: "/posts",
         method: "GET",
-        params:
-          categoryId === "" && fl != ""
-            ? { page, pageSize, fl, currentCountry }
-            : categoryId != "" && fl === ""
-            ? { page, pageSize, categoryId, currentCountry }
-            : categoryId != "" && fl != ""
-            ? { page, pageSize, categoryId, fl, currentCountry }
-            : { page, pageSize, currentCountry },
+        params: {
+          page,
+          pageSize,
+          ...(fl && { fl }),
+          ...(currentCountry && { currentCountry }),
+          ...(categoryId && { categoryId }),
+          ...(search && { search })
+        },
         validateStatus: (response, result) => {
           return response.status === 200 && !result.isError;
         },

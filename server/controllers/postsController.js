@@ -17,8 +17,7 @@ const getAllPosts = async (req, res) => {
   const pageSize = parseInt(req.query.pageSize) || 4;
   const fl = req.query.fl;
   const categoryId = req.query.categoryId;
-
-  // $or: [{ foundLost: { $regex: new RegExp(fl, "i") } }],
+  const search = req.query.search;
 
   let totalPosts;
   let match = {};
@@ -29,6 +28,14 @@ const getAllPosts = async (req, res) => {
 
   if (req.query.categoryId) {
     match.category = new mongoose.Types.ObjectId(categoryId);
+  }
+
+  if (search) {
+    match.$or = [
+      { region: { $regex: search, $options: 'i' } },
+      { contact: { $regex: search, $options: 'i' } },
+      { "Category.code": { $regex: search, $options: 'i' } }
+    ];
   }
 
   const postsWithUser = await Post.aggregate([
@@ -86,14 +93,14 @@ const getAllPosts = async (req, res) => {
         countryname: "$Country.code",
         contact: 1,
         image: 1,
+        foundLost: 1,
       },
     },
-
     {
       $skip: page * pageSize,
     },
     {
-      $limit: 4,
+      $limit: pageSize,
     },
     {
       $sort: {
@@ -101,25 +108,32 @@ const getAllPosts = async (req, res) => {
       },
     },
   ]);
-  // .skip(page * pageSize)
-  // .limit(4)
-  // .sort({ createdAt: -1 });
 
-  // something wrong with this shit bellow !
-  if (req.query.fl) {
-    totalPosts = await Post.find({
+  // Get total count for pagination
+  if (search) {
+    totalPosts = await Post.countDocuments({
+      ...match,
+      country: new mongoose.Types.ObjectId(currentCountry),
+    });
+  } else if (req.query.fl) {
+    totalPosts = await Post.countDocuments({
       foundLost: new mongoose.Types.ObjectId(fl),
       country: new mongoose.Types.ObjectId(currentCountry),
-    }).countDocuments();
+    });
   } else {
-    totalPosts = await Post.find({
+    totalPosts = await Post.countDocuments({
       country: new mongoose.Types.ObjectId(currentCountry),
-    }).countDocuments();
+    });
   }
 
   // If no posts
   if (!postsWithUser?.length) {
-    return res.status(400).json({ message: "No posts found" });
+    return res.status(200).json({ 
+      postsWithUser: [],
+      page: page + 1,
+      totalPages: 0,
+      total: 0
+    });
   }
 
   res.json({
