@@ -3,6 +3,12 @@ import { useGetDashboardQuery, useGetPostsQuery } from "../posts/postsApiSlice";
 import TotalBox from "../../components/TotalBox";
 import ma from "../../img/ma.jpg";
 import debounce from 'lodash/debounce';
+import { motion } from 'framer-motion';
+import { Swiper, SwiperSlide } from 'swiper/react';
+import { Pagination, Navigation, Autoplay } from 'swiper/modules';
+import 'swiper/css';
+import 'swiper/css/pagination';
+import 'swiper/css/navigation';
 
 import "./dash.css";
 import useAuth from "../../hooks/useAuth";
@@ -22,6 +28,24 @@ import {
   Avatar,
   Chip,
   CardMedia,
+  Dialog,
+  DialogTitle,
+  DialogContent,
+  DialogActions,
+  Tabs,
+  Tab,
+  Tooltip,
+  Badge,
+  LinearProgress,
+  Divider,
+  List,
+  ListItem,
+  ListItemIcon,
+  ListItemText,
+  Collapse,
+  Accordion,
+  AccordionSummary,
+  AccordionDetails,
 } from "@mui/material";
 import { useDispatch, useSelector } from "react-redux";
 import LeftSide from "../../components/dashboard/LeftSide";
@@ -45,6 +69,30 @@ import {
   People, 
   EmojiEvents,
   FilterList,
+  ExpandMore,
+  CheckCircle,
+  Share,
+  Favorite,
+  Comment,
+  Map,
+  Timeline,
+  School,
+  Work,
+  Home,
+  DirectionsWalk,
+  DirectionsCar,
+  Phone,
+  Email,
+  Chat,
+  VideoLibrary,
+  Forum,
+  Book,
+  Lightbulb,
+  Security,
+  Speed,
+  TrendingUp,
+  Visibility,
+  VisibilityOff,
 } from "@mui/icons-material";
 import { useNavigate } from "react-router-dom";
 import Categories from "../../components/dashboard/Categories";
@@ -66,6 +114,11 @@ const Dash = () => {
   const navigate = useNavigate();
   const [searchQuery, setSearchQuery] = useState("");
   const [isSearching, setIsSearching] = useState(false);
+  const [shareStoryOpen, setShareStoryOpen] = useState(false);
+  const [showFullMap, setShowFullMap] = useState(false);
+  const [showCommunityDialog, setShowCommunityDialog] = useState(false);
+  const [showHelpDialog, setShowHelpDialog] = useState(false);
+  const [helpTab, setHelpTab] = useState(0);
 
   const currentCountry = useSelector(selectCurrentCountry);
   
@@ -136,7 +189,147 @@ const Dash = () => {
 
   if (!currentCountry) return <PulseLoader color={"#FFF"}/>
 
+  const successStories = [
+    {
+      name: "Sarah Johnson",
+      location: "New York, USA",
+      testimonial: "Thanks to Mafqoudat, I was able to find my lost wallet within 24 hours! The community was incredibly helpful.",
+      timeToReunite: "24 hours",
+      itemType: "Wallet",
+      avatar: "https://i.pravatar.cc/150?img=1"
+    },
+    {
+      name: "Mohammed Ali",
+      location: "Dubai, UAE",
+      testimonial: "My laptop was returned to me within 48 hours. The platform made it so easy to connect with the finder.",
+      timeToReunite: "48 hours",
+      itemType: "Laptop",
+      avatar: "https://i.pravatar.cc/150?img=2"
+    },
+    {
+      name: "Emma Wilson",
+      location: "London, UK",
+      testimonial: "Lost my phone at the train station, and thanks to Mafqoudat, I got it back the same day!",
+      timeToReunite: "12 hours",
+      itemType: "Phone",
+      avatar: "https://i.pravatar.cc/150?img=3"
+    },
+    {
+      name: "Carlos Rodriguez",
+      location: "Madrid, Spain",
+      testimonial: "My passport was found and returned to me within 36 hours. This platform is a lifesaver!",
+      timeToReunite: "36 hours",
+      itemType: "Passport",
+      avatar: "https://i.pravatar.cc/150?img=4"
+    }
+  ];
 
+  const topHelpers = [
+    {
+      name: "John D.",
+      avatar: "https://i.pravatar.cc/150?img=1",
+      helpCount: 15,
+    },
+    {
+      name: "Sarah M.",
+      avatar: "https://i.pravatar.cc/150?img=2",
+      helpCount: 12,
+    },
+    {
+      name: "Mike R.",
+      avatar: "https://i.pravatar.cc/150?img=3",
+      helpCount: 10,
+    },
+  ];
+
+  const recentActivities = [
+    {
+      title: "New Item Reported",
+      time: "2 hours ago",
+      icon: <Add />,
+      badge: "5",
+      badgeColor: "error",
+    },
+    {
+      title: "Match Found",
+      time: "4 hours ago",
+      icon: <CheckCircle />,
+      badge: "3",
+      badgeColor: "success",
+    },
+  ];
+
+  const faqItems = [
+    {
+      question: "How to report a lost item?",
+      answer: "To report a lost item, go to the 'Report Lost Item' section on the dashboard and follow the instructions. You'll need to provide details about the item, its location, and any relevant information."
+    },
+    {
+      question: "How to claim a found item?",
+      answer: "To claim a found item, go to the 'Report Found Item' section on the dashboard and follow the instructions. You'll need to provide details about the item and its location."
+    },
+    {
+      question: "What information do I need?",
+      answer: "When reporting a lost or found item, you'll need to provide details about the item, its location, and any relevant information. This helps us match you with the right finder or lost item."
+    }
+  ];
+
+  const emergencyContacts = [
+    {
+      name: "Police",
+      details: "911",
+      icon: <Phone />,
+      action: "Call",
+      actionIcon: <Send />
+    },
+    {
+      name: "Support",
+      details: "24/7",
+      icon: <Phone />,
+      action: "Call",
+      actionIcon: <Send />
+    },
+    {
+      name: "Email",
+      details: "support@mafqoudat.com",
+      icon: <Email />,
+      action: "Email",
+      actionIcon: <Send />
+    }
+  ];
+
+  const guidelines = [
+    {
+      title: "Be honest in your reports",
+      description: "Always provide accurate and truthful information about your lost or found item."
+    },
+    {
+      title: "Provide clear descriptions",
+      description: "Use clear and detailed descriptions in your reports to help others identify the item."
+    },
+    {
+      title: "Keep communication safe",
+      description: "Use safe and appropriate communication methods when interacting with others on the platform."
+    }
+  ];
+
+  const videoTutorials = [
+    {
+      title: "How to Report a Lost Item",
+      description: "Learn how to effectively report a lost item on Mafqoudat.",
+      thumbnail: "https://example.com/thumbnail1.jpg"
+    },
+    {
+      title: "How to Claim a Found Item",
+      description: "Discover the steps to successfully claim a found item on Mafqoudat.",
+      thumbnail: "https://example.com/thumbnail2.jpg"
+    },
+    {
+      title: "Using Mafqoudat Safely",
+      description: "Get tips on how to use Mafqoudat safely and effectively.",
+      thumbnail: "https://example.com/thumbnail3.jpg"
+    }
+  ];
 
   return (
     <Box 
@@ -342,50 +535,183 @@ const Dash = () => {
       </Box>
 
       {/* Success Stories Section */}
-      <DashRecents cate="success-stories">
-        <Box display="flex" alignItems="center" pt="1rem">
+      <DashRecents cate="success-stories" sx={{ mt: 4 }}>
+        <Box display="flex" alignItems="center" justifyContent="space-between" pt="1rem" px={2}>
           <Typography
             fontWeight="600"
             sx={{
               fontSize: "26px",
-              paddingLeft: "2rem",
+              background: "linear-gradient(45deg, #2196F3 30%, #21CBF3 90%)",
+              WebkitBackgroundClip: "text",
+              WebkitTextFillColor: "transparent",
             }}
           >
             SUCCESS STORIES
           </Typography>
+          <Button
+            variant="contained"
+            startIcon={<Add />}
+            onClick={() => setShareStoryOpen(true)}
+            sx={{
+              background: "linear-gradient(45deg, #2196F3 30%, #21CBF3 90%)",
+              boxShadow: "0 3px 5px 2px rgba(33, 203, 243, .3)",
+            }}
+          >
+            Share Your Story
+          </Button>
         </Box>
-        <Grid container spacing={2} p={2}>
-          {[1, 2, 3].map((story) => (
-            <Grid item xs={12} md={4} key={story}>
-              <Card>
-                <CardContent>
-                  <Box display="flex" alignItems="center" mb={2}>
-                    <Avatar sx={{ mr: 2 }} />
-                    <Box>
-                      <Typography variant="h6">Item Found!</Typography>
-                      <Typography variant="body2" color="text.secondary">
-                        Lost item was returned to its owner
+        
+        <Box p={2}>
+          <Swiper
+            modules={[Pagination, Navigation, Autoplay]}
+            spaceBetween={30}
+            slidesPerView={1}
+            navigation
+            pagination={{ clickable: true }}
+            autoplay={{ delay: 5000 }}
+            breakpoints={{
+              640: { slidesPerView: 2 },
+              1024: { slidesPerView: 3 },
+            }}
+          >
+            {successStories.map((story, index) => (
+              <SwiperSlide key={index}>
+                <motion.div
+                  whileHover={{ scale: 1.02 }}
+                  transition={{ duration: 0.2 }}
+                >
+                  <Card 
+                    sx={{ 
+                      height: '100%',
+                      display: 'flex',
+                      flexDirection: 'column',
+                      background: theme.palette.mode === 'dark' 
+                        ? 'linear-gradient(145deg, #1a1a1a 0%, #2d2d2d 100%)'
+                        : 'linear-gradient(145deg, #ffffff 0%, #f5f5f5 100%)',
+                      boxShadow: theme.palette.mode === 'dark'
+                        ? '0 4px 20px rgba(0,0,0,0.3)'
+                        : '0 4px 20px rgba(0,0,0,0.1)',
+                    }}
+                  >
+                    <CardContent>
+                      <Box display="flex" alignItems="center" mb={2}>
+                        <Avatar 
+                          src={story.avatar} 
+                          sx={{ 
+                            width: 56, 
+                            height: 56,
+                            border: '2px solid #2196F3',
+                          }} 
+                        />
+                        <Box ml={2}>
+                          <Typography variant="h6" color={theme.palette.text.primary}>{story.name}</Typography>
+                          <Typography variant="body2" color={theme.palette.text.secondary}>
+                            {story.location}
+                          </Typography>
+                        </Box>
+                      </Box>
+                      
+                      <Typography variant="body1" mb={2} color={theme.palette.text.primary}>
+                        "{story.testimonial}"
                       </Typography>
-                    </Box>
-                  </Box>
-                  <Typography variant="body2">
-                    "Thanks to Mafqoudat, I was able to find my lost wallet within 24 hours!"
-                  </Typography>
-                </CardContent>
-              </Card>
-            </Grid>
-          ))}
-        </Grid>
+                      
+                      <Box display="flex" alignItems="center" mb={2}>
+                        <CheckCircle color="success" sx={{ mr: 1 }} />
+                        <Typography variant="body2" color="success.main">
+                          Reunited in {story.timeToReunite}
+                        </Typography>
+                      </Box>
+                      
+                      <Box display="flex" justifyContent="space-between" alignItems="center">
+                        <Chip 
+                          icon={<LocationOn />} 
+                          label={story.itemType}
+                          color="primary"
+                          variant="outlined"
+                        />
+                        <Box>
+                          <IconButton size="small" color={theme.palette.mode === 'dark' ? 'default' : 'primary'}>
+                            <Favorite />
+                          </IconButton>
+                          <IconButton size="small" color={theme.palette.mode === 'dark' ? 'default' : 'primary'}>
+                            <Share />
+                          </IconButton>
+                        </Box>
+                      </Box>
+                    </CardContent>
+                  </Card>
+                </motion.div>
+              </SwiperSlide>
+            ))}
+          </Swiper>
+        </Box>
       </DashRecents>
 
-      {/* Existing Road Map Section */}
+      {/* Success Story Dialog */}
+      <Dialog 
+        open={shareStoryOpen} 
+        onClose={() => setShareStoryOpen(false)}
+        maxWidth="sm"
+        fullWidth
+      >
+        <DialogTitle>
+          Share Your Success Story
+        </DialogTitle>
+        <DialogContent>
+          <Box component="form" sx={{ mt: 2 }}>
+            <TextField
+              fullWidth
+              label="Your Name"
+              margin="normal"
+            />
+            <TextField
+              fullWidth
+              label="Location"
+              margin="normal"
+            />
+            <TextField
+              fullWidth
+              label="Item Type"
+              margin="normal"
+            />
+            <TextField
+              fullWidth
+              label="Your Story"
+              multiline
+              rows={4}
+              margin="normal"
+            />
+            <TextField
+              fullWidth
+              label="Time to Reunite"
+              margin="normal"
+            />
+          </Box>
+        </DialogContent>
+        <DialogActions>
+          <Button onClick={() => setShareStoryOpen(false)}>Cancel</Button>
+          <Button 
+            variant="contained"
+            onClick={() => setShareStoryOpen(false)}
+            sx={{
+              background: "linear-gradient(45deg, #2196F3 30%, #21CBF3 90%)",
+            }}
+          >
+            Share Story
+          </Button>
+        </DialogActions>
+      </Dialog>
+
+      {/* Website Map Section */}
       <DashRecents cate="roadmap">
-        <Box display="flex" alignItems="center" pt="1rem">
+        <Box display="flex" alignItems="center" justifyContent="space-between" pt="1rem" px={2}>
           <Typography
             fontWeight="600"
             sx={{
               fontSize: "26px",
-              paddingLeft: "2rem",
+              background: "linear-gradient(45deg, #2196F3 30%, #21CBF3 90%)",
+              WebkitBackgroundClip: "text",
+              WebkitTextFillColor: "transparent",
             }}
           >
             WEBSITE MAP
@@ -394,43 +720,292 @@ const Dash = () => {
             variant="welcome"
             sx={{
               fontSize: "18px",
-              paddingLeft: "2rem",
               fontStyle: "italic",
               color: theme.palette.text.description,
             }}
           >
-            Weclome to mafoudat
+            Welcome to Mafqoudat
           </Typography>
         </Box>
-        <RoadMap />
+
+        <Box p={2}>
+          <Grid container spacing={3}>
+            <Grid item xs={12} md={6}>
+              <Card 
+                sx={{ 
+                  height: '100%',
+                  background: 'linear-gradient(145deg, #ffffff 0%, #f5f5f5 100%)',
+                  boxShadow: '0 4px 20px rgba(0,0,0,0.1)',
+                }}
+              >
+                <CardContent>
+                  <Typography variant="h6" gutterBottom>
+                    Quick Navigation
+                  </Typography>
+                  <List>
+                    <ListItem button onClick={() => navigate('/dash/posts/new?type=lost')}>
+                      <ListItemIcon><Add color="primary" /></ListItemIcon>
+                      <ListItemText primary="Report Lost Item" />
+                    </ListItem>
+                    <ListItem button onClick={() => navigate('/dash/posts/new?type=found')}>
+                      <ListItemIcon><Add color="primary" /></ListItemIcon>
+                      <ListItemText primary="Report Found Item" />
+                    </ListItem>
+                    <ListItem button onClick={() => navigate('/dash/search')}>
+                      <ListItemIcon><Search color="primary" /></ListItemIcon>
+                      <ListItemText primary="Search Items" />
+                    </ListItem>
+                    <ListItem button onClick={() => navigate('/dash/help')}>
+                      <ListItemIcon><Help color="primary" /></ListItemIcon>
+                      <ListItemText primary="Get Help" />
+                    </ListItem>
+                  </List>
+                </CardContent>
+              </Card>
+            </Grid>
+
+            <Grid item xs={12} md={6}>
+              <Card 
+                sx={{ 
+                  height: '100%',
+                  background: 'linear-gradient(145deg, #ffffff 0%, #f5f5f5 100%)',
+                  boxShadow: '0 4px 20px rgba(0,0,0,0.1)',
+                }}
+              >
+                <CardContent>
+                  <Typography variant="h6" gutterBottom>
+                    Getting Started
+                  </Typography>
+                  <Box sx={{ position: 'relative', mb: 2 }}>
+                    <LinearProgress 
+                      variant="determinate" 
+                      value={75} 
+                      sx={{ height: 8, borderRadius: 4 }}
+                    />
+                    <Typography variant="body2" color="text.secondary" sx={{ mt: 1 }}>
+                      Complete your profile to unlock all features
+                    </Typography>
+                  </Box>
+                  <List>
+                    <ListItem>
+                      <ListItemIcon><CheckCircle color="success" /></ListItemIcon>
+                      <ListItemText 
+                        primary="Create Account" 
+                        secondary="Set up your profile"
+                      />
+                    </ListItem>
+                    <ListItem>
+                      <ListItemIcon><CheckCircle color="success" /></ListItemIcon>
+                      <ListItemText 
+                        primary="Add Location" 
+                        secondary="Set your primary location"
+                      />
+                    </ListItem>
+                    <ListItem>
+                      <ListItemIcon><Timeline color="primary" /></ListItemIcon>
+                      <ListItemText 
+                        primary="Complete Profile" 
+                        secondary="Add more details to your profile"
+                      />
+                    </ListItem>
+                  </List>
+                </CardContent>
+              </Card>
+            </Grid>
+          </Grid>
+        </Box>
       </DashRecents>
 
       {/* Location-Based Section */}
       <DashRecents cate="location">
-        <Box display="flex" alignItems="center" pt="1rem">
+        <Box display="flex" alignItems="center" justifyContent="space-between" pt="1rem" px={2}>
           <Typography
             fontWeight="600"
             sx={{
               fontSize: "26px",
-              paddingLeft: "2rem",
+              background: "linear-gradient(45deg, #2196F3 30%, #21CBF3 90%)",
+              WebkitBackgroundClip: "text",
+              WebkitTextFillColor: "transparent",
             }}
           >
             LOCATION-BASED ITEMS
           </Typography>
+          <Button
+            variant="contained"
+            startIcon={<Map />}
+            onClick={() => setShowFullMap(true)}
+            sx={{
+              background: "linear-gradient(45deg, #2196F3 30%, #21CBF3 90%)",
+              boxShadow: "0 3px 5px 2px rgba(33, 203, 243, .3)",
+            }}
+          >
+            View Full Map
+          </Button>
         </Box>
+
         <Box p={2}>
-          <Paper elevation={3} sx={{ p: 2, height: '300px' }}>
-            <Typography variant="h6" gutterBottom>
-              Active Areas
-            </Typography>
-            <Box display="flex" gap={1} flexWrap="wrap">
-              <Chip icon={<LocationOn />} label="Downtown" />
-              <Chip icon={<LocationOn />} label="University Area" />
-              <Chip icon={<LocationOn />} label="Shopping District" />
-            </Box>
-          </Paper>
+          <Grid container spacing={3}>
+            <Grid item xs={12} md={8}>
+              <Card 
+                sx={{ 
+                  height: '400px',
+                  background: 'linear-gradient(145deg, #ffffff 0%, #f5f5f5 100%)',
+                  boxShadow: '0 4px 20px rgba(0,0,0,0.1)',
+                  position: 'relative',
+                  overflow: 'hidden',
+                }}
+              >
+                <Box
+                  sx={{
+                    position: 'absolute',
+                    top: 0,
+                    left: 0,
+                    right: 0,
+                    bottom: 0,
+                    background: 'url(https://maps.googleapis.com/maps/api/staticmap?center=YOUR_CENTER&zoom=13&size=600x400&key=YOUR_API_KEY)',
+                    backgroundSize: 'cover',
+                    opacity: 0.8,
+                  }}
+                />
+                <Box
+                  sx={{
+                    position: 'absolute',
+                    top: 0,
+                    left: 0,
+                    right: 0,
+                    bottom: 0,
+                    background: 'linear-gradient(180deg, rgba(255,255,255,0.9) 0%, rgba(255,255,255,0.7) 100%)',
+                    display: 'flex',
+                    alignItems: 'center',
+                    justifyContent: 'center',
+                  }}
+                >
+                  <Typography variant="h6" color="text.secondary">
+                    Interactive Map Coming Soon
+                  </Typography>
+                </Box>
+              </Card>
+            </Grid>
+
+            <Grid item xs={12} md={4}>
+              <Card 
+                sx={{ 
+                  height: '100%',
+                  background: 'linear-gradient(145deg, #ffffff 0%, #f5f5f5 100%)',
+                  boxShadow: '0 4px 20px rgba(0,0,0,0.1)',
+                }}
+              >
+                <CardContent>
+                  <Typography variant="h6" gutterBottom>
+                    Active Areas
+                  </Typography>
+                  
+                  <Box sx={{ mb: 3 }}>
+                    <Typography variant="subtitle2" color="text.secondary" gutterBottom>
+                      Most Active Regions
+                    </Typography>
+                    <Box display="flex" gap={1} flexWrap="wrap">
+                      <Chip 
+                        icon={<LocationOn />} 
+                        label="Downtown" 
+                        color="primary"
+                        variant="outlined"
+                      />
+                      <Chip 
+                        icon={<LocationOn />} 
+                        label="University Area" 
+                        color="primary"
+                        variant="outlined"
+                      />
+                      <Chip 
+                        icon={<LocationOn />} 
+                        label="Shopping District" 
+                        color="primary"
+                        variant="outlined"
+                      />
+                    </Box>
+                  </Box>
+
+                  <Box sx={{ mb: 3 }}>
+                    <Typography variant="subtitle2" color="text.secondary" gutterBottom>
+                      Recent Activity
+                    </Typography>
+                    <List dense>
+                      <ListItem>
+                        <ListItemIcon><WhatshotOutlined color="error" /></ListItemIcon>
+                        <ListItemText 
+                          primary="5 new items in Downtown"
+                          secondary="Last 2 hours"
+                        />
+                      </ListItem>
+                      <ListItem>
+                        <ListItemIcon><WhatshotOutlined color="error" /></ListItemIcon>
+                        <ListItemText 
+                          primary="3 matches in University Area"
+                          secondary="Last 4 hours"
+                        />
+                      </ListItem>
+                    </List>
+                  </Box>
+
+                  <Box>
+                    <Typography variant="subtitle2" color="text.secondary" gutterBottom>
+                      Quick Actions
+                    </Typography>
+                    <Button
+                      fullWidth
+                      variant="outlined"
+                      startIcon={<Add />}
+                      onClick={() => navigate('/dash/posts/new')}
+                      sx={{ mb: 1 }}
+                    >
+                      Report in Your Area
+                    </Button>
+                    <Button
+                      fullWidth
+                      variant="outlined"
+                      startIcon={<Search />}
+                      onClick={() => navigate('/dash/search')}
+                    >
+                      Search Your Area
+                    </Button>
+                  </Box>
+                </CardContent>
+              </Card>
+            </Grid>
+          </Grid>
         </Box>
       </DashRecents>
+
+      {/* Full Map Dialog */}
+      <Dialog
+        open={showFullMap}
+        onClose={() => setShowFullMap(false)}
+        maxWidth="lg"
+        fullWidth
+      >
+        <DialogTitle>
+          Interactive Map
+        </DialogTitle>
+        <DialogContent>
+          <Box
+            sx={{
+              height: '600px',
+              background: '#f5f5f5',
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'center',
+            }}
+          >
+            <Typography variant="h6" color="text.secondary">
+              Full Interactive Map Coming Soon
+            </Typography>
+          </Box>
+        </DialogContent>
+        <DialogActions>
+          <Button onClick={() => setShowFullMap(false)}>Close</Button>
+        </DialogActions>
+      </Dialog>
 
       {/* Existing Recent Founds Section */}
       <DashRecents cate="recents" sx={{ backgroundColor: "#1B1C1D" }}>
@@ -486,64 +1061,244 @@ const Dash = () => {
       </DashRecents>
 
       {/* Community Section */}
-      <DashRecents cate="community">
-        <Box display="flex" alignItems="center" pt="1rem">
+      <DashRecents cate="community" sx={{ mt: 4 }}>
+        <Box display="flex" alignItems="center" justifyContent="space-between" pt="1rem" px={2}>
           <Typography
             fontWeight="600"
             sx={{
               fontSize: "26px",
-              paddingLeft: "2rem",
+              background: "linear-gradient(45deg, #2196F3 30%, #21CBF3 90%)",
+              WebkitBackgroundClip: "text",
+              WebkitTextFillColor: "transparent",
             }}
           >
             COMMUNITY
           </Typography>
+          <Button
+            variant="contained"
+            startIcon={<People />}
+            onClick={() => setShowCommunityDialog(true)}
+            sx={{
+              background: "linear-gradient(45deg, #2196F3 30%, #21CBF3 90%)",
+              boxShadow: "0 3px 5px 2px rgba(33, 203, 243, .3)",
+            }}
+          >
+            Join Community
+          </Button>
         </Box>
-        <Grid container spacing={2} p={2}>
-          <Grid item xs={12} md={4}>
-            <Card>
-              <CardContent>
-                <Box display="flex" alignItems="center" mb={2}>
-                  <People sx={{ mr: 1 }} />
-                  <Typography variant="h6">Active Users</Typography>
-                </Box>
-                <Typography variant="h4">1,234</Typography>
-              </CardContent>
-            </Card>
+
+        <Box p={2}>
+          <Grid container spacing={3}>
+            <Grid item xs={12} md={4}>
+              <Card 
+                sx={{ 
+                  height: '100%',
+                  background: theme.palette.mode === 'dark' 
+                    ? 'linear-gradient(145deg, #1a1a1a 0%, #2d2d2d 100%)'
+                    : 'linear-gradient(145deg, #ffffff 0%, #f5f5f5 100%)',
+                  boxShadow: theme.palette.mode === 'dark'
+                    ? '0 4px 20px rgba(0,0,0,0.3)'
+                    : '0 4px 20px rgba(0,0,0,0.1)',
+                }}
+              >
+                <CardContent>
+                  <Box display="flex" alignItems="center" mb={2}>
+                    <People sx={{ mr: 1, color: 'primary.main' }} />
+                    <Typography variant="h6" color={theme.palette.text.primary}>Active Users</Typography>
+                  </Box>
+                  <Typography variant="h4" color="primary.main" gutterBottom>
+                    1,234
+                  </Typography>
+                  <Box sx={{ mb: 2 }}>
+                    <Typography variant="body2" color={theme.palette.text.secondary}>
+                      New users this week
+                    </Typography>
+                    <LinearProgress 
+                      variant="determinate" 
+                      value={70} 
+                      sx={{ height: 8, borderRadius: 4, mt: 1 }}
+                    />
+                  </Box>
+                  <List dense>
+                    <ListItem>
+                      <ListItemIcon><People color="success" /></ListItemIcon>
+                      <ListItemText 
+                        primary="Active Now"
+                        secondary="156 users"
+                        primaryTypographyProps={{ color: theme.palette.text.primary }}
+                        secondaryTypographyProps={{ color: theme.palette.text.secondary }}
+                      />
+                    </ListItem>
+                    <ListItem>
+                      <ListItemIcon><People color="info" /></ListItemIcon>
+                      <ListItemText 
+                        primary="New This Week"
+                        secondary="89 users"
+                        primaryTypographyProps={{ color: theme.palette.text.primary }}
+                        secondaryTypographyProps={{ color: theme.palette.text.secondary }}
+                      />
+                    </ListItem>
+                  </List>
+                </CardContent>
+              </Card>
+            </Grid>
+
+            <Grid item xs={12} md={4}>
+              <Card 
+                sx={{ 
+                  height: '100%',
+                  background: theme.palette.mode === 'dark' 
+                    ? 'linear-gradient(145deg, #1a1a1a 0%, #2d2d2d 100%)'
+                    : 'linear-gradient(145deg, #ffffff 0%, #f5f5f5 100%)',
+                  boxShadow: theme.palette.mode === 'dark'
+                    ? '0 4px 20px rgba(0,0,0,0.3)'
+                    : '0 4px 20px rgba(0,0,0,0.1)',
+                }}
+              >
+                <CardContent>
+                  <Box display="flex" alignItems="center" mb={2}>
+                    <EmojiEvents sx={{ mr: 1, color: 'warning.main' }} />
+                    <Typography variant="h6" color={theme.palette.text.primary}>Top Helpers</Typography>
+                  </Box>
+                  <List>
+                    {topHelpers.map((helper, index) => (
+                      <ListItem key={index}>
+                        <ListItemIcon>
+                          <Avatar src={helper.avatar} />
+                        </ListItemIcon>
+                        <ListItemText 
+                          primary={helper.name}
+                          secondary={`${helper.helpCount} items helped`}
+                          primaryTypographyProps={{ color: theme.palette.text.primary }}
+                          secondaryTypographyProps={{ color: theme.palette.text.secondary }}
+                        />
+                        <Chip 
+                          label={`#${index + 1}`}
+                          color={index === 0 ? 'warning' : 'default'}
+                          size="small"
+                        />
+                      </ListItem>
+                    ))}
+                  </List>
+                  <Button
+                    fullWidth
+                    variant="outlined"
+                    startIcon={<EmojiEvents />}
+                    sx={{ mt: 2 }}
+                  >
+                    View Leaderboard
+                  </Button>
+                </CardContent>
+              </Card>
+            </Grid>
+
+            <Grid item xs={12} md={4}>
+              <Card 
+                sx={{ 
+                  height: '100%',
+                  background: theme.palette.mode === 'dark' 
+                    ? 'linear-gradient(145deg, #1a1a1a 0%, #2d2d2d 100%)'
+                    : 'linear-gradient(145deg, #ffffff 0%, #f5f5f5 100%)',
+                  boxShadow: theme.palette.mode === 'dark'
+                    ? '0 4px 20px rgba(0,0,0,0.3)'
+                    : '0 4px 20px rgba(0,0,0,0.1)',
+                }}
+              >
+                <CardContent>
+                  <Box display="flex" alignItems="center" mb={2}>
+                    <Notifications sx={{ mr: 1, color: 'error.main' }} />
+                    <Typography variant="h6" color={theme.palette.text.primary}>Recent Activity</Typography>
+                  </Box>
+                  <List>
+                    {recentActivities.map((activity, index) => (
+                      <ListItem key={index}>
+                        <ListItemIcon>
+                          {activity.icon}
+                        </ListItemIcon>
+                        <ListItemText 
+                          primary={activity.title}
+                          secondary={activity.time}
+                          primaryTypographyProps={{ color: theme.palette.text.primary }}
+                          secondaryTypographyProps={{ color: theme.palette.text.secondary }}
+                        />
+                        {activity.badge && (
+                          <Chip 
+                            label={activity.badge}
+                            color={activity.badgeColor}
+                            size="small"
+                          />
+                        )}
+                      </ListItem>
+                    ))}
+                  </List>
+                  <Button
+                    fullWidth
+                    variant="outlined"
+                    startIcon={<Notifications />}
+                    sx={{ mt: 2 }}
+                  >
+                    View All Activity
+                  </Button>
+                </CardContent>
+              </Card>
+            </Grid>
           </Grid>
-          <Grid item xs={12} md={4}>
-            <Card>
-              <CardContent>
-                <Box display="flex" alignItems="center" mb={2}>
-                  <EmojiEvents sx={{ mr: 1 }} />
-                  <Typography variant="h6">Top Helpers</Typography>
-                </Box>
-                <Box display="flex" gap={1} flexWrap="wrap">
-                  <Chip label="John D." />
-                  <Chip label="Sarah M." />
-                  <Chip label="Mike R." />
-                </Box>
-              </CardContent>
-            </Card>
-          </Grid>
-          <Grid item xs={12} md={4}>
-            <Card>
-              <CardContent>
-                <Box display="flex" alignItems="center" mb={2}>
-                  <Notifications sx={{ mr: 1 }} />
-                  <Typography variant="h6">Recent Activity</Typography>
-                </Box>
-                <Typography variant="body2">
-                  • 5 new items reported
-                  <br />
-                  • 3 successful matches
-                  <br />
-                  • 2 new users joined
-                </Typography>
-              </CardContent>
-            </Card>
-          </Grid>
-        </Grid>
+        </Box>
       </DashRecents>
+
+      {/* Community Dialog */}
+      <Dialog
+        open={showCommunityDialog}
+        onClose={() => setShowCommunityDialog(false)}
+        maxWidth="sm"
+        fullWidth
+      >
+        <DialogTitle>
+          Join Our Community
+        </DialogTitle>
+        <DialogContent>
+          <Box sx={{ mt: 2 }}>
+            <Typography variant="body1" gutterBottom>
+              Be part of our growing community of helpers and make a difference in your area.
+            </Typography>
+            <List>
+              <ListItem>
+                <ListItemIcon><CheckCircle color="success" /></ListItemIcon>
+                <ListItemText 
+                  primary="Connect with local helpers"
+                  secondary="Find and connect with people in your area"
+                />
+              </ListItem>
+              <ListItem>
+                <ListItemIcon><CheckCircle color="success" /></ListItemIcon>
+                <ListItemText 
+                  primary="Earn recognition"
+                  secondary="Get recognized for your contributions"
+                />
+              </ListItem>
+              <ListItem>
+                <ListItemIcon><CheckCircle color="success" /></ListItemIcon>
+                <ListItemText 
+                  primary="Make a difference"
+                  secondary="Help others and build a better community"
+                />
+              </ListItem>
+            </List>
+          </Box>
+        </DialogContent>
+        <DialogActions>
+          <Button onClick={() => setShowCommunityDialog(false)}>Cancel</Button>
+          <Button 
+            variant="contained"
+            onClick={() => setShowCommunityDialog(false)}
+            sx={{
+              background: "linear-gradient(45deg, #2196F3 30%, #21CBF3 90%)",
+            }}
+          >
+            Join Now
+          </Button>
+        </DialogActions>
+      </Dialog>
 
       {/* Existing Categories Section */}
       <DashRecents cate="cate" sx={{ borderColor: theme.palette.primary.main }}>
@@ -561,75 +1316,359 @@ const Dash = () => {
       </DashRecents>
 
       {/* Help & Support Section */}
-      <DashRecents cate="help">
-        <Box display="flex" alignItems="center" pt="1rem">
+      <DashRecents cate="help" sx={{ mt: 4 }}>
+        <Box display="flex" alignItems="center" justifyContent="space-between" pt="1rem" px={2}>
           <Typography
             fontWeight="600"
             sx={{
               fontSize: "26px",
-              paddingLeft: "2rem",
+              background: "linear-gradient(45deg, #2196F3 30%, #21CBF3 90%)",
+              WebkitBackgroundClip: "text",
+              WebkitTextFillColor: "transparent",
             }}
           >
             HELP & SUPPORT
           </Typography>
+          <Button
+            variant="contained"
+            startIcon={<Help />}
+            onClick={() => setShowHelpDialog(true)}
+            sx={{
+              background: "linear-gradient(45deg, #2196F3 30%, #21CBF3 90%)",
+              boxShadow: "0 3px 5px 2px rgba(33, 203, 243, .3)",
+            }}
+          >
+            Get Help
+          </Button>
         </Box>
-        <Grid container spacing={2} p={2}>
-          <Grid item xs={12} md={4}>
-            <Card>
-              <CardContent>
-                <Box display="flex" alignItems="center" mb={2}>
-                  <Help sx={{ mr: 1 }} />
-                  <Typography variant="h6">FAQ</Typography>
-                </Box>
-                <Typography variant="body2">
-                  • How to report a lost item?
-                  <br />
-                  • How to claim a found item?
-                  <br />
-                  • What information do I need?
-                </Typography>
-              </CardContent>
-            </Card>
+
+        <Box p={2}>
+          <Grid container spacing={3}>
+            <Grid item xs={12} md={4}>
+              <Card 
+                sx={{ 
+                  height: '100%',
+                  background: theme.palette.mode === 'dark' 
+                    ? 'linear-gradient(145deg, #1a1a1a 0%, #2d2d2d 100%)'
+                    : 'linear-gradient(145deg, #ffffff 0%, #f5f5f5 100%)',
+                  boxShadow: theme.palette.mode === 'dark'
+                    ? '0 4px 20px rgba(0,0,0,0.3)'
+                    : '0 4px 20px rgba(0,0,0,0.1)',
+                }}
+              >
+                <CardContent>
+                  <Box display="flex" alignItems="center" mb={2}>
+                    <Help sx={{ mr: 1, color: 'primary.main' }} />
+                    <Typography variant="h6" color={theme.palette.text.primary}>FAQ</Typography>
+                  </Box>
+                  <List>
+                    {faqItems.map((item, index) => (
+                      <Accordion 
+                        key={index} 
+                        sx={{ 
+                          mb: 1, 
+                          boxShadow: 'none',
+                          backgroundColor: theme.palette.mode === 'dark' ? 'rgba(255, 255, 255, 0.05)' : 'rgba(0, 0, 0, 0.03)',
+                        }}
+                      >
+                        <AccordionSummary
+                          expandIcon={<ExpandMore />}
+                          sx={{
+                            borderRadius: '4px',
+                          }}
+                        >
+                          <Typography variant="subtitle1" color={theme.palette.text.primary}>{item.question}</Typography>
+                        </AccordionSummary>
+                        <AccordionDetails>
+                          <Typography variant="body2" color={theme.palette.text.secondary}>
+                            {item.answer}
+                          </Typography>
+                        </AccordionDetails>
+                      </Accordion>
+                    ))}
+                  </List>
+                  <Button
+                    fullWidth
+                    variant="outlined"
+                    startIcon={<Help />}
+                    sx={{ mt: 2 }}
+                  >
+                    View All FAQs
+                  </Button>
+                </CardContent>
+              </Card>
+            </Grid>
+
+            <Grid item xs={12} md={4}>
+              <Card 
+                sx={{ 
+                  height: '100%',
+                  background: theme.palette.mode === 'dark' 
+                    ? 'linear-gradient(145deg, #1a1a1a 0%, #2d2d2d 100%)'
+                    : 'linear-gradient(145deg, #ffffff 0%, #f5f5f5 100%)',
+                  boxShadow: theme.palette.mode === 'dark'
+                    ? '0 4px 20px rgba(0,0,0,0.3)'
+                    : '0 4px 20px rgba(0,0,0,0.1)',
+                }}
+              >
+                <CardContent>
+                  <Box display="flex" alignItems="center" mb={2}>
+                    <Phone sx={{ mr: 1, color: 'error.main' }} />
+                    <Typography variant="h6" color={theme.palette.text.primary}>Emergency Contacts</Typography>
+                  </Box>
+                  <List>
+                    {emergencyContacts.map((contact, index) => (
+                      <ListItem key={index}>
+                        <ListItemIcon>
+                          {contact.icon}
+                        </ListItemIcon>
+                        <ListItemText 
+                          primary={contact.name}
+                          secondary={contact.details}
+                          primaryTypographyProps={{ color: theme.palette.text.primary }}
+                          secondaryTypographyProps={{ color: theme.palette.text.secondary }}
+                        />
+                        <Button
+                          variant="outlined"
+                          size="small"
+                          startIcon={contact.actionIcon}
+                        >
+                          {contact.action}
+                        </Button>
+                      </ListItem>
+                    ))}
+                  </List>
+                  <Box sx={{ mt: 2, p: 2, bgcolor: 'error.light', borderRadius: 1 }}>
+                    <Typography variant="body2" color="error.contrastText">
+                      For immediate assistance, please contact emergency services.
+                    </Typography>
+                  </Box>
+                </CardContent>
+              </Card>
+            </Grid>
+
+            <Grid item xs={12} md={4}>
+              <Card 
+                sx={{ 
+                  height: '100%',
+                  background: theme.palette.mode === 'dark' 
+                    ? 'linear-gradient(145deg, #1a1a1a 0%, #2d2d2d 100%)'
+                    : 'linear-gradient(145deg, #ffffff 0%, #f5f5f5 100%)',
+                  boxShadow: theme.palette.mode === 'dark'
+                    ? '0 4px 20px rgba(0,0,0,0.3)'
+                    : '0 4px 20px rgba(0,0,0,0.1)',
+                }}
+              >
+                <CardContent>
+                  <Box display="flex" alignItems="center" mb={2}>
+                    <Security sx={{ mr: 1, color: 'success.main' }} />
+                    <Typography variant="h6" color={theme.palette.text.primary}>Guidelines</Typography>
+                  </Box>
+                  <List>
+                    {guidelines.map((guideline, index) => (
+                      <ListItem key={index}>
+                        <ListItemIcon>
+                          <CheckCircle color="success" />
+                        </ListItemIcon>
+                        <ListItemText 
+                          primary={guideline.title}
+                          secondary={guideline.description}
+                          primaryTypographyProps={{ color: theme.palette.text.primary }}
+                          secondaryTypographyProps={{ color: theme.palette.text.secondary }}
+                        />
+                      </ListItem>
+                    ))}
+                  </List>
+                  <Box sx={{ mt: 2 }}>
+                    <Typography variant="subtitle2" gutterBottom color={theme.palette.text.primary}>
+                      Community Guidelines
+                    </Typography>
+                    <Button
+                      fullWidth
+                      variant="outlined"
+                      startIcon={<Book />}
+                      sx={{ mb: 1 }}
+                    >
+                      Read Guidelines
+                    </Button>
+                    <Button
+                      fullWidth
+                      variant="outlined"
+                      startIcon={<Security />}
+                    >
+                      Safety Tips
+                    </Button>
+                  </Box>
+                </CardContent>
+              </Card>
+            </Grid>
           </Grid>
-          <Grid item xs={12} md={4}>
-            <Card>
-              <CardContent>
-                <Box display="flex" alignItems="center" mb={2}>
-                  <Typography variant="h6">Emergency Contacts</Typography>
-                </Box>
-                <Typography variant="body2">
-                  • Police: 911
-                  <br />
-                  • Support: 24/7
-                  <br />
-                  • Email: support@mafqoudat.com
-                </Typography>
-              </CardContent>
-            </Card>
-          </Grid>
-          <Grid item xs={12} md={4}>
-            <Card>
-              <CardContent>
-                <Box display="flex" alignItems="center" mb={2}>
-                  <Typography variant="h6">Guidelines</Typography>
-                </Box>
-                <Typography variant="body2">
-                  • Be honest in your reports
-                  <br />
-                  • Provide clear descriptions
-                  <br />
-                  • Keep communication safe
-                </Typography>
-              </CardContent>
-            </Card>
-          </Grid>
-        </Grid>
+        </Box>
       </DashRecents>
+
+      {/* Help Dialog */}
+      <Dialog
+        open={showHelpDialog}
+        onClose={() => setShowHelpDialog(false)}
+        maxWidth="md"
+        fullWidth
+      >
+        <DialogTitle>
+          How Can We Help You?
+        </DialogTitle>
+        <DialogContent>
+          <Box sx={{ mt: 2 }}>
+            <Tabs value={helpTab} onChange={(e, newValue) => setHelpTab(newValue)}>
+              <Tab label="Contact Support" />
+              <Tab label="Live Chat" />
+              <Tab label="Video Tutorials" />
+            </Tabs>
+            
+            <Box sx={{ mt: 2 }}>
+              {helpTab === 0 && (
+                <Box>
+                  <Typography variant="h6" gutterBottom>
+                    Contact Our Support Team
+                  </Typography>
+                  <TextField
+                    fullWidth
+                    label="Subject"
+                    margin="normal"
+                  />
+                  <TextField
+                    fullWidth
+                    label="Message"
+                    multiline
+                    rows={4}
+                    margin="normal"
+                  />
+                  <Button
+                    variant="contained"
+                    fullWidth
+                    sx={{ mt: 2 }}
+                  >
+                    Send Message
+                  </Button>
+                </Box>
+              )}
+              
+              {helpTab === 1 && (
+                <Box textAlign="center" py={4}>
+                  <Chat sx={{ fontSize: 60, color: 'primary.main', mb: 2 }} />
+                  <Typography variant="h6" gutterBottom>
+                    Live Chat Coming Soon
+                  </Typography>
+                  <Typography variant="body2" color="text.secondary">
+                    Our live chat feature is currently under development.
+                    Please use the contact form for now.
+                  </Typography>
+                </Box>
+              )}
+              
+              {helpTab === 2 && (
+                <Box>
+                  <Typography variant="h6" gutterBottom>
+                    Video Tutorials
+                  </Typography>
+                  <Grid container spacing={2}>
+                    {videoTutorials.map((tutorial, index) => (
+                      <Grid item xs={12} sm={6} key={index}>
+                        <Card>
+                          <CardMedia
+                            component="img"
+                            height="140"
+                            image={tutorial.thumbnail}
+                            alt={tutorial.title}
+                          />
+                          <CardContent>
+                            <Typography variant="h6">{tutorial.title}</Typography>
+                            <Typography variant="body2" color="text.secondary">
+                              {tutorial.description}
+                            </Typography>
+                          </CardContent>
+                        </Card>
+                      </Grid>
+                    ))}
+                  </Grid>
+                </Box>
+              )}
+            </Box>
+          </Box>
+        </DialogContent>
+        <DialogActions>
+          <Button onClick={() => setShowHelpDialog(false)}>Close</Button>
+        </DialogActions>
+      </Dialog>
 
       {/* Existing Process Section */}
       <DashRecents>
         <Process />
       </DashRecents>
+
+      {/* Footer */}
+      <Box 
+        component="footer" 
+        sx={{ 
+          mt: 4,
+          py: 3,
+          px: 2,
+          backgroundColor: theme.palette.mode === 'dark' ? 'rgba(0, 0, 0, 0.2)' : 'rgba(0, 0, 0, 0.05)',
+          borderTop: `1px solid ${theme.palette.divider}`,
+        }}
+      >
+        <Grid container spacing={4}>
+          <Grid item xs={12} sm={4}>
+            <Typography variant="h6" color={theme.palette.text.primary} gutterBottom>
+              Mafqoudat
+            </Typography>
+            <Typography variant="body2" color={theme.palette.text.secondary}>
+              Helping people find their lost items and return found items to their owners.
+            </Typography>
+          </Grid>
+          <Grid item xs={12} sm={4}>
+            <Typography variant="h6" color={theme.palette.text.primary} gutterBottom>
+              Quick Links
+            </Typography>
+            <List dense>
+              <ListItem button onClick={() => navigate('/dash/posts/new?type=lost')}>
+                <ListItemText primary="Report Lost Item" color={theme.palette.text.primary} />
+              </ListItem>
+              <ListItem button onClick={() => navigate('/dash/posts/new?type=found')}>
+                <ListItemText primary="Report Found Item" color={theme.palette.text.primary} />
+              </ListItem>
+              <ListItem button onClick={() => navigate('/dash/search')}>
+                <ListItemText primary="Search Items" color={theme.palette.text.primary} />
+              </ListItem>
+            </List>
+          </Grid>
+          <Grid item xs={12} sm={4}>
+            <Typography variant="h6" color={theme.palette.text.primary} gutterBottom>
+              Contact Us
+            </Typography>
+            <List dense>
+              <ListItem>
+                <ListItemIcon><Email color="primary" /></ListItemIcon>
+                <ListItemText 
+                  primary="support@mafqoudat.com"
+                  color={theme.palette.text.primary}
+                />
+              </ListItem>
+              <ListItem>
+                <ListItemIcon><Phone color="primary" /></ListItemIcon>
+                <ListItemText 
+                  primary="+1 234 567 890"
+                  color={theme.palette.text.primary}
+                />
+              </ListItem>
+            </List>
+          </Grid>
+        </Grid>
+        <Box mt={3} textAlign="center">
+          <Typography variant="body2" color={theme.palette.text.secondary}>
+            © {new Date().getFullYear()} Mafqoudat. All rights reserved.
+          </Typography>
+        </Box>
+      </Box>
     </Box>
   );
 };
