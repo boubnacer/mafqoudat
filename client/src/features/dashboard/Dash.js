@@ -702,362 +702,168 @@ const Dash = () => {
         </DialogActions>
       </Dialog>
 
-      {/* Website Map Section */}
-      <DashRecents cate="roadmap">
-        <Box display="flex" alignItems="center" justifyContent="space-between" pt="1rem" px={2}>
-          <Typography
-            fontWeight="600"
-            sx={{
-              fontSize: "26px",
-              background: "linear-gradient(45deg, #2196F3 30%, #21CBF3 90%)",
-              WebkitBackgroundClip: "text",
-              WebkitTextFillColor: "transparent",
-            }}
-          >
-            WEBSITE MAP
-          </Typography>
-          <Typography
-            variant="welcome"
-            sx={{
-              fontSize: "18px",
-              fontStyle: "italic",
-              color: theme.palette.text.description,
-            }}
-          >
-            Welcome to Mafqoudat
-          </Typography>
-        </Box>
-
-        <Box p={2}>
-          <Grid container spacing={3}>
-            <Grid item xs={12} md={6}>
-              <Card 
-                sx={{ 
-                  height: '100%',
-                  background: 'linear-gradient(145deg, #ffffff 0%, #f5f5f5 100%)',
-                  boxShadow: '0 4px 20px rgba(0,0,0,0.1)',
-                }}
-              >
-                <CardContent>
-                  <Typography variant="h6" gutterBottom>
-                    Quick Navigation
-                  </Typography>
-                  <List>
-                    <ListItem button onClick={() => navigate('/dash/posts/new?type=lost')}>
-                      <ListItemIcon><Add color="primary" /></ListItemIcon>
-                      <ListItemText primary="Report Lost Item" />
-                    </ListItem>
-                    <ListItem button onClick={() => navigate('/dash/posts/new?type=found')}>
-                      <ListItemIcon><Add color="primary" /></ListItemIcon>
-                      <ListItemText primary="Report Found Item" />
-                    </ListItem>
-                    <ListItem button onClick={() => navigate('/dash/search')}>
-                      <ListItemIcon><Search color="primary" /></ListItemIcon>
-                      <ListItemText primary="Search Items" />
-                    </ListItem>
-                    <ListItem button onClick={() => navigate('/dash/help')}>
-                      <ListItemIcon><Help color="primary" /></ListItemIcon>
-                      <ListItemText primary="Get Help" />
-                    </ListItem>
-                  </List>
-                </CardContent>
-              </Card>
-            </Grid>
-
-            <Grid item xs={12} md={6}>
-              <Card 
-                sx={{ 
-                  height: '100%',
-                  background: 'linear-gradient(145deg, #ffffff 0%, #f5f5f5 100%)',
-                  boxShadow: '0 4px 20px rgba(0,0,0,0.1)',
-                }}
-              >
-                <CardContent>
-                  <Typography variant="h6" gutterBottom>
-                    Getting Started
-                  </Typography>
-                  <Box sx={{ position: 'relative', mb: 2 }}>
-                    <LinearProgress 
-                      variant="determinate" 
-                      value={75} 
-                      sx={{ height: 8, borderRadius: 4 }}
-                    />
-                    <Typography variant="body2" color="text.secondary" sx={{ mt: 1 }}>
-                      Complete your profile to unlock all features
-                    </Typography>
-                  </Box>
-                  <List>
-                    <ListItem>
-                      <ListItemIcon><CheckCircle color="success" /></ListItemIcon>
-                      <ListItemText 
-                        primary="Create Account" 
-                        secondary="Set up your profile"
-                      />
-                    </ListItem>
-                    <ListItem>
-                      <ListItemIcon><CheckCircle color="success" /></ListItemIcon>
-                      <ListItemText 
-                        primary="Add Location" 
-                        secondary="Set your primary location"
-                      />
-                    </ListItem>
-                    <ListItem>
-                      <ListItemIcon><Timeline color="primary" /></ListItemIcon>
-                      <ListItemText 
-                        primary="Complete Profile" 
-                        secondary="Add more details to your profile"
-                      />
-                    </ListItem>
-                  </List>
-                </CardContent>
-              </Card>
-            </Grid>
-          </Grid>
-        </Box>
-      </DashRecents>
-
-      {/* Location-Based Section */}
-      <DashRecents cate="location">
-        <Box display="flex" alignItems="center" justifyContent="space-between" pt="1rem" px={2}>
-          <Typography
-            fontWeight="600"
-            sx={{
-              fontSize: "26px",
-              background: "linear-gradient(45deg, #2196F3 30%, #21CBF3 90%)",
-              WebkitBackgroundClip: "text",
-              WebkitTextFillColor: "transparent",
-            }}
-          >
-            LOCATION-BASED ITEMS
-          </Typography>
-          <Button
-            variant="contained"
-            startIcon={<Map />}
-            onClick={() => setShowFullMap(true)}
-            sx={{
-              background: "linear-gradient(45deg, #2196F3 30%, #21CBF3 90%)",
-              boxShadow: "0 3px 5px 2px rgba(33, 203, 243, .3)",
-            }}
-          >
-            View Full Map
-          </Button>
-        </Box>
-
-        <Box p={2}>
-          <Grid container spacing={3}>
-            <Grid item xs={12} md={8}>
-              <Card 
-                sx={{ 
-                  height: '400px',
-                  background: 'linear-gradient(145deg, #ffffff 0%, #f5f5f5 100%)',
-                  boxShadow: '0 4px 20px rgba(0,0,0,0.1)',
-                  position: 'relative',
-                  overflow: 'hidden',
-                }}
-              >
-                <Box
-                  sx={{
-                    position: 'absolute',
-                    top: 0,
-                    left: 0,
-                    right: 0,
-                    bottom: 0,
-                    background: 'url(https://maps.googleapis.com/maps/api/staticmap?center=YOUR_CENTER&zoom=13&size=600x400&key=YOUR_API_KEY)',
-                    backgroundSize: 'cover',
-                    opacity: 0.8,
-                  }}
-                />
-                <Box
-                  sx={{
-                    position: 'absolute',
-                    top: 0,
-                    left: 0,
-                    right: 0,
-                    bottom: 0,
-                    background: 'linear-gradient(180deg, rgba(255,255,255,0.9) 0%, rgba(255,255,255,0.7) 100%)',
-                    display: 'flex',
-                    alignItems: 'center',
-                    justifyContent: 'center',
-                  }}
-                >
-                  <Typography variant="h6" color="text.secondary">
-                    Interactive Map Coming Soon
-                  </Typography>
-                </Box>
-              </Card>
-            </Grid>
-
-            <Grid item xs={12} md={4}>
-              <Card 
-                sx={{ 
-                  height: '100%',
-                  background: 'linear-gradient(145deg, #ffffff 0%, #f5f5f5 100%)',
-                  boxShadow: '0 4px 20px rgba(0,0,0,0.1)',
-                }}
-              >
-                <CardContent>
-                  <Typography variant="h6" gutterBottom>
-                    Active Areas
-                  </Typography>
-                  
-                  <Box sx={{ mb: 3 }}>
-                    <Typography variant="subtitle2" color="text.secondary" gutterBottom>
-                      Most Active Regions
-                    </Typography>
-                    <Box display="flex" gap={1} flexWrap="wrap">
-                      <Chip 
-                        icon={<LocationOn />} 
-                        label="Downtown" 
-                        color="primary"
-                        variant="outlined"
-                      />
-                      <Chip 
-                        icon={<LocationOn />} 
-                        label="University Area" 
-                        color="primary"
-                        variant="outlined"
-                      />
-                      <Chip 
-                        icon={<LocationOn />} 
-                        label="Shopping District" 
-                        color="primary"
-                        variant="outlined"
-                      />
-                    </Box>
-                  </Box>
-
-                  <Box sx={{ mb: 3 }}>
-                    <Typography variant="subtitle2" color="text.secondary" gutterBottom>
-                      Recent Activity
-                    </Typography>
-                    <List dense>
-                      <ListItem>
-                        <ListItemIcon><WhatshotOutlined color="error" /></ListItemIcon>
-                        <ListItemText 
-                          primary="5 new items in Downtown"
-                          secondary="Last 2 hours"
-                        />
-                      </ListItem>
-                      <ListItem>
-                        <ListItemIcon><WhatshotOutlined color="error" /></ListItemIcon>
-                        <ListItemText 
-                          primary="3 matches in University Area"
-                          secondary="Last 4 hours"
-                        />
-                      </ListItem>
-                    </List>
-                  </Box>
-
-                  <Box>
-                    <Typography variant="subtitle2" color="text.secondary" gutterBottom>
-                      Quick Actions
-                    </Typography>
-                    <Button
-                      fullWidth
-                      variant="outlined"
-                      startIcon={<Add />}
-                      onClick={() => navigate('/dash/posts/new')}
-                      sx={{ mb: 1 }}
-                    >
-                      Report in Your Area
-                    </Button>
-                    <Button
-                      fullWidth
-                      variant="outlined"
-                      startIcon={<Search />}
-                      onClick={() => navigate('/dash/search')}
-                    >
-                      Search Your Area
-                    </Button>
-                  </Box>
-                </CardContent>
-              </Card>
-            </Grid>
-          </Grid>
-        </Box>
-      </DashRecents>
-
-      {/* Full Map Dialog */}
-      <Dialog
-        open={showFullMap}
-        onClose={() => setShowFullMap(false)}
-        maxWidth="lg"
-        fullWidth
+      {/* Enhanced Recent Founds Section */}
+      <DashRecents 
+        cate="recents" 
+        sx={{ 
+          backgroundColor: theme.palette.mode === 'dark' ? '#1a1a1a' : '#f8f9fa',
+          borderRadius: '12px',
+          boxShadow: theme.palette.mode === 'dark' 
+            ? '0 4px 20px rgba(0,0,0,0.3)'
+            : '0 4px 20px rgba(0,0,0,0.1)',
+          overflow: 'hidden',
+          mb: 4
+        }}
       >
-        <DialogTitle>
-          Interactive Map
-        </DialogTitle>
-        <DialogContent>
-          <Box
-            sx={{
-              height: '600px',
-              background: '#f5f5f5',
-              display: 'flex',
-              alignItems: 'center',
-              justifyContent: 'center',
-            }}
-          >
-            <Typography variant="h6" color="text.secondary">
-              Full Interactive Map Coming Soon
+        <Box 
+          display="flex" 
+          alignItems="center" 
+          justifyContent="space-between" 
+          p="1.5rem"
+          sx={{
+            background: theme.palette.mode === 'dark'
+              ? 'linear-gradient(45deg, #1a1a1a 30%, #2d2d2d 90%)'
+              : 'linear-gradient(45deg, #2196F3 30%, #21CBF3 90%)',
+            borderBottom: '1px solid',
+            borderColor: theme.palette.mode === 'dark' ? 'rgba(255,255,255,0.1)' : 'rgba(0,0,0,0.1)'
+          }}
+        >
+          <Box display="flex" alignItems="center" gap={2}>
+            <Typography
+              fontWeight="600"
+              sx={{
+                fontSize: "24px",
+                color: theme.palette.mode === 'dark' ? '#fff' : '#fff',
+                display: 'flex',
+                alignItems: 'center',
+                gap: 1
+              }}
+            >
+              <WhatshotOutlined sx={{ color: '#FFA500' }} />
+              RECENT FOUNDS
             </Typography>
+            <Chip 
+              label={`${data?.totalFounds || 0} items`}
+              color="primary"
+              size="small"
+              sx={{ 
+                backgroundColor: theme.palette.mode === 'dark' ? 'rgba(255,255,255,0.1)' : 'rgba(255,255,255,0.2)',
+                color: '#fff'
+              }}
+            />
           </Box>
-        </DialogContent>
-        <DialogActions>
-          <Button onClick={() => setShowFullMap(false)}>Close</Button>
-        </DialogActions>
-      </Dialog>
-
-      {/* Existing Recent Founds Section */}
-      <DashRecents cate="recents" sx={{ backgroundColor: "#1B1C1D" }}>
-        <Box display="flex" alignItems="center" padding="0 0 1rem">
-          <Typography
-            fontWeight="500"
+          <SeeAll 
+            foundOrlostId={foundsId} 
+            totalItems={data?.totalFounds}
             sx={{
-              backgroundColor: theme.palette.primary.main,
-              clipPath: "polygon(0 0, 100% 0%, 95% 100%, 0% 100%)",
-              padding: "0.5rem",
-              width: "26%",
-              borderLeft: "1px solid",
-              borderColor: "#00FF00",
-              fontSize: "22px",
-              paddingLeft: "2rem",
+              color: theme.palette.mode === 'dark' ? '#fff' : '#fff',
+              '&:hover': {
+                backgroundColor: theme.palette.mode === 'dark' ? 'rgba(255,255,255,0.1)' : 'rgba(255,255,255,0.2)'
+              }
             }}
-          >
-            RECENT FOUNDS
-          </Typography>
-          <SeeAll foundOrlostId={foundsId} totalItems={data?.totalFounds} />
+          />
         </Box>
-        <FlexCenter>
-          <Recent recent={data?.recentFounds} />
-        </FlexCenter>
+        <Box p={2}>
+          <FlexCenter>
+            <Recent 
+              recent={data?.recentFounds} 
+              sx={{
+                '& .MuiCard-root': {
+                  backgroundColor: theme.palette.mode === 'dark' ? '#2d2d2d' : '#fff',
+                  transition: 'transform 0.2s ease-in-out, box-shadow 0.2s ease-in-out',
+                  '&:hover': {
+                    transform: 'translateY(-4px)',
+                    boxShadow: theme.palette.mode === 'dark'
+                      ? '0 8px 24px rgba(0,0,0,0.4)'
+                      : '0 8px 24px rgba(0,0,0,0.1)'
+                  }
+                }
+              }}
+            />
+          </FlexCenter>
+        </Box>
       </DashRecents>
 
-      {/* Existing Recent Losts Section */}
+      {/* Enhanced Recent Losts Section */}
       <DashRecents
         cate="recents"
-        sx={{ borderColor: theme.palette.primary.main }}
+        sx={{ 
+          backgroundColor: theme.palette.mode === 'dark' ? '#1a1a1a' : '#f8f9fa',
+          borderRadius: '12px',
+          boxShadow: theme.palette.mode === 'dark' 
+            ? '0 4px 20px rgba(0,0,0,0.3)'
+            : '0 4px 20px rgba(0,0,0,0.1)',
+          overflow: 'hidden',
+          mb: 4
+        }}
       >
-        <Box display="flex" alignItems="center" gap="1rem" padding="1rem 0">
-          <Typography
-            fontWeight="500"
+        <Box 
+          display="flex" 
+          alignItems="center" 
+          justifyContent="space-between" 
+          p="1.5rem"
+          sx={{
+            background: theme.palette.mode === 'dark'
+              ? 'linear-gradient(45deg, #1a1a1a 30%, #2d2d2d 90%)'
+              : 'linear-gradient(45deg, #FFA500 30%, #FFD700 90%)',
+            borderBottom: '1px solid',
+            borderColor: theme.palette.mode === 'dark' ? 'rgba(255,255,255,0.1)' : 'rgba(0,0,0,0.1)'
+          }}
+        >
+          <Box display="flex" alignItems="center" gap={2}>
+            <Typography
+              fontWeight="600"
+              sx={{
+                fontSize: "24px",
+                color: theme.palette.mode === 'dark' ? '#fff' : '#fff',
+                display: 'flex',
+                alignItems: 'center',
+                gap: 1
+              }}
+            >
+              <Search sx={{ color: '#fff' }} />
+              RECENT LOSTS
+            </Typography>
+            <Chip 
+              label={`${data?.totalLosts || 0} items`}
+              color="warning"
+              size="small"
+              sx={{ 
+                backgroundColor: theme.palette.mode === 'dark' ? 'rgba(255,255,255,0.1)' : 'rgba(255,255,255,0.2)',
+                color: '#fff'
+              }}
+            />
+          </Box>
+          <SeeAll 
+            foundOrlostId={lostsId} 
+            totalItems={data?.totalLosts}
             sx={{
-              backgroundColor: theme.palette.primary.main,
-              clipPath: "polygon(0 0, 100% 0%, 95% 100%, 0% 100%)",
-              padding: "0.5rem",
-              width: "26%",
-              borderLeft: "1px solid",
-              borderColor: "#FFA500",
-              fontSize: "22px",
-              paddingLeft: "2rem",
+              color: theme.palette.mode === 'dark' ? '#fff' : '#fff',
+              '&:hover': {
+                backgroundColor: theme.palette.mode === 'dark' ? 'rgba(255,255,255,0.1)' : 'rgba(255,255,255,0.2)'
+              }
             }}
-          >
-            RECENT LOSTS
-          </Typography>
-          <SeeAll foundOrlostId={foundsId} totalItems={data?.totalLosts} />
+          />
         </Box>
-        <FlexCenter>
-          <Recent recent={data?.recentLosts} />
-        </FlexCenter>
+        <Box p={2}>
+          <FlexCenter>
+            <Recent 
+              recent={data?.recentLosts}
+              sx={{
+                '& .MuiCard-root': {
+                  backgroundColor: theme.palette.mode === 'dark' ? '#2d2d2d' : '#fff',
+                  transition: 'transform 0.2s ease-in-out, box-shadow 0.2s ease-in-out',
+                  '&:hover': {
+                    transform: 'translateY(-4px)',
+                    boxShadow: theme.palette.mode === 'dark'
+                      ? '0 8px 24px rgba(0,0,0,0.4)'
+                      : '0 8px 24px rgba(0,0,0,0.1)'
+                  }
+                }
+              }}
+            />
+          </FlexCenter>
+        </Box>
       </DashRecents>
 
       {/* Community Section */}
