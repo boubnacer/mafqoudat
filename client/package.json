@@ -18,6 +18,7 @@
     "@reduxjs/toolkit": "^1.8.4",
     "axios": "^1.9.0",
     "formik": "^2.2.9",
+    "framer-motion": "^12.12.2",
     "i18next": "^23.4.6",
     "jwt-decode": "^3.1.2",
     "lottie-react": "^2.4.0",
@@ -33,6 +34,7 @@
     "react-spinners": "^0.13.4",
     "stylis": "^4.3.0",
     "stylis-plugin-rtl": "^2.1.1",
+    "swiper": "^11.2.8",
     "yup": "^0.32.11"
   },
   "scripts": {
