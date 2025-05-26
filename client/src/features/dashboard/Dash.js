@@ -707,32 +707,35 @@ const Dash = () => {
         cate="recents" 
         sx={{ 
           backgroundColor: theme.palette.mode === 'dark' ? '#1a1a1a' : '#f8f9fa',
-          borderRadius: '12px',
+          borderRadius: { xs: '8px', sm: '12px' },
           boxShadow: theme.palette.mode === 'dark' 
             ? '0 4px 20px rgba(0,0,0,0.3)'
             : '0 4px 20px rgba(0,0,0,0.1)',
           overflow: 'hidden',
-          mb: 4
+          mb: 4,
+          mx: { xs: 1, sm: 2 }
         }}
       >
         <Box 
           display="flex" 
           alignItems="center" 
           justifyContent="space-between" 
-          p="1.5rem"
+          p={{ xs: "1rem", sm: "1.5rem" }}
           sx={{
             background: theme.palette.mode === 'dark'
               ? 'linear-gradient(45deg, #1a1a1a 30%, #2d2d2d 90%)'
               : 'linear-gradient(45deg, #2196F3 30%, #21CBF3 90%)',
             borderBottom: '1px solid',
-            borderColor: theme.palette.mode === 'dark' ? 'rgba(255,255,255,0.1)' : 'rgba(0,0,0,0.1)'
+            borderColor: theme.palette.mode === 'dark' ? 'rgba(255,255,255,0.1)' : 'rgba(0,0,0,0.1)',
+            flexDirection: { xs: 'column', sm: 'row' },
+            gap: { xs: 1, sm: 0 }
           }}
         >
-          <Box display="flex" alignItems="center" gap={2}>
+          <Box display="flex" alignItems="center" gap={2} width={{ xs: '100%', sm: 'auto' }}>
             <Typography
               fontWeight="600"
               sx={{
-                fontSize: "24px",
+                fontSize: { xs: "20px", sm: "24px" },
                 color: theme.palette.mode === 'dark' ? '#fff' : '#fff',
                 display: 'flex',
                 alignItems: 'center',
@@ -759,11 +762,13 @@ const Dash = () => {
               color: theme.palette.mode === 'dark' ? '#fff' : '#fff',
               '&:hover': {
                 backgroundColor: theme.palette.mode === 'dark' ? 'rgba(255,255,255,0.1)' : 'rgba(255,255,255,0.2)'
-              }
+              },
+              width: { xs: '100%', sm: 'auto' },
+              justifyContent: { xs: 'center', sm: 'flex-end' }
             }}
           />
         </Box>
-        <Box p={2}>
+        <Box p={{ xs: 1, sm: 2 }}>
           <FlexCenter>
             <Recent 
               recent={data?.recentFounds} 
@@ -772,11 +777,29 @@ const Dash = () => {
                   backgroundColor: theme.palette.mode === 'dark' ? '#2d2d2d' : '#fff',
                   transition: 'transform 0.2s ease-in-out, box-shadow 0.2s ease-in-out',
                   '&:hover': {
-                    transform: 'translateY(-4px)',
+                    transform: { xs: 'none', sm: 'translateY(-4px)' },
                     boxShadow: theme.palette.mode === 'dark'
                       ? '0 8px 24px rgba(0,0,0,0.4)'
                       : '0 8px 24px rgba(0,0,0,0.1)'
-                  }
+                  },
+                  height: { xs: 'auto', sm: '100%' },
+                  display: 'flex',
+                  flexDirection: 'column'
+                },
+                '& .MuiCardMedia-root': {
+                  height: { xs: '140px', sm: '200px' },
+                  objectFit: 'cover'
+                },
+                '& .MuiCardContent-root': {
+                  flexGrow: 1,
+                  p: { xs: 1.5, sm: 2 }
+                },
+                '& .MuiTypography-h6': {
+                  fontSize: { xs: '1rem', sm: '1.25rem' },
+                  mb: { xs: 0.5, sm: 1 }
+                },
+                '& .MuiTypography-body2': {
+                  fontSize: { xs: '0.875rem', sm: '1rem' }
                 }
               }}
             />
@@ -789,32 +812,35 @@ const Dash = () => {
         cate="recents"
         sx={{ 
           backgroundColor: theme.palette.mode === 'dark' ? '#1a1a1a' : '#f8f9fa',
-          borderRadius: '12px',
+          borderRadius: { xs: '8px', sm: '12px' },
           boxShadow: theme.palette.mode === 'dark' 
             ? '0 4px 20px rgba(0,0,0,0.3)'
             : '0 4px 20px rgba(0,0,0,0.1)',
           overflow: 'hidden',
-          mb: 4
+          mb: 4,
+          mx: { xs: 1, sm: 2 }
         }}
       >
         <Box 
           display="flex" 
           alignItems="center" 
           justifyContent="space-between" 
-          p="1.5rem"
+          p={{ xs: "1rem", sm: "1.5rem" }}
           sx={{
             background: theme.palette.mode === 'dark'
               ? 'linear-gradient(45deg, #1a1a1a 30%, #2d2d2d 90%)'
               : 'linear-gradient(45deg, #FFA500 30%, #FFD700 90%)',
             borderBottom: '1px solid',
-            borderColor: theme.palette.mode === 'dark' ? 'rgba(255,255,255,0.1)' : 'rgba(0,0,0,0.1)'
+            borderColor: theme.palette.mode === 'dark' ? 'rgba(255,255,255,0.1)' : 'rgba(0,0,0,0.1)',
+            flexDirection: { xs: 'column', sm: 'row' },
+            gap: { xs: 1, sm: 0 }
           }}
         >
-          <Box display="flex" alignItems="center" gap={2}>
+          <Box display="flex" alignItems="center" gap={2} width={{ xs: '100%', sm: 'auto' }}>
             <Typography
               fontWeight="600"
               sx={{
-                fontSize: "24px",
+                fontSize: { xs: "20px", sm: "24px" },
                 color: theme.palette.mode === 'dark' ? '#fff' : '#fff',
                 display: 'flex',
                 alignItems: 'center',
@@ -841,11 +867,13 @@ const Dash = () => {
               color: theme.palette.mode === 'dark' ? '#fff' : '#fff',
               '&:hover': {
                 backgroundColor: theme.palette.mode === 'dark' ? 'rgba(255,255,255,0.1)' : 'rgba(255,255,255,0.2)'
-              }
+              },
+              width: { xs: '100%', sm: 'auto' },
+              justifyContent: { xs: 'center', sm: 'flex-end' }
             }}
           />
         </Box>
-        <Box p={2}>
+        <Box p={{ xs: 1, sm: 2 }}>
           <FlexCenter>
             <Recent 
               recent={data?.recentLosts}
@@ -854,11 +882,29 @@ const Dash = () => {
                   backgroundColor: theme.palette.mode === 'dark' ? '#2d2d2d' : '#fff',
                   transition: 'transform 0.2s ease-in-out, box-shadow 0.2s ease-in-out',
                   '&:hover': {
-                    transform: 'translateY(-4px)',
+                    transform: { xs: 'none', sm: 'translateY(-4px)' },
                     boxShadow: theme.palette.mode === 'dark'
                       ? '0 8px 24px rgba(0,0,0,0.4)'
                       : '0 8px 24px rgba(0,0,0,0.1)'
-                  }
+                  },
+                  height: { xs: 'auto', sm: '100%' },
+                  display: 'flex',
+                  flexDirection: 'column'
+                },
+                '& .MuiCardMedia-root': {
+                  height: { xs: '140px', sm: '200px' },
+                  objectFit: 'cover'
+                },
+                '& .MuiCardContent-root': {
+                  flexGrow: 1,
+                  p: { xs: 1.5, sm: 2 }
+                },
+                '& .MuiTypography-h6': {
+                  fontSize: { xs: '1rem', sm: '1.25rem' },
+                  mb: { xs: 0.5, sm: 1 }
+                },
+                '& .MuiTypography-body2': {
+                  fontSize: { xs: '0.875rem', sm: '1rem' }
                 }
               }}
             />
