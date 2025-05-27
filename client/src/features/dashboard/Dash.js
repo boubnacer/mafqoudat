@@ -535,26 +535,77 @@ const Dash = () => {
       </Box>
 
       {/* Success Stories Section */}
-      <DashRecents cate="success-stories" sx={{ mt: 4 }}>
-        <Box display="flex" alignItems="center" justifyContent="space-between" pt="1rem" px={2}>
-          <Typography
-            fontWeight="600"
-            sx={{
-              fontSize: "26px",
-              background: "linear-gradient(45deg, #2196F3 30%, #21CBF3 90%)",
-              WebkitBackgroundClip: "text",
-              WebkitTextFillColor: "transparent",
-            }}
-          >
-            SUCCESS STORIES
-          </Typography>
+      <DashRecents 
+        cate="success-stories" 
+        className="success-stories" 
+        sx={{ 
+          mt: 4,
+          mb: 4,
+          mx: { xs: 1, sm: 2 },
+          backgroundColor: theme.palette.mode === 'dark' ? '#1a1a1a' : '#f8f9fa',
+          borderRadius: { xs: '8px', sm: '12px' },
+          boxShadow: theme.palette.mode === 'dark' 
+            ? '0 4px 20px rgba(0,0,0,0.3)'
+            : '0 4px 20px rgba(0,0,0,0.1)',
+          overflow: 'hidden',
+          p: { xs: 1, sm: 2 }
+        }}
+      >
+        <Box 
+          display="flex" 
+          alignItems="center" 
+          justifyContent="space-between" 
+          p={{ xs: "1rem", sm: "1.5rem" }}
+          sx={{
+            background: theme.palette.mode === 'dark'
+              ? 'linear-gradient(45deg, #1a1a1a 30%, #2d2d2d 90%)'
+              : 'linear-gradient(45deg, #2196F3 30%, #21CBF3 90%)',
+            borderBottom: '1px solid',
+            borderColor: theme.palette.mode === 'dark' ? 'rgba(255,255,255,0.1)' : 'rgba(0,0,0,0.1)',
+            flexDirection: { xs: 'column', sm: 'row' },
+            gap: { xs: 1, sm: 0 }
+          }}
+        >
+          <Box display="flex" alignItems="center" gap={2} width={{ xs: '100%', sm: 'auto' }}>
+            <Typography
+              fontWeight="600"
+              sx={{
+                fontSize: { xs: "20px", sm: "24px" },
+                color: theme.palette.mode === 'dark' ? '#fff' : '#fff',
+                display: 'flex',
+                alignItems: 'center',
+                gap: 1
+              }}
+            >
+              <EmojiEvents sx={{ color: '#FFD700' }} />
+              SUCCESS STORIES
+            </Typography>
+            <Chip 
+              label={`${successStories.length} stories`}
+              color="primary"
+              size="small"
+              sx={{ 
+                backgroundColor: theme.palette.mode === 'dark' ? 'rgba(255,255,255,0.1)' : 'rgba(255,255,255,0.2)',
+                color: '#fff'
+              }}
+            />
+          </Box>
           <Button
             variant="contained"
             startIcon={<Add />}
             onClick={() => setShareStoryOpen(true)}
             sx={{
-              background: "linear-gradient(45deg, #2196F3 30%, #21CBF3 90%)",
-              boxShadow: "0 3px 5px 2px rgba(33, 203, 243, .3)",
+              background: theme.palette.mode === 'dark' 
+                ? 'rgba(255,255,255,0.1)' 
+                : 'rgba(255,255,255,0.2)',
+              color: '#fff',
+              '&:hover': {
+                background: theme.palette.mode === 'dark' 
+                  ? 'rgba(255,255,255,0.2)' 
+                  : 'rgba(255,255,255,0.3)',
+              },
+              width: { xs: '100%', sm: 'auto' },
+              justifyContent: { xs: 'center', sm: 'flex-end' }
             }}
           >
             Share Your Story
@@ -573,12 +624,17 @@ const Dash = () => {
               640: { slidesPerView: 2 },
               1024: { slidesPerView: 3 },
             }}
+            style={{
+              padding: '20px 0',
+              margin: '0 -20px'
+            }}
           >
             {successStories.map((story, index) => (
               <SwiperSlide key={index}>
                 <motion.div
                   whileHover={{ scale: 1.02 }}
                   transition={{ duration: 0.2 }}
+                  style={{ padding: '10px' }}
                 >
                   <Card 
                     sx={{ 
@@ -591,49 +647,165 @@ const Dash = () => {
                       boxShadow: theme.palette.mode === 'dark'
                         ? '0 4px 20px rgba(0,0,0,0.3)'
                         : '0 4px 20px rgba(0,0,0,0.1)',
+                      border: '1px solid',
+                      borderColor: theme.palette.mode === 'dark' 
+                        ? 'rgba(255,255,255,0.1)' 
+                        : 'rgba(0,0,0,0.1)',
                     }}
                   >
-                    <CardContent>
+                    <CardContent sx={{ p: 2 }}>
                       <Box display="flex" alignItems="center" mb={2}>
                         <Avatar 
                           src={story.avatar} 
                           sx={{ 
                             width: 56, 
                             height: 56,
-                            border: '2px solid #2196F3',
+                            border: '2px solid',
+                            borderColor: theme.palette.mode === 'dark' ? '#FFD700' : '#2196F3',
                           }} 
                         />
                         <Box ml={2}>
-                          <Typography variant="h6" color={theme.palette.text.primary}>{story.name}</Typography>
-                          <Typography variant="body2" color={theme.palette.text.secondary}>
+                          <Typography 
+                            variant="h6" 
+                            color={theme.palette.text.primary}
+                            sx={{ fontWeight: 600 }}
+                          >
+                            {story.name}
+                          </Typography>
+                          <Typography 
+                            variant="body2" 
+                            color={theme.palette.text.secondary}
+                            sx={{ display: 'flex', alignItems: 'center', gap: 0.5 }}
+                          >
+                            <LocationOn sx={{ fontSize: 16 }} />
                             {story.location}
                           </Typography>
                         </Box>
                       </Box>
                       
-                      <Typography variant="body1" mb={2} color={theme.palette.text.primary}>
-                        "{story.testimonial}"
+                      <Typography 
+                        variant="body1" 
+                        mb={2} 
+                        color={theme.palette.text.primary}
+                        sx={{ 
+                          fontStyle: 'italic',
+                          position: 'relative',
+                          padding: '0 10px',
+                          '&::before': {
+                            content: '"\\201C"',
+                            position: 'absolute',
+                            left: -5,
+                            top: -5,
+                            fontSize: '2em',
+                            color: theme.palette.mode === 'dark' ? '#FFD700' : '#2196F3',
+                            opacity: 0.3,
+                            fontFamily: 'serif'
+                          },
+                          '&::after': {
+                            content: '"\\201D"',
+                            position: 'absolute',
+                            right: -5,
+                            bottom: -5,
+                            fontSize: '2em',
+                            color: theme.palette.mode === 'dark' ? '#FFD700' : '#2196F3',
+                            opacity: 0.3,
+                            fontFamily: 'serif'
+                          }
+                        }}
+                      >
+                        {story.testimonial}
                       </Typography>
                       
-                      <Box display="flex" alignItems="center" mb={2}>
-                        <CheckCircle color="success" sx={{ mr: 1 }} />
-                        <Typography variant="body2" color="success.main">
+                      <Box 
+                        display="flex" 
+                        alignItems="center" 
+                        mb={2}
+                        sx={{
+                          backgroundColor: theme.palette.mode === 'dark' 
+                            ? 'rgba(255,215,0,0.1)' 
+                            : 'rgba(33,150,243,0.1)',
+                          p: 1,
+                          borderRadius: 1
+                        }}
+                      >
+                        <CheckCircle 
+                          sx={{ 
+                            color: theme.palette.mode === 'dark' ? '#FFD700' : '#2196F3',
+                            mr: 1 
+                          }} 
+                        />
+                        <Typography 
+                          variant="body2" 
+                          sx={{ 
+                            color: theme.palette.mode === 'dark' ? '#FFD700' : '#2196F3',
+                            fontWeight: 500
+                          }}
+                        >
                           Reunited in {story.timeToReunite}
                         </Typography>
                       </Box>
                       
-                      <Box display="flex" justifyContent="space-between" alignItems="center">
+                      <Box 
+                        display="flex" 
+                        justifyContent="space-between" 
+                        alignItems="center"
+                        sx={{
+                          borderTop: '1px solid',
+                          borderColor: theme.palette.mode === 'dark' 
+                            ? 'rgba(255,255,255,0.1)' 
+                            : 'rgba(0,0,0,0.1)',
+                          pt: 2,
+                          mt: 1
+                        }}
+                      >
                         <Chip 
-                          icon={<LocationOn />} 
+                          icon={<LocationOn sx={{ 
+                            color: 'inherit'
+                          }} />} 
                           label={story.itemType}
-                          color="primary"
+                          color={theme.palette.mode === 'dark' ? 'default' : 'primary'}
                           variant="outlined"
+                          sx={{
+                            borderColor: theme.palette.mode === 'dark' ? '#FFD700' : '#2196F3',
+                            color: theme.palette.mode === 'dark' ? '#FFD700' : '#2196F3',
+                            '& .MuiChip-label': {
+                              color: theme.palette.mode === 'dark' ? '#FFD700' : '#2196F3'
+                            },
+                            '& .MuiChip-icon': {
+                              color: 'inherit'
+                            },
+                            '&:hover': {
+                              backgroundColor: theme.palette.mode === 'dark' 
+                                ? 'rgba(255,215,0,0.1)' 
+                                : 'rgba(33,150,243,0.1)'
+                            }
+                          }}
                         />
                         <Box>
-                          <IconButton size="small" color={theme.palette.mode === 'dark' ? 'default' : 'primary'}>
+                          <IconButton 
+                            size="small" 
+                            sx={{ 
+                              color: theme.palette.mode === 'dark' ? '#FFD700' : '#2196F3',
+                              '&:hover': {
+                                backgroundColor: theme.palette.mode === 'dark' 
+                                  ? 'rgba(255,215,0,0.1)' 
+                                  : 'rgba(33,150,243,0.1)'
+                              }
+                            }}
+                          >
                             <Favorite />
                           </IconButton>
-                          <IconButton size="small" color={theme.palette.mode === 'dark' ? 'default' : 'primary'}>
+                          <IconButton 
+                            size="small"
+                            sx={{ 
+                              color: theme.palette.mode === 'dark' ? '#FFD700' : '#2196F3',
+                              '&:hover': {
+                                backgroundColor: theme.palette.mode === 'dark' 
+                                  ? 'rgba(255,215,0,0.1)' 
+                                  : 'rgba(33,150,243,0.1)'
+                              }
+                            }}
+                          >
                             <Share />
                           </IconButton>
                         </Box>

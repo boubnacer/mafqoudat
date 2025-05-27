@@ -7,6 +7,41 @@
   gap: 2rem;
 }
 
+/* Fix for Success Stories section */
+.success-stories {
+  position: relative;
+}
+
+.success-stories .swiper {
+  padding: 0 !important;
+  margin: 0 !important;
+}
+
+.success-stories .swiper-slide {
+  position: relative;
+  top: 0 !important;
+}
+
+/* Hide Swiper Navigation Arrows */
+.success-stories .swiper-button-next,
+.success-stories .swiper-button-prev {
+  display: none !important;
+}
+
+/* Swiper Pagination Styles */
+.success-stories .swiper-pagination-bullet {
+  background-color: #2196F3 !important;
+  opacity: 0.5;
+}
+
+body.dark .success-stories .swiper-pagination-bullet {
+  background-color: #FFD700 !important;
+}
+
+.success-stories .swiper-pagination-bullet-active {
+  opacity: 1 !important;
+}
+
 @media screen and (max-width: 1024px) {
 }
 
