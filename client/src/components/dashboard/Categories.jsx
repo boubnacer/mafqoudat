@@ -1,10 +1,5 @@
-import { Box, CardMedia, Typography, useTheme } from "@mui/material";
-import ma from "../../img/ma.jpg";
-import FlexCenter from "../FlexCenter";
+import { Box, Typography, useTheme } from "@mui/material";
 import { useGetCategoriesQuery } from "../../features/dependencies/dependenciesApiSlice";
-import { Code, PersonOutlined } from "@mui/icons-material";
-import keys from "../../img/keys.png";
-import baggy from "../../img/baggy.png";
 import PulseLoader from "react-spinners/PulseLoader";
 import RenderIcon from "../RenderIcon";
 
@@ -17,83 +12,63 @@ const Categories = () => {
 
   const theme = useTheme();
 
-  if (!categories) return <PulseLoader color={"#FFF"} />;
+  if (!categories) return <PulseLoader color={theme.palette.text.primary} />;
 
   return (
-    <Box textAlign="center">
-      {/* <Typography variant="h3">Categories</Typography> */}
+    <Box textAlign="center" sx={{ py: 4 }}>
       <Box
-        // width="98%"
         display="flex"
         justifyContent="center"
-        alignItems="center"
-        // gridTemplateColumns="repeat(8, 1fr)"
-        gap="2rem"
-        p="2rem 0"
+        flexWrap="wrap"
+        gap={3}
+        px={2}
       >
-        {categories.map(({ flag, code }) => {
-          return (
-            <Box
-              key={Code}
+        {categories.map(({ code }) => (
+          <Box
+            key={code}
+            sx={{
+              cursor: "pointer",
+              background: theme.palette.categories[`${code.toLowerCase()}cate`]?.back || 
+                        theme.palette.categories.back,
+              padding: 3,
+              borderRadius: 2,
+              width: 120,
+              height: 120,
+              display: "flex",
+              flexDirection: "column",
+              alignItems: "center",
+              justifyContent: "center",
+              boxShadow: theme.shadows[2],
+              transition: "all 0.3s ease",
+              '&:hover': {
+                transform: "translateY(-5px)",
+                boxShadow: theme.shadows[6],
+              }
+            }}
+          >
+            <Box sx={{ 
+              width: 48,
+              height: 48,
+              display: "flex",
+              alignItems: "center",
+              justifyContent: "center"
+            }}>
+              <RenderIcon name={`${code.toLowerCase()}cate`} />
+            </Box>
+            <Typography
+              mt={1.5}
+              fontWeight={500}
+              variant="category"
               sx={{
-                cursor: "pointer",
-                background:
-                  code === "Bag"
-                    ? "linear-gradient(to top,#1ABC9C , rgba(26, 188, 156, 0))"
-                    : code === "keys"
-                    ? "linear-gradient(to top, #BDC3C7, rgba(189, 195, 199, 0))"
-                    : code === "person"
-                    ? "linear-gradient(to top, #9B59B6, rgba(155, 89, 182, 0))"
-                    : code === "Money"
-                    ? "linear-gradient(to top, #00796b, rgba(0, 121, 107, 0))"
-                    : code === "Devices"
-                    ? "linear-gradient(to top, #00707c, rgba(155, 89, 182, 0))"
-                    : code === "Wallet"
-                    ? "linear-gradient(to top, #6a00a3, rgba(155, 89, 182, 0))"
-                    : code === "Vehicle"
-                    ? "linear-gradient(to top, #9b4d9b, rgba(155, 89, 182, 0))"
-                    : code === "Document"
-                    ? "linear-gradient(to top, #4682B4, rgba(155, 89, 182, 0))"
-                    : theme.palette.categories.bagcate.back,
-                padding: "1rem",
-                borderRadius: "5px",
-                width: "8rem",
+                color: theme.palette.categories[`${code.toLowerCase()}cate`]?.icon || 
+                      theme.palette.text.primary,
+                fontSize: "1rem",
               }}
             >
-              <Box>
-                <RenderIcon name={`${code}cate`} />
-              </Box>
-              <Typography
-                mt="0.5rem"
-                fontWeight="400"
-                variant="category"
-                sx={{
-                  color:
-                    code === "Bag"
-                      ? theme.palette.categories.bagcate.icon
-                      : code === "keys"
-                      ? theme.palette.categories.keyscate.icon
-                      : code === "person"
-                      ? theme.palette.categories.personcate.icon
-                      : code === "Money"
-                      ? theme.palette.categories.moneycate.icon
-                      : code === "Devices"
-                      ? theme.palette.categories.devicecate.icon
-                      : code === "Wallet"
-                      ? theme.palette.categories.walletcate.icon
-                      : code === "Vehicle"
-                      ? theme.palette.categories.vehiclecate.icon
-                      : code === "Document"
-                      ? theme.palette.categories.documentcate.icon
-                      : theme.palette.text.white,
-                  fontSize: "18px",
-                }}
-              >
-                {code}
-              </Typography>
-            </Box>
-          );
-        })}
+              {code}
+            </Typography>
+          </Box>
+        ))}
       </Box>
     </Box>
   );

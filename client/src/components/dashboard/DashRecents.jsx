@@ -2,7 +2,6 @@ import { Box } from "@mui/material";
 import { styled } from "@mui/system";
 
 const DashRecents = styled(Box)((props) => ({
-  backgroundColor: "#1B1C1D",
   position: "relative",
   margin:
     props.cate === "cate"

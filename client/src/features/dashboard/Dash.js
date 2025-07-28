@@ -1327,14 +1327,16 @@ const Dash = () => {
       {/* Existing Categories Section */}
       <DashRecents cate="cate" sx={{ borderColor: theme.palette.primary.main }}>
         <Typography
-          fontWeight="600"
-          sx={{
-            fontSize: "26px",
-            p: "2rem 0",
-          }}
-        >
-          CAETGORIES
-        </Typography>
+            fontWeight="600"
+            sx={{
+              fontSize: "26px",
+              background: "linear-gradient(45deg, #2196F3 30%, #21CBF3 90%)",
+              WebkitBackgroundClip: "text",
+              WebkitTextFillColor: "transparent",
+            }}
+          >
+            CATEGORIES
+          </Typography>
 
         <Categories />
       </DashRecents>
