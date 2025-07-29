@@ -40,7 +40,7 @@ import useAuth from "../hooks/useAuth";
 import NavLinks from "./NavLinks";
 import CountryAutoselect from "./CountryAutoselect";
 import CountryModal from "./CountryModal";
-import PulseLoader from "react-spinners/PulseLoader";
+import { LoadingState } from "./LoadingStates";
 import LanguageToggle from "../lang/LanguageToggle";
 import { useTranslation } from "react-i18next";
 import RenderIcon from "./RenderIcon";
@@ -189,7 +189,7 @@ const Navbar = () => {
 
   const { t } = useTranslation();
 
-  if (!countries || !code) return <PulseLoader color={"#FFF"} />;
+  if (!countries || !code) return <LoadingState message="Loading navigation..." />;
 
   return (
     <AppBar

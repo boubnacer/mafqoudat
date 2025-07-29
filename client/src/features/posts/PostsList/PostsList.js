@@ -1,9 +1,11 @@
 import { useGetPostsQuery } from "../postsApiSlice";
 import Post from "./Post";
 import useTitle from "../../../hooks/useTitle";
-import PulseLoader from "react-spinners/PulseLoader";
+import { LoadingState, EmptyState, ErrorState } from "../../../components/LoadingStates";
 import { useSelector } from "react-redux";
 import { Link, useLocation, useNavigate } from "react-router-dom";
+import { Search } from "@mui/icons-material";
+import { Button } from "@mui/material";
 
 import "./postslist.css";
 import Filter from "../../../components/Filter/Filter";
@@ -58,19 +60,15 @@ const PostsList = () => {
 
   let content;
 
-  if (isLoading) content = <PulseLoader color={"#FFF"} />;
+  if (isLoading) content = <LoadingState message="Loading posts..." />;
 
   if (isError) {
     content = (
-      <>
-        <p className="errmsg">Error:{error?.data?.message}</p>{" "}
-        <section className="welcome">
-          <h1>there is no posts for the chosen country! Please add one</h1>
-          <p>
-            <Link to="/dash/posts/new">Add New post</Link>
-          </p>
-        </section>
-      </>
+      <ErrorState
+        title="Failed to load posts"
+        message={error?.data?.message || "Please try again later"}
+        onRetry={() => window.location.reload()}
+      />
     );
   }
 
@@ -122,13 +120,16 @@ const PostsList = () => {
         </Box>
       </Box>
     ) : (
-      <section className="welcome">
-        {/* {filterContent} */}
-        <h1>there is no posts for the chosen country! Please add one</h1>
-        <p>
-          <Link to="/dash/posts/new">Add New post</Link>
-        </p>
-      </section>
+      <EmptyState
+        icon={Search}
+        title="No posts found"
+        description="There are no posts for the selected country yet. Be the first to create one!"
+        action={
+          <Link to="/dash/posts/new">
+            <Button variant="contained">Add New Post</Button>
+          </Link>
+        }
+      />
     );
   }
   return content;

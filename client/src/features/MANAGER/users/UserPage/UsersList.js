@@ -1,7 +1,7 @@
 import { useGetUsersQuery } from "../usersApiSlice";
 import User from "./User";
 import useTitle from "../../../hooks/useTitle";
-import PulseLoader from "react-spinners/PulseLoader";
+import { LoadingState, ErrorState } from "../../../components/LoadingStates";
 
 import "./users.css";
 
@@ -22,10 +22,16 @@ const UsersList = () => {
 
   let content;
 
-  if (isLoading) content = <PulseLoader color={"#FFF"} />;
+  if (isLoading) content = <LoadingState message="Loading users..." />;
 
   if (isError) {
-    content = <p className="errmsg">{error?.data?.message}</p>;
+    content = (
+      <ErrorState
+        title="Failed to load users"
+        message={error?.data?.message || "Please try again later"}
+        onRetry={() => window.location.reload()}
+      />
+    );
   }
 
   if (isSuccess) {

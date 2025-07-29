@@ -1,10 +1,9 @@
 import React from "react";
 import { useDispatch } from "react-redux";
 import { useNavigate } from "react-router-dom";
-import { Box, Skeleton, useMediaQuery, useTheme, Typography, Chip, Button } from "@mui/material";
-import { setActiveLink, setFoundOrLost, setOpenModal } from "../../app/state";
-import { LoadingState, DashboardEmptyStates } from "../../components/LoadingStates";
-import { WhatshotOutlined, Search, Language } from "@mui/icons-material";
+import { Box, Skeleton, useMediaQuery, useTheme } from "@mui/material";
+import { setActiveLink, setFoundOrLost } from "../../app/state";
+import PulseLoader from "react-spinners/PulseLoader";
 
 // Custom hook
 import { useDashboard } from "../../hooks/useDashboard";
@@ -24,12 +23,11 @@ import SeeAll from "../../components/dashboard/SeeAll";
 import FlexCenter from "../../components/FlexCenter";
 import DashRecents from "../../components/dashboard/DashRecents";
 
-import "./dash.css";
-
+// Constants
 const lostsId = "63cc3484bc901245d3a1cb5a";
 const foundsId = "66e60c25420ca2a42499b924";
 
-const Dash = () => {
+const DashRefactored = () => {
   const dispatch = useDispatch();
   const navigate = useNavigate();
   const theme = useTheme();
@@ -47,7 +45,6 @@ const Dash = () => {
     searchData,
     isSearchLoading,
     handleSearchChange,
-    currentCountry,
   } = useDashboard();
 
   const handleCreateNewPost = (type) => {
@@ -68,59 +65,9 @@ const Dash = () => {
 
   if (isError) console.log(data?.error?.message);
 
-  if (!currentCountry) {
-    return (
-      <Box 
-        pt={{ xs: "6.5rem", sm: "7rem" }} 
-        width="100%"
-        display="flex"
-        justifyContent="center"
-        alignItems="center"
-        minHeight="50vh"
-      >
-        <Box textAlign="center">
-          <Typography variant="h6" mb={2}>
-            Please select a country to continue
-          </Typography>
-          <Typography variant="body2" mb={3} color="text.secondary">
-            Choose your country to see relevant lost and found items in your area
-          </Typography>
-          <Button
-            variant="contained"
-            startIcon={<Language />}
-            onClick={() => dispatch(setOpenModal())}
-            sx={{
-              background: "linear-gradient(45deg, #2196F3 30%, #21CBF3 90%)",
-              boxShadow: "0 3px 5px 2px rgba(33, 203, 243, .3)",
-            }}
-          >
-            Select Country
-          </Button>
-        </Box>
-      </Box>
-    );
-  }
+  if (!data) return <PulseLoader color={"#FFF"} />;
 
-  if (!data) return <LoadingState message="Loading dashboard data..." size="large" />;
-  
-  // Check if all data is empty
-  const hasNoData = !data.totalFounds && !data.totalLosts && !data.totalPosts && 
-                   (!data.recentFounds || data.recentFounds.length === 0) && 
-                   (!data.recentLosts || data.recentLosts.length === 0);
-  
-  if (hasNoData) {
-    return (
-      <Box 
-        pt={{ xs: "6.5rem", sm: "7rem" }} 
-        width="100%"
-        sx={{
-          transition: 'padding 0.3s ease',
-        }}
-      >
-        <DashboardEmptyStates.NoPosts country={currentCountry} />
-      </Box>
-    );
-  }
+  if (!data.currentCountry) return <PulseLoader color={"#FFF"}/>
 
   return (
     <Box 
@@ -237,11 +184,9 @@ const Dash = () => {
         </Box>
         <Box p={{ xs: 1, sm: 2 }}>
           <FlexCenter>
-                                    <Recent 
-                          recent={data?.recentFounds}
-                          isLoading={isLoading}
-                          emptyState="NoRecentFounds"
-                          sx={{
+            <Recent 
+              recent={data?.recentFounds} 
+              sx={{
                 '& .MuiCard-root': {
                   backgroundColor: theme.palette.mode === 'dark' ? '#2d2d2d' : '#fff',
                   transition: 'transform 0.2s ease-in-out, box-shadow 0.2s ease-in-out',
@@ -344,11 +289,9 @@ const Dash = () => {
         </Box>
         <Box p={{ xs: 1, sm: 2 }}>
           <FlexCenter>
-                                    <Recent 
-                          recent={data?.recentLosts}
-                          isLoading={isLoading}
-                          emptyState="NoRecentLosts"
-                          sx={{
+            <Recent 
+              recent={data?.recentLosts}
+              sx={{
                 '& .MuiCard-root': {
                   backgroundColor: theme.palette.mode === 'dark' ? '#2d2d2d' : '#fff',
                   transition: 'transform 0.2s ease-in-out, box-shadow 0.2s ease-in-out',
@@ -413,4 +356,4 @@ const Dash = () => {
   );
 };
 
-export default Dash;
+export default DashRefactored; 

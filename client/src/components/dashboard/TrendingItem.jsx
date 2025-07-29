@@ -10,7 +10,7 @@ import {
 } from "@mui/material";
 import FlexBetween from "../FlexBetween";
 import RenderIcon from "../RenderIcon";
-import PulseLoader from "react-spinners/PulseLoader";
+import { TrendingItemSkeleton, DashboardEmptyStates } from "../LoadingStates";
 import ma from "../../img/ma.jpg";
 
 const TrendingItem = ({ trend, isLoading }) => {
@@ -18,8 +18,8 @@ const TrendingItem = ({ trend, isLoading }) => {
   const theme = useTheme();
   const isMobile = useMediaQuery(theme.breakpoints.down('sm'));
 
-  if (isLoading) return <PulseLoader />;
-  if (!trend[0]) return <PulseLoader />;
+  if (isLoading) return <TrendingItemSkeleton />;
+  if (!trend || !trend[0]) return <DashboardEmptyStates.NoTrending />;
 
   return (
     <Box flex={1}>

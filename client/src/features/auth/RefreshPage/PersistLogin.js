@@ -4,7 +4,8 @@ import { useRefreshMutation } from "../authApiSlice";
 import usePersist from "../../../hooks/usePersist";
 import { useSelector } from "react-redux";
 import { selectCurrentToken } from "../authSlice";
-import PulseLoader from "react-spinners/PulseLoader";
+import { LoadingState, ErrorState } from "../../../components/LoadingStates";
+import { Button } from "@mui/material";
 
 // to stay logged in when refreshing page
 const PersistLogin = () => {
@@ -48,15 +49,20 @@ const PersistLogin = () => {
   if (isLoading) {
     //persist: yes, token: no
     // console.log("loading");
-    content = <PulseLoader color={"#FFF"} />;
+    content = <LoadingState message="Refreshing session..." />;
   } else if (isError) {
     //persist: yes, token: no
     console.log("error no token");
     content = (
-      <p className="errmsg">
-        {`${error?.data?.message} - `}
-        <Link to="/login">Please login again</Link>
-      </p>
+      <ErrorState
+        title="Session expired"
+        message={error?.data?.message || "Please login again"}
+        action={
+          <Link to="/login">
+            <Button variant="contained">Login Again</Button>
+          </Link>
+        }
+      />
     );
   } else if (isSuccess && trueSuccess) {
     //persist: yes, token: yes

@@ -1,7 +1,7 @@
 import { useParams } from "react-router-dom";
 import EditUserForm from "./EditUserForm";
 import { useGetUsersQuery } from "../usersApiSlice";
-import PulseLoader from "react-spinners/PulseLoader";
+import { LoadingState } from "../../../components/LoadingStates";
 import useTitle from "../../../hooks/useTitle";
 import { useGetCountriesQuery } from "../../countries/countriesApiSlice";
 
@@ -22,7 +22,7 @@ const EditUser = () => {
     }),
   });
 
-  if (!user || !countries) return <PulseLoader color={"#FFF"} />;
+  if (!user || !countries) return <LoadingState message="Loading user data..." />;
 
   const content = <EditUserForm user={user} countries={countries} />;
 

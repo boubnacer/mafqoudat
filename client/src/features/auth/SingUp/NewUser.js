@@ -1,6 +1,6 @@
 import NewUserForm from "./NewUserForm";
 import { useGetCountriesQuery } from "../../countries/countriesApiSlice";
-import PulseLoader from "react-spinners/PulseLoader";
+import { LoadingState } from "../../../components/LoadingStates";
 
 const NewUser = () => {
   const { countries } = useGetCountriesQuery("countriesList", {
@@ -9,7 +9,7 @@ const NewUser = () => {
     }),
   });
 
-  if (!countries) return <p><PulseLoader/></p>;
+  if (!countries) return <LoadingState message="Loading signup form..." />;
 
   const content = <NewUserForm countries={countries} />;
 

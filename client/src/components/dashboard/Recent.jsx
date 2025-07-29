@@ -1,14 +1,14 @@
 import { Box } from "@mui/material";
-import React, { useEffect } from "react";
+import React from "react";
 import RecentPosts from "./RecentPosts";
-import PulseLoader from "react-spinners/PulseLoader";
+import { RecentItemsSkeleton, DashboardEmptyStates } from "../LoadingStates";
 
-const Recent = ({ recent }) => {
-  // useEffect(() => {
-  //   if (!recent.length) return <PulseLoader color={"#FFF"} />;
-  // }, []);
-
-  
+const Recent = ({ recent, isLoading, emptyState = "NoRecentFounds" }) => {
+  if (isLoading) return <RecentItemsSkeleton />;
+  if (!recent || recent.length === 0) {
+    const EmptyStateComponent = DashboardEmptyStates[emptyState];
+    return <EmptyStateComponent />;
+  }
 
   return (
     <Box

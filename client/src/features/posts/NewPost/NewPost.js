@@ -1,6 +1,6 @@
 import NewPostForm from "./NewPostForm";
 import { useGetUsersQuery } from "../../userSettings/usersApiSlice";
-import PulseLoader from "react-spinners/PulseLoader";
+import { LoadingState } from "../../../components/LoadingStates";
 import useTitle from "../../../hooks/useTitle";
 import {
   useGetCategoriesQuery,
@@ -42,7 +42,7 @@ const NewPost = () => {
   
 
   if (!user || !countries || !flOptions || !categories)
-    return <PulseLoader color={"#FFF"} />;
+    return <LoadingState message="Loading post form..." />;
 
   const content = (
     <NewPostForm

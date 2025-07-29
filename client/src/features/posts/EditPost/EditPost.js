@@ -2,7 +2,7 @@ import { useParams } from "react-router-dom";
 import EditPostForm from "./EditPostForm";
 import { useGetPostQuery, useGetPostsQuery } from "../postsApiSlice";
 import { useGetUsersQuery } from "../../userSettings/usersApiSlice";
-import PulseLoader from "react-spinners/PulseLoader";
+import { LoadingState } from "../../../components/LoadingStates";
 import useTitle from "../../../hooks/useTitle";
 import { useGetCountriesQuery } from "../../countries/countriesApiSlice";
 import useAuth from "../../../hooks/useAuth";
@@ -51,7 +51,7 @@ const EditPost = () => {
   });
 
   if (!data || !user || !countries || !categories || !flOptions)
-    return <PulseLoader color={"#FFF"} />;
+    return <LoadingState message="Loading edit form..." />;
 
   const content = (
     <EditPostForm

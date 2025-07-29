@@ -4,7 +4,7 @@ import { useDispatch, useSelector } from "react-redux";
 import { selectCurrentToken, selectIsLogedin, setCredentials } from "../authSlice";
 import { useLoginMutation } from "../authApiSlice";
 import useTitle from "../../../hooks/useTitle";
-import PulseLoader from "react-spinners/PulseLoader";
+import { LoadingState } from "../../../components/LoadingStates";
 import FlexBetween from "../../../components/FlexBetween";
 import LoginPic from "../../../img/LoginPic.svg";
 
@@ -148,7 +148,7 @@ const Login = () => {
 
   const errClass = errMsg ? "errmsg" : "offscreen";
 
-  if (isLoading) return <PulseLoader color={"#FFF"} />;
+  if (isLoading) return <LoadingState message="Signing in..." />;
 
   const content = (
     <Box

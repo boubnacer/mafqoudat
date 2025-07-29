@@ -1,6 +1,6 @@
 import { Box, Typography, useTheme } from "@mui/material";
 import { useGetCategoriesQuery } from "../../features/dependencies/dependenciesApiSlice";
-import PulseLoader from "react-spinners/PulseLoader";
+import { LoadingState, DashboardEmptyStates } from "../LoadingStates";
 import RenderIcon from "../RenderIcon";
 
 const Categories = () => {
@@ -12,7 +12,7 @@ const Categories = () => {
 
   const theme = useTheme();
 
-  if (!categories) return <PulseLoader color={theme.palette.text.primary} />;
+  if (!categories) return <LoadingState message="Loading categories..." />;
 
   return (
     <Box textAlign="center" sx={{ py: 4 }}>
