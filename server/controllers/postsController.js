@@ -57,7 +57,7 @@ const getAllPosts = async (req, res) => {
     {
       $lookup: {
         from: "foundlosts",
-        localField: "foundlost",
+        localField: "foundLost", // was 'foundlost'
         foreignField: "_id",
         as: "Floptions",
       },
@@ -212,6 +212,15 @@ const createNewPost = async (req, res) => {
     return res.status(400).json({ message: "All fields are required" });
   }
 
+  // Validate references
+  const userExists = await User.exists({ _id: user });
+  const countryExists = await Country.exists({ _id: country });
+  const categoryExists = await Category.exists({ _id: category });
+  const foundLostExists = await FoundLost.exists({ _id: foundLost });
+  if (!userExists || !countryExists || !categoryExists || !foundLostExists) {
+    return res.status(400).json({ message: "Invalid reference in user/country/category/foundLost" });
+  }
+
   // Create and store the new post
   const post = await Post.create({
     user,
@@ -260,6 +269,15 @@ const updatePost = async (req, res) => {
     typeof returned !== "boolean"
   ) {
     return res.status(400).json({ message: "All fields are required" });
+  }
+
+  // Validate references
+  const userExists = await User.exists({ _id: user });
+  const countryExists = await Country.exists({ _id: country });
+  const categoryExists = await Category.exists({ _id: category });
+  const foundLostExists = await FoundLost.exists({ _id: foundLost });
+  if (!userExists || !countryExists || !categoryExists || !foundLostExists) {
+    return res.status(400).json({ message: "Invalid reference in user/country/category/foundLost" });
   }
 
   // Confirm post exists to update

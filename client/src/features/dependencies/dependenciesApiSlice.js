@@ -78,6 +78,36 @@ export const dependencieaApiSlice = apiSlice.injectEndpoints({
         } else return [{ type: "Category", id: "LIST" }];
       },
     }),
+
+    // Add mutation for creating a country
+    createCountry: builder.mutation({
+      query: (country) => ({
+        url: "countries",
+        method: "POST",
+        body: country,
+      }),
+      invalidatesTags: [{ type: "Country", id: "LIST" }],
+    }),
+
+    // Add mutation for creating a category
+    createCategory: builder.mutation({
+      query: (category) => ({
+        url: "dependencies/category",
+        method: "POST",
+        body: category,
+      }),
+      invalidatesTags: [{ type: "Category", id: "LIST" }],
+    }),
+
+    // Add mutation for creating a foundLost option
+    createFoundLost: builder.mutation({
+      query: (foundLost) => ({
+        url: "dependencies/foundlost",
+        method: "POST",
+        body: foundLost,
+      }),
+      invalidatesTags: [{ type: "Dependencies", id: "LIST" }],
+    }),
   }),
 });
 
@@ -85,4 +115,7 @@ export const {
   useGetflOptionsQuery,
   useGetCountriesQuery,
   useGetCategoriesQuery,
+  useCreateCountryMutation,
+  useCreateCategoryMutation,
+  useCreateFoundLostMutation,
 } = dependencieaApiSlice;

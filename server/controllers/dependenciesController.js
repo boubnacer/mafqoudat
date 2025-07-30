@@ -15,6 +15,13 @@ const getDashboard = async (req, res) => {
 
     const currentCountry = req.query.currentCountry;
 
+    // Lookup FoundLost IDs by code
+    const foundOption = await FoundLost.findOne({ code: "Found" });
+    const lostOption = await FoundLost.findOne({ code: "Lost" });
+    if (!foundOption || !lostOption) {
+      return res.status(500).json({ message: "Found/Lost options not set in DB" });
+    }
+
     const trendingPost = await Post.aggregate([
       { $match: { country: new mongoose.Types.ObjectId(currentCountry) } },
       {
@@ -73,7 +80,7 @@ const getDashboard = async (req, res) => {
       {
         $match: {
           country: new mongoose.Types.ObjectId(currentCountry),
-          foundLost: new mongoose.Types.ObjectId("66e60c25420ca2a42499b924"),
+          foundLost: foundOption._id,
         },
       },
       {
@@ -126,7 +133,7 @@ const getDashboard = async (req, res) => {
       {
         $match: {
           country: new mongoose.Types.ObjectId(currentCountry),
-          foundLost: new mongoose.Types.ObjectId("66fe6a34579aa2d3a7fd81c2"),
+          foundLost: lostOption._id,
         },
       },
       {
@@ -177,13 +184,13 @@ const getDashboard = async (req, res) => {
     // total Founds
     const totalFounds = await Post.find({
       country: currentCountry,
-      foundLost: "66e60c25420ca2a42499b924",
+      foundLost: foundOption._id,
     }).countDocuments();
 
     // total Losts
     const totalLosts = await Post.find({
       country: currentCountry,
-      foundLost: "63cc3484bc901245d3a1cb5a",
+      foundLost: lostOption._id,
     }).countDocuments();
 
     // total posts
@@ -236,7 +243,7 @@ const getDashboard = async (req, res) => {
           currentDate.getDate() + 1
         ),
       },
-      foundLost: new mongoose.Types.ObjectId("66e60c25420ca2a42499b924"),
+      foundLost: foundOption._id,
     }).countDocuments();
 
     // today's total losts
@@ -254,7 +261,7 @@ const getDashboard = async (req, res) => {
           currentDate.getDate() + 1
         ),
       },
-      foundLost: new mongoose.Types.ObjectId("63cc3484bc901245d3a1cb5a"),
+      foundLost: lostOption._id,
     }).countDocuments();
 
     const createdToday = { todaysFoundPosts, todaysLostPosts };
@@ -303,22 +310,45 @@ const getCategories = async (req, res) => {
   res.json(categories);
 };
 
-// const createCategory = async (req, res) => {
-//   const newcategory = { code: "Vehicle" };
-
-//   const addedCategory = await Category.create(newcategory);
-
-//   if (addedCategory) {
-//     res
-//       .status(201)
-//       .json({ message: `new category ${addedCategory.code} added` });
-//   } else {
-//     res.status(400).json({ message: "Invalid caCategory data recieved!" });
-//   }
-// };
+// Create category dynamically
+const createCategory = async (req, res) => {
+  const { code, flag } = req.body;
+  if (!code) {
+    return res.status(400).json({ message: "Category code is required" });
+  }
+  const newCategory = { code, flag };
+  const addedCategory = await Category.create(newCategory);
+  if (addedCategory) {
+    res.status(201).json({ message: `new category ${addedCategory.code} added` });
+  } else {
+    res.status(400).json({ message: "Invalid category data received!" });
+  }
+};
+// Create foundLost dynamically
+const createFoundLost = async (req, res) => {
+  const { code } = req.body;
+  if (!code) {
+    return res.status(400).json({ message: "FoundLost code is required" });
+  }
+  const newFoundLost = { code };
+  const addedFoundLost = await FoundLost.create(newFoundLost);
+  if (addedFoundLost) {
+    res.status(201).json({ message: `new foundLost ${addedFoundLost.code} added` });
+  } else {
+    res.status(400).json({ message: "Invalid foundLost data received!" });
+  }
+};
 
 const postsPerDay = async () => {
   const currentDate = new Date();
+
+  // Lookup FoundLost IDs by code
+  const foundOption = await FoundLost.findOne({ code: "Found" });
+  const lostOption = await FoundLost.findOne({ code: "Lost" });
+  if (!foundOption || !lostOption) {
+    console.error("Found/Lost options not set in DB");
+    return;
+  }
 
   // today's founds
   const todaysFoundPosts = await Post.find({
@@ -334,7 +364,7 @@ const postsPerDay = async () => {
         currentDate.getDate() + 1
       ),
     },
-    foundLost: new mongoose.Types.ObjectId("66e60c25420ca2a42499b924"),
+    foundLost: foundOption._id,
   }).countDocuments();
 
   // today's losts
@@ -351,7 +381,7 @@ const postsPerDay = async () => {
         currentDate.getDate() + 1
       ),
     },
-    foundLost: new mongoose.Types.ObjectId("63cc3484bc901245d3a1cb5a"),
+    foundLost: lostOption._id,
   }).countDocuments();
 
   const createdToday = { todaysFoundPosts, todaysLostPosts };
@@ -364,5 +394,7 @@ module.exports = {
   getflOptions,
   getCategories,
   getCountries,
+  createCategory,
+  createFoundLost,
   // createCategory,
 };

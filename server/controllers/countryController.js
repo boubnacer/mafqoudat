@@ -10,14 +10,16 @@ const getCountries = async (req, res) => {
 };
 
 const createCountry = async (req, res) => {
-  const newcountry = { code: "Morocco" };
-
+  const { code, label } = req.body;
+  if (!code || !label) {
+    return res.status(400).json({ message: "Country code and label are required" });
+  }
+  const newcountry = { code, label };
   const addedCountry = await Country.create(newcountry);
-
   if (addedCountry) {
     res.status(201).json({ message: `new country ${addedCountry.code} added` });
   } else {
-    res.status(400).json({ message: "Invalid country data recieved!" });
+    res.status(400).json({ message: "Invalid country data received!" });
   }
 };
 
