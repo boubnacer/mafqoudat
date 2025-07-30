@@ -15,5 +15,10 @@ html {
 }
 
 body {
-  background-color: #F0F2F5;
+  background-color: #F0F2F5; /* Light mode default */
+}
+@media (prefers-color-scheme: dark) {
+  body {
+    background-color: #121212; /* Dark mode default */
+  }
 }

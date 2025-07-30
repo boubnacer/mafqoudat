@@ -137,25 +137,31 @@ export const EmptyState = ({
 // Loading State with Message
 export const LoadingState = ({ message = "Loading...", size = "medium" }) => {
   const theme = useTheme();
-  
+
   return (
     <Box
       sx={{
+        position: 'fixed',
+        top: 0,
+        left: 0,
+        width: '100vw',
+        height: '100vh',
+        zIndex: 2000,
         display: 'flex',
-        flexDirection: 'column',
         alignItems: 'center',
         justifyContent: 'center',
-        py: 4,
-        gap: 2,
+        backgroundColor:
+          theme.palette.mode === 'dark'
+            ? 'rgba(30,30,30,0.15)'
+            : 'rgba(255,255,255,0.15)',
+        backdropFilter: 'blur(6px)',
+        transition: 'background 0.3s',
       }}
     >
-      <CircularProgress 
-        size={size === "large" ? 48 : size === "small" ? 24 : 32}
+      <CircularProgress
+        size={size === 'large' ? 48 : size === 'small' ? 24 : 32}
         sx={{ color: theme.palette.primary.main }}
       />
-      <Typography variant="body2" color="text.secondary">
-        {message}
-      </Typography>
     </Box>
   );
 };
