@@ -12,6 +12,7 @@ import { PhotoCamera } from '@mui/icons-material';
 
 const NewPostForm = ({ user, countries, categories, flOptions }) => {
   const [addNewPost, { isLoading, isSuccess, isError, error }] = useAddNewPostMutation();
+  
   const navigate = useNavigate();
   const theme = useTheme();
   const [showSuccess, setShowSuccess] = useState(false);
@@ -30,8 +31,8 @@ const NewPostForm = ({ user, countries, categories, flOptions }) => {
   const initialFormState = {
     country: user.country,
     contact: user.username,
-    category: categories[0].id,
-    foundLost: flOptions[0].id,
+    category: categories[0]?.id || "",
+    foundLost: flOptions[0]?.id || "",
     region: "",
     image: null,
   };
@@ -47,137 +48,184 @@ const NewPostForm = ({ user, countries, categories, flOptions }) => {
 
   const handleSubmit = async (values, { setSubmitting, setStatus }) => {
     try {
-      const { image, ...otherValues } = values;
-      if (image && image.size > 2097152) {
-        setStatus({ error: "Image size should not exceed 2MB" });
-        setSubmitting(false);
-        return;
-      }
       const formData = new FormData();
-      Object.entries(otherValues).forEach(([key, value]) => {
-        formData.append(key, value);
-      });
-      formData.append("user", user.id);
-      formData.append("image", image);
+      formData.append("user", user._id);
+      formData.append("country", values.country);
+      formData.append("category", values.category);
+      formData.append("foundLost", values.foundLost);
+      formData.append("region", values.region);
+      formData.append("contact", values.contact);
+      if (values.image) {
+        formData.append("image", values.image);
+      }
+
       await addNewPost(formData);
-      setStatus({ error: null });
-    } catch (err) {
-      setStatus({ error: err.message || "Submission failed" });
+    } catch (error) {
+      setStatus({ error: error.message });
     } finally {
       setSubmitting(false);
     }
   };
 
+  if (isError) {
+    return (
+      <Box display="flex" justifyContent="center" alignItems="center" minHeight="50vh">
+        <Alert severity="error" sx={{ maxWidth: 600 }}>
+          <Typography variant="h6">Error Creating Post</Typography>
+          <Typography>{error?.data?.message || "An error occurred while creating the post"}</Typography>
+        </Alert>
+      </Box>
+    );
+  }
+
+  if (showSuccess) {
+    return (
+      <Box display="flex" justifyContent="center" alignItems="center" minHeight="50vh">
+        <Alert severity="success" sx={{ maxWidth: 600 }}>
+          <Typography variant="h6">Post Created Successfully!</Typography>
+          <Typography>Redirecting to dashboard...</Typography>
+        </Alert>
+      </Box>
+    );
+  }
+
   return (
-    <Box
-      sx={{
-        mt: { xs: 8, md: 12 },
-        mb: { xs: 8, md: 12 },
-        px: 2,
+    <Box 
+      sx={{ 
+        minHeight: "100vh",
+        pt: { xs: "6rem", md: "8rem" },
+        pb: { xs: "4rem", md: "6rem" },
+        px: { xs: 2, md: 4 },
         display: "flex",
         justifyContent: "center",
         alignItems: "flex-start",
-        minHeight: "80vh",
-        width: '100vw',
-        position: 'relative',
-        left: 0,
-        right: 0,
-        backgroundColor: theme.palette.background.default,
-        transition: 'background 0.3s',
-        animation: 'fadeIn 0.6s',
-        '@keyframes fadeIn': {
-          from: { opacity: 0 },
-          to: { opacity: 1 }
-        }
+        background: theme.palette.background.default
       }}
     >
-      <Paper
-        elevation={4}
-        sx={{
-          p: { xs: 2, sm: 4 },
+      <Paper 
+        elevation={4} 
+        sx={{ 
+          p: { xs: 3, md: 5 }, 
+          maxWidth: 600, 
           width: "100%",
-          maxWidth: 480,
           borderRadius: 3,
-          boxShadow: theme.shadows[4],
-          backgroundColor: theme.palette.background.paper,
-          transition: 'background 0.3s',
+          boxShadow: theme.shadows[8]
         }}
       >
-        <Typography variant="h5" align="center" fontWeight={600} mb={2}>
+        <Typography 
+          variant="h4" 
+          gutterBottom 
+          textAlign="center" 
+          sx={{ 
+            color: theme.palette.textColor.main,
+            mb: 4,
+            fontWeight: 600
+          }}
+        >
           Create New Post
         </Typography>
+
         <Formik
           initialValues={initialFormState}
           validationSchema={formValidation}
           onSubmit={handleSubmit}
         >
           {({ isSubmitting, status, setFieldValue, values }) => (
-            <Form encType="multipart/form-data">
-              {isError && (
-                <Alert severity="error" sx={{ mb: 2 }}>
-                  {error?.data?.message || "An error occurred."}
-                </Alert>
-              )}
-              {status && status.error && (
-                <Alert severity="error" sx={{ mb: 2 }}>
+            <Form>
+              {status?.error && (
+                <Alert severity="error" sx={{ mb: 3 }}>
                   {status.error}
                 </Alert>
               )}
-              {showSuccess && (
-                <Alert severity="success" sx={{ mb: 2 }}>
-                  Post created successfully!
-                </Alert>
-              )}
-              <Box display="flex" flexDirection="column" gap={2}>
-                <FormLabel htmlFor="country">Country</FormLabel>
-                <SelectCountry name="country" options={countries} />
-
-                <FormLabel htmlFor="foundLost">Found or Lost</FormLabel>
-                <SelectOption name="foundLost" options={flOptions} />
-
-                <FormLabel htmlFor="category">Category</FormLabel>
-                <SelectOption name="category" options={categories} />
-
-                <FormLabel htmlFor="region">Region</FormLabel>
-                <Textfield name="region" variant="outlined" />
-
-                <FormLabel htmlFor="contact">Contact</FormLabel>
-                <Textfield name="contact" variant="outlined" />
-
-                <FormLabel htmlFor="image">Add Item Image</FormLabel>
-                <Box display="flex" alignItems="center" gap={2}>
-                  <Button
-                    variant="contained"
-                    component="label"
-                    startIcon={<PhotoCamera />}
-                    sx={{ textTransform: 'none', borderRadius: 2 }}
-                  >
-                    Choose File
-                    <input
-                      id="image"
-                      name="image"
-                      type="file"
-                      accept="image/*"
-                      hidden
-                      onChange={(event) => {
-                        const file = event.currentTarget.files[0];
-                        setFieldValue("image", file);
-                        setSelectedFileName(file ? file.name : "");
-                      }}
-                    />
-                  </Button>
-                  {selectedFileName && (
-                    <Typography variant="caption" color="text.secondary">
-                      {selectedFileName}
-                    </Typography>
-                  )}
+              
+              <Box display="flex" flexDirection="column" gap={3}>
+                <Box>
+                  <FormLabel htmlFor="country" sx={{ mb: 1, display: "block", fontWeight: 500 }}>
+                    Country
+                  </FormLabel>
+                  <SelectCountry name="country" options={countries} />
                 </Box>
-                <Box mt={2}>
-                  <SubmitButton disabled={isSubmitting || isLoading}>
-                    {isSubmitting || isLoading ? (
+
+                <Box>
+                  <FormLabel htmlFor="foundLost" sx={{ mb: 1, display: "block", fontWeight: 500 }}>
+                    Found or Lost
+                  </FormLabel>
+                  <SelectOption name="foundLost" options={flOptions} />
+                </Box>
+
+                <Box>
+                  <FormLabel htmlFor="category" sx={{ mb: 1, display: "block", fontWeight: 500 }}>
+                    Category
+                  </FormLabel>
+                  <SelectOption name="category" options={categories} />
+                </Box>
+
+                <Box>
+                  <FormLabel htmlFor="region" sx={{ mb: 1, display: "block", fontWeight: 500 }}>
+                    Region
+                  </FormLabel>
+                  <Textfield name="region" variant="outlined" />
+                </Box>
+
+                <Box>
+                  <FormLabel htmlFor="contact" sx={{ mb: 1, display: "block", fontWeight: 500 }}>
+                    Contact
+                  </FormLabel>
+                  <Textfield name="contact" variant="outlined" />
+                </Box>
+
+                <Box>
+                  <FormLabel htmlFor="image" sx={{ mb: 1, display: "block", fontWeight: 500 }}>
+                    Add Item Image
+                  </FormLabel>
+                  <Box display="flex" alignItems="center" gap={2}>
+                    <Button
+                      variant="contained"
+                      component="label"
+                      startIcon={<PhotoCamera />}
+                      sx={{ 
+                        textTransform: 'none', 
+                        borderRadius: 2,
+                        px: 3,
+                        py: 1
+                      }}
+                    >
+                      Choose File
+                      <input
+                        id="image"
+                        name="image"
+                        type="file"
+                        accept="image/*"
+                        hidden
+                        onChange={(event) => {
+                          const file = event.currentTarget.files[0];
+                          setFieldValue("image", file);
+                          setSelectedFileName(file ? file.name : "");
+                        }}
+                      />
+                    </Button>
+                    {selectedFileName && (
+                      <Typography variant="body2" color="text.secondary">
+                        {selectedFileName}
+                      </Typography>
+                    )}
+                  </Box>
+                </Box>
+                
+                <Box mt={4}>
+                  <SubmitButton
+                    disabled={isSubmitting}
+                    sx={{ 
+                      width: "100%",
+                      py: 1.5,
+                      fontSize: "1.1rem",
+                      fontWeight: 600
+                    }}
+                  >
+                    {isSubmitting ? (
                       <CircularProgress size={24} color="inherit" />
                     ) : (
-                      "Submit"
+                      "Create Post"
                     )}
                   </SubmitButton>
                 </Box>

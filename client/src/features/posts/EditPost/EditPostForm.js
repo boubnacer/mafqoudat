@@ -1,119 +1,75 @@
 import { useState, useEffect } from "react";
-import { useUpdatePostMutation, useDeletePostMutation } from "../postsApiSlice";
 import { useNavigate } from "react-router-dom";
-import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
-import { faSave, faTrashCan } from "@fortawesome/free-solid-svg-icons";
-
+import { useUpdatePostMutation, useDeletePostMutation } from "../postsApiSlice";
 import * as Yup from "yup";
 import { Formik, Form } from "formik";
-import { Box, Button, FormLabel } from "@mui/material";
-import CheckBox from "../../../components/CheckBox";
+import Textfield from "../../../components/Textfield";
 import SubmitButton from "../../../components/SubmitButton";
 import SelectOption from "../../../components/SelectOption";
-import Textfield from "../../../components/Textfield";
-import FlexBetween from "../../../components/FlexBetween";
+import { Box, FormLabel, Paper, Typography, CircularProgress, useTheme, Alert, Button, Dialog, DialogTitle, DialogContent, DialogActions, TextField } from "@mui/material";
 import SelectCountry from "../../../components/SelectCountry";
+import CheckBox from "../../../components/CheckBox";
+import FlexBetween from "../../../components/FlexBetween";
+import { Add as AddIcon } from '@mui/icons-material';
+import { useCreateCategoryMutation, useCreateFoundLostMutation } from "../../dependencies/dependenciesApiSlice";
 
 const EditPostForm = ({ post, user, countries, flOptions, categories }) => {
-  const [updatePost, { isLoading, isSuccess, isError, error }] =
-    useUpdatePostMutation();
-
-  const [
-    deletePost,
-    { isSuccess: isDelSuccess, isError: isDelError, error: delerror },
-  ] = useDeletePostMutation();
+  const [updatePost, { isLoading, isSuccess, isError, error }] = useUpdatePostMutation();
+  const [deletePost, { isSuccess: isDelSuccess, isError: isDelError, error: delerror }] = useDeletePostMutation();
+  const [createCategory, { isLoading: isCreatingCategory }] = useCreateCategoryMutation();
+  const [createFoundLost, { isLoading: isCreatingFoundLost }] = useCreateFoundLostMutation();
 
   const navigate = useNavigate();
-
-  const [countryId, setCountryId] = useState(post.country);
-  const [region, setRegion] = useState(post.region);
-  const [category, setCategory] = useState(post.category);
-  const [contact, setContact] = useState(user.username);
-  const [returned, setReturned] = useState(post.returned);
+  const theme = useTheme();
+  
+  // Dialog states for creating new dependencies
+  const [showNewCategoryDialog, setShowNewCategoryDialog] = useState(false);
+  const [showNewFoundLostDialog, setShowNewFoundLostDialog] = useState(false);
+  const [newCategory, setNewCategory] = useState({ code: "", flag: "" });
+  const [newFoundLost, setNewFoundLost] = useState({ code: "" });
 
   useEffect(() => {
     if (isSuccess || isDelSuccess) {
-      setRegion("");
-      setCategory("");
-      setCountryId("");
-      setContact("");
       navigate("/dash");
     }
   }, [isSuccess, isDelSuccess, navigate]);
 
-  const onRegionChanged = (e) => setRegion(e.target.value);
-  const onContactChanged = (e) => setContact(e.target.value);
-  const onCategoryChanged = (e) => setCategory(e.target.value);
-  const onReturnedChanged = (e) => setReturned((prev) => !prev);
-  const onCountryIdChanged = (e) => setCountryId(e.target.value);
-
-  const canSave =
-    [region, category, countryId, contact].every(Boolean) && !isLoading;
-
-  const onSavePostClicked = async (e) => {
-    if (canSave) {
-      await updatePost({
-        id: post._id,
-        user: user._id,
-        country: countryId,
-        region,
-        category,
-        returned,
-        contact,
-      });
+  const handleCreateNewCategory = async () => {
+    if (newCategory.code) {
+      try {
+        await createCategory({
+          code: newCategory.code,
+          flag: newCategory.flag,
+        }).unwrap();
+        
+        setShowNewCategoryDialog(false);
+        setNewCategory({ code: "", flag: "" });
+      } catch (error) {
+        console.error("Failed to create category:", error);
+      }
     }
   };
 
-  const onDeletePostClicked = async () => {
-    await deletePost({ id: post._id });
+  const handleCreateNewFoundLost = async () => {
+    if (newFoundLost.code) {
+      try {
+        await createFoundLost({
+          code: newFoundLost.code,
+        }).unwrap();
+        
+        setShowNewFoundLostDialog(false);
+        setNewFoundLost({ code: "" });
+      } catch (error) {
+        console.error("Failed to create found/lost option:", error);
+      }
+    }
   };
-
-  const created = new Date(post.createdAt).toLocaleString("en-US", {
-    day: "numeric",
-    month: "long",
-    year: "numeric",
-    hour: "numeric",
-    minute: "numeric",
-    second: "numeric",
-  });
-  const updated = new Date(post.updatedAt).toLocaleString("en-US", {
-    day: "numeric",
-    month: "long",
-    year: "numeric",
-    hour: "numeric",
-    minute: "numeric",
-    second: "numeric",
-  });
-
-  const countryOptions = countries.map((country) => {
-    return (
-      <option key={country.id} value={country.id}>
-        {country.code}
-      </option>
-    );
-  });
-
-  const errClass = isError || isDelError ? "errmsg" : "offscreen";
-  const validRegionClass = !region ? "form__input--incomplete" : "";
-  const validCategoryClass = !category ? "form__input--incomplete" : "";
-
-  const errContent = (error?.data?.message || delerror?.data?.message) ?? "";
-
-  let deleteButton = (
-    <button
-      className="icon-button"
-      region="Delete"
-      onClick={onDeletePostClicked}
-    >
-      <FontAwesomeIcon icon={faTrashCan} />
-    </button>
-  );
 
   const initialFormState = {
     country: user.country,
     contact: user.username,
-    category: categories[0].id,
-    foundLost: flOptions[0].id,
+    category: categories[0]?.id || "",
+    foundLost: flOptions[0]?.id || "",
     region: post.region,
     returned: false,
   };
@@ -127,181 +83,164 @@ const EditPostForm = ({ post, user, countries, flOptions, categories }) => {
     returned: Yup.boolean().required("Required"),
   });
 
-  const handleSubmit = async (e) => {
-    // console.log({ ...e, user: user.id, id: post._id });
-    await updatePost({ ...e, user: user.id, id: post._id });
+  const handleSubmit = async (values) => {
+    await updatePost({ ...values, user: user.id, id: post._id });
   };
 
-  const updatePostForm = (
-    <Formik
-      initialValues={{ ...initialFormState }}
-      validationSchema={formValidation}
-      onSubmit={handleSubmit}
-    >
-      <Form>
-        <Box
-          margin="0 auto"
-          width="40%"
-          display="grid"
-          gridTemplateColumns="repeat(1,1fr)"
-          gap="0.5rem"
+  const handleDeletePost = async () => {
+    await deletePost({ id: post._id });
+  };
+
+  if (isError || isDelError) {
+    return (
+      <Box display="flex" justifyContent="center" alignItems="center" minHeight="50vh">
+        <Alert severity="error" sx={{ maxWidth: 600 }}>
+          <Typography variant="h6">Error</Typography>
+          <Typography>{error?.data?.message || delerror?.data?.message || "An error occurred"}</Typography>
+        </Alert>
+      </Box>
+    );
+  }
+
+  return (
+    <Box display="flex" justifyContent="center" alignItems="center" minHeight="50vh">
+      <Paper elevation={3} sx={{ p: 4, maxWidth: 600, width: "100%" }}>
+        <Typography variant="h4" gutterBottom textAlign="center" sx={{ color: theme.palette.textColor.main }}>
+          Edit Post
+        </Typography>
+
+        <Formik
+          initialValues={initialFormState}
+          validationSchema={formValidation}
+          onSubmit={handleSubmit}
         >
-          {/* <Grid item sx={12}>
-            <Typography>mafkoudat login</Typography>
-          </Grid> */}
+          <Form>
+            <Box display="flex" flexDirection="column" gap={2}>
+              <FormLabel>Country</FormLabel>
+              <SelectCountry name="country" options={countries} />
 
-          <FormLabel>Country</FormLabel>
-          {/* <SelectOption
-            name="country"
-            // label="Country"
-            options={countries}
-          /> */}
-          <SelectCountry
-            name="country"
-            // countryname={post?.countryname}
-            // label="Country"
-            options={countries}
-          />
+              <FormLabel>Found or Lost</FormLabel>
+              <Box display="flex" gap={1} alignItems="center">
+                <Box flex={1}>
+                  <SelectOption name="foundLost" options={flOptions} />
+                </Box>
+                <Button
+                  type="button"
+                  variant="outlined"
+                  size="small"
+                  startIcon={<AddIcon />}
+                  onClick={() => setShowNewFoundLostDialog(true)}
+                  sx={{ minWidth: 'auto', px: 1 }}
+                >
+                  Add
+                </Button>
+              </Box>
 
-          <FormLabel>Found or Lost</FormLabel>
-          <SelectOption
-            name="foundLost"
-            // label="Foundorlost"
-            options={flOptions}
-          />
+              <FormLabel>Category</FormLabel>
+              <Box display="flex" gap={1} alignItems="center">
+                <Box flex={1}>
+                  <SelectOption name="category" options={categories} />
+                </Box>
+                <Button
+                  type="button"
+                  variant="outlined"
+                  size="small"
+                  startIcon={<AddIcon />}
+                  onClick={() => setShowNewCategoryDialog(true)}
+                  sx={{ minWidth: 'auto', px: 1 }}
+                >
+                  Add
+                </Button>
+              </Box>
 
-          <FormLabel>Category</FormLabel>
-          <SelectOption
-            name="category"
-            // label="Category"
-            options={categories}
-          />
+              <FormLabel>Region</FormLabel>
+              <Textfield name="region" />
 
-          <FormLabel>Region</FormLabel>
-          <Textfield name="region" />
+              <FormLabel>Contact</FormLabel>
+              <Textfield name="contact" />
 
-          <FormLabel>Contact</FormLabel>
-          <Textfield name="contact" />
+              <CheckBox name="returned" legend="Item returned ?" label="Returned" />
 
-          {/* <FormLabel>Password</FormLabel>
-          <Textfield name="password" label="Password" /> */}
+              <FlexBetween>
+                <SubmitButton disabled={isLoading}>
+                  {isLoading ? <CircularProgress size={20} /> : "Update Post"}
+                </SubmitButton>
+                <Button 
+                  onClick={handleDeletePost}
+                  variant="outlined" 
+                  color="error"
+                  disabled={isLoading}
+                >
+                  Delete Post
+                </Button>
+              </FlexBetween>
+            </Box>
+          </Form>
+        </Formik>
 
-          <CheckBox name="returned" legend="Item returned ?" label="Returned" />
-
-          <FlexBetween>
-            <SubmitButton>Submit</SubmitButton>
-            <Button onClick={onDeletePostClicked}>Delete</Button>
-          </FlexBetween>
-        </Box>
-      </Form>
-    </Formik>
-  );
-
-  const content = (
-    <Box mt="4rem">
-      <p className={errClass}>{errContent}</p>
-
-      {updatePostForm}
-
-      {/* <form className="form" onSubmit={(e) => e.preventDefault()}>
-        <div className="form__region-row">
-          <h2>Edit Post #{post.ticket}</h2>
-          <div className="form__action-buttons">
-            <button
-              className="icon-button"
-              region="Save"
-              onClick={onSavePostClicked}
-              disabled={!canSave}
-            >
-              <FontAwesomeIcon icon={faSave} />
-            </button>
-            {deleteButton}
-          </div>
-        </div>
-        <label className="form__label" htmlFor="post-region">
-          Region:
-        </label>
-        <input
-          className={`form__input ${validRegionClass}`}
-          id="post-region"
-          name="region"
-          type="category"
-          autoComplete="off"
-          value={region}
-          onChange={onRegionChanged}
-        />
-
-        <label className="form__label" htmlFor="post-region">
-          Contact:
-        </label>
-        <input
-          className={`form__input ${validRegionClass}`}
-          id="post-contact"
-          name="contact"
-          type="category"
-          autoComplete="off"
-          value={contact}
-          onChange={onContactChanged}
-        />
-
-        <label className="form__label" htmlFor="post-category">
-          Category:
-        </label>
-        <categoryarea
-          className={`form__input form__input--category ${validCategoryClass}`}
-          id="post-category"
-          name="category"
-          value={category}
-          onChange={onCategoryChanged}
-        />
-        <div className="form__row">
-          <div className="form__divider">
-            <label
-              className="form__label form__checkbox-container"
-              htmlFor="post-returned"
-            >
-              AMANA WSLAT ?
-              <input
-                className="form__checkbox"
-                id="post-returned"
-                name="returned"
-                type="checkbox"
-                checked={returned}
-                onChange={onReturnedChanged}
+        {/* New Category Dialog */}
+        <Dialog open={showNewCategoryDialog} onClose={() => setShowNewCategoryDialog(false)} maxWidth="sm" fullWidth>
+          <DialogTitle>Add New Category</DialogTitle>
+          <DialogContent>
+            <Box sx={{ display: 'flex', flexDirection: 'column', gap: 2, mt: 1 }}>
+              <TextField
+                label="Category Code"
+                value={newCategory.code}
+                onChange={(e) => setNewCategory({ ...newCategory, code: e.target.value })}
+                fullWidth
+                required
+                placeholder="Vehicle, Electronics, Documents"
               />
-            </label>
-
-            <label className="form__label" htmlFor="country">
-              COUNTRY:
-            </label>
-            <select
-              id="country"
-              name="country"
-              className="form__select"
-              value={countryId}
-              onChange={onCountryIdChanged}
+              <TextField
+                label="Flag (optional)"
+                value={newCategory.flag}
+                onChange={(e) => setNewCategory({ ...newCategory, flag: e.target.value })}
+                fullWidth
+                placeholder="🚗, 📱, 📄"
+              />
+            </Box>
+          </DialogContent>
+          <DialogActions>
+            <Button onClick={() => setShowNewCategoryDialog(false)}>Cancel</Button>
+            <Button 
+              onClick={handleCreateNewCategory}
+              disabled={!newCategory.code || isCreatingCategory}
+              variant="contained"
             >
-              {countryOptions}
-            </select>
-          </div>
-          <div className="form__divider">
-            <p className="form__created">
-              Created:
-              <br />
-              {created}
-            </p>
-            <p className="form__updated">
-              Updated:
-              <br />
-              {updated}
-            </p>
-          </div>
-        </div>
-      </form> */}
+              {isCreatingCategory ? "Creating..." : "Create Category"}
+            </Button>
+          </DialogActions>
+        </Dialog>
+
+        {/* New Found/Lost Dialog */}
+        <Dialog open={showNewFoundLostDialog} onClose={() => setShowNewFoundLostDialog(false)} maxWidth="sm" fullWidth>
+          <DialogTitle>Add New Found/Lost Option</DialogTitle>
+          <DialogContent>
+            <Box sx={{ display: 'flex', flexDirection: 'column', gap: 2, mt: 1 }}>
+              <TextField
+                label="Option Code"
+                value={newFoundLost.code}
+                onChange={(e) => setNewFoundLost({ ...newFoundLost, code: e.target.value })}
+                fullWidth
+                required
+                placeholder="Found, Lost, Stolen"
+              />
+            </Box>
+          </DialogContent>
+          <DialogActions>
+            <Button onClick={() => setShowNewFoundLostDialog(false)}>Cancel</Button>
+            <Button 
+              onClick={handleCreateNewFoundLost}
+              disabled={!newFoundLost.code || isCreatingFoundLost}
+              variant="contained"
+            >
+              {isCreatingFoundLost ? "Creating..." : "Create Option"}
+            </Button>
+          </DialogActions>
+        </Dialog>
+      </Paper>
     </Box>
   );
-
-  return content;
 };
 
 export default EditPostForm;

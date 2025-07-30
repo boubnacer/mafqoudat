@@ -4,15 +4,34 @@ import useTitle from "../../../hooks/useTitle";
 import { LoadingState, EmptyState, ErrorState } from "../../../components/LoadingStates";
 import { useSelector } from "react-redux";
 import { Link, useLocation, useNavigate } from "react-router-dom";
-import { Search } from "@mui/icons-material";
-import { Button } from "@mui/material";
-
-import "./postslist.css";
-import Filter from "../../../components/Filter/Filter";
-import { useEffect, useState } from "react";
-
+import { 
+  Search, 
+  Add as AddIcon, 
+  FilterList as FilterIcon,
+  Sort as SortIcon,
+  ViewList as ViewListIcon,
+  ViewModule as ViewModuleIcon
+} from "@mui/icons-material";
+import { 
+  Button, 
+  Box, 
+  Typography, 
+  TextField, 
+  InputAdornment,
+  FormControl,
+  InputLabel,
+  Select,
+  MenuItem,
+  Chip,
+  Paper,
+  useTheme,
+  useMediaQuery,
+  IconButton,
+  Tooltip,
+  Grid
+} from "@mui/material";
 import Pagination from "@mui/material/Pagination";
-import { Box } from "@mui/material";
+import { useEffect, useState, useCallback } from "react";
 import useAuth from "../../../hooks/useAuth";
 import { selectCurrentCountry, selectFoundOrLost } from "../../../app/state";
 import FlexCenter from "../../../components/FlexCenter";
@@ -21,20 +40,25 @@ const POSTS_REGEX = /^\/dash\/posts(\/)?$/;
 const HOME_REGEX = /^\/dash(\/)?$/;
 
 const PostsList = () => {
-  useTitle("mafkoudat: Posts List");
+  useTitle("Mafkoudat | Posts List");
+
+  const theme = useTheme();
+  const isNonMediumScreens = useMediaQuery("(min-width:1200px)");
+  const isMobile = useMediaQuery("(max-width:768px)");
 
   const user = useAuth();
-
   const countryId = useSelector(selectCurrentCountry);
-
   const [currentCountry, setCurrentCountry] = useState(user.country);
-
   const foundOrlost = useSelector(selectFoundOrLost);
 
+  // State management
   const [page, setPage] = useState(1);
-  const [pageSize, setPageSize] = useState(4);
-  // const [sort, setSort] = useState({});
+  const [pageSize, setPageSize] = useState(8); // Increased page size
   const [fl, setFl] = useState(foundOrlost);
+  const [searchTerm, setSearchTerm] = useState("");
+  const [sortBy, setSortBy] = useState("newest");
+  const [viewMode, setViewMode] = useState("grid"); // grid or list
+  const [categoryFilter, setCategoryFilter] = useState("all");
 
   const navigate = useNavigate();
   const { pathname } = useLocation();
@@ -44,6 +68,8 @@ const PostsList = () => {
     pageSize,
     fl,
     currentCountry,
+    search: searchTerm || undefined,
+    categoryId: categoryFilter !== "all" ? categoryFilter : undefined,
   });
 
   useEffect(() => {
@@ -54,6 +80,37 @@ const PostsList = () => {
 
   const handlePaginate = (e, p) => {
     setPage(p);
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+  };
+
+  const handleSearch = (e) => {
+    setSearchTerm(e.target.value);
+    // Don't reset page immediately - let user finish typing
+  };
+
+  // Debounced search effect
+  useEffect(() => {
+    const timer = setTimeout(() => {
+      if (searchTerm !== "") {
+        setPage(1);
+      }
+    }, 500); // Wait 500ms after user stops typing
+
+    return () => clearTimeout(timer);
+  }, [searchTerm]);
+
+  const handleSortChange = (e) => {
+    setSortBy(e.target.value);
+    setPage(1);
+  };
+
+  const handleCategoryFilter = (e) => {
+    setCategoryFilter(e.target.value);
+    setPage(1);
+  };
+
+  const handleViewModeChange = () => {
+    setViewMode(viewMode === "grid" ? "list" : "grid");
   };
 
   const handleMore = () => navigate("/dash/posts");
@@ -73,65 +130,306 @@ const PostsList = () => {
   }
 
   if (isSuccess) {
-    const { postsWithUser } = data;
+    const { postsWithUser, totalPages } = data;
 
     const postsWithUserCountry = postsWithUser.filter(
       (postId) => postId.country === countryId
     );
 
-    content = postsWithUserCountry?.length ? (
-      <Box>
-        <FlexCenter position="relative">
-          {/* sorting */}
-          <Box
-            width="90%"
-            display="grid"
-            // gridTemplateColumns="repeat(4, 1fr)"
-            gap="1.5rem"
-            sx={{
-              gridTemplateColumns: {
-                xs: "repeat(1, 1fr)",
-                md: "repeat(2, 1fr)",
-                lg: "repeat(4, 1fr)",
-              },
-              mt: {
-                xs: "21rem",
-                sm: "13rem",
-              },
+    return (
+      <Box sx={{ 
+        p: { xs: 2, md: 4 },
+        pt: { xs: "8rem", md: "10rem" }, // Add top padding to avoid navbar
+        minHeight: "100vh"
+      }}>
+        {/* Header Section */}
+        <Box sx={{ mb: 4 }}>
+          <Box display="flex" justifyContent="space-between" alignItems="center" mb={3}>
+            <Box>
+              <Typography 
+                variant="h3" 
+                sx={{ 
+                  color: theme.palette.textColor.main,
+                  fontWeight: 700,
+                  mb: 1
+                }}
+              >
+                Posts
+              </Typography>
+              <Typography 
+                variant="h6" 
+                sx={{ 
+                  color: theme.palette.textColor.secondary,
+                  fontWeight: 400
+                }}
+              >
+                {postsWithUserCountry.length} posts found
+              </Typography>
+            </Box>
+            <Button
+              variant="contained"
+              startIcon={<AddIcon />}
+              onClick={() => navigate("/dash/posts/new")}
+              sx={{
+                borderRadius: 2,
+                px: 3,
+                py: 1,
+                textTransform: 'none',
+                fontWeight: 600
+              }}
+            >
+              Add New Post
+            </Button>
+          </Box>
+
+          {/* Filters and Search - Always visible */}
+          <Paper 
+            elevation={2} 
+            sx={{ 
+              p: 3, 
+              borderRadius: 3,
+              background: theme.palette.background.paper
             }}
           >
-            {postsWithUserCountry.map((post) => (
-              <Post key={post._id} post={post} />
-            ))}
-          </Box>
-        </FlexCenter>
-        <Box
-          mt="2rem"
-          display="flex"
-          justifyContent="center"
-          alignItems="center"
-        >
-          <Pagination
-            page={page}
-            count={data.totalPages}
-            onChange={handlePaginate}
-            // sx={{ width:  }}
-          ></Pagination>
+            <Grid container spacing={3} alignItems="center">
+              {/* Search */}
+              <Grid item xs={12} md={4}>
+                <TextField
+                  fullWidth
+                  placeholder="Search posts by region, contact, or category..."
+                  value={searchTerm}
+                  onChange={handleSearch}
+                  InputProps={{
+                    startAdornment: (
+                      <InputAdornment position="start">
+                        <Search />
+                      </InputAdornment>
+                    ),
+                  }}
+                  sx={{ 
+                    '& .MuiOutlinedInput-root': { 
+                      borderRadius: 2 
+                    } 
+                  }}
+                />
+              </Grid>
+
+              {/* Sort */}
+              <Grid item xs={12} sm={6} md={2}>
+                <FormControl fullWidth>
+                  <InputLabel>Sort By</InputLabel>
+                  <Select
+                    value={sortBy}
+                    label="Sort By"
+                    onChange={handleSortChange}
+                    sx={{ borderRadius: 2 }}
+                  >
+                    <MenuItem value="newest">Newest First</MenuItem>
+                    <MenuItem value="oldest">Oldest First</MenuItem>
+                    <MenuItem value="region">By Region</MenuItem>
+                    <MenuItem value="category">By Category</MenuItem>
+                  </Select>
+                </FormControl>
+              </Grid>
+
+              {/* Category Filter */}
+              <Grid item xs={12} sm={6} md={2}>
+                <FormControl fullWidth>
+                  <InputLabel>Category</InputLabel>
+                  <Select
+                    value={categoryFilter}
+                    label="Category"
+                    onChange={handleCategoryFilter}
+                    sx={{ borderRadius: 2 }}
+                  >
+                    <MenuItem value="all">All Categories</MenuItem>
+                    <MenuItem value="vehicle">Vehicle</MenuItem>
+                    <MenuItem value="electronics">Electronics</MenuItem>
+                    <MenuItem value="documents">Documents</MenuItem>
+                    <MenuItem value="jewelry">Jewelry</MenuItem>
+                  </Select>
+                </FormControl>
+              </Grid>
+
+              {/* View Mode Toggle */}
+              <Grid item xs={12} md={2}>
+                <Box display="flex" justifyContent="center" gap={1}>
+                  <Tooltip title="Grid View">
+                    <IconButton
+                      onClick={() => setViewMode("grid")}
+                      color={viewMode === "grid" ? "primary" : "default"}
+                      sx={{ 
+                        borderRadius: 2,
+                        backgroundColor: viewMode === "grid" ? theme.palette.primary.light + '20' : 'transparent'
+                      }}
+                    >
+                      <ViewModuleIcon />
+                    </IconButton>
+                  </Tooltip>
+                  <Tooltip title="List View">
+                    <IconButton
+                      onClick={() => setViewMode("list")}
+                      color={viewMode === "list" ? "primary" : "default"}
+                      sx={{ 
+                        borderRadius: 2,
+                        backgroundColor: viewMode === "list" ? theme.palette.primary.light + '20' : 'transparent'
+                      }}
+                    >
+                      <ViewListIcon />
+                    </IconButton>
+                  </Tooltip>
+                </Box>
+              </Grid>
+
+              {/* Active Filters Display */}
+              <Grid item xs={12}>
+                <Box display="flex" gap={1} flexWrap="wrap">
+                  {searchTerm && (
+                    <Chip 
+                      label={`Search: ${searchTerm}`} 
+                      onDelete={() => setSearchTerm("")}
+                      color="primary"
+                      variant="outlined"
+                    />
+                  )}
+                  {categoryFilter !== "all" && (
+                    <Chip 
+                      label={`Category: ${categoryFilter}`} 
+                      onDelete={() => setCategoryFilter("all")}
+                      color="secondary"
+                      variant="outlined"
+                    />
+                  )}
+                  {sortBy !== "newest" && (
+                    <Chip 
+                      label={`Sort: ${sortBy}`} 
+                      onDelete={() => setSortBy("newest")}
+                      color="info"
+                      variant="outlined"
+                    />
+                  )}
+                </Box>
+              </Grid>
+            </Grid>
+          </Paper>
         </Box>
+
+        {/* Posts Content */}
+        {postsWithUserCountry?.length ? (
+          <>
+            {/* Posts Grid/List */}
+            <Box sx={{ mb: 4 }}>
+              <Box
+                display="grid"
+                gap={3}
+                sx={{
+                  gridTemplateColumns: viewMode === "grid" ? {
+                    xs: "repeat(1, 1fr)",
+                    sm: "repeat(2, 1fr)",
+                    md: "repeat(3, 1fr)",
+                    lg: "repeat(4, 1fr)",
+                  } : "repeat(1, 1fr)",
+                }}
+              >
+                {postsWithUserCountry.map((post) => (
+                  <Post 
+                    key={post._id} 
+                    post={post} 
+                    viewMode={viewMode}
+                  />
+                ))}
+              </Box>
+            </Box>
+
+            {/* Enhanced Pagination */}
+            {totalPages > 1 && (
+              <Paper 
+                elevation={2} 
+                sx={{ 
+                  p: 3, 
+                  borderRadius: 3,
+                  background: theme.palette.background.paper
+                }}
+              >
+                <Box
+                  display="flex"
+                  flexDirection={{ xs: "column", sm: "row" }}
+                  justifyContent="space-between"
+                  alignItems="center"
+                  gap={2}
+                >
+                  <Typography variant="body2" color="text.secondary">
+                    Page {page} of {totalPages} • {postsWithUserCountry.length} posts
+                  </Typography>
+                  
+                  <Pagination
+                    page={page}
+                    count={totalPages}
+                    onChange={handlePaginate}
+                    color="primary"
+                    size={isMobile ? "small" : "medium"}
+                    showFirstButton
+                    showLastButton
+                    sx={{
+                      '& .MuiPaginationItem-root': {
+                        borderRadius: 2,
+                        fontWeight: 600
+                      }
+                    }}
+                  />
+                  
+                  <Box display="flex" gap={1} alignItems="center">
+                    <Typography variant="body2" color="text.secondary">
+                      Posts per page:
+                    </Typography>
+                    <Select
+                      value={pageSize}
+                      onChange={(e) => {
+                        setPageSize(e.target.value);
+                        setPage(1);
+                      }}
+                      size="small"
+                      sx={{ minWidth: 80 }}
+                    >
+                      <MenuItem value={4}>4</MenuItem>
+                      <MenuItem value={8}>8</MenuItem>
+                      <MenuItem value={12}>12</MenuItem>
+                      <MenuItem value={16}>16</MenuItem>
+                    </Select>
+                  </Box>
+                </Box>
+              </Paper>
+            )}
+          </>
+        ) : (
+          <EmptyState
+            icon={Search}
+            title="No posts found"
+            description="There are no posts matching your current filters. Try adjusting your search criteria or be the first to create a post!"
+            action={
+              <Link to="/dash/posts/new">
+                <Button 
+                  variant="contained" 
+                  startIcon={<AddIcon />}
+                  sx={{ 
+                    borderRadius: 2,
+                    px: 3,
+                    py: 1,
+                    textTransform: 'none',
+                    fontWeight: 600
+                  }}
+                >
+                  Add New Post
+                </Button>
+              </Link>
+            }
+          />
+        )}
       </Box>
-    ) : (
-      <EmptyState
-        icon={Search}
-        title="No posts found"
-        description="There are no posts for the selected country yet. Be the first to create one!"
-        action={
-          <Link to="/dash/posts/new">
-            <Button variant="contained">Add New Post</Button>
-          </Link>
-        }
-      />
     );
   }
+  
   return content;
 };
+
 export default PostsList;

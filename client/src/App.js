@@ -15,6 +15,7 @@ import SinglePost from "./features/posts/PostPage/SinglePost";
 import { useGetCountriesQuery } from "./features/countries/countriesApiSlice";
 import ReportPage from "./features/posts/ReportPage/ReportPage";
 import Dash from "./features/dashboard/Dash";
+import DependenciesManager from "./features/MANAGER/Dependencies/DependenciesManager";
 import { CssBaseline, ThemeProvider } from "@mui/material";
 import { createTheme } from "@mui/material/styles";
 import React, { useEffect, useMemo } from "react";
@@ -75,6 +76,8 @@ function App() {
                     <Route index element={<UsersList />} />
                     <Route path=":id" element={<EditUser />} />
                   </Route>
+
+                  <Route path="dependencies" element={<DependenciesManager />} />
                 </Route>
                 {/* End Dash */}
               </Route>
