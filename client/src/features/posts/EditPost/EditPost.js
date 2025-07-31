@@ -18,7 +18,9 @@ const EditPost = () => {
 
   const { id } = useParams();
 
-  const { countries } = useGetCountriesQuery("countriesList", {
+  const { countries } = useGetCountriesQuery({
+    language: 'en'
+  }, {
     selectFromResult: ({ data }) => ({
       countries: data?.ids.map((id) => data?.entities[id]),
     }),

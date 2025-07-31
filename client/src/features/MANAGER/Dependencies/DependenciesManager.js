@@ -49,7 +49,9 @@ const DependenciesManager = () => {
   const [newItem, setNewItem] = useState({ code: "", label: "", flag: "" });
 
   // Queries
-  const { data: countries, isLoading: countriesLoading } = useGetCountriesQuery();
+  const { data: countries, isLoading: countriesLoading } = useGetCountriesQuery({
+    language: 'en'
+  });
   const { data: categories, isLoading: categoriesLoading } = useGetCategoriesQuery();
   const { data: flOptions, isLoading: flOptionsLoading } = useGetflOptionsQuery();
 

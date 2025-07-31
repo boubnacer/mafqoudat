@@ -8,14 +8,17 @@ const initialState = dependenciesAdapter.getInitialState();
 export const dependencieaApiSlice = apiSlice.injectEndpoints({
   endpoints: (builder) => ({
     getflOptions: builder.query({
-      query: () => ({
+      query: ({ language = 'en', active = true } = {}) => ({
         url: "floptions",
+        params: { language, active },
         validateStatus: (response, result) => {
           return response.status === 200 && !result.isError;
         },
       }),
       transformResponse: (responseData) => {
-        const loadedlfOptions = responseData.map((flOption) => {
+        // Handle both old and new response formats
+        const flOptions = responseData.data || responseData;
+        const loadedlfOptions = flOptions.map((flOption) => {
           flOption.id = flOption._id;
           return flOption;
         });
@@ -32,14 +35,17 @@ export const dependencieaApiSlice = apiSlice.injectEndpoints({
     }),
 
     getCountries: builder.query({
-      query: () => ({
+      query: ({ language = 'en', search, active = true } = {}) => ({
         url: "countries",
+        params: { language, search, active },
         validateStatus: (response, result) => {
           return response.status === 200 && !result.isError;
         },
       }),
       transformResponse: (responseData) => {
-        const loadedCountries = responseData.map((country) => {
+        // Handle both old and new response formats
+        const countries = responseData.data || responseData;
+        const loadedCountries = countries.map((country) => {
           country.id = country._id;
           return country;
         });

@@ -1,4 +1,6 @@
 import { useGetPostsQuery } from "../postsApiSlice";
+import { useGetCategoriesQuery } from "../../dependencies/dependenciesApiSlice";
+import { getCurrentLanguage } from "../../../utils/languageUtils";
 import Post from "./Post";
 import useTitle from "../../../hooks/useTitle";
 import { LoadingState, EmptyState, ErrorState } from "../../../components/LoadingStates";
@@ -10,7 +12,8 @@ import {
   FilterList as FilterIcon,
   Sort as SortIcon,
   ViewList as ViewListIcon,
-  ViewModule as ViewModuleIcon
+  ViewModule as ViewModuleIcon,
+  Category as CategoryIcon
 } from "@mui/icons-material";
 import { 
   Button, 
@@ -28,10 +31,11 @@ import {
   useMediaQuery,
   IconButton,
   Tooltip,
-  Grid
+  Grid,
+  Alert
 } from "@mui/material";
 import Pagination from "@mui/material/Pagination";
-import { useEffect, useState, useCallback } from "react";
+import { useEffect, useState, useCallback, useMemo } from "react";
 import useAuth from "../../../hooks/useAuth";
 import { selectCurrentCountry, selectFoundOrLost } from "../../../app/state";
 import FlexCenter from "../../../components/FlexCenter";
@@ -53,24 +57,46 @@ const PostsList = () => {
 
   // State management
   const [page, setPage] = useState(1);
-  const [pageSize, setPageSize] = useState(8); // Increased page size
+  const [pageSize, setPageSize] = useState(8);
   const [fl, setFl] = useState(foundOrlost);
   const [searchTerm, setSearchTerm] = useState("");
+  const [debouncedSearchTerm, setDebouncedSearchTerm] = useState("");
   const [sortBy, setSortBy] = useState("newest");
-  const [viewMode, setViewMode] = useState("grid"); // grid or list
+  const [viewMode, setViewMode] = useState("grid");
   const [categoryFilter, setCategoryFilter] = useState("all");
 
   const navigate = useNavigate();
   const { pathname } = useLocation();
+
+  // Get current language
+  const currentLanguage = getCurrentLanguage();
+
+  // Get categories for dynamic filtering
+  const { data: categoriesData } = useGetCategoriesQuery("categoriesList", {
+    selectFromResult: ({ data }) => ({
+      data: data?.ids?.map((id) => data?.entities[id]) || [],
+    }),
+  });
 
   const { data, isLoading, isSuccess, isError, error } = useGetPostsQuery({
     page,
     pageSize,
     fl,
     currentCountry,
-    search: searchTerm || undefined,
+    search: debouncedSearchTerm || undefined,
     categoryId: categoryFilter !== "all" ? categoryFilter : undefined,
+    language: currentLanguage,
   });
+
+  // Debounce search term
+  useEffect(() => {
+    const timer = setTimeout(() => {
+      setDebouncedSearchTerm(searchTerm);
+      setPage(1); // Reset to first page when search changes
+    }, 300);
+
+    return () => clearTimeout(timer);
+  }, [searchTerm]);
 
   useEffect(() => {
     setCurrentCountry(countryId);
@@ -85,19 +111,7 @@ const PostsList = () => {
 
   const handleSearch = (e) => {
     setSearchTerm(e.target.value);
-    // Don't reset page immediately - let user finish typing
   };
-
-  // Debounced search effect
-  useEffect(() => {
-    const timer = setTimeout(() => {
-      if (searchTerm !== "") {
-        setPage(1);
-      }
-    }, 500); // Wait 500ms after user stops typing
-
-    return () => clearTimeout(timer);
-  }, [searchTerm]);
 
   const handleSortChange = (e) => {
     setSortBy(e.target.value);
@@ -115,6 +129,17 @@ const PostsList = () => {
 
   const handleMore = () => navigate("/dash/posts");
 
+  // Check if we have active filters
+  const hasActiveFilters = useMemo(() => {
+    return searchTerm || categoryFilter !== "all" || sortBy !== "newest";
+  }, [searchTerm, categoryFilter, sortBy]);
+
+  // Get filtered posts for current country
+  const filteredPosts = useMemo(() => {
+    if (!data?.postsWithUser) return [];
+    return data.postsWithUser.filter(post => post.country === countryId);
+  }, [data?.postsWithUser, countryId]);
+
   let content;
 
   if (isLoading) content = <LoadingState message="Loading posts..." />;
@@ -130,16 +155,12 @@ const PostsList = () => {
   }
 
   if (isSuccess) {
-    const { postsWithUser, totalPages } = data;
-
-    const postsWithUserCountry = postsWithUser.filter(
-      (postId) => postId.country === countryId
-    );
+    const { totalPages } = data;
 
     return (
       <Box sx={{ 
         p: { xs: 2, md: 4 },
-        pt: { xs: "8rem", md: "10rem" }, // Add top padding to avoid navbar
+        pt: { xs: "8rem", md: "10rem" },
         minHeight: "100vh"
       }}>
         {/* Header Section */}
@@ -163,7 +184,7 @@ const PostsList = () => {
                   fontWeight: 400
                 }}
               >
-                {postsWithUserCountry.length} posts found
+                {filteredPosts.length} posts found
               </Typography>
             </Box>
             <Button
@@ -243,10 +264,11 @@ const PostsList = () => {
                     sx={{ borderRadius: 2 }}
                   >
                     <MenuItem value="all">All Categories</MenuItem>
-                    <MenuItem value="vehicle">Vehicle</MenuItem>
-                    <MenuItem value="electronics">Electronics</MenuItem>
-                    <MenuItem value="documents">Documents</MenuItem>
-                    <MenuItem value="jewelry">Jewelry</MenuItem>
+                    {categoriesData?.map((category) => (
+                      <MenuItem key={category._id} value={category._id}>
+                        {category.code}
+                      </MenuItem>
+                    ))}
                   </Select>
                 </FormControl>
               </Grid>
@@ -294,7 +316,7 @@ const PostsList = () => {
                   )}
                   {categoryFilter !== "all" && (
                     <Chip 
-                      label={`Category: ${categoryFilter}`} 
+                      label={`Category: ${categoriesData?.find(cat => cat._id === categoryFilter)?.code || categoryFilter}`} 
                       onDelete={() => setCategoryFilter("all")}
                       color="secondary"
                       variant="outlined"
@@ -315,7 +337,7 @@ const PostsList = () => {
         </Box>
 
         {/* Posts Content */}
-        {postsWithUserCountry?.length ? (
+        {filteredPosts?.length ? (
           <>
             {/* Posts Grid/List */}
             <Box sx={{ mb: 4 }}>
@@ -331,7 +353,7 @@ const PostsList = () => {
                   } : "repeat(1, 1fr)",
                 }}
               >
-                {postsWithUserCountry.map((post) => (
+                {filteredPosts.map((post) => (
                   <Post 
                     key={post._id} 
                     post={post} 
@@ -359,7 +381,7 @@ const PostsList = () => {
                   gap={2}
                 >
                   <Typography variant="body2" color="text.secondary">
-                    Page {page} of {totalPages} • {postsWithUserCountry.length} posts
+                    Page {page} of {totalPages} • {filteredPosts.length} posts
                   </Typography>
                   
                   <Pagination
@@ -404,8 +426,12 @@ const PostsList = () => {
         ) : (
           <EmptyState
             icon={Search}
-            title="No posts found"
-            description="There are no posts matching your current filters. Try adjusting your search criteria or be the first to create a post!"
+            title={hasActiveFilters ? "No posts match your filters" : "No posts found"}
+            description={
+              hasActiveFilters 
+                ? "There are no posts matching your current filters. Try adjusting your search criteria or be the first to create a post in this category!"
+                : "There are no posts in your area yet. Be the first to create a post!"
+            }
             action={
               <Link to="/dash/posts/new">
                 <Button 

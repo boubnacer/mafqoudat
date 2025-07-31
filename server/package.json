@@ -5,7 +5,9 @@
   "main": "server.js",
   "scripts": {
     "start": "node server",
-    "dev": "nodemon server"
+    "dev": "nodemon server",
+    "seed": "node scripts/seedData.js",
+    "migrate": "node scripts/migrateData.js"
   },
   "keywords": [],
   "author": "",

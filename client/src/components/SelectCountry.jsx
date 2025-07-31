@@ -4,8 +4,7 @@ import TextField from "@mui/material/TextField";
 import Autocomplete from "@mui/material/Autocomplete";
 import { useField, useFormikContext } from "formik";
 
-const SelectCountry = ({ options, name, countryname }) => {
-  // console.log(countryname);
+const SelectCountry = ({ options, name, countryname, language = 'en' }) => {
   const { setFieldValue } = useFormikContext();
   const [field, meta] = useField(name);
 
@@ -14,29 +13,50 @@ const SelectCountry = ({ options, name, countryname }) => {
     setFieldValue(name, value._id);
   };
 
+  // Get the appropriate label based on language
+  const getCountryLabel = (option) => {
+    if (option.labels && option.labels[language]) {
+      return option.labels[language];
+    }
+    return option.label || option.code;
+  };
+
+  // Get flag source - prefer local flag, fallback to flagcdn
+  const getFlagSource = (option) => {
+    if (option.flag) {
+      return option.flag; // Use emoji flag if available
+    }
+    return `https://flagcdn.com/w20/${option.code.toLowerCase()}.png`;
+  };
+
   return (
     <Autocomplete
       defaultValue={countryname}
-      //   sx={{ width: 300 }}
       options={options}
       autoHighlight
       disableClearable
       onChange={handleChange}
-      getOptionLabel={(option) => option.label}
+      getOptionLabel={(option) => getCountryLabel(option)}
       renderOption={(props, option) => (
         <Box
           component="li"
           sx={{ "& > img": { mr: 2, flexShrink: 0 } }}
           {...props}
         >
-          <img
-            loading="lazy"
-            width="20"
-            src={`https://flagcdn.com/w20/${option.code.toLowerCase()}.png`}
-            srcSet={`https://flagcdn.com/w40/${option.code.toLowerCase()}.png 2x`}
-            alt=""
-          />
-          {option.label} ({option.code})
+          {option.flag ? (
+            <span style={{ marginRight: 8, fontSize: '20px' }}>
+              {option.flag}
+            </span>
+          ) : (
+            <img
+              loading="lazy"
+              width="20"
+              src={getFlagSource(option)}
+              srcSet={`https://flagcdn.com/w40/${option.code.toLowerCase()}.png 2x`}
+              alt=""
+            />
+          )}
+          {getCountryLabel(option)} ({option.code})
         </Box>
       )}
       renderInput={(params) => (

@@ -1,3 +1,65 @@
-.edit__btn {
-  display: none;
+/* Single Post Page Styles */
+.single-post-container {
+  min-height: 100vh;
+  background: var(--background-color, #f0f2f5);
+}
+
+.single-post-paper {
+  border-radius: 16px;
+  overflow: hidden;
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.1);
+}
+
+.single-post-image {
+  position: relative;
+  overflow: hidden;
+}
+
+.single-post-image img {
+  transition: transform 0.3s ease;
+}
+
+.single-post-image:hover img {
+  transform: scale(1.05);
+}
+
+.single-post-content {
+  padding: 2rem;
+}
+
+.single-post-sidebar {
+  position: sticky;
+  top: 2rem;
+}
+
+.single-post-actions {
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+}
+
+.single-post-insights {
+  margin-top: 2rem;
+}
+
+/* Responsive adjustments */
+@media (max-width: 768px) {
+  .single-post-content {
+    padding: 1.5rem;
+  }
+  
+  .single-post-sidebar {
+    position: static;
+    margin-top: 2rem;
+  }
+}
+
+/* Dark mode support */
+[data-theme="dark"] .single-post-container {
+  background: var(--background-color-dark, #121212);
+}
+
+[data-theme="dark"] .single-post-paper {
+  background: var(--paper-background-dark, #1e1e1e);
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.3);
 }

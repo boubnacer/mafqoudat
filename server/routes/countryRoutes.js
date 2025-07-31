@@ -7,4 +7,13 @@ router
   .get(countrycontroller.getCountries)
   .post(countrycontroller.createCountry);
 
+router
+  .route("/search")
+  .get(countrycontroller.searchCountries);
+
+router
+  .route("/:id")
+  .put(countrycontroller.updateCountry)
+  .delete(countrycontroller.deleteCountry);
+
 module.exports = router;

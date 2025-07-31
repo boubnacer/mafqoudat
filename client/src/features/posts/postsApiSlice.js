@@ -12,7 +12,7 @@ export const postsApiSlice = apiSlice.injectEndpoints({
   endpoints: (builder) => ({
     // Get all post and trended one
     getPosts: builder.query({
-      query: ({ page, pageSize, fl, currentCountry, categoryId, search }) => ({
+      query: ({ page, pageSize, fl, currentCountry, categoryId, search, language = 'en' }) => ({
         url: "/posts",
         method: "GET",
         params: {
@@ -21,61 +21,76 @@ export const postsApiSlice = apiSlice.injectEndpoints({
           ...(fl && { fl }),
           ...(currentCountry && { currentCountry }),
           ...(categoryId && { categoryId }),
-          ...(search && { search })
+          ...(search && { search }),
+          language
         },
         validateStatus: (response, result) => {
           return response.status === 200 && !result.isError;
         },
       }),
-      transformResponse: (responseData) => {
+      transformResponse: (responseData, meta, arg) => {
         const { postsWithUser, pageSize, totalPages, page } = responseData;
+        const language = arg?.language || 'en';
 
-        // const loadedPosts = postsWithUser.map((post) => {
-        //   post.id = post._id;
-        //   return { post, page };
-        // });
+        // Transform post data to handle new multilingual structure
+        const transformedPosts = postsWithUser.map(post => {
+          // Ensure foundLost data is properly structured
+          if (post.foundLost && typeof post.foundLost === 'object') {
+            // Use the label for the current language
+            const foundLostLabel = post.foundLost.labels?.[language] || post.foundLost.labels?.en || post.foundLost.code;
+            post.foundLostLabel = foundLostLabel;
+          }
+          
+          // Ensure country data is properly structured
+          if (post.country && typeof post.country === 'object') {
+            const countryLabel = post.country.labels?.[language] || post.country.labels?.en || post.country.code;
+            post.countryLabel = countryLabel;
+          }
 
-        // return postsAdapter.setAll(initialState, loadedPosts);
+          return post;
+        });
 
-        return { postsWithUser, page, totalPages };
+        return { 
+          postsWithUser: transformedPosts, 
+          page, 
+          totalPages 
+        };
       },
       providesTags: ["Post"],
     }),
 
     // get post
-
     getPost: builder.query({
-      query: (postId) => `/posts/${postId}`,
+      query: ({ postId, language = 'en' }) => ({
+        url: `/posts/${postId}`,
+        params: { language }
+      }),
+      transformResponse: (responseData, meta, arg) => {
+        const post = responseData;
+        const language = arg?.language || 'en';
+        
+        // Transform post data to handle new multilingual structure
+        if (post.foundLost && typeof post.foundLost === 'object') {
+          const foundLostLabel = post.foundLost.labels?.[language] || post.foundLost.labels?.en || post.foundLost.code;
+          post.foundLostLabel = foundLostLabel;
+        }
+        
+        if (post.country && typeof post.country === 'object') {
+          const countryLabel = post.country.labels?.[language] || post.country.labels?.en || post.country.code;
+          post.countryLabel = countryLabel;
+        }
+
+        return post;
+      },
       providesTags: ["Post"],
     }),
 
-    // getPost: builder.query({
-    //   query: ({ postId }) => ({
-    //     url: "/posts",
-    //     method: "GET",
-    //     params: { postId },
-    //     validateStatus: (response, result) => {
-    //       return response.status === 200 && !result.isError;
-    //     },
-    //   }),
-    //   transformResponse: (responseData) => {
-    //     console.log(
-    //       "🚀 ~ file: postsApiSlice.js:54 ~ responseData",
-    //       responseData
-    //     );
-
-    //     const { post } = responseData;
-    //     return { post };
-    //   },
-    //   providesTags: ["Post"],
-    // }),
-
     // get dashboard ----------------------------------------------------------------------------------
     getDashboard: builder.query({
-      query: ({ currentCountry }) => ({
+      query: ({ currentCountry, language = 'en' }) => ({
         url: "/dashboard",
         method: "GET",
-        params: { currentCountry },
+        params: { currentCountry, language },
         validateStatus: (response, result) => {
           return response.status === 200 && !result.isError;
         },
@@ -102,7 +117,6 @@ export const postsApiSlice = apiSlice.injectEndpoints({
           formattedLocations,
           createdToday,
         };
-        //  postsAdapter.setAll(initialState, loadedPosts);
       },
       providesTags: ["Dashboard"],
     }),

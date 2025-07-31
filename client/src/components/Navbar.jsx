@@ -44,6 +44,7 @@ import { LoadingState } from "./LoadingStates";
 import LanguageToggle from "../lang/LanguageToggle";
 import { useTranslation } from "react-i18next";
 import RenderIcon from "./RenderIcon";
+import { getCurrentLanguage } from "../utils/languageUtils";
 
 const StyledToolbar = styled(Toolbar)(({ theme }) => ({
   justifyContent: "space-between",
@@ -137,6 +138,7 @@ const Navbar = () => {
   const dispatch = useDispatch();
   const navigate = useNavigate();
   const isMobile = useMediaQuery("(max-width:600px)");
+  const currentLanguage = getCurrentLanguage();
 
   const activeLink = useSelector(selectActiveLink);
   const currentCountry = useSelector(selectCurrentCountry);
@@ -152,15 +154,17 @@ const Navbar = () => {
     );
   }, [currentCountry, countryId]);
 
-  const { countries } = useGetCountriesQuery("countriesList", {
+  const { countries } = useGetCountriesQuery({
+    language: currentLanguage
+  }, {
     selectFromResult: ({ data }) => ({
       countries: data?.ids.map((id) => data?.entities[id]),
     }),
   });
 
-  
-
-  const { code } = useGetCountriesQuery("countriesList", {
+  const { code } = useGetCountriesQuery({
+    language: currentLanguage
+  }, {
     selectFromResult: ({ data }) => ({
       code: data?.entities[countryId],
     }),

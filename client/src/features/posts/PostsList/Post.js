@@ -29,7 +29,8 @@ import {
   Person as PersonIcon,
   CalendarToday as CalendarIcon,
   Category as CategoryIcon,
-  Visibility as VisibilityIcon
+  Visibility as VisibilityIcon,
+  ContactPhone as ContactIcon
 } from "@mui/icons-material";
 import FlexBetween from "../../../components/FlexBetween";
 
@@ -54,18 +55,23 @@ const Post = ({ post, viewMode = "grid" }) => {
     const handleEdit = () => navigate(`/dash/posts/${post._id}`);
     const handleReport = () => navigate(`/dash/posts/report/${post._id}`);
 
-    // Enhanced Found/Lost detection - check all possible data structures
+    // Enhanced Found/Lost detection with multilingual support
     let foundLostValue = "Found"; // Default to Found
+    let foundLostLabel = "Found"; // Default label
     
     // Check multiple possible properties and structures
     if (post.foundLost) {
       if (typeof post.foundLost === 'string') {
         foundLostValue = post.foundLost;
+        foundLostLabel = post.foundLost;
       } else if (post.foundLost.code) {
         foundLostValue = post.foundLost.code;
+        // Use multilingual label if available
+        foundLostLabel = post.foundLostLabel || post.foundLost.labels?.en || post.foundLost.code;
       } else if (post.foundLost._id) {
         // If it's an ObjectId, we need to check the actual value
         foundLostValue = "Found"; // Default for ObjectId
+        foundLostLabel = "Found";
       }
     }
     
@@ -74,25 +80,20 @@ const Post = ({ post, viewMode = "grid" }) => {
       const flOption = post.Floptions[0];
       if (typeof flOption === 'string') {
         foundLostValue = flOption;
+        foundLostLabel = flOption;
       } else if (flOption.code) {
         foundLostValue = flOption.code;
+        foundLostLabel = flOption.labels?.en || flOption.code;
       }
     }
 
     // Normalize the value
     const isFound = foundLostValue.toLowerCase() === "found";
     const statusColor = isFound ? theme.palette.success.main : theme.palette.error.main;
-    const statusText = isFound ? "Found" : "Lost";
+    const statusText = foundLostLabel;
 
-    // Debug logging to help identify the issue
-    console.log("Post Found/Lost Debug:", {
-      postId: post._id,
-      foundLost: post.foundLost,
-      Floptions: post.Floptions,
-      foundLostValue,
-      isFound,
-      statusText
-    });
+    // Get category name safely
+    const categoryName = post.categoryname || post.category?.code || "Unknown Category";
 
     // List view layout
     if (viewMode === "list") {
@@ -128,7 +129,7 @@ const Post = ({ post, viewMode = "grid" }) => {
               <Box display="flex" justifyContent="space-between" alignItems="flex-start" mb={2}>
                 <Box>
                   <Typography variant="h5" fontWeight={600} sx={{ mb: 1 }}>
-                    {post.region}
+                    {post.region || "Unknown Region"}
                   </Typography>
                   <Box display="flex" gap={2} alignItems="center" mb={1}>
                     <Chip 
@@ -138,7 +139,7 @@ const Post = ({ post, viewMode = "grid" }) => {
                       sx={{ fontWeight: 600 }}
                     />
                     <Chip 
-                      label={post.categoryname}
+                      label={categoryName}
                       variant="outlined"
                       size="small"
                       icon={<CategoryIcon />}
@@ -173,11 +174,11 @@ const Post = ({ post, viewMode = "grid" }) => {
                 </Box>
               </Box>
 
-              <Box display="flex" gap={3} mb={2}>
+              <Box display="flex" gap={3} mb={2} flexWrap="wrap">
                 <Box display="flex" alignItems="center" gap={1}>
                   <PersonIcon sx={{ fontSize: 16, color: 'text.secondary' }} />
                   <Typography variant="body2" color="text.secondary">
-                    {post.username}
+                    {post.username || "Unknown User"}
                   </Typography>
                 </Box>
                 <Box display="flex" alignItems="center" gap={1}>
@@ -189,9 +190,17 @@ const Post = ({ post, viewMode = "grid" }) => {
                 <Box display="flex" alignItems="center" gap={1}>
                   <LocationOnOutlined sx={{ fontSize: 16, color: 'text.secondary' }} />
                   <Typography variant="body2" color="text.secondary">
-                    {post.countryname}
+                    {post.countryname || "Unknown Country"}
                   </Typography>
                 </Box>
+                {post.contact && (
+                  <Box display="flex" alignItems="center" gap={1}>
+                    <ContactIcon sx={{ fontSize: 16, color: 'text.secondary' }} />
+                    <Typography variant="body2" color="text.secondary">
+                      {post.contact}
+                    </Typography>
+                  </Box>
+                )}
               </Box>
 
               <Box sx={{ mt: 'auto' }}>
@@ -259,7 +268,7 @@ const Post = ({ post, viewMode = "grid" }) => {
 
           {/* Category Badge */}
           <Chip 
-            label={post.categoryname}
+            label={categoryName}
             variant="outlined"
             size="small"
             sx={{
@@ -283,7 +292,7 @@ const Post = ({ post, viewMode = "grid" }) => {
                 lineHeight: 1.2
               }}
             >
-              {post.region}
+              {post.region || "Unknown Region"}
             </Typography>
           </Box>
 
@@ -291,7 +300,7 @@ const Post = ({ post, viewMode = "grid" }) => {
             <Box display="flex" alignItems="center" gap={1}>
               <PersonIcon sx={{ fontSize: 16, color: 'text.secondary' }} />
               <Typography variant="body2" color="text.secondary">
-                {post.username}
+                {post.username || "Unknown User"}
               </Typography>
             </Box>
             
@@ -305,9 +314,18 @@ const Post = ({ post, viewMode = "grid" }) => {
             <Box display="flex" alignItems="center" gap={1}>
               <LocationOnOutlined sx={{ fontSize: 16, color: 'text.secondary' }} />
               <Typography variant="body2" color="text.secondary">
-                {post.countryname}
+                {post.countryname || "Unknown Country"}
               </Typography>
             </Box>
+
+            {post.contact && (
+              <Box display="flex" alignItems="center" gap={1}>
+                <ContactIcon sx={{ fontSize: 16, color: 'text.secondary' }} />
+                <Typography variant="body2" color="text.secondary" noWrap>
+                  {post.contact}
+                </Typography>
+              </Box>
+            )}
           </Box>
         </CardContent>
 

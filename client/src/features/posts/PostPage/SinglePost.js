@@ -3,29 +3,42 @@ import { useParams } from "react-router-dom";
 import useAuth from "../../../hooks/useAuth";
 import { useGetPostQuery, useGetPostsQuery } from "../postsApiSlice";
 import SinglePostPage from "./SinglePostPage";
+import { LoadingState, ErrorState } from "../../../components/LoadingStates";
+import { getCurrentLanguage } from "../../../utils/languageUtils";
 
 const SinglePost = () => {
   const { country } = useAuth();
   const { id } = useParams();
+  const currentLanguage = getCurrentLanguage();
 
-  // const { post } = useGetPostsQuery("postsList", {
-  //   selectFromResult: ({ data }) => ({
-  //     post: data?.postsWithUser,
-  //   }),
-  // });
+  const { data: post, isLoading, isError, error } = useGetPostQuery({
+    postId: id,
+    language: currentLanguage
+  });
 
-  // const [query, useQuery] = useState(`?postId=${id}`);
+  if (isLoading) {
+    return <LoadingState message="Loading post details..." />;
+  }
 
-  // const { postsWithUser } = useGetPostsQuery(query, {
-  //   selectFromResult: ({ data }) => ({
-  //     postsWithUser: data?.postsWithUser.find((p) => p._id === id),
-  //   }),
-  // });
+  if (isError) {
+    return (
+      <ErrorState
+        title="Failed to load post"
+        message={error?.data?.message || "The post may have been deleted or doesn't exist"}
+        onRetry={() => window.location.reload()}
+      />
+    );
+  }
 
-  const { data: post } = useGetPostQuery(id);
-  console.log(post);
-
-  if (!post) return <p>Post has disapeared!</p>;
+  if (!post) {
+    return (
+      <ErrorState
+        title="Post not found"
+        message="The post you're looking for doesn't exist or has been removed"
+        onRetry={() => window.location.reload()}
+      />
+    );
+  }
 
   return <SinglePostPage {...post} />;
 };

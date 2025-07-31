@@ -283,13 +283,53 @@ const getDashboard = async (req, res) => {
 
 // found or lost options
 const getflOptions = async (req, res) => {
-  const flOptions = await FoundLost.find({}).lean().exec();
+  try {
+    const { language = 'en', active = true } = req.query;
+    
+    let query = {};
+    if (active === 'true') {
+      query.isActive = true;
+    }
+    
+    const flOptions = await FoundLost.find(query)
+      .select('code labels color icon isActive description')
+      .sort({ code: 1 })
+      .lean()
+      .exec();
 
-  if (!flOptions.length) {
-    return res.status(400).json({ message: "No found or lost choices !" });
+    if (!flOptions.length) {
+      return res.status(404).json({ 
+        success: false,
+        message: "No post types found",
+        data: []
+      });
+    }
+
+    // Transform response to include language-specific labels
+    const transformedOptions = flOptions.map(option => ({
+      _id: option._id,
+      code: option.code,
+      label: option.labels[language] || option.labels.en,
+      labels: option.labels,
+      color: option.color,
+      icon: option.icon,
+      isActive: option.isActive,
+      description: option.description
+    }));
+
+    res.status(200).json({
+      success: true,
+      data: transformedOptions,
+      total: transformedOptions.length
+    });
+  } catch (error) {
+    console.error('Error fetching post types:', error);
+    res.status(500).json({ 
+      success: false,
+      message: "Failed to fetch post types",
+      error: error.message 
+    });
   }
-
-  res.status(200).json(flOptions);
 };
 
 const getCountries = async (req, res) => {
@@ -326,16 +366,68 @@ const createCategory = async (req, res) => {
 };
 // Create foundLost dynamically
 const createFoundLost = async (req, res) => {
-  const { code } = req.body;
-  if (!code) {
-    return res.status(400).json({ message: "FoundLost code is required" });
-  }
-  const newFoundLost = { code };
-  const addedFoundLost = await FoundLost.create(newFoundLost);
-  if (addedFoundLost) {
-    res.status(201).json({ message: `new foundLost ${addedFoundLost.code} added` });
-  } else {
-    res.status(400).json({ message: "Invalid foundLost data received!" });
+  try {
+    const { code, labels, color, icon, description } = req.body;
+    
+    // Validate required fields
+    if (!code || !labels || !labels.en || !labels.fr || !labels.ar) {
+      return res.status(400).json({ 
+        success: false,
+        message: "Post type code and labels in all languages (en, fr, ar) are required" 
+      });
+    }
+
+    // Validate code enum
+    const validCodes = ['FOUND', 'LOST'];
+    if (!validCodes.includes(code.toUpperCase())) {
+      return res.status(400).json({ 
+        success: false,
+        message: "Post type code must be either 'FOUND' or 'LOST'" 
+      });
+    }
+
+    // Check if post type already exists
+    const existingPostType = await FoundLost.findOne({ code: code.toUpperCase() });
+    if (existingPostType) {
+      return res.status(409).json({ 
+        success: false,
+        message: `Post type with code ${code} already exists` 
+      });
+    }
+
+    const newPostType = {
+      code: code.toUpperCase(),
+      labels: {
+        en: labels.en.trim(),
+        fr: labels.fr.trim(),
+        ar: labels.ar.trim()
+      },
+      color: color || (code.toUpperCase() === 'FOUND' ? '#4CAF50' : '#F44336'),
+      icon: icon || null,
+      description: description || null
+    };
+
+    const addedPostType = await FoundLost.create(newPostType);
+    
+    res.status(201).json({
+      success: true,
+      message: `Post type ${addedPostType.labels.en} (${addedPostType.code}) added successfully`,
+      data: {
+        _id: addedPostType._id,
+        code: addedPostType.code,
+        labels: addedPostType.labels,
+        color: addedPostType.color,
+        icon: addedPostType.icon,
+        description: addedPostType.description
+      }
+    });
+  } catch (error) {
+    console.error('Error creating post type:', error);
+    res.status(500).json({ 
+      success: false,
+      message: "Failed to create post type",
+      error: error.message 
+    });
   }
 };
 

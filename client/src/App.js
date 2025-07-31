@@ -23,9 +23,15 @@ import { useDispatch, useSelector } from "react-redux";
 import { themeSettings } from "./theme";
 import useAuth from "./hooks/useAuth";
 import PrefetchDependencies from "./features/PrefetchData/PrefetchDependencies";
+import { initializeLanguage } from "./utils/languageUtils";
 
 function App() {
   // useTitle("Dan D. Repairs");
+
+  // Initialize language settings
+  useEffect(() => {
+    initializeLanguage();
+  }, []);
 
   const mode = useSelector((state) => state.global.mode);
   const theme = React.useMemo(() => {
@@ -40,11 +46,13 @@ function App() {
   // const direction = useSelector((state) => state.global.direction);
   // document.body.setAttribute("dir", direction);
 
-  const { countries } = useGetCountriesQuery("countriesList", {
-    selectFromResult: ({ data }) => ({
-      countries: data?.ids.map((id) => data?.entities[id]),
-    }),
-  });
+  // const { countries } = useGetCountriesQuery({
+  //   language: getCurrentLanguage()
+  // }, {
+  //   selectFromResult: ({ data }) => ({
+  //     countries: data?.ids.map((id) => data?.entities[id]),
+  //   }),
+  // });
 
   return (
     <ThemeProvider theme={theme}>

@@ -5,6 +5,7 @@ import { selectCurrentCountry, setCurrentCountry } from '../app/state';
 import { useGetCountriesQuery } from '../features/countries/countriesApiSlice';
 import debounce from 'lodash/debounce';
 import useAuth from './useAuth';
+import { getCurrentLanguage } from '../utils/languageUtils';
 
 export const useDashboard = () => {
   const [searchQuery, setSearchQuery] = useState("");
@@ -19,7 +20,9 @@ export const useDashboard = () => {
   const currentCountry = useSelector(selectCurrentCountry);
 
   // Get countries list
-  const { data: countriesData } = useGetCountriesQuery();
+  const { data: countriesData } = useGetCountriesQuery({
+    language: getCurrentLanguage()
+  });
 
   // Set user's country from JWT token if not already set in Redux
   useEffect(() => {
