@@ -1,17 +1,20 @@
 import NewUserForm from "./NewUserForm";
 import { useGetCountriesQuery } from "../../countries/countriesApiSlice";
 import { LoadingState } from "../../../components/LoadingStates";
+import { getCurrentLanguage, t } from "../../../utils/languageUtils";
 
 const NewUser = () => {
+  const currentLanguage = getCurrentLanguage();
+  
   const { countries } = useGetCountriesQuery({
-  language: 'en'
-}, {
-  selectFromResult: ({ data }) => ({
-    countries: data?.ids.map((id) => data?.entities[id]),
-  }),
-});
+    language: currentLanguage
+  }, {
+    selectFromResult: ({ data }) => ({
+      countries: data?.ids.map((id) => data?.entities[id]),
+    }),
+  });
 
-  if (!countries) return <LoadingState message="Loading signup form..." />;
+  if (!countries) return <LoadingState message={t('loadingSignupForm')} />;
 
   const content = <NewUserForm countries={countries} />;
 

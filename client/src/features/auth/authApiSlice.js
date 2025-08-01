@@ -9,6 +9,35 @@ export const authApiSlice = apiSlice.injectEndpoints({
         method: "POST",
         body: { ...credentials },
       }),
+      transformResponse: (response) => {
+        // Handle both old and new response formats
+        if (response.data) {
+          return response.data;
+        }
+        return response;
+      },
+      transformErrorResponse: (response) => {
+        // Provide better error messages
+        if (response.status === 400) {
+          return { 
+            status: 400, 
+            data: { message: "Invalid username or password" } 
+          };
+        }
+        if (response.status === 401) {
+          return { 
+            status: 401, 
+            data: { message: "Unauthorized access" } 
+          };
+        }
+        if (response.status === 500) {
+          return { 
+            status: 500, 
+            data: { message: "Server error. Please try again later." } 
+          };
+        }
+        return response;
+      },
     }),
     sendLogout: builder.mutation({
       query: () => ({
@@ -19,12 +48,17 @@ export const authApiSlice = apiSlice.injectEndpoints({
         try {
           const { data } = await queryFulfilled;
           dispatch(logOut());
-          localStorage.setItem('isLoggedIn', false)
+          localStorage.setItem('isLoggedIn', 'false');
+          localStorage.removeItem('rememberMe');
           setTimeout(() => {
             dispatch(apiSlice.util.resetApiState());
           }, 1000);
         } catch (err) {
           console.log(err);
+          // Even if logout fails, clear local state
+          dispatch(logOut());
+          localStorage.setItem('isLoggedIn', 'false');
+          localStorage.removeItem('rememberMe');
         }
       },
     }),
@@ -38,8 +72,12 @@ export const authApiSlice = apiSlice.injectEndpoints({
           const { data } = await queryFulfilled;
           const { accessToken } = data;
           dispatch(setCredentials({ accessToken }));
+          localStorage.setItem('isLoggedIn', 'true');
         } catch (err) {
           console.log(err);
+          // If refresh fails, logout user
+          dispatch(logOut());
+          localStorage.setItem('isLoggedIn', 'false');
         }
       },
     }),

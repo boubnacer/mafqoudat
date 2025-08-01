@@ -1,207 +1,542 @@
-import { useState, useEffect } from "react";
+import React, { useState, useEffect } from "react";
 import { useAddNewUserMutation } from "../../userSettings/usersApiSlice";
-import { useNavigate } from "react-router-dom";
-import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
-import { faSave } from "@fortawesome/free-solid-svg-icons";
+import { useNavigate, Link } from "react-router-dom";
 import useTitle from "../../../hooks/useTitle";
-import { Link } from "react-router-dom";
 import { useDispatch } from "react-redux";
 import { setCredentials } from "../authSlice";
+import { getCurrentLanguage, t } from "../../../utils/languageUtils";
+import { isRTL } from "../../../utils/languageUtils";
 
-import { Formik, Form } from "formik";
-import * as Yup from "yup";
-import { Box, FormLabel, IconButton, Typography, useTheme } from "@mui/material";
-import TextField from "../../../components/Textfield";
-import SubmitButton from "../../../components/SubmitButton";
-import SelectOption from "../../../components/SelectOption";
-import CheckBox from "../../../components/CheckBox";
-import SelectCountry from "../../../components/SelectCountry";
+import { LoadingState } from "../../../components/LoadingStates";
+// Material-UI imports
+import {
+  Box,
+  Paper,
+  TextField,
+  Button,
+  Typography,
+  IconButton,
+  InputAdornment,
+  Alert,
+  FormControlLabel,
+  Checkbox,
+  Divider,
+  useTheme,
+  useMediaQuery,
+  alpha,
+  styled,
+  FormControl,
+  InputLabel,
+  Select,
+  MenuItem,
+} from "@mui/material";
+import {
+  Visibility,
+  VisibilityOff,
+  Person,
+  Lock,
+  Email,
+  Phone,
+  LocationOn,
+  DarkModeOutlined,
+  LightModeOutlined,
+  ArrowForward,
+} from "@mui/icons-material";
+
+// Animation
 import Lottie from "lottie-react";
-import LoginAnimation from '../../../animations/LoginAnimation.json'
+import LoginAnimation from '../../../animations/LoginAnimation.json';
 import LanguageToggle from "../../../lang/LanguageToggle";
 import { setMode } from "../../../app/state";
-import { DarkModeOutlined, LightModeOutlined } from "@mui/icons-material";
-
-const USER_REGEX = /^[A-z]{3,20}$/;
-const PWD_REGEX = /^[A-z0-9!@#$%]{4,12}$/;
 
 
+// Styled components (same as Login for consistency)
+const AuthContainer = styled(Box)(({ theme }) => ({
+  minHeight: '100vh',
+  display: 'flex',
+  alignItems: 'center',
+  justifyContent: 'center',
+  background: theme?.palette?.mode === 'dark' 
+    ? 'linear-gradient(135deg, #1a1a2e 0%, #16213e 50%, #0f3460 100%)'
+    : 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)',
+  padding: theme?.spacing?.(2) || '16px',
+  position: 'relative',
+  overflow: 'hidden',
+  '&::before': {
+    content: '""',
+    position: 'absolute',
+    top: 0,
+    left: 0,
+    right: 0,
+    bottom: 0,
+    background: 'url("data:image/svg+xml,%3Csvg width="60" height="60" viewBox="0 0 60 60" xmlns="http://www.w3.org/2000/svg"%3E%3Cg fill="none" fill-rule="evenodd"%3E%3Cg fill="%23ffffff" fill-opacity="0.05"%3E%3Ccircle cx="30" cy="30" r="2"/%3E%3C/g%3E%3C/g%3E%3C/svg%3E")',
+    opacity: 0.3,
+  }
+}));
+
+const AuthCard = styled(Paper)(({ theme }) => ({
+  width: '100%',
+  maxWidth: 1200,
+  display: 'grid',
+  gridTemplateColumns: '1fr 1fr',
+  borderRadius: 24,
+  overflow: 'hidden',
+  boxShadow: theme?.palette?.mode === 'dark'
+    ? '0 20px 40px rgba(0, 0, 0, 0.4)'
+    : '0 20px 40px rgba(0, 0, 0, 0.1)',
+  backdropFilter: 'blur(20px)',
+  border: `1px solid ${alpha(theme?.palette?.common?.white || '#fff', 0.1)}`,
+  [theme?.breakpoints?.down?.('md') || '@media (max-width: 1024px)']: {
+    gridTemplateColumns: '1fr',
+    maxWidth: 500,
+  }
+}));
+
+const FormSection = styled(Box)(({ theme }) => ({
+  padding: theme?.spacing?.(6) || '48px',
+  display: 'flex',
+  flexDirection: 'column',
+  justifyContent: 'center',
+  background: theme?.palette?.mode === 'dark' 
+    ? alpha(theme?.palette?.background?.paper || '#fff', 0.9)
+    : alpha(theme?.palette?.background?.paper || '#fff', 0.95),
+  [theme?.breakpoints?.down?.('md') || '@media (max-width: 1024px)']: {
+    padding: theme?.spacing?.(4) || '32px',
+  }
+}));
+
+const AnimationSection = styled(Box)(({ theme }) => ({
+  display: 'flex',
+  alignItems: 'center',
+  justifyContent: 'center',
+  background: theme?.palette?.mode === 'dark'
+    ? 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)'
+    : 'linear-gradient(135deg, #f093fb 0%, #f5576c 100%)',
+  position: 'relative',
+  [theme?.breakpoints?.down?.('md') || '@media (max-width: 1024px)']: {
+    display: 'none',
+  }
+}));
+
+const StyledTextField = styled(TextField)(({ theme }) => ({
+  '& .MuiOutlinedInput-root': {
+    borderRadius: 12,
+    backgroundColor: theme?.palette?.mode === 'dark' 
+      ? alpha(theme?.palette?.common?.white || '#fff', 0.05)
+      : alpha(theme?.palette?.common?.black || '#000', 0.02),
+    '&:hover': {
+      backgroundColor: theme?.palette?.mode === 'dark' 
+        ? alpha(theme?.palette?.common?.white || '#fff', 0.08)
+        : alpha(theme?.palette?.common?.black || '#000', 0.04),
+    },
+    '&.Mui-focused': {
+      backgroundColor: theme?.palette?.mode === 'dark' 
+        ? alpha(theme?.palette?.common?.white || '#fff', 0.1)
+        : alpha(theme?.palette?.common?.black || '#000', 0.06),
+    }
+  },
+  '& .MuiInputLabel-root': {
+    color: theme?.palette?.mode === 'dark' 
+      ? alpha(theme?.palette?.common?.white || '#fff', 0.7)
+      : alpha(theme?.palette?.common?.black || '#000', 0.6),
+  }
+}));
+
+const StyledSelect = styled(FormControl)(({ theme }) => ({
+  '& .MuiOutlinedInput-root': {
+    borderRadius: 12,
+    backgroundColor: theme?.palette?.mode === 'dark' 
+      ? alpha(theme?.palette?.common?.white || '#fff', 0.05)
+      : alpha(theme?.palette?.common?.black || '#000', 0.02),
+    '&:hover': {
+      backgroundColor: theme?.palette?.mode === 'dark' 
+        ? alpha(theme?.palette?.common?.white || '#fff', 0.08)
+        : alpha(theme?.palette?.common?.black || '#000', 0.04),
+    },
+    '&.Mui-focused': {
+      backgroundColor: theme?.palette?.mode === 'dark' 
+        ? alpha(theme?.palette?.common?.white || '#fff', 0.1)
+        : alpha(theme?.palette?.common?.black || '#000', 0.06),
+    }
+  },
+  '& .MuiInputLabel-root': {
+    color: theme?.palette?.mode === 'dark' 
+      ? alpha(theme?.palette?.common?.white || '#fff', 0.7)
+      : alpha(theme?.palette?.common?.black || '#000', 0.6),
+  }
+}));
+
+const StyledButton = styled(Button)(({ theme }) => ({
+  borderRadius: 12,
+  padding: theme.spacing(1.5, 4),
+  fontSize: '1rem',
+  fontWeight: 600,
+  textTransform: 'none',
+  boxShadow: 'none',
+  background: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)',
+  '&:hover': {
+    background: 'linear-gradient(135deg, #5a6fd8 0%, #6a4190 100%)',
+    boxShadow: '0 8px 25px rgba(102, 126, 234, 0.3)',
+  }
+}));
 
 const NewUserForm = ({ countries }) => {
-  useTitle("Mafkoudat | New User");
-
-  const [addNewUser, { isLoading, isSuccess, isError, error }] =
-    useAddNewUserMutation();
+  useTitle("Mafqoudat | Sign Up");
 
   const navigate = useNavigate();
   const dispatch = useDispatch();
+  const theme = useTheme() || {};
+  const isMobile = useMediaQuery(theme?.breakpoints?.down?.('md') || '(max-width: 1024px)');
+  const currentLanguage = getCurrentLanguage();
+  const rtl = isRTL(currentLanguage);
 
-  const theme = useTheme()
+  // API
+  const [addNewUser, { isLoading, isError, error }] = useAddNewUserMutation();
 
-  const [countryId, setCountryId] = useState(countries[0].id);
-  const [username, setUsername] = useState("");
-  const [validUsername, setValidUsername] = useState(false);
-  const [password, setPassword] = useState("");
-  const [validPassword, setValidPassword] = useState(false);
-
-  useEffect(() => {
-    setValidUsername(USER_REGEX.test(username));
-  }, [username]);
-
-  useEffect(() => {
-    setValidPassword(PWD_REGEX.test(password));
-  }, [password]);
-
-  const onUsernameChanged = (e) => setUsername(e.target.value);
-  const onPasswordChanged = (e) => setPassword(e.target.value);
-  const onCountryIdChanged = (e) => setCountryId(e.target.value);
-
-  const initialFormState = {
+  // State
+  const [formData, setFormData] = useState({
     username: "",
     password: "",
-    country: countries[0].id,
-    // termsOfService: false,
+    confirmPassword: "",
+    country: countries?.[0]?.id || "",
+  });
+  const [showPassword, setShowPassword] = useState(false);
+  const [showConfirmPassword, setShowConfirmPassword] = useState(false);
+  const [errors, setErrors] = useState({});
+  const [isSubmitting, setIsSubmitting] = useState(false);
+
+  // Validation patterns
+  const USER_REGEX = /^[A-z]{3,20}$/;
+  const PWD_REGEX = /^[A-z0-9!@#$%]{4,12}$/;
+  const EMAIL_REGEX = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+  const PHONE_REGEX = /^[\+]?[1-9][\d]{0,15}$/;
+
+  // Handle form input changes
+  const handleInputChange = (field) => (event) => {
+    const value = event.target.value;
+    setFormData(prev => ({
+      ...prev,
+      [field]: value
+    }));
+    
+    // Clear field-specific error
+    if (errors[field]) {
+      setErrors(prev => ({
+        ...prev,
+        [field]: ""
+      }));
+    }
   };
 
-  const formValidation = Yup.object().shape({
-    username: Yup.string().required("Required"),
-    password: Yup.string().required("Required"),
-    country: Yup.string().required("Required"),
-    // termsOfService: Yup.boolean()
-    //   .oneOf([true], "Terms must be accepted")
-    //   .required("Required"),
-  });
+  // Validate form
+  const validateForm = () => {
+    const newErrors = {};
 
-  // const canSave =
-  //   [validUsername, validPassword, countryId].every(Boolean) && !isLoading;
+    // Username validation
+    if (!formData.username.trim()) {
+      newErrors.username = t('username') + ' ' + t('required');
+    } else if (!USER_REGEX.test(formData.username)) {
+      newErrors.username = t('username') + ' ' + t('mustBeValid');
+    }
 
-  const handleSubmit = async (e) => {
-    console.log(e);
-    // e.preventDefault();
-    // if (canSave) {
-    const { accessToken } = await addNewUser(e);
-    dispatch(setCredentials({ accessToken }));
-    console.log(accessToken);
-    // setUsername("");
-    // setPassword("");
-    // setCountryId("");
-    navigate("/dash");
-    // }
+    // Password validation
+    if (!formData.password) {
+      newErrors.password = t('password') + ' ' + t('required');
+    } else if (!PWD_REGEX.test(formData.password)) {
+      newErrors.password = t('password') + ' ' + t('mustBeValid');
+    }
+
+    // Confirm password validation
+    if (!formData.confirmPassword) {
+      newErrors.confirmPassword = t('confirmPassword') + ' ' + t('required');
+    } else if (formData.password !== formData.confirmPassword) {
+      newErrors.confirmPassword = t('passwordMismatch');
+    }
+
+
+
+    // Country validation
+    if (!formData.country) {
+      newErrors.country = t('chooseCountry');
+    }
+
+    setErrors(newErrors);
+    return Object.keys(newErrors).length === 0;
   };
 
-  const countryOptions = countries.map((country) => {
-    return (
-      <option key={country.id} value={country.id}>
-        {country.code}
-      </option>
-    );
-  });
+  // Handle form submission
+  const handleSubmit = async (event) => {
+    event.preventDefault();
+    
+    if (!validateForm()) {
+      return;
+    }
 
-  const errClass = isError ? "errmsg" : "offscreen";
-  const validUserClass = !validUsername ? "form__input--incomplete" : "";
-  const validPwdClass = !validPassword ? "form__input--incomplete" : "";
+    setIsSubmitting(true);
 
-  const SignupForm = (
-    <Formik
-      initialValues={{ ...initialFormState }}
-      validationSchema={formValidation}
-      onSubmit={handleSubmit}
-    > 
-      <Form>
-        <Box
-          margin="0 auto"
-          width="60%"
-          display="grid"
-          gridTemplateColumns="repeat(1,1fr)"
-          gap="0.5rem"
+    try {
+      const { accessToken } = await addNewUser({
+        username: formData.username.trim(),
+        password: formData.password,
+        country: formData.country,
+      }).unwrap();
+
+      dispatch(setCredentials({ accessToken }));
+      localStorage.setItem('isLoggedIn', 'true');
+      navigate("/dash");
+    } catch (err) {
+      console.error('Signup error:', err);
+      
+      if (!err.status) {
+        setErrors({ general: t('networkError') });
+      } else if (err.status === 400) {
+        setErrors({ general: err.data?.message || t('signupError') });
+      } else {
+        setErrors({ general: err.data?.message || t('serverError') });
+      }
+    } finally {
+      setIsSubmitting(false);
+    }
+  };
+
+  if (isLoading) {
+    return <LoadingState message={t('loadingSignupForm')} />;
+  }
+
+  return (
+    <AuthContainer>
+      {/* Header Controls */}
+              <Box
+          sx={{
+            position: 'absolute',
+            top: theme?.spacing?.(3) || '24px',
+            right: theme?.spacing?.(3) || '24px',
+            display: 'flex',
+            alignItems: 'center',
+            gap: 1,
+            zIndex: 10,
+          }}
         >
-          {/* <Grid item sx={12}>
-            <Typography>mafkoudat login</Typography>
-          </Grid> */}
-
-<Typography
-          variant="brandName"
-          // marginBottom="3rem"
-          sx={{color:theme.palette.textColor.main}}
-          // fontSize="26"
+        <LanguageToggle />
+        <IconButton
+          onClick={() => dispatch(setMode())}
+          sx={{
+            color: 'white',
+            backgroundColor: alpha(theme.palette.common.white, 0.1),
+            backdropFilter: 'blur(10px)',
+            '&:hover': {
+              backgroundColor: alpha(theme.palette.common.white, 0.2),
+            }
+          }}
         >
-          mafqoudat
-        </Typography>
+          {theme.palette.mode === "dark" ? (
+            <LightModeOutlined />
+          ) : (
+            <DarkModeOutlined />
+          )}
+        </IconButton>
+      </Box>
 
-          {/* <FormLabel>Username or Phone</FormLabel> */}
-          <TextField name="username" label="User Name" variant="standard"/>
-
-          <TextField name="password" label="Password" variant="standard"/>
-
-          {/* <SelectOption name="country" label="Country" options={countries} /> */}
-          <Box sx={{mt:'1rem'}}>
-          <FormLabel>choose Country</FormLabel>
-          <SelectCountry name="country" label="Country" variant="standard" options={countries}/>
+      <AuthCard>
+        <FormSection>
+          <Box sx={{ mb: 4, textAlign: 'center' }}>
+            <Typography
+              variant="h3"
+              sx={{
+                fontWeight: 700,
+                background: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)',
+                WebkitBackgroundClip: 'text',
+                WebkitTextFillColor: 'transparent',
+                mb: 1,
+              }}
+            >
+              {t('brandName')}
+            </Typography>
+            <Typography
+              variant="h5"
+              sx={{
+                color: theme.palette.text.secondary,
+                fontWeight: 500,
+                mb: 1,
+              }}
+            >
+              {t('createAccount')}
+            </Typography>
+            <Typography
+              variant="body1"
+              sx={{
+                color: theme.palette.text.secondary,
+              }}
+            >
+              {t('createAccountMessage')}
+            </Typography>
           </Box>
 
-          {/* <CheckBox
-            name="termsOfService"
-            legend="Terms Of Service"
-            label="I agree"
-          /> */}
+          {/* Error Alert */}
+          {errors.general && (
+            <Alert 
+              severity="error" 
+              sx={{ mb: 3, borderRadius: 2 }}
+              onClose={() => setErrors(prev => ({ ...prev, general: "" }))}
+            >
+              {errors.general}
+            </Alert>
+          )}
 
-          <SubmitButton>signup</SubmitButton>
+          {/* Signup Form */}
+          <Box component="form" onSubmit={handleSubmit} sx={{ mb: 3 }}>
+            <StyledTextField
+              fullWidth
+              label={t('username')}
+              value={formData.username}
+              onChange={handleInputChange('username')}
+              error={!!errors.username}
+              helperText={errors.username}
+              margin="normal"
+              InputProps={{
+                startAdornment: (
+                  <InputAdornment position="start">
+                    <Person sx={{ color: theme.palette.text.secondary }} />
+                  </InputAdornment>
+                ),
+              }}
+              sx={{ mb: 2 }}
+            />
 
-          <Box display="flex" alignItems="center" gap="2rem">
-        <Typography mt="1rem" mb="1rem">
-          Already member ?
-        </Typography>
-        <Box backgroundColor="#fe9229" px="10px" borderRadius="5px">
-        <Link className="btn" to="/">
-          Sign in
-        </Link>
-        </Box>
-        </Box>
-        </Box>
-      </Form>
-    </Formik>
+            <StyledSelect fullWidth margin="normal" sx={{ mb: 2 }}>
+              <InputLabel>{t('chooseCountry')}</InputLabel>
+              <Select
+                value={formData.country}
+                onChange={handleInputChange('country')}
+                label={t('chooseCountry')}
+                error={!!errors.country}
+                startAdornment={
+                  <InputAdornment position="start">
+                    <LocationOn sx={{ color: theme.palette.text.secondary }} />
+                  </InputAdornment>
+                }
+              >
+                {countries?.map((country) => (
+                  <MenuItem key={country.id} value={country.id}>
+                    {country.labels?.[currentLanguage] || country.code}
+                  </MenuItem>
+                ))}
+              </Select>
+            </StyledSelect>
+
+            <StyledTextField
+              fullWidth
+              label={t('password')}
+              type={showPassword ? 'text' : 'password'}
+              value={formData.password}
+              onChange={handleInputChange('password')}
+              error={!!errors.password}
+              helperText={errors.password}
+              margin="normal"
+              InputProps={{
+                startAdornment: (
+                  <InputAdornment position="start">
+                    <Lock sx={{ color: theme.palette.text.secondary }} />
+                  </InputAdornment>
+                ),
+                endAdornment: (
+                  <InputAdornment position="end">
+                    <IconButton
+                      onClick={() => setShowPassword(!showPassword)}
+                      edge="end"
+                    >
+                      {showPassword ? <VisibilityOff /> : <Visibility />}
+                    </IconButton>
+                  </InputAdornment>
+                ),
+              }}
+              sx={{ mb: 2 }}
+            />
+
+            <StyledTextField
+              fullWidth
+              label={t('confirmPassword')}
+              type={showConfirmPassword ? 'text' : 'password'}
+              value={formData.confirmPassword}
+              onChange={handleInputChange('confirmPassword')}
+              error={!!errors.confirmPassword}
+              helperText={errors.confirmPassword}
+              margin="normal"
+              InputProps={{
+                startAdornment: (
+                  <InputAdornment position="start">
+                    <Lock sx={{ color: theme.palette.text.secondary }} />
+                  </InputAdornment>
+                ),
+                endAdornment: (
+                  <InputAdornment position="end">
+                    <IconButton
+                      onClick={() => setShowConfirmPassword(!showConfirmPassword)}
+                      edge="end"
+                    >
+                      {showConfirmPassword ? <VisibilityOff /> : <Visibility />}
+                    </IconButton>
+                  </InputAdornment>
+                ),
+              }}
+              sx={{ mb: 3 }}
+            />
+
+            <StyledButton
+              type="submit"
+              fullWidth
+              variant="contained"
+              disabled={isSubmitting}
+              endIcon={<ArrowForward />}
+              sx={{ mb: 3 }}
+            >
+              {isSubmitting ? t('creatingAccount') : t('createAccount')}
+            </StyledButton>
+          </Box>
+
+          <Divider sx={{ mb: 3 }}>
+            <Typography variant="body2" color="text.secondary">
+              {t('or')}
+            </Typography>
+          </Divider>
+
+          {/* Sign In Link */}
+          <Box sx={{ textAlign: 'center' }}>
+            <Typography variant="body1" sx={{ mb: 1 }}>
+              {t('alreadyMember')}
+            </Typography>
+            <Button
+              component={Link}
+              to="/"
+              variant="outlined"
+              sx={{
+                borderRadius: 2,
+                textTransform: 'none',
+                fontWeight: 600,
+                borderColor: theme.palette.primary.main,
+                color: theme.palette.primary.main,
+                '&:hover': {
+                  borderColor: theme.palette.primary.dark,
+                  backgroundColor: alpha(theme.palette.primary.main, 0.04),
+                }
+              }}
+            >
+              {t('signin')}
+            </Button>
+          </Box>
+        </FormSection>
+
+        <AnimationSection>
+          <Box sx={{ position: 'relative', zIndex: 1 }}>
+            <Lottie 
+              animationData={LoginAnimation} 
+              style={{ width: 400, height: 400 }}
+            />
+          </Box>
+        </AnimationSection>
+      </AuthCard>
+    </AuthContainer>
   );
-
-  const content = (
-    <Box display="grid"
-    gridTemplateColumns="repeat(2,1fr)"
-    alignItems="center"
-    sx={{ backgroundColor: theme.palette.background }}>
-
-      
-
-     <Box>
-     <Box>
-      <p className={errClass}>{error?.data?.message}</p>
-      {SignupForm}
-      </Box>
-
-      
-     </Box>
-
-      <Box>
-        <Box>
-          <Lottie animationData={LoginAnimation}/>
-        </Box>
-
-        <Box sx={{ position: "absolute", top: "2rem", right: "3rem", display:'flex', alignItems:'center' }}>
-          {/* switch mode and language */}
-          <LanguageToggle />
-          <IconButton onClick={() => dispatch(setMode())}>
-            {theme.palette.mode === "dark" ? (
-              <LightModeOutlined sx={{ fontSize: "25px" }} />
-            ) : (
-              <DarkModeOutlined sx={{ fontSize: "25px" }} />
-            )}
-          </IconButton>
-        </Box>
-
-        
-      </Box>
-
-    </Box>
-  );
-
-  return content;
 };
+
 export default NewUserForm;
