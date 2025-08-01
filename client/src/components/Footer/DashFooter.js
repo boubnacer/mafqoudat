@@ -11,6 +11,7 @@ import {
 } from "@mui/icons-material";
 import useAuth from "../../hooks/useAuth";
 import "./footer.css";
+import { getCurrentLanguage, t } from "../../utils/languageUtils";
 import {
   Typography,
   useTheme,
@@ -30,6 +31,7 @@ const DashFooter = () => {
   const { pathname } = useLocation();
   const { username, country } = useAuth();
   const theme = useTheme();
+  const currentLanguage = getCurrentLanguage();
 
   const onGoHomeClicked = () => navigate("/dash");
 
@@ -37,7 +39,7 @@ const DashFooter = () => {
   if (pathname !== "/dash") {
     goHomeButton = (
       <IconButton 
-        title="Home" 
+        title={t('home')} 
         onClick={onGoHomeClicked}
         sx={{ 
           position: 'fixed',
@@ -83,7 +85,7 @@ const DashFooter = () => {
             Mafqoudat
           </Typography>
           <Typography variant="body2" color="text.secondary" sx={{ mb: 2 }}>
-            Helping people find their lost items and return found items to their owners.
+            {t('footerDescription')}
           </Typography>
           <Box sx={{ display: 'flex', gap: 1 }}>
             <IconButton 
@@ -116,20 +118,20 @@ const DashFooter = () => {
         {/* Quick Links */}
         <Grid item xs={12} md={4}>
           <Typography variant="h6" sx={{ mb: 2, fontWeight: 'bold' }}>
-            Quick Links
+            {t('quickLinks')}
           </Typography>
           <List dense>
             <ListItem button onClick={() => navigate('/dash/posts/new?type=lost')}>
-              <ListItemText primary="Report Lost Item" />
+              <ListItemText primary={t('reportLostItem')} />
             </ListItem>
             <ListItem button onClick={() => navigate('/dash/posts/new?type=found')}>
-              <ListItemText primary="Report Found Item" />
+              <ListItemText primary={t('reportFoundItem')} />
             </ListItem>
             <ListItem button onClick={() => navigate('/dash/search')}>
-              <ListItemText primary="Search Items" />
+              <ListItemText primary={t('searchItems')} />
             </ListItem>
             <ListItem button onClick={() => navigate('/dash/help')}>
-              <ListItemText primary="Get Help" />
+              <ListItemText primary={t('getHelp')} />
             </ListItem>
           </List>
         </Grid>
@@ -137,7 +139,7 @@ const DashFooter = () => {
         {/* Contact Info */}
         <Grid item xs={12} md={4}>
           <Typography variant="h6" sx={{ mb: 2, fontWeight: 'bold' }}>
-            Contact Us
+            {t('contactUs')}
           </Typography>
           <List dense>
             <ListItem>
@@ -146,7 +148,7 @@ const DashFooter = () => {
               </ListItemIcon>
               <ListItemText 
                 primary="support@mafqoudat.com"
-                secondary="Email us for support"
+                secondary={t('emailUsForSupport')}
               />
             </ListItem>
             <ListItem>
@@ -155,7 +157,7 @@ const DashFooter = () => {
               </ListItemIcon>
               <ListItemText 
                 primary="+1 234 567 890"
-                secondary="Call us for assistance"
+                secondary={t('callUsForAssistance')}
               />
             </ListItem>
             <ListItem>
@@ -163,8 +165,8 @@ const DashFooter = () => {
                 <LocationOn color="primary" />
               </ListItemIcon>
               <ListItemText 
-                primary={country || "Your Location"}
-                secondary="Current Region"
+                primary={country || t('yourLocation')}
+                secondary={t('currentRegion')}
               />
             </ListItem>
           </List>
@@ -177,19 +179,24 @@ const DashFooter = () => {
       <Grid container spacing={2} sx={{ maxWidth: '1200px', margin: '0 auto' }}>
         <Grid item xs={12} md={6}>
           <Typography variant="body2" color="text.secondary">
-            © {new Date().getFullYear()} Mafqoudat. All rights reserved.
+            © {new Date().getFullYear()} Mafqoudat. {t('allRightsReserved')}.
           </Typography>
         </Grid>
         <Grid item xs={12} md={6}>
-          <Box sx={{ display: 'flex', justifyContent: { xs: 'flex-start', md: 'flex-end' }, gap: 2 }}>
+          <Box sx={{ 
+            display: 'flex', 
+            justifyContent: { xs: 'flex-start', md: 'flex-end' }, 
+            gap: 2,
+            direction: currentLanguage === 'ar' ? 'rtl' : 'ltr'
+          }}>
             <Link href="/privacy" color="text.secondary" underline="hover">
-              Privacy Policy
+              {t('privacyPolicy')}
             </Link>
             <Link href="/terms" color="text.secondary" underline="hover">
-              Terms of Use
+              {t('termsOfUse')}
             </Link>
             <Link href="/cookies" color="text.secondary" underline="hover">
-              Cookie Notice
+              {t('cookieNotice')}
             </Link>
           </Box>
         </Grid>

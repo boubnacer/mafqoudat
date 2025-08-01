@@ -42,9 +42,8 @@ import CountryAutoselect from "./CountryAutoselect";
 import CountryModal from "./CountryModal";
 import { LoadingState } from "./LoadingStates";
 import LanguageToggle from "../lang/LanguageToggle";
-import { useTranslation } from "react-i18next";
 import RenderIcon from "./RenderIcon";
-import { getCurrentLanguage } from "../utils/languageUtils";
+import { getCurrentLanguage, t } from "../utils/languageUtils";
 
 const StyledToolbar = styled(Toolbar)(({ theme }) => ({
   justifyContent: "space-between",
@@ -190,10 +189,9 @@ const Navbar = () => {
   }, [isSuccess, navigate]);
 
   const onGoHomeClicked = () => navigate("/dash");
+  // const currentLanguage = getCurrentLanguage();
 
-  const { t } = useTranslation();
-
-  if (!countries || !code) return <LoadingState message="Loading navigation..." />;
+  if (!countries || !code) return <LoadingState message={t('loadingNavigation')} />;
 
   return (
     <AppBar
@@ -220,7 +218,7 @@ const Navbar = () => {
               padding: { xs: '6px 12px', sm: '8px 16px' },
             }}
           >
-            {t("mafkoudat")}
+            {t("brandName")}
           </LogoButton>
 
           {/* Nav links - desktop only */}

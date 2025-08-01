@@ -5,6 +5,7 @@ import { Box, Skeleton, useMediaQuery, useTheme, Typography, Chip, Button } from
 import { setActiveLink, setFoundOrLost, setOpenModal } from "../../app/state";
 import { LoadingState, DashboardEmptyStates } from "../../components/LoadingStates";
 import { WhatshotOutlined, Search, Language } from "@mui/icons-material";
+import { getCurrentLanguage, t } from "../../utils/languageUtils";
 
 // Custom hook
 import { useDashboard } from "../../hooks/useDashboard";
@@ -34,6 +35,7 @@ const Dash = () => {
   const navigate = useNavigate();
   const theme = useTheme();
   const isNonMediumScreens = useMediaQuery("(min-width:1200px)");
+  const currentLanguage = getCurrentLanguage();
 
   // Use custom hook for dashboard data and state
   const {
@@ -80,10 +82,10 @@ const Dash = () => {
       >
         <Box textAlign="center">
           <Typography variant="h6" mb={2}>
-            Please select a country to continue
+            {t('pleaseSelectCountry')}
           </Typography>
           <Typography variant="body2" mb={3} color="text.secondary">
-            Choose your country to see relevant lost and found items in your area
+            {t('chooseCountryMessage')}
           </Typography>
           <Button
             variant="contained"
@@ -94,14 +96,14 @@ const Dash = () => {
               boxShadow: "0 3px 5px 2px rgba(33, 203, 243, .3)",
             }}
           >
-            Select Country
+            {t('selectCountry')}
           </Button>
         </Box>
       </Box>
     );
   }
 
-  if (!data) return <LoadingState message="Loading dashboard data..." size="large" />;
+  if (!data) return <LoadingState message={t('loadingDashboardData')} size="large" />;
   
   // Check if all data is empty
   const hasNoData = !data.totalFounds && !data.totalLosts && !data.totalPosts && 
@@ -210,10 +212,10 @@ const Dash = () => {
               }}
             >
               <WhatshotOutlined sx={{ color: '#FFA500' }} />
-              RECENT FOUNDS
+                             {t('recentFounds')}
             </Typography>
             <Chip 
-              label={`${data?.totalFounds || 0} items`}
+              label={`${data?.totalFounds || 0} ${t('items')}`}
               color="primary"
               size="small"
               sx={{ 
@@ -317,10 +319,10 @@ const Dash = () => {
               }}
             >
               <Search sx={{ color: '#fff' }} />
-              RECENT LOSTS
+                             {t('recentLosts')}
             </Typography>
             <Chip 
-              label={`${data?.totalLosts || 0} items`}
+              label={`${data?.totalLosts || 0} ${t('items')}`}
               color="warning"
               size="small"
               sx={{ 
@@ -397,7 +399,7 @@ const Dash = () => {
               WebkitTextFillColor: "transparent",
             }}
           >
-            CATEGORIES
+                         {t('categories')}
           </Typography>
         <Categories />
       </DashRecents>

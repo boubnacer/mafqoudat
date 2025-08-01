@@ -8,11 +8,14 @@ import {
   useGetflOptionsQuery,
 } from "../../dependencies/dependenciesApiSlice";
 import useAuth from "../../../hooks/useAuth";
+import { useTranslation } from "react-i18next";
 
 const NewPost = () => {
   useTitle("Mafkoudat| New Post");
 
   const { usernameId } = useAuth();
+
+  const { t } = useTranslation();
 
   const { user } = useGetUsersQuery("usersList", {
     selectFromResult: ({ data }) => ({
@@ -44,7 +47,7 @@ const NewPost = () => {
   
 
   if (!user || !countries || !flOptions || !categories)
-    return <LoadingState message="Loading post form..." />;
+    return <LoadingState message={t('loadingPostForm')} />;
 
   const content = (
     <NewPostForm

@@ -1,6 +1,6 @@
 import { useGetPostsQuery } from "../postsApiSlice";
 import { useGetCategoriesQuery } from "../../dependencies/dependenciesApiSlice";
-import { getCurrentLanguage } from "../../../utils/languageUtils";
+import { getCurrentLanguage, t } from "../../../utils/languageUtils";
 import Post from "./Post";
 import useTitle from "../../../hooks/useTitle";
 import { LoadingState, EmptyState, ErrorState } from "../../../components/LoadingStates";
@@ -142,7 +142,7 @@ const PostsList = () => {
 
   let content;
 
-  if (isLoading) content = <LoadingState message="Loading posts..." />;
+  if (isLoading) content = <LoadingState message={t('loadingPosts')} />;
 
   if (isError) {
     content = (
@@ -175,7 +175,7 @@ const PostsList = () => {
                   mb: 1
                 }}
               >
-                Posts
+                {t('posts')}
               </Typography>
               <Typography 
                 variant="h6" 
@@ -184,7 +184,7 @@ const PostsList = () => {
                   fontWeight: 400
                 }}
               >
-                {filteredPosts.length} posts found
+                                     {filteredPosts.length} {t('posts')} {t('found')}
               </Typography>
             </Box>
             <Button
@@ -199,7 +199,7 @@ const PostsList = () => {
                 fontWeight: 600
               }}
             >
-              Add New Post
+              {t('addNewPost')}
             </Button>
           </Box>
 
@@ -217,7 +217,7 @@ const PostsList = () => {
               <Grid item xs={12} md={4}>
                 <TextField
                   fullWidth
-                  placeholder="Search posts by region, contact, or category..."
+                                      placeholder={t('searchPostsPlaceholder')}
                   value={searchTerm}
                   onChange={handleSearch}
                   InputProps={{
@@ -263,12 +263,12 @@ const PostsList = () => {
                     onChange={handleCategoryFilter}
                     sx={{ borderRadius: 2 }}
                   >
-                    <MenuItem value="all">All Categories</MenuItem>
-                    {categoriesData?.map((category) => (
-                      <MenuItem key={category._id} value={category._id}>
-                        {category.code}
-                      </MenuItem>
-                    ))}
+                                         <MenuItem value="all">{t('allCategories')}</MenuItem>
+                                         {categoriesData?.map((category) => (
+                       <MenuItem key={category._id} value={category._id}>
+                         {t(category.code?.toLowerCase()) || category.code}
+                       </MenuItem>
+                     ))}
                   </Select>
                 </FormControl>
               </Grid>
@@ -316,7 +316,7 @@ const PostsList = () => {
                   )}
                   {categoryFilter !== "all" && (
                     <Chip 
-                      label={`Category: ${categoriesData?.find(cat => cat._id === categoryFilter)?.code || categoryFilter}`} 
+                                             label={`${t('category')}: ${t(categoriesData?.find(cat => cat._id === categoryFilter)?.code?.toLowerCase()) || categoriesData?.find(cat => cat._id === categoryFilter)?.code || categoryFilter}`} 
                       onDelete={() => setCategoryFilter("all")}
                       color="secondary"
                       variant="outlined"
@@ -381,7 +381,7 @@ const PostsList = () => {
                   gap={2}
                 >
                   <Typography variant="body2" color="text.secondary">
-                    Page {page} of {totalPages} • {filteredPosts.length} posts
+                    {t('page')} {page} {t('of')} {totalPages} • {filteredPosts.length} {t('posts')}
                   </Typography>
                   
                   <Pagination
@@ -402,7 +402,7 @@ const PostsList = () => {
                   
                   <Box display="flex" gap={1} alignItems="center">
                     <Typography variant="body2" color="text.secondary">
-                      Posts per page:
+                      {t('postsPerPage')}:
                     </Typography>
                     <Select
                       value={pageSize}
@@ -426,12 +426,12 @@ const PostsList = () => {
         ) : (
           <EmptyState
             icon={Search}
-            title={hasActiveFilters ? "No posts match your filters" : "No posts found"}
-            description={
-              hasActiveFilters 
-                ? "There are no posts matching your current filters. Try adjusting your search criteria or be the first to create a post in this category!"
-                : "There are no posts in your area yet. Be the first to create a post!"
-            }
+                           title={hasActiveFilters ? t('noPostsMatchFilters') : t('noPostsFound')}
+               description={
+                 hasActiveFilters
+                   ? t('adjustFilters')
+                   : t('noPostsInArea')
+               }
             action={
               <Link to="/dash/posts/new">
                 <Button 
@@ -445,7 +445,7 @@ const PostsList = () => {
                     fontWeight: 600
                   }}
                 >
-                  Add New Post
+                  {t('addNewPost')}
                 </Button>
               </Link>
             }

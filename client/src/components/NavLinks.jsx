@@ -17,15 +17,15 @@ import {
   setActiveLink,
   setFoundOrLost,
 } from "../app/state";
-import { useTranslation } from "react-i18next";
 import RenderIcon from "./RenderIcon";
+import { getCurrentLanguage, t } from "../utils/languageUtils";
 
 const NAV_REGEX = /^\/dash\/posts(\/)?$/;
 const HOME_REGEX = /^\/dash(\/)?$/;
 
 const NavLinks = () => {
   const theme = useTheme();
-  const { t } = useTranslation();
+  const currentLanguage = getCurrentLanguage();
 
   const dispatch = useDispatch();
   const navigate = useNavigate();
@@ -40,7 +40,7 @@ const NavLinks = () => {
         active: HOME_REGEX.test(pathname)
           ? "HOME"
           : foundOrlost === "" && NAV_REGEX.test(pathname)
-          ? t("ALL")
+          ? t("all")
           : foundOrlost,
       })
     );
@@ -48,27 +48,27 @@ const NavLinks = () => {
 
   const navlinks = [
     { 
-      title: t("HOME"), 
-      flcode: t("HOME"),
-      tooltip: t("Go to dashboard"),
+      title: t("home"), 
+      flcode: t("home"),
+      tooltip: t("goToDashboard"),
       icon: "home"
     },
     { 
-      title: t("ALL"), 
-      flcode: t("ALL"),
-      tooltip: t("View all posts"),
+      title: t("all"), 
+      flcode: t("all"),
+      tooltip: t("viewAllPosts"),
       icon: "total"
     },
     { 
-      title: t("FOUND"), 
+      title: t("found"), 
       flcode: "66e60c25420ca2a42499b924",
-      tooltip: t("View found items"),
+      tooltip: t("viewFoundItems"),
       icon: "Found"
     },
     { 
-      title: t("LOST"), 
+      title: t("lost"), 
       flcode: "63cc3484bc901245d3a1cb5a",
-      tooltip: t("View lost items"),
+      tooltip: t("viewLostItems"),
       icon: "Lost"
     },
   ];
@@ -97,7 +97,7 @@ const NavLinks = () => {
                 navigate("/dash/posts");
                 dispatch(
                   setFoundOrLost({
-                    foundOrlost: title === t("ALL") ? "" : flcode,
+                    foundOrlost: title === t("all") ? "" : flcode,
                   })
                 );
                 dispatch(setActiveLink({ active: title }));

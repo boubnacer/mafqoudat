@@ -12,10 +12,12 @@ import {
 import ma from "../../img/ma.jpg";
 import { useNavigate } from "react-router-dom";
 import RenderIcon from "../RenderIcon";
+import { getCurrentLanguage, t } from "../../utils/languageUtils";
 
 const RecentPosts = ({ _id, categoryname, region, image, createdAt }) => {
   const theme = useTheme();
   const navigate = useNavigate();
+  const currentLanguage = getCurrentLanguage();
 
   const handleViewDetails = () => navigate(`/dash/posts/${_id}`);
 
@@ -93,26 +95,26 @@ const RecentPosts = ({ _id, categoryname, region, image, createdAt }) => {
         <Box
           sx={{
             backgroundColor: isDarkMode ? alpha(categoryStyle.main, 0.15) : categoryStyle.light,
-            padding: '6px 12px',
-            borderRadius: '20px',
+            padding: '4px 8px',
+            borderRadius: '16px',
             alignSelf: 'flex-start',
             border: `1px solid ${isDarkMode ? alpha(categoryStyle.main, 0.3) : categoryStyle.main}`,
             display: 'flex',
             alignItems: 'center',
-            gap: 1,
+            gap: 0.5,
           }}
         >
-          <RenderIcon name={`${categoryname}rece`} />
+          <RenderIcon name={`${categoryname?.toLowerCase()}cate`} />
           <Typography
             sx={{
               color: isDarkMode ? categoryStyle.main : categoryStyle.dark,
-              fontSize: { xs: '12px', sm: '14px' },
+              fontSize: { xs: '10px', sm: '12px' },
               fontWeight: 600,
-              letterSpacing: '0.5px',
+              letterSpacing: '0.3px',
             }}
-          >
-            {categoryname}
-          </Typography>
+                     >
+             {t(categoryname?.toLowerCase()) || categoryname}
+           </Typography>
         </Box>
 
         {/* Location and Date Info */}
@@ -182,10 +184,10 @@ const RecentPosts = ({ _id, categoryname, region, image, createdAt }) => {
               backgroundColor: isDarkMode ? alpha(categoryStyle.main, 0.2) : alpha(categoryStyle.main, 0.12),
             },
           }}
-          endIcon={<RenderIcon name="view" />}
-        >
-          View Details
-        </Button>
+                     endIcon={<RenderIcon name="view" data-directional="true" />}
+         >
+           {t('viewDetails')}
+         </Button>
       </CardActions>
     </Card>
   );

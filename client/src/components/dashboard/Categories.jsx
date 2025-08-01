@@ -2,6 +2,7 @@ import { Box, Typography, useTheme } from "@mui/material";
 import { useGetCategoriesQuery } from "../../features/dependencies/dependenciesApiSlice";
 import { LoadingState, DashboardEmptyStates } from "../LoadingStates";
 import RenderIcon from "../RenderIcon";
+import { getCurrentLanguage, t } from "../../utils/languageUtils";
 
 const Categories = () => {
   const { categories } = useGetCategoriesQuery("categoriesList", {
@@ -11,8 +12,9 @@ const Categories = () => {
   });
 
   const theme = useTheme();
+  const currentLanguage = getCurrentLanguage();
 
-  if (!categories) return <LoadingState message="Loading categories..." />;
+  if (!categories) return <LoadingState message={t('loadingCategories')} />;
 
   return (
     <Box textAlign="center" sx={{ py: 4 }}>
@@ -62,10 +64,12 @@ const Categories = () => {
               sx={{
                 color: theme.palette.categories[`${code.toLowerCase()}cate`]?.icon || 
                       theme.palette.text.primary,
-                fontSize: "1rem",
+                fontSize: "0.9rem",
+                textAlign: 'center',
+                lineHeight: 1.2,
               }}
             >
-              {code}
+              {t(code?.toLowerCase()) || code}
             </Typography>
           </Box>
         ))}

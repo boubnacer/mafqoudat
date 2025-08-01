@@ -1,3 +1,77 @@
+/* Posts List Styles with RTL Support and Modern Typography */
+
+.postslist__container {
+  width: 100%;
+}
+
+.postslist__container {
+  position: relative;
+  width: 100%;
+}
+
+.card {
+  position: relative;
+  background: var(--CARD-COLOR, #ffffff);
+  padding: 1rem;
+  border: 1px solid transparent;
+  border-radius: 1rem;
+  transition: all 0.3s ease;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+}
+
+.card:hover {
+  transform: translateY(-4px);
+  box-shadow: 0 8px 25px rgba(0, 0, 0, 0.15);
+}
+
+.user__card {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+}
+
+.found__card {
+  color: var(--STATUS-COMPLETE, #4caf50);
+}
+
+.lost__card {
+  color: var(--INPUT-INVALID, #f44336);
+}
+
+.card img {
+  border-radius: 0.5rem;
+  transition: transform 0.3s ease;
+}
+
+.card:hover img {
+  transform: scale(1.02);
+}
+
+.handle__edit {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+}
+
+.pagination {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-top: 2rem;
+}
+
+.public,
+.private {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+}
+
+.show-view__more {
+  position: absolute;
+  margin-top: 1rem;
+}
+
 /* Posts List Styles */
 .postslist__container {
   position: relative;
@@ -26,10 +100,6 @@
   box-shadow: 0 8px 25px rgba(0, 0, 0, 0.15);
 }
 
-.user__card {
-  background: var(--PRIMARY-COLOR);
-}
-
 .found__card {
   color: var(--STATUS-COMPLETE, #4caf50);
 }
@@ -47,39 +117,8 @@
   transform: scale(1.02);
 }
 
-.handle__edit {
-  position: absolute;
-  bottom: 0;
-  display: flex;
-  align-items: center;
-  gap: 1rem;
-}
-
 .pagination {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
   margin-top: 2rem;
-}
-
-.public,
-.welcome {
-  display: flex;
-  flex-direction: column;
-  gap: 1rem;
-}
-
-.welcome a::before {
-  content: "➜ ";
-}
-
-.view__more {
-  display: none;
-}
-
-.show-view__more {
-  position: absolute;
-  margin-top: 1rem;
 }
 
 /* Enhanced responsive design */
@@ -100,7 +139,7 @@
     grid-template-columns: 1fr;
     gap: 1rem;
   }
-  
+
   .card {
     margin-bottom: 1rem;
   }
@@ -110,7 +149,7 @@
   .cards {
     grid-template-columns: 1fr;
   }
-  
+
   .card {
     padding: 0.75rem;
   }
@@ -176,4 +215,87 @@
   font-size: 0.75rem;
   font-weight: 600;
   backdrop-filter: blur(4px);
+}
+
+/* RTL Support */
+[dir="rtl"] .card {
+  text-align: right;
+}
+
+[dir="rtl"] .status-badge {
+  left: auto;
+  right: 12px;
+}
+
+[dir="rtl"] .category-badge {
+  right: auto;
+  left: 12px;
+}
+
+[dir="rtl"] .handle__edit {
+  flex-direction: row-reverse;
+}
+
+[dir="rtl"] .public,
+[dir="rtl"] .private {
+  flex-direction: row-reverse;
+}
+
+/* Modern Typography */
+.card {
+  font-family: 'Inter', 'Segoe UI', 'Roboto', 'Helvetica', 'Arial', sans-serif;
+}
+
+[dir="rtl"] .card {
+  font-family: 'Noto Sans Arabic', 'Segoe UI', 'Roboto', 'Helvetica', 'Arial', sans-serif;
+}
+
+/* Typography improvements */
+.card h1, .card h2, .card h3, .card h4, .card h5, .card h6 {
+  font-weight: 600;
+  line-height: 1.2;
+}
+
+.card p, .card span, .card div {
+  line-height: 1.5;
+}
+
+/* Accessibility improvements */
+.card:focus-within {
+  outline: 2px solid var(--primary-color, #1976d2);
+  outline-offset: 2px;
+}
+
+/* High contrast mode support */
+@media (prefers-contrast: high) {
+  .card {
+    border: 2px solid currentColor;
+  }
+  
+  .status-badge,
+  .category-badge {
+    border: 1px solid currentColor;
+  }
+}
+
+/* Reduced motion support */
+@media (prefers-reduced-motion: reduce) {
+  .card,
+  .card img,
+  .card button {
+    transition: none;
+  }
+  
+  .card:hover {
+    transform: none;
+  }
+  
+  @keyframes cardFadeIn {
+    from {
+      opacity: 0;
+    }
+    to {
+      opacity: 1;
+    }
+  }
 }

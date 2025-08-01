@@ -9,6 +9,7 @@ import { useNavigate } from "react-router-dom";
 import { setActiveLink, setFoundOrLost } from "../../app/state";
 import PulseLoader from "react-spinners/PulseLoader";
 import RenderIcon from "../RenderIcon";
+import { t } from "../../utils/languageUtils";
 
 const SeeAll = ({ foundOrlostId, totalItems }) => {
   const navigate = useNavigate();
@@ -76,7 +77,7 @@ const SeeAll = ({ foundOrlostId, totalItems }) => {
           backgroundColor:theme.palette.action.main
         }}
       >
-        {totalItems > 4 ? "See all" : "Add"}
+        {totalItems > 4 ? t('seeAll') : t('add')}
       </Button>
     </Box>
   );

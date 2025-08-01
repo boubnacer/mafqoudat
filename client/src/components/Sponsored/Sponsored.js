@@ -2,9 +2,11 @@ import React from "react";
 import { Link, useNavigate } from "react-router-dom";
 import defaultImage from "../../../img/ma.jpg";
 import "./sponsored.css";
+import { getCurrentLanguage, t } from "../../utils/languageUtils";
 
 const Sponsored = ({ post }) => {
   const navigate = useNavigate();
+  const currentLanguage = getCurrentLanguage();
 
   const handleEdit = (e) => {
     e.preventDefault();
@@ -20,7 +22,7 @@ const Sponsored = ({ post }) => {
 
   const formatDate = (dateString) => {
     const date = new Date(dateString);
-    return new Intl.DateTimeFormat('en-US', {
+    return new Intl.DateTimeFormat(currentLanguage === 'ar' ? 'ar-SA' : currentLanguage === 'fr' ? 'fr-FR' : 'en-US', {
       day: 'numeric',
       month: 'short',
       year: 'numeric'
@@ -41,10 +43,10 @@ const Sponsored = ({ post }) => {
           <small>{post.contact}</small>
           <div className="sponsored-handle__edit">
             <button className="btn btn-primary" onClick={handleEdit}>
-              Read More
+              {t('readMore')}
             </button>
             <button className="btn btn-secondary" onClick={handleReport}>
-              Report
+              {t('report')}
             </button>
           </div>
         </div>

@@ -37,6 +37,9 @@ import {
   WhatsApp,
   Whatshot,
   WorkOutlineOutlined,
+  LuggageOutlined,
+  PhoneAndroidOutlined,
+  CreditCardOutlined,
 } from "@mui/icons-material";
 import { useTheme } from "@mui/material";
 import React from "react";
@@ -46,9 +49,9 @@ const RenderIcon = ({ name }) => {
   const icon =
     // for left side header ------
     name === "Found" ? (
-      <NorthEast sx={{ fontSize: "20px", color: "#4CAF50" }} />
+      <NorthEast sx={{ fontSize: "20px", color: "#4CAF50" }} data-directional="true" />
     ) : name === "Lost" ? (
-      <SouthEast sx={{ fontSize: "20px", color: "#757575" }} />
+      <SouthEast sx={{ fontSize: "20px", color: "#757575" }} data-directional="true" />
     ) : name === "returned" ? (
       <HomeOutlined
         sx={{
@@ -71,6 +74,7 @@ const RenderIcon = ({ name }) => {
               ? theme.palette.floptions.lost.text
               : theme.palette.floptions.found.text,
         }}
+        data-directional="true"
       />
     ) : // Categories---------------------------------------------------------------
     name === "person" || name === "personcate" || name === "personrece" ? (
@@ -89,7 +93,7 @@ const RenderIcon = ({ name }) => {
         }}
       />
     ) : name === "bag" || name === "bagcate" || name === "bagrece" ? (
-      <WorkOutlineOutlined
+      <LuggageOutlined
         sx={{
           color: name === "bagrece" ? theme.palette.categories.bagcate.icon : "#A8ABAF",
           fontSize:
@@ -107,19 +111,22 @@ const RenderIcon = ({ name }) => {
       />
     ) : name === "Devices" ||
       name === "Devicescate" ||
-      name === "Devicesrece" ? (
-      <DevicesOtherOutlined
+      name === "Devicesrece" ||
+      name === "device" ||
+      name === "devicecate" ||
+      name === "devicerece" ? (
+      <PhoneAndroidOutlined
         sx={{
           color: theme.palette.categories.devicecate.icon,
           fontSize:
-            name === "Devicescate"
+            name === "devicecate" || name === "Devicescate"
               ? "2rem"
-              : name === "Devicesrece"
+              : name === "devicerece" || name === "Devicesrece"
               ? "2.5rem"
               : "26px",
 
           borderRadius: "5px",
-          padding: name === "Devicesrece" && "0.5rem",
+          padding: (name === "devicerece" || name === "Devicesrece") && "0.5rem",
         }}
       />
     ) : name === "keyscate" || name === "keys" || name === "keysrece" ? (
@@ -137,7 +144,7 @@ const RenderIcon = ({ name }) => {
         }}
       />
     ) : name === "Wallet" || name === "Walletcate" || name === "Walletrece" ? (
-      <AccountBalanceWalletOutlined
+      <CreditCardOutlined
         sx={{
           color: theme.palette.categories.walletcate.icon,
           fontSize:
@@ -210,11 +217,11 @@ const RenderIcon = ({ name }) => {
         }}
       /> // #777777 #A8ABAF
     ) : name === "share" ? (
-      <ShareOutlined />
+      <ShareOutlined data-directional="true" />
     ) : name === "trending" ? (
-      <TrendingUpOutlined />
+      <TrendingUpOutlined data-directional="true" />
     ) : name === "view" ? (
-      <KeyboardArrowRightOutlined />
+      <KeyboardArrowRightOutlined data-directional="true" />
     ) : name == "time" || name === "timerace" ? (
       <AccessTimeOutlined
         sx={{
@@ -235,15 +242,17 @@ const RenderIcon = ({ name }) => {
         sx={{
           fontSize: "25px",
         }}
+        data-directional="true"
       />
     ) : name === "create" ? (
       <Create
         sx={{
           fontSize: "18px",
         }}
+        data-directional="true"
       />
     ) : name === "arrowDown" ? (
-      <ArrowDropDown />
+      <ArrowDropDown data-directional="true" />
     ) : name === "notif" ? (
       <NotificationsActiveOutlined />
     ) : name === "ad" ? (

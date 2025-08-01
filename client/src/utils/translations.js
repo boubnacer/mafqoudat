@@ -1,0 +1,646 @@
+// Comprehensive translations for the application
+import { getCurrentLanguage } from './languageUtils';
+
+export const translations = {
+  en: {
+    // Post-related translations
+    found: "Found",
+    lost: "Lost",
+    postedOn: "Posted on",
+    contact: "Contact",
+    viewDetails: "View Details",
+    report: "Report",
+    view: "View",
+    unknownRegion: "Unknown Region",
+    unknownUser: "Unknown User",
+    unknownCountry: "Unknown Country",
+    unknownCategory: "Unknown Category",
+    
+    // Dashboard translations
+    dashboard: "Dashboard",
+    posts: "Posts",
+    users: "Users",
+    settings: "Settings",
+    search: "Search",
+    searchPostsPlaceholder: "Search posts by region, contact, or category...",
+    filter: "Filter",
+    sort: "Sort",
+    newest: "Newest",
+    oldest: "Oldest",
+    allCategories: "All Categories",
+    noPostsFound: "No posts found",
+    noPostsMatchFilters: "No posts match your filters",
+    noPostsInArea: "There are no posts in your area yet. Be the first to create a post!",
+    adjustFilters: "There are no posts matching your current filters. Try adjusting your search criteria or be the first to create a post in this category!",
+    pleaseSelectCountry: "Please select a country to continue",
+    chooseCountryMessage: "Choose your country to see relevant lost and found items in your area",
+    loadingDashboardData: "Loading dashboard data...",
+    loadingNavigation: "Loading navigation...",
+    loadingCategories: "Loading categories...",
+    loadingUsers: "Loading users...",
+    loadingUserData: "Loading user data...",
+    loadingPosts: "Loading posts...",
+    loadingPostForm: "Loading post form...",
+    loadingEditForm: "Loading edit form...",
+    loadingDependencies: "Loading dependencies...",
+    refreshingSession: "Refreshing session...",
+    loadingSignupForm: "Loading signup form...",
+    signingIn: "Signing in...",
+    loadingPostDetails: "Loading post details...",
+    
+    // Navigation
+    home: "Home",
+    profile: "Profile",
+    logout: "Logout",
+    login: "Login",
+    signup: "Sign Up",
+    selectCountry: "Select Country",
+    changeLanguage: "Change Language",
+    all: "All",
+    goToDashboard: "Go to dashboard",
+    viewAllPosts: "View all posts",
+    viewFoundItems: "View found items",
+    viewLostItems: "View lost items",
+    brandName: "Mafqoudat",
+    recentFounds: "RECENT FOUNDS",
+    recentLosts: "RECENT LOSTS",
+    categories: "CATEGORIES",
+    
+    // Actions
+    edit: "Edit",
+    delete: "Delete",
+    save: "Save",
+    cancel: "Cancel",
+    create: "Create",
+    update: "Update",
+    add: "Add",
+    addNewPost: "Add New Post",
+    seeAll: "See All",
+    remove: "Remove",
+    close: "Close",
+    back: "Back",
+    next: "Next",
+    previous: "Previous",
+    to: "to",
+    readMore: "Read More",
+    
+    // Status messages
+    loading: "Loading...",
+    error: "Error",
+    success: "Success",
+    warning: "Warning",
+    info: "Information",
+    
+    // Form labels
+    title: "Title",
+    description: "Description",
+    category: "Category",
+    location: "Location",
+    date: "Date",
+    time: "Time",
+    image: "Image",
+    file: "File",
+    upload: "Upload",
+    
+    // Time-related
+    today: "Today",
+    yesterday: "Yesterday",
+    thisWeek: "This Week",
+    thisMonth: "This Month",
+    ago: "ago",
+    minutes: "minutes",
+    hours: "hours",
+    days: "days",
+    weeks: "weeks",
+    months: "months",
+    years: "years",
+    
+    // Pagination
+    page: "Page",
+    postsPerPage: "Posts per page",
+    
+    // Common phrases
+    pleaseWait: "Please wait...",
+    somethingWentWrong: "Something went wrong",
+    tryAgain: "Try again",
+    noResults: "No results found",
+    showingResults: "Showing results",
+    of: "of",
+    total: "total",
+    items: "items",
+    
+    // Mafkoudat specific
+    mafkoudat: "Mafkoudat",
+    lostAndFound: "Lost & Found",
+    community: "Community",
+    help: "Help",
+    support: "Support",
+    about: "About",
+    privacy: "Privacy",
+    terms: "Terms",
+    contactUs: "Contact Us",
+    
+    // Category translations
+    keys: "Keys",
+    person: "Person",
+    bag: "Bag",
+    money: "Money",
+    device: "Device",
+    wallet: "Wallet",
+    vehicle: "Vehicle",
+    document: "Document",
+    
+    // Post status
+    active: "Active",
+    returned: "Returned",
+    closed: "Closed",
+    pending: "Pending",
+    
+    // User actions
+    createPost: "Create Post",
+    editPost: "Edit Post",
+    deletePost: "Delete Post",
+    sharePost: "Share Post",
+    reportPost: "Report Post",
+    contactOwner: "Contact Owner",
+    
+    // Form fields
+    region: "Region",
+    contactInfo: "Contact Information",
+    postDetails: "Post Details",
+    additionalInfo: "Additional Information",
+    images: "Images",
+    attachments: "Attachments",
+    
+    // Messages
+    postCreated: "Post created successfully",
+    postUpdated: "Post updated successfully",
+    postDeleted: "Post deleted successfully",
+    postReported: "Post reported successfully",
+    
+    // Validation messages
+    required: "This field is required",
+    invalidEmail: "Invalid email address",
+    invalidPhone: "Invalid phone number",
+    invalidDate: "Invalid date",
+    fileTooLarge: "File size is too large",
+    invalidFileType: "Invalid file type",
+    
+    // Notifications
+    notification: "Notification",
+    newPost: "New post in your area",
+    postUpdated: "Post has been updated",
+    postReturned: "Item has been returned",
+    
+    // Footer
+    copyright: "Copyright",
+    allRightsReserved: "All rights reserved",
+    poweredBy: "Powered by",
+    version: "Version",
+    footerDescription: "Helping people find their lost items and return found items to their owners.",
+    quickLinks: "Quick Links",
+    reportLostItem: "Report Lost Item",
+    reportFoundItem: "Report Found Item",
+    searchItems: "Search Items",
+    getHelp: "Get Help",
+    emailUsForSupport: "Email us for support",
+    callUsForAssistance: "Call us for assistance",
+    yourLocation: "Your Location",
+    currentRegion: "Current Region",
+    privacyPolicy: "Privacy Policy",
+    termsOfUse: "Terms of Use",
+    cookieNotice: "Cookie Notice"
+  },
+  
+  fr: {
+    // Post-related translations
+    found: "Trouvé",
+    lost: "Perdu",
+    postedOn: "Publié le",
+    contact: "Contact",
+    viewDetails: "Voir les détails",
+    report: "Signaler",
+    view: "Voir",
+    unknownRegion: "Région inconnue",
+    unknownUser: "Utilisateur inconnu",
+    unknownCountry: "Pays inconnu",
+    unknownCategory: "Catégorie inconnue",
+    
+    // Dashboard translations
+    dashboard: "Tableau de bord",
+    posts: "Publications",
+    users: "Utilisateurs",
+    settings: "Paramètres",
+    search: "Rechercher",
+    searchPostsPlaceholder: "Rechercher des publications par région, contact ou catégorie...",
+    filter: "Filtrer",
+    sort: "Trier",
+    newest: "Plus récent",
+    oldest: "Plus ancien",
+    allCategories: "Toutes les catégories",
+    noPostsFound: "Aucune publication trouvée",
+    noPostsMatchFilters: "Aucune publication ne correspond à vos filtres",
+    noPostsInArea: "Il n'y a pas encore de publications dans votre région. Soyez le premier à créer une publication !",
+    adjustFilters: "Aucune publication ne correspond à vos filtres actuels. Essayez d'ajuster vos critères de recherche ou soyez le premier à créer une publication dans cette catégorie !",
+    pleaseSelectCountry: "Veuillez sélectionner un pays pour continuer",
+    chooseCountryMessage: "Choisissez votre pays pour voir les objets perdus et trouvés pertinents dans votre région",
+    loadingDashboardData: "Chargement des données du tableau de bord...",
+    loadingNavigation: "Chargement de la navigation...",
+    loadingCategories: "Chargement des catégories...",
+    loadingUsers: "Chargement des utilisateurs...",
+    loadingUserData: "Chargement des données utilisateur...",
+    loadingPosts: "Chargement des publications...",
+    loadingPostForm: "Chargement du formulaire de publication...",
+    loadingEditForm: "Chargement du formulaire de modification...",
+    loadingDependencies: "Chargement des dépendances...",
+    refreshingSession: "Actualisation de la session...",
+    loadingSignupForm: "Chargement du formulaire d'inscription...",
+    signingIn: "Connexion en cours...",
+    loadingPostDetails: "Chargement des détails de la publication...",
+    
+    // Navigation
+    home: "Accueil",
+    profile: "Profil",
+    logout: "Déconnexion",
+    login: "Connexion",
+    signup: "S'inscrire",
+    selectCountry: "Sélectionner un pays",
+    changeLanguage: "Changer de langue",
+    all: "Tout",
+    goToDashboard: "Aller au tableau de bord",
+    viewAllPosts: "Voir toutes les publications",
+    viewFoundItems: "Voir les objets trouvés",
+    viewLostItems: "Voir les objets perdus",
+    brandName: "Mafqoudat",
+    recentFounds: "RÉCENTS TROUVÉS",
+    recentLosts: "RÉCENTS PERDUS",
+    categories: "CATÉGORIES",
+    
+    // Actions
+    edit: "Modifier",
+    delete: "Supprimer",
+    save: "Enregistrer",
+    cancel: "Annuler",
+    create: "Créer",
+    update: "Mettre à jour",
+    add: "Ajouter",
+    addNewPost: "Ajouter une publication",
+    seeAll: "Voir tout",
+    remove: "Supprimer",
+    close: "Fermer",
+    back: "Retour",
+    next: "Suivant",
+    previous: "Précédent",
+    to: "vers",
+    readMore: "Lire la suite",
+    
+    // Status messages
+    loading: "Chargement...",
+    error: "Erreur",
+    success: "Succès",
+    warning: "Avertissement",
+    info: "Information",
+    
+    // Form labels
+    title: "Titre",
+    description: "Description",
+    category: "Catégorie",
+    location: "Emplacement",
+    date: "Date",
+    time: "Heure",
+    image: "Image",
+    file: "Fichier",
+    upload: "Télécharger",
+    
+    // Time-related
+    today: "Aujourd'hui",
+    yesterday: "Hier",
+    thisWeek: "Cette semaine",
+    thisMonth: "Ce mois",
+    ago: "il y a",
+    minutes: "minutes",
+    hours: "heures",
+    days: "jours",
+    weeks: "semaines",
+    months: "mois",
+    years: "années",
+    
+    // Pagination
+    page: "Page",
+    postsPerPage: "Publications par page",
+    
+    // Common phrases
+    pleaseWait: "Veuillez patienter...",
+    somethingWentWrong: "Quelque chose s'est mal passé",
+    tryAgain: "Réessayer",
+    noResults: "Aucun résultat trouvé",
+    showingResults: "Affichage des résultats",
+    of: "sur",
+    total: "total",
+    items: "éléments",
+    
+    // Mafkoudat specific
+    mafkoudat: "Mafkoudat",
+    lostAndFound: "Objets trouvés et perdus",
+    community: "Communauté",
+    help: "Aide",
+    support: "Support",
+    about: "À propos",
+    privacy: "Confidentialité",
+    terms: "Conditions",
+    contactUs: "Contactez-nous",
+    
+    // Category translations
+    keys: "Clés",
+    person: "Personne",
+    bag: "Sac",
+    money: "Argent",
+    device: "Appareil",
+    wallet: "Portefeuille",
+    vehicle: "Véhicule",
+    document: "Document",
+    
+    // Post status
+    active: "Actif",
+    returned: "Retrouvé",
+    closed: "Fermé",
+    pending: "En attente",
+    
+    // User actions
+    createPost: "Créer une publication",
+    editPost: "Modifier la publication",
+    deletePost: "Supprimer la publication",
+    sharePost: "Partager la publication",
+    reportPost: "Signaler la publication",
+    contactOwner: "Contacter le propriétaire",
+    
+    // Form fields
+    region: "Région",
+    contactInfo: "Informations de contact",
+    postDetails: "Détails de la publication",
+    additionalInfo: "Informations supplémentaires",
+    images: "Images",
+    attachments: "Pièces jointes",
+    
+    // Messages
+    postCreated: "Publication créée avec succès",
+    postUpdated: "Publication mise à jour avec succès",
+    postDeleted: "Publication supprimée avec succès",
+    postReported: "Publication signalée avec succès",
+    
+    // Validation messages
+    required: "Ce champ est requis",
+    invalidEmail: "Adresse e-mail invalide",
+    invalidPhone: "Numéro de téléphone invalide",
+    invalidDate: "Date invalide",
+    fileTooLarge: "La taille du fichier est trop grande",
+    invalidFileType: "Type de fichier invalide",
+    
+    // Notifications
+    notification: "Notification",
+    newPost: "Nouvelle publication dans votre région",
+    postUpdated: "La publication a été mise à jour",
+    postReturned: "L'objet a été retrouvé",
+    
+    // Footer
+    copyright: "Copyright",
+    allRightsReserved: "Tous droits réservés",
+    poweredBy: "Propulsé par",
+    version: "Version",
+    footerDescription: "Aider les gens à retrouver leurs objets perdus et à restituer les objets trouvés à leurs propriétaires.",
+    quickLinks: "Liens rapides",
+    reportLostItem: "Signaler un objet perdu",
+    reportFoundItem: "Signaler un objet trouvé",
+    searchItems: "Rechercher des objets",
+    getHelp: "Obtenir de l'aide",
+    emailUsForSupport: "Contactez-nous pour le support",
+    callUsForAssistance: "Appelez-nous pour l'assistance",
+    yourLocation: "Votre emplacement",
+    currentRegion: "Région actuelle",
+    privacyPolicy: "Politique de confidentialité",
+    termsOfUse: "Conditions d'utilisation",
+    cookieNotice: "Avis sur les cookies"
+  },
+  
+  ar: {
+    // Post-related translations
+    found: "تم العثور عليه",
+    lost: "مفقود",
+    postedOn: "نُشر في",
+    contact: "اتصال",
+    viewDetails: "عرض التفاصيل",
+    report: "إبلاغ",
+    view: "عرض",
+    unknownRegion: "منطقة غير معروفة",
+    unknownUser: "مستخدم غير معروف",
+    unknownCountry: "دولة غير معروفة",
+    unknownCategory: "فئة غير معروفة",
+    
+    // Dashboard translations
+    dashboard: "لوحة التحكم",
+    posts: "المنشورات",
+    users: "المستخدمون",
+    settings: "الإعدادات",
+    search: "بحث",
+    searchPostsPlaceholder: "البحث في المنشورات حسب المنطقة أو الاتصال أو الفئة...",
+    filter: "تصفية",
+    sort: "ترتيب",
+    newest: "الأحدث",
+    oldest: "الأقدم",
+    allCategories: "جميع الفئات",
+    noPostsFound: "لم يتم العثور على منشورات",
+    noPostsMatchFilters: "لا توجد منشورات تطابق فلاترك",
+    noPostsInArea: "لا توجد منشورات في منطقتك بعد. كن أول من ينشئ منشور!",
+    adjustFilters: "لا توجد منشورات تطابق فلاترك الحالية. حاول تعديل معايير البحث أو كن أول من ينشئ منشور في هذه الفئة!",
+    pleaseSelectCountry: "يرجى اختيار دولة للمتابعة",
+    chooseCountryMessage: "اختر دولتك لرؤية العناصر المفقودة والموجودة ذات الصلة في منطقتك",
+    loadingDashboardData: "جاري تحميل بيانات لوحة التحكم...",
+    loadingNavigation: "جاري تحميل التنقل...",
+    loadingCategories: "جاري تحميل الفئات...",
+    loadingUsers: "جاري تحميل المستخدمين...",
+    loadingUserData: "جاري تحميل بيانات المستخدم...",
+    loadingPosts: "جاري تحميل المنشورات...",
+    loadingPostForm: "جاري تحميل نموذج المنشور...",
+    loadingEditForm: "جاري تحميل نموذج التعديل...",
+    loadingDependencies: "جاري تحميل التبعيات...",
+    refreshingSession: "جاري تحديث الجلسة...",
+    loadingSignupForm: "جاري تحميل نموذج التسجيل...",
+    signingIn: "جاري تسجيل الدخول...",
+    loadingPostDetails: "جاري تحميل تفاصيل المنشور...",
+    
+    // Navigation
+    home: "الرئيسية",
+    profile: "الملف الشخصي",
+    logout: "تسجيل الخروج",
+    login: "تسجيل الدخول",
+    signup: "إنشاء حساب",
+    selectCountry: "اختر الدولة",
+    changeLanguage: "تغيير اللغة",
+    all: "الكل",
+    goToDashboard: "الذهاب إلى لوحة التحكم",
+    viewAllPosts: "عرض جميع المنشورات",
+    viewFoundItems: "عرض العناصر الموجودة",
+    viewLostItems: "عرض العناصر المفقودة",
+    brandName: "مفقودات",
+    recentFounds: "الموجودات الحديثة",
+    recentLosts: "المفقودات الحديثة",
+    categories: "الفئات",
+    
+    // Actions
+    edit: "تعديل",
+    delete: "حذف",
+    save: "حفظ",
+    cancel: "إلغاء",
+    create: "إنشاء",
+    update: "تحديث",
+    add: "إضافة",
+    addNewPost: "إضافة منشور جديد",
+    seeAll: "عرض الكل",
+    remove: "إزالة",
+    close: "إغلاق",
+    back: "رجوع",
+    next: "التالي",
+    previous: "السابق",
+    to: "إلى",
+    readMore: "اقرأ المزيد",
+    
+    // Status messages
+    loading: "جاري التحميل...",
+    error: "خطأ",
+    success: "نجح",
+    warning: "تحذير",
+    info: "معلومات",
+    
+    // Form labels
+    title: "العنوان",
+    description: "الوصف",
+    category: "الفئة",
+    location: "الموقع",
+    date: "التاريخ",
+    time: "الوقت",
+    image: "الصورة",
+    file: "الملف",
+    upload: "رفع",
+    
+    // Time-related
+    today: "اليوم",
+    yesterday: "أمس",
+    thisWeek: "هذا الأسبوع",
+    thisMonth: "هذا الشهر",
+    ago: "منذ",
+    minutes: "دقائق",
+    hours: "ساعات",
+    days: "أيام",
+    weeks: "أسابيع",
+    months: "أشهر",
+    years: "سنوات",
+    
+    // Pagination
+    page: "الصفحة",
+    postsPerPage: "المنشورات في الصفحة",
+    
+    // Common phrases
+    pleaseWait: "يرجى الانتظار...",
+    somethingWentWrong: "حدث خطأ ما",
+    tryAgain: "حاول مرة أخرى",
+    noResults: "لم يتم العثور على نتائج",
+    showingResults: "عرض النتائج",
+    of: "من",
+    total: "إجمالي",
+    items: "عناصر",
+    
+    // Mafkoudat specific
+    mafkoudat: "مفقودات",
+    lostAndFound: "الأشياء المفقودة والموجودة",
+    community: "المجتمع",
+    help: "المساعدة",
+    support: "الدعم",
+    about: "حول",
+    privacy: "الخصوصية",
+    terms: "الشروط",
+    contactUs: "اتصل بنا",
+    
+    // Category translations
+    keys: "مفاتيح",
+    person: "شخص",
+    bag: "حقيبة",
+    money: "مال",
+    device: "جهاز",
+    wallet: "محفظة",
+    vehicle: "مركبة",
+    document: "مستند",
+    
+    // Post status
+    active: "نشط",
+    returned: "تم العثور عليه",
+    closed: "مغلق",
+    pending: "في الانتظار",
+    
+    // User actions
+    createPost: "إنشاء منشور",
+    editPost: "تعديل المنشور",
+    deletePost: "حذف المنشور",
+    sharePost: "مشاركة المنشور",
+    reportPost: "إبلاغ عن المنشور",
+    contactOwner: "اتصال بالمالك",
+    
+    // Form fields
+    region: "المنطقة",
+    contactInfo: "معلومات الاتصال",
+    postDetails: "تفاصيل المنشور",
+    additionalInfo: "معلومات إضافية",
+    images: "الصور",
+    attachments: "المرفقات",
+    
+    // Messages
+    postCreated: "تم إنشاء المنشور بنجاح",
+    postUpdated: "تم تحديث المنشور بنجاح",
+    postDeleted: "تم حذف المنشور بنجاح",
+    postReported: "تم الإبلاغ عن المنشور بنجاح",
+    
+    // Validation messages
+    required: "هذا الحقل مطلوب",
+    invalidEmail: "عنوان البريد الإلكتروني غير صحيح",
+    invalidPhone: "رقم الهاتف غير صحيح",
+    invalidDate: "التاريخ غير صحيح",
+    fileTooLarge: "حجم الملف كبير جداً",
+    invalidFileType: "نوع الملف غير صحيح",
+    
+    // Notifications
+    notification: "إشعار",
+    newPost: "منشور جديد في منطقتك",
+    postUpdated: "تم تحديث المنشور",
+    postReturned: "تم العثور على العنصر",
+    
+    // Footer
+    copyright: "حقوق النشر",
+    allRightsReserved: "جميع الحقوق محفوظة",
+    poweredBy: "مدعوم بواسطة",
+    version: "الإصدار",
+    footerDescription: "مساعدة الناس في العثور على أشيائهم المفقودة وإعادة الأشياء الموجودة إلى أصحابها.",
+    quickLinks: "روابط سريعة",
+    reportLostItem: "الإبلاغ عن عنصر مفقود",
+    reportFoundItem: "الإبلاغ عن عنصر موجود",
+    searchItems: "البحث عن العناصر",
+    getHelp: "الحصول على المساعدة",
+    emailUsForSupport: "راسلنا للحصول على الدعم",
+    callUsForAssistance: "اتصل بنا للمساعدة",
+    yourLocation: "موقعك",
+    currentRegion: "المنطقة الحالية",
+    privacyPolicy: "سياسة الخصوصية",
+    termsOfUse: "شروط الاستخدام",
+    cookieNotice: "إشعار ملفات تعريف الارتباط"
+  }
+};
+
+// Helper function to get translation
+export const t = (key, language = null) => {
+  const currentLang = language || getCurrentLanguage();
+  return translations[currentLang]?.[key] || translations.en?.[key] || key;
+};
+
+// Helper function to get translation with fallback
+export const tWithFallback = (key, fallback, language = null) => {
+  const currentLang = language || getCurrentLanguage();
+  return translations[currentLang]?.[key] || translations.en?.[key] || fallback;
+}; 

@@ -30,6 +30,9 @@ import {
 } from "@mui/icons-material";
 
 import "./editpost.css";
+import { getCurrentLanguage, t, isRTL, getLabel } from "../../../utils/languageUtils";
+import { formatDistanceToNow } from 'date-fns';
+import { ar, fr, enUS } from 'date-fns/locale';
 
 const SinglePostPage = ({
   _id,
@@ -49,6 +52,8 @@ const SinglePostPage = ({
   const theme = useTheme();
   const isMobile = useMediaQuery("(max-width:768px)");
   const { usernameId } = useAuth();
+  const currentLanguage = getCurrentLanguage();
+  const isRTLMode = isRTL();
 
   const canEdit = user === usernameId;
 
@@ -56,47 +61,53 @@ const SinglePostPage = ({
   const handleReport = () => navigate(`/dash/posts/report/${_id}`);
   const handleBack = () => navigate(-1);
 
-  // Format dates
-  const createdDate = new Date(createdAt).toLocaleDateString("en-US", {
-    year: "numeric",
-    month: "long",
-    day: "numeric",
-    hour: "2-digit",
-    minute: "2-digit"
+  // Format dates using date-fns with proper locale support
+  const getLocale = () => {
+    switch (currentLanguage) {
+      case 'ar': return ar;
+      case 'fr': return fr;
+      default: return enUS;
+    }
+  };
+
+  const createdDate = formatDistanceToNow(new Date(createdAt), { 
+    addSuffix: true,
+    locale: getLocale()
   });
 
-  const updatedDate = new Date(updatedAt).toLocaleDateString("en-US", {
-    year: "numeric",
-    month: "long",
-    day: "numeric"
+  const updatedDate = formatDistanceToNow(new Date(updatedAt), { 
+    addSuffix: true,
+    locale: getLocale()
   });
 
-    // Determine Found/Lost status with multilingual support
-  let foundLostValue = "Found";
-  let foundLostLabel = "Found";
+    // Determine Found/Lost status with proper multilingual support
+  let foundLostValue = "FOUND";
+  let foundLostLabel = t('found');
   
   if (foundLost) {
     if (typeof foundLost === 'string') {
-      foundLostValue = foundLost;
-      foundLostLabel = foundLost;
+      foundLostValue = foundLost.toUpperCase();
+      foundLostLabel = foundLost === 'FOUND' ? t('found') : t('lost');
     } else if (foundLost.code) {
       foundLostValue = foundLost.code;
-      foundLostLabel = foundLost.labels?.en || foundLost.code;
+      foundLostLabel = getLabel(foundLost.labels, currentLanguage) || 
+                      (foundLost.code === 'FOUND' ? t('found') : t('lost'));
     }
   }
 
   if (Floptions && Floptions.length > 0) {
     const flOption = Floptions[0];
     if (typeof flOption === 'string') {
-      foundLostValue = flOption;
-      foundLostLabel = flOption;
+      foundLostValue = flOption.toUpperCase();
+      foundLostLabel = flOption === 'FOUND' ? t('found') : t('lost');
     } else if (flOption.code) {
       foundLostValue = flOption.code;
-      foundLostLabel = flOption.labels?.en || flOption.code;
+      foundLostLabel = getLabel(flOption.labels, currentLanguage) || 
+                      (flOption.code === 'FOUND' ? t('found') : t('lost'));
     }
   }
 
-  const isFound = foundLostValue.toLowerCase() === "found";
+  const isFound = foundLostValue === "FOUND";
   const statusColor = isFound ? "success" : "error";
   const statusText = foundLostLabel;
 
@@ -121,7 +132,7 @@ const SinglePostPage = ({
             }
           }}
         >
-          Back to Posts
+                     {t('back')} {t('to')} {t('posts')}
         </Button>
       </Box>
 
@@ -164,19 +175,19 @@ const SinglePostPage = ({
               />
 
               {/* Category Badge */}
-              <Chip 
-                label={categoryname}
-                variant="outlined"
-                icon={<CategoryIcon />}
-                sx={{
-                  position: 'absolute',
-                  top: 16,
-                  right: 16,
-                  backgroundColor: 'rgba(255,255,255,0.95)',
-                  fontWeight: 600,
-                  fontSize: '0.9rem'
-                }}
-              />
+                             <Chip 
+                 label={t(categoryname?.toLowerCase()) || categoryname}
+                 variant="outlined"
+                 icon={<CategoryIcon />}
+                 sx={{
+                   position: 'absolute',
+                   top: 16,
+                   right: 16,
+                   backgroundColor: 'rgba(255,255,255,0.95)',
+                   fontWeight: 600,
+                   fontSize: '0.9rem'
+                 }}
+               />
             </Box>
 
             {/* Content Section */}
@@ -184,16 +195,16 @@ const SinglePostPage = ({
               {/* Header */}
               <Box display="flex" justifyContent="space-between" alignItems="flex-start" mb={3}>
                 <Box>
-                  <Typography 
-                    variant="h3" 
-                    sx={{ 
-                      color: theme.palette.textColor.main,
-                      fontWeight: 700,
-                      mb: 1
-                    }}
-                  >
-                    {categoryname}
-                  </Typography>
+                                     <Typography 
+                     variant="h3" 
+                     sx={{ 
+                       color: theme.palette.textColor.main,
+                       fontWeight: 700,
+                       mb: 1
+                     }}
+                   >
+                     {t(categoryname?.toLowerCase()) || categoryname}
+                   </Typography>
                   <Typography 
                     variant="h5" 
                     sx={{ 
@@ -483,9 +494,9 @@ const SinglePostPage = ({
                     <Typography variant="body2" color="text.secondary">
                       Category
                     </Typography>
-                    <Typography variant="body1" sx={{ color: theme.palette.textColor.main }}>
-                      {categoryname}
-                    </Typography>
+                                         <Typography variant="body1" sx={{ color: theme.palette.textColor.main }}>
+                       {t(categoryname?.toLowerCase()) || categoryname}
+                     </Typography>
                   </Box>
                 </Box>
                 

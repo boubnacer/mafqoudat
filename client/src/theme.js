@@ -1,8 +1,13 @@
 // mui theme settings
+import { createTheme } from '@mui/material/styles';
+
 export const themeSettings = (mode) => {
-  return {
+  const isRTL = mode === 'ar' || mode === 'ar-SA'; // Handle both Arabic modes for RTL
+  
+  return createTheme({
+    direction: isRTL ? 'rtl' : 'ltr',
     palette: {
-      mode: mode,
+      mode: mode === 'dark' ? 'dark' : 'light',
       ...(mode === "dark"
         ? {
             // palette values for dark mode
@@ -41,36 +46,36 @@ export const themeSettings = (mode) => {
             // caetgories -----
             categories: {
               keyscate: {
-                back: "#BDC3C7",
-                icon: "#FFFFFF",
+                back: "#FFF3E0",
+                icon: "#FF9800",
               },
               personcate: {
-                back: "#9B59B6",
-                icon: "#F8E9E9",
+                back: "#E3F2FD",
+                icon: "#2196F3",
               },
               bagcate: {
-                back: "#D5F2E3",
-                icon: "#1ABC9C",
+                back: "#E8F5E9",
+                icon: "#4CAF50",
               },
               moneycate: {
-                back: "#00796b",
-                icon: "#D6F5E3",
+                back: "#F3E5F5",
+                icon: "#9C27B0",
               },
               devicecate: {
-                back: "#00707c",
-                icon: "hsla(195, 64%, 90%, 0.8)",
+                back: "#E0F7FA",
+                icon: "#00BCD4",
               },
               walletcate: {
-                back: "#D4A069",
-                icon: "#9C640C",
+                back: "#FBE9E7",
+                icon: "#FF5722",
               },
               vehiclecate: {
-                back: "#9b4d9b",
-                icon: "hsla(300, 60%, 90%, 0.8)",
+                back: "#ECEFF1",
+                icon: "#607D8B",
               },
               documentcate: {
-                back: "#C0D3E3",
-                icon: "#4682B4",
+                back: "#EFEBE9",
+                icon: "#795548",
               },
               text: {},
               icon: {
@@ -124,22 +129,36 @@ export const themeSettings = (mode) => {
             // categories
             categories: {
               keyscate: {
-                back: "#D1F5FF",
+                back: "#FFF3E0",
+                icon: "#FF9800",
               },
               personcate: {
-                back: "#006064",
+                back: "#E3F2FD",
+                icon: "#2196F3",
               },
               bagcate: {
-                back: "#F8D6D4",
+                back: "#E8F5E9",
+                icon: "#4CAF50",
               },
               moneycate: {
-                back: "#F8D981",
+                back: "#F3E5F5",
+                icon: "#9C27B0",
               },
               devicecate: {
-                back: "#F8D6D4",
+                back: "#E0F7FA",
+                icon: "#00BCD4",
               },
               walletcate: {
-                back: "#F8D6D4",
+                back: "#FBE9E7",
+                icon: "#FF5722",
+              },
+              vehiclecate: {
+                back: "#ECEFF1",
+                icon: "#607D8B",
+              },
+              documentcate: {
+                back: "#EFEBE9",
+                icon: "#795548",
               },
               back: "#FFECCC",
               text: "#E79C25",
@@ -148,31 +167,129 @@ export const themeSettings = (mode) => {
     },
 
     typography: {
-      fontFamily: ["Montserrat", "sans-serif"].join(","),
+      // Modern typography with proper Arabic support
+      fontFamily: isRTL 
+        ? ['"Noto Sans Arabic"', '"Segoe UI"', 'Roboto', 'Helvetica', 'Arial', 'sans-serif'].join(',')
+        : ['"Inter"', '"Segoe UI"', 'Roboto', 'Helvetica', 'Arial', 'sans-serif'].join(','),
+      
+      // Responsive font sizes
+      h1: {
+        fontSize: isRTL ? '2.5rem' : '2.5rem',
+        fontWeight: 700,
+        lineHeight: 1.2,
+      },
+      h2: {
+        fontSize: isRTL ? '2rem' : '2rem',
+        fontWeight: 600,
+        lineHeight: 1.3,
+      },
+      h3: {
+        fontSize: isRTL ? '1.75rem' : '1.75rem',
+        fontWeight: 600,
+        lineHeight: 1.4,
+      },
+      h4: {
+        fontSize: isRTL ? '1.5rem' : '1.5rem',
+        fontWeight: 500,
+        lineHeight: 1.4,
+      },
+      h5: {
+        fontSize: isRTL ? '1.25rem' : '1.25rem',
+        fontWeight: 500,
+        lineHeight: 1.5,
+      },
+      h6: {
+        fontSize: isRTL ? '1.125rem' : '1.125rem',
+        fontWeight: 500,
+        lineHeight: 1.5,
+      },
+      body1: {
+        fontSize: isRTL ? '1rem' : '1rem',
+        lineHeight: 1.6,
+      },
+      body2: {
+        fontSize: isRTL ? '0.875rem' : '0.875rem',
+        lineHeight: 1.6,
+      },
+      caption: {
+        fontSize: isRTL ? '0.75rem' : '0.75rem',
+        lineHeight: 1.5,
+      },
 
       category: {
-        fontFamily: ["Signika Negative", "sans-serif"].join(","),
+        fontFamily: isRTL 
+          ? ['"Noto Sans Arabic"', 'sans-serif'].join(',')
+          : ['"Inter"', 'sans-serif'].join(','),
+        fontSize: isRTL ? '1rem' : '1rem',
+        fontWeight: 500,
       },
 
       floption: {
-        fontFamily: ["ABeeZee", "sans-serif"].join(","),
+        fontFamily: isRTL 
+          ? ['"Noto Sans Arabic"', 'sans-serif'].join(',')
+          : ['"Inter"', 'sans-serif'].join(','),
+        fontSize: isRTL ? '0.875rem' : '0.875rem',
+        fontWeight: 500,
       },
 
       welcome: {
         fontFamily: ["Source Code Pro", "monospace"].join(","),
       },
 
-      brandName :{
-        fontFamily: ["Agbalumo", "normal"].join(","),
-        fontSize: 24,
-        // fontWeight: 300
+      brandName: {
+        fontFamily: isRTL 
+          ? ['"Noto Sans Arabic"', 'normal'].join(',')
+          : ["Agbalumo", "normal"].join(","),
+        fontSize: isRTL ? '1.5rem' : 24,
+        fontWeight: 600,
       }
-
-      // button: {
-      //   fontFamily: ["Pacifico", "cursive"].join(","),
-      // },
     },
 
-    direction: "rtl",
-  };
+    // RTL-aware spacing
+    spacing: (factor) => `${8 * factor}px`,
+    
+    // RTL-aware components
+    components: {
+      MuiChip: {
+        styleOverrides: {
+          root: {
+            // Ensure proper RTL support for chips
+            '& .MuiChip-label': {
+              textAlign: 'center',
+            },
+          },
+        },
+      },
+      MuiButton: {
+        styleOverrides: {
+          root: {
+            // Ensure proper RTL support for buttons
+            textTransform: 'none',
+            fontWeight: 500,
+          },
+        },
+      },
+      MuiIconButton: {
+        styleOverrides: {
+          root: {
+            // Ensure proper RTL support for icon buttons
+            '& .MuiSvgIcon-root': {
+              fontSize: '1.25rem',
+            },
+          },
+        },
+      },
+      // RTL icon rotation for directional icons
+      MuiSvgIcon: {
+        styleOverrides: {
+          root: {
+            // Auto-rotate directional icons in RTL
+            '[dir="rtl"] &[data-directional="true"]': {
+              transform: 'scaleX(-1)',
+            },
+          },
+        },
+      },
+    },
+  });
 };

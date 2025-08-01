@@ -1,8 +1,12 @@
+import { getCurrentLanguage, t } from "../../utils/languageUtils";
+
 const Pagination = () => {
+  const currentLanguage = getCurrentLanguage();
+  
   return (
-    <div>
-      <button>next</button>
-      <button>back</button>
+    <div style={{ direction: currentLanguage === 'ar' ? 'rtl' : 'ltr' }}>
+      <button>{t('next')}</button>
+      <button>{t('back')}</button>
     </div>
   );
 };

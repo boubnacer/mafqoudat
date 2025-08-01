@@ -6,6 +6,7 @@ import { LoadingState } from "../../../components/LoadingStates";
 import useTitle from "../../../hooks/useTitle";
 import { useGetCountriesQuery } from "../../countries/countriesApiSlice";
 import useAuth from "../../../hooks/useAuth";
+import { useTranslation } from "react-i18next";
 import {
   useGetCategoriesQuery,
   useGetflOptionsQuery,
@@ -13,6 +14,8 @@ import {
 
 const EditPost = () => {
   useTitle("mafkoudat: Edit Post");
+
+  const { t } = useTranslation();
 
   const { usernameId } = useAuth();
 
@@ -53,7 +56,7 @@ const EditPost = () => {
   });
 
   if (!data || !user || !countries || !categories || !flOptions)
-    return <LoadingState message="Loading edit form..." />;
+    return <LoadingState message={t('loadingEditForm')} />;
 
   const content = (
     <EditPostForm

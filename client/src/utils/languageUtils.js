@@ -118,4 +118,7 @@ export const LanguageContext = {
   getLabel,
   formatCountry,
   formatPostType
-}; 
+};
+
+// Import translation function
+export { t, tWithFallback } from './translations'; 
