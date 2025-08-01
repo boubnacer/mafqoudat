@@ -49,7 +49,6 @@ export const authApiSlice = apiSlice.injectEndpoints({
           const { data } = await queryFulfilled;
           dispatch(logOut());
           localStorage.setItem('isLoggedIn', 'false');
-          localStorage.removeItem('rememberMe');
           setTimeout(() => {
             dispatch(apiSlice.util.resetApiState());
           }, 1000);
@@ -58,7 +57,6 @@ export const authApiSlice = apiSlice.injectEndpoints({
           // Even if logout fails, clear local state
           dispatch(logOut());
           localStorage.setItem('isLoggedIn', 'false');
-          localStorage.removeItem('rememberMe');
         }
       },
     }),

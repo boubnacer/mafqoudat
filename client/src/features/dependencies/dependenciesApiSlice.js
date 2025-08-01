@@ -24,6 +24,16 @@ export const dependencieaApiSlice = apiSlice.injectEndpoints({
         });
         return dependenciesAdapter.setAll(initialState, loadedlfOptions);
       },
+      transformErrorResponse: (response) => {
+        // Handle server error responses
+        if (response.status === 500) {
+          return { 
+            status: 500, 
+            data: { message: "Failed to load post types. Please try again." } 
+          };
+        }
+        return response;
+      },
       providesTags: (result, error, arg) => {
         if (result?.ids) {
           return [
@@ -51,6 +61,16 @@ export const dependencieaApiSlice = apiSlice.injectEndpoints({
         });
         return dependenciesAdapter.setAll(initialState, loadedCountries);
       },
+      transformErrorResponse: (response) => {
+        // Handle server error responses
+        if (response.status === 500) {
+          return { 
+            status: 500, 
+            data: { message: "Failed to load countries. Please try again." } 
+          };
+        }
+        return response;
+      },
       providesTags: (result, error, arg) => {
         if (result?.ids) {
           return [
@@ -62,18 +82,31 @@ export const dependencieaApiSlice = apiSlice.injectEndpoints({
     }),
 
     getCategories: builder.query({
-      query: () => ({
+      query: ({ language = 'en', active = true } = {}) => ({
         url: "categories",
+        params: { language, active },
         validateStatus: (response, result) => {
           return response.status === 200 && !result.isError;
         },
       }),
       transformResponse: (responseData) => {
-        const loadedCategories = responseData.map((category) => {
+        // Handle both old and new response formats
+        const categories = responseData.data || responseData;
+        const loadedCategories = categories.map((category) => {
           category.id = category._id;
           return category;
         });
         return dependenciesAdapter.setAll(initialState, loadedCategories);
+      },
+      transformErrorResponse: (response) => {
+        // Handle server error responses
+        if (response.status === 500) {
+          return { 
+            status: 500, 
+            data: { message: "Failed to load categories. Please try again." } 
+          };
+        }
+        return response;
       },
       providesTags: (result, error, arg) => {
         if (result?.ids) {
@@ -92,6 +125,28 @@ export const dependencieaApiSlice = apiSlice.injectEndpoints({
         method: "POST",
         body: country,
       }),
+      transformErrorResponse: (response) => {
+        // Handle server error responses
+        if (response.status === 400) {
+          return { 
+            status: 400, 
+            data: { message: "Invalid country data. Please check your input." } 
+          };
+        }
+        if (response.status === 409) {
+          return { 
+            status: 409, 
+            data: { message: "Country already exists." } 
+          };
+        }
+        if (response.status === 500) {
+          return { 
+            status: 500, 
+            data: { message: "Failed to create country. Please try again." } 
+          };
+        }
+        return response;
+      },
       invalidatesTags: [{ type: "Country", id: "LIST" }],
     }),
 
@@ -102,6 +157,28 @@ export const dependencieaApiSlice = apiSlice.injectEndpoints({
         method: "POST",
         body: category,
       }),
+      transformErrorResponse: (response) => {
+        // Handle server error responses
+        if (response.status === 400) {
+          return { 
+            status: 400, 
+            data: { message: "Invalid category data. Please check your input." } 
+          };
+        }
+        if (response.status === 409) {
+          return { 
+            status: 409, 
+            data: { message: "Category already exists." } 
+          };
+        }
+        if (response.status === 500) {
+          return { 
+            status: 500, 
+            data: { message: "Failed to create category. Please try again." } 
+          };
+        }
+        return response;
+      },
       invalidatesTags: [{ type: "Category", id: "LIST" }],
     }),
 
@@ -112,6 +189,28 @@ export const dependencieaApiSlice = apiSlice.injectEndpoints({
         method: "POST",
         body: foundLost,
       }),
+      transformErrorResponse: (response) => {
+        // Handle server error responses
+        if (response.status === 400) {
+          return { 
+            status: 400, 
+            data: { message: "Invalid post type data. Please check your input." } 
+          };
+        }
+        if (response.status === 409) {
+          return { 
+            status: 409, 
+            data: { message: "Post type already exists." } 
+          };
+        }
+        if (response.status === 500) {
+          return { 
+            status: 500, 
+            data: { message: "Failed to create post type. Please try again." } 
+          };
+        }
+        return response;
+      },
       invalidatesTags: [{ type: "Dependencies", id: "LIST" }],
     }),
   }),

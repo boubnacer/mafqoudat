@@ -1,6 +1,7 @@
 const mongoose = require('mongoose');
 const Country = require('../models/Country');
 const FoundLost = require('../models/FoundLost');
+const Category = require('../models/Category');
 require('dotenv').config();
 
 // Sample countries data with multilingual support
@@ -232,7 +233,7 @@ const countriesData = [
   }
 ];
 
-// Post types data
+// Post types data - Fixed to use consistent codes
 const postTypesData = [
   {
     code: 'FOUND',
@@ -258,6 +259,82 @@ const postTypesData = [
   }
 ];
 
+// Sample categories data
+const categoriesData = [
+  {
+    code: 'ELECTRONICS',
+    labels: {
+      en: 'Electronics',
+      fr: 'Électronique',
+      ar: 'إلكترونيات'
+    },
+    flag: '📱',
+    icon: '📱',
+    color: '#2196F3',
+    description: 'Electronic devices and gadgets'
+  },
+  {
+    code: 'DOCUMENTS',
+    labels: {
+      en: 'Documents',
+      fr: 'Documents',
+      ar: 'وثائق'
+    },
+    flag: '📄',
+    icon: '📄',
+    color: '#FF9800',
+    description: 'Important documents and papers'
+  },
+  {
+    code: 'JEWELRY',
+    labels: {
+      en: 'Jewelry',
+      fr: 'Bijoux',
+      ar: 'مجوهرات'
+    },
+    flag: '💍',
+    icon: '💍',
+    color: '#E91E63',
+    description: 'Jewelry and accessories'
+  },
+  {
+    code: 'CLOTHING',
+    labels: {
+      en: 'Clothing',
+      fr: 'Vêtements',
+      ar: 'ملابس'
+    },
+    flag: '👕',
+    icon: '👕',
+    color: '#9C27B0',
+    description: 'Clothing and fashion items'
+  },
+  {
+    code: 'PETS',
+    labels: {
+      en: 'Pets',
+      fr: 'Animaux',
+      ar: 'حيوانات أليفة'
+    },
+    flag: '🐕',
+    icon: '🐕',
+    color: '#795548',
+    description: 'Lost or found pets'
+  },
+  {
+    code: 'VEHICLES',
+    labels: {
+      en: 'Vehicles',
+      fr: 'Véhicules',
+      ar: 'مركبات'
+    },
+    flag: '🚗',
+    icon: '🚗',
+    color: '#607D8B',
+    description: 'Cars, motorcycles, and other vehicles'
+  }
+];
+
 const seedData = async () => {
   try {
     // Connect to MongoDB
@@ -270,6 +347,7 @@ const seedData = async () => {
     // Clear existing data
     await Country.deleteMany({});
     await FoundLost.deleteMany({});
+    await Category.deleteMany({});
     console.log('Cleared existing data');
 
     // Seed countries
@@ -280,10 +358,15 @@ const seedData = async () => {
     const postTypes = await FoundLost.insertMany(postTypesData);
     console.log(`✅ Seeded ${postTypes.length} post types`);
 
+    // Seed categories
+    const categories = await Category.insertMany(categoriesData);
+    console.log(`✅ Seeded ${categories.length} categories`);
+
     console.log('\n🎉 Database seeding completed successfully!');
     console.log('\nSample data:');
     console.log('Countries:', countries.map(c => `${c.code}: ${c.labels.en}`).join(', '));
     console.log('Post Types:', postTypes.map(p => `${p.code}: ${p.labels.en}`).join(', '));
+    console.log('Categories:', categories.map(c => `${c.code}: ${c.labels.en}`).join(', '));
 
   } catch (error) {
     console.error('❌ Error seeding data:', error);
@@ -298,4 +381,4 @@ if (require.main === module) {
   seedData();
 }
 
-module.exports = { seedData, countriesData, postTypesData }; 
+module.exports = { seedData, countriesData, postTypesData, categoriesData }; 

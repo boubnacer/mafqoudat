@@ -18,10 +18,11 @@ export const useDashboard = () => {
   const dispatch = useDispatch();
   const { country: userCountry } = useAuth();
   const currentCountry = useSelector(selectCurrentCountry);
+  const currentLanguage = getCurrentLanguage();
 
   // Get countries list
-  const { data: countriesData } = useGetCountriesQuery({
-    language: getCurrentLanguage()
+  const { data: countriesData, error: countriesError } = useGetCountriesQuery({
+    language: currentLanguage
   });
 
   // Set user's country from JWT token if not already set in Redux
@@ -43,6 +44,7 @@ export const useDashboard = () => {
     isLoading 
   } = useGetDashboardQuery({
     currentCountry,
+    language: currentLanguage
   }, {
     skip: !currentCountry
   });
@@ -55,7 +57,8 @@ export const useDashboard = () => {
     page: 1,
     pageSize: 10,
     currentCountry,
-    search: searchQuery
+    search: searchQuery,
+    language: currentLanguage
   }, {
     skip: !searchQuery
   });
@@ -92,6 +95,7 @@ export const useDashboard = () => {
     showHelpDialog,
     helpTab,
     currentCountry,
+    currentLanguage,
     
     // Data
     data,
@@ -102,6 +106,7 @@ export const useDashboard = () => {
     createdtoday,
     searchData,
     isSearchLoading,
+    countriesError,
     
     // Actions
     setShareStoryOpen,

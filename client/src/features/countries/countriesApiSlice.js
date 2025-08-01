@@ -24,6 +24,16 @@ export const countriesApiSlice = apiSlice.injectEndpoints({
         });
         return countriesAdapter.setAll(initialState, loadedCountries);
       },
+      transformErrorResponse: (response) => {
+        // Handle server error responses
+        if (response.status === 500) {
+          return { 
+            status: 500, 
+            data: { message: "Failed to load countries. Please try again." } 
+          };
+        }
+        return response;
+      },
       providesTags: (result, error, arg) => {
         if (result?.ids) {
           return [
@@ -48,6 +58,22 @@ export const countriesApiSlice = apiSlice.injectEndpoints({
           return country;
         });
         return countriesAdapter.setAll(initialState, loadedCountries);
+      },
+      transformErrorResponse: (response) => {
+        // Handle server error responses
+        if (response.status === 400) {
+          return { 
+            status: 400, 
+            data: { message: "Search query must be at least 2 characters long." } 
+          };
+        }
+        if (response.status === 500) {
+          return { 
+            status: 500, 
+            data: { message: "Failed to search countries. Please try again." } 
+          };
+        }
+        return response;
       },
       providesTags: (result, error, arg) => {
         if (result?.ids) {

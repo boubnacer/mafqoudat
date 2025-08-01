@@ -302,7 +302,7 @@ const updatePost = async (req, res) => {
 
   const updatedPost = await post.save();
 
-  res.json(`'${updatedPost.title}' updated`);
+  res.json(`'${updatedPost.title || updatedPost._id}' updated`);
 };
 
 // @desc Delete a post
@@ -325,7 +325,7 @@ const deletePost = async (req, res) => {
 
   const result = await post.deleteOne();
 
-  const reply = `Post '${result.title}' with ID ${result._id} deleted`;
+  const reply = `Post '${result.title || result._id}' with ID ${result._id} deleted`;
 
   res.json(reply);
 };

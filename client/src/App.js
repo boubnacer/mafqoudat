@@ -24,13 +24,21 @@ import { themeSettings } from "./theme";
 import useAuth from "./hooks/useAuth";
 import PrefetchDependencies from "./features/PrefetchData/PrefetchDependencies";
 import { initializeLanguage } from "./utils/languageUtils";
+import { cleanupLocalStorage, initializeLocalStorage } from "./utils/localStorageUtils";
 
 function App() {
   // useTitle("Dan D. Repairs");
 
-  // Initialize language settings
+  // Initialize language settings and localStorage
   useEffect(() => {
-    initializeLanguage();
+    try {
+      initializeLanguage();
+      initializeLocalStorage();
+      cleanupLocalStorage();
+      console.log('App initialized successfully');
+    } catch (error) {
+      console.error('App initialization error:', error);
+    }
   }, []);
 
   const mode = useSelector((state) => state.global.mode);

@@ -1,173 +1,148 @@
 const mongoose = require('mongoose');
-const Country = require('../models/Country');
-const FoundLost = require('../models/FoundLost');
+const Category = require('../models/Category');
 require('dotenv').config();
 
-// Migration mapping for existing countries
-const countryMigrationMap = {
-  'Malawi': {
-    code: 'MW',
-    labels: {
-      en: 'Malawi',
-      fr: 'Malawi',
-      ar: 'ملاوي'
-    },
-    flag: '🇲🇼'
+// Migration data for existing categories
+const categoryMigrations = [
+  {
+    oldCode: 'ELECTRONICS',
+    newData: {
+      code: 'ELECTRONICS',
+      labels: {
+        en: 'Electronics',
+        fr: 'Électronique',
+        ar: 'إلكترونيات'
+      },
+      flag: '📱',
+      icon: '📱',
+      color: '#2196F3',
+      description: 'Electronic devices and gadgets'
+    }
   },
-  'Morocco': {
-    code: 'MA',
-    labels: {
-      en: 'Morocco',
-      fr: 'Maroc',
-      ar: 'المغرب'
-    },
-    flag: '🇲🇦'
+  {
+    oldCode: 'DOCUMENTS',
+    newData: {
+      code: 'DOCUMENTS',
+      labels: {
+        en: 'Documents',
+        fr: 'Documents',
+        ar: 'وثائق'
+      },
+      flag: '📄',
+      icon: '📄',
+      color: '#FF9800',
+      description: 'Important documents and papers'
+    }
   },
-  'Algeria': {
-    code: 'DZ',
-    labels: {
-      en: 'Algeria',
-      fr: 'Algérie',
-      ar: 'الجزائر'
-    },
-    flag: '🇩🇿'
+  {
+    oldCode: 'JEWELRY',
+    newData: {
+      code: 'JEWELRY',
+      labels: {
+        en: 'Jewelry',
+        fr: 'Bijoux',
+        ar: 'مجوهرات'
+      },
+      flag: '💍',
+      icon: '💍',
+      color: '#E91E63',
+      description: 'Jewelry and accessories'
+    }
   },
-  'Tunisia': {
-    code: 'TN',
-    labels: {
-      en: 'Tunisia',
-      fr: 'Tunisie',
-      ar: 'تونس'
-    },
-    flag: '🇹🇳'
+  {
+    oldCode: 'CLOTHING',
+    newData: {
+      code: 'CLOTHING',
+      labels: {
+        en: 'Clothing',
+        fr: 'Vêtements',
+        ar: 'ملابس'
+      },
+      flag: '👕',
+      icon: '👕',
+      color: '#9C27B0',
+      description: 'Clothing and fashion items'
+    }
   },
-  'Egypt': {
-    code: 'EG',
-    labels: {
-      en: 'Egypt',
-      fr: 'Égypte',
-      ar: 'مصر'
-    },
-    flag: '🇪🇬'
+  {
+    oldCode: 'PETS',
+    newData: {
+      code: 'PETS',
+      labels: {
+        en: 'Pets',
+        fr: 'Animaux',
+        ar: 'حيوانات أليفة'
+      },
+      flag: '🐕',
+      icon: '🐕',
+      color: '#795548',
+      description: 'Lost or found pets'
+    }
+  },
+  {
+    oldCode: 'VEHICLES',
+    newData: {
+      code: 'VEHICLES',
+      labels: {
+        en: 'Vehicles',
+        fr: 'Véhicules',
+        ar: 'مركبات'
+      },
+      flag: '🚗',
+      icon: '🚗',
+      color: '#607D8B',
+      description: 'Cars, motorcycles, and other vehicles'
+    }
   }
-};
+];
 
-// Migration mapping for existing post types
-const postTypeMigrationMap = {
-  'Found': {
-    code: 'FOUND',
-    labels: {
-      en: 'Found',
-      fr: 'Trouvé',
-      ar: 'تم العثور عليه'
-    },
-    color: '#4CAF50',
-    icon: '🔍',
-    description: 'Items that have been found and are being returned to their owners'
-  },
-  'Lost': {
-    code: 'LOST',
-    labels: {
-      en: 'Lost',
-      fr: 'Perdu',
-      ar: 'مفقود'
-    },
-    color: '#F44336',
-    icon: '❓',
-    description: 'Items that have been lost and are being searched for'
-  }
-};
-
-const migrateData = async () => {
+const migrateCategories = async () => {
   try {
     // Connect to MongoDB
-    const databaseUri = process.env.DATABASE_URI || 'mongodb://localhost:27017/mafqoudat';
-    console.log(`Connecting to MongoDB: ${databaseUri}`);
-    
-    await mongoose.connect(databaseUri, {
+    await mongoose.connect(process.env.DATABASE_URI, {
       useNewUrlParser: true,
       useUnifiedTopology: true,
     });
     console.log('Connected to MongoDB');
 
-    // Migrate Countries
-    console.log('\n🔄 Migrating countries...');
-    const existingCountries = await Country.find({});
-    
-    for (const country of existingCountries) {
-      const migrationData = countryMigrationMap[country.label || country.code];
+    let migratedCount = 0;
+    let createdCount = 0;
+
+    for (const migration of categoryMigrations) {
+      // Check if category exists
+      const existingCategory = await Category.findOne({ code: migration.oldCode });
       
-      if (migrationData) {
-        // Update with new structure
-        country.code = migrationData.code;
-        country.labels = migrationData.labels;
-        country.flag = migrationData.flag;
-        country.isActive = true;
-        
-        await country.save();
-        console.log(`✅ Migrated: ${country.label} → ${migrationData.labels.en} (${migrationData.code})`);
+      if (existingCategory) {
+        // Update existing category
+        if (!existingCategory.labels || !existingCategory.labels.en) {
+          // Only update if it doesn't have the new structure
+          await Category.findByIdAndUpdate(existingCategory._id, {
+            labels: migration.newData.labels,
+            icon: migration.newData.icon,
+            color: migration.newData.color,
+            description: migration.newData.description,
+            isActive: true
+          });
+          console.log(`✅ Updated category: ${migration.oldCode}`);
+          migratedCount++;
+        } else {
+          console.log(`⏭️  Category already migrated: ${migration.oldCode}`);
+        }
       } else {
-        // Handle unknown countries
-        console.log(`⚠️  Unknown country: ${country.label || country.code}`);
-        
-        // Create basic multilingual structure
-        country.labels = {
-          en: country.label || country.code,
-          fr: country.label || country.code,
-          ar: country.label || country.code
-        };
-        country.isActive = true;
-        
-        await country.save();
-        console.log(`✅ Basic migration: ${country.label || country.code}`);
+        // Create new category
+        await Category.create(migration.newData);
+        console.log(`✅ Created category: ${migration.oldCode}`);
+        createdCount++;
       }
     }
 
-    // Migrate Post Types
-    console.log('\n🔄 Migrating post types...');
-    const existingPostTypes = await FoundLost.find({});
-    
-    for (const postType of existingPostTypes) {
-      const migrationData = postTypeMigrationMap[postType.code];
-      
-      if (migrationData) {
-        // Update with new structure
-        postType.code = migrationData.code;
-        postType.labels = migrationData.labels;
-        postType.color = migrationData.color;
-        postType.icon = migrationData.icon;
-        postType.description = migrationData.description;
-        postType.isActive = true;
-        
-        await postType.save();
-        console.log(`✅ Migrated: ${postType.code} → ${migrationData.labels.en} (${migrationData.code})`);
-      } else {
-        // Handle unknown post types
-        console.log(`⚠️  Unknown post type: ${postType.code}`);
-        
-        // Create basic multilingual structure
-        postType.labels = {
-          en: postType.code,
-          fr: postType.code,
-          ar: postType.code
-        };
-        postType.color = '#666666';
-        postType.isActive = true;
-        
-        await postType.save();
-        console.log(`✅ Basic migration: ${postType.code}`);
-      }
-    }
+    console.log(`\n🎉 Migration completed!`);
+    console.log(`Updated: ${migratedCount} categories`);
+    console.log(`Created: ${createdCount} categories`);
 
-    console.log('\n🎉 Data migration completed successfully!');
-    
-    // Show final state
-    const finalCountries = await Country.find({ isActive: true });
-    const finalPostTypes = await FoundLost.find({ isActive: true });
-    
-    console.log('\n📊 Final state:');
-    console.log(`Countries: ${finalCountries.length}`);
-    console.log(`Post Types: ${finalPostTypes.length}`);
+    // Show final count
+    const totalCategories = await Category.countDocuments();
+    console.log(`Total categories in database: ${totalCategories}`);
 
   } catch (error) {
     console.error('❌ Error during migration:', error);
@@ -179,7 +154,7 @@ const migrateData = async () => {
 
 // Run the migration if this file is executed directly
 if (require.main === module) {
-  migrateData();
+  migrateCategories();
 }
 
-module.exports = { migrateData }; 
+module.exports = { migrateCategories }; 

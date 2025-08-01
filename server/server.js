@@ -34,8 +34,20 @@ app.use("/posts", require("./routes/postRoutes"));
 app.use("/countries", require("./routes/countryRoutes"));
 app.use("/floptions", require("./routes/flOptionsRoutes"));
 app.use("/categories", require("./routes/categoryRoute"));
+app.use("/dependencies", require("./routes/dependenciesRoutes"));
+app.use("/reports", require("./routes/reportRoutes"));
 
 app.use("/uploads", express.static(path.join(__dirname, "uploads")));
+
+// Health check endpoint for deployment monitoring
+app.get("/health", (req, res) => {
+  res.status(200).json({ 
+    status: "OK", 
+    timestamp: new Date().toISOString(),
+    uptime: process.uptime(),
+    environment: process.env.NODE_ENV || "development"
+  });
+});
 
 app.all("*", (req, res) => {
   res.status(404);

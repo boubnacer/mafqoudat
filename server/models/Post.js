@@ -27,7 +27,6 @@ const postSchema = new mongoose.Schema(
       type: String,
       required: true,
     },
-
     contact: {
       type: String,
       required: true,
@@ -42,6 +41,23 @@ const postSchema = new mongoose.Schema(
     mainDate: {
       type: String,
     },
+    // Add missing fields that are referenced in controllers
+    reported: {
+      type: Boolean,
+      default: false,
+    },
+    reportedTxt: {
+      type: String,
+      default: "",
+    },
+    title: {
+      type: String,
+      default: "",
+    },
+    description: {
+      type: String,
+      default: "",
+    }
   },
   {
     timestamps: true,

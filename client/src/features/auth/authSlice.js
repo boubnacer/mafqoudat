@@ -35,7 +35,6 @@ const authSlice = createSlice({
       // Clear localStorage
       localStorage.removeItem('accessToken');
       localStorage.setItem('isLoggedIn', 'false');
-      localStorage.removeItem('rememberMe');
     },
     setUser: (state, action) => {
       state.user = action.payload;
@@ -52,7 +51,6 @@ const authSlice = createSlice({
       // Clear all auth-related localStorage
       localStorage.removeItem('accessToken');
       localStorage.setItem('isLoggedIn', 'false');
-      localStorage.removeItem('rememberMe');
     },
   },
 });

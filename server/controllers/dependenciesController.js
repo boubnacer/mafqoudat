@@ -15,9 +15,9 @@ const getDashboard = async (req, res) => {
 
     const currentCountry = req.query.currentCountry;
 
-    // Lookup FoundLost IDs by code
-    const foundOption = await FoundLost.findOne({ code: "Found" });
-    const lostOption = await FoundLost.findOne({ code: "Lost" });
+    // Lookup FoundLost IDs by code - Fix inconsistent code references
+    const foundOption = await FoundLost.findOne({ code: "FOUND" });
+    const lostOption = await FoundLost.findOne({ code: "LOST" });
     if (!foundOption || !lostOption) {
       return res.status(500).json({ message: "Found/Lost options not set in DB" });
     }
@@ -64,18 +64,8 @@ const getDashboard = async (req, res) => {
         $limit: 1,
       },
     ]);
-    // .limit(1)
-    // .sort({ createdAt: -1 });
-
-    // const transformedCountry = new mongoose.Types.ObjectId(currentCountry);
-
-    // get Trended item
-    // const trendingPost = await Post.findOne({ country: currentCountry })
-    //   .limit(1)
-    //   .sort({ createdAt: -1 });
 
     //get recent founds:
-
     const recentFounds = await Post.aggregate([
       {
         $match: {
@@ -111,7 +101,6 @@ const getDashboard = async (req, res) => {
           updatedAt: 1,
           username: "$User.username",
           categoryname: "$Category.code",
-          // countryname: "$Country.code",
           contact: 1,
           image: 1,
         },
@@ -125,8 +114,6 @@ const getDashboard = async (req, res) => {
         $limit: 4,
       },
     ]);
-    // .limit(4)
-    // .sort({ createdAt: -1 });
 
     //get recent losts
     const recentLosts = await Post.aggregate([
@@ -164,7 +151,6 @@ const getDashboard = async (req, res) => {
           updatedAt: 1,
           username: "$User.username",
           categoryname: "$Category.code",
-          // countryname: "$Country.code",
           contact: 1,
           image: 1,
         },
@@ -178,8 +164,6 @@ const getDashboard = async (req, res) => {
         },
       },
     ]);
-    // .limit(4)
-    // .sort({ createdAt: -1 });
 
     // total Founds
     const totalFounds = await Post.find({
@@ -342,28 +326,140 @@ const getCountries = async (req, res) => {
 };
 
 const getCategories = async (req, res) => {
-  const categories = await Category.find({}).lean().exec();
+  try {
+    const { language = 'en', active = true } = req.query;
+    
+    let query = {};
+    if (active === 'true') {
+      query.isActive = true;
+    }
+    
+    const categories = await Category.find(query)
+      .select('code labels flag icon color isActive description')
+      .sort({ 'labels.en': 1 })
+      .lean()
+      .exec();
 
-  if (!categories.length)
-    return res.status(400).json({ message: "No categories found" });
+    if (!categories.length) {
+      return res.status(404).json({ 
+        success: false,
+        message: "No categories found",
+        data: []
+      });
+    }
 
-  res.json(categories);
+    // Transform response to include language-specific labels
+    // Handle both old format (code only) and new format (with labels)
+    const transformedCategories = categories.map(category => {
+      // Check if category has the new labels structure
+      if (category.labels && category.labels.en) {
+        // New format with multilingual support
+        return {
+          _id: category._id,
+          code: category.code,
+          label: category.labels[language] || category.labels.en,
+          labels: category.labels,
+          flag: category.flag,
+          icon: category.icon,
+          color: category.color,
+          isActive: category.isActive,
+          description: category.description
+        };
+      } else {
+        // Old format - use code as label and create basic labels structure
+        return {
+          _id: category._id,
+          code: category.code,
+          label: category.code, // Use code as label for backward compatibility
+          labels: {
+            en: category.code,
+            fr: category.code,
+            ar: category.code
+          },
+          flag: category.flag,
+          icon: category.icon || null,
+          color: category.color || '#2196F3',
+          isActive: category.isActive !== undefined ? category.isActive : true,
+          description: category.description || null
+        };
+      }
+    });
+
+    res.json({
+      success: true,
+      data: transformedCategories,
+      total: transformedCategories.length
+    });
+  } catch (error) {
+    console.error('Error fetching categories:', error);
+    res.status(500).json({ 
+      success: false,
+      message: "Failed to fetch categories",
+      error: error.message 
+    });
+  }
 };
 
 // Create category dynamically
 const createCategory = async (req, res) => {
-  const { code, flag } = req.body;
-  if (!code) {
-    return res.status(400).json({ message: "Category code is required" });
-  }
-  const newCategory = { code, flag };
-  const addedCategory = await Category.create(newCategory);
-  if (addedCategory) {
-    res.status(201).json({ message: `new category ${addedCategory.code} added` });
-  } else {
-    res.status(400).json({ message: "Invalid category data received!" });
+  try {
+    const { code, labels, flag, icon, color, description } = req.body;
+    
+    // Validate required fields
+    if (!code || !labels || !labels.en || !labels.fr || !labels.ar) {
+      return res.status(400).json({ 
+        success: false,
+        message: "Category code and labels in all languages (en, fr, ar) are required" 
+      });
+    }
+
+    // Check if category already exists
+    const existingCategory = await Category.findOne({ code: code.toUpperCase() });
+    if (existingCategory) {
+      return res.status(409).json({ 
+        success: false,
+        message: `Category with code ${code} already exists` 
+      });
+    }
+
+    const newCategory = {
+      code: code.toUpperCase(),
+      labels: {
+        en: labels.en.trim(),
+        fr: labels.fr.trim(),
+        ar: labels.ar.trim()
+      },
+      flag: flag || null,
+      icon: icon || null,
+      color: color || '#2196F3',
+      description: description || null
+    };
+
+    const addedCategory = await Category.create(newCategory);
+    
+    res.status(201).json({
+      success: true,
+      message: `Category ${addedCategory.labels.en} (${addedCategory.code}) added successfully`,
+      data: {
+        _id: addedCategory._id,
+        code: addedCategory.code,
+        labels: addedCategory.labels,
+        flag: addedCategory.flag,
+        icon: addedCategory.icon,
+        color: addedCategory.color,
+        description: addedCategory.description
+      }
+    });
+  } catch (error) {
+    console.error('Error creating category:', error);
+    res.status(500).json({ 
+      success: false,
+      message: "Failed to create category",
+      error: error.message 
+    });
   }
 };
+
 // Create foundLost dynamically
 const createFoundLost = async (req, res) => {
   try {
@@ -434,9 +530,9 @@ const createFoundLost = async (req, res) => {
 const postsPerDay = async () => {
   const currentDate = new Date();
 
-  // Lookup FoundLost IDs by code
-  const foundOption = await FoundLost.findOne({ code: "Found" });
-  const lostOption = await FoundLost.findOne({ code: "Lost" });
+  // Lookup FoundLost IDs by code - Fix inconsistent code references
+  const foundOption = await FoundLost.findOne({ code: "FOUND" });
+  const lostOption = await FoundLost.findOne({ code: "LOST" });
   if (!foundOption || !lostOption) {
     console.error("Found/Lost options not set in DB");
     return;
@@ -488,5 +584,4 @@ module.exports = {
   getCountries,
   createCategory,
   createFoundLost,
-  // createCategory,
 };

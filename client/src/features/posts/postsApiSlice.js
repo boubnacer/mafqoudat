@@ -56,6 +56,22 @@ export const postsApiSlice = apiSlice.injectEndpoints({
           totalPages 
         };
       },
+      transformErrorResponse: (response) => {
+        // Handle server error responses
+        if (response.status === 400) {
+          return { 
+            status: 400, 
+            data: { message: "Invalid request parameters." } 
+          };
+        }
+        if (response.status === 500) {
+          return { 
+            status: 500, 
+            data: { message: "Failed to load posts. Please try again." } 
+          };
+        }
+        return response;
+      },
       providesTags: ["Post"],
     }),
 
@@ -81,6 +97,22 @@ export const postsApiSlice = apiSlice.injectEndpoints({
         }
 
         return post;
+      },
+      transformErrorResponse: (response) => {
+        // Handle server error responses
+        if (response.status === 404) {
+          return { 
+            status: 404, 
+            data: { message: "Post not found." } 
+          };
+        }
+        if (response.status === 500) {
+          return { 
+            status: 500, 
+            data: { message: "Failed to load post. Please try again." } 
+          };
+        }
+        return response;
       },
       providesTags: ["Post"],
     }),
@@ -118,6 +150,22 @@ export const postsApiSlice = apiSlice.injectEndpoints({
           createdToday,
         };
       },
+      transformErrorResponse: (response) => {
+        // Handle server error responses
+        if (response.status === 400) {
+          return { 
+            status: 400, 
+            data: { message: "Invalid country parameter." } 
+          };
+        }
+        if (response.status === 500) {
+          return { 
+            status: 500, 
+            data: { message: "Failed to load dashboard data. Please try again." } 
+          };
+        }
+        return response;
+      },
       providesTags: ["Dashboard"],
     }),
 
@@ -127,6 +175,22 @@ export const postsApiSlice = apiSlice.injectEndpoints({
         method: "POST",
         body: formData,
       }),
+      transformErrorResponse: (response) => {
+        // Handle server error responses
+        if (response.status === 400) {
+          return { 
+            status: 400, 
+            data: { message: "Invalid post data. Please check your input." } 
+          };
+        }
+        if (response.status === 500) {
+          return { 
+            status: 500, 
+            data: { message: "Failed to create post. Please try again." } 
+          };
+        }
+        return response;
+      },
       invalidatesTags: [{ type: "Post", id: "LIST" }],
     }),
 
@@ -138,6 +202,28 @@ export const postsApiSlice = apiSlice.injectEndpoints({
           ...initialPost,
         },
       }),
+      transformErrorResponse: (response) => {
+        // Handle server error responses
+        if (response.status === 400) {
+          return { 
+            status: 400, 
+            data: { message: "Invalid post data. Please check your input." } 
+          };
+        }
+        if (response.status === 404) {
+          return { 
+            status: 404, 
+            data: { message: "Post not found." } 
+          };
+        }
+        if (response.status === 500) {
+          return { 
+            status: 500, 
+            data: { message: "Failed to update post. Please try again." } 
+          };
+        }
+        return response;
+      },
       invalidatesTags: (result, error, arg) => [{ type: "Post", id: arg.id }],
     }),
 
@@ -148,6 +234,28 @@ export const postsApiSlice = apiSlice.injectEndpoints({
         method: "DELETE",
         body: { id },
       }),
+      transformErrorResponse: (response) => {
+        // Handle server error responses
+        if (response.status === 400) {
+          return { 
+            status: 400, 
+            data: { message: "Invalid post ID." } 
+          };
+        }
+        if (response.status === 404) {
+          return { 
+            status: 404, 
+            data: { message: "Post not found." } 
+          };
+        }
+        if (response.status === 500) {
+          return { 
+            status: 500, 
+            data: { message: "Failed to delete post. Please try again." } 
+          };
+        }
+        return response;
+      },
       invalidatesTags: (result, error, arg) => [{ type: "Post", id: arg.id }],
     }),
   }),

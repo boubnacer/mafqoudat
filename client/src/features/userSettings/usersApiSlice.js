@@ -24,6 +24,16 @@ export const usersApiSlice = apiSlice.injectEndpoints({
                 });
                 return usersAdapter.setAll(initialState, loadedUsers)
             },
+            transformErrorResponse: (response) => {
+                // Handle server error responses
+                if (response.status === 500) {
+                    return { 
+                        status: 500, 
+                        data: { message: "Failed to load users. Please try again." } 
+                    };
+                }
+                return response;
+            },
             providesTags: (result, error, arg) => {
                 if (result?.ids) {
                     return [
@@ -41,6 +51,28 @@ export const usersApiSlice = apiSlice.injectEndpoints({
                     ...initialUserData,
                 }
             }),
+            transformErrorResponse: (response) => {
+                // Handle server error responses
+                if (response.status === 400) {
+                    return { 
+                        status: 400, 
+                        data: { message: "Invalid user data. Please check your input." } 
+                    };
+                }
+                if (response.status === 409) {
+                    return { 
+                        status: 409, 
+                        data: { message: "User already exists. Please sign in." } 
+                    };
+                }
+                if (response.status === 500) {
+                    return { 
+                        status: 500, 
+                        data: { message: "Failed to create user. Please try again." } 
+                    };
+                }
+                return response;
+            },
             invalidatesTags: [
                 { type: 'User', id: "LIST" }
             ]
@@ -53,6 +85,28 @@ export const usersApiSlice = apiSlice.injectEndpoints({
                     ...initialUserData,
                 }
             }),
+            transformErrorResponse: (response) => {
+                // Handle server error responses
+                if (response.status === 400) {
+                    return { 
+                        status: 400, 
+                        data: { message: "Invalid user data. Please check your input." } 
+                    };
+                }
+                if (response.status === 409) {
+                    return { 
+                        status: 409, 
+                        data: { message: "Username already exists." } 
+                    };
+                }
+                if (response.status === 500) {
+                    return { 
+                        status: 500, 
+                        data: { message: "Failed to update user. Please try again." } 
+                    };
+                }
+                return response;
+            },
             invalidatesTags: (result, error, arg) => [
                 { type: 'User', id: arg.id }
             ]
@@ -63,6 +117,22 @@ export const usersApiSlice = apiSlice.injectEndpoints({
                 method: 'DELETE',
                 body: { id }
             }),
+            transformErrorResponse: (response) => {
+                // Handle server error responses
+                if (response.status === 400) {
+                    return { 
+                        status: 400, 
+                        data: { message: "Invalid user ID." } 
+                    };
+                }
+                if (response.status === 500) {
+                    return { 
+                        status: 500, 
+                        data: { message: "Failed to delete user. Please try again." } 
+                    };
+                }
+                return response;
+            },
             invalidatesTags: (result, error, arg) => [
                 { type: 'User', id: arg.id }
             ]
