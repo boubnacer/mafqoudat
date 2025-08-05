@@ -2,25 +2,27 @@ import { Box, Typography, useTheme, Link } from "@mui/material";
 import ProcessSvg from "../../img/ProcessSvg.svg";
 import RenderIcon from "../RenderIcon";
 import { motion } from "framer-motion";
+import { useTranslation } from "../../utils/translations";
 
 const Process = () => {
   const theme = useTheme();
+  const { t } = useTranslation();
 
   const processSteps = [
     {
       icon: "share",
-      text: "Share to our socials",
-      description: "We'll help spread your post across our network"
+      text: t('shareToOurSocials'),
+      description: t('shareToOurSocialsDesc')
     },
     {
       icon: "ad",
-      text: "Make advertising",
-      description: "Targeted ads to reach more potential helpers"
+      text: t('makeAdvertising'),
+      description: t('makeAdvertisingDesc')
     },
     {
       icon: "notif",
-      text: "We'll notify you",
-      description: "Get instant updates when someone contacts you"
+      text: t('wellNotifyYou'),
+      description: t('wellNotifyYouDesc')
     }
   ];
 
@@ -65,7 +67,7 @@ const Process = () => {
             transition: "color 0.3s ease"
           }}
         >
-          What we do
+          {t('whatWeDo')}
         </Typography>
         <Typography 
           variant="h3" 
@@ -77,7 +79,7 @@ const Process = () => {
             transition: "color 0.3s ease"
           }}
         >
-          After posting in the mafkoudat website
+          {t('afterPostingInMafkoudat')}
         </Typography>
 
         <Box mt="3rem" display="flex" flexDirection="column" gap="1.5rem">

@@ -1,6 +1,6 @@
 import { useGetPostsQuery } from "../postsApiSlice";
 import { useGetCategoriesQuery } from "../../dependencies/dependenciesApiSlice";
-import { getCurrentLanguage, t } from "../../../utils/languageUtils";
+import { useTranslation } from "../../../utils/translations";
 import Post from "./Post";
 import useTitle from "../../../hooks/useTitle";
 import { LoadingState, EmptyState, ErrorState } from "../../../components/LoadingStates";
@@ -69,10 +69,12 @@ const PostsList = () => {
   const { pathname } = useLocation();
 
   // Get current language
-  const currentLanguage = getCurrentLanguage();
+  const { t, currentLanguage } = useTranslation();
 
   // Get categories for dynamic filtering
-  const { data: categoriesData } = useGetCategoriesQuery("categoriesList", {
+  const { data: categoriesData } = useGetCategoriesQuery({
+    language: currentLanguage
+  }, {
     selectFromResult: ({ data }) => ({
       data: data?.ids?.map((id) => data?.entities[id]) || [],
     }),

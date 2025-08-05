@@ -47,6 +47,36 @@ const userSchema = new mongoose.Schema({
       type: String,
       trim: true
     },
+    // New multilingual firstName field
+    firstNameLabels: {
+      en: {
+        type: String,
+        trim: true
+      },
+      fr: {
+        type: String,
+        trim: true
+      },
+      ar: {
+        type: String,
+        trim: true
+      }
+    },
+    // New multilingual lastName field
+    lastNameLabels: {
+      en: {
+        type: String,
+        trim: true
+      },
+      fr: {
+        type: String,
+        trim: true
+      },
+      ar: {
+        type: String,
+        trim: true
+      }
+    },
     phone: {
       type: String,
       trim: true
@@ -66,13 +96,52 @@ userSchema.index({ email: 1 });
 userSchema.index({ country: 1 });
 userSchema.index({ isActive: 1 });
 
+// Index for multilingual search
+userSchema.index({ 
+  "profile.firstNameLabels.en": "text", 
+  "profile.firstNameLabels.fr": "text", 
+  "profile.firstNameLabels.ar": "text",
+  "profile.lastNameLabels.en": "text", 
+  "profile.lastNameLabels.fr": "text", 
+  "profile.lastNameLabels.ar": "text",
+  "username": "text"
+});
+
 // Virtual for full name
 userSchema.virtual('fullName').get(function() {
-  if (this.profile.firstName && this.profile.lastName) {
-    return `${this.profile.firstName} ${this.profile.lastName}`;
+  const firstName = this.profile.firstName || this.profile.firstNameLabels?.en || '';
+  const lastName = this.profile.lastName || this.profile.lastNameLabels?.en || '';
+  
+  if (firstName && lastName) {
+    return `${firstName} ${lastName}`;
   }
   return this.username;
 });
+
+// Method to get firstName by language
+userSchema.methods.getFirstName = function(language = 'en') {
+  return this.profile.firstNameLabels?.[language] || 
+         this.profile.firstNameLabels?.en || 
+         this.profile.firstName || '';
+};
+
+// Method to get lastName by language
+userSchema.methods.getLastName = function(language = 'en') {
+  return this.profile.lastNameLabels?.[language] || 
+         this.profile.lastNameLabels?.en || 
+         this.profile.lastName || '';
+};
+
+// Method to get full name by language
+userSchema.methods.getFullName = function(language = 'en') {
+  const firstName = this.getFirstName(language);
+  const lastName = this.getLastName(language);
+  
+  if (firstName && lastName) {
+    return `${firstName} ${lastName}`;
+  }
+  return this.username;
+};
 
 // Method to check if user is admin
 userSchema.methods.isAdmin = function() {

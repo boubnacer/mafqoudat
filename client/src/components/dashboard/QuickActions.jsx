@@ -7,29 +7,31 @@ import {
   Typography,
 } from "@mui/material";
 import { useNavigate } from "react-router-dom";
+import { useTranslation } from "../../utils/translations";
 
 const QuickActions = () => {
   const navigate = useNavigate();
+  const { t } = useTranslation();
 
   const quickActions = [
     {
-      title: "Report Lost Item",
-      description: "Can't find something? Report it here",
+      title: t('reportLostItem'),
+      description: t('reportLostItemDesc'),
       action: () => navigate('/dash/posts/new?type=lost')
     },
     {
-      title: "Report Found Item",
-      description: "Found something? Help return it",
+      title: t('reportFoundItem'),
+      description: t('reportFoundItemDesc'),
       action: () => navigate('/dash/posts/new?type=found')
     },
     {
-      title: "Search Items",
-      description: "Look for lost or found items",
+      title: t('searchItems'),
+      description: t('searchItemsDesc'),
       action: () => navigate('/dash/search')
     },
     {
-      title: "Get Help",
-      description: "Need assistance? We're here to help",
+      title: t('getHelp'),
+      description: t('getHelpDesc'),
       action: () => navigate('/dash/help')
     }
   ];

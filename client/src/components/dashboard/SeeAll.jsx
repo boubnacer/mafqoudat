@@ -9,12 +9,13 @@ import { useNavigate } from "react-router-dom";
 import { setActiveLink, setFoundOrLost } from "../../app/state";
 import PulseLoader from "react-spinners/PulseLoader";
 import RenderIcon from "../RenderIcon";
-import { t } from "../../utils/languageUtils";
+import { useTranslation } from "../../utils/translations";
 
 const SeeAll = ({ foundOrlostId, totalItems }) => {
   const navigate = useNavigate();
   const dispatch = useDispatch();
   const theme = useTheme();
+  const { t } = useTranslation();
 
   
 

@@ -12,12 +12,12 @@ import {
 import ma from "../../img/ma.jpg";
 import { useNavigate } from "react-router-dom";
 import RenderIcon from "../RenderIcon";
-import { getCurrentLanguage, t } from "../../utils/languageUtils";
+import { useTranslation } from "../../utils/translations";
 
 const RecentPosts = ({ _id, categoryname, region, image, createdAt }) => {
   const theme = useTheme();
   const navigate = useNavigate();
-  const currentLanguage = getCurrentLanguage();
+  const { t, currentLanguage } = useTranslation();
 
   const handleViewDetails = () => navigate(`/dash/posts/${_id}`);
 

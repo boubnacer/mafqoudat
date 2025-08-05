@@ -1,11 +1,12 @@
 import React from "react";
-import { useDispatch } from "react-redux";
+import { useDispatch, useSelector } from "react-redux";
 import { useNavigate } from "react-router-dom";
 import { Box, Skeleton, useMediaQuery, useTheme, Typography, Chip, Button } from "@mui/material";
 import { setActiveLink, setFoundOrLost, setOpenModal } from "../../app/state";
 import { LoadingState, DashboardEmptyStates } from "../../components/LoadingStates";
 import { WhatshotOutlined, Search, Language } from "@mui/icons-material";
-import { getCurrentLanguage, t } from "../../utils/languageUtils";
+import { useTranslation } from "../../utils/translations";
+import { selectCurrentToken } from "../../features/auth/authSlice";
 
 // Custom hook
 import { useDashboard } from "../../hooks/useDashboard";
@@ -35,7 +36,8 @@ const Dash = () => {
   const navigate = useNavigate();
   const theme = useTheme();
   const isNonMediumScreens = useMediaQuery("(min-width:1200px)");
-  const currentLanguage = getCurrentLanguage();
+  const { t, currentLanguage } = useTranslation();
+  const token = useSelector(selectCurrentToken);
 
   // Use custom hook for dashboard data and state
   const {
@@ -68,7 +70,15 @@ const Dash = () => {
 
   const hanldeAddNewPost = () => navigate("/dash/posts/new");
 
-  if (isError) console.log(data?.error?.message);
+  // Redirect to login if not authenticated
+  if (!token) {
+    navigate('/');
+    return null;
+  }
+
+  if (isError) {
+    console.log('Dashboard error:', error?.data?.message || error?.message || 'Unknown error');
+  }
 
   if (!currentCountry) {
     return (
@@ -132,6 +142,7 @@ const Dash = () => {
         transition: 'padding 0.3s ease',
       }}
     >
+      
       {/* Search Section */}
       <SearchSection
         searchQuery={searchQuery}
@@ -142,8 +153,7 @@ const Dash = () => {
         handleCreateNewPost={handleCreateNewPost}
       />
 
-      {/* Quick Actions */}
-      <QuickActions />
+      
 
       {/* Header Section with Stats and Trending */}
       <Box
@@ -169,7 +179,7 @@ const Dash = () => {
       </Box>
 
       {/* Success Stories Section */}
-      <SuccessStories />
+      {/* <SuccessStories /> */}
 
       {/* Enhanced Recent Founds Section */}
       <DashRecents 
@@ -212,7 +222,7 @@ const Dash = () => {
               }}
             >
               <WhatshotOutlined sx={{ color: '#FFA500' }} />
-                             {t('recentFounds')}
+              {t('recentFounds')}
             </Typography>
             <Chip 
               label={`${data?.totalFounds || 0} ${t('items')}`}
@@ -319,7 +329,7 @@ const Dash = () => {
               }}
             >
               <Search sx={{ color: '#fff' }} />
-                             {t('recentLosts')}
+              {t('recentLosts')}
             </Typography>
             <Chip 
               label={`${data?.totalLosts || 0} ${t('items')}`}
@@ -386,7 +396,11 @@ const Dash = () => {
       </DashRecents>
 
       {/* Community Section */}
-      <CommunitySection />
+      {/* <CommunitySection /> */}
+
+
+      {/* Quick Actions */}
+      <QuickActions />
 
       {/* Categories Section */}
       <DashRecents cate="cate" sx={{ borderColor: theme.palette.primary.main }}>

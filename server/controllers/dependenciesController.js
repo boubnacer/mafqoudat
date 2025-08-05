@@ -14,13 +14,26 @@ const getDashboard = async (req, res) => {
     const currentDate = new Date();
 
     const currentCountry = req.query.currentCountry;
+    
+    if (!currentCountry) {
+      return res.status(400).json({ message: "currentCountry parameter is required" });
+    }
 
     // Lookup FoundLost IDs by code - Fix inconsistent code references
     const foundOption = await FoundLost.findOne({ code: "FOUND" });
     const lostOption = await FoundLost.findOne({ code: "LOST" });
-    if (!foundOption || !lostOption) {
-      return res.status(500).json({ message: "Found/Lost options not set in DB" });
+    
+    if (!foundOption) {
+      console.error("FOUND option not found in database");
+      return res.status(500).json({ message: "FOUND option not set in DB" });
     }
+    
+    if (!lostOption) {
+      console.error("LOST option not found in database");
+      return res.status(500).json({ message: "LOST option not set in DB" });
+    }
+    
+    console.log("Found options:", { found: foundOption.code, lost: lostOption.code });
 
     const trendingPost = await Post.aggregate([
       { $match: { country: new mongoose.Types.ObjectId(currentCountry) } },
@@ -49,8 +62,8 @@ const getDashboard = async (req, res) => {
           country: 1,
           returned: 1,
           createdAt: 1,
-          categoryName: "$Category.code",
-          floptionName: "$Floptions.code",
+          categoryName: { $ifNull: ["$Category.code", "Unknown"] },
+          floptionName: { $ifNull: ["$Floptions.code", "Unknown"] },
           contact: 1,
           image: 1,
         },
@@ -99,8 +112,8 @@ const getDashboard = async (req, res) => {
           returned: 1,
           createdAt: 1,
           updatedAt: 1,
-          username: "$User.username",
-          categoryname: "$Category.code",
+          username: { $ifNull: ["$User.username", "Unknown"] },
+          categoryname: { $ifNull: ["$Category.code", "Unknown"] },
           contact: 1,
           image: 1,
         },
@@ -149,8 +162,8 @@ const getDashboard = async (req, res) => {
           returned: 1,
           createdAt: 1,
           updatedAt: 1,
-          username: "$User.username",
-          categoryname: "$Category.code",
+          username: { $ifNull: ["$User.username", "Unknown"] },
+          categoryname: { $ifNull: ["$Category.code", "Unknown"] },
           contact: 1,
           image: 1,
         },
@@ -317,12 +330,84 @@ const getflOptions = async (req, res) => {
 };
 
 const getCountries = async (req, res) => {
-  const countries = await Country.find({}).lean().exec();
+  try {
+    const { language = 'en', search, active = true } = req.query;
+    
+    let query = {};
+    if (active === 'true') {
+      query.isActive = true;
+    }
+    
+    // Add search functionality
+    if (search) {
+      query.$or = [
+        { code: { $regex: search, $options: 'i' } },
+        { 'labels.en': { $regex: search, $options: 'i' } },
+        { 'labels.fr': { $regex: search, $options: 'i' } },
+        { 'labels.ar': { $regex: search, $options: 'i' } },
+        { searchTerms: { $regex: search, $options: 'i' } }
+      ];
+    }
+    
+    const countries = await Country.find(query)
+      .select('code labels flag isActive searchTerms')
+      .sort({ 'labels.en': 1 })
+      .lean()
+      .exec();
 
-  if (!countries.length)
-    return res.status(400).json({ message: "No countries found" });
+    if (!countries.length) {
+      return res.status(404).json({ 
+        success: false,
+        message: "No countries found",
+        data: []
+      });
+    }
 
-  res.json(countries);
+    // Transform response to include language-specific labels
+    const transformedCountries = countries.map(country => {
+      // Check if country has the new labels structure
+      if (country.labels && country.labels.en) {
+        // New format with multilingual support
+        return {
+          _id: country._id,
+          code: country.code,
+          label: country.labels[language] || country.labels.en,
+          labels: country.labels,
+          flag: country.flag,
+          isActive: country.isActive,
+          searchTerms: country.searchTerms
+        };
+      } else {
+        // Old format - use code as label and create basic labels structure
+        return {
+          _id: country._id,
+          code: country.code,
+          label: country.code, // Use code as label for backward compatibility
+          labels: {
+            en: country.code,
+            fr: country.code,
+            ar: country.code
+          },
+          flag: country.flag || null,
+          isActive: country.isActive !== undefined ? country.isActive : true,
+          searchTerms: country.searchTerms || []
+        };
+      }
+    });
+
+    res.json({
+      success: true,
+      data: transformedCountries,
+      total: transformedCountries.length
+    });
+  } catch (error) {
+    console.error('Error fetching countries:', error);
+    res.status(500).json({ 
+      success: false,
+      message: "Failed to fetch countries",
+      error: error.message 
+    });
+  }
 };
 
 const getCategories = async (req, res) => {

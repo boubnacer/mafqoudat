@@ -5,19 +5,21 @@ import {
   Menu,
   MenuItem,
   Typography,
+  useTheme,
   IconButton,
-  Tooltip,
-  useTheme
+  Tooltip
 } from '@mui/material';
-import {
-  Language as LanguageIcon,
-  KeyboardArrowDown as ArrowDownIcon
-} from '@mui/icons-material';
-import { SUPPORTED_LANGUAGES, setCurrentLanguage, getCurrentLanguage } from '../utils/languageUtils';
+import { Language, KeyboardArrowDown } from '@mui/icons-material';
+import { useDispatch } from 'react-redux';
+import { setCurrentCountry } from '../app/state';
+import { useGetCountriesQuery } from '../features/countries/countriesApiSlice';
+import { LoadingState } from './LoadingStates';
+import { SUPPORTED_LANGUAGES } from '../utils/languageUtils';
+import { useLanguage } from '../utils/languageContext';
 
 const LanguageSwitcher = ({ variant = 'button', onLanguageChange }) => {
   const [anchorEl, setAnchorEl] = useState(null);
-  const [currentLang, setCurrentLang] = useState(getCurrentLanguage());
+  const { currentLanguage, setLanguage } = useLanguage();
   const theme = useTheme();
 
   const handleClick = (event) => {
@@ -29,21 +31,17 @@ const LanguageSwitcher = ({ variant = 'button', onLanguageChange }) => {
   };
 
   const handleLanguageChange = (language) => {
-    if (setCurrentLanguage(language)) {
-      setCurrentLang(language);
+    if (setLanguage(language)) {
       handleClose();
       
       // Notify parent component if callback provided
       if (onLanguageChange) {
         onLanguageChange(language);
       }
-      
-      // Reload the page to apply language changes
-      window.location.reload();
     }
   };
 
-  const currentLanguage = SUPPORTED_LANGUAGES[currentLang];
+  const currentLanguageInfo = SUPPORTED_LANGUAGES[currentLanguage];
 
   if (variant === 'icon') {
     return (
@@ -58,7 +56,7 @@ const LanguageSwitcher = ({ variant = 'button', onLanguageChange }) => {
               }
             }}
           >
-            <LanguageIcon />
+            <Language />
           </IconButton>
         </Tooltip>
         
@@ -79,7 +77,7 @@ const LanguageSwitcher = ({ variant = 'button', onLanguageChange }) => {
             <MenuItem
               key={code}
               onClick={() => handleLanguageChange(code)}
-              selected={code === currentLang}
+              selected={code === currentLanguage}
               sx={{
                 display: 'flex',
                 alignItems: 'center',
@@ -100,8 +98,8 @@ const LanguageSwitcher = ({ variant = 'button', onLanguageChange }) => {
     <>
       <Button
         onClick={handleClick}
-        endIcon={<ArrowDownIcon />}
-        startIcon={<LanguageIcon />}
+        endIcon={<KeyboardArrowDown />}
+        startIcon={<Language />}
         variant="outlined"
         size="small"
         sx={{
@@ -117,8 +115,8 @@ const LanguageSwitcher = ({ variant = 'button', onLanguageChange }) => {
         }}
       >
         <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
-          <span style={{ fontSize: '1.1rem' }}>{currentLanguage.flag}</span>
-          <Typography variant="body2">{currentLanguage.name}</Typography>
+          <span style={{ fontSize: '1.1rem' }}>{currentLanguageInfo.flag}</span>
+          <Typography variant="body2">{currentLanguageInfo.name}</Typography>
         </Box>
       </Button>
       
@@ -146,7 +144,7 @@ const LanguageSwitcher = ({ variant = 'button', onLanguageChange }) => {
           <MenuItem
             key={code}
             onClick={() => handleLanguageChange(code)}
-            selected={code === currentLang}
+            selected={code === currentLanguage}
             sx={{
               display: 'flex',
               alignItems: 'center',
@@ -163,7 +161,7 @@ const LanguageSwitcher = ({ variant = 'button', onLanguageChange }) => {
           >
             <span style={{ fontSize: '1.3rem' }}>{lang.flag}</span>
             <Box>
-              <Typography variant="body2" fontWeight={code === currentLang ? 600 : 400}>
+              <Typography variant="body2" fontWeight={code === currentLanguage ? 600 : 400}>
                 {lang.name}
               </Typography>
               <Typography variant="caption" color="text.secondary">

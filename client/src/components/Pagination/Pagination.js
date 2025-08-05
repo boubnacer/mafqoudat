@@ -1,7 +1,7 @@
-import { getCurrentLanguage, t } from "../../utils/languageUtils";
+import { useTranslation } from "../../utils/translations";
 
 const Pagination = () => {
-  const currentLanguage = getCurrentLanguage();
+  const { t, currentLanguage } = useTranslation();
   
   return (
     <div style={{ direction: currentLanguage === 'ar' ? 'rtl' : 'ltr' }}>

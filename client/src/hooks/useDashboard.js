@@ -2,10 +2,11 @@ import { useState, useCallback, useEffect } from 'react';
 import { useSelector, useDispatch } from 'react-redux';
 import { useGetDashboardQuery, useGetPostsQuery } from '../features/posts/postsApiSlice';
 import { selectCurrentCountry, setCurrentCountry } from '../app/state';
-import { useGetCountriesQuery } from '../features/countries/countriesApiSlice';
+import { useGetCountriesQuery } from '../features/dependencies/dependenciesApiSlice';
 import debounce from 'lodash/debounce';
 import useAuth from './useAuth';
-import { getCurrentLanguage } from '../utils/languageUtils';
+import { useLanguage } from '../utils/languageContext';
+import { selectCurrentToken } from '../features/auth/authSlice';
 
 export const useDashboard = () => {
   const [searchQuery, setSearchQuery] = useState("");
@@ -18,7 +19,8 @@ export const useDashboard = () => {
   const dispatch = useDispatch();
   const { country: userCountry } = useAuth();
   const currentCountry = useSelector(selectCurrentCountry);
-  const currentLanguage = getCurrentLanguage();
+  const { currentLanguage } = useLanguage();
+  const token = useSelector(selectCurrentToken);
 
   // Get countries list
   const { data: countriesData, error: countriesError } = useGetCountriesQuery({
@@ -36,7 +38,7 @@ export const useDashboard = () => {
     }
   }, [userCountry, currentCountry, dispatch, countriesData]);
 
-  // Dashboard data query - skip if no currentCountry
+  // Dashboard data query - skip if no currentCountry or no token
   const { 
     data, 
     isError, 
@@ -46,7 +48,7 @@ export const useDashboard = () => {
     currentCountry,
     language: currentLanguage
   }, {
-    skip: !currentCountry
+    skip: !currentCountry || !token
   });
 
   // Search query
@@ -60,7 +62,7 @@ export const useDashboard = () => {
     search: searchQuery,
     language: currentLanguage
   }, {
-    skip: !searchQuery
+    skip: !searchQuery || !token
   });
 
   // Create a debounced search function

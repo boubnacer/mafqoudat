@@ -1,0 +1,153 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Language Persistence Test</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            padding: 20px;
+            max-width: 800px;
+            margin: 0 auto;
+        }
+        .test-section {
+            margin: 20px 0;
+            padding: 15px;
+            border: 1px solid #ccc;
+            border-radius: 5px;
+        }
+        button {
+            margin: 5px;
+            padding: 10px 15px;
+            background: #007bff;
+            color: white;
+            border: none;
+            border-radius: 3px;
+            cursor: pointer;
+        }
+        button:hover {
+            background: #0056b3;
+        }
+        .status {
+            margin: 10px 0;
+            padding: 10px;
+            background: #f8f9fa;
+            border-radius: 3px;
+        }
+        .rtl {
+            direction: rtl;
+            text-align: right;
+        }
+        .ltr {
+            direction: ltr;
+            text-align: left;
+        }
+    </style>
+</head>
+<body>
+    <h1>Language Persistence Test</h1>
+    
+    <div class="test-section">
+        <h2>Current State</h2>
+        <div id="currentState" class="status">
+            Loading...
+        </div>
+    </div>
+    
+    <div class="test-section">
+        <h2>Language Controls</h2>
+        <button onclick="setLanguage('en')">Set English (LTR)</button>
+        <button onclick="setLanguage('ar')">Set Arabic (RTL)</button>
+        <button onclick="setLanguage('fr')">Set French (LTR)</button>
+        <button onclick="clearLanguage()">Clear Language</button>
+    </div>
+    
+    <div class="test-section">
+        <h2>Test Content</h2>
+        <div id="testContent">
+            <p>This is a test paragraph in English.</p>
+            <p>هذه فقرة اختبار باللغة العربية.</p>
+            <p>Ceci est un paragraphe de test en français.</p>
+        </div>
+    </div>
+    
+    <div class="test-section">
+        <h2>Test Instructions</h2>
+        <ol>
+            <li>Click "Set Arabic (RTL)" to change the language</li>
+            <li>Notice the text direction changes to RTL</li>
+            <li>Refresh the page (F5)</li>
+            <li>The language should persist and remain RTL</li>
+            <li>Try switching to other languages and refreshing</li>
+        </ol>
+    </div>
+
+    <script>
+        // Language management functions
+        function setLanguage(language) {
+            try {
+                // Save to localStorage
+                localStorage.setItem('app_language', language);
+                
+                // Apply to document
+                document.documentElement.setAttribute('lang', language);
+                
+                // Apply direction
+                if (language === 'ar') {
+                    document.body.className = 'rtl';
+                    document.body.setAttribute('dir', 'rtl');
+                } else {
+                    document.body.className = 'ltr';
+                    document.body.setAttribute('dir', 'ltr');
+                }
+                
+                updateStatus();
+                console.log(`Language set to: ${language}`);
+            } catch (error) {
+                console.error('Error setting language:', error);
+            }
+        }
+        
+        function clearLanguage() {
+            try {
+                localStorage.removeItem('app_language');
+                document.documentElement.removeAttribute('lang');
+                document.body.removeAttribute('dir');
+                document.body.className = '';
+                updateStatus();
+                console.log('Language cleared');
+            } catch (error) {
+                console.error('Error clearing language:', error);
+            }
+        }
+        
+        function updateStatus() {
+            const stateDiv = document.getElementById('currentState');
+            const savedLang = localStorage.getItem('app_language');
+            const htmlLang = document.documentElement.getAttribute('lang');
+            const bodyDir = document.body.getAttribute('dir');
+            
+            stateDiv.innerHTML = `
+                <strong>Current Language State:</strong><br>
+                localStorage: <code>${savedLang || 'null'}</code><br>
+                HTML lang: <code>${htmlLang || 'null'}</code><br>
+                Body dir: <code>${bodyDir || 'null'}</code><br>
+                Body class: <code>${document.body.className || 'none'}</code>
+            `;
+        }
+        
+        // Initialize on page load
+        window.addEventListener('load', function() {
+            const savedLanguage = localStorage.getItem('app_language');
+            if (savedLanguage) {
+                setLanguage(savedLanguage);
+            }
+            updateStatus();
+        });
+        
+        // Update status every second for debugging
+        setInterval(updateStatus, 1000);
+    </script>
+</body>
+</html> 

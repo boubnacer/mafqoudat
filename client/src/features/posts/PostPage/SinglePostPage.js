@@ -30,7 +30,8 @@ import {
 } from "@mui/icons-material";
 
 import "./editpost.css";
-import { getCurrentLanguage, t, isRTL, getLabel } from "../../../utils/languageUtils";
+import { useTranslation } from "../../../utils/translations";
+import { isRTL, getLabel } from "../../../utils/languageUtils";
 import { formatDistanceToNow } from 'date-fns';
 import { ar, fr, enUS } from 'date-fns/locale';
 
@@ -52,7 +53,7 @@ const SinglePostPage = ({
   const theme = useTheme();
   const isMobile = useMediaQuery("(max-width:768px)");
   const { usernameId } = useAuth();
-  const currentLanguage = getCurrentLanguage();
+  const { t, currentLanguage } = useTranslation();
   const isRTLMode = isRTL();
 
   const canEdit = user === usernameId;
@@ -123,16 +124,18 @@ const SinglePostPage = ({
       {/* Back Button */}
       <Box sx={{ mb: 3 }}>
         <Button
-          startIcon={<ArrowBackIcon />}
+          startIcon={!isRTLMode ? <ArrowBackIcon /> : null}
+          endIcon={isRTLMode ? <ArrowBackIcon /> : null}
           onClick={handleBack}
           sx={{
             color: theme.palette.textColor.secondary,
+            direction: isRTLMode ? 'rtl' : 'ltr',
             '&:hover': {
               backgroundColor: theme.palette.action.hover
             }
           }}
         >
-                     {t('back')} {t('to')} {t('posts')}
+          {t('back')} {t('to')} {t('posts')}
         </Button>
       </Box>
 
@@ -217,8 +220,8 @@ const SinglePostPage = ({
                 </Box>
 
                 {/* Action Buttons */}
-                <Box display="flex" gap={1}>
-                  <Tooltip title="Share Post">
+                <Box display="flex" gap={1} sx={{ direction: isRTLMode ? 'rtl' : 'ltr' }}>
+                  <Tooltip title={t('sharePost')}>
                     <IconButton
                       sx={{ 
                         color: theme.palette.primary.main,
@@ -230,7 +233,7 @@ const SinglePostPage = ({
                   </Tooltip>
                   
                   {canEdit && (
-                    <Tooltip title="Edit Post">
+                    <Tooltip title={t('editPost')}>
                       <IconButton
                         onClick={handleEdit}
                         sx={{ 
@@ -243,7 +246,7 @@ const SinglePostPage = ({
                     </Tooltip>
                   )}
                   
-                  <Tooltip title="Report Post">
+                  <Tooltip title={t('reportPost')}>
                     <IconButton
                       onClick={handleReport}
                       sx={{ 
@@ -268,7 +271,7 @@ const SinglePostPage = ({
                       mb: 2
                     }}
                   >
-                    Contact Information
+                    {t('contactInformation')}
                   </Typography>
                   <Paper 
                     elevation={1} 
@@ -306,7 +309,7 @@ const SinglePostPage = ({
                     mb: 2
                   }}
                 >
-                  Post Details
+                  {t('postDetails')}
                 </Typography>
                 
                 <Grid container spacing={2}>
@@ -315,7 +318,7 @@ const SinglePostPage = ({
                       <PersonIcon sx={{ color: theme.palette.textColor.secondary }} />
                       <Box>
                         <Typography variant="body2" color="text.secondary">
-                          Posted by
+                          {t('postedBy')}
                         </Typography>
                         <Typography variant="body1" sx={{ color: theme.palette.textColor.main }}>
                           {username || "Unknown User"}
@@ -329,7 +332,7 @@ const SinglePostPage = ({
                       <LocationIcon sx={{ color: theme.palette.textColor.secondary }} />
                       <Box>
                         <Typography variant="body2" color="text.secondary">
-                          Location
+                          {t('location')}
                         </Typography>
                         <Typography variant="body1" sx={{ color: theme.palette.textColor.main }}>
                           {countryname || "Unknown Country"}
@@ -343,7 +346,7 @@ const SinglePostPage = ({
                       <CalendarIcon sx={{ color: theme.palette.textColor.secondary }} />
                       <Box>
                         <Typography variant="body2" color="text.secondary">
-                          Created
+                          {t('created')}
                         </Typography>
                         <Typography variant="body1" sx={{ color: theme.palette.textColor.main }}>
                           {createdDate}
@@ -358,7 +361,7 @@ const SinglePostPage = ({
                         <CalendarIcon sx={{ color: theme.palette.textColor.secondary }} />
                         <Box>
                           <Typography variant="body2" color="text.secondary">
-                            Last Updated
+                            {t('lastUpdated')}
                           </Typography>
                           <Typography variant="body1" sx={{ color: theme.palette.textColor.main }}>
                             {updatedDate}
@@ -394,7 +397,7 @@ const SinglePostPage = ({
                   mb: 2
                 }}
               >
-                Quick Actions
+                {t('quickActions')}
               </Typography>
               
               <Box display="flex" flexDirection="column" gap={2}>
@@ -411,7 +414,7 @@ const SinglePostPage = ({
                       fontWeight: 600
                     }}
                   >
-                    Edit Post
+                    {t('editPost')}
                   </Button>
                 )}
                 
@@ -426,7 +429,7 @@ const SinglePostPage = ({
                     fontWeight: 600
                   }}
                 >
-                  Share Post
+                  {t('sharePost')}
                 </Button>
                 
                 <Button
@@ -447,7 +450,7 @@ const SinglePostPage = ({
                     }
                   }}
                 >
-                  Report Post
+                  {t('reportPost')}
                 </Button>
               </Box>
             </Paper>
@@ -469,7 +472,7 @@ const SinglePostPage = ({
                   mb: 2
                 }}
               >
-                Additional Insights
+                {t('additionalInsights')}
               </Typography>
               
               <Box display="flex" flexDirection="column" gap={2}>
@@ -477,7 +480,7 @@ const SinglePostPage = ({
                   <VisibilityIcon sx={{ color: theme.palette.info.main }} />
                   <Box>
                     <Typography variant="body2" color="text.secondary">
-                      Post Status
+                      {t('postStatus')}
                     </Typography>
                     <Chip 
                       label={statusText}
@@ -492,7 +495,7 @@ const SinglePostPage = ({
                   <CategoryIcon sx={{ color: theme.palette.primary.main }} />
                   <Box>
                     <Typography variant="body2" color="text.secondary">
-                      Category
+                      {t('category')}
                     </Typography>
                                          <Typography variant="body1" sx={{ color: theme.palette.textColor.main }}>
                        {t(categoryname?.toLowerCase()) || categoryname}
@@ -504,7 +507,7 @@ const SinglePostPage = ({
                   <LocationIcon sx={{ color: theme.palette.success.main }} />
                   <Box>
                     <Typography variant="body2" color="text.secondary">
-                      Region
+                      {t('region')}
                     </Typography>
                     <Typography variant="body1" sx={{ color: theme.palette.textColor.main }}>
                       {region}

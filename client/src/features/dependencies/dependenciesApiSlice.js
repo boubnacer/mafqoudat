@@ -42,6 +42,10 @@ export const dependencieaApiSlice = apiSlice.injectEndpoints({
           ];
         } else return [{ type: "Dependencies", id: "LIST" }];
       },
+      // Add cache key based on language to ensure proper cache invalidation
+      serializeQueryArgs: ({ queryArgs }) => {
+        return `${queryArgs.language || 'en'}-${queryArgs.active || true}`;
+      },
     }),
 
     getCountries: builder.query({
@@ -79,6 +83,10 @@ export const dependencieaApiSlice = apiSlice.injectEndpoints({
           ];
         } else return [{ type: "Country", id: "LIST" }];
       },
+      // Add cache key based on language to ensure proper cache invalidation
+      serializeQueryArgs: ({ queryArgs }) => {
+        return `${queryArgs.language || 'en'}-${queryArgs.search || ''}-${queryArgs.active || true}`;
+      },
     }),
 
     getCategories: builder.query({
@@ -115,6 +123,10 @@ export const dependencieaApiSlice = apiSlice.injectEndpoints({
             ...result.ids.map((id) => ({ type: "Category", id })),
           ];
         } else return [{ type: "Category", id: "LIST" }];
+      },
+      // Add cache key based on language to ensure proper cache invalidation
+      serializeQueryArgs: ({ queryArgs }) => {
+        return `${queryArgs.language || 'en'}-${queryArgs.active || true}`;
       },
     }),
 

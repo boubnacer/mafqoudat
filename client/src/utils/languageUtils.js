@@ -1,50 +1,73 @@
-// Language utilities for multilingual support
+// Language utility functions
 
 // Supported languages
 export const SUPPORTED_LANGUAGES = {
   en: { name: 'English', flag: '🇺🇸' },
-  fr: { name: 'Français', flag: '🇫🇷' },
-  ar: { name: 'العربية', flag: '🇸🇦' }
+  ar: { name: 'العربية', flag: '🇸🇦' },
+  fr: { name: 'Français', flag: '🇫🇷' }
 };
 
-// Default language
-export const DEFAULT_LANGUAGE = 'en';
-
-// Get current language from localStorage or browser
+// Get current language from localStorage
 export const getCurrentLanguage = () => {
-  // Check localStorage first
-  const savedLanguage = localStorage.getItem('app_language');
-  if (savedLanguage && SUPPORTED_LANGUAGES[savedLanguage]) {
-    return savedLanguage;
+  try {
+    // Check both keys for backward compatibility
+    return localStorage.getItem('language') || localStorage.getItem('app_language') || 'en';
+  } catch (error) {
+    console.error('Error getting current language:', error);
+    return 'en';
   }
+};
 
-  // Check browser language
-  const browserLanguage = navigator.language.split('-')[0];
-  if (SUPPORTED_LANGUAGES[browserLanguage]) {
-    return browserLanguage;
+// Set current language (legacy function for backward compatibility)
+export const setCurrentLanguage = (language) => {
+  try {
+    if (SUPPORTED_LANGUAGES[language]) {
+      // Save to both keys for compatibility
+      localStorage.setItem('language', language);
+      localStorage.setItem('app_language', language);
+      return true;
+    }
+    return false;
+  } catch (error) {
+    console.error('Error setting current language:', error);
+    return false;
   }
+};
 
-  // Fallback to default
-  return DEFAULT_LANGUAGE;
+// Get API parameters with current language
+export const getApiParamsWithLanguage = (additionalParams = {}) => {
+  try {
+    const currentLang = getCurrentLanguage();
+    return {
+      language: currentLang,
+      ...additionalParams
+    };
+  } catch (error) {
+    console.error('Error getting API params with language:', error);
+    return {
+      language: 'en',
+      ...additionalParams
+    };
+  }
 };
 
 // Initialize language settings
-export const initializeLanguage = () => {
-  const currentLang = getCurrentLanguage();
+export const initializeLanguage = (language = null) => {
+  const currentLang = language || getCurrentLanguage();
   
-  // Set document direction for RTL languages
-  document.body.setAttribute("dir", currentLang === "ar" ? "rtl" : "ltr");
+  // Set document language attribute
+  document.documentElement.setAttribute("lang", currentLang);
+  
+  // Force re-render for RTL languages
+  if (currentLang === "ar") {
+    document.body.style.direction = "rtl";
+    document.body.style.textAlign = "right";
+  } else {
+    document.body.style.direction = "ltr";
+    document.body.style.textAlign = "left";
+  }
   
   return currentLang;
-};
-
-// Set current language
-export const setCurrentLanguage = (language) => {
-  if (SUPPORTED_LANGUAGES[language]) {
-    localStorage.setItem('app_language', language);
-    return true;
-  }
-  return false;
 };
 
 // Get label from multilingual object
@@ -109,8 +132,27 @@ export const isRTL = (language = null) => {
   return currentLang === 'ar';
 };
 
-// Export language context
-export const LanguageContext = {
+// Debug function to check language state
+export const debugLanguageState = () => {
+  try {
+    const currentLang = getCurrentLanguage();
+    const bodyDir = document.body.getAttribute('dir');
+    const htmlLang = document.documentElement.getAttribute('lang');
+    
+    return {
+      currentLang,
+      bodyDir,
+      htmlLang,
+      isRTL: isRTL(currentLang)
+    };
+  } catch (error) {
+    console.error('Error debugging language state:', error);
+    return null;
+  }
+};
+
+// Export language context (legacy export for backward compatibility)
+export const LanguageContextLegacy = {
   current: getCurrentLanguage(),
   set: setCurrentLanguage,
   supported: SUPPORTED_LANGUAGES,
@@ -118,7 +160,4 @@ export const LanguageContext = {
   getLabel,
   formatCountry,
   formatPostType
-};
-
-// Import translation function
-export { t, tWithFallback } from './translations'; 
+}; 

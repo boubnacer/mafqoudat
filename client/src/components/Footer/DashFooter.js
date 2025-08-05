@@ -11,7 +11,7 @@ import {
 } from "@mui/icons-material";
 import useAuth from "../../hooks/useAuth";
 import "./footer.css";
-import { getCurrentLanguage, t } from "../../utils/languageUtils";
+import { useTranslation } from "../../utils/translations";
 import {
   Typography,
   useTheme,
@@ -26,12 +26,13 @@ import {
   Divider,
 } from "@mui/material";
 
+
 const DashFooter = () => {
   const navigate = useNavigate();
   const { pathname } = useLocation();
   const { username, country } = useAuth();
   const theme = useTheme();
-  const currentLanguage = getCurrentLanguage();
+  const { t, currentLanguage } = useTranslation();
 
   const onGoHomeClicked = () => navigate("/dash");
 

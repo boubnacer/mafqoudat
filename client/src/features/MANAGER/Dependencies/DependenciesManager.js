@@ -37,12 +37,14 @@ import {
 import { useGetCountriesQuery, useGetCategoriesQuery, useGetflOptionsQuery, useCreateCountryMutation, useCreateCategoryMutation, useCreateFoundLostMutation } from "../../dependencies/dependenciesApiSlice";
 import { LoadingState } from "../../../components/LoadingStates";
 import useTitle from "../../../hooks/useTitle";
+import { useLanguage } from "../../../utils/languageContext";
 
 const DependenciesManager = () => {
   useTitle("Mafkoudat | Admin Dashboard - Dependencies");
 
   const theme = useTheme();
   const isNonMediumScreens = useMediaQuery("(min-width:1200px)");
+  const { currentLanguage } = useLanguage();
   
   const [activeTab, setActiveTab] = useState(0);
   const [showCreateDialog, setShowCreateDialog] = useState(false);
@@ -50,10 +52,14 @@ const DependenciesManager = () => {
 
   // Queries
   const { data: countries, isLoading: countriesLoading } = useGetCountriesQuery({
-    language: 'en'
+    language: currentLanguage || 'en'
   });
-  const { data: categories, isLoading: categoriesLoading } = useGetCategoriesQuery();
-  const { data: flOptions, isLoading: flOptionsLoading } = useGetflOptionsQuery();
+  const { data: categories, isLoading: categoriesLoading } = useGetCategoriesQuery({
+    language: currentLanguage || 'en'
+  });
+  const { data: flOptions, isLoading: flOptionsLoading } = useGetflOptionsQuery({
+    language: currentLanguage || 'en'
+  });
 
   // Mutations
   const [createCountry, { isLoading: isCreatingCountry }] = useCreateCountryMutation();

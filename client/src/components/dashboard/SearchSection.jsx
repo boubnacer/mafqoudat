@@ -14,6 +14,7 @@ import {
 import { Search, FilterList } from "@mui/icons-material";
 import { useNavigate } from "react-router-dom";
 import { SearchLoadingStates } from "../LoadingStates";
+import { useTranslation } from "../../utils/translations";
 import ma from "../../img/ma.jpg";
 
 const SearchSection = ({
@@ -25,6 +26,7 @@ const SearchSection = ({
   handleCreateNewPost
 }) => {
   const navigate = useNavigate();
+  const { t } = useTranslation();
 
   return (
     <>
@@ -44,7 +46,7 @@ const SearchSection = ({
             fullWidth
             value={searchQuery}
             onChange={handleSearchChange}
-            placeholder="Search by region, contact, or category..."
+            placeholder={t('searchPostsPlaceholder')}
             InputProps={{
               startAdornment: (
                 <InputAdornment position="start">
@@ -58,7 +60,7 @@ const SearchSection = ({
             startIcon={<FilterList />}
             sx={{ minWidth: '120px' }}
           >
-            Filters
+            {t('filters')}
           </Button>
         </Paper>
       </Box>
@@ -70,7 +72,7 @@ const SearchSection = ({
             <SearchLoadingStates.Searching />
           ) : searchData?.postsWithUser?.length > 0 ? (
             <Box>
-              <Typography variant="h6" mb={2}>Search Results</Typography>
+              <Typography variant="h6" mb={2}>{t('searchResults')}</Typography>
               <Grid container spacing={2}>
                 {searchData.postsWithUser.map((post) => (
                   <Grid item xs={12} sm={6} md={4} key={post._id}>

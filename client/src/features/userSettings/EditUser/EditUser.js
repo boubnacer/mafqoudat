@@ -3,7 +3,7 @@ import EditUserForm from "./EditUserForm";
 import { useGetUsersQuery } from "../usersApiSlice";
 import { LoadingState } from "../../../components/LoadingStates";
 import useTitle from "../../../hooks/useTitle";
-import { useGetCountriesQuery } from "../../countries/countriesApiSlice";
+import { useGetCountriesQuery } from "../../dependencies/dependenciesApiSlice";
 
 const EditUser = () => {
   useTitle("mafkoudat: Edit User");

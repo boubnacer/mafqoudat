@@ -35,80 +35,82 @@ import {
   Send
 } from "@mui/icons-material";
 import DashRecents from './DashRecents';
+import { useTranslation } from "../../utils/translations";
 
 const HelpSupportSection = () => {
   const theme = useTheme();
+  const { t } = useTranslation();
   const [showHelpDialog, setShowHelpDialog] = useState(false);
   const [helpTab, setHelpTab] = useState(0);
 
   const faqItems = [
     {
-      question: "How to report a lost item?",
-      answer: "To report a lost item, go to the 'Report Lost Item' section on the dashboard and follow the instructions. You'll need to provide details about the item, its location, and any relevant information."
+      question: t('howToReportLostItem'),
+      answer: t('howToReportLostItemAnswer')
     },
     {
-      question: "How to claim a found item?",
-      answer: "To claim a found item, go to the 'Report Found Item' section on the dashboard and follow the instructions. You'll need to provide details about the item and its location."
+      question: t('howToClaimFoundItem'),
+      answer: t('howToClaimFoundItemAnswer')
     },
     {
-      question: "What information do I need?",
-      answer: "When reporting a lost or found item, you'll need to provide details about the item, its location, and any relevant information. This helps us match you with the right finder or lost item."
+      question: t('whatInformationNeeded'),
+      answer: t('whatInformationNeededAnswer')
     }
   ];
 
   const emergencyContacts = [
     {
-      name: "Police",
+      name: t('police'),
       details: "911",
       icon: <Phone />,
-      action: "Call",
+      action: t('call'),
       actionIcon: <Send />
     },
     {
-      name: "Support",
-      details: "24/7",
+      name: t('support'),
+      details: t('support24_7'),
       icon: <Phone />,
-      action: "Call",
+      action: t('call'),
       actionIcon: <Send />
     },
     {
-      name: "Email",
-      details: "support@mafqoudat.com",
+      name: t('email'),
+      details: t('supportEmail'),
       icon: <Phone />,
-      action: "Email",
+      action: t('emailAction'),
       actionIcon: <Send />
     }
   ];
 
   const guidelines = [
     {
-      title: "Be honest in your reports",
-      description: "Always provide accurate and truthful information about your lost or found item."
+      title: t('beHonestInReports'),
+      description: t('beHonestInReportsDesc')
     },
     {
-      title: "Provide clear descriptions",
-      description: "Use clear and detailed descriptions in your reports to help others identify the item."
+      title: t('provideClearDescriptions'),
+      description: t('provideClearDescriptionsDesc')
     },
     {
-      title: "Keep communication safe",
-      description: "Use safe and appropriate communication methods when interacting with others on the platform."
+      title: t('keepCommunicationSafe'),
+      description: t('keepCommunicationSafeDesc')
     }
   ];
 
   const videoTutorials = [
     {
-      title: "How to Report a Lost Item",
-      description: "Learn how to effectively report a lost item on Mafqoudat.",
+      title: t('howToReportLostItemVideo'),
+      description: t('howToReportLostItemVideoDesc'),
       thumbnail: "https://example.com/thumbnail1.jpg"
     },
     {
-      title: "How to Claim a Found Item",
-      description: "Discover the steps to successfully claim a found item on Mafqoudat.",
+      title: t('howToClaimFoundItemVideo'),
+      description: t('howToClaimFoundItemVideoDesc'),
       thumbnail: "https://example.com/thumbnail2.jpg"
     },
     {
-      title: "Using Mafqoudat Safely",
-      description: "Get tips on how to use Mafqoudat safely and effectively.",
+      title: t('usingMafqoudatSafely'),
+      description: t('usingMafqoudatSafelyDesc'),
       thumbnail: "https://example.com/thumbnail3.jpg"
     }
   ];
@@ -126,7 +128,7 @@ const HelpSupportSection = () => {
               WebkitTextFillColor: "transparent",
             }}
           >
-            HELP & SUPPORT
+            {t('helpAndSupport')}
           </Typography>
           <Button
             variant="contained"
@@ -137,7 +139,7 @@ const HelpSupportSection = () => {
               boxShadow: "0 3px 5px 2px rgba(33, 203, 243, .3)",
             }}
           >
-            Get Help
+            {t('getHelp')}
           </Button>
         </Box>
 
@@ -158,7 +160,7 @@ const HelpSupportSection = () => {
                 <CardContent>
                   <Box display="flex" alignItems="center" mb={2}>
                     <Help sx={{ mr: 1, color: 'primary.main' }} />
-                    <Typography variant="h6" color={theme.palette.text.primary}>FAQ</Typography>
+                    <Typography variant="h6" color={theme.palette.text.primary}>{t('faq')}</Typography>
                   </Box>
                   <List>
                     {faqItems.map((item, index) => (
@@ -192,7 +194,7 @@ const HelpSupportSection = () => {
                     startIcon={<Help />}
                     sx={{ mt: 2 }}
                   >
-                    View All FAQs
+                    {t('viewAllFaqs')}
                   </Button>
                 </CardContent>
               </Card>
@@ -213,7 +215,7 @@ const HelpSupportSection = () => {
                 <CardContent>
                   <Box display="flex" alignItems="center" mb={2}>
                     <Phone sx={{ mr: 1, color: 'error.main' }} />
-                    <Typography variant="h6" color={theme.palette.text.primary}>Emergency Contacts</Typography>
+                    <Typography variant="h6" color={theme.palette.text.primary}>{t('emergencyContacts')}</Typography>
                   </Box>
                   <List>
                     {emergencyContacts.map((contact, index) => (
@@ -239,7 +241,7 @@ const HelpSupportSection = () => {
                   </List>
                   <Box sx={{ mt: 2, p: 2, bgcolor: 'error.light', borderRadius: 1 }}>
                     <Typography variant="body2" color="error.contrastText">
-                      For immediate assistance, please contact emergency services.
+                      {t('immediateAssistance')}
                     </Typography>
                   </Box>
                 </CardContent>
@@ -261,7 +263,7 @@ const HelpSupportSection = () => {
                 <CardContent>
                   <Box display="flex" alignItems="center" mb={2}>
                     <Security sx={{ mr: 1, color: 'success.main' }} />
-                    <Typography variant="h6" color={theme.palette.text.primary}>Guidelines</Typography>
+                    <Typography variant="h6" color={theme.palette.text.primary}>{t('guidelines')}</Typography>
                   </Box>
                   <List>
                     {guidelines.map((guideline, index) => (
@@ -280,7 +282,7 @@ const HelpSupportSection = () => {
                   </List>
                   <Box sx={{ mt: 2 }}>
                     <Typography variant="subtitle2" gutterBottom color={theme.palette.text.primary}>
-                      Community Guidelines
+                      {t('communityGuidelines')}
                     </Typography>
                     <Button
                       fullWidth
@@ -288,14 +290,14 @@ const HelpSupportSection = () => {
                       startIcon={<Book />}
                       sx={{ mb: 1 }}
                     >
-                      Read Guidelines
+                      {t('readGuidelines')}
                     </Button>
                     <Button
                       fullWidth
                       variant="outlined"
                       startIcon={<Security />}
                     >
-                      Safety Tips
+                      {t('safetyTips')}
                     </Button>
                   </Box>
                 </CardContent>
@@ -313,30 +315,30 @@ const HelpSupportSection = () => {
         fullWidth
       >
         <DialogTitle>
-          How Can We Help You?
+          {t('howCanWeHelpYou')}
         </DialogTitle>
         <DialogContent>
           <Box sx={{ mt: 2 }}>
             <Tabs value={helpTab} onChange={(e, newValue) => setHelpTab(newValue)}>
-              <Tab label="Contact Support" />
-              <Tab label="Live Chat" />
-              <Tab label="Video Tutorials" />
+              <Tab label={t('contactSupport')} />
+              <Tab label={t('liveChat')} />
+              <Tab label={t('videoTutorials')} />
             </Tabs>
             
             <Box sx={{ mt: 2 }}>
               {helpTab === 0 && (
                 <Box>
                   <Typography variant="h6" gutterBottom>
-                    Contact Our Support Team
+                    {t('contactOurSupportTeam')}
                   </Typography>
                   <TextField
                     fullWidth
-                    label="Subject"
+                    label={t('subject')}
                     margin="normal"
                   />
                   <TextField
                     fullWidth
-                    label="Message"
+                    label={t('message')}
                     multiline
                     rows={4}
                     margin="normal"
@@ -346,7 +348,7 @@ const HelpSupportSection = () => {
                     fullWidth
                     sx={{ mt: 2 }}
                   >
-                    Send Message
+                    {t('sendMessage')}
                   </Button>
                 </Box>
               )}
@@ -355,11 +357,10 @@ const HelpSupportSection = () => {
                 <Box textAlign="center" py={4}>
                   <Chat sx={{ fontSize: 60, color: 'primary.main', mb: 2 }} />
                   <Typography variant="h6" gutterBottom>
-                    Live Chat Coming Soon
+                    {t('liveChatComingSoon')}
                   </Typography>
                   <Typography variant="body2" color="text.secondary">
-                    Our live chat feature is currently under development.
-                    Please use the contact form for now.
+                    {t('liveChatComingSoonDesc')}
                   </Typography>
                 </Box>
               )}
@@ -367,7 +368,7 @@ const HelpSupportSection = () => {
               {helpTab === 2 && (
                 <Box>
                   <Typography variant="h6" gutterBottom>
-                    Video Tutorials
+                    {t('videoTutorials')}
                   </Typography>
                   <Grid container spacing={2}>
                     {videoTutorials.map((tutorial, index) => (
@@ -395,7 +396,7 @@ const HelpSupportSection = () => {
           </Box>
         </DialogContent>
         <DialogActions>
-          <Button onClick={() => setShowHelpDialog(false)}>Close</Button>
+          <Button onClick={() => setShowHelpDialog(false)}>{t('close')}</Button>
         </DialogActions>
       </Dialog>
     </>

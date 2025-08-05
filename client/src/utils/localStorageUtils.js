@@ -17,7 +17,6 @@ export const cleanupLocalStorage = () => {
   allKeys.forEach(key => {
     if (!allowedKeys.includes(key)) {
       localStorage.removeItem(key);
-      console.log(`Removed unused localStorage key: ${key}`);
     }
   });
 };
@@ -37,7 +36,6 @@ export const getLocalStorageState = () => {
 // Clear all localStorage
 export const clearAllLocalStorage = () => {
   localStorage.clear();
-  console.log('All localStorage cleared');
 };
 
 // Set localStorage item with validation

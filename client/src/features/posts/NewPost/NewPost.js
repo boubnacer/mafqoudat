@@ -8,14 +8,16 @@ import {
   useGetflOptionsQuery,
 } from "../../dependencies/dependenciesApiSlice";
 import useAuth from "../../../hooks/useAuth";
-import { useTranslation } from "react-i18next";
+import { useTranslation } from "../../../utils/translations";
+import { useLanguage } from "../../../utils/languageContext";
 
 const NewPost = () => {
   useTitle("Mafkoudat| New Post");
 
   const { usernameId } = useAuth();
 
-  const { t } = useTranslation();
+  const { t, currentLanguage } = useTranslation();
+  const { currentLanguage: langContext } = useLanguage();
 
   const { user } = useGetUsersQuery("usersList", {
     selectFromResult: ({ data }) => ({
@@ -24,20 +26,24 @@ const NewPost = () => {
   });
 
   const { countries } = useGetCountriesQuery({
-    language: 'en'
+    language: currentLanguage || langContext || 'en'
   }, {
     selectFromResult: ({ data }) => ({
       countries: data?.ids.map((id) => data?.entities[id]),
     }),
   });
 
-  const { categories } = useGetCategoriesQuery("categoriesList", {
+  const { categories } = useGetCategoriesQuery({
+    language: currentLanguage || langContext || 'en'
+  }, {
     selectFromResult: ({ data }) => ({
       categories: data?.ids.map((id) => data?.entities[id]),
     }),
   });
 
-  const { flOptions } = useGetflOptionsQuery("flOptions", {
+  const { flOptions } = useGetflOptionsQuery({
+    language: currentLanguage || langContext || 'en'
+  }, {
     selectFromResult: ({ data }) => ({
       flOptions: data?.ids.map((id) => data?.entities[id]),
     }),

@@ -2,11 +2,11 @@ import React from "react";
 import { Link, useNavigate } from "react-router-dom";
 import defaultImage from "../../../img/ma.jpg";
 import "./sponsored.css";
-import { getCurrentLanguage, t } from "../../utils/languageUtils";
+import { useTranslation } from "../../utils/translations";
 
 const Sponsored = ({ post }) => {
   const navigate = useNavigate();
-  const currentLanguage = getCurrentLanguage();
+  const { t, currentLanguage } = useTranslation();
 
   const handleEdit = (e) => {
     e.preventDefault();

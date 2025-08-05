@@ -4,13 +4,13 @@ import useAuth from "../../../hooks/useAuth";
 import { useGetPostQuery, useGetPostsQuery } from "../postsApiSlice";
 import SinglePostPage from "./SinglePostPage";
 import { LoadingState, ErrorState } from "../../../components/LoadingStates";
-import { getCurrentLanguage } from "../../../utils/languageUtils";
+import { useTranslation as useAppTranslation } from "../../../utils/translations";
 import { useTranslation } from "react-i18next";
 
 const SinglePost = () => {
   const { country } = useAuth();
   const { id } = useParams();
-  const currentLanguage = getCurrentLanguage();
+  const { currentLanguage } = useAppTranslation();
   const { t } = useTranslation();
 
   const { data: post, isLoading, isError, error } = useGetPostQuery({

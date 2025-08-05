@@ -4,9 +4,10 @@ import { useGetPostQuery, useGetPostsQuery } from "../postsApiSlice";
 import { useGetUsersQuery } from "../../userSettings/usersApiSlice";
 import { LoadingState } from "../../../components/LoadingStates";
 import useTitle from "../../../hooks/useTitle";
-import { useGetCountriesQuery } from "../../countries/countriesApiSlice";
+import { useGetCountriesQuery } from "../../dependencies/dependenciesApiSlice";
 import useAuth from "../../../hooks/useAuth";
-import { useTranslation } from "react-i18next";
+import { useTranslation } from "../../../utils/translations";
+import { useLanguage } from "../../../utils/languageContext";
 import {
   useGetCategoriesQuery,
   useGetflOptionsQuery,
@@ -15,14 +16,15 @@ import {
 const EditPost = () => {
   useTitle("mafkoudat: Edit Post");
 
-  const { t } = useTranslation();
+  const { t, currentLanguage } = useTranslation();
+  const { currentLanguage: langContext } = useLanguage();
 
   const { usernameId } = useAuth();
 
   const { id } = useParams();
 
   const { countries } = useGetCountriesQuery({
-    language: 'en'
+    language: currentLanguage || langContext || 'en'
   }, {
     selectFromResult: ({ data }) => ({
       countries: data?.ids.map((id) => data?.entities[id]),
@@ -43,13 +45,17 @@ const EditPost = () => {
     }),
   });
 
-  const { categories } = useGetCategoriesQuery("categoriesList", {
+  const { categories } = useGetCategoriesQuery({
+    language: currentLanguage || langContext || 'en'
+  }, {
     selectFromResult: ({ data }) => ({
       categories: data?.ids.map((id) => data?.entities[id]),
     }),
   });
 
-  const { flOptions } = useGetflOptionsQuery("flOptions", {
+  const { flOptions } = useGetflOptionsQuery({
+    language: currentLanguage || langContext || 'en'
+  }, {
     selectFromResult: ({ data }) => ({
       flOptions: data?.ids.map((id) => data?.entities[id]),
     }),

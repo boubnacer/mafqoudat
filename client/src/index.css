@@ -17,6 +17,33 @@ html {
 body {
   background-color: #F0F2F5; /* Light mode default */
 }
+
+/* RTL Language Support */
+body[dir="rtl"] {
+  direction: rtl;
+  text-align: right;
+}
+
+body[dir="rtl"] .MuiTypography-root {
+  direction: rtl;
+}
+
+body[dir="rtl"] .MuiButton-root {
+  direction: rtl;
+}
+
+body[dir="rtl"] .MuiTextField-root {
+  direction: rtl;
+}
+
+body[dir="rtl"] .MuiInputBase-root {
+  direction: rtl;
+}
+
+/* Ensure proper text alignment for RTL */
+body[dir="rtl"] * {
+  text-align: inherit;
+}
 @media (prefers-color-scheme: dark) {
   body {
     background-color: #121212; /* Dark mode default */

@@ -33,7 +33,8 @@ import {
   ContactPhone as ContactIcon
 } from "@mui/icons-material";
 import FlexBetween from "../../../components/FlexBetween";
-import { getCurrentLanguage, getLabel, isRTL, t } from "../../../utils/languageUtils";
+import { useTranslation } from "../../../utils/translations";
+import { getLabel, isRTL } from "../../../utils/languageUtils";
 import { formatDistanceToNow } from 'date-fns';
 import { ar, fr, enUS } from 'date-fns/locale';
 import RenderIcon from "../../../components/RenderIcon";
@@ -43,7 +44,7 @@ const Post = ({ post, viewMode = "grid" }) => {
   const theme = useTheme();
   const isMobile = useMediaQuery("(max-width:768px)");
   const navigate = useNavigate();
-  const currentLanguage = getCurrentLanguage();
+  const { t, currentLanguage } = useTranslation();
   const isRTLMode = isRTL();
 
   if (post) {
@@ -487,13 +488,15 @@ const Post = ({ post, viewMode = "grid" }) => {
           <Button
             variant="contained"
             size="small"
-            endIcon={<KeyboardArrowRightOutlined />}
+            endIcon={!isRTLMode ? <KeyboardArrowRightOutlined /> : null}
+            startIcon={isRTLMode ? <KeyboardArrowRightOutlined /> : null}
             onClick={handleEdit}
             sx={{
               borderRadius: 2,
               textTransform: 'none',
               fontWeight: 600,
               px: 2,
+              direction: isRTLMode ? 'rtl' : 'ltr',
               ...typographyStyles
             }}
           >

@@ -18,6 +18,7 @@ import sear from "../../img/sear.svg";
 import Socials from "../Socials";
 import PulseLoader from "react-spinners/PulseLoader";
 import RenderIcon from "../RenderIcon";
+import { useTranslation } from "../../utils/translations";
 
 const LeftSide = ({
   totalFounds,
@@ -27,6 +28,7 @@ const LeftSide = ({
   lostsToday,
 }) => {
   const theme = useTheme();
+  const { t } = useTranslation();
 
   // if (!totalFounds || !totalLosts || !totalPosts || !foundsToday || !lostsToday)
   //   return <PulseLoader color={"#FFF"} />;
@@ -60,10 +62,10 @@ const LeftSide = ({
         }}
       >
         <TotalBox
-          title="Found Items"
+          title={t('foundItems')}
           value={totalFounds}
           increase="+14%"
-          description={`+ ${foundsToday} today`}
+          description={`+ ${foundsToday} ${t('today')}`}
           icon={<RenderIcon name="Found" />}
           sx={{
             background: theme.palette.mode === 'dark'
@@ -77,10 +79,10 @@ const LeftSide = ({
         />
 
         <TotalBox
-          title="Lost Items"
+          title={t('lostItems')}
           value={totalLosts}
           increase="+21%"
-          description={`+ ${lostsToday} today`}
+          description={`+ ${lostsToday} ${t('today')}`}
           icon={<RenderIcon name="Lost" />}
           sx={{
             background: theme.palette.mode === 'dark'
@@ -94,10 +96,10 @@ const LeftSide = ({
         />
 
         <TotalBox
-          title="Total Items"
+          title={t('totalItems')}
           value={totalPosts}
           increase="+5%"
-          description="Since last month"
+          description={t('sinceLastMonth')}
           icon={<RenderIcon name="total" />}
           sx={{
             background: theme.palette.mode === 'dark'
@@ -111,10 +113,10 @@ const LeftSide = ({
         />
 
         <TotalBox
-          title="Returned Items"
+          title={t('returnedItems')}
           value="0"
           increase="+5%"
-          description="Since last month"
+          description={t('sinceLastMonth')}
           icon={<RenderIcon name="returned" />}
           sx={{
             background: theme.palette.mode === 'dark'

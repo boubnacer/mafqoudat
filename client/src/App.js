@@ -12,7 +12,7 @@ import useTitle from "./hooks/useTitle";
 import NewUser from "./features/auth/SingUp/NewUser";
 import PersistLogin from "./features/auth/RefreshPage/PersistLogin";
 import SinglePost from "./features/posts/PostPage/SinglePost";
-import { useGetCountriesQuery } from "./features/countries/countriesApiSlice";
+
 import ReportPage from "./features/posts/ReportPage/ReportPage";
 import Dash from "./features/dashboard/Dash";
 import DependenciesManager from "./features/MANAGER/Dependencies/DependenciesManager";
@@ -23,44 +23,25 @@ import { useDispatch, useSelector } from "react-redux";
 import { themeSettings } from "./theme";
 import useAuth from "./hooks/useAuth";
 import PrefetchDependencies from "./features/PrefetchData/PrefetchDependencies";
-import { initializeLanguage } from "./utils/languageUtils";
+import { initializeLanguage, LanguageProvider, useLanguage } from "./utils/languageContext";
 import { cleanupLocalStorage, initializeLocalStorage } from "./utils/localStorageUtils";
 
-function App() {
-  // useTitle("Dan D. Repairs");
 
-  // Initialize language settings and localStorage
-  useEffect(() => {
-    try {
-      initializeLanguage();
-      initializeLocalStorage();
-      cleanupLocalStorage();
-      console.log('App initialized successfully');
-    } catch (error) {
-      console.error('App initialization error:', error);
-    }
-  }, []);
 
+// Inner App component that has access to language context
+const AppContent = () => {
   const mode = useSelector((state) => state.global.mode);
+  const { currentLanguage } = useLanguage();
+  
   const theme = React.useMemo(() => {
     try {
-      return createTheme(themeSettings(mode));
+      // Pass both mode and currentLanguage to theme settings
+      return createTheme(themeSettings(mode, currentLanguage));
     } catch (error) {
       console.error("Theme creation error:", error);
       return createTheme(); // Fallback to a basic theme
     }
-  }, [mode]);
-
-  // const direction = useSelector((state) => state.global.direction);
-  // document.body.setAttribute("dir", direction);
-
-  // const { countries } = useGetCountriesQuery({
-  //   language: getCurrentLanguage()
-  // }, {
-  //   selectFromResult: ({ data }) => ({
-  //     countries: data?.ids.map((id) => data?.entities[id]),
-  //   }),
-  // });
+  }, [mode, currentLanguage]);
 
   return (
     <ThemeProvider theme={theme}>
@@ -95,14 +76,32 @@ function App() {
 
                   <Route path="dependencies" element={<DependenciesManager />} />
                 </Route>
-                {/* End Dash */}
               </Route>
-              {/* End Protected Routes */}
             </Route>
           </Route>
         </Route>
       </Routes>
     </ThemeProvider>
+  );
+};
+
+function App() {
+  // useTitle("Dan D. Repairs");
+
+  // Initialize localStorage (language is now handled by LanguageProvider)
+  useEffect(() => {
+    try {
+      initializeLocalStorage();
+      cleanupLocalStorage();
+    } catch (error) {
+      console.error('App initialization error:', error);
+    }
+  }, []);
+
+  return (
+    <LanguageProvider>
+      <AppContent />
+    </LanguageProvider>
   );
 }
 

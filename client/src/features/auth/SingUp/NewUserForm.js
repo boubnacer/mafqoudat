@@ -4,7 +4,7 @@ import { useNavigate, Link } from "react-router-dom";
 import useTitle from "../../../hooks/useTitle";
 import { useDispatch } from "react-redux";
 import { setCredentials } from "../authSlice";
-import { getCurrentLanguage, t } from "../../../utils/languageUtils";
+import { useTranslation } from "../../../utils/translations";
 import { isRTL } from "../../../utils/languageUtils";
 
 import { LoadingState } from "../../../components/LoadingStates";
@@ -29,6 +29,8 @@ import {
   InputLabel,
   Select,
   MenuItem,
+  Container,
+  Grid,
 } from "@mui/material";
 import {
   Visibility,
@@ -50,7 +52,7 @@ import LanguageToggle from "../../../lang/LanguageToggle";
 import { setMode } from "../../../app/state";
 
 
-// Styled components (same as Login for consistency)
+// Enhanced styled components with better responsiveness and modern design
 const AuthContainer = styled(Box)(({ theme }) => ({
   minHeight: '100vh',
   display: 'flex',
@@ -62,6 +64,7 @@ const AuthContainer = styled(Box)(({ theme }) => ({
   padding: theme?.spacing?.(2) || '16px',
   position: 'relative',
   overflow: 'hidden',
+  direction: theme?.direction || 'ltr',
   '&::before': {
     content: '""',
     position: 'absolute',
@@ -89,6 +92,10 @@ const AuthCard = styled(Paper)(({ theme }) => ({
   [theme?.breakpoints?.down?.('md') || '@media (max-width: 1024px)']: {
     gridTemplateColumns: '1fr',
     maxWidth: 500,
+  },
+  [theme?.breakpoints?.down?.('sm') || '@media (max-width: 600px)']: {
+    maxWidth: '100%',
+    borderRadius: 16,
   }
 }));
 
@@ -102,6 +109,9 @@ const FormSection = styled(Box)(({ theme }) => ({
     : alpha(theme?.palette?.background?.paper || '#fff', 0.95),
   [theme?.breakpoints?.down?.('md') || '@media (max-width: 1024px)']: {
     padding: theme?.spacing?.(4) || '32px',
+  },
+  [theme?.breakpoints?.down?.('sm') || '@media (max-width: 600px)']: {
+    padding: theme?.spacing?.(3) || '24px',
   }
 }));
 
@@ -124,21 +134,29 @@ const StyledTextField = styled(TextField)(({ theme }) => ({
     backgroundColor: theme?.palette?.mode === 'dark' 
       ? alpha(theme?.palette?.common?.white || '#fff', 0.05)
       : alpha(theme?.palette?.common?.black || '#000', 0.02),
+    transition: 'all 0.3s ease',
     '&:hover': {
       backgroundColor: theme?.palette?.mode === 'dark' 
         ? alpha(theme?.palette?.common?.white || '#fff', 0.08)
         : alpha(theme?.palette?.common?.black || '#000', 0.04),
+      transform: 'translateY(-1px)',
     },
     '&.Mui-focused': {
       backgroundColor: theme?.palette?.mode === 'dark' 
         ? alpha(theme?.palette?.common?.white || '#fff', 0.1)
         : alpha(theme?.palette?.common?.black || '#000', 0.06),
+      transform: 'translateY(-2px)',
+      boxShadow: '0 4px 20px rgba(102, 126, 234, 0.15)',
     }
   },
   '& .MuiInputLabel-root': {
     color: theme?.palette?.mode === 'dark' 
       ? alpha(theme?.palette?.common?.white || '#fff', 0.7)
       : alpha(theme?.palette?.common?.black || '#000', 0.6),
+    transition: 'all 0.3s ease',
+  },
+  '& .MuiInputLabel-root.Mui-focused': {
+    color: theme?.palette?.primary?.main || '#667eea',
   }
 }));
 
@@ -148,21 +166,29 @@ const StyledSelect = styled(FormControl)(({ theme }) => ({
     backgroundColor: theme?.palette?.mode === 'dark' 
       ? alpha(theme?.palette?.common?.white || '#fff', 0.05)
       : alpha(theme?.palette?.common?.black || '#000', 0.02),
+    transition: 'all 0.3s ease',
     '&:hover': {
       backgroundColor: theme?.palette?.mode === 'dark' 
         ? alpha(theme?.palette?.common?.white || '#fff', 0.08)
         : alpha(theme?.palette?.common?.black || '#000', 0.04),
+      transform: 'translateY(-1px)',
     },
     '&.Mui-focused': {
       backgroundColor: theme?.palette?.mode === 'dark' 
         ? alpha(theme?.palette?.common?.white || '#fff', 0.1)
         : alpha(theme?.palette?.common?.black || '#000', 0.06),
+      transform: 'translateY(-2px)',
+      boxShadow: '0 4px 20px rgba(102, 126, 234, 0.15)',
     }
   },
   '& .MuiInputLabel-root': {
     color: theme?.palette?.mode === 'dark' 
       ? alpha(theme?.palette?.common?.white || '#fff', 0.7)
       : alpha(theme?.palette?.common?.black || '#000', 0.6),
+    transition: 'all 0.3s ease',
+  },
+  '& .MuiInputLabel-root.Mui-focused': {
+    color: theme?.palette?.primary?.main || '#667eea',
   }
 }));
 
@@ -174,9 +200,40 @@ const StyledButton = styled(Button)(({ theme }) => ({
   textTransform: 'none',
   boxShadow: 'none',
   background: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)',
+  transition: 'all 0.3s ease',
   '&:hover': {
     background: 'linear-gradient(135deg, #5a6fd8 0%, #6a4190 100%)',
     boxShadow: '0 8px 25px rgba(102, 126, 234, 0.3)',
+    transform: 'translateY(-2px)',
+  },
+  '&:active': {
+    transform: 'translateY(0)',
+  }
+}));
+
+const HeaderControls = styled(Box)(({ theme }) => ({
+  position: 'absolute',
+  top: theme?.spacing?.(3) || '24px',
+  right: theme?.spacing?.(3) || '24px',
+  display: 'flex',
+  alignItems: 'center',
+  gap: 1,
+  zIndex: 10,
+  [theme?.breakpoints?.down?.('sm') || '@media (max-width: 600px)']: {
+    top: theme?.spacing?.(2) || '16px',
+    right: theme?.spacing?.(2) || '16px',
+  }
+}));
+
+const BrandTitle = styled(Typography)(({ theme }) => ({
+  fontWeight: 700,
+  background: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)',
+  WebkitBackgroundClip: 'text',
+  WebkitTextFillColor: 'transparent',
+  backgroundClip: 'text',
+  fontSize: '2.5rem',
+  [theme?.breakpoints?.down?.('sm') || '@media (max-width: 600px)']: {
+    fontSize: '2rem',
   }
 }));
 
@@ -187,8 +244,9 @@ const NewUserForm = ({ countries }) => {
   const dispatch = useDispatch();
   const theme = useTheme() || {};
   const isMobile = useMediaQuery(theme?.breakpoints?.down?.('md') || '(max-width: 1024px)');
-  const currentLanguage = getCurrentLanguage();
-  const rtl = isRTL(currentLanguage);
+  const isSmallMobile = useMediaQuery(theme?.breakpoints?.down?.('sm') || '(max-width: 600px)');
+  const { t, currentLanguage } = useTranslation();
+  const isRTLMode = isRTL();
 
   // API
   const [addNewUser, { isLoading, isError, error }] = useAddNewUserMutation();
@@ -253,8 +311,6 @@ const NewUserForm = ({ countries }) => {
       newErrors.confirmPassword = t('passwordMismatch');
     }
 
-
-
     // Country validation
     if (!formData.country) {
       newErrors.country = t('chooseCountry');
@@ -306,17 +362,7 @@ const NewUserForm = ({ countries }) => {
   return (
     <AuthContainer>
       {/* Header Controls */}
-              <Box
-          sx={{
-            position: 'absolute',
-            top: theme?.spacing?.(3) || '24px',
-            right: theme?.spacing?.(3) || '24px',
-            display: 'flex',
-            alignItems: 'center',
-            gap: 1,
-            zIndex: 10,
-          }}
-        >
+      <HeaderControls>
         <LanguageToggle />
         <IconButton
           onClick={() => dispatch(setMode())}
@@ -324,8 +370,10 @@ const NewUserForm = ({ countries }) => {
             color: 'white',
             backgroundColor: alpha(theme.palette.common.white, 0.1),
             backdropFilter: 'blur(10px)',
+            transition: 'all 0.3s ease',
             '&:hover': {
               backgroundColor: alpha(theme.palette.common.white, 0.2),
+              transform: 'scale(1.05)',
             }
           }}
         >
@@ -335,29 +383,21 @@ const NewUserForm = ({ countries }) => {
             <DarkModeOutlined />
           )}
         </IconButton>
-      </Box>
+      </HeaderControls>
 
       <AuthCard>
         <FormSection>
           <Box sx={{ mb: 4, textAlign: 'center' }}>
-            <Typography
-              variant="h3"
-              sx={{
-                fontWeight: 700,
-                background: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)',
-                WebkitBackgroundClip: 'text',
-                WebkitTextFillColor: 'transparent',
-                mb: 1,
-              }}
-            >
+            <BrandTitle variant="h3" sx={{ mb: 1 }}>
               {t('brandName')}
-            </Typography>
+            </BrandTitle>
             <Typography
               variant="h5"
               sx={{
                 color: theme.palette.text.secondary,
                 fontWeight: 500,
                 mb: 1,
+                fontSize: isSmallMobile ? '1.1rem' : '1.25rem',
               }}
             >
               {t('createAccount')}
@@ -366,6 +406,7 @@ const NewUserForm = ({ countries }) => {
               variant="body1"
               sx={{
                 color: theme.palette.text.secondary,
+                fontSize: isSmallMobile ? '0.9rem' : '1rem',
               }}
             >
               {t('createAccountMessage')}
@@ -376,7 +417,13 @@ const NewUserForm = ({ countries }) => {
           {errors.general && (
             <Alert 
               severity="error" 
-              sx={{ mb: 3, borderRadius: 2 }}
+              sx={{ 
+                mb: 3, 
+                borderRadius: 2,
+                '& .MuiAlert-message': {
+                  fontSize: isSmallMobile ? '0.875rem' : '1rem',
+                }
+              }}
               onClose={() => setErrors(prev => ({ ...prev, general: "" }))}
             >
               {errors.general}
@@ -444,6 +491,12 @@ const NewUserForm = ({ countries }) => {
                     <IconButton
                       onClick={() => setShowPassword(!showPassword)}
                       edge="end"
+                      sx={{
+                        color: theme.palette.text.secondary,
+                        '&:hover': {
+                          color: theme.palette.primary.main,
+                        }
+                      }}
                     >
                       {showPassword ? <VisibilityOff /> : <Visibility />}
                     </IconButton>
@@ -473,6 +526,12 @@ const NewUserForm = ({ countries }) => {
                     <IconButton
                       onClick={() => setShowConfirmPassword(!showConfirmPassword)}
                       edge="end"
+                      sx={{
+                        color: theme.palette.text.secondary,
+                        '&:hover': {
+                          color: theme.palette.primary.main,
+                        }
+                      }}
                     >
                       {showConfirmPassword ? <VisibilityOff /> : <Visibility />}
                     </IconButton>
@@ -488,21 +547,35 @@ const NewUserForm = ({ countries }) => {
               variant="contained"
               disabled={isSubmitting}
               endIcon={<ArrowForward />}
-              sx={{ mb: 3 }}
+              sx={{ 
+                mb: 3,
+                fontSize: isSmallMobile ? '0.9rem' : '1rem',
+                py: isSmallMobile ? 1.5 : 2,
+              }}
             >
               {isSubmitting ? t('creatingAccount') : t('createAccount')}
             </StyledButton>
           </Box>
 
           <Divider sx={{ mb: 3 }}>
-            <Typography variant="body2" color="text.secondary">
+            <Typography 
+              variant="body2" 
+              color="text.secondary"
+              sx={{ fontSize: isSmallMobile ? '0.875rem' : '1rem' }}
+            >
               {t('or')}
             </Typography>
           </Divider>
 
           {/* Sign In Link */}
           <Box sx={{ textAlign: 'center' }}>
-            <Typography variant="body1" sx={{ mb: 1 }}>
+            <Typography 
+              variant="body1" 
+              sx={{ 
+                mb: 1,
+                fontSize: isSmallMobile ? '0.9rem' : '1rem',
+              }}
+            >
               {t('alreadyMember')}
             </Typography>
             <Button
@@ -515,9 +588,12 @@ const NewUserForm = ({ countries }) => {
                 fontWeight: 600,
                 borderColor: theme.palette.primary.main,
                 color: theme.palette.primary.main,
+                fontSize: isSmallMobile ? '0.9rem' : '1rem',
+                py: isSmallMobile ? 1 : 1.5,
                 '&:hover': {
                   borderColor: theme.palette.primary.dark,
                   backgroundColor: alpha(theme.palette.primary.main, 0.04),
+                  transform: 'translateY(-1px)',
                 }
               }}
             >
@@ -530,7 +606,10 @@ const NewUserForm = ({ countries }) => {
           <Box sx={{ position: 'relative', zIndex: 1 }}>
             <Lottie 
               animationData={LoginAnimation} 
-              style={{ width: 400, height: 400 }}
+              style={{ 
+                width: isMobile ? 300 : 400, 
+                height: isMobile ? 300 : 400 
+              }}
             />
           </Box>
         </AnimationSection>

@@ -18,14 +18,14 @@ import {
   setFoundOrLost,
 } from "../app/state";
 import RenderIcon from "./RenderIcon";
-import { getCurrentLanguage, t } from "../utils/languageUtils";
+import { useTranslation } from "../utils/translations";
 
 const NAV_REGEX = /^\/dash\/posts(\/)?$/;
 const HOME_REGEX = /^\/dash(\/)?$/;
 
 const NavLinks = () => {
   const theme = useTheme();
-  const currentLanguage = getCurrentLanguage();
+  const { t, currentLanguage } = useTranslation();
 
   const dispatch = useDispatch();
   const navigate = useNavigate();

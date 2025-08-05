@@ -1,8 +1,8 @@
 // mui theme settings
 import { createTheme } from '@mui/material/styles';
 
-export const themeSettings = (mode) => {
-  const isRTL = mode === 'ar' || mode === 'ar-SA'; // Handle both Arabic modes for RTL
+export const themeSettings = (mode, currentLanguage = 'en') => {
+  const isRTL = currentLanguage === 'ar'; // Use currentLanguage for RTL detection
   
   return createTheme({
     direction: isRTL ? 'rtl' : 'ltr',

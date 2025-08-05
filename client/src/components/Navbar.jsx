@@ -43,7 +43,7 @@ import CountryModal from "./CountryModal";
 import { LoadingState } from "./LoadingStates";
 import LanguageToggle from "../lang/LanguageToggle";
 import RenderIcon from "./RenderIcon";
-import { getCurrentLanguage, t } from "../utils/languageUtils";
+import { useTranslation } from "../utils/translations";
 
 const StyledToolbar = styled(Toolbar)(({ theme }) => ({
   justifyContent: "space-between",
@@ -137,7 +137,7 @@ const Navbar = () => {
   const dispatch = useDispatch();
   const navigate = useNavigate();
   const isMobile = useMediaQuery("(max-width:600px)");
-  const currentLanguage = getCurrentLanguage();
+  const { t, currentLanguage } = useTranslation();
 
   const activeLink = useSelector(selectActiveLink);
   const currentCountry = useSelector(selectCurrentCountry);
@@ -189,7 +189,7 @@ const Navbar = () => {
   }, [isSuccess, navigate]);
 
   const onGoHomeClicked = () => navigate("/dash");
-  // const currentLanguage = getCurrentLanguage();
+
 
   if (!countries || !code) return <LoadingState message={t('loadingNavigation')} />;
 
