@@ -2,7 +2,7 @@ import { createApi, fetchBaseQuery } from "@reduxjs/toolkit/query/react";
 import { setCredentials } from "../../features/auth/authSlice";
 
 const baseQuery = fetchBaseQuery({
-  baseUrl: "http://localhost:3500",
+  baseUrl: process.env.REACT_APP_API_URL || "http://localhost:3500",
   credentials: "include", //important, to send the cookie back to the server along with the token
   prepareHeaders: (headers, { getState }) => {
     // api => api.getState => {getState}

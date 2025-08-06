@@ -192,7 +192,8 @@ const Dash = () => {
             : '0 4px 20px rgba(0,0,0,0.1)',
           overflow: 'hidden',
           mb: 4,
-          mx: { xs: 1, sm: 2 }
+          mx: { xs: 1, sm: 2 },
+          direction: currentLanguage === 'ar' ? 'rtl' : 'ltr'
         }}
       >
         <Box 
@@ -207,18 +208,28 @@ const Dash = () => {
             borderBottom: '1px solid',
             borderColor: theme.palette.mode === 'dark' ? 'rgba(255,255,255,0.1)' : 'rgba(0,0,0,0.1)',
             flexDirection: { xs: 'column', sm: 'row' },
-            gap: { xs: 1, sm: 0 }
+            gap: { xs: 1, sm: 0 },
+            direction: currentLanguage === 'ar' ? 'rtl' : 'ltr'
           }}
         >
-          <Box display="flex" alignItems="center" gap={2} width={{ xs: '100%', sm: 'auto' }}>
+          <Box 
+            display="flex" 
+            alignItems="center" 
+            gap={2} 
+            width={{ xs: '100%', sm: 'auto' }}
+            sx={{
+              flexDirection: currentLanguage === 'ar' ? 'row-reverse' : 'row'
+            }}
+          >
             <Typography
               fontWeight="600"
               sx={{
-                fontSize: { xs: "20px", sm: "24px" },
+                fontSize: { xs: "18px", sm: "22px", md: "24px" },
                 color: theme.palette.mode === 'dark' ? '#fff' : '#fff',
                 display: 'flex',
                 alignItems: 'center',
-                gap: 1
+                gap: 1,
+                flexDirection: currentLanguage === 'ar' ? 'row-reverse' : 'row'
               }}
             >
               <WhatshotOutlined sx={{ color: '#FFA500' }} />
@@ -230,7 +241,8 @@ const Dash = () => {
               size="small"
               sx={{ 
                 backgroundColor: theme.palette.mode === 'dark' ? 'rgba(255,255,255,0.1)' : 'rgba(255,255,255,0.2)',
-                color: '#fff'
+                color: '#fff',
+                fontSize: { xs: '0.75rem', sm: '0.875rem' }
               }}
             />
           </Box>
@@ -243,17 +255,18 @@ const Dash = () => {
                 backgroundColor: theme.palette.mode === 'dark' ? 'rgba(255,255,255,0.1)' : 'rgba(255,255,255,0.2)'
               },
               width: { xs: '100%', sm: 'auto' },
-              justifyContent: { xs: 'center', sm: 'flex-end' }
+              justifyContent: { xs: 'center', sm: 'flex-end' },
+              fontSize: { xs: '0.875rem', sm: '1rem' }
             }}
           />
         </Box>
         <Box p={{ xs: 1, sm: 2 }}>
           <FlexCenter>
-                                    <Recent 
-                          recent={data?.recentFounds}
-                          isLoading={isLoading}
-                          emptyState="NoRecentFounds"
-                          sx={{
+            <Recent 
+              recent={data?.recentFounds}
+              isLoading={isLoading}
+              emptyState="NoRecentFounds"
+              sx={{
                 '& .MuiCard-root': {
                   backgroundColor: theme.palette.mode === 'dark' ? '#2d2d2d' : '#fff',
                   transition: 'transform 0.2s ease-in-out, box-shadow 0.2s ease-in-out',
@@ -268,7 +281,7 @@ const Dash = () => {
                   flexDirection: 'column'
                 },
                 '& .MuiCardMedia-root': {
-                  height: { xs: '140px', sm: '200px' },
+                  height: { xs: '140px', sm: '180px', md: '200px' },
                   objectFit: 'cover'
                 },
                 '& .MuiCardContent-root': {
@@ -276,11 +289,11 @@ const Dash = () => {
                   p: { xs: 1.5, sm: 2 }
                 },
                 '& .MuiTypography-h6': {
-                  fontSize: { xs: '1rem', sm: '1.25rem' },
+                  fontSize: { xs: '0.9rem', sm: '1.1rem', md: '1.25rem' },
                   mb: { xs: 0.5, sm: 1 }
                 },
                 '& .MuiTypography-body2': {
-                  fontSize: { xs: '0.875rem', sm: '1rem' }
+                  fontSize: { xs: '0.8rem', sm: '0.9rem', md: '1rem' }
                 }
               }}
             />
@@ -299,7 +312,8 @@ const Dash = () => {
             : '0 4px 20px rgba(0,0,0,0.1)',
           overflow: 'hidden',
           mb: 4,
-          mx: { xs: 1, sm: 2 }
+          mx: { xs: 1, sm: 2 },
+          direction: currentLanguage === 'ar' ? 'rtl' : 'ltr'
         }}
       >
         <Box 
@@ -314,18 +328,28 @@ const Dash = () => {
             borderBottom: '1px solid',
             borderColor: theme.palette.mode === 'dark' ? 'rgba(255,255,255,0.1)' : 'rgba(0,0,0,0.1)',
             flexDirection: { xs: 'column', sm: 'row' },
-            gap: { xs: 1, sm: 0 }
+            gap: { xs: 1, sm: 0 },
+            direction: currentLanguage === 'ar' ? 'rtl' : 'ltr'
           }}
         >
-          <Box display="flex" alignItems="center" gap={2} width={{ xs: '100%', sm: 'auto' }}>
+          <Box 
+            display="flex" 
+            alignItems="center" 
+            gap={2} 
+            width={{ xs: '100%', sm: 'auto' }}
+            sx={{
+              flexDirection: currentLanguage === 'ar' ? 'row-reverse' : 'row'
+            }}
+          >
             <Typography
               fontWeight="600"
               sx={{
-                fontSize: { xs: "20px", sm: "24px" },
+                fontSize: { xs: "18px", sm: "22px", md: "24px" },
                 color: theme.palette.mode === 'dark' ? '#fff' : '#fff',
                 display: 'flex',
                 alignItems: 'center',
-                gap: 1
+                gap: 1,
+                flexDirection: currentLanguage === 'ar' ? 'row-reverse' : 'row'
               }}
             >
               <Search sx={{ color: '#fff' }} />
@@ -337,7 +361,8 @@ const Dash = () => {
               size="small"
               sx={{ 
                 backgroundColor: theme.palette.mode === 'dark' ? 'rgba(255,255,255,0.1)' : 'rgba(255,255,255,0.2)',
-                color: '#fff'
+                color: '#fff',
+                fontSize: { xs: '0.75rem', sm: '0.875rem' }
               }}
             />
           </Box>
@@ -350,17 +375,18 @@ const Dash = () => {
                 backgroundColor: theme.palette.mode === 'dark' ? 'rgba(255,255,255,0.1)' : 'rgba(255,255,255,0.2)'
               },
               width: { xs: '100%', sm: 'auto' },
-              justifyContent: { xs: 'center', sm: 'flex-end' }
+              justifyContent: { xs: 'center', sm: 'flex-end' },
+              fontSize: { xs: '0.875rem', sm: '1rem' }
             }}
           />
         </Box>
         <Box p={{ xs: 1, sm: 2 }}>
           <FlexCenter>
-                                    <Recent 
-                          recent={data?.recentLosts}
-                          isLoading={isLoading}
-                          emptyState="NoRecentLosts"
-                          sx={{
+            <Recent 
+              recent={data?.recentLosts}
+              isLoading={isLoading}
+              emptyState="NoRecentLosts"
+              sx={{
                 '& .MuiCard-root': {
                   backgroundColor: theme.palette.mode === 'dark' ? '#2d2d2d' : '#fff',
                   transition: 'transform 0.2s ease-in-out, box-shadow 0.2s ease-in-out',
@@ -375,7 +401,7 @@ const Dash = () => {
                   flexDirection: 'column'
                 },
                 '& .MuiCardMedia-root': {
-                  height: { xs: '140px', sm: '200px' },
+                  height: { xs: '140px', sm: '180px', md: '200px' },
                   objectFit: 'cover'
                 },
                 '& .MuiCardContent-root': {
@@ -383,11 +409,11 @@ const Dash = () => {
                   p: { xs: 1.5, sm: 2 }
                 },
                 '& .MuiTypography-h6': {
-                  fontSize: { xs: '1rem', sm: '1.25rem' },
+                  fontSize: { xs: '0.9rem', sm: '1.1rem', md: '1.25rem' },
                   mb: { xs: 0.5, sm: 1 }
                 },
                 '& .MuiTypography-body2': {
-                  fontSize: { xs: '0.875rem', sm: '1rem' }
+                  fontSize: { xs: '0.8rem', sm: '0.9rem', md: '1rem' }
                 }
               }}
             />

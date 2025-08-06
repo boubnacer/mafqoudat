@@ -43,7 +43,8 @@ export const useDashboard = () => {
     data, 
     isError, 
     error, 
-    isLoading 
+    isLoading,
+    isFetching
   } = useGetDashboardQuery({
     currentCountry,
     language: currentLanguage
@@ -54,7 +55,8 @@ export const useDashboard = () => {
   // Search query
   const { 
     data: searchData, 
-    isLoading: isSearchLoading 
+    isLoading: isSearchLoading,
+    isFetching: isSearchFetching
   } = useGetPostsQuery({
     page: 1,
     pageSize: 10,
@@ -98,6 +100,9 @@ export const useDashboard = () => {
     helpTab,
     currentCountry,
     currentLanguage,
+    // Loading states
+    isLoading: isLoading || isFetching,
+    isSearchLoading: isSearchLoading || isSearchFetching,
     
     // Data
     data,

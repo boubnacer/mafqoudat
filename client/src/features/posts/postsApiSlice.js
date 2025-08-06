@@ -73,6 +73,10 @@ export const postsApiSlice = apiSlice.injectEndpoints({
         return response;
       },
       providesTags: ["Post"],
+      // Add cache key based on language to ensure proper cache invalidation
+      serializeQueryArgs: ({ queryArgs }) => {
+        return `${queryArgs.page || 1}-${queryArgs.pageSize || 10}-${queryArgs.fl || ''}-${queryArgs.currentCountry || ''}-${queryArgs.categoryId || ''}-${queryArgs.search || ''}-${queryArgs.language || 'en'}`;
+      },
     }),
 
     // get post
@@ -115,6 +119,10 @@ export const postsApiSlice = apiSlice.injectEndpoints({
         return response;
       },
       providesTags: ["Post"],
+      // Add cache key based on language to ensure proper cache invalidation
+      serializeQueryArgs: ({ queryArgs }) => {
+        return `${queryArgs.postId || ''}-${queryArgs.language || 'en'}`;
+      },
     }),
 
     // get dashboard ----------------------------------------------------------------------------------
@@ -167,6 +175,10 @@ export const postsApiSlice = apiSlice.injectEndpoints({
         return response;
       },
       providesTags: ["Dashboard"],
+      // Add cache key based on language to ensure proper cache invalidation
+      serializeQueryArgs: ({ queryArgs }) => {
+        return `${queryArgs.currentCountry || ''}-${queryArgs.language || 'en'}`;
+      },
     }),
 
     addNewPost: builder.mutation({

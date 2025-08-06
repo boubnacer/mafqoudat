@@ -1,31 +1,45 @@
-import { Box, Typography, useTheme, Grid, Card, CardContent, Chip } from "@mui/material";
+import { Box, Typography, useTheme, Grid, Card, CardContent, Chip, useMediaQuery } from "@mui/material";
 import { useGetCategoriesQuery } from "../../features/dependencies/dependenciesApiSlice";
 import { LoadingState, DashboardEmptyStates } from "../LoadingStates";
 import RenderIcon from "../RenderIcon";
 import { useTranslation } from "../../utils/translations";
 import { useLanguage } from "../../utils/languageContext";
+import { useNavigate } from "react-router-dom";
+import { useDispatch } from "react-redux";
+import { setActiveLink } from "../../app/state";
 import { motion } from "framer-motion";
 
 const Categories = () => {
   const { currentLanguage } = useLanguage();
+  const navigate = useNavigate();
+  const dispatch = useDispatch();
+  const theme = useTheme();
+  const isMobile = useMediaQuery(theme.breakpoints.down('sm'));
+  const isTablet = useMediaQuery(theme.breakpoints.down('md'));
+  const { t } = useTranslation();
   
-  const { categories } = useGetCategoriesQuery({
+  const { categories, isLoading, isFetching } = useGetCategoriesQuery({
     language: currentLanguage
   }, {
-    selectFromResult: ({ data }) => ({
+    selectFromResult: ({ data, isLoading, isFetching }) => ({
       categories: data?.ids.map((id) => data?.entities[id]),
+      isLoading,
+      isFetching
     }),
   });
 
-  const theme = useTheme();
-  const { t } = useTranslation();
+  const handleCategoryClick = (categoryCode) => {
+    // Navigate to posts page with category filter
+    navigate("/dash/posts");
+    dispatch(setActiveLink({ active: categoryCode }));
+  };
 
-  if (!categories) return <LoadingState message={t('loadingCategories')} />;
+  if (!categories || isLoading || isFetching) return <LoadingState message={t('loadingCategories')} />;
 
   return (
     <Box sx={{ py: 4 }}>
-      <Grid container spacing={3} justifyContent="center">
-        {categories.map(({ code }, index) => (
+      <Grid container spacing={isMobile ? 2 : 3} justifyContent="center">
+        {categories.map(({ code, labels }, index) => (
           <Grid item xs={6} sm={4} md={3} lg={2} key={code}>
             <motion.div
               initial={{ opacity: 0, y: 20 }}
@@ -37,6 +51,7 @@ const Categories = () => {
               }}
             >
               <Card
+                onClick={() => handleCategoryClick(code)}
                 sx={{
                   cursor: "pointer",
                   background: theme.palette.mode === 'dark'
@@ -50,7 +65,7 @@ const Categories = () => {
                     : '0 8px 32px 0 rgba(0,0,0,0.05)',
                   transition: 'all 0.3s ease',
                   height: '100%',
-                  minHeight: 140,
+                  minHeight: isMobile ? 120 : 140,
                   '&:hover': {
                     transform: 'translateY(-8px)',
                     boxShadow: theme.palette.mode === 'dark'
@@ -66,21 +81,21 @@ const Categories = () => {
                     alignItems: "center",
                     justifyContent: "center",
                     height: "100%",
-                    padding: 3,
+                    padding: isMobile ? 2 : 3,
                     textAlign: "center",
                   }}
                 >
                   <Box
                     sx={{
-                      width: 56,
-                      height: 56,
+                      width: isMobile ? 48 : 56,
+                      height: isMobile ? 48 : 56,
                       display: "flex",
                       alignItems: "center",
                       justifyContent: "center",
                       borderRadius: '16px',
                       background: theme.palette.categories[`${code.toLowerCase()}cate`]?.back || 
                                 theme.palette.categories.back,
-                      marginBottom: 2,
+                      marginBottom: isMobile ? 1.5 : 2,
                       transition: 'all 0.3s ease',
                       '&:hover': {
                         transform: 'scale(1.1)',
@@ -90,7 +105,7 @@ const Categories = () => {
                     <RenderIcon 
                       name={`${code.toLowerCase()}cate`} 
                       sx={{
-                        fontSize: '28px',
+                        fontSize: isMobile ? '24px' : '28px',
                         color: theme.palette.categories[`${code.toLowerCase()}cate`]?.icon || 
                                theme.palette.categories.text,
                       }}
@@ -102,12 +117,12 @@ const Categories = () => {
                     sx={{
                       fontWeight: 600,
                       color: theme.palette.mode === 'dark' ? '#E0E0E0' : '#2D3748',
-                      fontSize: '0.95rem',
+                      fontSize: isMobile ? '0.85rem' : '0.95rem',
                       lineHeight: 1.3,
                       marginBottom: 1,
                     }}
                   >
-                    {t(code?.toLowerCase()) || code}
+                    {labels?.[currentLanguage] || t(code?.toLowerCase()) || code}
                   </Typography>
                   
                   <Chip
@@ -117,7 +132,7 @@ const Categories = () => {
                       background: theme.palette.categories[`${code.toLowerCase()}cate`]?.icon || 
                                 theme.palette.categories.text,
                       color: '#fff',
-                      fontSize: '0.75rem',
+                      fontSize: isMobile ? '0.7rem' : '0.75rem',
                       fontWeight: 500,
                       '&:hover': {
                         background: theme.palette.categories[`${code.toLowerCase()}cate`]?.icon || 

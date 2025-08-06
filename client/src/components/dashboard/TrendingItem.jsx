@@ -11,12 +11,14 @@ import {
 import FlexBetween from "../FlexBetween";
 import RenderIcon from "../RenderIcon";
 import { TrendingItemSkeleton, DashboardEmptyStates } from "../LoadingStates";
+import { useTranslation } from "../../utils/translations";
 import ma from "../../img/ma.jpg";
 
 const TrendingItem = ({ trend, isLoading }) => {
   const { categoryName, floptionName, region, image, createdAt } = trend[0] || {};
   const theme = useTheme();
   const isMobile = useMediaQuery(theme.breakpoints.down('sm'));
+  const { t, currentLanguage } = useTranslation();
 
   if (isLoading) return <TrendingItemSkeleton />;
   if (!trend || !trend[0]) return <DashboardEmptyStates.NoTrending />;
@@ -110,7 +112,7 @@ const TrendingItem = ({ trend, isLoading }) => {
                       fontSize: '14px',
                     }}
                   >
-                    {categoryName}
+                    {t(categoryName?.toLowerCase()) || categoryName}
                   </Typography>
                 </Box>
                 <Box
@@ -138,7 +140,7 @@ const TrendingItem = ({ trend, isLoading }) => {
                       fontWeight: 500,
                     }}
                   >
-                    {floptionName}
+                    {t(floptionName?.toLowerCase()) || floptionName}
                   </Typography>
                   <RenderIcon name={`${floptionName}fl`} />
                 </Box>
@@ -195,7 +197,7 @@ const TrendingItem = ({ trend, isLoading }) => {
                   }}
                   endIcon={<RenderIcon name="view" />}
                 >
-                  Learn More
+                  {t('learnMore')}
                 </Button>
               </Box>
             </CardContent>

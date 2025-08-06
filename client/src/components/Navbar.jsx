@@ -9,14 +9,20 @@ import {
   useTheme,
   styled,
   alpha,
+  Menu,
+  MenuItem,
+  ListItemIcon,
+  ListItemText,
 } from "@mui/material";
 import {
   DarkModeOutlined,
   LightModeOutlined,
-  Menu,
+  Menu as MenuIcon,
   LogoutOutlined,
   Home,
   SwapHorizOutlined,
+  Language,
+  KeyboardArrowDown,
 } from "@mui/icons-material";
 import FlexBetween from "./FlexBetween";
 import {
@@ -31,9 +37,8 @@ import {
 import { useDispatch, useSelector } from "react-redux";
 import { useSendLogoutMutation } from "../features/auth/authApiSlice";
 import { useNavigate } from "react-router-dom";
-import { useEffect } from "react";
+import { useEffect, useState } from "react";
 import { setActiveLink } from "../app/state/index";
-import { useState } from "react";
 import { useGetCountriesQuery } from "../features/countries/countriesApiSlice";
 import { setCurrentCountry } from "../app/state";
 import useAuth from "../hooks/useAuth";
@@ -41,7 +46,6 @@ import NavLinks from "./NavLinks";
 import CountryAutoselect from "./CountryAutoselect";
 import CountryModal from "./CountryModal";
 import { LoadingState } from "./LoadingStates";
-import LanguageToggle from "../lang/LanguageToggle";
 import RenderIcon from "./RenderIcon";
 import { useTranslation } from "../utils/translations";
 
@@ -131,6 +135,28 @@ const CountrySelector = styled(Box)(({ theme }) => ({
   },
 }));
 
+const LanguageSelector = styled(Box)(({ theme }) => ({
+  display: 'flex',
+  alignItems: 'center',
+  padding: '8px 16px',
+  borderRadius: '12px',
+  cursor: 'pointer',
+  background: theme.palette.mode === 'dark' 
+    ? alpha(theme.palette.common.white, 0.05)
+    : alpha(theme.palette.common.black, 0.05),
+  transition: 'all 0.3s ease',
+  '&:hover': {
+    background: theme.palette.mode === 'dark' 
+      ? alpha(theme.palette.common.white, 0.1)
+      : alpha(theme.palette.common.black, 0.1),
+    transform: 'translateY(-2px)',
+  },
+  '& .MuiSvgIcon-root': {
+    marginRight: '8px',
+    fontSize: '20px',
+  },
+}));
+
 const Navbar = () => {
   const { country } = useAuth();
   const theme = useTheme();
@@ -144,6 +170,7 @@ const Navbar = () => {
   const openModal = useSelector(selectOpenModal);
 
   const [countryId, setCountryId] = useState(country);
+  const [languageAnchorEl, setLanguageAnchorEl] = useState(null);
 
   useEffect(() => {
     dispatch(
@@ -171,16 +198,6 @@ const Navbar = () => {
 
   const onCountryIdChanged = (e) => setCountryId(e.target.value);
 
-  // const countryOptions = countries.map(({ id, code }) => {
-  //   return (
-  //     <option key={id} value={id}>
-  //       {code}
-  //     </option>
-  //   );
-  // });
-
-
-
   const [sendLogout, { isLoading, isSuccess, isError, error }] =
     useSendLogoutMutation();
 
@@ -190,6 +207,37 @@ const Navbar = () => {
 
   const onGoHomeClicked = () => navigate("/dash");
 
+  // Language dropdown handlers - same approach as Login/SignUp pages
+  const handleLanguageClick = (event) => {
+    setLanguageAnchorEl(event.currentTarget);
+  };
+
+  const handleLanguageClose = () => {
+    setLanguageAnchorEl(null);
+  };
+
+  const handleLanguageChange = (newLanguage) => {
+    // Save to localStorage and reload page to fetch fresh translations
+    localStorage.setItem('currentLanguage', newLanguage);
+    localStorage.setItem('language', newLanguage);
+    localStorage.setItem('app_language', newLanguage);
+    window.location.reload();
+    handleLanguageClose();
+  };
+
+  // Get language display name
+  const getLanguageDisplayName = (lang) => {
+    switch (lang) {
+      case 'en':
+        return 'English';
+      case 'ar':
+        return 'العربية';
+      case 'fr':
+        return 'Français';
+      default:
+        return 'English';
+    }
+  };
 
   if (!countries || !code) return <LoadingState message={t('loadingNavigation')} />;
 
@@ -245,8 +293,92 @@ const Navbar = () => {
             <RenderIcon name="arrowDown" />
           </CountrySelector>
 
-          {/* Language toggle - always visible */}
-          <LanguageToggle />
+          {/* Language selector - always visible */}
+          <LanguageSelector 
+            onClick={handleLanguageClick}
+            sx={{
+              padding: { xs: '6px 8px', sm: '8px 16px' },
+            }}
+          >
+            <Language />
+            <Typography
+              variant="body2"
+              sx={{
+                fontWeight: 500,
+                fontSize: { xs: '0.8rem', sm: '0.9rem' },
+                display: { xs: 'none', sm: 'block' }
+              }}
+            >
+              {getLanguageDisplayName(currentLanguage)}
+            </Typography>
+            <KeyboardArrowDown sx={{ fontSize: '16px', ml: 0.5 }} />
+          </LanguageSelector>
+
+          {/* Language dropdown menu */}
+          <Menu
+            anchorEl={languageAnchorEl}
+            open={Boolean(languageAnchorEl)}
+            onClose={handleLanguageClose}
+            PaperProps={{
+              sx: {
+                mt: 1,
+                borderRadius: 2,
+                boxShadow: theme.palette.mode === 'dark'
+                  ? '0 8px 32px rgba(0, 0, 0, 0.4)'
+                  : '0 8px 32px rgba(0, 0, 0, 0.1)',
+                background: theme.palette.mode === 'dark'
+                  ? 'rgba(30, 30, 30, 0.95)'
+                  : 'rgba(255, 255, 255, 0.95)',
+                backdropFilter: 'blur(20px)',
+                border: `1px solid ${alpha(theme.palette.divider, 0.1)}`,
+              }
+            }}
+            transformOrigin={{ horizontal: 'right', vertical: 'top' }}
+            anchorOrigin={{ horizontal: 'right', vertical: 'bottom' }}
+          >
+            <MenuItem 
+              onClick={() => handleLanguageChange('en')}
+              sx={{
+                minWidth: 120,
+                '&:hover': {
+                  backgroundColor: alpha(theme.palette.primary.main, 0.1),
+                }
+              }}
+            >
+              <ListItemIcon>
+                <Language sx={{ fontSize: 20 }} />
+              </ListItemIcon>
+              <ListItemText primary="English" />
+            </MenuItem>
+            <MenuItem 
+              onClick={() => handleLanguageChange('ar')}
+              sx={{
+                minWidth: 120,
+                '&:hover': {
+                  backgroundColor: alpha(theme.palette.primary.main, 0.1),
+                }
+              }}
+            >
+              <ListItemIcon>
+                <Language sx={{ fontSize: 20 }} />
+              </ListItemIcon>
+              <ListItemText primary="العربية" />
+            </MenuItem>
+            <MenuItem 
+              onClick={() => handleLanguageChange('fr')}
+              sx={{
+                minWidth: 120,
+                '&:hover': {
+                  backgroundColor: alpha(theme.palette.primary.main, 0.1),
+                }
+              }}
+            >
+              <ListItemIcon>
+                <Language sx={{ fontSize: 20 }} />
+              </ListItemIcon>
+              <ListItemText primary="Français" />
+            </MenuItem>
+          </Menu>
 
           {/* Theme toggle - desktop only */}
           <ActionButton 
@@ -269,7 +401,7 @@ const Navbar = () => {
               display: { xs: 'flex', sm: 'none' }
             }}
           >
-            <Menu sx={{ fontSize: "22px" }} />
+            <MenuIcon sx={{ fontSize: "22px" }} />
           </ActionButton>
 
           {/* Logout button - desktop only */}

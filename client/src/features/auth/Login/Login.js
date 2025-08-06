@@ -11,7 +11,8 @@ import { isRTL } from "../../../utils/languageUtils";
 // Material-UI imports
 import {
   Box,
-  Paper,
+  Card,
+  CardContent,
   TextField,
   Button,
   Typography,
@@ -27,175 +28,202 @@ import {
   styled,
   Container,
   Grid,
+  Paper,
+  Chip,
+  Menu,
+  MenuItem,
+  ListItemIcon,
+  ListItemText,
 } from "@mui/material";
 import {
   Visibility,
   VisibilityOff,
-  Email,
   Lock,
   DarkModeOutlined,
   LightModeOutlined,
   ArrowForward,
   Person,
+  Email,
+  Security,
+  Login as LoginIcon,
+  Language,
+  KeyboardArrowDown,
 } from "@mui/icons-material";
 
-// Animation
-import Lottie from "lottie-react";
-import LoginAnimation from "../../../animations/LoginAnimation.json";
-import LanguageToggle from "../../../lang/LanguageToggle";
 import { setMode } from "../../../app/state";
 
-// Enhanced styled components with better responsiveness and modern design
-const AuthContainer = styled(Box)(({ theme }) => ({
+// Completely new styled components with different design approach
+const PageContainer = styled(Box)(({ theme }) => ({
   minHeight: '100vh',
+  background: theme?.palette?.mode === 'dark' 
+    ? 'linear-gradient(45deg, #0a0a0a 0%, #1a1a1a 50%, #2d2d2d 100%)'
+    : 'linear-gradient(45deg, #f8fafc 0%, #e2e8f0 50%, #cbd5e1 100%)',
   display: 'flex',
   alignItems: 'center',
   justifyContent: 'center',
-  background: theme?.palette?.mode === 'dark' 
-    ? 'linear-gradient(135deg, #1a1a2e 0%, #16213e 50%, #0f3460 100%)'
-    : 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)',
   padding: theme?.spacing?.(2) || '16px',
   position: 'relative',
-  overflow: 'hidden',
   direction: theme?.direction || 'ltr',
+}));
+
+const FloatingCard = styled(Card)(({ theme }) => ({
+  width: '100%',
+  maxWidth: 450,
+  borderRadius: 20,
+  boxShadow: theme?.palette?.mode === 'dark'
+    ? '0 25px 50px rgba(0, 0, 0, 0.5), 0 0 0 1px rgba(255, 255, 255, 0.05)'
+    : '0 25px 50px rgba(0, 0, 0, 0.1), 0 0 0 1px rgba(255, 255, 255, 0.8)',
+  backdropFilter: 'blur(20px)',
+  background: theme?.palette?.mode === 'dark'
+    ? 'rgba(30, 30, 30, 0.9)'
+    : 'rgba(255, 255, 255, 0.9)',
+  border: `1px solid ${alpha(theme?.palette?.primary?.main || '#667eea', 0.1)}`,
+  transition: 'all 0.3s ease',
+  '&:hover': {
+    transform: 'translateY(-5px)',
+    boxShadow: theme?.palette?.mode === 'dark'
+      ? '0 35px 70px rgba(0, 0, 0, 0.6), 0 0 0 1px rgba(255, 255, 255, 0.1)'
+      : '0 35px 70px rgba(0, 0, 0, 0.15), 0 0 0 1px rgba(255, 255, 255, 0.9)',
+  }
+}));
+
+const HeaderSection = styled(Box)(({ theme }) => ({
+  textAlign: 'center',
+  marginBottom: theme?.spacing?.(4) || '32px',
+  position: 'relative',
+}));
+
+const BrandLogo = styled(Box)(({ theme }) => ({
+  width: 80,
+  height: 80,
+  borderRadius: '50%',
+  background: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)',
+  display: 'flex',
+  alignItems: 'center',
+  justifyContent: 'center',
+  margin: '0 auto 16px',
+  boxShadow: '0 10px 30px rgba(102, 126, 234, 0.3)',
+  '& svg': {
+    fontSize: 40,
+    color: 'white',
+  }
+}));
+
+const ModernTextField = styled(TextField)(({ theme }) => ({
+  '& .MuiOutlinedInput-root': {
+    borderRadius: 12,
+    backgroundColor: theme?.palette?.mode === 'dark' 
+      ? 'rgba(255, 255, 255, 0.05)'
+      : 'rgba(0, 0, 0, 0.02)',
+    border: `1px solid ${alpha(theme?.palette?.primary?.main || '#667eea', 0.1)}`,
+    transition: 'all 0.3s ease',
+    '&:hover': {
+      borderColor: alpha(theme?.palette?.primary?.main || '#667eea', 0.3),
+      backgroundColor: theme?.palette?.mode === 'dark' 
+        ? 'rgba(255, 255, 255, 0.08)'
+        : 'rgba(0, 0, 0, 0.04)',
+    },
+    '&.Mui-focused': {
+      borderColor: theme?.palette?.primary?.main || '#667eea',
+      backgroundColor: theme?.palette?.mode === 'dark' 
+        ? 'rgba(255, 255, 255, 0.1)'
+        : 'rgba(0, 0, 0, 0.06)',
+      boxShadow: `0 0 0 3px ${alpha(theme?.palette?.primary?.main || '#667eea', 0.1)}`,
+    }
+  },
+  '& .MuiInputLabel-root': {
+    color: theme?.palette?.text?.secondary,
+    fontWeight: 500,
+  },
+  '& .MuiInputLabel-root.Mui-focused': {
+    color: theme?.palette?.primary?.main || '#667eea',
+    fontWeight: 600,
+  }
+}));
+
+const ActionButton = styled(Button)(({ theme }) => ({
+  borderRadius: 12,
+  padding: '12px 24px',
+  fontSize: '1rem',
+  fontWeight: 600,
+  textTransform: 'none',
+  background: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)',
+  color: 'white',
+  border: 'none',
+  transition: 'all 0.3s ease',
+  position: 'relative',
+  overflow: 'hidden',
+  '&:hover': {
+    background: 'linear-gradient(135deg, #5a6fd8 0%, #6a4190 100%)',
+    transform: 'translateY(-2px)',
+    boxShadow: '0 10px 25px rgba(102, 126, 234, 0.4)',
+  },
+  '&:active': {
+    transform: 'translateY(0)',
+  },
   '&::before': {
     content: '""',
     position: 'absolute',
     top: 0,
-    left: 0,
-    right: 0,
-    bottom: 0,
-    background: 'url("data:image/svg+xml,%3Csvg width="60" height="60" viewBox="0 0 60 60" xmlns="http://www.w3.org/2000/svg"%3E%3Cg fill="none" fill-rule="evenodd"%3E%3Cg fill="%23ffffff" fill-opacity="0.05"%3E%3Ccircle cx="30" cy="30" r="2"/%3E%3C/g%3E%3C/g%3E%3C/svg%3E")',
-    opacity: 0.3,
-  }
-}));
-
-const AuthCard = styled(Paper)(({ theme }) => ({
-  width: '100%',
-  maxWidth: 1200,
-  display: 'grid',
-  gridTemplateColumns: '1fr 1fr',
-  borderRadius: 24,
-  overflow: 'hidden',
-  boxShadow: theme?.palette?.mode === 'dark'
-    ? '0 20px 40px rgba(0, 0, 0, 0.4)'
-    : '0 20px 40px rgba(0, 0, 0, 0.1)',
-  backdropFilter: 'blur(20px)',
-  border: `1px solid ${alpha(theme?.palette?.common?.white || '#fff', 0.1)}`,
-  [theme?.breakpoints?.down?.('md') || '@media (max-width: 1024px)']: {
-    gridTemplateColumns: '1fr',
-    maxWidth: 500,
+    left: '-100%',
+    width: '100%',
+    height: '100%',
+    background: 'linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.2), transparent)',
+    transition: 'left 0.5s',
   },
-  [theme?.breakpoints?.down?.('sm') || '@media (max-width: 600px)']: {
-    maxWidth: '100%',
-    borderRadius: 16,
+  '&:hover::before': {
+    left: '100%',
   }
 }));
 
-const FormSection = styled(Box)(({ theme }) => ({
-  padding: theme?.spacing?.(6) || '48px',
-  display: 'flex',
-  flexDirection: 'column',
-  justifyContent: 'center',
-  background: theme?.palette?.mode === 'dark' 
-    ? alpha(theme?.palette?.background?.paper || '#fff', 0.9)
-    : alpha(theme?.palette?.background?.paper || '#fff', 0.95),
-  [theme?.breakpoints?.down?.('md') || '@media (max-width: 1024px)']: {
-    padding: theme?.spacing?.(4) || '32px',
-  },
-  [theme?.breakpoints?.down?.('sm') || '@media (max-width: 600px)']: {
-    padding: theme?.spacing?.(3) || '24px',
-  }
-}));
-
-const AnimationSection = styled(Box)(({ theme }) => ({
-  display: 'flex',
-  alignItems: 'center',
-  justifyContent: 'center',
-  background: theme?.palette?.mode === 'dark'
-    ? 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)'
-    : 'linear-gradient(135deg, #f093fb 0%, #f5576c 100%)',
-  position: 'relative',
-  [theme?.breakpoints?.down?.('md') || '@media (max-width: 1024px)']: {
-    display: 'none',
-  }
-}));
-
-const StyledTextField = styled(TextField)(({ theme }) => ({
-  '& .MuiOutlinedInput-root': {
-    borderRadius: 12,
-    backgroundColor: theme?.palette?.mode === 'dark' 
-      ? alpha(theme?.palette?.common?.white || '#fff', 0.05)
-      : alpha(theme?.palette?.common?.black || '#000', 0.02),
-    transition: 'all 0.3s ease',
-    '&:hover': {
-      backgroundColor: theme?.palette?.mode === 'dark' 
-        ? alpha(theme?.palette?.common?.white || '#fff', 0.08)
-        : alpha(theme?.palette?.common?.black || '#000', 0.04),
-      transform: 'translateY(-1px)',
-    },
-    '&.Mui-focused': {
-      backgroundColor: theme?.palette?.mode === 'dark' 
-        ? alpha(theme?.palette?.common?.white || '#fff', 0.1)
-        : alpha(theme?.palette?.common?.black || '#000', 0.06),
-      transform: 'translateY(-2px)',
-      boxShadow: '0 4px 20px rgba(102, 126, 234, 0.15)',
-    }
-  },
-  '& .MuiInputLabel-root': {
-    color: theme?.palette?.mode === 'dark' 
-      ? alpha(theme?.palette?.common?.white || '#fff', 0.7)
-      : alpha(theme?.palette?.common?.black || '#000', 0.6),
-    transition: 'all 0.3s ease',
-  },
-  '& .MuiInputLabel-root.Mui-focused': {
-    color: theme?.palette?.primary?.main || '#667eea',
-  }
-}));
-
-const StyledButton = styled(Button)(({ theme }) => ({
-  borderRadius: 12,
-  padding: theme.spacing(1.5, 4),
-  fontSize: '1rem',
-  fontWeight: 600,
-  textTransform: 'none',
-  boxShadow: 'none',
-  background: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)',
-  transition: 'all 0.3s ease',
-  '&:hover': {
-    background: 'linear-gradient(135deg, #5a6fd8 0%, #6a4190 100%)',
-    boxShadow: '0 8px 25px rgba(102, 126, 234, 0.3)',
-    transform: 'translateY(-2px)',
-  },
-  '&:active': {
-    transform: 'translateY(0)',
-  }
-}));
-
-const HeaderControls = styled(Box)(({ theme }) => ({
+const ControlPanel = styled(Box)(({ theme }) => ({
   position: 'absolute',
   top: theme?.spacing?.(3) || '24px',
   right: theme?.spacing?.(3) || '24px',
   display: 'flex',
   alignItems: 'center',
-  gap: 1,
+  gap: theme?.spacing?.(1) || '8px',
   zIndex: 10,
-  [theme?.breakpoints?.down?.('sm') || '@media (max-width: 600px)']: {
-    top: theme?.spacing?.(2) || '16px',
-    right: theme?.spacing?.(2) || '16px',
+}));
+
+const ControlButton = styled(IconButton)(({ theme }) => ({
+  backgroundColor: theme?.palette?.mode === 'dark' 
+    ? 'rgba(255, 255, 255, 0.1)'
+    : 'rgba(0, 0, 0, 0.05)',
+  backdropFilter: 'blur(10px)',
+  border: `1px solid ${alpha(theme?.palette?.primary?.main || '#667eea', 0.1)}`,
+  color: theme?.palette?.text?.primary,
+  transition: 'all 0.3s ease',
+  '&:hover': {
+    backgroundColor: theme?.palette?.mode === 'dark' 
+      ? 'rgba(255, 255, 255, 0.2)'
+      : 'rgba(0, 0, 0, 0.1)',
+    transform: 'scale(1.05)',
   }
 }));
 
-const BrandTitle = styled(Typography)(({ theme }) => ({
-  fontWeight: 700,
-  background: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)',
-  WebkitBackgroundClip: 'text',
-  WebkitTextFillColor: 'transparent',
-  backgroundClip: 'text',
-  fontSize: '2.5rem',
-  [theme?.breakpoints?.down?.('sm') || '@media (max-width: 600px)']: {
-    fontSize: '2rem',
-  }
+const LanguageSelector = styled(Box)(({ theme }) => ({
+  display: 'flex',
+  alignItems: 'center',
+  padding: '8px 16px',
+  borderRadius: '12px',
+  cursor: 'pointer',
+  background: theme?.palette?.mode === 'dark' 
+    ? 'rgba(255, 255, 255, 0.1)'
+    : 'rgba(0, 0, 0, 0.05)',
+  backdropFilter: 'blur(10px)',
+  border: `1px solid ${alpha(theme?.palette?.primary?.main || '#667eea', 0.1)}`,
+  transition: 'all 0.3s ease',
+  '&:hover': {
+    background: theme?.palette?.mode === 'dark' 
+      ? 'rgba(255, 255, 255, 0.2)'
+      : 'rgba(0, 0, 0, 0.1)',
+    transform: 'translateY(-2px)',
+  },
+  '& .MuiSvgIcon-root': {
+    marginRight: '8px',
+    fontSize: '20px',
+  },
 }));
 
 const Login = () => {
@@ -204,8 +232,7 @@ const Login = () => {
   const navigate = useNavigate();
   const dispatch = useDispatch();
   const theme = useTheme() || {};
-  const isMobile = useMediaQuery(theme?.breakpoints?.down?.('md') || '(max-width: 1024px)');
-  const isSmallMobile = useMediaQuery(theme?.breakpoints?.down?.('sm') || '(max-width: 600px)');
+  const isMobile = useMediaQuery(theme?.breakpoints?.down?.('sm') || '(max-width: 600px)');
   const { t, currentLanguage } = useTranslation();
   const isRTLMode = isRTL();
 
@@ -218,6 +245,7 @@ const Login = () => {
   const [showPassword, setShowPassword] = useState(false);
   const [error, setError] = useState("");
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [languageAnchorEl, setLanguageAnchorEl] = useState(null);
 
   // API
   const [login, { isLoading }] = useLoginMutation();
@@ -244,6 +272,38 @@ const Login = () => {
       ...prev,
       rememberMe: event.target.checked
     }));
+  };
+
+  // Language dropdown handlers - same approach as navbar
+  const handleLanguageClick = (event) => {
+    setLanguageAnchorEl(event.currentTarget);
+  };
+
+  const handleLanguageClose = () => {
+    setLanguageAnchorEl(null);
+  };
+
+  const handleLanguageChange = (newLanguage) => {
+    // Save to localStorage and reload page to fetch fresh translations
+    localStorage.setItem('currentLanguage', newLanguage);
+    localStorage.setItem('language', newLanguage);
+    localStorage.setItem('app_language', newLanguage);
+    window.location.reload();
+    handleLanguageClose();
+  };
+
+  // Get language display name
+  const getLanguageDisplayName = (lang) => {
+    switch (lang) {
+      case 'en':
+        return 'English';
+      case 'ar':
+        return 'العربية';
+      case 'fr':
+        return 'Français';
+      default:
+        return 'English';
+    }
   };
 
   // Handle form submission
@@ -294,255 +354,318 @@ const Login = () => {
   }
 
   return (
-    <AuthContainer>
-      {/* Header Controls */}
-      <HeaderControls>
-        <LanguageToggle />
-        <IconButton
-          onClick={() => dispatch(setMode())}
-          sx={{
-            color: 'white',
-            backgroundColor: alpha(theme.palette.common.white, 0.1),
-            backdropFilter: 'blur(10px)',
-            transition: 'all 0.3s ease',
-            '&:hover': {
-              backgroundColor: alpha(theme.palette.common.white, 0.2),
-              transform: 'scale(1.05)',
+    <PageContainer>
+      {/* Control Panel */}
+      <ControlPanel>
+        {/* Language selector */}
+        <LanguageSelector onClick={handleLanguageClick}>
+          <Language />
+          <Typography
+            variant="body2"
+            sx={{
+              fontWeight: 500,
+              fontSize: '0.9rem',
+              display: { xs: 'none', sm: 'block' }
+            }}
+          >
+            {getLanguageDisplayName(currentLanguage)}
+          </Typography>
+          <KeyboardArrowDown sx={{ fontSize: '16px', ml: 0.5 }} />
+        </LanguageSelector>
+
+        {/* Language dropdown menu */}
+        <Menu
+          anchorEl={languageAnchorEl}
+          open={Boolean(languageAnchorEl)}
+          onClose={handleLanguageClose}
+          PaperProps={{
+            sx: {
+              mt: 1,
+              borderRadius: 2,
+              boxShadow: theme.palette.mode === 'dark'
+                ? '0 8px 32px rgba(0, 0, 0, 0.4)'
+                : '0 8px 32px rgba(0, 0, 0, 0.1)',
+              background: theme.palette.mode === 'dark'
+                ? 'rgba(30, 30, 30, 0.95)'
+                : 'rgba(255, 255, 255, 0.95)',
+              backdropFilter: 'blur(20px)',
+              border: `1px solid ${alpha(theme.palette.divider, 0.1)}`,
             }
           }}
+          transformOrigin={{ horizontal: 'right', vertical: 'top' }}
+          anchorOrigin={{ horizontal: 'right', vertical: 'bottom' }}
+        >
+          <MenuItem 
+            onClick={() => handleLanguageChange('en')}
+            sx={{
+              minWidth: 120,
+              '&:hover': {
+                backgroundColor: alpha(theme.palette.primary.main, 0.1),
+              }
+            }}
+          >
+            <ListItemIcon>
+              <Language sx={{ fontSize: 20 }} />
+            </ListItemIcon>
+            <ListItemText primary="English" />
+          </MenuItem>
+          <MenuItem 
+            onClick={() => handleLanguageChange('ar')}
+            sx={{
+              minWidth: 120,
+              '&:hover': {
+                backgroundColor: alpha(theme.palette.primary.main, 0.1),
+              }
+            }}
+          >
+            <ListItemIcon>
+              <Language sx={{ fontSize: 20 }} />
+            </ListItemIcon>
+            <ListItemText primary="العربية" />
+          </MenuItem>
+          <MenuItem 
+            onClick={() => handleLanguageChange('fr')}
+            sx={{
+              minWidth: 120,
+              '&:hover': {
+                backgroundColor: alpha(theme.palette.primary.main, 0.1),
+              }
+            }}
+          >
+            <ListItemIcon>
+              <Language sx={{ fontSize: 20 }} />
+            </ListItemIcon>
+            <ListItemText primary="Français" />
+          </MenuItem>
+        </Menu>
+
+        <ControlButton
+          onClick={() => dispatch(setMode())}
+          size="small"
         >
           {theme.palette.mode === "dark" ? (
             <LightModeOutlined />
           ) : (
             <DarkModeOutlined />
           )}
-        </IconButton>
-      </HeaderControls>
+        </ControlButton>
+      </ControlPanel>
 
-      <AuthCard>
-        <FormSection>
-          <Box sx={{ mb: 4, textAlign: 'center' }}>
-            <BrandTitle variant="h3" sx={{ mb: 1 }}>
-              {t('brandName')}
-            </BrandTitle>
-            <Typography
-              variant="h5"
-              sx={{
-                color: theme.palette.text.secondary,
-                fontWeight: 500,
-                mb: 1,
-                fontSize: isSmallMobile ? '1.1rem' : '1.25rem',
-              }}
-            >
-              {t('welcomeBack')}
-            </Typography>
-            <Typography
-              variant="body1"
-              sx={{
-                color: theme.palette.text.secondary,
-                fontSize: isSmallMobile ? '0.9rem' : '1rem',
-              }}
-            >
-              {t('welcomeMessage')}
-            </Typography>
-          </Box>
-
-          {/* Error Alert */}
-          {error && (
-            <Alert 
-              severity="error" 
-              sx={{ 
-                mb: 3, 
-                borderRadius: 2,
-                '& .MuiAlert-message': {
-                  fontSize: isSmallMobile ? '0.875rem' : '1rem',
-                }
-              }}
-              onClose={() => setError("")}
-            >
-              {error}
-            </Alert>
-          )}
-
-          {/* Login Form */}
-          <Box component="form" onSubmit={handleSubmit} sx={{ mb: 3 }}>
-            <StyledTextField
-              fullWidth
-              label={t('username')}
-              value={formData.username}
-              onChange={handleInputChange('username')}
-              margin="normal"
-              InputProps={{
-                startAdornment: !isRTLMode ? (
-                  <InputAdornment position="start">
-                    <Person sx={{ color: theme.palette.text.secondary }} />
-                  </InputAdornment>
-                ) : null,
-                endAdornment: isRTLMode ? (
-                  <InputAdornment position="end">
-                    <Person sx={{ color: theme.palette.text.secondary }} />
-                  </InputAdornment>
-                ) : null,
-              }}
-              sx={{ 
-                mb: 2,
-                direction: isRTLMode ? 'rtl' : 'ltr'
-              }}
-            />
-
-            <StyledTextField
-              fullWidth
-              label={t('password')}
-              type={showPassword ? 'text' : 'password'}
-              value={formData.password}
-              onChange={handleInputChange('password')}
-              margin="normal"
-              InputProps={{
-                startAdornment: !isRTLMode ? (
-                  <InputAdornment position="start">
-                    <Lock sx={{ color: theme.palette.text.secondary }} />
-                  </InputAdornment>
-                ) : null,
-                endAdornment: (
-                  <InputAdornment position="end">
-                    <IconButton
-                      onClick={() => setShowPassword(!showPassword)}
-                      edge="end"
-                      sx={{
-                        color: theme.palette.text.secondary,
-                        '&:hover': {
-                          color: theme.palette.primary.main,
-                        }
-                      }}
-                    >
-                      {showPassword ? <VisibilityOff /> : <Visibility />}
-                    </IconButton>
-                  </InputAdornment>
-                ),
-              }}
-              sx={{ 
-                mb: 2,
-                direction: isRTLMode ? 'rtl' : 'ltr'
-              }}
-            />
-
-            <Box sx={{ 
-              display: 'flex', 
-              justifyContent: 'space-between', 
-              alignItems: 'center', 
-              mb: 3,
-              flexDirection: isSmallMobile ? 'column' : 'row',
-              gap: isSmallMobile ? 2 : 0,
-            }}>
-              <FormControlLabel
-                control={
-                  <Checkbox
-                    checked={formData.rememberMe}
-                    onChange={handleCheckboxChange}
-                    sx={{
-                      '&.Mui-checked': {
-                        color: '#667eea',
-                      },
-                    }}
-                  />
-                }
-                label={t('rememberMe')}
+      <Container maxWidth="sm">
+        <FloatingCard>
+          <CardContent sx={{ padding: isMobile ? 3 : 4 }}>
+            {/* Header */}
+            <HeaderSection>
+              <BrandLogo>
+                <Security />
+              </BrandLogo>
+              <Typography
+                variant="h4"
                 sx={{
-                  fontSize: isSmallMobile ? '0.875rem' : '1rem',
+                  fontWeight: 700,
+                  background: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)',
+                  WebkitBackgroundClip: 'text',
+                  WebkitTextFillColor: 'transparent',
+                  backgroundClip: 'text',
+                  mb: 1,
                 }}
+              >
+                {t('brandName')}
+              </Typography>
+              <Typography
+                variant="h6"
+                sx={{
+                  color: theme.palette.text.secondary,
+                  fontWeight: 500,
+                  mb: 1,
+                }}
+              >
+                {t('welcomeBack')}
+              </Typography>
+              <Typography
+                variant="body2"
+                sx={{
+                  color: theme.palette.text.secondary,
+                  opacity: 0.8,
+                }}
+              >
+                {t('welcomeMessage')}
+              </Typography>
+            </HeaderSection>
+
+            {/* Error Alert */}
+            {error && (
+              <Alert 
+                severity="error" 
+                sx={{ 
+                  mb: 3, 
+                  borderRadius: 2,
+                  border: `1px solid ${alpha(theme.palette.error.main, 0.2)}`,
+                }}
+                onClose={() => setError("")}
+              >
+                {error}
+              </Alert>
+            )}
+
+            {/* Login Form */}
+            <Box component="form" onSubmit={handleSubmit} sx={{ mb: 3 }}>
+              <ModernTextField
+                fullWidth
+                label={t('username')}
+                value={formData.username}
+                onChange={handleInputChange('username')}
+                margin="normal"
+                InputProps={{
+                  startAdornment: (
+                    <InputAdornment position="start">
+                      <Person sx={{ color: theme.palette.text.secondary }} />
+                    </InputAdornment>
+                  ),
+                }}
+                sx={{ mb: 2 }}
               />
+
+              <ModernTextField
+                fullWidth
+                label={t('password')}
+                type={showPassword ? 'text' : 'password'}
+                value={formData.password}
+                onChange={handleInputChange('password')}
+                margin="normal"
+                InputProps={{
+                  startAdornment: (
+                    <InputAdornment position="start">
+                      <Lock sx={{ color: theme.palette.text.secondary }} />
+                    </InputAdornment>
+                  ),
+                  endAdornment: (
+                    <InputAdornment position="end">
+                      <IconButton
+                        onClick={() => setShowPassword(!showPassword)}
+                        edge="end"
+                        size="small"
+                        sx={{
+                          color: theme.palette.text.secondary,
+                          '&:hover': {
+                            color: theme.palette.primary.main,
+                          }
+                        }}
+                      >
+                        {showPassword ? <VisibilityOff /> : <Visibility />}
+                      </IconButton>
+                    </InputAdornment>
+                  ),
+                }}
+                sx={{ mb: 2 }}
+              />
+
+              <Box sx={{ 
+                display: 'flex', 
+                justifyContent: 'space-between', 
+                alignItems: 'center', 
+                mb: 3,
+                flexWrap: 'wrap',
+                gap: 1,
+              }}>
+                <FormControlLabel
+                  control={
+                    <Checkbox
+                      checked={formData.rememberMe}
+                      onChange={handleCheckboxChange}
+                      sx={{
+                        '&.Mui-checked': {
+                          color: theme.palette.primary.main,
+                        },
+                      }}
+                    />
+                  }
+                  label={t('rememberMe')}
+                  sx={{
+                    fontSize: '0.875rem',
+                  }}
+                />
+                <Button
+                  component={Link}
+                  to="/forgot-password"
+                  sx={{
+                    color: theme.palette.primary.main,
+                    textDecoration: 'none',
+                    fontSize: '0.875rem',
+                    fontWeight: 500,
+                    '&:hover': {
+                      textDecoration: 'underline',
+                      backgroundColor: alpha(theme.palette.primary.main, 0.04),
+                    }
+                  }}
+                >
+                  {t('forgotPassword')}
+                </Button>
+              </Box>
+
+              <ActionButton
+                type="submit"
+                fullWidth
+                variant="contained"
+                disabled={isSubmitting}
+                startIcon={<LoginIcon />}
+                sx={{ 
+                  mb: 3,
+                  py: 1.5,
+                }}
+              >
+                {isSubmitting ? t('signingIn') : t('signin')}
+              </ActionButton>
+            </Box>
+
+            <Divider sx={{ mb: 3 }}>
+              <Typography 
+                variant="body2" 
+                color="text.secondary"
+                sx={{ px: 2 }}
+              >
+                {t('or')}
+              </Typography>
+            </Divider>
+
+            {/* Sign Up Link */}
+            <Box sx={{ textAlign: 'center' }}>
+              <Typography 
+                variant="body2" 
+                sx={{ 
+                  mb: 2,
+                  color: theme.palette.text.secondary,
+                }}
+              >
+                {t('firstTime')}
+              </Typography>
               <Button
                 component={Link}
-                to="/forgot-password"
+                to="/signup"
+                variant="outlined"
                 sx={{
+                  borderRadius: 2,
+                  textTransform: 'none',
+                  fontWeight: 600,
+                  borderColor: alpha(theme.palette.primary.main, 0.3),
                   color: theme.palette.primary.main,
-                  textDecoration: 'none',
-                  fontSize: isSmallMobile ? '0.875rem' : '1rem',
+                  py: 1,
+                  px: 3,
                   '&:hover': {
-                    textDecoration: 'underline',
-                    color: theme.palette.primary.dark,
+                    borderColor: theme.palette.primary.main,
+                    backgroundColor: alpha(theme.palette.primary.main, 0.04),
+                    transform: 'translateY(-1px)',
                   }
                 }}
               >
-                {t('forgotPassword')}
+                {t('createAccount')}
               </Button>
             </Box>
-
-            <StyledButton
-              type="submit"
-              fullWidth
-              variant="contained"
-              disabled={isSubmitting}
-              endIcon={<ArrowForward />}
-              sx={{ 
-                mb: 3,
-                fontSize: isSmallMobile ? '0.9rem' : '1rem',
-                py: isSmallMobile ? 1.5 : 2,
-              }}
-            >
-              {isSubmitting ? t('signingIn') : t('signin')}
-            </StyledButton>
-          </Box>
-
-          <Divider sx={{ mb: 3 }}>
-            <Typography 
-              variant="body2" 
-              color="text.secondary"
-              sx={{ fontSize: isSmallMobile ? '0.875rem' : '1rem' }}
-            >
-              {t('or')}
-            </Typography>
-          </Divider>
-
-          {/* Sign Up Link */}
-          <Box sx={{ textAlign: 'center' }}>
-            <Typography 
-              variant="body1" 
-              sx={{ 
-                mb: 1,
-                fontSize: isSmallMobile ? '0.9rem' : '1rem',
-              }}
-            >
-              {t('firstTime')}
-            </Typography>
-            <Button
-              component={Link}
-              to="/signup"
-              variant="outlined"
-              sx={{
-                borderRadius: 2,
-                textTransform: 'none',
-                fontWeight: 600,
-                borderColor: theme.palette.primary.main,
-                color: theme.palette.primary.main,
-                fontSize: isSmallMobile ? '0.9rem' : '1rem',
-                py: isSmallMobile ? 1 : 1.5,
-                '&:hover': {
-                  borderColor: theme.palette.primary.dark,
-                  backgroundColor: alpha(theme.palette.primary.main, 0.04),
-                  transform: 'translateY(-1px)',
-                }
-              }}
-            >
-              {t('createAccount')}
-            </Button>
-          </Box>
-        </FormSection>
-
-        <AnimationSection>
-          <Box sx={{ position: 'relative', zIndex: 1 }}>
-            <Lottie 
-              animationData={LoginAnimation} 
-              style={{ 
-                width: isMobile ? 300 : 400, 
-                height: isMobile ? 300 : 400 
-              }}
-            />
-          </Box>
-        </AnimationSection>
-      </AuthCard>
-    </AuthContainer>
+          </CardContent>
+        </FloatingCard>
+      </Container>
+    </PageContainer>
   );
 };
 
-export default Login;
+export default Login; 

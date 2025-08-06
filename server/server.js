@@ -10,22 +10,51 @@ const cors = require("cors");
 const corsOptions = require("./config/corsOptions");
 const connectDB = require("./config/dbConn");
 const mongoose = require("mongoose");
+const helmet = require("helmet");
+const compression = require("compression");
 const PORT = process.env.PORT || 3500;
 
 console.log(process.env.NODE_ENV);
 
 connectDB();
 
+// Security middleware - more flexible for development
+if (process.env.NODE_ENV === 'production') {
+  app.use(helmet({
+    contentSecurityPolicy: {
+      directives: {
+        defaultSrc: ["'self'"],
+        styleSrc: ["'self'", "'unsafe-inline'", "https://fonts.googleapis.com"],
+        fontSrc: ["'self'", "https://fonts.gstatic.com"],
+        imgSrc: ["'self'", "data:", "https:"],
+        scriptSrc: ["'self'"],
+        connectSrc: ["'self'", process.env.FRONTEND_URL || "http://localhost:3000"]
+      }
+    }
+  }));
+} else {
+  // Basic helmet for development
+  app.use(helmet({
+    contentSecurityPolicy: false
+  }));
+}
+
+// Compression middleware
+app.use(compression());
+
 app.use(logger);
 
 app.use(cors(corsOptions));
 
-app.use(express.json());
+app.use(express.json({ limit: '10mb' }));
+app.use(express.urlencoded({ extended: true, limit: '10mb' }));
 
 app.use(cookieParser());
 
+// Serve static files
 app.use("/", express.static(path.join(__dirname, "public")));
 
+// API routes
 app.use("/", require("./routes/root"));
 app.use("/dashboard", require("./routes/dashRoutes"));
 app.use("/auth", require("./routes/authRoutes"));
@@ -45,20 +74,28 @@ app.get("/health", (req, res) => {
     status: "OK", 
     timestamp: new Date().toISOString(),
     uptime: process.uptime(),
-    environment: process.env.NODE_ENV || "development"
+    environment: process.env.NODE_ENV || "development",
+    version: process.env.npm_package_version || "1.0.0"
   });
 });
 
-app.all("*", (req, res) => {
-  res.status(404);
-  if (req.accepts("html")) {
-    res.sendFile(path.join(__dirname, "views", "404.html"));
-  } else if (req.accepts("json")) {
-    res.json({ message: "404 Not Found" });
-  } else {
-    res.type("txt").send("404 Not Found");
-  }
-});
+// Serve React app for client-side routing
+if (process.env.NODE_ENV === 'production') {
+  app.get('*', (req, res) => {
+    res.sendFile(path.join(__dirname, '../client/build/index.html'));
+  });
+} else {
+  app.all("*", (req, res) => {
+    res.status(404);
+    if (req.accepts("html")) {
+      res.sendFile(path.join(__dirname, "views", "404.html"));
+    } else if (req.accepts("json")) {
+      res.json({ message: "404 Not Found" });
+    } else {
+      res.type("txt").send("404 Not Found");
+    }
+  });
+}
 
 app.use(errorHandler);
 
