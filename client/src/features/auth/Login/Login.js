@@ -234,9 +234,16 @@ const Login = () => {
   const dispatch = useDispatch();
   const theme = useTheme() || {};
   const isMobile = useMediaQuery(theme?.breakpoints?.down?.('sm') || '(max-width: 600px)');
+  // Get current language
   const { t, currentLanguage } = useTranslation();
-  const { setLanguage } = useLanguage();
+  const { currentLanguage: langContext, setLanguage } = useLanguage();
   const isRTLMode = isRTL();
+
+  // Debug logging
+  useEffect(() => {
+    console.log('Login component - currentLanguage:', currentLanguage);
+    console.log('Login component - langContext:', langContext);
+  }, [currentLanguage, langContext]);
 
   // State
   const [formData, setFormData] = useState({
@@ -354,7 +361,7 @@ const Login = () => {
   }
 
   return (
-    <PageContainer>
+    <PageContainer key={currentLanguage}>
       {/* Control Panel */}
       <ControlPanel>
         {/* Language selector */}
@@ -639,6 +646,34 @@ const Login = () => {
               >
                 {t('firstTime')}
               </Typography>
+              
+              {/* Debug: Test language switching */}
+              <Box sx={{ mb: 2 }}>
+                <Typography variant="body2" color="text.secondary">
+                  Current Language: {currentLanguage}
+                </Typography>
+                <Button 
+                  onClick={() => setLanguage('en')}
+                  size="small"
+                  sx={{ mr: 1 }}
+                >
+                  EN
+                </Button>
+                <Button 
+                  onClick={() => setLanguage('fr')}
+                  size="small"
+                  sx={{ mr: 1 }}
+                >
+                  FR
+                </Button>
+                <Button 
+                  onClick={() => setLanguage('ar')}
+                  size="small"
+                >
+                  AR
+                </Button>
+              </Box>
+              
               <Button
                 component={Link}
                 to="/signup"

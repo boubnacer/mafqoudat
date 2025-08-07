@@ -38,6 +38,7 @@ export const LanguageProvider = ({ children }) => {
   const setLanguage = (language) => {
     try {
       if (['en', 'ar', 'fr'].includes(language)) {
+        console.log('LanguageContext: Setting language to:', language);
         setCurrentLanguage(language);
         
         // Save to both keys for compatibility

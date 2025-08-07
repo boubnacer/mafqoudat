@@ -298,6 +298,11 @@ const NewUserForm = ({ countries }) => {
   const { setLanguage } = useLanguage();
   const isRTLMode = isRTL();
 
+  // Debug logging
+  useEffect(() => {
+    console.log('SignUp component - currentLanguage:', currentLanguage);
+  }, [currentLanguage]);
+
   // API
   const [addNewUser, { isLoading, isError, error }] = useAddNewUserMutation();
 
@@ -441,7 +446,7 @@ const NewUserForm = ({ countries }) => {
   }
 
   return (
-    <PageContainer>
+    <PageContainer key={currentLanguage}>
       {/* Control Panel */}
       <ControlPanel>
         {/* Language selector */}
