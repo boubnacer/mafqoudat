@@ -7,6 +7,7 @@ import useTitle from "../../../hooks/useTitle";
 import { LoadingState } from "../../../components/LoadingStates";
 import { useTranslation } from "../../../utils/translations";
 import { isRTL } from "../../../utils/languageUtils";
+import { useLanguage } from "../../../utils/languageContext";
 
 // Material-UI imports
 import {
@@ -234,6 +235,7 @@ const Login = () => {
   const theme = useTheme() || {};
   const isMobile = useMediaQuery(theme?.breakpoints?.down?.('sm') || '(max-width: 600px)');
   const { t, currentLanguage } = useTranslation();
+  const { setLanguage } = useLanguage();
   const isRTLMode = isRTL();
 
   // State
@@ -284,12 +286,10 @@ const Login = () => {
   };
 
   const handleLanguageChange = (newLanguage) => {
-    // Save to localStorage and reload page to fetch fresh translations
-    localStorage.setItem('currentLanguage', newLanguage);
-    localStorage.setItem('language', newLanguage);
-    localStorage.setItem('app_language', newLanguage);
-    window.location.reload();
-    handleLanguageClose();
+    // Use the language context to change language instead of reloading
+    if (setLanguage(newLanguage)) {
+      handleLanguageClose();
+    }
   };
 
   // Get language display name
@@ -642,19 +642,21 @@ const Login = () => {
               <Button
                 component={Link}
                 to="/signup"
-                variant="outlined"
+                variant="contained"
                 sx={{
-                  borderRadius: 2,
+                  borderRadius: 3,
                   textTransform: 'none',
                   fontWeight: 600,
-                  borderColor: alpha(theme.palette.primary.main, 0.3),
-                  color: theme.palette.primary.main,
-                  py: 1,
-                  px: 3,
+                  background: 'linear-gradient(135deg, #764ba2 0%, #667eea 100%)',
+                  color: 'white',
+                  py: 1.5,
+                  px: 4,
+                  fontSize: '1rem',
+                  boxShadow: '0 8px 25px rgba(118, 75, 162, 0.3)',
                   '&:hover': {
-                    borderColor: theme.palette.primary.main,
-                    backgroundColor: alpha(theme.palette.primary.main, 0.04),
-                    transform: 'translateY(-1px)',
+                    background: 'linear-gradient(135deg, #6a4190 0%, #5a6fd8 100%)',
+                    transform: 'translateY(-2px)',
+                    boxShadow: '0 12px 35px rgba(118, 75, 162, 0.4)',
                   }
                 }}
               >

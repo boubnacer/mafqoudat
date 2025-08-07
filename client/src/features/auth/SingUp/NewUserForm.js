@@ -6,6 +6,7 @@ import { useDispatch } from "react-redux";
 import { setCredentials } from "../authSlice";
 import { useTranslation } from "../../../utils/translations";
 import { isRTL } from "../../../utils/languageUtils";
+import { useLanguage } from "../../../utils/languageContext";
 
 import { LoadingState } from "../../../components/LoadingStates";
 // Material-UI imports
@@ -294,6 +295,7 @@ const NewUserForm = ({ countries }) => {
   const theme = useTheme() || {};
   const isMobile = useMediaQuery(theme?.breakpoints?.down?.('sm') || '(max-width: 600px)');
   const { t, currentLanguage } = useTranslation();
+  const { setLanguage } = useLanguage();
   const isRTLMode = isRTL();
 
   // API
@@ -345,12 +347,10 @@ const NewUserForm = ({ countries }) => {
   };
 
   const handleLanguageChange = (newLanguage) => {
-    // Save to localStorage and reload page to fetch fresh translations
-    localStorage.setItem('currentLanguage', newLanguage);
-    localStorage.setItem('language', newLanguage);
-    localStorage.setItem('app_language', newLanguage);
-    window.location.reload();
-    handleLanguageClose();
+    // Use the language context to change language instead of reloading
+    if (setLanguage(newLanguage)) {
+      handleLanguageClose();
+    }
   };
 
   // Get language display name

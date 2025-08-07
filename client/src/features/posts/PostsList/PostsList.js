@@ -240,17 +240,17 @@ const PostsList = () => {
               {/* Sort */}
               <Grid item xs={12} sm={6} md={2}>
                 <FormControl fullWidth>
-                  <InputLabel>Sort By</InputLabel>
+                  <InputLabel>{t('sortBy')}</InputLabel>
                   <Select
                     value={sortBy}
-                    label="Sort By"
+                    label={t('sortBy')}
                     onChange={handleSortChange}
                     sx={{ borderRadius: 2 }}
                   >
-                    <MenuItem value="newest">Newest First</MenuItem>
-                    <MenuItem value="oldest">Oldest First</MenuItem>
-                    <MenuItem value="region">By Region</MenuItem>
-                    <MenuItem value="category">By Category</MenuItem>
+                    <MenuItem value="newest">{t('newestFirst')}</MenuItem>
+                    <MenuItem value="oldest">{t('oldestFirst')}</MenuItem>
+                    <MenuItem value="region">{t('byRegion')}</MenuItem>
+                    <MenuItem value="category">{t('byCategory')}</MenuItem>
                   </Select>
                 </FormControl>
               </Grid>
@@ -258,19 +258,19 @@ const PostsList = () => {
               {/* Category Filter */}
               <Grid item xs={12} sm={6} md={2}>
                 <FormControl fullWidth>
-                  <InputLabel>Category</InputLabel>
+                  <InputLabel>{t('category')}</InputLabel>
                   <Select
                     value={categoryFilter}
-                    label="Category"
+                    label={t('category')}
                     onChange={handleCategoryFilter}
                     sx={{ borderRadius: 2 }}
                   >
-                                         <MenuItem value="all">{t('allCategories')}</MenuItem>
-                                         {categoriesData?.map((category) => (
-                       <MenuItem key={category._id} value={category._id}>
-                         {t(category.code?.toLowerCase()) || category.code}
-                       </MenuItem>
-                     ))}
+                    <MenuItem value="all">{t('allCategories')}</MenuItem>
+                    {categoriesData?.map((category) => (
+                      <MenuItem key={category._id} value={category._id}>
+                        {category.labels?.[currentLanguage] || category.code}
+                      </MenuItem>
+                    ))}
                   </Select>
                 </FormControl>
               </Grid>
@@ -278,7 +278,7 @@ const PostsList = () => {
               {/* View Mode Toggle */}
               <Grid item xs={12} md={2}>
                 <Box display="flex" justifyContent="center" gap={1}>
-                  <Tooltip title="Grid View">
+                  <Tooltip title={t('gridView')}>
                     <IconButton
                       onClick={() => setViewMode("grid")}
                       color={viewMode === "grid" ? "primary" : "default"}
@@ -290,7 +290,7 @@ const PostsList = () => {
                       <ViewModuleIcon />
                     </IconButton>
                   </Tooltip>
-                  <Tooltip title="List View">
+                  <Tooltip title={t('listView')}>
                     <IconButton
                       onClick={() => setViewMode("list")}
                       color={viewMode === "list" ? "primary" : "default"}

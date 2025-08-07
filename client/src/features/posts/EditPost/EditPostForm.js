@@ -12,12 +12,14 @@ import CheckBox from "../../../components/CheckBox";
 import FlexBetween from "../../../components/FlexBetween";
 import { Add as AddIcon } from '@mui/icons-material';
 import { useCreateCategoryMutation, useCreateFoundLostMutation } from "../../dependencies/dependenciesApiSlice";
+import { useTranslation } from "../../../utils/translations";
 
 const EditPostForm = ({ post, user, countries, flOptions, categories }) => {
   const [updatePost, { isLoading, isSuccess, isError, error }] = useUpdatePostMutation();
   const [deletePost, { isSuccess: isDelSuccess, isError: isDelError, error: delerror }] = useDeletePostMutation();
   const [createCategory, { isLoading: isCreatingCategory }] = useCreateCategoryMutation();
   const [createFoundLost, { isLoading: isCreatingFoundLost }] = useCreateFoundLostMutation();
+  const { t } = useTranslation();
 
   const navigate = useNavigate();
   const theme = useTheme();
@@ -75,12 +77,12 @@ const EditPostForm = ({ post, user, countries, flOptions, categories }) => {
   };
 
   const formValidation = Yup.object().shape({
-    country: Yup.string().required("country Required"),
-    contact: Yup.string().required("contact Required"),
-    category: Yup.string().required("category Required"),
-    foundLost: Yup.string().required("foundLost Required"),
-    region: Yup.string().required("region Required"),
-    returned: Yup.boolean().required("Required"),
+    country: Yup.string().required(t('country') + " " + t('required')),
+    contact: Yup.string().required(t('contact') + " " + t('required')),
+    category: Yup.string().required(t('category') + " " + t('required')),
+    foundLost: Yup.string().required(t('foundOrLost') + " " + t('required')),
+    region: Yup.string().required(t('region') + " " + t('required')),
+    returned: Yup.boolean().required(t('required')),
   });
 
   const handleSubmit = async (values) => {
@@ -95,8 +97,8 @@ const EditPostForm = ({ post, user, countries, flOptions, categories }) => {
     return (
       <Box display="flex" justifyContent="center" alignItems="center" minHeight="50vh">
         <Alert severity="error" sx={{ maxWidth: 600 }}>
-          <Typography variant="h6">Error</Typography>
-          <Typography>{error?.data?.message || delerror?.data?.message || "An error occurred"}</Typography>
+          <Typography variant="h6">{t('error')}</Typography>
+          <Typography>{error?.data?.message || delerror?.data?.message || t('errorOccurred')}</Typography>
         </Alert>
       </Box>
     );
@@ -106,7 +108,7 @@ const EditPostForm = ({ post, user, countries, flOptions, categories }) => {
     <Box display="flex" justifyContent="center" alignItems="center" minHeight="50vh">
       <Paper elevation={3} sx={{ p: 4, maxWidth: 600, width: "100%" }}>
         <Typography variant="h4" gutterBottom textAlign="center" sx={{ color: theme.palette.textColor.main }}>
-          Edit Post
+          {t('editPost')}
         </Typography>
 
         <Formik
@@ -116,10 +118,10 @@ const EditPostForm = ({ post, user, countries, flOptions, categories }) => {
         >
           <Form>
             <Box display="flex" flexDirection="column" gap={2}>
-              <FormLabel>Country</FormLabel>
+              <FormLabel>{t('country')}</FormLabel>
               <SelectCountry name="country" options={countries} />
 
-              <FormLabel>Found or Lost</FormLabel>
+              <FormLabel>{t('foundOrLost')}</FormLabel>
               <Box display="flex" gap={1} alignItems="center">
                 <Box flex={1}>
                   <SelectOption name="foundLost" options={flOptions} />
@@ -132,11 +134,11 @@ const EditPostForm = ({ post, user, countries, flOptions, categories }) => {
                   onClick={() => setShowNewFoundLostDialog(true)}
                   sx={{ minWidth: 'auto', px: 1 }}
                 >
-                  Add
+                  {t('add')}
                 </Button>
               </Box>
 
-              <FormLabel>Category</FormLabel>
+              <FormLabel>{t('category')}</FormLabel>
               <Box display="flex" gap={1} alignItems="center">
                 <Box flex={1}>
                   <SelectOption name="category" options={categories} />
@@ -149,21 +151,21 @@ const EditPostForm = ({ post, user, countries, flOptions, categories }) => {
                   onClick={() => setShowNewCategoryDialog(true)}
                   sx={{ minWidth: 'auto', px: 1 }}
                 >
-                  Add
+                  {t('add')}
                 </Button>
               </Box>
 
-              <FormLabel>Region</FormLabel>
+              <FormLabel>{t('region')}</FormLabel>
               <Textfield name="region" />
 
-              <FormLabel>Contact</FormLabel>
+              <FormLabel>{t('contact')}</FormLabel>
               <Textfield name="contact" />
 
-              <CheckBox name="returned" legend="Item returned ?" label="Returned" />
+              <CheckBox name="returned" legend={t('itemReturned')} label={t('returned')} />
 
               <FlexBetween>
                 <SubmitButton disabled={isLoading}>
-                  {isLoading ? <CircularProgress size={20} /> : "Update Post"}
+                  {isLoading ? <CircularProgress size={20} /> : t('updatePost')}
                 </SubmitButton>
                 <Button 
                   onClick={handleDeletePost}
@@ -171,7 +173,7 @@ const EditPostForm = ({ post, user, countries, flOptions, categories }) => {
                   color="error"
                   disabled={isLoading}
                 >
-                  Delete Post
+                  {t('deletePost')}
                 </Button>
               </FlexBetween>
             </Box>
@@ -180,61 +182,61 @@ const EditPostForm = ({ post, user, countries, flOptions, categories }) => {
 
         {/* New Category Dialog */}
         <Dialog open={showNewCategoryDialog} onClose={() => setShowNewCategoryDialog(false)} maxWidth="sm" fullWidth>
-          <DialogTitle>Add New Category</DialogTitle>
+          <DialogTitle>{t('addNewCategory')}</DialogTitle>
           <DialogContent>
             <Box sx={{ display: 'flex', flexDirection: 'column', gap: 2, mt: 1 }}>
               <TextField
-                label="Category Code"
+                label={t('categoryCode')}
                 value={newCategory.code}
                 onChange={(e) => setNewCategory({ ...newCategory, code: e.target.value })}
                 fullWidth
                 required
-                placeholder="Vehicle, Electronics, Documents"
+                placeholder={t('vehicleElectronicsDocuments')}
               />
               <TextField
-                label="Flag (optional)"
+                label={t('flagOptional')}
                 value={newCategory.flag}
                 onChange={(e) => setNewCategory({ ...newCategory, flag: e.target.value })}
                 fullWidth
-                placeholder="🚗, 📱, 📄"
+                placeholder={t('emoji')}
               />
             </Box>
           </DialogContent>
           <DialogActions>
-            <Button onClick={() => setShowNewCategoryDialog(false)}>Cancel</Button>
+            <Button onClick={() => setShowNewCategoryDialog(false)}>{t('cancel')}</Button>
             <Button 
               onClick={handleCreateNewCategory}
               disabled={!newCategory.code || isCreatingCategory}
               variant="contained"
             >
-              {isCreatingCategory ? "Creating..." : "Create Category"}
+              {isCreatingCategory ? t('creating') : t('createCategory')}
             </Button>
           </DialogActions>
         </Dialog>
 
         {/* New Found/Lost Dialog */}
         <Dialog open={showNewFoundLostDialog} onClose={() => setShowNewFoundLostDialog(false)} maxWidth="sm" fullWidth>
-          <DialogTitle>Add New Found/Lost Option</DialogTitle>
+          <DialogTitle>{t('addNewFoundLostOption')}</DialogTitle>
           <DialogContent>
             <Box sx={{ display: 'flex', flexDirection: 'column', gap: 2, mt: 1 }}>
               <TextField
-                label="Option Code"
+                label={t('optionCode')}
                 value={newFoundLost.code}
                 onChange={(e) => setNewFoundLost({ ...newFoundLost, code: e.target.value })}
                 fullWidth
                 required
-                placeholder="Found, Lost, Stolen"
+                placeholder={t('foundLostStolen')}
               />
             </Box>
           </DialogContent>
           <DialogActions>
-            <Button onClick={() => setShowNewFoundLostDialog(false)}>Cancel</Button>
+            <Button onClick={() => setShowNewFoundLostDialog(false)}>{t('cancel')}</Button>
             <Button 
               onClick={handleCreateNewFoundLost}
               disabled={!newFoundLost.code || isCreatingFoundLost}
               variant="contained"
             >
-              {isCreatingFoundLost ? "Creating..." : "Create Option"}
+              {isCreatingFoundLost ? t('creating') : t('createOption')}
             </Button>
           </DialogActions>
         </Dialog>

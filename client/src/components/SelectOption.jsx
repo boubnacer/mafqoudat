@@ -1,14 +1,24 @@
 import { MenuItem, TextField } from "@mui/material";
 import { useField, useFormikContext } from "formik";
 import React from "react";
+import { useTranslation } from "../utils/translations";
 
 const SelectOption = ({ name, options, ...otherProps }) => {
   const { setFieldValue } = useFormikContext();
   const [field, meta] = useField(name);
+  const { currentLanguage } = useTranslation();
 
   const handleChange = (event) => {
     const { value } = event.target;
     setFieldValue(name, value);
+  };
+
+  // Get the appropriate label based on language
+  const getOptionLabel = (option) => {
+    if (option.labels && option.labels[currentLanguage]) {
+      return option.labels[currentLanguage];
+    }
+    return option.label || option.code;
   };
 
   const selectConfig = {
@@ -27,10 +37,10 @@ const SelectOption = ({ name, options, ...otherProps }) => {
 
   return (
     <TextField {...selectConfig}>
-      {options.map(({ _id, code, label }) => {
+      {options.map(({ _id, code, label, labels }) => {
         return (
           <MenuItem key={_id} value={_id}>
-            {code}
+            {getOptionLabel({ code, label, labels })}
           </MenuItem>
         );
       })}

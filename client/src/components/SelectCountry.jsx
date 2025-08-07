@@ -3,10 +3,12 @@ import Box from "@mui/material/Box";
 import TextField from "@mui/material/TextField";
 import Autocomplete from "@mui/material/Autocomplete";
 import { useField, useFormikContext } from "formik";
+import { useTranslation } from "../utils/translations";
 
-const SelectCountry = ({ options, name, countryname, language = 'en' }) => {
+const SelectCountry = ({ options, name, countryname }) => {
   const { setFieldValue } = useFormikContext();
   const [field, meta] = useField(name);
+  const { currentLanguage } = useTranslation();
 
   const handleChange = (_, value, reason) => {
     console.log({ id: value._id });
@@ -15,8 +17,8 @@ const SelectCountry = ({ options, name, countryname, language = 'en' }) => {
 
   // Get the appropriate label based on language
   const getCountryLabel = (option) => {
-    if (option.labels && option.labels[language]) {
-      return option.labels[language];
+    if (option.labels && option.labels[currentLanguage]) {
+      return option.labels[currentLanguage];
     }
     return option.label || option.code;
   };
