@@ -171,6 +171,7 @@ const Navbar = () => {
 
   const [countryId, setCountryId] = useState(country);
   const [languageAnchorEl, setLanguageAnchorEl] = useState(null);
+  const [mobileMenuAnchorEl, setMobileMenuAnchorEl] = useState(null);
 
   useEffect(() => {
     dispatch(
@@ -216,6 +217,14 @@ const Navbar = () => {
     setLanguageAnchorEl(null);
   };
 
+  const handleMobileMenuClick = (event) => {
+    setMobileMenuAnchorEl(event.currentTarget);
+  };
+
+  const handleMobileMenuClose = () => {
+    setMobileMenuAnchorEl(null);
+  };
+
   const handleLanguageChange = (newLanguage) => {
     // Save to localStorage and reload page to fetch fresh translations
     localStorage.setItem('currentLanguage', newLanguage);
@@ -257,7 +266,7 @@ const Navbar = () => {
         <Box sx={{ 
           display: 'flex', 
           alignItems: 'center',
-          gap: { xs: '0.5rem', sm: '2rem' }
+          gap: { xs: '0.5rem', sm: '1rem' }
         }}>
           <LogoButton 
             onClick={onGoHomeClicked}
@@ -268,10 +277,20 @@ const Navbar = () => {
           >
             {t("brandName")}
           </LogoButton>
-
-          {/* Nav links - desktop only */}
-          {!isMobile && <NavLinks />}
         </Box>
+
+        {/* Center section: Nav links - desktop only */}
+        {!isMobile && (
+          <Box sx={{ 
+            display: 'flex', 
+            alignItems: 'center',
+            justifyContent: 'center',
+            flex: 1,
+            mx: 2
+          }}>
+            <NavLinks />
+          </Box>
+        )}
 
         {/* Right section: Actions */}
         <FlexBetween sx={{ gap: { xs: '6px', sm: '12px' } }}>
@@ -290,7 +309,17 @@ const Navbar = () => {
               srcSet={`https://flagcdn.com/w40/${code.code.toLowerCase()}.png 2x`}
               alt=""
             />
-            <RenderIcon name="arrowDown" />
+            <Typography
+              variant="body2"
+              sx={{
+                fontWeight: 500,
+                fontSize: { xs: '0.8rem', sm: '0.9rem' },
+                display: 'block'
+              }}
+            >
+              {code.labels?.[currentLanguage] || code.code}
+            </Typography>
+            <KeyboardArrowDown sx={{ fontSize: '16px', ml: 0.5 }} />
           </CountrySelector>
 
           {/* Language selector - always visible */}
@@ -301,16 +330,16 @@ const Navbar = () => {
             }}
           >
             <Language />
-            <Typography
-              variant="body2"
-              sx={{
-                fontWeight: 500,
-                fontSize: { xs: '0.8rem', sm: '0.9rem' },
-                display: { xs: 'none', sm: 'block' }
-              }}
-            >
-              {getLanguageDisplayName(currentLanguage)}
-            </Typography>
+                         <Typography
+               variant="body2"
+               sx={{
+                 fontWeight: 500,
+                 fontSize: { xs: '0.8rem', sm: '0.9rem' },
+                 display: 'block'
+               }}
+             >
+               {getLanguageDisplayName(currentLanguage)}
+             </Typography>
             <KeyboardArrowDown sx={{ fontSize: '16px', ml: 0.5 }} />
           </LanguageSelector>
 
@@ -396,13 +425,41 @@ const Navbar = () => {
 
           {/* Mobile menu button */}
           <ActionButton
-            onClick={() => dispatch(setIsSidebarOpen())}
+            onClick={handleMobileMenuClick}
             sx={{ 
               display: { xs: 'flex', sm: 'none' }
             }}
           >
             <MenuIcon sx={{ fontSize: "22px" }} />
           </ActionButton>
+
+          {/* Mobile menu */}
+          <Menu
+            anchorEl={mobileMenuAnchorEl}
+            open={Boolean(mobileMenuAnchorEl)}
+            onClose={handleMobileMenuClose}
+            PaperProps={{
+              sx: {
+                mt: 1,
+                borderRadius: 2,
+                boxShadow: theme.palette.mode === 'dark'
+                  ? '0 8px 32px rgba(0, 0, 0, 0.4)'
+                  : '0 8px 32px rgba(0, 0, 0, 0.1)',
+                background: theme.palette.mode === 'dark'
+                  ? 'rgba(30, 30, 30, 0.95)'
+                  : 'rgba(255, 255, 255, 0.95)',
+                backdropFilter: 'blur(20px)',
+                border: `1px solid ${alpha(theme.palette.divider, 0.1)}`,
+                minWidth: 200,
+              }
+            }}
+            transformOrigin={{ horizontal: 'right', vertical: 'top' }}
+            anchorOrigin={{ horizontal: 'right', vertical: 'bottom' }}
+          >
+            <Box sx={{ p: 1 }}>
+              <NavLinks onLinkClick={handleMobileMenuClose} />
+            </Box>
+          </Menu>
 
           {/* Logout button - desktop only */}
           <ActionButton 

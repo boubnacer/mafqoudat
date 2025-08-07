@@ -279,6 +279,58 @@ export const themeSettings = (mode, currentLanguage = 'en') => {
           },
         },
       },
+      // Fix dropdown background opacity issues
+      MuiAutocomplete: {
+        styleOverrides: {
+          paper: {
+            backgroundColor: mode === 'dark' ? '#2d2d2d' : '#ffffff',
+            border: `1px solid ${mode === 'dark' ? 'rgba(255,255,255,0.1)' : 'rgba(0,0,0,0.1)'}`,
+            boxShadow: mode === 'dark' 
+              ? '0 8px 32px rgba(0,0,0,0.3)'
+              : '0 8px 32px rgba(0,0,0,0.1)',
+            '& .MuiAutocomplete-option': {
+              '&:hover': {
+                backgroundColor: mode === 'dark' ? 'rgba(255,255,255,0.08)' : 'rgba(0,0,0,0.04)',
+              },
+              '&[aria-selected="true"]': {
+                backgroundColor: mode === 'dark' ? 'rgba(255,255,255,0.12)' : 'rgba(0,0,0,0.08)',
+              },
+            },
+          },
+        },
+      },
+      MuiMenu: {
+        styleOverrides: {
+          paper: {
+            backgroundColor: mode === 'dark' ? '#2d2d2d' : '#ffffff',
+            border: `1px solid ${mode === 'dark' ? 'rgba(255,255,255,0.1)' : 'rgba(0,0,0,0.1)'}`,
+            boxShadow: mode === 'dark' 
+              ? '0 8px 32px rgba(0,0,0,0.3)'
+              : '0 8px 32px rgba(0,0,0,0.1)',
+            '& .MuiMenuItem-root': {
+              '&:hover': {
+                backgroundColor: mode === 'dark' ? 'rgba(255,255,255,0.08)' : 'rgba(0,0,0,0.04)',
+              },
+            },
+          },
+        },
+      },
+      MuiSelect: {
+        styleOverrides: {
+          paper: {
+            backgroundColor: mode === 'dark' ? '#2d2d2d' : '#ffffff',
+            border: `1px solid ${mode === 'dark' ? 'rgba(255,255,255,0.1)' : 'rgba(0,0,0,0.1)'}`,
+            boxShadow: mode === 'dark' 
+              ? '0 8px 32px rgba(0,0,0,0.3)'
+              : '0 8px 32px rgba(0,0,0,0.1)',
+            '& .MuiMenuItem-root': {
+              '&:hover': {
+                backgroundColor: mode === 'dark' ? 'rgba(255,255,255,0.08)' : 'rgba(0,0,0,0.04)',
+              },
+            },
+          },
+        },
+      },
       // RTL icon rotation for directional icons
       MuiSvgIcon: {
         styleOverrides: {

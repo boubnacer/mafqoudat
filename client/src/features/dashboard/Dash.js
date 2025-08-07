@@ -218,18 +218,20 @@ const Dash = () => {
             gap={2} 
             width={{ xs: '100%', sm: 'auto' }}
             sx={{
-              flexDirection: currentLanguage === 'ar' ? 'row-reverse' : 'row'
+              flexDirection: currentLanguage === 'ar' ? 'row-reverse' : 'row',
+              justifyContent: { xs: 'center', sm: 'flex-start' }
             }}
           >
             <Typography
               fontWeight="600"
               sx={{
-                fontSize: { xs: "18px", sm: "22px", md: "24px" },
+                fontSize: { xs: "16px", sm: "20px", md: "22px" },
                 color: theme.palette.mode === 'dark' ? '#fff' : '#fff',
                 display: 'flex',
                 alignItems: 'center',
                 gap: 1,
-                flexDirection: currentLanguage === 'ar' ? 'row-reverse' : 'row'
+                flexDirection: currentLanguage === 'ar' ? 'row-reverse' : 'row',
+                textAlign: { xs: 'center', sm: 'left' }
               }}
             >
               <WhatshotOutlined sx={{ color: '#FFA500' }} />
@@ -242,7 +244,9 @@ const Dash = () => {
               sx={{ 
                 backgroundColor: theme.palette.mode === 'dark' ? 'rgba(255,255,255,0.1)' : 'rgba(255,255,255,0.2)',
                 color: '#fff',
-                fontSize: { xs: '0.75rem', sm: '0.875rem' }
+                fontSize: { xs: '0.7rem', sm: '0.875rem' },
+                minWidth: 'auto',
+                px: { xs: 1, sm: 1.5 }
               }}
             />
           </Box>
@@ -256,7 +260,8 @@ const Dash = () => {
               },
               width: { xs: '100%', sm: 'auto' },
               justifyContent: { xs: 'center', sm: 'flex-end' },
-              fontSize: { xs: '0.875rem', sm: '1rem' }
+              fontSize: { xs: '0.8rem', sm: '1rem' },
+              minHeight: { xs: '36px', sm: 'auto' }
             }}
           />
         </Box>
@@ -338,18 +343,20 @@ const Dash = () => {
             gap={2} 
             width={{ xs: '100%', sm: 'auto' }}
             sx={{
-              flexDirection: currentLanguage === 'ar' ? 'row-reverse' : 'row'
+              flexDirection: currentLanguage === 'ar' ? 'row-reverse' : 'row',
+              justifyContent: { xs: 'center', sm: 'flex-start' }
             }}
           >
             <Typography
               fontWeight="600"
               sx={{
-                fontSize: { xs: "18px", sm: "22px", md: "24px" },
+                fontSize: { xs: "16px", sm: "20px", md: "22px" },
                 color: theme.palette.mode === 'dark' ? '#fff' : '#fff',
                 display: 'flex',
                 alignItems: 'center',
                 gap: 1,
-                flexDirection: currentLanguage === 'ar' ? 'row-reverse' : 'row'
+                flexDirection: currentLanguage === 'ar' ? 'row-reverse' : 'row',
+                textAlign: { xs: 'center', sm: 'left' }
               }}
             >
               <Search sx={{ color: '#fff' }} />
@@ -362,7 +369,9 @@ const Dash = () => {
               sx={{ 
                 backgroundColor: theme.palette.mode === 'dark' ? 'rgba(255,255,255,0.1)' : 'rgba(255,255,255,0.2)',
                 color: '#fff',
-                fontSize: { xs: '0.75rem', sm: '0.875rem' }
+                fontSize: { xs: '0.7rem', sm: '0.875rem' },
+                minWidth: 'auto',
+                px: { xs: 1, sm: 1.5 }
               }}
             />
           </Box>
@@ -376,7 +385,8 @@ const Dash = () => {
               },
               width: { xs: '100%', sm: 'auto' },
               justifyContent: { xs: 'center', sm: 'flex-end' },
-              fontSize: { xs: '0.875rem', sm: '1rem' }
+              fontSize: { xs: '0.8rem', sm: '1rem' },
+              minHeight: { xs: '36px', sm: 'auto' }
             }}
           />
         </Box>

@@ -14,6 +14,9 @@ import { useNavigate } from "react-router-dom";
 import RenderIcon from "../RenderIcon";
 import { useTranslation } from "../../utils/translations";
 
+// Get the API base URL for image construction
+const API_BASE_URL = process.env.REACT_APP_API_URL || "http://localhost:3500";
+
 const RecentPosts = ({ _id, categoryname, region, image, createdAt }) => {
   const theme = useTheme();
   const navigate = useNavigate();
@@ -77,7 +80,7 @@ const RecentPosts = ({ _id, categoryname, region, image, createdAt }) => {
               : 'linear-gradient(to top, rgba(255, 255, 255, 0.9), transparent)',
           },
         }}
-        image={image ? `http://localhost:3500/${image}` : ma}
+        image={image ? `${API_BASE_URL}/${image}` : ma}
         title={categoryname}
       />
 

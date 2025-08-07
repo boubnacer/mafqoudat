@@ -8,6 +8,7 @@ const initialState = {
   activeLink: "",
   foundOrlost: "",
   direction: "ltr",
+  categoryFilter: "all", // Add category filter state
 };
 
 export const globalSlice = createSlice({
@@ -33,6 +34,10 @@ export const globalSlice = createSlice({
       const { foundOrlost } = action.payload;
       state.foundOrlost = foundOrlost;
     },
+    setCategoryFilter: (state, action) => {
+      const { categoryFilter } = action.payload;
+      state.categoryFilter = categoryFilter;
+    },
     setOpenModal: (state) => {
       state.openModal = !state.openModal;
     },
@@ -45,6 +50,7 @@ export const {
   setActiveLink,
   setCurrentCountry,
   setFoundOrLost,
+  setCategoryFilter,
   setOpenModal,
 } = globalSlice.actions;
 
@@ -52,6 +58,7 @@ export const selectIsSidebarOpen = (state) => state.global.isSidebarOpen;
 export const selectActiveLink = (state) => state.global.activeLink;
 export const selectCurrentCountry = (state) => state.global.currentCountry;
 export const selectFoundOrLost = (state) => state.global.foundOrlost;
+export const selectCategoryFilter = (state) => state.global.categoryFilter;
 export const selectOpenModal = (state) => state.global.openModal;
 
 export default globalSlice.reducer;

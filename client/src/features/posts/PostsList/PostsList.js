@@ -4,7 +4,7 @@ import { useTranslation } from "../../../utils/translations";
 import Post from "./Post";
 import useTitle from "../../../hooks/useTitle";
 import { LoadingState, EmptyState, ErrorState } from "../../../components/LoadingStates";
-import { useSelector } from "react-redux";
+import { useSelector, useDispatch } from "react-redux";
 import { Link, useLocation, useNavigate } from "react-router-dom";
 import { 
   Search, 
@@ -37,7 +37,7 @@ import {
 import Pagination from "@mui/material/Pagination";
 import { useEffect, useState, useCallback, useMemo } from "react";
 import useAuth from "../../../hooks/useAuth";
-import { selectCurrentCountry, selectFoundOrLost } from "../../../app/state";
+import { selectCurrentCountry, selectFoundOrLost, selectCategoryFilter, setCategoryFilter } from "../../../app/state";
 import FlexCenter from "../../../components/FlexCenter";
 
 const POSTS_REGEX = /^\/dash\/posts(\/)?$/;
@@ -54,6 +54,8 @@ const PostsList = () => {
   const countryId = useSelector(selectCurrentCountry);
   const [currentCountry, setCurrentCountry] = useState(user.country);
   const foundOrlost = useSelector(selectFoundOrLost);
+  const categoryFilter = useSelector(selectCategoryFilter);
+  const dispatch = useDispatch();
 
   // State management
   const [page, setPage] = useState(1);
@@ -63,13 +65,27 @@ const PostsList = () => {
   const [debouncedSearchTerm, setDebouncedSearchTerm] = useState("");
   const [sortBy, setSortBy] = useState("newest");
   const [viewMode, setViewMode] = useState("grid");
-  const [categoryFilter, setCategoryFilter] = useState("all");
+  const [localCategoryFilter, setLocalCategoryFilter] = useState("all");
 
   const navigate = useNavigate();
-  const { pathname } = useLocation();
+  const { pathname, search } = useLocation();
+  const location = useLocation();
 
   // Get current language
   const { t, currentLanguage } = useTranslation();
+
+  // Initialize category filter from navigation state
+  useEffect(() => {
+    if (location.state?.fromCategory && location.state?.categoryFilter) {
+      console.log('Setting category filter from navigation state:', location.state.categoryFilter);
+      setLocalCategoryFilter(location.state.categoryFilter);
+      // Clear the navigation state to prevent it from persisting
+      navigate(location.pathname, { replace: true, state: {} });
+    } else if (categoryFilter && categoryFilter !== "all") {
+      console.log('Setting category filter from Redux:', categoryFilter);
+      setLocalCategoryFilter(categoryFilter);
+    }
+  }, [location.state, categoryFilter, navigate, location.pathname]);
 
   // Get categories for dynamic filtering
   const { data: categoriesData } = useGetCategoriesQuery({
@@ -86,9 +102,25 @@ const PostsList = () => {
     fl,
     currentCountry,
     search: debouncedSearchTerm || undefined,
-    categoryId: categoryFilter !== "all" ? categoryFilter : undefined,
+    categoryId: localCategoryFilter !== "all" ? localCategoryFilter : undefined,
     language: currentLanguage,
+  }, {
+    // Add debugging
+    refetchOnMountOrArgChange: true,
   });
+
+  // Debug logging
+  useEffect(() => {
+    console.log('API Call Parameters:', {
+      page,
+      pageSize,
+      fl,
+      currentCountry,
+      search: debouncedSearchTerm,
+      categoryId: localCategoryFilter !== "all" ? localCategoryFilter : undefined,
+      language: currentLanguage,
+    });
+  }, [page, pageSize, fl, currentCountry, debouncedSearchTerm, localCategoryFilter, currentLanguage]);
 
   // Debounce search term
   useEffect(() => {
@@ -106,6 +138,9 @@ const PostsList = () => {
     setPage(1);
   }, [countryId, foundOrlost]);
 
+  // Remove the cleanup effect that was clearing the category filter
+  // This was interfering with category navigation from Dashboard
+
   const handlePaginate = (e, p) => {
     setPage(p);
     window.scrollTo({ top: 0, behavior: 'smooth' });
@@ -121,7 +156,7 @@ const PostsList = () => {
   };
 
   const handleCategoryFilter = (e) => {
-    setCategoryFilter(e.target.value);
+    setLocalCategoryFilter(e.target.value);
     setPage(1);
   };
 
@@ -133,14 +168,14 @@ const PostsList = () => {
 
   // Check if we have active filters
   const hasActiveFilters = useMemo(() => {
-    return searchTerm || categoryFilter !== "all" || sortBy !== "newest";
-  }, [searchTerm, categoryFilter, sortBy]);
+    return searchTerm || localCategoryFilter !== "all" || sortBy !== "newest";
+  }, [searchTerm, localCategoryFilter, sortBy]);
 
-  // Get filtered posts for current country
+  // Get posts from API response (already filtered by country and found/lost)
   const filteredPosts = useMemo(() => {
     if (!data?.postsWithUser) return [];
-    return data.postsWithUser.filter(post => post.country === countryId);
-  }, [data?.postsWithUser, countryId]);
+    return data.postsWithUser;
+  }, [data?.postsWithUser]);
 
   let content;
 
@@ -260,7 +295,7 @@ const PostsList = () => {
                 <FormControl fullWidth>
                   <InputLabel>{t('category')}</InputLabel>
                   <Select
-                    value={categoryFilter}
+                    value={localCategoryFilter}
                     label={t('category')}
                     onChange={handleCategoryFilter}
                     sx={{ borderRadius: 2 }}
@@ -316,10 +351,10 @@ const PostsList = () => {
                       variant="outlined"
                     />
                   )}
-                  {categoryFilter !== "all" && (
+                  {localCategoryFilter !== "all" && (
                     <Chip 
-                                             label={`${t('category')}: ${t(categoriesData?.find(cat => cat._id === categoryFilter)?.code?.toLowerCase()) || categoriesData?.find(cat => cat._id === categoryFilter)?.code || categoryFilter}`} 
-                      onDelete={() => setCategoryFilter("all")}
+                      label={`${t('category')}: ${categoriesData?.find(cat => cat._id === localCategoryFilter)?.labels?.[currentLanguage] || categoriesData?.find(cat => cat._id === localCategoryFilter)?.code || localCategoryFilter}`} 
+                      onDelete={() => setLocalCategoryFilter("all")}
                       color="secondary"
                       variant="outlined"
                     />

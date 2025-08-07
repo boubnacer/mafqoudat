@@ -38,6 +38,12 @@ const LanguageSwitcher = ({ variant = 'button', onLanguageChange }) => {
       if (onLanguageChange) {
         onLanguageChange(language);
       }
+      
+      // Refresh the page to ensure dynamic translations are fetched correctly
+      // This is especially important for RTL languages and dynamic content
+      setTimeout(() => {
+        window.location.reload();
+      }, 100);
     }
   };
 

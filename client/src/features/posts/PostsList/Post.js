@@ -20,17 +20,16 @@ import {
   IconButton,
   Tooltip,
   useMediaQuery,
-  Paper
+  Paper,
+  alpha,
 } from "@mui/material";
 import {
   LocationOnOutlined,
   KeyboardArrowRightOutlined,
   ReportProblemOutlined,
-  Person as PersonIcon,
   CalendarToday as CalendarIcon,
   Category as CategoryIcon,
-  Visibility as VisibilityIcon,
-  ContactPhone as ContactIcon
+  Visibility as VisibilityIcon
 } from "@mui/icons-material";
 import FlexBetween from "../../../components/FlexBetween";
 import { useTranslation } from "../../../utils/translations";
@@ -38,6 +37,9 @@ import { getLabel, isRTL } from "../../../utils/languageUtils";
 import { formatDistanceToNow } from 'date-fns';
 import { ar, fr, enUS } from 'date-fns/locale';
 import RenderIcon from "../../../components/RenderIcon";
+
+// Get the API base URL for image construction
+const API_BASE_URL = process.env.REACT_APP_API_URL || "http://localhost:3500";
 
 const Post = ({ post, viewMode = "grid" }) => {
   const { usernameId, foundLost } = useAuth();
@@ -62,7 +64,7 @@ const Post = ({ post, viewMode = "grid" }) => {
       locale: getLocale()
     });
 
-    const handleEdit = () => navigate(`/dash/posts/${post._id}`);
+    const handleViewDetails = () => navigate(`/dash/posts/${post._id}`);
     const handleReport = () => navigate(`/dash/posts/report/${post._id}`);
 
     // Enhanced Found/Lost detection with proper multilingual support
@@ -70,45 +72,46 @@ const Post = ({ post, viewMode = "grid" }) => {
     let foundLostLabel = t('found'); // Default label
     let foundLostColor = theme.palette.success.main; // Default color
     
-    // Debug logging to understand the data structure
-    console.log('Post foundLost data:', post.foundLost);
-    console.log('Post Floptions data:', post.Floptions);
+    // Debug logging for found/lost detection
+    console.log('Found/Lost Debug:', {
+      id: post._id,
+      foundLost: post.foundLost,
+      Floptions: post.Floptions,
+      FloptionsLength: post.Floptions?.length
+    });
     
-    // Check multiple possible properties and structures
-    if (post.foundLost) {
-      if (typeof post.foundLost === 'string') {
-        foundLostValue = post.foundLost.toUpperCase();
-        foundLostLabel = post.foundLost === 'FOUND' ? t('found') : t('lost');
-        foundLostColor = post.foundLost === 'FOUND' ? theme.palette.success.main : theme.palette.error.main;
-      } else if (post.foundLost.code) {
-        foundLostValue = post.foundLost.code;
-        foundLostLabel = getLabel(post.foundLost.labels, currentLanguage) || 
-                        (post.foundLost.code === 'FOUND' ? t('found') : t('lost'));
-        foundLostColor = post.foundLost.color || 
-                        (post.foundLost.code === 'FOUND' ? theme.palette.success.main : theme.palette.error.main);
-      } else if (post.foundLost._id) {
-        // If it's an ObjectId, we need to check the actual value
-        // This might be the issue - we need to get the actual post type from the backend
-        foundLostValue = "FOUND"; // Default for ObjectId
-        foundLostLabel = t('found');
-      }
-    }
-    
-    // Also check Floptions array if it exists (this might be the actual data)
+    // Check Floptions array first (this contains the actual found/lost data from the lookup)
     if (post.Floptions && post.Floptions.length > 0) {
       const flOption = post.Floptions[0];
-      if (typeof flOption === 'string') {
-        foundLostValue = flOption.toUpperCase();
-        foundLostLabel = flOption === 'FOUND' ? t('found') : t('lost');
-        foundLostColor = flOption === 'FOUND' ? theme.palette.success.main : theme.palette.error.main;
-      } else if (flOption.code) {
+      console.log('FlOption:', flOption);
+      if (flOption && flOption.code) {
         foundLostValue = flOption.code;
         foundLostLabel = getLabel(flOption.labels, currentLanguage) || 
                         (flOption.code === 'FOUND' ? t('found') : t('lost'));
         foundLostColor = flOption.color || 
                         (flOption.code === 'FOUND' ? theme.palette.success.main : theme.palette.error.main);
+        console.log('Using FlOption:', { foundLostValue, foundLostLabel, foundLostColor });
       }
     }
+    
+    // Fallback: Check foundLost property (this is the ObjectId reference)
+    if (!foundLostValue || foundLostValue === "FOUND") {
+      if (post.foundLost) {
+        if (typeof post.foundLost === 'string') {
+          foundLostValue = post.foundLost.toUpperCase();
+          foundLostLabel = post.foundLost === 'FOUND' ? t('found') : t('lost');
+          foundLostColor = post.foundLost === 'FOUND' ? theme.palette.success.main : theme.palette.error.main;
+        } else if (post.foundLost.code) {
+          foundLostValue = post.foundLost.code;
+          foundLostLabel = getLabel(post.foundLost.labels, currentLanguage) || 
+                          (post.foundLost.code === 'FOUND' ? t('found') : t('lost'));
+          foundLostColor = post.foundLost.color || 
+                          (post.foundLost.code === 'FOUND' ? theme.palette.success.main : theme.palette.error.main);
+        }
+      }
+    }
+
+
 
     // Normalize the value and set proper colors
     const isFound = foundLostValue === "FOUND";
@@ -116,28 +119,25 @@ const Post = ({ post, viewMode = "grid" }) => {
     const statusText = foundLostLabel;
 
     // Get category name safely with multilingual support
-    const categoryName = post.categoryname || 
-                        getLabel(post.category?.labels, currentLanguage) || 
-                        t(post.category?.code?.toLowerCase()) || 
-                        post.category?.code || 
-                        t('unknownCategory');
+    const categoryName = post.categoryname || t('unknownCategory');
 
-    // RTL-aware styles
-    const rtlStyles = isRTLMode ? {
-      direction: 'rtl',
-      textAlign: 'right'
-    } : {
-      direction: 'ltr',
-      textAlign: 'left'
+    // Get category color function (matching RecentPosts styling)
+    const getCategoryColor = (category) => {
+      const categoryColors = {
+        Bag: { main: '#4CAF50', light: '#E8F5E9', dark: '#2E7D32' },
+        keys: { main: '#FF9800', light: '#FFF3E0', dark: '#E65100' },
+        person: { main: '#2196F3', light: '#E3F2FD', dark: '#1565C0' },
+        Money: { main: '#9C27B0', light: '#F3E5F5', dark: '#6A1B9A' },
+        Devices: { main: '#00BCD4', light: '#E0F7FA', dark: '#00838F' },
+        Wallet: { main: '#FF5722', light: '#FBE9E7', dark: '#BF360C' },
+        Vehicle: { main: '#607D8B', light: '#ECEFF1', dark: '#37474F' },
+        Document: { main: '#795548', light: '#EFEBE9', dark: '#4E342E' },
+      };
+      return categoryColors[category] || categoryColors.Bag;
     };
 
-    // Modern typography styles
-    const typographyStyles = {
-      fontFamily: isRTLMode ? 
-        '"Noto Sans Arabic", "Segoe UI", "Roboto", "Helvetica", "Arial", sans-serif' :
-        '"Inter", "Segoe UI", "Roboto", "Helvetica", "Arial", sans-serif',
-      fontWeight: 500
-    };
+    const categoryStyle = getCategoryColor(categoryName);
+    const isDarkMode = theme.palette.mode === 'dark';
 
     // List view layout
     if (viewMode === "list") {
@@ -152,7 +152,7 @@ const Post = ({ post, viewMode = "grid" }) => {
               transform: 'translateY(-4px)',
               boxShadow: theme.shadows[8]
             },
-            ...rtlStyles
+            direction: currentLanguage === 'ar' ? 'rtl' : 'ltr'
           }}
         >
           <Box display="flex" sx={{ height: 200 }}>
@@ -164,7 +164,7 @@ const Post = ({ post, viewMode = "grid" }) => {
                   height: '100%',
                   objectFit: 'cover'
                 }}
-                image={post.image ? `http://localhost:3500/${post.image}` : ma}
+                image={post.image ? `${API_BASE_URL}/${post.image}` : ma}
                 title={post.image}
               />
             </Box>
@@ -178,7 +178,7 @@ const Post = ({ post, viewMode = "grid" }) => {
                     fontWeight={600} 
                     sx={{ 
                       mb: 1,
-                      ...typographyStyles
+                      direction: currentLanguage === 'ar' ? 'rtl' : 'ltr'
                     }}
                   >
                     {post.region || t('unknownRegion')}
@@ -196,32 +196,36 @@ const Post = ({ post, viewMode = "grid" }) => {
                         }
                       }}
                     />
-                    <Chip 
-                      label={categoryName}
-                      variant="outlined"
-                      size="small"
-                      icon={<RenderIcon name={`${post.category?.code?.toLowerCase()}cate`} />}
-                      sx={{ 
-                        fontWeight: 600,
-                        fontSize: '0.7rem',
-                        height: '20px',
-                        padding: '0 6px',
-                        '& .MuiChip-icon': {
-                          fontSize: '0.8rem',
-                          marginLeft: isRTLMode ? '2px' : '2px',
-                          marginRight: isRTLMode ? '2px' : '2px'
-                        },
-                        '& .MuiChip-label': {
-                          padding: '0 4px'
-                        }
+                    <Box
+                      sx={{
+                        backgroundColor: isDarkMode ? alpha(categoryStyle.main, 0.15) : categoryStyle.light,
+                        padding: '4px 8px',
+                        borderRadius: '16px',
+                        alignSelf: 'flex-start',
+                        border: `1px solid ${isDarkMode ? alpha(categoryStyle.main, 0.3) : categoryStyle.main}`,
+                        display: 'flex',
+                        alignItems: 'center',
+                        gap: 0.5,
                       }}
-                    />
+                    >
+                      <RenderIcon name={`${categoryName?.toLowerCase()}cate`} />
+                      <Typography
+                        sx={{
+                          color: isDarkMode ? categoryStyle.main : categoryStyle.dark,
+                          fontSize: { xs: '10px', sm: '12px' },
+                          fontWeight: 600,
+                          letterSpacing: '0.3px',
+                        }}
+                      >
+                        {t(categoryName?.toLowerCase()) || categoryName}
+                      </Typography>
+                    </Box>
                   </Box>
                 </Box>
                 <Box display="flex" gap={1}>
                   <Tooltip title={t('viewDetails')}>
                     <IconButton 
-                      onClick={handleEdit}
+                      onClick={handleViewDetails}
                       size="small"
                       sx={{ 
                         color: theme.palette.primary.main,
@@ -248,21 +252,11 @@ const Post = ({ post, viewMode = "grid" }) => {
 
               <Box display="flex" gap={3} mb={2} flexWrap="wrap">
                 <Box display="flex" alignItems="center" gap={1}>
-                  <PersonIcon sx={{ fontSize: 16, color: 'text.secondary' }} />
-                  <Typography 
-                    variant="body2" 
-                    color="text.secondary"
-                    sx={typographyStyles}
-                  >
-                    {post.username || t('unknownUser')}
-                  </Typography>
-                </Box>
-                <Box display="flex" alignItems="center" gap={1}>
                   <CalendarIcon sx={{ fontSize: 16, color: 'text.secondary' }} />
                   <Typography 
                     variant="body2" 
                     color="text.secondary"
-                    sx={typographyStyles}
+                    sx={{ direction: currentLanguage === 'ar' ? 'rtl' : 'ltr' }}
                   >
                     {created}
                   </Typography>
@@ -272,35 +266,23 @@ const Post = ({ post, viewMode = "grid" }) => {
                   <Typography 
                     variant="body2" 
                     color="text.secondary"
-                    sx={typographyStyles}
+                    sx={{ direction: currentLanguage === 'ar' ? 'rtl' : 'ltr' }}
                   >
-                    {post.countryname || t('unknownCountry')}
+                    {post.region || t('unknownRegion')}
                   </Typography>
                 </Box>
-                {post.contact && (
-                  <Box display="flex" alignItems="center" gap={1}>
-                    <ContactIcon sx={{ fontSize: 16, color: 'text.secondary' }} />
-                    <Typography 
-                      variant="body2" 
-                      color="text.secondary"
-                      sx={typographyStyles}
-                    >
-                      {post.contact}
-                    </Typography>
-                  </Box>
-                )}
               </Box>
 
               <Box sx={{ mt: 'auto' }}>
                 <Button
                   variant="contained"
-                  endIcon={<KeyboardArrowRightOutlined data-directional="true" />}
-                  onClick={handleEdit}
+                  endIcon={<RenderIcon name="view" data-directional="true" />}
+                  onClick={handleViewDetails}
                   sx={{
                     borderRadius: 2,
                     textTransform: 'none',
                     fontWeight: 600,
-                    ...typographyStyles
+                    direction: currentLanguage === 'ar' ? 'rtl' : 'ltr'
                   }}
                 >
                   {t('viewDetails')}
@@ -312,195 +294,196 @@ const Post = ({ post, viewMode = "grid" }) => {
       );
     }
 
-    // Grid view layout (default)
+    // Grid view layout (matching RecentPosts styling)
     return (
-      <Card 
-        sx={{ 
-          borderRadius: 3,
-          overflow: 'hidden',
-          transition: 'all 0.3s ease',
-          height: '100%',
+      <Card
+        sx={{
+          backgroundColor: isDarkMode ? alpha('#1E1E1E', 0.8) : '#FFFFFF',
+          position: 'relative',
+          boxShadow: isDarkMode 
+            ? '0 4px 20px rgba(0, 0, 0, 0.3)'
+            : '0 4px 20px rgba(0, 0, 0, 0.08)',
+          height: { xs: 'auto', sm: '20rem' },
           display: 'flex',
           flexDirection: 'column',
+          transition: 'all 0.3s ease-in-out',
+          borderRadius: '12px',
+          overflow: 'hidden',
           '&:hover': {
-            transform: 'translateY(-4px)',
-            boxShadow: theme.shadows[8]
+            transform: { xs: 'none', sm: 'translateY(-4px)' },
+            boxShadow: isDarkMode
+              ? '0 8px 24px rgba(0, 0, 0, 0.4)'
+              : '0 8px 24px rgba(0, 0, 0, 0.12)',
           },
-          ...rtlStyles
+          direction: currentLanguage === 'ar' ? 'rtl' : 'ltr'
         }}
       >
-        {/* Image */}
-        <Box sx={{ position: 'relative' }}>
-          <CardMedia
-            component="img"
-            sx={{ 
-              height: 200,
-              objectFit: 'cover'
-            }}
-            image={post.image ? `http://localhost:3500/${post.image}` : ma}
-            title={post.image}
-          />
-          
-          {/* Status Badge */}
-          <Chip 
-            label={statusText}
-            size="small"
-            sx={{
+        {/* Card Image */}
+        <CardMedia
+          sx={{
+            height: { xs: '160px', sm: '180px' },
+            position: 'relative',
+            '&::after': {
+              content: '""',
               position: 'absolute',
-              top: 12,
-              left: isRTLMode ? 'auto' : 12,
-              right: isRTLMode ? 12 : 'auto',
-              fontWeight: 600,
-              backgroundColor: statusColor,
-              color: 'white',
-              '& .MuiChip-label': {
-                color: 'white'
-              }
-            }}
-          />
+              bottom: 0,
+              left: 0,
+              right: 0,
+              height: '50%',
+              background: isDarkMode
+                ? 'linear-gradient(to top, rgba(30, 30, 30, 0.9), transparent)'
+                : 'linear-gradient(to top, rgba(255, 255, 255, 0.9), transparent)',
+            },
+          }}
+          image={post.image ? `${API_BASE_URL}/${post.image}` : ma}
+          title={categoryName}
+        />
 
+        {/* Status Badge */}
+        <Chip 
+          label={statusText}
+          size="small"
+          sx={{
+            position: 'absolute',
+            top: 12,
+            left: currentLanguage === 'ar' ? 'auto' : 12,
+            right: currentLanguage === 'ar' ? 12 : 'auto',
+            fontWeight: 600,
+            backgroundColor: statusColor,
+            color: 'white',
+            '& .MuiChip-label': {
+              color: 'white'
+            }
+          }}
+        />
+
+        {/* Card Content */}
+        <CardContent 
+          sx={{ 
+            flexGrow: 1, 
+            p: { xs: 2, sm: 2.5 },
+            display: 'flex',
+            flexDirection: 'column',
+            gap: 1.5,
+          }}
+        >
           {/* Category Badge */}
-          <Chip 
-            label={categoryName}
-            variant="outlined"
-            size="small"
-            icon={<RenderIcon name={`${post.category?.code?.toLowerCase()}cate`} />}
+          <Box
             sx={{
-              position: 'absolute',
-              top: 12,
-              left: isRTLMode ? 12 : 'auto',
-              right: isRTLMode ? 'auto' : 12,
-              backgroundColor: 'rgba(255,255,255,0.95)',
-              fontWeight: 600,
-              fontSize: '0.7rem',
-              height: '20px',
-              padding: '0 6px',
-              '& .MuiChip-icon': {
-                fontSize: '0.8rem',
-                marginLeft: isRTLMode ? '2px' : '2px',
-                marginRight: isRTLMode ? '2px' : '2px'
-              },
-              '& .MuiChip-label': {
-                padding: '0 4px'
-              }
+              backgroundColor: isDarkMode ? alpha(categoryStyle.main, 0.15) : categoryStyle.light,
+              padding: '4px 8px',
+              borderRadius: '16px',
+              alignSelf: 'flex-start',
+              border: `1px solid ${isDarkMode ? alpha(categoryStyle.main, 0.3) : categoryStyle.main}`,
+              display: 'flex',
+              alignItems: 'center',
+              gap: 0.5,
             }}
-          />
-        </Box>
-
-        {/* Content */}
-        <CardContent sx={{ flex: 1, p: 3 }}>
-          <Box display="flex" justifyContent="space-between" alignItems="flex-start" mb={2}>
-            <Typography 
-              variant="h6" 
-              fontWeight={600}
-              sx={{ 
-                color: theme.palette.textColor.main,
-                lineHeight: 1.2,
-                ...typographyStyles
+          >
+            <RenderIcon name={`${categoryName?.toLowerCase()}cate`} />
+            <Typography
+              sx={{
+                color: isDarkMode ? categoryStyle.main : categoryStyle.dark,
+                fontSize: { xs: '10px', sm: '12px' },
+                fontWeight: 600,
+                letterSpacing: '0.3px',
               }}
             >
-              {post.region || t('unknownRegion')}
+              {t(categoryName?.toLowerCase()) || categoryName}
             </Typography>
           </Box>
 
-          <Box display="flex" flexDirection="column" gap={1.5}>
-            <Box display="flex" alignItems="center" gap={1}>
-              <PersonIcon sx={{ fontSize: 16, color: 'text.secondary' }} />
-              <Typography 
-                variant="body2" 
-                color="text.secondary"
-                sx={typographyStyles}
+          {/* Location and Date Info */}
+          <Box sx={{ display: 'flex', flexDirection: 'column', gap: 1 }}>
+            <Box
+              sx={{
+                display: 'flex',
+                alignItems: 'center',
+                gap: 1,
+              }}
+            >
+              <RenderIcon name="locat" />
+              <Typography
+                sx={{
+                  color: isDarkMode ? alpha('#fff', 0.9) : alpha('#000', 0.8),
+                  fontSize: { xs: '13px', sm: '14px' },
+                  fontWeight: 500,
+                }}
               >
-                {post.username || t('unknownUser')}
-              </Typography>
-            </Box>
-            
-            <Box display="flex" alignItems="center" gap={1}>
-              <CalendarIcon sx={{ fontSize: 16, color: 'text.secondary' }} />
-              <Typography 
-                variant="body2" 
-                color="text.secondary"
-                sx={typographyStyles}
-              >
-                {created}
-              </Typography>
-            </Box>
-            
-            <Box display="flex" alignItems="center" gap={1}>
-              <LocationOnOutlined sx={{ fontSize: 16, color: 'text.secondary' }} />
-              <Typography 
-                variant="body2" 
-                color="text.secondary"
-                sx={typographyStyles}
-              >
-                {post.countryname || t('unknownCountry')}
+                {post.region || t('unknownRegion')}
               </Typography>
             </Box>
 
-            {post.contact && (
-              <Box display="flex" alignItems="center" gap={1}>
-                <ContactIcon sx={{ fontSize: 16, color: 'text.secondary' }} />
-                <Typography 
-                  variant="body2" 
-                  color="text.secondary" 
-                  noWrap
-                  sx={typographyStyles}
-                >
-                  {post.contact}
-                </Typography>
-              </Box>
-            )}
+            <Box
+              sx={{
+                display: 'flex',
+                alignItems: 'center',
+                gap: 1,
+              }}
+            >
+              <RenderIcon name="timerace" />
+              <Typography
+                sx={{
+                  color: isDarkMode ? alpha('#fff', 0.7) : alpha('#000', 0.6),
+                  fontSize: { xs: '13px', sm: '14px' },
+                  fontWeight: 500,
+                }}
+              >
+                {new Date(post.createdAt).toLocaleDateString()}
+              </Typography>
+            </Box>
+
+
           </Box>
         </CardContent>
 
-        {/* Actions */}
-        <CardActions 
+        {/* Card Actions */}
+        <CardActions
           sx={{
-            p: 3,
-            pt: 0,
             display: 'flex',
             justifyContent: 'space-between',
-            alignItems: 'center',
-            gap: 1
+            p: { xs: 1.5, sm: 2 },
+            borderTop: '1px solid',
+            borderColor: isDarkMode ? alpha('#fff', 0.1) : alpha('#000', 0.1),
+            backgroundColor: isDarkMode ? alpha('#000', 0.2) : alpha('#f5f5f5', 0.5),
           }}
         >
           <Button
-            variant="outlined"
-            size="small"
-            startIcon={<ReportProblemOutlined />}
             onClick={handleReport}
             sx={{
-              borderRadius: 2,
-              textTransform: 'none',
-              fontWeight: 600,
               color: theme.palette.error.main,
-              borderColor: theme.palette.error.main,
+              textTransform: 'none',
+              fontSize: { xs: '13px', sm: '14px' },
+              fontWeight: 600,
+              padding: '6px 12px',
+              borderRadius: '20px',
+              backgroundColor: isDarkMode ? alpha(theme.palette.error.main, 0.1) : alpha(theme.palette.error.main, 0.08),
               '&:hover': {
-                backgroundColor: theme.palette.error.light + '20',
-                borderColor: theme.palette.error.main
+                backgroundColor: isDarkMode ? alpha(theme.palette.error.main, 0.2) : alpha(theme.palette.error.main, 0.12),
               },
-              ...typographyStyles
             }}
+            startIcon={<ReportProblemOutlined />}
           >
             {t('report')}
           </Button>
-          
+
           <Button
-            variant="contained"
-            size="small"
-            endIcon={!isRTLMode ? <KeyboardArrowRightOutlined /> : null}
-            startIcon={isRTLMode ? <KeyboardArrowRightOutlined /> : null}
-            onClick={handleEdit}
+            onClick={handleViewDetails}
             sx={{
-              borderRadius: 2,
+              color: isDarkMode ? categoryStyle.main : categoryStyle.dark,
               textTransform: 'none',
+              fontSize: { xs: '13px', sm: '14px' },
               fontWeight: 600,
-              px: 2,
-              direction: isRTLMode ? 'rtl' : 'ltr',
-              ...typographyStyles
+              padding: '6px 16px',
+              borderRadius: '20px',
+              backgroundColor: isDarkMode ? alpha(categoryStyle.main, 0.1) : alpha(categoryStyle.main, 0.08),
+              '&:hover': {
+                backgroundColor: isDarkMode ? alpha(categoryStyle.main, 0.2) : alpha(categoryStyle.main, 0.12),
+              },
             }}
+            endIcon={<RenderIcon name="view" data-directional="true" />}
           >
-            {t('view')}
+            {t('viewDetails')}
           </Button>
         </CardActions>
       </Card>
