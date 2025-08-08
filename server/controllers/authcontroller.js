@@ -39,7 +39,7 @@ const login = async (req, res) => {
 
   const refreshToken = jwt.sign(
     { username: foundUser.username },
-    process.env.REFRECH_TOKEN_SECRET,
+    process.env.JWT_REFRESH_SECRET,
     { expiresIn: "7d" }
   );
 
@@ -67,7 +67,7 @@ const refresh = (req, res) => {
 
   jwt.verify(
     refreshToken,
-    process.env.REFRECH_TOKEN_SECRET,
+    process.env.JWT_REFRESH_SECRET,
     async (err, decoded) => {
       if (err) return res.status(403).json({ message: "Forbidden" });
 

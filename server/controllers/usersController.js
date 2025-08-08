@@ -69,7 +69,7 @@ const createNewUser = async (req, res) => {
 
   const refreshToken = jwt.sign(
     { username: user.username },
-    process.env.REFRECH_TOKEN_SECRET,
+    process.env.JWT_REFRESH_SECRET,
     { expiresIn: "7d" }
   );
 
