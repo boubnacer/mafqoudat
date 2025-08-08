@@ -1,0 +1,19 @@
+{
+  "name": "mafqoudat",
+  "version": "1.0.0",
+  "description": "Mafqoudat - Lost and Found Platform",
+  "main": "server/server.js",
+  "scripts": {
+    "start": "cd server && npm start",
+    "build": "cd server && npm install",
+    "dev": "cd server && npm run dev",
+    "install-server": "cd server && npm install"
+  },
+  "engines": {
+    "node": ">=16.0.0",
+    "npm": ">=8.0.0"
+  },
+  "workspaces": [
+    "server"
+  ]
+}
