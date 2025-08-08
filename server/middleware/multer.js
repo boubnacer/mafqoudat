@@ -1,34 +1,22 @@
 const multer = require("multer");
 const path = require("path");
+const { uploadToCloudinary } = require("../config/cloudinary");
 
-// Configure storage
-const storage = multer.diskStorage({
-  destination: function (req, file, cb) {
-    cb(null, "uploads"); // 'uploads' is the directory where uploaded files will be stored
-  },
-  filename: function (req, file, cb) {
-    // Generate unique filename with timestamp
-    const uniqueSuffix = Date.now() + '-' + Math.round(Math.random() * 1E9);
-    cb(null, file.fieldname + '-' + uniqueSuffix + path.extname(file.originalname));
-  },
-});
+// Configure storage - Use memory storage for Cloudinary
+const storage = multer.memoryStorage();
 
-// File filter function
+// File filter to only allow images
 const fileFilter = (req, file, cb) => {
   // Check file type
-  const allowedTypes = /jpeg|jpg|png|gif|webp/;
-  const extname = allowedTypes.test(path.extname(file.originalname).toLowerCase());
-  const mimetype = allowedTypes.test(file.mimetype);
-
-  if (mimetype && extname) {
-    return cb(null, true);
+  if (file.mimetype.startsWith('image/')) {
+    cb(null, true);
   } else {
     cb(new Error('Only image files are allowed!'), false);
   }
 };
 
 // Configure multer
-const upload = multer({ 
+const upload = multer({
   storage: storage,
   fileFilter: fileFilter,
   limits: {
@@ -36,4 +24,27 @@ const upload = multer({
   }
 });
 
-module.exports = upload;
+// Middleware to handle Cloudinary upload
+const uploadToCloudinaryMiddleware = async (req, res, next) => {
+  try {
+    if (req.file) {
+      // Convert buffer to temporary file path for Cloudinary
+      const tempFilePath = `/tmp/${Date.now()}-${req.file.originalname}`;
+      require('fs').writeFileSync(tempFilePath, req.file.buffer);
+      
+      // Upload to Cloudinary
+      const result = await uploadToCloudinary({ path: tempFilePath });
+      
+      // Store Cloudinary URL and public_id in request
+      req.cloudinaryResult = result;
+      
+      // Clean up temporary file
+      require('fs').unlinkSync(tempFilePath);
+    }
+    next();
+  } catch (error) {
+    next(error);
+  }
+};
+
+module.exports = { upload, uploadToCloudinaryMiddleware };

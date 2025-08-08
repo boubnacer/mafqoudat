@@ -63,7 +63,7 @@ const createNewUser = async (req, res) => {
         country: user.country,
       },
     },
-    process.env.ACCESS_TOKEN_SECRET,
+            process.env.JWT_SECRET,
     { expiresIn: "15m" }
   );
 

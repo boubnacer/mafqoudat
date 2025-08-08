@@ -38,6 +38,13 @@ const postSchema = new mongoose.Schema(
     image: {
       type: String,
     },
+    // Cloudinary fields for proper image management
+    cloudinaryUrl: {
+      type: String,
+    },
+    cloudinaryPublicId: {
+      type: String,
+    },
     mainDate: {
       type: String,
     },
@@ -119,6 +126,11 @@ postSchema.virtual('titleText').get(function() {
 
 postSchema.virtual('descriptionText').get(function() {
   return this.description || this.descriptionLabels?.en || '';
+});
+
+// Virtual for image URL (prioritize Cloudinary URL)
+postSchema.virtual('imageUrl').get(function() {
+  return this.cloudinaryUrl || this.image || '';
 });
 
 // Method to get title by language

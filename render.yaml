@@ -1,29 +1,28 @@
 services:
   - type: web
-    name: mafkoudat-backend
+    name: mafqoudat-backend
     env: node
-    plan: starter
-    buildCommand: npm install
-    startCommand: npm start
-    healthCheckPath: /health
+    plan: free
+    buildCommand: cd server && npm install
+    startCommand: cd server && npm start
     envVars:
       - key: NODE_ENV
         value: production
-      - key: DATABASE_URI
+      - key: PORT
+        value: 10000
+      - key: MONGODB_URI
         sync: false
-      - key: ACCESS_TOKEN_SECRET
+      - key: JWT_SECRET
         sync: false
-      - key: REFRECH_TOKEN_SECRET
+      - key: JWT_REFRESH_SECRET
         sync: false
       - key: FRONTEND_URL
+        value: https://mafqoudat.com
+      - key: CLOUDINARY_CLOUD_NAME
         sync: false
-
-  - type: web
-    name: mafkoudat-frontend
-    env: static
-    plan: starter
-    buildCommand: cd client && npm install && npm run build
-    staticPublishPath: ./client/build
-    envVars:
-      - key: REACT_APP_API_URL
+      - key: CLOUDINARY_API_KEY
+        sync: false
+      - key: CLOUDINARY_API_SECRET
+        sync: false
+      - key: CLOUDINARY_UPLOAD_PRESET
         sync: false 

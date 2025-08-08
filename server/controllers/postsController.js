@@ -3,6 +3,7 @@ const User = require("../models/User");
 const Country = require("../models/Country");
 const Category = require("../models/Category");
 const FoundLost = require("../models/FoundLost");
+const { deleteFromCloudinary } = require("../config/cloudinary");
 const mongoose = require("mongoose");
 // const getCountryIso3 = require("country-iso-2-to-3");
 const getCountryIso3 = require("country-iso-2-to-3");
@@ -203,7 +204,6 @@ const getFilteredPosts = async (req, res) => {
 // @access Private
 const createNewPost = async (req, res) => {
   const { user, country, category, region, contact, foundLost } = req.body;
-  const imagePath = req.file ? req.file.path.replace(/\\/g, "/") : "";
   const formData = req.body;
   console.log(req.body);
 
@@ -221,16 +221,26 @@ const createNewPost = async (req, res) => {
     return res.status(400).json({ message: "Invalid reference in user/country/category/foundLost" });
   }
 
-  // Create and store the new post
-  const post = await Post.create({
+  // Prepare post data
+  const postData = {
     user,
     category,
     region,
     country,
     contact,
     foundLost,
-    image: imagePath,
-  });
+  };
+
+  // Add Cloudinary image data if available
+  if (req.cloudinaryResult) {
+    postData.cloudinaryUrl = req.cloudinaryResult.url;
+    postData.cloudinaryPublicId = req.cloudinaryResult.public_id;
+    // Keep backward compatibility with image field
+    postData.image = req.cloudinaryResult.url;
+  }
+
+  // Create and store the new post
+  const post = await Post.create(postData);
 
   if (post) {
     // Created
@@ -321,6 +331,11 @@ const deletePost = async (req, res) => {
 
   if (!post) {
     return res.status(400).json({ message: "Post not found" });
+  }
+
+  // Delete image from Cloudinary if it exists
+  if (post.cloudinaryPublicId) {
+    await deleteFromCloudinary(post.cloudinaryPublicId);
   }
 
   const result = await post.deleteOne();

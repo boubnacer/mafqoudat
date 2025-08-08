@@ -33,7 +33,7 @@ const login = async (req, res) => {
         country: foundUser.country,
       },
     },
-    process.env.ACCESS_TOKEN_SECRET,
+            process.env.JWT_SECRET,
     { expiresIn: "15m" }
   );
 
@@ -85,7 +85,7 @@ const refresh = (req, res) => {
             country: foundUser.country,
           },
         },
-        process.env.ACCESS_TOKEN_SECRET,
+        process.env.JWT_SECRET,
         { expiresIn: "15m" }
       );
 

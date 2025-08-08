@@ -3,14 +3,14 @@ const router = express.Router();
 const postsController = require("../controllers/postsController");
 const verifyJWT = require("../middleware/verifyJWT");
 
-const upload = require("../middleware/multer");
+const { upload, uploadToCloudinaryMiddleware } = require("../middleware/multer");
 
 router.use(verifyJWT);
 
 router
   .route("/")
   .get(postsController.getAllPosts)
-  .post(upload.single("image"), postsController.createNewPost)
+  .post(upload.single("image"), uploadToCloudinaryMiddleware, postsController.createNewPost)
   .patch(postsController.updatePost)
   .delete(postsController.deletePost);
 
