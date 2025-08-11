@@ -338,7 +338,8 @@ const categoriesData = [
 const seedData = async () => {
   try {
     // Connect to MongoDB
-    await mongoose.connect(process.env.MONGODB_URI, {
+    const MONGODB_URI = 'mongodb+srv://mafqoudat:NB%40mafBase2025@cluster0.mwwk6a.mongodb.net/mafqoudat?retryWrites=true&w=majority';
+    await mongoose.connect(MONGODB_URI, {
       useNewUrlParser: true,
       useUnifiedTopology: true,
     });
