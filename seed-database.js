@@ -1,8 +1,10 @@
 const mongoose = require('mongoose');
-const Country = require('../models/Country');
-const FoundLost = require('../models/FoundLost');
-const Category = require('../models/Category');
-require('dotenv').config();
+const Country = require('./server/models/Country');
+const FoundLost = require('./server/models/FoundLost');
+const Category = require('./server/models/Category');
+
+// Railway MongoDB URI (replace with your actual URI)
+const MONGODB_URI = 'mongodb+srv://mafqoudat:your_password@cluster0.mongodb.net/mafqoudat?retryWrites=true&w=majority';
 
 // Sample countries data with multilingual support
 const countriesData = [
@@ -233,7 +235,7 @@ const countriesData = [
   }
 ];
 
-// Post types data - Fixed to use consistent codes
+// Post types data (Found/Lost)
 const postTypesData = [
   {
     code: 'FOUND',
@@ -259,7 +261,7 @@ const postTypesData = [
   }
 ];
 
-// Sample categories data
+// Categories data
 const categoriesData = [
   {
     code: 'ELECTRONICS',
@@ -337,48 +339,51 @@ const categoriesData = [
 
 const seedData = async () => {
   try {
+    console.log('🌱 Starting database seeding...');
+    console.log('Connecting to MongoDB...');
+    
     // Connect to MongoDB
-    await mongoose.connect(process.env.MONGODB_URI, {
+    await mongoose.connect(MONGODB_URI, {
       useNewUrlParser: true,
       useUnifiedTopology: true,
     });
-    console.log('Connected to MongoDB');
+    console.log('✅ Connected to MongoDB');
 
     // Clear existing data
+    console.log('🧹 Clearing existing data...');
     await Country.deleteMany({});
     await FoundLost.deleteMany({});
     await Category.deleteMany({});
-    console.log('Cleared existing data');
+    console.log('✅ Cleared existing data');
 
     // Seed countries
+    console.log('🌍 Seeding countries...');
     const countries = await Country.insertMany(countriesData);
     console.log(`✅ Seeded ${countries.length} countries`);
 
     // Seed post types
+    console.log('🏷️  Seeding post types...');
     const postTypes = await FoundLost.insertMany(postTypesData);
     console.log(`✅ Seeded ${postTypes.length} post types`);
 
     // Seed categories
+    console.log('📂 Seeding categories...');
     const categories = await Category.insertMany(categoriesData);
     console.log(`✅ Seeded ${categories.length} categories`);
 
     console.log('\n🎉 Database seeding completed successfully!');
-    console.log('\nSample data:');
-    console.log('Countries:', countries.map(c => `${c.code}: ${c.labels.en}`).join(', '));
-    console.log('Post Types:', postTypes.map(p => `${p.code}: ${p.labels.en}`).join(', '));
-    console.log('Categories:', categories.map(c => `${c.code}: ${c.labels.en}`).join(', '));
+    console.log('\n📊 Summary:');
+    console.log(`Countries: ${countries.length} (${countries.map(c => c.code).join(', ')})`);
+    console.log(`Post Types: ${postTypes.length} (${postTypes.map(p => p.code).join(', ')})`);
+    console.log(`Categories: ${categories.length} (${categories.map(c => c.code).join(', ')})`);
 
   } catch (error) {
     console.error('❌ Error seeding data:', error);
   } finally {
     await mongoose.disconnect();
-    console.log('Disconnected from MongoDB');
+    console.log('🔌 Disconnected from MongoDB');
   }
 };
 
-// Run the seeding if this file is executed directly
-if (require.main === module) {
-  seedData();
-}
-
-module.exports = { seedData, countriesData, postTypesData, categoriesData }; 
+// Run the seeding
+seedData();
