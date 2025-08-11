@@ -4,8 +4,7 @@ const FoundLost = require('./server/models/FoundLost');
 const Category = require('./server/models/Category');
 
 // Railway MongoDB URI (replace with your actual URI)
-const MONGODB_URI = 'mongodb+srv://mafqoudat:your_password@cluster0.mongodb.net/mafqoudat?retryWrites=true&w=majority';
-
+const MONGODB_URI = 'mongodb+srv://mafqoudat:NB%40mafBase2025@cluster0.mwwk6a.mongodb.net/mafqoudat?retryWrites=true&w=majority';
 // Sample countries data with multilingual support
 const countriesData = [
   {
