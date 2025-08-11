@@ -1,0 +1,5 @@
+[33mf042735[m[33m ([m[1;36mHEAD[m[33m -> [m[1;32mmain[m[33m, [m[1;31morigin/main[m[33m, [m[1;31morigin/HEAD[m[33m)[m Fix database URL name
+[33mf0f6d00[m adding railway.json to deploy the backend npm ci fix
+[33ma2e75cd[m adding railway.json to deploy the backend
+[33mec2e1cf[m setting up server side for deployement
+[33mc60231d[m Inhancing Categories component and linking each category with it's related posts
