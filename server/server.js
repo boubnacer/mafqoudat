@@ -79,23 +79,28 @@ app.get("/health", (req, res) => {
   });
 });
 
-// Serve React app for client-side routing
-if (process.env.NODE_ENV === 'production') {
-  app.get('*', (req, res) => {
-    res.sendFile(path.join(__dirname, '../client/build/index.html'));
-  });
-} else {
-  app.all("*", (req, res) => {
-    res.status(404);
-    if (req.accepts("html")) {
-      res.sendFile(path.join(__dirname, "views", "404.html"));
-    } else if (req.accepts("json")) {
-      res.json({ message: "404 Not Found" });
-    } else {
-      res.type("txt").send("404 Not Found");
-    }
-  });
-}
+// API-only server - frontend will be deployed separately
+app.all("*", (req, res) => {
+  res.status(404);
+  if (req.accepts("json")) {
+    res.json({ 
+      message: "404 Not Found",
+      error: "This is the API server. Frontend should be accessed separately.",
+      availableEndpoints: [
+        "/health",
+        "/auth",
+        "/users", 
+        "/posts",
+        "/countries",
+        "/categories",
+        "/dependencies",
+        "/reports"
+      ]
+    });
+  } else {
+    res.type("txt").send("404 Not Found - API Server");
+  }
+});
 
 app.use(errorHandler);
 

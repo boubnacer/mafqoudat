@@ -1,9 +1,25 @@
 const express = require('express')
 const router = express.Router()
-const path = require('path')
 
 router.get('^/$|/index(.html)?', (req, res) => {
-    res.sendFile(path.join(__dirname, '..', 'views', 'index.html'))
+    res.json({
+        message: "Mafqoudat API Server",
+        status: "Running",
+        version: "1.0.0",
+        environment: process.env.NODE_ENV || "development",
+        timestamp: new Date().toISOString(),
+        endpoints: {
+            health: "/health",
+            auth: "/auth",
+            users: "/users",
+            posts: "/posts",
+            countries: "/countries",
+            categories: "/categories",
+            dependencies: "/dependencies",
+            reports: "/reports"
+        },
+        documentation: "This is the backend API server. Frontend is deployed separately."
+    })
 })
 
 module.exports = router
