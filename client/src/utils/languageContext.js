@@ -97,10 +97,10 @@ export const LanguageProvider = ({ children }) => {
       });
     };
 
-    window.addEventListener('languageChanged', handleLanguageChange);
+    window.addEventListener('languageChange', handleLanguageChange);
     
     return () => {
-      window.removeEventListener('languageChanged', handleLanguageChange);
+      window.removeEventListener('languageChange', handleLanguageChange);
     };
   }, [isInitialized]);
 

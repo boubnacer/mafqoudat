@@ -48,7 +48,7 @@ const TrendingItem = ({ trend, isLoading }) => {
               : '0 12px 40px 0 rgba(0,0,0,0.1)',
           },
           height: '100%',
-          maxHeight: isMobile ? '500px' : '350px'
+          minHeight: isMobile ? '500px' : '400px'
         }}
       >
         <Box sx={{ 
@@ -58,16 +58,15 @@ const TrendingItem = ({ trend, isLoading }) => {
         }}>
           {/* Image Container */}
           <Box sx={{ 
-            flex: isMobile ? 'none' : '0 0 35%',
+            flex: isMobile ? 'none' : '0 0 40%',
             position: 'relative',
-            height: isMobile ? '200px' : '100%',
-            minHeight: isMobile ? '200px' : 'auto',
-            maxHeight: isMobile ? '200px' : '350px',
+            height: isMobile ? '250px' : '100%',
+            minHeight: isMobile ? '250px' : '400px',
             overflow: 'hidden'
           }}>
             <CardMedia
               component="img"
-              image={image ? `${API_BASE_URL}/${image}` : ma}
+              image={image ? (image.startsWith('http') ? image : `${API_BASE_URL}/${image}`) : ma}
               title={categoryName || 'Item Image'}
               sx={{
                 width: '100%',
@@ -99,7 +98,7 @@ const TrendingItem = ({ trend, isLoading }) => {
             position: 'relative',
             display: 'flex',
             flexDirection: 'column',
-            minHeight: isMobile ? '300px' : 'auto'
+            minHeight: isMobile ? '250px' : '400px'
           }}>
             <CardContent sx={{ 
               flex: 1,

@@ -230,7 +230,10 @@ const Navbar = () => {
     localStorage.setItem('currentLanguage', newLanguage);
     localStorage.setItem('language', newLanguage);
     localStorage.setItem('app_language', newLanguage);
-    window.location.reload();
+    
+    // Force a re-render of the app without full page refresh
+    window.dispatchEvent(new Event('languageChange'));
+    
     handleLanguageClose();
   };
 
@@ -317,7 +320,7 @@ const Navbar = () => {
                 display: 'block'
               }}
             >
-              {code.labels?.[currentLanguage] || code.code}
+              {code.labels?.[currentLanguage] || code.labels?.en || code.code}
             </Typography>
             <KeyboardArrowDown sx={{ fontSize: '16px', ml: 0.5 }} />
           </CountrySelector>

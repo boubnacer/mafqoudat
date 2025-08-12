@@ -166,7 +166,7 @@ const Post = ({ post, viewMode = "grid" }) => {
                   objectFit: 'cover',
                   objectPosition: 'center'
                 }}
-                image={post.image ? `${API_BASE_URL}/${post.image}` : ma}
+                image={post.image ? (post.image.startsWith('http') ? post.image : `${API_BASE_URL}/${post.image}`) : ma}
                 title={categoryName || 'Item Image'}
                 onError={(e) => {
                   console.log('Image failed to load:', e.target.src);
@@ -337,6 +337,7 @@ const Post = ({ post, viewMode = "grid" }) => {
       >
         {/* Card Image */}
         <CardMedia
+          component="img"
           sx={{
             height: { xs: '160px', sm: '180px' },
             position: 'relative',
@@ -355,7 +356,7 @@ const Post = ({ post, viewMode = "grid" }) => {
                 : 'linear-gradient(to top, rgba(255, 255, 255, 0.9), transparent)',
             },
           }}
-          image={post.image ? `${API_BASE_URL}/${post.image}` : ma}
+          image={post.image ? (post.image.startsWith('http') ? post.image : `${API_BASE_URL}/${post.image}`) : ma}
           title={categoryName || 'Item Image'}
           onError={(e) => {
             console.log('Image failed to load:', e.target.src);

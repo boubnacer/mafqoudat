@@ -65,6 +65,7 @@ const RecentPosts = ({ _id, categoryname, region, image, createdAt, countryLabel
     >
              {/* Card Image */}
        <CardMedia
+         component="img"
          sx={{
            height: { xs: '160px', sm: '180px' },
            position: 'relative',
@@ -82,8 +83,12 @@ const RecentPosts = ({ _id, categoryname, region, image, createdAt, countryLabel
                : 'linear-gradient(to top, rgba(255, 255, 255, 0.9), transparent)',
            },
          }}
-         image={image ? `${API_BASE_URL}/${image}` : ma}
+         image={image ? (image.startsWith('http') ? image : `${API_BASE_URL}/${image}`) : ma}
          title={categoryname}
+         onError={(e) => {
+           console.log('Image failed to load:', e.target.src);
+           e.target.src = ma;
+         }}
        />
 
       {/* Card Content */}
