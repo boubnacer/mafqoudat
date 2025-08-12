@@ -3,3 +3,8 @@
 [33ma2e75cd[m adding railway.json to deploy the backend
 [33mec2e1cf[m setting up server side for deployement
 [33mc60231d[m Inhancing Categories component and linking each category with it's related posts
+[33m92d5a9e[m[33m ([m[1;36mHEAD[m[33m -> [m[1;32mmain[m[33m, [m[1;31morigin/main[m[33m, [m[1;31morigin/HEAD[m[33m)[m Temporarily allow all CORS origins for debugging
+[33md256bf8[m Fix CORS configuration - add Vercel domain and fix typo in allowedOrigins
+[33m0262a91[m migrate dependencies
+[33m1bac099[m Add database seeding script and guide for populating essential data
+[33m303e7e6[m Add Vercel configuration files with environment variables

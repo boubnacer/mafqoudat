@@ -47,7 +47,8 @@ const TrendingItem = ({ trend, isLoading }) => {
               ? '0 12px 40px 0 rgba(0,0,0,0.2)'
               : '0 12px 40px 0 rgba(0,0,0,0.1)',
           },
-          height: '100%'
+          height: '100%',
+          maxHeight: isMobile ? '500px' : '400px'
         }}
       >
         <Box sx={{ 
@@ -55,23 +56,27 @@ const TrendingItem = ({ trend, isLoading }) => {
           height: '100%',
           flexDirection: isMobile ? 'column' : 'row'
         }}>
+          {/* Image Container */}
           <Box sx={{ 
-            flex: isMobile ? 'auto' : 1.2,
+            flex: isMobile ? 'none' : '0 0 40%',
             position: 'relative',
-            height: isMobile ? '200px' : 'auto',
-            minHeight: isMobile ? '200px' : '300px',
+            height: isMobile ? '200px' : '100%',
+            minHeight: isMobile ? '200px' : 'auto',
             maxHeight: isMobile ? '200px' : '400px',
             overflow: 'hidden'
           }}>
             <CardMedia
               component="img"
-              height="100%"
               image={image ? `${API_BASE_URL}/${image}` : ma}
-              title={image}
+              title={categoryName || 'Item Image'}
               sx={{
-                objectFit: 'cover',
                 width: '100%',
-                maxHeight: isMobile ? '200px' : '100%',
+                height: '100%',
+                objectFit: 'cover',
+                objectPosition: 'center',
+              }}
+              onError={(e) => {
+                e.target.src = ma;
               }}
             />
             <Box
@@ -82,22 +87,27 @@ const TrendingItem = ({ trend, isLoading }) => {
                 right: 0,
                 bottom: 0,
                 background: 'linear-gradient(to bottom, rgba(0,0,0,0) 0%, rgba(0,0,0,0.7) 100%)',
+                pointerEvents: 'none'
               }}
             />
           </Box>
 
+          {/* Content Container */}
           <Box sx={{ 
-            flex: isMobile ? 'auto' : 1, 
+            flex: isMobile ? '1' : '1', 
             position: 'relative',
+            display: 'flex',
+            flexDirection: 'column',
             minHeight: isMobile ? '300px' : 'auto'
           }}>
             <CardContent sx={{ 
-              height: '100%', 
-              position: 'relative', 
-              padding: '2rem',
+              flex: 1,
+              display: 'flex',
+              flexDirection: 'column',
+              padding: '1.5rem',
               paddingBottom: '80px' // Space for the button
             }}>
-              <FlexBetween>
+              <FlexBetween sx={{ mb: 2 }}>
                 <Box
                   sx={{
                     display: 'flex',
@@ -113,7 +123,7 @@ const TrendingItem = ({ trend, isLoading }) => {
                 >
                   <RenderIcon name={categoryName} />
                   <Typography
-                    variant="category"
+                    variant="body2"
                     sx={{
                       color: theme.palette.mode === 'dark' ? '#E0E0E0' : '#2D3748',
                       fontWeight: 500,
@@ -159,7 +169,7 @@ const TrendingItem = ({ trend, isLoading }) => {
                   display: 'flex',
                   alignItems: 'center',
                   gap: '8px',
-                  mt: '24px',
+                  mb: 'auto',
                 }}
               >
                 <RenderIcon name="time" />
