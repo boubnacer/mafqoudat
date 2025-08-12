@@ -14,6 +14,9 @@ import { TrendingItemSkeleton, DashboardEmptyStates } from "../LoadingStates";
 import { useTranslation } from "../../utils/translations";
 import ma from "../../img/ma.jpg";
 
+// Get the API base URL for image construction
+const API_BASE_URL = process.env.REACT_APP_API_URL || "http://localhost:3500";
+
 const TrendingItem = ({ trend, isLoading }) => {
   const { categoryName, floptionName, region, image, createdAt } = trend[0] || {};
   const theme = useTheme();

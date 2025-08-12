@@ -63,43 +63,28 @@ const RecentPosts = ({ _id, categoryname, region, image, createdAt }) => {
         },
       }}
     >
-      {/* Card Image */}
-      <CardMedia
-        sx={{
-          height: { xs: '160px', sm: '180px' },
-          position: 'relative',
-          '&::after': {
-            content: '""',
-            position: 'absolute',
-            bottom: 0,
-            left: 0,
-            right: 0,
-            height: '50%',
-            background: isDarkMode
-              ? 'linear-gradient(to top, rgba(30, 30, 30, 0.9), transparent)'
-              : 'linear-gradient(to top, rgba(255, 255, 255, 0.9), transparent)',
-          },
-        }}
-        image={image ? `${API_BASE_URL}/${image}` : ma}
-        sx={{
-          height: { xs: '160px', sm: '180px' },
-          position: 'relative',
-          width: '100%',
-          objectFit: 'cover',
-          '&::after': {
-            content: '""',
-            position: 'absolute',
-            bottom: 0,
-            left: 0,
-            right: 0,
-            height: '50%',
-            background: isDarkMode
-              ? 'linear-gradient(to top, rgba(30, 30, 30, 0.9), transparent)'
-              : 'linear-gradient(to top, rgba(255, 255, 255, 0.9), transparent)',
-          },
-        }}
-        title={categoryname}
-      />
+             {/* Card Image */}
+       <CardMedia
+         sx={{
+           height: { xs: '160px', sm: '180px' },
+           position: 'relative',
+           width: '100%',
+           objectFit: 'cover',
+           '&::after': {
+             content: '""',
+             position: 'absolute',
+             bottom: 0,
+             left: 0,
+             right: 0,
+             height: '50%',
+             background: isDarkMode
+               ? 'linear-gradient(to top, rgba(30, 30, 30, 0.9), transparent)'
+               : 'linear-gradient(to top, rgba(255, 255, 255, 0.9), transparent)',
+           },
+         }}
+         image={image ? `${API_BASE_URL}/${image}` : ma}
+         title={categoryname}
+       />
 
       {/* Card Content */}
       <CardContent 
