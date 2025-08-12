@@ -159,7 +159,7 @@ const SinglePostPage = ({
                   width: '100%',
                   objectFit: 'cover'
                 }}
-                image={image ? `http://localhost:3500/${image}` : sear}
+                image={image ? `${process.env.REACT_APP_API_URL || "http://localhost:3500"}/${image}` : sear}
                 title={categoryname}
               />
               

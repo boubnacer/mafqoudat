@@ -39,11 +39,9 @@ const LanguageSwitcher = ({ variant = 'button', onLanguageChange }) => {
         onLanguageChange(language);
       }
       
-      // Refresh the page to ensure dynamic translations are fetched correctly
-      // This is especially important for RTL languages and dynamic content
-      setTimeout(() => {
-        window.location.reload();
-      }, 100);
+      // Force a re-render of the app without full page refresh
+      // This ensures dynamic translations are updated properly
+      window.dispatchEvent(new Event('languageChanged'));
     }
   };
 

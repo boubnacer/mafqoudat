@@ -74,6 +74,25 @@ export const LanguageProvider = ({ children }) => {
       console.error('Error loading saved language:', error);
       initializeLanguage('en');
     }
+
+    // Listen for language change events
+    const handleLanguageChange = () => {
+      // Force re-render of components that depend on language
+      setCurrentLanguage(prev => {
+        const newLang = localStorage.getItem('language') || localStorage.getItem('app_language') || 'en';
+        if (prev !== newLang) {
+          initializeLanguage(newLang);
+          return newLang;
+        }
+        return prev;
+      });
+    };
+
+    window.addEventListener('languageChanged', handleLanguageChange);
+    
+    return () => {
+      window.removeEventListener('languageChanged', handleLanguageChange);
+    };
   }, []);
 
   return (

@@ -55,15 +55,20 @@ const TrendingItem = ({ trend, isLoading }) => {
           <Box sx={{ 
             flex: isMobile ? 'auto' : 1.2,
             position: 'relative',
-            height: isMobile ? '200px' : 'auto'
+            height: isMobile ? '200px' : 'auto',
+            minHeight: isMobile ? '200px' : '300px',
+            maxHeight: isMobile ? '200px' : '400px',
+            overflow: 'hidden'
           }}>
             <CardMedia
               component="img"
               height="100%"
-              image={image ? `http://localhost:3500/${image}` : ma}
+              image={image ? `${API_BASE_URL}/${image}` : ma}
               title={image}
               sx={{
                 objectFit: 'cover',
+                width: '100%',
+                maxHeight: isMobile ? '200px' : '100%',
               }}
             />
             <Box

@@ -86,7 +86,7 @@ const SearchSection = ({
                     >
                       <CardMedia
                         sx={{ height: 150 }}
-                        image={post.image ? `http://localhost:3500/${post.image}` : ma}
+                        image={post.image ? `${process.env.REACT_APP_API_URL || "http://localhost:3500"}/${post.image}` : ma}
                         title={post.image}
                       />
                       <CardContent>
