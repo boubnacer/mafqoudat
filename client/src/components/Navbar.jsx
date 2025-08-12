@@ -226,6 +226,7 @@ const Navbar = () => {
   };
 
   const handleLanguageChange = (newLanguage) => {
+    console.log('Navbar: Changing language to:', newLanguage);
     // Save to localStorage and reload page to fetch fresh translations
     localStorage.setItem('currentLanguage', newLanguage);
     localStorage.setItem('language', newLanguage);

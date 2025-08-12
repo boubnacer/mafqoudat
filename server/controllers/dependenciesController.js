@@ -56,6 +56,15 @@ const getDashboard = async (req, res) => {
       },
       { $unwind: "$Floptions" },
       {
+        $lookup: {
+          from: "countries",
+          localField: "country",
+          foreignField: "_id",
+          as: "Country",
+        },
+      },
+      { $unwind: "$Country" },
+      {
         $project: {
           region: 1,
           user: 1,
@@ -67,6 +76,7 @@ const getDashboard = async (req, res) => {
           contact: 1,
           image: 1,
           countryLabels: "$Country.labels",
+          countryname: "$Country.code",
         },
       },
       {
@@ -106,6 +116,15 @@ const getDashboard = async (req, res) => {
       },
       { $unwind: "$User" },
       {
+        $lookup: {
+          from: "countries",
+          localField: "country",
+          foreignField: "_id",
+          as: "Country",
+        },
+      },
+      { $unwind: "$Country" },
+      {
         $project: {
           user: 1,
           country: 1,
@@ -117,6 +136,8 @@ const getDashboard = async (req, res) => {
           categoryname: { $ifNull: ["$Category.code", "Unknown"] },
           contact: 1,
           image: 1,
+          countryLabels: "$Country.labels",
+          countryname: "$Country.code",
         },
       },
       {
@@ -156,6 +177,15 @@ const getDashboard = async (req, res) => {
       },
       { $unwind: "$User" },
       {
+        $lookup: {
+          from: "countries",
+          localField: "country",
+          foreignField: "_id",
+          as: "Country",
+        },
+      },
+      { $unwind: "$Country" },
+      {
         $project: {
           user: 1,
           country: 1,
@@ -167,6 +197,8 @@ const getDashboard = async (req, res) => {
           categoryname: { $ifNull: ["$Category.code", "Unknown"] },
           contact: 1,
           image: 1,
+          countryLabels: "$Country.labels",
+          countryname: "$Country.code",
         },
       },
       {

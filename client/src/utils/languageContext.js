@@ -86,9 +86,11 @@ export const LanguageProvider = ({ children }) => {
 
     // Listen for language change events
     const handleLanguageChange = () => {
+      console.log('Language change event received');
       // Force re-render of components that depend on language
       setCurrentLanguage(prev => {
         const newLang = localStorage.getItem('language') || localStorage.getItem('app_language') || 'en';
+        console.log('Language change:', { prev, newLang });
         if (prev !== newLang) {
           initializeLanguage(newLang);
           return newLang;

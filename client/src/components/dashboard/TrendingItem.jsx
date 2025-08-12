@@ -18,13 +18,19 @@ import ma from "../../img/ma.jpg";
 const API_BASE_URL = process.env.REACT_APP_API_URL || "http://localhost:3500";
 
 const TrendingItem = ({ trend, isLoading }) => {
-  const { categoryName, floptionName, region, image, createdAt, countryLabels, countryname } = trend[0] || {};
+  // Handle both array and single object formats
+  const trendData = Array.isArray(trend) ? trend[0] : trend;
+  const { categoryName, floptionName, region, image, createdAt, countryLabels, countryname } = trendData || {};
   const theme = useTheme();
   const isMobile = useMediaQuery(theme.breakpoints.down('sm'));
   const { t, currentLanguage } = useTranslation();
 
+  // Debug logging
+  const finalImageUrl = image ? (image.startsWith('http') ? image : `${API_BASE_URL}/${image}`) : ma;
+  console.log('TrendingItem data:', { trend, trendData, image, categoryName, floptionName, API_BASE_URL, finalImageUrl });
+
   if (isLoading) return <TrendingItemSkeleton />;
-  if (!trend || !trend[0]) return <DashboardEmptyStates.NoTrending />;
+  if (!trendData) return <DashboardEmptyStates.NoTrending />;
 
   return (
     <Box flex={1}>
@@ -58,7 +64,7 @@ const TrendingItem = ({ trend, isLoading }) => {
         }}>
           {/* Image Container */}
           <Box sx={{ 
-            flex: isMobile ? 'none' : '0 0 40%',
+            flex: isMobile ? 'none' : '0 0 35%',
             position: 'relative',
             height: isMobile ? '250px' : '100%',
             minHeight: isMobile ? '250px' : '400px',
@@ -66,7 +72,7 @@ const TrendingItem = ({ trend, isLoading }) => {
           }}>
             <CardMedia
               component="img"
-              image={image ? (image.startsWith('http') ? image : `${API_BASE_URL}/${image}`) : ma}
+              image={finalImageUrl}
               title={categoryName || 'Item Image'}
               sx={{
                 width: '100%',
@@ -77,6 +83,9 @@ const TrendingItem = ({ trend, isLoading }) => {
               onError={(e) => {
                 console.log('Image failed to load:', e.target.src);
                 e.target.src = ma;
+              }}
+              onLoad={() => {
+                console.log('Image loaded successfully:', finalImageUrl);
               }}
             />
             <Box

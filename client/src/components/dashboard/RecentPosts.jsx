@@ -22,6 +22,9 @@ const RecentPosts = ({ _id, categoryname, region, image, createdAt, countryLabel
   const navigate = useNavigate();
   const { t, currentLanguage } = useTranslation();
 
+  // Debug logging
+  console.log('RecentPosts data:', { _id, categoryname, region, image, countryLabels, countryname, currentLanguage });
+
   const handleViewDetails = () => navigate(`/dash/posts/${_id}`);
 
   const getCategoryColor = (category) => {
