@@ -1,5 +1,7 @@
 import { Routes, Route } from "react-router-dom";
 import Layout from "./components/Layout";
+import WelcomePage from "./components/WelcomePage";
+import PublicPostsPage from "./components/PublicPostsPage";
 import Login from "./features/auth/Login/Login";
 import DashLayout from "./components/Layout/DashLayout";
 import PostsList from "./features/posts/PostsList/PostsList";
@@ -48,34 +50,34 @@ const AppContent = () => {
       <CssBaseline />
       <Routes>
         <Route element={<PrefetchDependencies />}>
-          <Route path="/" element={<Layout />}>
-            {/* public routes */}
+          {/* Public routes - no authentication required */}
+          <Route path="/" element={<WelcomePage />} />
+          <Route path="/posts" element={<PublicPostsPage />} />
+          
+          {/* Authentication routes */}
+          <Route path="/login" element={<Login />} />
+          <Route path="/signup" element={<NewUser />} />
 
-            
-            <Route index element={<Login />} />
-            <Route path="signup" element={< NewUser />} />
+          {/* Protected routes - require authentication */}
+          <Route element={<PersistLogin />}>
+            <Route element={<Prefetch />}>
+              <Route path="dash" element={<DashLayout />}>
+                <Route index element={<Dash />} />
 
-            <Route element={<PersistLogin />}>
-              <Route element={<Prefetch />}>
-                {/* Protected routes */}
-                <Route path="dash" element={<DashLayout />}>
-                  <Route index element={<Dash />} />
-
-                  <Route path="posts">
-                    <Route index element={<PostsList />} />
-                    <Route path=":id" element={<SinglePost />} />
-                    <Route path="new" element={<NewPost />} />
-                    <Route path="edit/:id" element={<EditPost />} />
-                    <Route path="report/:id" element={<ReportPage />} />
-                  </Route>
-
-                  <Route path="users">
-                    <Route index element={<UsersList />} />
-                    <Route path=":id" element={<EditUser />} />
-                  </Route>
-
-                  <Route path="dependencies" element={<DependenciesManager />} />
+                <Route path="posts">
+                  <Route index element={<PostsList />} />
+                  <Route path=":id" element={<SinglePost />} />
+                  <Route path="new" element={<NewPost />} />
+                  <Route path="edit/:id" element={<EditPost />} />
+                  <Route path="report/:id" element={<ReportPage />} />
                 </Route>
+
+                <Route path="users">
+                  <Route index element={<UsersList />} />
+                  <Route path=":id" element={<EditUser />} />
+                </Route>
+
+                <Route path="dependencies" element={<DependenciesManager />} />
               </Route>
             </Route>
           </Route>
