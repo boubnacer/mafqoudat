@@ -162,10 +162,16 @@ const Post = ({ post, viewMode = "grid" }) => {
                 component="img"
                 sx={{ 
                   height: '100%',
-                  objectFit: 'cover'
+                  width: '100%',
+                  objectFit: 'cover',
+                  objectPosition: 'center'
                 }}
                 image={post.image ? `${API_BASE_URL}/${post.image}` : ma}
-                title={post.image}
+                title={categoryName || 'Item Image'}
+                onError={(e) => {
+                  console.log('Image failed to load:', e.target.src);
+                  e.target.src = ma;
+                }}
               />
             </Box>
 
@@ -183,6 +189,17 @@ const Post = ({ post, viewMode = "grid" }) => {
                   >
                     {post.region || t('unknownRegion')}
                   </Typography>
+                  {post.countryLabels && (
+                    <Typography 
+                      variant="body2" 
+                      color="text.secondary"
+                      sx={{ 
+                        direction: currentLanguage === 'ar' ? 'rtl' : 'ltr'
+                      }}
+                    >
+                      {post.countryLabels[currentLanguage] || post.countryLabels.en || post.countryname}
+                    </Typography>
+                  )}
                   <Box display="flex" gap={2} alignItems="center" mb={1}>
                     <Chip 
                       label={statusText}
@@ -323,6 +340,9 @@ const Post = ({ post, viewMode = "grid" }) => {
           sx={{
             height: { xs: '160px', sm: '180px' },
             position: 'relative',
+            width: '100%',
+            objectFit: 'cover',
+            objectPosition: 'center',
             '&::after': {
               content: '""',
               position: 'absolute',
@@ -336,7 +356,11 @@ const Post = ({ post, viewMode = "grid" }) => {
             },
           }}
           image={post.image ? `${API_BASE_URL}/${post.image}` : ma}
-          title={categoryName}
+          title={categoryName || 'Item Image'}
+          onError={(e) => {
+            console.log('Image failed to load:', e.target.src);
+            e.target.src = ma;
+          }}
         />
 
         {/* Status Badge */}
@@ -403,15 +427,26 @@ const Post = ({ post, viewMode = "grid" }) => {
               }}
             >
               <RenderIcon name="locat" />
-              <Typography
-                sx={{
-                  color: isDarkMode ? alpha('#fff', 0.9) : alpha('#000', 0.8),
-                  fontSize: { xs: '13px', sm: '14px' },
-                  fontWeight: 500,
-                }}
-              >
-                {post.region || t('unknownRegion')}
-              </Typography>
+                                <Typography
+                    sx={{
+                      color: isDarkMode ? alpha('#fff', 0.9) : alpha('#000', 0.8),
+                      fontSize: { xs: '13px', sm: '14px' },
+                      fontWeight: 500,
+                    }}
+                  >
+                    {post.region || t('unknownRegion')}
+                  </Typography>
+                  {post.countryLabels && (
+                    <Typography
+                      sx={{
+                        color: isDarkMode ? alpha('#fff', 0.7) : alpha('#000', 0.6),
+                        fontSize: { xs: '11px', sm: '12px' },
+                        fontWeight: 400,
+                      }}
+                    >
+                      {post.countryLabels[currentLanguage] || post.countryLabels.en || post.countryname}
+                    </Typography>
+                  )}
             </Box>
 
             <Box

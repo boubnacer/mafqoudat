@@ -17,7 +17,7 @@ import { useTranslation } from "../../utils/translations";
 // Get the API base URL for image construction
 const API_BASE_URL = process.env.REACT_APP_API_URL || "http://localhost:3500";
 
-const RecentPosts = ({ _id, categoryname, region, image, createdAt }) => {
+const RecentPosts = ({ _id, categoryname, region, image, createdAt, countryLabels, countryname }) => {
   const theme = useTheme();
   const navigate = useNavigate();
   const { t, currentLanguage } = useTranslation();
@@ -132,15 +132,26 @@ const RecentPosts = ({ _id, categoryname, region, image, createdAt }) => {
             }}
           >
             <RenderIcon name="locat" />
-            <Typography
-              sx={{
-                color: isDarkMode ? alpha('#fff', 0.9) : alpha('#000', 0.8),
-                fontSize: { xs: '13px', sm: '14px' },
-                fontWeight: 500,
-              }}
-            >
-              {region}
-            </Typography>
+                         <Typography
+               sx={{
+                 color: isDarkMode ? alpha('#fff', 0.9) : alpha('#000', 0.8),
+                 fontSize: { xs: '13px', sm: '14px' },
+                 fontWeight: 500,
+               }}
+             >
+               {region}
+             </Typography>
+             {countryLabels && (
+               <Typography
+                 sx={{
+                   color: isDarkMode ? alpha('#fff', 0.7) : alpha('#000', 0.6),
+                   fontSize: { xs: '11px', sm: '12px' },
+                   fontWeight: 400,
+                 }}
+               >
+                 {countryLabels[currentLanguage] || countryLabels.en || countryname}
+               </Typography>
+             )}
           </Box>
 
           <Box

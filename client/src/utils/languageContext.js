@@ -34,12 +34,12 @@ export const initializeLanguage = (language = null) => {
 // Language provider component
 export const LanguageProvider = ({ children }) => {
   const [currentLanguage, setCurrentLanguage] = useState('en'); // Start with default
+  const [isInitialized, setIsInitialized] = useState(false);
 
   const setLanguage = (language) => {
     try {
       if (['en', 'ar', 'fr'].includes(language)) {
         console.log('LanguageContext: Setting language to:', language);
-        setCurrentLanguage(language);
         
         // Save to both keys for compatibility
         localStorage.setItem('language', language);
@@ -47,6 +47,9 @@ export const LanguageProvider = ({ children }) => {
         
         // Apply language settings immediately
         initializeLanguage(language);
+        
+        // Update state
+        setCurrentLanguage(language);
         
         return true;
       }
@@ -70,10 +73,16 @@ export const LanguageProvider = ({ children }) => {
         // No saved language or invalid, use default
         initializeLanguage('en');
       }
+      setIsInitialized(true);
     } catch (error) {
       console.error('Error loading saved language:', error);
       initializeLanguage('en');
+      setIsInitialized(true);
     }
+  }, []);
+
+  useEffect(() => {
+    if (!isInitialized) return;
 
     // Listen for language change events
     const handleLanguageChange = () => {
@@ -93,7 +102,12 @@ export const LanguageProvider = ({ children }) => {
     return () => {
       window.removeEventListener('languageChanged', handleLanguageChange);
     };
-  }, []);
+  }, [isInitialized]);
+
+  // Don't render children until language is initialized
+  if (!isInitialized) {
+    return null;
+  }
 
   return (
     <LanguageContext.Provider value={{ currentLanguage, setLanguage }}>

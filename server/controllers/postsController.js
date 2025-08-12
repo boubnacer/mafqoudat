@@ -92,6 +92,7 @@ const getAllPosts = async (req, res) => {
         username: "$User.username",
         categoryname: "$Category.code",
         countryname: "$Country.code",
+        countryLabels: "$Country.labels",
         contact: 1,
         image: 1,
         foundLost: 1,

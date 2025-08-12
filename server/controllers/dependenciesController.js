@@ -66,6 +66,7 @@ const getDashboard = async (req, res) => {
           floptionName: { $ifNull: ["$Floptions.code", "Unknown"] },
           contact: 1,
           image: 1,
+          countryLabels: "$Country.labels",
         },
       },
       {

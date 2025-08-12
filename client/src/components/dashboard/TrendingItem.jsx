@@ -18,7 +18,7 @@ import ma from "../../img/ma.jpg";
 const API_BASE_URL = process.env.REACT_APP_API_URL || "http://localhost:3500";
 
 const TrendingItem = ({ trend, isLoading }) => {
-  const { categoryName, floptionName, region, image, createdAt } = trend[0] || {};
+  const { categoryName, floptionName, region, image, createdAt, countryLabels, countryname } = trend[0] || {};
   const theme = useTheme();
   const isMobile = useMediaQuery(theme.breakpoints.down('sm'));
   const { t, currentLanguage } = useTranslation();
@@ -48,7 +48,7 @@ const TrendingItem = ({ trend, isLoading }) => {
               : '0 12px 40px 0 rgba(0,0,0,0.1)',
           },
           height: '100%',
-          maxHeight: isMobile ? '500px' : '400px'
+          maxHeight: isMobile ? '500px' : '350px'
         }}
       >
         <Box sx={{ 
@@ -58,11 +58,11 @@ const TrendingItem = ({ trend, isLoading }) => {
         }}>
           {/* Image Container */}
           <Box sx={{ 
-            flex: isMobile ? 'none' : '0 0 40%',
+            flex: isMobile ? 'none' : '0 0 35%',
             position: 'relative',
             height: isMobile ? '200px' : '100%',
             minHeight: isMobile ? '200px' : 'auto',
-            maxHeight: isMobile ? '200px' : '400px',
+            maxHeight: isMobile ? '200px' : '350px',
             overflow: 'hidden'
           }}>
             <CardMedia
@@ -76,6 +76,7 @@ const TrendingItem = ({ trend, isLoading }) => {
                 objectPosition: 'center',
               }}
               onError={(e) => {
+                console.log('Image failed to load:', e.target.src);
                 e.target.src = ma;
               }}
             />
@@ -167,21 +168,49 @@ const TrendingItem = ({ trend, isLoading }) => {
               <Box
                 sx={{
                   display: 'flex',
-                  alignItems: 'center',
+                  flexDirection: 'column',
                   gap: '8px',
                   mb: 'auto',
                 }}
               >
-                <RenderIcon name="time" />
-                <Typography
+                <Box
                   sx={{
-                    color: theme.palette.mode === 'dark' ? '#A0AEC0' : '#4A5568',
-                    fontSize: '14px',
-                    fontWeight: 500,
+                    display: 'flex',
+                    alignItems: 'center',
+                    gap: '8px',
                   }}
                 >
-                  {new Date(createdAt).toLocaleDateString()}
-                </Typography>
+                  <RenderIcon name="time" />
+                  <Typography
+                    sx={{
+                      color: theme.palette.mode === 'dark' ? '#A0AEC0' : '#4A5568',
+                      fontSize: '14px',
+                      fontWeight: 500,
+                    }}
+                  >
+                    {new Date(createdAt).toLocaleDateString()}
+                  </Typography>
+                </Box>
+                {countryLabels && (
+                  <Box
+                    sx={{
+                      display: 'flex',
+                      alignItems: 'center',
+                      gap: '8px',
+                    }}
+                  >
+                    <RenderIcon name="locat" />
+                    <Typography
+                      sx={{
+                        color: theme.palette.mode === 'dark' ? '#A0AEC0' : '#4A5568',
+                        fontSize: '12px',
+                        fontWeight: 400,
+                      }}
+                    >
+                      {countryLabels[currentLanguage] || countryLabels.en || countryname}
+                    </Typography>
+                  </Box>
+                )}
               </Box>
 
               <Box
