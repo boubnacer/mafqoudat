@@ -31,6 +31,8 @@ import {
   Toolbar,
   IconButton,
   Autocomplete,
+  ListItemIcon,
+  ListItemText,
 } from "@mui/material";
 import {
   Search,
@@ -45,9 +47,6 @@ import {
   Language,
   KeyboardArrowDown,
   Menu,
-  MenuItem,
-  ListItemIcon,
-  ListItemText,
 } from "@mui/icons-material";
 import { setMode } from "../app/state";
 
@@ -300,24 +299,24 @@ const PublicPostsPage = () => {
           }
         }}
       >
-        <MenuItemComponent onClick={() => handleLanguageChange('en')}>
-          <ListItemIcon>
-            <Language sx={{ fontSize: 20 }} />
-          </ListItemIcon>
-          <ListItemText primary="English" />
-        </MenuItemComponent>
-        <MenuItemComponent onClick={() => handleLanguageChange('ar')}>
-          <ListItemIcon>
-            <Language sx={{ fontSize: 20 }} />
-          </ListItemIcon>
-          <ListItemText primary="العربية" />
-        </MenuItemComponent>
-        <MenuItemComponent onClick={() => handleLanguageChange('fr')}>
-          <ListItemIcon>
-            <Language sx={{ fontSize: 20 }} />
-          </ListItemIcon>
-          <ListItemText primary="Français" />
-        </MenuItemComponent>
+                    <MenuItem onClick={() => handleLanguageChange('en')}>
+              <ListItemIcon>
+                <Language sx={{ fontSize: 20 }} />
+              </ListItemIcon>
+              <ListItemText primary="English" />
+            </MenuItem>
+            <MenuItem onClick={() => handleLanguageChange('ar')}>
+              <ListItemIcon>
+                <Language sx={{ fontSize: 20 }} />
+              </ListItemIcon>
+              <ListItemText primary="العربية" />
+            </MenuItem>
+            <MenuItem onClick={() => handleLanguageChange('fr')}>
+              <ListItemIcon>
+                <Language sx={{ fontSize: 20 }} />
+              </ListItemIcon>
+              <ListItemText primary="Français" />
+            </MenuItem>
       </Menu>
 
       <Container maxWidth="lg" sx={{ py: 4 }}>
