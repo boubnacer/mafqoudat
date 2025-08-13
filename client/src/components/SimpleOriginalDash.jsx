@@ -2,10 +2,10 @@ import React from "react";
 import { useDispatch, useSelector } from "react-redux";
 import { useNavigate } from "react-router-dom";
 import { Box, Skeleton, useMediaQuery, useTheme, Typography, Chip, Button } from "@mui/material";
-import { setActiveLink, setFoundOrLost, setOpenModal } from "../../app/state";
+import { setActiveLink, setFoundOrLost, setOpenModal } from "../app/state";
 import { LoadingState, DashboardEmptyStates } from "../LoadingStates";
 import { WhatshotOutlined, Search, Language } from "@mui/icons-material";
-import { useTranslation } from "../../utils/translations";
+import { useTranslation } from "../utils/translations";
 
 // Custom hook
 import { useDashboard } from "../hooks/useDashboard";
@@ -24,8 +24,6 @@ import Recent from "./dashboard/Recent";
 import SeeAll from "./dashboard/SeeAll";
 import FlexCenter from "../FlexCenter";
 import DashRecents from "./dashboard/DashRecents";
-
-import "../features/dashboard/dash.css";
 
 const lostsId = "63cc3484bc901245d3a1cb5a";
 const foundsId = "66e60c25420ca2a42499b924";
