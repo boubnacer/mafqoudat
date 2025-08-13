@@ -3,8 +3,12 @@ const { getDashboard } = require("../controllers/dependenciesController");
 const router = express.Router();
 const verifyJWT = require("../middleware/verifyJWT");
 
+// Public route - no authentication required
+router.route("/").get(getDashboard);
+
+// Protected routes - require authentication
 router.use(verifyJWT);
 
-router.route("/").get(getDashboard);
+// Add any protected dashboard routes here if needed
 
 module.exports = router;

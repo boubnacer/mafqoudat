@@ -8,21 +8,36 @@ import {
 } from "@mui/material";
 import { useNavigate } from "react-router-dom";
 import { useTranslation } from "../../utils/translations";
+import { useSelector } from "react-redux";
+import { selectCurrentToken } from "../../features/auth/authSlice";
 
 const QuickActions = () => {
   const navigate = useNavigate();
   const { t } = useTranslation();
+  const token = useSelector(selectCurrentToken);
 
   const quickActions = [
     {
       title: t('reportLostItem'),
       description: t('reportLostItemDesc'),
-      action: () => navigate('/dash/posts/new?type=lost')
+      action: () => {
+        if (!token) {
+          navigate('/login');
+        } else {
+          navigate('/dash/posts/new?type=lost');
+        }
+      }
     },
     {
       title: t('reportFoundItem'),
       description: t('reportFoundItemDesc'),
-      action: () => navigate('/dash/posts/new?type=found')
+      action: () => {
+        if (!token) {
+          navigate('/login');
+        } else {
+          navigate('/dash/posts/new?type=found');
+        }
+      }
     },
     {
       title: t('searchItems'),

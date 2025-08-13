@@ -189,8 +189,8 @@ const WelcomePage = () => {
       // For fallback countries, use a default country ID
       const countryId = selectedCountry._id.startsWith('fallback-') ? 'default-country' : selectedCountry._id;
       dispatch(setCurrentCountry({ currentCountry: countryId }));
-      // Navigate to posts page (public view)
-      navigate('/posts');
+      // Navigate to dashboard (public view)
+      navigate('/dash');
     }
   };
 

@@ -55,7 +55,11 @@ const Dash = () => {
   } = useDashboard();
 
   const handleCreateNewPost = (type) => {
-    navigate(`/dash/posts/new?type=${type}`);
+    if (!token) {
+      navigate('/login');
+    } else {
+      navigate(`/dash/posts/new?type=${type}`);
+    }
   };
 
   const hanldeSeeAllPosts = ({ foundOrlostId }) => {
@@ -68,13 +72,16 @@ const Dash = () => {
     dispatch(setActiveLink({ active: foundOrlostId }));
   };
 
-  const hanldeAddNewPost = () => navigate("/dash/posts/new");
+  const hanldeAddNewPost = () => {
+    if (!token) {
+      navigate('/login');
+    } else {
+      navigate("/dash/posts/new");
+    }
+  };
 
-  // Redirect to login if not authenticated
-  if (!token) {
-    navigate('/');
-    return null;
-  }
+  // Allow access without authentication for public dashboard view
+  // Only require authentication for actions like creating posts
 
   if (isError) {
     console.log('Dashboard error:', error?.data?.message || error?.message || 'Unknown error');
