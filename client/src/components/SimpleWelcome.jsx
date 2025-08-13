@@ -1,27 +1,22 @@
-import React, { useState, useEffect } from "react";
+import React, { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { useDispatch } from "react-redux";
 import { setCurrentCountry } from "../app/state";
-import { useGetCountriesQuery } from "../features/countries/countriesApiSlice";
 import { useTranslation } from "../utils/translations";
 import { useLanguage } from "../utils/languageContext";
-import { LoadingState } from "./LoadingStates";
 import {
   Box,
   Card,
   CardContent,
   Typography,
   Button,
-  Container,
   Grid,
   useTheme,
-  useMediaQuery,
   alpha,
   styled,
   Autocomplete,
   TextField,
   Paper,
-  Chip,
 } from "@mui/material";
 import {
   Public,
@@ -153,9 +148,8 @@ const LanguageSelector = styled(Box)(({ theme }) => ({
   },
 }));
 
-const WelcomePage = () => {
+const SimpleWelcome = () => {
   const theme = useTheme();
-  const isMobile = useMediaQuery("(max-width:600px)");
   const navigate = useNavigate();
   const dispatch = useDispatch();
   const { t, currentLanguage } = useTranslation();
@@ -164,21 +158,17 @@ const WelcomePage = () => {
   const [selectedCountry, setSelectedCountry] = useState(null);
   const [languageAnchorEl, setLanguageAnchorEl] = useState(null);
 
-  // Get countries list
-  const { data: countriesData, error: countriesError, isLoading: countriesLoading } = useGetCountriesQuery({
-    language: currentLanguage || langContext || 'en'
-  });
-
-  // Fallback countries in case API fails
-  const fallbackCountries = [
-    { _id: 'fallback-1', code: 'US', label: 'United States', labels: { en: 'United States', ar: 'الولايات المتحدة', fr: 'États-Unis' }, flag: '🇺🇸' },
-    { _id: 'fallback-2', code: 'GB', label: 'United Kingdom', labels: { en: 'United Kingdom', ar: 'المملكة المتحدة', fr: 'Royaume-Uni' }, flag: '🇬🇧' },
-    { _id: 'fallback-3', code: 'FR', label: 'France', labels: { en: 'France', ar: 'فرنسا', fr: 'France' }, flag: '🇫🇷' },
-    { _id: 'fallback-4', code: 'DE', label: 'Germany', labels: { en: 'Germany', ar: 'ألمانيا', fr: 'Allemagne' }, flag: '🇩🇪' },
-    { _id: 'fallback-5', code: 'CA', label: 'Canada', labels: { en: 'Canada', ar: 'كندا', fr: 'Canada' }, flag: '🇨🇦' },
+  // Static countries list - no API dependency
+  const countries = [
+    { _id: 'us', code: 'US', label: 'United States', labels: { en: 'United States', ar: 'الولايات المتحدة', fr: 'États-Unis' }, flag: '🇺🇸' },
+    { _id: 'gb', code: 'GB', label: 'United Kingdom', labels: { en: 'United Kingdom', ar: 'المملكة المتحدة', fr: 'Royaume-Uni' }, flag: '🇬🇧' },
+    { _id: 'fr', code: 'FR', label: 'France', labels: { en: 'France', ar: 'فرنسا', fr: 'France' }, flag: '🇫🇷' },
+    { _id: 'de', code: 'DE', label: 'Germany', labels: { en: 'Germany', ar: 'ألمانيا', fr: 'Allemagne' }, flag: '🇩🇪' },
+    { _id: 'ca', code: 'CA', label: 'Canada', labels: { en: 'Canada', ar: 'كندا', fr: 'Canada' }, flag: '🇨🇦' },
+    { _id: 'au', code: 'AU', label: 'Australia', labels: { en: 'Australia', ar: 'أستراليا', fr: 'Australie' }, flag: '🇦🇺' },
+    { _id: 'jp', code: 'JP', label: 'Japan', labels: { en: 'Japan', ar: 'اليابان', fr: 'Japon' }, flag: '🇯🇵' },
+    { _id: 'br', code: 'BR', label: 'Brazil', labels: { en: 'Brazil', ar: 'البرازيل', fr: 'Brésil' }, flag: '🇧🇷' },
   ];
-
-  const countries = countriesData?.ids?.map((id) => countriesData?.entities[id]) || fallbackCountries;
 
   const handleCountrySelect = (_, value) => {
     setSelectedCountry(value);
@@ -186,10 +176,7 @@ const WelcomePage = () => {
 
   const handleContinue = () => {
     if (selectedCountry) {
-      // For fallback countries, use a default country ID
-      const countryId = selectedCountry._id.startsWith('fallback-') ? 'default-country' : selectedCountry._id;
-      dispatch(setCurrentCountry({ currentCountry: countryId }));
-      // Navigate to posts page (public view)
+      dispatch(setCurrentCountry({ currentCountry: selectedCountry._id }));
       navigate('/posts');
     }
   };
@@ -197,7 +184,6 @@ const WelcomePage = () => {
   const handleLanguageChange = (language) => {
     setLanguage(language);
     setLanguageAnchorEl(null);
-    // Refresh the page to apply language changes
     window.location.reload();
   };
 
@@ -209,49 +195,12 @@ const WelcomePage = () => {
     setLanguageAnchorEl(null);
   };
 
-  // Get the appropriate label based on language
   const getCountryLabel = (option) => {
     if (option.labels && option.labels[currentLanguage || langContext || 'en']) {
       return option.labels[currentLanguage || langContext || 'en'];
     }
     return option.label || option.code;
   };
-
-  // Get flag source - prefer local flag, fallback to flagcdn
-  const getFlagSource = (option) => {
-    if (option.flag) {
-      return option.flag; // Use emoji flag if available
-    }
-    return `https://flagcdn.com/w20/${option.code.toLowerCase()}.png`;
-  };
-
-  // Show loading state only if we're actively loading and have no data
-  if (countriesLoading && countries.length === 0) {
-    return <LoadingState message={t('loadingCountries')} />;
-  }
-
-  // If there's an error but we have some countries, still show the page
-  // If no countries at all, show a fallback
-  if (countriesError && countries.length === 0) {
-    return (
-      <PageContainer>
-        <WelcomeCard>
-          <CardContent>
-            <Typography variant="h6" color="error" align="center">
-              {t('errorLoadingCountries')}
-            </Typography>
-            <Button 
-              variant="contained" 
-              onClick={() => window.location.reload()}
-              sx={{ mt: 2 }}
-            >
-              Retry
-            </Button>
-          </CardContent>
-        </WelcomeCard>
-      </PageContainer>
-    );
-  }
 
   return (
     <PageContainer>
@@ -280,43 +229,19 @@ const WelcomePage = () => {
         transformOrigin={{ horizontal: 'left', vertical: 'top' }}
         anchorOrigin={{ horizontal: 'left', vertical: 'bottom' }}
       >
-        <MenuItem 
-          onClick={() => handleLanguageChange('en')}
-          sx={{
-            minWidth: 120,
-            '&:hover': {
-              backgroundColor: alpha(theme?.palette?.primary?.main, 0.1),
-            }
-          }}
-        >
+        <MenuItem onClick={() => handleLanguageChange('en')}>
           <ListItemIcon>
             <Language sx={{ fontSize: 20 }} />
           </ListItemIcon>
           <ListItemText primary="English" />
         </MenuItem>
-        <MenuItem 
-          onClick={() => handleLanguageChange('ar')}
-          sx={{
-            minWidth: 120,
-            '&:hover': {
-              backgroundColor: alpha(theme?.palette?.primary?.main, 0.1),
-            }
-          }}
-        >
+        <MenuItem onClick={() => handleLanguageChange('ar')}>
           <ListItemIcon>
             <Language sx={{ fontSize: 20 }} />
           </ListItemIcon>
           <ListItemText primary="العربية" />
         </MenuItem>
-        <MenuItem 
-          onClick={() => handleLanguageChange('fr')}
-          sx={{
-            minWidth: 120,
-            '&:hover': {
-              backgroundColor: alpha(theme?.palette?.primary?.main, 0.1),
-            }
-          }}
-        >
+        <MenuItem onClick={() => handleLanguageChange('fr')}>
           <ListItemIcon>
             <Language sx={{ fontSize: 20 }} />
           </ListItemIcon>
@@ -325,14 +250,7 @@ const WelcomePage = () => {
       </Menu>
 
       {/* Theme Toggle */}
-      <ControlButton
-        onClick={() => dispatch(setMode())}
-        sx={{
-          position: 'absolute',
-          top: theme?.spacing?.(2) || '16px',
-          right: theme?.spacing?.(2) || '16px',
-        }}
-      >
+      <ControlButton onClick={() => dispatch(setMode())}>
         {theme?.palette?.mode === 'dark' ? '🌞' : '🌙'}
       </ControlButton>
 
@@ -404,19 +322,9 @@ const WelcomePage = () => {
                   sx={{ "& > img": { mr: 2, flexShrink: 0 } }}
                   {...props}
                 >
-                  {option.flag ? (
-                    <span style={{ marginRight: 8, fontSize: '20px' }}>
-                      {option.flag}
-                    </span>
-                  ) : (
-                    <img
-                      loading="lazy"
-                      width="20"
-                      src={getFlagSource(option)}
-                      srcSet={`https://flagcdn.com/w40/${option.code.toLowerCase()}.png 2x`}
-                      alt=""
-                    />
-                  )}
+                  <span style={{ marginRight: 8, fontSize: '20px' }}>
+                    {option.flag}
+                  </span>
                   {getCountryLabel(option)} ({option.code})
                 </Box>
               )}
@@ -529,4 +437,4 @@ const WelcomePage = () => {
   );
 };
 
-export default WelcomePage;
+export default SimpleWelcome;
