@@ -61,7 +61,7 @@ const AppContent = () => {
 
         {/* Public dashboard routes - no authentication required */}
         <Route path="dash" element={<SimpleDashLayout />}>
-          <Route index element={<TestDashboard />} />
+          <Route index element={<Dash />} />
           <Route path="posts">
             <Route index element={<PostsList />} />
             <Route path=":id" element={<SinglePost />} />
