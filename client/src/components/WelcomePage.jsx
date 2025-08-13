@@ -22,6 +22,9 @@ import {
   TextField,
   Paper,
   Chip,
+  MenuItem,
+  ListItemIcon,
+  ListItemText,
 } from "@mui/material";
 import {
   Public,
@@ -31,9 +34,6 @@ import {
   Language,
   KeyboardArrowDown,
   Menu,
-  MenuItem,
-  ListItemIcon,
-  ListItemText,
 } from "@mui/icons-material";
 import { setMode } from "../app/state";
 
