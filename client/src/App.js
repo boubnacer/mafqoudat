@@ -60,14 +60,16 @@ const AppContent = () => {
         <Route path="/login" element={<Login />} />
         <Route path="/signup" element={<NewUser />} />
 
-        {/* Public dashboard routes - no authentication required */}
-        <Route path="dash" element={<DashLayout />}>
-          <Route index element={<Dash />} />
-          <Route path="posts">
-            <Route index element={<PostsList />} />
-            <Route path=":id" element={<SinglePost />} />
-          </Route>
-        </Route>
+                 {/* Public dashboard routes - no authentication required */}
+         <Route path="dash" element={<PrefetchDependencies />}>
+           <Route element={<DashLayout />}>
+             <Route index element={<Dash />} />
+             <Route path="posts">
+               <Route index element={<PostsList />} />
+               <Route path=":id" element={<SinglePost />} />
+             </Route>
+           </Route>
+         </Route>
 
         {/* Protected routes - require authentication for actions */}
         <Route element={<PersistLogin />}>
