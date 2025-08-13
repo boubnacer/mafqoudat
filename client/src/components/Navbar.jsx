@@ -252,7 +252,18 @@ const Navbar = () => {
     }
   };
 
-  if (!countries || !currentCountryData) return <LoadingState message={t('loadingNavigation')} />;
+  // Use fallback data if API calls fail
+  const fallbackCountries = [
+    { _id: '507f1f77bcf86cd799439011', code: 'US', label: 'United States', labels: { en: 'United States', ar: 'الولايات المتحدة', fr: 'États-Unis' }, flag: '🇺🇸' },
+    { _id: '507f1f77bcf86cd799439012', code: 'GB', label: 'United Kingdom', labels: { en: 'United Kingdom', ar: 'المملكة المتحدة', fr: 'Royaume-Uni' }, flag: '🇬🇧' },
+    { _id: '507f1f77bcf86cd799439013', code: 'FR', label: 'France', labels: { en: 'France', ar: 'فرنسا', fr: 'France' }, flag: '🇫🇷' },
+    { _id: '507f1f77bcf86cd799439014', code: 'DE', label: 'Germany', labels: { en: 'Germany', ar: 'ألمانيا', fr: 'Allemagne' }, flag: '🇩🇪' },
+    { _id: '507f1f77bcf86cd799439015', code: 'CA', label: 'Canada', labels: { en: 'Canada', ar: 'كندا', fr: 'Canada' }, flag: '🇨🇦' },
+  ];
+
+  // Use fallback data if API fails
+  const countriesToUse = countries || fallbackCountries;
+  const currentCountryDataToUse = currentCountryData || fallbackCountries.find(c => c._id === countryId) || fallbackCountries[0];
 
   return (
     <AppBar
@@ -309,8 +320,8 @@ const Navbar = () => {
               loading="lazy"
               width="30"
               height="20"
-              src={`https://flagcdn.com/w20/${currentCountryData.code.toLowerCase()}.png`}
-              srcSet={`https://flagcdn.com/w40/${currentCountryData.code.toLowerCase()}.png 2x`}
+                             src={`https://flagcdn.com/w20/${currentCountryDataToUse.code.toLowerCase()}.png`}
+               srcSet={`https://flagcdn.com/w40/${currentCountryDataToUse.code.toLowerCase()}.png 2x`}
               alt=""
             />
             <Typography
@@ -321,7 +332,7 @@ const Navbar = () => {
                 display: 'block'
               }}
             >
-              {currentCountryData.labels?.[currentLanguage] || currentCountryData.labels?.en || currentCountryData.code}
+                             {currentCountryDataToUse.labels?.[currentLanguage] || currentCountryDataToUse.labels?.en || currentCountryDataToUse.code}
             </Typography>
             <KeyboardArrowDown sx={{ fontSize: '16px', ml: 0.5 }} />
           </CountrySelector>
@@ -479,7 +490,7 @@ const Navbar = () => {
         {/* Country Modal */}
         <CountryModal
           setCountryId={setCountryId}
-          countries={countries}
+          countries={countriesToUse}
           openModal={openModal}
         />
       </StyledToolbar>
