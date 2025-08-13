@@ -4,11 +4,13 @@ import { setCredentials } from "../../features/auth/authSlice";
 const baseQuery = fetchBaseQuery({
   baseUrl: process.env.REACT_APP_API_URL || "http://localhost:3500",
   credentials: "include", //important, to send the cookie back to the server along with the token
-  prepareHeaders: (headers, { getState }) => {
+  prepareHeaders: (headers, { getState, endpoint }) => {
     // api => api.getState => {getState}
     const token = getState().auth.token;
 
-    if (token) {
+    // Only add authorization header for authenticated endpoints
+    // Skip for public endpoints like dashboard
+    if (token && endpoint !== "getDashboard") {
       headers.set("authorization", `Bearer ${token}`);
     }
 
@@ -23,8 +25,9 @@ const baseQueryWithReauth = async (args, api, extraOptions) => {
 
   let result = await baseQuery(args, api, extraOptions);
 
-  // If you want, handle other status codes, too
-  if (result?.error?.status === 403) {
+  // Only handle 403 errors for authenticated routes
+  // Skip reauth for public routes like dashboard
+  if (result?.error?.status === 403 && args.url !== "/dashboard") {
     console.log("sending refresh token");
 
     // send refresh token to get new access token
