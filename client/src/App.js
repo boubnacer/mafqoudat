@@ -49,16 +49,16 @@ const AppContent = () => {
     <ThemeProvider theme={theme}>
       <CssBaseline />
       <Routes>
-        <Route element={<PrefetchDependencies />}>
-          {/* Public routes - no authentication required */}
-          <Route path="/" element={<WelcomePage />} />
-          <Route path="/posts" element={<PublicPostsPage />} />
-          
-          {/* Authentication routes */}
-          <Route path="/login" element={<Login />} />
-          <Route path="/signup" element={<NewUser />} />
+        {/* Public routes - no authentication required */}
+        <Route path="/" element={<WelcomePage />} />
+        <Route path="/posts" element={<PublicPostsPage />} />
+        
+        {/* Authentication routes */}
+        <Route path="/login" element={<Login />} />
+        <Route path="/signup" element={<NewUser />} />
 
-          {/* Protected routes - require authentication */}
+        {/* Protected routes - require authentication */}
+        <Route element={<PrefetchDependencies />}>
           <Route element={<PersistLogin />}>
             <Route element={<Prefetch />}>
               <Route path="dash" element={<DashLayout />}>
