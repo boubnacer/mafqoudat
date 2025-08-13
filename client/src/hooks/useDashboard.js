@@ -6,7 +6,7 @@ import { useGetCountriesQuery } from '../features/dependencies/dependenciesApiSl
 import debounce from 'lodash/debounce';
 import useAuth from './useAuth';
 import { useLanguage } from '../utils/languageContext';
-// import { selectCurrentToken } from '../features/auth/authSlice';
+import { selectCurrentToken } from '../features/auth/authSlice';
 
 export const useDashboard = () => {
   const [searchQuery, setSearchQuery] = useState("");
@@ -20,8 +20,7 @@ export const useDashboard = () => {
   const { country: userCountry } = useAuth();
   const currentCountry = useSelector(selectCurrentCountry);
   const { currentLanguage } = useLanguage();
-  // Remove token dependency for public dashboard access
-  // const token = useSelector(selectCurrentToken);
+  const token = useSelector(selectCurrentToken);
 
   // Get countries list
   const { data: countriesData, error: countriesError } = useGetCountriesQuery({

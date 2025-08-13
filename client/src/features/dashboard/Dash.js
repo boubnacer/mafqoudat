@@ -6,7 +6,7 @@ import { setActiveLink, setFoundOrLost, setOpenModal } from "../../app/state";
 import { LoadingState, DashboardEmptyStates } from "../../components/LoadingStates";
 import { WhatshotOutlined, Search, Language } from "@mui/icons-material";
 import { useTranslation } from "../../utils/translations";
-
+import { selectCurrentToken } from "../../features/auth/authSlice";
 
 // Custom hook
 import { useDashboard } from "../../hooks/useDashboard";
@@ -37,7 +37,7 @@ const Dash = () => {
   const theme = useTheme();
   const isNonMediumScreens = useMediaQuery("(min-width:1200px)");
   const { t, currentLanguage } = useTranslation();
-
+  const token = useSelector(selectCurrentToken);
 
   // Use custom hook for dashboard data and state
   const {
@@ -55,7 +55,11 @@ const Dash = () => {
   } = useDashboard();
 
   const handleCreateNewPost = (type) => {
-    navigate('/login');
+    if (!token) {
+      navigate('/login');
+    } else {
+      navigate(`/dash/posts/new?type=${type}`);
+    }
   };
 
   const hanldeSeeAllPosts = ({ foundOrlostId }) => {
@@ -69,7 +73,11 @@ const Dash = () => {
   };
 
   const hanldeAddNewPost = () => {
-    navigate('/login');
+    if (!token) {
+      navigate('/login');
+    } else {
+      navigate("/dash/posts/new");
+    }
   };
 
   // Allow access without authentication for public dashboard view

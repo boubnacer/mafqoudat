@@ -32,8 +32,6 @@ import PrefetchDependencies from "./features/PrefetchData/PrefetchDependencies";
 import { initializeLanguage, LanguageProvider, useLanguage } from "./utils/languageContext";
 import { cleanupLocalStorage, initializeLocalStorage } from "./utils/localStorageUtils";
 
-
-
 // Inner App component that has access to language context
 const AppContent = () => {
   const mode = useSelector((state) => state.global.mode);
@@ -53,24 +51,30 @@ const AppContent = () => {
     <ThemeProvider theme={theme}>
       <CssBaseline />
       <Routes>
-        {/* Public routes - no authentication required */}
+        {/* Welcome page - first time access */}
         <Route path="/" element={<WelcomePage />} />
+        
+        {/* Public routes - no authentication required */}
         <Route path="/posts" element={<PublicPostsPage />} />
         
         {/* Authentication routes */}
         <Route path="/login" element={<Login />} />
         <Route path="/signup" element={<NewUser />} />
 
-                 {/* Public dashboard routes - no authentication required */}
-         <Route path="dash" element={<DashLayout />}>
-                       <Route index element={<Dash />} />
-           <Route path="posts">
-             <Route index element={<PostsList />} />
-             <Route path=":id" element={<SinglePost />} />
-           </Route>
-         </Route>
+        {/* Main dashboard and posts - public access with dependency prefetching */}
+        <Route path="dash" element={
+          <PrefetchDependencies>
+            <DashLayout />
+          </PrefetchDependencies>
+        }>
+          <Route index element={<Dash />} />
+          <Route path="posts">
+            <Route index element={<PostsList />} />
+            <Route path=":id" element={<SinglePost />} />
+          </Route>
+        </Route>
 
-        {/* Protected routes - require authentication for actions */}
+        {/* Protected routes - require authentication for admin actions */}
         <Route element={<PersistLogin />}>
           <Route element={<Prefetch />}>
             <Route path="dash/posts/new" element={<NewPost />} />
