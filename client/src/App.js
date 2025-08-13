@@ -18,6 +18,7 @@ import SinglePost from "./features/posts/PostPage/SinglePost";
 
 import ReportPage from "./features/posts/ReportPage/ReportPage";
 import Dash from "./features/dashboard/Dash";
+import DebugDash from "./components/DebugDash";
 
 import TestDashboard from "./components/TestDashboard";
 
@@ -63,7 +64,7 @@ const AppContent = () => {
 
                  {/* Public dashboard routes - no authentication required */}
          <Route path="dash" element={<DashLayout />}>
-                       <Route index element={<Dash />} />
+                       <Route index element={<DebugDash />} />
            <Route path="posts">
              <Route index element={<PostsList />} />
              <Route path=":id" element={<SinglePost />} />
