@@ -10,7 +10,7 @@ const baseQuery = fetchBaseQuery({
 
     // Only add authorization header for authenticated endpoints
     // Skip for public endpoints like dashboard
-    if (token && endpoint !== "getDashboard") {
+    if (token && !endpoint?.includes("getDashboard")) {
       headers.set("authorization", `Bearer ${token}`);
     }
 
@@ -27,7 +27,7 @@ const baseQueryWithReauth = async (args, api, extraOptions) => {
 
   // Only handle 403 errors for authenticated routes
   // Skip reauth for public routes like dashboard
-  if (result?.error?.status === 403 && args.url !== "/dashboard") {
+  if (result?.error?.status === 403 && !args.url?.includes("/dashboard")) {
     console.log("sending refresh token");
 
     // send refresh token to get new access token
