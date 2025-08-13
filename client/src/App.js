@@ -4,6 +4,7 @@ import WelcomePage from "./components/WelcomePage";
 import PublicPostsPage from "./components/PublicPostsPage";
 import Login from "./features/auth/Login/Login";
 import DashLayout from "./components/Layout/DashLayout";
+import SimpleDashLayout from "./components/SimpleDashLayout";
 import PostsList from "./features/posts/PostsList/PostsList";
 import UsersList from "./features/userSettings/UserPage/UsersList";
 import EditUser from "./features/userSettings/EditUser/EditUser";
@@ -59,7 +60,7 @@ const AppContent = () => {
         <Route path="/signup" element={<NewUser />} />
 
         {/* Public dashboard routes - no authentication required */}
-        <Route path="dash" element={<DashLayout />}>
+        <Route path="dash" element={<SimpleDashLayout />}>
           <Route index element={<TestDashboard />} />
           <Route path="posts">
             <Route index element={<PostsList />} />
