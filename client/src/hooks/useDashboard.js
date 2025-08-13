@@ -35,6 +35,9 @@ export const useDashboard = () => {
       // Set default country if none is set
       const defaultCountryId = countriesData.ids[0];
       dispatch(setCurrentCountry({ currentCountry: defaultCountryId }));
+    } else if (!currentCountry && !countriesData?.ids?.length) {
+      // Set a fallback country if no countries data is available
+      dispatch(setCurrentCountry({ currentCountry: '507f1f77bcf86cd799439011' }));
     }
   }, [userCountry, currentCountry, dispatch, countriesData]);
 
@@ -60,11 +63,11 @@ export const useDashboard = () => {
   } = useGetPostsQuery({
     page: 1,
     pageSize: 10,
-    currentCountry,
-    search: searchQuery,
+    currentCountry: currentCountry || "",
+    search: searchQuery || "",
     language: currentLanguage
   }, {
-    skip: !searchQuery
+    skip: !currentCountry
   });
 
   // Create a debounced search function
