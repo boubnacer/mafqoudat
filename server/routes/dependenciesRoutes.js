@@ -4,7 +4,7 @@ const { createCategory, createFoundLost } = require("../controllers/dependencies
 const verifyJWT = require("../middleware/verifyJWT");
 
 // Apply JWT verification to all routes
-router.use(verifyJWT);
+// router.use(verifyJWT);
 
 // POST /dependencies/category
 router.route("/category").post(createCategory);

@@ -36,8 +36,8 @@ export const useDashboard = () => {
       // Set default country if none is set
       const defaultCountryId = countriesData.ids[0];
       dispatch(setCurrentCountry({ currentCountry: defaultCountryId }));
-    } else if (!currentCountry && !countriesData?.ids?.length) {
-      // Set a fallback country if no countries data is available
+    } else if (!currentCountry) {
+      // Set a fallback country if no countries data is available or if query fails
       dispatch(setCurrentCountry({ currentCountry: '507f1f77bcf86cd799439011' }));
     }
   }, [userCountry, currentCountry, dispatch, countriesData]);
