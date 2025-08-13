@@ -7,8 +7,9 @@ const verifyJWT = require("../middleware/verifyJWT");
 router.route("/").get(getDashboard);
 
 // Protected routes - require authentication
-router.use(verifyJWT);
+// router.use(verifyJWT); // Commented out to allow public access
 
 // Add any protected dashboard routes here if needed
+// If you need protected dashboard routes, add them individually with verifyJWT middleware
 
 module.exports = router;
