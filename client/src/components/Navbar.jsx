@@ -189,11 +189,11 @@ const Navbar = () => {
     }),
   });
 
-  const { code } = useGetCountriesQuery({
+  const { currentCountryData } = useGetCountriesQuery({
     language: currentLanguage
   }, {
     selectFromResult: ({ data }) => ({
-      code: data?.entities[countryId],
+      currentCountryData: data?.entities[countryId],
     }),
   });
 
@@ -252,7 +252,7 @@ const Navbar = () => {
     }
   };
 
-  if (!countries || !code) return <LoadingState message={t('loadingNavigation')} />;
+  if (!countries || !currentCountryData) return <LoadingState message={t('loadingNavigation')} />;
 
   return (
     <AppBar
@@ -309,8 +309,8 @@ const Navbar = () => {
               loading="lazy"
               width="30"
               height="20"
-              src={`https://flagcdn.com/w20/${code.code.toLowerCase()}.png`}
-              srcSet={`https://flagcdn.com/w40/${code.code.toLowerCase()}.png 2x`}
+              src={`https://flagcdn.com/w20/${currentCountryData.code.toLowerCase()}.png`}
+              srcSet={`https://flagcdn.com/w40/${currentCountryData.code.toLowerCase()}.png 2x`}
               alt=""
             />
             <Typography
@@ -321,7 +321,7 @@ const Navbar = () => {
                 display: 'block'
               }}
             >
-              {code.labels?.[currentLanguage] || code.labels?.en || code.code}
+              {currentCountryData.labels?.[currentLanguage] || currentCountryData.labels?.en || currentCountryData.code}
             </Typography>
             <KeyboardArrowDown sx={{ fontSize: '16px', ml: 0.5 }} />
           </CountrySelector>

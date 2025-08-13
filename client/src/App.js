@@ -1,6 +1,6 @@
 import { Routes, Route } from "react-router-dom";
 import Layout from "./components/Layout";
-import WelcomePage from "./components/SimpleWelcome";
+import WelcomePage from "./components/WelcomePage";
 import PublicPostsPage from "./components/PublicPostsPage";
 import Login from "./features/auth/Login/Login";
 import DashLayout from "./components/Layout/DashLayout";
