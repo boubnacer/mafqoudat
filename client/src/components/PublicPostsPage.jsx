@@ -45,7 +45,7 @@ import {
   Language,
   KeyboardArrowDown,
   Menu,
-  MenuItem as MenuItemComponent,
+  MenuItem,
   ListItemIcon,
   ListItemText,
 } from "@mui/icons-material";
