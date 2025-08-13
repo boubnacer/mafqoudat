@@ -19,6 +19,7 @@ import SinglePost from "./features/posts/PostPage/SinglePost";
 import ReportPage from "./features/posts/ReportPage/ReportPage";
 import Dash from "./features/dashboard/Dash";
 import TestDashboard from "./components/TestDashboard";
+
 import DependenciesManager from "./features/MANAGER/Dependencies/DependenciesManager";
 import { CssBaseline, ThemeProvider } from "@mui/material";
 import { createTheme } from "@mui/material/styles";
@@ -60,7 +61,7 @@ const AppContent = () => {
         <Route path="/signup" element={<NewUser />} />
 
         {/* Public dashboard routes - no authentication required */}
-        <Route path="dash" element={<SimpleDashLayout />}>
+        <Route path="dash" element={<DashLayout />}>
           <Route index element={<Dash />} />
           <Route path="posts">
             <Route index element={<PostsList />} />

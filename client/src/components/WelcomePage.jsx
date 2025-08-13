@@ -170,13 +170,13 @@ const WelcomePage = () => {
   });
 
   // Fallback countries in case API fails
-  const fallbackCountries = [
-    { _id: 'fallback-1', code: 'US', label: 'United States', labels: { en: 'United States', ar: 'الولايات المتحدة', fr: 'États-Unis' }, flag: '🇺🇸' },
-    { _id: 'fallback-2', code: 'GB', label: 'United Kingdom', labels: { en: 'United Kingdom', ar: 'المملكة المتحدة', fr: 'Royaume-Uni' }, flag: '🇬🇧' },
-    { _id: 'fallback-3', code: 'FR', label: 'France', labels: { en: 'France', ar: 'فرنسا', fr: 'France' }, flag: '🇫🇷' },
-    { _id: 'fallback-4', code: 'DE', label: 'Germany', labels: { en: 'Germany', ar: 'ألمانيا', fr: 'Allemagne' }, flag: '🇩🇪' },
-    { _id: 'fallback-5', code: 'CA', label: 'Canada', labels: { en: 'Canada', ar: 'كندا', fr: 'Canada' }, flag: '🇨🇦' },
-  ];
+const fallbackCountries = [
+  { _id: '507f1f77bcf86cd799439011', code: 'US', label: 'United States', labels: { en: 'United States', ar: 'الولايات المتحدة', fr: 'États-Unis' }, flag: '🇺🇸' },
+  { _id: '507f1f77bcf86cd799439012', code: 'GB', label: 'United Kingdom', labels: { en: 'United Kingdom', ar: 'المملكة المتحدة', fr: 'Royaume-Uni' }, flag: '🇬🇧' },
+  { _id: '507f1f77bcf86cd799439013', code: 'FR', label: 'France', labels: { en: 'France', ar: 'فرنسا', fr: 'France' }, flag: '🇫🇷' },
+  { _id: '507f1f77bcf86cd799439014', code: 'DE', label: 'Germany', labels: { en: 'Germany', ar: 'ألمانيا', fr: 'Allemagne' }, flag: '🇩🇪' },
+  { _id: '507f1f77bcf86cd799439015', code: 'CA', label: 'Canada', labels: { en: 'Canada', ar: 'كندا', fr: 'Canada' }, flag: '🇨🇦' },
+];
 
   const countries = countriesData?.ids?.map((id) => countriesData?.entities[id]) || fallbackCountries;
 
@@ -186,8 +186,8 @@ const WelcomePage = () => {
 
   const handleContinue = () => {
     if (selectedCountry) {
-      // For fallback countries, use a default country ID
-      const countryId = selectedCountry._id.startsWith('fallback-') ? 'default-country' : selectedCountry._id;
+      // Use the selected country ID directly
+      const countryId = selectedCountry._id;
       dispatch(setCurrentCountry({ currentCountry: countryId }));
       // Navigate to dashboard (public view)
       navigate('/dash');

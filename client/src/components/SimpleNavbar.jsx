@@ -128,13 +128,13 @@ const LanguageSelector = styled(Box)(({ theme }) => ({
   },
 }));
 
-// Fallback countries data
+// Fallback countries data with valid MongoDB ObjectIds
 const fallbackCountries = [
-  { _id: 'fallback-1', code: 'US', label: 'United States', labels: { en: 'United States', ar: 'الولايات المتحدة', fr: 'États-Unis' }, flag: '🇺🇸' },
-  { _id: 'fallback-2', code: 'GB', label: 'United Kingdom', labels: { en: 'United Kingdom', ar: 'المملكة المتحدة', fr: 'Royaume-Uni' }, flag: '🇬🇧' },
-  { _id: 'fallback-3', code: 'FR', label: 'France', labels: { en: 'France', ar: 'فرنسا', fr: 'France' }, flag: '🇫🇷' },
-  { _id: 'fallback-4', code: 'DE', label: 'Germany', labels: { en: 'Germany', ar: 'ألمانيا', fr: 'Allemagne' }, flag: '🇩🇪' },
-  { _id: 'fallback-5', code: 'CA', label: 'Canada', labels: { en: 'Canada', ar: 'كندا', fr: 'Canada' }, flag: '🇨🇦' },
+  { _id: '507f1f77bcf86cd799439011', code: 'US', label: 'United States', labels: { en: 'United States', ar: 'الولايات المتحدة', fr: 'États-Unis' }, flag: '🇺🇸' },
+  { _id: '507f1f77bcf86cd799439012', code: 'GB', label: 'United Kingdom', labels: { en: 'United Kingdom', ar: 'المملكة المتحدة', fr: 'Royaume-Uni' }, flag: '🇬🇧' },
+  { _id: '507f1f77bcf86cd799439013', code: 'FR', label: 'France', labels: { en: 'France', ar: 'فرنسا', fr: 'France' }, flag: '🇫🇷' },
+  { _id: '507f1f77bcf86cd799439014', code: 'DE', label: 'Germany', labels: { en: 'Germany', ar: 'ألمانيا', fr: 'Allemagne' }, flag: '🇩🇪' },
+  { _id: '507f1f77bcf86cd799439015', code: 'CA', label: 'Canada', labels: { en: 'Canada', ar: 'كندا', fr: 'Canada' }, flag: '🇨🇦' },
 ];
 
 const SimpleNavbar = () => {
@@ -149,7 +149,7 @@ const SimpleNavbar = () => {
   const currentCountry = useSelector(selectCurrentCountry);
   const openModal = useSelector(selectOpenModal);
 
-  const [countryId, setCountryId] = useState(country || 'fallback-1');
+  const [countryId, setCountryId] = useState(country || '507f1f77bcf86cd799439011');
   const [languageAnchorEl, setLanguageAnchorEl] = useState(null);
   const [mobileMenuAnchorEl, setMobileMenuAnchorEl] = useState(null);
 
