@@ -38,7 +38,7 @@ export const useDashboard = () => {
     }
   }, [userCountry, currentCountry, dispatch, countriesData]);
 
-  // Dashboard data query - skip if no currentCountry or no token
+  // Dashboard data query - skip if no currentCountry (allow public access)
   const { 
     data, 
     isError, 
@@ -49,10 +49,10 @@ export const useDashboard = () => {
     currentCountry,
     language: currentLanguage
   }, {
-    skip: !currentCountry || !token
+    skip: !currentCountry
   });
 
-  // Search query
+  // Search query - allow public access
   const { 
     data: searchData, 
     isLoading: isSearchLoading,
@@ -64,7 +64,7 @@ export const useDashboard = () => {
     search: searchQuery,
     language: currentLanguage
   }, {
-    skip: !searchQuery || !token
+    skip: !searchQuery
   });
 
   // Create a debounced search function
