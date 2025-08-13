@@ -8,7 +8,7 @@ import { WhatshotOutlined, Search, Language } from "@mui/icons-material";
 import { useTranslation } from "../../utils/translations";
 
 // Custom hook
-import { useDashboard } from "../../hooks/useDashboard";
+import { useDashboard } from "../hooks/useDashboard";
 
 // Components
 import LeftSide from "./dashboard/LeftSide";
