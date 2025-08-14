@@ -98,19 +98,19 @@ const AppContent = () => {
           {/* Simple test route for posts */}
           <Route path="posts" element={<SimplePostsTest />} />
           <Route path="posts/:id" element={<SinglePost />} />
-        </Route>
-
-        {/* Protected routes - require authentication for admin actions */}
-        <Route element={<PersistLogin />}>
-          <Route element={<Prefetch />}>
-            <Route path="dash/posts/new" element={<NewPost />} />
-            <Route path="dash/posts/edit/:id" element={<EditPost />} />
-            <Route path="dash/posts/report/:id" element={<ReportPage />} />
-            <Route path="dash/users">
-              <Route index element={<UsersList />} />
-              <Route path=":id" element={<EditUser />} />
+          
+          {/* Protected routes - require authentication for admin actions */}
+          <Route element={<PersistLogin />}>
+            <Route element={<Prefetch />}>
+              <Route path="posts/new" element={<NewPost />} />
+              <Route path="posts/edit/:id" element={<EditPost />} />
+              <Route path="posts/report/:id" element={<ReportPage />} />
+              <Route path="users">
+                <Route index element={<UsersList />} />
+                <Route path=":id" element={<EditUser />} />
+              </Route>
+              <Route path="dependencies" element={<DependenciesManager />} />
             </Route>
-            <Route path="dash/dependencies" element={<DependenciesManager />} />
           </Route>
         </Route>
 
