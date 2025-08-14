@@ -1,5 +1,5 @@
-// Force deployment - PostsList dependencies fix applied - V7
-// Testing simplified Vercel configuration - fresh build
+// Force deployment - PostsList dependencies fix applied - V8
+// Restored original PostsList component - fixing routing issue
 import { Routes, Route } from "react-router-dom";
 import Layout from "./components/Layout";
 import WelcomePage from "./components/WelcomePage";
@@ -35,25 +35,6 @@ import { initializeLanguage, LanguageProvider, useLanguage } from "./utils/langu
 import { cleanupLocalStorage, initializeLocalStorage } from "./utils/localStorageUtils";
 import { useLocation } from "react-router-dom";
 
-// Simple test component for posts
-const SimplePostsTest = () => {
-  console.log('SimplePostsTest: Component rendered');
-  return (
-    <div style={{ 
-      padding: '2rem', 
-      textAlign: 'center', 
-      backgroundColor: 'lightgreen',
-      minHeight: '100vh'
-    }}>
-      <h1>Simple Posts Test</h1>
-      <p>This is a simple test component for /dash/posts</p>
-      <p>If you can see this on refresh, the routing is working.</p>
-      <p>Current URL: {window.location.href}</p>
-      <p>Current pathname: {window.location.pathname}</p>
-    </div>
-  );
-};
-
 // Inner App component that has access to language context
 const AppContent = () => {
   const mode = useSelector((state) => state.global.mode);
@@ -88,14 +69,6 @@ const AppContent = () => {
         <Route path="/login" element={<Login />} />
         <Route path="/signup" element={<NewUser />} />
 
-        {/* Dashboard and posts - public access with dependency prefetching */}
-        <Route path="dash" element={<DashLayout />}>
-          <Route index element={<Dash />} />
-          {/* Simple test route for posts */}
-          <Route path="posts" element={<SimplePostsTest />} />
-          <Route path="posts/:id" element={<SinglePost />} />
-        </Route>
-
         {/* Protected routes - require authentication for admin actions */}
         <Route element={<PersistLogin />}>
           <Route element={<Prefetch />}>
@@ -108,6 +81,22 @@ const AppContent = () => {
             </Route>
             <Route path="dash/dependencies" element={<DependenciesManager />} />
           </Route>
+        </Route>
+
+        {/* Dashboard and posts - public access with dependency prefetching */}
+        <Route path="dash" element={<DashLayout />}>
+          <Route index element={
+            <PrefetchDependencies>
+              <Dash />
+            </PrefetchDependencies>
+          } />
+          {/* Original posts route */}
+          <Route path="posts" element={
+            <PrefetchDependencies>
+              <PostsList />
+            </PrefetchDependencies>
+          } />
+          <Route path="posts/:id" element={<SinglePost />} />
         </Route>
 
         {/* Catch-all route for debugging */}
