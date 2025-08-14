@@ -26,7 +26,7 @@ import TestDashboard from "./components/TestDashboard";
 import DependenciesManager from "./features/MANAGER/Dependencies/DependenciesManager";
 import { CssBaseline, ThemeProvider } from "@mui/material";
 import { createTheme } from "@mui/material/styles";
-import React, { useEffect, useMemo } from "react";
+import React, { useEffect, useMemo, useState } from "react";
 import { useDispatch, useSelector } from "react-redux";
 import { themeSettings } from "./theme";
 import useAuth from "./hooks/useAuth";
@@ -55,6 +55,49 @@ const SimpleTest = () => {
       <h1>Simple Test Component</h1>
       <p>This is a very simple test component.</p>
       <p>If you can see this yellow background, the routing is working.</p>
+    </div>
+  );
+};
+
+// Test component that mimics PostsList but simpler
+const PostsTest = () => {
+  console.log('PostsTest: Component function called - START');
+  console.log('PostsTest: Current URL:', window.location.href);
+  console.log('PostsTest: Current pathname:', window.location.pathname);
+  
+  const [isLoading, setIsLoading] = useState(true);
+  const [error, setError] = useState(null);
+  
+  useEffect(() => {
+    console.log('PostsTest: useEffect triggered');
+    
+    // Simulate loading
+    const timer = setTimeout(() => {
+      console.log('PostsTest: Loading complete');
+      setIsLoading(false);
+    }, 2000);
+    
+    return () => clearTimeout(timer);
+  }, []);
+  
+  if (isLoading) {
+    console.log('PostsTest: Showing loading state');
+    return (
+      <div style={{ padding: '2rem', textAlign: 'center', backgroundColor: 'lightblue' }}>
+        <h1>PostsTest Loading...</h1>
+        <p>This simulates the PostsList loading state.</p>
+        <p>If you see this on refresh, the issue is with PostsList, not routing.</p>
+      </div>
+    );
+  }
+  
+  console.log('PostsTest: Rendering content');
+  return (
+    <div style={{ padding: '2rem', textAlign: 'center', backgroundColor: 'lightgreen' }}>
+      <h1>PostsTest Content</h1>
+      <p>This simulates the PostsList content.</p>
+      <p>If you see this on refresh, the routing is working fine.</p>
+      {error && <p style={{ color: 'red' }}>Error: {error}</p>}
     </div>
   );
 };
@@ -102,7 +145,12 @@ const AppContent = () => {
           } />
           {/* Test routes first to debug routing */}
           <Route path="simpletest" element={<SimpleTest />} />
-          <Route path="poststest" element={<TestPostsRoute />} />
+          <Route path="poststest" element={<PostsTest />} />
+          <Route path="poststestwithprefetch" element={
+            <PrefetchDependencies>
+              <PostsTest />
+            </PrefetchDependencies>
+          } />
           {/* Posts route */}
           <Route path="posts" element={
             <PrefetchDependencies>
