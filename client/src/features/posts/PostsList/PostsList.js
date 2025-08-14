@@ -6,6 +6,7 @@ import useTitle from "../../../hooks/useTitle";
 import { LoadingState, EmptyState, ErrorState } from "../../../components/LoadingStates";
 import { useSelector, useDispatch } from "react-redux";
 import { Link, useLocation, useNavigate } from "react-router-dom";
+import { store } from "../../../app/store";
 import { 
   Search, 
   Add as AddIcon, 
@@ -53,7 +54,22 @@ const PostsList = () => {
 
   const user = useAuth();
   const countryId = useSelector(selectCurrentCountry);
-  const [currentCountry, setCurrentCountry] = useState(user.country);
+  const [currentCountry, setCurrentCountry] = useState(() => {
+    // Try to get from Redux first, then localStorage as fallback
+    if (countryId) return countryId;
+    
+    try {
+      const savedState = localStorage.getItem('globalState');
+      if (savedState) {
+        const parsed = JSON.parse(savedState);
+        return parsed.currentCountry || user.country;
+      }
+    } catch (error) {
+      console.error('Error parsing localStorage:', error);
+    }
+    
+    return user.country;
+  });
   const foundOrlost = useSelector(selectFoundOrLost);
   const categoryFilter = useSelector(selectCategoryFilter);
   const dispatch = useDispatch();
@@ -113,6 +129,21 @@ const PostsList = () => {
     }
   }, [location.state, categoryFilter, navigate, location.pathname]);
 
+  // Check if store is ready
+  const [storeReady, setStoreReady] = useState(false);
+
+  useEffect(() => {
+    // Check if Redux store is properly initialized
+    const checkStore = () => {
+      const state = store.getState();
+      console.log('Redux store state:', state);
+      setStoreReady(true);
+    };
+
+    // Small delay to ensure store is initialized
+    setTimeout(checkStore, 100);
+  }, []);
+
   // Get categories for dynamic filtering
   const { data: categoriesData, isLoading: categoriesLoading, error: categoriesError } = useGetCategoriesQuery({
     language: currentLanguage
@@ -135,8 +166,8 @@ const PostsList = () => {
   }, {
     // Add debugging
     refetchOnMountOrArgChange: true,
-    // Skip the query if dependencies are not ready
-    skip: !currentCountry || categoriesLoading || !categoriesData?.length,
+    // Skip the query if dependencies are not ready or store is not ready
+    skip: !storeReady || !currentCountry || categoriesLoading || !categoriesData?.length,
     // Add retry logic
     retry: 3,
     retryDelay: 1000
@@ -145,6 +176,7 @@ const PostsList = () => {
   // Debug logging
   useEffect(() => {
     console.log('PostsList Debug:', {
+      storeReady,
       currentCountry,
       categoriesLoading,
       categoriesData: categoriesData?.length,
@@ -153,9 +185,33 @@ const PostsList = () => {
       isLoading,
       categoriesError: categoriesError?.message,
       error: error?.message,
-      skip: !currentCountry || categoriesLoading || !categoriesData?.length
+      skip: !storeReady || !currentCountry || categoriesLoading || !categoriesData?.length,
+      localStorage: {
+        globalState: localStorage.getItem('globalState'),
+        currentCountry: JSON.parse(localStorage.getItem('globalState') || '{}')?.currentCountry
+      },
+      reduxState: {
+        countryId,
+        foundOrlost,
+        categoryFilter
+      }
     });
-  }, [currentCountry, categoriesLoading, categoriesData, currentLanguage, isSuccess, isLoading, categoriesError, error]);
+
+    // Test localStorage persistence
+    if (currentCountry) {
+      console.log('Testing localStorage persistence...');
+      try {
+        const savedState = localStorage.getItem('globalState');
+        if (savedState) {
+          const parsed = JSON.parse(savedState);
+          console.log('Saved state:', parsed);
+          console.log('Current country matches saved:', parsed.currentCountry === currentCountry);
+        }
+      } catch (error) {
+        console.error('Error testing localStorage:', error);
+      }
+    }
+  }, [storeReady, currentCountry, categoriesLoading, categoriesData, currentLanguage, isSuccess, isLoading, categoriesError, error, countryId, foundOrlost, categoryFilter]);
 
   // Debounce search term
   useEffect(() => {
@@ -168,7 +224,24 @@ const PostsList = () => {
   }, [searchTerm]);
 
   useEffect(() => {
-    setCurrentCountry(countryId);
+    // Update currentCountry from Redux state or localStorage
+    if (countryId) {
+      setCurrentCountry(countryId);
+    } else {
+      // Fallback to localStorage if Redux state is not available
+      try {
+        const savedState = localStorage.getItem('globalState');
+        if (savedState) {
+          const parsed = JSON.parse(savedState);
+          if (parsed.currentCountry) {
+            setCurrentCountry(parsed.currentCountry);
+          }
+        }
+      } catch (error) {
+        console.error('Error reading from localStorage:', error);
+      }
+    }
+    
     setFl(foundOrlost);
     setPage(1);
   }, [countryId, foundOrlost]);
