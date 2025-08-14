@@ -67,6 +67,7 @@ const PostsList = () => {
   const [sortBy, setSortBy] = useState("newest");
   const [viewMode, setViewMode] = useState("grid");
   const [localCategoryFilter, setLocalCategoryFilter] = useState("all");
+  const [loadingTimeout, setLoadingTimeout] = useState(false);
 
   const navigate = useNavigate();
   const { pathname, search } = useLocation();
@@ -74,6 +75,19 @@ const PostsList = () => {
 
   // Get current language
   const { t, currentLanguage } = useTranslation();
+
+  // Add timeout for loading states
+  useEffect(() => {
+    if (isLoading || categoriesLoading) {
+      const timer = setTimeout(() => {
+        setLoadingTimeout(true);
+      }, 10000); // 10 seconds timeout
+
+      return () => clearTimeout(timer);
+    } else {
+      setLoadingTimeout(false);
+    }
+  }, [isLoading, categoriesLoading]);
 
   // Initialize category filter from navigation state
   useEffect(() => {
@@ -111,21 +125,23 @@ const PostsList = () => {
     // Add debugging
     refetchOnMountOrArgChange: true,
     // Skip the query if dependencies are not ready
-    skip: !currentCountry || categoriesLoading
+    skip: !currentCountry || categoriesLoading,
+    // Add retry logic
+    retry: 3,
+    retryDelay: 1000
   });
 
   // Debug logging
   useEffect(() => {
-    console.log('API Call Parameters:', {
-      page,
-      pageSize,
-      fl,
+    console.log('PostsList Debug:', {
       currentCountry,
-      search: debouncedSearchTerm,
-      categoryId: localCategoryFilter !== "all" ? localCategoryFilter : undefined,
-      language: currentLanguage,
+      categoriesLoading,
+      categoriesData: categoriesData?.length,
+      currentLanguage,
+      isSuccess,
+      isLoading
     });
-  }, [page, pageSize, fl, currentCountry, debouncedSearchTerm, localCategoryFilter, currentLanguage]);
+  }, [currentCountry, categoriesLoading, categoriesData, currentLanguage, isSuccess, isLoading]);
 
   // Debounce search term
   useEffect(() => {
@@ -217,7 +233,17 @@ const PostsList = () => {
       </Box>
     );
   } else if (isLoading || categoriesLoading) {
-    content = <LoadingState message={t('loadingPosts')} />;
+    if (loadingTimeout) {
+      content = (
+        <ErrorState
+          title="Loading timeout"
+          message="The page is taking longer than expected to load. Please try refreshing the page."
+          onRetry={() => window.location.reload()}
+        />
+      );
+    } else {
+      content = <LoadingState message={t('loadingPosts')} />;
+    }
   } else if (isError) {
     content = (
       <ErrorState

@@ -7,13 +7,14 @@ import { useLanguage } from "../../utils/languageContext";
 const PrefetchDependencies = ({ children }) => {
   const { currentLanguage } = useLanguage();
   const [isRefetching, setIsRefetching] = useState(false);
+  const [isInitialized, setIsInitialized] = useState(false);
 
   useEffect(() => {
     const prefetchDependencies = async () => {
       try {
         setIsRefetching(true);
         
-        // Invalidate existing cache when language changes
+        // Always invalidate cache on mount to ensure fresh data
         store.dispatch(
           dependencieaApiSlice.util.invalidateTags([
             { type: "Category", id: "LIST" },
@@ -55,10 +56,12 @@ const PrefetchDependencies = ({ children }) => {
         // Wait for all prefetch operations to complete
         await Promise.all(prefetchPromises);
         
+        setIsInitialized(true);
         // Small delay to ensure UI updates
         setTimeout(() => setIsRefetching(false), 300);
       } catch (error) {
         console.error('Error prefetching dependencies:', error);
+        setIsInitialized(true);
         setIsRefetching(false);
       }
     };
@@ -67,15 +70,33 @@ const PrefetchDependencies = ({ children }) => {
   }, [currentLanguage]);
 
   // Show loading state while refetching
-  if (isRefetching) {
+  if (isRefetching || !isInitialized) {
     return (
       <div style={{ 
         display: 'flex', 
         justifyContent: 'center', 
         alignItems: 'center', 
-        minHeight: '200px' 
+        minHeight: '200px',
+        padding: '2rem'
       }}>
-        <div>Loading dependencies...</div>
+        <div style={{ textAlign: 'center' }}>
+          <div style={{ 
+            width: '40px', 
+            height: '40px', 
+            border: '4px solid #f3f3f3',
+            borderTop: '4px solid #3498db',
+            borderRadius: '50%',
+            animation: 'spin 1s linear infinite',
+            margin: '0 auto 1rem'
+          }}></div>
+          <div>Loading dependencies...</div>
+        </div>
+        <style>{`
+          @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+          }
+        `}</style>
       </div>
     );
   }
