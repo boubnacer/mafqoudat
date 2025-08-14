@@ -1,5 +1,5 @@
-// Force deployment - PostsList dependencies fix applied - V2
-// Testing routing issue - added catch-all route and test routes
+// Force deployment - PostsList dependencies fix applied - V3
+// Minimal test version to isolate routing issue
 import { Routes, Route } from "react-router-dom";
 import Layout from "./components/Layout";
 import WelcomePage from "./components/WelcomePage";
@@ -35,69 +35,21 @@ import { initializeLanguage, LanguageProvider, useLanguage } from "./utils/langu
 import { cleanupLocalStorage, initializeLocalStorage } from "./utils/localStorageUtils";
 import { useLocation } from "react-router-dom";
 
-// Test component to debug routing
-const TestPostsRoute = () => {
-  console.log('TestPostsRoute: Component rendered');
+// Simple test component for posts
+const SimplePostsTest = () => {
+  console.log('SimplePostsTest: Component rendered');
   return (
-    <div style={{ padding: '2rem', textAlign: 'center' }}>
-      <h1>Test Posts Route</h1>
-      <p>This is a test route to debug the routing issue.</p>
-      <p>If you can see this, the routing is working.</p>
-    </div>
-  );
-};
-
-// Very simple test component
-const SimpleTest = () => {
-  console.log('SimpleTest: Component rendered');
-  return (
-    <div style={{ padding: '2rem', textAlign: 'center', backgroundColor: 'yellow' }}>
-      <h1>Simple Test Component</h1>
-      <p>This is a very simple test component.</p>
-      <p>If you can see this yellow background, the routing is working.</p>
-    </div>
-  );
-};
-
-// Test component that mimics PostsList but simpler
-const PostsTest = () => {
-  console.log('PostsTest: Component function called - START');
-  console.log('PostsTest: Current URL:', window.location.href);
-  console.log('PostsTest: Current pathname:', window.location.pathname);
-  
-  const [isLoading, setIsLoading] = useState(true);
-  const [error, setError] = useState(null);
-  
-  useEffect(() => {
-    console.log('PostsTest: useEffect triggered');
-    
-    // Simulate loading
-    const timer = setTimeout(() => {
-      console.log('PostsTest: Loading complete');
-      setIsLoading(false);
-    }, 2000);
-    
-    return () => clearTimeout(timer);
-  }, []);
-  
-  if (isLoading) {
-    console.log('PostsTest: Showing loading state');
-    return (
-      <div style={{ padding: '2rem', textAlign: 'center', backgroundColor: 'lightblue' }}>
-        <h1>PostsTest Loading...</h1>
-        <p>This simulates the PostsList loading state.</p>
-        <p>If you see this on refresh, the issue is with PostsList, not routing.</p>
-      </div>
-    );
-  }
-  
-  console.log('PostsTest: Rendering content');
-  return (
-    <div style={{ padding: '2rem', textAlign: 'center', backgroundColor: 'lightgreen' }}>
-      <h1>PostsTest Content</h1>
-      <p>This simulates the PostsList content.</p>
-      <p>If you see this on refresh, the routing is working fine.</p>
-      {error && <p style={{ color: 'red' }}>Error: {error}</p>}
+    <div style={{ 
+      padding: '2rem', 
+      textAlign: 'center', 
+      backgroundColor: 'lightgreen',
+      minHeight: '100vh'
+    }}>
+      <h1>Simple Posts Test</h1>
+      <p>This is a simple test component for /dash/posts</p>
+      <p>If you can see this on refresh, the routing is working.</p>
+      <p>Current URL: {window.location.href}</p>
+      <p>Current pathname: {window.location.pathname}</p>
     </div>
   );
 };
@@ -143,20 +95,8 @@ const AppContent = () => {
               <Dash />
             </PrefetchDependencies>
           } />
-          {/* Test routes first to debug routing */}
-          <Route path="simpletest" element={<SimpleTest />} />
-          <Route path="poststest" element={<PostsTest />} />
-          <Route path="poststestwithprefetch" element={
-            <PrefetchDependencies>
-              <PostsTest />
-            </PrefetchDependencies>
-          } />
-          {/* Posts route */}
-          <Route path="posts" element={
-            <PrefetchDependencies>
-              <PostsList />
-            </PrefetchDependencies>
-          } />
+          {/* Simple test route for posts */}
+          <Route path="posts" element={<SimplePostsTest />} />
           <Route path="posts/:id" element={<SinglePost />} />
         </Route>
 
