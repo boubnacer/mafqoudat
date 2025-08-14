@@ -46,6 +46,18 @@ const TestPostsRoute = () => {
   );
 };
 
+// Very simple test component
+const SimpleTest = () => {
+  console.log('SimpleTest: Component rendered');
+  return (
+    <div style={{ padding: '2rem', textAlign: 'center', backgroundColor: 'yellow' }}>
+      <h1>Simple Test Component</h1>
+      <p>This is a very simple test component.</p>
+      <p>If you can see this yellow background, the routing is working.</p>
+    </div>
+  );
+};
+
 // Inner App component that has access to language context
 const AppContent = () => {
   const mode = useSelector((state) => state.global.mode);
@@ -85,16 +97,17 @@ const AppContent = () => {
               <Dash />
             </PrefetchDependencies>
           } />
-          <Route path="posts">
-            <Route index element={
-              <PrefetchDependencies>
-                <PostsList />
-              </PrefetchDependencies>
-            } />
-            <Route path=":id" element={<SinglePost />} />
-          </Route>
           {/* Test route to debug routing */}
           <Route path="poststest" element={<TestPostsRoute />} />
+          {/* Simple test route */}
+          <Route path="simpletest" element={<SimpleTest />} />
+          {/* Try direct route instead of nested */}
+          <Route path="posts" element={
+            <PrefetchDependencies>
+              <PostsList />
+            </PrefetchDependencies>
+          } />
+          <Route path="posts/:id" element={<SinglePost />} />
         </Route>
 
         {/* Protected routes - require authentication for admin actions */}

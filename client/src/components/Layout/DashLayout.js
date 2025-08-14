@@ -9,6 +9,8 @@ import Sidebar from "../Sidebar";
 
 const DashLayout = () => {
   console.log('DashLayout: Component rendered');
+  console.log('DashLayout: Current URL:', window.location.href);
+  console.log('DashLayout: Current pathname:', window.location.pathname);
   
   const isNonMobile = useMediaQuery("(min-width:600px)");
   const theme = useTheme();
