@@ -46,6 +46,8 @@ const POSTS_REGEX = /^\/dash\/posts(\/)?$/;
 const HOME_REGEX = /^\/dash(\/)?$/;
 
 const PostsList = () => {
+  console.log('PostsList: Component function called');
+  
   useTitle("Mafkoudat | Posts List");
 
   const theme = useTheme();

@@ -8,6 +8,8 @@ import { useState } from "react";
 import Sidebar from "../Sidebar";
 
 const DashLayout = () => {
+  console.log('DashLayout: Component rendered');
+  
   const isNonMobile = useMediaQuery("(min-width:600px)");
   const theme = useTheme();
 

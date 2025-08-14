@@ -32,11 +32,15 @@ import useAuth from "./hooks/useAuth";
 import PrefetchDependencies from "./features/PrefetchData/PrefetchDependencies";
 import { initializeLanguage, LanguageProvider, useLanguage } from "./utils/languageContext";
 import { cleanupLocalStorage, initializeLocalStorage } from "./utils/localStorageUtils";
+import { useLocation } from "react-router-dom";
 
 // Inner App component that has access to language context
 const AppContent = () => {
   const mode = useSelector((state) => state.global.mode);
   const { currentLanguage } = useLanguage();
+  const location = useLocation();
+  
+  console.log('AppContent: Current location:', location.pathname);
   
   const theme = React.useMemo(() => {
     try {
