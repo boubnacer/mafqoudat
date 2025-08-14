@@ -62,12 +62,12 @@ const AppContent = () => {
         <Route path="/signup" element={<NewUser />} />
 
         {/* Dashboard and posts - public access with dependency prefetching */}
-        <Route path="dash" element={
-          <PrefetchDependencies>
-            <DashLayout />
-          </PrefetchDependencies>
-        }>
-          <Route index element={<Dash />} />
+        <Route path="dash" element={<DashLayout />}>
+          <Route index element={
+            <PrefetchDependencies>
+              <Dash />
+            </PrefetchDependencies>
+          } />
           <Route path="posts">
             <Route index element={<PostsList />} />
             <Route path=":id" element={<SinglePost />} />

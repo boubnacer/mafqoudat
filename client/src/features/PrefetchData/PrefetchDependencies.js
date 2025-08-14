@@ -1,11 +1,10 @@
 import React, { useEffect, useState } from "react";
-import { Outlet } from "react-router-dom";
 import { store } from "../../app/store";
 import { dependencieaApiSlice } from "../dependencies/dependenciesApiSlice";
 import { apiSlice } from "../../app/api/apiSlice";
 import { useLanguage } from "../../utils/languageContext";
 
-const PrefetchDependencies = () => {
+const PrefetchDependencies = ({ children }) => {
   const { currentLanguage } = useLanguage();
   const [isRefetching, setIsRefetching] = useState(false);
 
@@ -57,7 +56,7 @@ const PrefetchDependencies = () => {
     });
   }, [currentLanguage]);
 
-  return <Outlet />;
+  return children;
 };
 
 export default PrefetchDependencies;
