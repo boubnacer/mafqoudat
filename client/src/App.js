@@ -34,6 +34,18 @@ import { initializeLanguage, LanguageProvider, useLanguage } from "./utils/langu
 import { cleanupLocalStorage, initializeLocalStorage } from "./utils/localStorageUtils";
 import { useLocation } from "react-router-dom";
 
+// Test component to debug routing
+const TestPostsRoute = () => {
+  console.log('TestPostsRoute: Component rendered');
+  return (
+    <div style={{ padding: '2rem', textAlign: 'center' }}>
+      <h1>Test Posts Route</h1>
+      <p>This is a test route to debug the routing issue.</p>
+      <p>If you can see this, the routing is working.</p>
+    </div>
+  );
+};
+
 // Inner App component that has access to language context
 const AppContent = () => {
   const mode = useSelector((state) => state.global.mode);
@@ -81,6 +93,8 @@ const AppContent = () => {
             } />
             <Route path=":id" element={<SinglePost />} />
           </Route>
+          {/* Test route to debug routing */}
+          <Route path="poststest" element={<TestPostsRoute />} />
         </Route>
 
         {/* Protected routes - require authentication for admin actions */}

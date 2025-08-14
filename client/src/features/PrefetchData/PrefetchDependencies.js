@@ -29,7 +29,7 @@ const PrefetchDependencies = ({ children }) => {
       try {
         console.log('PrefetchDependencies: Starting to load dependencies...');
         
-        // Simple approach: just dispatch the prefetch actions
+        // Simple approach: just dispatch the prefetch actions without the third parameter
         const promises = [
           store.dispatch(
             dependencieaApiSlice.util.prefetch("getflOptions", {
