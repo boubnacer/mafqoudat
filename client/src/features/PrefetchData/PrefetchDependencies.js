@@ -12,9 +12,11 @@ const PrefetchDependencies = ({ children }) => {
   useEffect(() => {
     const prefetchDependencies = async () => {
       try {
+        console.log('PrefetchDependencies: Starting dependency prefetch...');
         setIsRefetching(true);
         
         // Always invalidate cache on mount to ensure fresh data
+        console.log('PrefetchDependencies: Invalidating cache...');
         store.dispatch(
           dependencieaApiSlice.util.invalidateTags([
             { type: "Category", id: "LIST" },
@@ -32,6 +34,7 @@ const PrefetchDependencies = ({ children }) => {
         );
 
         // Prefetch with new language - using the correct format
+        console.log('PrefetchDependencies: Prefetching dependencies with language:', currentLanguage || 'en');
         const prefetchPromises = [
           store.dispatch(
             dependencieaApiSlice.util.prefetch("getflOptions", {
@@ -54,20 +57,71 @@ const PrefetchDependencies = ({ children }) => {
         ];
 
         // Wait for all prefetch operations to complete
+        console.log('PrefetchDependencies: Waiting for prefetch operations...');
         await Promise.all(prefetchPromises);
         
+        console.log('PrefetchDependencies: Dependencies loaded successfully');
         setIsInitialized(true);
         // Small delay to ensure UI updates
         setTimeout(() => setIsRefetching(false), 300);
       } catch (error) {
-        console.error('Error prefetching dependencies:', error);
+        console.error('PrefetchDependencies: Error prefetching dependencies:', error);
         setIsInitialized(true);
         setIsRefetching(false);
       }
     };
 
     prefetchDependencies();
-  }, [currentLanguage]);
+  }, []); // Remove currentLanguage dependency - run on every mount
+
+  // Also run when language changes
+  useEffect(() => {
+    if (isInitialized) {
+      const updateLanguage = async () => {
+        try {
+          setIsRefetching(true);
+          
+          // Invalidate and refetch with new language
+          store.dispatch(
+            dependencieaApiSlice.util.invalidateTags([
+              { type: "Category", id: "LIST" },
+              { type: "Country", id: "LIST" },
+              { type: "Dependencies", id: "LIST" }
+            ])
+          );
+
+          const prefetchPromises = [
+            store.dispatch(
+              dependencieaApiSlice.util.prefetch("getflOptions", {
+                language: currentLanguage || 'en',
+                active: true
+              }, { force: true })
+            ),
+            store.dispatch(
+              dependencieaApiSlice.util.prefetch("getCategories", {
+                language: currentLanguage || 'en',
+                active: true
+              }, { force: true })
+            ),
+            store.dispatch(
+              dependencieaApiSlice.util.prefetch("getCountries", {
+                language: currentLanguage || 'en',
+                active: true
+              }, { force: true })
+            )
+          ];
+
+          await Promise.all(prefetchPromises);
+          setTimeout(() => setIsRefetching(false), 300);
+        } catch (error) {
+          console.error('Error updating language dependencies:', error);
+          setIsRefetching(false);
+        }
+      };
+
+      updateLanguage();
+    }
+  }, [currentLanguage, isInitialized]);
 
   // Show loading state while refetching
   if (isRefetching || !isInitialized) {

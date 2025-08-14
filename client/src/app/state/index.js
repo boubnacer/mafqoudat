@@ -1,45 +1,71 @@
 import { createSlice } from "@reduxjs/toolkit";
 
-const initialState = {
-  currentCountry: "",
-  mode: "dark",
-  isSidebarOpen: false,
-  openModal: false,
-  activeLink: "",
-  foundOrlost: "",
-  direction: "ltr",
-  categoryFilter: "all", // Add category filter state
+// Get initial state from localStorage
+const getInitialState = () => {
+  const savedState = localStorage.getItem('globalState');
+  if (savedState) {
+    try {
+      return JSON.parse(savedState);
+    } catch (error) {
+      console.error('Error parsing saved global state:', error);
+    }
+  }
+  
+  return {
+    currentCountry: "",
+    mode: "dark",
+    isSidebarOpen: false,
+    openModal: false,
+    activeLink: "",
+    foundOrlost: "",
+    direction: "ltr",
+    categoryFilter: "all", // Add category filter state
+  };
 };
 
 export const globalSlice = createSlice({
   name: "global",
-  initialState,
+  initialState: getInitialState(),
   reducers: {
     setMode: (state) => {
       state.mode = state.mode === "light" ? "dark" : "light";
+      // Save to localStorage
+      localStorage.setItem('globalState', JSON.stringify(state));
     },
 
     setIsSidebarOpen: (state) => {
       state.isSidebarOpen = !state.isSidebarOpen;
+      // Save to localStorage
+      localStorage.setItem('globalState', JSON.stringify(state));
     },
     setActiveLink: (state, action) => {
       const { active } = action.payload;
       state.activeLink = active;
+      // Save to localStorage
+      localStorage.setItem('globalState', JSON.stringify(state));
     },
     setCurrentCountry: (state, action) => {
       const { currentCountry } = action.payload;
       state.currentCountry = currentCountry;
+      // Save to localStorage
+      localStorage.setItem('globalState', JSON.stringify(state));
     },
     setFoundOrLost: (state, action) => {
       const { foundOrlost } = action.payload;
       state.foundOrlost = foundOrlost;
+      // Save to localStorage
+      localStorage.setItem('globalState', JSON.stringify(state));
     },
     setCategoryFilter: (state, action) => {
       const { categoryFilter } = action.payload;
       state.categoryFilter = categoryFilter;
+      // Save to localStorage
+      localStorage.setItem('globalState', JSON.stringify(state));
     },
     setOpenModal: (state) => {
       state.openModal = !state.openModal;
+      // Save to localStorage
+      localStorage.setItem('globalState', JSON.stringify(state));
     },
   },
 });

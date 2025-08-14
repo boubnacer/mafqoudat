@@ -89,6 +89,17 @@ const PostsList = () => {
     }
   }, [isLoading, categoriesLoading]);
 
+  // Add fallback for when dependencies fail to load
+  useEffect(() => {
+    if (categoriesError && !categoriesLoading) {
+      console.error('Categories failed to load:', categoriesError);
+      // Try to reload after a delay
+      setTimeout(() => {
+        window.location.reload();
+      }, 5000);
+    }
+  }, [categoriesError, categoriesLoading]);
+
   // Initialize category filter from navigation state
   useEffect(() => {
     if (location.state?.fromCategory && location.state?.categoryFilter) {
@@ -125,7 +136,7 @@ const PostsList = () => {
     // Add debugging
     refetchOnMountOrArgChange: true,
     // Skip the query if dependencies are not ready
-    skip: !currentCountry || categoriesLoading,
+    skip: !currentCountry || categoriesLoading || !categoriesData?.length,
     // Add retry logic
     retry: 3,
     retryDelay: 1000
@@ -139,9 +150,12 @@ const PostsList = () => {
       categoriesData: categoriesData?.length,
       currentLanguage,
       isSuccess,
-      isLoading
+      isLoading,
+      categoriesError: categoriesError?.message,
+      error: error?.message,
+      skip: !currentCountry || categoriesLoading || !categoriesData?.length
     });
-  }, [currentCountry, categoriesLoading, categoriesData, currentLanguage, isSuccess, isLoading]);
+  }, [currentCountry, categoriesLoading, categoriesData, currentLanguage, isSuccess, isLoading, categoriesError, error]);
 
   // Debounce search term
   useEffect(() => {
