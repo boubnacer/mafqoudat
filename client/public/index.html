@@ -42,17 +42,6 @@
       console.log('HTML file loaded successfully');
       console.log('Current URL:', window.location.href);
       console.log('Current pathname:', window.location.pathname);
-      
-      // Fallback for routing issues
-      if (window.location.pathname !== '/' && !window.location.pathname.startsWith('/static/')) {
-        console.log('Potential routing issue detected, checking if React app loaded...');
-        setTimeout(() => {
-          if (!document.getElementById('root').children.length) {
-            console.log('React app not loaded, redirecting to home...');
-            window.location.href = '/';
-          }
-        }, 1000);
-      }
     </script>
   </head>
   <body dir="auto">

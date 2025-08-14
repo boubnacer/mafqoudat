@@ -1,5 +1,5 @@
-// Force deployment - PostsList dependencies fix applied - V5
-// Testing Vercel configuration fix - fresh build
+// Force deployment - PostsList dependencies fix applied - V6
+// Testing different routing strategy with explicit route handling
 import { Routes, Route } from "react-router-dom";
 import Layout from "./components/Layout";
 import WelcomePage from "./components/WelcomePage";
