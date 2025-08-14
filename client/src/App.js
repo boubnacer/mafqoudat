@@ -1,5 +1,5 @@
-// Force deployment - PostsList dependencies fix applied - V3
-// Minimal test version to isolate routing issue
+// Force deployment - PostsList dependencies fix applied - V4
+// Testing different routing approach
 import { Routes, Route } from "react-router-dom";
 import Layout from "./components/Layout";
 import WelcomePage from "./components/WelcomePage";
