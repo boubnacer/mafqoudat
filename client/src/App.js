@@ -1,4 +1,5 @@
-// Force deployment - PostsList dependencies fix applied
+// Force deployment - PostsList dependencies fix applied - V2
+// Testing routing issue - added catch-all route and test routes
 import { Routes, Route } from "react-router-dom";
 import Layout from "./components/Layout";
 import WelcomePage from "./components/WelcomePage";
@@ -65,6 +66,8 @@ const AppContent = () => {
   const location = useLocation();
   
   console.log('AppContent: Current location:', location.pathname);
+  console.log('AppContent: Current URL:', window.location.href);
+  console.log('AppContent: Current pathname:', window.location.pathname);
   
   const theme = React.useMemo(() => {
     try {
@@ -97,11 +100,10 @@ const AppContent = () => {
               <Dash />
             </PrefetchDependencies>
           } />
-          {/* Test route to debug routing */}
-          <Route path="poststest" element={<TestPostsRoute />} />
-          {/* Simple test route */}
+          {/* Test routes first to debug routing */}
           <Route path="simpletest" element={<SimpleTest />} />
-          {/* Try direct route instead of nested */}
+          <Route path="poststest" element={<TestPostsRoute />} />
+          {/* Posts route */}
           <Route path="posts" element={
             <PrefetchDependencies>
               <PostsList />
@@ -123,6 +125,15 @@ const AppContent = () => {
             <Route path="dash/dependencies" element={<DependenciesManager />} />
           </Route>
         </Route>
+
+        {/* Catch-all route for debugging */}
+        <Route path="*" element={
+          <div style={{ padding: '2rem', textAlign: 'center', backgroundColor: 'red', color: 'white' }}>
+            <h1>404 - Route Not Found</h1>
+            <p>Current path: {window.location.pathname}</p>
+            <p>This route is not defined in the router.</p>
+          </div>
+        } />
       </Routes>
     </ThemeProvider>
   );
