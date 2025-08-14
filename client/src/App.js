@@ -61,7 +61,8 @@ const AppContent = () => {
         <Route path="/login" element={<Login />} />
         <Route path="/signup" element={<NewUser />} />
 
-        {/* Main dashboard and posts - public access with dependency prefetching */}
+        {/* Dashboard and posts - public access with dependency prefetching */}
+        {/* DashLayout already includes Navbar, Sidebar, and Footer */}
         <Route path="dash" element={
           <PrefetchDependencies>
             <DashLayout />
