@@ -61,31 +61,30 @@ const AppContent = () => {
         <Route path="/login" element={<Login />} />
         <Route path="/signup" element={<NewUser />} />
 
-        {/* Main application with proper layout (navbar, footer, sidebar) */}
-        <Route element={<Layout />}>
-          {/* Dashboard and posts - public access with dependency prefetching */}
-          <Route path="dash" element={
-            <PrefetchDependencies>
-              <Dash />
-            </PrefetchDependencies>
-          } />
-          <Route path="dash/posts">
+        {/* Dashboard and posts - public access with dependency prefetching */}
+        <Route path="dash" element={
+          <PrefetchDependencies>
+            <DashLayout />
+          </PrefetchDependencies>
+        }>
+          <Route index element={<Dash />} />
+          <Route path="posts">
             <Route index element={<PostsList />} />
             <Route path=":id" element={<SinglePost />} />
           </Route>
+        </Route>
 
-          {/* Protected routes - require authentication for admin actions */}
-          <Route element={<PersistLogin />}>
-            <Route element={<Prefetch />}>
-              <Route path="dash/posts/new" element={<NewPost />} />
-              <Route path="dash/posts/edit/:id" element={<EditPost />} />
-              <Route path="dash/posts/report/:id" element={<ReportPage />} />
-              <Route path="dash/users">
-                <Route index element={<UsersList />} />
-                <Route path=":id" element={<EditUser />} />
-              </Route>
-              <Route path="dash/dependencies" element={<DependenciesManager />} />
+        {/* Protected routes - require authentication for admin actions */}
+        <Route element={<PersistLogin />}>
+          <Route element={<Prefetch />}>
+            <Route path="dash/posts/new" element={<NewPost />} />
+            <Route path="dash/posts/edit/:id" element={<EditPost />} />
+            <Route path="dash/posts/report/:id" element={<ReportPage />} />
+            <Route path="dash/users">
+              <Route index element={<UsersList />} />
+              <Route path=":id" element={<EditUser />} />
             </Route>
+            <Route path="dash/dependencies" element={<DependenciesManager />} />
           </Route>
         </Route>
       </Routes>

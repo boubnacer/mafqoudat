@@ -33,36 +33,26 @@ const foundsId = "66e60c25420ca2a42499b924";
 
 const Dash = () => {
   const theme = useTheme();
-  const isNonMobile = useMediaQuery("(min-width:600px)");
+  const isNonMediumScreens = useMediaQuery("(min-width:1200px)");
   const dispatch = useDispatch();
   const navigate = useNavigate();
-  const { t } = useTranslation();
+  const { t, currentLanguage } = useTranslation();
   const token = useSelector(selectCurrentToken);
 
+  // Use custom hook for dashboard data and state
   const {
+    searchQuery,
+    isSearching,
     data,
     isError,
     error,
     isLoading,
-    isFetching,
-    currentCountry,
-    searchQuery,
-    isSearching,
-    isSearchLoading,
+    trend,
     searchData,
+    isSearchLoading,
     handleSearchChange,
-    handleCreateNewPost,
-    hanldeAddNewPost,
-  } = useDashboard();
-
-  // Debug logging
-  console.log('Dash Component Debug:', {
     currentCountry,
-    isLoading,
-    isError,
-    hasData: !!data,
-    dataKeys: data ? Object.keys(data) : null
-  });
+  } = useDashboard();
 
   const handleCreateNewPost = (type) => {
     if (!token) {
@@ -70,6 +60,16 @@ const Dash = () => {
     } else {
       navigate(`/dash/posts/new?type=${type}`);
     }
+  };
+
+  const hanldeSeeAllPosts = ({ foundOrlostId }) => {
+    navigate("/dash/posts");
+    dispatch(
+      setFoundOrLost({
+        foundOrlost: foundOrlostId,
+      })
+    );
+    dispatch(setActiveLink({ active: foundOrlostId }));
   };
 
   const hanldeAddNewPost = () => {
