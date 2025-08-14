@@ -69,7 +69,11 @@ const AppContent = () => {
             </PrefetchDependencies>
           } />
           <Route path="posts">
-            <Route index element={<PostsList />} />
+            <Route index element={
+              <PrefetchDependencies>
+                <PostsList />
+              </PrefetchDependencies>
+            } />
             <Route path=":id" element={<SinglePost />} />
           </Route>
         </Route>

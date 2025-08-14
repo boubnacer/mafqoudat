@@ -13,7 +13,8 @@ import {
   Sort as SortIcon,
   ViewList as ViewListIcon,
   ViewModule as ViewModuleIcon,
-  Category as CategoryIcon
+  Category as CategoryIcon,
+  Language
 } from "@mui/icons-material";
 import { 
   Button, 
@@ -88,11 +89,13 @@ const PostsList = () => {
   }, [location.state, categoryFilter, navigate, location.pathname]);
 
   // Get categories for dynamic filtering
-  const { data: categoriesData } = useGetCategoriesQuery({
+  const { data: categoriesData, isLoading: categoriesLoading, error: categoriesError } = useGetCategoriesQuery({
     language: currentLanguage
   }, {
-    selectFromResult: ({ data }) => ({
+    selectFromResult: ({ data, isLoading, error }) => ({
       data: data?.ids?.map((id) => data?.entities[id]) || [],
+      isLoading,
+      error
     }),
   });
 
@@ -107,6 +110,8 @@ const PostsList = () => {
   }, {
     // Add debugging
     refetchOnMountOrArgChange: true,
+    // Skip the query if dependencies are not ready
+    skip: !currentCountry || categoriesLoading
   });
 
   // Debug logging
@@ -179,9 +184,41 @@ const PostsList = () => {
 
   let content;
 
-  if (isLoading) content = <LoadingState message={t('loadingPosts')} />;
-
-  if (isError) {
+  // Check if country is selected
+  if (!currentCountry) {
+    content = (
+      <Box 
+        pt={{ xs: "8rem", md: "10rem" }} 
+        width="100%"
+        display="flex"
+        justifyContent="center"
+        alignItems="center"
+        minHeight="50vh"
+      >
+        <Box textAlign="center">
+          <Typography variant="h6" mb={2}>
+            {t('pleaseSelectCountry')}
+          </Typography>
+          <Typography variant="body2" mb={3} color="text.secondary">
+            {t('chooseCountryMessage')}
+          </Typography>
+          <Button
+            variant="contained"
+            startIcon={<Language />}
+            onClick={() => navigate('/dash')}
+            sx={{
+              background: "linear-gradient(45deg, #2196F3 30%, #21CBF3 90%)",
+              boxShadow: "0 3px 5px 2px rgba(33, 203, 243, .3)",
+            }}
+          >
+            {t('selectCountry')}
+          </Button>
+        </Box>
+      </Box>
+    );
+  } else if (isLoading || categoriesLoading) {
+    content = <LoadingState message={t('loadingPosts')} />;
+  } else if (isError) {
     content = (
       <ErrorState
         title="Failed to load posts"
@@ -189,9 +226,17 @@ const PostsList = () => {
         onRetry={() => window.location.reload()}
       />
     );
+  } else if (categoriesError) {
+    content = (
+      <ErrorState
+        title="Failed to load categories"
+        message={categoriesError?.data?.message || "Please try again later"}
+        onRetry={() => window.location.reload()}
+      />
+    );
   }
 
-  if (isSuccess) {
+  if (isSuccess && currentCountry) {
     const { totalPages } = data;
 
     return (
