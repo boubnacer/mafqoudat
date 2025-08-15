@@ -2,37 +2,39 @@
   "version": 2,
   "builds": [
     {
-      "src": "package.json",
+      "src": "client/package.json",
       "use": "@vercel/static-build",
       "config": {
-        "distDir": "build"
+        "distDir": "build",
+        "installCommand": "cd client && npm install",
+        "buildCommand": "cd client && npm run build"
       }
     }
   ],
   "routes": [
     {
       "src": "/static/(.*)",
-      "dest": "/static/$1"
+      "dest": "/client/build/static/$1"
     },
     {
       "src": "/manifest.json",
-      "dest": "/manifest.json"
+      "dest": "/client/build/manifest.json"
     },
     {
       "src": "/favicon.ico",
-      "dest": "/favicon.ico"
+      "dest": "/client/build/favicon.ico"
     },
     {
       "src": "/logo192.png",
-      "dest": "/logo192.png"
+      "dest": "/client/build/logo192.png"
     },
     {
       "src": "/logo512.png",
-      "dest": "/logo512.png"
+      "dest": "/client/build/logo512.png"
     },
     {
       "src": "/(.*)",
-      "dest": "/index.html"
+      "dest": "/client/build/index.html"
     }
   ],
   "env": {
@@ -40,6 +42,8 @@
     "REACT_APP_DOMAIN": "https://mafqoudat.com",
     "REACT_APP_CLOUDINARY_CLOUD_NAME": "du0tmvxhu",
     "REACT_APP_CLOUDINARY_UPLOAD_PRESET": "mafqoudat",
-    "REACT_APP_CLOUDINARY_API_KEY": "593667419254217"
+    "REACT_APP_CLOUDINARY_API_KEY": "593667419254217",
+    "CI": "false",
+    "DISABLE_ESLINT_PLUGIN": "true"
   }
 }
