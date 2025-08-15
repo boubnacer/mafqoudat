@@ -1,9 +1,10 @@
-# Ignore server files since we're only deploying the client
+# Only deploy the client, ignore everything else
 server/
-node_modules/
 .git/
 *.log
 .env.local
 .env.development.local
 .env.test.local
 .env.production.local
+# Don't ignore client directory
+!client/
