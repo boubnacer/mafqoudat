@@ -64,7 +64,19 @@ const PrefetchDependencies = ({ children }) => {
     };
 
     // Add a small delay to ensure everything is initialized
-    setTimeout(loadDependencies, 100);
+    const timeoutId = setTimeout(loadDependencies, 100);
+    
+    // Add a fallback timeout to prevent infinite loading
+    const fallbackTimeout = setTimeout(() => {
+      console.warn('PrefetchDependencies: Fallback timeout reached, forcing completion');
+      setIsLoading(false);
+    }, 10000); // 10 seconds timeout
+    
+    // Cleanup timeouts on unmount
+    return () => {
+      clearTimeout(timeoutId);
+      clearTimeout(fallbackTimeout);
+    };
   }, [currentLanguage]);
 
   console.log('PrefetchDependencies: Render state:', { isLoading, error: error?.message });

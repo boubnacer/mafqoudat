@@ -171,7 +171,8 @@ const PostsList = () => {
     // Add debugging
     refetchOnMountOrArgChange: true,
     // Skip the query if dependencies are not ready or store is not ready
-    skip: !storeReady || !currentCountry || categoriesLoading || !categoriesData?.length,
+    // Remove the categoriesData?.length requirement to prevent infinite loading
+    skip: !storeReady || !currentCountry || categoriesLoading,
     // Add retry logic
     retry: 3,
     retryDelay: 1000
@@ -189,7 +190,7 @@ const PostsList = () => {
       isLoading,
       categoriesError: categoriesError?.message,
       error: error?.message,
-      skip: !storeReady || !currentCountry || categoriesLoading || !categoriesData?.length,
+      skip: !storeReady || !currentCountry || categoriesLoading,
       localStorage: {
         globalState: localStorage.getItem('globalState'),
         currentCountry: JSON.parse(localStorage.getItem('globalState') || '{}')?.currentCountry
@@ -653,6 +654,12 @@ const PostsList = () => {
       </Box>
     );
   }
+  
+  console.log('PostsList: About to return content:', { 
+    hasContent: !!content, 
+    contentType: typeof content,
+    currentPath: window.location.pathname 
+  });
   
   return content;
 };

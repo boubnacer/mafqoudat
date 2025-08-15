@@ -69,34 +69,36 @@ const AppContent = () => {
         <Route path="/login" element={<Login />} />
         <Route path="/signup" element={<NewUser />} />
 
-        {/* Protected routes - require authentication for admin actions */}
-        <Route element={<PersistLogin />}>
-          <Route element={<Prefetch />}>
-            <Route path="dash/posts/new" element={<NewPost />} />
-            <Route path="dash/posts/edit/:id" element={<EditPost />} />
-            <Route path="dash/posts/report/:id" element={<ReportPage />} />
-            <Route path="dash/users">
-              <Route index element={<UsersList />} />
-              <Route path=":id" element={<EditUser />} />
-            </Route>
-            <Route path="dash/dependencies" element={<DependenciesManager />} />
-          </Route>
-        </Route>
-
-        {/* Dashboard and posts - public access with dependency prefetching */}
+        {/* Dashboard layout - all dashboard routes go through this */}
         <Route path="dash" element={<DashLayout />}>
+          {/* Dashboard home */}
           <Route index element={
             <PrefetchDependencies>
               <Dash />
             </PrefetchDependencies>
           } />
-          {/* Original posts route */}
+          
+          {/* Posts routes - public access with dependency prefetching */}
           <Route path="posts" element={
             <PrefetchDependencies>
               <PostsList />
             </PrefetchDependencies>
           } />
           <Route path="posts/:id" element={<SinglePost />} />
+          
+          {/* Protected routes - require authentication for admin actions */}
+          <Route element={<PersistLogin />}>
+            <Route element={<Prefetch />}>
+              <Route path="posts/new" element={<NewPost />} />
+              <Route path="posts/edit/:id" element={<EditPost />} />
+              <Route path="posts/report/:id" element={<ReportPage />} />
+              <Route path="users">
+                <Route index element={<UsersList />} />
+                <Route path=":id" element={<EditUser />} />
+              </Route>
+              <Route path="dependencies" element={<DependenciesManager />} />
+            </Route>
+          </Route>
         </Route>
 
         {/* Catch-all route for debugging */}
