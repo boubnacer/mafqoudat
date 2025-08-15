@@ -1,5 +1,5 @@
-// Force deployment - PostsList dependencies fix applied - V8
-// Restored original PostsList component - fixing routing issue
+// Force deployment - PostsList dependencies fix applied - V10
+// Fixed Vercel static file serving - comprehensive routes configuration
 import { Routes, Route } from "react-router-dom";
 import WelcomePage from "./components/WelcomePage";
 import PublicPostsPage from "./components/PublicPostsPage";
