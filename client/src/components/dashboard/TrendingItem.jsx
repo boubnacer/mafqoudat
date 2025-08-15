@@ -20,7 +20,7 @@ const API_BASE_URL = process.env.REACT_APP_API_URL || "http://localhost:3500";
 const TrendingItem = ({ trend, isLoading }) => {
   // Handle both array and single object formats
   const trendData = Array.isArray(trend) ? trend[0] : trend;
-  const { categoryName, floptionName, region, image, createdAt, countryLabels, countryname } = trendData || {};
+  const { categoryName, floptionName, image, createdAt, countryLabels, countryname } = trendData || {};
   const theme = useTheme();
   const isMobile = useMediaQuery(theme.breakpoints.down('sm'));
   const { t, currentLanguage } = useTranslation();

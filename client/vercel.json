@@ -22,6 +22,7 @@
     "REACT_APP_CLOUDINARY_UPLOAD_PRESET": "mafqoudat",
     "REACT_APP_CLOUDINARY_API_KEY": "593667419254217",
     "CI": "false",
-    "DISABLE_ESLINT_PLUGIN": "true"
+    "DISABLE_ESLINT_PLUGIN": "true",
+    "GENERATE_SOURCEMAP": "false"
   }
 }
