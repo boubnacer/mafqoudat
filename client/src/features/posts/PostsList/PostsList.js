@@ -96,43 +96,6 @@ const PostsList = () => {
   // Get current language
   const { t, currentLanguage } = useTranslation();
 
-  // Add timeout for loading states
-  useEffect(() => {
-    if (isLoading || categoriesLoading) {
-      const timer = setTimeout(() => {
-        setLoadingTimeout(true);
-      }, 10000); // 10 seconds timeout
-
-      return () => clearTimeout(timer);
-    } else {
-      setLoadingTimeout(false);
-    }
-  }, [isLoading, categoriesLoading]);
-
-  // Add fallback for when dependencies fail to load
-  useEffect(() => {
-    if (categoriesError && !categoriesLoading) {
-      console.error('Categories failed to load:', categoriesError);
-      // Try to reload after a delay
-      setTimeout(() => {
-        window.location.reload();
-      }, 5000);
-    }
-  }, [categoriesError, categoriesLoading]);
-
-  // Initialize category filter from navigation state
-  useEffect(() => {
-    if (location.state?.fromCategory && location.state?.categoryFilter) {
-      console.log('Setting category filter from navigation state:', location.state.categoryFilter);
-      setLocalCategoryFilter(location.state.categoryFilter);
-      // Clear the navigation state to prevent it from persisting
-      navigate(location.pathname, { replace: true, state: {} });
-    } else if (categoryFilter && categoryFilter !== "all") {
-      console.log('Setting category filter from Redux:', categoryFilter);
-      setLocalCategoryFilter(categoryFilter);
-    }
-  }, [location.state, categoryFilter, navigate, location.pathname]);
-
   // Check if store is ready
   const [storeReady, setStoreReady] = useState(false);
 
@@ -177,6 +140,43 @@ const PostsList = () => {
     retry: 3,
     retryDelay: 1000
   });
+
+  // Add timeout for loading states - MOVED AFTER query hooks
+  useEffect(() => {
+    if (isLoading || categoriesLoading) {
+      const timer = setTimeout(() => {
+        setLoadingTimeout(true);
+      }, 10000); // 10 seconds timeout
+
+      return () => clearTimeout(timer);
+    } else {
+      setLoadingTimeout(false);
+    }
+  }, [isLoading, categoriesLoading]);
+
+  // Add fallback for when dependencies fail to load - MOVED AFTER query hooks
+  useEffect(() => {
+    if (categoriesError && !categoriesLoading) {
+      console.error('Categories failed to load:', categoriesError);
+      // Try to reload after a delay
+      setTimeout(() => {
+        window.location.reload();
+      }, 5000);
+    }
+  }, [categoriesError, categoriesLoading]);
+
+  // Initialize category filter from navigation state - MOVED AFTER query hooks
+  useEffect(() => {
+    if (location.state?.fromCategory && location.state?.categoryFilter) {
+      console.log('Setting category filter from navigation state:', location.state.categoryFilter);
+      setLocalCategoryFilter(location.state.categoryFilter);
+      // Clear the navigation state to prevent it from persisting
+      navigate(location.pathname, { replace: true, state: {} });
+    } else if (categoryFilter && categoryFilter !== "all") {
+      console.log('Setting category filter from Redux:', categoryFilter);
+      setLocalCategoryFilter(categoryFilter);
+    }
+  }, [location.state, categoryFilter, navigate, location.pathname]);
 
   // Debug logging
   useEffect(() => {
