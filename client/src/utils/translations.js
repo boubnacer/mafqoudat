@@ -115,7 +115,6 @@ export const translations = {
     creatingAccount: "Creating account...",
     passwordMismatch: "Passwords do not match",
     mustBeValid: "must be valid",
-    required: "required",
     or: "or",
     
     // New Post Form translations
@@ -169,11 +168,9 @@ export const translations = {
     // Quick Actions
     reportLostItem: "Report Lost Item",
     reportFoundItem: "Report Found Item",
-    searchItems: "Search Items",
     getHelp: "Get Help",
     reportLostItemDesc: "Can't find something? Report it here",
     reportFoundItemDesc: "Found something? Help return it",
-    searchItemsDesc: "Look for lost or found items",
     getHelpDesc: "Need assistance? We're here to help",
     
     // Help & Support
@@ -245,7 +242,6 @@ export const translations = {
     lostAndFound: "Lost and Found",
     community: "Community",
     help: "Help",
-    support: "Support",
     about: "About",
     privacy: "Privacy",
     terms: "Terms",
@@ -277,7 +273,6 @@ export const translations = {
     contactOwner: "Contact Owner",
     
     // Form fields
-    region: "Region",
     contactInfo: "Contact Info",
     postDetails: "Post Details",
     additionalInfo: "Additional Info",
@@ -325,7 +320,6 @@ export const translations = {
     // Notifications
     notification: "Notification",
     newPost: "New post in your area",
-    postUpdated: "Post updated",
     postReturned: "Item found",
     
     // Footer
@@ -335,10 +329,6 @@ export const translations = {
     version: "Version",
     footerDescription: "Helping people find their lost items and return found items to their owners.",
     quickLinks: "Quick Links",
-    reportLostItem: "Report Lost Item",
-    reportFoundItem: "Report Found Item",
-    searchItems: "Search Items",
-    getHelp: "Get Help",
     emailUsForSupport: "Email us for support",
     callUsForAssistance: "Call us for assistance",
     yourLocation: "Your Location",
@@ -621,7 +611,6 @@ export const translations = {
     contactOwner: "Contacter le propriétaire",
     
     // Form fields
-    region: "Région",
     contactInfo: "Informations de contact",
     postDetails: "Détails de la publication",
     additionalInfo: "Informations supplémentaires",
@@ -645,7 +634,6 @@ export const translations = {
     // Notifications
     notification: "Notification",
     newPost: "Nouvelle publication dans votre région",
-    postUpdated: "Publication mise à jour",
     postReturned: "Objet trouvé",
     
     // Footer
@@ -655,10 +643,6 @@ export const translations = {
     version: "Version",
     footerDescription: "Aider les gens à trouver leurs objets perdus et à retourner les objets trouvés à leurs propriétaires.",
     quickLinks: "Liens rapides",
-    reportLostItem: "Signaler un objet perdu",
-    reportFoundItem: "Signaler un objet trouvé",
-    searchItems: "Rechercher des objets",
-    getHelp: "Obtenir de l'aide",
     emailUsForSupport: "Envoyez-nous un e-mail pour le support",
     callUsForAssistance: "Appelez-nous pour l'assistance",
     yourLocation: "Votre emplacement",
@@ -895,7 +879,6 @@ export const translations = {
     lostAndFound: "الأشياء المفقودة والموجودة",
     community: "المجتمع",
     help: "المساعدة",
-    support: "الدعم",
     about: "حول",
     privacy: "الخصوصية",
     terms: "الشروط",
@@ -927,7 +910,6 @@ export const translations = {
     contactOwner: "اتصال بالمالك",
     
     // Form fields
-    region: "المنطقة",
     contactInfo: "معلومات الاتصال",
     postDetails: "تفاصيل المنشور",
     additionalInfo: "معلومات إضافية",
@@ -951,7 +933,6 @@ export const translations = {
     // Notifications
     notification: "إشعار",
     newPost: "منشور جديد في منطقتك",
-    postUpdated: "تم تحديث المنشور",
     postReturned: "تم العثور على العنصر",
     
     // Footer
@@ -961,10 +942,6 @@ export const translations = {
     version: "الإصدار",
     footerDescription: "مساعدة الناس في العثور على أشيائهم المفقودة وإعادة الأشياء الموجودة إلى أصحابها.",
     quickLinks: "روابط سريعة",
-    reportLostItem: "الإبلاغ عن عنصر مفقود",
-    reportFoundItem: "الإبلاغ عن عنصر موجود",
-    searchItems: "البحث عن العناصر",
-    getHelp: "الحصول على المساعدة",
     emailUsForSupport: "راسلنا للحصول على الدعم",
     callUsForAssistance: "اتصل بنا للمساعدة",
     yourLocation: "موقعك",

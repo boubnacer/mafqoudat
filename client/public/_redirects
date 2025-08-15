@@ -1,9 +1,23 @@
-# Handle static files
+# Handle static files with proper headers
 /static/* /static/:splat 200
+/*.js /:splat 200
+/*.css /:splat 200
+/*.png /:splat 200
+/*.jpg /:splat 200
+/*.jpeg /:splat 200
+/*.gif /:splat 200
+/*.svg /:splat 200
+/*.ico /:splat 200
+/*.woff /:splat 200
+/*.woff2 /:splat 200
+/*.ttf /:splat 200
+/*.eot /:splat 200
 
 # Handle manifest and favicon
 /manifest.json /manifest.json 200
 /favicon.ico /favicon.ico 200
+/logo192.png /logo192.png 200
+/logo512.png /logo512.png 200
 
 # Handle all other routes - SPA fallback
 /* /index.html 200

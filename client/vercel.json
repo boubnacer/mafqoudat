@@ -2,7 +2,7 @@
   "version": 2,
   "builds": [
     {
-      "src": "client/package.json",
+      "src": "package.json",
       "use": "@vercel/static-build",
       "config": {
         "distDir": "build"
@@ -12,19 +12,27 @@
   "routes": [
     {
       "src": "/static/(.*)",
-      "dest": "/client/build/static/$1"
+      "dest": "/static/$1"
     },
     {
       "src": "/manifest.json",
-      "dest": "/client/build/manifest.json"
+      "dest": "/manifest.json"
     },
     {
       "src": "/favicon.ico",
-      "dest": "/client/build/favicon.ico"
+      "dest": "/favicon.ico"
+    },
+    {
+      "src": "/logo192.png",
+      "dest": "/logo192.png"
+    },
+    {
+      "src": "/logo512.png",
+      "dest": "/logo512.png"
     },
     {
       "src": "/(.*)",
-      "dest": "/client/build/index.html"
+      "dest": "/index.html"
     }
   ],
   "env": {
@@ -34,4 +42,4 @@
     "REACT_APP_CLOUDINARY_UPLOAD_PRESET": "mafqoudat",
     "REACT_APP_CLOUDINARY_API_KEY": "593667419254217"
   }
-} 
+}

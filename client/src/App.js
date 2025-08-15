@@ -1,7 +1,6 @@
 // Force deployment - PostsList dependencies fix applied - V8
 // Restored original PostsList component - fixing routing issue
 import { Routes, Route } from "react-router-dom";
-import Layout from "./components/Layout";
 import WelcomePage from "./components/WelcomePage";
 import PublicPostsPage from "./components/PublicPostsPage";
 import Login from "./features/auth/Login/Login";
@@ -13,7 +12,6 @@ import EditUser from "./features/userSettings/EditUser/EditUser";
 import EditPost from "./features/posts/EditPost/EditPost";
 import NewPost from "./features/posts/NewPost/NewPost";
 import Prefetch from "./features/auth/PrefetchData/Prefetch";
-import useTitle from "./hooks/useTitle";
 import NewUser from "./features/auth/SingUp/NewUser";
 import PersistLogin from "./features/auth/RefreshPage/PersistLogin";
 import SinglePost from "./features/posts/PostPage/SinglePost";
@@ -21,17 +19,14 @@ import SinglePost from "./features/posts/PostPage/SinglePost";
 import ReportPage from "./features/posts/ReportPage/ReportPage";
 import Dash from "./features/dashboard/Dash";
 
-import TestDashboard from "./components/TestDashboard";
-
 import DependenciesManager from "./features/MANAGER/Dependencies/DependenciesManager";
 import { CssBaseline, ThemeProvider } from "@mui/material";
 import { createTheme } from "@mui/material/styles";
-import React, { useEffect, useMemo, useState } from "react";
-import { useDispatch, useSelector } from "react-redux";
+import React, { useEffect } from "react";
+import { useSelector } from "react-redux";
 import { themeSettings } from "./theme";
-import useAuth from "./hooks/useAuth";
 import PrefetchDependencies from "./features/PrefetchData/PrefetchDependencies";
-import { initializeLanguage, LanguageProvider, useLanguage } from "./utils/languageContext";
+import { LanguageProvider, useLanguage } from "./utils/languageContext";
 import { cleanupLocalStorage, initializeLocalStorage } from "./utils/localStorageUtils";
 import { useLocation } from "react-router-dom";
 

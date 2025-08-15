@@ -14,7 +14,7 @@ const CheckBox = ({ name, legend, label, otherProps }) => {
   const { setFieldValue } = useFormikContext();
   const [field, meta] = useField(name);
 
-  const [persist, setPersist] = usePersist();
+  const [, setPersist] = usePersist();
   const dispatch = useDispatch();
 
   const handleChange = (event) => {
