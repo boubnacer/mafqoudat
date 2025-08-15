@@ -1,6 +1,7 @@
 import React, { useEffect, useState } from "react";
 import { store } from "../../app/store";
 import { dependencieaApiSlice } from "../dependencies/dependenciesApiSlice";
+import { apiSlice } from "../../app/api/apiSlice";
 import { useLanguage } from "../../utils/languageContext";
 
 const PrefetchDependencies = ({ children }) => {

@@ -20,14 +20,19 @@ import {
   Grid,
   Card,
   CardContent,
+  CardActions,
+  Divider,
+  Alert,
   useTheme,
   useMediaQuery
 } from "@mui/material";
 import { 
   Add as AddIcon, 
   Delete as DeleteIcon,
+  Flag as FlagIcon,
   Category as CategoryIcon,
-  Public as PublicIcon
+  Public as PublicIcon,
+  Settings as SettingsIcon
 } from "@mui/icons-material";
 import { useGetCountriesQuery, useGetCategoriesQuery, useGetflOptionsQuery, useCreateCountryMutation, useCreateCategoryMutation, useCreateFoundLostMutation } from "../../dependencies/dependenciesApiSlice";
 import { LoadingState } from "../../../components/LoadingStates";
@@ -38,6 +43,7 @@ const DependenciesManager = () => {
   useTitle("Mafkoudat | Admin Dashboard - Dependencies");
 
   const theme = useTheme();
+  const isNonMediumScreens = useMediaQuery("(min-width:1200px)");
   const { currentLanguage } = useLanguage();
   
   const [activeTab, setActiveTab] = useState(0);
@@ -78,9 +84,6 @@ const DependenciesManager = () => {
         case 2: // FoundLost
           await createFoundLost({ code: newItem.code });
           break;
-        default:
-          console.warn("Unknown tab:", activeTab);
-          break;
       }
       
       setShowCreateDialog(false);
@@ -112,7 +115,14 @@ const DependenciesManager = () => {
     }
   };
 
-
+  const getTabIcon = (index) => {
+    switch (index) {
+      case 0: return <PublicIcon />;
+      case 1: return <CategoryIcon />;
+      case 2: return <FlagIcon />;
+      default: return <SettingsIcon />;
+    }
+  };
 
   const isLoading = countriesLoading || categoriesLoading || flOptionsLoading;
 
