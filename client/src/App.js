@@ -80,7 +80,7 @@ const AppContent = () => {
             </PrefetchDependencies>
           } />
           <Route path="posts/:id" element={<SinglePost />} />
-          
+           
           {/* Protected routes - require authentication for admin actions */}
           <Route element={<PersistLogin />}>
             <Route element={<Prefetch />}>
