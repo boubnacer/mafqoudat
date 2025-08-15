@@ -1,5 +1,5 @@
-// Force deployment - PostsList dependencies fix applied - V10
-// Fixed Vercel static file serving - comprehensive routes configuration
+// Force deployment - PostsList dependencies fix applied - V11
+// Fixed Vercel routing - added basename and removed homepage field
 import { Routes, Route } from "react-router-dom";
 import WelcomePage from "./components/WelcomePage";
 import PublicPostsPage from "./components/PublicPostsPage";
