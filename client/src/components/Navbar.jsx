@@ -19,18 +19,16 @@ import {
   LightModeOutlined,
   Menu as MenuIcon,
   LogoutOutlined,
-  Home,
-  SwapHorizOutlined,
   Language,
   KeyboardArrowDown,
+  AddCircleOutline,
+  Login,
+  PersonAdd,
 } from "@mui/icons-material";
 import FlexBetween from "./FlexBetween";
 import {
-  selectActiveLink,
   selectCurrentCountry,
-  selectDirection,
   selectOpenModal,
-  setIsSidebarOpen,
   setMode,
   setOpenModal,
 } from "../app/state";
@@ -38,15 +36,11 @@ import { useDispatch, useSelector } from "react-redux";
 import { useSendLogoutMutation } from "../features/auth/authApiSlice";
 import { useNavigate } from "react-router-dom";
 import { useEffect, useState } from "react";
-import { setActiveLink } from "../app/state/index";
 import { useGetCountriesQuery } from "../features/countries/countriesApiSlice";
 import { setCurrentCountry } from "../app/state";
 import useAuth from "../hooks/useAuth";
 import NavLinks from "./NavLinks";
-import CountryAutoselect from "./CountryAutoselect";
 import CountryModal from "./CountryModal";
-import { LoadingState } from "./LoadingStates";
-import RenderIcon from "./RenderIcon";
 import { useTranslation } from "../utils/translations";
 
 const StyledToolbar = styled(Toolbar)(({ theme }) => ({
@@ -158,14 +152,14 @@ const LanguageSelector = styled(Box)(({ theme }) => ({
 }));
 
 const Navbar = () => {
-  const { country } = useAuth();
+  const { country, username } = useAuth();
+  const user = { username }; // Create user object for consistency
   const theme = useTheme();
   const dispatch = useDispatch();
   const navigate = useNavigate();
   const isMobile = useMediaQuery("(max-width:600px)");
   const { t, currentLanguage } = useTranslation();
 
-  const activeLink = useSelector(selectActiveLink);
   const currentCountry = useSelector(selectCurrentCountry);
   const openModal = useSelector(selectOpenModal);
 
@@ -199,9 +193,7 @@ const Navbar = () => {
     }),
   });
 
-  const onCountryIdChanged = (e) => setCountryId(e.target.value);
-
-  const [sendLogout, { isLoading, isSuccess, isError, error }] =
+  const [sendLogout, { isSuccess }] =
     useSendLogoutMutation();
 
   useEffect(() => {
@@ -474,7 +466,100 @@ const Navbar = () => {
             anchorOrigin={{ horizontal: 'right', vertical: 'bottom' }}
           >
             <Box sx={{ p: 1 }}>
+              {/* Navigation Links */}
               <NavLinks onLinkClick={handleMobileMenuClose} />
+              
+              {/* Divider */}
+              <Box sx={{ 
+                height: 1, 
+                bgcolor: 'divider', 
+                my: 1,
+                opacity: 0.3 
+              }} />
+              
+              {/* Create New Post Link */}
+              <MenuItem
+                onClick={() => {
+                  handleMobileMenuClose();
+                  navigate('/dash/posts/new');
+                }}
+                sx={{
+                  borderRadius: 1,
+                  mb: 0.5,
+                  '&:hover': {
+                    backgroundColor: alpha(theme.palette.primary.main, 0.1),
+                  }
+                }}
+              >
+                <ListItemIcon>
+                  <AddCircleOutline sx={{ fontSize: 20 }} />
+                </ListItemIcon>
+                <ListItemText primary={t('createPost')} />
+              </MenuItem>
+              
+              {/* Authentication Section */}
+              {user?.username ? (
+                // User is logged in - show logout
+                <MenuItem
+                  onClick={() => {
+                    handleMobileMenuClose();
+                    sendLogout();
+                  }}
+                  sx={{
+                    borderRadius: 1,
+                    '&:hover': {
+                      backgroundColor: alpha(theme.palette.error.main, 0.1),
+                    }
+                  }}
+                >
+                  <ListItemIcon>
+                    <LogoutOutlined sx={{ fontSize: 20, color: 'error.main' }} />
+                  </ListItemIcon>
+                  <ListItemText 
+                    primary={t('logout')} 
+                    sx={{ color: 'error.main' }}
+                  />
+                </MenuItem>
+              ) : (
+                // User is not logged in - show login/signup
+                <>
+                  <MenuItem
+                    onClick={() => {
+                      handleMobileMenuClose();
+                      navigate('/login');
+                    }}
+                    sx={{
+                      borderRadius: 1,
+                      mb: 0.5,
+                      '&:hover': {
+                        backgroundColor: alpha(theme.palette.primary.main, 0.1),
+                      }
+                    }}
+                  >
+                    <ListItemIcon>
+                      <Login sx={{ fontSize: 20 }} />
+                    </ListItemIcon>
+                    <ListItemText primary={t('signin')} />
+                  </MenuItem>
+                  <MenuItem
+                    onClick={() => {
+                      handleMobileMenuClose();
+                      navigate('/signup');
+                    }}
+                    sx={{
+                      borderRadius: 1,
+                      '&:hover': {
+                        backgroundColor: alpha(theme.palette.secondary.main, 0.1),
+                      }
+                    }}
+                  >
+                    <ListItemIcon>
+                      <PersonAdd sx={{ fontSize: 20 }} />
+                    </ListItemIcon>
+                    <ListItemText primary={t('signup')} />
+                  </MenuItem>
+                </>
+              )}
             </Box>
           </Menu>
 

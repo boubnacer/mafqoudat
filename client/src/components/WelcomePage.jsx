@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from "react";
+import React, { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { useDispatch } from "react-redux";
 import { setCurrentCountry } from "../app/state";
@@ -12,16 +12,13 @@ import {
   CardContent,
   Typography,
   Button,
-  Container,
   Grid,
   useTheme,
-  useMediaQuery,
   alpha,
   styled,
   Autocomplete,
   TextField,
   Paper,
-  Chip,
   MenuItem,
   ListItemIcon,
   ListItemText,
@@ -35,7 +32,8 @@ import {
   KeyboardArrowDown,
   Menu,
 } from "@mui/icons-material";
-import { setMode } from "../app/state";
+
+
 
 // Styled components
 const PageContainer = styled(Box)(({ theme }) => ({
@@ -110,23 +108,7 @@ const FeatureCard = styled(Paper)(({ theme }) => ({
   }
 }));
 
-const ControlButton = styled(Button)(({ theme }) => ({
-  position: 'absolute',
-  top: theme?.spacing?.(2) || '16px',
-  right: theme?.spacing?.(2) || '16px',
-  minWidth: 'auto',
-  padding: '8px',
-  borderRadius: '50%',
-  background: theme?.palette?.mode === 'dark' 
-    ? alpha(theme?.palette?.common?.white, 0.1)
-    : alpha(theme?.palette?.common?.black, 0.05),
-  color: theme?.palette?.text?.primary,
-  '&:hover': {
-    background: theme?.palette?.mode === 'dark' 
-      ? alpha(theme?.palette?.common?.white, 0.2)
-      : alpha(theme?.palette?.common?.black, 0.1),
-  }
-}));
+
 
 const LanguageSelector = styled(Box)(({ theme }) => ({
   position: 'absolute',
@@ -155,7 +137,6 @@ const LanguageSelector = styled(Box)(({ theme }) => ({
 
 const WelcomePage = () => {
   const theme = useTheme();
-  const isMobile = useMediaQuery("(max-width:600px)");
   const navigate = useNavigate();
   const dispatch = useDispatch();
   const { t, currentLanguage } = useTranslation();
@@ -209,27 +190,7 @@ const fallbackCountries = [
     setLanguageAnchorEl(null);
   };
 
-  // Get the appropriate label based on language
-  const getCountryLabel = (option) => {
-    // First try to get the full country name from the names field
-    if (option.names && option.names[currentLanguage || langContext || 'en']) {
-      return option.names[currentLanguage || langContext || 'en'];
-    }
-    // Fallback to labels field
-    if (option.labels && option.labels[currentLanguage || langContext || 'en']) {
-      return option.labels[currentLanguage || langContext || 'en'];
-    }
-    // Final fallback to label or code
-    return option.label || option.code;
-  };
 
-  // Get flag source - prefer local flag, fallback to flagcdn
-  const getFlagSource = (option) => {
-    if (option.flag) {
-      return option.flag; // Use emoji flag if available
-    }
-    return `https://flagcdn.com/w20/${option.code.toLowerCase()}.png`;
-  };
 
   // Show loading state only if we're actively loading and have no data
   if (countriesLoading && countries.length === 0) {
@@ -330,17 +291,7 @@ const fallbackCountries = [
         </MenuItem>
       </Menu>
 
-      {/* Theme Toggle */}
-      <ControlButton
-        onClick={() => dispatch(setMode())}
-        sx={{
-          position: 'absolute',
-          top: theme?.spacing?.(2) || '16px',
-          right: theme?.spacing?.(2) || '16px',
-        }}
-      >
-        {theme?.palette?.mode === 'dark' ? '🌞' : '🌙'}
-      </ControlButton>
+
 
       <WelcomeCard>
         <CardContent sx={{ p: { xs: 3, md: 4 } }}>
@@ -405,7 +356,14 @@ const fallbackCountries = [
               onChange={handleCountrySelect}
               getOptionLabel={(option) => {
                 if (!option) return '';
-                return getCountryLabel(option);
+                // Get the appropriate label based on language
+                if (option.names && option.names[currentLanguage || langContext || 'en']) {
+                  return option.names[currentLanguage || langContext || 'en'];
+                }
+                if (option.labels && option.labels[currentLanguage || langContext || 'en']) {
+                  return option.labels[currentLanguage || langContext || 'en'];
+                }
+                return option.label || option.code;
               }}
               isOptionEqualToValue={(option, value) => option._id === value._id}
               renderOption={(props, option) => (
@@ -422,12 +380,14 @@ const fallbackCountries = [
                     <img
                       loading="lazy"
                       width="20"
-                      src={getFlagSource(option)}
+                      src={`https://flagcdn.com/w20/${option.code.toLowerCase()}.png`}
                       srcSet={`https://flagcdn.com/w40/${option.code.toLowerCase()}.png 2x`}
                       alt=""
                     />
                   )}
-                  {getCountryLabel(option)} ({option.code})
+                  {option.names?.[currentLanguage || langContext || 'en'] || 
+                   option.labels?.[currentLanguage || langContext || 'en'] || 
+                   option.label || option.code} ({option.code})
                 </Box>
               )}
               renderInput={(params) => (
@@ -520,15 +480,29 @@ const fallbackCountries = [
               {t('alreadyHaveAccount')}
             </Typography>
             <Button
-              variant="outlined"
+              variant="contained"
               onClick={() => navigate('/login')}
-              sx={{ mr: 2 }}
+              sx={{ 
+                mr: 2,
+                background: 'linear-gradient(135deg, #2196F3 0%, #21CBF3 100%)',
+                color: 'white',
+                '&:hover': {
+                  background: 'linear-gradient(135deg, #1976D2 0%, #0288D1 100%)',
+                }
+              }}
             >
               {t('signin')}
             </Button>
             <Button
-              variant="text"
+              variant="contained"
               onClick={() => navigate('/signup')}
+              sx={{
+                background: 'linear-gradient(135deg, #4CAF50 0%, #66BB6A 100%)',
+                color: 'white',
+                '&:hover': {
+                  background: 'linear-gradient(135deg, #388E3C 0%, #43A047 100%)',
+                }
+              }}
             >
               {t('signup')}
             </Button>
