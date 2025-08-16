@@ -390,7 +390,13 @@ const PostsList = () => {
             <Button
               variant="contained"
               startIcon={<AddIcon />}
-              onClick={() => navigate("/dash/posts/new")}
+              onClick={() => {
+                if (!user.username) {
+                  navigate('/login');
+                } else {
+                  navigate("/dash/posts/new");
+                }
+              }}
               sx={{
                 borderRadius: 2,
                 px: 3,

@@ -201,15 +201,25 @@ export const ErrorState = ({
 
 // Dashboard Specific Empty States
 export const DashboardEmptyStates = {
-  NoPosts: ({ country }) => (
+  NoPosts: ({ country, onCreatePost }) => (
     <EmptyState
       icon={Search}
       title="No posts found"
       description={`There are no lost or found items in ${country || 'this country'} yet. Be the first to post!`}
       action={
         <Box sx={{ display: 'flex', gap: 2, flexWrap: 'wrap', justifyContent: 'center' }}>
-          <Button variant="contained">Report Lost Item</Button>
-          <Button variant="outlined">Report Found Item</Button>
+          <Button 
+            variant="contained" 
+            onClick={() => onCreatePost && onCreatePost('lost')}
+          >
+            Report Lost Item
+          </Button>
+          <Button 
+            variant="outlined" 
+            onClick={() => onCreatePost && onCreatePost('found')}
+          >
+            Report Found Item
+          </Button>
         </Box>
       }
     />

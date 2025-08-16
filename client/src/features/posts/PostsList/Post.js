@@ -254,7 +254,13 @@ const Post = ({ post, viewMode = "grid" }) => {
                   </Tooltip>
                   <Tooltip title={t('report')}>
                     <IconButton 
-                      onClick={handleReport}
+                      onClick={() => {
+                        if (!usernameId) {
+                          navigate('/login');
+                        } else {
+                          handleReport();
+                        }
+                      }}
                       size="small"
                       sx={{ 
                         color: theme.palette.error.main,
@@ -485,7 +491,13 @@ const Post = ({ post, viewMode = "grid" }) => {
           }}
         >
           <Button
-            onClick={handleReport}
+            onClick={() => {
+              if (!usernameId) {
+                navigate('/login');
+              } else {
+                handleReport();
+              }
+            }}
             sx={{
               color: theme.palette.error.main,
               textTransform: 'none',

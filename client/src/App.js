@@ -66,7 +66,7 @@ const AppContent = () => {
 
         {/* Dashboard layout - all dashboard routes go through this */}
         <Route path="dash" element={<DashLayout />}>
-          {/* Dashboard home */}
+          {/* Dashboard home - public access */}
           <Route index element={
             <PrefetchDependencies>
               <Dash />
@@ -81,7 +81,7 @@ const AppContent = () => {
           } />
           <Route path="posts/:id" element={<SinglePost />} />
            
-          {/* Protected routes - require authentication for admin actions */}
+          {/* Protected routes - require authentication for creating/editing/reporting posts and admin actions */}
           <Route element={<PersistLogin />}>
             <Route element={<Prefetch />}>
               <Route path="posts/new" element={<NewPost />} />

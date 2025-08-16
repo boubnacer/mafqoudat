@@ -174,12 +174,14 @@ const Navbar = () => {
   const [mobileMenuAnchorEl, setMobileMenuAnchorEl] = useState(null);
 
   useEffect(() => {
-    dispatch(
-      setCurrentCountry({
-        currentCountry: countryId,
-      })
-    );
-  }, [currentCountry, countryId]);
+    if (countryId && countryId !== currentCountry) {
+      dispatch(
+        setCurrentCountry({
+          currentCountry: countryId,
+        })
+      );
+    }
+  }, [countryId, currentCountry, dispatch]);
 
   const { countries } = useGetCountriesQuery({
     language: currentLanguage

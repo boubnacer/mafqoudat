@@ -248,7 +248,13 @@ const SinglePostPage = ({
                   
                   <Tooltip title={t('reportPost')}>
                     <IconButton
-                      onClick={handleReport}
+                      onClick={() => {
+                        if (!usernameId) {
+                          navigate('/login');
+                        } else {
+                          handleReport();
+                        }
+                      }}
                       sx={{ 
                         color: theme.palette.error.main,
                         '&:hover': { backgroundColor: theme.palette.error.light + '20' }
