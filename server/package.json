@@ -8,6 +8,7 @@
     "dev": "nodemon server",
     "seed": "node scripts/seedData.js",
     "migrate": "node scripts/migrateData.js",
+    "updateCountries": "node scripts/updateCountriesWithNames.js",
     "test": "node test-server.js",
     "build": "echo 'No build step required for Node.js'",
     "postinstall": "echo 'Server dependencies installed'"

@@ -17,7 +17,7 @@ const getCountries = async (req, res) => {
     }
     
     const countries = await Country.find(query)
-      .select('code labels flag isActive')
+      .select('code labels names flag isActive')
       .sort({ 'labels.en': 1 })
       .lean()
       .exec();
@@ -29,12 +29,13 @@ const getCountries = async (req, res) => {
       });
     }
 
-    // Transform response to include language-specific labels
+    // Transform response to include language-specific labels and names
     const transformedCountries = countries.map(country => ({
       _id: country._id,
       code: country.code,
       label: country.labels[language] || country.labels.en,
       labels: country.labels,
+      names: country.names || {},
       flag: country.flag,
       isActive: country.isActive
     }));
@@ -69,7 +70,7 @@ const searchCountries = async (req, res) => {
       $text: { $search: q },
       isActive: true
     })
-    .select('code labels flag')
+    .select('code labels names flag')
     .limit(parseInt(limit))
     .lean()
     .exec();
@@ -79,6 +80,7 @@ const searchCountries = async (req, res) => {
       code: country.code,
       label: country.labels[language] || country.labels.en,
       labels: country.labels,
+      names: country.names || {},
       flag: country.flag
     }));
 

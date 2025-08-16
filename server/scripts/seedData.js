@@ -9,6 +9,11 @@ const countriesData = [
   {
     code: 'MA',
     labels: {
+      en: 'MA',
+      fr: 'MA',
+      ar: 'MA'
+    },
+    names: {
       en: 'Morocco',
       fr: 'Maroc',
       ar: 'المغرب'
@@ -18,6 +23,11 @@ const countriesData = [
   {
     code: 'DZ',
     labels: {
+      en: 'DZ',
+      fr: 'DZ',
+      ar: 'DZ'
+    },
+    names: {
       en: 'Algeria',
       fr: 'Algérie',
       ar: 'الجزائر'
@@ -27,6 +37,11 @@ const countriesData = [
   {
     code: 'TN',
     labels: {
+      en: 'TN',
+      fr: 'TN',
+      ar: 'TN'
+    },
+    names: {
       en: 'Tunisia',
       fr: 'Tunisie',
       ar: 'تونس'
@@ -36,6 +51,11 @@ const countriesData = [
   {
     code: 'EG',
     labels: {
+      en: 'EG',
+      fr: 'EG',
+      ar: 'EG'
+    },
+    names: {
       en: 'Egypt',
       fr: 'Égypte',
       ar: 'مصر'
@@ -45,6 +65,11 @@ const countriesData = [
   {
     code: 'SA',
     labels: {
+      en: 'SA',
+      fr: 'SA',
+      ar: 'SA'
+    },
+    names: {
       en: 'Saudi Arabia',
       fr: 'Arabie Saoudite',
       ar: 'المملكة العربية السعودية'
@@ -54,6 +79,11 @@ const countriesData = [
   {
     code: 'AE',
     labels: {
+      en: 'AE',
+      fr: 'AE',
+      ar: 'AE'
+    },
+    names: {
       en: 'United Arab Emirates',
       fr: 'Émirats Arabes Unis',
       ar: 'الإمارات العربية المتحدة'

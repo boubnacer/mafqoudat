@@ -17,9 +17,15 @@ const SelectCountry = ({ options, name, countryname }) => {
 
   // Get the appropriate label based on language
   const getCountryLabel = (option) => {
+    // First try to get the full country name from the names field
+    if (option.names && option.names[currentLanguage]) {
+      return option.names[currentLanguage];
+    }
+    // Fallback to labels field
     if (option.labels && option.labels[currentLanguage]) {
       return option.labels[currentLanguage];
     }
+    // Final fallback to label or code
     return option.label || option.code;
   };
 

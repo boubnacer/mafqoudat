@@ -20,9 +20,15 @@ const CountryAutoselect = ({ countries, setCountryId, language = 'en' }) => {
 
   // Get the appropriate label based on language
   const getCountryLabel = (option) => {
+    // First try to get the full country name from the names field
+    if (option.names && option.names[language]) {
+      return option.names[language];
+    }
+    // Fallback to labels field
     if (option.labels && option.labels[language]) {
       return option.labels[language];
     }
+    // Final fallback to label or code
     return option.label || option.code;
   };
 

@@ -26,6 +26,23 @@ const countrySchema = new mongoose.Schema({
       trim: true
     }
   },
+  names: {
+    en: {
+      type: String,
+      required: true,
+      trim: true
+    },
+    fr: {
+      type: String,
+      required: true,
+      trim: true
+    },
+    ar: {
+      type: String,
+      required: true,
+      trim: true
+    }
+  },
   flag: {
     type: String,
     default: null
@@ -47,6 +64,9 @@ countrySchema.index({
   "labels.en": "text", 
   "labels.fr": "text", 
   "labels.ar": "text",
+  "names.en": "text",
+  "names.fr": "text", 
+  "names.ar": "text",
   "searchTerms": "text"
 });
 
@@ -67,8 +87,11 @@ countrySchema.methods.getSearchTerms = function() {
     this.labels.en,
     this.labels.fr,
     this.labels.ar,
+    this.names?.en,
+    this.names?.fr,
+    this.names?.ar,
     ...this.searchTerms
-  ];
+  ].filter(Boolean); // Remove undefined values
 };
 
 // Pre-save middleware to update search terms
