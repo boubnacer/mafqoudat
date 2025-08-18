@@ -192,7 +192,16 @@ const HelpSupportSection = () => {
                     fullWidth
                     variant="outlined"
                     startIcon={<Help />}
-                    sx={{ mt: 2 }}
+                    sx={{ 
+                      mt: 2,
+                      color: theme.palette.primary.main,
+                      borderColor: theme.palette.primary.main,
+                      '&:hover': {
+                        backgroundColor: theme.palette.primary.main,
+                        color: '#fff',
+                        borderColor: theme.palette.primary.main,
+                      }
+                    }}
                   >
                     {t('viewAllFaqs')}
                   </Button>
@@ -233,6 +242,15 @@ const HelpSupportSection = () => {
                           variant="outlined"
                           size="small"
                           startIcon={contact.actionIcon}
+                          sx={{
+                            color: theme.palette.error.main,
+                            borderColor: theme.palette.error.main,
+                            '&:hover': {
+                              backgroundColor: theme.palette.error.main,
+                              color: '#fff',
+                              borderColor: theme.palette.error.main,
+                            }
+                          }}
                         >
                           {contact.action}
                         </Button>
@@ -288,7 +306,16 @@ const HelpSupportSection = () => {
                       fullWidth
                       variant="outlined"
                       startIcon={<Book />}
-                      sx={{ mb: 1 }}
+                      sx={{ 
+                        mb: 1,
+                        color: theme.palette.success.main,
+                        borderColor: theme.palette.success.main,
+                        '&:hover': {
+                          backgroundColor: theme.palette.success.main,
+                          color: '#fff',
+                          borderColor: theme.palette.success.main,
+                        }
+                      }}
                     >
                       {t('readGuidelines')}
                     </Button>
@@ -296,6 +323,15 @@ const HelpSupportSection = () => {
                       fullWidth
                       variant="outlined"
                       startIcon={<Security />}
+                      sx={{
+                        color: theme.palette.warning.main,
+                        borderColor: theme.palette.warning.main,
+                        '&:hover': {
+                          backgroundColor: theme.palette.warning.main,
+                          color: '#fff',
+                          borderColor: theme.palette.warning.main,
+                        }
+                      }}
                     >
                       {t('safetyTips')}
                     </Button>

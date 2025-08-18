@@ -65,14 +65,29 @@ const NavLinks = ({ onLinkClick }) => {
       tooltip: t("viewAllPosts"),
       icon: "total"
     },
-         // Add found/lost options dynamically
-     ...(flOptionsData?.map(option => ({
-       title: option.label || option.code,
-       flcode: option._id,
-       tooltip: t(`view${option.code}Items`),
-       icon: option.code === 'FOUND' ? 'Found' : option.code === 'LOST' ? 'Lost' : option.code
-     })) || [])
+    // Add found/lost options dynamically
+    ...(flOptionsData?.map(option => ({
+      title: option.label || option.code,
+      flcode: option._id,
+      tooltip: t(`view${option.code}Items`),
+      icon: option.code === 'FOUND' ? 'Found' : option.code === 'LOST' ? 'Lost' : option.code
+    })) || [])
   ];
+
+  const handleLinkClick = (link) => {
+    navigate("/dash/posts");
+    dispatch(
+      setFoundOrLost({
+        foundOrlost: link.title === t("all") ? "" : link.flcode,
+      })
+    );
+    dispatch(setActiveLink({ active: link.title }));
+    
+    // Close mobile menu if callback provided
+    if (onLinkClick) {
+      onLinkClick();
+    }
+  };
 
   return (
     <List
@@ -103,57 +118,45 @@ const NavLinks = ({ onLinkClick }) => {
             arrow
           >
             <ListItemButton
-                             onClick={() => {
-                 navigate("/dash/posts");
-                 dispatch(
-                   setFoundOrLost({
-                     foundOrlost: title === t("all") ? "" : flcode,
-                   })
-                 );
-                 dispatch(setActiveLink({ active: title }));
-                 // Close mobile menu if callback provided
-                 if (onLinkClick) {
-                   onLinkClick();
-                 }
-               }}
-                             sx={{
-                 color: theme.palette.mode === 'dark' ? '#fff' : '#000',
-                 backgroundColor: activeLink === flcode 
-                   ? theme.palette.mode === 'dark'
-                     ? 'rgba(255, 255, 255, 0.1)'
-                     : 'rgba(0, 0, 0, 0.1)'
-                   : 'transparent',
-                 borderRadius: "12px",
-                 height: onLinkClick ? "2.5rem" : { xs: "2rem", sm: "2.25rem" },
-                 minHeight: onLinkClick ? "2.5rem" : { xs: "2rem", sm: "2.25rem" },
-                 transition: 'all 0.2s ease',
-                 '&:hover': {
-                   backgroundColor: theme.palette.mode === 'dark'
-                     ? 'rgba(255, 255, 255, 0.15)'
-                     : 'rgba(0, 0, 0, 0.15)',
-                   transform: 'translateY(-1px)',
-                 },
-                 display: 'flex',
-                 alignItems: 'center',
-                 gap: { xs: '0.5rem', sm: '0.75rem' },
-                 px: onLinkClick ? 2 : { xs: 1, sm: 1.5 },
-                 py: onLinkClick ? 1 : { xs: 0.5, sm: 0.75 },
-                 minWidth: 0,
-                 whiteSpace: 'nowrap',
-               }}
+              onClick={() => handleLinkClick({ title, flcode })}
+              sx={{
+                color: theme.palette.mode === 'dark' ? '#fff' : '#000',
+                backgroundColor: activeLink === flcode 
+                  ? theme.palette.mode === 'dark'
+                    ? 'rgba(255, 255, 255, 0.1)'
+                    : 'rgba(0, 0, 0, 0.1)'
+                  : 'transparent',
+                borderRadius: "12px",
+                height: onLinkClick ? "2.5rem" : { xs: "2rem", sm: "2.25rem" },
+                minHeight: onLinkClick ? "2.5rem" : { xs: "2rem", sm: "2.25rem" },
+                transition: 'all 0.2s ease',
+                '&:hover': {
+                  backgroundColor: theme.palette.mode === 'dark'
+                    ? 'rgba(255, 255, 255, 0.15)'
+                    : 'rgba(0, 0, 0, 0.15)',
+                  transform: 'translateY(-1px)',
+                },
+                display: 'flex',
+                alignItems: 'center',
+                gap: { xs: '0.5rem', sm: '0.75rem' },
+                px: onLinkClick ? 2 : { xs: 1, sm: 1.5 },
+                py: onLinkClick ? 1 : { xs: 0.5, sm: 0.75 },
+                minWidth: 0,
+                whiteSpace: 'nowrap',
+              }}
             >
-                             <RenderIcon name={icon} sx={{ fontSize: onLinkClick ? '20px' : { xs: '16px', sm: '18px' } }} />
-                             <ListItemText
-                 primary={title}
-                 primaryTypographyProps={{
-                   fontSize: onLinkClick ? "16px" : { xs: "12px", sm: "14px" },
-                   fontWeight: activeLink === flcode ? "600" : "500",
-                   lineHeight: 1.2,
-                   whiteSpace: "nowrap",
-                   overflow: "hidden",
-                   textOverflow: "ellipsis",
-                 }}
-               />
+              <RenderIcon name={icon} sx={{ fontSize: onLinkClick ? '20px' : { xs: '16px', sm: '18px' } }} />
+              <ListItemText
+                primary={title}
+                primaryTypographyProps={{
+                  fontSize: onLinkClick ? "16px" : { xs: "12px", sm: "14px" },
+                  fontWeight: activeLink === flcode ? "600" : "500",
+                  lineHeight: 1.2,
+                  whiteSpace: "nowrap",
+                  overflow: "hidden",
+                  textOverflow: "ellipsis",
+                }}
+              />
             </ListItemButton>
           </Tooltip>
         </ListItem>

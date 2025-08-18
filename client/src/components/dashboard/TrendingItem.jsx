@@ -7,6 +7,9 @@ import {
   Typography,
   useTheme,
   useMediaQuery,
+  Chip,
+  Avatar,
+  alpha,
 } from "@mui/material";
 import FlexBetween from "../FlexBetween";
 import RenderIcon from "../RenderIcon";
@@ -23,6 +26,7 @@ const TrendingItem = ({ trend, isLoading }) => {
   const { categoryName, floptionName, region, image, createdAt, countryLabels, countryname } = trendData || {};
   const theme = useTheme();
   const isMobile = useMediaQuery(theme.breakpoints.down('sm'));
+  const isTablet = useMediaQuery(theme.breakpoints.down('md'));
   const { t, currentLanguage } = useTranslation();
 
   // Debug logging
@@ -40,7 +44,7 @@ const TrendingItem = ({ trend, isLoading }) => {
             ? 'linear-gradient(135deg, rgba(18,18,18,0.95) 0%, rgba(28,28,28,0.95) 100%)'
             : 'linear-gradient(135deg, rgba(255,255,255,0.95) 0%, rgba(248,249,250,0.95) 100%)',
           backdropFilter: 'blur(10px)',
-          borderRadius: '24px',
+          borderRadius: '20px',
           border: `1px solid ${theme.palette.mode === 'dark' ? 'rgba(255,255,255,0.08)' : 'rgba(0,0,0,0.08)'}`,
           overflow: 'hidden',
           transition: 'transform 0.3s ease, box-shadow 0.3s ease',
@@ -48,214 +52,219 @@ const TrendingItem = ({ trend, isLoading }) => {
             ? '0 8px 32px 0 rgba(0,0,0,0.15)'
             : '0 8px 32px 0 rgba(0,0,0,0.05)',
           '&:hover': {
-            transform: 'translateY(-5px)',
+            transform: 'translateY(-8px)',
             boxShadow: theme.palette.mode === 'dark'
-              ? '0 12px 40px 0 rgba(0,0,0,0.2)'
-              : '0 12px 40px 0 rgba(0,0,0,0.1)',
+              ? '0 16px 48px 0 rgba(0,0,0,0.25)'
+              : '0 16px 48px 0 rgba(0,0,0,0.15)',
           },
           height: '100%',
-          minHeight: isMobile ? '500px' : '400px'
+          minHeight: '300px',
+          position: 'relative'
         }}
       >
-        <Box sx={{ 
-          display: 'flex', 
-          height: '100%',
-          flexDirection: isMobile ? 'column' : 'row'
-        }}>
-          {/* Image Container */}
-          <Box sx={{ 
-            flex: isMobile ? 'none' : '0 0 35%',
-            position: 'relative',
-            height: isMobile ? '250px' : '100%',
-            minHeight: isMobile ? '250px' : '400px',
+        {/* Large Background Image */}
+        <Box
+          sx={{
+            position: 'absolute',
+            top: 0,
+            left: 0,
+            right: 0,
+            bottom: 0,
+            zIndex: 0,
             overflow: 'hidden'
-          }}>
-            <CardMedia
-              component="img"
-              image={finalImageUrl}
-              title={categoryName || 'Item Image'}
+          }}
+        >
+          <CardMedia
+            component="img"
+            image={finalImageUrl}
+            title={categoryName || 'Item Image'}
+            sx={{
+              width: '100%',
+              height: '100%',
+              objectFit: 'cover',
+              objectPosition: 'center',
+              filter: 'brightness(0.7)',
+            }}
+            onError={(e) => {
+              console.log('Image failed to load:', e.target.src);
+              e.target.src = ma;
+            }}
+            onLoad={() => {
+              console.log('Image loaded successfully:', finalImageUrl);
+            }}
+          />
+          {/* Gradient overlay for better text readability */}
+          <Box
+            sx={{
+              position: 'absolute',
+              top: 0,
+              left: 0,
+              right: 0,
+              bottom: 0,
+              background: 'linear-gradient(135deg, rgba(0,0,0,0.4) 0%, rgba(0,0,0,0.8) 100%)',
+              pointerEvents: 'none'
+            }}
+          />
+        </Box>
+
+        {/* Content Overlay */}
+        <Box
+          sx={{
+            position: 'relative',
+            zIndex: 1,
+            height: '100%',
+            display: 'flex',
+            flexDirection: 'column',
+            justifyContent: 'space-between',
+            p: { xs: 2, sm: 2.5 }
+          }}
+        >
+          {/* Top Section - Badges */}
+          <Box
+            sx={{
+              display: 'flex',
+              justifyContent: 'space-between',
+              alignItems: 'flex-start',
+              mb: 2
+            }}
+          >
+            {/* Category Badge */}
+            <Chip
+              icon={<RenderIcon name={categoryName} sx={{ fontSize: '16px' }} />}
+              label={t(categoryName?.toLowerCase()) || categoryName}
               sx={{
-                width: '100%',
-                height: '100%',
-                objectFit: 'cover',
-                objectPosition: 'center',
-              }}
-              onError={(e) => {
-                console.log('Image failed to load:', e.target.src);
-                e.target.src = ma;
-              }}
-              onLoad={() => {
-                console.log('Image loaded successfully:', finalImageUrl);
+                backgroundColor: alpha(theme.palette.primary.main, 0.9),
+                color: '#fff',
+                fontWeight: 600,
+                fontSize: '12px',
+                height: '28px',
+                '& .MuiChip-icon': {
+                  color: '#fff'
+                }
               }}
             />
-            <Box
+            
+            {/* Status Badge */}
+            <Chip
+              icon={<RenderIcon name={`${floptionName}fl`} sx={{ fontSize: '14px' }} />}
+              label={t(floptionName?.toLowerCase()) || floptionName}
               sx={{
-                position: 'absolute',
-                top: 0,
-                left: 0,
-                right: 0,
-                bottom: 0,
-                background: 'linear-gradient(to bottom, rgba(0,0,0,0) 0%, rgba(0,0,0,0.7) 100%)',
-                pointerEvents: 'none'
+                backgroundColor: floptionName === "Found"
+                  ? alpha('#4CAF50', 0.9)
+                  : alpha('#F44336', 0.9),
+                color: '#fff',
+                fontWeight: 600,
+                fontSize: '12px',
+                height: '28px',
+                '& .MuiChip-icon': {
+                  color: '#fff'
+                }
               }}
             />
           </Box>
 
-          {/* Content Container */}
-          <Box sx={{ 
-            flex: isMobile ? '1' : '1', 
-            position: 'relative',
-            display: 'flex',
-            flexDirection: 'column',
-            minHeight: isMobile ? '250px' : '400px'
-          }}>
-            <CardContent sx={{ 
-              flex: 1,
-              display: 'flex',
-              flexDirection: 'column',
-              padding: '1.5rem',
-              paddingBottom: '80px' // Space for the button
-            }}>
-              <FlexBetween sx={{ mb: 2 }}>
-                <Box
-                  sx={{
-                    display: 'flex',
-                    alignItems: 'center',
-                    background: theme.palette.mode === 'dark'
-                      ? 'rgba(255,255,255,0.05)'
-                      : 'rgba(0,0,0,0.05)',
-                    padding: '8px 16px',
-                    borderRadius: '12px',
-                    gap: '8px',
-                    backdropFilter: 'blur(5px)',
-                  }}
-                >
-                  <RenderIcon name={categoryName} />
-                  <Typography
-                    variant="body2"
-                    sx={{
-                      color: theme.palette.mode === 'dark' ? '#E0E0E0' : '#2D3748',
-                      fontWeight: 500,
-                      fontSize: '14px',
-                    }}
-                  >
-                    {t(categoryName?.toLowerCase()) || categoryName}
-                  </Typography>
-                </Box>
-                <Box
-                  sx={{
-                    display: 'flex',
-                    alignItems: 'center',
-                    background: floptionName === "Found"
-                      ? theme.palette.mode === 'dark'
-                        ? 'linear-gradient(135deg, rgba(72, 187, 120, 0.2) 0%, rgba(72, 187, 120, 0.1) 100%)'
-                        : 'linear-gradient(135deg, rgba(72, 187, 120, 0.3) 0%, rgba(72, 187, 120, 0.2) 100%)'
-                      : theme.palette.mode === 'dark'
-                        ? 'linear-gradient(135deg, rgba(245, 101, 101, 0.2) 0%, rgba(245, 101, 101, 0.1) 100%)'
-                        : 'linear-gradient(135deg, rgba(245, 101, 101, 0.3) 0%, rgba(245, 101, 101, 0.2) 100%)',
-                    padding: '8px 16px',
-                    borderRadius: '24px',
-                    gap: '8px',
-                  }}
-                >
-                  <Typography
-                    sx={{
-                      color: floptionName === "Found"
-                        ? theme.palette.mode === 'dark' ? '#48BB78' : '#2F855A'
-                        : theme.palette.mode === 'dark' ? '#F56565' : '#C53030',
-                      fontSize: '14px',
-                      fontWeight: 500,
-                    }}
-                  >
-                    {t(floptionName?.toLowerCase()) || floptionName}
-                  </Typography>
-                  <RenderIcon name={`${floptionName}fl`} />
-                </Box>
-              </FlexBetween>
+          {/* Middle Section - Main Content */}
+          <Box sx={{ flex: 1, display: 'flex', flexDirection: 'column', justifyContent: 'center' }}>
+            <Typography
+              variant="h5"
+              sx={{
+                color: '#fff',
+                fontWeight: 700,
+                fontSize: { xs: '1.5rem', sm: '1.75rem', md: '2rem' },
+                textShadow: '2px 2px 4px rgba(0,0,0,0.5)',
+                mb: 1,
+                textAlign: 'center'
+              }}
+            >
+              {t('trendingItem')}
+            </Typography>
+            
+            <Typography
+              variant="body1"
+              sx={{
+                color: 'rgba(255,255,255,0.9)',
+                fontSize: { xs: '0.9rem', sm: '1rem' },
+                textAlign: 'center',
+                textShadow: '1px 1px 2px rgba(0,0,0,0.5)',
+                mb: 2
+              }}
+            >
+              {t('trendingItemDescription')}
+            </Typography>
+          </Box>
 
-              <Box
-                sx={{
-                  display: 'flex',
-                  flexDirection: 'column',
-                  gap: '8px',
-                  mb: 'auto',
-                }}
-              >
-                <Box
+          {/* Bottom Section - Info and Action */}
+          <Box>
+            {/* Info Row */}
+            <Box
+              sx={{
+                display: 'flex',
+                justifyContent: 'space-between',
+                alignItems: 'center',
+                mb: 2,
+                p: 1.5,
+                backgroundColor: alpha('#000', 0.3),
+                borderRadius: '12px',
+                backdropFilter: 'blur(10px)'
+              }}
+            >
+              <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+                <RenderIcon name="time" sx={{ fontSize: '16px', color: '#fff' }} />
+                <Typography
                   sx={{
-                    display: 'flex',
-                    alignItems: 'center',
-                    gap: '8px',
-                  }}
-                >
-                  <RenderIcon name="time" />
-                  <Typography
-                    sx={{
-                      color: theme.palette.mode === 'dark' ? '#A0AEC0' : '#4A5568',
-                      fontSize: '14px',
-                      fontWeight: 500,
-                    }}
-                  >
-                    {new Date(createdAt).toLocaleDateString()}
-                  </Typography>
-                </Box>
-                {countryLabels && (
-                  <Box
-                    sx={{
-                      display: 'flex',
-                      alignItems: 'center',
-                      gap: '8px',
-                    }}
-                  >
-                    <RenderIcon name="locat" />
-                    <Typography
-                      sx={{
-                        color: theme.palette.mode === 'dark' ? '#A0AEC0' : '#4A5568',
-                        fontSize: '12px',
-                        fontWeight: 400,
-                      }}
-                    >
-                      {countryLabels[currentLanguage] || countryLabels.en || countryname}
-                    </Typography>
-                  </Box>
-                )}
-              </Box>
-
-              <Box
-                sx={{
-                  position: 'absolute',
-                  bottom: '24px',
-                  left: '24px',
-                  right: '24px',
-                }}
-              >
-                <Button
-                  fullWidth
-                  sx={{
-                    color: theme.palette.mode === 'dark' ? '#E0E0E0' : '#2D3748',
-                    background: theme.palette.mode === 'dark'
-                      ? 'rgba(255,255,255,0.05)'
-                      : 'rgba(0,0,0,0.05)',
-                    backdropFilter: 'blur(5px)',
-                    borderRadius: '12px',
-                    padding: '12px',
-                    textTransform: 'none',
-                    fontSize: '14px',
+                    color: '#fff',
+                    fontSize: '12px',
                     fontWeight: 500,
-                    transition: 'all 0.3s ease',
-                    '&:hover': {
-                      background: theme.palette.mode === 'dark'
-                        ? 'rgba(255,255,255,0.1)'
-                        : 'rgba(0,0,0,0.1)',
-                      transform: 'translateY(-2px)',
-                    }
                   }}
-                  endIcon={<RenderIcon name="view" />}
                 >
-                  {t('learnMore')}
-                </Button>
+                  {new Date(createdAt).toLocaleDateString()}
+                </Typography>
               </Box>
-            </CardContent>
+              
+              {countryLabels && (
+                <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+                  <RenderIcon name="locat" sx={{ fontSize: '14px', color: '#fff' }} />
+                  <Typography
+                    sx={{
+                      color: '#fff',
+                      fontSize: '11px',
+                      fontWeight: 400,
+                      maxWidth: '80px',
+                      overflow: 'hidden',
+                      textOverflow: 'ellipsis',
+                      whiteSpace: 'nowrap'
+                    }}
+                  >
+                    {countryLabels[currentLanguage] || countryLabels.en || countryname}
+                  </Typography>
+                </Box>
+              )}
+            </Box>
+
+            {/* Action Button */}
+            <Button
+              fullWidth
+              variant="contained"
+              sx={{
+                background: 'linear-gradient(45deg, #2196F3 30%, #21CBF3 90%)',
+                color: '#fff',
+                borderRadius: '12px',
+                padding: '12px',
+                textTransform: 'none',
+                fontSize: '14px',
+                fontWeight: 600,
+                transition: 'all 0.3s ease',
+                boxShadow: '0 4px 15px rgba(33, 150, 243, 0.3)',
+                '&:hover': {
+                  background: 'linear-gradient(45deg, #1976D2 30%, #1E88E5 90%)',
+                  transform: 'translateY(-2px)',
+                  boxShadow: '0 6px 20px rgba(33, 150, 243, 0.4)',
+                }
+              }}
+              endIcon={<RenderIcon name="view" sx={{ fontSize: '16px' }} />}
+            >
+              {t('learnMore')}
+            </Button>
           </Box>
         </Box>
       </Card>

@@ -24,6 +24,7 @@ import {
   AddCircleOutline,
   Login,
   PersonAdd,
+  Home,
 } from "@mui/icons-material";
 import FlexBetween from "./FlexBetween";
 import {
@@ -167,6 +168,9 @@ const Navbar = () => {
   const [languageAnchorEl, setLanguageAnchorEl] = useState(null);
   const [mobileMenuAnchorEl, setMobileMenuAnchorEl] = useState(null);
 
+  // Check if user is authenticated
+  const isAuthenticated = Boolean(user?.username);
+
   useEffect(() => {
     if (countryId && countryId !== currentCountry) {
       dispatch(
@@ -201,6 +205,7 @@ const Navbar = () => {
   }, [isSuccess, navigate]);
 
   const onGoHomeClicked = () => navigate("/dash");
+  const onWelcomePageClicked = () => navigate("/");
 
   // Language dropdown handlers - same approach as Login/SignUp pages
   const handleLanguageClick = (event) => {
@@ -310,8 +315,8 @@ const Navbar = () => {
               loading="lazy"
               width="30"
               height="20"
-                             src={`https://flagcdn.com/w20/${currentCountryDataToUse.code.toLowerCase()}.png`}
-               srcSet={`https://flagcdn.com/w40/${currentCountryDataToUse.code.toLowerCase()}.png 2x`}
+              src={`https://flagcdn.com/w20/${currentCountryDataToUse.code.toLowerCase()}.png`}
+              srcSet={`https://flagcdn.com/w40/${currentCountryDataToUse.code.toLowerCase()}.png 2x`}
               alt=""
             />
             <Typography
@@ -335,16 +340,16 @@ const Navbar = () => {
             }}
           >
             <Language />
-                         <Typography
-               variant="body2"
-               sx={{
-                 fontWeight: 500,
-                 fontSize: { xs: '0.8rem', sm: '0.9rem' },
-                 display: 'block'
-               }}
-             >
-               {getLanguageDisplayName(currentLanguage)}
-             </Typography>
+            <Typography
+              variant="body2"
+              sx={{
+                fontWeight: 500,
+                fontSize: { xs: '0.8rem', sm: '0.9rem' },
+                display: 'block'
+              }}
+            >
+              {getLanguageDisplayName(currentLanguage)}
+            </Typography>
             <KeyboardArrowDown sx={{ fontSize: '16px', ml: 0.5 }} />
           </LanguageSelector>
 
@@ -414,25 +419,12 @@ const Navbar = () => {
             </MenuItem>
           </Menu>
 
-          {/* Theme toggle - desktop only */}
-          <ActionButton 
-            onClick={() => dispatch(setMode())}
-            sx={{
-              display: { xs: 'none', sm: 'flex' }
-            }}
-          >
-            {theme.palette.mode === "dark" ? (
-              <LightModeOutlined sx={{ fontSize: "22px" }} />
-            ) : (
-              <DarkModeOutlined sx={{ fontSize: "22px" }} />
-            )}
-          </ActionButton>
-
           {/* Mobile menu button */}
           <ActionButton
             onClick={handleMobileMenuClick}
             sx={{ 
-              display: { xs: 'flex', sm: 'none' }
+              display: { xs: 'flex', sm: 'none' },
+              padding: { xs: '6px 8px', sm: '8px 16px' },
             }}
           >
             <MenuIcon sx={{ fontSize: "22px" }} />
@@ -473,28 +465,30 @@ const Navbar = () => {
                 opacity: 0.3 
               }} />
               
-              {/* Create New Post Link */}
-              <MenuItem
-                onClick={() => {
-                  handleMobileMenuClose();
-                  navigate('/dash/posts/new');
-                }}
-                sx={{
-                  borderRadius: 1,
-                  mb: 0.5,
-                  '&:hover': {
-                    backgroundColor: alpha(theme.palette.primary.main, 0.1),
-                  }
-                }}
-              >
-                <ListItemIcon>
-                  <AddCircleOutline sx={{ fontSize: 20 }} />
-                </ListItemIcon>
-                <ListItemText primary={t('createPost')} />
-              </MenuItem>
+              {/* Create New Post Link - only for authenticated users */}
+              {isAuthenticated && (
+                <MenuItem
+                  onClick={() => {
+                    handleMobileMenuClose();
+                    navigate('/dash/posts/new');
+                  }}
+                  sx={{
+                    borderRadius: 1,
+                    mb: 0.5,
+                    '&:hover': {
+                      backgroundColor: alpha(theme.palette.primary.main, 0.1),
+                    }
+                  }}
+                >
+                  <ListItemIcon>
+                    <AddCircleOutline sx={{ fontSize: 20 }} />
+                  </ListItemIcon>
+                  <ListItemText primary={t('createPost')} />
+                </MenuItem>
+              )}
               
               {/* Authentication Section */}
-              {user?.username ? (
+              {isAuthenticated ? (
                 // User is logged in - show logout
                 <MenuItem
                   onClick={() => {
@@ -559,15 +553,17 @@ const Navbar = () => {
             </Box>
           </Menu>
 
-          {/* Logout button - desktop only */}
-          <ActionButton 
-            onClick={sendLogout}
-            sx={{
-              display: { xs: 'none', sm: 'flex' }
-            }}
-          >
-            <LogoutOutlined sx={{ fontSize: "22px" }} />
-          </ActionButton>
+          {/* Logout button - desktop only, only show if authenticated */}
+          {isAuthenticated && (
+            <ActionButton 
+              onClick={sendLogout}
+              sx={{
+                display: { xs: 'none', sm: 'flex' }
+              }}
+            >
+              <LogoutOutlined sx={{ fontSize: "22px" }} />
+            </ActionButton>
+          )}
         </FlexBetween>
 
         {/* Country Modal */}

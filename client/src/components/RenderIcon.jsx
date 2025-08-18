@@ -59,6 +59,13 @@ const RenderIcon = ({ name }) => {
           color: "#ECEFF1",
         }}
       />
+    ) : name === "home" ? (
+      <HomeOutlined
+        sx={{
+          fontSize: "20px",
+          color: "#B0BEC5",
+        }}
+      />
     ) : name === "total" ? (
       <TimelineOutlined sx={{ fontSize: "26px", color: "#B0BEC5" }} />
     ) : name === "foundfl" ||

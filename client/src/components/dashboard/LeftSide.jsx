@@ -1,6 +1,6 @@
 import React from "react";
 import TotalBox from "../TotalBox";
-import { Box, Typography, useTheme } from "@mui/material";
+import { Box, Typography, useTheme, useMediaQuery } from "@mui/material";
 import {
   ArrowDropDownOutlined,
   ArrowDropUpOutlined,
@@ -29,6 +29,7 @@ const LeftSide = ({
 }) => {
   const theme = useTheme();
   const { t } = useTranslation();
+  const isMobile = useMediaQuery("(max-width:600px)");
 
   // if (!totalFounds || !totalLosts || !totalPosts || !foundsToday || !lostsToday)
   //   return <PulseLoader color={"#FFF"} />;
@@ -43,18 +44,18 @@ const LeftSide = ({
         backdropFilter: 'blur(10px)',
         borderRadius: '24px',
         border: `1px solid ${theme.palette.mode === 'dark' ? 'rgba(255,255,255,0.08)' : 'rgba(0,0,0,0.08)'}`,
-        padding: '2rem',
+        padding: isMobile ? '1rem' : '2rem',
         boxShadow: theme.palette.mode === 'dark'
           ? '0 8px 32px 0 rgba(0,0,0,0.15)'
           : '0 8px 32px 0 rgba(0,0,0,0.05)',
       }}
     >
       <Box
-        gap="2rem"
+        gap={isMobile ? "1rem" : "2rem"}
         sx={{
           display: "grid",
           gridTemplateColumns: {
-            xs: "1fr",
+            xs: "repeat(2, 1fr)",
             sm: "repeat(2, 1fr)",
             md: "repeat(2, 1fr)",
           },
@@ -72,10 +73,23 @@ const LeftSide = ({
               ? 'linear-gradient(135deg, rgba(72, 187, 120, 0.1) 0%, rgba(72, 187, 120, 0.05) 100%)'
               : 'linear-gradient(135deg, rgba(72, 187, 120, 0.15) 0%, rgba(72, 187, 120, 0.1) 100%)',
             border: `1px solid ${theme.palette.mode === 'dark' ? 'rgba(72, 187, 120, 0.2)' : 'rgba(72, 187, 120, 0.3)'}`,
+            padding: isMobile ? '0.75rem' : '1.5rem',
+            minHeight: isMobile ? '80px' : '120px',
           }}
-          titleStyle={{ color: theme.palette.mode === 'dark' ? '#E0E0E0' : '#2D3748' }}
-          valueStyle={{ color: theme.palette.mode === 'dark' ? '#48BB78' : '#2F855A' }}
-          descriptionStyle={{ color: theme.palette.mode === 'dark' ? '#A0AEC0' : '#4A5568' }}
+          titleStyle={{ 
+            color: theme.palette.mode === 'dark' ? '#E0E0E0' : '#2D3748',
+            fontSize: isMobile ? '0.75rem' : '0.875rem',
+            fontWeight: 600
+          }}
+          valueStyle={{ 
+            color: theme.palette.mode === 'dark' ? '#48BB78' : '#2F855A',
+            fontSize: isMobile ? '1.25rem' : '1.5rem',
+            fontWeight: 700
+          }}
+          descriptionStyle={{ 
+            color: theme.palette.mode === 'dark' ? '#A0AEC0' : '#4A5568',
+            fontSize: isMobile ? '0.625rem' : '0.75rem'
+          }}
         />
 
         <TotalBox
@@ -89,10 +103,23 @@ const LeftSide = ({
               ? 'linear-gradient(135deg, rgba(245, 101, 101, 0.1) 0%, rgba(245, 101, 101, 0.05) 100%)'
               : 'linear-gradient(135deg, rgba(245, 101, 101, 0.15) 0%, rgba(245, 101, 101, 0.1) 100%)',
             border: `1px solid ${theme.palette.mode === 'dark' ? 'rgba(245, 101, 101, 0.2)' : 'rgba(245, 101, 101, 0.3)'}`,
+            padding: isMobile ? '0.75rem' : '1.5rem',
+            minHeight: isMobile ? '80px' : '120px',
           }}
-          titleStyle={{ color: theme.palette.mode === 'dark' ? '#E0E0E0' : '#2D3748' }}
-          valueStyle={{ color: theme.palette.mode === 'dark' ? '#F56565' : '#C53030' }}
-          descriptionStyle={{ color: theme.palette.mode === 'dark' ? '#A0AEC0' : '#4A5568' }}
+          titleStyle={{ 
+            color: theme.palette.mode === 'dark' ? '#E0E0E0' : '#2D3748',
+            fontSize: isMobile ? '0.75rem' : '0.875rem',
+            fontWeight: 600
+          }}
+          valueStyle={{ 
+            color: theme.palette.mode === 'dark' ? '#F56565' : '#C53030',
+            fontSize: isMobile ? '1.25rem' : '1.5rem',
+            fontWeight: 700
+          }}
+          descriptionStyle={{ 
+            color: theme.palette.mode === 'dark' ? '#A0AEC0' : '#4A5568',
+            fontSize: isMobile ? '0.625rem' : '0.75rem'
+          }}
         />
 
         <TotalBox
@@ -106,10 +133,23 @@ const LeftSide = ({
               ? 'linear-gradient(135deg, rgba(66, 153, 225, 0.1) 0%, rgba(66, 153, 225, 0.05) 100%)'
               : 'linear-gradient(135deg, rgba(66, 153, 225, 0.15) 0%, rgba(66, 153, 225, 0.1) 100%)',
             border: `1px solid ${theme.palette.mode === 'dark' ? 'rgba(66, 153, 225, 0.2)' : 'rgba(66, 153, 225, 0.3)'}`,
+            padding: isMobile ? '0.75rem' : '1.5rem',
+            minHeight: isMobile ? '80px' : '120px',
           }}
-          titleStyle={{ color: theme.palette.mode === 'dark' ? '#E0E0E0' : '#2D3748' }}
-          valueStyle={{ color: theme.palette.mode === 'dark' ? '#4299E1' : '#2B6CB0' }}
-          descriptionStyle={{ color: theme.palette.mode === 'dark' ? '#A0AEC0' : '#4A5568' }}
+          titleStyle={{ 
+            color: theme.palette.mode === 'dark' ? '#E0E0E0' : '#2D3748',
+            fontSize: isMobile ? '0.75rem' : '0.875rem',
+            fontWeight: 600
+          }}
+          valueStyle={{ 
+            color: theme.palette.mode === 'dark' ? '#4299E1' : '#2B6CB0',
+            fontSize: isMobile ? '1.25rem' : '1.5rem',
+            fontWeight: 700
+          }}
+          descriptionStyle={{ 
+            color: theme.palette.mode === 'dark' ? '#A0AEC0' : '#4A5568',
+            fontSize: isMobile ? '0.625rem' : '0.75rem'
+          }}
         />
 
         <TotalBox
@@ -123,10 +163,23 @@ const LeftSide = ({
               ? 'linear-gradient(135deg, rgba(159, 122, 234, 0.1) 0%, rgba(159, 122, 234, 0.05) 100%)'
               : 'linear-gradient(135deg, rgba(159, 122, 234, 0.15) 0%, rgba(159, 122, 234, 0.1) 100%)',
             border: `1px solid ${theme.palette.mode === 'dark' ? 'rgba(159, 122, 234, 0.2)' : 'rgba(159, 122, 234, 0.3)'}`,
+            padding: isMobile ? '0.75rem' : '1.5rem',
+            minHeight: isMobile ? '80px' : '120px',
           }}
-          titleStyle={{ color: theme.palette.mode === 'dark' ? '#E0E0E0' : '#2D3748' }}
-          valueStyle={{ color: theme.palette.mode === 'dark' ? '#9F7AEA' : '#6B46C1' }}
-          descriptionStyle={{ color: theme.palette.mode === 'dark' ? '#A0AEC0' : '#4A5568' }}
+          titleStyle={{ 
+            color: theme.palette.mode === 'dark' ? '#E0E0E0' : '#2D3748',
+            fontSize: isMobile ? '0.75rem' : '0.875rem',
+            fontWeight: 600
+          }}
+          valueStyle={{ 
+            color: theme.palette.mode === 'dark' ? '#9F7AEA' : '#6B46C1',
+            fontSize: isMobile ? '1.25rem' : '1.5rem',
+            fontWeight: 700
+          }}
+          descriptionStyle={{ 
+            color: theme.palette.mode === 'dark' ? '#A0AEC0' : '#4A5568',
+            fontSize: isMobile ? '0.625rem' : '0.75rem'
+          }}
         />
       </Box>
 

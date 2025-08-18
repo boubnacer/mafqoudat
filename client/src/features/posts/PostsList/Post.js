@@ -326,95 +326,94 @@ const Post = ({ post, viewMode = "grid" }) => {
           boxShadow: isDarkMode 
             ? '0 4px 20px rgba(0, 0, 0, 0.3)'
             : '0 4px 20px rgba(0, 0, 0, 0.08)',
-          height: { xs: 'auto', sm: '20rem' },
+          height: { xs: 'auto', sm: '22rem' },
           display: 'flex',
           flexDirection: 'column',
           transition: 'all 0.3s ease-in-out',
-          borderRadius: '12px',
+          borderRadius: '16px',
           overflow: 'hidden',
           '&:hover': {
-            transform: { xs: 'none', sm: 'translateY(-4px)' },
+            transform: { xs: 'none', sm: 'translateY(-6px)' },
             boxShadow: isDarkMode
-              ? '0 8px 24px rgba(0, 0, 0, 0.4)'
-              : '0 8px 24px rgba(0, 0, 0, 0.12)',
+              ? '0 12px 32px rgba(0, 0, 0, 0.4)'
+              : '0 12px 32px rgba(0, 0, 0, 0.15)',
           },
           direction: currentLanguage === 'ar' ? 'rtl' : 'ltr'
         }}
       >
-        {/* Card Image */}
-        <CardMedia
-          component="img"
-          sx={{
-            height: { xs: '160px', sm: '180px' },
-            position: 'relative',
-            width: '100%',
-            objectFit: 'cover',
-            objectPosition: 'center',
-            '&::after': {
-              content: '""',
-              position: 'absolute',
-              bottom: 0,
-              left: 0,
-              right: 0,
-              height: '50%',
-              background: isDarkMode
-                ? 'linear-gradient(to top, rgba(30, 30, 30, 0.9), transparent)'
-                : 'linear-gradient(to top, rgba(255, 255, 255, 0.9), transparent)',
-            },
-          }}
-          image={post.image ? (post.image.startsWith('http') ? post.image : `${API_BASE_URL}/${post.image}`) : ma}
-          title={categoryName || 'Item Image'}
-          onError={(e) => {
-            console.log('Image failed to load:', e.target.src);
-            e.target.src = ma;
-          }}
-        />
-
-        {/* Status Badge */}
-        <Chip 
-          label={statusText}
-          size="small"
-          sx={{
-            position: 'absolute',
-            top: 12,
-            left: currentLanguage === 'ar' ? 'auto' : 12,
-            right: currentLanguage === 'ar' ? 12 : 'auto',
-            fontWeight: 600,
-            backgroundColor: statusColor,
-            color: 'white',
-            '& .MuiChip-label': {
-              color: 'white'
-            }
-          }}
-        />
-
-        {/* Card Content */}
-        <CardContent 
-          sx={{ 
-            flexGrow: 1, 
-            p: { xs: 2, sm: 2.5 },
-            display: 'flex',
-            flexDirection: 'column',
-            gap: 1.5,
-          }}
-        >
-          {/* Category Badge */}
+        {/* Card Image with Overlay */}
+        <Box sx={{ position: 'relative', height: { xs: '180px', sm: '200px' } }}>
+          <CardMedia
+            component="img"
+            sx={{
+              height: '100%',
+              width: '100%',
+              objectFit: 'cover',
+              objectPosition: 'center',
+            }}
+            image={post.image ? (post.image.startsWith('http') ? post.image : `${API_BASE_URL}/${post.image}`) : ma}
+            title={categoryName || 'Item Image'}
+            onError={(e) => {
+              console.log('Image failed to load:', e.target.src);
+              e.target.src = ma;
+            }}
+          />
+          
+          {/* Gradient Overlay */}
           <Box
             sx={{
-              backgroundColor: isDarkMode ? alpha(categoryStyle.main, 0.15) : categoryStyle.light,
-              padding: '4px 8px',
-              borderRadius: '16px',
-              alignSelf: 'flex-start',
-              border: `1px solid ${isDarkMode ? alpha(categoryStyle.main, 0.3) : categoryStyle.main}`,
+              position: 'absolute',
+              top: 0,
+              left: 0,
+              right: 0,
+              bottom: 0,
+              background: 'linear-gradient(135deg, rgba(0,0,0,0.3) 0%, rgba(0,0,0,0.7) 100%)',
+              pointerEvents: 'none'
+            }}
+          />
+
+          {/* Status Badge - Floating on Image */}
+          <Chip 
+            label={statusText}
+            size="small"
+            sx={{
+              position: 'absolute',
+              top: 12,
+              left: currentLanguage === 'ar' ? 'auto' : 12,
+              right: currentLanguage === 'ar' ? 12 : 'auto',
+              fontWeight: 600,
+              backgroundColor: alpha(statusColor, 0.9),
+              color: 'white',
+              backdropFilter: 'blur(10px)',
+              border: `1px solid ${alpha(statusColor, 0.3)}`,
+              '& .MuiChip-label': {
+                color: 'white'
+              }
+            }}
+          />
+
+          {/* Category Badge - Floating on Image */}
+          <Box
+            sx={{
+              position: 'absolute',
+              top: 12,
+              left: currentLanguage === 'ar' ? 12 : 'auto',
+              right: currentLanguage === 'ar' ? 'auto' : 12,
+              backgroundColor: alpha(categoryStyle.main, 0.9),
+              padding: '6px 12px',
+              borderRadius: '20px',
               display: 'flex',
               alignItems: 'center',
               gap: 0.5,
+              backdropFilter: 'blur(10px)',
+              border: `1px solid ${alpha(categoryStyle.main, 0.3)}`,
+              mt: 4, // Move down to avoid overlap with status badge
             }}
           >
-            <RenderIcon name={`${categoryName?.toLowerCase()}cate`} />
+            <RenderIcon name={`${categoryName?.toLowerCase()}cate`} sx={{ fontSize: '14px', color: '#fff' }} />
             <Typography
               sx={{
-                color: isDarkMode ? categoryStyle.main : categoryStyle.dark,
+                color: '#fff',
                 fontSize: { xs: '10px', sm: '12px' },
                 fontWeight: 600,
                 letterSpacing: '0.3px',
@@ -424,38 +423,43 @@ const Post = ({ post, viewMode = "grid" }) => {
             </Typography>
           </Box>
 
-          {/* Location and Date Info */}
-          <Box sx={{ display: 'flex', flexDirection: 'column', gap: 1 }}>
-            <Box
+          {/* Date Badge - Floating on Image */}
+          <Box
+            sx={{
+              position: 'absolute',
+              bottom: 12,
+              left: currentLanguage === 'ar' ? 'auto' : 12,
+              right: currentLanguage === 'ar' ? 12 : 'auto',
+              backgroundColor: alpha('#000', 0.7),
+              padding: '4px 8px',
+              borderRadius: '12px',
+              backdropFilter: 'blur(10px)',
+            }}
+          >
+            <Typography
               sx={{
-                display: 'flex',
-                alignItems: 'center',
-                gap: 1,
+                color: '#fff',
+                fontSize: { xs: '10px', sm: '11px' },
+                fontWeight: 500,
               }}
             >
-              <RenderIcon name="locat" />
-                                <Typography
-                    sx={{
-                      color: isDarkMode ? alpha('#fff', 0.9) : alpha('#000', 0.8),
-                      fontSize: { xs: '13px', sm: '14px' },
-                      fontWeight: 500,
-                    }}
-                  >
-                    {post.region || t('unknownRegion')}
-                  </Typography>
-                  {post.countryLabels && (
-                    <Typography
-                      sx={{
-                        color: isDarkMode ? alpha('#fff', 0.7) : alpha('#000', 0.6),
-                        fontSize: { xs: '11px', sm: '12px' },
-                        fontWeight: 400,
-                      }}
-                    >
-                      {post.countryLabels[currentLanguage] || post.countryLabels.en || post.countryname}
-                    </Typography>
-                  )}
-            </Box>
+              {new Date(post.createdAt).toLocaleDateString()}
+            </Typography>
+          </Box>
+        </Box>
 
+        {/* Card Content */}
+        <CardContent 
+          sx={{ 
+            flexGrow: 1, 
+            p: { xs: 1.5, sm: 2 },
+            display: 'flex',
+            flexDirection: 'column',
+            gap: 1,
+          }}
+        >
+          {/* Location Info */}
+          <Box sx={{ display: 'flex', flexDirection: 'column', gap: 0.5 }}>
             <Box
               sx={{
                 display: 'flex',
@@ -463,19 +467,30 @@ const Post = ({ post, viewMode = "grid" }) => {
                 gap: 1,
               }}
             >
-              <RenderIcon name="timerace" />
+              <RenderIcon name="locat" sx={{ fontSize: '16px', color: theme.palette.primary.main }} />
+              <Typography
+                sx={{
+                  color: isDarkMode ? alpha('#fff', 0.9) : alpha('#000', 0.8),
+                  fontSize: { xs: '14px', sm: '16px' },
+                  fontWeight: 600,
+                }}
+              >
+                {post.region || t('unknownRegion')}
+              </Typography>
+            </Box>
+            
+            {post.countryLabels && (
               <Typography
                 sx={{
                   color: isDarkMode ? alpha('#fff', 0.7) : alpha('#000', 0.6),
-                  fontSize: { xs: '13px', sm: '14px' },
-                  fontWeight: 500,
+                  fontSize: { xs: '12px', sm: '13px' },
+                  fontWeight: 400,
+                  ml: 3, // Indent under location
                 }}
               >
-                {new Date(post.createdAt).toLocaleDateString()}
+                {post.countryLabels[currentLanguage] || post.countryLabels.en || post.countryname}
               </Typography>
-            </Box>
-
-
+            )}
           </Box>
         </CardContent>
 
@@ -488,6 +503,8 @@ const Post = ({ post, viewMode = "grid" }) => {
             borderTop: '1px solid',
             borderColor: isDarkMode ? alpha('#fff', 0.1) : alpha('#000', 0.1),
             backgroundColor: isDarkMode ? alpha('#000', 0.2) : alpha('#f5f5f5', 0.5),
+            gap: 1,
+            mt: 'auto', // Push to bottom
           }}
         >
           <Button
@@ -498,38 +515,46 @@ const Post = ({ post, viewMode = "grid" }) => {
                 handleReport();
               }
             }}
+            variant="outlined"
+            size="small"
             sx={{
               color: theme.palette.error.main,
+              borderColor: theme.palette.error.main,
               textTransform: 'none',
-              fontSize: { xs: '13px', sm: '14px' },
+              fontSize: { xs: '12px', sm: '13px' },
               fontWeight: 600,
-              padding: '6px 12px',
-              borderRadius: '20px',
-              backgroundColor: isDarkMode ? alpha(theme.palette.error.main, 0.1) : alpha(theme.palette.error.main, 0.08),
+              padding: { xs: '6px 12px', sm: '8px 16px' },
+              borderRadius: '8px',
               '&:hover': {
-                backgroundColor: isDarkMode ? alpha(theme.palette.error.main, 0.2) : alpha(theme.palette.error.main, 0.12),
+                backgroundColor: theme.palette.error.main,
+                color: '#fff',
+                borderColor: theme.palette.error.main,
               },
             }}
-            startIcon={<ReportProblemOutlined />}
+            startIcon={<ReportProblemOutlined sx={{ fontSize: '14px' }} />}
           >
             {t('report')}
           </Button>
 
           <Button
             onClick={handleViewDetails}
+            variant="contained"
             sx={{
-              color: isDarkMode ? categoryStyle.main : categoryStyle.dark,
+              background: `linear-gradient(45deg, ${categoryStyle.main} 30%, ${categoryStyle.dark} 90%)`,
+              color: '#fff',
               textTransform: 'none',
-              fontSize: { xs: '13px', sm: '14px' },
+              fontSize: { xs: '12px', sm: '13px' },
               fontWeight: 600,
-              padding: '6px 16px',
-              borderRadius: '20px',
-              backgroundColor: isDarkMode ? alpha(categoryStyle.main, 0.1) : alpha(categoryStyle.main, 0.08),
+              padding: { xs: '6px 12px', sm: '8px 16px' },
+              borderRadius: '8px',
+              boxShadow: `0 4px 15px ${alpha(categoryStyle.main, 0.3)}`,
               '&:hover': {
-                backgroundColor: isDarkMode ? alpha(categoryStyle.main, 0.2) : alpha(categoryStyle.main, 0.12),
+                background: `linear-gradient(45deg, ${categoryStyle.dark} 30%, ${categoryStyle.main} 90%)`,
+                transform: 'translateY(-2px)',
+                boxShadow: `0 6px 20px ${alpha(categoryStyle.main, 0.4)}`,
               },
             }}
-            endIcon={<RenderIcon name="view" data-directional="true" />}
+            endIcon={<RenderIcon name="view" data-directional="true" sx={{ fontSize: '14px' }} />}
           >
             {t('viewDetails')}
           </Button>

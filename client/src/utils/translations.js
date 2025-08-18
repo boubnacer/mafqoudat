@@ -27,6 +27,8 @@ export const translations = {
     viewFoundItems: "View Found Items",
     viewLostItems: "View Lost Items",
     goToDashboard: "Go to Dashboard",
+    trendingItem: "Trending Item",
+    trendingItemDescription: "Latest popular item in your area",
     search: "Search",
     searchPostsPlaceholder: "Search posts by region, contact, or category...",
     filter: "Filter",
@@ -69,6 +71,8 @@ export const translations = {
     brandName: "Mafqoudat",
     welcomeBack: "Welcome Back",
     welcomeMessage: "Find and return lost items in your community",
+    welcomePage: "Welcome Page",
+    goToWelcomePage: "Go to Welcome Page",
     signin: "Sign In",
     signup: "Sign Up",
     logout: "Logout",
@@ -336,7 +340,9 @@ export const translations = {
     currentRegion: "Current Region",
     privacyPolicy: "Privacy Policy",
     termsOfUse: "Terms of Use",
-    cookieNotice: "Cookie Notice"
+    cookieNotice: "Cookie Notice",
+    itemFoundIn: "Item found in",
+    area: "area"
   },
   fr: {
     // Post-related translations
@@ -362,6 +368,8 @@ export const translations = {
     viewFoundItems: "Voir les Objets Trouvés",
     viewLostItems: "Voir les Objets Perdus",
     goToDashboard: "Aller au Tableau de Bord",
+    trendingItem: "Article Tendance",
+    trendingItemDescription: "Dernier article populaire dans votre région",
     search: "Rechercher",
     searchPostsPlaceholder: "Rechercher des publications par région, contact ou catégorie...",
     filter: "Filtrer",
@@ -404,6 +412,8 @@ export const translations = {
     brandName: "Mafqoudat",
     welcomeBack: "Bon Retour",
     welcomeMessage: "Trouvez et retournez les objets perdus dans votre communauté",
+    welcomePage: "Page d'accueil",
+    goToWelcomePage: "Aller à la page d'accueil",
     signin: "Se Connecter",
     signup: "S'inscrire",
     logout: "Se Déconnecter",
@@ -651,7 +661,9 @@ export const translations = {
     currentRegion: "Région actuelle",
     privacyPolicy: "Politique de confidentialité",
     termsOfUse: "Conditions d'utilisation",
-    cookieNotice: "Avis sur les cookies"
+    cookieNotice: "Avis sur les cookies",
+    itemFoundIn: "Objet trouvé dans",
+    area: "la zone"
   },
   ar: {
     // Post-related translations
@@ -677,6 +689,8 @@ export const translations = {
     viewFoundItems: "عرض العناصر الموجودة",
     viewLostItems: "عرض العناصر المفقودة",
     goToDashboard: "الذهاب إلى لوحة التحكم",
+    trendingItem: "عنصر متنوع",
+    trendingItemDescription: "آخر عنصر شائع في منطقتك",
     search: "البحث",
     searchPostsPlaceholder: "البحث في المنشورات حسب المنطقة أو الاتصال أو الفئة...",
     filter: "تصفية",
@@ -719,6 +733,8 @@ export const translations = {
     brandName: "مفقودات",
     welcomeBack: "مرحباً بعودتك",
     welcomeMessage: "اعثر على العناصر المفقودة وأعدها في مجتمعك",
+    welcomePage: "صفحة الترحيب",
+    goToWelcomePage: "الذهاب إلى صفحة الترحيب",
     signin: "تسجيل الدخول",
     signup: "إنشاء حساب",
     logout: "تسجيل الخروج",
@@ -951,7 +967,9 @@ export const translations = {
     currentRegion: "المنطقة الحالية",
     privacyPolicy: "سياسة الخصوصية",
     termsOfUse: "شروط الاستخدام",
-    cookieNotice: "إشعار ملفات تعريف الارتباط"
+    cookieNotice: "إشعار ملفات تعريف الارتباط",
+    itemFoundIn: "تم العثور على العنصر في",
+    area: "المنطقة"
   }
 };
 
