@@ -152,11 +152,7 @@ const WelcomePage = () => {
 
   // Fallback countries in case API fails
 const fallbackCountries = [
-  { _id: '507f1f77bcf86cd799439011', code: 'US', label: 'United States', labels: { en: 'US', ar: 'US', fr: 'US' }, names: { en: 'United States', ar: 'الولايات المتحدة', fr: 'États-Unis' }, flag: '🇺🇸' },
-  { _id: '507f1f77bcf86cd799439012', code: 'GB', label: 'United Kingdom', labels: { en: 'GB', ar: 'GB', fr: 'GB' }, names: { en: 'United Kingdom', ar: 'المملكة المتحدة', fr: 'Royaume-Uni' }, flag: '🇬🇧' },
-  { _id: '507f1f77bcf86cd799439013', code: 'FR', label: 'France', labels: { en: 'FR', ar: 'FR', fr: 'FR' }, names: { en: 'France', ar: 'فرنسا', fr: 'France' }, flag: '🇫🇷' },
-  { _id: '507f1f77bcf86cd799439014', code: 'DE', label: 'Germany', labels: { en: 'DE', ar: 'DE', fr: 'DE' }, names: { en: 'Germany', ar: 'ألمانيا', fr: 'Allemagne' }, flag: '🇩🇪' },
-  { _id: '507f1f77bcf86cd799439015', code: 'CA', label: 'Canada', labels: { en: 'CA', ar: 'CA', fr: 'CA' }, names: { en: 'Canada', ar: 'كندا', fr: 'Canada' }, flag: '🇨🇦' },
+  { _id: '507f1f77bcf86cd799439011', code: 'MA', label: 'Morocco', labels: { en: 'MA', ar: 'MA', fr: 'MA' }, names: { en: 'Morocco', ar: 'المغرب', fr: 'Maroc' }, flag: '🇲🇦' },
 ];
 
   const countries = countriesData?.ids?.map((id) => countriesData?.entities[id]) || fallbackCountries;
@@ -242,10 +238,12 @@ const fallbackCountries = [
               : 'rgba(255, 255, 255, 0.95)',
             backdropFilter: 'blur(20px)',
             border: `1px solid ${alpha(theme?.palette?.divider, 0.1)}`,
+            zIndex: 9999,
           }
         }}
         transformOrigin={{ horizontal: 'left', vertical: 'top' }}
         anchorOrigin={{ horizontal: 'left', vertical: 'bottom' }}
+        sx={{ zIndex: 9999 }}
       >
         <MenuItem 
           onClick={() => handleLanguageChange('en')}

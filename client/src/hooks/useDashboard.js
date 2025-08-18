@@ -37,6 +37,7 @@ export const useDashboard = () => {
       dispatch(setCurrentCountry({ currentCountry: defaultCountryId }));
     } else if (!currentCountry) {
       // Set a fallback country if no countries data is available or if query fails
+      // Use Morocco as fallback instead of US
       dispatch(setCurrentCountry({ currentCountry: '507f1f77bcf86cd799439011' }));
     }
   }, [userCountry, currentCountry, dispatch, countriesData]);
