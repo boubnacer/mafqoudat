@@ -190,13 +190,31 @@ const DashFooter = () => {
             gap: 2,
             direction: currentLanguage === 'ar' ? 'rtl' : 'ltr'
           }}>
-            <Link href="/privacy" color="text.secondary" underline="hover">
+            <Link 
+              component="button" 
+              onClick={() => navigate('/privacy')} 
+              color="text.secondary" 
+              underline="hover"
+              sx={{ background: 'none', border: 'none', cursor: 'pointer' }}
+            >
               {t('privacyPolicy')}
             </Link>
-            <Link href="/terms" color="text.secondary" underline="hover">
+            <Link 
+              component="button" 
+              onClick={() => navigate('/terms')} 
+              color="text.secondary" 
+              underline="hover"
+              sx={{ background: 'none', border: 'none', cursor: 'pointer' }}
+            >
               {t('termsOfUse')}
             </Link>
-            <Link href="/cookies" color="text.secondary" underline="hover">
+            <Link 
+              component="button" 
+              onClick={() => navigate('/cookies')} 
+              color="text.secondary" 
+              underline="hover"
+              sx={{ background: 'none', border: 'none', cursor: 'pointer' }}
+            >
               {t('cookieNotice')}
             </Link>
           </Box>

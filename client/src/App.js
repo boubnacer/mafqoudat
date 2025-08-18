@@ -30,6 +30,13 @@ import { LanguageProvider, useLanguage } from "./utils/languageContext";
 import { cleanupLocalStorage, initializeLocalStorage } from "./utils/localStorageUtils";
 import { useLocation } from "react-router-dom";
 
+// Import new page components
+import PrivacyPolicy from "./components/Pages/PrivacyPolicy";
+import TermsOfUse from "./components/Pages/TermsOfUse";
+import CookieNotice from "./components/Pages/CookieNotice";
+import CommunityGuidelines from "./components/Pages/CommunityGuidelines";
+import SafetyTips from "./components/Pages/SafetyTips";
+
 // Inner App component that has access to language context
 const AppContent = () => {
   const mode = useSelector((state) => state.global.mode);
@@ -59,6 +66,13 @@ const AppContent = () => {
         
         {/* Public routes - no authentication required */}
         <Route path="/posts" element={<PublicPostsPage />} />
+        
+        {/* Legal and Information Pages - Public Access */}
+        <Route path="/privacy" element={<PrivacyPolicy />} />
+        <Route path="/terms" element={<TermsOfUse />} />
+        <Route path="/cookies" element={<CookieNotice />} />
+        <Route path="/guidelines" element={<CommunityGuidelines />} />
+        <Route path="/safety" element={<SafetyTips />} />
         
         {/* Authentication routes */}
         <Route path="/login" element={<Login />} />
@@ -100,8 +114,7 @@ const AppContent = () => {
         <Route path="*" element={
           <div style={{ padding: '2rem', textAlign: 'center', backgroundColor: 'red', color: 'white' }}>
             <h1>404 - Route Not Found</h1>
-            <p>Current path: {window.location.pathname}</p>
-            <p>This route is not defined in the router.</p>
+            <p>Path: {window.location.pathname}</p>
           </div>
         } />
       </Routes>

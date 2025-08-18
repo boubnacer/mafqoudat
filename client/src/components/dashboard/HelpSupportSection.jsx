@@ -1,4 +1,5 @@
 import React, { useState } from 'react';
+import { useNavigate } from 'react-router-dom';
 import {
   Box,
   Typography,
@@ -39,6 +40,7 @@ import { useTranslation } from "../../utils/translations";
 
 const HelpSupportSection = () => {
   const theme = useTheme();
+  const navigate = useNavigate();
   const { t } = useTranslation();
   const [showHelpDialog, setShowHelpDialog] = useState(false);
   const [helpTab, setHelpTab] = useState(0);
@@ -306,6 +308,7 @@ const HelpSupportSection = () => {
                       fullWidth
                       variant="outlined"
                       startIcon={<Book />}
+                      onClick={() => navigate('/guidelines')}
                       sx={{ 
                         mb: 1,
                         color: theme.palette.success.main,
@@ -323,6 +326,7 @@ const HelpSupportSection = () => {
                       fullWidth
                       variant="outlined"
                       startIcon={<Security />}
+                      onClick={() => navigate('/safety')}
                       sx={{
                         color: theme.palette.warning.main,
                         borderColor: theme.palette.warning.main,
