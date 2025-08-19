@@ -164,7 +164,7 @@ const Navbar = () => {
   const currentCountry = useSelector(selectCurrentCountry);
   const openModal = useSelector(selectOpenModal);
 
-  const [countryId, setCountryId] = useState(country);
+  const [countryId, setCountryId] = useState(country || currentCountry);
   const [languageAnchorEl, setLanguageAnchorEl] = useState(null);
   const [mobileMenuAnchorEl, setMobileMenuAnchorEl] = useState(null);
 
@@ -181,6 +181,14 @@ const Navbar = () => {
     }
   }, [countryId, currentCountry, dispatch]);
 
+  // Update countryId when currentCountry changes (for non-logged-in users)
+  useEffect(() => {
+    if (currentCountry && currentCountry !== countryId) {
+      console.log('Navbar: Updating countryId from', countryId, 'to', currentCountry);
+      setCountryId(currentCountry);
+    }
+  }, [currentCountry, countryId]);
+
   const { countries } = useGetCountriesQuery({
     language: currentLanguage
   }, {
@@ -193,7 +201,7 @@ const Navbar = () => {
     language: currentLanguage
   }, {
     selectFromResult: ({ data }) => ({
-      currentCountryData: data?.entities[countryId],
+      currentCountryData: data?.entities[countryId || currentCountry],
     }),
   });
 
@@ -258,7 +266,10 @@ const Navbar = () => {
 
   // Use fallback data if API fails
   const countriesToUse = countries || fallbackCountries;
-  const currentCountryDataToUse = currentCountryData || fallbackCountries.find(c => c._id === countryId) || fallbackCountries[0];
+  const currentCountryDataToUse = currentCountryData || fallbackCountries.find(c => c._id === (countryId || currentCountry)) || fallbackCountries[0];
+  
+  // Debug logging
+  console.log('Navbar: countryId:', countryId, 'currentCountry:', currentCountry, 'currentCountryData:', currentCountryDataToUse);
 
   return (
     <AppBar
