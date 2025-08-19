@@ -159,6 +159,37 @@ export const translations = {
     postCreatedSuccessfully: "Post Created Successfully!",
     redirectingToDashboard: "Redirecting to dashboard...",
     
+    // Form sections
+    basicInformation: "Basic Information",
+    itemDetails: "Item Details",
+    location: "Location",
+    contactInformation: "Contact Information",
+    itemImage: "Item Image",
+    
+    // Form fields
+    title: "Title",
+    titlePlaceholder: "Enter a descriptive title for your item",
+    description: "Description",
+    descriptionPlaceholder: "Provide detailed description of the item, including color, size, brand, and any unique features",
+    city: "City",
+    exactLocation: "Exact Location",
+    exactLocationPlaceholder: "Specific location where item was found/lost (optional)",
+    tags: "Tags",
+    addTag: "Add tag",
+    contactPreferences: "Contact Preferences",
+    additionalContactDetails: "Additional Contact Details",
+    phoneContact: "Phone Contact",
+    emailContact: "Email Contact",
+    whatsappContact: "WhatsApp Contact",
+    phoneNumber: "Phone Number",
+    emailAddress: "Email Address",
+    whatsappNumber: "WhatsApp Number",
+    
+    // Validation messages
+    required: "This field is required",
+    titleMinLength: "Title must be at least 3 characters",
+    descriptionMinLength: "Description must be at least 10 characters",
+    
     // Promotion Dialog translations
     boostYourChances: "Boost Your Chances",
     postPublishedSuccessfully: "Your post has been published successfully! We'll also share it on our social media platforms.",
@@ -760,6 +791,37 @@ export const translations = {
     postCreatedSuccessfully: "Publication créée avec succès !",
     redirectingToDashboard: "Redirection vers le tableau de bord...",
     
+    // Form sections
+    basicInformation: "Informations de base",
+    itemDetails: "Détails de l'objet",
+    location: "Localisation",
+    contactInformation: "Informations de contact",
+    itemImage: "Image de l'objet",
+    
+    // Form fields
+    title: "Titre",
+    titlePlaceholder: "Entrez un titre descriptif pour votre objet",
+    description: "Description",
+    descriptionPlaceholder: "Fournissez une description détaillée de l'objet, y compris la couleur, la taille, la marque et toute caractéristique unique",
+    city: "Ville",
+    exactLocation: "Emplacement exact",
+    exactLocationPlaceholder: "Emplacement spécifique où l'objet a été trouvé/perdu (optionnel)",
+    tags: "Étiquettes",
+    addTag: "Ajouter une étiquette",
+    contactPreferences: "Préférences de contact",
+    additionalContactDetails: "Détails de contact supplémentaires",
+    phoneContact: "Contact téléphonique",
+    emailContact: "Contact par email",
+    whatsappContact: "Contact WhatsApp",
+    phoneNumber: "Numéro de téléphone",
+    emailAddress: "Adresse email",
+    whatsappNumber: "Numéro WhatsApp",
+    
+    // Validation messages
+    required: "Ce champ est requis",
+    titleMinLength: "Le titre doit contenir au moins 3 caractères",
+    descriptionMinLength: "La description doit contenir au moins 10 caractères",
+    
     // Promotion Dialog translations
     boostYourChances: "Augmentez Vos Chances",
     postPublishedSuccessfully: "Votre publication a été publiée avec succès ! Nous la partagerons également sur nos plateformes de médias sociaux.",
@@ -1325,6 +1387,37 @@ export const translations = {
     errorCreatingPostMessage: "حدث خطأ أثناء إنشاء المنشور",
     postCreatedSuccessfully: "تم إنشاء المنشور بنجاح!",
     redirectingToDashboard: "إعادة التوجيه إلى لوحة التحكم...",
+    
+    // Form sections
+    basicInformation: "المعلومات الأساسية",
+    itemDetails: "تفاصيل العنصر",
+    location: "الموقع",
+    contactInformation: "معلومات الاتصال",
+    itemImage: "صورة العنصر",
+    
+    // Form fields
+    title: "العنوان",
+    titlePlaceholder: "أدخل عنواناً وصفياً لعنصرك",
+    description: "الوصف",
+    descriptionPlaceholder: "قدم وصفاً مفصلاً للعنصر، بما في ذلك اللون والحجم والعلامة التجارية وأي ميزات فريدة",
+    city: "المدينة",
+    exactLocation: "الموقع الدقيق",
+    exactLocationPlaceholder: "الموقع المحدد حيث تم العثور على العنصر/فقدانه (اختياري)",
+    tags: "العلامات",
+    addTag: "إضافة علامة",
+    contactPreferences: "تفضيلات الاتصال",
+    additionalContactDetails: "تفاصيل الاتصال الإضافية",
+    phoneContact: "اتصال هاتفي",
+    emailContact: "اتصال بالبريد الإلكتروني",
+    whatsappContact: "اتصال واتساب",
+    phoneNumber: "رقم الهاتف",
+    emailAddress: "عنوان البريد الإلكتروني",
+    whatsappNumber: "رقم الواتساب",
+    
+    // Validation messages
+    required: "هذا الحقل مطلوب",
+    titleMinLength: "يجب أن يحتوي العنوان على 3 أحرف على الأقل",
+    descriptionMinLength: "يجب أن يحتوي الوصف على 10 أحرف على الأقل",
     
     // Promotion Dialog translations
     boostYourChances: "عزز فرصك",

@@ -204,12 +204,26 @@ const getFilteredPosts = async (req, res) => {
 // @route POST /posts
 // @access Private
 const createNewPost = async (req, res) => {
-  const { user, country, category, region, contact, foundLost } = req.body;
+  const { 
+    user, 
+    country, 
+    category, 
+    region, 
+    contact, 
+    foundLost,
+    city,
+    exactLocation,
+    title,
+    description,
+    tags,
+    contactPreferences,
+    additionalContact
+  } = req.body;
   const formData = req.body;
 
-  // Confirm data
-  if (!user || !category || !region || !contact || !country || !foundLost) {
-    return res.status(400).json({ message: "All fields are required" });
+  // Confirm required data
+  if (!user || !category || !region || !contact || !country || !foundLost || !city || !title || !description) {
+    return res.status(400).json({ message: "All required fields are required" });
   }
 
   // Validate references
@@ -229,7 +243,43 @@ const createNewPost = async (req, res) => {
     country,
     contact,
     foundLost,
+    city,
+    exactLocation: exactLocation || null,
+    title,
+    description,
   };
+
+  // Add tags if provided
+  if (tags) {
+    try {
+      const parsedTags = JSON.parse(tags);
+      if (Array.isArray(parsedTags)) {
+        postData.tags = parsedTags;
+      }
+    } catch (error) {
+      console.log('Error parsing tags:', error);
+    }
+  }
+
+  // Add contact preferences if provided
+  if (contactPreferences) {
+    try {
+      const parsedContactPreferences = JSON.parse(contactPreferences);
+      postData.contactPreferences = parsedContactPreferences;
+    } catch (error) {
+      console.log('Error parsing contact preferences:', error);
+    }
+  }
+
+  // Add additional contact if provided
+  if (additionalContact) {
+    try {
+      const parsedAdditionalContact = JSON.parse(additionalContact);
+      postData.additionalContact = parsedAdditionalContact;
+    } catch (error) {
+      console.log('Error parsing additional contact:', error);
+    }
+  }
 
   // Add Cloudinary image data if available
   if (req.cloudinaryResult) {
