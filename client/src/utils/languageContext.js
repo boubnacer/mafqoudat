@@ -67,10 +67,12 @@ export const LanguageProvider = ({ children }) => {
       const savedLanguage = localStorage.getItem('language') || localStorage.getItem('app_language');
       
       if (savedLanguage && ['en', 'ar', 'fr'].includes(savedLanguage)) {
+        console.log('LanguageContext: Loading saved language:', savedLanguage);
         setCurrentLanguage(savedLanguage);
         initializeLanguage(savedLanguage);
       } else {
         // No saved language or invalid, use default
+        console.log('LanguageContext: No saved language found, using default: en');
         initializeLanguage('en');
       }
       setIsInitialized(true);
@@ -99,10 +101,26 @@ export const LanguageProvider = ({ children }) => {
       });
     };
 
+    // Also listen for the specific event name used in WelcomePage
+    const handleLanguageChanged = () => {
+      console.log('Language changed event received');
+      setCurrentLanguage(prev => {
+        const newLang = localStorage.getItem('language') || localStorage.getItem('app_language') || 'en';
+        console.log('Language changed:', { prev, newLang });
+        if (prev !== newLang) {
+          initializeLanguage(newLang);
+          return newLang;
+        }
+        return prev;
+      });
+    };
+
     window.addEventListener('languageChange', handleLanguageChange);
+    window.addEventListener('languageChanged', handleLanguageChanged);
     
     return () => {
       window.removeEventListener('languageChange', handleLanguageChange);
+      window.removeEventListener('languageChanged', handleLanguageChanged);
     };
   }, [isInitialized]);
 

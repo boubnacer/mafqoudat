@@ -145,6 +145,12 @@ const WelcomePage = () => {
   const [selectedCountry, setSelectedCountry] = useState(null);
   const [languageAnchorEl, setLanguageAnchorEl] = useState(null);
 
+  // Debug logging
+  console.log('WelcomePage: currentLanguage from useTranslation:', currentLanguage);
+  console.log('WelcomePage: langContext from useLanguage:', langContext);
+  console.log('WelcomePage: localStorage language:', localStorage.getItem('language'));
+  console.log('WelcomePage: localStorage app_language:', localStorage.getItem('app_language'));
+
   // Get countries list
   const { data: countriesData, error: countriesError, isLoading: countriesLoading } = useGetCountriesQuery({
     language: currentLanguage || langContext || 'en'
@@ -165,6 +171,7 @@ const fallbackCountries = [
     if (selectedCountry) {
       // Use the selected country ID directly
       const countryId = selectedCountry._id;
+      console.log('WelcomePage: Setting country:', countryId, 'for country:', selectedCountry);
       dispatch(setCurrentCountry({ currentCountry: countryId }));
       // Navigate to dashboard (public view)
       navigate('/dash');
@@ -172,10 +179,12 @@ const fallbackCountries = [
   };
 
   const handleLanguageChange = (language) => {
+    console.log('WelcomePage: Changing language to:', language);
     setLanguage(language);
     setLanguageAnchorEl(null);
-    // Refresh the page to apply language changes
-    window.location.reload();
+    // Force a re-render without page refresh to apply language changes
+    window.dispatchEvent(new Event('languageChange'));
+    console.log('WelcomePage: Language change event dispatched');
   };
 
   const handleLanguageClick = (event) => {

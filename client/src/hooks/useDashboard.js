@@ -29,15 +29,21 @@ export const useDashboard = () => {
 
   // Set user's country from JWT token if not already set in Redux
   useEffect(() => {
+    console.log('useDashboard: userCountry:', userCountry, 'currentCountry:', currentCountry);
+    console.log('useDashboard: countriesData available:', !!countriesData?.ids?.length);
+    
     if (userCountry && !currentCountry) {
+      console.log('useDashboard: Setting country from user token:', userCountry);
       dispatch(setCurrentCountry({ currentCountry: userCountry }));
     } else if (!currentCountry && countriesData?.ids?.length > 0) {
       // Set default country if none is set
       const defaultCountryId = countriesData.ids[0];
+      console.log('useDashboard: Setting default country:', defaultCountryId);
       dispatch(setCurrentCountry({ currentCountry: defaultCountryId }));
     } else if (!currentCountry) {
       // Set a fallback country if no countries data is available or if query fails
       // Use Morocco as fallback instead of US
+      console.log('useDashboard: Setting fallback country: 507f1f77bcf86cd799439011');
       dispatch(setCurrentCountry({ currentCountry: '507f1f77bcf86cd799439011' }));
     }
   }, [userCountry, currentCountry, dispatch, countriesData]);
