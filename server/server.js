@@ -67,6 +67,9 @@ app.use("/dependencies", require("./routes/dependenciesRoutes"));
 app.use("/reports", require("./routes/reportRoutes"));
 app.use("/promotion", require("./routes/promotionRoutes"));
 
+// Temporary admin routes for seeding data
+app.use("/admin", require("./routes/adminRoutes"));
+
 app.use("/uploads", express.static(path.join(__dirname, "uploads")));
 
 // Health check endpoint for deployment monitoring
