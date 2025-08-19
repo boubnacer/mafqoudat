@@ -55,6 +55,7 @@ const Dash = () => {
     isSearchLoading,
     handleSearchChange,
     currentCountry,
+    countriesData,
   } = useDashboard();
 
   const handleCreateNewPost = (type) => {
@@ -164,7 +165,11 @@ const Dash = () => {
           transition: 'padding 0.3s ease',
         }}
       >
-        <DashboardEmptyStates.NoPosts country={currentCountry} onCreatePost={handleCreateNewPost} />
+        <DashboardEmptyStates.NoPosts 
+          country={currentCountry} 
+          countriesData={countriesData}
+          onCreatePost={handleCreateNewPost} 
+        />
       </Box>
     );
   }

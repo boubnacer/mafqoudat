@@ -50,6 +50,27 @@ export const translations = {
     noPostsFound: "No posts found",
     noPostsMatchFilters: "No posts match your filters",
     noPostsInArea: "There are no posts in your area yet. Be the first to create a post!",
+    noPostsInCountry: "No posts found in {countryName}",
+    noPostsInCountryDescription: "There are no lost or found items in {countryName} yet. Be the first to post and help build the community!",
+    reportLostItem: "Report Lost Item",
+    reportFoundItem: "Report Found Item",
+    noSearchResults: "No results found",
+    noSearchResultsDescription: "No items found matching \"{query}\". Try different keywords or create a new post.",
+    noTrendingItems: "No trending items",
+    noTrendingItemsDescription: "There are no trending items at the moment. Check back later!",
+    noRecentFoundItems: "No recent found items",
+    noRecentFoundItemsDescription: "No items have been found recently. Keep an eye out for new posts!",
+    noRecentLostItems: "No recent lost items",
+    noRecentLostItemsDescription: "No items have been reported as lost recently.",
+    noSuccessStories: "No success stories yet",
+    noSuccessStoriesDescription: "Be the first to share a success story when you find or return an item!",
+    communityIsQuiet: "Community is quiet",
+    communityIsQuietDescription: "The community is just getting started. Be the first to engage!",
+    helpContentComingSoon: "Help content coming soon",
+    helpContentComingSoonDescription: "We're working on helpful resources. Check back soon!",
+    noCategoriesAvailable: "No categories available",
+    noCategoriesAvailableDescription: "Categories are being set up. Please check back later.",
+    searchingForItems: "Searching for items...",
     adjustFilters: "There are no posts matching your current filters. Try adjusting your search criteria or be the first to create a post in this category!",
     pleaseSelectCountry: "Please select a country to continue",
     chooseCountryMessage: "Choose your country to see relevant lost and found items in your area",
@@ -629,6 +650,27 @@ export const translations = {
     noPostsFound: "Aucune publication trouvée",
     noPostsMatchFilters: "Aucune publication ne correspond à vos filtres",
     noPostsInArea: "Il n'y a pas encore de publications dans votre région. Soyez le premier à créer une publication !",
+    noPostsInCountry: "Aucune publication trouvée en {countryName}",
+    noPostsInCountryDescription: "Il n'y a pas encore d'objets perdus ou trouvés en {countryName}. Soyez le premier à publier et aidez à construire la communauté !",
+    reportLostItem: "Signaler un objet perdu",
+    reportFoundItem: "Signaler un objet trouvé",
+    noSearchResults: "Aucun résultat trouvé",
+    noSearchResultsDescription: "Aucun objet trouvé correspondant à \"{query}\". Essayez différents mots-clés ou créez une nouvelle publication.",
+    noTrendingItems: "Aucun élément tendance",
+    noTrendingItemsDescription: "Il n'y a pas d'éléments tendance pour le moment. Revenez plus tard !",
+    noRecentFoundItems: "Aucun objet trouvé récemment",
+    noRecentFoundItemsDescription: "Aucun objet n'a été trouvé récemment. Gardez un œil sur les nouvelles publications !",
+    noRecentLostItems: "Aucun objet perdu récemment",
+    noRecentLostItemsDescription: "Aucun objet n'a été signalé comme perdu récemment.",
+    noSuccessStories: "Aucune histoire de succès pour le moment",
+    noSuccessStoriesDescription: "Soyez le premier à partager une histoire de succès quand vous trouvez ou rendez un objet !",
+    communityIsQuiet: "La communauté est calme",
+    communityIsQuietDescription: "La communauté commence tout juste. Soyez le premier à participer !",
+    helpContentComingSoon: "Le contenu d'aide arrive bientôt",
+    helpContentComingSoonDescription: "Nous travaillons sur des ressources utiles. Revenez bientôt !",
+    noCategoriesAvailable: "Aucune catégorie disponible",
+    noCategoriesAvailableDescription: "Les catégories sont en cours de configuration. Veuillez revenir plus tard.",
+    searchingForItems: "Recherche d'objets...",
     adjustFilters: "Il n'y a pas de publications correspondant à vos filtres actuels. Essayez d'ajuster vos critères de recherche ou soyez le premier à créer une publication dans cette catégorie !",
     pleaseSelectCountry: "Veuillez sélectionner un pays pour continuer",
     chooseCountryMessage: "Choisissez votre pays pour voir les objets perdus et trouvés pertinents dans votre région",
@@ -1188,6 +1230,27 @@ export const translations = {
     noPostsFound: "لم يتم العثور على منشورات",
     noPostsMatchFilters: "لا توجد منشورات تطابق تصفياتك",
     noPostsInArea: "لا توجد منشورات في منطقتك بعد. كن أول من ينشئ منشور!",
+    noPostsInCountry: "لم يتم العثور على منشورات في {countryName}",
+    noPostsInCountryDescription: "لا توجد عناصر مفقودة أو موجودة في {countryName} بعد. كن أول من ينشر وساعد في بناء المجتمع!",
+    reportLostItem: "الإبلاغ عن عنصر مفقود",
+    reportFoundItem: "الإبلاغ عن عنصر موجود",
+    noSearchResults: "لم يتم العثور على نتائج",
+    noSearchResultsDescription: "لم يتم العثور على عناصر تطابق \"{query}\". جرب كلمات مفتاحية مختلفة أو أنشئ منشوراً جديداً.",
+    noTrendingItems: "لا توجد عناصر رائجة",
+    noTrendingItemsDescription: "لا توجد عناصر رائجة في الوقت الحالي. تحقق مرة أخرى لاحقاً!",
+    noRecentFoundItems: "لا توجد عناصر موجودة مؤخراً",
+    noRecentFoundItemsDescription: "لم يتم العثور على عناصر مؤخراً. راقب المنشورات الجديدة!",
+    noRecentLostItems: "لا توجد عناصر مفقودة مؤخراً",
+    noRecentLostItemsDescription: "لم يتم الإبلاغ عن عناصر مفقودة مؤخراً.",
+    noSuccessStories: "لا توجد قصص نجاح بعد",
+    noSuccessStoriesDescription: "كن أول من يشارك قصة نجاح عندما تجد أو تعيد عنصراً!",
+    communityIsQuiet: "المجتمع هادئ",
+    communityIsQuietDescription: "المجتمع بدأ للتو. كن أول من يشارك!",
+    helpContentComingSoon: "محتوى المساعدة قادم قريباً",
+    helpContentComingSoonDescription: "نحن نعمل على موارد مفيدة. تحقق مرة أخرى قريباً!",
+    noCategoriesAvailable: "لا توجد فئات متاحة",
+    noCategoriesAvailableDescription: "يتم إعداد الفئات. يرجى التحقق مرة أخرى لاحقاً.",
+    searchingForItems: "البحث عن العناصر...",
     adjustFilters: "لا توجد منشورات تطابق تصفياتك الحالية. حاول تعديل معايير البحث أو كن أول من ينشئ منشور في هذه الفئة!",
     pleaseSelectCountry: "يرجى اختيار بلد للمتابعة",
     chooseCountryMessage: "اختر بلدك لرؤية العناصر المفقودة والموجودة ذات الصلة في منطقتك",
@@ -1691,8 +1754,16 @@ export const translations = {
 export const useTranslation = () => {
   const { currentLanguage } = useLanguage();
   
-  const t = (key) => {
-    return translations[currentLanguage]?.[key] || translations.en?.[key] || key;
+  const t = (key, params = {}) => {
+    let translation = translations[currentLanguage]?.[key] || translations.en?.[key] || key;
+    
+    // Replace placeholders with actual values
+    Object.keys(params).forEach(paramKey => {
+      const placeholder = `{${paramKey}}`;
+      translation = translation.replace(new RegExp(placeholder, 'g'), params[paramKey]);
+    });
+    
+    return translation;
   };
   
   const tWithFallback = (key, fallback) => {

@@ -12,6 +12,7 @@ import {
   Alert,
   Button,
 } from '@mui/material';
+import { useTranslation } from '../utils/translations';
 import {
   Search,
   TrendingUp,
@@ -201,113 +202,170 @@ export const ErrorState = ({
 
 // Dashboard Specific Empty States
 export const DashboardEmptyStates = {
-  NoPosts: ({ country, onCreatePost }) => (
-    <EmptyState
-      icon={Search}
-      title="No posts found"
-      description={`There are no lost or found items in ${country || 'this country'} yet. Be the first to post!`}
-      action={
-        <Box sx={{ display: 'flex', gap: 2, flexWrap: 'wrap', justifyContent: 'center' }}>
-          <Button 
-            variant="contained" 
-            onClick={() => onCreatePost && onCreatePost('lost')}
-          >
-            Report Lost Item
-          </Button>
-          <Button 
-            variant="outlined" 
-            onClick={() => onCreatePost && onCreatePost('found')}
-          >
-            Report Found Item
-          </Button>
-        </Box>
+  NoPosts: ({ country, countriesData, onCreatePost }) => {
+    const { t, currentLanguage } = useTranslation();
+    
+    // Get country name from countries data
+    const getCountryName = () => {
+      if (!country || !countriesData?.entities) {
+        return t('noPostsInArea');
       }
-    />
-  ),
+      
+      const countryEntity = countriesData.entities[country];
+      if (!countryEntity) {
+        return t('noPostsInArea');
+      }
+      
+      // Get the appropriate name based on current language
+      const countryName = countryEntity.names?.[currentLanguage] || 
+                         countryEntity.labels?.[currentLanguage] || 
+                         countryEntity.name || 
+                         countryEntity.label || 
+                         countryEntity.code;
+      
+      return countryName;
+    };
+    
+    const countryName = getCountryName();
+    const title = countryName ? t('noPostsInCountry', { countryName }) : t('noPostsFound');
+    const description = countryName ? t('noPostsInCountryDescription', { countryName }) : t('noPostsInArea');
+    
+    return (
+      <EmptyState
+        icon={Search}
+        title={title}
+        description={description}
+        action={
+          <Box sx={{ display: 'flex', gap: 2, flexWrap: 'wrap', justifyContent: 'center' }}>
+            <Button 
+              variant="contained" 
+              onClick={() => onCreatePost && onCreatePost('lost')}
+            >
+              {t('reportLostItem')}
+            </Button>
+            <Button 
+              variant="outlined" 
+              onClick={() => onCreatePost && onCreatePost('found')}
+            >
+              {t('reportFoundItem')}
+            </Button>
+          </Box>
+        }
+      />
+    );
+  },
   
-  NoTrending: () => (
-    <EmptyState
-      icon={TrendingUp}
-      title="No trending items"
-      description="There are no trending items at the moment. Check back later!"
-    />
-  ),
+  NoTrending: () => {
+    const { t } = useTranslation();
+    return (
+      <EmptyState
+        icon={TrendingUp}
+        title={t('noTrendingItems')}
+        description={t('noTrendingItemsDescription')}
+      />
+    );
+  },
   
-  NoRecentFounds: () => (
-    <EmptyState
-      icon={WhatshotOutlined}
-      title="No recent found items"
-      description="No items have been found recently. Keep an eye out for new posts!"
-    />
-  ),
+  NoRecentFounds: () => {
+    const { t } = useTranslation();
+    return (
+      <EmptyState
+        icon={WhatshotOutlined}
+        title={t('noRecentFoundItems')}
+        description={t('noRecentFoundItemsDescription')}
+      />
+    );
+  },
   
-  NoRecentLosts: () => (
-    <EmptyState
-      icon={Search}
-      title="No recent lost items"
-      description="No items have been reported as lost recently."
-    />
-  ),
+  NoRecentLosts: () => {
+    const { t } = useTranslation();
+    return (
+      <EmptyState
+        icon={Search}
+        title={t('noRecentLostItems')}
+        description={t('noRecentLostItemsDescription')}
+      />
+    );
+  },
   
-  NoSuccessStories: () => (
-    <EmptyState
-      icon={EmojiEvents}
-      title="No success stories yet"
-      description="Be the first to share a success story when you find or return an item!"
-    />
-  ),
+  NoSuccessStories: () => {
+    const { t } = useTranslation();
+    return (
+      <EmptyState
+        icon={EmojiEvents}
+        title={t('noSuccessStories')}
+        description={t('noSuccessStoriesDescription')}
+      />
+    );
+  },
   
-  NoCommunity: () => (
-    <EmptyState
-      icon={People}
-      title="Community is quiet"
-      description="The community is just getting started. Be the first to engage!"
-    />
-  ),
+  NoCommunity: () => {
+    const { t } = useTranslation();
+    return (
+      <EmptyState
+        icon={People}
+        title={t('communityIsQuiet')}
+        description={t('communityIsQuietDescription')}
+      />
+    );
+  },
   
-  NoHelpContent: () => (
-    <EmptyState
-      icon={Help}
-      title="Help content coming soon"
-      description="We're working on helpful resources. Check back soon!"
-    />
-  ),
+  NoHelpContent: () => {
+    const { t } = useTranslation();
+    return (
+      <EmptyState
+        icon={Help}
+        title={t('helpContentComingSoon')}
+        description={t('helpContentComingSoonDescription')}
+      />
+    );
+  },
   
-  NoCategories: () => (
-    <EmptyState
-      icon={Category}
-      title="No categories available"
-      description="Categories are being set up. Please check back later."
-    />
-  ),
+  NoCategories: () => {
+    const { t } = useTranslation();
+    return (
+      <EmptyState
+        icon={Category}
+        title={t('noCategoriesAvailable')}
+        description={t('noCategoriesAvailableDescription')}
+      />
+    );
+  },
 };
 
 // Search Specific Loading States
 export const SearchLoadingStates = {
-  Searching: () => (
-    <LoadingState 
-      message="Searching for items..." 
-      size="small"
-    />
-  ),
+  Searching: () => {
+    const { t } = useTranslation();
+    return (
+      <LoadingState 
+        message={t('searchingForItems')} 
+        size="small"
+      />
+    );
+  },
   
-  NoSearchResults: ({ query, onCreatePost }) => (
-    <EmptyState
-      icon={Search}
-      title="No results found"
-      description={`No items found matching "${query}". Try different keywords or create a new post.`}
-      action={
-        <Box sx={{ display: 'flex', gap: 2, flexWrap: 'wrap', justifyContent: 'center' }}>
-          <Button variant="contained" onClick={() => onCreatePost('lost')}>
-            Report Lost Item
-          </Button>
-          <Button variant="outlined" onClick={() => onCreatePost('found')}>
-            Report Found Item
-          </Button>
-        </Box>
-      }
-    />
-  ),
+  NoSearchResults: ({ query, onCreatePost }) => {
+    const { t } = useTranslation();
+    
+    return (
+      <EmptyState
+        icon={Search}
+        title={t('noSearchResults')}
+        description={t('noSearchResultsDescription', { query })}
+        action={
+          <Box sx={{ display: 'flex', gap: 2, flexWrap: 'wrap', justifyContent: 'center' }}>
+            <Button variant="contained" onClick={() => onCreatePost('lost')}>
+              {t('reportLostItem')}
+            </Button>
+            <Button variant="outlined" onClick={() => onCreatePost('found')}>
+              {t('reportFoundItem')}
+            </Button>
+          </Box>
+        }
+      />
+    );
+  },
 };
 
 export default {
