@@ -11,7 +11,7 @@ const verifyJWT = (req, res, next) => {
   // look at the decode values !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
   jwt.verify(token, process.env.JWT_SECRET, (err, decoded) => {
     if (err) return res.status(403).json({ message: "Forbidden" });
-    req.user = decoded.UserInfo.id;
+    req.user = decoded.UserInfo.usernameId;
     req.username = decoded.UserInfo.username;
     req.country = decoded.UserInfo.country;
     next();

@@ -31,18 +31,11 @@ const NewPostForm = ({ user, countries, categories, flOptions }) => {
       const foundLostOption = lastSubmittedValues && flOptions.find(option => option.id === lastSubmittedValues.foundLost);
       const isLostItem = foundLostOption && foundLostOption.code === 'LOST';
       
-      console.log('Post created successfully!');
-      console.log('Found lost option:', foundLostOption);
-      console.log('Is lost item:', isLostItem);
-      console.log('Last submitted values:', lastSubmittedValues);
-      
       if (isLostItem) {
         // Show promotion dialog instead of redirecting immediately
-        console.log('Showing promotion dialog');
         setShowPromotionDialog(true);
       } else {
         // For found items, redirect after success message
-        console.log('Redirecting to dashboard');
         setTimeout(() => {
           setShowSuccess(false);
           navigate("/dash");
