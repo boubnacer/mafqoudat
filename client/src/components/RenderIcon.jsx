@@ -1,51 +1,62 @@
 import {
-  AccessTimeFilled,
-  AccessTimeOutlined,
-  AccountBalanceWalletOutlined,
-  ArrowDropDown,
-  ArrowDropDownOutlined,
-  ArrowDropUpOutlined,
-  ArrowRightAlt,
-  ArticleOutlined,
-  AttachMoneyOutlined,
-  Create,
-  DeliveryDiningOutlined,
-  DevicesOtherOutlined,
-  East,
-  FacebookOutlined,
-  FiberManualRecord,
-  HomeOutlined,
-  Instagram,
-  KeyOutlined,
-  KeyboardArrowRightOutlined,
-  LocationOn,
-  LocationOnOutlined,
   NorthEast,
-  NotificationsActiveOutlined,
-  Person,
-  PersonOutlineOutlined,
-  PersonOutlined,
-  PlaceOutlined,
-  ShareOutlined,
   SouthEast,
-  SwapVertOutlined,
+  HomeOutlined,
   TimelineOutlined,
-  TrendingFlat,
-  TrendingUpOutlined,
-  Twitter,
-  UndoOutlined,
-  WhatsApp,
-  Whatshot,
-  WorkOutlineOutlined,
+  PersonOutlined,
   LuggageOutlined,
   PhoneAndroidOutlined,
+  KeyOutlined,
   CreditCardOutlined,
+  AttachMoneyOutlined,
+  DeliveryDiningOutlined,
+  ArticleOutlined,
+  PetsOutlined,
+  WatchOutlined,
+  SchoolOutlined,
+  SportsEsportsOutlined,
+  HomeOutlined as HomeIcon,
+  LocalHospitalOutlined,
+  RestaurantOutlined,
+  ShoppingBagOutlined,
+  WorkOutlineOutlined,
+  SportsSoccerOutlined,
+  MusicNoteOutlined,
+  ToysOutlined,
+  FaceOutlined,
+  CameraAltOutlined,
+  BuildOutlined,
+  LocalFloristOutlined,
+  MoreHorizOutlined
 } from "@mui/icons-material";
 import { useTheme } from "@mui/material";
 import React from "react";
+import { getCategoryIcon, getCategoryColor } from "../config/categories";
 
 const RenderIcon = ({ name }) => {
   const theme = useTheme();
+  
+  // Check if this is a category icon first
+  if (name && name.toLowerCase().includes('cate')) {
+    const categoryCode = name.replace('cate', '').toUpperCase();
+    const IconComponent = getCategoryIcon(categoryCode);
+    const iconColor = getCategoryColor(categoryCode);
+    
+    if (IconComponent) {
+      return (
+        <IconComponent
+          sx={{
+            color: iconColor,
+            fontSize: name === "personcate" ? "2rem" : 
+                     name === "personrece" ? "2.5rem" : "26px",
+            borderRadius: "5px",
+            padding: name === "personrece" && "0.5rem",
+          }}
+        />
+      );
+    }
+  }
+  
   const icon =
     // for left side header ------
     name === "Found" ? (
@@ -208,73 +219,319 @@ const RenderIcon = ({ name }) => {
               ? "2rem"
               : name === "Documentrece"
               ? "2.5rem"
-              : "22px",
+              : "26px",
 
           borderRadius: "5px",
           padding: name === "Documentrece" && "0.5rem",
         }}
       />
-    ) : // other
-    name === "location" || name === "locat" ? (
-      <PlaceOutlined
+    ) : name === "Pets" ||
+      name === "Petscate" ||
+      name === "Petsrece" ? (
+      <PetsOutlined
         sx={{
-          color:
-            name === "location" ? "#A8ABAF" : name === "locat" ? "#A8ABAF" : "",
-          fontSize: "20px",
-        }}
-      /> // #777777 #A8ABAF
-    ) : name === "share" ? (
-      <ShareOutlined data-directional="true" />
-    ) : name === "trending" ? (
-      <TrendingUpOutlined data-directional="true" />
-    ) : name === "view" ? (
-      <KeyboardArrowRightOutlined data-directional="true" />
-    ) : name == "time" || name === "timerace" ? (
-      <AccessTimeOutlined
-        sx={{
-          color:
-            name === "time" ? "#AFB2B7" : name === "timerace" ? "#AFB2B7" : "",
-          fontSize: "20px",
+          color: theme.palette.categories.petscate?.icon || "#795548",
+          fontSize:
+            name === "Petscate"
+              ? "2rem"
+              : name === "Petsrece"
+              ? "2.5rem"
+              : "26px",
+
+          borderRadius: "5px",
+          padding: name === "Petsrece" && "0.5rem",
         }}
       />
-    ) : name === "fire" ? (
-      <Whatshot
+    ) : name === "Watches" ||
+      name === "Watchescate" ||
+      name === "Watchesrece" ? (
+      <WatchOutlined
         sx={{
-          fontSize: "26px",
-          color: "#FF0000",
+          color: theme.palette.categories.watchescate?.icon || "#2196F3",
+          fontSize:
+            name === "Watchescate"
+              ? "2rem"
+              : name === "Watchesrece"
+              ? "2.5rem"
+              : "26px",
+
+          borderRadius: "5px",
+          padding: name === "Watchesrece" && "0.5rem",
         }}
       />
-    ) : name === "seeall" ? (
-      <East
+    ) : name === "Education" ||
+      name === "Educationcate" ||
+      name === "Educationrece" ? (
+      <SchoolOutlined
         sx={{
-          fontSize: "25px",
+          color: theme.palette.categories.educationcate?.icon || "#673AB7",
+          fontSize:
+            name === "Educationcate"
+              ? "2rem"
+              : name === "Educationrece"
+              ? "2.5rem"
+              : "26px",
+
+          borderRadius: "5px",
+          padding: name === "Educationrece" && "0.5rem",
         }}
-        data-directional="true"
       />
-    ) : name === "create" ? (
-      <Create
+    ) : name === "Gaming" ||
+      name === "Gamingcate" ||
+      name === "Gamingrece" ? (
+      <SportsEsportsOutlined
         sx={{
-          fontSize: "18px",
+          color: theme.palette.categories.gamingcate?.icon || "#E91E63",
+          fontSize:
+            name === "Gamingcate"
+              ? "2rem"
+              : name === "Gamingrece"
+              ? "2.5rem"
+              : "26px",
+
+          borderRadius: "5px",
+          padding: name === "Gamingrece" && "0.5rem",
         }}
-        data-directional="true"
       />
-    ) : name === "arrowDown" ? (
-      <ArrowDropDown data-directional="true" />
-    ) : name === "notif" ? (
-      <NotificationsActiveOutlined />
-    ) : name === "ad" ? (
-      <TimelineOutlined />
-    ) : name === "face" ? (
-      <FacebookOutlined sx={{ color: "#1877f2", fontSize: "30px" }} />
-    ) : name === "insta" ? (
-      <Instagram sx={{ color: "#c32aa3", fontSize: "30px" }} />
-    ) : name === "x" ? (
-      <Twitter sx={{ color: "#55acee", fontSize: "30px" }} />
-    ) : name === "whats" ? (
-      <WhatsApp sx={{ color: "#25d366", fontSize: "30px" }} />
-    ) : (
-      ""
-    );
+    ) : name === "Home" ||
+      name === "Homecate" ||
+      name === "Homerece" ? (
+      <HomeIcon
+        sx={{
+          color: theme.palette.categories.homecate?.icon || "#8BC34A",
+          fontSize:
+            name === "Homecate"
+              ? "2rem"
+              : name === "Homerece"
+              ? "2.5rem"
+              : "26px",
+
+          borderRadius: "5px",
+          padding: name === "Homerece" && "0.5rem",
+        }}
+      />
+    ) : name === "Medical" ||
+      name === "Medicalcate" ||
+      name === "Medicalrece" ? (
+      <LocalHospitalOutlined
+        sx={{
+          color: theme.palette.categories.medicalcate?.icon || "#F44336",
+          fontSize:
+            name === "Medicalcate"
+              ? "2rem"
+              : name === "Medicalrece"
+              ? "2.5rem"
+              : "26px",
+
+          borderRadius: "5px",
+          padding: name === "Medicalrece" && "0.5rem",
+        }}
+      />
+    ) : name === "Food" ||
+      name === "Foodcate" ||
+      name === "Foodrece" ? (
+      <RestaurantOutlined
+        sx={{
+          color: theme.palette.categories.foodcate?.icon || "#FF9800",
+          fontSize:
+            name === "Foodcate"
+              ? "2rem"
+              : name === "Foodrece"
+              ? "2.5rem"
+              : "26px",
+
+          borderRadius: "5px",
+          padding: name === "Foodrece" && "0.5rem",
+        }}
+      />
+    ) : name === "Shopping" ||
+      name === "Shoppingcate" ||
+      name === "Shoppingrece" ? (
+      <ShoppingBagOutlined
+        sx={{
+          color: theme.palette.categories.shoppingcate?.icon || "#9C27B0",
+          fontSize:
+            name === "Shoppingcate"
+              ? "2rem"
+              : name === "Shoppingrece"
+              ? "2.5rem"
+              : "26px",
+
+          borderRadius: "5px",
+          padding: name === "Shoppingrece" && "0.5rem",
+        }}
+      />
+    ) : name === "Work" ||
+      name === "Workcate" ||
+      name === "Workrece" ? (
+      <WorkOutlineOutlined
+        sx={{
+          color: theme.palette.categories.workcate?.icon || "#607D8B",
+          fontSize:
+            name === "Workcate"
+              ? "2rem"
+              : name === "Workrece"
+              ? "2.5rem"
+              : "26px",
+
+          borderRadius: "5px",
+          padding: name === "Workrece" && "0.5rem",
+        }}
+      />
+    ) : name === "Sports" ||
+      name === "Sportscate" ||
+      name === "Sportsrece" ? (
+      <SportsSoccerOutlined
+        sx={{
+          color: theme.palette.categories.sportscate?.icon || "#4CAF50",
+          fontSize:
+            name === "Sportscate"
+              ? "2rem"
+              : name === "Sportsrece"
+              ? "2.5rem"
+              : "26px",
+
+          borderRadius: "5px",
+          padding: name === "Sportsrece" && "0.5rem",
+        }}
+      />
+    ) : name === "Music" ||
+      name === "Musiccate" ||
+      name === "Musicrece" ? (
+      <MusicNoteOutlined
+        sx={{
+          color: theme.palette.categories.musiccate?.icon || "#9C27B0",
+          fontSize:
+            name === "Musiccate"
+              ? "2rem"
+              : name === "Musicrece"
+              ? "2.5rem"
+              : "26px",
+
+          borderRadius: "5px",
+          padding: name === "Musicrece" && "0.5rem",
+        }}
+      />
+    ) : name === "Toys" ||
+      name === "Toyscate" ||
+      name === "Toysrece" ? (
+      <ToysOutlined
+        sx={{
+          color: theme.palette.categories.toyscate?.icon || "#FF9800",
+          fontSize:
+            name === "Toyscate"
+              ? "2rem"
+              : name === "Toysrece"
+              ? "2.5rem"
+              : "26px",
+
+          borderRadius: "5px",
+          padding: name === "Toysrece" && "0.5rem",
+        }}
+      />
+    ) : name === "Beauty" ||
+      name === "Beautycate" ||
+      name === "Beautyrece" ? (
+      <FaceOutlined
+        sx={{
+          color: theme.palette.categories.beautycate?.icon || "#E91E63",
+          fontSize:
+            name === "Beautycate"
+              ? "2rem"
+              : name === "Beautyrece"
+              ? "2.5rem"
+              : "26px",
+
+          borderRadius: "5px",
+          padding: name === "Beautyrece" && "0.5rem",
+        }}
+      />
+    ) : name === "Camera" ||
+      name === "Cameracate" ||
+      name === "Camerarece" ? (
+      <CameraAltOutlined
+        sx={{
+          color: theme.palette.categories.cameracate?.icon || "#2196F3",
+          fontSize:
+            name === "Cameracate"
+              ? "2rem"
+              : name === "Camerarece"
+              ? "2.5rem"
+              : "26px",
+
+          borderRadius: "5px",
+          padding: name === "Camerarece" && "0.5rem",
+        }}
+      />
+    ) : name === "Luggage" ||
+      name === "Luggagecate" ||
+      name === "Luggagerece" ? (
+      <LuggageOutlined
+        sx={{
+          color: theme.palette.categories.luggagecate?.icon || "#795548",
+          fontSize:
+            name === "Luggagecate"
+              ? "2rem"
+              : name === "Luggagerece"
+              ? "2.5rem"
+              : "26px",
+
+          borderRadius: "5px",
+          padding: name === "Luggagerece" && "0.5rem",
+        }}
+      />
+    ) : name === "Tools" ||
+      name === "Toolscate" ||
+      name === "Toolsrece" ? (
+      <BuildOutlined
+        sx={{
+          color: theme.palette.categories.toolscate?.icon || "#607D8B",
+          fontSize:
+            name === "Toolscate"
+              ? "2rem"
+              : name === "Toolsrece"
+              ? "2.5rem"
+              : "26px",
+
+          borderRadius: "5px",
+          padding: name === "Toolsrece" && "0.5rem",
+        }}
+      />
+    ) : name === "Garden" ||
+      name === "Gardencate" ||
+      name === "Gardenrece" ? (
+      <LocalFloristOutlined
+        sx={{
+          color: theme.palette.categories.gardencate?.icon || "#4CAF50",
+          fontSize:
+            name === "Gardencate"
+              ? "2rem"
+              : name === "Gardenrece"
+              ? "2.5rem"
+              : "26px",
+
+          borderRadius: "5px",
+          padding: name === "Gardenrece" && "0.5rem",
+        }}
+      />
+    ) : name === "Other" ||
+      name === "Othercate" ||
+      name === "Otherrece" ? (
+      <MoreHorizOutlined
+        sx={{
+          color: theme.palette.categories.othercate?.icon || "#9E9E9E",
+          fontSize:
+            name === "Othercate"
+              ? "2rem"
+              : name === "Otherrece"
+              ? "2.5rem"
+              : "26px",
+
+          borderRadius: "5px",
+          padding: name === "Otherrece" && "0.5rem",
+        }}
+      />
+    ) : null;
 
   return icon;
 };

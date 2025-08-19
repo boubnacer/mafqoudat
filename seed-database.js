@@ -1,10 +1,12 @@
+require('dotenv').config({ path: './server/.env' });
 const mongoose = require('mongoose');
 const Country = require('./server/models/Country');
 const FoundLost = require('./server/models/FoundLost');
 const Category = require('./server/models/Category');
 
-// Railway MongoDB URI (replace with your actual URI)
-const MONGODB_URI = 'mongodb+srv://mafqoudat:NB%40mafBase2025@cluster0.mwwk6a.mongodb.net/mafqoudat?retryWrites=true&w=majority';
+// MongoDB URI - try environment variable first, then fallback to direct string
+const MONGODB_URI = process.env.MONGODB_URI || 'mongodb+srv://boubkraouinacer:NB%40mafBase2025@cluster0.mwwk6a.mongodb.net/mafqoudat?retryWrites=true&w=majority&appName=Cluster0';
+
 // Sample countries data with multilingual support
 const countriesData = [
   {
@@ -168,11 +170,21 @@ const countriesData = [
       fr: 'Liban',
       ar: 'لبنان'
     },
+    names: {
+      en: 'Lebanon',
+      fr: 'Liban',
+      ar: 'لبنان'
+    },
     flag: '🇱🇧'
   },
   {
     code: 'SY',
     labels: {
+      en: 'Syria',
+      fr: 'Syrie',
+      ar: 'سوريا'
+    },
+    names: {
       en: 'Syria',
       fr: 'Syrie',
       ar: 'سوريا'
@@ -186,11 +198,21 @@ const countriesData = [
       fr: 'Irak',
       ar: 'العراق'
     },
+    names: {
+      en: 'Iraq',
+      fr: 'Irak',
+      ar: 'العراق'
+    },
     flag: '🇮🇶'
   },
   {
     code: 'PS',
     labels: {
+      en: 'Palestine',
+      fr: 'Palestine',
+      ar: 'فلسطين'
+    },
+    names: {
       en: 'Palestine',
       fr: 'Palestine',
       ar: 'فلسطين'
@@ -204,11 +226,21 @@ const countriesData = [
       fr: 'Libye',
       ar: 'ليبيا'
     },
+    names: {
+      en: 'Libya',
+      fr: 'Libye',
+      ar: 'ليبيا'
+    },
     flag: '🇱🇾'
   },
   {
     code: 'SD',
     labels: {
+      en: 'Sudan',
+      fr: 'Soudan',
+      ar: 'السودان'
+    },
+    names: {
       en: 'Sudan',
       fr: 'Soudan',
       ar: 'السودان'
@@ -222,11 +254,21 @@ const countriesData = [
       fr: 'Somalie',
       ar: 'الصومال'
     },
+    names: {
+      en: 'Somalia',
+      fr: 'Somalie',
+      ar: 'الصومال'
+    },
     flag: '🇸🇴'
   },
   {
     code: 'DJ',
     labels: {
+      en: 'Djibouti',
+      fr: 'Djibouti',
+      ar: 'جيبوتي'
+    },
+    names: {
       en: 'Djibouti',
       fr: 'Djibouti',
       ar: 'جيبوتي'
@@ -240,11 +282,21 @@ const countriesData = [
       fr: 'Comores',
       ar: 'جزر القمر'
     },
+    names: {
+      en: 'Comoros',
+      fr: 'Comores',
+      ar: 'جزر القمر'
+    },
     flag: '🇰🇲'
   },
   {
     code: 'MR',
     labels: {
+      en: 'Mauritania',
+      fr: 'Mauritanie',
+      ar: 'موريتانيا'
+    },
+    names: {
       en: 'Mauritania',
       fr: 'Mauritanie',
       ar: 'موريتانيا'
@@ -258,11 +310,21 @@ const countriesData = [
       fr: 'Mali',
       ar: 'مالي'
     },
+    names: {
+      en: 'Mali',
+      fr: 'Mali',
+      ar: 'مالي'
+    },
     flag: '🇲🇱'
   },
   {
     code: 'NE',
     labels: {
+      en: 'Niger',
+      fr: 'Niger',
+      ar: 'النيجر'
+    },
+    names: {
       en: 'Niger',
       fr: 'Niger',
       ar: 'النيجر'
@@ -276,11 +338,21 @@ const countriesData = [
       fr: 'Tchad',
       ar: 'تشاد'
     },
+    names: {
+      en: 'Chad',
+      fr: 'Tchad',
+      ar: 'تشاد'
+    },
     flag: '🇹🇩'
   },
   {
     code: 'CF',
     labels: {
+      en: 'Central African Republic',
+      fr: 'République Centrafricaine',
+      ar: 'جمهورية أفريقيا الوسطى'
+    },
+    names: {
       en: 'Central African Republic',
       fr: 'République Centrafricaine',
       ar: 'جمهورية أفريقيا الوسطى'
@@ -315,7 +387,7 @@ const postTypesData = [
   }
 ];
 
-// Categories data
+// Categories data - Updated to match new model structure
 const categoriesData = [
   {
     code: 'ELECTRONICS',
@@ -324,10 +396,10 @@ const categoriesData = [
       fr: 'Électronique',
       ar: 'إلكترونيات'
     },
-    flag: '📱',
-    icon: '📱',
-    color: '#2196F3',
-    description: 'Electronic devices and gadgets'
+    color: '#00BCD4',
+    description: 'Electronic devices and gadgets',
+    priority: 1,
+    iconName: 'PhoneAndroidOutlined'
   },
   {
     code: 'DOCUMENTS',
@@ -336,10 +408,10 @@ const categoriesData = [
       fr: 'Documents',
       ar: 'وثائق'
     },
-    flag: '📄',
-    icon: '📄',
-    color: '#FF9800',
-    description: 'Important documents and papers'
+    color: '#795548',
+    description: 'Important documents and papers',
+    priority: 2,
+    iconName: 'ArticleOutlined'
   },
   {
     code: 'JEWELRY',
@@ -348,10 +420,10 @@ const categoriesData = [
       fr: 'Bijoux',
       ar: 'مجوهرات'
     },
-    flag: '💍',
-    icon: '💍',
-    color: '#E91E63',
-    description: 'Jewelry and accessories'
+    color: '#9C27B0',
+    description: 'Jewelry and accessories',
+    priority: 3,
+    iconName: 'AttachMoneyOutlined'
   },
   {
     code: 'CLOTHING',
@@ -360,10 +432,10 @@ const categoriesData = [
       fr: 'Vêtements',
       ar: 'ملابس'
     },
-    flag: '👕',
-    icon: '👕',
-    color: '#9C27B0',
-    description: 'Clothing and fashion items'
+    color: '#4CAF50',
+    description: 'Clothing and fashion items',
+    priority: 4,
+    iconName: 'LuggageOutlined'
   },
   {
     code: 'PETS',
@@ -372,10 +444,10 @@ const categoriesData = [
       fr: 'Animaux',
       ar: 'حيوانات أليفة'
     },
-    flag: '🐕',
-    icon: '🐕',
     color: '#795548',
-    description: 'Lost or found pets'
+    description: 'Lost or found pets',
+    priority: 5,
+    iconName: 'PetsOutlined'
   },
   {
     code: 'VEHICLES',
@@ -384,10 +456,94 @@ const categoriesData = [
       fr: 'Véhicules',
       ar: 'مركبات'
     },
-    flag: '🚗',
-    icon: '🚗',
     color: '#607D8B',
-    description: 'Cars, motorcycles, and other vehicles'
+    description: 'Cars, motorcycles, and other vehicles',
+    priority: 6,
+    iconName: 'DirectionsCarOutlined'
+  },
+  {
+    code: 'KEYS',
+    labels: {
+      en: 'Keys',
+      fr: 'Clés',
+      ar: 'مفاتيح'
+    },
+    color: '#FF9800',
+    description: 'Keys and keychains',
+    priority: 7,
+    iconName: 'KeyOutlined'
+  },
+  {
+    code: 'WALLET',
+    labels: {
+      en: 'Wallet',
+      fr: 'Portefeuille',
+      ar: 'محفظة'
+    },
+    color: '#FF5722',
+    description: 'Wallets and purses',
+    priority: 8,
+    iconName: 'CreditCardOutlined'
+  },
+  {
+    code: 'WATCHES',
+    labels: {
+      en: 'Watches',
+      fr: 'Montres',
+      ar: 'ساعات'
+    },
+    color: '#2196F3',
+    description: 'Watches and timepieces',
+    priority: 9,
+    iconName: 'WatchOutlined'
+  },
+  {
+    code: 'GAMING',
+    labels: {
+      en: 'Gaming',
+      fr: 'Jeux',
+      ar: 'ألعاب'
+    },
+    color: '#E91E63',
+    description: 'Gaming consoles, controllers, and accessories',
+    priority: 10,
+    iconName: 'SportsEsportsOutlined'
+  },
+  {
+    code: 'MEDICAL',
+    labels: {
+      en: 'Medical',
+      fr: 'Médical',
+      ar: 'طبي'
+    },
+    color: '#F44336',
+    description: 'Medical devices and health equipment',
+    priority: 11,
+    iconName: 'LocalHospitalOutlined'
+  },
+  {
+    code: 'LUGGAGE',
+    labels: {
+      en: 'Luggage',
+      fr: 'Bagages',
+      ar: 'أمتعة'
+    },
+    color: '#795548',
+    description: 'Luggage and travel bags',
+    priority: 12,
+    iconName: 'LuggageOutlined'
+  },
+  {
+    code: 'OTHER',
+    labels: {
+      en: 'Other',
+      fr: 'Autre',
+      ar: 'أخرى'
+    },
+    color: '#9E9E9E',
+    description: 'Other miscellaneous items',
+    priority: 13,
+    iconName: 'MoreHorizOutlined'
   }
 ];
 
@@ -395,11 +551,17 @@ const seedData = async () => {
   try {
     console.log('🌱 Starting database seeding...');
     console.log('Connecting to MongoDB...');
+    console.log('Using URI:', MONGODB_URI.replace(/\/\/[^:]+:[^@]+@/, '//***:***@')); // Hide credentials in logs
     
-    // Connect to MongoDB
+    // Connect to MongoDB with better error handling
     await mongoose.connect(MONGODB_URI, {
       useNewUrlParser: true,
       useUnifiedTopology: true,
+      maxPoolSize: 10,
+      serverSelectionTimeoutMS: 30000,
+      socketTimeoutMS: 45000,
+      retryWrites: true,
+      w: 'majority',
     });
     console.log('✅ Connected to MongoDB');
 
@@ -433,9 +595,15 @@ const seedData = async () => {
 
   } catch (error) {
     console.error('❌ Error seeding data:', error);
+    console.error('Error details:', error.message);
+    if (error.code) {
+      console.error('Error code:', error.code);
+    }
   } finally {
-    await mongoose.disconnect();
-    console.log('🔌 Disconnected from MongoDB');
+    if (mongoose.connection.readyState === 1) {
+      await mongoose.disconnect();
+      console.log('🔌 Disconnected from MongoDB');
+    }
   }
 };
 

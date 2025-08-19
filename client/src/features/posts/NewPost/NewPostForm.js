@@ -59,7 +59,7 @@ const NewPostForm = ({ user, countries, categories, flOptions }) => {
     category: Yup.string().required(t('required')),
     region: Yup.string().required(t('required')),
     foundLost: Yup.string().required(t('required')),
-    image: Yup.mixed().required(t('imageRequired')),
+    image: Yup.mixed().nullable(), // Changed from required to optional
   });
 
   const handleSubmit = async (values, { setSubmitting, setStatus }) => {
@@ -200,7 +200,7 @@ const NewPostForm = ({ user, countries, categories, flOptions }) => {
 
                 <Box>
                   <FormLabel htmlFor="image" sx={{ mb: 1, display: "block", fontWeight: 500 }}>
-                    {t('addItemImage')}
+                    {t('addItemImage')} ({t('optional')})
                   </FormLabel>
                   <Box display="flex" alignItems="center" gap={2}>
                     <Button
@@ -234,6 +234,9 @@ const NewPostForm = ({ user, countries, categories, flOptions }) => {
                       </Typography>
                     )}
                   </Box>
+                  <Typography variant="caption" color="text.secondary" sx={{ mt: 1, display: "block" }}>
+                    {t('imageOptionalMessage')}
+                  </Typography>
                 </Box>
                 
                 <Box mt={4}>

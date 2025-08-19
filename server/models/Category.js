@@ -25,14 +25,6 @@ const categorySchema = new mongoose.Schema({
       trim: true
     }
   },
-  flag: {
-    type: String,
-    default: null
-  },
-  icon: {
-    type: String,
-    default: null
-  },
   color: {
     type: String,
     default: '#2196F3'
@@ -44,6 +36,22 @@ const categorySchema = new mongoose.Schema({
   description: {
     type: String,
     default: null
+  },
+  priority: {
+    type: Number,
+    default: 0,
+    min: 0
+  },
+  searchTerms: {
+    type: [String],
+    default: []
+  },
+  // Client-side icon mapping (for reference, not stored in DB)
+  iconName: {
+    type: String,
+    default: null,
+    // This field is for documentation purposes only
+    // The actual icon rendering is handled on the client side
   }
 }, {
   timestamps: true
@@ -54,7 +62,8 @@ categorySchema.index({
   "labels.en": "text", 
   "labels.fr": "text", 
   "labels.ar": "text",
-  "code": "text"
+  "code": "text",
+  "searchTerms": "text"
 });
 
 // Virtual for backward compatibility
@@ -67,9 +76,26 @@ categorySchema.methods.getLabel = function(language = 'en') {
   return this.labels[language] || this.labels.en;
 };
 
+// Method to get all searchable terms
+categorySchema.methods.getSearchTerms = function() {
+  return [
+    this.code,
+    this.labels.en,
+    this.labels.fr,
+    this.labels.ar,
+    ...this.searchTerms
+  ].filter(Boolean); // Remove undefined values
+};
+
+// Pre-save middleware to update search terms
+categorySchema.pre('save', function(next) {
+  this.searchTerms = this.getSearchTerms();
+  next();
+});
+
 // Static method to get all active categories
 categorySchema.statics.getActive = function() {
-  return this.find({ isActive: true });
+  return this.find({ isActive: true }).sort({ priority: -1, 'labels.en': 1 });
 };
 
 module.exports = mongoose.model("Category", categorySchema);

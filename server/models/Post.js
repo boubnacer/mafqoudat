@@ -35,15 +35,19 @@ const postSchema = new mongoose.Schema(
       type: Boolean,
       default: false,
     },
+    // Make image optional
     image: {
       type: String,
+      required: false, // Changed from required to optional
     },
     // Cloudinary fields for proper image management
     cloudinaryUrl: {
       type: String,
+      required: false, // Changed from required to optional
     },
     cloudinaryPublicId: {
       type: String,
+      required: false, // Changed from required to optional
     },
     mainDate: {
       type: String,
@@ -116,6 +120,60 @@ const postSchema = new mongoose.Schema(
     },
     promotionProcessedAt: {
       type: Date,
+    },
+    // Additional useful fields
+    city: {
+      type: String,
+      default: null,
+    },
+    exactLocation: {
+      type: String,
+      default: null,
+    },
+    contactPreferences: {
+      phone: {
+        type: Boolean,
+        default: true
+      },
+      email: {
+        type: Boolean,
+        default: false
+      },
+      whatsapp: {
+        type: Boolean,
+        default: false
+      }
+    },
+    status: {
+      type: String,
+      enum: ['active', 'resolved', 'expired', 'suspended'],
+      default: 'active'
+    },
+    resolvedAt: {
+      type: Date,
+      default: null
+    },
+    expiresAt: {
+      type: Date,
+      default: null
+    },
+    views: {
+      type: Number,
+      default: 0
+    },
+    lastViewedAt: {
+      type: Date,
+      default: null
+    },
+    tags: [{
+      type: String,
+      trim: true
+    }],
+    // Additional contact information
+    additionalContact: {
+      phone: String,
+      email: String,
+      whatsapp: String
     }
   },
   {
@@ -131,7 +189,10 @@ postSchema.index({
   "descriptionLabels.en": "text", 
   "descriptionLabels.fr": "text", 
   "descriptionLabels.ar": "text",
-  "region": "text"
+  "region": "text",
+  "city": "text",
+  "exactLocation": "text",
+  "tags": "text"
 });
 
 // Virtual for backward compatibility
@@ -148,6 +209,11 @@ postSchema.virtual('imageUrl').get(function() {
   return this.cloudinaryUrl || this.image || '';
 });
 
+// Virtual to check if post has image
+postSchema.virtual('hasImage').get(function() {
+  return !!(this.cloudinaryUrl || this.image);
+});
+
 // Method to get title by language
 postSchema.methods.getTitle = function(language = 'en') {
   return this.titleLabels?.[language] || this.titleLabels?.en || this.title || '';
@@ -157,6 +223,29 @@ postSchema.methods.getTitle = function(language = 'en') {
 postSchema.methods.getDescription = function(language = 'en') {
   return this.descriptionLabels?.[language] || this.descriptionLabels?.en || this.description || '';
 };
+
+// Method to increment views
+postSchema.methods.incrementViews = function() {
+  this.views += 1;
+  this.lastViewedAt = new Date();
+  return this.save();
+};
+
+// Method to mark as resolved
+postSchema.methods.markAsResolved = function() {
+  this.status = 'resolved';
+  this.returned = true;
+  this.resolvedAt = new Date();
+  return this.save();
+};
+
+// Pre-save middleware to set expiration date (30 days from creation)
+postSchema.pre('save', function(next) {
+  if (this.isNew && !this.expiresAt) {
+    this.expiresAt = new Date(Date.now() + 30 * 24 * 60 * 60 * 1000); // 30 days
+  }
+  next();
+});
 
 postSchema.plugin(AutoIncrement, {
   inc_field: "ticket",

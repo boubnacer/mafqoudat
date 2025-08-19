@@ -1,8 +1,7 @@
 const axios = require('axios');
 
-const API_BASE_URL = 'https://mafqoudat-production.up.railway.app';
+const API_BASE_URL = process.env.API_BASE_URL || 'http://localhost:3500';
 
-// Sample data
 const countriesData = [
   { code: 'MA', labels: { en: 'Morocco', fr: 'Maroc', ar: 'المغرب' }, flag: '🇲🇦' },
   { code: 'DZ', labels: { en: 'Algeria', fr: 'Algérie', ar: 'الجزائر' }, flag: '🇩🇿' },
@@ -32,50 +31,66 @@ const categoriesData = [
   {
     code: 'ELECTRONICS',
     labels: { en: 'Electronics', fr: 'Électronique', ar: 'إلكترونيات' },
-    flag: '📱',
-    icon: '📱',
-    color: '#2196F3',
-    description: 'Electronic devices and gadgets'
+    color: '#00BCD4',
+    description: 'Electronic devices and gadgets',
+    priority: 1,
+    iconName: 'PhoneAndroidOutlined'
   },
   {
     code: 'DOCUMENTS',
     labels: { en: 'Documents', fr: 'Documents', ar: 'وثائق' },
-    flag: '📄',
-    icon: '📄',
-    color: '#FF9800',
-    description: 'Important documents and papers'
+    color: '#795548',
+    description: 'Important documents and papers',
+    priority: 2,
+    iconName: 'ArticleOutlined'
   },
   {
     code: 'JEWELRY',
     labels: { en: 'Jewelry', fr: 'Bijoux', ar: 'مجوهرات' },
-    flag: '💍',
-    icon: '💍',
-    color: '#E91E63',
-    description: 'Jewelry and accessories'
+    color: '#9C27B0',
+    description: 'Jewelry and accessories',
+    priority: 3,
+    iconName: 'AttachMoneyOutlined'
   },
   {
     code: 'CLOTHING',
     labels: { en: 'Clothing', fr: 'Vêtements', ar: 'ملابس' },
-    flag: '👕',
-    icon: '👕',
-    color: '#9C27B0',
-    description: 'Clothing and fashion items'
+    color: '#4CAF50',
+    description: 'Clothing and fashion items',
+    priority: 4,
+    iconName: 'LuggageOutlined'
   },
   {
     code: 'PETS',
     labels: { en: 'Pets', fr: 'Animaux', ar: 'حيوانات أليفة' },
-    flag: '🐕',
-    icon: '🐕',
     color: '#795548',
-    description: 'Lost or found pets'
+    description: 'Lost or found pets',
+    priority: 5,
+    iconName: 'PetsOutlined'
   },
   {
     code: 'VEHICLES',
     labels: { en: 'Vehicles', fr: 'Véhicules', ar: 'مركبات' },
-    flag: '🚗',
-    icon: '🚗',
     color: '#607D8B',
-    description: 'Cars, motorcycles, and other vehicles'
+    description: 'Cars, motorcycles, and other vehicles',
+    priority: 6,
+    iconName: 'DirectionsCarOutlined'
+  },
+  {
+    code: 'KEYS',
+    labels: { en: 'Keys', fr: 'Clés', ar: 'مفاتيح' },
+    color: '#FF9800',
+    description: 'Keys and keychains',
+    priority: 7,
+    iconName: 'KeyOutlined'
+  },
+  {
+    code: 'WALLET',
+    labels: { en: 'Wallet', fr: 'Portefeuille', ar: 'محفظة' },
+    color: '#FF5722',
+    description: 'Wallets and purses',
+    priority: 8,
+    iconName: 'CreditCardOutlined'
   }
 ];
 

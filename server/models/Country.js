@@ -100,4 +100,9 @@ countrySchema.pre('save', function(next) {
   next();
 });
 
+// Static method to get all active countries
+countrySchema.statics.getActive = function() {
+  return this.find({ isActive: true }).sort({ 'labels.en': 1 });
+};
+
 module.exports = mongoose.model("Country", countrySchema);
