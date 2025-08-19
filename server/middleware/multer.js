@@ -27,6 +27,9 @@ const upload = multer({
 // Middleware to handle Cloudinary upload
 const uploadToCloudinaryMiddleware = async (req, res, next) => {
   try {
+    console.log('Multer middleware - req.file:', req.file ? 'File present' : 'No file');
+    console.log('Multer middleware - req.body:', req.body);
+    
     if (req.file) {
       // Use os.tmpdir() for cross-platform compatibility
       const os = require('os');
@@ -50,6 +53,7 @@ const uploadToCloudinaryMiddleware = async (req, res, next) => {
     }
     next();
   } catch (error) {
+    console.error('Error in uploadToCloudinaryMiddleware:', error);
     next(error);
   }
 };

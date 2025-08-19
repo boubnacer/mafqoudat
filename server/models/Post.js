@@ -25,7 +25,7 @@ const postSchema = new mongoose.Schema(
     },
     region: {
       type: String,
-      required: true,
+      required: false,
     },
     contact: {
       type: String,

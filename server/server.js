@@ -16,7 +16,11 @@ const PORT = process.env.PORT || 3500;
 
 console.log(process.env.NODE_ENV);
 
-connectDB();
+// Connect to database with error handling
+connectDB().catch(err => {
+  console.error('Failed to connect to database:', err);
+  process.exit(1);
+});
 
 // Security middleware - more flexible for development
 if (process.env.NODE_ENV === 'production') {
@@ -82,6 +86,18 @@ app.get("/health", (req, res) => {
   });
 });
 
+// Test endpoint for debugging
+app.post("/test-post", (req, res) => {
+  console.log('Test POST endpoint called');
+  console.log('Request body:', req.body);
+  console.log('Request headers:', req.headers);
+  res.status(200).json({ 
+    message: "Test endpoint working",
+    body: req.body,
+    timestamp: new Date().toISOString()
+  });
+});
+
 // API-only server - frontend will be deployed separately
 app.all("*", (req, res) => {
   res.status(404);
@@ -109,7 +125,29 @@ app.use(errorHandler);
 
 mongoose.connection.once("open", () => {
   console.log("Connected to MongoDB");
-  app.listen(PORT, () => console.log(`Server running on port ${PORT}`));
+  // Error handling for uncaught exceptions
+process.on('uncaughtException', (err) => {
+  console.error('Uncaught Exception:', err);
+  process.exit(1);
+});
+
+process.on('unhandledRejection', (reason, promise) => {
+  console.error('Unhandled Rejection at:', promise, 'reason:', reason);
+  process.exit(1);
+});
+
+// Graceful shutdown
+process.on('SIGTERM', () => {
+  console.log('SIGTERM received, shutting down gracefully');
+  process.exit(0);
+});
+
+process.on('SIGINT', () => {
+  console.log('SIGINT received, shutting down gracefully');
+  process.exit(0);
+});
+
+app.listen(PORT, () => console.log(`Server running on port ${PORT}`));
 });
 
 mongoose.connection.on("error", (err) => {

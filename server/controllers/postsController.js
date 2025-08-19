@@ -206,24 +206,53 @@ const getFilteredPosts = async (req, res) => {
 // @route POST /posts
 // @access Private
 const createNewPost = async (req, res) => {
-  console.log('Received request body:', req.body);
-  
-  const { 
-    user, 
-    country, 
-    category, 
-    contact, 
-    foundLost,
-    exactLocation,
-    description,
-    contactPreferences,
-    additionalContact
-  } = req.body;
-  const formData = req.body;
+  try {
+    console.log('Received request body:', req.body);
+    console.log('Request headers:', req.headers);
+    
+    const { 
+      user, 
+      country, 
+      category, 
+      contact, 
+      foundLost,
+      exactLocation,
+      description,
+      contactPreferences,
+      additionalContact
+    } = req.body;
+    const formData = req.body;
 
   // Confirm required data
+  console.log('Validating required fields:', {
+    user: !!user,
+    category: !!category,
+    contact: !!contact,
+    country: !!country,
+    foundLost: !!foundLost,
+    exactLocation: !!exactLocation
+  });
+  
   if (!user || !category || !contact || !country || !foundLost || !exactLocation) {
-    return res.status(400).json({ message: "All required fields are required" });
+    console.log('Missing required fields:', {
+      user: !user,
+      category: !category,
+      contact: !contact,
+      country: !country,
+      foundLost: !foundLost,
+      exactLocation: !exactLocation
+    });
+    return res.status(400).json({ 
+      message: "All required fields are required",
+      missing: {
+        user: !user,
+        category: !category,
+        contact: !contact,
+        country: !country,
+        foundLost: !foundLost,
+        exactLocation: !exactLocation
+      }
+    });
   }
 
   // Validate references
@@ -279,22 +308,26 @@ const createNewPost = async (req, res) => {
   // Create and store the new post
   console.log('Creating post with data:', postData);
   
-  try {
-    const post = await Post.create(postData);
-    console.log('Post created successfully:', post._id);
+  const post = await Post.create(postData);
+  console.log('Post created successfully:', post._id);
 
-    if (post) {
-      // Created
-      return res.status(201).json({ 
-        message: "New post created",
-        postId: post._id 
-      });
-    } else {
-      return res.status(400).json({ message: "Invalid post data received" });
-    }
+  if (post) {
+    // Created
+    return res.status(201).json({ 
+      message: "New post created",
+      postId: post._id 
+    });
+  } else {
+    return res.status(400).json({ message: "Invalid post data received" });
+  }
   } catch (error) {
-    console.error('Error creating post:', error);
-    return res.status(500).json({ message: "Error creating post", error: error.message });
+    console.error('Error in createNewPost:', error);
+    console.error('Error stack:', error.stack);
+    return res.status(500).json({ 
+      message: "Error creating post", 
+      error: error.message,
+      stack: process.env.NODE_ENV === 'development' ? error.stack : undefined
+    });
   }
 };
 
