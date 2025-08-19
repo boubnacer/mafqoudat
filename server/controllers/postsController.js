@@ -87,6 +87,7 @@ const getAllPosts = async (req, res) => {
         user: 1,
         country: 1,
         exactLocation: 1,
+        region: 1,
         returned: 1,
         createdAt: 1,
         updatedAt: 1,
@@ -98,6 +99,8 @@ const getAllPosts = async (req, res) => {
         image: 1,
         foundLost: 1,
         description: 1,
+        contactPreferences: 1,
+        additionalContact: 1,
       },
     },
     {
@@ -152,10 +155,78 @@ const getAllPosts = async (req, res) => {
 const getPost = async (req, res) => {
   const { id } = req.params;
 
-  // we should get the country name for the default value in the dropdown !
-  const post = await Post.findOne({ _id: id });
+  try {
+    const post = await Post.aggregate([
+      {
+        $match: { _id: new mongoose.Types.ObjectId(id) }
+      },
+      {
+        $lookup: {
+          from: "categories",
+          localField: "category",
+          foreignField: "_id",
+          as: "Category",
+        },
+      },
+      { $unwind: "$Category" },
+      {
+        $lookup: {
+          from: "foundlosts",
+          localField: "foundLost",
+          foreignField: "_id",
+          as: "Floptions",
+        },
+      },
+      {
+        $lookup: {
+          from: "countries",
+          localField: "country",
+          foreignField: "_id",
+          as: "Country",
+        },
+      },
+      { $unwind: "$Country" },
+      {
+        $lookup: {
+          from: "users",
+          localField: "user",
+          foreignField: "_id",
+          as: "User",
+        },
+      },
+      { $unwind: "$User" },
+      {
+        $project: {
+          user: 1,
+          country: 1,
+          exactLocation: 1,
+          region: 1,
+          returned: 1,
+          createdAt: 1,
+          updatedAt: 1,
+          username: "$User.username",
+          categoryname: "$Category.code",
+          countryname: "$Country.code",
+          countryLabels: "$Country.labels",
+          contact: 1,
+          image: 1,
+          foundLost: 1,
+          description: 1,
+          contactPreferences: 1,
+          additionalContact: 1,
+        },
+      },
+    ]);
 
-  res.status(200).json(post);
+    if (!post || post.length === 0) {
+      return res.status(404).json({ message: "Post not found" });
+    }
+
+    res.status(200).json(post[0]);
+  } catch (error) {
+    console.error('Error fetching post:', error);
+    res.status(500).json({ message: "Error fetching post" });
+  }
 };
 
 // @desc Get getFilteredPosts

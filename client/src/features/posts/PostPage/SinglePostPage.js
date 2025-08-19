@@ -39,6 +39,7 @@ const SinglePostPage = ({
   _id,
   categoryname,
   region,
+  exactLocation,
   contact,
   user,
   image,
@@ -46,8 +47,12 @@ const SinglePostPage = ({
   createdAt,
   updatedAt,
   countryname,
+  countryLabels,
   foundLost,
-  Floptions
+  Floptions,
+  description,
+  contactPreferences,
+  additionalContact
 }) => {
   const navigate = useNavigate();
   const theme = useTheme();
@@ -139,7 +144,7 @@ const SinglePostPage = ({
         </Button>
       </Box>
 
-      <Grid container spacing={4}>
+      <Grid container spacing={{ xs: 2, md: 4 }}>
         {/* Main Content */}
         <Grid item xs={12} lg={8}>
           <Paper 
@@ -155,12 +160,16 @@ const SinglePostPage = ({
               <CardMedia
                 component="img"
                 sx={{ 
-                  height: { xs: 300, md: 400 },
+                  height: { xs: 250, sm: 300, md: 400 },
                   width: '100%',
                   objectFit: 'cover'
                 }}
-                image={image ? `${process.env.REACT_APP_API_URL || "http://localhost:3500"}/${image}` : sear}
+                image={image ? (image.startsWith('http') ? image : `${process.env.REACT_APP_API_URL || "http://localhost:3500"}/${image}`) : sear}
                 title={categoryname}
+                onError={(e) => {
+                  console.log('Image failed to load:', e.target.src);
+                  e.target.src = sear;
+                }}
               />
               
               {/* Status Badge */}
@@ -194,33 +203,35 @@ const SinglePostPage = ({
             </Box>
 
             {/* Content Section */}
-            <Box sx={{ p: { xs: 3, md: 4 } }}>
+            <Box sx={{ p: { xs: 2, sm: 3, md: 4 } }}>
               {/* Header */}
-              <Box display="flex" justifyContent="space-between" alignItems="flex-start" mb={3}>
+              <Box display="flex" flexDirection={{ xs: 'column', sm: 'row' }} justifyContent="space-between" alignItems={{ xs: 'flex-start', sm: 'flex-start' }} mb={3} gap={2}>
                 <Box>
-                                     <Typography 
-                     variant="h3" 
-                     sx={{ 
-                       color: theme.palette.textColor.main,
-                       fontWeight: 700,
-                       mb: 1
-                     }}
-                   >
-                     {t(categoryname?.toLowerCase()) || categoryname}
-                   </Typography>
+                  <Typography 
+                    variant="h3" 
+                    sx={{ 
+                      color: theme.palette.textColor.main,
+                      fontWeight: 700,
+                      mb: 1,
+                      fontSize: { xs: '1.5rem', sm: '2rem', md: '3rem' }
+                    }}
+                  >
+                    {t(categoryname?.toLowerCase()) || categoryname}
+                  </Typography>
                   <Typography 
                     variant="h5" 
                     sx={{ 
                       color: theme.palette.textColor.secondary,
-                      fontWeight: 500
+                      fontWeight: 500,
+                      fontSize: { xs: '1rem', sm: '1.25rem' }
                     }}
                   >
-                    {region}
+                    {exactLocation || region || t('unknownLocation')}
                   </Typography>
                 </Box>
 
                 {/* Action Buttons */}
-                <Box display="flex" gap={1} sx={{ direction: isRTLMode ? 'rtl' : 'ltr' }}>
+                <Box display="flex" gap={1} sx={{ direction: isRTLMode ? 'rtl' : 'ltr', flexWrap: 'wrap' }}>
                   <Tooltip title={t('sharePost')}>
                     <IconButton
                       sx={{ 
@@ -265,6 +276,41 @@ const SinglePostPage = ({
                   </Tooltip>
                 </Box>
               </Box>
+
+              {/* Description */}
+              {description && (
+                <Box sx={{ mb: 3 }}>
+                  <Typography 
+                    variant="h6" 
+                    sx={{ 
+                      color: theme.palette.textColor.main,
+                      fontWeight: 600,
+                      mb: 2
+                    }}
+                  >
+                    {t('description')}
+                  </Typography>
+                  <Paper 
+                    elevation={1} 
+                    sx={{ 
+                      p: 3, 
+                      borderRadius: 2,
+                      background: theme.palette.background.default
+                    }}
+                  >
+                    <Typography 
+                      variant="body1" 
+                      sx={{ 
+                        color: theme.palette.textColor.main,
+                        lineHeight: 1.6,
+                        whiteSpace: 'pre-wrap'
+                      }}
+                    >
+                      {description}
+                    </Typography>
+                  </Paper>
+                </Box>
+              )}
 
               {/* Contact Information */}
               {contact && (
@@ -338,10 +384,24 @@ const SinglePostPage = ({
                       <LocationIcon sx={{ color: theme.palette.textColor.secondary }} />
                       <Box>
                         <Typography variant="body2" color="text.secondary">
-                          {t('location')}
+                          {t('exactLocation')}
                         </Typography>
                         <Typography variant="body1" sx={{ color: theme.palette.textColor.main }}>
-                          {countryname || "Unknown Country"}
+                          {exactLocation || region || t('unknownLocation')}
+                        </Typography>
+                      </Box>
+                    </Box>
+                  </Grid>
+
+                  <Grid item xs={12} sm={6}>
+                    <Box display="flex" alignItems="center" gap={2} mb={2}>
+                      <LocationIcon sx={{ color: theme.palette.textColor.secondary }} />
+                      <Box>
+                        <Typography variant="body2" color="text.secondary">
+                          {t('country')}
+                        </Typography>
+                        <Typography variant="body1" sx={{ color: theme.palette.textColor.main }}>
+                          {countryLabels?.[currentLanguage] || countryLabels?.en || countryname || t('unknownCountry')}
                         </Typography>
                       </Box>
                     </Box>
@@ -384,12 +444,12 @@ const SinglePostPage = ({
 
         {/* Sidebar */}
         <Grid item xs={12} lg={4}>
-          <Box sx={{ position: 'sticky', top: '2rem' }}>
+          <Box sx={{ position: { xs: 'static', lg: 'sticky' }, top: '2rem' }}>
             {/* Quick Actions */}
             <Paper 
               elevation={2} 
               sx={{ 
-                p: 3, 
+                p: { xs: 2, sm: 3 }, 
                 borderRadius: 3,
                 mb: 3,
                 background: theme.palette.background.paper
@@ -465,7 +525,7 @@ const SinglePostPage = ({
             <Paper 
               elevation={2} 
               sx={{ 
-                p: 3, 
+                p: { xs: 2, sm: 3 }, 
                 borderRadius: 3,
                 background: theme.palette.background.paper
               }}
@@ -513,10 +573,10 @@ const SinglePostPage = ({
                   <LocationIcon sx={{ color: theme.palette.success.main }} />
                   <Box>
                     <Typography variant="body2" color="text.secondary">
-                      {t('region')}
+                      {t('exactLocation')}
                     </Typography>
                     <Typography variant="body1" sx={{ color: theme.palette.textColor.main }}>
-                      {region}
+                      {exactLocation || region || t('unknownLocation')}
                     </Typography>
                   </Box>
                 </Box>
