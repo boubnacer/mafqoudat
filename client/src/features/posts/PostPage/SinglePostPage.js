@@ -187,19 +187,19 @@ const SinglePostPage = ({
               />
 
               {/* Category Badge */}
-                             <Chip 
-                 label={t(categoryname?.toLowerCase()) || categoryname}
-                 variant="outlined"
-                 icon={<CategoryIcon />}
-                 sx={{
-                   position: 'absolute',
-                   top: 16,
-                   right: 16,
-                   backgroundColor: 'rgba(255,255,255,0.95)',
-                   fontWeight: 600,
-                   fontSize: '0.9rem'
-                 }}
-               />
+              <Chip 
+                label={t(categoryname?.toLowerCase()) || categoryname}
+                variant="outlined"
+                icon={<CategoryIcon />}
+                sx={{
+                  position: 'absolute',
+                  top: 16,
+                  right: 16,
+                  backgroundColor: 'rgba(255,255,255,0.95)',
+                  fontWeight: 600,
+                  fontSize: '0.9rem'
+                }}
+              />
             </Box>
 
             {/* Content Section */}
@@ -521,7 +521,7 @@ const SinglePostPage = ({
               </Box>
             </Paper>
 
-            {/* Additional Insights */}
+            {/* Additional Information */}
             <Paper 
               elevation={2} 
               sx={{ 
@@ -563,9 +563,9 @@ const SinglePostPage = ({
                     <Typography variant="body2" color="text.secondary">
                       {t('category')}
                     </Typography>
-                                         <Typography variant="body1" sx={{ color: theme.palette.textColor.main }}>
-                       {t(categoryname?.toLowerCase()) || categoryname}
-                     </Typography>
+                    <Typography variant="body1" sx={{ color: theme.palette.textColor.main }}>
+                      {t(categoryname?.toLowerCase()) || categoryname}
+                    </Typography>
                   </Box>
                 </Box>
                 
@@ -580,6 +580,20 @@ const SinglePostPage = ({
                     </Typography>
                   </Box>
                 </Box>
+
+                {contact && (
+                  <Box display="flex" alignItems="center" gap={2}>
+                    <ContactIcon sx={{ color: theme.palette.warning.main }} />
+                    <Box>
+                      <Typography variant="body2" color="text.secondary">
+                        {t('contact')}
+                      </Typography>
+                      <Typography variant="body1" sx={{ color: theme.palette.textColor.main }}>
+                        {contact}
+                      </Typography>
+                    </Box>
+                  </Box>
+                )}
               </Box>
             </Paper>
           </Box>

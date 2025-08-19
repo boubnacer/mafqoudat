@@ -19,14 +19,14 @@ import { useTranslation } from "../../utils/translations";
 // Get the API base URL for image construction
 const API_BASE_URL = process.env.REACT_APP_API_URL || "http://localhost:3500";
 
-const RecentPosts = ({ _id, categoryname, region, image, createdAt, countryLabels, countryname }) => {
+const RecentPosts = ({ _id, categoryname, region, exactLocation, image, createdAt, countryLabels, countryname, contact }) => {
   const theme = useTheme();
   const navigate = useNavigate();
   const { t, currentLanguage } = useTranslation();
   const isMobile = useMediaQuery("(max-width:768px)");
 
   // Debug logging
-  console.log('RecentPosts data:', { _id, categoryname, region, image, countryLabels, countryname, currentLanguage });
+  console.log('RecentPosts data:', { _id, categoryname, region, exactLocation, image, countryLabels, countryname, currentLanguage });
 
   const handleViewDetails = () => navigate(`/dash/posts/${_id}`);
 
@@ -183,7 +183,7 @@ const RecentPosts = ({ _id, categoryname, region, image, createdAt, countryLabel
                 fontWeight: 600,
               }}
             >
-              {region}
+              {exactLocation || region || t('unknownLocation')}
             </Typography>
           </Box>
           
@@ -200,6 +200,30 @@ const RecentPosts = ({ _id, categoryname, region, image, createdAt, countryLabel
             </Typography>
           )}
         </Box>
+
+        {/* Contact Info (if available) */}
+        {contact && (
+          <Box sx={{ display: 'flex', flexDirection: 'column', gap: 0.5, mt: 1 }}>
+            <Box
+              sx={{
+                display: 'flex',
+                alignItems: 'center',
+                gap: 1,
+              }}
+            >
+              <RenderIcon name="contact" sx={{ fontSize: '14px', color: theme.palette.info.main }} />
+              <Typography
+                sx={{
+                  color: isDarkMode ? alpha('#fff', 0.8) : alpha('#000', 0.7),
+                  fontSize: { xs: '12px', sm: '13px' },
+                  fontWeight: 500,
+                }}
+              >
+                {contact}
+              </Typography>
+            </Box>
+          </Box>
+        )}
       </CardContent>
 
       {/* Card Actions */}

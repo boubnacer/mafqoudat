@@ -345,7 +345,7 @@ const Post = ({ post, viewMode = "grid" }) => {
       );
     }
 
-    // Grid view layout (matching RecentPosts styling)
+        // Grid view layout (clean design matching RecentPosts)
     return (
       <Card
         sx={{
@@ -476,18 +476,54 @@ const Post = ({ post, viewMode = "grid" }) => {
           </Box>
         </Box>
 
-                  {/* Card Content */}
-          <CardContent 
-            sx={{ 
-              flexGrow: 1, 
-              p: { xs: 1.5, sm: 2 },
-              display: 'flex',
-              flexDirection: 'column',
-              gap: 1,
-            }}
-          >
-            {/* Location Info */}
-            <Box sx={{ display: 'flex', flexDirection: 'column', gap: 0.5 }}>
+        {/* Card Content */}
+        <CardContent 
+          sx={{ 
+            flexGrow: 1, 
+            p: { xs: 1.5, sm: 2 },
+            display: 'flex',
+            flexDirection: 'column',
+            gap: 1,
+          }}
+        >
+          {/* Location Info */}
+          <Box sx={{ display: 'flex', flexDirection: 'column', gap: 0.5 }}>
+            <Box
+              sx={{
+                display: 'flex',
+                alignItems: 'center',
+                gap: 1,
+              }}
+            >
+              <RenderIcon name="locat" sx={{ fontSize: '16px', color: theme.palette.primary.main }} />
+              <Typography
+                sx={{
+                  color: isDarkMode ? alpha('#fff', 0.9) : alpha('#000', 0.8),
+                  fontSize: { xs: '14px', sm: '16px' },
+                  fontWeight: 600,
+                }}
+              >
+                {post.exactLocation || t('unknownLocation')}
+              </Typography>
+            </Box>
+            
+            {post.countryLabels && (
+              <Typography
+                sx={{
+                  color: isDarkMode ? alpha('#fff', 0.7) : alpha('#000', 0.6),
+                  fontSize: { xs: '12px', sm: '13px' },
+                  fontWeight: 400,
+                  ml: 3, // Indent under location
+                }}
+              >
+                {post.countryLabels[currentLanguage] || post.countryLabels.en || post.countryname}
+              </Typography>
+            )}
+          </Box>
+
+          {/* Contact Info */}
+          {post.contact && (
+            <Box sx={{ display: 'flex', flexDirection: 'column', gap: 0.5, mt: 1 }}>
               <Box
                 sx={{
                   display: 'flex',
@@ -495,77 +531,20 @@ const Post = ({ post, viewMode = "grid" }) => {
                   gap: 1,
                 }}
               >
-                <RenderIcon name="locat" sx={{ fontSize: '16px', color: theme.palette.primary.main }} />
+                <RenderIcon name="contact" sx={{ fontSize: '14px', color: theme.palette.info.main }} />
                 <Typography
                   sx={{
-                    color: isDarkMode ? alpha('#fff', 0.9) : alpha('#000', 0.8),
-                    fontSize: { xs: '14px', sm: '16px' },
-                    fontWeight: 600,
-                  }}
-                >
-                  {post.exactLocation || t('unknownLocation')}
-                </Typography>
-              </Box>
-              
-              {post.countryLabels && (
-                <Typography
-                  sx={{
-                    color: isDarkMode ? alpha('#fff', 0.7) : alpha('#000', 0.6),
+                    color: isDarkMode ? alpha('#fff', 0.8) : alpha('#000', 0.7),
                     fontSize: { xs: '12px', sm: '13px' },
-                    fontWeight: 400,
-                    ml: 3, // Indent under location
+                    fontWeight: 500,
                   }}
                 >
-                  {post.countryLabels[currentLanguage] || post.countryLabels.en || post.countryname}
+                  {post.contact}
                 </Typography>
-              )}
+              </Box>
             </Box>
-
-            {/* Contact Info */}
-            {post.contact && (
-              <Box sx={{ display: 'flex', flexDirection: 'column', gap: 0.5, mt: 1 }}>
-                <Box
-                  sx={{
-                    display: 'flex',
-                    alignItems: 'center',
-                    gap: 1,
-                  }}
-                >
-                  <RenderIcon name="contact" sx={{ fontSize: '14px', color: theme.palette.info.main }} />
-                  <Typography
-                    sx={{
-                      color: isDarkMode ? alpha('#fff', 0.8) : alpha('#000', 0.7),
-                      fontSize: { xs: '12px', sm: '13px' },
-                      fontWeight: 500,
-                    }}
-                  >
-                    {post.contact}
-                  </Typography>
-                </Box>
-              </Box>
-            )}
-
-            {/* Description (if available) */}
-            {post.description && (
-              <Box sx={{ mt: 1 }}>
-                <Typography
-                  sx={{
-                    color: isDarkMode ? alpha('#fff', 0.7) : alpha('#000', 0.6),
-                    fontSize: { xs: '11px', sm: '12px' },
-                    fontWeight: 400,
-                    lineHeight: 1.4,
-                    display: '-webkit-box',
-                    WebkitLineClamp: 2,
-                    WebkitBoxOrient: 'vertical',
-                    overflow: 'hidden',
-                    textOverflow: 'ellipsis',
-                  }}
-                >
-                  {post.description}
-                </Typography>
-              </Box>
-            )}
-          </CardContent>
+          )}
+        </CardContent>
 
         {/* Card Actions */}
         <CardActions

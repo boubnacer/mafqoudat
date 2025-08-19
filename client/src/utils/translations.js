@@ -18,6 +18,20 @@ export const translations = {
     unknownCountry: "Unknown Country",
     unknownCategory: "Unknown Category",
     
+    // SinglePost page translations
+    back: "Back",
+    to: "to",
+    sharePost: "Share Post",
+    editPost: "Edit Post",
+    reportPost: "Report Post",
+    postDetails: "Post Details",
+    postedBy: "Posted by",
+    created: "Created",
+    lastUpdated: "Last Updated",
+    quickActions: "Quick Actions",
+    additionalInsights: "Additional Information",
+    postStatus: "Post Status",
+    
     // Dashboard translations
     dashboard: "Dashboard",
     posts: "Posts",
@@ -651,6 +665,20 @@ export const translations = {
     unknownCountry: "Pays inconnu",
     unknownCategory: "Catégorie inconnue",
     
+    // SinglePost page translations
+    back: "Retour",
+    to: "vers",
+    sharePost: "Partager la publication",
+    editPost: "Modifier la publication",
+    reportPost: "Signaler la publication",
+    postDetails: "Détails de la publication",
+    postedBy: "Publié par",
+    created: "Créé",
+    lastUpdated: "Dernière mise à jour",
+    quickActions: "Actions rapides",
+    additionalInsights: "Informations supplémentaires",
+    postStatus: "Statut de la publication",
+    
     // Dashboard translations
     dashboard: "Tableau de bord",
     posts: "Publications",
@@ -1263,6 +1291,20 @@ export const translations = {
     unknownUser: "مستخدم غير معروف",
     unknownCountry: "بلد غير معروف",
     unknownCategory: "فئة غير معروفة",
+    
+    // SinglePost page translations
+    back: "رجوع",
+    to: "إلى",
+    sharePost: "مشاركة المنشور",
+    editPost: "تعديل المنشور",
+    reportPost: "إبلاغ عن المنشور",
+    postDetails: "تفاصيل المنشور",
+    postedBy: "نشر بواسطة",
+    created: "تم الإنشاء",
+    lastUpdated: "آخر تحديث",
+    quickActions: "إجراءات سريعة",
+    additionalInsights: "معلومات إضافية",
+    postStatus: "حالة المنشور",
     
     // Dashboard translations
     dashboard: "لوحة التحكم",
