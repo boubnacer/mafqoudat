@@ -128,7 +128,7 @@ const postSchema = new mongoose.Schema(
     },
     exactLocation: {
       type: String,
-      default: null,
+      required: true,
     },
     contactPreferences: {
       phone: {
@@ -189,10 +189,8 @@ postSchema.index({
   "descriptionLabels.en": "text", 
   "descriptionLabels.fr": "text", 
   "descriptionLabels.ar": "text",
-  "region": "text",
-  "city": "text",
   "exactLocation": "text",
-  "tags": "text"
+  "description": "text"
 });
 
 // Virtual for backward compatibility

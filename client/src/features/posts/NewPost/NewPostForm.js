@@ -80,7 +80,6 @@ const NewPostForm = ({ user, countries, categories, flOptions }) => {
   };
 
   const formValidation = Yup.object().shape({
-    country: Yup.string().required(t('required')),
     contact: Yup.string().required(t('required')),
     category: Yup.string().required(t('required')),
     foundLost: Yup.string().required(t('required')),

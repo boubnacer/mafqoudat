@@ -33,9 +33,10 @@ const getAllPosts = async (req, res) => {
 
   if (search) {
     match.$or = [
-      { region: { $regex: search, $options: 'i' } },
+      { exactLocation: { $regex: search, $options: 'i' } },
       { contact: { $regex: search, $options: 'i' } },
-      { "Category.code": { $regex: search, $options: 'i' } }
+      { "Category.code": { $regex: search, $options: 'i' } },
+      { description: { $regex: search, $options: 'i' } }
     ];
   }
 
@@ -85,7 +86,7 @@ const getAllPosts = async (req, res) => {
       $project: {
         user: 1,
         country: 1,
-        region: 1,
+        exactLocation: 1,
         returned: 1,
         createdAt: 1,
         updatedAt: 1,
@@ -96,6 +97,7 @@ const getAllPosts = async (req, res) => {
         contact: 1,
         image: 1,
         foundLost: 1,
+        description: 1,
       },
     },
     {
@@ -204,18 +206,16 @@ const getFilteredPosts = async (req, res) => {
 // @route POST /posts
 // @access Private
 const createNewPost = async (req, res) => {
+  console.log('Received request body:', req.body);
+  
   const { 
     user, 
     country, 
     category, 
-    region, 
     contact, 
     foundLost,
-    city,
     exactLocation,
-    title,
     description,
-    tags,
     contactPreferences,
     additionalContact
   } = req.body;
@@ -277,16 +277,24 @@ const createNewPost = async (req, res) => {
   }
 
   // Create and store the new post
-  const post = await Post.create(postData);
+  console.log('Creating post with data:', postData);
+  
+  try {
+    const post = await Post.create(postData);
+    console.log('Post created successfully:', post._id);
 
-  if (post) {
-    // Created
-    return res.status(201).json({ 
-      message: "New post created",
-      postId: post._id 
-    });
-  } else {
-    return res.status(400).json({ message: "Invalid post data received" });
+    if (post) {
+      // Created
+      return res.status(201).json({ 
+        message: "New post created",
+        postId: post._id 
+      });
+    } else {
+      return res.status(400).json({ message: "Invalid post data received" });
+    }
+  } catch (error) {
+    console.error('Error creating post:', error);
+    return res.status(500).json({ message: "Error creating post", error: error.message });
   }
 };
 
@@ -299,12 +307,13 @@ const updatePost = async (req, res) => {
     user,
     country,
     category,
-    region,
+    exactLocation,
     contact,
     returned,
     foundLost,
     reported,
     reportedTxt,
+    description,
   } = req.body;
 
   // Confirm data
@@ -312,7 +321,7 @@ const updatePost = async (req, res) => {
     !id ||
     !user ||
     !category ||
-    !region ||
+    !exactLocation ||
     !country ||
     !contact ||
     !foundLost ||
@@ -340,10 +349,13 @@ const updatePost = async (req, res) => {
   post.user = user;
   post.country = country;
   post.category = category;
-  post.region = region;
+  post.exactLocation = exactLocation;
   post.contact = contact;
   post.returned = returned;
   post.foundLost = foundLost;
+  if (description !== undefined) {
+    post.description = description;
+  }
 
   if (typeof reported === "boolean") {
     post.reported = reported;
