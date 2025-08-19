@@ -24,12 +24,13 @@ import {
   alpha,
 } from "@mui/material";
 import {
-  LocationOnOutlined,
+  LocationOn as LocationIcon,
   KeyboardArrowRightOutlined,
   ReportProblemOutlined,
   CalendarToday as CalendarIcon,
   Category as CategoryIcon,
-  Visibility as VisibilityIcon
+  Visibility as VisibilityIcon,
+  ArrowForward as ArrowIcon
 } from "@mui/icons-material";
 import FlexBetween from "../../../components/FlexBetween";
 import { useTranslation } from "../../../utils/translations";
@@ -124,14 +125,14 @@ const Post = ({ post, viewMode = "grid" }) => {
     // Get category color function (matching RecentPosts styling)
     const getCategoryColor = (category) => {
       const categoryColors = {
-        Bag: { main: '#4CAF50', light: '#E8F5E9', dark: '#2E7D32' },
-        keys: { main: '#FF9800', light: '#FFF3E0', dark: '#E65100' },
-        person: { main: '#2196F3', light: '#E3F2FD', dark: '#1565C0' },
-        Money: { main: '#9C27B0', light: '#F3E5F5', dark: '#6A1B9A' },
-        Devices: { main: '#00BCD4', light: '#E0F7FA', dark: '#00838F' },
-        Wallet: { main: '#FF5722', light: '#FBE9E7', dark: '#BF360C' },
-        Vehicle: { main: '#607D8B', light: '#ECEFF1', dark: '#37474F' },
-        Document: { main: '#795548', light: '#EFEBE9', dark: '#4E342E' },
+        Bag: { main: '#4CAF50', light: '#E8F5E9', dark: '#2E7D32', icon: '#2E7D32' },
+        keys: { main: '#FF9800', light: '#FFF3E0', dark: '#E65100', icon: '#E65100' },
+        person: { main: '#2196F3', light: '#E3F2FD', dark: '#1565C0', icon: '#1565C0' },
+        Money: { main: '#9C27B0', light: '#F3E5F5', dark: '#6A1B9A', icon: '#6A1B9A' },
+        Devices: { main: '#00BCD4', light: '#E0F7FA', dark: '#00838F', icon: '#00838F' },
+        Wallet: { main: '#FF5722', light: '#FBE9E7', dark: '#BF360C', icon: '#BF360C' },
+        Vehicle: { main: '#607D8B', light: '#ECEFF1', dark: '#37474F', icon: '#37474F' },
+        Document: { main: '#795548', light: '#EFEBE9', dark: '#4E342E', icon: '#4E342E' },
       };
       return categoryColors[category] || categoryColors.Bag;
     };
@@ -345,32 +346,33 @@ const Post = ({ post, viewMode = "grid" }) => {
       );
     }
 
-        // Grid view layout (clean design matching RecentPosts)
+        // Grid view layout (modern design matching RecentPosts)
     return (
       <Card
         sx={{
-          backgroundColor: isDarkMode ? alpha('#1E1E1E', 0.8) : '#FFFFFF',
+          backgroundColor: isDarkMode ? alpha('#1E1E1E', 0.9) : '#FFFFFF',
           position: 'relative',
           boxShadow: isDarkMode 
-            ? '0 4px 20px rgba(0, 0, 0, 0.3)'
-            : '0 4px 20px rgba(0, 0, 0, 0.08)',
-          height: { xs: 'auto', sm: '22rem' },
+            ? '0 8px 32px rgba(0, 0, 0, 0.4)'
+            : '0 8px 32px rgba(0, 0, 0, 0.12)',
+          height: { xs: 'auto', sm: '20rem' },
           display: 'flex',
           flexDirection: 'column',
-          transition: 'all 0.3s ease-in-out',
-          borderRadius: '16px',
+          transition: 'all 0.4s cubic-bezier(0.4, 0, 0.2, 1)',
+          borderRadius: '24px',
           overflow: 'hidden',
+          border: `1px solid ${isDarkMode ? alpha('#fff', 0.1) : alpha('#000', 0.08)}`,
           '&:hover': {
-            transform: { xs: 'none', sm: 'translateY(-6px)' },
+            transform: { xs: 'none', sm: 'translateY(-8px) scale(1.02)' },
             boxShadow: isDarkMode
-              ? '0 12px 32px rgba(0, 0, 0, 0.4)'
-              : '0 12px 32px rgba(0, 0, 0, 0.15)',
+              ? '0 20px 48px rgba(0, 0, 0, 0.5)'
+              : '0 20px 48px rgba(0, 0, 0, 0.2)',
           },
           direction: currentLanguage === 'ar' ? 'rtl' : 'ltr'
         }}
       >
-        {/* Card Image with Overlay */}
-        <Box sx={{ position: 'relative', height: { xs: '180px', sm: '200px' } }}>
+        {/* Card Image with Modern Overlay */}
+        <Box sx={{ position: 'relative', height: { xs: '160px', sm: '180px' } }}>
           <CardMedia
             component="img"
             sx={{
@@ -387,7 +389,7 @@ const Post = ({ post, viewMode = "grid" }) => {
             }}
           />
           
-          {/* Gradient Overlay */}
+          {/* Modern Gradient Overlay */}
           <Box
             sx={{
               position: 'absolute',
@@ -395,168 +397,157 @@ const Post = ({ post, viewMode = "grid" }) => {
               left: 0,
               right: 0,
               bottom: 0,
-              background: 'linear-gradient(135deg, rgba(0,0,0,0.3) 0%, rgba(0,0,0,0.7) 100%)',
+              background: 'linear-gradient(180deg, rgba(0,0,0,0.2) 0%, rgba(0,0,0,0.6) 100%)',
               pointerEvents: 'none'
             }}
           />
 
-          {/* Status Badge - Floating on Image */}
+          {/* Status Badge - Modern Floating Design */}
           <Chip 
             label={statusText}
             size="small"
             sx={{
               position: 'absolute',
-              top: 12,
-              left: currentLanguage === 'ar' ? 'auto' : 12,
-              right: currentLanguage === 'ar' ? 12 : 'auto',
-              fontWeight: 600,
-              backgroundColor: alpha(statusColor, 0.9),
+              top: 16,
+              left: currentLanguage === 'ar' ? 'auto' : 16,
+              right: currentLanguage === 'ar' ? 16 : 'auto',
+              fontWeight: 700,
+              backgroundColor: alpha(statusColor, 0.95),
               color: 'white',
-              backdropFilter: 'blur(10px)',
+              backdropFilter: 'blur(20px)',
               border: `1px solid ${alpha(statusColor, 0.3)}`,
+              boxShadow: `0 4px 16px ${alpha(statusColor, 0.3)}`,
               '& .MuiChip-label': {
-                color: 'white'
+                color: 'white',
+                fontSize: '11px',
+                fontWeight: 700,
               }
             }}
           />
 
-          {/* Category Badge - Floating on Image */}
+          {/* Category Badge - Modern Floating Design */}
           <Box
             sx={{
               position: 'absolute',
-              top: 12,
-              left: currentLanguage === 'ar' ? 12 : 'auto',
-              right: currentLanguage === 'ar' ? 'auto' : 12,
-              backgroundColor: alpha(categoryStyle.main, 0.9),
-              padding: '6px 12px',
-              borderRadius: '20px',
+              top: 16,
+              left: currentLanguage === 'ar' ? 16 : 'auto',
+              right: currentLanguage === 'ar' ? 'auto' : 16,
+              backgroundColor: alpha(categoryStyle.main, 0.95),
+              padding: '8px 16px',
+              borderRadius: '24px',
               display: 'flex',
               alignItems: 'center',
               gap: 0.5,
-              backdropFilter: 'blur(10px)',
+              backdropFilter: 'blur(20px)',
               border: `1px solid ${alpha(categoryStyle.main, 0.3)}`,
+              boxShadow: `0 4px 16px ${alpha(categoryStyle.main, 0.3)}`,
               mt: 4, // Move down to avoid overlap with status badge
             }}
           >
-            <RenderIcon name={`${categoryName?.toLowerCase()}cate`} sx={{ fontSize: '14px', color: '#fff' }} />
+            <RenderIcon 
+              name={`${categoryName?.toLowerCase()}cate`} 
+              sx={{ fontSize: '16px', color: categoryStyle.icon || '#fff' }} 
+            />
             <Typography
               sx={{
                 color: '#fff',
-                fontSize: { xs: '10px', sm: '12px' },
-                fontWeight: 600,
-                letterSpacing: '0.3px',
+                fontSize: { xs: '11px', sm: '13px' },
+                fontWeight: 700,
+                letterSpacing: '0.5px',
               }}
             >
               {t(categoryName?.toLowerCase()) || categoryName}
             </Typography>
           </Box>
 
-          {/* Date Badge - Floating on Image */}
+          {/* Date Badge - Modern Floating Design */}
           <Box
             sx={{
               position: 'absolute',
-              bottom: 12,
-              left: currentLanguage === 'ar' ? 'auto' : 12,
-              right: currentLanguage === 'ar' ? 12 : 'auto',
-              backgroundColor: alpha('#000', 0.7),
-              padding: '4px 8px',
-              borderRadius: '12px',
-              backdropFilter: 'blur(10px)',
+              bottom: 16,
+              left: currentLanguage === 'ar' ? 'auto' : 16,
+              right: currentLanguage === 'ar' ? 16 : 'auto',
+              backgroundColor: alpha('#000', 0.8),
+              padding: '6px 12px',
+              borderRadius: '16px',
+              backdropFilter: 'blur(20px)',
+              border: '1px solid rgba(255,255,255,0.1)',
             }}
           >
-            <Typography
-              sx={{
-                color: '#fff',
-                fontSize: { xs: '10px', sm: '11px' },
-                fontWeight: 500,
-              }}
-            >
-              {new Date(post.createdAt).toLocaleDateString()}
-            </Typography>
+            <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.5 }}>
+              <CalendarIcon sx={{ fontSize: '14px', color: '#fff' }} />
+              <Typography
+                sx={{
+                  color: '#fff',
+                  fontSize: { xs: '11px', sm: '12px' },
+                  fontWeight: 600,
+                }}
+              >
+                {new Date(post.createdAt).toLocaleDateString()}
+              </Typography>
+            </Box>
           </Box>
         </Box>
 
-        {/* Card Content */}
+        {/* Card Content - Simplified */}
         <CardContent 
           sx={{ 
             flexGrow: 1, 
-            p: { xs: 1.5, sm: 2 },
+            p: { xs: 2, sm: 2.5 },
             display: 'flex',
             flexDirection: 'column',
-            gap: 1,
+            gap: 1.5,
           }}
         >
-          {/* Location Info */}
-          <Box sx={{ display: 'flex', flexDirection: 'column', gap: 0.5 }}>
-            <Box
+          {/* Location Info - Only City */}
+          <Box sx={{ display: 'flex', alignItems: 'center', gap: 1.5 }}>
+            <Avatar
               sx={{
-                display: 'flex',
-                alignItems: 'center',
-                gap: 1,
+                width: 32,
+                height: 32,
+                backgroundColor: alpha(theme.palette.primary.main, 0.1),
+                color: theme.palette.primary.main,
               }}
             >
-              <RenderIcon name="locat" sx={{ fontSize: '16px', color: theme.palette.primary.main }} />
+              <LocationIcon sx={{ fontSize: '18px' }} />
+            </Avatar>
+            <Box>
               <Typography
                 sx={{
                   color: isDarkMode ? alpha('#fff', 0.9) : alpha('#000', 0.8),
                   fontSize: { xs: '14px', sm: '16px' },
                   fontWeight: 600,
+                  lineHeight: 1.2,
                 }}
               >
                 {post.exactLocation || t('unknownLocation')}
               </Typography>
-            </Box>
-            
-            {post.countryLabels && (
-              <Typography
-                sx={{
-                  color: isDarkMode ? alpha('#fff', 0.7) : alpha('#000', 0.6),
-                  fontSize: { xs: '12px', sm: '13px' },
-                  fontWeight: 400,
-                  ml: 3, // Indent under location
-                }}
-              >
-                {post.countryLabels[currentLanguage] || post.countryLabels.en || post.countryname}
-              </Typography>
-            )}
-          </Box>
-
-          {/* Contact Info */}
-          {post.contact && (
-            <Box sx={{ display: 'flex', flexDirection: 'column', gap: 0.5, mt: 1 }}>
-              <Box
-                sx={{
-                  display: 'flex',
-                  alignItems: 'center',
-                  gap: 1,
-                }}
-              >
-                <RenderIcon name="contact" sx={{ fontSize: '14px', color: theme.palette.info.main }} />
+              {post.countryLabels && (
                 <Typography
                   sx={{
-                    color: isDarkMode ? alpha('#fff', 0.8) : alpha('#000', 0.7),
-                    fontSize: { xs: '12px', sm: '13px' },
-                    fontWeight: 500,
+                    color: isDarkMode ? alpha('#fff', 0.6) : alpha('#000', 0.5),
+                    fontSize: { xs: '11px', sm: '12px' },
+                    fontWeight: 400,
                   }}
                 >
-                  {post.contact}
+                  {post.countryLabels[currentLanguage] || post.countryLabels.en || post.countryname}
                 </Typography>
-              </Box>
+              )}
             </Box>
-          )}
+          </Box>
         </CardContent>
 
-        {/* Card Actions */}
+        {/* Card Actions - Modern Design */}
         <CardActions
           sx={{
             display: 'flex',
             justifyContent: 'space-between',
-            p: { xs: 1.5, sm: 2 },
+            p: { xs: 2, sm: 2.5 },
             borderTop: '1px solid',
-            borderColor: isDarkMode ? alpha('#fff', 0.1) : alpha('#000', 0.1),
-            backgroundColor: isDarkMode ? alpha('#000', 0.2) : alpha('#f5f5f5', 0.5),
+            borderColor: isDarkMode ? alpha('#fff', 0.08) : alpha('#000', 0.06),
+            backgroundColor: isDarkMode ? alpha('#000', 0.3) : alpha('#f8f9fa', 0.8),
             gap: 1,
-            mt: 'auto', // Push to bottom
+            mt: 'auto',
           }}
         >
           <Button
@@ -573,10 +564,10 @@ const Post = ({ post, viewMode = "grid" }) => {
               color: theme.palette.error.main,
               borderColor: theme.palette.error.main,
               textTransform: 'none',
-              fontSize: { xs: '12px', sm: '13px' },
+              fontSize: { xs: '11px', sm: '12px' },
               fontWeight: 600,
-              padding: { xs: '6px 12px', sm: '8px 16px' },
-              borderRadius: '8px',
+              padding: { xs: '8px 12px', sm: '10px 16px' },
+              borderRadius: '12px',
               '&:hover': {
                 backgroundColor: theme.palette.error.main,
                 color: '#fff',
@@ -592,21 +583,22 @@ const Post = ({ post, viewMode = "grid" }) => {
             onClick={handleViewDetails}
             variant="contained"
             sx={{
-              background: `linear-gradient(45deg, ${categoryStyle.main} 30%, ${categoryStyle.dark} 90%)`,
+              background: `linear-gradient(135deg, ${categoryStyle.main} 0%, ${categoryStyle.dark} 100%)`,
               color: '#fff',
               textTransform: 'none',
-              fontSize: { xs: '12px', sm: '13px' },
-              fontWeight: 600,
-              padding: { xs: '6px 12px', sm: '8px 16px' },
-              borderRadius: '8px',
-              boxShadow: `0 4px 15px ${alpha(categoryStyle.main, 0.3)}`,
+              fontSize: { xs: '11px', sm: '12px' },
+              fontWeight: 700,
+              padding: { xs: '8px 12px', sm: '10px 16px' },
+              borderRadius: '12px',
+              boxShadow: `0 4px 16px ${alpha(categoryStyle.main, 0.4)}`,
+              transition: 'all 0.3s ease',
               '&:hover': {
-                background: `linear-gradient(45deg, ${categoryStyle.dark} 30%, ${categoryStyle.main} 90%)`,
+                background: `linear-gradient(135deg, ${categoryStyle.dark} 0%, ${categoryStyle.main} 100%)`,
                 transform: 'translateY(-2px)',
-                boxShadow: `0 6px 20px ${alpha(categoryStyle.main, 0.4)}`,
+                boxShadow: `0 6px 20px ${alpha(categoryStyle.main, 0.5)}`,
               },
             }}
-            endIcon={<RenderIcon name="view" data-directional="true" sx={{ fontSize: '14px' }} />}
+            endIcon={<ArrowIcon sx={{ fontSize: '14px' }} />}
           >
             {t('viewDetails')}
           </Button>
