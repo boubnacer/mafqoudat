@@ -167,27 +167,48 @@ const Navbar = () => {
   const [countryId, setCountryId] = useState(country || currentCountry);
   const [languageAnchorEl, setLanguageAnchorEl] = useState(null);
   const [mobileMenuAnchorEl, setMobileMenuAnchorEl] = useState(null);
+  const [isUserSelectingCountry, setIsUserSelectingCountry] = useState(false);
 
   // Check if user is authenticated
   const isAuthenticated = Boolean(user?.username);
 
+  // Custom function to handle country selection from user
+  const handleCountrySelection = (newCountryId) => {
+    console.log('Navbar: User selecting country:', newCountryId);
+    setIsUserSelectingCountry(true);
+    setCountryId(newCountryId);
+    
+    // Update Redux immediately
+    dispatch(setCurrentCountry({ currentCountry: newCountryId }));
+    
+    // Reset the flag after a short delay to allow for future syncs
+    setTimeout(() => {
+      setIsUserSelectingCountry(false);
+    }, 100);
+  };
+
+  // Sync countryId with currentCountry - only update if there's a meaningful change
   useEffect(() => {
+    // If user is actively selecting a country, don't override their selection
+    if (isUserSelectingCountry) {
+      return;
+    }
+
+    // If countryId is set and different from currentCountry, update Redux
     if (countryId && countryId !== currentCountry) {
+      console.log('Navbar: Updating Redux currentCountry from', currentCountry, 'to', countryId);
       dispatch(
         setCurrentCountry({
           currentCountry: countryId,
         })
       );
     }
-  }, [countryId, currentCountry, dispatch]);
-
-  // Update countryId when currentCountry changes (for non-logged-in users)
-  useEffect(() => {
-    if (currentCountry && currentCountry !== countryId) {
-      console.log('Navbar: Updating countryId from', countryId, 'to', currentCountry);
+    // If currentCountry is set and different from countryId, update local state
+    else if (currentCountry && currentCountry !== countryId) {
+      console.log('Navbar: Updating local countryId from', countryId, 'to', currentCountry);
       setCountryId(currentCountry);
     }
-  }, [currentCountry, countryId]);
+  }, [countryId, currentCountry, dispatch, isUserSelectingCountry]);
 
   const { countries } = useGetCountriesQuery({
     language: currentLanguage
@@ -269,7 +290,7 @@ const Navbar = () => {
   const currentCountryDataToUse = currentCountryData || fallbackCountries.find(c => c._id === (countryId || currentCountry)) || fallbackCountries[0];
   
   // Debug logging
-  console.log('Navbar: countryId:', countryId, 'currentCountry:', currentCountry, 'currentCountryData:', currentCountryDataToUse);
+  console.log('Navbar: countryId:', countryId, 'currentCountry:', currentCountry, 'isUserSelecting:', isUserSelectingCountry, 'currentCountryData:', currentCountryDataToUse);
 
   return (
     <AppBar
@@ -579,7 +600,7 @@ const Navbar = () => {
 
         {/* Country Modal */}
         <CountryModal
-          setCountryId={setCountryId}
+          setCountryId={handleCountrySelection}
           countries={countriesToUse}
           openModal={openModal}
         />
