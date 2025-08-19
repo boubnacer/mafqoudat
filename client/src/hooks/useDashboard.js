@@ -29,22 +29,41 @@ export const useDashboard = () => {
 
   // Set user's country from JWT token if not already set in Redux
   useEffect(() => {
-    console.log('useDashboard: userCountry:', userCountry, 'currentCountry:', currentCountry);
-    console.log('useDashboard: countriesData available:', !!countriesData?.ids?.length);
+    // Check if there's a saved country in localStorage that should be restored
+    const savedState = localStorage.getItem('globalState');
+    let savedCountry = null;
+    if (savedState) {
+      try {
+        const parsedState = JSON.parse(savedState);
+        savedCountry = parsedState.currentCountry;
+      } catch (error) {
+        console.error('useDashboard: Error parsing saved state:', error);
+      }
+    }
     
-    if (userCountry && !currentCountry) {
-      console.log('useDashboard: Setting country from user token:', userCountry);
-      dispatch(setCurrentCountry({ currentCountry: userCountry }));
-    } else if (!currentCountry && countriesData?.ids?.length > 0) {
-      // Set default country if none is set
-      const defaultCountryId = countriesData.ids[0];
-      console.log('useDashboard: Setting default country:', defaultCountryId);
-      dispatch(setCurrentCountry({ currentCountry: defaultCountryId }));
-    } else if (!currentCountry) {
-      // Set a fallback country if no countries data is available or if query fails
-      // Use Morocco as fallback instead of US
-      console.log('useDashboard: Setting fallback country: 507f1f77bcf86cd799439011');
-      dispatch(setCurrentCountry({ currentCountry: '507f1f77bcf86cd799439011' }));
+    // Only set country if there's no current country set (null or empty string)
+    if (!currentCountry || currentCountry === "") {
+      if (userCountry) {
+        // For logged-in users, use their country from JWT token
+        console.log('useDashboard: Setting country from user token:', userCountry);
+        dispatch(setCurrentCountry({ currentCountry: userCountry }));
+      } else if (savedCountry && savedCountry !== "" && savedCountry !== null) {
+        // For non-logged-in users, restore the saved country from localStorage
+        console.log('useDashboard: Restoring saved country from localStorage:', savedCountry);
+        dispatch(setCurrentCountry({ currentCountry: savedCountry }));
+      } else if (countriesData?.ids?.length > 0) {
+        // For non-logged-in users, only set default if no country is already selected
+        // This prevents overriding user's country selection from Welcome page
+        const defaultCountryId = countriesData.ids[0];
+        console.log('useDashboard: Setting default country:', defaultCountryId);
+        dispatch(setCurrentCountry({ currentCountry: defaultCountryId }));
+      } else {
+        // Set a fallback country if no countries data is available or if query fails
+        console.log('useDashboard: Setting fallback country: 507f1f77bcf86cd799439011');
+        dispatch(setCurrentCountry({ currentCountry: '507f1f77bcf86cd799439011' }));
+      }
+    } else {
+      console.log('useDashboard: Country already set, keeping:', currentCountry);
     }
   }, [userCountry, currentCountry, dispatch, countriesData]);
 

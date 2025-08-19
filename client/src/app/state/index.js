@@ -9,6 +9,7 @@ const getInitialState = () => {
     try {
       const parsedState = JSON.parse(savedState);
       console.log('Redux: Parsed state:', parsedState);
+      console.log('Redux: currentCountry from saved state:', parsedState.currentCountry);
       return parsedState;
     } catch (error) {
       console.error('Error parsing saved global state:', error);
@@ -17,7 +18,7 @@ const getInitialState = () => {
   
   console.log('Redux: No saved state found, using default state');
   return {
-    currentCountry: "",
+    currentCountry: null, // Use null instead of empty string to distinguish from unset
     mode: "dark",
     isSidebarOpen: false,
     openModal: false,
@@ -55,7 +56,7 @@ export const globalSlice = createSlice({
       state.currentCountry = currentCountry;
       // Save to localStorage
       localStorage.setItem('globalState', JSON.stringify(state));
-      console.log('Redux: Saved state to localStorage:', JSON.stringify(state));
+      console.log('Redux: Country saved to localStorage successfully');
     },
     setFoundOrLost: (state, action) => {
       const { foundOrlost } = action.payload;
