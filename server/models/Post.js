@@ -101,6 +101,21 @@ const postSchema = new mongoose.Schema(
         default: "",
         trim: true
       }
+    },
+    // Promotion fields
+    promotionRequested: {
+      type: Boolean,
+      default: false,
+    },
+    promotionRequestedAt: {
+      type: Date,
+    },
+    promotionProcessed: {
+      type: Boolean,
+      default: false,
+    },
+    promotionProcessedAt: {
+      type: Date,
     }
   },
   {

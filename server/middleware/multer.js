@@ -28,8 +28,11 @@ const upload = multer({
 const uploadToCloudinaryMiddleware = async (req, res, next) => {
   try {
     if (req.file) {
-      // Convert buffer to temporary file path for Cloudinary
-      const tempFilePath = `/tmp/${Date.now()}-${req.file.originalname}`;
+      // Use os.tmpdir() for cross-platform compatibility
+      const os = require('os');
+      const tempDir = os.tmpdir();
+      const tempFilePath = path.join(tempDir, `${Date.now()}-${req.file.originalname}`);
+      
       require('fs').writeFileSync(tempFilePath, req.file.buffer);
       
       // Upload to Cloudinary
@@ -39,7 +42,11 @@ const uploadToCloudinaryMiddleware = async (req, res, next) => {
       req.cloudinaryResult = result;
       
       // Clean up temporary file
-      require('fs').unlinkSync(tempFilePath);
+      try {
+        require('fs').unlinkSync(tempFilePath);
+      } catch (cleanupError) {
+        console.warn('Failed to cleanup temp file:', cleanupError.message);
+      }
     }
     next();
   } catch (error) {

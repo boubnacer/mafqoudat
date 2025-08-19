@@ -206,7 +206,6 @@ const getFilteredPosts = async (req, res) => {
 const createNewPost = async (req, res) => {
   const { user, country, category, region, contact, foundLost } = req.body;
   const formData = req.body;
-  console.log(req.body);
 
   // Confirm data
   if (!user || !category || !region || !contact || !country || !foundLost) {
@@ -245,7 +244,10 @@ const createNewPost = async (req, res) => {
 
   if (post) {
     // Created
-    return res.status(201).json({ message: "New post created" });
+    return res.status(201).json({ 
+      message: "New post created",
+      postId: post._id 
+    });
   } else {
     return res.status(400).json({ message: "Invalid post data received" });
   }

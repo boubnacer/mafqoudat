@@ -65,6 +65,7 @@ app.use("/floptions", require("./routes/flOptionsRoutes"));
 app.use("/categories", require("./routes/categoryRoute"));
 app.use("/dependencies", require("./routes/dependenciesRoutes"));
 app.use("/reports", require("./routes/reportRoutes"));
+app.use("/promotion", require("./routes/promotionRoutes"));
 
 app.use("/uploads", express.static(path.join(__dirname, "uploads")));
 
