@@ -270,6 +270,37 @@ export const postsApiSlice = apiSlice.injectEndpoints({
       },
       invalidatesTags: (result, error, arg) => [{ type: "Post", id: arg.id }],
     }),
+
+    // Request promotion for a lost item
+    requestPromotion: builder.mutation({
+      query: (promotionData) => ({
+        url: "/promotion/request",
+        method: "POST",
+        body: promotionData,
+      }),
+      transformErrorResponse: (response) => {
+        // Handle server error responses
+        if (response.status === 400) {
+          return { 
+            status: 400, 
+            data: { message: "Invalid promotion data. Please check your input." } 
+          };
+        }
+        if (response.status === 404) {
+          return { 
+            status: 404, 
+            data: { message: "Post not found." } 
+          };
+        }
+        if (response.status === 500) {
+          return { 
+            status: 500, 
+            data: { message: "Failed to request promotion. Please try again." } 
+          };
+        }
+        return response;
+      },
+    }),
   }),
 });
 
@@ -280,6 +311,7 @@ export const {
   useUpdatePostMutation,
   useDeletePostMutation,
   useGetDashboardQuery,
+  useRequestPromotionMutation,
 } = postsApiSlice;
 
 // returns the query result object

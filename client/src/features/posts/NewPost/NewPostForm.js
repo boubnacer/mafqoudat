@@ -10,6 +10,7 @@ import { Box, FormLabel, Paper, Typography, CircularProgress, useTheme, Alert, B
 import SelectCountry from "../../../components/SelectCountry";
 import { PhotoCamera } from '@mui/icons-material';
 import { useTranslation } from "../../../utils/translations";
+import PromotionDialog from "../../../components/PromotionDialog";
 
 const NewPostForm = ({ user, countries, categories, flOptions }) => {
   const [addNewPost, { isLoading, isSuccess, isError, error }] = useAddNewPostMutation();
@@ -19,16 +20,36 @@ const NewPostForm = ({ user, countries, categories, flOptions }) => {
   const theme = useTheme();
   const [showSuccess, setShowSuccess] = useState(false);
   const [selectedFileName, setSelectedFileName] = useState("");
+  const [showPromotionDialog, setShowPromotionDialog] = useState(false);
+  const [createdPostId, setCreatedPostId] = useState(null);
+  const [lastSubmittedValues, setLastSubmittedValues] = useState(null);
 
   useEffect(() => {
     if (isSuccess) {
       setShowSuccess(true);
-      setTimeout(() => {
-        setShowSuccess(false);
-        navigate("/dash");
-      }, 1500);
+      // Check if this is a lost item post using the stored values
+      const foundLostOption = lastSubmittedValues && flOptions.find(option => option.id === lastSubmittedValues.foundLost);
+      const isLostItem = foundLostOption && foundLostOption.code === 'LOST';
+      
+      console.log('Post created successfully!');
+      console.log('Found lost option:', foundLostOption);
+      console.log('Is lost item:', isLostItem);
+      console.log('Last submitted values:', lastSubmittedValues);
+      
+      if (isLostItem) {
+        // Show promotion dialog instead of redirecting immediately
+        console.log('Showing promotion dialog');
+        setShowPromotionDialog(true);
+      } else {
+        // For found items, redirect after success message
+        console.log('Redirecting to dashboard');
+        setTimeout(() => {
+          setShowSuccess(false);
+          navigate("/dash");
+        }, 1500);
+      }
     }
-  }, [isSuccess, navigate]);
+  }, [isSuccess, navigate, flOptions, lastSubmittedValues]);
 
   const initialFormState = {
     country: user.country,
@@ -50,6 +71,9 @@ const NewPostForm = ({ user, countries, categories, flOptions }) => {
 
   const handleSubmit = async (values, { setSubmitting, setStatus }) => {
     try {
+      // Store the submitted values to check if it's a lost item
+      setLastSubmittedValues(values);
+      
       const formData = new FormData();
       formData.append("user", user._id);
       formData.append("country", values.country);
@@ -61,7 +85,12 @@ const NewPostForm = ({ user, countries, categories, flOptions }) => {
         formData.append("image", values.image);
       }
 
-      await addNewPost(formData);
+      const result = await addNewPost(formData);
+      
+      // Store the created post ID for promotion dialog
+      if (result.data?.postId) {
+        setCreatedPostId(result.data.postId);
+      }
     } catch (error) {
       setStatus({ error: error.message });
     } finally {
@@ -80,7 +109,7 @@ const NewPostForm = ({ user, countries, categories, flOptions }) => {
     );
   }
 
-  if (showSuccess) {
+  if (showSuccess && !showPromotionDialog) {
     return (
       <Box display="flex" justifyContent="center" alignItems="center" minHeight="50vh">
         <Alert severity="success" sx={{ maxWidth: 600 }}>
@@ -236,6 +265,20 @@ const NewPostForm = ({ user, countries, categories, flOptions }) => {
           )}
         </Formik>
       </Paper>
+      
+      {/* Promotion Dialog */}
+      <PromotionDialog
+        open={showPromotionDialog}
+        onClose={() => {
+          setShowPromotionDialog(false);
+          setShowSuccess(false);
+          navigate("/dash");
+        }}
+        postId={createdPostId}
+        onPromotionRequested={() => {
+          // Handle successful promotion request
+        }}
+      />
     </Box>
   );
 };

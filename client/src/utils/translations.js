@@ -137,6 +137,19 @@ export const translations = {
     postCreatedSuccessfully: "Post Created Successfully!",
     redirectingToDashboard: "Redirecting to dashboard...",
     
+    // Promotion Dialog translations
+    boostYourChances: "Boost Your Chances",
+    postPublishedSuccessfully: "Your post has been published successfully! We'll also share it on our social media platforms.",
+    doubleYourChances: "Double Your Chances",
+    promotionDescription: "Would you like us to promote your lost item on our social media channels to increase your chances of finding it? We'll contact you to process your request.",
+    emailNotification: "We'll notify you via email when your promotion is ready",
+    yesPromote: "Yes, Promote It",
+    noThanks: "No, Thanks",
+    requesting: "Requesting...",
+    promotionRequested: "Promotion Requested!",
+    weWillContactYou: "We'll contact you soon to process your promotion request.",
+    promotionRequestError: "Error requesting promotion. Please try again.",
+    
     // Edit Post Form translations
     editPost: "Edit Post",
     updatePost: "Update Post",
@@ -703,6 +716,19 @@ export const translations = {
     postCreatedSuccessfully: "Publication créée avec succès !",
     redirectingToDashboard: "Redirection vers le tableau de bord...",
     
+    // Promotion Dialog translations
+    boostYourChances: "Augmentez Vos Chances",
+    postPublishedSuccessfully: "Votre publication a été publiée avec succès ! Nous la partagerons également sur nos plateformes de médias sociaux.",
+    doubleYourChances: "Doublez Vos Chances",
+    promotionDescription: "Souhaitez-vous que nous promouvions votre objet perdu sur nos canaux de médias sociaux pour augmenter vos chances de le retrouver ? Nous vous contacterons pour traiter votre demande.",
+    emailNotification: "Nous vous notifierons par email lorsque votre promotion sera prête",
+    yesPromote: "Oui, Promouvoir",
+    noThanks: "Non, Merci",
+    requesting: "Demande en cours...",
+    promotionRequested: "Promotion Demandée !",
+    weWillContactYou: "Nous vous contacterons bientôt pour traiter votre demande de promotion.",
+    promotionRequestError: "Erreur lors de la demande de promotion. Veuillez réessayer.",
+    
     // Edit Post Form translations
     editPost: "Modifier la publication",
     updatePost: "Mettre à jour la publication",
@@ -1233,6 +1259,19 @@ export const translations = {
     errorCreatingPostMessage: "حدث خطأ أثناء إنشاء المنشور",
     postCreatedSuccessfully: "تم إنشاء المنشور بنجاح!",
     redirectingToDashboard: "إعادة التوجيه إلى لوحة التحكم...",
+    
+    // Promotion Dialog translations
+    boostYourChances: "عزز فرصك",
+    postPublishedSuccessfully: "تم نشر منشورك بنجاح! سنشاركه أيضاً على منصات وسائل التواصل الاجتماعي الخاصة بنا.",
+    doubleYourChances: "ضاعف فرصك",
+    promotionDescription: "هل تريد منا الترويج لعنصرك المفقود على قنوات وسائل التواصل الاجتماعي لزيادة فرصك في العثور عليه؟ سنتواصل معك لمعالجة طلبك.",
+    emailNotification: "سنخطرك عبر البريد الإلكتروني عندما تكون الترويج جاهزاً",
+    yesPromote: "نعم، اروج له",
+    noThanks: "لا، شكراً",
+    requesting: "جاري الطلب...",
+    promotionRequested: "تم طلب الترويج!",
+    weWillContactYou: "سنتواصل معك قريباً لمعالجة طلب الترويج الخاص بك.",
+    promotionRequestError: "خطأ في طلب الترويج. يرجى المحاولة مرة أخرى.",
     
     // Edit Post Form translations
     editPost: "تعديل المنشور",
