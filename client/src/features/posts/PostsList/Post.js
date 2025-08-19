@@ -347,6 +347,7 @@ const Post = ({ post, viewMode = "grid" }) => {
     }
 
         // Grid view layout (modern design matching RecentPosts)
+    console.log('Post component - Using modern design with only date and city');
     return (
       <Card
         sx={{

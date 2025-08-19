@@ -33,6 +33,7 @@ const RecentPosts = ({ _id, categoryname, region, exactLocation, image, createdA
 
   // Debug logging
   console.log('RecentPosts data:', { _id, categoryname, region, exactLocation, image, countryLabels, countryname, currentLanguage });
+  console.log('RecentPosts - Using modern design with only date and city');
 
   const handleViewDetails = () => navigate(`/dash/posts/${_id}`);
 
