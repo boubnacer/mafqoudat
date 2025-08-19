@@ -222,7 +222,7 @@ const createNewPost = async (req, res) => {
   const formData = req.body;
 
   // Confirm required data
-  if (!user || !category || !region || !contact || !country || !foundLost || !city || !title || !description) {
+  if (!user || !category || !contact || !country || !foundLost || !exactLocation) {
     return res.status(400).json({ message: "All required fields are required" });
   }
 
@@ -239,27 +239,14 @@ const createNewPost = async (req, res) => {
   const postData = {
     user,
     category,
-    region,
     country,
     contact,
     foundLost,
-    city,
-    exactLocation: exactLocation || null,
-    title,
-    description,
+    exactLocation,
+    description: description || "",
   };
 
-  // Add tags if provided
-  if (tags) {
-    try {
-      const parsedTags = JSON.parse(tags);
-      if (Array.isArray(parsedTags)) {
-        postData.tags = parsedTags;
-      }
-    } catch (error) {
-      console.log('Error parsing tags:', error);
-    }
-  }
+
 
   // Add contact preferences if provided
   if (contactPreferences) {

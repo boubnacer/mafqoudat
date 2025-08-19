@@ -15,12 +15,12 @@ import {
   useTheme, 
   Alert, 
   Button,
-  Autocomplete,
-  TextField,
-  Chip,
+  Select,
+  MenuItem,
+  FormControl,
+  InputLabel,
   FormControlLabel,
-  Checkbox,
-  Divider
+  Checkbox
 } from "@mui/material";
 import { PhotoCamera, LocationOn, ContactPhone, ContactMail, WhatsApp } from '@mui/icons-material';
 import { useTranslation } from "../../../utils/translations";
@@ -38,8 +38,6 @@ const NewPostForm = ({ user, countries, categories, flOptions }) => {
   const [createdPostId, setCreatedPostId] = useState(null);
   const [lastSubmittedValues, setLastSubmittedValues] = useState(null);
   const [selectedCountry, setSelectedCountry] = useState(null);
-  const [tags, setTags] = useState([]);
-  const [newTag, setNewTag] = useState("");
 
   useEffect(() => {
     if (isSuccess) {
@@ -66,10 +64,7 @@ const NewPostForm = ({ user, countries, categories, flOptions }) => {
     contact: user.username,
     category: categories[0]?.id || "",
     foundLost: flOptions[0]?.id || "",
-    region: "",
-    city: "",
     exactLocation: "",
-    title: "",
     description: "",
     image: null,
     contactPreferences: {
@@ -88,28 +83,16 @@ const NewPostForm = ({ user, countries, categories, flOptions }) => {
     country: Yup.string().required(t('required')),
     contact: Yup.string().required(t('required')),
     category: Yup.string().required(t('required')),
-    region: Yup.string().required(t('required')),
     foundLost: Yup.string().required(t('required')),
-    title: Yup.string().required(t('required')).min(3, t('titleMinLength')),
-    description: Yup.string().required(t('required')).min(10, t('descriptionMinLength')),
-    city: Yup.string().required(t('required')),
-    exactLocation: Yup.string().optional(),
+    exactLocation: Yup.string().required(t('required')),
+    description: Yup.string().optional(),
     image: Yup.mixed().nullable(),
   });
 
-  const handleCountrySelect = (_, value) => {
-    setSelectedCountry(value);
-  };
-
-  const handleAddTag = () => {
-    if (newTag.trim() && !tags.includes(newTag.trim())) {
-      setTags([...tags, newTag.trim()]);
-      setNewTag("");
-    }
-  };
-
-  const handleRemoveTag = (tagToRemove) => {
-    setTags(tags.filter(tag => tag !== tagToRemove));
+  const handleCountrySelect = (event) => {
+    const countryId = event.target.value;
+    const country = countries.find(c => c._id === countryId);
+    setSelectedCountry(country);
   };
 
   const handleSubmit = async (values, { setSubmitting, setStatus }) => {
@@ -122,13 +105,9 @@ const NewPostForm = ({ user, countries, categories, flOptions }) => {
       formData.append("country", selectedCountry?._id || values.country);
       formData.append("category", values.category);
       formData.append("foundLost", values.foundLost);
-      formData.append("region", values.region);
-      formData.append("city", values.city);
       formData.append("exactLocation", values.exactLocation);
       formData.append("contact", values.contact);
-      formData.append("title", values.title);
-      formData.append("description", values.description);
-      formData.append("tags", JSON.stringify(tags));
+      formData.append("description", values.description || "");
       formData.append("contactPreferences", JSON.stringify(values.contactPreferences));
       formData.append("additionalContact", JSON.stringify(values.additionalContact));
       if (values.image) {
@@ -158,6 +137,12 @@ const NewPostForm = ({ user, countries, categories, flOptions }) => {
       return option.labels[currentLanguage || 'en'];
     }
     return option.label || option.code;
+  };
+
+  // Get found/lost type for dynamic instructions
+  const getFoundLostType = (foundLostId) => {
+    const option = flOptions.find(opt => opt.id === foundLostId);
+    return option?.code || 'FOUND';
   };
 
   if (isError) {
@@ -199,7 +184,7 @@ const NewPostForm = ({ user, countries, categories, flOptions }) => {
         elevation={4} 
         sx={{ 
           p: { xs: 3, md: 5 }, 
-          maxWidth: 800, 
+          maxWidth: 700, 
           width: "100%",
           borderRadius: 3,
           boxShadow: theme.shadows[8]
@@ -238,64 +223,56 @@ const NewPostForm = ({ user, countries, categories, flOptions }) => {
                 </Typography>
 
                 <Box>
-                  <FormLabel htmlFor="country" sx={{ mb: 1, display: "block", fontWeight: 500 }}>
-                    {t('country')} *
-                  </FormLabel>
-                  <Autocomplete
-                    options={countries || []}
-                    autoHighlight
-                    disableClearable
-                    value={selectedCountry}
-                    onChange={handleCountrySelect}
-                    getOptionLabel={(option) => getCountryLabel(option)}
-                    isOptionEqualToValue={(option, value) => option._id === value._id}
-                    renderOption={(props, option) => (
-                      <Box
-                        component="li"
-                        sx={{ "& > img": { mr: 2, flexShrink: 0 } }}
-                        {...props}
-                      >
-                        {option.flag ? (
-                          <span style={{ marginRight: 8, fontSize: '20px' }}>
-                            {option.flag}
-                          </span>
-                        ) : (
-                          <img
-                            loading="lazy"
-                            width="20"
-                            src={`https://flagcdn.com/w20/${option.code.toLowerCase()}.png`}
-                            srcSet={`https://flagcdn.com/w40/${option.code.toLowerCase()}.png 2x`}
-                            alt=""
-                          />
-                        )}
-                        {getCountryLabel(option)} ({option.code})
-                      </Box>
-                    )}
-                    renderInput={(params) => (
-                      <TextField
-                        {...params}
-                        label={t('chooseCountry')}
-                        variant="outlined"
-                        fullWidth
-                        sx={{
-                          '& .MuiOutlinedInput-root': {
-                            borderRadius: 2,
-                          }
-                        }}
-                        inputProps={{
-                          ...params.inputProps,
-                          autoComplete: "new-password",
-                        }}
-                      />
-                    )}
-                  />
-                </Box>
-
-                <Box>
                   <FormLabel htmlFor="foundLost" sx={{ mb: 1, display: "block", fontWeight: 500 }}>
                     {t('foundOrLost')} *
                   </FormLabel>
                   <SelectOption name="foundLost" options={flOptions} />
+                </Box>
+
+                <Box>
+                  <FormLabel htmlFor="country" sx={{ mb: 1, display: "block", fontWeight: 500 }}>
+                    {t('country')} *
+                  </FormLabel>
+                  <Typography variant="caption" color="text.secondary" sx={{ mb: 1, display: "block" }}>
+                    {getFoundLostType(values.foundLost) === 'LOST' 
+                      ? t('chooseCountryLost') 
+                      : t('chooseCountryFound')
+                    }
+                  </Typography>
+                  <FormControl fullWidth>
+                    <InputLabel id="country-select-label">{t('chooseCountry')}</InputLabel>
+                    <Select
+                      labelId="country-select-label"
+                      value={selectedCountry?._id || ""}
+                      label={t('chooseCountry')}
+                      onChange={handleCountrySelect}
+                      sx={{
+                        borderRadius: 2,
+                      }}
+                    >
+                      {countries?.map((country) => (
+                        <MenuItem key={country._id} value={country._id}>
+                          <Box display="flex" alignItems="center" gap={1}>
+                            {country.flag ? (
+                              <span style={{ fontSize: '20px' }}>
+                                {country.flag}
+                              </span>
+                            ) : (
+                              <img
+                                loading="lazy"
+                                width="20"
+                                src={`https://flagcdn.com/w20/${country.code.toLowerCase()}.png`}
+                                srcSet={`https://flagcdn.com/w40/${country.code.toLowerCase()}.png 2x`}
+                                alt=""
+                                style={{ marginRight: 8 }}
+                              />
+                            )}
+                            {getCountryLabel(country)} ({country.code})
+                          </Box>
+                        </MenuItem>
+                      ))}
+                    </Select>
+                  </FormControl>
                 </Box>
 
                 <Box>
@@ -305,23 +282,43 @@ const NewPostForm = ({ user, countries, categories, flOptions }) => {
                   <SelectOption name="category" options={categories} />
                 </Box>
 
+                {/* Location Section */}
+                <Typography variant="h6" sx={{ fontWeight: 600, color: theme.palette.primary.main }}>
+                  {t('location')}
+                </Typography>
+
+                <Box>
+                  <FormLabel htmlFor="exactLocation" sx={{ mb: 1, display: "block", fontWeight: 500 }}>
+                    {t('exactLocation')} *
+                  </FormLabel>
+                  <Typography variant="caption" color="text.secondary" sx={{ mb: 1, display: "block" }}>
+                    {getFoundLostType(values.foundLost) === 'LOST' 
+                      ? t('exactLocationLostPlaceholder') 
+                      : t('exactLocationFoundPlaceholder')
+                    }
+                  </Typography>
+                  <Textfield 
+                    name="exactLocation" 
+                    variant="outlined" 
+                    placeholder={t('exactLocationPlaceholder')}
+                  />
+                </Box>
+
                 {/* Item Details Section */}
-                <Divider sx={{ my: 2 }} />
                 <Typography variant="h6" sx={{ fontWeight: 600, color: theme.palette.primary.main }}>
                   {t('itemDetails')}
                 </Typography>
 
                 <Box>
-                  <FormLabel htmlFor="title" sx={{ mb: 1, display: "block", fontWeight: 500 }}>
-                    {t('title')} *
-                  </FormLabel>
-                  <Textfield name="title" variant="outlined" placeholder={t('titlePlaceholder')} />
-                </Box>
-
-                <Box>
                   <FormLabel htmlFor="description" sx={{ mb: 1, display: "block", fontWeight: 500 }}>
-                    {t('description')} *
+                    {t('description')} ({t('optional')})
                   </FormLabel>
+                  <Typography variant="caption" color="text.secondary" sx={{ mb: 1, display: "block" }}>
+                    {getFoundLostType(values.foundLost) === 'LOST' 
+                      ? t('descriptionLostPlaceholder') 
+                      : t('descriptionFoundPlaceholder')
+                    }
+                  </Typography>
                   <Textfield 
                     name="description" 
                     variant="outlined" 
@@ -331,79 +328,7 @@ const NewPostForm = ({ user, countries, categories, flOptions }) => {
                   />
                 </Box>
 
-                <Box>
-                  <FormLabel htmlFor="tags" sx={{ mb: 1, display: "block", fontWeight: 500 }}>
-                    {t('tags')} ({t('optional')})
-                  </FormLabel>
-                  <Box display="flex" gap={1} flexWrap="wrap" alignItems="center">
-                    {tags.map((tag, index) => (
-                      <Chip
-                        key={index}
-                        label={tag}
-                        onDelete={() => handleRemoveTag(tag)}
-                        color="primary"
-                        variant="outlined"
-                      />
-                    ))}
-                    <Box display="flex" gap={1} alignItems="center">
-                      <TextField
-                        size="small"
-                        value={newTag}
-                        onChange={(e) => setNewTag(e.target.value)}
-                        placeholder={t('addTag')}
-                        onKeyPress={(e) => {
-                          if (e.key === 'Enter') {
-                            e.preventDefault();
-                            handleAddTag();
-                          }
-                        }}
-                        sx={{ minWidth: 120 }}
-                      />
-                      <Button
-                        variant="outlined"
-                        size="small"
-                        onClick={handleAddTag}
-                        disabled={!newTag.trim()}
-                      >
-                        {t('add')}
-                      </Button>
-                    </Box>
-                  </Box>
-                </Box>
-
-                {/* Location Section */}
-                <Divider sx={{ my: 2 }} />
-                <Typography variant="h6" sx={{ fontWeight: 600, color: theme.palette.primary.main }}>
-                  {t('location')}
-                </Typography>
-
-                <Box>
-                  <FormLabel htmlFor="region" sx={{ mb: 1, display: "block", fontWeight: 500 }}>
-                    {t('region')} *
-                  </FormLabel>
-                  <Textfield name="region" variant="outlined" />
-                </Box>
-
-                <Box>
-                  <FormLabel htmlFor="city" sx={{ mb: 1, display: "block", fontWeight: 500 }}>
-                    {t('city')} *
-                  </FormLabel>
-                  <Textfield name="city" variant="outlined" />
-                </Box>
-
-                <Box>
-                  <FormLabel htmlFor="exactLocation" sx={{ mb: 1, display: "block", fontWeight: 500 }}>
-                    {t('exactLocation')} ({t('optional')})
-                  </FormLabel>
-                  <Textfield 
-                    name="exactLocation" 
-                    variant="outlined" 
-                    placeholder={t('exactLocationPlaceholder')}
-                  />
-                </Box>
-
                 {/* Contact Information Section */}
-                <Divider sx={{ my: 2 }} />
                 <Typography variant="h6" sx={{ fontWeight: 600, color: theme.palette.primary.main }}>
                   {t('contactInformation')}
                 </Typography>
@@ -498,7 +423,6 @@ const NewPostForm = ({ user, countries, categories, flOptions }) => {
                 )}
 
                 {/* Image Section */}
-                <Divider sx={{ my: 2 }} />
                 <Typography variant="h6" sx={{ fontWeight: 600, color: theme.palette.primary.main }}>
                   {t('itemImage')}
                 </Typography>

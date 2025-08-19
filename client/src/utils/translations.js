@@ -167,15 +167,10 @@ export const translations = {
     itemImage: "Item Image",
     
     // Form fields
-    title: "Title",
-    titlePlaceholder: "Enter a descriptive title for your item",
     description: "Description",
-    descriptionPlaceholder: "Provide detailed description of the item, including color, size, brand, and any unique features",
-    city: "City",
+    descriptionPlaceholder: "Describe the item you found/lost",
     exactLocation: "Exact Location",
-    exactLocationPlaceholder: "Specific location where item was found/lost (optional)",
-    tags: "Tags",
-    addTag: "Add tag",
+    exactLocationPlaceholder: "Enter the specific location",
     contactPreferences: "Contact Preferences",
     additionalContactDetails: "Additional Contact Details",
     phoneContact: "Phone Contact",
@@ -185,10 +180,16 @@ export const translations = {
     emailAddress: "Email Address",
     whatsappNumber: "WhatsApp Number",
     
+    // Dynamic instructions
+    chooseCountryLost: "Choose the country where you lost the item",
+    chooseCountryFound: "Choose the country where you found the item",
+    exactLocationLostPlaceholder: "Where did you lose the item? (e.g., Central Park, Times Square, etc.)",
+    exactLocationFoundPlaceholder: "Where did you find the item? (e.g., Central Park, Times Square, etc.)",
+    descriptionLostPlaceholder: "Describe the item you lost to help others identify it",
+    descriptionFoundPlaceholder: "Describe the item you found to help the owner identify it",
+    
     // Validation messages
     required: "This field is required",
-    titleMinLength: "Title must be at least 3 characters",
-    descriptionMinLength: "Description must be at least 10 characters",
     
     // Promotion Dialog translations
     boostYourChances: "Boost Your Chances",
@@ -799,15 +800,10 @@ export const translations = {
     itemImage: "Image de l'objet",
     
     // Form fields
-    title: "Titre",
-    titlePlaceholder: "Entrez un titre descriptif pour votre objet",
     description: "Description",
-    descriptionPlaceholder: "Fournissez une description détaillée de l'objet, y compris la couleur, la taille, la marque et toute caractéristique unique",
-    city: "Ville",
+    descriptionPlaceholder: "Décrivez l'objet que vous avez trouvé/perdu",
     exactLocation: "Emplacement exact",
-    exactLocationPlaceholder: "Emplacement spécifique où l'objet a été trouvé/perdu (optionnel)",
-    tags: "Étiquettes",
-    addTag: "Ajouter une étiquette",
+    exactLocationPlaceholder: "Entrez l'emplacement spécifique",
     contactPreferences: "Préférences de contact",
     additionalContactDetails: "Détails de contact supplémentaires",
     phoneContact: "Contact téléphonique",
@@ -817,10 +813,16 @@ export const translations = {
     emailAddress: "Adresse email",
     whatsappNumber: "Numéro WhatsApp",
     
+    // Dynamic instructions
+    chooseCountryLost: "Choisissez le pays où vous avez perdu l'objet",
+    chooseCountryFound: "Choisissez le pays où vous avez trouvé l'objet",
+    exactLocationLostPlaceholder: "Où avez-vous perdu l'objet ? (ex: Parc Central, Times Square, etc.)",
+    exactLocationFoundPlaceholder: "Où avez-vous trouvé l'objet ? (ex: Parc Central, Times Square, etc.)",
+    descriptionLostPlaceholder: "Décrivez l'objet que vous avez perdu pour aider les autres à l'identifier",
+    descriptionFoundPlaceholder: "Décrivez l'objet que vous avez trouvé pour aider le propriétaire à l'identifier",
+    
     // Validation messages
     required: "Ce champ est requis",
-    titleMinLength: "Le titre doit contenir au moins 3 caractères",
-    descriptionMinLength: "La description doit contenir au moins 10 caractères",
     
     // Promotion Dialog translations
     boostYourChances: "Augmentez Vos Chances",
@@ -1396,15 +1398,10 @@ export const translations = {
     itemImage: "صورة العنصر",
     
     // Form fields
-    title: "العنوان",
-    titlePlaceholder: "أدخل عنواناً وصفياً لعنصرك",
     description: "الوصف",
-    descriptionPlaceholder: "قدم وصفاً مفصلاً للعنصر، بما في ذلك اللون والحجم والعلامة التجارية وأي ميزات فريدة",
-    city: "المدينة",
+    descriptionPlaceholder: "صف العنصر الذي وجدته/فقدته",
     exactLocation: "الموقع الدقيق",
-    exactLocationPlaceholder: "الموقع المحدد حيث تم العثور على العنصر/فقدانه (اختياري)",
-    tags: "العلامات",
-    addTag: "إضافة علامة",
+    exactLocationPlaceholder: "أدخل الموقع المحدد",
     contactPreferences: "تفضيلات الاتصال",
     additionalContactDetails: "تفاصيل الاتصال الإضافية",
     phoneContact: "اتصال هاتفي",
@@ -1414,10 +1411,16 @@ export const translations = {
     emailAddress: "عنوان البريد الإلكتروني",
     whatsappNumber: "رقم الواتساب",
     
+    // Dynamic instructions
+    chooseCountryLost: "اختر البلد الذي فقدت فيه العنصر",
+    chooseCountryFound: "اختر البلد الذي وجدت فيه العنصر",
+    exactLocationLostPlaceholder: "أين فقدت العنصر؟ (مثال: الحديقة المركزية، ميدان تايمز، إلخ)",
+    exactLocationFoundPlaceholder: "أين وجدت العنصر؟ (مثال: الحديقة المركزية، ميدان تايمز، إلخ)",
+    descriptionLostPlaceholder: "صف العنصر الذي فقدته لمساعدة الآخرين في تحديده",
+    descriptionFoundPlaceholder: "صف العنصر الذي وجدته لمساعدة المالك في تحديده",
+    
     // Validation messages
     required: "هذا الحقل مطلوب",
-    titleMinLength: "يجب أن يحتوي العنوان على 3 أحرف على الأقل",
-    descriptionMinLength: "يجب أن يحتوي الوصف على 10 أحرف على الأقل",
     
     // Promotion Dialog translations
     boostYourChances: "عزز فرصك",
