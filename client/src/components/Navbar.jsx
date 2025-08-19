@@ -164,17 +164,27 @@ const Navbar = () => {
   const currentCountry = useSelector(selectCurrentCountry);
   const openModal = useSelector(selectOpenModal);
 
-  const [countryId, setCountryId] = useState(country || currentCountry);
+  const [countryId, setCountryId] = useState(null); // Start with null to avoid flash
   const [languageAnchorEl, setLanguageAnchorEl] = useState(null);
   const [mobileMenuAnchorEl, setMobileMenuAnchorEl] = useState(null);
   const [isUserSelectingCountry, setIsUserSelectingCountry] = useState(false);
+  const [isInitialized, setIsInitialized] = useState(false);
 
   // Check if user is authenticated
   const isAuthenticated = Boolean(user?.username);
 
+  // Initialize country on component mount
+  useEffect(() => {
+    if (!isInitialized) {
+      // Priority: 1. User's country from JWT, 2. Redux state, 3. Fallback
+      const initialCountry = country || currentCountry || '507f1f77bcf86cd799439011';
+      setCountryId(initialCountry);
+      setIsInitialized(true);
+    }
+  }, [country, currentCountry, isInitialized]);
+
   // Custom function to handle country selection from user
   const handleCountrySelection = (newCountryId) => {
-    console.log('Navbar: User selecting country:', newCountryId);
     setIsUserSelectingCountry(true);
     setCountryId(newCountryId);
     
@@ -189,6 +199,11 @@ const Navbar = () => {
 
   // Sync countryId with currentCountry - only update if there's a meaningful change
   useEffect(() => {
+    // Only sync after initialization
+    if (!isInitialized) {
+      return;
+    }
+
     // If user is actively selecting a country, don't override their selection
     if (isUserSelectingCountry) {
       return;
@@ -196,7 +211,6 @@ const Navbar = () => {
 
     // If countryId is set and different from currentCountry, update Redux
     if (countryId && countryId !== currentCountry) {
-      console.log('Navbar: Updating Redux currentCountry from', currentCountry, 'to', countryId);
       dispatch(
         setCurrentCountry({
           currentCountry: countryId,
@@ -205,10 +219,9 @@ const Navbar = () => {
     }
     // If currentCountry is set and different from countryId, update local state
     else if (currentCountry && currentCountry !== countryId) {
-      console.log('Navbar: Updating local countryId from', countryId, 'to', currentCountry);
       setCountryId(currentCountry);
     }
-  }, [countryId, currentCountry, dispatch, isUserSelectingCountry]);
+  }, [countryId, currentCountry, dispatch, isUserSelectingCountry, isInitialized]);
 
   const { countries } = useGetCountriesQuery({
     language: currentLanguage
@@ -224,6 +237,7 @@ const Navbar = () => {
     selectFromResult: ({ data }) => ({
       currentCountryData: data?.entities[countryId || currentCountry],
     }),
+    skip: !isInitialized || !countryId, // Skip query until we have a country ID
   });
 
   const [sendLogout, { isSuccess }] =
@@ -254,7 +268,6 @@ const Navbar = () => {
   };
 
   const handleLanguageChange = (newLanguage) => {
-    console.log('Navbar: Changing language to:', newLanguage);
     // Save to localStorage and reload page to fetch fresh translations
     localStorage.setItem('currentLanguage', newLanguage);
     localStorage.setItem('language', newLanguage);
@@ -287,10 +300,14 @@ const Navbar = () => {
 
   // Use fallback data if API fails
   const countriesToUse = countries || fallbackCountries;
-  const currentCountryDataToUse = currentCountryData || fallbackCountries.find(c => c._id === (countryId || currentCountry)) || fallbackCountries[0];
   
-  // Debug logging
-  console.log('Navbar: countryId:', countryId, 'currentCountry:', currentCountry, 'isUserSelecting:', isUserSelectingCountry, 'currentCountryData:', currentCountryDataToUse);
+  // Only show country data after initialization to avoid flash
+  const currentCountryDataToUse = isInitialized && countryId 
+    ? (currentCountryData || fallbackCountries.find(c => c._id === countryId) || fallbackCountries[0])
+    : null;
+  
+  // Debug logging (commented out for production)
+  // console.log('Navbar: countryId:', countryId, 'currentCountry:', currentCountry, 'isInitialized:', isInitialized, 'isUserSelecting:', isUserSelectingCountry, 'currentCountryData:', currentCountryDataToUse);
 
   return (
     <AppBar
@@ -338,31 +355,75 @@ const Navbar = () => {
         <FlexBetween sx={{ gap: { xs: '6px', sm: '12px' } }}>
           {/* Country selector - always visible */}
           <CountrySelector 
-            onClick={() => dispatch(setOpenModal())}
-            sx={{
-              padding: { xs: '6px 8px', sm: '8px 16px' },
-            }}
-          >
-            <img
-              loading="lazy"
-              width="30"
-              height="20"
-              src={`https://flagcdn.com/w20/${currentCountryDataToUse.code.toLowerCase()}.png`}
-              srcSet={`https://flagcdn.com/w40/${currentCountryDataToUse.code.toLowerCase()}.png 2x`}
-              alt=""
-            />
-            <Typography
-              variant="body2"
-              sx={{
-                fontWeight: 500,
-                fontSize: { xs: '0.8rem', sm: '0.9rem' },
-                display: 'block'
-              }}
-            >
-              {currentCountryDataToUse.names?.[currentLanguage] || currentCountryDataToUse.names?.en || currentCountryDataToUse.labels?.[currentLanguage] || currentCountryDataToUse.labels?.en || currentCountryDataToUse.code}
-            </Typography>
-            <KeyboardArrowDown sx={{ fontSize: '16px', ml: 0.5 }} />
-          </CountrySelector>
+             onClick={() => dispatch(setOpenModal())}
+             sx={{
+               padding: { xs: '6px 8px', sm: '8px 16px' },
+             }}
+           >
+             {isInitialized && currentCountryDataToUse ? (
+               <>
+                 <img
+                   loading="lazy"
+                   width="30"
+                   height="20"
+                   src={`https://flagcdn.com/w20/${currentCountryDataToUse.code.toLowerCase()}.png`}
+                   srcSet={`https://flagcdn.com/w40/${currentCountryDataToUse.code.toLowerCase()}.png 2x`}
+                   alt=""
+                 />
+                 <Typography
+                   variant="body2"
+                   sx={{
+                     fontWeight: 500,
+                     fontSize: { xs: '0.8rem', sm: '0.9rem' },
+                     display: 'block'
+                   }}
+                 >
+                   {currentCountryDataToUse.names?.[currentLanguage] || currentCountryDataToUse.names?.en || currentCountryDataToUse.labels?.[currentLanguage] || currentCountryDataToUse.labels?.en || currentCountryDataToUse.code}
+                 </Typography>
+               </>
+             ) : (
+               <>
+                 <Box
+                   sx={{
+                     width: 30,
+                     height: 20,
+                     backgroundColor: 'rgba(255,255,255,0.1)',
+                     borderRadius: '4px',
+                     display: 'flex',
+                     alignItems: 'center',
+                     justifyContent: 'center'
+                   }}
+                 >
+                   <Box
+                     sx={{
+                       width: 16,
+                       height: 16,
+                       border: '2px solid rgba(255,255,255,0.3)',
+                       borderTop: '2px solid rgba(255,255,255,0.8)',
+                       borderRadius: '50%',
+                       animation: 'spin 1s linear infinite',
+                       '@keyframes spin': {
+                         '0%': { transform: 'rotate(0deg)' },
+                         '100%': { transform: 'rotate(360deg)' }
+                       }
+                     }}
+                   />
+                 </Box>
+                 <Typography
+                   variant="body2"
+                   sx={{
+                     fontWeight: 500,
+                     fontSize: { xs: '0.8rem', sm: '0.9rem' },
+                     display: 'block',
+                     color: 'rgba(255,255,255,0.6)'
+                   }}
+                 >
+                   Loading...
+                 </Typography>
+               </>
+             )}
+             <KeyboardArrowDown sx={{ fontSize: '16px', ml: 0.5 }} />
+           </CountrySelector>
 
           {/* Language selector - always visible */}
           <LanguageSelector 
