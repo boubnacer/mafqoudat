@@ -50,7 +50,9 @@ const requestPromotion = async (req, res) => {
     };
 
     // Send email notification
+    console.log('Sending email notification with data:', notificationData);
     const notificationResult = await emailNotification.sendNotification(notificationData, user);
+    console.log('Email notification result:', notificationResult);
 
     // Update post to mark promotion requested
     await Post.findByIdAndUpdate(postId, {

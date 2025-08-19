@@ -12,6 +12,11 @@ class EmailNotificationService {
 
   async sendNotification(postData, userData) {
     try {
+      console.log('Email notification service - checking configuration...');
+      console.log('Admin email:', this.adminEmail ? 'Set' : 'Not set');
+      console.log('Email user:', this.emailUser ? 'Set' : 'Not set');
+      console.log('Email pass:', this.emailPass ? 'Set' : 'Not set');
+      
       if (!this.adminEmail || !this.emailUser || !this.emailPass) {
         console.log('Email notification not configured. Skipping notification.');
         return { success: false, message: 'Email not configured' };
