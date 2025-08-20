@@ -30,7 +30,7 @@ import useAuth from "../../hooks/useAuth";
 // Get the API base URL for image construction
 const API_BASE_URL = process.env.REACT_APP_API_URL || "http://localhost:3500";
 
-const RecentPosts = ({ _id, categoryname, region, exactLocation, image, createdAt, countryLabels, countryname, contact }) => {
+const RecentPosts = ({ _id, categoryname, region, exactLocation, image, createdAt, countryLabels, countryname, contact, city }) => {
   const theme = useTheme();
   const navigate = useNavigate();
   const { t, currentLanguage } = useTranslation();
@@ -67,7 +67,7 @@ const RecentPosts = ({ _id, categoryname, region, exactLocation, image, createdA
   };
 
   // Use city field if available, otherwise extract from exactLocation
-  const cityName = getCityFromLocation(exactLocation || region);
+  const cityName = city || getCityFromLocation(exactLocation || region);
 
   // Get category name safely with multilingual support
   const getCategoryDisplayName = (categoryCode) => {
@@ -244,8 +244,8 @@ const RecentPosts = ({ _id, categoryname, region, exactLocation, image, createdA
         position: 'relative',
         boxShadow: 'none',
         border: `1px solid ${isDarkMode ? alpha('#fff', 0.08) : alpha('#000', 0.06)}`,
-        height: { xs: 'auto', sm: '360px' },
-        minHeight: { xs: '280px', sm: '360px' },
+        height: { xs: 'auto', sm: '380px' },
+        minHeight: { xs: '320px', sm: '380px' },
         display: 'flex',
         flexDirection: 'column',
         transition: 'all 0.3s cubic-bezier(0.4, 0, 0.2, 1)',
@@ -261,7 +261,7 @@ const RecentPosts = ({ _id, categoryname, region, exactLocation, image, createdA
       }}
     >
       {/* Image Section with Overlays */}
-      <Box sx={{ position: 'relative', height: { xs: '220px', sm: '200px' } }}>
+      <Box sx={{ position: 'relative', height: { xs: '240px', sm: '220px' } }}>
         <CardMedia
           component="img"
           sx={{
@@ -442,7 +442,7 @@ const RecentPosts = ({ _id, categoryname, region, exactLocation, image, createdA
               },
             }}
           startIcon={currentLanguage === 'ar' ? null : <ReportProblemOutlined sx={{ fontSize: '12px' }} />}
-          endIcon={currentLanguage === 'ar' ? <ReportProblemOutlined sx={{ fontSize: '12px' }} /> : null}
+          endIcon={currentLanguage === 'ar' ? <ReportProblemOutlined sx={{ fontSize: '12px', ml: 0.5 }} /> : null}
         >
           {t('report')}
         </Button>
@@ -468,7 +468,7 @@ const RecentPosts = ({ _id, categoryname, region, exactLocation, image, createdA
                 boxShadow: `0 4px 12px ${alpha(theme.palette.primary.main, 0.4)}`,
               },
             }}
-          startIcon={currentLanguage === 'ar' ? <ArrowIcon sx={{ fontSize: '12px', transform: 'scaleX(-1)' }} /> : null}
+          startIcon={currentLanguage === 'ar' ? <ArrowIcon sx={{ fontSize: '12px', transform: 'scaleX(-1)', mr: 0.5 }} /> : null}
           endIcon={currentLanguage === 'ar' ? null : <ArrowIcon sx={{ fontSize: '12px' }} />}
         >
           {t('viewDetails')}

@@ -34,6 +34,7 @@ const getAllPosts = async (req, res) => {
   if (search) {
     match.$or = [
       { exactLocation: { $regex: search, $options: 'i' } },
+      { city: { $regex: search, $options: 'i' } },
       { contact: { $regex: search, $options: 'i' } },
       { "Category.code": { $regex: search, $options: 'i' } },
       { description: { $regex: search, $options: 'i' } }
@@ -88,6 +89,7 @@ const getAllPosts = async (req, res) => {
         country: 1,
         exactLocation: 1,
         region: 1,
+        city: 1,
         returned: 1,
         createdAt: 1,
         updatedAt: 1,
@@ -201,6 +203,7 @@ const getPost = async (req, res) => {
           country: 1,
           exactLocation: 1,
           region: 1,
+          city: 1,
           returned: 1,
           createdAt: 1,
           updatedAt: 1,

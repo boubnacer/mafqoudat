@@ -499,8 +499,8 @@ const Post = ({ post, viewMode = "grid" }) => {
           position: 'relative',
           boxShadow: 'none',
           border: `1px solid ${isDarkMode ? alpha('#fff', 0.08) : alpha('#000', 0.06)}`,
-          height: { xs: 'auto', sm: '360px' },
-          minHeight: { xs: '280px', sm: '360px' },
+          height: { xs: 'auto', sm: '380px' },
+          minHeight: { xs: '320px', sm: '380px' },
           display: 'flex',
           flexDirection: 'column',
           transition: 'all 0.3s cubic-bezier(0.4, 0, 0.2, 1)',
@@ -516,7 +516,7 @@ const Post = ({ post, viewMode = "grid" }) => {
         }}
       >
         {/* Image Section with Overlays */}
-        <Box sx={{ position: 'relative', height: { xs: '220px', sm: '200px' } }}>
+        <Box sx={{ position: 'relative', height: { xs: '240px', sm: '220px' } }}>
           <CardMedia
             component="img"
             sx={{
@@ -699,7 +699,7 @@ const Post = ({ post, viewMode = "grid" }) => {
               },
             }}
             startIcon={currentLanguage === 'ar' ? null : <ReportProblemOutlined sx={{ fontSize: '12px' }} />}
-            endIcon={currentLanguage === 'ar' ? <ReportProblemOutlined sx={{ fontSize: '12px' }} /> : null}
+            endIcon={currentLanguage === 'ar' ? <ReportProblemOutlined sx={{ fontSize: '12px', ml: 0.5 }} /> : null}
           >
             {t('report')}
           </Button>
@@ -725,7 +725,7 @@ const Post = ({ post, viewMode = "grid" }) => {
                 boxShadow: `0 4px 12px ${alpha(theme.palette.primary.main, 0.4)}`,
               },
             }}
-            startIcon={currentLanguage === 'ar' ? <ArrowIcon sx={{ fontSize: '12px', transform: 'scaleX(-1)' }} /> : null}
+            startIcon={currentLanguage === 'ar' ? <ArrowIcon sx={{ fontSize: '12px', transform: 'scaleX(-1)', mr: 0.5 }} /> : null}
             endIcon={currentLanguage === 'ar' ? null : <ArrowIcon sx={{ fontSize: '12px' }} />}
           >
             {t('viewDetails')}

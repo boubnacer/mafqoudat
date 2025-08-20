@@ -28,7 +28,7 @@ const Recent = ({ recent, isLoading, emptyState = "NoRecentFounds" }) => {
         },
       }}
     >
-      {recent.map(({ _id, categoryname, region, exactLocation, image, createdAt, countryLabels, countryname, contact }) => {
+      {recent.map(({ _id, categoryname, region, exactLocation, image, createdAt, countryLabels, countryname, contact, city }) => {
         return (
           <RecentPosts
             key={_id}
@@ -41,6 +41,7 @@ const Recent = ({ recent, isLoading, emptyState = "NoRecentFounds" }) => {
             countryLabels={countryLabels}
             countryname={countryname}
             contact={contact}
+            city={city}
           />
         );
       })}

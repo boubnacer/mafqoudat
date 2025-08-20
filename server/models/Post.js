@@ -195,6 +195,7 @@ postSchema.index({
   "descriptionLabels.fr": "text", 
   "descriptionLabels.ar": "text",
   "exactLocation": "text",
+  "city": "text",
   "description": "text"
 });
 

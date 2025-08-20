@@ -68,6 +68,7 @@ const getDashboard = async (req, res) => {
         $project: {
           region: 1,
           exactLocation: 1,
+          city: 1,
           user: 1,
           country: 1,
           returned: 1,
@@ -131,6 +132,7 @@ const getDashboard = async (req, res) => {
           country: 1,
           region: 1,
           exactLocation: 1,
+          city: 1,
           returned: 1,
           createdAt: 1,
           updatedAt: 1,
@@ -193,6 +195,7 @@ const getDashboard = async (req, res) => {
           country: 1,
           region: 1,
           exactLocation: 1,
+          city: 1,
           returned: 1,
           createdAt: 1,
           updatedAt: 1,
