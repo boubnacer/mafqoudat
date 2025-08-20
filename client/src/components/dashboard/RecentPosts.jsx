@@ -59,7 +59,9 @@ const RecentPosts = ({ _id, categoryname, region, exactLocation, image, createdA
     if (!location) return t('unknownLocation');
     // Split by comma and take the first part (usually the city)
     const parts = location.split(',');
-    return parts[0].trim();
+    const city = parts[0].trim();
+    // Remove any extra location details that might be in parentheses
+    return city.split('(')[0].trim();
   };
 
   const cityName = getCityFromLocation(exactLocation || region);
@@ -380,27 +382,16 @@ const RecentPosts = ({ _id, categoryname, region, exactLocation, image, createdA
               <LocationIcon sx={{ fontSize: '16px' }} />
             </Avatar>
           <Box>
-            <Typography
-              sx={{
-                color: isDarkMode ? alpha('#fff', 0.9) : alpha('#000', 0.8),
-                fontSize: { xs: '14px', sm: '16px' },
-                fontWeight: 700,
-                lineHeight: 1.2,
-              }}
-            >
-              {cityName}
-            </Typography>
-            {countryLabels && (
-              <Typography
-                sx={{
-                  color: isDarkMode ? alpha('#fff', 0.5) : alpha('#000', 0.4),
-                  fontSize: { xs: '11px', sm: '12px' },
-                  fontWeight: 400,
-                }}
-              >
-                {countryLabels[currentLanguage] || countryLabels.en || countryname}
-              </Typography>
-            )}
+                         <Typography
+               sx={{
+                 color: isDarkMode ? alpha('#fff', 0.9) : alpha('#000', 0.8),
+                 fontSize: { xs: '14px', sm: '16px' },
+                 fontWeight: 700,
+                 lineHeight: 1.2,
+               }}
+             >
+               {cityName}
+             </Typography>
           </Box>
         </Box>
       </CardContent>
@@ -414,7 +405,7 @@ const RecentPosts = ({ _id, categoryname, region, exactLocation, image, createdA
           borderTop: '1px solid',
           borderColor: isDarkMode ? alpha('#fff', 0.06) : alpha('#000', 0.04),
           backgroundColor: isDarkMode ? alpha('#000', 0.2) : alpha('#f8f9fa', 0.5),
-          gap: 1,
+          gap: 2,
           mt: 'auto',
         }}
       >
@@ -443,7 +434,8 @@ const RecentPosts = ({ _id, categoryname, region, exactLocation, image, createdA
               borderColor: theme.palette.error.main,
             },
           }}
-          startIcon={<ReportProblemOutlined sx={{ fontSize: '12px' }} />}
+          startIcon={currentLanguage === 'ar' ? null : <ReportProblemOutlined sx={{ fontSize: '12px' }} />}
+          endIcon={currentLanguage === 'ar' ? <ReportProblemOutlined sx={{ fontSize: '12px' }} /> : null}
         >
           {t('report')}
         </Button>
@@ -468,7 +460,8 @@ const RecentPosts = ({ _id, categoryname, region, exactLocation, image, createdA
               boxShadow: `0 4px 12px ${alpha(theme.palette.primary.main, 0.4)}`,
             },
           }}
-          endIcon={<ArrowIcon sx={{ fontSize: '12px' }} />}
+          startIcon={currentLanguage === 'ar' ? <ArrowIcon sx={{ fontSize: '12px' }} /> : null}
+          endIcon={currentLanguage === 'ar' ? null : <ArrowIcon sx={{ fontSize: '12px' }} />}
         >
           {t('viewDetails')}
         </Button>

@@ -3,7 +3,7 @@ import { faPenToSquare } from "@fortawesome/free-solid-svg-icons";
 import { Link, useNavigate } from "react-router-dom";
 import { useGetPostsQuery } from "../postsApiSlice";
 import { memo } from "react";
-import "./postslist.css";
+// import "./postslist.css"; // Removed to prevent CSS conflicts with Material-UI
 import ma from "../../../img/ma.jpg";
 import useAuth from "../../../hooks/useAuth";
 import {
@@ -283,7 +283,9 @@ const Post = ({ post, viewMode = "grid" }) => {
       if (!location) return t('unknownLocation');
       // Split by comma and take the first part (usually the city)
       const parts = location.split(',');
-      return parts[0].trim();
+      const city = parts[0].trim();
+      // Remove any extra location details that might be in parentheses
+      return city.split('(')[0].trim();
     };
 
     const cityName = getCityFromLocation(post.exactLocation || post.region);
@@ -474,7 +476,8 @@ const Post = ({ post, viewMode = "grid" }) => {
                       background: `linear-gradient(135deg, ${theme.palette.primary.dark} 0%, ${theme.palette.primary.main} 100%)`,
                     }
                   }}
-                  endIcon={<ArrowIcon />}
+                  startIcon={currentLanguage === 'ar' ? <ArrowIcon /> : null}
+                  endIcon={currentLanguage === 'ar' ? null : <ArrowIcon />}
                 >
                   {t('viewDetails')}
                 </Button>
@@ -676,7 +679,7 @@ const Post = ({ post, viewMode = "grid" }) => {
             borderTop: '1px solid',
             borderColor: isDarkMode ? alpha('#fff', 0.06) : alpha('#000', 0.04),
             backgroundColor: isDarkMode ? alpha('#000', 0.2) : alpha('#f8f9fa', 0.5),
-            gap: 1,
+            gap: 2,
             mt: 'auto',
           }}
         >
@@ -705,7 +708,8 @@ const Post = ({ post, viewMode = "grid" }) => {
                 borderColor: theme.palette.error.main,
               },
             }}
-            startIcon={<ReportProblemOutlined sx={{ fontSize: '12px' }} />}
+            startIcon={currentLanguage === 'ar' ? null : <ReportProblemOutlined sx={{ fontSize: '12px' }} />}
+            endIcon={currentLanguage === 'ar' ? <ReportProblemOutlined sx={{ fontSize: '12px' }} /> : null}
           >
             {t('report')}
           </Button>
@@ -730,7 +734,8 @@ const Post = ({ post, viewMode = "grid" }) => {
                 boxShadow: `0 4px 12px ${alpha(theme.palette.primary.main, 0.4)}`,
               },
             }}
-            endIcon={<ArrowIcon sx={{ fontSize: '12px' }} />}
+            startIcon={currentLanguage === 'ar' ? <ArrowIcon sx={{ fontSize: '12px' }} /> : null}
+            endIcon={currentLanguage === 'ar' ? null : <ArrowIcon sx={{ fontSize: '12px' }} />}
           >
             {t('viewDetails')}
           </Button>
