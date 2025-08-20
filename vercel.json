@@ -1,46 +1,38 @@
 {
-  "version": 2,
-  "builds": [
+  "buildCommand": "cd client && npm run build",
+  "outputDirectory": "client/build",
+  "rewrites": [
     {
-      "src": "client/package.json",
-      "use": "@vercel/static-build",
-      "config": {
-        "distDir": "client/build"
-      }
-    }
-  ],
-  "routes": [
-    {
-      "src": "/static/(.*)",
-      "dest": "/client/build/static/$1"
+      "source": "/static/(.*)",
+      "destination": "/static/$1"
     },
     {
-      "src": "/asset-manifest.json",
-      "dest": "/client/build/asset-manifest.json"
+      "source": "/asset-manifest.json",
+      "destination": "/asset-manifest.json"
     },
     {
-      "src": "/manifest.json",
-      "dest": "/client/build/manifest.json"
+      "source": "/manifest.json",
+      "destination": "/manifest.json"
     },
     {
-      "src": "/favicon.ico",
-      "dest": "/client/build/favicon.ico"
+      "source": "/favicon.ico",
+      "destination": "/favicon.ico"
     },
     {
-      "src": "/logo192.png",
-      "dest": "/client/build/logo192.png"
+      "source": "/logo192.png",
+      "destination": "/logo192.png"
     },
     {
-      "src": "/logo512.png",
-      "dest": "/client/build/logo512.png"
+      "source": "/logo512.png",
+      "destination": "/logo512.png"
     },
     {
-      "src": "/language-test.html",
-      "dest": "/client/build/language-test.html"
+      "source": "/language-test.html",
+      "destination": "/language-test.html"
     },
     {
-      "src": "/(.*)",
-      "dest": "/client/build/index.html"
+      "source": "/(.*)",
+      "destination": "/index.html"
     }
   ],
   "env": {
@@ -52,6 +44,7 @@
     "CI": "false",
     "DISABLE_ESLINT_PLUGIN": "true",
     "GENERATE_SOURCEMAP": "false",
-    "SKIP_PREFLIGHT_CHECK": "true"
+    "SKIP_PREFLIGHT_CHECK": "true",
+    "NODE_ENV": "production"
   }
 }
