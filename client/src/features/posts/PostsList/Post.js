@@ -111,7 +111,49 @@ const Post = ({ post, viewMode = "grid" }) => {
     const statusText = foundLostLabel;
 
     // Get category name safely with multilingual support
-    const categoryName = post.categoryname || t('unknownCategory');
+    const getCategoryDisplayName = (categoryCode) => {
+      // Map category codes to their translated names
+      const categoryTranslations = {
+        'ELECTRONICS': {
+          en: 'Electronics',
+          fr: 'Électronique', 
+          ar: 'إلكترونيات'
+        },
+        'DOCUMENTS': {
+          en: 'Documents',
+          fr: 'Documents',
+          ar: 'وثائق'
+        },
+        'JEWELRY': {
+          en: 'Jewelry',
+          fr: 'Bijoux',
+          ar: 'مجوهرات'
+        },
+        'CLOTHING': {
+          en: 'Clothing',
+          fr: 'Vêtements',
+          ar: 'ملابس'
+        },
+        'PETS': {
+          en: 'Pets',
+          fr: 'Animaux',
+          ar: 'حيوانات أليفة'
+        },
+        'VEHICLES': {
+          en: 'Vehicles',
+          fr: 'Véhicules',
+          ar: 'مركبات'
+        }
+      };
+      
+      const translations = categoryTranslations[categoryCode];
+      if (translations) {
+        return translations[currentLanguage] || translations.en || categoryCode;
+      }
+      return categoryCode || t('unknownCategory');
+    };
+
+    const categoryName = getCategoryDisplayName(post.categoryname);
 
     // Updated category color function with actual database colors
     const getCategoryColor = (category) => {
@@ -509,26 +551,6 @@ const Post = ({ post, viewMode = "grid" }) => {
               gap: 1,
             }}
           >
-            {/* Status Badge */}
-            <Chip 
-              label={statusText}
-              size="small"
-              sx={{
-                fontWeight: 700,
-                backgroundColor: alpha(statusColor, 0.95),
-                color: 'white',
-                backdropFilter: 'blur(10px)',
-                border: `1px solid ${alpha(statusColor, 0.3)}`,
-                fontSize: '10px',
-                height: 24,
-                '& .MuiChip-label': {
-                  color: 'white',
-                  fontSize: '10px',
-                  fontWeight: 700,
-                }
-              }}
-            />
-
             {/* Category Badge */}
             <Box
               sx={{
@@ -556,7 +578,7 @@ const Post = ({ post, viewMode = "grid" }) => {
                   fontWeight: 600,
                 }}
               >
-                {t(categoryName?.toLowerCase()) || categoryName}
+                {categoryName}
               </Typography>
             </Box>
           </Box>

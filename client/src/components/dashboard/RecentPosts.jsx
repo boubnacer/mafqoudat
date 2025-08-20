@@ -64,6 +64,51 @@ const RecentPosts = ({ _id, categoryname, region, exactLocation, image, createdA
 
   const cityName = getCityFromLocation(exactLocation || region);
 
+  // Get category name safely with multilingual support
+  const getCategoryDisplayName = (categoryCode) => {
+    // Map category codes to their translated names
+    const categoryTranslations = {
+      'ELECTRONICS': {
+        en: 'Electronics',
+        fr: 'Électronique', 
+        ar: 'إلكترونيات'
+      },
+      'DOCUMENTS': {
+        en: 'Documents',
+        fr: 'Documents',
+        ar: 'وثائق'
+      },
+      'JEWELRY': {
+        en: 'Jewelry',
+        fr: 'Bijoux',
+        ar: 'مجوهرات'
+      },
+      'CLOTHING': {
+        en: 'Clothing',
+        fr: 'Vêtements',
+        ar: 'ملابس'
+      },
+      'PETS': {
+        en: 'Pets',
+        fr: 'Animaux',
+        ar: 'حيوانات أليفة'
+      },
+      'VEHICLES': {
+        en: 'Vehicles',
+        fr: 'Véhicules',
+        ar: 'مركبات'
+      }
+    };
+    
+    const translations = categoryTranslations[categoryCode];
+    if (translations) {
+      return translations[currentLanguage] || translations.en || categoryCode;
+    }
+    return categoryCode || t('unknownCategory');
+  };
+
+  const categoryDisplayName = getCategoryDisplayName(categoryname);
+
   // Get category color function with actual database colors
   const getCategoryColor = (category) => {
     const categoryColors = {
@@ -272,15 +317,15 @@ const RecentPosts = ({ _id, categoryname, region, exactLocation, image, createdA
                 color: isDarkMode ? categoryStyle.main : categoryStyle.text 
               }} 
             />
-            <Typography
-              sx={{
-                color: isDarkMode ? categoryStyle.main : categoryStyle.text,
-                fontSize: '10px',
-                fontWeight: 600,
-              }}
-            >
-              {t(categoryname?.toLowerCase()) || categoryname}
-            </Typography>
+                          <Typography
+                sx={{
+                  color: isDarkMode ? categoryStyle.main : categoryStyle.text,
+                  fontSize: '10px',
+                  fontWeight: 600,
+                }}
+              >
+                {categoryDisplayName}
+              </Typography>
           </Box>
         </Box>
 
