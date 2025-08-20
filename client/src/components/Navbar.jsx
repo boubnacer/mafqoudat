@@ -68,7 +68,8 @@ const StyledToolbar = styled(Toolbar)(({ theme }) => ({
     : '0 4px 20px rgba(0, 0, 0, 0.08)',
   transition: 'all 0.3s cubic-bezier(0.4, 0, 0.2, 1)',
   [theme.breakpoints.down('sm')]: {
-    padding: "0.5rem 1rem",
+    padding: "0.75rem 1rem",
+    minHeight: "64px",
   }
 }));
 
@@ -105,6 +106,10 @@ const LogoButton = styled(Button)(({ theme }) => ({
       opacity: 1,
     }
   },
+  [theme.breakpoints.down('sm')]: {
+    fontSize: '1.2rem',
+    padding: '6px 12px',
+  }
 }));
 
 const ActionButton = styled(IconButton)(({ theme }) => ({
@@ -125,6 +130,10 @@ const ActionButton = styled(IconButton)(({ theme }) => ({
       ? '0 4px 15px rgba(0, 0, 0, 0.3)'
       : '0 4px 15px rgba(0, 0, 0, 0.1)',
   },
+  [theme.breakpoints.down('sm')]: {
+    padding: '8px',
+    margin: '0 2px',
+  }
 }));
 
 const NavigationButton = styled(Button)(({ theme }) => ({
@@ -174,6 +183,12 @@ const CountrySelector = styled(Box)(({ theme }) => ({
     marginRight: '8px',
     transition: 'all 0.3s ease',
   },
+  [theme.breakpoints.down('sm')]: {
+    padding: '6px 8px',
+    '& img': {
+      marginRight: '0',
+    }
+  }
 }));
 
 const LanguageSelector = styled(Box)(({ theme }) => ({
@@ -200,6 +215,13 @@ const LanguageSelector = styled(Box)(({ theme }) => ({
     marginRight: '8px',
     fontSize: '18px',
   },
+  [theme.breakpoints.down('sm')]: {
+    padding: '6px 8px',
+    '& .MuiSvgIcon-root': {
+      marginRight: '4px',
+      fontSize: '16px',
+    }
+  }
 }));
 
 const CreatePostButton = styled(Button)(({ theme }) => ({
@@ -438,15 +460,15 @@ const Navbar = () => {
           <CountrySelector 
             onClick={() => dispatch(setOpenModal())}
             sx={{
-              padding: { xs: '4px 6px', sm: '6px 12px' },
+              padding: { xs: '6px 8px', sm: '6px 12px' },
             }}
           >
             {isInitialized && currentCountryDataToUse ? (
               <>
                 <img
                   loading="lazy"
-                  width={isMobile ? "24" : "30"}
-                  height={isMobile ? "16" : "20"}
+                  width={isMobile ? "28" : "30"}
+                  height={isMobile ? "18" : "20"}
                   src={`https://flagcdn.com/w20/${currentCountryDataToUse.code.toLowerCase()}.png`}
                   srcSet={`https://flagcdn.com/w40/${currentCountryDataToUse.code.toLowerCase()}.png 2x`}
                   alt=""
@@ -467,8 +489,8 @@ const Navbar = () => {
             ) : (
               <Box
                 sx={{
-                  width: isMobile ? 24 : 30,
-                  height: isMobile ? 16 : 20,
+                  width: isMobile ? 28 : 30,
+                  height: isMobile ? 18 : 20,
                   backgroundColor: 'rgba(255,255,255,0.1)',
                   borderRadius: '4px',
                   display: 'flex',
@@ -499,22 +521,20 @@ const Navbar = () => {
           <LanguageSelector 
             onClick={handleLanguageClick}
             sx={{
-              padding: { xs: '4px 6px', sm: '6px 12px' },
+              padding: { xs: '6px 8px', sm: '6px 12px' },
             }}
           >
             <Language />
-            {!isMobile && (
-              <Typography
-                variant="body2"
-                sx={{
-                  fontWeight: 500,
-                  fontSize: { xs: '0.8rem', sm: '0.9rem' },
-                  display: 'block'
-                }}
-              >
-                {getLanguageDisplayName(currentLanguage)}
-              </Typography>
-            )}
+            <Typography
+              variant="body2"
+              sx={{
+                fontWeight: 500,
+                fontSize: { xs: '0.75rem', sm: '0.9rem' },
+                display: 'block'
+              }}
+            >
+              {getLanguageDisplayName(currentLanguage)}
+            </Typography>
             {!isMobile && <KeyboardArrowDown sx={{ fontSize: '16px', ml: 0.5 }} />}
           </LanguageSelector>
 
@@ -698,13 +718,13 @@ const Navbar = () => {
                 : 'rgba(255, 255, 255, 0.95)',
               backdropFilter: 'blur(20px)',
               border: `1px solid ${alpha(theme.palette.divider, 0.1)}`,
-              minWidth: 250,
+              minWidth: 280,
             }
           }}
           transformOrigin={{ horizontal: 'right', vertical: 'top' }}
           anchorOrigin={{ horizontal: 'right', vertical: 'bottom' }}
         >
-          <Box sx={{ p: 1 }}>
+          <Box sx={{ p: 1.5 }}>
             {/* Navigation Items */}
             {navigationItems.map((item, index) => (
               <MenuItem
@@ -716,6 +736,7 @@ const Navbar = () => {
                 sx={{
                   borderRadius: 1,
                   mb: 0.5,
+                  py: 1.5,
                   '&:hover': {
                     backgroundColor: alpha(theme.palette.primary.main, 0.1),
                   }
@@ -729,17 +750,17 @@ const Navbar = () => {
                   secondary={item.description}
                   primaryTypographyProps={{
                     fontWeight: 600,
-                    fontSize: '0.95rem'
+                    fontSize: '1rem'
                   }}
                   secondaryTypographyProps={{
-                    fontSize: '0.8rem',
+                    fontSize: '0.85rem',
                     color: 'text.secondary'
                   }}
                 />
               </MenuItem>
             ))}
             
-            <Divider sx={{ my: 1, opacity: 0.3 }} />
+            <Divider sx={{ my: 1.5, opacity: 0.3 }} />
             
             {/* Theme Toggle */}
             <MenuItem
@@ -750,6 +771,7 @@ const Navbar = () => {
               sx={{
                 borderRadius: 1,
                 mb: 0.5,
+                py: 1.5,
                 '&:hover': {
                   backgroundColor: alpha(theme.palette.primary.main, 0.1),
                 }
@@ -757,16 +779,16 @@ const Navbar = () => {
             >
               <ListItemIcon>
                 {mode === 'light' ? (
-                  <DarkModeOutlined sx={{ fontSize: 20 }} />
+                  <DarkModeOutlined sx={{ fontSize: 22 }} />
                 ) : (
-                  <LightModeOutlined sx={{ fontSize: 20 }} />
+                  <LightModeOutlined sx={{ fontSize: 22 }} />
                 )}
               </ListItemIcon>
               <ListItemText 
                 primary={mode === 'light' ? t('darkMode') : t('lightMode')}
                 primaryTypographyProps={{
                   fontWeight: 600,
-                  fontSize: '0.95rem'
+                  fontSize: '1rem'
                 }}
               />
             </MenuItem>
@@ -780,20 +802,21 @@ const Navbar = () => {
                 }}
                 sx={{
                   borderRadius: 1,
+                  py: 1.5,
                   '&:hover': {
                     backgroundColor: alpha(theme.palette.error.main, 0.1),
                   }
                 }}
               >
                 <ListItemIcon>
-                  <LogoutOutlined sx={{ fontSize: 20, color: 'error.main' }} />
+                  <LogoutOutlined sx={{ fontSize: 22, color: 'error.main' }} />
                 </ListItemIcon>
                 <ListItemText 
                   primary={t('logout')} 
                   sx={{ color: 'error.main' }}
                   primaryTypographyProps={{
                     fontWeight: 600,
-                    fontSize: '0.95rem'
+                    fontSize: '1rem'
                   }}
                 />
               </MenuItem>
@@ -807,19 +830,20 @@ const Navbar = () => {
                   sx={{
                     borderRadius: 1,
                     mb: 0.5,
+                    py: 1.5,
                     '&:hover': {
                       backgroundColor: alpha(theme.palette.primary.main, 0.1),
                     }
                   }}
                 >
                   <ListItemIcon>
-                    <Login sx={{ fontSize: 20 }} />
+                    <Login sx={{ fontSize: 22 }} />
                   </ListItemIcon>
                   <ListItemText 
                     primary={t('signin')}
                     primaryTypographyProps={{
                       fontWeight: 600,
-                      fontSize: '0.95rem'
+                      fontSize: '1rem'
                     }}
                   />
                 </MenuItem>
@@ -830,19 +854,20 @@ const Navbar = () => {
                   }}
                   sx={{
                     borderRadius: 1,
+                    py: 1.5,
                     '&:hover': {
                       backgroundColor: alpha(theme.palette.secondary.main, 0.1),
                     }
                   }}
                 >
                   <ListItemIcon>
-                    <PersonAdd sx={{ fontSize: 20 }} />
+                    <PersonAdd sx={{ fontSize: 22 }} />
                   </ListItemIcon>
                   <ListItemText 
                     primary={t('signup')}
                     primaryTypographyProps={{
                       fontWeight: 600,
-                      fontSize: '0.95rem'
+                      fontSize: '1rem'
                     }}
                   />
                 </MenuItem>
