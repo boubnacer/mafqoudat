@@ -22,6 +22,7 @@ import {
   useMediaQuery,
   Paper,
   alpha,
+  Divider,
 } from "@mui/material";
 import {
   LocationOn as LocationIcon,
@@ -31,7 +32,8 @@ import {
   CalendarToday as CalendarIcon,
   Category as CategoryIcon,
   Visibility as VisibilityIcon,
-  ArrowForward as ArrowIcon
+  ArrowForward as ArrowIcon,
+  AccessTime as TimeIcon,
 } from "@mui/icons-material";
 import FlexBetween from "../../../components/FlexBetween";
 import { useTranslation } from "../../../utils/translations";
@@ -74,25 +76,15 @@ const Post = ({ post, viewMode = "grid" }) => {
     let foundLostLabel = t('found'); // Default label
     let foundLostColor = theme.palette.success.main; // Default color
     
-    // Debug logging for found/lost detection
-    console.log('Found/Lost Debug:', {
-      id: post._id,
-      foundLost: post.foundLost,
-      Floptions: post.Floptions,
-      FloptionsLength: post.Floptions?.length
-    });
-    
     // Check Floptions array first (this contains the actual found/lost data from the lookup)
     if (post.Floptions && post.Floptions.length > 0) {
       const flOption = post.Floptions[0];
-      console.log('FlOption:', flOption);
       if (flOption && flOption.code) {
         foundLostValue = flOption.code;
         foundLostLabel = getLabel(flOption.labels, currentLanguage) || 
                         (flOption.code === 'FOUND' ? t('found') : t('lost'));
         foundLostColor = flOption.color || 
                         (flOption.code === 'FOUND' ? theme.palette.success.main : theme.palette.error.main);
-        console.log('Using FlOption:', { foundLostValue, foundLostLabel, foundLostColor });
       }
     }
     
@@ -113,8 +105,6 @@ const Post = ({ post, viewMode = "grid" }) => {
       }
     }
 
-
-
     // Normalize the value and set proper colors
     const isFound = foundLostValue === "FOUND";
     const statusColor = foundLostColor || (isFound ? theme.palette.success.main : theme.palette.error.main);
@@ -123,17 +113,73 @@ const Post = ({ post, viewMode = "grid" }) => {
     // Get category name safely with multilingual support
     const categoryName = post.categoryname || t('unknownCategory');
 
-    // Get category color function (matching RecentPosts styling)
+    // Updated category color function with better color matching
     const getCategoryColor = (category) => {
       const categoryColors = {
-        Bag: { main: '#4CAF50', light: '#E8F5E9', dark: '#2E7D32', icon: '#2E7D32' },
-        keys: { main: '#FF9800', light: '#FFF3E0', dark: '#E65100', icon: '#E65100' },
-        person: { main: '#2196F3', light: '#E3F2FD', dark: '#1565C0', icon: '#1565C0' },
-        Money: { main: '#9C27B0', light: '#F3E5F5', dark: '#6A1B9A', icon: '#6A1B9A' },
-        Devices: { main: '#00BCD4', light: '#E0F7FA', dark: '#00838F', icon: '#00838F' },
-        Wallet: { main: '#FF5722', light: '#FBE9E7', dark: '#BF360C', icon: '#BF360C' },
-        Vehicle: { main: '#607D8B', light: '#ECEFF1', dark: '#37474F', icon: '#37474F' },
-        Document: { main: '#795548', light: '#EFEBE9', dark: '#4E342E', icon: '#4E342E' },
+        Bag: { 
+          main: '#4CAF50', 
+          light: '#E8F5E9', 
+          dark: '#2E7D32', 
+          icon: '#2E7D32',
+          background: '#E8F5E9',
+          text: '#2E7D32'
+        },
+        keys: { 
+          main: '#FF9800', 
+          light: '#FFF3E0', 
+          dark: '#E65100', 
+          icon: '#E65100',
+          background: '#FFF3E0',
+          text: '#E65100'
+        },
+        person: { 
+          main: '#2196F3', 
+          light: '#E3F2FD', 
+          dark: '#1565C0', 
+          icon: '#1565C0',
+          background: '#E3F2FD',
+          text: '#1565C0'
+        },
+        Money: { 
+          main: '#9C27B0', 
+          light: '#F3E5F5', 
+          dark: '#6A1B9A', 
+          icon: '#6A1B9A',
+          background: '#F3E5F5',
+          text: '#6A1B9A'
+        },
+        Devices: { 
+          main: '#00BCD4', 
+          light: '#E0F7FA', 
+          dark: '#00838F', 
+          icon: '#00838F',
+          background: '#E0F7FA',
+          text: '#00838F'
+        },
+        Wallet: { 
+          main: '#FF5722', 
+          light: '#FBE9E7', 
+          dark: '#BF360C', 
+          icon: '#BF360C',
+          background: '#FBE9E7',
+          text: '#BF360C'
+        },
+        Vehicle: { 
+          main: '#607D8B', 
+          light: '#ECEFF1', 
+          dark: '#37474F', 
+          icon: '#37474F',
+          background: '#ECEFF1',
+          text: '#37474F'
+        },
+        Document: { 
+          main: '#795548', 
+          light: '#EFEBE9', 
+          dark: '#4E342E', 
+          icon: '#4E342E',
+          background: '#EFEBE9',
+          text: '#4E342E'
+        },
       };
       return categoryColors[category] || categoryColors.Bag;
     };
@@ -141,25 +187,43 @@ const Post = ({ post, viewMode = "grid" }) => {
     const categoryStyle = getCategoryColor(categoryName);
     const isDarkMode = theme.palette.mode === 'dark';
 
+    // Extract city from location (show only city)
+    const getCityFromLocation = (location) => {
+      if (!location) return t('unknownLocation');
+      // Split by comma and take the first part (usually the city)
+      const parts = location.split(',');
+      return parts[0].trim();
+    };
+
+    const cityName = getCityFromLocation(post.exactLocation || post.region);
+
     // List view layout
     if (viewMode === "list") {
       return (
         <Paper 
-          elevation={2} 
+          elevation={0}
           sx={{ 
-            borderRadius: 3,
+            borderRadius: 4,
             overflow: 'hidden',
             transition: 'all 0.3s ease',
+            border: `1px solid ${isDarkMode ? alpha('#fff', 0.08) : alpha('#000', 0.06)}`,
             '&:hover': {
-              transform: 'translateY(-4px)',
-              boxShadow: theme.shadows[8]
+              transform: 'translateY(-2px)',
+              boxShadow: isDarkMode 
+                ? '0 12px 40px rgba(0, 0, 0, 0.3)'
+                : '0 12px 40px rgba(0, 0, 0, 0.1)',
             },
-            direction: currentLanguage === 'ar' ? 'rtl' : 'ltr'
+            direction: currentLanguage === 'ar' ? 'rtl' : 'ltr',
+            backgroundColor: isDarkMode ? alpha('#1a1a1a', 0.8) : '#ffffff'
           }}
         >
-          <Box display="flex" sx={{ height: 200 }}>
+          <Box display="flex" sx={{ height: { xs: 'auto', sm: 180 } }}>
             {/* Image Section */}
-            <Box sx={{ width: 200, flexShrink: 0 }}>
+            <Box sx={{ 
+              width: { xs: '100%', sm: 200 }, 
+              height: { xs: 160, sm: 180 },
+              flexShrink: 0 
+            }}>
               <CardMedia
                 component="img"
                 sx={{ 
@@ -171,172 +235,155 @@ const Post = ({ post, viewMode = "grid" }) => {
                 image={post.image ? (post.image.startsWith('http') ? post.image : `${API_BASE_URL}/${post.image}`) : ma}
                 title={categoryName || 'Item Image'}
                 onError={(e) => {
-                  console.log('Image failed to load:', e.target.src);
                   e.target.src = ma;
                 }}
               />
             </Box>
 
             {/* Content Section */}
-            <Box sx={{ flex: 1, p: 3, display: 'flex', flexDirection: 'column' }}>
-              <Box display="flex" justifyContent="space-between" alignItems="flex-start" mb={2}>
-                <Box>
-                  <Typography 
-                    variant="h5" 
-                    fontWeight={600} 
-                    sx={{ 
-                      mb: 1,
-                      direction: currentLanguage === 'ar' ? 'rtl' : 'ltr'
-                    }}
-                  >
-                    {post.exactLocation || t('unknownLocation')}
-                  </Typography>
-                  {post.countryLabels && (
+            <Box sx={{ 
+              flex: 1, 
+              p: { xs: 2, sm: 3 }, 
+              display: 'flex', 
+              flexDirection: 'column',
+              justifyContent: 'space-between'
+            }}>
+              {/* Header */}
+              <Box>
+                <Box display="flex" justifyContent="space-between" alignItems="flex-start" mb={2}>
+                  <Box sx={{ flex: 1 }}>
                     <Typography 
-                      variant="body2" 
-                      color="text.secondary"
+                      variant="h6" 
+                      fontWeight={700} 
                       sx={{ 
-                        direction: currentLanguage === 'ar' ? 'rtl' : 'ltr'
+                        mb: 1,
+                        direction: currentLanguage === 'ar' ? 'rtl' : 'ltr',
+                        color: isDarkMode ? '#ffffff' : '#1a1a1a'
                       }}
                     >
-                      {post.countryLabels[currentLanguage] || post.countryLabels.en || post.countryname}
+                      {cityName}
                     </Typography>
-                  )}
-                  <Box display="flex" gap={2} alignItems="center" mb={1}>
-                    <Chip 
-                      label={statusText}
-                      size="small"
-                      sx={{ 
-                        fontWeight: 600,
-                        backgroundColor: statusColor,
-                        color: 'white',
-                        '& .MuiChip-label': {
-                          color: 'white'
-                        }
-                      }}
-                    />
-                    <Box
-                      sx={{
-                        backgroundColor: isDarkMode ? alpha(categoryStyle.main, 0.15) : categoryStyle.light,
-                        padding: '4px 8px',
-                        borderRadius: '16px',
-                        alignSelf: 'flex-start',
-                        border: `1px solid ${isDarkMode ? alpha(categoryStyle.main, 0.3) : categoryStyle.main}`,
-                        display: 'flex',
-                        alignItems: 'center',
-                        gap: 0.5,
-                      }}
-                    >
-                      <RenderIcon name={`${categoryName?.toLowerCase()}cate`} />
-                      <Typography
-                        sx={{
-                          color: isDarkMode ? categoryStyle.main : categoryStyle.dark,
-                          fontSize: { xs: '10px', sm: '12px' },
+                    <Box display="flex" gap={1} alignItems="center" flexWrap="wrap">
+                      <Chip 
+                        label={statusText}
+                        size="small"
+                        sx={{ 
                           fontWeight: 600,
-                          letterSpacing: '0.3px',
+                          backgroundColor: statusColor,
+                          color: 'white',
+                          fontSize: '11px',
+                          height: 24,
+                          '& .MuiChip-label': {
+                            color: 'white'
+                          }
+                        }}
+                      />
+                      <Box
+                        sx={{
+                          backgroundColor: isDarkMode ? alpha(categoryStyle.main, 0.15) : categoryStyle.background,
+                          padding: '4px 8px',
+                          borderRadius: '12px',
+                          display: 'flex',
+                          alignItems: 'center',
+                          gap: 0.5,
+                          border: `1px solid ${isDarkMode ? alpha(categoryStyle.main, 0.3) : categoryStyle.main}`,
                         }}
                       >
-                        {t(categoryName?.toLowerCase()) || categoryName}
-                      </Typography>
+                        <RenderIcon 
+                          name={`${categoryName?.toLowerCase()}cate`} 
+                          sx={{ 
+                            fontSize: '12px', 
+                            color: isDarkMode ? categoryStyle.main : categoryStyle.text 
+                          }} 
+                        />
+                        <Typography
+                          sx={{
+                            color: isDarkMode ? categoryStyle.main : categoryStyle.text,
+                            fontSize: '11px',
+                            fontWeight: 600,
+                          }}
+                        >
+                          {t(categoryName?.toLowerCase()) || categoryName}
+                        </Typography>
+                      </Box>
                     </Box>
                   </Box>
+                  <Box display="flex" gap={0.5}>
+                    <Tooltip title={t('viewDetails')}>
+                      <IconButton 
+                        onClick={handleViewDetails}
+                        size="small"
+                        sx={{ 
+                          color: theme.palette.primary.main,
+                          '&:hover': { backgroundColor: alpha(theme.palette.primary.main, 0.1) }
+                        }}
+                      >
+                        <VisibilityIcon sx={{ fontSize: 18 }} />
+                      </IconButton>
+                    </Tooltip>
+                    <Tooltip title={t('report')}>
+                      <IconButton 
+                        onClick={() => {
+                          if (!usernameId) {
+                            navigate('/login');
+                          } else {
+                            handleReport();
+                          }
+                        }}
+                        size="small"
+                        sx={{ 
+                          color: theme.palette.error.main,
+                          '&:hover': { backgroundColor: alpha(theme.palette.error.main, 0.1) }
+                        }}
+                      >
+                        <ReportProblemOutlined sx={{ fontSize: 18 }} />
+                      </IconButton>
+                    </Tooltip>
+                  </Box>
                 </Box>
-                <Box display="flex" gap={1}>
-                  <Tooltip title={t('viewDetails')}>
-                    <IconButton 
-                      onClick={handleViewDetails}
-                      size="small"
-                      sx={{ 
-                        color: theme.palette.primary.main,
-                        '&:hover': { backgroundColor: theme.palette.primary.light + '20' }
-                      }}
-                    >
-                      <VisibilityIcon />
-                    </IconButton>
-                  </Tooltip>
-                  <Tooltip title={t('report')}>
-                    <IconButton 
-                      onClick={() => {
-                        if (!usernameId) {
-                          navigate('/login');
-                        } else {
-                          handleReport();
-                        }
-                      }}
-                      size="small"
-                      sx={{ 
-                        color: theme.palette.error.main,
-                        '&:hover': { backgroundColor: theme.palette.error.light + '20' }
-                      }}
-                    >
-                      <ReportProblemOutlined />
-                    </IconButton>
-                  </Tooltip>
-                </Box>
-              </Box>
 
-              <Box display="flex" gap={3} mb={2} flexWrap="wrap">
-                <Box display="flex" alignItems="center" gap={1}>
-                  <CalendarIcon sx={{ fontSize: 16, color: 'text.secondary' }} />
-                  <Typography 
-                    variant="body2" 
-                    color="text.secondary"
-                    sx={{ direction: currentLanguage === 'ar' ? 'rtl' : 'ltr' }}
-                  >
-                    {created}
-                  </Typography>
-                </Box>
-                <Box display="flex" alignItems="center" gap={1}>
-                  <LocationOnOutlined sx={{ fontSize: 16, color: 'text.secondary' }} />
-                  <Typography 
-                    variant="body2" 
-                    color="text.secondary"
-                    sx={{ direction: currentLanguage === 'ar' ? 'rtl' : 'ltr' }}
-                  >
-                    {post.exactLocation || t('unknownLocation')}
-                  </Typography>
-                </Box>
-                {post.contact && (
+                {/* Location and Time */}
+                <Box display="flex" gap={2} mb={2} flexWrap="wrap">
                   <Box display="flex" alignItems="center" gap={1}>
-                    <RenderIcon name="contact" sx={{ fontSize: 16, color: 'text.secondary' }} />
+                    <LocationIcon sx={{ fontSize: 16, color: 'text.secondary' }} />
                     <Typography 
                       variant="body2" 
                       color="text.secondary"
                       sx={{ direction: currentLanguage === 'ar' ? 'rtl' : 'ltr' }}
                     >
-                      {post.contact}
+                      {cityName}
                     </Typography>
                   </Box>
-                )}
+                  <Box display="flex" alignItems="center" gap={1}>
+                    <TimeIcon sx={{ fontSize: 16, color: 'text.secondary' }} />
+                    <Typography 
+                      variant="body2" 
+                      color="text.secondary"
+                      sx={{ direction: currentLanguage === 'ar' ? 'rtl' : 'ltr' }}
+                    >
+                      {created}
+                    </Typography>
+                  </Box>
+                </Box>
               </Box>
 
-              {/* Description (if available) */}
-              {post.description && (
-                <Box mb={2}>
-                  <Typography 
-                    variant="body2" 
-                    color="text.secondary"
-                    sx={{ 
-                      direction: currentLanguage === 'ar' ? 'rtl' : 'ltr',
-                      lineHeight: 1.5
-                    }}
-                  >
-                    {post.description}
-                  </Typography>
-                </Box>
-              )}
-
+              {/* Actions */}
               <Box sx={{ mt: 'auto' }}>
                 <Button
                   variant="contained"
-                  endIcon={<RenderIcon name="view" data-directional="true" />}
+                  fullWidth
                   onClick={handleViewDetails}
                   sx={{
                     borderRadius: 2,
                     textTransform: 'none',
                     fontWeight: 600,
-                    direction: currentLanguage === 'ar' ? 'rtl' : 'ltr'
+                    direction: currentLanguage === 'ar' ? 'rtl' : 'ltr',
+                    background: `linear-gradient(135deg, ${theme.palette.primary.main} 0%, ${theme.palette.primary.dark} 100%)`,
+                    '&:hover': {
+                      background: `linear-gradient(135deg, ${theme.palette.primary.dark} 0%, ${theme.palette.primary.main} 100%)`,
+                    }
                   }}
+                  endIcon={<ArrowIcon />}
                 >
                   {t('viewDetails')}
                 </Button>
@@ -347,34 +394,31 @@ const Post = ({ post, viewMode = "grid" }) => {
       );
     }
 
-        // Grid view layout (modern design matching RecentPosts)
-    console.log('Post component - Using modern design with only date and city');
+    // Grid view layout - Brand New Modern Design
     return (
       <Card
         sx={{
-          backgroundColor: isDarkMode ? alpha('#1E1E1E', 0.9) : '#FFFFFF',
+          backgroundColor: isDarkMode ? alpha('#1a1a1a', 0.9) : '#ffffff',
           position: 'relative',
-          boxShadow: isDarkMode 
-            ? '0 8px 32px rgba(0, 0, 0, 0.4)'
-            : '0 8px 32px rgba(0, 0, 0, 0.12)',
-          height: { xs: 'auto', sm: '20rem' },
+          boxShadow: 'none',
+          border: `1px solid ${isDarkMode ? alpha('#fff', 0.08) : alpha('#000', 0.06)}`,
+          height: { xs: 'auto', sm: '320px' },
           display: 'flex',
           flexDirection: 'column',
-          transition: 'all 0.4s cubic-bezier(0.4, 0, 0.2, 1)',
-          borderRadius: '24px',
+          transition: 'all 0.3s cubic-bezier(0.4, 0, 0.2, 1)',
+          borderRadius: '20px',
           overflow: 'hidden',
-          border: `1px solid ${isDarkMode ? alpha('#fff', 0.1) : alpha('#000', 0.08)}`,
           '&:hover': {
-            transform: { xs: 'none', sm: 'translateY(-8px) scale(1.02)' },
+            transform: { xs: 'none', sm: 'translateY(-4px)' },
             boxShadow: isDarkMode
-              ? '0 20px 48px rgba(0, 0, 0, 0.5)'
-              : '0 20px 48px rgba(0, 0, 0, 0.2)',
+              ? '0 20px 40px rgba(0, 0, 0, 0.3)'
+              : '0 20px 40px rgba(0, 0, 0, 0.08)',
           },
           direction: currentLanguage === 'ar' ? 'rtl' : 'ltr'
         }}
       >
-        {/* Card Image with Modern Overlay */}
-        <Box sx={{ position: 'relative', height: { xs: '160px', sm: '180px' } }}>
+        {/* Image Section with Overlays */}
+        <Box sx={{ position: 'relative', height: { xs: '200px', sm: '180px' } }}>
           <CardMedia
             component="img"
             sx={{
@@ -386,12 +430,11 @@ const Post = ({ post, viewMode = "grid" }) => {
             image={post.image ? (post.image.startsWith('http') ? post.image : `${API_BASE_URL}/${post.image}`) : ma}
             title={categoryName || 'Item Image'}
             onError={(e) => {
-              console.log('Image failed to load:', e.target.src);
               e.target.src = ma;
             }}
           />
           
-          {/* Modern Gradient Overlay */}
+          {/* Gradient Overlay */}
           <Box
             sx={{
               position: 'absolute',
@@ -399,99 +442,105 @@ const Post = ({ post, viewMode = "grid" }) => {
               left: 0,
               right: 0,
               bottom: 0,
-              background: 'linear-gradient(180deg, rgba(0,0,0,0.2) 0%, rgba(0,0,0,0.6) 100%)',
+              background: 'linear-gradient(180deg, rgba(0,0,0,0.1) 0%, rgba(0,0,0,0.4) 100%)',
               pointerEvents: 'none'
             }}
           />
 
-          {/* Status Badge - Modern Floating Design */}
-          <Chip 
-            label={statusText}
-            size="small"
-            sx={{
-              position: 'absolute',
-              top: 16,
-              left: currentLanguage === 'ar' ? 'auto' : 16,
-              right: currentLanguage === 'ar' ? 16 : 'auto',
-              fontWeight: 700,
-              backgroundColor: alpha(statusColor, 0.95),
-              color: 'white',
-              backdropFilter: 'blur(20px)',
-              border: `1px solid ${alpha(statusColor, 0.3)}`,
-              boxShadow: `0 4px 16px ${alpha(statusColor, 0.3)}`,
-              '& .MuiChip-label': {
-                color: 'white',
-                fontSize: '11px',
-                fontWeight: 700,
-              }
-            }}
-          />
-
-          {/* Category Badge - Modern Floating Design */}
+          {/* Top Badges Container */}
           <Box
             sx={{
               position: 'absolute',
-              top: 16,
-              left: currentLanguage === 'ar' ? 16 : 'auto',
-              right: currentLanguage === 'ar' ? 'auto' : 16,
-              backgroundColor: alpha(categoryStyle.main, 0.95),
-              padding: '8px 16px',
-              borderRadius: '24px',
+              top: 12,
+              left: 12,
+              right: 12,
               display: 'flex',
-              alignItems: 'center',
-              gap: 0.5,
-              backdropFilter: 'blur(20px)',
-              border: `1px solid ${alpha(categoryStyle.main, 0.3)}`,
-              boxShadow: `0 4px 16px ${alpha(categoryStyle.main, 0.3)}`,
-              mt: 4, // Move down to avoid overlap with status badge
+              justifyContent: 'space-between',
+              alignItems: 'flex-start',
+              gap: 1,
             }}
           >
-            <RenderIcon 
-              name={`${categoryName?.toLowerCase()}cate`} 
-              sx={{ fontSize: '16px', color: categoryStyle.icon || '#fff' }} 
-            />
-            <Typography
+            {/* Status Badge */}
+            <Chip 
+              label={statusText}
+              size="small"
               sx={{
-                color: '#fff',
-                fontSize: { xs: '11px', sm: '13px' },
                 fontWeight: 700,
-                letterSpacing: '0.5px',
+                backgroundColor: alpha(statusColor, 0.95),
+                color: 'white',
+                backdropFilter: 'blur(10px)',
+                border: `1px solid ${alpha(statusColor, 0.3)}`,
+                fontSize: '10px',
+                height: 24,
+                '& .MuiChip-label': {
+                  color: 'white',
+                  fontSize: '10px',
+                  fontWeight: 700,
+                }
+              }}
+            />
+
+            {/* Category Badge */}
+            <Box
+              sx={{
+                backgroundColor: isDarkMode ? alpha(categoryStyle.main, 0.2) : categoryStyle.background,
+                padding: '4px 8px',
+                borderRadius: '12px',
+                display: 'flex',
+                alignItems: 'center',
+                gap: 0.5,
+                backdropFilter: 'blur(10px)',
+                border: `1px solid ${isDarkMode ? alpha(categoryStyle.main, 0.3) : categoryStyle.main}`,
               }}
             >
-              {t(categoryName?.toLowerCase()) || categoryName}
-            </Typography>
+              <RenderIcon 
+                name={`${categoryName?.toLowerCase()}cate`} 
+                sx={{ 
+                  fontSize: '12px', 
+                  color: isDarkMode ? categoryStyle.main : categoryStyle.text 
+                }} 
+              />
+              <Typography
+                sx={{
+                  color: isDarkMode ? categoryStyle.main : categoryStyle.text,
+                  fontSize: '10px',
+                  fontWeight: 600,
+                }}
+              >
+                {t(categoryName?.toLowerCase()) || categoryName}
+              </Typography>
+            </Box>
           </Box>
 
-          {/* Date Badge - Modern Floating Design */}
+          {/* Time Badge */}
           <Box
             sx={{
               position: 'absolute',
-              bottom: 16,
-              left: currentLanguage === 'ar' ? 'auto' : 16,
-              right: currentLanguage === 'ar' ? 16 : 'auto',
-              backgroundColor: alpha('#000', 0.8),
-              padding: '6px 12px',
-              borderRadius: '16px',
-              backdropFilter: 'blur(20px)',
+              bottom: 12,
+              left: 12,
+              backgroundColor: alpha('#000', 0.7),
+              padding: '4px 8px',
+              borderRadius: '8px',
+              backdropFilter: 'blur(10px)',
               border: '1px solid rgba(255,255,255,0.1)',
             }}
           >
             <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.5 }}>
-              <CalendarIcon sx={{ fontSize: '14px', color: '#fff' }} />
+              <TimeIcon sx={{ fontSize: '12px', color: '#fff' }} />
               <Typography
                 sx={{
                   color: '#fff',
-                  fontSize: { xs: '11px', sm: '12px' },
+                  fontSize: '10px',
                   fontWeight: 600,
                 }}
               >
-                {new Date(post.createdAt).toLocaleDateString()}
+                {created}
               </Typography>
             </Box>
           </Box>
         </Box>
 
-        {/* Card Content - Simplified */}
+        {/* Content Section */}
         <CardContent 
           sx={{ 
             flexGrow: 1, 
@@ -505,29 +554,29 @@ const Post = ({ post, viewMode = "grid" }) => {
           <Box sx={{ display: 'flex', alignItems: 'center', gap: 1.5 }}>
             <Avatar
               sx={{
-                width: 32,
-                height: 32,
+                width: 28,
+                height: 28,
                 backgroundColor: alpha(theme.palette.primary.main, 0.1),
                 color: theme.palette.primary.main,
               }}
             >
-              <LocationIcon sx={{ fontSize: '18px' }} />
+              <LocationIcon sx={{ fontSize: '16px' }} />
             </Avatar>
             <Box>
               <Typography
                 sx={{
                   color: isDarkMode ? alpha('#fff', 0.9) : alpha('#000', 0.8),
                   fontSize: { xs: '14px', sm: '16px' },
-                  fontWeight: 600,
+                  fontWeight: 700,
                   lineHeight: 1.2,
                 }}
               >
-                {post.exactLocation || t('unknownLocation')}
+                {cityName}
               </Typography>
               {post.countryLabels && (
                 <Typography
                   sx={{
-                    color: isDarkMode ? alpha('#fff', 0.6) : alpha('#000', 0.5),
+                    color: isDarkMode ? alpha('#fff', 0.5) : alpha('#000', 0.4),
                     fontSize: { xs: '11px', sm: '12px' },
                     fontWeight: 400,
                   }}
@@ -537,17 +586,36 @@ const Post = ({ post, viewMode = "grid" }) => {
               )}
             </Box>
           </Box>
+
+          {/* Description Preview (if available) */}
+          {post.description && (
+            <Typography
+              sx={{
+                color: isDarkMode ? alpha('#fff', 0.7) : alpha('#000', 0.6),
+                fontSize: { xs: '12px', sm: '13px' },
+                fontWeight: 400,
+                lineHeight: 1.4,
+                display: '-webkit-box',
+                WebkitLineClamp: 2,
+                WebkitBoxOrient: 'vertical',
+                overflow: 'hidden',
+                textOverflow: 'ellipsis',
+              }}
+            >
+              {post.description}
+            </Typography>
+          )}
         </CardContent>
 
-        {/* Card Actions - Modern Design */}
+        {/* Actions Section */}
         <CardActions
           sx={{
             display: 'flex',
             justifyContent: 'space-between',
-            p: { xs: 2, sm: 2.5 },
+            p: { xs: 1.5, sm: 2 },
             borderTop: '1px solid',
-            borderColor: isDarkMode ? alpha('#fff', 0.08) : alpha('#000', 0.06),
-            backgroundColor: isDarkMode ? alpha('#000', 0.3) : alpha('#f8f9fa', 0.8),
+            borderColor: isDarkMode ? alpha('#fff', 0.06) : alpha('#000', 0.04),
+            backgroundColor: isDarkMode ? alpha('#000', 0.2) : alpha('#f8f9fa', 0.5),
             gap: 1,
             mt: 'auto',
           }}
@@ -566,17 +634,18 @@ const Post = ({ post, viewMode = "grid" }) => {
               color: theme.palette.error.main,
               borderColor: theme.palette.error.main,
               textTransform: 'none',
-              fontSize: { xs: '11px', sm: '12px' },
+              fontSize: { xs: '10px', sm: '11px' },
               fontWeight: 600,
-              padding: { xs: '8px 12px', sm: '10px 16px' },
-              borderRadius: '12px',
+              padding: { xs: '6px 10px', sm: '8px 12px' },
+              borderRadius: '8px',
+              minWidth: 'auto',
               '&:hover': {
                 backgroundColor: theme.palette.error.main,
                 color: '#fff',
                 borderColor: theme.palette.error.main,
               },
             }}
-            startIcon={<ReportProblemOutlined sx={{ fontSize: '14px' }} />}
+            startIcon={<ReportProblemOutlined sx={{ fontSize: '12px' }} />}
           >
             {t('report')}
           </Button>
@@ -585,22 +654,23 @@ const Post = ({ post, viewMode = "grid" }) => {
             onClick={handleViewDetails}
             variant="contained"
             sx={{
-              background: `linear-gradient(135deg, ${categoryStyle.main} 0%, ${categoryStyle.dark} 100%)`,
+              background: `linear-gradient(135deg, ${theme.palette.primary.main} 0%, ${theme.palette.primary.dark} 100%)`,
               color: '#fff',
               textTransform: 'none',
-              fontSize: { xs: '11px', sm: '12px' },
+              fontSize: { xs: '10px', sm: '11px' },
               fontWeight: 700,
-              padding: { xs: '8px 12px', sm: '10px 16px' },
-              borderRadius: '12px',
-              boxShadow: `0 4px 16px ${alpha(categoryStyle.main, 0.4)}`,
+              padding: { xs: '6px 10px', sm: '8px 12px' },
+              borderRadius: '8px',
+              minWidth: 'auto',
+              boxShadow: `0 2px 8px ${alpha(theme.palette.primary.main, 0.3)}`,
               transition: 'all 0.3s ease',
               '&:hover': {
-                background: `linear-gradient(135deg, ${categoryStyle.dark} 0%, ${categoryStyle.main} 100%)`,
-                transform: 'translateY(-2px)',
-                boxShadow: `0 6px 20px ${alpha(categoryStyle.main, 0.5)}`,
+                background: `linear-gradient(135deg, ${theme.palette.primary.dark} 0%, ${theme.palette.primary.main} 100%)`,
+                transform: 'translateY(-1px)',
+                boxShadow: `0 4px 12px ${alpha(theme.palette.primary.main, 0.4)}`,
               },
             }}
-            endIcon={<ArrowIcon sx={{ fontSize: '14px' }} />}
+            endIcon={<ArrowIcon sx={{ fontSize: '12px' }} />}
           >
             {t('viewDetails')}
           </Button>
