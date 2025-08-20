@@ -290,7 +290,8 @@ const Post = ({ post, viewMode = "grid" }) => {
       return cleanCity.replace(/\d+/g, '').trim();
     };
 
-    const cityName = getCityFromLocation(post.exactLocation || post.region);
+    // Use city field if available, otherwise extract from exactLocation
+    const cityName = post.city || getCityFromLocation(post.exactLocation || post.region);
 
     // List view layout
     if (viewMode === "list") {
@@ -478,8 +479,8 @@ const Post = ({ post, viewMode = "grid" }) => {
                       background: `linear-gradient(135deg, ${theme.palette.primary.dark} 0%, ${theme.palette.primary.main} 100%)`,
                     }
                   }}
-                  startIcon={currentLanguage === 'ar' ? <ArrowIcon sx={{ transform: 'scaleX(-1)' }} /> : null}
-                  endIcon={currentLanguage === 'ar' ? null : <ArrowIcon />}
+                  startIcon={currentLanguage === 'ar' ? <ArrowIcon sx={{ fontSize: '12px', transform: 'scaleX(-1)' }} /> : null}
+                  endIcon={currentLanguage === 'ar' ? null : <ArrowIcon sx={{ fontSize: '12px' }} />}
                 >
                   {t('viewDetails')}
                 </Button>
@@ -498,7 +499,8 @@ const Post = ({ post, viewMode = "grid" }) => {
           position: 'relative',
           boxShadow: 'none',
           border: `1px solid ${isDarkMode ? alpha('#fff', 0.08) : alpha('#000', 0.06)}`,
-          height: { xs: 'auto', sm: '340px' },
+          height: { xs: 'auto', sm: '360px' },
+          minHeight: { xs: '280px', sm: '360px' },
           display: 'flex',
           flexDirection: 'column',
           transition: 'all 0.3s cubic-bezier(0.4, 0, 0.2, 1)',
@@ -514,7 +516,7 @@ const Post = ({ post, viewMode = "grid" }) => {
         }}
       >
         {/* Image Section with Overlays */}
-        <Box sx={{ position: 'relative', height: { xs: '200px', sm: '180px' } }}>
+        <Box sx={{ position: 'relative', height: { xs: '220px', sm: '200px' } }}>
           <CardMedia
             component="img"
             sx={{
@@ -686,7 +688,7 @@ const Post = ({ post, viewMode = "grid" }) => {
               textTransform: 'none',
               fontSize: { xs: '10px', sm: '11px' },
               fontWeight: 600,
-              padding: { xs: '6px 10px', sm: '8px 12px' },
+              padding: { xs: '8px 12px', sm: '8px 12px' },
               borderRadius: '8px',
               minWidth: 'auto',
               flexShrink: 0,
@@ -711,7 +713,7 @@ const Post = ({ post, viewMode = "grid" }) => {
               textTransform: 'none',
               fontSize: { xs: '10px', sm: '11px' },
               fontWeight: 700,
-              padding: { xs: '6px 10px', sm: '8px 12px' },
+              padding: { xs: '8px 12px', sm: '8px 12px' },
               borderRadius: '8px',
               minWidth: 'auto',
               flexShrink: 0,
