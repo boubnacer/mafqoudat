@@ -113,9 +113,58 @@ const Post = ({ post, viewMode = "grid" }) => {
     // Get category name safely with multilingual support
     const categoryName = post.categoryname || t('unknownCategory');
 
-    // Updated category color function with better color matching
+    // Updated category color function with actual database colors
     const getCategoryColor = (category) => {
       const categoryColors = {
+        ELECTRONICS: { 
+          main: '#2196F3', 
+          light: '#E3F2FD', 
+          dark: '#1565C0', 
+          icon: '#1565C0',
+          background: '#E3F2FD',
+          text: '#1565C0'
+        },
+        DOCUMENTS: { 
+          main: '#FF9800', 
+          light: '#FFF3E0', 
+          dark: '#E65100', 
+          icon: '#E65100',
+          background: '#FFF3E0',
+          text: '#E65100'
+        },
+        JEWELRY: { 
+          main: '#E91E63', 
+          light: '#FCE4EC', 
+          dark: '#AD1457', 
+          icon: '#AD1457',
+          background: '#FCE4EC',
+          text: '#AD1457'
+        },
+        CLOTHING: { 
+          main: '#9C27B0', 
+          light: '#F3E5F5', 
+          dark: '#6A1B9A', 
+          icon: '#6A1B9A',
+          background: '#F3E5F5',
+          text: '#6A1B9A'
+        },
+        PETS: { 
+          main: '#795548', 
+          light: '#EFEBE9', 
+          dark: '#4E342E', 
+          icon: '#4E342E',
+          background: '#EFEBE9',
+          text: '#4E342E'
+        },
+        VEHICLES: { 
+          main: '#607D8B', 
+          light: '#ECEFF1', 
+          dark: '#37474F', 
+          icon: '#37474F',
+          background: '#ECEFF1',
+          text: '#37474F'
+        },
+        // Fallback for old category names
         Bag: { 
           main: '#4CAF50', 
           light: '#E8F5E9', 
@@ -181,7 +230,7 @@ const Post = ({ post, viewMode = "grid" }) => {
           text: '#4E342E'
         },
       };
-      return categoryColors[category] || categoryColors.Bag;
+      return categoryColors[category] || categoryColors.ELECTRONICS;
     };
 
     const categoryStyle = getCategoryColor(categoryName);
