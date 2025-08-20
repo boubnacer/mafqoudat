@@ -275,7 +275,7 @@ const Post = ({ post, viewMode = "grid" }) => {
       return categoryColors[category] || categoryColors.ELECTRONICS;
     };
 
-    const categoryStyle = getCategoryColor(categoryName);
+    const categoryStyle = getCategoryColor(post.categoryname);
     const isDarkMode = theme.palette.mode === 'dark';
 
     // Extract city from location (show only city)
@@ -381,7 +381,7 @@ const Post = ({ post, viewMode = "grid" }) => {
                         }}
                       >
                         <RenderIcon 
-                          name={`${categoryName?.toLowerCase()}cate`} 
+                          name={`${post.categoryname?.toLowerCase()}cate`} 
                           sx={{ 
                             fontSize: '12px', 
                             color: isDarkMode ? categoryStyle.main : categoryStyle.text 
@@ -394,7 +394,7 @@ const Post = ({ post, viewMode = "grid" }) => {
                             fontWeight: 600,
                           }}
                         >
-                          {t(categoryName?.toLowerCase()) || categoryName}
+                          {categoryName}
                         </Typography>
                       </Box>
                     </Box>
@@ -565,7 +565,7 @@ const Post = ({ post, viewMode = "grid" }) => {
               }}
             >
               <RenderIcon 
-                name={`${categoryName?.toLowerCase()}cate`} 
+                name={`${post.categoryname?.toLowerCase()}cate`} 
                 sx={{ 
                   fontSize: '12px', 
                   color: isDarkMode ? categoryStyle.main : categoryStyle.text 
@@ -627,8 +627,8 @@ const Post = ({ post, viewMode = "grid" }) => {
               sx={{
                 width: 28,
                 height: 28,
-                backgroundColor: alpha(theme.palette.primary.main, 0.1),
-                color: theme.palette.primary.main,
+                backgroundColor: alpha(theme.palette.text.secondary, 0.1),
+                color: theme.palette.text.secondary,
               }}
             >
               <LocationIcon sx={{ fontSize: '16px' }} />
@@ -644,17 +644,6 @@ const Post = ({ post, viewMode = "grid" }) => {
               >
                 {cityName}
               </Typography>
-              {post.countryLabels && (
-                <Typography
-                  sx={{
-                    color: isDarkMode ? alpha('#fff', 0.5) : alpha('#000', 0.4),
-                    fontSize: { xs: '11px', sm: '12px' },
-                    fontWeight: 400,
-                  }}
-                >
-                  {post.countryLabels[currentLanguage] || post.countryLabels.en || post.countryname}
-                </Typography>
-              )}
             </Box>
           </Box>
 

@@ -369,16 +369,16 @@ const RecentPosts = ({ _id, categoryname, region, exactLocation, image, createdA
       >
         {/* Location Info - Only City */}
         <Box sx={{ display: 'flex', alignItems: 'center', gap: 1.5 }}>
-          <Avatar
-            sx={{
-              width: 28,
-              height: 28,
-              backgroundColor: alpha(theme.palette.primary.main, 0.1),
-              color: theme.palette.primary.main,
-            }}
-          >
-            <LocationIcon sx={{ fontSize: '16px' }} />
-          </Avatar>
+                      <Avatar
+              sx={{
+                width: 28,
+                height: 28,
+                backgroundColor: alpha(theme.palette.text.secondary, 0.1),
+                color: theme.palette.text.secondary,
+              }}
+            >
+              <LocationIcon sx={{ fontSize: '16px' }} />
+            </Avatar>
           <Box>
             <Typography
               sx={{
