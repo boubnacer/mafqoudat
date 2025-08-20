@@ -130,6 +130,11 @@ const postSchema = new mongoose.Schema(
       type: String,
       required: true,
     },
+    exactDate: {
+      type: Date,
+      required: true,
+      default: Date.now,
+    },
     contactPreferences: {
       phone: {
         type: Boolean,

@@ -287,7 +287,9 @@ const createNewPost = async (req, res) => {
       category, 
       contact, 
       foundLost,
+      city,
       exactLocation,
+      exactDate,
       description,
       contactPreferences,
       additionalContact
@@ -301,17 +303,21 @@ const createNewPost = async (req, res) => {
     contact: !!contact,
     country: !!country,
     foundLost: !!foundLost,
-    exactLocation: !!exactLocation
+    city: !!city,
+    exactLocation: !!exactLocation,
+    exactDate: !!exactDate
   });
   
-  if (!user || !category || !contact || !country || !foundLost || !exactLocation) {
+  if (!user || !category || !contact || !country || !foundLost || !city || !exactLocation || !exactDate) {
     console.log('Missing required fields:', {
       user: !user,
       category: !category,
       contact: !contact,
       country: !country,
       foundLost: !foundLost,
-      exactLocation: !exactLocation
+      city: !city,
+      exactLocation: !exactLocation,
+      exactDate: !exactDate
     });
     return res.status(400).json({ 
       message: "All required fields are required",
@@ -321,7 +327,9 @@ const createNewPost = async (req, res) => {
         contact: !contact,
         country: !country,
         foundLost: !foundLost,
-        exactLocation: !exactLocation
+        city: !city,
+        exactLocation: !exactLocation,
+        exactDate: !exactDate
       }
     });
   }
@@ -342,7 +350,9 @@ const createNewPost = async (req, res) => {
     country,
     contact,
     foundLost,
+    city,
     exactLocation,
+    exactDate: new Date(exactDate),
     description: description || "",
   };
 

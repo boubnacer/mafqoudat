@@ -184,6 +184,9 @@ export const translations = {
     // Form fields
     description: "Description",
     descriptionPlaceholder: "Describe the item you found/lost",
+    city: "City",
+    cityPlaceholder: "Enter the city name",
+    exactDate: "Exact Date",
     exactLocation: "Exact Location",
     exactLocationPlaceholder: "Enter the specific location",
     contactPreferences: "Contact Preferences",
@@ -198,6 +201,8 @@ export const translations = {
     // Dynamic instructions
     chooseCountryLost: "Choose the country where you lost the item",
     chooseCountryFound: "Choose the country where you found the item",
+    exactDateLostPlaceholder: "When did you lose the item?",
+    exactDateFoundPlaceholder: "When did you find the item?",
     exactLocationLostPlaceholder: "Where did you lose the item? (e.g., Central Park, Times Square, etc.)",
     exactLocationFoundPlaceholder: "Where did you find the item? (e.g., Central Park, Times Square, etc.)",
     descriptionLostPlaceholder: "Describe the item you lost to help others identify it",
@@ -832,6 +837,9 @@ export const translations = {
     // Form fields
     description: "Description",
     descriptionPlaceholder: "Décrivez l'objet que vous avez trouvé/perdu",
+    city: "Ville",
+    cityPlaceholder: "Entrez le nom de la ville",
+    exactDate: "Date exacte",
     exactLocation: "Emplacement exact",
     exactLocationPlaceholder: "Entrez l'emplacement spécifique",
     contactPreferences: "Préférences de contact",
@@ -846,6 +854,8 @@ export const translations = {
     // Dynamic instructions
     chooseCountryLost: "Choisissez le pays où vous avez perdu l'objet",
     chooseCountryFound: "Choisissez le pays où vous avez trouvé l'objet",
+    exactDateLostPlaceholder: "Quand avez-vous perdu l'objet ?",
+    exactDateFoundPlaceholder: "Quand avez-vous trouvé l'objet ?",
     exactLocationLostPlaceholder: "Où avez-vous perdu l'objet ? (ex: Parc Central, Times Square, etc.)",
     exactLocationFoundPlaceholder: "Où avez-vous trouvé l'objet ? (ex: Parc Central, Times Square, etc.)",
     descriptionLostPlaceholder: "Décrivez l'objet que vous avez perdu pour aider les autres à l'identifier",
@@ -1445,6 +1455,9 @@ export const translations = {
     // Form fields
     description: "الوصف",
     descriptionPlaceholder: "صف العنصر الذي وجدته/فقدته",
+    city: "المدينة",
+    cityPlaceholder: "أدخل اسم المدينة",
+    exactDate: "التاريخ الدقيق",
     exactLocation: "الموقع الدقيق",
     exactLocationPlaceholder: "أدخل الموقع المحدد",
     contactPreferences: "تفضيلات الاتصال",
@@ -1459,6 +1472,8 @@ export const translations = {
     // Dynamic instructions
     chooseCountryLost: "اختر البلد الذي فقدت فيه العنصر",
     chooseCountryFound: "اختر البلد الذي وجدت فيه العنصر",
+    exactDateLostPlaceholder: "متى فقدت العنصر؟",
+    exactDateFoundPlaceholder: "متى وجدت العنصر؟",
     exactLocationLostPlaceholder: "أين فقدت العنصر؟ (مثال: الحديقة المركزية، ميدان تايمز، إلخ)",
     exactLocationFoundPlaceholder: "أين وجدت العنصر؟ (مثال: الحديقة المركزية، ميدان تايمز، إلخ)",
     descriptionLostPlaceholder: "صف العنصر الذي فقدته لمساعدة الآخرين في تحديده",

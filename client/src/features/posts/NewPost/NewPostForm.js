@@ -20,7 +20,8 @@ import {
   FormControl,
   InputLabel,
   FormControlLabel,
-  Checkbox
+  Checkbox,
+  TextField
 } from "@mui/material";
 import { PhotoCamera, LocationOn, ContactPhone, ContactMail, WhatsApp } from '@mui/icons-material';
 import { useTranslation } from "../../../utils/translations";
@@ -64,7 +65,9 @@ const NewPostForm = ({ user, countries, categories, flOptions }) => {
     contact: user.username,
     category: categories[0]?.id || "",
     foundLost: flOptions[0]?.id || "",
+    city: "",
     exactLocation: "",
+    exactDate: new Date().toISOString().split('T')[0], // Default to today's date
     description: "",
     image: null,
     contactPreferences: {
@@ -83,7 +86,9 @@ const NewPostForm = ({ user, countries, categories, flOptions }) => {
     contact: Yup.string().required(t('required')),
     category: Yup.string().required(t('required')),
     foundLost: Yup.string().required(t('required')),
+    city: Yup.string().required(t('required')),
     exactLocation: Yup.string().required(t('required')),
+    exactDate: Yup.date().required(t('required')),
     description: Yup.string().optional(),
     image: Yup.mixed().nullable(),
   });
@@ -104,7 +109,9 @@ const NewPostForm = ({ user, countries, categories, flOptions }) => {
       formData.append("country", selectedCountry?._id || values.country);
       formData.append("category", values.category);
       formData.append("foundLost", values.foundLost);
+      formData.append("city", values.city);
       formData.append("exactLocation", values.exactLocation);
+      formData.append("exactDate", values.exactDate);
       formData.append("contact", values.contact);
       formData.append("description", values.description || "");
       formData.append("contactPreferences", JSON.stringify(values.contactPreferences));
@@ -245,6 +252,7 @@ const NewPostForm = ({ user, countries, categories, flOptions }) => {
                       value={selectedCountry?._id || ""}
                       label={t('chooseCountry')}
                       onChange={handleCountrySelect}
+                      disableUnderline
                       sx={{
                         borderRadius: 2,
                       }}
@@ -285,6 +293,40 @@ const NewPostForm = ({ user, countries, categories, flOptions }) => {
                 <Typography variant="h6" sx={{ fontWeight: 600, color: theme.palette.primary.main }}>
                   {t('location')}
                 </Typography>
+
+                <Box>
+                  <FormLabel htmlFor="city" sx={{ mb: 1, display: "block", fontWeight: 500 }}>
+                    {t('city')} *
+                  </FormLabel>
+                  <Textfield 
+                    name="city" 
+                    variant="outlined" 
+                    placeholder={t('cityPlaceholder')}
+                  />
+                </Box>
+
+                <Box>
+                  <FormLabel htmlFor="exactDate" sx={{ mb: 1, display: "block", fontWeight: 500 }}>
+                    {t('exactDate')} *
+                  </FormLabel>
+                  <Typography variant="caption" color="text.secondary" sx={{ mb: 1, display: "block" }}>
+                    {getFoundLostType(values.foundLost) === 'LOST' 
+                      ? t('exactDateLostPlaceholder') 
+                      : t('exactDateFoundPlaceholder')
+                    }
+                  </Typography>
+                  <TextField
+                    name="exactDate"
+                    type="date"
+                    variant="outlined"
+                    fullWidth
+                    value={values.exactDate}
+                    onChange={(e) => setFieldValue('exactDate', e.target.value)}
+                    sx={{
+                      borderRadius: 2,
+                    }}
+                  />
+                </Box>
 
                 <Box>
                   <FormLabel htmlFor="exactLocation" sx={{ mb: 1, display: "block", fontWeight: 500 }}>
@@ -469,7 +511,7 @@ const NewPostForm = ({ user, countries, categories, flOptions }) => {
                 
                 <Box mt={4}>
                   <SubmitButton
-                    disabled={isSubmitting || !selectedCountry}
+                    disabled={isSubmitting || !selectedCountry || !values.city || !values.exactDate}
                     sx={{ 
                       width: "100%",
                       py: 1.5,
