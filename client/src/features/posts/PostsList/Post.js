@@ -25,6 +25,7 @@ import {
 } from "@mui/material";
 import {
   LocationOn as LocationIcon,
+  LocationOnOutlined,
   KeyboardArrowRightOutlined,
   ReportProblemOutlined,
   CalendarToday as CalendarIcon,
