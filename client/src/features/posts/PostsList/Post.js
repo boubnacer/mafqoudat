@@ -285,7 +285,9 @@ const Post = ({ post, viewMode = "grid" }) => {
       const parts = location.split(',');
       const city = parts[0].trim();
       // Remove any extra location details that might be in parentheses
-      return city.split('(')[0].trim();
+      const cleanCity = city.split('(')[0].trim();
+      // Remove any numbers or extra details
+      return cleanCity.replace(/\d+/g, '').trim();
     };
 
     const cityName = getCityFromLocation(post.exactLocation || post.region);
@@ -476,7 +478,7 @@ const Post = ({ post, viewMode = "grid" }) => {
                       background: `linear-gradient(135deg, ${theme.palette.primary.dark} 0%, ${theme.palette.primary.main} 100%)`,
                     }
                   }}
-                  startIcon={currentLanguage === 'ar' ? <ArrowIcon /> : null}
+                  startIcon={currentLanguage === 'ar' ? <ArrowIcon sx={{ transform: 'scaleX(-1)' }} /> : null}
                   endIcon={currentLanguage === 'ar' ? null : <ArrowIcon />}
                 >
                   {t('viewDetails')}
@@ -496,7 +498,7 @@ const Post = ({ post, viewMode = "grid" }) => {
           position: 'relative',
           boxShadow: 'none',
           border: `1px solid ${isDarkMode ? alpha('#fff', 0.08) : alpha('#000', 0.06)}`,
-          height: { xs: 'auto', sm: '320px' },
+          height: { xs: 'auto', sm: '340px' },
           display: 'flex',
           flexDirection: 'column',
           transition: 'all 0.3s cubic-bezier(0.4, 0, 0.2, 1)',
@@ -650,24 +652,7 @@ const Post = ({ post, viewMode = "grid" }) => {
             </Box>
           </Box>
 
-          {/* Description Preview (if available) */}
-          {post.description && (
-            <Typography
-              sx={{
-                color: isDarkMode ? alpha('#fff', 0.7) : alpha('#000', 0.6),
-                fontSize: { xs: '12px', sm: '13px' },
-                fontWeight: 400,
-                lineHeight: 1.4,
-                display: '-webkit-box',
-                WebkitLineClamp: 2,
-                WebkitBoxOrient: 'vertical',
-                overflow: 'hidden',
-                textOverflow: 'ellipsis',
-              }}
-            >
-              {post.description}
-            </Typography>
-          )}
+          {/* Removed description preview to match RecentPosts design */}
         </CardContent>
 
         {/* Actions Section */}
@@ -679,8 +664,10 @@ const Post = ({ post, viewMode = "grid" }) => {
             borderTop: '1px solid',
             borderColor: isDarkMode ? alpha('#fff', 0.06) : alpha('#000', 0.04),
             backgroundColor: isDarkMode ? alpha('#000', 0.2) : alpha('#f8f9fa', 0.5),
-            gap: 2,
+            gap: 3,
             mt: 'auto',
+            flexShrink: 0,
+            minHeight: '60px',
           }}
         >
           <Button
@@ -702,6 +689,7 @@ const Post = ({ post, viewMode = "grid" }) => {
               padding: { xs: '6px 10px', sm: '8px 12px' },
               borderRadius: '8px',
               minWidth: 'auto',
+              flexShrink: 0,
               '&:hover': {
                 backgroundColor: theme.palette.error.main,
                 color: '#fff',
@@ -726,6 +714,7 @@ const Post = ({ post, viewMode = "grid" }) => {
               padding: { xs: '6px 10px', sm: '8px 12px' },
               borderRadius: '8px',
               minWidth: 'auto',
+              flexShrink: 0,
               boxShadow: `0 2px 8px ${alpha(theme.palette.primary.main, 0.3)}`,
               transition: 'all 0.3s ease',
               '&:hover': {
@@ -734,7 +723,7 @@ const Post = ({ post, viewMode = "grid" }) => {
                 boxShadow: `0 4px 12px ${alpha(theme.palette.primary.main, 0.4)}`,
               },
             }}
-            startIcon={currentLanguage === 'ar' ? <ArrowIcon sx={{ fontSize: '12px' }} /> : null}
+            startIcon={currentLanguage === 'ar' ? <ArrowIcon sx={{ fontSize: '12px', transform: 'scaleX(-1)' }} /> : null}
             endIcon={currentLanguage === 'ar' ? null : <ArrowIcon sx={{ fontSize: '12px' }} />}
           >
             {t('viewDetails')}
