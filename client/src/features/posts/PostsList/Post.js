@@ -58,37 +58,38 @@ const Post = ({ post, viewMode = "grid" }) => {
   const [reportDialogOpen, setReportDialogOpen] = useState(false);
   const [submitReport] = useSubmitReportMutation();
 
-  if (post) {
-    // Format date using date-fns with proper locale support
-    const getLocale = () => {
-      switch (currentLanguage) {
-        case 'ar': return ar;
-        case 'fr': return fr;
-        default: return enUS;
-      }
-    };
+  const handleSubmitReport = async (reportData) => {
+    try {
+      await submitReport(reportData).unwrap();
+    } catch (error) {
+      throw new Error(error.data?.message || 'Failed to submit report');
+    }
+  };
 
-    const created = formatDistanceToNow(new Date(post.createdAt), { 
-      addSuffix: true,
-      locale: getLocale()
-    });
+  if (!post) return null;
 
-    const handleViewDetails = () => navigate(`/dash/posts/${post._id}`);
-    const handleReport = () => {
-      if (!usernameId) {
-        navigate('/login');
-      } else {
-        setReportDialogOpen(true);
-      }
-    };
+  // Format date using date-fns with proper locale support
+  const getLocale = () => {
+    switch (currentLanguage) {
+      case 'ar': return ar;
+      case 'fr': return fr;
+      default: return enUS;
+    }
+  };
 
-    const handleSubmitReport = async (reportData) => {
-      try {
-        await submitReport(reportData).unwrap();
-      } catch (error) {
-        throw new Error(error.data?.message || 'Failed to submit report');
-      }
-    };
+  const created = formatDistanceToNow(new Date(post.createdAt), { 
+    addSuffix: true,
+    locale: getLocale()
+  });
+
+  const handleViewDetails = () => navigate(`/dash/posts/${post._id}`);
+  const handleReport = () => {
+    if (!usernameId) {
+      navigate('/login');
+    } else {
+      setReportDialogOpen(true);
+    }
+  };
 
     // Enhanced Found/Lost detection with proper multilingual support
     let foundLostValue = "FOUND"; // Default to FOUND
@@ -435,7 +436,8 @@ const Post = ({ post, viewMode = "grid" }) => {
     }
 
     // Grid view layout - Brand New Modern Design
-    return (
+      return (
+    <>
       <Card
         sx={{
           backgroundColor: isDarkMode ? alpha('#1a1a1a', 0.9) : '#ffffff',
@@ -669,11 +671,7 @@ const Post = ({ post, viewMode = "grid" }) => {
           </Button>
         </CardActions>
       </Card>
-    );
-  } else return null;
-
-  return (
-    <>
+      
       {/* Report Dialog */}
       <ReportDialog
         open={reportDialogOpen}
