@@ -52,15 +52,7 @@ const postSchema = new mongoose.Schema(
     mainDate: {
       type: String,
     },
-    // Add missing fields that are referenced in controllers
-    reported: {
-      type: Boolean,
-      default: false,
-    },
-    reportedTxt: {
-      type: String,
-      default: "",
-    },
+
     // Updated to support multilingual content
     title: {
       type: String,

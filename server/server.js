@@ -68,7 +68,7 @@ app.use("/countries", require("./routes/countryRoutes"));
 app.use("/floptions", require("./routes/flOptionsRoutes"));
 app.use("/categories", require("./routes/categoryRoute"));
 app.use("/dependencies", require("./routes/dependenciesRoutes"));
-app.use("/reports", require("./routes/reportRoutes"));
+
 app.use("/promotion", require("./routes/promotionRoutes"));
 
 // Admin routes removed for security

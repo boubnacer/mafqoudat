@@ -16,7 +16,7 @@ router.get('^/$|/index(.html)?', (req, res) => {
             countries: "/countries",
             categories: "/categories",
             dependencies: "/dependencies",
-            reports: "/reports"
+          
         },
         documentation: "This is the backend API server. Frontend is deployed separately."
     })

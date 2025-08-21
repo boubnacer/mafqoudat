@@ -18,6 +18,19 @@ export const translations = {
     unknownCountry: "Unknown Country",
     unknownCategory: "Unknown Category",
     
+    // Report Dialog translations
+    reportPostDescription: "Please select a reason for reporting this post. This helps us review and take appropriate action.",
+    selectReportReason: "Select Report Reason",
+    describeReason: "Describe the reason",
+    describeReasonPlaceholder: "Please provide details about why you're reporting this post...",
+    pleaseSelectReason: "Please select a reason for reporting",
+    pleaseProvideReason: "Please provide a description for your report",
+    submitReport: "Submit Report",
+    submitting: "Submitting...",
+    reportSubmittedSuccessfully: "Report submitted successfully! Thank you for helping keep our community safe.",
+    errorSubmittingReport: "Error submitting report. Please try again.",
+    cancel: "Cancel",
+    
     // SinglePost page translations
     back: "Back",
     to: "to",
@@ -675,6 +688,19 @@ export const translations = {
     unknownCountry: "Pays inconnu",
     unknownCategory: "Catégorie inconnue",
     
+    // Report Dialog translations
+    reportPostDescription: "Veuillez sélectionner une raison pour signaler cette publication. Cela nous aide à examiner et à prendre les mesures appropriées.",
+    selectReportReason: "Sélectionner la raison du signalement",
+    describeReason: "Décrire la raison",
+    describeReasonPlaceholder: "Veuillez fournir des détails sur la raison pour laquelle vous signalez cette publication...",
+    pleaseSelectReason: "Veuillez sélectionner une raison pour le signalement",
+    pleaseProvideReason: "Veuillez fournir une description pour votre signalement",
+    submitReport: "Soumettre le signalement",
+    submitting: "Soumission...",
+    reportSubmittedSuccessfully: "Signalement soumis avec succès ! Merci d'aider à maintenir notre communauté en sécurité.",
+    errorSubmittingReport: "Erreur lors de la soumission du signalement. Veuillez réessayer.",
+    cancel: "Annuler",
+    
     // SinglePost page translations
     back: "Retour",
     to: "vers",
@@ -1311,6 +1337,19 @@ export const translations = {
     unknownUser: "مستخدم غير معروف",
     unknownCountry: "بلد غير معروف",
     unknownCategory: "فئة غير معروفة",
+    
+    // Report Dialog translations
+    reportPostDescription: "يرجى اختيار سبب للإبلاغ عن هذا المنشور. هذا يساعدنا في المراجعة واتخاذ الإجراء المناسب.",
+    selectReportReason: "اختر سبب الإبلاغ",
+    describeReason: "اشرح السبب",
+    describeReasonPlaceholder: "يرجى تقديم تفاصيل حول سبب إبلاغك عن هذا المنشور...",
+    pleaseSelectReason: "يرجى اختيار سبب للإبلاغ",
+    pleaseProvideReason: "يرجى تقديم وصف لتقريرك",
+    submitReport: "إرسال التقرير",
+    submitting: "جاري الإرسال...",
+    reportSubmittedSuccessfully: "تم إرسال التقرير بنجاح! شكراً لمساعدتك في الحفاظ على أمان مجتمعنا.",
+    errorSubmittingReport: "خطأ في إرسال التقرير. يرجى المحاولة مرة أخرى.",
+    cancel: "إلغاء",
     
     // SinglePost page translations
     back: "رجوع",

@@ -2,10 +2,12 @@ import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { faPenToSquare } from "@fortawesome/free-solid-svg-icons";
 import { Link, useNavigate } from "react-router-dom";
 import { useGetPostsQuery } from "../postsApiSlice";
-import { memo } from "react";
+import { memo, useState } from "react";
 // import "./postslist.css"; // Removed to prevent CSS conflicts with Material-UI
 import ma from "../../../img/ma.jpg";
 import useAuth from "../../../hooks/useAuth";
+import ReportDialog from "../../../components/ReportDialog";
+import { useSubmitReportMutation } from "../reportsApiSlice";
 import {
   Button,
   Card,
@@ -53,6 +55,8 @@ const Post = ({ post, viewMode = "grid" }) => {
   const navigate = useNavigate();
   const { t, currentLanguage } = useTranslation();
   const isRTLMode = isRTL();
+  const [reportDialogOpen, setReportDialogOpen] = useState(false);
+  const [submitReport] = useSubmitReportMutation();
 
   if (post) {
     // Format date using date-fns with proper locale support
@@ -70,7 +74,21 @@ const Post = ({ post, viewMode = "grid" }) => {
     });
 
     const handleViewDetails = () => navigate(`/dash/posts/${post._id}`);
-    const handleReport = () => navigate(`/dash/posts/report/${post._id}`);
+    const handleReport = () => {
+      if (!usernameId) {
+        navigate('/login');
+      } else {
+        setReportDialogOpen(true);
+      }
+    };
+
+    const handleSubmitReport = async (reportData) => {
+      try {
+        await submitReport(reportData).unwrap();
+      } catch (error) {
+        throw new Error(error.data?.message || 'Failed to submit report');
+      }
+    };
 
     // Enhanced Found/Lost detection with proper multilingual support
     let foundLostValue = "FOUND"; // Default to FOUND
@@ -350,13 +368,7 @@ const Post = ({ post, viewMode = "grid" }) => {
                     </Tooltip>
                     <Tooltip title={t('report')}>
                       <IconButton 
-                        onClick={() => {
-                          if (!usernameId) {
-                            navigate('/login');
-                          } else {
-                            handleReport();
-                          }
-                        }}
+                        onClick={handleReport}
                         size="small"
                         sx={{ 
                           color: theme.palette.error.main,
@@ -604,13 +616,7 @@ const Post = ({ post, viewMode = "grid" }) => {
           }}
         >
           <Button
-            onClick={() => {
-              if (!usernameId) {
-                navigate('/login');
-              } else {
-                handleReport();
-              }
-            }}
+            onClick={handleReport}
             variant="outlined"
             size="small"
             sx={{
@@ -665,6 +671,18 @@ const Post = ({ post, viewMode = "grid" }) => {
       </Card>
     );
   } else return null;
+
+  return (
+    <>
+      {/* Report Dialog */}
+      <ReportDialog
+        open={reportDialogOpen}
+        onClose={() => setReportDialogOpen(false)}
+        post={post}
+        onSubmit={handleSubmitReport}
+      />
+    </>
+  );
 };
 
 const memoizedPost = memo(Post);

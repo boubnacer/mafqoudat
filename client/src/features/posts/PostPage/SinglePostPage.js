@@ -16,6 +16,9 @@ import {
 import { useNavigate } from "react-router-dom";
 import useAuth from "../../../hooks/useAuth";
 import sear from "../../../img/sear.svg";
+import { useState } from "react";
+import ReportDialog from "../../../components/ReportDialog";
+import { useSubmitReportMutation } from "../reportsApiSlice";
 import {
   Edit as EditIcon,
   LocationOn as LocationIcon,
@@ -62,10 +65,26 @@ const SinglePostPage = ({
   const isRTLMode = isRTL();
 
   const canEdit = user === usernameId;
+  const [reportDialogOpen, setReportDialogOpen] = useState(false);
+  const [submitReport] = useSubmitReportMutation();
 
   const handleEdit = () => navigate(`/dash/posts/edit/${_id}`);
-  const handleReport = () => navigate(`/dash/posts/report/${_id}`);
+  const handleReport = () => {
+    if (!usernameId) {
+      navigate('/login');
+    } else {
+      setReportDialogOpen(true);
+    }
+  };
   const handleBack = () => navigate(-1);
+
+  const handleSubmitReport = async (reportData) => {
+    try {
+      await submitReport(reportData).unwrap();
+    } catch (error) {
+      throw new Error(error.data?.message || 'Failed to submit report');
+    }
+  };
 
   // Format dates using date-fns with proper locale support
   const getLocale = () => {
@@ -599,6 +618,32 @@ const SinglePostPage = ({
           </Box>
         </Grid>
       </Grid>
+      
+      {/* Report Dialog */}
+      <ReportDialog
+        open={reportDialogOpen}
+        onClose={() => setReportDialogOpen(false)}
+        post={{
+          _id,
+          categoryname,
+          region,
+          exactLocation,
+          contact,
+          user,
+          image,
+          username,
+          createdAt,
+          updatedAt,
+          countryname,
+          countryLabels,
+          foundLost,
+          Floptions,
+          description,
+          contactPreferences,
+          additionalContact
+        }}
+        onSubmit={handleSubmitReport}
+      />
     </Box>
   );
 };

@@ -415,6 +415,78 @@ const createNewPost = async (req, res) => {
   }
 };
 
+// @desc Submit a post report
+// @route POST /posts/report
+// @access Private
+const submitPostReport = async (req, res) => {
+  try {
+    const { postId, reason } = req.body;
+    const userId = req.user.id;
+
+    // Validate required fields
+    if (!postId || !reason) {
+      return res.status(400).json({ 
+        success: false,
+        message: "Post ID and reason are required" 
+      });
+    }
+
+    // Find the post
+    const post = await Post.findById(postId)
+      .populate('user', 'username')
+      .populate('category', 'name')
+      .populate('country', 'name')
+      .lean()
+      .exec();
+
+    if (!post) {
+      return res.status(404).json({ 
+        success: false,
+        message: "Post not found" 
+      });
+    }
+
+    // Get user data
+    const user = await User.findById(userId).lean().exec();
+    if (!user) {
+      return res.status(404).json({ 
+        success: false,
+        message: "User not found" 
+      });
+    }
+
+    // Send email notification to admin
+    const emailNotification = require('../utils/emailNotification');
+    const emailResult = await emailNotification.sendReportNotification(post, user, reason);
+
+    if (!emailResult.success) {
+      console.error('Failed to send report email:', emailResult.error);
+      // Don't fail the request if email fails, just log it
+    }
+
+    // Note: We don't store report data in the database anymore
+    // Reports are sent directly to admin via email
+
+    res.status(200).json({
+      success: true,
+      message: "Report submitted successfully",
+      data: {
+        postId,
+        reason,
+        reportedAt: new Date()
+      }
+    });
+
+  } catch (error) {
+    console.error('Error submitting report:', error);
+    res.status(500).json({ 
+      success: false,
+      message: "Failed to submit report",
+      error: error.message 
+    });
+  }
+};
+
 // @desc Update a post
 // @route PATCH /posts
 // @access Private
@@ -428,8 +500,6 @@ const updatePost = async (req, res) => {
     contact,
     returned,
     foundLost,
-    reported,
-    reportedTxt,
     description,
   } = req.body;
 
@@ -474,10 +544,7 @@ const updatePost = async (req, res) => {
     post.description = description;
   }
 
-  if (typeof reported === "boolean") {
-    post.reported = reported;
-    post.reportedTxt = reportedTxt;
-  }
+
 
   const updatedPost = await post.save();
 
@@ -519,6 +586,7 @@ module.exports = {
   getPost,
   getFilteredPosts,
   createNewPost,
+  submitPostReport,
   updatePost,
   deletePost,
 };

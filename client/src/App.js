@@ -16,7 +16,7 @@ import NewUser from "./features/auth/SingUp/NewUser";
 import PersistLogin from "./features/auth/RefreshPage/PersistLogin";
 import SinglePost from "./features/posts/PostPage/SinglePost";
 
-import ReportPage from "./features/posts/ReportPage/ReportPage";
+
 import Dash from "./features/dashboard/Dash";
 
 import DependenciesManager from "./features/MANAGER/Dependencies/DependenciesManager";
@@ -95,12 +95,11 @@ const AppContent = () => {
           } />
           <Route path="posts/:id" element={<SinglePost />} />
            
-          {/* Protected routes - require authentication for creating/editing/reporting posts and admin actions */}
+          {/* Protected routes - require authentication for creating/editing posts and admin actions */}
           <Route element={<PersistLogin />}>
             <Route element={<Prefetch />}>
               <Route path="posts/new" element={<NewPost />} />
               <Route path="posts/edit/:id" element={<EditPost />} />
-              <Route path="posts/report/:id" element={<ReportPage />} />
               <Route path="users">
                 <Route index element={<UsersList />} />
                 <Route path=":id" element={<EditUser />} />

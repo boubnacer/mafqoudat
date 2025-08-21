@@ -1,12 +1,18 @@
-import React from "react";
+import React, { useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import defaultImage from "../../../img/ma.jpg";
 import "./sponsored.css";
 import { useTranslation } from "../../utils/translations";
+import ReportDialog from "../ReportDialog";
+import { useSubmitReportMutation } from "../../features/posts/reportsApiSlice";
+import useAuth from "../../hooks/useAuth";
 
 const Sponsored = ({ post }) => {
   const navigate = useNavigate();
   const { t, currentLanguage } = useTranslation();
+  const { usernameId } = useAuth();
+  const [reportDialogOpen, setReportDialogOpen] = useState(false);
+  const [submitReport] = useSubmitReportMutation();
 
   const handleEdit = (e) => {
     e.preventDefault();
@@ -17,7 +23,19 @@ const Sponsored = ({ post }) => {
   const handleReport = (e) => {
     e.preventDefault();
     e.stopPropagation();
-    navigate(`/dash/posts/report/${post.id}`);
+    if (!usernameId) {
+      navigate('/login');
+    } else {
+      setReportDialogOpen(true);
+    }
+  };
+
+  const handleSubmitReport = async (reportData) => {
+    try {
+      await submitReport(reportData).unwrap();
+    } catch (error) {
+      throw new Error(error.data?.message || 'Failed to submit report');
+    }
   };
 
   const formatDate = (dateString) => {
@@ -62,6 +80,14 @@ const Sponsored = ({ post }) => {
         </div>
       </div>
     </Link>
+    
+    {/* Report Dialog */}
+    <ReportDialog
+      open={reportDialogOpen}
+      onClose={() => setReportDialogOpen(false)}
+      post={post}
+      onSubmit={handleSubmitReport}
+    />
   );
 };
 

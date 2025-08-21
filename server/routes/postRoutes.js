@@ -22,4 +22,7 @@ router
   .patch(postsController.updatePost)
   .delete(postsController.deletePost);
 
+// Report route
+router.route("/report").post(postsController.submitPostReport);
+
 module.exports = router;
