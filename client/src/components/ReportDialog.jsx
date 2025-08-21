@@ -148,7 +148,9 @@ const ReportDialog = ({ open, onClose, post, onSubmit }) => {
       PaperProps={{
         sx: {
           borderRadius: 3,
-          direction: currentLanguage === 'ar' ? 'rtl' : 'ltr'
+          direction: currentLanguage === 'ar' ? 'rtl' : 'ltr',
+          backgroundColor: theme.palette.background.paper,
+          boxShadow: theme.shadows[24]
         }
       }}
     >

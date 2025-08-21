@@ -16,13 +16,13 @@ router.route("/filtered").get(postsController.getFilteredPosts);
 // Protected routes - require authentication
 router.use(verifyJWT);
 
+// Report route - must come before /:id route in protected section
+router.route("/report").post(postsController.submitPostReport);
+
 router
   .route("/")
   .post(upload.single("image"), uploadToCloudinaryMiddleware, postsController.createNewPost)
   .patch(postsController.updatePost)
   .delete(postsController.deletePost);
-
-// Report route
-router.route("/report").post(postsController.submitPostReport);
 
 module.exports = router;
