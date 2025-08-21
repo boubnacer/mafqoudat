@@ -149,8 +149,9 @@ const ReportDialog = ({ open, onClose, post, onSubmit }) => {
         sx: {
           borderRadius: 3,
           direction: currentLanguage === 'ar' ? 'rtl' : 'ltr',
-          backgroundColor: theme.palette.background.paper,
-          boxShadow: theme.shadows[24]
+          backgroundColor: '#ffffff',
+          boxShadow: '0 8px 32px rgba(0, 0, 0, 0.3)',
+          border: '1px solid rgba(255, 255, 255, 0.2)'
         }
       }}
     >

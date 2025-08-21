@@ -9,9 +9,9 @@ const { upload, uploadToCloudinaryMiddleware } = require("../middleware/multer")
 router.route("/")
   .get(postsController.getAllPosts);
 
-router.route("/:id").get(postsController.getPost);
-
 router.route("/filtered").get(postsController.getFilteredPosts);
+
+router.route("/:id").get(postsController.getPost);
 
 // Protected routes - require authentication
 router.use(verifyJWT);
