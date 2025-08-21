@@ -27,6 +27,9 @@ import { formatDistanceToNow } from 'date-fns';
 import { ar, fr, enUS } from 'date-fns/locale';
 import useAuth from "../../hooks/useAuth";
 import { getCategoryConfig } from "../../config/categories";
+import { useState } from "react";
+import ReportDialog from "../ReportDialog";
+import { useSubmitReportMutation } from "../../features/posts/reportsApiSlice";
 
 // Get the API base URL for image construction
 const API_BASE_URL = process.env.REACT_APP_API_URL || "http://localhost:3500";
@@ -37,6 +40,8 @@ const RecentPosts = ({ _id, categoryname, region, exactLocation, image, createdA
   const { t, currentLanguage } = useTranslation();
   const isMobile = useMediaQuery("(max-width:768px)");
   const { usernameId } = useAuth();
+  const [reportDialogOpen, setReportDialogOpen] = useState(false);
+  const [submitReport] = useSubmitReportMutation();
 
   // Format date using date-fns with proper locale support
   const getLocale = () => {
@@ -53,7 +58,21 @@ const RecentPosts = ({ _id, categoryname, region, exactLocation, image, createdA
   });
 
   const handleViewDetails = () => navigate(`/dash/posts/${_id}`);
-  const handleReport = () => navigate(`/dash/posts/report/${_id}`);
+  const handleReport = () => {
+    if (!usernameId) {
+      navigate('/login');
+    } else {
+      setReportDialogOpen(true);
+    }
+  };
+
+  const handleSubmitReport = async (reportData) => {
+    try {
+      await submitReport(reportData).unwrap();
+    } catch (error) {
+      throw new Error(error.data?.message || 'Failed to submit report');
+    }
+  };
 
   // Extract city from location (show only city)
   const getCityFromLocation = (location) => {
@@ -169,7 +188,8 @@ const RecentPosts = ({ _id, categoryname, region, exactLocation, image, createdA
   const isDarkMode = theme.palette.mode === 'dark';
 
   return (
-    <Card
+    <>
+      <Card
       sx={{
         backgroundColor: isDarkMode ? alpha('#1a1a1a', 0.9) : '#ffffff',
         position: 'relative',
@@ -347,13 +367,7 @@ const RecentPosts = ({ _id, categoryname, region, exactLocation, image, createdA
         }}
       >
         <Button
-          onClick={() => {
-            if (!usernameId) {
-              navigate('/login');
-            } else {
-              handleReport();
-            }
-          }}
+          onClick={handleReport}
           variant="outlined"
           size="small"
           sx={{
@@ -406,6 +420,26 @@ const RecentPosts = ({ _id, categoryname, region, exactLocation, image, createdA
         </Button>
       </CardActions>
     </Card>
+    
+    {/* Report Dialog */}
+    <ReportDialog
+      open={reportDialogOpen}
+      onClose={() => setReportDialogOpen(false)}
+      post={{
+        _id,
+        categoryname,
+        region,
+        exactLocation,
+        image,
+        createdAt,
+        countryLabels,
+        countryname,
+        contact,
+        city
+      }}
+      onSubmit={handleSubmitReport}
+    />
+    </>
   );
 };
 
