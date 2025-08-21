@@ -7,11 +7,19 @@ const baseQuery = fetchBaseQuery({
   prepareHeaders: (headers, { getState, endpoint }) => {
     // api => api.getState => {getState}
     const token = getState().auth.token;
+    
+    // Debug: Log token and endpoint
+    console.log('API Request - Endpoint:', endpoint);
+    console.log('API Request - Token exists:', !!token);
+    console.log('API Request - Token:', token ? token.substring(0, 20) + '...' : 'No token');
 
     // Only add authorization header for authenticated endpoints
     // Skip for public endpoints like dashboard
     if (token && !endpoint?.includes("getDashboard")) {
       headers.set("authorization", `Bearer ${token}`);
+      console.log('API Request - Authorization header set');
+    } else {
+      console.log('API Request - No authorization header (token missing or dashboard endpoint)');
     }
 
     return headers;
