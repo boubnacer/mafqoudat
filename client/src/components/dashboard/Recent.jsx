@@ -14,18 +14,24 @@ const Recent = ({ recent, isLoading, emptyState = "NoRecentFounds" }) => {
     <Box
       width="100%"
       display="grid"
-      gridTemplateColumns="repeat(4, 1fr)"
-      gap="1rem"
+      gap="1.5rem" // Increased gap for better spacing
       sx={{
         gridTemplateColumns: {
-          xs: "repeat(1, 1fr)",
-          md: "repeat(2, 1fr)",
-          lg: "repeat(4, 1fr)",
+          xs: "repeat(1, 1fr)", // Single column on mobile
+          sm: "repeat(2, 1fr)", // Two columns on small tablets
+          md: "repeat(3, 1fr)", // Three columns on medium screens
+          lg: "repeat(4, 1fr)", // Four columns on large screens
+          xl: "repeat(4, 1fr)", // Four columns on extra large screens
         },
         mt: {
           xs: "2rem",
-          // sm: "2rem",
         },
+        // Ensure minimum card width for better readability
+        '& > *': {
+          minWidth: { xs: '280px', sm: '300px' },
+          maxWidth: { xs: '100%', sm: '400px' },
+          justifySelf: 'center',
+        }
       }}
     >
       {recent.map(({ _id, categoryname, region, exactLocation, image, createdAt, countryLabels, countryname, contact, city }) => {

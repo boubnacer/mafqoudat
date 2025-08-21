@@ -547,18 +547,25 @@ const PostsList = () => {
           <>
             {/* Posts Grid/List */}
             <Box sx={{ mb: 4 }}>
-              <Box
-                display="grid"
-                gap={3}
-                sx={{
-                  gridTemplateColumns: viewMode === "grid" ? {
-                    xs: "repeat(1, 1fr)",
-                    sm: "repeat(2, 1fr)",
-                    md: "repeat(3, 1fr)",
-                    lg: "repeat(4, 1fr)",
-                  } : "repeat(1, 1fr)",
-                }}
-              >
+                          <Box
+              display="grid"
+              gap={3}
+              sx={{
+                gridTemplateColumns: viewMode === "grid" ? {
+                  xs: "repeat(1, 1fr)",
+                  sm: "repeat(2, 1fr)",
+                  md: "repeat(3, 1fr)",
+                  lg: "repeat(4, 1fr)",
+                  xl: "repeat(5, 1fr)",
+                } : "repeat(1, 1fr)",
+                // Ensure minimum card width for better readability
+                '& > *': {
+                  minWidth: { xs: '280px', sm: '300px' },
+                  maxWidth: { xs: '100%', sm: '400px' },
+                  justifySelf: 'center',
+                }
+              }}
+            >
                 {filteredPosts.map((post) => (
                   <Post 
                     key={post._id} 

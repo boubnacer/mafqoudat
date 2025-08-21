@@ -45,6 +45,132 @@ export const themeSettings = (mode, currentLanguage = 'en') => {
             },
             // caetgories -----
             categories: {
+              // Electronics
+              electronicscate: {
+                back: "#E0F7FA",
+                icon: "#00BCD4",
+              },
+              // Documents
+              documentscate: {
+                back: "#EFEBE9",
+                icon: "#795548",
+              },
+              // Jewelry
+              jewelrycate: {
+                back: "#F3E5F5",
+                icon: "#9C27B0",
+              },
+              // Clothing
+              clothingcate: {
+                back: "#E8F5E9",
+                icon: "#4CAF50",
+              },
+              // Pets
+              petscate: {
+                back: "#EFEBE9",
+                icon: "#795548",
+              },
+              // Vehicles
+              vehiclescate: {
+                back: "#ECEFF1",
+                icon: "#607D8B",
+              },
+              // Keys
+              keyscate: {
+                back: "#FFF3E0",
+                icon: "#FF9800",
+              },
+              // Wallet
+              walletcate: {
+                back: "#FBE9E7",
+                icon: "#FF5722",
+              },
+              // Watches
+              watchescate: {
+                back: "#E3F2FD",
+                icon: "#2196F3",
+              },
+              // Gaming
+              gamingcate: {
+                back: "#FCE4EC",
+                icon: "#E91E63",
+              },
+              // Medical
+              medicalcate: {
+                back: "#FFEBEE",
+                icon: "#F44336",
+              },
+              // Luggage
+              luggagecate: {
+                back: "#EFEBE9",
+                icon: "#795548",
+              },
+              // Person
+              personcate: {
+                back: "#E3F2FD",
+                icon: "#2196F3",
+              },
+              // Shopping
+              shoppingcate: {
+                back: "#F3E5F5",
+                icon: "#9C27B0",
+              },
+              // Work
+              workcate: {
+                back: "#ECEFF1",
+                icon: "#607D8B",
+              },
+              // Sports
+              sportscate: {
+                back: "#E8F5E9",
+                icon: "#4CAF50",
+              },
+              // Music
+              musiccate: {
+                back: "#F3E5F5",
+                icon: "#9C27B0",
+              },
+              // Toys
+              toyscate: {
+                back: "#FFF3E0",
+                icon: "#FF9800",
+              },
+              // Beauty
+              beautycate: {
+                back: "#FCE4EC",
+                icon: "#E91E63",
+              },
+              // Camera
+              cameracate: {
+                back: "#E3F2FD",
+                icon: "#2196F3",
+              },
+              // Tools
+              toolscate: {
+                back: "#ECEFF1",
+                icon: "#607D8B",
+              },
+              // Garden
+              gardencate: {
+                back: "#E8F5E9",
+                icon: "#4CAF50",
+              },
+              // Home
+              homecate: {
+                back: "#F1F8E9",
+                icon: "#8BC34A",
+              },
+              // Food
+              foodcate: {
+                back: "#FFF3E0",
+                icon: "#FF9800",
+              },
+              // Other
+              othercate: {
+                back: "#F5F5F5",
+                icon: "#9E9E9E",
+              },
+              // Legacy fallbacks
               keyscate: {
                 back: "#FFF3E0",
                 icon: "#FF9800",
@@ -126,8 +252,134 @@ export const themeSettings = (mode, currentLanguage = 'en') => {
                 text: "#AD0000",
               },
             },
-            // categories
+            // categories - using centralized configuration
             categories: {
+              // Electronics
+              electronicscate: {
+                back: "#E0F7FA",
+                icon: "#00BCD4",
+              },
+              // Documents
+              documentscate: {
+                back: "#EFEBE9",
+                icon: "#795548",
+              },
+              // Jewelry
+              jewelrycate: {
+                back: "#F3E5F5",
+                icon: "#9C27B0",
+              },
+              // Clothing
+              clothingcate: {
+                back: "#E8F5E9",
+                icon: "#4CAF50",
+              },
+              // Pets
+              petscate: {
+                back: "#EFEBE9",
+                icon: "#795548",
+              },
+              // Vehicles
+              vehiclescate: {
+                back: "#ECEFF1",
+                icon: "#607D8B",
+              },
+              // Keys
+              keyscate: {
+                back: "#FFF3E0",
+                icon: "#FF9800",
+              },
+              // Wallet
+              walletcate: {
+                back: "#FBE9E7",
+                icon: "#FF5722",
+              },
+              // Watches
+              watchescate: {
+                back: "#E3F2FD",
+                icon: "#2196F3",
+              },
+              // Gaming
+              gamingcate: {
+                back: "#FCE4EC",
+                icon: "#E91E63",
+              },
+              // Medical
+              medicalcate: {
+                back: "#FFEBEE",
+                icon: "#F44336",
+              },
+              // Luggage
+              luggagecate: {
+                back: "#EFEBE9",
+                icon: "#795548",
+              },
+              // Person
+              personcate: {
+                back: "#E3F2FD",
+                icon: "#2196F3",
+              },
+              // Shopping
+              shoppingcate: {
+                back: "#F3E5F5",
+                icon: "#9C27B0",
+              },
+              // Work
+              workcate: {
+                back: "#ECEFF1",
+                icon: "#607D8B",
+              },
+              // Sports
+              sportscate: {
+                back: "#E8F5E9",
+                icon: "#4CAF50",
+              },
+              // Music
+              musiccate: {
+                back: "#F3E5F5",
+                icon: "#9C27B0",
+              },
+              // Toys
+              toyscate: {
+                back: "#FFF3E0",
+                icon: "#FF9800",
+              },
+              // Beauty
+              beautycate: {
+                back: "#FCE4EC",
+                icon: "#E91E63",
+              },
+              // Camera
+              cameracate: {
+                back: "#E3F2FD",
+                icon: "#2196F3",
+              },
+              // Tools
+              toolscate: {
+                back: "#ECEFF1",
+                icon: "#607D8B",
+              },
+              // Garden
+              gardencate: {
+                back: "#E8F5E9",
+                icon: "#4CAF50",
+              },
+              // Home
+              homecate: {
+                back: "#F1F8E9",
+                icon: "#8BC34A",
+              },
+              // Food
+              foodcate: {
+                back: "#FFF3E0",
+                icon: "#FF9800",
+              },
+              // Other
+              othercate: {
+                back: "#F5F5F5",
+                icon: "#9E9E9E",
+              },
+              // Legacy fallbacks
               keyscate: {
                 back: "#FFF3E0",
                 icon: "#FF9800",

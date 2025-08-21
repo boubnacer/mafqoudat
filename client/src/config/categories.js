@@ -10,7 +10,19 @@ import {
   WatchOutlined,
   SportsEsportsOutlined,
   LocalHospitalOutlined,
-  MoreHorizOutlined
+  MoreHorizOutlined,
+  PersonOutlined,
+  ShoppingBagOutlined,
+  WorkOutlineOutlined,
+  SportsSoccerOutlined,
+  MusicNoteOutlined,
+  ToysOutlined,
+  FaceOutlined,
+  CameraAltOutlined,
+  BuildOutlined,
+  LocalFloristOutlined,
+  HomeOutlined,
+  RestaurantOutlined
 } from '@mui/icons-material';
 
 // Category configuration with Material UI icons
@@ -87,11 +99,83 @@ export const CATEGORY_CONFIG = {
     backgroundColor: '#EFEBE9',
     priority: 12
   },
+  PERSON: {
+    icon: PersonOutlined,
+    color: '#2196F3',
+    backgroundColor: '#E3F2FD',
+    priority: 13
+  },
+  SHOPPING: {
+    icon: ShoppingBagOutlined,
+    color: '#9C27B0',
+    backgroundColor: '#F3E5F5',
+    priority: 14
+  },
+  WORK: {
+    icon: WorkOutlineOutlined,
+    color: '#607D8B',
+    backgroundColor: '#ECEFF1',
+    priority: 15
+  },
+  SPORTS: {
+    icon: SportsSoccerOutlined,
+    color: '#4CAF50',
+    backgroundColor: '#E8F5E9',
+    priority: 16
+  },
+  MUSIC: {
+    icon: MusicNoteOutlined,
+    color: '#9C27B0',
+    backgroundColor: '#F3E5F5',
+    priority: 17
+  },
+  TOYS: {
+    icon: ToysOutlined,
+    color: '#FF9800',
+    backgroundColor: '#FFF3E0',
+    priority: 18
+  },
+  BEAUTY: {
+    icon: FaceOutlined,
+    color: '#E91E63',
+    backgroundColor: '#FCE4EC',
+    priority: 19
+  },
+  CAMERA: {
+    icon: CameraAltOutlined,
+    color: '#2196F3',
+    backgroundColor: '#E3F2FD',
+    priority: 20
+  },
+  TOOLS: {
+    icon: BuildOutlined,
+    color: '#607D8B',
+    backgroundColor: '#ECEFF1',
+    priority: 21
+  },
+  GARDEN: {
+    icon: LocalFloristOutlined,
+    color: '#4CAF50',
+    backgroundColor: '#E8F5E9',
+    priority: 22
+  },
+  HOME: {
+    icon: HomeOutlined,
+    color: '#8BC34A',
+    backgroundColor: '#F1F8E9',
+    priority: 23
+  },
+  FOOD: {
+    icon: RestaurantOutlined,
+    color: '#FF9800',
+    backgroundColor: '#FFF3E0',
+    priority: 24
+  },
   OTHER: {
     icon: MoreHorizOutlined,
     color: '#9E9E9E',
     backgroundColor: '#F5F5F5',
-    priority: 13
+    priority: 25
   }
 };
 

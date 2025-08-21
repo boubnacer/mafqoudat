@@ -41,6 +41,7 @@ import { getLabel, isRTL } from "../../../utils/languageUtils";
 import { formatDistanceToNow } from 'date-fns';
 import { ar, fr, enUS } from 'date-fns/locale';
 import RenderIcon from "../../../components/RenderIcon";
+import { getCategoryConfig } from "../../../config/categories";
 
 // Get the API base URL for image construction
 const API_BASE_URL = process.env.REACT_APP_API_URL || "http://localhost:3500";
@@ -143,6 +144,41 @@ const Post = ({ post, viewMode = "grid" }) => {
           en: 'Vehicles',
           fr: 'Véhicules',
           ar: 'مركبات'
+        },
+        'KEYS': {
+          en: 'Keys',
+          fr: 'Clés',
+          ar: 'مفاتيح'
+        },
+        'WALLET': {
+          en: 'Wallet',
+          fr: 'Portefeuille',
+          ar: 'محفظة'
+        },
+        'WATCHES': {
+          en: 'Watches',
+          fr: 'Montres',
+          ar: 'ساعات'
+        },
+        'GAMING': {
+          en: 'Gaming',
+          fr: 'Jeux',
+          ar: 'ألعاب'
+        },
+        'MEDICAL': {
+          en: 'Medical',
+          fr: 'Médical',
+          ar: 'طبي'
+        },
+        'LUGGAGE': {
+          en: 'Luggage',
+          fr: 'Bagages',
+          ar: 'أمتعة'
+        },
+        'OTHER': {
+          en: 'Other',
+          fr: 'Autre',
+          ar: 'أخرى'
         }
       };
       
@@ -155,127 +191,22 @@ const Post = ({ post, viewMode = "grid" }) => {
 
     const categoryName = getCategoryDisplayName(post.categoryname);
 
-    // Updated category color function with actual database colors
-    const getCategoryColor = (category) => {
-      const categoryColors = {
-        ELECTRONICS: { 
-          main: '#2196F3', 
-          light: '#E3F2FD', 
-          dark: '#1565C0', 
-          icon: '#1565C0',
-          background: '#E3F2FD',
-          text: '#1565C0'
-        },
-        DOCUMENTS: { 
-          main: '#FF9800', 
-          light: '#FFF3E0', 
-          dark: '#E65100', 
-          icon: '#E65100',
-          background: '#FFF3E0',
-          text: '#E65100'
-        },
-        JEWELRY: { 
-          main: '#E91E63', 
-          light: '#FCE4EC', 
-          dark: '#AD1457', 
-          icon: '#AD1457',
-          background: '#FCE4EC',
-          text: '#AD1457'
-        },
-        CLOTHING: { 
-          main: '#9C27B0', 
-          light: '#F3E5F5', 
-          dark: '#6A1B9A', 
-          icon: '#6A1B9A',
-          background: '#F3E5F5',
-          text: '#6A1B9A'
-        },
-        PETS: { 
-          main: '#795548', 
-          light: '#EFEBE9', 
-          dark: '#4E342E', 
-          icon: '#4E342E',
-          background: '#EFEBE9',
-          text: '#4E342E'
-        },
-        VEHICLES: { 
-          main: '#607D8B', 
-          light: '#ECEFF1', 
-          dark: '#37474F', 
-          icon: '#37474F',
-          background: '#ECEFF1',
-          text: '#37474F'
-        },
-        // Fallback for old category names
-        Bag: { 
-          main: '#4CAF50', 
-          light: '#E8F5E9', 
-          dark: '#2E7D32', 
-          icon: '#2E7D32',
-          background: '#E8F5E9',
-          text: '#2E7D32'
-        },
-        keys: { 
-          main: '#FF9800', 
-          light: '#FFF3E0', 
-          dark: '#E65100', 
-          icon: '#E65100',
-          background: '#FFF3E0',
-          text: '#E65100'
-        },
-        person: { 
-          main: '#2196F3', 
-          light: '#E3F2FD', 
-          dark: '#1565C0', 
-          icon: '#1565C0',
-          background: '#E3F2FD',
-          text: '#1565C0'
-        },
-        Money: { 
-          main: '#9C27B0', 
-          light: '#F3E5F5', 
-          dark: '#6A1B9A', 
-          icon: '#6A1B9A',
-          background: '#F3E5F5',
-          text: '#6A1B9A'
-        },
-        Devices: { 
-          main: '#00BCD4', 
-          light: '#E0F7FA', 
-          dark: '#00838F', 
-          icon: '#00838F',
-          background: '#E0F7FA',
-          text: '#00838F'
-        },
-        Wallet: { 
-          main: '#FF5722', 
-          light: '#FBE9E7', 
-          dark: '#BF360C', 
-          icon: '#BF360C',
-          background: '#FBE9E7',
-          text: '#BF360C'
-        },
-        Vehicle: { 
-          main: '#607D8B', 
-          light: '#ECEFF1', 
-          dark: '#37474F', 
-          icon: '#37474F',
-          background: '#ECEFF1',
-          text: '#37474F'
-        },
-        Document: { 
-          main: '#795548', 
-          light: '#EFEBE9', 
-          dark: '#4E342E', 
-          icon: '#4E342E',
-          background: '#EFEBE9',
-          text: '#4E342E'
-        },
+    // Get category colors using centralized configuration
+    const getCategoryColors = (category) => {
+      const config = getCategoryConfig(category);
+      const isDarkMode = theme.palette.mode === 'dark';
+      
+      return {
+        main: config.color,
+        light: config.backgroundColor,
+        dark: config.color,
+        icon: config.color,
+        background: isDarkMode ? alpha(config.backgroundColor, 0.2) : config.backgroundColor,
+        text: config.color
       };
-      return categoryColors[category] || categoryColors.ELECTRONICS;
     };
 
-    const categoryStyle = getCategoryColor(post.categoryname);
+    const categoryStyle = getCategoryColors(post.categoryname);
     const isDarkMode = theme.palette.mode === 'dark';
 
     // Extract city from location (show only city)
