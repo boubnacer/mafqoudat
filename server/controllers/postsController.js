@@ -421,6 +421,18 @@ const createNewPost = async (req, res) => {
 const submitPostReport = async (req, res) => {
   try {
     const { postId, reason } = req.body;
+    
+    // Debug: Check if user is authenticated
+    console.log('Report submission - req.user:', req.user);
+    console.log('Report submission - req.headers:', req.headers);
+    
+    if (!req.user || !req.user.id) {
+      return res.status(401).json({ 
+        success: false,
+        message: "User not authenticated" 
+      });
+    }
+    
     const userId = req.user.id;
 
     // Validate required fields
