@@ -11,13 +11,13 @@ router.route("/")
 
 router.route("/filtered").get(postsController.getFilteredPosts);
 
+router.route("/:id").get(postsController.getPost);
+
 // Protected routes - require authentication
 router.use(verifyJWT);
 
 // Report route - must come before /:id route in protected section
 router.route("/report").post(postsController.submitPostReport);
-
-router.route("/:id").get(postsController.getPost);
 
 router
   .route("/")
