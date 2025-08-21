@@ -23,11 +23,7 @@ const Sponsored = ({ post }) => {
   const handleReport = (e) => {
     e.preventDefault();
     e.stopPropagation();
-    if (!usernameId) {
-      navigate('/login');
-    } else {
-      setReportDialogOpen(true);
-    }
+    setReportDialogOpen(true);
   };
 
   const handleSubmitReport = async (reportData) => {

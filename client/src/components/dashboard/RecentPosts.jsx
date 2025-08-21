@@ -59,11 +59,7 @@ const RecentPosts = ({ _id, categoryname, region, exactLocation, image, createdA
 
   const handleViewDetails = () => navigate(`/dash/posts/${_id}`);
   const handleReport = () => {
-    if (!usernameId) {
-      navigate('/login');
-    } else {
-      setReportDialogOpen(true);
-    }
+    setReportDialogOpen(true);
   };
 
   const handleSubmitReport = async (reportData) => {

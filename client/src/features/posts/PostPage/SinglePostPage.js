@@ -70,11 +70,7 @@ const SinglePostPage = ({
 
   const handleEdit = () => navigate(`/dash/posts/edit/${_id}`);
   const handleReport = () => {
-    if (!usernameId) {
-      navigate('/login');
-    } else {
-      setReportDialogOpen(true);
-    }
+    setReportDialogOpen(true);
   };
   const handleBack = () => navigate(-1);
 

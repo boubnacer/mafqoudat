@@ -112,7 +112,8 @@ const ReportDialog = ({ open, onClose, post, onSubmit }) => {
       await onSubmit({
         postId: post._id,
         reason: finalReason,
-        reasonType: selectedReason
+        reasonType: selectedReason,
+        userId: post.user // Send the post owner's ID for reference
       });
 
       setSuccess(true);

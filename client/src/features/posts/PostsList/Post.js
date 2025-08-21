@@ -84,11 +84,7 @@ const Post = ({ post, viewMode = "grid" }) => {
 
   const handleViewDetails = () => navigate(`/dash/posts/${post._id}`);
   const handleReport = () => {
-    if (!usernameId) {
-      navigate('/login');
-    } else {
-      setReportDialogOpen(true);
-    }
+    setReportDialogOpen(true);
   };
 
     // Enhanced Found/Lost detection with proper multilingual support

@@ -420,20 +420,15 @@ const createNewPost = async (req, res) => {
 // @access Private
 const submitPostReport = async (req, res) => {
   try {
-    const { postId, reason } = req.body;
+    const { postId, reason, userId } = req.body;
     
-    // Debug: Check if user is authenticated
-    console.log('Report submission - req.user:', req.user);
+    // Debug: Check request data
+    console.log('Report submission - req.body:', req.body);
     console.log('Report submission - req.headers:', req.headers);
     
-    if (!req.user || !req.user.id) {
-      return res.status(401).json({ 
-        success: false,
-        message: "User not authenticated" 
-      });
-    }
-    
-    const userId = req.user.id;
+    // For public reports, we'll use the userId from the request body
+    // If no userId provided, we'll use a default or anonymous user
+    const reportingUserId = userId || 'anonymous';
 
     // Validate required fields
     if (!postId || !reason) {
@@ -458,13 +453,22 @@ const submitPostReport = async (req, res) => {
       });
     }
 
-    // Get user data
-    const user = await User.findById(userId).lean().exec();
-    if (!user) {
-      return res.status(404).json({ 
-        success: false,
-        message: "User not found" 
-      });
+    // Get user data (if userId is provided and not anonymous)
+    let user = null;
+    if (reportingUserId && reportingUserId !== 'anonymous') {
+      user = await User.findById(reportingUserId).lean().exec();
+      if (!user) {
+        return res.status(404).json({ 
+          success: false,
+          message: "User not found" 
+        });
+      }
+    } else {
+      // Create anonymous user data for email
+      user = {
+        username: 'Anonymous User',
+        email: 'anonymous@mafqoudat.com'
+      };
     }
 
     // Send email notification to admin
