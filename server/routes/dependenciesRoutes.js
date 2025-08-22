@@ -4,7 +4,7 @@ const { createCategory, createFoundLost, getCitiesByCountry } = require("../cont
 const verifyJWT = require("../middleware/verifyJWT");
 
 // Public routes - no authentication required
-router.route("/cities").get(getCitiesByCountry);
+router.get("/cities", getCitiesByCountry);
 
 // Apply JWT verification to protected routes
 router.use(verifyJWT);

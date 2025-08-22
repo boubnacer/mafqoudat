@@ -112,7 +112,12 @@ const NewPostForm = ({ user, countries, categories, flOptions }) => {
   const fetchCitiesByCountry = async (countryId) => {
     try {
       setLoadingCities(true);
-      const response = await fetch(`/dependencies/cities?countryId=${countryId}&language=${currentLanguage || 'en'}`);
+      const response = await fetch(`/cities-public?countryId=${countryId}&language=${currentLanguage || 'en'}`);
+      
+      if (!response.ok) {
+        throw new Error(`HTTP error! status: ${response.status}`);
+      }
+      
       const data = await response.json();
       
       if (data.success) {
