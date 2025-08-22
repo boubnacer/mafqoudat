@@ -112,7 +112,8 @@ const NewPostForm = ({ user, countries, categories, flOptions }) => {
   const fetchCitiesByCountry = async (countryId) => {
     try {
       setLoadingCities(true);
-      const url = `/cities-public?countryId=${countryId}&language=${currentLanguage || 'en'}`;
+      const baseUrl = process.env.REACT_APP_API_URL || "http://localhost:3500";
+      const url = `${baseUrl}/cities-public?countryId=${countryId}&language=${currentLanguage || 'en'}`;
       console.log('🔍 Fetching cities from:', url);
       
       const response = await fetch(url);
