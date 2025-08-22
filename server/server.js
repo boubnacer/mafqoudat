@@ -65,6 +65,7 @@ app.use("/auth", require("./routes/authRoutes"));
 app.use("/users", require("./routes/userRoutes"));
 app.use("/posts", require("./routes/postRoutes"));
 app.use("/countries", require("./routes/countryRoutes"));
+app.use("/cities", require("./routes/cityRoutes"));
 app.use("/floptions", require("./routes/flOptionsRoutes"));
 app.use("/categories", require("./routes/categoryRoute"));
 app.use("/dependencies", require("./routes/dependenciesRoutes"));
