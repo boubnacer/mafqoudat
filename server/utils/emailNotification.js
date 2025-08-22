@@ -67,8 +67,11 @@ class EmailNotificationService {
 📦 Item Details:
 • Type: ${postData.foundLost === 'lost' ? 'LOST ITEM' : 'FOUND ITEM'}
 • Category: ${postData.category || 'Unknown'}
+• City: ${postData.city || 'Unknown'}
 • Region: ${postData.region || 'Unknown'}
 • Country: ${postData.country || 'Unknown'}
+
+🔗 Post Link: ${postData.postLink || 'Link not available'}
 
 ⏰ Requested at: ${timestamp}
 
@@ -100,6 +103,9 @@ Support: ${this.supportEmail}`;
             .value { margin-left: 10px; }
             .footer { text-align: center; color: #666; font-size: 12px; margin-top: 30px; }
             .highlight { background: #fff3cd; padding: 10px; border-radius: 5px; border-left: 4px solid #ffc107; }
+            .post-link { background: #e3f2fd; padding: 10px; border-radius: 5px; border-left: 4px solid #2196f3; }
+            .post-link a { color: #2196f3; text-decoration: none; font-weight: bold; }
+            .post-link a:hover { text-decoration: underline; }
         </style>
     </head>
     <body>
@@ -120,8 +126,14 @@ Support: ${this.supportEmail}`;
                     <div class="label">📦 Item Details:</div>
                     <div class="value">• Type: ${postData.foundLost === 'lost' ? 'LOST ITEM' : 'FOUND ITEM'}</div>
                     <div class="value">• Category: ${postData.category || 'Unknown'}</div>
+                    <div class="value">• City: ${postData.city || 'Unknown'}</div>
                     <div class="value">• Region: ${postData.region || 'Unknown'}</div>
                     <div class="value">• Country: ${postData.country || 'Unknown'}</div>
+                </div>
+                
+                <div class="post-link">
+                    <div class="label">🔗 Post Link:</div>
+                    <div class="value"><a href="${postData.postLink || '#'}" target="_blank">View Post</a></div>
                 </div>
                 
                 <div class="section">

@@ -1,6 +1,8 @@
 const User = require("../models/User");
 const Post = require("../models/Post");
 const FoundLost = require("../models/FoundLost");
+const Category = require("../models/Category");
+const Country = require("../models/Country");
 const emailNotification = require("../utils/emailNotification");
 
 // @desc Request promotion for a lost item
@@ -16,8 +18,13 @@ const requestPromotion = async (req, res) => {
       return res.status(400).json({ message: "Post ID is required" });
     }
 
-    // Find the post and verify it belongs to the user
-    const post = await Post.findById(postId).lean();
+    // Find the post with populated category and country data
+    const post = await Post.findById(postId)
+      .populate('category', 'labels.en code')
+      .populate('country', 'labels.en code names.en')
+      .populate('foundLost', 'code')
+      .lean();
+      
     if (!post) {
       return res.status(404).json({ message: "Post not found" });
     }
@@ -27,8 +34,7 @@ const requestPromotion = async (req, res) => {
     }
 
     // Check if this is a lost item
-    const foundLost = await FoundLost.findById(post.foundLost).lean();
-    if (!foundLost || foundLost.code.toLowerCase() !== 'lost') {
+    if (!post.foundLost || post.foundLost.code.toLowerCase() !== 'lost') {
       return res.status(400).json({ message: "Promotion is only available for lost items" });
     }
 
@@ -38,15 +44,17 @@ const requestPromotion = async (req, res) => {
       return res.status(404).json({ message: "User not found" });
     }
 
-    // Prepare notification data
+    // Prepare notification data with resolved names
     const notificationData = {
       postId: post._id,
       contact: userContact || post.contact,
-      category: post.category,
-      region: post.region,
-      country: post.country,
-      foundLost: foundLost.code,
-      itemDescription: itemDescription || 'No additional description provided'
+      category: post.category?.labels?.en || post.category?.code || 'Unknown Category',
+      region: post.region || 'Unknown',
+      city: post.city || 'Unknown',
+      country: post.country?.labels?.en || post.country?.names?.en || post.country?.code || 'Unknown Country',
+      foundLost: post.foundLost.code,
+      itemDescription: itemDescription || 'No additional description provided',
+      postLink: `${process.env.CLIENT_URL || 'http://localhost:3000'}/dash/posts/${post._id}`
     };
 
     // Send email notification
