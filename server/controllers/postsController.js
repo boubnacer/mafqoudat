@@ -438,11 +438,12 @@ const submitPostReport = async (req, res) => {
       });
     }
 
-    // Find the post
+    // Find the post with proper population
     const post = await Post.findById(postId)
       .populate('user', 'username')
-      .populate('category', 'name')
-      .populate('country', 'name')
+      .populate('category', 'code')
+      .populate('country', 'code')
+      .populate('foundLost', 'code')
       .lean()
       .exec();
 
@@ -452,6 +453,20 @@ const submitPostReport = async (req, res) => {
         message: "Post not found" 
       });
     }
+
+    // Prepare post data for email with proper field names
+    const emailPostData = {
+      _id: post._id,
+      foundLost: post.foundLost?.code || post.foundLost,
+      category: post.category?.code || post.category,
+      country: post.country?.code || post.country,
+      region: post.region || 'Unknown',
+      city: post.city || 'Unknown',
+      exactLocation: post.exactLocation || 'Unknown',
+      contact: post.contact || 'Not provided',
+      description: post.description || 'No description',
+      createdAt: post.createdAt
+    };
 
     // Get user data (if userId is provided and not anonymous)
     let user = null;
@@ -473,7 +488,7 @@ const submitPostReport = async (req, res) => {
 
     // Send email notification to admin
     const emailNotification = require('../utils/emailNotification');
-    const emailResult = await emailNotification.sendReportNotification(post, user, reason);
+    const emailResult = await emailNotification.sendReportNotification(emailPostData, user, reason);
 
     if (!emailResult.success) {
       console.error('Failed to send report email:', emailResult.error);

@@ -219,8 +219,9 @@ Support: ${this.supportEmail}`;
 
 📦 Post Details:
 • Post ID: ${postData._id || 'Unknown'}
-• Type: ${postData.foundLost === 'lost' ? 'LOST ITEM' : 'FOUND ITEM'}
+• Type: ${postData.foundLost === 'LOST' ? 'LOST ITEM' : 'FOUND ITEM'}
 • Category: ${postData.category || 'Unknown'}
+• City: ${postData.city || 'Unknown'}
 • Region: ${postData.region || 'Unknown'}
 • Country: ${postData.country || 'Unknown'}
 • Contact: ${postData.contact || 'Not provided'}
@@ -280,8 +281,9 @@ Support: ${this.supportEmail}`;
                 <div class="section">
                     <div class="label">📦 Post Details:</div>
                     <div class="value">• Post ID: ${postData._id || 'Unknown'}</div>
-                    <div class="value">• Type: ${postData.foundLost === 'lost' ? 'LOST ITEM' : 'FOUND ITEM'}</div>
+                    <div class="value">• Type: ${postData.foundLost === 'LOST' ? 'LOST ITEM' : 'FOUND ITEM'}</div>
                     <div class="value">• Category: ${postData.category || 'Unknown'}</div>
+                    <div class="value">• City: ${postData.city || 'Unknown'}</div>
                     <div class="value">• Region: ${postData.region || 'Unknown'}</div>
                     <div class="value">• Country: ${postData.country || 'Unknown'}</div>
                     <div class="value">• Contact: ${postData.contact || 'Not provided'}</div>
