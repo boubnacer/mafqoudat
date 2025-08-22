@@ -6,6 +6,7 @@ const mongoose = require("mongoose");
 // const getCountryIso3 = require("country-iso-2-to-3");
 const getCountryIso3 = require("country-iso-2-to-3");
 const Category = require("../models/Category");
+const City = require("../models/City");
 
 // Get Dashboard
 const getDashboard = async (req, res) => {
@@ -701,11 +702,66 @@ const postsPerDay = async () => {
   console.log("Posts inserted today:", createdToday);
 };
 
+// Get cities by country
+const getCitiesByCountry = async (req, res) => {
+  try {
+    const { countryId, language = 'en' } = req.query;
+    
+    if (!countryId) {
+      return res.status(400).json({ 
+        success: false,
+        message: "Country ID is required" 
+      });
+    }
+
+    const cities = await City.find({ 
+      country: countryId, 
+      isActive: true 
+    })
+    .select('_id code labels names isCapital')
+    .sort({ 'labels.en': 1 })
+    .lean()
+    .exec();
+
+    if (!cities.length) {
+      return res.status(404).json({ 
+        success: false,
+        message: "No cities found for this country",
+        data: []
+      });
+    }
+
+    // Transform response to include language-specific labels
+    const transformedCities = cities.map(city => ({
+      id: city._id,
+      code: city.code,
+      label: city.labels[language] || city.labels.en,
+      labels: city.labels,
+      names: city.names || {},
+      isCapital: city.isCapital
+    }));
+
+    res.json({
+      success: true,
+      data: transformedCities,
+      total: transformedCities.length
+    });
+  } catch (error) {
+    console.error('Error fetching cities by country:', error);
+    res.status(500).json({ 
+      success: false,
+      message: "Failed to fetch cities by country",
+      error: error.message 
+    });
+  }
+};
+
 module.exports = {
   getDashboard,
   getflOptions,
   getCategories,
   getCountries,
+  getCitiesByCountry,
   createCategory,
   createFoundLost,
 };

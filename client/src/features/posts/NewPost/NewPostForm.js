@@ -39,6 +39,8 @@ const NewPostForm = ({ user, countries, categories, flOptions }) => {
   const [createdPostId, setCreatedPostId] = useState(null);
   const [lastSubmittedValues, setLastSubmittedValues] = useState(null);
   const [selectedCountry, setSelectedCountry] = useState(null);
+  const [cities, setCities] = useState([]);
+  const [loadingCities, setLoadingCities] = useState(false);
 
   useEffect(() => {
     if (isSuccess) {
@@ -97,6 +99,34 @@ const NewPostForm = ({ user, countries, categories, flOptions }) => {
     const countryId = event.target.value;
     const country = countries.find(c => c._id === countryId);
     setSelectedCountry(country);
+    
+    // Reset cities when country changes
+    setCities([]);
+    
+    // Fetch cities for the selected country
+    if (countryId) {
+      fetchCitiesByCountry(countryId);
+    }
+  };
+
+  const fetchCitiesByCountry = async (countryId) => {
+    try {
+      setLoadingCities(true);
+      const response = await fetch(`/dependencies/cities?countryId=${countryId}&language=${currentLanguage || 'en'}`);
+      const data = await response.json();
+      
+      if (data.success) {
+        setCities(data.data);
+      } else {
+        console.error('Failed to fetch cities:', data.message);
+        setCities([]);
+      }
+    } catch (error) {
+      console.error('Error fetching cities:', error);
+      setCities([]);
+    } finally {
+      setLoadingCities(false);
+    }
   };
 
   const handleSubmit = async (values, { setSubmitting, setStatus }) => {
@@ -298,11 +328,40 @@ const NewPostForm = ({ user, countries, categories, flOptions }) => {
                   <FormLabel htmlFor="city" sx={{ mb: 1, display: "block", fontWeight: 500 }}>
                     {t('city')} *
                   </FormLabel>
-                  <Textfield 
-                    name="city" 
-                    variant="outlined" 
-                    placeholder={t('cityPlaceholder')}
-                  />
+                  <Typography variant="caption" color="text.secondary" sx={{ mb: 1, display: "block" }}>
+                    {!selectedCountry 
+                      ? t('selectCountryFirst') 
+                      : loadingCities 
+                        ? t('loadingCities') 
+                        : cities.length === 0 
+                          ? t('noCitiesFound') 
+                          : t('selectCity')
+                    }
+                  </Typography>
+                  <FormControl fullWidth disabled={!selectedCountry || loadingCities}>
+                    <InputLabel id="city-select-label">{t('chooseCity')}</InputLabel>
+                    <Select
+                      labelId="city-select-label"
+                      value={values.city || ""}
+                      label={t('chooseCity')}
+                      onChange={(e) => setFieldValue('city', e.target.value)}
+                      disableUnderline
+                      sx={{
+                        borderRadius: 2,
+                      }}
+                    >
+                      {cities.map((city) => (
+                        <MenuItem key={city.id} value={city.id}>
+                          <Box display="flex" alignItems="center" gap={1}>
+                            {city.isCapital && (
+                              <span style={{ fontSize: '16px' }}>🏛️</span>
+                            )}
+                            {city.label}
+                          </Box>
+                        </MenuItem>
+                      ))}
+                    </Select>
+                  </FormControl>
                 </Box>
 
                 <Box>

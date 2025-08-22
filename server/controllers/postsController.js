@@ -3,6 +3,7 @@ const User = require("../models/User");
 const Country = require("../models/Country");
 const Category = require("../models/Category");
 const FoundLost = require("../models/FoundLost");
+const City = require("../models/City");
 const { deleteFromCloudinary } = require("../config/cloudinary");
 const mongoose = require("mongoose");
 // const getCountryIso3 = require("country-iso-2-to-3");
@@ -34,7 +35,6 @@ const getAllPosts = async (req, res) => {
   if (search) {
     match.$or = [
       { exactLocation: { $regex: search, $options: 'i' } },
-      { city: { $regex: search, $options: 'i' } },
       { contact: { $regex: search, $options: 'i' } },
       { "Category.code": { $regex: search, $options: 'i' } },
       { description: { $regex: search, $options: 'i' } }
@@ -76,6 +76,15 @@ const getAllPosts = async (req, res) => {
     { $unwind: "$Country" },
     {
       $lookup: {
+        from: "cities",
+        localField: "city",
+        foreignField: "_id",
+        as: "City",
+      },
+    },
+    { $unwind: { path: "$City", preserveNullAndEmptyArrays: true } },
+    {
+      $lookup: {
         from: "users",
         localField: "user",
         foreignField: "_id",
@@ -90,6 +99,8 @@ const getAllPosts = async (req, res) => {
         exactLocation: 1,
         region: 1,
         city: 1,
+        cityName: "$City.labels.en",
+        cityLabels: "$City.labels",
         returned: 1,
         createdAt: 1,
         updatedAt: 1,
@@ -342,8 +353,9 @@ const createNewPost = async (req, res) => {
   const countryExists = await Country.exists({ _id: country });
   const categoryExists = await Category.exists({ _id: category });
   const foundLostExists = await FoundLost.exists({ _id: foundLost });
-  if (!userExists || !countryExists || !categoryExists || !foundLostExists) {
-    return res.status(400).json({ message: "Invalid reference in user/country/category/foundLost" });
+  const cityExists = city ? await City.exists({ _id: city }) : true;
+  if (!userExists || !countryExists || !categoryExists || !foundLostExists || !cityExists) {
+    return res.status(400).json({ message: "Invalid reference in user/country/category/foundLost/city" });
   }
 
   // Prepare post data

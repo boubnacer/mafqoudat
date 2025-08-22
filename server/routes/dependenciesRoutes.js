@@ -1,9 +1,12 @@
 const express = require("express");
 const router = express.Router();
-const { createCategory, createFoundLost } = require("../controllers/dependenciesController");
+const { createCategory, createFoundLost, getCitiesByCountry } = require("../controllers/dependenciesController");
 const verifyJWT = require("../middleware/verifyJWT");
 
-// Apply JWT verification to all routes
+// Public routes - no authentication required
+router.route("/cities").get(getCitiesByCountry);
+
+// Apply JWT verification to protected routes
 router.use(verifyJWT);
 
 // POST /dependencies/category

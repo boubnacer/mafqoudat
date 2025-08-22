@@ -115,8 +115,9 @@ const postSchema = new mongoose.Schema(
     },
     // Additional useful fields
     city: {
-      type: String,
-      default: null,
+      type: mongoose.Schema.Types.ObjectId,
+      ref: "City",
+      required: false,
     },
     exactLocation: {
       type: String,
@@ -187,7 +188,6 @@ postSchema.index({
   "descriptionLabels.fr": "text", 
   "descriptionLabels.ar": "text",
   "exactLocation": "text",
-  "city": "text",
   "description": "text"
 });
 
