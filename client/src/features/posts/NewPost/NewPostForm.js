@@ -243,7 +243,12 @@ const NewPostForm = ({ user, countries, categories, flOptions }) => {
         display: "flex",
         justifyContent: "center",
         alignItems: "flex-start",
-        background: theme.palette.background.default
+        background: theme.palette.background.default,
+        // Add shimmer animation styles
+        '@keyframes shimmer': {
+          '0%': { transform: 'translateX(-100%)' },
+          '100%': { transform: 'translateX(100%)' }
+        }
       }}
     >
       <Paper 
@@ -396,23 +401,40 @@ const NewPostForm = ({ user, countries, categories, flOptions }) => {
                           </MenuItem>
                         ))}
                         <Divider />
-                        <MenuItem 
+                                                <MenuItem
                           value="other" 
                           onClick={handleOtherCityClick}
                           sx={{ 
                             color: theme.palette.primary.main,
-                            fontWeight: 600,
+                            fontWeight: 700,
                             backgroundColor: theme.palette.mode === 'dark' 
-                              ? 'rgba(25, 118, 210, 0.15)' 
-                              : 'rgba(25, 118, 210, 0.08)',
-                            border: `1px solid ${theme.palette.primary.main}`,
-                            borderRadius: 1,
-                            margin: '4px 8px',
+                              ? 'rgba(25, 118, 210, 0.2)' 
+                              : 'rgba(25, 118, 210, 0.12)',
+                            border: `2px solid ${theme.palette.primary.main}`,
+                            borderRadius: 2,
+                            margin: '6px 8px',
+                            padding: '12px 16px',
+                            position: 'relative',
+                            '&::before': {
+                              content: '""',
+                              position: 'absolute',
+                              top: 0,
+                              left: 0,
+                              right: 0,
+                              bottom: 0,
+                              background: `linear-gradient(45deg, transparent 30%, rgba(25, 118, 210, 0.1) 50%, transparent 70%)`,
+                              borderRadius: 2,
+                              animation: 'shimmer 2s infinite',
+                            },
                             '&:hover': {
                               backgroundColor: theme.palette.primary.main,
                               color: 'white',
-                              transform: 'translateY(-1px)',
-                              boxShadow: '0 4px 8px rgba(25, 118, 210, 0.3)'
+                              transform: 'translateY(-2px)',
+                              boxShadow: '0 6px 12px rgba(25, 118, 210, 0.4)',
+                              borderColor: theme.palette.primary.dark,
+                              '&::before': {
+                                background: `linear-gradient(45deg, transparent 30%, rgba(255, 255, 255, 0.2) 50%, transparent 70%)`,
+                              }
                             }
                           }}
                         >

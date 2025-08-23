@@ -49,18 +49,18 @@ const translationMappings = {
 // Common Arabic city names that might be entered
 const arabicCityNames = {
   // Common Arabic city patterns
-  'الرياض': { en: 'Riyadh', fr: 'Riyad' },
-  'جدة': { en: 'Jeddah', fr: 'Djeddah' },
-  'مكة': { en: 'Mecca', fr: 'La Mecque' },
-  'المدينة': { en: 'Medina', fr: 'Médine' },
-  'الدمام': { en: 'Dammam', fr: 'Dammam' },
-  'الطائف': { en: 'Taif', fr: 'Taïf' },
-  'تبوك': { en: 'Tabuk', fr: 'Tabuk' },
-  'أبها': { en: 'Abha', fr: 'Abha' },
-  'جيزان': { en: 'Jizan', fr: 'Jizan' },
-  'حائل': { en: 'Hail', fr: 'Haïl' },
-  'نجران': { en: 'Najran', fr: 'Najran' },
-  'الباحة': { en: 'Al Baha', fr: 'Al Baha' },
+  'الرياض': { en: 'Riyadh', fr: 'Riyad', ar: 'الرياض' },
+  'جدة': { en: 'Jeddah', fr: 'Djeddah', ar: 'جدة' },
+  'مكة': { en: 'Mecca', fr: 'La Mecque', ar: 'مكة' },
+  'المدينة': { en: 'Medina', fr: 'Médine', ar: 'المدينة' },
+  'الدمام': { en: 'Dammam', fr: 'Dammam', ar: 'الدمام' },
+  'الطائف': { en: 'Taif', fr: 'Taïf', ar: 'الطائف' },
+  'تبوك': { en: 'Tabuk', fr: 'Tabuk', ar: 'تبوك' },
+  'أبها': { en: 'Abha', fr: 'Abha', ar: 'أبها' },
+  'جيزان': { en: 'Jizan', fr: 'Jizan', ar: 'جيزان' },
+  'حائل': { en: 'Hail', fr: 'Haïl', ar: 'حائل' },
+  'نجران': { en: 'Najran', fr: 'Najran', ar: 'نجران' },
+  'الباحة': { en: 'Al Baha', fr: 'Al Baha', ar: 'الباحة' },
   // Add more common English city names that users might enter
   'Riyadh': { en: 'Riyadh', fr: 'Riyad', ar: 'الرياض' },
   'Jeddah': { en: 'Jeddah', fr: 'Djeddah', ar: 'جدة' },
@@ -175,107 +175,106 @@ const arabicCityNames = {
   'Berberati': { en: 'Berberati', fr: 'Berbérati', ar: 'بربراتي' },
   'Bouar': { en: 'Bouar', fr: 'Bouar', ar: 'بوار' },
   'Bambari': { en: 'Bambari', fr: 'Bambari', ar: 'بامباري' },
-  'القاهرة': { en: 'Cairo', fr: 'Le Caire' },
-  'الإسكندرية': { en: 'Alexandria', fr: 'Alexandrie' },
-  'الجيزة': { en: 'Giza', fr: 'Gizeh' },
-  'الأقصر': { en: 'Luxor', fr: 'Louxor' },
-  'أسوان': { en: 'Aswan', fr: 'Assouan' },
-  'الدار البيضاء': { en: 'Casablanca', fr: 'Casablanca' },
-  'الرباط': { en: 'Rabat', fr: 'Rabat' },
-  'فاس': { en: 'Fez', fr: 'Fès' },
-  'مراكش': { en: 'Marrakech', fr: 'Marrakech' },
-  'طنجة': { en: 'Tangier', fr: 'Tanger' },
-  'أكادير': { en: 'Agadir', fr: 'Agadir' },
-  'مكناس': { en: 'Meknes', fr: 'Meknès' },
-  'الجزائر': { en: 'Algiers', fr: 'Alger' },
-  'وهران': { en: 'Oran', fr: 'Oran' },
-  'قسنطينة': { en: 'Constantine', fr: 'Constantine' },
-  'عنابة': { en: 'Annaba', fr: 'Annaba' },
-  'تونس': { en: 'Tunis', fr: 'Tunis' },
-  'صفاقس': { en: 'Sfax', fr: 'Sfax' },
-  'سوسة': { en: 'Sousse', fr: 'Sousse' },
-  'قابس': { en: 'Gabès', fr: 'Gabès' },
-  'أريانة': { en: 'Ariana', fr: 'Ariana' },
-  'الرياض': { en: 'Riyadh', fr: 'Riyad' },
-  'دبي': { en: 'Dubai', fr: 'Dubaï' },
-  'أبو ظبي': { en: 'Abu Dhabi', fr: 'Abou Dabi' },
-  'الشارقة': { en: 'Sharjah', fr: 'Charjah' },
-  'عجمان': { en: 'Ajman', fr: 'Ajmân' },
-  'رأس الخيمة': { en: 'Ras Al Khaimah', fr: 'Ras el Khaïmah' },
-  'الدوحة': { en: 'Doha', fr: 'Doha' },
-  'الوكرة': { en: 'Al Wakrah', fr: 'Al Wakrah' },
-  'الخور': { en: 'Al Khor', fr: 'Al Khor' },
-  'الريان': { en: 'Al Rayyan', fr: 'Al Rayyan' },
-  'مدينة الكويت': { en: 'Kuwait City', fr: 'Koweït' },
-  'الجهراء': { en: 'Al Jahra', fr: 'Al Jahra' },
-  'حولي': { en: 'Hawalli', fr: 'Hawalli' },
-  'الفروانية': { en: 'Farwaniya', fr: 'Farwaniya' },
-  'المنامة': { en: 'Manama', fr: 'Manama' },
-  'المحرق': { en: 'Muharraq', fr: 'Muharraq' },
-  'الرفاع': { en: 'Riffa', fr: 'Riffa' },
-  'مدينة حمد': { en: 'Hamad Town', fr: 'Hamad Town' },
-  'مسقط': { en: 'Muscat', fr: 'Mascate' },
-  'صلالة': { en: 'Salalah', fr: 'Salalah' },
-  'صحار': { en: 'Sohar', fr: 'Sohar' },
-  'نزوى': { en: 'Nizwa', fr: 'Nizwa' },
-  'عمان': { en: 'Amman', fr: 'Amman' },
-  'الزرقاء': { en: 'Zarqa', fr: 'Zarqa' },
-  'إربد': { en: 'Irbid', fr: 'Irbid' },
-  'السلط': { en: 'Al Salt', fr: 'Al Salt' },
-  'بيروت': { en: 'Beirut', fr: 'Beyrouth' },
-  'طرابلس': { en: 'Tripoli', fr: 'Tripoli' },
-  'صيدا': { en: 'Sidon', fr: 'Saïda' },
-  'صور': { en: 'Tyre', fr: 'Tyr' },
-  'دمشق': { en: 'Damascus', fr: 'Damas' },
-  'حلب': { en: 'Aleppo', fr: 'Alep' },
-  'حمص': { en: 'Homs', fr: 'Homs' },
-  'اللاذقية': { en: 'Lattakia', fr: 'Lattaquié' },
-  'بغداد': { en: 'Baghdad', fr: 'Bagdad' },
-  'البصرة': { en: 'Basra', fr: 'Bassora' },
-  'الموصل': { en: 'Mosul', fr: 'Mossoul' },
-  'أربيل': { en: 'Erbil', fr: 'Erbil' },
-  'القدس': { en: 'Jerusalem', fr: 'Jérusalem' },
-  'غزة': { en: 'Gaza', fr: 'Gaza' },
-  'رام الله': { en: 'Ramallah', fr: 'Ramallah' },
-  'الخليل': { en: 'Hebron', fr: 'Hébron' },
-  'بنغازي': { en: 'Benghazi', fr: 'Benghazi' },
-  'مصراتة': { en: 'Misrata', fr: 'Misrata' },
-  'طبرق': { en: 'Tobruk', fr: 'Tobrouk' },
-  'الخرطوم': { en: 'Khartoum', fr: 'Khartoum' },
-  'أم درمان': { en: 'Omdurman', fr: 'Omdurman' },
-  'بورتسودان': { en: 'Port Sudan', fr: 'Port-Soudan' },
-  'كسلا': { en: 'Kassala', fr: 'Kassala' },
-  'مقديشو': { en: 'Mogadishu', fr: 'Mogadiscio' },
-  'هرجيسا': { en: 'Hargeisa', fr: 'Hargeisa' },
-  'كيسمايو': { en: 'Kismayo', fr: 'Kismaayo' },
-  'بربرة': { en: 'Berbera', fr: 'Berbera' },
-  'مدينة جيبوتي': { en: 'Djibouti City', fr: 'Ville de Djibouti' },
-  'علي صبيح': { en: 'Ali Sabieh', fr: 'Ali Sabieh' },
-  'تجورة': { en: 'Tadjoura', fr: 'Tadjourah' },
-  'أوبوك': { en: 'Obock', fr: 'Obock' },
-  'موروني': { en: 'Moroni', fr: 'Moroni' },
-  'متسامودو': { en: 'Mutsamudu', fr: 'Mutsamudu' },
-  'دوموني': { en: 'Domoni', fr: 'Domoni' },
-  'فومبوني': { en: 'Fomboni', fr: 'Fomboni' },
-  'نواكشوط': { en: 'Nouakchott', fr: 'Nouakchott' },
-  'نواذيبو': { en: 'Nouadhibou', fr: 'Nouadhibou' },
-  'كيفة': { en: 'Kaedi', fr: 'Kaédi' },
-  'باماكو': { en: 'Bamako', fr: 'Bamako' },
-  'سيكاسو': { en: 'Sikasso', fr: 'Sikasso' },
-  'موبتي': { en: 'Mopti', fr: 'Mopti' },
-  'سيغو': { en: 'Segou', fr: 'Ségou' },
-  'نيامي': { en: 'Niamey', fr: 'Niamey' },
-  'زندر': { en: 'Zinder', fr: 'Zinder' },
-  'مرادي': { en: 'Maradi', fr: 'Maradi' },
-  'أغاديز': { en: 'Agadez', fr: 'Agadez' },
-  'انجمينا': { en: 'N\'Djamena', fr: 'N\'Djamena' },
-  'موسورو': { en: 'Mousoro', fr: 'Moussoro' },
-  'ساره': { en: 'Sarh', fr: 'Sarh' },
-  'أبشي': { en: 'Abéché', fr: 'Abéché' },
-  'بانغي': { en: 'Bangui', fr: 'Bangui' },
-  'بربراتي': { en: 'Berberati', fr: 'Berbérati' },
-  'بوار': { en: 'Bouar', fr: 'Bouar' },
-  'بامباري': { en: 'Bambari', fr: 'Bambari' }
+  'القاهرة': { en: 'Cairo', fr: 'Le Caire', ar: 'القاهرة' },
+  'الإسكندرية': { en: 'Alexandria', fr: 'Alexandrie', ar: 'الإسكندرية' },
+  'الجيزة': { en: 'Giza', fr: 'Gizeh', ar: 'الجيزة' },
+  'الأقصر': { en: 'Luxor', fr: 'Louxor', ar: 'الأقصر' },
+  'أسوان': { en: 'Aswan', fr: 'Assouan', ar: 'أسوان' },
+  'الدار البيضاء': { en: 'Casablanca', fr: 'Casablanca', ar: 'الدار البيضاء' },
+  'الرباط': { en: 'Rabat', fr: 'Rabat', ar: 'الرباط' },
+  'فاس': { en: 'Fez', fr: 'Fès', ar: 'فاس' },
+  'مراكش': { en: 'Marrakech', fr: 'Marrakech', ar: 'مراكش' },
+  'طنجة': { en: 'Tangier', fr: 'Tanger', ar: 'طنجة' },
+  'أكادير': { en: 'Agadir', fr: 'Agadir', ar: 'أكادير' },
+  'مكناس': { en: 'Meknes', fr: 'Meknès', ar: 'مكناس' },
+  'الجزائر': { en: 'Algiers', fr: 'Alger', ar: 'الجزائر' },
+  'وهران': { en: 'Oran', fr: 'Oran', ar: 'وهران' },
+  'قسنطينة': { en: 'Constantine', fr: 'Constantine', ar: 'قسنطينة' },
+  'عنابة': { en: 'Annaba', fr: 'Annaba', ar: 'عنابة' },
+  'تونس': { en: 'Tunis', fr: 'Tunis', ar: 'تونس' },
+  'صفاقس': { en: 'Sfax', fr: 'Sfax', ar: 'صفاقس' },
+  'سوسة': { en: 'Sousse', fr: 'Sousse', ar: 'سوسة' },
+  'قابس': { en: 'Gabès', fr: 'Gabès', ar: 'قابس' },
+  'أريانة': { en: 'Ariana', fr: 'Ariana', ar: 'أريانة' },
+  'دبي': { en: 'Dubai', fr: 'Dubaï', ar: 'دبي' },
+  'أبو ظبي': { en: 'Abu Dhabi', fr: 'Abou Dabi', ar: 'أبو ظبي' },
+  'الشارقة': { en: 'Sharjah', fr: 'Charjah', ar: 'الشارقة' },
+  'عجمان': { en: 'Ajman', fr: 'Ajmân', ar: 'عجمان' },
+  'رأس الخيمة': { en: 'Ras Al Khaimah', fr: 'Ras el Khaïmah', ar: 'رأس الخيمة' },
+  'الدوحة': { en: 'Doha', fr: 'Doha', ar: 'الدوحة' },
+  'الوكرة': { en: 'Al Wakrah', fr: 'Al Wakrah', ar: 'الوكرة' },
+  'الخور': { en: 'Al Khor', fr: 'Al Khor', ar: 'الخور' },
+  'الريان': { en: 'Al Rayyan', fr: 'Al Rayyan', ar: 'الريان' },
+  'مدينة الكويت': { en: 'Kuwait City', fr: 'Koweït', ar: 'مدينة الكويت' },
+  'الجهراء': { en: 'Al Jahra', fr: 'Al Jahra', ar: 'الجهراء' },
+  'حولي': { en: 'Hawalli', fr: 'Hawalli', ar: 'حولي' },
+  'الفروانية': { en: 'Farwaniya', fr: 'Farwaniya', ar: 'الفروانية' },
+  'المنامة': { en: 'Manama', fr: 'Manama', ar: 'المنامة' },
+  'المحرق': { en: 'Muharraq', fr: 'Muharraq', ar: 'المحرق' },
+  'الرفاع': { en: 'Riffa', fr: 'Riffa', ar: 'الرفاع' },
+  'مدينة حمد': { en: 'Hamad Town', fr: 'Hamad Town', ar: 'مدينة حمد' },
+  'مسقط': { en: 'Muscat', fr: 'Mascate', ar: 'مسقط' },
+  'صلالة': { en: 'Salalah', fr: 'Salalah', ar: 'صلالة' },
+  'صحار': { en: 'Sohar', fr: 'Sohar', ar: 'صحار' },
+  'نزوى': { en: 'Nizwa', fr: 'Nizwa', ar: 'نزوى' },
+  'عمان': { en: 'Amman', fr: 'Amman', ar: 'عمان' },
+  'الزرقاء': { en: 'Zarqa', fr: 'Zarqa', ar: 'الزرقاء' },
+  'إربد': { en: 'Irbid', fr: 'Irbid', ar: 'إربد' },
+  'السلط': { en: 'Al Salt', fr: 'Al Salt', ar: 'السلط' },
+  'بيروت': { en: 'Beirut', fr: 'Beyrouth', ar: 'بيروت' },
+  'طرابلس': { en: 'Tripoli', fr: 'Tripoli', ar: 'طرابلس' },
+  'صيدا': { en: 'Sidon', fr: 'Saïda', ar: 'صيدا' },
+  'صور': { en: 'Tyre', fr: 'Tyr', ar: 'صور' },
+  'دمشق': { en: 'Damascus', fr: 'Damas', ar: 'دمشق' },
+  'حلب': { en: 'Aleppo', fr: 'Alep', ar: 'حلب' },
+  'حمص': { en: 'Homs', fr: 'Homs', ar: 'حمص' },
+  'اللاذقية': { en: 'Lattakia', fr: 'Lattaquié', ar: 'اللاذقية' },
+  'بغداد': { en: 'Baghdad', fr: 'Bagdad', ar: 'بغداد' },
+  'البصرة': { en: 'Basra', fr: 'Bassora', ar: 'البصرة' },
+  'الموصل': { en: 'Mosul', fr: 'Mossoul', ar: 'الموصل' },
+  'أربيل': { en: 'Erbil', fr: 'Erbil', ar: 'أربيل' },
+  'القدس': { en: 'Jerusalem', fr: 'Jérusalem', ar: 'القدس' },
+  'غزة': { en: 'Gaza', fr: 'Gaza', ar: 'غزة' },
+  'رام الله': { en: 'Ramallah', fr: 'Ramallah', ar: 'رام الله' },
+  'الخليل': { en: 'Hebron', fr: 'Hébron', ar: 'الخليل' },
+  'بنغازي': { en: 'Benghazi', fr: 'Benghazi', ar: 'بنغازي' },
+  'مصراتة': { en: 'Misrata', fr: 'Misrata', ar: 'مصراتة' },
+  'طبرق': { en: 'Tobruk', fr: 'Tobrouk', ar: 'طبرق' },
+  'الخرطوم': { en: 'Khartoum', fr: 'Khartoum', ar: 'الخرطوم' },
+  'أم درمان': { en: 'Omdurman', fr: 'Omdurman', ar: 'أم درمان' },
+  'بورتسودان': { en: 'Port Sudan', fr: 'Port-Soudan', ar: 'بورتسودان' },
+  'كسلا': { en: 'Kassala', fr: 'Kassala', ar: 'كسلا' },
+  'مقديشو': { en: 'Mogadishu', fr: 'Mogadiscio', ar: 'مقديشو' },
+  'هرجيسا': { en: 'Hargeisa', fr: 'Hargeisa', ar: 'هرجيسا' },
+  'كيسمايو': { en: 'Kismayo', fr: 'Kismaayo', ar: 'كيسمايو' },
+  'بربرة': { en: 'Berbera', fr: 'Berbera', ar: 'بربرة' },
+  'مدينة جيبوتي': { en: 'Djibouti City', fr: 'Ville de Djibouti', ar: 'مدينة جيبوتي' },
+  'علي صبيح': { en: 'Ali Sabieh', fr: 'Ali Sabieh', ar: 'علي صبيح' },
+  'تجورة': { en: 'Tadjoura', fr: 'Tadjourah', ar: 'تجورة' },
+  'أوبوك': { en: 'Obock', fr: 'Obock', ar: 'أوبوك' },
+  'موروني': { en: 'Moroni', fr: 'Moroni', ar: 'موروني' },
+  'متسامودو': { en: 'Mutsamudu', fr: 'Mutsamudu', ar: 'متسامودو' },
+  'دوموني': { en: 'Domoni', fr: 'Domoni', ar: 'دوموني' },
+  'فومبوني': { en: 'Fomboni', fr: 'Fomboni', ar: 'فومبوني' },
+  'نواكشوط': { en: 'Nouakchott', fr: 'Nouakchott', ar: 'نواكشوط' },
+  'نواذيبو': { en: 'Nouadhibou', fr: 'Nouadhibou', ar: 'نواذيبو' },
+  'كيفة': { en: 'Kaedi', fr: 'Kaédi', ar: 'كيفة' },
+  'باماكو': { en: 'Bamako', fr: 'Bamako', ar: 'باماكو' },
+  'سيكاسو': { en: 'Sikasso', fr: 'Sikasso', ar: 'سيكاسو' },
+  'موبتي': { en: 'Mopti', fr: 'Mopti', ar: 'موبتي' },
+  'سيغو': { en: 'Segou', fr: 'Ségou', ar: 'سيغو' },
+  'نيامي': { en: 'Niamey', fr: 'Niamey', ar: 'نيامي' },
+  'زندر': { en: 'Zinder', fr: 'Zinder', ar: 'زندر' },
+  'مرادي': { en: 'Maradi', fr: 'Maradi', ar: 'مرادي' },
+  'أغاديز': { en: 'Agadez', fr: 'Agadez', ar: 'أغاديز' },
+  'انجمينا': { en: 'N\'Djamena', fr: 'N\'Djamena', ar: 'انجمينا' },
+  'موسورو': { en: 'Mousoro', fr: 'Moussoro', ar: 'موسورو' },
+  'ساره': { en: 'Sarh', fr: 'Sarh', ar: 'ساره' },
+  'أبشي': { en: 'Abéché', fr: 'Abéché', ar: 'أبشي' },
+  'بانغي': { en: 'Bangui', fr: 'Bangui', ar: 'بانغي' },
+  'بربراتي': { en: 'Berberati', fr: 'Berbérati', ar: 'بربراتي' },
+  'بوار': { en: 'Bouar', fr: 'Bouar', ar: 'بوار' },
+  'بامباري': { en: 'Bambari', fr: 'Bambari', ar: 'بامباري' }
 };
 
 class TranslationService {
@@ -289,7 +288,7 @@ class TranslationService {
     try {
       console.log('Translating city name:', cityName, 'from language:', sourceLanguage);
       
-      const normalizedName = cityName.trim().toLowerCase();
+      const normalizedName = cityName.trim();
       
       // If the input is Arabic, try to find it in our mapping
       if (sourceLanguage === 'ar' || this.isArabicText(cityName)) {
@@ -300,9 +299,20 @@ class TranslationService {
           return {
             en: arabicTranslation.en,
             fr: arabicTranslation.fr,
-            ar: cityName
+            ar: cityName // Keep the original Arabic name
           };
         }
+        
+        // If not found in mapping, try to transliterate to English and French
+        console.log('Arabic city not found in mapping, using transliteration');
+        const englishTransliteration = this.transliterateToEnglish(cityName);
+        const frenchTransliteration = this.transliterateToFrench(englishTransliteration);
+        
+        return {
+          en: englishTransliteration,
+          fr: frenchTransliteration,
+          ar: cityName // Keep the original Arabic name
+        };
       }
       
       // If it's English, try to translate to Arabic and French
@@ -327,6 +337,17 @@ class TranslationService {
           console.log('API translation result:', translations);
           return translations;
         }
+        
+        // If no translation found, create basic transliterations
+        console.log('No translation found, using basic transliteration');
+        const arabicTransliteration = this.transliterateToArabic(cityName);
+        const frenchTransliteration = this.transliterateToFrench(cityName);
+        
+        return {
+          en: cityName,
+          fr: frenchTransliteration,
+          ar: arabicTransliteration
+        };
       }
       
       // Fallback: return the same name for all languages
@@ -523,6 +544,36 @@ class TranslationService {
     // For French, we'll keep it simple and just return the original text
     // In a production environment, you might want to use a proper French translation service
     return text;
+  }
+
+  /**
+   * Basic transliteration from Arabic to English
+   */
+  static transliterateToEnglish(arabicText) {
+    const arabicToEnglishMap = {
+      'ا': 'a', 'ب': 'b', 'ت': 't', 'ث': 'th', 'ج': 'j', 'ح': 'h', 'خ': 'kh', 'د': 'd',
+      'ذ': 'dh', 'ر': 'r', 'ز': 'z', 'س': 's', 'ش': 'sh', 'ص': 's', 'ض': 'd', 'ط': 't',
+      'ظ': 'z', 'ع': 'a', 'غ': 'gh', 'ف': 'f', 'ق': 'q', 'ك': 'k', 'ل': 'l', 'م': 'm',
+      'ن': 'n', 'ه': 'h', 'و': 'w', 'ي': 'y', 'ة': 'a', 'ى': 'a', 'ء': 'a',
+      'أ': 'a', 'إ': 'i', 'آ': 'aa', 'ؤ': 'u', 'ئ': 'i'
+    };
+
+    let result = '';
+    for (let i = 0; i < arabicText.length; i++) {
+      const char = arabicText[i];
+      if (arabicToEnglishMap[char]) {
+        result += arabicToEnglishMap[char];
+      } else {
+        result += char; // Keep non-Arabic characters as is
+      }
+    }
+    
+    // Clean up the result
+    result = result.replace(/[aeiou]{2,}/g, (match) => match[0]); // Remove duplicate vowels
+    result = result.replace(/[^a-zA-Z\s]/g, ''); // Remove special characters except spaces
+    result = result.replace(/\s+/g, ' ').trim(); // Clean up spaces
+    
+    return result.charAt(0).toUpperCase() + result.slice(1); // Capitalize first letter
   }
 }
 
