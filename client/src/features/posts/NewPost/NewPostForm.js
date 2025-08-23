@@ -42,6 +42,20 @@ const NewPostForm = ({ user, countries, categories, flOptions }) => {
   const [cities, setCities] = useState([]);
   const [loadingCities, setLoadingCities] = useState(false);
 
+  // Listen for language changes and force refresh
+  useEffect(() => {
+    const handleLanguageChange = () => {
+      console.log('🔄 Language change event detected in NewPostForm');
+      // Force a re-render by updating the component state
+      setCities(prevCities => [...prevCities]);
+    };
+
+    window.addEventListener('languageChange', handleLanguageChange);
+    return () => {
+      window.removeEventListener('languageChange', handleLanguageChange);
+    };
+  }, []);
+
   useEffect(() => {
     if (isSuccess) {
       setShowSuccess(true);
@@ -66,10 +80,11 @@ const NewPostForm = ({ user, countries, categories, flOptions }) => {
   useEffect(() => {
     if (selectedCountry?._id) {
       console.log('🔄 Language changed, re-fetching cities for country:', selectedCountry._id);
+      console.log('🔄 Current language in useEffect:', currentLanguage);
       // Don't reset cities here, just re-fetch to update translations
       fetchCitiesByCountry(selectedCountry._id);
     }
-  }, [fetchCitiesByCountry, selectedCountry?._id]);
+  }, [fetchCitiesByCountry, selectedCountry?._id, currentLanguage]);
 
   const initialFormState = {
     country: user.country,
