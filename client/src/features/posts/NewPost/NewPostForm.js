@@ -41,6 +41,12 @@ const NewPostForm = ({ user, countries, categories, flOptions }) => {
   const [selectedCountry, setSelectedCountry] = useState(null);
   const [cities, setCities] = useState([]);
   const [loadingCities, setLoadingCities] = useState(false);
+  const [showCityDialog, setShowCityDialog] = useState(false);
+  const [newCityName, setNewCityName] = useState("");
+  const [searchQuery, setSearchQuery] = useState("");
+  const [searchResults, setSearchResults] = useState([]);
+  const [searchingCities, setSearchingCities] = useState(false);
+  const [creatingCity, setCreatingCity] = useState(false);
 
 
 
@@ -192,6 +198,101 @@ const NewPostForm = ({ user, countries, categories, flOptions }) => {
   const getFoundLostType = (foundLostId) => {
     const option = flOptions.find(opt => opt.id === foundLostId);
     return option?.code || 'FOUND';
+  };
+
+  // Dynamic city functions
+  const handleOtherCityClick = () => {
+    setShowCityDialog(true);
+    setNewCityName("");
+    setSearchQuery("");
+    setSearchResults([]);
+  };
+
+  const searchCitiesByName = async (query) => {
+    if (!query.trim() || !selectedCountry?._id) return;
+    
+    try {
+      setSearchingCities(true);
+      const baseUrl = process.env.REACT_APP_API_URL || "http://localhost:3500";
+      const url = `${baseUrl}/cities/search-name?query=${encodeURIComponent(query)}&countryId=${selectedCountry._id}&limit=10`;
+      
+      const response = await fetch(url);
+      const data = await response.json();
+      
+      if (data.success) {
+        setSearchResults(data.data);
+      } else {
+        setSearchResults([]);
+      }
+    } catch (error) {
+      console.error('Error searching cities:', error);
+      setSearchResults([]);
+    } finally {
+      setSearchingCities(false);
+    }
+  };
+
+  const createDynamicCity = async () => {
+    if (!newCityName.trim() || !selectedCountry?._id) return;
+    
+    try {
+      setCreatingCity(true);
+      const baseUrl = process.env.REACT_APP_API_URL || "http://localhost:3500";
+      const url = `${baseUrl}/cities/dynamic`;
+      
+      const response = await fetch(url, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${localStorage.getItem('accessToken')}`
+        },
+        body: JSON.stringify({
+          cityName: newCityName.trim(),
+          countryId: selectedCountry._id,
+          sourceLanguage: currentLanguage || 'en'
+        })
+      });
+      
+      const data = await response.json();
+      
+      if (data.success) {
+        if (data.message === "City already exists") {
+          toast.success(t('cityAlreadyExists'));
+          // Select the existing city
+          setFieldValue('city', data.data._id);
+        } else {
+          toast.success(t('cityCreatedSuccessfully'));
+          // Select the newly created city
+          setFieldValue('city', data.data._id);
+        }
+        setShowCityDialog(false);
+        // Refresh the cities list
+        fetchCitiesByCountry(selectedCountry._id);
+      } else {
+        toast.error(data.message || 'Error creating city');
+      }
+    } catch (error) {
+      console.error('Error creating city:', error);
+      toast.error('Error creating city');
+    } finally {
+      setCreatingCity(false);
+    }
+  };
+
+  const handleSearchInputChange = (event) => {
+    const query = event.target.value;
+    setSearchQuery(query);
+    
+    if (query.trim()) {
+      searchCitiesByName(query);
+    } else {
+      setSearchResults([]);
+    }
+  };
+
+    const handleSelectExistingCity = (city) => {
+    setFieldValue('city', city._id);
+    setShowCityDialog(false);
   };
 
   if (isError) {
@@ -369,10 +470,31 @@ const NewPostForm = ({ user, countries, categories, flOptions }) => {
                             {city.isCapital && (
                               <span style={{ fontSize: '16px' }}>🏛️</span>
                             )}
+                            {city.isDynamic && (
+                              <span style={{ fontSize: '16px' }}>🆕</span>
+                            )}
                             {city.label}
                           </Box>
                         </MenuItem>
                       ))}
+                      <Divider />
+                      <MenuItem 
+                        value="other" 
+                        onClick={handleOtherCityClick}
+                        sx={{ 
+                          color: 'primary.main',
+                          fontWeight: 500,
+                          '&:hover': {
+                            backgroundColor: 'primary.light',
+                            color: 'white'
+                          }
+                        }}
+                      >
+                        <Box display="flex" alignItems="center" gap={1}>
+                          <AddIcon fontSize="small" />
+                          {t('other')} - {t('addNewCity')}
+                        </Box>
+                      </MenuItem>
                     </Select>
                   </FormControl>
                 </Box>
@@ -604,6 +726,110 @@ const NewPostForm = ({ user, countries, categories, flOptions }) => {
         </Formik>
       </Paper>
       
+      {/* Dynamic City Dialog */}
+      <Dialog 
+        open={showCityDialog} 
+        onClose={() => setShowCityDialog(false)}
+        maxWidth="sm"
+        fullWidth
+      >
+        <DialogTitle>
+          <Box display="flex" alignItems="center" justifyContent="space-between">
+            <Typography variant="h6">{t('addNewCity')}</Typography>
+            <IconButton onClick={() => setShowCityDialog(false)}>
+              <CloseIcon />
+            </IconButton>
+          </Box>
+        </DialogTitle>
+        <DialogContent>
+          <Box display="flex" flexDirection="column" gap={3} mt={1}>
+            {/* Search existing cities */}
+            <Box>
+              <Typography variant="subtitle1" sx={{ mb: 1, fontWeight: 500 }}>
+                {t('searchCities')}
+              </Typography>
+              <TextField
+                fullWidth
+                placeholder={t('searchCitiesPlaceholder')}
+                value={searchQuery}
+                onChange={handleSearchInputChange}
+                InputProps={{
+                  startAdornment: <SearchIcon sx={{ mr: 1, color: 'text.secondary' }} />
+                }}
+              />
+              {searchingCities && (
+                <Box display="flex" alignItems="center" gap={1} mt={1}>
+                  <CircularProgress size={16} />
+                  <Typography variant="caption">{t('searchingCities')}</Typography>
+                </Box>
+              )}
+              {searchResults.length > 0 && (
+                <Box mt={2}>
+                  <Typography variant="caption" color="text.secondary" sx={{ mb: 1, display: 'block' }}>
+                    {t('selectCity')}:
+                  </Typography>
+                  <Box display="flex" flexDirection="column" gap={1}>
+                    {searchResults.map((city) => (
+                      <Button
+                        key={city._id}
+                        variant="outlined"
+                        size="small"
+                        onClick={() => handleSelectExistingCity(city)}
+                        sx={{ 
+                          justifyContent: 'flex-start',
+                          textTransform: 'none',
+                          textAlign: 'left'
+                        }}
+                      >
+                        <Box display="flex" alignItems="center" gap={1}>
+                          {city.isCapital && <span>🏛️</span>}
+                          {city.isDynamic && <span>🆕</span>}
+                          <Typography>
+                            {city.labels?.[currentLanguage || 'en'] || city.label}
+                          </Typography>
+                        </Box>
+                      </Button>
+                    ))}
+                  </Box>
+                </Box>
+              )}
+            </Box>
+
+            <Divider />
+
+            {/* Create new city */}
+            <Box>
+              <Typography variant="subtitle1" sx={{ mb: 1, fontWeight: 500 }}>
+                {t('createNewCity')}
+              </Typography>
+              <TextField
+                fullWidth
+                placeholder={t('cityNamePlaceholder')}
+                value={newCityName}
+                onChange={(e) => setNewCityName(e.target.value)}
+                disabled={creatingCity}
+              />
+              <Typography variant="caption" color="text.secondary" sx={{ mt: 1, display: 'block' }}>
+                {t('enterCityName')}
+              </Typography>
+            </Box>
+          </Box>
+        </DialogContent>
+        <DialogActions>
+          <Button onClick={() => setShowCityDialog(false)}>
+            {t('cancel')}
+          </Button>
+          <Button
+            variant="contained"
+            onClick={createDynamicCity}
+            disabled={!newCityName.trim() || creatingCity}
+            startIcon={creatingCity ? <CircularProgress size={16} /> : <AddIcon />}
+          >
+            {creatingCity ? t('creatingCity') : t('createNewCity')}
+          </Button>
+        </DialogActions>
+      </Dialog>
+
       {/* Promotion Dialog */}
       <PromotionDialog
         open={showPromotionDialog}

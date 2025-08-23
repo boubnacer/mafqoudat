@@ -1,5 +1,6 @@
 const City = require("../models/City");
 const Country = require("../models/Country");
+const TranslationService = require("../services/translationService");
 
 const getCities = async (req, res) => {
   try {
@@ -391,11 +392,146 @@ const deleteCity = async (req, res) => {
   }
 };
 
+// Create a new dynamic city
+const createDynamicCity = async (req, res) => {
+  try {
+    const { cityName, countryId, sourceLanguage = 'en' } = req.body;
+
+    if (!cityName || !countryId) {
+      return res.status(400).json({
+        success: false,
+        message: "City name and country ID are required"
+      });
+    }
+
+    // Check if country exists
+    const country = await Country.findById(countryId);
+    if (!country) {
+      return res.status(404).json({
+        success: false,
+        message: "Country not found"
+      });
+    }
+
+    // Check if city already exists for this country
+    const existingCity = await City.findOne({
+      country: countryId,
+      $or: [
+        { "labels.en": { $regex: new RegExp(cityName, 'i') } },
+        { "labels.ar": { $regex: new RegExp(cityName, 'i') } },
+        { "labels.fr": { $regex: new RegExp(cityName, 'i') } },
+        { "names.en": { $regex: new RegExp(cityName, 'i') } },
+        { "names.ar": { $regex: new RegExp(cityName, 'i') } },
+        { "names.fr": { $regex: new RegExp(cityName, 'i') } }
+      ]
+    });
+
+    if (existingCity) {
+      return res.status(200).json({
+        success: true,
+        message: "City already exists",
+        data: existingCity
+      });
+    }
+
+    // Translate the city name
+    const translations = await TranslationService.translateCityName(cityName, sourceLanguage);
+    
+    // Generate a unique code for the city
+    const cityCode = TranslationService.generateCityCode(cityName, country.code);
+
+    // Create the new city
+    const newCity = new City({
+      code: cityCode,
+      country: countryId,
+      labels: {
+        en: translations.en,
+        fr: translations.fr,
+        ar: translations.ar
+      },
+      names: {
+        en: translations.en,
+        fr: translations.fr,
+        ar: translations.ar
+      },
+      isCapital: false,
+      isDynamic: true,
+      isActive: true,
+      searchTerms: [cityName, translations.en, translations.fr, translations.ar]
+    });
+
+    await newCity.save();
+
+    res.status(201).json({
+      success: true,
+      message: "Dynamic city created successfully",
+      data: newCity
+    });
+
+  } catch (error) {
+    console.error("Error creating dynamic city:", error);
+    res.status(500).json({
+      success: false,
+      message: "Internal server error",
+      error: error.message
+    });
+  }
+};
+
+// Search cities by name (for the "Other" option)
+const searchCitiesByName = async (req, res) => {
+  try {
+    const { query, countryId, limit = 10 } = req.query;
+
+    if (!query || !countryId) {
+      return res.status(400).json({
+        success: false,
+        message: "Query and country ID are required"
+      });
+    }
+
+    const searchQuery = {
+      country: countryId,
+      isActive: true,
+      $or: [
+        { "labels.en": { $regex: new RegExp(query, 'i') } },
+        { "labels.ar": { $regex: new RegExp(query, 'i') } },
+        { "labels.fr": { $regex: new RegExp(query, 'i') } },
+        { "names.en": { $regex: new RegExp(query, 'i') } },
+        { "names.ar": { $regex: new RegExp(query, 'i') } },
+        { "names.fr": { $regex: new RegExp(query, 'i') } },
+        { searchTerms: { $regex: new RegExp(query, 'i') } }
+      ]
+    };
+
+    const cities = await City.find(searchQuery)
+      .select('code labels names isCapital isDynamic')
+      .limit(parseInt(limit))
+      .sort({ isCapital: -1, 'labels.en': 1 });
+
+    res.status(200).json({
+      success: true,
+      message: "Cities found",
+      data: cities
+    });
+
+  } catch (error) {
+    console.error("Error searching cities:", error);
+    res.status(500).json({
+      success: false,
+      message: "Internal server error",
+      error: error.message
+    });
+  }
+};
+
 module.exports = {
   getCities,
   searchCities,
   getCitiesByCountry,
   createCity,
   updateCity,
-  deleteCity
+  deleteCity,
+  createDynamicCity,
+  searchCitiesByName
 };

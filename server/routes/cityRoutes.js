@@ -13,6 +13,10 @@ router
   .get(cityController.searchCities);
 
 router
+  .route("/search-name")
+  .get(cityController.searchCitiesByName);
+
+router
   .route("/country/:countryId")
   .get(cityController.getCitiesByCountry);
 
@@ -22,6 +26,10 @@ router.use(verifyJWT);
 router
   .route("/")
   .post(cityController.createCity);
+
+router
+  .route("/dynamic")
+  .post(cityController.createDynamicCity);
 
 router
   .route("/:id")
