@@ -120,8 +120,9 @@ const SinglePostPage = ({
     if (cityName) {
       return cityName;
     }
-    if (city) {
-      return city;
+    // Check if region contains a custom city name (not an ObjectId)
+    if (region && !region.match(/^[0-9a-fA-F]{24}$/)) {
+      return region;
     }
     // Fallback to extracting from exactLocation
     return getCityFromLocation(exactLocation || region);

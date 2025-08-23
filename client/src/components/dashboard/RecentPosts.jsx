@@ -88,8 +88,12 @@ const RecentPosts = ({ _id, categoryname, region, exactLocation, image, createdA
     if (cityLabels && cityLabels[currentLanguage]) {
       return cityLabels[currentLanguage];
     }
-    if (city) {
-      return city;
+    if (cityName) {
+      return cityName;
+    }
+    // Check if region contains a custom city name (not an ObjectId)
+    if (region && !region.match(/^[0-9a-fA-F]{24}$/)) {
+      return region;
     }
     // Fallback to extracting from exactLocation
     return getCityFromLocation(exactLocation || region);

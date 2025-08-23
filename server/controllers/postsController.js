@@ -364,7 +364,22 @@ const createNewPost = async (req, res) => {
   const countryExists = await Country.exists({ _id: country });
   const categoryExists = await Category.exists({ _id: category });
   const foundLostExists = await FoundLost.exists({ _id: foundLost });
-  const cityExists = city ? await City.exists({ _id: city }) : true;
+  
+  // Handle city validation - check if it's an ObjectId or a custom city name
+  let cityId = city;
+  let cityExists = true;
+  
+  if (city) {
+    // Check if city is a valid ObjectId
+    if (mongoose.Types.ObjectId.isValid(city)) {
+      cityExists = await City.exists({ _id: city });
+    } else {
+      // It's a custom city name, we'll handle it differently
+      cityExists = true; // Allow custom city names
+      cityId = null; // Don't set city field for custom names
+    }
+  }
+  
   if (!userExists || !countryExists || !categoryExists || !foundLostExists || !cityExists) {
     return res.status(400).json({ message: "Invalid reference in user/country/category/foundLost/city" });
   }
@@ -376,11 +391,18 @@ const createNewPost = async (req, res) => {
     country,
     contact,
     foundLost,
-    city,
     exactLocation,
     exactDate: new Date(exactDate),
     description: description || "",
   };
+
+  // Handle city field - only set if it's a valid ObjectId
+  if (cityId) {
+    postData.city = cityId;
+  } else if (city) {
+    // For custom city names, store in exactLocation or region
+    postData.region = city;
+  }
 
 
 

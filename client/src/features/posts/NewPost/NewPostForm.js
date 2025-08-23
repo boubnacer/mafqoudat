@@ -395,10 +395,13 @@ const NewPostForm = ({ user, countries, categories, flOptions }) => {
                           value="other" 
                           onClick={handleOtherCityClick}
                           sx={{ 
-                            color: 'primary.main',
+                            color: theme.palette.primary.main,
                             fontWeight: 500,
+                            backgroundColor: theme.palette.mode === 'dark' 
+                              ? 'rgba(25, 118, 210, 0.08)' 
+                              : 'rgba(25, 118, 210, 0.04)',
                             '&:hover': {
-                              backgroundColor: 'primary.light',
+                              backgroundColor: theme.palette.primary.main,
                               color: 'white'
                             }
                           }}
@@ -428,7 +431,15 @@ const NewPostForm = ({ user, countries, categories, flOptions }) => {
                             setCustomCityName("");
                             setFieldValue('city', "");
                           }}
-                          sx={{ borderRadius: 2 }}
+                          sx={{ 
+                            borderRadius: 2,
+                            borderColor: theme.palette.mode === 'dark' ? 'rgba(255, 255, 255, 0.3)' : 'rgba(0, 0, 0, 0.3)',
+                            color: theme.palette.mode === 'dark' ? 'rgba(255, 255, 255, 0.8)' : 'rgba(0, 0, 0, 0.8)',
+                            '&:hover': {
+                              borderColor: theme.palette.mode === 'dark' ? 'rgba(255, 255, 255, 0.5)' : 'rgba(0, 0, 0, 0.5)',
+                              backgroundColor: theme.palette.mode === 'dark' ? 'rgba(255, 255, 255, 0.04)' : 'rgba(0, 0, 0, 0.04)',
+                            }
+                          }}
                         >
                           {t('cancel')}
                         </Button>
@@ -441,7 +452,13 @@ const NewPostForm = ({ user, countries, categories, flOptions }) => {
                             }
                           }}
                           disabled={!customCityName.trim()}
-                          sx={{ borderRadius: 2 }}
+                          sx={{ 
+                            borderRadius: 2,
+                            background: `linear-gradient(135deg, ${theme.palette.primary.main} 0%, ${theme.palette.primary.dark} 100%)`,
+                            '&:hover': {
+                              background: `linear-gradient(135deg, ${theme.palette.primary.dark} 0%, ${theme.palette.primary.main} 100%)`,
+                            }
+                          }}
                         >
                           {t('confirm')}
                         </Button>
