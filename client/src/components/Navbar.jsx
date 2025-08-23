@@ -340,6 +340,11 @@ const Navbar = () => {
     localStorage.setItem('app_language', newLanguage);
     window.dispatchEvent(new Event('languageChange'));
     handleLanguageClose();
+    
+    // Force page refresh to ensure all components update properly
+    setTimeout(() => {
+      window.location.reload();
+    }, 100);
   };
 
   const handleModeToggle = () => {

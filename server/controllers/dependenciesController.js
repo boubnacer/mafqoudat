@@ -706,8 +706,6 @@ const postsPerDay = async () => {
 const getCitiesByCountry = async (req, res) => {
   try {
     const { countryId, language = 'en' } = req.query;
-    console.log('🔍 getCitiesByCountry called with:', { countryId, language });
-    console.log('🔍 Request query:', req.query);
     
     if (!countryId) {
       return res.status(400).json({ 
@@ -716,7 +714,6 @@ const getCitiesByCountry = async (req, res) => {
       });
     }
 
-    console.log('🔍 Searching for cities with countryId:', countryId);
     const cities = await City.find({ 
       country: countryId, 
       isActive: true 
@@ -726,9 +723,7 @@ const getCitiesByCountry = async (req, res) => {
     .lean()
     .exec();
 
-    console.log('🔍 Found cities:', cities.length);
     if (!cities.length) {
-      console.log('❌ No cities found for countryId:', countryId);
       return res.status(200).json({ 
         success: false,
         message: "No cities found for this country",
@@ -746,7 +741,6 @@ const getCitiesByCountry = async (req, res) => {
       isCapital: city.isCapital
     }));
 
-    console.log('✅ Sending response with', transformedCities.length, 'cities');
     res.json({
       success: true,
       data: transformedCities,

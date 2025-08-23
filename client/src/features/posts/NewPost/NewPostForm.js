@@ -42,19 +42,7 @@ const NewPostForm = ({ user, countries, categories, flOptions }) => {
   const [cities, setCities] = useState([]);
   const [loadingCities, setLoadingCities] = useState(false);
 
-  // Listen for language changes and force refresh
-  useEffect(() => {
-    const handleLanguageChange = () => {
-      console.log('🔄 Language change event detected in NewPostForm');
-      // Force a re-render by updating the component state
-      setCities(prevCities => [...prevCities]);
-    };
 
-    window.addEventListener('languageChange', handleLanguageChange);
-    return () => {
-      window.removeEventListener('languageChange', handleLanguageChange);
-    };
-  }, []);
 
   useEffect(() => {
     if (isSuccess) {
@@ -79,9 +67,6 @@ const NewPostForm = ({ user, countries, categories, flOptions }) => {
   // Re-fetch cities when language changes
   useEffect(() => {
     if (selectedCountry?._id) {
-      console.log('🔄 Language changed, re-fetching cities for country:', selectedCountry._id);
-      console.log('🔄 Current language in useEffect:', currentLanguage);
-      // Don't reset cities here, just re-fetch to update translations
       fetchCitiesByCountry(selectedCountry._id);
     }
   }, [fetchCitiesByCountry, selectedCountry?._id, currentLanguage]);
@@ -122,7 +107,6 @@ const NewPostForm = ({ user, countries, categories, flOptions }) => {
   const handleCountrySelect = (event) => {
     const countryId = event.target.value;
     const country = countries.find(c => c._id === countryId);
-    console.log('🌍 Country selected:', country?.labels?.en, 'ID:', countryId);
     setSelectedCountry(country);
     
     // Reset cities when country changes
@@ -139,23 +123,13 @@ const NewPostForm = ({ user, countries, categories, flOptions }) => {
       setLoadingCities(true);
       const baseUrl = process.env.REACT_APP_API_URL || "http://localhost:3500";
       const url = `${baseUrl}/cities-public?countryId=${countryId}&language=${currentLanguage || 'en'}`;
-      console.log('🔍 Fetching cities from:', url);
-      console.log('🔍 Country ID being used:', countryId);
-      console.log('🔍 Current language:', currentLanguage);
       
       const response = await fetch(url);
-      console.log('🔍 Response status:', response.status);
-      console.log('🔍 Response ok:', response.ok);
-      
       const responseText = await response.text();
-      console.log('🔍 Response text:', responseText);
-      
       const data = JSON.parse(responseText);
-      console.log('🔍 Parsed data:', data);
       
       if (data.success) {
         setCities(data.data);
-        console.log('✅ Cities updated successfully:', data.data.length, 'cities');
       } else {
         console.error('Failed to fetch cities:', data.message);
         setCities([]);
