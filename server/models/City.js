@@ -54,10 +54,6 @@ const citySchema = new mongoose.Schema({
     type: Boolean,
     default: false
   },
-  population: {
-    type: Number,
-    default: null
-  },
   searchTerms: {
     type: [String],
     default: []
