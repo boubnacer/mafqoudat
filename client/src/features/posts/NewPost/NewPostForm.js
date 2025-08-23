@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useCallback } from "react";
 import { useNavigate } from "react-router-dom";
 import { useAddNewPostMutation } from "../postsApiSlice";
 import * as Yup from "yup";
@@ -62,6 +62,13 @@ const NewPostForm = ({ user, countries, categories, flOptions }) => {
     }
   }, [isSuccess, navigate, flOptions, lastSubmittedValues]);
 
+  // Re-fetch cities when language changes
+  useEffect(() => {
+    if (selectedCountry?._id) {
+      fetchCitiesByCountry(selectedCountry._id);
+    }
+  }, [fetchCitiesByCountry, selectedCountry?._id]);
+
   const initialFormState = {
     country: user.country,
     contact: user.username,
@@ -109,7 +116,7 @@ const NewPostForm = ({ user, countries, categories, flOptions }) => {
     }
   };
 
-  const fetchCitiesByCountry = async (countryId) => {
+  const fetchCitiesByCountry = useCallback(async (countryId) => {
     try {
       setLoadingCities(true);
       const baseUrl = process.env.REACT_APP_API_URL || "http://localhost:3500";
@@ -138,7 +145,7 @@ const NewPostForm = ({ user, countries, categories, flOptions }) => {
     } finally {
       setLoadingCities(false);
     }
-  };
+  }, [currentLanguage]);
 
   const handleSubmit = async (values, { setSubmitting, setStatus }) => {
     try {
