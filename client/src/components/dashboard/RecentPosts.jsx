@@ -82,8 +82,20 @@ const RecentPosts = ({ _id, categoryname, region, exactLocation, image, createdA
     return cleanCity.replace(/\d+/g, '').trim();
   };
 
-  // Use city field if available, otherwise extract from exactLocation
-  const cityName = city || getCityFromLocation(exactLocation || region);
+  // Get city name with proper multilingual support
+  const getCityName = () => {
+    // First try to use the populated city data from the API
+    if (cityLabels && cityLabels[currentLanguage]) {
+      return cityLabels[currentLanguage];
+    }
+    if (city) {
+      return city;
+    }
+    // Fallback to extracting from exactLocation
+    return getCityFromLocation(exactLocation || region);
+  };
+
+  const displayCityName = getCityName();
 
   // Get category name safely with multilingual support
   const getCategoryDisplayName = (categoryCode) => {
@@ -341,7 +353,7 @@ const RecentPosts = ({ _id, categoryname, region, exactLocation, image, createdA
                 lineHeight: 1.2,
               }}
             >
-              {cityName}
+              {displayCityName}
             </Typography>
           </Box>
         </Box>

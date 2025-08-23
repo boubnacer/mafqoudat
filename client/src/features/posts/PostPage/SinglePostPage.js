@@ -55,7 +55,10 @@ const SinglePostPage = ({
   Floptions,
   description,
   contactPreferences,
-  additionalContact
+  additionalContact,
+  city,
+  cityLabels,
+  cityName
 }) => {
   const navigate = useNavigate();
   const theme = useTheme();
@@ -95,6 +98,36 @@ const SinglePostPage = ({
     addSuffix: true,
     locale: getLocale()
   });
+
+  // Extract city from location (show only city)
+  const getCityFromLocation = (location) => {
+    if (!location) return t('unknownLocation');
+    // Split by comma and take the first part (usually the city)
+    const parts = location.split(',');
+    const city = parts[0].trim();
+    // Remove any extra location details that might be in parentheses
+    const cleanCity = city.split('(')[0].trim();
+    // Remove any numbers or extra details
+    return cleanCity.replace(/\d+/g, '').trim();
+  };
+
+  // Get city name with proper multilingual support
+  const getCityName = () => {
+    // First try to use the populated city data from the API
+    if (cityLabels && cityLabels[currentLanguage]) {
+      return cityLabels[currentLanguage];
+    }
+    if (cityName) {
+      return cityName;
+    }
+    if (city) {
+      return city;
+    }
+    // Fallback to extracting from exactLocation
+    return getCityFromLocation(exactLocation || region);
+  };
+
+  const displayCityName = getCityName();
 
   const updatedDate = formatDistanceToNow(new Date(updatedAt), { 
     addSuffix: true,
@@ -241,7 +274,7 @@ const SinglePostPage = ({
                       fontSize: { xs: '1rem', sm: '1.25rem' }
                     }}
                   >
-                    {exactLocation || region || t('unknownLocation')}
+                    {displayCityName}
                   </Typography>
                 </Box>
 

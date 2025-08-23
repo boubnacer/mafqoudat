@@ -236,8 +236,20 @@ const Post = ({ post, viewMode = "grid" }) => {
       return cleanCity.replace(/\d+/g, '').trim();
     };
 
-    // Use city field if available, otherwise extract from exactLocation
-    const cityName = post.city || getCityFromLocation(post.exactLocation || post.region);
+    // Get city name with proper multilingual support
+    const getCityName = () => {
+      // First try to use the populated city data from the API
+      if (post.cityLabels && post.cityLabels[currentLanguage]) {
+        return post.cityLabels[currentLanguage];
+      }
+      if (post.cityName) {
+        return post.cityName;
+      }
+      // Fallback to extracting from exactLocation
+      return getCityFromLocation(post.exactLocation || post.region);
+    };
+
+    const cityName = getCityName();
 
     // List view layout
     if (viewMode === "list") {

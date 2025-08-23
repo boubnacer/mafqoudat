@@ -201,6 +201,15 @@ const getPost = async (req, res) => {
       { $unwind: "$Country" },
       {
         $lookup: {
+          from: "cities",
+          localField: "city",
+          foreignField: "_id",
+          as: "City",
+        },
+      },
+      { $unwind: { path: "$City", preserveNullAndEmptyArrays: true } },
+      {
+        $lookup: {
           from: "users",
           localField: "user",
           foreignField: "_id",
@@ -215,6 +224,8 @@ const getPost = async (req, res) => {
           exactLocation: 1,
           region: 1,
           city: 1,
+          cityName: "$City.labels.en",
+          cityLabels: "$City.labels",
           returned: 1,
           createdAt: 1,
           updatedAt: 1,
