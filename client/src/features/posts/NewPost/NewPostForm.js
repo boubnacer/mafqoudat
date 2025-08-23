@@ -21,9 +21,10 @@ import {
   InputLabel,
   FormControlLabel,
   Checkbox,
-  TextField
+  TextField,
+  Divider
 } from "@mui/material";
-import { PhotoCamera, LocationOn, ContactPhone, ContactMail, WhatsApp } from '@mui/icons-material';
+import { PhotoCamera, LocationOn, ContactPhone, ContactMail, WhatsApp, Add as AddIcon } from '@mui/icons-material';
 import { useTranslation } from "../../../utils/translations";
 import PromotionDialog from "../../../components/PromotionDialog";
 
@@ -41,6 +42,8 @@ const NewPostForm = ({ user, countries, categories, flOptions }) => {
   const [selectedCountry, setSelectedCountry] = useState(null);
   const [cities, setCities] = useState([]);
   const [loadingCities, setLoadingCities] = useState(false);
+  const [showCustomCityInput, setShowCustomCityInput] = useState(false);
+  const [customCityName, setCustomCityName] = useState("");
 
   useEffect(() => {
     if (isSuccess) {
@@ -190,6 +193,17 @@ const NewPostForm = ({ user, countries, categories, flOptions }) => {
   const getFoundLostType = (foundLostId) => {
     const option = flOptions.find(opt => opt.id === foundLostId);
     return option?.code || 'FOUND';
+  };
+
+  // Handle "Other" city option
+  const handleOtherCityClick = () => {
+    setShowCustomCityInput(true);
+    setCustomCityName("");
+  };
+
+  // Handle custom city name change
+  const handleCustomCityChange = (event) => {
+    setCustomCityName(event.target.value);
   };
 
   if (isError) {
@@ -349,33 +363,91 @@ const NewPostForm = ({ user, countries, categories, flOptions }) => {
                           : t('selectCity')
                     }
                   </Typography>
-                  <FormControl fullWidth disabled={!selectedCountry || loadingCities}>
-                    <InputLabel id="city-select-label">{t('chooseCity')}</InputLabel>
-                    <Select
-                      labelId="city-select-label"
-                      value={values.city || ""}
-                      label={t('chooseCity')}
-                      onChange={(e) => setFieldValue('city', e.target.value)}
-                      disableUnderline
-                      sx={{
-                        borderRadius: 2,
-                      }}
-                    >
-                      {cities.map((city) => (
-                        <MenuItem key={city.id} value={city.id}>
+                  
+                  {!showCustomCityInput ? (
+                    <FormControl fullWidth disabled={!selectedCountry || loadingCities}>
+                      <InputLabel id="city-select-label">{t('chooseCity')}</InputLabel>
+                      <Select
+                        labelId="city-select-label"
+                        value={values.city || ""}
+                        label={t('chooseCity')}
+                        onChange={(e) => setFieldValue('city', e.target.value)}
+                        disableUnderline
+                        sx={{
+                          borderRadius: 2,
+                        }}
+                      >
+                        {cities.map((city) => (
+                          <MenuItem key={city.id} value={city.id}>
+                            <Box display="flex" alignItems="center" gap={1}>
+                              {city.isCapital && (
+                                <span style={{ fontSize: '16px' }}>🏛️</span>
+                              )}
+                              {city.isDynamic && (
+                                <span style={{ fontSize: '16px' }}>🆕</span>
+                              )}
+                              {city.label}
+                            </Box>
+                          </MenuItem>
+                        ))}
+                        <Divider />
+                        <MenuItem 
+                          value="other" 
+                          onClick={handleOtherCityClick}
+                          sx={{ 
+                            color: 'primary.main',
+                            fontWeight: 500,
+                            '&:hover': {
+                              backgroundColor: 'primary.light',
+                              color: 'white'
+                            }
+                          }}
+                        >
                           <Box display="flex" alignItems="center" gap={1}>
-                            {city.isCapital && (
-                              <span style={{ fontSize: '16px' }}>🏛️</span>
-                            )}
-                            {city.isDynamic && (
-                              <span style={{ fontSize: '16px' }}>🆕</span>
-                            )}
-                            {city.label}
+                            <AddIcon fontSize="small" />
+                            {t('other')} - {t('addNewCity')}
                           </Box>
                         </MenuItem>
-                      ))}
-                    </Select>
-                  </FormControl>
+                      </Select>
+                    </FormControl>
+                  ) : (
+                    <Box display="flex" flexDirection="column" gap={2}>
+                      <TextField
+                        fullWidth
+                        placeholder={t('cityNamePlaceholder')}
+                        value={customCityName}
+                        onChange={handleCustomCityChange}
+                        variant="outlined"
+                        sx={{ borderRadius: 2 }}
+                      />
+                      <Box display="flex" gap={1}>
+                        <Button
+                          variant="outlined"
+                          onClick={() => {
+                            setShowCustomCityInput(false);
+                            setCustomCityName("");
+                            setFieldValue('city', "");
+                          }}
+                          sx={{ borderRadius: 2 }}
+                        >
+                          {t('cancel')}
+                        </Button>
+                        <Button
+                          variant="contained"
+                          onClick={() => {
+                            if (customCityName.trim()) {
+                              setFieldValue('city', customCityName.trim());
+                              setShowCustomCityInput(false);
+                            }
+                          }}
+                          disabled={!customCityName.trim()}
+                          sx={{ borderRadius: 2 }}
+                        >
+                          {t('confirm')}
+                        </Button>
+                      </Box>
+                    </Box>
+                  )}
                 </Box>
 
                 <Box>
