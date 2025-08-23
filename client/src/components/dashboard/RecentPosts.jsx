@@ -34,7 +34,7 @@ import { useSubmitReportMutation } from "../../features/posts/reportsApiSlice";
 // Get the API base URL for image construction
 const API_BASE_URL = process.env.REACT_APP_API_URL || "http://localhost:3500";
 
-const RecentPosts = ({ _id, categoryname, region, exactLocation, image, createdAt, countryLabels, countryname, contact, city }) => {
+const RecentPosts = ({ _id, categoryname, region, exactLocation, image, createdAt, countryLabels, countryname, contact, city, cityLabels, cityName }) => {
   const theme = useTheme();
   const navigate = useNavigate();
   const { t, currentLanguage } = useTranslation();

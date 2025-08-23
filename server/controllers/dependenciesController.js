@@ -66,10 +66,21 @@ const getDashboard = async (req, res) => {
       },
       { $unwind: "$Country" },
       {
+        $lookup: {
+          from: "cities",
+          localField: "city",
+          foreignField: "_id",
+          as: "City",
+        },
+      },
+      { $unwind: { path: "$City", preserveNullAndEmptyArrays: true } },
+      {
         $project: {
           region: 1,
           exactLocation: 1,
           city: 1,
+          cityName: "$City.labels.en",
+          cityLabels: "$City.labels",
           user: 1,
           country: 1,
           returned: 1,
@@ -128,12 +139,23 @@ const getDashboard = async (req, res) => {
       },
       { $unwind: "$Country" },
       {
+        $lookup: {
+          from: "cities",
+          localField: "city",
+          foreignField: "_id",
+          as: "City",
+        },
+      },
+      { $unwind: { path: "$City", preserveNullAndEmptyArrays: true } },
+      {
         $project: {
           user: 1,
           country: 1,
           region: 1,
           exactLocation: 1,
           city: 1,
+          cityName: "$City.labels.en",
+          cityLabels: "$City.labels",
           returned: 1,
           createdAt: 1,
           updatedAt: 1,
@@ -191,12 +213,23 @@ const getDashboard = async (req, res) => {
       },
       { $unwind: "$Country" },
       {
+        $lookup: {
+          from: "cities",
+          localField: "city",
+          foreignField: "_id",
+          as: "City",
+        },
+      },
+      { $unwind: { path: "$City", preserveNullAndEmptyArrays: true } },
+      {
         $project: {
           user: 1,
           country: 1,
           region: 1,
           exactLocation: 1,
           city: 1,
+          cityName: "$City.labels.en",
+          cityLabels: "$City.labels",
           returned: 1,
           createdAt: 1,
           updatedAt: 1,
