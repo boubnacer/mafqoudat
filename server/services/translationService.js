@@ -61,6 +61,120 @@ const arabicCityNames = {
   'حائل': { en: 'Hail', fr: 'Haïl' },
   'نجران': { en: 'Najran', fr: 'Najran' },
   'الباحة': { en: 'Al Baha', fr: 'Al Baha' },
+  // Add more common English city names that users might enter
+  'Riyadh': { en: 'Riyadh', fr: 'Riyad', ar: 'الرياض' },
+  'Jeddah': { en: 'Jeddah', fr: 'Djeddah', ar: 'جدة' },
+  'Mecca': { en: 'Mecca', fr: 'La Mecque', ar: 'مكة' },
+  'Medina': { en: 'Medina', fr: 'Médine', ar: 'المدينة' },
+  'Dammam': { en: 'Dammam', fr: 'Dammam', ar: 'الدمام' },
+  'Taif': { en: 'Taif', fr: 'Taïf', ar: 'الطائف' },
+  'Tabuk': { en: 'Tabuk', fr: 'Tabuk', ar: 'تبوك' },
+  'Abha': { en: 'Abha', fr: 'Abha', ar: 'أبها' },
+  'Jizan': { en: 'Jizan', fr: 'Jizan', ar: 'جيزان' },
+  'Hail': { en: 'Hail', fr: 'Haïl', ar: 'حائل' },
+  'Najran': { en: 'Najran', fr: 'Najran', ar: 'نجران' },
+  'Al Baha': { en: 'Al Baha', fr: 'Al Baha', ar: 'الباحة' },
+  // Add more common English city names
+  'Cairo': { en: 'Cairo', fr: 'Le Caire', ar: 'القاهرة' },
+  'Alexandria': { en: 'Alexandria', fr: 'Alexandrie', ar: 'الإسكندرية' },
+  'Giza': { en: 'Giza', fr: 'Gizeh', ar: 'الجيزة' },
+  'Luxor': { en: 'Luxor', fr: 'Louxor', ar: 'الأقصر' },
+  'Aswan': { en: 'Aswan', fr: 'Assouan', ar: 'أسوان' },
+  'Casablanca': { en: 'Casablanca', fr: 'Casablanca', ar: 'الدار البيضاء' },
+  'Rabat': { en: 'Rabat', fr: 'Rabat', ar: 'الرباط' },
+  'Fez': { en: 'Fez', fr: 'Fès', ar: 'فاس' },
+  'Marrakech': { en: 'Marrakech', fr: 'Marrakech', ar: 'مراكش' },
+  'Tangier': { en: 'Tangier', fr: 'Tanger', ar: 'طنجة' },
+  'Agadir': { en: 'Agadir', fr: 'Agadir', ar: 'أكادير' },
+  'Meknes': { en: 'Meknes', fr: 'Meknès', ar: 'مكناس' },
+  'Algiers': { en: 'Algiers', fr: 'Alger', ar: 'الجزائر' },
+  'Oran': { en: 'Oran', fr: 'Oran', ar: 'وهران' },
+  'Constantine': { en: 'Constantine', fr: 'Constantine', ar: 'قسنطينة' },
+  'Annaba': { en: 'Annaba', fr: 'Annaba', ar: 'عنابة' },
+  'Tunis': { en: 'Tunis', fr: 'Tunis', ar: 'تونس' },
+  'Sfax': { en: 'Sfax', fr: 'Sfax', ar: 'صفاقس' },
+  'Sousse': { en: 'Sousse', fr: 'Sousse', ar: 'سوسة' },
+  'Gabes': { en: 'Gabes', fr: 'Gabès', ar: 'قابس' },
+  'Ariana': { en: 'Ariana', fr: 'Ariana', ar: 'أريانة' },
+  'Dubai': { en: 'Dubai', fr: 'Dubaï', ar: 'دبي' },
+  'Abu Dhabi': { en: 'Abu Dhabi', fr: 'Abou Dabi', ar: 'أبو ظبي' },
+  'Sharjah': { en: 'Sharjah', fr: 'Charjah', ar: 'الشارقة' },
+  'Ajman': { en: 'Ajman', fr: 'Ajmân', ar: 'عجمان' },
+  'Ras Al Khaimah': { en: 'Ras Al Khaimah', fr: 'Ras el Khaïmah', ar: 'رأس الخيمة' },
+  'Doha': { en: 'Doha', fr: 'Doha', ar: 'الدوحة' },
+  'Al Wakrah': { en: 'Al Wakrah', fr: 'Al Wakrah', ar: 'الوكرة' },
+  'Al Khor': { en: 'Al Khor', fr: 'Al Khor', ar: 'الخور' },
+  'Al Rayyan': { en: 'Al Rayyan', fr: 'Al Rayyan', ar: 'الريان' },
+  'Kuwait City': { en: 'Kuwait City', fr: 'Koweït', ar: 'مدينة الكويت' },
+  'Al Jahra': { en: 'Al Jahra', fr: 'Al Jahra', ar: 'الجهراء' },
+  'Hawalli': { en: 'Hawalli', fr: 'Hawalli', ar: 'حولي' },
+  'Farwaniya': { en: 'Farwaniya', fr: 'Farwaniya', ar: 'الفروانية' },
+  'Manama': { en: 'Manama', fr: 'Manama', ar: 'المنامة' },
+  'Muharraq': { en: 'Muharraq', fr: 'Muharraq', ar: 'المحرق' },
+  'Riffa': { en: 'Riffa', fr: 'Riffa', ar: 'الرفاع' },
+  'Hamad Town': { en: 'Hamad Town', fr: 'Hamad Town', ar: 'مدينة حمد' },
+  'Muscat': { en: 'Muscat', fr: 'Mascate', ar: 'مسقط' },
+  'Salalah': { en: 'Salalah', fr: 'Salalah', ar: 'صلالة' },
+  'Sohar': { en: 'Sohar', fr: 'Sohar', ar: 'صحار' },
+  'Nizwa': { en: 'Nizwa', fr: 'Nizwa', ar: 'نزوى' },
+  'Amman': { en: 'Amman', fr: 'Amman', ar: 'عمان' },
+  'Zarqa': { en: 'Zarqa', fr: 'Zarqa', ar: 'الزرقاء' },
+  'Irbid': { en: 'Irbid', fr: 'Irbid', ar: 'إربد' },
+  'Al Salt': { en: 'Al Salt', fr: 'Al Salt', ar: 'السلط' },
+  'Beirut': { en: 'Beirut', fr: 'Beyrouth', ar: 'بيروت' },
+  'Tripoli': { en: 'Tripoli', fr: 'Tripoli', ar: 'طرابلس' },
+  'Sidon': { en: 'Sidon', fr: 'Saïda', ar: 'صيدا' },
+  'Tyre': { en: 'Tyre', fr: 'Tyr', ar: 'صور' },
+  'Damascus': { en: 'Damascus', fr: 'Damas', ar: 'دمشق' },
+  'Aleppo': { en: 'Aleppo', fr: 'Alep', ar: 'حلب' },
+  'Homs': { en: 'Homs', fr: 'Homs', ar: 'حمص' },
+  'Lattakia': { en: 'Lattakia', fr: 'Lattaquié', ar: 'اللاذقية' },
+  'Baghdad': { en: 'Baghdad', fr: 'Bagdad', ar: 'بغداد' },
+  'Basra': { en: 'Basra', fr: 'Bassora', ar: 'البصرة' },
+  'Mosul': { en: 'Mosul', fr: 'Mossoul', ar: 'الموصل' },
+  'Erbil': { en: 'Erbil', fr: 'Erbil', ar: 'أربيل' },
+  'Jerusalem': { en: 'Jerusalem', fr: 'Jérusalem', ar: 'القدس' },
+  'Gaza': { en: 'Gaza', fr: 'Gaza', ar: 'غزة' },
+  'Ramallah': { en: 'Ramallah', fr: 'Ramallah', ar: 'رام الله' },
+  'Hebron': { en: 'Hebron', fr: 'Hébron', ar: 'الخليل' },
+  'Benghazi': { en: 'Benghazi', fr: 'Benghazi', ar: 'بنغازي' },
+  'Misrata': { en: 'Misrata', fr: 'Misrata', ar: 'مصراتة' },
+  'Tobruk': { en: 'Tobruk', fr: 'Tobrouk', ar: 'طبرق' },
+  'Khartoum': { en: 'Khartoum', fr: 'Khartoum', ar: 'الخرطوم' },
+  'Omdurman': { en: 'Omdurman', fr: 'Omdurman', ar: 'أم درمان' },
+  'Port Sudan': { en: 'Port Sudan', fr: 'Port-Soudan', ar: 'بورتسودان' },
+  'Kassala': { en: 'Kassala', fr: 'Kassala', ar: 'كسلا' },
+  'Mogadishu': { en: 'Mogadishu', fr: 'Mogadiscio', ar: 'مقديشو' },
+  'Hargeisa': { en: 'Hargeisa', fr: 'Hargeisa', ar: 'هرجيسا' },
+  'Kismayo': { en: 'Kismayo', fr: 'Kismaayo', ar: 'كيسمايو' },
+  'Berbera': { en: 'Berbera', fr: 'Berbera', ar: 'بربرة' },
+  'Djibouti City': { en: 'Djibouti City', fr: 'Ville de Djibouti', ar: 'مدينة جيبوتي' },
+  'Ali Sabieh': { en: 'Ali Sabieh', fr: 'Ali Sabieh', ar: 'علي صبيح' },
+  'Tadjoura': { en: 'Tadjoura', fr: 'Tadjourah', ar: 'تجورة' },
+  'Obock': { en: 'Obock', fr: 'Obock', ar: 'أوبوك' },
+  'Moroni': { en: 'Moroni', fr: 'Moroni', ar: 'موروني' },
+  'Mutsamudu': { en: 'Mutsamudu', fr: 'Mutsamudu', ar: 'متسامودو' },
+  'Domoni': { en: 'Domoni', fr: 'Domoni', ar: 'دوموني' },
+  'Fomboni': { en: 'Fomboni', fr: 'Fomboni', ar: 'فومبوني' },
+  'Nouakchott': { en: 'Nouakchott', fr: 'Nouakchott', ar: 'نواكشوط' },
+  'Nouadhibou': { en: 'Nouadhibou', fr: 'Nouadhibou', ar: 'نواذيبو' },
+  'Kaedi': { en: 'Kaedi', fr: 'Kaédi', ar: 'كيفة' },
+  'Bamako': { en: 'Bamako', fr: 'Bamako', ar: 'باماكو' },
+  'Sikasso': { en: 'Sikasso', fr: 'Sikasso', ar: 'سيكاسو' },
+  'Mopti': { en: 'Mopti', fr: 'Mopti', ar: 'موبتي' },
+  'Segou': { en: 'Segou', fr: 'Ségou', ar: 'سيغو' },
+  'Niamey': { en: 'Niamey', fr: 'Niamey', ar: 'نيامي' },
+  'Zinder': { en: 'Zinder', fr: 'Zinder', ar: 'زندر' },
+  'Maradi': { en: 'Maradi', fr: 'Maradi', ar: 'مرادي' },
+  'Agadez': { en: 'Agadez', fr: 'Agadez', ar: 'أغاديز' },
+  'N\'Djamena': { en: 'N\'Djamena', fr: 'N\'Djamena', ar: 'انجمينا' },
+  'Mousoro': { en: 'Mousoro', fr: 'Moussoro', ar: 'موسورو' },
+  'Sarh': { en: 'Sarh', fr: 'Sarh', ar: 'ساره' },
+  'Abéché': { en: 'Abéché', fr: 'Abéché', ar: 'أبشي' },
+  'Bangui': { en: 'Bangui', fr: 'Bangui', ar: 'بانغي' },
+  'Berberati': { en: 'Berberati', fr: 'Berbérati', ar: 'بربراتي' },
+  'Bouar': { en: 'Bouar', fr: 'Bouar', ar: 'بوار' },
+  'Bambari': { en: 'Bambari', fr: 'Bambari', ar: 'بامباري' },
   'القاهرة': { en: 'Cairo', fr: 'Le Caire' },
   'الإسكندرية': { en: 'Alexandria', fr: 'Alexandrie' },
   'الجيزة': { en: 'Giza', fr: 'Gizeh' },
@@ -173,12 +287,16 @@ class TranslationService {
    */
   static async translateCityName(cityName, sourceLanguage = 'en') {
     try {
+      console.log('Translating city name:', cityName, 'from language:', sourceLanguage);
+      
       const normalizedName = cityName.trim().toLowerCase();
       
       // If the input is Arabic, try to find it in our mapping
       if (sourceLanguage === 'ar' || this.isArabicText(cityName)) {
+        console.log('Detected Arabic text, looking for translation');
         const arabicTranslation = arabicCityNames[cityName];
         if (arabicTranslation) {
+          console.log('Found Arabic translation:', arabicTranslation);
           return {
             en: arabicTranslation.en,
             fr: arabicTranslation.fr,
@@ -189,24 +307,30 @@ class TranslationService {
       
       // If it's English, try to translate to Arabic and French
       if (sourceLanguage === 'en' || !this.isArabicText(cityName)) {
-        // Check if we have a direct mapping
-        const directMapping = arabicCityNames[cityName];
-        if (directMapping) {
-          return {
-            en: cityName,
-            fr: directMapping.fr,
-            ar: directMapping.ar
-          };
+        console.log('Detected English text, looking for translation');
+        
+        // First, check if we have a direct mapping for this exact city name
+        for (const [arabicName, translations] of Object.entries(arabicCityNames)) {
+          if (translations.en.toLowerCase() === cityName.toLowerCase()) {
+            console.log('Found exact English match:', translations);
+            return {
+              en: cityName,
+              fr: translations.fr,
+              ar: arabicName
+            };
+          }
         }
         
         // Try to use a translation API (Google Translate or similar)
         const translations = await this.translateWithAPI(cityName, sourceLanguage);
         if (translations) {
+          console.log('API translation result:', translations);
           return translations;
         }
       }
       
       // Fallback: return the same name for all languages
+      console.log('Using fallback translation (same name for all languages)');
       return {
         en: cityName,
         fr: cityName,
@@ -237,8 +361,7 @@ class TranslationService {
    */
   static async translateWithAPI(text, sourceLanguage) {
     try {
-      // For now, we'll use a simple approach
-      // In production, you could integrate with Google Translate API or similar
+      console.log('Attempting API translation for:', text, 'from:', sourceLanguage);
       
       let translatedText = text;
       let frenchText = text;
@@ -248,6 +371,7 @@ class TranslationService {
         // Look for Arabic city in our mapping
         for (const [arabicName, translations] of Object.entries(arabicCityNames)) {
           if (arabicName === text) {
+            console.log('Found Arabic mapping:', translations);
             return {
               en: translations.en,
               fr: translations.fr,
@@ -257,6 +381,7 @@ class TranslationService {
         }
         
         // If not found, keep the Arabic name for all languages
+        console.log('No Arabic mapping found, using original text');
         return {
           en: text,
           fr: text,
@@ -269,6 +394,7 @@ class TranslationService {
         // Look for English city in our mapping
         for (const [arabicName, translations] of Object.entries(arabicCityNames)) {
           if (translations.en.toLowerCase() === text.toLowerCase()) {
+            console.log('Found English mapping:', translations);
             return {
               en: text,
               fr: translations.fr,
@@ -277,23 +403,62 @@ class TranslationService {
           }
         }
         
-        // Simple word-by-word translation for common words
+        // Enhanced word-by-word translation for common words
+        let arabicTranslation = text;
+        let frenchTranslation = text;
+        
+        // Apply suffix translations
         for (const [english, translations] of Object.entries(translationMappings.suffixes)) {
           const regex = new RegExp(`\\b${english}\\b`, 'gi');
-          if (regex.test(translatedText)) {
-            translatedText = translatedText.replace(regex, translations.ar);
+          if (regex.test(arabicTranslation)) {
+            arabicTranslation = arabicTranslation.replace(regex, translations.ar);
+          }
+          if (regex.test(frenchTranslation)) {
+            frenchTranslation = frenchTranslation.replace(regex, translations.fr);
           }
         }
         
+        // Apply prefix translations
         for (const [english, translations] of Object.entries(translationMappings.prefixes)) {
           const regex = new RegExp(`\\b${english}\\b`, 'gi');
-          if (regex.test(translatedText)) {
-            translatedText = translatedText.replace(regex, translations.ar);
+          if (regex.test(arabicTranslation)) {
+            arabicTranslation = arabicTranslation.replace(regex, translations.ar);
+          }
+          if (regex.test(frenchTranslation)) {
+            frenchTranslation = frenchTranslation.replace(regex, translations.fr);
           }
         }
         
-        // For French, we'll keep it simple for now
-        frenchText = text; // Could be enhanced with French translation logic
+        // If we made any translations, use them
+        if (arabicTranslation !== text || frenchTranslation !== text) {
+          console.log('Applied word-by-word translation:', {
+            original: text,
+            arabic: arabicTranslation,
+            french: frenchTranslation
+          });
+          return {
+            en: text,
+            fr: frenchTranslation,
+            ar: arabicTranslation
+          };
+        }
+        
+        // If no translations were made, try to create a simple Arabic transliteration
+        // This is a basic approach - in production you might want to use a proper transliteration service
+        const arabicTransliteration = this.transliterateToArabic(text);
+        const frenchTransliteration = this.transliterateToFrench(text);
+        
+        console.log('Using transliteration:', {
+          original: text,
+          arabic: arabicTransliteration,
+          french: frenchTransliteration
+        });
+        
+        return {
+          en: text,
+          fr: frenchTransliteration,
+          ar: arabicTransliteration
+        };
       }
       
       return {
@@ -318,6 +483,46 @@ class TranslationService {
       .toUpperCase();
     
     return `${countryCode}_${normalizedName}`;
+  }
+
+  /**
+   * Basic transliteration to Arabic
+   */
+  static transliterateToArabic(text) {
+    const transliterationMap = {
+      'a': 'ا', 'b': 'ب', 'c': 'ك', 'd': 'د', 'e': 'ي', 'f': 'ف', 'g': 'ج', 'h': 'ه',
+      'i': 'ي', 'j': 'ج', 'k': 'ك', 'l': 'ل', 'm': 'م', 'n': 'ن', 'o': 'و', 'p': 'ب',
+      'q': 'ق', 'r': 'ر', 's': 'س', 't': 'ت', 'u': 'و', 'v': 'ف', 'w': 'و', 'x': 'كس',
+      'y': 'ي', 'z': 'ز', 'th': 'ث', 'sh': 'ش', 'ch': 'تش', 'kh': 'خ', 'dh': 'ذ',
+      'gh': 'غ', 'ph': 'ف', 'wh': 'هو', 'qu': 'كو', 'ng': 'نغ'
+    };
+
+    let result = text.toLowerCase();
+    
+    // Replace common letter combinations first
+    for (const [english, arabic] of Object.entries(transliterationMap)) {
+      if (english.length > 1) {
+        result = result.replace(new RegExp(english, 'g'), arabic);
+      }
+    }
+    
+    // Replace single letters
+    for (const [english, arabic] of Object.entries(transliterationMap)) {
+      if (english.length === 1) {
+        result = result.replace(new RegExp(english, 'g'), arabic);
+      }
+    }
+    
+    return result;
+  }
+
+  /**
+   * Basic transliteration to French
+   */
+  static transliterateToFrench(text) {
+    // For French, we'll keep it simple and just return the original text
+    // In a production environment, you might want to use a proper French translation service
+    return text;
   }
 }
 

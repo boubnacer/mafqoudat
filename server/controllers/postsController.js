@@ -404,27 +404,39 @@ const createNewPost = async (req, res) => {
     postData.city = cityId;
   } else if (customCityName) {
     try {
+      console.log('Creating custom city:', customCityName);
+      
       // Get country code for city creation
       const countryDoc = await Country.findById(country).lean();
       const countryCode = countryDoc?.code || 'UNKNOWN';
+      console.log('Country code:', countryCode);
       
       // Detect the source language of the custom city name
       const sourceLanguage = TranslationService.isArabicText(customCityName) ? 'ar' : 'en';
+      console.log('Detected source language:', sourceLanguage);
       
       // Translate the city name to all languages
       const translations = await TranslationService.translateCityName(customCityName, sourceLanguage);
+      console.log('Translation result:', translations);
       
       // Generate a unique code for the city
       const cityCode = TranslationService.generateCityCode(customCityName, countryCode);
+      console.log('Generated city code:', cityCode);
       
       // Check if city already exists with this code
       let existingCity = await City.findOne({ code: cityCode }).lean();
+      console.log('Existing city check:', existingCity ? 'Found' : 'Not found');
       
       if (!existingCity) {
         // Create new city in the database
         const newCity = await City.create({
           code: cityCode,
           labels: {
+            en: translations.en,
+            fr: translations.fr,
+            ar: translations.ar
+          },
+          names: {
             en: translations.en,
             fr: translations.fr,
             ar: translations.ar
@@ -439,6 +451,7 @@ const createNewPost = async (req, res) => {
         postData.city = cityId;
       } else {
         // Use existing city
+        console.log('Using existing city:', existingCity);
         cityId = existingCity._id;
         postData.city = cityId;
       }
