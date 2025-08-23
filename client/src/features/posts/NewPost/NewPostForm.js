@@ -52,6 +52,11 @@ const NewPostForm = ({ user, countries, categories, flOptions }) => {
       const foundLostOption = lastSubmittedValues && flOptions.find(option => option.id === lastSubmittedValues.foundLost);
       const isLostItem = foundLostOption && foundLostOption.code === 'LOST';
       
+      // Refresh cities list to include any newly created cities
+      if (selectedCountry?._id) {
+        fetchCitiesByCountry(selectedCountry._id);
+      }
+      
       if (isLostItem) {
         // Show promotion dialog instead of redirecting immediately
         setShowPromotionDialog(true);
@@ -63,7 +68,7 @@ const NewPostForm = ({ user, countries, categories, flOptions }) => {
         }, 1500);
       }
     }
-  }, [isSuccess, navigate, flOptions, lastSubmittedValues]);
+  }, [isSuccess, navigate, flOptions, lastSubmittedValues, selectedCountry?._id]);
 
   // Re-fetch cities when language changes
   useEffect(() => {
@@ -396,13 +401,18 @@ const NewPostForm = ({ user, countries, categories, flOptions }) => {
                           onClick={handleOtherCityClick}
                           sx={{ 
                             color: theme.palette.primary.main,
-                            fontWeight: 500,
+                            fontWeight: 600,
                             backgroundColor: theme.palette.mode === 'dark' 
-                              ? 'rgba(25, 118, 210, 0.08)' 
-                              : 'rgba(25, 118, 210, 0.04)',
+                              ? 'rgba(25, 118, 210, 0.15)' 
+                              : 'rgba(25, 118, 210, 0.08)',
+                            border: `1px solid ${theme.palette.primary.main}`,
+                            borderRadius: 1,
+                            margin: '4px 8px',
                             '&:hover': {
                               backgroundColor: theme.palette.primary.main,
-                              color: 'white'
+                              color: 'white',
+                              transform: 'translateY(-1px)',
+                              boxShadow: '0 4px 8px rgba(25, 118, 210, 0.3)'
                             }
                           }}
                         >

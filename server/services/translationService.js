@@ -240,26 +240,61 @@ class TranslationService {
       // For now, we'll use a simple approach
       // In production, you could integrate with Google Translate API or similar
       
-      // Simple word-by-word translation for common words
       let translatedText = text;
+      let frenchText = text;
       
-      // Translate common words
-      for (const [english, translations] of Object.entries(translationMappings.suffixes)) {
-        const regex = new RegExp(`\\b${english}\\b`, 'gi');
-        if (regex.test(translatedText)) {
-          translatedText = translatedText.replace(regex, translations.ar);
+      // If source language is Arabic, try to find English and French equivalents
+      if (sourceLanguage === 'ar' || this.isArabicText(text)) {
+        // Look for Arabic city in our mapping
+        for (const [arabicName, translations] of Object.entries(arabicCityNames)) {
+          if (arabicName === text) {
+            return {
+              en: translations.en,
+              fr: translations.fr,
+              ar: text
+            };
+          }
         }
+        
+        // If not found, keep the Arabic name for all languages
+        return {
+          en: text,
+          fr: text,
+          ar: text
+        };
       }
       
-      for (const [english, translations] of Object.entries(translationMappings.prefixes)) {
-        const regex = new RegExp(`\\b${english}\\b`, 'gi');
-        if (regex.test(translatedText)) {
-          translatedText = translatedText.replace(regex, translations.ar);
+      // If source language is English, try to translate to Arabic and French
+      if (sourceLanguage === 'en' || !this.isArabicText(text)) {
+        // Look for English city in our mapping
+        for (const [arabicName, translations] of Object.entries(arabicCityNames)) {
+          if (translations.en.toLowerCase() === text.toLowerCase()) {
+            return {
+              en: text,
+              fr: translations.fr,
+              ar: arabicName
+            };
+          }
         }
+        
+        // Simple word-by-word translation for common words
+        for (const [english, translations] of Object.entries(translationMappings.suffixes)) {
+          const regex = new RegExp(`\\b${english}\\b`, 'gi');
+          if (regex.test(translatedText)) {
+            translatedText = translatedText.replace(regex, translations.ar);
+          }
+        }
+        
+        for (const [english, translations] of Object.entries(translationMappings.prefixes)) {
+          const regex = new RegExp(`\\b${english}\\b`, 'gi');
+          if (regex.test(translatedText)) {
+            translatedText = translatedText.replace(regex, translations.ar);
+          }
+        }
+        
+        // For French, we'll keep it simple for now
+        frenchText = text; // Could be enhanced with French translation logic
       }
-      
-      // For French, we'll keep it simple for now
-      const frenchText = text; // Could be enhanced with French translation logic
       
       return {
         en: text,

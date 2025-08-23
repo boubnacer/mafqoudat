@@ -8,6 +8,7 @@ const { deleteFromCloudinary } = require("../config/cloudinary");
 const mongoose = require("mongoose");
 // const getCountryIso3 = require("country-iso-2-to-3");
 const getCountryIso3 = require("country-iso-2-to-3");
+const TranslationService = require("../services/translationService");
 
 // @desc Get all posts
 // @route GET /posts
@@ -368,15 +369,17 @@ const createNewPost = async (req, res) => {
   // Handle city validation - check if it's an ObjectId or a custom city name
   let cityId = city;
   let cityExists = true;
+  let customCityName = null;
   
   if (city) {
     // Check if city is a valid ObjectId
     if (mongoose.Types.ObjectId.isValid(city)) {
       cityExists = await City.exists({ _id: city });
     } else {
-      // It's a custom city name, we'll handle it differently
+      // It's a custom city name, we'll create it in the database
+      customCityName = city;
       cityExists = true; // Allow custom city names
-      cityId = null; // Don't set city field for custom names
+      cityId = null; // Don't set city field for custom names yet
     }
   }
   
@@ -396,12 +399,54 @@ const createNewPost = async (req, res) => {
     description: description || "",
   };
 
-  // Handle city field - only set if it's a valid ObjectId
+  // Handle city field - create custom city if needed
   if (cityId) {
     postData.city = cityId;
-  } else if (city) {
-    // For custom city names, store in exactLocation or region
-    postData.region = city;
+  } else if (customCityName) {
+    try {
+      // Get country code for city creation
+      const countryDoc = await Country.findById(country).lean();
+      const countryCode = countryDoc?.code || 'UNKNOWN';
+      
+      // Detect the source language of the custom city name
+      const sourceLanguage = TranslationService.isArabicText(customCityName) ? 'ar' : 'en';
+      
+      // Translate the city name to all languages
+      const translations = await TranslationService.translateCityName(customCityName, sourceLanguage);
+      
+      // Generate a unique code for the city
+      const cityCode = TranslationService.generateCityCode(customCityName, countryCode);
+      
+      // Check if city already exists with this code
+      let existingCity = await City.findOne({ code: cityCode }).lean();
+      
+      if (!existingCity) {
+        // Create new city in the database
+        const newCity = await City.create({
+          code: cityCode,
+          labels: {
+            en: translations.en,
+            fr: translations.fr,
+            ar: translations.ar
+          },
+          country: country,
+          isDynamic: true, // Mark as dynamically created
+          isCapital: false
+        });
+        
+        console.log('Created new city:', newCity);
+        cityId = newCity._id;
+        postData.city = cityId;
+      } else {
+        // Use existing city
+        cityId = existingCity._id;
+        postData.city = cityId;
+      }
+    } catch (error) {
+      console.error('Error creating custom city:', error);
+      // Fallback: store in region field
+      postData.region = customCityName;
+    }
   }
 
 
