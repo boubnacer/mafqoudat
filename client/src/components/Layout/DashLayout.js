@@ -6,7 +6,7 @@ import { Box, useMediaQuery, useTheme } from "@mui/material";
 import Navbar from "../Navbar";
 import { useState, useEffect } from "react";
 import Sidebar from "../Sidebar";
-import { useTranslation } from "../utils/translations";
+import { useTranslation } from "../../utils/translations";
 
 const DashLayout = () => {
   console.log('DashLayout: Component rendered');

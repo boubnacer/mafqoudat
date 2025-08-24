@@ -54,6 +54,18 @@
     "GENERATE_SOURCEMAP": "false",
     "SKIP_PREFLIGHT_CHECK": "true",
     "NODE_ENV": "production",
-    "ESLINT_NO_DEV_ERRORS": "true"
+    "ESLINT_NO_DEV_ERRORS": "true",
+    "EXTEND_ESLINT": "false"
+  },
+  "build": {
+    "env": {
+      "CI": "false",
+      "DISABLE_ESLINT_PLUGIN": "true",
+      "GENERATE_SOURCEMAP": "false",
+      "SKIP_PREFLIGHT_CHECK": "true",
+      "NODE_ENV": "production",
+      "ESLINT_NO_DEV_ERRORS": "true",
+      "EXTEND_ESLINT": "false"
+    }
   }
 }
