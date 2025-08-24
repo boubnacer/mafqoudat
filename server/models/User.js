@@ -16,9 +16,20 @@ const userSchema = new mongoose.Schema({
   },
   email: {
     type: String,
+    required: true,
     trim: true,
     lowercase: true,
-    sparse: true // Allows multiple null values but unique non-null values
+    unique: true,
+    sparse: true, // Allows multiple null values but unique non-null values
+    match: [/^\w+([.-]?\w+)*@\w+([.-]?\w+)*(\.\w{2,3})+$/, 'Please enter a valid email address']
+  },
+  phone: {
+    type: String,
+    required: true,
+    trim: true,
+    unique: true,
+    sparse: true, // Allows multiple null values but unique non-null values
+    match: [/^[\+]?[1-9][\d]{0,15}$/, 'Please enter a valid phone number']
   },
   country: {
     type: mongoose.Schema.Types.ObjectId,
@@ -77,10 +88,6 @@ const userSchema = new mongoose.Schema({
         trim: true
       }
     },
-    phone: {
-      type: String,
-      trim: true
-    },
     avatar: {
       type: String,
       default: null
@@ -93,8 +100,12 @@ const userSchema = new mongoose.Schema({
 // Index for efficient queries
 userSchema.index({ username: 1 });
 userSchema.index({ email: 1 });
+userSchema.index({ phone: 1 });
 userSchema.index({ country: 1 });
 userSchema.index({ isActive: 1 });
+
+// Compound index for email/phone authentication
+userSchema.index({ email: 1, phone: 1 });
 
 // Index for multilingual search
 userSchema.index({ 

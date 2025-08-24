@@ -247,9 +247,8 @@ const Login = () => {
 
   // State
   const [formData, setFormData] = useState({
-    username: "",
+    emailOrPhone: "",
     password: "",
-    rememberMe: false,
   });
   const [showPassword, setShowPassword] = useState(false);
   const [error, setError] = useState("");
@@ -274,13 +273,6 @@ const Login = () => {
       [field]: event.target.value
     }));
     if (error) setError("");
-  };
-
-  const handleCheckboxChange = (event) => {
-    setFormData(prev => ({
-      ...prev,
-      rememberMe: event.target.checked
-    }));
   };
 
   // Language dropdown handlers - same approach as navbar
@@ -317,7 +309,7 @@ const Login = () => {
   const handleSubmit = async (event) => {
     event.preventDefault();
     
-    if (!formData.username.trim() || !formData.password.trim()) {
+    if (!formData.emailOrPhone.trim() || !formData.password.trim()) {
       setError(t('invalidCredentials'));
       return;
     }
@@ -327,17 +319,13 @@ const Login = () => {
 
     try {
       const { accessToken } = await login({
-        username: formData.username.trim(),
+        emailOrPhone: formData.emailOrPhone.trim(),
         password: formData.password
       }).unwrap();
 
       dispatch(setCredentials({ accessToken }));
       localStorage.setItem('isLoggedIn', 'true');
       
-      if (formData.rememberMe) {
-        localStorage.setItem('rememberMe', 'true');
-      }
-
       navigate("/dash");
     } catch (err) {
       console.error('Login error:', err);
@@ -519,14 +507,18 @@ const Login = () => {
             <Box component="form" onSubmit={handleSubmit} sx={{ mb: 3 }}>
               <ModernTextField
                 fullWidth
-                label={t('username')}
-                value={formData.username}
-                onChange={handleInputChange('username')}
+                label={t('emailOrPhone')}
+                placeholder={t('emailOrPhonePlaceholder')}
+                value={formData.emailOrPhone}
+                onChange={handleInputChange('emailOrPhone')}
                 margin="normal"
                 InputProps={{
                   startAdornment: (
                     <InputAdornment position="start">
-                      <Person sx={{ color: theme.palette.text.secondary }} />
+                      <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.5 }}>
+                        <Email sx={{ color: theme.palette.text.secondary, fontSize: '1.2rem' }} />
+                        <Phone sx={{ color: theme.palette.text.secondary, fontSize: '1.2rem' }} />
+                      </Box>
                     </InputAdornment>
                   ),
                 }}
@@ -569,29 +561,10 @@ const Login = () => {
 
               <Box sx={{ 
                 display: 'flex', 
-                justifyContent: 'space-between', 
+                justifyContent: 'flex-end', 
                 alignItems: 'center', 
                 mb: 3,
-                flexWrap: 'wrap',
-                gap: 1,
               }}>
-                <FormControlLabel
-                  control={
-                    <Checkbox
-                      checked={formData.rememberMe}
-                      onChange={handleCheckboxChange}
-                      sx={{
-                        '&.Mui-checked': {
-                          color: theme.palette.primary.main,
-                        },
-                      }}
-                    />
-                  }
-                  label={t('rememberMe')}
-                  sx={{
-                    fontSize: '0.875rem',
-                  }}
-                />
                 <Button
                   component={Link}
                   to="/forgot-password"
@@ -646,33 +619,6 @@ const Login = () => {
               >
                 {t('firstTime')}
               </Typography>
-              
-              {/* Debug: Test language switching */}
-              <Box sx={{ mb: 2 }}>
-                <Typography variant="body2" color="text.secondary">
-                  Current Language: {currentLanguage}
-                </Typography>
-                <Button 
-                  onClick={() => setLanguage('en')}
-                  size="small"
-                  sx={{ mr: 1 }}
-                >
-                  EN
-                </Button>
-                <Button 
-                  onClick={() => setLanguage('fr')}
-                  size="small"
-                  sx={{ mr: 1 }}
-                >
-                  FR
-                </Button>
-                <Button 
-                  onClick={() => setLanguage('ar')}
-                  size="small"
-                >
-                  AR
-                </Button>
-              </Box>
               
               <Button
                 component={Link}

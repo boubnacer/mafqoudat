@@ -7,21 +7,27 @@ const Country = require("../models/Country");
 // @route POST /auth
 // @access Public
 const login = async (req, res) => {
-  const { username, password } = req.body;
+  const { emailOrPhone, password } = req.body;
 
-  if (!username || !password) {
+  if (!emailOrPhone || !password) {
     return res.status(400).json({ message: "All fields are required" });
   }
 
-  const foundUser = await User.findOne({ username }).exec();
+  // Find user by email or phone
+  const foundUser = await User.findOne({
+    $or: [
+      { email: emailOrPhone.toLowerCase() },
+      { phone: emailOrPhone }
+    ]
+  }).exec();
 
   if (!foundUser) {
-    return res.status(401).json({ message: "user does not exist" });
+    return res.status(401).json({ message: "User does not exist" });
   }
 
   const match = await bcrypt.compare(password, foundUser.password);
 
-  if (!match) return res.status(401).json({ message: "password doesnt match" });
+  if (!match) return res.status(401).json({ message: "Password doesn't match" });
 
   // const code = await Country.findById(foundUser.country).lean().exec()
 

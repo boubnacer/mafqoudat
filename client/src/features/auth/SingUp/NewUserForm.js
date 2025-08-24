@@ -309,12 +309,13 @@ const NewUserForm = ({ countries }) => {
   // State
   const [formData, setFormData] = useState({
     username: "",
+    email: "",
+    phone: "",
     password: "",
-    confirmPassword: "",
     country: countries?.[0]?.id || "",
+    acceptTerms: false,
   });
   const [showPassword, setShowPassword] = useState(false);
-  const [showConfirmPassword, setShowConfirmPassword] = useState(false);
   const [errors, setErrors] = useState({});
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [languageAnchorEl, setLanguageAnchorEl] = useState(null);
@@ -331,6 +332,22 @@ const NewUserForm = ({ countries }) => {
     setFormData(prev => ({
       ...prev,
       [field]: value
+    }));
+    
+    // Clear field-specific error
+    if (errors[field]) {
+      setErrors(prev => ({
+        ...prev,
+        [field]: ""
+      }));
+    }
+  };
+
+  // Handle checkbox changes
+  const handleCheckboxChange = (field) => (event) => {
+    setFormData(prev => ({
+      ...prev,
+      [field]: event.target.checked
     }));
     
     // Clear field-specific error
@@ -372,6 +389,18 @@ const NewUserForm = ({ countries }) => {
     }
   };
 
+  // Get country label based on language
+  const getCountryLabel = (option) => {
+    if (!option) return '';
+    if (option.names && option.names[currentLanguage || 'en']) {
+      return option.names[currentLanguage || 'en'];
+    }
+    if (option.labels && option.labels[currentLanguage || 'en']) {
+      return option.labels[currentLanguage || 'en'];
+    }
+    return option.label || option.code;
+  };
+
   // Validate form
   const validateForm = () => {
     const newErrors = {};
@@ -383,6 +412,20 @@ const NewUserForm = ({ countries }) => {
       newErrors.username = t('username') + ' ' + t('mustBeValid');
     }
 
+    // Email validation
+    if (!formData.email.trim()) {
+      newErrors.email = t('email') + ' ' + t('required');
+    } else if (!EMAIL_REGEX.test(formData.email)) {
+      newErrors.email = t('email') + ' ' + t('mustBeValid');
+    }
+
+    // Phone validation
+    if (!formData.phone.trim()) {
+      newErrors.phone = t('phone') + ' ' + t('required');
+    } else if (!PHONE_REGEX.test(formData.phone)) {
+      newErrors.phone = t('phone') + ' ' + t('mustBeValid');
+    }
+
     // Password validation
     if (!formData.password) {
       newErrors.password = t('password') + ' ' + t('required');
@@ -390,16 +433,14 @@ const NewUserForm = ({ countries }) => {
       newErrors.password = t('password') + ' ' + t('mustBeValid');
     }
 
-    // Confirm password validation
-    if (!formData.confirmPassword) {
-      newErrors.confirmPassword = t('confirmPassword') + ' ' + t('required');
-    } else if (formData.password !== formData.confirmPassword) {
-      newErrors.confirmPassword = t('passwordMismatch');
-    }
-
     // Country validation
     if (!formData.country) {
       newErrors.country = t('chooseCountry');
+    }
+
+    // Terms validation
+    if (!formData.acceptTerms) {
+      newErrors.acceptTerms = t('termsRequired');
     }
 
     setErrors(newErrors);
@@ -419,6 +460,8 @@ const NewUserForm = ({ countries }) => {
     try {
       const { accessToken } = await addNewUser({
         username: formData.username.trim(),
+        email: formData.email.trim(),
+        phone: formData.phone.trim(),
         password: formData.password,
         country: formData.country,
       }).unwrap();
@@ -623,6 +666,58 @@ const NewUserForm = ({ countries }) => {
                   />
                 </Grid>
 
+                <Grid item xs={12} sm={6}>
+                  <ModernTextField
+                    fullWidth
+                    label={t('email')}
+                    type="email"
+                    value={formData.email}
+                    onChange={handleInputChange('email')}
+                    error={!!errors.email}
+                    helperText={errors.email}
+                    InputProps={{
+                      startAdornment: (
+                        <InputAdornment position="start">
+                          <Email sx={{ color: theme.palette.text.secondary }} />
+                        </InputAdornment>
+                      ),
+                    }}
+                  />
+                </Grid>
+
+                <Grid item xs={12} sm={6}>
+                  <ModernTextField
+                    fullWidth
+                    label={t('phone')}
+                    type="tel"
+                    value={formData.phone}
+                    onChange={handleInputChange('phone')}
+                    error={!!errors.phone}
+                    helperText={errors.phone}
+                    InputProps={{
+                      startAdornment: (
+                        <InputAdornment position="start">
+                          <Phone sx={{ color: theme.palette.text.secondary }} />
+                        </InputAdornment>
+                      ),
+                    }}
+                  />
+                </Grid>
+
+                <Grid item xs={12}>
+                  <Typography
+                    variant="caption"
+                    sx={{
+                      color: theme.palette.text.secondary,
+                      display: 'block',
+                      mb: 1,
+                      fontStyle: 'italic',
+                    }}
+                  >
+                    {t('contactInfoMessage')}
+                  </Typography>
+                </Grid>
+
                 <Grid item xs={12}>
                   <ModernSelect fullWidth>
                     <InputLabel>{t('chooseCountry')}</InputLabel>
@@ -638,15 +733,31 @@ const NewUserForm = ({ countries }) => {
                       }
                     >
                       {countries?.map((country) => (
-                        <MenuItem key={country.id} value={country.id}>
-                          {country.labels?.[currentLanguage] || country.code}
+                        <MenuItem key={country._id} value={country._id}>
+                          <Box display="flex" alignItems="center" gap={1}>
+                            {country.flag ? (
+                              <span style={{ fontSize: '20px' }}>
+                                {country.flag}
+                              </span>
+                            ) : (
+                              <img
+                                loading="lazy"
+                                width="20"
+                                src={`https://flagcdn.com/w20/${country.code.toLowerCase()}.png`}
+                                srcSet={`https://flagcdn.com/w40/${country.code.toLowerCase()}.png 2x`}
+                                alt=""
+                                style={{ marginRight: 8 }}
+                              />
+                            )}
+                            {getCountryLabel(country)} ({country.code})
+                          </Box>
                         </MenuItem>
                       ))}
                     </Select>
                   </ModernSelect>
                 </Grid>
 
-                <Grid item xs={12} sm={6}>
+                <Grid item xs={12}>
                   <ModernTextField
                     fullWidth
                     label={t('password')}
@@ -682,40 +793,38 @@ const NewUserForm = ({ countries }) => {
                   />
                 </Grid>
 
-                <Grid item xs={12} sm={6}>
-                  <ModernTextField
-                    fullWidth
-                    label={t('confirmPassword')}
-                    type={showConfirmPassword ? 'text' : 'password'}
-                    value={formData.confirmPassword}
-                    onChange={handleInputChange('confirmPassword')}
-                    error={!!errors.confirmPassword}
-                    helperText={errors.confirmPassword}
-                    InputProps={{
-                      startAdornment: (
-                        <InputAdornment position="start">
-                          <Security sx={{ color: theme.palette.text.secondary }} />
-                        </InputAdornment>
-                      ),
-                      endAdornment: (
-                        <InputAdornment position="end">
-                          <IconButton
-                            onClick={() => setShowConfirmPassword(!showConfirmPassword)}
-                            edge="end"
-                            size="small"
-                            sx={{
-                              color: theme.palette.text.secondary,
-                              '&:hover': {
-                                color: theme.palette.primary.main,
-                              }
-                            }}
-                          >
-                            {showConfirmPassword ? <VisibilityOff /> : <Visibility />}
-                          </IconButton>
-                        </InputAdornment>
-                      ),
+                <Grid item xs={12}>
+                  <FormControlLabel
+                    control={
+                      <Checkbox
+                        checked={formData.acceptTerms}
+                        onChange={handleCheckboxChange('acceptTerms')}
+                        sx={{
+                          '&.Mui-checked': {
+                            color: theme.palette.primary.main,
+                          },
+                        }}
+                      />
+                    }
+                    label={
+                      <Typography variant="body2">
+                        {t('acceptTerms')}
+                      </Typography>
+                    }
+                    sx={{
+                      alignItems: 'flex-start',
+                      mt: 1,
                     }}
                   />
+                  {errors.acceptTerms && (
+                    <Typography
+                      variant="caption"
+                      color="error"
+                      sx={{ display: 'block', mt: 0.5 }}
+                    >
+                      {errors.acceptTerms}
+                    </Typography>
+                  )}
                 </Grid>
               </Grid>
 
@@ -760,19 +869,21 @@ const NewUserForm = ({ countries }) => {
               <Button
                 component={Link}
                 to="/"
-                variant="outlined"
+                variant="contained"
                 sx={{
                   borderRadius: 3,
                   textTransform: 'none',
                   fontWeight: 600,
-                  borderColor: alpha(theme.palette.primary.main, 0.3),
-                  color: theme.palette.primary.main,
+                  background: 'linear-gradient(135deg, #764ba2 0%, #667eea 100%)',
+                  color: 'white',
                   py: 1.5,
                   px: 4,
+                  fontSize: '1rem',
+                  boxShadow: '0 8px 25px rgba(118, 75, 162, 0.3)',
                   '&:hover': {
-                    borderColor: theme.palette.primary.main,
-                    backgroundColor: alpha(theme.palette.primary.main, 0.04),
+                    background: 'linear-gradient(135deg, #6a4190 0%, #5a6fd8 100%)',
                     transform: 'translateY(-2px)',
+                    boxShadow: '0 12px 35px rgba(118, 75, 162, 0.4)',
                   }
                 }}
               >
