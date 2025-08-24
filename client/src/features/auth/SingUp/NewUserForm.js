@@ -321,7 +321,7 @@ const NewUserForm = ({ countries }) => {
   // Validation patterns
   const PWD_REGEX = /^[A-z0-9!@#$%]{4,12}$/;
   const EMAIL_REGEX = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-  const PHONE_REGEX = /^[+]?[1-9][\d]{0,15}$/;
+  const PHONE_REGEX = /^[+]?[\d\s\-\(\)]{7,20}$/;
 
   // Handle form input changes
   const handleInputChange = (field) => (event) => {
@@ -403,14 +403,22 @@ const NewUserForm = ({ countries }) => {
     if (!value.trim()) {
       return false;
     }
+    
+    const trimmedValue = value.trim();
+    
     // Check if it's an email
-    if (EMAIL_REGEX.test(value.trim())) {
+    if (EMAIL_REGEX.test(trimmedValue)) {
+      console.log('Valid email:', trimmedValue);
       return true;
     }
+    
     // Check if it's a phone number
-    if (PHONE_REGEX.test(value.trim())) {
+    if (PHONE_REGEX.test(trimmedValue)) {
+      console.log('Valid phone:', trimmedValue);
       return true;
     }
+    
+    console.log('Invalid input:', trimmedValue, 'Email test:', EMAIL_REGEX.test(trimmedValue), 'Phone test:', PHONE_REGEX.test(trimmedValue));
     return false;
   };
 
@@ -422,7 +430,7 @@ const NewUserForm = ({ countries }) => {
     if (!formData.emailOrPhone.trim()) {
       newErrors.emailOrPhone = t('emailOrPhone') + ' ' + t('required');
     } else if (!validateEmailOrPhone(formData.emailOrPhone)) {
-      newErrors.emailOrPhone = t('emailOrPhone') + ' ' + t('mustBeValid');
+      newErrors.emailOrPhone = t('emailOrPhone') + ' ' + t('mustBeValid') + ' (email or phone number)';
     }
 
     // Password validation
@@ -855,7 +863,7 @@ const NewUserForm = ({ countries }) => {
               </Typography>
                              <Button
                  component={Link}
-                 to="/signin"
+                 to="/login"
                  variant="contained"
                  sx={{
                    borderRadius: 3,
