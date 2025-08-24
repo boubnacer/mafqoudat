@@ -42,36 +42,38 @@ const createNewUser = async (req, res) => {
   const isEmail = EMAIL_REGEX.test(username);
   const isPhone = !isEmail; // If it's not an email, treat it as phone
 
-  // Check for duplicate username (email or phone)
+  // Check for duplicate email or phone in the email field
+  const duplicateEmail = await User.findOne({ email: username.toLowerCase() })
+    .lean()
+    .exec();
+
+  console.log('Checking for duplicate email:', username.toLowerCase(), 'Found:', !!duplicateEmail);
+
+  if (duplicateEmail) {
+    return res.status(409).json({ message: "Email or phone number already exists" });
+  }
+
+  // Check for duplicate email or phone in the phone field
+  const duplicatePhone = await User.findOne({ phone: username })
+    .lean()
+    .exec();
+
+  console.log('Checking for duplicate phone:', username, 'Found:', !!duplicatePhone);
+
+  if (duplicatePhone) {
+    return res.status(409).json({ message: "Email or phone number already exists" });
+  }
+
+  // Check for duplicate username
   const duplicateUsername = await User.findOne({ username })
     .collation({ locale: "en", strength: 2 })
     .lean()
     .exec();
 
+  console.log('Checking for duplicate username:', username, 'Found:', !!duplicateUsername);
+
   if (duplicateUsername) {
     return res.status(409).json({ message: "Email or phone number already exists" });
-  }
-
-  // Check for duplicate email if it's an email
-  if (isEmail) {
-    const duplicateEmail = await User.findOne({ email: username.toLowerCase() })
-      .lean()
-      .exec();
-
-    if (duplicateEmail) {
-      return res.status(409).json({ message: "Email already exists" });
-    }
-  }
-
-  // Check for duplicate phone if it's a phone
-  if (isPhone) {
-    const duplicatePhone = await User.findOne({ phone: username })
-      .lean()
-      .exec();
-
-    if (duplicatePhone) {
-      return res.status(409).json({ message: "Phone number already exists" });
-    }
   }
 
   // Hash password
@@ -84,6 +86,15 @@ const createNewUser = async (req, res) => {
     password: hashedPwd, 
     country 
   };
+
+  console.log('Creating user with object:', {
+    username: userObject.username,
+    email: userObject.email,
+    phone: userObject.phone,
+    country: userObject.country,
+    isEmail,
+    isPhone
+  });
 
   try {
     // Create and store new user
