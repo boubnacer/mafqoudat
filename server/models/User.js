@@ -29,7 +29,7 @@ const userSchema = new mongoose.Schema({
     trim: true,
     unique: true,
     sparse: true, // Allows multiple null values but unique non-null values
-    match: [/^[\+]?[1-9][\d]{0,15}$/, 'Please enter a valid phone number']
+    match: [/^[+]?[1-9][\d]{0,15}$/, 'Please enter a valid phone number']
   },
   country: {
     type: mongoose.Schema.Types.ObjectId,

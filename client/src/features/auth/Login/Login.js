@@ -45,6 +45,7 @@ import {
   ArrowForward,
   Person,
   Email,
+  Phone,
   Security,
   Login as LoginIcon,
   Language,

@@ -324,7 +324,7 @@ const NewUserForm = ({ countries }) => {
   const USER_REGEX = /^[A-z]{3,20}$/;
   const PWD_REGEX = /^[A-z0-9!@#$%]{4,12}$/;
   const EMAIL_REGEX = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-  const PHONE_REGEX = /^[\+]?[1-9][\d]{0,15}$/;
+  const PHONE_REGEX = /^[+]?[1-9][\d]{0,15}$/;
 
   // Handle form input changes
   const handleInputChange = (field) => (event) => {
