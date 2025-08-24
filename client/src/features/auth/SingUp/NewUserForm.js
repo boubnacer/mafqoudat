@@ -650,27 +650,32 @@ const NewUserForm = ({ countries }) => {
             {/* Signup Form */}
             <Box component="form" onSubmit={handleSubmit} sx={{ mb: 3 }}>
               <Grid container spacing={2}>
-                <Grid item xs={12}>
-                  <ModernTextField
-                    fullWidth
-                    label={t('emailOrPhone')}
-                    placeholder={t('emailOrPhonePlaceholder')}
-                    value={formData.emailOrPhone}
-                    onChange={handleInputChange('emailOrPhone')}
-                    error={!!errors.emailOrPhone}
-                    helperText={errors.emailOrPhone}
-                    InputProps={{
-                      startAdornment: (
-                        <InputAdornment position="start">
-                          <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.5 }}>
-                            <Email sx={{ color: theme.palette.text.secondary, fontSize: '1.2rem' }} />
-                            <Phone sx={{ color: theme.palette.text.secondary, fontSize: '1.2rem' }} />
-                          </Box>
-                        </InputAdornment>
-                      ),
-                    }}
-                  />
-                </Grid>
+                                 <Grid item xs={12}>
+                   <ModernTextField
+                     fullWidth
+                     label={t('emailOrPhone')}
+                     placeholder={t('emailOrPhonePlaceholder')}
+                     value={formData.emailOrPhone}
+                     onChange={handleInputChange('emailOrPhone')}
+                     error={!!errors.emailOrPhone}
+                     helperText={errors.emailOrPhone}
+                     InputProps={{
+                       startAdornment: (
+                         <InputAdornment position="start">
+                           <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.5 }}>
+                             <Email sx={{ color: theme.palette.text.secondary, fontSize: '1.2rem' }} />
+                             <Phone sx={{ color: theme.palette.text.secondary, fontSize: '1.2rem' }} />
+                           </Box>
+                         </InputAdornment>
+                       ),
+                     }}
+                     // Remove email validation to allow both email and phone
+                     inputProps={{
+                       autoComplete: 'off',
+                       spellCheck: false,
+                     }}
+                   />
+                 </Grid>
 
                 <Grid item xs={12}>
                   <ModernTextField
@@ -848,29 +853,29 @@ const NewUserForm = ({ countries }) => {
               >
                 {t('alreadyMember')}
               </Typography>
-              <Button
-                component={Link}
-                to="/"
-                variant="contained"
-                sx={{
-                  borderRadius: 3,
-                  textTransform: 'none',
-                  fontWeight: 600,
-                  background: 'linear-gradient(135deg, #764ba2 0%, #667eea 100%)',
-                  color: 'white',
-                  py: 1.5,
-                  px: 4,
-                  fontSize: '1rem',
-                  boxShadow: '0 8px 25px rgba(118, 75, 162, 0.3)',
-                  '&:hover': {
-                    background: 'linear-gradient(135deg, #6a4190 0%, #5a6fd8 100%)',
-                    transform: 'translateY(-2px)',
-                    boxShadow: '0 12px 35px rgba(118, 75, 162, 0.4)',
-                  }
-                }}
-              >
-                {t('signin')}
-              </Button>
+                             <Button
+                 component={Link}
+                 to="/signin"
+                 variant="contained"
+                 sx={{
+                   borderRadius: 3,
+                   textTransform: 'none',
+                   fontWeight: 600,
+                   background: 'linear-gradient(135deg, #764ba2 0%, #667eea 100%)',
+                   color: 'white',
+                   py: 1.5,
+                   px: 4,
+                   fontSize: '1rem',
+                   boxShadow: '0 8px 25px rgba(118, 75, 162, 0.3)',
+                   '&:hover': {
+                     background: 'linear-gradient(135deg, #6a4190 0%, #5a6fd8 100%)',
+                     transform: 'translateY(-2px)',
+                     boxShadow: '0 12px 35px rgba(118, 75, 162, 0.4)',
+                   }
+                 }}
+               >
+                 {t('signin')}
+               </Button>
             </Box>
           </CardContent>
         </MainCard>
