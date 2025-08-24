@@ -37,16 +37,10 @@ const createNewUser = async (req, res) => {
     return res.status(400).json({ message: "All fields are required" });
   }
 
-  // Determine if username is email or phone
+  // Determine if username is email or phone (accept any non-empty input)
   const EMAIL_REGEX = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-  const PHONE_REGEX = /^[+]?[1-9][\d]{0,15}$/;
-  
   const isEmail = EMAIL_REGEX.test(username);
-  const isPhone = PHONE_REGEX.test(username);
-  
-  if (!isEmail && !isPhone) {
-    return res.status(400).json({ message: "Please provide a valid email or phone number" });
-  }
+  const isPhone = !isEmail; // If it's not an email, treat it as phone
 
   // Check for duplicate username (email or phone)
   const duplicateUsername = await User.findOne({ username })
