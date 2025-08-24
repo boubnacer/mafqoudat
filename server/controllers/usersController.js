@@ -85,8 +85,10 @@ const createNewUser = async (req, res) => {
     country 
   };
 
-  // Create and store new user
-  const user = await User.create(userObject);
+  try {
+    // Create and store new user
+    const user = await User.create(userObject);
+    console.log('User created successfully:', user._id);
 
   const accessToken = jwt.sign(
     {
@@ -114,9 +116,13 @@ const createNewUser = async (req, res) => {
     maxAge: 7 * 24 * 60 * 60 * 1000, //cookie expiry: set to match rT
   });
 
-  console.log(accessToken);
+    console.log(accessToken);
 
-  res.json({ accessToken });
+    res.json({ accessToken });
+  } catch (error) {
+    console.error('Error creating user:', error);
+    return res.status(500).json({ message: "Error creating user" });
+  }
 };
 
 // @desc Update a user
