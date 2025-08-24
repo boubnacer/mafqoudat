@@ -183,7 +183,9 @@ const Dash = () => {
         background: theme.palette.mode === 'dark' 
           ? 'linear-gradient(180deg, rgba(18,18,18,0.8) 0%, rgba(28,28,28,0.8) 100%)'
           : 'linear-gradient(180deg, rgba(248,249,250,0.8) 0%, rgba(255,255,255,0.8) 100%)',
-        minHeight: '100vh'
+        minHeight: '100vh',
+        direction: currentLanguage === 'ar' ? 'rtl' : 'ltr',
+        overflowX: 'hidden', // Prevent horizontal overflow
       }}
     >
       
@@ -207,6 +209,8 @@ const Dash = () => {
         sx={{
           display: { xs: "grid", sm: "flex" },
           gridTemplateColumns: { xs: "repeat(1,1fr)", sm: "repeat(2,1fr)" },
+          maxWidth: '100%',
+          overflow: 'hidden',
         }}
       >
         <LeftSide
@@ -248,8 +252,7 @@ const Dash = () => {
               : '0 8px 32px rgba(0,0,0,0.1)',
             overflow: 'hidden',
             mx: { xs: 1, sm: 2 },
-            direction: currentLanguage === 'ar' ? 'rtl' : 'ltr',
-            border: `1px solid ${theme.palette.mode === 'dark' ? 'rgba(255,255,255,0.05)' : 'rgba(0,0,0,0.05)'}`
+            maxWidth: '100%',
           }}
         >
           <Box 

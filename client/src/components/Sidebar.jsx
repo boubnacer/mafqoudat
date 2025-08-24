@@ -23,10 +23,12 @@ import { useState } from "react";
 import { useEffect } from "react";
 import { useLocation, useNavigate } from "react-router-dom";
 import NavLinks from "./NavLinks";
+import { useTranslation } from "../utils/translations";
 
 const Sidebar = () => {
   const theme = useTheme();
   const isNonMobile = useMediaQuery("(min-width:600px)");
+  const { currentLanguage } = useTranslation();
 
   const dispatch = useDispatch();
   const navigate = useNavigate();
@@ -46,13 +48,19 @@ const Sidebar = () => {
   ];
 
   return (
-    <Box display={isNonMobile ? "none" : "block"} component="nav">
+    <Box 
+      display={isNonMobile ? "none" : "block"} 
+      component="nav"
+      sx={{
+        direction: currentLanguage === 'ar' ? 'rtl' : 'ltr',
+      }}
+    >
       {isSidebarOpen && (
         <Drawer
           open={isSidebarOpen}
           onClose={() => dispatch(setIsSidebarOpen())}
           variant="persistent"
-          anchor="left"
+          anchor={currentLanguage === 'ar' ? 'right' : 'left'}
           sx={{
             width: "250px",
             "& .MuiDrawer-paper": {
@@ -61,6 +69,7 @@ const Sidebar = () => {
               boxSizing: "border-box",
               borderWidth: isNonMobile ? 0 : "2px",
               width: "250px",
+              direction: currentLanguage === 'ar' ? 'rtl' : 'ltr',
             },
           }}
         >
@@ -76,7 +85,7 @@ const Sidebar = () => {
                   <IconButton
                     onClick={() => dispatch(setIsSidebarOpen(!isSidebarOpen))}
                   >
-                    <ChevronLeft />
+                    {currentLanguage === 'ar' ? <ChevronRightOutlined /> : <ChevronLeft />}
                   </IconButton>
                 )}
               </FlexBetween>

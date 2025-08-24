@@ -68,8 +68,8 @@ const StyledToolbar = styled(Toolbar)(({ theme }) => ({
     : '0 4px 20px rgba(0, 0, 0, 0.08)',
   transition: 'all 0.3s cubic-bezier(0.4, 0, 0.2, 1)',
   [theme.breakpoints.down('sm')]: {
-    padding: "0.75rem 1rem",
-    minHeight: "64px",
+    padding: "1rem 1.5rem",
+    minHeight: "72px",
   }
 }));
 
@@ -107,8 +107,8 @@ const LogoButton = styled(Button)(({ theme }) => ({
     }
   },
   [theme.breakpoints.down('sm')]: {
-    fontSize: '1.2rem',
-    padding: '6px 12px',
+    fontSize: '1.3rem',
+    padding: '8px 14px',
   }
 }));
 
@@ -131,8 +131,8 @@ const ActionButton = styled(IconButton)(({ theme }) => ({
       : '0 4px 15px rgba(0, 0, 0, 0.1)',
   },
   [theme.breakpoints.down('sm')]: {
-    padding: '8px',
-    margin: '0 2px',
+    padding: '10px',
+    margin: '0 3px',
   }
 }));
 
@@ -184,9 +184,9 @@ const CountrySelector = styled(Box)(({ theme }) => ({
     transition: 'all 0.3s ease',
   },
   [theme.breakpoints.down('sm')]: {
-    padding: '6px 8px',
+    padding: '8px 10px',
     '& img': {
-      marginRight: '0',
+      marginRight: '6px',
     }
   }
 }));
@@ -216,10 +216,10 @@ const LanguageSelector = styled(Box)(({ theme }) => ({
     fontSize: '18px',
   },
   [theme.breakpoints.down('sm')]: {
-    padding: '6px 8px',
+    padding: '8px 10px',
     '& .MuiSvgIcon-root': {
-      marginRight: '4px',
-      fontSize: '16px',
+      marginRight: '6px',
+      fontSize: '18px',
     }
   }
 }));
@@ -408,6 +408,7 @@ const Navbar = () => {
         left: 0,
         right: 0,
         zIndex: (theme) => theme.zIndex.drawer + 1,
+        direction: currentLanguage === 'ar' ? 'rtl' : 'ltr',
       }}
     >
       <StyledToolbar>
@@ -415,13 +416,13 @@ const Navbar = () => {
         <Box sx={{ 
           display: 'flex', 
           alignItems: 'center',
-          gap: { xs: '0.5rem', sm: '1rem' }
+          gap: { xs: '0.75rem', sm: '1rem' }
         }}>
           <LogoButton 
             onClick={onGoHomeClicked}
             sx={{
-              fontSize: { xs: '1.1rem', sm: '1.3rem' },
-              padding: { xs: '6px 12px', sm: '8px 16px' },
+              fontSize: { xs: '1.2rem', sm: '1.3rem' },
+              padding: { xs: '8px 14px', sm: '8px 16px' },
             }}
           >
             {t("brandName")}
@@ -460,20 +461,20 @@ const Navbar = () => {
         )}
 
         {/* Right section: Actions */}
-        <FlexBetween sx={{ gap: { xs: '4px', sm: '8px' } }}>
+        <FlexBetween sx={{ gap: { xs: '6px', sm: '8px' } }}>
           {/* Country selector */}
           <CountrySelector 
             onClick={() => dispatch(setOpenModal())}
             sx={{
-              padding: { xs: '6px 8px', sm: '6px 12px' },
+              padding: { xs: '8px 10px', sm: '6px 12px' },
             }}
           >
             {isInitialized && currentCountryDataToUse ? (
               <>
                 <img
                   loading="lazy"
-                  width={isMobile ? "28" : "30"}
-                  height={isMobile ? "18" : "20"}
+                  width={isMobile ? "32" : "30"}
+                  height={isMobile ? "20" : "20"}
                   src={`https://flagcdn.com/w20/${currentCountryDataToUse.code.toLowerCase()}.png`}
                   srcSet={`https://flagcdn.com/w40/${currentCountryDataToUse.code.toLowerCase()}.png 2x`}
                   alt=""
@@ -483,7 +484,7 @@ const Navbar = () => {
                     variant="body2"
                     sx={{
                       fontWeight: 500,
-                      fontSize: { xs: '0.8rem', sm: '0.9rem' },
+                      fontSize: { xs: '0.85rem', sm: '0.9rem' },
                       display: 'block'
                     }}
                   >
@@ -494,8 +495,8 @@ const Navbar = () => {
             ) : (
               <Box
                 sx={{
-                  width: isMobile ? 28 : 30,
-                  height: isMobile ? 18 : 20,
+                  width: isMobile ? 32 : 30,
+                  height: isMobile ? 20 : 20,
                   backgroundColor: 'rgba(255,255,255,0.1)',
                   borderRadius: '4px',
                   display: 'flex',
@@ -526,7 +527,7 @@ const Navbar = () => {
           <LanguageSelector 
             onClick={handleLanguageClick}
             sx={{
-              padding: { xs: '6px 8px', sm: '6px 12px' },
+              padding: { xs: '8px 10px', sm: '6px 12px' },
             }}
           >
             <Language />
@@ -534,7 +535,7 @@ const Navbar = () => {
               variant="body2"
               sx={{
                 fontWeight: 500,
-                fontSize: { xs: '0.75rem', sm: '0.9rem' },
+                fontSize: { xs: '0.8rem', sm: '0.9rem' },
                 display: 'block'
               }}
             >
@@ -557,18 +558,19 @@ const Navbar = () => {
             )}
           </ActionButton>
 
-          {/* User avatar/actions */}
+          {/* Logout button for authenticated users - desktop only */}
           {isAuthenticated && (
             <ActionButton
+              onClick={() => sendLogout()}
               sx={{
                 display: { xs: 'none', sm: 'flex' },
-                background: alpha(theme.palette.primary.main, 0.1),
+                background: alpha(theme.palette.error.main, 0.1),
                 '&:hover': {
-                  background: alpha(theme.palette.primary.main, 0.2),
+                  background: alpha(theme.palette.error.main, 0.2),
                 }
               }}
             >
-              <AccountCircle sx={{ fontSize: "22px" }} />
+              <LogoutOutlined sx={{ fontSize: "20px", color: 'error.main' }} />
             </ActionButton>
           )}
 
@@ -579,7 +581,7 @@ const Navbar = () => {
               display: { xs: 'flex', sm: 'none' },
             }}
           >
-            <MenuIcon sx={{ fontSize: "22px" }} />
+            <MenuIcon sx={{ fontSize: "24px" }} />
           </ActionButton>
         </FlexBetween>
 

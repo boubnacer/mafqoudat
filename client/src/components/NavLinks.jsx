@@ -94,8 +94,8 @@ const NavLinks = ({ onLinkClick }) => {
       sx={{
         display: "flex",
         borderRadius: "12px",
-        gap: { xs: "0.125rem", sm: "0.25rem" },
-        padding: { xs: "0.125rem", sm: "0.25rem" },
+        gap: { xs: "0.25rem", sm: "0.25rem" },
+        padding: { xs: "0.25rem", sm: "0.25rem" },
         background: onLinkClick 
           ? 'transparent' 
           : theme.palette.mode === 'dark' 
@@ -108,6 +108,7 @@ const NavLinks = ({ onLinkClick }) => {
         maxWidth: onLinkClick ? "100%" : "fit-content",
         border: onLinkClick ? 'none' : `1px solid ${alpha(theme.palette.divider, 0.1)}`,
         flexDirection: onLinkClick ? "column" : "row",
+        direction: currentLanguage === 'ar' ? 'rtl' : 'ltr',
       }}
     >
       {navlinks.map(({ title, flcode, tooltip, icon }) => (
@@ -127,8 +128,8 @@ const NavLinks = ({ onLinkClick }) => {
                     : 'rgba(0, 0, 0, 0.1)'
                   : 'transparent',
                 borderRadius: "12px",
-                height: onLinkClick ? "2.5rem" : { xs: "2rem", sm: "2.25rem" },
-                minHeight: onLinkClick ? "2.5rem" : { xs: "2rem", sm: "2.25rem" },
+                height: onLinkClick ? "3rem" : { xs: "2.5rem", sm: "2.25rem" },
+                minHeight: onLinkClick ? "3rem" : { xs: "2.5rem", sm: "2.25rem" },
                 transition: 'all 0.2s ease',
                 '&:hover': {
                   backgroundColor: theme.palette.mode === 'dark'
@@ -138,18 +139,18 @@ const NavLinks = ({ onLinkClick }) => {
                 },
                 display: 'flex',
                 alignItems: 'center',
-                gap: { xs: '0.5rem', sm: '0.75rem' },
-                px: onLinkClick ? 2 : { xs: 1, sm: 1.5 },
-                py: onLinkClick ? 1 : { xs: 0.5, sm: 0.75 },
+                gap: { xs: '0.75rem', sm: '0.75rem' },
+                px: onLinkClick ? 2 : { xs: 1.5, sm: 1.5 },
+                py: onLinkClick ? 1 : { xs: 0.75, sm: 0.75 },
                 minWidth: 0,
                 whiteSpace: 'nowrap',
               }}
             >
-              <RenderIcon name={icon} sx={{ fontSize: onLinkClick ? '20px' : { xs: '16px', sm: '18px' } }} />
+              <RenderIcon name={icon} sx={{ fontSize: onLinkClick ? '22px' : { xs: '18px', sm: '18px' } }} />
               <ListItemText
                 primary={title}
                 primaryTypographyProps={{
-                  fontSize: onLinkClick ? "16px" : { xs: "12px", sm: "14px" },
+                  fontSize: onLinkClick ? "16px" : { xs: "14px", sm: "14px" },
                   fontWeight: activeLink === flcode ? "600" : "500",
                   lineHeight: 1.2,
                   whiteSpace: "nowrap",
