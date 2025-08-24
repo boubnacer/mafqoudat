@@ -398,28 +398,9 @@ const NewUserForm = ({ countries }) => {
     return option.label || option.code;
   };
 
-  // Validate email or phone
+  // Validate email or phone - accept any non-empty input
   const validateEmailOrPhone = (value) => {
-    if (!value.trim()) {
-      return false;
-    }
-    
-    const trimmedValue = value.trim();
-    
-    // Check if it's an email
-    if (EMAIL_REGEX.test(trimmedValue)) {
-      console.log('Valid email:', trimmedValue);
-      return true;
-    }
-    
-    // Check if it's a phone number
-    if (PHONE_REGEX.test(trimmedValue)) {
-      console.log('Valid phone:', trimmedValue);
-      return true;
-    }
-    
-    console.log('Invalid input:', trimmedValue, 'Email test:', EMAIL_REGEX.test(trimmedValue), 'Phone test:', PHONE_REGEX.test(trimmedValue));
-    return false;
+    return value.trim().length > 0;
   };
 
   // Validate form
@@ -429,8 +410,6 @@ const NewUserForm = ({ countries }) => {
     // Email or Phone validation
     if (!formData.emailOrPhone.trim()) {
       newErrors.emailOrPhone = t('emailOrPhone') + ' ' + t('required');
-    } else if (!validateEmailOrPhone(formData.emailOrPhone)) {
-      newErrors.emailOrPhone = t('emailOrPhone') + ' ' + t('mustBeValid') + ' (email or phone number)';
     }
 
     // Password validation
