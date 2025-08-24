@@ -16,19 +16,19 @@ const userSchema = new mongoose.Schema({
   },
   email: {
     type: String,
-    required: true,
+    required: false,
     trim: true,
     lowercase: true,
     unique: true,
-    sparse: true, // Allows multiple null values but unique non-null values
+    sparse: true,
     match: [/^\w+([.-]?\w+)*@\w+([.-]?\w+)*(\.\w{2,3})+$/, 'Please enter a valid email address']
   },
   phone: {
     type: String,
-    required: true,
+    required: false,
     trim: true,
     unique: true,
-    sparse: true, // Allows multiple null values but unique non-null values
+    sparse: true,
     match: [/^[+]?[1-9][\d]{0,15}$/, 'Please enter a valid phone number']
   },
   country: {

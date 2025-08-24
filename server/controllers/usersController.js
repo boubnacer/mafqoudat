@@ -33,36 +33,51 @@ const createNewUser = async (req, res) => {
   const { username, email, phone, password, country } = req.body;
 
   // Confirm data
-  if (!username || !email || !phone || !password || !country) {
+  if (!username || !password || !country) {
     return res.status(400).json({ message: "All fields are required" });
   }
 
-  // Check for duplicate username
+  // Determine if username is email or phone
+  const EMAIL_REGEX = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+  const PHONE_REGEX = /^[+]?[1-9][\d]{0,15}$/;
+  
+  const isEmail = EMAIL_REGEX.test(username);
+  const isPhone = PHONE_REGEX.test(username);
+  
+  if (!isEmail && !isPhone) {
+    return res.status(400).json({ message: "Please provide a valid email or phone number" });
+  }
+
+  // Check for duplicate username (email or phone)
   const duplicateUsername = await User.findOne({ username })
     .collation({ locale: "en", strength: 2 })
     .lean()
     .exec();
 
   if (duplicateUsername) {
-    return res.status(409).json({ message: "Username already exists" });
+    return res.status(409).json({ message: "Email or phone number already exists" });
   }
 
-  // Check for duplicate email
-  const duplicateEmail = await User.findOne({ email: email.toLowerCase() })
-    .lean()
-    .exec();
+  // Check for duplicate email if it's an email
+  if (isEmail) {
+    const duplicateEmail = await User.findOne({ email: username.toLowerCase() })
+      .lean()
+      .exec();
 
-  if (duplicateEmail) {
-    return res.status(409).json({ message: "Email already exists" });
+    if (duplicateEmail) {
+      return res.status(409).json({ message: "Email already exists" });
+    }
   }
 
-  // Check for duplicate phone
-  const duplicatePhone = await User.findOne({ phone })
-    .lean()
-    .exec();
+  // Check for duplicate phone if it's a phone
+  if (isPhone) {
+    const duplicatePhone = await User.findOne({ phone: username })
+      .lean()
+      .exec();
 
-  if (duplicatePhone) {
-    return res.status(409).json({ message: "Phone number already exists" });
+    if (duplicatePhone) {
+      return res.status(409).json({ message: "Phone number already exists" });
+    }
   }
 
   // Hash password
@@ -70,8 +85,8 @@ const createNewUser = async (req, res) => {
 
   const userObject = { 
     username, 
-    email: email.toLowerCase(), 
-    phone, 
+    email: isEmail ? username.toLowerCase() : "", 
+    phone: isPhone ? username : "", 
     password: hashedPwd, 
     country 
   };

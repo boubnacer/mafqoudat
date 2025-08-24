@@ -308,9 +308,7 @@ const NewUserForm = ({ countries }) => {
 
   // State
   const [formData, setFormData] = useState({
-    username: "",
-    email: "",
-    phone: "",
+    emailOrPhone: "",
     password: "",
     country: countries?.[0]?.id || "",
     acceptTerms: false,
@@ -321,7 +319,6 @@ const NewUserForm = ({ countries }) => {
   const [languageAnchorEl, setLanguageAnchorEl] = useState(null);
 
   // Validation patterns
-  const USER_REGEX = /^[A-z]{3,20}$/;
   const PWD_REGEX = /^[A-z0-9!@#$%]{4,12}$/;
   const EMAIL_REGEX = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
   const PHONE_REGEX = /^[+]?[1-9][\d]{0,15}$/;
@@ -401,29 +398,31 @@ const NewUserForm = ({ countries }) => {
     return option.label || option.code;
   };
 
+  // Validate email or phone
+  const validateEmailOrPhone = (value) => {
+    if (!value.trim()) {
+      return false;
+    }
+    // Check if it's an email
+    if (EMAIL_REGEX.test(value.trim())) {
+      return true;
+    }
+    // Check if it's a phone number
+    if (PHONE_REGEX.test(value.trim())) {
+      return true;
+    }
+    return false;
+  };
+
   // Validate form
   const validateForm = () => {
     const newErrors = {};
 
-    // Username validation
-    if (!formData.username.trim()) {
-      newErrors.username = t('username') + ' ' + t('required');
-    } else if (!USER_REGEX.test(formData.username)) {
-      newErrors.username = t('username') + ' ' + t('mustBeValid');
-    }
-
-    // Email validation
-    if (!formData.email.trim()) {
-      newErrors.email = t('email') + ' ' + t('required');
-    } else if (!EMAIL_REGEX.test(formData.email)) {
-      newErrors.email = t('email') + ' ' + t('mustBeValid');
-    }
-
-    // Phone validation
-    if (!formData.phone.trim()) {
-      newErrors.phone = t('phone') + ' ' + t('required');
-    } else if (!PHONE_REGEX.test(formData.phone)) {
-      newErrors.phone = t('phone') + ' ' + t('mustBeValid');
+    // Email or Phone validation
+    if (!formData.emailOrPhone.trim()) {
+      newErrors.emailOrPhone = t('emailOrPhone') + ' ' + t('required');
+    } else if (!validateEmailOrPhone(formData.emailOrPhone)) {
+      newErrors.emailOrPhone = t('emailOrPhone') + ' ' + t('mustBeValid');
     }
 
     // Password validation
@@ -458,10 +457,13 @@ const NewUserForm = ({ countries }) => {
     setIsSubmitting(true);
 
     try {
+      // Determine if input is email or phone
+      const isEmail = EMAIL_REGEX.test(formData.emailOrPhone.trim());
+      
       const { accessToken } = await addNewUser({
-        username: formData.username.trim(),
-        email: formData.email.trim(),
-        phone: formData.phone.trim(),
+        username: formData.emailOrPhone.trim(), // Use email/phone as username
+        email: isEmail ? formData.emailOrPhone.trim() : "",
+        phone: isEmail ? "" : formData.emailOrPhone.trim(),
         password: formData.password,
         country: formData.country,
       }).unwrap();
@@ -651,53 +653,55 @@ const NewUserForm = ({ countries }) => {
                 <Grid item xs={12}>
                   <ModernTextField
                     fullWidth
-                    label={t('username')}
-                    value={formData.username}
-                    onChange={handleInputChange('username')}
-                    error={!!errors.username}
-                    helperText={errors.username}
+                    label={t('emailOrPhone')}
+                    placeholder={t('emailOrPhonePlaceholder')}
+                    value={formData.emailOrPhone}
+                    onChange={handleInputChange('emailOrPhone')}
+                    error={!!errors.emailOrPhone}
+                    helperText={errors.emailOrPhone}
                     InputProps={{
                       startAdornment: (
                         <InputAdornment position="start">
-                          <Person sx={{ color: theme.palette.text.secondary }} />
+                          <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.5 }}>
+                            <Email sx={{ color: theme.palette.text.secondary, fontSize: '1.2rem' }} />
+                            <Phone sx={{ color: theme.palette.text.secondary, fontSize: '1.2rem' }} />
+                          </Box>
                         </InputAdornment>
                       ),
                     }}
                   />
                 </Grid>
 
-                <Grid item xs={12} sm={6}>
+                <Grid item xs={12}>
                   <ModernTextField
                     fullWidth
-                    label={t('email')}
-                    type="email"
-                    value={formData.email}
-                    onChange={handleInputChange('email')}
-                    error={!!errors.email}
-                    helperText={errors.email}
+                    label={t('password')}
+                    type={showPassword ? 'text' : 'password'}
+                    value={formData.password}
+                    onChange={handleInputChange('password')}
+                    error={!!errors.password}
+                    helperText={errors.password}
                     InputProps={{
                       startAdornment: (
                         <InputAdornment position="start">
-                          <Email sx={{ color: theme.palette.text.secondary }} />
+                          <Lock sx={{ color: theme.palette.text.secondary }} />
                         </InputAdornment>
                       ),
-                    }}
-                  />
-                </Grid>
-
-                <Grid item xs={12} sm={6}>
-                  <ModernTextField
-                    fullWidth
-                    label={t('phone')}
-                    type="tel"
-                    value={formData.phone}
-                    onChange={handleInputChange('phone')}
-                    error={!!errors.phone}
-                    helperText={errors.phone}
-                    InputProps={{
-                      startAdornment: (
-                        <InputAdornment position="start">
-                          <Phone sx={{ color: theme.palette.text.secondary }} />
+                      endAdornment: (
+                        <InputAdornment position="end">
+                          <IconButton
+                            onClick={() => setShowPassword(!showPassword)}
+                            edge="end"
+                            size="small"
+                            sx={{
+                              color: theme.palette.text.secondary,
+                              '&:hover': {
+                                color: theme.palette.primary.main,
+                              }
+                            }}
+                          >
+                            {showPassword ? <VisibilityOff /> : <Visibility />}
+                          </IconButton>
                         </InputAdornment>
                       ),
                     }}
@@ -758,73 +762,51 @@ const NewUserForm = ({ countries }) => {
                 </Grid>
 
                 <Grid item xs={12}>
-                  <ModernTextField
-                    fullWidth
-                    label={t('password')}
-                    type={showPassword ? 'text' : 'password'}
-                    value={formData.password}
-                    onChange={handleInputChange('password')}
-                    error={!!errors.password}
-                    helperText={errors.password}
-                    InputProps={{
-                      startAdornment: (
-                        <InputAdornment position="start">
-                          <Lock sx={{ color: theme.palette.text.secondary }} />
-                        </InputAdornment>
-                      ),
-                      endAdornment: (
-                        <InputAdornment position="end">
-                          <IconButton
-                            onClick={() => setShowPassword(!showPassword)}
-                            edge="end"
-                            size="small"
-                            sx={{
-                              color: theme.palette.text.secondary,
-                              '&:hover': {
-                                color: theme.palette.primary.main,
-                              }
-                            }}
-                          >
-                            {showPassword ? <VisibilityOff /> : <Visibility />}
-                          </IconButton>
-                        </InputAdornment>
-                      ),
-                    }}
-                  />
-                </Grid>
-
-                <Grid item xs={12}>
-                  <FormControlLabel
-                    control={
-                      <Checkbox
-                        checked={formData.acceptTerms}
-                        onChange={handleCheckboxChange('acceptTerms')}
-                        sx={{
-                          '&.Mui-checked': {
+                  <Box sx={{ display: 'flex', alignItems: 'flex-start', gap: 1, mt: 1 }}>
+                    <Checkbox
+                      checked={formData.acceptTerms}
+                      onChange={handleCheckboxChange('acceptTerms')}
+                      sx={{
+                        mt: 0.5,
+                        '&.Mui-checked': {
+                          color: theme.palette.primary.main,
+                        },
+                      }}
+                    />
+                    <Box sx={{ flex: 1 }}>
+                      <Typography variant="body2" sx={{ lineHeight: 1.5 }}>
+                        {t('acceptTerms')}{' '}
+                        <Button
+                          component={Link}
+                          to="/terms"
+                          sx={{
                             color: theme.palette.primary.main,
-                          },
-                        }}
-                      />
-                    }
-                    label={
-                      <Typography variant="body2">
-                        {t('acceptTerms')}
+                            textDecoration: 'underline',
+                            p: 0,
+                            minWidth: 'auto',
+                            fontSize: 'inherit',
+                            fontWeight: 'inherit',
+                            textTransform: 'none',
+                            '&:hover': {
+                              backgroundColor: 'transparent',
+                              textDecoration: 'none',
+                            }
+                          }}
+                        >
+                          {t('termsAndConditions')}
+                        </Button>
                       </Typography>
-                    }
-                    sx={{
-                      alignItems: 'flex-start',
-                      mt: 1,
-                    }}
-                  />
-                  {errors.acceptTerms && (
-                    <Typography
-                      variant="caption"
-                      color="error"
-                      sx={{ display: 'block', mt: 0.5 }}
-                    >
-                      {errors.acceptTerms}
-                    </Typography>
-                  )}
+                      {errors.acceptTerms && (
+                        <Typography
+                          variant="caption"
+                          color="error"
+                          sx={{ display: 'block', mt: 0.5 }}
+                        >
+                          {errors.acceptTerms}
+                        </Typography>
+                      )}
+                    </Box>
+                  </Box>
                 </Grid>
               </Grid>
 
