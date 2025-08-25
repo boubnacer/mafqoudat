@@ -59,8 +59,9 @@ export const useDashboard = () => {
         dispatch(setCurrentCountry({ currentCountry: defaultCountryId }));
       } else {
         // Set a fallback country if no countries data is available or if query fails
-        console.log('useDashboard: Setting fallback country: 507f1f77bcf86cd799439011');
-        dispatch(setCurrentCountry({ currentCountry: '507f1f77bcf86cd799439011' }));
+        // Use Morocco (MA) which has posts in the database
+        console.log('useDashboard: Setting fallback country: 68a4b54ab46524c54c553ca9 (Morocco)');
+        dispatch(setCurrentCountry({ currentCountry: '68a4b54ab46524c54c553ca9' }));
       }
     } else {
       console.log('useDashboard: Country already set, keeping:', currentCountry);

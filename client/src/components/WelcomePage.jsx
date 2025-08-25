@@ -158,7 +158,7 @@ const WelcomePage = () => {
 
   // Fallback countries in case API fails
 const fallbackCountries = [
-  { _id: '507f1f77bcf86cd799439011', code: 'MA', label: 'Morocco', labels: { en: 'MA', ar: 'MA', fr: 'MA' }, names: { en: 'Morocco', ar: 'المغرب', fr: 'Maroc' }, flag: '🇲🇦' },
+          { _id: '68a4b54ab46524c54c553ca9', code: 'MA', label: 'Morocco', labels: { en: 'MA', ar: 'MA', fr: 'MA' }, names: { en: 'Morocco', ar: 'المغرب', fr: 'Maroc' }, flag: '🇲🇦' },
 ];
 
   const countries = countriesData?.ids?.map((id) => countriesData?.entities[id]) || fallbackCountries;

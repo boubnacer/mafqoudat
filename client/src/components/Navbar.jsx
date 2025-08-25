@@ -275,7 +275,7 @@ const Navbar = () => {
   // Initialize country on component mount
   useEffect(() => {
     if (!isInitialized) {
-      const initialCountry = country || currentCountry || '507f1f77bcf86cd799439011';
+      const initialCountry = country || currentCountry || '68a4b54ab46524c54c553ca9';
       setCountryId(initialCountry);
       setIsInitialized(true);
     }
@@ -361,7 +361,7 @@ const Navbar = () => {
   };
 
   const fallbackCountries = [
-    { _id: '507f1f77bcf86cd799439011', code: 'MA', label: 'Morocco', labels: { en: 'MA', ar: 'MA', fr: 'MA' }, names: { en: 'Morocco', ar: 'المغرب', fr: 'Maroc' }, flag: '🇲🇦' },
+            { _id: '68a4b54ab46524c54c553ca9', code: 'MA', label: 'Morocco', labels: { en: 'MA', ar: 'MA', fr: 'MA' }, names: { en: 'Morocco', ar: 'المغرب', fr: 'Maroc' }, flag: '🇲🇦' },
   ];
 
   const countriesToUse = countries || fallbackCountries;

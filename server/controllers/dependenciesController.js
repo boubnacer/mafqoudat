@@ -128,7 +128,7 @@ const getDashboard = async (req, res) => {
           as: "User",
         },
       },
-      { $unwind: "$User" },
+      { $unwind: { path: "$User", preserveNullAndEmptyArrays: true } },
       {
         $lookup: {
           from: "countries",
@@ -202,7 +202,7 @@ const getDashboard = async (req, res) => {
           as: "User",
         },
       },
-      { $unwind: "$User" },
+      { $unwind: { path: "$User", preserveNullAndEmptyArrays: true } },
       {
         $lookup: {
           from: "countries",
