@@ -44,10 +44,24 @@ const AppContent = () => {
   const { currentLanguage } = useLanguage();
   const location = useLocation();
   
+  // Debug Redux store
+  console.log('AppContent: Redux store state:', {
+    mode,
+    currentLanguage,
+    location: location.pathname
+  });
+  
   // Use the redirect after login hook
-  console.log('AppContent: About to call useRedirectAfterLogin hook');
-  useRedirectAfterLogin();
-  console.log('AppContent: useRedirectAfterLogin hook called');
+  console.log('🚀 AppContent: About to call useRedirectAfterLogin hook');
+  console.log('🚀 AppContent: Current mode:', mode);
+  console.log('🚀 AppContent: Current language:', currentLanguage);
+  
+  try {
+    useRedirectAfterLogin();
+    console.log('🚀 AppContent: useRedirectAfterLogin hook called successfully');
+  } catch (error) {
+    console.error('❌ AppContent: Error calling useRedirectAfterLogin hook:', error);
+  }
   
   console.log('AppContent: Current location:', location.pathname);
   console.log('AppContent: Current URL:', window.location.href);
