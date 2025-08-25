@@ -63,6 +63,7 @@ const RecentPosts = ({ _id, categoryname, region, exactLocation, image, createdA
     if (!usernameId) {
       // Store the current post URL for redirect after login
       const currentPostUrl = `/dash/posts/${_id}`;
+      console.log('RecentPosts - Storing redirect URL:', currentPostUrl);
       localStorage.setItem('redirectAfterLogin', currentPostUrl);
       window.location.href = '/login';
       return;

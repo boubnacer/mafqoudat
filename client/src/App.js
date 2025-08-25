@@ -29,6 +29,7 @@ import PrefetchDependencies from "./features/PrefetchData/PrefetchDependencies";
 import { LanguageProvider, useLanguage } from "./utils/languageContext";
 import { cleanupLocalStorage, initializeLocalStorage } from "./utils/localStorageUtils";
 import { useLocation } from "react-router-dom";
+import useRedirectAfterLogin from "./hooks/useRedirectAfterLogin";
 
 // Import new page components
 import PrivacyPolicy from "./components/Pages/PrivacyPolicy";
@@ -42,6 +43,9 @@ const AppContent = () => {
   const mode = useSelector((state) => state.global.mode);
   const { currentLanguage } = useLanguage();
   const location = useLocation();
+  
+  // Use the redirect after login hook
+  useRedirectAfterLogin();
   
   console.log('AppContent: Current location:', location.pathname);
   console.log('AppContent: Current URL:', window.location.href);

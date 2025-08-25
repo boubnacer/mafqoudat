@@ -95,6 +95,7 @@ const Post = ({ post, viewMode = "grid" }) => {
     if (!usernameId) {
       // Store the current post URL for redirect after login
       const currentPostUrl = `/dash/posts/${post._id}`;
+      console.log('Post.js - Storing redirect URL:', currentPostUrl);
       localStorage.setItem('redirectAfterLogin', currentPostUrl);
       window.location.href = '/login';
       return;

@@ -77,6 +77,7 @@ const SinglePostPage = ({
     if (!usernameId) {
       // Store the current post URL in localStorage for redirect after login
       const currentPostUrl = window.location.pathname;
+      console.log('SinglePostPage - Storing redirect URL:', currentPostUrl);
       localStorage.setItem('redirectAfterLogin', currentPostUrl);
       
       // Redirect to login page
