@@ -90,6 +90,15 @@ const Post = ({ post, viewMode = "grid" }) => {
   const handleReport = () => {
     console.log('Post component - handleReport called');
     console.log('Post component - post data:', post);
+    
+    // Check if user is authenticated
+    if (!usernameId) {
+      // Redirect to login page immediately
+      navigate('/login');
+      return;
+    }
+    
+    // If authenticated, open the report dialog
     setReportDialogOpen(true);
   };
 
@@ -385,18 +394,20 @@ const Post = ({ post, viewMode = "grid" }) => {
                         <VisibilityIcon sx={{ fontSize: 18 }} />
                       </IconButton>
                     </Tooltip>
-                    <Tooltip title={t('report')}>
-                      <IconButton 
-                        onClick={handleReport}
-                        size="small"
-                        sx={{ 
-                          color: theme.palette.error.main,
-                          '&:hover': { backgroundColor: alpha(theme.palette.error.main, 0.1) }
-                        }}
-                      >
-                        <ReportProblemOutlined sx={{ fontSize: 18 }} />
-                      </IconButton>
-                    </Tooltip>
+                    {usernameId && (
+                      <Tooltip title={t('report')}>
+                        <IconButton 
+                          onClick={handleReport}
+                          size="small"
+                          sx={{ 
+                            color: theme.palette.error.main,
+                            '&:hover': { backgroundColor: alpha(theme.palette.error.main, 0.1) }
+                          }}
+                        >
+                          <ReportProblemOutlined sx={{ fontSize: 18 }} />
+                        </IconButton>
+                      </Tooltip>
+                    )}
                   </Box>
                 </Box>
 

@@ -20,7 +20,6 @@ import {
 import { Report, Send, Close } from '@mui/icons-material';
 import { useTranslation } from '../utils/translations';
 import useAuth from '../hooks/useAuth';
-import { useNavigate } from 'react-router-dom';
 
 const ReportDialog = ({ open, onClose, post, onSubmit }) => {
   const [selectedReason, setSelectedReason] = useState('');
@@ -31,7 +30,6 @@ const ReportDialog = ({ open, onClose, post, onSubmit }) => {
   const { t, currentLanguage } = useTranslation();
   const theme = useTheme();
   const { usernameId } = useAuth();
-  const navigate = useNavigate();
 
   // Debug: Log the post data to see what's available
   React.useEffect(() => {
@@ -107,13 +105,6 @@ const ReportDialog = ({ open, onClose, post, onSubmit }) => {
   };
 
   const handleSubmit = async () => {
-    // Check if user is authenticated
-    if (!usernameId) {
-      // Redirect to login page instead of showing error
-      navigate('/login');
-      handleClose();
-      return;
-    }
 
     if (!selectedReason) {
       setError(t('pleaseSelectReason'));
