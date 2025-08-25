@@ -29,6 +29,16 @@ const ReportDialog = ({ open, onClose, post, onSubmit }) => {
   const { t, currentLanguage } = useTranslation();
   const theme = useTheme();
 
+  // Debug: Log the post data to see what's available
+  React.useEffect(() => {
+    if (open && post) {
+      console.log('ReportDialog - Post data:', post);
+      console.log('ReportDialog - Post ID:', post._id);
+      console.log('ReportDialog - Post user:', post.user);
+      console.log('ReportDialog - Post foundLost:', post.foundLost);
+    }
+  }, [open, post]);
+
   const reportReasons = [
     {
       value: 'inappropriate_content',
@@ -103,18 +113,31 @@ const ReportDialog = ({ open, onClose, post, onSubmit }) => {
       return;
     }
 
+    if (!post || !post._id) {
+      setError('Invalid post data');
+      return;
+    }
+
     setIsSubmitting(true);
     setError('');
 
     try {
       const finalReason = selectedReason === 'other' ? customReason : getLabel(reportReasons.find(r => r.value === selectedReason).label);
       
-      const result = await onSubmit({
+      // Debug: Log what we're sending
+      const reportData = {
         postId: post._id,
         reason: finalReason,
         reasonType: selectedReason,
-        userId: post.user // Send the post owner's ID for reference
-      });
+        userId: post.user || 'anonymous' // Send the post owner's ID for reference, or anonymous if not available
+      };
+      
+      console.log('ReportDialog - Submitting report with data:', reportData);
+      console.log('ReportDialog - onSubmit function:', typeof onSubmit);
+      
+      const result = await onSubmit(reportData);
+      
+      console.log('ReportDialog - Result received:', result);
 
       // Check if the API call was successful
       if (result && result.data && result.data.success) {

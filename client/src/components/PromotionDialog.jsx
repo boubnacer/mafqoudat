@@ -27,11 +27,29 @@ const PromotionDialog = ({ open, onClose, postId, onPromotionRequested }) => {
   
   const [requestPromotion, { isLoading, isError, error: promotionError }] = useRequestPromotionMutation();
 
+  // Debug: Log the postId to see what's being passed
+  React.useEffect(() => {
+    if (open && postId) {
+      console.log('PromotionDialog - Post ID:', postId);
+    }
+  }, [open, postId]);
+
   const handlePromotionRequest = async () => {
     setError(null);
 
+    if (!postId) {
+      setError('Invalid post ID');
+      return;
+    }
+
     try {
+      // Debug: Log what we're sending
+      console.log('PromotionDialog - Requesting promotion for postId:', postId);
+      
       const result = await requestPromotion({ postId }).unwrap();
+      
+      // Debug: Log the result
+      console.log('PromotionDialog - Result:', result);
       
       // Check if the API call was successful
       if (result && result.success) {

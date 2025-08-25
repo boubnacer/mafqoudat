@@ -59,9 +59,13 @@ const Post = ({ post, viewMode = "grid" }) => {
   const [submitReport] = useSubmitReportMutation();
 
   const handleSubmitReport = async (reportData) => {
+    console.log('Post component - handleSubmitReport called with:', reportData);
     try {
-      await submitReport(reportData).unwrap();
+      const result = await submitReport(reportData).unwrap();
+      console.log('Post component - submitReport result:', result);
+      return result;
     } catch (error) {
+      console.error('Post component - submitReport error:', error);
       throw new Error(error.data?.message || 'Failed to submit report');
     }
   };
@@ -84,6 +88,8 @@ const Post = ({ post, viewMode = "grid" }) => {
 
   const handleViewDetails = () => navigate(`/dash/posts/${post._id}`);
   const handleReport = () => {
+    console.log('Post component - handleReport called');
+    console.log('Post component - post data:', post);
     setReportDialogOpen(true);
   };
 

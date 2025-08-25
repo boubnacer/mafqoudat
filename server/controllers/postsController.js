@@ -520,7 +520,7 @@ const createNewPost = async (req, res) => {
 
 // @desc Submit a post report
 // @route POST /posts/report
-// @access Private
+// @access Public (no authentication required)
 const submitPostReport = async (req, res) => {
   try {
     const { postId, reason, userId } = req.body;
@@ -541,12 +541,13 @@ const submitPostReport = async (req, res) => {
       });
     }
 
-    // Find the post with proper population
+    // Find the post with proper population for the new data structure
     const post = await Post.findById(postId)
       .populate('user', 'username')
-      .populate('category', 'code')
-      .populate('country', 'code')
+      .populate('category', 'labels.en code')
+      .populate('country', 'labels.en code names.en')
       .populate('foundLost', 'code')
+      .populate('city', 'labels.en')
       .lean()
       .exec();
 
@@ -557,29 +558,32 @@ const submitPostReport = async (req, res) => {
       });
     }
 
-    // Prepare post data for email with proper field names
+    // Prepare post data for email with proper field names for new structure
     const emailPostData = {
       _id: post._id,
-      foundLost: post.foundLost?.code || post.foundLost,
-      category: post.category?.code || post.category,
-      country: post.country?.code || post.country,
+      foundLost: post.foundLost?.code || 'Unknown',
+      category: post.category?.labels?.en || post.category?.code || 'Unknown Category',
+      country: post.country?.labels?.en || post.country?.names?.en || post.country?.code || 'Unknown Country',
       region: post.region || 'Unknown',
-      city: post.city || 'Unknown',
+      city: post.city?.labels?.en || post.city || 'Unknown',
       exactLocation: post.exactLocation || 'Unknown',
       contact: post.contact || 'Not provided',
       description: post.description || 'No description',
       createdAt: post.createdAt
     };
 
+    console.log('Email post data prepared:', emailPostData);
+
     // Get user data (if userId is provided and not anonymous)
     let user = null;
     if (reportingUserId && reportingUserId !== 'anonymous') {
       user = await User.findById(reportingUserId).lean().exec();
       if (!user) {
-        return res.status(404).json({ 
-          success: false,
-          message: "User not found" 
-        });
+        // If user not found, use anonymous
+        user = {
+          username: 'Anonymous User',
+          email: 'anonymous@mafqoudat.com'
+        };
       }
     } else {
       // Create anonymous user data for email

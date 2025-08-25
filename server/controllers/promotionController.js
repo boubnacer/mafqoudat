@@ -23,6 +23,7 @@ const requestPromotion = async (req, res) => {
       .populate('category', 'labels.en code')
       .populate('country', 'labels.en code names.en')
       .populate('foundLost', 'code')
+      .populate('city', 'labels.en')
       .lean();
       
     if (!post) {
@@ -44,18 +45,20 @@ const requestPromotion = async (req, res) => {
       return res.status(404).json({ message: "User not found" });
     }
 
-    // Prepare notification data with resolved names
+    // Prepare notification data with resolved names for new structure
     const notificationData = {
       postId: post._id,
       contact: userContact || post.contact,
       category: post.category?.labels?.en || post.category?.code || 'Unknown Category',
       region: post.region || 'Unknown',
-      city: post.city || 'Unknown',
+      city: post.city?.labels?.en || post.city || 'Unknown',
       country: post.country?.labels?.en || post.country?.names?.en || post.country?.code || 'Unknown Country',
       foundLost: post.foundLost.code,
       itemDescription: itemDescription || 'No additional description provided',
       postLink: `${process.env.CLIENT_URL || 'http://localhost:3000'}/dash/posts/${post._id}`
     };
+
+    console.log('Promotion notification data prepared:', notificationData);
 
     // Try to send email notification, but don't fail if it doesn't work
     let notificationResult = { success: false, message: 'Email not configured' };
