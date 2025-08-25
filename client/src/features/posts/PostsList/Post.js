@@ -59,8 +59,7 @@ const Post = ({ post, viewMode = "grid" }) => {
   const [reportDialogOpen, setReportDialogOpen] = useState(false);
   const [submitReport] = useSubmitReportMutation();
 
-  // Debug: Log authentication state
-  console.log('Post component - Authentication state:', { usernameId, foundLost });
+
 
   const handleSubmitReport = async (reportData) => {
     console.log('Post component - handleSubmitReport called with:', reportData);
@@ -92,41 +91,17 @@ const Post = ({ post, viewMode = "grid" }) => {
 
   const handleViewDetails = () => navigate(`/dash/posts/${post._id}`);
   const handleReport = () => {
-    console.log('Post component - handleReport called');
-    console.log('Post component - usernameId:', usernameId);
-    console.log('Post component - usernameId type:', typeof usernameId);
-    console.log('Post component - usernameId truthy check:', !!usernameId);
-    
-    // Check if user is authenticated - more robust check
-    if (!usernameId || usernameId === null || usernameId === undefined || usernameId === '' || usernameId.length === 0) {
-      console.log('Post component - User not authenticated, redirecting to login');
-      // Redirect to login page immediately - use both methods to ensure it works
-      try {
-        navigate('/login');
-      } catch (error) {
-        console.log('Post component - Navigate failed, using window.location');
-        window.location.href = '/login';
-      }
+    // Simple check: if no usernameId, redirect to login
+    if (!usernameId) {
+      window.location.href = '/login';
       return;
     }
     
-    console.log('Post component - User authenticated, opening dialog');
-    // If authenticated, open the report dialog
+    // If authenticated, open the dialog
     setReportDialogOpen(true);
   };
 
-  // Additional safety check - prevent dialog from opening if user is not authenticated
-  React.useEffect(() => {
-    if (reportDialogOpen && (!usernameId || usernameId === '')) {
-      console.log('Post component - Dialog opened but user not authenticated, closing dialog and redirecting');
-      setReportDialogOpen(false);
-      try {
-        navigate('/login');
-      } catch (error) {
-        window.location.href = '/login';
-      }
-    }
-  }, [reportDialogOpen, usernameId, navigate]);
+
 
 
 
