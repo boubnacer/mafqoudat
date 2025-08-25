@@ -3,6 +3,7 @@ import { faPenToSquare } from "@fortawesome/free-solid-svg-icons";
 import { Link, useNavigate } from "react-router-dom";
 import { useGetPostsQuery } from "../postsApiSlice";
 import { memo, useState } from "react";
+import React from "react";
 // import "./postslist.css"; // Removed to prevent CSS conflicts with Material-UI
 import ma from "../../../img/ma.jpg";
 import useAuth from "../../../hooks/useAuth";
@@ -89,18 +90,30 @@ const Post = ({ post, viewMode = "grid" }) => {
   const handleViewDetails = () => navigate(`/dash/posts/${post._id}`);
   const handleReport = () => {
     console.log('Post component - handleReport called');
+    console.log('Post component - usernameId:', usernameId);
     console.log('Post component - post data:', post);
     
     // Check if user is authenticated
     if (!usernameId) {
+      console.log('Post component - User not authenticated, redirecting to login');
       // Redirect to login page immediately
       navigate('/login');
       return;
     }
     
+    console.log('Post component - User authenticated, opening dialog');
     // If authenticated, open the report dialog
     setReportDialogOpen(true);
   };
+
+  // Additional safety check - prevent dialog from opening if user is not authenticated
+  React.useEffect(() => {
+    if (reportDialogOpen && !usernameId) {
+      console.log('Post component - Dialog opened but user not authenticated, closing dialog');
+      setReportDialogOpen(false);
+      navigate('/login');
+    }
+  }, [reportDialogOpen, usernameId, navigate]);
 
     // Enhanced Found/Lost detection with proper multilingual support
     let foundLostValue = "FOUND"; // Default to FOUND
@@ -703,13 +716,15 @@ const Post = ({ post, viewMode = "grid" }) => {
         </CardActions>
       </Card>
       
-      {/* Report Dialog */}
-      <ReportDialog
-        open={reportDialogOpen}
-        onClose={() => setReportDialogOpen(false)}
-        post={post}
-        onSubmit={handleSubmitReport}
-      />
+      {/* Report Dialog - Only show if user is authenticated */}
+      {usernameId && (
+        <ReportDialog
+          open={reportDialogOpen}
+          onClose={() => setReportDialogOpen(false)}
+          post={post}
+          onSubmit={handleSubmitReport}
+        />
+      )}
     </>
   );
 };
