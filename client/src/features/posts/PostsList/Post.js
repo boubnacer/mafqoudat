@@ -59,6 +59,9 @@ const Post = ({ post, viewMode = "grid" }) => {
   const [reportDialogOpen, setReportDialogOpen] = useState(false);
   const [submitReport] = useSubmitReportMutation();
 
+  // Debug: Log authentication state
+  console.log('Post component - Authentication state:', { usernameId, foundLost });
+
   const handleSubmitReport = async (reportData) => {
     console.log('Post component - handleSubmitReport called with:', reportData);
     try {
@@ -89,13 +92,21 @@ const Post = ({ post, viewMode = "grid" }) => {
 
   const handleViewDetails = () => navigate(`/dash/posts/${post._id}`);
   const handleReport = () => {
-    console.log('Post component - handleReport called, usernameId:', usernameId);
+    console.log('Post component - handleReport called');
+    console.log('Post component - usernameId:', usernameId);
+    console.log('Post component - usernameId type:', typeof usernameId);
+    console.log('Post component - usernameId truthy check:', !!usernameId);
     
-    // Check if user is authenticated
-    if (!usernameId) {
+    // Check if user is authenticated - more robust check
+    if (!usernameId || usernameId === null || usernameId === undefined || usernameId === '' || usernameId.length === 0) {
       console.log('Post component - User not authenticated, redirecting to login');
-      // Redirect to login page immediately
-      navigate('/login');
+      // Redirect to login page immediately - use both methods to ensure it works
+      try {
+        navigate('/login');
+      } catch (error) {
+        console.log('Post component - Navigate failed, using window.location');
+        window.location.href = '/login';
+      }
       return;
     }
     
@@ -103,6 +114,19 @@ const Post = ({ post, viewMode = "grid" }) => {
     // If authenticated, open the report dialog
     setReportDialogOpen(true);
   };
+
+  // Additional safety check - prevent dialog from opening if user is not authenticated
+  React.useEffect(() => {
+    if (reportDialogOpen && (!usernameId || usernameId === '')) {
+      console.log('Post component - Dialog opened but user not authenticated, closing dialog and redirecting');
+      setReportDialogOpen(false);
+      try {
+        navigate('/login');
+      } catch (error) {
+        window.location.href = '/login';
+      }
+    }
+  }, [reportDialogOpen, usernameId, navigate]);
 
 
 
