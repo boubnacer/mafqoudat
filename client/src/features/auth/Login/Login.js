@@ -263,7 +263,16 @@ const Login = () => {
   useEffect(() => {
     const isLoggedIn = localStorage.getItem('isLoggedIn');
     if (isLoggedIn === 'true') {
-      navigate("/dash");
+      // Check if there's a redirect URL stored
+      const redirectUrl = localStorage.getItem('redirectAfterLogin');
+      if (redirectUrl) {
+        // Clear the stored URL and redirect to it
+        localStorage.removeItem('redirectAfterLogin');
+        navigate(redirectUrl);
+      } else {
+        // Default redirect to dashboard
+        navigate("/dash");
+      }
     }
   }, [navigate]);
 
@@ -327,7 +336,16 @@ const Login = () => {
       dispatch(setCredentials({ accessToken }));
       localStorage.setItem('isLoggedIn', 'true');
       
-      navigate("/dash");
+      // Check if there's a redirect URL stored
+      const redirectUrl = localStorage.getItem('redirectAfterLogin');
+      if (redirectUrl) {
+        // Clear the stored URL and redirect to it
+        localStorage.removeItem('redirectAfterLogin');
+        navigate(redirectUrl);
+      } else {
+        // Default redirect to dashboard
+        navigate("/dash");
+      }
     } catch (err) {
       console.error('Login error:', err);
       

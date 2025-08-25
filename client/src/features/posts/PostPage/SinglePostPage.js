@@ -73,6 +73,18 @@ const SinglePostPage = ({
 
   const handleEdit = () => navigate(`/dash/posts/edit/${_id}`);
   const handleReport = () => {
+    // Check if user is authenticated
+    if (!usernameId) {
+      // Store the current post URL in localStorage for redirect after login
+      const currentPostUrl = window.location.pathname;
+      localStorage.setItem('redirectAfterLogin', currentPostUrl);
+      
+      // Redirect to login page
+      window.location.href = '/login';
+      return;
+    }
+    
+    // If authenticated, open the dialog
     setReportDialogOpen(true);
   };
   const handleBack = () => navigate(-1);

@@ -91,20 +91,15 @@ const Post = ({ post, viewMode = "grid" }) => {
 
   const handleViewDetails = () => navigate(`/dash/posts/${post._id}`);
   const handleReport = () => {
-    console.log('=== REPORT BUTTON CLICKED ===');
-    console.log('usernameId:', usernameId);
-    console.log('usernameId type:', typeof usernameId);
-    console.log('usernameId length:', usernameId ? usernameId.length : 'N/A');
-    console.log('!usernameId result:', !usernameId);
-    
     // Simple check: if no usernameId, redirect to login
     if (!usernameId) {
-      console.log('User not authenticated - redirecting to login');
+      // Store the current post URL for redirect after login
+      const currentPostUrl = `/dash/posts/${post._id}`;
+      localStorage.setItem('redirectAfterLogin', currentPostUrl);
       window.location.href = '/login';
       return;
     }
     
-    console.log('User authenticated - opening dialog');
     // If authenticated, open the dialog
     setReportDialogOpen(true);
   };
