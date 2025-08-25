@@ -73,7 +73,6 @@ const SinglePostPage = ({
 
   const handleEdit = () => navigate(`/dash/posts/edit/${_id}`);
   const handleReport = () => {
-    alert('Report button clicked! Check console for logs.');
     console.log('SinglePostPage - handleReport called');
     console.log('SinglePostPage - usernameId:', usernameId);
     
@@ -90,7 +89,7 @@ const SinglePostPage = ({
       
       // Redirect to login page
       console.log('SinglePostPage - Redirecting to login page');
-      window.location.href = '/login';
+      navigate('/login');
       return;
     }
     

@@ -269,10 +269,12 @@ const Login = () => {
       
       if (redirectUrl) {
         console.log('Already logged in - redirecting to stored URL:', redirectUrl);
+        console.log('🔍 REDIRECT DEBUG: Already logged in, redirecting to:', redirectUrl);
         localStorage.removeItem('redirectAfterLogin');
         navigate(redirectUrl);
       } else {
         console.log('Already logged in - no redirect URL, going to dashboard');
+        console.log('🔍 REDIRECT DEBUG: Already logged in, no stored URL, going to dashboard');
         navigate("/dash");
       }
     }
@@ -343,13 +345,13 @@ const Login = () => {
       console.log('Login success - checking for redirect URL:', redirectUrl);
       
       if (redirectUrl) {
-        alert(`Login success - redirecting to: ${redirectUrl}`);
         console.log('Login success - redirecting to stored URL:', redirectUrl);
+        console.log('🔍 REDIRECT DEBUG: Found stored URL, redirecting to:', redirectUrl);
         localStorage.removeItem('redirectAfterLogin');
         navigate(redirectUrl);
       } else {
-        alert('Login success - no redirect URL, going to dashboard');
         console.log('Login success - no redirect URL, going to dashboard');
+        console.log('🔍 REDIRECT DEBUG: No stored URL found, going to dashboard');
         navigate("/dash");
       }
     } catch (err) {

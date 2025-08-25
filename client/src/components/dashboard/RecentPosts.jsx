@@ -59,7 +59,6 @@ const RecentPosts = ({ _id, categoryname, region, exactLocation, image, createdA
 
   const handleViewDetails = () => navigate(`/dash/posts/${_id}`);
   const handleReport = () => {
-    alert('Report button clicked! Check console for logs.');
     console.log('RecentPosts - handleReport called');
     console.log('RecentPosts - usernameId:', usernameId);
     
@@ -74,7 +73,7 @@ const RecentPosts = ({ _id, categoryname, region, exactLocation, image, createdA
       const storedUrl = localStorage.getItem('redirectAfterLogin');
       console.log('RecentPosts - Verified stored URL:', storedUrl);
       
-      window.location.href = '/login';
+      navigate('/login');
       return;
     }
     
