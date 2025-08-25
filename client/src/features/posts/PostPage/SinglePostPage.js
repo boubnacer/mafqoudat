@@ -73,6 +73,7 @@ const SinglePostPage = ({
 
   const handleEdit = () => navigate(`/dash/posts/edit/${_id}`);
   const handleReport = () => {
+    alert('Report button clicked! Check console for logs.');
     console.log('SinglePostPage - handleReport called');
     console.log('SinglePostPage - usernameId:', usernameId);
     

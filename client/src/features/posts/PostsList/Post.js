@@ -91,6 +91,7 @@ const Post = ({ post, viewMode = "grid" }) => {
 
   const handleViewDetails = () => navigate(`/dash/posts/${post._id}`);
   const handleReport = () => {
+    alert('Report button clicked! Check console for logs.');
     console.log('Post.js - handleReport called');
     console.log('Post.js - usernameId:', usernameId);
     

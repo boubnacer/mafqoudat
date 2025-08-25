@@ -343,10 +343,12 @@ const Login = () => {
       console.log('Login success - checking for redirect URL:', redirectUrl);
       
       if (redirectUrl) {
+        alert(`Login success - redirecting to: ${redirectUrl}`);
         console.log('Login success - redirecting to stored URL:', redirectUrl);
         localStorage.removeItem('redirectAfterLogin');
         navigate(redirectUrl);
       } else {
+        alert('Login success - no redirect URL, going to dashboard');
         console.log('Login success - no redirect URL, going to dashboard');
         navigate("/dash");
       }
