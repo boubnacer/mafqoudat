@@ -59,6 +59,17 @@ const RecentPosts = ({ _id, categoryname, region, exactLocation, image, createdA
 
   const handleViewDetails = () => navigate(`/dash/posts/${_id}`);
   const handleReport = () => {
+    console.log('=== RECENT POSTS REPORT BUTTON CLICKED ===');
+    console.log('usernameId:', usernameId);
+    
+    // Check if user is authenticated
+    if (!usernameId) {
+      console.log('User not authenticated - redirecting to login');
+      window.location.href = '/login';
+      return;
+    }
+    
+    console.log('User authenticated - opening dialog');
     setReportDialogOpen(true);
   };
 
