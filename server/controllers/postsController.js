@@ -217,7 +217,7 @@ const getPost = async (req, res) => {
           as: "User",
         },
       },
-      { $unwind: "$User" },
+      { $unwind: { path: "$User", preserveNullAndEmptyArrays: true } },
       {
         $project: {
           user: 1,
