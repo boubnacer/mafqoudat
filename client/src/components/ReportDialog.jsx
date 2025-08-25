@@ -19,6 +19,7 @@ import {
 } from '@mui/material';
 import { Report, Send, Close } from '@mui/icons-material';
 import { useTranslation } from '../utils/translations';
+import useAuth from '../hooks/useAuth';
 
 const ReportDialog = ({ open, onClose, post, onSubmit }) => {
   const [selectedReason, setSelectedReason] = useState('');
@@ -28,6 +29,7 @@ const ReportDialog = ({ open, onClose, post, onSubmit }) => {
   const [success, setSuccess] = useState(false);
   const { t, currentLanguage } = useTranslation();
   const theme = useTheme();
+  const { usernameId } = useAuth();
 
   // Debug: Log the post data to see what's available
   React.useEffect(() => {
@@ -103,6 +105,12 @@ const ReportDialog = ({ open, onClose, post, onSubmit }) => {
   };
 
   const handleSubmit = async () => {
+    // Check if user is authenticated
+    if (!usernameId) {
+      setError(t('pleaseLoginToReport') || 'Please login to report posts');
+      return;
+    }
+
     if (!selectedReason) {
       setError(t('pleaseSelectReason'));
       return;
@@ -139,14 +147,14 @@ const ReportDialog = ({ open, onClose, post, onSubmit }) => {
       
       console.log('ReportDialog - Result received:', result);
 
-      // Check if the API call was successful
-      if (result && result.data && result.data.success) {
+      // Check if the API call was successful - handle both direct result and wrapped result
+      if (result && (result.success || (result.data && result.data.success))) {
         setSuccess(true);
         setTimeout(() => {
           handleClose();
         }, 2000);
       } else {
-        throw new Error(result?.data?.message || 'Failed to submit report');
+        throw new Error(result?.data?.message || result?.message || 'Failed to submit report');
       }
     } catch (error) {
       console.error('Report submission error:', error);

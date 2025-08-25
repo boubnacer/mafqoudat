@@ -635,31 +635,33 @@ const Post = ({ post, viewMode = "grid" }) => {
             minHeight: '60px',
           }}
         >
-          <Button
-            onClick={handleReport}
-            variant="outlined"
-            size="small"
-            sx={{
-              color: theme.palette.error.main,
-              borderColor: theme.palette.error.main,
-              textTransform: 'none',
-              fontSize: { xs: '10px', sm: '11px' },
-              fontWeight: 600,
-              padding: { xs: '8px 12px', sm: '8px 12px' },
-              borderRadius: '8px',
-              minWidth: 'auto',
-              flexShrink: 0,
-              '&:hover': {
-                backgroundColor: theme.palette.error.main,
-                color: '#fff',
+          {usernameId && (
+            <Button
+              onClick={handleReport}
+              variant="outlined"
+              size="small"
+              sx={{
+                color: theme.palette.error.main,
                 borderColor: theme.palette.error.main,
-              },
-            }}
-            startIcon={currentLanguage === 'ar' ? null : <ReportProblemOutlined sx={{ fontSize: '12px' }} />}
-            endIcon={currentLanguage === 'ar' ? <ReportProblemOutlined sx={{ fontSize: '12px', ml: 0.5 }} /> : null}
-          >
-            {t('report')}
-          </Button>
+                textTransform: 'none',
+                fontSize: { xs: '10px', sm: '11px' },
+                fontWeight: 600,
+                padding: { xs: '8px 12px', sm: '8px 12px' },
+                borderRadius: '8px',
+                minWidth: 'auto',
+                flexShrink: 0,
+                '&:hover': {
+                  backgroundColor: theme.palette.error.main,
+                  color: '#fff',
+                  borderColor: theme.palette.error.main,
+                },
+              }}
+              startIcon={currentLanguage === 'ar' ? null : <ReportProblemOutlined sx={{ fontSize: '12px' }} />}
+              endIcon={currentLanguage === 'ar' ? <ReportProblemOutlined sx={{ fontSize: '12px', ml: 0.5 }} /> : null}
+            >
+              {t('report')}
+            </Button>
+          )}
 
           <Button
             onClick={handleViewDetails}

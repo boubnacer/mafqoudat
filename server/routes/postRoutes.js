@@ -13,11 +13,11 @@ router.route("/filtered").get(postsController.getFilteredPosts);
 
 router.route("/:id").get(postsController.getPost);
 
-// Report route - public (no authentication required)
-router.route("/report").post(postsController.submitPostReport);
-
 // Protected routes - require authentication
 router.use(verifyJWT);
+
+// Report route - requires authentication
+router.route("/report").post(postsController.submitPostReport);
 
 router
   .route("/")

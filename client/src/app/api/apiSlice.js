@@ -4,6 +4,7 @@ import { setCredentials } from "../../features/auth/authSlice";
 const baseQuery = fetchBaseQuery({
   baseUrl: process.env.REACT_APP_API_URL || "http://localhost:3500",
   credentials: "include", //important, to send the cookie back to the server along with the token
+  timeout: 30000, // 30 seconds timeout for slow connections
   prepareHeaders: (headers, { getState, endpoint }) => {
     // api => api.getState => {getState}
     const token = getState().auth.token;

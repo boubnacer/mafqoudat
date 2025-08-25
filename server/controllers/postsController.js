@@ -529,9 +529,8 @@ const submitPostReport = async (req, res) => {
     console.log('Report submission - req.body:', req.body);
     console.log('Report submission - req.headers:', req.headers);
     
-    // For public reports, we'll use the userId from the request body
-    // If no userId provided, we'll use a default or anonymous user
-    const reportingUserId = userId || 'anonymous';
+    // For authenticated reports, we'll use the authenticated user's ID
+    const reportingUserId = req.user || userId || 'anonymous';
 
     // Validate required fields
     if (!postId || !reason) {
