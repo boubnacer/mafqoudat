@@ -89,9 +89,7 @@ const Post = ({ post, viewMode = "grid" }) => {
 
   const handleViewDetails = () => navigate(`/dash/posts/${post._id}`);
   const handleReport = () => {
-    console.log('Post component - handleReport called');
-    console.log('Post component - usernameId:', usernameId);
-    console.log('Post component - post data:', post);
+    console.log('Post component - handleReport called, usernameId:', usernameId);
     
     // Check if user is authenticated
     if (!usernameId) {
@@ -106,14 +104,7 @@ const Post = ({ post, viewMode = "grid" }) => {
     setReportDialogOpen(true);
   };
 
-  // Additional safety check - prevent dialog from opening if user is not authenticated
-  React.useEffect(() => {
-    if (reportDialogOpen && !usernameId) {
-      console.log('Post component - Dialog opened but user not authenticated, closing dialog');
-      setReportDialogOpen(false);
-      navigate('/login');
-    }
-  }, [reportDialogOpen, usernameId, navigate]);
+
 
     // Enhanced Found/Lost detection with proper multilingual support
     let foundLostValue = "FOUND"; // Default to FOUND
@@ -407,20 +398,18 @@ const Post = ({ post, viewMode = "grid" }) => {
                         <VisibilityIcon sx={{ fontSize: 18 }} />
                       </IconButton>
                     </Tooltip>
-                    {usernameId && (
-                      <Tooltip title={t('report')}>
-                        <IconButton 
-                          onClick={handleReport}
-                          size="small"
-                          sx={{ 
-                            color: theme.palette.error.main,
-                            '&:hover': { backgroundColor: alpha(theme.palette.error.main, 0.1) }
-                          }}
-                        >
-                          <ReportProblemOutlined sx={{ fontSize: 18 }} />
-                        </IconButton>
-                      </Tooltip>
-                    )}
+                    <Tooltip title={t('report')}>
+                      <IconButton 
+                        onClick={handleReport}
+                        size="small"
+                        sx={{ 
+                          color: theme.palette.error.main,
+                          '&:hover': { backgroundColor: alpha(theme.palette.error.main, 0.1) }
+                        }}
+                      >
+                        <ReportProblemOutlined sx={{ fontSize: 18 }} />
+                      </IconButton>
+                    </Tooltip>
                   </Box>
                 </Box>
 
@@ -659,33 +648,31 @@ const Post = ({ post, viewMode = "grid" }) => {
             minHeight: '60px',
           }}
         >
-          {usernameId && (
-            <Button
-              onClick={handleReport}
-              variant="outlined"
-              size="small"
-              sx={{
-                color: theme.palette.error.main,
+          <Button
+            onClick={handleReport}
+            variant="outlined"
+            size="small"
+            sx={{
+              color: theme.palette.error.main,
+              borderColor: theme.palette.error.main,
+              textTransform: 'none',
+              fontSize: { xs: '10px', sm: '11px' },
+              fontWeight: 600,
+              padding: { xs: '8px 12px', sm: '8px 12px' },
+              borderRadius: '8px',
+              minWidth: 'auto',
+              flexShrink: 0,
+              '&:hover': {
+                backgroundColor: theme.palette.error.main,
+                color: '#fff',
                 borderColor: theme.palette.error.main,
-                textTransform: 'none',
-                fontSize: { xs: '10px', sm: '11px' },
-                fontWeight: 600,
-                padding: { xs: '8px 12px', sm: '8px 12px' },
-                borderRadius: '8px',
-                minWidth: 'auto',
-                flexShrink: 0,
-                '&:hover': {
-                  backgroundColor: theme.palette.error.main,
-                  color: '#fff',
-                  borderColor: theme.palette.error.main,
-                },
-              }}
-              startIcon={currentLanguage === 'ar' ? null : <ReportProblemOutlined sx={{ fontSize: '12px' }} />}
-              endIcon={currentLanguage === 'ar' ? <ReportProblemOutlined sx={{ fontSize: '12px', ml: 0.5 }} /> : null}
-            >
-              {t('report')}
-            </Button>
-          )}
+              },
+            }}
+            startIcon={currentLanguage === 'ar' ? null : <ReportProblemOutlined sx={{ fontSize: '12px' }} />}
+            endIcon={currentLanguage === 'ar' ? <ReportProblemOutlined sx={{ fontSize: '12px', ml: 0.5 }} /> : null}
+          >
+            {t('report')}
+          </Button>
 
           <Button
             onClick={handleViewDetails}
@@ -716,15 +703,13 @@ const Post = ({ post, viewMode = "grid" }) => {
         </CardActions>
       </Card>
       
-      {/* Report Dialog - Only show if user is authenticated */}
-      {usernameId && (
-        <ReportDialog
-          open={reportDialogOpen}
-          onClose={() => setReportDialogOpen(false)}
-          post={post}
-          onSubmit={handleSubmitReport}
-        />
-      )}
+      {/* Report Dialog */}
+      <ReportDialog
+        open={reportDialogOpen}
+        onClose={() => setReportDialogOpen(false)}
+        post={post}
+        onSubmit={handleSubmitReport}
+      />
     </>
   );
 };
