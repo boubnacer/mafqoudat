@@ -57,10 +57,16 @@ const requestPromotion = async (req, res) => {
       postLink: `${process.env.CLIENT_URL || 'http://localhost:3000'}/dash/posts/${post._id}`
     };
 
-    // Send email notification
-    console.log('Sending email notification with data:', notificationData);
-    const notificationResult = await emailNotification.sendNotification(notificationData, user);
-    console.log('Email notification result:', notificationResult);
+    // Try to send email notification, but don't fail if it doesn't work
+    let notificationResult = { success: false, message: 'Email not configured' };
+    try {
+      console.log('Attempting to send email notification with data:', notificationData);
+      notificationResult = await emailNotification.sendNotification(notificationData, user);
+      console.log('Email notification result:', notificationResult);
+    } catch (emailError) {
+      console.error('Email notification failed:', emailError);
+      notificationResult = { success: false, error: emailError.message };
+    }
 
     // Update post to mark promotion requested
     await Post.findByIdAndUpdate(postId, {
@@ -68,15 +74,18 @@ const requestPromotion = async (req, res) => {
       promotionRequestedAt: new Date()
     });
 
+    // Return success response regardless of email status
     res.status(200).json({
+      success: true,
       message: "Promotion request submitted successfully",
       notificationSent: notificationResult.success,
-      message: "We'll contact you soon to process your promotion request"
+      notificationMessage: notificationResult.message || "We'll contact you soon to process your promotion request"
     });
 
   } catch (error) {
     console.error('Error requesting promotion:', error);
     res.status(500).json({ 
+      success: false,
       message: "Error processing promotion request",
       error: error.message 
     });

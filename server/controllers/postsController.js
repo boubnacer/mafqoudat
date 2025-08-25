@@ -589,21 +589,22 @@ const submitPostReport = async (req, res) => {
       };
     }
 
-    // Send email notification to admin
-    const emailNotification = require('../utils/emailNotification');
-    const emailResult = await emailNotification.sendReportNotification(emailPostData, user, reason);
-
-    if (!emailResult.success) {
-      console.error('Failed to send report email:', emailResult.error);
-      // Don't fail the request if email fails, just log it
+    // Try to send email notification, but don't fail if it doesn't work
+    let emailResult = { success: false, message: 'Email not configured' };
+    try {
+      const emailNotification = require('../utils/emailNotification');
+      emailResult = await emailNotification.sendReportNotification(emailPostData, user, reason);
+      console.log('Email notification result:', emailResult);
+    } catch (emailError) {
+      console.error('Failed to send report email:', emailError);
+      emailResult = { success: false, error: emailError.message };
     }
 
-    // Note: We don't store report data in the database anymore
-    // Reports are sent directly to admin via email
-
+    // Return success response regardless of email status
     res.status(200).json({
       success: true,
       message: "Report submitted successfully",
+      notificationSent: emailResult.success,
       data: {
         postId,
         reason,

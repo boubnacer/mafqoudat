@@ -109,18 +109,24 @@ const ReportDialog = ({ open, onClose, post, onSubmit }) => {
     try {
       const finalReason = selectedReason === 'other' ? customReason : getLabel(reportReasons.find(r => r.value === selectedReason).label);
       
-      await onSubmit({
+      const result = await onSubmit({
         postId: post._id,
         reason: finalReason,
         reasonType: selectedReason,
         userId: post.user // Send the post owner's ID for reference
       });
 
-      setSuccess(true);
-      setTimeout(() => {
-        handleClose();
-      }, 2000);
+      // Check if the API call was successful
+      if (result && result.data && result.data.success) {
+        setSuccess(true);
+        setTimeout(() => {
+          handleClose();
+        }, 2000);
+      } else {
+        throw new Error(result?.data?.message || 'Failed to submit report');
+      }
     } catch (error) {
+      console.error('Report submission error:', error);
       setError(error.message || t('errorSubmittingReport'));
     } finally {
       setIsSubmitting(false);

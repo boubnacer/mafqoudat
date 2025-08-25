@@ -33,17 +33,23 @@ const PromotionDialog = ({ open, onClose, postId, onPromotionRequested }) => {
     try {
       const result = await requestPromotion({ postId }).unwrap();
       
-      setIsSuccess(true);
-      if (onPromotionRequested) {
-        onPromotionRequested();
+      // Check if the API call was successful
+      if (result && result.success) {
+        setIsSuccess(true);
+        if (onPromotionRequested) {
+          onPromotionRequested();
+        }
+        // Auto close after 3 seconds
+        setTimeout(() => {
+          onClose();
+          setIsSuccess(false);
+        }, 3000);
+      } else {
+        throw new Error(result?.message || t('promotionRequestError'));
       }
-      // Auto close after 3 seconds
-      setTimeout(() => {
-        onClose();
-        setIsSuccess(false);
-      }, 3000);
     } catch (err) {
-      setError(err.data?.message || t('promotionRequestError'));
+      console.error('Promotion request error:', err);
+      setError(err.data?.message || err.message || t('promotionRequestError'));
     }
   };
 
