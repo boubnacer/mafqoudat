@@ -59,17 +59,26 @@ const RecentPosts = ({ _id, categoryname, region, exactLocation, image, createdA
 
   const handleViewDetails = () => navigate(`/dash/posts/${_id}`);
   const handleReport = () => {
+    console.log('RecentPosts - handleReport called');
+    console.log('RecentPosts - usernameId:', usernameId);
+    
     // Check if user is authenticated
     if (!usernameId) {
       // Store the current post URL for redirect after login
       const currentPostUrl = `/dash/posts/${_id}`;
       console.log('RecentPosts - Storing redirect URL:', currentPostUrl);
       localStorage.setItem('redirectAfterLogin', currentPostUrl);
+      
+      // Verify the URL was stored
+      const storedUrl = localStorage.getItem('redirectAfterLogin');
+      console.log('RecentPosts - Verified stored URL:', storedUrl);
+      
       window.location.href = '/login';
       return;
     }
     
     // If authenticated, open the dialog
+    console.log('RecentPosts - User authenticated, opening dialog');
     setReportDialogOpen(true);
   };
 

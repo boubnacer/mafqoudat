@@ -263,8 +263,18 @@ const Login = () => {
   useEffect(() => {
     const isLoggedIn = localStorage.getItem('isLoggedIn');
     if (isLoggedIn === 'true') {
-      // Don't redirect here - let the global hook handle it
-      console.log('Already logged in - letting global hook handle redirect');
+      // Check for redirect URL and handle it directly here
+      const redirectUrl = localStorage.getItem('redirectAfterLogin');
+      console.log('Already logged in - checking for redirect URL:', redirectUrl);
+      
+      if (redirectUrl) {
+        console.log('Already logged in - redirecting to stored URL:', redirectUrl);
+        localStorage.removeItem('redirectAfterLogin');
+        navigate(redirectUrl);
+      } else {
+        console.log('Already logged in - no redirect URL, going to dashboard');
+        navigate("/dash");
+      }
     }
   }, [navigate]);
 
@@ -328,8 +338,18 @@ const Login = () => {
       dispatch(setCredentials({ accessToken }));
       localStorage.setItem('isLoggedIn', 'true');
       
-      // Don't redirect here - let the global hook handle it
-      console.log('Login success - credentials set, letting global hook handle redirect');
+      // Check for redirect URL and handle it directly here
+      const redirectUrl = localStorage.getItem('redirectAfterLogin');
+      console.log('Login success - checking for redirect URL:', redirectUrl);
+      
+      if (redirectUrl) {
+        console.log('Login success - redirecting to stored URL:', redirectUrl);
+        localStorage.removeItem('redirectAfterLogin');
+        navigate(redirectUrl);
+      } else {
+        console.log('Login success - no redirect URL, going to dashboard');
+        navigate("/dash");
+      }
     } catch (err) {
       console.error('Login error:', err);
       

@@ -29,7 +29,7 @@ import PrefetchDependencies from "./features/PrefetchData/PrefetchDependencies";
 import { LanguageProvider, useLanguage } from "./utils/languageContext";
 import { cleanupLocalStorage, initializeLocalStorage } from "./utils/localStorageUtils";
 import { useLocation } from "react-router-dom";
-import useRedirectAfterLogin from "./hooks/useRedirectAfterLogin";
+// Redirect logic moved to Login component
 
 // Import new page components
 import PrivacyPolicy from "./components/Pages/PrivacyPolicy";
@@ -51,17 +51,8 @@ const AppContent = () => {
     location: location.pathname
   });
   
-  // Use the redirect after login hook
-  console.log('🚀 AppContent: About to call useRedirectAfterLogin hook');
-  console.log('🚀 AppContent: Current mode:', mode);
-  console.log('🚀 AppContent: Current language:', currentLanguage);
-  
-  try {
-    useRedirectAfterLogin();
-    console.log('🚀 AppContent: useRedirectAfterLogin hook called successfully');
-  } catch (error) {
-    console.error('❌ AppContent: Error calling useRedirectAfterLogin hook:', error);
-  }
+  // Redirect logic is now handled directly in Login component
+  console.log('🚀 AppContent: Redirect logic moved to Login component');
   
   console.log('AppContent: Current location:', location.pathname);
   console.log('AppContent: Current URL:', window.location.href);

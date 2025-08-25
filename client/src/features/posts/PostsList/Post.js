@@ -91,17 +91,26 @@ const Post = ({ post, viewMode = "grid" }) => {
 
   const handleViewDetails = () => navigate(`/dash/posts/${post._id}`);
   const handleReport = () => {
+    console.log('Post.js - handleReport called');
+    console.log('Post.js - usernameId:', usernameId);
+    
     // Simple check: if no usernameId, redirect to login
     if (!usernameId) {
       // Store the current post URL for redirect after login
       const currentPostUrl = `/dash/posts/${post._id}`;
       console.log('Post.js - Storing redirect URL:', currentPostUrl);
       localStorage.setItem('redirectAfterLogin', currentPostUrl);
+      
+      // Verify the URL was stored
+      const storedUrl = localStorage.getItem('redirectAfterLogin');
+      console.log('Post.js - Verified stored URL:', storedUrl);
+      
       window.location.href = '/login';
       return;
     }
     
     // If authenticated, open the dialog
+    console.log('Post.js - User authenticated, opening dialog');
     setReportDialogOpen(true);
   };
 
