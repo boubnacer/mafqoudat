@@ -73,28 +73,18 @@ const SinglePostPage = ({
 
   const handleEdit = () => navigate(`/dash/posts/edit/${_id}`);
   const handleReport = () => {
-    console.log('SinglePostPage - handleReport called');
-    console.log('SinglePostPage - usernameId:', usernameId);
-    
     // Check if user is authenticated
     if (!usernameId) {
       // Store the current post URL in localStorage for redirect after login
       const currentPostUrl = window.location.pathname;
-      console.log('SinglePostPage - Storing redirect URL:', currentPostUrl);
       localStorage.setItem('redirectAfterLogin', currentPostUrl);
       
-      // Verify the URL was stored
-      const storedUrl = localStorage.getItem('redirectAfterLogin');
-      console.log('SinglePostPage - Verified stored URL:', storedUrl);
-      
       // Redirect to login page
-      console.log('SinglePostPage - Redirecting to login page');
       navigate('/login');
       return;
     }
     
     // If authenticated, open the dialog
-    console.log('SinglePostPage - User authenticated, opening dialog');
     setReportDialogOpen(true);
   };
   const handleBack = () => navigate(-1);

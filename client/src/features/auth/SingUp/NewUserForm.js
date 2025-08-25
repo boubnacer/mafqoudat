@@ -303,6 +303,25 @@ const NewUserForm = ({ countries }) => {
     console.log('SignUp component - currentLanguage:', currentLanguage);
   }, [currentLanguage]);
 
+  // Check for already logged in users and redirect if needed
+  useEffect(() => {
+    const isLoggedIn = localStorage.getItem('isLoggedIn');
+    if (isLoggedIn === 'true') {
+      // Check for redirect URL and handle it directly here
+      const redirectUrl = localStorage.getItem('redirectAfterLogin');
+      console.log('Already logged in - checking for redirect URL:', redirectUrl);
+      
+      if (redirectUrl) {
+        console.log('Already logged in - redirecting to stored URL:', redirectUrl);
+        localStorage.removeItem('redirectAfterLogin');
+        navigate(redirectUrl);
+      } else {
+        console.log('Already logged in - no redirect URL, going to dashboard');
+        navigate("/dash");
+      }
+    }
+  }, [navigate]);
+
   // API
   const [addNewUser, { isLoading, isError, error }] = useAddNewUserMutation();
 
@@ -457,7 +476,19 @@ const NewUserForm = ({ countries }) => {
 
       dispatch(setCredentials({ accessToken }));
       localStorage.setItem('isLoggedIn', 'true');
-      navigate("/dash");
+      
+      // Check for redirect URL and handle it directly here
+      const redirectUrl = localStorage.getItem('redirectAfterLogin');
+      console.log('Signup success - checking for redirect URL:', redirectUrl);
+      
+      if (redirectUrl) {
+        console.log('Signup success - redirecting to stored URL:', redirectUrl);
+        localStorage.removeItem('redirectAfterLogin');
+        navigate(redirectUrl);
+      } else {
+        console.log('Signup success - no redirect URL, going to dashboard');
+        navigate("/dash");
+      }
     } catch (err) {
       console.error('Signup error:', err);
       
