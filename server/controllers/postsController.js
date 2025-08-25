@@ -16,7 +16,7 @@ const TranslationService = require("../services/translationService");
 const getAllPosts = async (req, res) => {
   // Get all posts from MongoDB // remember first of all we should skip 0 items
   const currentCountry = req.query.currentCountry;
-  const page = parseInt(req.query.page) - 1 || 0;
+  const page = Math.max(0, parseInt(req.query.page) - 1) || 0;
   const pageSize = parseInt(req.query.pageSize) || 4;
   const fl = req.query.fl;
   const categoryId = req.query.categoryId;
@@ -42,11 +42,26 @@ const getAllPosts = async (req, res) => {
     ];
   }
 
+  // First, get the country ID from the country code
+  let countryId = currentCountry;
+  if (currentCountry && !mongoose.Types.ObjectId.isValid(currentCountry)) {
+    // If currentCountry is not a valid ObjectId, treat it as a country code
+    const country = await Country.findOne({ code: currentCountry }).lean();
+    if (country) {
+      countryId = country._id;
+    } else {
+      return res.status(400).json({ 
+        message: "Invalid country code",
+        error: `Country with code '${currentCountry}' not found`
+      });
+    }
+  }
+
   const postsWithUser = await Post.aggregate([
     {
       $match: {
         ...match,
-        country: new mongoose.Types.ObjectId(currentCountry),
+        country: new mongoose.Types.ObjectId(countryId),
       },
     },
     {
@@ -259,7 +274,7 @@ const getPost = async (req, res) => {
 // @route GET /posts
 // @access Private
 const getFilteredPosts = async (req, res) => {
-  const page = parseInt(req.query.page) - 1 || 0;
+  const page = Math.max(0, parseInt(req.query.page) - 1) || 0;
   const limit = parseInt(req.query.limit) || 4;
   const startIndex = page * limit;
   const fl = req.query.fl;
