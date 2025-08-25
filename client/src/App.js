@@ -45,7 +45,9 @@ const AppContent = () => {
   const location = useLocation();
   
   // Use the redirect after login hook
+  console.log('AppContent: About to call useRedirectAfterLogin hook');
   useRedirectAfterLogin();
+  console.log('AppContent: useRedirectAfterLogin hook called');
   
   console.log('AppContent: Current location:', location.pathname);
   console.log('AppContent: Current URL:', window.location.href);

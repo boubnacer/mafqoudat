@@ -263,8 +263,8 @@ const Login = () => {
   useEffect(() => {
     const isLoggedIn = localStorage.getItem('isLoggedIn');
     if (isLoggedIn === 'true') {
-      // Default redirect to dashboard (redirect after login is handled globally)
-      navigate("/dash");
+      // Don't redirect here - let the global hook handle it
+      console.log('Already logged in - letting global hook handle redirect');
     }
   }, [navigate]);
 
@@ -328,8 +328,8 @@ const Login = () => {
       dispatch(setCredentials({ accessToken }));
       localStorage.setItem('isLoggedIn', 'true');
       
-      // Default redirect to dashboard (redirect after login is handled globally)
-      navigate("/dash");
+      // Don't redirect here - let the global hook handle it
+      console.log('Login success - credentials set, letting global hook handle redirect');
     } catch (err) {
       console.error('Login error:', err);
       
