@@ -772,7 +772,29 @@ const getCitiesByCountry = async (req, res) => {
 
     // First, let's check what country this ID represents
     const Country = require('../models/Country');
-    const country = await Country.findById(countryId).lean();
+    console.log('🔍 Looking for country with ID:', countryId);
+    console.log('🔍 ID type:', typeof countryId);
+    console.log('🔍 Is valid ObjectId:', mongoose.Types.ObjectId.isValid(countryId));
+    
+    let country = null;
+    
+    // Try different approaches to find the country
+    if (mongoose.Types.ObjectId.isValid(countryId)) {
+      const countryObjectId = new mongoose.Types.ObjectId(countryId);
+      console.log('🔍 Trying with ObjectId:', countryObjectId);
+      country = await Country.findById(countryObjectId).lean();
+    }
+    
+    if (!country) {
+      console.log('🔍 Trying with string ID');
+      country = await Country.findById(countryId).lean();
+    }
+    
+    if (!country) {
+      console.log('🔍 Trying with findOne');
+      country = await Country.findOne({ _id: countryId }).lean();
+    }
+    
     console.log('🔍 Country info:', country ? {
       code: country.code,
       name: country.names?.en,
@@ -787,6 +809,13 @@ const getCitiesByCountry = async (req, res) => {
       allCountries.forEach(c => {
         console.log(`  - ${c.code} (${c.names?.en}): ${c._id} | isActive: ${c.isActive}`);
       });
+      
+      // Check if the countryId exists in the list
+      const countryInList = allCountries.find(c => c._id.toString() === countryId);
+      if (countryInList) {
+        console.log('🔍 Found country in list, using it:', countryInList.code);
+        country = countryInList;
+      }
     }
 
     // Try multiple approaches to find cities
