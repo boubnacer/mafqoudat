@@ -377,16 +377,16 @@ const createNewPost = async (req, res) => {
 
   // Validate references
   console.log('Validating references...');
-  const userExists = await User.exists({ _id: user });
-  const countryExists = await Country.exists({ _id: country });
-  const categoryExists = await Category.exists({ _id: category });
-  const foundLostExists = await FoundLost.exists({ _id: foundLost });
+  const userExists = await User.findById(user).lean();
+  const countryExists = await Country.findById(country).lean();
+  const categoryExists = await Category.findById(category).lean();
+  const foundLostExists = await FoundLost.findById(foundLost).lean();
   
   console.log('Reference validation results:', {
-    userExists,
-    countryExists,
-    categoryExists,
-    foundLostExists,
+    userExists: !!userExists,
+    countryExists: !!countryExists,
+    categoryExists: !!categoryExists,
+    foundLostExists: !!foundLostExists,
     user,
     country,
     category,
@@ -401,7 +401,8 @@ const createNewPost = async (req, res) => {
   if (city) {
     // Check if city is a valid ObjectId
     if (mongoose.Types.ObjectId.isValid(city)) {
-      cityExists = await City.exists({ _id: city });
+      const cityDoc = await City.findById(city).lean();
+      cityExists = !!cityDoc;
       console.log('City is ObjectId, exists:', cityExists);
     } else {
       // It's a custom city name, we'll create it in the database
@@ -413,10 +414,10 @@ const createNewPost = async (req, res) => {
   }
   
   console.log('Final validation check:', {
-    userExists,
-    countryExists,
-    categoryExists,
-    foundLostExists,
+    userExists: !!userExists,
+    countryExists: !!countryExists,
+    categoryExists: !!categoryExists,
+    foundLostExists: !!foundLostExists,
     cityExists
   });
   
