@@ -779,6 +779,16 @@ const getCitiesByCountry = async (req, res) => {
       isActive: country.isActive
     } : 'Country not found');
 
+    // If country not found, let's check what countries exist
+    if (!country) {
+      console.log('🔍 Country not found, checking all countries...');
+      const allCountries = await Country.find().select('_id code names isActive').lean();
+      console.log('🔍 Available countries:');
+      allCountries.forEach(c => {
+        console.log(`  - ${c.code} (${c.names?.en}): ${c._id} | isActive: ${c.isActive}`);
+      });
+    }
+
     // Try multiple approaches to find cities
     let cities = [];
     
