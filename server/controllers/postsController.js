@@ -376,10 +376,22 @@ const createNewPost = async (req, res) => {
   }
 
   // Validate references
+  console.log('Validating references...');
   const userExists = await User.exists({ _id: user });
   const countryExists = await Country.exists({ _id: country });
   const categoryExists = await Category.exists({ _id: category });
   const foundLostExists = await FoundLost.exists({ _id: foundLost });
+  
+  console.log('Reference validation results:', {
+    userExists,
+    countryExists,
+    categoryExists,
+    foundLostExists,
+    user,
+    country,
+    category,
+    foundLost
+  });
   
   // Handle city validation - check if it's an ObjectId or a custom city name
   let cityId = city;
@@ -390,15 +402,32 @@ const createNewPost = async (req, res) => {
     // Check if city is a valid ObjectId
     if (mongoose.Types.ObjectId.isValid(city)) {
       cityExists = await City.exists({ _id: city });
+      console.log('City is ObjectId, exists:', cityExists);
     } else {
       // It's a custom city name, we'll create it in the database
       customCityName = city;
       cityExists = true; // Allow custom city names
       cityId = null; // Don't set city field for custom names yet
+      console.log('City is custom name:', customCityName);
     }
   }
   
+  console.log('Final validation check:', {
+    userExists,
+    countryExists,
+    categoryExists,
+    foundLostExists,
+    cityExists
+  });
+  
   if (!userExists || !countryExists || !categoryExists || !foundLostExists || !cityExists) {
+    console.log('Validation failed:', {
+      userExists: !userExists,
+      countryExists: !countryExists,
+      categoryExists: !categoryExists,
+      foundLostExists: !foundLostExists,
+      cityExists: !cityExists
+    });
     return res.status(400).json({ message: "Invalid reference in user/country/category/foundLost/city" });
   }
 
@@ -458,7 +487,8 @@ const createNewPost = async (req, res) => {
           },
           country: country,
           isDynamic: true, // Mark as dynamically created
-          isCapital: false
+          isCapital: false,
+          isActive: true
         });
         
         console.log('Created new city:', newCity);
@@ -472,8 +502,38 @@ const createNewPost = async (req, res) => {
       }
     } catch (error) {
       console.error('Error creating custom city:', error);
-      // Fallback: store in region field
-      postData.region = customCityName;
+      // Fallback: create a simple city entry without translation
+      try {
+        const countryDoc = await Country.findById(country).lean();
+        const countryCode = countryDoc?.code || 'UNKNOWN';
+        const cityCode = customCityName.toUpperCase().replace(/\s+/g, '_');
+        
+        const newCity = await City.create({
+          code: cityCode,
+          labels: {
+            en: customCityName,
+            fr: customCityName,
+            ar: customCityName
+          },
+          names: {
+            en: customCityName,
+            fr: customCityName,
+            ar: customCityName
+          },
+          country: country,
+          isDynamic: true,
+          isCapital: false,
+          isActive: true
+        });
+        
+        console.log('Created fallback city:', newCity);
+        cityId = newCity._id;
+        postData.city = cityId;
+      } catch (fallbackError) {
+        console.error('Fallback city creation also failed:', fallbackError);
+        // Last resort: store in region field
+        postData.region = customCityName;
+      }
     }
   }
 
