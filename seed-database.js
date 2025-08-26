@@ -145,7 +145,7 @@ const countriesData = [
     names: {
       en: 'Oman',
       fr: 'Oman',
-      ar: 'عُمان'
+      ar: 'عمان'
     },
     flag: '🇴🇲'
   },
@@ -166,9 +166,9 @@ const countriesData = [
   {
     code: 'LB',
     labels: {
-      en: 'Lebanon',
-      fr: 'Liban',
-      ar: 'لبنان'
+      en: 'LB',
+      fr: 'LB',
+      ar: 'LB'
     },
     names: {
       en: 'Lebanon',
@@ -180,9 +180,9 @@ const countriesData = [
   {
     code: 'SY',
     labels: {
-      en: 'Syria',
-      fr: 'Syrie',
-      ar: 'سوريا'
+      en: 'SY',
+      fr: 'SY',
+      ar: 'SY'
     },
     names: {
       en: 'Syria',
@@ -194,9 +194,9 @@ const countriesData = [
   {
     code: 'IQ',
     labels: {
-      en: 'Iraq',
-      fr: 'Irak',
-      ar: 'العراق'
+      en: 'IQ',
+      fr: 'IQ',
+      ar: 'IQ'
     },
     names: {
       en: 'Iraq',
@@ -208,9 +208,9 @@ const countriesData = [
   {
     code: 'PS',
     labels: {
-      en: 'Palestine',
-      fr: 'Palestine',
-      ar: 'فلسطين'
+      en: 'PS',
+      fr: 'PS',
+      ar: 'PS'
     },
     names: {
       en: 'Palestine',
@@ -222,9 +222,9 @@ const countriesData = [
   {
     code: 'LY',
     labels: {
-      en: 'Libya',
-      fr: 'Libye',
-      ar: 'ليبيا'
+      en: 'LY',
+      fr: 'LY',
+      ar: 'LY'
     },
     names: {
       en: 'Libya',
@@ -236,9 +236,9 @@ const countriesData = [
   {
     code: 'SD',
     labels: {
-      en: 'Sudan',
-      fr: 'Soudan',
-      ar: 'السودان'
+      en: 'SD',
+      fr: 'SD',
+      ar: 'SD'
     },
     names: {
       en: 'Sudan',
@@ -250,9 +250,9 @@ const countriesData = [
   {
     code: 'SO',
     labels: {
-      en: 'Somalia',
-      fr: 'Somalie',
-      ar: 'الصومال'
+      en: 'SO',
+      fr: 'SO',
+      ar: 'SO'
     },
     names: {
       en: 'Somalia',
@@ -264,9 +264,9 @@ const countriesData = [
   {
     code: 'DJ',
     labels: {
-      en: 'Djibouti',
-      fr: 'Djibouti',
-      ar: 'جيبوتي'
+      en: 'DJ',
+      fr: 'DJ',
+      ar: 'DJ'
     },
     names: {
       en: 'Djibouti',
@@ -278,9 +278,9 @@ const countriesData = [
   {
     code: 'KM',
     labels: {
-      en: 'Comoros',
-      fr: 'Comores',
-      ar: 'جزر القمر'
+      en: 'KM',
+      fr: 'KM',
+      ar: 'KM'
     },
     names: {
       en: 'Comoros',
@@ -292,9 +292,9 @@ const countriesData = [
   {
     code: 'MR',
     labels: {
-      en: 'Mauritania',
-      fr: 'Mauritanie',
-      ar: 'موريتانيا'
+      en: 'MR',
+      fr: 'MR',
+      ar: 'MR'
     },
     names: {
       en: 'Mauritania',
@@ -306,9 +306,9 @@ const countriesData = [
   {
     code: 'ML',
     labels: {
-      en: 'Mali',
-      fr: 'Mali',
-      ar: 'مالي'
+      en: 'ML',
+      fr: 'ML',
+      ar: 'ML'
     },
     names: {
       en: 'Mali',
@@ -320,9 +320,9 @@ const countriesData = [
   {
     code: 'NE',
     labels: {
-      en: 'Niger',
-      fr: 'Niger',
-      ar: 'النيجر'
+      en: 'NE',
+      fr: 'NE',
+      ar: 'NE'
     },
     names: {
       en: 'Niger',
@@ -334,9 +334,9 @@ const countriesData = [
   {
     code: 'TD',
     labels: {
-      en: 'Chad',
-      fr: 'Tchad',
-      ar: 'تشاد'
+      en: 'TD',
+      fr: 'TD',
+      ar: 'TD'
     },
     names: {
       en: 'Chad',
@@ -348,9 +348,9 @@ const countriesData = [
   {
     code: 'CF',
     labels: {
-      en: 'Central African Republic',
-      fr: 'République Centrafricaine',
-      ar: 'جمهورية أفريقيا الوسطى'
+      en: 'CF',
+      fr: 'CF',
+      ar: 'CF'
     },
     names: {
       en: 'Central African Republic',
@@ -361,7 +361,7 @@ const countriesData = [
   }
 ];
 
-// Post types data (Found/Lost)
+// Post types data
 const postTypesData = [
   {
     code: 'FOUND',
@@ -372,7 +372,8 @@ const postTypesData = [
     },
     color: '#4CAF50',
     icon: '🔍',
-    description: 'Items that have been found and are being returned to their owners'
+    isActive: true,
+    description: 'Items that have been found'
   },
   {
     code: 'LOST',
@@ -383,155 +384,180 @@ const postTypesData = [
     },
     color: '#F44336',
     icon: '❓',
-    description: 'Items that have been lost and are being searched for'
+    isActive: true,
+    description: 'Items that have been lost'
   }
 ];
 
-// Categories data - Updated to match new model structure
+// Categories data
 const categoriesData = [
   {
     code: 'ELECTRONICS',
     labels: {
       en: 'Electronics',
       fr: 'Électronique',
-      ar: 'إلكترونيات'
+      ar: 'الإلكترونيات'
     },
-    color: '#00BCD4',
+    color: '#2196F3',
+    isActive: true,
     description: 'Electronic devices and gadgets',
     priority: 1,
-    iconName: 'PhoneAndroidOutlined'
+    searchTerms: ['phone', 'laptop', 'computer', 'tablet', 'camera', 'electronic'],
+    iconName: 'PhoneAndroid'
   },
   {
     code: 'DOCUMENTS',
     labels: {
       en: 'Documents',
       fr: 'Documents',
-      ar: 'وثائق'
+      ar: 'المستندات'
     },
-    color: '#795548',
+    color: '#FF9800',
+    isActive: true,
     description: 'Important documents and papers',
     priority: 2,
-    iconName: 'ArticleOutlined'
+    searchTerms: ['passport', 'id', 'license', 'certificate', 'document', 'paper'],
+    iconName: 'Description'
   },
   {
     code: 'JEWELRY',
     labels: {
       en: 'Jewelry',
       fr: 'Bijoux',
-      ar: 'مجوهرات'
+      ar: 'المجوهرات'
     },
-    color: '#9C27B0',
+    color: '#E91E63',
+    isActive: true,
     description: 'Jewelry and accessories',
     priority: 3,
-    iconName: 'AttachMoneyOutlined'
+    searchTerms: ['ring', 'necklace', 'watch', 'bracelet', 'jewelry', 'gold', 'silver'],
+    iconName: 'Diamond'
   },
   {
     code: 'CLOTHING',
     labels: {
       en: 'Clothing',
       fr: 'Vêtements',
-      ar: 'ملابس'
+      ar: 'الملابس'
     },
-    color: '#4CAF50',
+    color: '#9C27B0',
+    isActive: true,
     description: 'Clothing and fashion items',
     priority: 4,
-    iconName: 'LuggageOutlined'
+    searchTerms: ['shirt', 'pants', 'dress', 'shoes', 'bag', 'clothing', 'fashion'],
+    iconName: 'Checkroom'
   },
   {
     code: 'PETS',
     labels: {
       en: 'Pets',
       fr: 'Animaux',
-      ar: 'حيوانات أليفة'
+      ar: 'الحيوانات الأليفة'
     },
     color: '#795548',
+    isActive: true,
     description: 'Lost or found pets',
     priority: 5,
-    iconName: 'PetsOutlined'
+    searchTerms: ['dog', 'cat', 'pet', 'animal', 'bird', 'fish'],
+    iconName: 'Pets'
   },
   {
     code: 'VEHICLES',
     labels: {
       en: 'Vehicles',
       fr: 'Véhicules',
-      ar: 'مركبات'
+      ar: 'المركبات'
     },
     color: '#607D8B',
+    isActive: true,
     description: 'Cars, motorcycles, and other vehicles',
     priority: 6,
-    iconName: 'DirectionsCarOutlined'
+    searchTerms: ['car', 'motorcycle', 'bike', 'vehicle', 'transport'],
+    iconName: 'DirectionsCar'
+  },
+  {
+    code: 'BOOKS',
+    labels: {
+      en: 'Books',
+      fr: 'Livres',
+      ar: 'الكتب'
+    },
+    color: '#8BC34A',
+    isActive: true,
+    description: 'Books and educational materials',
+    priority: 7,
+    searchTerms: ['book', 'textbook', 'notebook', 'study', 'education'],
+    iconName: 'Book'
+  },
+  {
+    code: 'MUSIC',
+    labels: {
+      en: 'Music',
+      fr: 'Musique',
+      ar: 'الموسيقى'
+    },
+    color: '#FF5722',
+    isActive: true,
+    description: 'Musical instruments and equipment',
+    priority: 8,
+    searchTerms: ['guitar', 'piano', 'instrument', 'music', 'speaker'],
+    iconName: 'MusicNote'
+  },
+  {
+    code: 'SPORTS',
+    labels: {
+      en: 'Sports',
+      fr: 'Sport',
+      ar: 'الرياضة'
+    },
+    color: '#00BCD4',
+    isActive: true,
+    description: 'Sports equipment and gear',
+    priority: 9,
+    searchTerms: ['ball', 'racket', 'equipment', 'sport', 'fitness'],
+    iconName: 'SportsSoccer'
+  },
+  {
+    code: 'TOYS',
+    labels: {
+      en: 'Toys',
+      fr: 'Jouets',
+      ar: 'الألعاب'
+    },
+    color: '#FFC107',
+    isActive: true,
+    description: 'Toys and games',
+    priority: 10,
+    searchTerms: ['toy', 'game', 'doll', 'puzzle', 'play'],
+    iconName: 'Toys'
   },
   {
     code: 'KEYS',
     labels: {
       en: 'Keys',
       fr: 'Clés',
-      ar: 'مفاتيح'
+      ar: 'المفاتيح'
     },
-    color: '#FF9800',
-    description: 'Keys and keychains',
-    priority: 7,
-    iconName: 'KeyOutlined'
+    color: '#9E9E9E',
+    isActive: true,
+    description: 'Keys and access cards',
+    priority: 11,
+    searchTerms: ['key', 'card', 'access', 'lock', 'security'],
+    iconName: 'VpnKey'
   },
   {
     code: 'WALLET',
     labels: {
       en: 'Wallet',
       fr: 'Portefeuille',
-      ar: 'محفظة'
-    },
-    color: '#FF5722',
-    description: 'Wallets and purses',
-    priority: 8,
-    iconName: 'CreditCardOutlined'
-  },
-  {
-    code: 'WATCHES',
-    labels: {
-      en: 'Watches',
-      fr: 'Montres',
-      ar: 'ساعات'
-    },
-    color: '#2196F3',
-    description: 'Watches and timepieces',
-    priority: 9,
-    iconName: 'WatchOutlined'
-  },
-  {
-    code: 'GAMING',
-    labels: {
-      en: 'Gaming',
-      fr: 'Jeux',
-      ar: 'ألعاب'
-    },
-    color: '#E91E63',
-    description: 'Gaming consoles, controllers, and accessories',
-    priority: 10,
-    iconName: 'SportsEsportsOutlined'
-  },
-  {
-    code: 'MEDICAL',
-    labels: {
-      en: 'Medical',
-      fr: 'Médical',
-      ar: 'طبي'
-    },
-    color: '#F44336',
-    description: 'Medical devices and health equipment',
-    priority: 11,
-    iconName: 'LocalHospitalOutlined'
-  },
-  {
-    code: 'LUGGAGE',
-    labels: {
-      en: 'Luggage',
-      fr: 'Bagages',
-      ar: 'أمتعة'
+      ar: 'المحفظة'
     },
     color: '#795548',
-    description: 'Luggage and travel bags',
+    isActive: true,
+    description: 'Wallets and purses',
     priority: 12,
-    iconName: 'LuggageOutlined'
+    searchTerms: ['wallet', 'purse', 'money', 'card', 'cash'],
+    iconName: 'AccountBalanceWallet'
   },
   {
     code: 'OTHER',
@@ -540,9 +566,11 @@ const categoriesData = [
       fr: 'Autre',
       ar: 'أخرى'
     },
-    color: '#9E9E9E',
+    color: '#607D8B',
+    isActive: true,
     description: 'Other miscellaneous items',
     priority: 13,
+    searchTerms: ['other', 'misc', 'various'],
     iconName: 'MoreHorizOutlined'
   }
 ];
@@ -553,10 +581,8 @@ const seedData = async () => {
     console.log('Connecting to MongoDB...');
     console.log('Using URI:', MONGODB_URI.replace(/\/\/[^:]+:[^@]+@/, '//***:***@')); // Hide credentials in logs
     
-    // Connect to MongoDB with better error handling
+    // Connect to MongoDB with better error handling and longer timeout
     await mongoose.connect(MONGODB_URI, {
-      useNewUrlParser: true,
-      useUnifiedTopology: true,
       maxPoolSize: 10,
       serverSelectionTimeoutMS: 30000,
       socketTimeoutMS: 45000,
@@ -565,12 +591,16 @@ const seedData = async () => {
     });
     console.log('✅ Connected to MongoDB');
 
-    // Clear existing data
+    // Clear existing data with better error handling
     console.log('🧹 Clearing existing data...');
-    await Country.deleteMany({});
-    await FoundLost.deleteMany({});
-    await Category.deleteMany({});
-    console.log('✅ Cleared existing data');
+    try {
+      await Country.deleteMany({});
+      await FoundLost.deleteMany({});
+      await Category.deleteMany({});
+      console.log('✅ Cleared existing data');
+    } catch (error) {
+      console.log('⚠️  Could not clear existing data (database might be empty):', error.message);
+    }
 
     // Seed countries
     console.log('🌍 Seeding countries...');
@@ -596,14 +626,9 @@ const seedData = async () => {
   } catch (error) {
     console.error('❌ Error seeding data:', error);
     console.error('Error details:', error.message);
-    if (error.code) {
-      console.error('Error code:', error.code);
-    }
   } finally {
-    if (mongoose.connection.readyState === 1) {
-      await mongoose.disconnect();
-      console.log('🔌 Disconnected from MongoDB');
-    }
+    await mongoose.disconnect();
+    console.log('🔌 Disconnected from MongoDB');
   }
 };
 
