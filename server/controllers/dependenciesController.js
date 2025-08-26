@@ -768,22 +768,73 @@ const getCitiesByCountry = async (req, res) => {
       });
     }
 
-    const cities = await City.find({ 
-      country: countryId,
-      isActive: true
-    })
-    .select('_id code labels names isCapital')
-    .sort({ 'labels.en': 1 })
-    .lean()
-    .exec();
+    console.log('🔍 Fetching cities for countryId:', countryId);
+
+    // Try multiple approaches to find cities
+    let cities = [];
+    
+    // Approach 1: Try with ObjectId
+    const mongoose = require('mongoose');
+    if (mongoose.Types.ObjectId.isValid(countryId)) {
+      const countryObjectId = new mongoose.Types.ObjectId(countryId);
+      console.log('🔍 Trying with ObjectId:', countryObjectId);
+      
+      cities = await City.find({ 
+        country: countryObjectId,
+        isActive: true
+      })
+      .select('_id code labels names isCapital')
+      .sort({ 'labels.en': 1 })
+      .lean()
+      .exec();
+      
+      console.log('🔍 Found cities with ObjectId:', cities.length);
+    }
+    
+    // Approach 2: If no cities found, try with string
+    if (cities.length === 0) {
+      console.log('🔍 Trying with string countryId:', countryId);
+      
+      cities = await City.find({ 
+        country: countryId,
+        isActive: true
+      })
+      .select('_id code labels names isCapital')
+      .sort({ 'labels.en': 1 })
+      .lean()
+      .exec();
+      
+      console.log('🔍 Found cities with string:', cities.length);
+    }
+    
+    // Approach 3: If still no cities, try without isActive filter
+    if (cities.length === 0) {
+      console.log('🔍 Trying without isActive filter');
+      
+      cities = await City.find({ 
+        country: countryId
+      })
+      .select('_id code labels names isCapital isActive')
+      .sort({ 'labels.en': 1 })
+      .lean()
+      .exec();
+      
+      console.log('🔍 Found cities without isActive filter:', cities.length);
+      if (cities.length > 0) {
+        console.log('🔍 Sample city isActive value:', cities[0].isActive);
+      }
+    }
 
     if (!cities.length) {
+      console.log('❌ No cities found for countryId:', countryId);
       return res.status(200).json({ 
         success: false,
         message: "No cities found for this country",
         data: []
       });
     }
+
+    console.log('✅ Found cities:', cities.length);
 
     // Transform response to include language-specific labels
     const transformedCities = cities.map(city => ({
