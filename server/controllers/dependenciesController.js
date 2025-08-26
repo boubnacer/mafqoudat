@@ -821,6 +821,7 @@ const getCitiesByCountry = async (req, res) => {
 
     // Try multiple approaches to find cities
     let cities = [];
+    let countriesWithCities = null; // Initialize for fallback usage
     
     // Approach 1: Try with ObjectId
     if (mongoose.Types.ObjectId.isValid(countryId)) {
@@ -898,7 +899,7 @@ const getCitiesByCountry = async (req, res) => {
               const allCities = await City.find().select('_id code country isActive').lean();
               console.log('🔍 Total cities in database:', allCities.length);
               
-              const countriesWithCities = new Map();
+              countriesWithCities = new Map();
               for (const city of allCities) {
                 const cityCountryId = city.country;
                 if (!countriesWithCities.has(cityCountryId)) {
