@@ -769,8 +769,11 @@ const getCitiesByCountry = async (req, res) => {
     }
 
     const cities = await City.find({ 
-      country: countryId, 
-      isActive: true 
+      country: countryId,
+      $or: [
+        { isActive: true },
+        { isActive: null }
+      ]
     })
     .select('_id code labels names isCapital')
     .sort({ 'labels.en': 1 })

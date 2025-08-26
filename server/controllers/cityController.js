@@ -10,7 +10,11 @@ const getCities = async (req, res) => {
     
     // Filter by active status
     if (active === 'true') {
-      query.isActive = true;
+      // Handle both true and null values for isActive
+      query.$or = [
+        { isActive: true },
+        { isActive: null }
+      ];
     }
     
     // Filter by country
@@ -89,7 +93,10 @@ const searchCities = async (req, res) => {
 
     let query = {
       $text: { $search: q },
-      isActive: true
+      $or: [
+        { isActive: true },
+        { isActive: null }
+      ]
     };
 
     // Filter by country if specified
