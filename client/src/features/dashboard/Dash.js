@@ -187,6 +187,7 @@ const Dash = () => {
       <Box
         m={{ xs: "0 1rem", sm: "0 2rem" }}
         mb={4}
+        p={{ xs: 2, sm: 3, md: 4 }}
         gap="20px"
         sx={{
           display: { xs: "grid", sm: "flex" },
