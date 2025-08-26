@@ -115,6 +115,11 @@ const NewPostForm = ({ user, countries, categories, flOptions }) => {
     const country = countries.find(c => c._id === countryId);
     setSelectedCountry(country);
     
+    // Debug logging
+    console.log('Country selected:', countryId);
+    console.log('Country object:', country);
+    console.log('Available countries:', countries?.map(c => ({ id: c._id, code: c.code, name: c.names?.en })));
+    
     // Reset cities when country changes
     setCities([]);
     
@@ -130,12 +135,18 @@ const NewPostForm = ({ user, countries, categories, flOptions }) => {
       const baseUrl = process.env.REACT_APP_API_URL || "http://localhost:3500";
       const url = `${baseUrl}/cities-public?countryId=${countryId}&language=${currentLanguage || 'en'}`;
       
+      console.log('Fetching cities from URL:', url);
+      
       const response = await fetch(url);
       const responseText = await response.text();
+      console.log('Raw response:', responseText);
+      
       const data = JSON.parse(responseText);
+      console.log('Parsed response:', data);
       
       if (data.success) {
         setCities(data.data);
+        console.log('Cities loaded:', data.data.length);
       } else {
         console.error('Failed to fetch cities:', data.message);
         setCities([]);
