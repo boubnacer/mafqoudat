@@ -772,6 +772,7 @@ const getCitiesByCountry = async (req, res) => {
 
     // First, let's check what country this ID represents
     const Country = require('../models/Country');
+    const mongoose = require('mongoose');
     console.log('🔍 Looking for country with ID:', countryId);
     console.log('🔍 ID type:', typeof countryId);
     console.log('🔍 Is valid ObjectId:', mongoose.Types.ObjectId.isValid(countryId));
@@ -822,7 +823,6 @@ const getCitiesByCountry = async (req, res) => {
     let cities = [];
     
     // Approach 1: Try with ObjectId
-    const mongoose = require('mongoose');
     if (mongoose.Types.ObjectId.isValid(countryId)) {
       const countryObjectId = new mongoose.Types.ObjectId(countryId);
       console.log('🔍 Trying with ObjectId:', countryObjectId);
@@ -921,7 +921,6 @@ const getCitiesByCountry = async (req, res) => {
               }
               
               // Also check with ObjectId format
-              const mongoose = require('mongoose');
               if (mongoose.Types.ObjectId.isValid(countryId)) {
                 const countryObjectId = new mongoose.Types.ObjectId(countryId);
                 const hasCitiesObjectId = countriesWithCities.has(countryObjectId.toString());
