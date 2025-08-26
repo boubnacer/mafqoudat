@@ -289,6 +289,7 @@ export const translations = {
     createOption: "Create Option",
     
     // Dashboard Stats
+    statistics: "Statistics",
     foundItems: "Found Items",
     lostItems: "Lost Items",
     totalItems: "Total Items",
@@ -985,6 +986,7 @@ export const translations = {
     createOption: "Créer une option",
     
     // Dashboard Stats
+    statistics: "Statistiques",
     foundItems: "Objets trouvés",
     lostItems: "Objets perdus",
     totalItems: "Total des objets",
@@ -1646,6 +1648,7 @@ export const translations = {
     createOption: "إنشاء خيار",
     
     // Dashboard Stats
+    statistics: "الإحصائيات",
     foundItems: "العناصر الموجودة",
     lostItems: "العناصر المفقودة",
     totalItems: "إجمالي العناصر",

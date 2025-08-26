@@ -151,28 +151,10 @@ const Dash = () => {
     return <LoadingState message={t('loadingDashboardData')} size="large" />;
   }
   
-  // Check if all data is empty - show empty state
+  // Check if all data is empty - show empty state but still show stats
   const hasNoData = !data?.totalFounds && !data?.totalLosts && !data?.totalPosts && 
                    (!data?.recentFounds || data?.recentFounds.length === 0) && 
                    (!data?.recentLosts || data?.recentLosts.length === 0);
-  
-  if (hasNoData) {
-    return (
-      <Box 
-        pt={{ xs: "6.5rem", sm: "7rem" }} 
-        width="100%"
-        sx={{
-          transition: 'padding 0.3s ease',
-        }}
-      >
-        <DashboardEmptyStates.NoPosts 
-          country={currentCountry} 
-          countriesData={countriesData}
-          onCreatePost={handleCreateNewPost} 
-        />
-      </Box>
-    );
-  }
 
   return (
     <Box 
@@ -190,7 +172,7 @@ const Dash = () => {
     >
       
       {/* Search Section */}
-      <Box mb={4}>
+      {/* <Box mb={4}>
         <SearchSection
           searchQuery={searchQuery}
           handleSearchChange={handleSearchChange}
@@ -199,7 +181,7 @@ const Dash = () => {
           searchData={searchData}
           handleCreateNewPost={handleCreateNewPost}
         />
-      </Box>
+      </Box> */}
 
       {/* Header Section with Stats and Trending */}
       <Box
@@ -227,154 +209,167 @@ const Dash = () => {
         )}
       </Box>
 
-      {/* Section Divider */}
-      <Box 
-        mx={{ xs: 2, sm: 3, md: 4 }} 
-        mb={4}
-        sx={{
-          height: 2,
-          background: theme.palette.mode === 'dark'
-            ? 'linear-gradient(90deg, transparent 0%, rgba(255,255,255,0.1) 50%, transparent 100%)'
-            : 'linear-gradient(90deg, transparent 0%, rgba(0,0,0,0.1) 50%, transparent 100%)',
-          borderRadius: 1
-        }}
-      />
+      {/* Show empty state if no posts, but still show stats above */}
+      {hasNoData && (
+        <Box mb={4}>
+          <DashboardEmptyStates.NoPosts 
+            country={currentCountry} 
+            countriesData={countriesData}
+            onCreatePost={handleCreateNewPost} 
+          />
+        </Box>
+      )}
 
-      {/* Enhanced Recent Founds Section */}
-      <Box mb={4}>
-        <DashRecents 
-          cate="recents" 
-          sx={{ 
-            backgroundColor: theme.palette.mode === 'dark' ? '#1a1a1a' : '#f8f9fa',
-            borderRadius: { xs: '12px', sm: '16px' },
-            boxShadow: theme.palette.mode === 'dark' 
-              ? '0 8px 32px rgba(0,0,0,0.3)'
-              : '0 8px 32px rgba(0,0,0,0.1)',
-            overflow: 'hidden',
-            mx: { xs: 1, sm: 2 },
-            maxWidth: '100%',
-          }}
-        >
+      {/* Only show content sections if there are posts */}
+      {!hasNoData && (
+        <>
+          {/* Section Divider */}
           <Box 
-            display="flex" 
-            alignItems="center" 
-            justifyContent="space-between" 
-            p={{ xs: "1.5rem", sm: "2rem" }}
+            mx={{ xs: 2, sm: 3, md: 4 }} 
+            mb={4}
             sx={{
+              height: 2,
               background: theme.palette.mode === 'dark'
-                ? 'linear-gradient(45deg, #1a1a1a 30%, #2d2d2d 90%)'
-                : 'linear-gradient(45deg, #2196F3 30%, #21CBF3 90%)',
-              borderBottom: '1px solid',
-              borderColor: theme.palette.mode === 'dark' ? 'rgba(255,255,255,0.1)' : 'rgba(255,255,255,0.2)',
-              flexDirection: { xs: 'column', sm: 'row' },
-              gap: { xs: 1.5, sm: 0 },
-              direction: currentLanguage === 'ar' ? 'rtl' : 'ltr'
+                ? 'linear-gradient(90deg, transparent 0%, rgba(255,255,255,0.1) 50%, transparent 100%)'
+                : 'linear-gradient(90deg, transparent 0%, rgba(0,0,0,0.1) 50%, transparent 100%)',
+              borderRadius: 1
             }}
-          >
-            <Box 
-              display="flex" 
-              alignItems="center" 
-              gap={2} 
-              sx={{
-                flexDirection: currentLanguage === 'ar' ? 'row-reverse' : 'row',
-                justifyContent: { xs: 'center', sm: 'flex-start' },
-                flex: { xs: '0 0 auto', sm: '0 0 auto' }
+          />
+
+          {/* Enhanced Recent Founds Section */}
+          <Box mb={4}>
+            <DashRecents 
+              cate="recents" 
+              sx={{ 
+                backgroundColor: theme.palette.mode === 'dark' ? '#1a1a1a' : '#f8f9fa',
+                borderRadius: { xs: '12px', sm: '16px' },
+                boxShadow: theme.palette.mode === 'dark' 
+                  ? '0 8px 32px rgba(0,0,0,0.3)'
+                  : '0 8px 32px rgba(0,0,0,0.1)',
+                overflow: 'hidden',
+                mx: { xs: 1, sm: 2 },
+                maxWidth: '100%',
               }}
             >
-              <Typography
-                fontWeight="700"
+              <Box 
+                display="flex" 
+                alignItems="center" 
+                justifyContent="space-between" 
+                p={{ xs: "1.5rem", sm: "2rem" }}
                 sx={{
-                  fontSize: { xs: "18px", sm: "22px", md: "24px" },
-                  color: '#fff',
-                  display: 'flex',
-                  alignItems: 'center',
-                  gap: 1,
-                  flexDirection: currentLanguage === 'ar' ? 'row-reverse' : 'row',
-                  textAlign: { xs: 'center', sm: 'left' }
+                  background: theme.palette.mode === 'dark'
+                    ? 'linear-gradient(45deg, #1a1a1a 30%, #2d2d2d 90%)'
+                    : 'linear-gradient(45deg, #2196F3 30%, #21CBF3 90%)',
+                  borderBottom: '1px solid',
+                  borderColor: theme.palette.mode === 'dark' ? 'rgba(255,255,255,0.1)' : 'rgba(255,255,255,0.2)',
+                  flexDirection: { xs: 'column', sm: 'row' },
+                  gap: { xs: 1.5, sm: 0 },
+                  direction: currentLanguage === 'ar' ? 'rtl' : 'ltr'
                 }}
               >
-                <WhatshotOutlined sx={{ color: '#FFA500', fontSize: { xs: '20px', sm: '24px' } }} />
-                {t('recentFounds')}
-              </Typography>
-              <Chip 
-                label={`${data?.totalFounds || 0} ${t('items')}`}
-                color="primary"
-                size="small"
-                sx={{ 
-                  backgroundColor: 'rgba(255,255,255,0.2)',
-                  color: '#fff',
-                  fontSize: { xs: '0.75rem', sm: '0.875rem' },
-                  fontWeight: 600,
-                  minWidth: 'auto',
-                  px: { xs: 1.5, sm: 2 },
-                  height: { xs: '28px', sm: '32px' },
-                  display: { xs: 'none', sm: 'flex' }
-                }}
-              />
-            </Box>
-            <SeeAll 
-              foundOrlostId={foundsId} 
-              totalItems={data?.totalFounds}
-              sx={{
-                color: '#fff',
-                '&:hover': {
-                  backgroundColor: 'rgba(255,255,255,0.15)'
-                },
-                width: { xs: '100%', sm: 'auto' },
-                justifyContent: { xs: 'center', sm: 'flex-end' },
-                fontSize: { xs: '0.9rem', sm: '1rem' },
-                minHeight: { xs: '40px', sm: 'auto' },
-                borderRadius: 2,
-                px: { xs: 2, sm: 3 },
-                flex: { xs: '1 1 auto', sm: '0 0 auto' }
-              }}
-            />
-          </Box>
-          <Box p={{ xs: 1.5, sm: 2 }}>
-            <FlexCenter>
-              <Recent 
-                recent={data?.recentFounds}
-                isLoading={isLoading}
-                emptyState="NoRecentFounds"
-                sx={{
-                  '& .MuiCard-root': {
-                    backgroundColor: theme.palette.mode === 'dark' ? '#2d2d2d' : '#fff',
-                    transition: 'transform 0.2s ease-in-out, box-shadow 0.2s ease-in-out',
+                <Box 
+                  display="flex" 
+                  alignItems="center" 
+                  gap={2} 
+                  sx={{
+                    flexDirection: currentLanguage === 'ar' ? 'row-reverse' : 'row',
+                    justifyContent: { xs: 'center', sm: 'flex-start' },
+                    flex: { xs: '0 0 auto', sm: '0 0 auto' }
+                  }}
+                >
+                  <Typography
+                    fontWeight="700"
+                    sx={{
+                      fontSize: { xs: "18px", sm: "22px", md: "24px" },
+                      color: '#fff',
+                      display: 'flex',
+                      alignItems: 'center',
+                      gap: 1,
+                      flexDirection: currentLanguage === 'ar' ? 'row-reverse' : 'row',
+                      textAlign: { xs: 'center', sm: 'left' }
+                    }}
+                  >
+                    <WhatshotOutlined sx={{ color: '#FFA500', fontSize: { xs: '20px', sm: '24px' } }} />
+                    {t('recentFounds')}
+                  </Typography>
+                  <Chip 
+                    label={`${data?.totalFounds || 0} ${t('items')}`}
+                    color="primary"
+                    size="small"
+                    sx={{ 
+                      backgroundColor: 'rgba(255,255,255,0.2)',
+                      color: '#fff',
+                      fontSize: { xs: '0.75rem', sm: '0.875rem' },
+                      fontWeight: 600,
+                      minWidth: 'auto',
+                      px: { xs: 1.5, sm: 2 },
+                      height: { xs: '28px', sm: '32px' },
+                      display: { xs: 'none', sm: 'flex' }
+                    }}
+                  />
+                </Box>
+                <SeeAll 
+                  foundOrlostId={foundsId} 
+                  totalItems={data?.totalFounds}
+                  sx={{
+                    color: '#fff',
                     '&:hover': {
-                      transform: { xs: 'none', sm: 'translateY(-4px)' },
-                      boxShadow: theme.palette.mode === 'dark'
-                        ? '0 8px 24px rgba(0,0,0,0.4)'
-                        : '0 8px 24px rgba(0,0,0,0.1)'
+                      backgroundColor: 'rgba(255,255,255,0.15)'
                     },
-                    height: { xs: 'auto', sm: '100%' },
-                    display: 'flex',
-                    flexDirection: 'column',
-                    borderRadius: 2
-                  },
-                  '& .MuiCardMedia-root': {
-                    height: { xs: '160px', sm: '200px', md: '220px' },
-                    objectFit: 'cover'
-                  },
-                  '& .MuiCardContent-root': {
-                    flexGrow: 1,
-                    p: { xs: 1.5, sm: 2 }
-                  },
-                  '& .MuiTypography-h6': {
-                    fontSize: { xs: '1rem', sm: '1.1rem', md: '1.25rem' },
-                    mb: { xs: 0.5, sm: 1 }
-                  },
-                  '& .MuiTypography-body2': {
-                    fontSize: { xs: '0.85rem', sm: '0.9rem', md: '1rem' }
-                  }
-                }}
-              />
-            </FlexCenter>
+                    width: { xs: '100%', sm: 'auto' },
+                    justifyContent: { xs: 'center', sm: 'flex-end' },
+                    fontSize: { xs: '0.9rem', sm: '1rem' },
+                    minHeight: { xs: '40px', sm: 'auto' },
+                    borderRadius: 2,
+                    px: { xs: 2, sm: 3 },
+                    flex: { xs: '1 1 auto', sm: '0 0 auto' }
+                  }}
+                />
+              </Box>
+                <FlexCenter>
+                  <Recent 
+                    recent={data?.recentFounds}
+                    isLoading={isLoading}
+                    emptyState="NoRecentFounds"
+                    sx={{
+                      '& .MuiCard-root': {
+                        backgroundColor: theme.palette.mode === 'dark' ? '#2d2d2d' : '#fff',
+                        transition: 'transform 0.2s ease-in-out, box-shadow 0.2s ease-in-out',
+                        '&:hover': {
+                          transform: { xs: 'none', sm: 'translateY(-4px)' },
+                          boxShadow: theme.palette.mode === 'dark'
+                            ? '0 8px 24px rgba(0,0,0,0.4)'
+                            : '0 8px 24px rgba(0,0,0,0.1)'
+                        },
+                        height: { xs: 'auto', sm: '100%' },
+                        display: 'flex',
+                        flexDirection: 'column',
+                        borderRadius: 2
+                      },
+                      '& .MuiCardMedia-root': {
+                        height: { xs: '160px', sm: '200px', md: '220px' },
+                        objectFit: 'cover'
+                      },
+                      '& .MuiCardContent-root': {
+                        flexGrow: 1,
+                        p: { xs: 1.5, sm: 2 }
+                      },
+                      '& .MuiTypography-h6': {
+                        fontSize: { xs: '1rem', sm: '1.1rem', md: '1.25rem' },
+                        mb: { xs: 0.5, sm: 1 }
+                      },
+                      '& .MuiTypography-body2': {
+                        fontSize: { xs: '0.85rem', sm: '0.9rem', md: '1rem' }
+                      }
+                    }}
+                  />
+                </FlexCenter>
+              </Box>
+            </DashRecents>
           </Box>
-        </DashRecents>
-      </Box>
 
-      {/* Enhanced Recent Losts Section */}
-      <Box mb={4}>
+          {/* Enhanced Recent Losts Section */}
+          <Box mb={4}>
         <DashRecents
           cate="recents"
           sx={{ 
@@ -574,10 +569,12 @@ const Dash = () => {
         </DashRecents>
       </Box>
 
-      {/* Help & Support Section */}
-      <Box mb={4}>
-        <HelpSupportSection />
-      </Box>
+          {/* Help & Support Section */}
+          <Box mb={4}>
+            <HelpSupportSection />
+          </Box>
+        </>
+      )}
 
       
     </Box>
