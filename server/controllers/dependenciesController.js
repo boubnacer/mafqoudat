@@ -768,17 +768,22 @@ const getCitiesByCountry = async (req, res) => {
       });
     }
 
-    const cities = await City.find({ 
-      country: countryId,
-      $or: [
-        { isActive: true },
-        { isActive: null }
-      ]
+    // First, let's try without the isActive filter to see if cities exist
+    let cities = await City.find({ 
+      country: countryId
     })
-    .select('_id code labels names isCapital')
+    .select('_id code labels names isCapital isActive')
     .sort({ 'labels.en': 1 })
     .lean()
     .exec();
+
+    console.log(`Found ${cities.length} cities for country ${countryId}`);
+    
+    // Filter by isActive if we have cities
+    if (cities.length > 0) {
+      cities = cities.filter(city => city.isActive === true || city.isActive === null);
+      console.log(`After filtering by isActive: ${cities.length} cities`);
+    }
 
     if (!cities.length) {
       return res.status(200).json({ 
