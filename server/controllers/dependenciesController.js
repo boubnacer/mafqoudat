@@ -971,14 +971,34 @@ const getCitiesByCountry = async (req, res) => {
     console.log('✅ Found cities:', cities.length);
 
     // Transform response to include language-specific labels
-    const transformedCities = cities.map(city => ({
-      id: city._id,
-      code: city.code,
-      label: city.labels[language] || city.labels.en,
-      labels: city.labels,
-      names: city.names || {},
-      isCapital: city.isCapital
-    }));
+    const transformedCities = cities.map(city => {
+      console.log('🔍 Transforming city:', city.code, 'labels:', city.labels);
+      
+      // Try multiple approaches to get the label
+      let label = null;
+      if (city.labels && city.labels[language]) {
+        label = city.labels[language];
+      } else if (city.labels && city.labels.en) {
+        label = city.labels.en;
+      } else if (city.names && city.names[language]) {
+        label = city.names[language];
+      } else if (city.names && city.names.en) {
+        label = city.names.en;
+      } else {
+        label = city.code; // Fallback to code
+      }
+      
+      console.log('🔍 Final label for', city.code, ':', label);
+      
+      return {
+        id: city._id,
+        code: city.code,
+        label: label,
+        labels: city.labels || {},
+        names: city.names || {},
+        isCapital: city.isCapital
+      };
+    });
 
     res.json({
       success: true,

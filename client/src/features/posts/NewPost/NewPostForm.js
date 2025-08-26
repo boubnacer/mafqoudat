@@ -401,19 +401,22 @@ const NewPostForm = ({ user, countries, categories, flOptions }) => {
                           borderRadius: 2,
                         }}
                       >
-                        {cities.map((city) => (
-                          <MenuItem key={city.id} value={city.id}>
-                            <Box display="flex" alignItems="center" gap={1}>
-                              {city.isCapital && (
-                                <span style={{ fontSize: '16px' }}>🏛️</span>
-                              )}
-                              {city.isDynamic && (
-                                <span style={{ fontSize: '16px' }}>🆕</span>
-                              )}
-                              {city.label}
-                            </Box>
-                          </MenuItem>
-                        ))}
+                        {cities.map((city) => {
+                          console.log('City object:', city); // Debug log
+                          return (
+                            <MenuItem key={city.id} value={city.id}>
+                              <Box display="flex" alignItems="center" gap={1}>
+                                {city.isCapital && (
+                                  <span style={{ fontSize: '16px' }}>🏛️</span>
+                                )}
+                                {city.isDynamic && (
+                                  <span style={{ fontSize: '16px' }}>🆕</span>
+                                )}
+                                {city.label || city.code || city.name || 'Unknown City'}
+                              </Box>
+                            </MenuItem>
+                          );
+                        })}
                         <Divider />
                                                 <MenuItem
                           value="other" 
