@@ -326,6 +326,7 @@ const Dash = () => {
                   }}
                 />
               </Box>
+              <Box p={{ xs: 1.5, sm: 2 }}>
                 <FlexCenter>
                   <Recent 
                     recent={data?.recentFounds}
@@ -370,97 +371,97 @@ const Dash = () => {
 
           {/* Enhanced Recent Losts Section */}
           <Box mb={4}>
-        <DashRecents
-          cate="recents"
-          sx={{ 
-            backgroundColor: theme.palette.mode === 'dark' ? '#1a1a1a' : '#f8f9fa',
-            borderRadius: { xs: '12px', sm: '16px' },
-            boxShadow: theme.palette.mode === 'dark' 
-              ? '0 8px 32px rgba(0,0,0,0.3)'
-              : '0 8px 32px rgba(0,0,0,0.1)',
-            overflow: 'hidden',
-            mx: { xs: 1, sm: 2 },
-            direction: currentLanguage === 'ar' ? 'rtl' : 'ltr',
-            border: `1px solid ${theme.palette.mode === 'dark' ? 'rgba(255,255,255,0.05)' : 'rgba(0,0,0,0.05)'}`
-          }}
-        >
-          <Box 
-            display="flex" 
-            alignItems="center" 
-            justifyContent="space-between" 
-            p={{ xs: "1.5rem", sm: "2rem" }}
-            sx={{
-              background: theme.palette.mode === 'dark'
-                ? 'linear-gradient(45deg, #1a1a1a 30%, #2d2d2d 90%)'
-                : 'linear-gradient(45deg, #FFA500 30%, #FFD700 90%)',
-              borderBottom: '1px solid',
-              borderColor: theme.palette.mode === 'dark' ? 'rgba(255,255,255,0.1)' : 'rgba(255,255,255,0.2)',
-              flexDirection: { xs: 'column', sm: 'row' },
-              gap: { xs: 1.5, sm: 0 },
-              direction: currentLanguage === 'ar' ? 'rtl' : 'ltr'
-            }}
-          >
-            <Box 
-              display="flex" 
-              alignItems="center" 
-              gap={2} 
-              sx={{
-                flexDirection: currentLanguage === 'ar' ? 'row-reverse' : 'row',
-                justifyContent: { xs: 'center', sm: 'flex-start' },
-                flex: { xs: '0 0 auto', sm: '0 0 auto' }
+            <DashRecents
+              cate="recents"
+              sx={{ 
+                backgroundColor: theme.palette.mode === 'dark' ? '#1a1a1a' : '#f8f9fa',
+                borderRadius: { xs: '12px', sm: '16px' },
+                boxShadow: theme.palette.mode === 'dark' 
+                  ? '0 8px 32px rgba(0,0,0,0.3)'
+                  : '0 8px 32px rgba(0,0,0,0.1)',
+                overflow: 'hidden',
+                mx: { xs: 1, sm: 2 },
+                direction: currentLanguage === 'ar' ? 'rtl' : 'ltr',
+                border: `1px solid ${theme.palette.mode === 'dark' ? 'rgba(255,255,255,0.05)' : 'rgba(0,0,0,0.05)'}`
               }}
             >
-              <Typography
-                fontWeight="700"
+              <Box 
+                display="flex" 
+                alignItems="center" 
+                justifyContent="space-between" 
+                p={{ xs: "1.5rem", sm: "2rem" }}
                 sx={{
-                  fontSize: { xs: "18px", sm: "22px", md: "24px" },
-                  color: '#fff',
-                  display: 'flex',
-                  alignItems: 'center',
-                  gap: 1,
-                  flexDirection: currentLanguage === 'ar' ? 'row-reverse' : 'row',
-                  textAlign: { xs: 'center', sm: 'left' }
+                  background: theme.palette.mode === 'dark'
+                    ? 'linear-gradient(45deg, #1a1a1a 30%, #2d2d2d 90%)'
+                    : 'linear-gradient(45deg, #FFA500 30%, #FFD700 90%)',
+                  borderBottom: '1px solid',
+                  borderColor: theme.palette.mode === 'dark' ? 'rgba(255,255,255,0.1)' : 'rgba(255,255,255,0.2)',
+                  flexDirection: { xs: 'column', sm: 'row' },
+                  gap: { xs: 1.5, sm: 0 },
+                  direction: currentLanguage === 'ar' ? 'rtl' : 'ltr'
                 }}
               >
-                <Search sx={{ color: '#fff', fontSize: { xs: '20px', sm: '24px' } }} />
-                {t('recentLosts')}
-              </Typography>
-              <Chip 
-                label={`${data?.totalLosts || 0} ${t('items')}`}
-                color="warning"
-                size="small"
-                sx={{ 
-                  backgroundColor: 'rgba(255,255,255,0.2)',
-                  color: '#fff',
-                  fontSize: { xs: '0.75rem', sm: '0.875rem' },
-                  fontWeight: 600,
-                  minWidth: 'auto',
-                  px: { xs: 1.5, sm: 2 },
-                  height: { xs: '28px', sm: '32px' },
-                  display: { xs: 'none', sm: 'flex' }
-                }}
-              />
-            </Box>
-            <SeeAll 
-              foundOrlostId={lostsId} 
-              totalItems={data?.totalLosts}
-              sx={{
-                color: '#fff',
-                '&:hover': {
-                  backgroundColor: 'rgba(255,255,255,0.15)'
-                },
-                width: { xs: '100%', sm: 'auto' },
-                justifyContent: { xs: 'center', sm: 'flex-end' },
-                fontSize: { xs: '0.9rem', sm: '1rem' },
-                minHeight: { xs: '40px', sm: 'auto' },
-                borderRadius: 2,
-                px: { xs: 2, sm: 3 },
-                flex: { xs: '1 1 auto', sm: '0 0 auto' }
-              }}
-            />
-          </Box>
-          <Box p={{ xs: 1.5, sm: 2 }}>
-            <FlexCenter>
+                <Box 
+                  display="flex" 
+                  alignItems="center" 
+                  gap={2} 
+                  sx={{
+                    flexDirection: currentLanguage === 'ar' ? 'row-reverse' : 'row',
+                    justifyContent: { xs: 'center', sm: 'flex-start' },
+                    flex: { xs: '0 0 auto', sm: '0 0 auto' }
+                  }}
+                >
+                  <Typography
+                    fontWeight="700"
+                    sx={{
+                      fontSize: { xs: "18px", sm: "22px", md: "24px" },
+                      color: '#fff',
+                      display: 'flex',
+                      alignItems: 'center',
+                      gap: 1,
+                      flexDirection: currentLanguage === 'ar' ? 'row-reverse' : 'row',
+                      textAlign: { xs: 'center', sm: 'left' }
+                    }}
+                  >
+                    <Search sx={{ color: '#fff', fontSize: { xs: '20px', sm: '24px' } }} />
+                    {t('recentLosts')}
+                  </Typography>
+                  <Chip 
+                    label={`${data?.totalLosts || 0} ${t('items')}`}
+                    color="warning"
+                    size="small"
+                    sx={{ 
+                      backgroundColor: 'rgba(255,255,255,0.2)',
+                      color: '#fff',
+                      fontSize: { xs: '0.75rem', sm: '0.875rem' },
+                      fontWeight: 600,
+                      minWidth: 'auto',
+                      px: { xs: 1.5, sm: 2 },
+                      height: { xs: '28px', sm: '32px' },
+                      display: { xs: 'none', sm: 'flex' }
+                    }}
+                  />
+                </Box>
+                <SeeAll 
+                  foundOrlostId={lostsId} 
+                  totalItems={data?.totalLosts}
+                  sx={{
+                    color: '#fff',
+                    '&:hover': {
+                      backgroundColor: 'rgba(255,255,255,0.15)'
+                    },
+                    width: { xs: '100%', sm: 'auto' },
+                    justifyContent: { xs: 'center', sm: 'flex-end' },
+                    fontSize: { xs: '0.9rem', sm: '1rem' },
+                    minHeight: { xs: '40px', sm: 'auto' },
+                    borderRadius: 2,
+                    px: { xs: 2, sm: 3 },
+                    flex: { xs: '1 1 auto', sm: '0 0 auto' }
+                  }}
+                />
+              </Box>
+              <Box p={{ xs: 1.5, sm: 2 }}>
+                <FlexCenter>
               <Recent 
                 recent={data?.recentLosts}
                 isLoading={isLoading}
@@ -502,72 +503,72 @@ const Dash = () => {
         </DashRecents>
       </Box>
 
-      {/* Section Divider */}
-      <Box 
-        mx={{ xs: 2, sm: 3, md: 4 }} 
-        mb={4}
-        sx={{
-          height: 2,
-          background: theme.palette.mode === 'dark'
-            ? 'linear-gradient(90deg, transparent 0%, rgba(255,255,255,0.1) 50%, transparent 100%)'
-            : 'linear-gradient(90deg, transparent 0%, rgba(0,0,0,0.1) 50%, transparent 100%)',
-          borderRadius: 1
-        }}
-      />
-
-      {/* Quick Actions */}
-      <Box mb={4}>
-        <QuickActions />
-      </Box>
-
-      {/* Categories Section */}
-      <Box mb={4}>
-        <DashRecents 
-          cate="cate" 
-          sx={{ 
-            borderColor: theme.palette.primary.main,
-            backgroundColor: theme.palette.mode === 'dark' ? '#1a1a1a' : '#f8f9fa',
-            borderRadius: { xs: '12px', sm: '16px' },
-            boxShadow: theme.palette.mode === 'dark' 
-              ? '0 8px 32px rgba(0,0,0,0.3)'
-              : '0 8px 32px rgba(0,0,0,0.1)',
-            mx: { xs: 1, sm: 2 },
-            border: `1px solid ${theme.palette.mode === 'dark' ? 'rgba(255,255,255,0.05)' : 'rgba(0,0,0,0.05)'}`
-          }}
-        >
-          <Typography
-            fontWeight="700"
+          {/* Section Divider */}
+          <Box 
+            mx={{ xs: 2, sm: 3, md: 4 }} 
+            mb={4}
             sx={{
-              fontSize: { xs: "20px", sm: "24px", md: "26px" },
-              background: "linear-gradient(45deg, #2196F3 30%, #21CBF3 90%)",
-              WebkitBackgroundClip: "text",
-              WebkitTextFillColor: "transparent",
-              textAlign: 'center',
-              mb: 2
+              height: 2,
+              background: theme.palette.mode === 'dark'
+                ? 'linear-gradient(90deg, transparent 0%, rgba(255,255,255,0.1) 50%, transparent 100%)'
+                : 'linear-gradient(90deg, transparent 0%, rgba(0,0,0,0.1) 50%, transparent 100%)',
+              borderRadius: 1
             }}
-          >
-            {t('categories')}
-          </Typography>
-          <Categories />
-        </DashRecents>
-      </Box>
+          />
 
-      {/* Process Section */}
-      <Box mb={4}>
-        <DashRecents
-          sx={{
-            backgroundColor: theme.palette.mode === 'dark' ? '#1a1a1a' : '#f8f9fa',
-            borderRadius: { xs: '12px', sm: '16px' },
-            boxShadow: theme.palette.mode === 'dark' 
-              ? '0 8px 32px rgba(0,0,0,0.3)'
-              : '0 8px 32px rgba(0,0,0,0.1)',
-            mx: { xs: 1, sm: 2 },
-            border: `1px solid ${theme.palette.mode === 'dark' ? 'rgba(255,255,255,0.05)' : 'rgba(0,0,0,0.05)'}`
-          }}
-        >
-          <Process />
-        </DashRecents>
-      </Box>
+          {/* Quick Actions */}
+          <Box mb={4}>
+            <QuickActions />
+          </Box>
+
+          {/* Categories Section */}
+          <Box mb={4}>
+            <DashRecents 
+              cate="cate" 
+              sx={{ 
+                borderColor: theme.palette.primary.main,
+                backgroundColor: theme.palette.mode === 'dark' ? '#1a1a1a' : '#f8f9fa',
+                borderRadius: { xs: '12px', sm: '16px' },
+                boxShadow: theme.palette.mode === 'dark' 
+                  ? '0 8px 32px rgba(0,0,0,0.3)'
+                  : '0 8px 32px rgba(0,0,0,0.1)',
+                mx: { xs: 1, sm: 2 },
+                border: `1px solid ${theme.palette.mode === 'dark' ? 'rgba(255,255,255,0.05)' : 'rgba(0,0,0,0.05)'}`
+              }}
+            >
+              <Typography
+                fontWeight="700"
+                sx={{
+                  fontSize: { xs: "20px", sm: "24px", md: "26px" },
+                  background: "linear-gradient(45deg, #2196F3 30%, #21CBF3 90%)",
+                  WebkitBackgroundClip: "text",
+                  WebkitTextFillColor: "transparent",
+                  textAlign: 'center',
+                  mb: 2
+                }}
+              >
+                {t('categories')}
+              </Typography>
+              <Categories />
+            </DashRecents>
+          </Box>
+
+          {/* Process Section */}
+          <Box mb={4}>
+            <DashRecents
+              sx={{
+                backgroundColor: theme.palette.mode === 'dark' ? '#1a1a1a' : '#f8f9fa',
+                borderRadius: { xs: '12px', sm: '16px' },
+                boxShadow: theme.palette.mode === 'dark' 
+                  ? '0 8px 32px rgba(0,0,0,0.3)'
+                  : '0 8px 32px rgba(0,0,0,0.1)',
+                mx: { xs: 1, sm: 2 },
+                border: `1px solid ${theme.palette.mode === 'dark' ? 'rgba(255,255,255,0.05)' : 'rgba(0,0,0,0.05)'}`
+              }}
+            >
+              <Process />
+            </DashRecents>
+          </Box>
 
           {/* Help & Support Section */}
           <Box mb={4}>
