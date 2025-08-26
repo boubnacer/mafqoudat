@@ -19,7 +19,7 @@ const getAllUsers = async (req, res) => {
   const usersWithCountry = await Promise.all(
     users.map(async (user) => {
       const country = await Country.findById(user.country).lean().exec();
-      return { ...user, code: country.code };
+      return { ...user, code: country?.code || 'Unknown' };
     })
   );
 

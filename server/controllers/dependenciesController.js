@@ -358,7 +358,11 @@ const getflOptions = async (req, res) => {
     
     let query = {};
     if (active === 'true') {
-      query.isActive = true;
+      // Handle both true and null values for isActive
+      query.$or = [
+        { isActive: true },
+        { isActive: null }
+      ];
     }
     
     const flOptions = await FoundLost.find(query)
@@ -408,18 +412,31 @@ const getCountries = async (req, res) => {
     
     let query = {};
     if (active === 'true') {
-      query.isActive = true;
+      // Handle both true and null values for isActive
+      query.$or = [
+        { isActive: true },
+        { isActive: null }
+      ];
     }
     
     // Add search functionality
     if (search) {
-      query.$or = [
-        { code: { $regex: search, $options: 'i' } },
-        { 'labels.en': { $regex: search, $options: 'i' } },
-        { 'labels.fr': { $regex: search, $options: 'i' } },
-        { 'labels.ar': { $regex: search, $options: 'i' } },
-        { searchTerms: { $regex: search, $options: 'i' } }
-      ];
+      const searchQuery = {
+        $or: [
+          { code: { $regex: search, $options: 'i' } },
+          { 'labels.en': { $regex: search, $options: 'i' } },
+          { 'labels.fr': { $regex: search, $options: 'i' } },
+          { 'labels.ar': { $regex: search, $options: 'i' } },
+          { searchTerms: { $regex: search, $options: 'i' } }
+        ]
+      };
+      
+      // Combine with existing query
+      if (query.$or) {
+        query = { $and: [query, searchQuery] };
+      } else {
+        query = searchQuery;
+      }
     }
     
     const countries = await Country.find(query)
@@ -489,7 +506,11 @@ const getCategories = async (req, res) => {
     
     let query = {};
     if (active === 'true') {
-      query.isActive = true;
+      // Handle both true and null values for isActive
+      query.$or = [
+        { isActive: true },
+        { isActive: null }
+      ];
     }
     
     const categories = await Category.find(query)
