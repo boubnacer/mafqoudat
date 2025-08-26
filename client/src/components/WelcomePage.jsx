@@ -2,7 +2,7 @@ import React, { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { useDispatch } from "react-redux";
 import { setCurrentCountry } from "../app/state";
-import { useGetCountriesQuery } from "../features/countries/countriesApiSlice";
+import { useGetCountriesQuery } from "../features/dependencies/dependenciesApiSlice"; // Fixed: Use dependenciesApiSlice instead of countriesApiSlice
 import { useTranslation } from "../utils/translations";
 import { useLanguage } from "../utils/languageContext";
 import { LoadingState } from "./LoadingStates";
@@ -151,17 +151,24 @@ const WelcomePage = () => {
   console.log('WelcomePage: localStorage language:', localStorage.getItem('language'));
   console.log('WelcomePage: localStorage app_language:', localStorage.getItem('app_language'));
 
-  // Get countries list
+  // Get countries list - Fixed: Use dependenciesApiSlice and proper error handling
   const { data: countriesData, error: countriesError, isLoading: countriesLoading } = useGetCountriesQuery({
     language: currentLanguage || langContext || 'en'
+  }, {
+    selectFromResult: ({ data, error, isLoading }) => ({
+      data: data?.ids?.map((id) => data?.entities[id]) || [],
+      error,
+      isLoading
+    }),
   });
 
   // Fallback countries in case API fails
-const fallbackCountries = [
-          { _id: '68a4b54ab46524c54c553ca9', code: 'MA', label: 'Morocco', labels: { en: 'MA', ar: 'MA', fr: 'MA' }, names: { en: 'Morocco', ar: 'المغرب', fr: 'Maroc' }, flag: '🇲🇦' },
-];
+  const fallbackCountries = [
+    { _id: '68a4b54ab46524c54c553ca9', code: 'MA', label: 'Morocco', labels: { en: 'Morocco', ar: 'المغرب', fr: 'Maroc' }, names: { en: 'Morocco', ar: 'المغرب', fr: 'Maroc' }, flag: '🇲🇦', isActive: true },
+  ];
 
-  const countries = countriesData?.ids?.map((id) => countriesData?.entities[id]) || fallbackCountries;
+  // Use countries from API or fallback
+  const countries = countriesData?.length > 0 ? countriesData : fallbackCountries;
 
   const handleCountrySelect = (_, value) => {
     setSelectedCountry(value);
