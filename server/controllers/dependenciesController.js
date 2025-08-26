@@ -768,66 +768,17 @@ const getCitiesByCountry = async (req, res) => {
       });
     }
 
-    console.log('🔍 Fetching cities for countryId:', countryId);
-
-    // First, let's check what country this ID represents
     const Country = require('../models/Country');
+    const City = require('../models/City');
     const mongoose = require('mongoose');
-    console.log('🔍 Looking for country with ID:', countryId);
-    console.log('🔍 ID type:', typeof countryId);
-    console.log('🔍 Is valid ObjectId:', mongoose.Types.ObjectId.isValid(countryId));
     
-    let country = null;
-    
-    // Try different approaches to find the country
-    if (mongoose.Types.ObjectId.isValid(countryId)) {
-      const countryObjectId = new mongoose.Types.ObjectId(countryId);
-      console.log('🔍 Trying with ObjectId:', countryObjectId);
-      country = await Country.findById(countryObjectId).lean();
-    }
-    
-    if (!country) {
-      console.log('🔍 Trying with string ID');
-      country = await Country.findById(countryId).lean();
-    }
-    
-    if (!country) {
-      console.log('🔍 Trying with findOne');
-      country = await Country.findOne({ _id: countryId }).lean();
-    }
-    
-    console.log('🔍 Country info:', country ? {
-      code: country.code,
-      name: country.names?.en,
-      isActive: country.isActive
-    } : 'Country not found');
-
-    // If country not found, let's check what countries exist
-    if (!country) {
-      console.log('🔍 Country not found, checking all countries...');
-      const allCountries = await Country.find().select('_id code names isActive').lean();
-      console.log('🔍 Available countries:');
-      allCountries.forEach(c => {
-        console.log(`  - ${c.code} (${c.names?.en}): ${c._id} | isActive: ${c.isActive}`);
-      });
-      
-      // Check if the countryId exists in the list
-      const countryInList = allCountries.find(c => c._id.toString() === countryId);
-      if (countryInList) {
-        console.log('🔍 Found country in list, using it:', countryInList.code);
-        country = countryInList;
-      }
-    }
-
     // Try multiple approaches to find cities
     let cities = [];
-    let countriesWithCities = null; // Initialize for fallback usage
+    let countriesWithCities = null;
     
     // Approach 1: Try with ObjectId
     if (mongoose.Types.ObjectId.isValid(countryId)) {
       const countryObjectId = new mongoose.Types.ObjectId(countryId);
-      console.log('🔍 Trying with ObjectId:', countryObjectId);
-      
       cities = await City.find({ 
         country: countryObjectId,
         isActive: true
@@ -836,14 +787,10 @@ const getCitiesByCountry = async (req, res) => {
       .sort({ 'labels.en': 1 })
       .lean()
       .exec();
-      
-      console.log('🔍 Found cities with ObjectId:', cities.length);
     }
     
     // Approach 2: If no cities found, try with string
     if (cities.length === 0) {
-      console.log('🔍 Trying with string countryId:', countryId);
-      
       cities = await City.find({ 
         country: countryId,
         isActive: true
@@ -852,115 +799,59 @@ const getCitiesByCountry = async (req, res) => {
       .sort({ 'labels.en': 1 })
       .lean()
       .exec();
-      
-      console.log('🔍 Found cities with string:', cities.length);
     }
     
     // Approach 3: If still no cities, try without isActive filter
     if (cities.length === 0) {
-      console.log('🔍 Trying without isActive filter');
-      
       cities = await City.find({ 
         country: countryId
       })
-      .select('_id code labels names isCapital isActive')
+      .select('_id code labels names isCapital')
       .sort({ 'labels.en': 1 })
       .lean()
       .exec();
-      
-      console.log('🔍 Found cities without isActive filter:', cities.length);
-      if (cities.length > 0) {
-        console.log('🔍 Sample city isActive value:', cities[0].isActive);
-      }
     }
     
     // Approach 4: Try with ObjectId without isActive filter
     if (cities.length === 0 && mongoose.Types.ObjectId.isValid(countryId)) {
-      console.log('🔍 Trying with ObjectId without isActive filter');
-      
       const countryObjectId = new mongoose.Types.ObjectId(countryId);
       cities = await City.find({ 
         country: countryObjectId
       })
-      .select('_id code labels names isCapital isActive')
+      .select('_id code labels names isCapital')
       .sort({ 'labels.en': 1 })
       .lean()
       .exec();
-      
-      console.log('🔍 Found cities with ObjectId without isActive filter:', cities.length);
-      if (cities.length > 0) {
-        console.log('🔍 Sample city isActive value:', cities[0].isActive);
-      }
     }
 
-                // Approach 5: If still no cities, let's check all cities and their countries
-            if (cities.length === 0) {
-              console.log('🔍 Checking all cities to see which countries have cities');
-              const allCities = await City.find().select('_id code country isActive').lean();
-              console.log('🔍 Total cities in database:', allCities.length);
-              
-              countriesWithCities = new Map();
-              for (const city of allCities) {
-                const cityCountryId = city.country;
-                if (!countriesWithCities.has(cityCountryId)) {
-                  countriesWithCities.set(cityCountryId, []);
-                }
-                countriesWithCities.get(cityCountryId).push(city);
-              }
-              
-              console.log('🔍 Countries with cities:');
-              countriesWithCities.forEach((cities, countryId) => {
-                console.log(`  Country ${countryId}: ${cities.length} cities`);
-              });
-              
-              // Check if the requested countryId exists in the cities
-              console.log(`🔍 Checking if countryId ${countryId} exists in cities data:`);
-              const hasCities = countriesWithCities.has(countryId);
-              console.log(`  Has cities: ${hasCities}`);
-              if (hasCities) {
-                console.log(`  Cities for this country:`, countriesWithCities.get(countryId).map(c => c.code));
-                
-                // Let's also check the actual city documents to see the country field format
-                const cityDocs = countriesWithCities.get(countryId);
-                if (cityDocs.length > 0) {
-                  const sampleCity = cityDocs[0];
-                  console.log(`  Sample city country field:`, sampleCity.country);
-                  console.log(`  Sample city country type:`, typeof sampleCity.country);
-                  console.log(`  Sample city country toString:`, sampleCity.country.toString());
-                  console.log(`  Requested countryId:`, countryId);
-                  console.log(`  Requested countryId type:`, typeof countryId);
-                  console.log(`  Do they match?`, sampleCity.country.toString() === countryId);
-                }
-              }
-              
-              // Also check with ObjectId format
-              if (mongoose.Types.ObjectId.isValid(countryId)) {
-                const countryObjectId = new mongoose.Types.ObjectId(countryId);
-                const hasCitiesObjectId = countriesWithCities.has(countryObjectId.toString());
-                console.log(`  Has cities (ObjectId format): ${hasCitiesObjectId}`);
-                if (hasCitiesObjectId) {
-                  console.log(`  Cities for this country (ObjectId):`, countriesWithCities.get(countryObjectId.toString()).map(c => c.code));
-                }
-              }
-            }
-            
-            // If we still don't have cities but found them in the fallback check, use those
-            if (cities.length === 0 && countriesWithCities && countriesWithCities.has(countryId)) {
-              console.log('🔍 Using cities from fallback check');
-              const fallbackCities = countriesWithCities.get(countryId);
-              cities = fallbackCities.map(city => ({
-                _id: city._id,
-                code: city.code,
-                labels: city.labels || {},
-                names: city.names || {},
-                isCapital: city.isCapital,
-                isActive: city.isActive
-              }));
-              console.log('🔍 Using fallback cities:', cities.length);
-            }
+    // Approach 5: If still no cities, let's check all cities and their countries
+    if (cities.length === 0) {
+      const allCities = await City.find().select('_id code country labels names isCapital isActive').lean();
+      
+      countriesWithCities = new Map();
+      for (const city of allCities) {
+        const cityCountryId = city.country;
+        if (!countriesWithCities.has(cityCountryId)) {
+          countriesWithCities.set(cityCountryId, []);
+        }
+        countriesWithCities.get(cityCountryId).push(city);
+      }
+    }
+    
+    // If we still don't have cities but found them in the fallback check, use those
+    if (cities.length === 0 && countriesWithCities && countriesWithCities.has(countryId)) {
+      const fallbackCities = countriesWithCities.get(countryId);
+      cities = fallbackCities.map(city => ({
+        _id: city._id,
+        code: city.code,
+        labels: city.labels || {},
+        names: city.names || {},
+        isCapital: city.isCapital,
+        isActive: city.isActive
+      }));
+    }
 
     if (!cities.length) {
-      console.log('❌ No cities found for countryId:', countryId);
       return res.status(200).json({ 
         success: false,
         message: "No cities found for this country",
@@ -968,27 +859,34 @@ const getCitiesByCountry = async (req, res) => {
       });
     }
 
-    console.log('✅ Found cities:', cities.length);
-
     // Transform response to include language-specific labels
     const transformedCities = cities.map(city => {
-      console.log('🔍 Transforming city:', city.code, 'labels:', city.labels);
+      // Get the current language or default to 'en'
+      const currentLang = language || 'en';
       
-      // Try multiple approaches to get the label
+      // Try multiple approaches to get the label in the correct language
       let label = null;
-      if (city.labels && city.labels[language]) {
-        label = city.labels[language];
-      } else if (city.labels && city.labels.en) {
-        label = city.labels.en;
-      } else if (city.names && city.names[language]) {
-        label = city.names[language];
-      } else if (city.names && city.names.en) {
-        label = city.names.en;
-      } else {
-        label = city.code; // Fallback to code
-      }
       
-      console.log('🔍 Final label for', city.code, ':', label);
+      // First try labels with current language
+      if (city.labels && city.labels[currentLang]) {
+        label = city.labels[currentLang];
+      }
+      // Then try names with current language
+      else if (city.names && city.names[currentLang]) {
+        label = city.names[currentLang];
+      }
+      // Fallback to English labels
+      else if (city.labels && city.labels.en) {
+        label = city.labels.en;
+      }
+      // Fallback to English names
+      else if (city.names && city.names.en) {
+        label = city.names.en;
+      }
+      // Final fallback to code
+      else {
+        label = city.code;
+      }
       
       return {
         id: city._id,
