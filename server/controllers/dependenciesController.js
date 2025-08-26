@@ -918,6 +918,18 @@ const getCitiesByCountry = async (req, res) => {
               console.log(`  Has cities: ${hasCities}`);
               if (hasCities) {
                 console.log(`  Cities for this country:`, countriesWithCities.get(countryId).map(c => c.code));
+                
+                // Let's also check the actual city documents to see the country field format
+                const cityDocs = countriesWithCities.get(countryId);
+                if (cityDocs.length > 0) {
+                  const sampleCity = cityDocs[0];
+                  console.log(`  Sample city country field:`, sampleCity.country);
+                  console.log(`  Sample city country type:`, typeof sampleCity.country);
+                  console.log(`  Sample city country toString:`, sampleCity.country.toString());
+                  console.log(`  Requested countryId:`, countryId);
+                  console.log(`  Requested countryId type:`, typeof countryId);
+                  console.log(`  Do they match?`, sampleCity.country.toString() === countryId);
+                }
               }
               
               // Also check with ObjectId format
@@ -929,6 +941,21 @@ const getCitiesByCountry = async (req, res) => {
                   console.log(`  Cities for this country (ObjectId):`, countriesWithCities.get(countryObjectId.toString()).map(c => c.code));
                 }
               }
+            }
+            
+            // If we still don't have cities but found them in the fallback check, use those
+            if (cities.length === 0 && countriesWithCities && countriesWithCities.has(countryId)) {
+              console.log('🔍 Using cities from fallback check');
+              const fallbackCities = countriesWithCities.get(countryId);
+              cities = fallbackCities.map(city => ({
+                _id: city._id,
+                code: city.code,
+                labels: city.labels || {},
+                names: city.names || {},
+                isCapital: city.isCapital,
+                isActive: city.isActive
+              }));
+              console.log('🔍 Using fallback cities:', cities.length);
             }
 
     if (!cities.length) {
