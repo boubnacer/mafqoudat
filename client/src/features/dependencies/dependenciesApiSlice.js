@@ -9,7 +9,7 @@ export const dependencieaApiSlice = apiSlice.injectEndpoints({
   endpoints: (builder) => ({
     getflOptions: builder.query({
       query: ({ language = 'en', active = true } = {}) => ({
-        url: "floptions",
+        url: "/floptions", // Fixed: Added leading slash
         params: { language, active },
         validateStatus: (response, result) => {
           return response.status === 200 && !result.isError;
@@ -50,7 +50,7 @@ export const dependencieaApiSlice = apiSlice.injectEndpoints({
 
     getCountries: builder.query({
       query: ({ language = 'en', search, active = true } = {}) => ({
-        url: "countries",
+        url: "/countries", // Fixed: Added leading slash
         params: { language, search, active },
         validateStatus: (response, result) => {
           return response.status === 200 && !result.isError;
@@ -91,7 +91,7 @@ export const dependencieaApiSlice = apiSlice.injectEndpoints({
 
     getCategories: builder.query({
       query: ({ language = 'en', active = true } = {}) => ({
-        url: "categories",
+        url: "/categories", // Fixed: Added leading slash
         params: { language, active },
         validateStatus: (response, result) => {
           return response.status === 200 && !result.isError;
@@ -130,10 +130,10 @@ export const dependencieaApiSlice = apiSlice.injectEndpoints({
       },
     }),
 
-    // Add mutation for creating a country
+    // Create country mutation
     createCountry: builder.mutation({
       query: (country) => ({
-        url: "countries",
+        url: "dependencies/country",
         method: "POST",
         body: country,
       }),
@@ -162,7 +162,7 @@ export const dependencieaApiSlice = apiSlice.injectEndpoints({
       invalidatesTags: [{ type: "Country", id: "LIST" }],
     }),
 
-    // Add mutation for creating a category
+    // Create category mutation
     createCategory: builder.mutation({
       query: (category) => ({
         url: "dependencies/category",
