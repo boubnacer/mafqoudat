@@ -843,27 +843,65 @@ const getCitiesByCountry = async (req, res) => {
         console.log('🔍 Sample city isActive value:', cities[0].isActive);
       }
     }
-
-    // Approach 4: If still no cities, let's check all cities and their countries
-    if (cities.length === 0) {
-      console.log('🔍 Checking all cities to see which countries have cities');
-      const allCities = await City.find().select('_id code country isActive').lean();
-      console.log('🔍 Total cities in database:', allCities.length);
+    
+    // Approach 4: Try with ObjectId without isActive filter
+    if (cities.length === 0 && mongoose.Types.ObjectId.isValid(countryId)) {
+      console.log('🔍 Trying with ObjectId without isActive filter');
       
-      const countriesWithCities = new Map();
-      for (const city of allCities) {
-        const cityCountryId = city.country;
-        if (!countriesWithCities.has(cityCountryId)) {
-          countriesWithCities.set(cityCountryId, []);
-        }
-        countriesWithCities.get(cityCountryId).push(city);
+      const countryObjectId = new mongoose.Types.ObjectId(countryId);
+      cities = await City.find({ 
+        country: countryObjectId
+      })
+      .select('_id code labels names isCapital isActive')
+      .sort({ 'labels.en': 1 })
+      .lean()
+      .exec();
+      
+      console.log('🔍 Found cities with ObjectId without isActive filter:', cities.length);
+      if (cities.length > 0) {
+        console.log('🔍 Sample city isActive value:', cities[0].isActive);
       }
-      
-      console.log('🔍 Countries with cities:');
-      countriesWithCities.forEach((cities, countryId) => {
-        console.log(`  Country ${countryId}: ${cities.length} cities`);
-      });
     }
+
+                // Approach 5: If still no cities, let's check all cities and their countries
+            if (cities.length === 0) {
+              console.log('🔍 Checking all cities to see which countries have cities');
+              const allCities = await City.find().select('_id code country isActive').lean();
+              console.log('🔍 Total cities in database:', allCities.length);
+              
+              const countriesWithCities = new Map();
+              for (const city of allCities) {
+                const cityCountryId = city.country;
+                if (!countriesWithCities.has(cityCountryId)) {
+                  countriesWithCities.set(cityCountryId, []);
+                }
+                countriesWithCities.get(cityCountryId).push(city);
+              }
+              
+              console.log('🔍 Countries with cities:');
+              countriesWithCities.forEach((cities, countryId) => {
+                console.log(`  Country ${countryId}: ${cities.length} cities`);
+              });
+              
+              // Check if the requested countryId exists in the cities
+              console.log(`🔍 Checking if countryId ${countryId} exists in cities data:`);
+              const hasCities = countriesWithCities.has(countryId);
+              console.log(`  Has cities: ${hasCities}`);
+              if (hasCities) {
+                console.log(`  Cities for this country:`, countriesWithCities.get(countryId).map(c => c.code));
+              }
+              
+              // Also check with ObjectId format
+              const mongoose = require('mongoose');
+              if (mongoose.Types.ObjectId.isValid(countryId)) {
+                const countryObjectId = new mongoose.Types.ObjectId(countryId);
+                const hasCitiesObjectId = countriesWithCities.has(countryObjectId.toString());
+                console.log(`  Has cities (ObjectId format): ${hasCitiesObjectId}`);
+                if (hasCitiesObjectId) {
+                  console.log(`  Cities for this country (ObjectId):`, countriesWithCities.get(countryObjectId.toString()).map(c => c.code));
+                }
+              }
+            }
 
     if (!cities.length) {
       console.log('❌ No cities found for countryId:', countryId);

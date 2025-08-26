@@ -150,6 +150,9 @@ const NewPostForm = ({ user, countries, categories, flOptions }) => {
       } else {
         console.error('Failed to fetch cities:', data.message);
         setCities([]);
+        
+        // Show helpful message for countries without cities
+        console.log('💡 Tip: Try selecting Morocco (MA) which has cities available');
       }
     } catch (error) {
       console.error('Error fetching cities:', error);
