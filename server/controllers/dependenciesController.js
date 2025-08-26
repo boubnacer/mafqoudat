@@ -770,6 +770,15 @@ const getCitiesByCountry = async (req, res) => {
 
     console.log('🔍 Fetching cities for countryId:', countryId);
 
+    // First, let's check what country this ID represents
+    const Country = require('../models/Country');
+    const country = await Country.findById(countryId).lean();
+    console.log('🔍 Country info:', country ? {
+      code: country.code,
+      name: country.names?.en,
+      isActive: country.isActive
+    } : 'Country not found');
+
     // Try multiple approaches to find cities
     let cities = [];
     
@@ -823,6 +832,27 @@ const getCitiesByCountry = async (req, res) => {
       if (cities.length > 0) {
         console.log('🔍 Sample city isActive value:', cities[0].isActive);
       }
+    }
+
+    // Approach 4: If still no cities, let's check all cities and their countries
+    if (cities.length === 0) {
+      console.log('🔍 Checking all cities to see which countries have cities');
+      const allCities = await City.find().select('_id code country isActive').lean();
+      console.log('🔍 Total cities in database:', allCities.length);
+      
+      const countriesWithCities = new Map();
+      for (const city of allCities) {
+        const cityCountryId = city.country;
+        if (!countriesWithCities.has(cityCountryId)) {
+          countriesWithCities.set(cityCountryId, []);
+        }
+        countriesWithCities.get(cityCountryId).push(city);
+      }
+      
+      console.log('🔍 Countries with cities:');
+      countriesWithCities.forEach((cities, countryId) => {
+        console.log(`  Country ${countryId}: ${cities.length} cities`);
+      });
     }
 
     if (!cities.length) {

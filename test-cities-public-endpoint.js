@@ -5,7 +5,7 @@ async function testCitiesPublicEndpoint() {
 
   const API_BASE_URL = 'https://mafqoudat-production.up.railway.app';
 
-  // Use the exact country ID from the user's example
+  // Use the correct Morocco ID (the one that has cities)
   const countryId = '68a4b54ab46524c54c553ca9'; // Morocco ID
 
   try {
