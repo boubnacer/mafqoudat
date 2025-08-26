@@ -317,10 +317,15 @@ const getFilteredPosts = async (req, res) => {
 // @route POST /posts
 // @access Private
 const createNewPost = async (req, res) => {
+  console.log('=== CREATE NEW POST START ===');
+  
   try {
-    console.log('=== CREATE NEW POST START ===');
+    console.log('1. Function entered successfully');
+    console.log('2. About to log request body...');
     console.log('Received request body:', req.body);
+    console.log('3. About to log request headers...');
     console.log('Request headers:', req.headers);
+    console.log('4. About to extract fields...');
     
     const { 
       user, 
@@ -336,6 +341,7 @@ const createNewPost = async (req, res) => {
       additionalContact
     } = req.body;
 
+    console.log('5. Fields extracted successfully');
     console.log('Extracted fields:', {
       user, 
       country, 
@@ -347,6 +353,8 @@ const createNewPost = async (req, res) => {
       exactDate,
       description
     });
+
+    console.log('6. About to validate required fields...');
 
   // Confirm required data
   console.log('Validating required fields...');
@@ -361,11 +369,14 @@ const createNewPost = async (req, res) => {
     exactDate: !!exactDate
   };
   
+  console.log('7. Required fields validation completed');
   console.log('Required fields validation:', requiredFields);
   
   const missingFields = Object.entries(requiredFields)
     .filter(([key, value]) => !value)
     .map(([key]) => key);
+  
+  console.log('8. Missing fields check completed');
   
   if (missingFields.length > 0) {
     console.log('Missing required fields:', missingFields);
@@ -375,23 +386,29 @@ const createNewPost = async (req, res) => {
     });
   }
 
-  console.log('All required fields present, proceeding with validation...');
+  console.log('9. All required fields present, proceeding with validation...');
 
   // Validate references
-  console.log('Validating references...');
+  console.log('10. About to validate references...');
   
   try {
+    console.log('11. Starting user validation...');
     const userExists = await User.findById(user).lean();
     console.log('User validation:', { user, exists: !!userExists });
     
+    console.log('12. Starting country validation...');
     const countryExists = await Country.findById(country).lean();
     console.log('Country validation:', { country, exists: !!countryExists });
     
+    console.log('13. Starting category validation...');
     const categoryExists = await Category.findById(category).lean();
     console.log('Category validation:', { category, exists: !!categoryExists });
     
+    console.log('14. Starting foundLost validation...');
     const foundLostExists = await FoundLost.findById(foundLost).lean();
     console.log('FoundLost validation:', { foundLost, exists: !!foundLostExists });
+    
+    console.log('15. All reference validations completed');
     
     if (!userExists || !countryExists || !categoryExists || !foundLostExists) {
       console.log('Reference validation failed:', {
@@ -419,7 +436,7 @@ const createNewPost = async (req, res) => {
   }
   
   // Handle city validation - simplified approach
-  console.log('Validating city...');
+  console.log('16. About to validate city...');
   let cityId = city;
   let cityExists = true;
   
@@ -427,6 +444,7 @@ const createNewPost = async (req, res) => {
     if (city) {
       // Check if city is a valid ObjectId
       if (mongoose.Types.ObjectId.isValid(city)) {
+        console.log('17. City is valid ObjectId, checking database...');
         const cityDoc = await City.findById(city).lean();
         cityExists = !!cityDoc;
         console.log('City validation:', { city, isObjectId: true, exists: cityExists });
@@ -437,6 +455,7 @@ const createNewPost = async (req, res) => {
         cityId = null;
       }
     }
+    console.log('18. City validation completed');
   } catch (cityError) {
     console.error('Error during city validation:', cityError);
     return res.status(400).json({ 
@@ -445,10 +464,10 @@ const createNewPost = async (req, res) => {
     });
   }
   
-  console.log('Final validation check passed');
+  console.log('19. Final validation check passed');
 
   // Prepare post data
-  console.log('Preparing post data...');
+  console.log('20. About to prepare post data...');
   const postData = {
     user,
     category,
@@ -516,11 +535,12 @@ const createNewPost = async (req, res) => {
   }
 
   // Create and store the new post
+  console.log('21. About to create post in database...');
   console.log('Creating post with data:', postData);
   
   try {
     const post = await Post.create(postData);
-    console.log('Post created successfully:', post._id);
+    console.log('22. Post created successfully:', post._id);
     console.log('=== CREATE NEW POST SUCCESS ===');
 
     if (post) {
