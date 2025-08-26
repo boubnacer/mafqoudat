@@ -8,7 +8,6 @@ const { deleteFromCloudinary } = require("../config/cloudinary");
 const mongoose = require("mongoose");
 // const getCountryIso3 = require("country-iso-2-to-3");
 const getCountryIso3 = require("country-iso-2-to-3");
-const TranslationService = require("../services/translationService");
 
 // @desc Get all posts
 // @route GET /posts
@@ -335,7 +334,6 @@ const createNewPost = async (req, res) => {
       contactPreferences,
       additionalContact
     } = req.body;
-    const formData = req.body;
 
   // Confirm required data
   console.log('Validating required fields:', {
@@ -393,10 +391,9 @@ const createNewPost = async (req, res) => {
     foundLost
   });
   
-  // Handle city validation - check if it's an ObjectId or a custom city name
+  // Handle city validation - simplified approach
   let cityId = city;
   let cityExists = true;
-  let customCityName = null;
   
   if (city) {
     // Check if city is a valid ObjectId
@@ -405,11 +402,10 @@ const createNewPost = async (req, res) => {
       cityExists = !!cityDoc;
       console.log('City is ObjectId, exists:', cityExists);
     } else {
-      // It's a custom city name, we'll create it in the database
-      customCityName = city;
-      cityExists = true; // Allow custom city names
-      cityId = null; // Don't set city field for custom names yet
-      console.log('City is custom name:', customCityName);
+      // For custom city names, store in region field for now
+      console.log('City is custom name, storing in region field');
+      cityExists = true;
+      cityId = null;
     }
   }
   
@@ -444,101 +440,13 @@ const createNewPost = async (req, res) => {
     description: description || "",
   };
 
-  // Handle city field - create custom city if needed
+  // Handle city field - simplified approach
   if (cityId) {
     postData.city = cityId;
-  } else if (customCityName) {
-    try {
-      console.log('Creating custom city:', customCityName);
-      
-      // Get country code for city creation
-      const countryDoc = await Country.findById(country).lean();
-      const countryCode = countryDoc?.code || 'UNKNOWN';
-      console.log('Country code:', countryCode);
-      
-      // Detect the source language of the custom city name
-      const sourceLanguage = TranslationService.isArabicText(customCityName) ? 'ar' : 'en';
-      console.log('Detected source language:', sourceLanguage);
-      
-      // Translate the city name to all languages
-      const translations = await TranslationService.translateCityName(customCityName, sourceLanguage);
-      console.log('Translation result:', translations);
-      
-      // Generate a unique code for the city
-      const cityCode = TranslationService.generateCityCode(customCityName, countryCode);
-      console.log('Generated city code:', cityCode);
-      
-      // Check if city already exists with this code
-      let existingCity = await City.findOne({ code: cityCode }).lean();
-      console.log('Existing city check:', existingCity ? 'Found' : 'Not found');
-      
-      if (!existingCity) {
-        // Create new city in the database
-        const newCity = await City.create({
-          code: cityCode,
-          labels: {
-            en: translations.en,
-            fr: translations.fr,
-            ar: translations.ar
-          },
-          names: {
-            en: translations.en,
-            fr: translations.fr,
-            ar: translations.ar
-          },
-          country: country,
-          isDynamic: true, // Mark as dynamically created
-          isCapital: false,
-          isActive: true
-        });
-        
-        console.log('Created new city:', newCity);
-        cityId = newCity._id;
-        postData.city = cityId;
-      } else {
-        // Use existing city
-        console.log('Using existing city:', existingCity);
-        cityId = existingCity._id;
-        postData.city = cityId;
-      }
-    } catch (error) {
-      console.error('Error creating custom city:', error);
-      // Fallback: create a simple city entry without translation
-      try {
-        const countryDoc = await Country.findById(country).lean();
-        const countryCode = countryDoc?.code || 'UNKNOWN';
-        const cityCode = customCityName.toUpperCase().replace(/\s+/g, '_');
-        
-        const newCity = await City.create({
-          code: cityCode,
-          labels: {
-            en: customCityName,
-            fr: customCityName,
-            ar: customCityName
-          },
-          names: {
-            en: customCityName,
-            fr: customCityName,
-            ar: customCityName
-          },
-          country: country,
-          isDynamic: true,
-          isCapital: false,
-          isActive: true
-        });
-        
-        console.log('Created fallback city:', newCity);
-        cityId = newCity._id;
-        postData.city = cityId;
-      } catch (fallbackError) {
-        console.error('Fallback city creation also failed:', fallbackError);
-        // Last resort: store in region field
-        postData.region = customCityName;
-      }
-    }
+  } else if (city && !mongoose.Types.ObjectId.isValid(city)) {
+    // Store custom city name in region field
+    postData.region = city;
   }
-
-
 
   // Add contact preferences if provided
   if (contactPreferences) {
@@ -547,6 +455,12 @@ const createNewPost = async (req, res) => {
       postData.contactPreferences = parsedContactPreferences;
     } catch (error) {
       console.log('Error parsing contact preferences:', error);
+      // Use default contact preferences
+      postData.contactPreferences = {
+        phone: true,
+        email: false,
+        whatsapp: false
+      };
     }
   }
 
@@ -557,6 +471,12 @@ const createNewPost = async (req, res) => {
       postData.additionalContact = parsedAdditionalContact;
     } catch (error) {
       console.log('Error parsing additional contact:', error);
+      // Use empty additional contact
+      postData.additionalContact = {
+        phone: "",
+        email: "",
+        whatsapp: ""
+      };
     }
   }
 
