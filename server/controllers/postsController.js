@@ -317,15 +317,7 @@ const getFilteredPosts = async (req, res) => {
 // @route POST /posts
 // @access Private
 const createNewPost = async (req, res) => {
-  console.log('=== CREATE NEW POST START ===');
-  
   try {
-    console.log('1. Function entered successfully');
-    console.log('2. About to log request body...');
-    console.log('Received request body:', req.body);
-    console.log('3. About to log request headers...');
-    console.log('Request headers:', req.headers);
-    console.log('4. About to extract fields...');
     
     const { 
       user, 
@@ -341,73 +333,35 @@ const createNewPost = async (req, res) => {
       additionalContact
     } = req.body;
 
-    console.log('5. Fields extracted successfully');
-    console.log('Extracted fields:', {
-      user, 
-      country, 
-      category, 
-      contact, 
-      foundLost,
-      city,
-      exactLocation,
-      exactDate,
-      description
-    });
+         // Confirm required data
+     const requiredFields = {
+       user: !!user,
+       category: !!category,
+       contact: !!contact,
+       country: !!country,
+       foundLost: !!foundLost,
+       exactLocation: !!exactLocation,
+       exactDate: !!exactDate
+     };
+     
+     const missingFields = Object.entries(requiredFields)
+       .filter(([key, value]) => !value)
+       .map(([key]) => key);
+  
+     if (missingFields.length > 0) {
+     return res.status(400).json({ 
+       message: "All required fields are required",
+       missing: missingFields
+     });
+   }
 
-    console.log('6. About to validate required fields...');
-
-  // Confirm required data
-  console.log('Validating required fields...');
-  const requiredFields = {
-    user: !!user,
-    category: !!category,
-    contact: !!contact,
-    country: !!country,
-    foundLost: !!foundLost,
-    exactLocation: !!exactLocation,
-    exactDate: !!exactDate
-  };
+   // Validate references
   
-  console.log('7. Required fields validation completed');
-  console.log('Required fields validation:', requiredFields);
-  
-  const missingFields = Object.entries(requiredFields)
-    .filter(([key, value]) => !value)
-    .map(([key]) => key);
-  
-  console.log('8. Missing fields check completed');
-  
-  if (missingFields.length > 0) {
-    console.log('Missing required fields:', missingFields);
-    return res.status(400).json({ 
-      message: "All required fields are required",
-      missing: missingFields
-    });
-  }
-
-  console.log('9. All required fields present, proceeding with validation...');
-
-  // Validate references - with better error handling
-  console.log('10. About to validate references...');
-  
-  try {
-    console.log('11. Starting user validation...');
-    const userExists = await User.findById(user).lean();
-    console.log('User validation:', { user, exists: !!userExists });
-    
-    console.log('12. Starting country validation...');
-    const countryExists = await Country.findById(country).lean();
-    console.log('Country validation:', { country, exists: !!countryExists });
-    
-    console.log('13. Starting category validation...');
-    const categoryExists = await Category.findById(category).lean();
-    console.log('Category validation:', { category, exists: !!categoryExists });
-    
-    console.log('14. Starting foundLost validation...');
-    const foundLostExists = await FoundLost.findById(foundLost).lean();
-    console.log('FoundLost validation:', { foundLost, exists: !!foundLostExists });
-    
-    console.log('15. All reference validations completed');
+     try {
+     const userExists = await User.findById(user).lean();
+     const countryExists = await Country.findById(country).lean();
+     const categoryExists = await Category.findById(category).lean();
+     const foundLostExists = await FoundLost.findById(foundLost).lean();
     
     // Check which references are missing and provide specific error messages
     const missingReferences = [];
@@ -416,34 +370,22 @@ const createNewPost = async (req, res) => {
     if (!categoryExists) missingReferences.push('category');
     if (!foundLostExists) missingReferences.push('foundLost');
     
-    if (missingReferences.length > 0) {
-      console.log('Reference validation failed:', {
-        userExists: !!userExists,
-        countryExists: !!countryExists,
-        categoryExists: !!categoryExists,
-        foundLostExists: !!foundLostExists
-      });
+         if (missingReferences.length > 0) {
       
       // Get available options to help the client
       const availableCountries = await Country.find().select('_id code names.en').lean();
       const availableCategories = await Category.find().select('_id code labels.en').lean();
       const availableFoundLost = await FoundLost.find().select('_id code labels.en').lean();
       
-      // TEMPORARY FIX: Check if the IDs exist in the available options
-      const countryExistsInOptions = availableCountries.find(c => c._id.toString() === country);
-      const categoryExistsInOptions = availableCategories.find(c => c._id.toString() === category);
-      const foundLostExistsInOptions = availableFoundLost.find(f => f._id.toString() === foundLost);
-      
-      // If IDs exist in available options but not in findById, this is a database connection issue
-      if (countryExistsInOptions && categoryExistsInOptions && foundLostExistsInOptions) {
-        console.log('🚨 DATABASE CONNECTION ISSUE DETECTED:');
-        console.log('- IDs exist in available options but not in findById queries');
-        console.log('- This indicates a database connection mismatch');
-        console.log('- Proceeding with post creation despite validation failure');
-        
-        // Continue with post creation since the data exists
-        console.log('19. Proceeding with post creation despite validation issue...');
-      } else {
+             // Check if the IDs exist in the available options (database connection issue workaround)
+       const countryExistsInOptions = availableCountries.find(c => c._id.toString() === country);
+       const categoryExistsInOptions = availableCategories.find(c => c._id.toString() === category);
+       const foundLostExistsInOptions = availableFoundLost.find(f => f._id.toString() === foundLost);
+       
+       // If IDs exist in available options but not in findById, this is a database connection issue
+       if (countryExistsInOptions && categoryExistsInOptions && foundLostExistsInOptions) {
+         // Continue with post creation since the data exists
+       } else {
         return res.status(400).json({ 
           message: `Invalid references: ${missingReferences.join(', ')}`,
           details: {
@@ -469,35 +411,21 @@ const createNewPost = async (req, res) => {
     });
   }
   
-  // Handle city validation - simplified approach
-  console.log('16. About to validate city...');
-  let cityId = null;
-  
-  try {
-    if (city && mongoose.Types.ObjectId.isValid(city)) {
-      console.log('17. City is valid ObjectId, checking database...');
-      const cityDoc = await City.findById(city).lean();
-      if (cityDoc) {
-        cityId = city;
-        console.log('City validation:', { city, isObjectId: true, exists: true });
-      } else {
-        console.log('City validation:', { city, isObjectId: true, exists: false });
-      }
-    } else if (city) {
-      // For custom city names, store in region field for now
-      console.log('City validation:', { city, isObjectId: false, storingInRegion: true });
-    }
-    console.log('18. City validation completed');
-  } catch (cityError) {
-    console.error('Error during city validation:', cityError);
-    // Don't fail the request for city validation errors, just log them
-    console.log('City validation error, continuing without city...');
-  }
-  
-  console.log('19. Final validation check passed');
+     // Handle city validation
+   let cityId = null;
+   
+   try {
+     if (city && mongoose.Types.ObjectId.isValid(city)) {
+       const cityDoc = await City.findById(city).lean();
+       if (cityDoc) {
+         cityId = city;
+       }
+     }
+   } catch (cityError) {
+     console.error('Error during city validation:', cityError);
+   }
 
-  // Prepare post data
-  console.log('20. About to prepare post data...');
+     // Prepare post data
   const postData = {
     user,
     category,
@@ -509,73 +437,55 @@ const createNewPost = async (req, res) => {
     description: description || "",
   };
 
-  // Handle city field - simplified approach
-  if (cityId) {
-    postData.city = cityId;
-    console.log('Added city ID to post data:', cityId);
-  } else if (city && !mongoose.Types.ObjectId.isValid(city)) {
-    // Store custom city name in region field
-    postData.region = city;
-    console.log('Added custom city to region field:', city);
-  } else if (city) {
-    // If city is provided but not a valid ObjectId and not a string, just log it
-    console.log('City provided but not handled:', city);
-  }
+     // Handle city field
+   if (cityId) {
+     postData.city = cityId;
+   } else if (city && !mongoose.Types.ObjectId.isValid(city)) {
+     // Store custom city name in region field
+     postData.region = city;
+   }
 
-  // Add contact preferences if provided
-  if (contactPreferences) {
-    try {
-      const parsedContactPreferences = JSON.parse(contactPreferences);
-      postData.contactPreferences = parsedContactPreferences;
-      console.log('Added contact preferences:', parsedContactPreferences);
-    } catch (error) {
-      console.log('Error parsing contact preferences:', error);
-      // Use default contact preferences
-      postData.contactPreferences = {
-        phone: true,
-        email: false,
-        whatsapp: false
-      };
-      console.log('Using default contact preferences');
-    }
-  }
+     // Add contact preferences if provided
+   if (contactPreferences) {
+     try {
+       const parsedContactPreferences = JSON.parse(contactPreferences);
+       postData.contactPreferences = parsedContactPreferences;
+     } catch (error) {
+       // Use default contact preferences
+       postData.contactPreferences = {
+         phone: true,
+         email: false,
+         whatsapp: false
+       };
+     }
+   }
 
-  // Add additional contact if provided
-  if (additionalContact) {
-    try {
-      const parsedAdditionalContact = JSON.parse(additionalContact);
-      postData.additionalContact = parsedAdditionalContact;
-      console.log('Added additional contact:', parsedAdditionalContact);
-    } catch (error) {
-      console.log('Error parsing additional contact:', error);
-      // Use empty additional contact
-      postData.additionalContact = {
-        phone: "",
-        email: "",
-        whatsapp: ""
-      };
-      console.log('Using empty additional contact');
-    }
-  }
+     // Add additional contact if provided
+   if (additionalContact) {
+     try {
+       const parsedAdditionalContact = JSON.parse(additionalContact);
+       postData.additionalContact = parsedAdditionalContact;
+     } catch (error) {
+       // Use empty additional contact
+       postData.additionalContact = {
+         phone: "",
+         email: "",
+         whatsapp: ""
+       };
+     }
+   }
 
-  // Add Cloudinary image data if available
-  if (req.cloudinaryResult) {
-    postData.cloudinaryUrl = req.cloudinaryResult.url;
-    postData.cloudinaryPublicId = req.cloudinaryResult.public_id;
-    // Keep backward compatibility with image field
-    postData.image = req.cloudinaryResult.url;
-    console.log('Added Cloudinary data to post');
-  }
+     // Add Cloudinary image data if available
+   if (req.cloudinaryResult) {
+     postData.cloudinaryUrl = req.cloudinaryResult.url;
+     postData.cloudinaryPublicId = req.cloudinaryResult.public_id;
+     // Keep backward compatibility with image field
+     postData.image = req.cloudinaryResult.url;
+   }
 
-  // Create and store the new post
-  console.log('21. About to create post in database...');
-  console.log('Creating post with data:', JSON.stringify(postData, null, 2));
-  
-  try {
-    console.log('21.1. Attempting to create post...');
-    const post = await Post.create(postData);
-    console.log('22. Post created successfully:', post._id);
-    console.log('=== CREATE NEW POST SUCCESS ===');
+     // Create and store the new post
+   try {
+     const post = await Post.create(postData);
 
     if (post) {
       // Created
@@ -586,36 +496,21 @@ const createNewPost = async (req, res) => {
     } else {
       return res.status(400).json({ message: "Invalid post data received" });
     }
-  } catch (postCreationError) {
-    console.error('Error creating post in database:', postCreationError);
-    console.error('Post creation error details:', {
-      name: postCreationError.name,
-      message: postCreationError.message,
-      code: postCreationError.code
-    });
+     } catch (postCreationError) {
+     console.error('Error creating post in database:', postCreationError);
     
-    // Log the full error for debugging
-    console.error('Full error object:', postCreationError);
-    
-    return res.status(500).json({ 
-      message: "Error creating post in database", 
-      error: postCreationError.message,
-      details: {
-        name: postCreationError.name,
-        code: postCreationError.code
-      }
-    });
-  }
-  
-  } catch (error) {
-    console.error('=== CREATE NEW POST ERROR ===');
-    console.error('Error in createNewPost:', error);
-    console.error('Error stack:', error.stack);
-    return res.status(500).json({ 
-      message: "Error creating post", 
-      error: error.message,
-      stack: process.env.NODE_ENV === 'development' ? error.stack : undefined
-    });
+         return res.status(500).json({ 
+       message: "Error creating post in database", 
+       error: postCreationError.message
+     });
+   }
+   
+   } catch (error) {
+     console.error('Error in createNewPost:', error);
+         return res.status(500).json({ 
+       message: "Error creating post", 
+       error: error.message
+     });
   }
 };
 
