@@ -439,21 +439,18 @@ const createNewPost = async (req, res) => {
   let cityId = null;
   
   try {
-    if (city) {
-      // Check if city is a valid ObjectId
-      if (mongoose.Types.ObjectId.isValid(city)) {
-        console.log('17. City is valid ObjectId, checking database...');
-        const cityDoc = await City.findById(city).lean();
-        if (cityDoc) {
-          cityId = city;
-          console.log('City validation:', { city, isObjectId: true, exists: true });
-        } else {
-          console.log('City validation:', { city, isObjectId: true, exists: false });
-        }
+    if (city && mongoose.Types.ObjectId.isValid(city)) {
+      console.log('17. City is valid ObjectId, checking database...');
+      const cityDoc = await City.findById(city).lean();
+      if (cityDoc) {
+        cityId = city;
+        console.log('City validation:', { city, isObjectId: true, exists: true });
       } else {
-        // For custom city names, store in region field for now
-        console.log('City validation:', { city, isObjectId: false, storingInRegion: true });
+        console.log('City validation:', { city, isObjectId: true, exists: false });
       }
+    } else if (city) {
+      // For custom city names, store in region field for now
+      console.log('City validation:', { city, isObjectId: false, storingInRegion: true });
     }
     console.log('18. City validation completed');
   } catch (cityError) {
@@ -537,9 +534,10 @@ const createNewPost = async (req, res) => {
 
   // Create and store the new post
   console.log('21. About to create post in database...');
-  console.log('Creating post with data:', postData);
+  console.log('Creating post with data:', JSON.stringify(postData, null, 2));
   
   try {
+    console.log('21.1. Attempting to create post...');
     const post = await Post.create(postData);
     console.log('22. Post created successfully:', post._id);
     console.log('=== CREATE NEW POST SUCCESS ===');
@@ -560,6 +558,10 @@ const createNewPost = async (req, res) => {
       message: postCreationError.message,
       code: postCreationError.code
     });
+    
+    // Log the full error for debugging
+    console.error('Full error object:', postCreationError);
+    
     return res.status(500).json({ 
       message: "Error creating post in database", 
       error: postCreationError.message,

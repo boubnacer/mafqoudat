@@ -1,5 +1,6 @@
 const mongoose = require("mongoose");
-const AutoIncrement = require("mongoose-sequence")(mongoose);
+// Temporarily comment out AutoIncrement to fix post creation issue
+// const AutoIncrement = require("mongoose-sequence")(mongoose);
 
 const postSchema = new mongoose.Schema(
   {
@@ -243,10 +244,11 @@ postSchema.pre('save', function(next) {
   next();
 });
 
-postSchema.plugin(AutoIncrement, {
-  inc_field: "ticket",
-  id: "ticketNums",
-  start_seq: 500,
-});
+// Temporarily comment out AutoIncrement plugin to fix post creation issue
+// postSchema.plugin(AutoIncrement, {
+//   inc_field: "ticket",
+//   id: "ticketNums",
+//   start_seq: 500,
+// });
 
 module.exports = mongoose.model("Post", postSchema);
