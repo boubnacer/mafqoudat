@@ -1,4 +1,3 @@
-require("dotenv").config();
 const mongoose = require('mongoose');
 const Post = require('./server/models/Post');
 const User = require('./server/models/User');
@@ -8,14 +7,13 @@ const FoundLost = require('./server/models/FoundLost');
 const City = require('./server/models/City');
 
 // MongoDB connection
-const MONGODB_URI = 'mongodb+srv://boubkraouinacer:NB%40mafBase2025@cluster0.mwwk6a.mongodb.net/mafqoudat?retryWrites=true&w=majority&appName=Cluster0';
+const MONGODB_URI = process.env.MONGODB_URI || 'mongodb://localhost:27017/mafqoudat';
 
-async function testPostCreation() {
+async function debugPostCreation() {
   try {
-    console.log('🔌 Connecting to MongoDB Atlas...');
-    console.log('MongoDB URI:', MONGODB_URI);
+    console.log('🔌 Connecting to MongoDB...');
     await mongoose.connect(MONGODB_URI);
-    console.log('✅ Connected to MongoDB Atlas');
+    console.log('✅ Connected to MongoDB');
 
     // Get sample data
     console.log('\n📊 Getting sample data...');
@@ -38,36 +36,25 @@ async function testPostCreation() {
       return;
     }
 
-    // Test post data - similar to what the client sends
+    // Test post data
     const testPostData = {
       user: user._id,
       country: country._id,
       category: category._id,
       foundLost: foundLost._id,
-      city: city._id,
+      city: city._id, // This might be the issue
       exactLocation: 'Test Location',
       exactDate: new Date(),
       contact: 'test@example.com',
-      description: 'Test description',
-      contactPreferences: {
-        phone: true,
-        email: false,
-        whatsapp: false
-      },
-      additionalContact: {
-        phone: '',
-        email: '',
-        whatsapp: ''
-      }
+      description: 'Test description'
     };
 
-    console.log('\n🧪 Testing post creation with data:', JSON.stringify(testPostData, null, 2));
+    console.log('\n🧪 Testing post creation with data:', testPostData);
 
     // Try to create post
     try {
       const post = await Post.create(testPostData);
       console.log('✅ Post created successfully:', post._id);
-      console.log('Post data:', JSON.stringify(post.toObject(), null, 2));
     } catch (error) {
       console.log('❌ Post creation failed:');
       console.log('Error name:', error.name);
@@ -96,11 +83,11 @@ async function testPostCreation() {
     }
 
   } catch (error) {
-    console.error('❌ Test script error:', error);
+    console.error('❌ Debug script error:', error);
   } finally {
     await mongoose.disconnect();
     console.log('\n🔌 Disconnected from MongoDB');
   }
 }
 
-testPostCreation();
+debugPostCreation();

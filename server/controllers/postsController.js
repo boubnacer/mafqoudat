@@ -364,7 +364,6 @@ const createNewPost = async (req, res) => {
     contact: !!contact,
     country: !!country,
     foundLost: !!foundLost,
-    city: !!city,
     exactLocation: !!exactLocation,
     exactDate: !!exactDate
   };
@@ -437,8 +436,7 @@ const createNewPost = async (req, res) => {
   
   // Handle city validation - simplified approach
   console.log('16. About to validate city...');
-  let cityId = city;
-  let cityExists = true;
+  let cityId = null;
   
   try {
     if (city) {
@@ -446,22 +444,22 @@ const createNewPost = async (req, res) => {
       if (mongoose.Types.ObjectId.isValid(city)) {
         console.log('17. City is valid ObjectId, checking database...');
         const cityDoc = await City.findById(city).lean();
-        cityExists = !!cityDoc;
-        console.log('City validation:', { city, isObjectId: true, exists: cityExists });
+        if (cityDoc) {
+          cityId = city;
+          console.log('City validation:', { city, isObjectId: true, exists: true });
+        } else {
+          console.log('City validation:', { city, isObjectId: true, exists: false });
+        }
       } else {
         // For custom city names, store in region field for now
         console.log('City validation:', { city, isObjectId: false, storingInRegion: true });
-        cityExists = true;
-        cityId = null;
       }
     }
     console.log('18. City validation completed');
   } catch (cityError) {
     console.error('Error during city validation:', cityError);
-    return res.status(400).json({ 
-      message: "Error validating city",
-      error: cityError.message
-    });
+    // Don't fail the request for city validation errors, just log them
+    console.log('City validation error, continuing without city...');
   }
   
   console.log('19. Final validation check passed');
@@ -487,6 +485,9 @@ const createNewPost = async (req, res) => {
     // Store custom city name in region field
     postData.region = city;
     console.log('Added custom city to region field:', city);
+  } else if (city) {
+    // If city is provided but not a valid ObjectId and not a string, just log it
+    console.log('City provided but not handled:', city);
   }
 
   // Add contact preferences if provided
