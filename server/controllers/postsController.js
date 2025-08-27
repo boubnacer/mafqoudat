@@ -387,7 +387,7 @@ const createNewPost = async (req, res) => {
 
   console.log('9. All required fields present, proceeding with validation...');
 
-  // Validate references
+  // Validate references - with better error handling
   console.log('10. About to validate references...');
   
   try {
@@ -409,20 +409,39 @@ const createNewPost = async (req, res) => {
     
     console.log('15. All reference validations completed');
     
-    if (!userExists || !countryExists || !categoryExists || !foundLostExists) {
+    // Check which references are missing and provide specific error messages
+    const missingReferences = [];
+    if (!userExists) missingReferences.push('user');
+    if (!countryExists) missingReferences.push('country');
+    if (!categoryExists) missingReferences.push('category');
+    if (!foundLostExists) missingReferences.push('foundLost');
+    
+    if (missingReferences.length > 0) {
       console.log('Reference validation failed:', {
         userExists: !!userExists,
         countryExists: !!countryExists,
         categoryExists: !!categoryExists,
         foundLostExists: !!foundLostExists
       });
+      
+      // Get available options to help the client
+      const availableCountries = await Country.find().select('_id code names.en').lean();
+      const availableCategories = await Category.find().select('_id code labels.en').lean();
+      const availableFoundLost = await FoundLost.find().select('_id code labels.en').lean();
+      
       return res.status(400).json({ 
-        message: "Invalid reference in user/country/category/foundLost",
+        message: `Invalid references: ${missingReferences.join(', ')}`,
         details: {
+          missingReferences,
           userExists: !!userExists,
           countryExists: !!countryExists,
           categoryExists: !!categoryExists,
-          foundLostExists: !!foundLostExists
+          foundLostExists: !!foundLostExists,
+          availableOptions: {
+            countries: availableCountries.map(c => ({ id: c._id, code: c.code, name: c.names?.en || c.code })),
+            categories: availableCategories.map(c => ({ id: c._id, code: c.code, name: c.labels?.en || c.code })),
+            foundLost: availableFoundLost.map(f => ({ id: f._id, code: f.code, name: f.labels?.en || f.code }))
+          }
         }
       });
     }
