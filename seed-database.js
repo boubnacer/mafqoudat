@@ -2,7 +2,7 @@ require("dotenv").config();
 const mongoose = require('mongoose');
 
 // MongoDB connection
-const MONGODB_URI = 'mongodb+srv://boubkraouinacer:NB%40mafBase2025@cluster0.mwwk6a.mongodb.net/mafqoudat?retryWrites=true&w=majority&appName=Cluster0';
+const MONGODB_URI = 'mongodb+srv://boubkraouinacer:NB%40mafBase2025@cluster0.mwwk6a.mongodb.net/test?retryWrites=true&w=majority&appName=Cluster0';
 
 async function seedDatabase() {
   try {

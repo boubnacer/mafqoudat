@@ -468,8 +468,6 @@ const NewUserForm = ({ countries }) => {
       
       const { accessToken } = await addNewUser({
         username: formData.emailOrPhone.trim(), // Use email/phone as username
-        email: isEmail ? formData.emailOrPhone.trim() : "",
-        phone: isEmail ? "" : formData.emailOrPhone.trim(),
         password: formData.password,
         country: formData.country,
       }).unwrap();

@@ -42,26 +42,30 @@ const createNewUser = async (req, res) => {
   const isEmail = EMAIL_REGEX.test(username);
   const isPhone = !isEmail; // If it's not an email, treat it as phone
 
-  // Check for duplicate email or phone in the email field
-  const duplicateEmail = await User.findOne({ email: username.toLowerCase() })
-    .lean()
-    .exec();
+  // Check for duplicate email only if input is an email
+  if (isEmail) {
+    const duplicateEmail = await User.findOne({ email: username.toLowerCase() })
+      .lean()
+      .exec();
 
-  console.log('Checking for duplicate email:', username.toLowerCase(), 'Found:', !!duplicateEmail);
+    console.log('Checking for duplicate email:', username.toLowerCase(), 'Found:', !!duplicateEmail);
 
-  if (duplicateEmail) {
-    return res.status(409).json({ message: "Email or phone number already exists" });
+    if (duplicateEmail) {
+      return res.status(409).json({ message: "Email already exists" });
+    }
   }
 
-  // Check for duplicate email or phone in the phone field
-  const duplicatePhone = await User.findOne({ phone: username })
-    .lean()
-    .exec();
+  // Check for duplicate phone only if input is a phone
+  if (isPhone) {
+    const duplicatePhone = await User.findOne({ phone: username })
+      .lean()
+      .exec();
 
-  console.log('Checking for duplicate phone:', username, 'Found:', !!duplicatePhone);
+    console.log('Checking for duplicate phone:', username, 'Found:', !!duplicatePhone);
 
-  if (duplicatePhone) {
-    return res.status(409).json({ message: "Email or phone number already exists" });
+    if (duplicatePhone) {
+      return res.status(409).json({ message: "Phone number already exists" });
+    }
   }
 
   // Check for duplicate username
@@ -81,11 +85,19 @@ const createNewUser = async (req, res) => {
 
   const userObject = { 
     username, 
-    email: isEmail ? username.toLowerCase() : "", 
-    phone: isPhone ? username : "", 
     password: hashedPwd, 
     country 
   };
+
+  // Only set email if it's actually an email
+  if (isEmail) {
+    userObject.email = username.toLowerCase();
+  }
+
+  // Only set phone if it's actually a phone
+  if (isPhone) {
+    userObject.phone = username;
+  }
 
   console.log('Creating user with object:', {
     username: userObject.username,

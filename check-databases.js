@@ -1,7 +1,7 @@
 const mongoose = require('mongoose');
 
 // Base connection string
-const BASE_URI = 'mongodb+srv://boubkraouinacer:NB%40mafBase2025@cluster0.mwwk6a.mongodb.net/?retryWrites=true&w=majority&appName=Cluster0';
+const BASE_URI = 'mongodb+srv://boubkraouinacer:NB%40mafBase2025@cluster0.mwwk6a.mongodb.net/mafqoudat?retryWrites=true&w=majority&appName=Cluster0';
 
 async function checkDatabases() {
     console.log('🔍 Checking available databases in your MongoDB cluster...\n');
