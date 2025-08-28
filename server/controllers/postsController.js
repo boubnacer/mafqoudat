@@ -414,12 +414,21 @@ const createNewPost = async (req, res) => {
      // Handle city validation
    let cityId = null;
    
+   console.log('🔍 DEBUG: City validation - city value:', city);
+   console.log('🔍 DEBUG: City validation - is city valid ObjectId?', city && mongoose.Types.ObjectId.isValid(city));
+   
    try {
      if (city && mongoose.Types.ObjectId.isValid(city)) {
+       console.log('🔍 DEBUG: City is valid ObjectId, checking if exists in database');
        const cityDoc = await City.findById(city).lean();
        if (cityDoc) {
          cityId = city;
+         console.log('🔍 DEBUG: City found in database, setting cityId:', cityId);
+       } else {
+         console.log('🔍 DEBUG: City ObjectId not found in database');
        }
+     } else {
+       console.log('🔍 DEBUG: City is not a valid ObjectId or is null/undefined');
      }
    } catch (cityError) {
      console.error('Error during city validation:', cityError);
@@ -437,10 +446,15 @@ const createNewPost = async (req, res) => {
     description: description || "",
   };
 
+  console.log('🔍 DEBUG: Post data before city handling:', postData);
+
      // Handle city field
    if (cityId) {
+     console.log('🔍 DEBUG: Setting city to ObjectId:', cityId);
      postData.city = cityId;
    } else if (city && !mongoose.Types.ObjectId.isValid(city)) {
+     console.log('🔍 DEBUG: Setting region to custom city name:', city);
+     console.log('🔍 DEBUG: Setting city to null');
      // For custom city names, we need to either:
      // 1. Create a new city record, or
      // 2. Store in region field and handle in aggregation
@@ -448,7 +462,11 @@ const createNewPost = async (req, res) => {
      postData.region = city;
      // Also store a reference to indicate this is a custom city
      postData.city = null; // Explicitly set to null for custom cities
+   } else {
+     console.log('🔍 DEBUG: No city handling applied - cityId:', cityId, 'city:', city);
    }
+
+   console.log('🔍 DEBUG: Final post data:', postData);
 
      // Add contact preferences if provided
    if (contactPreferences) {
