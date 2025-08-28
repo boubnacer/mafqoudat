@@ -105,7 +105,7 @@ const getDashboard = async (req, res) => {
                     $and: [
                       { $ne: ["$city", null] }, 
                       { $ne: ["$city", ""] },
-                      { $not: { $regexMatch: { input: { $toString: "$city" }, regex: "^[0-9a-fA-F]{24}$" } } }
+                      { $regexMatch: { input: { $toString: "$city" }, regex: "^[0-9a-fA-F]{24}$" } }
                     ] 
                   },
               then: { $toObjectId: "$city" },
@@ -242,7 +242,7 @@ const getDashboard = async (req, res) => {
                     $and: [
                       { $ne: ["$city", null] }, 
                       { $ne: ["$city", ""] },
-                      { $not: { $regexMatch: { input: { $toString: "$city" }, regex: "^[0-9a-fA-F]{24}$" } } }
+                      { $regexMatch: { input: { $toString: "$city" }, regex: "^[0-9a-fA-F]{24}$" } }
                     ] 
                   },
               then: { $toObjectId: "$city" },
@@ -317,7 +317,7 @@ const getDashboard = async (req, res) => {
                     $and: [
                       { $ne: ["$city", null] }, 
                       { $ne: ["$city", ""] },
-                      { $not: { $regexMatch: { input: { $toString: "$city" }, regex: "^[0-9a-fA-F]{24}$" } } }
+                      { $regexMatch: { input: { $toString: "$city" }, regex: "^[0-9a-fA-F]{24}$" } }
                     ] 
                   },
                   then: "$city",
@@ -391,7 +391,7 @@ const getDashboard = async (req, res) => {
                     $and: [
                       { $ne: ["$city", null] }, 
                       { $ne: ["$city", ""] },
-                      { $not: { $regexMatch: { input: { $toString: "$city" }, regex: "^[0-9a-fA-F]{24}$" } } }
+                      { $regexMatch: { input: { $toString: "$city" }, regex: "^[0-9a-fA-F]{24}$" } }
                     ] 
                   },
               then: { $toObjectId: "$city" },
@@ -466,7 +466,7 @@ const getDashboard = async (req, res) => {
                     $and: [
                       { $ne: ["$city", null] }, 
                       { $ne: ["$city", ""] },
-                      { $not: { $regexMatch: { input: { $toString: "$city" }, regex: "^[0-9a-fA-F]{24}$" } } }
+                      { $regexMatch: { input: { $toString: "$city" }, regex: "^[0-9a-fA-F]{24}$" } }
                     ] 
                   },
                   then: "$city",
