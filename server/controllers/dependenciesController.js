@@ -169,7 +169,7 @@ const getDashboard = async (req, res) => {
               then: "$City.labels.en",
               else: {
                 $cond: {
-                  if: { $and: [{ $ne: ["$city", null] }, { $type: "$city", "string" }] },
+                  if: { $and: [{ $ne: ["$city", null] }, { $ne: ["$city", ""] }] },
                   then: "$city",
                   else: "Casablanca"
                 }
@@ -307,7 +307,7 @@ const getDashboard = async (req, res) => {
               then: "$City.labels.en",
               else: {
                 $cond: {
-                  if: { $and: [{ $ne: ["$city", null] }, { $type: "$city", "string" }] },
+                  if: { $and: [{ $ne: ["$city", null] }, { $ne: ["$city", ""] }] },
                   then: "$city",
                   else: "Casablanca"
                 }
@@ -444,7 +444,7 @@ const getDashboard = async (req, res) => {
               then: "$City.labels.en",
               else: {
                 $cond: {
-                  if: { $and: [{ $ne: ["$city", null] }, { $type: "$city", "string" }] },
+                  if: { $and: [{ $ne: ["$city", null] }, { $ne: ["$city", ""] }] },
                   then: "$city",
                   else: "Casablanca"
                 }
