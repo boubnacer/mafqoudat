@@ -101,7 +101,13 @@ const getDashboard = async (req, res) => {
           },
           cityObjectId: {
             $cond: {
-              if: { $and: [{ $ne: ["$city", null] }, { $ne: ["$city", ""] }] },
+              if: { 
+                    $and: [
+                      { $ne: ["$city", null] }, 
+                      { $ne: ["$city", ""] },
+                      { $not: { $regexMatch: { input: { $toString: "$city" }, regex: "^[0-9a-fA-F]{24}$" } } }
+                    ] 
+                  },
               then: { $toObjectId: "$city" },
               else: null
             }
@@ -169,7 +175,13 @@ const getDashboard = async (req, res) => {
               then: "$City.labels.en",
               else: {
                 $cond: {
-                  if: { $and: [{ $ne: ["$city", null] }, { $ne: ["$city", ""] }] },
+                  if: { 
+                    $and: [
+                      { $ne: ["$city", null] }, 
+                      { $ne: ["$city", ""] },
+                      { $not: { $regexMatch: { input: { $toString: "$city" }, regex: "^[0-9a-fA-F]{24}$" } } }
+                    ] 
+                  },
                   then: "$city",
                   else: "Casablanca"
                 }
@@ -238,7 +250,13 @@ const getDashboard = async (req, res) => {
           },
           cityObjectId: {
             $cond: {
-              if: { $and: [{ $ne: ["$city", null] }, { $ne: ["$city", ""] }] },
+              if: { 
+                    $and: [
+                      { $ne: ["$city", null] }, 
+                      { $ne: ["$city", ""] },
+                      { $not: { $regexMatch: { input: { $toString: "$city" }, regex: "^[0-9a-fA-F]{24}$" } } }
+                    ] 
+                  },
               then: { $toObjectId: "$city" },
               else: null
             }
@@ -307,7 +325,13 @@ const getDashboard = async (req, res) => {
               then: "$City.labels.en",
               else: {
                 $cond: {
-                  if: { $and: [{ $ne: ["$city", null] }, { $ne: ["$city", ""] }] },
+                  if: { 
+                    $and: [
+                      { $ne: ["$city", null] }, 
+                      { $ne: ["$city", ""] },
+                      { $not: { $regexMatch: { input: { $toString: "$city" }, regex: "^[0-9a-fA-F]{24}$" } } }
+                    ] 
+                  },
                   then: "$city",
                   else: "Casablanca"
                 }
@@ -375,7 +399,13 @@ const getDashboard = async (req, res) => {
           },
           cityObjectId: {
             $cond: {
-              if: { $and: [{ $ne: ["$city", null] }, { $ne: ["$city", ""] }] },
+              if: { 
+                    $and: [
+                      { $ne: ["$city", null] }, 
+                      { $ne: ["$city", ""] },
+                      { $not: { $regexMatch: { input: { $toString: "$city" }, regex: "^[0-9a-fA-F]{24}$" } } }
+                    ] 
+                  },
               then: { $toObjectId: "$city" },
               else: null
             }
@@ -444,7 +474,13 @@ const getDashboard = async (req, res) => {
               then: "$City.labels.en",
               else: {
                 $cond: {
-                  if: { $and: [{ $ne: ["$city", null] }, { $ne: ["$city", ""] }] },
+                  if: { 
+                    $and: [
+                      { $ne: ["$city", null] }, 
+                      { $ne: ["$city", ""] },
+                      { $not: { $regexMatch: { input: { $toString: "$city" }, regex: "^[0-9a-fA-F]{24}$" } } }
+                    ] 
+                  },
                   then: "$city",
                   else: "Casablanca"
                 }
