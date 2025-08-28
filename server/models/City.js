@@ -29,23 +29,6 @@ const citySchema = new mongoose.Schema({
       trim: true
     }
   },
-  names: {
-    en: {
-      type: String,
-      required: true,
-      trim: true
-    },
-    fr: {
-      type: String,
-      required: true,
-      trim: true
-    },
-    ar: {
-      type: String,
-      required: true,
-      trim: true
-    }
-  },
   isActive: {
     type: Boolean,
     default: true
@@ -74,9 +57,6 @@ citySchema.index({
   "labels.en": "text", 
   "labels.fr": "text", 
   "labels.ar": "text",
-  "names.en": "text",
-  "names.fr": "text", 
-  "names.ar": "text",
   "searchTerms": "text"
 });
 
@@ -93,15 +73,10 @@ citySchema.methods.getLabel = function(language = 'en') {
   return this.labels[language] || this.labels.en;
 };
 
-// Method to get name by language
-citySchema.methods.getName = function(language = 'en') {
-  return this.names[language] || this.names.en;
-};
-
 // Static method to get cities by country
 citySchema.statics.getByCountry = function(countryId, language = 'en') {
   return this.find({ country: countryId, isActive: true })
-    .select('code labels names isCapital')
+    .select('code labels isCapital')
     .sort({ 'labels.en': 1 })
     .lean();
 };
@@ -112,8 +87,8 @@ citySchema.statics.search = function(query, language = 'en', limit = 10) {
     $text: { $search: query },
     isActive: true
   })
-  .select('code labels names country isCapital')
-  .populate('country', 'code labels names flag')
+  .select('code labels country isCapital')
+  .populate('country', 'code labels flag')
   .limit(limit)
   .lean();
 };

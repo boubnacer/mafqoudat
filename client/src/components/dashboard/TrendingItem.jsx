@@ -31,16 +31,17 @@ const TrendingItem = ({ trend, isLoading }) => {
 
   // Get city name with proper priority
   const getCityName = () => {
-    // First priority: Use the city field directly (for custom city names)
-    if (city && typeof city === 'string' && city.trim()) {
-      return city.trim();
-    }
-    // Second priority: Use the populated city data from the API
+    // First priority: Use the populated city data from the API
     if (cityLabels && cityLabels[currentLanguage]) {
       return cityLabels[currentLanguage];
     }
+    // Second priority: Use the English city name as fallback
     if (cityName) {
       return cityName;
+    }
+    // Third priority: Use the city field directly (for custom city names)
+    if (city && typeof city === 'string' && city.trim()) {
+      return city.trim();
     }
     // Last fallback: "Unknown City"
     return t('unknownCity') || 'Unknown City';
@@ -50,7 +51,20 @@ const TrendingItem = ({ trend, isLoading }) => {
 
   // Debug logging
   const finalImageUrl = image ? (image.startsWith('http') ? image : `${API_BASE_URL}/${image}`) : ma;
-  console.log('TrendingItem data:', { trend, trendData, image, categoryName, floptionName, city, displayCityName, API_BASE_URL, finalImageUrl });
+  console.log('TrendingItem data:', { 
+    trend, 
+    trendData, 
+    image, 
+    categoryName, 
+    floptionName, 
+    city, 
+    cityLabels, 
+    cityName,
+    displayCityName, 
+    currentLanguage,
+    API_BASE_URL, 
+    finalImageUrl 
+  });
 
   if (isLoading) return <TrendingItemSkeleton />;
   if (!trendData) return <DashboardEmptyStates.NoTrending />;
