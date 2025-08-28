@@ -169,14 +169,8 @@ const getDashboard = async (req, res) => {
           region: 1,
           exactLocation: 1,
           city: 1,
-          cityName: {
-            $cond: {
-              if: { $and: [{ $ne: ["$City", null] }, { $ne: ["$City.labels", null] }, { $ne: ["$City.labels.en", null] }] },
-              then: "$City.labels.en",
-              else: "Casablanca"
-            }
-          },
-          cityLabels: { $ifNull: ["$City.labels", {}] },
+          cityName: "$City.labels.en",
+          cityLabels: "$City.labels",
           user: 1,
           country: 1,
           returned: 1,
@@ -307,26 +301,8 @@ const getDashboard = async (req, res) => {
           country: 1,
           exactLocation: 1,
           city: 1,
-          cityName: {
-            $cond: {
-              if: { $and: [{ $ne: ["$City", null] }, { $ne: ["$City.labels", null] }, { $ne: ["$City.labels.en", null] }] },
-              then: "$City.labels.en",
-              else: {
-                $cond: {
-                  if: { 
-                    $and: [
-                      { $ne: ["$city", null] }, 
-                      { $ne: ["$city", ""] },
-                      { $regexMatch: { input: { $toString: "$city" }, regex: "^[0-9a-fA-F]{24}$" } }
-                    ] 
-                  },
-                  then: "$city",
-                  else: "Casablanca"
-                }
-              }
-            }
-          },
-          cityLabels: { $ifNull: ["$City.labels", {}] },
+          cityName: "$City.labels.en",
+          cityLabels: "$City.labels",
           returned: 1,
           createdAt: 1,
           updatedAt: 1,
@@ -456,26 +432,8 @@ const getDashboard = async (req, res) => {
           country: 1,
           exactLocation: 1,
           city: 1,
-          cityName: {
-            $cond: {
-              if: { $and: [{ $ne: ["$City", null] }, { $ne: ["$City.labels", null] }, { $ne: ["$City.labels.en", null] }] },
-              then: "$City.labels.en",
-              else: {
-                $cond: {
-                  if: { 
-                    $and: [
-                      { $ne: ["$city", null] }, 
-                      { $ne: ["$city", ""] },
-                      { $regexMatch: { input: { $toString: "$city" }, regex: "^[0-9a-fA-F]{24}$" } }
-                    ] 
-                  },
-                  then: "$city",
-                  else: "Casablanca"
-                }
-              }
-            }
-          },
-          cityLabels: { $ifNull: ["$City.labels", {}] },
+          cityName: "$City.labels.en",
+          cityLabels: "$City.labels",
           returned: 1,
           createdAt: 1,
           updatedAt: 1,
