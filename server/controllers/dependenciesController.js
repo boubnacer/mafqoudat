@@ -89,13 +89,37 @@ const getDashboard = async (req, res) => {
           hasValidFoundLost: { $ne: ["$foundLost", null] }
         }
       },
-      // Convert string IDs to ObjectIds for lookups
+      // Convert string IDs to ObjectIds for lookups (with error handling)
       {
         $addFields: {
-          categoryObjectId: { $toObjectId: "$category" },
-          cityObjectId: { $toObjectId: "$city" },
-          foundLostObjectId: { $toObjectId: "$foundLost" },
-          countryObjectId: { $toObjectId: "$country" }
+          categoryObjectId: {
+            $cond: {
+              if: { $and: [{ $ne: ["$category", null] }, { $ne: ["$category", ""] }] },
+              then: { $toObjectId: "$category" },
+              else: null
+            }
+          },
+          cityObjectId: {
+            $cond: {
+              if: { $and: [{ $ne: ["$city", null] }, { $ne: ["$city", ""] }] },
+              then: { $toObjectId: "$city" },
+              else: null
+            }
+          },
+          foundLostObjectId: {
+            $cond: {
+              if: { $and: [{ $ne: ["$foundLost", null] }, { $ne: ["$foundLost", ""] }] },
+              then: { $toObjectId: "$foundLost" },
+              else: null
+            }
+          },
+          countryObjectId: {
+            $cond: {
+              if: { $and: [{ $ne: ["$country", null] }, { $ne: ["$country", ""] }] },
+              then: { $toObjectId: "$country" },
+              else: null
+            }
+          }
         }
       },
       {
@@ -190,13 +214,37 @@ const getDashboard = async (req, res) => {
           hasValidFoundLost: { $ne: ["$foundLost", null] }
         }
       },
-      // Convert string IDs to ObjectIds for lookups
+      // Convert string IDs to ObjectIds for lookups (with error handling)
       {
         $addFields: {
-          categoryObjectId: { $toObjectId: "$category" },
-          cityObjectId: { $toObjectId: "$city" },
-          foundLostObjectId: { $toObjectId: "$foundLost" },
-          countryObjectId: { $toObjectId: "$country" }
+          categoryObjectId: {
+            $cond: {
+              if: { $and: [{ $ne: ["$category", null] }, { $ne: ["$category", ""] }] },
+              then: { $toObjectId: "$category" },
+              else: null
+            }
+          },
+          cityObjectId: {
+            $cond: {
+              if: { $and: [{ $ne: ["$city", null] }, { $ne: ["$city", ""] }] },
+              then: { $toObjectId: "$city" },
+              else: null
+            }
+          },
+          foundLostObjectId: {
+            $cond: {
+              if: { $and: [{ $ne: ["$foundLost", null] }, { $ne: ["$foundLost", ""] }] },
+              then: { $toObjectId: "$foundLost" },
+              else: null
+            }
+          },
+          countryObjectId: {
+            $cond: {
+              if: { $and: [{ $ne: ["$country", null] }, { $ne: ["$country", ""] }] },
+              then: { $toObjectId: "$country" },
+              else: null
+            }
+          }
         }
       },
       {
@@ -292,13 +340,37 @@ const getDashboard = async (req, res) => {
           hasValidFoundLost: { $ne: ["$foundLost", null] }
         }
       },
-      // Convert string IDs to ObjectIds for lookups
+      // Convert string IDs to ObjectIds for lookups (with error handling)
       {
         $addFields: {
-          categoryObjectId: { $toObjectId: "$category" },
-          cityObjectId: { $toObjectId: "$city" },
-          foundLostObjectId: { $toObjectId: "$foundLost" },
-          countryObjectId: { $toObjectId: "$country" }
+          categoryObjectId: {
+            $cond: {
+              if: { $and: [{ $ne: ["$category", null] }, { $ne: ["$category", ""] }] },
+              then: { $toObjectId: "$category" },
+              else: null
+            }
+          },
+          cityObjectId: {
+            $cond: {
+              if: { $and: [{ $ne: ["$city", null] }, { $ne: ["$city", ""] }] },
+              then: { $toObjectId: "$city" },
+              else: null
+            }
+          },
+          foundLostObjectId: {
+            $cond: {
+              if: { $and: [{ $ne: ["$foundLost", null] }, { $ne: ["$foundLost", ""] }] },
+              then: { $toObjectId: "$foundLost" },
+              else: null
+            }
+          },
+          countryObjectId: {
+            $cond: {
+              if: { $and: [{ $ne: ["$country", null] }, { $ne: ["$country", ""] }] },
+              then: { $toObjectId: "$country" },
+              else: null
+            }
+          }
         }
       },
       {
