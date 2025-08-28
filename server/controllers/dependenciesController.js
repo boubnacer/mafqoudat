@@ -79,6 +79,16 @@ const getDashboard = async (req, res) => {
     try {
       trendingPost = await Post.aggregate([
       { $match: { country: new mongoose.Types.ObjectId(currentCountry) } },
+      // Handle undefined category and city fields
+      {
+        $addFields: {
+          category: { $ifNull: ["$category", null] },
+          city: { $ifNull: ["$city", null] },
+          hasValidCategory: { $ne: ["$category", null] },
+          hasValidCity: { $ne: ["$city", null] },
+          hasValidFoundLost: { $ne: ["$foundLost", null] }
+        }
+      },
       {
         $lookup: {
           from: "categories",
@@ -120,18 +130,36 @@ const getDashboard = async (req, res) => {
           region: 1,
           exactLocation: 1,
           city: 1,
-          cityName: { $ifNull: ["$City.labels.en", "Unknown"] },
+          cityName: { 
+            $cond: {
+              if: { $and: [{ $ne: ["$City", null] }, { $ne: ["$City.labels", null] }, { $ne: ["$City.labels.en", null] }] },
+              then: "$City.labels.en",
+              else: "Casablanca"
+            }
+          },
           cityLabels: { $ifNull: ["$City.labels", {}] },
           user: 1,
           country: 1,
           returned: 1,
           createdAt: 1,
-          categoryName: { $ifNull: ["$Category.code", "Unknown"] },
-          floptionName: { $ifNull: ["$Floptions.code", "Unknown"] },
+          categoryName: { 
+            $cond: {
+              if: { $and: [{ $ne: ["$Category", null] }, { $ne: ["$Category.code", null] }] },
+              then: "$Category.code",
+              else: "ELECTRONICS"
+            }
+          },
+          floptionName: { 
+            $cond: {
+              if: { $and: [{ $ne: ["$Floptions", null] }, { $ne: ["$Floptions.code", null] }] },
+              then: "$Floptions.code",
+              else: "FOUND"
+            }
+          },
           contact: 1,
           image: 1,
           countryLabels: { $ifNull: ["$Country.labels", {}] },
-          countryname: { $ifNull: ["$Country.code", "Unknown"] },
+          countryname: { $ifNull: ["$Country.code", "MOROCCO"] },
           // Add missing fields for debugging
           category: 1,
           foundLost: 1,
@@ -161,6 +189,16 @@ const getDashboard = async (req, res) => {
           foundLost: foundOption._id,
         },
       },
+      // Handle undefined category and city fields
+      {
+        $addFields: {
+          category: { $ifNull: ["$category", null] },
+          city: { $ifNull: ["$city", null] },
+          hasValidCategory: { $ne: ["$category", null] },
+          hasValidCity: { $ne: ["$city", null] },
+          hasValidFoundLost: { $ne: ["$foundLost", null] }
+        }
+      },
       {
         $lookup: {
           from: "categories",
@@ -204,17 +242,32 @@ const getDashboard = async (req, res) => {
           region: 1,
           exactLocation: 1,
           city: 1,
-          cityName: { $ifNull: ["$City.labels.en", "Unknown"] },
+          cityName: { 
+            $cond: {
+              if: { $and: [{ $ne: ["$City", null] }, { $ne: ["$City.labels", null] }, { $ne: ["$City.labels.en", null] }] },
+              then: "$City.labels.en",
+              else: "Casablanca"
+            }
+          },
           cityLabels: { $ifNull: ["$City.labels", {}] },
           returned: 1,
           createdAt: 1,
           updatedAt: 1,
           username: { $ifNull: ["$User.username", "Unknown"] },
-          categoryname: { $ifNull: ["$Category.code", "Unknown"] },
+          categoryname: { 
+            $cond: {
+              if: { $and: [{ $ne: ["$Category", null] }, { $ne: ["$Category.code", null] }] },
+              then: "$Category.code",
+              else: "ELECTRONICS"
+            }
+          },
           contact: 1,
           image: 1,
           countryLabels: { $ifNull: ["$Country.labels", {}] },
-          countryname: { $ifNull: ["$Country.code", "Unknown"] },
+          countryname: { $ifNull: ["$Country.code", "MOROCCO"] },
+          // Add missing fields for debugging
+          category: 1,
+          foundLost: 1,
         },
       },
       {
@@ -241,6 +294,16 @@ const getDashboard = async (req, res) => {
           foundLost: lostOption._id,
         },
       },
+      // Handle undefined category and city fields
+      {
+        $addFields: {
+          category: { $ifNull: ["$category", null] },
+          city: { $ifNull: ["$city", null] },
+          hasValidCategory: { $ne: ["$category", null] },
+          hasValidCity: { $ne: ["$city", null] },
+          hasValidFoundLost: { $ne: ["$foundLost", null] }
+        }
+      },
       {
         $lookup: {
           from: "categories",
@@ -284,17 +347,32 @@ const getDashboard = async (req, res) => {
           region: 1,
           exactLocation: 1,
           city: 1,
-          cityName: { $ifNull: ["$City.labels.en", "Unknown"] },
+          cityName: { 
+            $cond: {
+              if: { $and: [{ $ne: ["$City", null] }, { $ne: ["$City.labels", null] }, { $ne: ["$City.labels.en", null] }] },
+              then: "$City.labels.en",
+              else: "Casablanca"
+            }
+          },
           cityLabels: { $ifNull: ["$City.labels", {}] },
           returned: 1,
           createdAt: 1,
           updatedAt: 1,
           username: { $ifNull: ["$User.username", "Unknown"] },
-          categoryname: { $ifNull: ["$Category.code", "Unknown"] },
+          categoryname: { 
+            $cond: {
+              if: { $and: [{ $ne: ["$Category", null] }, { $ne: ["$Category.code", null] }] },
+              then: "$Category.code",
+              else: "ELECTRONICS"
+            }
+          },
           contact: 1,
           image: 1,
           countryLabels: { $ifNull: ["$Country.labels", {}] },
-          countryname: { $ifNull: ["$Country.code", "Unknown"] },
+          countryname: { $ifNull: ["$Country.code", "MOROCCO"] },
+          // Add missing fields for debugging
+          category: 1,
+          foundLost: 1,
         },
       },
       {
