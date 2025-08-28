@@ -425,7 +425,9 @@ const createNewPost = async (req, res) => {
          cityId = city;
          console.log('🔍 DEBUG: City found in database, setting cityId:', cityId);
        } else {
-         console.log('🔍 DEBUG: City ObjectId not found in database');
+         console.log('🔍 DEBUG: City ObjectId not found in database - treating as invalid');
+         // If the ObjectId doesn't exist in database, treat it as invalid
+         cityId = null;
        }
      } else {
        console.log('🔍 DEBUG: City is not a valid ObjectId or is null/undefined');
@@ -452,7 +454,8 @@ const createNewPost = async (req, res) => {
    if (cityId) {
      console.log('🔍 DEBUG: Setting city to ObjectId:', cityId);
      postData.city = cityId;
-   } else if (city && !mongoose.Types.ObjectId.isValid(city)) {
+   } else if (city) {
+     // If we have a city value but no valid cityId, treat it as custom city
      console.log('🔍 DEBUG: Setting region to custom city name:', city);
      console.log('🔍 DEBUG: Setting city to null');
      // For custom city names, we need to either:
