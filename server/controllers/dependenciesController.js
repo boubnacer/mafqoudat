@@ -163,7 +163,19 @@ const getDashboard = async (req, res) => {
           region: 1,
           exactLocation: 1,
           city: 1,
-          cityName: { $ifNull: ["$City.labels.en", "Casablanca"] },
+          cityName: {
+            $cond: {
+              if: { $and: [{ $ne: ["$City", null] }, { $ne: ["$City.labels", null] }, { $ne: ["$City.labels.en", null] }] },
+              then: "$City.labels.en",
+              else: {
+                $cond: {
+                  if: { $ne: ["$region", null] },
+                  then: "$region",
+                  else: "Casablanca"
+                }
+              }
+            }
+          },
           cityLabels: { $ifNull: ["$City.labels", {}] },
           user: 1,
           country: 1,
@@ -290,7 +302,19 @@ const getDashboard = async (req, res) => {
           region: 1,
           exactLocation: 1,
           city: 1,
-          cityName: { $ifNull: ["$City.labels.en", "Casablanca"] },
+          cityName: {
+            $cond: {
+              if: { $and: [{ $ne: ["$City", null] }, { $ne: ["$City.labels", null] }, { $ne: ["$City.labels.en", null] }] },
+              then: "$City.labels.en",
+              else: {
+                $cond: {
+                  if: { $ne: ["$region", null] },
+                  then: "$region",
+                  else: "Casablanca"
+                }
+              }
+            }
+          },
           cityLabels: { $ifNull: ["$City.labels", {}] },
           returned: 1,
           createdAt: 1,
@@ -416,7 +440,19 @@ const getDashboard = async (req, res) => {
           region: 1,
           exactLocation: 1,
           city: 1,
-          cityName: { $ifNull: ["$City.labels.en", "Casablanca"] },
+          cityName: {
+            $cond: {
+              if: { $and: [{ $ne: ["$City", null] }, { $ne: ["$City.labels", null] }, { $ne: ["$City.labels.en", null] }] },
+              then: "$City.labels.en",
+              else: {
+                $cond: {
+                  if: { $ne: ["$region", null] },
+                  then: "$region",
+                  else: "Casablanca"
+                }
+              }
+            }
+          },
           cityLabels: { $ifNull: ["$City.labels", {}] },
           returned: 1,
           createdAt: 1,

@@ -441,8 +441,13 @@ const createNewPost = async (req, res) => {
    if (cityId) {
      postData.city = cityId;
    } else if (city && !mongoose.Types.ObjectId.isValid(city)) {
-     // Store custom city name in region field
+     // For custom city names, we need to either:
+     // 1. Create a new city record, or
+     // 2. Store in region field and handle in aggregation
+     // For now, store in region field and we'll handle this in the aggregation
      postData.region = city;
+     // Also store a reference to indicate this is a custom city
+     postData.city = null; // Explicitly set to null for custom cities
    }
 
      // Add contact preferences if provided
