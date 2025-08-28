@@ -11,14 +11,19 @@ const City = require("../models/City");
 // Get Dashboard
 const getDashboard = async (req, res) => {
   try {
+    console.log("Dashboard request received:", req.query);
+    
     let match = {};
     const currentDate = new Date();
 
     const currentCountry = req.query.currentCountry;
     
     if (!currentCountry) {
+      console.log("Missing currentCountry parameter");
       return res.status(400).json({ message: "currentCountry parameter is required" });
     }
+
+    console.log("Processing dashboard for country:", currentCountry);
 
     // Lookup FoundLost IDs by code - Auto-create if missing
     let foundOption = await FoundLost.findOne({ code: "FOUND" });
@@ -69,7 +74,10 @@ const getDashboard = async (req, res) => {
     
     console.log("Using FoundLost options:", { found: foundOption.code, lost: lostOption.code });
 
-    const trendingPost = await Post.aggregate([
+    // Add error handling for aggregation
+    let trendingPost = [];
+    try {
+      trendingPost = await Post.aggregate([
       { $match: { country: new mongoose.Types.ObjectId(currentCountry) } },
       {
         $lookup: {
@@ -135,9 +143,15 @@ const getDashboard = async (req, res) => {
         $limit: 1,
       },
     ]);
+    } catch (error) {
+      console.error("Error in trendingPost aggregation:", error);
+      trendingPost = [];
+    }
 
     //get recent founds:
-    const recentFounds = await Post.aggregate([
+    let recentFounds = [];
+    try {
+      recentFounds = await Post.aggregate([
       {
         $match: {
           country: new mongoose.Types.ObjectId(currentCountry),
@@ -209,9 +223,15 @@ const getDashboard = async (req, res) => {
         $limit: 4,
       },
     ]);
+    } catch (error) {
+      console.error("Error in recentFounds aggregation:", error);
+      recentFounds = [];
+    }
 
     //get recent losts
-    const recentLosts = await Post.aggregate([
+    let recentLosts = [];
+    try {
+      recentLosts = await Post.aggregate([
       {
         $match: {
           country: new mongoose.Types.ObjectId(currentCountry),
@@ -283,6 +303,10 @@ const getDashboard = async (req, res) => {
         },
       },
     ]);
+    } catch (error) {
+      console.error("Error in recentLosts aggregation:", error);
+      recentLosts = [];
+    }
 
     // total Founds
     const totalFounds = await Post.find({
