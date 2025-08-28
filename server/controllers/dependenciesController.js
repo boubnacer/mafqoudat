@@ -173,19 +173,7 @@ const getDashboard = async (req, res) => {
             $cond: {
               if: { $and: [{ $ne: ["$City", null] }, { $ne: ["$City.labels", null] }, { $ne: ["$City.labels.en", null] }] },
               then: "$City.labels.en",
-              else: {
-                $cond: {
-                  if: { 
-                    $and: [
-                      { $ne: ["$city", null] }, 
-                      { $ne: ["$city", ""] },
-                      { $not: { $regexMatch: { input: { $toString: "$city" }, regex: "^[0-9a-fA-F]{24}$" } } }
-                    ] 
-                  },
-                  then: "$city",
-                  else: "Casablanca"
-                }
-              }
+              else: "Casablanca"
             }
           },
           cityLabels: { $ifNull: ["$City.labels", {}] },
