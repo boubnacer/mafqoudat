@@ -2,7 +2,9 @@ const mongoose = require('mongoose');
 const Country = require('../models/Country');
 const FoundLost = require('../models/FoundLost');
 const Category = require('../models/Category');
-require('dotenv').config();
+
+// Use the MongoDB URI directly
+const MONGODB_URI = 'mongodb+srv://boubkraouinacer:NB%40mafBase2025@cluster0.mwwk6a.mongodb.net/mafqoudat?retryWrites=true&w=majority&appName=Cluster0';
 
 // Sample countries data with multilingual support
 const countriesData = [
@@ -97,11 +99,21 @@ const countriesData = [
       fr: 'Qatar',
       ar: 'قطر'
     },
+    names: {
+      en: 'Qatar',
+      fr: 'Qatar',
+      ar: 'قطر'
+    },
     flag: '🇶🇦'
   },
   {
     code: 'KW',
     labels: {
+      en: 'Kuwait',
+      fr: 'Koweït',
+      ar: 'الكويت'
+    },
+    names: {
       en: 'Kuwait',
       fr: 'Koweït',
       ar: 'الكويت'
@@ -115,11 +127,21 @@ const countriesData = [
       fr: 'Bahreïn',
       ar: 'البحرين'
     },
+    names: {
+      en: 'Bahrain',
+      fr: 'Bahreïn',
+      ar: 'البحرين'
+    },
     flag: '🇧🇭'
   },
   {
     code: 'OM',
     labels: {
+      en: 'Oman',
+      fr: 'Oman',
+      ar: 'عُمان'
+    },
+    names: {
       en: 'Oman',
       fr: 'Oman',
       ar: 'عُمان'
@@ -133,11 +155,21 @@ const countriesData = [
       fr: 'Jordanie',
       ar: 'الأردن'
     },
+    names: {
+      en: 'Jordan',
+      fr: 'Jordanie',
+      ar: 'الأردن'
+    },
     flag: '🇯🇴'
   },
   {
     code: 'LB',
     labels: {
+      en: 'Lebanon',
+      fr: 'Liban',
+      ar: 'لبنان'
+    },
+    names: {
       en: 'Lebanon',
       fr: 'Liban',
       ar: 'لبنان'
@@ -151,11 +183,21 @@ const countriesData = [
       fr: 'Syrie',
       ar: 'سوريا'
     },
+    names: {
+      en: 'Syria',
+      fr: 'Syrie',
+      ar: 'سوريا'
+    },
     flag: '🇸🇾'
   },
   {
     code: 'IQ',
     labels: {
+      en: 'Iraq',
+      fr: 'Irak',
+      ar: 'العراق'
+    },
+    names: {
       en: 'Iraq',
       fr: 'Irak',
       ar: 'العراق'
@@ -169,11 +211,21 @@ const countriesData = [
       fr: 'Palestine',
       ar: 'فلسطين'
     },
+    names: {
+      en: 'Palestine',
+      fr: 'Palestine',
+      ar: 'فلسطين'
+    },
     flag: '🇵🇸'
   },
   {
     code: 'LY',
     labels: {
+      en: 'Libya',
+      fr: 'Libye',
+      ar: 'ليبيا'
+    },
+    names: {
       en: 'Libya',
       fr: 'Libye',
       ar: 'ليبيا'
@@ -187,11 +239,21 @@ const countriesData = [
       fr: 'Soudan',
       ar: 'السودان'
     },
+    names: {
+      en: 'Sudan',
+      fr: 'Soudan',
+      ar: 'السودان'
+    },
     flag: '🇸🇩'
   },
   {
     code: 'SO',
     labels: {
+      en: 'Somalia',
+      fr: 'Somalie',
+      ar: 'الصومال'
+    },
+    names: {
       en: 'Somalia',
       fr: 'Somalie',
       ar: 'الصومال'
@@ -205,11 +267,21 @@ const countriesData = [
       fr: 'Djibouti',
       ar: 'جيبوتي'
     },
+    names: {
+      en: 'Djibouti',
+      fr: 'Djibouti',
+      ar: 'جيبوتي'
+    },
     flag: '🇩🇯'
   },
   {
     code: 'KM',
     labels: {
+      en: 'Comoros',
+      fr: 'Comores',
+      ar: 'جزر القمر'
+    },
+    names: {
       en: 'Comoros',
       fr: 'Comores',
       ar: 'جزر القمر'
@@ -223,11 +295,21 @@ const countriesData = [
       fr: 'Mauritanie',
       ar: 'موريتانيا'
     },
+    names: {
+      en: 'Mauritania',
+      fr: 'Mauritanie',
+      ar: 'موريتانيا'
+    },
     flag: '🇲🇷'
   },
   {
     code: 'ML',
     labels: {
+      en: 'Mali',
+      fr: 'Mali',
+      ar: 'مالي'
+    },
+    names: {
       en: 'Mali',
       fr: 'Mali',
       ar: 'مالي'
@@ -241,6 +323,11 @@ const countriesData = [
       fr: 'Niger',
       ar: 'النيجر'
     },
+    names: {
+      en: 'Niger',
+      fr: 'Niger',
+      ar: 'النيجر'
+    },
     flag: '🇳🇪'
   },
   {
@@ -250,11 +337,21 @@ const countriesData = [
       fr: 'Tchad',
       ar: 'تشاد'
     },
+    names: {
+      en: 'Chad',
+      fr: 'Tchad',
+      ar: 'تشاد'
+    },
     flag: '🇹🇩'
   },
   {
     code: 'CF',
     labels: {
+      en: 'Central African Republic',
+      fr: 'République Centrafricaine',
+      ar: 'جمهورية أفريقيا الوسطى'
+    },
+    names: {
       en: 'Central African Republic',
       fr: 'République Centrafricaine',
       ar: 'جمهورية أفريقيا الوسطى'
@@ -368,28 +465,33 @@ const categoriesData = [
 const seedData = async () => {
   try {
     // Connect to MongoDB
-    const MONGODB_URI = 'mongodb+srv://mafqoudat:NB%40mafBase2025@cluster0.mwwk6a.mongodb.net/mafqoudat?retryWrites=true&w=majority';
+    const MONGODB_URI = 'mongodb+srv://boubkraouinacer:NB%40mafBase2025@cluster0.mwwk6a.mongodb.net/mafqoudat?retryWrites=true&w=majority&appName=Cluster0';
+    console.log('Attempting to connect to MongoDB...');
     await mongoose.connect(MONGODB_URI, {
       useNewUrlParser: true,
       useUnifiedTopology: true,
     });
-    console.log('Connected to MongoDB');
+    console.log('✅ Connected to MongoDB');
 
     // Clear existing data
+    console.log('🗑️  Clearing existing data...');
     await Country.deleteMany({});
     await FoundLost.deleteMany({});
     await Category.deleteMany({});
-    console.log('Cleared existing data');
+    console.log('✅ Cleared existing data');
 
     // Seed countries
+    console.log('🌍 Seeding countries...');
     const countries = await Country.insertMany(countriesData);
     console.log(`✅ Seeded ${countries.length} countries`);
 
     // Seed post types
+    console.log('📝 Seeding post types...');
     const postTypes = await FoundLost.insertMany(postTypesData);
     console.log(`✅ Seeded ${postTypes.length} post types`);
 
     // Seed categories
+    console.log('📂 Seeding categories...');
     const categories = await Category.insertMany(categoriesData);
     console.log(`✅ Seeded ${categories.length} categories`);
 

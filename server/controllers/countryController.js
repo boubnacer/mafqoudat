@@ -33,7 +33,7 @@ const getCountries = async (req, res) => {
     const transformedCountries = countries.map(country => ({
       _id: country._id,
       code: country.code,
-      label: country.labels[language] || country.labels.en,
+      label: country.names?.[language] || country.names?.en || country.labels[language] || country.labels.en,
       labels: country.labels,
       names: country.names || {},
       flag: country.flag,
@@ -78,7 +78,7 @@ const searchCountries = async (req, res) => {
     const transformedCountries = countries.map(country => ({
       _id: country._id,
       code: country.code,
-      label: country.labels[language] || country.labels.en,
+      label: country.names?.[language] || country.names?.en || country.labels[language] || country.labels.en,
       labels: country.labels,
       names: country.names || {},
       flag: country.flag

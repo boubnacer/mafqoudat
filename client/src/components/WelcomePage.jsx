@@ -162,9 +162,47 @@ const WelcomePage = () => {
     }),
   });
 
+  // Debug logging for API call
+  console.log('WelcomePage: API call details:', {
+    countriesData,
+    countriesError,
+    countriesLoading,
+    currentLanguage,
+    langContext
+  });
+
+  // Country code to name mapping for fallback
+  const countryCodeToName = {
+    'MA': { en: 'Morocco', ar: 'المغرب', fr: 'Maroc' },
+    'DZ': { en: 'Algeria', ar: 'الجزائر', fr: 'Algérie' },
+    'TN': { en: 'Tunisia', ar: 'تونس', fr: 'Tunisie' },
+    'EG': { en: 'Egypt', ar: 'مصر', fr: 'Égypte' },
+    'SA': { en: 'Saudi Arabia', ar: 'المملكة العربية السعودية', fr: 'Arabie Saoudite' },
+    'AE': { en: 'United Arab Emirates', ar: 'الإمارات العربية المتحدة', fr: 'Émirats Arabes Unis' },
+    'QA': { en: 'Qatar', ar: 'قطر', fr: 'Qatar' },
+    'KW': { en: 'Kuwait', ar: 'الكويت', fr: 'Koweït' },
+    'BH': { en: 'Bahrain', ar: 'البحرين', fr: 'Bahreïn' },
+    'OM': { en: 'Oman', ar: 'عُمان', fr: 'Oman' },
+    'JO': { en: 'Jordan', ar: 'الأردن', fr: 'Jordanie' },
+    'LB': { en: 'Lebanon', ar: 'لبنان', fr: 'Liban' },
+    'SY': { en: 'Syria', ar: 'سوريا', fr: 'Syrie' },
+    'IQ': { en: 'Iraq', ar: 'العراق', fr: 'Irak' },
+    'PS': { en: 'Palestine', ar: 'فلسطين', fr: 'Palestine' },
+    'LY': { en: 'Libya', ar: 'ليبيا', fr: 'Libye' },
+    'SD': { en: 'Sudan', ar: 'السودان', fr: 'Soudan' },
+    'SO': { en: 'Somalia', ar: 'الصومال', fr: 'Somalie' },
+    'DJ': { en: 'Djibouti', ar: 'جيبوتي', fr: 'Djibouti' },
+    'KM': { en: 'Comoros', ar: 'جزر القمر', fr: 'Comores' },
+    'MR': { en: 'Mauritania', ar: 'موريتانيا', fr: 'Mauritanie' },
+    'ML': { en: 'Mali', ar: 'مالي', fr: 'Mali' },
+    'NE': { en: 'Niger', ar: 'النيجر', fr: 'Niger' },
+    'TD': { en: 'Chad', ar: 'تشاد', fr: 'Tchad' },
+    'CF': { en: 'Central African Republic', ar: 'جمهورية أفريقيا الوسطى', fr: 'République Centrafricaine' }
+  };
+
   // Fallback countries in case API fails
   const fallbackCountries = [
-    { _id: '68a4b54ab46524c54c553ca9', code: 'MA', label: 'Morocco', labels: { en: 'Morocco', ar: 'المغرب', fr: 'Maroc' }, names: { en: 'Morocco', ar: 'المغرب', fr: 'Maroc' }, flag: '🇲🇦', isActive: true },
+    { _id: '68b0b774dcafb50aec949f4e', code: 'MA', label: 'Morocco', labels: { en: 'MA', ar: 'MA', fr: 'MA' }, names: { en: 'Morocco', ar: 'المغرب', fr: 'Maroc' }, flag: '🇲🇦', isActive: true },
   ];
 
   // Use countries from API or fallback
@@ -370,13 +408,29 @@ const WelcomePage = () => {
               onChange={handleCountrySelect}
               getOptionLabel={(option) => {
                 if (!option) return '';
-                // Get the appropriate label based on language
-                if (option.names && option.names[currentLanguage || langContext || 'en']) {
-                  return option.names[currentLanguage || langContext || 'en'];
+                const currentLang = currentLanguage || langContext || 'en';
+                
+                // Get the appropriate name based on language (names field contains actual country names)
+                if (option.names && option.names[currentLang]) {
+                  return option.names[currentLang];
                 }
-                if (option.labels && option.labels[currentLanguage || langContext || 'en']) {
-                  return option.labels[currentLanguage || langContext || 'en'];
+                
+                // Fallback to labels if names is not available
+                if (option.labels && option.labels[currentLang]) {
+                  const label = option.labels[currentLang];
+                  // If label is a 2-letter code, try to get the name from mapping
+                  if (label && label.length === 2 && label === label.toUpperCase()) {
+                    // This is likely a country code, try to get the name from mapping
+                    return countryCodeToName[label]?.[currentLang] || option.code;
+                  }
+                  return label;
                 }
+                
+                // Final fallback to country code mapping
+                if (option.code && countryCodeToName[option.code]) {
+                  return countryCodeToName[option.code][currentLang] || option.code;
+                }
+                
                 return option.label || option.code;
               }}
               isOptionEqualToValue={(option, value) => option._id === value._id}
@@ -399,9 +453,31 @@ const WelcomePage = () => {
                       alt=""
                     />
                   )}
-                  {option.names?.[currentLanguage || langContext || 'en'] || 
-                   option.labels?.[currentLanguage || langContext || 'en'] || 
-                   option.label || option.code} ({option.code})
+                  {(() => {
+                    const currentLang = currentLanguage || langContext || 'en';
+                    
+                    // Get the appropriate name based on language
+                    if (option.names && option.names[currentLang]) {
+                      return option.names[currentLang];
+                    }
+                    
+                    // Fallback to labels if names is not available
+                    if (option.labels && option.labels[currentLang]) {
+                      const label = option.labels[currentLang];
+                      // If label is a 2-letter code, try to get the name from mapping
+                      if (label && label.length === 2 && label === label.toUpperCase()) {
+                        return countryCodeToName[label]?.[currentLang] || option.code;
+                      }
+                      return label;
+                    }
+                    
+                    // Final fallback to country code mapping
+                    if (option.code && countryCodeToName[option.code]) {
+                      return countryCodeToName[option.code][currentLang] || option.code;
+                    }
+                    
+                    return option.label || option.code;
+                  })()} ({option.code})
                 </Box>
               )}
               renderInput={(params) => (
