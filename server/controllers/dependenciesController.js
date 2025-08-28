@@ -20,21 +20,54 @@ const getDashboard = async (req, res) => {
       return res.status(400).json({ message: "currentCountry parameter is required" });
     }
 
-    // Lookup FoundLost IDs by code - Fix inconsistent code references
-    const foundOption = await FoundLost.findOne({ code: "FOUND" });
-    const lostOption = await FoundLost.findOne({ code: "LOST" });
+    // Lookup FoundLost IDs by code - Auto-create if missing
+    let foundOption = await FoundLost.findOne({ code: "FOUND" });
+    let lostOption = await FoundLost.findOne({ code: "LOST" });
     
-    if (!foundOption) {
-      console.error("FOUND option not found in database");
-      return res.status(500).json({ message: "FOUND option not set in DB" });
+    // Auto-create FoundLost options if they don't exist
+    if (!foundOption || !lostOption) {
+      console.log("FoundLost options missing, creating them...");
+      
+      const defaultOptions = [
+        {
+          code: "FOUND",
+          label: "Found",
+          labels: {
+            en: "Found",
+            fr: "Trouvé",
+            ar: "تم العثور عليه"
+          },
+          color: "#4CAF50",
+          icon: "🔍",
+          isActive: true,
+          description: "Items that have been found and are being returned to their owners"
+        },
+        {
+          code: "LOST",
+          label: "Lost",
+          labels: {
+            en: "Lost",
+            fr: "Perdu",
+            ar: "مفقود"
+          },
+          color: "#F44336",
+          icon: "❓",
+          isActive: true,
+          description: "Items that have been lost and are being searched for"
+        }
+      ];
+      
+      // Clear existing options and create new ones
+      await FoundLost.deleteMany({});
+      const createdOptions = await FoundLost.insertMany(defaultOptions);
+      
+      foundOption = createdOptions.find(opt => opt.code === "FOUND");
+      lostOption = createdOptions.find(opt => opt.code === "LOST");
+      
+      console.log("Created FoundLost options:", { found: foundOption._id, lost: lostOption._id });
     }
     
-    if (!lostOption) {
-      console.error("LOST option not found in database");
-      return res.status(500).json({ message: "LOST option not set in DB" });
-    }
-    
-    console.log("Found options:", { found: foundOption.code, lost: lostOption.code });
+    console.log("Using FoundLost options:", { found: foundOption.code, lost: lostOption.code });
 
     const trendingPost = await Post.aggregate([
       { $match: { country: new mongoose.Types.ObjectId(currentCountry) } },

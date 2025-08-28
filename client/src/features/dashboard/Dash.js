@@ -29,8 +29,9 @@ import DashRecents from "../../components/dashboard/DashRecents";
 
 import "./dash.css";
 
-const lostsId = "63cc3484bc901245d3a1cb5a";
-const foundsId = "66e60c25420ca2a42499b924";
+// Updated FoundLost IDs from the database
+const lostsId = "68a4b54ab46524c54c553cc4"; // LOST
+const foundsId = "68a4b54ab46524c54c553cc3"; // FOUND
 
 const Dash = () => {
   const theme = useTheme();
