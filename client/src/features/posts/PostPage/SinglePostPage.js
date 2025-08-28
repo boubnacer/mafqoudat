@@ -132,12 +132,8 @@ const SinglePostPage = ({
     if (cityName) {
       return cityName;
     }
-    // Check if region contains a custom city name (not an ObjectId)
-    if (region && !region.match(/^[0-9a-fA-F]{24}$/)) {
-      return region;
-    }
     // Fallback to extracting from exactLocation
-    return getCityFromLocation(exactLocation || region);
+    return getCityFromLocation(exactLocation);
   };
 
   const displayCityName = getCityName();
@@ -448,7 +444,7 @@ const SinglePostPage = ({
                           {t('exactLocation')}
                         </Typography>
                         <Typography variant="body1" sx={{ color: theme.palette.textColor.main }}>
-                          {exactLocation || region || t('unknownLocation')}
+                          {exactLocation || t('unknownLocation')}
                         </Typography>
                       </Box>
                     </Box>
@@ -637,7 +633,7 @@ const SinglePostPage = ({
                       {t('exactLocation')}
                     </Typography>
                     <Typography variant="body1" sx={{ color: theme.palette.textColor.main }}>
-                      {exactLocation || region || t('unknownLocation')}
+                      {exactLocation || t('unknownLocation')}
                     </Typography>
                   </Box>
                 </Box>
@@ -668,7 +664,6 @@ const SinglePostPage = ({
         post={{
           _id,
           categoryname,
-          region,
           exactLocation,
           contact,
           user,

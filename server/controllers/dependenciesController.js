@@ -166,7 +166,6 @@ const getDashboard = async (req, res) => {
       { $unwind: { path: "$City", preserveNullAndEmptyArrays: true } },
       {
         $project: {
-          region: 1,
           exactLocation: 1,
           city: 1,
           cityName: "$City.labels.en",

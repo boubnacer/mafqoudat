@@ -34,7 +34,7 @@ import { useSubmitReportMutation } from "../../features/posts/reportsApiSlice";
 // Get the API base URL for image construction
 const API_BASE_URL = process.env.REACT_APP_API_URL || "http://localhost:3500";
 
-const RecentPosts = ({ _id, categoryname, region, exactLocation, image, createdAt, countryLabels, countryname, contact, city, cityLabels, cityName }) => {
+const RecentPosts = ({ _id, categoryname, exactLocation, image, createdAt, countryLabels, countryname, contact, city, cityLabels, cityName }) => {
   const theme = useTheme();
   const navigate = useNavigate();
   const { t, currentLanguage } = useTranslation();
@@ -106,12 +106,8 @@ const RecentPosts = ({ _id, categoryname, region, exactLocation, image, createdA
     if (cityName) {
       return cityName;
     }
-    // Third priority: Check if region contains a custom city name (not an ObjectId)
-    if (region && !region.match(/^[0-9a-fA-F]{24}$/)) {
-      return region;
-    }
     // Last fallback: extracting from exactLocation
-    return getCityFromLocation(exactLocation || region);
+    return getCityFromLocation(exactLocation);
   };
 
   const displayCityName = getCityName();
@@ -455,7 +451,6 @@ const RecentPosts = ({ _id, categoryname, region, exactLocation, image, createdA
       post={{
         _id,
         categoryname,
-        region,
         exactLocation,
         image,
         createdAt,

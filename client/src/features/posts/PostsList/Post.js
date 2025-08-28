@@ -271,12 +271,8 @@ const Post = ({ post, viewMode = "grid" }) => {
       if (post.cityName) {
         return post.cityName;
       }
-      // Third priority: Check if region contains a custom city name (not an ObjectId)
-      if (post.region && !post.region.match(/^[0-9a-fA-F]{24}$/)) {
-        return post.region;
-      }
       // Last fallback: extracting from exactLocation
-      return getCityFromLocation(post.exactLocation || post.region);
+      return getCityFromLocation(post.exactLocation);
     };
 
     const cityName = getCityName();
