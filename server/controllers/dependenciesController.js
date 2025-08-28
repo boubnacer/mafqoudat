@@ -334,8 +334,8 @@ const getDashboard = async (req, res) => {
         const postCategory = await Category.findById(post.category);
         return {
           ...post._doc,
-          code: postcountry.code,
-          categoryname: postCategory.code,
+          code: postcountry?.code || "Unknown",
+          categoryname: postCategory?.code || "Unknown",
         };
       })
     );
