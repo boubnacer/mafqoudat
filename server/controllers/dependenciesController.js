@@ -131,11 +131,7 @@ const getDashboard = async (req, res) => {
           exactLocation: 1,
           city: 1,
           cityName: { 
-            $cond: {
-              if: { $and: [{ $ne: ["$City", null] }, { $ne: ["$City.labels", null] }, { $ne: ["$City.labels.en", null] }] },
-              then: "$City.labels.en",
-              else: "Casablanca"
-            }
+            $ifNull: ["$City.labels.en", "Casablanca"]
           },
           cityLabels: { $ifNull: ["$City.labels", {}] },
           user: 1,
@@ -143,18 +139,10 @@ const getDashboard = async (req, res) => {
           returned: 1,
           createdAt: 1,
           categoryName: { 
-            $cond: {
-              if: { $and: [{ $ne: ["$Category", null] }, { $ne: ["$Category.code", null] }] },
-              then: "$Category.code",
-              else: "ELECTRONICS"
-            }
+            $ifNull: ["$Category.code", "ELECTRONICS"]
           },
           floptionName: { 
-            $cond: {
-              if: { $and: [{ $ne: ["$Floptions", null] }, { $ne: ["$Floptions.code", null] }] },
-              then: "$Floptions.code",
-              else: "FOUND"
-            }
+            $ifNull: ["$Floptions.code", "FOUND"]
           },
           contact: 1,
           image: 1,
@@ -243,11 +231,7 @@ const getDashboard = async (req, res) => {
           exactLocation: 1,
           city: 1,
           cityName: { 
-            $cond: {
-              if: { $and: [{ $ne: ["$City", null] }, { $ne: ["$City.labels", null] }, { $ne: ["$City.labels.en", null] }] },
-              then: "$City.labels.en",
-              else: "Casablanca"
-            }
+            $ifNull: ["$City.labels.en", "Casablanca"]
           },
           cityLabels: { $ifNull: ["$City.labels", {}] },
           returned: 1,
@@ -255,11 +239,7 @@ const getDashboard = async (req, res) => {
           updatedAt: 1,
           username: { $ifNull: ["$User.username", "Unknown"] },
           categoryname: { 
-            $cond: {
-              if: { $and: [{ $ne: ["$Category", null] }, { $ne: ["$Category.code", null] }] },
-              then: "$Category.code",
-              else: "ELECTRONICS"
-            }
+            $ifNull: ["$Category.code", "ELECTRONICS"]
           },
           contact: 1,
           image: 1,
@@ -348,11 +328,7 @@ const getDashboard = async (req, res) => {
           exactLocation: 1,
           city: 1,
           cityName: { 
-            $cond: {
-              if: { $and: [{ $ne: ["$City", null] }, { $ne: ["$City.labels", null] }, { $ne: ["$City.labels.en", null] }] },
-              then: "$City.labels.en",
-              else: "Casablanca"
-            }
+            $ifNull: ["$City.labels.en", "Casablanca"]
           },
           cityLabels: { $ifNull: ["$City.labels", {}] },
           returned: 1,
@@ -360,11 +336,7 @@ const getDashboard = async (req, res) => {
           updatedAt: 1,
           username: { $ifNull: ["$User.username", "Unknown"] },
           categoryname: { 
-            $cond: {
-              if: { $and: [{ $ne: ["$Category", null] }, { $ne: ["$Category.code", null] }] },
-              then: "$Category.code",
-              else: "ELECTRONICS"
-            }
+            $ifNull: ["$Category.code", "ELECTRONICS"]
           },
           contact: 1,
           image: 1,
