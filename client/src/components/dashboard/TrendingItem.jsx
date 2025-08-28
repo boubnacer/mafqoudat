@@ -23,15 +23,38 @@ const API_BASE_URL = process.env.REACT_APP_API_URL || "http://localhost:3500";
 const TrendingItem = ({ trend, isLoading }) => {
   // Handle both array and single object formats
   const trendData = Array.isArray(trend) ? trend[0] : trend;
-  const { categoryName, floptionName, region, image, createdAt, countryLabels, countryname } = trendData || {};
+  const { categoryName, floptionName, region, image, createdAt, countryLabels, countryname, city, cityLabels, cityName } = trendData || {};
   const theme = useTheme();
   const isMobile = useMediaQuery(theme.breakpoints.down('sm'));
   const isTablet = useMediaQuery(theme.breakpoints.down('md'));
   const { t, currentLanguage } = useTranslation();
 
+  // Get city name with proper priority
+  const getCityName = () => {
+    // First priority: Use the city field directly (for custom city names)
+    if (city && typeof city === 'string' && city.trim()) {
+      return city.trim();
+    }
+    // Second priority: Use the populated city data from the API
+    if (cityLabels && cityLabels[currentLanguage]) {
+      return cityLabels[currentLanguage];
+    }
+    if (cityName) {
+      return cityName;
+    }
+    // Third priority: Check if region contains a custom city name (not an ObjectId)
+    if (region && !region.match(/^[0-9a-fA-F]{24}$/)) {
+      return region;
+    }
+    // Last fallback: "Unknown City"
+    return t('unknownCity') || 'Unknown City';
+  };
+
+  const displayCityName = getCityName();
+
   // Debug logging
   const finalImageUrl = image ? (image.startsWith('http') ? image : `${API_BASE_URL}/${image}`) : ma;
-  console.log('TrendingItem data:', { trend, trendData, image, categoryName, floptionName, API_BASE_URL, finalImageUrl });
+  console.log('TrendingItem data:', { trend, trendData, image, categoryName, floptionName, city, displayCityName, API_BASE_URL, finalImageUrl });
 
   if (isLoading) return <TrendingItemSkeleton />;
   if (!trendData) return <DashboardEmptyStates.NoTrending />;
@@ -221,24 +244,22 @@ const TrendingItem = ({ trend, isLoading }) => {
                 </Typography>
               </Box>
               
-              {countryLabels && (
-                <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
-                  <RenderIcon name="locat" sx={{ fontSize: '14px', color: '#fff' }} />
-                  <Typography
-                    sx={{
-                      color: '#fff',
-                      fontSize: '11px',
-                      fontWeight: 400,
-                      maxWidth: '80px',
-                      overflow: 'hidden',
-                      textOverflow: 'ellipsis',
-                      whiteSpace: 'nowrap'
-                    }}
-                  >
-                    {countryLabels[currentLanguage] || countryLabels.en || countryname}
-                  </Typography>
-                </Box>
-              )}
+              <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+                <RenderIcon name="locat" sx={{ fontSize: '14px', color: '#fff' }} />
+                <Typography
+                  sx={{
+                    color: '#fff',
+                    fontSize: '11px',
+                    fontWeight: 400,
+                    maxWidth: '80px',
+                    overflow: 'hidden',
+                    textOverflow: 'ellipsis',
+                    whiteSpace: 'nowrap'
+                  }}
+                >
+                  {displayCityName}
+                </Typography>
+              </Box>
             </Box>
 
             {/* Action Button */}

@@ -260,18 +260,22 @@ const Post = ({ post, viewMode = "grid" }) => {
 
     // Get city name with proper multilingual support
     const getCityName = () => {
-      // First try to use the populated city data from the API
+      // First priority: Use the city field directly (for custom city names)
+      if (post.city && typeof post.city === 'string' && post.city.trim()) {
+        return post.city.trim();
+      }
+      // Second priority: Use the populated city data from the API
       if (post.cityLabels && post.cityLabels[currentLanguage]) {
         return post.cityLabels[currentLanguage];
       }
       if (post.cityName) {
         return post.cityName;
       }
-      // Check if region contains a custom city name (not an ObjectId)
+      // Third priority: Check if region contains a custom city name (not an ObjectId)
       if (post.region && !post.region.match(/^[0-9a-fA-F]{24}$/)) {
         return post.region;
       }
-      // Fallback to extracting from exactLocation
+      // Last fallback: extracting from exactLocation
       return getCityFromLocation(post.exactLocation || post.region);
     };
 
