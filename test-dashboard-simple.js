@@ -1,49 +1,59 @@
-const axios = require('axios');
-
 async function testDashboardSimple() {
   try {
-    const apiUrl = 'https://mafqoudat-production.up.railway.app';
-    const moroccoCountryId = '68a4b54ab46524c54c553ca9';
+    console.log('🧪 Testing dashboard API after city field fix...');
     
-    console.log('🔍 Testing dashboard after deployment...');
-    console.log('API URL:', apiUrl);
-    console.log('Country ID:', moroccoCountryId);
+    const baseUrl = "https://mafqoudat-production.up.railway.app";
+    const countryId = "68a4b54ab46524c54c553ca9"; // Morocco
     
-    // Test dashboard endpoint
-    console.log('\n📊 Testing dashboard endpoint...');
-    try {
-      const response = await axios.get(`${apiUrl}/dashboard?currentCountry=${moroccoCountryId}`, {
-        timeout: 10000 // 10 second timeout
-      });
+    console.log('📡 Making API request...');
+    const response = await fetch(`${baseUrl}/dependencies/dashboard?countryId=${countryId}`);
+    
+    console.log('📥 API Response Status:', response.status);
+    
+    if (response.ok) {
+      const data = await response.json();
       
-      console.log('✅ Dashboard Status:', response.status);
-      console.log('📈 Dashboard Data:');
-      console.log('- Total Posts:', response.data.totalPosts || 0);
-      console.log('- Total Founds:', response.data.totalFounds || 0);
-      console.log('- Total Losts:', response.data.totalLosts || 0);
-      console.log('- Recent Founds:', response.data.recentFounds?.length || 0);
-      console.log('- Recent Losts:', response.data.recentLosts?.length || 0);
-      console.log('- Trending Post:', response.data.trendingPost ? 'Yes' : 'No');
+      console.log('\n📊 Dashboard Summary:');
+      console.log('Total Founds:', data.totalFounds);
+      console.log('Total Losts:', data.totalLosts);
+      console.log('Recent Founds Count:', data.recentFounds?.length || 0);
+      console.log('Recent Losts Count:', data.recentLosts?.length || 0);
+      console.log('Trending Posts Count:', data.trendingPosts?.length || 0);
       
-      if (response.data.totalPosts === 0) {
-        console.log('\n💡 Dashboard is working but no posts found for Morocco.');
-        console.log('This is expected since you just created posts with the new country/city IDs.');
-        console.log('The dashboard should now show your posts once they are created.');
-      } else {
-        console.log('\n🎉 Dashboard is working and showing posts!');
+      // Check the latest posts for city names
+      if (data.recentFounds && data.recentFounds.length > 0) {
+        console.log('\n🏙️ Recent Founds City Names:');
+        data.recentFounds.forEach((post, index) => {
+          console.log(`Post ${index + 1}:`);
+          console.log(`  - cityName: "${post.cityName}"`);
+          console.log(`  - city: "${post.city}"`);
+          console.log(`  - categoryname: "${post.categoryname}"`);
+          console.log(`  - exactLocation: "${post.exactLocation}"`);
+        });
       }
       
-    } catch (error) {
-      console.error('❌ Dashboard Error:', error.response?.data || error.message);
-      
-      if (error.response?.status === 404) {
-        console.log('\n💡 The deployment might still be in progress.');
-        console.log('Please wait a few minutes and try again.');
+      if (data.trendingPosts && data.trendingPosts.length > 0) {
+        console.log('\n🔥 Trending Posts City Names:');
+        data.trendingPosts.forEach((post, index) => {
+          console.log(`Post ${index + 1}:`);
+          console.log(`  - cityName: "${post.cityName}"`);
+          console.log(`  - city: "${post.city}"`);
+          console.log(`  - categoryName: "${post.categoryName}"`);
+          console.log(`  - exactLocation: "${post.exactLocation}"`);
+        });
       }
+      
+      console.log('\n✅ Dashboard API test completed!');
+      console.log('💡 Check if city names are now showing correctly instead of "Casablanca"');
+      
+    } else {
+      console.log('❌ Dashboard API failed:', response.status, response.statusText);
+      const errorText = await response.text();
+      console.log('Error details:', errorText);
     }
     
   } catch (error) {
-    console.error('❌ General Error:', error.message);
+    console.error('❌ Error testing dashboard:', error);
   }
 }
 

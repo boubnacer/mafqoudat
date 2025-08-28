@@ -455,16 +455,10 @@ const createNewPost = async (req, res) => {
      console.log('🔍 DEBUG: Setting city to ObjectId:', cityId);
      postData.city = cityId;
    } else if (city) {
-     // If we have a city value but no valid cityId, treat it as custom city
-     console.log('🔍 DEBUG: Setting region to custom city name:', city);
-     console.log('🔍 DEBUG: Setting city to null');
-     // For custom city names, we need to either:
-     // 1. Create a new city record, or
-     // 2. Store in region field and handle in aggregation
-     // For now, store in region field and we'll handle this in the aggregation
-     postData.region = city;
-     // Also store a reference to indicate this is a custom city
-     postData.city = null; // Explicitly set to null for custom cities
+     // If we have a city value but no valid cityId, store it directly in city field
+     console.log('🔍 DEBUG: Setting city to custom city name:', city);
+     // Store custom city names directly in the city field as strings
+     postData.city = city;
    } else {
      console.log('🔍 DEBUG: No city handling applied - cityId:', cityId, 'city:', city);
    }

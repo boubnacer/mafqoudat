@@ -24,10 +24,6 @@ const postSchema = new mongoose.Schema(
       required: true,
       ref: "FoundLost",
     },
-    region: {
-      type: String,
-      required: false,
-    },
     contact: {
       type: String,
       required: true,
