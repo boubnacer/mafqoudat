@@ -1,35 +1,36 @@
 #!/bin/bash
 
-echo "🚀 Deploying fixes to Railway..."
-
-# Navigate to server directory
-cd server
+echo "🚀 Deploying to Railway..."
 
 # Check if we're in the right directory
-if [ ! -f "server.js" ]; then
-    echo "❌ Error: server.js not found. Make sure you're in the server directory."
+if [ ! -f "railway.json" ]; then
+    echo "❌ railway.json not found. Make sure you're in the project root."
     exit 1
 fi
 
-echo "✅ Server directory found"
+# Check if server directory exists
+if [ ! -d "server" ]; then
+    echo "❌ server directory not found."
+    exit 1
+fi
 
-# Check if Railway CLI is installed
+# Check if server.js exists
+if [ ! -f "server/server.js" ]; then
+    echo "❌ server/server.js not found."
+    exit 1
+fi
+
+echo "✅ Project structure looks good"
+
+# Check Railway CLI
 if ! command -v railway &> /dev/null; then
-    echo "❌ Railway CLI not found. Please install it first:"
-    echo "npm install -g @railway/cli"
+    echo "⚠️ Railway CLI not found. Please install it: npm install -g @railway/cli"
+    echo "Then run: railway login"
     exit 1
 fi
 
-echo "✅ Railway CLI found"
-
-# Login to Railway (if not already logged in)
-echo "🔐 Logging into Railway..."
-railway login
-
-# Deploy to Railway
-echo "🚀 Deploying to Railway..."
+echo "🚂 Deploying to Railway..."
 railway up
 
 echo "✅ Deployment completed!"
-echo "🔗 Check your Railway dashboard for deployment status"
-echo "🌐 Your app should be available at: https://mafqoudat-production.up.railway.app"
+echo "🔗 Check your Railway dashboard for the deployment status"
