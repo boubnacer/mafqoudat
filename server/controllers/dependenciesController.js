@@ -79,7 +79,7 @@ const getDashboard = async (req, res) => {
           as: "Category",
         },
       },
-      { $unwind: "$Category" },
+      { $unwind: { path: "$Category", preserveNullAndEmptyArrays: true } },
       {
         $lookup: {
           from: "foundlosts",
@@ -88,7 +88,7 @@ const getDashboard = async (req, res) => {
           as: "Floptions",
         },
       },
-      { $unwind: "$Floptions" },
+      { $unwind: { path: "$Floptions", preserveNullAndEmptyArrays: true } },
       {
         $lookup: {
           from: "countries",
@@ -97,7 +97,7 @@ const getDashboard = async (req, res) => {
           as: "Country",
         },
       },
-      { $unwind: "$Country" },
+      { $unwind: { path: "$Country", preserveNullAndEmptyArrays: true } },
       {
         $lookup: {
           from: "cities",
@@ -152,7 +152,7 @@ const getDashboard = async (req, res) => {
           as: "Category",
         },
       },
-      { $unwind: "$Category" },
+      { $unwind: { path: "$Category", preserveNullAndEmptyArrays: true } },
       {
         $lookup: {
           from: "users",
@@ -170,7 +170,7 @@ const getDashboard = async (req, res) => {
           as: "Country",
         },
       },
-      { $unwind: "$Country" },
+      { $unwind: { path: "$Country", preserveNullAndEmptyArrays: true } },
       {
         $lookup: {
           from: "cities",
@@ -226,7 +226,7 @@ const getDashboard = async (req, res) => {
           as: "Category",
         },
       },
-      { $unwind: "$Category" },
+      { $unwind: { path: "$Category", preserveNullAndEmptyArrays: true } },
       {
         $lookup: {
           from: "users",
@@ -244,7 +244,7 @@ const getDashboard = async (req, res) => {
           as: "Country",
         },
       },
-      { $unwind: "$Country" },
+      { $unwind: { path: "$Country", preserveNullAndEmptyArrays: true } },
       {
         $lookup: {
           from: "cities",
