@@ -282,59 +282,59 @@ const Dash = () => {
                     textAlign: 'center'
                   }}
                 >
-                                     <Box sx={{ 
-                     display: 'flex', 
-                     alignItems: 'center', 
-                     justifyContent: 'center', 
-                     gap: 1, 
-                     mb: 2,
-                     flexDirection: currentLanguage === 'ar' ? 'row-reverse' : 'row'
-                   }}>
-                     <WhatshotOutlined sx={{ 
-                       color: '#FFA500', 
-                       fontSize: '24px',
-                       order: currentLanguage === 'ar' ? 2 : 1
-                     }} />
-                     <Typography
-                       variant="h6"
-                       sx={{
-                         color: '#fff',
-                         fontWeight: 700,
-                         fontSize: '20px',
-                         textAlign: 'center',
-                         order: currentLanguage === 'ar' ? 1 : 2
-                       }}
-                     >
-                       {t('recentFounds')}
-                     </Typography>
-                   </Box>
+                  <Box sx={{ 
+                    display: 'flex', 
+                    alignItems: 'center', 
+                    justifyContent: 'center', 
+                    gap: 1, 
+                    mb: 2,
+                    flexDirection: currentLanguage === 'ar' ? 'row-reverse' : 'row'
+                  }}>
+                    <WhatshotOutlined sx={{ 
+                      color: '#FFA500', 
+                      fontSize: '24px',
+                      order: currentLanguage === 'ar' ? 2 : 1
+                    }} />
+                    <Typography
+                      variant="h6"
+                      sx={{
+                        color: '#fff',
+                        fontWeight: 700,
+                        fontSize: '20px',
+                        textAlign: 'center',
+                        order: currentLanguage === 'ar' ? 1 : 2
+                      }}
+                    >
+                      {t('recentFounds')}
+                    </Typography>
+                  </Box>
                   
-                                     <Box sx={{ 
-                     display: 'flex', 
-                     alignItems: 'center', 
-                     justifyContent: 'center', 
-                     gap: 2, 
-                     mb: 2,
-                     flexDirection: currentLanguage === 'ar' ? 'row-reverse' : 'row'
-                   }}>
-                     <Chip 
-                       label={`${data?.totalFounds || 0} ${t('items')}`}
-                       size="small"
-                       sx={{ 
-                         backgroundColor: 'rgba(255,255,255,0.2)',
-                         color: '#fff',
-                         fontSize: '0.75rem',
-                         fontWeight: 600,
-                         height: '28px',
-                         order: currentLanguage === 'ar' ? 2 : 1
-                       }}
-                     />
-                     <SeeAll 
-                       foundOrlostId={foundsId} 
-                       totalItems={data?.totalFounds}
-                       variant="mobile"
-                     />
-                   </Box>
+                  <Box sx={{ 
+                    display: 'flex', 
+                    alignItems: 'center', 
+                    justifyContent: 'center', 
+                    gap: 2, 
+                    mb: 2,
+                    flexDirection: currentLanguage === 'ar' ? 'row-reverse' : 'row'
+                  }}>
+                    <Chip 
+                      label={`${data?.totalFounds || 0} ${t('items')}`}
+                      size="small"
+                      sx={{ 
+                        backgroundColor: 'rgba(255,255,255,0.2)',
+                        color: '#fff',
+                        fontSize: '0.75rem',
+                        fontWeight: 600,
+                        height: '28px',
+                        order: currentLanguage === 'ar' ? 2 : 1
+                      }}
+                    />
+                    <SeeAll 
+                      foundOrlostId={foundsId} 
+                      totalItems={data?.totalFounds}
+                      variant="mobile"
+                    />
+                  </Box>
                 </Box>
 
                 {/* Desktop Layout */}
@@ -346,30 +346,35 @@ const Dash = () => {
                     flexDirection: currentLanguage === 'ar' ? 'row-reverse' : 'row'
                   }}
                 >
-                  <Box sx={{ display: 'flex', alignItems: 'center', gap: 2 }}>
-                                         <Box sx={{ 
-                       display: 'flex', 
-                       alignItems: 'center', 
-                       gap: 1,
-                       flexDirection: currentLanguage === 'ar' ? 'row-reverse' : 'row'
-                     }}>
-                       <WhatshotOutlined sx={{ 
-                         color: '#FFA500', 
-                         fontSize: '28px',
-                         order: currentLanguage === 'ar' ? 2 : 1
-                       }} />
-                       <Typography
-                         variant="h5"
-                         sx={{
-                           color: '#fff',
-                           fontWeight: 700,
-                           fontSize: { sm: '22px', md: '24px' },
-                           order: currentLanguage === 'ar' ? 1 : 2
-                         }}
-                       >
-                         {t('recentFounds')}
-                       </Typography>
-                     </Box>
+                  <Box sx={{ 
+                    display: 'flex', 
+                    alignItems: 'center', 
+                    gap: 2,
+                    flexDirection: currentLanguage === 'ar' ? 'row-reverse' : 'row'
+                  }}>
+                    <Box sx={{ 
+                      display: 'flex', 
+                      alignItems: 'center', 
+                      gap: 1,
+                      flexDirection: currentLanguage === 'ar' ? 'row-reverse' : 'row'
+                    }}>
+                      <WhatshotOutlined sx={{ 
+                        color: '#FFA500', 
+                        fontSize: '28px',
+                        order: currentLanguage === 'ar' ? 2 : 1
+                      }} />
+                      <Typography
+                        variant="h5"
+                        sx={{
+                          color: '#fff',
+                          fontWeight: 700,
+                          fontSize: { sm: '22px', md: '24px' },
+                          order: currentLanguage === 'ar' ? 1 : 2
+                        }}
+                      >
+                        {t('recentFounds')}
+                      </Typography>
+                    </Box>
                     <Chip 
                       label={`${data?.totalFounds || 0} ${t('items')}`}
                       size="small"
@@ -378,7 +383,8 @@ const Dash = () => {
                         color: '#fff',
                         fontSize: '0.875rem',
                         fontWeight: 600,
-                        height: '32px'
+                        height: '32px',
+                        order: currentLanguage === 'ar' ? 1 : 2
                       }}
                     />
                   </Box>
@@ -477,59 +483,59 @@ const Dash = () => {
                     textAlign: 'center'
                   }}
                 >
-                                     <Box sx={{ 
-                     display: 'flex', 
-                     alignItems: 'center', 
-                     justifyContent: 'center', 
-                     gap: 1, 
-                     mb: 2,
-                     flexDirection: currentLanguage === 'ar' ? 'row-reverse' : 'row'
-                   }}>
-                     <Search sx={{ 
-                       color: '#fff', 
-                       fontSize: '24px',
-                       order: currentLanguage === 'ar' ? 2 : 1
-                     }} />
-                     <Typography
-                       variant="h6"
-                       sx={{
-                         color: '#fff',
-                         fontWeight: 700,
-                         fontSize: '20px',
-                         textAlign: 'center',
-                         order: currentLanguage === 'ar' ? 1 : 2
-                       }}
-                     >
-                       {t('recentLosts')}
-                     </Typography>
-                   </Box>
+                  <Box sx={{ 
+                    display: 'flex', 
+                    alignItems: 'center', 
+                    justifyContent: 'center', 
+                    gap: 1, 
+                    mb: 2,
+                    flexDirection: currentLanguage === 'ar' ? 'row-reverse' : 'row'
+                  }}>
+                    <Search sx={{ 
+                      color: '#fff', 
+                      fontSize: '24px',
+                      order: currentLanguage === 'ar' ? 2 : 1
+                    }} />
+                    <Typography
+                      variant="h6"
+                      sx={{
+                        color: '#fff',
+                        fontWeight: 700,
+                        fontSize: '20px',
+                        textAlign: 'center',
+                        order: currentLanguage === 'ar' ? 1 : 2
+                      }}
+                    >
+                      {t('recentLosts')}
+                    </Typography>
+                  </Box>
                   
-                                     <Box sx={{ 
-                     display: 'flex', 
-                     alignItems: 'center', 
-                     justifyContent: 'center', 
-                     gap: 2, 
-                     mb: 2,
-                     flexDirection: currentLanguage === 'ar' ? 'row-reverse' : 'row'
-                   }}>
-                     <Chip 
-                       label={`${data?.totalLosts || 0} ${t('items')}`}
-                       size="small"
-                       sx={{ 
-                         backgroundColor: 'rgba(255,255,255,0.2)',
-                         color: '#fff',
-                         fontSize: '0.75rem',
-                         fontWeight: 600,
-                         height: '28px',
-                         order: currentLanguage === 'ar' ? 2 : 1
-                       }}
-                     />
-                     <SeeAll 
-                       foundOrlostId={lostsId} 
-                       totalItems={data?.totalLosts}
-                       variant="mobile"
-                     />
-                   </Box>
+                  <Box sx={{ 
+                    display: 'flex', 
+                    alignItems: 'center', 
+                    justifyContent: 'center', 
+                    gap: 2, 
+                    mb: 2,
+                    flexDirection: currentLanguage === 'ar' ? 'row-reverse' : 'row'
+                  }}>
+                    <Chip 
+                      label={`${data?.totalLosts || 0} ${t('items')}`}
+                      size="small"
+                      sx={{ 
+                        backgroundColor: 'rgba(255,255,255,0.2)',
+                        color: '#fff',
+                        fontSize: '0.75rem',
+                        fontWeight: 600,
+                        height: '28px',
+                        order: currentLanguage === 'ar' ? 2 : 1
+                      }}
+                    />
+                    <SeeAll 
+                      foundOrlostId={lostsId} 
+                      totalItems={data?.totalLosts}
+                      variant="mobile"
+                    />
+                  </Box>
                 </Box>
 
                 {/* Desktop Layout */}
@@ -541,30 +547,35 @@ const Dash = () => {
                     flexDirection: currentLanguage === 'ar' ? 'row-reverse' : 'row'
                   }}
                 >
-                  <Box sx={{ display: 'flex', alignItems: 'center', gap: 2 }}>
-                                         <Box sx={{ 
-                       display: 'flex', 
-                       alignItems: 'center', 
-                       gap: 1,
-                       flexDirection: currentLanguage === 'ar' ? 'row-reverse' : 'row'
-                     }}>
-                       <Search sx={{ 
-                         color: '#fff', 
-                         fontSize: '28px',
-                         order: currentLanguage === 'ar' ? 2 : 1
-                       }} />
-                       <Typography
-                         variant="h5"
-                         sx={{
-                           color: '#fff',
-                           fontWeight: 700,
-                           fontSize: { sm: '22px', md: '24px' },
-                           order: currentLanguage === 'ar' ? 1 : 2
-                         }}
-                       >
-                         {t('recentLosts')}
-                       </Typography>
-                     </Box>
+                  <Box sx={{ 
+                    display: 'flex', 
+                    alignItems: 'center', 
+                    gap: 2,
+                    flexDirection: currentLanguage === 'ar' ? 'row-reverse' : 'row'
+                  }}>
+                    <Box sx={{ 
+                      display: 'flex', 
+                      alignItems: 'center', 
+                      gap: 1,
+                      flexDirection: currentLanguage === 'ar' ? 'row-reverse' : 'row'
+                    }}>
+                      <Search sx={{ 
+                        color: '#fff', 
+                        fontSize: '28px',
+                        order: currentLanguage === 'ar' ? 2 : 1
+                      }} />
+                      <Typography
+                        variant="h5"
+                        sx={{
+                          color: '#fff',
+                          fontWeight: 700,
+                          fontSize: { sm: '22px', md: '24px' },
+                          order: currentLanguage === 'ar' ? 1 : 2
+                        }}
+                      >
+                        {t('recentLosts')}
+                      </Typography>
+                    </Box>
                     <Chip 
                       label={`${data?.totalLosts || 0} ${t('items')}`}
                       size="small"
@@ -573,7 +584,8 @@ const Dash = () => {
                         color: '#fff',
                         fontSize: '0.875rem',
                         fontWeight: 600,
-                        height: '32px'
+                        height: '32px',
+                        order: currentLanguage === 'ar' ? 1 : 2
                       }}
                     />
                   </Box>
