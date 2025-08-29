@@ -50,6 +50,7 @@ const NewPostForm = ({ user, countries, categories, flOptions }) => {
   const [showCustomCityInput, setShowCustomCityInput] = useState(false);
   const [customCityName, setCustomCityName] = useState("");
   const [selectedCustomCity, setSelectedCustomCity] = useState("");
+  const [shouldClearCityValue, setShouldClearCityValue] = useState(false);
 
   useEffect(() => {
     if (isSuccess) {
@@ -82,6 +83,14 @@ const NewPostForm = ({ user, countries, categories, flOptions }) => {
       fetchCitiesByCountry(selectedCountry._id);
     }
   }, [fetchCitiesByCountry, selectedCountry?._id, currentLanguage]);
+
+  // Handle clearing city value when dialog is canceled
+  useEffect(() => {
+    if (shouldClearCityValue) {
+      // This will be handled in the Formik render function
+      setShouldClearCityValue(false);
+    }
+  }, [shouldClearCityValue]);
 
   const initialFormState = {
     country: user.country,
@@ -293,7 +302,14 @@ const NewPostForm = ({ user, countries, categories, flOptions }) => {
           validationSchema={formValidation}
           onSubmit={handleSubmit}
         >
-          {({ isSubmitting, status, setFieldValue, values }) => (
+          {({ isSubmitting, status, setFieldValue, values }) => {
+            // Clear city value if needed
+            if (shouldClearCityValue && values.city === "other") {
+              setFieldValue('city', "");
+              setShouldClearCityValue(false);
+            }
+            
+            return (
             <Form>
               {status?.error && (
                 <Alert severity="error" sx={{ mb: 3 }}>
@@ -679,7 +695,8 @@ const NewPostForm = ({ user, countries, categories, flOptions }) => {
                 </Box>
               </Box>
             </Form>
-          )}
+            );
+          }}
         </Formik>
       </Paper>
       
@@ -689,6 +706,7 @@ const NewPostForm = ({ user, countries, categories, flOptions }) => {
          onClose={() => {
            setShowCustomCityInput(false);
            setCustomCityName("");
+           setShouldClearCityValue(true);
          }}
          maxWidth="sm"
          fullWidth
@@ -701,7 +719,7 @@ const NewPostForm = ({ user, countries, categories, flOptions }) => {
          }}
          BackdropProps={{
            sx: {
-             backgroundColor: 'rgba(0, 0, 0, 0.5)'
+             backgroundColor: 'rgba(0, 0, 0, 0.3)'
            }
          }}
        >
@@ -721,6 +739,7 @@ const NewPostForm = ({ user, countries, categories, flOptions }) => {
             onClick={() => {
               setShowCustomCityInput(false);
               setCustomCityName("");
+              setShouldClearCityValue(true);
             }}
             sx={{
               color: theme.palette.text.secondary,
@@ -764,6 +783,7 @@ const NewPostForm = ({ user, countries, categories, flOptions }) => {
             onClick={() => {
               setShowCustomCityInput(false);
               setCustomCityName("");
+              setShouldClearCityValue(true);
             }}
             sx={{ 
               borderRadius: 2,
