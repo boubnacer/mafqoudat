@@ -282,7 +282,14 @@ const Dash = () => {
                     textAlign: 'center'
                   }}
                 >
-                  <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 1, mb: 2 }}>
+                  <Box sx={{ 
+                    display: 'flex', 
+                    alignItems: 'center', 
+                    justifyContent: 'center', 
+                    gap: 1, 
+                    mb: 2,
+                    flexDirection: currentLanguage === 'ar' ? 'row-reverse' : 'row'
+                  }}>
                     <WhatshotOutlined sx={{ color: '#FFA500', fontSize: '24px' }} />
                     <Typography
                       variant="h6"
@@ -296,7 +303,14 @@ const Dash = () => {
                     </Typography>
                   </Box>
                   
-                  <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 2, mb: 2 }}>
+                  <Box sx={{ 
+                    display: 'flex', 
+                    alignItems: 'center', 
+                    justifyContent: 'center', 
+                    gap: 2, 
+                    mb: 2,
+                    flexDirection: currentLanguage === 'ar' ? 'row-reverse' : 'row'
+                  }}>
                     <Chip 
                       label={`${data?.totalFounds || 0} ${t('items')}`}
                       size="small"
@@ -326,7 +340,12 @@ const Dash = () => {
                   }}
                 >
                   <Box sx={{ display: 'flex', alignItems: 'center', gap: 2 }}>
-                    <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+                    <Box sx={{ 
+                      display: 'flex', 
+                      alignItems: 'center', 
+                      gap: 1,
+                      flexDirection: currentLanguage === 'ar' ? 'row-reverse' : 'row'
+                    }}>
                       <WhatshotOutlined sx={{ color: '#FFA500', fontSize: '28px' }} />
                       <Typography
                         variant="h5"
@@ -446,7 +465,14 @@ const Dash = () => {
                     textAlign: 'center'
                   }}
                 >
-                  <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 1, mb: 2 }}>
+                  <Box sx={{ 
+                    display: 'flex', 
+                    alignItems: 'center', 
+                    justifyContent: 'center', 
+                    gap: 1, 
+                    mb: 2,
+                    flexDirection: currentLanguage === 'ar' ? 'row-reverse' : 'row'
+                  }}>
                     <Search sx={{ color: '#fff', fontSize: '24px' }} />
                     <Typography
                       variant="h6"
@@ -460,7 +486,14 @@ const Dash = () => {
                     </Typography>
                   </Box>
                   
-                  <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 2, mb: 2 }}>
+                  <Box sx={{ 
+                    display: 'flex', 
+                    alignItems: 'center', 
+                    justifyContent: 'center', 
+                    gap: 2, 
+                    mb: 2,
+                    flexDirection: currentLanguage === 'ar' ? 'row-reverse' : 'row'
+                  }}>
                     <Chip 
                       label={`${data?.totalLosts || 0} ${t('items')}`}
                       size="small"
@@ -490,7 +523,12 @@ const Dash = () => {
                   }}
                 >
                   <Box sx={{ display: 'flex', alignItems: 'center', gap: 2 }}>
-                    <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+                    <Box sx={{ 
+                      display: 'flex', 
+                      alignItems: 'center', 
+                      gap: 1,
+                      flexDirection: currentLanguage === 'ar' ? 'row-reverse' : 'row'
+                    }}>
                       <Search sx={{ color: '#fff', fontSize: '28px' }} />
                       <Typography
                         variant="h5"

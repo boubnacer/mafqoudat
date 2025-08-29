@@ -365,6 +365,7 @@ export const translations = {
     recentFounds: "Recent Founds",
     recentLosts: "Recent Losts",
     items: "items",
+    seeAll: "See All",
     
     // Country Selection
     selectCountry: "Select Country",
@@ -1065,6 +1066,7 @@ export const translations = {
     recentFounds: "Objets trouvés récents",
     recentLosts: "Objets perdus récents",
     items: "objets",
+    seeAll: "Voir Tout",
     
     // Country Selection
     selectCountry: "Sélectionner un pays",
@@ -1728,6 +1730,7 @@ export const translations = {
     recentFounds: "العناصر الموجودة حديثاً",
     recentLosts: "العناصر المفقودة حديثاً",
     items: "عناصر",
+    seeAll: "عرض الكل",
     
     // Country Selection
     selectCountry: "اختر البلد",

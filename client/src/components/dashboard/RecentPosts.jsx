@@ -346,16 +346,17 @@ const RecentPosts = ({ _id, categoryname, exactLocation, image, createdAt, count
         </Box>
       </Box>
 
-      {/* Content Section */}
-      <CardContent 
-        sx={{ 
-          flexGrow: 1, 
-          p: { xs: 2.5, sm: 3 }, // Increased padding
-          display: 'flex',
-          flexDirection: 'column',
-          gap: 2, // Increased gap
-        }}
-      >
+             {/* Content Section */}
+       <CardContent 
+         sx={{ 
+           flexGrow: 1, 
+           p: { xs: 2.5, sm: 3 }, // Increased padding
+           display: 'flex',
+           flexDirection: 'column',
+           gap: 2, // Increased gap
+           backgroundColor: isDarkMode ? alpha('#1a1a1a', 0.9) : '#ffffff', // Match card background
+         }}
+       >
         {/* Location Info - Only City */}
         <Box sx={{ display: 'flex', alignItems: 'center', gap: 1.5 }}>
           <Avatar
@@ -383,21 +384,21 @@ const RecentPosts = ({ _id, categoryname, exactLocation, image, createdAt, count
         </Box>
       </CardContent>
 
-      {/* Actions Section */}
-      <CardActions
-        sx={{
-          display: 'flex',
-          justifyContent: 'space-between',
-          p: { xs: 1.5, sm: 2 }, // Adjusted padding
-          borderTop: '1px solid',
-          borderColor: isDarkMode ? alpha('#fff', 0.06) : alpha('#000', 0.04),
-          backgroundColor: isDarkMode ? alpha('#000', 0.2) : alpha('#f8f9fa', 0.5),
-          gap: { xs: 1.5, sm: 2 }, // Responsive gap
-          mt: 'auto',
-          flexShrink: 0,
-          minHeight: { xs: '60px', sm: '70px' }, // Responsive min height
-        }}
-      >
+             {/* Actions Section */}
+       <CardActions
+         sx={{
+           display: 'flex',
+           justifyContent: 'space-between',
+           p: { xs: 1.5, sm: 2 }, // Adjusted padding
+           borderTop: '1px solid',
+           borderColor: isDarkMode ? alpha('#fff', 0.06) : alpha('#000', 0.04),
+           backgroundColor: isDarkMode ? alpha('#1a1a1a', 0.9) : '#ffffff', // Match card background
+           gap: { xs: 1.5, sm: 2 }, // Responsive gap
+           mt: 'auto',
+           flexShrink: 0,
+           minHeight: { xs: '60px', sm: '70px' }, // Responsive min height
+         }}
+       >
         <Button
           onClick={handleReport}
           variant="outlined"
