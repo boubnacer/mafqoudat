@@ -356,9 +356,16 @@ const RecentPosts = ({ _id, categoryname, exactLocation, image, createdAt, count
            display: 'flex',
            flexDirection: 'column',
            gap: 2, // Increased gap
-           backgroundColor: 'transparent', // Make transparent to eliminate visual gap
+           backgroundColor: isDarkMode ? alpha('#1a1a1a', 0.9) : '#ffffff', // Match card background
            '&:last-child': {
              pb: { xs: 2.5, sm: 3 }, // Override Material-UI default padding
+           },
+           // Remove any default Material-UI padding that might cause gaps
+           '&.MuiCardContent-root': {
+             paddingTop: 0,
+             paddingBottom: { xs: 2.5, sm: 3 },
+             paddingLeft: { xs: 2.5, sm: 3 },
+             paddingRight: { xs: 2.5, sm: 3 }
            }
          }}
        >
@@ -402,6 +409,10 @@ const RecentPosts = ({ _id, categoryname, exactLocation, image, createdAt, count
            mt: 'auto',
            flexShrink: 0,
            minHeight: { xs: '60px', sm: '70px' }, // Responsive min height
+           // Remove any default Material-UI padding that might cause gaps
+           '&.MuiCardActions-root': {
+             padding: { xs: 1.5, sm: 2 }
+           }
          }}
        >
         <Button
