@@ -35,7 +35,8 @@ const SeeAll = ({ foundOrlostId, totalItems, variant = "desktop" }) => {
       <Button
         variant="contained"
         size="small"
-        endIcon={totalItems > 4 ? <RenderIcon name="seeall" /> : <Add />}
+        startIcon={currentLanguage === 'ar' ? (totalItems > 4 ? <RenderIcon name="seeall" /> : <Add />) : null}
+        endIcon={currentLanguage === 'ar' ? null : (totalItems > 4 ? <RenderIcon name="seeall" /> : <Add />)}
         onClick={
           totalItems > 4
             ? () => hanldeSeeAllPosts({ foundOrlostId })
@@ -60,7 +61,12 @@ const SeeAll = ({ foundOrlostId, totalItems, variant = "desktop" }) => {
             boxShadow: '0 4px 12px rgba(0,0,0,0.2)'
           },
           '& .MuiButton-endIcon': {
-            marginLeft: '4px'
+            marginLeft: currentLanguage === 'ar' ? 0 : '4px',
+            marginRight: currentLanguage === 'ar' ? '4px' : 0
+          },
+          '& .MuiButton-startIcon': {
+            marginRight: currentLanguage === 'ar' ? 0 : '4px',
+            marginLeft: currentLanguage === 'ar' ? '4px' : 0
           }
         }}
       >
@@ -74,7 +80,8 @@ const SeeAll = ({ foundOrlostId, totalItems, variant = "desktop" }) => {
     <Button
       variant="contained"
       size="medium"
-      endIcon={totalItems > 4 ? <RenderIcon name="seeall" /> : <Add />}
+      startIcon={currentLanguage === 'ar' ? (totalItems > 4 ? <RenderIcon name="seeall" /> : <Add />) : null}
+      endIcon={currentLanguage === 'ar' ? null : (totalItems > 4 ? <RenderIcon name="seeall" /> : <Add />)}
       onClick={
         totalItems > 4
           ? () => hanldeSeeAllPosts({ foundOrlostId })
@@ -99,7 +106,12 @@ const SeeAll = ({ foundOrlostId, totalItems, variant = "desktop" }) => {
           boxShadow: '0 6px 16px rgba(0,0,0,0.2)'
         },
         '& .MuiButton-endIcon': {
-          marginLeft: '6px'
+          marginLeft: currentLanguage === 'ar' ? 0 : '6px',
+          marginRight: currentLanguage === 'ar' ? '6px' : 0
+        },
+        '& .MuiButton-startIcon': {
+          marginRight: currentLanguage === 'ar' ? 0 : '6px',
+          marginLeft: currentLanguage === 'ar' ? '6px' : 0
         }
       }}
     >

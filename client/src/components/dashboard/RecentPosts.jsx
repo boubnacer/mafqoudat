@@ -402,8 +402,6 @@ const RecentPosts = ({ _id, categoryname, exactLocation, image, createdAt, count
            display: 'flex',
            justifyContent: 'space-between',
            p: { xs: 1.5, sm: 2 }, // Adjusted padding
-           borderTop: '1px solid',
-           borderColor: isDarkMode ? alpha('#fff', 0.06) : alpha('#000', 0.04),
            backgroundColor: isDarkMode ? alpha('#1a1a1a', 0.9) : '#ffffff', // Match card background
            gap: { xs: 1.5, sm: 2 }, // Responsive gap
            mt: 'auto',
