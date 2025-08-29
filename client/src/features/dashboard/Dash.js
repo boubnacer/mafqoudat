@@ -349,8 +349,7 @@ const Dash = () => {
                   <Box sx={{ 
                     display: 'flex', 
                     alignItems: 'center', 
-                    gap: 2,
-                    flexDirection: currentLanguage === 'ar' ? 'row-reverse' : 'row'
+                    gap: 2
                   }}>
                     <Box sx={{ 
                       display: 'flex', 
@@ -546,8 +545,7 @@ const Dash = () => {
                   <Box sx={{ 
                     display: 'flex', 
                     alignItems: 'center', 
-                    gap: 2,
-                    flexDirection: currentLanguage === 'ar' ? 'row-reverse' : 'row'
+                    gap: 2
                   }}>
                     <Box sx={{ 
                       display: 'flex', 
