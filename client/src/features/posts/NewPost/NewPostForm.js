@@ -267,6 +267,7 @@ const NewPostForm = ({ user, countries, categories, flOptions }) => {
         justifyContent: "center",
         alignItems: "flex-start",
         background: theme.palette.background.default,
+        position: 'relative',
         // Add shimmer animation styles
         '@keyframes shimmer': {
           '0%': { transform: 'translateX(-100%)' },
@@ -274,6 +275,24 @@ const NewPostForm = ({ user, countries, categories, flOptions }) => {
         }
       }}
     >
+      {/* Backdrop overlay when dialog is open */}
+      {showCustomCityInput && (
+        <Box
+          sx={{
+            position: 'fixed',
+            top: 0,
+            left: 0,
+            right: 0,
+            bottom: 0,
+            backgroundColor: theme.palette.mode === 'dark' 
+              ? 'rgba(0, 0, 0, 0.7)' 
+              : 'rgba(0, 0, 0, 0.5)',
+            backdropFilter: 'blur(4px)',
+            zIndex: 1200,
+            pointerEvents: 'auto'
+          }}
+        />
+      )}
       <Paper 
         elevation={4} 
         sx={{ 
@@ -700,16 +719,17 @@ const NewPostForm = ({ user, countries, categories, flOptions }) => {
         </Formik>
       </Paper>
       
-      {/* Custom City Dialog */}
-      <Dialog
-              open={showCustomCityInput}
-         onClose={() => {
-           setShowCustomCityInput(false);
-           setCustomCityName("");
-           setShouldClearCityValue(true);
-         }}
-         maxWidth="sm"
-         fullWidth
+             {/* Custom City Dialog */}
+       <Dialog
+               open={showCustomCityInput}
+          onClose={() => {
+            setShowCustomCityInput(false);
+            setCustomCityName("");
+            setShouldClearCityValue(true);
+          }}
+          maxWidth="sm"
+          fullWidth
+          sx={{ zIndex: 1300 }}
                    PaperProps={{
             sx: {
               borderRadius: 3,
