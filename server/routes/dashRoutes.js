@@ -2,9 +2,10 @@ const express = require("express");
 const { getDashboard } = require("../controllers/dependenciesController");
 const router = express.Router();
 const verifyJWT = require("../middleware/verifyJWT");
+const { dashboardCache } = require("../middleware/cacheMiddleware");
 
 // Public route - no authentication required
-router.route("/").get(getDashboard);
+router.route("/").get(dashboardCache('dashboard'), getDashboard);
 
 // Protected routes - require authentication
 

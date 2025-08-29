@@ -1,10 +1,27 @@
 const City = require("../models/City");
 const Country = require("../models/Country");
 const TranslationService = require("../services/translationService");
+const { cacheService } = require("../config/cache");
 
 const getCities = async (req, res) => {
   try {
     const { language = 'en', search, active = true, countryId, countryCode } = req.query;
+    
+    // Generate cache key
+    const cacheKey = cacheService.generateKey('cities', {
+      language,
+      search,
+      active,
+      countryId,
+      countryCode
+    });
+    
+    // Check cache first
+    const cachedCities = await cacheService.get(cacheKey);
+    if (cachedCities) {
+      console.log('📦 Cities served from cache');
+      return res.json(cachedCities);
+    }
     
     let query = {};
     
@@ -32,12 +49,12 @@ const getCities = async (req, res) => {
       query.$text = { $search: search };
     }
     
-         const cities = await City.find(query)
-       .populate('country', 'code labels flag')
-       .select('code labels isCapital isActive country')
-       .sort({ 'labels.en': 1 })
-       .lean()
-       .exec();
+    const cities = await City.find(query)
+      .populate('country', 'code labels flag')
+      .select('code labels isCapital isActive country')
+      .sort({ 'labels.en': 1 })
+      .lean()
+      .exec();
 
     if (!cities.length) {
       return res.status(404).json({ 
@@ -63,11 +80,16 @@ const getCities = async (req, res) => {
       } : null
     }));
 
-    res.json({
+    const response = {
       success: true,
       data: transformedCities,
       total: transformedCities.length
-    });
+    };
+    
+    // Cache the response for 1 hour (static data)
+    await cacheService.set(cacheKey, response, 3600);
+    
+    res.json(response);
   } catch (error) {
     console.error('Error fetching cities:', error);
     res.status(500).json({ 

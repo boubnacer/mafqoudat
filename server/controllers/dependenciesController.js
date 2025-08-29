@@ -7,16 +7,30 @@ const mongoose = require("mongoose");
 const getCountryIso3 = require("country-iso-2-to-3");
 const Category = require("../models/Category");
 const City = require("../models/City");
+const { cacheService } = require("../config/cache");
 
 // Get Dashboard
 const getDashboard = async (req, res) => {
   try {
     console.log("Dashboard request received:", req.query);
     
+    const currentCountry = req.query.currentCountry;
+    
+    // Generate cache key
+    const cacheKey = cacheService.generateKey('dashboard', {
+      currentCountry,
+      user: req.user?.id || 'anonymous'
+    });
+    
+    // Check cache first
+    const cachedDashboard = await cacheService.get(cacheKey);
+    if (cachedDashboard) {
+      console.log('📦 Dashboard served from cache');
+      return res.json(cachedDashboard);
+    }
+    
     let match = {};
     const currentDate = new Date();
-
-    const currentCountry = req.query.currentCountry;
     
     if (!currentCountry) {
       console.log("Missing currentCountry parameter");
@@ -695,11 +709,16 @@ const getCountries = async (req, res) => {
       }
     });
 
-    res.json({
+    const response = {
       success: true,
       data: transformedCountries,
       total: transformedCountries.length
-    });
+    };
+    
+    // Cache the response for 1 hour (static data)
+    await cacheService.set(cacheKey, response, 3600);
+    
+    res.json(response);
   } catch (error) {
     console.error('Error fetching countries:', error);
     res.status(500).json({ 
@@ -713,6 +732,19 @@ const getCountries = async (req, res) => {
 const getCategories = async (req, res) => {
   try {
     const { language = 'en', active = true } = req.query;
+    
+    // Generate cache key
+    const cacheKey = cacheService.generateKey('categories', {
+      language,
+      active
+    });
+    
+    // Check cache first
+    const cachedCategories = await cacheService.get(cacheKey);
+    if (cachedCategories) {
+      console.log('📦 Categories served from cache');
+      return res.json(cachedCategories);
+    }
     
     let query = {};
     if (active === 'true') {
@@ -774,11 +806,16 @@ const getCategories = async (req, res) => {
       }
     });
 
-    res.json({
+    const response = {
       success: true,
       data: transformedCategories,
       total: transformedCategories.length
-    });
+    };
+    
+    // Cache the response for 1 hour (static data)
+    await cacheService.set(cacheKey, response, 3600);
+    
+    res.json(response);
   } catch (error) {
     console.error('Error fetching categories:', error);
     res.status(500).json({ 

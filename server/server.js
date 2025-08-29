@@ -9,6 +9,7 @@ const cookieParser = require("cookie-parser");
 const cors = require("cors");
 const corsOptions = require("./config/corsOptions");
 const connectDB = require("./config/dbConn");
+const { initRedis } = require("./config/cache");
 const mongoose = require("mongoose");
 const helmet = require("helmet");
 const compression = require("compression");
@@ -48,6 +49,12 @@ process.on('SIGINT', () => {
 connectDB().catch(err => {
   console.error('Failed to connect to database:', err);
   process.exit(1);
+});
+
+// Initialize Redis cache
+initRedis().catch(err => {
+  console.error('Failed to initialize Redis cache:', err);
+  // Don't exit process, continue with in-memory cache only
 });
 
 // Security middleware - more flexible for development
@@ -101,6 +108,10 @@ app.use("/dependencies", require("./routes/dependenciesRoutes"));
 app.use("/cities-api", require("./routes/citiesRoutes"));
 
 app.use("/promotion", require("./routes/promotionRoutes"));
+
+// Cache management routes
+app.get("/cache/stats", require("./middleware/cacheMiddleware").cacheStatsMiddleware);
+app.delete("/cache/clear", require("./middleware/cacheMiddleware").clearCacheMiddleware);
 
 // Admin routes removed for security
 

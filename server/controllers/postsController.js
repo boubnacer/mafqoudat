@@ -7,6 +7,7 @@ const City = require("../models/City");
 const { deleteFromCloudinary } = require("../config/cloudinary");
 const mongoose = require("mongoose");
 const TranslationService = require("../services/translationService");
+const { cacheService } = require("../config/cache");
 // const getCountryIso3 = require("country-iso-2-to-3");
 const getCountryIso3 = require("country-iso-2-to-3");
 
@@ -21,6 +22,23 @@ const getAllPosts = async (req, res) => {
   const fl = req.query.fl;
   const categoryId = req.query.categoryId;
   const search = req.query.search;
+  
+  // Generate cache key
+  const cacheKey = cacheService.generateKey('posts', {
+    currentCountry,
+    page,
+    pageSize,
+    fl,
+    categoryId,
+    search
+  });
+  
+  // Check cache first
+  const cachedPosts = await cacheService.get(cacheKey);
+  if (cachedPosts) {
+    console.log('📦 Posts served from cache');
+    return res.json(cachedPosts);
+  }
 
   let totalPosts;
   let match = {};
@@ -171,12 +189,17 @@ const getAllPosts = async (req, res) => {
     });
   }
 
-  res.json({
+  const response = {
     postsWithUser,
     page: page + 1,
     totalPages: Math.ceil(totalPosts / pageSize),
     total: totalPosts,
-  });
+  };
+  
+  // Cache the response for 5 minutes (dynamic data)
+  await cacheService.set(cacheKey, response, 300);
+  
+  res.json(response);
 };
 
 // get Post
@@ -532,6 +555,10 @@ const createNewPost = async (req, res) => {
      const post = await Post.create(postData);
 
     if (post) {
+      // Invalidate related cache entries
+      await cacheService.invalidatePattern('posts:*');
+      await cacheService.invalidatePattern('dashboard:*');
+      
       // Created
       return res.status(201).json({ 
         message: "New post created",
@@ -726,6 +753,10 @@ const updatePost = async (req, res) => {
 
   const updatedPost = await post.save();
 
+  // Invalidate related cache entries
+  await cacheService.invalidatePattern('posts:*');
+  await cacheService.invalidatePattern('dashboard:*');
+
   res.json(`'${updatedPost.title || updatedPost._id}' updated`);
 };
 
@@ -753,6 +784,10 @@ const deletePost = async (req, res) => {
   }
 
   const result = await post.deleteOne();
+
+  // Invalidate related cache entries
+  await cacheService.invalidatePattern('posts:*');
+  await cacheService.invalidatePattern('dashboard:*');
 
   const reply = `Post '${result.title || result._id}' with ID ${result._id} deleted`;
 
