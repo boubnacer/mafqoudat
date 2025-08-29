@@ -710,13 +710,21 @@ const NewPostForm = ({ user, countries, categories, flOptions }) => {
          }}
          maxWidth="sm"
          fullWidth
-         PaperProps={{
-           sx: {
-             borderRadius: 3,
-             background: theme.palette.background.paper,
-             boxShadow: theme.shadows[8]
-           }
-         }}
+                   PaperProps={{
+            sx: {
+              borderRadius: 3,
+              background: theme.palette.mode === 'dark' 
+                ? 'rgba(30, 30, 30, 0.95)' 
+                : 'rgba(255, 255, 255, 0.95)',
+              backdropFilter: 'blur(10px)',
+              border: `1px solid ${theme.palette.mode === 'dark' 
+                ? 'rgba(255, 255, 255, 0.1)' 
+                : 'rgba(0, 0, 0, 0.1)'}`,
+              boxShadow: theme.palette.mode === 'dark'
+                ? '0 8px 32px rgba(0, 0, 0, 0.4)'
+                : '0 8px 32px rgba(0, 0, 0, 0.15)'
+            }
+          }}
                    BackdropProps={{
             sx: {
               backgroundColor: 'transparent'
