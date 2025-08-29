@@ -679,9 +679,12 @@ const NewPostForm = ({ user, countries, categories, flOptions }) => {
                 </Box>
               </Box>
             </Form>
-            
-            {/* Custom City Dialog */}
-            <Dialog
+          )}
+        </Formik>
+      </Paper>
+      
+      {/* Custom City Dialog */}
+      <Dialog
               open={showCustomCityInput}
          onClose={() => {
            setShowCustomCityInput(false);
@@ -761,7 +764,6 @@ const NewPostForm = ({ user, countries, categories, flOptions }) => {
             onClick={() => {
               setShowCustomCityInput(false);
               setCustomCityName("");
-              setFieldValue('city', "");
             }}
             sx={{ 
               borderRadius: 2,
@@ -779,7 +781,7 @@ const NewPostForm = ({ user, countries, categories, flOptions }) => {
             variant="contained"
             onClick={() => {
               if (customCityName.trim()) {
-                setFieldValue('city', customCityName.trim());
+                setSelectedCustomCity(customCityName.trim());
                 setShowCustomCityInput(false);
                 // Add the custom city to the cities list so it shows in the dropdown
                 const customCity = {
