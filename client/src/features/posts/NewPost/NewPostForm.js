@@ -22,9 +22,14 @@ import {
   FormControlLabel,
   Checkbox,
   TextField,
-  Divider
+  Divider,
+  Dialog,
+  DialogTitle,
+  DialogContent,
+  DialogActions,
+  IconButton
 } from "@mui/material";
-import { PhotoCamera, LocationOn, ContactPhone, ContactMail, WhatsApp, Add as AddIcon } from '@mui/icons-material';
+import { PhotoCamera, LocationOn, ContactPhone, ContactMail, WhatsApp, Add as AddIcon, Close as CloseIcon } from '@mui/icons-material';
 import { useTranslation } from "../../../utils/translations";
 import PromotionDialog from "../../../components/PromotionDialog";
 
@@ -418,36 +423,27 @@ const NewPostForm = ({ user, countries, categories, flOptions }) => {
                           value="other" 
                           onClick={handleOtherCityClick}
                           sx={{ 
-                            color: theme.palette.primary.main,
-                            fontWeight: 700,
+                            color: theme.palette.mode === 'dark' ? '#fff' : '#1976d2',
+                            fontWeight: 600,
                             backgroundColor: theme.palette.mode === 'dark' 
-                              ? 'rgba(25, 118, 210, 0.2)' 
-                              : 'rgba(25, 118, 210, 0.12)',
-                            border: `2px solid ${theme.palette.primary.main}`,
+                              ? 'rgba(255, 255, 255, 0.08)' 
+                              : 'rgba(25, 118, 210, 0.08)',
+                            border: `1px solid ${theme.palette.mode === 'dark' ? 'rgba(255, 255, 255, 0.2)' : 'rgba(25, 118, 210, 0.3)'}`,
                             borderRadius: 2,
                             margin: '6px 8px',
                             padding: '12px 16px',
-                            position: 'relative',
-                            '&::before': {
-                              content: '""',
-                              position: 'absolute',
-                              top: 0,
-                              left: 0,
-                              right: 0,
-                              bottom: 0,
-                              background: `linear-gradient(45deg, transparent 30%, rgba(25, 118, 210, 0.1) 50%, transparent 70%)`,
-                              borderRadius: 2,
-                              animation: 'shimmer 2s infinite',
-                            },
+                            transition: 'all 0.2s ease-in-out',
                             '&:hover': {
-                              backgroundColor: theme.palette.primary.main,
-                              color: 'white',
-                              transform: 'translateY(-2px)',
-                              boxShadow: '0 6px 12px rgba(25, 118, 210, 0.4)',
-                              borderColor: theme.palette.primary.dark,
-                              '&::before': {
-                                background: `linear-gradient(45deg, transparent 30%, rgba(255, 255, 255, 0.2) 50%, transparent 70%)`,
-                              }
+                              backgroundColor: theme.palette.mode === 'dark' 
+                                ? 'rgba(255, 255, 255, 0.12)' 
+                                : 'rgba(25, 118, 210, 0.12)',
+                              borderColor: theme.palette.mode === 'dark' 
+                                ? 'rgba(255, 255, 255, 0.4)' 
+                                : 'rgba(25, 118, 210, 0.5)',
+                              transform: 'translateY(-1px)',
+                              boxShadow: theme.palette.mode === 'dark'
+                                ? '0 4px 8px rgba(0, 0, 0, 0.3)'
+                                : '0 4px 8px rgba(25, 118, 210, 0.2)',
                             }
                           }}
                         >
@@ -458,64 +454,6 @@ const NewPostForm = ({ user, countries, categories, flOptions }) => {
                         </MenuItem>
                       </Select>
                     </FormControl>
-                  ) : (
-                    <Box display="flex" flexDirection="column" gap={2}>
-                      <TextField
-                        fullWidth
-                        placeholder={t('cityNamePlaceholder')}
-                        value={customCityName}
-                        onChange={handleCustomCityChange}
-                        variant="outlined"
-                        sx={{ borderRadius: 2 }}
-                      />
-                      <Box display="flex" gap={1}>
-                        <Button
-                          variant="outlined"
-                          onClick={() => {
-                            setShowCustomCityInput(false);
-                            setCustomCityName("");
-                            setFieldValue('city', "");
-                          }}
-                          sx={{ 
-                            borderRadius: 2,
-                            borderColor: theme.palette.mode === 'dark' ? 'rgba(255, 255, 255, 0.3)' : 'rgba(0, 0, 0, 0.3)',
-                            color: theme.palette.mode === 'dark' ? 'rgba(255, 255, 255, 0.8)' : 'rgba(0, 0, 0, 0.8)',
-                            '&:hover': {
-                              borderColor: theme.palette.mode === 'dark' ? 'rgba(255, 255, 255, 0.5)' : 'rgba(0, 0, 0, 0.5)',
-                              backgroundColor: theme.palette.mode === 'dark' ? 'rgba(255, 255, 255, 0.04)' : 'rgba(0, 0, 0, 0.04)',
-                            }
-                          }}
-                        >
-                          {t('cancel')}
-                        </Button>
-                        <Button
-                          variant="contained"
-                          onClick={() => {
-                            if (customCityName.trim()) {
-                              setFieldValue('city', customCityName.trim());
-                              setShowCustomCityInput(false);
-                              // Add the custom city to the cities list so it shows in the dropdown
-                              const customCity = {
-                                id: customCityName.trim(),
-                                label: customCityName.trim(),
-                                isDynamic: true
-                              };
-                              setCities(prevCities => [...prevCities, customCity]);
-                            }
-                          }}
-                          disabled={!customCityName.trim()}
-                          sx={{ 
-                            borderRadius: 2,
-                            background: `linear-gradient(135deg, ${theme.palette.primary.main} 0%, ${theme.palette.primary.dark} 100%)`,
-                            '&:hover': {
-                              background: `linear-gradient(135deg, ${theme.palette.primary.dark} 0%, ${theme.palette.primary.main} 100%)`,
-                            }
-                          }}
-                        >
-                          {t('confirm')}
-                        </Button>
-                      </Box>
-                    </Box>
                   )}
                 </Box>
 
@@ -745,6 +683,125 @@ const NewPostForm = ({ user, countries, categories, flOptions }) => {
           )}
         </Formik>
       </Paper>
+      
+      {/* Custom City Dialog */}
+      <Dialog
+        open={showCustomCityInput}
+        onClose={() => {
+          setShowCustomCityInput(false);
+          setCustomCityName("");
+        }}
+        maxWidth="sm"
+        fullWidth
+        PaperProps={{
+          sx: {
+            borderRadius: 3,
+            background: theme.palette.background.paper,
+            boxShadow: theme.shadows[8]
+          }
+        }}
+      >
+        <DialogTitle
+          sx={{
+            display: 'flex',
+            justifyContent: 'space-between',
+            alignItems: 'center',
+            pb: 1,
+            borderBottom: `1px solid ${theme.palette.divider}`
+          }}
+        >
+          <Typography variant="h6" sx={{ fontWeight: 600, color: theme.palette.text.primary }}>
+            {t('addNewCity')}
+          </Typography>
+          <IconButton
+            onClick={() => {
+              setShowCustomCityInput(false);
+              setCustomCityName("");
+            }}
+            sx={{
+              color: theme.palette.text.secondary,
+              '&:hover': {
+                backgroundColor: theme.palette.action.hover
+              }
+            }}
+          >
+            <CloseIcon />
+          </IconButton>
+        </DialogTitle>
+        
+        <DialogContent sx={{ pt: 3 }}>
+          <Typography variant="body2" color="text.secondary" sx={{ mb: 2 }}>
+            {t('enterCustomCityName')}
+          </Typography>
+          <TextField
+            fullWidth
+            placeholder={t('cityNamePlaceholder')}
+            value={customCityName}
+            onChange={handleCustomCityChange}
+            variant="outlined"
+            autoFocus
+            sx={{ 
+              borderRadius: 2,
+              '& .MuiOutlinedInput-root': {
+                '&:hover fieldset': {
+                  borderColor: theme.palette.primary.main,
+                },
+                '&.Mui-focused fieldset': {
+                  borderColor: theme.palette.primary.main,
+                },
+              }
+            }}
+          />
+        </DialogContent>
+        
+        <DialogActions sx={{ p: 3, pt: 1 }}>
+          <Button
+            variant="outlined"
+            onClick={() => {
+              setShowCustomCityInput(false);
+              setCustomCityName("");
+              setFieldValue('city', "");
+            }}
+            sx={{ 
+              borderRadius: 2,
+              borderColor: theme.palette.mode === 'dark' ? 'rgba(255, 255, 255, 0.3)' : 'rgba(0, 0, 0, 0.3)',
+              color: theme.palette.mode === 'dark' ? 'rgba(255, 255, 255, 0.8)' : 'rgba(0, 0, 0, 0.8)',
+              '&:hover': {
+                borderColor: theme.palette.mode === 'dark' ? 'rgba(255, 255, 255, 0.5)' : 'rgba(0, 0, 0, 0.5)',
+                backgroundColor: theme.palette.mode === 'dark' ? 'rgba(255, 255, 255, 0.04)' : 'rgba(0, 0, 0, 0.04)',
+              }
+            }}
+          >
+            {t('cancel')}
+          </Button>
+          <Button
+            variant="contained"
+            onClick={() => {
+              if (customCityName.trim()) {
+                setFieldValue('city', customCityName.trim());
+                setShowCustomCityInput(false);
+                // Add the custom city to the cities list so it shows in the dropdown
+                const customCity = {
+                  id: customCityName.trim(),
+                  label: customCityName.trim(),
+                  isDynamic: true
+                };
+                setCities(prevCities => [...prevCities, customCity]);
+              }
+            }}
+            disabled={!customCityName.trim()}
+            sx={{ 
+              borderRadius: 2,
+              background: `linear-gradient(135deg, ${theme.palette.primary.main} 0%, ${theme.palette.primary.dark} 100%)`,
+              '&:hover': {
+                background: `linear-gradient(135deg, ${theme.palette.primary.dark} 0%, ${theme.palette.primary.main} 100%)`,
+              }
+            }}
+          >
+            {t('confirm')}
+          </Button>
+        </DialogActions>
+      </Dialog>
       
       {/* Promotion Dialog */}
       <PromotionDialog
