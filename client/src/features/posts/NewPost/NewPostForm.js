@@ -682,23 +682,30 @@ const NewPostForm = ({ user, countries, categories, flOptions }) => {
         </Formik>
       </Paper>
       
-      {/* Custom City Dialog */}
-      <Dialog
-        open={showCustomCityInput}
-        onClose={() => {
-          setShowCustomCityInput(false);
-          setCustomCityName("");
-        }}
-        maxWidth="sm"
-        fullWidth
-        PaperProps={{
-          sx: {
-            borderRadius: 3,
-            background: theme.palette.background.paper,
-            boxShadow: theme.shadows[8]
-          }
-        }}
-      >
+             {/* Custom City Dialog */}
+       <Dialog
+         open={showCustomCityInput}
+         onClose={() => {
+           setShowCustomCityInput(false);
+           setCustomCityName("");
+         }}
+         maxWidth="sm"
+         fullWidth
+         PaperProps={{
+           sx: {
+             borderRadius: 3,
+             background: theme.palette.background.paper,
+             boxShadow: theme.shadows[8],
+             opacity: 1
+           }
+         }}
+         BackdropProps={{
+           sx: {
+             backgroundColor: 'rgba(0, 0, 0, 0.5)',
+             opacity: 1
+           }
+         }}
+       >
         <DialogTitle
           sx={{
             display: 'flex',
