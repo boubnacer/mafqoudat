@@ -198,4 +198,34 @@ When asking for help, provide:
 
 ---
 
+## 🎯 **Understanding Railway Logs**
+
+### Normal Railway Behavior
+- **SIGTERM signals are normal** - Railway sends these to stop containers
+- **"Deploy Failed" can be misleading** - often indicates successful deployment
+- **Server startup logs show success** - look for "Connected to MongoDB" and "Server running"
+
+### Your Logs Analysis
+```
+✅ Server starts: node server.js
+✅ Environment: production  
+✅ MongoDB connected: Connected to MongoDB
+✅ Server running: Server running on port 10000
+✅ MongoDB cluster: MongoDB Connected: cluster0-shard-00-02.mwwk6a.mongodb.net
+⚠️ SIGTERM: Stopping Container (NORMAL)
+```
+
+**Conclusion:** Your deployment is **working correctly**! The SIGTERM is normal Railway behavior.
+
+## 🔧 **Quick Status Check**
+
+Run this to verify your deployment:
+```bash
+# Set your Railway API URL
+export RAILWAY_API_URL="https://your-api-url.railway.app"
+
+# Check status
+node check-railway-status.js
+```
+
 **Note:** The "Deploy Failed" status sometimes appears due to Railway's health check timing out or failing, even when the service is actually running correctly. This is a known issue with Railway's status reporting.

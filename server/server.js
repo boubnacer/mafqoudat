@@ -166,9 +166,10 @@ app.all("*", (req, res) => {
 app.use(errorHandler);
 
 // Start server after MongoDB connection is established
+let server;
 mongoose.connection.once("open", () => {
   console.log("Connected to MongoDB");
-  app.listen(PORT, () => console.log(`Server running on port ${PORT}`));
+  server = app.listen(PORT, () => console.log(`Server running on port ${PORT}`));
 });
 
 mongoose.connection.on("error", (err) => {
@@ -177,4 +178,35 @@ mongoose.connection.on("error", (err) => {
     `${err.no}: ${err.code}\t${err.syscall}\t${err.hostname}`,
     "mongoErrLog.log"
   );
+});
+
+// Graceful shutdown handling
+process.on('SIGTERM', () => {
+  console.log('SIGTERM received, shutting down gracefully...');
+  if (server) {
+    server.close(() => {
+      console.log('Server closed');
+      mongoose.connection.close(() => {
+        console.log('MongoDB connection closed');
+        process.exit(0);
+      });
+    });
+  } else {
+    process.exit(0);
+  }
+});
+
+process.on('SIGINT', () => {
+  console.log('SIGINT received, shutting down gracefully...');
+  if (server) {
+    server.close(() => {
+      console.log('Server closed');
+      mongoose.connection.close(() => {
+        console.log('MongoDB connection closed');
+        process.exit(0);
+      });
+    });
+  } else {
+    process.exit(0);
+  }
 });
