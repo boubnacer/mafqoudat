@@ -356,7 +356,7 @@ const RecentPosts = ({ _id, categoryname, exactLocation, image, createdAt, count
             display: 'flex',
             flexDirection: 'column',
             gap: 2, // Increased gap
-            backgroundColor: isDarkMode ? alpha('#1a1a1a', 0.9) : '#ffffff', // Match card background
+            backgroundColor: 'transparent', // Make transparent to eliminate visual gap
             '&:last-child': {
               pb: { xs: 2.5, sm: 3 }, // Override Material-UI default padding
             },
