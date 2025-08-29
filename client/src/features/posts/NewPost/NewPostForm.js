@@ -387,74 +387,72 @@ const NewPostForm = ({ user, countries, categories, flOptions }) => {
                     }
                   </Typography>
                   
-                  {!showCustomCityInput ? (
-                    <FormControl fullWidth disabled={!selectedCountry || loadingCities}>
-                      <InputLabel id="city-select-label">{t('chooseCity')}</InputLabel>
-                      <Select
-                        labelId="city-select-label"
-                        value={values.city || ""}
-                        label={t('chooseCity')}
-                        onChange={(e) => setFieldValue('city', e.target.value)}
-                        displayEmpty
-                        renderValue={(selected) => {
-                          if (!selected) return t('chooseCity');
-                          return getCityDisplayName(selected);
-                        }}
-                        disableUnderline
-                        sx={{
-                          borderRadius: 2,
-                        }}
-                      >
-                        {cities.map((city) => (
-                          <MenuItem key={city.id} value={city.id}>
-                            <Box display="flex" alignItems="center" gap={1}>
-                              {city.isCapital && (
-                                <span style={{ fontSize: '16px' }}>🏛️</span>
-                              )}
-                              {city.isDynamic && (
-                                <span style={{ fontSize: '16px' }}>🆕</span>
-                              )}
-                              {city.label || city.code || city.name || 'Unknown City'}
-                            </Box>
-                          </MenuItem>
-                        ))}
-                        <Divider />
-                                                <MenuItem
-                          value="other" 
-                          onClick={handleOtherCityClick}
-                          sx={{ 
-                            color: theme.palette.mode === 'dark' ? '#fff' : '#1976d2',
-                            fontWeight: 600,
-                            backgroundColor: theme.palette.mode === 'dark' 
-                              ? 'rgba(255, 255, 255, 0.08)' 
-                              : 'rgba(25, 118, 210, 0.08)',
-                            border: `1px solid ${theme.palette.mode === 'dark' ? 'rgba(255, 255, 255, 0.2)' : 'rgba(25, 118, 210, 0.3)'}`,
-                            borderRadius: 2,
-                            margin: '6px 8px',
-                            padding: '12px 16px',
-                            transition: 'all 0.2s ease-in-out',
-                            '&:hover': {
-                              backgroundColor: theme.palette.mode === 'dark' 
-                                ? 'rgba(255, 255, 255, 0.12)' 
-                                : 'rgba(25, 118, 210, 0.12)',
-                              borderColor: theme.palette.mode === 'dark' 
-                                ? 'rgba(255, 255, 255, 0.4)' 
-                                : 'rgba(25, 118, 210, 0.5)',
-                              transform: 'translateY(-1px)',
-                              boxShadow: theme.palette.mode === 'dark'
-                                ? '0 4px 8px rgba(0, 0, 0, 0.3)'
-                                : '0 4px 8px rgba(25, 118, 210, 0.2)',
-                            }
-                          }}
-                        >
+                  <FormControl fullWidth disabled={!selectedCountry || loadingCities}>
+                    <InputLabel id="city-select-label">{t('chooseCity')}</InputLabel>
+                    <Select
+                      labelId="city-select-label"
+                      value={values.city || ""}
+                      label={t('chooseCity')}
+                      onChange={(e) => setFieldValue('city', e.target.value)}
+                      displayEmpty
+                      renderValue={(selected) => {
+                        if (!selected) return t('chooseCity');
+                        return getCityDisplayName(selected);
+                      }}
+                      disableUnderline
+                      sx={{
+                        borderRadius: 2,
+                      }}
+                    >
+                      {cities.map((city) => (
+                        <MenuItem key={city.id} value={city.id}>
                           <Box display="flex" alignItems="center" gap={1}>
-                            <AddIcon fontSize="small" />
-                            {t('other')} - {t('addNewCity')}
+                            {city.isCapital && (
+                              <span style={{ fontSize: '16px' }}>🏛️</span>
+                            )}
+                            {city.isDynamic && (
+                              <span style={{ fontSize: '16px' }}>🆕</span>
+                            )}
+                            {city.label || city.code || city.name || 'Unknown City'}
                           </Box>
                         </MenuItem>
-                      </Select>
-                    </FormControl>
-                  )}
+                      ))}
+                      <Divider />
+                      <MenuItem
+                        value="other" 
+                        onClick={handleOtherCityClick}
+                        sx={{ 
+                          color: theme.palette.mode === 'dark' ? '#fff' : '#1976d2',
+                          fontWeight: 600,
+                          backgroundColor: theme.palette.mode === 'dark' 
+                            ? 'rgba(255, 255, 255, 0.08)' 
+                            : 'rgba(25, 118, 210, 0.08)',
+                          border: `1px solid ${theme.palette.mode === 'dark' ? 'rgba(255, 255, 255, 0.2)' : 'rgba(25, 118, 210, 0.3)'}`,
+                          borderRadius: 2,
+                          margin: '6px 8px',
+                          padding: '12px 16px',
+                          transition: 'all 0.2s ease-in-out',
+                          '&:hover': {
+                            backgroundColor: theme.palette.mode === 'dark' 
+                              ? 'rgba(255, 255, 255, 0.12)' 
+                              : 'rgba(25, 118, 210, 0.12)',
+                            borderColor: theme.palette.mode === 'dark' 
+                              ? 'rgba(255, 255, 255, 0.4)' 
+                              : 'rgba(25, 118, 210, 0.5)',
+                            transform: 'translateY(-1px)',
+                            boxShadow: theme.palette.mode === 'dark'
+                              ? '0 4px 8px rgba(0, 0, 0, 0.3)'
+                              : '0 4px 8px rgba(25, 118, 210, 0.2)',
+                          }
+                        }}
+                      >
+                        <Box display="flex" alignItems="center" gap={1}>
+                          <AddIcon fontSize="small" />
+                          {t('other')} - {t('addNewCity')}
+                        </Box>
+                      </MenuItem>
+                    </Select>
+                  </FormControl>
                 </Box>
 
                 <Box>
