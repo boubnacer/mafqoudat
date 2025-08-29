@@ -258,22 +258,34 @@ const Post = ({ post, viewMode = "grid" }) => {
       return cleanCity.replace(/\d+/g, '').trim();
     };
 
-    // Get city name with proper multilingual support
-    const getCityName = () => {
-      // First priority: Use the city field directly (for custom city names)
-      if (post.city && typeof post.city === 'string' && post.city.trim()) {
-        return post.city.trim();
+      // Get city name with proper multilingual support
+  const getCityName = () => {
+    // First priority: Use the cityLabel field from API transformation
+    if (post.cityLabel && typeof post.cityLabel === 'string' && post.cityLabel.trim()) {
+      return post.cityLabel.trim();
+    }
+    
+    // Second priority: Use the populated city labels from the API (multilingual)
+    if (post.cityLabels && typeof post.cityLabels === 'object') {
+      const cityLabel = post.cityLabels[currentLanguage] || post.cityLabels.en;
+      if (cityLabel && cityLabel.trim()) {
+        return cityLabel.trim();
       }
-      // Second priority: Use the populated city data from the API
-      if (post.cityLabels && post.cityLabels[currentLanguage]) {
-        return post.cityLabels[currentLanguage];
-      }
-      if (post.cityName) {
-        return post.cityName;
-      }
-      // Last fallback: extracting from exactLocation
-      return getCityFromLocation(post.exactLocation);
-    };
+    }
+    
+    // Third priority: Use the cityName field from API
+    if (post.cityName && typeof post.cityName === 'string' && post.cityName.trim()) {
+      return post.cityName.trim();
+    }
+    
+    // Fourth priority: Use the city field directly (for custom city names)
+    if (post.city && typeof post.city === 'string' && post.city.trim()) {
+      return post.city.trim();
+    }
+    
+    // Last fallback: extracting from exactLocation
+    return getCityFromLocation(post.exactLocation);
+  };
 
     const cityName = getCityName();
 

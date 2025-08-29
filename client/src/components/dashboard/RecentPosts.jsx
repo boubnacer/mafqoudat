@@ -95,17 +95,24 @@ const RecentPosts = ({ _id, categoryname, exactLocation, image, createdAt, count
 
   // Get city name with proper multilingual support
   const getCityName = () => {
-    // First priority: Use the city field directly (for custom city names)
+    // First priority: Use the populated city labels from the API (multilingual)
+    if (cityLabels && typeof cityLabels === 'object') {
+      const cityLabel = cityLabels[currentLanguage] || cityLabels.en;
+      if (cityLabel && cityLabel.trim()) {
+        return cityLabel.trim();
+      }
+    }
+    
+    // Second priority: Use the cityName field from API
+    if (cityName && typeof cityName === 'string' && cityName.trim()) {
+      return cityName.trim();
+    }
+    
+    // Third priority: Use the city field directly (for custom city names)
     if (city && typeof city === 'string' && city.trim()) {
       return city.trim();
     }
-    // Second priority: Use the populated city data from the API
-    if (cityLabels && cityLabels[currentLanguage]) {
-      return cityLabels[currentLanguage];
-    }
-    if (cityName) {
-      return cityName;
-    }
+    
     // Last fallback: extracting from exactLocation
     return getCityFromLocation(exactLocation);
   };

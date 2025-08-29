@@ -47,6 +47,16 @@ export const postsApiSlice = apiSlice.injectEndpoints({
             post.countryLabel = countryLabel;
           }
 
+          // Ensure city data is properly structured
+          if (post.cityLabels && typeof post.cityLabels === 'object') {
+            const cityLabel = post.cityLabels[language] || post.cityLabels.en || post.cityName || post.city;
+            post.cityLabel = cityLabel;
+          } else if (post.cityName) {
+            post.cityLabel = post.cityName;
+          } else if (post.city && typeof post.city === 'string') {
+            post.cityLabel = post.city;
+          }
+
           return post;
         });
 
