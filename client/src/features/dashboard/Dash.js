@@ -240,270 +240,331 @@ const Dash = () => {
 
           {/* Enhanced Recent Founds Section */}
           <Box mb={4}>
-            <DashRecents 
-              cate="recents" 
-              sx={{ 
+            <Box
+              sx={{
                 backgroundColor: theme.palette.mode === 'dark' ? '#1a1a1a' : '#f8f9fa',
-                borderRadius: { xs: '12px', sm: '16px' },
+                borderRadius: { xs: '16px', sm: '20px' },
                 boxShadow: theme.palette.mode === 'dark' 
                   ? '0 8px 32px rgba(0,0,0,0.3)'
                   : '0 8px 32px rgba(0,0,0,0.1)',
                 overflow: 'hidden',
                 mx: { xs: 1, sm: 2 },
                 maxWidth: '100%',
+                border: `1px solid ${theme.palette.mode === 'dark' ? 'rgba(255,255,255,0.05)' : 'rgba(0,0,0,0.05)'}`,
+                direction: currentLanguage === 'ar' ? 'rtl' : 'ltr'
               }}
             >
+              {/* Header Section */}
               <Box 
-                display="flex" 
-                alignItems="center" 
-                justifyContent="space-between" 
-                p={{ xs: "1.5rem", sm: "2rem" }}
                 sx={{
                   background: theme.palette.mode === 'dark'
-                    ? 'linear-gradient(45deg, #1a1a1a 30%, #2d2d2d 90%)'
-                    : 'linear-gradient(45deg, #2196F3 30%, #21CBF3 90%)',
-                  borderBottom: '1px solid',
-                  borderColor: theme.palette.mode === 'dark' ? 'rgba(255,255,255,0.1)' : 'rgba(255,255,255,0.2)',
-                  flexDirection: { xs: 'column', sm: 'row' },
-                  gap: { xs: 1.5, sm: 0 },
-                  direction: currentLanguage === 'ar' ? 'rtl' : 'ltr'
+                    ? 'linear-gradient(135deg, #1a1a1a 0%, #2d2d2d 100%)'
+                    : 'linear-gradient(135deg, #2196F3 0%, #21CBF3 100%)',
+                  p: { xs: 2, sm: 3 },
+                  position: 'relative',
+                  overflow: 'hidden',
+                  '&::before': {
+                    content: '""',
+                    position: 'absolute',
+                    top: 0,
+                    left: 0,
+                    right: 0,
+                    bottom: 0,
+                    background: 'linear-gradient(45deg, rgba(255,255,255,0.1) 0%, transparent 100%)',
+                    pointerEvents: 'none'
+                  }
                 }}
               >
-                <Box 
-                  display="flex" 
-                  alignItems="center" 
-                  gap={2} 
+                {/* Mobile Layout */}
+                <Box
                   sx={{
-                    flexDirection: currentLanguage === 'ar' ? 'row-reverse' : 'row',
-                    justifyContent: { xs: 'center', sm: 'flex-start' },
-                    flex: { xs: '0 0 auto', sm: '0 0 auto' }
+                    display: { xs: 'block', sm: 'none' },
+                    textAlign: 'center'
                   }}
                 >
-                  <Typography
-                    fontWeight="700"
-                    sx={{
-                      fontSize: { xs: "18px", sm: "22px", md: "24px" },
-                      color: '#fff',
-                      display: 'flex',
-                      alignItems: 'center',
-                      gap: 1,
-                      flexDirection: currentLanguage === 'ar' ? 'row-reverse' : 'row',
-                      textAlign: { xs: 'center', sm: 'left' }
-                    }}
-                  >
-                    <WhatshotOutlined sx={{ color: '#FFA500', fontSize: { xs: '20px', sm: '24px' } }} />
-                    {t('recentFounds')}
-                  </Typography>
-                  <Chip 
-                    label={`${data?.totalFounds || 0} ${t('items')}`}
-                    color="primary"
-                    size="small"
-                    sx={{ 
-                      backgroundColor: 'rgba(255,255,255,0.2)',
-                      color: '#fff',
-                      fontSize: { xs: '0.75rem', sm: '0.875rem' },
-                      fontWeight: 600,
-                      minWidth: 'auto',
-                      px: { xs: 1.5, sm: 2 },
-                      height: { xs: '28px', sm: '32px' },
-                      display: { xs: 'none', sm: 'flex' }
-                    }}
+                  <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 1, mb: 2 }}>
+                    <WhatshotOutlined sx={{ color: '#FFA500', fontSize: '24px' }} />
+                    <Typography
+                      variant="h6"
+                      sx={{
+                        color: '#fff',
+                        fontWeight: 700,
+                        fontSize: '20px'
+                      }}
+                    >
+                      {t('recentFounds')}
+                    </Typography>
+                  </Box>
+                  
+                  <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 2, mb: 2 }}>
+                    <Chip 
+                      label={`${data?.totalFounds || 0} ${t('items')}`}
+                      size="small"
+                      sx={{ 
+                        backgroundColor: 'rgba(255,255,255,0.2)',
+                        color: '#fff',
+                        fontSize: '0.75rem',
+                        fontWeight: 600,
+                        height: '28px'
+                      }}
+                    />
+                    <SeeAll 
+                      foundOrlostId={foundsId} 
+                      totalItems={data?.totalFounds}
+                      variant="mobile"
+                    />
+                  </Box>
+                </Box>
+
+                {/* Desktop Layout */}
+                <Box
+                  sx={{
+                    display: { xs: 'none', sm: 'flex' },
+                    alignItems: 'center',
+                    justifyContent: 'space-between',
+                    flexDirection: currentLanguage === 'ar' ? 'row-reverse' : 'row'
+                  }}
+                >
+                  <Box sx={{ display: 'flex', alignItems: 'center', gap: 2 }}>
+                    <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+                      <WhatshotOutlined sx={{ color: '#FFA500', fontSize: '28px' }} />
+                      <Typography
+                        variant="h5"
+                        sx={{
+                          color: '#fff',
+                          fontWeight: 700,
+                          fontSize: { sm: '22px', md: '24px' }
+                        }}
+                      >
+                        {t('recentFounds')}
+                      </Typography>
+                    </Box>
+                    <Chip 
+                      label={`${data?.totalFounds || 0} ${t('items')}`}
+                      size="small"
+                      sx={{ 
+                        backgroundColor: 'rgba(255,255,255,0.2)',
+                        color: '#fff',
+                        fontSize: '0.875rem',
+                        fontWeight: 600,
+                        height: '32px'
+                      }}
+                    />
+                  </Box>
+                  <SeeAll 
+                    foundOrlostId={foundsId} 
+                    totalItems={data?.totalFounds}
+                    variant="desktop"
                   />
                 </Box>
-                <SeeAll 
-                  foundOrlostId={foundsId} 
-                  totalItems={data?.totalFounds}
+              </Box>
+
+              {/* Content Section */}
+              <Box 
+                sx={{
+                  p: { xs: 2, sm: 3 },
+                  backgroundColor: theme.palette.mode === 'dark' ? '#2d2d2d' : '#fff',
+                  minHeight: '200px'
+                }}
+              >
+                <Recent 
+                  recent={data?.recentFounds}
+                  isLoading={isLoading}
+                  emptyState="NoRecentFounds"
+                  maxItems={4}
                   sx={{
-                    color: '#fff',
-                    '&:hover': {
-                      backgroundColor: 'rgba(255,255,255,0.15)'
+                    '& .MuiCard-root': {
+                      backgroundColor: theme.palette.mode === 'dark' ? '#1a1a1a' : '#fff',
+                      transition: 'all 0.3s ease',
+                      '&:hover': {
+                        transform: { xs: 'none', sm: 'translateY(-4px)' },
+                        boxShadow: theme.palette.mode === 'dark'
+                          ? '0 8px 24px rgba(0,0,0,0.4)'
+                          : '0 8px 24px rgba(0,0,0,0.1)'
+                      },
+                      height: '100%',
+                      display: 'flex',
+                      flexDirection: 'column',
+                      borderRadius: '16px',
+                      overflow: 'hidden'
                     },
-                    width: { xs: '100%', sm: 'auto' },
-                    justifyContent: { xs: 'center', sm: 'flex-end' },
-                    fontSize: { xs: '0.9rem', sm: '1rem' },
-                    minHeight: { xs: '40px', sm: 'auto' },
-                    borderRadius: 2,
-                    px: { xs: 2, sm: 3 },
-                    flex: { xs: '1 1 auto', sm: '0 0 auto' }
+                    '& .MuiCardMedia-root': {
+                      height: { xs: '180px', sm: '200px', md: '220px' },
+                      objectFit: 'cover'
+                    },
+                    '& .MuiCardContent-root': {
+                      flexGrow: 1,
+                      p: { xs: 1.5, sm: 2 }
+                    }
                   }}
                 />
               </Box>
-              <Box p={{ xs: 1.5, sm: 2 }}>
-                <FlexCenter>
-                  <Recent 
-                    recent={data?.recentFounds}
-                    isLoading={isLoading}
-                    emptyState="NoRecentFounds"
-                    sx={{
-                      '& .MuiCard-root': {
-                        backgroundColor: theme.palette.mode === 'dark' ? '#2d2d2d' : '#fff',
-                        transition: 'transform 0.2s ease-in-out, box-shadow 0.2s ease-in-out',
-                        '&:hover': {
-                          transform: { xs: 'none', sm: 'translateY(-4px)' },
-                          boxShadow: theme.palette.mode === 'dark'
-                            ? '0 8px 24px rgba(0,0,0,0.4)'
-                            : '0 8px 24px rgba(0,0,0,0.1)'
-                        },
-                        height: { xs: 'auto', sm: '100%' },
-                        display: 'flex',
-                        flexDirection: 'column',
-                        borderRadius: 2
-                      },
-                      '& .MuiCardMedia-root': {
-                        height: { xs: '160px', sm: '200px', md: '220px' },
-                        objectFit: 'cover'
-                      },
-                      '& .MuiCardContent-root': {
-                        flexGrow: 1,
-                        p: { xs: 1.5, sm: 2 }
-                      },
-                      '& .MuiTypography-h6': {
-                        fontSize: { xs: '1rem', sm: '1.1rem', md: '1.25rem' },
-                        mb: { xs: 0.5, sm: 1 }
-                      },
-                      '& .MuiTypography-body2': {
-                        fontSize: { xs: '0.85rem', sm: '0.9rem', md: '1rem' }
-                      }
-                    }}
-                  />
-                </FlexCenter>
-              </Box>
-            </DashRecents>
+            </Box>
           </Box>
 
           {/* Enhanced Recent Losts Section */}
           <Box mb={4}>
-            <DashRecents
-              cate="recents"
-              sx={{ 
+            <Box
+              sx={{
                 backgroundColor: theme.palette.mode === 'dark' ? '#1a1a1a' : '#f8f9fa',
-                borderRadius: { xs: '12px', sm: '16px' },
+                borderRadius: { xs: '16px', sm: '20px' },
                 boxShadow: theme.palette.mode === 'dark' 
                   ? '0 8px 32px rgba(0,0,0,0.3)'
                   : '0 8px 32px rgba(0,0,0,0.1)',
                 overflow: 'hidden',
                 mx: { xs: 1, sm: 2 },
-                direction: currentLanguage === 'ar' ? 'rtl' : 'ltr',
-                border: `1px solid ${theme.palette.mode === 'dark' ? 'rgba(255,255,255,0.05)' : 'rgba(0,0,0,0.05)'}`
+                maxWidth: '100%',
+                border: `1px solid ${theme.palette.mode === 'dark' ? 'rgba(255,255,255,0.05)' : 'rgba(0,0,0,0.05)'}`,
+                direction: currentLanguage === 'ar' ? 'rtl' : 'ltr'
               }}
             >
+              {/* Header Section */}
               <Box 
-                display="flex" 
-                alignItems="center" 
-                justifyContent="space-between" 
-                p={{ xs: "1.5rem", sm: "2rem" }}
                 sx={{
                   background: theme.palette.mode === 'dark'
-                    ? 'linear-gradient(45deg, #1a1a1a 30%, #2d2d2d 90%)'
-                    : 'linear-gradient(45deg, #FFA500 30%, #FFD700 90%)',
-                  borderBottom: '1px solid',
-                  borderColor: theme.palette.mode === 'dark' ? 'rgba(255,255,255,0.1)' : 'rgba(255,255,255,0.2)',
-                  flexDirection: { xs: 'column', sm: 'row' },
-                  gap: { xs: 1.5, sm: 0 },
-                  direction: currentLanguage === 'ar' ? 'rtl' : 'ltr'
+                    ? 'linear-gradient(135deg, #1a1a1a 0%, #2d2d2d 100%)'
+                    : 'linear-gradient(135deg, #FFA500 0%, #FFD700 100%)',
+                  p: { xs: 2, sm: 3 },
+                  position: 'relative',
+                  overflow: 'hidden',
+                  '&::before': {
+                    content: '""',
+                    position: 'absolute',
+                    top: 0,
+                    left: 0,
+                    right: 0,
+                    bottom: 0,
+                    background: 'linear-gradient(45deg, rgba(255,255,255,0.1) 0%, transparent 100%)',
+                    pointerEvents: 'none'
+                  }
                 }}
               >
-                <Box 
-                  display="flex" 
-                  alignItems="center" 
-                  gap={2} 
+                {/* Mobile Layout */}
+                <Box
                   sx={{
-                    flexDirection: currentLanguage === 'ar' ? 'row-reverse' : 'row',
-                    justifyContent: { xs: 'center', sm: 'flex-start' },
-                    flex: { xs: '0 0 auto', sm: '0 0 auto' }
+                    display: { xs: 'block', sm: 'none' },
+                    textAlign: 'center'
                   }}
                 >
-                  <Typography
-                    fontWeight="700"
-                    sx={{
-                      fontSize: { xs: "18px", sm: "22px", md: "24px" },
-                      color: '#fff',
-                      display: 'flex',
-                      alignItems: 'center',
-                      gap: 1,
-                      flexDirection: currentLanguage === 'ar' ? 'row-reverse' : 'row',
-                      textAlign: { xs: 'center', sm: 'left' }
-                    }}
-                  >
-                    <Search sx={{ color: '#fff', fontSize: { xs: '20px', sm: '24px' } }} />
-                    {t('recentLosts')}
-                  </Typography>
-                  <Chip 
-                    label={`${data?.totalLosts || 0} ${t('items')}`}
-                    color="warning"
-                    size="small"
-                    sx={{ 
-                      backgroundColor: 'rgba(255,255,255,0.2)',
-                      color: '#fff',
-                      fontSize: { xs: '0.75rem', sm: '0.875rem' },
-                      fontWeight: 600,
-                      minWidth: 'auto',
-                      px: { xs: 1.5, sm: 2 },
-                      height: { xs: '28px', sm: '32px' },
-                      display: { xs: 'none', sm: 'flex' }
-                    }}
+                  <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 1, mb: 2 }}>
+                    <Search sx={{ color: '#fff', fontSize: '24px' }} />
+                    <Typography
+                      variant="h6"
+                      sx={{
+                        color: '#fff',
+                        fontWeight: 700,
+                        fontSize: '20px'
+                      }}
+                    >
+                      {t('recentLosts')}
+                    </Typography>
+                  </Box>
+                  
+                  <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 2, mb: 2 }}>
+                    <Chip 
+                      label={`${data?.totalLosts || 0} ${t('items')}`}
+                      size="small"
+                      sx={{ 
+                        backgroundColor: 'rgba(255,255,255,0.2)',
+                        color: '#fff',
+                        fontSize: '0.75rem',
+                        fontWeight: 600,
+                        height: '28px'
+                      }}
+                    />
+                    <SeeAll 
+                      foundOrlostId={lostsId} 
+                      totalItems={data?.totalLosts}
+                      variant="mobile"
+                    />
+                  </Box>
+                </Box>
+
+                {/* Desktop Layout */}
+                <Box
+                  sx={{
+                    display: { xs: 'none', sm: 'flex' },
+                    alignItems: 'center',
+                    justifyContent: 'space-between',
+                    flexDirection: currentLanguage === 'ar' ? 'row-reverse' : 'row'
+                  }}
+                >
+                  <Box sx={{ display: 'flex', alignItems: 'center', gap: 2 }}>
+                    <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+                      <Search sx={{ color: '#fff', fontSize: '28px' }} />
+                      <Typography
+                        variant="h5"
+                        sx={{
+                          color: '#fff',
+                          fontWeight: 700,
+                          fontSize: { sm: '22px', md: '24px' }
+                        }}
+                      >
+                        {t('recentLosts')}
+                      </Typography>
+                    </Box>
+                    <Chip 
+                      label={`${data?.totalLosts || 0} ${t('items')}`}
+                      size="small"
+                      sx={{ 
+                        backgroundColor: 'rgba(255,255,255,0.2)',
+                        color: '#fff',
+                        fontSize: '0.875rem',
+                        fontWeight: 600,
+                        height: '32px'
+                      }}
+                    />
+                  </Box>
+                  <SeeAll 
+                    foundOrlostId={lostsId} 
+                    totalItems={data?.totalLosts}
+                    variant="desktop"
                   />
                 </Box>
-                <SeeAll 
-                  foundOrlostId={lostsId} 
-                  totalItems={data?.totalLosts}
+              </Box>
+
+              {/* Content Section */}
+              <Box 
+                sx={{
+                  p: { xs: 2, sm: 3 },
+                  backgroundColor: theme.palette.mode === 'dark' ? '#2d2d2d' : '#fff',
+                  minHeight: '200px'
+                }}
+              >
+                <Recent 
+                  recent={data?.recentLosts}
+                  isLoading={isLoading}
+                  emptyState="NoRecentLosts"
+                  maxItems={4}
                   sx={{
-                    color: '#fff',
-                    '&:hover': {
-                      backgroundColor: 'rgba(255,255,255,0.15)'
+                    '& .MuiCard-root': {
+                      backgroundColor: theme.palette.mode === 'dark' ? '#1a1a1a' : '#fff',
+                      transition: 'all 0.3s ease',
+                      '&:hover': {
+                        transform: { xs: 'none', sm: 'translateY(-4px)' },
+                        boxShadow: theme.palette.mode === 'dark'
+                          ? '0 8px 24px rgba(0,0,0,0.4)'
+                          : '0 8px 24px rgba(0,0,0,0.1)'
+                      },
+                      height: '100%',
+                      display: 'flex',
+                      flexDirection: 'column',
+                      borderRadius: '16px',
+                      overflow: 'hidden'
                     },
-                    width: { xs: '100%', sm: 'auto' },
-                    justifyContent: { xs: 'center', sm: 'flex-end' },
-                    fontSize: { xs: '0.9rem', sm: '1rem' },
-                    minHeight: { xs: '40px', sm: 'auto' },
-                    borderRadius: 2,
-                    px: { xs: 2, sm: 3 },
-                    flex: { xs: '1 1 auto', sm: '0 0 auto' }
+                    '& .MuiCardMedia-root': {
+                      height: { xs: '180px', sm: '200px', md: '220px' },
+                      objectFit: 'cover'
+                    },
+                    '& .MuiCardContent-root': {
+                      flexGrow: 1,
+                      p: { xs: 1.5, sm: 2 }
+                    }
                   }}
                 />
               </Box>
-              <Box p={{ xs: 1.5, sm: 2 }}>
-                <FlexCenter>
-              <Recent 
-                recent={data?.recentLosts}
-                isLoading={isLoading}
-                emptyState="NoRecentLosts"
-                sx={{
-                  '& .MuiCard-root': {
-                    backgroundColor: theme.palette.mode === 'dark' ? '#2d2d2d' : '#fff',
-                    transition: 'transform 0.2s ease-in-out, box-shadow 0.2s ease-in-out',
-                    '&:hover': {
-                      transform: { xs: 'none', sm: 'translateY(-4px)' },
-                      boxShadow: theme.palette.mode === 'dark'
-                        ? '0 8px 24px rgba(0,0,0,0.4)'
-                        : '0 8px 24px rgba(0,0,0,0.1)'
-                    },
-                    height: { xs: 'auto', sm: '100%' },
-                    display: 'flex',
-                    flexDirection: 'column',
-                    borderRadius: 2
-                  },
-                  '& .MuiCardMedia-root': {
-                    height: { xs: '160px', sm: '200px', md: '220px' },
-                    objectFit: 'cover'
-                  },
-                  '& .MuiCardContent-root': {
-                    flexGrow: 1,
-                    p: { xs: 1.5, sm: 2 }
-                  },
-                  '& .MuiTypography-h6': {
-                    fontSize: { xs: '1rem', sm: '1.1rem', md: '1.25rem' },
-                    mb: { xs: 0.5, sm: 1 }
-                  },
-                  '& .MuiTypography-body2': {
-                    fontSize: { xs: '0.85rem', sm: '0.9rem', md: '1rem' }
-                  }
-                }}
-              />
-            </FlexCenter>
+            </Box>
           </Box>
-        </DashRecents>
-      </Box>
 
           {/* Section Divider */}
           <Box 

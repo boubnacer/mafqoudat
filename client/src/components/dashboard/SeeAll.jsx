@@ -11,13 +11,11 @@ import PulseLoader from "react-spinners/PulseLoader";
 import RenderIcon from "../RenderIcon";
 import { useTranslation } from "../../utils/translations";
 
-const SeeAll = ({ foundOrlostId, totalItems }) => {
+const SeeAll = ({ foundOrlostId, totalItems, variant = "desktop" }) => {
   const navigate = useNavigate();
   const dispatch = useDispatch();
   const theme = useTheme();
-  const { t } = useTranslation();
-
-  
+  const { t, currentLanguage } = useTranslation();
 
   const hanldeAddNewPost = () => navigate("/dash/posts/new");
 
@@ -31,56 +29,82 @@ const SeeAll = ({ foundOrlostId, totalItems }) => {
     dispatch(setActiveLink({ active: foundOrlostId }));
   };
 
-  const iconStyle = {
-    // color: "#000",
-    // borderRadius: "50%",
-  };
-
-  // if (!foundOrlostId || !totalItems) return <PulseLoader color={"#FFF"} />;
-
-  return (
-    <Box
-      sx={
-        totalItems > 4
-          ? {
-              position: "absolute",
-              right: "3rem",
-              // top: "12%",
-              // backgroundColor: theme.palette.primary.main,
-              borderRadius: "2px",
-              width: "10%",
-              justifyContent: "center",
-              display: "flex",
-            }
-          : {
-              width: "10%",
-              // backgroundColor: theme.palette.primary.main,
-              borderRadius: "2px",
-              justifyContent: "center",
-              display: "flex",
-            }
-      }
-    >
+  // Mobile variant styling
+  if (variant === "mobile") {
+    return (
       <Button
-        endIcon={
-          totalItems > 4 ? <RenderIcon name="seeall" /> : <Add sx={iconStyle} />
-        }
+        variant="contained"
+        size="small"
+        endIcon={totalItems > 4 ? <RenderIcon name="seeall" /> : <Add />}
         onClick={
           totalItems > 4
             ? () => hanldeSeeAllPosts({ foundOrlostId })
             : hanldeAddNewPost
         }
         sx={{
-          color: theme.palette.text.white,
-          padding: "0.5rem 1rem",
-          fontSize: "14px",
-          border: "1px solid #333333",
-          backgroundColor:theme.palette.action.main
+          backgroundColor: 'rgba(255,255,255,0.2)',
+          color: '#fff',
+          border: '1px solid rgba(255,255,255,0.3)',
+          textTransform: 'none',
+          fontSize: '0.75rem',
+          fontWeight: 600,
+          padding: '6px 12px',
+          borderRadius: '8px',
+          minWidth: 'auto',
+          backdropFilter: 'blur(10px)',
+          transition: 'all 0.3s ease',
+          '&:hover': {
+            backgroundColor: 'rgba(255,255,255,0.3)',
+            borderColor: 'rgba(255,255,255,0.5)',
+            transform: 'translateY(-1px)',
+            boxShadow: '0 4px 12px rgba(0,0,0,0.2)'
+          },
+          '& .MuiButton-endIcon': {
+            marginLeft: '4px'
+          }
         }}
       >
         {totalItems > 4 ? t('seeAll') : t('add')}
       </Button>
-    </Box>
+    );
+  }
+
+  // Desktop variant styling
+  return (
+    <Button
+      variant="contained"
+      size="medium"
+      endIcon={totalItems > 4 ? <RenderIcon name="seeall" /> : <Add />}
+      onClick={
+        totalItems > 4
+          ? () => hanldeSeeAllPosts({ foundOrlostId })
+          : hanldeAddNewPost
+      }
+      sx={{
+        backgroundColor: 'rgba(255,255,255,0.15)',
+        color: '#fff',
+        border: '1px solid rgba(255,255,255,0.3)',
+        textTransform: 'none',
+        fontSize: '0.875rem',
+        fontWeight: 600,
+        padding: '8px 16px',
+        borderRadius: '10px',
+        minWidth: 'auto',
+        backdropFilter: 'blur(10px)',
+        transition: 'all 0.3s ease',
+        '&:hover': {
+          backgroundColor: 'rgba(255,255,255,0.25)',
+          borderColor: 'rgba(255,255,255,0.5)',
+          transform: 'translateY(-2px)',
+          boxShadow: '0 6px 16px rgba(0,0,0,0.2)'
+        },
+        '& .MuiButton-endIcon': {
+          marginLeft: '6px'
+        }
+      }}
+    >
+      {totalItems > 4 ? t('seeAll') : t('add')}
+    </Button>
   );
 };
 

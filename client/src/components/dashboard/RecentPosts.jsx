@@ -225,13 +225,15 @@ const RecentPosts = ({ _id, categoryname, exactLocation, image, createdAt, count
         position: 'relative',
         boxShadow: 'none',
         border: `1px solid ${isDarkMode ? alpha('#fff', 0.08) : alpha('#000', 0.06)}`,
-        height: { xs: 'auto', sm: '420px' }, // Increased height for better responsive design
-        minHeight: { xs: '360px', sm: '420px' }, // Increased min height
+        height: { xs: 'auto', sm: '400px' }, // Slightly reduced height
+        minHeight: { xs: '320px', sm: '400px' }, // Adjusted min height
         display: 'flex',
         flexDirection: 'column',
         transition: 'all 0.3s cubic-bezier(0.4, 0, 0.2, 1)',
-        borderRadius: '20px',
+        borderRadius: '16px',
         overflow: 'hidden',
+        width: '100%', // Ensure full width
+        maxWidth: '100%', // Prevent overflow
         '&:hover': {
           transform: { xs: 'none', sm: 'translateY(-4px)' },
           boxShadow: isDarkMode
@@ -242,7 +244,7 @@ const RecentPosts = ({ _id, categoryname, exactLocation, image, createdAt, count
       }}
     >
       {/* Image Section with Overlays */}
-      <Box sx={{ position: 'relative', height: { xs: '280px', sm: '260px' } }}> {/* Increased image height */}
+      <Box sx={{ position: 'relative', height: { xs: '200px', sm: '220px', md: '240px' } }}> {/* Responsive image height */}
         <CardMedia
           component="img"
           sx={{
@@ -386,14 +388,14 @@ const RecentPosts = ({ _id, categoryname, exactLocation, image, createdAt, count
         sx={{
           display: 'flex',
           justifyContent: 'space-between',
-          p: { xs: 2, sm: 2.5 }, // Increased padding
+          p: { xs: 1.5, sm: 2 }, // Adjusted padding
           borderTop: '1px solid',
           borderColor: isDarkMode ? alpha('#fff', 0.06) : alpha('#000', 0.04),
           backgroundColor: isDarkMode ? alpha('#000', 0.2) : alpha('#f8f9fa', 0.5),
-          gap: 3,
+          gap: { xs: 1.5, sm: 2 }, // Responsive gap
           mt: 'auto',
           flexShrink: 0,
-          minHeight: '70px', // Increased min height
+          minHeight: { xs: '60px', sm: '70px' }, // Responsive min height
         }}
       >
         <Button
@@ -404,9 +406,9 @@ const RecentPosts = ({ _id, categoryname, exactLocation, image, createdAt, count
             color: theme.palette.error.main,
             borderColor: theme.palette.error.main,
             textTransform: 'none',
-            fontSize: { xs: '11px', sm: '12px' }, // Slightly larger text
+            fontSize: { xs: '10px', sm: '11px', md: '12px' }, // Responsive text size
             fontWeight: 600,
-            padding: { xs: '10px 14px', sm: '10px 14px' }, // Increased padding
+            padding: { xs: '8px 10px', sm: '10px 12px', md: '10px 14px' }, // Responsive padding
             borderRadius: '8px',
             minWidth: 'auto',
             flexShrink: 0,
@@ -416,8 +418,8 @@ const RecentPosts = ({ _id, categoryname, exactLocation, image, createdAt, count
               borderColor: theme.palette.error.main,
             },
           }}
-          startIcon={currentLanguage === 'ar' ? null : <ReportProblemOutlined sx={{ fontSize: '14px' }} />}
-          endIcon={currentLanguage === 'ar' ? <ReportProblemOutlined sx={{ fontSize: '14px', ml: 0.5 }} /> : null}
+          startIcon={currentLanguage === 'ar' ? null : <ReportProblemOutlined sx={{ fontSize: { xs: '12px', sm: '14px' } }} />}
+          endIcon={currentLanguage === 'ar' ? <ReportProblemOutlined sx={{ fontSize: { xs: '12px', sm: '14px' }, ml: 0.5 }} /> : null}
         >
           {t('report')}
         </Button>
@@ -429,9 +431,9 @@ const RecentPosts = ({ _id, categoryname, exactLocation, image, createdAt, count
             background: `linear-gradient(135deg, ${theme.palette.primary.main} 0%, ${theme.palette.primary.dark} 100%)`,
             color: '#fff',
             textTransform: 'none',
-            fontSize: { xs: '11px', sm: '12px' }, // Slightly larger text
+            fontSize: { xs: '10px', sm: '11px', md: '12px' }, // Responsive text size
             fontWeight: 700,
-            padding: { xs: '10px 14px', sm: '10px 14px' }, // Increased padding
+            padding: { xs: '8px 10px', sm: '10px 12px', md: '10px 14px' }, // Responsive padding
             borderRadius: '8px',
             minWidth: 'auto',
             flexShrink: 0,
@@ -443,8 +445,8 @@ const RecentPosts = ({ _id, categoryname, exactLocation, image, createdAt, count
               boxShadow: `0 4px 12px ${alpha(theme.palette.primary.main, 0.4)}`,
             },
           }}
-          startIcon={currentLanguage === 'ar' ? <ArrowIcon sx={{ fontSize: '14px', transform: 'scaleX(-1)', mr: 0.5 }} /> : null}
-          endIcon={currentLanguage === 'ar' ? null : <ArrowIcon sx={{ fontSize: '14px' }} />}
+          startIcon={currentLanguage === 'ar' ? <ArrowIcon sx={{ fontSize: { xs: '12px', sm: '14px' }, transform: 'scaleX(-1)', mr: 0.5 }} /> : null}
+          endIcon={currentLanguage === 'ar' ? null : <ArrowIcon sx={{ fontSize: { xs: '12px', sm: '14px' } }} />}
         >
           {t('viewDetails')}
         </Button>
