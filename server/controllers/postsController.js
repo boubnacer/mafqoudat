@@ -113,20 +113,8 @@ const getAllPosts = async (req, res) => {
         country: 1,
         exactLocation: 1,
         city: 1,
-        cityName: { 
-          $cond: {
-            if: { $eq: [{ $type: "$city" }, "objectId"] },
-            then: { $ifNull: ["$City.labels.en", "$city"] },
-            else: "$city"
-          }
-        },
-        cityLabels: { 
-          $cond: {
-            if: { $eq: [{ $type: "$city" }, "objectId"] },
-            then: { $ifNull: ["$City.labels", null] },
-            else: null
-          }
-        },
+        cityName: { $ifNull: ["$City.labels.en", null] },
+        cityLabels: { $ifNull: ["$City.labels", null] },
         returned: 1,
         createdAt: 1,
         updatedAt: 1,
@@ -249,20 +237,8 @@ const getPost = async (req, res) => {
           country: 1,
           exactLocation: 1,
           city: 1,
-          cityName: { 
-            $cond: {
-              if: { $eq: [{ $type: "$city" }, "objectId"] },
-              then: { $ifNull: ["$City.labels.en", "$city"] },
-              else: "$city"
-            }
-          },
-          cityLabels: { 
-            $cond: {
-              if: { $eq: [{ $type: "$city" }, "objectId"] },
-              then: { $ifNull: ["$City.labels", null] },
-              else: null
-            }
-          },
+          cityName: { $ifNull: ["$City.labels.en", null] },
+          cityLabels: { $ifNull: ["$City.labels", null] },
           returned: 1,
           createdAt: 1,
           updatedAt: 1,
@@ -477,10 +453,29 @@ const createNewPost = async (req, res) => {
      console.log('🔍 DEBUG: Setting city to ObjectId:', cityId);
      postData.city = cityId;
    } else if (city) {
-     // If we have a city value but no valid cityId, store it directly in city field
-     console.log('🔍 DEBUG: Setting city to custom city name:', city);
-     // Store custom city names directly in the city field as strings
-     postData.city = city;
+     // If we have a city value but no valid cityId, create a new city record
+     console.log('🔍 DEBUG: Creating new city record for:', city);
+     try {
+       // Create a new city record for the custom city name
+       const newCity = await City.create({
+         code: city.toUpperCase().replace(/\s+/g, '_'),
+         country: country,
+         labels: {
+           en: city,
+           fr: city,
+           ar: city
+         },
+         isDynamic: true, // Mark as dynamically created
+         searchTerms: [city.toLowerCase()]
+       });
+       
+       console.log('🔍 DEBUG: New city created with ID:', newCity._id);
+       postData.city = newCity._id; // Use the new city's ObjectId
+     } catch (cityCreationError) {
+       console.error('🔍 DEBUG: Error creating city:', cityCreationError);
+       // If city creation fails, fall back to storing as string
+       postData.city = city;
+     }
    } else {
      console.log('🔍 DEBUG: No city handling applied - cityId:', cityId, 'city:', city);
    }

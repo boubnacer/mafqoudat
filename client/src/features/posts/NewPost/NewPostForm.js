@@ -201,6 +201,13 @@ const NewPostForm = ({ user, countries, categories, flOptions }) => {
     return option?.code || 'FOUND';
   };
 
+  // Get city display name for selected city
+  const getCityDisplayName = (cityId) => {
+    if (!cityId) return '';
+    const city = cities.find(c => c.id === cityId);
+    return city ? (city.label || city.code || city.name || 'Unknown City') : cityId;
+  };
+
   // Handle "Other" city option
   const handleOtherCityClick = () => {
     setShowCustomCityInput(true);
@@ -383,6 +390,11 @@ const NewPostForm = ({ user, countries, categories, flOptions }) => {
                         value={values.city || ""}
                         label={t('chooseCity')}
                         onChange={(e) => setFieldValue('city', e.target.value)}
+                        displayEmpty
+                        renderValue={(selected) => {
+                          if (!selected) return t('chooseCity');
+                          return getCityDisplayName(selected);
+                        }}
                         disableUnderline
                         sx={{
                           borderRadius: 2,
@@ -482,6 +494,13 @@ const NewPostForm = ({ user, countries, categories, flOptions }) => {
                             if (customCityName.trim()) {
                               setFieldValue('city', customCityName.trim());
                               setShowCustomCityInput(false);
+                              // Add the custom city to the cities list so it shows in the dropdown
+                              const customCity = {
+                                id: customCityName.trim(),
+                                label: customCityName.trim(),
+                                isDynamic: true
+                              };
+                              setCities(prevCities => [...prevCities, customCity]);
                             }
                           }}
                           disabled={!customCityName.trim()}
