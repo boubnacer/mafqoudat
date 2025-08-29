@@ -59,15 +59,17 @@ The custom city functionality has been completely fixed to address two main issu
 After deployment, you should see:
 
 ### ✅ **Working Features:**
-- Custom city names are properly saved to database
+- Custom city names are properly saved to database with translations
 - Users can see their selected custom city name in the form
 - Custom cities appear in the dropdown for future posts
 - Posts are created successfully with custom cities
-- Custom cities are searchable and translatable
+- Custom cities are searchable and properly translated in all languages
 
 ### 📊 **Log Messages to Look For:**
 ```
 🔍 DEBUG: Creating new city record for: [city name]
+🔍 DEBUG: Translating custom city name: [city name]
+🔍 DEBUG: Translation result: {en: "...", fr: "...", ar: "..."}
 🔍 DEBUG: New city created with ID: [ObjectId]
 🔍 DEBUG: Setting city to ObjectId: [ObjectId]
 ```

@@ -6,6 +6,7 @@ const FoundLost = require("../models/FoundLost");
 const City = require("../models/City");
 const { deleteFromCloudinary } = require("../config/cloudinary");
 const mongoose = require("mongoose");
+const TranslationService = require("../services/translationService");
 // const getCountryIso3 = require("country-iso-2-to-3");
 const getCountryIso3 = require("country-iso-2-to-3");
 
@@ -456,14 +457,20 @@ const createNewPost = async (req, res) => {
      // If we have a city value but no valid cityId, create a new city record
      console.log('🔍 DEBUG: Creating new city record for:', city);
      try {
-       // Create a new city record for the custom city name
+       // Use translation service to get proper translations for the custom city
+       console.log('🔍 DEBUG: Translating custom city name:', city);
+       const translations = await TranslationService.translateCityName(city, 'en');
+       
+       console.log('🔍 DEBUG: Translation result:', translations);
+       
+       // Create a new city record for the custom city name with translations
        const newCity = await City.create({
          code: city.toUpperCase().replace(/\s+/g, '_'),
          country: country,
          labels: {
-           en: city,
-           fr: city,
-           ar: city
+           en: translations.en || city,
+           fr: translations.fr || city,
+           ar: translations.ar || city
          },
          isDynamic: true, // Mark as dynamically created
          searchTerms: [city.toLowerCase()]

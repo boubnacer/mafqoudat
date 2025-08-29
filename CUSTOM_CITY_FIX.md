@@ -9,7 +9,7 @@
 - Modified `createNewPost` in `postsController.js` to create new city records for custom cities
 - Custom cities are now saved with:
   - `code`: Uppercase city name with spaces replaced by underscores
-  - `labels`: Multilingual labels (en, fr, ar) all set to the custom city name
+  - `labels`: Multilingual labels (en, fr, ar) using the translation service for proper translations
   - `isDynamic`: Set to `true` to mark as user-created
   - `searchTerms`: Array containing the lowercase city name for search
   - `country`: Reference to the selected country
@@ -35,12 +35,17 @@
 
 ### Server-side (`server/controllers/postsController.js`)
 ```javascript
-// Custom city creation logic
+// Custom city creation logic with translation
 if (city && !cityId) {
+  const translations = await TranslationService.translateCityName(city, 'en');
   const newCity = await City.create({
     code: city.toUpperCase().replace(/\s+/g, '_'),
     country: country,
-    labels: { en: city, fr: city, ar: city },
+    labels: {
+      en: translations.en || city,
+      fr: translations.fr || city,
+      ar: translations.ar || city
+    },
     isDynamic: true,
     searchTerms: [city.toLowerCase()]
   });
