@@ -717,11 +717,11 @@ const NewPostForm = ({ user, countries, categories, flOptions }) => {
              boxShadow: theme.shadows[8]
            }
          }}
-         BackdropProps={{
-           sx: {
-             backgroundColor: 'rgba(0, 0, 0, 0.3)'
-           }
-         }}
+                   BackdropProps={{
+            sx: {
+              backgroundColor: 'transparent'
+            }
+          }}
        >
         <DialogTitle
           sx={{
