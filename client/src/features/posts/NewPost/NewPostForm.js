@@ -49,6 +49,7 @@ const NewPostForm = ({ user, countries, categories, flOptions }) => {
   const [loadingCities, setLoadingCities] = useState(false);
   const [showCustomCityInput, setShowCustomCityInput] = useState(false);
   const [customCityName, setCustomCityName] = useState("");
+  const [selectedCustomCity, setSelectedCustomCity] = useState("");
 
   useEffect(() => {
     if (isSuccess) {
@@ -681,7 +682,7 @@ const NewPostForm = ({ user, countries, categories, flOptions }) => {
             
             {/* Custom City Dialog */}
             <Dialog
-         open={showCustomCityInput}
+              open={showCustomCityInput}
          onClose={() => {
            setShowCustomCityInput(false);
            setCustomCityName("");
