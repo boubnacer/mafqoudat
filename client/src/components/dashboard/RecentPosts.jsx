@@ -370,12 +370,7 @@ const RecentPosts = ({ _id, categoryname, exactLocation, image, createdAt, count
             // Force remove any margin that might cause gaps
             margin: 0,
             marginTop: 0,
-            marginBottom: 0,
-            // Additional override to ensure no gap
-            padding: '0 !important',
-            '&:first-of-type': {
-              paddingTop: '0 !important'
-            }
+            marginBottom: 0
           }}
         >
         {/* Location Info - Only City */}
