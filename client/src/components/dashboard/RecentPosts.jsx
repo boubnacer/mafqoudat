@@ -350,7 +350,9 @@ const RecentPosts = ({ _id, categoryname, exactLocation, image, createdAt, count
        <CardContent 
          sx={{ 
            flexGrow: 1, 
-           p: { xs: 2.5, sm: 3 }, // Increased padding
+           pt: { xs: 1.5, sm: 2 }, // Reduced top padding to remove margin
+           pb: { xs: 2.5, sm: 3 }, // Keep bottom padding
+           px: { xs: 2.5, sm: 3 }, // Keep horizontal padding
            display: 'flex',
            flexDirection: 'column',
            gap: 2, // Increased gap
