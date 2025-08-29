@@ -354,21 +354,18 @@ const Dash = () => {
                     <Box sx={{ 
                       display: 'flex', 
                       alignItems: 'center', 
-                      gap: 1,
-                      flexDirection: currentLanguage === 'ar' ? 'row-reverse' : 'row'
+                      gap: 1
                     }}>
                       <WhatshotOutlined sx={{ 
                         color: '#FFA500', 
-                        fontSize: '28px',
-                        order: currentLanguage === 'ar' ? 2 : 1
+                        fontSize: '28px'
                       }} />
                       <Typography
                         variant="h5"
                         sx={{
                           color: '#fff',
                           fontWeight: 700,
-                          fontSize: { sm: '22px', md: '24px' },
-                          order: currentLanguage === 'ar' ? 1 : 2
+                          fontSize: { sm: '22px', md: '24px' }
                         }}
                       >
                         {t('recentFounds')}
@@ -553,21 +550,18 @@ const Dash = () => {
                     <Box sx={{ 
                       display: 'flex', 
                       alignItems: 'center', 
-                      gap: 1,
-                      flexDirection: currentLanguage === 'ar' ? 'row-reverse' : 'row'
+                      gap: 1
                     }}>
                       <Search sx={{ 
                         color: '#fff', 
-                        fontSize: '28px',
-                        order: currentLanguage === 'ar' ? 2 : 1
+                        fontSize: '28px'
                       }} />
                       <Typography
                         variant="h5"
                         sx={{
                           color: '#fff',
                           fontWeight: 700,
-                          fontSize: { sm: '22px', md: '24px' },
-                          order: currentLanguage === 'ar' ? 1 : 2
+                          fontSize: { sm: '22px', md: '24px' }
                         }}
                       >
                         {t('recentLosts')}
