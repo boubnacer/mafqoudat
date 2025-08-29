@@ -678,12 +678,9 @@ const NewPostForm = ({ user, countries, categories, flOptions }) => {
                 </Box>
               </Box>
             </Form>
-          )}
-        </Formik>
-      </Paper>
-      
-             {/* Custom City Dialog */}
-       <Dialog
+            
+            {/* Custom City Dialog */}
+            <Dialog
          open={showCustomCityInput}
          onClose={() => {
            setShowCustomCityInput(false);
@@ -695,14 +692,12 @@ const NewPostForm = ({ user, countries, categories, flOptions }) => {
            sx: {
              borderRadius: 3,
              background: theme.palette.background.paper,
-             boxShadow: theme.shadows[8],
-             opacity: 1
+             boxShadow: theme.shadows[8]
            }
          }}
          BackdropProps={{
            sx: {
-             backgroundColor: 'rgba(0, 0, 0, 0.5)',
-             opacity: 1
+             backgroundColor: 'rgba(0, 0, 0, 0.5)'
            }
          }}
        >
