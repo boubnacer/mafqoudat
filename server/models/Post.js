@@ -112,9 +112,22 @@ const postSchema = new mongoose.Schema(
     },
     // Additional useful fields
     city: {
-      type: mongoose.Schema.Types.ObjectId,
+      type: mongoose.Schema.Types.Mixed,
       ref: "City",
       required: false,
+      // Support both ObjectId references and string values for custom cities
+      validate: {
+        validator: function(value) {
+          // Allow null/undefined
+          if (!value) return true;
+          // Allow ObjectId
+          if (mongoose.Types.ObjectId.isValid(value)) return true;
+          // Allow string (for custom city names)
+          if (typeof value === 'string') return true;
+          return false;
+        },
+        message: 'City must be either a valid ObjectId or a string'
+      }
     },
     exactLocation: {
       type: String,

@@ -113,8 +113,20 @@ const getAllPosts = async (req, res) => {
         country: 1,
         exactLocation: 1,
         city: 1,
-        cityName: { $ifNull: ["$City.labels.en", null] },
-        cityLabels: { $ifNull: ["$City.labels", null] },
+        cityName: { 
+          $cond: {
+            if: { $eq: [{ $type: "$city" }, "objectId"] },
+            then: { $ifNull: ["$City.labels.en", "$city"] },
+            else: "$city"
+          }
+        },
+        cityLabels: { 
+          $cond: {
+            if: { $eq: [{ $type: "$city" }, "objectId"] },
+            then: { $ifNull: ["$City.labels", null] },
+            else: null
+          }
+        },
         returned: 1,
         createdAt: 1,
         updatedAt: 1,
@@ -237,8 +249,20 @@ const getPost = async (req, res) => {
           country: 1,
           exactLocation: 1,
           city: 1,
-          cityName: "$City.labels.en",
-          cityLabels: "$City.labels",
+          cityName: { 
+            $cond: {
+              if: { $eq: [{ $type: "$city" }, "objectId"] },
+              then: { $ifNull: ["$City.labels.en", "$city"] },
+              else: "$city"
+            }
+          },
+          cityLabels: { 
+            $cond: {
+              if: { $eq: [{ $type: "$city" }, "objectId"] },
+              then: { $ifNull: ["$City.labels", null] },
+              else: null
+            }
+          },
           returned: 1,
           createdAt: 1,
           updatedAt: 1,
