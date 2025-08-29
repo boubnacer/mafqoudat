@@ -349,8 +349,7 @@ const Dash = () => {
                   <Box sx={{ 
                     display: 'flex', 
                     alignItems: 'center', 
-                    gap: 2,
-                    flexDirection: currentLanguage === 'ar' ? 'row-reverse' : 'row'
+                    gap: 2
                   }}>
                     <Box sx={{ 
                       display: 'flex', 
@@ -383,8 +382,7 @@ const Dash = () => {
                         color: '#fff',
                         fontSize: '0.875rem',
                         fontWeight: 600,
-                        height: '32px',
-                        order: currentLanguage === 'ar' ? 1 : 2
+                        height: '32px'
                       }}
                     />
                   </Box>
@@ -550,8 +548,7 @@ const Dash = () => {
                   <Box sx={{ 
                     display: 'flex', 
                     alignItems: 'center', 
-                    gap: 2,
-                    flexDirection: currentLanguage === 'ar' ? 'row-reverse' : 'row'
+                    gap: 2
                   }}>
                     <Box sx={{ 
                       display: 'flex', 
@@ -584,8 +581,7 @@ const Dash = () => {
                         color: '#fff',
                         fontSize: '0.875rem',
                         fontWeight: 600,
-                        height: '32px',
-                        order: currentLanguage === 'ar' ? 1 : 2
+                        height: '32px'
                       }}
                     />
                   </Box>
