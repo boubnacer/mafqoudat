@@ -316,21 +316,20 @@ const Dash = () => {
                      gap: 2,
                      flexDirection: currentLanguage === 'ar' ? 'row-reverse' : 'row'
                    }}>
-                     {(data?.totalFounds && data?.totalFounds > 0) && (
-                       <Chip 
-                         label={`${data?.totalFounds} ${t('items')}`}
-                         size="small"
-                         sx={{ 
-                           backgroundColor: 'rgba(255,255,255,0.2)',
-                           color: '#fff',
-                           fontSize: '0.75rem',
-                           fontWeight: 600,
-                           height: '28px',
-                           order: currentLanguage === 'ar' ? 2 : 1,
-                           display: { xs: 'none', sm: 'flex' } // Hide on mobile
-                         }}
-                       />
-                     )}
+                     {/* Show chip on desktop always, but hide on mobile when 0 items */}
+                     <Chip 
+                       label={`${data?.totalFounds || 0} ${t('items')}`}
+                       size="small"
+                       sx={{ 
+                         backgroundColor: 'rgba(255,255,255,0.2)',
+                         color: '#fff',
+                         fontSize: '0.75rem',
+                         fontWeight: 600,
+                         height: '28px',
+                         order: currentLanguage === 'ar' ? 2 : 1,
+                         display: { xs: 'none', sm: 'flex' } // Hide on mobile
+                       }}
+                     />
                      {/* Show "+add" button inline only when no posts */}
                      {(!data?.totalFounds || data?.totalFounds <= 4) && (
                        <SeeAll 
@@ -377,9 +376,9 @@ const Dash = () => {
                         {t('recentFounds')}
                       </Typography>
                     </Box>
-                                         {(data?.totalFounds && data?.totalFounds > 0) && (
+                                         {/* Show chip on desktop always */}
                        <Chip 
-                         label={`${data?.totalFounds} ${t('items')}`}
+                         label={`${data?.totalFounds || 0} ${t('items')}`}
                          size="small"
                          sx={{ 
                            backgroundColor: 'rgba(255,255,255,0.2)',
@@ -389,7 +388,6 @@ const Dash = () => {
                            height: '32px'
                          }}
                        />
-                     )}
                   </Box>
                   <Box sx={{ order: currentLanguage === 'ar' ? 1 : 2 }}>
                     <SeeAll 
@@ -543,21 +541,20 @@ const Dash = () => {
                      gap: 2,
                      flexDirection: currentLanguage === 'ar' ? 'row-reverse' : 'row'
                    }}>
-                     {(data?.totalLosts && data?.totalLosts > 0) && (
-                       <Chip 
-                         label={`${data?.totalLosts} ${t('items')}`}
-                         size="small"
-                         sx={{ 
-                           backgroundColor: 'rgba(255,255,255,0.2)',
-                           color: '#fff',
-                           fontSize: '0.75rem',
-                           fontWeight: 600,
-                           height: '28px',
-                           order: currentLanguage === 'ar' ? 2 : 1,
-                           display: { xs: 'none', sm: 'flex' } // Hide on mobile
-                         }}
-                       />
-                     )}
+                     {/* Show chip on desktop always, but hide on mobile when 0 items */}
+                     <Chip 
+                       label={`${data?.totalLosts || 0} ${t('items')}`}
+                       size="small"
+                       sx={{ 
+                         backgroundColor: 'rgba(255,255,255,0.2)',
+                         color: '#fff',
+                         fontSize: '0.75rem',
+                         fontWeight: 600,
+                         height: '28px',
+                         order: currentLanguage === 'ar' ? 2 : 1,
+                         display: { xs: 'none', sm: 'flex' } // Hide on mobile
+                       }}
+                     />
                      {/* Show "+add" button inline only when no posts */}
                      {(!data?.totalLosts || data?.totalLosts <= 4) && (
                        <SeeAll 
@@ -604,9 +601,9 @@ const Dash = () => {
                         {t('recentLosts')}
                       </Typography>
                     </Box>
-                                         {(data?.totalLosts && data?.totalLosts > 0) && (
+                                         {/* Show chip on desktop always */}
                        <Chip 
-                         label={`${data?.totalLosts} ${t('items')}`}
+                         label={`${data?.totalLosts || 0} ${t('items')}`}
                          size="small"
                          sx={{ 
                            backgroundColor: 'rgba(255,255,255,0.2)',
@@ -616,7 +613,6 @@ const Dash = () => {
                            height: '32px'
                          }}
                        />
-                     )}
                   </Box>
                   <Box sx={{ order: currentLanguage === 'ar' ? 1 : 2 }}>
                     <SeeAll 
