@@ -54,6 +54,8 @@ const SeeAll = ({ foundOrlostId, totalItems, variant = "desktop" }) => {
           padding: '8px 16px',
           borderRadius: '12px',
           minWidth: 'auto',
+          width: '100%', // Full width for mobile
+          maxWidth: '200px', // Limit maximum width
           boxShadow: totalItems > 4
             ? '0 4px 15px rgba(102, 126, 234, 0.4)'
             : '0 4px 15px rgba(245, 87, 108, 0.4)',
