@@ -61,9 +61,11 @@ const NavLinks = ({ onLinkClick }) => {
     dispatch(setFoundOrLost({ foundOrlost: link.flcode }));
     dispatch(setActiveLink({ active: link.title }));
     
-    // Navigate to posts with filter parameter
-    const filterParam = link.flcode ? `?filter=${link.flcode}` : '';
-    navigate(`/dash/posts${filterParam}`);
+    // Also set in localStorage for immediate access
+    localStorage.setItem('currentFilter', link.flcode);
+    
+    // Navigate to posts
+    navigate("/dash/posts");
     
     // Close mobile menu if callback provided
     if (onLinkClick) {
