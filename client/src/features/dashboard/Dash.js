@@ -407,8 +407,8 @@ const Dash = () => {
                   minHeight: '200px'
                 }}
               >
-                                 <Recent 
-                   recent={data?.recentFounds}
+                <Recent 
+                  recent={data?.recentFounds}
                    isLoading={isLoading}
                    emptyState="NoRecentFounds"
                    maxItems={4}
@@ -630,8 +630,8 @@ const Dash = () => {
                   minHeight: '200px'
                 }}
               >
-                                 <Recent 
-                   recent={data?.recentLosts}
+                <Recent 
+                  recent={data?.recentLosts}
                    isLoading={isLoading}
                    emptyState="NoRecentLosts"
                    maxItems={4}
