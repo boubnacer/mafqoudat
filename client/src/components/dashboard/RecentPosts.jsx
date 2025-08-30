@@ -16,6 +16,7 @@ import ma from "../../img/ma.jpg";
 import { useNavigate } from "react-router-dom";
 import RenderIcon from "../RenderIcon";
 import { useTranslation } from "../../utils/translations";
+import { getOptimizedImageUrl } from "../../utils/cloudinaryUtils";
 import { 
   LocationOn as LocationIcon,
   CalendarToday as CalendarIcon,
@@ -251,7 +252,7 @@ const RecentPosts = ({ _id, categoryname, exactLocation, image, createdAt, count
               objectFit: 'cover',
               objectPosition: 'center',
             }}
-            image={image ? (image.startsWith('http') ? image : `${API_BASE_URL}/${image}`) : ma}
+            image={image ? (image.startsWith('http') ? getOptimizedImageUrl(image, 'card') : `${API_BASE_URL}/${image}`) : ma}
             title={categoryname}
             onError={(e) => {
               e.target.src = ma;

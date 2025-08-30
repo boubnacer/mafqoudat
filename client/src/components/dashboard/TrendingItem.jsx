@@ -15,6 +15,7 @@ import FlexBetween from "../FlexBetween";
 import RenderIcon from "../RenderIcon";
 import { TrendingItemSkeleton, DashboardEmptyStates } from "../LoadingStates";
 import { useTranslation } from "../../utils/translations";
+import { getOptimizedImageUrl } from "../../utils/cloudinaryUtils";
 import ma from "../../img/ma.jpg";
 
 // Get the API base URL for image construction
@@ -50,7 +51,7 @@ const TrendingItem = ({ trend, isLoading }) => {
   const displayCityName = getCityName();
 
   // Debug logging
-  const finalImageUrl = image ? (image.startsWith('http') ? image : `${API_BASE_URL}/${image}`) : ma;
+  const finalImageUrl = image ? (image.startsWith('http') ? getOptimizedImageUrl(image, 'hero') : `${API_BASE_URL}/${image}`) : ma;
   console.log('TrendingItem data:', { 
     trend, 
     trendData, 

@@ -3,6 +3,7 @@ import { Link, useNavigate } from "react-router-dom";
 import defaultImage from "../../../img/ma.jpg";
 import "./sponsored.css";
 import { useTranslation } from "../../utils/translations";
+import { getOptimizedImageUrl } from "../../utils/cloudinaryUtils";
 import ReportDialog from "../ReportDialog";
 import { useSubmitReportMutation } from "../../features/posts/reportsApiSlice";
 import useAuth from "../../hooks/useAuth";
@@ -66,7 +67,7 @@ const Sponsored = ({ post }) => {
         </div>
         <div className="card__img">
           <img 
-            src={post.image || defaultImage} 
+            src={post.image ? (post.image.startsWith('http') ? getOptimizedImageUrl(post.image, 'card') : post.image) : defaultImage} 
             alt={`${post.category} - ${post.region}`}
             onError={(e) => {
               e.target.src = defaultImage;

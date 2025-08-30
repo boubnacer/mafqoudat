@@ -41,6 +41,7 @@ import {
 import FlexBetween from "../../../components/FlexBetween";
 import { useTranslation } from "../../../utils/translations";
 import { getLabel, isRTL } from "../../../utils/languageUtils";
+import { getOptimizedImageUrl } from "../../../utils/cloudinaryUtils";
 import { formatDistanceToNow } from 'date-fns';
 import { ar, fr, enUS } from 'date-fns/locale';
 import RenderIcon from "../../../components/RenderIcon";
@@ -324,7 +325,7 @@ const Post = ({ post, viewMode = "grid" }) => {
                   objectFit: 'cover',
                   objectPosition: 'center'
                 }}
-                image={post.image ? (post.image.startsWith('http') ? post.image : `${API_BASE_URL}/${post.image}`) : ma}
+                image={post.image ? (post.image.startsWith('http') ? getOptimizedImageUrl(post.image, 'card') : `${API_BASE_URL}/${post.image}`) : ma}
                 title={categoryName || 'Item Image'}
                 onError={(e) => {
                   e.target.src = ma;
@@ -516,7 +517,7 @@ const Post = ({ post, viewMode = "grid" }) => {
               objectFit: 'cover',
               objectPosition: 'center',
             }}
-            image={post.image ? (post.image.startsWith('http') ? post.image : `${API_BASE_URL}/${post.image}`) : ma}
+            image={post.image ? (post.image.startsWith('http') ? getOptimizedImageUrl(post.image, 'card') : `${API_BASE_URL}/${post.image}`) : ma}
             title={categoryName || 'Item Image'}
             onError={(e) => {
               e.target.src = ma;
