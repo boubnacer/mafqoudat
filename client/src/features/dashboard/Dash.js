@@ -343,7 +343,8 @@ const Dash = () => {
                   <Box sx={{ 
                     display: 'flex', 
                     alignItems: 'center', 
-                    gap: 2
+                    gap: 2,
+                    order: currentLanguage === 'ar' ? 2 : 1
                   }}>
                     <Box sx={{ 
                       display: 'flex', 
@@ -377,11 +378,13 @@ const Dash = () => {
                       }}
                     />
                   </Box>
-                  <SeeAll 
-                    foundOrlostId={foundsId} 
-                    totalItems={data?.totalFounds}
-                    variant="desktop"
-                  />
+                  <Box sx={{ order: currentLanguage === 'ar' ? 1 : 2 }}>
+                    <SeeAll 
+                      foundOrlostId={foundsId} 
+                      totalItems={data?.totalFounds}
+                      variant="desktop"
+                    />
+                  </Box>
                 </Box>
               </Box>
 
@@ -550,7 +553,8 @@ const Dash = () => {
                   <Box sx={{ 
                     display: 'flex', 
                     alignItems: 'center', 
-                    gap: 2
+                    gap: 2,
+                    order: currentLanguage === 'ar' ? 2 : 1
                   }}>
                     <Box sx={{ 
                       display: 'flex', 
@@ -584,11 +588,13 @@ const Dash = () => {
                       }}
                     />
                   </Box>
-                  <SeeAll 
-                    foundOrlostId={lostsId} 
-                    totalItems={data?.totalLosts}
-                    variant="desktop"
-                  />
+                  <Box sx={{ order: currentLanguage === 'ar' ? 1 : 2 }}>
+                    <SeeAll 
+                      foundOrlostId={lostsId} 
+                      totalItems={data?.totalLosts}
+                      variant="desktop"
+                    />
+                  </Box>
                 </Box>
               </Box>
 
