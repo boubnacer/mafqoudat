@@ -9,28 +9,22 @@ import {
   alpha,
 } from "@mui/material";
 import React from "react";
-import { useEffect } from "react";
 import { useDispatch, useSelector } from "react-redux";
 import { useLocation, useNavigate } from "react-router-dom";
 import {
   selectActiveLink,
-  selectFoundOrLost,
   setActiveLink,
-  setFoundOrLost,
 } from "../app/state";
 import RenderIcon from "./RenderIcon";
 import { useTranslation } from "../utils/translations";
 
 const NavLinks = ({ onLinkClick }) => {
   const theme = useTheme();
-  const { t, currentLanguage } = useTranslation();
+  const { t } = useTranslation();
 
   const dispatch = useDispatch();
   const navigate = useNavigate();
-  const { pathname, search } = useLocation();
-
   const activeLink = useSelector(selectActiveLink);
-  const foundOrlost = useSelector(selectFoundOrLost);
 
   // Simple hardcoded navigation links
   const navlinks = [
@@ -55,17 +49,14 @@ const NavLinks = ({ onLinkClick }) => {
   ];
 
   const handleLinkClick = (link) => {
-    console.log('NavLinks: Clicking on', link.title, 'with flcode:', link.flcode);
-    
-    // Set Redux state
-    dispatch(setFoundOrLost({ foundOrlost: link.flcode }));
+    // Set active link
     dispatch(setActiveLink({ active: link.title }));
     
-    // Navigate with direct query parameter
+    // Navigate with filter parameter
     if (link.flcode) {
-      navigate(`/dash/posts?fl=${link.flcode}`);
+      window.location.href = `/dash/posts?fl=${link.flcode}`;
     } else {
-      navigate("/dash/posts");
+      window.location.href = "/dash/posts";
     }
     
     // Close mobile menu if callback provided
@@ -93,7 +84,7 @@ const NavLinks = ({ onLinkClick }) => {
         maxWidth: onLinkClick ? "100%" : "fit-content",
         border: onLinkClick ? 'none' : `1px solid ${alpha(theme.palette.divider, 0.1)}`,
         flexDirection: onLinkClick ? "column" : "row",
-        direction: currentLanguage === 'ar' ? 'rtl' : 'ltr',
+        direction: t("currentLanguage") === 'ar' ? 'rtl' : 'ltr',
       }}
     >
       {navlinks.map(({ title, flcode, tooltip, icon }) => (

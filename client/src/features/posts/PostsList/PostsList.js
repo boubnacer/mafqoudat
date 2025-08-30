@@ -145,9 +145,7 @@ const PostsList = () => {
   });
 
   // Use URL query parameter directly
-  const effectiveFl = urlFilter || fl;
-  
-  console.log('PostsList: urlFilter:', urlFilter, 'fl:', fl, 'effectiveFl:', effectiveFl);
+  const effectiveFl = urlFilter || '';
 
   const { data, isLoading, isSuccess, isError, error } = useGetPostsQuery({
     page,
@@ -171,40 +169,7 @@ const PostsList = () => {
     refetchOnReconnect: false
   });
 
-  // Debug API call
-  console.log('PostsList API Query:', {
-    page,
-    pageSize,
-    urlFilter,
-    fl,
-    effectiveFl,
-    flWillBeSent: effectiveFl || "not sent",
-    currentCountry,
-    search: debouncedSearchTerm || undefined,
-    categoryId: localCategoryFilter !== "all" ? localCategoryFilter : undefined,
-    language: currentLanguage,
-    skip: !storeReady || !currentCountry || categoriesLoading,
-    storeReady,
-    categoriesLoading,
-    foundOrlostFromRedux: foundOrlost,
-    queryKey: `${page}-${pageSize}-${effectiveFl || 'all'}-${currentCountry}-${localCategoryFilter}-${debouncedSearchTerm}-${currentLanguage}`,
-    // Add more debugging
-    flType: typeof effectiveFl,
-    flLength: effectiveFl ? effectiveFl.length : 0,
-    flIsValidId: effectiveFl ? /^[0-9a-fA-F]{24}$/.test(effectiveFl) : false,
-    // Add Redux state debugging
-    reduxFoundOrlost: foundOrlost,
-    reduxActiveLink: activeLink,
-    localStorageState: localStorage.getItem('globalState')
-  });
 
-  console.log('PostsList API Response:', {
-    data,
-    isLoading,
-    isSuccess,
-    isError,
-    error: error?.data?.message || error?.message
-  });
 
   // Add timeout for loading states - MOVED AFTER query hooks
   useEffect(() => {

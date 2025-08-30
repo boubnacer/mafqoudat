@@ -43,17 +43,11 @@ const getAllPosts = async (req, res) => {
   let totalPosts;
   let match = {};
 
-  console.log('Posts controller - fl parameter:', {
-    fl: req.query.fl,
-    hasFl: req.query.fl && req.query.fl !== '',
-    flType: typeof req.query.fl,
-    allQueryParams: req.query
-  });
+
   
   // Only filter if fl is provided and not empty
   if (req.query.fl && req.query.fl !== '') {
     match.foundLost = new mongoose.Types.ObjectId(req.query.fl);
-    console.log('Posts controller - added foundLost filter:', match.foundLost);
   }
 
   if (req.query.categoryId) {
