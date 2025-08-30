@@ -17,7 +17,7 @@ const Recent = ({ recent, isLoading, emptyState = "NoRecentFounds", maxItems, sx
     <Box
       width="100%"
       display="grid"
-      gap="1.5rem"
+      gap={3}
       sx={{
         gridTemplateColumns: {
           xs: "repeat(1, 1fr)", // Single column on mobile
@@ -26,10 +26,10 @@ const Recent = ({ recent, isLoading, emptyState = "NoRecentFounds", maxItems, sx
           lg: "repeat(4, 1fr)", // Four columns on large screens
           xl: "repeat(4, 1fr)", // Four columns on extra large screens
         },
-        // Ensure proper spacing and prevent overflow
+        // Ensure minimum card width for better readability (matching PostsList)
         '& > *': {
-          minWidth: 0, // Allow cards to shrink
-          maxWidth: '100%',
+          minWidth: { xs: '280px', sm: '300px' },
+          maxWidth: { xs: '100%', sm: '400px' },
           justifySelf: 'center',
         },
         // Prevent horizontal overflow
