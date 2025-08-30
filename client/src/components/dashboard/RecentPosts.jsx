@@ -220,275 +220,254 @@ const RecentPosts = ({ _id, categoryname, exactLocation, image, createdAt, count
   return (
     <>
       <Card
-      sx={{
-        backgroundColor: isDarkMode ? alpha('#1a1a1a', 0.9) : '#ffffff',
-        position: 'relative',
-        boxShadow: 'none',
-        border: `1px solid ${isDarkMode ? alpha('#fff', 0.08) : alpha('#000', 0.06)}`,
-        height: { xs: 'auto', sm: '400px' }, // Slightly reduced height
-        minHeight: { xs: '320px', sm: '400px' }, // Adjusted min height
-        display: 'flex',
-        flexDirection: 'column',
-        transition: 'all 0.3s cubic-bezier(0.4, 0, 0.2, 1)',
-        borderRadius: '16px',
-        overflow: 'hidden',
-        width: '100%', // Ensure full width
-        maxWidth: '100%', // Prevent overflow
-        '&:hover': {
-          transform: { xs: 'none', sm: 'translateY(-4px)' },
-          boxShadow: isDarkMode
-            ? '0 20px 40px rgba(0, 0, 0, 0.3)'
-            : '0 20px 40px rgba(0, 0, 0, 0.08)',
-        },
-        direction: currentLanguage === 'ar' ? 'rtl' : 'ltr'
-      }}
-    >
-             {/* Image Section with Overlays */}
-       <Box sx={{ position: 'relative', height: { xs: '200px', sm: '220px', md: '240px' }, marginBottom: 0 }}> {/* Responsive image height */}
-        <CardMedia
-          component="img"
-          sx={{
-            height: '100%',
-            width: '100%',
-            objectFit: 'cover',
-            objectPosition: 'center',
-          }}
-          image={image ? (image.startsWith('http') ? image : `${API_BASE_URL}/${image}`) : ma}
-          title={categoryname}
-          onError={(e) => {
-            e.target.src = ma;
-          }}
-        />
-        
-        {/* Gradient Overlay */}
-        <Box
-          sx={{
-            position: 'absolute',
-            top: 0,
-            left: 0,
-            right: 0,
-            bottom: 0,
-            background: 'linear-gradient(180deg, rgba(0,0,0,0.1) 0%, rgba(0,0,0,0.4) 100%)',
-            pointerEvents: 'none'
-          }}
-        />
-
-        {/* Top Badges Container */}
-        <Box
-          sx={{
-            position: 'absolute',
-            top: 12,
-            left: 12,
-            right: 12,
-            display: 'flex',
-            justifyContent: 'space-between',
-            alignItems: 'flex-start',
-            gap: 1,
-          }}
-        >
-          {/* Category Badge */}
+        sx={{
+          backgroundColor: isDarkMode ? alpha('#1a1a1a', 0.9) : '#ffffff',
+          position: 'relative',
+          boxShadow: 'none',
+          border: `1px solid ${isDarkMode ? alpha('#fff', 0.08) : alpha('#000', 0.06)}`,
+          height: { xs: 'auto', sm: '380px' },
+          minHeight: { xs: '320px', sm: '380px' },
+          display: 'flex',
+          flexDirection: 'column',
+          transition: 'all 0.3s cubic-bezier(0.4, 0, 0.2, 1)',
+          borderRadius: '20px',
+          overflow: 'hidden',
+          '&:hover': {
+            transform: { xs: 'none', sm: 'translateY(-4px)' },
+            boxShadow: isDarkMode
+              ? '0 20px 40px rgba(0, 0, 0, 0.3)'
+              : '0 20px 40px rgba(0, 0, 0, 0.08)',
+          },
+          direction: currentLanguage === 'ar' ? 'rtl' : 'ltr'
+        }}
+      >
+        {/* Image Section with Overlays */}
+        <Box sx={{ position: 'relative', height: { xs: '240px', sm: '220px' } }}>
+          <CardMedia
+            component="img"
+            sx={{
+              height: '100%',
+              width: '100%',
+              objectFit: 'cover',
+              objectPosition: 'center',
+            }}
+            image={image ? (image.startsWith('http') ? image : `${API_BASE_URL}/${image}`) : ma}
+            title={categoryname}
+            onError={(e) => {
+              e.target.src = ma;
+            }}
+          />
+          
+          {/* Gradient Overlay */}
           <Box
             sx={{
-              backgroundColor: categoryStyle.background,
-              padding: '6px 12px', // Increased padding for better touch targets
-              borderRadius: '12px',
+              position: 'absolute',
+              top: 0,
+              left: 0,
+              right: 0,
+              bottom: 0,
+              background: 'linear-gradient(180deg, rgba(0,0,0,0.1) 0%, rgba(0,0,0,0.4) 100%)',
+              pointerEvents: 'none'
+            }}
+          />
+
+          {/* Top Badges Container */}
+          <Box
+            sx={{
+              position: 'absolute',
+              top: 12,
+              left: 12,
+              right: 12,
               display: 'flex',
-              alignItems: 'center',
-              gap: 0.5,
-              backdropFilter: 'blur(10px)',
-              border: `1px solid ${alpha(categoryStyle.main, 0.3)}`,
+              justifyContent: 'space-between',
+              alignItems: 'flex-start',
+              gap: 1,
             }}
           >
-            <RenderIcon 
-              name={`${categoryname?.toLowerCase()}cate`} 
-              sx={{ 
-                fontSize: '14px', // Slightly larger icon
-                color: categoryStyle.icon 
-              }} 
-            />
-            <Typography
+            {/* Category Badge */}
+            <Box
               sx={{
-                color: categoryStyle.text,
-                fontSize: '11px', // Slightly larger text
-                fontWeight: 600,
+                backgroundColor: isDarkMode ? alpha(categoryStyle.main, 0.2) : categoryStyle.background,
+                padding: '4px 8px',
+                borderRadius: '12px',
+                display: 'flex',
+                alignItems: 'center',
+                gap: 0.5,
+                backdropFilter: 'blur(10px)',
+                border: `1px solid ${isDarkMode ? alpha(categoryStyle.main, 0.3) : categoryStyle.main}`,
               }}
             >
-              {categoryDisplayName}
-            </Typography>
+              <RenderIcon 
+                name={`${categoryname?.toLowerCase()}cate`} 
+                sx={{ 
+                  fontSize: '12px', 
+                  color: isDarkMode ? categoryStyle.main : categoryStyle.text 
+                }} 
+              />
+              <Typography
+                sx={{
+                  color: isDarkMode ? categoryStyle.main : categoryStyle.text,
+                  fontSize: '10px',
+                  fontWeight: 600,
+                }}
+              >
+                {categoryDisplayName}
+              </Typography>
+            </Box>
+          </Box>
+
+          {/* Time Badge */}
+          <Box
+            sx={{
+              position: 'absolute',
+              bottom: 12,
+              left: 12,
+              backgroundColor: alpha('#000', 0.7),
+              padding: '4px 8px',
+              borderRadius: '8px',
+              backdropFilter: 'blur(10px)',
+              border: '1px solid rgba(255,255,255,0.1)',
+            }}
+          >
+            <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.5 }}>
+              <TimeIcon sx={{ fontSize: '12px', color: '#fff' }} />
+              <Typography
+                sx={{
+                  color: '#fff',
+                  fontSize: '10px',
+                  fontWeight: 600,
+                }}
+              >
+                {created}
+              </Typography>
+            </Box>
           </Box>
         </Box>
 
-        {/* Time Badge */}
-        <Box
-          sx={{
-            position: 'absolute',
-            bottom: 12,
-            left: 12,
-            backgroundColor: alpha('#000', 0.7),
-            padding: '6px 12px', // Increased padding
-            borderRadius: '8px',
-            backdropFilter: 'blur(10px)',
-            border: '1px solid rgba(255,255,255,0.1)',
-          }}
-        >
-          <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.5 }}>
-            <TimeIcon sx={{ fontSize: '14px', color: '#fff' }} />
-            <Typography
-              sx={{
-                color: '#fff',
-                fontSize: '11px', // Slightly larger text
-                fontWeight: 600,
-              }}
-            >
-              {created}
-            </Typography>
-          </Box>
-        </Box>
-      </Box>
-
-                           {/* Content Section */}
+        {/* Content Section */}
         <CardContent 
           sx={{ 
             flexGrow: 1, 
-            pt: 0, // Remove top padding to eliminate gap
-            pb: { xs: 2.5, sm: 3 }, // Keep bottom padding
-            px: { xs: 2.5, sm: 3 }, // Keep horizontal padding
+            p: { xs: 2, sm: 2.5 },
             display: 'flex',
             flexDirection: 'column',
-            gap: 2, // Increased gap
-            backgroundColor: isDarkMode ? alpha('#1a1a1a', 0.9) : '#ffffff', // Match card background
-            '&:last-child': {
-              pb: { xs: 2.5, sm: 3 }, // Override Material-UI default padding
-            },
-            // Remove any default Material-UI padding that might cause gaps
-            '&.MuiCardContent-root': {
-              paddingTop: 0,
-              paddingBottom: { xs: 2.5, sm: 3 },
-              paddingLeft: { xs: 2.5, sm: 3 },
-              paddingRight: { xs: 2.5, sm: 3 }
-            },
-            // Force remove any margin that might cause gaps
-            margin: 0,
-            marginTop: 0,
-            marginBottom: 0
+            gap: 1.5,
           }}
         >
-        {/* Location Info - Only City */}
-        <Box sx={{ display: 'flex', alignItems: 'center', gap: 1.5 }}>
-          <Avatar
-            sx={{
-              width: 32, // Slightly larger avatar
-              height: 32,
-              backgroundColor: alpha(theme.palette.text.secondary, 0.1),
-              color: theme.palette.text.secondary,
-            }}
-          >
-            <LocationIcon sx={{ fontSize: '18px' }} />
-          </Avatar>
-          <Box>
-            <Typography
+          {/* Location Info - Only City */}
+          <Box sx={{ display: 'flex', alignItems: 'center', gap: 1.5 }}>
+            <Avatar
               sx={{
-                color: isDarkMode ? alpha('#fff', 0.9) : alpha('#000', 0.8),
-                fontSize: { xs: '15px', sm: '17px' }, // Slightly larger text
-                fontWeight: 700,
-                lineHeight: 1.2,
+                width: 28,
+                height: 28,
+                backgroundColor: alpha(theme.palette.text.secondary, 0.1),
+                color: theme.palette.text.secondary,
               }}
             >
-              {displayCityName}
-            </Typography>
+              <LocationIcon sx={{ fontSize: '16px' }} />
+            </Avatar>
+            <Box>
+              <Typography
+                sx={{
+                  color: isDarkMode ? alpha('#fff', 0.9) : alpha('#000', 0.8),
+                  fontSize: { xs: '14px', sm: '16px' },
+                  fontWeight: 700,
+                  lineHeight: 1.2,
+                }}
+              >
+                {displayCityName}
+              </Typography>
+            </Box>
           </Box>
-        </Box>
-      </CardContent>
+        </CardContent>
 
-             {/* Actions Section */}
-       <CardActions
-         sx={{
-           display: 'flex',
-           justifyContent: 'space-between',
-           p: { xs: 1.5, sm: 2 }, // Adjusted padding
-           backgroundColor: isDarkMode ? alpha('#1a1a1a', 0.9) : '#ffffff', // Match card background
-           gap: { xs: 1.5, sm: 2 }, // Responsive gap
-           mt: 'auto',
-           flexShrink: 0,
-           minHeight: { xs: '60px', sm: '70px' }, // Responsive min height
-           // Remove any default Material-UI padding that might cause gaps
-           '&.MuiCardActions-root': {
-             padding: { xs: 1.5, sm: 2 }
-           }
-         }}
-       >
-        <Button
-          onClick={handleReport}
-          variant="outlined"
-          size="small"
+        {/* Actions Section */}
+        <CardActions
           sx={{
-            color: theme.palette.error.main,
-            borderColor: theme.palette.error.main,
-            textTransform: 'none',
-            fontSize: { xs: '10px', sm: '11px', md: '12px' }, // Responsive text size
-            fontWeight: 600,
-            padding: { xs: '8px 10px', sm: '10px 12px', md: '10px 14px' }, // Responsive padding
-            borderRadius: '8px',
-            minWidth: 'auto',
+            display: 'flex',
+            justifyContent: 'space-between',
+            p: { xs: 1.5, sm: 2 },
+            borderTop: '1px solid',
+            borderColor: isDarkMode ? alpha('#fff', 0.06) : alpha('#000', 0.04),
+            backgroundColor: isDarkMode ? alpha('#000', 0.2) : alpha('#f8f9fa', 0.5),
+            gap: 3,
+            mt: 'auto',
             flexShrink: 0,
-            '&:hover': {
-              backgroundColor: theme.palette.error.main,
-              color: '#fff',
+            minHeight: '60px',
+          }}
+        >
+          <Button
+            onClick={handleReport}
+            variant="outlined"
+            size="small"
+            sx={{
+              color: theme.palette.error.main,
               borderColor: theme.palette.error.main,
-            },
-          }}
-          startIcon={currentLanguage === 'ar' ? null : <ReportProblemOutlined sx={{ fontSize: { xs: '12px', sm: '14px' } }} />}
-          endIcon={currentLanguage === 'ar' ? <ReportProblemOutlined sx={{ fontSize: { xs: '12px', sm: '14px' }, ml: 0.5 }} /> : null}
-        >
-          {t('report')}
-        </Button>
+              textTransform: 'none',
+              fontSize: { xs: '10px', sm: '11px' },
+              fontWeight: 600,
+              padding: { xs: '8px 12px', sm: '8px 12px' },
+              borderRadius: '8px',
+              minWidth: 'auto',
+              flexShrink: 0,
+              '&:hover': {
+                backgroundColor: theme.palette.error.main,
+                color: '#fff',
+                borderColor: theme.palette.error.main,
+              },
+            }}
+            startIcon={currentLanguage === 'ar' ? null : <ReportProblemOutlined sx={{ fontSize: '12px' }} />}
+            endIcon={currentLanguage === 'ar' ? <ReportProblemOutlined sx={{ fontSize: '12px', ml: 0.5 }} /> : null}
+          >
+            {t('report')}
+          </Button>
 
-        <Button
-          onClick={handleViewDetails}
-          variant="contained"
-          sx={{
-            background: `linear-gradient(135deg, ${theme.palette.primary.main} 0%, ${theme.palette.primary.dark} 100%)`,
-            color: '#fff',
-            textTransform: 'none',
-            fontSize: { xs: '10px', sm: '11px', md: '12px' }, // Responsive text size
-            fontWeight: 700,
-            padding: { xs: '8px 10px', sm: '10px 12px', md: '10px 14px' }, // Responsive padding
-            borderRadius: '8px',
-            minWidth: 'auto',
-            flexShrink: 0,
-            boxShadow: `0 2px 8px ${alpha(theme.palette.primary.main, 0.3)}`,
-            transition: 'all 0.3s ease',
-            '&:hover': {
-              background: `linear-gradient(135deg, ${theme.palette.primary.dark} 0%, ${theme.palette.primary.main} 100%)`,
-              transform: 'translateY(-1px)',
-              boxShadow: `0 4px 12px ${alpha(theme.palette.primary.main, 0.4)}`,
-            },
-          }}
-          startIcon={currentLanguage === 'ar' ? <ArrowIcon sx={{ fontSize: { xs: '12px', sm: '14px' }, transform: 'scaleX(-1)', mr: 0.5 }} /> : null}
-          endIcon={currentLanguage === 'ar' ? null : <ArrowIcon sx={{ fontSize: { xs: '12px', sm: '14px' } }} />}
-        >
-          {t('viewDetails')}
-        </Button>
-      </CardActions>
-    </Card>
+          <Button
+            onClick={handleViewDetails}
+            variant="contained"
+            sx={{
+              background: `linear-gradient(135deg, ${theme.palette.primary.main} 0%, ${theme.palette.primary.dark} 100%)`,
+              color: '#fff',
+              textTransform: 'none',
+              fontSize: { xs: '10px', sm: '11px' },
+              fontWeight: 700,
+              padding: { xs: '8px 12px', sm: '8px 12px' },
+              borderRadius: '8px',
+              minWidth: 'auto',
+              flexShrink: 0,
+              boxShadow: `0 2px 8px ${alpha(theme.palette.primary.main, 0.3)}`,
+              transition: 'all 0.3s ease',
+              '&:hover': {
+                background: `linear-gradient(135deg, ${theme.palette.primary.dark} 0%, ${theme.palette.primary.main} 100%)`,
+                transform: 'translateY(-1px)',
+                boxShadow: `0 4px 12px ${alpha(theme.palette.primary.main, 0.4)}`,
+              },
+            }}
+            startIcon={currentLanguage === 'ar' ? <ArrowIcon sx={{ fontSize: '12px', transform: 'scaleX(-1)', mr: 0.5 }} /> : null}
+            endIcon={currentLanguage === 'ar' ? null : <ArrowIcon sx={{ fontSize: '12px' }} />}
+          >
+            {t('viewDetails')}
+          </Button>
+        </CardActions>
+      </Card>
     
-    {/* Report Dialog */}
-    <ReportDialog
-      open={reportDialogOpen}
-      onClose={() => setReportDialogOpen(false)}
-      post={{
-        _id,
-        categoryname,
-        exactLocation,
-        image,
-        createdAt,
-        countryLabels,
-        countryname,
-        contact,
-        city
-      }}
-      onSubmit={handleSubmitReport}
-    />
+      {/* Report Dialog */}
+      <ReportDialog
+        open={reportDialogOpen}
+        onClose={() => setReportDialogOpen(false)}
+        post={{
+          _id,
+          categoryname,
+          exactLocation,
+          image,
+          createdAt,
+          countryLabels,
+          countryname,
+          contact,
+          city
+        }}
+        onSubmit={handleSubmitReport}
+      />
     </>
   );
 };
