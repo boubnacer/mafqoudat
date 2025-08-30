@@ -74,7 +74,19 @@ const NavLinks = ({ onLinkClick }) => {
     })) || [])
   ];
 
+  // Debug found/lost options
+  console.log('NavLinks flOptionsData:', flOptionsData);
+  console.log('NavLinks navlinks:', navlinks);
+
   const handleLinkClick = (link) => {
+    console.log('NavLinks handleLinkClick:', {
+      link,
+      title: link.title,
+      flcode: link.flcode,
+      isAll: link.title === t("all"),
+      willSetTo: link.title === t("all") ? "" : link.flcode
+    });
+    
     navigate("/dash/posts");
     dispatch(
       setFoundOrLost({

@@ -146,13 +146,15 @@ const PostsList = () => {
     page,
     pageSize,
     fl: fl || undefined,
+    flOriginal: fl,
     currentCountry,
     search: debouncedSearchTerm || undefined,
     categoryId: localCategoryFilter !== "all" ? localCategoryFilter : undefined,
     language: currentLanguage,
     skip: !storeReady || !currentCountry || categoriesLoading,
     storeReady,
-    categoriesLoading
+    categoriesLoading,
+    foundOrlostFromRedux: foundOrlost
   });
 
   console.log('PostsList API Response:', {
@@ -277,6 +279,11 @@ const PostsList = () => {
       dispatch(setCurrentCountry({ currentCountry: defaultCountry }));
     }
     
+    console.log('PostsList: Setting fl state:', {
+      foundOrlost,
+      currentFl: fl,
+      willSetTo: foundOrlost
+    });
     setFl(foundOrlost);
     setPage(1);
   }, [countryId, foundOrlost, currentCountry, dispatch]);
