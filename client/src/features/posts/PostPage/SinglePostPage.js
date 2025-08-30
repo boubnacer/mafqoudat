@@ -82,7 +82,9 @@ const SinglePostPage = ({
   promotionRequested,
   promotionRequestedAt,
   promotionProcessed,
-  promotionProcessedAt
+  promotionProcessedAt,
+  // Category object from aggregation
+  Category
 }) => {
   const navigate = useNavigate();
   const theme = useTheme();
@@ -112,6 +114,154 @@ const SinglePostPage = ({
 
   const categoryStyle = getCategoryColors(categoryname);
   const isDarkMode = theme.palette.mode === 'dark';
+
+  // Get category name with proper multilingual support
+  const getCategoryDisplayName = () => {
+    // First priority: Use the Category object from API aggregation (with labels)
+    if (Category && Category.labels) {
+      return Category.labels[currentLanguage] || Category.labels.en || Category.code || categoryname;
+    }
+    
+    // Second priority: Use categoryname with hardcoded translations (fallback)
+    const categoryTranslations = {
+      'ELECTRONICS': {
+        en: 'Electronics',
+        fr: 'Électronique', 
+        ar: 'إلكترونيات'
+      },
+      'DOCUMENTS': {
+        en: 'Documents',
+        fr: 'Documents',
+        ar: 'وثائق'
+      },
+      'JEWELRY': {
+        en: 'Jewelry',
+        fr: 'Bijoux',
+        ar: 'مجوهرات'
+      },
+      'CLOTHING': {
+        en: 'Clothing',
+        fr: 'Vêtements',
+        ar: 'ملابس'
+      },
+      'PETS': {
+        en: 'Pets',
+        fr: 'Animaux',
+        ar: 'حيوانات أليفة'
+      },
+      'VEHICLES': {
+        en: 'Vehicles',
+        fr: 'Véhicules',
+        ar: 'مركبات'
+      },
+      'KEYS': {
+        en: 'Keys',
+        fr: 'Clés',
+        ar: 'مفاتيح'
+      },
+      'WALLET': {
+        en: 'Wallet',
+        fr: 'Portefeuille',
+        ar: 'محفظة'
+      },
+      'WATCHES': {
+        en: 'Watches',
+        fr: 'Montres',
+        ar: 'ساعات'
+      },
+      'GAMING': {
+        en: 'Gaming',
+        fr: 'Jeux',
+        ar: 'ألعاب'
+      },
+      'MEDICAL': {
+        en: 'Medical',
+        fr: 'Médical',
+        ar: 'طبي'
+      },
+      'LUGGAGE': {
+        en: 'Luggage',
+        fr: 'Bagages',
+        ar: 'أمتعة'
+      },
+      'PERSON': {
+        en: 'Person',
+        fr: 'Personne',
+        ar: 'شخص'
+      },
+      'SHOPPING': {
+        en: 'Shopping',
+        fr: 'Shopping',
+        ar: 'تسوق'
+      },
+      'WORK': {
+        en: 'Work',
+        fr: 'Travail',
+        ar: 'عمل'
+      },
+      'SPORTS': {
+        en: 'Sports',
+        fr: 'Sports',
+        ar: 'رياضة'
+      },
+      'MUSIC': {
+        en: 'Music',
+        fr: 'Musique',
+        ar: 'موسيقى'
+      },
+      'TOYS': {
+        en: 'Toys',
+        fr: 'Jouets',
+        ar: 'ألعاب'
+      },
+      'BEAUTY': {
+        en: 'Beauty',
+        fr: 'Beauté',
+        ar: 'جمال'
+      },
+      'CAMERA': {
+        en: 'Camera',
+        fr: 'Caméra',
+        ar: 'كاميرا'
+      },
+      'TOOLS': {
+        en: 'Tools',
+        fr: 'Outils',
+        ar: 'أدوات'
+      },
+      'GARDEN': {
+        en: 'Garden',
+        fr: 'Jardin',
+        ar: 'حديقة'
+      },
+      'HOME': {
+        en: 'Home',
+        fr: 'Maison',
+        ar: 'منزل'
+      },
+      'FOOD': {
+        en: 'Food',
+        fr: 'Nourriture',
+        ar: 'طعام'
+      },
+      'OTHER': {
+        en: 'Other',
+        fr: 'Autre',
+        ar: 'أخرى'
+      }
+    };
+    
+    const categoryCode = categoryname?.toUpperCase();
+    const translations = categoryTranslations[categoryCode];
+    if (translations) {
+      return translations[currentLanguage] || translations.en || categoryname;
+    }
+    
+    // Last fallback: return the original categoryname
+    return categoryname || t('unknownCategory');
+  };
+
+  const categoryDisplayName = getCategoryDisplayName();
 
   const handleEdit = () => navigate(`/dash/posts/edit/${_id}`);
   const handleReport = () => {
@@ -315,7 +465,7 @@ const SinglePostPage = ({
                     fontWeight: 600,
                   }}
                 >
-                  {t(categoryname?.toLowerCase()) || categoryname}
+                  {categoryDisplayName}
                 </Typography>
               </Box>
             </Box>
@@ -334,7 +484,7 @@ const SinglePostPage = ({
                       fontSize: { xs: '1.5rem', sm: '2rem', md: '3rem' }
                     }}
                   >
-                    {t(categoryname?.toLowerCase()) || categoryname}
+                    {categoryDisplayName}
                   </Typography>
                   <Typography 
                     variant="h5" 
@@ -815,7 +965,7 @@ const SinglePostPage = ({
                       {t('category')}
                     </Typography>
                     <Typography variant="body1" sx={{ color: theme.palette.textColor.main }}>
-                      {t(categoryname?.toLowerCase()) || categoryname}
+                      {categoryDisplayName}
                     </Typography>
                   </Box>
                 </Box>
@@ -957,7 +1107,8 @@ const SinglePostPage = ({
           promotionRequested,
           promotionRequestedAt,
           promotionProcessed,
-          promotionProcessedAt
+          promotionProcessedAt,
+          Category
         }}
         onSubmit={handleSubmitReport}
       />
