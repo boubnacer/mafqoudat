@@ -143,7 +143,7 @@ const PostsList = () => {
   const { data, isLoading, isSuccess, isError, error } = useGetPostsQuery({
     page,
     pageSize,
-    ...(fl !== undefined && fl !== null && { fl }),
+    fl: fl || '', // Always send fl parameter - empty string for "All", ID for "Found"/"Lost"
     currentCountry,
     search: debouncedSearchTerm || undefined,
     categoryId: localCategoryFilter !== "all" ? localCategoryFilter : undefined,
