@@ -45,12 +45,12 @@ const getAllPosts = async (req, res) => {
 
   console.log('Posts controller - fl parameter:', {
     fl: req.query.fl,
-    hasFl: req.query.fl && req.query.fl !== '',
+    hasFl: req.query.fl !== undefined && req.query.fl !== null && req.query.fl !== '',
     flType: typeof req.query.fl,
     allQueryParams: req.query
   });
   
-  if (req.query.fl && req.query.fl !== '') {
+  if (req.query.fl !== undefined && req.query.fl !== null && req.query.fl !== '') {
     match.foundLost = new mongoose.Types.ObjectId(fl);
     console.log('Posts controller - added foundLost filter:', match.foundLost);
   }
