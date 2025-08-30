@@ -127,13 +127,12 @@ const LazyImage = ({
   if (hasError && fallback) {
     const validProps = getValidImgProps(props);
     return (
-      <Box
-        component="img"
+      <img
         src={fallback}
         alt={alt}
-        width={width}
-        height={height}
-        sx={{
+        style={{
+          width,
+          height,
           objectFit: 'cover',
           ...sx
         }}
@@ -170,14 +169,14 @@ const LazyImage = ({
 
       {/* Actual image */}
       {imageSrc && (
-        <Box
-          component="img"
+        <img
+          ref={supportsNativeLazy ? null : undefined}
           src={imageSrc}
           alt={alt}
           loading={supportsNativeLazy ? loading : undefined}
           onLoad={handleLoad}
           onError={handleError}
-          sx={{
+          style={{
             width: '100%',
             height: '100%',
             objectFit: 'cover',

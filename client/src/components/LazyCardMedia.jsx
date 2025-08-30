@@ -41,7 +41,7 @@ const LazyCardMedia = ({
     ];
     
     return Object.keys(props).reduce((acc, key) => {
-      if (validCardMediaProps.includes(key)) {
+      if (validCardMediaProps.includes(key) && props[key] !== undefined) {
         acc[key] = props[key];
       }
       return acc;
@@ -57,7 +57,7 @@ const LazyCardMedia = ({
     ];
     
     return Object.keys(props).reduce((acc, key) => {
-      if (validImgProps.includes(key)) {
+      if (validImgProps.includes(key) && props[key] !== undefined) {
         acc[key] = props[key];
       }
       return acc;
@@ -157,6 +157,58 @@ const LazyCardMedia = ({
   // Main CardMedia with filtered props
   const validProps = component === 'img' ? getValidImgProps(props) : getValidCardMediaProps(props);
   
+  // If component is img, use a regular img element to avoid Material-UI prop issues
+  if (component === 'img') {
+    return (
+      <CardMedia
+        ref={supportsNativeLazy ? null : mediaRef}
+        component="div"
+        sx={{
+          position: 'relative',
+          ...sx
+        }}
+      >
+        {/* Loading skeleton overlay */}
+        {!isLoaded && !hasError && (
+          <Skeleton
+            variant="rectangular"
+            width="100%"
+            height="100%"
+            animation="wave"
+            sx={{
+              position: 'absolute',
+              top: 0,
+              left: 0,
+              zIndex: 1
+            }}
+          />
+        )}
+
+        {/* Actual image */}
+        {imageSrc && (
+          <img
+            src={imageSrc}
+            alt={alt}
+            loading={supportsNativeLazy ? loading : undefined}
+            onLoad={handleLoad}
+            onError={handleError}
+            style={{
+              width: '100%',
+              height: '100%',
+              objectFit: 'cover',
+              opacity: isLoaded ? 1 : 0,
+              transition: 'opacity 0.3s ease-in-out',
+              position: 'relative',
+              zIndex: 2
+            }}
+            {...validProps}
+          />
+        )}
+      </CardMedia>
+    );
+  }
+
+  // For other components, use CardMedia as usual
   return (
     <CardMedia
       ref={supportsNativeLazy ? null : mediaRef}
