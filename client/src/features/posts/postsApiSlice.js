@@ -18,7 +18,7 @@ export const postsApiSlice = apiSlice.injectEndpoints({
         params: {
           page,
           pageSize,
-          ...(fl && { fl }),
+          ...(fl && fl !== "" && { fl }),
           ...(currentCountry && { currentCountry }),
           ...(categoryId && { categoryId }),
           ...(search && { search }),
@@ -85,7 +85,7 @@ export const postsApiSlice = apiSlice.injectEndpoints({
       providesTags: ["Post"],
       // Add cache key based on language to ensure proper cache invalidation
       serializeQueryArgs: ({ queryArgs }) => {
-        return `${queryArgs.page || 1}-${queryArgs.pageSize || 10}-${queryArgs.fl || ''}-${queryArgs.currentCountry || ''}-${queryArgs.categoryId || ''}-${queryArgs.search || ''}-${queryArgs.language || 'en'}`;
+        return `${queryArgs.page || 1}-${queryArgs.pageSize || 10}-${queryArgs.fl || 'all'}-${queryArgs.currentCountry || ''}-${queryArgs.categoryId || ''}-${queryArgs.search || ''}-${queryArgs.language || 'en'}`;
       },
     }),
 

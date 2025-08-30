@@ -138,7 +138,10 @@ const PostsList = () => {
     skip: !storeReady || !currentCountry || categoriesLoading,
     // Add retry logic
     retry: 3,
-    retryDelay: 1000
+    retryDelay: 1000,
+    // Force refetch when fl changes
+    refetchOnFocus: false,
+    refetchOnReconnect: false
   });
 
   // Debug API call
@@ -147,6 +150,7 @@ const PostsList = () => {
     pageSize,
     fl: fl || undefined,
     flOriginal: fl,
+    flWillBeSent: (fl && fl !== "") ? fl : "not sent",
     currentCountry,
     search: debouncedSearchTerm || undefined,
     categoryId: localCategoryFilter !== "all" ? localCategoryFilter : undefined,
@@ -154,7 +158,8 @@ const PostsList = () => {
     skip: !storeReady || !currentCountry || categoriesLoading,
     storeReady,
     categoriesLoading,
-    foundOrlostFromRedux: foundOrlost
+    foundOrlostFromRedux: foundOrlost,
+    queryKey: `${page}-${pageSize}-${fl || 'all'}-${currentCountry}-${localCategoryFilter}-${debouncedSearchTerm}-${currentLanguage}`
   });
 
   console.log('PostsList API Response:', {
@@ -284,9 +289,13 @@ const PostsList = () => {
       currentFl: fl,
       willSetTo: foundOrlost
     });
-    setFl(foundOrlost);
+    
+    // Only update if the value actually changed to prevent unnecessary re-renders
+    if (foundOrlost !== fl) {
+      setFl(foundOrlost);
+    }
     setPage(1);
-  }, [countryId, foundOrlost, currentCountry, dispatch]);
+  }, [countryId, foundOrlost, currentCountry, dispatch, fl]);
 
   // Remove the cleanup effect that was clearing the category filter
   // This was interfering with category navigation from Dashboard
