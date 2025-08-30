@@ -89,9 +89,10 @@ const PostsList = () => {
     console.log('PostsList: Redux state changed:', {
       foundOrlost,
       countryId,
+      activeLink,
       timestamp: new Date().toISOString()
     });
-  }, [foundOrlost, countryId]);
+  }, [foundOrlost, countryId, activeLink]);
   const categoryFilter = useSelector(selectCategoryFilter);
   const dispatch = useDispatch();
 

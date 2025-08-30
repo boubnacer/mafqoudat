@@ -77,6 +77,8 @@ const NavLinks = ({ onLinkClick }) => {
   // Debug found/lost options
   console.log('NavLinks flOptionsData:', flOptionsData);
   console.log('NavLinks navlinks:', navlinks);
+  console.log('NavLinks flOptionsData length:', flOptionsData?.length);
+  console.log('NavLinks flOptionsData type:', typeof flOptionsData);
   
   // Debug each option to see the exact IDs
   flOptionsData?.forEach(option => {
