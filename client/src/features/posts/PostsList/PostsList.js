@@ -143,7 +143,7 @@ const PostsList = () => {
   const { data, isLoading, isSuccess, isError, error } = useGetPostsQuery({
     page,
     pageSize,
-    fl: fl || undefined,
+    ...(fl !== undefined && fl !== null && { fl }),
     currentCountry,
     search: debouncedSearchTerm || undefined,
     categoryId: localCategoryFilter !== "all" ? localCategoryFilter : undefined,
@@ -166,9 +166,9 @@ const PostsList = () => {
   console.log('PostsList API Query:', {
     page,
     pageSize,
-    fl: fl || undefined,
+    fl: fl,
     flOriginal: fl,
-    flWillBeSent: (fl && fl !== "") ? fl : "not sent",
+    flWillBeSent: fl !== undefined && fl !== null ? fl : "not sent",
     currentCountry,
     search: debouncedSearchTerm || undefined,
     categoryId: localCategoryFilter !== "all" ? localCategoryFilter : undefined,

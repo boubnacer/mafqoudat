@@ -18,7 +18,7 @@ export const postsApiSlice = apiSlice.injectEndpoints({
         params: {
           page,
           pageSize,
-          ...(fl && fl !== "" && { fl }),
+          ...(fl !== undefined && fl !== null && { fl }),
           ...(currentCountry && { currentCountry }),
           ...(categoryId && { categoryId }),
           ...(search && { search }),
