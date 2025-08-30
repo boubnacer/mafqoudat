@@ -2,15 +2,16 @@ const express = require("express");
 const router = express.Router();
 const countrycontroller = require("../controllers/countryController");
 const verifyJWT = require("../middleware/verifyJWT");
+const { staticDataCache } = require("../middleware/cacheMiddleware");
 
 // Public routes - no authentication required
 router
   .route("/")
-  .get(countrycontroller.getCountries);
+  .get(staticDataCache('countries'), countrycontroller.getCountries);
 
 router
   .route("/search")
-  .get(countrycontroller.searchCountries);
+  .get(staticDataCache('countries-search'), countrycontroller.searchCountries);
 
 // Protected routes - require authentication for admin operations
 router.use(verifyJWT);

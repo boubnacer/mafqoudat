@@ -1,4 +1,5 @@
 const Country = require("../models/Country");
+const { cacheService } = require("../config/cache");
 
 const getCountries = async (req, res) => {
   try {
@@ -132,6 +133,10 @@ const createCountry = async (req, res) => {
 
     const addedCountry = await Country.create(newCountry);
     
+    // Invalidate countries cache after creation
+    await cacheService.invalidatePattern('countries*');
+    await cacheService.invalidatePattern('countries-search*');
+    
     res.status(201).json({
       success: true,
       message: `Country ${addedCountry.labels.en} (${addedCountry.code}) added successfully`,
@@ -178,6 +183,10 @@ const updateCountry = async (req, res) => {
 
     await country.save();
 
+    // Invalidate countries cache after update
+    await cacheService.invalidatePattern('countries*');
+    await cacheService.invalidatePattern('countries-search*');
+
     res.json({
       success: true,
       message: `Country ${country.labels.en} updated successfully`,
@@ -214,6 +223,10 @@ const deleteCountry = async (req, res) => {
     // Soft delete by setting isActive to false
     country.isActive = false;
     await country.save();
+
+    // Invalidate countries cache after deletion
+    await cacheService.invalidatePattern('countries*');
+    await cacheService.invalidatePattern('countries-search*');
 
     res.json({
       success: true,

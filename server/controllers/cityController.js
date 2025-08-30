@@ -86,8 +86,8 @@ const getCities = async (req, res) => {
       total: transformedCities.length
     };
     
-    // Cache the response for 1 hour (static data)
-    await cacheService.set(cacheKey, response, 3600);
+    // Cache the response for 24 hours (aggressive static data caching)
+    await cacheService.set(cacheKey, response, 86400);
     
     res.json(response);
   } catch (error) {
@@ -267,6 +267,15 @@ const createCity = async (req, res) => {
 
     const addedCity = await City.create(newCity);
     
+    // Invalidate cities cache after creation
+    await cacheService.invalidatePattern('cities*');
+    await cacheService.invalidatePattern('cities-search*');
+    await cacheService.invalidatePattern('cities-search-name*');
+    await cacheService.invalidatePattern('cities-by-country*');
+    await cacheService.invalidatePattern('cities-public*');
+    await cacheService.invalidatePattern('cities-simple*');
+    await cacheService.invalidatePattern('dependencies-cities*');
+    
          // Populate country info
      await addedCity.populate('country', 'code labels flag');
     
@@ -340,6 +349,15 @@ const updateCity = async (req, res) => {
        { new: true, runValidators: true }
      ).populate('country', 'code labels flag');
 
+    // Invalidate cities cache after update
+    await cacheService.invalidatePattern('cities*');
+    await cacheService.invalidatePattern('cities-search*');
+    await cacheService.invalidatePattern('cities-search-name*');
+    await cacheService.invalidatePattern('cities-by-country*');
+    await cacheService.invalidatePattern('cities-public*');
+    await cacheService.invalidatePattern('cities-simple*');
+    await cacheService.invalidatePattern('dependencies-cities*');
+
     res.json({
       success: true,
       message: `City ${updatedCity.labels.en} updated successfully`,
@@ -382,6 +400,15 @@ const deleteCity = async (req, res) => {
 
     // Soft delete - set isActive to false
     await City.findByIdAndUpdate(id, { isActive: false });
+
+    // Invalidate cities cache after deletion
+    await cacheService.invalidatePattern('cities*');
+    await cacheService.invalidatePattern('cities-search*');
+    await cacheService.invalidatePattern('cities-search-name*');
+    await cacheService.invalidatePattern('cities-by-country*');
+    await cacheService.invalidatePattern('cities-public*');
+    await cacheService.invalidatePattern('cities-simple*');
+    await cacheService.invalidatePattern('dependencies-cities*');
 
     res.json({
       success: true,

@@ -715,8 +715,8 @@ const getCountries = async (req, res) => {
       total: transformedCountries.length
     };
     
-    // Cache the response for 1 hour (static data)
-    await cacheService.set(cacheKey, response, 3600);
+    // Cache the response for 24 hours (aggressive static data caching)
+    await cacheService.set(cacheKey, response, 86400);
     
     res.json(response);
   } catch (error) {
@@ -812,8 +812,8 @@ const getCategories = async (req, res) => {
       total: transformedCategories.length
     };
     
-    // Cache the response for 1 hour (static data)
-    await cacheService.set(cacheKey, response, 3600);
+    // Cache the response for 24 hours (aggressive static data caching)
+    await cacheService.set(cacheKey, response, 86400);
     
     res.json(response);
   } catch (error) {
@@ -862,6 +862,9 @@ const createCategory = async (req, res) => {
     };
 
     const addedCategory = await Category.create(newCategory);
+    
+    // Invalidate categories cache after creation
+    await cacheService.invalidatePattern('categories*');
     
     res.status(201).json({
       success: true,
@@ -930,6 +933,9 @@ const createFoundLost = async (req, res) => {
     };
 
     const addedPostType = await FoundLost.create(newPostType);
+    
+    // Invalidate fl-options cache after creation
+    await cacheService.invalidatePattern('fl-options*');
     
     res.status(201).json({
       success: true,

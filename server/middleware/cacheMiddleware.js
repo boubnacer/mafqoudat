@@ -2,7 +2,7 @@ const { cacheService } = require('../config/cache');
 
 // Cache TTL constants
 const CACHE_TTL = {
-  STATIC_DATA: 3600, // 1 hour - countries, categories, etc.
+  STATIC_DATA: 86400, // 24 hours - countries, categories, etc. (aggressive caching)
   DYNAMIC_DATA: 300,  // 5 minutes - posts, cities, etc.
   USER_DATA: 1800,    // 30 minutes - user profiles, etc.
   SEARCH_RESULTS: 600, // 10 minutes - search results
