@@ -130,6 +130,8 @@ const PostsList = () => {
     search: debouncedSearchTerm || undefined,
     categoryId: localCategoryFilter !== "all" ? localCategoryFilter : undefined,
     language: currentLanguage,
+    // Add a unique key to force refetch when fl changes
+    _flKey: fl || 'all'
   }, {
     // Add debugging
     refetchOnMountOrArgChange: true,
@@ -159,7 +161,12 @@ const PostsList = () => {
     storeReady,
     categoriesLoading,
     foundOrlostFromRedux: foundOrlost,
-    queryKey: `${page}-${pageSize}-${fl || 'all'}-${currentCountry}-${localCategoryFilter}-${debouncedSearchTerm}-${currentLanguage}`
+    queryKey: `${page}-${pageSize}-${fl || 'all'}-${currentCountry}-${localCategoryFilter}-${debouncedSearchTerm}-${currentLanguage}-${fl || 'all'}`,
+    // Add more debugging
+    flType: typeof fl,
+    flLength: fl ? fl.length : 0,
+    flIsValidId: fl ? /^[0-9a-fA-F]{24}$/.test(fl) : false,
+    _flKey: fl || 'all'
   });
 
   console.log('PostsList API Response:', {
@@ -292,10 +299,11 @@ const PostsList = () => {
     
     // Only update if the value actually changed to prevent unnecessary re-renders
     if (foundOrlost !== fl) {
+      console.log('PostsList: Updating fl state from', fl, 'to', foundOrlost);
       setFl(foundOrlost);
     }
     setPage(1);
-  }, [countryId, foundOrlost, currentCountry, dispatch, fl]);
+  }, [countryId, foundOrlost, currentCountry, dispatch]);
 
   // Remove the cleanup effect that was clearing the category filter
   // This was interfering with category navigation from Dashboard

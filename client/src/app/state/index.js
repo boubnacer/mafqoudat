@@ -60,9 +60,11 @@ export const globalSlice = createSlice({
     },
     setFoundOrLost: (state, action) => {
       const { foundOrlost } = action.payload;
+      console.log('Redux: Setting foundOrlost:', foundOrlost);
       state.foundOrlost = foundOrlost;
       // Save to localStorage
       localStorage.setItem('globalState', JSON.stringify(state));
+      console.log('Redux: foundOrlost saved to localStorage successfully');
     },
     setCategoryFilter: (state, action) => {
       const { categoryFilter } = action.payload;
