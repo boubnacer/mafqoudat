@@ -52,7 +52,7 @@ const getAllPosts = async (req, res) => {
   
   // Only filter if fl is provided and not empty
   if (req.query.fl && req.query.fl !== '') {
-    match.foundLost = new mongoose.Types.ObjectId(fl);
+    match.foundLost = new mongoose.Types.ObjectId(req.query.fl);
     console.log('Posts controller - added foundLost filter:', match.foundLost);
   }
 

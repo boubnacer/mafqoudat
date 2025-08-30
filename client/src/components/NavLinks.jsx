@@ -63,6 +63,7 @@ const NavLinks = ({ onLinkClick }) => {
     
     // Also set in localStorage for immediate access
     localStorage.setItem('currentFilter', link.flcode);
+    console.log('NavLinks: Set localStorage currentFilter to:', link.flcode);
     
     // Navigate to posts
     navigate("/dash/posts");

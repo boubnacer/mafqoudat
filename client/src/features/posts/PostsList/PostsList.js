@@ -147,6 +147,8 @@ const PostsList = () => {
   // Use localStorage filter if available, otherwise use local state
   const localStorageFilter = localStorage.getItem('currentFilter');
   const effectiveFl = localStorageFilter || fl;
+  
+  console.log('PostsList: localStorageFilter:', localStorageFilter, 'fl:', fl, 'effectiveFl:', effectiveFl);
 
   const { data, isLoading, isSuccess, isError, error } = useGetPostsQuery({
     page,
