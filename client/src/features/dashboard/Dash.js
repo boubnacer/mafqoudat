@@ -313,8 +313,7 @@ const Dash = () => {
                     display: 'flex', 
                     alignItems: 'center', 
                     justifyContent: 'center', 
-                    gap: 2, 
-                    mb: 2,
+                    gap: 2,
                     flexDirection: currentLanguage === 'ar' ? 'row-reverse' : 'row'
                   }}>
                     <Chip 
@@ -328,11 +327,6 @@ const Dash = () => {
                         height: '28px',
                         order: currentLanguage === 'ar' ? 2 : 1
                       }}
-                    />
-                    <SeeAll 
-                      foundOrlostId={foundsId} 
-                      totalItems={data?.totalFounds}
-                      variant="mobile"
                     />
                   </Box>
                 </Box>
@@ -430,6 +424,23 @@ const Dash = () => {
                     }
                   }}
                 />
+                
+                {/* Mobile See All/Add Button - Bottom */}
+                <Box
+                  sx={{
+                    display: { xs: 'flex', sm: 'none' },
+                    justifyContent: 'center',
+                    mt: 3,
+                    pt: 2,
+                    borderTop: `1px solid ${theme.palette.mode === 'dark' ? 'rgba(255,255,255,0.1)' : 'rgba(0,0,0,0.1)'}`
+                  }}
+                >
+                  <SeeAll 
+                    foundOrlostId={foundsId} 
+                    totalItems={data?.totalFounds}
+                    variant="mobile"
+                  />
+                </Box>
               </Box>
             </Box>
           </Box>
@@ -509,8 +520,7 @@ const Dash = () => {
                     display: 'flex', 
                     alignItems: 'center', 
                     justifyContent: 'center', 
-                    gap: 2, 
-                    mb: 2,
+                    gap: 2,
                     flexDirection: currentLanguage === 'ar' ? 'row-reverse' : 'row'
                   }}>
                     <Chip 
@@ -524,11 +534,6 @@ const Dash = () => {
                         height: '28px',
                         order: currentLanguage === 'ar' ? 2 : 1
                       }}
-                    />
-                    <SeeAll 
-                      foundOrlostId={lostsId} 
-                      totalItems={data?.totalLosts}
-                      variant="mobile"
                     />
                   </Box>
                 </Box>
@@ -626,6 +631,23 @@ const Dash = () => {
                     }
                   }}
                 />
+                
+                {/* Mobile See All/Add Button - Bottom */}
+                <Box
+                  sx={{
+                    display: { xs: 'flex', sm: 'none' },
+                    justifyContent: 'center',
+                    mt: 3,
+                    pt: 2,
+                    borderTop: `1px solid ${theme.palette.mode === 'dark' ? 'rgba(255,255,255,0.1)' : 'rgba(0,0,0,0.1)'}`
+                  }}
+                >
+                  <SeeAll 
+                    foundOrlostId={lostsId} 
+                    totalItems={data?.totalLosts}
+                    variant="mobile"
+                  />
+                </Box>
               </Box>
             </Box>
           </Box>
