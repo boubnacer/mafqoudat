@@ -37,11 +37,13 @@ const NavLinks = ({ onLinkClick }) => {
   const foundOrlost = useSelector(selectFoundOrLost);
 
   // Get found/lost options from API
-  const { data: flOptionsData } = useGetflOptionsQuery({
+  const { data: flOptionsData, isLoading: flOptionsLoading, error: flOptionsError } = useGetflOptionsQuery({
     language: currentLanguage
   }, {
-    selectFromResult: ({ data }) => ({
+    selectFromResult: ({ data, isLoading, error }) => ({
       data: data?.ids?.map((id) => data?.entities[id]) || [],
+      isLoading,
+      error
     }),
   });
 
@@ -57,21 +59,26 @@ const NavLinks = ({ onLinkClick }) => {
     );
   }, [pathname, activeLink]);
 
-  // Build navlinks dynamically
+  // Build navlinks with hardcoded options for immediate fix
   const navlinks = [
     { 
       title: t("all"), 
-      flcode: t("all"),
+      flcode: "",
       tooltip: t("viewAllPosts"),
       icon: "total"
     },
-    // Add found/lost options dynamically
-    ...(flOptionsData?.map(option => ({
-      title: option.label || option.code,
-      flcode: option._id,
-      tooltip: t(`view${option.code}Items`),
-      icon: option.code === 'FOUND' ? 'Found' : option.code === 'LOST' ? 'Lost' : option.code
-    })) || [])
+    {
+      title: "Found",
+      flcode: "68b0b776dcafb50aec949f68",
+      tooltip: t("viewFOUNDItems"),
+      icon: "Found"
+    },
+    {
+      title: "Lost", 
+      flcode: "68b0b776dcafb50aec949f69",
+      tooltip: t("viewLOSTItems"),
+      icon: "Lost"
+    }
   ];
 
   // Debug found/lost options
@@ -79,6 +86,8 @@ const NavLinks = ({ onLinkClick }) => {
   console.log('NavLinks navlinks:', navlinks);
   console.log('NavLinks flOptionsData length:', flOptionsData?.length);
   console.log('NavLinks flOptionsData type:', typeof flOptionsData);
+  console.log('NavLinks flOptionsLoading:', flOptionsLoading);
+  console.log('NavLinks flOptionsError:', flOptionsError);
   
   // Debug each option to see the exact IDs
   flOptionsData?.forEach(option => {
@@ -98,13 +107,19 @@ const NavLinks = ({ onLinkClick }) => {
       willSetTo: link.title === t("all") ? "" : link.flcode
     });
     
-    navigate("/dash/posts");
+    const foundOrlostValue = link.title === t("all") ? "" : link.flcode;
+    console.log('NavLinks: Dispatching setFoundOrLost with value:', foundOrlostValue);
+    
+    // Set Redux state first
     dispatch(
       setFoundOrLost({
-        foundOrlost: link.title === t("all") ? "" : link.flcode,
+        foundOrlost: foundOrlostValue,
       })
     );
     dispatch(setActiveLink({ active: link.title }));
+    
+    // Then navigate
+    navigate("/dash/posts");
     
     // Close mobile menu if callback provided
     if (onLinkClick) {

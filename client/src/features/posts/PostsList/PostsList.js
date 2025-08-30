@@ -181,7 +181,11 @@ const PostsList = () => {
     // Add more debugging
     flType: typeof fl,
     flLength: fl ? fl.length : 0,
-    flIsValidId: fl ? /^[0-9a-fA-F]{24}$/.test(fl) : false
+    flIsValidId: fl ? /^[0-9a-fA-F]{24}$/.test(fl) : false,
+    // Add Redux state debugging
+    reduxFoundOrlost: foundOrlost,
+    reduxActiveLink: activeLink,
+    localStorageState: localStorage.getItem('globalState')
   });
 
   console.log('PostsList API Response:', {
@@ -312,13 +316,9 @@ const PostsList = () => {
       willSetTo: foundOrlost
     });
     
-    // Only update if the value actually changed to prevent unnecessary re-renders
-    if (foundOrlost !== fl) {
-      console.log('PostsList: Updating fl state from', fl, 'to', foundOrlost);
-      setFl(foundOrlost);
-    } else {
-      console.log('PostsList: fl state unchanged:', fl);
-    }
+    // Always update fl state to ensure it's in sync
+    console.log('PostsList: Setting fl state to:', foundOrlost);
+    setFl(foundOrlost);
     setPage(1);
   }, [countryId, foundOrlost, currentCountry, dispatch]);
 
