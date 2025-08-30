@@ -15,13 +15,22 @@ const getCountryIso3 = require("country-iso-2-to-3");
 // @route GET /posts
 // @access Private
 const getAllPosts = async (req, res) => {
-  // Get all posts from MongoDB // remember first of all we should skip 0 items
-  const currentCountry = req.query.currentCountry;
-  const page = Math.max(0, parseInt(req.query.page) - 1) || 0;
-  const pageSize = parseInt(req.query.pageSize) || 4;
-  const fl = req.query.fl;
-  const categoryId = req.query.categoryId;
-  const search = req.query.search;
+  try {
+    // Validate and parse pagination parameters
+    const currentCountry = req.query.currentCountry;
+    const page = Math.max(0, parseInt(req.query.page) - 1) || 0;
+    const pageSize = Math.min(Math.max(parseInt(req.query.pageSize) || 8, 1), 50); // Min 1, Max 50
+    const fl = req.query.fl;
+    const categoryId = req.query.categoryId;
+    const search = req.query.search;
+    
+    // Validate required parameters
+    if (!currentCountry) {
+      return res.status(400).json({ 
+        message: "currentCountry parameter is required",
+        error: "Missing required parameter"
+      });
+    }
   
   // Generate cache key
   const cacheKey = cacheService.generateKey('posts', {
@@ -78,7 +87,8 @@ const getAllPosts = async (req, res) => {
     }
   }
 
-  const postsWithUser = await Post.aggregate([
+  // Build the aggregation pipeline
+  const pipeline = [
     {
       $match: {
         ...match,
@@ -153,34 +163,25 @@ const getAllPosts = async (req, res) => {
       },
     },
     {
+      $sort: {
+        createdAt: -1,
+      },
+    },
+    {
       $skip: page * pageSize,
     },
     {
       $limit: pageSize,
     },
-    {
-      $sort: {
-        createdAt: -1,
-      },
-    },
-  ]);
+  ];
 
-  // Get total count for pagination
-  if (search) {
-    totalPosts = await Post.countDocuments({
-      ...match,
-      country: new mongoose.Types.ObjectId(currentCountry),
-    });
-  } else if (req.query.fl) {
-    totalPosts = await Post.countDocuments({
-      foundLost: new mongoose.Types.ObjectId(fl),
-      country: new mongoose.Types.ObjectId(currentCountry),
-    });
-  } else {
-    totalPosts = await Post.countDocuments({
-      country: new mongoose.Types.ObjectId(currentCountry),
-    });
-  }
+  const postsWithUser = await Post.aggregate(pipeline);
+
+  // Get total count for pagination - optimized single query
+  totalPosts = await Post.countDocuments({
+    ...match,
+    country: new mongoose.Types.ObjectId(countryId),
+  });
 
   // If no posts
   if (!postsWithUser?.length) {
@@ -203,6 +204,13 @@ const getAllPosts = async (req, res) => {
   await cacheService.set(cacheKey, response, 300);
   
   res.json(response);
+  } catch (error) {
+    console.error('Error in getAllPosts:', error);
+    res.status(500).json({ 
+      message: "Error fetching posts",
+      error: error.message 
+    });
+  }
 };
 
 // get Post
@@ -294,48 +302,174 @@ const getPost = async (req, res) => {
   }
 };
 
-// @desc Get getFilteredPosts
-// @route GET /posts
-// @access Private
+// @desc Get filtered posts with pagination
+// @route GET /posts/filtered
+// @access Public
 const getFilteredPosts = async (req, res) => {
-  const page = Math.max(0, parseInt(req.query.page) - 1) || 0;
-  const limit = parseInt(req.query.limit) || 4;
-  const startIndex = page * limit;
-  const fl = req.query.fl;
+  try {
+    // Validate and parse pagination parameters
+    const page = Math.max(0, parseInt(req.query.page) - 1) || 0;
+    const pageSize = Math.min(Math.max(parseInt(req.query.pageSize) || 8, 1), 50); // Min 1, Max 50
+    const fl = req.query.fl;
+    const currentCountry = req.query.currentCountry;
+    const categoryId = req.query.categoryId;
+    const search = req.query.search;
+    
+    // Validate required parameters
+    if (!currentCountry) {
+      return res.status(400).json({ 
+        message: "currentCountry parameter is required",
+        error: "Missing required parameter"
+      });
+    }
 
-  const totalPosts = await Post.countDocuments({ foundLost: fl });
+    // Build match conditions
+    let match = {};
+    
+    if (fl && fl !== '') {
+      match.foundLost = new mongoose.Types.ObjectId(fl);
+    }
 
-  const posts = await Post.find({ foundLost: fl })
-    .sort({ _id: -1 })
-    .skip(startIndex)
-    .limit(limit)
-    .lean();
+    if (categoryId) {
+      match.category = new mongoose.Types.ObjectId(categoryId);
+    }
 
-  // If no posts
-  if (!posts?.length) {
-    return res.status(400).json({ message: "No posts found" });
+    if (search) {
+      match.$or = [
+        { exactLocation: { $regex: search, $options: 'i' } },
+        { contact: { $regex: search, $options: 'i' } },
+        { description: { $regex: search, $options: 'i' } }
+      ];
+    }
+
+    // Handle country filtering
+    let countryId = currentCountry;
+    if (currentCountry && !mongoose.Types.ObjectId.isValid(currentCountry)) {
+      const country = await Country.findOne({ code: currentCountry }).lean();
+      if (country) {
+        countryId = country._id;
+      } else {
+        return res.status(400).json({ 
+          message: "Invalid country code",
+          error: `Country with code '${currentCountry}' not found`
+        });
+      }
+    }
+
+    if (countryId) {
+      match.country = new mongoose.Types.ObjectId(countryId);
+    }
+
+    // Get total count for pagination
+    const totalPosts = await Post.countDocuments(match);
+
+    // Build aggregation pipeline for filtered posts
+    const pipeline = [
+      { $match: match },
+      {
+        $lookup: {
+          from: "categories",
+          localField: "category",
+          foreignField: "_id",
+          as: "Category",
+        },
+      },
+      { $unwind: "$Category" },
+      {
+        $lookup: {
+          from: "foundlosts",
+          localField: "foundLost",
+          foreignField: "_id",
+          as: "Floptions",
+        },
+      },
+      {
+        $lookup: {
+          from: "countries",
+          localField: "country",
+          foreignField: "_id",
+          as: "Country",
+        },
+      },
+      { $unwind: "$Country" },
+      {
+        $lookup: {
+          from: "cities",
+          localField: "city",
+          foreignField: "_id",
+          as: "City",
+        },
+      },
+      { $unwind: { path: "$City", preserveNullAndEmptyArrays: true } },
+      {
+        $lookup: {
+          from: "users",
+          localField: "user",
+          foreignField: "_id",
+          as: "User",
+        },
+      },
+      { $unwind: { path: "$User", preserveNullAndEmptyArrays: true } },
+      {
+        $project: {
+          user: 1,
+          country: 1,
+          exactLocation: 1,
+          city: 1,
+          cityName: { $ifNull: ["$City.labels.en", null] },
+          cityLabels: { $ifNull: ["$City.labels", null] },
+          returned: 1,
+          createdAt: 1,
+          updatedAt: 1,
+          username: "$User.username",
+          categoryname: "$Category.code",
+          countryname: "$Country.code",
+          countryLabels: "$Country.labels",
+          contact: 1,
+          image: 1,
+          foundLost: 1,
+          description: 1,
+          contactPreferences: 1,
+          additionalContact: 1,
+        },
+      },
+      {
+        $sort: {
+          createdAt: -1,
+        },
+      },
+      {
+        $skip: page * pageSize,
+      },
+      {
+        $limit: pageSize,
+      },
+    ];
+
+    const postsWithUser = await Post.aggregate(pipeline);
+
+    // If no posts
+    if (!postsWithUser?.length) {
+      return res.status(200).json({ 
+        postsWithUser: [],
+        page: page + 1,
+        totalPages: 0,
+        total: 0
+      });
+    }
+
+    const response = {
+      postsWithUser,
+      page: page + 1,
+      totalPages: Math.ceil(totalPosts / pageSize),
+      total: totalPosts,
+    };
+
+    res.json(response);
+  } catch (error) {
+    console.error('Error in getFilteredPosts:', error);
+    res.status(500).json({ message: "Error fetching filtered posts" });
   }
-
-  // Add username to each post before sending the response
-  // See Promise.all with map() here: https://youtu.be/4lqJBBEpjRE
-  // You could also do this with a for...of loop
-  const postsWithUser = await Promise.all(
-    posts.map(async (post) => {
-      const user = await User.findById(post.user).lean().exec();
-      const country = await Country.findById(post.country).lean().exec();
-      return {
-        ...post,
-        username: user.username,
-        code: country.code,
-      };
-    })
-  );
-
-  res.json({
-    postsWithUser,
-    currentPage: page + 1,
-    numberOfPages: Math.ceil(totalPosts / limit),
-  });
 };
 
 // @desc Create new post
