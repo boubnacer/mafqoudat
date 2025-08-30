@@ -20,10 +20,6 @@ import {
 } from "../app/state";
 import RenderIcon from "./RenderIcon";
 import { useTranslation } from "../utils/translations";
-import { useGetflOptionsQuery } from "../features/dependencies/dependenciesApiSlice";
-
-const NAV_REGEX = /^\/dash\/posts(\/)?$/;
-const HOME_REGEX = /^\/dash(\/)?$/;
 
 const NavLinks = ({ onLinkClick }) => {
   const theme = useTheme();
@@ -31,35 +27,12 @@ const NavLinks = ({ onLinkClick }) => {
 
   const dispatch = useDispatch();
   const navigate = useNavigate();
-  const { pathname } = useLocation();
+  const { pathname, search } = useLocation();
 
   const activeLink = useSelector(selectActiveLink);
   const foundOrlost = useSelector(selectFoundOrLost);
 
-  // Get found/lost options from API
-  const { data: flOptionsData, isLoading: flOptionsLoading, error: flOptionsError } = useGetflOptionsQuery({
-    language: currentLanguage
-  }, {
-    selectFromResult: ({ data, isLoading, error }) => ({
-      data: data?.ids?.map((id) => data?.entities[id]) || [],
-      isLoading,
-      error
-    }),
-  });
-
-  useEffect(() => {
-    dispatch(
-      setActiveLink({
-        active: HOME_REGEX.test(pathname)
-          ? "HOME"
-          : foundOrlost === "" && NAV_REGEX.test(pathname)
-          ? t("all")
-          : foundOrlost,
-      })
-    );
-  }, [pathname, activeLink]);
-
-  // Build navlinks with hardcoded options for immediate fix
+  // Simple hardcoded navigation links
   const navlinks = [
     { 
       title: t("all"), 
@@ -81,45 +54,16 @@ const NavLinks = ({ onLinkClick }) => {
     }
   ];
 
-  // Debug found/lost options
-  console.log('NavLinks flOptionsData:', flOptionsData);
-  console.log('NavLinks navlinks:', navlinks);
-  console.log('NavLinks flOptionsData length:', flOptionsData?.length);
-  console.log('NavLinks flOptionsData type:', typeof flOptionsData);
-  console.log('NavLinks flOptionsLoading:', flOptionsLoading);
-  console.log('NavLinks flOptionsError:', flOptionsError);
-  
-  // Debug each option to see the exact IDs
-  flOptionsData?.forEach(option => {
-    console.log('NavLinks option:', {
-      code: option.code,
-      _id: option._id,
-      label: option.label
-    });
-  });
-
   const handleLinkClick = (link) => {
-    console.log('NavLinks handleLinkClick:', {
-      link,
-      title: link.title,
-      flcode: link.flcode,
-      isAll: link.title === t("all"),
-      willSetTo: link.title === t("all") ? "" : link.flcode
-    });
+    console.log('NavLinks: Clicking on', link.title, 'with flcode:', link.flcode);
     
-    const foundOrlostValue = link.title === t("all") ? "" : link.flcode;
-    console.log('NavLinks: Dispatching setFoundOrLost with value:', foundOrlostValue);
-    
-    // Set Redux state first
-    dispatch(
-      setFoundOrLost({
-        foundOrlost: foundOrlostValue,
-      })
-    );
+    // Set Redux state
+    dispatch(setFoundOrLost({ foundOrlost: link.flcode }));
     dispatch(setActiveLink({ active: link.title }));
     
-    // Then navigate
-    navigate("/dash/posts");
+    // Navigate to posts with filter parameter
+    const filterParam = link.flcode ? `?filter=${link.flcode}` : '';
+    navigate(`/dash/posts${filterParam}`);
     
     // Close mobile menu if callback provided
     if (onLinkClick) {
@@ -160,7 +104,7 @@ const NavLinks = ({ onLinkClick }) => {
               onClick={() => handleLinkClick({ title, flcode })}
               sx={{
                 color: theme.palette.mode === 'dark' ? '#fff' : '#000',
-                backgroundColor: activeLink === flcode 
+                backgroundColor: activeLink === title 
                   ? theme.palette.mode === 'dark'
                     ? 'rgba(255, 255, 255, 0.1)'
                     : 'rgba(0, 0, 0, 0.1)'
@@ -189,7 +133,7 @@ const NavLinks = ({ onLinkClick }) => {
                 primary={title}
                 primaryTypographyProps={{
                   fontSize: onLinkClick ? "16px" : { xs: "14px", sm: "14px" },
-                  fontWeight: activeLink === flcode ? "600" : "500",
+                  fontWeight: activeLink === title ? "600" : "500",
                   lineHeight: 1.2,
                   whiteSpace: "nowrap",
                   overflow: "hidden",

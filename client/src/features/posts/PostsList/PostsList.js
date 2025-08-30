@@ -111,6 +111,10 @@ const PostsList = () => {
   const { pathname, search } = useLocation();
   const location = useLocation();
 
+  // Get URL parameters for filter
+  const searchParams = new URLSearchParams(search);
+  const urlFilter = searchParams.get('filter');
+
   // Get current language
   const { t, currentLanguage } = useTranslation();
 
@@ -140,10 +144,13 @@ const PostsList = () => {
     }),
   });
 
+  // Use URL filter if available, otherwise use local state
+  const effectiveFl = urlFilter || fl;
+
   const { data, isLoading, isSuccess, isError, error } = useGetPostsQuery({
     page,
     pageSize,
-    fl: fl || '', // Always send fl parameter - empty string for "All", ID for "Found"/"Lost"
+    fl: effectiveFl || '', // Always send fl parameter - empty string for "All", ID for "Found"/"Lost"
     currentCountry,
     search: debouncedSearchTerm || undefined,
     categoryId: localCategoryFilter !== "all" ? localCategoryFilter : undefined,
@@ -166,9 +173,10 @@ const PostsList = () => {
   console.log('PostsList API Query:', {
     page,
     pageSize,
-    fl: fl,
-    flOriginal: fl,
-    flWillBeSent: fl !== undefined && fl !== null ? fl : "not sent",
+    urlFilter,
+    fl,
+    effectiveFl,
+    flWillBeSent: effectiveFl || "not sent",
     currentCountry,
     search: debouncedSearchTerm || undefined,
     categoryId: localCategoryFilter !== "all" ? localCategoryFilter : undefined,
@@ -177,11 +185,11 @@ const PostsList = () => {
     storeReady,
     categoriesLoading,
     foundOrlostFromRedux: foundOrlost,
-    queryKey: `${page}-${pageSize}-${fl || 'all'}-${currentCountry}-${localCategoryFilter}-${debouncedSearchTerm}-${currentLanguage}`,
+    queryKey: `${page}-${pageSize}-${effectiveFl || 'all'}-${currentCountry}-${localCategoryFilter}-${debouncedSearchTerm}-${currentLanguage}`,
     // Add more debugging
-    flType: typeof fl,
-    flLength: fl ? fl.length : 0,
-    flIsValidId: fl ? /^[0-9a-fA-F]{24}$/.test(fl) : false,
+    flType: typeof effectiveFl,
+    flLength: effectiveFl ? effectiveFl.length : 0,
+    flIsValidId: effectiveFl ? /^[0-9a-fA-F]{24}$/.test(effectiveFl) : false,
     // Add Redux state debugging
     reduxFoundOrlost: foundOrlost,
     reduxActiveLink: activeLink,
