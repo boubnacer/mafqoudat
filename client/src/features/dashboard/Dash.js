@@ -412,31 +412,6 @@ const Dash = () => {
                    isLoading={isLoading}
                    emptyState="NoRecentFounds"
                    maxItems={4}
-                   sx={{
-                     '& .MuiCard-root': {
-                       backgroundColor: theme.palette.mode === 'dark' ? '#1a1a1a' : '#fff',
-                       transition: 'all 0.3s ease',
-                       '&:hover': {
-                         transform: { xs: 'none', sm: 'translateY(-4px)' },
-                         boxShadow: theme.palette.mode === 'dark'
-                           ? '0 8px 24px rgba(0,0,0,0.4)'
-                           : '0 8px 24px rgba(0,0,0,0.1)'
-                       },
-                       height: '100%',
-                       display: 'flex',
-                       flexDirection: 'column',
-                       borderRadius: '16px',
-                       overflow: 'hidden'
-                     },
-                     '& .MuiCardMedia-root': {
-                       height: { xs: '180px', sm: '200px', md: '220px' },
-                       objectFit: 'cover'
-                     },
-                     '& .MuiCardContent-root': {
-                       flexGrow: 1,
-                       p: { xs: 1.5, sm: 2 }
-                     }
-                   }}
                  />
                  
                  {/* Mobile See All Button - Bottom (only when there are posts) */}
@@ -635,31 +610,6 @@ const Dash = () => {
                    isLoading={isLoading}
                    emptyState="NoRecentLosts"
                    maxItems={4}
-                   sx={{
-                     '& .MuiCard-root': {
-                       backgroundColor: theme.palette.mode === 'dark' ? '#1a1a1a' : '#fff',
-                       transition: 'all 0.3s ease',
-                       '&:hover': {
-                         transform: { xs: 'none', sm: 'translateY(-4px)' },
-                         boxShadow: theme.palette.mode === 'dark'
-                           ? '0 8px 24px rgba(0,0,0,0.4)'
-                           : '0 8px 24px rgba(0,0,0,0.1)'
-                       },
-                       height: '100%',
-                       display: 'flex',
-                       flexDirection: 'column',
-                       borderRadius: '16px',
-                       overflow: 'hidden'
-                     },
-                     '& .MuiCardMedia-root': {
-                       height: { xs: '180px', sm: '200px', md: '220px' },
-                       objectFit: 'cover'
-                     },
-                     '& .MuiCardContent-root': {
-                       flexGrow: 1,
-                       p: { xs: 1.5, sm: 2 }
-                     }
-                   }}
                  />
                  
                  {/* Mobile See All Button - Bottom (only when there are posts) */}
