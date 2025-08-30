@@ -144,11 +144,10 @@ const PostsList = () => {
     }),
   });
 
-  // Use localStorage filter if available, otherwise use local state
-  const localStorageFilter = localStorage.getItem('currentFilter');
-  const effectiveFl = localStorageFilter || fl;
+  // Use URL query parameter directly
+  const effectiveFl = urlFilter || fl;
   
-  console.log('PostsList: localStorageFilter:', localStorageFilter, 'fl:', fl, 'effectiveFl:', effectiveFl);
+  console.log('PostsList: urlFilter:', urlFilter, 'fl:', fl, 'effectiveFl:', effectiveFl);
 
   const { data, isLoading, isSuccess, isError, error } = useGetPostsQuery({
     page,
@@ -176,7 +175,7 @@ const PostsList = () => {
   console.log('PostsList API Query:', {
     page,
     pageSize,
-    localStorageFilter,
+    urlFilter,
     fl,
     effectiveFl,
     flWillBeSent: effectiveFl || "not sent",

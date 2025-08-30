@@ -61,12 +61,12 @@ const NavLinks = ({ onLinkClick }) => {
     dispatch(setFoundOrLost({ foundOrlost: link.flcode }));
     dispatch(setActiveLink({ active: link.title }));
     
-    // Also set in localStorage for immediate access
-    localStorage.setItem('currentFilter', link.flcode);
-    console.log('NavLinks: Set localStorage currentFilter to:', link.flcode);
-    
-    // Navigate to posts
-    navigate("/dash/posts");
+    // Navigate with direct query parameter
+    if (link.flcode) {
+      navigate(`/dash/posts?fl=${link.flcode}`);
+    } else {
+      navigate("/dash/posts");
+    }
     
     // Close mobile menu if callback provided
     if (onLinkClick) {
