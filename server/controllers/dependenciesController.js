@@ -581,7 +581,7 @@ const getflOptions = async (req, res) => {
     const { language = 'en', active = true } = req.query;
     
     let query = {};
-    if (active === 'true') {
+    if (active === 'true' || active === true) {
       // Handle both true and null values for isActive
       query.$or = [
         { isActive: true },
@@ -635,7 +635,7 @@ const getCountries = async (req, res) => {
     const { language = 'en', search, active = true } = req.query;
     
     let query = {};
-    if (active === 'true') {
+    if (active === 'true' || active === true) {
       // Handle both true and null values for isActive
       query.$or = [
         { isActive: true },
