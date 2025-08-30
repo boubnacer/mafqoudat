@@ -223,7 +223,7 @@ const Dash = () => {
       )}
 
       {/* Only show content sections if there are posts */}
-      {(!hasNoData && (data?.recentFounds?.length > 0 || data?.recentLosts?.length > 0)) && (
+      {!hasNoData && (
         <>
           {/* Section Divider */}
           <Box 
@@ -239,7 +239,6 @@ const Dash = () => {
           />
 
           {/* Enhanced Recent Founds Section */}
-          {data?.recentFounds?.length > 0 && (
           <Box mb={4}>
             <Box
               sx={{
@@ -465,10 +464,8 @@ const Dash = () => {
               </Box>
             </Box>
           </Box>
-          )}
 
           {/* Enhanced Recent Losts Section */}
-          {data?.recentLosts?.length > 0 && (
           <Box mb={4}>
             <Box
               sx={{
@@ -694,7 +691,6 @@ const Dash = () => {
               </Box>
             </Box>
           </Box>
-          )}
 
           {/* Section Divider */}
           <Box 
