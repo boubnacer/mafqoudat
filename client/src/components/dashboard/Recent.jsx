@@ -26,10 +26,10 @@ const Recent = ({ recent, isLoading, emptyState = "NoRecentFounds", maxItems, sx
           lg: "repeat(4, 1fr)", // Four columns on large screens
           xl: "repeat(4, 1fr)", // Four columns on extra large screens
         },
-        // Ensure minimum card width for better readability (matching PostsList)
+        // Ensure proper card sizing without overflow
         '& > *': {
-          minWidth: { xs: '280px', sm: '300px' },
-          maxWidth: { xs: '100%', sm: '400px' },
+          minWidth: { xs: '280px', sm: '250px' },
+          maxWidth: '100%',
           justifySelf: 'center',
         },
         // Prevent horizontal overflow
