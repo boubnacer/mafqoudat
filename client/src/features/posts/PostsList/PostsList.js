@@ -39,7 +39,7 @@ import {
 import Pagination from "@mui/material/Pagination";
 import { useEffect, useState, useCallback, useMemo } from "react";
 import useAuth from "../../../hooks/useAuth";
-import { selectCurrentCountry, selectFoundOrLost, selectCategoryFilter, setCategoryFilter } from "../../../app/state";
+import { selectCurrentCountry, selectFoundOrLost, selectCategoryFilter, selectActiveLink, setCategoryFilter } from "../../../app/state";
 import FlexCenter from "../../../components/FlexCenter";
 
 const POSTS_REGEX = /^\/dash\/posts(\/)?$/;
@@ -77,10 +77,11 @@ const PostsList = () => {
   const foundOrlost = useSelector(selectFoundOrLost);
   
   // Debug Redux state changes
+  const activeLink = useSelector(selectActiveLink);
   console.log('PostsList Redux state:', {
     foundOrlost,
     currentCountry: countryId,
-    activeLink: useSelector(selectActiveLink)
+    activeLink
   });
   
   // Monitor Redux state changes
