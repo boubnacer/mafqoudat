@@ -316,19 +316,21 @@ const Dash = () => {
                      gap: 2,
                      flexDirection: currentLanguage === 'ar' ? 'row-reverse' : 'row'
                    }}>
-                     <Chip 
-                       label={`${data?.totalFounds || 0} ${t('items')}`}
-                       size="small"
-                       sx={{ 
-                         backgroundColor: 'rgba(255,255,255,0.2)',
-                         color: '#fff',
-                         fontSize: '0.75rem',
-                         fontWeight: 600,
-                         height: '28px',
-                         order: currentLanguage === 'ar' ? 2 : 1,
-                         display: { xs: 'none', sm: 'flex' } // Hide on mobile
-                       }}
-                     />
+                     {(data?.totalFounds && data?.totalFounds > 0) && (
+                       <Chip 
+                         label={`${data?.totalFounds} ${t('items')}`}
+                         size="small"
+                         sx={{ 
+                           backgroundColor: 'rgba(255,255,255,0.2)',
+                           color: '#fff',
+                           fontSize: '0.75rem',
+                           fontWeight: 600,
+                           height: '28px',
+                           order: currentLanguage === 'ar' ? 2 : 1,
+                           display: { xs: 'none', sm: 'flex' } // Hide on mobile
+                         }}
+                       />
+                     )}
                      {/* Show "+add" button inline only when no posts */}
                      {(!data?.totalFounds || data?.totalFounds <= 4) && (
                        <SeeAll 
@@ -375,17 +377,19 @@ const Dash = () => {
                         {t('recentFounds')}
                       </Typography>
                     </Box>
-                    <Chip 
-                      label={`${data?.totalFounds || 0} ${t('items')}`}
-                      size="small"
-                      sx={{ 
-                        backgroundColor: 'rgba(255,255,255,0.2)',
-                        color: '#fff',
-                        fontSize: '0.875rem',
-                        fontWeight: 600,
-                        height: '32px'
-                      }}
-                    />
+                                         {(data?.totalFounds && data?.totalFounds > 0) && (
+                       <Chip 
+                         label={`${data?.totalFounds} ${t('items')}`}
+                         size="small"
+                         sx={{ 
+                           backgroundColor: 'rgba(255,255,255,0.2)',
+                           color: '#fff',
+                           fontSize: '0.875rem',
+                           fontWeight: 600,
+                           height: '32px'
+                         }}
+                       />
+                     )}
                   </Box>
                   <Box sx={{ order: currentLanguage === 'ar' ? 1 : 2 }}>
                     <SeeAll 
@@ -539,19 +543,21 @@ const Dash = () => {
                      gap: 2,
                      flexDirection: currentLanguage === 'ar' ? 'row-reverse' : 'row'
                    }}>
-                     <Chip 
-                       label={`${data?.totalLosts || 0} ${t('items')}`}
-                       size="small"
-                       sx={{ 
-                         backgroundColor: 'rgba(255,255,255,0.2)',
-                         color: '#fff',
-                         fontSize: '0.75rem',
-                         fontWeight: 600,
-                         height: '28px',
-                         order: currentLanguage === 'ar' ? 2 : 1,
-                         display: { xs: 'none', sm: 'flex' } // Hide on mobile
-                       }}
-                     />
+                     {(data?.totalLosts && data?.totalLosts > 0) && (
+                       <Chip 
+                         label={`${data?.totalLosts} ${t('items')}`}
+                         size="small"
+                         sx={{ 
+                           backgroundColor: 'rgba(255,255,255,0.2)',
+                           color: '#fff',
+                           fontSize: '0.75rem',
+                           fontWeight: 600,
+                           height: '28px',
+                           order: currentLanguage === 'ar' ? 2 : 1,
+                           display: { xs: 'none', sm: 'flex' } // Hide on mobile
+                         }}
+                       />
+                     )}
                      {/* Show "+add" button inline only when no posts */}
                      {(!data?.totalLosts || data?.totalLosts <= 4) && (
                        <SeeAll 
@@ -598,17 +604,19 @@ const Dash = () => {
                         {t('recentLosts')}
                       </Typography>
                     </Box>
-                    <Chip 
-                      label={`${data?.totalLosts || 0} ${t('items')}`}
-                      size="small"
-                      sx={{ 
-                        backgroundColor: 'rgba(255,255,255,0.2)',
-                        color: '#fff',
-                        fontSize: '0.875rem',
-                        fontWeight: 600,
-                        height: '32px'
-                      }}
-                    />
+                                         {(data?.totalLosts && data?.totalLosts > 0) && (
+                       <Chip 
+                         label={`${data?.totalLosts} ${t('items')}`}
+                         size="small"
+                         sx={{ 
+                           backgroundColor: 'rgba(255,255,255,0.2)',
+                           color: '#fff',
+                           fontSize: '0.875rem',
+                           fontWeight: 600,
+                           height: '32px'
+                         }}
+                       />
+                     )}
                   </Box>
                   <Box sx={{ order: currentLanguage === 'ar' ? 1 : 2 }}>
                     <SeeAll 
