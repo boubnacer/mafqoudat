@@ -6,6 +6,7 @@ import { Formik, Form, Field } from "formik";
 import Textfield from "../../../components/Textfield";
 import SubmitButton from "../../../components/SubmitButton";
 import SelectOption from "../../../components/SelectOption";
+import imageCompression from "browser-image-compression";
 import { 
   Box, 
   FormLabel, 
@@ -51,6 +52,8 @@ const NewPostForm = ({ user, countries, categories, flOptions }) => {
   const [customCityName, setCustomCityName] = useState("");
   const [selectedCustomCity, setSelectedCustomCity] = useState("");
   const [shouldClearCityValue, setShouldClearCityValue] = useState(false);
+  const [isCompressing, setIsCompressing] = useState(false);
+  const [compressionInfo, setCompressionInfo] = useState(null);
 
   useEffect(() => {
     if (isSuccess) {
@@ -232,6 +235,51 @@ const NewPostForm = ({ user, countries, categories, flOptions }) => {
   // Handle custom city name change
   const handleCustomCityChange = (event) => {
     setCustomCityName(event.target.value);
+  };
+
+  // Image compression function
+  const compressImage = async (file) => {
+    if (!file) return null;
+    
+    // Check if file is an image
+    if (!file.type.startsWith('image/')) {
+      console.warn('File is not an image:', file.type);
+      return file;
+    }
+    
+    const options = {
+      maxSizeMB: 1,
+      maxWidthOrHeight: 1200,
+      useWebWorker: true,
+      quality: 0.8
+    };
+
+    try {
+      setIsCompressing(true);
+      const compressedFile = await imageCompression(file, options);
+      
+      // Log compression results for debugging
+      const originalSize = (file.size / 1024 / 1024).toFixed(2);
+      const compressedSize = (compressedFile.size / 1024 / 1024).toFixed(2);
+      const compressionRatio = ((1 - compressedFile.size / file.size) * 100).toFixed(1);
+      
+      console.log(`Image compression: ${originalSize}MB → ${compressedSize}MB (${compressionRatio}% reduction)`);
+      
+      // Store compression info for display
+      setCompressionInfo({
+        originalSize,
+        compressedSize,
+        compressionRatio
+      });
+      
+      setIsCompressing(false);
+      return compressedFile;
+    } catch (error) {
+      console.error('Error compressing image:', error);
+      setIsCompressing(false);
+      // Return original file if compression fails
+      return file;
+    }
   };
 
   if (isError) {
@@ -662,7 +710,8 @@ const NewPostForm = ({ user, countries, categories, flOptions }) => {
                     <Button
                       variant="contained"
                       component="label"
-                      startIcon={<PhotoCamera />}
+                      startIcon={isCompressing ? <CircularProgress size={16} color="inherit" /> : <PhotoCamera />}
+                      disabled={isCompressing}
                       sx={{ 
                         textTransform: 'none', 
                         borderRadius: 2,
@@ -670,17 +719,26 @@ const NewPostForm = ({ user, countries, categories, flOptions }) => {
                         py: 1
                       }}
                     >
-                      {t('chooseFile')}
+                      {isCompressing ? t('compressingImage') || 'Compressing...' : t('chooseFile')}
                       <input
                         id="image"
                         name="image"
                         type="file"
                         accept="image/*"
                         hidden
-                        onChange={(event) => {
+                        onChange={async (event) => {
                           const file = event.currentTarget.files[0];
-                          setFieldValue("image", file);
-                          setSelectedFileName(file ? file.name : "");
+                          // Clear previous compression info
+                          setCompressionInfo(null);
+                          
+                          if (file) {
+                            const compressedFile = await compressImage(file);
+                            setFieldValue("image", compressedFile);
+                            setSelectedFileName(compressedFile ? compressedFile.name : "");
+                          } else {
+                            setFieldValue("image", null);
+                            setSelectedFileName("");
+                          }
                         }}
                       />
                     </Button>
@@ -689,9 +747,17 @@ const NewPostForm = ({ user, countries, categories, flOptions }) => {
                         {selectedFileName}
                       </Typography>
                     )}
+                    {compressionInfo && (
+                      <Typography variant="caption" color="success.main" sx={{ display: "block", mt: 0.5 }}>
+                        {t('compressionSuccess') || `Compressed: ${compressionInfo.originalSize}MB → ${compressionInfo.compressedSize}MB (${compressionInfo.compressionRatio}% smaller)`}
+                      </Typography>
+                    )}
                   </Box>
                   <Typography variant="caption" color="text.secondary" sx={{ mt: 1, display: "block" }}>
                     {t('imageOptionalMessage')}
+                  </Typography>
+                  <Typography variant="caption" color="text.secondary" sx={{ mt: 0.5, display: "block", fontStyle: "italic" }}>
+                    {t('imageCompressionInfo') || "Images will be automatically compressed for faster upload and better performance."}
                   </Typography>
                 </Box>
                 
