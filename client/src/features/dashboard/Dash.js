@@ -457,8 +457,6 @@ const Dash = () => {
                      />
                    </Box>
                  )}
-                
-                
               </Box>
             </Box>
           </Box>
@@ -682,8 +680,6 @@ const Dash = () => {
                      />
                    </Box>
                  )}
-                
-                
               </Box>
             </Box>
           </Box>
