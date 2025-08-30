@@ -75,6 +75,22 @@ const PostsList = () => {
     return user.country;
   });
   const foundOrlost = useSelector(selectFoundOrLost);
+  
+  // Debug Redux state changes
+  console.log('PostsList Redux state:', {
+    foundOrlost,
+    currentCountry: countryId,
+    activeLink: useSelector(selectActiveLink)
+  });
+  
+  // Monitor Redux state changes
+  useEffect(() => {
+    console.log('PostsList: Redux state changed:', {
+      foundOrlost,
+      countryId,
+      timestamp: new Date().toISOString()
+    });
+  }, [foundOrlost, countryId]);
   const categoryFilter = useSelector(selectCategoryFilter);
   const dispatch = useDispatch();
 
@@ -130,8 +146,6 @@ const PostsList = () => {
     search: debouncedSearchTerm || undefined,
     categoryId: localCategoryFilter !== "all" ? localCategoryFilter : undefined,
     language: currentLanguage,
-    // Add a unique key to force refetch when fl changes
-    _flKey: fl || 'all'
   }, {
     // Add debugging
     refetchOnMountOrArgChange: true,
@@ -161,12 +175,11 @@ const PostsList = () => {
     storeReady,
     categoriesLoading,
     foundOrlostFromRedux: foundOrlost,
-    queryKey: `${page}-${pageSize}-${fl || 'all'}-${currentCountry}-${localCategoryFilter}-${debouncedSearchTerm}-${currentLanguage}-${fl || 'all'}`,
+    queryKey: `${page}-${pageSize}-${fl || 'all'}-${currentCountry}-${localCategoryFilter}-${debouncedSearchTerm}-${currentLanguage}`,
     // Add more debugging
     flType: typeof fl,
     flLength: fl ? fl.length : 0,
-    flIsValidId: fl ? /^[0-9a-fA-F]{24}$/.test(fl) : false,
-    _flKey: fl || 'all'
+    flIsValidId: fl ? /^[0-9a-fA-F]{24}$/.test(fl) : false
   });
 
   console.log('PostsList API Response:', {
@@ -301,6 +314,8 @@ const PostsList = () => {
     if (foundOrlost !== fl) {
       console.log('PostsList: Updating fl state from', fl, 'to', foundOrlost);
       setFl(foundOrlost);
+    } else {
+      console.log('PostsList: fl state unchanged:', fl);
     }
     setPage(1);
   }, [countryId, foundOrlost, currentCountry, dispatch]);

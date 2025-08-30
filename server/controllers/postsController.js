@@ -46,7 +46,8 @@ const getAllPosts = async (req, res) => {
   console.log('Posts controller - fl parameter:', {
     fl: req.query.fl,
     hasFl: !!req.query.fl,
-    flType: typeof req.query.fl
+    flType: typeof req.query.fl,
+    allQueryParams: req.query
   });
   
   if (req.query.fl) {
