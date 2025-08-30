@@ -33,6 +33,22 @@ const LazyImage = ({
   // Check if native lazy loading is supported
   const supportsNativeLazy = useNativeLazy && 'loading' in HTMLImageElement.prototype;
 
+  // Filter valid img props to prevent React error #137
+  const getValidImgProps = (props) => {
+    const validImgProps = [
+      'src', 'alt', 'width', 'height', 'loading', 'onLoad', 'onError',
+      'crossOrigin', 'decoding', 'fetchPriority', 'referrerPolicy',
+      'sizes', 'srcSet', 'useMap', 'style', 'className'
+    ];
+    
+    return Object.keys(props).reduce((acc, key) => {
+      if (validImgProps.includes(key)) {
+        acc[key] = props[key];
+      }
+      return acc;
+    }, {});
+  };
+
   useEffect(() => {
     // If native lazy loading is supported, use it
     if (supportsNativeLazy) {
@@ -119,7 +135,7 @@ const LazyImage = ({
           objectFit: 'cover',
           ...sx
         }}
-        {...props}
+        {...getValidImgProps(props)}
       />
     );
   }
@@ -168,7 +184,7 @@ const LazyImage = ({
             position: 'relative',
             zIndex: 2
           }}
-          {...props}
+          {...getValidImgProps(props)}
         />
       )}
     </Box>
