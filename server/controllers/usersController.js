@@ -18,7 +18,7 @@ const getAllUsers = async (req, res) => {
 
   const usersWithCountry = await Promise.all(
     users.map(async (user) => {
-      const country = await Country.findById(user.country).lean().exec();
+      const country = await Country.findById(user.country).select('code').lean().exec();
       return { ...user, code: country?.code || 'Unknown' };
     })
   );
@@ -42,9 +42,10 @@ const createNewUser = async (req, res) => {
   const isEmail = EMAIL_REGEX.test(username);
   const isPhone = !isEmail; // If it's not an email, treat it as phone
 
-  // Check for duplicate email only if input is an email
+  // Check for duplicate email only if input is an email - optimized with selective fields
   if (isEmail) {
     const duplicateEmail = await User.findOne({ email: username.toLowerCase() })
+      .select('_id')
       .lean()
       .exec();
 
@@ -55,9 +56,10 @@ const createNewUser = async (req, res) => {
     }
   }
 
-  // Check for duplicate phone only if input is a phone
+  // Check for duplicate phone only if input is a phone - optimized with selective fields
   if (isPhone) {
     const duplicatePhone = await User.findOne({ phone: username })
+      .select('_id')
       .lean()
       .exec();
 
@@ -68,8 +70,9 @@ const createNewUser = async (req, res) => {
     }
   }
 
-  // Check for duplicate username
+  // Check for duplicate username - optimized with selective fields
   const duplicateUsername = await User.findOne({ username })
+    .select('_id')
     .collation({ locale: "en", strength: 2 })
     .lean()
     .exec();
@@ -161,15 +164,16 @@ const updateUser = async (req, res) => {
       .json({ message: "All fields except password are required" });
   }
 
-  // Does the user exist to update?
-  const user = await User.findById(id).exec();
+  // Does the user exist to update? - optimized with selective fields
+  const user = await User.findById(id).select('_id username country password').exec();
 
   if (!user) {
     return res.status(400).json({ message: "User not found" });
   }
 
-  // Check for duplicate
+  // Check for duplicate - optimized with selective fields
   const duplicate = await User.findOne({ username })
+    .select('_id')
     .collation({ locale: "en", strength: 2 })
     .lean()
     .exec();
@@ -203,14 +207,14 @@ const deleteUser = async (req, res) => {
     return res.status(400).json({ message: "User ID Required" });
   }
 
-  // Does the user still have assigned posts?
-  const post = await Post.findOne({ user: id }).lean().exec();
+  // Does the user still have assigned posts? - optimized with selective fields
+  const post = await Post.findOne({ user: id }).select('_id').lean().exec();
   if (post) {
     return res.status(400).json({ message: "User has assigned posts" });
   }
 
-  // Does the user exist to delete?
-  const user = await User.findById(id).exec();
+  // Does the user exist to delete? - optimized with selective fields
+  const user = await User.findById(id).select('_id username').exec();
 
   if (!user) {
     return res.status(400).json({ message: "User not found" });

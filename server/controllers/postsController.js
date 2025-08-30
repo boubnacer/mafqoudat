@@ -514,13 +514,13 @@ const createNewPost = async (req, res) => {
      });
    }
 
-   // Validate references
+   // Validate references with selective field projection
   
      try {
-     const userExists = await User.findById(user).lean();
-     const countryExists = await Country.findById(country).lean();
-     const categoryExists = await Category.findById(category).lean();
-     const foundLostExists = await FoundLost.findById(foundLost).lean();
+     const userExists = await User.findById(user).select('_id').lean();
+     const countryExists = await Country.findById(country).select('_id').lean();
+     const categoryExists = await Category.findById(category).select('_id').lean();
+     const foundLostExists = await FoundLost.findById(foundLost).select('_id').lean();
     
     // Check which references are missing and provide specific error messages
     const missingReferences = [];
@@ -531,10 +531,10 @@ const createNewPost = async (req, res) => {
     
          if (missingReferences.length > 0) {
       
-      // Get available options to help the client
-      const availableCountries = await Country.find().select('_id code names.en').lean();
-      const availableCategories = await Category.find().select('_id code labels.en').lean();
-      const availableFoundLost = await FoundLost.find().select('_id code labels.en').lean();
+             // Get available options to help the client - only select necessary fields
+       const availableCountries = await Country.find().select('_id code names.en').lean();
+       const availableCategories = await Category.find().select('_id code labels.en').lean();
+       const availableFoundLost = await FoundLost.find().select('_id code labels.en').lean();
       
              // Check if the IDs exist in the available options (database connection issue workaround)
        const countryExistsInOptions = availableCountries.find(c => c._id.toString() === country);
@@ -579,7 +579,7 @@ const createNewPost = async (req, res) => {
    try {
      if (city && mongoose.Types.ObjectId.isValid(city)) {
        console.log('🔍 DEBUG: City is valid ObjectId, checking if exists in database');
-       const cityDoc = await City.findById(city).lean();
+       const cityDoc = await City.findById(city).select('_id').lean();
        if (cityDoc) {
          cityId = city;
          console.log('🔍 DEBUG: City found in database, setting cityId:', cityId);
@@ -744,13 +744,14 @@ const submitPostReport = async (req, res) => {
       });
     }
 
-    // Find the post with proper population for the new data structure
+    // Find the post with proper population for the new data structure - optimized with selective fields
     const post = await Post.findById(postId)
       .populate('user', 'username')
       .populate('category', 'labels.en code')
       .populate('country', 'labels.en code names.en')
       .populate('foundLost', 'code')
       .populate('city', 'labels.en')
+      .select('_id foundLost category country region city exactLocation contact description createdAt')
       .lean()
       .exec();
 
@@ -777,10 +778,10 @@ const submitPostReport = async (req, res) => {
 
     console.log('Email post data prepared:', emailPostData);
 
-    // Get user data (if userId is provided and not anonymous)
+    // Get user data (if userId is provided and not anonymous) - optimized with selective fields
     let user = null;
     if (reportingUserId && reportingUserId !== 'anonymous') {
-      user = await User.findById(reportingUserId).lean().exec();
+      user = await User.findById(reportingUserId).select('username email').lean().exec();
       if (!user) {
         // If user not found, use anonymous
         user = {
@@ -859,7 +860,7 @@ const updatePost = async (req, res) => {
     return res.status(400).json({ message: "All fields are required" });
   }
 
-  // Validate references
+  // Validate references - using exists() is already optimized for checking existence
   const userExists = await User.exists({ _id: user });
   const countryExists = await Country.exists({ _id: country });
   const categoryExists = await Category.exists({ _id: category });
@@ -868,8 +869,8 @@ const updatePost = async (req, res) => {
     return res.status(400).json({ message: "Invalid reference in user/country/category/foundLost" });
   }
 
-  // Confirm post exists to update
-  const post = await Post.findById(id).exec();
+  // Confirm post exists to update - only select fields needed for update
+  const post = await Post.findById(id).select('_id user country category exactLocation contact returned foundLost description').exec();
 
   if (!post) {
     return res.status(400).json({ message: "Post not found" });
@@ -908,8 +909,8 @@ const deletePost = async (req, res) => {
     return res.status(400).json({ message: "Post ID required" });
   }
 
-  // Confirm post exists to delete
-  const post = await Post.findById(id).exec();
+  // Confirm post exists to delete - only select fields needed for deletion (cloudinary cleanup)
+  const post = await Post.findById(id).select('_id cloudinaryPublicId title').exec();
 
   if (!post) {
     return res.status(400).json({ message: "Post not found" });

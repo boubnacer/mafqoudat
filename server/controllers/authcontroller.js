@@ -13,13 +13,13 @@ const login = async (req, res) => {
     return res.status(400).json({ message: "All fields are required" });
   }
 
-  // Find user by email or phone
+  // Find user by email or phone - optimized with selective fields for authentication
   const foundUser = await User.findOne({
     $or: [
       { email: emailOrPhone.toLowerCase() },
       { phone: emailOrPhone }
     ]
-  }).exec();
+  }).select('_id username password country').exec();
 
   if (!foundUser) {
     return res.status(401).json({ message: "User does not exist" });
@@ -79,7 +79,7 @@ const refresh = (req, res) => {
 
       const foundUser = await User.findOne({
         username: decoded.username,
-      }).exec();
+      }).select('_id username country').exec();
 
       if (!foundUser) return res.status(401).json({ message: "Unauthorized" });
       // verify the userInfo country !!!!!!!!!!
