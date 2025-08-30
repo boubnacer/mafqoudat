@@ -1,9 +1,7 @@
 import {
   Box,
-  Button,
   FormLabel,
   Modal,
-  Typography,
   useTheme,
 } from "@mui/material";
 import React from "react";

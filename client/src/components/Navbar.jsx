@@ -14,9 +14,6 @@ import {
   ListItemIcon,
   ListItemText,
   Divider,
-  Chip,
-  Avatar,
-  Tooltip,
 } from "@mui/material";
 import {
   DarkModeOutlined,
@@ -25,17 +22,12 @@ import {
   LogoutOutlined,
   Language,
   KeyboardArrowDown,
-  AddCircleOutline,
   Login,
   PersonAdd,
-  Home,
   Search,
   Explore,
   Dashboard,
   PostAdd,
-  Settings,
-  AccountCircle,
-  NotificationsNone,
 } from "@mui/icons-material";
 import FlexBetween from "./FlexBetween";
 import {

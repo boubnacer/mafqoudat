@@ -5,8 +5,7 @@ import { getCategoryIcon, getCategoryColor, getCategoryBackgroundColor } from ".
 import { useTranslation } from "../../utils/translations";
 import { useLanguage } from "../../utils/languageContext";
 import { useNavigate } from "react-router-dom";
-import { useDispatch } from "react-redux";
-import { setActiveLink, setFoundOrLost, setCategoryFilter } from "../../app/state";
+
 import { motion } from "framer-motion";
 import { ExpandMore, ExpandLess } from "@mui/icons-material";
 import { useState } from "react";
@@ -14,10 +13,8 @@ import { useState } from "react";
 const Categories = () => {
   const { currentLanguage } = useLanguage();
   const navigate = useNavigate();
-  const dispatch = useDispatch();
   const theme = useTheme();
   const isMobile = useMediaQuery(theme.breakpoints.down('sm'));
-  const isTablet = useMediaQuery(theme.breakpoints.down('md'));
   const { t } = useTranslation();
   const [showAllCategories, setShowAllCategories] = useState(false);
   

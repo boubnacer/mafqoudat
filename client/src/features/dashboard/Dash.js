@@ -1,7 +1,7 @@
 import React from "react";
 import { useDispatch, useSelector } from "react-redux";
 import { useNavigate } from "react-router-dom";
-import { Box, Skeleton, useMediaQuery, useTheme, Typography, Chip, Button, Divider, Paper } from "@mui/material";
+import { Box, Skeleton, useMediaQuery, useTheme, Typography, Chip, Button, Paper } from "@mui/material";
 import { setActiveLink, setFoundOrLost, setOpenModal } from "../../app/state";
 import { LoadingState, DashboardEmptyStates } from "../../components/LoadingStates";
 import { WhatshotOutlined, Search, Language } from "@mui/icons-material";
@@ -15,16 +15,13 @@ import { useDashboard } from "../../hooks/useDashboard";
 // Components
 import LeftSide from "../../components/dashboard/LeftSide";
 import TrendingItem from "../../components/dashboard/TrendingItem";
-import SearchSection from "../../components/dashboard/SearchSection";
 import QuickActions from "../../components/dashboard/QuickActions";
 import SuccessStories from "../../components/dashboard/SuccessStories";
-import CommunitySection from "../../components/dashboard/CommunitySection";
-import HelpSupportSection from "../../components/dashboard/HelpSupportSection";
 import Categories from "../../components/dashboard/Categories";
 import Process from "../../components/dashboard/Process";
 import Recent from "../../components/dashboard/Recent";
 import SeeAll from "../../components/dashboard/SeeAll";
-import FlexCenter from "../../components/FlexCenter";
+import HelpSupportSection from "../../components/dashboard/HelpSupportSection";
 import DashRecents from "../../components/dashboard/DashRecents";
 
 import "./dash.css";
@@ -35,7 +32,6 @@ const foundsId = "68a4b54ab46524c54c553cc3"; // FOUND
 
 const Dash = () => {
   const theme = useTheme();
-  const isNonMediumScreens = useMediaQuery("(min-width:1200px)");
   const isMobile = useMediaQuery("(max-width:600px)");
   const dispatch = useDispatch();
   const navigate = useNavigate();
@@ -52,9 +48,7 @@ const Dash = () => {
     error,
     isLoading,
     trend,
-    searchData,
-    isSearchLoading,
-    handleSearchChange,
+
     currentCountry,
     countriesData,
   } = useDashboard();
@@ -67,23 +61,7 @@ const Dash = () => {
     }
   };
 
-  const hanldeSeeAllPosts = ({ foundOrlostId }) => {
-    navigate("/dash/posts");
-    dispatch(
-      setFoundOrLost({
-        foundOrlost: foundOrlostId,
-      })
-    );
-    dispatch(setActiveLink({ active: foundOrlostId }));
-  };
 
-  const hanldeAddNewPost = () => {
-    if (!user.username) {
-      navigate('/login');
-    } else {
-      navigate("/dash/posts/new");
-    }
-  };
 
   // Show error if there's an API error, but don't block the UI
   if (isError) {

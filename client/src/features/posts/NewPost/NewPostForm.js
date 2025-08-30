@@ -2,7 +2,7 @@ import { useState, useEffect, useCallback } from "react";
 import { useNavigate } from "react-router-dom";
 import { useAddNewPostMutation } from "../postsApiSlice";
 import * as Yup from "yup";
-import { Formik, Form, Field } from "formik";
+import { Formik, Form } from "formik";
 import Textfield from "../../../components/Textfield";
 import SubmitButton from "../../../components/SubmitButton";
 import SelectOption from "../../../components/SelectOption";
@@ -35,7 +35,7 @@ import { useTranslation } from "../../../utils/translations";
 import PromotionDialog from "../../../components/PromotionDialog";
 
 const NewPostForm = ({ user, countries, categories, flOptions }) => {
-  const [addNewPost, { isLoading, isSuccess, isError, error }] = useAddNewPostMutation();
+  const [addNewPost, { isSuccess, isError, error }] = useAddNewPostMutation();
   const { t, currentLanguage } = useTranslation();
   
   const navigate = useNavigate();

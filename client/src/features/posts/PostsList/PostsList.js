@@ -10,11 +10,8 @@ import { store } from "../../../app/store";
 import { 
   Search, 
   Add as AddIcon, 
-  FilterList as FilterIcon,
-  Sort as SortIcon,
   ViewList as ViewListIcon,
   ViewModule as ViewModuleIcon,
-  Category as CategoryIcon,
   Language
 } from "@mui/icons-material";
 import { 
@@ -34,16 +31,14 @@ import {
   IconButton,
   Tooltip,
   Grid,
-  Alert
 } from "@mui/material";
 import Pagination from "@mui/material/Pagination";
-import { useEffect, useState, useCallback, useMemo } from "react";
+import { useEffect, useState, useMemo } from "react";
 import useAuth from "../../../hooks/useAuth";
-import { selectCurrentCountry, selectFoundOrLost, selectCategoryFilter, selectActiveLink, setCategoryFilter } from "../../../app/state";
+import { selectCurrentCountry, selectFoundOrLost, selectCategoryFilter, selectActiveLink } from "../../../app/state";
 import FlexCenter from "../../../components/FlexCenter";
 
-const POSTS_REGEX = /^\/dash\/posts(\/)?$/;
-const HOME_REGEX = /^\/dash(\/)?$/;
+
 
 const PostsList = () => {
   console.log('PostsList: Component function called - START');
@@ -53,7 +48,6 @@ const PostsList = () => {
   useTitle("Mafkoudat | Posts List");
 
   const theme = useTheme();
-  const isNonMediumScreens = useMediaQuery("(min-width:1200px)");
   const isMobile = useMediaQuery("(max-width:768px)");
 
   const user = useAuth();

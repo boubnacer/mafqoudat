@@ -1,42 +1,54 @@
 // Force deployment - PostsList dependencies fix applied - V11
 // Fixed Vercel routing - added basename and removed homepage field
 import { Routes, Route } from "react-router-dom";
-import WelcomePage from "./components/WelcomePage";
-import PublicPostsPage from "./components/PublicPostsPage";
-import Login from "./features/auth/Login/Login";
-import DashLayout from "./components/Layout/DashLayout";
-
-import PostsList from "./features/posts/PostsList/PostsList";
-import UsersList from "./features/userSettings/UserPage/UsersList";
-import EditUser from "./features/userSettings/EditUser/EditUser";
-import EditPost from "./features/posts/EditPost/EditPost";
-import NewPost from "./features/posts/NewPost/NewPost";
-import Prefetch from "./features/auth/PrefetchData/Prefetch";
-import NewUser from "./features/auth/SingUp/NewUser";
-import PersistLogin from "./features/auth/RefreshPage/PersistLogin";
-import SinglePost from "./features/posts/PostPage/SinglePost";
-
-
-import Dash from "./features/dashboard/Dash";
-
-import DependenciesManager from "./features/MANAGER/Dependencies/DependenciesManager";
+import { Suspense, lazy } from "react";
 import { CssBaseline, ThemeProvider } from "@mui/material";
 import { createTheme } from "@mui/material/styles";
 import React, { useEffect } from "react";
 import { useSelector } from "react-redux";
+import { useLocation } from "react-router-dom";
+import WelcomePage from "./components/WelcomePage";
+import PublicPostsPage from "./components/PublicPostsPage";
+import Login from "./features/auth/Login/Login";
+import DashLayout from "./components/Layout/DashLayout";
 import { themeSettings } from "./theme";
 import PrefetchDependencies from "./features/PrefetchData/PrefetchDependencies";
 import { LanguageProvider, useLanguage } from "./utils/languageContext";
 import { cleanupLocalStorage, initializeLocalStorage } from "./utils/localStorageUtils";
-import { useLocation } from "react-router-dom";
-// Redirect logic moved to Login component
-
-// Import new page components
 import PrivacyPolicy from "./components/Pages/PrivacyPolicy";
 import TermsOfUse from "./components/Pages/TermsOfUse";
 import CookieNotice from "./components/Pages/CookieNotice";
 import CommunityGuidelines from "./components/Pages/CommunityGuidelines";
 import SafetyTips from "./components/Pages/SafetyTips";
+
+// Lazy load heavy components
+const PostsList = lazy(() => import("./features/posts/PostsList/PostsList"));
+const UsersList = lazy(() => import("./features/userSettings/UserPage/UsersList"));
+const EditUser = lazy(() => import("./features/userSettings/EditUser/EditUser"));
+const EditPost = lazy(() => import("./features/posts/EditPost/EditPost"));
+const NewPost = lazy(() => import("./features/posts/NewPost/NewPost"));
+const Prefetch = lazy(() => import("./features/auth/PrefetchData/Prefetch"));
+const NewUser = lazy(() => import("./features/auth/SingUp/NewUser"));
+const PersistLogin = lazy(() => import("./features/auth/RefreshPage/PersistLogin"));
+const SinglePost = lazy(() => import("./features/posts/PostPage/SinglePost"));
+
+// Lazy load dashboard components
+const Dash = lazy(() => import("./features/dashboard/Dash"));
+const DependenciesManager = lazy(() => import("./features/MANAGER/Dependencies/DependenciesManager"));
+
+// Loading component for lazy-loaded routes
+const LoadingFallback = () => (
+  <div style={{ 
+    display: 'flex', 
+    justifyContent: 'center', 
+    alignItems: 'center', 
+    height: '100vh',
+    fontSize: '1.2rem',
+    color: '#666'
+  }}>
+    Loading...
+  </div>
+);
 
 // Inner App component that has access to language context
 const AppContent = () => {
@@ -94,28 +106,56 @@ const AppContent = () => {
           {/* Dashboard home - public access */}
           <Route index element={
             <PrefetchDependencies>
-              <Dash />
+              <Suspense fallback={<LoadingFallback />}>
+                <Dash />
+              </Suspense>
             </PrefetchDependencies>
           } />
           
           {/* Posts routes - public access with dependency prefetching */}
           <Route path="posts" element={
             <PrefetchDependencies>
-              <PostsList />
+              <Suspense fallback={<LoadingFallback />}>
+                <PostsList />
+              </Suspense>
             </PrefetchDependencies>
           } />
-          <Route path="posts/:id" element={<SinglePost />} />
+          <Route path="posts/:id" element={
+            <Suspense fallback={<LoadingFallback />}>
+              <SinglePost />
+            </Suspense>
+          } />
            
           {/* Protected routes - require authentication for creating/editing posts and admin actions */}
           <Route element={<PersistLogin />}>
             <Route element={<Prefetch />}>
-              <Route path="posts/new" element={<NewPost />} />
-              <Route path="posts/edit/:id" element={<EditPost />} />
+              <Route path="posts/new" element={
+                <Suspense fallback={<LoadingFallback />}>
+                  <NewPost />
+                </Suspense>
+              } />
+              <Route path="posts/edit/:id" element={
+                <Suspense fallback={<LoadingFallback />}>
+                  <EditPost />
+                </Suspense>
+              } />
               <Route path="users">
-                <Route index element={<UsersList />} />
-                <Route path=":id" element={<EditUser />} />
+                <Route index element={
+                  <Suspense fallback={<LoadingFallback />}>
+                    <UsersList />
+                  </Suspense>
+                } />
+                <Route path=":id" element={
+                  <Suspense fallback={<LoadingFallback />}>
+                    <EditUser />
+                  </Suspense>
+                } />
               </Route>
-              <Route path="dependencies" element={<DependenciesManager />} />
+              <Route path="dependencies" element={
+                <Suspense fallback={<LoadingFallback />}>
+                  <DependenciesManager />
+                </Suspense>
+              } />
             </Route>
           </Route>
         </Route>
@@ -147,7 +187,9 @@ function App() {
 
   return (
     <LanguageProvider>
-      <AppContent />
+      <Suspense fallback={<LoadingFallback />}>
+        <AppContent />
+      </Suspense>
     </LanguageProvider>
   );
 }

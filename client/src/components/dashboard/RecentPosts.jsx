@@ -3,7 +3,6 @@ import {
   Typography,
   useTheme,
   Card,
-  CardMedia,
   CardContent,
   CardActions,
   Button,

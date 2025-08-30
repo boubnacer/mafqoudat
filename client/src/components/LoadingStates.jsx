@@ -3,7 +3,6 @@ import {
   Box,
   Typography,
   Skeleton,
-  Paper,
   Card,
   CardContent,
   Grid,
@@ -20,7 +19,6 @@ import {
   Help,
   EmojiEvents,
   Category,
-  LocationOn,
   WhatshotOutlined,
 } from '@mui/icons-material';
 

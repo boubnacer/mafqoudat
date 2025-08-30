@@ -1,7 +1,4 @@
-import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
-import { faPenToSquare } from "@fortawesome/free-solid-svg-icons";
-import { Link, useNavigate } from "react-router-dom";
-import { useGetPostsQuery } from "../postsApiSlice";
+import { useNavigate } from "react-router-dom";
 import { memo, useState } from "react";
 import React from "react";
 // import "./postslist.css"; // Removed to prevent CSS conflicts with Material-UI
@@ -14,7 +11,6 @@ import {
   Card,
   CardActions,
   CardContent,
-  CardMedia,
   Typography,
   useTheme,
   Box,
@@ -25,12 +21,9 @@ import {
   useMediaQuery,
   Paper,
   alpha,
-  Divider,
 } from "@mui/material";
 import {
   LocationOn as LocationIcon,
-  LocationOnOutlined,
-  KeyboardArrowRightOutlined,
   ReportProblemOutlined,
   CalendarToday as CalendarIcon,
   Category as CategoryIcon,
@@ -52,12 +45,12 @@ import LazyCardMedia from "../../../components/LazyCardMedia";
 const API_BASE_URL = process.env.REACT_APP_API_URL || "http://localhost:3500";
 
 const Post = ({ post, viewMode = "grid" }) => {
-  const { usernameId, foundLost } = useAuth();
+  const { usernameId } = useAuth();
   const theme = useTheme();
   const isMobile = useMediaQuery("(max-width:768px)");
   const navigate = useNavigate();
   const { t, currentLanguage } = useTranslation();
-  const isRTLMode = isRTL();
+
   const [reportDialogOpen, setReportDialogOpen] = useState(false);
   const [submitReport] = useSubmitReportMutation();
 
