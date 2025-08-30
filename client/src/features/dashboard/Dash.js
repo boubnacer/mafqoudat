@@ -325,14 +325,18 @@ const Dash = () => {
                          fontSize: '0.75rem',
                          fontWeight: 600,
                          height: '28px',
-                         order: currentLanguage === 'ar' ? 2 : 1
+                         order: currentLanguage === 'ar' ? 2 : 1,
+                         display: { xs: 'none', sm: 'flex' } // Hide on mobile
                        }}
                      />
-                     <SeeAll 
-                       foundOrlostId={foundsId} 
-                       totalItems={data?.totalFounds}
-                       variant="mobile"
-                     />
+                     {/* Show "+add" button inline only when no posts */}
+                     {(!data?.totalFounds || data?.totalFounds <= 4) && (
+                       <SeeAll 
+                         foundOrlostId={foundsId} 
+                         totalItems={data?.totalFounds}
+                         variant="mobile"
+                       />
+                     )}
                    </Box>
                 </Box>
 
@@ -401,37 +405,56 @@ const Dash = () => {
                   minHeight: '200px'
                 }}
               >
-                <Recent 
-                  recent={data?.recentFounds}
-                  isLoading={isLoading}
-                  emptyState="NoRecentFounds"
-                  maxItems={4}
-                  sx={{
-                    '& .MuiCard-root': {
-                      backgroundColor: theme.palette.mode === 'dark' ? '#1a1a1a' : '#fff',
-                      transition: 'all 0.3s ease',
-                      '&:hover': {
-                        transform: { xs: 'none', sm: 'translateY(-4px)' },
-                        boxShadow: theme.palette.mode === 'dark'
-                          ? '0 8px 24px rgba(0,0,0,0.4)'
-                          : '0 8px 24px rgba(0,0,0,0.1)'
-                      },
-                      height: '100%',
-                      display: 'flex',
-                      flexDirection: 'column',
-                      borderRadius: '16px',
-                      overflow: 'hidden'
-                    },
-                    '& .MuiCardMedia-root': {
-                      height: { xs: '180px', sm: '200px', md: '220px' },
-                      objectFit: 'cover'
-                    },
-                    '& .MuiCardContent-root': {
-                      flexGrow: 1,
-                      p: { xs: 1.5, sm: 2 }
-                    }
-                  }}
-                />
+                                 <Recent 
+                   recent={data?.recentFounds}
+                   isLoading={isLoading}
+                   emptyState="NoRecentFounds"
+                   maxItems={4}
+                   sx={{
+                     '& .MuiCard-root': {
+                       backgroundColor: theme.palette.mode === 'dark' ? '#1a1a1a' : '#fff',
+                       transition: 'all 0.3s ease',
+                       '&:hover': {
+                         transform: { xs: 'none', sm: 'translateY(-4px)' },
+                         boxShadow: theme.palette.mode === 'dark'
+                           ? '0 8px 24px rgba(0,0,0,0.4)'
+                           : '0 8px 24px rgba(0,0,0,0.1)'
+                       },
+                       height: '100%',
+                       display: 'flex',
+                       flexDirection: 'column',
+                       borderRadius: '16px',
+                       overflow: 'hidden'
+                     },
+                     '& .MuiCardMedia-root': {
+                       height: { xs: '180px', sm: '200px', md: '220px' },
+                       objectFit: 'cover'
+                     },
+                     '& .MuiCardContent-root': {
+                       flexGrow: 1,
+                       p: { xs: 1.5, sm: 2 }
+                     }
+                   }}
+                 />
+                 
+                 {/* Mobile See All Button - Bottom (only when there are posts) */}
+                 {(data?.totalFounds && data?.totalFounds > 4) && (
+                   <Box
+                     sx={{
+                       display: { xs: 'flex', sm: 'none' },
+                       justifyContent: 'center',
+                       mt: 3,
+                       pt: 2,
+                       borderTop: `1px solid ${theme.palette.mode === 'dark' ? 'rgba(255,255,255,0.1)' : 'rgba(0,0,0,0.1)'}`
+                     }}
+                   >
+                     <SeeAll 
+                       foundOrlostId={foundsId} 
+                       totalItems={data?.totalFounds}
+                       variant="mobile"
+                     />
+                   </Box>
+                 )}
                 
                 
               </Box>
@@ -525,14 +548,18 @@ const Dash = () => {
                          fontSize: '0.75rem',
                          fontWeight: 600,
                          height: '28px',
-                         order: currentLanguage === 'ar' ? 2 : 1
+                         order: currentLanguage === 'ar' ? 2 : 1,
+                         display: { xs: 'none', sm: 'flex' } // Hide on mobile
                        }}
                      />
-                     <SeeAll 
-                       foundOrlostId={lostsId} 
-                       totalItems={data?.totalLosts}
-                       variant="mobile"
-                     />
+                     {/* Show "+add" button inline only when no posts */}
+                     {(!data?.totalLosts || data?.totalLosts <= 4) && (
+                       <SeeAll 
+                         foundOrlostId={lostsId} 
+                         totalItems={data?.totalLosts}
+                         variant="mobile"
+                       />
+                     )}
                    </Box>
                 </Box>
 
@@ -601,37 +628,56 @@ const Dash = () => {
                   minHeight: '200px'
                 }}
               >
-                <Recent 
-                  recent={data?.recentLosts}
-                  isLoading={isLoading}
-                  emptyState="NoRecentLosts"
-                  maxItems={4}
-                  sx={{
-                    '& .MuiCard-root': {
-                      backgroundColor: theme.palette.mode === 'dark' ? '#1a1a1a' : '#fff',
-                      transition: 'all 0.3s ease',
-                      '&:hover': {
-                        transform: { xs: 'none', sm: 'translateY(-4px)' },
-                        boxShadow: theme.palette.mode === 'dark'
-                          ? '0 8px 24px rgba(0,0,0,0.4)'
-                          : '0 8px 24px rgba(0,0,0,0.1)'
-                      },
-                      height: '100%',
-                      display: 'flex',
-                      flexDirection: 'column',
-                      borderRadius: '16px',
-                      overflow: 'hidden'
-                    },
-                    '& .MuiCardMedia-root': {
-                      height: { xs: '180px', sm: '200px', md: '220px' },
-                      objectFit: 'cover'
-                    },
-                    '& .MuiCardContent-root': {
-                      flexGrow: 1,
-                      p: { xs: 1.5, sm: 2 }
-                    }
-                  }}
-                />
+                                 <Recent 
+                   recent={data?.recentLosts}
+                   isLoading={isLoading}
+                   emptyState="NoRecentLosts"
+                   maxItems={4}
+                   sx={{
+                     '& .MuiCard-root': {
+                       backgroundColor: theme.palette.mode === 'dark' ? '#1a1a1a' : '#fff',
+                       transition: 'all 0.3s ease',
+                       '&:hover': {
+                         transform: { xs: 'none', sm: 'translateY(-4px)' },
+                         boxShadow: theme.palette.mode === 'dark'
+                           ? '0 8px 24px rgba(0,0,0,0.4)'
+                           : '0 8px 24px rgba(0,0,0,0.1)'
+                       },
+                       height: '100%',
+                       display: 'flex',
+                       flexDirection: 'column',
+                       borderRadius: '16px',
+                       overflow: 'hidden'
+                     },
+                     '& .MuiCardMedia-root': {
+                       height: { xs: '180px', sm: '200px', md: '220px' },
+                       objectFit: 'cover'
+                     },
+                     '& .MuiCardContent-root': {
+                       flexGrow: 1,
+                       p: { xs: 1.5, sm: 2 }
+                     }
+                   }}
+                 />
+                 
+                 {/* Mobile See All Button - Bottom (only when there are posts) */}
+                 {(data?.totalLosts && data?.totalLosts > 4) && (
+                   <Box
+                     sx={{
+                       display: { xs: 'flex', sm: 'none' },
+                       justifyContent: 'center',
+                       mt: 3,
+                       pt: 2,
+                       borderTop: `1px solid ${theme.palette.mode === 'dark' ? 'rgba(255,255,255,0.1)' : 'rgba(0,0,0,0.1)'}`
+                     }}
+                   >
+                     <SeeAll 
+                       foundOrlostId={lostsId} 
+                       totalItems={data?.totalLosts}
+                       variant="mobile"
+                     />
+                   </Box>
+                 )}
                 
                 
               </Box>
