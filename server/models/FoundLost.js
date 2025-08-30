@@ -50,6 +50,13 @@ const foundlostSchema = new mongoose.Schema({
 // Index for efficient lookup
 foundlostSchema.index({ code: 1 });
 
+// Compound indexes for common query patterns
+// 1. isActive + code (for active found/lost types)
+foundlostSchema.index({ isActive: 1, code: 1 });
+
+// 2. isActive + labels.en (for sorted active types)
+foundlostSchema.index({ isActive: 1, "labels.en": 1 });
+
 // Virtual for backward compatibility
 foundlostSchema.virtual('name').get(function() {
   return this.labels.en;

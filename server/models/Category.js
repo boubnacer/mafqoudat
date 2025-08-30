@@ -66,6 +66,16 @@ categorySchema.index({
   "searchTerms": "text"
 });
 
+// Compound indexes for common query patterns
+// 1. isActive + priority (for sorted active categories)
+categorySchema.index({ isActive: 1, priority: -1 });
+
+// 2. isActive + labels.en (for alphabetically sorted active categories)
+categorySchema.index({ isActive: 1, "labels.en": 1 });
+
+// 3. code + isActive (for code-based category queries)
+categorySchema.index({ code: 1, isActive: 1 });
+
 // Virtual for backward compatibility
 categorySchema.virtual('name').get(function() {
   return this.labels.en; // Default to English

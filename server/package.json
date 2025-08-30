@@ -11,6 +11,8 @@
     "updateCountries": "node scripts/updateCountriesWithNames.js",
     "test": "node test-server.js",
     "test-email": "node test-email-config.js",
+    "create-indexes": "node scripts/create-indexes.js",
+    "monitor-indexes": "node scripts/monitor-indexes.js",
     "build": "echo 'No build step required for Node.js'",
     "postinstall": "echo 'Server dependencies installed'"
   },

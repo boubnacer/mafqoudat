@@ -105,6 +105,28 @@ userSchema.index({ isActive: 1 });
 // Compound index for email/phone authentication
 userSchema.index({ email: 1, phone: 1 });
 
+// Compound indexes for common query patterns
+// 1. Country + isActive (for country-specific user queries)
+userSchema.index({ country: 1, isActive: 1 });
+
+// 2. Role + isActive (for admin/moderator queries)
+userSchema.index({ role: 1, isActive: 1 });
+
+// 3. LastLogin + isActive (for active user queries)
+userSchema.index({ lastLogin: -1, isActive: 1 });
+
+// 4. CreatedAt + isActive (for user registration analytics)
+userSchema.index({ createdAt: -1, isActive: 1 });
+
+// 5. Country + Role + isActive (for country-specific role queries)
+userSchema.index({ country: 1, role: 1, isActive: 1 });
+
+// 6. Email + isActive (for email-based authentication)
+userSchema.index({ email: 1, isActive: 1 });
+
+// 7. Phone + isActive (for phone-based authentication)
+userSchema.index({ phone: 1, isActive: 1 });
+
 // Index for multilingual search
 userSchema.index({ 
   "profile.firstNameLabels.en": "text", 

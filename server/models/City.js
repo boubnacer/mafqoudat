@@ -63,6 +63,22 @@ citySchema.index({
 // Index for country-based queries
 citySchema.index({ country: 1, isActive: 1 });
 
+// Compound indexes for common query patterns
+// 1. Country + isActive + isCapital (for country capitals)
+citySchema.index({ country: 1, isActive: 1, isCapital: 1 });
+
+// 2. Country + isActive + labels.en (for sorted city queries)
+citySchema.index({ country: 1, isActive: 1, "labels.en": 1 });
+
+// 3. isActive + isCapital (for global capital queries)
+citySchema.index({ isActive: 1, isCapital: 1 });
+
+// 4. isDynamic + isActive (for dynamic city queries)
+citySchema.index({ isDynamic: 1, isActive: 1 });
+
+// 5. Country + isDynamic + isActive (for country-specific dynamic cities)
+citySchema.index({ country: 1, isDynamic: 1, isActive: 1 });
+
 // Virtual for backward compatibility
 citySchema.virtual('label').get(function() {
   return this.labels.en; // Default to English
