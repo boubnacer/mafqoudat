@@ -4,6 +4,7 @@ import defaultImage from "../../../img/ma.jpg";
 import "./sponsored.css";
 import { useTranslation } from "../../utils/translations";
 import { getOptimizedImageUrl } from "../../utils/cloudinaryUtils";
+import LazyImage from "../LazyImage";
 import ReportDialog from "../ReportDialog";
 import { useSubmitReportMutation } from "../../features/posts/reportsApiSlice";
 import useAuth from "../../hooks/useAuth";
@@ -66,11 +67,17 @@ const Sponsored = ({ post }) => {
           </div>
         </div>
         <div className="card__img">
-          <img 
+          <LazyImage 
             src={post.image ? (post.image.startsWith('http') ? getOptimizedImageUrl(post.image, 'card') : post.image) : defaultImage} 
             alt={`${post.category} - ${post.region}`}
+            fallback={defaultImage}
             onError={(e) => {
-              e.target.src = defaultImage;
+              console.log('Image failed to load:', e.target.src);
+            }}
+            sx={{
+              width: '100%',
+              height: '100%',
+              objectFit: 'cover'
             }}
           />
           <p className="trending__date">{formatDate(post.createdAt)}</p>

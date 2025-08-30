@@ -16,6 +16,7 @@ import RenderIcon from "../RenderIcon";
 import { TrendingItemSkeleton, DashboardEmptyStates } from "../LoadingStates";
 import { useTranslation } from "../../utils/translations";
 import { getOptimizedImageUrl } from "../../utils/cloudinaryUtils";
+import LazyCardMedia from "../LazyCardMedia";
 import ma from "../../img/ma.jpg";
 
 // Get the API base URL for image construction
@@ -108,10 +109,11 @@ const TrendingItem = ({ trend, isLoading }) => {
             overflow: 'hidden'
           }}
         >
-          <CardMedia
+          <LazyCardMedia
             component="img"
             image={finalImageUrl}
-            title={categoryName || 'Item Image'}
+            alt={categoryName || 'Item Image'}
+            fallback={ma}
             sx={{
               width: '100%',
               height: '100%',
@@ -121,7 +123,6 @@ const TrendingItem = ({ trend, isLoading }) => {
             }}
             onError={(e) => {
               console.log('Image failed to load:', e.target.src);
-              e.target.src = ma;
             }}
             onLoad={() => {
               console.log('Image loaded successfully:', finalImageUrl);

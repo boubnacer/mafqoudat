@@ -15,6 +15,7 @@ import { Search, FilterList } from "@mui/icons-material";
 import { useNavigate } from "react-router-dom";
 import { SearchLoadingStates } from "../LoadingStates";
 import { useTranslation } from "../../utils/translations";
+import LazyCardMedia from "../LazyCardMedia";
 import ma from "../../img/ma.jpg";
 
 const SearchSection = ({
@@ -84,10 +85,11 @@ const SearchSection = ({
                       }}
                       onClick={() => navigate(`/dash/posts/${post._id}`)}
                     >
-                      <CardMedia
+                      <LazyCardMedia
                         sx={{ height: 150 }}
                         image={post.image ? `${process.env.REACT_APP_API_URL || "http://localhost:3500"}/${post.image}` : ma}
-                        title={post.image}
+                        alt={post.image}
+                        fallback={ma}
                       />
                       <CardContent>
                         <Typography variant="h6">{post.categoryname}</Typography>

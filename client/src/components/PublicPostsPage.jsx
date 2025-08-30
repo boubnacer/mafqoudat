@@ -7,6 +7,7 @@ import { selectCurrentCountry, setCurrentCountry } from "../app/state";
 import { useTranslation } from "../utils/translations";
 import { useLanguage } from "../utils/languageContext";
 import { LoadingState } from "./LoadingStates";
+import LazyCardMedia from "./LazyCardMedia";
 import {
   Box,
   Container,
@@ -435,7 +436,7 @@ const PublicPostsPage = () => {
               <Grid item xs={12} sm={6} md={4} key={post.id}>
                 <PostCard>
                   {post.image && (
-                    <CardMedia
+                    <LazyCardMedia
                       component="img"
                       height="200"
                       image={post.image}

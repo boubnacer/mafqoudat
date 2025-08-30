@@ -17,6 +17,7 @@ import { useNavigate } from "react-router-dom";
 import RenderIcon from "../RenderIcon";
 import { useTranslation } from "../../utils/translations";
 import { getOptimizedImageUrl } from "../../utils/cloudinaryUtils";
+import LazyCardMedia from "../LazyCardMedia";
 import { 
   LocationOn as LocationIcon,
   CalendarToday as CalendarIcon,
@@ -244,7 +245,7 @@ const RecentPosts = ({ _id, categoryname, exactLocation, image, createdAt, count
       >
         {/* Image Section with Overlays */}
         <Box sx={{ position: 'relative', height: { xs: '240px', sm: '220px' } }}>
-          <CardMedia
+          <LazyCardMedia
             component="img"
             sx={{
               height: '100%',
@@ -253,9 +254,10 @@ const RecentPosts = ({ _id, categoryname, exactLocation, image, createdAt, count
               objectPosition: 'center',
             }}
             image={image ? (image.startsWith('http') ? getOptimizedImageUrl(image, 'card') : `${API_BASE_URL}/${image}`) : ma}
-            title={categoryname}
+            alt={categoryname}
+            fallback={ma}
             onError={(e) => {
-              e.target.src = ma;
+              console.log('Image failed to load:', e.target.src);
             }}
           />
           

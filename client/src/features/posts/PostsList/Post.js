@@ -46,6 +46,7 @@ import { formatDistanceToNow } from 'date-fns';
 import { ar, fr, enUS } from 'date-fns/locale';
 import RenderIcon from "../../../components/RenderIcon";
 import { getCategoryConfig } from "../../../config/categories";
+import LazyCardMedia from "../../../components/LazyCardMedia";
 
 // Get the API base URL for image construction
 const API_BASE_URL = process.env.REACT_APP_API_URL || "http://localhost:3500";
@@ -317,7 +318,7 @@ const Post = ({ post, viewMode = "grid" }) => {
               height: { xs: 160, sm: 180 },
               flexShrink: 0 
             }}>
-              <CardMedia
+              <LazyCardMedia
                 component="img"
                 sx={{ 
                   height: '100%',
@@ -326,9 +327,10 @@ const Post = ({ post, viewMode = "grid" }) => {
                   objectPosition: 'center'
                 }}
                 image={post.image ? (post.image.startsWith('http') ? getOptimizedImageUrl(post.image, 'card') : `${API_BASE_URL}/${post.image}`) : ma}
-                title={categoryName || 'Item Image'}
+                alt={categoryName || 'Item Image'}
+                fallback={ma}
                 onError={(e) => {
-                  e.target.src = ma;
+                  console.log('Image failed to load:', e.target.src);
                 }}
               />
             </Box>
@@ -509,7 +511,7 @@ const Post = ({ post, viewMode = "grid" }) => {
       >
         {/* Image Section with Overlays */}
         <Box sx={{ position: 'relative', height: { xs: '240px', sm: '220px' } }}>
-          <CardMedia
+          <LazyCardMedia
             component="img"
             sx={{
               height: '100%',
@@ -518,9 +520,10 @@ const Post = ({ post, viewMode = "grid" }) => {
               objectPosition: 'center',
             }}
             image={post.image ? (post.image.startsWith('http') ? getOptimizedImageUrl(post.image, 'card') : `${API_BASE_URL}/${post.image}`) : ma}
-            title={categoryName || 'Item Image'}
+            alt={categoryName || 'Item Image'}
+            fallback={ma}
             onError={(e) => {
-              e.target.src = ma;
+              console.log('Image failed to load:', e.target.src);
             }}
           />
           

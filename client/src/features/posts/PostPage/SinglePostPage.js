@@ -41,6 +41,7 @@ import "./editpost.css";
 import { useTranslation } from "../../../utils/translations";
 import { isRTL, getLabel } from "../../../utils/languageUtils";
 import { getOptimizedImageUrl } from "../../../utils/cloudinaryUtils";
+import LazyCardMedia from "../../../components/LazyCardMedia";
 import { formatDistanceToNow } from 'date-fns';
 import { ar, fr, enUS } from 'date-fns/locale';
 import RenderIcon from "../../../components/RenderIcon";
@@ -407,7 +408,7 @@ const SinglePostPage = ({
           >
             {/* Image Section */}
             <Box sx={{ position: 'relative' }}>
-              <CardMedia
+              <LazyCardMedia
                 component="img"
                 sx={{ 
                   height: { xs: 250, sm: 300, md: 400 },
@@ -415,10 +416,10 @@ const SinglePostPage = ({
                   objectFit: 'cover'
                 }}
                 image={image ? (image.startsWith('http') ? getOptimizedImageUrl(image, 'detail') : `${process.env.REACT_APP_API_URL || "http://localhost:3500"}/${image}`) : sear}
-                title={categoryname}
+                alt={categoryname}
+                fallback={sear}
                 onError={(e) => {
                   console.log('Image failed to load:', e.target.src);
-                  e.target.src = sear;
                 }}
               />
               
