@@ -40,6 +40,22 @@ const CountryAutoselect = ({ countries, setCountryId, language = 'en' }) => {
     return `https://flagcdn.com/w20/${option.code.toLowerCase()}.png`;
   };
 
+  // Filter valid props for li elements to prevent React error #137
+  const getValidLiProps = (props) => {
+    const validLiProps = [
+      'id', 'role', 'aria-selected', 'aria-disabled', 'data-option-index',
+      'onClick', 'onMouseDown', 'onMouseMove', 'onMouseEnter', 'onMouseLeave',
+      'style', 'className'
+    ];
+    
+    return Object.keys(props).reduce((acc, key) => {
+      if (validLiProps.includes(key) && props[key] !== undefined) {
+        acc[key] = props[key];
+      }
+      return acc;
+    }, {});
+  };
+
   return (
     <Autocomplete
       sx={{ width: 300, marginTop: "1rem" }}
@@ -52,7 +68,7 @@ const CountryAutoselect = ({ countries, setCountryId, language = 'en' }) => {
         <Box
           component="li"
           sx={{ "& > img": { mr: 2, flexShrink: 0 } }}
-          {...props}
+          {...getValidLiProps(props)}
         >
           {option.flag ? (
             <span style={{ marginRight: 8, fontSize: '20px' }}>

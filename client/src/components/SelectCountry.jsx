@@ -2,28 +2,24 @@ import * as React from "react";
 import Box from "@mui/material/Box";
 import TextField from "@mui/material/TextField";
 import Autocomplete from "@mui/material/Autocomplete";
-import { useField, useFormikContext } from "formik";
-import { useTranslation } from "../utils/translations";
+import { useField } from "formik";
 
-const SelectCountry = ({ options, name, countryname }) => {
-  const { setFieldValue } = useFormikContext();
-  const [field, meta] = useField(name);
-  const { currentLanguage } = useTranslation();
+const SelectCountry = ({ name, countries, language = 'en' }) => {
+  const [field, meta, helpers] = useField(name);
 
-  const handleChange = (_, value, reason) => {
-    console.log({ id: value._id });
-    setFieldValue(name, value._id);
+  const handleChange = (_, value) => {
+    helpers.setValue(value?._id || "");
   };
 
   // Get the appropriate label based on language
   const getCountryLabel = (option) => {
     // First try to get the full country name from the names field
-    if (option.names && option.names[currentLanguage]) {
-      return option.names[currentLanguage];
+    if (option.names && option.names[language]) {
+      return option.names[language];
     }
     // Fallback to labels field
-    if (option.labels && option.labels[currentLanguage]) {
-      return option.labels[currentLanguage];
+    if (option.labels && option.labels[language]) {
+      return option.labels[language];
     }
     // Final fallback to label or code
     return option.label || option.code;
@@ -37,10 +33,29 @@ const SelectCountry = ({ options, name, countryname }) => {
     return `https://flagcdn.com/w20/${option.code.toLowerCase()}.png`;
   };
 
+  // Filter valid props for li elements to prevent React error #137
+  const getValidLiProps = (props) => {
+    const validLiProps = [
+      'id', 'role', 'aria-selected', 'aria-disabled', 'data-option-index',
+      'onClick', 'onMouseDown', 'onMouseMove', 'onMouseEnter', 'onMouseLeave',
+      'style', 'className'
+    ];
+    
+    return Object.keys(props).reduce((acc, key) => {
+      if (validLiProps.includes(key) && props[key] !== undefined) {
+        acc[key] = props[key];
+      }
+      return acc;
+    }, {});
+  };
+
+  // Find the selected country object
+  const selectedCountry = countries?.find(country => country._id === field.value);
+
   return (
     <Autocomplete
-      defaultValue={countryname}
-      options={options}
+      defaultValue={selectedCountry}
+      options={countries}
       autoHighlight
       disableClearable
       onChange={handleChange}
@@ -49,7 +64,7 @@ const SelectCountry = ({ options, name, countryname }) => {
         <Box
           component="li"
           sx={{ "& > img": { mr: 2, flexShrink: 0 } }}
-          {...props}
+          {...getValidLiProps(props)}
         >
           {option.flag ? (
             <span style={{ marginRight: 8, fontSize: '20px' }}>

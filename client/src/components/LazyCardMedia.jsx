@@ -32,7 +32,23 @@ const LazyCardMedia = ({
   // Check if native lazy loading is supported
   const supportsNativeLazy = useNativeLazy && 'loading' in HTMLImageElement.prototype;
 
-  // Filter valid img props to prevent React error #137
+  // Filter valid CardMedia props to prevent React error #137
+  const getValidCardMediaProps = (props) => {
+    const validCardMediaProps = [
+      'image', 'alt', 'component', 'sx', 'onLoad', 'onError',
+      'loading', 'crossOrigin', 'decoding', 'fetchPriority', 
+      'referrerPolicy', 'sizes', 'srcSet', 'useMap', 'style', 'className'
+    ];
+    
+    return Object.keys(props).reduce((acc, key) => {
+      if (validCardMediaProps.includes(key)) {
+        acc[key] = props[key];
+      }
+      return acc;
+    }, {});
+  };
+
+  // Filter valid img props for when component="img"
   const getValidImgProps = (props) => {
     const validImgProps = [
       'src', 'alt', 'width', 'height', 'loading', 'onLoad', 'onError',
@@ -124,6 +140,7 @@ const LazyCardMedia = ({
 
   // Show fallback on error
   if (hasError && fallback) {
+    const validProps = component === 'img' ? getValidImgProps(props) : getValidCardMediaProps(props);
     return (
       <CardMedia
         component={component}
@@ -132,11 +149,14 @@ const LazyCardMedia = ({
         sx={{
           ...sx
         }}
-        {...getValidImgProps(props)}
+        {...validProps}
       />
     );
   }
 
+  // Main CardMedia with filtered props
+  const validProps = component === 'img' ? getValidImgProps(props) : getValidCardMediaProps(props);
+  
   return (
     <CardMedia
       ref={supportsNativeLazy ? null : mediaRef}
@@ -152,7 +172,7 @@ const LazyCardMedia = ({
         transition: 'opacity 0.3s ease-in-out',
         ...sx
       }}
-      {...getValidImgProps(props)}
+      {...validProps}
     >
       {/* Loading skeleton overlay */}
       {!isLoaded && !hasError && (

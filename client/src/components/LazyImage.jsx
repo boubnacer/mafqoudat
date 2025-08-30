@@ -41,8 +41,9 @@ const LazyImage = ({
       'sizes', 'srcSet', 'useMap', 'style', 'className'
     ];
     
+    // Filter out any props that are not valid for img elements
     return Object.keys(props).reduce((acc, key) => {
-      if (validImgProps.includes(key)) {
+      if (validImgProps.includes(key) && props[key] !== undefined) {
         acc[key] = props[key];
       }
       return acc;
@@ -124,6 +125,7 @@ const LazyImage = ({
 
   // Show fallback on error
   if (hasError && fallback) {
+    const validProps = getValidImgProps(props);
     return (
       <Box
         component="img"
@@ -135,7 +137,7 @@ const LazyImage = ({
           objectFit: 'cover',
           ...sx
         }}
-        {...getValidImgProps(props)}
+        {...validProps}
       />
     );
   }
