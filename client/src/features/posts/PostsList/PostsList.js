@@ -125,7 +125,7 @@ const PostsList = () => {
   const { data, isLoading, isSuccess, isError, error } = useGetPostsQuery({
     page,
     pageSize,
-    fl,
+    fl: fl || undefined,
     currentCountry,
     search: debouncedSearchTerm || undefined,
     categoryId: localCategoryFilter !== "all" ? localCategoryFilter : undefined,
@@ -139,6 +139,28 @@ const PostsList = () => {
     // Add retry logic
     retry: 3,
     retryDelay: 1000
+  });
+
+  // Debug API call
+  console.log('PostsList API Query:', {
+    page,
+    pageSize,
+    fl: fl || undefined,
+    currentCountry,
+    search: debouncedSearchTerm || undefined,
+    categoryId: localCategoryFilter !== "all" ? localCategoryFilter : undefined,
+    language: currentLanguage,
+    skip: !storeReady || !currentCountry || categoriesLoading,
+    storeReady,
+    categoriesLoading
+  });
+
+  console.log('PostsList API Response:', {
+    data,
+    isLoading,
+    isSuccess,
+    isError,
+    error: error?.data?.message || error?.message
   });
 
   // Add timeout for loading states - MOVED AFTER query hooks
@@ -247,9 +269,17 @@ const PostsList = () => {
       }
     }
     
+    // If still no country selected, set a default country (Morocco)
+    if (!currentCountry && !countryId) {
+      const defaultCountry = '68a4b54ab46524c54c553ca9'; // Morocco
+      console.log('PostsList: Setting default country:', defaultCountry);
+      setCurrentCountry(defaultCountry);
+      dispatch(setCurrentCountry({ currentCountry: defaultCountry }));
+    }
+    
     setFl(foundOrlost);
     setPage(1);
-  }, [countryId, foundOrlost]);
+  }, [countryId, foundOrlost, currentCountry, dispatch]);
 
   // Remove the cleanup effect that was clearing the category filter
   // This was interfering with category navigation from Dashboard
@@ -286,6 +316,13 @@ const PostsList = () => {
 
   // Get posts from API response (already filtered by country and found/lost)
   const filteredPosts = useMemo(() => {
+    console.log('PostsList filteredPosts:', {
+      hasData: !!data,
+      postsWithUser: data?.postsWithUser,
+      postsCount: data?.postsWithUser?.length,
+      totalPages: data?.totalPages,
+      page: data?.page
+    });
     if (!data?.postsWithUser) return [];
     return data.postsWithUser;
   }, [data?.postsWithUser]);
@@ -356,6 +393,14 @@ const PostsList = () => {
 
   if (isSuccess && currentCountry) {
     const { totalPages } = data;
+
+    console.log('PostsList rendering with data:', {
+      filteredPosts: filteredPosts?.length,
+      totalPages,
+      currentCountry,
+      fl,
+      hasActiveFilters
+    });
 
     return (
       <Box sx={{ 
@@ -639,17 +684,33 @@ const PostsList = () => {
         ) : (
           <EmptyState
             icon={Search}
-                           title={hasActiveFilters ? t('noPostsMatchFilters') : t('noPostsFound')}
-               description={
-                 hasActiveFilters
-                   ? t('adjustFilters')
-                   : t('noPostsInArea')
-               }
+            title={hasActiveFilters ? t('noPostsMatchFilters') : t('noPostsFound')}
+            description={
+              hasActiveFilters
+                ? t('adjustFilters')
+                : `${t('noPostsInArea')} ${t('tryChangingCountry')}`
+            }
             action={
-              <Link to="/dash/posts/new">
+              <Box display="flex" gap={2} flexWrap="wrap" justifyContent="center">
+                <Link to="/dash/posts/new">
+                  <Button 
+                    variant="contained" 
+                    startIcon={<AddIcon />}
+                    sx={{ 
+                      borderRadius: 2,
+                      px: 3,
+                      py: 1,
+                      textTransform: 'none',
+                      fontWeight: 600
+                    }}
+                  >
+                    {t('addNewPost')}
+                  </Button>
+                </Link>
                 <Button 
-                  variant="contained" 
-                  startIcon={<AddIcon />}
+                  variant="outlined" 
+                  startIcon={<Language />}
+                  onClick={() => navigate('/dash')}
                   sx={{ 
                     borderRadius: 2,
                     px: 3,
@@ -658,9 +719,9 @@ const PostsList = () => {
                     fontWeight: 600
                   }}
                 >
-                  {t('addNewPost')}
+                  {t('changeCountry')}
                 </Button>
-              </Link>
+              </Box>
             }
           />
         )}
