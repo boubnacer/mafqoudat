@@ -230,7 +230,7 @@ const RecentPosts = ({ _id, categoryname, exactLocation, image, createdAt, count
           display: 'flex',
           flexDirection: 'column',
           transition: 'all 0.3s cubic-bezier(0.4, 0, 0.2, 1)',
-          borderRadius: '20px',
+          borderRadius: { xs: '16px', sm: '20px' },
           overflow: 'hidden',
           '&:hover': {
             transform: { xs: 'none', sm: 'translateY(-4px)' },
@@ -242,7 +242,7 @@ const RecentPosts = ({ _id, categoryname, exactLocation, image, createdAt, count
         }}
       >
         {/* Image Section with Overlays */}
-        <Box sx={{ position: 'relative', height: { xs: '240px', sm: '220px' } }}>
+        <Box sx={{ position: 'relative', height: { xs: '200px', sm: '220px' } }}>
           <CardMedia
             component="img"
             sx={{
@@ -275,9 +275,9 @@ const RecentPosts = ({ _id, categoryname, exactLocation, image, createdAt, count
           <Box
             sx={{
               position: 'absolute',
-              top: 12,
-              left: 12,
-              right: 12,
+              top: { xs: 8, sm: 12 },
+              left: { xs: 8, sm: 12 },
+              right: { xs: 8, sm: 12 },
               display: 'flex',
               justifyContent: 'space-between',
               alignItems: 'flex-start',
@@ -288,7 +288,7 @@ const RecentPosts = ({ _id, categoryname, exactLocation, image, createdAt, count
             <Box
               sx={{
                 backgroundColor: isDarkMode ? alpha(categoryStyle.main, 0.2) : categoryStyle.background,
-                padding: '4px 8px',
+                padding: { xs: '3px 6px', sm: '4px 8px' },
                 borderRadius: '12px',
                 display: 'flex',
                 alignItems: 'center',
@@ -300,14 +300,14 @@ const RecentPosts = ({ _id, categoryname, exactLocation, image, createdAt, count
               <RenderIcon 
                 name={`${categoryname?.toLowerCase()}cate`} 
                 sx={{ 
-                  fontSize: '12px', 
+                  fontSize: { xs: '10px', sm: '12px' }, 
                   color: isDarkMode ? categoryStyle.main : categoryStyle.text 
                 }} 
               />
               <Typography
                 sx={{
                   color: isDarkMode ? categoryStyle.main : categoryStyle.text,
-                  fontSize: '10px',
+                  fontSize: { xs: '9px', sm: '10px' },
                   fontWeight: 600,
                 }}
               >
@@ -320,21 +320,21 @@ const RecentPosts = ({ _id, categoryname, exactLocation, image, createdAt, count
           <Box
             sx={{
               position: 'absolute',
-              bottom: 12,
-              left: 12,
+              bottom: { xs: 8, sm: 12 },
+              left: { xs: 8, sm: 12 },
               backgroundColor: alpha('#000', 0.7),
-              padding: '4px 8px',
+              padding: { xs: '3px 6px', sm: '4px 8px' },
               borderRadius: '8px',
               backdropFilter: 'blur(10px)',
               border: '1px solid rgba(255,255,255,0.1)',
             }}
           >
             <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.5 }}>
-              <TimeIcon sx={{ fontSize: '12px', color: '#fff' }} />
+              <TimeIcon sx={{ fontSize: { xs: '10px', sm: '12px' }, color: '#fff' }} />
               <Typography
                 sx={{
                   color: '#fff',
-                  fontSize: '10px',
+                  fontSize: { xs: '9px', sm: '10px' },
                   fontWeight: 600,
                 }}
               >
@@ -348,29 +348,29 @@ const RecentPosts = ({ _id, categoryname, exactLocation, image, createdAt, count
         <CardContent 
           sx={{ 
             flexGrow: 1, 
-            p: { xs: 2, sm: 2.5 },
+            p: { xs: 1.5, sm: 2.5 },
             display: 'flex',
             flexDirection: 'column',
-            gap: 1.5,
+            gap: { xs: 1, sm: 1.5 },
           }}
         >
           {/* Location Info - Only City */}
-          <Box sx={{ display: 'flex', alignItems: 'center', gap: 1.5 }}>
+          <Box sx={{ display: 'flex', alignItems: 'center', gap: { xs: 1, sm: 1.5 } }}>
             <Avatar
               sx={{
-                width: 28,
-                height: 28,
+                width: { xs: 24, sm: 28 },
+                height: { xs: 24, sm: 28 },
                 backgroundColor: alpha(theme.palette.text.secondary, 0.1),
                 color: theme.palette.text.secondary,
               }}
             >
-              <LocationIcon sx={{ fontSize: '16px' }} />
+              <LocationIcon sx={{ fontSize: { xs: '14px', sm: '16px' } }} />
             </Avatar>
             <Box>
               <Typography
                 sx={{
                   color: isDarkMode ? alpha('#fff', 0.9) : alpha('#000', 0.8),
-                  fontSize: { xs: '14px', sm: '16px' },
+                  fontSize: { xs: '13px', sm: '16px' },
                   fontWeight: 700,
                   lineHeight: 1.2,
                 }}
@@ -386,14 +386,14 @@ const RecentPosts = ({ _id, categoryname, exactLocation, image, createdAt, count
           sx={{
             display: 'flex',
             justifyContent: 'space-between',
-            p: { xs: 1.5, sm: 2 },
+            p: { xs: 1, sm: 2 },
             borderTop: '1px solid',
             borderColor: isDarkMode ? alpha('#fff', 0.06) : alpha('#000', 0.04),
             backgroundColor: isDarkMode ? alpha('#000', 0.2) : alpha('#f8f9fa', 0.5),
-            gap: 3,
+            gap: { xs: 2, sm: 3 },
             mt: 'auto',
             flexShrink: 0,
-            minHeight: '60px',
+            minHeight: { xs: '50px', sm: '60px' },
           }}
         >
           <Button
@@ -404,9 +404,9 @@ const RecentPosts = ({ _id, categoryname, exactLocation, image, createdAt, count
               color: theme.palette.error.main,
               borderColor: theme.palette.error.main,
               textTransform: 'none',
-              fontSize: { xs: '10px', sm: '11px' },
+              fontSize: { xs: '9px', sm: '11px' },
               fontWeight: 600,
-              padding: { xs: '8px 12px', sm: '8px 12px' },
+              padding: { xs: '6px 8px', sm: '8px 12px' },
               borderRadius: '8px',
               minWidth: 'auto',
               flexShrink: 0,
@@ -416,8 +416,8 @@ const RecentPosts = ({ _id, categoryname, exactLocation, image, createdAt, count
                 borderColor: theme.palette.error.main,
               },
             }}
-            startIcon={currentLanguage === 'ar' ? null : <ReportProblemOutlined sx={{ fontSize: '12px' }} />}
-            endIcon={currentLanguage === 'ar' ? <ReportProblemOutlined sx={{ fontSize: '12px', ml: 0.5 }} /> : null}
+            startIcon={currentLanguage === 'ar' ? null : <ReportProblemOutlined sx={{ fontSize: { xs: '10px', sm: '12px' } }} />}
+            endIcon={currentLanguage === 'ar' ? <ReportProblemOutlined sx={{ fontSize: { xs: '10px', sm: '12px' }, ml: 0.5 }} /> : null}
           >
             {t('report')}
           </Button>
@@ -429,9 +429,9 @@ const RecentPosts = ({ _id, categoryname, exactLocation, image, createdAt, count
               background: `linear-gradient(135deg, ${theme.palette.primary.main} 0%, ${theme.palette.primary.dark} 100%)`,
               color: '#fff',
               textTransform: 'none',
-              fontSize: { xs: '10px', sm: '11px' },
+              fontSize: { xs: '9px', sm: '11px' },
               fontWeight: 700,
-              padding: { xs: '8px 12px', sm: '8px 12px' },
+              padding: { xs: '6px 8px', sm: '8px 12px' },
               borderRadius: '8px',
               minWidth: 'auto',
               flexShrink: 0,
@@ -443,8 +443,8 @@ const RecentPosts = ({ _id, categoryname, exactLocation, image, createdAt, count
                 boxShadow: `0 4px 12px ${alpha(theme.palette.primary.main, 0.4)}`,
               },
             }}
-            startIcon={currentLanguage === 'ar' ? <ArrowIcon sx={{ fontSize: '12px', transform: 'scaleX(-1)', mr: 0.5 }} /> : null}
-            endIcon={currentLanguage === 'ar' ? null : <ArrowIcon sx={{ fontSize: '12px' }} />}
+            startIcon={currentLanguage === 'ar' ? <ArrowIcon sx={{ fontSize: { xs: '10px', sm: '12px' }, transform: 'scaleX(-1)', mr: 0.5 }} /> : null}
+            endIcon={currentLanguage === 'ar' ? null : <ArrowIcon sx={{ fontSize: { xs: '10px', sm: '12px' } }} />}
           >
             {t('viewDetails')}
           </Button>
