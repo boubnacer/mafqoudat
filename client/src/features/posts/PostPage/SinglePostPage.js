@@ -495,13 +495,26 @@ const SinglePostPage = ({
               >
                 <Chip
                   label={foundLostStatus.statusText}
-                  color={foundLostStatus.statusColor}
                   sx={{
-                    fontWeight: 600,
+                    backgroundColor: alpha(foundLostStatus.statusColor === 'success' ? '#4CAF50' : '#F44336', 0.95),
+                    color: '#fff',
+                    fontWeight: 700,
                     fontSize: '14px',
                     height: 32,
+                    padding: '0 12px',
+                    borderRadius: '16px',
+                    boxShadow: `0 2px 8px ${alpha(foundLostStatus.statusColor === 'success' ? '#4CAF50' : '#F44336', 0.4)}`,
+                    border: `1px solid ${alpha(foundLostStatus.statusColor === 'success' ? '#4CAF50' : '#F44336', 0.3)}`,
+                    backdropFilter: 'blur(10px)',
+                    transition: 'all 0.3s ease',
                     '& .MuiChip-label': {
-                      color: 'white'
+                      color: 'white',
+                      fontWeight: 700
+                    },
+                    '&:hover': {
+                      backgroundColor: alpha(foundLostStatus.statusColor === 'success' ? '#4CAF50' : '#F44336', 1),
+                      transform: 'translateY(-1px)',
+                      boxShadow: `0 4px 12px ${alpha(foundLostStatus.statusColor === 'success' ? '#4CAF50' : '#F44336', 0.6)}`
                     }
                   }}
                 />
