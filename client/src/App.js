@@ -7,19 +7,23 @@ import { createTheme } from "@mui/material/styles";
 import React, { useEffect } from "react";
 import { useSelector } from "react-redux";
 import { useLocation } from "react-router-dom";
-import WelcomePage from "./components/WelcomePage";
-import PublicPostsPage from "./components/PublicPostsPage";
-import Login from "./features/auth/Login/Login";
-import DashLayout from "./components/Layout/DashLayout";
 import { themeSettings } from "./theme";
-import PrefetchDependencies from "./features/PrefetchData/PrefetchDependencies";
 import { LanguageProvider, useLanguage } from "./utils/languageContext";
 import { cleanupLocalStorage, initializeLocalStorage } from "./utils/localStorageUtils";
-import PrivacyPolicy from "./components/Pages/PrivacyPolicy";
-import TermsOfUse from "./components/Pages/TermsOfUse";
-import CookieNotice from "./components/Pages/CookieNotice";
-import CommunityGuidelines from "./components/Pages/CommunityGuidelines";
-import SafetyTips from "./components/Pages/SafetyTips";
+
+// Lazy load all major page components for better code splitting
+const WelcomePage = lazy(() => import("./components/WelcomePage"));
+const PublicPostsPage = lazy(() => import("./components/PublicPostsPage"));
+const Login = lazy(() => import("./features/auth/Login/Login"));
+const DashLayout = lazy(() => import("./components/Layout/DashLayout"));
+const PrefetchDependencies = lazy(() => import("./features/PrefetchData/PrefetchDependencies"));
+
+// Lazy load legal and information pages
+const PrivacyPolicy = lazy(() => import("./components/Pages/PrivacyPolicy"));
+const TermsOfUse = lazy(() => import("./components/Pages/TermsOfUse"));
+const CookieNotice = lazy(() => import("./components/Pages/CookieNotice"));
+const CommunityGuidelines = lazy(() => import("./components/Pages/CommunityGuidelines"));
+const SafetyTips = lazy(() => import("./components/Pages/SafetyTips"));
 
 // Lazy load heavy components
 const PostsList = lazy(() => import("./features/posts/PostsList/PostsList"));
@@ -36,7 +40,7 @@ const SinglePost = lazy(() => import("./features/posts/PostPage/SinglePost"));
 const Dash = lazy(() => import("./features/dashboard/Dash"));
 const DependenciesManager = lazy(() => import("./features/MANAGER/Dependencies/DependenciesManager"));
 
-// Loading component for lazy-loaded routes
+// Enhanced loading component for lazy-loaded routes
 const LoadingFallback = () => (
   <div style={{ 
     display: 'flex', 
@@ -44,9 +48,25 @@ const LoadingFallback = () => (
     alignItems: 'center', 
     height: '100vh',
     fontSize: '1.2rem',
-    color: '#666'
+    color: '#666',
+    flexDirection: 'column',
+    gap: '1rem'
   }}>
-    Loading...
+    <div style={{
+      width: '40px',
+      height: '40px',
+      border: '4px solid #f3f3f3',
+      borderTop: '4px solid #3498db',
+      borderRadius: '50%',
+      animation: 'spin 1s linear infinite'
+    }}></div>
+    <div>Loading...</div>
+    <style>{`
+      @keyframes spin {
+        0% { transform: rotate(0deg); }
+        100% { transform: rotate(360deg); }
+      }
+    `}</style>
   </div>
 );
 
@@ -85,24 +105,64 @@ const AppContent = () => {
       <CssBaseline />
       <Routes>
         {/* Welcome page - first time access */}
-        <Route path="/" element={<WelcomePage />} />
+        <Route path="/" element={
+          <Suspense fallback={<LoadingFallback />}>
+            <WelcomePage />
+          </Suspense>
+        } />
         
         {/* Public routes - no authentication required */}
-        <Route path="/posts" element={<PublicPostsPage />} />
+        <Route path="/posts" element={
+          <Suspense fallback={<LoadingFallback />}>
+            <PublicPostsPage />
+          </Suspense>
+        } />
         
         {/* Legal and Information Pages - Public Access */}
-        <Route path="/privacy" element={<PrivacyPolicy />} />
-        <Route path="/terms" element={<TermsOfUse />} />
-        <Route path="/cookies" element={<CookieNotice />} />
-        <Route path="/guidelines" element={<CommunityGuidelines />} />
-        <Route path="/safety" element={<SafetyTips />} />
+        <Route path="/privacy" element={
+          <Suspense fallback={<LoadingFallback />}>
+            <PrivacyPolicy />
+          </Suspense>
+        } />
+        <Route path="/terms" element={
+          <Suspense fallback={<LoadingFallback />}>
+            <TermsOfUse />
+          </Suspense>
+        } />
+        <Route path="/cookies" element={
+          <Suspense fallback={<LoadingFallback />}>
+            <CookieNotice />
+          </Suspense>
+        } />
+        <Route path="/guidelines" element={
+          <Suspense fallback={<LoadingFallback />}>
+            <CommunityGuidelines />
+          </Suspense>
+        } />
+        <Route path="/safety" element={
+          <Suspense fallback={<LoadingFallback />}>
+            <SafetyTips />
+          </Suspense>
+        } />
         
         {/* Authentication routes */}
-        <Route path="/login" element={<Login />} />
-        <Route path="/signup" element={<NewUser />} />
+        <Route path="/login" element={
+          <Suspense fallback={<LoadingFallback />}>
+            <Login />
+          </Suspense>
+        } />
+        <Route path="/signup" element={
+          <Suspense fallback={<LoadingFallback />}>
+            <NewUser />
+          </Suspense>
+        } />
 
         {/* Dashboard layout - all dashboard routes go through this */}
-        <Route path="dash" element={<DashLayout />}>
+        <Route path="dash" element={
+          <Suspense fallback={<LoadingFallback />}>
+            <DashLayout />
+          </Suspense>
+        }>
           {/* Dashboard home - public access */}
           <Route index element={
             <PrefetchDependencies>
@@ -127,8 +187,16 @@ const AppContent = () => {
           } />
            
           {/* Protected routes - require authentication for creating/editing posts and admin actions */}
-          <Route element={<PersistLogin />}>
-            <Route element={<Prefetch />}>
+          <Route element={
+            <Suspense fallback={<LoadingFallback />}>
+              <PersistLogin />
+            </Suspense>
+          }>
+            <Route element={
+              <Suspense fallback={<LoadingFallback />}>
+                <Prefetch />
+              </Suspense>
+            }>
               <Route path="posts/new" element={
                 <Suspense fallback={<LoadingFallback />}>
                   <NewPost />
