@@ -174,8 +174,7 @@ const TrendingItem = ({ trend, isLoading }) => {
       if (floptionName) {
         foundLostValue = floptionName.toUpperCase();
         foundLostLabel = floptionName === 'Found' ? t('found') : t('lost');
-        foundLostColor = flOption.color || 
-                        (flOption.code === 'FOUND' ? "#4CAF50" : "#F44336");
+        foundLostColor = floptionName === 'Found' ? "#4CAF50" : "#F44336";
       }
     }
     
