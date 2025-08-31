@@ -68,6 +68,17 @@ const Dash = () => {
     console.log('Dashboard error:', error?.data?.message || error?.message || 'Unknown error');
   }
 
+  // Debug logging for trend data
+  console.log('Dash component debug:', {
+    trend,
+    data,
+    isLoading,
+    currentCountry,
+    hasNoData: !data?.totalFounds && !data?.totalLosts && !data?.totalPosts && 
+               (!data?.recentFounds || data?.recentFounds.length === 0) && 
+               (!data?.recentLosts || data?.recentLosts.length === 0)
+  });
+
   // If no country is selected, show country selection prompt
   if (!currentCountry) {
     return (
@@ -184,8 +195,22 @@ const Dash = () => {
         />
         {isLoading ? (
           <Skeleton variant="rounded" width={210} height={60} />
-        ) : (
+        ) : trend ? (
           <TrendingItem trend={trend} isLoading={isLoading} />
+        ) : (
+          <Box 
+            sx={{ 
+              p: 3, 
+              textAlign: 'center',
+              backgroundColor: theme.palette.mode === 'dark' ? 'rgba(255,255,255,0.05)' : 'rgba(0,0,0,0.02)',
+              borderRadius: 2,
+              border: `1px dashed ${theme.palette.mode === 'dark' ? 'rgba(255,255,255,0.1)' : 'rgba(0,0,0,0.1)'}`
+            }}
+          >
+            <Typography variant="body2" color="text.secondary">
+              {t('noTrendingItems')}
+            </Typography>
+          </Box>
         )}
       </Box>
 

@@ -91,6 +91,7 @@ const getDashboard = async (req, res) => {
     // Add error handling for aggregation
     let trendingPost = [];
     try {
+      console.log('Dashboard: Starting trending post aggregation for country:', currentCountry);
       trendingPost = await Post.aggregate([
       { $match: { country: new mongoose.Types.ObjectId(currentCountry) } },
       // Handle undefined category and city fields and convert to ObjectIds
@@ -180,6 +181,7 @@ const getDashboard = async (req, res) => {
       { $unwind: { path: "$City", preserveNullAndEmptyArrays: true } },
       {
         $project: {
+          _id: 1,
           exactLocation: 1,
           city: 1,
           cityName: { $ifNull: ["$City.labels.en", null] },
@@ -208,6 +210,15 @@ const getDashboard = async (req, res) => {
         $limit: 1,
       },
     ]);
+    console.log('Dashboard: Trending post aggregation result:', {
+      count: trendingPost.length,
+      firstPost: trendingPost[0] ? {
+        _id: trendingPost[0]._id,
+        categoryName: trendingPost[0].categoryName,
+        floptionName: trendingPost[0].floptionName,
+        cityName: trendingPost[0].cityName
+      } : null
+    });
     } catch (error) {
       console.error("Error in trendingPost aggregation:", error);
       trendingPost = [];

@@ -214,11 +214,21 @@ const TrendingItem = ({ trend, isLoading }) => {
     currentLanguage,
     API_BASE_URL, 
     finalImageUrl,
-    foundLostStatus
+    foundLostStatus,
+    isLoading
   });
 
   if (isLoading) return <TrendingItemSkeleton />;
-  if (!trendData) return <DashboardEmptyStates.NoTrending />;
+  if (!trendData) {
+    console.log('TrendingItem: No trendData, showing NoTrending state');
+    return <DashboardEmptyStates.NoTrending />;
+  }
+
+  // Additional safety check for required fields
+  if (!_id || !categoryName) {
+    console.log('TrendingItem: Missing required fields (_id or categoryName), showing NoTrending state');
+    return <DashboardEmptyStates.NoTrending />;
+  }
 
   return (
     <Box flex={1}>
