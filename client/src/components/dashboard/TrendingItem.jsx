@@ -153,18 +153,6 @@ const TrendingItem = ({ trend, isLoading }) => {
 
   // Get found/lost status with proper colors from database (same as PostsList)
   const foundLostStatus = useMemo(() => {
-    console.log('🔍 Found/Lost Debug - Input data:', {
-      Floptions,
-      floptionName,
-      currentLanguage,
-      FloptionsType: typeof Floptions,
-      FloptionsKeys: Floptions ? Object.keys(Floptions) : null,
-      floptionNameType: typeof floptionName,
-      FloptionsLabels: Floptions?.labels,
-      FloptionsLabelsType: typeof Floptions?.labels,
-      FloptionsLabelsIsArray: Array.isArray(Floptions?.labels)
-    });
-    
     // Simple and direct approach based on server logs
     let foundLostValue = "FOUND"; // Default
     let foundLostLabel = t('found'); // Default
@@ -172,7 +160,6 @@ const TrendingItem = ({ trend, isLoading }) => {
     
     // Priority 1: Use Floptions.code if available
     if (Floptions && Floptions.code) {
-      console.log('🔍 Using Floptions.code:', Floptions.code);
       foundLostValue = Floptions.code;
       foundLostColor = Floptions.color || "#4CAF50";
       
@@ -186,7 +173,6 @@ const TrendingItem = ({ trend, isLoading }) => {
     }
     // Priority 2: Use floptionName as fallback
     else if (floptionName) {
-      console.log('🔍 Using floptionName fallback:', floptionName);
       foundLostValue = floptionName.toUpperCase();
       if (floptionName.toUpperCase() === 'FOUND') {
         foundLostLabel = t('found');
@@ -198,16 +184,12 @@ const TrendingItem = ({ trend, isLoading }) => {
     }
 
     const isFound = foundLostValue === "FOUND";
-    const result = { 
+    return { 
       value: foundLostValue,
       label: foundLostLabel,
       color: foundLostColor,
       isFound 
     };
-    
-    console.log('🔍 Found/Lost Debug - Final result:', result);
-    
-    return result;
   }, [Floptions, floptionName, currentLanguage, t]);
 
   // Handle navigation to post
@@ -217,36 +199,16 @@ const TrendingItem = ({ trend, isLoading }) => {
     }
   };
 
-  // Debug logging
+  // Get optimized image URL
   const finalImageUrl = image ? (image.startsWith('http') ? getOptimizedImageUrl(image, 'hero') : `${API_BASE_URL}/${image}`) : ma;
-  console.log('🔍 TrendingItem FULL DEBUG:', { 
-    trend, 
-    trendData, 
-    image, 
-    categoryName, 
-    floptionName, 
-    Floptions,
-    FloptionsStringified: JSON.stringify(Floptions, null, 2),
-    city, 
-    cityLabels, 
-    cityName,
-    displayCityName, 
-    currentLanguage,
-    API_BASE_URL, 
-    finalImageUrl,
-    foundLostStatus,
-    isLoading
-  });
 
   if (isLoading) return <TrendingItemSkeleton />;
   if (!trendData) {
-    console.log('TrendingItem: No trendData, showing NoTrending state');
     return <DashboardEmptyStates.NoTrending />;
   }
 
   // Additional safety check for required fields
   if (!_id || !categoryName) {
-    console.log('TrendingItem: Missing required fields (_id or categoryName), showing NoTrending state');
     return <DashboardEmptyStates.NoTrending />;
   }
 
@@ -298,13 +260,7 @@ const TrendingItem = ({ trend, isLoading }) => {
               height: '100%',
               objectFit: 'cover',
               objectPosition: 'center',
-              filter: 'brightness(0.7)',
-            }}
-            onError={(e) => {
-              console.log('Image failed to load:', e.target.src);
-            }}
-            onLoad={() => {
-              console.log('Image loaded successfully:', finalImageUrl);
+              filter: 'brightness(0.6)',
             }}
           />
           {/* Gradient overlay for better text readability */}
@@ -315,7 +271,7 @@ const TrendingItem = ({ trend, isLoading }) => {
               left: 0,
               right: 0,
               bottom: 0,
-              background: 'linear-gradient(135deg, rgba(0,0,0,0.4) 0%, rgba(0,0,0,0.8) 100%)',
+              background: 'linear-gradient(135deg, rgba(0,0,0,0.3) 0%, rgba(0,0,0,0.7) 100%)',
               pointerEvents: 'none'
             }}
           />
@@ -342,100 +298,86 @@ const TrendingItem = ({ trend, isLoading }) => {
               mb: 2
             }}
           >
-            {/* Category Badge - Updated to use RecentPosts approach */}
-                         <Box
-               sx={{
-                 backgroundColor: theme.palette.mode === 'dark' ? alpha(categoryStyle.main, 0.2) : categoryStyle.background,
-                 padding: { xs: '4px 8px', sm: '6px 12px' },
-                 borderRadius: '12px',
-                 display: 'flex',
-                 alignItems: 'center',
-                 gap: 0.5,
-                 backdropFilter: 'blur(10px)',
-                 border: `1px solid ${theme.palette.mode === 'dark' ? alpha(categoryStyle.main, 0.3) : categoryStyle.main}`,
-               }}
-             >
-                              <RenderIcon name={`${categoryName?.toLowerCase()}cate`} sx={{ fontSize: { xs: '16px', sm: '18px' }, color: categoryStyle.main }} />
-               <Typography
-                 sx={{
-                   color: categoryStyle.main,
-                   fontSize: { xs: '12px', sm: '14px' },
-                   fontWeight: 600,
-                   lineHeight: 1,
-                 }}
-               >
-                 {categoryDisplayName}
-               </Typography>
-             </Box>
-            
-                         {/* Status Badge - Enhanced styling for desktop and mobile */}
-             <Chip
-               icon={<RenderIcon name={`${foundLostStatus.value.toLowerCase()}fl`} sx={{ fontSize: { xs: '14px', sm: '16px' } }} />}
-               label={foundLostStatus.label}
-               sx={{
-                 backgroundColor: alpha(foundLostStatus.color, 0.95),
-                 color: '#fff',
-                 fontWeight: 700,
-                 fontSize: { xs: '11px', sm: '13px', md: '14px' },
-                 height: { xs: '26px', sm: '30px', md: '32px' },
-                 padding: { xs: '0 8px', sm: '0 12px', md: '0 16px' },
-                 borderRadius: { xs: '12px', sm: '16px' },
-                 boxShadow: `0 2px 8px ${alpha(foundLostStatus.color, 0.4)}`,
-                 border: `1px solid ${alpha(foundLostStatus.color, 0.3)}`,
-                 backdropFilter: 'blur(10px)',
-                 transition: 'all 0.3s ease',
-                 '& .MuiChip-icon': {
-                   color: '#fff',
-                   marginLeft: { xs: '4px', sm: '6px' }
-                 },
-                 '& .MuiChip-label': {
-                   paddingLeft: { xs: '4px', sm: '6px' },
-                   paddingRight: { xs: '4px', sm: '6px' }
-                 },
-                 '&:hover': {
-                   backgroundColor: alpha(foundLostStatus.color, 1),
-                   transform: 'translateY(-1px)',
-                   boxShadow: `0 4px 12px ${alpha(foundLostStatus.color, 0.6)}`
-                 }
-               }}
-             />
-          </Box>
-
-          {/* Middle Section - Main Content */}
-          <Box sx={{ flex: 1, display: 'flex', flexDirection: 'column', justifyContent: 'center' }}>
-            <Typography
-              variant="h5"
+            {/* Category Badge */}
+            <Box
               sx={{
-                color: '#fff',
-                fontWeight: 700,
-                fontSize: { xs: '1.5rem', sm: '1.75rem', md: '2rem' },
-                textShadow: '2px 2px 4px rgba(0,0,0,0.5)',
-                mb: 1,
-                textAlign: 'center'
+                backgroundColor: theme.palette.mode === 'dark' ? alpha(categoryStyle.main, 0.2) : categoryStyle.background,
+                padding: { xs: '4px 8px', sm: '6px 12px' },
+                borderRadius: '12px',
+                display: 'flex',
+                alignItems: 'center',
+                gap: 0.5,
+                backdropFilter: 'blur(10px)',
+                border: `1px solid ${theme.palette.mode === 'dark' ? alpha(categoryStyle.main, 0.3) : categoryStyle.main}`,
               }}
             >
-              {t('trendingItem')}
-            </Typography>
+              <RenderIcon name={`${categoryName?.toLowerCase()}cate`} sx={{ fontSize: { xs: '16px', sm: '18px' }, color: categoryStyle.main }} />
+              <Typography
+                sx={{
+                  color: categoryStyle.main,
+                  fontSize: { xs: '12px', sm: '14px' },
+                  fontWeight: 600,
+                  lineHeight: 1,
+                }}
+              >
+                {categoryDisplayName}
+              </Typography>
+            </Box>
             
-            {/* Enhanced styling for the description text */}
+            {/* Status Badge */}
+            <Chip
+              icon={<RenderIcon name={`${foundLostStatus.value.toLowerCase()}fl`} sx={{ fontSize: { xs: '14px', sm: '16px' } }} />}
+              label={foundLostStatus.label}
+              sx={{
+                backgroundColor: alpha(foundLostStatus.color, 0.95),
+                color: '#fff',
+                fontWeight: 700,
+                fontSize: { xs: '11px', sm: '13px', md: '14px' },
+                height: { xs: '26px', sm: '30px', md: '32px' },
+                padding: { xs: '0 8px', sm: '0 12px', md: '0 16px' },
+                borderRadius: { xs: '12px', sm: '16px' },
+                boxShadow: `0 2px 8px ${alpha(foundLostStatus.color, 0.4)}`,
+                border: `1px solid ${alpha(foundLostStatus.color, 0.3)}`,
+                backdropFilter: 'blur(10px)',
+                transition: 'all 0.3s ease',
+                '& .MuiChip-icon': {
+                  color: '#fff',
+                  marginLeft: { xs: '4px', sm: '6px' }
+                },
+                '& .MuiChip-label': {
+                  paddingLeft: { xs: '4px', sm: '6px' },
+                  paddingRight: { xs: '4px', sm: '6px' }
+                },
+                '&:hover': {
+                  backgroundColor: alpha(foundLostStatus.color, 1),
+                  transform: 'translateY(-1px)',
+                  boxShadow: `0 4px 12px ${alpha(foundLostStatus.color, 0.6)}`
+                }
+              }}
+            />
+          </Box>
+
+          {/* Middle Section - Main Content - Optimized for better image visibility */}
+          <Box sx={{ flex: 1, display: 'flex', flexDirection: 'column', justifyContent: 'center', alignItems: 'center' }}>
+            {/* Single optimized description text */}
             <Typography
-              variant="body1"
+              variant="h6"
               sx={{
                 color: 'rgba(255,255,255,0.95)',
-                fontSize: { xs: '0.9rem', sm: '1rem' },
+                fontSize: { xs: '1rem', sm: '1.1rem', md: '1.2rem' },
                 textAlign: 'center',
-                textShadow: '1px 1px 2px rgba(0,0,0,0.5)',
-                mb: 2,
-                fontWeight: 400,
-                lineHeight: 1.5,
-                letterSpacing: '0.2px',
-                background: 'linear-gradient(135deg, rgba(255,255,255,0.1) 0%, rgba(255,255,255,0.05) 100%)',
-                padding: '12px 16px',
-                borderRadius: '12px',
-                backdropFilter: 'blur(10px)',
-                border: '1px solid rgba(255,255,255,0.1)',
-                maxWidth: '90%',
-                mx: 'auto'
+                textShadow: '2px 2px 4px rgba(0,0,0,0.7)',
+                fontWeight: 500,
+                lineHeight: 1.4,
+                letterSpacing: '0.3px',
+                background: 'linear-gradient(135deg, rgba(255,255,255,0.15) 0%, rgba(255,255,255,0.08) 100%)',
+                padding: { xs: '10px 14px', sm: '12px 18px' },
+                borderRadius: '16px',
+                backdropFilter: 'blur(15px)',
+                border: '1px solid rgba(255,255,255,0.2)',
+                maxWidth: '85%',
+                mx: 'auto',
+                boxShadow: '0 4px 20px rgba(0,0,0,0.3)'
               }}
             >
               {t('trendingItemDescription')}
@@ -488,7 +430,7 @@ const TrendingItem = ({ trend, isLoading }) => {
               </Box>
             </Box>
 
-            {/* Action Button - Updated with better title and navigation */}
+            {/* Action Button */}
             <Button
               fullWidth
               variant="contained"
