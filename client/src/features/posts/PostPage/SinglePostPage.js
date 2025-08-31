@@ -350,13 +350,23 @@ const SinglePostPage = ({
 
   // Memoized found/lost status computation
   const foundLostStatus = useMemo(() => {
+    // Debug logging to see what data we're receiving
+    console.log('🔍 SinglePostPage Found/Lost Debug:', {
+      foundLost,
+      Floptions,
+      foundLostType: typeof foundLost,
+      FloptionsType: typeof Floptions,
+      FloptionsKeys: Floptions ? Object.keys(Floptions) : null
+    });
+
     // Simple and direct approach based on server logs (same as TrendingItem)
     let foundLostValue = "FOUND"; // Default
     let foundLostLabel = t('found'); // Default
     let foundLostColor = "#4CAF50"; // Default green for FOUND
     
-    // Priority 1: Use Floptions.code if available
+    // Priority 1: Use Floptions.code if available (populated object from server)
     if (Floptions && Floptions.code) {
+      console.log('🔍 Using Floptions.code:', Floptions.code);
       foundLostValue = Floptions.code;
       foundLostColor = Floptions.color || "#4CAF50";
       
@@ -368,18 +378,29 @@ const SinglePostPage = ({
         foundLostColor = foundLostColor || "#F44336";
       }
     }
-    // Priority 2: Use foundLost as fallback
+    // Priority 2: Use foundLost as fallback (could be ObjectId or object)
     else if (foundLost) {
+      console.log('🔍 Using foundLost fallback:', foundLost);
       if (typeof foundLost === 'string') {
-        foundLostValue = foundLost.toUpperCase();
-        if (foundLost.toUpperCase() === 'FOUND') {
+        // If it's a string, check if it's an ObjectId or a code
+        if (foundLost.length === 24) {
+          // It's likely an ObjectId, default to FOUND for now
+          foundLostValue = "FOUND";
           foundLostLabel = t('found');
           foundLostColor = "#4CAF50";
-        } else if (foundLost.toUpperCase() === 'LOST') {
-          foundLostLabel = t('lost');
-          foundLostColor = "#F44336";
+        } else {
+          // It's a code string
+          foundLostValue = foundLost.toUpperCase();
+          if (foundLost.toUpperCase() === 'FOUND') {
+            foundLostLabel = t('found');
+            foundLostColor = "#4CAF50";
+          } else if (foundLost.toUpperCase() === 'LOST') {
+            foundLostLabel = t('lost');
+            foundLostColor = "#F44336";
+          }
         }
       } else if (foundLost.code) {
+        // It's an object with code
         foundLostValue = foundLost.code;
         foundLostColor = foundLost.color || "#4CAF50";
         
@@ -396,7 +417,10 @@ const SinglePostPage = ({
     const statusColor = isFound ? "success" : "error";
     const statusText = foundLostLabel;
 
-    return { isFound, statusColor, statusText };
+    const result = { isFound, statusColor, statusText };
+    console.log('🔍 SinglePostPage Found/Lost Final result:', result);
+    
+    return result;
   }, [foundLost, Floptions, currentLanguage, t]);
 
   // Memoized image URL computation
