@@ -368,21 +368,37 @@ const TrendingItem = ({ trend, isLoading }) => {
                </Typography>
              </Box>
             
-            {/* Status Badge - Updated to use database colors */}
-            <Chip
-              icon={<RenderIcon name={`${foundLostStatus.value.toLowerCase()}fl`} sx={{ fontSize: '14px' }} />}
-              label={foundLostStatus.label}
-              sx={{
-                backgroundColor: alpha(foundLostStatus.color, 0.9),
-                color: '#fff',
-                fontWeight: 600,
-                fontSize: '12px',
-                height: '28px',
-                '& .MuiChip-icon': {
-                  color: '#fff'
-                }
-              }}
-            />
+                         {/* Status Badge - Enhanced styling for desktop and mobile */}
+             <Chip
+               icon={<RenderIcon name={`${foundLostStatus.value.toLowerCase()}fl`} sx={{ fontSize: { xs: '14px', sm: '16px' } }} />}
+               label={foundLostStatus.label}
+               sx={{
+                 backgroundColor: alpha(foundLostStatus.color, 0.95),
+                 color: '#fff',
+                 fontWeight: 700,
+                 fontSize: { xs: '11px', sm: '13px', md: '14px' },
+                 height: { xs: '26px', sm: '30px', md: '32px' },
+                 padding: { xs: '0 8px', sm: '0 12px', md: '0 16px' },
+                 borderRadius: { xs: '12px', sm: '16px' },
+                 boxShadow: `0 2px 8px ${alpha(foundLostStatus.color, 0.4)}`,
+                 border: `1px solid ${alpha(foundLostStatus.color, 0.3)}`,
+                 backdropFilter: 'blur(10px)',
+                 transition: 'all 0.3s ease',
+                 '& .MuiChip-icon': {
+                   color: '#fff',
+                   marginLeft: { xs: '4px', sm: '6px' }
+                 },
+                 '& .MuiChip-label': {
+                   paddingLeft: { xs: '4px', sm: '6px' },
+                   paddingRight: { xs: '4px', sm: '6px' }
+                 },
+                 '&:hover': {
+                   backgroundColor: alpha(foundLostStatus.color, 1),
+                   transform: 'translateY(-1px)',
+                   boxShadow: `0 4px 12px ${alpha(foundLostStatus.color, 0.6)}`
+                 }
+               }}
+             />
           </Box>
 
           {/* Middle Section - Main Content */}
