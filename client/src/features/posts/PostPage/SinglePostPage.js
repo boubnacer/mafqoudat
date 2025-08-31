@@ -391,6 +391,29 @@ const SinglePostPage = ({
       : image;
   }, [image]);
 
+  // Sanitize contactPreferences and additionalContact to prevent React errors
+  const sanitizedContactPreferences = useMemo(() => {
+    if (!contactPreferences || typeof contactPreferences !== 'object') {
+      return { phone: true, email: false, whatsapp: false };
+    }
+    return {
+      phone: Boolean(contactPreferences.phone),
+      email: Boolean(contactPreferences.email),
+      whatsapp: Boolean(contactPreferences.whatsapp)
+    };
+  }, [contactPreferences]);
+
+  const sanitizedAdditionalContact = useMemo(() => {
+    if (!additionalContact || typeof additionalContact !== 'object') {
+      return {};
+    }
+    return {
+      phone: additionalContact.phone || '',
+      email: additionalContact.email || '',
+      whatsapp: additionalContact.whatsapp || ''
+    };
+  }, [additionalContact]);
+
   return (
     <Box 
       sx={{ 
@@ -596,7 +619,7 @@ const SinglePostPage = ({
               )}
 
               {/* Additional Contact */}
-              {additionalContact && (
+              {sanitizedAdditionalContact && (sanitizedAdditionalContact.phone || sanitizedAdditionalContact.email || sanitizedAdditionalContact.whatsapp) && (
                 <Box sx={{ mb: 3 }}>
                   <Typography 
                     variant="h6" 
@@ -609,15 +632,41 @@ const SinglePostPage = ({
                   >
                     {t('additionalContact')}
                   </Typography>
-                  <Typography 
-                    variant="body1"
-                    sx={{ 
-                      direction: currentLanguage === 'ar' ? 'rtl' : 'ltr',
-                      color: isDarkMode ? alpha('#fff', 0.8) : alpha('#000', 0.7)
-                    }}
-                  >
-                    {additionalContact}
-                  </Typography>
+                  <Box display="flex" flexDirection="column" gap={1}>
+                    {sanitizedAdditionalContact.phone && (
+                      <Typography 
+                        variant="body1"
+                        sx={{ 
+                          direction: currentLanguage === 'ar' ? 'rtl' : 'ltr',
+                          color: isDarkMode ? alpha('#fff', 0.8) : alpha('#000', 0.7)
+                        }}
+                      >
+                        {t('phone')}: {sanitizedAdditionalContact.phone}
+                      </Typography>
+                    )}
+                    {sanitizedAdditionalContact.email && (
+                      <Typography 
+                        variant="body1"
+                        sx={{ 
+                          direction: currentLanguage === 'ar' ? 'rtl' : 'ltr',
+                          color: isDarkMode ? alpha('#fff', 0.8) : alpha('#000', 0.7)
+                        }}
+                      >
+                        {t('email')}: {sanitizedAdditionalContact.email}
+                      </Typography>
+                    )}
+                    {sanitizedAdditionalContact.whatsapp && (
+                      <Typography 
+                        variant="body1"
+                        sx={{ 
+                          direction: currentLanguage === 'ar' ? 'rtl' : 'ltr',
+                          color: isDarkMode ? alpha('#fff', 0.8) : alpha('#000', 0.7)
+                        }}
+                      >
+                        WhatsApp: {sanitizedAdditionalContact.whatsapp}
+                      </Typography>
+                    )}
+                  </Box>
                 </Box>
               )}
             </Box>
@@ -823,8 +872,8 @@ const SinglePostPage = ({
           foundLost,
           Floptions,
           description,
-          contactPreferences,
-          additionalContact,
+          contactPreferences: sanitizedContactPreferences,
+          additionalContact: sanitizedAdditionalContact,
           city,
           cityLabels,
           cityName,

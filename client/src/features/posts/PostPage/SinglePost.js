@@ -4,14 +4,12 @@ import useAuth from "../../../hooks/useAuth";
 import { useGetPostQuery, useGetPostsQuery } from "../postsApiSlice";
 import SinglePostPage from "./SinglePostPage";
 import { LoadingState, ErrorState } from "../../../components/LoadingStates";
-import { useTranslation as useAppTranslation } from "../../../utils/translations";
-import { useTranslation } from "react-i18next";
+import { useTranslation } from "../../../utils/translations";
 
 const SinglePost = () => {
   const { country } = useAuth();
   const { id } = useParams();
-  const { currentLanguage } = useAppTranslation();
-  const { t } = useTranslation();
+  const { t, currentLanguage } = useTranslation();
 
   const { data: post, isLoading, isError, error } = useGetPostQuery({
     postId: id,
@@ -42,7 +40,23 @@ const SinglePost = () => {
     );
   }
 
-  return <SinglePostPage {...post} />;
+  // Ensure contactPreferences is properly formatted before passing to SinglePostPage
+  const sanitizedPost = {
+    ...post,
+    contactPreferences: post.contactPreferences && typeof post.contactPreferences === 'object' 
+      ? {
+          phone: Boolean(post.contactPreferences.phone),
+          email: Boolean(post.contactPreferences.email),
+          whatsapp: Boolean(post.contactPreferences.whatsapp)
+        }
+      : {
+          phone: true,
+          email: false,
+          whatsapp: false
+        }
+  };
+
+  return <SinglePostPage {...sanitizedPost} />;
 };
 
 export default SinglePost;

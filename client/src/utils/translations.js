@@ -40,10 +40,13 @@ export const translations = {
     postDetails: "Post Details",
     postedBy: "Posted by",
     created: "Created",
+    updated: "Updated",
     lastUpdated: "Last Updated",
+    actions: "Actions",
     quickActions: "Quick Actions",
     additionalInsights: "Additional Information",
     postStatus: "Post Status",
+    anonymous: "Anonymous",
     
     // Dashboard translations
     dashboard: "Dashboard",
@@ -741,10 +744,13 @@ export const translations = {
     postDetails: "Détails de la publication",
     postedBy: "Publié par",
     created: "Créé",
+    updated: "Mis à jour",
     lastUpdated: "Dernière mise à jour",
+    actions: "Actions",
     quickActions: "Actions rapides",
     additionalInsights: "Informations supplémentaires",
     postStatus: "Statut de la publication",
+    anonymous: "Anonyme",
     
     // Dashboard translations
     dashboard: "Tableau de bord",
@@ -1422,10 +1428,13 @@ export const translations = {
     postDetails: "تفاصيل المنشور",
     postedBy: "نشر بواسطة",
     created: "تم الإنشاء",
+    updated: "محدث",
     lastUpdated: "آخر تحديث",
+    actions: "الإجراءات",
     quickActions: "إجراءات سريعة",
     additionalInsights: "معلومات إضافية",
     postStatus: "حالة المنشور",
+    anonymous: "مجهول",
     
     // Dashboard translations
     dashboard: "لوحة التحكم",
