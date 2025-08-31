@@ -192,7 +192,21 @@ const getDashboard = async (req, res) => {
           createdAt: 1,
           categoryName: { $ifNull: ["$Category.code", "ELECTRONICS"] },
           floptionName: { $ifNull: ["$Floptions.code", "FOUND"] },
-          Floptions: 1, // Add the full Floptions object for client-side processing
+          Floptions: {
+            $cond: {
+              if: { $ne: ["$Floptions", null] },
+              then: "$Floptions",
+              else: {
+                code: "FOUND",
+                color: "#4CAF50",
+                labels: {
+                  en: "Found",
+                  fr: "Trouvé",
+                  ar: "تم العثور عليه"
+                }
+              }
+            }
+          },
           contact: 1,
           image: 1,
           countryLabels: { $ifNull: ["$Country.labels", {}] },
@@ -217,6 +231,7 @@ const getDashboard = async (req, res) => {
         _id: trendingPost[0]._id,
         categoryName: trendingPost[0].categoryName,
         floptionName: trendingPost[0].floptionName,
+        Floptions: trendingPost[0].Floptions,
         cityName: trendingPost[0].cityName
       } : null
     });

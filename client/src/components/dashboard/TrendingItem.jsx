@@ -157,18 +157,31 @@ const TrendingItem = ({ trend, isLoading }) => {
     let foundLostLabel = t('found'); // Default label
     let foundLostColor = theme.palette.success.main; // Default color
     
+    console.log('🔍 Found/Lost Debug - Input data:', {
+      Floptions,
+      floptionName,
+      currentLanguage,
+      FloptionsType: typeof Floptions,
+      FloptionsKeys: Floptions ? Object.keys(Floptions) : null,
+      floptionNameType: typeof floptionName
+    });
+    
     // Check Floptions object first (this contains the actual found/lost data from the lookup)
     if (Floptions && Floptions.code) {
+      console.log('🔍 Using Floptions.code:', Floptions.code);
       foundLostValue = Floptions.code;
       foundLostLabel = getLabel(Floptions.labels, currentLanguage) || 
                       (Floptions.code === 'FOUND' ? t('found') : t('lost'));
       foundLostColor = Floptions.color || 
                       (Floptions.code === 'FOUND' ? theme.palette.success.main : theme.palette.error.main);
+    } else {
+      console.log('🔍 Floptions not available or missing code, checking floptionName');
     }
     
     // Fallback: Check floptionName property
     if (!foundLostValue || foundLostValue === "FOUND") {
       if (floptionName) {
+        console.log('🔍 Using floptionName fallback:', floptionName);
         foundLostValue = floptionName.toUpperCase();
         foundLostLabel = floptionName === 'Found' ? t('found') : t('lost');
         foundLostColor = floptionName === 'Found' ? theme.palette.success.main : theme.palette.error.main;
@@ -180,12 +193,16 @@ const TrendingItem = ({ trend, isLoading }) => {
     const statusColor = foundLostColor || (isFound ? theme.palette.success.main : theme.palette.error.main);
     const statusText = foundLostLabel;
 
-    return { 
+    const result = { 
       value: foundLostValue,
       label: statusText,
       color: statusColor,
       isFound 
     };
+    
+    console.log('🔍 Found/Lost Debug - Final result:', result);
+    
+    return result;
   }, [Floptions, floptionName, currentLanguage, t, theme.palette.success.main, theme.palette.error.main]);
 
   // Handle navigation to post
@@ -197,13 +214,14 @@ const TrendingItem = ({ trend, isLoading }) => {
 
   // Debug logging
   const finalImageUrl = image ? (image.startsWith('http') ? getOptimizedImageUrl(image, 'hero') : `${API_BASE_URL}/${image}`) : ma;
-  console.log('TrendingItem data:', { 
+  console.log('🔍 TrendingItem FULL DEBUG:', { 
     trend, 
     trendData, 
     image, 
     categoryName, 
     floptionName, 
     Floptions,
+    FloptionsStringified: JSON.stringify(Floptions, null, 2),
     city, 
     cityLabels, 
     cityName,
