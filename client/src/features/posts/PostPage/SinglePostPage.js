@@ -350,29 +350,45 @@ const SinglePostPage = ({
 
   // Memoized found/lost status computation
   const foundLostStatus = useMemo(() => {
-    let foundLostValue = "FOUND";
-    let foundLostLabel = t('found');
+    // Simple and direct approach based on server logs (same as TrendingItem)
+    let foundLostValue = "FOUND"; // Default
+    let foundLostLabel = t('found'); // Default
+    let foundLostColor = "#4CAF50"; // Default green for FOUND
     
-    if (foundLost) {
-      if (typeof foundLost === 'string') {
-        foundLostValue = foundLost.toUpperCase();
-        foundLostLabel = foundLost === 'FOUND' ? t('found') : t('lost');
-      } else if (foundLost.code) {
-        foundLostValue = foundLost.code;
-        foundLostLabel = getLabel(foundLost.labels, currentLanguage) || 
-                        (foundLost.code === 'FOUND' ? t('found') : t('lost'));
+    // Priority 1: Use Floptions.code if available
+    if (Floptions && Floptions.code) {
+      foundLostValue = Floptions.code;
+      foundLostColor = Floptions.color || "#4CAF50";
+      
+      // Simple label logic
+      if (Floptions.code === 'FOUND') {
+        foundLostLabel = t('found');
+      } else if (Floptions.code === 'LOST') {
+        foundLostLabel = t('lost');
+        foundLostColor = foundLostColor || "#F44336";
       }
     }
-
-    if (Floptions && Floptions.length > 0) {
-      const flOption = Floptions[0];
-      if (typeof flOption === 'string') {
-        foundLostValue = flOption.toUpperCase();
-        foundLostLabel = flOption === 'FOUND' ? t('found') : t('lost');
-      } else if (flOption.code) {
-        foundLostValue = flOption.code;
-        foundLostLabel = getLabel(flOption.labels, currentLanguage) || 
-                        (flOption.code === 'FOUND' ? t('found') : t('lost'));
+    // Priority 2: Use foundLost as fallback
+    else if (foundLost) {
+      if (typeof foundLost === 'string') {
+        foundLostValue = foundLost.toUpperCase();
+        if (foundLost.toUpperCase() === 'FOUND') {
+          foundLostLabel = t('found');
+          foundLostColor = "#4CAF50";
+        } else if (foundLost.toUpperCase() === 'LOST') {
+          foundLostLabel = t('lost');
+          foundLostColor = "#F44336";
+        }
+      } else if (foundLost.code) {
+        foundLostValue = foundLost.code;
+        foundLostColor = foundLost.color || "#4CAF50";
+        
+        if (foundLost.code === 'FOUND') {
+          foundLostLabel = t('found');
+        } else if (foundLost.code === 'LOST') {
+          foundLostLabel = t('lost');
+          foundLostColor = foundLostColor || "#F44336";
+        }
       }
     }
 
