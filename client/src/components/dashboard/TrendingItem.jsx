@@ -17,6 +17,8 @@ import { TrendingItemSkeleton, DashboardEmptyStates } from "../LoadingStates";
 import { useTranslation } from "../../utils/translations";
 import { getOptimizedImageUrl } from "../../utils/cloudinaryUtils";
 import LazyCardMedia from "../LazyCardMedia";
+import { getCategoryConfig } from "../../config/categories";
+import { useNavigate } from "react-router-dom";
 import ma from "../../img/ma.jpg";
 
 // Get the API base URL for image construction
@@ -25,11 +27,12 @@ const API_BASE_URL = process.env.REACT_APP_API_URL || "http://localhost:3500";
 const TrendingItem = ({ trend, isLoading }) => {
   // Handle both array and single object formats
   const trendData = Array.isArray(trend) ? trend[0] : trend;
-  const { categoryName, floptionName, image, createdAt, countryLabels, countryname, city, cityLabels, cityName } = trendData || {};
+  const { _id, categoryname, floptionName, image, createdAt, countryLabels, countryname, city, cityLabels, cityName, Floptions } = trendData || {};
   const theme = useTheme();
   const isMobile = useMediaQuery(theme.breakpoints.down('sm'));
   const isTablet = useMediaQuery(theme.breakpoints.down('md'));
   const { t, currentLanguage } = useTranslation();
+  const navigate = useNavigate();
 
   // Get city name with proper priority
   const getCityName = () => {
@@ -51,13 +54,154 @@ const TrendingItem = ({ trend, isLoading }) => {
 
   const displayCityName = getCityName();
 
+  // Get category name safely with multilingual support (same as RecentPosts)
+  const getCategoryDisplayName = (categoryCode) => {
+    // Map category codes to their translated names
+    const categoryTranslations = {
+      'ELECTRONICS': {
+        en: 'Electronics',
+        fr: 'Électronique', 
+        ar: 'إلكترونيات'
+      },
+      'DOCUMENTS': {
+        en: 'Documents',
+        fr: 'Documents',
+        ar: 'وثائق'
+      },
+      'JEWELRY': {
+        en: 'Jewelry',
+        fr: 'Bijoux',
+        ar: 'مجوهرات'
+      },
+      'CLOTHING': {
+        en: 'Clothing',
+        fr: 'Vêtements',
+        ar: 'ملابس'
+      },
+      'PETS': {
+        en: 'Pets',
+        fr: 'Animaux',
+        ar: 'حيوانات أليفة'
+      },
+      'VEHICLES': {
+        en: 'Vehicles',
+        fr: 'Véhicules',
+        ar: 'مركبات'
+      },
+      'KEYS': {
+        en: 'Keys',
+        fr: 'Clés',
+        ar: 'مفاتيح'
+      },
+      'WALLET': {
+        en: 'Wallet',
+        fr: 'Portefeuille',
+        ar: 'محفظة'
+      },
+      'WATCHES': {
+        en: 'Watches',
+        fr: 'Montres',
+        ar: 'ساعات'
+      },
+      'GAMING': {
+        en: 'Gaming',
+        fr: 'Jeux',
+        ar: 'ألعاب'
+      },
+      'MEDICAL': {
+        en: 'Medical',
+        fr: 'Médical',
+        ar: 'طبي'
+      },
+      'LUGGAGE': {
+        en: 'Luggage',
+        fr: 'Bagages',
+        ar: 'أمتعة'
+      },
+      'OTHER': {
+        en: 'Other',
+        fr: 'Autre',
+        ar: 'أخرى'
+      }
+    };
+    
+    const translations = categoryTranslations[categoryCode];
+    if (translations) {
+      return translations[currentLanguage] || translations.en || categoryCode;
+    }
+    return categoryCode || t('unknownCategory');
+  };
+
+  const categoryDisplayName = getCategoryDisplayName(categoryname);
+
+  // Get category colors using centralized configuration (same as RecentPosts)
+  const getCategoryColors = (category) => {
+    const config = getCategoryConfig(category);
+    const isDarkMode = theme.palette.mode === 'dark';
+    
+    return {
+      main: config.color,
+      light: config.backgroundColor,
+      dark: config.color,
+      icon: config.color,
+      background: isDarkMode ? alpha(config.backgroundColor, 0.2) : config.backgroundColor,
+      text: config.color
+    };
+  };
+
+  const categoryStyle = getCategoryColors(categoryname);
+
+  // Get found/lost status with proper colors from database (same as PostsList)
+  const getFoundLostStatus = () => {
+    let foundLostValue = "FOUND"; // Default to FOUND
+    let foundLostLabel = t('found'); // Default label
+    let foundLostColor = "#4CAF50"; // Default color from database
+    
+    // Check Floptions array first (this contains the actual found/lost data from the lookup)
+    if (Floptions && Floptions.length > 0) {
+      const flOption = Floptions[0];
+      if (flOption && flOption.code) {
+        foundLostValue = flOption.code;
+        foundLostLabel = flOption.labels?.[currentLanguage] || 
+                        (flOption.code === 'FOUND' ? t('found') : t('lost'));
+        foundLostColor = flOption.color || 
+                        (flOption.code === 'FOUND' ? "#4CAF50" : "#F44336");
+      }
+    }
+    
+    // Fallback: Check floptionName property
+    if (!foundLostValue || foundLostValue === "FOUND") {
+      if (floptionName) {
+        foundLostValue = floptionName.toUpperCase();
+        foundLostLabel = floptionName === 'Found' ? t('found') : t('lost');
+        foundLostColor = flOption.color || 
+                        (flOption.code === 'FOUND' ? "#4CAF50" : "#F44336");
+      }
+    }
+    
+    return {
+      value: foundLostValue,
+      label: foundLostLabel,
+      color: foundLostColor
+    };
+  };
+
+  const foundLostStatus = getFoundLostStatus();
+
+  // Handle navigation to post
+  const handleViewPost = () => {
+    if (_id) {
+      navigate(`/dash/posts/${_id}`);
+    }
+  };
+
   // Debug logging
   const finalImageUrl = image ? (image.startsWith('http') ? getOptimizedImageUrl(image, 'hero') : `${API_BASE_URL}/${image}`) : ma;
   console.log('TrendingItem data:', { 
     trend, 
     trendData, 
     image, 
-    categoryName, 
+    categoryname, 
     floptionName, 
     city, 
     cityLabels, 
@@ -65,7 +209,8 @@ const TrendingItem = ({ trend, isLoading }) => {
     displayCityName, 
     currentLanguage,
     API_BASE_URL, 
-    finalImageUrl 
+    finalImageUrl,
+    foundLostStatus
   });
 
   if (isLoading) return <TrendingItemSkeleton />;
@@ -112,7 +257,7 @@ const TrendingItem = ({ trend, isLoading }) => {
           <LazyCardMedia
             component="img"
             image={finalImageUrl}
-            alt={categoryName || 'Item Image'}
+            alt={categoryDisplayName || 'Item Image'}
             fallback={ma}
             sx={{
               width: '100%',
@@ -163,30 +308,38 @@ const TrendingItem = ({ trend, isLoading }) => {
               mb: 2
             }}
           >
-            {/* Category Badge */}
-            <Chip
-              icon={<RenderIcon name={categoryName} sx={{ fontSize: '16px' }} />}
-              label={t(categoryName?.toLowerCase()) || categoryName}
+            {/* Category Badge - Updated to use RecentPosts approach */}
+            <Box
               sx={{
-                backgroundColor: alpha(theme.palette.primary.main, 0.9),
-                color: '#fff',
-                fontWeight: 600,
-                fontSize: '12px',
-                height: '28px',
-                '& .MuiChip-icon': {
-                  color: '#fff'
-                }
+                backgroundColor: theme.palette.mode === 'dark' ? alpha(categoryStyle.main, 0.2) : categoryStyle.background,
+                padding: '4px 8px',
+                borderRadius: '12px',
+                display: 'flex',
+                alignItems: 'center',
+                gap: 0.5,
+                backdropFilter: 'blur(10px)',
+                border: `1px solid ${theme.palette.mode === 'dark' ? alpha(categoryStyle.main, 0.3) : categoryStyle.main}`,
               }}
-            />
+            >
+              <RenderIcon name={categoryname} sx={{ fontSize: '16px', color: categoryStyle.main }} />
+              <Typography
+                sx={{
+                  color: categoryStyle.main,
+                  fontSize: '12px',
+                  fontWeight: 600,
+                  lineHeight: 1,
+                }}
+              >
+                {categoryDisplayName}
+              </Typography>
+            </Box>
             
-            {/* Status Badge */}
+            {/* Status Badge - Updated to use database colors */}
             <Chip
-              icon={<RenderIcon name={`${floptionName}fl`} sx={{ fontSize: '14px' }} />}
-              label={t(floptionName?.toLowerCase()) || floptionName}
+              icon={<RenderIcon name={`${foundLostStatus.value.toLowerCase()}fl`} sx={{ fontSize: '14px' }} />}
+              label={foundLostStatus.label}
               sx={{
-                backgroundColor: floptionName === "Found"
-                  ? alpha('#4CAF50', 0.9)
-                  : alpha('#F44336', 0.9),
+                backgroundColor: alpha(foundLostStatus.color, 0.9),
                 color: '#fff',
                 fontWeight: 600,
                 fontSize: '12px',
@@ -214,14 +367,25 @@ const TrendingItem = ({ trend, isLoading }) => {
               {t('trendingItem')}
             </Typography>
             
+            {/* Enhanced styling for the description text */}
             <Typography
               variant="body1"
               sx={{
-                color: 'rgba(255,255,255,0.9)',
+                color: 'rgba(255,255,255,0.95)',
                 fontSize: { xs: '0.9rem', sm: '1rem' },
                 textAlign: 'center',
                 textShadow: '1px 1px 2px rgba(0,0,0,0.5)',
-                mb: 2
+                mb: 2,
+                fontWeight: 400,
+                lineHeight: 1.5,
+                letterSpacing: '0.2px',
+                background: 'linear-gradient(135deg, rgba(255,255,255,0.1) 0%, rgba(255,255,255,0.05) 100%)',
+                padding: '12px 16px',
+                borderRadius: '12px',
+                backdropFilter: 'blur(10px)',
+                border: '1px solid rgba(255,255,255,0.1)',
+                maxWidth: '90%',
+                mx: 'auto'
               }}
             >
               {t('trendingItemDescription')}
@@ -274,10 +438,11 @@ const TrendingItem = ({ trend, isLoading }) => {
               </Box>
             </Box>
 
-            {/* Action Button */}
+            {/* Action Button - Updated with better title and navigation */}
             <Button
               fullWidth
               variant="contained"
+              onClick={handleViewPost}
               sx={{
                 background: 'linear-gradient(45deg, #2196F3 30%, #21CBF3 90%)',
                 color: '#fff',
@@ -296,7 +461,7 @@ const TrendingItem = ({ trend, isLoading }) => {
               }}
               endIcon={<RenderIcon name="view" sx={{ fontSize: '16px' }} />}
             >
-              {t('learnMore')}
+              {t('viewDetails')}
             </Button>
           </Box>
         </Box>
