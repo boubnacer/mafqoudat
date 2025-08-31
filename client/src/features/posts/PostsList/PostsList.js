@@ -33,7 +33,7 @@ import {
   Grid,
 } from "@mui/material";
 import Pagination from "@mui/material/Pagination";
-import { useEffect, useState, useMemo } from "react";
+import { useEffect, useState, useMemo, useCallback } from "react";
 import useAuth from "../../../hooks/useAuth";
 import { selectCurrentCountry, selectFoundOrLost, selectCategoryFilter, selectActiveLink } from "../../../app/state";
 import FlexCenter from "../../../components/FlexCenter";
@@ -138,8 +138,10 @@ const PostsList = () => {
     }),
   });
 
-  // Use URL query parameter directly
-  const effectiveFl = urlFilter || '';
+  // Memoize effectiveFl computation
+  const effectiveFl = useMemo(() => {
+    return urlFilter || '';
+  }, [urlFilter]);
 
   const { data, isLoading, isSuccess, isError, error } = useGetPostsQuery({
     page,
@@ -162,8 +164,6 @@ const PostsList = () => {
     refetchOnFocus: false,
     refetchOnReconnect: false
   });
-
-
 
   // Add timeout for loading states - MOVED AFTER query hooks
   useEffect(() => {
@@ -294,30 +294,60 @@ const PostsList = () => {
   // Remove the cleanup effect that was clearing the category filter
   // This was interfering with category navigation from Dashboard
 
-  const handlePaginate = (e, p) => {
+  // Memoized event handlers
+  const handlePaginate = useCallback((e, p) => {
     setPage(p);
     window.scrollTo({ top: 0, behavior: 'smooth' });
-  };
+  }, []);
 
-  const handleSearch = (e) => {
+  const handleSearch = useCallback((e) => {
     setSearchTerm(e.target.value);
-  };
+  }, []);
 
-  const handleSortChange = (e) => {
+  const handleSortChange = useCallback((e) => {
     setSortBy(e.target.value);
     setPage(1);
-  };
+  }, []);
 
-  const handleCategoryFilter = (e) => {
+  const handleCategoryFilter = useCallback((e) => {
     setLocalCategoryFilter(e.target.value);
     setPage(1);
-  };
+  }, []);
 
-  const handleViewModeChange = () => {
+  const handleViewModeChange = useCallback(() => {
     setViewMode(viewMode === "grid" ? "list" : "grid");
-  };
+  }, [viewMode]);
 
-  const handleMore = () => navigate("/dash/posts");
+  const handleMore = useCallback(() => navigate("/dash/posts"), [navigate]);
+
+  const handlePageSizeChange = useCallback((e) => {
+    setPageSize(e.target.value);
+    setPage(1);
+  }, []);
+
+  const handleClearSearch = useCallback(() => {
+    setSearchTerm("");
+  }, []);
+
+  const handleClearCategoryFilter = useCallback(() => {
+    setLocalCategoryFilter("all");
+  }, []);
+
+  const handleClearSort = useCallback(() => {
+    setSortBy("newest");
+  }, []);
+
+  const handleAddNewPost = useCallback(() => {
+    if (!user.username) {
+      navigate('/login');
+    } else {
+      navigate("/dash/posts/new");
+    }
+  }, [user.username, navigate]);
+
+  const handleSelectCountry = useCallback(() => {
+    navigate('/dash');
+  }, [navigate]);
 
   // Check if we have active filters
   const hasActiveFilters = useMemo(() => {
@@ -336,6 +366,50 @@ const PostsList = () => {
     if (!data?.postsWithUser) return [];
     return data.postsWithUser;
   }, [data?.postsWithUser]);
+
+  // Memoize category options for the select dropdown
+  const categoryOptions = useMemo(() => {
+    return categoriesData?.map((category) => ({
+      id: category._id,
+      label: category.labels?.[currentLanguage] || category.code,
+      value: category._id
+    })) || [];
+  }, [categoriesData, currentLanguage]);
+
+  // Memoize active filter chips data
+  const activeFilterChips = useMemo(() => {
+    const chips = [];
+    
+    if (searchTerm) {
+      chips.push({
+        label: `Search: ${searchTerm}`,
+        onDelete: handleClearSearch,
+        color: "primary",
+        variant: "outlined"
+      });
+    }
+    
+    if (localCategoryFilter !== "all") {
+      const category = categoriesData?.find(cat => cat._id === localCategoryFilter);
+      chips.push({
+        label: `${t('category')}: ${category?.labels?.[currentLanguage] || category?.code || localCategoryFilter}`,
+        onDelete: handleClearCategoryFilter,
+        color: "secondary",
+        variant: "outlined"
+      });
+    }
+    
+    if (sortBy !== "newest") {
+      chips.push({
+        label: `Sort: ${sortBy}`,
+        onDelete: handleClearSort,
+        color: "info",
+        variant: "outlined"
+      });
+    }
+    
+    return chips;
+  }, [searchTerm, localCategoryFilter, sortBy, categoriesData, currentLanguage, t, handleClearSearch, handleClearCategoryFilter, handleClearSort]);
 
   let content;
 
@@ -360,7 +434,7 @@ const PostsList = () => {
           <Button
             variant="contained"
             startIcon={<Language />}
-            onClick={() => navigate('/dash')}
+            onClick={handleSelectCountry}
             sx={{
               background: "linear-gradient(45deg, #2196F3 30%, #21CBF3 90%)",
               boxShadow: "0 3px 5px 2px rgba(33, 203, 243, .3)",
@@ -445,13 +519,7 @@ const PostsList = () => {
             <Button
               variant="contained"
               startIcon={<AddIcon />}
-              onClick={() => {
-                if (!user.username) {
-                  navigate('/login');
-                } else {
-                  navigate("/dash/posts/new");
-                }
-              }}
+              onClick={handleAddNewPost}
               sx={{
                 borderRadius: 2,
                 px: 3,
@@ -525,9 +593,9 @@ const PostsList = () => {
                     sx={{ borderRadius: 2 }}
                   >
                     <MenuItem value="all">{t('allCategories')}</MenuItem>
-                    {categoriesData?.map((category) => (
-                      <MenuItem key={category._id} value={category._id}>
-                        {category.labels?.[currentLanguage] || category.code}
+                    {categoryOptions.map((category) => (
+                      <MenuItem key={category.id} value={category.value}>
+                        {category.label}
                       </MenuItem>
                     ))}
                   </Select>
@@ -567,30 +635,15 @@ const PostsList = () => {
               {/* Active Filters Display */}
               <Grid item xs={12}>
                 <Box display="flex" gap={1} flexWrap="wrap">
-                  {searchTerm && (
+                  {activeFilterChips.map((chip, index) => (
                     <Chip 
-                      label={`Search: ${searchTerm}`} 
-                      onDelete={() => setSearchTerm("")}
-                      color="primary"
-                      variant="outlined"
+                      key={index}
+                      label={chip.label} 
+                      onDelete={chip.onDelete}
+                      color={chip.color}
+                      variant={chip.variant}
                     />
-                  )}
-                  {localCategoryFilter !== "all" && (
-                    <Chip 
-                      label={`${t('category')}: ${categoriesData?.find(cat => cat._id === localCategoryFilter)?.labels?.[currentLanguage] || categoriesData?.find(cat => cat._id === localCategoryFilter)?.code || localCategoryFilter}`} 
-                      onDelete={() => setLocalCategoryFilter("all")}
-                      color="secondary"
-                      variant="outlined"
-                    />
-                  )}
-                  {sortBy !== "newest" && (
-                    <Chip 
-                      label={`Sort: ${sortBy}`} 
-                      onDelete={() => setSortBy("newest")}
-                      color="info"
-                      variant="outlined"
-                    />
-                  )}
+                  ))}
                 </Box>
               </Grid>
             </Grid>
@@ -676,10 +729,7 @@ const PostsList = () => {
                     </Typography>
                     <Select
                       value={pageSize}
-                      onChange={(e) => {
-                        setPageSize(e.target.value);
-                        setPage(1);
-                      }}
+                      onChange={handlePageSizeChange}
                       size="small"
                       sx={{ minWidth: 80 }}
                     >
@@ -722,7 +772,7 @@ const PostsList = () => {
                 <Button 
                   variant="outlined" 
                   startIcon={<Language />}
-                  onClick={() => navigate('/dash')}
+                  onClick={handleSelectCountry}
                   sx={{ 
                     borderRadius: 2,
                     px: 3,

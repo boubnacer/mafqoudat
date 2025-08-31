@@ -1,5 +1,5 @@
 import { useNavigate } from "react-router-dom";
-import { memo, useState } from "react";
+import { memo, useState, useCallback, useMemo } from "react";
 import React from "react";
 // import "./postslist.css"; // Removed to prevent CSS conflicts with Material-UI
 import ma from "../../../img/ma.jpg";
@@ -54,9 +54,8 @@ const Post = ({ post, viewMode = "grid" }) => {
   const [reportDialogOpen, setReportDialogOpen] = useState(false);
   const [submitReport] = useSubmitReportMutation();
 
-
-
-  const handleSubmitReport = async (reportData) => {
+  // Memoized event handlers
+  const handleSubmitReport = useCallback(async (reportData) => {
     console.log('Post component - handleSubmitReport called with:', reportData);
     try {
       const result = await submitReport(reportData).unwrap();
@@ -66,26 +65,13 @@ const Post = ({ post, viewMode = "grid" }) => {
       console.error('Post component - submitReport error:', error);
       throw new Error(error.data?.message || 'Failed to submit report');
     }
-  };
+  }, [submitReport]);
 
-  if (!post) return null;
+  const handleViewDetails = useCallback(() => {
+    navigate(`/dash/posts/${post._id}`);
+  }, [navigate, post._id]);
 
-  // Format date using date-fns with proper locale support
-  const getLocale = () => {
-    switch (currentLanguage) {
-      case 'ar': return ar;
-      case 'fr': return fr;
-      default: return enUS;
-    }
-  };
-
-  const created = formatDistanceToNow(new Date(post.createdAt), { 
-    addSuffix: true,
-    locale: getLocale()
-  });
-
-  const handleViewDetails = () => navigate(`/dash/posts/${post._id}`);
-  const handleReport = () => {
+  const handleReport = useCallback(() => {
     // Simple check: if no usernameId, redirect to login
     if (!usernameId) {
       // Store the current post URL for redirect after login
@@ -98,13 +84,32 @@ const Post = ({ post, viewMode = "grid" }) => {
     
     // If authenticated, open the dialog
     setReportDialogOpen(true);
-  };
+  }, [usernameId, post._id, navigate]);
 
+  const handleCloseReportDialog = useCallback(() => {
+    setReportDialogOpen(false);
+  }, []);
 
+  if (!post) return null;
 
+  // Memoized computed values
+  const locale = useMemo(() => {
+    switch (currentLanguage) {
+      case 'ar': return ar;
+      case 'fr': return fr;
+      default: return enUS;
+    }
+  }, [currentLanguage]);
 
+  const created = useMemo(() => {
+    return formatDistanceToNow(new Date(post.createdAt), { 
+      addSuffix: true,
+      locale
+    });
+  }, [post.createdAt, locale]);
 
-    // Enhanced Found/Lost detection with proper multilingual support
+  // Memoized found/lost status computation
+  const foundLostStatus = useMemo(() => {
     let foundLostValue = "FOUND"; // Default to FOUND
     let foundLostLabel = t('found'); // Default label
     let foundLostColor = theme.palette.success.main; // Default color
@@ -143,104 +148,106 @@ const Post = ({ post, viewMode = "grid" }) => {
     const statusColor = foundLostColor || (isFound ? theme.palette.success.main : theme.palette.error.main);
     const statusText = foundLostLabel;
 
-    // Get category name safely with multilingual support
-    const getCategoryDisplayName = (categoryCode) => {
-      // Map category codes to their translated names
-      const categoryTranslations = {
-        'ELECTRONICS': {
-          en: 'Electronics',
-          fr: 'Électronique', 
-          ar: 'إلكترونيات'
-        },
-        'DOCUMENTS': {
-          en: 'Documents',
-          fr: 'Documents',
-          ar: 'وثائق'
-        },
-        'JEWELRY': {
-          en: 'Jewelry',
-          fr: 'Bijoux',
-          ar: 'مجوهرات'
-        },
-        'CLOTHING': {
-          en: 'Clothing',
-          fr: 'Vêtements',
-          ar: 'ملابس'
-        },
-        'PETS': {
-          en: 'Pets',
-          fr: 'Animaux',
-          ar: 'حيوانات أليفة'
-        },
-        'VEHICLES': {
-          en: 'Vehicles',
-          fr: 'Véhicules',
-          ar: 'مركبات'
-        },
-        'KEYS': {
-          en: 'Keys',
-          fr: 'Clés',
-          ar: 'مفاتيح'
-        },
-        'WALLET': {
-          en: 'Wallet',
-          fr: 'Portefeuille',
-          ar: 'محفظة'
-        },
-        'WATCHES': {
-          en: 'Watches',
-          fr: 'Montres',
-          ar: 'ساعات'
-        },
-        'GAMING': {
-          en: 'Gaming',
-          fr: 'Jeux',
-          ar: 'ألعاب'
-        },
-        'MEDICAL': {
-          en: 'Medical',
-          fr: 'Médical',
-          ar: 'طبي'
-        },
-        'LUGGAGE': {
-          en: 'Luggage',
-          fr: 'Bagages',
-          ar: 'أمتعة'
-        },
-        'OTHER': {
-          en: 'Other',
-          fr: 'Autre',
-          ar: 'أخرى'
-        }
-      };
-      
-      const translations = categoryTranslations[categoryCode];
-      if (translations) {
-        return translations[currentLanguage] || translations.en || categoryCode;
+    return { isFound, statusColor, statusText };
+  }, [post.Floptions, post.foundLost, currentLanguage, t, theme.palette.success.main, theme.palette.error.main]);
+
+  // Memoized category display name computation
+  const categoryName = useMemo(() => {
+    // Map category codes to their translated names
+    const categoryTranslations = {
+      'ELECTRONICS': {
+        en: 'Electronics',
+        fr: 'Électronique', 
+        ar: 'إلكترونيات'
+      },
+      'DOCUMENTS': {
+        en: 'Documents',
+        fr: 'Documents',
+        ar: 'وثائق'
+      },
+      'JEWELRY': {
+        en: 'Jewelry',
+        fr: 'Bijoux',
+        ar: 'مجوهرات'
+      },
+      'CLOTHING': {
+        en: 'Clothing',
+        fr: 'Vêtements',
+        ar: 'ملابس'
+      },
+      'PETS': {
+        en: 'Pets',
+        fr: 'Animaux',
+        ar: 'حيوانات أليفة'
+      },
+      'VEHICLES': {
+        en: 'Vehicles',
+        fr: 'Véhicules',
+        ar: 'مركبات'
+      },
+      'KEYS': {
+        en: 'Keys',
+        fr: 'Clés',
+        ar: 'مفاتيح'
+      },
+      'WALLET': {
+        en: 'Wallet',
+        fr: 'Portefeuille',
+        ar: 'محفظة'
+      },
+      'WATCHES': {
+        en: 'Watches',
+        fr: 'Montres',
+        ar: 'ساعات'
+      },
+      'GAMING': {
+        en: 'Gaming',
+        fr: 'Jeux',
+        ar: 'ألعاب'
+      },
+      'MEDICAL': {
+        en: 'Medical',
+        fr: 'Médical',
+        ar: 'طبي'
+      },
+      'LUGGAGE': {
+        en: 'Luggage',
+        fr: 'Bagages',
+        ar: 'أمتعة'
+      },
+      'OTHER': {
+        en: 'Other',
+        fr: 'Autre',
+        ar: 'أخرى'
       }
-      return categoryCode || t('unknownCategory');
     };
+    
+    const translations = categoryTranslations[post.categoryname];
+    if (translations) {
+      return translations[currentLanguage] || translations.en || post.categoryname;
+    }
+    return post.categoryname || t('unknownCategory');
+  }, [post.categoryname, currentLanguage, t]);
 
-    const categoryName = getCategoryDisplayName(post.categoryname);
-
-    // Get category colors using centralized configuration
-    const getCategoryColors = (category) => {
-      const config = getCategoryConfig(category);
-      const isDarkMode = theme.palette.mode === 'dark';
-      
-      return {
-        main: config.color,
-        light: config.backgroundColor,
-        dark: config.color,
-        icon: config.color,
-        background: isDarkMode ? alpha(config.backgroundColor, 0.2) : config.backgroundColor,
-        text: config.color
-      };
-    };
-
-    const categoryStyle = getCategoryColors(post.categoryname);
+  // Memoized category colors computation
+  const categoryStyle = useMemo(() => {
+    const config = getCategoryConfig(post.categoryname);
     const isDarkMode = theme.palette.mode === 'dark';
+    
+    return {
+      main: config.color,
+      light: config.backgroundColor,
+      dark: config.color,
+      icon: config.color,
+      background: isDarkMode ? alpha(config.backgroundColor, 0.2) : config.backgroundColor,
+      text: config.color
+    };
+  }, [post.categoryname, theme.palette.mode]);
 
+  const isDarkMode = theme.palette.mode === 'dark';
+
+  // Memoized city name computation
+  const cityName = useMemo(() => {
     // Extract city from location (show only city)
     const getCityFromLocation = (location) => {
       if (!location) return t('unknownLocation');
@@ -253,8 +260,7 @@ const Post = ({ post, viewMode = "grid" }) => {
       return cleanCity.replace(/\d+/g, '').trim();
     };
 
-      // Get city name with proper multilingual support
-  const getCityName = () => {
+    // Get city name with proper multilingual support
     // First priority: Use the cityLabel field from API transformation
     if (post.cityLabel && typeof post.cityLabel === 'string' && post.cityLabel.trim()) {
       return post.cityLabel.trim();
@@ -280,205 +286,214 @@ const Post = ({ post, viewMode = "grid" }) => {
     
     // Last fallback: extracting from exactLocation
     return getCityFromLocation(post.exactLocation);
-  };
+  }, [post.cityLabel, post.cityLabels, post.cityName, post.city, post.exactLocation, currentLanguage, t]);
 
-    const cityName = getCityName();
+  // Memoized image URL computation
+  const imageUrl = useMemo(() => {
+    if (!post.image) return ma;
+    return post.image.startsWith('http') 
+      ? getOptimizedImageUrl(post.image, 'card') 
+      : `${API_BASE_URL}/${post.image}`;
+  }, [post.image]);
 
-    // List view layout
-    if (viewMode === "list") {
-      return (
-        <Paper 
-          elevation={0}
-          sx={{ 
-            borderRadius: 4,
-            overflow: 'hidden',
-            transition: 'all 0.3s ease',
-            border: `1px solid ${isDarkMode ? alpha('#fff', 0.08) : alpha('#000', 0.06)}`,
-            '&:hover': {
-              transform: 'translateY(-2px)',
-              boxShadow: isDarkMode 
-                ? '0 12px 40px rgba(0, 0, 0, 0.3)'
-                : '0 12px 40px rgba(0, 0, 0, 0.1)',
-            },
-            direction: currentLanguage === 'ar' ? 'rtl' : 'ltr',
-            backgroundColor: isDarkMode ? alpha('#1a1a1a', 0.8) : '#ffffff'
-          }}
-        >
-          <Box display="flex" sx={{ height: { xs: 'auto', sm: 180 } }}>
-            {/* Image Section */}
-            <Box sx={{ 
-              width: { xs: '100%', sm: 200 }, 
-              height: { xs: 160, sm: 180 },
-              flexShrink: 0 
-            }}>
-              <LazyCardMedia
-                component="img"
-                sx={{ 
-                  height: '100%',
-                  width: '100%',
-                  objectFit: 'cover',
-                  objectPosition: 'center'
-                }}
-                image={post.image ? (post.image.startsWith('http') ? getOptimizedImageUrl(post.image, 'card') : `${API_BASE_URL}/${post.image}`) : ma}
-                alt={categoryName || 'Item Image'}
-                fallback={ma}
-                onError={(e) => {
-                  console.log('Image failed to load:', e.target.src);
-                }}
-              />
-            </Box>
+  // Memoized error handler for image
+  const handleImageError = useCallback((e) => {
+    console.log('Image failed to load:', e.target.src);
+  }, []);
 
-            {/* Content Section */}
-            <Box sx={{ 
-              flex: 1, 
-              p: { xs: 2, sm: 3 }, 
-              display: 'flex', 
-              flexDirection: 'column',
-              justifyContent: 'space-between'
-            }}>
-              {/* Header */}
-              <Box>
-                <Box display="flex" justifyContent="space-between" alignItems="flex-start" mb={2}>
-                  <Box sx={{ flex: 1 }}>
-                    <Typography 
-                      variant="h6" 
-                      fontWeight={700} 
+  // List view layout
+  if (viewMode === "list") {
+    return (
+      <Paper 
+        elevation={0}
+        sx={{ 
+          borderRadius: 4,
+          overflow: 'hidden',
+          transition: 'all 0.3s ease',
+          border: `1px solid ${isDarkMode ? alpha('#fff', 0.08) : alpha('#000', 0.06)}`,
+          '&:hover': {
+            transform: 'translateY(-2px)',
+            boxShadow: isDarkMode 
+              ? '0 12px 40px rgba(0, 0, 0, 0.3)'
+              : '0 12px 40px rgba(0, 0, 0, 0.1)',
+          },
+          direction: currentLanguage === 'ar' ? 'rtl' : 'ltr',
+          backgroundColor: isDarkMode ? alpha('#1a1a1a', 0.8) : '#ffffff'
+        }}
+      >
+        <Box display="flex" sx={{ height: { xs: 'auto', sm: 180 } }}>
+          {/* Image Section */}
+          <Box sx={{ 
+            width: { xs: '100%', sm: 200 }, 
+            height: { xs: 160, sm: 180 },
+            flexShrink: 0 
+          }}>
+            <LazyCardMedia
+              component="img"
+              sx={{ 
+                height: '100%',
+                width: '100%',
+                objectFit: 'cover',
+                objectPosition: 'center'
+              }}
+              image={imageUrl}
+              alt={categoryName || 'Item Image'}
+              fallback={ma}
+              onError={handleImageError}
+            />
+          </Box>
+
+          {/* Content Section */}
+          <Box sx={{ 
+            flex: 1, 
+            p: { xs: 2, sm: 3 }, 
+            display: 'flex', 
+            flexDirection: 'column',
+            justifyContent: 'space-between'
+          }}>
+            {/* Header */}
+            <Box>
+              <Box display="flex" justifyContent="space-between" alignItems="flex-start" mb={2}>
+                <Box sx={{ flex: 1 }}>
+                  <Typography 
+                    variant="h6" 
+                    fontWeight={700} 
+                    sx={{ 
+                      mb: 1,
+                      direction: currentLanguage === 'ar' ? 'rtl' : 'ltr',
+                      color: isDarkMode ? '#ffffff' : '#1a1a1a'
+                    }}
+                  >
+                    {cityName}
+                  </Typography>
+                  <Box display="flex" gap={1} alignItems="center" flexWrap="wrap">
+                    <Chip 
+                      label={foundLostStatus.statusText}
+                      size="small"
                       sx={{ 
-                        mb: 1,
-                        direction: currentLanguage === 'ar' ? 'rtl' : 'ltr',
-                        color: isDarkMode ? '#ffffff' : '#1a1a1a'
+                        fontWeight: 600,
+                        backgroundColor: foundLostStatus.statusColor,
+                        color: 'white',
+                        fontSize: '11px',
+                        height: 24,
+                        '& .MuiChip-label': {
+                          color: 'white'
+                        }
+                      }}
+                    />
+                    <Box
+                      sx={{
+                        backgroundColor: isDarkMode ? alpha(categoryStyle.main, 0.15) : categoryStyle.background,
+                        padding: '4px 8px',
+                        borderRadius: '12px',
+                        display: 'flex',
+                        alignItems: 'center',
+                        gap: 0.5,
+                        border: `1px solid ${isDarkMode ? alpha(categoryStyle.main, 0.3) : categoryStyle.main}`,
                       }}
                     >
-                      {cityName}
-                    </Typography>
-                    <Box display="flex" gap={1} alignItems="center" flexWrap="wrap">
-                      <Chip 
-                        label={statusText}
-                        size="small"
+                      <RenderIcon 
+                        name={`${post.categoryname?.toLowerCase()}cate`} 
                         sx={{ 
-                          fontWeight: 600,
-                          backgroundColor: statusColor,
-                          color: 'white',
-                          fontSize: '11px',
-                          height: 24,
-                          '& .MuiChip-label': {
-                            color: 'white'
-                          }
-                        }}
+                          fontSize: '12px', 
+                          color: isDarkMode ? categoryStyle.main : categoryStyle.text 
+                        }} 
                       />
-                      <Box
+                      <Typography
                         sx={{
-                          backgroundColor: isDarkMode ? alpha(categoryStyle.main, 0.15) : categoryStyle.background,
-                          padding: '4px 8px',
-                          borderRadius: '12px',
-                          display: 'flex',
-                          alignItems: 'center',
-                          gap: 0.5,
-                          border: `1px solid ${isDarkMode ? alpha(categoryStyle.main, 0.3) : categoryStyle.main}`,
+                          color: isDarkMode ? categoryStyle.main : categoryStyle.text,
+                          fontSize: '11px',
+                          fontWeight: 600,
                         }}
                       >
-                        <RenderIcon 
-                          name={`${post.categoryname?.toLowerCase()}cate`} 
-                          sx={{ 
-                            fontSize: '12px', 
-                            color: isDarkMode ? categoryStyle.main : categoryStyle.text 
-                          }} 
-                        />
-                        <Typography
-                          sx={{
-                            color: isDarkMode ? categoryStyle.main : categoryStyle.text,
-                            fontSize: '11px',
-                            fontWeight: 600,
-                          }}
-                        >
-                          {categoryName}
-                        </Typography>
-                      </Box>
+                        {categoryName}
+                      </Typography>
                     </Box>
                   </Box>
-                  <Box display="flex" gap={0.5}>
-                    <Tooltip title={t('viewDetails')}>
-                      <IconButton 
-                        onClick={handleViewDetails}
-                        size="small"
-                        sx={{ 
-                          color: theme.palette.primary.main,
-                          '&:hover': { backgroundColor: alpha(theme.palette.primary.main, 0.1) }
-                        }}
-                      >
-                        <VisibilityIcon sx={{ fontSize: 18 }} />
-                      </IconButton>
-                    </Tooltip>
-                    <Tooltip title={t('report')}>
-                      <IconButton 
-                        onClick={handleReport}
-                        size="small"
-                        sx={{ 
-                          color: theme.palette.error.main,
-                          '&:hover': { backgroundColor: alpha(theme.palette.error.main, 0.1) }
-                        }}
-                      >
-                        <ReportProblemOutlined sx={{ fontSize: 18 }} />
-                      </IconButton>
-                    </Tooltip>
-                  </Box>
                 </Box>
-
-                {/* Location and Time */}
-                <Box display="flex" gap={2} mb={2} flexWrap="wrap">
-                  <Box display="flex" alignItems="center" gap={1}>
-                    <LocationIcon sx={{ fontSize: 16, color: 'text.secondary' }} />
-                    <Typography 
-                      variant="body2" 
-                      color="text.secondary"
-                      sx={{ direction: currentLanguage === 'ar' ? 'rtl' : 'ltr' }}
+                <Box display="flex" gap={0.5}>
+                  <Tooltip title={t('viewDetails')}>
+                    <IconButton 
+                      onClick={handleViewDetails}
+                      size="small"
+                      sx={{ 
+                        color: theme.palette.primary.main,
+                        '&:hover': { backgroundColor: alpha(theme.palette.primary.main, 0.1) }
+                      }}
                     >
-                      {cityName}
-                    </Typography>
-                  </Box>
-                  <Box display="flex" alignItems="center" gap={1}>
-                    <TimeIcon sx={{ fontSize: 16, color: 'text.secondary' }} />
-                    <Typography 
-                      variant="body2" 
-                      color="text.secondary"
-                      sx={{ direction: currentLanguage === 'ar' ? 'rtl' : 'ltr' }}
+                      <VisibilityIcon sx={{ fontSize: 18 }} />
+                    </IconButton>
+                  </Tooltip>
+                  <Tooltip title={t('report')}>
+                    <IconButton 
+                      onClick={handleReport}
+                      size="small"
+                      sx={{ 
+                        color: theme.palette.error.main,
+                        '&:hover': { backgroundColor: alpha(theme.palette.error.main, 0.1) }
+                      }}
                     >
-                      {created}
-                    </Typography>
-                  </Box>
+                      <ReportProblemOutlined sx={{ fontSize: 18 }} />
+                    </IconButton>
+                  </Tooltip>
                 </Box>
               </Box>
 
-              {/* Actions */}
-              <Box sx={{ mt: 'auto' }}>
-                <Button
-                  variant="contained"
-                  fullWidth
-                  onClick={handleViewDetails}
-                  sx={{
-                    borderRadius: 2,
-                    textTransform: 'none',
-                    fontWeight: 600,
-                    direction: currentLanguage === 'ar' ? 'rtl' : 'ltr',
-                    background: `linear-gradient(135deg, ${theme.palette.primary.main} 0%, ${theme.palette.primary.dark} 100%)`,
-                    '&:hover': {
-                      background: `linear-gradient(135deg, ${theme.palette.primary.dark} 0%, ${theme.palette.primary.main} 100%)`,
-                    }
-                  }}
-                  startIcon={currentLanguage === 'ar' ? <ArrowIcon sx={{ fontSize: '12px', transform: 'scaleX(-1)' }} /> : null}
-                  endIcon={currentLanguage === 'ar' ? null : <ArrowIcon sx={{ fontSize: '12px' }} />}
-                >
-                  {t('viewDetails')}
-                </Button>
+              {/* Location and Time */}
+              <Box display="flex" gap={2} mb={2} flexWrap="wrap">
+                <Box display="flex" alignItems="center" gap={1}>
+                  <LocationIcon sx={{ fontSize: 16, color: 'text.secondary' }} />
+                  <Typography 
+                    variant="body2" 
+                    color="text.secondary"
+                    sx={{ direction: currentLanguage === 'ar' ? 'rtl' : 'ltr' }}
+                  >
+                    {cityName}
+                  </Typography>
+                </Box>
+                <Box display="flex" alignItems="center" gap={1}>
+                  <TimeIcon sx={{ fontSize: 16, color: 'text.secondary' }} />
+                  <Typography 
+                    variant="body2" 
+                    color="text.secondary"
+                    sx={{ direction: currentLanguage === 'ar' ? 'rtl' : 'ltr' }}
+                  >
+                    {created}
+                  </Typography>
+                </Box>
               </Box>
             </Box>
-          </Box>
-        </Paper>
-      );
-    }
 
-    // Grid view layout - Brand New Modern Design
-      return (
+            {/* Actions */}
+            <Box sx={{ mt: 'auto' }}>
+              <Button
+                variant="contained"
+                fullWidth
+                onClick={handleViewDetails}
+                sx={{
+                  borderRadius: 2,
+                  textTransform: 'none',
+                  fontWeight: 600,
+                  direction: currentLanguage === 'ar' ? 'rtl' : 'ltr',
+                  background: `linear-gradient(135deg, ${theme.palette.primary.main} 0%, ${theme.palette.primary.dark} 100%)`,
+                  '&:hover': {
+                    background: `linear-gradient(135deg, ${theme.palette.primary.dark} 0%, ${theme.palette.primary.main} 100%)`,
+                  }
+                }}
+                startIcon={currentLanguage === 'ar' ? <ArrowIcon sx={{ fontSize: '12px', transform: 'scaleX(-1)' }} /> : null}
+                endIcon={currentLanguage === 'ar' ? null : <ArrowIcon sx={{ fontSize: '12px' }} />}
+              >
+                {t('viewDetails')}
+              </Button>
+            </Box>
+          </Box>
+        </Box>
+      </Paper>
+    );
+  }
+
+  // Grid view layout - Brand New Modern Design
+  return (
     <>
       <Card
         sx={{
@@ -512,12 +527,10 @@ const Post = ({ post, viewMode = "grid" }) => {
               objectFit: 'cover',
               objectPosition: 'center',
             }}
-            image={post.image ? (post.image.startsWith('http') ? getOptimizedImageUrl(post.image, 'card') : `${API_BASE_URL}/${post.image}`) : ma}
+            image={imageUrl}
             alt={categoryName || 'Item Image'}
             fallback={ma}
-            onError={(e) => {
-              console.log('Image failed to load:', e.target.src);
-            }}
+            onError={handleImageError}
           />
           
           {/* Gradient Overlay */}
@@ -718,7 +731,7 @@ const Post = ({ post, viewMode = "grid" }) => {
       {/* Report Dialog */}
       <ReportDialog
         open={reportDialogOpen}
-        onClose={() => setReportDialogOpen(false)}
+        onClose={handleCloseReportDialog}
         post={post}
         onSubmit={handleSubmitReport}
       />

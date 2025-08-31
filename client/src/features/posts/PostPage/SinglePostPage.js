@@ -17,7 +17,7 @@ import {
 import { useNavigate } from "react-router-dom";
 import useAuth from "../../../hooks/useAuth";
 import sear from "../../../img/sear.svg";
-import { useState } from "react";
+import { useState, useCallback, useMemo } from "react";
 import ReportDialog from "../../../components/ReportDialog";
 import { useSubmitReportMutation } from "../reportsApiSlice";
 import {
@@ -99,9 +99,69 @@ const SinglePostPage = ({
   const [reportDialogOpen, setReportDialogOpen] = useState(false);
   const [submitReport] = useSubmitReportMutation();
 
-  // Get category colors using centralized configuration
-  const getCategoryColors = (category) => {
-    const config = getCategoryConfig(category);
+  // Memoized event handlers
+  const handleEdit = useCallback(() => {
+    navigate(`/dash/posts/edit/${_id}`);
+  }, [navigate, _id]);
+
+  const handleReport = useCallback(() => {
+    // Check if user is authenticated
+    if (!usernameId) {
+      // Store the current post URL in localStorage for redirect after login
+      const currentPostUrl = window.location.pathname;
+      localStorage.setItem('redirectAfterLogin', currentPostUrl);
+      
+      // Redirect to login page
+      navigate('/login');
+      return;
+    }
+    
+    // If authenticated, open the dialog
+    setReportDialogOpen(true);
+  }, [usernameId, navigate]);
+
+  const handleBack = useCallback(() => {
+    navigate(-1);
+  }, [navigate]);
+
+  const handleSubmitReport = useCallback(async (reportData) => {
+    try {
+      await submitReport(reportData).unwrap();
+    } catch (error) {
+      throw new Error(error.data?.message || 'Failed to submit report');
+    }
+  }, [submitReport]);
+
+  const handleCloseReportDialog = useCallback(() => {
+    setReportDialogOpen(false);
+  }, []);
+
+  // Memoized computed values
+  const locale = useMemo(() => {
+    switch (currentLanguage) {
+      case 'ar': return ar;
+      case 'fr': return fr;
+      default: return enUS;
+    }
+  }, [currentLanguage]);
+
+  const createdDate = useMemo(() => {
+    return formatDistanceToNow(new Date(createdAt), { 
+      addSuffix: true,
+      locale
+    });
+  }, [createdAt, locale]);
+
+  const updatedDate = useMemo(() => {
+    return formatDistanceToNow(new Date(updatedAt), { 
+      addSuffix: true,
+      locale
+    });
+  }, [updatedAt, locale]);
+
+  // Memoized category colors computation
+  const categoryStyle = useMemo(() => {
+    const config = getCategoryConfig(categoryname);
     const isDarkMode = theme.palette.mode === 'dark';
     
     return {
@@ -112,13 +172,12 @@ const SinglePostPage = ({
       background: isDarkMode ? alpha(config.backgroundColor, 0.2) : config.backgroundColor,
       text: config.color
     };
-  };
+  }, [categoryname, theme.palette.mode]);
 
-  const categoryStyle = getCategoryColors(categoryname);
   const isDarkMode = theme.palette.mode === 'dark';
 
-  // Get category name with proper multilingual support
-  const getCategoryDisplayName = () => {
+  // Memoized category display name computation
+  const categoryDisplayName = useMemo(() => {
     // First priority: Use the Category object from API aggregation (with labels)
     if (Category && Category.labels) {
       return Category.labels[currentLanguage] || Category.labels.en || Category.code || categoryname;
@@ -261,64 +320,23 @@ const SinglePostPage = ({
     
     // Last fallback: return the original categoryname
     return categoryname || t('unknownCategory');
-  };
+  }, [Category, categoryname, currentLanguage, t]);
 
-  const categoryDisplayName = getCategoryDisplayName();
+  // Memoized city name computation
+  const displayCityName = useMemo(() => {
+    // Extract city from location (show only city)
+    const getCityFromLocation = (location) => {
+      if (!location) return t('unknownLocation');
+      // Split by comma and take the first part (usually the city)
+      const parts = location.split(',');
+      const city = parts[0].trim();
+      // Remove any extra location details that might be in parentheses
+      const cleanCity = city.split('(')[0].trim();
+      // Remove any numbers or extra details
+      return cleanCity.replace(/\d+/g, '').trim();
+    };
 
-  const handleEdit = () => navigate(`/dash/posts/edit/${_id}`);
-  const handleReport = () => {
-    // Check if user is authenticated
-    if (!usernameId) {
-      // Store the current post URL in localStorage for redirect after login
-      const currentPostUrl = window.location.pathname;
-      localStorage.setItem('redirectAfterLogin', currentPostUrl);
-      
-      // Redirect to login page
-      navigate('/login');
-      return;
-    }
-    
-    // If authenticated, open the dialog
-    setReportDialogOpen(true);
-  };
-  const handleBack = () => navigate(-1);
-
-  const handleSubmitReport = async (reportData) => {
-    try {
-      await submitReport(reportData).unwrap();
-    } catch (error) {
-      throw new Error(error.data?.message || 'Failed to submit report');
-    }
-  };
-
-  // Format dates using date-fns with proper locale support
-  const getLocale = () => {
-    switch (currentLanguage) {
-      case 'ar': return ar;
-      case 'fr': return fr;
-      default: return enUS;
-    }
-  };
-
-  const createdDate = formatDistanceToNow(new Date(createdAt), { 
-    addSuffix: true,
-    locale: getLocale()
-  });
-
-  // Extract city from location (show only city)
-  const getCityFromLocation = (location) => {
-    if (!location) return t('unknownLocation');
-    // Split by comma and take the first part (usually the city)
-    const parts = location.split(',');
-    const city = parts[0].trim();
-    // Remove any extra location details that might be in parentheses
-    const cleanCity = city.split('(')[0].trim();
-    // Remove any numbers or extra details
-    return cleanCity.replace(/\d+/g, '').trim();
-  };
-
-  // Get city name with proper multilingual support
-  const getCityName = () => {
+    // Get city name with proper multilingual support
     // First try to use the populated city data from the API
     if (cityLabels && cityLabels[currentLanguage]) {
       return cityLabels[currentLanguage];
@@ -328,45 +346,50 @@ const SinglePostPage = ({
     }
     // Fallback to extracting from exactLocation
     return getCityFromLocation(exactLocation);
-  };
+  }, [cityLabels, cityName, exactLocation, currentLanguage, t]);
 
-  const displayCityName = getCityName();
-
-  const updatedDate = formatDistanceToNow(new Date(updatedAt), { 
-    addSuffix: true,
-    locale: getLocale()
-  });
-
-    // Determine Found/Lost status with proper multilingual support
-  let foundLostValue = "FOUND";
-  let foundLostLabel = t('found');
-  
-  if (foundLost) {
-    if (typeof foundLost === 'string') {
-      foundLostValue = foundLost.toUpperCase();
-      foundLostLabel = foundLost === 'FOUND' ? t('found') : t('lost');
-    } else if (foundLost.code) {
-      foundLostValue = foundLost.code;
-      foundLostLabel = getLabel(foundLost.labels, currentLanguage) || 
-                      (foundLost.code === 'FOUND' ? t('found') : t('lost'));
+  // Memoized found/lost status computation
+  const foundLostStatus = useMemo(() => {
+    let foundLostValue = "FOUND";
+    let foundLostLabel = t('found');
+    
+    if (foundLost) {
+      if (typeof foundLost === 'string') {
+        foundLostValue = foundLost.toUpperCase();
+        foundLostLabel = foundLost === 'FOUND' ? t('found') : t('lost');
+      } else if (foundLost.code) {
+        foundLostValue = foundLost.code;
+        foundLostLabel = getLabel(foundLost.labels, currentLanguage) || 
+                        (foundLost.code === 'FOUND' ? t('found') : t('lost'));
+      }
     }
-  }
 
-  if (Floptions && Floptions.length > 0) {
-    const flOption = Floptions[0];
-    if (typeof flOption === 'string') {
-      foundLostValue = flOption.toUpperCase();
-      foundLostLabel = flOption === 'FOUND' ? t('found') : t('lost');
-    } else if (flOption.code) {
-      foundLostValue = flOption.code;
-      foundLostLabel = getLabel(flOption.labels, currentLanguage) || 
-                      (flOption.code === 'FOUND' ? t('found') : t('lost'));
+    if (Floptions && Floptions.length > 0) {
+      const flOption = Floptions[0];
+      if (typeof flOption === 'string') {
+        foundLostValue = flOption.toUpperCase();
+        foundLostLabel = flOption === 'FOUND' ? t('found') : t('lost');
+      } else if (flOption.code) {
+        foundLostValue = flOption.code;
+        foundLostLabel = getLabel(flOption.labels, currentLanguage) || 
+                        (flOption.code === 'FOUND' ? t('found') : t('lost'));
+      }
     }
-  }
 
-  const isFound = foundLostValue === "FOUND";
-  const statusColor = isFound ? "success" : "error";
-  const statusText = foundLostLabel;
+    const isFound = foundLostValue === "FOUND";
+    const statusColor = isFound ? "success" : "error";
+    const statusText = foundLostLabel;
+
+    return { isFound, statusColor, statusText };
+  }, [foundLost, Floptions, currentLanguage, t]);
+
+  // Memoized image URL computation
+  const imageUrl = useMemo(() => {
+    if (!image) return sear;
+    return image.startsWith('http') 
+      ? getOptimizedImageUrl(image, 'large') 
+      : image;
+  }, [image]);
 
   return (
     <Box 
@@ -399,476 +422,234 @@ const SinglePostPage = ({
         {/* Main Content */}
         <Grid item xs={12} lg={8}>
           <Paper 
-            elevation={3} 
+            elevation={0}
             sx={{ 
               borderRadius: 4,
               overflow: 'hidden',
-              background: theme.palette.background.paper
+              border: `1px solid ${isDarkMode ? alpha('#fff', 0.08) : alpha('#000', 0.06)}`,
+              backgroundColor: isDarkMode ? alpha('#1a1a1a', 0.8) : '#ffffff'
             }}
           >
             {/* Image Section */}
             <Box sx={{ position: 'relative' }}>
               <LazyCardMedia
                 component="img"
-                sx={{ 
-                  height: { xs: 250, sm: 300, md: 400 },
+                sx={{
                   width: '100%',
-                  objectFit: 'cover'
+                  height: { xs: 300, sm: 400, md: 500 },
+                  objectFit: 'cover',
+                  objectPosition: 'center'
                 }}
-                image={image ? (image.startsWith('http') ? getOptimizedImageUrl(image, 'detail') : `${process.env.REACT_APP_API_URL || "http://localhost:3500"}/${image}`) : sear}
-                alt={categoryname}
+                image={imageUrl}
+                alt={categoryDisplayName || 'Post Image'}
                 fallback={sear}
-                onError={(e) => {
-                  console.log('Image failed to load:', e.target.src);
-                }}
               />
               
-              {/* Status Badge */}
-              <Chip 
-                label={statusText}
-                color={statusColor}
+              {/* Status Badge Overlay */}
+              <Box
                 sx={{
                   position: 'absolute',
                   top: 16,
                   left: 16,
-                  fontWeight: 700,
-                  fontSize: '0.9rem',
-                  px: 2
+                  zIndex: 1
                 }}
-              />
+              >
+                <Chip
+                  label={foundLostStatus.statusText}
+                  color={foundLostStatus.statusColor}
+                  sx={{
+                    fontWeight: 600,
+                    fontSize: '14px',
+                    height: 32,
+                    '& .MuiChip-label': {
+                      color: 'white'
+                    }
+                  }}
+                />
+              </Box>
 
-              {/* Category Badge */}
+              {/* Category Badge Overlay */}
               <Box
                 sx={{
                   position: 'absolute',
                   top: 16,
                   right: 16,
-                  backgroundColor: isDarkMode ? alpha(categoryStyle.main, 0.2) : categoryStyle.background,
-                  padding: '4px 8px',
-                  borderRadius: '12px',
-                  display: 'flex',
-                  alignItems: 'center',
-                  gap: 0.5,
-                  backdropFilter: 'blur(10px)',
-                  border: `1px solid ${isDarkMode ? alpha(categoryStyle.main, 0.3) : categoryStyle.main}`,
+                  zIndex: 1
                 }}
               >
-                <RenderIcon 
-                  name={`${categoryname?.toLowerCase()}cate`} 
-                  sx={{ 
-                    fontSize: '12px', 
-                    color: isDarkMode ? categoryStyle.main : categoryStyle.text 
-                  }} 
-                />
-                <Typography
+                <Box
                   sx={{
-                    color: isDarkMode ? categoryStyle.main : categoryStyle.text,
-                    fontSize: '10px',
-                    fontWeight: 600,
+                    backgroundColor: isDarkMode ? alpha(categoryStyle.main, 0.2) : categoryStyle.background,
+                    padding: '8px 12px',
+                    borderRadius: '16px',
+                    display: 'flex',
+                    alignItems: 'center',
+                    gap: 1,
+                    backdropFilter: 'blur(10px)',
+                    border: `1px solid ${isDarkMode ? alpha(categoryStyle.main, 0.3) : categoryStyle.main}`,
                   }}
                 >
-                  {categoryDisplayName}
-                </Typography>
-              </Box>
-            </Box>
-
-            {/* Content Section */}
-            <Box sx={{ p: { xs: 2, sm: 3, md: 4 } }}>
-              {/* Header */}
-              <Box display="flex" flexDirection={{ xs: 'column', sm: 'row' }} justifyContent="space-between" alignItems={{ xs: 'flex-start', sm: 'flex-start' }} mb={3} gap={2}>
-                <Box>
-                  <Typography 
-                    variant="h3" 
+                  <RenderIcon 
+                    name={`${categoryname?.toLowerCase()}cate`} 
                     sx={{ 
-                      color: theme.palette.textColor.main,
-                      fontWeight: 700,
-                      mb: 1,
-                      fontSize: { xs: '1.5rem', sm: '2rem', md: '3rem' }
+                      fontSize: '16px', 
+                      color: isDarkMode ? categoryStyle.main : categoryStyle.text 
+                    }} 
+                  />
+                  <Typography
+                    sx={{
+                      color: isDarkMode ? categoryStyle.main : categoryStyle.text,
+                      fontSize: '14px',
+                      fontWeight: 600,
                     }}
                   >
                     {categoryDisplayName}
                   </Typography>
-                  <Typography 
-                    variant="h5" 
-                    sx={{ 
-                      color: theme.palette.textColor.secondary,
-                      fontWeight: 500,
-                      fontSize: { xs: '1rem', sm: '1.25rem' }
-                    }}
-                  >
-                    {displayCityName}
-                  </Typography>
-                </Box>
-
-                {/* Action Buttons */}
-                <Box display="flex" gap={2} sx={{ direction: isRTLMode ? 'rtl' : 'ltr', flexWrap: 'wrap' }}>
-                  <Tooltip title={t('sharePost')}>
-                    <IconButton
-                      sx={{ 
-                        color: theme.palette.primary.main,
-                        '&:hover': { backgroundColor: theme.palette.primary.light + '20' },
-                        mx: isRTLMode ? 0.5 : 0.5
-                      }}
-                    >
-                      <ShareIcon />
-                    </IconButton>
-                  </Tooltip>
-                  
-                  {canEdit && (
-                    <Tooltip title={t('editPost')}>
-                      <IconButton
-                        onClick={handleEdit}
-                        sx={{ 
-                          color: theme.palette.info.main,
-                          '&:hover': { backgroundColor: theme.palette.info.light + '20' },
-                          mx: isRTLMode ? 0.5 : 0.5
-                        }}
-                      >
-                        <EditIcon />
-                      </IconButton>
-                    </Tooltip>
-                  )}
-                  
-                  <Tooltip title={t('reportPost')}>
-                    <IconButton
-                      onClick={() => {
-                        if (!usernameId) {
-                          navigate('/login');
-                        } else {
-                          handleReport();
-                        }
-                      }}
-                      sx={{ 
-                        color: theme.palette.error.main,
-                        '&:hover': { backgroundColor: theme.palette.error.light + '20' },
-                        mx: isRTLMode ? 0.5 : 0.5
-                      }}
-                    >
-                      <ReportIcon />
-                    </IconButton>
-                  </Tooltip>
                 </Box>
               </Box>
+            </Box>
+
+            {/* Content Section */}
+            <Box sx={{ p: { xs: 3, md: 4 } }}>
+              {/* Title */}
+              <Typography 
+                variant="h4" 
+                fontWeight={700}
+                sx={{ 
+                  mb: 3,
+                  direction: currentLanguage === 'ar' ? 'rtl' : 'ltr',
+                  color: isDarkMode ? '#ffffff' : '#1a1a1a'
+                }}
+              >
+                {displayCityName}
+              </Typography>
 
               {/* Description */}
               {description && (
-                <Box sx={{ mb: 3 }}>
-                  <Typography 
-                    variant="h6" 
-                    sx={{ 
-                      color: theme.palette.textColor.main,
-                      fontWeight: 600,
-                      mb: 2
-                    }}
-                  >
-                    {t('description')}
-                  </Typography>
-                  <Paper 
-                    elevation={1} 
-                    sx={{ 
-                      p: 3, 
-                      borderRadius: 2,
-                      background: theme.palette.background.default
-                    }}
-                  >
-                    <Typography 
-                      variant="body1" 
-                      sx={{ 
-                        color: theme.palette.textColor.main,
-                        lineHeight: 1.6,
-                        whiteSpace: 'pre-wrap'
-                      }}
-                    >
-                      {description}
-                    </Typography>
-                  </Paper>
-                </Box>
+                <Typography 
+                  variant="body1" 
+                  sx={{ 
+                    mb: 3,
+                    lineHeight: 1.6,
+                    direction: currentLanguage === 'ar' ? 'rtl' : 'ltr',
+                    color: isDarkMode ? alpha('#fff', 0.8) : alpha('#000', 0.7)
+                  }}
+                >
+                  {description}
+                </Typography>
               )}
+
+              {/* Location and Time Info */}
+              <Box sx={{ mb: 3 }}>
+                <Grid container spacing={2}>
+                  <Grid item xs={12} sm={6}>
+                    <Box display="flex" alignItems="center" gap={1} mb={2}>
+                      <LocationIcon sx={{ color: 'text.secondary' }} />
+                      <Typography 
+                        variant="body2" 
+                        color="text.secondary"
+                        sx={{ direction: currentLanguage === 'ar' ? 'rtl' : 'ltr' }}
+                      >
+                        {exactLocation || displayCityName}
+                      </Typography>
+                    </Box>
+                  </Grid>
+                  <Grid item xs={12} sm={6}>
+                    <Box display="flex" alignItems="center" gap={1} mb={2}>
+                      <TimeIcon sx={{ color: 'text.secondary' }} />
+                      <Typography 
+                        variant="body2" 
+                        color="text.secondary"
+                        sx={{ direction: currentLanguage === 'ar' ? 'rtl' : 'ltr' }}
+                      >
+                        {createdDate}
+                      </Typography>
+                    </Box>
+                  </Grid>
+                </Grid>
+              </Box>
 
               {/* Contact Information */}
               {contact && (
                 <Box sx={{ mb: 3 }}>
                   <Typography 
                     variant="h6" 
+                    fontWeight={600}
                     sx={{ 
-                      color: theme.palette.textColor.main,
-                      fontWeight: 600,
-                      mb: 2
+                      mb: 2,
+                      direction: currentLanguage === 'ar' ? 'rtl' : 'ltr',
+                      color: isDarkMode ? '#ffffff' : '#1a1a1a'
                     }}
                   >
                     {t('contactInformation')}
                   </Typography>
-                  <Paper 
-                    elevation={1} 
+                  <Typography 
+                    variant="body1"
                     sx={{ 
-                      p: 3, 
-                      borderRadius: 2,
-                      background: theme.palette.background.default
+                      direction: currentLanguage === 'ar' ? 'rtl' : 'ltr',
+                      color: isDarkMode ? alpha('#fff', 0.8) : alpha('#000', 0.7)
                     }}
                   >
-                    <Box display="flex" alignItems="center" gap={2}>
-                      <ContactIcon sx={{ color: theme.palette.primary.main }} />
-                      <Typography 
-                        variant="body1" 
-                        sx={{ 
-                          color: theme.palette.textColor.main,
-                          fontWeight: 500
-                        }}
-                      >
-                        {contact}
-                      </Typography>
-                    </Box>
-                  </Paper>
+                    {contact}
+                  </Typography>
                 </Box>
               )}
 
-              <Divider sx={{ my: 3 }} />
-
-              {/* Post Details */}
-              <Box>
-                <Typography 
-                  variant="h6" 
-                  sx={{ 
-                    color: theme.palette.textColor.main,
-                    fontWeight: 600,
-                    mb: 2
-                  }}
-                >
-                  {t('postDetails')}
-                </Typography>
-                
-                <Grid container spacing={2}>
-                  <Grid item xs={12} sm={6}>
-                    <Box display="flex" alignItems="center" gap={2} mb={2}>
-                      <PersonIcon sx={{ color: theme.palette.textColor.secondary, ml: isRTLMode ? 1 : 0, mr: isRTLMode ? 0 : 1 }} />
-                      <Box>
-                        <Typography variant="body2" color="text.secondary">
-                          {t('postedBy')}
-                        </Typography>
-                        <Typography variant="body1" sx={{ color: theme.palette.textColor.main }}>
-                          {username || "Unknown User"}
-                        </Typography>
-                      </Box>
-                    </Box>
-                  </Grid>
-
-                  <Grid item xs={12} sm={6}>
-                    <Box display="flex" alignItems="center" gap={2} mb={2}>
-                      <LocationIcon sx={{ color: theme.palette.textColor.secondary, ml: isRTLMode ? 1 : 0, mr: isRTLMode ? 0 : 1 }} />
-                      <Box>
-                        <Typography variant="body2" color="text.secondary">
-                          {t('exactLocation')}
-                        </Typography>
-                        <Typography variant="body1" sx={{ color: theme.palette.textColor.main }}>
-                          {exactLocation || t('unknownLocation')}
-                        </Typography>
-                      </Box>
-                    </Box>
-                  </Grid>
-
-                  <Grid item xs={12} sm={6}>
-                    <Box display="flex" alignItems="center" gap={2} mb={2}>
-                      <LocationIcon sx={{ color: theme.palette.textColor.secondary, ml: isRTLMode ? 1 : 0, mr: isRTLMode ? 0 : 1 }} />
-                      <Box>
-                        <Typography variant="body2" color="text.secondary">
-                          {t('country')}
-                        </Typography>
-                        <Typography variant="body1" sx={{ color: theme.palette.textColor.main }}>
-                          {countryLabels?.[currentLanguage] || countryLabels?.en || countryname || t('unknownCountry')}
-                        </Typography>
-                      </Box>
-                    </Box>
-                  </Grid>
-
-                  <Grid item xs={12} sm={6}>
-                    <Box display="flex" alignItems="center" gap={2} mb={2}>
-                      <CalendarIcon sx={{ color: theme.palette.textColor.secondary, ml: isRTLMode ? 1 : 0, mr: isRTLMode ? 0 : 1 }} />
-                      <Box>
-                        <Typography variant="body2" color="text.secondary">
-                          {t('created')}
-                        </Typography>
-                        <Typography variant="body1" sx={{ color: theme.palette.textColor.main }}>
-                          {createdDate}
-                        </Typography>
-                      </Box>
-                    </Box>
-                  </Grid>
-
-                  {updatedAt !== createdAt && (
-                    <Grid item xs={12} sm={6}>
-                      <Box display="flex" alignItems="center" gap={2} mb={2}>
-                        <CalendarIcon sx={{ color: theme.palette.textColor.secondary, ml: isRTLMode ? 1 : 0, mr: isRTLMode ? 0 : 1 }} />
-                        <Box>
-                          <Typography variant="body2" color="text.secondary">
-                            {t('lastUpdated')}
-                          </Typography>
-                          <Typography variant="body1" sx={{ color: theme.palette.textColor.main }}>
-                            {updatedDate}
-                          </Typography>
-                        </Box>
-                      </Box>
-                    </Grid>
-                  )}
-
-                  {/* Additional Post Information from Post Model */}
-                  {title && (
-                    <Grid item xs={12} sm={6}>
-                      <Box display="flex" alignItems="center" gap={2} mb={2}>
-                        <TagIcon sx={{ color: theme.palette.textColor.secondary, ml: isRTLMode ? 1 : 0, mr: isRTLMode ? 0 : 1 }} />
-                        <Box>
-                          <Typography variant="body2" color="text.secondary">
-                            {t('title')}
-                          </Typography>
-                          <Typography variant="body1" sx={{ color: theme.palette.textColor.main }}>
-                            {title}
-                          </Typography>
-                        </Box>
-                      </Box>
-                    </Grid>
-                  )}
-
-                  {mainDate && (
-                    <Grid item xs={12} sm={6}>
-                      <Box display="flex" alignItems="center" gap={2} mb={2}>
-                        <TimeIcon sx={{ color: theme.palette.textColor.secondary, ml: isRTLMode ? 1 : 0, mr: isRTLMode ? 0 : 1 }} />
-                        <Box>
-                          <Typography variant="body2" color="text.secondary">
-                            {t('mainDate')}
-                          </Typography>
-                          <Typography variant="body1" sx={{ color: theme.palette.textColor.main }}>
-                            {mainDate}
-                          </Typography>
-                        </Box>
-                      </Box>
-                    </Grid>
-                  )}
-
-                  {exactDate && (
-                    <Grid item xs={12} sm={6}>
-                      <Box display="flex" alignItems="center" gap={2} mb={2}>
-                        <TimeIcon sx={{ color: theme.palette.textColor.secondary, ml: isRTLMode ? 1 : 0, mr: isRTLMode ? 0 : 1 }} />
-                        <Box>
-                          <Typography variant="body2" color="text.secondary">
-                            {t('exactDate')}
-                          </Typography>
-                          <Typography variant="body1" sx={{ color: theme.palette.textColor.main }}>
-                            {formatDistanceToNow(new Date(exactDate), { 
-                              addSuffix: true,
-                              locale: getLocale()
-                            })}
-                          </Typography>
-                        </Box>
-                      </Box>
-                    </Grid>
-                  )}
-
-                  {views !== undefined && (
-                    <Grid item xs={12} sm={6}>
-                      <Box display="flex" alignItems="center" gap={2} mb={2}>
-                        <ViewIcon sx={{ color: theme.palette.textColor.secondary, ml: isRTLMode ? 1 : 0, mr: isRTLMode ? 0 : 1 }} />
-                        <Box>
-                          <Typography variant="body2" color="text.secondary">
-                            {t('views')}
-                          </Typography>
-                          <Typography variant="body1" sx={{ color: theme.palette.textColor.main }}>
-                            {views}
-                          </Typography>
-                        </Box>
-                      </Box>
-                    </Grid>
-                  )}
-
-                  {status && (
-                    <Grid item xs={12} sm={6}>
-                      <Box display="flex" alignItems="center" gap={2} mb={2}>
-                        <FlagIcon sx={{ color: theme.palette.textColor.secondary, ml: isRTLMode ? 1 : 0, mr: isRTLMode ? 0 : 1 }} />
-                        <Box>
-                          <Typography variant="body2" color="text.secondary">
-                            {t('status')}
-                          </Typography>
-                          <Chip 
-                            label={t(status)}
-                            color={status === 'active' ? 'success' : status === 'resolved' ? 'primary' : 'default'}
-                            size="small"
-                            sx={{ fontWeight: 600 }}
-                          />
-                        </Box>
-                      </Box>
-                    </Grid>
-                  )}
-
-                  {returned && (
-                    <Grid item xs={12} sm={6}>
-                      <Box display="flex" alignItems="center" gap={2} mb={2}>
-                        <FlagIcon sx={{ color: theme.palette.textColor.secondary, ml: isRTLMode ? 1 : 0, mr: isRTLMode ? 0 : 1 }} />
-                        <Box>
-                          <Typography variant="body2" color="text.secondary">
-                            {t('returned')}
-                          </Typography>
-                          <Chip 
-                            label={returned ? t('yes') : t('no')}
-                            color={returned ? 'success' : 'default'}
-                            size="small"
-                            sx={{ fontWeight: 600 }}
-                          />
-                        </Box>
-                      </Box>
-                    </Grid>
-                  )}
-
-                  {tags && tags.length > 0 && (
-                    <Grid item xs={12}>
-                      <Box display="flex" alignItems="center" gap={2} mb={2}>
-                        <TagIcon sx={{ color: theme.palette.textColor.secondary, ml: isRTLMode ? 1 : 0, mr: isRTLMode ? 0 : 1 }} />
-                        <Box>
-                          <Typography variant="body2" color="text.secondary">
-                            {t('tags')}
-                          </Typography>
-                          <Box display="flex" gap={1} flexWrap="wrap">
-                            {tags.map((tag, index) => (
-                              <Chip 
-                                key={index}
-                                label={tag}
-                                size="small"
-                                variant="outlined"
-                                sx={{ fontWeight: 500 }}
-                              />
-                            ))}
-                          </Box>
-                        </Box>
-                      </Box>
-                    </Grid>
-                  )}
-                </Grid>
-              </Box>
+              {/* Additional Contact */}
+              {additionalContact && (
+                <Box sx={{ mb: 3 }}>
+                  <Typography 
+                    variant="h6" 
+                    fontWeight={600}
+                    sx={{ 
+                      mb: 2,
+                      direction: currentLanguage === 'ar' ? 'rtl' : 'ltr',
+                      color: isDarkMode ? '#ffffff' : '#1a1a1a'
+                    }}
+                  >
+                    {t('additionalContact')}
+                  </Typography>
+                  <Typography 
+                    variant="body1"
+                    sx={{ 
+                      direction: currentLanguage === 'ar' ? 'rtl' : 'ltr',
+                      color: isDarkMode ? alpha('#fff', 0.8) : alpha('#000', 0.7)
+                    }}
+                  >
+                    {additionalContact}
+                  </Typography>
+                </Box>
+              )}
             </Box>
           </Paper>
         </Grid>
 
         {/* Sidebar */}
         <Grid item xs={12} lg={4}>
-          <Box sx={{ position: { xs: 'static', lg: 'sticky' }, top: '2rem' }}>
-            {/* Quick Actions */}
+          <Box sx={{ position: 'sticky', top: '2rem' }}>
+            {/* Actions Card */}
             <Paper 
-              elevation={2} 
+              elevation={0}
               sx={{ 
-                p: { xs: 2, sm: 3 }, 
-                borderRadius: 3,
+                p: 3, 
                 mb: 3,
-                background: theme.palette.background.paper
+                borderRadius: 3,
+                border: `1px solid ${isDarkMode ? alpha('#fff', 0.08) : alpha('#000', 0.06)}`,
+                backgroundColor: isDarkMode ? alpha('#1a1a1a', 0.8) : '#ffffff'
               }}
             >
               <Typography 
                 variant="h6" 
+                fontWeight={600}
                 sx={{ 
-                  color: theme.palette.textColor.main,
-                  fontWeight: 600,
-                  mb: 2
+                  mb: 3,
+                  direction: currentLanguage === 'ar' ? 'rtl' : 'ltr',
+                  color: isDarkMode ? '#ffffff' : '#1a1a1a'
                 }}
               >
-                {t('quickActions')}
+                {t('actions')}
               </Typography>
-              
+
               <Box display="flex" flexDirection="column" gap={2}>
                 {canEdit && (
                   <Button
@@ -878,29 +659,15 @@ const SinglePostPage = ({
                     fullWidth
                     sx={{
                       borderRadius: 2,
-                      py: 1.5,
                       textTransform: 'none',
-                      fontWeight: 600
+                      fontWeight: 600,
+                      direction: currentLanguage === 'ar' ? 'rtl' : 'ltr'
                     }}
                   >
                     {t('editPost')}
                   </Button>
                 )}
-                
-                <Button
-                  variant="outlined"
-                  startIcon={<ShareIcon />}
-                  fullWidth
-                  sx={{
-                    borderRadius: 2,
-                    py: 1.5,
-                    textTransform: 'none',
-                    fontWeight: 600
-                  }}
-                >
-                  {t('sharePost')}
-                </Button>
-                
+
                 <Button
                   variant="outlined"
                   startIcon={<ReportIcon />}
@@ -908,163 +675,126 @@ const SinglePostPage = ({
                   fullWidth
                   sx={{
                     borderRadius: 2,
-                    py: 1.5,
                     textTransform: 'none',
                     fontWeight: 600,
-                    color: theme.palette.error.main,
+                    direction: currentLanguage === 'ar' ? 'rtl' : 'ltr',
                     borderColor: theme.palette.error.main,
+                    color: theme.palette.error.main,
                     '&:hover': {
-                      backgroundColor: theme.palette.error.light + '20',
-                      borderColor: theme.palette.error.main
+                      backgroundColor: theme.palette.error.main,
+                      color: 'white'
                     }
                   }}
                 >
-                  {t('reportPost')}
+                  {t('report')}
                 </Button>
               </Box>
             </Paper>
 
-            {/* Additional Information */}
+            {/* Post Details Card */}
             <Paper 
-              elevation={2} 
+              elevation={0}
               sx={{ 
-                p: { xs: 2, sm: 3 }, 
+                p: 3,
                 borderRadius: 3,
-                background: theme.palette.background.paper
+                border: `1px solid ${isDarkMode ? alpha('#fff', 0.08) : alpha('#000', 0.06)}`,
+                backgroundColor: isDarkMode ? alpha('#1a1a1a', 0.8) : '#ffffff'
               }}
             >
               <Typography 
                 variant="h6" 
+                fontWeight={600}
                 sx={{ 
-                  color: theme.palette.textColor.main,
-                  fontWeight: 600,
-                  mb: 2
+                  mb: 3,
+                  direction: currentLanguage === 'ar' ? 'rtl' : 'ltr',
+                  color: isDarkMode ? '#ffffff' : '#1a1a1a'
                 }}
               >
-                {t('additionalInsights')}
+                {t('postDetails')}
               </Typography>
-              
+
               <Box display="flex" flexDirection="column" gap={2}>
-                <Box display="flex" alignItems="center" gap={2}>
-                  <VisibilityIcon sx={{ color: theme.palette.info.main, ml: isRTLMode ? 1 : 0, mr: isRTLMode ? 0 : 1 }} />
-                  <Box>
-                    <Typography variant="body2" color="text.secondary">
-                      {t('postStatus')}
-                    </Typography>
-                    <Chip 
-                      label={statusText}
-                      color={statusColor}
-                      size="small"
-                      sx={{ fontWeight: 600 }}
-                    />
-                  </Box>
-                </Box>
-                
-                <Box display="flex" alignItems="center" gap={2}>
-                  <CategoryIcon sx={{ color: theme.palette.primary.main, ml: isRTLMode ? 1 : 0, mr: isRTLMode ? 0 : 1 }} />
-                  <Box>
-                    <Typography variant="body2" color="text.secondary">
-                      {t('category')}
-                    </Typography>
-                    <Typography variant="body1" sx={{ color: theme.palette.textColor.main }}>
-                      {categoryDisplayName}
-                    </Typography>
-                  </Box>
-                </Box>
-                
-                <Box display="flex" alignItems="center" gap={2}>
-                  <LocationIcon sx={{ color: theme.palette.success.main, ml: isRTLMode ? 1 : 0, mr: isRTLMode ? 0 : 1 }} />
-                  <Box>
-                    <Typography variant="body2" color="text.secondary">
-                      {t('exactLocation')}
-                    </Typography>
-                    <Typography variant="body1" sx={{ color: theme.palette.textColor.main }}>
-                      {exactLocation || t('unknownLocation')}
-                    </Typography>
-                  </Box>
+                <Box display="flex" justifyContent="space-between" alignItems="center">
+                  <Typography 
+                    variant="body2" 
+                    color="text.secondary"
+                    sx={{ direction: currentLanguage === 'ar' ? 'rtl' : 'ltr' }}
+                  >
+                    {t('postedBy')}:
+                  </Typography>
+                  <Typography 
+                    variant="body2" 
+                    fontWeight={600}
+                    sx={{ 
+                      direction: currentLanguage === 'ar' ? 'rtl' : 'ltr',
+                      color: isDarkMode ? '#ffffff' : '#1a1a1a'
+                    }}
+                  >
+                    {username || t('anonymous')}
+                  </Typography>
                 </Box>
 
-                {contact && (
-                  <Box display="flex" alignItems="center" gap={2}>
-                    <ContactIcon sx={{ color: theme.palette.warning.main, ml: isRTLMode ? 1 : 0, mr: isRTLMode ? 0 : 1 }} />
-                    <Box>
-                      <Typography variant="body2" color="text.secondary">
-                        {t('contact')}
-                      </Typography>
-                      <Typography variant="body1" sx={{ color: theme.palette.textColor.main }}>
-                        {contact}
-                      </Typography>
-                    </Box>
+                <Box display="flex" justifyContent="space-between" alignItems="center">
+                  <Typography 
+                    variant="body2" 
+                    color="text.secondary"
+                    sx={{ direction: currentLanguage === 'ar' ? 'rtl' : 'ltr' }}
+                  >
+                    {t('created')}:
+                  </Typography>
+                  <Typography 
+                    variant="body2" 
+                    fontWeight={600}
+                    sx={{ 
+                      direction: currentLanguage === 'ar' ? 'rtl' : 'ltr',
+                      color: isDarkMode ? '#ffffff' : '#1a1a1a'
+                    }}
+                  >
+                    {createdDate}
+                  </Typography>
+                </Box>
+
+                {updatedAt !== createdAt && (
+                  <Box display="flex" justifyContent="space-between" alignItems="center">
+                    <Typography 
+                      variant="body2" 
+                      color="text.secondary"
+                      sx={{ direction: currentLanguage === 'ar' ? 'rtl' : 'ltr' }}
+                    >
+                      {t('updated')}:
+                    </Typography>
+                    <Typography 
+                      variant="body2" 
+                      fontWeight={600}
+                      sx={{ 
+                        direction: currentLanguage === 'ar' ? 'rtl' : 'ltr',
+                        color: isDarkMode ? '#ffffff' : '#1a1a1a'
+                      }}
+                    >
+                      {updatedDate}
+                    </Typography>
                   </Box>
                 )}
 
-                {/* Additional Contact Information */}
-                {additionalContact && (
-                  <>
-                    {additionalContact.phone && (
-                      <Box display="flex" alignItems="center" gap={2}>
-                        <ContactIcon sx={{ color: theme.palette.warning.main, ml: isRTLMode ? 1 : 0, mr: isRTLMode ? 0 : 1 }} />
-                        <Box>
-                          <Typography variant="body2" color="text.secondary">
-                            {t('additionalPhone')}
-                          </Typography>
-                          <Typography variant="body1" sx={{ color: theme.palette.textColor.main }}>
-                            {additionalContact.phone}
-                          </Typography>
-                        </Box>
-                      </Box>
-                    )}
-
-                    {additionalContact.email && (
-                      <Box display="flex" alignItems="center" gap={2}>
-                        <ContactIcon sx={{ color: theme.palette.warning.main, ml: isRTLMode ? 1 : 0, mr: isRTLMode ? 0 : 1 }} />
-                        <Box>
-                          <Typography variant="body2" color="text.secondary">
-                            {t('additionalEmail')}
-                          </Typography>
-                          <Typography variant="body1" sx={{ color: theme.palette.textColor.main }}>
-                            {additionalContact.email}
-                          </Typography>
-                        </Box>
-                      </Box>
-                    )}
-
-                    {additionalContact.whatsapp && (
-                      <Box display="flex" alignItems="center" gap={2}>
-                        <ContactIcon sx={{ color: theme.palette.warning.main, ml: isRTLMode ? 1 : 0, mr: isRTLMode ? 0 : 1 }} />
-                        <Box>
-                          <Typography variant="body2" color="text.secondary">
-                            {t('additionalWhatsapp')}
-                          </Typography>
-                          <Typography variant="body1" sx={{ color: theme.palette.textColor.main }}>
-                            {additionalContact.whatsapp}
-                          </Typography>
-                        </Box>
-                      </Box>
-                    )}
-                  </>
-                )}
-
-                {/* Contact Preferences */}
-                {contactPreferences && (
-                  <Box display="flex" alignItems="center" gap={2}>
-                    <ContactIcon sx={{ color: theme.palette.info.main, ml: isRTLMode ? 1 : 0, mr: isRTLMode ? 0 : 1 }} />
-                    <Box>
-                      <Typography variant="body2" color="text.secondary">
-                        {t('contactPreferences')}
-                      </Typography>
-                      <Box display="flex" gap={1} flexWrap="wrap">
-                        {contactPreferences.phone && (
-                          <Chip label={t('phone')} size="small" color="primary" variant="outlined" />
-                        )}
-                        {contactPreferences.email && (
-                          <Chip label={t('email')} size="small" color="primary" variant="outlined" />
-                        )}
-                        {contactPreferences.whatsapp && (
-                          <Chip label={t('whatsapp')} size="small" color="primary" variant="outlined" />
-                        )}
-                      </Box>
-                    </Box>
+                {views !== undefined && (
+                  <Box display="flex" justifyContent="space-between" alignItems="center">
+                    <Typography 
+                      variant="body2" 
+                      color="text.secondary"
+                      sx={{ direction: currentLanguage === 'ar' ? 'rtl' : 'ltr' }}
+                    >
+                      {t('views')}:
+                    </Typography>
+                    <Typography 
+                      variant="body2" 
+                      fontWeight={600}
+                      sx={{ 
+                        direction: currentLanguage === 'ar' ? 'rtl' : 'ltr',
+                        color: isDarkMode ? '#ffffff' : '#1a1a1a'
+                      }}
+                    >
+                      {views}
+                    </Typography>
                   </Box>
                 )}
               </Box>
@@ -1072,14 +802,15 @@ const SinglePostPage = ({
           </Box>
         </Grid>
       </Grid>
-      
+
       {/* Report Dialog */}
       <ReportDialog
         open={reportDialogOpen}
-        onClose={() => setReportDialogOpen(false)}
+        onClose={handleCloseReportDialog}
         post={{
           _id,
           categoryname,
+          region,
           exactLocation,
           contact,
           user,
@@ -1094,6 +825,9 @@ const SinglePostPage = ({
           description,
           contactPreferences,
           additionalContact,
+          city,
+          cityLabels,
+          cityName,
           title,
           titleLabels,
           descriptionLabels,
