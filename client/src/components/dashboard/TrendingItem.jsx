@@ -153,57 +153,62 @@ const TrendingItem = ({ trend, isLoading }) => {
 
   // Get found/lost status with proper colors from database (same as PostsList)
   const foundLostStatus = useMemo(() => {
-    let foundLostValue = "FOUND"; // Default to FOUND
-    let foundLostLabel = t('found'); // Default label
-    let foundLostColor = theme.palette.success.main; // Default color
-    
     console.log('🔍 Found/Lost Debug - Input data:', {
       Floptions,
       floptionName,
       currentLanguage,
       FloptionsType: typeof Floptions,
       FloptionsKeys: Floptions ? Object.keys(Floptions) : null,
-      floptionNameType: typeof floptionName
+      floptionNameType: typeof floptionName,
+      FloptionsLabels: Floptions?.labels,
+      FloptionsLabelsType: typeof Floptions?.labels,
+      FloptionsLabelsIsArray: Array.isArray(Floptions?.labels)
     });
     
-    // Check Floptions object first (this contains the actual found/lost data from the lookup)
+    // Simple and direct approach based on server logs
+    let foundLostValue = "FOUND"; // Default
+    let foundLostLabel = t('found'); // Default
+    let foundLostColor = "#4CAF50"; // Default green for FOUND
+    
+    // Priority 1: Use Floptions.code if available
     if (Floptions && Floptions.code) {
       console.log('🔍 Using Floptions.code:', Floptions.code);
       foundLostValue = Floptions.code;
-      foundLostLabel = getLabel(Floptions.labels, currentLanguage) || 
-                      (Floptions.code === 'FOUND' ? t('found') : t('lost'));
-      foundLostColor = Floptions.color || 
-                      (Floptions.code === 'FOUND' ? theme.palette.success.main : theme.palette.error.main);
-    } else {
-      console.log('🔍 Floptions not available or missing code, checking floptionName');
+      foundLostColor = Floptions.color || "#4CAF50";
+      
+      // Simple label logic
+      if (Floptions.code === 'FOUND') {
+        foundLostLabel = t('found');
+      } else if (Floptions.code === 'LOST') {
+        foundLostLabel = t('lost');
+        foundLostColor = foundLostColor || "#F44336";
+      }
     }
-    
-    // Fallback: Check floptionName property
-    if (!foundLostValue || foundLostValue === "FOUND") {
-      if (floptionName) {
-        console.log('🔍 Using floptionName fallback:', floptionName);
-        foundLostValue = floptionName.toUpperCase();
-        foundLostLabel = floptionName === 'Found' ? t('found') : t('lost');
-        foundLostColor = floptionName === 'Found' ? theme.palette.success.main : theme.palette.error.main;
+    // Priority 2: Use floptionName as fallback
+    else if (floptionName) {
+      console.log('🔍 Using floptionName fallback:', floptionName);
+      foundLostValue = floptionName.toUpperCase();
+      if (floptionName.toUpperCase() === 'FOUND') {
+        foundLostLabel = t('found');
+        foundLostColor = "#4CAF50";
+      } else if (floptionName.toUpperCase() === 'LOST') {
+        foundLostLabel = t('lost');
+        foundLostColor = "#F44336";
       }
     }
 
-    // Normalize the value and set proper colors
     const isFound = foundLostValue === "FOUND";
-    const statusColor = foundLostColor || (isFound ? theme.palette.success.main : theme.palette.error.main);
-    const statusText = foundLostLabel;
-
     const result = { 
       value: foundLostValue,
-      label: statusText,
-      color: statusColor,
+      label: foundLostLabel,
+      color: foundLostColor,
       isFound 
     };
     
     console.log('🔍 Found/Lost Debug - Final result:', result);
     
     return result;
-  }, [Floptions, floptionName, currentLanguage, t, theme.palette.success.main, theme.palette.error.main]);
+  }, [Floptions, floptionName, currentLanguage, t]);
 
   // Handle navigation to post
   const handleViewPost = () => {
