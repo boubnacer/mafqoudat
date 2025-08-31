@@ -11,6 +11,7 @@ import {
   Avatar,
   alpha,
 } from "@mui/material";
+import { useMemo } from "react";
 import FlexBetween from "../FlexBetween";
 import RenderIcon from "../RenderIcon";
 import { TrendingItemSkeleton, DashboardEmptyStates } from "../LoadingStates";
@@ -19,6 +20,7 @@ import { getOptimizedImageUrl } from "../../utils/cloudinaryUtils";
 import LazyCardMedia from "../LazyCardMedia";
 import { getCategoryConfig } from "../../config/categories";
 import { useNavigate } from "react-router-dom";
+import { getLabel } from "../../utils/languageUtils";
 import ma from "../../img/ma.jpg";
 
 // Get the API base URL for image construction
@@ -54,8 +56,8 @@ const TrendingItem = ({ trend, isLoading }) => {
 
   const displayCityName = getCityName();
 
-  // Get category name safely with multilingual support (same as RecentPosts)
-  const getCategoryDisplayName = (categoryCode) => {
+  // Get category name safely with multilingual support (same as PostsList)
+  const categoryDisplayName = useMemo(() => {
     // Map category codes to their translated names
     const categoryTranslations = {
       'ELECTRONICS': {
@@ -125,14 +127,12 @@ const TrendingItem = ({ trend, isLoading }) => {
       }
     };
     
-    const translations = categoryTranslations[categoryCode];
+    const translations = categoryTranslations[categoryname];
     if (translations) {
-      return translations[currentLanguage] || translations.en || categoryCode;
+      return translations[currentLanguage] || translations.en || categoryname;
     }
-    return categoryCode || t('unknownCategory');
-  };
-
-  const categoryDisplayName = getCategoryDisplayName(categoryname);
+    return categoryname || t('unknownCategory');
+  }, [categoryname, currentLanguage, t]);
 
   // Get category colors using centralized configuration (same as RecentPosts)
   const getCategoryColors = (category) => {
@@ -152,20 +152,20 @@ const TrendingItem = ({ trend, isLoading }) => {
   const categoryStyle = getCategoryColors(categoryname);
 
   // Get found/lost status with proper colors from database (same as PostsList)
-  const getFoundLostStatus = () => {
+  const foundLostStatus = useMemo(() => {
     let foundLostValue = "FOUND"; // Default to FOUND
     let foundLostLabel = t('found'); // Default label
-    let foundLostColor = "#4CAF50"; // Default color from database
+    let foundLostColor = theme.palette.success.main; // Default color
     
     // Check Floptions array first (this contains the actual found/lost data from the lookup)
     if (Floptions && Floptions.length > 0) {
       const flOption = Floptions[0];
       if (flOption && flOption.code) {
         foundLostValue = flOption.code;
-        foundLostLabel = flOption.labels?.[currentLanguage] || 
+        foundLostLabel = getLabel(flOption.labels, currentLanguage) || 
                         (flOption.code === 'FOUND' ? t('found') : t('lost'));
         foundLostColor = flOption.color || 
-                        (flOption.code === 'FOUND' ? "#4CAF50" : "#F44336");
+                        (flOption.code === 'FOUND' ? theme.palette.success.main : theme.palette.error.main);
       }
     }
     
@@ -174,18 +174,22 @@ const TrendingItem = ({ trend, isLoading }) => {
       if (floptionName) {
         foundLostValue = floptionName.toUpperCase();
         foundLostLabel = floptionName === 'Found' ? t('found') : t('lost');
-        foundLostColor = floptionName === 'Found' ? "#4CAF50" : "#F44336";
+        foundLostColor = floptionName === 'Found' ? theme.palette.success.main : theme.palette.error.main;
       }
     }
-    
-    return {
-      value: foundLostValue,
-      label: foundLostLabel,
-      color: foundLostColor
-    };
-  };
 
-  const foundLostStatus = getFoundLostStatus();
+    // Normalize the value and set proper colors
+    const isFound = foundLostValue === "FOUND";
+    const statusColor = foundLostColor || (isFound ? theme.palette.success.main : theme.palette.error.main);
+    const statusText = foundLostLabel;
+
+    return { 
+      value: foundLostValue,
+      label: statusText,
+      color: statusColor,
+      isFound 
+    };
+  }, [Floptions, floptionName, currentLanguage, t, theme.palette.success.main, theme.palette.error.main]);
 
   // Handle navigation to post
   const handleViewPost = () => {
