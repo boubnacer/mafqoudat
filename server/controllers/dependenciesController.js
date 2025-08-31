@@ -192,6 +192,7 @@ const getDashboard = async (req, res) => {
           createdAt: 1,
           categoryName: { $ifNull: ["$Category.code", "ELECTRONICS"] },
           floptionName: { $ifNull: ["$Floptions.code", "FOUND"] },
+          Floptions: 1, // Add the full Floptions object for client-side processing
           contact: 1,
           image: 1,
           countryLabels: { $ifNull: ["$Country.labels", {}] },

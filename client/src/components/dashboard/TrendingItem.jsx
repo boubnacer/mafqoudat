@@ -157,16 +157,13 @@ const TrendingItem = ({ trend, isLoading }) => {
     let foundLostLabel = t('found'); // Default label
     let foundLostColor = theme.palette.success.main; // Default color
     
-    // Check Floptions array first (this contains the actual found/lost data from the lookup)
-    if (Floptions && Floptions.length > 0) {
-      const flOption = Floptions[0];
-      if (flOption && flOption.code) {
-        foundLostValue = flOption.code;
-        foundLostLabel = getLabel(flOption.labels, currentLanguage) || 
-                        (flOption.code === 'FOUND' ? t('found') : t('lost'));
-        foundLostColor = flOption.color || 
-                        (flOption.code === 'FOUND' ? theme.palette.success.main : theme.palette.error.main);
-      }
+    // Check Floptions object first (this contains the actual found/lost data from the lookup)
+    if (Floptions && Floptions.code) {
+      foundLostValue = Floptions.code;
+      foundLostLabel = getLabel(Floptions.labels, currentLanguage) || 
+                      (Floptions.code === 'FOUND' ? t('found') : t('lost'));
+      foundLostColor = Floptions.color || 
+                      (Floptions.code === 'FOUND' ? theme.palette.success.main : theme.palette.error.main);
     }
     
     // Fallback: Check floptionName property
@@ -323,30 +320,30 @@ const TrendingItem = ({ trend, isLoading }) => {
             }}
           >
             {/* Category Badge - Updated to use RecentPosts approach */}
-            <Box
-              sx={{
-                backgroundColor: theme.palette.mode === 'dark' ? alpha(categoryStyle.main, 0.2) : categoryStyle.background,
-                padding: '4px 8px',
-                borderRadius: '12px',
-                display: 'flex',
-                alignItems: 'center',
-                gap: 0.5,
-                backdropFilter: 'blur(10px)',
-                border: `1px solid ${theme.palette.mode === 'dark' ? alpha(categoryStyle.main, 0.3) : categoryStyle.main}`,
-              }}
-            >
-                             <RenderIcon name={`${categoryName?.toLowerCase()}cate`} sx={{ fontSize: '16px', color: categoryStyle.main }} />
-              <Typography
-                sx={{
-                  color: categoryStyle.main,
-                  fontSize: '12px',
-                  fontWeight: 600,
-                  lineHeight: 1,
-                }}
-              >
-                {categoryDisplayName}
-              </Typography>
-            </Box>
+                         <Box
+               sx={{
+                 backgroundColor: theme.palette.mode === 'dark' ? alpha(categoryStyle.main, 0.2) : categoryStyle.background,
+                 padding: { xs: '4px 8px', sm: '6px 12px' },
+                 borderRadius: '12px',
+                 display: 'flex',
+                 alignItems: 'center',
+                 gap: 0.5,
+                 backdropFilter: 'blur(10px)',
+                 border: `1px solid ${theme.palette.mode === 'dark' ? alpha(categoryStyle.main, 0.3) : categoryStyle.main}`,
+               }}
+             >
+                              <RenderIcon name={`${categoryName?.toLowerCase()}cate`} sx={{ fontSize: { xs: '16px', sm: '18px' }, color: categoryStyle.main }} />
+               <Typography
+                 sx={{
+                   color: categoryStyle.main,
+                   fontSize: { xs: '12px', sm: '14px' },
+                   fontWeight: 600,
+                   lineHeight: 1,
+                 }}
+               >
+                 {categoryDisplayName}
+               </Typography>
+             </Box>
             
             {/* Status Badge - Updated to use database colors */}
             <Chip
