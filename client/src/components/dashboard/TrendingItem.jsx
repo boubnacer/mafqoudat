@@ -29,7 +29,7 @@ const API_BASE_URL = process.env.REACT_APP_API_URL || "http://localhost:3500";
 const TrendingItem = ({ trend, isLoading }) => {
   // Handle both array and single object formats
   const trendData = Array.isArray(trend) ? trend[0] : trend;
-  const { _id, categoryName, floptionName, image, createdAt, countryLabels, countryname, city, cityLabels, cityName, Floptions } = trendData || {};
+  const { _id, categoryname, floptionName, image, createdAt, countryLabels, countryname, city, cityLabels, cityName, Floptions } = trendData || {};
   const theme = useTheme();
   const isMobile = useMediaQuery(theme.breakpoints.down('sm'));
   const isTablet = useMediaQuery(theme.breakpoints.down('md'));
@@ -127,12 +127,12 @@ const TrendingItem = ({ trend, isLoading }) => {
       }
     };
     
-    const translations = categoryTranslations[categoryName];
+    const translations = categoryTranslations[categoryname];
     if (translations) {
-      return translations[currentLanguage] || translations.en || categoryName;
+      return translations[currentLanguage] || translations.en || categoryname;
     }
-    return categoryName || t('unknownCategory');
-  }, [categoryName, currentLanguage, t]);
+    return categoryname || t('unknownCategory');
+  }, [categoryname, currentLanguage, t]);
 
   // Get category colors using centralized configuration (same as RecentPosts)
   const getCategoryColors = (category) => {
@@ -149,7 +149,7 @@ const TrendingItem = ({ trend, isLoading }) => {
     };
   };
 
-  const categoryStyle = getCategoryColors(categoryName);
+  const categoryStyle = getCategoryColors(categoryname);
 
   // Get found/lost status with proper colors from database (same as PostsList)
   const foundLostStatus = useMemo(() => {
@@ -208,7 +208,7 @@ const TrendingItem = ({ trend, isLoading }) => {
   }
 
   // Additional safety check for required fields
-  if (!_id || !categoryName) {
+  if (!_id || !categoryname) {
     return <DashboardEmptyStates.NoTrending />;
   }
 
@@ -311,7 +311,7 @@ const TrendingItem = ({ trend, isLoading }) => {
                 border: `1px solid ${theme.palette.mode === 'dark' ? alpha(categoryStyle.main, 0.3) : categoryStyle.main}`,
               }}
             >
-              <RenderIcon name={`${categoryName?.toLowerCase()}cate`} sx={{ fontSize: { xs: '16px', sm: '18px' }, color: categoryStyle.main }} />
+                              <RenderIcon name={`${categoryname?.toLowerCase()}cate`} sx={{ fontSize: { xs: '16px', sm: '18px' }, color: categoryStyle.main }} />
               <Typography
                 sx={{
                   color: categoryStyle.main,

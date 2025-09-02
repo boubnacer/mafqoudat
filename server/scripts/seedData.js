@@ -4,7 +4,10 @@ const FoundLost = require('../models/FoundLost');
 const Category = require('../models/Category');
 
 // Use the MongoDB URI directly
-const MONGODB_URI = 'mongodb+srv://boubkraouinacer:NB%40mafBase2025@cluster0.mwwk6a.mongodb.net/mafqoudat?retryWrites=true&w=majority&appName=Cluster0';
+// const MONGODB_URI = 'mongodb+srv://boubkraouinacer:NB%40mafBase2025@cluster0.mwwk6a.mongodb.net/mafqoudat?retryWrites=true&w=majority&appName=Cluster0';
+// const MONGODB_URI = 'mongodb+srv://boubkraouinacer:NB%40mafBase2025@clustermafqm0.mty6zln.mongodb.net/mafqoudat?retryWrites=true&w=majority&appName=ClusterMafqM0';
+// Change this line temporarily for local testing
+const MONGODB_URI = 'mongodb://localhost:27017/mafqoudat';
 
 // Sample countries data with multilingual support
 const countriesData = [
@@ -465,7 +468,7 @@ const categoriesData = [
 const seedData = async () => {
   try {
     // Connect to MongoDB
-    const MONGODB_URI = 'mongodb+srv://boubkraouinacer:NB%40mafBase2025@cluster0.mwwk6a.mongodb.net/mafqoudat?retryWrites=true&w=majority&appName=Cluster0';
+    const MONGODB_URI = 'mongodb://localhost:27017/mafqoudat';
     console.log('Attempting to connect to MongoDB...');
     await mongoose.connect(MONGODB_URI, {
       useNewUrlParser: true,

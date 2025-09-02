@@ -26,7 +26,9 @@ const getDashboard = async (req, res) => {
     const cachedDashboard = await cacheService.get(cacheKey);
     if (cachedDashboard) {
       console.log('📦 Dashboard served from cache');
-      return res.json(cachedDashboard);
+      // Force cache invalidation to ensure fresh data with correct field names
+      await cacheService.invalidatePattern('dashboard:*');
+      console.log('🔄 Dashboard cache invalidated, fetching fresh data');
     }
     
     let match = {};
@@ -180,6 +182,15 @@ const getDashboard = async (req, res) => {
       },
       { $unwind: { path: "$City", preserveNullAndEmptyArrays: true } },
       {
+        $lookup: {
+          from: "users",
+          localField: "user",
+          foreignField: "_id",
+          as: "User",
+        },
+      },
+      { $unwind: { path: "$User", preserveNullAndEmptyArrays: true } },
+      {
         $project: {
           _id: 1,
           exactLocation: 1,
@@ -190,8 +201,9 @@ const getDashboard = async (req, res) => {
           country: 1,
           returned: 1,
           createdAt: 1,
-          categoryName: { $ifNull: ["$Category.code", "ELECTRONICS"] },
+          categoryname: { $ifNull: ["$Category.code", "ELECTRONICS"] },
           floptionName: { $ifNull: ["$Floptions.code", "FOUND"] },
+          username: { $ifNull: ["$User.username", "Unknown"] },
           Floptions: {
             $cond: {
               if: { $ne: ["$Floptions", null] },
@@ -229,7 +241,7 @@ const getDashboard = async (req, res) => {
       count: trendingPost.length,
       firstPost: trendingPost[0] ? {
         _id: trendingPost[0]._id,
-        categoryName: trendingPost[0].categoryName,
+        categoryname: trendingPost[0].categoryname,
         floptionName: trendingPost[0].floptionName,
         Floptions: trendingPost[0].Floptions,
         cityName: trendingPost[0].cityName
@@ -587,7 +599,7 @@ const getDashboard = async (req, res) => {
 
     const createdToday = { todaysFoundPosts, todaysLostPosts };
 
-    res.status(200).json({
+    const response = {
       trendingPost,
       recentFounds,
       recentLosts,
@@ -596,7 +608,15 @@ const getDashboard = async (req, res) => {
       totalPosts,
       formattedLocations,
       createdToday,
-    });
+    };
+
+    // Cache the response for 5 minutes (dynamic data)
+    await cacheService.set(cacheKey, response, 300);
+    
+    // Invalidate any old cached data to ensure fresh data
+    await cacheService.invalidatePattern('dashboard:*');
+    
+    res.status(200).json(response);
   } catch (error) {
     res.status(404).json({ message: error.message });
   }

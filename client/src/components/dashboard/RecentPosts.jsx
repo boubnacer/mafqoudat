@@ -44,6 +44,9 @@ const RecentPosts = ({ _id, categoryname, exactLocation, image, createdAt, count
   const [reportDialogOpen, setReportDialogOpen] = useState(false);
   const [submitReport] = useSubmitReportMutation();
 
+  // Debug logging to see what props are received
+  console.log('RecentPosts props:', { _id, categoryname, exactLocation, image, createdAt, countryLabels, countryname, contact, city, cityLabels, cityName });
+
   // Format date using date-fns with proper locale support
   const getLocale = () => {
     switch (currentLanguage) {

@@ -79,6 +79,16 @@ const Dash = () => {
                (!data?.recentLosts || data?.recentLosts.length === 0)
   });
 
+  // Debug logging for recent posts data
+  if (data?.recentFounds) {
+    console.log('Dash recentFounds data:', data.recentFounds);
+    console.log('First recent found item:', data.recentFounds[0]);
+  }
+  if (data?.recentLosts) {
+    console.log('Dash recentLosts data:', data.recentLosts);
+    console.log('First recent lost item:', data.recentLosts[0]);
+  }
+
   // If no country is selected, show country selection prompt
   if (!currentCountry) {
     return (
