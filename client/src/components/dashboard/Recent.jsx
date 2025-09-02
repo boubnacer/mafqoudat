@@ -4,12 +4,8 @@ import RecentPosts from "./RecentPosts";
 import { RecentItemsSkeleton, DashboardEmptyStates } from "../LoadingStates";
 
 const Recent = ({ recent, isLoading, emptyState = "NoRecentFounds", maxItems, sx }) => {
-  // Debug logging to see what data is received
-  console.log('Recent component received:', { recent, isLoading, emptyState, maxItems });
-  
   if (isLoading) return <RecentItemsSkeleton />;
   if (!recent || recent.length === 0) {
-    console.log('Recent component: No data or empty array');
     const EmptyStateComponent = DashboardEmptyStates[emptyState];
     return <EmptyStateComponent />;
   }
@@ -42,9 +38,6 @@ const Recent = ({ recent, isLoading, emptyState = "NoRecentFounds", maxItems, sx
       }}
     >
       {displayItems.map(({ _id, categoryname, region, exactLocation, image, createdAt, countryLabels, countryname, contact, city, cityLabels, cityName }) => {
-        // Debug logging to see what data is being mapped
-        console.log('Recent component mapping item:', { _id, categoryname, region, exactLocation, image, createdAt, countryLabels, countryname, contact, city, cityLabels, cityName });
-        
         return (
           <RecentPosts
             key={_id}

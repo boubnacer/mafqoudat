@@ -96,86 +96,38 @@ const getDashboard = async (req, res) => {
       console.log('Dashboard: Starting trending post aggregation for country:', currentCountry);
       trendingPost = await Post.aggregate([
       { $match: { country: new mongoose.Types.ObjectId(currentCountry) } },
-      // Handle undefined category and city fields and convert to ObjectIds
-      {
-        $addFields: {
-          category: { $ifNull: ["$category", null] },
-          city: { $ifNull: ["$city", null] },
-          hasValidCategory: { $ne: ["$category", null] },
-          hasValidCity: { $ne: ["$city", null] },
-          hasValidFoundLost: { $ne: ["$foundLost", null] }
-        }
-      },
-      // Convert string IDs to ObjectIds for lookups (with error handling)
-      {
-        $addFields: {
-          categoryObjectId: {
-            $cond: {
-              if: { $and: [{ $ne: ["$category", null] }, { $ne: ["$category", ""] }] },
-              then: { $toObjectId: "$category" },
-              else: null
-            }
-          },
-          cityObjectId: {
-            $cond: {
-              if: { 
-                    $and: [
-                      { $ne: ["$city", null] }, 
-                      { $ne: ["$city", ""] },
-                      { $regexMatch: { input: { $toString: "$city" }, regex: "^[0-9a-fA-F]{24}$" } }
-                    ] 
-                  },
-              then: { $toObjectId: "$city" },
-              else: null
-            }
-          },
-          foundLostObjectId: {
-            $cond: {
-              if: { $and: [{ $ne: ["$foundLost", null] }, { $ne: ["$foundLost", ""] }] },
-              then: { $toObjectId: "$foundLost" },
-              else: null
-            }
-          },
-          countryObjectId: {
-            $cond: {
-              if: { $and: [{ $ne: ["$country", null] }, { $ne: ["$country", ""] }] },
-              then: { $toObjectId: "$country" },
-              else: null
-            }
-          }
-        }
-      },
+      // Simple approach - use fields directly
       {
         $lookup: {
           from: "categories",
-          localField: "categoryObjectId",
+          localField: "category",
           foreignField: "_id",
           as: "Category",
         },
       },
-      { $unwind: { path: "$Category", preserveNullAndEmptyArrays: true } },
+      { $unwind: "$Category" },
       {
         $lookup: {
           from: "foundlosts",
-          localField: "foundLostObjectId",
+          localField: "foundLost",
           foreignField: "_id",
           as: "Floptions",
         },
       },
-      { $unwind: { path: "$Floptions", preserveNullAndEmptyArrays: true } },
+      { $unwind: "$Floptions" },
       {
         $lookup: {
           from: "countries",
-          localField: "countryObjectId",
+          localField: "country",
           foreignField: "_id",
           as: "Country",
         },
       },
-      { $unwind: { path: "$Country", preserveNullAndEmptyArrays: true } },
+      { $unwind: "$Country" },
       {
         $lookup: {
           from: "cities",
-          localField: "cityObjectId",
+          localField: "city",
           foreignField: "_id",
           as: "City",
         },
@@ -262,64 +214,42 @@ const getDashboard = async (req, res) => {
           foundLost: foundOption._id,
         },
       },
-      // Handle undefined category and city fields and convert to ObjectIds
-      {
-        $addFields: {
-          category: { $ifNull: ["$category", null] },
-          city: { $ifNull: ["$city", null] },
-          hasValidCategory: { $ne: ["$category", null] },
-          hasValidCity: { $ne: ["$city", null] },
-          hasValidFoundLost: { $ne: ["$foundLost", null] }
-        }
-      },
-      // Convert string IDs to ObjectIds for lookups (with error handling)
-      {
-        $addFields: {
-          categoryObjectId: {
-            $cond: {
-              if: { $and: [{ $ne: ["$category", null] }, { $ne: ["$category", ""] }] },
-              then: { $toObjectId: "$category" },
-              else: null
-            }
-          },
-          cityObjectId: {
-            $cond: {
-              if: { 
-                    $and: [
-                      { $ne: ["$city", null] }, 
-                      { $ne: ["$city", ""] },
-                      { $regexMatch: { input: { $toString: "$city" }, regex: "^[0-9a-fA-F]{24}$" } }
-                    ] 
-                  },
-              then: { $toObjectId: "$city" },
-              else: null
-            }
-          },
-          foundLostObjectId: {
-            $cond: {
-              if: { $and: [{ $ne: ["$foundLost", null] }, { $ne: ["$foundLost", ""] }] },
-              then: { $toObjectId: "$foundLost" },
-              else: null
-            }
-          },
-          countryObjectId: {
-            $cond: {
-              if: { $and: [{ $ne: ["$country", null] }, { $ne: ["$country", ""] }] },
-              then: { $toObjectId: "$country" },
-              else: null
-            }
-          }
-        }
-      },
       {
         $lookup: {
           from: "categories",
-          localField: "categoryObjectId",
+          localField: "category",
           foreignField: "_id",
           as: "Category",
         },
       },
-      { $unwind: { path: "$Category", preserveNullAndEmptyArrays: true } },
+      { $unwind: "$Category" },
+      {
+        $lookup: {
+          from: "foundlosts",
+          localField: "foundLost",
+          foreignField: "_id",
+          as: "Floptions",
+        },
+      },
+      { $unwind: "$Floptions" },
+      {
+        $lookup: {
+          from: "countries",
+          localField: "country",
+          foreignField: "_id",
+          as: "Country",
+        },
+      },
+      { $unwind: "$Country" },
+      {
+        $lookup: {
+          from: "cities",
+          localField: "city",
+          foreignField: "_id",
+          as: "City",
+        },
+      },
+      { $unwind: { path: "$City", preserveNullAndEmptyArrays: true } },
       {
         $lookup: {
           from: "users",
@@ -329,24 +259,6 @@ const getDashboard = async (req, res) => {
         },
       },
       { $unwind: { path: "$User", preserveNullAndEmptyArrays: true } },
-      {
-        $lookup: {
-          from: "countries",
-          localField: "countryObjectId",
-          foreignField: "_id",
-          as: "Country",
-        },
-      },
-      { $unwind: { path: "$Country", preserveNullAndEmptyArrays: true } },
-      {
-        $lookup: {
-          from: "cities",
-          localField: "cityObjectId",
-          foreignField: "_id",
-          as: "City",
-        },
-      },
-      { $unwind: { path: "$City", preserveNullAndEmptyArrays: true } },
       {
         $project: {
           user: 1,
@@ -359,12 +271,11 @@ const getDashboard = async (req, res) => {
           createdAt: 1,
           updatedAt: 1,
           username: { $ifNull: ["$User.username", "Unknown"] },
-          categoryname: { $ifNull: ["$Category.code", "ELECTRONICS"] },
+          categoryname: "$Category.code",
           contact: 1,
           image: 1,
-          countryLabels: { $ifNull: ["$Country.labels", {}] },
-          countryname: { $ifNull: ["$Country.code", "MOROCCO"] },
-          // Add missing fields for debugging
+          countryLabels: "$Country.labels",
+          countryname: "$Country.code",
           category: 1,
           foundLost: 1,
         },
@@ -393,64 +304,42 @@ const getDashboard = async (req, res) => {
           foundLost: lostOption._id,
         },
       },
-      // Handle undefined category and city fields and convert to ObjectIds
-      {
-        $addFields: {
-          category: { $ifNull: ["$category", null] },
-          city: { $ifNull: ["$city", null] },
-          hasValidCategory: { $ne: ["$category", null] },
-          hasValidCity: { $ne: ["$city", null] },
-          hasValidFoundLost: { $ne: ["$foundLost", null] }
-        }
-      },
-      // Convert string IDs to ObjectIds for lookups (with error handling)
-      {
-        $addFields: {
-          categoryObjectId: {
-            $cond: {
-              if: { $and: [{ $ne: ["$category", null] }, { $ne: ["$category", ""] }] },
-              then: { $toObjectId: "$category" },
-              else: null
-            }
-          },
-          cityObjectId: {
-            $cond: {
-              if: { 
-                    $and: [
-                      { $ne: ["$city", null] }, 
-                      { $ne: ["$city", ""] },
-                      { $regexMatch: { input: { $toString: "$city" }, regex: "^[0-9a-fA-F]{24}$" } }
-                    ] 
-                  },
-              then: { $toObjectId: "$city" },
-              else: null
-            }
-          },
-          foundLostObjectId: {
-            $cond: {
-              if: { $and: [{ $ne: ["$foundLost", null] }, { $ne: ["$foundLost", ""] }] },
-              then: { $toObjectId: "$foundLost" },
-              else: null
-            }
-          },
-          countryObjectId: {
-            $cond: {
-              if: { $and: [{ $ne: ["$country", null] }, { $ne: ["$country", ""] }] },
-              then: { $toObjectId: "$country" },
-              else: null
-            }
-          }
-        }
-      },
       {
         $lookup: {
           from: "categories",
-          localField: "categoryObjectId",
+          localField: "category",
           foreignField: "_id",
           as: "Category",
         },
       },
-      { $unwind: { path: "$Category", preserveNullAndEmptyArrays: true } },
+      { $unwind: "$Category" },
+      {
+        $lookup: {
+          from: "foundlosts",
+          localField: "foundLost",
+          foreignField: "_id",
+          as: "Floptions",
+        },
+      },
+      { $unwind: "$Floptions" },
+      {
+        $lookup: {
+          from: "countries",
+          localField: "country",
+          foreignField: "_id",
+          as: "Country",
+        },
+      },
+      { $unwind: "$Country" },
+      {
+        $lookup: {
+          from: "cities",
+          localField: "city",
+          foreignField: "_id",
+          as: "City",
+        },
+      },
+      { $unwind: { path: "$City", preserveNullAndEmptyArrays: true } },
       {
         $lookup: {
           from: "users",
@@ -460,24 +349,6 @@ const getDashboard = async (req, res) => {
         },
       },
       { $unwind: { path: "$User", preserveNullAndEmptyArrays: true } },
-      {
-        $lookup: {
-          from: "countries",
-          localField: "countryObjectId",
-          foreignField: "_id",
-          as: "Country",
-        },
-      },
-      { $unwind: { path: "$Country", preserveNullAndEmptyArrays: true } },
-      {
-        $lookup: {
-          from: "cities",
-          localField: "cityObjectId",
-          foreignField: "_id",
-          as: "City",
-        },
-      },
-      { $unwind: { path: "$City", preserveNullAndEmptyArrays: true } },
       {
         $project: {
           user: 1,
@@ -490,12 +361,11 @@ const getDashboard = async (req, res) => {
           createdAt: 1,
           updatedAt: 1,
           username: { $ifNull: ["$User.username", "Unknown"] },
-          categoryname: { $ifNull: ["$Category.code", "ELECTRONICS"] },
+          categoryname: "$Category.code",
           contact: 1,
           image: 1,
-          countryLabels: { $ifNull: ["$Country.labels", {}] },
-          countryname: { $ifNull: ["$Country.code", "MOROCCO"] },
-          // Add missing fields for debugging
+          countryLabels: "$Country.labels",
+          countryname: "$Country.code",
           category: 1,
           foundLost: 1,
         },

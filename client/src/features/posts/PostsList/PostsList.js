@@ -226,11 +226,7 @@ const PostsList = () => {
       }
     });
 
-    // Debug logging for posts data
-    if (data?.postsWithUser) {
-      console.log('PostsList posts data:', data.postsWithUser);
-      console.log('First post item:', data.postsWithUser[0]);
-    }
+
 
     // Test localStorage persistence
     if (currentCountry) {
