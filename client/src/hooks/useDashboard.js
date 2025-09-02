@@ -45,26 +45,22 @@ export const useDashboard = () => {
     if (!currentCountry || currentCountry === "") {
       if (userCountry) {
         // For logged-in users, use their country from JWT token
-        console.log('useDashboard: Setting country from user token:', userCountry);
         dispatch(setCurrentCountry({ currentCountry: userCountry }));
       } else if (savedCountry && savedCountry !== "" && savedCountry !== null) {
         // For non-logged-in users, restore the saved country from localStorage
-        console.log('useDashboard: Restoring saved country from localStorage:', savedCountry);
         dispatch(setCurrentCountry({ currentCountry: savedCountry }));
       } else if (countriesData?.ids?.length > 0) {
         // For non-logged-in users, only set default if no country is already selected
         // This prevents overriding user's country selection from Welcome page
         const defaultCountryId = countriesData.ids[0];
-        console.log('useDashboard: Setting default country:', defaultCountryId);
         dispatch(setCurrentCountry({ currentCountry: defaultCountryId }));
       } else {
         // Set a fallback country if no countries data is available or if query fails
         // Use Morocco (MA) which has posts in the database
-        console.log('useDashboard: Setting fallback country: 68a4b54ab46524c54c553ca9 (Morocco)');
-        dispatch(setCurrentCountry({ currentCountry: '68a4b54ab46524c54c553ca9' }));
+        dispatch(setCurrentCountry({ currentCountry: '68a4b54ab46524c553ca9' }));
       }
     } else {
-      console.log('useDashboard: Country already set, keeping:', currentCountry);
+      // Country already set, keeping current value
     }
   }, [userCountry, currentCountry, dispatch, countriesData]);
 
@@ -79,37 +75,10 @@ export const useDashboard = () => {
     currentCountry,
     language: currentLanguage
   }, {
-    skip: !currentCountry,
-    // Force refetch to avoid stale cache issues
-    refetchOnMountOrArgChange: true,
-    // Disable cache to prevent stale data
-    keepUnusedDataFor: 0,
-    // Force refetch when language changes
-    refetchOnFocus: true
+    skip: !currentCountry
   });
 
-  // Debug logging to see what's happening with the data
-  useEffect(() => {
-    if (data) {
-      console.log('useDashboard: Dashboard data received:', {
-        hasTrendingPost: !!data.trendingPost,
-        trendingPostCategory: data.trendingPost?.categoryname,
-        trendingPostCreatedAt: data.trendingPost?.createdAt,
-        recentFoundsCount: data.recentFounds?.length || 0,
-        firstRecentFound: data.recentFounds?.[0] ? {
-          categoryname: data.recentFounds[0].categoryname,
-          createdAt: data.recentFounds[0].createdAt,
-          cityName: data.recentFounds[0].cityName
-        } : null,
-        recentLostsCount: data.recentLosts?.length || 0,
-        firstRecentLost: data.recentLosts?.[0] ? {
-          categoryname: data.recentLosts[0].categoryname,
-          createdAt: data.recentLosts[0].createdAt,
-          cityName: data.recentLosts[0].cityName
-        } : null
-      });
-    }
-  }, [data]);
+
 
   // Search query - allow public access
   const { 

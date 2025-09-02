@@ -41,9 +41,7 @@ import FlexCenter from "../../../components/FlexCenter";
 
 
 const PostsList = () => {
-  console.log('PostsList: Component function called - START');
-  console.log('PostsList: Current URL:', window.location.href);
-  console.log('PostsList: Current pathname:', window.location.pathname);
+
   
   useTitle("Mafkoudat | Posts List");
 
@@ -72,21 +70,6 @@ const PostsList = () => {
   
   // Debug Redux state changes
   const activeLink = useSelector(selectActiveLink);
-  console.log('PostsList Redux state:', {
-    foundOrlost,
-    currentCountry: countryId,
-    activeLink
-  });
-  
-  // Monitor Redux state changes
-  useEffect(() => {
-    console.log('PostsList: Redux state changed:', {
-      foundOrlost,
-      countryId,
-      activeLink,
-      timestamp: new Date().toISOString()
-    });
-  }, [foundOrlost, countryId, activeLink]);
   const categoryFilter = useSelector(selectCategoryFilter);
   const dispatch = useDispatch();
 
@@ -192,57 +175,17 @@ const PostsList = () => {
   // Initialize category filter from navigation state - MOVED AFTER query hooks
   useEffect(() => {
     if (location.state?.fromCategory && location.state?.categoryFilter) {
-      console.log('Setting category filter from navigation state:', location.state.categoryFilter);
+
       setLocalCategoryFilter(location.state.categoryFilter);
       // Clear the navigation state to prevent it from persisting
       navigate(location.pathname, { replace: true, state: {} });
     } else if (categoryFilter && categoryFilter !== "all") {
-      console.log('Setting category filter from Redux:', categoryFilter);
+
       setLocalCategoryFilter(categoryFilter);
     }
   }, [location.state, categoryFilter, navigate, location.pathname]);
 
-  // Debug logging
-  useEffect(() => {
-    console.log('PostsList Debug:', {
-      storeReady,
-      currentCountry,
-      categoriesLoading,
-      categoriesData: categoriesData?.length,
-      currentLanguage,
-      isSuccess,
-      isLoading,
-      categoriesError: categoriesError?.message,
-      error: error?.message,
-      skip: !storeReady || !currentCountry || categoriesLoading,
-      localStorage: {
-        globalState: localStorage.getItem('globalState'),
-        currentCountry: JSON.parse(localStorage.getItem('globalState') || '{}')?.currentCountry
-      },
-      reduxState: {
-        countryId,
-        foundOrlost,
-        categoryFilter
-      }
-    });
 
-
-
-    // Test localStorage persistence
-    if (currentCountry) {
-      console.log('Testing localStorage persistence...');
-      try {
-        const savedState = localStorage.getItem('globalState');
-        if (savedState) {
-          const parsed = JSON.parse(savedState);
-          console.log('Saved state:', parsed);
-          console.log('Current country matches saved:', parsed.currentCountry === currentCountry);
-        }
-      } catch (error) {
-        console.error('Error testing localStorage:', error);
-      }
-    }
-  }, [storeReady, currentCountry, categoriesLoading, categoriesData, currentLanguage, isSuccess, isLoading, categoriesError, error, countryId, foundOrlost, categoryFilter]);
 
   // Debounce search term
   useEffect(() => {
@@ -276,19 +219,12 @@ const PostsList = () => {
     // If still no country selected, set a default country (Morocco)
     if (!currentCountry && !countryId) {
       const defaultCountry = '68a4b54ab46524c54c553ca9'; // Morocco
-      console.log('PostsList: Setting default country:', defaultCountry);
+
       setCurrentCountry(defaultCountry);
       dispatch(setCurrentCountry({ currentCountry: defaultCountry }));
     }
     
-    console.log('PostsList: Setting fl state:', {
-      foundOrlost,
-      currentFl: fl,
-      willSetTo: foundOrlost
-    });
-    
-    // Always update fl state to ensure it's in sync
-    console.log('PostsList: Setting fl state to:', foundOrlost);
+
     setFl(foundOrlost);
     setPage(1);
   }, [countryId, foundOrlost, currentCountry, dispatch]);
@@ -358,13 +294,6 @@ const PostsList = () => {
 
   // Get posts from API response (already filtered by country and found/lost)
   const filteredPosts = useMemo(() => {
-    console.log('PostsList filteredPosts:', {
-      hasData: !!data,
-      postsWithUser: data?.postsWithUser,
-      postsCount: data?.postsWithUser?.length,
-      totalPages: data?.totalPages,
-      page: data?.page
-    });
     if (!data?.postsWithUser) return [];
     return data.postsWithUser;
   }, [data?.postsWithUser]);
@@ -480,13 +409,7 @@ const PostsList = () => {
   if (isSuccess && currentCountry) {
     const { totalPages } = data;
 
-    console.log('PostsList rendering with data:', {
-      filteredPosts: filteredPosts?.length,
-      totalPages,
-      currentCountry,
-      fl,
-      hasActiveFilters
-    });
+
 
     return (
       <Box sx={{ 
@@ -793,11 +716,7 @@ const PostsList = () => {
     );
   }
   
-  console.log('PostsList: About to return content:', { 
-    hasContent: !!content, 
-    contentType: typeof content,
-    currentPath: window.location.pathname 
-  });
+
   
   return content;
 };

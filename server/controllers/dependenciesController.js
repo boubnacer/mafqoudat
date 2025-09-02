@@ -19,7 +19,6 @@ const getDashboard = async (req, res) => {
     // Generate cache key
     const cacheKey = cacheService.generateKey('dashboard', {
       currentCountry,
-      language,
       user: req.user?.id || 'anonymous'
     });
     
@@ -28,7 +27,7 @@ const getDashboard = async (req, res) => {
     if (cachedDashboard) {
       console.log('📦 Dashboard served from cache');
       // Force cache invalidation to ensure fresh data with correct field names
-      await cacheService.invalidatePattern('dashboard:*');
+
       console.log('🔄 Dashboard cache invalidated, fetching fresh data');
     }
     
@@ -97,7 +96,55 @@ const getDashboard = async (req, res) => {
       console.log('Dashboard: Starting trending post aggregation for country:', currentCountry);
       trendingPost = await Post.aggregate([
       { $match: { country: new mongoose.Types.ObjectId(currentCountry) } },
-      // Simple approach - use fields directly
+        // Handle undefined category and city fields and convert to ObjectIds
+      {
+        $addFields: {
+          category: { $ifNull: ["$category", null] },
+          city: { $ifNull: ["$city", null] },
+          hasValidCategory: { $ne: ["$category", null] },
+          hasValidCity: { $ne: ["$city", null] },
+          hasValidFoundLost: { $ne: ["$foundLost", null] }
+        }
+      },
+      // Convert string IDs to ObjectIds for lookups (with error handling)
+      {
+        $addFields: {
+          categoryObjectId: {
+            $cond: {
+              if: { $and: [{ $ne: ["$category", null] }, { $ne: ["$category", ""] }] },
+              then: { $toObjectId: "$category" },
+              else: null
+            }
+          },
+          cityObjectId: {
+            $cond: {
+              if: { 
+                    $and: [
+                      { $ne: ["$city", null] }, 
+                      { $ne: ["$city", ""] },
+                      { $regexMatch: { input: { $toString: "$city" }, regex: "^[0-9a-fA-F]{24}$" } }
+                    ] 
+                  },
+              then: { $toObjectId: "$city" },
+              else: null
+            }
+          },
+          foundLostObjectId: {
+            $cond: {
+              if: { $and: [{ $ne: ["$foundLost", null] }, { $ne: ["$foundLost", ""] }] },
+              then: { $toObjectId: "$foundLost" },
+              else: null
+            }
+          },
+          countryObjectId: {
+            $cond: {
+              if: { $and: [{ $ne: ["$country", null] }, { $ne: ["$country", ""] }] },
+              then: { $toObjectId: "$country" },
+              else: null
+            }
+          }
+        }
+      },
       {
         $lookup: {
           from: "categories",
@@ -272,11 +319,12 @@ const getDashboard = async (req, res) => {
           createdAt: 1,
           updatedAt: 1,
           username: { $ifNull: ["$User.username", "Unknown"] },
-          categoryname: "$Category.code",
+          categoryname: { $ifNull: ["$Category.code", "ELECTRONICS"] },
           contact: 1,
           image: 1,
-          countryLabels: "$Country.labels",
-          countryname: "$Country.code",
+          countryLabels: { $ifNull: ["$Country.labels", {}] },
+          countryname: { $ifNull: ["$Country.code", "MOROCCO"] },
+          // Add missing fields for debugging
           category: 1,
           foundLost: 1,
         },
@@ -305,37 +353,86 @@ const getDashboard = async (req, res) => {
           foundLost: lostOption._id,
         },
       },
+      // Handle undefined category and city fields and convert to ObjectIds
+      {
+        $addFields: {
+          category: { $ifNull: ["$category", null] },
+          city: { $ifNull: ["$city", null] },
+          hasValidCategory: { $ne: ["$category", null] },
+          hasValidCity: { $ne: ["$city", null] },
+          hasValidFoundLost: { $ne: ["$foundLost", null] }
+        }
+      },
+      // Convert string IDs to ObjectIds for lookups (with error handling)
+      {
+        $addFields: {
+          categoryObjectId: {
+            $cond: {
+              if: { $and: [{ $ne: ["$category", null] }, { $ne: ["$category", ""] }] },
+              then: { $toObjectId: "$category" },
+              else: null
+            }
+          },
+          cityObjectId: {
+            $cond: {
+              if: { 
+                    $and: [
+                      { $ne: ["$city", null] }, 
+                      { $ne: ["$city", ""] },
+                      { $regexMatch: { input: { $toString: "$city" }, regex: "^[0-9a-fA-F]{24}$" } }
+                    ] 
+                  },
+              then: { $toObjectId: "$city" },
+              else: null
+            }
+          },
+          foundLostObjectId: {
+            $cond: {
+              if: { $and: [{ $ne: ["$foundLost", null] }, { $ne: ["$foundLost", ""] }] },
+              then: { $toObjectId: "$foundLost" },
+              else: null
+            }
+          },
+          countryObjectId: {
+            $cond: {
+              if: { $and: [{ $ne: ["$country", null] }, { $ne: ["$country", ""] }] },
+              then: { $toObjectId: "$country" },
+              else: null
+            }
+          }
+        }
+      },
       {
         $lookup: {
           from: "categories",
-          localField: "category",
+          localField: "categoryObjectId",
           foreignField: "_id",
           as: "Category",
         },
       },
-      { $unwind: "$Category" },
+      { $unwind: { path: "$Category", preserveNullAndEmptyArrays: true } },
       {
         $lookup: {
           from: "foundlosts",
-          localField: "foundLost",
+          localField: "foundLostObjectId",
           foreignField: "_id",
           as: "Floptions",
         },
       },
-      { $unwind: "$Floptions" },
+      { $unwind: { path: "$Floptions", preserveNullAndEmptyArrays: true } },
       {
         $lookup: {
           from: "countries",
-          localField: "country",
+          localField: "countryObjectId",
           foreignField: "_id",
           as: "Country",
         },
       },
-      { $unwind: "$Country" },
+      { $unwind: { path: "$Country", preserveNullAndEmptyArrays: true } },
       {
         $lookup: {
           from: "cities",
-          localField: "city",
+          localField: "cityObjectId",
           foreignField: "_id",
           as: "City",
         },
@@ -362,11 +459,12 @@ const getDashboard = async (req, res) => {
           createdAt: 1,
           updatedAt: 1,
           username: { $ifNull: ["$User.username", "Unknown"] },
-          categoryname: "$Category.code",
+          categoryname: { $ifNull: ["$Category.code", "ELECTRONICS"] },
           contact: 1,
           image: 1,
-          countryLabels: "$Country.labels",
-          countryname: "$Country.code",
+          countryLabels: { $ifNull: ["$Country.labels", {}] },
+          countryname: { $ifNull: ["$Country.code", "MOROCCO"] },
+          // Add missing fields for debugging
           category: 1,
           foundLost: 1,
         },
@@ -485,7 +583,7 @@ const getDashboard = async (req, res) => {
     await cacheService.set(cacheKey, response, 300);
     
     // Invalidate any old cached data to ensure fresh data
-    await cacheService.invalidatePattern('dashboard:*');
+    
     
     res.status(200).json(response);
   } catch (error) {
@@ -552,19 +650,7 @@ const getCountries = async (req, res) => {
   try {
     const { language = 'en', search, active = true } = req.query;
     
-    // Generate cache key
-    const cacheKey = cacheService.generateKey('countries', {
-      language,
-      search,
-      active
-    });
-    
-    // Check cache first
-    const cachedCountries = await cacheService.get(cacheKey);
-    if (cachedCountries) {
-      console.log('📦 Countries served from cache');
-      return res.json(cachedCountries);
-    }
+
     
     let query = {};
     if (active === 'true' || active === true) {
@@ -796,7 +882,7 @@ const createCategory = async (req, res) => {
     const addedCategory = await Category.create(newCategory);
     
     // Invalidate categories cache after creation
-    await cacheService.invalidatePattern('categories*');
+    
     
     res.status(201).json({
       success: true,
@@ -867,7 +953,7 @@ const createFoundLost = async (req, res) => {
     const addedPostType = await FoundLost.create(newPostType);
     
     // Invalidate fl-options cache after creation
-    await cacheService.invalidatePattern('fl-options*');
+    
     
     res.status(201).json({
       success: true,

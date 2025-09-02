@@ -63,21 +63,9 @@ const Dash = () => {
 
 
 
-  // Show error if there's an API error, but don't block the UI
-  if (isError) {
-    console.log('Dashboard error:', error?.data?.message || error?.message || 'Unknown error');
-  }
 
-  // Debug logging for trend data
-  console.log('Dash component debug:', {
-    trend,
-    data,
-    isLoading,
-    currentCountry,
-    hasNoData: !data?.totalFounds && !data?.totalLosts && !data?.totalPosts && 
-               (!data?.recentFounds || data?.recentFounds.length === 0) && 
-               (!data?.recentLosts || data?.recentLosts.length === 0)
-  });
+
+
 
 
 
