@@ -22,7 +22,7 @@ const cacheMiddleware = (prefix, ttl = CACHE_TTL.DYNAMIC_DATA) => {
       ...req.query,
       ...req.params,
       user: req.user?.id || 'anonymous',
-      lang: req.headers['accept-language'] || 'en'
+      lang: req.query.language || req.headers['accept-language'] || 'en'
     });
 
     try {

@@ -79,8 +79,37 @@ export const useDashboard = () => {
     currentCountry,
     language: currentLanguage
   }, {
-    skip: !currentCountry
+    skip: !currentCountry,
+    // Force refetch to avoid stale cache issues
+    refetchOnMountOrArgChange: true,
+    // Disable cache to prevent stale data
+    keepUnusedDataFor: 0,
+    // Force refetch when language changes
+    refetchOnFocus: true
   });
+
+  // Debug logging to see what's happening with the data
+  useEffect(() => {
+    if (data) {
+      console.log('useDashboard: Dashboard data received:', {
+        hasTrendingPost: !!data.trendingPost,
+        trendingPostCategory: data.trendingPost?.categoryname,
+        trendingPostCreatedAt: data.trendingPost?.createdAt,
+        recentFoundsCount: data.recentFounds?.length || 0,
+        firstRecentFound: data.recentFounds?.[0] ? {
+          categoryname: data.recentFounds[0].categoryname,
+          createdAt: data.recentFounds[0].createdAt,
+          cityName: data.recentFounds[0].cityName
+        } : null,
+        recentLostsCount: data.recentLosts?.length || 0,
+        firstRecentLost: data.recentLosts?.[0] ? {
+          categoryname: data.recentLosts[0].categoryname,
+          createdAt: data.recentLosts[0].createdAt,
+          cityName: data.recentLosts[0].cityName
+        } : null
+      });
+    }
+  }, [data]);
 
   // Search query - allow public access
   const { 

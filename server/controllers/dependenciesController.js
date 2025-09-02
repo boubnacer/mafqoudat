@@ -19,6 +19,7 @@ const getDashboard = async (req, res) => {
     // Generate cache key
     const cacheKey = cacheService.generateKey('dashboard', {
       currentCountry,
+      language,
       user: req.user?.id || 'anonymous'
     });
     
@@ -550,6 +551,20 @@ const getflOptions = async (req, res) => {
 const getCountries = async (req, res) => {
   try {
     const { language = 'en', search, active = true } = req.query;
+    
+    // Generate cache key
+    const cacheKey = cacheService.generateKey('countries', {
+      language,
+      search,
+      active
+    });
+    
+    // Check cache first
+    const cachedCountries = await cacheService.get(cacheKey);
+    if (cachedCountries) {
+      console.log('📦 Countries served from cache');
+      return res.json(cachedCountries);
+    }
     
     let query = {};
     if (active === 'true' || active === true) {
