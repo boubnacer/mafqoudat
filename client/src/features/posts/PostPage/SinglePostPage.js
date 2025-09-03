@@ -535,14 +535,13 @@ const SinglePostPage = ({
         // This is a last resort when the server doesn't populate the lookup fields
         if (!foundLostValue && foundLost && typeof foundLost === 'string' && foundLost.length === 24) {
           console.log('🔍 Have ObjectId, attempting to determine status from known IDs...');
-          // These are the known ObjectIds from the database
-          // You might need to update these based on your actual database
-          if (foundLost === '68a4b54ab46524c54c553cc4') { // LOST
+          // These are the known ObjectIds from your database
+          if (foundLost === '68b708a085dd243c40a90826') { // LOST
             console.log('🔍 Determined LOST from ObjectId');
             foundLostValue = "LOST";
             displayLabel = t('lost');
             foundLostColor = "#F44336";
-          } else if (foundLost === '68a4b54ab46524c54c553cc3') { // FOUND
+          } else if (foundLost === '68b708a085dd243c40a90825') { // FOUND
             console.log('🔍 Determined FOUND from ObjectId');
             foundLostValue = "FOUND";
             displayLabel = t('found');
