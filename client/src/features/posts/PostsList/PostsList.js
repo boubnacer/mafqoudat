@@ -100,7 +100,6 @@ const PostsList = () => {
     // Check if Redux store is properly initialized
     const checkStore = () => {
       const state = store.getState();
-      console.log('Redux store state:', state);
       setStoreReady(true);
     };
 
