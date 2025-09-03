@@ -88,8 +88,7 @@ const SinglePostPage = ({
   // Category object from aggregation
   Category,
   // API transformation fields
-  foundLostLabel,
-  floptionName
+  foundLostLabel
 }) => {
   const navigate = useNavigate();
   const theme = useTheme();
@@ -358,7 +357,6 @@ const SinglePostPage = ({
       foundLost,
       Floptions,
       foundLostLabel,
-      floptionName,
       foundLostType: typeof foundLost,
       FloptionsType: typeof Floptions,
       FloptionsKeys: Floptions ? Object.keys(Floptions) : null,
@@ -531,21 +529,7 @@ const SinglePostPage = ({
           categoryname
         });
         
-        // Check if there's a floptionName field from server aggregation
-        if (floptionName) {
-          console.log('🔍 Found floptionName:', floptionName);
-          if (floptionName.toLowerCase() === 'lost') {
-            console.log('🔍 Determined LOST from floptionName');
-            foundLostValue = "LOST";
-            displayLabel = t('lost');
-            foundLostColor = "#F44336";
-          } else if (floptionName.toLowerCase() === 'found') {
-            console.log('🔍 Determined FOUND from floptionName');
-            foundLostValue = "FOUND";
-            displayLabel = t('found');
-            foundLostColor = "#4CAF50";
-          }
-        }
+
         
         // Additional fallback: Check if we can determine from the foundLost ObjectId
         // This is a last resort when the server doesn't populate the lookup fields
@@ -565,6 +549,8 @@ const SinglePostPage = ({
             foundLostColor = "#4CAF50";
           }
         }
+        
+
       }
     }
 
@@ -586,7 +572,7 @@ const SinglePostPage = ({
     console.log('🔍 SinglePostPage Found/Lost Final result:', result);
     
     return result;
-  }, [foundLost, Floptions, foundLostLabel, floptionName, titleLabels, description, currentLanguage, t]);
+  }, [foundLost, Floptions, foundLostLabel, titleLabels, description, currentLanguage, t]);
 
   // Memoized image URL computation
   const imageUrl = useMemo(() => {

@@ -99,24 +99,11 @@ export const postsApiSlice = apiSlice.injectEndpoints({
         const post = responseData;
         const language = arg?.language || 'en';
         
-        // Transform post data to handle new multilingual structure
-        // Handle foundLost field - could be ObjectId or populated object
-        if (post.foundLost) {
-          if (typeof post.foundLost === 'object' && post.foundLost.labels) {
-            // It's a populated object with labels
-            const foundLostLabel = post.foundLost.labels?.[language] || post.foundLost.labels?.en || post.foundLost.code;
-            post.foundLostLabel = foundLostLabel;
-          } else if (post.Floptions && post.Floptions.length > 0) {
-            // Use Floptions from aggregation if available
-            const flOption = post.Floptions[0];
-            if (flOption && flOption.labels) {
-              const foundLostLabel = flOption.labels?.[language] || flOption.labels?.en || flOption.code;
-              post.foundLostLabel = foundLostLabel;
-              // Also extract the floptionName for additional fallback
-              post.floptionName = flOption.code;
-            }
-          }
-        }
+                 // Transform post data to handle new multilingual structure
+         if (post.foundLost && typeof post.foundLost === 'object') {
+           const foundLostLabel = post.foundLost.labels?.[language] || post.foundLost.labels?.en || post.foundLost.code;
+           post.foundLostLabel = foundLostLabel;
+         }
         
         if (post.country && typeof post.country === 'object') {
           const countryLabel = post.country.labels?.[language] || post.country.labels?.en || post.country.code;
