@@ -295,19 +295,6 @@ const PostsList = () => {
   // Get posts from API response (already filtered by country and found/lost)
   const filteredPosts = useMemo(() => {
     if (!data?.postsWithUser) return [];
-    
-    // Debug: Log the actual data structure
-    console.log('PostsList - API data received:', {
-      totalPosts: data.postsWithUser?.length || 0,
-      firstPost: data.postsWithUser?.[0] ? {
-        _id: data.postsWithUser[0]._id,
-        categoryname: data.postsWithUser[0].categoryname,
-        createdAt: data.postsWithUser[0].createdAt,
-        allKeys: Object.keys(data.postsWithUser[0])
-      } : null,
-      allPosts: data.postsWithUser
-    });
-    
     return data.postsWithUser;
   }, [data?.postsWithUser]);
 

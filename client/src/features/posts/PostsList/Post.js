@@ -54,14 +54,8 @@ const Post = ({ post, viewMode = "grid" }) => {
   const [reportDialogOpen, setReportDialogOpen] = useState(false);
   const [submitReport] = useSubmitReportMutation();
 
-  // Debug: Log the actual post object structure
-  console.log('Post component received post:', {
-    _id: post?._id,
-    categoryname: post?.categoryname,
-    createdAt: post?.createdAt,
-    allKeys: post ? Object.keys(post) : [],
-    post: post
-  });
+  // Simple debug to see what we're getting
+  console.log('Post data:', post);
 
   // Memoized event handlers
   const handleSubmitReport = useCallback(async (reportData) => {

@@ -29,45 +29,8 @@ export const postsApiSlice = apiSlice.injectEndpoints({
         },
       }),
       transformResponse: (responseData, meta, arg) => {
-        const { postsWithUser, pageSize, totalPages, page } = responseData;
-        const language = arg?.language || 'en';
-
-        // Transform post data to handle new multilingual structure
-        const transformedPosts = postsWithUser.map(post => {
-          // Create a new object instead of mutating the original
-          const transformedPost = { ...post };
-          
-          // Ensure foundLost data is properly structured
-          if (transformedPost.foundLost && typeof transformedPost.foundLost === 'object') {
-            // Use the label for the current language
-            const foundLostLabel = transformedPost.foundLost.labels?.[language] || transformedPost.foundLost.labels?.en || transformedPost.foundLost.code;
-            transformedPost.foundLostLabel = foundLostLabel;
-          }
-          
-          // Ensure country data is properly structured
-          if (transformedPost.country && typeof transformedPost.country === 'object') {
-            const countryLabel = transformedPost.country.labels?.[language] || transformedPost.country.labels?.en || transformedPost.country.code;
-            transformedPost.countryLabel = countryLabel;
-          }
-
-          // Ensure city data is properly structured
-          if (transformedPost.cityLabels && typeof transformedPost.cityLabels === 'object') {
-            const cityLabel = transformedPost.cityLabels[language] || transformedPost.cityLabels.en || transformedPost.cityName || transformedPost.city;
-            transformedPost.cityLabel = cityLabel;
-          } else if (transformedPost.cityName) {
-            transformedPost.cityLabel = transformedPost.cityName;
-          } else if (transformedPost.city && typeof transformedPost.city === 'string') {
-            transformedPost.cityLabel = transformedPost.city;
-          }
-
-          return transformedPost;
-        });
-
-        return { 
-          postsWithUser: transformedPosts, 
-          page, 
-          totalPages 
-        };
+        // Simply return the data as-is without transformations
+        return responseData;
       },
       transformErrorResponse: (response) => {
         // Handle server error responses
@@ -99,24 +62,8 @@ export const postsApiSlice = apiSlice.injectEndpoints({
         params: { language }
       }),
             transformResponse: (responseData, meta, arg) => {
-        const post = responseData;
-        const language = arg?.language || 'en';
-        
-        // Create a new object instead of mutating the original
-        const transformedPost = { ...post };
-        
-        // Transform post data to handle new multilingual structure
-        if (transformedPost.foundLost && typeof transformedPost.foundLost === 'object') {
-          const foundLostLabel = transformedPost.foundLost.labels?.[language] || transformedPost.foundLost.labels?.en || transformedPost.foundLost.code;
-          transformedPost.foundLostLabel = foundLostLabel;
-        }
-       
-        if (transformedPost.country && typeof transformedPost.country === 'object') {
-          const countryLabel = transformedPost.country.labels?.[language] || transformedPost.country.labels?.en || transformedPost.country.code;
-          transformedPost.countryLabel = countryLabel;
-        }
-
-        return transformedPost;
+        // Simply return the data as-is without transformations
+        return responseData;
       },
       transformErrorResponse: (response) => {
         // Handle server error responses
@@ -152,6 +99,7 @@ export const postsApiSlice = apiSlice.injectEndpoints({
         },
       }),
       transformResponse: (responseData, meta, arg) => {
+        // Simply return the data as-is without transformations
         return responseData;
       },
       transformErrorResponse: (response) => {
