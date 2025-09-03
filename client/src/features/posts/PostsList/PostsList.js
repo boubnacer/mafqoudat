@@ -41,7 +41,6 @@ import FlexCenter from "../../../components/FlexCenter";
 
 
 const PostsList = () => {
-  console.log('PostsList component is running!');
   useTitle("Mafkoudat | Posts List");
 
   const theme = useTheme();

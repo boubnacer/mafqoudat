@@ -54,8 +54,12 @@ const Post = ({ post, viewMode = "grid" }) => {
   const [reportDialogOpen, setReportDialogOpen] = useState(false);
   const [submitReport] = useSubmitReportMutation();
 
-  // Simple debug to see what we're getting
-  console.log('Post data:', post);
+  // Debug: Add a simple test to see if component is rendering
+  console.log('Post component will render with data:', {
+    categoryname: post.categoryname,
+    createdAt: post.createdAt,
+    cityName: post.cityName
+  });
 
   // Memoized event handlers
   const handleSubmitReport = useCallback(async (reportData) => {
