@@ -18,6 +18,7 @@ export const translations = {
     unknownCountry: "Unknown Country",
     unknownCategory: "Unknown Category",
     unknownCity: "Unknown City",
+    statusUnknown: "Status Unknown",
     
     // Report Dialog translations
     reportPostDescription: "Please select a reason for reporting this post. This helps us review and take appropriate action.",
@@ -723,6 +724,7 @@ export const translations = {
     unknownCountry: "Pays inconnu",
     unknownCategory: "Catégorie inconnue",
     unknownCity: "Ville inconnue",
+    statusUnknown: "Statut inconnu",
     
     // Report Dialog translations
     reportPostDescription: "Veuillez sélectionner une raison pour signaler cette publication. Cela nous aide à examiner et à prendre les mesures appropriées.",
@@ -1408,6 +1410,7 @@ export const translations = {
     unknownCountry: "بلد غير معروف",
     unknownCategory: "فئة غير معروفة",
     unknownCity: "مدينة غير معروفة",
+    statusUnknown: "الحالة غير معروفة",
     
     // Report Dialog translations
     reportPostDescription: "يرجى اختيار سبب للإبلاغ عن هذا المنشور. هذا يساعدنا في المراجعة واتخاذ الإجراء المناسب.",

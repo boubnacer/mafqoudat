@@ -53,7 +53,9 @@ const SinglePost = () => {
           phone: true,
           email: false,
           whatsapp: false
-        }
+        },
+    // Ensure foundLostLabel is passed if available from API transformation
+    foundLostLabel: post.foundLostLabel || null
   };
 
   return <SinglePostPage {...sanitizedPost} />;

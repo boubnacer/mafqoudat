@@ -86,7 +86,9 @@ const SinglePostPage = ({
   promotionProcessed,
   promotionProcessedAt,
   // Category object from aggregation
-  Category
+  Category,
+  // API transformation fields
+  foundLostLabel
 }) => {
   const navigate = useNavigate();
   const theme = useTheme();
@@ -354,27 +356,28 @@ const SinglePostPage = ({
     console.log('🔍 SinglePostPage Found/Lost Debug:', {
       foundLost,
       Floptions,
+      foundLostLabel,
       foundLostType: typeof foundLost,
       FloptionsType: typeof Floptions,
       FloptionsKeys: Floptions ? Object.keys(Floptions) : null
     });
 
-    // Simple and direct approach based on server logs (same as TrendingItem)
-    let foundLostValue = "FOUND"; // Default
-    let foundLostLabel = t('found'); // Default
-    let foundLostColor = "#4CAF50"; // Default green for FOUND
+    let foundLostValue = null;
+    let displayLabel = null;
+    let foundLostColor = null;
     
     // Priority 1: Use Floptions.code if available (populated object from server)
     if (Floptions && Floptions.code) {
       console.log('🔍 Using Floptions.code:', Floptions.code);
       foundLostValue = Floptions.code;
-      foundLostColor = Floptions.color || "#4CAF50";
+      foundLostColor = Floptions.color;
       
-      // Simple label logic
+      // Set label and color based on code
       if (Floptions.code === 'FOUND') {
-        foundLostLabel = t('found');
+        displayLabel = t('found');
+        foundLostColor = foundLostColor || "#4CAF50";
       } else if (Floptions.code === 'LOST') {
-        foundLostLabel = t('lost');
+        displayLabel = t('lost');
         foundLostColor = foundLostColor || "#F44336";
       }
     }
@@ -384,44 +387,116 @@ const SinglePostPage = ({
       if (typeof foundLost === 'string') {
         // If it's a string, check if it's an ObjectId or a code
         if (foundLost.length === 24) {
-          // It's likely an ObjectId, default to FOUND for now
-          foundLostValue = "FOUND";
-          foundLostLabel = t('found');
-          foundLostColor = "#4CAF50";
+          // It's likely an ObjectId, we can't determine the value from this
+          // This should be handled by the server to populate Floptions
+          console.log('🔍 Found ObjectId, cannot determine status without server population');
+          foundLostValue = null;
         } else {
           // It's a code string
           foundLostValue = foundLost.toUpperCase();
           if (foundLost.toUpperCase() === 'FOUND') {
-            foundLostLabel = t('found');
+            displayLabel = t('found');
             foundLostColor = "#4CAF50";
           } else if (foundLost.toUpperCase() === 'LOST') {
-            foundLostLabel = t('lost');
+            displayLabel = t('lost');
             foundLostColor = "#F44336";
           }
         }
       } else if (foundLost.code) {
         // It's an object with code
         foundLostValue = foundLost.code;
-        foundLostColor = foundLost.color || "#4CAF50";
+        foundLostColor = foundLost.color;
         
         if (foundLost.code === 'FOUND') {
-          foundLostLabel = t('found');
+          displayLabel = t('found');
+          foundLostColor = foundLostColor || "#4CAF50";
         } else if (foundLost.code === 'LOST') {
-          foundLostLabel = t('lost');
+          displayLabel = t('lost');
           foundLostColor = foundLostColor || "#F44336";
         }
       }
     }
 
+    // If we still don't have a value, we need to determine it from the data
+    // Check if we can infer from other fields or if we need to make an API call
+    if (!foundLostValue) {
+      console.log('🔍 No foundLost value determined, checking for alternative sources...');
+      
+      // Try to get from the API response or make a fallback determination
+      if (foundLost && typeof foundLost === 'object' && foundLost._id) {
+        // We have an ObjectId reference, but need the actual data
+        console.log('🔍 Have ObjectId reference, need server to populate this field');
+      }
+      
+      // Check if we can determine from the post title or description
+      // This is a fallback for when the server doesn't populate the foundLost field
+      if (titleLabels && titleLabels[currentLanguage]) {
+        const title = titleLabels[currentLanguage].toLowerCase();
+        if (title.includes('lost') || title.includes('perdu') || title.includes('مفقود')) {
+          console.log('🔍 Determined LOST from title');
+          foundLostValue = "LOST";
+          displayLabel = t('lost');
+          foundLostColor = "#F44336";
+        } else if (title.includes('found') || title.includes('trouvé') || title.includes('موجود')) {
+          console.log('🔍 Determined FOUND from title');
+          foundLostValue = "FOUND";
+          displayLabel = t('found');
+          foundLostColor = "#4CAF50";
+        }
+      }
+      
+      // If still no value, check description
+      if (!foundLostValue && description) {
+        const desc = description.toLowerCase();
+        if (desc.includes('lost') || desc.includes('perdu') || desc.includes('مفقود')) {
+          console.log('🔍 Determined LOST from description');
+          foundLostValue = "LOST";
+          displayLabel = t('lost');
+          foundLostColor = "#F44336";
+        } else if (desc.includes('found') || desc.includes('trouvé') || desc.includes('موجود')) {
+          console.log('🔍 Determined FOUND from description');
+          foundLostValue = "FOUND";
+          displayLabel = t('found');
+          foundLostColor = "#4CAF50";
+        }
+      }
+      
+      // If still no value, check if we have a foundLostLabel from the API transformation
+      if (!foundLostValue && foundLostLabel) {
+        const label = foundLostLabel.toLowerCase();
+        if (label.includes('lost') || label.includes('perdu') || label.includes('مفقود')) {
+          console.log('🔍 Determined LOST from foundLostLabel');
+          foundLostValue = "LOST";
+          displayLabel = t('lost');
+          foundLostColor = "#F44336";
+        } else if (label.includes('found') || label.includes('trouvé') || label.includes('موجود')) {
+          console.log('🔍 Determined FOUND from foundLostLabel');
+          foundLostValue = "FOUND";
+          displayLabel = t('found');
+          foundLostColor = "#4CAF50";
+        }
+      }
+    }
+
+    // Set defaults only if we couldn't determine the actual value
+    if (!foundLostValue) {
+      console.log('🔍 No status determined, using intelligent default');
+      // Try to infer from the post title, description, or other fields
+      // For now, we'll use a neutral approach and let the user know
+      foundLostValue = "UNKNOWN";
+      displayLabel = t('statusUnknown') || "Status Unknown";
+      foundLostColor = "#FF9800"; // Orange for unknown
+    }
+
     const isFound = foundLostValue === "FOUND";
-    const statusColor = isFound ? "success" : "error";
-    const statusText = foundLostLabel;
+    const statusColor = isFound ? "success" : foundLostValue === "LOST" ? "error" : "warning";
+    const statusText = displayLabel;
 
     const result = { isFound, statusColor, statusText };
     console.log('🔍 SinglePostPage Found/Lost Final result:', result);
     
     return result;
-  }, [foundLost, Floptions, currentLanguage, t]);
+  }, [foundLost, Floptions, foundLostLabel, titleLabels, description, currentLanguage, t]);
 
   // Memoized image URL computation
   const imageUrl = useMemo(() => {
@@ -520,15 +595,27 @@ const SinglePostPage = ({
                 <Chip
                   label={foundLostStatus.statusText}
                   sx={{
-                    backgroundColor: alpha(foundLostStatus.statusColor === 'success' ? '#4CAF50' : '#F44336', 0.95),
+                    backgroundColor: alpha(
+                      foundLostStatus.statusColor === 'success' ? '#4CAF50' : 
+                      foundLostStatus.statusColor === 'error' ? '#F44336' : 
+                      '#FF9800', 0.95
+                    ),
                     color: '#fff',
                     fontWeight: 700,
                     fontSize: '14px',
                     height: 32,
                     padding: '0 12px',
                     borderRadius: '16px',
-                    boxShadow: `0 2px 8px ${alpha(foundLostStatus.statusColor === 'success' ? '#4CAF50' : '#F44336', 0.4)}`,
-                    border: `1px solid ${alpha(foundLostStatus.statusColor === 'success' ? '#4CAF50' : '#F44336', 0.3)}`,
+                    boxShadow: `0 2px 8px ${alpha(
+                      foundLostStatus.statusColor === 'success' ? '#4CAF50' : 
+                      foundLostStatus.statusColor === 'error' ? '#F44336' : 
+                      '#FF9800', 0.4
+                    )}`,
+                    border: `1px solid ${alpha(
+                      foundLostStatus.statusColor === 'success' ? '#4CAF50' : 
+                      foundLostStatus.statusColor === 'error' ? '#F44336' : 
+                      '#FF9800', 0.3
+                    )}`,
                     backdropFilter: 'blur(10px)',
                     transition: 'all 0.3s ease',
                     '& .MuiChip-label': {
@@ -536,9 +623,17 @@ const SinglePostPage = ({
                       fontWeight: 700
                     },
                     '&:hover': {
-                      backgroundColor: alpha(foundLostStatus.statusColor === 'success' ? '#4CAF50' : '#F44336', 1),
+                      backgroundColor: alpha(
+                        foundLostStatus.statusColor === 'success' ? '#4CAF50' : 
+                        foundLostStatus.statusColor === 'error' ? '#F44336' : 
+                        '#FF9800', 1
+                      ),
                       transform: 'translateY(-1px)',
-                      boxShadow: `0 4px 12px ${alpha(foundLostStatus.statusColor === 'success' ? '#4CAF50' : '#F44336', 0.6)}`
+                      boxShadow: `0 4px 12px ${alpha(
+                        foundLostStatus.statusColor === 'success' ? '#4CAF50' : 
+                        foundLostStatus.statusColor === 'error' ? '#F44336' : 
+                        '#FF9800', 0.6
+                      )}`
                     }
                   }}
                 />
