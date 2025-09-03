@@ -148,17 +148,6 @@ const PostsList = () => {
     refetchOnReconnect: false
   });
 
-  console.log('PostsList API query state:', {
-    isLoading,
-    isSuccess,
-    isError,
-    error,
-    hasData: !!data,
-    currentCountry,
-    storeReady,
-    categoriesLoading
-  });
-
   // Add timeout for loading states - MOVED AFTER query hooks
   useEffect(() => {
     if (isLoading || categoriesLoading) {
@@ -305,19 +294,6 @@ const PostsList = () => {
   // Get posts from API response (already filtered by country and found/lost)
   const filteredPosts = useMemo(() => {
     if (!data?.postsWithUser) return [];
-    
-    // Debug: Log what we're getting from the API
-    console.log('=== POSTS LIST DEBUG ===');
-    console.log('API Response data:', data);
-    console.log('postsWithUser array:', data.postsWithUser);
-    if (data.postsWithUser && data.postsWithUser.length > 0) {
-      console.log('First post object:', data.postsWithUser[0]);
-      console.log('First post keys:', Object.keys(data.postsWithUser[0]));
-      console.log('First post categoryname:', data.postsWithUser[0].categoryname);
-      console.log('First post createdAt:', data.postsWithUser[0].createdAt);
-    }
-    console.log('=== END DEBUG ===');
-    
     return data.postsWithUser;
   }, [data?.postsWithUser]);
 
