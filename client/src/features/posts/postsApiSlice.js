@@ -34,30 +34,51 @@ export const postsApiSlice = apiSlice.injectEndpoints({
 
         // Transform post data to handle new multilingual structure
         const transformedPosts = postsWithUser.map(post => {
+          // Debug: Log the original post structure
+          console.log('Original post data:', {
+            _id: post._id,
+            categoryname: post.categoryname,
+            createdAt: post.createdAt,
+            hasCategory: !!post.categoryname,
+            hasCreatedAt: !!post.createdAt
+          });
+          
+          // Create a new object instead of mutating the original
+          const transformedPost = { ...post };
+          
           // Ensure foundLost data is properly structured
-          if (post.foundLost && typeof post.foundLost === 'object') {
+          if (transformedPost.foundLost && typeof transformedPost.foundLost === 'object') {
             // Use the label for the current language
-            const foundLostLabel = post.foundLost.labels?.[language] || post.foundLost.labels?.en || post.foundLost.code;
-            post.foundLostLabel = foundLostLabel;
+            const foundLostLabel = transformedPost.foundLost.labels?.[language] || transformedPost.foundLost.labels?.en || transformedPost.foundLost.code;
+            transformedPost.foundLostLabel = foundLostLabel;
           }
           
           // Ensure country data is properly structured
-          if (post.country && typeof post.country === 'object') {
-            const countryLabel = post.country.labels?.[language] || post.country.labels?.en || post.country.code;
-            post.countryLabel = countryLabel;
+          if (transformedPost.country && typeof transformedPost.country === 'object') {
+            const countryLabel = transformedPost.country.labels?.[language] || transformedPost.country.labels?.en || transformedPost.country.code;
+            transformedPost.countryLabel = countryLabel;
           }
 
           // Ensure city data is properly structured
-          if (post.cityLabels && typeof post.cityLabels === 'object') {
-            const cityLabel = post.cityLabels[language] || post.cityLabels.en || post.cityName || post.city;
-            post.cityLabel = cityLabel;
-          } else if (post.cityName) {
-            post.cityLabel = post.cityName;
-          } else if (post.city && typeof post.city === 'string') {
-            post.cityLabel = post.city;
+          if (transformedPost.cityLabels && typeof transformedPost.cityLabels === 'object') {
+            const cityLabel = transformedPost.cityLabels[language] || transformedPost.cityLabels.en || transformedPost.cityName || transformedPost.city;
+            transformedPost.cityLabel = cityLabel;
+          } else if (transformedPost.cityName) {
+            transformedPost.cityLabel = transformedPost.cityName;
+          } else if (transformedPost.city && typeof transformedPost.city === 'string') {
+            transformedPost.cityLabel = transformedPost.city;
           }
 
-          return post;
+          // Debug: Log the transformed post structure
+          console.log('Transformed post data:', {
+            _id: transformedPost._id,
+            categoryname: transformedPost.categoryname,
+            createdAt: transformedPost.createdAt,
+            hasCategory: !!transformedPost.categoryname,
+            hasCreatedAt: !!transformedPost.createdAt
+          });
+
+          return transformedPost;
         });
 
         return { 
@@ -95,22 +116,25 @@ export const postsApiSlice = apiSlice.injectEndpoints({
         url: `/posts/${postId}`,
         params: { language }
       }),
-      transformResponse: (responseData, meta, arg) => {
+            transformResponse: (responseData, meta, arg) => {
         const post = responseData;
         const language = arg?.language || 'en';
         
-                 // Transform post data to handle new multilingual structure
-         if (post.foundLost && typeof post.foundLost === 'object') {
-           const foundLostLabel = post.foundLost.labels?.[language] || post.foundLost.labels?.en || post.foundLost.code;
-           post.foundLostLabel = foundLostLabel;
-         }
+        // Create a new object instead of mutating the original
+        const transformedPost = { ...post };
         
-        if (post.country && typeof post.country === 'object') {
-          const countryLabel = post.country.labels?.[language] || post.country.labels?.en || post.country.code;
-          post.countryLabel = countryLabel;
+        // Transform post data to handle new multilingual structure
+        if (transformedPost.foundLost && typeof transformedPost.foundLost === 'object') {
+          const foundLostLabel = transformedPost.foundLost.labels?.[language] || transformedPost.foundLost.labels?.en || transformedPost.foundLost.code;
+          transformedPost.foundLostLabel = foundLostLabel;
+        }
+       
+        if (transformedPost.country && typeof transformedPost.country === 'object') {
+          const countryLabel = transformedPost.country.labels?.[language] || transformedPost.country.labels?.en || transformedPost.country.code;
+          transformedPost.countryLabel = countryLabel;
         }
 
-        return post;
+        return transformedPost;
       },
       transformErrorResponse: (response) => {
         // Handle server error responses
