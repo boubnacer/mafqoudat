@@ -333,6 +333,23 @@ const Post = ({ post, viewMode = "grid" }) => {
           backgroundColor: isDarkMode ? alpha('#1a1a1a', 0.8) : '#ffffff'
         }}
       >
+        {/* Debug Info */}
+        <Box sx={{ 
+          position: 'absolute', 
+          top: 0, 
+          right: 0, 
+          zIndex: 1000,
+          backgroundColor: 'red',
+          color: 'white',
+          padding: '4px',
+          fontSize: '10px',
+          maxWidth: '200px'
+        }}>
+          <div>Cat: {post.categoryname || 'NULL'}</div>
+          <div>Date: {post.createdAt || 'NULL'}</div>
+          <div>City: {post.cityName || 'NULL'}</div>
+        </Box>
+        
         <Box display="flex" sx={{ height: { xs: 'auto', sm: 180 } }}>
           {/* Image Section */}
           <Box sx={{ 
