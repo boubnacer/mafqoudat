@@ -589,53 +589,7 @@ const Post = ({ post, viewMode = "grid" }) => {
             Post: {JSON.stringify({ categoryname: post?.categoryname, createdAt: post?.createdAt })}
           </Box>
 
-          {/* Debug badges - remove after fixing */}
-          <Box
-            sx={{
-              position: 'absolute',
-              top: 50,
-              left: 12,
-              backgroundColor: 'red',
-              color: 'white',
-              padding: '4px 8px',
-              borderRadius: '12px',
-              fontSize: '10px',
-              zIndex: 9999,
-            }}
-          >
-            CATEGORY: {categoryName || 'UNDEFINED'}
-          </Box>
-          
-          <Box
-            sx={{
-              position: 'absolute',
-              bottom: 50,
-              left: 12,
-              backgroundColor: 'red',
-              color: 'white',
-              padding: '4px 8px',
-              borderRadius: '8px',
-              fontSize: '10px',
-              zIndex: 9999,
-            }}
-          >
-            TIME: {created || 'UNDEFINED'}
-          </Box>
-
-          {/* Gradient Overlay */}
-          <Box
-            sx={{
-              position: 'absolute',
-              top: 0,
-              left: 0,
-              right: 0,
-              bottom: 0,
-              background: 'linear-gradient(180deg, rgba(0,0,0,0.1) 0%, rgba(0,0,0,0.4) 100%)',
-              pointerEvents: 'none'
-            }}
-          />
-
-          {/* Top Badges Container */}
+          {/* Top Badges Container - Grid View */}
           <Box
             sx={{
               position: 'absolute',
@@ -646,6 +600,7 @@ const Post = ({ post, viewMode = "grid" }) => {
               justifyContent: 'space-between',
               alignItems: 'flex-start',
               gap: 1,
+              zIndex: 10,
             }}
           >
             {/* Category Badge */}
@@ -659,6 +614,7 @@ const Post = ({ post, viewMode = "grid" }) => {
                 gap: 0.5,
                 backdropFilter: 'blur(10px)',
                 border: `1px solid ${isDarkMode ? alpha(categoryStyle.main, 0.3) : categoryStyle.main}`,
+                zIndex: 11,
               }}
             >
               <RenderIcon 
@@ -680,7 +636,7 @@ const Post = ({ post, viewMode = "grid" }) => {
             </Box>
           </Box>
 
-          {/* Time Badge */}
+          {/* Time Badge - Grid View */}
           <Box
             sx={{
               position: 'absolute',
@@ -691,6 +647,7 @@ const Post = ({ post, viewMode = "grid" }) => {
               borderRadius: '8px',
               backdropFilter: 'blur(10px)',
               border: '1px solid rgba(255,255,255,0.1)',
+              zIndex: 11,
             }}
           >
             <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.5 }}>
@@ -706,6 +663,21 @@ const Post = ({ post, viewMode = "grid" }) => {
               </Typography>
             </Box>
           </Box>
+
+          {/* Debug badges - remove after fixing */}
+          
+          {/* Gradient Overlay */}
+          <Box
+            sx={{
+              position: 'absolute',
+              top: 0,
+              left: 0,
+              right: 0,
+              bottom: 0,
+              background: 'linear-gradient(180deg, rgba(0,0,0,0.1) 0%, rgba(0,0,0,0.4) 100%)',
+              pointerEvents: 'none'
+            }}
+          />
         </Box>
 
         {/* Content Section */}
