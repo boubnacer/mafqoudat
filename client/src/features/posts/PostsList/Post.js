@@ -51,52 +51,10 @@ const Post = ({ post, viewMode = "grid" }) => {
   const navigate = useNavigate();
   const { t, currentLanguage } = useTranslation();
 
-  // Debug logging to see what fields are available
-  console.log('🔍 Post component received post:', post);
-  console.log('📋 Available fields:', post ? Object.keys(post) : 'No post object');
-  console.log('📅 createdAt:', post?.createdAt);
-  console.log('🏷️ categoryname:', post?.categoryname);
-  console.log('🏙️ cityName:', post?.cityName);
-
   const [reportDialogOpen, setReportDialogOpen] = useState(false);
   const [submitReport] = useSubmitReportMutation();
 
-  // Memoized event handlers
-  const handleSubmitReport = useCallback(async (reportData) => {
-    try {
-      const result = await submitReport(reportData).unwrap();
-      return result;
-    } catch (error) {
-      throw new Error(error.data?.message || 'Failed to submit report');
-    }
-  }, [submitReport]);
-
-  const handleViewDetails = useCallback(() => {
-    navigate(`/dash/posts/${post._id}`);
-  }, [navigate, post._id]);
-
-  const handleReport = useCallback(() => {
-    // Simple check: if no usernameId, redirect to login
-    if (!usernameId) {
-      // Store the current post URL for redirect after login
-      const currentPostUrl = `/dash/posts/${post._id}`;
-      localStorage.setItem('redirectAfterLogin', currentPostUrl);
-      
-      navigate('/login');
-      return;
-    }
-    
-    // If authenticated, open the dialog
-    setReportDialogOpen(true);
-  }, [usernameId, post._id, navigate]);
-
-  const handleCloseReportDialog = useCallback(() => {
-    setReportDialogOpen(false);
-  }, []);
-
-  if (!post) return null;
-
-  // Memoized computed values
+  // Memoized computed values - ALL HOOKS MUST BE AT TOP LEVEL
   const locale = useMemo(() => {
     switch (currentLanguage) {
       case 'ar': return ar;
@@ -129,7 +87,7 @@ const Post = ({ post, viewMode = "grid" }) => {
     let foundLostColor = theme.palette.success.main; // Default color
     
     // Check Floptions array first (this contains the actual found/lost data from the lookup)
-    if (post.Floptions && post.Floptions.length > 0) {
+    if (post?.Floptions && post.Floptions.length > 0) {
       const flOption = post.Floptions[0];
       if (flOption && flOption.code) {
         foundLostValue = flOption.code;
@@ -142,7 +100,7 @@ const Post = ({ post, viewMode = "grid" }) => {
     
     // Fallback: Check foundLost property (this is the ObjectId reference)
     if (!foundLostValue || foundLostValue === "FOUND") {
-      if (post.foundLost) {
+      if (post?.foundLost) {
         if (typeof post.foundLost === 'string') {
           foundLostValue = post.foundLost.toUpperCase();
           foundLostLabel = post.foundLost === 'FOUND' ? t('found') : t('lost');
@@ -163,7 +121,7 @@ const Post = ({ post, viewMode = "grid" }) => {
     const statusText = foundLostLabel;
 
     return { isFound, statusColor, statusText };
-  }, [post.Floptions, post.foundLost, currentLanguage, t, theme.palette.success.main, theme.palette.error.main]);
+  }, [post?.Floptions, post?.foundLost, currentLanguage, t, theme.palette.success.main, theme.palette.error.main]);
 
   // Memoized category display name computation
   const categoryName = useMemo(() => {
@@ -250,7 +208,7 @@ const Post = ({ post, viewMode = "grid" }) => {
 
   // Memoized category colors computation
   const categoryStyle = useMemo(() => {
-    const config = getCategoryConfig(post.categoryname);
+    const config = getCategoryConfig(post?.categoryname);
     const isDarkMode = theme.palette.mode === 'dark';
     
     return {
@@ -261,7 +219,7 @@ const Post = ({ post, viewMode = "grid" }) => {
       background: isDarkMode ? alpha(config.backgroundColor, 0.2) : config.backgroundColor,
       text: config.color
     };
-  }, [post.categoryname, theme.palette.mode]);
+  }, [post?.categoryname, theme.palette.mode]);
 
   const isDarkMode = theme.palette.mode === 'dark';
 
@@ -281,12 +239,12 @@ const Post = ({ post, viewMode = "grid" }) => {
 
     // Get city name with proper multilingual support
     // First priority: Use the cityLabel field from API transformation
-    if (post.cityLabel && typeof post.cityLabel === 'string' && post.cityLabel.trim()) {
+    if (post?.cityLabel && typeof post.cityLabel === 'string' && post.cityLabel.trim()) {
       return post.cityLabel.trim();
     }
     
     // Second priority: Use the populated city labels from the API (multilingual)
-    if (post.cityLabels && typeof post.cityLabels === 'object') {
+    if (post?.cityLabels && typeof post.cityLabels === 'object') {
       const cityLabel = post.cityLabels[currentLanguage] || post.cityLabels.en;
       if (cityLabel && cityLabel.trim()) {
         return cityLabel.trim();
@@ -294,31 +252,67 @@ const Post = ({ post, viewMode = "grid" }) => {
     }
     
     // Third priority: Use the cityName field from API
-    if (post.cityName && typeof post.cityName === 'string' && post.cityName.trim()) {
+    if (post?.cityName && typeof post.cityName === 'string' && post.cityName.trim()) {
       return post.cityName.trim();
     }
     
     // Fourth priority: Use the city field directly (for custom city names)
-    if (post.city && typeof post.city === 'string' && post.city.trim()) {
+    if (post?.city && typeof post.city === 'string' && post.city.trim()) {
       return post.city.trim();
     }
     
     // Last fallback: extracting from exactLocation
-    return getCityFromLocation(post.exactLocation);
-  }, [post.cityLabel, post.cityLabels, post.cityName, post.city, post.exactLocation, currentLanguage, t]);
+    return getCityFromLocation(post?.exactLocation);
+  }, [post?.cityLabel, post?.cityLabels, post?.cityName, post?.city, post?.exactLocation, currentLanguage, t]);
 
   // Memoized image URL computation
   const imageUrl = useMemo(() => {
-    if (!post.image) return ma;
+    if (!post?.image) return ma;
     return post.image.startsWith('http') 
       ? getOptimizedImageUrl(post.image, 'card') 
       : `${API_BASE_URL}/${post.image}`;
-  }, [post.image]);
+  }, [post?.image]);
 
   // Memoized error handler for image
   const handleImageError = useCallback((e) => {
     // Image failed to load
   }, []);
+
+  // Memoized event handlers
+  const handleSubmitReport = useCallback(async (reportData) => {
+    try {
+      const result = await submitReport(reportData).unwrap();
+      return result;
+    } catch (error) {
+      throw new Error(error.data?.message || 'Failed to submit report');
+    }
+  }, [submitReport]);
+
+  const handleViewDetails = useCallback(() => {
+    navigate(`/dash/posts/${post?._id}`);
+  }, [navigate, post?._id]);
+
+  const handleReport = useCallback(() => {
+    // Simple check: if no usernameId, redirect to login
+    if (!usernameId) {
+      // Store the current post URL for redirect after login
+      const currentPostUrl = `/dash/posts/${post?._id}`;
+      localStorage.setItem('redirectAfterLogin', currentPostUrl);
+      
+      navigate('/login');
+      return;
+    }
+    
+    // If authenticated, open the dialog
+    setReportDialogOpen(true);
+  }, [usernameId, post?._id, navigate]);
+
+  const handleCloseReportDialog = useCallback(() => {
+    setReportDialogOpen(false);
+  }, []);
+
+  // Early return after all hooks
+  if (!post) return null;
 
   // List view layout
   if (viewMode === "list") {
