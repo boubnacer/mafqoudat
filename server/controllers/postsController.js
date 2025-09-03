@@ -159,7 +159,7 @@ const getAllPosts = async (req, res) => {
         city: 1,
         cityName: { 
           $cond: {
-            if: { $gt: [{ $size: "$City" }, 0] },
+            if: { $ne: ["$City", null] },
             then: { $ifNull: ["$City.labels.en", "$City.name"] },
             else: null
           }
@@ -171,7 +171,7 @@ const getAllPosts = async (req, res) => {
         username: "$User.username",
         categoryname: { 
           $cond: {
-            if: { $gt: [{ $size: "$Category" }, 0] },
+            if: { $ne: ["$Category", null] },
             then: "$Category.code",
             else: "OTHER"
           }
@@ -449,7 +449,7 @@ const getFilteredPosts = async (req, res) => {
           username: "$User.username",
           categoryname: { 
             $cond: {
-              if: { $gt: [{ $size: "$Category" }, 0] },
+              if: { $ne: ["$Category", null] },
               then: "$Category.code",
               else: "OTHER"
             }
