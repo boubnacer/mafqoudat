@@ -176,7 +176,6 @@ const AppContent = () => {
           <Route path="posts" element={
             <PrefetchDependencies>
               <Suspense fallback={<LoadingFallback />}>
-                {console.log('PostsList route is being rendered')}
                 <PostsList />
               </Suspense>
             </PrefetchDependencies>
@@ -242,8 +241,6 @@ const AppContent = () => {
 };
 
 function App() {
-  console.log('App component is loading');
-  
   // useTitle("Dan D. Repairs");
 
   // Initialize localStorage (language is now handled by LanguageProvider)
