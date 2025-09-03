@@ -148,6 +148,17 @@ const PostsList = () => {
     refetchOnReconnect: false
   });
 
+  console.log('PostsList API query state:', {
+    isLoading,
+    isSuccess,
+    isError,
+    error,
+    hasData: !!data,
+    currentCountry,
+    storeReady,
+    categoriesLoading
+  });
+
   // Add timeout for loading states - MOVED AFTER query hooks
   useEffect(() => {
     if (isLoading || categoriesLoading) {
