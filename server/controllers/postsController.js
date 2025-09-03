@@ -103,7 +103,7 @@ const getAllPosts = async (req, res) => {
         as: "Category",
       },
     },
-    { $unwind: "$Category" },
+    { $unwind: { path: "$Category", preserveNullAndEmptyArrays: true } },
     {
       $lookup: {
         from: "foundlosts",
@@ -151,7 +151,7 @@ const getAllPosts = async (req, res) => {
         createdAt: 1,
         updatedAt: 1,
         username: "$User.username",
-        categoryname: "$Category.code",
+        categoryname: { $ifNull: ["$Category.code", "OTHER"] },
         countryname: "$Country.code",
         countryLabels: "$Country.labels",
         contact: 1,
@@ -230,7 +230,7 @@ const getPost = async (req, res) => {
           as: "Category",
         },
       },
-      { $unwind: "$Category" },
+      { $unwind: { path: "$Category", preserveNullAndEmptyArrays: true } },
       {
         $lookup: {
           from: "foundlosts",
@@ -278,7 +278,7 @@ const getPost = async (req, res) => {
           createdAt: 1,
           updatedAt: 1,
           username: "$User.username",
-          categoryname: "$Category.code",
+          categoryname: { $ifNull: ["$Category.code", "OTHER"] },
           countryname: "$Country.code",
           countryLabels: "$Country.labels",
           contact: 1,
@@ -374,7 +374,7 @@ const getFilteredPosts = async (req, res) => {
           as: "Category",
         },
       },
-      { $unwind: "$Category" },
+      { $unwind: { path: "$Category", preserveNullAndEmptyArrays: true } },
       {
         $lookup: {
           from: "foundlosts",
@@ -422,7 +422,7 @@ const getFilteredPosts = async (req, res) => {
           createdAt: 1,
           updatedAt: 1,
           username: "$User.username",
-          categoryname: "$Category.code",
+          categoryname: { $ifNull: ["$Category.code", "OTHER"] },
           countryname: "$Country.code",
           countryLabels: "$Country.labels",
           contact: 1,
@@ -573,23 +573,40 @@ const createNewPost = async (req, res) => {
      // Handle city validation
    let cityId = null;
    
-   console.log('🔍 DEBUG: City validation - city value:', city);
-   console.log('🔍 DEBUG: City validation - is city valid ObjectId?', city && mongoose.Types.ObjectId.isValid(city));
-   
    try {
      if (city && mongoose.Types.ObjectId.isValid(city)) {
-       console.log('🔍 DEBUG: City is valid ObjectId, checking if exists in database');
        const cityDoc = await City.findById(city).select('_id').lean();
        if (cityDoc) {
          cityId = city;
-         console.log('🔍 DEBUG: City found in database, setting cityId:', cityId);
        } else {
-         console.log('🔍 DEBUG: City ObjectId not found in database - treating as invalid');
          // If the ObjectId doesn't exist in database, treat it as invalid
          cityId = null;
        }
      } else {
-       console.log('🔍 DEBUG: City is not a valid ObjectId or is null/undefined');
+       // If we have a city value but no valid cityId, create a new city record
+       try {
+         // Use translation service to get proper translations for the custom city
+         const translations = await TranslationService.translateCityName(city, 'en');
+         
+         // Create a new city record for the custom city name with translations
+         const newCity = await City.create({
+           code: city.toUpperCase().replace(/\s+/g, '_'),
+           country: country,
+           labels: {
+             en: translations.en || city,
+             fr: translations.fr || city,
+             ar: translations.ar || city
+           },
+           isDynamic: true, // Mark as dynamically created
+           searchTerms: [city.toLowerCase()]
+         });
+         
+         cityId = newCity._id; // Use the new city's ObjectId
+       } catch (cityCreationError) {
+         console.error('🔍 DEBUG: Error creating city:', cityCreationError);
+         // If city creation fails, fall back to storing as string
+         cityId = city;
+       }
      }
    } catch (cityError) {
      console.error('Error during city validation:', cityError);
@@ -607,21 +624,14 @@ const createNewPost = async (req, res) => {
     description: description || "",
   };
 
-  console.log('🔍 DEBUG: Post data before city handling:', postData);
-
      // Handle city field
    if (cityId) {
-     console.log('🔍 DEBUG: Setting city to ObjectId:', cityId);
      postData.city = cityId;
    } else if (city) {
      // If we have a city value but no valid cityId, create a new city record
-     console.log('🔍 DEBUG: Creating new city record for:', city);
      try {
        // Use translation service to get proper translations for the custom city
-       console.log('🔍 DEBUG: Translating custom city name:', city);
        const translations = await TranslationService.translateCityName(city, 'en');
-       
-       console.log('🔍 DEBUG: Translation result:', translations);
        
        // Create a new city record for the custom city name with translations
        const newCity = await City.create({
@@ -636,7 +646,6 @@ const createNewPost = async (req, res) => {
          searchTerms: [city.toLowerCase()]
        });
        
-       console.log('🔍 DEBUG: New city created with ID:', newCity._id);
        postData.city = newCity._id; // Use the new city's ObjectId
      } catch (cityCreationError) {
        console.error('🔍 DEBUG: Error creating city:', cityCreationError);
@@ -644,12 +653,10 @@ const createNewPost = async (req, res) => {
        postData.city = city;
      }
    } else {
-     console.log('🔍 DEBUG: No city handling applied - cityId:', cityId, 'city:', city);
+     // No city handling applied - cityId is null
    }
 
-   console.log('🔍 DEBUG: Final post data:', postData);
-
-     // Add contact preferences if provided
+   // Add contact preferences if provided
    if (contactPreferences) {
      try {
        const parsedContactPreferences = JSON.parse(contactPreferences);
@@ -664,7 +671,7 @@ const createNewPost = async (req, res) => {
      }
    }
 
-     // Add additional contact if provided
+   // Add additional contact if provided
    if (additionalContact) {
      try {
        const parsedAdditionalContact = JSON.parse(additionalContact);
@@ -679,7 +686,7 @@ const createNewPost = async (req, res) => {
      }
    }
 
-     // Add Cloudinary image data if available
+   // Add Cloudinary image data if available
    if (req.cloudinaryResult) {
      postData.cloudinaryUrl = req.cloudinaryResult.url;
      postData.cloudinaryPublicId = req.cloudinaryResult.public_id;

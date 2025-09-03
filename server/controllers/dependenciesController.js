@@ -26,9 +26,7 @@ const getDashboard = async (req, res) => {
     const cachedDashboard = await cacheService.get(cacheKey);
     if (cachedDashboard) {
       console.log('📦 Dashboard served from cache');
-      // Force cache invalidation to ensure fresh data with correct field names
-
-      console.log('🔄 Dashboard cache invalidated, fetching fresh data');
+      return res.json(cachedDashboard);
     }
     
     let match = {};
@@ -153,7 +151,7 @@ const getDashboard = async (req, res) => {
           as: "Category",
         },
       },
-      { $unwind: "$Category" },
+      { $unwind: { path: "$Category", preserveNullAndEmptyArrays: true } },
       {
         $lookup: {
           from: "foundlosts",
@@ -270,7 +268,7 @@ const getDashboard = async (req, res) => {
           as: "Category",
         },
       },
-      { $unwind: "$Category" },
+      { $unwind: { path: "$Category", preserveNullAndEmptyArrays: true } },
       {
         $lookup: {
           from: "foundlosts",
