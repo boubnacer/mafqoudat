@@ -34,15 +34,6 @@ export const postsApiSlice = apiSlice.injectEndpoints({
 
         // Transform post data to handle new multilingual structure
         const transformedPosts = postsWithUser.map(post => {
-          // Debug: Log the original post structure
-          console.log('Original post data:', {
-            _id: post._id,
-            categoryname: post.categoryname,
-            createdAt: post.createdAt,
-            hasCategory: !!post.categoryname,
-            hasCreatedAt: !!post.createdAt
-          });
-          
           // Create a new object instead of mutating the original
           const transformedPost = { ...post };
           
@@ -68,15 +59,6 @@ export const postsApiSlice = apiSlice.injectEndpoints({
           } else if (transformedPost.city && typeof transformedPost.city === 'string') {
             transformedPost.cityLabel = transformedPost.city;
           }
-
-          // Debug: Log the transformed post structure
-          console.log('Transformed post data:', {
-            _id: transformedPost._id,
-            categoryname: transformedPost.categoryname,
-            createdAt: transformedPost.createdAt,
-            hasCategory: !!transformedPost.categoryname,
-            hasCreatedAt: !!transformedPost.createdAt
-          });
 
           return transformedPost;
         });
