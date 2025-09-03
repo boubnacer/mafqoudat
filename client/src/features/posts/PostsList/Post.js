@@ -547,6 +547,16 @@ const Post = ({ post, viewMode = "grid" }) => {
             onError={handleImageError}
           />
           
+          {/* Debug info - remove after fixing */}
+          <Box sx={{ position: 'absolute', top: 0, left: 0, backgroundColor: 'rgba(0,0,0,0.8)', color: 'white', padding: '4px', fontSize: '10px', zIndex: 1000 }}>
+            Debug: categoryName={categoryName}, created={created}
+          </Box>
+          
+          {/* Debug post data - remove after fixing */}
+          <Box sx={{ position: 'absolute', top: 0, right: 0, backgroundColor: 'rgba(0,0,0,0.8)', color: 'white', padding: '4px', fontSize: '10px', zIndex: 1000, maxWidth: '200px' }}>
+            Post: {JSON.stringify({ categoryname: post?.categoryname, createdAt: post?.createdAt })}
+          </Box>
+
           {/* Gradient Overlay */}
           <Box
             sx={{
