@@ -56,8 +56,8 @@ export const useDashboard = () => {
         dispatch(setCurrentCountry({ currentCountry: defaultCountryId }));
       } else {
         // Set a fallback country if no countries data is available or if query fails
-        // Use Morocco (MA) which has posts in the database
-        dispatch(setCurrentCountry({ currentCountry: '68a4b54ab46524c553ca9' }));
+        // Let the app handle this dynamically instead of hardcoding
+        console.warn('No countries data available, cannot set default country');
       }
     } else {
       // Country already set, keeping current value

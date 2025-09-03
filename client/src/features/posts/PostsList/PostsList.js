@@ -218,10 +218,9 @@ const PostsList = () => {
     
     // If still no country selected, set a default country (Morocco)
     if (!currentCountry && !countryId) {
-      const defaultCountry = '68a4b54ab46524c54c553ca9'; // Morocco
-
-      setCurrentCountry(defaultCountry);
-      dispatch(setCurrentCountry({ currentCountry: defaultCountry }));
+      // Don't hardcode country ID - let the user select or use the first available
+      console.warn('No country selected, user should select a country first');
+      return; // Don't proceed without a valid country
     }
     
 
