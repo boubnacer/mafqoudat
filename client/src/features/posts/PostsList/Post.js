@@ -396,7 +396,7 @@ const Post = ({ post, viewMode = "grid" }) => {
                       }}
                     >
                       <RenderIcon 
-                        name={`${post.categoryname?.toLowerCase()}cate`} 
+                        name={`${post.categoryname?.toLowerCase() || 'other'}cate`} 
                         sx={{ 
                           fontSize: '12px', 
                           color: isDarkMode ? categoryStyle.main : categoryStyle.text 
@@ -576,7 +576,7 @@ const Post = ({ post, viewMode = "grid" }) => {
               }}
             >
               <RenderIcon 
-                name={`${post.categoryname?.toLowerCase()}cate`} 
+                name={`${post?.categoryname?.toLowerCase() || 'other'}cate`} 
                 sx={{ 
                   fontSize: '12px', 
                   color: isDarkMode ? categoryStyle.main : categoryStyle.text 
