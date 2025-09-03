@@ -208,11 +208,8 @@ const Post = ({ post, viewMode = "grid" }) => {
 
   // Memoized category colors computation
   const categoryStyle = useMemo(() => {
-    console.log('🔍 Computing categoryStyle for:', post?.categoryname);
-    
     try {
       const config = getCategoryConfig(post?.categoryname);
-      console.log('✅ Category config:', config);
       
       const isDarkMode = theme.palette.mode === 'dark';
       
@@ -225,7 +222,6 @@ const Post = ({ post, viewMode = "grid" }) => {
         text: config.color
       };
     } catch (error) {
-      console.error('❌ Error getting category config:', error);
       // Fallback to default colors
       const isDarkMode = theme.palette.mode === 'dark';
       return {
@@ -527,20 +523,6 @@ const Post = ({ post, viewMode = "grid" }) => {
   // Grid view layout - Brand New Modern Design
   return (
     <>
-      {/* Simple test indicator - remove after fixing */}
-      <div style={{ 
-        position: 'fixed', 
-        top: '10px', 
-        right: '10px', 
-        backgroundColor: 'red', 
-        color: 'white', 
-        padding: '10px', 
-        zIndex: 9999,
-        fontSize: '12px'
-      }}>
-        Post Component Rendered! ID: {post?._id}
-      </div>
-      
       <Card
         sx={{
           backgroundColor: isDarkMode ? alpha('#1a1a1a', 0.9) : '#ffffff',
@@ -579,15 +561,7 @@ const Post = ({ post, viewMode = "grid" }) => {
             onError={handleImageError}
           />
           
-          {/* Debug info - remove after fixing */}
-          <Box sx={{ position: 'absolute', top: 0, left: 0, backgroundColor: 'rgba(0,0,0,0.8)', color: 'white', padding: '4px', fontSize: '10px', zIndex: 1000 }}>
-            Debug: categoryName={categoryName}, created={created}
-          </Box>
-          
-          {/* Debug post data - remove after fixing */}
-          <Box sx={{ position: 'absolute', top: 0, right: 0, backgroundColor: 'rgba(0,0,0,0.8)', color: 'white', padding: '4px', fontSize: '10px', zIndex: 1000, maxWidth: '200px' }}>
-            Post: {JSON.stringify({ categoryname: post?.categoryname, createdAt: post?.createdAt })}
-          </Box>
+
 
           {/* Top Badges Container - Grid View */}
           <Box
@@ -664,8 +638,6 @@ const Post = ({ post, viewMode = "grid" }) => {
             </Box>
           </Box>
 
-          {/* Debug badges - remove after fixing */}
-          
           {/* Gradient Overlay */}
           <Box
             sx={{
