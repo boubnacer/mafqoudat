@@ -208,17 +208,35 @@ const Post = ({ post, viewMode = "grid" }) => {
 
   // Memoized category colors computation
   const categoryStyle = useMemo(() => {
-    const config = getCategoryConfig(post?.categoryname);
-    const isDarkMode = theme.palette.mode === 'dark';
+    console.log('🔍 Computing categoryStyle for:', post?.categoryname);
     
-    return {
-      main: config.color,
-      light: config.backgroundColor,
-      dark: config.color,
-      icon: config.color,
-      background: isDarkMode ? alpha(config.backgroundColor, 0.2) : config.backgroundColor,
-      text: config.color
-    };
+    try {
+      const config = getCategoryConfig(post?.categoryname);
+      console.log('✅ Category config:', config);
+      
+      const isDarkMode = theme.palette.mode === 'dark';
+      
+      return {
+        main: config.color,
+        light: config.backgroundColor,
+        dark: config.color,
+        icon: config.color,
+        background: isDarkMode ? alpha(config.backgroundColor, 0.2) : config.backgroundColor,
+        text: config.color
+      };
+    } catch (error) {
+      console.error('❌ Error getting category config:', error);
+      // Fallback to default colors
+      const isDarkMode = theme.palette.mode === 'dark';
+      return {
+        main: '#2196F3',
+        light: '#E3F2FD',
+        dark: '#1976D2',
+        icon: '#2196F3',
+        background: isDarkMode ? alpha('#E3F2FD', 0.2) : '#E3F2FD',
+        text: '#2196F3'
+      };
+    }
   }, [post?.categoryname, theme.palette.mode]);
 
   const isDarkMode = theme.palette.mode === 'dark';
