@@ -54,22 +54,12 @@ const Post = ({ post, viewMode = "grid" }) => {
   const [reportDialogOpen, setReportDialogOpen] = useState(false);
   const [submitReport] = useSubmitReportMutation();
 
-  // Debug: Add a simple test to see if component is rendering
-  console.log('Post component will render with data:', {
-    categoryname: post.categoryname,
-    createdAt: post.createdAt,
-    cityName: post.cityName
-  });
-
   // Memoized event handlers
   const handleSubmitReport = useCallback(async (reportData) => {
-    console.log('Post component - handleSubmitReport called with:', reportData);
     try {
       const result = await submitReport(reportData).unwrap();
-      console.log('Post component - submitReport result:', result);
       return result;
     } catch (error) {
-      console.error('Post component - submitReport error:', error);
       throw new Error(error.data?.message || 'Failed to submit report');
     }
   }, [submitReport]);
@@ -111,7 +101,6 @@ const Post = ({ post, viewMode = "grid" }) => {
   const created = useMemo(() => {
     // Check if createdAt exists and is valid
     if (!post?.createdAt) {
-      console.log('No createdAt found in post:', post);
       return t('unknownDate');
     }
     
@@ -173,7 +162,6 @@ const Post = ({ post, viewMode = "grid" }) => {
   const categoryName = useMemo(() => {
     // Check if categoryname exists
     if (!post?.categoryname) {
-      console.log('No categoryname found in post:', post);
       return t('unknownCategory');
     }
     
@@ -322,7 +310,7 @@ const Post = ({ post, viewMode = "grid" }) => {
 
   // Memoized error handler for image
   const handleImageError = useCallback((e) => {
-    console.log('Image failed to load:', e.target.src);
+    // Image failed to load
   }, []);
 
   // List view layout
@@ -541,13 +529,6 @@ const Post = ({ post, viewMode = "grid" }) => {
           direction: currentLanguage === 'ar' ? 'rtl' : 'ltr'
         }}
       >
-        {/* Debug Info */}
-        <Box sx={{ p: 1, backgroundColor: alpha('#000', 0.1), borderBottom: `1px solid ${alpha('#fff', 0.08)}` }}>
-          <Typography variant="caption" color="text.secondary" sx={{ fontSize: '10px' }}>
-            Debug: Cat:{post.categoryname} | Date:{post.createdAt} | City:{post.cityName}
-          </Typography>
-        </Box>
-        
         {/* Image Section with Overlays */}
         <Box sx={{ position: 'relative', height: { xs: '240px', sm: '220px' } }}>
           <LazyCardMedia

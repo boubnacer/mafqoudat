@@ -157,13 +157,25 @@ const getAllPosts = async (req, res) => {
         country: 1,
         exactLocation: 1,
         city: 1,
-        cityName: { $ifNull: ["$City.labels.en", "$City.name", null] },
+        cityName: { 
+          $cond: {
+            if: { $gt: [{ $size: "$City" }, 0] },
+            then: { $ifNull: ["$City.labels.en", "$City.name"] },
+            else: null
+          }
+        },
         cityLabels: { $ifNull: ["$City.labels", null] },
         returned: 1,
         createdAt: 1,
         updatedAt: 1,
         username: "$User.username",
-        categoryname: { $ifNull: ["$Category.code", "OTHER"] },
+        categoryname: { 
+          $cond: {
+            if: { $gt: [{ $size: "$Category" }, 0] },
+            then: "$Category.code",
+            else: "OTHER"
+          }
+        },
         categoryLabels: { $ifNull: ["$Category.labels", null] },
         countryname: "$Country.code",
         countryLabels: "$Country.labels",
@@ -435,7 +447,13 @@ const getFilteredPosts = async (req, res) => {
           createdAt: 1,
           updatedAt: 1,
           username: "$User.username",
-          categoryname: { $ifNull: ["$Category.code", "OTHER"] },
+          categoryname: { 
+            $cond: {
+              if: { $gt: [{ $size: "$Category" }, 0] },
+              then: "$Category.code",
+              else: "OTHER"
+            }
+          },
           countryname: "$Country.code",
           countryLabels: "$Country.labels",
           contact: 1,
