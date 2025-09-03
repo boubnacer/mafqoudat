@@ -51,6 +51,13 @@ const Post = ({ post, viewMode = "grid" }) => {
   const navigate = useNavigate();
   const { t, currentLanguage } = useTranslation();
 
+  // Debug logging to see what fields are available
+  console.log('🔍 Post component received post:', post);
+  console.log('📋 Available fields:', post ? Object.keys(post) : 'No post object');
+  console.log('📅 createdAt:', post?.createdAt);
+  console.log('🏷️ categoryname:', post?.categoryname);
+  console.log('🏙️ cityName:', post?.cityName);
+
   const [reportDialogOpen, setReportDialogOpen] = useState(false);
   const [submitReport] = useSubmitReportMutation();
 
