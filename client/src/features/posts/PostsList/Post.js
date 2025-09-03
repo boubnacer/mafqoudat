@@ -105,11 +105,22 @@ const Post = ({ post, viewMode = "grid" }) => {
   }, [currentLanguage]);
 
   const created = useMemo(() => {
-    return formatDistanceToNow(new Date(post.createdAt), { 
-      addSuffix: true,
-      locale
-    });
-  }, [post.createdAt, locale]);
+    // Check if createdAt exists and is valid
+    if (!post?.createdAt) {
+      console.log('No createdAt found in post:', post);
+      return t('unknownDate');
+    }
+    
+    try {
+      return formatDistanceToNow(new Date(post.createdAt), { 
+        addSuffix: true,
+        locale
+      });
+    } catch (error) {
+      console.error('Error formatting date:', error, 'post.createdAt:', post.createdAt);
+      return t('unknownDate');
+    }
+  }, [post?.createdAt, locale, t]);
 
   // Memoized found/lost status computation
   const foundLostStatus = useMemo(() => {
@@ -156,6 +167,12 @@ const Post = ({ post, viewMode = "grid" }) => {
 
   // Memoized category display name computation
   const categoryName = useMemo(() => {
+    // Check if categoryname exists
+    if (!post?.categoryname) {
+      console.log('No categoryname found in post:', post);
+      return t('unknownCategory');
+    }
+    
     // Map category codes to their translated names
     const categoryTranslations = {
       'ELECTRONICS': {
@@ -230,7 +247,7 @@ const Post = ({ post, viewMode = "grid" }) => {
       return translations[currentLanguage] || translations.en || post.categoryname;
     }
     return post.categoryname || t('unknownCategory');
-  }, [post.categoryname, currentLanguage, t]);
+  }, [post?.categoryname, currentLanguage, t]);
 
   // Memoized category colors computation
   const categoryStyle = useMemo(() => {
