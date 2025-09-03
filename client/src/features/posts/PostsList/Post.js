@@ -541,6 +541,13 @@ const Post = ({ post, viewMode = "grid" }) => {
           direction: currentLanguage === 'ar' ? 'rtl' : 'ltr'
         }}
       >
+        {/* Debug Info */}
+        <Box sx={{ p: 1, backgroundColor: alpha('#000', 0.1), borderBottom: `1px solid ${alpha('#fff', 0.08)}` }}>
+          <Typography variant="caption" color="text.secondary" sx={{ fontSize: '10px' }}>
+            Debug: Cat:{post.categoryname} | Date:{post.createdAt} | City:{post.cityName}
+          </Typography>
+        </Box>
+        
         {/* Image Section with Overlays */}
         <Box sx={{ position: 'relative', height: { xs: '240px', sm: '220px' } }}>
           <LazyCardMedia
