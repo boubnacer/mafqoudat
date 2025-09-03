@@ -41,7 +41,7 @@ import FlexCenter from "../../../components/FlexCenter";
 
 
 const PostsList = () => {
-
+  console.log('PostsList component is running!');
   
   useTitle("Mafkoudat | Posts List");
 
@@ -432,8 +432,6 @@ const PostsList = () => {
   if (isSuccess && currentCountry) {
     const { totalPages } = data;
 
-
-
     return (
       <Box sx={{ 
         p: { xs: 2, md: 4 },
@@ -461,7 +459,7 @@ const PostsList = () => {
                   fontWeight: 400
                 }}
               >
-                                     {filteredPosts.length} {t('posts')} {t('found')}
+                {filteredPosts.length} {t('posts')} {t('found')}
               </Typography>
             </Box>
             <Button
@@ -494,7 +492,7 @@ const PostsList = () => {
               <Grid item xs={12} md={4}>
                 <TextField
                   fullWidth
-                                      placeholder={t('searchPostsPlaceholder')}
+                  placeholder={t('searchPostsPlaceholder')}
                   value={searchTerm}
                   onChange={handleSearch}
                   InputProps={{
@@ -738,8 +736,6 @@ const PostsList = () => {
       </Box>
     );
   }
-  
-
   
   return content;
 };
