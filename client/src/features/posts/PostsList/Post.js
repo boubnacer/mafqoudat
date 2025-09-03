@@ -589,6 +589,39 @@ const Post = ({ post, viewMode = "grid" }) => {
             Post: {JSON.stringify({ categoryname: post?.categoryname, createdAt: post?.createdAt })}
           </Box>
 
+          {/* Debug badges - remove after fixing */}
+          <Box
+            sx={{
+              position: 'absolute',
+              top: 50,
+              left: 12,
+              backgroundColor: 'red',
+              color: 'white',
+              padding: '4px 8px',
+              borderRadius: '12px',
+              fontSize: '10px',
+              zIndex: 9999,
+            }}
+          >
+            CATEGORY: {categoryName || 'UNDEFINED'}
+          </Box>
+          
+          <Box
+            sx={{
+              position: 'absolute',
+              bottom: 50,
+              left: 12,
+              backgroundColor: 'red',
+              color: 'white',
+              padding: '4px 8px',
+              borderRadius: '8px',
+              fontSize: '10px',
+              zIndex: 9999,
+            }}
+          >
+            TIME: {created || 'UNDEFINED'}
+          </Box>
+
           {/* Gradient Overlay */}
           <Box
             sx={{
