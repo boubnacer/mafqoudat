@@ -55,7 +55,9 @@ const SinglePost = () => {
           whatsapp: false
         },
     // Ensure foundLostLabel is passed if available from API transformation
-    foundLostLabel: post.foundLostLabel || null
+    foundLostLabel: post.foundLostLabel || null,
+    // Ensure floptionName is passed if available from API transformation
+    floptionName: post.floptionName || null
   };
 
   return <SinglePostPage {...sanitizedPost} />;

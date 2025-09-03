@@ -88,7 +88,8 @@ const SinglePostPage = ({
   // Category object from aggregation
   Category,
   // API transformation fields
-  foundLostLabel
+  foundLostLabel,
+  floptionName
 }) => {
   const navigate = useNavigate();
   const theme = useTheme();
@@ -357,9 +358,12 @@ const SinglePostPage = ({
       foundLost,
       Floptions,
       foundLostLabel,
+      floptionName,
       foundLostType: typeof foundLost,
       FloptionsType: typeof Floptions,
-      FloptionsKeys: Floptions ? Object.keys(Floptions) : null
+      FloptionsKeys: Floptions ? Object.keys(Floptions) : null,
+      FloptionsIsArray: Array.isArray(Floptions),
+      FloptionsLength: Array.isArray(Floptions) ? Floptions.length : 'N/A'
     });
 
     let foundLostValue = null;
@@ -367,18 +371,36 @@ const SinglePostPage = ({
     let foundLostColor = null;
     
     // Priority 1: Use Floptions.code if available (populated object from server)
-    if (Floptions && Floptions.code) {
-      console.log('🔍 Using Floptions.code:', Floptions.code);
-      foundLostValue = Floptions.code;
-      foundLostColor = Floptions.color;
+    if (Floptions) {
+      console.log('🔍 Floptions data:', Floptions);
+      console.log('🔍 Floptions structure:', {
+        isArray: Array.isArray(Floptions),
+        length: Array.isArray(Floptions) ? Floptions.length : 'N/A',
+        keys: Array.isArray(Floptions) ? (Floptions[0] ? Object.keys(Floptions[0]) : 'No elements') : Object.keys(Floptions)
+      });
       
-      // Set label and color based on code
-      if (Floptions.code === 'FOUND') {
-        displayLabel = t('found');
-        foundLostColor = foundLostColor || "#4CAF50";
-      } else if (Floptions.code === 'LOST') {
-        displayLabel = t('lost');
-        foundLostColor = foundLostColor || "#F44336";
+      // Handle both array and object formats
+      let flOption = Floptions;
+      if (Array.isArray(Floptions)) {
+        flOption = Floptions[0]; // Take first element if it's an array
+        console.log('🔍 First Floptions element:', flOption);
+      }
+      
+      if (flOption && flOption.code) {
+        console.log('🔍 Using Floptions.code:', flOption.code);
+        foundLostValue = flOption.code;
+        foundLostColor = flOption.color;
+        
+        // Set label and color based on code
+        if (flOption.code === 'FOUND') {
+          displayLabel = t('found');
+          foundLostColor = foundLostColor || "#4CAF50";
+        } else if (flOption.code === 'LOST') {
+          displayLabel = t('lost');
+          foundLostColor = foundLostColor || "#F44336";
+        }
+      } else {
+        console.log('🔍 Floptions element has no code:', flOption);
       }
     }
     // Priority 2: Use foundLost as fallback (could be ObjectId or object)
@@ -476,6 +498,74 @@ const SinglePostPage = ({
           foundLostColor = "#4CAF50";
         }
       }
+      
+      // Additional fallback: Check if there's a foundLostType field
+      if (!foundLostValue && foundLost && typeof foundLost === 'object') {
+        console.log('🔍 Checking foundLost object for additional fields:', foundLost);
+        if (foundLost.foundLostType) {
+          const type = foundLost.foundLostType.toLowerCase();
+          if (type.includes('lost')) {
+            console.log('🔍 Determined LOST from foundLostType');
+            foundLostValue = "LOST";
+            displayLabel = t('lost');
+            foundLostColor = "#F44336";
+          } else if (type.includes('found')) {
+            console.log('🔍 Determined FOUND from foundLostType');
+            foundLostValue = "FOUND";
+            displayLabel = t('found');
+            foundLostColor = "#4CAF50";
+          }
+        }
+      }
+      
+      // Last resort: Check if there's any other field that might indicate status
+      if (!foundLostValue) {
+        console.log('🔍 Checking all available fields for status clues...');
+        console.log('🔍 Available fields:', {
+          foundLost,
+          Floptions,
+          foundLostLabel,
+          titleLabels,
+          description,
+          title,
+          categoryname
+        });
+        
+        // Check if there's a floptionName field from server aggregation
+        if (floptionName) {
+          console.log('🔍 Found floptionName:', floptionName);
+          if (floptionName.toLowerCase() === 'lost') {
+            console.log('🔍 Determined LOST from floptionName');
+            foundLostValue = "LOST";
+            displayLabel = t('lost');
+            foundLostColor = "#F44336";
+          } else if (floptionName.toLowerCase() === 'found') {
+            console.log('🔍 Determined FOUND from floptionName');
+            foundLostValue = "FOUND";
+            displayLabel = t('found');
+            foundLostColor = "#4CAF50";
+          }
+        }
+        
+        // Additional fallback: Check if we can determine from the foundLost ObjectId
+        // This is a last resort when the server doesn't populate the lookup fields
+        if (!foundLostValue && foundLost && typeof foundLost === 'string' && foundLost.length === 24) {
+          console.log('🔍 Have ObjectId, attempting to determine status from known IDs...');
+          // These are the known ObjectIds from the database
+          // You might need to update these based on your actual database
+          if (foundLost === '68a4b54ab46524c54c553cc4') { // LOST
+            console.log('🔍 Determined LOST from ObjectId');
+            foundLostValue = "LOST";
+            displayLabel = t('lost');
+            foundLostColor = "#F44336";
+          } else if (foundLost === '68a4b54ab46524c54c553cc3') { // FOUND
+            console.log('🔍 Determined FOUND from ObjectId');
+            foundLostValue = "FOUND";
+            displayLabel = t('found');
+            foundLostColor = "#4CAF50";
+          }
+        }
+      }
     }
 
     // Set defaults only if we couldn't determine the actual value
@@ -496,7 +586,7 @@ const SinglePostPage = ({
     console.log('🔍 SinglePostPage Found/Lost Final result:', result);
     
     return result;
-  }, [foundLost, Floptions, foundLostLabel, titleLabels, description, currentLanguage, t]);
+  }, [foundLost, Floptions, foundLostLabel, floptionName, titleLabels, description, currentLanguage, t]);
 
   // Memoized image URL computation
   const imageUrl = useMemo(() => {
