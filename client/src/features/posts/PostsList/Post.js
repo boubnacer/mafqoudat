@@ -527,6 +527,20 @@ const Post = ({ post, viewMode = "grid" }) => {
   // Grid view layout - Brand New Modern Design
   return (
     <>
+      {/* Simple test indicator - remove after fixing */}
+      <div style={{ 
+        position: 'fixed', 
+        top: '10px', 
+        right: '10px', 
+        backgroundColor: 'red', 
+        color: 'white', 
+        padding: '10px', 
+        zIndex: 9999,
+        fontSize: '12px'
+      }}>
+        Post Component Rendered! ID: {post?._id}
+      </div>
+      
       <Card
         sx={{
           backgroundColor: isDarkMode ? alpha('#1a1a1a', 0.9) : '#ffffff',
