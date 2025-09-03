@@ -12,9 +12,25 @@ const { cacheService } = require("../config/cache");
 // Get Dashboard
 const getDashboard = async (req, res) => {
   try {
-    console.log("Dashboard request received:", req.query);
+    const { currentCountry, language = 'en' } = req.query;
     
-    const currentCountry = req.query.currentCountry;
+    // Validate currentCountry parameter
+    if (!currentCountry) {
+      return res.status(400).json({ 
+        message: "currentCountry parameter is required",
+        error: "Missing required parameter"
+      });
+    }
+
+    // Validate that currentCountry is a valid ObjectId
+    if (!mongoose.Types.ObjectId.isValid(currentCountry)) {
+      return res.status(400).json({ 
+        message: "Invalid currentCountry format",
+        error: "currentCountry must be a valid MongoDB ObjectId"
+      });
+    }
+
+    console.log('Dashboard request received:', { currentCountry, language });
     
     // Generate cache key
     const cacheKey = cacheService.generateKey('dashboard', {

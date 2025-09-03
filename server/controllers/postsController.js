@@ -31,6 +31,18 @@ const getAllPosts = async (req, res) => {
         error: "Missing required parameter"
       });
     }
+
+    // Validate that currentCountry is a valid ObjectId or country code
+    if (currentCountry && !mongoose.Types.ObjectId.isValid(currentCountry)) {
+      // Check if it's a valid country code
+      const country = await Country.findOne({ code: currentCountry }).lean();
+      if (!country) {
+        return res.status(400).json({ 
+          message: "Invalid currentCountry format",
+          error: "currentCountry must be a valid MongoDB ObjectId or country code"
+        });
+      }
+    }
   
   // Generate cache key
   const cacheKey = cacheService.generateKey('posts', {
