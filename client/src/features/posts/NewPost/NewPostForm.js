@@ -110,6 +110,24 @@ const NewPostForm = ({ user, countries, categories, flOptions }) => {
     }
   }, [shouldClearCityValue]);
 
+  // Handle custom city selection when cities list is updated
+  useEffect(() => {
+    if (selectedCustomCity && cities.length > 0 && formikRef.current) {
+      console.log('🔍 DEBUG: useEffect - checking for custom city selection');
+      console.log('🔍 DEBUG: selectedCustomCity:', selectedCustomCity);
+      console.log('🔍 DEBUG: cities list:', cities.map(c => ({ id: c.id, label: c.label })));
+      
+      // Find the custom city in the cities list
+      const customCity = cities.find(city => city.label === selectedCustomCity);
+      if (customCity && formikRef.current.values.city !== customCity.id) {
+        console.log('🔍 DEBUG: Found custom city, selecting it:', customCity);
+        formikRef.current.setFieldValue('city', customCity.id);
+        setSelectKey(prev => prev + 1);
+        console.log('🔍 DEBUG: Custom city selected via useEffect');
+      }
+    }
+  }, [selectedCustomCity, cities]);
+
 
 
   const initialFormState = {
@@ -980,25 +998,28 @@ const NewPostForm = ({ user, countries, categories, flOptions }) => {
                   setCities(prevCities => {
                     const newCities = [...prevCities, customCity];
                     console.log('🔍 DEBUG: Updated cities list:', newCities);
-                    
-                    // Immediately select the new city after updating the list
-                    setTimeout(() => {
-                      console.log('🔍 DEBUG: Selecting custom city after cities list update');
-                      console.log('🔍 DEBUG: Custom city to select:', customCity);
-                      
-                      if (formikRef.current) {
-                        formikRef.current.setFieldValue('city', customCity.id);
-                        console.log('🔍 DEBUG: Set city field to:', customCity.id);
-                        console.log('🔍 DEBUG: Form values after setting:', formikRef.current.values);
-                        
-                        // Force a re-render by updating the select key
-                        setSelectKey(prev => prev + 1);
-                        console.log('🔍 DEBUG: Forced Select component re-render');
-                      }
-                    }, 0);
-                    
                     return newCities;
                   });
+                  
+                  // Select the custom city after the cities list is updated
+                  setTimeout(() => {
+                    console.log('🔍 DEBUG: Selecting custom city after cities list update');
+                    console.log('🔍 DEBUG: Custom city to select:', customCity);
+                    
+                    if (formikRef.current) {
+                      // Set the form field value
+                      formikRef.current.setFieldValue('city', customCity.id);
+                      console.log('🔍 DEBUG: Set city field to:', customCity.id);
+                      console.log('🔍 DEBUG: Form values after setting:', formikRef.current.values);
+                      
+                      // Force a re-render by updating the select key
+                      setSelectKey(prev => prev + 1);
+                      console.log('🔍 DEBUG: Forced Select component re-render');
+                      
+                      // Also trigger a form validation to ensure the field is properly updated
+                      formikRef.current.validateField('city');
+                    }
+                  }, 200); // Increased timeout to ensure cities list is updated
                 } catch (error) {
                   console.error('Error creating custom city:', error);
                   // Show error message to user
