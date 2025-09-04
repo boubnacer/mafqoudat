@@ -633,24 +633,36 @@ const createNewPost = async (req, res) => {
      // Handle city validation
    let cityId = null;
    
+   console.log('🔍 DEBUG: City validation - received city:', city, 'type:', typeof city, 'isValidObjectId:', city ? mongoose.Types.ObjectId.isValid(city) : 'N/A');
+   
    try {
      if (city && mongoose.Types.ObjectId.isValid(city)) {
+       console.log('🔍 DEBUG: City is valid ObjectId, checking if exists in database');
        const cityDoc = await City.findById(city).select('_id').lean();
        if (cityDoc) {
          cityId = city;
+         console.log('🔍 DEBUG: City found in database, using existing cityId:', cityId);
        } else {
          // If the ObjectId doesn't exist in database, treat it as invalid
          cityId = null;
+         console.log('🔍 DEBUG: City ObjectId not found in database, setting cityId to null');
        }
      } else if (city && city !== 'other') {
+       console.log('🔍 DEBUG: City is custom string, creating new city record for:', city);
        // If we have a city value but no valid cityId, create a new city record
        try {
          // Use translation service to get proper translations for the custom city
          const translations = await TranslationService.translateCityName(city, 'en');
          
+         // Create a unique code for the custom city
+         const baseCode = city.toUpperCase().replace(/\s+/g, '_').replace(/[^\w]/g, '');
+         const uniqueCode = `${baseCode}_${Date.now()}`;
+         
+         console.log('🔍 DEBUG: Creating city with code:', uniqueCode, 'for city name:', city);
+         
          // Create a new city record for the custom city name with translations
          const newCity = await City.create({
-           code: city.toUpperCase().replace(/\s+/g, '_'),
+           code: uniqueCode,
            country: country,
            labels: {
              en: translations.en || city,
@@ -661,7 +673,7 @@ const createNewPost = async (req, res) => {
            searchTerms: [city.toLowerCase()]
          });
          
-         console.log('🔍 DEBUG: Created custom city:', {
+         console.log('🔍 DEBUG: Created custom city successfully:', {
            id: newCity._id,
            code: newCity.code,
            labels: newCity.labels,
@@ -669,19 +681,31 @@ const createNewPost = async (req, res) => {
          });
          
          cityId = newCity._id; // Use the new city's ObjectId
+         console.log('🔍 DEBUG: Set cityId to new city ObjectId:', cityId);
        } catch (cityCreationError) {
-         console.error('🔍 DEBUG: Error creating city:', cityCreationError);
+         console.error('🔍 DEBUG: Error creating city:', {
+           error: cityCreationError.message,
+           code: cityCreationError.code,
+           name: cityCreationError.name,
+           city: city,
+           country: country,
+           uniqueCode: uniqueCode
+         });
+         
          // If city creation fails, set to null instead of string
          cityId = null;
        }
      } else {
        // If city is 'other' or empty, set to null
+       console.log('🔍 DEBUG: City is "other" or empty, setting cityId to null');
        cityId = null;
      }
    } catch (cityError) {
-     console.error('Error during city validation:', cityError);
+     console.error('🔍 DEBUG: Error during city validation:', cityError);
      cityId = null;
    }
+   
+   console.log('🔍 DEBUG: Final cityId after validation:', cityId);
 
      // Prepare post data
   const postData = {
@@ -702,6 +726,14 @@ const createNewPost = async (req, res) => {
    } else {
      console.log('🔍 DEBUG: No city ID, post will have null city');
    }
+   
+   console.log('🔍 DEBUG: Final post data before creation:', {
+     ...postData,
+     city: cityId,
+     user: user ? 'provided' : 'missing',
+     category: category ? 'provided' : 'missing',
+     country: country ? 'provided' : 'missing'
+   });
 
    // Add contact preferences if provided
    if (contactPreferences) {
