@@ -267,22 +267,66 @@ export const DashboardEmptyStates = {
   NoRecentFounds: () => {
     const { t } = useTranslation();
     return (
-      <EmptyState
-        icon={WhatshotOutlined}
-        title={t('noRecentFoundItems')}
-        description={t('noRecentFoundItemsDescription')}
-      />
+      <Box
+        sx={{
+          display: 'flex',
+          flexDirection: 'column',
+          alignItems: 'center',
+          justifyContent: 'center',
+          py: 6,
+          px: 2,
+          textAlign: 'center',
+          backgroundColor: 'transparent',
+        }}
+      >
+        <WhatshotOutlined
+          sx={{
+            fontSize: 64,
+            color: '#2196F3',
+            mb: 2,
+            opacity: 0.7,
+          }}
+        />
+        <Typography variant="h6" gutterBottom>
+          {t('noRecentFoundItems')}
+        </Typography>
+        <Typography variant="body2" color="text.secondary" sx={{ mb: 3, maxWidth: 400 }}>
+          {t('noRecentFoundItemsDescription')}
+        </Typography>
+      </Box>
     );
   },
   
   NoRecentLosts: () => {
     const { t } = useTranslation();
     return (
-      <EmptyState
-        icon={Search}
-        title={t('noRecentLostItems')}
-        description={t('noRecentLostItemsDescription')}
-      />
+      <Box
+        sx={{
+          display: 'flex',
+          flexDirection: 'column',
+          alignItems: 'center',
+          justifyContent: 'center',
+          py: 6,
+          px: 2,
+          textAlign: 'center',
+          backgroundColor: 'transparent',
+        }}
+      >
+        <Search
+          sx={{
+            fontSize: 64,
+            color: '#FFA500',
+            mb: 2,
+            opacity: 0.7,
+          }}
+        />
+        <Typography variant="h6" gutterBottom>
+          {t('noRecentLostItems')}
+        </Typography>
+        <Typography variant="body2" color="text.secondary" sx={{ mb: 3, maxWidth: 400 }}>
+          {t('noRecentLostItemsDescription')}
+        </Typography>
+      </Box>
     );
   },
   
