@@ -591,7 +591,10 @@ const NewPostForm = ({ user, countries, categories, flOptions }) => {
                     }
                   </Typography>
                   <Typography variant="caption" color="warning.main" sx={{ mb: 1, display: "block", fontStyle: "italic" }}>
-                    {t('descriptionOptionalMessage') || "This field is optional, but especially helpful if you don't have an image of the item."}
+                    {getFoundLostType(values.foundLost) === 'LOST' 
+                      ? (t('descriptionOptionalLostMessage') || "Description is optional but recommended when you don't have an image of the lost item.")
+                      : (t('descriptionOptionalFoundMessage') || "Description is optional. You can add an image instead, or provide both for better identification.")
+                    }
                   </Typography>
                   <Textfield 
                     name="description" 
@@ -620,13 +623,16 @@ const NewPostForm = ({ user, countries, categories, flOptions }) => {
                     {t('whatsappContact')}
                   </FormLabel>
                   <Typography variant="caption" color="text.secondary" sx={{ mb: 1, display: "block" }}>
-                    {t('whatsappContactMessage') || "We'll use this WhatsApp number to contact you if someone finds your lost item or if you found someone's item."}
+                    {getFoundLostType(values.foundLost) === 'LOST' 
+                      ? (t('whatsappContactLostMessage') || "We'll use this WhatsApp number to contact you if someone finds your lost item.")
+                      : (t('whatsappContactFoundMessage') || "We'll use this WhatsApp number to contact you if the owner of the found item wants to reach you.")
+                    }
                   </Typography>
                   <Box display="flex" flexDirection="column" gap={2}>
                     <Textfield 
                       name="additionalContact.whatsapp" 
                       variant="outlined" 
-                      placeholder={t('whatsappNumber')}
+                      placeholder={t('whatsappNumber') || "Enter your WhatsApp number (e.g., +1234567890)"}
                     />
                   </Box>
                 </Box>
