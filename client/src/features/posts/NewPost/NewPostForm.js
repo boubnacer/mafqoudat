@@ -183,8 +183,17 @@ const NewPostForm = ({ user, countries, categories, flOptions }) => {
         city: values.city,
         selectedCountry: selectedCountry?._id,
         cityType: typeof values.city,
-        cityValue: values.city
+        cityValue: values.city,
+        isOther: values.city === 'other',
+        hasCustomCity: !!selectedCustomCity
       });
+      
+      // Prevent submission if city is still "other"
+      if (values.city === 'other') {
+        setStatus({ error: 'Please select a city or create a custom city' });
+        setSubmitting(false);
+        return;
+      }
       
       const formData = new FormData();
       formData.append("user", user._id);
@@ -538,7 +547,14 @@ const NewPostForm = ({ user, countries, categories, flOptions }) => {
                       labelId="city-select-label"
                       value={values.city || ""}
                       label={t('chooseCity')}
-                      onChange={(e) => setFieldValue('city', e.target.value)}
+                      onChange={(e) => {
+                        if (e.target.value === 'other') {
+                          // Don't set the field to "other", just open the dialog
+                          handleOtherCityClick();
+                        } else {
+                          setFieldValue('city', e.target.value);
+                        }
+                      }}
                       displayEmpty
                       renderValue={(selected) => {
                         if (!selected) return t('chooseCity');
@@ -565,7 +581,6 @@ const NewPostForm = ({ user, countries, categories, flOptions }) => {
                       <Divider />
                       <MenuItem
                         value="other" 
-                        onClick={handleOtherCityClick}
                         sx={{ 
                           color: theme.palette.mode === 'dark' ? '#fff' : '#1976d2',
                           fontWeight: 600,
@@ -909,7 +924,9 @@ const NewPostForm = ({ user, countries, categories, flOptions }) => {
                   
                   // Set the form field value to the created city's ID
                   if (formikRef.current) {
+                    console.log('🔍 DEBUG: Setting form field city to:', createdCity._id);
                     formikRef.current.setFieldValue('city', createdCity._id);
+                    console.log('🔍 DEBUG: Form field city after setting:', formikRef.current.values.city);
                   }
                 } catch (error) {
                   console.error('Error creating custom city:', error);
