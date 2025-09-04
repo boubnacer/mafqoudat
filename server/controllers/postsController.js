@@ -160,7 +160,7 @@ const getAllPosts = async (req, res) => {
         cityName: { 
           $cond: {
             if: { $ne: ["$City", null] },
-            then: { $ifNull: ["$City.labels.en", "$City.name"] },
+            then: { $ifNull: ["$City.labels.en", "$City.code"] },
             else: null
           }
         },
@@ -297,7 +297,7 @@ const getPost = async (req, res) => {
           country: 1,
           exactLocation: 1,
           city: 1,
-          cityName: { $ifNull: ["$City.labels.en", null] },
+          cityName: { $ifNull: ["$City.labels.en", "$City.code"] },
           cityLabels: { $ifNull: ["$City.labels", null] },
           returned: 1,
           createdAt: 1,
@@ -441,7 +441,7 @@ const getFilteredPosts = async (req, res) => {
           country: 1,
           exactLocation: 1,
           city: 1,
-          cityName: { $ifNull: ["$City.labels.en", null] },
+          cityName: { $ifNull: ["$City.labels.en", "$City.code"] },
           cityLabels: { $ifNull: ["$City.labels", null] },
           returned: 1,
           createdAt: 1,
@@ -632,6 +632,13 @@ const createNewPost = async (req, res) => {
            searchTerms: [city.toLowerCase()]
          });
          
+         console.log('🔍 DEBUG: Created custom city:', {
+           id: newCity._id,
+           code: newCity.code,
+           labels: newCity.labels,
+           country: newCity.country
+         });
+         
          cityId = newCity._id; // Use the new city's ObjectId
        } catch (cityCreationError) {
          console.error('🔍 DEBUG: Error creating city:', cityCreationError);
@@ -662,6 +669,9 @@ const createNewPost = async (req, res) => {
      // Handle city field - cityId is already processed above
    if (cityId) {
      postData.city = cityId;
+     console.log('🔍 DEBUG: Setting post city to:', cityId);
+   } else {
+     console.log('🔍 DEBUG: No city ID, post will have null city');
    }
 
    // Add contact preferences if provided
