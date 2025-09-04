@@ -253,6 +253,7 @@ const RecentPosts = ({ _id, categoryname, exactLocation, image, createdAt, count
               width: '100%',
               objectFit: 'cover',
               objectPosition: 'center',
+              zIndex: 1, // Base layer for image
             }}
             image={image ? (image.startsWith('http') ? getOptimizedImageUrl(image, 'card') : `${API_BASE_URL}/${image}`) : ma}
             alt={categoryname}
@@ -271,7 +272,8 @@ const RecentPosts = ({ _id, categoryname, exactLocation, image, createdAt, count
               right: 0,
               bottom: 0,
               background: 'linear-gradient(180deg, rgba(0,0,0,0.1) 0%, rgba(0,0,0,0.4) 100%)',
-              pointerEvents: 'none'
+              pointerEvents: 'none',
+              zIndex: 2, // Above image, below badges
             }}
           />
 
@@ -286,6 +288,7 @@ const RecentPosts = ({ _id, categoryname, exactLocation, image, createdAt, count
               justifyContent: 'space-between',
               alignItems: 'flex-start',
               gap: 1,
+              zIndex: 10, // Ensure badges are above image
             }}
           >
             {/* Category Badge */}
@@ -299,6 +302,7 @@ const RecentPosts = ({ _id, categoryname, exactLocation, image, createdAt, count
                 gap: 0.5,
                 backdropFilter: 'blur(10px)',
                 border: `1px solid ${isDarkMode ? alpha(categoryStyle.main, 0.3) : categoryStyle.main}`,
+                zIndex: 11, // Higher z-index for category badge
               }}
             >
               <RenderIcon 
@@ -331,6 +335,7 @@ const RecentPosts = ({ _id, categoryname, exactLocation, image, createdAt, count
               borderRadius: '8px',
               backdropFilter: 'blur(10px)',
               border: '1px solid rgba(255,255,255,0.1)',
+              zIndex: 11, // Higher z-index for time badge
             }}
           >
             <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.5 }}>
