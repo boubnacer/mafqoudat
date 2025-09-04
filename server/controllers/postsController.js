@@ -165,7 +165,18 @@ const getAllPosts = async (req, res) => {
         user: 1,
         country: 1,
         exactLocation: 1,
-        city: 1,
+        city: {
+          $cond: {
+            if: { $ne: ["$City", null] },
+            then: {
+              id: "$City._id",
+              code: "$City.code",
+              labels: "$City.labels",
+              isDynamic: "$City.isDynamic"
+            },
+            else: null
+          }
+        },
         cityName: { 
           $cond: {
             if: { $ne: ["$City", null] },
@@ -316,7 +327,18 @@ const getPost = async (req, res) => {
           user: 1,
           country: 1,
           exactLocation: 1,
-          city: 1,
+          city: {
+            $cond: {
+              if: { $ne: ["$City", null] },
+              then: {
+                id: "$City._id",
+                code: "$City.code",
+                labels: "$City.labels",
+                isDynamic: "$City.isDynamic"
+              },
+              else: null
+            }
+          },
           cityName: { $ifNull: ["$City.labels.en", "$City.code"] },
           cityLabels: { $ifNull: ["$City.labels", null] },
           returned: 1,
@@ -460,7 +482,18 @@ const getFilteredPosts = async (req, res) => {
           user: 1,
           country: 1,
           exactLocation: 1,
-          city: 1,
+          city: {
+            $cond: {
+              if: { $ne: ["$City", null] },
+              then: {
+                id: "$City._id",
+                code: "$City.code",
+                labels: "$City.labels",
+                isDynamic: "$City.isDynamic"
+              },
+              else: null
+            }
+          },
           cityName: { $ifNull: ["$City.labels.en", "$City.code"] },
           cityLabels: { $ifNull: ["$City.labels", null] },
           returned: 1,

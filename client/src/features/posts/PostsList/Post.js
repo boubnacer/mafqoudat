@@ -276,6 +276,14 @@ const Post = ({ post, viewMode = "grid" }) => {
       }
     }
     
+    // Second priority (alternative): Use the city object labels if available
+    if (post?.city && typeof post.city === 'object' && post.city.labels) {
+      const cityLabel = post.city.labels[currentLanguage] || post.city.labels.en;
+      if (cityLabel && cityLabel.trim()) {
+        return cityLabel.trim();
+      }
+    }
+    
     // Third priority: Use the cityName field from API
     if (post?.cityName && typeof post.cityName === 'string' && post.cityName.trim()) {
       return post.cityName.trim();
