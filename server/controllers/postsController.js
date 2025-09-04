@@ -142,15 +142,19 @@ const getAllPosts = async (req, res) => {
       },
     },
     { $unwind: { path: "$City", preserveNullAndEmptyArrays: true } },
-    {
-      $addFields: {
-        cityDebug: {
-          originalCityId: "$city",
-          cityFound: { $ne: ["$City", null] },
-          cityLabels: "$City.labels"
+          {
+        $addFields: {
+          cityDebug: {
+            originalCityId: "$city",
+            cityFound: { $ne: ["$City", null] },
+            cityLabels: "$City.labels",
+            cityData: "$City",
+            cityId: "$City._id",
+            cityCode: "$City.code",
+            cityIsDynamic: "$City.isDynamic"
+          }
         }
-      }
-    },
+      },
     {
       $lookup: {
         from: "users",
@@ -185,7 +189,15 @@ const getAllPosts = async (req, res) => {
           }
         },
         cityLabels: { $ifNull: ["$City.labels", null] },
-        cityDebug: 1,
+        cityDebug: {
+          originalCityId: "$city",
+          cityFound: { $ne: ["$City", null] },
+          cityLabels: "$City.labels",
+          cityData: "$City",
+          cityId: "$City._id",
+          cityCode: "$City.code",
+          cityIsDynamic: "$City.isDynamic"
+        },
         returned: 1,
         createdAt: 1,
         updatedAt: 1,
@@ -496,6 +508,15 @@ const getFilteredPosts = async (req, res) => {
           },
           cityName: { $ifNull: ["$City.labels.en", "$City.code"] },
           cityLabels: { $ifNull: ["$City.labels", null] },
+          cityDebug: {
+            originalCityId: "$city",
+            cityFound: { $ne: ["$City", null] },
+            cityLabels: "$City.labels",
+            cityData: "$City",
+            cityId: "$City._id",
+            cityCode: "$City.code",
+            cityIsDynamic: "$City.isDynamic"
+          },
           returned: 1,
           createdAt: 1,
           updatedAt: 1,
@@ -756,6 +777,7 @@ const createNewPost = async (req, res) => {
    }
    
    console.log('🔍 DEBUG: Final cityId after validation:', cityId);
+   console.log('🔍 DEBUG: CityId type:', typeof cityId, 'Is ObjectId:', cityId ? mongoose.Types.ObjectId.isValid(cityId) : 'N/A');
 
      // Prepare post data
   const postData = {
