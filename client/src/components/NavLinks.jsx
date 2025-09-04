@@ -26,7 +26,7 @@ const NavLinks = ({ onLinkClick }) => {
   const navigate = useNavigate();
   const activeLink = useSelector(selectActiveLink);
 
-  // Simple hardcoded navigation links
+  // Updated navigation links with correct found/lost IDs from dashboard
   const navlinks = [
     { 
       title: t("all"), 
@@ -36,13 +36,13 @@ const NavLinks = ({ onLinkClick }) => {
     },
     {
       title: "Found",
-      flcode: "68b0b776dcafb50aec949f68",
+      flcode: "68a4b54ab46524c54c553cc4", // Correct FOUND ID from dashboard
       tooltip: t("viewFOUNDItems"),
       icon: "Found"
     },
     {
       title: "Lost", 
-      flcode: "68b0b776dcafb50aec949f69",
+      flcode: "68a4b54ab46524c54c553cc3", // Correct LOST ID from dashboard
       tooltip: t("viewLOSTItems"),
       icon: "Lost"
     }
@@ -52,11 +52,13 @@ const NavLinks = ({ onLinkClick }) => {
     // Set active link
     dispatch(setActiveLink({ active: link.title }));
     
-    // Navigate with filter parameter
+    // Navigate with filter parameter using the correct URL structure
     if (link.flcode) {
-      window.location.href = `/dash/posts?fl=${link.flcode}`;
+      // Use the fl parameter that PostsList expects
+      navigate(`/dash/posts?fl=${link.flcode}`);
     } else {
-      window.location.href = "/dash/posts";
+      // Navigate to all posts without filter
+      navigate("/dash/posts");
     }
     
     // Close mobile menu if callback provided
