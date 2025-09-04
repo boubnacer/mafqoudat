@@ -195,6 +195,21 @@ const getDashboard = async (req, res) => {
         },
       },
       { $unwind: { path: "$City", preserveNullAndEmptyArrays: true } },
+      // Debug stage to see what's happening with city lookup
+      {
+        $addFields: {
+          cityDebug: {
+            originalCityId: "$city",
+            cityObjectId: "$cityObjectId",
+            cityFound: { $ne: ["$City", null] },
+            cityLabels: "$City.labels",
+            cityData: "$City",
+            cityId: "$City._id",
+            cityCode: "$City.code",
+            cityIsDynamic: "$City.isDynamic"
+          }
+        }
+      },
       {
         $lookup: {
           from: "users",
@@ -211,6 +226,7 @@ const getDashboard = async (req, res) => {
           city: 1,
           cityName: { $ifNull: ["$City.labels.en", null] },
           cityLabels: { $ifNull: ["$City.labels", null] },
+          cityDebug: 1,
           user: 1,
           country: 1,
           returned: 1,
@@ -258,7 +274,10 @@ const getDashboard = async (req, res) => {
         categoryname: trendingPost[0].categoryname,
         floptionName: trendingPost[0].floptionName,
         Floptions: trendingPost[0].Floptions,
-        cityName: trendingPost[0].cityName
+        cityName: trendingPost[0].cityName,
+        cityLabels: trendingPost[0].cityLabels,
+        city: trendingPost[0].city,
+        cityDebug: trendingPost[0].cityDebug
       } : null
     });
     } catch (error) {

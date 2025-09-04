@@ -744,8 +744,12 @@ const createNewPost = async (req, res) => {
    if (cityId) {
      postData.city = cityId;
      console.log(`Setting city field in post data: ${cityId}`);
+     console.log(`City field type: ${typeof cityId}`);
+     console.log(`City field is valid ObjectId: ${mongoose.Types.ObjectId.isValid(cityId)}`);
    } else {
      console.log('No cityId set, city field will be null');
+     console.log(`Original city value: ${city}`);
+     console.log(`City value type: ${typeof city}`);
    }
 
    // Add contact preferences if provided
@@ -788,6 +792,12 @@ const createNewPost = async (req, res) => {
 
      // Create and store the new post
    try {
+     console.log('Final post data before creation:', {
+       city: postData.city,
+       cityType: typeof postData.city,
+       cityIsValidObjectId: mongoose.Types.ObjectId.isValid(postData.city),
+       hasCity: !!postData.city
+     });
      const post = await Post.create(postData);
 
     if (post) {
