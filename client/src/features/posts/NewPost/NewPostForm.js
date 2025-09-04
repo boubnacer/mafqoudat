@@ -1,4 +1,4 @@
-import { useState, useEffect, useCallback } from "react";
+import { useState, useEffect, useCallback, useRef } from "react";
 import { useNavigate } from "react-router-dom";
 import { useAddNewPostMutation } from "../postsApiSlice";
 import * as Yup from "yup";
@@ -53,6 +53,7 @@ const NewPostForm = ({ user, countries, categories, flOptions }) => {
   const [pendingCustomCity, setPendingCustomCity] = useState(null);
   const [isCompressing, setIsCompressing] = useState(false);
   const [compressionInfo, setCompressionInfo] = useState(null);
+  const formikRef = useRef(null);
 
   // Initialize selectedCountry with user's country
   useEffect(() => {
@@ -99,11 +100,19 @@ const NewPostForm = ({ user, countries, categories, flOptions }) => {
 
   // Handle clearing city value when dialog is canceled
   useEffect(() => {
-    if (shouldClearCityValue) {
-      // This will be handled in the Formik render function
+    if (shouldClearCityValue && formikRef.current) {
+      formikRef.current.setFieldValue('city', "");
       setShouldClearCityValue(false);
     }
   }, [shouldClearCityValue]);
+
+  // Handle pending custom city updates
+  useEffect(() => {
+    if (pendingCustomCity && formikRef.current) {
+      formikRef.current.setFieldValue('city', pendingCustomCity);
+      setPendingCustomCity(null);
+    }
+  }, [pendingCustomCity]);
 
   const initialFormState = {
     country: user.country,
@@ -381,22 +390,12 @@ const NewPostForm = ({ user, countries, categories, flOptions }) => {
         </Typography>
 
         <Formik
+          ref={formikRef}
           initialValues={initialFormState}
           validationSchema={formValidation}
           onSubmit={handleSubmit}
         >
           {({ isSubmitting, status, setFieldValue, values }) => {
-            // Clear city value if needed
-            if (shouldClearCityValue && values.city === "other") {
-              setFieldValue('city', "");
-              setShouldClearCityValue(false);
-            }
-            
-            // Apply pending custom city
-            if (pendingCustomCity) {
-              setFieldValue('city', pendingCustomCity);
-              setPendingCustomCity(null);
-            }
             
             return (
             <Form>
@@ -867,7 +866,7 @@ const NewPostForm = ({ user, countries, categories, flOptions }) => {
                 };
                 setCities(prevCities => [...prevCities, customCity]);
                 
-                // Set pending custom city to be applied in Formik render
+                // Set pending custom city to be applied via useEffect
                 setPendingCustomCity(customCityId);
               }
             }}
