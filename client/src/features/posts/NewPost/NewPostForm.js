@@ -110,6 +110,22 @@ const NewPostForm = ({ user, countries, categories, flOptions }) => {
     }
   }, [shouldClearCityValue]);
 
+  // Handle custom city selection
+  useEffect(() => {
+    if (selectedCustomCity && formikRef.current) {
+      console.log('🔍 DEBUG: useEffect triggered for selectedCustomCity:', selectedCustomCity);
+      // Find the custom city in the cities list
+      const customCity = cities.find(city => city.label === selectedCustomCity);
+      if (customCity) {
+        console.log('🔍 DEBUG: Found custom city in list:', customCity);
+        setSelectedCityId(customCity.id);
+        setSelectKey(prev => prev + 1);
+        formikRef.current.setFieldValue('city', customCity.id);
+        console.log('🔍 DEBUG: Set city field to:', customCity.id);
+      }
+    }
+  }, [selectedCustomCity, cities]);
+
 
   const initialFormState = {
     country: user.country,
@@ -130,7 +146,11 @@ const NewPostForm = ({ user, countries, categories, flOptions }) => {
     contact: Yup.string().required(t('required')),
     category: Yup.string().required(t('required')),
     foundLost: Yup.string().required(t('required')),
-    city: Yup.string().required(t('required')),
+    city: Yup.string()
+      .required(t('cityRequired') || t('required'))
+      .test('not-other', t('pleaseSelectCity') || 'Please select a city', function(value) {
+        return value !== 'other' && value !== '';
+      }),
     exactLocation: Yup.string().required(t('required')),
     exactDate: Yup.string().required(t('required')),
     description: Yup.string().optional(),
@@ -145,6 +165,7 @@ const NewPostForm = ({ user, countries, categories, flOptions }) => {
     // Reset cities and selected city when country changes
     setCities([]);
     setSelectedCityId(null);
+    setSelectedCustomCity("");
     setSelectKey(prev => prev + 1);
     
     // Fetch cities for the selected country
@@ -448,7 +469,7 @@ const NewPostForm = ({ user, countries, categories, flOptions }) => {
           validationSchema={formValidation}
           onSubmit={handleSubmit}
         >
-          {({ isSubmitting, status, setFieldValue, values }) => {
+          {({ isSubmitting, status, setFieldValue, values, errors, touched }) => {
             
             return (
             <Form>
@@ -545,7 +566,7 @@ const NewPostForm = ({ user, countries, categories, flOptions }) => {
                     }
                   </Typography>
                   
-                  <FormControl fullWidth disabled={!selectedCountry || loadingCities}>
+                  <FormControl fullWidth disabled={!selectedCountry || loadingCities} error={!!errors.city}>
                     <InputLabel id="city-select-label">{t('chooseCity')}</InputLabel>
                     <Select
                       key={selectKey}
@@ -625,6 +646,11 @@ const NewPostForm = ({ user, countries, categories, flOptions }) => {
                         </Box>
                       </MenuItem>
                     </Select>
+                    {errors.city && (
+                      <Typography variant="caption" color="error" sx={{ mt: 1, display: 'block' }}>
+                        {errors.city}
+                      </Typography>
+                    )}
                   </FormControl>
                 </Box>
 
@@ -934,25 +960,17 @@ const NewPostForm = ({ user, countries, categories, flOptions }) => {
                   };
                   console.log('🔍 DEBUG: Adding custom city to list:', customCity);
                   
-                  // Update cities list and immediately set the selected city
+                  // Update cities list
                   setCities(prevCities => {
                     const newCities = [...prevCities, customCity];
                     console.log('🔍 DEBUG: Updated cities list:', newCities);
                     return newCities;
                   });
                   
-                  // Immediately set the selected city ID and form field
-                  console.log('🔍 DEBUG: About to set selectedCityId to:', createdCity._id);
-                  setSelectedCityId(createdCity._id);
-                  setSelectKey(prev => prev + 1); // Force Select component to re-render
-                  if (formikRef.current) {
-                    console.log('🔍 DEBUG: Setting form field city to:', createdCity._id);
-                    formikRef.current.setFieldValue('city', createdCity._id);
-                    console.log('🔍 DEBUG: Form field city after setting:', formikRef.current.values.city);
-                  }
-                  
-                  // Also set the selected custom city name for display
-                  setSelectedCustomCity(createdCity.labels.en || createdCity.labels[currentLanguage] || customCityName.trim());
+                  // Set the selected custom city name - this will trigger the useEffect
+                  const cityLabel = createdCity.labels.en || createdCity.labels[currentLanguage] || customCityName.trim();
+                  console.log('🔍 DEBUG: Setting selectedCustomCity to:', cityLabel);
+                  setSelectedCustomCity(cityLabel);
                 } catch (error) {
                   console.error('Error creating custom city:', error);
                   // Show error message to user
