@@ -381,10 +381,10 @@ const Dash = () => {
               >
                 <Recent 
                   recent={data?.recentFounds}
-                   isLoading={isLoading}
-                   emptyState="NoRecentFounds"
-                   maxItems={4}
-                 />
+                  isLoading={isLoading}
+                  emptyState="NoRecentFounds"
+                  maxItems={4}
+                />
                  
                  {/* Mobile See All Button - Bottom (only when there are posts) */}
                  {(data?.totalFounds && data?.totalFounds > 4) && (
