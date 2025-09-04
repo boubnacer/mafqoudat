@@ -50,6 +50,7 @@ const NewPostForm = ({ user, countries, categories, flOptions }) => {
   const [customCityName, setCustomCityName] = useState("");
   const [selectedCustomCity, setSelectedCustomCity] = useState("");
   const [shouldClearCityValue, setShouldClearCityValue] = useState(false);
+  const [pendingCustomCity, setPendingCustomCity] = useState(null);
   const [isCompressing, setIsCompressing] = useState(false);
   const [compressionInfo, setCompressionInfo] = useState(null);
 
@@ -224,8 +225,20 @@ const NewPostForm = ({ user, countries, categories, flOptions }) => {
   // Get city display name for selected city
   const getCityDisplayName = (cityId) => {
     if (!cityId) return '';
+    
+    // Handle custom city case - if it's "other" but we have a selected custom city
+    if (cityId === "other" && selectedCustomCity) {
+      return selectedCustomCity;
+    }
+    
+    // Handle direct custom city ID (when it's not "other" but a custom city name)
     const city = cities.find(c => c.id === cityId);
-    return city ? (city.label || city.code || city.name || 'Unknown City') : cityId;
+    if (city) {
+      return city.label || city.code || city.name || 'Unknown City';
+    }
+    
+    // If no city found in the list, it might be a custom city name
+    return cityId;
   };
 
   // Handle "Other" city option
@@ -377,6 +390,12 @@ const NewPostForm = ({ user, countries, categories, flOptions }) => {
             if (shouldClearCityValue && values.city === "other") {
               setFieldValue('city', "");
               setShouldClearCityValue(false);
+            }
+            
+            // Apply pending custom city
+            if (pendingCustomCity) {
+              setFieldValue('city', pendingCustomCity);
+              setPendingCustomCity(null);
             }
             
             return (
@@ -730,6 +749,7 @@ const NewPostForm = ({ user, countries, categories, flOptions }) => {
             setShowCustomCityInput(false);
             setCustomCityName("");
             setShouldClearCityValue(true);
+            setPendingCustomCity(null);
           }}
           maxWidth="sm"
           fullWidth
@@ -772,6 +792,7 @@ const NewPostForm = ({ user, countries, categories, flOptions }) => {
               setShowCustomCityInput(false);
               setCustomCityName("");
               setShouldClearCityValue(true);
+              setPendingCustomCity(null);
             }}
             sx={{
               color: theme.palette.text.secondary,
@@ -816,6 +837,7 @@ const NewPostForm = ({ user, countries, categories, flOptions }) => {
               setShowCustomCityInput(false);
               setCustomCityName("");
               setShouldClearCityValue(true);
+              setPendingCustomCity(null);
             }}
             sx={{ 
               borderRadius: 2,
@@ -833,15 +855,20 @@ const NewPostForm = ({ user, countries, categories, flOptions }) => {
             variant="contained"
             onClick={() => {
               if (customCityName.trim()) {
-                setSelectedCustomCity(customCityName.trim());
+                const customCityId = customCityName.trim();
+                setSelectedCustomCity(customCityId);
                 setShowCustomCityInput(false);
+                
                 // Add the custom city to the cities list so it shows in the dropdown
                 const customCity = {
-                  id: customCityName.trim(),
-                  label: customCityName.trim(),
+                  id: customCityId,
+                  label: customCityId,
                   isDynamic: true
                 };
                 setCities(prevCities => [...prevCities, customCity]);
+                
+                // Set pending custom city to be applied in Formik render
+                setPendingCustomCity(customCityId);
               }
             }}
             disabled={!customCityName.trim()}
