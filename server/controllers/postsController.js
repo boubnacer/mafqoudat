@@ -613,7 +613,7 @@ const createNewPost = async (req, res) => {
          // If the ObjectId doesn't exist in database, treat it as invalid
          cityId = null;
        }
-     } else {
+     } else if (city && city !== 'other') {
        // If we have a city value but no valid cityId, create a new city record
        try {
          // Use translation service to get proper translations for the custom city
@@ -635,12 +635,16 @@ const createNewPost = async (req, res) => {
          cityId = newCity._id; // Use the new city's ObjectId
        } catch (cityCreationError) {
          console.error('🔍 DEBUG: Error creating city:', cityCreationError);
-         // If city creation fails, fall back to storing as string
-         cityId = city;
+         // If city creation fails, set to null instead of string
+         cityId = null;
        }
+     } else {
+       // If city is 'other' or empty, set to null
+       cityId = null;
      }
    } catch (cityError) {
      console.error('Error during city validation:', cityError);
+     cityId = null;
    }
 
      // Prepare post data
@@ -655,36 +659,9 @@ const createNewPost = async (req, res) => {
     description: description || "",
   };
 
-     // Handle city field
+     // Handle city field - cityId is already processed above
    if (cityId) {
      postData.city = cityId;
-   } else if (city) {
-     // If we have a city value but no valid cityId, create a new city record
-     try {
-       // Use translation service to get proper translations for the custom city
-       const translations = await TranslationService.translateCityName(city, 'en');
-       
-       // Create a new city record for the custom city name with translations
-       const newCity = await City.create({
-         code: city.toUpperCase().replace(/\s+/g, '_'),
-         country: country,
-         labels: {
-           en: translations.en || city,
-           fr: translations.fr || city,
-           ar: translations.ar || city
-         },
-         isDynamic: true, // Mark as dynamically created
-         searchTerms: [city.toLowerCase()]
-       });
-       
-       postData.city = newCity._id; // Use the new city's ObjectId
-     } catch (cityCreationError) {
-       console.error('🔍 DEBUG: Error creating city:', cityCreationError);
-       // If city creation fails, fall back to storing as string
-       postData.city = city;
-     }
-   } else {
-     // No city handling applied - cityId is null
    }
 
    // Add contact preferences if provided
