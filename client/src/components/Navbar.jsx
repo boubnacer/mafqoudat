@@ -264,6 +264,9 @@ const Navbar = () => {
     }),
   });
 
+  // Debug flOptionsData
+  console.log('🔍 Navbar - flOptionsData:', flOptionsData);
+
   // Initialize country on component mount
   useEffect(() => {
     if (!isInitialized) {
@@ -383,9 +386,10 @@ const Navbar = () => {
       title: option.label || option.code,
       icon: option.code === 'FOUND' ? <Search sx={{ fontSize: 20, color: '#4CAF50' }} /> : <Search sx={{ fontSize: 20, color: '#757575' }} />,
       action: () => {
-        navigate('/dash/posts');
-        // Set filter for found/lost
-        // You might need to dispatch actions here to set filters
+        // Navigate with the correct found/lost ID filter
+        console.log('🔍 Navbar - Found/Lost clicked:', option);
+        console.log('🔍 Navbar - Navigating to:', `/dash/posts?fl=${option._id}`);
+        navigate(`/dash/posts?fl=${option._id}`);
       },
       description: t(`view${option.code}Items`)
     })) || [])
