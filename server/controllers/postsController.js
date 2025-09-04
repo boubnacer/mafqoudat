@@ -143,6 +143,15 @@ const getAllPosts = async (req, res) => {
     },
     { $unwind: { path: "$City", preserveNullAndEmptyArrays: true } },
     {
+      $addFields: {
+        cityDebug: {
+          originalCityId: "$city",
+          cityFound: { $ne: ["$City", null] },
+          cityLabels: "$City.labels"
+        }
+      }
+    },
+    {
       $lookup: {
         from: "users",
         localField: "user",
@@ -165,6 +174,7 @@ const getAllPosts = async (req, res) => {
           }
         },
         cityLabels: { $ifNull: ["$City.labels", null] },
+        cityDebug: 1,
         returned: 1,
         createdAt: 1,
         updatedAt: 1,
@@ -201,6 +211,16 @@ const getAllPosts = async (req, res) => {
   ];
 
   const postsWithUser = await Post.aggregate(pipeline);
+  
+  // Debug: Log city information for posts
+  console.log('🔍 DEBUG: All posts with city info:', postsWithUser.map(post => ({
+    id: post._id,
+    city: post.city,
+    cityName: post.cityName,
+    cityLabels: post.cityLabels,
+    cityDebug: post.cityDebug,
+    hasCity: !!post.city
+  })));
 
   // Get total count for pagination - optimized single query
   totalPosts = await Post.countDocuments({
@@ -478,6 +498,15 @@ const getFilteredPosts = async (req, res) => {
     ];
 
     const postsWithUser = await Post.aggregate(pipeline);
+    
+    // Debug: Log city information for posts
+    console.log('🔍 DEBUG: Posts with city info:', postsWithUser.map(post => ({
+      id: post._id,
+      city: post.city,
+      cityName: post.cityName,
+      cityLabels: post.cityLabels,
+      hasCity: !!post.city
+    })));
 
     // If no posts
     if (!postsWithUser?.length) {

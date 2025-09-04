@@ -239,6 +239,17 @@ const Post = ({ post, viewMode = "grid" }) => {
 
   // Memoized city name computation
   const cityName = useMemo(() => {
+    // Debug: Log the post data to see what we're receiving
+    console.log('🔍 DEBUG: Post data for city display:', {
+      id: post?._id,
+      cityLabel: post?.cityLabel,
+      cityLabels: post?.cityLabels,
+      cityName: post?.cityName,
+      city: post?.city,
+      exactLocation: post?.exactLocation,
+      currentLanguage
+    });
+    
     // Extract city from location (show only city)
     const getCityFromLocation = (location) => {
       if (!location) return t('unknownLocation');

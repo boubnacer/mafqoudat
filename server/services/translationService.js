@@ -292,7 +292,7 @@ class TranslationService {
       
       // If the input is Arabic, try to find it in our mapping
       if (sourceLanguage === 'ar' || this.isArabicText(cityName)) {
-        console.log('Detected Arabic text, looking for translation');
+        console.log('🔍 DEBUG: Detected Arabic text, looking for translation. CityName:', cityName, 'isArabic:', this.isArabicText(cityName));
         const arabicTranslation = arabicCityNames[cityName];
         if (arabicTranslation) {
           console.log('Found Arabic translation:', arabicTranslation);
@@ -308,11 +308,13 @@ class TranslationService {
         const englishTransliteration = this.transliterateToEnglish(cityName);
         const frenchTransliteration = this.transliterateToFrench(englishTransliteration);
         
-        return {
+        const result = {
           en: englishTransliteration,
           fr: frenchTransliteration,
           ar: cityName // Keep the original Arabic name
         };
+        console.log('🔍 DEBUG: Arabic transliteration result:', result);
+        return result;
       }
       
       // If it's English, try to translate to Arabic and French
