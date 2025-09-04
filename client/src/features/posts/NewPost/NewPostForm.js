@@ -122,6 +122,11 @@ const NewPostForm = ({ user, countries, categories, flOptions }) => {
     city: Yup.string()
       .required(t('cityRequired') || t('required'))
       .test('not-other', t('pleaseSelectCity') || 'Please select a city', function(value) {
+        // Allow "other" if customCityName is provided
+        if (value === 'other') {
+          const customCityName = this.parent.customCityName;
+          return customCityName && customCityName.trim() !== '';
+        }
         return value !== 'other' && value !== '';
       }),
     customCityName: Yup.string().when('city', {
@@ -186,24 +191,10 @@ const NewPostForm = ({ user, countries, categories, flOptions }) => {
       // Store the submitted values to check if it's a lost item
       setLastSubmittedValues(values);
       
-      console.log('🔍 DEBUG: Form submission values:', {
-        city: values.city,
-        selectedCountry: selectedCountry?._id,
-        cityType: typeof values.city,
-        cityValue: values.city,
-        isOther: values.city === 'other',
-        hasCustomCity: !!selectedCustomCity
-      });
       
       // Handle custom city creation if city is "other"
       let finalCityId = values.city;
       if (values.city === 'other') {
-        if (!values.customCityName || !values.customCityName.trim()) {
-          setStatus({ error: 'Please enter a custom city name' });
-          setSubmitting(false);
-          return;
-        }
-        
         try {
           // Create the custom city
           const createdCity = await createCustomCity(values.customCityName.trim(), selectedCountry?._id);
