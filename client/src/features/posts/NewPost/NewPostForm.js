@@ -110,27 +110,6 @@ const NewPostForm = ({ user, countries, categories, flOptions }) => {
     }
   }, [shouldClearCityValue]);
 
-  // Handle custom city selection
-  useEffect(() => {
-    console.log('🔍 DEBUG: useEffect triggered with:', { selectedCustomCity, citiesCount: cities.length });
-    if (selectedCustomCity && formikRef.current && cities.length > 0) {
-      console.log('🔍 DEBUG: Looking for city with label:', selectedCustomCity);
-      console.log('🔍 DEBUG: Available cities:', cities.map(c => ({ id: c.id, label: c.label })));
-      
-      // Find the custom city in the cities list
-      const customCity = cities.find(city => city.label === selectedCustomCity);
-      if (customCity) {
-        console.log('🔍 DEBUG: Found custom city in list:', customCity);
-        setSelectedCityId(customCity.id);
-        setSelectKey(prev => prev + 1);
-        formikRef.current.setFieldValue('city', customCity.id);
-        console.log('🔍 DEBUG: Set city field to:', customCity.id);
-        console.log('🔍 DEBUG: Form values after setting:', formikRef.current.values);
-      } else {
-        console.log('🔍 DEBUG: Custom city not found in cities list');
-      }
-    }
-  }, [selectedCustomCity, cities]);
 
 
   const initialFormState = {
@@ -170,9 +149,13 @@ const NewPostForm = ({ user, countries, categories, flOptions }) => {
     
     // Reset cities and selected city when country changes
     setCities([]);
-    setSelectedCityId(null);
     setSelectedCustomCity("");
     setSelectKey(prev => prev + 1);
+    
+    // Clear the city field in the form
+    if (formikRef.current) {
+      formikRef.current.setFieldValue('city', '');
+    }
     
     // Fetch cities for the selected country
     if (countryId) {
@@ -587,19 +570,25 @@ const NewPostForm = ({ user, countries, categories, flOptions }) => {
                     <Select
                       key={selectKey}
                       labelId="city-select-label"
-                      value={selectedCityId || values.city || ""}
+                      value={values.city || ""}
                       label={t('chooseCity')}
+                      onClose={() => {
+                        console.log('🔍 DEBUG: Select closed, final value:', values.city || "");
+                      }}
                       onOpen={() => {
-                        console.log('🔍 DEBUG: Select opened, current value:', selectedCityId || values.city || "");
+                        console.log('🔍 DEBUG: Select opened, current value:', values.city || "");
                         console.log('🔍 DEBUG: Cities list:', cities.map(c => ({ id: c.id, label: c.label })));
                       }}
                       onChange={(e) => {
+                        console.log('🔍 DEBUG: Select onChange triggered with value:', e.target.value);
                         if (e.target.value === 'other') {
                           // Don't set the field to "other", just open the dialog
+                          console.log('🔍 DEBUG: "other" option selected, opening dialog');
                           handleOtherCityClick();
                         } else {
-                          setSelectedCityId(e.target.value);
+                          console.log('🔍 DEBUG: City selected:', e.target.value);
                           setFieldValue('city', e.target.value);
+                          console.log('🔍 DEBUG: After setting city, form values:', formikRef.current?.values);
                         }
                       }}
                       displayEmpty
@@ -608,12 +597,9 @@ const NewPostForm = ({ user, countries, categories, flOptions }) => {
                           console.log('🔍 DEBUG: renderValue - no selection, showing placeholder');
                           return t('chooseCity');
                         }
-                        const cityId = selectedCityId || selected;
-                        const displayName = getCityDisplayName(cityId);
+                        const displayName = getCityDisplayName(selected);
                         console.log('🔍 DEBUG: renderValue called:', { 
                           selected, 
-                          selectedCityId, 
-                          cityId, 
                           displayName,
                           citiesCount: cities.length,
                           availableCityIds: cities.map(c => c.id)
@@ -1000,22 +986,15 @@ const NewPostForm = ({ user, countries, categories, flOptions }) => {
                       console.log('🔍 DEBUG: Selecting custom city after cities list update');
                       console.log('🔍 DEBUG: Custom city to select:', customCity);
                       
-                      // Set both selectedCityId and form field value
-                      setSelectedCityId(customCity.id);
-                      setSelectKey(prev => prev + 1);
-                      
                       if (formikRef.current) {
                         formikRef.current.setFieldValue('city', customCity.id);
                         console.log('🔍 DEBUG: Set city field to:', customCity.id);
                         console.log('🔍 DEBUG: Form values after setting:', formikRef.current.values);
-                        console.log('🔍 DEBUG: selectedCityId state:', customCity.id);
-                      }
-                      
-                      // Force a re-render by updating the select key again
-                      setTimeout(() => {
+                        
+                        // Force a re-render by updating the select key
                         setSelectKey(prev => prev + 1);
                         console.log('🔍 DEBUG: Forced Select component re-render');
-                      }, 100);
+                      }
                     }, 0);
                     
                     return newCities;
