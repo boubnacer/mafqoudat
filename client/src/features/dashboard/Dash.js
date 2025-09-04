@@ -536,7 +536,7 @@ const Dash = () => {
 
                   </Box>
                   <Box sx={{ order: currentLanguage === 'ar' ? 1 : 2 }}>
-                    {/* Only show SeeAll button when there are posts */}
+                    {/* Show SeeAll button when there are posts */}
                     {data?.totalLosts > 0 && (
                       <SeeAll 
                         foundOrlostId={lostsId} 
