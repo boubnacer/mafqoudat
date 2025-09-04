@@ -1,6 +1,8 @@
 import { useState, useEffect, useCallback, useRef } from "react";
 import { useNavigate } from "react-router-dom";
 import { useAddNewPostMutation } from "../postsApiSlice";
+import { useSelector } from "react-redux";
+import { selectCurrentToken } from "../../auth/authSlice";
 import * as Yup from "yup";
 import { Formik, Form } from "formik";
 import Textfield from "../../../components/Textfield";
@@ -35,6 +37,7 @@ import PromotionDialog from "../../../components/PromotionDialog";
 const NewPostForm = ({ user, countries, categories, flOptions }) => {
   const [addNewPost, { isSuccess, isError, error }] = useAddNewPostMutation();
   const { t, currentLanguage } = useTranslation();
+  const token = useSelector(selectCurrentToken);
   
   const navigate = useNavigate();
   const theme = useTheme();
@@ -176,6 +179,12 @@ const NewPostForm = ({ user, countries, categories, flOptions }) => {
       // Store the submitted values to check if it's a lost item
       setLastSubmittedValues(values);
       
+      console.log('🔍 DEBUG: Form submission values:', {
+        city: values.city,
+        selectedCountry: selectedCountry?._id,
+        cityType: typeof values.city,
+        cityValue: values.city
+      });
       
       const formData = new FormData();
       formData.append("user", user._id);
@@ -233,13 +242,14 @@ const NewPostForm = ({ user, countries, categories, flOptions }) => {
       return selectedCustomCity;
     }
     
-    // Handle direct custom city ID (when it's not "other" but a custom city name)
+    // Find the city in the cities list
     const city = cities.find(c => c.id === cityId);
     if (city) {
       return city.label || city.code || city.name || 'Unknown City';
     }
     
-    // If no city found in the list, it might be a custom city name
+    // If no city found in the list, it might be a custom city name or ID
+    // This should not happen with the new implementation, but keeping as fallback
     return cityId;
   };
 
@@ -252,6 +262,43 @@ const NewPostForm = ({ user, countries, categories, flOptions }) => {
   // Handle custom city name change
   const handleCustomCityChange = (event) => {
     setCustomCityName(event.target.value);
+  };
+
+  // Create custom city in backend
+  const createCustomCity = async (cityName, countryId) => {
+    try {
+      const baseUrl = process.env.REACT_APP_API_URL || "http://localhost:3500";
+      const headers = {
+        'Content-Type': 'application/json',
+      };
+      
+      // Add authentication token if available
+      if (token) {
+        headers['Authorization'] = `Bearer ${token}`;
+      }
+      
+      const response = await fetch(`${baseUrl}/cities/dynamic`, {
+        method: 'POST',
+        headers,
+        body: JSON.stringify({
+          cityName: cityName.trim(),
+          countryId: countryId,
+          sourceLanguage: currentLanguage || 'en'
+        })
+      });
+
+      const data = await response.json();
+      
+      if (data.success) {
+        return data.data; // Return the created city object
+      } else {
+        console.error('Failed to create custom city:', data.message);
+        throw new Error(data.message || 'Failed to create custom city');
+      }
+    } catch (error) {
+      console.error('Error creating custom city:', error);
+      throw error;
+    }
   };
 
   // Image compression function
@@ -842,27 +889,36 @@ const NewPostForm = ({ user, countries, categories, flOptions }) => {
           </Button>
           <Button
             variant="contained"
-            onClick={() => {
-              if (customCityName.trim()) {
-                const customCityId = customCityName.trim();
-                setSelectedCustomCity(customCityId);
-                setShowCustomCityInput(false);
-                
-                // Add the custom city to the cities list so it shows in the dropdown
-                const customCity = {
-                  id: customCityId,
-                  label: customCityId,
-                  isDynamic: true
-                };
-                setCities(prevCities => [...prevCities, customCity]);
-                
-                // Directly set the form field value
-                if (formikRef.current) {
-                  formikRef.current.setFieldValue('city', customCityId);
+            onClick={async () => {
+              if (customCityName.trim() && selectedCountry?._id) {
+                try {
+                  // Create the custom city in the backend
+                  const createdCity = await createCustomCity(customCityName.trim(), selectedCountry._id);
+                  
+                  // Set the selected custom city
+                  setSelectedCustomCity(createdCity.labels.en || createdCity.labels[currentLanguage] || customCityName.trim());
+                  setShowCustomCityInput(false);
+                  
+                  // Add the custom city to the cities list so it shows in the dropdown
+                  const customCity = {
+                    id: createdCity._id,
+                    label: createdCity.labels.en || createdCity.labels[currentLanguage] || customCityName.trim(),
+                    isDynamic: true
+                  };
+                  setCities(prevCities => [...prevCities, customCity]);
+                  
+                  // Set the form field value to the created city's ID
+                  if (formikRef.current) {
+                    formikRef.current.setFieldValue('city', createdCity._id);
+                  }
+                } catch (error) {
+                  console.error('Error creating custom city:', error);
+                  // Show error message to user
+                  alert(t('errorCreatingCustomCity') || 'Error creating custom city. Please try again.');
                 }
               }
             }}
-            disabled={!customCityName.trim()}
+            disabled={!customCityName.trim() || !selectedCountry?._id}
             sx={{ 
               borderRadius: 2,
               background: `linear-gradient(135deg, ${theme.palette.primary.main} 0%, ${theme.palette.primary.dark} 100%)`,

@@ -550,7 +550,8 @@ const getFilteredPosts = async (req, res) => {
       city: post.city,
       cityName: post.cityName,
       cityLabels: post.cityLabels,
-      hasCity: !!post.city
+      hasCity: !!post.city,
+      cityDebug: post.cityDebug
     })));
 
     // If no posts
@@ -680,15 +681,19 @@ const createNewPost = async (req, res) => {
    
    try {
      if (city && mongoose.Types.ObjectId.isValid(city)) {
+       // City is a valid ObjectId, verify it exists
        const cityDoc = await City.findById(city).select('_id').lean();
        if (cityDoc) {
          cityId = city;
        } else {
+         console.warn(`City with ID ${city} not found in database`);
          cityId = null;
        }
-     } else if (city && city !== 'other') {
-       // If we have a city value but no valid cityId, create a new city record
+     } else if (city && city !== 'other' && typeof city === 'string') {
+       // Fallback: If we have a city name but no valid cityId, create a new city record
+       // This is a fallback for cases where the frontend didn't create the city first
        try {
+         console.log(`Creating fallback city for: ${city}`);
          // Use translation service to get proper translations for the custom city
          const translations = await TranslationService.translateCityName(city, 'en');
          
@@ -710,8 +715,9 @@ const createNewPost = async (req, res) => {
          });
          
          cityId = newCity._id; // Use the new city's ObjectId
+         console.log(`Created fallback city with ID: ${cityId}`);
        } catch (cityCreationError) {
-         console.error('Error creating city:', cityCreationError.message);
+         console.error('Error creating fallback city:', cityCreationError.message);
          cityId = null;
        }
      } else {
@@ -737,6 +743,9 @@ const createNewPost = async (req, res) => {
      // Handle city field - cityId is already processed above
    if (cityId) {
      postData.city = cityId;
+     console.log(`Setting city field in post data: ${cityId}`);
+   } else {
+     console.log('No cityId set, city field will be null');
    }
 
    // Add contact preferences if provided

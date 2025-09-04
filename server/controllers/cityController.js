@@ -486,6 +486,15 @@ const createDynamicCity = async (req, res) => {
 
     await newCity.save();
 
+    // Invalidate cities cache after creation
+    await cacheService.invalidatePattern('cities*');
+    await cacheService.invalidatePattern('cities-search*');
+    await cacheService.invalidatePattern('cities-search-name*');
+    await cacheService.invalidatePattern('cities-by-country*');
+    await cacheService.invalidatePattern('cities-public*');
+    await cacheService.invalidatePattern('cities-simple*');
+    await cacheService.invalidatePattern('dependencies-cities*');
+
     res.status(201).json({
       success: true,
       message: "Dynamic city created successfully",
