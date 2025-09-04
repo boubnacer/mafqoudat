@@ -169,6 +169,7 @@ const NewPostForm = ({ user, countries, categories, flOptions }) => {
     // Reset cities and selected city when country changes
     setCities([]);
     setSelectedCustomCity("");
+    setForceCitySelection(null);
     setSelectKey(prev => prev + 1);
     
     // Clear the city field in the form
@@ -874,6 +875,7 @@ const NewPostForm = ({ user, countries, categories, flOptions }) => {
             setShowCustomCityInput(false);
             setCustomCityName("");
             setShouldClearCityValue(true);
+            setForceCitySelection(null);
           }}
           maxWidth="sm"
           fullWidth
@@ -916,6 +918,7 @@ const NewPostForm = ({ user, countries, categories, flOptions }) => {
               setShowCustomCityInput(false);
               setCustomCityName("");
               setShouldClearCityValue(true);
+              setForceCitySelection(null);
             }}
             sx={{
               color: theme.palette.text.secondary,
@@ -960,6 +963,7 @@ const NewPostForm = ({ user, countries, categories, flOptions }) => {
               setShowCustomCityInput(false);
               setCustomCityName("");
               setShouldClearCityValue(true);
+              setForceCitySelection(null);
             }}
             sx={{ 
               borderRadius: 2,
@@ -1010,10 +1014,8 @@ const NewPostForm = ({ user, countries, categories, flOptions }) => {
                     formikRef.current.setFieldValue('city', customCity.id);
                   }
                   
-                  // Clear the force selection after a delay
-                  setTimeout(() => {
-                    setForceCitySelection(null);
-                  }, 1000);
+                  // Keep the force selection active - it will be cleared when user selects another city
+                  // or when the form is submitted
                 } catch (error) {
                   console.error('Error creating custom city:', error);
                   // Show error message to user
