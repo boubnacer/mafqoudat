@@ -11,6 +11,7 @@ import { useLanguage } from "../../../utils/languageContext";
 import {
   useGetCategoriesQuery,
   useGetflOptionsQuery,
+  useGetCitiesQuery,
 } from "../../dependencies/dependenciesApiSlice";
 
 const EditPost = () => {
@@ -61,6 +62,16 @@ const EditPost = () => {
     }),
   });
 
+  const { cities } = useGetCitiesQuery({
+    language: currentLanguage || langContext || 'en',
+    countryId: data?.country
+  }, {
+    selectFromResult: ({ data }) => ({
+      cities: data?.ids.map((id) => data?.entities[id]),
+    }),
+    skip: !data?.country // Skip if no country is selected
+  });
+
   if (!data || !user || !countries || !categories || !flOptions)
     return <LoadingState message={t('loadingEditForm')} />;
 
@@ -68,6 +79,7 @@ const EditPost = () => {
     <EditPostForm
       categories={categories}
       flOptions={flOptions}
+      cities={cities}
       post={data}
       user={user}
       countries={countries}

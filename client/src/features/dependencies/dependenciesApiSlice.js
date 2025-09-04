@@ -194,6 +194,53 @@ export const dependencieaApiSlice = apiSlice.injectEndpoints({
       invalidatesTags: [{ type: "Category", id: "LIST" }],
     }),
 
+    getCities: builder.query({
+      query: ({ language = 'en', search, active = true, countryId, countryCode } = {}) => ({
+        url: "/cities",
+        params: { language, search, active, countryId, countryCode },
+        validateStatus: (response, result) => {
+          return response.status === 200 && !result.isError;
+        },
+      }),
+      transformResponse: (responseData) => {
+        // Handle both old and new response formats
+        const cities = responseData.data || responseData;
+        const loadedCities = cities.map((city) => {
+          city.id = city._id;
+          return city;
+        });
+        return dependenciesAdapter.setAll(initialState, loadedCities);
+      },
+      transformErrorResponse: (response) => {
+        // Handle server error responses
+        if (response.status === 404) {
+          return { 
+            status: 404, 
+            data: { message: "No cities found." } 
+          };
+        }
+        if (response.status === 500) {
+          return { 
+            status: 500, 
+            data: { message: "Failed to load cities. Please try again." } 
+          };
+        }
+        return response;
+      },
+      providesTags: (result, error, arg) => {
+        if (result?.ids) {
+          return [
+            { type: "City", id: "LIST" },
+            ...result.ids.map((id) => ({ type: "City", id })),
+          ];
+        } else return [{ type: "City", id: "LIST" }];
+      },
+      // Add cache key based on language to ensure proper cache invalidation
+      serializeQueryArgs: ({ queryArgs }) => {
+        return `${queryArgs.language || 'en'}-${queryArgs.search || ''}-${queryArgs.active || true}-${queryArgs.countryId || ''}-${queryArgs.countryCode || ''}`;
+      },
+    }),
+
     // Add mutation for creating a foundLost option
     createFoundLost: builder.mutation({
       query: (foundLost) => ({
@@ -232,6 +279,7 @@ export const {
   useGetflOptionsQuery,
   useGetCountriesQuery,
   useGetCategoriesQuery,
+  useGetCitiesQuery,
   useCreateCountryMutation,
   useCreateCategoryMutation,
   useCreateFoundLostMutation,
