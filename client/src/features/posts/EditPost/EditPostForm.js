@@ -56,6 +56,17 @@ const EditPostForm = ({ post, user, countries, flOptions, categories, cities }) 
     }
   }, [post?.country, countries]);
 
+  // Initialize cities when post data is available
+  useEffect(() => {
+    if (post?.country && !selectedCountry) {
+      const country = countries?.find(c => c._id === post.country);
+      if (country) {
+        setSelectedCountry(country);
+        fetchCitiesByCountry(post.country);
+      }
+    }
+  }, [post?.country, countries, selectedCountry, fetchCitiesByCountry]);
+
   // Update cities when country changes
   useEffect(() => {
     if (selectedCountry) {
@@ -86,10 +97,13 @@ const EditPostForm = ({ post, user, countries, flOptions, categories, cities }) 
     }
   }, [currentLanguage]);
 
-  const handleCountrySelect = (event) => {
+  const handleCountrySelect = (event, setFieldValue) => {
     const countryId = event.target.value;
     const country = countries.find(c => c._id === countryId);
     setSelectedCountry(country);
+    
+    // Update form value
+    setFieldValue('country', countryId);
     
     // Reset cities when country changes
     setAvailableCities([]);
@@ -127,10 +141,10 @@ const EditPostForm = ({ post, user, countries, flOptions, categories, cities }) 
 
   // Initialize form state with existing post data
   const initialFormState = {
-    country: post?.country || user?.country || "",
-    contact: post?.contact || user?.username || "",
-    category: post?.category || categories[0]?._id || "",
-    foundLost: post?.foundLost || flOptions[0]?._id || "",
+    country: post?.country || "",
+    contact: post?.contact || "",
+    category: post?.category || "",
+    foundLost: post?.foundLost || "",
     city: post?.city || "",
     exactLocation: post?.exactLocation || "",
     exactDate: post?.exactDate ? new Date(post.exactDate).toISOString().split('T')[0] : "",
@@ -220,6 +234,16 @@ const EditPostForm = ({ post, user, countries, flOptions, categories, cities }) 
     );
   }
 
+  // Show loading state while post data is being loaded
+  if (!post) {
+    return (
+      <Box display="flex" justifyContent="center" alignItems="center" minHeight="50vh">
+        <CircularProgress />
+        <Typography sx={{ ml: 2 }}>{t('loadingPostData')}</Typography>
+      </Box>
+    );
+  }
+
   return (
     <Box 
       sx={{ 
@@ -296,9 +320,9 @@ const EditPostForm = ({ post, user, countries, flOptions, categories, cities }) 
                     <InputLabel id="country-select-label">{t('chooseCountry')}</InputLabel>
                     <Select
                       labelId="country-select-label"
-                      value={selectedCountry?._id || ""}
+                      value={values.country || ""}
                       label={t('chooseCountry')}
-                      onChange={handleCountrySelect}
+                      onChange={(e) => handleCountrySelect(e, setFieldValue)}
                       disableUnderline
                       sx={{
                         borderRadius: 2,
