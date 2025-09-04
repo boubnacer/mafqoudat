@@ -273,10 +273,16 @@ const NewPostForm = ({ user, countries, categories, flOptions }) => {
 
   // Get city display name for selected city
   const getCityDisplayName = (cityId) => {
-    if (!cityId) return '';
+    if (!cityId) {
+      console.log('🔍 DEBUG: getCityDisplayName - no cityId provided');
+      return '';
+    }
+    
+    console.log('🔍 DEBUG: getCityDisplayName called with:', { cityId, citiesCount: cities.length });
     
     // Handle custom city case - if it's "other" but we have a selected custom city
     if (cityId === "other" && selectedCustomCity) {
+      console.log('🔍 DEBUG: getCityDisplayName - using selectedCustomCity:', selectedCustomCity);
       return selectedCustomCity;
     }
     
@@ -289,7 +295,11 @@ const NewPostForm = ({ user, countries, categories, flOptions }) => {
     
     // If no city found in the list, it might be a custom city name or ID
     // This should not happen with the new implementation, but keeping as fallback
-    console.log('🔍 DEBUG: City not found in list:', { cityId, citiesCount: cities.length });
+    console.log('🔍 DEBUG: City not found in list:', { 
+      cityId, 
+      citiesCount: cities.length,
+      availableCities: cities.map(c => ({ id: c.id, label: c.label }))
+    });
     return cityId;
   };
 
@@ -594,10 +604,20 @@ const NewPostForm = ({ user, countries, categories, flOptions }) => {
                       }}
                       displayEmpty
                       renderValue={(selected) => {
-                        if (!selected) return t('chooseCity');
+                        if (!selected) {
+                          console.log('🔍 DEBUG: renderValue - no selection, showing placeholder');
+                          return t('chooseCity');
+                        }
                         const cityId = selectedCityId || selected;
                         const displayName = getCityDisplayName(cityId);
-                        console.log('🔍 DEBUG: renderValue called:', { selected, selectedCityId, cityId, displayName });
+                        console.log('🔍 DEBUG: renderValue called:', { 
+                          selected, 
+                          selectedCityId, 
+                          cityId, 
+                          displayName,
+                          citiesCount: cities.length,
+                          availableCityIds: cities.map(c => c.id)
+                        });
                         return displayName;
                       }}
                       disableUnderline
@@ -978,13 +998,24 @@ const NewPostForm = ({ user, countries, categories, flOptions }) => {
                     // Immediately select the new city after updating the list
                     setTimeout(() => {
                       console.log('🔍 DEBUG: Selecting custom city after cities list update');
+                      console.log('🔍 DEBUG: Custom city to select:', customCity);
+                      
+                      // Set both selectedCityId and form field value
                       setSelectedCityId(customCity.id);
                       setSelectKey(prev => prev + 1);
+                      
                       if (formikRef.current) {
                         formikRef.current.setFieldValue('city', customCity.id);
                         console.log('🔍 DEBUG: Set city field to:', customCity.id);
                         console.log('🔍 DEBUG: Form values after setting:', formikRef.current.values);
+                        console.log('🔍 DEBUG: selectedCityId state:', customCity.id);
                       }
+                      
+                      // Force a re-render by updating the select key again
+                      setTimeout(() => {
+                        setSelectKey(prev => prev + 1);
+                        console.log('🔍 DEBUG: Forced Select component re-render');
+                      }, 100);
                     }, 0);
                     
                     return newCities;
