@@ -57,6 +57,7 @@ const NewPostForm = ({ user, countries, categories, flOptions }) => {
   const [selectKey, setSelectKey] = useState(0);
   const [forceCitySelection, setForceCitySelection] = useState(null);
   const [isCompressing, setIsCompressing] = useState(false);
+  const [isCreatingCity, setIsCreatingCity] = useState(false);
   const [compressionInfo, setCompressionInfo] = useState(null);
   const formikRef = useRef(null);
 
@@ -865,10 +866,12 @@ const NewPostForm = ({ user, countries, categories, flOptions }) => {
       <Dialog
         open={showCustomCityInput}
         onClose={() => {
-          setShowCustomCityInput(false);
-          setCustomCityName("");
-          setShouldClearCityValue(true);
-          setForceCitySelection(null);
+          if (!isCreatingCity) {
+            setShowCustomCityInput(false);
+            setCustomCityName("");
+            setShouldClearCityValue(true);
+            setForceCitySelection(null);
+          }
         }}
         maxWidth="sm"
         fullWidth
@@ -913,6 +916,7 @@ const NewPostForm = ({ user, countries, categories, flOptions }) => {
               setShouldClearCityValue(true);
               setForceCitySelection(null);
             }}
+            disabled={isCreatingCity}
             sx={{
               color: theme.palette.text.secondary,
               '&:hover': {
@@ -958,6 +962,7 @@ const NewPostForm = ({ user, countries, categories, flOptions }) => {
               setShouldClearCityValue(true);
               setForceCitySelection(null);
             }}
+            disabled={isCreatingCity}
             sx={{ 
               borderRadius: 2,
               borderColor: theme.palette.mode === 'dark' ? 'rgba(255, 255, 255, 0.3)' : 'rgba(0, 0, 0, 0.3)',
@@ -974,13 +979,13 @@ const NewPostForm = ({ user, countries, categories, flOptions }) => {
             variant="contained"
             onClick={async () => {
               if (customCityName.trim() && selectedCountry?._id) {
+                setIsCreatingCity(true);
                 try {
+                  console.log('🔍 DEBUG: Starting custom city creation...');
+                  
                   // Create the custom city in the backend
                   const createdCity = await createCustomCity(customCityName.trim(), selectedCountry._id);
-                  
-                  // Close the dialog
-                  setShowCustomCityInput(false);
-                  setCustomCityName("");
+                  console.log('🔍 DEBUG: Custom city created:', createdCity);
                   
                   // Add the custom city to the cities list so it shows in the dropdown
                   const customCity = {
@@ -991,6 +996,7 @@ const NewPostForm = ({ user, countries, categories, flOptions }) => {
                   
                   setCities(prevCities => {
                     const newCities = [...prevCities, customCity];
+                    console.log('🔍 DEBUG: Cities list updated:', newCities);
                     return newCities;
                   });
                   
@@ -1003,17 +1009,34 @@ const NewPostForm = ({ user, countries, categories, flOptions }) => {
                   
                   if (formikRef.current) {
                     formikRef.current.setFieldValue('city', customCity.id);
+                    console.log('🔍 DEBUG: Form field set to:', customCity.id);
                   }
                   
-                  console.log('🔍 DEBUG: Custom city created and selected:', customCity);
+                  // Wait a bit to ensure all state updates are processed
+                  await new Promise(resolve => setTimeout(resolve, 500));
+                  
+                  // Force re-render of the Select component
+                  setSelectKey(prev => prev + 1);
+                  
+                  // Wait a bit more to ensure the selection is visible
+                  await new Promise(resolve => setTimeout(resolve, 300));
+                  
+                  console.log('🔍 DEBUG: Custom city creation and selection completed');
+                  
+                  // Close the dialog
+                  setShowCustomCityInput(false);
+                  setCustomCityName("");
+                  
                 } catch (error) {
                   console.error('Error creating custom city:', error);
                   // Show error message to user
                   alert(t('errorCreatingCustomCity') || 'Error creating custom city. Please try again.');
+                } finally {
+                  setIsCreatingCity(false);
                 }
               }
             }}
-            disabled={!customCityName.trim() || !selectedCountry?._id}
+            disabled={!customCityName.trim() || !selectedCountry?._id || isCreatingCity}
             sx={{ 
               borderRadius: 2,
               background: `linear-gradient(135deg, ${theme.palette.primary.main} 0%, ${theme.palette.primary.dark} 100%)`,
@@ -1021,8 +1044,9 @@ const NewPostForm = ({ user, countries, categories, flOptions }) => {
                 background: `linear-gradient(135deg, ${theme.palette.primary.dark} 0%, ${theme.palette.primary.main} 100%)`,
               }
             }}
+            startIcon={isCreatingCity ? <CircularProgress size={16} color="inherit" /> : null}
           >
-            {t('confirm')}
+            {isCreatingCity ? (t('creatingCity') || 'Creating City...') : t('confirm')}
           </Button>
         </DialogActions>
       </Dialog>
