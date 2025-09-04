@@ -120,15 +120,7 @@ const NewPostForm = ({ user, countries, categories, flOptions }) => {
     category: Yup.string().required(t('required')),
     foundLost: Yup.string().required(t('required')),
     city: Yup.string()
-      .required(t('cityRequired') || t('required'))
-      .test('not-other', t('pleaseSelectCity') || 'Please select a city', function(value) {
-        // Allow "other" if customCityName is provided
-        if (value === 'other') {
-          const customCityName = this.parent.customCityName;
-          return customCityName && customCityName.trim() !== '';
-        }
-        return value !== 'other' && value !== '';
-      }),
+      .required(t('cityRequired') || t('required')),
     customCityName: Yup.string().when('city', {
       is: 'other',
       then: (schema) => schema.required(t('customCityRequired') || 'Please enter a city name'),
@@ -191,10 +183,21 @@ const NewPostForm = ({ user, countries, categories, flOptions }) => {
       // Store the submitted values to check if it's a lost item
       setLastSubmittedValues(values);
       
+      console.log('🔍 DEBUG: Form submission values:', {
+        city: values.city,
+        customCityName: values.customCityName,
+        showCustomCityInput: showCustomCityInput
+      });
       
       // Handle custom city creation if city is "other"
       let finalCityId = values.city;
       if (values.city === 'other') {
+        if (!values.customCityName || !values.customCityName.trim()) {
+          setStatus({ error: 'Please enter a custom city name' });
+          setSubmitting(false);
+          return;
+        }
+        
         try {
           // Create the custom city
           const createdCity = await createCustomCity(values.customCityName.trim(), selectedCountry?._id);
@@ -294,14 +297,6 @@ const NewPostForm = ({ user, countries, categories, flOptions }) => {
     }
   };
 
-  // Handle custom city name change
-  const handleCustomCityChange = (event) => {
-    const value = event.target.value;
-    setCustomCityName(value);
-    if (formikRef.current) {
-      formikRef.current.setFieldValue('customCityName', value);
-    }
-  };
 
   // Create custom city in backend
   const createCustomCity = async (cityName, countryId) => {
@@ -667,8 +662,6 @@ const NewPostForm = ({ user, countries, categories, flOptions }) => {
                         name="customCityName" 
                         variant="outlined" 
                         placeholder={t('cityNamePlaceholder') || "Enter city name"}
-                        value={customCityName}
-                        onChange={handleCustomCityChange}
                       />
                       {errors.customCityName && (
                         <Typography variant="caption" color="error" sx={{ mt: 1, display: 'block' }}>
