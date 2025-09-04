@@ -139,6 +139,15 @@ const EditPostForm = ({ post, user, countries, flOptions, categories, cities }) 
     return city ? (city.label || city.code || city.name || 'Unknown City') : cityId;
   };
 
+  // Debug: Log the post data to see what we're receiving
+  console.log('🔍 EditPostForm - Post data received:', post);
+  console.log('🔍 EditPostForm - Post country:', post?.country);
+  console.log('🔍 EditPostForm - Post category:', post?.category);
+  console.log('🔍 EditPostForm - Post foundLost:', post?.foundLost);
+  console.log('🔍 EditPostForm - Post contact:', post?.contact);
+  console.log('🔍 EditPostForm - Post exactLocation:', post?.exactLocation);
+  console.log('🔍 EditPostForm - Post exactDate:', post?.exactDate);
+
   // Initialize form state with existing post data
   const initialFormState = {
     country: post?.country || "",
@@ -165,6 +174,8 @@ const EditPostForm = ({ post, user, countries, flOptions, categories, cities }) 
     status: post?.status || "active",
     returned: post?.returned || false
   };
+
+  console.log('🔍 EditPostForm - Initial form state:', initialFormState);
 
   const formValidation = Yup.object().shape({
     country: Yup.string().required(t('country') + " " + t('required')),
@@ -284,6 +295,7 @@ const EditPostForm = ({ post, user, countries, flOptions, categories, cities }) 
           initialValues={initialFormState}
           validationSchema={formValidation}
           onSubmit={handleSubmit}
+          enableReinitialize={true}
         >
           {({ isSubmitting, status, setFieldValue, values }) => (
             <Form>
