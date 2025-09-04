@@ -49,15 +49,20 @@ const NavLinks = ({ onLinkClick }) => {
   ];
 
   const handleLinkClick = (link) => {
+    console.log('🔍 NavLinks - Link clicked:', link);
+    
     // Set active link
     dispatch(setActiveLink({ active: link.title }));
     
     // Navigate with filter parameter using the correct URL structure
     if (link.flcode) {
       // Use the fl parameter that PostsList expects
-      navigate(`/dash/posts?fl=${link.flcode}`);
+      const targetUrl = `/dash/posts?fl=${link.flcode}`;
+      console.log('🔍 NavLinks - Navigating to:', targetUrl);
+      navigate(targetUrl);
     } else {
       // Navigate to all posts without filter
+      console.log('🔍 NavLinks - Navigating to all posts');
       navigate("/dash/posts");
     }
     
