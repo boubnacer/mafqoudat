@@ -22,36 +22,19 @@ import {
   FormControlLabel,
   Checkbox,
   TextField,
-  Divider,
-  Dialog,
-  DialogTitle,
-  DialogContent,
-  DialogActions,
-  IconButton,
-  Chip,
-  Autocomplete
+  Divider
 } from "@mui/material";
-import { PhotoCamera, LocationOn, ContactPhone, ContactMail, WhatsApp, Add as AddIcon, Close as CloseIcon } from '@mui/icons-material';
+import { ContactPhone, ContactMail, WhatsApp } from '@mui/icons-material';
 import { useTranslation } from "../../../utils/translations";
-import { useCreateCategoryMutation, useCreateFoundLostMutation } from "../../dependencies/dependenciesApiSlice";
-import SelectCountry from "../../../components/SelectCountry";
 
 const EditPostForm = ({ post, user, countries, flOptions, categories, cities }) => {
   const [updatePost, { isLoading, isSuccess, isError, error }] = useUpdatePostMutation();
   const [deletePost, { isSuccess: isDelSuccess, isError: isDelError, error: delerror }] = useDeletePostMutation();
-  const [createCategory, { isLoading: isCreatingCategory }] = useCreateCategoryMutation();
-  const [createFoundLost, { isLoading: isCreatingFoundLost }] = useCreateFoundLostMutation();
   const { t, currentLanguage } = useTranslation();
 
   const navigate = useNavigate();
   const theme = useTheme();
   
-  // Dialog states for creating new dependencies
-  const [showNewCategoryDialog, setShowNewCategoryDialog] = useState(false);
-  const [showNewFoundLostDialog, setShowNewFoundLostDialog] = useState(false);
-  const [newCategory, setNewCategory] = useState({ code: "", flag: "" });
-  const [newFoundLost, setNewFoundLost] = useState({ code: "" });
-
   // State for cities
   const [selectedCountry, setSelectedCountry] = useState(null);
   const [availableCities, setAvailableCities] = useState(cities || []);
@@ -79,37 +62,6 @@ const EditPostForm = ({ post, user, countries, flOptions, categories, cities }) 
       fetchCitiesByCountry(selectedCountry._id);
     }
   }, [selectedCountry]);
-
-  const handleCreateNewCategory = async () => {
-    if (newCategory.code) {
-      try {
-        await createCategory({
-          code: newCategory.code,
-          flag: newCategory.flag,
-        }).unwrap();
-        
-        setShowNewCategoryDialog(false);
-        setNewCategory({ code: "", flag: "" });
-      } catch (error) {
-        console.error("Failed to create category:", error);
-      }
-    }
-  };
-
-  const handleCreateNewFoundLost = async () => {
-    if (newFoundLost.code) {
-      try {
-        await createFoundLost({
-          code: newFoundLost.code,
-        }).unwrap();
-        
-        setShowNewFoundLostDialog(false);
-        setNewFoundLost({ code: "" });
-      } catch (error) {
-        console.error("Failed to create found/lost option:", error);
-      }
-    }
-  };
 
   const fetchCitiesByCountry = useCallback(async (countryId) => {
     try {
@@ -154,12 +106,23 @@ const EditPostForm = ({ post, user, countries, flOptions, categories, cities }) 
     return flOption?.code || 'UNKNOWN';
   };
 
-  // Helper function to get city label
-  const getCityLabel = (city) => {
-    if (city?.labels && city.labels[currentLanguage]) {
-      return city.labels[currentLanguage];
+  // Get country label based on language
+  const getCountryLabel = (option) => {
+    if (!option) return '';
+    if (option.names && option.names[currentLanguage || 'en']) {
+      return option.names[currentLanguage || 'en'];
     }
-    return city?.code || city?.name || '';
+    if (option.labels && option.labels[currentLanguage || 'en']) {
+      return option.labels[currentLanguage || 'en'];
+    }
+    return option.label || option.code;
+  };
+
+  // Get city display name for selected city
+  const getCityDisplayName = (cityId) => {
+    if (!cityId) return '';
+    const city = availableCities.find(c => c.id === cityId);
+    return city ? (city.label || city.code || city.name || 'Unknown City') : cityId;
   };
 
   // Initialize form state with existing post data
@@ -172,7 +135,6 @@ const EditPostForm = ({ post, user, countries, flOptions, categories, cities }) 
     exactLocation: post?.exactLocation || "",
     exactDate: post?.exactDate ? new Date(post.exactDate).toISOString().split('T')[0] : "",
     description: post?.description || "",
-    title: post?.title || "",
     // Contact preferences
     contactPreferences: {
       phone: post?.contactPreferences?.phone ?? true,
@@ -187,9 +149,7 @@ const EditPostForm = ({ post, user, countries, flOptions, categories, cities }) 
     },
     // Status fields
     status: post?.status || "active",
-    returned: post?.returned || false,
-    // Tags
-    tags: post?.tags || []
+    returned: post?.returned || false
   };
 
   const formValidation = Yup.object().shape({
@@ -201,7 +161,6 @@ const EditPostForm = ({ post, user, countries, flOptions, categories, cities }) 
     exactLocation: Yup.string().required(t('exactLocation') + " " + t('required')),
     exactDate: Yup.date().required(t('exactDate') + " " + t('required')),
     description: Yup.string().optional(),
-    title: Yup.string().optional(),
     contactPreferences: Yup.object().shape({
       phone: Yup.boolean(),
       email: Yup.boolean(),
@@ -213,8 +172,7 @@ const EditPostForm = ({ post, user, countries, flOptions, categories, cities }) 
       whatsapp: Yup.string().optional()
     }),
     status: Yup.string().oneOf(['active', 'resolved', 'expired', 'suspended']),
-    returned: Yup.boolean(),
-    tags: Yup.array().of(Yup.string())
+    returned: Yup.boolean()
   });
 
   const handleSubmit = async (values, { setSubmitting, setStatus }) => {
@@ -228,9 +186,7 @@ const EditPostForm = ({ post, user, countries, flOptions, categories, cities }) 
         user: user.id,
         id: post._id,
         // Convert date to proper format
-        exactDate: new Date(values.exactDate),
-        // Ensure tags is an array
-        tags: Array.isArray(values.tags) ? values.tags : []
+        exactDate: new Date(values.exactDate)
       };
 
       await updatePost(submitData).unwrap();
@@ -265,9 +221,38 @@ const EditPostForm = ({ post, user, countries, flOptions, categories, cities }) 
   }
 
   return (
-    <Box display="flex" justifyContent="center" alignItems="center" minHeight="50vh" sx={{ p: 2 }}>
-      <Paper elevation={3} sx={{ p: 4, maxWidth: 800, width: "100%" }}>
-        <Typography variant="h4" gutterBottom textAlign="center" sx={{ color: theme.palette.textColor.main, mb: 4 }}>
+    <Box 
+      sx={{ 
+        minHeight: "100vh",
+        pt: { xs: "6rem", md: "8rem" },
+        pb: { xs: "4rem", md: "6rem" },
+        px: { xs: 2, md: 4 },
+        display: "flex",
+        justifyContent: "center",
+        alignItems: "flex-start",
+        background: theme.palette.background.default
+      }}
+    >
+      <Paper 
+        elevation={4} 
+        sx={{ 
+          p: { xs: 3, md: 5 }, 
+          maxWidth: 700, 
+          width: "100%",
+          borderRadius: 3,
+          boxShadow: theme.shadows[8]
+        }}
+      >
+        <Typography 
+          variant="h4" 
+          gutterBottom 
+          textAlign="center" 
+          sx={{ 
+            color: theme.palette.textColor.main,
+            mb: 4,
+            fontWeight: 600
+          }}
+        >
           {t('editPost')}
         </Typography>
 
@@ -278,98 +263,150 @@ const EditPostForm = ({ post, user, countries, flOptions, categories, cities }) 
         >
           {({ isSubmitting, status, setFieldValue, values }) => (
             <Form>
+              {status && (
+                <Alert severity={status.type === 'error' ? 'error' : 'success'} sx={{ mb: 3 }}>
+                  {status.message}
+                </Alert>
+              )}
+              
               <Box display="flex" flexDirection="column" gap={3}>
-                {/* Status Message */}
-                {status && (
-                  <Alert severity={status.type === 'error' ? 'error' : 'success'} sx={{ mb: 2 }}>
-                    {status.message}
-                  </Alert>
-                )}
-
                 {/* Basic Information Section */}
                 <Typography variant="h6" sx={{ fontWeight: 600, color: theme.palette.primary.main }}>
                   {t('basicInformation')}
                 </Typography>
 
                 <Box>
-                  <FormLabel htmlFor="country" sx={{ mb: 1, display: "block", fontWeight: 500 }}>
-                    {t('country')} *
-                  </FormLabel>
-                  <SelectCountry name="country" countries={countries} />
-                </Box>
-
-                <Box>
                   <FormLabel htmlFor="foundLost" sx={{ mb: 1, display: "block", fontWeight: 500 }}>
                     {t('foundOrLost')} *
                   </FormLabel>
-                  <Box display="flex" gap={1} alignItems="center">
-                    <Box flex={1}>
-                      <SelectOption name="foundLost" options={flOptions} />
-                    </Box>
-                    <Button
-                      type="button"
-                      variant="outlined"
-                      size="small"
-                      startIcon={<AddIcon />}
-                      onClick={() => setShowNewFoundLostDialog(true)}
-                      sx={{ minWidth: 'auto', px: 1 }}
+                  <SelectOption name="foundLost" options={flOptions} />
+                </Box>
+
+                <Box>
+                  <FormLabel htmlFor="country" sx={{ mb: 1, display: "block", fontWeight: 500 }}>
+                    {t('country')} *
+                  </FormLabel>
+                  <Typography variant="caption" color="text.secondary" sx={{ mb: 1, display: "block" }}>
+                    {getFoundLostType(values.foundLost) === 'LOST' 
+                      ? t('chooseCountryLost') 
+                      : t('chooseCountryFound')
+                    }
+                  </Typography>
+                  <FormControl fullWidth>
+                    <InputLabel id="country-select-label">{t('chooseCountry')}</InputLabel>
+                    <Select
+                      labelId="country-select-label"
+                      value={selectedCountry?._id || ""}
+                      label={t('chooseCountry')}
+                      onChange={handleCountrySelect}
+                      disableUnderline
+                      sx={{
+                        borderRadius: 2,
+                      }}
                     >
-                      {t('add')}
-                    </Button>
-                  </Box>
+                      {countries?.map((country) => (
+                        <MenuItem key={country._id} value={country._id}>
+                          <Box display="flex" alignItems="center" gap={1}>
+                            {country.flag ? (
+                              <span style={{ fontSize: '20px' }}>
+                                {country.flag}
+                              </span>
+                            ) : (
+                              <img
+                                loading="lazy"
+                                width="20"
+                                src={`https://flagcdn.com/w20/${country.code.toLowerCase()}.png`}
+                                srcSet={`https://flagcdn.com/w40/${country.code.toLowerCase()}.png 2x`}
+                                alt=""
+                                style={{ marginRight: 8 }}
+                              />
+                            )}
+                            {getCountryLabel(country)} ({country.code})
+                          </Box>
+                        </MenuItem>
+                      ))}
+                    </Select>
+                  </FormControl>
                 </Box>
 
                 <Box>
                   <FormLabel htmlFor="category" sx={{ mb: 1, display: "block", fontWeight: 500 }}>
                     {t('category')} *
                   </FormLabel>
-                  <Box display="flex" gap={1} alignItems="center">
-                    <Box flex={1}>
-                      <SelectOption name="category" options={categories} />
-                    </Box>
-                    <Button
-                      type="button"
-                      variant="outlined"
-                      size="small"
-                      startIcon={<AddIcon />}
-                      onClick={() => setShowNewCategoryDialog(true)}
-                      sx={{ minWidth: 'auto', px: 1 }}
-                    >
-                      {t('add')}
-                    </Button>
-                  </Box>
+                  <SelectOption name="category" options={categories} />
                 </Box>
 
-                <Box>
-                  <FormLabel htmlFor="contact" sx={{ mb: 1, display: "block", fontWeight: 500 }}>
-                    {t('contact')} *
-                  </FormLabel>
-                  <Textfield name="contact" variant="outlined" />
-                </Box>
-
-                {/* Location and Date Section */}
+                {/* Location Section */}
                 <Typography variant="h6" sx={{ fontWeight: 600, color: theme.palette.primary.main }}>
-                  {t('locationAndDate')}
+                  {t('location')}
                 </Typography>
 
                 <Box>
                   <FormLabel htmlFor="city" sx={{ mb: 1, display: "block", fontWeight: 500 }}>
                     {t('city')} *
                   </FormLabel>
-                  <Autocomplete
-                    options={availableCities}
-                    loading={loadingCities}
-                    getOptionLabel={(option) => getCityLabel(option)}
-                    value={availableCities.find(city => city._id === values.city) || null}
-                    onChange={(_, value) => setFieldValue('city', value?._id || '')}
-                    renderInput={(params) => (
-                      <TextField
-                        {...params}
-                        variant="outlined"
-                        placeholder={loadingCities ? t('loadingCities') : t('selectCity')}
-                      />
-                    )}
-                    disabled={!selectedCountry}
+                  <Typography variant="caption" color="text.secondary" sx={{ mb: 1, display: "block" }}>
+                    {!selectedCountry 
+                      ? t('selectCountryFirst') 
+                      : loadingCities 
+                        ? t('loadingCities') 
+                        : availableCities.length === 0 
+                          ? t('noCitiesFound') 
+                          : t('selectCity')
+                    }
+                  </Typography>
+                  
+                  <FormControl fullWidth disabled={!selectedCountry || loadingCities}>
+                    <InputLabel id="city-select-label">{t('chooseCity')}</InputLabel>
+                    <Select
+                      labelId="city-select-label"
+                      value={values.city || ""}
+                      label={t('chooseCity')}
+                      onChange={(e) => setFieldValue('city', e.target.value)}
+                      displayEmpty
+                      renderValue={(selected) => {
+                        if (!selected) return t('chooseCity');
+                        return getCityDisplayName(selected);
+                      }}
+                      disableUnderline
+                      sx={{
+                        borderRadius: 2,
+                      }}
+                    >
+                      {availableCities.map((city) => (
+                        <MenuItem key={city.id} value={city.id}>
+                          <Box display="flex" alignItems="center" gap={1}>
+                            {city.isCapital && (
+                              <span style={{ fontSize: '16px' }}>🏛️</span>
+                            )}
+                            {city.label || city.code || city.name || 'Unknown City'}
+                          </Box>
+                        </MenuItem>
+                      ))}
+                    </Select>
+                  </FormControl>
+                </Box>
+
+                <Box>
+                  <FormLabel htmlFor="exactDate" sx={{ mb: 1, display: "block", fontWeight: 500 }}>
+                    {t('exactDate')} *
+                  </FormLabel>
+                  <Typography variant="caption" color="text.secondary" sx={{ mb: 1, display: "block" }}>
+                    {getFoundLostType(values.foundLost) === 'LOST' 
+                      ? t('exactDateLostPlaceholder') 
+                      : t('exactDateFoundPlaceholder')
+                    }
+                  </Typography>
+                  <TextField
+                    name="exactDate"
+                    type="date"
+                    variant="outlined"
+                    fullWidth
+                    value={values.exactDate}
+                    onChange={(e) => setFieldValue('exactDate', e.target.value)}
+                    sx={{
+                      borderRadius: 2,
+                    }}
                   />
                 </Box>
 
@@ -390,47 +427,21 @@ const EditPostForm = ({ post, user, countries, flOptions, categories, cities }) 
                   />
                 </Box>
 
-                <Box>
-                  <FormLabel htmlFor="exactDate" sx={{ mb: 1, display: "block", fontWeight: 500 }}>
-                    {t('exactDate')} *
-                  </FormLabel>
-                  <Typography variant="caption" color="text.secondary" sx={{ mb: 1, display: "block" }}>
-                    {getFoundLostType(values.foundLost) === 'LOST' 
-                      ? t('exactDateLostPlaceholder') 
-                      : t('exactDateFoundPlaceholder')
-                    }
-                  </Typography>
-                  <TextField
-                    name="exactDate"
-                    type="date"
-                    variant="outlined"
-                    fullWidth
-                    value={values.exactDate}
-                    onChange={(e) => setFieldValue('exactDate', e.target.value)}
-                    sx={{ borderRadius: 2 }}
-                  />
-                </Box>
-
                 {/* Item Details Section */}
                 <Typography variant="h6" sx={{ fontWeight: 600, color: theme.palette.primary.main }}>
                   {t('itemDetails')}
                 </Typography>
 
                 <Box>
-                  <FormLabel htmlFor="title" sx={{ mb: 1, display: "block", fontWeight: 500 }}>
-                    {t('title')}
-                  </FormLabel>
-                  <Textfield 
-                    name="title" 
-                    variant="outlined" 
-                    placeholder={t('titlePlaceholder')}
-                  />
-                </Box>
-
-                <Box>
                   <FormLabel htmlFor="description" sx={{ mb: 1, display: "block", fontWeight: 500 }}>
-                    {t('description')}
+                    {t('description')} ({t('optional')})
                   </FormLabel>
+                  <Typography variant="caption" color="text.secondary" sx={{ mb: 1, display: "block" }}>
+                    {getFoundLostType(values.foundLost) === 'LOST' 
+                      ? t('descriptionLostPlaceholder') 
+                      : t('descriptionFoundPlaceholder')
+                    }
+                  </Typography>
                   <Textfield 
                     name="description" 
                     variant="outlined" 
@@ -440,14 +451,21 @@ const EditPostForm = ({ post, user, countries, flOptions, categories, cities }) 
                   />
                 </Box>
 
-                {/* Contact Preferences Section */}
+                {/* Contact Information Section */}
                 <Typography variant="h6" sx={{ fontWeight: 600, color: theme.palette.primary.main }}>
-                  {t('contactPreferences')}
+                  {t('contactInformation')}
                 </Typography>
 
                 <Box>
+                  <FormLabel htmlFor="contact" sx={{ mb: 1, display: "block", fontWeight: 500 }}>
+                    {t('contact')} *
+                  </FormLabel>
+                  <Textfield name="contact" variant="outlined" />
+                </Box>
+
+                <Box>
                   <FormLabel sx={{ mb: 1, display: "block", fontWeight: 500 }}>
-                    {t('preferredContactMethods')}
+                    {t('contactPreferences')}
                   </FormLabel>
                   <Box display="flex" flexDirection="column" gap={1}>
                     <FormControlLabel
@@ -457,7 +475,12 @@ const EditPostForm = ({ post, user, countries, flOptions, categories, cities }) 
                           onChange={(e) => setFieldValue('contactPreferences.phone', e.target.checked)}
                         />
                       }
-                      label={t('phone')}
+                      label={
+                        <Box display="flex" alignItems="center" gap={1}>
+                          <ContactPhone fontSize="small" />
+                          {t('phoneContact')}
+                        </Box>
+                      }
                     />
                     <FormControlLabel
                       control={
@@ -466,7 +489,12 @@ const EditPostForm = ({ post, user, countries, flOptions, categories, cities }) 
                           onChange={(e) => setFieldValue('contactPreferences.email', e.target.checked)}
                         />
                       }
-                      label={t('email')}
+                      label={
+                        <Box display="flex" alignItems="center" gap={1}>
+                          <ContactMail fontSize="small" />
+                          {t('emailContact')}
+                        </Box>
+                      }
                     />
                     <FormControlLabel
                       control={
@@ -475,49 +503,47 @@ const EditPostForm = ({ post, user, countries, flOptions, categories, cities }) 
                           onChange={(e) => setFieldValue('contactPreferences.whatsapp', e.target.checked)}
                         />
                       }
-                      label={t('whatsapp')}
+                      label={
+                        <Box display="flex" alignItems="center" gap={1}>
+                          <WhatsApp fontSize="small" />
+                          {t('whatsappContact')}
+                        </Box>
+                      }
                     />
                   </Box>
                 </Box>
 
-                {/* Additional Contact Information */}
-                <Typography variant="h6" sx={{ fontWeight: 600, color: theme.palette.primary.main }}>
-                  {t('additionalContact')}
-                </Typography>
-
-                <Box>
-                  <FormLabel htmlFor="additionalContact.phone" sx={{ mb: 1, display: "block", fontWeight: 500 }}>
-                    {t('phone')}
-                  </FormLabel>
-                  <Textfield 
-                    name="additionalContact.phone" 
-                    variant="outlined" 
-                    placeholder={t('phonePlaceholder')}
-                  />
-                </Box>
-
-                <Box>
-                  <FormLabel htmlFor="additionalContact.email" sx={{ mb: 1, display: "block", fontWeight: 500 }}>
-                    {t('email')}
-                  </FormLabel>
-                  <Textfield 
-                    name="additionalContact.email" 
-                    variant="outlined" 
-                    type="email"
-                    placeholder={t('emailPlaceholder')}
-                  />
-                </Box>
-
-                <Box>
-                  <FormLabel htmlFor="additionalContact.whatsapp" sx={{ mb: 1, display: "block", fontWeight: 500 }}>
-                    {t('whatsapp')}
-                  </FormLabel>
-                  <Textfield 
-                    name="additionalContact.whatsapp" 
-                    variant="outlined" 
-                    placeholder={t('whatsappPlaceholder')}
-                  />
-                </Box>
+                {/* Additional Contact Details */}
+                {(values.contactPreferences.email || values.contactPreferences.phone || values.contactPreferences.whatsapp) && (
+                  <Box>
+                    <FormLabel sx={{ mb: 1, display: "block", fontWeight: 500 }}>
+                      {t('additionalContactDetails')}
+                    </FormLabel>
+                    <Box display="flex" flexDirection="column" gap={2}>
+                      {values.contactPreferences.phone && (
+                        <Textfield 
+                          name="additionalContact.phone" 
+                          variant="outlined" 
+                          placeholder={t('phoneNumber')}
+                        />
+                      )}
+                      {values.contactPreferences.email && (
+                        <Textfield 
+                          name="additionalContact.email" 
+                          variant="outlined" 
+                          placeholder={t('emailAddress')}
+                        />
+                      )}
+                      {values.contactPreferences.whatsapp && (
+                        <Textfield 
+                          name="additionalContact.whatsapp" 
+                          variant="outlined" 
+                          placeholder={t('whatsappNumber')}
+                        />
+                      )}
+                    </Box>
+                  </Box>
+                )}
 
                 {/* Status Section */}
                 <Typography variant="h6" sx={{ fontWeight: 600, color: theme.palette.primary.main }}>
@@ -554,45 +580,33 @@ const EditPostForm = ({ post, user, countries, flOptions, categories, cities }) 
                   label={t('itemReturned')}
                 />
 
-                {/* Tags Section */}
-                <Box>
-                  <FormLabel htmlFor="tags" sx={{ mb: 1, display: "block", fontWeight: 500 }}>
-                    {t('tags')}
-                  </FormLabel>
-                  <Autocomplete
-                    multiple
-                    freeSolo
-                    options={[]}
-                    value={values.tags}
-                    onChange={(_, value) => setFieldValue('tags', value)}
-                    renderTags={(value, getTagProps) =>
-                      value.map((option, index) => (
-                        <Chip variant="outlined" label={option} {...getTagProps({ index })} />
-                      ))
-                    }
-                    renderInput={(params) => (
-                      <TextField
-                        {...params}
-                        variant="outlined"
-                        placeholder={t('addTags')}
-                      />
-                    )}
-                  />
-                </Box>
-
                 {/* Action Buttons */}
-                <Box display="flex" gap={2} justifyContent="space-between" sx={{ mt: 3 }}>
+                <Box display="flex" gap={2} justifyContent="space-between" sx={{ mt: 4 }}>
                   <Button 
                     onClick={handleDeletePost}
                     variant="outlined" 
                     color="error"
                     disabled={isLoading}
-                    sx={{ minWidth: 120 }}
+                    sx={{ 
+                      minWidth: 120,
+                      borderRadius: 2,
+                      textTransform: 'none',
+                      fontWeight: 600
+                    }}
                   >
                     {t('deletePost')}
                   </Button>
                   
-                  <SubmitButton disabled={isLoading} sx={{ minWidth: 120 }}>
+                  <SubmitButton 
+                    disabled={isLoading || !selectedCountry || !values.city || !values.exactDate}
+                    sx={{ 
+                      minWidth: 120,
+                      borderRadius: 2,
+                      textTransform: 'none',
+                      fontWeight: 600,
+                      py: 1.5
+                    }}
+                  >
                     {isLoading ? <CircularProgress size={20} /> : t('updatePost')}
                   </SubmitButton>
                 </Box>
@@ -600,67 +614,6 @@ const EditPostForm = ({ post, user, countries, flOptions, categories, cities }) 
             </Form>
           )}
         </Formik>
-
-        {/* New Category Dialog */}
-        <Dialog open={showNewCategoryDialog} onClose={() => setShowNewCategoryDialog(false)} maxWidth="sm" fullWidth>
-          <DialogTitle>{t('addNewCategory')}</DialogTitle>
-          <DialogContent>
-            <Box sx={{ display: 'flex', flexDirection: 'column', gap: 2, mt: 1 }}>
-              <TextField
-                label={t('categoryCode')}
-                value={newCategory.code}
-                onChange={(e) => setNewCategory({ ...newCategory, code: e.target.value })}
-                fullWidth
-                required
-                placeholder={t('vehicleElectronicsDocuments')}
-              />
-              <TextField
-                label={t('flagOptional')}
-                value={newCategory.flag}
-                onChange={(e) => setNewCategory({ ...newCategory, flag: e.target.value })}
-                fullWidth
-                placeholder={t('emoji')}
-              />
-            </Box>
-          </DialogContent>
-          <DialogActions>
-            <Button onClick={() => setShowNewCategoryDialog(false)}>{t('cancel')}</Button>
-            <Button 
-              onClick={handleCreateNewCategory}
-              disabled={!newCategory.code || isCreatingCategory}
-              variant="contained"
-            >
-              {isCreatingCategory ? t('creating') : t('createCategory')}
-            </Button>
-          </DialogActions>
-        </Dialog>
-
-        {/* New Found/Lost Dialog */}
-        <Dialog open={showNewFoundLostDialog} onClose={() => setShowNewFoundLostDialog(false)} maxWidth="sm" fullWidth>
-          <DialogTitle>{t('addNewFoundLostOption')}</DialogTitle>
-          <DialogContent>
-            <Box sx={{ display: 'flex', flexDirection: 'column', gap: 2, mt: 1 }}>
-              <TextField
-                label={t('optionCode')}
-                value={newFoundLost.code}
-                onChange={(e) => setNewFoundLost({ ...newFoundLost, code: e.target.value })}
-                fullWidth
-                required
-                placeholder={t('foundLostStolen')}
-              />
-            </Box>
-          </DialogContent>
-          <DialogActions>
-            <Button onClick={() => setShowNewFoundLostDialog(false)}>{t('cancel')}</Button>
-            <Button 
-              onClick={handleCreateNewFoundLost}
-              disabled={!newFoundLost.code || isCreatingFoundLost}
-              variant="contained"
-            >
-              {isCreatingFoundLost ? t('creating') : t('createOption')}
-            </Button>
-          </DialogActions>
-        </Dialog>
       </Paper>
     </Box>
   );
