@@ -537,6 +537,9 @@ const getFilteredPosts = async (req, res) => {
 // @access Private
 const createNewPost = async (req, res) => {
   try {
+    console.log('🔍 DEBUG: Raw request body:', req.body);
+    console.log('🔍 DEBUG: Request files:', req.files);
+    console.log('🔍 DEBUG: Request file:', req.file);
     
     const { 
       user, 
@@ -551,6 +554,20 @@ const createNewPost = async (req, res) => {
       contactPreferences,
       additionalContact
     } = req.body;
+    
+    console.log('🔍 DEBUG: Parsed request data:', {
+      user,
+      country,
+      category,
+      contact,
+      foundLost,
+      city,
+      exactLocation,
+      exactDate,
+      description: description ? 'provided' : 'empty',
+      contactPreferences,
+      additionalContact
+    });
 
          // Confirm required data
      const requiredFields = {
@@ -1018,6 +1035,50 @@ const deletePost = async (req, res) => {
   res.json(reply);
 };
 
+// Test endpoint for city creation
+const testCityCreation = async (req, res) => {
+  try {
+    const { cityName, countryId } = req.body;
+    
+    console.log('🔍 DEBUG: Testing city creation with:', { cityName, countryId });
+    
+    // Test translation service
+    const translations = await TranslationService.translateCityName(cityName, 'en');
+    console.log('🔍 DEBUG: Translation result:', translations);
+    
+    // Test city creation
+    const baseCode = cityName.toUpperCase().replace(/\s+/g, '_').replace(/[^\w]/g, '');
+    const uniqueCode = `${baseCode}_${Date.now()}`;
+    
+    const newCity = await City.create({
+      code: uniqueCode,
+      country: countryId,
+      labels: {
+        en: translations.en || cityName,
+        fr: translations.fr || cityName,
+        ar: translations.ar || cityName
+      },
+      isDynamic: true,
+      searchTerms: [cityName.toLowerCase()]
+    });
+    
+    console.log('🔍 DEBUG: City created successfully:', newCity);
+    
+    res.json({
+      success: true,
+      city: newCity,
+      translations
+    });
+  } catch (error) {
+    console.error('🔍 DEBUG: City creation test failed:', error);
+    res.status(500).json({
+      success: false,
+      error: error.message,
+      details: error
+    });
+  }
+};
+
 module.exports = {
   getAllPosts,
   getPost,
@@ -1026,4 +1087,5 @@ module.exports = {
   submitPostReport,
   updatePost,
   deletePost,
+  testCityCreation,
 };

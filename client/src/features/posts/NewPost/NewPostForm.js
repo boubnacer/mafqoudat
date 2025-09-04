@@ -184,6 +184,18 @@ const NewPostForm = ({ user, countries, categories, flOptions }) => {
       // Store the submitted values to check if it's a lost item
       setLastSubmittedValues(values);
       
+      console.log('🔍 DEBUG: Client form values being submitted:', {
+        city: values.city,
+        country: selectedCountry?._id || values.country,
+        category: values.category,
+        foundLost: values.foundLost,
+        exactLocation: values.exactLocation,
+        exactDate: values.exactDate,
+        contact: values.contact,
+        description: values.description,
+        additionalContact: values.additionalContact
+      });
+      
       const formData = new FormData();
       formData.append("user", user._id);
       formData.append("country", selectedCountry?._id || values.country);
