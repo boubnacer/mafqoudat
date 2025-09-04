@@ -254,11 +254,13 @@ const NewPostForm = ({ user, countries, categories, flOptions }) => {
     // Find the city in the cities list
     const city = cities.find(c => c.id === cityId);
     if (city) {
+      console.log('🔍 DEBUG: Found city in list:', { cityId, city, label: city.label });
       return city.label || city.code || city.name || 'Unknown City';
     }
     
     // If no city found in the list, it might be a custom city name or ID
     // This should not happen with the new implementation, but keeping as fallback
+    console.log('🔍 DEBUG: City not found in list:', { cityId, citiesCount: cities.length });
     return cityId;
   };
 
@@ -920,13 +922,21 @@ const NewPostForm = ({ user, countries, categories, flOptions }) => {
                     label: createdCity.labels.en || createdCity.labels[currentLanguage] || customCityName.trim(),
                     isDynamic: true
                   };
-                  setCities(prevCities => [...prevCities, customCity]);
+                  console.log('🔍 DEBUG: Adding custom city to list:', customCity);
+                  setCities(prevCities => {
+                    const newCities = [...prevCities, customCity];
+                    console.log('🔍 DEBUG: Updated cities list:', newCities);
+                    return newCities;
+                  });
                   
                   // Set the form field value to the created city's ID
                   if (formikRef.current) {
                     console.log('🔍 DEBUG: Setting form field city to:', createdCity._id);
                     formikRef.current.setFieldValue('city', createdCity._id);
                     console.log('🔍 DEBUG: Form field city after setting:', formikRef.current.values.city);
+                    
+                    // Force form re-render to show the selected city
+                    formikRef.current.setFieldTouched('city', true);
                   }
                 } catch (error) {
                   console.error('Error creating custom city:', error);
