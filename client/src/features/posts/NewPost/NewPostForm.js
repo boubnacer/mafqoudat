@@ -30,7 +30,7 @@ import {
   DialogActions,
   IconButton
 } from "@mui/material";
-import { PhotoCamera, LocationOn, ContactPhone, ContactMail, WhatsApp, Add as AddIcon, Close as CloseIcon } from '@mui/icons-material';
+import { PhotoCamera, LocationOn, WhatsApp, Add as AddIcon, Close as CloseIcon } from '@mui/icons-material';
 import { useTranslation } from "../../../utils/translations";
 import PromotionDialog from "../../../components/PromotionDialog";
 
@@ -102,18 +102,14 @@ const NewPostForm = ({ user, countries, categories, flOptions }) => {
     foundLost: flOptions[0]?.id || "",
     city: "",
     exactLocation: "",
-    exactDate: new Date().toISOString().split('T')[0], // Default to today's date
+    exactDate: new Date().toLocaleDateString(), // Default to current date as string
     description: "",
     image: null,
     contactPreferences: {
-      phone: true,
-      email: false,
-      whatsapp: false
+      whatsapp: true
     },
     additionalContact: {
-      phone: "",
-      email: "",
-      whatsapp: ""
+      whatsapp: user.username || ""
     }
   };
 
@@ -123,7 +119,7 @@ const NewPostForm = ({ user, countries, categories, flOptions }) => {
     foundLost: Yup.string().required(t('required')),
     city: Yup.string().required(t('required')),
     exactLocation: Yup.string().required(t('required')),
-    exactDate: Yup.date().required(t('required')),
+    exactDate: Yup.string().required(t('required')),
     description: Yup.string().optional(),
     image: Yup.mixed().nullable(),
   });
@@ -549,16 +545,10 @@ const NewPostForm = ({ user, countries, categories, flOptions }) => {
                       : t('exactDateFoundPlaceholder')
                     }
                   </Typography>
-                  <TextField
-                    name="exactDate"
-                    type="date"
-                    variant="outlined"
-                    fullWidth
-                    value={values.exactDate}
-                    onChange={(e) => setFieldValue('exactDate', e.target.value)}
-                    sx={{
-                      borderRadius: 2,
-                    }}
+                  <Textfield 
+                    name="exactDate" 
+                    variant="outlined" 
+                    placeholder={t('exactDatePlaceholder') || "Enter the date (e.g., 15/12/2023 or December 15, 2023)"}
                   />
                 </Box>
 
@@ -623,34 +613,6 @@ const NewPostForm = ({ user, countries, categories, flOptions }) => {
                     <FormControlLabel
                       control={
                         <Checkbox
-                          checked={values.contactPreferences.phone}
-                          onChange={(e) => setFieldValue('contactPreferences.phone', e.target.checked)}
-                        />
-                      }
-                      label={
-                        <Box display="flex" alignItems="center" gap={1}>
-                          <ContactPhone fontSize="small" />
-                          {t('phoneContact')}
-                        </Box>
-                      }
-                    />
-                    <FormControlLabel
-                      control={
-                        <Checkbox
-                          checked={values.contactPreferences.email}
-                          onChange={(e) => setFieldValue('contactPreferences.email', e.target.checked)}
-                        />
-                      }
-                      label={
-                        <Box display="flex" alignItems="center" gap={1}>
-                          <ContactMail fontSize="small" />
-                          {t('emailContact')}
-                        </Box>
-                      }
-                    />
-                    <FormControlLabel
-                      control={
-                        <Checkbox
                           checked={values.contactPreferences.whatsapp}
                           onChange={(e) => setFieldValue('contactPreferences.whatsapp', e.target.checked)}
                         />
@@ -666,33 +628,17 @@ const NewPostForm = ({ user, countries, categories, flOptions }) => {
                 </Box>
 
                 {/* Additional Contact Details */}
-                {(values.contactPreferences.email || values.contactPreferences.phone || values.contactPreferences.whatsapp) && (
+                {values.contactPreferences.whatsapp && (
                   <Box>
                     <FormLabel sx={{ mb: 1, display: "block", fontWeight: 500 }}>
                       {t('additionalContactDetails')}
                     </FormLabel>
                     <Box display="flex" flexDirection="column" gap={2}>
-                      {values.contactPreferences.phone && (
-                        <Textfield 
-                          name="additionalContact.phone" 
-                          variant="outlined" 
-                          placeholder={t('phoneNumber')}
-                        />
-                      )}
-                      {values.contactPreferences.email && (
-                        <Textfield 
-                          name="additionalContact.email" 
-                          variant="outlined" 
-                          placeholder={t('emailAddress')}
-                        />
-                      )}
-                      {values.contactPreferences.whatsapp && (
-                        <Textfield 
-                          name="additionalContact.whatsapp" 
-                          variant="outlined" 
-                          placeholder={t('whatsappNumber')}
-                        />
-                      )}
+                      <Textfield 
+                        name="additionalContact.whatsapp" 
+                        variant="outlined" 
+                        placeholder={t('whatsappNumber')}
+                      />
                     </Box>
                   </Box>
                 )}
@@ -763,7 +709,7 @@ const NewPostForm = ({ user, countries, categories, flOptions }) => {
                 
                 <Box mt={4}>
                   <SubmitButton
-                    disabled={isSubmitting || !selectedCountry || !values.city || !values.exactDate}
+                    disabled={isSubmitting || !selectedCountry || !values.city || !values.exactDate?.trim()}
                     sx={{ 
                       width: "100%",
                       py: 1.5,
