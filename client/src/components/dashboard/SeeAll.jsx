@@ -106,11 +106,6 @@ const SeeAll = ({ foundOrlostId, totalItems, variant = "desktop" }) => {
   }
 
   // Desktop variant styling
-  // If totalItems is 0 or undefined, don't render anything
-  if (!totalItems || totalItems === 0) {
-    return null;
-  }
-  
   return (
     <Button
       variant="contained"
