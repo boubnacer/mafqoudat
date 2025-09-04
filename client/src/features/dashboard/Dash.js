@@ -496,14 +496,7 @@ const Dash = () => {
                          variant="mobile"
                        />
                      )}
-                     {/* Show Add button when no posts */}
-                     {(!data?.totalLosts || data?.totalLosts === 0) && (
-                       <SeeAll 
-                         foundOrlostId={lostsId} 
-                         totalItems={0}
-                         variant="mobile"
-                       />
-                     )}
+                     {/* Show Add button when no posts - removed to prevent '0' display */}
                    </Box>
                 </Box>
 
@@ -553,14 +546,7 @@ const Dash = () => {
                         variant="desktop"
                       />
                     )}
-                    {/* Show Add button when no posts */}
-                    {(!data?.totalLosts || data?.totalLosts === 0) && (
-                      <SeeAll 
-                        foundOrlostId={lostsId} 
-                        totalItems={0}
-                        variant="desktop"
-                      />
-                    )}
+                    {/* Show Add button when no posts - removed to prevent '0' display */}
                   </Box>
                 </Box>
               </Box>
