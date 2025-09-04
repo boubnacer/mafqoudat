@@ -514,6 +514,12 @@ const getDashboard = async (req, res) => {
       country: currentCountry,
     }).countDocuments();
 
+    // total returned items
+    const totalReturned = await Post.find({
+      country: currentCountry,
+      returned: true,
+    }).countDocuments();
+
     // get geography
     const posts = await Post.find();
 
@@ -589,6 +595,7 @@ const getDashboard = async (req, res) => {
       totalFounds,
       totalLosts,
       totalPosts,
+      totalReturned,
       formattedLocations,
       createdToday,
     };

@@ -8,6 +8,7 @@ const LeftSide = ({
   totalFounds,
   totalLosts,
   totalPosts,
+  totalReturned,
   foundsToday,
   lostsToday,
 }) => {
@@ -180,7 +181,7 @@ const LeftSide = ({
 
         <TotalBox
           title={t('returnedItems')}
-          value="0"
+          value={totalReturned?.toString() || "0"}
           increase="+5%"
           description={t('sinceLastMonth')}
           icon={<RenderIcon name="returned" />}

@@ -180,6 +180,7 @@ const Dash = () => {
           totalFounds={data?.totalFounds}
           totalLosts={data?.totalLosts}
           totalPosts={data?.totalPosts}
+          totalReturned={data?.totalReturned}
           foundsToday={data?.createdToday?.todaysFoundPosts}
           lostsToday={data?.createdToday?.todaysLostPosts}
         />
