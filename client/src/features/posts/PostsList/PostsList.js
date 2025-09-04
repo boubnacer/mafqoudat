@@ -88,7 +88,7 @@ const PostsList = () => {
 
   // Get URL parameters for filter
   const searchParams = new URLSearchParams(search);
-  const urlFilter = searchParams.get('filter');
+  const urlFilter = searchParams.get('fl'); // Changed from 'filter' to 'fl' to match NavLinks
 
   // Get current language
   const { t, currentLanguage } = useTranslation();

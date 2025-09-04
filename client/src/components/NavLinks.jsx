@@ -36,13 +36,13 @@ const NavLinks = ({ onLinkClick }) => {
     },
     {
       title: "Found",
-      flcode: "68a4b54ab46524c54c553cc4", // Correct FOUND ID from dashboard
+      flcode: "68a4b54ab46524c54c553cc3", // Correct FOUND ID from database
       tooltip: t("viewFOUNDItems"),
       icon: "Found"
     },
     {
       title: "Lost", 
-      flcode: "68a4b54ab46524c54c553cc3", // Correct LOST ID from dashboard
+      flcode: "68a4b54ab46524c54c553cc4", // Correct LOST ID from database
       tooltip: t("viewLOSTItems"),
       icon: "Lost"
     }
