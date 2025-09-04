@@ -544,14 +544,7 @@ const Dash = () => {
                         variant="desktop"
                       />
                     )}
-                    {/* Show Add button when no posts */}
-                    {(!data?.totalLosts || data?.totalLosts === 0) && (
-                      <SeeAll 
-                        foundOrlostId={lostsId} 
-                        totalItems={0}
-                        variant="desktop"
-                      />
-                    )}
+
                   </Box>
                 </Box>
               </Box>
