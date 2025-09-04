@@ -49,23 +49,15 @@ const NavLinks = ({ onLinkClick }) => {
   ];
 
   const handleLinkClick = (link) => {
-    console.log('🔍 NavLinks - Link clicked:', link);
-    console.log('🔍 NavLinks - link.flcode value:', link.flcode);
-    console.log('🔍 NavLinks - link.flcode type:', typeof link.flcode);
-    console.log('🔍 NavLinks - link.flcode truthy?', !!link.flcode);
-    
     // Set active link
     dispatch(setActiveLink({ active: link.title }));
     
     // Navigate with filter parameter using the correct URL structure
     if (link.flcode && link.flcode.trim() !== '') {
       // Use the fl parameter that PostsList expects
-      const targetUrl = `/dash/posts?fl=${link.flcode}`;
-      console.log('🔍 NavLinks - Navigating to:', targetUrl);
-      navigate(targetUrl);
+      navigate(`/dash/posts?fl=${link.flcode}`);
     } else {
       // Navigate to all posts without filter
-      console.log('🔍 NavLinks - Navigating to all posts (flcode is empty or falsy)');
       navigate("/dash/posts");
     }
     
@@ -105,10 +97,7 @@ const NavLinks = ({ onLinkClick }) => {
             arrow
           >
             <ListItemButton
-              onClick={() => {
-                console.log('🔍 NavLinks - Button clicked with:', { title, flcode });
-                handleLinkClick({ title, flcode });
-              }}
+              onClick={() => handleLinkClick({ title, flcode })}
               sx={{
                 color: theme.palette.mode === 'dark' ? '#fff' : '#000',
                 backgroundColor: activeLink === title 

@@ -120,12 +120,10 @@ const PostsList = () => {
 
   // Memoize effectiveFl computation
   const effectiveFl = useMemo(() => {
-    console.log('🔍 PostsList - URL search params:', search);
-    console.log('🔍 PostsList - urlFilter from fl param:', urlFilter);
     return urlFilter || '';
-  }, [urlFilter, search]);
+  }, [urlFilter]);
 
-  const queryParams = {
+  const { data, isLoading, isSuccess, isError, error } = useGetPostsQuery({
     page,
     pageSize,
     fl: effectiveFl || '', // Always send fl parameter - empty string for "All", ID for "Found"/"Lost"
@@ -133,11 +131,7 @@ const PostsList = () => {
     search: debouncedSearchTerm || undefined,
     categoryId: localCategoryFilter !== "all" ? localCategoryFilter : undefined,
     language: currentLanguage,
-  };
-  
-  console.log('🔍 PostsList - API query parameters:', queryParams);
-
-  const { data, isLoading, isSuccess, isError, error } = useGetPostsQuery(queryParams, {
+  }, {
     // Add debugging
     refetchOnMountOrArgChange: true,
     // Skip the query if dependencies are not ready or store is not ready
