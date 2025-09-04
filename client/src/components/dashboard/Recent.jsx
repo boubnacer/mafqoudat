@@ -6,8 +6,8 @@ import { RecentItemsSkeleton, DashboardEmptyStates } from "../LoadingStates";
 const Recent = ({ recent, isLoading, emptyState = "NoRecentFounds", maxItems, sx }) => {
   if (isLoading) return <RecentItemsSkeleton />;
   if (!recent || recent.length === 0) {
-    const EmptyStateComponent = DashboardEmptyStates[emptyState];
-    return <EmptyStateComponent />;
+    // Return null instead of showing empty state - let only the header with add button show
+    return null;
   }
 
   // Limit the number of items to prevent overflow
