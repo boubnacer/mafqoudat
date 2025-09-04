@@ -189,7 +189,7 @@ const getDashboard = async (req, res) => {
       {
         $lookup: {
           from: "cities",
-          localField: "city",
+          localField: "cityObjectId",
           foreignField: "_id",
           as: "City",
         },
@@ -276,10 +276,49 @@ const getDashboard = async (req, res) => {
           foundLost: foundOption._id,
         },
       },
+      // Convert string IDs to ObjectIds for lookups (same as trending posts)
+      {
+        $addFields: {
+          categoryObjectId: {
+            $cond: {
+              if: { $and: [{ $ne: ["$category", null] }, { $ne: ["$category", ""] }] },
+              then: { $toObjectId: "$category" },
+              else: null
+            }
+          },
+          cityObjectId: {
+            $cond: {
+              if: { 
+                    $and: [
+                      { $ne: ["$city", null] }, 
+                      { $ne: ["$city", ""] },
+                      { $regexMatch: { input: { $toString: "$city" }, regex: "^[0-9a-fA-F]{24}$" } }
+                    ] 
+                  },
+              then: { $toObjectId: "$city" },
+              else: null
+            }
+          },
+          foundLostObjectId: {
+            $cond: {
+              if: { $and: [{ $ne: ["$foundLost", null] }, { $ne: ["$foundLost", ""] }] },
+              then: { $toObjectId: "$foundLost" },
+              else: null
+            }
+          },
+          countryObjectId: {
+            $cond: {
+              if: { $and: [{ $ne: ["$country", null] }, { $ne: ["$country", ""] }] },
+              then: { $toObjectId: "$country" },
+              else: null
+            }
+          }
+        }
+      },
       {
         $lookup: {
           from: "categories",
-          localField: "category",
+          localField: "categoryObjectId",
           foreignField: "_id",
           as: "Category",
         },
@@ -288,7 +327,7 @@ const getDashboard = async (req, res) => {
       {
         $lookup: {
           from: "foundlosts",
-          localField: "foundLost",
+          localField: "foundLostObjectId",
           foreignField: "_id",
           as: "Floptions",
         },
@@ -297,7 +336,7 @@ const getDashboard = async (req, res) => {
       {
         $lookup: {
           from: "countries",
-          localField: "country",
+          localField: "countryObjectId",
           foreignField: "_id",
           as: "Country",
         },
@@ -306,7 +345,7 @@ const getDashboard = async (req, res) => {
       {
         $lookup: {
           from: "cities",
-          localField: "city",
+          localField: "cityObjectId",
           foreignField: "_id",
           as: "City",
         },
