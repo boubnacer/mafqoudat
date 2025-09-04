@@ -50,7 +50,6 @@ const NewPostForm = ({ user, countries, categories, flOptions }) => {
   const [customCityName, setCustomCityName] = useState("");
   const [selectedCustomCity, setSelectedCustomCity] = useState("");
   const [shouldClearCityValue, setShouldClearCityValue] = useState(false);
-  const [pendingCustomCity, setPendingCustomCity] = useState(null);
   const [isCompressing, setIsCompressing] = useState(false);
   const [compressionInfo, setCompressionInfo] = useState(null);
   const formikRef = useRef(null);
@@ -106,14 +105,6 @@ const NewPostForm = ({ user, countries, categories, flOptions }) => {
     }
   }, [shouldClearCityValue]);
 
-  // Handle pending custom city updates
-  useEffect(() => {
-    if (pendingCustomCity && formikRef.current) {
-      console.log('🔍 DEBUG: Setting city field to:', pendingCustomCity);
-      formikRef.current.setFieldValue('city', pendingCustomCity);
-      setPendingCustomCity(null);
-    }
-  }, [pendingCustomCity]);
 
   const initialFormState = {
     country: user.country,
@@ -185,8 +176,6 @@ const NewPostForm = ({ user, countries, categories, flOptions }) => {
       // Store the submitted values to check if it's a lost item
       setLastSubmittedValues(values);
       
-      console.log('🔍 DEBUG: Submitting city:', values.city);
-      console.log('🔍 DEBUG: Form values:', values);
       
       const formData = new FormData();
       formData.append("user", user._id);
@@ -752,7 +741,6 @@ const NewPostForm = ({ user, countries, categories, flOptions }) => {
             setShowCustomCityInput(false);
             setCustomCityName("");
             setShouldClearCityValue(true);
-            setPendingCustomCity(null);
           }}
           maxWidth="sm"
           fullWidth
@@ -795,7 +783,6 @@ const NewPostForm = ({ user, countries, categories, flOptions }) => {
               setShowCustomCityInput(false);
               setCustomCityName("");
               setShouldClearCityValue(true);
-              setPendingCustomCity(null);
             }}
             sx={{
               color: theme.palette.text.secondary,
@@ -840,7 +827,6 @@ const NewPostForm = ({ user, countries, categories, flOptions }) => {
               setShowCustomCityInput(false);
               setCustomCityName("");
               setShouldClearCityValue(true);
-              setPendingCustomCity(null);
             }}
             sx={{ 
               borderRadius: 2,
@@ -859,7 +845,6 @@ const NewPostForm = ({ user, countries, categories, flOptions }) => {
             onClick={() => {
               if (customCityName.trim()) {
                 const customCityId = customCityName.trim();
-                console.log('🔍 DEBUG: Custom city confirmed:', customCityId);
                 setSelectedCustomCity(customCityId);
                 setShowCustomCityInput(false);
                 
@@ -871,8 +856,10 @@ const NewPostForm = ({ user, countries, categories, flOptions }) => {
                 };
                 setCities(prevCities => [...prevCities, customCity]);
                 
-                // Set pending custom city to be applied via useEffect
-                setPendingCustomCity(customCityId);
+                // Directly set the form field value
+                if (formikRef.current) {
+                  formikRef.current.setFieldValue('city', customCityId);
+                }
               }
             }}
             disabled={!customCityName.trim()}

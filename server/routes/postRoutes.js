@@ -26,7 +26,5 @@ router
   .patch(invalidateCache(['posts:*', 'dashboard:*']), postsController.updatePost)
   .delete(invalidateCache(['posts:*', 'dashboard:*']), postsController.deletePost);
 
-// Test route for city creation
-router.route("/test-city-creation").post(postsController.testCityCreation);
 
 module.exports = router;

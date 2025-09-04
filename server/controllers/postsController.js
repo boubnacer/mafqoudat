@@ -235,13 +235,6 @@ const getAllPosts = async (req, res) => {
 
   const postsWithUser = await Post.aggregate(pipeline);
   
-  // Debug: Log city information for posts (simplified)
-  console.log('🔍 DEBUG: Posts city info:', postsWithUser.map(post => ({
-    id: post._id,
-    cityFound: post.cityDebug?.cityFound,
-    cityData: post.cityDebug?.cityData ? 'has data' : 'empty',
-    cityName: post.cityName || 'undefined'
-  })));
 
   // Get total count for pagination - optimized single query
   totalPosts = await Post.countDocuments({
@@ -603,7 +596,6 @@ const createNewPost = async (req, res) => {
       additionalContact
     } = req.body;
     
-    console.log('🔍 DEBUG: Received city:', city, 'type:', typeof city);
 
          // Confirm required data
      const requiredFields = {
@@ -695,7 +687,6 @@ const createNewPost = async (req, res) => {
          cityId = null;
        }
      } else if (city && city !== 'other') {
-       console.log('🔍 DEBUG: Creating custom city:', city);
        // If we have a city value but no valid cityId, create a new city record
        try {
          // Use translation service to get proper translations for the custom city
@@ -718,21 +709,18 @@ const createNewPost = async (req, res) => {
            searchTerms: [city.toLowerCase()]
          });
          
-         console.log('🔍 DEBUG: Created city successfully:', newCity._id, 'for:', city);
          cityId = newCity._id; // Use the new city's ObjectId
        } catch (cityCreationError) {
-         console.error('🔍 DEBUG: City creation failed:', cityCreationError.message);
+         console.error('Error creating city:', cityCreationError.message);
          cityId = null;
        }
      } else {
        cityId = null;
      }
    } catch (cityError) {
-     console.error('🔍 DEBUG: City validation error:', cityError.message);
+     console.error('Error during city validation:', cityError.message);
      cityId = null;
    }
-   
-   console.log('🔍 DEBUG: Final cityId:', cityId);
 
      // Prepare post data
   const postData = {
@@ -1034,49 +1022,6 @@ const deletePost = async (req, res) => {
   res.json(reply);
 };
 
-// Test endpoint for city creation
-const testCityCreation = async (req, res) => {
-  try {
-    const { cityName, countryId } = req.body;
-    
-    console.log('🔍 DEBUG: Testing city creation with:', { cityName, countryId });
-    
-    // Test translation service
-    const translations = await TranslationService.translateCityName(cityName, 'en');
-    console.log('🔍 DEBUG: Translation result:', translations);
-    
-    // Test city creation
-    const baseCode = cityName.toUpperCase().replace(/\s+/g, '_').replace(/[^\w]/g, '');
-    const uniqueCode = `${baseCode}_${Date.now()}`;
-    
-    const newCity = await City.create({
-      code: uniqueCode,
-      country: countryId,
-      labels: {
-        en: translations.en || cityName,
-        fr: translations.fr || cityName,
-        ar: translations.ar || cityName
-      },
-      isDynamic: true,
-      searchTerms: [cityName.toLowerCase()]
-    });
-    
-    console.log('🔍 DEBUG: City created successfully:', newCity);
-    
-    res.json({
-      success: true,
-      city: newCity,
-      translations
-    });
-  } catch (error) {
-    console.error('🔍 DEBUG: City creation test failed:', error);
-    res.status(500).json({
-      success: false,
-      error: error.message,
-      details: error
-    });
-  }
-};
 
 module.exports = {
   getAllPosts,
@@ -1086,5 +1031,4 @@ module.exports = {
   submitPostReport,
   updatePost,
   deletePost,
-  testCityCreation,
 };
