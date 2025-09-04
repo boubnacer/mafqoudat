@@ -112,8 +112,11 @@ const NewPostForm = ({ user, countries, categories, flOptions }) => {
 
   // Handle custom city selection
   useEffect(() => {
-    if (selectedCustomCity && formikRef.current) {
-      console.log('🔍 DEBUG: useEffect triggered for selectedCustomCity:', selectedCustomCity);
+    console.log('🔍 DEBUG: useEffect triggered with:', { selectedCustomCity, citiesCount: cities.length });
+    if (selectedCustomCity && formikRef.current && cities.length > 0) {
+      console.log('🔍 DEBUG: Looking for city with label:', selectedCustomCity);
+      console.log('🔍 DEBUG: Available cities:', cities.map(c => ({ id: c.id, label: c.label })));
+      
       // Find the custom city in the cities list
       const customCity = cities.find(city => city.label === selectedCustomCity);
       if (customCity) {
@@ -122,6 +125,9 @@ const NewPostForm = ({ user, countries, categories, flOptions }) => {
         setSelectKey(prev => prev + 1);
         formikRef.current.setFieldValue('city', customCity.id);
         console.log('🔍 DEBUG: Set city field to:', customCity.id);
+        console.log('🔍 DEBUG: Form values after setting:', formikRef.current.values);
+      } else {
+        console.log('🔍 DEBUG: Custom city not found in cities list');
       }
     }
   }, [selectedCustomCity, cities]);
@@ -960,17 +966,29 @@ const NewPostForm = ({ user, countries, categories, flOptions }) => {
                   };
                   console.log('🔍 DEBUG: Adding custom city to list:', customCity);
                   
-                  // Update cities list
+                  // Update cities list and immediately select the new city
+                  const cityLabel = createdCity.labels.en || createdCity.labels[currentLanguage] || customCityName.trim();
+                  console.log('🔍 DEBUG: Setting selectedCustomCity to:', cityLabel);
+                  console.log('🔍 DEBUG: Created city object:', createdCity);
+                  
                   setCities(prevCities => {
                     const newCities = [...prevCities, customCity];
                     console.log('🔍 DEBUG: Updated cities list:', newCities);
+                    
+                    // Immediately select the new city after updating the list
+                    setTimeout(() => {
+                      console.log('🔍 DEBUG: Selecting custom city after cities list update');
+                      setSelectedCityId(customCity.id);
+                      setSelectKey(prev => prev + 1);
+                      if (formikRef.current) {
+                        formikRef.current.setFieldValue('city', customCity.id);
+                        console.log('🔍 DEBUG: Set city field to:', customCity.id);
+                        console.log('🔍 DEBUG: Form values after setting:', formikRef.current.values);
+                      }
+                    }, 0);
+                    
                     return newCities;
                   });
-                  
-                  // Set the selected custom city name - this will trigger the useEffect
-                  const cityLabel = createdCity.labels.en || createdCity.labels[currentLanguage] || customCityName.trim();
-                  console.log('🔍 DEBUG: Setting selectedCustomCity to:', cityLabel);
-                  setSelectedCustomCity(cityLabel);
                 } catch (error) {
                   console.error('Error creating custom city:', error);
                   // Show error message to user
