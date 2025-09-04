@@ -354,13 +354,14 @@ const NewPostForm = ({ user, countries, categories, flOptions }) => {
         }}
       >
         <Typography 
-          variant="h4" 
+          variant="h3" 
           gutterBottom 
           textAlign="center" 
           sx={{ 
             color: theme.palette.textColor.main,
             mb: 4,
-            fontWeight: 600
+            fontWeight: 600,
+            fontSize: { xs: '1.8rem', md: '2.2rem' }
           }}
         >
           {t('createNewPost')}
@@ -388,22 +389,22 @@ const NewPostForm = ({ user, countries, categories, flOptions }) => {
               
               <Box display="flex" flexDirection="column" gap={3}>
                 {/* Basic Information Section */}
-                <Typography variant="h6" sx={{ fontWeight: 600, color: theme.palette.primary.main }}>
+                <Typography variant="h5" sx={{ fontWeight: 600, color: theme.palette.primary.main, fontSize: '1.3rem' }}>
                   {t('basicInformation')}
                 </Typography>
 
                 <Box>
-                  <FormLabel htmlFor="foundLost" sx={{ mb: 1, display: "block", fontWeight: 500 }}>
+                  <FormLabel htmlFor="foundLost" sx={{ mb: 1, display: "block", fontWeight: 500, fontSize: '1.1rem' }}>
                     {t('foundOrLost')} *
                   </FormLabel>
                   <SelectOption name="foundLost" options={flOptions} />
                 </Box>
 
                 <Box>
-                  <FormLabel htmlFor="country" sx={{ mb: 1, display: "block", fontWeight: 500 }}>
+                  <FormLabel htmlFor="country" sx={{ mb: 1, display: "block", fontWeight: 500, fontSize: '1.1rem' }}>
                     {t('country')} *
                   </FormLabel>
-                  <Typography variant="caption" color="text.secondary" sx={{ mb: 1, display: "block" }}>
+                  <Typography variant="caption" color="text.secondary" sx={{ mb: 1, display: "block", fontSize: '0.95rem' }}>
                     {getFoundLostType(values.foundLost) === 'LOST' 
                       ? t('chooseCountryLost') 
                       : t('chooseCountryFound')
@@ -447,22 +448,22 @@ const NewPostForm = ({ user, countries, categories, flOptions }) => {
                 </Box>
 
                 <Box>
-                  <FormLabel htmlFor="category" sx={{ mb: 1, display: "block", fontWeight: 500 }}>
+                  <FormLabel htmlFor="category" sx={{ mb: 1, display: "block", fontWeight: 500, fontSize: '1.1rem' }}>
                     {t('category')} *
                   </FormLabel>
                   <SelectOption name="category" options={categories} />
                 </Box>
 
                 {/* Location Section */}
-                <Typography variant="h6" sx={{ fontWeight: 600, color: theme.palette.primary.main }}>
+                <Typography variant="h5" sx={{ fontWeight: 600, color: theme.palette.primary.main, fontSize: '1.3rem' }}>
                   {t('location')}
                 </Typography>
 
                 <Box>
-                  <FormLabel htmlFor="city" sx={{ mb: 1, display: "block", fontWeight: 500 }}>
+                  <FormLabel htmlFor="city" sx={{ mb: 1, display: "block", fontWeight: 500, fontSize: '1.1rem' }}>
                     {t('city')} *
                   </FormLabel>
-                  <Typography variant="caption" color="text.secondary" sx={{ mb: 1, display: "block" }}>
+                  <Typography variant="caption" color="text.secondary" sx={{ mb: 1, display: "block", fontSize: '0.95rem' }}>
                     {!selectedCountry 
                       ? t('selectCountryFirst') 
                       : loadingCities 
@@ -542,10 +543,10 @@ const NewPostForm = ({ user, countries, categories, flOptions }) => {
                 </Box>
 
                 <Box>
-                  <FormLabel htmlFor="exactDate" sx={{ mb: 1, display: "block", fontWeight: 500 }}>
+                  <FormLabel htmlFor="exactDate" sx={{ mb: 1, display: "block", fontWeight: 500, fontSize: '1.1rem' }}>
                     {t('exactDate')} *
                   </FormLabel>
-                  <Typography variant="caption" color="text.secondary" sx={{ mb: 1, display: "block" }}>
+                  <Typography variant="caption" color="text.secondary" sx={{ mb: 1, display: "block", fontSize: '0.95rem' }}>
                     {getFoundLostType(values.foundLost) === 'LOST' 
                       ? t('exactDateLostPlaceholder') 
                       : t('exactDateFoundPlaceholder')
@@ -559,10 +560,10 @@ const NewPostForm = ({ user, countries, categories, flOptions }) => {
                 </Box>
 
                 <Box>
-                  <FormLabel htmlFor="exactLocation" sx={{ mb: 1, display: "block", fontWeight: 500 }}>
+                  <FormLabel htmlFor="exactLocation" sx={{ mb: 1, display: "block", fontWeight: 500, fontSize: '1.1rem' }}>
                     {t('exactLocation')} *
                   </FormLabel>
-                  <Typography variant="caption" color="text.secondary" sx={{ mb: 1, display: "block" }}>
+                  <Typography variant="caption" color="text.secondary" sx={{ mb: 1, display: "block", fontSize: '0.95rem' }}>
                     {getFoundLostType(values.foundLost) === 'LOST' 
                       ? t('exactLocationLostPlaceholder') 
                       : t('exactLocationFoundPlaceholder')
@@ -576,21 +577,21 @@ const NewPostForm = ({ user, countries, categories, flOptions }) => {
                 </Box>
 
                 {/* Item Details Section */}
-                <Typography variant="h6" sx={{ fontWeight: 600, color: theme.palette.primary.main }}>
+                <Typography variant="h5" sx={{ fontWeight: 600, color: theme.palette.primary.main, fontSize: '1.3rem' }}>
                   {t('itemDetails')}
                 </Typography>
 
                 <Box>
-                  <FormLabel htmlFor="description" sx={{ mb: 1, display: "block", fontWeight: 500 }}>
+                  <FormLabel htmlFor="description" sx={{ mb: 1, display: "block", fontWeight: 500, fontSize: '1.1rem' }}>
                     {t('description')} ({t('optional')})
                   </FormLabel>
-                  <Typography variant="caption" color="text.secondary" sx={{ mb: 1, display: "block" }}>
+                  <Typography variant="caption" color="text.secondary" sx={{ mb: 1, display: "block", fontSize: '0.95rem' }}>
                     {getFoundLostType(values.foundLost) === 'LOST' 
                       ? t('descriptionLostPlaceholder') 
                       : t('descriptionFoundPlaceholder')
                     }
                   </Typography>
-                  <Typography variant="caption" color="warning.main" sx={{ mb: 1, display: "block", fontStyle: "italic" }}>
+                  <Typography variant="caption" color="warning.main" sx={{ mb: 1, display: "block", fontStyle: "italic", fontSize: '0.95rem' }}>
                     {getFoundLostType(values.foundLost) === 'LOST' 
                       ? (t('descriptionOptionalLostMessage') || "Description is optional but recommended when you don't have an image of the lost item.")
                       : (t('descriptionOptionalFoundMessage') || "Description is optional. You can add an image instead, or provide both for better identification.")
@@ -606,12 +607,12 @@ const NewPostForm = ({ user, countries, categories, flOptions }) => {
                 </Box>
 
                 {/* Contact Information Section */}
-                <Typography variant="h6" sx={{ fontWeight: 600, color: theme.palette.primary.main }}>
+                <Typography variant="h5" sx={{ fontWeight: 600, color: theme.palette.primary.main, fontSize: '1.3rem' }}>
                   {t('contactInformation')}
                 </Typography>
 
                 <Box>
-                  <FormLabel htmlFor="contact" sx={{ mb: 1, display: "block", fontWeight: 500 }}>
+                  <FormLabel htmlFor="contact" sx={{ mb: 1, display: "block", fontWeight: 500, fontSize: '1.1rem' }}>
                     {t('contact')} *
                   </FormLabel>
                   <Textfield name="contact" variant="outlined" />
@@ -619,10 +620,10 @@ const NewPostForm = ({ user, countries, categories, flOptions }) => {
 
                 {/* WhatsApp Contact Details */}
                 <Box>
-                  <FormLabel sx={{ mb: 1, display: "block", fontWeight: 500 }}>
+                  <FormLabel sx={{ mb: 1, display: "block", fontWeight: 500, fontSize: '1.1rem' }}>
                     {t('whatsappContact')}
                   </FormLabel>
-                  <Typography variant="caption" color="text.secondary" sx={{ mb: 1, display: "block" }}>
+                  <Typography variant="caption" color="text.secondary" sx={{ mb: 1, display: "block", fontSize: '0.95rem' }}>
                     {getFoundLostType(values.foundLost) === 'LOST' 
                       ? (t('whatsappContactLostMessage') || "We'll use this WhatsApp number to contact you if someone finds your lost item.")
                       : (t('whatsappContactFoundMessage') || "We'll use this WhatsApp number to contact you if the owner of the found item wants to reach you.")
@@ -638,12 +639,12 @@ const NewPostForm = ({ user, countries, categories, flOptions }) => {
                 </Box>
 
                 {/* Image Section */}
-                <Typography variant="h6" sx={{ fontWeight: 600, color: theme.palette.primary.main }}>
+                <Typography variant="h5" sx={{ fontWeight: 600, color: theme.palette.primary.main, fontSize: '1.3rem' }}>
                   {t('itemImage')}
                 </Typography>
 
                 <Box>
-                  <FormLabel htmlFor="image" sx={{ mb: 1, display: "block", fontWeight: 500 }}>
+                  <FormLabel htmlFor="image" sx={{ mb: 1, display: "block", fontWeight: 500, fontSize: '1.1rem' }}>
                     {t('addItemImage')} ({t('optional')})
                   </FormLabel>
                   <Box display="flex" alignItems="center" gap={2}>
@@ -693,11 +694,8 @@ const NewPostForm = ({ user, countries, categories, flOptions }) => {
                       </Typography>
                     )}
                   </Box>
-                  <Typography variant="caption" color="text.secondary" sx={{ mt: 1, display: "block" }}>
+                  <Typography variant="caption" color="text.secondary" sx={{ mt: 1, display: "block", fontSize: '0.95rem' }}>
                     {t('imageOptionalMessage')}
-                  </Typography>
-                  <Typography variant="caption" color="text.secondary" sx={{ mt: 0.5, display: "block", fontStyle: "italic" }}>
-                    {t('imageCompressionInfo') || "Images will be automatically compressed for faster upload and better performance."}
                   </Typography>
                 </Box>
                 
@@ -707,7 +705,7 @@ const NewPostForm = ({ user, countries, categories, flOptions }) => {
                     sx={{ 
                       width: "100%",
                       py: 1.5,
-                      fontSize: "1.1rem",
+                      fontSize: "1.2rem",
                       fontWeight: 600
                     }}
                   >
