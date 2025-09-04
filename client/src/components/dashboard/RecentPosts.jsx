@@ -259,7 +259,7 @@ const RecentPosts = ({ _id, categoryname, exactLocation, image, createdAt, count
             alt={categoryname}
             fallback={ma}
             onError={(e) => {
-              console.log('Image failed to load:', e.target.src);
+              // Image failed to load - silently handle
             }}
           />
           

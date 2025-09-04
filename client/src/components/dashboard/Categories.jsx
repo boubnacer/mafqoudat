@@ -36,7 +36,7 @@ const Categories = () => {
         fromCategory: true 
       } 
     });
-    console.log('Navigating with category filter:', categoryId);
+    // Navigate with category filter
   };
 
   const toggleShowAllCategories = () => {

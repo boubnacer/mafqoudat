@@ -232,8 +232,9 @@ const Dash = () => {
             }}
           />
 
-          {/* Enhanced Recent Founds Section */}
-          <Box mb={4}>
+          {/* Enhanced Recent Founds Section - Only show when there are posts */}
+          {data?.totalFounds > 0 && (
+            <Box mb={4}>
             <Box
               sx={{
                 backgroundColor: theme.palette.mode === 'dark' ? '#1a1a1a' : '#f8f9fa',
@@ -408,185 +409,184 @@ const Dash = () => {
               </Box>
             </Box>
           </Box>
+          )}
 
-          {/* Enhanced Recent Losts Section */}
-          <Box mb={4}>
-            <Box
-              sx={{
-                backgroundColor: theme.palette.mode === 'dark' ? '#1a1a1a' : '#f8f9fa',
-                borderRadius: { xs: '16px', sm: '20px' },
-                boxShadow: theme.palette.mode === 'dark' 
-                  ? '0 8px 32px rgba(0,0,0,0.3)'
-                  : '0 8px 32px rgba(0,0,0,0.1)',
-                overflow: 'hidden',
-                mx: { xs: 1, sm: 2 },
-                maxWidth: '100%',
-                border: `1px solid ${theme.palette.mode === 'dark' ? 'rgba(255,255,255,0.05)' : 'rgba(0,0,0,0.05)'}`,
-                direction: currentLanguage === 'ar' ? 'rtl' : 'ltr'
-              }}
-            >
-              {/* Header Section */}
-              <Box 
+          {/* Enhanced Recent Losts Section - Only show when there are posts */}
+          {data?.totalLosts > 0 && (
+            <Box mb={4}>
+              <Box
                 sx={{
-                  background: theme.palette.mode === 'dark'
-                    ? 'linear-gradient(135deg, #1a1a1a 0%, #2d2d2d 100%)'
-                    : 'linear-gradient(135deg, #FFA500 0%, #FFD700 100%)',
-                  p: { xs: 2, sm: 3 },
-                  position: 'relative',
+                  backgroundColor: theme.palette.mode === 'dark' ? '#1a1a1a' : '#f8f9fa',
+                  borderRadius: { xs: '16px', sm: '20px' },
+                  boxShadow: theme.palette.mode === 'dark' 
+                    ? '0 8px 32px rgba(0,0,0,0.3)'
+                    : '0 8px 32px rgba(0,0,0,0.1)',
                   overflow: 'hidden',
-                  '&::before': {
-                    content: '""',
-                    position: 'absolute',
-                    top: 0,
-                    left: 0,
-                    right: 0,
-                    bottom: 0,
-                    background: 'linear-gradient(45deg, rgba(255,255,255,0.1) 0%, transparent 100%)',
-                    pointerEvents: 'none'
-                  }
+                  mx: { xs: 1, sm: 2 },
+                  maxWidth: '100%',
+                  border: `1px solid ${theme.palette.mode === 'dark' ? 'rgba(255,255,255,0.05)' : 'rgba(0,0,0,0.05)'}`,
+                  direction: currentLanguage === 'ar' ? 'rtl' : 'ltr'
                 }}
               >
-                {/* Mobile Layout */}
-                <Box
+                {/* Header Section */}
+                <Box 
                   sx={{
-                    display: { xs: 'block', sm: 'none' },
-                    textAlign: 'center'
+                    background: theme.palette.mode === 'dark'
+                      ? 'linear-gradient(135deg, #1a1a1a 0%, #2d2d2d 100%)'
+                      : 'linear-gradient(135deg, #FFA500 0%, #FFD700 100%)',
+                    p: { xs: 2, sm: 3 },
+                    position: 'relative',
+                    overflow: 'hidden',
+                    '&::before': {
+                      content: '""',
+                      position: 'absolute',
+                      top: 0,
+                      left: 0,
+                      right: 0,
+                      bottom: 0,
+                      background: 'linear-gradient(45deg, rgba(255,255,255,0.1) 0%, transparent 100%)',
+                      pointerEvents: 'none'
+                    }
                   }}
                 >
-                  <Box sx={{ 
-                    display: 'flex', 
-                    alignItems: 'center', 
-                    justifyContent: 'center', 
-                    gap: 1, 
-                    mb: 2,
-                    flexDirection: currentLanguage === 'ar' ? 'row-reverse' : 'row'
-                  }}>
-                    <Search sx={{ 
-                      color: '#fff', 
-                      fontSize: '24px',
-                      order: currentLanguage === 'ar' ? 2 : 1
-                    }} />
-                    <Typography
-                      variant="h6"
-                      sx={{
-                        color: '#fff',
-                        fontWeight: 700,
-                        fontSize: '20px',
-                        textAlign: 'center',
-                        order: currentLanguage === 'ar' ? 1 : 2
-                      }}
-                    >
-                      {t('recentLosts')}
-                    </Typography>
-                  </Box>
-                  
-                                     <Box sx={{ 
-                     display: 'flex', 
-                     alignItems: 'center', 
-                     justifyContent: 'center', 
-                     gap: 2,
-                     flexDirection: currentLanguage === 'ar' ? 'row-reverse' : 'row'
-                   }}>
-
-                     {/* Show "+add" button inline only when there are posts */}
-                     {data?.totalLosts > 0 && data?.totalLosts <= 4 && (
-                       <SeeAll 
-                         foundOrlostId={lostsId} 
-                         totalItems={data?.totalLosts}
-                         variant="mobile"
-                       />
-                     )}
-                     {/* Show Add button when no posts - removed to prevent '0' display */}
-                   </Box>
-                </Box>
-
-                {/* Desktop Layout */}
-                <Box
-                  sx={{
-                    display: { xs: 'none', sm: 'flex' },
-                    alignItems: 'center',
-                    justifyContent: 'space-between',
-                    flexDirection: currentLanguage === 'ar' ? 'row-reverse' : 'row'
-                  }}
-                >
-                  <Box sx={{ 
-                    display: 'flex', 
-                    alignItems: 'center', 
-                    gap: 2,
-                    order: currentLanguage === 'ar' ? 2 : 1
-                  }}>
+                  {/* Mobile Layout */}
+                  <Box
+                    sx={{
+                      display: { xs: 'block', sm: 'none' },
+                      textAlign: 'center'
+                    }}
+                  >
                     <Box sx={{ 
                       display: 'flex', 
                       alignItems: 'center', 
-                      gap: 1
+                      justifyContent: 'center', 
+                      gap: 1, 
+                      mb: 2,
+                      flexDirection: currentLanguage === 'ar' ? 'row-reverse' : 'row'
                     }}>
                       <Search sx={{ 
                         color: '#fff', 
-                        fontSize: '28px'
+                        fontSize: '24px',
+                        order: currentLanguage === 'ar' ? 2 : 1
                       }} />
                       <Typography
-                        variant="h5"
+                        variant="h6"
                         sx={{
                           color: '#fff',
                           fontWeight: 700,
-                          fontSize: { sm: '22px', md: '24px' }
+                          fontSize: '20px',
+                          textAlign: 'center',
+                          order: currentLanguage === 'ar' ? 1 : 2
                         }}
                       >
                         {t('recentLosts')}
                       </Typography>
                     </Box>
-
+                    
+                    <Box sx={{ 
+                      display: 'flex', 
+                      alignItems: 'center', 
+                      justifyContent: 'center', 
+                      gap: 2,
+                      flexDirection: currentLanguage === 'ar' ? 'row-reverse' : 'row'
+                    }}>
+                      {/* Show "+add" button inline only when there are posts */}
+                      {data?.totalLosts > 0 && data?.totalLosts <= 4 && (
+                        <SeeAll 
+                          foundOrlostId={lostsId} 
+                          totalItems={data?.totalLosts}
+                          variant="mobile"
+                        />
+                      )}
+                    </Box>
                   </Box>
-                  <Box sx={{ order: currentLanguage === 'ar' ? 1 : 2 }}>
-                    {/* Show SeeAll button when there are posts */}
-                    {data?.totalLosts > 0 && (
+
+                  {/* Desktop Layout */}
+                  <Box
+                    sx={{
+                      display: { xs: 'none', sm: 'flex' },
+                      alignItems: 'center',
+                      justifyContent: 'space-between',
+                      flexDirection: currentLanguage === 'ar' ? 'row-reverse' : 'row'
+                    }}
+                  >
+                    <Box sx={{ 
+                      display: 'flex', 
+                      alignItems: 'center', 
+                      gap: 2,
+                      order: currentLanguage === 'ar' ? 2 : 1
+                    }}>
+                      <Box sx={{ 
+                        display: 'flex', 
+                        alignItems: 'center', 
+                        gap: 1
+                      }}>
+                        <Search sx={{ 
+                          color: '#fff', 
+                          fontSize: '28px'
+                        }} />
+                        <Typography
+                          variant="h5"
+                          sx={{
+                            color: '#fff',
+                            fontWeight: 700,
+                            fontSize: { sm: '22px', md: '24px' }
+                          }}
+                        >
+                          {t('recentLosts')}
+                        </Typography>
+                      </Box>
+                    </Box>
+                    <Box sx={{ order: currentLanguage === 'ar' ? 1 : 2 }}>
+                      {/* Show SeeAll button when there are posts */}
+                      {data?.totalLosts > 0 && (
+                        <SeeAll 
+                          foundOrlostId={lostsId} 
+                          totalItems={data?.totalLosts}
+                          variant="desktop"
+                        />
+                      )}
+                    </Box>
+                  </Box>
+                </Box>
+
+                {/* Content Section */}
+                <Box 
+                  sx={{
+                    p: { xs: 2, sm: 3 },
+                    backgroundColor: theme.palette.mode === 'dark' ? '#2d2d2d' : '#fff',
+                    minHeight: '200px'
+                  }}
+                >
+                  <Recent 
+                    recent={data?.recentLosts}
+                    isLoading={isLoading}
+                    emptyState="NoRecentLosts"
+                    maxItems={4}
+                  />
+                  
+                  {/* Mobile See All Button - Bottom (only when there are posts) */}
+                  {(data?.totalLosts && data?.totalLosts > 4) && (
+                    <Box
+                      sx={{
+                        display: { xs: 'flex', sm: 'none' },
+                        justifyContent: 'center',
+                        mt: 3,
+                        pt: 2,
+                        borderTop: `1px solid ${theme.palette.mode === 'dark' ? 'rgba(255,255,255,0.1)' : 'rgba(0,0,0,0.1)'}`
+                      }}
+                    >
                       <SeeAll 
                         foundOrlostId={lostsId} 
                         totalItems={data?.totalLosts}
-                        variant="desktop"
+                        variant="mobile"
                       />
-                    )}
-                    {/* Show Add button when no posts - removed to prevent '0' display */}
-                  </Box>
+                    </Box>
+                  )}
                 </Box>
               </Box>
-
-              {/* Content Section */}
-              <Box 
-                sx={{
-                  p: { xs: 2, sm: 3 },
-                  backgroundColor: theme.palette.mode === 'dark' ? '#2d2d2d' : '#fff',
-                  minHeight: '200px'
-                }}
-              >
-                <Recent 
-                  recent={data?.recentLosts}
-                   isLoading={isLoading}
-                   emptyState="NoRecentLosts"
-                   maxItems={4}
-                 />
-                 
-                 {/* Mobile See All Button - Bottom (only when there are posts) */}
-                 {(data?.totalLosts && data?.totalLosts > 4) && (
-                   <Box
-                     sx={{
-                       display: { xs: 'flex', sm: 'none' },
-                       justifyContent: 'center',
-                       mt: 3,
-                       pt: 2,
-                       borderTop: `1px solid ${theme.palette.mode === 'dark' ? 'rgba(255,255,255,0.1)' : 'rgba(0,0,0,0.1)'}`
-                     }}
-                   >
-                     <SeeAll 
-                       foundOrlostId={lostsId} 
-                       totalItems={data?.totalLosts}
-                       variant="mobile"
-                     />
-                   </Box>
-                 )}
-              </Box>
             </Box>
-          </Box>
+          )}
 
           {/* Section Divider */}
           <Box 
