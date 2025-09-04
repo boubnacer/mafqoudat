@@ -552,6 +552,10 @@ const NewPostForm = ({ user, countries, categories, flOptions }) => {
                       labelId="city-select-label"
                       value={selectedCityId || values.city || ""}
                       label={t('chooseCity')}
+                      onOpen={() => {
+                        console.log('🔍 DEBUG: Select opened, current value:', selectedCityId || values.city || "");
+                        console.log('🔍 DEBUG: Cities list:', cities.map(c => ({ id: c.id, label: c.label })));
+                      }}
                       onChange={(e) => {
                         if (e.target.value === 'other') {
                           // Don't set the field to "other", just open the dialog
@@ -565,7 +569,9 @@ const NewPostForm = ({ user, countries, categories, flOptions }) => {
                       renderValue={(selected) => {
                         if (!selected) return t('chooseCity');
                         const cityId = selectedCityId || selected;
-                        return getCityDisplayName(cityId);
+                        const displayName = getCityDisplayName(cityId);
+                        console.log('🔍 DEBUG: renderValue called:', { selected, selectedCityId, cityId, displayName });
+                        return displayName;
                       }}
                       disableUnderline
                       sx={{
@@ -917,8 +923,7 @@ const NewPostForm = ({ user, countries, categories, flOptions }) => {
                   // Create the custom city in the backend
                   const createdCity = await createCustomCity(customCityName.trim(), selectedCountry._id);
                   
-                  // Set the selected custom city
-                  setSelectedCustomCity(createdCity.labels.en || createdCity.labels[currentLanguage] || customCityName.trim());
+                  // Close the dialog
                   setShowCustomCityInput(false);
                   
                   // Add the custom city to the cities list so it shows in the dropdown
@@ -937,6 +942,7 @@ const NewPostForm = ({ user, countries, categories, flOptions }) => {
                   });
                   
                   // Immediately set the selected city ID and form field
+                  console.log('🔍 DEBUG: About to set selectedCityId to:', createdCity._id);
                   setSelectedCityId(createdCity._id);
                   setSelectKey(prev => prev + 1); // Force Select component to re-render
                   if (formikRef.current) {
@@ -944,6 +950,9 @@ const NewPostForm = ({ user, countries, categories, flOptions }) => {
                     formikRef.current.setFieldValue('city', createdCity._id);
                     console.log('🔍 DEBUG: Form field city after setting:', formikRef.current.values.city);
                   }
+                  
+                  // Also set the selected custom city name for display
+                  setSelectedCustomCity(createdCity.labels.en || createdCity.labels[currentLanguage] || customCityName.trim());
                 } catch (error) {
                   console.error('Error creating custom city:', error);
                   // Show error message to user
