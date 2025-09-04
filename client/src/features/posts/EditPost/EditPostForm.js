@@ -143,20 +143,40 @@ const EditPostForm = ({ post, user, countries, flOptions, categories, cities }) 
   console.log('🔍 EditPostForm - Post data received:', post);
   console.log('🔍 EditPostForm - Post country:', post?.country);
   console.log('🔍 EditPostForm - Post category:', post?.category);
+  console.log('🔍 EditPostForm - Post categoryname:', post?.categoryname);
   console.log('🔍 EditPostForm - Post foundLost:', post?.foundLost);
   console.log('🔍 EditPostForm - Post contact:', post?.contact);
   console.log('🔍 EditPostForm - Post exactLocation:', post?.exactLocation);
   console.log('🔍 EditPostForm - Post exactDate:', post?.exactDate);
+  console.log('🔍 EditPostForm - Post mainDate:', post?.mainDate);
+  console.log('🔍 EditPostForm - Post createdAt:', post?.createdAt);
+  console.log('🔍 EditPostForm - Post updatedAt:', post?.updatedAt);
 
   // Initialize form state with existing post data
   const initialFormState = {
     country: post?.country || "",
     contact: post?.contact || "",
-    category: post?.category || "",
+    category: (() => {
+      const categoryValue = post?.category || post?.categoryname || "";
+      console.log('🔍 Category initialization - post.category:', post?.category, 'post.categoryname:', post?.categoryname, 'final value:', categoryValue);
+      return categoryValue;
+    })(),
     foundLost: post?.foundLost || "",
     city: post?.city || "",
     exactLocation: post?.exactLocation || "",
-    exactDate: post?.exactDate ? new Date(post.exactDate).toISOString().split('T')[0] : "",
+    exactDate: (() => {
+      if (post?.exactDate) {
+        const date = new Date(post.exactDate);
+        console.log('🔍 Date conversion - exactDate:', post.exactDate, '->', date.toISOString().split('T')[0]);
+        return date.toISOString().split('T')[0];
+      }
+      if (post?.mainDate) {
+        const date = new Date(post.mainDate);
+        console.log('🔍 Date conversion - mainDate:', post.mainDate, '->', date.toISOString().split('T')[0]);
+        return date.toISOString().split('T')[0];
+      }
+      return "";
+    })(),
     description: post?.description || "",
     // Contact preferences
     contactPreferences: {
@@ -176,6 +196,9 @@ const EditPostForm = ({ post, user, countries, flOptions, categories, cities }) 
   };
 
   console.log('🔍 EditPostForm - Initial form state:', initialFormState);
+  console.log('🔍 EditPostForm - Categories available:', categories);
+  console.log('🔍 EditPostForm - FlOptions available:', flOptions);
+  console.log('🔍 EditPostForm - Countries available:', countries);
 
   const formValidation = Yup.object().shape({
     country: Yup.string().required(t('country') + " " + t('required')),
