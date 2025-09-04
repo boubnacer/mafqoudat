@@ -17,6 +17,9 @@ const SeeAll = ({ foundOrlostId, totalItems, variant = "desktop" }) => {
   const theme = useTheme();
   const { t, currentLanguage } = useTranslation();
 
+  // Debug: Log the values to track down the zero
+  console.log('SeeAll component - totalItems:', totalItems, 'variant:', variant, 'foundOrlostId:', foundOrlostId);
+
   const hanldeAddNewPost = () => navigate("/dash/posts/new");
 
   const hanldeSeeAllPosts = ({ foundOrlostId }) => {
