@@ -20,8 +20,6 @@ import {
   MenuItem,
   FormControl,
   InputLabel,
-  FormControlLabel,
-  Checkbox,
   TextField,
   Divider,
   Dialog,
@@ -54,6 +52,17 @@ const NewPostForm = ({ user, countries, categories, flOptions }) => {
   const [shouldClearCityValue, setShouldClearCityValue] = useState(false);
   const [isCompressing, setIsCompressing] = useState(false);
   const [compressionInfo, setCompressionInfo] = useState(null);
+
+  // Initialize selectedCountry with user's country
+  useEffect(() => {
+    if (user.country && countries.length > 0 && !selectedCountry) {
+      const userCountry = countries.find(c => c._id === user.country);
+      if (userCountry) {
+        setSelectedCountry(userCountry);
+        fetchCitiesByCountry(userCountry._id);
+      }
+    }
+  }, [user.country, countries, selectedCountry, fetchCitiesByCountry]);
 
   useEffect(() => {
     if (isSuccess) {
@@ -105,9 +114,6 @@ const NewPostForm = ({ user, countries, categories, flOptions }) => {
     exactDate: new Date().toLocaleDateString(), // Default to current date as string
     description: "",
     image: null,
-    contactPreferences: {
-      whatsapp: true
-    },
     additionalContact: {
       whatsapp: user.username || ""
     }
@@ -178,7 +184,7 @@ const NewPostForm = ({ user, countries, categories, flOptions }) => {
       formData.append("exactDate", values.exactDate);
       formData.append("contact", values.contact);
       formData.append("description", values.description || "");
-      formData.append("contactPreferences", JSON.stringify(values.contactPreferences));
+      formData.append("contactPreferences", JSON.stringify({ whatsapp: true }));
       formData.append("additionalContact", JSON.stringify(values.additionalContact));
       if (values.image) {
         formData.append("image", values.image);
@@ -584,6 +590,9 @@ const NewPostForm = ({ user, countries, categories, flOptions }) => {
                       : t('descriptionFoundPlaceholder')
                     }
                   </Typography>
+                  <Typography variant="caption" color="warning.main" sx={{ mb: 1, display: "block", fontStyle: "italic" }}>
+                    {t('descriptionOptionalMessage') || "This field is optional, but especially helpful if you don't have an image of the item."}
+                  </Typography>
                   <Textfield 
                     name="description" 
                     variant="outlined" 
@@ -605,43 +614,22 @@ const NewPostForm = ({ user, countries, categories, flOptions }) => {
                   <Textfield name="contact" variant="outlined" />
                 </Box>
 
+                {/* WhatsApp Contact Details */}
                 <Box>
                   <FormLabel sx={{ mb: 1, display: "block", fontWeight: 500 }}>
-                    {t('contactPreferences')}
+                    {t('whatsappContact')}
                   </FormLabel>
-                  <Box display="flex" flexDirection="column" gap={1}>
-                    <FormControlLabel
-                      control={
-                        <Checkbox
-                          checked={values.contactPreferences.whatsapp}
-                          onChange={(e) => setFieldValue('contactPreferences.whatsapp', e.target.checked)}
-                        />
-                      }
-                      label={
-                        <Box display="flex" alignItems="center" gap={1}>
-                          <WhatsApp fontSize="small" />
-                          {t('whatsappContact')}
-                        </Box>
-                      }
+                  <Typography variant="caption" color="text.secondary" sx={{ mb: 1, display: "block" }}>
+                    {t('whatsappContactMessage') || "We'll use this WhatsApp number to contact you if someone finds your lost item or if you found someone's item."}
+                  </Typography>
+                  <Box display="flex" flexDirection="column" gap={2}>
+                    <Textfield 
+                      name="additionalContact.whatsapp" 
+                      variant="outlined" 
+                      placeholder={t('whatsappNumber')}
                     />
                   </Box>
                 </Box>
-
-                {/* Additional Contact Details */}
-                {values.contactPreferences.whatsapp && (
-                  <Box>
-                    <FormLabel sx={{ mb: 1, display: "block", fontWeight: 500 }}>
-                      {t('additionalContactDetails')}
-                    </FormLabel>
-                    <Box display="flex" flexDirection="column" gap={2}>
-                      <Textfield 
-                        name="additionalContact.whatsapp" 
-                        variant="outlined" 
-                        placeholder={t('whatsappNumber')}
-                      />
-                    </Box>
-                  </Box>
-                )}
 
                 {/* Image Section */}
                 <Typography variant="h6" sx={{ fontWeight: 600, color: theme.palette.primary.main }}>
