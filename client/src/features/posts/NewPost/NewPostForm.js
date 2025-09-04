@@ -55,6 +55,7 @@ const NewPostForm = ({ user, countries, categories, flOptions }) => {
   const [shouldClearCityValue, setShouldClearCityValue] = useState(false);
   const [selectedCityId, setSelectedCityId] = useState(null);
   const [selectKey, setSelectKey] = useState(0);
+  const [forceCitySelection, setForceCitySelection] = useState(null);
   const [isCompressing, setIsCompressing] = useState(false);
   const [compressionInfo, setCompressionInfo] = useState(null);
   const formikRef = useRef(null);
@@ -588,7 +589,7 @@ const NewPostForm = ({ user, countries, categories, flOptions }) => {
                     <Select
                       key={selectKey}
                       labelId="city-select-label"
-                      value={values.city || ""}
+                      value={forceCitySelection || values.city || ""}
                       label={t('chooseCity')}
                       onClose={() => {
                         console.log('🔍 DEBUG: Select closed, final value:', values.city || "");
@@ -606,6 +607,7 @@ const NewPostForm = ({ user, countries, categories, flOptions }) => {
                         } else {
                           console.log('🔍 DEBUG: City selected:', e.target.value);
                           setFieldValue('city', e.target.value);
+                          setForceCitySelection(null); // Clear force selection
                           console.log('🔍 DEBUG: After setting city, form values:', formikRef.current?.values);
                         }
                       }}
@@ -1001,25 +1003,17 @@ const NewPostForm = ({ user, countries, categories, flOptions }) => {
                     return newCities;
                   });
                   
-                  // Select the custom city after the cities list is updated
+                  // Force the custom city selection
+                  setForceCitySelection(customCity.id);
+                  
+                  if (formikRef.current) {
+                    formikRef.current.setFieldValue('city', customCity.id);
+                  }
+                  
+                  // Clear the force selection after a delay
                   setTimeout(() => {
-                    console.log('🔍 DEBUG: Selecting custom city after cities list update');
-                    console.log('🔍 DEBUG: Custom city to select:', customCity);
-                    
-                    if (formikRef.current) {
-                      // Set the form field value
-                      formikRef.current.setFieldValue('city', customCity.id);
-                      console.log('🔍 DEBUG: Set city field to:', customCity.id);
-                      console.log('🔍 DEBUG: Form values after setting:', formikRef.current.values);
-                      
-                      // Force a re-render by updating the select key
-                      setSelectKey(prev => prev + 1);
-                      console.log('🔍 DEBUG: Forced Select component re-render');
-                      
-                      // Also trigger a form validation to ensure the field is properly updated
-                      formikRef.current.validateField('city');
-                    }
-                  }, 200); // Increased timeout to ensure cities list is updated
+                    setForceCitySelection(null);
+                  }, 1000);
                 } catch (error) {
                   console.error('Error creating custom city:', error);
                   // Show error message to user
