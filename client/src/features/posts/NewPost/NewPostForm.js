@@ -22,15 +22,9 @@ import {
   MenuItem,
   FormControl,
   InputLabel,
-  TextField,
-  Divider,
-  Dialog,
-  DialogTitle,
-  DialogContent,
-  DialogActions,
-  IconButton
+  Divider
 } from "@mui/material";
-import { PhotoCamera, LocationOn, WhatsApp, Add as AddIcon, Close as CloseIcon } from '@mui/icons-material';
+import { PhotoCamera, LocationOn, WhatsApp, Add as AddIcon } from '@mui/icons-material';
 import { useTranslation } from "../../../utils/translations";
 import PromotionDialog from "../../../components/PromotionDialog";
 
@@ -51,8 +45,6 @@ const NewPostForm = ({ user, countries, categories, flOptions }) => {
   const [loadingCities, setLoadingCities] = useState(false);
   const [showCustomCityInput, setShowCustomCityInput] = useState(false);
   const [customCityName, setCustomCityName] = useState("");
-  const [selectedCustomCity, setSelectedCustomCity] = useState("");
-  const [shouldClearCityValue, setShouldClearCityValue] = useState(false);
   const [selectedCityId, setSelectedCityId] = useState(null);
   const [selectKey, setSelectKey] = useState(0);
   const [forceCitySelection, setForceCitySelection] = useState(null);
@@ -103,31 +95,7 @@ const NewPostForm = ({ user, countries, categories, flOptions }) => {
     }
   }, [fetchCitiesByCountry, selectedCountry?._id, currentLanguage]);
 
-  // Handle clearing city value when dialog is canceled
-  useEffect(() => {
-    if (shouldClearCityValue && formikRef.current) {
-      formikRef.current.setFieldValue('city', "");
-      setShouldClearCityValue(false);
-    }
-  }, [shouldClearCityValue]);
 
-  // Handle custom city selection when cities list is updated
-  useEffect(() => {
-    if (selectedCustomCity && cities.length > 0 && formikRef.current) {
-      console.log('🔍 DEBUG: useEffect - checking for custom city selection');
-      console.log('🔍 DEBUG: selectedCustomCity:', selectedCustomCity);
-      console.log('🔍 DEBUG: cities list:', cities.map(c => ({ id: c.id, label: c.label })));
-      
-      // Find the custom city in the cities list
-      const customCity = cities.find(city => city.label === selectedCustomCity);
-      if (customCity && formikRef.current.values.city !== customCity.id) {
-        console.log('🔍 DEBUG: Found custom city, selecting it:', customCity);
-        formikRef.current.setFieldValue('city', customCity.id);
-        setSelectKey(prev => prev + 1);
-        console.log('🔍 DEBUG: Custom city selected via useEffect');
-      }
-    }
-  }, [selectedCustomCity, cities]);
 
 
 
@@ -137,6 +105,7 @@ const NewPostForm = ({ user, countries, categories, flOptions }) => {
     category: categories[0]?.id || "",
     foundLost: flOptions[0]?.id || "",
     city: "",
+    customCityName: "",
     exactLocation: "",
     exactDate: new Date().toLocaleDateString(), // Default to current date as string
     description: "",
@@ -155,6 +124,11 @@ const NewPostForm = ({ user, countries, categories, flOptions }) => {
       .test('not-other', t('pleaseSelectCity') || 'Please select a city', function(value) {
         return value !== 'other' && value !== '';
       }),
+    customCityName: Yup.string().when('city', {
+      is: 'other',
+      then: (schema) => schema.required(t('customCityRequired') || 'Please enter a city name'),
+      otherwise: (schema) => schema.notRequired()
+    }),
     exactLocation: Yup.string().required(t('required')),
     exactDate: Yup.string().required(t('required')),
     description: Yup.string().optional(),
@@ -168,7 +142,8 @@ const NewPostForm = ({ user, countries, categories, flOptions }) => {
     
     // Reset cities and selected city when country changes
     setCities([]);
-    setSelectedCustomCity("");
+    setShowCustomCityInput(false);
+    setCustomCityName("");
     setForceCitySelection(null);
     setSelectKey(prev => prev + 1);
     
@@ -220,11 +195,24 @@ const NewPostForm = ({ user, countries, categories, flOptions }) => {
         hasCustomCity: !!selectedCustomCity
       });
       
-      // Prevent submission if city is still "other"
+      // Handle custom city creation if city is "other"
+      let finalCityId = values.city;
       if (values.city === 'other') {
-        setStatus({ error: 'Please select a city or create a custom city' });
-        setSubmitting(false);
-        return;
+        if (!values.customCityName || !values.customCityName.trim()) {
+          setStatus({ error: 'Please enter a custom city name' });
+          setSubmitting(false);
+          return;
+        }
+        
+        try {
+          // Create the custom city
+          const createdCity = await createCustomCity(values.customCityName.trim(), selectedCountry?._id);
+          finalCityId = createdCity._id;
+        } catch (error) {
+          setStatus({ error: 'Failed to create custom city. Please try again.' });
+          setSubmitting(false);
+          return;
+        }
       }
       
       const formData = new FormData();
@@ -232,7 +220,7 @@ const NewPostForm = ({ user, countries, categories, flOptions }) => {
       formData.append("country", selectedCountry?._id || values.country);
       formData.append("category", values.category);
       formData.append("foundLost", values.foundLost);
-      formData.append("city", values.city);
+      formData.append("city", finalCityId);
       formData.append("exactLocation", values.exactLocation);
       formData.append("exactDate", values.exactDate);
       formData.append("contact", values.contact);
@@ -309,12 +297,19 @@ const NewPostForm = ({ user, countries, categories, flOptions }) => {
   // Handle "Other" city option
   const handleOtherCityClick = () => {
     setShowCustomCityInput(true);
-    setCustomCityName("");
+    if (formikRef.current) {
+      formikRef.current.setFieldValue('city', 'other');
+      formikRef.current.setFieldValue('customCityName', '');
+    }
   };
 
   // Handle custom city name change
   const handleCustomCityChange = (event) => {
-    setCustomCityName(event.target.value);
+    const value = event.target.value;
+    setCustomCityName(value);
+    if (formikRef.current) {
+      formikRef.current.setFieldValue('customCityName', value);
+    }
   };
 
   // Create custom city in backend
@@ -440,24 +435,6 @@ const NewPostForm = ({ user, countries, categories, flOptions }) => {
         }
       }}
     >
-      {/* Backdrop overlay when dialog is open */}
-      {showCustomCityInput && (
-        <Box
-          sx={{
-            position: 'fixed',
-            top: 0,
-            left: 0,
-            right: 0,
-            bottom: 0,
-            backgroundColor: theme.palette.mode === 'dark' 
-              ? 'rgba(0, 0, 0, 0.7)' 
-              : 'rgba(0, 0, 0, 0.5)',
-            backdropFilter: 'blur(4px)',
-            zIndex: 1200,
-            pointerEvents: 'auto'
-          }}
-        />
-      )}
       <Paper 
         elevation={4} 
         sx={{ 
@@ -685,6 +662,30 @@ const NewPostForm = ({ user, countries, categories, flOptions }) => {
                       </Typography>
                     )}
                   </FormControl>
+                  
+                  {/* Custom City Input Field */}
+                  {showCustomCityInput && (
+                    <Box sx={{ mt: 2 }}>
+                      <FormLabel htmlFor="customCityName" sx={{ mb: 1, display: "block", fontWeight: 500, fontSize: '1.1rem' }}>
+                        {t('enterCityName')} *
+                      </FormLabel>
+                      <Typography variant="caption" color="text.secondary" sx={{ mb: 1, display: "block", fontSize: '0.95rem' }}>
+                        {t('customCityDescription') || 'Enter the name of the city you want to add'}
+                      </Typography>
+                      <Textfield 
+                        name="customCityName" 
+                        variant="outlined" 
+                        placeholder={t('cityNamePlaceholder') || "Enter city name"}
+                        value={customCityName}
+                        onChange={handleCustomCityChange}
+                      />
+                      {errors.customCityName && (
+                        <Typography variant="caption" color="error" sx={{ mt: 1, display: 'block' }}>
+                          {errors.customCityName}
+                        </Typography>
+                      )}
+                    </Box>
+                  )}
                 </Box>
 
                 <Box>
@@ -868,174 +869,6 @@ const NewPostForm = ({ user, countries, categories, flOptions }) => {
         </Formik>
       </Paper>
       
-             {/* Custom City Dialog */}
-       <Dialog
-               open={showCustomCityInput}
-          onClose={() => {
-            setShowCustomCityInput(false);
-            setCustomCityName("");
-            setShouldClearCityValue(true);
-            setForceCitySelection(null);
-          }}
-          maxWidth="sm"
-          fullWidth
-          sx={{ zIndex: 1300 }}
-                   PaperProps={{
-            sx: {
-              borderRadius: 3,
-              background: theme.palette.mode === 'dark' 
-                ? 'rgba(30, 30, 30, 0.95)' 
-                : 'rgba(255, 255, 255, 0.95)',
-              backdropFilter: 'blur(10px)',
-              border: `1px solid ${theme.palette.mode === 'dark' 
-                ? 'rgba(255, 255, 255, 0.1)' 
-                : 'rgba(0, 0, 0, 0.1)'}`,
-              boxShadow: theme.palette.mode === 'dark'
-                ? '0 8px 32px rgba(0, 0, 0, 0.4)'
-                : '0 8px 32px rgba(0, 0, 0, 0.15)'
-            }
-          }}
-                   BackdropProps={{
-            sx: {
-              backgroundColor: 'transparent'
-            }
-          }}
-       >
-        <DialogTitle
-          sx={{
-            display: 'flex',
-            justifyContent: 'space-between',
-            alignItems: 'center',
-            pb: 1,
-            borderBottom: `1px solid ${theme.palette.divider}`
-          }}
-        >
-          <Typography variant="h6" sx={{ fontWeight: 600, color: theme.palette.text.primary }}>
-            {t('addNewCity')}
-          </Typography>
-          <IconButton
-            onClick={() => {
-              setShowCustomCityInput(false);
-              setCustomCityName("");
-              setShouldClearCityValue(true);
-              setForceCitySelection(null);
-            }}
-            sx={{
-              color: theme.palette.text.secondary,
-              '&:hover': {
-                backgroundColor: theme.palette.action.hover
-              }
-            }}
-          >
-            <CloseIcon />
-          </IconButton>
-        </DialogTitle>
-        
-        <DialogContent sx={{ pt: 3 }}>
-          <Typography variant="body2" color="text.secondary" sx={{ mb: 2 }}>
-            {t('enterCustomCityName')}
-          </Typography>
-          <TextField
-            fullWidth
-            placeholder={t('cityNamePlaceholder')}
-            value={customCityName}
-            onChange={handleCustomCityChange}
-            variant="outlined"
-            autoFocus
-            sx={{ 
-              borderRadius: 2,
-              '& .MuiOutlinedInput-root': {
-                '&:hover fieldset': {
-                  borderColor: theme.palette.primary.main,
-                },
-                '&.Mui-focused fieldset': {
-                  borderColor: theme.palette.primary.main,
-                },
-              }
-            }}
-          />
-        </DialogContent>
-        
-        <DialogActions sx={{ p: 3, pt: 1 }}>
-          <Button
-            variant="outlined"
-            onClick={() => {
-              setShowCustomCityInput(false);
-              setCustomCityName("");
-              setShouldClearCityValue(true);
-              setForceCitySelection(null);
-            }}
-            sx={{ 
-              borderRadius: 2,
-              borderColor: theme.palette.mode === 'dark' ? 'rgba(255, 255, 255, 0.3)' : 'rgba(0, 0, 0, 0.3)',
-              color: theme.palette.mode === 'dark' ? 'rgba(255, 255, 255, 0.8)' : 'rgba(0, 0, 0, 0.8)',
-              '&:hover': {
-                borderColor: theme.palette.mode === 'dark' ? 'rgba(255, 255, 255, 0.5)' : 'rgba(0, 0, 0, 0.5)',
-                backgroundColor: theme.palette.mode === 'dark' ? 'rgba(255, 255, 255, 0.04)' : 'rgba(0, 0, 0, 0.04)',
-              }
-            }}
-          >
-            {t('cancel')}
-          </Button>
-          <Button
-            variant="contained"
-            onClick={async () => {
-              if (customCityName.trim() && selectedCountry?._id) {
-                try {
-                  // Create the custom city in the backend
-                  const createdCity = await createCustomCity(customCityName.trim(), selectedCountry._id);
-                  
-                  // Close the dialog
-                  setShowCustomCityInput(false);
-                  
-                  // Add the custom city to the cities list so it shows in the dropdown
-                  const customCity = {
-                    id: createdCity._id,
-                    label: createdCity.labels.en || createdCity.labels[currentLanguage] || customCityName.trim(),
-                    isDynamic: true
-                  };
-                  console.log('🔍 DEBUG: Adding custom city to list:', customCity);
-                  
-                  // Update cities list and immediately select the new city
-                  const cityLabel = createdCity.labels.en || createdCity.labels[currentLanguage] || customCityName.trim();
-                  console.log('🔍 DEBUG: Setting selectedCustomCity to:', cityLabel);
-                  console.log('🔍 DEBUG: Created city object:', createdCity);
-                  
-                  setCities(prevCities => {
-                    const newCities = [...prevCities, customCity];
-                    console.log('🔍 DEBUG: Updated cities list:', newCities);
-                    return newCities;
-                  });
-                  
-                  // Force the custom city selection
-                  setForceCitySelection(customCity.id);
-                  
-                  if (formikRef.current) {
-                    formikRef.current.setFieldValue('city', customCity.id);
-                  }
-                  
-                  // Keep the force selection active - it will be cleared when user selects another city
-                  // or when the form is submitted
-                } catch (error) {
-                  console.error('Error creating custom city:', error);
-                  // Show error message to user
-                  alert(t('errorCreatingCustomCity') || 'Error creating custom city. Please try again.');
-                }
-              }
-            }}
-            disabled={!customCityName.trim() || !selectedCountry?._id}
-            sx={{ 
-              borderRadius: 2,
-              background: `linear-gradient(135deg, ${theme.palette.primary.main} 0%, ${theme.palette.primary.dark} 100%)`,
-              '&:hover': {
-                background: `linear-gradient(135deg, ${theme.palette.primary.dark} 0%, ${theme.palette.primary.main} 100%)`,
-              }
-            }}
-          >
-            {t('confirm')}
-          </Button>
-        </DialogActions>
-      </Dialog>
       
       {/* Promotion Dialog */}
       <PromotionDialog
