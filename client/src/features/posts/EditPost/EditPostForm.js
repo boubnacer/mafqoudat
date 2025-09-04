@@ -144,6 +144,7 @@ const EditPostForm = ({ post, user, countries, flOptions, categories, cities }) 
   console.log('🔍 EditPostForm - Post country:', post?.country);
   console.log('🔍 EditPostForm - Post category:', post?.category);
   console.log('🔍 EditPostForm - Post categoryname:', post?.categoryname);
+  console.log('🔍 EditPostForm - Post Category object:', post?.Category);
   console.log('🔍 EditPostForm - Post foundLost:', post?.foundLost);
   console.log('🔍 EditPostForm - Post contact:', post?.contact);
   console.log('🔍 EditPostForm - Post exactLocation:', post?.exactLocation);
@@ -157,24 +158,58 @@ const EditPostForm = ({ post, user, countries, flOptions, categories, cities }) 
     country: post?.country || "",
     contact: post?.contact || "",
     category: (() => {
-      const categoryValue = post?.category || post?.categoryname || "";
-      console.log('🔍 Category initialization - post.category:', post?.category, 'post.categoryname:', post?.categoryname, 'final value:', categoryValue);
+      // Try to find the category by matching the categoryname with the categories array
+      let categoryValue = "";
+      
+      if (post?.categoryname && categories) {
+        // Find category by matching the categoryname (code) with the categories array
+        const matchingCategory = categories.find(cat => 
+          cat.code === post.categoryname || 
+          cat.labels?.en === post.categoryname ||
+          cat.labels?.fr === post.categoryname ||
+          cat.labels?.ar === post.categoryname
+        );
+        if (matchingCategory) {
+          categoryValue = matchingCategory._id || matchingCategory.id;
+        }
+      }
+      
+      // Fallback to direct category field
+      if (!categoryValue) {
+        categoryValue = post?.category || "";
+      }
+      
+      console.log('🔍 Category initialization - post.categoryname:', post?.categoryname, 'post.category:', post?.category, 'matching category:', categoryValue);
       return categoryValue;
     })(),
     foundLost: post?.foundLost || "",
     city: post?.city || "",
     exactLocation: post?.exactLocation || "",
     exactDate: (() => {
-      if (post?.exactDate) {
-        const date = new Date(post.exactDate);
-        console.log('🔍 Date conversion - exactDate:', post.exactDate, '->', date.toISOString().split('T')[0]);
-        return date.toISOString().split('T')[0];
+      // Try multiple date fields in order of preference
+      const dateFields = [
+        { field: 'exactDate', value: post?.exactDate },
+        { field: 'mainDate', value: post?.mainDate },
+        { field: 'createdAt', value: post?.createdAt },
+        { field: 'updatedAt', value: post?.updatedAt }
+      ];
+      
+      for (const { field, value } of dateFields) {
+        if (value) {
+          try {
+            const date = new Date(value);
+            if (!isNaN(date.getTime())) {
+              const formattedDate = date.toISOString().split('T')[0];
+              console.log(`🔍 Date conversion - ${field}:`, value, '->', formattedDate);
+              return formattedDate;
+            }
+          } catch (error) {
+            console.log(`🔍 Date conversion error - ${field}:`, value, error);
+          }
+        }
       }
-      if (post?.mainDate) {
-        const date = new Date(post.mainDate);
-        console.log('🔍 Date conversion - mainDate:', post.mainDate, '->', date.toISOString().split('T')[0]);
-        return date.toISOString().split('T')[0];
-      }
+      
+      console.log('🔍 No valid date found in any field');
       return "";
     })(),
     description: post?.description || "",
