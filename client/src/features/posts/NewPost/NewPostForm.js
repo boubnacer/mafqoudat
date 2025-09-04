@@ -51,7 +51,7 @@ const NewPostForm = ({ user, countries, categories, flOptions }) => {
   const [loadingCities, setLoadingCities] = useState(false);
   const [showCustomCityInput, setShowCustomCityInput] = useState(false);
   const [customCityName, setCustomCityName] = useState("");
-  const [pendingCustomCity, setPendingCustomCity] = useState("");
+  const [selectedCustomCity, setSelectedCustomCity] = useState("");
   const [shouldClearCityValue, setShouldClearCityValue] = useState(false);
   const [selectedCityId, setSelectedCityId] = useState(null);
   const [selectKey, setSelectKey] = useState(0);
@@ -111,6 +111,24 @@ const NewPostForm = ({ user, countries, categories, flOptions }) => {
     }
   }, [shouldClearCityValue]);
 
+  // Handle custom city selection when cities list is updated
+  useEffect(() => {
+    if (selectedCustomCity && cities.length > 0 && formikRef.current) {
+      console.log('🔍 DEBUG: useEffect - checking for custom city selection');
+      console.log('🔍 DEBUG: selectedCustomCity:', selectedCustomCity);
+      console.log('🔍 DEBUG: cities list:', cities.map(c => ({ id: c.id, label: c.label })));
+      
+      // Find the custom city in the cities list
+      const customCity = cities.find(city => city.label === selectedCustomCity);
+      if (customCity && formikRef.current.values.city !== customCity.id) {
+        console.log('🔍 DEBUG: Found custom city, selecting it:', customCity);
+        formikRef.current.setFieldValue('city', customCity.id);
+        setSelectKey(prev => prev + 1);
+        console.log('🔍 DEBUG: Custom city selected via useEffect');
+      }
+    }
+  }, [selectedCustomCity, cities]);
+
 
 
 
@@ -137,10 +155,6 @@ const NewPostForm = ({ user, countries, categories, flOptions }) => {
     city: Yup.string()
       .required(t('cityRequired') || t('required'))
       .test('not-other', t('pleaseSelectCity') || 'Please select a city', function(value) {
-        // Allow "other" if we have a pending custom city
-        if (value === 'other') {
-          return pendingCustomCity && pendingCustomCity.trim() !== '';
-        }
         return value !== 'other' && value !== '';
       }),
     exactLocation: Yup.string().required(t('required')),
@@ -156,7 +170,7 @@ const NewPostForm = ({ user, countries, categories, flOptions }) => {
     
     // Reset cities and selected city when country changes
     setCities([]);
-    setPendingCustomCity("");
+    setSelectedCustomCity("");
     setForceCitySelection(null);
     setSelectKey(prev => prev + 1);
     
@@ -199,20 +213,8 @@ const NewPostForm = ({ user, countries, categories, flOptions }) => {
       // Store the submitted values to check if it's a lost item
       setLastSubmittedValues(values);
       
-      // Handle custom city creation if we have a pending custom city
-      let finalCityId = values.city;
-      if (pendingCustomCity && pendingCustomCity.trim()) {
-        try {
-          // Create the custom city
-          const createdCity = await createCustomCity(pendingCustomCity.trim(), selectedCountry?._id);
-          finalCityId = createdCity._id;
-          console.log('🔍 DEBUG: Custom city created:', createdCity);
-        } catch (error) {
-          setStatus({ error: 'Failed to create custom city. Please try again.' });
-          setSubmitting(false);
-          return;
-        }
-      } else if (values.city === 'other') {
+      // Prevent submission if city is still "other"
+      if (values.city === 'other') {
         setStatus({ error: 'Please select a city or create a custom city' });
         setSubmitting(false);
         return;
@@ -223,7 +225,7 @@ const NewPostForm = ({ user, countries, categories, flOptions }) => {
       formData.append("country", selectedCountry?._id || values.country);
       formData.append("category", values.category);
       formData.append("foundLost", values.foundLost);
-      formData.append("city", finalCityId);
+      formData.append("city", values.city);
       formData.append("exactLocation", values.exactLocation);
       formData.append("exactDate", values.exactDate);
       formData.append("contact", values.contact);
@@ -609,17 +611,10 @@ const NewPostForm = ({ user, countries, categories, flOptions }) => {
                           console.log('🔍 DEBUG: renderValue - no selection, showing placeholder');
                           return t('chooseCity');
                         }
-                        
-                        // If selected is "other" and we have a pending custom city, show it
-                        if (selected === 'other' && pendingCustomCity) {
-                          return pendingCustomCity;
-                        }
-                        
                         const displayName = getCityDisplayName(selected);
                         console.log('🔍 DEBUG: renderValue called:', { 
                           selected, 
                           displayName,
-                          pendingCustomCity,
                           citiesCount: cities.length,
                           availableCityIds: cities.map(c => c.id)
                         });
@@ -977,21 +972,45 @@ const NewPostForm = ({ user, countries, categories, flOptions }) => {
           </Button>
           <Button
             variant="contained"
-            onClick={() => {
+            onClick={async () => {
               if (customCityName.trim() && selectedCountry?._id) {
-                // Store the custom city name for later creation
-                setPendingCustomCity(customCityName.trim());
-                
-                // Close the dialog
-                setShowCustomCityInput(false);
-                setCustomCityName("");
-                
-                // Set the city field to "other" to indicate we have a pending custom city
-                if (formikRef.current) {
-                  formikRef.current.setFieldValue('city', 'other');
+                try {
+                  // Create the custom city in the backend
+                  const createdCity = await createCustomCity(customCityName.trim(), selectedCountry._id);
+                  
+                  // Close the dialog
+                  setShowCustomCityInput(false);
+                  setCustomCityName("");
+                  
+                  // Add the custom city to the cities list so it shows in the dropdown
+                  const customCity = {
+                    id: createdCity._id,
+                    label: createdCity.labels.en || createdCity.labels[currentLanguage] || customCityName.trim(),
+                    isDynamic: true
+                  };
+                  
+                  setCities(prevCities => {
+                    const newCities = [...prevCities, customCity];
+                    return newCities;
+                  });
+                  
+                  // Set the selected custom city name for the useEffect to handle
+                  const cityLabel = createdCity.labels.en || createdCity.labels[currentLanguage] || customCityName.trim();
+                  setSelectedCustomCity(cityLabel);
+                  
+                  // Force the custom city selection
+                  setForceCitySelection(customCity.id);
+                  
+                  if (formikRef.current) {
+                    formikRef.current.setFieldValue('city', customCity.id);
+                  }
+                  
+                  console.log('🔍 DEBUG: Custom city created and selected:', customCity);
+                } catch (error) {
+                  console.error('Error creating custom city:', error);
+                  // Show error message to user
+                  alert(t('errorCreatingCustomCity') || 'Error creating custom city. Please try again.');
                 }
-                
-                console.log('🔍 DEBUG: Pending custom city set:', customCityName.trim());
               }
             }}
             disabled={!customCityName.trim() || !selectedCountry?._id}
