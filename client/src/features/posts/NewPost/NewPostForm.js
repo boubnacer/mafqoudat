@@ -109,6 +109,7 @@ const NewPostForm = ({ user, countries, categories, flOptions }) => {
   // Handle pending custom city updates
   useEffect(() => {
     if (pendingCustomCity && formikRef.current) {
+      console.log('🔍 DEBUG: Setting city field to:', pendingCustomCity);
       formikRef.current.setFieldValue('city', pendingCustomCity);
       setPendingCustomCity(null);
     }
@@ -185,6 +186,7 @@ const NewPostForm = ({ user, countries, categories, flOptions }) => {
       setLastSubmittedValues(values);
       
       console.log('🔍 DEBUG: Submitting city:', values.city);
+      console.log('🔍 DEBUG: Form values:', values);
       
       const formData = new FormData();
       formData.append("user", user._id);
@@ -857,6 +859,7 @@ const NewPostForm = ({ user, countries, categories, flOptions }) => {
             onClick={() => {
               if (customCityName.trim()) {
                 const customCityId = customCityName.trim();
+                console.log('🔍 DEBUG: Custom city confirmed:', customCityId);
                 setSelectedCustomCity(customCityId);
                 setShowCustomCityInput(false);
                 
