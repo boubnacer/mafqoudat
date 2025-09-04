@@ -310,8 +310,8 @@ const Dash = () => {
                      flexDirection: currentLanguage === 'ar' ? 'row-reverse' : 'row'
                    }}>
 
-                     {/* Show "+add" button inline only when no posts */}
-                     {(!data?.totalFounds || data?.totalFounds <= 4) && (
+                     {/* Show "+add" button inline only when there are posts */}
+                     {data?.totalFounds > 0 && data?.totalFounds <= 4 && (
                        <SeeAll 
                          foundOrlostId={foundsId} 
                          totalItems={data?.totalFounds}
@@ -359,11 +359,14 @@ const Dash = () => {
 
                   </Box>
                   <Box sx={{ order: currentLanguage === 'ar' ? 1 : 2 }}>
-                    <SeeAll 
-                      foundOrlostId={foundsId} 
-                      totalItems={data?.totalFounds}
-                      variant="desktop"
-                    />
+                    {/* Only show SeeAll button when there are posts */}
+                    {data?.totalFounds > 0 && (
+                      <SeeAll 
+                        foundOrlostId={foundsId} 
+                        totalItems={data?.totalFounds}
+                        variant="desktop"
+                      />
+                    )}
                   </Box>
                 </Box>
               </Box>
@@ -484,8 +487,8 @@ const Dash = () => {
                      flexDirection: currentLanguage === 'ar' ? 'row-reverse' : 'row'
                    }}>
 
-                     {/* Show "+add" button inline only when no posts */}
-                     {(!data?.totalLosts || data?.totalLosts <= 4) && (
+                     {/* Show "+add" button inline only when there are posts */}
+                     {data?.totalLosts > 0 && data?.totalLosts <= 4 && (
                        <SeeAll 
                          foundOrlostId={lostsId} 
                          totalItems={data?.totalLosts}
@@ -533,11 +536,14 @@ const Dash = () => {
 
                   </Box>
                   <Box sx={{ order: currentLanguage === 'ar' ? 1 : 2 }}>
-                    <SeeAll 
-                      foundOrlostId={lostsId} 
-                      totalItems={data?.totalLosts}
-                      variant="desktop"
-                    />
+                    {/* Only show SeeAll button when there are posts */}
+                    {data?.totalLosts > 0 && (
+                      <SeeAll 
+                        foundOrlostId={lostsId} 
+                        totalItems={data?.totalLosts}
+                        variant="desktop"
+                      />
+                    )}
                   </Box>
                 </Box>
               </Box>
