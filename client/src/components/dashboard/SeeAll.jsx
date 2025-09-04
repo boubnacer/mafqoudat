@@ -107,16 +107,28 @@ const SeeAll = ({ foundOrlostId, totalItems, variant = "desktop" }) => {
 
   // Desktop variant styling
   return (
-    <Button
-      variant="contained"
-      size="medium"
-      startIcon={currentLanguage === 'ar' ? (totalItems > 4 ? <RenderIcon name="seeall" /> : <Add />) : null}
-      endIcon={currentLanguage === 'ar' ? null : (totalItems > 4 ? <RenderIcon name="seeall" /> : <Add />)}
-      onClick={
-        totalItems > 4
-          ? () => hanldeSeeAllPosts({ foundOrlostId })
-          : hanldeAddNewPost
-      }
+    <>
+      {/* Debug: Show totalItems value */}
+      <div style={{ 
+        background: 'red', 
+        color: 'white', 
+        padding: '2px 4px', 
+        fontSize: '10px',
+        marginBottom: '4px',
+        textAlign: 'center'
+      }}>
+        DEBUG: totalItems = {totalItems}
+      </div>
+      <Button
+        variant="contained"
+        size="medium"
+        startIcon={currentLanguage === 'ar' ? (totalItems > 4 ? <RenderIcon name="seeall" /> : <Add />) : null}
+        endIcon={currentLanguage === 'ar' ? null : (totalItems > 4 ? <RenderIcon name="seeall" /> : <Add />)}
+        onClick={
+          totalItems > 4
+            ? () => hanldeSeeAllPosts({ foundOrlostId })
+            : hanldeAddNewPost
+        }
         sx={{
           background: totalItems > 4 
             ? 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)'
@@ -175,6 +187,7 @@ const SeeAll = ({ foundOrlostId, totalItems, variant = "desktop" }) => {
       >
         {totalItems > 4 ? t('seeAll') : t('add')}
       </Button>
+    </>
   );
 };
 
