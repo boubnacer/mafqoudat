@@ -245,7 +245,7 @@ const NewPostForm = ({ user, countries, categories, flOptions }) => {
   // Get city display name for selected city
   const getCityDisplayName = (cityId) => {
     if (!cityId) return '';
-    const city = cities.find(c => c._id === cityId);
+    const city = cities.find(c => c._id === cityId || c.id === cityId);
     return city ? (city.label || city.name || 'Unknown City') : cityId;
   };
 
@@ -531,10 +531,12 @@ const NewPostForm = ({ user, countries, categories, flOptions }) => {
                       value={values.city || ""}
                       label={t('chooseCity')}
                       onChange={(e) => {
+                        console.log('City selection changed:', e.target.value);
                         if (e.target.value === 'other') {
                           setShowCustomCityInput(true);
                         } else {
                           setFieldValue('city', e.target.value);
+                          console.log('Set city field to:', e.target.value);
                         }
                       }}
                       displayEmpty
@@ -547,19 +549,22 @@ const NewPostForm = ({ user, countries, categories, flOptions }) => {
                         borderRadius: 2,
                       }}
                     >
-                      {cities.map((city) => (
-                        <MenuItem key={city._id} value={city._id}>
-                          <Box display="flex" alignItems="center" gap={1}>
-                            {city.isCapital && (
-                              <span style={{ fontSize: '16px' }}>🏛️</span>
-                            )}
-                            {city.isDynamic && (
-                              <span style={{ fontSize: '16px' }}>🆕</span>
-                            )}
-                            {city.label || city.name || 'Unknown City'}
-                          </Box>
-                        </MenuItem>
-                      ))}
+                      {cities.map((city) => {
+                        console.log('Rendering city:', city._id, city.label || city.name);
+                        return (
+                          <MenuItem key={city._id} value={city._id}>
+                            <Box display="flex" alignItems="center" gap={1}>
+                              {city.isCapital && (
+                                <span style={{ fontSize: '16px' }}>🏛️</span>
+                              )}
+                              {city.isDynamic && (
+                                <span style={{ fontSize: '16px' }}>🆕</span>
+                              )}
+                              {city.label || city.name || 'Unknown City'}
+                            </Box>
+                          </MenuItem>
+                        );
+                      })}
                       <Divider />
                       <MenuItem
                         value="other" 
