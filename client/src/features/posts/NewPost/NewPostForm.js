@@ -117,7 +117,6 @@ const NewPostForm = ({ user, countries, categories, flOptions }) => {
     if (pendingCityId && cities.length > 0 && formikRef.current) {
       const cityExists = cities.find(c => (c._id === pendingCityId) || (c.id === pendingCityId));
       if (cityExists && formikRef.current.values.city !== pendingCityId) {
-        console.log('🔍 DEBUG: Auto-selecting pending city:', pendingCityId);
         formikRef.current.setFieldValue('city', pendingCityId);
         setSelectKey(prev => prev + 1);
         setPendingCityId(null);
@@ -267,22 +266,18 @@ const NewPostForm = ({ user, countries, categories, flOptions }) => {
   // Get city display name for selected city
   const getCityDisplayName = (cityId) => {
     if (!cityId) {
-      console.log('🔍 DEBUG: getCityDisplayName - no cityId provided');
       return '';
     }
     
-    console.log('🔍 DEBUG: getCityDisplayName called with:', { cityId, citiesCount: cities.length });
     
     // Handle custom city case - if it's "other" but we have a selected custom city
     if (cityId === "other" && selectedCustomCity) {
-      console.log('🔍 DEBUG: getCityDisplayName - using selectedCustomCity:', selectedCustomCity);
       return selectedCustomCity;
     }
     
     // Find the city in the cities list - check both _id and id
     const city = cities.find(c => (c._id === cityId) || (c.id === cityId));
     if (city) {
-      console.log('🔍 DEBUG: Found city in list:', { cityId, city, label: city.label });
       return city.label || city.code || city.name || 'Unknown City';
     }
     
@@ -589,9 +584,7 @@ const NewPostForm = ({ user, countries, categories, flOptions }) => {
                         if (!selected) {
                           return t('chooseCity');
                         }
-                        const displayName = getCityDisplayName(selected);
-                        console.log('🔍 DEBUG: renderValue - selected:', selected, 'displayName:', displayName);
-                        return displayName;
+                        return getCityDisplayName(selected);
                       }}
                       disableUnderline
                       sx={{
@@ -953,11 +946,8 @@ const NewPostForm = ({ user, countries, categories, flOptions }) => {
               if (customCityName.trim() && selectedCountry?._id) {
                 setIsCreatingCity(true);
                 try {
-                  console.log('🔍 DEBUG: Starting custom city creation...');
-                  
                   // Create the custom city in the backend
                   const createdCity = await createCustomCity(customCityName.trim(), selectedCountry._id);
-                  console.log('🔍 DEBUG: Custom city created:', createdCity);
                   
                   // Add the custom city to the cities list
                   const customCity = {
@@ -972,7 +962,6 @@ const NewPostForm = ({ user, countries, categories, flOptions }) => {
                   
                   // Set pending city ID for auto-selection
                   setPendingCityId(createdCity._id);
-                  console.log('🔍 DEBUG: Pending city ID set:', createdCity._id);
                   
                   // Close the dialog
                   setShowCustomCityInput(false);
