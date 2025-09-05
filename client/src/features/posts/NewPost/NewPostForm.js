@@ -564,23 +564,18 @@ const NewPostForm = ({ user, countries, categories, flOptions }) => {
                       value={values.city || ""}
                       label={t('chooseCity')}
                       onChange={(e) => {
-                        console.log('City selection changed:', e.target.value);
                         if (e.target.value === 'other') {
                           setShowCustomCityInput(true);
                         } else {
-                          console.log('Setting city field to:', e.target.value);
                           setFieldValue('city', e.target.value);
-                          console.log('City field set, current form values:', formikRef.current?.values);
                         }
                       }}
                       displayEmpty
                       renderValue={(selected) => {
-                        console.log('renderValue called with:', selected, 'cities length:', cities.length);
                         if (!selected) {
                           return t('chooseCity');
                         }
                         const city = cities.find(c => c._id === selected);
-                        console.log('Found city for display:', city);
                         return city ? (city.label || city.name || 'Unknown City') : selected;
                       }}
                       disableUnderline
@@ -939,7 +934,6 @@ const NewPostForm = ({ user, countries, categories, flOptions }) => {
                 try {
                   // Create the custom city in the backend
                   const createdCity = await createCustomCity(customCityName.trim(), selectedCountry._id);
-                  console.log('Frontend received created city:', createdCity);
                   
                   // Refresh the cities list to get the newly created city
                   await fetchCitiesByCountry(selectedCountry._id);
@@ -947,9 +941,7 @@ const NewPostForm = ({ user, countries, categories, flOptions }) => {
                   // Select the newly created city after refresh
                   setTimeout(() => {
                     if (formikRef.current) {
-                      console.log('Selecting newly created city:', createdCity._id);
                       formikRef.current.setFieldValue('city', createdCity._id);
-                      console.log('City field updated, current form values:', formikRef.current.values);
                     }
                   }, 200);
                   
