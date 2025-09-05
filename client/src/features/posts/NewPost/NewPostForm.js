@@ -538,10 +538,6 @@ const NewPostForm = ({ user, countries, categories, flOptions }) => {
                         }
                       }}
                       displayEmpty
-                      renderValue={(selected) => {
-                        if (!selected) return t('chooseCity');
-                        return getCityDisplayName(selected);
-                      }}
                       disableUnderline
                       sx={{
                         borderRadius: 2,
