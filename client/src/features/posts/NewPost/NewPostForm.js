@@ -55,6 +55,7 @@ const NewPostForm = ({ user, countries, categories, flOptions }) => {
   const [isCompressing, setIsCompressing] = useState(false);
   const [isCreatingCity, setIsCreatingCity] = useState(false);
   const [compressionInfo, setCompressionInfo] = useState(null);
+  const [selectedCityId, setSelectedCityId] = useState("");
   const formikRef = useRef(null);
 
 
@@ -148,6 +149,7 @@ const NewPostForm = ({ user, countries, categories, flOptions }) => {
     
     // Reset cities when country changes
     setCities([]);
+    setSelectedCityId("");
     
     // Clear the city field in the form
     if (formikRef.current) {
@@ -561,27 +563,24 @@ const NewPostForm = ({ user, countries, categories, flOptions }) => {
                     <InputLabel id="city-select-label">{t('chooseCity')}</InputLabel>
                     <Select
                       labelId="city-select-label"
-                      value={values.city || ""}
+                      value={selectedCityId || values.city || ""}
                       label={t('chooseCity')}
                       onChange={(e) => {
-                        console.log('City selection changed to:', e.target.value);
                         if (e.target.value === 'other') {
                           setShowCustomCityInput(true);
                         } else {
-                          console.log('Setting city field to:', e.target.value);
+                          setSelectedCityId(e.target.value);
                           setFieldValue('city', e.target.value);
-                          console.log('Form values after setFieldValue:', formikRef.current?.values);
                         }
                       }}
                       displayEmpty
                       renderValue={(selected) => {
-                        console.log('renderValue called with selected:', selected, 'cities count:', cities.length);
-                        if (!selected) {
+                        const currentValue = selectedCityId || selected || values.city;
+                        if (!currentValue) {
                           return t('chooseCity');
                         }
-                        const city = cities.find(c => c._id === selected);
-                        console.log('Found city:', city);
-                        return city ? (city.label || city.name || 'Unknown City') : selected;
+                        const city = cities.find(c => c._id === currentValue);
+                        return city ? (city.label || city.name || 'Unknown City') : currentValue;
                       }}
                       disableUnderline
                       sx={{
@@ -945,6 +944,7 @@ const NewPostForm = ({ user, countries, categories, flOptions }) => {
                   
                   // Select the newly created city after refresh
                   setTimeout(() => {
+                    setSelectedCityId(createdCity._id);
                     if (formikRef.current) {
                       formikRef.current.setFieldValue('city', createdCity._id);
                     }
