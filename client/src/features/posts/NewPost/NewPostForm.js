@@ -56,10 +56,12 @@ const NewPostForm = ({ user, countries, categories, flOptions }) => {
   const [selectedCityId, setSelectedCityId] = useState(null);
   const [selectKey, setSelectKey] = useState(0);
   const [forceCitySelection, setForceCitySelection] = useState(null);
+  const [selectOpen, setSelectOpen] = useState(false);
   const [isCompressing, setIsCompressing] = useState(false);
   const [isCreatingCity, setIsCreatingCity] = useState(false);
   const [compressionInfo, setCompressionInfo] = useState(null);
   const [createdCityId, setCreatedCityId] = useState(null);
+  const [showCityCreatedSuccess, setShowCityCreatedSuccess] = useState(false);
   const formikRef = useRef(null);
 
   // Initialize selectedCountry with user's country
@@ -179,6 +181,8 @@ const NewPostForm = ({ user, countries, categories, flOptions }) => {
     setSelectedCustomCity("");
     setForceCitySelection(null);
     setCreatedCityId(null);
+    setSelectOpen(false);
+    setShowCityCreatedSuccess(false);
     setSelectKey(prev => prev + 1);
     
     // Clear the city field in the form
@@ -585,6 +589,14 @@ const NewPostForm = ({ user, countries, categories, flOptions }) => {
                     }
                   </Typography>
                   
+                  {showCityCreatedSuccess && (
+                    <Alert severity="success" sx={{ mb: 2 }}>
+                      <Typography variant="body2">
+                        {t('cityCreatedSuccessfully') || 'City created successfully! Please select it from the dropdown.'}
+                      </Typography>
+                    </Alert>
+                  )}
+                  
                   <FormControl fullWidth disabled={!selectedCountry || loadingCities} error={!!errors.city}>
                     <InputLabel id="city-select-label">{t('chooseCity')}</InputLabel>
                     <Select
@@ -592,12 +604,15 @@ const NewPostForm = ({ user, countries, categories, flOptions }) => {
                       labelId="city-select-label"
                       value={forceCitySelection || values.city || ""}
                       label={t('chooseCity')}
+                      open={selectOpen}
                       onClose={() => {
                         console.log('🔍 DEBUG: Select closed, final value:', values.city || "");
+                        setSelectOpen(false);
                       }}
                       onOpen={() => {
                         console.log('🔍 DEBUG: Select opened, current value:', values.city || "");
-                        console.log('🔍 DEBUG: Cities list:', cities.map(c => ({ id: c.id, label: c.label })));
+                        console.log('🔍 DEBUG: Cities list:', cities.map(c => ({ _id: c._id, id: c.id, label: c.label })));
+                        setSelectOpen(true);
                       }}
                       onChange={(e) => {
                         console.log('🔍 DEBUG: Select onChange triggered with value:', e.target.value);
@@ -1022,24 +1037,33 @@ const NewPostForm = ({ user, countries, categories, flOptions }) => {
                   // Wait a bit to ensure all state updates are processed
                   await new Promise(resolve => setTimeout(resolve, 500));
                   
-                  // Force re-render of the Select component multiple times to ensure it works
+                  // Force the Select component to close and reopen to refresh its internal state
+                  setSelectOpen(false);
+                  await new Promise(resolve => setTimeout(resolve, 100));
+                  
+                  // Force re-render of the Select component
                   setSelectKey(prev => prev + 1);
                   await new Promise(resolve => setTimeout(resolve, 100));
-                  setSelectKey(prev => prev + 1);
                   
                   // Also clear and reset the force selection to ensure proper re-render
                   setForceCitySelection(null);
                   await new Promise(resolve => setTimeout(resolve, 50));
                   setForceCitySelection(createdCity._id);
                   
-                  // Wait a bit more to ensure the selection is visible
-                  await new Promise(resolve => setTimeout(resolve, 300));
-                  
                   console.log('🔍 DEBUG: Custom city creation and selection completed');
+                  
+                  // Show success message
+                  setShowCityCreatedSuccess(true);
                   
                   // Close the dialog
                   setShowCustomCityInput(false);
                   setCustomCityName("");
+                  
+                  // After a short delay, automatically open the Select to show the new city
+                  setTimeout(() => {
+                    setShowCityCreatedSuccess(false);
+                    setSelectOpen(true);
+                  }, 1500);
                   
                 } catch (error) {
                   console.error('Error creating custom city:', error);
