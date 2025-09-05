@@ -59,6 +59,7 @@ const NewPostForm = ({ user, countries, categories, flOptions }) => {
   const [compressionInfo, setCompressionInfo] = useState(null);
   const [selectKey, setSelectKey] = useState(0);
   const [pendingCityId, setPendingCityId] = useState(null);
+  const [forceCitySelection, setForceCitySelection] = useState(null);
   const formikRef = useRef(null);
 
   // Initialize selectedCountry with user's country
@@ -114,8 +115,13 @@ const NewPostForm = ({ user, countries, categories, flOptions }) => {
 
   // Auto-select pending city when cities list is updated
   useEffect(() => {
+    console.log('Auto-selection useEffect triggered:', { pendingCityId, citiesLength: cities.length, formikExists: !!formikRef.current });
+    
     if (pendingCityId && cities.length > 0 && formikRef.current) {
       const cityExists = cities.find(c => (c._id === pendingCityId) || (c.id === pendingCityId));
+      console.log('Looking for city with ID:', pendingCityId, 'Found:', cityExists);
+      console.log('Available cities:', cities.map(c => ({ _id: c._id, id: c.id, label: c.label })));
+      
       if (cityExists && formikRef.current.values.city !== pendingCityId) {
         console.log('Auto-selecting custom city:', pendingCityId, cityExists);
         
@@ -124,14 +130,29 @@ const NewPostForm = ({ user, countries, categories, flOptions }) => {
           if (formikRef.current) {
             formikRef.current.setFieldValue('city', pendingCityId);
             setSelectKey(prev => prev + 1);
-            console.log('City field updated to:', pendingCityId);
+            console.log('City field updated to:', pendingCityId, 'Current form values:', formikRef.current.values);
           }
         }, 50);
         
         setPendingCityId(null);
+      } else if (cityExists && formikRef.current.values.city === pendingCityId) {
+        console.log('City already selected:', pendingCityId);
+        setPendingCityId(null);
+      } else {
+        console.log('City not found in list or form not ready');
       }
     }
   }, [pendingCityId, cities]);
+
+  // Force city selection when needed
+  useEffect(() => {
+    if (forceCitySelection && formikRef.current) {
+      console.log('Force selecting city:', forceCitySelection);
+      formikRef.current.setFieldValue('city', forceCitySelection);
+      setSelectKey(prev => prev + 1);
+      setForceCitySelection(null);
+    }
+  }, [forceCitySelection]);
 
 
 
@@ -968,11 +989,22 @@ const NewPostForm = ({ user, countries, categories, flOptions }) => {
                   };
                   
                   console.log('Created custom city:', customCity);
+                  console.log('Backend response:', createdCity);
                   
                   // Update cities list and set pending city ID in a single operation
                   setCities(prevCities => {
                     const newCities = [...prevCities, customCity];
                     console.log('Updated cities list:', newCities);
+                    
+                    // Immediately try to select the city
+                    setTimeout(() => {
+                      if (formikRef.current) {
+                        console.log('Immediate city selection attempt');
+                        formikRef.current.setFieldValue('city', createdCity._id);
+                        setSelectKey(prev => prev + 1);
+                      }
+                    }, 10);
+                    
                     return newCities;
                   });
                   
@@ -989,6 +1021,14 @@ const NewPostForm = ({ user, countries, categories, flOptions }) => {
                         setSelectKey(prev => prev + 1);
                       }
                     }, 500);
+                    
+                    // Additional fallback after 1 second using force selection
+                    setTimeout(() => {
+                      if (formikRef.current && formikRef.current.values.city !== createdCity._id) {
+                        console.log('Second fallback: Force city selection');
+                        setForceCitySelection(createdCity._id);
+                      }
+                    }, 1000);
                   }, 100);
                   
                   // Close the dialog
