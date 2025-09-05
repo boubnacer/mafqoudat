@@ -457,41 +457,41 @@ const NewPostForm = ({ user, countries, categories, flOptions }) => {
                       : t('chooseCountryFound')
                     }
                   </Typography>
-                  <FormControl fullWidth>
-                    <InputLabel id="country-select-label">{t('chooseCountry')}</InputLabel>
-                    <Select
-                      labelId="country-select-label"
-                      value={selectedCountry?._id || ""}
-                      label={t('chooseCountry')}
-                      onChange={handleCountrySelect}
-                      disableUnderline
-                      sx={{
+                  <TextField
+                    select
+                    fullWidth
+                    variant="outlined"
+                    label={t('chooseCountry')}
+                    value={selectedCountry?._id || ""}
+                    onChange={handleCountrySelect}
+                    sx={{
+                      '& .MuiOutlinedInput-root': {
                         borderRadius: 2,
-                      }}
-                    >
-                      {countries?.map((country) => (
-                        <MenuItem key={country._id} value={country._id}>
-                          <Box display="flex" alignItems="center" gap={1}>
-                            {country.flag ? (
-                              <span style={{ fontSize: '20px' }}>
-                                {country.flag}
-                              </span>
-                            ) : (
-                              <img
-                                loading="lazy"
-                                width="20"
-                                src={`https://flagcdn.com/w20/${country.code.toLowerCase()}.png`}
-                                srcSet={`https://flagcdn.com/w40/${country.code.toLowerCase()}.png 2x`}
-                                alt=""
-                                style={{ marginRight: 8 }}
-                              />
-                            )}
-                            {getCountryLabel(country)} ({country.code})
-                          </Box>
-                        </MenuItem>
-                      ))}
-                    </Select>
-                  </FormControl>
+                      }
+                    }}
+                  >
+                    {countries?.map((country) => (
+                      <MenuItem key={country._id} value={country._id}>
+                        <Box display="flex" alignItems="center" gap={1}>
+                          {country.flag ? (
+                            <span style={{ fontSize: '20px' }}>
+                              {country.flag}
+                            </span>
+                          ) : (
+                            <img
+                              loading="lazy"
+                              width="20"
+                              src={`https://flagcdn.com/w20/${country.code.toLowerCase()}.png`}
+                              srcSet={`https://flagcdn.com/w40/${country.code.toLowerCase()}.png 2x`}
+                              alt=""
+                              style={{ marginRight: 8 }}
+                            />
+                          )}
+                          {getCountryLabel(country)} ({country.code})
+                        </Box>
+                      </MenuItem>
+                    ))}
+                  </TextField>
                 </Box>
 
                 <Box>
