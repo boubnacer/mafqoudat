@@ -4,7 +4,7 @@ import { useAddNewPostMutation } from "../postsApiSlice";
 import { useSelector } from "react-redux";
 import { selectCurrentToken } from "../../auth/authSlice";
 import * as Yup from "yup";
-import { Formik, Form } from "formik";
+import { Formik, Form, useField } from "formik";
 import Textfield from "../../../components/Textfield";
 import SubmitButton from "../../../components/SubmitButton";
 import SelectOption from "../../../components/SelectOption";
@@ -34,6 +34,111 @@ import { PhotoCamera, LocationOn, WhatsApp, Add as AddIcon, Close as CloseIcon }
 import { useTranslation } from "../../../utils/translations";
 import PromotionDialog from "../../../components/PromotionDialog";
 
+// Custom City Select Field Component
+const CitySelectField = ({ cities, selectedCountry, loadingCities, setShowCustomCityInput, theme, t }) => {
+  const [field, meta, helpers] = useField('city');
+
+  const handleChange = (event) => {
+    const selectedValue = event.target.value;
+    if (selectedValue === 'other') {
+      setShowCustomCityInput(true);
+    } else {
+      helpers.setValue(selectedValue);
+    }
+  };
+
+  return (
+    <Box>
+      <FormLabel htmlFor="city" sx={{ mb: 1, display: "block", fontWeight: 500, fontSize: '1.1rem' }}>
+        {t('city')} *
+      </FormLabel>
+      <Typography variant="caption" color="text.secondary" sx={{ mb: 1, display: "block", fontSize: '0.95rem' }}>
+        {!selectedCountry 
+          ? t('selectCountryFirst') 
+          : loadingCities 
+            ? t('loadingCities') 
+            : cities.length === 0 
+              ? t('noCitiesFound') 
+              : t('selectCity')
+        }
+      </Typography>
+      
+      <TextField
+        {...field}
+        select
+        fullWidth
+        variant="outlined"
+        label={t('chooseCity')}
+        onChange={handleChange}
+        disabled={!selectedCountry || loadingCities}
+        error={meta.touched && !!meta.error}
+        helperText={meta.touched && meta.error ? meta.error : ''}
+        sx={{
+          '& .MuiOutlinedInput-root': {
+            borderRadius: 2,
+          }
+        }}
+        SelectProps={{
+          displayEmpty: true,
+          MenuProps: {
+            PaperProps: {
+              sx: {
+                maxHeight: 300,
+              }
+            }
+          }
+        }}
+      >
+        {cities.map((city) => (
+          <MenuItem key={city._id} value={city._id}>
+            <Box display="flex" alignItems="center" gap={1}>
+              {city.isCapital && (
+                <span style={{ fontSize: '16px' }}>🏛️</span>
+              )}
+              {city.isDynamic && (
+                <span style={{ fontSize: '16px' }}>🆕</span>
+              )}
+              {city.label || city.name || 'Unknown City'}
+            </Box>
+          </MenuItem>
+        ))}
+        <Divider />
+        <MenuItem
+          value="other" 
+          sx={{ 
+            color: theme.palette.mode === 'dark' ? '#fff' : '#1976d2',
+            fontWeight: 600,
+            backgroundColor: theme.palette.mode === 'dark' 
+              ? 'rgba(255, 255, 255, 0.08)' 
+              : 'rgba(25, 118, 210, 0.08)',
+            border: `1px solid ${theme.palette.mode === 'dark' ? 'rgba(255, 255, 255, 0.2)' : 'rgba(25, 118, 210, 0.3)'}`,
+            borderRadius: 2,
+            margin: '6px 8px',
+            padding: '12px 16px',
+            transition: 'all 0.2s ease-in-out',
+            '&:hover': {
+              backgroundColor: theme.palette.mode === 'dark' 
+                ? 'rgba(255, 255, 255, 0.12)' 
+                : 'rgba(25, 118, 210, 0.12)',
+              borderColor: theme.palette.mode === 'dark' 
+                ? 'rgba(255, 255, 255, 0.4)' 
+                : 'rgba(25, 118, 210, 0.5)',
+              transform: 'translateY(-1px)',
+              boxShadow: theme.palette.mode === 'dark'
+                ? '0 4px 8px rgba(0, 0, 0, 0.3)'
+                : '0 4px 8px rgba(25, 118, 210, 0.2)',
+            }
+          }}
+        >
+          <Box display="flex" alignItems="center" gap={1}>
+            <AddIcon fontSize="small" />
+            {t('other')} - {t('addNewCity')}
+          </Box>
+        </MenuItem>
+      </TextField>
+    </Box>
+  );
+};
 
 const NewPostForm = ({ user, countries, categories, flOptions }) => {
   const [addNewPost, { isSuccess, isError, error }] = useAddNewPostMutation();
@@ -508,102 +613,14 @@ const NewPostForm = ({ user, countries, categories, flOptions }) => {
                   {t('location')}
                 </Typography>
 
-                <Box>
-                  <FormLabel htmlFor="city" sx={{ mb: 1, display: "block", fontWeight: 500, fontSize: '1.1rem' }}>
-                    {t('city')} *
-                  </FormLabel>
-                  <Typography variant="caption" color="text.secondary" sx={{ mb: 1, display: "block", fontSize: '0.95rem' }}>
-                    {!selectedCountry 
-                      ? t('selectCountryFirst') 
-                      : loadingCities 
-                        ? t('loadingCities') 
-                        : cities.length === 0 
-                          ? t('noCitiesFound') 
-                          : t('selectCity')
-                    }
-                  </Typography>
-                  
-                  <FormControl fullWidth disabled={!selectedCountry || loadingCities} error={!!(errors.city && touched.city)}>
-                    <InputLabel id="city-select-label">{t('chooseCity')}</InputLabel>
-                    <Select
-                      name="city"
-                      labelId="city-select-label"
-                      value={values.city || ""}
-                      label={t('chooseCity')}
-                      onChange={(e) => {
-                        const selectedValue = e.target.value;
-                        if (selectedValue === 'other') {
-                          setShowCustomCityInput(true);
-                        } else {
-                          setFieldValue('city', selectedValue);
-                        }
-                      }}
-                      displayEmpty
-                      sx={{
-                        borderRadius: 2,
-                      }}
-                      MenuProps={{
-                        PaperProps: {
-                          sx: {
-                            maxHeight: 300,
-                          }
-                        }
-                      }}
-                    >
-                      {cities.map((city) => (
-                        <MenuItem key={city._id} value={city._id}>
-                          <Box display="flex" alignItems="center" gap={1}>
-                            {city.isCapital && (
-                              <span style={{ fontSize: '16px' }}>🏛️</span>
-                            )}
-                            {city.isDynamic && (
-                              <span style={{ fontSize: '16px' }}>🆕</span>
-                            )}
-                            {city.label || city.name || 'Unknown City'}
-                          </Box>
-                        </MenuItem>
-                      ))}
-                      <Divider />
-                      <MenuItem
-                        value="other" 
-                        sx={{ 
-                          color: theme.palette.mode === 'dark' ? '#fff' : '#1976d2',
-                          fontWeight: 600,
-                          backgroundColor: theme.palette.mode === 'dark' 
-                            ? 'rgba(255, 255, 255, 0.08)' 
-                            : 'rgba(25, 118, 210, 0.08)',
-                          border: `1px solid ${theme.palette.mode === 'dark' ? 'rgba(255, 255, 255, 0.2)' : 'rgba(25, 118, 210, 0.3)'}`,
-                          borderRadius: 2,
-                          margin: '6px 8px',
-                          padding: '12px 16px',
-                          transition: 'all 0.2s ease-in-out',
-                          '&:hover': {
-                            backgroundColor: theme.palette.mode === 'dark' 
-                              ? 'rgba(255, 255, 255, 0.12)' 
-                              : 'rgba(25, 118, 210, 0.12)',
-                            borderColor: theme.palette.mode === 'dark' 
-                              ? 'rgba(255, 255, 255, 0.4)' 
-                              : 'rgba(25, 118, 210, 0.5)',
-                            transform: 'translateY(-1px)',
-                            boxShadow: theme.palette.mode === 'dark'
-                              ? '0 4px 8px rgba(0, 0, 0, 0.3)'
-                              : '0 4px 8px rgba(25, 118, 210, 0.2)',
-                          }
-                        }}
-                      >
-                        <Box display="flex" alignItems="center" gap={1}>
-                          <AddIcon fontSize="small" />
-                          {t('other')} - {t('addNewCity')}
-                        </Box>
-                      </MenuItem>
-                    </Select>
-                    {errors.city && touched.city && (
-                      <Typography variant="caption" color="error" sx={{ mt: 1, display: 'block' }}>
-                        {errors.city}
-                      </Typography>
-                    )}
-                  </FormControl>
-                </Box>
+                <CitySelectField 
+                  cities={cities}
+                  selectedCountry={selectedCountry}
+                  loadingCities={loadingCities}
+                  setShowCustomCityInput={setShowCustomCityInput}
+                  theme={theme}
+                  t={t}
+                />
 
                 <Box>
                   <FormLabel htmlFor="exactDate" sx={{ mb: 1, display: "block", fontWeight: 500, fontSize: '1.1rem' }}>
