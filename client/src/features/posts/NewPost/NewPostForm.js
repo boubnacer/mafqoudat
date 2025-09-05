@@ -104,13 +104,19 @@ const NewPostForm = ({ user, countries, categories, flOptions }) => {
 
   // Handle newly created city selection
   useEffect(() => {
+    console.log('useEffect triggered:', { newlyCreatedCityId, citiesLength: cities.length, formikExists: !!formikRef.current });
     if (newlyCreatedCityId && formikRef.current && cities.length > 0) {
       // Check if the newly created city exists in the cities list
       const cityExists = cities.find(c => c._id === newlyCreatedCityId);
+      console.log('Looking for city:', newlyCreatedCityId, 'Found:', cityExists);
+      console.log('Available cities:', cities.map(c => ({ _id: c._id, label: c.label })));
       if (cityExists) {
         console.log('Selecting newly created city:', newlyCreatedCityId);
         formikRef.current.setFieldValue('city', newlyCreatedCityId);
+        console.log('City field updated, current form values:', formikRef.current.values);
         setNewlyCreatedCityId(null);
+      } else {
+        console.log('City not found in list, waiting for cities to update...');
       }
     }
   }, [newlyCreatedCityId, cities]);
@@ -947,6 +953,7 @@ const NewPostForm = ({ user, countries, categories, flOptions }) => {
                 try {
                   // Create the custom city in the backend
                   const createdCity = await createCustomCity(customCityName.trim(), selectedCountry._id);
+                  console.log('Frontend received created city:', createdCity);
                   
                   // Add the custom city to the cities list
                   const customCity = {
@@ -955,11 +962,17 @@ const NewPostForm = ({ user, countries, categories, flOptions }) => {
                     code: createdCity.code,
                     isDynamic: true
                   };
+                  console.log('Custom city object to add:', customCity);
                   
                   // Update cities list
-                  setCities(prevCities => [...prevCities, customCity]);
+                  setCities(prevCities => {
+                    const newCities = [...prevCities, customCity];
+                    console.log('Updated cities list:', newCities.map(c => ({ _id: c._id, label: c.label })));
+                    return newCities;
+                  });
                   
                   // Set the newly created city ID to trigger selection
+                  console.log('Setting newlyCreatedCityId to:', createdCity._id);
                   setNewlyCreatedCityId(createdCity._id);
                   
                   // Close the dialog
