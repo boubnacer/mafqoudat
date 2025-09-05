@@ -55,6 +55,7 @@ const NewPostForm = ({ user, countries, categories, flOptions }) => {
   const [isCompressing, setIsCompressing] = useState(false);
   const [isCreatingCity, setIsCreatingCity] = useState(false);
   const [compressionInfo, setCompressionInfo] = useState(null);
+  const [newlyCreatedCityId, setNewlyCreatedCityId] = useState(null);
   const formikRef = useRef(null);
 
 
@@ -100,6 +101,19 @@ const NewPostForm = ({ user, countries, categories, flOptions }) => {
       fetchCitiesByCountry(selectedCountry._id);
     }
   }, [fetchCitiesByCountry, selectedCountry?._id, currentLanguage]);
+
+  // Handle newly created city selection
+  useEffect(() => {
+    if (newlyCreatedCityId && formikRef.current && cities.length > 0) {
+      // Check if the newly created city exists in the cities list
+      const cityExists = cities.find(c => c._id === newlyCreatedCityId);
+      if (cityExists) {
+        console.log('Selecting newly created city:', newlyCreatedCityId);
+        formikRef.current.setFieldValue('city', newlyCreatedCityId);
+        setNewlyCreatedCityId(null);
+      }
+    }
+  }, [newlyCreatedCityId, cities]);
 
 
 
@@ -945,11 +959,8 @@ const NewPostForm = ({ user, countries, categories, flOptions }) => {
                   // Update cities list
                   setCities(prevCities => [...prevCities, customCity]);
                   
-                  // Select the city immediately
-                  if (formikRef.current) {
-                    formikRef.current.setFieldValue('city', createdCity._id);
-                    console.log('Custom city created and selected:', createdCity._id);
-                  }
+                  // Set the newly created city ID to trigger selection
+                  setNewlyCreatedCityId(createdCity._id);
                   
                   // Close the dialog
                   setShowCustomCityInput(false);
