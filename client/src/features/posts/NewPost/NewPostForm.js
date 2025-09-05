@@ -936,31 +936,17 @@ const NewPostForm = ({ user, countries, categories, flOptions }) => {
                   const createdCity = await createCustomCity(customCityName.trim(), selectedCountry._id);
                   console.log('Frontend received created city:', createdCity);
                   
-                  // Add the custom city to the cities list
-                  const customCity = {
-                    _id: createdCity._id,
-                    label: createdCity.labels.en || createdCity.labels[currentLanguage] || customCityName.trim(),
-                    code: createdCity.code,
-                    isDynamic: true
-                  };
-                  console.log('Custom city object to add:', customCity);
+                  // Refresh the cities list to get the newly created city
+                  await fetchCitiesByCountry(selectedCountry._id);
                   
-                  // Update cities list and select the city
-                  setCities(prevCities => {
-                    const newCities = [...prevCities, customCity];
-                    console.log('Updated cities list:', newCities.map(c => ({ _id: c._id, label: c.label })));
-                    
-                    // Select the city after a small delay to ensure state is updated
-                    setTimeout(() => {
-                      if (formikRef.current) {
-                        console.log('Directly selecting city:', createdCity._id);
-                        formikRef.current.setFieldValue('city', createdCity._id);
-                        console.log('City field updated, current form values:', formikRef.current.values);
-                      }
-                    }, 100);
-                    
-                    return newCities;
-                  });
+                  // Select the newly created city after refresh
+                  setTimeout(() => {
+                    if (formikRef.current) {
+                      console.log('Selecting newly created city:', createdCity._id);
+                      formikRef.current.setFieldValue('city', createdCity._id);
+                      console.log('City field updated, current form values:', formikRef.current.values);
+                    }
+                  }, 200);
                   
                   // Close the dialog
                   setShowCustomCityInput(false);
