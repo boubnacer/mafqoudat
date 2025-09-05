@@ -54,14 +54,9 @@ const NewPostForm = ({ user, countries, categories, flOptions }) => {
   const [selectedCustomCity, setSelectedCustomCity] = useState("");
   const [shouldClearCityValue, setShouldClearCityValue] = useState(false);
   const [selectedCityId, setSelectedCityId] = useState(null);
-  const [selectKey, setSelectKey] = useState(0);
-  const [forceCitySelection, setForceCitySelection] = useState(null);
-  const [selectOpen, setSelectOpen] = useState(false);
   const [isCompressing, setIsCompressing] = useState(false);
   const [isCreatingCity, setIsCreatingCity] = useState(false);
   const [compressionInfo, setCompressionInfo] = useState(null);
-  const [createdCityId, setCreatedCityId] = useState(null);
-  const [showCityCreatedSuccess, setShowCityCreatedSuccess] = useState(false);
   const formikRef = useRef(null);
 
   // Initialize selectedCountry with user's country
@@ -115,27 +110,6 @@ const NewPostForm = ({ user, countries, categories, flOptions }) => {
     }
   }, [shouldClearCityValue]);
 
-  // Handle custom city selection when cities list is updated
-  useEffect(() => {
-    if (selectedCustomCity && cities.length > 0 && formikRef.current) {
-      console.log('🔍 DEBUG: useEffect - checking for custom city selection');
-      console.log('🔍 DEBUG: selectedCustomCity:', selectedCustomCity);
-      console.log('🔍 DEBUG: cities list:', cities.map(c => ({ _id: c._id, id: c.id, label: c.label })));
-      console.log('🔍 DEBUG: current form city value:', formikRef.current.values.city);
-      
-      // Find the custom city in the cities list by label
-      const customCity = cities.find(city => city.label === selectedCustomCity);
-      if (customCity) {
-        const cityId = customCity._id || customCity.id;
-        if (formikRef.current.values.city !== cityId) {
-          console.log('🔍 DEBUG: Found custom city, selecting it:', customCity);
-          formikRef.current.setFieldValue('city', cityId);
-          setSelectKey(prev => prev + 1);
-          console.log('🔍 DEBUG: Custom city selected via useEffect');
-        }
-      }
-    }
-  }, [selectedCustomCity, cities]);
 
 
 
@@ -179,11 +153,6 @@ const NewPostForm = ({ user, countries, categories, flOptions }) => {
     // Reset cities and selected city when country changes
     setCities([]);
     setSelectedCustomCity("");
-    setForceCitySelection(null);
-    setCreatedCityId(null);
-    setSelectOpen(false);
-    setShowCityCreatedSuccess(false);
-    setSelectKey(prev => prev + 1);
     
     // Clear the city field in the form
     if (formikRef.current) {
@@ -589,58 +558,25 @@ const NewPostForm = ({ user, countries, categories, flOptions }) => {
                     }
                   </Typography>
                   
-                  {showCityCreatedSuccess && (
-                    <Alert severity="success" sx={{ mb: 2 }}>
-                      <Typography variant="body2">
-                        {t('cityCreatedSuccessfully') || 'City created successfully! Please select it from the dropdown.'}
-                      </Typography>
-                    </Alert>
-                  )}
-                  
                   <FormControl fullWidth disabled={!selectedCountry || loadingCities} error={!!errors.city}>
                     <InputLabel id="city-select-label">{t('chooseCity')}</InputLabel>
                     <Select
-                      key={selectKey}
                       labelId="city-select-label"
-                      value={forceCitySelection || values.city || ""}
+                      value={values.city || ""}
                       label={t('chooseCity')}
-                      open={selectOpen}
-                      onClose={() => {
-                        console.log('🔍 DEBUG: Select closed, final value:', values.city || "");
-                        setSelectOpen(false);
-                      }}
-                      onOpen={() => {
-                        console.log('🔍 DEBUG: Select opened, current value:', values.city || "");
-                        console.log('🔍 DEBUG: Cities list:', cities.map(c => ({ _id: c._id, id: c.id, label: c.label })));
-                        setSelectOpen(true);
-                      }}
                       onChange={(e) => {
-                        console.log('🔍 DEBUG: Select onChange triggered with value:', e.target.value);
                         if (e.target.value === 'other') {
-                          // Don't set the field to "other", just open the dialog
-                          console.log('🔍 DEBUG: "other" option selected, opening dialog');
                           handleOtherCityClick();
                         } else {
-                          console.log('🔍 DEBUG: City selected:', e.target.value);
                           setFieldValue('city', e.target.value);
-                          setForceCitySelection(null); // Clear force selection
-                          console.log('🔍 DEBUG: After setting city, form values:', formikRef.current?.values);
                         }
                       }}
                       displayEmpty
                       renderValue={(selected) => {
                         if (!selected) {
-                          console.log('🔍 DEBUG: renderValue - no selection, showing placeholder');
                           return t('chooseCity');
                         }
-                        const displayName = getCityDisplayName(selected);
-                        console.log('🔍 DEBUG: renderValue called:', { 
-                          selected, 
-                          displayName,
-                          citiesCount: cities.length,
-                          availableCityIds: cities.map(c => c.id)
-                        });
-                        return displayName;
+                        return getCityDisplayName(selected);
                       }}
                       disableUnderline
                       sx={{
@@ -648,8 +584,7 @@ const NewPostForm = ({ user, countries, categories, flOptions }) => {
                       }}
                     >
                       {cities.map((city) => {
-                        console.log('🔍 DEBUG: Rendering city:', { _id: city._id, id: city.id, label: city.label, isDynamic: city.isDynamic });
-                        const cityId = city._id || city.id; // Use _id if available, fallback to id
+                        const cityId = city._id || city.id;
                         return (
                           <MenuItem key={cityId} value={cityId}>
                             <Box display="flex" alignItems="center" gap={1}>
@@ -895,7 +830,6 @@ const NewPostForm = ({ user, countries, categories, flOptions }) => {
             setShowCustomCityInput(false);
             setCustomCityName("");
             setShouldClearCityValue(true);
-            setForceCitySelection(null);
           }
         }}
         maxWidth="sm"
@@ -939,7 +873,6 @@ const NewPostForm = ({ user, countries, categories, flOptions }) => {
               setShowCustomCityInput(false);
               setCustomCityName("");
               setShouldClearCityValue(true);
-              setForceCitySelection(null);
             }}
             disabled={isCreatingCity}
             sx={{
@@ -985,7 +918,6 @@ const NewPostForm = ({ user, countries, categories, flOptions }) => {
               setShowCustomCityInput(false);
               setCustomCityName("");
               setShouldClearCityValue(true);
-              setForceCitySelection(null);
             }}
             disabled={isCreatingCity}
             sx={{ 
@@ -1012,58 +944,25 @@ const NewPostForm = ({ user, countries, categories, flOptions }) => {
                   const createdCity = await createCustomCity(customCityName.trim(), selectedCountry._id);
                   console.log('🔍 DEBUG: Custom city created:', createdCity);
                   
-                  // Refresh the cities list to include the newly created city
-                  console.log('🔍 DEBUG: Refreshing cities list after custom city creation');
-                  await fetchCitiesByCountry(selectedCountry._id);
+                  // Add the custom city to the cities list
+                  const customCity = {
+                    _id: createdCity._id,
+                    id: createdCity._id,
+                    label: createdCity.labels.en || createdCity.labels[currentLanguage] || customCityName.trim(),
+                    code: createdCity.code,
+                    isDynamic: true
+                  };
                   
-                  // Wait for cities to be fetched
-                  await new Promise(resolve => setTimeout(resolve, 200));
+                  setCities(prevCities => [...prevCities, customCity]);
                   
-                  // Set the selected custom city name for the useEffect to handle
-                  const cityLabel = createdCity.labels.en || createdCity.labels[currentLanguage] || customCityName.trim();
-                  setSelectedCustomCity(cityLabel);
-                  
-                  // Store the created city ID for debugging
-                  setCreatedCityId(createdCity._id);
-                  
-                  // Force the custom city selection using the created city ID
-                  setForceCitySelection(createdCity._id);
-                  
+                  // Set the city in the form
                   if (formikRef.current) {
                     formikRef.current.setFieldValue('city', createdCity._id);
-                    console.log('🔍 DEBUG: Form field set to:', createdCity._id);
                   }
-                  
-                  // Wait a bit to ensure all state updates are processed
-                  await new Promise(resolve => setTimeout(resolve, 500));
-                  
-                  // Force the Select component to close and reopen to refresh its internal state
-                  setSelectOpen(false);
-                  await new Promise(resolve => setTimeout(resolve, 100));
-                  
-                  // Force re-render of the Select component
-                  setSelectKey(prev => prev + 1);
-                  await new Promise(resolve => setTimeout(resolve, 100));
-                  
-                  // Also clear and reset the force selection to ensure proper re-render
-                  setForceCitySelection(null);
-                  await new Promise(resolve => setTimeout(resolve, 50));
-                  setForceCitySelection(createdCity._id);
-                  
-                  console.log('🔍 DEBUG: Custom city creation and selection completed');
-                  
-                  // Show success message
-                  setShowCityCreatedSuccess(true);
                   
                   // Close the dialog
                   setShowCustomCityInput(false);
                   setCustomCityName("");
-                  
-                  // After a short delay, automatically open the Select to show the new city
-                  setTimeout(() => {
-                    setShowCityCreatedSuccess(false);
-                    setSelectOpen(true);
-                  }, 1500);
                   
                 } catch (error) {
                   console.error('Error creating custom city:', error);
