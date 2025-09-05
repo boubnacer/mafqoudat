@@ -62,6 +62,8 @@ const NewPostForm = ({ user, countries, categories, flOptions }) => {
   const [pendingCityId, setPendingCityId] = useState(null);
   const [forceCitySelection, setForceCitySelection] = useState(null);
   const [lastCreatedCity, setLastCreatedCity] = useState(null);
+  const [newlyCreatedCityId, setNewlyCreatedCityId] = useState(null);
+  const [selectedCityValue, setSelectedCityValue] = useState("");
   const formikRef = useRef(null);
 
   // Initialize selectedCountry with user's country
@@ -131,6 +133,7 @@ const NewPostForm = ({ user, countries, categories, flOptions }) => {
         setTimeout(() => {
           if (formikRef.current) {
             formikRef.current.setFieldValue('city', pendingCityId);
+            setSelectedCityValue(pendingCityId);
             setSelectKey(prev => prev + 1);
             console.log('City field updated to:', pendingCityId, 'Current form values:', formikRef.current.values);
           }
@@ -151,6 +154,7 @@ const NewPostForm = ({ user, countries, categories, flOptions }) => {
     if (forceCitySelection && formikRef.current) {
       console.log('Force selecting city:', forceCitySelection);
       formikRef.current.setFieldValue('city', forceCitySelection);
+      setSelectedCityValue(forceCitySelection);
       setSelectKey(prev => prev + 1);
       setForceCitySelection(null);
     }
@@ -163,10 +167,23 @@ const NewPostForm = ({ user, countries, categories, flOptions }) => {
       if (cityExists && formikRef.current.values.city !== lastCreatedCity._id) {
         console.log('Ensuring last created city is selected:', lastCreatedCity._id);
         formikRef.current.setFieldValue('city', lastCreatedCity._id);
+        setSelectedCityValue(lastCreatedCity._id);
         setSelectKey(prev => prev + 1);
       }
     }
   }, [lastCreatedCity, cities]);
+
+  // Handle newly created city selection
+  useEffect(() => {
+    if (newlyCreatedCityId && formikRef.current) {
+      console.log('Newly created city ID detected:', newlyCreatedCityId);
+      formikRef.current.setFieldValue('city', newlyCreatedCityId);
+      setSelectedCityValue(newlyCreatedCityId);
+      setSelectKey(prev => prev + 1);
+      setNewlyCreatedCityId(null);
+      console.log('Newly created city selected, form values:', formikRef.current.values);
+    }
+  }, [newlyCreatedCityId]);
 
 
 
@@ -626,21 +643,23 @@ const NewPostForm = ({ user, countries, categories, flOptions }) => {
                     <Select
                       key={selectKey}
                       labelId="city-select-label"
-                      value={values.city || ""}
+                      value={selectedCityValue || values.city || ""}
                       label={t('chooseCity')}
                       onChange={(e) => {
                         if (e.target.value === 'other') {
                           handleOtherCityClick();
                         } else {
                           setFieldValue('city', e.target.value);
+                          setSelectedCityValue(e.target.value);
                         }
                       }}
                       displayEmpty
                       renderValue={(selected) => {
-                        if (!selected) {
+                        const currentValue = selectedCityValue || selected || values.city;
+                        if (!currentValue) {
                           return t('chooseCity');
                         }
-                        return getCityDisplayName(selected);
+                        return getCityDisplayName(currentValue);
                       }}
                       disableUnderline
                       sx={{
@@ -1021,28 +1040,26 @@ const NewPostForm = ({ user, countries, categories, flOptions }) => {
                   setCities(prevCities => {
                     const newCities = [...prevCities, customCity];
                     console.log('Updated cities list:', newCities);
+                    
+                    // Select the city immediately after updating the list
+                    setTimeout(() => {
+                      if (formikRef.current) {
+                        console.log('Selecting city after list update:', createdCity._id);
+                        formikRef.current.setFieldValue('city', createdCity._id);
+                        setSelectedCityValue(createdCity._id);
+                        setSelectKey(prev => prev + 1);
+                        console.log('City selected, form values:', formikRef.current.values);
+                      }
+                    }, 0);
+                    
                     return newCities;
                   });
                   
                   // Store the last created city for reference
                   setLastCreatedCity(customCity);
                   
-                  // Immediately select the city after adding it to the list
-                  console.log('Immediately selecting city:', createdCity._id);
-                  if (formikRef.current) {
-                    formikRef.current.setFieldValue('city', createdCity._id);
-                    setSelectKey(prev => prev + 1);
-                    console.log('City selected immediately, form values:', formikRef.current.values);
-                  }
-                  
-                  // Additional confirmation after a short delay
-                  setTimeout(() => {
-                    if (formikRef.current && formikRef.current.values.city !== createdCity._id) {
-                      console.log('Confirming city selection after delay');
-                      formikRef.current.setFieldValue('city', createdCity._id);
-                      setSelectKey(prev => prev + 1);
-                    }
-                  }, 200);
+                  // Set the newly created city ID to trigger selection
+                  setNewlyCreatedCityId(createdCity._id);
                   
                   // Close the dialog
                   setShowCustomCityInput(false);
