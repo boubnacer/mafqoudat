@@ -60,6 +60,7 @@ const NewPostForm = ({ user, countries, categories, flOptions }) => {
   const [selectKey, setSelectKey] = useState(0);
   const [pendingCityId, setPendingCityId] = useState(null);
   const [forceCitySelection, setForceCitySelection] = useState(null);
+  const [lastCreatedCity, setLastCreatedCity] = useState(null);
   const formikRef = useRef(null);
 
   // Initialize selectedCountry with user's country
@@ -153,6 +154,18 @@ const NewPostForm = ({ user, countries, categories, flOptions }) => {
       setForceCitySelection(null);
     }
   }, [forceCitySelection]);
+
+  // Ensure last created city is selected when cities list updates
+  useEffect(() => {
+    if (lastCreatedCity && cities.length > 0 && formikRef.current) {
+      const cityExists = cities.find(c => (c._id === lastCreatedCity._id) || (c.id === lastCreatedCity._id));
+      if (cityExists && formikRef.current.values.city !== lastCreatedCity._id) {
+        console.log('Ensuring last created city is selected:', lastCreatedCity._id);
+        formikRef.current.setFieldValue('city', lastCreatedCity._id);
+        setSelectKey(prev => prev + 1);
+      }
+    }
+  }, [lastCreatedCity, cities]);
 
 
 
@@ -299,6 +312,7 @@ const NewPostForm = ({ user, countries, categories, flOptions }) => {
       return '';
     }
     
+    console.log('Getting display name for city ID:', cityId, 'Available cities:', cities.length);
     
     // Handle custom city case - if it's "other" but we have a selected custom city
     if (cityId === "other" && selectedCustomCity) {
@@ -307,12 +321,23 @@ const NewPostForm = ({ user, countries, categories, flOptions }) => {
     
     // Find the city in the cities list - check both _id and id
     const city = cities.find(c => (c._id === cityId) || (c.id === cityId));
+    console.log('Found city for display:', city);
+    
     if (city) {
-      return city.label || city.code || city.name || 'Unknown City';
+      const displayName = city.label || city.code || city.name || 'Unknown City';
+      console.log('Returning display name:', displayName);
+      return displayName;
+    }
+    
+    // Check if this is the last created city
+    if (lastCreatedCity && (lastCreatedCity._id === cityId || lastCreatedCity.id === cityId)) {
+      console.log('Using last created city for display:', lastCreatedCity);
+      return lastCreatedCity.label || lastCreatedCity.code || lastCreatedCity.name || 'Unknown City';
     }
     
     // If no city found in the list, it might be a custom city name or ID
     // This should not happen with the new implementation, but keeping as fallback
+    console.log('City not found in list, returning cityId as fallback:', cityId);
     return cityId;
   };
 
@@ -991,45 +1016,32 @@ const NewPostForm = ({ user, countries, categories, flOptions }) => {
                   console.log('Created custom city:', customCity);
                   console.log('Backend response:', createdCity);
                   
-                  // Update cities list and set pending city ID in a single operation
+                  // Update cities list and immediately select the city
                   setCities(prevCities => {
                     const newCities = [...prevCities, customCity];
                     console.log('Updated cities list:', newCities);
-                    
-                    // Immediately try to select the city
-                    setTimeout(() => {
-                      if (formikRef.current) {
-                        console.log('Immediate city selection attempt');
-                        formikRef.current.setFieldValue('city', createdCity._id);
-                        setSelectKey(prev => prev + 1);
-                      }
-                    }, 10);
-                    
                     return newCities;
                   });
                   
-                  // Set pending city ID for auto-selection with a small delay to ensure state update
+                  // Store the last created city for reference
+                  setLastCreatedCity(customCity);
+                  
+                  // Immediately select the city after adding it to the list
+                  console.log('Immediately selecting city:', createdCity._id);
+                  if (formikRef.current) {
+                    formikRef.current.setFieldValue('city', createdCity._id);
+                    setSelectKey(prev => prev + 1);
+                    console.log('City selected immediately, form values:', formikRef.current.values);
+                  }
+                  
+                  // Additional confirmation after a short delay
                   setTimeout(() => {
-                    console.log('Setting pending city ID:', createdCity._id);
-                    setPendingCityId(createdCity._id);
-                    
-                    // Fallback: If auto-selection doesn't work after 500ms, try direct selection
-                    setTimeout(() => {
-                      if (formikRef.current && formikRef.current.values.city !== createdCity._id) {
-                        console.log('Fallback: Direct city selection');
-                        formikRef.current.setFieldValue('city', createdCity._id);
-                        setSelectKey(prev => prev + 1);
-                      }
-                    }, 500);
-                    
-                    // Additional fallback after 1 second using force selection
-                    setTimeout(() => {
-                      if (formikRef.current && formikRef.current.values.city !== createdCity._id) {
-                        console.log('Second fallback: Force city selection');
-                        setForceCitySelection(createdCity._id);
-                      }
-                    }, 1000);
-                  }, 100);
+                    if (formikRef.current && formikRef.current.values.city !== createdCity._id) {
+                      console.log('Confirming city selection after delay');
+                      formikRef.current.setFieldValue('city', createdCity._id);
+                      setSelectKey(prev => prev + 1);
+                    }
+                  }, 200);
                   
                   // Close the dialog
                   setShowCustomCityInput(false);
