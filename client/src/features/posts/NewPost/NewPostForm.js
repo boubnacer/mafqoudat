@@ -57,6 +57,7 @@ const NewPostForm = ({ user, countries, categories, flOptions }) => {
   const [isCompressing, setIsCompressing] = useState(false);
   const [isCreatingCity, setIsCreatingCity] = useState(false);
   const [compressionInfo, setCompressionInfo] = useState(null);
+  const [selectKey, setSelectKey] = useState(0);
   const formikRef = useRef(null);
 
   // Initialize selectedCountry with user's country
@@ -153,6 +154,7 @@ const NewPostForm = ({ user, countries, categories, flOptions }) => {
     // Reset cities and selected city when country changes
     setCities([]);
     setSelectedCustomCity("");
+    setSelectKey(prev => prev + 1);
     
     // Clear the city field in the form
     if (formikRef.current) {
@@ -556,6 +558,7 @@ const NewPostForm = ({ user, countries, categories, flOptions }) => {
                   <FormControl fullWidth disabled={!selectedCountry || loadingCities} error={!!errors.city}>
                     <InputLabel id="city-select-label">{t('chooseCity')}</InputLabel>
                     <Select
+                      key={selectKey}
                       labelId="city-select-label"
                       value={values.city || ""}
                       label={t('chooseCity')}
@@ -960,6 +963,9 @@ const NewPostForm = ({ user, countries, categories, flOptions }) => {
                     formikRef.current.setFieldValue('city', createdCity._id);
                     console.log('🔍 DEBUG: Form field set to:', createdCity._id);
                   }
+                  
+                  // Force Select component to re-render
+                  setSelectKey(prev => prev + 1);
                   
                   // Close the dialog
                   setShowCustomCityInput(false);
