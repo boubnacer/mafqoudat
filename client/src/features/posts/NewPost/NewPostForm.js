@@ -231,15 +231,18 @@ const NewPostForm = ({ user, countries, categories, flOptions }) => {
     }
   }, [cities, lastCreatedCity]);
 
-  // Clear force selection after it's been applied
+  // Clear force selection only when user manually changes selection
+  // The force selection will persist until the user manually selects a different city
+
+  // Ensure regular selection state is maintained when force selection is active
   useEffect(() => {
-    if (forceSelectedCity) {
-      const timer = setTimeout(() => {
-        console.log('Clearing force selection after delay');
-        setForceSelectedCity(null);
-      }, 1000);
-      
-      return () => clearTimeout(timer);
+    if (forceSelectedCity && formikRef.current) {
+      // Keep the regular selection state in sync with force selection
+      if (formikRef.current.values.city !== forceSelectedCity._id) {
+        formikRef.current.setFieldValue('city', forceSelectedCity._id);
+        setSelectedCityValue(forceSelectedCity._id);
+        console.log('Syncing regular selection state with force selection');
+      }
     }
   }, [forceSelectedCity]);
 
