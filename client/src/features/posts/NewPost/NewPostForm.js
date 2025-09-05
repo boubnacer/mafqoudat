@@ -66,6 +66,17 @@ const NewPostForm = ({ user, countries, categories, flOptions }) => {
   const [selectedCityValue, setSelectedCityValue] = useState("");
   const formikRef = useRef(null);
 
+  // Function to force city selection
+  const selectCityDirectly = (cityId) => {
+    console.log('Force selecting city:', cityId);
+    if (formikRef.current) {
+      formikRef.current.setFieldValue('city', cityId);
+      setSelectedCityValue(cityId);
+      setSelectKey(prev => prev + 1);
+      console.log('City force selected:', cityId, 'Form values:', formikRef.current.values);
+    }
+  };
+
   // Initialize selectedCountry with user's country
   useEffect(() => {
     if (user.country && countries.length > 0 && !selectedCountry) {
@@ -184,6 +195,21 @@ const NewPostForm = ({ user, countries, categories, flOptions }) => {
       console.log('Newly created city selected, form values:', formikRef.current.values);
     }
   }, [newlyCreatedCityId]);
+
+  // Handle city selection after dialog closes
+  useEffect(() => {
+    if (!showCustomCityInput && lastCreatedCity && formikRef.current) {
+      console.log('Dialog closed, ensuring city is selected:', lastCreatedCity._id);
+      setTimeout(() => {
+        if (formikRef.current && formikRef.current.values.city !== lastCreatedCity._id) {
+          console.log('Dialog closed - selecting city:', lastCreatedCity._id);
+          formikRef.current.setFieldValue('city', lastCreatedCity._id);
+          setSelectedCityValue(lastCreatedCity._id);
+          setSelectKey(prev => prev + 1);
+        }
+      }, 100);
+    }
+  }, [showCustomCityInput, lastCreatedCity]);
 
 
 
@@ -1036,30 +1062,34 @@ const NewPostForm = ({ user, countries, categories, flOptions }) => {
                   console.log('Created custom city:', customCity);
                   console.log('Backend response:', createdCity);
                   
-                  // Update cities list and immediately select the city
+                  // Update cities list
                   setCities(prevCities => {
                     const newCities = [...prevCities, customCity];
                     console.log('Updated cities list:', newCities);
-                    
-                    // Select the city immediately after updating the list
-                    setTimeout(() => {
-                      if (formikRef.current) {
-                        console.log('Selecting city after list update:', createdCity._id);
-                        formikRef.current.setFieldValue('city', createdCity._id);
-                        setSelectedCityValue(createdCity._id);
-                        setSelectKey(prev => prev + 1);
-                        console.log('City selected, form values:', formikRef.current.values);
-                      }
-                    }, 0);
-                    
                     return newCities;
                   });
                   
                   // Store the last created city for reference
                   setLastCreatedCity(customCity);
                   
-                  // Set the newly created city ID to trigger selection
-                  setNewlyCreatedCityId(createdCity._id);
+                  // Directly select the city using multiple approaches
+                  console.log('Directly selecting city:', createdCity._id);
+                  
+                  // Use the force selection function
+                  selectCityDirectly(createdCity._id);
+                  
+                  // Additional approaches for redundancy
+                  setPendingCityId(createdCity._id);
+                  
+                  // Set a timeout to ensure selection after state updates
+                  setTimeout(() => {
+                    selectCityDirectly(createdCity._id);
+                  }, 50);
+                  
+                  // Another timeout for extra safety
+                  setTimeout(() => {
+                    selectCityDirectly(createdCity._id);
+                  }, 200);
                   
                   // Close the dialog
                   setShowCustomCityInput(false);
