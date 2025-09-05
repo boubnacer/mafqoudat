@@ -118,16 +118,19 @@ const NewPostForm = ({ user, countries, categories, flOptions }) => {
     if (selectedCustomCity && cities.length > 0 && formikRef.current) {
       console.log('🔍 DEBUG: useEffect - checking for custom city selection');
       console.log('🔍 DEBUG: selectedCustomCity:', selectedCustomCity);
-      console.log('🔍 DEBUG: cities list:', cities.map(c => ({ id: c.id, label: c.label })));
+      console.log('🔍 DEBUG: cities list:', cities.map(c => ({ _id: c._id, id: c.id, label: c.label })));
       console.log('🔍 DEBUG: current form city value:', formikRef.current.values.city);
       
       // Find the custom city in the cities list by label
       const customCity = cities.find(city => city.label === selectedCustomCity);
-      if (customCity && formikRef.current.values.city !== customCity.id) {
-        console.log('🔍 DEBUG: Found custom city, selecting it:', customCity);
-        formikRef.current.setFieldValue('city', customCity.id);
-        setSelectKey(prev => prev + 1);
-        console.log('🔍 DEBUG: Custom city selected via useEffect');
+      if (customCity) {
+        const cityId = customCity._id || customCity.id;
+        if (formikRef.current.values.city !== cityId) {
+          console.log('🔍 DEBUG: Found custom city, selecting it:', customCity);
+          formikRef.current.setFieldValue('city', cityId);
+          setSelectKey(prev => prev + 1);
+          console.log('🔍 DEBUG: Custom city selected via useEffect');
+        }
       }
     }
   }, [selectedCustomCity, cities]);
@@ -286,8 +289,8 @@ const NewPostForm = ({ user, countries, categories, flOptions }) => {
       return selectedCustomCity;
     }
     
-    // Find the city in the cities list
-    const city = cities.find(c => c.id === cityId);
+    // Find the city in the cities list - check both _id and id
+    const city = cities.find(c => (c._id === cityId) || (c.id === cityId));
     if (city) {
       console.log('🔍 DEBUG: Found city in list:', { cityId, city, label: city.label });
       return city.label || city.code || city.name || 'Unknown City';
@@ -298,7 +301,7 @@ const NewPostForm = ({ user, countries, categories, flOptions }) => {
     console.log('🔍 DEBUG: City not found in list:', { 
       cityId, 
       citiesCount: cities.length,
-      availableCities: cities.map(c => ({ id: c.id, label: c.label }))
+      availableCities: cities.map(c => ({ _id: c._id, id: c.id, label: c.label }))
     });
     return cityId;
   };
@@ -630,9 +633,10 @@ const NewPostForm = ({ user, countries, categories, flOptions }) => {
                       }}
                     >
                       {cities.map((city) => {
-                        console.log('🔍 DEBUG: Rendering city:', { id: city.id, label: city.label, isDynamic: city.isDynamic });
+                        console.log('🔍 DEBUG: Rendering city:', { _id: city._id, id: city.id, label: city.label, isDynamic: city.isDynamic });
+                        const cityId = city._id || city.id; // Use _id if available, fallback to id
                         return (
-                          <MenuItem key={city.id} value={city.id}>
+                          <MenuItem key={cityId} value={cityId}>
                             <Box display="flex" alignItems="center" gap={1}>
                               {city.isCapital && (
                                 <span style={{ fontSize: '16px' }}>🏛️</span>
@@ -1018,8 +1022,15 @@ const NewPostForm = ({ user, countries, categories, flOptions }) => {
                   // Wait a bit to ensure all state updates are processed
                   await new Promise(resolve => setTimeout(resolve, 500));
                   
-                  // Force re-render of the Select component
+                  // Force re-render of the Select component multiple times to ensure it works
                   setSelectKey(prev => prev + 1);
+                  await new Promise(resolve => setTimeout(resolve, 100));
+                  setSelectKey(prev => prev + 1);
+                  
+                  // Also clear and reset the force selection to ensure proper re-render
+                  setForceCitySelection(null);
+                  await new Promise(resolve => setTimeout(resolve, 50));
+                  setForceCitySelection(createdCity._id);
                   
                   // Wait a bit more to ensure the selection is visible
                   await new Promise(resolve => setTimeout(resolve, 300));
