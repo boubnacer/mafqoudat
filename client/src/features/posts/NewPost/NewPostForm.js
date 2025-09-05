@@ -55,7 +55,6 @@ const NewPostForm = ({ user, countries, categories, flOptions }) => {
   const [isCompressing, setIsCompressing] = useState(false);
   const [isCreatingCity, setIsCreatingCity] = useState(false);
   const [compressionInfo, setCompressionInfo] = useState(null);
-  const [newlyCreatedCityId, setNewlyCreatedCityId] = useState(null);
   const formikRef = useRef(null);
 
 
@@ -102,24 +101,6 @@ const NewPostForm = ({ user, countries, categories, flOptions }) => {
     }
   }, [fetchCitiesByCountry, selectedCountry?._id, currentLanguage]);
 
-  // Handle newly created city selection
-  useEffect(() => {
-    console.log('useEffect triggered:', { newlyCreatedCityId, citiesLength: cities.length, formikExists: !!formikRef.current });
-    if (newlyCreatedCityId && formikRef.current && cities.length > 0) {
-      // Check if the newly created city exists in the cities list
-      const cityExists = cities.find(c => c._id === newlyCreatedCityId);
-      console.log('Looking for city:', newlyCreatedCityId, 'Found:', cityExists);
-      console.log('Available cities:', cities.map(c => ({ _id: c._id, label: c.label })));
-      if (cityExists) {
-        console.log('Selecting newly created city:', newlyCreatedCityId);
-        formikRef.current.setFieldValue('city', newlyCreatedCityId);
-        console.log('City field updated, current form values:', formikRef.current.values);
-        setNewlyCreatedCityId(null);
-      } else {
-        console.log('City not found in list, waiting for cities to update...');
-      }
-    }
-  }, [newlyCreatedCityId, cities]);
 
 
 
@@ -964,16 +945,22 @@ const NewPostForm = ({ user, countries, categories, flOptions }) => {
                   };
                   console.log('Custom city object to add:', customCity);
                   
-                  // Update cities list
+                  // Update cities list and select the city
                   setCities(prevCities => {
                     const newCities = [...prevCities, customCity];
                     console.log('Updated cities list:', newCities.map(c => ({ _id: c._id, label: c.label })));
+                    
+                    // Select the city after a small delay to ensure state is updated
+                    setTimeout(() => {
+                      if (formikRef.current) {
+                        console.log('Directly selecting city:', createdCity._id);
+                        formikRef.current.setFieldValue('city', createdCity._id);
+                        console.log('City field updated, current form values:', formikRef.current.values);
+                      }
+                    }, 100);
+                    
                     return newCities;
                   });
-                  
-                  // Set the newly created city ID to trigger selection
-                  console.log('Setting newlyCreatedCityId to:', createdCity._id);
-                  setNewlyCreatedCityId(createdCity._id);
                   
                   // Close the dialog
                   setShowCustomCityInput(false);
