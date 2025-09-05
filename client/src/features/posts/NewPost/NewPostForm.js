@@ -69,11 +69,17 @@ const NewPostForm = ({ user, countries, categories, flOptions }) => {
   // Function to force city selection
   const selectCityDirectly = (cityId) => {
     console.log('Force selecting city:', cityId);
+    console.log('Formik ref exists:', !!formikRef.current);
     if (formikRef.current) {
+      console.log('Before selection - Form values:', formikRef.current.values);
       formikRef.current.setFieldValue('city', cityId);
       setSelectedCityValue(cityId);
       setSelectKey(prev => prev + 1);
-      console.log('City force selected:', cityId, 'Form values:', formikRef.current.values);
+      console.log('After selection - Form values:', formikRef.current.values);
+      console.log('Selected city value set to:', cityId);
+      console.log('Select key incremented');
+    } else {
+      console.error('Formik ref is null, cannot select city');
     }
   };
 
@@ -353,13 +359,16 @@ const NewPostForm = ({ user, countries, categories, flOptions }) => {
   // Get city display name for selected city
   const getCityDisplayName = (cityId) => {
     if (!cityId) {
+      console.log('No city ID provided to getCityDisplayName');
       return '';
     }
     
     console.log('Getting display name for city ID:', cityId, 'Available cities:', cities.length);
+    console.log('Available cities:', cities.map(c => ({ _id: c._id, id: c.id, label: c.label })));
     
     // Handle custom city case - if it's "other" but we have a selected custom city
     if (cityId === "other" && selectedCustomCity) {
+      console.log('Using selected custom city:', selectedCustomCity);
       return selectedCustomCity;
     }
     
@@ -369,14 +378,16 @@ const NewPostForm = ({ user, countries, categories, flOptions }) => {
     
     if (city) {
       const displayName = city.label || city.code || city.name || 'Unknown City';
-      console.log('Returning display name:', displayName);
+      console.log('Returning display name from cities list:', displayName);
       return displayName;
     }
     
     // Check if this is the last created city
     if (lastCreatedCity && (lastCreatedCity._id === cityId || lastCreatedCity.id === cityId)) {
       console.log('Using last created city for display:', lastCreatedCity);
-      return lastCreatedCity.label || lastCreatedCity.code || lastCreatedCity.name || 'Unknown City';
+      const displayName = lastCreatedCity.label || lastCreatedCity.code || lastCreatedCity.name || 'Unknown City';
+      console.log('Returning display name from last created city:', displayName);
+      return displayName;
     }
     
     // If no city found in the list, it might be a custom city name or ID
@@ -420,8 +431,10 @@ const NewPostForm = ({ user, countries, categories, flOptions }) => {
       });
 
       const data = await response.json();
+      console.log('Frontend received response:', data);
       
       if (data.success) {
+        console.log('City creation successful, returning data:', data.data);
         return data.data; // Return the created city object
       } else {
         console.error('Failed to create custom city:', data.message);
@@ -1047,8 +1060,14 @@ const NewPostForm = ({ user, countries, categories, flOptions }) => {
               if (customCityName.trim() && selectedCountry?._id) {
                 setIsCreatingCity(true);
                 try {
+                  console.log('Starting custom city creation for:', customCityName.trim(), 'in country:', selectedCountry._id);
+                  
                   // Create the custom city in the backend
                   const createdCity = await createCustomCity(customCityName.trim(), selectedCountry._id);
+                  
+                  console.log('Backend returned city:', createdCity);
+                  console.log('City ID:', createdCity._id);
+                  console.log('City labels:', createdCity.labels);
                   
                   // Add the custom city to the cities list
                   const customCity = {
@@ -1059,8 +1078,8 @@ const NewPostForm = ({ user, countries, categories, flOptions }) => {
                     isDynamic: true
                   };
                   
-                  console.log('Created custom city:', customCity);
-                  console.log('Backend response:', createdCity);
+                  console.log('Created custom city object:', customCity);
+                  console.log('Current cities list length:', cities.length);
                   
                   // Update cities list
                   setCities(prevCities => {
@@ -1074,6 +1093,8 @@ const NewPostForm = ({ user, countries, categories, flOptions }) => {
                   
                   // Directly select the city using multiple approaches
                   console.log('Directly selecting city:', createdCity._id);
+                  console.log('Formik ref exists:', !!formikRef.current);
+                  console.log('Current form values:', formikRef.current?.values);
                   
                   // Use the force selection function
                   selectCityDirectly(createdCity._id);
@@ -1083,11 +1104,13 @@ const NewPostForm = ({ user, countries, categories, flOptions }) => {
                   
                   // Set a timeout to ensure selection after state updates
                   setTimeout(() => {
+                    console.log('50ms timeout - selecting city:', createdCity._id);
                     selectCityDirectly(createdCity._id);
                   }, 50);
                   
                   // Another timeout for extra safety
                   setTimeout(() => {
+                    console.log('200ms timeout - selecting city:', createdCity._id);
                     selectCityDirectly(createdCity._id);
                   }, 200);
                   
