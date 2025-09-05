@@ -117,8 +117,17 @@ const NewPostForm = ({ user, countries, categories, flOptions }) => {
     if (pendingCityId && cities.length > 0 && formikRef.current) {
       const cityExists = cities.find(c => (c._id === pendingCityId) || (c.id === pendingCityId));
       if (cityExists && formikRef.current.values.city !== pendingCityId) {
-        formikRef.current.setFieldValue('city', pendingCityId);
-        setSelectKey(prev => prev + 1);
+        console.log('Auto-selecting custom city:', pendingCityId, cityExists);
+        
+        // Use setTimeout to ensure the form state is properly updated
+        setTimeout(() => {
+          if (formikRef.current) {
+            formikRef.current.setFieldValue('city', pendingCityId);
+            setSelectKey(prev => prev + 1);
+            console.log('City field updated to:', pendingCityId);
+          }
+        }, 50);
+        
         setPendingCityId(null);
       }
     }
@@ -958,10 +967,29 @@ const NewPostForm = ({ user, countries, categories, flOptions }) => {
                     isDynamic: true
                   };
                   
-                  setCities(prevCities => [...prevCities, customCity]);
+                  console.log('Created custom city:', customCity);
                   
-                  // Set pending city ID for auto-selection
-                  setPendingCityId(createdCity._id);
+                  // Update cities list and set pending city ID in a single operation
+                  setCities(prevCities => {
+                    const newCities = [...prevCities, customCity];
+                    console.log('Updated cities list:', newCities);
+                    return newCities;
+                  });
+                  
+                  // Set pending city ID for auto-selection with a small delay to ensure state update
+                  setTimeout(() => {
+                    console.log('Setting pending city ID:', createdCity._id);
+                    setPendingCityId(createdCity._id);
+                    
+                    // Fallback: If auto-selection doesn't work after 500ms, try direct selection
+                    setTimeout(() => {
+                      if (formikRef.current && formikRef.current.values.city !== createdCity._id) {
+                        console.log('Fallback: Direct city selection');
+                        formikRef.current.setFieldValue('city', createdCity._id);
+                        setSelectKey(prev => prev + 1);
+                      }
+                    }, 500);
+                  }, 100);
                   
                   // Close the dialog
                   setShowCustomCityInput(false);
