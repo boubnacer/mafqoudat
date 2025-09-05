@@ -34,6 +34,7 @@ import { PhotoCamera, LocationOn, WhatsApp, Add as AddIcon, Close as CloseIcon }
 import { useTranslation } from "../../../utils/translations";
 import PromotionDialog from "../../../components/PromotionDialog";
 
+
 const NewPostForm = ({ user, countries, categories, flOptions }) => {
   const [addNewPost, { isSuccess, isError, error }] = useAddNewPostMutation();
   const { t, currentLanguage } = useTranslation();
