@@ -59,7 +59,6 @@ const NewPostForm = ({ user, countries, categories, flOptions }) => {
   const [isCreatingCity, setIsCreatingCity] = useState(false);
   const [compressionInfo, setCompressionInfo] = useState(null);
   const [selectKey, setSelectKey] = useState(0);
-  const [newlyCreatedCityId, setNewlyCreatedCityId] = useState(null);
   const formikRef = useRef(null);
 
 
@@ -114,15 +113,6 @@ const NewPostForm = ({ user, countries, categories, flOptions }) => {
     }
   }, [shouldClearCityValue]);
 
-  // Handle newly created city selection
-  useEffect(() => {
-    if (newlyCreatedCityId && formikRef.current) {
-      console.log('Selecting newly created city:', newlyCreatedCityId);
-      formikRef.current.setFieldValue('city', newlyCreatedCityId);
-      setSelectKey(prev => prev + 1);
-      setNewlyCreatedCityId(null);
-    }
-  }, [newlyCreatedCityId]);
 
 
 
@@ -977,11 +967,21 @@ const NewPostForm = ({ user, countries, categories, flOptions }) => {
                     isDynamic: true
                   };
                   
-                  // Update cities list
-                  setCities(prevCities => [...prevCities, customCity]);
-                  
-                  // Set the newly created city ID to trigger selection
-                  setNewlyCreatedCityId(createdCity._id);
+                  // Update cities list and select the city
+                  setCities(prevCities => {
+                    const newCities = [...prevCities, customCity];
+                    
+                    // Select the city after the state update
+                    setTimeout(() => {
+                      if (formikRef.current) {
+                        formikRef.current.setFieldValue('city', createdCity._id);
+                        setSelectKey(prev => prev + 1);
+                        console.log('Custom city created and selected:', createdCity._id);
+                      }
+                    }, 50);
+                    
+                    return newCities;
+                  });
                   
                   // Close the dialog
                   setShowCustomCityInput(false);
