@@ -52,13 +52,9 @@ const NewPostForm = ({ user, countries, categories, flOptions }) => {
   const [loadingCities, setLoadingCities] = useState(false);
   const [showCustomCityInput, setShowCustomCityInput] = useState(false);
   const [customCityName, setCustomCityName] = useState("");
-  const [selectedCustomCity, setSelectedCustomCity] = useState("");
-  const [shouldClearCityValue, setShouldClearCityValue] = useState(false);
-  const [selectedCityId, setSelectedCityId] = useState(null);
   const [isCompressing, setIsCompressing] = useState(false);
   const [isCreatingCity, setIsCreatingCity] = useState(false);
   const [compressionInfo, setCompressionInfo] = useState(null);
-  const [selectKey, setSelectKey] = useState(0);
   const formikRef = useRef(null);
 
 
@@ -105,13 +101,6 @@ const NewPostForm = ({ user, countries, categories, flOptions }) => {
     }
   }, [fetchCitiesByCountry, selectedCountry?._id, currentLanguage]);
 
-  // Handle clearing city value when dialog is canceled
-  useEffect(() => {
-    if (shouldClearCityValue && formikRef.current) {
-      formikRef.current.setFieldValue('city', "");
-      setShouldClearCityValue(false);
-    }
-  }, [shouldClearCityValue]);
 
 
 
@@ -158,7 +147,6 @@ const NewPostForm = ({ user, countries, categories, flOptions }) => {
     
     // Reset cities when country changes
     setCities([]);
-    setSelectKey(prev => prev + 1);
     
     // Clear the city field in the form
     if (formikRef.current) {
@@ -291,12 +279,6 @@ const NewPostForm = ({ user, countries, categories, flOptions }) => {
     // This should not happen with the new implementation, but keeping as fallback
     console.log('City not found in list, returning cityId as fallback:', cityId);
     return cityId;
-  };
-
-  // Handle "Other" city option
-  const handleOtherCityClick = () => {
-    setShowCustomCityInput(true);
-    setCustomCityName("");
   };
 
   // Handle custom city name change
@@ -577,13 +559,12 @@ const NewPostForm = ({ user, countries, categories, flOptions }) => {
                   <FormControl fullWidth disabled={!selectedCountry || loadingCities} error={!!errors.city}>
                     <InputLabel id="city-select-label">{t('chooseCity')}</InputLabel>
                     <Select
-                      key={selectKey}
                       labelId="city-select-label"
                       value={values.city || ""}
                       label={t('chooseCity')}
                       onChange={(e) => {
                         if (e.target.value === 'other') {
-                          handleOtherCityClick();
+                          setShowCustomCityInput(true);
                         } else {
                           setFieldValue('city', e.target.value);
                         }
@@ -593,29 +574,27 @@ const NewPostForm = ({ user, countries, categories, flOptions }) => {
                         if (!selected) {
                           return t('chooseCity');
                         }
-                        return getCityDisplayName(selected);
+                        const city = cities.find(c => c._id === selected);
+                        return city ? (city.label || city.name || 'Unknown City') : selected;
                       }}
                       disableUnderline
                       sx={{
                         borderRadius: 2,
                       }}
                     >
-                      {cities.map((city) => {
-                        const cityId = city._id || city.id;
-                        return (
-                          <MenuItem key={cityId} value={cityId}>
-                            <Box display="flex" alignItems="center" gap={1}>
-                              {city.isCapital && (
-                                <span style={{ fontSize: '16px' }}>🏛️</span>
-                              )}
-                              {city.isDynamic && (
-                                <span style={{ fontSize: '16px' }}>🆕</span>
-                              )}
-                              {city.label || city.code || city.name || 'Unknown City'}
-                            </Box>
-                          </MenuItem>
-                        );
-                      })}
+                      {cities.map((city) => (
+                        <MenuItem key={city._id} value={city._id}>
+                          <Box display="flex" alignItems="center" gap={1}>
+                            {city.isCapital && (
+                              <span style={{ fontSize: '16px' }}>🏛️</span>
+                            )}
+                            {city.isDynamic && (
+                              <span style={{ fontSize: '16px' }}>🆕</span>
+                            )}
+                            {city.label || city.name || 'Unknown City'}
+                          </Box>
+                        </MenuItem>
+                      ))}
                       <Divider />
                       <MenuItem
                         value="other" 
@@ -846,7 +825,6 @@ const NewPostForm = ({ user, countries, categories, flOptions }) => {
           if (!isCreatingCity) {
             setShowCustomCityInput(false);
             setCustomCityName("");
-            setShouldClearCityValue(true);
           }
         }}
         maxWidth="sm"
@@ -889,7 +867,6 @@ const NewPostForm = ({ user, countries, categories, flOptions }) => {
             onClick={() => {
               setShowCustomCityInput(false);
               setCustomCityName("");
-              setShouldClearCityValue(true);
             }}
             disabled={isCreatingCity}
             sx={{
@@ -934,7 +911,6 @@ const NewPostForm = ({ user, countries, categories, flOptions }) => {
             onClick={() => {
               setShowCustomCityInput(false);
               setCustomCityName("");
-              setShouldClearCityValue(true);
             }}
             disabled={isCreatingCity}
             sx={{ 
@@ -961,27 +937,19 @@ const NewPostForm = ({ user, countries, categories, flOptions }) => {
                   // Add the custom city to the cities list
                   const customCity = {
                     _id: createdCity._id,
-                    id: createdCity._id,
                     label: createdCity.labels.en || createdCity.labels[currentLanguage] || customCityName.trim(),
                     code: createdCity.code,
                     isDynamic: true
                   };
                   
-                  // Update cities list and select the city
-                  setCities(prevCities => {
-                    const newCities = [...prevCities, customCity];
-                    
-                    // Select the city after the state update
-                    setTimeout(() => {
-                      if (formikRef.current) {
-                        formikRef.current.setFieldValue('city', createdCity._id);
-                        setSelectKey(prev => prev + 1);
-                        console.log('Custom city created and selected:', createdCity._id);
-                      }
-                    }, 50);
-                    
-                    return newCities;
-                  });
+                  // Update cities list
+                  setCities(prevCities => [...prevCities, customCity]);
+                  
+                  // Select the city immediately
+                  if (formikRef.current) {
+                    formikRef.current.setFieldValue('city', createdCity._id);
+                    console.log('Custom city created and selected:', createdCity._id);
+                  }
                   
                   // Close the dialog
                   setShowCustomCityInput(false);
