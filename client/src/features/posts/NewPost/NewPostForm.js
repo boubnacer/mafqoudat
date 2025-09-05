@@ -564,18 +564,23 @@ const NewPostForm = ({ user, countries, categories, flOptions }) => {
                       value={values.city || ""}
                       label={t('chooseCity')}
                       onChange={(e) => {
+                        console.log('City selection changed to:', e.target.value);
                         if (e.target.value === 'other') {
                           setShowCustomCityInput(true);
                         } else {
+                          console.log('Setting city field to:', e.target.value);
                           setFieldValue('city', e.target.value);
+                          console.log('Form values after setFieldValue:', formikRef.current?.values);
                         }
                       }}
                       displayEmpty
                       renderValue={(selected) => {
+                        console.log('renderValue called with selected:', selected, 'cities count:', cities.length);
                         if (!selected) {
                           return t('chooseCity');
                         }
                         const city = cities.find(c => c._id === selected);
+                        console.log('Found city:', city);
                         return city ? (city.label || city.name || 'Unknown City') : selected;
                       }}
                       disableUnderline
