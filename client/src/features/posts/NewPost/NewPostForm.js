@@ -55,7 +55,6 @@ const NewPostForm = ({ user, countries, categories, flOptions }) => {
   const [isCompressing, setIsCompressing] = useState(false);
   const [isCreatingCity, setIsCreatingCity] = useState(false);
   const [compressionInfo, setCompressionInfo] = useState(null);
-  const [selectedCityId, setSelectedCityId] = useState("");
   const formikRef = useRef(null);
 
 
@@ -149,7 +148,6 @@ const NewPostForm = ({ user, countries, categories, flOptions }) => {
     
     // Reset cities when country changes
     setCities([]);
-    setSelectedCityId("");
     
     // Clear the city field in the form
     if (formikRef.current) {
@@ -246,42 +244,9 @@ const NewPostForm = ({ user, countries, categories, flOptions }) => {
 
   // Get city display name for selected city
   const getCityDisplayName = (cityId) => {
-    if (!cityId) {
-      console.log('No city ID provided to getCityDisplayName');
-      return '';
-    }
-    
-    console.log('Getting display name for city ID:', cityId, 'Available cities:', cities.length);
-    console.log('Available cities:', cities.map(c => ({ _id: c._id, id: c.id, label: c.label })));
-    
-    // Handle custom city case - if it's "other" but we have a selected custom city
-    if (cityId === "other" && selectedCustomCity) {
-      console.log('Using selected custom city:', selectedCustomCity);
-      return selectedCustomCity;
-    }
-    
-    // Find the city in the cities list - check both _id and id
-    const city = cities.find(c => (c._id === cityId) || (c.id === cityId));
-    console.log('Found city for display:', city);
-    
-    if (city) {
-      const displayName = city.label || city.code || city.name || 'Unknown City';
-      console.log('Returning display name from cities list:', displayName);
-      return displayName;
-    }
-    
-    // Check if this is the last created city
-    if (lastCreatedCity && (lastCreatedCity._id === cityId || lastCreatedCity.id === cityId)) {
-      console.log('Using last created city for display:', lastCreatedCity);
-      const displayName = lastCreatedCity.label || lastCreatedCity.code || lastCreatedCity.name || 'Unknown City';
-      console.log('Returning display name from last created city:', displayName);
-      return displayName;
-    }
-    
-    // If no city found in the list, it might be a custom city name or ID
-    // This should not happen with the new implementation, but keeping as fallback
-    console.log('City not found in list, returning cityId as fallback:', cityId);
-    return cityId;
+    if (!cityId) return '';
+    const city = cities.find(c => c._id === cityId);
+    return city ? (city.label || city.name || 'Unknown City') : cityId;
   };
 
   // Handle custom city name change
@@ -563,24 +528,19 @@ const NewPostForm = ({ user, countries, categories, flOptions }) => {
                     <InputLabel id="city-select-label">{t('chooseCity')}</InputLabel>
                     <Select
                       labelId="city-select-label"
-                      value={selectedCityId || values.city || ""}
+                      value={values.city || ""}
                       label={t('chooseCity')}
                       onChange={(e) => {
                         if (e.target.value === 'other') {
                           setShowCustomCityInput(true);
                         } else {
-                          setSelectedCityId(e.target.value);
                           setFieldValue('city', e.target.value);
                         }
                       }}
                       displayEmpty
                       renderValue={(selected) => {
-                        const currentValue = selectedCityId || selected || values.city;
-                        if (!currentValue) {
-                          return t('chooseCity');
-                        }
-                        const city = cities.find(c => c._id === currentValue);
-                        return city ? (city.label || city.name || 'Unknown City') : currentValue;
+                        if (!selected) return t('chooseCity');
+                        return getCityDisplayName(selected);
                       }}
                       disableUnderline
                       sx={{
@@ -944,7 +904,6 @@ const NewPostForm = ({ user, countries, categories, flOptions }) => {
                   
                   // Select the newly created city after refresh
                   setTimeout(() => {
-                    setSelectedCityId(createdCity._id);
                     if (formikRef.current) {
                       formikRef.current.setFieldValue('city', createdCity._id);
                     }
