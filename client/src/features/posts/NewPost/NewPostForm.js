@@ -217,6 +217,19 @@ const NewPostForm = ({ user, countries, categories, flOptions }) => {
     }
   }, [showCustomCityInput, lastCreatedCity]);
 
+  // Simple effect to ensure city is selected when cities list updates
+  useEffect(() => {
+    if (lastCreatedCity && cities.length > 0 && formikRef.current) {
+      const cityExists = cities.find(c => c._id === lastCreatedCity._id);
+      if (cityExists && formikRef.current.values.city !== lastCreatedCity._id) {
+        console.log('Cities list updated, selecting city:', lastCreatedCity._id);
+        formikRef.current.setFieldValue('city', lastCreatedCity._id);
+        setSelectedCityValue(lastCreatedCity._id);
+        setSelectKey(prev => prev + 1);
+      }
+    }
+  }, [cities, lastCreatedCity]);
+
 
 
 
@@ -1060,14 +1073,8 @@ const NewPostForm = ({ user, countries, categories, flOptions }) => {
               if (customCityName.trim() && selectedCountry?._id) {
                 setIsCreatingCity(true);
                 try {
-                  console.log('Starting custom city creation for:', customCityName.trim(), 'in country:', selectedCountry._id);
-                  
                   // Create the custom city in the backend
                   const createdCity = await createCustomCity(customCityName.trim(), selectedCountry._id);
-                  
-                  console.log('Backend returned city:', createdCity);
-                  console.log('City ID:', createdCity._id);
-                  console.log('City labels:', createdCity.labels);
                   
                   // Add the custom city to the cities list
                   const customCity = {
@@ -1078,41 +1085,25 @@ const NewPostForm = ({ user, countries, categories, flOptions }) => {
                     isDynamic: true
                   };
                   
-                  console.log('Created custom city object:', customCity);
-                  console.log('Current cities list length:', cities.length);
-                  
-                  // Update cities list
-                  setCities(prevCities => {
-                    const newCities = [...prevCities, customCity];
-                    console.log('Updated cities list:', newCities);
-                    return newCities;
-                  });
-                  
-                  // Store the last created city for reference
+                  // Store the last created city
                   setLastCreatedCity(customCity);
                   
-                  // Directly select the city using multiple approaches
-                  console.log('Directly selecting city:', createdCity._id);
-                  console.log('Formik ref exists:', !!formikRef.current);
-                  console.log('Current form values:', formikRef.current?.values);
-                  
-                  // Use the force selection function
-                  selectCityDirectly(createdCity._id);
-                  
-                  // Additional approaches for redundancy
-                  setPendingCityId(createdCity._id);
-                  
-                  // Set a timeout to ensure selection after state updates
-                  setTimeout(() => {
-                    console.log('50ms timeout - selecting city:', createdCity._id);
-                    selectCityDirectly(createdCity._id);
-                  }, 50);
-                  
-                  // Another timeout for extra safety
-                  setTimeout(() => {
-                    console.log('200ms timeout - selecting city:', createdCity._id);
-                    selectCityDirectly(createdCity._id);
-                  }, 200);
+                  // Update cities list and select the city immediately
+                  setCities(prevCities => {
+                    const newCities = [...prevCities, customCity];
+                    
+                    // Select the city immediately after adding it to the list
+                    setTimeout(() => {
+                      if (formikRef.current) {
+                        formikRef.current.setFieldValue('city', createdCity._id);
+                        setSelectedCityValue(createdCity._id);
+                        setSelectKey(prev => prev + 1);
+                        console.log('City selected:', createdCity._id);
+                      }
+                    }, 0);
+                    
+                    return newCities;
+                  });
                   
                   // Close the dialog
                   setShowCustomCityInput(false);
