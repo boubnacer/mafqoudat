@@ -271,11 +271,6 @@ const NewPostForm = ({ user, countries, categories, flOptions }) => {
     
     // If no city found in the list, it might be a custom city name or ID
     // This should not happen with the new implementation, but keeping as fallback
-    console.log('🔍 DEBUG: City not found in list:', { 
-      cityId, 
-      citiesCount: cities.length,
-      availableCities: cities.map(c => ({ _id: c._id, id: c.id, label: c.label }))
-    });
     return cityId;
   };
 
@@ -576,7 +571,9 @@ const NewPostForm = ({ user, countries, categories, flOptions }) => {
                         if (!selected) {
                           return t('chooseCity');
                         }
-                        return getCityDisplayName(selected);
+                        const displayName = getCityDisplayName(selected);
+                        console.log('🔍 DEBUG: renderValue - selected:', selected, 'displayName:', displayName);
+                        return displayName;
                       }}
                       disableUnderline
                       sx={{
@@ -955,9 +952,13 @@ const NewPostForm = ({ user, countries, categories, flOptions }) => {
                   
                   setCities(prevCities => [...prevCities, customCity]);
                   
+                  // Wait a moment for the cities list to update
+                  await new Promise(resolve => setTimeout(resolve, 100));
+                  
                   // Set the city in the form
                   if (formikRef.current) {
                     formikRef.current.setFieldValue('city', createdCity._id);
+                    console.log('🔍 DEBUG: Form field set to:', createdCity._id);
                   }
                   
                   // Close the dialog
