@@ -64,7 +64,6 @@ const NewPostForm = ({ user, countries, categories, flOptions }) => {
   const [lastCreatedCity, setLastCreatedCity] = useState(null);
   const [newlyCreatedCityId, setNewlyCreatedCityId] = useState(null);
   const [selectedCityValue, setSelectedCityValue] = useState("");
-  const [customCitySelected, setCustomCitySelected] = useState(null);
   const formikRef = useRef(null);
 
   // Function to force city selection
@@ -231,16 +230,6 @@ const NewPostForm = ({ user, countries, categories, flOptions }) => {
     }
   }, [cities, lastCreatedCity]);
 
-  // Clear custom city selection when form city value changes
-  useEffect(() => {
-    if (customCitySelected && formikRef.current) {
-      const currentCityValue = formikRef.current.values.city;
-      if (currentCityValue !== customCitySelected._id) {
-        console.log('Form city value changed, clearing custom city selection');
-        setCustomCitySelected(null);
-      }
-    }
-  }, [customCitySelected, formikRef.current?.values.city]);
 
 
 
@@ -707,7 +696,7 @@ const NewPostForm = ({ user, countries, categories, flOptions }) => {
                     <Select
                       key={selectKey}
                       labelId="city-select-label"
-                      value={customCitySelected?._id || selectedCityValue || values.city || ""}
+                      value={selectedCityValue || values.city || ""}
                       label={t('chooseCity')}
                       onChange={(e) => {
                         if (e.target.value === 'other') {
@@ -715,16 +704,10 @@ const NewPostForm = ({ user, countries, categories, flOptions }) => {
                         } else {
                           setFieldValue('city', e.target.value);
                           setSelectedCityValue(e.target.value);
-                          setCustomCitySelected(null); // Clear custom city selection
                         }
                       }}
                       displayEmpty
                       renderValue={(selected) => {
-                        // If we have a custom city selected, show it
-                        if (customCitySelected) {
-                          return customCitySelected.label || customCitySelected.name || 'Custom City';
-                        }
-                        
                         const currentValue = selectedCityValue || selected || values.city;
                         if (!currentValue) {
                           return t('chooseCity');
@@ -1103,25 +1086,27 @@ const NewPostForm = ({ user, countries, categories, flOptions }) => {
                     isDynamic: true
                   };
                   
-                  // Store the last created city
-                  setLastCreatedCity(customCity);
-                  
-                  // Set the custom city as selected
-                  setCustomCitySelected(customCity);
-                  
-                  // Update cities list
+                  // Update cities list first
                   setCities(prevCities => {
                     const newCities = [...prevCities, customCity];
                     return newCities;
                   });
                   
-                  // Select the city in the form
-                  if (formikRef.current) {
-                    formikRef.current.setFieldValue('city', createdCity._id);
-                    setSelectedCityValue(createdCity._id);
-                    setSelectKey(prev => prev + 1);
-                    console.log('Custom city selected:', createdCity._id);
-                  }
+                  // Wait for cities list to update, then select the city
+                  setTimeout(() => {
+                    if (formikRef.current) {
+                      // Set the form field value
+                      formikRef.current.setFieldValue('city', createdCity._id);
+                      // Set the selected city value for the Select component
+                      setSelectedCityValue(createdCity._id);
+                      // Force the Select component to re-render
+                      setSelectKey(prev => prev + 1);
+                      // Store the last created city
+                      setLastCreatedCity(customCity);
+                      console.log('Custom city saved and selected:', createdCity._id);
+                      console.log('Form values after selection:', formikRef.current.values);
+                    }
+                  }, 100);
                   
                   // Close the dialog
                   setShowCustomCityInput(false);
