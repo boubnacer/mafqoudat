@@ -467,7 +467,9 @@ const createDynamicCity = async (req, res) => {
     const translations = await TranslationService.translateCityName(cityName, sourceLanguage);
     
     // Generate a unique code for the city
-    const cityCode = TranslationService.generateCityCode(cityName, country.code);
+    console.log('Generating city code for:', cityName, 'in country:', country.code);
+    const cityCode = await TranslationService.generateCityCode(cityName, country.code, countryId);
+    console.log('Generated city code:', cityCode);
 
          // Create the new city
      const newCity = new City({
@@ -484,7 +486,36 @@ const createDynamicCity = async (req, res) => {
        searchTerms: [cityName, translations.en, translations.fr, translations.ar]
      });
 
-    await newCity.save();
+    try {
+      await newCity.save();
+      console.log('Successfully created dynamic city:', newCity);
+    } catch (saveError) {
+      console.error('Error saving dynamic city:', saveError);
+      
+      // If it's a duplicate key error, try to find the existing city
+      if (saveError.code === 11000) {
+        console.log('Duplicate key error detected, looking for existing city...');
+        const existingCity = await City.findOne({
+          country: countryId,
+          $or: [
+            { "labels.en": { $regex: new RegExp(cityName, 'i') } },
+            { "labels.ar": { $regex: new RegExp(cityName, 'i') } },
+            { "labels.fr": { $regex: new RegExp(cityName, 'i') } }
+          ]
+        });
+        
+        if (existingCity) {
+          console.log('Found existing city:', existingCity);
+          return res.status(200).json({
+            success: true,
+            message: "City already exists",
+            data: existingCity
+          });
+        }
+      }
+      
+      throw saveError;
+    }
 
     // Invalidate cities cache after creation
     await cacheService.invalidatePattern('cities*');

@@ -499,13 +499,44 @@ class TranslationService {
   /**
    * Generate a unique code for a city
    */
-  static generateCityCode(cityName, countryCode) {
+  static async generateCityCode(cityName, countryCode, countryId) {
     const normalizedName = cityName
       .replace(/[^a-zA-Z0-9\s]/g, '') // Remove special characters
       .replace(/\s+/g, '_') // Replace spaces with underscores
       .toUpperCase();
     
-    return `${countryCode}_${normalizedName}`;
+    // If normalized name is empty or too short, use a fallback
+    let baseCode = normalizedName;
+    if (!baseCode || baseCode.length < 2) {
+      baseCode = 'CITY';
+    }
+    
+    let cityCode = `${countryCode}_${baseCode}`;
+    
+    // Check if this code already exists and generate a unique one if needed
+    const City = require('../models/City');
+    let counter = 1;
+    let existingCity = await City.findOne({ 
+      country: countryId, 
+      code: cityCode 
+    });
+    
+    while (existingCity) {
+      cityCode = `${countryCode}_${baseCode}_${counter}`;
+      existingCity = await City.findOne({ 
+        country: countryId, 
+        code: cityCode 
+      });
+      counter++;
+      
+      // Prevent infinite loop
+      if (counter > 1000) {
+        cityCode = `${countryCode}_${baseCode}_${Date.now()}`;
+        break;
+      }
+    }
+    
+    return cityCode;
   }
 
   /**
