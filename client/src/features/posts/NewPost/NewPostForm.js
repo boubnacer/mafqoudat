@@ -58,6 +58,7 @@ const NewPostForm = ({ user, countries, categories, flOptions }) => {
   const [isCreatingCity, setIsCreatingCity] = useState(false);
   const [compressionInfo, setCompressionInfo] = useState(null);
   const [selectKey, setSelectKey] = useState(0);
+  const [pendingCityId, setPendingCityId] = useState(null);
   const formikRef = useRef(null);
 
   // Initialize selectedCountry with user's country
@@ -111,6 +112,19 @@ const NewPostForm = ({ user, countries, categories, flOptions }) => {
     }
   }, [shouldClearCityValue]);
 
+  // Auto-select pending city when cities list is updated
+  useEffect(() => {
+    if (pendingCityId && cities.length > 0 && formikRef.current) {
+      const cityExists = cities.find(c => (c._id === pendingCityId) || (c.id === pendingCityId));
+      if (cityExists && formikRef.current.values.city !== pendingCityId) {
+        console.log('🔍 DEBUG: Auto-selecting pending city:', pendingCityId);
+        formikRef.current.setFieldValue('city', pendingCityId);
+        setSelectKey(prev => prev + 1);
+        setPendingCityId(null);
+      }
+    }
+  }, [pendingCityId, cities]);
+
 
 
 
@@ -154,6 +168,7 @@ const NewPostForm = ({ user, countries, categories, flOptions }) => {
     // Reset cities and selected city when country changes
     setCities([]);
     setSelectedCustomCity("");
+    setPendingCityId(null);
     setSelectKey(prev => prev + 1);
     
     // Clear the city field in the form
@@ -955,17 +970,9 @@ const NewPostForm = ({ user, countries, categories, flOptions }) => {
                   
                   setCities(prevCities => [...prevCities, customCity]);
                   
-                  // Wait a moment for the cities list to update
-                  await new Promise(resolve => setTimeout(resolve, 100));
-                  
-                  // Set the city in the form
-                  if (formikRef.current) {
-                    formikRef.current.setFieldValue('city', createdCity._id);
-                    console.log('🔍 DEBUG: Form field set to:', createdCity._id);
-                  }
-                  
-                  // Force Select component to re-render
-                  setSelectKey(prev => prev + 1);
+                  // Set pending city ID for auto-selection
+                  setPendingCityId(createdCity._id);
+                  console.log('🔍 DEBUG: Pending city ID set:', createdCity._id);
                   
                   // Close the dialog
                   setShowCustomCityInput(false);
