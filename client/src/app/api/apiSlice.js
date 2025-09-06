@@ -9,46 +9,27 @@ const baseQuery = fetchBaseQuery({
     // api => api.getState => {getState}
     const token = getState().auth.token;
     
-    console.log('prepareHeaders - endpoint:', endpoint);
-    console.log('prepareHeaders - token:', token ? 'Token exists' : 'No token');
-    console.log('prepareHeaders - token length:', token ? token.length : 0);
-    console.log('prepareHeaders - token preview:', token ? token.substring(0, 20) + '...' : 'No token');
-    console.log('prepareHeaders - headers before:', headers);
-    
     // Only add authorization header for authenticated endpoints
     // Skip for public endpoints like dashboard
     if (token && !endpoint?.includes("getDashboard")) {
       headers.set("authorization", `Bearer ${token}`);
-      console.log('prepareHeaders - Authorization header set');
-    } else {
-      console.log('prepareHeaders - Authorization header NOT set. Token:', !!token, 'Endpoint:', endpoint);
     }
     
     // Special case: Always add authorization for report endpoint if we have a token
     if (endpoint === 'submitReport' && token) {
       headers.set("authorization", `Bearer ${token}`);
-      console.log('prepareHeaders - Authorization header set for report endpoint');
     }
 
-    console.log('prepareHeaders - headers after:', headers);
     return headers;
   },
 });
 
 const baseQueryWithReauth = async (args, api, extraOptions) => {
-  // Add debugging for report requests
-  if (args.url?.includes('/posts/report')) {
-    console.log('apiSlice - Report request:', args);
-    console.log('apiSlice - Request headers:', args.headers);
-    console.log('apiSlice - Request body:', args.body);
-  }
+  // console.log(args) // request url, method, body
+  // console.log(api) // signal, dispatch, getState()
+  // console.log(extraOptions) //custom like {shout: true}
 
   let result = await baseQuery(args, api, extraOptions);
-  
-  // Add debugging for report responses
-  if (args.url?.includes('/posts/report')) {
-    console.log('apiSlice - Report response:', result);
-  }
 
   // Handle both 401 and 403 errors for authenticated routes
   // Skip reauth for public routes like dashboard

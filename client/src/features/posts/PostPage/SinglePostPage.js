@@ -128,17 +128,9 @@ const SinglePostPage = ({
 
   const handleSubmitReport = useCallback(async (reportData) => {
     try {
-      console.log('SinglePostPage - handleSubmitReport called with:', reportData);
-      console.log('SinglePostPage - submitReport function:', typeof submitReport);
-      
       const result = await submitReport(reportData).unwrap();
-      
-      console.log('SinglePostPage - submitReport result:', result);
-      console.log('SinglePostPage - Returning result:', result);
-      
       return result;
     } catch (error) {
-      console.error('SinglePostPage - submitReport error:', error);
       throw new Error(error.data?.message || 'Failed to submit report');
     }
   }, [submitReport]);

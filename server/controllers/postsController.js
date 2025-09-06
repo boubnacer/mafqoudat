@@ -906,26 +906,26 @@ const submitPostReport = async (req, res) => {
       };
     }
 
-    // Try to send email notification, but don't fail if it doesn't work
-    let emailResult = { success: false, message: 'Email not configured' };
-    try {
-      const emailNotification = require('../utils/emailNotification');
-      emailResult = await emailNotification.sendReportNotification(emailPostData, user, reason);
-      console.log('Email notification result:', emailResult);
-    } catch (emailError) {
-      console.error('Failed to send report email:', emailError);
-      emailResult = { success: false, error: emailError.message };
-    }
-
-    // Return success response regardless of email status
+    // Return success response immediately - don't wait for email
     res.status(200).json({
       success: true,
       message: "Report submitted successfully",
-      notificationSent: emailResult.success,
+      notificationSent: false, // Will be updated by background email
       data: {
         postId,
         reason,
         reportedAt: new Date()
+      }
+    });
+
+    // Send email notification in background (non-blocking)
+    setImmediate(async () => {
+      try {
+        const emailNotification = require('../utils/emailNotification');
+        const emailResult = await emailNotification.sendReportNotification(emailPostData, user, reason);
+        console.log('Background email notification result:', emailResult);
+      } catch (emailError) {
+        console.error('Background email notification failed:', emailError);
       }
     });
 

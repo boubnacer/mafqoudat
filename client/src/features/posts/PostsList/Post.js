@@ -304,17 +304,9 @@ const Post = ({ post, viewMode = "grid" }) => {
   // Memoized event handlers
   const handleSubmitReport = useCallback(async (reportData) => {
     try {
-      console.log('Post - handleSubmitReport called with:', reportData);
-      console.log('Post - submitReport function:', typeof submitReport);
-      
       const result = await submitReport(reportData).unwrap();
-      
-      console.log('Post - submitReport result:', result);
-      console.log('Post - Returning result:', result);
-      
       return result;
     } catch (error) {
-      console.error('Post - submitReport error:', error);
       throw new Error(error.data?.message || 'Failed to submit report');
     }
   }, [submitReport]);
