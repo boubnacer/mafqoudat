@@ -930,11 +930,25 @@ const NewPostForm = ({ user, countries, categories, flOptions }) => {
                   await fetchCitiesByCountry(selectedCountry._id);
                   
                   // Select the newly created city after refresh
+                  console.log('Created city:', createdCity);
+                  console.log('City ID to select:', createdCity.id);
+                  
+                  // Try multiple approaches to set the field value
+                  setTimeout(() => {
+                    if (formikRef.current) {
+                      console.log('Setting city field value to:', createdCity.id);
+                      formikRef.current.setFieldValue('city', createdCity.id);
+                      formikRef.current.setFieldTouched('city', true);
+                      console.log('After setFieldValue, current values:', formikRef.current.values);
+                    }
+                  }, 500);
+                  
+                  // Also try setting it immediately
                   setTimeout(() => {
                     if (formikRef.current) {
                       formikRef.current.setFieldValue('city', createdCity.id);
                     }
-                  }, 200);
+                  }, 100);
                   
                   // Close the dialog
                   setShowCustomCityInput(false);
