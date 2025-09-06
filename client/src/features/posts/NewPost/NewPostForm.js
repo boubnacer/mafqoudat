@@ -242,27 +242,21 @@ const NewPostForm = ({ user, countries, categories, flOptions }) => {
           
           // Map missing field names to actual field selectors
           if (missingFields.includes(t('country'))) {
-            fieldToScroll = document.querySelector('#country-select-label') || document.querySelector('[data-testid="country-select"]');
+            fieldToScroll = document.querySelector('[data-testid="country-select"]');
           } else if (missingFields.includes(t('city'))) {
-            fieldToScroll = document.querySelector('#city-select-label') || document.querySelector('[data-testid="city-select"]');
+            fieldToScroll = document.querySelector('[data-testid="city-select"]');
           } else if (missingFields.includes(t('exactDate'))) {
-            fieldToScroll = document.querySelector('[name="exactDate"]');
+            fieldToScroll = document.querySelector('[data-testid="exactDate"]');
           } else if (missingFields.includes(t('exactLocation'))) {
-            fieldToScroll = document.querySelector('[name="exactLocation"]');
+            fieldToScroll = document.querySelector('[data-testid="exactLocation"]');
           } else if (missingFields.includes(t('contact'))) {
-            fieldToScroll = document.querySelector('[name="contact"]');
+            fieldToScroll = document.querySelector('[data-testid="contact"]');
           }
           
           if (fieldToScroll) {
             fieldToScroll.scrollIntoView({ behavior: 'smooth', block: 'center' });
-            // Try to focus the input field if it's a select
-            if (fieldToScroll.tagName === 'LABEL') {
-              const input = fieldToScroll.nextElementSibling?.querySelector('input') || 
-                           fieldToScroll.parentElement?.querySelector('input');
-              if (input) input.focus();
-            } else {
-              fieldToScroll.focus();
-            }
+            // Focus the field
+            fieldToScroll.focus();
           }
         }, 100);
         return;
@@ -748,7 +742,7 @@ const NewPostForm = ({ user, countries, categories, flOptions }) => {
                   <FormLabel htmlFor="contact" sx={{ mb: 1, display: "block", fontWeight: 500, fontSize: '1.1rem' }}>
                     {t('contact')} *
                   </FormLabel>
-                  <Textfield name="contact" variant="outlined" />
+                  <Textfield name="contact" variant="outlined" data-testid="contact" />
                 </Box>
 
                 {/* WhatsApp Contact Details */}
