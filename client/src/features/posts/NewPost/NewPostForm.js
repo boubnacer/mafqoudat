@@ -962,8 +962,9 @@ const NewPostForm = ({ user, countries, categories, flOptions }) => {
                   // Refresh the cities list to get the newly created city
                   await fetchCitiesByCountry(selectedCountry._id);
                   
-                  // Set the newly created city ID to trigger auto-selection
-                  setNewlyCreatedCityId(createdCity._id);
+                  // Set the field value directly using setFieldValue from Formik
+                  console.log('Setting city field value directly:', createdCity._id);
+                  setFieldValue('city', createdCity._id);
                   
                 } catch (error) {
                   console.error('Error creating custom city:', error);
