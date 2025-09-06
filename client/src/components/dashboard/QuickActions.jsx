@@ -12,6 +12,7 @@ import { useNavigate } from "react-router-dom";
 import { useTranslation } from "../../utils/translations";
 import { useSelector } from "react-redux";
 import { selectCurrentToken } from "../../features/auth/authSlice";
+import { isRTL } from "../../utils/languageUtils";
 import {
   AddCircleOutline,
   Search,
@@ -25,6 +26,14 @@ const QuickActions = () => {
   const token = useSelector(selectCurrentToken);
   const theme = useTheme();
   const isMobile = useMediaQuery(theme.breakpoints.down('sm'));
+  const isRTLMode = isRTL();
+
+  const scrollToHelpSection = () => {
+    const helpSection = document.querySelector('[data-section="help"]');
+    if (helpSection) {
+      helpSection.scrollIntoView({ behavior: 'smooth' });
+    }
+  };
 
   const quickActions = [
     {
@@ -36,7 +45,7 @@ const QuickActions = () => {
         if (!token) {
           navigate('/login');
         } else {
-          navigate('/dash/posts/new?type=lost');
+          scrollToHelpSection();
         }
       }
     },
@@ -58,7 +67,7 @@ const QuickActions = () => {
       description: t('searchItemsDesc'),
       icon: <Search sx={{ fontSize: '2rem' }} />,
       color: '#45b7d1',
-      action: () => navigate('/dash/search')
+      action: () => navigate('/dash/posts')
     },
     {
       title: t('getHelp'),
@@ -70,9 +79,19 @@ const QuickActions = () => {
   ];
 
   return (
-    <Box sx={{ mb: 4 }}>
+    <Box sx={{ 
+      mb: 4,
+      mx: { xs: 1, sm: 2 },
+      backgroundColor: theme.palette.mode === 'dark' ? '#1a1a1a' : '#f8f9fa',
+      borderRadius: { xs: '12px', sm: '16px' },
+      boxShadow: theme.palette.mode === 'dark' 
+        ? '0 8px 32px rgba(0,0,0,0.3)'
+        : '0 8px 32px rgba(0,0,0,0.1)',
+      border: `1px solid ${theme.palette.mode === 'dark' ? 'rgba(255,255,255,0.05)' : 'rgba(0,0,0,0.05)'}`,
+      p: { xs: 2, sm: 3 }
+    }}>
       {/* Section Title */}
-      <Box sx={{ mb: 3, px: { xs: 1, sm: 0 } }}>
+      <Box sx={{ mb: 3 }}>
         <Typography 
           variant="h4" 
           component="h2"
@@ -141,16 +160,39 @@ const QuickActions = () => {
                     background: `linear-gradient(135deg, ${action.color}20, ${action.color}10)`,
                     border: `2px solid ${action.color}30`,
                     mb: 2,
-                    mx: 'auto'
+                    mx: 'auto',
+                    // RTL positioning for mobile
+                    ...(isMobile && {
+                      position: 'absolute',
+                      top: 16,
+                      [isRTLMode ? 'left' : 'right']: 16,
+                      mx: 0,
+                      mb: 0
+                    })
                   }}
                 >
-                  <Box sx={{ color: action.color }}>
+                  <Box sx={{ 
+                    color: action.color,
+                    display: 'flex',
+                    justifyContent: 'center',
+                    alignItems: 'center',
+                    width: '100%',
+                    height: '100%'
+                  }}>
                     {action.icon}
                   </Box>
                 </Box>
 
                 {/* Content */}
-                <Box sx={{ textAlign: 'center', flex: 1 }}>
+                <Box sx={{ 
+                  textAlign: 'center', 
+                  flex: 1,
+                  // Adjust padding for mobile when icon is repositioned
+                  ...(isMobile && {
+                    pt: 4,
+                    textAlign: isRTLMode ? 'right' : 'left'
+                  })
+                }}>
                   <Typography 
                     variant="h6" 
                     sx={{

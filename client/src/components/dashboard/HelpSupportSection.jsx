@@ -119,7 +119,7 @@ const HelpSupportSection = () => {
 
   return (
     <>
-      <DashRecents cate="help" sx={{ mt: 4 }}>
+      <DashRecents cate="help" sx={{ mt: 4 }} data-section="help">
         <Box display="flex" alignItems="center" justifyContent="space-between" pt="1rem" px={2}>
           <Typography
             fontWeight="600"
