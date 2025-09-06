@@ -88,7 +88,6 @@ const NewPostForm = ({ user, countries, categories, flOptions }) => {
   const [isCompressing, setIsCompressing] = useState(false);
   const [isCreatingCity, setIsCreatingCity] = useState(false);
   const [compressionInfo, setCompressionInfo] = useState(null);
-  const [newlyCreatedCityId, setNewlyCreatedCityId] = useState(null);
   const [setFieldValueCallback, setSetFieldValueCallback] = useState(null);
   const formikRef = useRef(null);
 
@@ -135,41 +134,6 @@ const NewPostForm = ({ user, countries, categories, flOptions }) => {
       fetchCitiesByCountry(selectedCountry._id);
     }
   }, [fetchCitiesByCountry, selectedCountry?._id, currentLanguage]);
-
-  // Auto-select newly created city
-  useEffect(() => {
-    console.log('useEffect triggered - newlyCreatedCityId:', newlyCreatedCityId, 'formikRef.current:', formikRef.current);
-    if (newlyCreatedCityId) {
-      if (formikRef.current) {
-        console.log('Auto-selecting newly created city:', newlyCreatedCityId);
-        formikRef.current.setFieldValue('city', newlyCreatedCityId);
-        formikRef.current.setFieldTouched('city', true);
-        setNewlyCreatedCityId(null); // Reset after setting
-      } else {
-        console.log('FormikRef is null, retrying in 500ms...');
-        setTimeout(() => {
-          if (formikRef.current) {
-            console.log('Retry successful - Auto-selecting newly created city:', newlyCreatedCityId);
-            formikRef.current.setFieldValue('city', newlyCreatedCityId);
-            formikRef.current.setFieldTouched('city', true);
-            setNewlyCreatedCityId(null);
-          } else {
-            console.log('Retry failed - FormikRef still null');
-          }
-        }, 500);
-      }
-    }
-  }, [newlyCreatedCityId]);
-
-
-
-
-
-
-
-
-
-
 
   const initialFormState = {
     country: user.country,
@@ -338,10 +302,8 @@ const NewPostForm = ({ user, countries, categories, flOptions }) => {
       });
 
       const data = await response.json();
-      console.log('Frontend received response:', data);
       
       if (data.success) {
-        console.log('City creation successful, returning data:', data.data);
         return data.data; // Return the created city object
       } else {
         console.error('Failed to create custom city:', data.message);
@@ -378,8 +340,6 @@ const NewPostForm = ({ user, countries, categories, flOptions }) => {
       const originalSize = (file.size / 1024 / 1024).toFixed(2);
       const compressedSize = (compressedFile.size / 1024 / 1024).toFixed(2);
       const compressionRatio = ((1 - compressedFile.size / file.size) * 100).toFixed(1);
-      
-      console.log(`Image compression: ${originalSize}MB → ${compressedSize}MB (${compressionRatio}% reduction)`);
       
       // Store compression info for display
       setCompressionInfo({
@@ -832,6 +792,23 @@ const NewPostForm = ({ user, countries, categories, flOptions }) => {
                       t('createPost')
                     )}
                   </SubmitButton>
+                  
+                  {/* Validation message for required fields */}
+                  {(!selectedCountry || !values.city || !values.exactDate?.trim()) && (
+                    <Typography 
+                      variant="caption" 
+                      color="text.secondary" 
+                      sx={{ 
+                        mt: 1, 
+                        display: "block", 
+                        textAlign: "center",
+                        fontSize: '0.9rem',
+                        fontStyle: 'italic'
+                      }}
+                    >
+                      {t('fillRequiredFields')}
+                    </Typography>
+                  )}
                 </Box>
               </Box>
             </Form>
@@ -956,9 +933,6 @@ const NewPostForm = ({ user, countries, categories, flOptions }) => {
                   // Create the custom city in the backend
                   const createdCity = await createCustomCity(customCityName.trim(), selectedCountry._id);
                   
-                  console.log('Created city:', createdCity);
-                  console.log('City ID to select:', createdCity._id);
-                  
                   // Close the dialog first
                   setShowCustomCityInput(false);
                   setCustomCityName("");
@@ -967,11 +941,8 @@ const NewPostForm = ({ user, countries, categories, flOptions }) => {
                   await fetchCitiesByCountry(selectedCountry._id);
                   
                   // Set the field value directly using setFieldValue from Formik
-                  console.log('Setting city field value directly:', createdCity._id);
                   if (setFieldValueCallback) {
                     setFieldValueCallback('city', createdCity._id);
-                  } else {
-                    console.error('setFieldValue callback not available');
                   }
                   
                 } catch (error) {
