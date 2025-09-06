@@ -22,9 +22,14 @@ import {
   FormControlLabel,
   Checkbox,
   TextField,
-  Divider
+  Divider,
+  Dialog,
+  DialogTitle,
+  DialogContent,
+  DialogActions,
+  IconButton
 } from "@mui/material";
-import { ContactPhone, ContactMail, WhatsApp } from '@mui/icons-material';
+import { ContactPhone, ContactMail, WhatsApp, Add as AddIcon, Close as CloseIcon } from '@mui/icons-material';
 import { useTranslation } from "../../../utils/translations";
 
 const EditPostForm = ({ post, user, countries, flOptions, categories, cities }) => {
@@ -39,6 +44,13 @@ const EditPostForm = ({ post, user, countries, flOptions, categories, cities }) 
   const [selectedCountry, setSelectedCountry] = useState(null);
   const [availableCities, setAvailableCities] = useState(cities || []);
   const [loadingCities, setLoadingCities] = useState(false);
+  
+  // State for custom city functionality
+  const [showCustomCityInput, setShowCustomCityInput] = useState(false);
+  const [customCityName, setCustomCityName] = useState("");
+  const [isCreatingCity, setIsCreatingCity] = useState(false);
+  const [setFieldValueCallback, setSetFieldValueCallback] = useState(null);
+  const [fieldErrors, setFieldErrors] = useState({});
 
   useEffect(() => {
     if (isSuccess || isDelSuccess) {
@@ -97,16 +109,78 @@ const EditPostForm = ({ post, user, countries, flOptions, categories, cities }) 
     }
   }, [currentLanguage]);
 
+  // Function to clear specific field error
+  const clearFieldError = (fieldName) => {
+    if (fieldErrors[fieldName]) {
+      setFieldErrors(prev => {
+        const newErrors = { ...prev };
+        delete newErrors[fieldName];
+        return newErrors;
+      });
+    }
+  };
+
+  // Handle custom city name change
+  const handleCustomCityChange = (event) => {
+    setCustomCityName(event.target.value);
+  };
+
+  // Create custom city in backend
+  const createCustomCity = async (cityName, countryId) => {
+    try {
+      const baseUrl = process.env.REACT_APP_API_URL || "http://localhost:3500";
+      const headers = {
+        'Content-Type': 'application/json',
+      };
+      
+      // Add authentication token if available
+      const token = localStorage.getItem('token');
+      if (token) {
+        headers['Authorization'] = `Bearer ${token}`;
+      }
+      
+      const response = await fetch(`${baseUrl}/cities/dynamic`, {
+        method: 'POST',
+        headers,
+        body: JSON.stringify({
+          cityName: cityName.trim(),
+          countryId: countryId,
+          sourceLanguage: currentLanguage || 'en'
+        })
+      });
+
+      const data = await response.json();
+      
+      if (data.success) {
+        return data.data; // Return the created city object
+      } else {
+        console.error('Failed to create custom city:', data.message);
+        throw new Error(data.message || 'Failed to create custom city');
+      }
+    } catch (error) {
+      console.error('Error creating custom city:', error);
+      throw error;
+    }
+  };
+
   const handleCountrySelect = (event, setFieldValue) => {
     const countryId = event.target.value;
     const country = countries.find(c => c._id === countryId);
     setSelectedCountry(country);
+    
+    // Clear country field error if country is selected
+    if (countryId) {
+      clearFieldError('country');
+    }
     
     // Update form value
     setFieldValue('country', countryId);
     
     // Reset cities when country changes
     setAvailableCities([]);
+    
+    // Clear the city field in the form
+    setFieldValue('city', '');
     
     // Fetch cities for the selected country
     if (countryId) {
@@ -235,14 +309,9 @@ const EditPostForm = ({ post, user, countries, flOptions, categories, cities }) 
   console.log('🔍 EditPostForm - FlOptions available:', flOptions);
   console.log('🔍 EditPostForm - Countries available:', countries);
 
+  // Remove Yup validation - we'll handle validation in handleSubmit
   const formValidation = Yup.object().shape({
-    country: Yup.string().required(t('country') + " " + t('required')),
-    contact: Yup.string().required(t('contact') + " " + t('required')),
-    category: Yup.string().required(t('category') + " " + t('required')),
-    foundLost: Yup.string().required(t('foundOrLost') + " " + t('required')),
-    city: Yup.string().required(t('city') + " " + t('required')),
-    exactLocation: Yup.string().required(t('exactLocation') + " " + t('required')),
-    exactDate: Yup.date().required(t('exactDate') + " " + t('required')),
+    // Only validate optional fields, required fields will be validated in handleSubmit
     description: Yup.string().optional(),
     contactPreferences: Yup.object().shape({
       phone: Yup.boolean(),
@@ -260,8 +329,92 @@ const EditPostForm = ({ post, user, countries, flOptions, categories, cities }) 
 
   const handleSubmit = async (values, { setSubmitting, setStatus }) => {
     try {
-      setSubmitting(true);
+      // Clear any previous validation errors
       setStatus(null);
+      setFieldErrors({});
+      
+      // Validate required fields
+      const missingFields = [];
+      const newFieldErrors = {};
+      
+      if (!values.foundLost) {
+        missingFields.push(t('foundOrLost'));
+        newFieldErrors.foundLost = t('required');
+      }
+      if (!values.category) {
+        missingFields.push(t('category'));
+        newFieldErrors.category = t('required');
+      }
+      if (!selectedCountry) {
+        missingFields.push(t('country'));
+        newFieldErrors.country = t('required');
+      }
+      if (!values.city || values.city === 'other') {
+        missingFields.push(t('city'));
+        newFieldErrors.city = t('required');
+      }
+      if (!values.exactDate?.trim()) {
+        missingFields.push(t('exactDate'));
+        newFieldErrors.exactDate = t('required');
+      }
+      if (!values.exactLocation?.trim()) {
+        missingFields.push(t('exactLocation'));
+        newFieldErrors.exactLocation = t('required');
+      }
+      if (!values.contact?.trim()) {
+        missingFields.push(t('contact'));
+        newFieldErrors.contact = t('required');
+      }
+      
+      if (missingFields.length > 0) {
+        const errorMessage = `${t('fillRequiredFields')}: ${missingFields.join(', ')}`;
+        setStatus({ validationError: errorMessage });
+        setFieldErrors(newFieldErrors);
+        setSubmitting(false);
+        
+        // Scroll to first error field
+        setTimeout(() => {
+          let fieldToScroll = null;
+          
+          // Map missing field names to actual field selectors
+          if (missingFields.includes(t('foundOrLost'))) {
+            fieldToScroll = document.querySelector('[data-testid="foundLost"]');
+          } else if (missingFields.includes(t('category'))) {
+            fieldToScroll = document.querySelector('[data-testid="category"]');
+          } else if (missingFields.includes(t('country'))) {
+            fieldToScroll = document.querySelector('[data-testid="country-select"]');
+          } else if (missingFields.includes(t('city'))) {
+            fieldToScroll = document.querySelector('[data-testid="city-select"]');
+          } else if (missingFields.includes(t('exactDate'))) {
+            fieldToScroll = document.querySelector('[data-testid="exactDate"]');
+          } else if (missingFields.includes(t('exactLocation'))) {
+            fieldToScroll = document.querySelector('[data-testid="exactLocation"]');
+          } else if (missingFields.includes(t('contact'))) {
+            fieldToScroll = document.querySelector('[data-testid="contact"]');
+          }
+          
+          if (fieldToScroll) {
+            // Get the field's position
+            const rect = fieldToScroll.getBoundingClientRect();
+            const scrollTop = window.pageYOffset || document.documentElement.scrollTop;
+            const targetPosition = rect.top + scrollTop - 100; // 100px offset from top
+            
+            // Smooth scroll to the field
+            window.scrollTo({
+              top: targetPosition,
+              behavior: 'smooth'
+            });
+            
+            // Focus the field after scroll
+            setTimeout(() => {
+              fieldToScroll.focus();
+            }, 500);
+          }
+        }, 100);
+        return;
+      }
+
+      setSubmitting(true);
 
       // Prepare the data for submission
       const submitData = {
@@ -352,9 +505,28 @@ const EditPostForm = ({ post, user, countries, flOptions, categories, cities }) 
         display: "flex",
         justifyContent: "center",
         alignItems: "flex-start",
-        background: theme.palette.background.default
+        background: theme.palette.background.default,
+        position: 'relative'
       }}
     >
+      {/* Backdrop overlay when dialog is open */}
+      {showCustomCityInput && (
+        <Box
+          sx={{
+            position: 'fixed',
+            top: 0,
+            left: 0,
+            right: 0,
+            bottom: 0,
+            backgroundColor: theme.palette.mode === 'dark' 
+              ? 'rgba(0, 0, 0, 0.7)' 
+              : 'rgba(0, 0, 0, 0.5)',
+            backdropFilter: 'blur(4px)',
+            zIndex: 1200,
+            pointerEvents: 'auto'
+          }}
+        />
+      )}
       <Paper 
         elevation={4} 
         sx={{ 
@@ -384,11 +556,32 @@ const EditPostForm = ({ post, user, countries, flOptions, categories, cities }) 
           onSubmit={handleSubmit}
           enableReinitialize={true}
         >
-          {({ isSubmitting, status, setFieldValue, values }) => (
+          {({ isSubmitting, status, setFieldValue, values }) => {
+            // Store setFieldValue function for use in custom city creation
+            setSetFieldValueCallback(() => setFieldValue);
+            
+            return (
             <Form>
-              {status && (
-                <Alert severity={status.type === 'error' ? 'error' : 'success'} sx={{ mb: 3 }}>
-                  {status.message}
+              {status?.error && (
+                <Alert severity="error" sx={{ mb: 3 }}>
+                  {status.error}
+                </Alert>
+              )}
+              
+              {status?.validationError && (
+                <Alert 
+                  severity="error" 
+                  sx={{ 
+                    mb: 3,
+                    borderRadius: 2,
+                    '& .MuiAlert-message': {
+                      width: '100%'
+                    }
+                  }}
+                >
+                  <Typography variant="body2" sx={{ fontWeight: 500 }}>
+                    {status.validationError}
+                  </Typography>
                 </Alert>
               )}
               
@@ -402,7 +595,14 @@ const EditPostForm = ({ post, user, countries, flOptions, categories, cities }) 
                   <FormLabel htmlFor="foundLost" sx={{ mb: 1, display: "block", fontWeight: 500 }}>
                     {t('foundOrLost')} *
                   </FormLabel>
-                  <SelectOption name="foundLost" options={flOptions} />
+                  <SelectOption 
+                    name="foundLost" 
+                    options={flOptions} 
+                    data-testid="foundLost"
+                    error={!!fieldErrors.foundLost}
+                    helperText={fieldErrors.foundLost}
+                    onErrorClear={clearFieldError}
+                  />
                 </Box>
 
                 <Box>
@@ -415,14 +615,14 @@ const EditPostForm = ({ post, user, countries, flOptions, categories, cities }) 
                       : t('chooseCountryFound')
                     }
                   </Typography>
-                  <FormControl fullWidth>
+                  <FormControl fullWidth error={!!fieldErrors.country}>
                     <InputLabel id="country-select-label">{t('chooseCountry')}</InputLabel>
                     <Select
                       labelId="country-select-label"
                       value={values.country || ""}
                       label={t('chooseCountry')}
                       onChange={(e) => handleCountrySelect(e, setFieldValue)}
-                      disableUnderline
+                      data-testid="country-select"
                       sx={{
                         borderRadius: 2,
                       }}
@@ -449,6 +649,11 @@ const EditPostForm = ({ post, user, countries, flOptions, categories, cities }) 
                         </MenuItem>
                       ))}
                     </Select>
+                    {fieldErrors.country && (
+                      <Typography variant="caption" color="error" sx={{ mt: 1, display: 'block' }}>
+                        {fieldErrors.country}
+                      </Typography>
+                    )}
                   </FormControl>
                 </Box>
 
@@ -456,7 +661,14 @@ const EditPostForm = ({ post, user, countries, flOptions, categories, cities }) 
                   <FormLabel htmlFor="category" sx={{ mb: 1, display: "block", fontWeight: 500 }}>
                     {t('category')} *
                   </FormLabel>
-                  <SelectOption name="category" options={categories} />
+                  <SelectOption 
+                    name="category" 
+                    options={categories} 
+                    data-testid="category"
+                    error={!!fieldErrors.category}
+                    helperText={fieldErrors.category}
+                    onErrorClear={clearFieldError}
+                  />
                 </Box>
 
                 {/* Location Section */}
@@ -479,34 +691,82 @@ const EditPostForm = ({ post, user, countries, flOptions, categories, cities }) 
                     }
                   </Typography>
                   
-                  <FormControl fullWidth disabled={!selectedCountry || loadingCities}>
+                  <FormControl fullWidth disabled={!selectedCountry || loadingCities} error={!!fieldErrors.city}>
                     <InputLabel id="city-select-label">{t('chooseCity')}</InputLabel>
                     <Select
+                      name="city"
                       labelId="city-select-label"
                       value={values.city || ""}
                       label={t('chooseCity')}
-                      onChange={(e) => setFieldValue('city', e.target.value)}
-                      displayEmpty
-                      renderValue={(selected) => {
-                        if (!selected) return t('chooseCity');
-                        return getCityDisplayName(selected);
+                      onChange={(e) => {
+                        const selectedValue = e.target.value;
+                        if (selectedValue === 'other') {
+                          setShowCustomCityInput(true);
+                        } else {
+                          setFieldValue('city', selectedValue);
+                          // Clear city field error if city is selected
+                          if (selectedValue) {
+                            clearFieldError('city');
+                          }
+                        }
                       }}
-                      disableUnderline
+                      displayEmpty
+                      data-testid="city-select"
                       sx={{
                         borderRadius: 2,
+                      }}
+                      MenuProps={{
+                        PaperProps: {
+                          sx: {
+                            maxHeight: 300,
+                          }
+                        }
                       }}
                     >
                       {availableCities.map((city) => (
                         <MenuItem key={city.id} value={city.id}>
-                          <Box display="flex" alignItems="center" gap={1}>
-                            {city.isCapital && (
-                              <span style={{ fontSize: '16px' }}>🏛️</span>
-                            )}
-                            {city.label || city.code || city.name || 'Unknown City'}
-                          </Box>
+                          {city.label || city.name || 'Unknown City'}
                         </MenuItem>
                       ))}
+                      <Divider />
+                      <MenuItem
+                        value="other" 
+                        sx={{ 
+                          color: theme.palette.mode === 'dark' ? '#fff' : '#1976d2',
+                          fontWeight: 600,
+                          backgroundColor: theme.palette.mode === 'dark' 
+                            ? 'rgba(255, 255, 255, 0.08)' 
+                            : 'rgba(25, 118, 210, 0.08)',
+                          border: `1px solid ${theme.palette.mode === 'dark' ? 'rgba(255, 255, 255, 0.2)' : 'rgba(25, 118, 210, 0.3)'}`,
+                          borderRadius: 2,
+                          margin: '6px 8px',
+                          padding: '12px 16px',
+                          transition: 'all 0.2s ease-in-out',
+                          '&:hover': {
+                            backgroundColor: theme.palette.mode === 'dark' 
+                              ? 'rgba(255, 255, 255, 0.12)' 
+                              : 'rgba(25, 118, 210, 0.12)',
+                            borderColor: theme.palette.mode === 'dark' 
+                              ? 'rgba(255, 255, 255, 0.4)' 
+                              : 'rgba(25, 118, 210, 0.5)',
+                            transform: 'translateY(-1px)',
+                            boxShadow: theme.palette.mode === 'dark'
+                              ? '0 4px 8px rgba(0, 0, 0, 0.3)'
+                              : '0 4px 8px rgba(25, 118, 210, 0.2)',
+                          }
+                        }}
+                      >
+                        <Box display="flex" alignItems="center" gap={1}>
+                          <AddIcon fontSize="small" />
+                          {t('other')} - {t('addNewCity')}
+                        </Box>
+                      </MenuItem>
                     </Select>
+                    {fieldErrors.city && (
+                      <Typography variant="caption" color="error" sx={{ mt: 1, display: 'block' }}>
+                        {fieldErrors.city}
+                      </Typography>
+                    )}
                   </FormControl>
                 </Box>
 
@@ -526,7 +786,16 @@ const EditPostForm = ({ post, user, countries, flOptions, categories, cities }) 
                     variant="outlined"
                     fullWidth
                     value={values.exactDate}
-                    onChange={(e) => setFieldValue('exactDate', e.target.value)}
+                    onChange={(e) => {
+                      setFieldValue('exactDate', e.target.value);
+                      // Clear field error if date is selected
+                      if (e.target.value) {
+                        clearFieldError('exactDate');
+                      }
+                    }}
+                    data-testid="exactDate"
+                    error={!!fieldErrors.exactDate}
+                    helperText={fieldErrors.exactDate}
                     sx={{
                       borderRadius: 2,
                     }}
@@ -547,6 +816,10 @@ const EditPostForm = ({ post, user, countries, flOptions, categories, cities }) 
                     name="exactLocation" 
                     variant="outlined" 
                     placeholder={t('exactLocationPlaceholder')}
+                    data-testid="exactLocation"
+                    error={!!fieldErrors.exactLocation}
+                    helperText={fieldErrors.exactLocation}
+                    onErrorClear={clearFieldError}
                   />
                 </Box>
 
@@ -583,7 +856,14 @@ const EditPostForm = ({ post, user, countries, flOptions, categories, cities }) 
                   <FormLabel htmlFor="contact" sx={{ mb: 1, display: "block", fontWeight: 500 }}>
                     {t('contact')} *
                   </FormLabel>
-                  <Textfield name="contact" variant="outlined" />
+                  <Textfield 
+                    name="contact" 
+                    variant="outlined" 
+                    data-testid="contact"
+                    error={!!fieldErrors.contact}
+                    helperText={fieldErrors.contact}
+                    onErrorClear={clearFieldError}
+                  />
                 </Box>
 
                 <Box>
@@ -735,9 +1015,162 @@ const EditPostForm = ({ post, user, countries, flOptions, categories, cities }) 
                 </Box>
               </Box>
             </Form>
-          )}
+            );
+          }}
         </Formik>
       </Paper>
+      
+      {/* Custom City Dialog */}
+      <Dialog
+        open={showCustomCityInput}
+        onClose={() => {
+          if (!isCreatingCity) {
+            setShowCustomCityInput(false);
+            setCustomCityName("");
+          }
+        }}
+        maxWidth="sm"
+        fullWidth
+        sx={{ zIndex: 1300 }}
+        PaperProps={{
+          sx: {
+            borderRadius: 3,
+            background: theme.palette.mode === 'dark' 
+              ? 'rgba(30, 30, 30, 0.95)' 
+              : 'rgba(255, 255, 255, 0.95)',
+            backdropFilter: 'blur(10px)',
+            border: `1px solid ${theme.palette.mode === 'dark' 
+              ? 'rgba(255, 255, 255, 0.1)' 
+              : 'rgba(0, 0, 0, 0.1)'}`,
+            boxShadow: theme.palette.mode === 'dark'
+              ? '0 8px 32px rgba(0, 0, 0, 0.4)'
+              : '0 8px 32px rgba(0, 0, 0, 0.15)'
+          }
+        }}
+        BackdropProps={{
+          sx: {
+            backgroundColor: 'transparent'
+          }
+        }}
+      >
+        <DialogTitle
+          sx={{
+            display: 'flex',
+            justifyContent: 'space-between',
+            alignItems: 'center',
+            pb: 1,
+            borderBottom: `1px solid ${theme.palette.divider}`
+          }}
+        >
+          <Typography variant="h6" sx={{ fontWeight: 600, color: theme.palette.text.primary }}>
+            {t('addNewCity')}
+          </Typography>
+          <IconButton
+            onClick={() => {
+              setShowCustomCityInput(false);
+              setCustomCityName("");
+            }}
+            disabled={isCreatingCity}
+            sx={{
+              color: theme.palette.text.secondary,
+              '&:hover': {
+                backgroundColor: theme.palette.action.hover
+              }
+            }}
+          >
+            <CloseIcon />
+          </IconButton>
+        </DialogTitle>
+        
+        <DialogContent sx={{ pt: 3 }}>
+          <Typography variant="body2" color="text.secondary" sx={{ mb: 2 }}>
+            {t('enterCustomCityName')}
+          </Typography>
+          <TextField
+            fullWidth
+            placeholder={t('cityNamePlaceholder')}
+            value={customCityName}
+            onChange={handleCustomCityChange}
+            variant="outlined"
+            autoFocus
+            sx={{ 
+              borderRadius: 2,
+              '& .MuiOutlinedInput-root': {
+                '&:hover fieldset': {
+                  borderColor: theme.palette.primary.main,
+                },
+                '&.Mui-focused fieldset': {
+                  borderColor: theme.palette.primary.main,
+                },
+              }
+            }}
+          />
+        </DialogContent>
+        
+        <DialogActions sx={{ p: 3, pt: 1 }}>
+          <Button
+            variant="outlined"
+            onClick={() => {
+              setShowCustomCityInput(false);
+              setCustomCityName("");
+            }}
+            disabled={isCreatingCity}
+            sx={{ 
+              borderRadius: 2,
+              borderColor: theme.palette.mode === 'dark' ? 'rgba(255, 255, 255, 0.3)' : 'rgba(0, 0, 0, 0.3)',
+              color: theme.palette.mode === 'dark' ? 'rgba(255, 255, 255, 0.8)' : 'rgba(0, 0, 0, 0.8)',
+              '&:hover': {
+                borderColor: theme.palette.mode === 'dark' ? 'rgba(255, 255, 255, 0.5)' : 'rgba(0, 0, 0, 0.5)',
+                backgroundColor: theme.palette.mode === 'dark' ? 'rgba(255, 255, 255, 0.04)' : 'rgba(0, 0, 0, 0.04)',
+              }
+            }}
+          >
+            {t('cancel')}
+          </Button>
+          <Button
+            variant="contained"
+            onClick={async () => {
+              if (customCityName.trim() && selectedCountry?._id) {
+                setIsCreatingCity(true);
+                try {
+                  // Create the custom city in the backend
+                  const createdCity = await createCustomCity(customCityName.trim(), selectedCountry._id);
+                  
+                  // Close the dialog first
+                  setShowCustomCityInput(false);
+                  setCustomCityName("");
+                  
+                  // Refresh the cities list to get the newly created city
+                  await fetchCitiesByCountry(selectedCountry._id);
+                  
+                  // Set the field value directly using setFieldValue from Formik
+                  if (setFieldValueCallback) {
+                    setFieldValueCallback('city', createdCity._id);
+                  }
+                  
+                } catch (error) {
+                  console.error('Error creating custom city:', error);
+                  // Show error message to user
+                  alert(t('errorCreatingCustomCity') || 'Error creating custom city. Please try again.');
+                } finally {
+                  setIsCreatingCity(false);
+                }
+              }
+            }}
+            disabled={!customCityName.trim() || !selectedCountry?._id || isCreatingCity}
+            sx={{ 
+              borderRadius: 2,
+              background: `linear-gradient(135deg, ${theme.palette.primary.main} 0%, ${theme.palette.primary.dark} 100%)`,
+              '&:hover': {
+                background: `linear-gradient(135deg, ${theme.palette.primary.dark} 0%, ${theme.palette.primary.main} 100%)`,
+              }
+            }}
+            startIcon={isCreatingCity ? <CircularProgress size={16} color="inherit" /> : null}
+          >
+            {isCreatingCity ? (t('creatingCity') || 'Creating City...') : t('confirm')}
+          </Button>
+        </DialogActions>
+      </Dialog>
     </Box>
   );
 };
