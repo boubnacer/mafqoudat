@@ -27,7 +27,14 @@ import {
   CameraAltOutlined,
   BuildOutlined,
   LocalFloristOutlined,
-  MoreHorizOutlined
+  MoreHorizOutlined,
+  Facebook,
+  Instagram,
+  WhatsApp,
+  Twitter,
+  Share,
+  Campaign,
+  Notifications
 } from "@mui/icons-material";
 import { useTheme } from "@mui/material";
 import React from "react";
@@ -529,6 +536,57 @@ const RenderIcon = ({ name }) => {
 
           borderRadius: "5px",
           padding: name === "Otherrece" && "0.5rem",
+        }}
+      />
+    ) : // Process Step Icons
+    name === "share" ? (
+      <Share
+        sx={{
+          color: theme.palette.primary.main,
+          fontSize: "24px",
+        }}
+      />
+    ) : name === "ad" ? (
+      <Campaign
+        sx={{
+          color: theme.palette.primary.main,
+          fontSize: "24px",
+        }}
+      />
+    ) : name === "notif" ? (
+      <Notifications
+        sx={{
+          color: theme.palette.primary.main,
+          fontSize: "24px",
+        }}
+      />
+    ) : // Social Media Icons
+    name === "face" ? (
+      <Facebook
+        sx={{
+          color: "#1877F2",
+          fontSize: "20px",
+        }}
+      />
+    ) : name === "whats" ? (
+      <WhatsApp
+        sx={{
+          color: "#25D366",
+          fontSize: "20px",
+        }}
+      />
+    ) : name === "x" ? (
+      <Twitter
+        sx={{
+          color: "#1DA1F2",
+          fontSize: "20px",
+        }}
+      />
+    ) : name === "insta" ? (
+      <Instagram
+        sx={{
+          color: "#E4405F",
+          fontSize: "20px",
         }}
       />
     ) : null;
