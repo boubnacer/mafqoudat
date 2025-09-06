@@ -66,7 +66,7 @@ const StyledToolbar = styled(Toolbar)(({ theme }) => ({
 }));
 
 const LogoButton = styled(Button)(({ theme }) => ({
-  padding: '8px 16px',
+  padding: '8px 12px',
   borderRadius: '12px',
   transition: 'all 0.3s cubic-bezier(0.4, 0, 0.2, 1)',
   position: 'relative',
@@ -74,6 +74,8 @@ const LogoButton = styled(Button)(({ theme }) => ({
   background: 'transparent',
   minWidth: 'auto',
   boxShadow: 'none',
+  marginLeft: theme.direction === 'rtl' ? '0' : '-4px',
+  marginRight: theme.direction === 'rtl' ? '-4px' : '0',
   '&:hover': {
     transform: 'translateY(-2px)',
     background: 'transparent',
@@ -81,16 +83,18 @@ const LogoButton = styled(Button)(({ theme }) => ({
   },
   '& img': {
     height: 'auto',
-    maxHeight: '40px',
+    maxHeight: '32px',
     width: 'auto',
     objectFit: 'contain',
     transition: 'all 0.3s ease',
     filter: 'none', // Ensure no color filters are applied
   },
   [theme.breakpoints.down('sm')]: {
-    padding: '6px 12px',
+    padding: '6px 8px',
+    marginLeft: theme.direction === 'rtl' ? '0' : '-6px',
+    marginRight: theme.direction === 'rtl' ? '-6px' : '0',
     '& img': {
-      maxHeight: '28px',
+      maxHeight: '24px',
     }
   }
 }));
