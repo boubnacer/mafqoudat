@@ -150,17 +150,9 @@ const NewPostForm = ({ user, countries, categories, flOptions }) => {
     }
   };
 
+  // Remove Yup validation - we'll handle validation in handleSubmit
   const formValidation = Yup.object().shape({
-    contact: Yup.string().required(t('required')),
-    category: Yup.string().required(t('required')),
-    foundLost: Yup.string().required(t('required')),
-    city: Yup.string()
-      .required(t('cityRequired') || t('required'))
-      .test('not-other', t('pleaseSelectCity') || 'Please select a city', function(value) {
-        return value !== 'other' && value !== '';
-      }),
-    exactLocation: Yup.string().required(t('required')),
-    exactDate: Yup.string().required(t('required')),
+    // Only validate optional fields, required fields will be validated in handleSubmit
     description: Yup.string().optional(),
     image: Yup.mixed().nullable(),
   });
@@ -209,12 +201,21 @@ const NewPostForm = ({ user, countries, categories, flOptions }) => {
 
   const handleSubmit = async (values, { setSubmitting, setStatus }) => {
     try {
+      console.log('Form submission started with values:', values);
+      console.log('Selected country:', selectedCountry);
+      
       // Clear any previous validation errors
       setStatus(null);
       
       // Validate required fields
       const missingFields = [];
       
+      if (!values.foundLost) {
+        missingFields.push(t('foundOrLost'));
+      }
+      if (!values.category) {
+        missingFields.push(t('category'));
+      }
       if (!selectedCountry) {
         missingFields.push(t('country'));
       }
@@ -231,8 +232,11 @@ const NewPostForm = ({ user, countries, categories, flOptions }) => {
         missingFields.push(t('contact'));
       }
       
+      console.log('Missing fields:', missingFields);
+      
       if (missingFields.length > 0) {
         const errorMessage = `${t('fillRequiredFields')}: ${missingFields.join(', ')}`;
+        console.log('Setting validation error:', errorMessage);
         setStatus({ validationError: errorMessage });
         setSubmitting(false);
         
@@ -241,7 +245,11 @@ const NewPostForm = ({ user, countries, categories, flOptions }) => {
           let fieldToScroll = null;
           
           // Map missing field names to actual field selectors
-          if (missingFields.includes(t('country'))) {
+          if (missingFields.includes(t('foundOrLost'))) {
+            fieldToScroll = document.querySelector('[data-testid="foundLost"]');
+          } else if (missingFields.includes(t('category'))) {
+            fieldToScroll = document.querySelector('[data-testid="category"]');
+          } else if (missingFields.includes(t('country'))) {
             fieldToScroll = document.querySelector('[data-testid="country-select"]');
           } else if (missingFields.includes(t('city'))) {
             fieldToScroll = document.querySelector('[data-testid="city-select"]');
@@ -515,7 +523,7 @@ const NewPostForm = ({ user, countries, categories, flOptions }) => {
                   <FormLabel htmlFor="foundLost" sx={{ mb: 1, display: "block", fontWeight: 500, fontSize: '1.1rem' }}>
                     {t('foundOrLost')} *
                   </FormLabel>
-                  <SelectOption name="foundLost" options={flOptions} />
+                  <SelectOption name="foundLost" options={flOptions} data-testid="foundLost" />
                 </Box>
 
                 <Box>
@@ -569,7 +577,7 @@ const NewPostForm = ({ user, countries, categories, flOptions }) => {
                   <FormLabel htmlFor="category" sx={{ mb: 1, display: "block", fontWeight: 500, fontSize: '1.1rem' }}>
                     {t('category')} *
                   </FormLabel>
-                  <SelectOption name="category" options={categories} />
+                  <SelectOption name="category" options={categories} data-testid="category" />
                 </Box>
 
                 {/* Location Section */}
@@ -859,6 +867,13 @@ const NewPostForm = ({ user, countries, categories, flOptions }) => {
                         {status.validationError}
                       </Typography>
                     </Alert>
+                  )}
+                  
+                  {/* Debug info - remove this later */}
+                  {process.env.NODE_ENV === 'development' && (
+                    <Typography variant="caption" color="text.secondary" sx={{ mt: 1, display: 'block' }}>
+                      Debug - Status: {JSON.stringify(status)}
+                    </Typography>
                   )}
                 </Box>
               </Box>
