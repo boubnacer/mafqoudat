@@ -72,30 +72,13 @@ const LogoButton = styled(Button)(({ theme }) => ({
   transition: 'all 0.3s cubic-bezier(0.4, 0, 0.2, 1)',
   position: 'relative',
   overflow: 'hidden',
-  background: theme.palette.mode === 'dark' 
-    ? alpha(theme.palette.primary.main, 0.1)
-    : alpha(theme.palette.primary.main, 0.05),
+  background: 'transparent',
   minWidth: 'auto',
-  '&:before': {
-    content: '""',
-    position: 'absolute',
-    top: 0,
-    left: 0,
-    width: '100%',
-    height: '100%',
-    background: `linear-gradient(135deg, ${theme.palette.primary.main}20, ${theme.palette.secondary.main}20)`,
-    opacity: 0,
-    transition: 'all 0.3s ease',
-    zIndex: -1,
-  },
+  boxShadow: 'none',
   '&:hover': {
     transform: 'translateY(-2px)',
-    boxShadow: theme.palette.mode === 'dark'
-      ? '0 8px 25px rgba(0, 0, 0, 0.3)'
-      : '0 8px 25px rgba(0, 0, 0, 0.1)',
-    '&:before': {
-      opacity: 1,
-    }
+    background: 'transparent',
+    boxShadow: 'none',
   },
   '& img': {
     height: 'auto',
@@ -105,9 +88,9 @@ const LogoButton = styled(Button)(({ theme }) => ({
     transition: 'all 0.3s ease',
   },
   [theme.breakpoints.down('sm')]: {
-    padding: '8px 14px',
+    padding: '6px 12px',
     '& img': {
-      maxHeight: '35px',
+      maxHeight: '28px',
     }
   }
 }));
