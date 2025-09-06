@@ -88,6 +88,7 @@ const NewPostForm = ({ user, countries, categories, flOptions }) => {
   const [isCompressing, setIsCompressing] = useState(false);
   const [isCreatingCity, setIsCreatingCity] = useState(false);
   const [compressionInfo, setCompressionInfo] = useState(null);
+  const [newlyCreatedCityId, setNewlyCreatedCityId] = useState(null);
   const formikRef = useRef(null);
 
 
@@ -133,6 +134,16 @@ const NewPostForm = ({ user, countries, categories, flOptions }) => {
       fetchCitiesByCountry(selectedCountry._id);
     }
   }, [fetchCitiesByCountry, selectedCountry?._id, currentLanguage]);
+
+  // Auto-select newly created city
+  useEffect(() => {
+    if (newlyCreatedCityId && formikRef.current) {
+      console.log('Auto-selecting newly created city:', newlyCreatedCityId);
+      formikRef.current.setFieldValue('city', newlyCreatedCityId);
+      formikRef.current.setFieldTouched('city', true);
+      setNewlyCreatedCityId(null); // Reset after setting
+    }
+  }, [newlyCreatedCityId]);
 
 
 
@@ -928,7 +939,6 @@ const NewPostForm = ({ user, countries, categories, flOptions }) => {
                   
                   console.log('Created city:', createdCity);
                   console.log('City ID to select:', createdCity._id);
-                  console.log('FormikRef current:', formikRef.current);
                   
                   // Close the dialog first
                   setShowCustomCityInput(false);
@@ -937,18 +947,8 @@ const NewPostForm = ({ user, countries, categories, flOptions }) => {
                   // Refresh the cities list to get the newly created city
                   await fetchCitiesByCountry(selectedCountry._id);
                   
-                  // Set the field value after refresh
-                  setTimeout(() => {
-                    console.log('Attempting to set field value...');
-                    if (formikRef.current) {
-                      console.log('FormikRef exists, setting city field value to:', createdCity._id);
-                      formikRef.current.setFieldValue('city', createdCity._id);
-                      formikRef.current.setFieldTouched('city', true);
-                      console.log('After setFieldValue, current values:', formikRef.current.values);
-                    } else {
-                      console.log('FormikRef is null!');
-                    }
-                  }, 1000);
+                  // Set the newly created city ID to trigger auto-selection
+                  setNewlyCreatedCityId(createdCity._id);
                   
                 } catch (error) {
                   console.error('Error creating custom city:', error);
