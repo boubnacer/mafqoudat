@@ -20,11 +20,19 @@ const baseQuery = fetchBaseQuery({
 });
 
 const baseQueryWithReauth = async (args, api, extraOptions) => {
-  // console.log(args) // request url, method, body
-  // console.log(api) // signal, dispatch, getState()
-  // console.log(extraOptions) //custom like {shout: true}
+  // Add debugging for report requests
+  if (args.url?.includes('/posts/report')) {
+    console.log('apiSlice - Report request:', args);
+    console.log('apiSlice - Request headers:', args.headers);
+    console.log('apiSlice - Request body:', args.body);
+  }
 
   let result = await baseQuery(args, api, extraOptions);
+  
+  // Add debugging for report responses
+  if (args.url?.includes('/posts/report')) {
+    console.log('apiSlice - Report response:', result);
+  }
 
   // Handle both 401 and 403 errors for authenticated routes
   // Skip reauth for public routes like dashboard

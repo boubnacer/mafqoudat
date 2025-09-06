@@ -170,7 +170,16 @@ const ReportDialog = ({ open, onClose, post, onSubmit }) => {
       }
       
       console.log('ReportDialog - About to call onSubmit...');
-      const result = await onSubmit(reportData);
+      
+      // Add a manual timeout wrapper to ensure we don't wait forever
+      const timeoutPromise = new Promise((_, reject) => {
+        setTimeout(() => reject(new Error('Request timeout after 25 seconds')), 25000);
+      });
+      
+      const result = await Promise.race([
+        onSubmit(reportData),
+        timeoutPromise
+      ]);
       
       console.log('ReportDialog - Result received:', result);
       console.log('ReportDialog - Result type:', typeof result);

@@ -78,9 +78,17 @@ const RecentPosts = ({ _id, categoryname, exactLocation, image, createdAt, count
 
   const handleSubmitReport = async (reportData) => {
     try {
+      console.log('RecentPosts - handleSubmitReport called with:', reportData);
+      console.log('RecentPosts - submitReport function:', typeof submitReport);
+      
       const result = await submitReport(reportData).unwrap();
+      
+      console.log('RecentPosts - submitReport result:', result);
+      console.log('RecentPosts - Returning result:', result);
+      
       return result;
     } catch (error) {
+      console.error('RecentPosts - submitReport error:', error);
       throw new Error(error.data?.message || 'Failed to submit report');
     }
   };
