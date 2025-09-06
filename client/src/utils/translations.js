@@ -192,6 +192,7 @@ export const translations = {
     // New Post Form translations
     createNewPost: "Create New Post",
     createPost: "Create Post",
+    fillRequiredFields: "Please fill all required fields marked with * to create your post",
     foundOrLost: "Found or Lost",
     category: "Category",
     region: "Region",
@@ -903,6 +904,7 @@ export const translations = {
     // New Post Form translations
     createNewPost: "Créer une nouvelle publication",
     createPost: "Créer une publication",
+    fillRequiredFields: "Veuillez remplir tous les champs obligatoires marqués d'un * pour créer votre publication",
     foundOrLost: "Trouvé ou Perdu",
     category: "Catégorie",
     region: "Région",
@@ -1579,6 +1581,7 @@ export const translations = {
     // New Post Form translations
     createNewPost: "إنشاء منشور جديد",
     createPost: "إنشاء منشور",
+    fillRequiredFields: "يرجى ملء جميع الحقول المطلوبة المميزة بـ * لإنشاء منشورك",
     foundOrLost: "موجود أو مفقود",
     category: "الفئة",
     region: "المنطقة",
