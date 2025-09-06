@@ -926,29 +926,28 @@ const NewPostForm = ({ user, countries, categories, flOptions }) => {
                   // Create the custom city in the backend
                   const createdCity = await createCustomCity(customCityName.trim(), selectedCountry._id);
                   
-                  // Refresh the cities list to get the newly created city
-                  await fetchCitiesByCountry(selectedCountry._id);
-                  
-                  // Select the newly created city after refresh
+                  // Select the newly created city immediately
                   console.log('Created city:', createdCity);
                   console.log('City ID to select:', createdCity._id);
                   
-                  // Try multiple approaches to set the field value
-                  setTimeout(() => {
-                    if (formikRef.current) {
-                      console.log('Setting city field value to:', createdCity._id);
-                      formikRef.current.setFieldValue('city', createdCity._id);
-                      formikRef.current.setFieldTouched('city', true);
-                      console.log('After setFieldValue, current values:', formikRef.current.values);
-                    }
-                  }, 500);
+                  // Set the field value immediately
+                  if (formikRef.current) {
+                    console.log('Setting city field value to:', createdCity._id);
+                    formikRef.current.setFieldValue('city', createdCity._id);
+                    formikRef.current.setFieldTouched('city', true);
+                    console.log('After setFieldValue, current values:', formikRef.current.values);
+                  }
                   
-                  // Also try setting it immediately
+                  // Refresh the cities list to get the newly created city
+                  await fetchCitiesByCountry(selectedCountry._id);
+                  
+                  // Set the field value again after refresh
                   setTimeout(() => {
                     if (formikRef.current) {
+                      console.log('Setting city field value again after refresh:', createdCity._id);
                       formikRef.current.setFieldValue('city', createdCity._id);
                     }
-                  }, 100);
+                  }, 200);
                   
                   // Close the dialog
                   setShowCustomCityInput(false);
