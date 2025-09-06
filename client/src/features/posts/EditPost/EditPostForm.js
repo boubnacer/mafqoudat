@@ -80,10 +80,12 @@ const EditPostForm = ({ post, user, countries, flOptions, categories, cities }) 
   // Set the city value when cities are loaded and we have a post city
   useEffect(() => {
     if (post?.city && availableCities.length > 0 && setFieldValueCallback) {
+      // Handle both object and string city formats
+      const cityId = post.city?.id || post.city;
       // Check if the post city exists in available cities
-      const cityExists = availableCities.find(city => city.id === post.city || city._id === post.city);
+      const cityExists = availableCities.find(city => city.id === cityId || city._id === cityId);
       if (cityExists) {
-        setFieldValueCallback('city', post.city);
+        setFieldValueCallback('city', cityId);
       }
     }
   }, [post?.city, availableCities, setFieldValueCallback]);
@@ -266,7 +268,7 @@ const EditPostForm = ({ post, user, countries, flOptions, categories, cities }) 
       return categoryValue;
     })(),
     foundLost: post?.foundLost || "",
-    city: post?.city || "",
+    city: post?.city?.id || post?.city || "",
     exactLocation: post?.exactLocation || "",
     exactDate: (() => {
       // Try multiple date fields in order of preference
@@ -582,6 +584,75 @@ const EditPostForm = ({ post, user, countries, flOptions, categories, cities }) 
               )}
               
               <Box display="flex" flexDirection="column" gap={3}>
+                {/* Item Returned Status */}
+                <Box
+                  sx={{
+                    p: 3,
+                    borderRadius: 3,
+                    border: `2px solid ${values.returned ? theme.palette.success.main : theme.palette.divider}`,
+                    backgroundColor: values.returned 
+                      ? theme.palette.mode === 'dark' 
+                        ? 'rgba(76, 175, 80, 0.1)' 
+                        : 'rgba(76, 175, 80, 0.05)'
+                      : theme.palette.mode === 'dark' 
+                        ? 'rgba(255, 255, 255, 0.02)' 
+                        : 'rgba(0, 0, 0, 0.02)',
+                    transition: 'all 0.3s ease-in-out',
+                    cursor: 'pointer',
+                    '&:hover': {
+                      borderColor: values.returned ? theme.palette.success.dark : theme.palette.primary.main,
+                      backgroundColor: values.returned 
+                        ? theme.palette.mode === 'dark' 
+                          ? 'rgba(76, 175, 80, 0.15)' 
+                          : 'rgba(76, 175, 80, 0.08)'
+                        : theme.palette.mode === 'dark' 
+                          ? 'rgba(255, 255, 255, 0.04)' 
+                          : 'rgba(0, 0, 0, 0.04)',
+                      transform: 'translateY(-2px)',
+                      boxShadow: theme.palette.mode === 'dark'
+                        ? '0 8px 25px rgba(0, 0, 0, 0.3)'
+                        : '0 8px 25px rgba(0, 0, 0, 0.1)',
+                    }
+                  }}
+                  onClick={() => setFieldValue('returned', !values.returned)}
+                >
+                  <Box display="flex" alignItems="center" gap={2}>
+                    <Box
+                      sx={{
+                        width: 24,
+                        height: 24,
+                        borderRadius: '50%',
+                        border: `2px solid ${values.returned ? theme.palette.success.main : theme.palette.text.secondary}`,
+                        backgroundColor: values.returned ? theme.palette.success.main : 'transparent',
+                        display: 'flex',
+                        alignItems: 'center',
+                        justifyContent: 'center',
+                        transition: 'all 0.2s ease-in-out',
+                        position: 'relative',
+                        '&::after': values.returned ? {
+                          content: '"✓"',
+                          color: 'white',
+                          fontSize: '14px',
+                          fontWeight: 'bold',
+                          position: 'absolute',
+                        } : {}
+                      }}
+                    />
+                    <Box>
+                      <Typography 
+                        variant="body1" 
+                        sx={{ 
+                          fontWeight: 600,
+                          color: values.returned ? theme.palette.success.main : theme.palette.text.primary,
+                          transition: 'color 0.2s ease-in-out'
+                        }}
+                      >
+                        {t('itemReturned')}
+                      </Typography>
+                    </Box>
+                  </Box>
+                </Box>
+
                 {/* Basic Information Section */}
                 <Typography variant="h6" sx={{ fontWeight: 600, color: theme.palette.primary.main }}>
                   {t('basicInformation')}
@@ -906,86 +977,6 @@ const EditPostForm = ({ post, user, countries, flOptions, categories, cities }) 
                   </FormControl>
                 </Box>
 
-                <Box
-                  sx={{
-                    p: 3,
-                    borderRadius: 3,
-                    border: `2px solid ${values.returned ? theme.palette.success.main : theme.palette.divider}`,
-                    backgroundColor: values.returned 
-                      ? theme.palette.mode === 'dark' 
-                        ? 'rgba(76, 175, 80, 0.1)' 
-                        : 'rgba(76, 175, 80, 0.05)'
-                      : theme.palette.mode === 'dark' 
-                        ? 'rgba(255, 255, 255, 0.02)' 
-                        : 'rgba(0, 0, 0, 0.02)',
-                    transition: 'all 0.3s ease-in-out',
-                    cursor: 'pointer',
-                    '&:hover': {
-                      borderColor: values.returned ? theme.palette.success.dark : theme.palette.primary.main,
-                      backgroundColor: values.returned 
-                        ? theme.palette.mode === 'dark' 
-                          ? 'rgba(76, 175, 80, 0.15)' 
-                          : 'rgba(76, 175, 80, 0.08)'
-                        : theme.palette.mode === 'dark' 
-                          ? 'rgba(255, 255, 255, 0.04)' 
-                          : 'rgba(0, 0, 0, 0.04)',
-                      transform: 'translateY(-2px)',
-                      boxShadow: theme.palette.mode === 'dark'
-                        ? '0 8px 25px rgba(0, 0, 0, 0.3)'
-                        : '0 8px 25px rgba(0, 0, 0, 0.1)',
-                    }
-                  }}
-                  onClick={() => setFieldValue('returned', !values.returned)}
-                >
-                  <Box display="flex" alignItems="center" gap={2}>
-                    <Box
-                      sx={{
-                        width: 24,
-                        height: 24,
-                        borderRadius: '50%',
-                        border: `2px solid ${values.returned ? theme.palette.success.main : theme.palette.text.secondary}`,
-                        backgroundColor: values.returned ? theme.palette.success.main : 'transparent',
-                        display: 'flex',
-                        alignItems: 'center',
-                        justifyContent: 'center',
-                        transition: 'all 0.2s ease-in-out',
-                        position: 'relative',
-                        '&::after': values.returned ? {
-                          content: '"✓"',
-                          color: 'white',
-                          fontSize: '14px',
-                          fontWeight: 'bold',
-                          position: 'absolute',
-                        } : {}
-                      }}
-                    />
-                    <Box>
-                      <Typography 
-                        variant="body1" 
-                        sx={{ 
-                          fontWeight: 600,
-                          color: values.returned ? theme.palette.success.main : theme.palette.text.primary,
-                          transition: 'color 0.2s ease-in-out'
-                        }}
-                      >
-                        {t('itemReturned')}
-                      </Typography>
-                      <Typography 
-                        variant="caption" 
-                        color="text.secondary"
-                        sx={{ 
-                          fontSize: '0.85rem',
-                          fontStyle: 'italic'
-                        }}
-                      >
-                        {values.returned 
-                          ? (t('itemReturnedDescription') || 'This item has been successfully returned to its owner')
-                          : (t('itemNotReturnedDescription') || 'Mark this if the item has been returned to its owner')
-                        }
-                      </Typography>
-                    </Box>
-                  </Box>
-                </Box>
 
                 {/* Action Buttons */}
                 <Box display="flex" gap={2} justifyContent="space-between" sx={{ mt: 4 }}>
