@@ -89,6 +89,7 @@ const NewPostForm = ({ user, countries, categories, flOptions }) => {
   const [isCreatingCity, setIsCreatingCity] = useState(false);
   const [compressionInfo, setCompressionInfo] = useState(null);
   const [setFieldValueCallback, setSetFieldValueCallback] = useState(null);
+  const [fieldErrors, setFieldErrors] = useState({});
   const formikRef = useRef(null);
 
 
@@ -201,43 +202,47 @@ const NewPostForm = ({ user, countries, categories, flOptions }) => {
 
   const handleSubmit = async (values, { setSubmitting, setStatus }) => {
     try {
-      console.log('Form submission started with values:', values);
-      console.log('Selected country:', selectedCountry);
-      
       // Clear any previous validation errors
       setStatus(null);
+      setFieldErrors({});
       
       // Validate required fields
       const missingFields = [];
+      const newFieldErrors = {};
       
       if (!values.foundLost) {
         missingFields.push(t('foundOrLost'));
+        newFieldErrors.foundLost = t('required');
       }
       if (!values.category) {
         missingFields.push(t('category'));
+        newFieldErrors.category = t('required');
       }
       if (!selectedCountry) {
         missingFields.push(t('country'));
+        newFieldErrors.country = t('required');
       }
       if (!values.city || values.city === 'other') {
         missingFields.push(t('city'));
+        newFieldErrors.city = t('required');
       }
       if (!values.exactDate?.trim()) {
         missingFields.push(t('exactDate'));
+        newFieldErrors.exactDate = t('required');
       }
       if (!values.exactLocation?.trim()) {
         missingFields.push(t('exactLocation'));
+        newFieldErrors.exactLocation = t('required');
       }
       if (!values.contact?.trim()) {
         missingFields.push(t('contact'));
+        newFieldErrors.contact = t('required');
       }
-      
-      console.log('Missing fields:', missingFields);
       
       if (missingFields.length > 0) {
         const errorMessage = `${t('fillRequiredFields')}: ${missingFields.join(', ')}`;
-        console.log('Setting validation error:', errorMessage);
         setStatus({ validationError: errorMessage });
+        setFieldErrors(newFieldErrors);
         setSubmitting(false);
         
         // Scroll to first error field
@@ -262,9 +267,17 @@ const NewPostForm = ({ user, countries, categories, flOptions }) => {
           }
           
           if (fieldToScroll) {
-            fieldToScroll.scrollIntoView({ behavior: 'smooth', block: 'center' });
-            // Focus the field
-            fieldToScroll.focus();
+            // Better mobile scrolling
+            fieldToScroll.scrollIntoView({ 
+              behavior: 'smooth', 
+              block: 'center',
+              inline: 'nearest'
+            });
+            
+            // Add a small delay for mobile devices
+            setTimeout(() => {
+              fieldToScroll.focus();
+            }, 300);
           }
         }, 100);
         return;
@@ -523,7 +536,13 @@ const NewPostForm = ({ user, countries, categories, flOptions }) => {
                   <FormLabel htmlFor="foundLost" sx={{ mb: 1, display: "block", fontWeight: 500, fontSize: '1.1rem' }}>
                     {t('foundOrLost')} *
                   </FormLabel>
-                  <SelectOption name="foundLost" options={flOptions} data-testid="foundLost" />
+                  <SelectOption 
+                    name="foundLost" 
+                    options={flOptions} 
+                    data-testid="foundLost"
+                    error={!!fieldErrors.foundLost}
+                    helperText={fieldErrors.foundLost}
+                  />
                 </Box>
 
                 <Box>
@@ -536,7 +555,7 @@ const NewPostForm = ({ user, countries, categories, flOptions }) => {
                       : t('chooseCountryFound')
                     }
                   </Typography>
-                  <FormControl fullWidth>
+                  <FormControl fullWidth error={!!fieldErrors.country}>
                     <InputLabel id="country-select-label">{t('chooseCountry')}</InputLabel>
                     <Select
                       labelId="country-select-label"
@@ -570,6 +589,11 @@ const NewPostForm = ({ user, countries, categories, flOptions }) => {
                         </MenuItem>
                       ))}
                     </Select>
+                    {fieldErrors.country && (
+                      <Typography variant="caption" color="error" sx={{ mt: 1, display: 'block' }}>
+                        {fieldErrors.country}
+                      </Typography>
+                    )}
                   </FormControl>
                 </Box>
 
@@ -577,7 +601,13 @@ const NewPostForm = ({ user, countries, categories, flOptions }) => {
                   <FormLabel htmlFor="category" sx={{ mb: 1, display: "block", fontWeight: 500, fontSize: '1.1rem' }}>
                     {t('category')} *
                   </FormLabel>
-                  <SelectOption name="category" options={categories} data-testid="category" />
+                  <SelectOption 
+                    name="category" 
+                    options={categories} 
+                    data-testid="category"
+                    error={!!fieldErrors.category}
+                    helperText={fieldErrors.category}
+                  />
                 </Box>
 
                 {/* Location Section */}
@@ -600,7 +630,7 @@ const NewPostForm = ({ user, countries, categories, flOptions }) => {
                     }
                   </Typography>
                   
-                  <FormControl fullWidth disabled={!selectedCountry || loadingCities} error={!!(errors.city && touched.city)}>
+                  <FormControl fullWidth disabled={!selectedCountry || loadingCities} error={!!fieldErrors.city}>
                     <InputLabel id="city-select-label">{t('chooseCity')}</InputLabel>
                     <Select
                       name="city"
@@ -667,9 +697,9 @@ const NewPostForm = ({ user, countries, categories, flOptions }) => {
                         </Box>
                       </MenuItem>
                     </Select>
-                    {errors.city && touched.city && (
+                    {fieldErrors.city && (
                       <Typography variant="caption" color="error" sx={{ mt: 1, display: 'block' }}>
-                        {errors.city}
+                        {fieldErrors.city}
                       </Typography>
                     )}
                   </FormControl>
@@ -690,6 +720,8 @@ const NewPostForm = ({ user, countries, categories, flOptions }) => {
                     variant="outlined" 
                     placeholder={t('exactDatePlaceholder') || "Enter the date (e.g., 15/12/2023 or December 15, 2023)"}
                     data-testid="exactDate"
+                    error={!!fieldErrors.exactDate}
+                    helperText={fieldErrors.exactDate}
                   />
                 </Box>
 
@@ -708,6 +740,8 @@ const NewPostForm = ({ user, countries, categories, flOptions }) => {
                     variant="outlined" 
                     placeholder={t('exactLocationPlaceholder')}
                     data-testid="exactLocation"
+                    error={!!fieldErrors.exactLocation}
+                    helperText={fieldErrors.exactLocation}
                   />
                 </Box>
 
@@ -750,7 +784,13 @@ const NewPostForm = ({ user, countries, categories, flOptions }) => {
                   <FormLabel htmlFor="contact" sx={{ mb: 1, display: "block", fontWeight: 500, fontSize: '1.1rem' }}>
                     {t('contact')} *
                   </FormLabel>
-                  <Textfield name="contact" variant="outlined" data-testid="contact" />
+                  <Textfield 
+                    name="contact" 
+                    variant="outlined" 
+                    data-testid="contact"
+                    error={!!fieldErrors.contact}
+                    helperText={fieldErrors.contact}
+                  />
                 </Box>
 
                 {/* WhatsApp Contact Details */}
@@ -869,12 +909,6 @@ const NewPostForm = ({ user, countries, categories, flOptions }) => {
                     </Alert>
                   )}
                   
-                  {/* Debug info - remove this later */}
-                  {process.env.NODE_ENV === 'development' && (
-                    <Typography variant="caption" color="text.secondary" sx={{ mt: 1, display: 'block' }}>
-                      Debug - Status: {JSON.stringify(status)}
-                    </Typography>
-                  )}
                 </Box>
               </Box>
             </Form>
