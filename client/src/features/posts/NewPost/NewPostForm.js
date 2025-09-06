@@ -554,14 +554,20 @@ const NewPostForm = ({ user, countries, categories, flOptions }) => {
                           : t('selectCity')
                     }
                   </Typography>
+                  {console.log('Cities array:', cities)}
+                  {console.log('Cities length:', cities.length)}
+                  {console.log('Selected country:', selectedCountry)}
                   
                   <SelectOption 
                     name="city" 
-                    options={cities.map(city => ({
-                      _id: city._id,
-                      label: city.label || city.name || 'Unknown City',
-                      code: city._id
-                    }))} 
+                    options={cities.map(city => {
+                      console.log('City data:', city);
+                      return {
+                        _id: city._id,
+                        label: city.label || city.name || 'Unknown City',
+                        code: city._id
+                      };
+                    })} 
                   />
                   
                   <Box mt={1}>
