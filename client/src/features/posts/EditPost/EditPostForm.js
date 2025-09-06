@@ -19,8 +19,6 @@ import {
   MenuItem,
   FormControl,
   InputLabel,
-  FormControlLabel,
-  Checkbox,
   TextField,
   Divider,
   Dialog,
@@ -29,7 +27,7 @@ import {
   DialogActions,
   IconButton
 } from "@mui/material";
-import { ContactPhone, ContactMail, WhatsApp, Add as AddIcon, Close as CloseIcon } from '@mui/icons-material';
+import { Add as AddIcon, Close as CloseIcon } from '@mui/icons-material';
 import { useTranslation } from "../../../utils/translations";
 
 const EditPostForm = ({ post, user, countries, flOptions, categories, cities }) => {
@@ -78,6 +76,17 @@ const EditPostForm = ({ post, user, countries, flOptions, categories, cities }) 
       }
     }
   }, [post?.country, countries, selectedCountry, fetchCitiesByCountry]);
+
+  // Set the city value when cities are loaded and we have a post city
+  useEffect(() => {
+    if (post?.city && availableCities.length > 0 && setFieldValueCallback) {
+      // Check if the post city exists in available cities
+      const cityExists = availableCities.find(city => city.id === post.city || city._id === post.city);
+      if (cityExists) {
+        setFieldValueCallback('city', post.city);
+      }
+    }
+  }, [post?.city, availableCities, setFieldValueCallback]);
 
   // Update cities when country changes
   useEffect(() => {
@@ -209,8 +218,8 @@ const EditPostForm = ({ post, user, countries, flOptions, categories, cities }) 
   // Get city display name for selected city
   const getCityDisplayName = (cityId) => {
     if (!cityId) return '';
-    const city = availableCities.find(c => c.id === cityId);
-    return city ? (city.label || city.code || city.name || 'Unknown City') : cityId;
+    const city = availableCities.find(c => c.id === cityId || c._id === cityId);
+    return city ? (city.label || city.name || 'Unknown City') : cityId;
   };
 
   // Debug: Log the post data to see what we're receiving
@@ -287,17 +296,9 @@ const EditPostForm = ({ post, user, countries, flOptions, categories, cities }) 
       return "";
     })(),
     description: post?.description || "",
-    // Contact preferences
-    contactPreferences: {
-      phone: post?.contactPreferences?.phone ?? true,
-      email: post?.contactPreferences?.email ?? false,
-      whatsapp: post?.contactPreferences?.whatsapp ?? false
-    },
-    // Additional contact
+    // Additional contact (only WhatsApp like NewPostForm)
     additionalContact: {
-      phone: post?.additionalContact?.phone || "",
-      email: post?.additionalContact?.email || "",
-      whatsapp: post?.additionalContact?.whatsapp || ""
+      whatsapp: post?.additionalContact?.whatsapp || user?.username || ""
     },
     // Status fields
     status: post?.status || "active",
@@ -313,14 +314,7 @@ const EditPostForm = ({ post, user, countries, flOptions, categories, cities }) 
   const formValidation = Yup.object().shape({
     // Only validate optional fields, required fields will be validated in handleSubmit
     description: Yup.string().optional(),
-    contactPreferences: Yup.object().shape({
-      phone: Yup.boolean(),
-      email: Yup.boolean(),
-      whatsapp: Yup.boolean()
-    }),
     additionalContact: Yup.object().shape({
-      phone: Yup.string().optional(),
-      email: Yup.string().email().optional(),
       whatsapp: Yup.string().optional()
     }),
     status: Yup.string().oneOf(['active', 'resolved', 'expired', 'suspended']),
@@ -422,7 +416,9 @@ const EditPostForm = ({ post, user, countries, flOptions, categories, cities }) 
         user: user.id,
         id: post._id,
         // Convert date to proper format
-        exactDate: new Date(values.exactDate)
+        exactDate: new Date(values.exactDate),
+        // Set contact preferences like NewPostForm
+        contactPreferences: { whatsapp: true }
       };
 
       await updatePost(submitData).unwrap();
@@ -724,7 +720,7 @@ const EditPostForm = ({ post, user, countries, flOptions, categories, cities }) 
                       }}
                     >
                       {availableCities.map((city) => (
-                        <MenuItem key={city.id} value={city.id}>
+                        <MenuItem key={city.id || city._id} value={city.id || city._id}>
                           {city.label || city.name || 'Unknown City'}
                         </MenuItem>
                       ))}
@@ -866,87 +862,25 @@ const EditPostForm = ({ post, user, countries, flOptions, categories, cities }) 
                   />
                 </Box>
 
+                {/* WhatsApp Contact Details */}
                 <Box>
-                  <FormLabel sx={{ mb: 1, display: "block", fontWeight: 500 }}>
-                    {t('contactPreferences')}
+                  <FormLabel sx={{ mb: 1, display: "block", fontWeight: 500, fontSize: '1.1rem' }}>
+                    {t('whatsappContact')}
                   </FormLabel>
-                  <Box display="flex" flexDirection="column" gap={1}>
-                    <FormControlLabel
-                      control={
-                        <Checkbox
-                          checked={values.contactPreferences.phone}
-                          onChange={(e) => setFieldValue('contactPreferences.phone', e.target.checked)}
-                        />
-                      }
-                      label={
-                        <Box display="flex" alignItems="center" gap={1}>
-                          <ContactPhone fontSize="small" />
-                          {t('phoneContact')}
-                        </Box>
-                      }
-                    />
-                    <FormControlLabel
-                      control={
-                        <Checkbox
-                          checked={values.contactPreferences.email}
-                          onChange={(e) => setFieldValue('contactPreferences.email', e.target.checked)}
-                        />
-                      }
-                      label={
-                        <Box display="flex" alignItems="center" gap={1}>
-                          <ContactMail fontSize="small" />
-                          {t('emailContact')}
-                        </Box>
-                      }
-                    />
-                    <FormControlLabel
-                      control={
-                        <Checkbox
-                          checked={values.contactPreferences.whatsapp}
-                          onChange={(e) => setFieldValue('contactPreferences.whatsapp', e.target.checked)}
-                        />
-                      }
-                      label={
-                        <Box display="flex" alignItems="center" gap={1}>
-                          <WhatsApp fontSize="small" />
-                          {t('whatsappContact')}
-                        </Box>
-                      }
+                  <Typography variant="caption" color="text.secondary" sx={{ mb: 1, display: "block", fontSize: '0.95rem' }}>
+                    {getFoundLostType(values.foundLost) === 'LOST' 
+                      ? (t('whatsappContactLostMessage') || "We'll use this WhatsApp number to contact you if someone finds your lost item.")
+                      : (t('whatsappContactFoundMessage') || "We'll use this WhatsApp number to contact you if the owner of the found item wants to reach you.")
+                    }
+                  </Typography>
+                  <Box display="flex" flexDirection="column" gap={2}>
+                    <Textfield 
+                      name="additionalContact.whatsapp" 
+                      variant="outlined" 
+                      placeholder={t('whatsappNumber') || "Enter your WhatsApp number (e.g., +1234567890)"}
                     />
                   </Box>
                 </Box>
-
-                {/* Additional Contact Details */}
-                {(values.contactPreferences.email || values.contactPreferences.phone || values.contactPreferences.whatsapp) && (
-                  <Box>
-                    <FormLabel sx={{ mb: 1, display: "block", fontWeight: 500 }}>
-                      {t('additionalContactDetails')}
-                    </FormLabel>
-                    <Box display="flex" flexDirection="column" gap={2}>
-                      {values.contactPreferences.phone && (
-                        <Textfield 
-                          name="additionalContact.phone" 
-                          variant="outlined" 
-                          placeholder={t('phoneNumber')}
-                        />
-                      )}
-                      {values.contactPreferences.email && (
-                        <Textfield 
-                          name="additionalContact.email" 
-                          variant="outlined" 
-                          placeholder={t('emailAddress')}
-                        />
-                      )}
-                      {values.contactPreferences.whatsapp && (
-                        <Textfield 
-                          name="additionalContact.whatsapp" 
-                          variant="outlined" 
-                          placeholder={t('whatsappNumber')}
-                        />
-                      )}
-                    </Box>
-                  </Box>
-                )}
 
                 {/* Status Section */}
                 <Typography variant="h6" sx={{ fontWeight: 600, color: theme.palette.primary.main }}>
@@ -972,16 +906,86 @@ const EditPostForm = ({ post, user, countries, flOptions, categories, cities }) 
                   </FormControl>
                 </Box>
 
-                <FormControlLabel
-                  control={
-                    <Checkbox
-                      name="returned"
-                      checked={values.returned}
-                      onChange={(e) => setFieldValue('returned', e.target.checked)}
+                <Box
+                  sx={{
+                    p: 3,
+                    borderRadius: 3,
+                    border: `2px solid ${values.returned ? theme.palette.success.main : theme.palette.divider}`,
+                    backgroundColor: values.returned 
+                      ? theme.palette.mode === 'dark' 
+                        ? 'rgba(76, 175, 80, 0.1)' 
+                        : 'rgba(76, 175, 80, 0.05)'
+                      : theme.palette.mode === 'dark' 
+                        ? 'rgba(255, 255, 255, 0.02)' 
+                        : 'rgba(0, 0, 0, 0.02)',
+                    transition: 'all 0.3s ease-in-out',
+                    cursor: 'pointer',
+                    '&:hover': {
+                      borderColor: values.returned ? theme.palette.success.dark : theme.palette.primary.main,
+                      backgroundColor: values.returned 
+                        ? theme.palette.mode === 'dark' 
+                          ? 'rgba(76, 175, 80, 0.15)' 
+                          : 'rgba(76, 175, 80, 0.08)'
+                        : theme.palette.mode === 'dark' 
+                          ? 'rgba(255, 255, 255, 0.04)' 
+                          : 'rgba(0, 0, 0, 0.04)',
+                      transform: 'translateY(-2px)',
+                      boxShadow: theme.palette.mode === 'dark'
+                        ? '0 8px 25px rgba(0, 0, 0, 0.3)'
+                        : '0 8px 25px rgba(0, 0, 0, 0.1)',
+                    }
+                  }}
+                  onClick={() => setFieldValue('returned', !values.returned)}
+                >
+                  <Box display="flex" alignItems="center" gap={2}>
+                    <Box
+                      sx={{
+                        width: 24,
+                        height: 24,
+                        borderRadius: '50%',
+                        border: `2px solid ${values.returned ? theme.palette.success.main : theme.palette.text.secondary}`,
+                        backgroundColor: values.returned ? theme.palette.success.main : 'transparent',
+                        display: 'flex',
+                        alignItems: 'center',
+                        justifyContent: 'center',
+                        transition: 'all 0.2s ease-in-out',
+                        position: 'relative',
+                        '&::after': values.returned ? {
+                          content: '"✓"',
+                          color: 'white',
+                          fontSize: '14px',
+                          fontWeight: 'bold',
+                          position: 'absolute',
+                        } : {}
+                      }}
                     />
-                  }
-                  label={t('itemReturned')}
-                />
+                    <Box>
+                      <Typography 
+                        variant="body1" 
+                        sx={{ 
+                          fontWeight: 600,
+                          color: values.returned ? theme.palette.success.main : theme.palette.text.primary,
+                          transition: 'color 0.2s ease-in-out'
+                        }}
+                      >
+                        {t('itemReturned')}
+                      </Typography>
+                      <Typography 
+                        variant="caption" 
+                        color="text.secondary"
+                        sx={{ 
+                          fontSize: '0.85rem',
+                          fontStyle: 'italic'
+                        }}
+                      >
+                        {values.returned 
+                          ? (t('itemReturnedDescription') || 'This item has been successfully returned to its owner')
+                          : (t('itemNotReturnedDescription') || 'Mark this if the item has been returned to its owner')
+                        }
+                      </Typography>
+                    </Box>
+                  </Box>
+                </Box>
 
                 {/* Action Buttons */}
                 <Box display="flex" gap={2} justifyContent="space-between" sx={{ mt: 4 }}>
