@@ -9,12 +9,28 @@ const baseQuery = fetchBaseQuery({
     // api => api.getState => {getState}
     const token = getState().auth.token;
     
+    console.log('prepareHeaders - endpoint:', endpoint);
+    console.log('prepareHeaders - token:', token ? 'Token exists' : 'No token');
+    console.log('prepareHeaders - token length:', token ? token.length : 0);
+    console.log('prepareHeaders - token preview:', token ? token.substring(0, 20) + '...' : 'No token');
+    console.log('prepareHeaders - headers before:', headers);
+    
     // Only add authorization header for authenticated endpoints
     // Skip for public endpoints like dashboard
     if (token && !endpoint?.includes("getDashboard")) {
       headers.set("authorization", `Bearer ${token}`);
+      console.log('prepareHeaders - Authorization header set');
+    } else {
+      console.log('prepareHeaders - Authorization header NOT set. Token:', !!token, 'Endpoint:', endpoint);
+    }
+    
+    // Special case: Always add authorization for report endpoint if we have a token
+    if (endpoint === 'submitReport' && token) {
+      headers.set("authorization", `Bearer ${token}`);
+      console.log('prepareHeaders - Authorization header set for report endpoint');
     }
 
+    console.log('prepareHeaders - headers after:', headers);
     return headers;
   },
 });
