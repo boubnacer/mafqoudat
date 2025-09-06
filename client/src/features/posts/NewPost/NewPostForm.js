@@ -555,48 +555,78 @@ const NewPostForm = ({ user, countries, categories, flOptions }) => {
                     }
                   </Typography>
                   
-                  <SelectOption 
-                    name="city" 
-                    options={cities.map(city => ({
-                      _id: city.id,  // Map 'id' to '_id' for SelectOption
-                      label: city.label || city.name || 'Unknown City',
-                      code: city.id
-                    }))} 
-                  />
-                  
-                  <Box mt={1}>
-                    <Button
-                      variant="outlined"
-                      startIcon={<AddIcon />}
-                      onClick={() => setShowCustomCityInput(true)}
-                      disabled={!selectedCountry || loadingCities}
-                      sx={{ 
-                        color: theme.palette.mode === 'dark' ? '#fff' : '#1976d2',
-                        fontWeight: 600,
-                        backgroundColor: theme.palette.mode === 'dark' 
-                          ? 'rgba(255, 255, 255, 0.08)' 
-                          : 'rgba(25, 118, 210, 0.08)',
-                        border: `1px solid ${theme.palette.mode === 'dark' ? 'rgba(255, 255, 255, 0.2)' : 'rgba(25, 118, 210, 0.3)'}`,
+                  <FormControl fullWidth disabled={!selectedCountry || loadingCities} error={!!(errors.city && touched.city)}>
+                    <InputLabel id="city-select-label">{t('chooseCity')}</InputLabel>
+                    <Select
+                      name="city"
+                      labelId="city-select-label"
+                      value={values.city || ""}
+                      label={t('chooseCity')}
+                      onChange={(e) => {
+                        const selectedValue = e.target.value;
+                        if (selectedValue === 'other') {
+                          setShowCustomCityInput(true);
+                        } else {
+                          setFieldValue('city', selectedValue);
+                        }
+                      }}
+                      displayEmpty
+                      sx={{
                         borderRadius: 2,
-                        padding: '8px 16px',
-                        transition: 'all 0.2s ease-in-out',
-                        '&:hover': {
-                          backgroundColor: theme.palette.mode === 'dark' 
-                            ? 'rgba(255, 255, 255, 0.12)' 
-                            : 'rgba(25, 118, 210, 0.12)',
-                          borderColor: theme.palette.mode === 'dark' 
-                            ? 'rgba(255, 255, 255, 0.4)' 
-                            : 'rgba(25, 118, 210, 0.5)',
-                          transform: 'translateY(-1px)',
-                          boxShadow: theme.palette.mode === 'dark'
-                            ? '0 4px 8px rgba(0, 0, 0, 0.3)'
-                            : '0 4px 8px rgba(25, 118, 210, 0.2)',
+                      }}
+                      MenuProps={{
+                        PaperProps: {
+                          sx: {
+                            maxHeight: 300,
+                          }
                         }
                       }}
                     >
-                      {t('other')} - {t('addNewCity')}
-                    </Button>
-                  </Box>
+                      {cities.map((city) => (
+                        <MenuItem key={city.id} value={city.id}>
+                          {city.label || city.name || 'Unknown City'}
+                        </MenuItem>
+                      ))}
+                      <Divider />
+                      <MenuItem
+                        value="other" 
+                        sx={{ 
+                          color: theme.palette.mode === 'dark' ? '#fff' : '#1976d2',
+                          fontWeight: 600,
+                          backgroundColor: theme.palette.mode === 'dark' 
+                            ? 'rgba(255, 255, 255, 0.08)' 
+                            : 'rgba(25, 118, 210, 0.08)',
+                          border: `1px solid ${theme.palette.mode === 'dark' ? 'rgba(255, 255, 255, 0.2)' : 'rgba(25, 118, 210, 0.3)'}`,
+                          borderRadius: 2,
+                          margin: '6px 8px',
+                          padding: '12px 16px',
+                          transition: 'all 0.2s ease-in-out',
+                          '&:hover': {
+                            backgroundColor: theme.palette.mode === 'dark' 
+                              ? 'rgba(255, 255, 255, 0.12)' 
+                              : 'rgba(25, 118, 210, 0.12)',
+                            borderColor: theme.palette.mode === 'dark' 
+                              ? 'rgba(255, 255, 255, 0.4)' 
+                              : 'rgba(25, 118, 210, 0.5)',
+                            transform: 'translateY(-1px)',
+                            boxShadow: theme.palette.mode === 'dark'
+                              ? '0 4px 8px rgba(0, 0, 0, 0.3)'
+                              : '0 4px 8px rgba(25, 118, 210, 0.2)',
+                          }
+                        }}
+                      >
+                        <Box display="flex" alignItems="center" gap={1}>
+                          <AddIcon fontSize="small" />
+                          {t('other')} - {t('addNewCity')}
+                        </Box>
+                      </MenuItem>
+                    </Select>
+                    {errors.city && touched.city && (
+                      <Typography variant="caption" color="error" sx={{ mt: 1, display: 'block' }}>
+                        {errors.city}
+                      </Typography>
+                    )}
+                  </FormControl>
                 </Box>
 
                 <Box>
