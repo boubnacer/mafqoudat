@@ -209,15 +209,67 @@ const NewPostForm = ({ user, countries, categories, flOptions }) => {
 
   const handleSubmit = async (values, { setSubmitting, setStatus }) => {
     try {
-      // Store the submitted values to check if it's a lost item
-      setLastSubmittedValues(values);
+      // Clear any previous validation errors
+      setStatus(null);
       
-      // Prevent submission if city is still "other"
-      if (values.city === 'other') {
-        setStatus({ error: 'Please select a city or create a custom city' });
+      // Validate required fields
+      const missingFields = [];
+      
+      if (!selectedCountry) {
+        missingFields.push(t('country'));
+      }
+      if (!values.city || values.city === 'other') {
+        missingFields.push(t('city'));
+      }
+      if (!values.exactDate?.trim()) {
+        missingFields.push(t('exactDate'));
+      }
+      if (!values.exactLocation?.trim()) {
+        missingFields.push(t('exactLocation'));
+      }
+      if (!values.contact?.trim()) {
+        missingFields.push(t('contact'));
+      }
+      
+      if (missingFields.length > 0) {
+        const errorMessage = `${t('fillRequiredFields')}: ${missingFields.join(', ')}`;
+        setStatus({ validationError: errorMessage });
         setSubmitting(false);
+        
+        // Scroll to first error field
+        setTimeout(() => {
+          let fieldToScroll = null;
+          
+          // Map missing field names to actual field selectors
+          if (missingFields.includes(t('country'))) {
+            fieldToScroll = document.querySelector('#country-select-label') || document.querySelector('[data-testid="country-select"]');
+          } else if (missingFields.includes(t('city'))) {
+            fieldToScroll = document.querySelector('#city-select-label') || document.querySelector('[data-testid="city-select"]');
+          } else if (missingFields.includes(t('exactDate'))) {
+            fieldToScroll = document.querySelector('[name="exactDate"]');
+          } else if (missingFields.includes(t('exactLocation'))) {
+            fieldToScroll = document.querySelector('[name="exactLocation"]');
+          } else if (missingFields.includes(t('contact'))) {
+            fieldToScroll = document.querySelector('[name="contact"]');
+          }
+          
+          if (fieldToScroll) {
+            fieldToScroll.scrollIntoView({ behavior: 'smooth', block: 'center' });
+            // Try to focus the input field if it's a select
+            if (fieldToScroll.tagName === 'LABEL') {
+              const input = fieldToScroll.nextElementSibling?.querySelector('input') || 
+                           fieldToScroll.parentElement?.querySelector('input');
+              if (input) input.focus();
+            } else {
+              fieldToScroll.focus();
+            }
+          }
+        }, 100);
         return;
       }
+      
+      // Store the submitted values to check if it's a lost item
+      setLastSubmittedValues(values);
       
       const formData = new FormData();
       formData.append("user", user._id);
@@ -489,6 +541,7 @@ const NewPostForm = ({ user, countries, categories, flOptions }) => {
                       value={selectedCountry?._id || ""}
                       label={t('chooseCountry')}
                       onChange={handleCountrySelect}
+                      data-testid="country-select"
                       sx={{
                         borderRadius: 2,
                       }}
@@ -561,6 +614,7 @@ const NewPostForm = ({ user, countries, categories, flOptions }) => {
                         }
                       }}
                       displayEmpty
+                      data-testid="city-select"
                       sx={{
                         borderRadius: 2,
                       }}
@@ -633,6 +687,7 @@ const NewPostForm = ({ user, countries, categories, flOptions }) => {
                     name="exactDate" 
                     variant="outlined" 
                     placeholder={t('exactDatePlaceholder') || "Enter the date (e.g., 15/12/2023 or December 15, 2023)"}
+                    data-testid="exactDate"
                   />
                 </Box>
 
@@ -650,6 +705,7 @@ const NewPostForm = ({ user, countries, categories, flOptions }) => {
                     name="exactLocation" 
                     variant="outlined" 
                     placeholder={t('exactLocationPlaceholder')}
+                    data-testid="exactLocation"
                   />
                 </Box>
 
@@ -778,7 +834,7 @@ const NewPostForm = ({ user, countries, categories, flOptions }) => {
                 
                 <Box mt={4}>
                   <SubmitButton
-                    disabled={isSubmitting || !selectedCountry || !values.city || !values.exactDate?.trim()}
+                    disabled={isSubmitting}
                     sx={{ 
                       width: "100%",
                       py: 1.5,
@@ -793,21 +849,22 @@ const NewPostForm = ({ user, countries, categories, flOptions }) => {
                     )}
                   </SubmitButton>
                   
-                  {/* Validation message for required fields */}
-                  {(!selectedCountry || !values.city || !values.exactDate?.trim()) && (
-                    <Typography 
-                      variant="caption" 
-                      color="text.secondary" 
+                  {/* Dynamic validation error message */}
+                  {status?.validationError && (
+                    <Alert 
+                      severity="error" 
                       sx={{ 
-                        mt: 1, 
-                        display: "block", 
-                        textAlign: "center",
-                        fontSize: '0.9rem',
-                        fontStyle: 'italic'
+                        mt: 2,
+                        borderRadius: 2,
+                        '& .MuiAlert-message': {
+                          width: '100%'
+                        }
                       }}
                     >
-                      {t('fillRequiredFields')}
-                    </Typography>
+                      <Typography variant="body2" sx={{ fontWeight: 500 }}>
+                        {status.validationError}
+                      </Typography>
+                    </Alert>
                   )}
                 </Box>
               </Box>
