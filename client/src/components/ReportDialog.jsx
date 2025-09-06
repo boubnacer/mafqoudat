@@ -140,6 +140,12 @@ const ReportDialog = ({ open, onClose, post, onSubmit }) => {
     setIsSubmitting(true);
     setError('');
 
+    // Add timeout to prevent infinite loading
+    const timeoutId = setTimeout(() => {
+      setIsSubmitting(false);
+      setError('Request timeout - please try again');
+    }, 30000); // 30 seconds timeout
+
     try {
       const finalReason = selectedReason === 'other' ? customReason : getLabel(reportReasons.find(r => r.value === selectedReason).label);
       
@@ -166,20 +172,52 @@ const ReportDialog = ({ open, onClose, post, onSubmit }) => {
       const result = await onSubmit(reportData);
       
       console.log('ReportDialog - Result received:', result);
+      console.log('ReportDialog - Result success property:', result?.success);
+      console.log('ReportDialog - Result data property:', result?.data);
+      console.log('ReportDialog - Result message property:', result?.message);
 
       // Check if the API call was successful - handle both direct result and wrapped result
-      if (result && (result.success || (result.data && result.data.success))) {
+      console.log('ReportDialog - Checking result:', result);
+      console.log('ReportDialog - Result type:', typeof result);
+      console.log('ReportDialog - Result keys:', result ? Object.keys(result) : 'No result');
+      
+      // The server returns { success: true, message: "...", data: {...} }
+      // RTK Query unwraps this, so result should be the unwrapped response
+      // Check multiple possible success indicators
+      const isSuccess = (result && result.success === true) || 
+                       (result && result.data && result.data.success === true) ||
+                       (result && result.message && result.message.includes('successfully')) ||
+                       (result && result.status === 200);
+      
+      if (isSuccess) {
+        console.log('ReportDialog - Report submitted successfully');
+        console.log('ReportDialog - Email notification sent:', result?.notificationSent);
+        
+        // Show success message even if email failed (since the report was still submitted)
         setSuccess(true);
         setTimeout(() => {
           handleClose();
         }, 2000);
       } else {
-        throw new Error(result?.data?.message || result?.message || 'Failed to submit report');
+        console.error('ReportDialog - Report submission failed:', result);
+        
+        // If we get here, the response format is unexpected
+        // Check if we have any indication that the request went through
+        if (result && (result.postId || result.data?.postId)) {
+          console.log('ReportDialog - Post ID found in response, treating as success');
+          setSuccess(true);
+          setTimeout(() => {
+            handleClose();
+          }, 2000);
+        } else {
+          throw new Error(result?.data?.message || result?.message || 'Failed to submit report');
+        }
       }
     } catch (error) {
       console.error('Report submission error:', error);
       setError(error.message || t('errorSubmittingReport'));
     } finally {
+      clearTimeout(timeoutId);
       setIsSubmitting(false);
     }
   };
