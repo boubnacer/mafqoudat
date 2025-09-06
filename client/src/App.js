@@ -50,23 +50,33 @@ const LoadingFallback = () => (
     fontSize: '1.2rem',
     color: '#666',
     flexDirection: 'column',
-    gap: '1rem'
+    gap: '1rem',
+    backgroundColor: 'rgba(255,255,255,0.1)',
+    backdropFilter: 'blur(6px)'
   }}>
     <div style={{
-      width: '40px',
-      height: '40px',
-      border: '4px solid #f3f3f3',
-      borderTop: '4px solid #3498db',
-      borderRadius: '50%',
-      animation: 'spin 1s linear infinite'
-    }}></div>
+      width: '80px',
+      height: '80px',
+      display: 'flex',
+      alignItems: 'center',
+      justifyContent: 'center',
+      marginBottom: '1rem'
+    }}>
+      <video
+        autoPlay
+        loop
+        muted
+        playsInline
+        style={{
+          width: '100%',
+          height: '100%',
+          objectFit: 'contain',
+        }}
+      >
+        <source src="/src/animations/loadingLogo.mp4" type="video/mp4" />
+      </video>
+    </div>
     <div>Loading...</div>
-    <style>{`
-      @keyframes spin {
-        0% { transform: rotate(0deg); }
-        100% { transform: rotate(360deg); }
-      }
-    `}</style>
   </div>
 );
 

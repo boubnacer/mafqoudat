@@ -147,6 +147,7 @@ export const LoadingState = ({ message = "Loading...", size = "medium" }) => {
         height: '100vh',
         zIndex: 2000,
         display: 'flex',
+        flexDirection: 'column',
         alignItems: 'center',
         justifyContent: 'center',
         backgroundColor:
@@ -157,10 +158,42 @@ export const LoadingState = ({ message = "Loading...", size = "medium" }) => {
         transition: 'background 0.3s',
       }}
     >
-      <CircularProgress
-        size={size === 'large' ? 48 : size === 'small' ? 24 : 32}
-        sx={{ color: theme.palette.primary.main }}
-      />
+      <Box
+        sx={{
+          width: size === 'large' ? 120 : size === 'small' ? 60 : 80,
+          height: size === 'large' ? 120 : size === 'small' ? 60 : 80,
+          display: 'flex',
+          alignItems: 'center',
+          justifyContent: 'center',
+          mb: 2,
+        }}
+      >
+        <video
+          autoPlay
+          loop
+          muted
+          playsInline
+          style={{
+            width: '100%',
+            height: '100%',
+            objectFit: 'contain',
+          }}
+        >
+          <source src="/src/animations/loadingLogo.mp4" type="video/mp4" />
+        </video>
+      </Box>
+      {message && (
+        <Typography
+          variant="body1"
+          sx={{
+            color: theme.palette.text.primary,
+            fontWeight: 500,
+            textAlign: 'center',
+          }}
+        >
+          {message}
+        </Typography>
+      )}
     </Box>
   );
 };

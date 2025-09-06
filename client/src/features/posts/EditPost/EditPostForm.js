@@ -306,9 +306,38 @@ const EditPostForm = ({ post, user, countries, flOptions, categories, cities }) 
   // Show loading state while post data is being loaded
   if (!post) {
     return (
-      <Box display="flex" justifyContent="center" alignItems="center" minHeight="50vh">
-        <CircularProgress />
-        <Typography sx={{ ml: 2 }}>{t('loadingPostData')}</Typography>
+      <Box 
+        display="flex" 
+        flexDirection="column"
+        justifyContent="center" 
+        alignItems="center" 
+        minHeight="50vh"
+        gap={2}
+      >
+        <Box
+          sx={{
+            width: 80,
+            height: 80,
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'center',
+          }}
+        >
+          <video
+            autoPlay
+            loop
+            muted
+            playsInline
+            style={{
+              width: '100%',
+              height: '100%',
+              objectFit: 'contain',
+            }}
+          >
+            <source src="/src/animations/loadingLogo.mp4" type="video/mp4" />
+          </video>
+        </Box>
+        <Typography>{t('loadingPostData')}</Typography>
       </Box>
     );
   }
