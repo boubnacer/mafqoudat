@@ -931,13 +931,13 @@ const NewPostForm = ({ user, countries, categories, flOptions }) => {
                   
                   // Select the newly created city after refresh
                   console.log('Created city:', createdCity);
-                  console.log('City ID to select:', createdCity.id);
+                  console.log('City ID to select:', createdCity._id);
                   
                   // Try multiple approaches to set the field value
                   setTimeout(() => {
                     if (formikRef.current) {
-                      console.log('Setting city field value to:', createdCity.id);
-                      formikRef.current.setFieldValue('city', createdCity.id);
+                      console.log('Setting city field value to:', createdCity._id);
+                      formikRef.current.setFieldValue('city', createdCity._id);
                       formikRef.current.setFieldTouched('city', true);
                       console.log('After setFieldValue, current values:', formikRef.current.values);
                     }
@@ -946,7 +946,7 @@ const NewPostForm = ({ user, countries, categories, flOptions }) => {
                   // Also try setting it immediately
                   setTimeout(() => {
                     if (formikRef.current) {
-                      formikRef.current.setFieldValue('city', createdCity.id);
+                      formikRef.current.setFieldValue('city', createdCity._id);
                     }
                   }, 100);
                   
