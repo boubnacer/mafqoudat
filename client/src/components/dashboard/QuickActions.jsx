@@ -74,7 +74,7 @@ const QuickActions = () => {
       description: t('getHelpDesc'),
       icon: <HelpOutline sx={{ fontSize: '2rem' }} />,
       color: '#96ceb4',
-      action: () => navigate('/dash/help')
+      action: () => scrollToHelpSection()
     }
   ];
 
