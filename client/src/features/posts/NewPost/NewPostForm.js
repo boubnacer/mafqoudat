@@ -89,6 +89,7 @@ const NewPostForm = ({ user, countries, categories, flOptions }) => {
   const [isCreatingCity, setIsCreatingCity] = useState(false);
   const [compressionInfo, setCompressionInfo] = useState(null);
   const [newlyCreatedCityId, setNewlyCreatedCityId] = useState(null);
+  const [setFieldValueCallback, setSetFieldValueCallback] = useState(null);
   const formikRef = useRef(null);
 
 
@@ -487,6 +488,9 @@ const NewPostForm = ({ user, countries, categories, flOptions }) => {
           onSubmit={handleSubmit}
         >
           {({ isSubmitting, status, setFieldValue, values, errors, touched, handleChange }) => {
+            // Store setFieldValue function for use in custom city creation
+            setSetFieldValueCallback(() => setFieldValue);
+            
             return (
             <Form>
               {status?.error && (
@@ -964,7 +968,11 @@ const NewPostForm = ({ user, countries, categories, flOptions }) => {
                   
                   // Set the field value directly using setFieldValue from Formik
                   console.log('Setting city field value directly:', createdCity._id);
-                  setFieldValue('city', createdCity._id);
+                  if (setFieldValueCallback) {
+                    setFieldValueCallback('city', createdCity._id);
+                  } else {
+                    console.error('setFieldValue callback not available');
+                  }
                   
                 } catch (error) {
                   console.error('Error creating custom city:', error);
