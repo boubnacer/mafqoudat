@@ -66,7 +66,6 @@ const StyledToolbar = styled(Toolbar)(({ theme }) => ({
 }));
 
 const LogoButton = styled(Button)(({ theme }) => ({
-  color: theme.palette.mode === 'dark' ? '#fff' : '#1a1a1a',
   padding: '8px 16px',
   borderRadius: '12px',
   transition: 'all 0.3s cubic-bezier(0.4, 0, 0.2, 1)',
@@ -86,6 +85,7 @@ const LogoButton = styled(Button)(({ theme }) => ({
     width: 'auto',
     objectFit: 'contain',
     transition: 'all 0.3s ease',
+    filter: 'none', // Ensure no color filters are applied
   },
   [theme.breakpoints.down('sm')]: {
     padding: '6px 12px',
