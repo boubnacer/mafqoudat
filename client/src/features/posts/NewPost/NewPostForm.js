@@ -137,11 +137,26 @@ const NewPostForm = ({ user, countries, categories, flOptions }) => {
 
   // Auto-select newly created city
   useEffect(() => {
-    if (newlyCreatedCityId && formikRef.current) {
-      console.log('Auto-selecting newly created city:', newlyCreatedCityId);
-      formikRef.current.setFieldValue('city', newlyCreatedCityId);
-      formikRef.current.setFieldTouched('city', true);
-      setNewlyCreatedCityId(null); // Reset after setting
+    console.log('useEffect triggered - newlyCreatedCityId:', newlyCreatedCityId, 'formikRef.current:', formikRef.current);
+    if (newlyCreatedCityId) {
+      if (formikRef.current) {
+        console.log('Auto-selecting newly created city:', newlyCreatedCityId);
+        formikRef.current.setFieldValue('city', newlyCreatedCityId);
+        formikRef.current.setFieldTouched('city', true);
+        setNewlyCreatedCityId(null); // Reset after setting
+      } else {
+        console.log('FormikRef is null, retrying in 500ms...');
+        setTimeout(() => {
+          if (formikRef.current) {
+            console.log('Retry successful - Auto-selecting newly created city:', newlyCreatedCityId);
+            formikRef.current.setFieldValue('city', newlyCreatedCityId);
+            formikRef.current.setFieldTouched('city', true);
+            setNewlyCreatedCityId(null);
+          } else {
+            console.log('Retry failed - FormikRef still null');
+          }
+        }, 500);
+      }
     }
   }, [newlyCreatedCityId]);
 
