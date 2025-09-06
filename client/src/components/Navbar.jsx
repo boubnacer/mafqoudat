@@ -67,8 +67,6 @@ const StyledToolbar = styled(Toolbar)(({ theme }) => ({
 
 const LogoButton = styled(Button)(({ theme }) => ({
   color: theme.palette.mode === 'dark' ? '#fff' : '#1a1a1a',
-  fontSize: '1.4rem',
-  fontWeight: 800,
   padding: '8px 16px',
   borderRadius: '12px',
   transition: 'all 0.3s cubic-bezier(0.4, 0, 0.2, 1)',
@@ -77,6 +75,7 @@ const LogoButton = styled(Button)(({ theme }) => ({
   background: theme.palette.mode === 'dark' 
     ? alpha(theme.palette.primary.main, 0.1)
     : alpha(theme.palette.primary.main, 0.05),
+  minWidth: 'auto',
   '&:before': {
     content: '""',
     position: 'absolute',
@@ -98,9 +97,18 @@ const LogoButton = styled(Button)(({ theme }) => ({
       opacity: 1,
     }
   },
+  '& img': {
+    height: 'auto',
+    maxHeight: '40px',
+    width: 'auto',
+    objectFit: 'contain',
+    transition: 'all 0.3s ease',
+  },
   [theme.breakpoints.down('sm')]: {
-    fontSize: '1.3rem',
     padding: '8px 14px',
+    '& img': {
+      maxHeight: '35px',
+    }
   }
 }));
 
@@ -413,11 +421,14 @@ const Navbar = () => {
           <LogoButton 
             onClick={onGoHomeClicked}
             sx={{
-              fontSize: { xs: '1.2rem', sm: '1.3rem' },
               padding: { xs: '8px 14px', sm: '8px 16px' },
             }}
           >
-            {t("brandName")}
+            <img
+              src="/maflogo.png"
+              alt={t("brandName")}
+              loading="lazy"
+            />
           </LogoButton>
         </Box>
 
