@@ -1,17 +1,32 @@
 import { TextField } from "@mui/material";
 import { useField } from "formik";
 
-const Textfield = ({ name, variant, ...otherProps }) => {
+const Textfield = ({ name, variant, error, helperText, onErrorClear, ...otherProps }) => {
   const [field, mata] = useField(name);
+
+  const handleChange = (event) => {
+    const { value } = event.target;
+    field.onChange(event);
+    
+    // Clear error if field has value and onErrorClear callback is provided
+    if (value && onErrorClear) {
+      onErrorClear(name);
+    }
+  };
 
   const textFieldConfig = {
     ...field,
     ...otherProps,
     fullWidth: true,
     variant,
+    onChange: handleChange,
   };
 
-  if (mata && mata.touched && mata.error) {
+  // Use external error props if provided, otherwise use Formik validation
+  if (error !== undefined && helperText !== undefined) {
+    textFieldConfig.error = error;
+    textFieldConfig.helperText = helperText;
+  } else if (mata && mata.touched && mata.error) {
     textFieldConfig.error = true;
     textFieldConfig.helperText = mata.error;
   }

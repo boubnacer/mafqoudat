@@ -92,6 +92,17 @@ const NewPostForm = ({ user, countries, categories, flOptions }) => {
   const [fieldErrors, setFieldErrors] = useState({});
   const formikRef = useRef(null);
 
+  // Function to clear specific field error
+  const clearFieldError = (fieldName) => {
+    if (fieldErrors[fieldName]) {
+      setFieldErrors(prev => {
+        const newErrors = { ...prev };
+        delete newErrors[fieldName];
+        return newErrors;
+      });
+    }
+  };
+
 
   // Initialize selectedCountry with user's country
   useEffect(() => {
@@ -162,6 +173,11 @@ const NewPostForm = ({ user, countries, categories, flOptions }) => {
     const countryId = event.target.value;
     const country = countries.find(c => c._id === countryId);
     setSelectedCountry(country);
+    
+    // Clear country field error if country is selected
+    if (countryId) {
+      clearFieldError('country');
+    }
     
     // Reset cities when country changes
     setCities([]);
@@ -267,17 +283,21 @@ const NewPostForm = ({ user, countries, categories, flOptions }) => {
           }
           
           if (fieldToScroll) {
-            // Better mobile scrolling
-            fieldToScroll.scrollIntoView({ 
-              behavior: 'smooth', 
-              block: 'center',
-              inline: 'nearest'
+            // Get the field's position
+            const rect = fieldToScroll.getBoundingClientRect();
+            const scrollTop = window.pageYOffset || document.documentElement.scrollTop;
+            const targetPosition = rect.top + scrollTop - 100; // 100px offset from top
+            
+            // Smooth scroll to the field
+            window.scrollTo({
+              top: targetPosition,
+              behavior: 'smooth'
             });
             
-            // Add a small delay for mobile devices
+            // Focus the field after scroll
             setTimeout(() => {
               fieldToScroll.focus();
-            }, 300);
+            }, 500);
           }
         }, 100);
         return;
@@ -542,6 +562,7 @@ const NewPostForm = ({ user, countries, categories, flOptions }) => {
                     data-testid="foundLost"
                     error={!!fieldErrors.foundLost}
                     helperText={fieldErrors.foundLost}
+                    onErrorClear={clearFieldError}
                   />
                 </Box>
 
@@ -607,6 +628,7 @@ const NewPostForm = ({ user, countries, categories, flOptions }) => {
                     data-testid="category"
                     error={!!fieldErrors.category}
                     helperText={fieldErrors.category}
+                    onErrorClear={clearFieldError}
                   />
                 </Box>
 
@@ -643,6 +665,10 @@ const NewPostForm = ({ user, countries, categories, flOptions }) => {
                           setShowCustomCityInput(true);
                         } else {
                           setFieldValue('city', selectedValue);
+                          // Clear city field error if city is selected
+                          if (selectedValue) {
+                            clearFieldError('city');
+                          }
                         }
                       }}
                       displayEmpty
@@ -722,6 +748,7 @@ const NewPostForm = ({ user, countries, categories, flOptions }) => {
                     data-testid="exactDate"
                     error={!!fieldErrors.exactDate}
                     helperText={fieldErrors.exactDate}
+                    onErrorClear={clearFieldError}
                   />
                 </Box>
 
@@ -742,6 +769,7 @@ const NewPostForm = ({ user, countries, categories, flOptions }) => {
                     data-testid="exactLocation"
                     error={!!fieldErrors.exactLocation}
                     helperText={fieldErrors.exactLocation}
+                    onErrorClear={clearFieldError}
                   />
                 </Box>
 
@@ -790,6 +818,7 @@ const NewPostForm = ({ user, countries, categories, flOptions }) => {
                     data-testid="contact"
                     error={!!fieldErrors.contact}
                     helperText={fieldErrors.contact}
+                    onErrorClear={clearFieldError}
                   />
                 </Box>
 

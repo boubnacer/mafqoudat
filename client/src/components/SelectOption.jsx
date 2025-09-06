@@ -3,7 +3,7 @@ import { useField, useFormikContext } from "formik";
 import React from "react";
 import { useTranslation } from "../utils/translations";
 
-const SelectOption = ({ name, options, ...otherProps }) => {
+const SelectOption = ({ name, options, error, helperText, onErrorClear, ...otherProps }) => {
   const { setFieldValue } = useFormikContext();
   const [field, meta] = useField(name);
   const { currentLanguage } = useTranslation();
@@ -11,6 +11,11 @@ const SelectOption = ({ name, options, ...otherProps }) => {
   const handleChange = (event) => {
     const { value } = event.target;
     setFieldValue(name, value);
+    
+    // Clear error if field has value and onErrorClear callback is provided
+    if (value && onErrorClear) {
+      onErrorClear(name);
+    }
   };
 
   // Get the appropriate label based on language
@@ -30,7 +35,11 @@ const SelectOption = ({ name, options, ...otherProps }) => {
     onChange: handleChange,
   };
 
-  if (meta && meta.touched && meta.error) {
+  // Use external error props if provided, otherwise use Formik validation
+  if (error !== undefined && helperText !== undefined) {
+    selectConfig.error = error;
+    selectConfig.helperText = helperText;
+  } else if (meta && meta.touched && meta.error) {
     selectConfig.error = true;
     selectConfig.helperText = meta.error;
   }
