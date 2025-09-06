@@ -1085,14 +1085,14 @@ const SinglePostPage = ({
           region,
           exactLocation,
           contact,
-          user,
+          user: user || 'anonymous', // Ensure user field is never undefined
           image,
-          username,
+          username: username || 'Anonymous', // Ensure username field is never undefined
           createdAt,
           updatedAt,
           countryname,
           countryLabels,
-          foundLost,
+          foundLost: foundLost || 'UNKNOWN', // Ensure foundLost field is never undefined
           Floptions,
           description,
           contactPreferences: sanitizedContactPreferences,

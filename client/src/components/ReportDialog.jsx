@@ -38,6 +38,17 @@ const ReportDialog = ({ open, onClose, post, onSubmit }) => {
       console.log('ReportDialog - Post ID:', post._id);
       console.log('ReportDialog - Post user:', post.user);
       console.log('ReportDialog - Post foundLost:', post.foundLost);
+      console.log('ReportDialog - Post username:', post.username);
+      console.log('ReportDialog - Post categoryname:', post.categoryname);
+      console.log('ReportDialog - Post exactLocation:', post.exactLocation);
+      
+      // Validate required fields
+      if (!post._id) {
+        console.error('ReportDialog - Missing post ID!');
+      }
+      if (!post.user && post.user !== 'anonymous') {
+        console.warn('ReportDialog - Post user is undefined, using fallback');
+      }
     }
   }, [open, post]);
 
@@ -117,8 +128,13 @@ const ReportDialog = ({ open, onClose, post, onSubmit }) => {
     }
 
     if (!post || !post._id) {
-      setError('Invalid post data');
+      setError('Invalid post data - missing post ID');
       return;
+    }
+
+    // Additional validation for required fields
+    if (!post.categoryname && !post.exactLocation) {
+      console.warn('ReportDialog - Post missing basic information:', post);
     }
 
     setIsSubmitting(true);
@@ -132,11 +148,20 @@ const ReportDialog = ({ open, onClose, post, onSubmit }) => {
         postId: post._id,
         reason: finalReason,
         reasonType: selectedReason,
-        userId: post.user || 'anonymous' // Send the post owner's ID for reference, or anonymous if not available
+        userId: post.user || 'anonymous', // Send the post owner's ID for reference, or anonymous if not available
+        // Add additional context for better reporting
+        postCategory: post.categoryname || 'unknown',
+        postLocation: post.exactLocation || 'unknown',
+        postCreatedAt: post.createdAt || new Date().toISOString()
       };
       
       console.log('ReportDialog - Submitting report with data:', reportData);
       console.log('ReportDialog - onSubmit function:', typeof onSubmit);
+      
+      // Validate onSubmit function
+      if (typeof onSubmit !== 'function') {
+        throw new Error('onSubmit function is not defined or not a function');
+      }
       
       const result = await onSubmit(reportData);
       

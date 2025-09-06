@@ -473,7 +473,13 @@ const RecentPosts = ({ _id, categoryname, exactLocation, image, createdAt, count
           countryLabels,
           countryname,
           contact,
-          city
+          city,
+          cityLabels,
+          cityName,
+          // Add missing fields with fallbacks
+          user: 'anonymous', // RecentPosts doesn't have user data, use fallback
+          foundLost: 'UNKNOWN', // RecentPosts doesn't have foundLost data, use fallback
+          username: 'Anonymous' // RecentPosts doesn't have username, use fallback
         }}
         onSubmit={handleSubmitReport}
       />
