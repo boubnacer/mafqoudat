@@ -169,9 +169,12 @@ const ReportDialog = ({ open, onClose, post, onSubmit }) => {
         throw new Error('onSubmit function is not defined or not a function');
       }
       
+      console.log('ReportDialog - About to call onSubmit...');
       const result = await onSubmit(reportData);
       
       console.log('ReportDialog - Result received:', result);
+      console.log('ReportDialog - Result type:', typeof result);
+      console.log('ReportDialog - Result is null/undefined:', result == null);
       console.log('ReportDialog - Result success property:', result?.success);
       console.log('ReportDialog - Result data property:', result?.data);
       console.log('ReportDialog - Result message property:', result?.message);
