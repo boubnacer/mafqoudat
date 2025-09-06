@@ -31,26 +31,6 @@ const ReportDialog = ({ open, onClose, post, onSubmit }) => {
   const theme = useTheme();
   const { usernameId } = useAuth();
 
-  // Debug: Log the post data to see what's available
-  React.useEffect(() => {
-    if (open && post) {
-      console.log('ReportDialog - Post data:', post);
-      console.log('ReportDialog - Post ID:', post._id);
-      console.log('ReportDialog - Post user:', post.user);
-      console.log('ReportDialog - Post foundLost:', post.foundLost);
-      console.log('ReportDialog - Post username:', post.username);
-      console.log('ReportDialog - Post categoryname:', post.categoryname);
-      console.log('ReportDialog - Post exactLocation:', post.exactLocation);
-      
-      // Validate required fields
-      if (!post._id) {
-        console.error('ReportDialog - Missing post ID!');
-      }
-      if (!post.user && post.user !== 'anonymous') {
-        console.warn('ReportDialog - Post user is undefined, using fallback');
-      }
-    }
-  }, [open, post]);
 
   const reportReasons = [
     {
@@ -132,10 +112,6 @@ const ReportDialog = ({ open, onClose, post, onSubmit }) => {
       return;
     }
 
-    // Additional validation for required fields
-    if (!post.categoryname && !post.exactLocation) {
-      console.warn('ReportDialog - Post missing basic information:', post);
-    }
 
     setIsSubmitting(true);
     setError('');
@@ -149,20 +125,15 @@ const ReportDialog = ({ open, onClose, post, onSubmit }) => {
     try {
       const finalReason = selectedReason === 'other' ? customReason : getLabel(reportReasons.find(r => r.value === selectedReason).label);
       
-      // Debug: Log what we're sending
       const reportData = {
         postId: post._id,
         reason: finalReason,
         reasonType: selectedReason,
-        userId: post.user || 'anonymous', // Send the post owner's ID for reference, or anonymous if not available
-        // Add additional context for better reporting
+        userId: post.user || 'anonymous',
         postCategory: post.categoryname || 'unknown',
         postLocation: post.exactLocation || 'unknown',
         postCreatedAt: post.createdAt || new Date().toISOString()
       };
-      
-      console.log('ReportDialog - Submitting report with data:', reportData);
-      console.log('ReportDialog - onSubmit function:', typeof onSubmit);
       
       // Validate onSubmit function
       if (typeof onSubmit !== 'function') {
@@ -181,7 +152,6 @@ const ReportDialog = ({ open, onClose, post, onSubmit }) => {
         throw new Error(result?.data?.message || result?.message || 'Failed to submit report');
       }
     } catch (error) {
-      console.error('Report submission error:', error);
       setError(error.message || t('errorSubmittingReport'));
     } finally {
       clearTimeout(timeoutId);
