@@ -932,7 +932,7 @@ const NewPostForm = ({ user, countries, categories, flOptions }) => {
                   // Select the newly created city after refresh
                   setTimeout(() => {
                     if (formikRef.current) {
-                      formikRef.current.setFieldValue('city', createdCity._id);
+                      formikRef.current.setFieldValue('city', createdCity.id);
                     }
                   }, 200);
                   
