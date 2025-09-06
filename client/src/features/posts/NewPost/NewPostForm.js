@@ -926,32 +926,29 @@ const NewPostForm = ({ user, countries, categories, flOptions }) => {
                   // Create the custom city in the backend
                   const createdCity = await createCustomCity(customCityName.trim(), selectedCountry._id);
                   
-                  // Select the newly created city immediately
                   console.log('Created city:', createdCity);
                   console.log('City ID to select:', createdCity._id);
+                  console.log('FormikRef current:', formikRef.current);
                   
-                  // Set the field value immediately
-                  if (formikRef.current) {
-                    console.log('Setting city field value to:', createdCity._id);
-                    formikRef.current.setFieldValue('city', createdCity._id);
-                    formikRef.current.setFieldTouched('city', true);
-                    console.log('After setFieldValue, current values:', formikRef.current.values);
-                  }
+                  // Close the dialog first
+                  setShowCustomCityInput(false);
+                  setCustomCityName("");
                   
                   // Refresh the cities list to get the newly created city
                   await fetchCitiesByCountry(selectedCountry._id);
                   
-                  // Set the field value again after refresh
+                  // Set the field value after refresh
                   setTimeout(() => {
+                    console.log('Attempting to set field value...');
                     if (formikRef.current) {
-                      console.log('Setting city field value again after refresh:', createdCity._id);
+                      console.log('FormikRef exists, setting city field value to:', createdCity._id);
                       formikRef.current.setFieldValue('city', createdCity._id);
+                      formikRef.current.setFieldTouched('city', true);
+                      console.log('After setFieldValue, current values:', formikRef.current.values);
+                    } else {
+                      console.log('FormikRef is null!');
                     }
-                  }, 200);
-                  
-                  // Close the dialog
-                  setShowCustomCityInput(false);
-                  setCustomCityName("");
+                  }, 1000);
                   
                 } catch (error) {
                   console.error('Error creating custom city:', error);
