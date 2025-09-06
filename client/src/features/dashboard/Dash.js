@@ -602,9 +602,7 @@ const Dash = () => {
           />
 
           {/* Quick Actions */}
-          <Box mb={4}>
-            <QuickActions />
-          </Box>
+          <QuickActions />
 
           {/* Categories Section */}
           <Box mb={4}>
