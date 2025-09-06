@@ -73,7 +73,7 @@ const LoadingFallback = () => (
           objectFit: 'contain',
         }}
       >
-        <source src="/src/animations/loadingLogo.mp4" type="video/mp4" />
+        <source src="/loadingLogo.mp4" type="video/mp4" />
       </video>
     </div>
     <div>Loading...</div>

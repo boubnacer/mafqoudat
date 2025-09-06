@@ -334,7 +334,7 @@ const EditPostForm = ({ post, user, countries, flOptions, categories, cities }) 
               objectFit: 'contain',
             }}
           >
-            <source src="/src/animations/loadingLogo.mp4" type="video/mp4" />
+            <source src="/loadingLogo.mp4" type="video/mp4" />
           </video>
         </Box>
         <Typography>{t('loadingPostData')}</Typography>

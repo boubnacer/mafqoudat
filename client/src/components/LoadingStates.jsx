@@ -179,7 +179,7 @@ export const LoadingState = ({ message = "Loading...", size = "medium" }) => {
             objectFit: 'contain',
           }}
         >
-          <source src="/src/animations/loadingLogo.mp4" type="video/mp4" />
+          <source src="/loadingLogo.mp4" type="video/mp4" />
         </video>
       </Box>
       {message && (
