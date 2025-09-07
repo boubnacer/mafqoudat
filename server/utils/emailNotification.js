@@ -45,9 +45,9 @@ class EmailNotificationService {
   }
 
   createTransporter() {
-    // For Gmail, you might need to use an App Password instead of regular password
+    // Use the exact same configuration that works in tests
     return nodemailer.createTransport({
-      service: this.emailService,
+      service: 'gmail',
       auth: {
         user: this.emailUser,
         pass: this.emailPass
