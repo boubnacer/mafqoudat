@@ -51,21 +51,6 @@ class EmailNotificationService {
       auth: {
         user: this.emailUser,
         pass: this.emailPass
-      },
-      // Add timeout and connection settings for production environments
-      connectionTimeout: 30000, // 30 seconds
-      greetingTimeout: 15000,   // 15 seconds
-      socketTimeout: 30000,     // 30 seconds
-      // Add pool settings for better reliability
-      pool: true,
-      maxConnections: 1,
-      maxMessages: 3,
-      rateDelta: 20000, // 20 seconds
-      rateLimit: 5, // max 5 emails per rateDelta
-      // Add secure connection settings for Railway
-      secure: true,
-      tls: {
-        rejectUnauthorized: false
       }
     });
   }
@@ -212,107 +197,21 @@ Support: ${this.supportEmail}`;
         return { success: false, message: 'Email not configured' };
       }
 
-      // Try multiple SMTP configurations for better reliability
-      const smtpConfigs = [
-        // Configuration 1: Gmail SMTP with port 587 (STARTTLS) - most reliable
-        {
-          host: 'smtp.gmail.com',
-          port: 587,
-          secure: false,
-          auth: {
-            user: this.emailUser,
-            pass: this.emailPass
-          },
-          connectionTimeout: 15000,
-          greetingTimeout: 5000,
-          socketTimeout: 15000,
-          tls: { 
-            rejectUnauthorized: false,
-            ciphers: 'SSLv3'
-          }
-        },
-        // Configuration 2: Gmail SMTP with port 465 (SSL)
-        {
-          host: 'smtp.gmail.com',
-          port: 465,
-          secure: true,
-          auth: {
-            user: this.emailUser,
-            pass: this.emailPass
-          },
-          connectionTimeout: 15000,
-          greetingTimeout: 5000,
-          socketTimeout: 15000,
-          tls: { 
-            rejectUnauthorized: false,
-            ciphers: 'SSLv3'
-          }
-        },
-        // Configuration 3: Standard Gmail service with minimal settings
-        {
-          service: 'gmail',
-          auth: {
-            user: this.emailUser,
-            pass: this.emailPass
-          },
-          connectionTimeout: 10000,
-          greetingTimeout: 5000,
-          socketTimeout: 10000,
-          tls: { rejectUnauthorized: false }
-        },
-        // Configuration 4: Gmail with different TLS settings
-        {
-          host: 'smtp.gmail.com',
-          port: 587,
-          secure: false,
-          auth: {
-            user: this.emailUser,
-            pass: this.emailPass
-          },
-          connectionTimeout: 10000,
-          greetingTimeout: 3000,
-          socketTimeout: 10000,
-          requireTLS: true,
-          tls: { 
-            rejectUnauthorized: false,
-            minVersion: 'TLSv1.2'
-          }
-        }
-      ];
+      const transporter = this.createTransporter();
+      const message = this.formatReportMessage(postData, userData, reportReason);
+      const htmlMessage = this.formatReportHtmlMessage(postData, userData, reportReason);
 
-      let lastError = null;
-      
-      for (let i = 0; i < smtpConfigs.length; i++) {
-        try {
-          console.log(`Trying SMTP configuration ${i + 1}...`);
-          const transporter = nodemailer.createTransport(smtpConfigs[i]);
-          
-          // Skip verification for faster connection
-          const message = this.formatReportMessage(postData, userData, reportReason);
-          const htmlMessage = this.formatReportHtmlMessage(postData, userData, reportReason);
+      const mailOptions = {
+        from: `"Mafqoudat" <${this.emailUser}>`,
+        to: this.adminEmail,
+        subject: '🚨 Post Report - Mafqoudat',
+        text: message,
+        html: htmlMessage
+      };
 
-          const mailOptions = {
-            from: `"Mafqoudat" <${this.emailUser}>`,
-            to: this.adminEmail,
-            subject: '🚨 Post Report - Mafqoudat',
-            text: message,
-            html: htmlMessage
-          };
-
-          const result = await transporter.sendMail(mailOptions);
-          console.log(`Report notification sent successfully with config ${i + 1}:`, result.messageId);
-          return { success: true, data: result };
-          
-        } catch (configError) {
-          console.log(`SMTP configuration ${i + 1} failed:`, configError.message);
-          lastError = configError;
-          continue;
-        }
-      }
-
-      // If all configurations failed
-      console.error('All SMTP configurations failed');
-      return { success: false, error: `All SMTP configurations failed. Last error: ${lastError?.message || 'Unknown error'}` };
+      const result = await transporter.sendMail(mailOptions);
+      console.log('Report notification sent successfully:', result.messageId);
+      return { success: true, data: result };
 
     } catch (error) {
       console.error('Error sending report notification:', error.message);
