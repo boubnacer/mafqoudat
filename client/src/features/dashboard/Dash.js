@@ -653,7 +653,7 @@ const Dash = () => {
             </DashRecents>
           </Box>
 
-          {/* Help & Support Section */}
+          {/*  Help &Support Section */}
           <Box mb={4}>
             <HelpSupportSection />
           </Box>
