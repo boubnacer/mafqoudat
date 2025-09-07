@@ -918,42 +918,40 @@ const submitPostReport = async (req, res) => {
       }
     });
 
-    // Send email notification in background (non-blocking)
-    setImmediate(async () => {
-      try {
-        const emailNotification = require('../utils/emailNotification');
-        const emailResult = await emailNotification.sendReportNotification(emailPostData, user, reason);
-        console.log('Background email notification result:', emailResult);
-        
-        // If email fails, log the report to console for manual review
-        if (!emailResult.success) {
-          console.log('📧 EMAIL FAILED - REPORT DATA FOR MANUAL REVIEW:');
-          console.log('Post ID:', emailPostData._id);
-          console.log('Reported by:', user.username || 'Anonymous');
-          console.log('Reason:', reason);
-          console.log('Post Details:', {
-            category: emailPostData.category,
-            country: emailPostData.country,
-            city: emailPostData.city,
-            exactLocation: emailPostData.exactLocation,
-            contact: emailPostData.contact
-          });
-          console.log('Timestamp:', new Date().toISOString());
-          console.log('--- END REPORT DATA ---');
-        }
-      } catch (emailError) {
-        console.error('Background email notification failed:', emailError);
-        
-        // Log report data for manual review
-        console.log('📧 EMAIL ERROR - REPORT DATA FOR MANUAL REVIEW:');
+    // Send email notification (synchronous like promotion emails)
+    try {
+      const emailNotification = require('../utils/emailNotification');
+      const emailResult = await emailNotification.sendReportNotification(emailPostData, user, reason);
+      console.log('Email notification result:', emailResult);
+      
+      // If email fails, log the report to console for manual review
+      if (!emailResult.success) {
+        console.log('📧 EMAIL FAILED - REPORT DATA FOR MANUAL REVIEW:');
         console.log('Post ID:', emailPostData._id);
         console.log('Reported by:', user.username || 'Anonymous');
         console.log('Reason:', reason);
-        console.log('Error:', emailError.message);
+        console.log('Post Details:', {
+          category: emailPostData.category,
+          country: emailPostData.country,
+          city: emailPostData.city,
+          exactLocation: emailPostData.exactLocation,
+          contact: emailPostData.contact
+        });
         console.log('Timestamp:', new Date().toISOString());
         console.log('--- END REPORT DATA ---');
       }
-    });
+    } catch (emailError) {
+      console.error('Email notification failed:', emailError);
+      
+      // Log report data for manual review
+      console.log('📧 EMAIL ERROR - REPORT DATA FOR MANUAL REVIEW:');
+      console.log('Post ID:', emailPostData._id);
+      console.log('Reported by:', user.username || 'Anonymous');
+      console.log('Reason:', reason);
+      console.log('Error:', emailError.message);
+      console.log('Timestamp:', new Date().toISOString());
+      console.log('--- END REPORT DATA ---');
+    }
 
   } catch (error) {
     console.error('Error submitting report:', error);
