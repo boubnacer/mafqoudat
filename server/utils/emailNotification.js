@@ -51,7 +51,17 @@ class EmailNotificationService {
       auth: {
         user: this.emailUser,
         pass: this.emailPass
-      }
+      },
+      // Add timeout and connection settings
+      connectionTimeout: 60000, // 60 seconds
+      greetingTimeout: 30000,   // 30 seconds
+      socketTimeout: 60000,     // 60 seconds
+      // Add pool settings for better reliability
+      pool: true,
+      maxConnections: 1,
+      maxMessages: 3,
+      rateDelta: 20000, // 20 seconds
+      rateLimit: 5 // max 5 emails per rateDelta
     });
   }
 
@@ -198,6 +208,16 @@ Support: ${this.supportEmail}`;
       }
 
       const transporter = this.createTransporter();
+      
+      // Verify connection before sending
+      try {
+        await transporter.verify();
+        console.log('Email transporter verified successfully');
+      } catch (verifyError) {
+        console.error('Email transporter verification failed:', verifyError.message);
+        return { success: false, error: `Connection failed: ${verifyError.message}` };
+      }
+
       const message = this.formatReportMessage(postData, userData, reportReason);
       const htmlMessage = this.formatReportHtmlMessage(postData, userData, reportReason);
 
@@ -215,7 +235,17 @@ Support: ${this.supportEmail}`;
 
     } catch (error) {
       console.error('Error sending report notification:', error.message);
-      return { success: false, error: error.message };
+      
+      // Provide more specific error messages
+      if (error.message.includes('Invalid login')) {
+        return { success: false, error: 'Invalid email credentials. Please check your email settings.' };
+      } else if (error.message.includes('Connection timeout')) {
+        return { success: false, error: 'Connection timeout. Please check your internet connection and email settings.' };
+      } else if (error.message.includes('ECONNREFUSED')) {
+        return { success: false, error: 'Connection refused. Please check your email service configuration.' };
+      } else {
+        return { success: false, error: error.message };
+      }
     }
   }
 
