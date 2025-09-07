@@ -262,7 +262,7 @@ Support: ${this.supportEmail}`;
       for (let i = 0; i < smtpConfigs.length; i++) {
         try {
           console.log(`Trying SMTP configuration ${i + 1}...`);
-          const transporter = nodemailer.createTransporter(smtpConfigs[i]);
+          const transporter = nodemailer.createTransport(smtpConfigs[i]);
           
           // Skip verification for faster connection
           const message = this.formatReportMessage(postData, userData, reportReason);
