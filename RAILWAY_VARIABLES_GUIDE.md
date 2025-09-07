@@ -36,6 +36,7 @@ Click **"New Variable"** and add each one:
 | `EMAIL_SERVICE` | `gmail` |
 | `EMAIL_USER` | `boubkraoui.nacer@gmail.com` |
 | `EMAIL_PASS` | `jzrodckhboljxcud` |
+| `CLIENT_URL` | `https://mafqoudat.com` |
 
 ### 4. **Important Notes**
 
