@@ -31,6 +31,11 @@ Click **"New Variable"** and add each one:
 | `CLOUDINARY_API_KEY` | `593667419254217` |
 | `CLOUDINARY_API_SECRET` | `HyNgn7OcNYUAFIENfnDVvbqQnis` |
 | `CLOUDINARY_UPLOAD_PRESET` | `mafqoudat` |
+| `ADMIN_EMAIL` | `boubkraoui.nacer@gmail.com` |
+| `SUPPORT_EMAIL` | `boubkraoui.nacer@gmail.com` |
+| `EMAIL_SERVICE` | `gmail` |
+| `EMAIL_USER` | `boubkraoui.nacer@gmail.com` |
+| `EMAIL_PASS` | `jzrodckhboljxcud` |
 
 ### 4. **Important Notes**
 
