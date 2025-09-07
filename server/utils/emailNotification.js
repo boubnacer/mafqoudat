@@ -214,20 +214,7 @@ Support: ${this.supportEmail}`;
 
       // Try multiple SMTP configurations for better reliability
       const smtpConfigs = [
-        // Configuration 1: Standard Gmail SMTP
-        {
-          service: 'gmail',
-          auth: {
-            user: this.emailUser,
-            pass: this.emailPass
-          },
-          connectionTimeout: 30000,
-          greetingTimeout: 15000,
-          socketTimeout: 30000,
-          secure: true,
-          tls: { rejectUnauthorized: false }
-        },
-        // Configuration 2: Alternative Gmail SMTP with different settings
+        // Configuration 1: Gmail SMTP with port 587 (STARTTLS) - most reliable
         {
           host: 'smtp.gmail.com',
           port: 587,
@@ -236,12 +223,15 @@ Support: ${this.supportEmail}`;
             user: this.emailUser,
             pass: this.emailPass
           },
-          connectionTimeout: 20000,
-          greetingTimeout: 10000,
-          socketTimeout: 20000,
-          tls: { rejectUnauthorized: false }
+          connectionTimeout: 15000,
+          greetingTimeout: 5000,
+          socketTimeout: 15000,
+          tls: { 
+            rejectUnauthorized: false,
+            ciphers: 'SSLv3'
+          }
         },
-        // Configuration 3: Gmail SMTP with port 465
+        // Configuration 2: Gmail SMTP with port 465 (SSL)
         {
           host: 'smtp.gmail.com',
           port: 465,
@@ -250,10 +240,43 @@ Support: ${this.supportEmail}`;
             user: this.emailUser,
             pass: this.emailPass
           },
-          connectionTimeout: 20000,
-          greetingTimeout: 10000,
-          socketTimeout: 20000,
+          connectionTimeout: 15000,
+          greetingTimeout: 5000,
+          socketTimeout: 15000,
+          tls: { 
+            rejectUnauthorized: false,
+            ciphers: 'SSLv3'
+          }
+        },
+        // Configuration 3: Standard Gmail service with minimal settings
+        {
+          service: 'gmail',
+          auth: {
+            user: this.emailUser,
+            pass: this.emailPass
+          },
+          connectionTimeout: 10000,
+          greetingTimeout: 5000,
+          socketTimeout: 10000,
           tls: { rejectUnauthorized: false }
+        },
+        // Configuration 4: Gmail with different TLS settings
+        {
+          host: 'smtp.gmail.com',
+          port: 587,
+          secure: false,
+          auth: {
+            user: this.emailUser,
+            pass: this.emailPass
+          },
+          connectionTimeout: 10000,
+          greetingTimeout: 3000,
+          socketTimeout: 10000,
+          requireTLS: true,
+          tls: { 
+            rejectUnauthorized: false,
+            minVersion: 'TLSv1.2'
+          }
         }
       ];
 
