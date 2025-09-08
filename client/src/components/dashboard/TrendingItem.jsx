@@ -310,7 +310,7 @@ const TrendingItem = ({ trend, isLoading }) => {
                 gap: 0.5,
                 backdropFilter: 'blur(10px)',
                 border: `1px solid ${theme.palette.mode === 'dark' ? alpha(categoryStyle.main, 0.4) : categoryStyle.main}`,
-                zIndex: 10,
+                zIndex: 20,
                 position: 'relative',
                 boxShadow: `0 2px 8px ${alpha(categoryStyle.main, 0.2)}`
               }}

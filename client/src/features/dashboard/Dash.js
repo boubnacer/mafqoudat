@@ -163,31 +163,6 @@ const Dash = () => {
         />
       </Box> */}
 
-      {/* Mobile Trending Title - Only visible on mobile */}
-      <Box
-        sx={{
-          display: { xs: 'block', sm: 'none' },
-          m: { xs: "0 1rem" },
-          mb: 2,
-          textAlign: 'center'
-        }}
-      >
-        <Typography
-          variant="h5"
-          fontWeight="700"
-          sx={{
-            fontSize: "1.5rem",
-            background: "linear-gradient(45deg, #2196F3 30%, #21CBF3 90%)",
-            WebkitBackgroundClip: "text",
-            WebkitTextFillColor: "transparent",
-            backgroundClip: "text",
-            direction: currentLanguage === 'ar' ? 'rtl' : 'ltr'
-          }}
-        >
-          {t('trendingItemDescription')}
-        </Typography>
-      </Box>
-
       {/* Header Section with Stats and Trending */}
       <Box
         m={{ xs: "0 1rem", sm: "0 2rem" }}
@@ -209,25 +184,54 @@ const Dash = () => {
           foundsToday={data?.createdToday?.todaysFoundPosts}
           lostsToday={data?.createdToday?.todaysLostPosts}
         />
-        {isLoading ? (
-          <Skeleton variant="rounded" width={210} height={60} />
-        ) : trend ? (
-          <TrendingItem trend={trend} isLoading={isLoading} />
-        ) : (
-          <Box 
-            sx={{ 
-              p: 3, 
-              textAlign: 'center',
-              backgroundColor: theme.palette.mode === 'dark' ? 'rgba(255,255,255,0.05)' : 'rgba(0,0,0,0.02)',
-              borderRadius: 2,
-              border: `1px dashed ${theme.palette.mode === 'dark' ? 'rgba(255,255,255,0.1)' : 'rgba(0,0,0,0.1)'}`
+        
+        {/* Trending Section with Mobile Title Container */}
+        <Box sx={{ flex: 1 }}>
+          {/* Mobile Trending Title - Only visible on mobile, above TrendingItem */}
+          <Box
+            sx={{
+              display: { xs: 'block', sm: 'none' },
+              mb: 2,
+              textAlign: 'center'
             }}
           >
-            <Typography variant="body2" color="text.secondary">
-              {t('noTrendingItems')}
+            <Typography
+              variant="h5"
+              fontWeight="700"
+              sx={{
+                fontSize: "1.5rem",
+                background: "linear-gradient(45deg, #2196F3 30%, #21CBF3 90%)",
+                WebkitBackgroundClip: "text",
+                WebkitTextFillColor: "transparent",
+                backgroundClip: "text",
+                direction: currentLanguage === 'ar' ? 'rtl' : 'ltr'
+              }}
+            >
+              {t('trendingItemDescription')}
             </Typography>
           </Box>
-        )}
+          
+          {/* TrendingItem Container */}
+          {isLoading ? (
+            <Skeleton variant="rounded" width={210} height={60} />
+          ) : trend ? (
+            <TrendingItem trend={trend} isLoading={isLoading} />
+          ) : (
+            <Box 
+              sx={{ 
+                p: 3, 
+                textAlign: 'center',
+                backgroundColor: theme.palette.mode === 'dark' ? 'rgba(255,255,255,0.05)' : 'rgba(0,0,0,0.02)',
+                borderRadius: 2,
+                border: `1px dashed ${theme.palette.mode === 'dark' ? 'rgba(255,255,255,0.1)' : 'rgba(0,0,0,0.1)'}`
+              }}
+            >
+              <Typography variant="body2" color="text.secondary">
+                {t('noTrendingItems')}
+              </Typography>
+            </Box>
+          )}
+        </Box>
       </Box>
 
       {/* Show empty state if no posts, but still show stats above */}
