@@ -229,7 +229,7 @@ const CreatePostButton = styled(Button)(({ theme }) => ({
 }));
 
 const Navbar = () => {
-  const { country, username } = useAuth();
+  const { country, username, role } = useAuth();
   const user = { username };
   const theme = useTheme();
   const dispatch = useDispatch();
