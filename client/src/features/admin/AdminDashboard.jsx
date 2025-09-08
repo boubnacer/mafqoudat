@@ -146,20 +146,35 @@ const AdminDashboard = () => {
   };
 
   const handleDeletePost = async (postId) => {
+    if (!postId) {
+      console.error('No post ID provided for deletion');
+      return;
+    }
+
     if (window.confirm(t('confirmDeletePost'))) {
       try {
-        await deletePost(postId).unwrap();
+        console.log('Attempting to delete post:', postId);
+        const result = await deletePost(postId).unwrap();
+        console.log('Post deleted successfully:', result);
+        
+        // Close dialogs and clear selections
         setReportDialogOpen(false);
         setPromotionDialogOpen(false);
         setSelectedReport(null);
         setSelectedPromotion(null);
+        
+        // Show success message (you could add a toast notification here)
+        alert(t('postDeletedSuccessfully'));
       } catch (error) {
         console.error('Error deleting post:', error);
+        alert(t('errorDeletingPost') + ': ' + (error.data?.message || error.message || 'Unknown error'));
       }
     }
   };
 
   const openReportDialog = (report) => {
+    console.log('Opening report dialog with data:', report);
+    console.log('Report postId:', report.postId);
     setSelectedReport(report);
     setReportDialogOpen(true);
   };
@@ -653,7 +668,13 @@ const AdminDashboard = () => {
             {t('cancel')}
           </Button>
           <Button
-            onClick={() => handleDeletePost(selectedReport.postId?._id)}
+            onClick={() => {
+              console.log('Delete button clicked for report');
+              console.log('selectedReport:', selectedReport);
+              console.log('selectedReport.postId:', selectedReport.postId);
+              console.log('selectedReport.postId._id:', selectedReport.postId?._id);
+              handleDeletePost(selectedReport.postId?._id);
+            }}
             color="error"
             variant="outlined"
             disabled={deletingPost}
