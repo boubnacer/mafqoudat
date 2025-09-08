@@ -146,22 +146,13 @@ const AdminDashboard = () => {
   };
 
   const handleDeletePost = async (postId) => {
-    console.log('handleDeletePost called with postId:', postId);
-    console.log('postId type:', typeof postId);
-    console.log('postId length:', postId?.length);
-    
     if (!postId) {
-      console.error('No post ID provided for deletion');
       return;
     }
 
     if (window.confirm(t('confirmDeletePost'))) {
       try {
-        console.log('Attempting to delete post:', postId);
-        console.log('About to call deletePost mutation...');
-        
         const result = await deletePost(postId).unwrap();
-        console.log('Post deleted successfully:', result);
         
         // Close dialogs and clear selections
         setReportDialogOpen(false);
@@ -172,16 +163,12 @@ const AdminDashboard = () => {
         // Show success message (you could add a toast notification here)
         alert(t('postDeletedSuccessfully'));
       } catch (error) {
-        console.error('Error deleting post:', error);
-        console.error('Error details:', error);
         alert(t('errorDeletingPost') + ': ' + (error.data?.message || error.message || 'Unknown error'));
       }
     }
   };
 
   const openReportDialog = (report) => {
-    console.log('Opening report dialog with data:', report);
-    console.log('Report postId:', report.postId);
     setSelectedReport(report);
     setReportDialogOpen(true);
   };
@@ -676,14 +663,8 @@ const AdminDashboard = () => {
           </Button>
           <Button
             onClick={() => {
-              console.log('Delete button clicked for report');
-              console.log('selectedReport:', selectedReport);
-              console.log('selectedReport.postId:', selectedReport.postId);
-              
               // Handle both cases: postId as string or as populated object
               const postId = selectedReport.postId?._id || selectedReport.postId;
-              console.log('Extracted postId:', postId);
-              
               handleDeletePost(postId);
             }}
             color="error"

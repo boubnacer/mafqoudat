@@ -64,10 +64,6 @@ export const adminApiSlice = apiSlice.injectEndpoints({
     // Delete a post
     deletePostAdmin: builder.mutation({
       query: (postId) => {
-        console.log('API deletePostAdmin called with postId:', postId);
-        console.log('postId type:', typeof postId);
-        console.log('postId value:', postId);
-        
         if (!postId) {
           throw new Error('Post ID is required for deletion');
         }

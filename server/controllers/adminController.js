@@ -295,10 +295,6 @@ const deletePost = async (req, res) => {
     const { id } = req.params;
     const adminId = req.user;
 
-    console.log('Admin deletePost - Post ID:', id);
-    console.log('Admin deletePost - Admin ID:', adminId);
-    console.log('Admin deletePost - req.params:', req.params);
-
     // Validate post ID
     if (!id) {
       return res.status(400).json({
