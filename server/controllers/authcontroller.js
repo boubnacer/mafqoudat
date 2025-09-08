@@ -19,7 +19,7 @@ const login = async (req, res) => {
       { email: emailOrPhone.toLowerCase() },
       { phone: emailOrPhone }
     ]
-  }).select('_id username password country').exec();
+  }).select('_id username password country role').exec();
 
   if (!foundUser) {
     return res.status(401).json({ message: "User does not exist" });
@@ -37,6 +37,7 @@ const login = async (req, res) => {
         username: foundUser.username,
         usernameId: foundUser.id,
         country: foundUser.country,
+        role: foundUser.role,
       },
     },
             process.env.JWT_SECRET,
@@ -79,7 +80,7 @@ const refresh = (req, res) => {
 
       const foundUser = await User.findOne({
         username: decoded.username,
-      }).select('_id username country').exec();
+      }).select('_id username country role').exec();
 
       if (!foundUser) return res.status(401).json({ message: "Unauthorized" });
       // verify the userInfo country !!!!!!!!!!
@@ -89,6 +90,7 @@ const refresh = (req, res) => {
             username: foundUser.username,
             usernameId: foundUser.id,
             country: foundUser.country,
+            role: foundUser.role,
           },
         },
         process.env.JWT_SECRET,

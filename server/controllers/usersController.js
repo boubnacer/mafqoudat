@@ -122,6 +122,7 @@ const createNewUser = async (req, res) => {
         username: user.username,
         usernameId: user.id,
         country: user.country,
+        role: user.role,
       },
     },
             process.env.JWT_SECRET,
