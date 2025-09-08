@@ -302,17 +302,14 @@ const TrendingItem = ({ trend, isLoading }) => {
             {/* Category Badge */}
             <Box
               sx={{
-                backgroundColor: theme.palette.mode === 'dark' ? alpha(categoryStyle.main, 0.25) : categoryStyle.background,
+                backgroundColor: theme.palette.mode === 'dark' ? alpha(categoryStyle.main, 0.2) : categoryStyle.background,
                 padding: { xs: '4px 8px', sm: '6px 12px' },
                 borderRadius: '12px',
                 display: 'flex',
                 alignItems: 'center',
                 gap: 0.5,
                 backdropFilter: 'blur(10px)',
-                border: `1px solid ${theme.palette.mode === 'dark' ? alpha(categoryStyle.main, 0.4) : categoryStyle.main}`,
-                zIndex: 20,
-                position: 'relative',
-                boxShadow: `0 2px 8px ${alpha(categoryStyle.main, 0.2)}`
+                border: `1px solid ${theme.palette.mode === 'dark' ? alpha(categoryStyle.main, 0.3) : categoryStyle.main}`,
               }}
             >
               <RenderIcon name={`${categoryname?.toLowerCase()}cate`} sx={{ fontSize: { xs: '16px', sm: '18px' }, color: categoryStyle.main }} />
