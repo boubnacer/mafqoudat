@@ -63,10 +63,20 @@ export const adminApiSlice = apiSlice.injectEndpoints({
 
     // Delete a post
     deletePost: builder.mutation({
-      query: (postId) => ({
-        url: `/admin/posts/${postId}`,
-        method: 'DELETE',
-      }),
+      query: (postId) => {
+        console.log('API deletePost called with postId:', postId);
+        console.log('postId type:', typeof postId);
+        console.log('postId value:', postId);
+        
+        if (!postId) {
+          throw new Error('Post ID is required for deletion');
+        }
+        
+        return {
+          url: `/admin/posts/${postId}`,
+          method: 'DELETE',
+        };
+      },
       invalidatesTags: ['Reports', 'Promotions', 'AdminDashboard'],
     }),
   }),

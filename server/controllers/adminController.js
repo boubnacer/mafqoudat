@@ -28,7 +28,7 @@ const getAllReports = async (req, res) => {
 
     // Get reports with populated data
     const reports = await Report.find(filter)
-      .populate('postId', 'title description exactLocation contact createdAt status')
+      .populate('postId', '_id title description exactLocation contact createdAt status')
       .populate('reportedBy', 'username')
       .populate('reviewedBy', 'username')
       .sort({ [sortBy]: sortOrder })
