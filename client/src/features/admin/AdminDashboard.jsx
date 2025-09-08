@@ -55,7 +55,7 @@ import {
   useGetPromotionsQuery,
   useUpdateReportStatusMutation,
   useUpdatePromotionStatusMutation,
-  useDeletePostMutation,
+  useDeletePostAdminMutation,
 } from './adminApiSlice';
 
 const AdminDashboard = () => {
@@ -92,7 +92,7 @@ const AdminDashboard = () => {
   // Mutations
   const [updateReportStatus, { isLoading: updatingReport }] = useUpdateReportStatusMutation();
   const [updatePromotionStatus, { isLoading: updatingPromotion }] = useUpdatePromotionStatusMutation();
-  const [deletePost, { isLoading: deletingPost }] = useDeletePostMutation();
+  const [deletePost, { isLoading: deletingPost }] = useDeletePostAdminMutation();
 
   // Handlers
   const handleTabChange = (event, newValue) => {

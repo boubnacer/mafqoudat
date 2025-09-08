@@ -62,9 +62,9 @@ export const adminApiSlice = apiSlice.injectEndpoints({
     }),
 
     // Delete a post
-    deletePost: builder.mutation({
+    deletePostAdmin: builder.mutation({
       query: (postId) => {
-        console.log('API deletePost called with postId:', postId);
+        console.log('API deletePostAdmin called with postId:', postId);
         console.log('postId type:', typeof postId);
         console.log('postId value:', postId);
         
@@ -88,5 +88,5 @@ export const {
   useGetPromotionsQuery,
   useUpdateReportStatusMutation,
   useUpdatePromotionStatusMutation,
-  useDeletePostMutation,
+  useDeletePostAdminMutation,
 } = adminApiSlice;
