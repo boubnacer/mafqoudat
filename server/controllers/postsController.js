@@ -4,6 +4,7 @@ const Country = require("../models/Country");
 const Category = require("../models/Category");
 const FoundLost = require("../models/FoundLost");
 const City = require("../models/City");
+const Report = require("../models/Report");
 const { deleteFromCloudinary } = require("../config/cloudinary");
 const mongoose = require("mongoose");
 const TranslationService = require("../services/translationService");
@@ -836,14 +837,14 @@ const createNewPost = async (req, res) => {
 // @access Public (no authentication required)
 const submitPostReport = async (req, res) => {
   try {
-    const { postId, reason, userId } = req.body;
+    const { postId, reason, reasonType, userId } = req.body;
     
     // Debug: Check request data
     console.log('Report submission - req.body:', req.body);
     console.log('Report submission - req.headers:', req.headers);
     
     // For authenticated reports, we'll use the authenticated user's ID
-    const reportingUserId = req.user || userId || 'anonymous';
+    const reportingUserId = req.user || userId || null;
 
     // Validate required fields
     if (!postId || !reason) {
@@ -904,6 +905,31 @@ const submitPostReport = async (req, res) => {
         username: 'Anonymous User',
         email: 'anonymous@mafqoudat.com'
       };
+    }
+
+    // Save report to database
+    try {
+      const reportData = {
+        postId: post._id,
+        reportedBy: reportingUserId,
+        reason: reason,
+        reasonType: reasonType || 'other',
+        postData: {
+          userId: post.user._id,
+          category: emailPostData.category,
+          country: emailPostData.country,
+          city: emailPostData.city,
+          exactLocation: emailPostData.exactLocation,
+          contact: emailPostData.contact,
+          createdAt: emailPostData.createdAt,
+        },
+      };
+
+      const savedReport = await Report.create(reportData);
+      console.log('Report saved to database:', savedReport._id);
+    } catch (dbError) {
+      console.error('Error saving report to database:', dbError);
+      // Continue with email notification even if database save fails
     }
 
     // Return success response immediately - don't wait for email

@@ -108,6 +108,7 @@ app.use("/dependencies", require("./routes/dependenciesRoutes"));
 app.use("/cities-api", require("./routes/citiesRoutes"));
 
 app.use("/promotion", require("./routes/promotionRoutes"));
+app.use("/admin", require("./routes/adminRoutes"));
 
 // Cache management routes
 app.get("/cache/stats", require("./middleware/cacheMiddleware").cacheStatsMiddleware);

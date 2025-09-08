@@ -39,6 +39,7 @@ const SinglePost = lazy(() => import("./features/posts/PostPage/SinglePost"));
 // Lazy load dashboard components
 const Dash = lazy(() => import("./features/dashboard/Dash"));
 const DependenciesManager = lazy(() => import("./features/MANAGER/Dependencies/DependenciesManager"));
+const AdminDashboard = lazy(() => import("./features/admin/AdminDashboard"));
 
 // Enhanced loading component for lazy-loaded routes
 const LoadingFallback = () => (
@@ -232,6 +233,11 @@ const AppContent = () => {
               <Route path="dependencies" element={
                 <Suspense fallback={<LoadingFallback />}>
                   <DependenciesManager />
+                </Suspense>
+              } />
+              <Route path="admin" element={
+                <Suspense fallback={<LoadingFallback />}>
+                  <AdminDashboard />
                 </Suspense>
               } />
             </Route>

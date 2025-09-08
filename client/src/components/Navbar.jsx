@@ -28,6 +28,7 @@ import {
   Explore,
   Dashboard,
   PostAdd,
+  AdminPanelSettings,
 } from "@mui/icons-material";
 import FlexBetween from "./FlexBetween";
 import {
@@ -385,6 +386,16 @@ const Navbar = () => {
       description: t(`view${option.code}Items`)
     })) || [])
   ];
+
+  // Add admin button if user is admin
+  if (isAuthenticated && role === 'admin') {
+    navigationItems.push({
+      title: t('adminPanel'),
+      icon: <AdminPanelSettings sx={{ fontSize: 20, color: theme.palette.error.main }} />,
+      action: () => navigate('/dash/admin'),
+      description: t('adminPanelDescription')
+    });
+  }
 
   return (
     <AppBar
