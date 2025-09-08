@@ -672,8 +672,12 @@ const AdminDashboard = () => {
               console.log('Delete button clicked for report');
               console.log('selectedReport:', selectedReport);
               console.log('selectedReport.postId:', selectedReport.postId);
-              console.log('selectedReport.postId._id:', selectedReport.postId?._id);
-              handleDeletePost(selectedReport.postId?._id);
+              
+              // Handle both cases: postId as string or as populated object
+              const postId = selectedReport.postId?._id || selectedReport.postId;
+              console.log('Extracted postId:', postId);
+              
+              handleDeletePost(postId);
             }}
             color="error"
             variant="outlined"

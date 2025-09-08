@@ -297,6 +297,15 @@ const deletePost = async (req, res) => {
 
     console.log('Admin deletePost - Post ID:', id);
     console.log('Admin deletePost - Admin ID:', adminId);
+    console.log('Admin deletePost - req.params:', req.params);
+
+    // Validate post ID
+    if (!id) {
+      return res.status(400).json({
+        success: false,
+        message: "Post ID required",
+      });
+    }
 
     // Find the post
     const post = await Post.findById(id)
