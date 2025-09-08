@@ -289,35 +289,6 @@ const TrendingItem = ({ trend, isLoading }) => {
             p: { xs: 2, sm: 2.5 }
           }}
         >
-          {/* Mobile Title Section - Only visible on mobile */}
-          <Box
-            sx={{
-              display: { xs: 'block', sm: 'none' },
-              mb: 2,
-              textAlign: 'center'
-            }}
-          >
-            <Typography
-              variant="h6"
-              sx={{
-                color: 'rgba(255,255,255,0.95)',
-                fontSize: '1.1rem',
-                textAlign: 'center',
-                textShadow: '2px 2px 4px rgba(0,0,0,0.7)',
-                fontWeight: 600,
-                lineHeight: 1.4,
-                letterSpacing: '0.3px',
-                background: 'linear-gradient(135deg, rgba(255,255,255,0.15) 0%, rgba(255,255,255,0.08) 100%)',
-                padding: '12px 18px',
-                borderRadius: '16px',
-                backdropFilter: 'blur(15px)',
-                border: '1px solid rgba(255,255,255,0.2)',
-                boxShadow: '0 4px 20px rgba(0,0,0,0.3)'
-              }}
-            >
-              {t('trendingItemDescription')}
-            </Typography>
-          </Box>
 
           {/* Top Section - Badges */}
           <Box
@@ -331,27 +302,26 @@ const TrendingItem = ({ trend, isLoading }) => {
             {/* Category Badge */}
             <Box
               sx={{
-                backgroundColor: theme.palette.mode === 'dark' ? categoryStyle.main : categoryStyle.background,
-                padding: { xs: '6px 10px', sm: '8px 14px' },
+                backgroundColor: theme.palette.mode === 'dark' ? alpha(categoryStyle.main, 0.25) : categoryStyle.background,
+                padding: { xs: '4px 8px', sm: '6px 12px' },
                 borderRadius: '12px',
                 display: 'flex',
                 alignItems: 'center',
                 gap: 0.5,
                 backdropFilter: 'blur(10px)',
-                border: `2px solid ${categoryStyle.main}`,
-                boxShadow: `0 4px 12px ${alpha(categoryStyle.main, 0.3)}`,
+                border: `1px solid ${theme.palette.mode === 'dark' ? alpha(categoryStyle.main, 0.4) : categoryStyle.main}`,
                 zIndex: 10,
-                position: 'relative'
+                position: 'relative',
+                boxShadow: `0 2px 8px ${alpha(categoryStyle.main, 0.2)}`
               }}
             >
-                              <RenderIcon name={`${categoryname?.toLowerCase()}cate`} sx={{ fontSize: { xs: '16px', sm: '18px' }, color: theme.palette.mode === 'dark' ? '#fff' : categoryStyle.main }} />
+              <RenderIcon name={`${categoryname?.toLowerCase()}cate`} sx={{ fontSize: { xs: '16px', sm: '18px' }, color: categoryStyle.main }} />
               <Typography
                 sx={{
-                  color: theme.palette.mode === 'dark' ? '#fff' : categoryStyle.main,
-                  fontSize: { xs: '13px', sm: '15px' },
-                  fontWeight: 700,
+                  color: categoryStyle.main,
+                  fontSize: { xs: '12px', sm: '14px' },
+                  fontWeight: 600,
                   lineHeight: 1,
-                  textShadow: theme.palette.mode === 'dark' ? '0 1px 2px rgba(0,0,0,0.8)' : 'none'
                 }}
               >
                 {categoryDisplayName}

@@ -163,6 +163,31 @@ const Dash = () => {
         />
       </Box> */}
 
+      {/* Mobile Trending Title - Only visible on mobile */}
+      <Box
+        sx={{
+          display: { xs: 'block', sm: 'none' },
+          m: { xs: "0 1rem" },
+          mb: 2,
+          textAlign: 'center'
+        }}
+      >
+        <Typography
+          variant="h5"
+          fontWeight="700"
+          sx={{
+            fontSize: "1.5rem",
+            background: "linear-gradient(45deg, #2196F3 30%, #21CBF3 90%)",
+            WebkitBackgroundClip: "text",
+            WebkitTextFillColor: "transparent",
+            backgroundClip: "text",
+            direction: currentLanguage === 'ar' ? 'rtl' : 'ltr'
+          }}
+        >
+          {t('trendingItemDescription')}
+        </Typography>
+      </Box>
+
       {/* Header Section with Stats and Trending */}
       <Box
         m={{ xs: "0 1rem", sm: "0 2rem" }}
