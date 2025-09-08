@@ -361,43 +361,35 @@ const TrendingItem = ({ trend, isLoading }) => {
             />
           </Box>
 
-          {/* Middle Section - Spacer for better layout */}
-          <Box sx={{ flex: 1 }} />
+          {/* Middle Section - Main Content - Optimized for better image visibility */}
+          <Box sx={{ flex: 1, display: 'flex', flexDirection: 'column', justifyContent: 'center', alignItems: 'center' }}>
+            {/* Single optimized description text */}
+            <Typography
+              variant="h6"
+              sx={{
+                color: 'rgba(255,255,255,0.95)',
+                fontSize: { xs: '1rem', sm: '1.1rem', md: '1.2rem' },
+                textAlign: 'center',
+                textShadow: '2px 2px 4px rgba(0,0,0,0.7)',
+                fontWeight: 500,
+                lineHeight: 1.4,
+                letterSpacing: '0.3px',
+                background: 'linear-gradient(135deg, rgba(255,255,255,0.15) 0%, rgba(255,255,255,0.08) 100%)',
+                padding: { xs: '10px 14px', sm: '12px 18px' },
+                borderRadius: '16px',
+                backdropFilter: 'blur(15px)',
+                border: '1px solid rgba(255,255,255,0.2)',
+                maxWidth: '85%',
+                mx: 'auto',
+                boxShadow: '0 4px 20px rgba(0,0,0,0.3)'
+              }}
+            >
+              {t('trendingItemDescription')}
+            </Typography>
+          </Box>
 
           {/* Bottom Section - Info and Action */}
           <Box>
-            {/* Desktop Title Section - Only visible on desktop, above date */}
-            <Box
-              sx={{
-                display: { xs: 'none', sm: 'block' },
-                mb: 2,
-                textAlign: 'center'
-              }}
-            >
-              <Typography
-                variant="h6"
-                sx={{
-                  color: 'rgba(255,255,255,0.95)',
-                  fontSize: '1.1rem',
-                  textAlign: 'center',
-                  textShadow: '2px 2px 4px rgba(0,0,0,0.7)',
-                  fontWeight: 600,
-                  lineHeight: 1.4,
-                  letterSpacing: '0.3px',
-                  background: 'linear-gradient(135deg, rgba(255,255,255,0.15) 0%, rgba(255,255,255,0.08) 100%)',
-                  padding: '10px 16px',
-                  borderRadius: '14px',
-                  backdropFilter: 'blur(15px)',
-                  border: '1px solid rgba(255,255,255,0.2)',
-                  boxShadow: '0 4px 20px rgba(0,0,0,0.3)',
-                  maxWidth: '90%',
-                  mx: 'auto'
-                }}
-              >
-                {t('trendingItemDescription')}
-              </Typography>
-            </Box>
-
             {/* Info Row */}
             <Box
               sx={{
