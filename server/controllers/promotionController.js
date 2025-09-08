@@ -3,7 +3,6 @@ const Post = require("../models/Post");
 const FoundLost = require("../models/FoundLost");
 const Category = require("../models/Category");
 const Country = require("../models/Country");
-const emailNotification = require("../utils/emailNotification");
 
 // @desc Request promotion for a lost item
 // @route POST /promotion/request
@@ -45,31 +44,6 @@ const requestPromotion = async (req, res) => {
       return res.status(404).json({ message: "User not found" });
     }
 
-    // Prepare notification data with resolved names for new structure
-    const notificationData = {
-      postId: post._id,
-      contact: userContact || post.contact,
-      category: post.category?.labels?.en || post.category?.code || 'Unknown Category',
-      region: post.region || 'Unknown',
-      city: post.city?.labels?.en || post.city || 'Unknown',
-      country: post.country?.labels?.en || post.country?.names?.en || post.country?.code || 'Unknown Country',
-      foundLost: post.foundLost.code,
-      itemDescription: itemDescription || 'No additional description provided',
-      postLink: `${process.env.CLIENT_URL || 'http://localhost:3000'}/dash/posts/${post._id}`
-    };
-
-    console.log('Promotion notification data prepared:', notificationData);
-
-    // Try to send email notification, but don't fail if it doesn't work
-    let notificationResult = { success: false, message: 'Email not configured' };
-    try {
-      console.log('Attempting to send email notification with data:', notificationData);
-      notificationResult = await emailNotification.sendNotification(notificationData, user);
-      console.log('Email notification result:', notificationResult);
-    } catch (emailError) {
-      console.error('Email notification failed:', emailError);
-      notificationResult = { success: false, error: emailError.message };
-    }
 
     // Update post to mark promotion requested
     await Post.findByIdAndUpdate(postId, {
@@ -77,12 +51,10 @@ const requestPromotion = async (req, res) => {
       promotionRequestedAt: new Date()
     });
 
-    // Return success response regardless of email status
+    // Return success response
     res.status(200).json({
       success: true,
-      message: "Promotion request submitted successfully",
-      notificationSent: notificationResult.success,
-      notificationMessage: notificationResult.message || "We'll contact you soon to process your promotion request"
+      message: "Promotion request submitted successfully"
     });
 
   } catch (error) {

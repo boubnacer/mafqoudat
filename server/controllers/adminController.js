@@ -287,10 +287,63 @@ const getAdminDashboard = async (req, res) => {
   }
 };
 
+// @desc Delete a post (admin only)
+// @route DELETE /admin/posts/:id
+// @access Private (Admin only)
+const deletePost = async (req, res) => {
+  try {
+    const { id } = req.params;
+    const adminId = req.user;
+
+    // Find the post
+    const post = await Post.findById(id)
+      .populate('user', 'username')
+      .populate('category', 'labels.en code')
+      .populate('country', 'labels.en code names.en')
+      .populate('foundLost', 'code')
+      .populate('city', 'labels.en');
+
+    if (!post) {
+      return res.status(404).json({
+        success: false,
+        message: "Post not found",
+      });
+    }
+
+    // Delete the post
+    await Post.findByIdAndDelete(id);
+
+    // Also delete any reports related to this post
+    await Report.deleteMany({ postId: id });
+
+    res.status(200).json({
+      success: true,
+      message: "Post deleted successfully",
+      data: {
+        deletedPost: {
+          id: post._id,
+          title: post.title,
+          user: post.user?.username,
+          category: post.category?.labels?.en || post.category?.code,
+          country: post.country?.labels?.en || post.country?.names?.en,
+        }
+      }
+    });
+  } catch (error) {
+    console.error('Error deleting post:', error);
+    res.status(500).json({
+      success: false,
+      message: "Error deleting post",
+      error: error.message,
+    });
+  }
+};
+
 module.exports = {
   getAllReports,
   getAllPromotions,
   updateReportStatus,
   updatePromotionStatus,
   getAdminDashboard,
+  deletePost,
 };

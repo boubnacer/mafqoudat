@@ -55,6 +55,7 @@ import {
   useGetPromotionsQuery,
   useUpdateReportStatusMutation,
   useUpdatePromotionStatusMutation,
+  useDeletePostMutation,
 } from './adminApiSlice';
 
 const AdminDashboard = () => {
@@ -91,6 +92,7 @@ const AdminDashboard = () => {
   // Mutations
   const [updateReportStatus, { isLoading: updatingReport }] = useUpdateReportStatusMutation();
   const [updatePromotionStatus, { isLoading: updatingPromotion }] = useUpdatePromotionStatusMutation();
+  const [deletePost, { isLoading: deletingPost }] = useDeletePostMutation();
 
   // Handlers
   const handleTabChange = (event, newValue) => {
@@ -140,6 +142,20 @@ const AdminDashboard = () => {
       setSelectedPromotion(null);
     } catch (error) {
       console.error('Error updating promotion status:', error);
+    }
+  };
+
+  const handleDeletePost = async (postId) => {
+    if (window.confirm(t('confirmDeletePost'))) {
+      try {
+        await deletePost(postId).unwrap();
+        setReportDialogOpen(false);
+        setPromotionDialogOpen(false);
+        setSelectedReport(null);
+        setSelectedPromotion(null);
+      } catch (error) {
+        console.error('Error deleting post:', error);
+      }
     }
   };
 
@@ -558,6 +574,12 @@ const AdminDashboard = () => {
         onClose={() => setReportDialogOpen(false)}
         maxWidth="md"
         fullWidth
+        PaperProps={{
+          sx: {
+            backgroundColor: theme.palette.mode === 'dark' ? '#1e1e1e' : '#ffffff',
+            backgroundImage: 'none',
+          }
+        }}
       >
         <DialogTitle>
           <Box display="flex" alignItems="center" gap={1}>
@@ -579,6 +601,18 @@ const AdminDashboard = () => {
               </Typography>
               <Typography variant="body2" paragraph>
                 <strong>{t('contact')}:</strong> {selectedReport.postId?.contact || t('noContact')}
+              </Typography>
+              <Typography variant="body2" paragraph>
+                <strong>{t('postLink')}:</strong> 
+                <Button
+                  variant="text"
+                  color="primary"
+                  size="small"
+                  onClick={() => window.open(`/dash/posts/${selectedReport.postId?._id}`, '_blank')}
+                  sx={{ ml: 1, textTransform: 'none' }}
+                >
+                  {t('viewPost')}
+                </Button>
               </Typography>
 
               <Divider sx={{ my: 2 }} />
@@ -619,8 +653,16 @@ const AdminDashboard = () => {
             {t('cancel')}
           </Button>
           <Button
-            onClick={() => handleReportStatusUpdate(selectedReport._id, 'dismissed')}
+            onClick={() => handleDeletePost(selectedReport.postId?._id)}
             color="error"
+            variant="outlined"
+            disabled={deletingPost}
+          >
+            {t('deletePost')}
+          </Button>
+          <Button
+            onClick={() => handleReportStatusUpdate(selectedReport._id, 'dismissed')}
+            color="warning"
             disabled={updatingReport}
           >
             {t('dismiss')}
@@ -641,6 +683,12 @@ const AdminDashboard = () => {
         onClose={() => setPromotionDialogOpen(false)}
         maxWidth="md"
         fullWidth
+        PaperProps={{
+          sx: {
+            backgroundColor: theme.palette.mode === 'dark' ? '#1e1e1e' : '#ffffff',
+            backgroundImage: 'none',
+          }
+        }}
       >
         <DialogTitle>
           <Box display="flex" alignItems="center" gap={1}>
@@ -666,6 +714,18 @@ const AdminDashboard = () => {
               <Typography variant="body2" paragraph>
                 <strong>{t('contact')}:</strong> {selectedPromotion.contact || t('noContact')}
               </Typography>
+              <Typography variant="body2" paragraph>
+                <strong>{t('postLink')}:</strong> 
+                <Button
+                  variant="text"
+                  color="primary"
+                  size="small"
+                  onClick={() => window.open(`/dash/posts/${selectedPromotion._id}`, '_blank')}
+                  sx={{ ml: 1, textTransform: 'none' }}
+                >
+                  {t('viewPost')}
+                </Button>
+              </Typography>
 
               <Divider sx={{ my: 2 }} />
 
@@ -690,6 +750,14 @@ const AdminDashboard = () => {
         <DialogActions>
           <Button onClick={() => setPromotionDialogOpen(false)}>
             {t('cancel')}
+          </Button>
+          <Button
+            onClick={() => handleDeletePost(selectedPromotion._id)}
+            color="error"
+            variant="outlined"
+            disabled={deletingPost}
+          >
+            {t('deletePost')}
           </Button>
           {!selectedPromotion?.promotionProcessed && (
             <Button

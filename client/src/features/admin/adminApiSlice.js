@@ -60,6 +60,15 @@ export const adminApiSlice = apiSlice.injectEndpoints({
       }),
       invalidatesTags: ['Promotions', 'AdminDashboard'],
     }),
+
+    // Delete a post
+    deletePost: builder.mutation({
+      query: (postId) => ({
+        url: `/admin/posts/${postId}`,
+        method: 'DELETE',
+      }),
+      invalidatesTags: ['Reports', 'Promotions', 'AdminDashboard'],
+    }),
   }),
 });
 
@@ -69,4 +78,5 @@ export const {
   useGetPromotionsQuery,
   useUpdateReportStatusMutation,
   useUpdatePromotionStatusMutation,
+  useDeletePostMutation,
 } = adminApiSlice;

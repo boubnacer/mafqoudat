@@ -932,52 +932,16 @@ const submitPostReport = async (req, res) => {
       // Continue with email notification even if database save fails
     }
 
-    // Return success response immediately - don't wait for email
+    // Return success response
     res.status(200).json({
       success: true,
       message: "Report submitted successfully",
-      notificationSent: false, // Will be updated by background email
       data: {
         postId,
         reason,
         reportedAt: new Date()
       }
     });
-
-    // Send email notification (synchronous like promotion emails)
-    try {
-      const emailNotification = require('../utils/emailNotification');
-      const emailResult = await emailNotification.sendReportNotification(emailPostData, user, reason);
-      console.log('Email notification result:', emailResult);
-      
-      // If email fails, log the report to console for manual review
-      if (!emailResult.success) {
-        console.log('📧 EMAIL FAILED - REPORT DATA FOR MANUAL REVIEW:');
-        console.log('Post ID:', emailPostData._id);
-        console.log('Reported by:', user.username || 'Anonymous');
-        console.log('Reason:', reason);
-        console.log('Post Details:', {
-          category: emailPostData.category,
-          country: emailPostData.country,
-          city: emailPostData.city,
-          exactLocation: emailPostData.exactLocation,
-          contact: emailPostData.contact
-        });
-        console.log('Timestamp:', new Date().toISOString());
-        console.log('--- END REPORT DATA ---');
-      }
-    } catch (emailError) {
-      console.error('Email notification failed:', emailError);
-      
-      // Log report data for manual review
-      console.log('📧 EMAIL ERROR - REPORT DATA FOR MANUAL REVIEW:');
-      console.log('Post ID:', emailPostData._id);
-      console.log('Reported by:', user.username || 'Anonymous');
-      console.log('Reason:', reason);
-      console.log('Error:', emailError.message);
-      console.log('Timestamp:', new Date().toISOString());
-      console.log('--- END REPORT DATA ---');
-    }
 
   } catch (error) {
     console.error('Error submitting report:', error);

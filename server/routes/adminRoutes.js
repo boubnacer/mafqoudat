@@ -8,6 +8,7 @@ const {
   updateReportStatus,
   updatePromotionStatus,
   getAdminDashboard,
+  deletePost,
 } = require("../controllers/adminController");
 
 // All admin routes require authentication and admin role
@@ -38,5 +39,10 @@ router.get("/promotions", getAllPromotions);
 // @desc Update promotion status
 // @access Private (Admin only)
 router.patch("/promotions/:id", updatePromotionStatus);
+
+// @route DELETE /admin/posts/:id
+// @desc Delete a post
+// @access Private (Admin only)
+router.delete("/posts/:id", deletePost);
 
 module.exports = router;
