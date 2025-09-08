@@ -146,6 +146,10 @@ const AdminDashboard = () => {
   };
 
   const handleDeletePost = async (postId) => {
+    console.log('handleDeletePost called with postId:', postId);
+    console.log('postId type:', typeof postId);
+    console.log('postId length:', postId?.length);
+    
     if (!postId) {
       console.error('No post ID provided for deletion');
       return;
@@ -154,6 +158,8 @@ const AdminDashboard = () => {
     if (window.confirm(t('confirmDeletePost'))) {
       try {
         console.log('Attempting to delete post:', postId);
+        console.log('About to call deletePost mutation...');
+        
         const result = await deletePost(postId).unwrap();
         console.log('Post deleted successfully:', result);
         
@@ -167,6 +173,7 @@ const AdminDashboard = () => {
         alert(t('postDeletedSuccessfully'));
       } catch (error) {
         console.error('Error deleting post:', error);
+        console.error('Error details:', error);
         alert(t('errorDeletingPost') + ': ' + (error.data?.message || error.message || 'Unknown error'));
       }
     }
