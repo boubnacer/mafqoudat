@@ -735,8 +735,8 @@ const Post = ({ post, viewMode = "grid" }) => {
                 borderColor: theme.palette.error.main,
               },
             }}
-            startIcon={currentLanguage === 'ar' ? null : <ReportProblemOutlined sx={{ fontSize: '12px' }} />}
-            endIcon={currentLanguage === 'ar' ? <ReportProblemOutlined sx={{ fontSize: '12px', mr: 0.5 }} /> : null}
+            startIcon={currentLanguage === 'ar' ? <ReportProblemOutlined sx={{ fontSize: '12px', mr: 0.5 }} /> : <ReportProblemOutlined sx={{ fontSize: '12px' }} />}
+            endIcon={null}
           >
             {t('report')}
           </Button>
@@ -762,8 +762,8 @@ const Post = ({ post, viewMode = "grid" }) => {
                 boxShadow: `0 4px 12px ${alpha(theme.palette.primary.main, 0.4)}`,
               },
             }}
-            startIcon={currentLanguage === 'ar' ? <ArrowIcon sx={{ fontSize: '12px', transform: 'scaleX(-1)', ml: 0.5 }} /> : null}
-            endIcon={currentLanguage === 'ar' ? null : <ArrowIcon sx={{ fontSize: '12px' }} />}
+            startIcon={null}
+            endIcon={currentLanguage === 'ar' ? <ArrowIcon sx={{ fontSize: '12px', transform: 'scaleX(-1)', ml: 0.5 }} /> : <ArrowIcon sx={{ fontSize: '12px' }} />}
           >
             {t('viewDetails')}
           </Button>
