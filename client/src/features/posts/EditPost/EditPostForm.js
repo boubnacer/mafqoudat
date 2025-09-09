@@ -536,13 +536,15 @@ const EditPostForm = ({ post, user, countries, flOptions, categories, cities }) 
         }}
       >
         <Typography 
-          variant="h4" 
+          variant="h3" 
           gutterBottom 
           textAlign="center" 
           sx={{ 
-            color: theme.palette.textColor.main,
+            color: theme.palette.text.primary,
             mb: 4,
-            fontWeight: 600
+            fontWeight: 700,
+            fontSize: { xs: '1.8rem', md: '2.2rem' },
+            textShadow: theme.palette.mode === 'dark' ? '0 2px 4px rgba(0,0,0,0.3)' : '0 1px 2px rgba(0,0,0,0.1)'
           }}
         >
           {t('editPost')}
@@ -654,12 +656,30 @@ const EditPostForm = ({ post, user, countries, flOptions, categories, cities }) 
                 </Box>
 
                 {/* Basic Information Section */}
-                <Typography variant="h6" sx={{ fontWeight: 600, color: theme.palette.primary.main }}>
+                <Typography 
+                  variant="h5" 
+                  sx={{ 
+                    fontWeight: 700, 
+                    color: theme.palette.mode === 'dark' ? '#4CAF50' : '#2E7D32',
+                    fontSize: '1.4rem',
+                    mb: 1,
+                    textShadow: theme.palette.mode === 'dark' ? '0 1px 2px rgba(0,0,0,0.3)' : '0 1px 2px rgba(0,0,0,0.1)'
+                  }}
+                >
                   {t('basicInformation')}
                 </Typography>
 
                 <Box>
-                  <FormLabel htmlFor="foundLost" sx={{ mb: 1, display: "block", fontWeight: 500 }}>
+                  <FormLabel 
+                    htmlFor="foundLost" 
+                    sx={{ 
+                      mb: 1, 
+                      display: "block", 
+                      fontWeight: 600, 
+                      fontSize: '1.15rem',
+                      color: theme.palette.text.primary
+                    }}
+                  >
                     {t('foundOrLost')} *
                   </FormLabel>
                   <SelectOption 
@@ -673,17 +693,43 @@ const EditPostForm = ({ post, user, countries, flOptions, categories, cities }) 
                 </Box>
 
                 <Box>
-                  <FormLabel htmlFor="country" sx={{ mb: 1, display: "block", fontWeight: 500 }}>
+                  <FormLabel 
+                    htmlFor="country" 
+                    sx={{ 
+                      mb: 1, 
+                      display: "block", 
+                      fontWeight: 600, 
+                      fontSize: '1.15rem',
+                      color: theme.palette.text.primary
+                    }}
+                  >
                     {t('country')} *
                   </FormLabel>
-                  <Typography variant="caption" color="text.secondary" sx={{ mb: 1, display: "block" }}>
+                  <Typography 
+                    variant="caption" 
+                    sx={{ 
+                      mb: 1, 
+                      display: "block", 
+                      fontSize: '1rem',
+                      color: theme.palette.mode === 'dark' ? 'rgba(255,255,255,0.7)' : 'rgba(0,0,0,0.6)',
+                      fontWeight: 500
+                    }}
+                  >
                     {getFoundLostType(values.foundLost) === 'LOST' 
                       ? t('chooseCountryLost') 
                       : t('chooseCountryFound')
                     }
                   </Typography>
                   <FormControl fullWidth error={!!fieldErrors.country}>
-                    <InputLabel id="country-select-label">{t('chooseCountry')}</InputLabel>
+                    <InputLabel 
+                      id="country-select-label"
+                      sx={{
+                        color: theme.palette.mode === 'dark' ? 'rgba(255,255,255,0.7)' : 'rgba(0,0,0,0.6)',
+                        fontWeight: 500
+                      }}
+                    >
+                      {t('chooseCountry')}
+                    </InputLabel>
                     <Select
                       labelId="country-select-label"
                       value={values.country || ""}
@@ -692,6 +738,17 @@ const EditPostForm = ({ post, user, countries, flOptions, categories, cities }) 
                       data-testid="country-select"
                       sx={{
                         borderRadius: 2,
+                        '& .MuiOutlinedInput-notchedOutline': {
+                          borderColor: theme.palette.mode === 'dark' ? 'rgba(255,255,255,0.3)' : 'rgba(0,0,0,0.2)',
+                        },
+                        '&:hover .MuiOutlinedInput-notchedOutline': {
+                          borderColor: theme.palette.mode === 'dark' ? 'rgba(255,255,255,0.5)' : 'rgba(0,0,0,0.4)',
+                        },
+                        '&.Mui-focused .MuiOutlinedInput-notchedOutline': {
+                          borderColor: theme.palette.mode === 'dark' ? '#4CAF50' : '#2E7D32',
+                        },
+                        color: theme.palette.text.primary,
+                        fontWeight: 500
                       }}
                     >
                       {countries?.map((country) => (
@@ -717,7 +774,15 @@ const EditPostForm = ({ post, user, countries, flOptions, categories, cities }) 
                       ))}
                     </Select>
                     {fieldErrors.country && (
-                      <Typography variant="caption" color="error" sx={{ mt: 1, display: 'block' }}>
+                      <Typography 
+                        variant="caption" 
+                        sx={{ 
+                          mt: 1, 
+                          display: 'block',
+                          color: theme.palette.mode === 'dark' ? '#f44336' : '#d32f2f',
+                          fontWeight: 500
+                        }}
+                      >
                         {fieldErrors.country}
                       </Typography>
                     )}
@@ -725,7 +790,16 @@ const EditPostForm = ({ post, user, countries, flOptions, categories, cities }) 
                 </Box>
 
                 <Box>
-                  <FormLabel htmlFor="category" sx={{ mb: 1, display: "block", fontWeight: 500 }}>
+                  <FormLabel 
+                    htmlFor="category" 
+                    sx={{ 
+                      mb: 1, 
+                      display: "block", 
+                      fontWeight: 600, 
+                      fontSize: '1.15rem',
+                      color: theme.palette.text.primary
+                    }}
+                  >
                     {t('category')} *
                   </FormLabel>
                   <SelectOption 
@@ -739,15 +813,42 @@ const EditPostForm = ({ post, user, countries, flOptions, categories, cities }) 
                 </Box>
 
                 {/* Location Section */}
-                <Typography variant="h6" sx={{ fontWeight: 600, color: theme.palette.primary.main }}>
+                <Typography 
+                  variant="h5" 
+                  sx={{ 
+                    fontWeight: 700, 
+                    color: theme.palette.mode === 'dark' ? '#4CAF50' : '#2E7D32',
+                    fontSize: '1.4rem',
+                    mb: 1,
+                    textShadow: theme.palette.mode === 'dark' ? '0 1px 2px rgba(0,0,0,0.3)' : '0 1px 2px rgba(0,0,0,0.1)'
+                  }}
+                >
                   {t('location')}
                 </Typography>
 
                 <Box>
-                  <FormLabel htmlFor="city" sx={{ mb: 1, display: "block", fontWeight: 500 }}>
+                  <FormLabel 
+                    htmlFor="city" 
+                    sx={{ 
+                      mb: 1, 
+                      display: "block", 
+                      fontWeight: 600, 
+                      fontSize: '1.15rem',
+                      color: theme.palette.text.primary
+                    }}
+                  >
                     {t('city')} *
                   </FormLabel>
-                  <Typography variant="caption" color="text.secondary" sx={{ mb: 1, display: "block" }}>
+                  <Typography 
+                    variant="caption" 
+                    sx={{ 
+                      mb: 1, 
+                      display: "block", 
+                      fontSize: '1rem',
+                      color: theme.palette.mode === 'dark' ? 'rgba(255,255,255,0.7)' : 'rgba(0,0,0,0.6)',
+                      fontWeight: 500
+                    }}
+                  >
                     {!selectedCountry 
                       ? t('selectCountryFirst') 
                       : loadingCities 
@@ -759,7 +860,15 @@ const EditPostForm = ({ post, user, countries, flOptions, categories, cities }) 
                   </Typography>
                   
                   <FormControl fullWidth disabled={!selectedCountry || loadingCities} error={!!fieldErrors.city}>
-                    <InputLabel id="city-select-label">{t('chooseCity')}</InputLabel>
+                    <InputLabel 
+                      id="city-select-label"
+                      sx={{
+                        color: theme.palette.mode === 'dark' ? 'rgba(255,255,255,0.7)' : 'rgba(0,0,0,0.6)',
+                        fontWeight: 500
+                      }}
+                    >
+                      {t('chooseCity')}
+                    </InputLabel>
                     <Select
                       name="city"
                       labelId="city-select-label"
@@ -781,6 +890,17 @@ const EditPostForm = ({ post, user, countries, flOptions, categories, cities }) 
                       data-testid="city-select"
                       sx={{
                         borderRadius: 2,
+                        '& .MuiOutlinedInput-notchedOutline': {
+                          borderColor: theme.palette.mode === 'dark' ? 'rgba(255,255,255,0.3)' : 'rgba(0,0,0,0.2)',
+                        },
+                        '&:hover .MuiOutlinedInput-notchedOutline': {
+                          borderColor: theme.palette.mode === 'dark' ? 'rgba(255,255,255,0.5)' : 'rgba(0,0,0,0.4)',
+                        },
+                        '&.Mui-focused .MuiOutlinedInput-notchedOutline': {
+                          borderColor: theme.palette.mode === 'dark' ? '#4CAF50' : '#2E7D32',
+                        },
+                        color: theme.palette.text.primary,
+                        fontWeight: 500
                       }}
                       MenuProps={{
                         PaperProps: {
@@ -830,7 +950,15 @@ const EditPostForm = ({ post, user, countries, flOptions, categories, cities }) 
                       </MenuItem>
                     </Select>
                     {fieldErrors.city && (
-                      <Typography variant="caption" color="error" sx={{ mt: 1, display: 'block' }}>
+                      <Typography 
+                        variant="caption" 
+                        sx={{ 
+                          mt: 1, 
+                          display: 'block',
+                          color: theme.palette.mode === 'dark' ? '#f44336' : '#d32f2f',
+                          fontWeight: 500
+                        }}
+                      >
                         {fieldErrors.city}
                       </Typography>
                     )}
@@ -838,10 +966,28 @@ const EditPostForm = ({ post, user, countries, flOptions, categories, cities }) 
                 </Box>
 
                 <Box>
-                  <FormLabel htmlFor="exactDate" sx={{ mb: 1, display: "block", fontWeight: 500 }}>
+                  <FormLabel 
+                    htmlFor="exactDate" 
+                    sx={{ 
+                      mb: 1, 
+                      display: "block", 
+                      fontWeight: 600, 
+                      fontSize: '1.15rem',
+                      color: theme.palette.text.primary
+                    }}
+                  >
                     {t('exactDate')} *
                   </FormLabel>
-                  <Typography variant="caption" color="text.secondary" sx={{ mb: 1, display: "block" }}>
+                  <Typography 
+                    variant="caption" 
+                    sx={{ 
+                      mb: 1, 
+                      display: "block", 
+                      fontSize: '1rem',
+                      color: theme.palette.mode === 'dark' ? 'rgba(255,255,255,0.7)' : 'rgba(0,0,0,0.6)',
+                      fontWeight: 500
+                    }}
+                  >
                     {getFoundLostType(values.foundLost) === 'LOST' 
                       ? t('exactDateLostPlaceholder') 
                       : t('exactDateFoundPlaceholder')
@@ -864,16 +1010,45 @@ const EditPostForm = ({ post, user, countries, flOptions, categories, cities }) 
                     error={!!fieldErrors.exactDate}
                     helperText={fieldErrors.exactDate}
                     sx={{
-                      borderRadius: 2,
+                      borderRadius: 3,
+                      '& .MuiOutlinedInput-notchedOutline': {
+                        borderColor: theme.palette.mode === 'dark' ? 'rgba(255,255,255,0.3)' : 'rgba(0,0,0,0.2)',
+                      },
+                      '&:hover .MuiOutlinedInput-notchedOutline': {
+                        borderColor: theme.palette.mode === 'dark' ? 'rgba(255,255,255,0.5)' : 'rgba(0,0,0,0.4)',
+                      },
+                      '&.Mui-focused .MuiOutlinedInput-notchedOutline': {
+                        borderColor: theme.palette.mode === 'dark' ? '#4CAF50' : '#2E7D32',
+                      },
+                      color: theme.palette.text.primary,
+                      fontWeight: 500
                     }}
                   />
                 </Box>
 
                 <Box>
-                  <FormLabel htmlFor="exactLocation" sx={{ mb: 1, display: "block", fontWeight: 500 }}>
+                  <FormLabel 
+                    htmlFor="exactLocation" 
+                    sx={{ 
+                      mb: 1, 
+                      display: "block", 
+                      fontWeight: 600, 
+                      fontSize: '1.15rem',
+                      color: theme.palette.text.primary
+                    }}
+                  >
                     {t('exactLocation')} *
                   </FormLabel>
-                  <Typography variant="caption" color="text.secondary" sx={{ mb: 1, display: "block" }}>
+                  <Typography 
+                    variant="caption" 
+                    sx={{ 
+                      mb: 1, 
+                      display: "block", 
+                      fontSize: '1rem',
+                      color: theme.palette.mode === 'dark' ? 'rgba(255,255,255,0.7)' : 'rgba(0,0,0,0.6)',
+                      fontWeight: 500
+                    }}
+                  >
                     {getFoundLostType(values.foundLost) === 'LOST' 
                       ? t('exactLocationLostPlaceholder') 
                       : t('exactLocationFoundPlaceholder')
@@ -891,15 +1066,42 @@ const EditPostForm = ({ post, user, countries, flOptions, categories, cities }) 
                 </Box>
 
                 {/* Item Details Section */}
-                <Typography variant="h6" sx={{ fontWeight: 600, color: theme.palette.primary.main }}>
+                <Typography 
+                  variant="h5" 
+                  sx={{ 
+                    fontWeight: 700, 
+                    color: theme.palette.mode === 'dark' ? '#4CAF50' : '#2E7D32',
+                    fontSize: '1.4rem',
+                    mb: 1,
+                    textShadow: theme.palette.mode === 'dark' ? '0 1px 2px rgba(0,0,0,0.3)' : '0 1px 2px rgba(0,0,0,0.1)'
+                  }}
+                >
                   {t('itemDetails')}
                 </Typography>
 
                 <Box>
-                  <FormLabel htmlFor="description" sx={{ mb: 1, display: "block", fontWeight: 500 }}>
+                  <FormLabel 
+                    htmlFor="description" 
+                    sx={{ 
+                      mb: 1, 
+                      display: "block", 
+                      fontWeight: 600, 
+                      fontSize: '1.15rem',
+                      color: theme.palette.text.primary
+                    }}
+                  >
                     {t('description')} ({t('optional')})
                   </FormLabel>
-                  <Typography variant="caption" color="text.secondary" sx={{ mb: 1, display: "block" }}>
+                  <Typography 
+                    variant="caption" 
+                    sx={{ 
+                      mb: 1, 
+                      display: "block", 
+                      fontSize: '1rem',
+                      color: theme.palette.mode === 'dark' ? 'rgba(255,255,255,0.7)' : 'rgba(0,0,0,0.6)',
+                      fontWeight: 500
+                    }}
+                  >
                     {getFoundLostType(values.foundLost) === 'LOST' 
                       ? t('descriptionLostPlaceholder') 
                       : t('descriptionFoundPlaceholder')
@@ -915,12 +1117,30 @@ const EditPostForm = ({ post, user, countries, flOptions, categories, cities }) 
                 </Box>
 
                 {/* Contact Information Section */}
-                <Typography variant="h6" sx={{ fontWeight: 600, color: theme.palette.primary.main }}>
+                <Typography 
+                  variant="h5" 
+                  sx={{ 
+                    fontWeight: 700, 
+                    color: theme.palette.mode === 'dark' ? '#4CAF50' : '#2E7D32',
+                    fontSize: '1.4rem',
+                    mb: 1,
+                    textShadow: theme.palette.mode === 'dark' ? '0 1px 2px rgba(0,0,0,0.3)' : '0 1px 2px rgba(0,0,0,0.1)'
+                  }}
+                >
                   {t('contactInformation')}
                 </Typography>
 
                 <Box>
-                  <FormLabel htmlFor="contact" sx={{ mb: 1, display: "block", fontWeight: 500 }}>
+                  <FormLabel 
+                    htmlFor="contact" 
+                    sx={{ 
+                      mb: 1, 
+                      display: "block", 
+                      fontWeight: 600, 
+                      fontSize: '1.15rem',
+                      color: theme.palette.text.primary
+                    }}
+                  >
                     {t('contact')} *
                   </FormLabel>
                   <Textfield 
@@ -935,10 +1155,27 @@ const EditPostForm = ({ post, user, countries, flOptions, categories, cities }) 
 
                 {/* WhatsApp Contact Details */}
                 <Box>
-                  <FormLabel sx={{ mb: 1, display: "block", fontWeight: 500, fontSize: '1.1rem' }}>
+                  <FormLabel 
+                    sx={{ 
+                      mb: 1, 
+                      display: "block", 
+                      fontWeight: 600, 
+                      fontSize: '1.15rem',
+                      color: theme.palette.text.primary
+                    }}
+                  >
                     {t('whatsappContact')}
                   </FormLabel>
-                  <Typography variant="caption" color="text.secondary" sx={{ mb: 1, display: "block", fontSize: '0.95rem' }}>
+                  <Typography 
+                    variant="caption" 
+                    sx={{ 
+                      mb: 1, 
+                      display: "block", 
+                      fontSize: '1rem',
+                      color: theme.palette.mode === 'dark' ? 'rgba(255,255,255,0.7)' : 'rgba(0,0,0,0.6)',
+                      fontWeight: 500
+                    }}
+                  >
                     {getFoundLostType(values.foundLost) === 'LOST' 
                       ? (t('whatsappContactLostMessage') || "We'll use this WhatsApp number to contact you if someone finds your lost item.")
                       : (t('whatsappContactFoundMessage') || "We'll use this WhatsApp number to contact you if the owner of the found item wants to reach you.")
@@ -954,12 +1191,30 @@ const EditPostForm = ({ post, user, countries, flOptions, categories, cities }) 
                 </Box>
 
                 {/* Status Section */}
-                <Typography variant="h6" sx={{ fontWeight: 600, color: theme.palette.primary.main }}>
+                <Typography 
+                  variant="h5" 
+                  sx={{ 
+                    fontWeight: 700, 
+                    color: theme.palette.mode === 'dark' ? '#4CAF50' : '#2E7D32',
+                    fontSize: '1.4rem',
+                    mb: 1,
+                    textShadow: theme.palette.mode === 'dark' ? '0 1px 2px rgba(0,0,0,0.3)' : '0 1px 2px rgba(0,0,0,0.1)'
+                  }}
+                >
                   {t('status')}
                 </Typography>
 
                 <Box>
-                  <FormLabel htmlFor="status" sx={{ mb: 1, display: "block", fontWeight: 500 }}>
+                  <FormLabel 
+                    htmlFor="status" 
+                    sx={{ 
+                      mb: 1, 
+                      display: "block", 
+                      fontWeight: 600, 
+                      fontSize: '1.15rem',
+                      color: theme.palette.text.primary
+                    }}
+                  >
                     {t('postStatus')}
                   </FormLabel>
                   <FormControl fullWidth>
@@ -968,6 +1223,20 @@ const EditPostForm = ({ post, user, countries, flOptions, categories, cities }) 
                       value={values.status}
                       onChange={(e) => setFieldValue('status', e.target.value)}
                       variant="outlined"
+                      sx={{
+                        borderRadius: 3,
+                        '& .MuiOutlinedInput-notchedOutline': {
+                          borderColor: theme.palette.mode === 'dark' ? 'rgba(255,255,255,0.3)' : 'rgba(0,0,0,0.2)',
+                        },
+                        '&:hover .MuiOutlinedInput-notchedOutline': {
+                          borderColor: theme.palette.mode === 'dark' ? 'rgba(255,255,255,0.5)' : 'rgba(0,0,0,0.4)',
+                        },
+                        '&.Mui-focused .MuiOutlinedInput-notchedOutline': {
+                          borderColor: theme.palette.mode === 'dark' ? '#4CAF50' : '#2E7D32',
+                        },
+                        color: theme.palette.text.primary,
+                        fontWeight: 500
+                      }}
                     >
                       <MenuItem value="active">{t('active')}</MenuItem>
                       <MenuItem value="resolved">{t('resolved')}</MenuItem>
@@ -983,13 +1252,23 @@ const EditPostForm = ({ post, user, countries, flOptions, categories, cities }) 
                   <Button 
                     onClick={handleDeletePost}
                     variant="outlined" 
-                    color="error"
                     disabled={isLoading}
                     sx={{ 
                       minWidth: 120,
-                      borderRadius: 2,
+                      borderRadius: 3,
                       textTransform: 'none',
-                      fontWeight: 600
+                      fontWeight: 600,
+                      fontSize: '1rem',
+                      py: 1.5,
+                      px: 3,
+                      borderColor: theme.palette.mode === 'dark' ? '#f44336' : '#d32f2f',
+                      color: theme.palette.mode === 'dark' ? '#f44336' : '#d32f2f',
+                      '&:hover': {
+                        borderColor: theme.palette.mode === 'dark' ? '#e53935' : '#c62828',
+                        backgroundColor: theme.palette.mode === 'dark' ? 'rgba(244, 67, 54, 0.08)' : 'rgba(211, 47, 47, 0.08)',
+                        transform: 'translateY(-1px)',
+                      },
+                      transition: 'all 0.2s ease-in-out'
                     }}
                   >
                     {t('deletePost')}
@@ -998,11 +1277,33 @@ const EditPostForm = ({ post, user, countries, flOptions, categories, cities }) 
                   <SubmitButton 
                     disabled={isLoading || !selectedCountry || !values.city || !values.exactDate}
                     sx={{ 
-                      minWidth: 120,
-                      borderRadius: 2,
+                      minWidth: 140,
+                      borderRadius: 3,
                       textTransform: 'none',
-                      fontWeight: 600,
-                      py: 1.5
+                      fontWeight: 700,
+                      fontSize: '1.1rem',
+                      py: 2,
+                      px: 3,
+                      background: theme.palette.mode === 'dark'
+                        ? 'linear-gradient(45deg, #4CAF50 30%, #66BB6A 90%)'
+                        : 'linear-gradient(45deg, #2E7D32 30%, #388E3C 90%)',
+                      '&:hover': {
+                        background: theme.palette.mode === 'dark'
+                          ? 'linear-gradient(45deg, #388E3C 30%, #4CAF50 90%)'
+                          : 'linear-gradient(45deg, #1B5E20 30%, #2E7D32 90%)',
+                        transform: 'translateY(-2px)',
+                        boxShadow: theme.palette.mode === 'dark'
+                          ? '0 8px 24px rgba(76, 175, 80, 0.4)'
+                          : '0 8px 24px rgba(46, 125, 50, 0.4)',
+                      },
+                      '&:disabled': {
+                        background: theme.palette.mode === 'dark' ? 'rgba(76, 175, 80, 0.3)' : 'rgba(46, 125, 50, 0.3)',
+                        color: theme.palette.mode === 'dark' ? 'rgba(255,255,255,0.5)' : 'rgba(255,255,255,0.7)',
+                      },
+                      transition: 'all 0.3s ease-in-out',
+                      boxShadow: theme.palette.mode === 'dark'
+                        ? '0 4px 16px rgba(76, 175, 80, 0.3)'
+                        : '0 4px 16px rgba(46, 125, 50, 0.3)',
                     }}
                   >
                     {isLoading ? <CircularProgress size={20} /> : t('updatePost')}
@@ -1029,17 +1330,17 @@ const EditPostForm = ({ post, user, countries, flOptions, categories, cities }) 
         sx={{ zIndex: 1300 }}
         PaperProps={{
           sx: {
-            borderRadius: 3,
+            borderRadius: 4,
             background: theme.palette.mode === 'dark' 
-              ? 'rgba(30, 30, 30, 0.95)' 
-              : 'rgba(255, 255, 255, 0.95)',
-            backdropFilter: 'blur(10px)',
-            border: `1px solid ${theme.palette.mode === 'dark' 
-              ? 'rgba(255, 255, 255, 0.1)' 
-              : 'rgba(0, 0, 0, 0.1)'}`,
+              ? 'linear-gradient(135deg, rgba(20,20,20,0.98) 0%, rgba(35,35,35,0.98) 100%)' 
+              : 'linear-gradient(135deg, rgba(255,255,255,0.98) 0%, rgba(248,250,252,0.98) 100%)',
+            backdropFilter: 'blur(20px)',
+            border: `2px solid ${theme.palette.mode === 'dark' 
+              ? 'rgba(255, 255, 255, 0.15)' 
+              : 'rgba(0, 0, 0, 0.08)'}`,
             boxShadow: theme.palette.mode === 'dark'
-              ? '0 8px 32px rgba(0, 0, 0, 0.4)'
-              : '0 8px 32px rgba(0, 0, 0, 0.15)'
+              ? '0 20px 40px rgba(0,0,0,0.6), 0 0 0 1px rgba(255,255,255,0.05)'
+              : '0 20px 40px rgba(0,0,0,0.15), 0 0 0 1px rgba(0,0,0,0.05)'
           }
         }}
         BackdropProps={{
@@ -1057,7 +1358,14 @@ const EditPostForm = ({ post, user, countries, flOptions, categories, cities }) 
             borderBottom: `1px solid ${theme.palette.divider}`
           }}
         >
-          <Typography variant="h6" sx={{ fontWeight: 600, color: theme.palette.text.primary }}>
+          <Typography 
+            variant="h6" 
+            sx={{ 
+              fontWeight: 700, 
+              color: theme.palette.text.primary,
+              fontSize: '1.3rem'
+            }}
+          >
             {t('addNewCity')}
           </Typography>
           <IconButton
@@ -1078,7 +1386,15 @@ const EditPostForm = ({ post, user, countries, flOptions, categories, cities }) 
         </DialogTitle>
         
         <DialogContent sx={{ pt: 3 }}>
-          <Typography variant="body2" color="text.secondary" sx={{ mb: 2 }}>
+          <Typography 
+            variant="body2" 
+            sx={{ 
+              mb: 2,
+              color: theme.palette.mode === 'dark' ? 'rgba(255,255,255,0.7)' : 'rgba(0,0,0,0.6)',
+              fontSize: '1rem',
+              fontWeight: 500
+            }}
+          >
             {t('enterCustomCityName')}
           </Typography>
           <TextField
@@ -1089,14 +1405,19 @@ const EditPostForm = ({ post, user, countries, flOptions, categories, cities }) 
             variant="outlined"
             autoFocus
             sx={{ 
-              borderRadius: 2,
+              borderRadius: 3,
               '& .MuiOutlinedInput-root': {
                 '&:hover fieldset': {
-                  borderColor: theme.palette.primary.main,
+                  borderColor: theme.palette.mode === 'dark' ? '#4CAF50' : '#2E7D32',
                 },
                 '&.Mui-focused fieldset': {
-                  borderColor: theme.palette.primary.main,
+                  borderColor: theme.palette.mode === 'dark' ? '#4CAF50' : '#2E7D32',
                 },
+                '& fieldset': {
+                  borderColor: theme.palette.mode === 'dark' ? 'rgba(255,255,255,0.3)' : 'rgba(0,0,0,0.2)',
+                },
+                color: theme.palette.text.primary,
+                fontWeight: 500
               }
             }}
           />
@@ -1111,13 +1432,18 @@ const EditPostForm = ({ post, user, countries, flOptions, categories, cities }) 
             }}
             disabled={isCreatingCity}
             sx={{ 
-              borderRadius: 2,
+              borderRadius: 3,
               borderColor: theme.palette.mode === 'dark' ? 'rgba(255, 255, 255, 0.3)' : 'rgba(0, 0, 0, 0.3)',
               color: theme.palette.mode === 'dark' ? 'rgba(255, 255, 255, 0.8)' : 'rgba(0, 0, 0, 0.8)',
+              fontSize: '1rem',
+              fontWeight: 600,
+              py: 1.5,
+              px: 3,
               '&:hover': {
                 borderColor: theme.palette.mode === 'dark' ? 'rgba(255, 255, 255, 0.5)' : 'rgba(0, 0, 0, 0.5)',
                 backgroundColor: theme.palette.mode === 'dark' ? 'rgba(255, 255, 255, 0.04)' : 'rgba(0, 0, 0, 0.04)',
-              }
+              },
+              transition: 'all 0.2s ease-in-out'
             }}
           >
             {t('cancel')}
@@ -1154,11 +1480,27 @@ const EditPostForm = ({ post, user, countries, flOptions, categories, cities }) 
             }}
             disabled={!customCityName.trim() || !selectedCountry?._id || isCreatingCity}
             sx={{ 
-              borderRadius: 2,
-              background: `linear-gradient(135deg, ${theme.palette.primary.main} 0%, ${theme.palette.primary.dark} 100%)`,
+              borderRadius: 3,
+              background: theme.palette.mode === 'dark'
+                ? 'linear-gradient(45deg, #4CAF50 30%, #66BB6A 90%)'
+                : 'linear-gradient(45deg, #2E7D32 30%, #388E3C 90%)',
+              fontSize: '1rem',
+              fontWeight: 600,
+              py: 1.5,
+              px: 3,
               '&:hover': {
-                background: `linear-gradient(135deg, ${theme.palette.primary.dark} 0%, ${theme.palette.primary.main} 100%)`,
-              }
+                background: theme.palette.mode === 'dark'
+                  ? 'linear-gradient(45deg, #388E3C 30%, #4CAF50 90%)'
+                  : 'linear-gradient(45deg, #1B5E20 30%, #2E7D32 90%)',
+                transform: 'translateY(-1px)',
+                boxShadow: theme.palette.mode === 'dark'
+                  ? '0 6px 16px rgba(76, 175, 80, 0.3)'
+                  : '0 6px 16px rgba(46, 125, 50, 0.3)',
+              },
+              transition: 'all 0.2s ease-in-out',
+              boxShadow: theme.palette.mode === 'dark'
+                ? '0 3px 8px rgba(76, 175, 80, 0.2)'
+                : '0 3px 8px rgba(46, 125, 50, 0.2)',
             }}
             startIcon={isCreatingCity ? <CircularProgress size={16} color="inherit" /> : null}
           >
