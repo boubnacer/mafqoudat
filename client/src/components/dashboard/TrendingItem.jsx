@@ -234,7 +234,7 @@ const TrendingItem = ({ trend, isLoading }) => {
               : '0 16px 48px 0 rgba(0,0,0,0.15)',
           },
           height: '100%',
-          minHeight: '300px',
+          minHeight: { xs: '400px', sm: '300px' }, // Increased mobile height
           position: 'relative'
         }}
       >
@@ -316,7 +316,7 @@ const TrendingItem = ({ trend, isLoading }) => {
               <Typography
                 sx={{
                   color: categoryStyle.main,
-                  fontSize: { xs: '12px', sm: '14px' },
+                  fontSize: { xs: '14px', sm: '14px' }, // Increased mobile font size
                   fontWeight: 600,
                   lineHeight: 1,
                 }}
@@ -333,7 +333,7 @@ const TrendingItem = ({ trend, isLoading }) => {
                 backgroundColor: alpha(foundLostStatus.color, 0.95),
                 color: '#fff',
                 fontWeight: 700,
-                fontSize: { xs: '11px', sm: '13px', md: '14px' },
+                fontSize: { xs: '13px', sm: '13px', md: '14px' }, // Increased mobile font size
                 height: { xs: '26px', sm: '30px', md: '32px' },
                 padding: { xs: '0 8px', sm: '0 12px', md: '0 16px' },
                 borderRadius: { xs: '12px', sm: '16px' },
@@ -360,7 +360,7 @@ const TrendingItem = ({ trend, isLoading }) => {
 
           {/* Middle Section - Main Content - Optimized for better image visibility */}
           <Box sx={{ flex: 1, display: 'flex', flexDirection: 'column', justifyContent: 'center', alignItems: 'center' }}>
-            {/* Single optimized description text */}
+            {/* Single optimized description text - Hidden on mobile since title is outside */}
             <Typography
               variant="h6"
               sx={{
@@ -378,7 +378,8 @@ const TrendingItem = ({ trend, isLoading }) => {
                 border: '1px solid rgba(255,255,255,0.2)',
                 maxWidth: '85%',
                 mx: 'auto',
-                boxShadow: '0 4px 20px rgba(0,0,0,0.3)'
+                boxShadow: '0 4px 20px rgba(0,0,0,0.3)',
+                display: { xs: 'none', sm: 'block' } // Hide on mobile
               }}
             >
               {t('trendingItemDescription')}
@@ -405,7 +406,7 @@ const TrendingItem = ({ trend, isLoading }) => {
                 <Typography
                   sx={{
                     color: '#fff',
-                    fontSize: '12px',
+                    fontSize: { xs: '14px', sm: '12px' }, // Increased mobile font size
                     fontWeight: 500,
                   }}
                 >
@@ -418,7 +419,7 @@ const TrendingItem = ({ trend, isLoading }) => {
                 <Typography
                   sx={{
                     color: '#fff',
-                    fontSize: '11px',
+                    fontSize: { xs: '13px', sm: '11px' }, // Increased mobile font size
                     fontWeight: 400,
                     maxWidth: '80px',
                     overflow: 'hidden',
@@ -442,7 +443,7 @@ const TrendingItem = ({ trend, isLoading }) => {
                 borderRadius: '12px',
                 padding: '12px',
                 textTransform: 'none',
-                fontSize: '14px',
+                fontSize: { xs: '16px', sm: '14px' }, // Increased mobile font size
                 fontWeight: 600,
                 transition: 'all 0.3s ease',
                 boxShadow: '0 4px 15px rgba(33, 150, 243, 0.3)',
