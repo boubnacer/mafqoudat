@@ -420,13 +420,14 @@ const RecentPosts = ({ _id, categoryname, exactLocation, image, createdAt, count
               borderRadius: '8px',
               minWidth: 'auto',
               flexShrink: 0,
+              gap: currentLanguage === 'ar' ? 1 : 0.5,
               '&:hover': {
                 backgroundColor: theme.palette.error.main,
                 color: '#fff',
                 borderColor: theme.palette.error.main,
               },
             }}
-            startIcon={currentLanguage === 'ar' ? <ReportProblemOutlined sx={{ fontSize: '12px', mr: 1 }} /> : <ReportProblemOutlined sx={{ fontSize: '12px', mr: 0.5 }} />}
+            startIcon={<ReportProblemOutlined sx={{ fontSize: '12px' }} />}
             endIcon={null}
           >
             {t('report')}
@@ -445,6 +446,7 @@ const RecentPosts = ({ _id, categoryname, exactLocation, image, createdAt, count
               borderRadius: '8px',
               minWidth: 'auto',
               flexShrink: 0,
+              gap: currentLanguage === 'ar' ? 1 : 0.5,
               boxShadow: `0 2px 8px ${alpha(theme.palette.primary.main, 0.3)}`,
               transition: 'all 0.3s ease',
               '&:hover': {
@@ -454,7 +456,7 @@ const RecentPosts = ({ _id, categoryname, exactLocation, image, createdAt, count
               },
             }}
             startIcon={null}
-            endIcon={currentLanguage === 'ar' ? <ArrowIcon sx={{ fontSize: '12px', transform: 'scaleX(-1)', ml: 1 }} /> : <ArrowIcon sx={{ fontSize: '12px', ml: 0.5 }} />}
+            endIcon={<ArrowIcon sx={{ fontSize: '12px', transform: currentLanguage === 'ar' ? 'scaleX(-1)' : 'none' }} />}
           >
             {t('viewDetails')}
           </Button>
