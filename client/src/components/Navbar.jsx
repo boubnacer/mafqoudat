@@ -82,7 +82,9 @@ const LogoButton = styled(Button)(({ theme }) => ({
     background: 'transparent',
     boxShadow: 'none',
     '& img': {
-      filter: 'drop-shadow(0 0 12px rgba(59, 130, 246, 0.5))',
+      filter: theme.palette.mode === 'dark' 
+        ? 'drop-shadow(0 0 12px rgba(255, 255, 255, 0.4)) drop-shadow(0 0 20px rgba(59, 130, 246, 0.3))'
+        : 'drop-shadow(0 0 12px rgba(59, 130, 246, 0.5))',
       transform: 'scale(1.05)',
       '&::before': {
         opacity: 0.4,
@@ -99,11 +101,19 @@ const LogoButton = styled(Button)(({ theme }) => ({
     width: 'auto',
     objectFit: 'contain',
     transition: 'all 0.3s ease',
-    filter: 'none',
     position: 'relative',
     zIndex: 2,
-    // Subtle glow effect
-    filter: 'drop-shadow(0 0 8px rgba(59, 130, 246, 0.3))',
+    // Theme-aware glow effect
+    filter: theme.palette.mode === 'dark' 
+      ? 'drop-shadow(0 0 8px rgba(255, 255, 255, 0.2)) drop-shadow(0 0 12px rgba(59, 130, 246, 0.4))'
+      : 'drop-shadow(0 0 8px rgba(59, 130, 246, 0.3))',
+    // Add subtle background in dark mode
+    ...(theme.palette.mode === 'dark' && {
+      backgroundColor: 'rgba(255, 255, 255, 0.05)',
+      borderRadius: '8px',
+      padding: '4px',
+      backdropFilter: 'blur(10px)',
+    }),
     // Animated lighting effect
     '&::before': {
       content: '""',
@@ -112,7 +122,9 @@ const LogoButton = styled(Button)(({ theme }) => ({
       left: '-3px',
       right: '-3px',
       bottom: '-3px',
-      background: 'linear-gradient(45deg, transparent, rgba(59, 130, 246, 0.2), transparent)',
+      background: theme.palette.mode === 'dark'
+        ? 'linear-gradient(45deg, transparent, rgba(255, 255, 255, 0.1), rgba(59, 130, 246, 0.2), transparent)'
+        : 'linear-gradient(45deg, transparent, rgba(59, 130, 246, 0.2), transparent)',
       borderRadius: '10px',
       opacity: 0,
       transition: 'opacity 0.4s ease',
@@ -126,7 +138,9 @@ const LogoButton = styled(Button)(({ theme }) => ({
       left: '-100%',
       width: '100%',
       height: '3px',
-      background: 'linear-gradient(90deg, transparent, rgba(59, 130, 246, 0.8), rgba(255, 255, 255, 0.6), rgba(59, 130, 246, 0.8), transparent)',
+      background: theme.palette.mode === 'dark'
+        ? 'linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.8), rgba(59, 130, 246, 0.9), rgba(255, 255, 255, 0.8), transparent)'
+        : 'linear-gradient(90deg, transparent, rgba(59, 130, 246, 0.8), rgba(255, 255, 255, 0.6), rgba(59, 130, 246, 0.8), transparent)',
       transform: 'translateY(-50%)',
       animation: 'lightSweep 4s ease-in-out infinite',
       zIndex: 1,
