@@ -221,21 +221,41 @@ const TrendingItem = ({ trend, isLoading }) => {
             : 'linear-gradient(135deg, rgba(255,255,255,0.95) 0%, rgba(248,249,250,0.95) 100%)',
           backdropFilter: 'blur(10px)',
           borderRadius: '20px',
-          border: `1px solid ${theme.palette.mode === 'dark' ? 'rgba(255,255,255,0.08)' : 'rgba(0,0,0,0.08)'}`,
+          border: `2px solid ${theme.palette.mode === 'dark' ? 'rgba(255,152,0,0.3)' : 'rgba(255,152,0,0.4)'}`,
           overflow: 'hidden',
           transition: 'transform 0.3s ease, box-shadow 0.3s ease',
           boxShadow: theme.palette.mode === 'dark'
-            ? '0 8px 32px 0 rgba(0,0,0,0.15)'
-            : '0 8px 32px 0 rgba(0,0,0,0.05)',
+            ? '0 8px 32px 0 rgba(0,0,0,0.15), 0 0 0 1px rgba(255,152,0,0.2), 0 0 20px rgba(255,152,0,0.1)'
+            : '0 8px 32px 0 rgba(0,0,0,0.05), 0 0 0 1px rgba(255,152,0,0.3), 0 0 20px rgba(255,152,0,0.15)',
           '&:hover': {
             transform: 'translateY(-8px)',
             boxShadow: theme.palette.mode === 'dark'
-              ? '0 16px 48px 0 rgba(0,0,0,0.25)'
-              : '0 16px 48px 0 rgba(0,0,0,0.15)',
+              ? '0 16px 48px 0 rgba(0,0,0,0.25), 0 0 0 1px rgba(255,152,0,0.4), 0 0 30px rgba(255,152,0,0.2)'
+              : '0 16px 48px 0 rgba(0,0,0,0.15), 0 0 0 1px rgba(255,152,0,0.5), 0 0 30px rgba(255,152,0,0.25)',
           },
           height: '100%',
           minHeight: { xs: '400px', sm: '300px' },
-          position: 'relative'
+          position: 'relative',
+          '&::before': {
+            content: '""',
+            position: 'absolute',
+            top: '-2px',
+            left: '-2px',
+            right: '-2px',
+            bottom: '-2px',
+            background: 'linear-gradient(45deg, rgba(255,152,0,0.1), rgba(255,193,7,0.1), rgba(255,152,0,0.1))',
+            borderRadius: '22px',
+            zIndex: -1,
+            animation: 'trendingGlow 3s ease-in-out infinite alternate',
+          },
+          '@keyframes trendingGlow': {
+            '0%': {
+              opacity: 0.3,
+            },
+            '100%': {
+              opacity: 0.6,
+            },
+          },
         }}
       >
         {/* Large Background Image */}
@@ -299,6 +319,44 @@ const TrendingItem = ({ trend, isLoading }) => {
               mb: 2
             }}
           >
+            {/* Trending Badge */}
+            <Box
+              sx={{
+                position: 'absolute',
+                top: { xs: '16px', sm: '20px' },
+                right: { xs: '16px', sm: '20px' },
+                zIndex: 2,
+                background: 'linear-gradient(45deg, #FF9800, #FFC107)',
+                padding: { xs: '4px 8px', sm: '6px 12px' },
+                borderRadius: '20px',
+                boxShadow: '0 4px 15px rgba(255,152,0,0.4)',
+                animation: 'trendingPulse 2s ease-in-out infinite',
+                '@keyframes trendingPulse': {
+                  '0%': {
+                    boxShadow: '0 4px 15px rgba(255,152,0,0.4)',
+                  },
+                  '50%': {
+                    boxShadow: '0 4px 25px rgba(255,152,0,0.6)',
+                  },
+                  '100%': {
+                    boxShadow: '0 4px 15px rgba(255,152,0,0.4)',
+                  },
+                },
+              }}
+            >
+              <Typography
+                sx={{
+                  color: '#fff',
+                  fontSize: { xs: '10px', sm: '12px' },
+                  fontWeight: 700,
+                  textTransform: 'uppercase',
+                  letterSpacing: '0.5px',
+                  textShadow: '0 1px 2px rgba(0,0,0,0.3)',
+                }}
+              >
+                🔥 Trending
+              </Typography>
+            </Box>
             {/* Category Badge */}
             <Box
               sx={{
@@ -310,6 +368,7 @@ const TrendingItem = ({ trend, isLoading }) => {
                 gap: 0.5,
                 backdropFilter: 'blur(10px)',
                 border: `1px solid ${theme.palette.mode === 'dark' ? alpha(categoryStyle.main, 0.3) : categoryStyle.main}`,
+                marginRight: { xs: '80px', sm: '100px' }, // Make space for trending badge
               }}
             >
               <RenderIcon name={`${categoryname?.toLowerCase()}cate`} sx={{ fontSize: { xs: '18px', sm: '18px' }, color: categoryStyle.main }} />
