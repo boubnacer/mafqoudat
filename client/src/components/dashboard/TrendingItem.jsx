@@ -221,17 +221,17 @@ const TrendingItem = ({ trend, isLoading }) => {
             : 'linear-gradient(135deg, rgba(255,255,255,0.95) 0%, rgba(248,249,250,0.95) 100%)',
           backdropFilter: 'blur(10px)',
           borderRadius: '20px',
-          border: `2px solid ${theme.palette.mode === 'dark' ? 'rgba(255,152,0,0.3)' : 'rgba(255,152,0,0.4)'}`,
+          border: `3px solid ${theme.palette.mode === 'dark' ? 'rgba(255,152,0,0.4)' : 'rgba(255,152,0,0.5)'}`,
           overflow: 'hidden',
           transition: 'transform 0.3s ease, box-shadow 0.3s ease',
           boxShadow: theme.palette.mode === 'dark'
-            ? '0 8px 32px 0 rgba(0,0,0,0.15), 0 0 0 1px rgba(255,152,0,0.2), 0 0 20px rgba(255,152,0,0.1)'
-            : '0 8px 32px 0 rgba(0,0,0,0.05), 0 0 0 1px rgba(255,152,0,0.3), 0 0 20px rgba(255,152,0,0.15)',
+            ? '0 8px 32px 0 rgba(0,0,0,0.15), 0 0 0 2px rgba(255,152,0,0.3), 0 0 25px rgba(255,152,0,0.15)'
+            : '0 8px 32px 0 rgba(0,0,0,0.05), 0 0 0 2px rgba(255,152,0,0.4), 0 0 25px rgba(255,152,0,0.2)',
           '&:hover': {
             transform: 'translateY(-8px)',
             boxShadow: theme.palette.mode === 'dark'
-              ? '0 16px 48px 0 rgba(0,0,0,0.25), 0 0 0 1px rgba(255,152,0,0.4), 0 0 30px rgba(255,152,0,0.2)'
-              : '0 16px 48px 0 rgba(0,0,0,0.15), 0 0 0 1px rgba(255,152,0,0.5), 0 0 30px rgba(255,152,0,0.25)',
+              ? '0 16px 48px 0 rgba(0,0,0,0.25), 0 0 0 2px rgba(255,152,0,0.5), 0 0 35px rgba(255,152,0,0.25)'
+              : '0 16px 48px 0 rgba(0,0,0,0.15), 0 0 0 2px rgba(255,152,0,0.6), 0 0 35px rgba(255,152,0,0.3)',
           },
           height: '100%',
           minHeight: { xs: '400px', sm: '300px' },
@@ -343,7 +343,7 @@ const TrendingItem = ({ trend, isLoading }) => {
               <Typography
                 sx={{
                   color: '#fff',
-                  fontSize: { xs: '10px', sm: '12px' },
+                  fontSize: { xs: '11px', sm: '13px' },
                   fontWeight: 700,
                   textTransform: 'uppercase',
                   letterSpacing: '0.5px',
