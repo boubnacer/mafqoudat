@@ -83,7 +83,7 @@ const LogoButton = styled(Button)(({ theme }) => ({
     boxShadow: 'none',
     '& img': {
       filter: theme.palette.mode === 'dark' 
-        ? 'drop-shadow(0 0 12px rgba(255, 255, 255, 0.4)) drop-shadow(0 0 20px rgba(59, 130, 246, 0.3))'
+        ? 'drop-shadow(0 0 16px rgba(59, 130, 246, 0.8))'
         : 'drop-shadow(0 0 12px rgba(59, 130, 246, 0.5))',
       transform: 'scale(1.05)',
       '&::before': {
@@ -105,14 +105,14 @@ const LogoButton = styled(Button)(({ theme }) => ({
     zIndex: 2,
     // Theme-aware glow effect
     filter: theme.palette.mode === 'dark' 
-      ? 'drop-shadow(0 0 8px rgba(255, 255, 255, 0.2)) drop-shadow(0 0 12px rgba(59, 130, 246, 0.4))'
+      ? 'drop-shadow(0 0 12px rgba(59, 130, 246, 0.6))'
       : 'drop-shadow(0 0 8px rgba(59, 130, 246, 0.3))',
-    // Add subtle background in dark mode
+    // Add white background in dark mode for better contrast
     ...(theme.palette.mode === 'dark' && {
-      backgroundColor: 'rgba(255, 255, 255, 0.05)',
+      backgroundColor: 'rgba(255, 255, 255, 0.95)',
       borderRadius: '8px',
-      padding: '4px',
-      backdropFilter: 'blur(10px)',
+      padding: '6px',
+      boxShadow: '0 2px 8px rgba(0, 0, 0, 0.2)',
     }),
     // Animated lighting effect
     '&::before': {
@@ -139,7 +139,7 @@ const LogoButton = styled(Button)(({ theme }) => ({
       width: '100%',
       height: '3px',
       background: theme.palette.mode === 'dark'
-        ? 'linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.8), rgba(59, 130, 246, 0.9), rgba(255, 255, 255, 0.8), transparent)'
+        ? 'linear-gradient(90deg, transparent, rgba(59, 130, 246, 0.9), rgba(255, 255, 255, 0.7), rgba(59, 130, 246, 0.9), transparent)'
         : 'linear-gradient(90deg, transparent, rgba(59, 130, 246, 0.8), rgba(255, 255, 255, 0.6), rgba(59, 130, 246, 0.8), transparent)',
       transform: 'translateY(-50%)',
       animation: 'lightSweep 4s ease-in-out infinite',
