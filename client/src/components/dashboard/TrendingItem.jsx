@@ -324,7 +324,7 @@ const TrendingItem = ({ trend, isLoading }) => {
               sx={{
                 position: 'absolute',
                 top: { xs: '16px', sm: '20px' },
-                right: { xs: '16px', sm: '20px' },
+                left: { xs: '16px', sm: '20px' },
                 zIndex: 2,
                 background: 'linear-gradient(45deg, #FF9800, #FFC107)',
                 padding: { xs: '4px 8px', sm: '6px 12px' },
@@ -357,64 +357,75 @@ const TrendingItem = ({ trend, isLoading }) => {
                 🔥 Trending
               </Typography>
             </Box>
-            {/* Category Badge */}
+            
+            {/* Right Side Badges Container */}
             <Box
               sx={{
-                backgroundColor: theme.palette.mode === 'dark' ? alpha(categoryStyle.main, 0.2) : categoryStyle.background,
-                padding: { xs: '6px 12px', sm: '6px 12px' },
-                borderRadius: '12px',
                 display: 'flex',
-                alignItems: 'center',
-                gap: 0.5,
-                backdropFilter: 'blur(10px)',
-                border: `1px solid ${theme.palette.mode === 'dark' ? alpha(categoryStyle.main, 0.3) : categoryStyle.main}`,
-                marginRight: { xs: '80px', sm: '100px' }, // Make space for trending badge
+                flexDirection: 'column',
+                gap: 1,
+                alignItems: 'flex-end',
+                marginTop: { xs: '40px', sm: '45px' }, // Space for trending badge
               }}
             >
-              <RenderIcon name={`${categoryname?.toLowerCase()}cate`} sx={{ fontSize: { xs: '18px', sm: '18px' }, color: categoryStyle.main }} />
-              <Typography
+              {/* Category Badge */}
+              <Box
                 sx={{
-                  color: categoryStyle.main,
-                  fontSize: { xs: '14px', sm: '14px' },
-                  fontWeight: 600,
-                  lineHeight: 1,
+                  backgroundColor: theme.palette.mode === 'dark' ? alpha(categoryStyle.main, 0.2) : categoryStyle.background,
+                  padding: { xs: '6px 12px', sm: '6px 12px' },
+                  borderRadius: '12px',
+                  display: 'flex',
+                  alignItems: 'center',
+                  gap: 0.5,
+                  backdropFilter: 'blur(10px)',
+                  border: `1px solid ${theme.palette.mode === 'dark' ? alpha(categoryStyle.main, 0.3) : categoryStyle.main}`,
                 }}
               >
-                {categoryDisplayName}
-              </Typography>
-            </Box>
-            
-            {/* Status Badge */}
-            <Chip
-              icon={<RenderIcon name={`${foundLostStatus.value.toLowerCase()}fl`} sx={{ fontSize: { xs: '16px', sm: '16px' } }} />}
-              label={foundLostStatus.label}
-              sx={{
-                backgroundColor: alpha(foundLostStatus.color, 0.95),
-                color: '#fff',
-                fontWeight: 700,
-                fontSize: { xs: '13px', sm: '13px', md: '14px' },
-                height: { xs: '30px', sm: '30px', md: '32px' },
-                padding: { xs: '0 12px', sm: '0 12px', md: '0 16px' },
-                borderRadius: { xs: '12px', sm: '16px' },
-                boxShadow: `0 2px 8px ${alpha(foundLostStatus.color, 0.4)}`,
-                border: `1px solid ${alpha(foundLostStatus.color, 0.3)}`,
-                backdropFilter: 'blur(10px)',
-                transition: 'all 0.3s ease',
-                '& .MuiChip-icon': {
+                <RenderIcon name={`${categoryname?.toLowerCase()}cate`} sx={{ fontSize: { xs: '18px', sm: '18px' }, color: categoryStyle.main }} />
+                <Typography
+                  sx={{
+                    color: categoryStyle.main,
+                    fontSize: { xs: '14px', sm: '14px' },
+                    fontWeight: 600,
+                    lineHeight: 1,
+                  }}
+                >
+                  {categoryDisplayName}
+                </Typography>
+              </Box>
+              
+              {/* Status Badge */}
+              <Chip
+                icon={<RenderIcon name={`${foundLostStatus.value.toLowerCase()}fl`} sx={{ fontSize: { xs: '16px', sm: '16px' } }} />}
+                label={foundLostStatus.label}
+                sx={{
+                  backgroundColor: alpha(foundLostStatus.color, 0.95),
                   color: '#fff',
-                  marginLeft: { xs: '4px', sm: '6px' }
-                },
-                '& .MuiChip-label': {
-                  paddingLeft: { xs: '4px', sm: '6px' },
-                  paddingRight: { xs: '4px', sm: '6px' }
-                },
-                '&:hover': {
-                  backgroundColor: alpha(foundLostStatus.color, 1),
-                  transform: 'translateY(-1px)',
-                  boxShadow: `0 4px 12px ${alpha(foundLostStatus.color, 0.6)}`
-                }
-              }}
-            />
+                  fontWeight: 700,
+                  fontSize: { xs: '13px', sm: '13px', md: '14px' },
+                  height: { xs: '30px', sm: '30px', md: '32px' },
+                  padding: { xs: '0 12px', sm: '0 12px', md: '0 16px' },
+                  borderRadius: { xs: '12px', sm: '16px' },
+                  boxShadow: `0 2px 8px ${alpha(foundLostStatus.color, 0.4)}`,
+                  border: `1px solid ${alpha(foundLostStatus.color, 0.3)}`,
+                  backdropFilter: 'blur(10px)',
+                  transition: 'all 0.3s ease',
+                  '& .MuiChip-icon': {
+                    color: '#fff',
+                    marginLeft: { xs: '4px', sm: '6px' }
+                  },
+                  '& .MuiChip-label': {
+                    paddingLeft: { xs: '4px', sm: '6px' },
+                    paddingRight: { xs: '4px', sm: '6px' }
+                  },
+                  '&:hover': {
+                    backgroundColor: alpha(foundLostStatus.color, 1),
+                    transform: 'translateY(-1px)',
+                    boxShadow: `0 4px 12px ${alpha(foundLostStatus.color, 0.6)}`
+                  }
+                }}
+              />
+            </Box>
           </Box>
 
           {/* Middle Section - Main Content - Optimized for better image visibility */}
