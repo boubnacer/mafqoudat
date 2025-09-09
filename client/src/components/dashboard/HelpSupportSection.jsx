@@ -37,11 +37,13 @@ import {
 } from "@mui/icons-material";
 import DashRecents from './DashRecents';
 import { useTranslation } from "../../utils/translations";
+import { isRTL } from "../../utils/languageUtils";
 
 const HelpSupportSection = () => {
   const theme = useTheme();
   const navigate = useNavigate();
   const { t } = useTranslation();
+  const isRTLMode = isRTL();
   const [showHelpDialog, setShowHelpDialog] = useState(false);
   const [helpTab, setHelpTab] = useState(0);
 
@@ -128,6 +130,7 @@ const HelpSupportSection = () => {
               background: "linear-gradient(45deg, #2196F3 30%, #21CBF3 90%)",
               WebkitBackgroundClip: "text",
               WebkitTextFillColor: "transparent",
+              direction: isRTLMode ? 'rtl' : 'ltr'
             }}
           >
             {t('helpAndSupport')}
@@ -139,6 +142,8 @@ const HelpSupportSection = () => {
             sx={{
               background: "linear-gradient(45deg, #2196F3 30%, #21CBF3 90%)",
               boxShadow: "0 3px 5px 2px rgba(33, 203, 243, .3)",
+              gap: isRTLMode ? 1 : 0.5,
+              direction: isRTLMode ? 'rtl' : 'ltr'
             }}
           >
             {t('getHelp')}
@@ -161,8 +166,8 @@ const HelpSupportSection = () => {
               >
                 <CardContent>
                   <Box display="flex" alignItems="center" mb={2}>
-                    <Help sx={{ mr: 1, color: 'primary.main' }} />
-                    <Typography variant="h6" color={theme.palette.text.primary}>{t('faq')}</Typography>
+                    <Help sx={{ mr: isRTLMode ? 0 : 1, ml: isRTLMode ? 1 : 0, color: 'primary.main' }} />
+                    <Typography variant="h6" color={theme.palette.text.primary} sx={{ direction: isRTLMode ? 'rtl' : 'ltr' }}>{t('faq')}</Typography>
                   </Box>
                   <List>
                     {faqItems.map((item, index) => (
@@ -180,10 +185,10 @@ const HelpSupportSection = () => {
                             borderRadius: '4px',
                           }}
                         >
-                          <Typography variant="subtitle1" color={theme.palette.text.primary}>{item.question}</Typography>
+                          <Typography variant="subtitle1" color={theme.palette.text.primary} sx={{ direction: isRTLMode ? 'rtl' : 'ltr' }}>{item.question}</Typography>
                         </AccordionSummary>
                         <AccordionDetails>
-                          <Typography variant="body2" color={theme.palette.text.secondary}>
+                          <Typography variant="body2" color={theme.palette.text.secondary} sx={{ direction: isRTLMode ? 'rtl' : 'ltr' }}>
                             {item.answer}
                           </Typography>
                         </AccordionDetails>
@@ -198,6 +203,8 @@ const HelpSupportSection = () => {
                       mt: 2,
                       color: theme.palette.primary.main,
                       borderColor: theme.palette.primary.main,
+                      gap: isRTLMode ? 1 : 0.5,
+                      direction: isRTLMode ? 'rtl' : 'ltr',
                       '&:hover': {
                         backgroundColor: theme.palette.primary.main,
                         color: '#fff',
@@ -225,8 +232,8 @@ const HelpSupportSection = () => {
               >
                 <CardContent>
                   <Box display="flex" alignItems="center" mb={2}>
-                    <Phone sx={{ mr: 1, color: 'error.main' }} />
-                    <Typography variant="h6" color={theme.palette.text.primary}>{t('emergencyContacts')}</Typography>
+                    <Phone sx={{ mr: isRTLMode ? 0 : 1, ml: isRTLMode ? 1 : 0, color: 'error.main' }} />
+                    <Typography variant="h6" color={theme.palette.text.primary} sx={{ direction: isRTLMode ? 'rtl' : 'ltr' }}>{t('emergencyContacts')}</Typography>
                   </Box>
                   <List>
                     {emergencyContacts.map((contact, index) => (
@@ -237,8 +244,8 @@ const HelpSupportSection = () => {
                         <ListItemText 
                           primary={contact.name}
                           secondary={contact.details}
-                          primaryTypographyProps={{ color: theme.palette.text.primary }}
-                          secondaryTypographyProps={{ color: theme.palette.text.secondary }}
+                          primaryTypographyProps={{ color: theme.palette.text.primary, sx: { direction: isRTLMode ? 'rtl' : 'ltr' } }}
+                          secondaryTypographyProps={{ color: theme.palette.text.secondary, sx: { direction: isRTLMode ? 'rtl' : 'ltr' } }}
                         />
                         <Button
                           variant="outlined"
@@ -247,6 +254,8 @@ const HelpSupportSection = () => {
                           sx={{
                             color: theme.palette.error.main,
                             borderColor: theme.palette.error.main,
+                            gap: isRTLMode ? 1 : 0.5,
+                            direction: isRTLMode ? 'rtl' : 'ltr',
                             '&:hover': {
                               backgroundColor: theme.palette.error.main,
                               color: '#fff',
@@ -260,7 +269,7 @@ const HelpSupportSection = () => {
                     ))}
                   </List>
                   <Box sx={{ mt: 2, p: 2, bgcolor: 'error.light', borderRadius: 1 }}>
-                    <Typography variant="body2" color="error.contrastText">
+                    <Typography variant="body2" color="error.contrastText" sx={{ direction: isRTLMode ? 'rtl' : 'ltr' }}>
                       {t('immediateAssistance')}
                     </Typography>
                   </Box>
@@ -282,8 +291,8 @@ const HelpSupportSection = () => {
               >
                 <CardContent>
                   <Box display="flex" alignItems="center" mb={2}>
-                    <Security sx={{ mr: 1, color: 'success.main' }} />
-                    <Typography variant="h6" color={theme.palette.text.primary}>{t('guidelines')}</Typography>
+                    <Security sx={{ mr: isRTLMode ? 0 : 1, ml: isRTLMode ? 1 : 0, color: 'success.main' }} />
+                    <Typography variant="h6" color={theme.palette.text.primary} sx={{ direction: isRTLMode ? 'rtl' : 'ltr' }}>{t('guidelines')}</Typography>
                   </Box>
                   <List>
                     {guidelines.map((guideline, index) => (
@@ -294,14 +303,14 @@ const HelpSupportSection = () => {
                         <ListItemText 
                           primary={guideline.title}
                           secondary={guideline.description}
-                          primaryTypographyProps={{ color: theme.palette.text.primary }}
-                          secondaryTypographyProps={{ color: theme.palette.text.secondary }}
+                          primaryTypographyProps={{ color: theme.palette.text.primary, sx: { direction: isRTLMode ? 'rtl' : 'ltr' } }}
+                          secondaryTypographyProps={{ color: theme.palette.text.secondary, sx: { direction: isRTLMode ? 'rtl' : 'ltr' } }}
                         />
                       </ListItem>
                     ))}
                   </List>
                   <Box sx={{ mt: 2 }}>
-                    <Typography variant="subtitle2" gutterBottom color={theme.palette.text.primary}>
+                    <Typography variant="subtitle2" gutterBottom color={theme.palette.text.primary} sx={{ direction: isRTLMode ? 'rtl' : 'ltr' }}>
                       {t('communityGuidelines')}
                     </Typography>
                     <Button
@@ -313,6 +322,8 @@ const HelpSupportSection = () => {
                         mb: 1,
                         color: theme.palette.success.main,
                         borderColor: theme.palette.success.main,
+                        gap: isRTLMode ? 1 : 0.5,
+                        direction: isRTLMode ? 'rtl' : 'ltr',
                         '&:hover': {
                           backgroundColor: theme.palette.success.main,
                           color: '#fff',
@@ -330,6 +341,8 @@ const HelpSupportSection = () => {
                       sx={{
                         color: theme.palette.warning.main,
                         borderColor: theme.palette.warning.main,
+                        gap: isRTLMode ? 1 : 0.5,
+                        direction: isRTLMode ? 'rtl' : 'ltr',
                         '&:hover': {
                           backgroundColor: theme.palette.warning.main,
                           color: '#fff',
@@ -354,7 +367,7 @@ const HelpSupportSection = () => {
         maxWidth="md"
         fullWidth
       >
-        <DialogTitle>
+        <DialogTitle sx={{ direction: isRTLMode ? 'rtl' : 'ltr' }}>
           {t('howCanWeHelpYou')}
         </DialogTitle>
         <DialogContent>
@@ -368,7 +381,7 @@ const HelpSupportSection = () => {
             <Box sx={{ mt: 2 }}>
               {helpTab === 0 && (
                 <Box>
-                  <Typography variant="h6" gutterBottom>
+                  <Typography variant="h6" gutterBottom sx={{ direction: isRTLMode ? 'rtl' : 'ltr' }}>
                     {t('contactOurSupportTeam')}
                   </Typography>
                   <TextField
@@ -386,7 +399,11 @@ const HelpSupportSection = () => {
                   <Button
                     variant="contained"
                     fullWidth
-                    sx={{ mt: 2 }}
+                    sx={{ 
+                      mt: 2,
+                      gap: isRTLMode ? 1 : 0.5,
+                      direction: isRTLMode ? 'rtl' : 'ltr'
+                    }}
                   >
                     {t('sendMessage')}
                   </Button>
@@ -396,10 +413,10 @@ const HelpSupportSection = () => {
               {helpTab === 1 && (
                 <Box textAlign="center" py={4}>
                   <Chat sx={{ fontSize: 60, color: 'primary.main', mb: 2 }} />
-                  <Typography variant="h6" gutterBottom>
+                  <Typography variant="h6" gutterBottom sx={{ direction: isRTLMode ? 'rtl' : 'ltr' }}>
                     {t('liveChatComingSoon')}
                   </Typography>
-                  <Typography variant="body2" color="text.secondary">
+                  <Typography variant="body2" color="text.secondary" sx={{ direction: isRTLMode ? 'rtl' : 'ltr' }}>
                     {t('liveChatComingSoonDesc')}
                   </Typography>
                 </Box>
@@ -407,7 +424,7 @@ const HelpSupportSection = () => {
               
               {helpTab === 2 && (
                 <Box>
-                  <Typography variant="h6" gutterBottom>
+                  <Typography variant="h6" gutterBottom sx={{ direction: isRTLMode ? 'rtl' : 'ltr' }}>
                     {t('videoTutorials')}
                   </Typography>
                   <Grid container spacing={2}>
@@ -436,7 +453,15 @@ const HelpSupportSection = () => {
           </Box>
         </DialogContent>
         <DialogActions>
-          <Button onClick={() => setShowHelpDialog(false)}>{t('close')}</Button>
+          <Button 
+            onClick={() => setShowHelpDialog(false)}
+            sx={{
+              gap: isRTLMode ? 1 : 0.5,
+              direction: isRTLMode ? 'rtl' : 'ltr'
+            }}
+          >
+            {t('close')}
+          </Button>
         </DialogActions>
       </Dialog>
     </>
