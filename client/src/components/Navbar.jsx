@@ -67,7 +67,7 @@ const StyledToolbar = styled(Toolbar)(({ theme }) => ({
 }));
 
 const LogoButton = styled(Button)(({ theme }) => ({
-  padding: '8px 12px',
+  padding: '6px 10px',
   borderRadius: '12px',
   transition: 'all 0.3s cubic-bezier(0.4, 0, 0.2, 1)',
   position: 'relative',
@@ -81,21 +81,75 @@ const LogoButton = styled(Button)(({ theme }) => ({
     transform: 'translateY(-2px)',
     background: 'transparent',
     boxShadow: 'none',
+    '& img': {
+      filter: 'drop-shadow(0 0 12px rgba(59, 130, 246, 0.5))',
+      transform: 'scale(1.05)',
+      '&::before': {
+        opacity: 0.4,
+        animation: 'pulseGlow 1.5s ease-in-out infinite',
+      },
+      '&::after': {
+        animation: 'lightSweep 2s ease-in-out infinite',
+      }
+    }
   },
   '& img': {
     height: 'auto',
-    maxHeight: '32px',
+    maxHeight: '24px', // Reduced from 32px
     width: 'auto',
     objectFit: 'contain',
     transition: 'all 0.3s ease',
-    filter: 'none', // Ensure no color filters are applied
+    filter: 'none',
+    position: 'relative',
+    zIndex: 2,
+    // Subtle glow effect
+    filter: 'drop-shadow(0 0 8px rgba(59, 130, 246, 0.3))',
+    // Animated lighting effect
+    '&::before': {
+      content: '""',
+      position: 'absolute',
+      top: '-3px',
+      left: '-3px',
+      right: '-3px',
+      bottom: '-3px',
+      background: 'linear-gradient(45deg, transparent, rgba(59, 130, 246, 0.2), transparent)',
+      borderRadius: '10px',
+      opacity: 0,
+      transition: 'opacity 0.4s ease',
+      zIndex: -1,
+      animation: 'pulseGlow 4s ease-in-out infinite',
+    },
+    '&::after': {
+      content: '""',
+      position: 'absolute',
+      top: '50%',
+      left: '-100%',
+      width: '100%',
+      height: '3px',
+      background: 'linear-gradient(90deg, transparent, rgba(59, 130, 246, 0.8), rgba(255, 255, 255, 0.6), rgba(59, 130, 246, 0.8), transparent)',
+      transform: 'translateY(-50%)',
+      animation: 'lightSweep 4s ease-in-out infinite',
+      zIndex: 1,
+      borderRadius: '2px',
+    },
+    '@keyframes lightSweep': {
+      '0%': { left: '-100%', opacity: 0 },
+      '10%': { opacity: 1 },
+      '50%': { left: '100%', opacity: 1 },
+      '90%': { opacity: 0 },
+      '100%': { left: '100%', opacity: 0 }
+    },
+    '@keyframes pulseGlow': {
+      '0%, 100%': { opacity: 0, transform: 'scale(1)' },
+      '50%': { opacity: 0.3, transform: 'scale(1.05)' }
+    }
   },
   [theme.breakpoints.down('sm')]: {
-    padding: '6px 8px',
+    padding: '4px 6px',
     marginLeft: theme.direction === 'rtl' ? '0' : '-6px',
     marginRight: theme.direction === 'rtl' ? '-6px' : '0',
     '& img': {
-      maxHeight: '24px',
+      maxHeight: '18px', // Reduced from 24px
     }
   }
 }));
