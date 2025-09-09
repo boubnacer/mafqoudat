@@ -225,28 +225,34 @@ const RecentPosts = ({ _id, categoryname, exactLocation, image, createdAt, count
     <>
       <Card
         sx={{
-          backgroundColor: isDarkMode ? alpha('#1a1a1a', 0.9) : '#ffffff',
+          backgroundColor: isDarkMode 
+            ? 'linear-gradient(145deg, rgba(26,26,26,0.95) 0%, rgba(45,45,45,0.95) 100%)'
+            : 'linear-gradient(145deg, rgba(255,255,255,0.95) 0%, rgba(248,249,250,0.95) 100%)',
           position: 'relative',
-          boxShadow: 'none',
-          border: `1px solid ${isDarkMode ? alpha('#fff', 0.08) : alpha('#000', 0.06)}`,
-          height: { xs: 'auto', sm: '380px' },
-          minHeight: { xs: '320px', sm: '380px' },
+          boxShadow: isDarkMode
+            ? '0 8px 32px rgba(0,0,0,0.4), 0 2px 8px rgba(0,0,0,0.2)'
+            : '0 8px 32px rgba(0,0,0,0.12), 0 2px 8px rgba(0,0,0,0.08)',
+          border: `1px solid ${isDarkMode ? alpha('#fff', 0.12) : alpha('#000', 0.08)}`,
+          height: { xs: 'auto', sm: '400px' },
+          minHeight: { xs: '340px', sm: '400px' },
           display: 'flex',
           flexDirection: 'column',
-          transition: 'all 0.3s cubic-bezier(0.4, 0, 0.2, 1)',
-          borderRadius: '20px',
+          transition: 'all 0.4s cubic-bezier(0.4, 0, 0.2, 1)',
+          borderRadius: { xs: '16px', sm: '20px' },
           overflow: 'hidden',
+          backdropFilter: 'blur(10px)',
           '&:hover': {
-            transform: { xs: 'none', sm: 'translateY(-4px)' },
+            transform: { xs: 'none', sm: 'translateY(-6px)' },
             boxShadow: isDarkMode
-              ? '0 20px 40px rgba(0, 0, 0, 0.3)'
-              : '0 20px 40px rgba(0, 0, 0, 0.08)',
+              ? '0 24px 48px rgba(0, 0, 0, 0.5), 0 4px 16px rgba(0,0,0,0.3)'
+              : '0 24px 48px rgba(0, 0, 0, 0.15), 0 4px 16px rgba(0,0,0,0.1)',
+            border: `1px solid ${isDarkMode ? alpha('#fff', 0.18) : alpha('#000', 0.12)}`,
           },
           direction: currentLanguage === 'ar' ? 'rtl' : 'ltr'
         }}
       >
-        {/* Image Section with Overlays */}
-        <Box sx={{ position: 'relative', height: { xs: '240px', sm: '220px' } }}>
+        {/* Image Section with Enhanced Overlays */}
+        <Box sx={{ position: 'relative', height: { xs: '260px', sm: '240px' } }}>
           <LazyCardMedia
             component="img"
             sx={{
@@ -255,6 +261,10 @@ const RecentPosts = ({ _id, categoryname, exactLocation, image, createdAt, count
               objectFit: 'cover',
               objectPosition: 'center',
               zIndex: 1, // Base layer for image
+              transition: 'transform 0.4s ease',
+              '&:hover': {
+                transform: 'scale(1.05)',
+              }
             }}
             image={image ? (image.startsWith('http') ? getOptimizedImageUrl(image, 'card') : `${API_BASE_URL}/${image}`) : ma}
             alt={categoryname}
@@ -264,7 +274,7 @@ const RecentPosts = ({ _id, categoryname, exactLocation, image, createdAt, count
             }}
           />
           
-          {/* Gradient Overlay */}
+          {/* Enhanced Gradient Overlay */}
           <Box
             sx={{
               position: 'absolute',
@@ -272,19 +282,21 @@ const RecentPosts = ({ _id, categoryname, exactLocation, image, createdAt, count
               left: 0,
               right: 0,
               bottom: 0,
-              background: 'linear-gradient(180deg, rgba(0,0,0,0.1) 0%, rgba(0,0,0,0.4) 100%)',
+              background: isDarkMode
+                ? 'linear-gradient(180deg, rgba(0,0,0,0.2) 0%, rgba(0,0,0,0.6) 100%)'
+                : 'linear-gradient(180deg, rgba(0,0,0,0.1) 0%, rgba(0,0,0,0.5) 100%)',
               pointerEvents: 'none',
               zIndex: 2, // Above image, below badges
             }}
           />
 
-          {/* Top Badges Container */}
+          {/* Enhanced Top Badges Container */}
           <Box
             sx={{
               position: 'absolute',
-              top: 12,
-              left: 12,
-              right: 12,
+              top: { xs: 16, sm: 16 },
+              left: { xs: 16, sm: 16 },
+              right: { xs: 16, sm: 16 },
               display: 'flex',
               justifyContent: 'space-between',
               alignItems: 'flex-start',
@@ -292,32 +304,45 @@ const RecentPosts = ({ _id, categoryname, exactLocation, image, createdAt, count
               zIndex: 10, // Ensure badges are above image
             }}
           >
-            {/* Category Badge */}
+            {/* Enhanced Category Badge */}
             <Box
               sx={{
-                backgroundColor: isDarkMode ? alpha(categoryStyle.main, 0.2) : categoryStyle.background,
-                padding: '4px 8px',
-                borderRadius: '12px',
+                backgroundColor: isDarkMode 
+                  ? alpha(categoryStyle.main, 0.25) 
+                  : alpha(categoryStyle.background, 0.9),
+                padding: { xs: '6px 10px', sm: '8px 12px' },
+                borderRadius: { xs: '14px', sm: '16px' },
                 display: 'flex',
                 alignItems: 'center',
-                gap: 0.5,
-                backdropFilter: 'blur(10px)',
-                border: `1px solid ${isDarkMode ? alpha(categoryStyle.main, 0.3) : categoryStyle.main}`,
+                gap: { xs: 0.75, sm: 1 },
+                backdropFilter: 'blur(12px)',
+                border: `1px solid ${isDarkMode ? alpha(categoryStyle.main, 0.4) : alpha(categoryStyle.main, 0.3)}`,
                 zIndex: 11, // Higher z-index for category badge
+                boxShadow: isDarkMode
+                  ? `0 4px 12px ${alpha(categoryStyle.main, 0.2)}`
+                  : `0 4px 12px ${alpha(categoryStyle.main, 0.15)}`,
+                transition: 'all 0.3s ease',
+                '&:hover': {
+                  backgroundColor: isDarkMode 
+                    ? alpha(categoryStyle.main, 0.35) 
+                    : alpha(categoryStyle.background, 1),
+                  transform: 'scale(1.05)',
+                }
               }}
             >
               <RenderIcon 
                 name={`${categoryname?.toLowerCase()}cate`} 
                 sx={{ 
-                  fontSize: '12px', 
+                  fontSize: { xs: '14px', sm: '16px' }, 
                   color: isDarkMode ? categoryStyle.main : categoryStyle.text 
                 }} 
               />
               <Typography
                 sx={{
                   color: isDarkMode ? categoryStyle.main : categoryStyle.text,
-                  fontSize: '10px',
-                  fontWeight: 600,
+                  fontSize: { xs: '11px', sm: '12px' },
+                  fontWeight: 700,
+                  lineHeight: 1.2,
                 }}
               >
                 {categoryDisplayName}
@@ -325,27 +350,43 @@ const RecentPosts = ({ _id, categoryname, exactLocation, image, createdAt, count
             </Box>
           </Box>
 
-          {/* Time Badge */}
+          {/* Enhanced Time Badge */}
           <Box
             sx={{
               position: 'absolute',
-              bottom: 12,
-              left: 12,
-              backgroundColor: alpha('#000', 0.7),
-              padding: '4px 8px',
-              borderRadius: '8px',
-              backdropFilter: 'blur(10px)',
-              border: '1px solid rgba(255,255,255,0.1)',
+              bottom: { xs: 16, sm: 16 },
+              left: { xs: 16, sm: 16 },
+              backgroundColor: isDarkMode 
+                ? alpha('#000', 0.8) 
+                : alpha('#000', 0.75),
+              padding: { xs: '6px 10px', sm: '8px 12px' },
+              borderRadius: { xs: '12px', sm: '14px' },
+              backdropFilter: 'blur(12px)',
+              border: `1px solid ${isDarkMode ? 'rgba(255,255,255,0.15)' : 'rgba(255,255,255,0.2)'}`,
               zIndex: 11, // Higher z-index for time badge
+              boxShadow: isDarkMode
+                ? '0 4px 12px rgba(0,0,0,0.4)'
+                : '0 4px 12px rgba(0,0,0,0.3)',
+              transition: 'all 0.3s ease',
+              '&:hover': {
+                backgroundColor: isDarkMode 
+                  ? alpha('#000', 0.9) 
+                  : alpha('#000', 0.85),
+                transform: 'scale(1.05)',
+              }
             }}
           >
-            <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.5 }}>
-              <TimeIcon sx={{ fontSize: '12px', color: '#fff' }} />
+            <Box sx={{ display: 'flex', alignItems: 'center', gap: { xs: 0.75, sm: 1 } }}>
+              <TimeIcon sx={{ 
+                fontSize: { xs: '14px', sm: '16px' }, 
+                color: '#fff' 
+              }} />
               <Typography
                 sx={{
                   color: '#fff',
-                  fontSize: '10px',
-                  fontWeight: 600,
+                  fontSize: { xs: '11px', sm: '12px' },
+                  fontWeight: 700,
+                  lineHeight: 1.2,
                 }}
               >
                 {created}
@@ -354,35 +395,62 @@ const RecentPosts = ({ _id, categoryname, exactLocation, image, createdAt, count
           </Box>
         </Box>
 
-        {/* Content Section */}
+        {/* Enhanced Content Section */}
         <CardContent 
           sx={{ 
             flexGrow: 1, 
-            p: { xs: 2, sm: 2.5 },
+            p: { xs: 2.5, sm: 3 },
             display: 'flex',
             flexDirection: 'column',
-            gap: 1.5,
+            gap: 2,
+            backgroundColor: isDarkMode 
+              ? alpha('#1a1a1a', 0.3) 
+              : alpha('#ffffff', 0.5),
           }}
         >
-          {/* Location Info - Only City */}
-          <Box sx={{ display: 'flex', alignItems: 'center', gap: 1.5 }}>
+          {/* Enhanced Location Info - Only City */}
+          <Box sx={{ 
+            display: 'flex', 
+            alignItems: 'center', 
+            gap: { xs: 1.5, sm: 2 },
+            p: { xs: 1, sm: 1.5 },
+            backgroundColor: isDarkMode 
+              ? alpha('#2d2d2d', 0.5) 
+              : alpha('#f8f9fa', 0.8),
+            borderRadius: { xs: '12px', sm: '14px' },
+            border: `1px solid ${isDarkMode ? alpha('#fff', 0.08) : alpha('#000', 0.06)}`,
+            transition: 'all 0.3s ease',
+            '&:hover': {
+              backgroundColor: isDarkMode 
+                ? alpha('#2d2d2d', 0.7) 
+                : alpha('#f8f9fa', 1),
+              transform: 'translateY(-2px)',
+            }
+          }}>
             <Avatar
               sx={{
-                width: 28,
-                height: 28,
-                backgroundColor: alpha(theme.palette.text.secondary, 0.1),
-                color: theme.palette.text.secondary,
+                width: { xs: 32, sm: 36 },
+                height: { xs: 32, sm: 36 },
+                backgroundColor: isDarkMode 
+                  ? alpha(theme.palette.primary.main, 0.2) 
+                  : alpha(theme.palette.primary.main, 0.1),
+                color: theme.palette.primary.main,
+                border: `2px solid ${isDarkMode ? alpha(theme.palette.primary.main, 0.3) : alpha(theme.palette.primary.main, 0.2)}`,
+                boxShadow: isDarkMode
+                  ? `0 4px 12px ${alpha(theme.palette.primary.main, 0.2)}`
+                  : `0 4px 12px ${alpha(theme.palette.primary.main, 0.15)}`,
               }}
             >
-              <LocationIcon sx={{ fontSize: '16px' }} />
+              <LocationIcon sx={{ fontSize: { xs: '18px', sm: '20px' } }} />
             </Avatar>
             <Box>
               <Typography
                 sx={{
-                  color: isDarkMode ? alpha('#fff', 0.9) : alpha('#000', 0.8),
-                  fontSize: { xs: '14px', sm: '16px' },
+                  color: isDarkMode ? alpha('#fff', 0.95) : alpha('#000', 0.9),
+                  fontSize: { xs: '15px', sm: '17px' },
                   fontWeight: 700,
-                  lineHeight: 1.2,
+                  lineHeight: 1.3,
+                  letterSpacing: '0.02em',
                 }}
               >
                 {displayCityName}
@@ -391,19 +459,21 @@ const RecentPosts = ({ _id, categoryname, exactLocation, image, createdAt, count
           </Box>
         </CardContent>
 
-        {/* Actions Section */}
+        {/* Enhanced Actions Section */}
         <CardActions
           sx={{
             display: 'flex',
             justifyContent: 'space-between',
-            p: { xs: 1.5, sm: 2 },
-            borderTop: '1px solid',
-            borderColor: isDarkMode ? alpha('#fff', 0.06) : alpha('#000', 0.04),
-            backgroundColor: isDarkMode ? alpha('#000', 0.2) : alpha('#f8f9fa', 0.5),
-            gap: 3,
+            p: { xs: 2, sm: 2.5 },
+            borderTop: `1px solid ${isDarkMode ? alpha('#fff', 0.08) : alpha('#000', 0.06)}`,
+            backgroundColor: isDarkMode 
+              ? 'linear-gradient(145deg, rgba(0,0,0,0.3) 0%, rgba(26,26,26,0.3) 100%)'
+              : 'linear-gradient(145deg, rgba(248,249,250,0.8) 0%, rgba(255,255,255,0.8) 100%)',
+            gap: { xs: 2, sm: 3 },
             mt: 'auto',
             flexShrink: 0,
-            minHeight: '60px',
+            minHeight: { xs: '70px', sm: '80px' },
+            backdropFilter: 'blur(8px)',
           }}
         >
           <Button
@@ -414,20 +484,27 @@ const RecentPosts = ({ _id, categoryname, exactLocation, image, createdAt, count
               color: theme.palette.error.main,
               borderColor: theme.palette.error.main,
               textTransform: 'none',
-              fontSize: { xs: '10px', sm: '11px' },
-              fontWeight: 600,
-              padding: { xs: '8px 12px', sm: '8px 12px' },
-              borderRadius: '8px',
+              fontSize: { xs: '11px', sm: '12px' },
+              fontWeight: 700,
+              padding: { xs: '10px 14px', sm: '12px 16px' },
+              borderRadius: { xs: '10px', sm: '12px' },
               minWidth: 'auto',
               flexShrink: 0,
-              gap: currentLanguage === 'ar' ? 1 : 0.5,
+              gap: currentLanguage === 'ar' ? 1 : 0.75,
+              backgroundColor: isDarkMode 
+                ? alpha(theme.palette.error.main, 0.1) 
+                : alpha(theme.palette.error.main, 0.05),
+              borderWidth: '2px',
+              transition: 'all 0.3s ease',
               '&:hover': {
                 backgroundColor: theme.palette.error.main,
                 color: '#fff',
                 borderColor: theme.palette.error.main,
+                transform: 'translateY(-2px)',
+                boxShadow: `0 6px 16px ${alpha(theme.palette.error.main, 0.4)}`,
               },
             }}
-            startIcon={<ReportProblemOutlined sx={{ fontSize: '12px' }} />}
+            startIcon={<ReportProblemOutlined sx={{ fontSize: { xs: '14px', sm: '16px' } }} />}
             endIcon={null}
           >
             {t('report')}
@@ -440,23 +517,23 @@ const RecentPosts = ({ _id, categoryname, exactLocation, image, createdAt, count
               background: `linear-gradient(135deg, ${theme.palette.primary.main} 0%, ${theme.palette.primary.dark} 100%)`,
               color: '#fff',
               textTransform: 'none',
-              fontSize: { xs: '10px', sm: '11px' },
+              fontSize: { xs: '11px', sm: '12px' },
               fontWeight: 700,
-              padding: { xs: '8px 12px', sm: '8px 12px' },
-              borderRadius: '8px',
+              padding: { xs: '10px 14px', sm: '12px 16px' },
+              borderRadius: { xs: '10px', sm: '12px' },
               minWidth: 'auto',
               flexShrink: 0,
-              gap: currentLanguage === 'ar' ? 1 : 0.5,
-              boxShadow: `0 2px 8px ${alpha(theme.palette.primary.main, 0.3)}`,
+              gap: currentLanguage === 'ar' ? 1 : 0.75,
+              boxShadow: `0 4px 12px ${alpha(theme.palette.primary.main, 0.3)}`,
               transition: 'all 0.3s ease',
               '&:hover': {
                 background: `linear-gradient(135deg, ${theme.palette.primary.dark} 0%, ${theme.palette.primary.main} 100%)`,
-                transform: 'translateY(-1px)',
-                boxShadow: `0 4px 12px ${alpha(theme.palette.primary.main, 0.4)}`,
+                transform: 'translateY(-2px)',
+                boxShadow: `0 6px 20px ${alpha(theme.palette.primary.main, 0.4)}`,
               },
             }}
             startIcon={null}
-            endIcon={<ArrowIcon sx={{ fontSize: '12px', transform: currentLanguage === 'ar' ? 'scaleX(-1)' : 'none' }} />}
+            endIcon={<ArrowIcon sx={{ fontSize: { xs: '14px', sm: '16px' }, transform: currentLanguage === 'ar' ? 'scaleX(-1)' : 'none' }} />}
           >
             {t('viewDetails')}
           </Button>
