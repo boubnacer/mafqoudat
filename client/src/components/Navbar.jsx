@@ -97,7 +97,7 @@ const LogoButton = styled(Button)(({ theme }) => ({
   },
   '& img': {
     height: 'auto',
-    maxHeight: theme.palette.mode === 'dark' ? '32px' : '24px', // Much bigger in dark mode
+    maxHeight: theme.palette.mode === 'dark' ? '40px' : '24px', // Significantly bigger in dark mode
     width: 'auto',
     objectFit: 'contain',
     transition: 'all 0.3s ease',
@@ -111,7 +111,7 @@ const LogoButton = styled(Button)(({ theme }) => ({
     ...(theme.palette.mode === 'dark' && {
       backgroundColor: 'rgba(255, 255, 255, 0.95)',
       borderRadius: '8px',
-      padding: '10px', // More padding for larger logo
+      padding: '12px', // Extra padding for much larger logo
       boxShadow: '0 2px 8px rgba(0, 0, 0, 0.2)',
     }),
     // Animated lighting effect
@@ -163,7 +163,7 @@ const LogoButton = styled(Button)(({ theme }) => ({
     marginLeft: theme.direction === 'rtl' ? '0' : '-6px',
     marginRight: theme.direction === 'rtl' ? '-6px' : '0',
     '& img': {
-      maxHeight: theme.palette.mode === 'dark' ? '26px' : '18px', // Much bigger in dark mode
+      maxHeight: theme.palette.mode === 'dark' ? '32px' : '18px', // Much bigger in dark mode mobile
     }
   }
 }));
