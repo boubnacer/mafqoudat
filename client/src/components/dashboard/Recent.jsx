@@ -28,7 +28,7 @@ const Recent = ({ recent, isLoading, emptyState = "NoRecentFounds", maxItems, sx
         },
         // Ensure proper card sizing without overflow
         '& > *': {
-          minWidth: { xs: '280px', sm: '250px' },
+          minWidth: { xs: '100%', sm: '250px' },
           maxWidth: '100%',
           justifySelf: 'center',
         },

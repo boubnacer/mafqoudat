@@ -232,7 +232,9 @@ const RecentPosts = ({ _id, categoryname, exactLocation, image, createdAt, count
             : '0 4px 20px rgba(0,0,0,0.1)',
           border: `1px solid ${isDarkMode ? alpha('#fff', 0.08) : alpha('#000', 0.06)}`,
           height: { xs: 'auto', sm: '380px' },
-          minHeight: { xs: '320px', sm: '380px' },
+          minHeight: { xs: '360px', sm: '380px' },
+          width: { xs: '100%', sm: 'auto' },
+          maxWidth: { xs: '100%', sm: 'auto' },
           display: 'flex',
           flexDirection: 'column',
           transition: 'all 0.3s cubic-bezier(0.4, 0, 0.2, 1)',
@@ -248,7 +250,7 @@ const RecentPosts = ({ _id, categoryname, exactLocation, image, createdAt, count
         }}
       >
         {/* Image Section with Overlays */}
-        <Box sx={{ position: 'relative', height: { xs: '240px', sm: '220px' } }}>
+        <Box sx={{ position: 'relative', height: { xs: '260px', sm: '220px' } }}>
           <LazyCardMedia
             component="img"
             sx={{
@@ -311,14 +313,14 @@ const RecentPosts = ({ _id, categoryname, exactLocation, image, createdAt, count
               <RenderIcon 
                 name={`${categoryname?.toLowerCase()}cate`} 
                 sx={{ 
-                  fontSize: '12px', 
+                  fontSize: { xs: '14px', sm: '12px' }, 
                   color: isDarkMode ? categoryStyle.main : categoryStyle.text 
                 }} 
               />
               <Typography
                 sx={{
                   color: isDarkMode ? categoryStyle.main : categoryStyle.text,
-                  fontSize: '10px',
+                  fontSize: { xs: '12px', sm: '10px' },
                   fontWeight: 600,
                 }}
               >
@@ -342,11 +344,11 @@ const RecentPosts = ({ _id, categoryname, exactLocation, image, createdAt, count
             }}
           >
             <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.5 }}>
-              <TimeIcon sx={{ fontSize: '12px', color: '#fff' }} />
+              <TimeIcon sx={{ fontSize: { xs: '14px', sm: '12px' }, color: '#fff' }} />
               <Typography
                 sx={{
                   color: '#fff',
-                  fontSize: '10px',
+                  fontSize: { xs: '12px', sm: '10px' },
                   fontWeight: 600,
                 }}
               >
@@ -360,7 +362,7 @@ const RecentPosts = ({ _id, categoryname, exactLocation, image, createdAt, count
         <CardContent 
           sx={{ 
             flexGrow: 1, 
-            p: { xs: 2, sm: 2.5 },
+            p: { xs: 2.5, sm: 2.5 },
             display: 'flex',
             flexDirection: 'column',
             gap: 1.5,
@@ -370,19 +372,19 @@ const RecentPosts = ({ _id, categoryname, exactLocation, image, createdAt, count
           <Box sx={{ display: 'flex', alignItems: 'center', gap: 1.5 }}>
             <Avatar
               sx={{
-                width: 28,
-                height: 28,
+                width: { xs: 32, sm: 28 },
+                height: { xs: 32, sm: 28 },
                 backgroundColor: alpha(theme.palette.text.secondary, 0.1),
                 color: theme.palette.text.secondary,
               }}
             >
-              <LocationIcon sx={{ fontSize: '16px' }} />
+              <LocationIcon sx={{ fontSize: { xs: '18px', sm: '16px' } }} />
             </Avatar>
             <Box>
               <Typography
                 sx={{
                   color: isDarkMode ? alpha('#fff', 0.9) : alpha('#000', 0.8),
-                  fontSize: { xs: '14px', sm: '16px' },
+                  fontSize: { xs: '16px', sm: '16px' },
                   fontWeight: 700,
                   lineHeight: 1.2,
                 }}
@@ -398,14 +400,14 @@ const RecentPosts = ({ _id, categoryname, exactLocation, image, createdAt, count
           sx={{
             display: 'flex',
             justifyContent: 'space-between',
-            p: { xs: 1.5, sm: 2 },
+            p: { xs: 2, sm: 2 },
             borderTop: '1px solid',
             borderColor: isDarkMode ? alpha('#fff', 0.06) : alpha('#000', 0.04),
             backgroundColor: isDarkMode ? alpha('#000', 0.2) : alpha('#f8f9fa', 0.5),
             gap: 3,
             mt: 'auto',
             flexShrink: 0,
-            minHeight: '60px',
+            minHeight: { xs: '70px', sm: '60px' },
           }}
         >
           <Button
@@ -416,9 +418,9 @@ const RecentPosts = ({ _id, categoryname, exactLocation, image, createdAt, count
               color: isDarkMode ? '#f44336' : '#d32f2f',
               borderColor: isDarkMode ? '#f44336' : '#d32f2f',
               textTransform: 'none',
-              fontSize: { xs: '10px', sm: '11px' },
+              fontSize: { xs: '12px', sm: '11px' },
               fontWeight: 600,
-              padding: { xs: '8px 12px', sm: '8px 12px' },
+              padding: { xs: '10px 14px', sm: '8px 12px' },
               borderRadius: '8px',
               minWidth: 'auto',
               flexShrink: 0,
@@ -430,7 +432,7 @@ const RecentPosts = ({ _id, categoryname, exactLocation, image, createdAt, count
                 borderColor: isDarkMode ? '#f44336' : '#d32f2f',
               },
             }}
-            startIcon={<ReportProblemOutlined sx={{ fontSize: '12px' }} />}
+            startIcon={<ReportProblemOutlined sx={{ fontSize: { xs: '14px', sm: '12px' } }} />}
             endIcon={null}
           >
             {t('report')}
@@ -445,9 +447,9 @@ const RecentPosts = ({ _id, categoryname, exactLocation, image, createdAt, count
                 : 'linear-gradient(135deg, #1976D2 0%, #1565C0 100%)',
               color: '#fff',
               textTransform: 'none',
-              fontSize: { xs: '10px', sm: '11px' },
+              fontSize: { xs: '12px', sm: '11px' },
               fontWeight: 700,
-              padding: { xs: '8px 12px', sm: '8px 12px' },
+              padding: { xs: '10px 14px', sm: '8px 12px' },
               borderRadius: '8px',
               minWidth: 'auto',
               flexShrink: 0,
@@ -467,7 +469,7 @@ const RecentPosts = ({ _id, categoryname, exactLocation, image, createdAt, count
               },
             }}
             startIcon={null}
-            endIcon={<ArrowIcon sx={{ fontSize: '12px', transform: currentLanguage === 'ar' ? 'scaleX(-1)' : 'none' }} />}
+            endIcon={<ArrowIcon sx={{ fontSize: { xs: '14px', sm: '12px' }, transform: currentLanguage === 'ar' ? 'scaleX(-1)' : 'none' }} />}
           >
             {t('viewDetails')}
           </Button>
