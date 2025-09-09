@@ -3,10 +3,12 @@ import ProcessSvg from "../../img/ProcessSvg.svg";
 import RenderIcon from "../RenderIcon";
 import { motion } from "framer-motion";
 import { useTranslation } from "../../utils/translations";
+import { isRTL } from "../../utils/languageUtils";
 
 const Process = () => {
   const theme = useTheme();
   const { t } = useTranslation();
+  const isRTLMode = isRTL();
 
   const processSteps = [
     {
@@ -114,14 +116,15 @@ const Process = () => {
               }}
             >
               <RenderIcon name={step.icon} />
-              <Box ml="1rem">
+              <Box sx={{ ml: isRTLMode ? "1.5rem" : "1rem", mr: isRTLMode ? "1rem" : 0 }}>
                 <Typography
                   component="div"
                   sx={{ 
                     color: theme.palette.textColor.main,
                     fontSize: "16px",
                     fontWeight: 600,
-                    transition: "color 0.3s ease"
+                    transition: "color 0.3s ease",
+                    direction: isRTLMode ? 'rtl' : 'ltr'
                   }}
                 >
                   {step.text}
@@ -132,7 +135,8 @@ const Process = () => {
                     color: theme.palette.textColor.secondary,
                     fontSize: "14px",
                     mt: 0.5,
-                    transition: "color 0.3s ease"
+                    transition: "color 0.3s ease",
+                    direction: isRTLMode ? 'rtl' : 'ltr'
                   }}
                 >
                   {step.description}
