@@ -319,13 +319,9 @@ const TrendingItem = ({ trend, isLoading }) => {
               mb: 2
             }}
           >
-            {/* Trending Badge */}
+            {/* Left Side - Trending Badge */}
             <Box
               sx={{
-                position: 'absolute',
-                top: { xs: '16px', sm: '20px' },
-                left: { xs: '16px', sm: '20px' },
-                zIndex: 2,
                 background: 'linear-gradient(45deg, #FF9800, #FFC107)',
                 padding: { xs: '4px 8px', sm: '6px 12px' },
                 borderRadius: '20px',
@@ -365,7 +361,6 @@ const TrendingItem = ({ trend, isLoading }) => {
                 flexDirection: 'column',
                 gap: 1,
                 alignItems: 'flex-end',
-                marginTop: { xs: '40px', sm: '45px' }, // Space for trending badge
               }}
             >
               {/* Category Badge */}
@@ -412,7 +407,7 @@ const TrendingItem = ({ trend, isLoading }) => {
                   transition: 'all 0.3s ease',
                   '& .MuiChip-icon': {
                     color: '#fff',
-                    marginLeft: { xs: '4px', sm: '6px' }
+                    marginLeft: 0
                   },
                   '& .MuiChip-label': {
                     paddingLeft: { xs: '4px', sm: '6px' },
