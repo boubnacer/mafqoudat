@@ -934,7 +934,8 @@ const SinglePostPage = ({
                       borderRadius: 2,
                       textTransform: 'none',
                       fontWeight: 600,
-                      direction: currentLanguage === 'ar' ? 'rtl' : 'ltr'
+                      direction: currentLanguage === 'ar' ? 'rtl' : 'ltr',
+                      gap: currentLanguage === 'ar' ? 1 : 0.5
                     }}
                   >
                     {t('editPost')}
@@ -951,6 +952,7 @@ const SinglePostPage = ({
                     textTransform: 'none',
                     fontWeight: 600,
                     direction: currentLanguage === 'ar' ? 'rtl' : 'ltr',
+                    gap: currentLanguage === 'ar' ? 1 : 0.5,
                     borderColor: theme.palette.error.main,
                     color: theme.palette.error.main,
                     '&:hover': {
