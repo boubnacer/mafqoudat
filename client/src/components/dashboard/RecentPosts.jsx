@@ -427,7 +427,7 @@ const RecentPosts = ({ _id, categoryname, exactLocation, image, createdAt, count
               },
             }}
             startIcon={currentLanguage === 'ar' ? null : <ReportProblemOutlined sx={{ fontSize: '12px' }} />}
-            endIcon={currentLanguage === 'ar' ? <ReportProblemOutlined sx={{ fontSize: '12px', ml: 0.5 }} /> : null}
+            endIcon={currentLanguage === 'ar' ? <ReportProblemOutlined sx={{ fontSize: '12px', mr: 0.5 }} /> : null}
           >
             {t('report')}
           </Button>
@@ -453,7 +453,7 @@ const RecentPosts = ({ _id, categoryname, exactLocation, image, createdAt, count
                 boxShadow: `0 4px 12px ${alpha(theme.palette.primary.main, 0.4)}`,
               },
             }}
-            startIcon={currentLanguage === 'ar' ? <ArrowIcon sx={{ fontSize: '12px', transform: 'scaleX(-1)', mr: 0.5 }} /> : null}
+            startIcon={currentLanguage === 'ar' ? <ArrowIcon sx={{ fontSize: '12px', transform: 'scaleX(-1)', ml: 0.5 }} /> : null}
             endIcon={currentLanguage === 'ar' ? null : <ArrowIcon sx={{ fontSize: '12px' }} />}
           >
             {t('viewDetails')}
