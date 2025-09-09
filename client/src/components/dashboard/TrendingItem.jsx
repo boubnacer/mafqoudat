@@ -234,7 +234,7 @@ const TrendingItem = ({ trend, isLoading }) => {
               : '0 16px 48px 0 rgba(0,0,0,0.15)',
           },
           height: '100%',
-          minHeight: '300px',
+          minHeight: { xs: '400px', sm: '300px' },
           position: 'relative'
         }}
       >
@@ -286,7 +286,7 @@ const TrendingItem = ({ trend, isLoading }) => {
             display: 'flex',
             flexDirection: 'column',
             justifyContent: 'space-between',
-            p: { xs: 2, sm: 2.5 }
+            p: { xs: 3, sm: 2.5 }
           }}
         >
 
@@ -303,7 +303,7 @@ const TrendingItem = ({ trend, isLoading }) => {
             <Box
               sx={{
                 backgroundColor: theme.palette.mode === 'dark' ? alpha(categoryStyle.main, 0.2) : categoryStyle.background,
-                padding: { xs: '4px 8px', sm: '6px 12px' },
+                padding: { xs: '6px 12px', sm: '6px 12px' },
                 borderRadius: '12px',
                 display: 'flex',
                 alignItems: 'center',
@@ -312,11 +312,11 @@ const TrendingItem = ({ trend, isLoading }) => {
                 border: `1px solid ${theme.palette.mode === 'dark' ? alpha(categoryStyle.main, 0.3) : categoryStyle.main}`,
               }}
             >
-              <RenderIcon name={`${categoryname?.toLowerCase()}cate`} sx={{ fontSize: { xs: '16px', sm: '18px' }, color: categoryStyle.main }} />
+              <RenderIcon name={`${categoryname?.toLowerCase()}cate`} sx={{ fontSize: { xs: '18px', sm: '18px' }, color: categoryStyle.main }} />
               <Typography
                 sx={{
                   color: categoryStyle.main,
-                  fontSize: { xs: '12px', sm: '14px' },
+                  fontSize: { xs: '14px', sm: '14px' },
                   fontWeight: 600,
                   lineHeight: 1,
                 }}
@@ -327,15 +327,15 @@ const TrendingItem = ({ trend, isLoading }) => {
             
             {/* Status Badge */}
             <Chip
-              icon={<RenderIcon name={`${foundLostStatus.value.toLowerCase()}fl`} sx={{ fontSize: { xs: '14px', sm: '16px' } }} />}
+              icon={<RenderIcon name={`${foundLostStatus.value.toLowerCase()}fl`} sx={{ fontSize: { xs: '16px', sm: '16px' } }} />}
               label={foundLostStatus.label}
               sx={{
                 backgroundColor: alpha(foundLostStatus.color, 0.95),
                 color: '#fff',
                 fontWeight: 700,
-                fontSize: { xs: '11px', sm: '13px', md: '14px' },
-                height: { xs: '26px', sm: '30px', md: '32px' },
-                padding: { xs: '0 8px', sm: '0 12px', md: '0 16px' },
+                fontSize: { xs: '13px', sm: '13px', md: '14px' },
+                height: { xs: '30px', sm: '30px', md: '32px' },
+                padding: { xs: '0 12px', sm: '0 12px', md: '0 16px' },
                 borderRadius: { xs: '12px', sm: '16px' },
                 boxShadow: `0 2px 8px ${alpha(foundLostStatus.color, 0.4)}`,
                 border: `1px solid ${alpha(foundLostStatus.color, 0.3)}`,
@@ -365,14 +365,14 @@ const TrendingItem = ({ trend, isLoading }) => {
               variant="h6"
               sx={{
                 color: 'rgba(255,255,255,0.95)',
-                fontSize: { xs: '1rem', sm: '1.1rem', md: '1.2rem' },
+                fontSize: { xs: '1.2rem', sm: '1.1rem', md: '1.2rem' },
                 textAlign: 'center',
                 textShadow: '2px 2px 4px rgba(0,0,0,0.7)',
                 fontWeight: 500,
                 lineHeight: 1.4,
                 letterSpacing: '0.3px',
                 background: 'linear-gradient(135deg, rgba(255,255,255,0.15) 0%, rgba(255,255,255,0.08) 100%)',
-                padding: { xs: '10px 14px', sm: '12px 18px' },
+                padding: { xs: '14px 18px', sm: '12px 18px' },
                 borderRadius: '16px',
                 backdropFilter: 'blur(15px)',
                 border: '1px solid rgba(255,255,255,0.2)',
@@ -394,18 +394,18 @@ const TrendingItem = ({ trend, isLoading }) => {
                 justifyContent: 'space-between',
                 alignItems: 'center',
                 mb: 2,
-                p: 1.5,
+                p: { xs: 2, sm: 1.5 },
                 backgroundColor: alpha('#000', 0.3),
                 borderRadius: '12px',
                 backdropFilter: 'blur(10px)'
               }}
             >
               <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
-                <RenderIcon name="time" sx={{ fontSize: '16px', color: '#fff' }} />
+                <RenderIcon name="time" sx={{ fontSize: { xs: '18px', sm: '16px' }, color: '#fff' }} />
                 <Typography
                   sx={{
                     color: '#fff',
-                    fontSize: '12px',
+                    fontSize: { xs: '14px', sm: '12px' },
                     fontWeight: 500,
                   }}
                 >
@@ -414,11 +414,11 @@ const TrendingItem = ({ trend, isLoading }) => {
               </Box>
               
               <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
-                <RenderIcon name="locat" sx={{ fontSize: '14px', color: '#fff' }} />
+                <RenderIcon name="locat" sx={{ fontSize: { xs: '16px', sm: '14px' }, color: '#fff' }} />
                 <Typography
                   sx={{
                     color: '#fff',
-                    fontSize: '11px',
+                    fontSize: { xs: '13px', sm: '11px' },
                     fontWeight: 400,
                     maxWidth: '80px',
                     overflow: 'hidden',
@@ -440,9 +440,9 @@ const TrendingItem = ({ trend, isLoading }) => {
                 background: 'linear-gradient(45deg, #2196F3 30%, #21CBF3 90%)',
                 color: '#fff',
                 borderRadius: '12px',
-                padding: '12px',
+                padding: { xs: '14px', sm: '12px' },
                 textTransform: 'none',
-                fontSize: '14px',
+                fontSize: { xs: '16px', sm: '14px' },
                 fontWeight: 600,
                 transition: 'all 0.3s ease',
                 boxShadow: '0 4px 15px rgba(33, 150, 243, 0.3)',
@@ -452,7 +452,7 @@ const TrendingItem = ({ trend, isLoading }) => {
                   boxShadow: '0 6px 20px rgba(33, 150, 243, 0.4)',
                 }
               }}
-              endIcon={<RenderIcon name="view" sx={{ fontSize: '16px' }} />}
+              endIcon={<RenderIcon name="view" sx={{ fontSize: { xs: '18px', sm: '16px' } }} />}
             >
               {t('viewDetails')}
             </Button>
