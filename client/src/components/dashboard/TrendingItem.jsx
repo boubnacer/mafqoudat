@@ -387,38 +387,6 @@ const TrendingItem = ({ trend, isLoading }) => {
 
           {/* Bottom Section - Info and Action */}
           <Box>
-            {/* Desktop Title Section - Only visible on desktop, above date */}
-            <Box
-              sx={{
-                display: { xs: 'none', sm: 'block' },
-                mb: 2,
-                textAlign: 'center'
-              }}
-            >
-              <Typography
-                variant="h6"
-                sx={{
-                  color: 'rgba(255,255,255,0.95)',
-                  fontSize: '1.1rem',
-                  textAlign: 'center',
-                  textShadow: '2px 2px 4px rgba(0,0,0,0.7)',
-                  fontWeight: 600,
-                  lineHeight: 1.4,
-                  letterSpacing: '0.3px',
-                  background: 'linear-gradient(135deg, rgba(255,255,255,0.15) 0%, rgba(255,255,255,0.08) 100%)',
-                  padding: '10px 16px',
-                  borderRadius: '14px',
-                  backdropFilter: 'blur(15px)',
-                  border: '1px solid rgba(255,255,255,0.2)',
-                  boxShadow: '0 4px 20px rgba(0,0,0,0.3)',
-                  maxWidth: '90%',
-                  mx: 'auto'
-                }}
-              >
-                {t('trendingItemDescription')}
-              </Typography>
-            </Box>
-
             {/* Info Row */}
             <Box
               sx={{
