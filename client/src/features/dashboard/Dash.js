@@ -227,11 +227,26 @@ const Dash = () => {
             </Typography>
           </Box>
           
-          {/* TrendingItem */}
+          {/* TrendingItem - Mobile version with larger size */}
           {isLoading ? (
             <Skeleton variant="rounded" width="100%" height={400} />
           ) : trend ? (
-            <TrendingItem trend={trend} isLoading={isLoading} />
+            <Box sx={{ 
+              '& .MuiCard-root': { 
+                minHeight: '400px !important' // Force larger height for mobile
+              },
+              '& .MuiTypography-root': {
+                fontSize: '14px !important' // Force larger fonts for mobile
+              },
+              '& .MuiChip-root': {
+                fontSize: '13px !important' // Force larger status badge font
+              },
+              '& .MuiButton-root': {
+                fontSize: '16px !important' // Force larger button font
+              }
+            }}>
+              <TrendingItem trend={trend} isLoading={isLoading} />
+            </Box>
           ) : (
             <Box 
               sx={{ 
