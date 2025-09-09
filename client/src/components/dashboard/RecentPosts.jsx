@@ -413,8 +413,8 @@ const RecentPosts = ({ _id, categoryname, exactLocation, image, createdAt, count
             variant="outlined"
             size="small"
             sx={{
-              color: theme.palette.error.main,
-              borderColor: theme.palette.error.main,
+              color: isDarkMode ? '#f44336' : '#d32f2f',
+              borderColor: isDarkMode ? '#f44336' : '#d32f2f',
               textTransform: 'none',
               fontSize: { xs: '10px', sm: '11px' },
               fontWeight: 600,
@@ -423,10 +423,11 @@ const RecentPosts = ({ _id, categoryname, exactLocation, image, createdAt, count
               minWidth: 'auto',
               flexShrink: 0,
               gap: currentLanguage === 'ar' ? 1 : 0.5,
+              backgroundColor: isDarkMode ? alpha('#f44336', 0.1) : alpha('#d32f2f', 0.05),
               '&:hover': {
-                backgroundColor: theme.palette.error.main,
+                backgroundColor: isDarkMode ? '#f44336' : '#d32f2f',
                 color: '#fff',
-                borderColor: theme.palette.error.main,
+                borderColor: isDarkMode ? '#f44336' : '#d32f2f',
               },
             }}
             startIcon={<ReportProblemOutlined sx={{ fontSize: '12px' }} />}
@@ -439,7 +440,9 @@ const RecentPosts = ({ _id, categoryname, exactLocation, image, createdAt, count
             onClick={handleViewDetails}
             variant="contained"
             sx={{
-              background: `linear-gradient(135deg, ${theme.palette.primary.main} 0%, ${theme.palette.primary.dark} 100%)`,
+              background: isDarkMode 
+                ? 'linear-gradient(135deg, #1976D2 0%, #1565C0 100%)'
+                : 'linear-gradient(135deg, #1976D2 0%, #1565C0 100%)',
               color: '#fff',
               textTransform: 'none',
               fontSize: { xs: '10px', sm: '11px' },
@@ -449,12 +452,18 @@ const RecentPosts = ({ _id, categoryname, exactLocation, image, createdAt, count
               minWidth: 'auto',
               flexShrink: 0,
               gap: currentLanguage === 'ar' ? 1 : 0.5,
-              boxShadow: `0 2px 8px ${alpha(theme.palette.primary.main, 0.3)}`,
+              boxShadow: isDarkMode 
+                ? '0 2px 8px rgba(25, 118, 210, 0.3)'
+                : '0 2px 8px rgba(25, 118, 210, 0.4)',
               transition: 'all 0.3s ease',
               '&:hover': {
-                background: `linear-gradient(135deg, ${theme.palette.primary.dark} 0%, ${theme.palette.primary.main} 100%)`,
+                background: isDarkMode 
+                  ? 'linear-gradient(135deg, #1565C0 0%, #0D47A1 100%)'
+                  : 'linear-gradient(135deg, #1565C0 0%, #0D47A1 100%)',
                 transform: 'translateY(-1px)',
-                boxShadow: `0 4px 12px ${alpha(theme.palette.primary.main, 0.4)}`,
+                boxShadow: isDarkMode 
+                  ? '0 4px 12px rgba(25, 118, 210, 0.4)'
+                  : '0 4px 12px rgba(25, 118, 210, 0.5)',
               },
             }}
             startIcon={null}

@@ -250,27 +250,29 @@ const Dash = () => {
                 direction: currentLanguage === 'ar' ? 'rtl' : 'ltr'
               }}
             >
-              {/* Header Section */}
-              <Box 
-                sx={{
-                  background: theme.palette.mode === 'dark'
-                    ? 'linear-gradient(135deg, #1a1a1a 0%, #2d2d2d 100%)'
-                    : 'linear-gradient(135deg, #2196F3 0%, #21CBF3 100%)',
-                  p: { xs: 2, sm: 3 },
-                  position: 'relative',
-                  overflow: 'hidden',
-                  '&::before': {
-                    content: '""',
-                    position: 'absolute',
-                    top: 0,
-                    left: 0,
-                    right: 0,
-                    bottom: 0,
-                    background: 'linear-gradient(45deg, rgba(255,255,255,0.1) 0%, transparent 100%)',
-                    pointerEvents: 'none'
-                  }
-                }}
-              >
+                {/* Header Section */}
+                <Box 
+                  sx={{
+                    background: theme.palette.mode === 'dark'
+                      ? 'linear-gradient(135deg, #1a1a1a 0%, #2d2d2d 100%)'
+                      : 'linear-gradient(135deg, #1976D2 0%, #1565C0 100%)',
+                    p: { xs: 2, sm: 3 },
+                    position: 'relative',
+                    overflow: 'hidden',
+                    '&::before': {
+                      content: '""',
+                      position: 'absolute',
+                      top: 0,
+                      left: 0,
+                      right: 0,
+                      bottom: 0,
+                      background: theme.palette.mode === 'dark'
+                        ? 'linear-gradient(45deg, rgba(255,255,255,0.1) 0%, transparent 100%)'
+                        : 'linear-gradient(45deg, rgba(255,255,255,0.2) 0%, transparent 100%)',
+                      pointerEvents: 'none'
+                    }
+                  }}
+                >
                 {/* Mobile Layout */}
                 <Box
                   sx={{
@@ -287,7 +289,7 @@ const Dash = () => {
                     flexDirection: currentLanguage === 'ar' ? 'row-reverse' : 'row'
                   }}>
                     <WhatshotOutlined sx={{ 
-                      color: '#FFA500', 
+                      color: theme.palette.mode === 'dark' ? '#FFA500' : '#FFD700', 
                       fontSize: '24px',
                       order: currentLanguage === 'ar' ? 2 : 1
                     }} />
@@ -345,7 +347,7 @@ const Dash = () => {
                       gap: 1
                     }}>
                       <WhatshotOutlined sx={{ 
-                        color: '#FFA500', 
+                        color: theme.palette.mode === 'dark' ? '#FFA500' : '#FFD700', 
                         fontSize: '28px'
                       }} />
                       <Typography
@@ -434,7 +436,7 @@ const Dash = () => {
                   sx={{
                     background: theme.palette.mode === 'dark'
                       ? 'linear-gradient(135deg, #1a1a1a 0%, #2d2d2d 100%)'
-                      : 'linear-gradient(135deg, #FFA500 0%, #FFD700 100%)',
+                      : 'linear-gradient(135deg, #E65100 0%, #FF6F00 100%)',
                     p: { xs: 2, sm: 3 },
                     position: 'relative',
                     overflow: 'hidden',
@@ -445,7 +447,9 @@ const Dash = () => {
                       left: 0,
                       right: 0,
                       bottom: 0,
-                      background: 'linear-gradient(45deg, rgba(255,255,255,0.1) 0%, transparent 100%)',
+                      background: theme.palette.mode === 'dark'
+                        ? 'linear-gradient(45deg, rgba(255,255,255,0.1) 0%, transparent 100%)'
+                        : 'linear-gradient(45deg, rgba(255,255,255,0.2) 0%, transparent 100%)',
                       pointerEvents: 'none'
                     }
                   }}
@@ -466,7 +470,7 @@ const Dash = () => {
                       flexDirection: currentLanguage === 'ar' ? 'row-reverse' : 'row'
                     }}>
                       <Search sx={{ 
-                        color: '#fff', 
+                        color: theme.palette.mode === 'dark' ? '#fff' : '#FFD700', 
                         fontSize: '24px',
                         order: currentLanguage === 'ar' ? 2 : 1
                       }} />
@@ -523,7 +527,7 @@ const Dash = () => {
                         gap: 1
                       }}>
                         <Search sx={{ 
-                          color: '#fff', 
+                          color: theme.palette.mode === 'dark' ? '#fff' : '#FFD700', 
                           fontSize: '28px'
                         }} />
                         <Typography
