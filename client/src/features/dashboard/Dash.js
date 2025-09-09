@@ -185,111 +185,25 @@ const Dash = () => {
           lostsToday={data?.createdToday?.todaysLostPosts}
         />
         
-        {/* Mobile Container - Title and TrendingItem together */}
-        <Box
-          sx={{
-            display: { xs: 'block', sm: 'none' },
-            background: theme.palette.mode === 'dark' 
-              ? 'linear-gradient(135deg, rgba(18,18,18,0.95) 0%, rgba(28,28,28,0.95) 100%)'
-              : 'linear-gradient(135deg, rgba(255,255,255,0.95) 0%, rgba(248,249,250,0.95) 100%)',
-            backdropFilter: 'blur(10px)',
-            borderRadius: '24px',
-            border: `1px solid ${theme.palette.mode === 'dark' ? 'rgba(255,255,255,0.08)' : 'rgba(0,0,0,0.08)'}`,
-            padding: '1.5rem',
-            boxShadow: theme.palette.mode === 'dark'
-              ? '0 8px 32px 0 rgba(0,0,0,0.15)'
-              : '0 8px 32px 0 rgba(0,0,0,0.05)',
-            height: 'fit-content',
-            maxHeight: '100%'
-          }}
-        >
-          {/* Mobile Title */}
-          <Box
-            sx={{
-              mb: 2,
+        {isLoading ? (
+          <Skeleton variant="rounded" width={210} height={60} />
+        ) : trend ? (
+          <TrendingItem trend={trend} isLoading={isLoading} />
+        ) : (
+          <Box 
+            sx={{ 
+              p: 3, 
               textAlign: 'center',
-              direction: currentLanguage === 'ar' ? 'rtl' : 'ltr'
+              backgroundColor: theme.palette.mode === 'dark' ? 'rgba(255,255,255,0.05)' : 'rgba(0,0,0,0.02)',
+              borderRadius: 2,
+              border: `1px dashed ${theme.palette.mode === 'dark' ? 'rgba(255,255,255,0.1)' : 'rgba(0,0,0,0.1)'}`
             }}
           >
-            <Typography
-              variant="h5"
-              fontWeight="700"
-              sx={{
-                fontSize: "1.5rem",
-                background: "linear-gradient(45deg, #2196F3 30%, #21CBF3 90%)",
-                WebkitBackgroundClip: "text",
-                WebkitTextFillColor: "transparent",
-                backgroundClip: "text",
-                mb: 1
-              }}
-            >
-              {t('trendingItemDescription')}
+            <Typography variant="body2" color="text.secondary">
+              {t('noTrendingItems')}
             </Typography>
           </Box>
-          
-          {/* TrendingItem - Mobile version with larger size */}
-          {isLoading ? (
-            <Skeleton variant="rounded" width="100%" height={400} />
-          ) : trend ? (
-            <Box sx={{ 
-              '& .MuiCard-root': { 
-                minHeight: '400px !important' // Force larger height for mobile
-              },
-              '& .MuiTypography-root': {
-                fontSize: '14px !important' // Force larger fonts for mobile
-              },
-              '& .MuiChip-root': {
-                fontSize: '13px !important' // Force larger status badge font
-              },
-              '& .MuiButton-root': {
-                fontSize: '16px !important' // Force larger button font
-              }
-            }}>
-              <TrendingItem trend={trend} isLoading={isLoading} />
-            </Box>
-          ) : (
-            <Box 
-              sx={{ 
-                p: 3, 
-                textAlign: 'center',
-                backgroundColor: theme.palette.mode === 'dark' ? 'rgba(255,255,255,0.05)' : 'rgba(0,0,0,0.02)',
-                borderRadius: 2,
-                border: `1px dashed ${theme.palette.mode === 'dark' ? 'rgba(255,255,255,0.1)' : 'rgba(0,0,0,0.1)'}`,
-                minHeight: '300px',
-                display: 'flex',
-                alignItems: 'center',
-                justifyContent: 'center'
-              }}
-            >
-              <Typography variant="body2" color="text.secondary">
-                {t('noTrendingItems')}
-              </Typography>
-            </Box>
-          )}
-        </Box>
-        
-        {/* Desktop TrendingItem */}
-        <Box sx={{ display: { xs: 'none', sm: 'block' } }}>
-          {isLoading ? (
-            <Skeleton variant="rounded" width={210} height={60} />
-          ) : trend ? (
-            <TrendingItem trend={trend} isLoading={isLoading} />
-          ) : (
-            <Box 
-              sx={{ 
-                p: 3, 
-                textAlign: 'center',
-                backgroundColor: theme.palette.mode === 'dark' ? 'rgba(255,255,255,0.05)' : 'rgba(0,0,0,0.02)',
-                borderRadius: 2,
-                border: `1px dashed ${theme.palette.mode === 'dark' ? 'rgba(255,255,255,0.1)' : 'rgba(0,0,0,0.1)'}`
-              }}
-            >
-              <Typography variant="body2" color="text.secondary">
-                {t('noTrendingItems')}
-              </Typography>
-            </Box>
-          )}
-        </Box>
+        )}
       </Box>
 
       {/* Show empty state if no posts, but still show stats above */}
