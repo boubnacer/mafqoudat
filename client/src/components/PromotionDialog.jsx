@@ -141,17 +141,20 @@ const PromotionDialog = ({ open, onClose, postId, onPromotionRequested }) => {
               }}
             >
               <Typography variant="h6" gutterBottom sx={{ color: theme.palette.primary.main }}>
-                {t('doubleYourChances')}
+                {t('ourTeamCanHelp')}
               </Typography>
               <Typography variant="body2" paragraph>
-                {t('promotionDescription')}
+                {t('teamHasTechniques')}
               </Typography>
-                             <Box display="flex" alignItems="center" gap={1} mt={2}>
-                 <EmailIcon sx={{ color: theme.palette.success.main }} />
-                 <Typography variant="body2" color="text.secondary">
-                   {t('emailNotification')}
-                 </Typography>
-               </Box>
+              <Typography variant="body2" paragraph sx={{ fontWeight: 500, color: theme.palette.text.primary }}>
+                {t('justClickYes')}
+              </Typography>
+              <Box display="flex" alignItems="center" gap={1} mt={2}>
+                <EmailIcon sx={{ color: theme.palette.success.main }} />
+                <Typography variant="body2" color="text.secondary">
+                  {t('teamWillContactYou')}
+                </Typography>
+              </Box>
             </Box>
 
             {error && (

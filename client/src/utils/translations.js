@@ -339,6 +339,10 @@ export const translations = {
     // Promotion Dialog translations
     boostYourChances: "Boost Your Chances",
     postPublishedSuccessfully: "Your post has been published successfully! We'll also share it on our social media platforms.",
+    ourTeamCanHelp: "Our Team Can Help You Find It!",
+    teamHasTechniques: "Our website team has special techniques and strategies to help locate lost items more effectively.",
+    justClickYes: "Just click 'Yes' and our team will contact you to discuss how we can help.",
+    teamWillContactYou: "Our team will contact you directly to help with your search",
     doubleYourChances: "Double Your Chances",
     promotionDescription: "Would you like us to promote your lost item on our social media channels to increase your chances of finding it? We'll contact you to process your request.",
     emailNotification: "We'll notify you via email when your promotion is ready",
@@ -1121,6 +1125,10 @@ export const translations = {
     // Promotion Dialog translations
     boostYourChances: "Augmentez Vos Chances",
     postPublishedSuccessfully: "Votre publication a été publiée avec succès ! Nous la partagerons également sur nos plateformes de médias sociaux.",
+    ourTeamCanHelp: "Notre Équipe Peut Vous Aider à Le Retrouver !",
+    teamHasTechniques: "Notre équipe du site web a des techniques et stratégies spéciales pour aider à localiser les objets perdus plus efficacement.",
+    justClickYes: "Cliquez simplement sur 'Oui' et notre équipe vous contactera pour discuter de la façon dont nous pouvons vous aider.",
+    teamWillContactYou: "Notre équipe vous contactera directement pour vous aider dans votre recherche",
     doubleYourChances: "Doublez Vos Chances",
     promotionDescription: "Souhaitez-vous que nous promouvions votre objet perdu sur nos canaux de médias sociaux pour augmenter vos chances de le retrouver ? Nous vous contacterons pour traiter votre demande.",
     emailNotification: "Nous vous notifierons par email lorsque votre promotion sera prête",
@@ -1867,6 +1875,10 @@ export const translations = {
     // Promotion Dialog translations
     boostYourChances: "عزز فرصك",
     postPublishedSuccessfully: "تم نشر منشورك بنجاح! سنشاركه أيضاً على منصات وسائل التواصل الاجتماعي الخاصة بنا.",
+    ourTeamCanHelp: "فريقنا يمكنه مساعدتك في العثور عليه!",
+    teamHasTechniques: "فريق موقعنا لديه تقنيات واستراتيجيات خاصة لمساعدتك في العثور على العناصر المفقودة بشكل أكثر فعالية.",
+    justClickYes: "فقط اضغط على 'نعم' وسيتواصل معك فريقنا لمناقشة كيفية مساعدتك.",
+    teamWillContactYou: "سيتواصل معك فريقنا مباشرة لمساعدتك في البحث",
     doubleYourChances: "ضاعف فرصك",
     promotionDescription: "هل تريد منا الترويج لعنصرك المفقود على قنوات وسائل التواصل الاجتماعي لزيادة فرصك في العثور عليه؟ سنتواصل معك لمعالجة طلبك.",
     emailNotification: "سنخطرك عبر البريد الإلكتروني عندما تكون الترويج جاهزاً",
