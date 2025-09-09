@@ -350,7 +350,7 @@ const TrendingItem = ({ trend, isLoading }) => {
                   textShadow: '0 1px 2px rgba(0,0,0,0.3)',
                 }}
               >
-                🔥 Trending
+🔥 {t('trending')}
               </Typography>
             </Box>
             
@@ -425,29 +425,7 @@ const TrendingItem = ({ trend, isLoading }) => {
 
           {/* Middle Section - Main Content - Optimized for better image visibility */}
           <Box sx={{ flex: 1, display: 'flex', flexDirection: 'column', justifyContent: 'center', alignItems: 'center' }}>
-            {/* Single optimized description text */}
-            <Typography
-              variant="h6"
-              sx={{
-                color: 'rgba(255,255,255,0.95)',
-                fontSize: { xs: '1.2rem', sm: '1.1rem', md: '1.2rem' },
-                textAlign: 'center',
-                textShadow: '2px 2px 4px rgba(0,0,0,0.7)',
-                fontWeight: 500,
-                lineHeight: 1.4,
-                letterSpacing: '0.3px',
-                background: 'linear-gradient(135deg, rgba(255,255,255,0.15) 0%, rgba(255,255,255,0.08) 100%)',
-                padding: { xs: '14px 18px', sm: '12px 18px' },
-                borderRadius: '16px',
-                backdropFilter: 'blur(15px)',
-                border: '1px solid rgba(255,255,255,0.2)',
-                maxWidth: '85%',
-                mx: 'auto',
-                boxShadow: '0 4px 20px rgba(0,0,0,0.3)'
-              }}
-            >
-              {t('trendingItemDescription')}
-            </Typography>
+            {/* Empty space for better visual balance */}
           </Box>
 
           {/* Bottom Section - Info and Action */}
