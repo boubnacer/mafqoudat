@@ -14,7 +14,8 @@ import {
 import { 
   Share as ShareIcon, 
   Email as EmailIcon,
-  CheckCircle as CheckCircleIcon 
+  CheckCircle as CheckCircleIcon,
+  TrendingUp as TrendingUpIcon
 } from '@mui/icons-material';
 import { useTranslation } from '../utils/translations';
 import { useRequestPromotionMutation } from '../features/posts/postsApiSlice';
@@ -94,71 +95,175 @@ const PromotionDialog = ({ open, onClose, postId, onPromotionRequested }) => {
       fullWidth
       PaperProps={{
         sx: {
-          borderRadius: 3,
+          borderRadius: 4,
           background: theme.palette.mode === 'dark' 
-            ? 'linear-gradient(135deg, rgba(30,30,30,0.95) 0%, rgba(45,45,45,0.95) 100%)'
-            : 'linear-gradient(135deg, rgba(255,255,255,0.95) 0%, rgba(248,249,250,0.95) 100%)',
-          backdropFilter: 'blur(10px)',
-          border: `1px solid ${theme.palette.mode === 'dark' ? 'rgba(255,255,255,0.1)' : 'rgba(0,0,0,0.1)'}`,
+            ? 'linear-gradient(135deg, rgba(20,20,20,0.98) 0%, rgba(35,35,35,0.98) 100%)'
+            : 'linear-gradient(135deg, rgba(255,255,255,0.98) 0%, rgba(248,250,252,0.98) 100%)',
+          backdropFilter: 'blur(20px)',
+          border: `2px solid ${theme.palette.mode === 'dark' ? 'rgba(255,255,255,0.15)' : 'rgba(0,0,0,0.08)'}`,
+          boxShadow: theme.palette.mode === 'dark'
+            ? '0 20px 40px rgba(0,0,0,0.6), 0 0 0 1px rgba(255,255,255,0.05)'
+            : '0 20px 40px rgba(0,0,0,0.15), 0 0 0 1px rgba(0,0,0,0.05)',
         }
       }}
     >
-      <DialogTitle sx={{ textAlign: 'center', pb: 1 }}>
-        <Box display="flex" alignItems="center" justifyContent="center" gap={1}>
-          <ShareIcon sx={{ color: theme.palette.primary.main, fontSize: 28 }} />
-          <Typography variant="h5" fontWeight={600}>
+      <DialogTitle sx={{ textAlign: 'center', pb: 2, pt: 3 }}>
+        <Box display="flex" alignItems="center" justifyContent="center" gap={1.5}>
+          <TrendingUpIcon sx={{ 
+            color: theme.palette.mode === 'dark' ? '#4CAF50' : '#2E7D32', 
+            fontSize: 32,
+            filter: 'drop-shadow(0 2px 4px rgba(0,0,0,0.2))'
+          }} />
+          <Typography 
+            variant="h4" 
+            fontWeight={700}
+            sx={{ 
+              background: theme.palette.mode === 'dark' 
+                ? 'linear-gradient(45deg, #4CAF50, #66BB6A)' 
+                : 'linear-gradient(45deg, #2E7D32, #388E3C)',
+              backgroundClip: 'text',
+              WebkitBackgroundClip: 'text',
+              WebkitTextFillColor: 'transparent',
+              fontSize: { xs: '1.5rem', md: '1.75rem' }
+            }}
+          >
             {t('boostYourChances')}
           </Typography>
         </Box>
       </DialogTitle>
 
-      <DialogContent sx={{ pb: 2 }}>
+      <DialogContent sx={{ pb: 3, px: 4 }}>
         {isSuccess ? (
-          <Box textAlign="center" py={2}>
-            <CheckCircleIcon sx={{ fontSize: 64, color: theme.palette.success.main, mb: 2 }} />
-            <Typography variant="h6" color="success.main" gutterBottom>
+          <Box textAlign="center" py={3}>
+            <CheckCircleIcon sx={{ 
+              fontSize: 72, 
+              color: theme.palette.mode === 'dark' ? '#4CAF50' : '#2E7D32', 
+              mb: 3,
+              filter: 'drop-shadow(0 4px 8px rgba(0,0,0,0.2))'
+            }} />
+            <Typography 
+              variant="h5" 
+              sx={{ 
+                color: theme.palette.mode === 'dark' ? '#4CAF50' : '#2E7D32',
+                fontWeight: 600,
+                mb: 2
+              }}
+            >
               {t('promotionRequested')}
             </Typography>
-            <Typography variant="body1" color="text.secondary">
+            <Typography 
+              variant="body1" 
+              sx={{ 
+                color: theme.palette.text.secondary,
+                fontSize: '1.1rem'
+              }}
+            >
               {t('weWillContactYou')}
             </Typography>
           </Box>
         ) : (
           <>
-            <Typography variant="body1" paragraph sx={{ mb: 3 }}>
+            <Typography 
+              variant="body1" 
+              paragraph 
+              sx={{ 
+                mb: 4,
+                fontSize: '1.1rem',
+                color: theme.palette.text.primary,
+                textAlign: 'center'
+              }}
+            >
               {t('postPublishedSuccessfully')}
             </Typography>
             
             <Box 
               sx={{ 
-                p: 3, 
-                borderRadius: 2, 
+                p: 4, 
+                borderRadius: 3, 
                 background: theme.palette.mode === 'dark' 
-                  ? 'rgba(25, 118, 210, 0.1)' 
-                  : 'rgba(25, 118, 210, 0.05)',
-                border: `1px solid ${theme.palette.primary.main}20`,
-                mb: 3
+                  ? 'linear-gradient(135deg, rgba(76, 175, 80, 0.08) 0%, rgba(102, 187, 106, 0.05) 100%)'
+                  : 'linear-gradient(135deg, rgba(46, 125, 50, 0.08) 0%, rgba(56, 142, 60, 0.05) 100%)',
+                border: `2px solid ${theme.palette.mode === 'dark' ? 'rgba(76, 175, 80, 0.2)' : 'rgba(46, 125, 50, 0.2)'}`,
+                mb: 4,
+                position: 'relative',
+                overflow: 'hidden',
+                '&::before': {
+                  content: '""',
+                  position: 'absolute',
+                  top: 0,
+                  left: 0,
+                  right: 0,
+                  height: '3px',
+                  background: theme.palette.mode === 'dark' 
+                    ? 'linear-gradient(90deg, #4CAF50, #66BB6A)' 
+                    : 'linear-gradient(90deg, #2E7D32, #388E3C)',
+                }
               }}
             >
-              <Typography variant="h6" gutterBottom sx={{ color: theme.palette.primary.main }}>
+              <Typography 
+                variant="h5" 
+                gutterBottom 
+                sx={{ 
+                  color: theme.palette.mode === 'dark' ? '#4CAF50' : '#2E7D32',
+                  fontWeight: 600,
+                  mb: 2,
+                  textAlign: 'center'
+                }}
+              >
                 {t('ourTeamCanHelp')}
               </Typography>
-              <Typography variant="body2" paragraph>
+              <Typography 
+                variant="body1" 
+                paragraph 
+                sx={{ 
+                  fontSize: '1.05rem',
+                  color: theme.palette.text.primary,
+                  textAlign: 'center',
+                  mb: 2
+                }}
+              >
                 {t('teamHasTechniques')}
               </Typography>
-              <Typography variant="body2" paragraph sx={{ fontWeight: 500, color: theme.palette.text.primary }}>
+              <Typography 
+                variant="body1" 
+                paragraph 
+                sx={{ 
+                  fontWeight: 600, 
+                  color: theme.palette.mode === 'dark' ? '#4CAF50' : '#2E7D32',
+                  textAlign: 'center',
+                  fontSize: '1.1rem',
+                  mb: 3
+                }}
+              >
                 {t('justClickYes')}
               </Typography>
-              <Box display="flex" alignItems="center" gap={1} mt={2}>
-                <EmailIcon sx={{ color: theme.palette.success.main }} />
-                <Typography variant="body2" color="text.secondary">
+              <Box display="flex" alignItems="center" justifyContent="center" gap={1.5} mt={3}>
+                <EmailIcon sx={{ 
+                  color: theme.palette.mode === 'dark' ? '#4CAF50' : '#2E7D32',
+                  fontSize: 20
+                }} />
+                <Typography 
+                  variant="body2" 
+                  sx={{ 
+                    color: theme.palette.text.secondary,
+                    fontSize: '1rem',
+                    fontWeight: 500
+                  }}
+                >
                   {t('teamWillContactYou')}
                 </Typography>
               </Box>
             </Box>
 
             {error && (
-              <Alert severity="error" sx={{ mb: 2 }}>
+              <Alert 
+                severity="error" 
+                sx={{ 
+                  mb: 2,
+                  borderRadius: 2,
+                  fontSize: '1rem'
+                }}
+              >
                 {error}
               </Alert>
             )}
@@ -166,13 +271,27 @@ const PromotionDialog = ({ open, onClose, postId, onPromotionRequested }) => {
         )}
       </DialogContent>
 
-      <DialogActions sx={{ px: 3, pb: 3 }}>
+      <DialogActions sx={{ px: 4, pb: 4, gap: 2, justifyContent: 'center' }}>
         {!isSuccess && (
           <Button 
             onClick={handleClose} 
             disabled={isLoading}
             variant="outlined"
-            sx={{ minWidth: 100 }}
+            sx={{ 
+              minWidth: 120,
+              py: 1.5,
+              px: 3,
+              borderRadius: 3,
+              fontSize: '1rem',
+              fontWeight: 600,
+              borderColor: theme.palette.mode === 'dark' ? 'rgba(255,255,255,0.3)' : 'rgba(0,0,0,0.3)',
+              color: theme.palette.mode === 'dark' ? 'rgba(255,255,255,0.8)' : 'rgba(0,0,0,0.8)',
+              '&:hover': {
+                borderColor: theme.palette.mode === 'dark' ? 'rgba(255,255,255,0.5)' : 'rgba(0,0,0,0.5)',
+                backgroundColor: theme.palette.mode === 'dark' ? 'rgba(255,255,255,0.04)' : 'rgba(0,0,0,0.04)',
+              },
+              transition: 'all 0.2s ease-in-out'
+            }}
           >
             {t('noThanks')}
           </Button>
@@ -182,13 +301,34 @@ const PromotionDialog = ({ open, onClose, postId, onPromotionRequested }) => {
             onClick={handlePromotionRequest}
             disabled={isLoading}
             variant="contained"
-            startIcon={isLoading ? <CircularProgress size={20} /> : <EmailIcon />}
+            startIcon={isLoading ? <CircularProgress size={20} /> : <EmailIcon sx={{ ml: 0.5 }} />}
             sx={{ 
-              minWidth: 140,
-              background: "linear-gradient(45deg, #2196F3 30%, #21CBF3 90%)",
+              minWidth: 160,
+              py: 1.5,
+              px: 3,
+              borderRadius: 3,
+              fontSize: '1rem',
+              fontWeight: 600,
+              background: theme.palette.mode === 'dark'
+                ? 'linear-gradient(45deg, #4CAF50 30%, #66BB6A 90%)'
+                : 'linear-gradient(45deg, #2E7D32 30%, #388E3C 90%)',
               '&:hover': {
-                background: "linear-gradient(45deg, #1976D2 30%, #1E88E5 90%)",
-              }
+                background: theme.palette.mode === 'dark'
+                  ? 'linear-gradient(45deg, #388E3C 30%, #4CAF50 90%)'
+                  : 'linear-gradient(45deg, #1B5E20 30%, #2E7D32 90%)',
+                transform: 'translateY(-1px)',
+                boxShadow: theme.palette.mode === 'dark'
+                  ? '0 8px 20px rgba(76, 175, 80, 0.3)'
+                  : '0 8px 20px rgba(46, 125, 50, 0.3)',
+              },
+              '&:disabled': {
+                background: theme.palette.mode === 'dark' ? 'rgba(76, 175, 80, 0.3)' : 'rgba(46, 125, 50, 0.3)',
+                color: theme.palette.mode === 'dark' ? 'rgba(255,255,255,0.5)' : 'rgba(255,255,255,0.7)',
+              },
+              transition: 'all 0.2s ease-in-out',
+              boxShadow: theme.palette.mode === 'dark'
+                ? '0 4px 12px rgba(76, 175, 80, 0.2)'
+                : '0 4px 12px rgba(46, 125, 50, 0.2)',
             }}
           >
             {isLoading ? t('requesting') : t('yesPromote')}
