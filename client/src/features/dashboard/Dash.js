@@ -374,16 +374,12 @@ const Dash = () => {
                 </Box>
               </Box>
 
-              {/* Enhanced Content Section */}
+              {/* Content Section */}
               <Box 
                 sx={{
-                  p: { xs: 2.5, sm: 3.5 },
-                  backgroundColor: theme.palette.mode === 'dark' 
-                    ? 'linear-gradient(145deg, rgba(45,45,45,0.8) 0%, rgba(26,26,26,0.8) 100%)'
-                    : 'linear-gradient(145deg, rgba(255,255,255,0.9) 0%, rgba(248,249,250,0.9) 100%)',
-                  minHeight: '220px',
-                  backdropFilter: 'blur(8px)',
-                  border: `1px solid ${theme.palette.mode === 'dark' ? 'rgba(255,255,255,0.05)' : 'rgba(0,0,0,0.05)'}`,
+                  p: { xs: 2, sm: 3 },
+                  backgroundColor: theme.palette.mode === 'dark' ? '#2d2d2d' : '#fff',
+                  minHeight: '200px'
                 }}
               >
                 <Recent 
@@ -555,16 +551,12 @@ const Dash = () => {
                   </Box>
                 </Box>
 
-                {/* Enhanced Content Section */}
+                {/* Content Section */}
                 <Box 
                   sx={{
-                    p: { xs: 2.5, sm: 3.5 },
-                    backgroundColor: theme.palette.mode === 'dark' 
-                      ? 'linear-gradient(145deg, rgba(45,45,45,0.8) 0%, rgba(26,26,26,0.8) 100%)'
-                      : 'linear-gradient(145deg, rgba(255,255,255,0.9) 0%, rgba(248,249,250,0.9) 100%)',
-                    minHeight: '220px',
-                    backdropFilter: 'blur(8px)',
-                    border: `1px solid ${theme.palette.mode === 'dark' ? 'rgba(255,255,255,0.05)' : 'rgba(0,0,0,0.05)'}`,
+                    p: { xs: 2, sm: 3 },
+                    backgroundColor: theme.palette.mode === 'dark' ? '#2d2d2d' : '#fff',
+                    minHeight: '200px'
                   }}
                 >
                   <Recent 
