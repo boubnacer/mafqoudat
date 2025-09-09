@@ -519,10 +519,11 @@ const NewPostForm = ({ user, countries, categories, flOptions }) => {
           gutterBottom 
           textAlign="center" 
           sx={{ 
-            color: theme.palette.textColor.main,
+            color: theme.palette.text.primary,
             mb: 4,
-            fontWeight: 600,
-            fontSize: { xs: '1.8rem', md: '2.2rem' }
+            fontWeight: 700,
+            fontSize: { xs: '1.8rem', md: '2.2rem' },
+            textShadow: theme.palette.mode === 'dark' ? '0 2px 4px rgba(0,0,0,0.3)' : '0 1px 2px rgba(0,0,0,0.1)'
           }}
         >
           {t('createNewPost')}
@@ -548,12 +549,30 @@ const NewPostForm = ({ user, countries, categories, flOptions }) => {
               
               <Box display="flex" flexDirection="column" gap={3}>
                 {/* Basic Information Section */}
-                <Typography variant="h5" sx={{ fontWeight: 600, color: theme.palette.primary.main, fontSize: '1.3rem' }}>
+                <Typography 
+                  variant="h5" 
+                  sx={{ 
+                    fontWeight: 700, 
+                    color: theme.palette.mode === 'dark' ? '#4CAF50' : '#2E7D32',
+                    fontSize: '1.4rem',
+                    mb: 1,
+                    textShadow: theme.palette.mode === 'dark' ? '0 1px 2px rgba(0,0,0,0.3)' : '0 1px 2px rgba(0,0,0,0.1)'
+                  }}
+                >
                   {t('basicInformation')}
                 </Typography>
 
                 <Box>
-                  <FormLabel htmlFor="foundLost" sx={{ mb: 1, display: "block", fontWeight: 500, fontSize: '1.1rem' }}>
+                  <FormLabel 
+                    htmlFor="foundLost" 
+                    sx={{ 
+                      mb: 1, 
+                      display: "block", 
+                      fontWeight: 600, 
+                      fontSize: '1.15rem',
+                      color: theme.palette.text.primary
+                    }}
+                  >
                     {t('foundOrLost')} *
                   </FormLabel>
                   <SelectOption 
@@ -567,17 +586,43 @@ const NewPostForm = ({ user, countries, categories, flOptions }) => {
                 </Box>
 
                 <Box>
-                  <FormLabel htmlFor="country" sx={{ mb: 1, display: "block", fontWeight: 500, fontSize: '1.1rem' }}>
+                  <FormLabel 
+                    htmlFor="country" 
+                    sx={{ 
+                      mb: 1, 
+                      display: "block", 
+                      fontWeight: 600, 
+                      fontSize: '1.15rem',
+                      color: theme.palette.text.primary
+                    }}
+                  >
                     {t('country')} *
                   </FormLabel>
-                  <Typography variant="caption" color="text.secondary" sx={{ mb: 1, display: "block", fontSize: '0.95rem' }}>
+                  <Typography 
+                    variant="caption" 
+                    sx={{ 
+                      mb: 1, 
+                      display: "block", 
+                      fontSize: '1rem',
+                      color: theme.palette.mode === 'dark' ? 'rgba(255,255,255,0.7)' : 'rgba(0,0,0,0.6)',
+                      fontWeight: 500
+                    }}
+                  >
                     {getFoundLostType(values.foundLost) === 'LOST' 
                       ? t('chooseCountryLost') 
                       : t('chooseCountryFound')
                     }
                   </Typography>
                   <FormControl fullWidth error={!!fieldErrors.country}>
-                    <InputLabel id="country-select-label">{t('chooseCountry')}</InputLabel>
+                    <InputLabel 
+                      id="country-select-label"
+                      sx={{
+                        color: theme.palette.mode === 'dark' ? 'rgba(255,255,255,0.7)' : 'rgba(0,0,0,0.6)',
+                        fontWeight: 500
+                      }}
+                    >
+                      {t('chooseCountry')}
+                    </InputLabel>
                     <Select
                       labelId="country-select-label"
                       value={selectedCountry?._id || ""}
@@ -586,6 +631,17 @@ const NewPostForm = ({ user, countries, categories, flOptions }) => {
                       data-testid="country-select"
                       sx={{
                         borderRadius: 2,
+                        '& .MuiOutlinedInput-notchedOutline': {
+                          borderColor: theme.palette.mode === 'dark' ? 'rgba(255,255,255,0.3)' : 'rgba(0,0,0,0.2)',
+                        },
+                        '&:hover .MuiOutlinedInput-notchedOutline': {
+                          borderColor: theme.palette.mode === 'dark' ? 'rgba(255,255,255,0.5)' : 'rgba(0,0,0,0.4)',
+                        },
+                        '&.Mui-focused .MuiOutlinedInput-notchedOutline': {
+                          borderColor: theme.palette.mode === 'dark' ? '#4CAF50' : '#2E7D32',
+                        },
+                        color: theme.palette.text.primary,
+                        fontWeight: 500
                       }}
                     >
                       {countries?.map((country) => (
@@ -611,7 +667,15 @@ const NewPostForm = ({ user, countries, categories, flOptions }) => {
                       ))}
                     </Select>
                     {fieldErrors.country && (
-                      <Typography variant="caption" color="error" sx={{ mt: 1, display: 'block' }}>
+                      <Typography 
+                        variant="caption" 
+                        sx={{ 
+                          mt: 1, 
+                          display: 'block',
+                          color: theme.palette.mode === 'dark' ? '#f44336' : '#d32f2f',
+                          fontWeight: 500
+                        }}
+                      >
                         {fieldErrors.country}
                       </Typography>
                     )}
@@ -619,7 +683,16 @@ const NewPostForm = ({ user, countries, categories, flOptions }) => {
                 </Box>
 
                 <Box>
-                  <FormLabel htmlFor="category" sx={{ mb: 1, display: "block", fontWeight: 500, fontSize: '1.1rem' }}>
+                  <FormLabel 
+                    htmlFor="category" 
+                    sx={{ 
+                      mb: 1, 
+                      display: "block", 
+                      fontWeight: 600, 
+                      fontSize: '1.15rem',
+                      color: theme.palette.text.primary
+                    }}
+                  >
                     {t('category')} *
                   </FormLabel>
                   <SelectOption 
@@ -633,15 +706,42 @@ const NewPostForm = ({ user, countries, categories, flOptions }) => {
                 </Box>
 
                 {/* Location Section */}
-                <Typography variant="h5" sx={{ fontWeight: 600, color: theme.palette.primary.main, fontSize: '1.3rem' }}>
+                <Typography 
+                  variant="h5" 
+                  sx={{ 
+                    fontWeight: 700, 
+                    color: theme.palette.mode === 'dark' ? '#4CAF50' : '#2E7D32',
+                    fontSize: '1.4rem',
+                    mb: 1,
+                    textShadow: theme.palette.mode === 'dark' ? '0 1px 2px rgba(0,0,0,0.3)' : '0 1px 2px rgba(0,0,0,0.1)'
+                  }}
+                >
                   {t('location')}
                 </Typography>
 
                 <Box>
-                  <FormLabel htmlFor="city" sx={{ mb: 1, display: "block", fontWeight: 500, fontSize: '1.1rem' }}>
+                  <FormLabel 
+                    htmlFor="city" 
+                    sx={{ 
+                      mb: 1, 
+                      display: "block", 
+                      fontWeight: 600, 
+                      fontSize: '1.15rem',
+                      color: theme.palette.text.primary
+                    }}
+                  >
                     {t('city')} *
                   </FormLabel>
-                  <Typography variant="caption" color="text.secondary" sx={{ mb: 1, display: "block", fontSize: '0.95rem' }}>
+                  <Typography 
+                    variant="caption" 
+                    sx={{ 
+                      mb: 1, 
+                      display: "block", 
+                      fontSize: '1rem',
+                      color: theme.palette.mode === 'dark' ? 'rgba(255,255,255,0.7)' : 'rgba(0,0,0,0.6)',
+                      fontWeight: 500
+                    }}
+                  >
                     {!selectedCountry 
                       ? t('selectCountryFirst') 
                       : loadingCities 
@@ -653,7 +753,15 @@ const NewPostForm = ({ user, countries, categories, flOptions }) => {
                   </Typography>
                   
                   <FormControl fullWidth disabled={!selectedCountry || loadingCities} error={!!fieldErrors.city}>
-                    <InputLabel id="city-select-label">{t('chooseCity')}</InputLabel>
+                    <InputLabel 
+                      id="city-select-label"
+                      sx={{
+                        color: theme.palette.mode === 'dark' ? 'rgba(255,255,255,0.7)' : 'rgba(0,0,0,0.6)',
+                        fontWeight: 500
+                      }}
+                    >
+                      {t('chooseCity')}
+                    </InputLabel>
                     <Select
                       name="city"
                       labelId="city-select-label"
@@ -675,6 +783,17 @@ const NewPostForm = ({ user, countries, categories, flOptions }) => {
                       data-testid="city-select"
                       sx={{
                         borderRadius: 2,
+                        '& .MuiOutlinedInput-notchedOutline': {
+                          borderColor: theme.palette.mode === 'dark' ? 'rgba(255,255,255,0.3)' : 'rgba(0,0,0,0.2)',
+                        },
+                        '&:hover .MuiOutlinedInput-notchedOutline': {
+                          borderColor: theme.palette.mode === 'dark' ? 'rgba(255,255,255,0.5)' : 'rgba(0,0,0,0.4)',
+                        },
+                        '&.Mui-focused .MuiOutlinedInput-notchedOutline': {
+                          borderColor: theme.palette.mode === 'dark' ? '#4CAF50' : '#2E7D32',
+                        },
+                        color: theme.palette.text.primary,
+                        fontWeight: 500
                       }}
                       MenuProps={{
                         PaperProps: {
@@ -724,7 +843,15 @@ const NewPostForm = ({ user, countries, categories, flOptions }) => {
                       </MenuItem>
                     </Select>
                     {fieldErrors.city && (
-                      <Typography variant="caption" color="error" sx={{ mt: 1, display: 'block' }}>
+                      <Typography 
+                        variant="caption" 
+                        sx={{ 
+                          mt: 1, 
+                          display: 'block',
+                          color: theme.palette.mode === 'dark' ? '#f44336' : '#d32f2f',
+                          fontWeight: 500
+                        }}
+                      >
                         {fieldErrors.city}
                       </Typography>
                     )}
@@ -732,10 +859,28 @@ const NewPostForm = ({ user, countries, categories, flOptions }) => {
                 </Box>
 
                 <Box>
-                  <FormLabel htmlFor="exactDate" sx={{ mb: 1, display: "block", fontWeight: 500, fontSize: '1.1rem' }}>
+                  <FormLabel 
+                    htmlFor="exactDate" 
+                    sx={{ 
+                      mb: 1, 
+                      display: "block", 
+                      fontWeight: 600, 
+                      fontSize: '1.15rem',
+                      color: theme.palette.text.primary
+                    }}
+                  >
                     {t('exactDate')} *
                   </FormLabel>
-                  <Typography variant="caption" color="text.secondary" sx={{ mb: 1, display: "block", fontSize: '0.95rem' }}>
+                  <Typography 
+                    variant="caption" 
+                    sx={{ 
+                      mb: 1, 
+                      display: "block", 
+                      fontSize: '1rem',
+                      color: theme.palette.mode === 'dark' ? 'rgba(255,255,255,0.7)' : 'rgba(0,0,0,0.6)',
+                      fontWeight: 500
+                    }}
+                  >
                     {getFoundLostType(values.foundLost) === 'LOST' 
                       ? t('exactDateLostPlaceholder') 
                       : t('exactDateFoundPlaceholder')
@@ -753,10 +898,28 @@ const NewPostForm = ({ user, countries, categories, flOptions }) => {
                 </Box>
 
                 <Box>
-                  <FormLabel htmlFor="exactLocation" sx={{ mb: 1, display: "block", fontWeight: 500, fontSize: '1.1rem' }}>
+                  <FormLabel 
+                    htmlFor="exactLocation" 
+                    sx={{ 
+                      mb: 1, 
+                      display: "block", 
+                      fontWeight: 600, 
+                      fontSize: '1.15rem',
+                      color: theme.palette.text.primary
+                    }}
+                  >
                     {t('exactLocation')} *
                   </FormLabel>
-                  <Typography variant="caption" color="text.secondary" sx={{ mb: 1, display: "block", fontSize: '0.95rem' }}>
+                  <Typography 
+                    variant="caption" 
+                    sx={{ 
+                      mb: 1, 
+                      display: "block", 
+                      fontSize: '1rem',
+                      color: theme.palette.mode === 'dark' ? 'rgba(255,255,255,0.7)' : 'rgba(0,0,0,0.6)',
+                      fontWeight: 500
+                    }}
+                  >
                     {getFoundLostType(values.foundLost) === 'LOST' 
                       ? t('exactLocationLostPlaceholder') 
                       : t('exactLocationFoundPlaceholder')
@@ -774,21 +937,58 @@ const NewPostForm = ({ user, countries, categories, flOptions }) => {
                 </Box>
 
                 {/* Item Details Section */}
-                <Typography variant="h5" sx={{ fontWeight: 600, color: theme.palette.primary.main, fontSize: '1.3rem' }}>
+                <Typography 
+                  variant="h5" 
+                  sx={{ 
+                    fontWeight: 700, 
+                    color: theme.palette.mode === 'dark' ? '#4CAF50' : '#2E7D32',
+                    fontSize: '1.4rem',
+                    mb: 1,
+                    textShadow: theme.palette.mode === 'dark' ? '0 1px 2px rgba(0,0,0,0.3)' : '0 1px 2px rgba(0,0,0,0.1)'
+                  }}
+                >
                   {t('itemDetails')}
                 </Typography>
 
                 <Box>
-                  <FormLabel htmlFor="description" sx={{ mb: 1, display: "block", fontWeight: 500, fontSize: '1.1rem' }}>
+                  <FormLabel 
+                    htmlFor="description" 
+                    sx={{ 
+                      mb: 1, 
+                      display: "block", 
+                      fontWeight: 600, 
+                      fontSize: '1.15rem',
+                      color: theme.palette.text.primary
+                    }}
+                  >
                     {t('description')} ({t('optional')})
                   </FormLabel>
-                  <Typography variant="caption" color="text.secondary" sx={{ mb: 1, display: "block", fontSize: '0.95rem' }}>
+                  <Typography 
+                    variant="caption" 
+                    sx={{ 
+                      mb: 1, 
+                      display: "block", 
+                      fontSize: '1rem',
+                      color: theme.palette.mode === 'dark' ? 'rgba(255,255,255,0.7)' : 'rgba(0,0,0,0.6)',
+                      fontWeight: 500
+                    }}
+                  >
                     {getFoundLostType(values.foundLost) === 'LOST' 
                       ? t('descriptionLostPlaceholder') 
                       : t('descriptionFoundPlaceholder')
                     }
                   </Typography>
-                  <Typography variant="caption" color="warning.main" sx={{ mb: 1, display: "block", fontStyle: "italic", fontSize: '0.95rem' }}>
+                  <Typography 
+                    variant="caption" 
+                    sx={{ 
+                      mb: 1, 
+                      display: "block", 
+                      fontStyle: "italic", 
+                      fontSize: '1rem',
+                      color: theme.palette.mode === 'dark' ? '#ff9800' : '#f57c00',
+                      fontWeight: 500
+                    }}
+                  >
                     {getFoundLostType(values.foundLost) === 'LOST' 
                       ? (t('descriptionOptionalLostMessage') || "Description is optional but recommended when you don't have an image of the lost item.")
                       : (t('descriptionOptionalFoundMessage') || "Description is optional. You can add an image instead, or provide both for better identification.")
@@ -804,12 +1004,30 @@ const NewPostForm = ({ user, countries, categories, flOptions }) => {
                 </Box>
 
                 {/* Contact Information Section */}
-                <Typography variant="h5" sx={{ fontWeight: 600, color: theme.palette.primary.main, fontSize: '1.3rem' }}>
+                <Typography 
+                  variant="h5" 
+                  sx={{ 
+                    fontWeight: 700, 
+                    color: theme.palette.mode === 'dark' ? '#4CAF50' : '#2E7D32',
+                    fontSize: '1.4rem',
+                    mb: 1,
+                    textShadow: theme.palette.mode === 'dark' ? '0 1px 2px rgba(0,0,0,0.3)' : '0 1px 2px rgba(0,0,0,0.1)'
+                  }}
+                >
                   {t('contactInformation')}
                 </Typography>
 
                 <Box>
-                  <FormLabel htmlFor="contact" sx={{ mb: 1, display: "block", fontWeight: 500, fontSize: '1.1rem' }}>
+                  <FormLabel 
+                    htmlFor="contact" 
+                    sx={{ 
+                      mb: 1, 
+                      display: "block", 
+                      fontWeight: 600, 
+                      fontSize: '1.15rem',
+                      color: theme.palette.text.primary
+                    }}
+                  >
                     {t('contact')} *
                   </FormLabel>
                   <Textfield 
@@ -824,10 +1042,27 @@ const NewPostForm = ({ user, countries, categories, flOptions }) => {
 
                 {/* WhatsApp Contact Details */}
                 <Box>
-                  <FormLabel sx={{ mb: 1, display: "block", fontWeight: 500, fontSize: '1.1rem' }}>
+                  <FormLabel 
+                    sx={{ 
+                      mb: 1, 
+                      display: "block", 
+                      fontWeight: 600, 
+                      fontSize: '1.15rem',
+                      color: theme.palette.text.primary
+                    }}
+                  >
                     {t('whatsappContact')}
                   </FormLabel>
-                  <Typography variant="caption" color="text.secondary" sx={{ mb: 1, display: "block", fontSize: '0.95rem' }}>
+                  <Typography 
+                    variant="caption" 
+                    sx={{ 
+                      mb: 1, 
+                      display: "block", 
+                      fontSize: '1rem',
+                      color: theme.palette.mode === 'dark' ? 'rgba(255,255,255,0.7)' : 'rgba(0,0,0,0.6)',
+                      fontWeight: 500
+                    }}
+                  >
                     {getFoundLostType(values.foundLost) === 'LOST' 
                       ? (t('whatsappContactLostMessage') || "We'll use this WhatsApp number to contact you if someone finds your lost item.")
                       : (t('whatsappContactFoundMessage') || "We'll use this WhatsApp number to contact you if the owner of the found item wants to reach you.")
@@ -843,25 +1078,65 @@ const NewPostForm = ({ user, countries, categories, flOptions }) => {
                 </Box>
 
                 {/* Image Section */}
-                <Typography variant="h5" sx={{ fontWeight: 600, color: theme.palette.primary.main, fontSize: '1.3rem' }}>
+                <Typography 
+                  variant="h5" 
+                  sx={{ 
+                    fontWeight: 700, 
+                    color: theme.palette.mode === 'dark' ? '#4CAF50' : '#2E7D32',
+                    fontSize: '1.4rem',
+                    mb: 1,
+                    textShadow: theme.palette.mode === 'dark' ? '0 1px 2px rgba(0,0,0,0.3)' : '0 1px 2px rgba(0,0,0,0.1)'
+                  }}
+                >
                   {t('itemImage')}
                 </Typography>
 
                 <Box>
-                  <FormLabel htmlFor="image" sx={{ mb: 1, display: "block", fontWeight: 500, fontSize: '1.1rem' }}>
+                  <FormLabel 
+                    htmlFor="image" 
+                    sx={{ 
+                      mb: 1, 
+                      display: "block", 
+                      fontWeight: 600, 
+                      fontSize: '1.15rem',
+                      color: theme.palette.text.primary
+                    }}
+                  >
                     {t('addItemImage')} ({t('optional')})
                   </FormLabel>
                   <Box display="flex" alignItems="center" gap={2}>
                     <Button
                       variant="contained"
                       component="label"
-                      startIcon={isCompressing ? <CircularProgress size={16} color="inherit" /> : <PhotoCamera />}
+                      startIcon={isCompressing ? <CircularProgress size={16} color="inherit" /> : <PhotoCamera sx={{ ml: 0.5 }} />}
                       disabled={isCompressing}
                       sx={{ 
                         textTransform: 'none', 
-                        borderRadius: 2,
+                        borderRadius: 3,
                         px: 3,
-                        py: 1
+                        py: 1.5,
+                        fontSize: '1rem',
+                        fontWeight: 600,
+                        background: theme.palette.mode === 'dark'
+                          ? 'linear-gradient(45deg, #4CAF50 30%, #66BB6A 90%)'
+                          : 'linear-gradient(45deg, #2E7D32 30%, #388E3C 90%)',
+                        '&:hover': {
+                          background: theme.palette.mode === 'dark'
+                            ? 'linear-gradient(45deg, #388E3C 30%, #4CAF50 90%)'
+                            : 'linear-gradient(45deg, #1B5E20 30%, #2E7D32 90%)',
+                          transform: 'translateY(-1px)',
+                          boxShadow: theme.palette.mode === 'dark'
+                            ? '0 6px 16px rgba(76, 175, 80, 0.3)'
+                            : '0 6px 16px rgba(46, 125, 50, 0.3)',
+                        },
+                        '&:disabled': {
+                          background: theme.palette.mode === 'dark' ? 'rgba(76, 175, 80, 0.3)' : 'rgba(46, 125, 50, 0.3)',
+                          color: theme.palette.mode === 'dark' ? 'rgba(255,255,255,0.5)' : 'rgba(255,255,255,0.7)',
+                        },
+                        transition: 'all 0.2s ease-in-out',
+                        boxShadow: theme.palette.mode === 'dark'
+                          ? '0 3px 8px rgba(76, 175, 80, 0.2)'
+                          : '0 3px 8px rgba(46, 125, 50, 0.2)',
                       }}
                     >
                       {isCompressing ? t('compressingImage') || 'Compressing...' : t('chooseFile')}
@@ -888,17 +1163,40 @@ const NewPostForm = ({ user, countries, categories, flOptions }) => {
                       />
                     </Button>
                     {selectedFileName && (
-                      <Typography variant="body2" color="text.secondary">
+                      <Typography 
+                        variant="body2" 
+                        sx={{ 
+                          color: theme.palette.mode === 'dark' ? 'rgba(255,255,255,0.8)' : 'rgba(0,0,0,0.7)',
+                          fontWeight: 500
+                        }}
+                      >
                         {selectedFileName}
                       </Typography>
                     )}
                     {compressionInfo && (
-                      <Typography variant="caption" color="success.main" sx={{ display: "block", mt: 0.5 }}>
+                      <Typography 
+                        variant="caption" 
+                        sx={{ 
+                          display: "block", 
+                          mt: 0.5,
+                          color: theme.palette.mode === 'dark' ? '#4CAF50' : '#2E7D32',
+                          fontWeight: 500
+                        }}
+                      >
                         {t('compressionSuccess') || `Compressed: ${compressionInfo.originalSize}MB → ${compressionInfo.compressedSize}MB (${compressionInfo.compressionRatio}% smaller)`}
                       </Typography>
                     )}
                   </Box>
-                  <Typography variant="caption" color="text.secondary" sx={{ mt: 1, display: "block", fontSize: '0.95rem' }}>
+                  <Typography 
+                    variant="caption" 
+                    sx={{ 
+                      mt: 1, 
+                      display: "block", 
+                      fontSize: '1rem',
+                      color: theme.palette.mode === 'dark' ? 'rgba(255,255,255,0.7)' : 'rgba(0,0,0,0.6)',
+                      fontWeight: 500
+                    }}
+                  >
                     {t('imageOptionalMessage')}
                   </Typography>
                 </Box>
@@ -908,9 +1206,30 @@ const NewPostForm = ({ user, countries, categories, flOptions }) => {
                     disabled={isSubmitting}
                     sx={{ 
                       width: "100%",
-                      py: 1.5,
-                      fontSize: "1.2rem",
-                      fontWeight: 600
+                      py: 2,
+                      fontSize: "1.3rem",
+                      fontWeight: 700,
+                      borderRadius: 3,
+                      background: theme.palette.mode === 'dark'
+                        ? 'linear-gradient(45deg, #4CAF50 30%, #66BB6A 90%)'
+                        : 'linear-gradient(45deg, #2E7D32 30%, #388E3C 90%)',
+                      '&:hover': {
+                        background: theme.palette.mode === 'dark'
+                          ? 'linear-gradient(45deg, #388E3C 30%, #4CAF50 90%)'
+                          : 'linear-gradient(45deg, #1B5E20 30%, #2E7D32 90%)',
+                        transform: 'translateY(-2px)',
+                        boxShadow: theme.palette.mode === 'dark'
+                          ? '0 8px 24px rgba(76, 175, 80, 0.4)'
+                          : '0 8px 24px rgba(46, 125, 50, 0.4)',
+                      },
+                      '&:disabled': {
+                        background: theme.palette.mode === 'dark' ? 'rgba(76, 175, 80, 0.3)' : 'rgba(46, 125, 50, 0.3)',
+                        color: theme.palette.mode === 'dark' ? 'rgba(255,255,255,0.5)' : 'rgba(255,255,255,0.7)',
+                      },
+                      transition: 'all 0.3s ease-in-out',
+                      boxShadow: theme.palette.mode === 'dark'
+                        ? '0 4px 16px rgba(76, 175, 80, 0.3)'
+                        : '0 4px 16px rgba(46, 125, 50, 0.3)',
                     }}
                   >
                     {isSubmitting ? (
@@ -960,17 +1279,17 @@ const NewPostForm = ({ user, countries, categories, flOptions }) => {
         sx={{ zIndex: 1300 }}
         PaperProps={{
           sx: {
-            borderRadius: 3,
+            borderRadius: 4,
             background: theme.palette.mode === 'dark' 
-              ? 'rgba(30, 30, 30, 0.95)' 
-              : 'rgba(255, 255, 255, 0.95)',
-            backdropFilter: 'blur(10px)',
-            border: `1px solid ${theme.palette.mode === 'dark' 
-              ? 'rgba(255, 255, 255, 0.1)' 
-              : 'rgba(0, 0, 0, 0.1)'}`,
+              ? 'linear-gradient(135deg, rgba(20,20,20,0.98) 0%, rgba(35,35,35,0.98) 100%)' 
+              : 'linear-gradient(135deg, rgba(255,255,255,0.98) 0%, rgba(248,250,252,0.98) 100%)',
+            backdropFilter: 'blur(20px)',
+            border: `2px solid ${theme.palette.mode === 'dark' 
+              ? 'rgba(255, 255, 255, 0.15)' 
+              : 'rgba(0, 0, 0, 0.08)'}`,
             boxShadow: theme.palette.mode === 'dark'
-              ? '0 8px 32px rgba(0, 0, 0, 0.4)'
-              : '0 8px 32px rgba(0, 0, 0, 0.15)'
+              ? '0 20px 40px rgba(0,0,0,0.6), 0 0 0 1px rgba(255,255,255,0.05)'
+              : '0 20px 40px rgba(0,0,0,0.15), 0 0 0 1px rgba(0,0,0,0.05)'
           }
         }}
         BackdropProps={{
@@ -988,7 +1307,14 @@ const NewPostForm = ({ user, countries, categories, flOptions }) => {
             borderBottom: `1px solid ${theme.palette.divider}`
           }}
         >
-          <Typography variant="h6" sx={{ fontWeight: 600, color: theme.palette.text.primary }}>
+          <Typography 
+            variant="h6" 
+            sx={{ 
+              fontWeight: 700, 
+              color: theme.palette.text.primary,
+              fontSize: '1.3rem'
+            }}
+          >
             {t('addNewCity')}
           </Typography>
           <IconButton
@@ -1009,7 +1335,15 @@ const NewPostForm = ({ user, countries, categories, flOptions }) => {
         </DialogTitle>
         
         <DialogContent sx={{ pt: 3 }}>
-          <Typography variant="body2" color="text.secondary" sx={{ mb: 2 }}>
+          <Typography 
+            variant="body2" 
+            sx={{ 
+              mb: 2,
+              color: theme.palette.mode === 'dark' ? 'rgba(255,255,255,0.7)' : 'rgba(0,0,0,0.6)',
+              fontSize: '1rem',
+              fontWeight: 500
+            }}
+          >
             {t('enterCustomCityName')}
           </Typography>
           <TextField
@@ -1020,14 +1354,19 @@ const NewPostForm = ({ user, countries, categories, flOptions }) => {
             variant="outlined"
             autoFocus
             sx={{ 
-              borderRadius: 2,
+              borderRadius: 3,
               '& .MuiOutlinedInput-root': {
                 '&:hover fieldset': {
-                  borderColor: theme.palette.primary.main,
+                  borderColor: theme.palette.mode === 'dark' ? '#4CAF50' : '#2E7D32',
                 },
                 '&.Mui-focused fieldset': {
-                  borderColor: theme.palette.primary.main,
+                  borderColor: theme.palette.mode === 'dark' ? '#4CAF50' : '#2E7D32',
                 },
+                '& fieldset': {
+                  borderColor: theme.palette.mode === 'dark' ? 'rgba(255,255,255,0.3)' : 'rgba(0,0,0,0.2)',
+                },
+                color: theme.palette.text.primary,
+                fontWeight: 500
               }
             }}
           />
@@ -1042,13 +1381,18 @@ const NewPostForm = ({ user, countries, categories, flOptions }) => {
             }}
             disabled={isCreatingCity}
             sx={{ 
-              borderRadius: 2,
+              borderRadius: 3,
               borderColor: theme.palette.mode === 'dark' ? 'rgba(255, 255, 255, 0.3)' : 'rgba(0, 0, 0, 0.3)',
               color: theme.palette.mode === 'dark' ? 'rgba(255, 255, 255, 0.8)' : 'rgba(0, 0, 0, 0.8)',
+              fontSize: '1rem',
+              fontWeight: 600,
+              py: 1.5,
+              px: 3,
               '&:hover': {
                 borderColor: theme.palette.mode === 'dark' ? 'rgba(255, 255, 255, 0.5)' : 'rgba(0, 0, 0, 0.5)',
                 backgroundColor: theme.palette.mode === 'dark' ? 'rgba(255, 255, 255, 0.04)' : 'rgba(0, 0, 0, 0.04)',
-              }
+              },
+              transition: 'all 0.2s ease-in-out'
             }}
           >
             {t('cancel')}
@@ -1085,11 +1429,27 @@ const NewPostForm = ({ user, countries, categories, flOptions }) => {
             }}
             disabled={!customCityName.trim() || !selectedCountry?._id || isCreatingCity}
             sx={{ 
-              borderRadius: 2,
-              background: `linear-gradient(135deg, ${theme.palette.primary.main} 0%, ${theme.palette.primary.dark} 100%)`,
+              borderRadius: 3,
+              background: theme.palette.mode === 'dark'
+                ? 'linear-gradient(45deg, #4CAF50 30%, #66BB6A 90%)'
+                : 'linear-gradient(45deg, #2E7D32 30%, #388E3C 90%)',
+              fontSize: '1rem',
+              fontWeight: 600,
+              py: 1.5,
+              px: 3,
               '&:hover': {
-                background: `linear-gradient(135deg, ${theme.palette.primary.dark} 0%, ${theme.palette.primary.main} 100%)`,
-              }
+                background: theme.palette.mode === 'dark'
+                  ? 'linear-gradient(45deg, #388E3C 30%, #4CAF50 90%)'
+                  : 'linear-gradient(45deg, #1B5E20 30%, #2E7D32 90%)',
+                transform: 'translateY(-1px)',
+                boxShadow: theme.palette.mode === 'dark'
+                  ? '0 6px 16px rgba(76, 175, 80, 0.3)'
+                  : '0 6px 16px rgba(46, 125, 50, 0.3)',
+              },
+              transition: 'all 0.2s ease-in-out',
+              boxShadow: theme.palette.mode === 'dark'
+                ? '0 3px 8px rgba(76, 175, 80, 0.2)'
+                : '0 3px 8px rgba(46, 125, 50, 0.2)',
             }}
             startIcon={isCreatingCity ? <CircularProgress size={16} color="inherit" /> : null}
           >
