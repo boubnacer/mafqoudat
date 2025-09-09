@@ -163,7 +163,10 @@ const LogoButton = styled(Button)(({ theme }) => ({
     marginLeft: theme.direction === 'rtl' ? '0' : '-6px',
     marginRight: theme.direction === 'rtl' ? '-6px' : '0',
     '& img': {
-      maxHeight: theme.palette.mode === 'dark' ? '32px' : '18px', // Much bigger in dark mode mobile
+      maxHeight: theme.palette.mode === 'dark' ? '36px' : '18px', // Even bigger in dark mode mobile
+      ...(theme.palette.mode === 'dark' && {
+        padding: '8px', // Mobile-specific padding for dark mode
+      }),
     }
   }
 }));
