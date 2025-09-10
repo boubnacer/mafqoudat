@@ -19,6 +19,7 @@ const Recent = ({ recent, isLoading, emptyState = "NoRecentFounds", maxItems, sx
       display="grid"
       gap={3}
       sx={{
+        backgroundColor: 'transparent',
         gridTemplateColumns: {
           xs: "repeat(1, 1fr)", // Single column on mobile
           sm: "repeat(2, 1fr)", // Two columns on small tablets

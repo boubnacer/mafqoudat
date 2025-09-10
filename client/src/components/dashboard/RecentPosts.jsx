@@ -225,7 +225,7 @@ const RecentPosts = ({ _id, categoryname, exactLocation, image, createdAt, count
     <>
       <Card
         sx={{
-          backgroundColor: isDarkMode ? '#1a1a1a' : '#ffffff',
+          backgroundColor: isDarkMode ? '#1a1a1a' : '#ffffff !important',
           position: 'relative',
           boxShadow: isDarkMode
             ? '0 4px 20px rgba(0,0,0,0.3)'

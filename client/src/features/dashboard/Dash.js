@@ -382,7 +382,7 @@ const Dash = () => {
               <Box 
                 sx={{
                   p: { xs: 2, sm: 3 },
-                  backgroundColor: theme.palette.mode === 'dark' ? '#2d2d2d' : '#fff',
+                  backgroundColor: theme.palette.mode === 'dark' ? '#2d2d2d' : '#ffffff',
                   minHeight: '200px',
                   borderTop: theme.palette.mode === 'dark' 
                     ? '1px solid rgba(255,255,255,0.1)'
@@ -566,7 +566,7 @@ const Dash = () => {
                 <Box 
                   sx={{
                     p: { xs: 2, sm: 3 },
-                    backgroundColor: theme.palette.mode === 'dark' ? '#2d2d2d' : '#fff',
+                    backgroundColor: theme.palette.mode === 'dark' ? '#2d2d2d' : '#ffffff',
                     minHeight: '200px',
                   borderTop: theme.palette.mode === 'dark' 
                     ? '1px solid rgba(255,255,255,0.1)'
