@@ -224,6 +224,10 @@ const RecentPosts = ({ _id, categoryname, exactLocation, image, createdAt, count
   return (
     <>
       <Card
+        style={{
+          backgroundColor: isDarkMode ? '#1a1a1a' : '#ffffff',
+          background: isDarkMode ? '#1a1a1a' : '#ffffff',
+        }}
         sx={{
           backgroundColor: isDarkMode ? '#1a1a1a' : '#ffffff',
           background: isDarkMode ? '#1a1a1a' : '#ffffff',
@@ -246,6 +250,8 @@ const RecentPosts = ({ _id, categoryname, exactLocation, image, createdAt, count
             boxShadow: isDarkMode
               ? '0 8px 32px rgba(0, 0, 0, 0.4)'
               : '0 8px 32px rgba(0, 0, 0, 0.15)',
+            backgroundColor: isDarkMode ? '#1a1a1a !important' : '#ffffff !important',
+            background: isDarkMode ? '#1a1a1a !important' : '#ffffff !important',
           },
           direction: currentLanguage === 'ar' ? 'rtl' : 'ltr',
           // Force white background in light mode with higher specificity
