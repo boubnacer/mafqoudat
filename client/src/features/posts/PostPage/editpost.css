@@ -2,7 +2,7 @@
 
 .single-post-container {
   min-height: 100vh;
-  background: var(--background-color, #f0f2f5);
+  background: var(--background-color, #ffffff);
 }
 
 .single-post-paper {

@@ -240,7 +240,7 @@ export const themeSettings = (mode, currentLanguage = 'en') => {
               main: "#000000",
               secondary:"#B0B0B0"
             },
-            background: "#F0F2F5",
+            background: "#ffffff",
             category: "#E4E6E9",
             floptions: {
               found: {
