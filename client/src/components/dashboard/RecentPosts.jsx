@@ -224,6 +224,7 @@ const RecentPosts = ({ _id, categoryname, exactLocation, image, createdAt, count
   return (
     <>
       <Card
+        className="recent-post-card"
         style={{
           backgroundColor: isDarkMode ? '#1a1a1a' : '#ffffff',
           background: isDarkMode ? '#1a1a1a' : '#ffffff',
