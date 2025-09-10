@@ -236,20 +236,22 @@ const Dash = () => {
           {/* Enhanced Recent Founds Section - Only show when there are posts */}
           {data?.totalFounds > 0 && (
             <Box mb={4}>
-            <Box
-              sx={{
-                backgroundColor: theme.palette.mode === 'dark' ? '#1a1a1a' : '#f8f9fa',
-                borderRadius: { xs: '16px', sm: '20px' },
-                boxShadow: theme.palette.mode === 'dark' 
-                  ? '0 8px 32px rgba(0,0,0,0.3)'
-                  : '0 8px 32px rgba(0,0,0,0.1)',
-                overflow: 'hidden',
-                mx: { xs: 1, sm: 2 },
-                maxWidth: '100%',
-                border: `1px solid ${theme.palette.mode === 'dark' ? 'rgba(255,255,255,0.05)' : 'rgba(0,0,0,0.05)'}`,
-                direction: currentLanguage === 'ar' ? 'rtl' : 'ltr'
-              }}
-            >
+              <Box
+                sx={{
+                  backgroundColor: theme.palette.mode === 'dark' ? '#1a1a1a' : '#f8f9fa',
+                  borderRadius: { xs: '16px', sm: '20px' },
+                  boxShadow: theme.palette.mode === 'dark' 
+                    ? '0 8px 32px rgba(0,0,0,0.3)'
+                    : '0 8px 32px rgba(0,0,0,0.1)',
+                  overflow: 'hidden',
+                  mx: { xs: 1, sm: 2 },
+                  maxWidth: '100%',
+                  border: theme.palette.mode === 'dark' 
+                    ? '1px solid rgba(255,255,255,0.05)'
+                    : '2px solid #1976D2',
+                  direction: currentLanguage === 'ar' ? 'rtl' : 'ltr'
+                }}
+              >
                 {/* Header Section */}
                 <Box 
                   sx={{
@@ -381,7 +383,10 @@ const Dash = () => {
                 sx={{
                   p: { xs: 2, sm: 3 },
                   backgroundColor: theme.palette.mode === 'dark' ? '#2d2d2d' : '#fff',
-                  minHeight: '200px'
+                  minHeight: '200px',
+                  borderTop: theme.palette.mode === 'dark' 
+                    ? '1px solid rgba(255,255,255,0.05)'
+                    : '1px solid rgba(25, 118, 210, 0.1)',
                 }}
               >
                 <Recent 
@@ -427,7 +432,9 @@ const Dash = () => {
                   overflow: 'hidden',
                   mx: { xs: 1, sm: 2 },
                   maxWidth: '100%',
-                  border: `1px solid ${theme.palette.mode === 'dark' ? 'rgba(255,255,255,0.05)' : 'rgba(0,0,0,0.05)'}`,
+                  border: theme.palette.mode === 'dark' 
+                    ? '1px solid rgba(255,255,255,0.05)'
+                    : '2px solid #1976D2',
                   direction: currentLanguage === 'ar' ? 'rtl' : 'ltr'
                 }}
               >
@@ -560,7 +567,10 @@ const Dash = () => {
                   sx={{
                     p: { xs: 2, sm: 3 },
                     backgroundColor: theme.palette.mode === 'dark' ? '#2d2d2d' : '#fff',
-                    minHeight: '200px'
+                    minHeight: '200px',
+                    borderTop: theme.palette.mode === 'dark' 
+                      ? '1px solid rgba(255,255,255,0.05)'
+                      : '1px solid rgba(230, 81, 0, 0.1)',
                   }}
                 >
                   <Recent 
