@@ -248,7 +248,7 @@ const Dash = () => {
                   maxWidth: '100%',
                   border: theme.palette.mode === 'dark' 
                     ? '1px solid rgba(255,255,255,0.05)'
-                    : '2px solid #1976D2',
+                    : '1px solid rgba(0,0,0,0.05)',
                   direction: currentLanguage === 'ar' ? 'rtl' : 'ltr'
                 }}
               >
@@ -257,7 +257,7 @@ const Dash = () => {
                   sx={{
                     background: theme.palette.mode === 'dark'
                       ? 'linear-gradient(135deg, #1a1a1a 0%, #2d2d2d 100%)'
-                      : '#F9F9F9',
+                      : '#E8E8E8',
                     p: { xs: 2, sm: 3 },
                     position: 'relative',
                     overflow: 'hidden',
@@ -270,7 +270,7 @@ const Dash = () => {
                       bottom: 0,
                       background: theme.palette.mode === 'dark'
                         ? 'linear-gradient(45deg, rgba(255,255,255,0.1) 0%, transparent 100%)'
-                        : 'linear-gradient(45deg, rgba(255,255,255,0.3) 0%, transparent 100%)',
+                        : 'linear-gradient(45deg, rgba(255,255,255,0.2) 0%, transparent 100%)',
                       pointerEvents: 'none'
                     }
                   }}
@@ -386,7 +386,7 @@ const Dash = () => {
                   minHeight: '200px',
                   borderTop: theme.palette.mode === 'dark' 
                     ? '1px solid rgba(255,255,255,0.05)'
-                    : '1px solid rgba(25, 118, 210, 0.1)',
+                    : '1px solid rgba(0,0,0,0.05)',
                 }}
               >
                 <Recent 
