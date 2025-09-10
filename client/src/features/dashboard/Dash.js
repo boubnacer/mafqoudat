@@ -90,7 +90,7 @@ const Dash = () => {
             maxWidth: 400,
             background: theme.palette.mode === 'dark' 
               ? 'linear-gradient(135deg, rgba(30,30,30,0.95) 0%, rgba(45,45,45,0.95) 100%)'
-              : 'linear-gradient(135deg, rgba(255,255,255,0.95) 0%, rgba(255,255,255,0.95) 100%)',
+              : 'linear-gradient(135deg, rgba(250,250,250,0.95) 0%, rgba(250,250,250,0.95) 100%)',
             backdropFilter: 'blur(10px)',
             border: `1px solid ${theme.palette.mode === 'dark' ? 'rgba(255,255,255,0.1)' : 'rgba(0,0,0,0.1)'}`,
           }}
@@ -144,7 +144,7 @@ const Dash = () => {
         transition: 'padding 0.3s ease',
         background: theme.palette.mode === 'dark' 
           ? 'linear-gradient(180deg, rgba(18,18,18,0.8) 0%, rgba(28,28,28,0.8) 100%)'
-          : 'linear-gradient(180deg, rgba(255,255,255,0.95) 0%, rgba(255,255,255,0.95) 100%)',
+          : 'linear-gradient(180deg, rgba(250,250,250,0.95) 0%, rgba(250,250,250,0.95) 100%)',
         minHeight: '100vh',
         direction: currentLanguage === 'ar' ? 'rtl' : 'ltr',
         overflowX: 'hidden', // Prevent horizontal overflow
