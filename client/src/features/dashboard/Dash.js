@@ -433,8 +433,8 @@ const Dash = () => {
                   mx: { xs: 1, sm: 2 },
                   maxWidth: '100%',
                   border: theme.palette.mode === 'dark' 
-                    ? '1px solid rgba(255,255,255,0.05)'
-                    : '2px solid #1976D2',
+                    ? '1px solid rgba(255,255,255,0.1)'
+                    : '1px solid rgba(0,0,0,0.1)',
                   direction: currentLanguage === 'ar' ? 'rtl' : 'ltr'
                 }}
               >
@@ -443,7 +443,7 @@ const Dash = () => {
                   sx={{
                     background: theme.palette.mode === 'dark'
                       ? 'linear-gradient(135deg, #1a1a1a 0%, #2d2d2d 100%)'
-                      : 'linear-gradient(135deg, #E65100 0%, #FF6F00 100%)',
+                      : '#E8E8E8',
                     p: { xs: 2, sm: 3 },
                     position: 'relative',
                     overflow: 'hidden',
@@ -477,14 +477,14 @@ const Dash = () => {
                       flexDirection: currentLanguage === 'ar' ? 'row-reverse' : 'row'
                     }}>
                       <Search sx={{ 
-                        color: theme.palette.mode === 'dark' ? '#fff' : '#FFD700', 
+                        color: theme.palette.mode === 'dark' ? '#fff' : '#E65100', 
                         fontSize: '24px',
                         order: currentLanguage === 'ar' ? 2 : 1
                       }} />
                       <Typography
                         variant="h6"
                         sx={{
-                          color: '#fff',
+                          color: theme.palette.mode === 'dark' ? '#fff' : '#E65100',
                           fontWeight: 700,
                           fontSize: '20px',
                           textAlign: 'center',
@@ -534,13 +534,13 @@ const Dash = () => {
                         gap: 1
                       }}>
                         <Search sx={{ 
-                          color: theme.palette.mode === 'dark' ? '#fff' : '#FFD700', 
+                          color: theme.palette.mode === 'dark' ? '#fff' : '#E65100', 
                           fontSize: '28px'
                         }} />
                         <Typography
                           variant="h5"
                           sx={{
-                            color: '#fff',
+                            color: theme.palette.mode === 'dark' ? '#fff' : '#E65100',
                             fontWeight: 700,
                             fontSize: { sm: '22px', md: '24px' }
                           }}
@@ -568,9 +568,9 @@ const Dash = () => {
                     p: { xs: 2, sm: 3 },
                     backgroundColor: theme.palette.mode === 'dark' ? '#2d2d2d' : '#fff',
                     minHeight: '200px',
-                    borderTop: theme.palette.mode === 'dark' 
-                      ? '1px solid rgba(255,255,255,0.05)'
-                      : '1px solid rgba(230, 81, 0, 0.1)',
+                  borderTop: theme.palette.mode === 'dark' 
+                    ? '1px solid rgba(255,255,255,0.1)'
+                    : '1px solid rgba(0,0,0,0.1)',
                   }}
                 >
                   <Recent 
