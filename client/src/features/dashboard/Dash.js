@@ -144,7 +144,7 @@ const Dash = () => {
         transition: 'padding 0.3s ease',
         background: theme.palette.mode === 'dark' 
           ? 'linear-gradient(180deg, rgba(18,18,18,0.8) 0%, rgba(28,28,28,0.8) 100%)'
-          : 'linear-gradient(180deg, rgba(248,249,250,0.8) 0%, rgba(255,255,255,0.8) 100%)',
+          : 'linear-gradient(180deg, rgba(255,255,255,0.95) 0%, rgba(248,249,250,0.95) 100%)',
         minHeight: '100vh',
         direction: currentLanguage === 'ar' ? 'rtl' : 'ltr',
         overflowX: 'hidden', // Prevent horizontal overflow
@@ -238,7 +238,7 @@ const Dash = () => {
             <Box mb={4}>
               <Box
                 sx={{
-                  backgroundColor: theme.palette.mode === 'dark' ? '#1a1a1a' : '#f8f9fa',
+                  backgroundColor: theme.palette.mode === 'dark' ? '#1a1a1a' : '#ffffff',
                   borderRadius: { xs: '16px', sm: '20px' },
                   boxShadow: theme.palette.mode === 'dark' 
                     ? '0 8px 32px rgba(0,0,0,0.3)'
@@ -257,7 +257,7 @@ const Dash = () => {
                   sx={{
                     background: theme.palette.mode === 'dark'
                       ? 'linear-gradient(135deg, #1a1a1a 0%, #2d2d2d 100%)'
-                      : '#E8E8E8',
+                      : '#f5f5f5',
                     p: { xs: 2, sm: 3 },
                     position: 'relative',
                     overflow: 'hidden',
@@ -424,7 +424,7 @@ const Dash = () => {
             <Box mb={4}>
               <Box
                 sx={{
-                  backgroundColor: theme.palette.mode === 'dark' ? '#1a1a1a' : '#f8f9fa',
+                  backgroundColor: theme.palette.mode === 'dark' ? '#1a1a1a' : '#ffffff',
                   borderRadius: { xs: '16px', sm: '20px' },
                   boxShadow: theme.palette.mode === 'dark' 
                     ? '0 8px 32px rgba(0,0,0,0.3)'
@@ -443,7 +443,7 @@ const Dash = () => {
                   sx={{
                     background: theme.palette.mode === 'dark'
                       ? 'linear-gradient(135deg, #1a1a1a 0%, #2d2d2d 100%)'
-                      : '#E8E8E8',
+                      : '#f5f5f5',
                     p: { xs: 2, sm: 3 },
                     position: 'relative',
                     overflow: 'hidden',
@@ -625,13 +625,13 @@ const Dash = () => {
               cate="cate" 
               sx={{ 
                 borderColor: theme.palette.primary.main,
-                backgroundColor: theme.palette.mode === 'dark' ? '#1a1a1a' : '#f8f9fa',
+                backgroundColor: theme.palette.mode === 'dark' ? '#1a1a1a' : '#ffffff',
                 borderRadius: { xs: '12px', sm: '16px' },
                 boxShadow: theme.palette.mode === 'dark' 
                   ? '0 8px 32px rgba(0,0,0,0.3)'
                   : '0 8px 32px rgba(0,0,0,0.1)',
                 mx: { xs: 1, sm: 2 },
-                border: `1px solid ${theme.palette.mode === 'dark' ? 'rgba(255,255,255,0.05)' : 'rgba(0,0,0,0.05)'}`
+                border: `1px solid ${theme.palette.mode === 'dark' ? 'rgba(255,255,255,0.05)' : 'rgba(0,0,0,0.08)'}`
               }}
             >
               <Typography
@@ -655,13 +655,13 @@ const Dash = () => {
           <Box mb={4}>
             <DashRecents
               sx={{
-                backgroundColor: theme.palette.mode === 'dark' ? '#1a1a1a' : '#f8f9fa',
+                backgroundColor: theme.palette.mode === 'dark' ? '#1a1a1a' : '#ffffff',
                 borderRadius: { xs: '12px', sm: '16px' },
                 boxShadow: theme.palette.mode === 'dark' 
                   ? '0 8px 32px rgba(0,0,0,0.3)'
                   : '0 8px 32px rgba(0,0,0,0.1)',
                 mx: { xs: 1, sm: 2 },
-                border: `1px solid ${theme.palette.mode === 'dark' ? 'rgba(255,255,255,0.05)' : 'rgba(0,0,0,0.05)'}`
+                border: `1px solid ${theme.palette.mode === 'dark' ? 'rgba(255,255,255,0.05)' : 'rgba(0,0,0,0.08)'}`
               }}
             >
               <Process />

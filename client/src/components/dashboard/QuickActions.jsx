@@ -82,12 +82,12 @@ const QuickActions = () => {
     <Box sx={{ 
       mb: 4,
       mx: { xs: 1, sm: 2 },
-      backgroundColor: theme.palette.mode === 'dark' ? '#1a1a1a' : '#f8f9fa',
+      backgroundColor: theme.palette.mode === 'dark' ? '#1a1a1a' : '#ffffff',
       borderRadius: { xs: '12px', sm: '16px' },
       boxShadow: theme.palette.mode === 'dark' 
         ? '0 8px 32px rgba(0,0,0,0.3)'
         : '0 8px 32px rgba(0,0,0,0.1)',
-      border: `1px solid ${theme.palette.mode === 'dark' ? 'rgba(255,255,255,0.05)' : 'rgba(0,0,0,0.05)'}`,
+      border: `1px solid ${theme.palette.mode === 'dark' ? 'rgba(255,255,255,0.05)' : 'rgba(0,0,0,0.08)'}`,
       p: { xs: 2, sm: 3 }
     }}>
       {/* Section Title */}
@@ -129,7 +129,7 @@ const QuickActions = () => {
                 borderRadius: { xs: '12px', sm: '16px' },
                 background: theme.palette.mode === 'dark' 
                   ? 'linear-gradient(135deg, #2c2c2c 0%, #1a1a1a 100%)'
-                  : 'linear-gradient(135deg, #ffffff 0%, #f8f9fa 100%)',
+                  : 'linear-gradient(135deg, #ffffff 0%, #fafafa 100%)',
                 border: `1px solid ${theme.palette.mode === 'dark' ? '#404040' : '#e0e0e0'}`,
                 boxShadow: theme.palette.mode === 'dark'
                   ? '0 8px 32px rgba(0,0,0,0.3), 0 0 0 1px rgba(255,255,255,0.05)'
