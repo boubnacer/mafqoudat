@@ -158,7 +158,7 @@ const HelpSupportSection = () => {
                   height: '100%',
                   background: theme.palette.mode === 'dark' 
                     ? 'linear-gradient(145deg, #1a1a1a 0%, #2d2d2d 100%)'
-                    : 'linear-gradient(145deg, #ffffff 0%, #f5f5f5 100%)',
+                    : '#ffffff',
                   boxShadow: theme.palette.mode === 'dark'
                     ? '0 4px 20px rgba(0,0,0,0.3)'
                     : '0 4px 20px rgba(0,0,0,0.1)',
@@ -224,7 +224,7 @@ const HelpSupportSection = () => {
                   height: '100%',
                   background: theme.palette.mode === 'dark' 
                     ? 'linear-gradient(145deg, #1a1a1a 0%, #2d2d2d 100%)'
-                    : 'linear-gradient(145deg, #ffffff 0%, #f5f5f5 100%)',
+                    : '#ffffff',
                   boxShadow: theme.palette.mode === 'dark'
                     ? '0 4px 20px rgba(0,0,0,0.3)'
                     : '0 4px 20px rgba(0,0,0,0.1)',
@@ -283,7 +283,7 @@ const HelpSupportSection = () => {
                   height: '100%',
                   background: theme.palette.mode === 'dark' 
                     ? 'linear-gradient(145deg, #1a1a1a 0%, #2d2d2d 100%)'
-                    : 'linear-gradient(145deg, #ffffff 0%, #f5f5f5 100%)',
+                    : '#ffffff',
                   boxShadow: theme.palette.mode === 'dark'
                     ? '0 4px 20px rgba(0,0,0,0.3)'
                     : '0 4px 20px rgba(0,0,0,0.1)',

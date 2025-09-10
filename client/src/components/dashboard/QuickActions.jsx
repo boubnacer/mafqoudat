@@ -129,7 +129,7 @@ const QuickActions = () => {
                 borderRadius: { xs: '12px', sm: '16px' },
                 background: theme.palette.mode === 'dark' 
                   ? 'linear-gradient(135deg, #2c2c2c 0%, #1a1a1a 100%)'
-                  : 'linear-gradient(135deg, #ffffff 0%, #fafafa 100%)',
+                  : '#ffffff',
                 border: `1px solid ${theme.palette.mode === 'dark' ? '#404040' : '#e0e0e0'}`,
                 boxShadow: theme.palette.mode === 'dark'
                   ? '0 8px 32px rgba(0,0,0,0.3), 0 0 0 1px rgba(255,255,255,0.05)'

@@ -79,7 +79,7 @@ const SuccessStories = () => {
           mt: 4,
           mb: 4,
           mx: { xs: 1, sm: 2 },
-          backgroundColor: theme.palette.mode === 'dark' ? '#1a1a1a' : '#f8f9fa',
+          backgroundColor: theme.palette.mode === 'dark' ? '#1a1a1a' : '#ffffff',
           borderRadius: { xs: '8px', sm: '12px' },
           boxShadow: theme.palette.mode === 'dark' 
             ? '0 4px 20px rgba(0,0,0,0.3)'
@@ -180,7 +180,7 @@ const SuccessStories = () => {
                       flexDirection: 'column',
                       background: theme.palette.mode === 'dark' 
                         ? 'linear-gradient(145deg, #1a1a1a 0%, #2d2d2d 100%)'
-                        : 'linear-gradient(145deg, #ffffff 0%, #f5f5f5 100%)',
+                        : '#ffffff',
                       boxShadow: theme.palette.mode === 'dark'
                         ? '0 4px 20px rgba(0,0,0,0.3)'
                         : '0 4px 20px rgba(0,0,0,0.1)',

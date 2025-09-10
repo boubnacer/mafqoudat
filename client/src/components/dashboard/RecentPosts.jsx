@@ -374,20 +374,20 @@ const RecentPosts = ({ _id, categoryname, exactLocation, image, createdAt, count
               display: 'flex', 
               alignItems: 'center', 
               gap: 1.5,
-              backgroundColor: isDarkMode ? 'transparent' : alpha('#f8f9fa', 0.9),
-              padding: isDarkMode ? 0 : { xs: '12px', sm: '10px' },
-              borderRadius: isDarkMode ? 0 : '12px',
-              border: isDarkMode ? 'none' : `1px solid ${alpha('#000', 0.06)}`,
-              backdropFilter: isDarkMode ? 'none' : 'blur(8px)',
+              backgroundColor: '#ffffff',
+              padding: { xs: '12px', sm: '10px' },
+              borderRadius: '12px',
+              border: `1px solid ${alpha('#000', 0.06)}`,
+              backdropFilter: 'blur(8px)',
             }}
           >
             <Avatar
               sx={{
                 width: { xs: 32, sm: 28 },
                 height: { xs: 32, sm: 28 },
-                backgroundColor: isDarkMode ? alpha(theme.palette.text.secondary, 0.1) : alpha('#e2e8f0', 0.9),
-                color: isDarkMode ? theme.palette.text.secondary : alpha('#2d3748', 0.8),
-                border: isDarkMode ? 'none' : `1px solid ${alpha('#000', 0.05)}`,
+                backgroundColor: alpha('#e2e8f0', 0.9),
+                color: alpha('#2d3748', 0.8),
+                border: `1px solid ${alpha('#000', 0.05)}`,
               }}
             >
               <LocationIcon sx={{ fontSize: { xs: '18px', sm: '16px' } }} />
@@ -395,7 +395,7 @@ const RecentPosts = ({ _id, categoryname, exactLocation, image, createdAt, count
             <Box>
               <Typography
                 sx={{
-                  color: isDarkMode ? alpha('#fff', 0.9) : alpha('#2d3748', 0.9),
+                  color: alpha('#2d3748', 0.9),
                   fontSize: { xs: '16px', sm: '16px' },
                   fontWeight: 700,
                   lineHeight: 1.2,
