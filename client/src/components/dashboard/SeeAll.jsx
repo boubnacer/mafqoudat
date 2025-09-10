@@ -44,8 +44,8 @@ const SeeAll = ({ foundOrlostId, totalItems, variant = "desktop" }) => {
         }
         sx={{
           background: totalItems > 4 
-            ? 'linear-gradient(135deg, #1976D2 0%, #1E88E5 100%)'
-            : 'linear-gradient(135deg, #1976D2 0%, #1E88E5 100%)',
+            ? 'linear-gradient(45deg, #2196F3 30%, #21CBF3 90%)'
+            : 'linear-gradient(45deg, #2196F3 30%, #21CBF3 90%)',
           color: '#fff',
           border: 'none',
           textTransform: 'none',
@@ -57,8 +57,8 @@ const SeeAll = ({ foundOrlostId, totalItems, variant = "desktop" }) => {
           width: '100%', // Full width for mobile
           maxWidth: '200px', // Limit maximum width
           boxShadow: totalItems > 4
-            ? '0 4px 15px rgba(25, 118, 210, 0.3)'
-            : '0 4px 15px rgba(25, 118, 210, 0.3)',
+            ? '0 4px 15px rgba(33, 150, 243, 0.3)'
+            : '0 4px 15px rgba(33, 150, 243, 0.3)',
           transition: 'all 0.3s cubic-bezier(0.4, 0, 0.2, 1)',
           position: 'relative',
           overflow: 'hidden',
@@ -76,8 +76,8 @@ const SeeAll = ({ foundOrlostId, totalItems, variant = "desktop" }) => {
           '&:hover': {
             transform: 'translateY(-2px)',
             boxShadow: totalItems > 4
-              ? '0 8px 25px rgba(25, 118, 210, 0.4)'
-              : '0 8px 25px rgba(25, 118, 210, 0.4)',
+              ? '0 8px 25px rgba(33, 150, 243, 0.4)'
+              : '0 8px 25px rgba(33, 150, 243, 0.4)',
             '&::before': {
               opacity: 1,
             }
@@ -85,8 +85,8 @@ const SeeAll = ({ foundOrlostId, totalItems, variant = "desktop" }) => {
           '&:active': {
             transform: 'translateY(0px)',
             boxShadow: totalItems > 4
-              ? '0 2px 10px rgba(25, 118, 210, 0.3)'
-              : '0 2px 10px rgba(25, 118, 210, 0.3)',
+              ? '0 2px 10px rgba(33, 150, 243, 0.3)'
+              : '0 2px 10px rgba(33, 150, 243, 0.3)',
           },
           '& .MuiButton-endIcon': {
             marginLeft: currentLanguage === 'ar' ? 0 : '6px',
@@ -119,8 +119,8 @@ const SeeAll = ({ foundOrlostId, totalItems, variant = "desktop" }) => {
       }
         sx={{
           background: totalItems > 4 
-            ? 'linear-gradient(135deg, #1976D2 0%, #1E88E5 100%)'
-            : 'linear-gradient(135deg, #1976D2 0%, #1E88E5 100%)',
+            ? 'linear-gradient(45deg, #2196F3 30%, #21CBF3 90%)'
+            : 'linear-gradient(45deg, #2196F3 30%, #21CBF3 90%)',
           color: '#fff',
           border: 'none',
           textTransform: 'none',
@@ -130,8 +130,8 @@ const SeeAll = ({ foundOrlostId, totalItems, variant = "desktop" }) => {
           borderRadius: '10px',
           minWidth: 'auto',
           boxShadow: totalItems > 4
-            ? '0 6px 20px rgba(25, 118, 210, 0.3)'
-            : '0 6px 20px rgba(25, 118, 210, 0.3)',
+            ? '0 6px 20px rgba(33, 150, 243, 0.3)'
+            : '0 6px 20px rgba(33, 150, 243, 0.3)',
           transition: 'all 0.3s cubic-bezier(0.4, 0, 0.2, 1)',
           position: 'relative',
           overflow: 'hidden',
@@ -149,8 +149,8 @@ const SeeAll = ({ foundOrlostId, totalItems, variant = "desktop" }) => {
           '&:hover': {
             transform: 'translateY(-3px)',
             boxShadow: totalItems > 4
-              ? '0 12px 30px rgba(25, 118, 210, 0.4)'
-              : '0 12px 30px rgba(25, 118, 210, 0.4)',
+              ? '0 12px 30px rgba(33, 150, 243, 0.4)'
+              : '0 12px 30px rgba(33, 150, 243, 0.4)',
             '&::before': {
               opacity: 1,
             }
@@ -158,8 +158,8 @@ const SeeAll = ({ foundOrlostId, totalItems, variant = "desktop" }) => {
           '&:active': {
             transform: 'translateY(-1px)',
             boxShadow: totalItems > 4
-              ? '0 4px 15px rgba(25, 118, 210, 0.3)'
-              : '0 4px 15px rgba(25, 118, 210, 0.3)',
+              ? '0 4px 15px rgba(33, 150, 243, 0.3)'
+              : '0 4px 15px rgba(33, 150, 243, 0.3)',
           },
           '& .MuiButton-endIcon': {
             marginLeft: currentLanguage === 'ar' ? 0 : '8px',
