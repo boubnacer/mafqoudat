@@ -60,6 +60,8 @@ const StyledToolbar = styled(Toolbar)(({ theme }) => ({
     ? '0 4px 20px rgba(0, 0, 0, 0.3)'
     : '0 4px 20px rgba(0, 0, 0, 0.08)',
   transition: 'all 0.3s cubic-bezier(0.4, 0, 0.2, 1)',
+  // Force LTR layout for toolbar
+  direction: 'ltr !important',
   [theme.breakpoints.down('sm')]: {
     padding: "1rem 1.5rem",
     minHeight: "72px",
@@ -477,7 +479,11 @@ const Navbar = () => {
         left: 0,
         right: 0,
         zIndex: (theme) => theme.zIndex.drawer + 1,
-        // Remove direction from AppBar to prevent layout reversal
+        // Force LTR layout for navbar regardless of language
+        direction: 'ltr !important',
+        '& *': {
+          direction: 'ltr !important',
+        }
       }}
     >
       <StyledToolbar>
@@ -485,7 +491,8 @@ const Navbar = () => {
         <Box sx={{ 
           display: 'flex', 
           alignItems: 'center',
-          gap: { xs: '0.75rem', sm: '1rem' }
+          gap: { xs: '0.75rem', sm: '1rem' },
+          direction: 'ltr !important'
         }}>
           <LogoButton 
             onClick={onGoHomeClicked}
@@ -509,7 +516,8 @@ const Navbar = () => {
             justifyContent: 'center',
             flex: 1,
             mx: 2,
-            gap: 1
+            gap: 1,
+            direction: 'ltr !important'
           }}>
             {/* Navigation Dropdown */}
             <NavigationButton
@@ -533,7 +541,10 @@ const Navbar = () => {
         )}
 
         {/* Right section: Actions */}
-        <FlexBetween sx={{ gap: { xs: '6px', sm: '8px' } }}>
+        <FlexBetween sx={{ 
+          gap: { xs: '6px', sm: '8px' },
+          direction: 'ltr !important'
+        }}>
           {/* Country selector */}
           <CountrySelector 
             onClick={() => dispatch(setOpenModal())}
@@ -558,7 +569,7 @@ const Navbar = () => {
                       fontWeight: 500,
                       fontSize: { xs: '0.85rem', sm: '0.9rem' },
                       display: 'block',
-                      direction: currentLanguage === 'ar' ? 'rtl' : 'ltr',
+                      // Only apply RTL to text content, not layout
                       textAlign: currentLanguage === 'ar' ? 'right' : 'left'
                     }}
                   >
@@ -611,7 +622,7 @@ const Navbar = () => {
                 fontWeight: 500,
                 fontSize: { xs: '0.8rem', sm: '0.9rem' },
                 display: 'block',
-                direction: currentLanguage === 'ar' ? 'rtl' : 'ltr',
+                // Only apply RTL to text content, not layout
                 textAlign: currentLanguage === 'ar' ? 'right' : 'left'
               }}
             >
@@ -708,13 +719,11 @@ const Navbar = () => {
                 primaryTypographyProps={{
                   fontWeight: 600,
                   fontSize: '0.95rem',
-                  direction: currentLanguage === 'ar' ? 'rtl' : 'ltr',
                   textAlign: currentLanguage === 'ar' ? 'right' : 'left'
                 }}
                 secondaryTypographyProps={{
                   fontSize: '0.8rem',
                   color: 'text.secondary',
-                  direction: currentLanguage === 'ar' ? 'rtl' : 'ltr',
                   textAlign: currentLanguage === 'ar' ? 'right' : 'left'
                 }}
               />
@@ -759,7 +768,6 @@ const Navbar = () => {
             <ListItemText 
               primary="English" 
               primaryTypographyProps={{
-                direction: currentLanguage === 'ar' ? 'rtl' : 'ltr',
                 textAlign: currentLanguage === 'ar' ? 'right' : 'left'
               }}
             />
@@ -779,7 +787,6 @@ const Navbar = () => {
             <ListItemText 
               primary="العربية" 
               primaryTypographyProps={{
-                direction: currentLanguage === 'ar' ? 'rtl' : 'ltr',
                 textAlign: currentLanguage === 'ar' ? 'right' : 'left'
               }}
             />
@@ -799,7 +806,6 @@ const Navbar = () => {
             <ListItemText 
               primary="Français" 
               primaryTypographyProps={{
-                direction: currentLanguage === 'ar' ? 'rtl' : 'ltr',
                 textAlign: currentLanguage === 'ar' ? 'right' : 'left'
               }}
             />
@@ -856,13 +862,11 @@ const Navbar = () => {
                   primaryTypographyProps={{
                     fontWeight: 600,
                     fontSize: '1rem',
-                    direction: currentLanguage === 'ar' ? 'rtl' : 'ltr',
                     textAlign: currentLanguage === 'ar' ? 'right' : 'left'
                   }}
                   secondaryTypographyProps={{
                     fontSize: '0.85rem',
                     color: 'text.secondary',
-                    direction: currentLanguage === 'ar' ? 'rtl' : 'ltr',
                     textAlign: currentLanguage === 'ar' ? 'right' : 'left'
                   }}
                 />
@@ -898,7 +902,6 @@ const Navbar = () => {
                 primaryTypographyProps={{
                   fontWeight: 600,
                   fontSize: '1rem',
-                  direction: currentLanguage === 'ar' ? 'rtl' : 'ltr',
                   textAlign: currentLanguage === 'ar' ? 'right' : 'left'
                 }}
               />
@@ -928,7 +931,6 @@ const Navbar = () => {
                   primaryTypographyProps={{
                     fontWeight: 600,
                     fontSize: '1rem',
-                    direction: currentLanguage === 'ar' ? 'rtl' : 'ltr',
                     textAlign: currentLanguage === 'ar' ? 'right' : 'left'
                   }}
                 />
@@ -957,7 +959,6 @@ const Navbar = () => {
                     primaryTypographyProps={{
                       fontWeight: 600,
                       fontSize: '1rem',
-                      direction: currentLanguage === 'ar' ? 'rtl' : 'ltr',
                       textAlign: currentLanguage === 'ar' ? 'right' : 'left'
                     }}
                   />
@@ -983,7 +984,6 @@ const Navbar = () => {
                     primaryTypographyProps={{
                       fontWeight: 600,
                       fontSize: '1rem',
-                      direction: currentLanguage === 'ar' ? 'rtl' : 'ltr',
                       textAlign: currentLanguage === 'ar' ? 'right' : 'left'
                     }}
                   />
