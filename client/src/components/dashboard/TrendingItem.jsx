@@ -218,7 +218,7 @@ const TrendingItem = ({ trend, isLoading }) => {
         sx={{
           background: theme.palette.mode === 'dark'
             ? 'linear-gradient(135deg, rgba(18,18,18,0.95) 0%, rgba(28,28,28,0.95) 100%)'
-            : 'linear-gradient(135deg, rgba(255,255,255,0.95) 0%, rgba(248,249,250,0.95) 100%)',
+            : 'linear-gradient(135deg, rgba(255,255,255,0.95) 0%, rgba(255,255,255,0.95) 100%)',
           backdropFilter: 'blur(10px)',
           borderRadius: '20px',
           border: `3px solid ${theme.palette.mode === 'dark' ? 'rgba(255,152,0,0.4)' : 'rgba(255,152,0,0.5)'}`,
