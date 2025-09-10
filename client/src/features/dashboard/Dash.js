@@ -291,14 +291,14 @@ const Dash = () => {
                     flexDirection: currentLanguage === 'ar' ? 'row-reverse' : 'row'
                   }}>
                     <WhatshotOutlined sx={{ 
-                      color: theme.palette.mode === 'dark' ? '#FFA500' : '#1976D2', 
+                      color: theme.palette.mode === 'dark' ? '#FFA500' : '#2c3e50', 
                       fontSize: '24px',
                       order: currentLanguage === 'ar' ? 2 : 1
                     }} />
                     <Typography
                       variant="h6"
                       sx={{
-                        color: theme.palette.mode === 'dark' ? '#fff' : '#1976D2',
+                        color: theme.palette.mode === 'dark' ? '#fff' : '#2c3e50',
                         fontWeight: 700,
                         fontSize: '20px',
                         textAlign: 'center',
@@ -349,13 +349,13 @@ const Dash = () => {
                       gap: 1
                     }}>
                       <WhatshotOutlined sx={{ 
-                        color: theme.palette.mode === 'dark' ? '#FFA500' : '#1976D2', 
+                        color: theme.palette.mode === 'dark' ? '#FFA500' : '#2c3e50', 
                         fontSize: '28px'
                       }} />
                       <Typography
                         variant="h5"
                         sx={{
-                          color: theme.palette.mode === 'dark' ? '#fff' : '#1976D2',
+                          color: theme.palette.mode === 'dark' ? '#fff' : '#2c3e50',
                           fontWeight: 700,
                           fontSize: { sm: '22px', md: '24px' }
                         }}
@@ -477,14 +477,14 @@ const Dash = () => {
                       flexDirection: currentLanguage === 'ar' ? 'row-reverse' : 'row'
                     }}>
                       <Search sx={{ 
-                        color: theme.palette.mode === 'dark' ? '#fff' : '#E65100', 
+                        color: theme.palette.mode === 'dark' ? '#fff' : '#2c3e50', 
                         fontSize: '24px',
                         order: currentLanguage === 'ar' ? 2 : 1
                       }} />
                       <Typography
                         variant="h6"
                         sx={{
-                          color: theme.palette.mode === 'dark' ? '#fff' : '#E65100',
+                          color: theme.palette.mode === 'dark' ? '#fff' : '#2c3e50',
                           fontWeight: 700,
                           fontSize: '20px',
                           textAlign: 'center',
@@ -534,13 +534,13 @@ const Dash = () => {
                         gap: 1
                       }}>
                         <Search sx={{ 
-                          color: theme.palette.mode === 'dark' ? '#fff' : '#E65100', 
+                          color: theme.palette.mode === 'dark' ? '#fff' : '#2c3e50', 
                           fontSize: '28px'
                         }} />
                         <Typography
                           variant="h5"
                           sx={{
-                            color: theme.palette.mode === 'dark' ? '#fff' : '#E65100',
+                            color: theme.palette.mode === 'dark' ? '#fff' : '#2c3e50',
                             fontWeight: 700,
                             fontSize: { sm: '22px', md: '24px' }
                           }}
