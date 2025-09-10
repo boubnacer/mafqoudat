@@ -225,7 +225,8 @@ const RecentPosts = ({ _id, categoryname, exactLocation, image, createdAt, count
     <>
       <Card
         sx={{
-          backgroundColor: isDarkMode ? '#1a1a1a' : '#ffffff !important',
+          backgroundColor: isDarkMode ? '#1a1a1a' : '#ffffff',
+          background: isDarkMode ? '#1a1a1a' : '#ffffff',
           position: 'relative',
           boxShadow: isDarkMode
             ? '0 4px 20px rgba(0,0,0,0.3)'
@@ -246,7 +247,17 @@ const RecentPosts = ({ _id, categoryname, exactLocation, image, createdAt, count
               ? '0 8px 32px rgba(0, 0, 0, 0.4)'
               : '0 8px 32px rgba(0, 0, 0, 0.15)',
           },
-          direction: currentLanguage === 'ar' ? 'rtl' : 'ltr'
+          direction: currentLanguage === 'ar' ? 'rtl' : 'ltr',
+          // Force white background in light mode with higher specificity
+          '&.MuiCard-root': {
+            backgroundColor: isDarkMode ? '#1a1a1a !important' : '#ffffff !important',
+            background: isDarkMode ? '#1a1a1a !important' : '#ffffff !important',
+          },
+          // Additional override for any inherited styles
+          '&': {
+            backgroundColor: isDarkMode ? '#1a1a1a !important' : '#ffffff !important',
+            background: isDarkMode ? '#1a1a1a !important' : '#ffffff !important',
+          }
         }}
       >
         {/* Image Section with Overlays */}
