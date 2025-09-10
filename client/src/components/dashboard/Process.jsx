@@ -64,8 +64,8 @@ const Process = () => {
           variant="h2" 
           fontWeight="600" 
           fontSize={{ xs: "24px", md: "32px" }}
-          color={theme.palette.textColor.main}
           sx={{
+            color: theme.palette.mode === 'dark' ? '#ffffff' : '#2c3e50',
             transition: "color 0.3s ease"
           }}
         >
@@ -76,8 +76,8 @@ const Process = () => {
           fontWeight="800" 
           fontSize={{ xs: "20px", md: "24px" }} 
           mt="1rem"
-          color={theme.palette.textColor.main}
           sx={{
+            color: theme.palette.mode === 'dark' ? '#ffffff' : '#2c3e50',
             transition: "color 0.3s ease"
           }}
         >

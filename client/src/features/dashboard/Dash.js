@@ -638,9 +638,7 @@ const Dash = () => {
                 fontWeight="700"
                 sx={{
                   fontSize: { xs: "20px", sm: "24px", md: "26px" },
-                  background: "linear-gradient(45deg, #2196F3 30%, #21CBF3 90%)",
-                  WebkitBackgroundClip: "text",
-                  WebkitTextFillColor: "transparent",
+                  color: theme.palette.mode === 'dark' ? '#ffffff' : '#2c3e50',
                   textAlign: 'center',
                   mb: 2
                 }}

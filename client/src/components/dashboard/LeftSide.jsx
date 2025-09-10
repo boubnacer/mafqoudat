@@ -47,10 +47,7 @@ const LeftSide = ({
           fontWeight="700"
           sx={{
             fontSize: { xs: "1.5rem", sm: "1.75rem", md: "2rem" },
-            background: "linear-gradient(45deg, #2196F3 30%, #21CBF3 90%)",
-            WebkitBackgroundClip: "text",
-            WebkitTextFillColor: "transparent",
-            backgroundClip: "text",
+            color: theme.palette.mode === 'dark' ? '#ffffff' : '#2c3e50',
             mb: 1
           }}
         >
