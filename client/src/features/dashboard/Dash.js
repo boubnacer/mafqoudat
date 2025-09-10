@@ -247,8 +247,8 @@ const Dash = () => {
                   mx: { xs: 1, sm: 2 },
                   maxWidth: '100%',
                   border: theme.palette.mode === 'dark' 
-                    ? '1px solid rgba(255,255,255,0.05)'
-                    : '1px solid rgba(0,0,0,0.05)',
+                    ? '1px solid rgba(255,255,255,0.1)'
+                    : '1px solid rgba(0,0,0,0.1)',
                   direction: currentLanguage === 'ar' ? 'rtl' : 'ltr'
                 }}
               >
@@ -385,8 +385,8 @@ const Dash = () => {
                   backgroundColor: theme.palette.mode === 'dark' ? '#2d2d2d' : '#fff',
                   minHeight: '200px',
                   borderTop: theme.palette.mode === 'dark' 
-                    ? '1px solid rgba(255,255,255,0.05)'
-                    : '1px solid rgba(0,0,0,0.05)',
+                    ? '1px solid rgba(255,255,255,0.1)'
+                    : '1px solid rgba(0,0,0,0.1)',
                 }}
               >
                 <Recent 
