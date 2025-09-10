@@ -257,7 +257,7 @@ const Dash = () => {
                   sx={{
                     background: theme.palette.mode === 'dark'
                       ? 'linear-gradient(135deg, #1a1a1a 0%, #2d2d2d 100%)'
-                      : '#f5f5f5',
+                      : '#ffffff',
                     p: { xs: 2, sm: 3 },
                     position: 'relative',
                     overflow: 'hidden',
@@ -443,7 +443,7 @@ const Dash = () => {
                   sx={{
                     background: theme.palette.mode === 'dark'
                       ? 'linear-gradient(135deg, #1a1a1a 0%, #2d2d2d 100%)'
-                      : '#f5f5f5',
+                      : '#ffffff',
                     p: { xs: 2, sm: 3 },
                     position: 'relative',
                     overflow: 'hidden',
