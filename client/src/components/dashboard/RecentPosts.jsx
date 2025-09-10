@@ -369,25 +369,13 @@ const RecentPosts = ({ _id, categoryname, exactLocation, image, createdAt, count
           }}
         >
           {/* Location Info - Only City */}
-          <Box 
-            sx={{ 
-              display: 'flex', 
-              alignItems: 'center', 
-              gap: 1.5,
-              backgroundColor: '#ffffff',
-              padding: { xs: '12px', sm: '10px' },
-              borderRadius: '12px',
-              border: `1px solid ${alpha('#000', 0.06)}`,
-              backdropFilter: 'blur(8px)',
-            }}
-          >
+          <Box sx={{ display: 'flex', alignItems: 'center', gap: 1.5 }}>
             <Avatar
               sx={{
                 width: { xs: 32, sm: 28 },
                 height: { xs: 32, sm: 28 },
-                backgroundColor: alpha('#e2e8f0', 0.9),
-                color: alpha('#2d3748', 0.8),
-                border: `1px solid ${alpha('#000', 0.05)}`,
+                backgroundColor: alpha(theme.palette.text.secondary, 0.1),
+                color: theme.palette.text.secondary,
               }}
             >
               <LocationIcon sx={{ fontSize: { xs: '18px', sm: '16px' } }} />
@@ -395,7 +383,7 @@ const RecentPosts = ({ _id, categoryname, exactLocation, image, createdAt, count
             <Box>
               <Typography
                 sx={{
-                  color: alpha('#2d3748', 0.9),
+                  color: isDarkMode ? alpha('#fff', 0.9) : alpha('#000', 0.8),
                   fontSize: { xs: '16px', sm: '16px' },
                   fontWeight: 700,
                   lineHeight: 1.2,
