@@ -477,7 +477,7 @@ const Navbar = () => {
         left: 0,
         right: 0,
         zIndex: (theme) => theme.zIndex.drawer + 1,
-        direction: currentLanguage === 'ar' ? 'rtl' : 'ltr',
+        // Remove direction from AppBar to prevent layout reversal
       }}
     >
       <StyledToolbar>
@@ -557,7 +557,9 @@ const Navbar = () => {
                     sx={{
                       fontWeight: 500,
                       fontSize: { xs: '0.85rem', sm: '0.9rem' },
-                      display: 'block'
+                      display: 'block',
+                      direction: currentLanguage === 'ar' ? 'rtl' : 'ltr',
+                      textAlign: currentLanguage === 'ar' ? 'right' : 'left'
                     }}
                   >
                     {currentCountryDataToUse.names?.[currentLanguage] || currentCountryDataToUse.names?.en || currentCountryDataToUse.code}
@@ -608,7 +610,9 @@ const Navbar = () => {
               sx={{
                 fontWeight: 500,
                 fontSize: { xs: '0.8rem', sm: '0.9rem' },
-                display: 'block'
+                display: 'block',
+                direction: currentLanguage === 'ar' ? 'rtl' : 'ltr',
+                textAlign: currentLanguage === 'ar' ? 'right' : 'left'
               }}
             >
               {getLanguageDisplayName(currentLanguage)}
@@ -703,11 +707,15 @@ const Navbar = () => {
                 secondary={item.description}
                 primaryTypographyProps={{
                   fontWeight: 600,
-                  fontSize: '0.95rem'
+                  fontSize: '0.95rem',
+                  direction: currentLanguage === 'ar' ? 'rtl' : 'ltr',
+                  textAlign: currentLanguage === 'ar' ? 'right' : 'left'
                 }}
                 secondaryTypographyProps={{
                   fontSize: '0.8rem',
-                  color: 'text.secondary'
+                  color: 'text.secondary',
+                  direction: currentLanguage === 'ar' ? 'rtl' : 'ltr',
+                  textAlign: currentLanguage === 'ar' ? 'right' : 'left'
                 }}
               />
             </MenuItem>
@@ -748,7 +756,13 @@ const Navbar = () => {
             <ListItemIcon>
               <Language sx={{ fontSize: 20 }} />
             </ListItemIcon>
-            <ListItemText primary="English" />
+            <ListItemText 
+              primary="English" 
+              primaryTypographyProps={{
+                direction: currentLanguage === 'ar' ? 'rtl' : 'ltr',
+                textAlign: currentLanguage === 'ar' ? 'right' : 'left'
+              }}
+            />
           </MenuItem>
           <MenuItem 
             onClick={() => handleLanguageChange('ar')}
@@ -762,7 +776,13 @@ const Navbar = () => {
             <ListItemIcon>
               <Language sx={{ fontSize: 20 }} />
             </ListItemIcon>
-            <ListItemText primary="العربية" />
+            <ListItemText 
+              primary="العربية" 
+              primaryTypographyProps={{
+                direction: currentLanguage === 'ar' ? 'rtl' : 'ltr',
+                textAlign: currentLanguage === 'ar' ? 'right' : 'left'
+              }}
+            />
           </MenuItem>
           <MenuItem 
             onClick={() => handleLanguageChange('fr')}
@@ -776,7 +796,13 @@ const Navbar = () => {
             <ListItemIcon>
               <Language sx={{ fontSize: 20 }} />
             </ListItemIcon>
-            <ListItemText primary="Français" />
+            <ListItemText 
+              primary="Français" 
+              primaryTypographyProps={{
+                direction: currentLanguage === 'ar' ? 'rtl' : 'ltr',
+                textAlign: currentLanguage === 'ar' ? 'right' : 'left'
+              }}
+            />
           </MenuItem>
         </Menu>
 
@@ -829,11 +855,15 @@ const Navbar = () => {
                   secondary={item.description}
                   primaryTypographyProps={{
                     fontWeight: 600,
-                    fontSize: '1rem'
+                    fontSize: '1rem',
+                    direction: currentLanguage === 'ar' ? 'rtl' : 'ltr',
+                    textAlign: currentLanguage === 'ar' ? 'right' : 'left'
                   }}
                   secondaryTypographyProps={{
                     fontSize: '0.85rem',
-                    color: 'text.secondary'
+                    color: 'text.secondary',
+                    direction: currentLanguage === 'ar' ? 'rtl' : 'ltr',
+                    textAlign: currentLanguage === 'ar' ? 'right' : 'left'
                   }}
                 />
               </MenuItem>
@@ -867,7 +897,9 @@ const Navbar = () => {
                 primary={mode === 'light' ? t('darkMode') : t('lightMode')}
                 primaryTypographyProps={{
                   fontWeight: 600,
-                  fontSize: '1rem'
+                  fontSize: '1rem',
+                  direction: currentLanguage === 'ar' ? 'rtl' : 'ltr',
+                  textAlign: currentLanguage === 'ar' ? 'right' : 'left'
                 }}
               />
             </MenuItem>
@@ -895,7 +927,9 @@ const Navbar = () => {
                   sx={{ color: 'error.main' }}
                   primaryTypographyProps={{
                     fontWeight: 600,
-                    fontSize: '1rem'
+                    fontSize: '1rem',
+                    direction: currentLanguage === 'ar' ? 'rtl' : 'ltr',
+                    textAlign: currentLanguage === 'ar' ? 'right' : 'left'
                   }}
                 />
               </MenuItem>
@@ -922,7 +956,9 @@ const Navbar = () => {
                     primary={t('signin')}
                     primaryTypographyProps={{
                       fontWeight: 600,
-                      fontSize: '1rem'
+                      fontSize: '1rem',
+                      direction: currentLanguage === 'ar' ? 'rtl' : 'ltr',
+                      textAlign: currentLanguage === 'ar' ? 'right' : 'left'
                     }}
                   />
                 </MenuItem>
@@ -946,7 +982,9 @@ const Navbar = () => {
                     primary={t('signup')}
                     primaryTypographyProps={{
                       fontWeight: 600,
-                      fontSize: '1rem'
+                      fontSize: '1rem',
+                      direction: currentLanguage === 'ar' ? 'rtl' : 'ltr',
+                      textAlign: currentLanguage === 'ar' ? 'right' : 'left'
                     }}
                   />
                 </MenuItem>
