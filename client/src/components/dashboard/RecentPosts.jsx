@@ -403,7 +403,7 @@ const RecentPosts = ({ _id, categoryname, exactLocation, image, createdAt, count
             p: { xs: 2, sm: 2 },
             borderTop: '1px solid',
             borderColor: isDarkMode ? alpha('#fff', 0.06) : alpha('#000', 0.04),
-            backgroundColor: isDarkMode ? alpha('#000', 0.2) : alpha('#f8f9fa', 0.5),
+            backgroundColor: isDarkMode ? alpha('#000', 0.2) : alpha('#ffffff', 0.8),
             gap: 3,
             mt: 'auto',
             flexShrink: 0,
