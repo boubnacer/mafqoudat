@@ -380,12 +380,12 @@ const RecentPosts = ({ _id, categoryname, exactLocation, image, createdAt, count
             display: 'flex',
             flexDirection: 'column',
             gap: 1.5,
-            backgroundColor: isDarkMode ? '#1a1a1a' : '#F8F9FA',
-            background: isDarkMode ? '#1a1a1a' : '#F8F9FA',
+            backgroundColor: isDarkMode ? '#2d2d2d' : '#F8F9FA',
+            background: isDarkMode ? '#2d2d2d' : '#F8F9FA',
             // Force override any Material-UI defaults
             '&.MuiCardContent-root': {
-              backgroundColor: isDarkMode ? '#1a1a1a' : '#F8F9FA',
-              background: isDarkMode ? '#1a1a1a' : '#F8F9FA',
+              backgroundColor: isDarkMode ? '#2d2d2d' : '#F8F9FA',
+              background: isDarkMode ? '#2d2d2d' : '#F8F9FA',
             }
           }}
         >
@@ -395,7 +395,7 @@ const RecentPosts = ({ _id, categoryname, exactLocation, image, createdAt, count
               display: 'flex', 
               alignItems: 'center', 
               gap: 1.5,
-              backgroundColor: isDarkMode ? '#2a2a2a' : '#F8F9FA',
+              backgroundColor: isDarkMode ? '#3a3a3a' : '#F8F9FA',
             }}
           >
             <Avatar
