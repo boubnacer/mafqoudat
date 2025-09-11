@@ -107,29 +107,20 @@ const LogoButton = styled(Button)(({ theme }) => ({
   },
   '& img': {
     height: 'auto',
-    maxHeight: theme.palette.mode === 'dark' ? '40px' : '24px',
+    maxHeight: '24px', // Consistent size in both modes
     width: 'auto',
     objectFit: 'contain',
     transition: 'all 0.3s ease',
     position: 'relative',
     zIndex: 2,
-    // Clean styling - no background in light mode, white background in dark mode
-    ...(theme.palette.mode === 'dark' && {
-      backgroundColor: 'rgba(255, 255, 255, 0.95)',
-      borderRadius: '8px',
-      padding: '8px',
-      boxShadow: '0 2px 8px rgba(0, 0, 0, 0.1)',
-    }),
+    // Clean styling - no background in both modes
   },
   [theme.breakpoints.down('sm')]: {
     padding: '4px 6px',
     marginLeft: theme.direction === 'rtl' ? '0' : '-6px',
     marginRight: theme.direction === 'rtl' ? '-6px' : '0',
     '& img': {
-      maxHeight: theme.palette.mode === 'dark' ? '36px' : '18px',
-      ...(theme.palette.mode === 'dark' && {
-        padding: '8px',
-      }),
+      maxHeight: '18px', // Consistent size in both modes
     }
   }
 }));
