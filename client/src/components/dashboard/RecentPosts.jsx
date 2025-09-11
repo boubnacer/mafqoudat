@@ -233,9 +233,7 @@ const RecentPosts = ({ _id, categoryname, exactLocation, image, createdAt, count
           backgroundColor: isDarkMode ? '#1a1a1a' : '#ffffff',
           background: isDarkMode ? '#1a1a1a' : '#ffffff',
           position: 'relative',
-          boxShadow: isDarkMode
-            ? '0 4px 20px rgba(0,0,0,0.3)'
-            : '0 4px 20px rgba(0,0,0,0.1)',
+          boxShadow: 'none',
           border: `1px solid ${isDarkMode ? alpha('#fff', 0.08) : alpha('#000', 0.06)}`,
           height: { xs: 'auto', sm: '380px' },
           minHeight: { xs: '360px', sm: '380px' },
@@ -246,13 +244,9 @@ const RecentPosts = ({ _id, categoryname, exactLocation, image, createdAt, count
           transition: 'all 0.3s cubic-bezier(0.4, 0, 0.2, 1)',
           borderRadius: '20px',
           overflow: 'hidden',
-          // Add padding to see the background
-          padding: '20px',
           '&:hover': {
             transform: { xs: 'none', sm: 'translateY(-4px)' },
-            boxShadow: isDarkMode
-              ? '0 8px 32px rgba(0, 0, 0, 0.4)'
-              : '0 8px 32px rgba(0, 0, 0, 0.15)',
+            boxShadow: 'none',
             backgroundColor: isDarkMode ? '#1a1a1a !important' : '#ffffff !important',
             background: isDarkMode ? '#1a1a1a !important' : '#ffffff !important',
           },
