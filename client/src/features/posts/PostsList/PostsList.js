@@ -344,7 +344,7 @@ const PostsList = () => {
   if (!currentCountry) {
     content = (
       <Box 
-        pt={{ xs: "8rem", md: "10rem" }} 
+        pt={{ xs: "6rem", md: "7rem" }} 
         width="100%"
         display="flex"
         justifyContent="center"
@@ -408,7 +408,7 @@ const PostsList = () => {
     return (
       <Box sx={{ 
         p: { xs: 2, md: 4 },
-        pt: { xs: "8rem", md: "10rem" },
+        pt: { xs: "6rem", md: "7rem" },
         minHeight: "100vh"
       }}>
         {/* Header Section */}
@@ -461,8 +461,8 @@ const PostsList = () => {
             }}
           >
             <Grid container spacing={3} alignItems="center">
-              {/* Search */}
-              <Grid item xs={12} md={4}>
+              {/* Search - Hidden for now */}
+              {/* <Grid item xs={12} md={4}>
                 <TextField
                   fullWidth
                   placeholder={t('searchPostsPlaceholder')}
@@ -481,10 +481,10 @@ const PostsList = () => {
                     } 
                   }}
                 />
-              </Grid>
+              </Grid> */}
 
               {/* Sort */}
-              <Grid item xs={12} sm={6} md={2}>
+              <Grid item xs={12} sm={6} md={3}>
                 <FormControl fullWidth>
                   <InputLabel>{t('sortBy')}</InputLabel>
                   <Select
@@ -502,7 +502,7 @@ const PostsList = () => {
               </Grid>
 
               {/* Category Filter */}
-              <Grid item xs={12} sm={6} md={2}>
+              <Grid item xs={12} sm={6} md={3}>
                 <FormControl fullWidth>
                   <InputLabel>{t('category')}</InputLabel>
                   <Select
@@ -522,7 +522,7 @@ const PostsList = () => {
               </Grid>
 
               {/* View Mode Toggle */}
-              <Grid item xs={12} md={2}>
+              <Grid item xs={12} md={3}>
                 <Box display="flex" justifyContent="center" gap={1}>
                   <Tooltip title={t('gridView')}>
                     <IconButton
