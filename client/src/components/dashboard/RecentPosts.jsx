@@ -380,12 +380,12 @@ const RecentPosts = ({ _id, categoryname, exactLocation, image, createdAt, count
             display: 'flex',
             flexDirection: 'column',
             gap: 1.5,
-            backgroundColor: isDarkMode ? '#2d2d2d' : '#F8F9FA',
-            background: isDarkMode ? '#2d2d2d' : '#F8F9FA',
+            backgroundColor: isDarkMode ? '#3A3A3A' : '#F8F9FA',
+            background: isDarkMode ? '#3A3A3A' : '#F8F9FA',
             // Force override any Material-UI defaults
             '&.MuiCardContent-root': {
-              backgroundColor: isDarkMode ? '#2d2d2d' : '#F8F9FA',
-              background: isDarkMode ? '#2d2d2d' : '#F8F9FA',
+              backgroundColor: isDarkMode ? '#3A3A3A' : '#F8F9FA',
+              background: isDarkMode ? '#3A3A3A' : '#F8F9FA',
             }
           }}
         >
@@ -431,7 +431,7 @@ const RecentPosts = ({ _id, categoryname, exactLocation, image, createdAt, count
             p: { xs: 2, sm: 2 },
             borderTop: '1px solid',
             borderColor: isDarkMode ? alpha('#fff', 0.06) : alpha('#000', 0.04),
-            backgroundColor: isDarkMode ? '#2a2a2a' : '#f8f9fa',
+            backgroundColor: isDarkMode ? '#3A3A3A' : '#f8f9fa',
             gap: 3,
             mt: 'auto',
             flexShrink: 0,
