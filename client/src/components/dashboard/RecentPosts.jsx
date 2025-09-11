@@ -380,8 +380,13 @@ const RecentPosts = ({ _id, categoryname, exactLocation, image, createdAt, count
             display: 'flex',
             flexDirection: 'column',
             gap: 1.5,
-            backgroundColor: 'transparent',
-            background: 'transparent',
+            backgroundColor: isDarkMode ? '#1a1a1a' : '#ffffff',
+            background: isDarkMode ? '#1a1a1a' : '#ffffff',
+            // Force override any Material-UI defaults
+            '&.MuiCardContent-root': {
+              backgroundColor: isDarkMode ? '#1a1a1a' : '#ffffff',
+              background: isDarkMode ? '#1a1a1a' : '#ffffff',
+            }
           }}
         >
           {/* Location Info - Only City */}
