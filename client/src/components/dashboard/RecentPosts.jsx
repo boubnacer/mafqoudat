@@ -380,6 +380,8 @@ const RecentPosts = ({ _id, categoryname, exactLocation, image, createdAt, count
             display: 'flex',
             flexDirection: 'column',
             gap: 1.5,
+            backgroundColor: isDarkMode ? 'transparent' : '#ffffff',
+            background: isDarkMode ? 'transparent' : '#ffffff',
           }}
         >
           {/* Location Info - Only City */}
@@ -388,7 +390,7 @@ const RecentPosts = ({ _id, categoryname, exactLocation, image, createdAt, count
               display: 'flex', 
               alignItems: 'center', 
               gap: 1.5,
-              backgroundColor: isDarkMode ? '#2a2a2a' : '#f8f9fa',
+              backgroundColor: isDarkMode ? '#2a2a2a' : '#ffffff',
               padding: { xs: '12px', sm: '10px' },
               borderRadius: '12px',
               border: `1px solid ${isDarkMode ? alpha('#fff', 0.08) : alpha('#000', 0.06)}`,
