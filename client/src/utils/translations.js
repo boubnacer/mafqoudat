@@ -1607,9 +1607,9 @@ export const translations = {
     settings: "الإعدادات",
     all: "الكل",
     viewAllPosts: "عرض جميع المنشورات",
-    viewFoundItems: "عرض العناصر الموجودة",
+    viewFoundItems: "عرض العناصر التي عثر عليها",
     viewLostItems: "عرض العناصر المفقودة",
-    viewFOUNDItems: "عرض العناصر الموجودة",
+    viewFOUNDItems: "عرض العناصر التي عثر عليها",
     viewLOSTItems: "عرض العناصر المفقودة",
     goToDashboard: "الذهاب إلى لوحة التحكم",
     
@@ -1726,7 +1726,7 @@ export const translations = {
     searchingForItems: "البحث عن العناصر...",
     adjustFilters: "لا توجد منشورات تطابق تصفياتك الحالية. حاول تعديل معايير البحث أو كن أول من ينشئ منشور في هذه الفئة!",
     pleaseSelectCountry: "يرجى اختيار بلد للمتابعة",
-    chooseCountryMessage: "اختر بلدك لرؤية العناصر المفقودة والموجودة ذات الصلة في منطقتك",
+    chooseCountryMessage: "اختر بلدك لرؤية العناصر المفقودة والتي عثر عليها ذات الصلة في منطقتك",
     loadingDashboardData: "جاري تحميل بيانات لوحة التحكم...",
     loadingNavigation: "جاري تحميل التنقل...",
     loadingCategories: "جاري تحميل الفئات...",
@@ -1773,13 +1773,13 @@ export const translations = {
     contactInfoMessage: "يرجى تقديم بريدك الإلكتروني أو رقم هاتفك حتى نتمكن من التواصل معك",
     chooseCountry: "اختر البلد",
     chooseCountryTitle: "اختر بلدك",
-    chooseCountryDescription: "اختر بلدك لرؤية العناصر المفقودة والموجودة في منطقتك",
+    chooseCountryDescription: "اختر بلدك لرؤية العناصر المفقودة والتي عثر عليها في منطقتك",
     continueToPosts: "المتابعة إلى المنشورات",
     loadingCountries: "جاري تحميل البلدان...",
     errorLoadingCountries: "خطأ في تحميل البلدان. يرجى المحاولة مرة أخرى.",
     errorLoadingPosts: "خطأ في تحميل المنشورات. يرجى المحاولة مرة أخرى.",
     searchItems: "البحث عن العناصر",
-    searchItemsDesc: "ابحث عن العناصر المفقودة أو الموجودة في منطقتك",
+    searchItemsDesc: "ابحث عن العناصر المفقودة أو التي عثر عليها في منطقتك",
     localPosts: "المنشورات المحلية",
     localPostsDesc: "شاهد المنشورات من بلدك المختار",
     communityHelp: "المساعدة المجتمعية",
@@ -1839,7 +1839,7 @@ export const translations = {
     enterCityName: "أدخل اسم المدينة",
     cityNamePlaceholder: "اكتب اسم مدينتك",
     searchCities: "البحث في المدن",
-    searchCitiesPlaceholder: "البحث في المدن الموجودة...",
+    searchCitiesPlaceholder: "البحث في المدن المتاحة...",
     createNewCity: "إنشاء مدينة جديدة",
     cityCreatedSuccessfully: "تم إنشاء المدينة بنجاح!",
     cityAlreadyExists: "المدينة موجودة بالفعل",
@@ -1913,7 +1913,7 @@ export const translations = {
     
     // Dashboard Stats
     statistics: "الإحصائيات",
-    foundItems: "العناصر الموجودة",
+    foundItems: "العناصر التي عثر عليها",
     lostItems: "العناصر المفقودة",
     totalItems: "إجمالي العناصر",
     returnedItems: "العناصر المُرجعة",
@@ -1931,7 +1931,7 @@ export const translations = {
     getHelp: "الحصول على المساعدة",
     reportLostItemDesc: "لا تستطيع العثور على شيء؟ أبلغ عنه هنا",
     reportFoundItemDesc: "وجدت شيئاً؟ ساعد في إرجاعه",
-    searchItemsDesc: "ابحث عن العناصر المفقودة أو الموجودة",
+    searchItemsDesc: "ابحث عن العناصر المفقودة أو التي عثر عليها",
     getHelpDesc: "تحتاج مساعدة؟ نحن هنا لمساعدتك",
     
     // Help & Support
@@ -1986,7 +1986,7 @@ export const translations = {
     wellNotifyYouDesc: "احصل على تحديثات فورية عندما يتصل بك شخص ما",
     
     // Recent Sections
-    recentFounds: "العناصر الموجودة حديثاً",
+    recentFounds: "العناصر التي عثر عليها حديثاً",
     recentLosts: "العناصر المفقودة حديثاً",
     items: "عناصر",
     seeAll: "عرض الكل",
@@ -2001,7 +2001,7 @@ export const translations = {
     
     // Mafkoudat specific
     mafkoudat: "مفقودات",
-    lostAndFound: "الأشياء المفقودة والموجودة",
+    lostAndFound: "الأشياء المفقودة والتي عثر عليها",
     community: "المجتمع",
     help: "المساعدة",
     about: "حول",
@@ -2065,7 +2065,7 @@ export const translations = {
     allRightsReserved: "جميع الحقوق محفوظة",
     poweredBy: "مدعوم بواسطة",
     version: "الإصدار",
-    footerDescription: "مساعدة الناس في العثور على أشيائهم المفقودة وإعادة الأشياء الموجودة إلى أصحابها.",
+    footerDescription: "مساعدة الناس في العثور على أشيائهم المفقودة وإعادة الأشياء التي عثر عليها إلى أصحابها.",
     quickLinks: "روابط سريعة",
     emailUsForSupport: "راسلنا للحصول على الدعم",
     callUsForAssistance: "اتصل بنا للمساعدة",
