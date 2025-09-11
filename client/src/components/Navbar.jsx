@@ -488,10 +488,12 @@ const Navbar = () => {
                 left: '-100%',
                 width: '100%',
                 height: '100%',
-                background: 'linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.9), transparent)',
+                background: theme.palette.mode === 'dark' 
+                  ? 'linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.9), transparent)'
+                  : 'linear-gradient(90deg, transparent, rgba(0, 0, 0, 0.3), transparent)',
                 borderRadius: '8px',
                 zIndex: 1,
-                animation: logoAnimationTrigger ? 'lightSweep 2s ease-out forwards' : 'none',
+                animation: logoAnimationTrigger ? 'lightSweep 3s ease-in-out infinite' : 'none',
               }
             }}
           >
