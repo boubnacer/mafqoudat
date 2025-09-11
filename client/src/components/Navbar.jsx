@@ -477,13 +477,15 @@ const Navbar = () => {
                 position: 'absolute',
                 top: '50%',
                 left: '-20px',
-                width: '4px',
+                width: '8px',
                 height: '60%',
-                background: 'linear-gradient(45deg, transparent, rgba(255, 255, 255, 0.9), transparent)',
+                background: theme.palette.mode === 'dark' 
+                  ? 'linear-gradient(45deg, transparent, rgba(255, 255, 255, 0.9), transparent)'
+                  : 'linear-gradient(45deg, transparent, rgba(0, 0, 0, 0.4), transparent)',
                 transform: 'translateY(-50%) skew(-15deg)',
                 borderRadius: '2px',
                 zIndex: 1,
-                animation: logoAnimationTrigger ? 'italicLineSweep 3s ease-in-out infinite' : 'none',
+                animation: logoAnimationTrigger ? 'italicLineSweep 5s ease-in-out infinite' : 'none',
               }
             }}
           >
