@@ -50,20 +50,20 @@ import { useGetflOptionsQuery } from "../features/dependencies/dependenciesApiSl
 
 // Global keyframes for logo animation
 const globalStyles = `
-  @keyframes lightSweep {
+  @keyframes italicLineSweep {
     0% {
-      left: -100%;
+      left: -20px;
       opacity: 0;
     }
     10% {
       opacity: 1;
     }
     90% {
-      left: 100%;
+      left: calc(100% + 20px);
       opacity: 1;
     }
     100% {
-      left: 100%;
+      left: calc(100% + 20px);
       opacity: 0;
     }
   }
@@ -113,13 +113,15 @@ const LogoButton = styled(Button)(({ theme }) => ({
     transition: 'all 0.3s ease',
     position: 'relative',
     zIndex: 2,
-    // Add white background in dark mode for better contrast
-    ...(theme.palette.mode === 'dark' && {
-      backgroundColor: 'rgba(255, 255, 255, 0.95)',
-      borderRadius: '8px',
-      padding: '12px',
-      boxShadow: '0 2px 8px rgba(0, 0, 0, 0.2)',
-    }),
+    // Consistent styling for both modes
+    backgroundColor: theme.palette.mode === 'dark' 
+      ? 'rgba(255, 255, 255, 0.95)' 
+      : 'rgba(255, 255, 255, 0.95)',
+    borderRadius: '8px',
+    padding: theme.palette.mode === 'dark' ? '12px' : '8px',
+    boxShadow: theme.palette.mode === 'dark' 
+      ? '0 2px 8px rgba(0, 0, 0, 0.2)' 
+      : '0 2px 8px rgba(0, 0, 0, 0.1)',
   },
   [theme.breakpoints.down('sm')]: {
     padding: '4px 6px',
@@ -484,16 +486,15 @@ const Navbar = () => {
               '&::before': {
                 content: '""',
                 position: 'absolute',
-                top: 0,
-                left: '-100%',
-                width: '100%',
-                height: '100%',
-                background: theme.palette.mode === 'dark' 
-                  ? 'linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.9), transparent)'
-                  : 'linear-gradient(90deg, transparent, rgba(0, 0, 0, 0.3), transparent)',
-                borderRadius: '8px',
+                top: '50%',
+                left: '-20px',
+                width: '4px',
+                height: '60%',
+                background: 'linear-gradient(45deg, transparent, rgba(255, 255, 255, 0.9), transparent)',
+                transform: 'translateY(-50%) skew(-15deg)',
+                borderRadius: '2px',
                 zIndex: 1,
-                animation: logoAnimationTrigger ? 'lightSweep 3s ease-in-out infinite' : 'none',
+                animation: logoAnimationTrigger ? 'italicLineSweep 3s ease-in-out infinite' : 'none',
               }
             }}
           >
