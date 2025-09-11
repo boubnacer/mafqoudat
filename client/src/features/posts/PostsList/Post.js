@@ -529,17 +529,25 @@ const Post = ({ post, viewMode = "grid" }) => {
     );
   }
 
-  // Grid view layout - Brand New Modern Design
+  // Grid view layout - Matching RecentPosts Design
   return (
     <>
       <Card
+        className="recent-post-card"
+        style={{
+          backgroundColor: isDarkMode ? '#1a1a1a' : '#ffffff',
+          background: isDarkMode ? '#1a1a1a' : '#ffffff',
+        }}
         sx={{
-          backgroundColor: isDarkMode ? alpha('#1a1a1a', 0.9) : '#ffffff',
+          backgroundColor: isDarkMode ? '#1a1a1a' : '#ffffff',
+          background: isDarkMode ? '#1a1a1a' : '#ffffff',
           position: 'relative',
           boxShadow: 'none',
           border: `1px solid ${isDarkMode ? alpha('#fff', 0.08) : alpha('#000', 0.06)}`,
           height: { xs: 'auto', sm: '380px' },
-          minHeight: { xs: '320px', sm: '380px' },
+          minHeight: { xs: '360px', sm: '380px' },
+          width: { xs: '100%', sm: 'auto' },
+          maxWidth: { xs: '100%', sm: 'auto' },
           display: 'flex',
           flexDirection: 'column',
           transition: 'all 0.3s cubic-bezier(0.4, 0, 0.2, 1)',
@@ -547,15 +555,25 @@ const Post = ({ post, viewMode = "grid" }) => {
           overflow: 'hidden',
           '&:hover': {
             transform: { xs: 'none', sm: 'translateY(-4px)' },
-            boxShadow: isDarkMode
-              ? '0 20px 40px rgba(0, 0, 0, 0.3)'
-              : '0 20px 40px rgba(0, 0, 0, 0.08)',
+            boxShadow: 'none',
+            backgroundColor: isDarkMode ? '#1a1a1a !important' : '#ffffff !important',
+            background: isDarkMode ? '#1a1a1a !important' : '#ffffff !important',
           },
-          direction: currentLanguage === 'ar' ? 'rtl' : 'ltr'
+          direction: currentLanguage === 'ar' ? 'rtl' : 'ltr',
+          // Force white background in light mode with higher specificity
+          '&.MuiCard-root': {
+            backgroundColor: isDarkMode ? '#1a1a1a !important' : '#ffffff !important',
+            background: isDarkMode ? '#1a1a1a !important' : '#ffffff !important',
+          },
+          // Additional override for any inherited styles
+          '&': {
+            backgroundColor: isDarkMode ? '#1a1a1a !important' : '#ffffff !important',
+            background: isDarkMode ? '#1a1a1a !important' : '#ffffff !important',
+          }
         }}
       >
         {/* Image Section with Overlays */}
-        <Box sx={{ position: 'relative', height: { xs: '240px', sm: '220px' } }}>
+        <Box sx={{ position: 'relative', height: { xs: '260px', sm: '220px' } }}>
           <LazyCardMedia
             component="img"
             sx={{
@@ -563,6 +581,7 @@ const Post = ({ post, viewMode = "grid" }) => {
               width: '100%',
               objectFit: 'cover',
               objectPosition: 'center',
+              zIndex: 1, // Base layer for image
             }}
             image={imageUrl}
             alt={categoryName || 'Item Image'}
@@ -572,7 +591,7 @@ const Post = ({ post, viewMode = "grid" }) => {
           
 
 
-          {/* Top Badges Container - Grid View */}
+          {/* Top Badges Container */}
           <Box
             sx={{
               position: 'absolute',
@@ -583,7 +602,7 @@ const Post = ({ post, viewMode = "grid" }) => {
               justifyContent: 'space-between',
               alignItems: 'flex-start',
               gap: 1,
-              zIndex: 10,
+              zIndex: 10, // Ensure badges are above image
             }}
           >
             {/* Category Badge */}
@@ -597,21 +616,21 @@ const Post = ({ post, viewMode = "grid" }) => {
                 gap: 0.5,
                 backdropFilter: 'blur(10px)',
                 border: `1px solid ${isDarkMode ? alpha(categoryStyle.main, 0.3) : categoryStyle.main}`,
-                zIndex: 11,
+                zIndex: 11, // Higher z-index for category badge
               }}
             >
               <RenderIcon 
                 name={`${post?.categoryname?.toLowerCase() || 'other'}cate`} 
                 sx={{ 
-                  fontSize: '12px', 
+                  fontSize: { xs: '14px', sm: '12px' }, 
                   color: isDarkMode ? categoryStyle.main : categoryStyle.text 
                 }} 
               />
               <Typography
                 sx={{
                   color: isDarkMode ? categoryStyle.main : categoryStyle.text,
-                  fontSize: '10px',
-                  fontWeight: 600,
+                  fontSize: { xs: '14px', sm: '12px' },
+                  fontWeight: 700,
                 }}
               >
                 {categoryName}
@@ -619,7 +638,7 @@ const Post = ({ post, viewMode = "grid" }) => {
             </Box>
           </Box>
 
-          {/* Time Badge - Grid View */}
+          {/* Time Badge */}
           <Box
             sx={{
               position: 'absolute',
@@ -630,15 +649,15 @@ const Post = ({ post, viewMode = "grid" }) => {
               borderRadius: '8px',
               backdropFilter: 'blur(10px)',
               border: '1px solid rgba(255,255,255,0.1)',
-              zIndex: 11,
+              zIndex: 11, // Higher z-index for time badge
             }}
           >
             <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.5 }}>
-              <TimeIcon sx={{ fontSize: '12px', color: '#fff' }} />
+              <TimeIcon sx={{ fontSize: { xs: '14px', sm: '12px' }, color: '#fff' }} />
               <Typography
                 sx={{
                   color: '#fff',
-                  fontSize: '10px',
+                  fontSize: { xs: '14px', sm: '12px' },
                   fontWeight: 600,
                 }}
               >
@@ -656,7 +675,8 @@ const Post = ({ post, viewMode = "grid" }) => {
               right: 0,
               bottom: 0,
               background: 'linear-gradient(180deg, rgba(0,0,0,0.1) 0%, rgba(0,0,0,0.4) 100%)',
-              pointerEvents: 'none'
+              pointerEvents: 'none',
+              zIndex: 2, // Above image, below badges
             }}
           />
         </Box>
@@ -665,29 +685,43 @@ const Post = ({ post, viewMode = "grid" }) => {
         <CardContent 
           sx={{ 
             flexGrow: 1, 
-            p: { xs: 2, sm: 2.5 },
+            p: { xs: 2.5, sm: 2.5 },
             display: 'flex',
             flexDirection: 'column',
             gap: 1.5,
+            backgroundColor: isDarkMode ? '#3A3A3A' : '#E9ECEF',
+            background: isDarkMode ? '#3A3A3A' : '#E9ECEF',
+            // Force override any Material-UI defaults
+            '&.MuiCardContent-root': {
+              backgroundColor: isDarkMode ? '#3A3A3A' : '#E9ECEF',
+              background: isDarkMode ? '#3A3A3A' : '#E9ECEF',
+            }
           }}
         >
           {/* Location Info - Only City */}
-          <Box sx={{ display: 'flex', alignItems: 'center', gap: 1.5 }}>
+          <Box 
+            sx={{ 
+              display: 'flex', 
+              alignItems: 'center', 
+              gap: 1.5,
+              backgroundColor: isDarkMode ? '#3a3a3a' : '#E9ECEF',
+            }}
+          >
             <Avatar
               sx={{
-                width: 28,
-                height: 28,
-                backgroundColor: alpha(theme.palette.text.secondary, 0.1),
-                color: theme.palette.text.secondary,
+                width: { xs: 32, sm: 28 },
+                height: { xs: 32, sm: 28 },
+                backgroundColor: isDarkMode ? '#000000' : '#F8F9FA',
+                color: isDarkMode ? alpha('#fff', 0.8) : alpha('#000', 0.7),
               }}
             >
-              <LocationIcon sx={{ fontSize: '16px' }} />
+              <LocationIcon sx={{ fontSize: { xs: '18px', sm: '16px' } }} />
             </Avatar>
             <Box>
               <Typography
                 sx={{
                   color: isDarkMode ? alpha('#fff', 0.9) : alpha('#000', 0.8),
-                  fontSize: { xs: '14px', sm: '16px' },
+                  fontSize: { xs: '18px', sm: '17px' },
                   fontWeight: 700,
                   lineHeight: 1.2,
                 }}
@@ -705,14 +739,15 @@ const Post = ({ post, viewMode = "grid" }) => {
           sx={{
             display: 'flex',
             justifyContent: 'space-between',
-            p: { xs: 1.5, sm: 2 },
+            p: { xs: 2, sm: 2 },
             borderTop: '1px solid',
             borderColor: isDarkMode ? alpha('#fff', 0.06) : alpha('#000', 0.04),
-            backgroundColor: isDarkMode ? alpha('#000', 0.2) : alpha('#f8f9fa', 0.5),
+            backgroundColor: isDarkMode ? '#3A3A3A' : '#E9ECEF',
             gap: 3,
             mt: 'auto',
             flexShrink: 0,
-            minHeight: '60px',
+            minHeight: { xs: '70px', sm: '60px' },
+            backdropFilter: isDarkMode ? 'none' : 'blur(8px)',
           }}
         >
           <Button
@@ -720,23 +755,24 @@ const Post = ({ post, viewMode = "grid" }) => {
             variant="outlined"
             size="small"
             sx={{
-              color: theme.palette.error.main,
-              borderColor: theme.palette.error.main,
+              color: isDarkMode ? '#f44336' : '#d32f2f',
+              borderColor: isDarkMode ? '#f44336' : '#d32f2f',
               textTransform: 'none',
-              fontSize: { xs: '10px', sm: '11px' },
+              fontSize: { xs: '14px', sm: '13px' },
               fontWeight: 600,
-              padding: { xs: '8px 12px', sm: '8px 12px' },
+              padding: { xs: '10px 14px', sm: '8px 12px' },
               borderRadius: '8px',
               minWidth: 'auto',
               flexShrink: 0,
               gap: currentLanguage === 'ar' ? 1 : 0.5,
+              backgroundColor: isDarkMode ? alpha('#f44336', 0.1) : alpha('#d32f2f', 0.05),
               '&:hover': {
-                backgroundColor: theme.palette.error.main,
+                backgroundColor: isDarkMode ? '#f44336' : '#d32f2f',
                 color: '#fff',
-                borderColor: theme.palette.error.main,
+                borderColor: isDarkMode ? '#f44336' : '#d32f2f',
               },
             }}
-            startIcon={<ReportProblemOutlined sx={{ fontSize: '12px' }} />}
+            startIcon={<ReportProblemOutlined sx={{ fontSize: { xs: '14px', sm: '12px' } }} />}
             endIcon={null}
           >
             {t('report')}
@@ -746,26 +782,34 @@ const Post = ({ post, viewMode = "grid" }) => {
             onClick={handleViewDetails}
             variant="contained"
             sx={{
-              background: `linear-gradient(135deg, ${theme.palette.primary.main} 0%, ${theme.palette.primary.dark} 100%)`,
+              background: isDarkMode 
+                ? 'linear-gradient(45deg, #2196F3 30%, #21CBF3 90%)'
+                : 'linear-gradient(45deg, #2196F3 30%, #21CBF3 90%)',
               color: '#fff',
               textTransform: 'none',
-              fontSize: { xs: '10px', sm: '11px' },
+              fontSize: { xs: '14px', sm: '13px' },
               fontWeight: 700,
-              padding: { xs: '8px 12px', sm: '8px 12px' },
+              padding: { xs: '10px 14px', sm: '8px 12px' },
               borderRadius: '8px',
               minWidth: 'auto',
               flexShrink: 0,
               gap: currentLanguage === 'ar' ? 1 : 0.5,
-              boxShadow: `0 2px 8px ${alpha(theme.palette.primary.main, 0.3)}`,
+              boxShadow: isDarkMode 
+                ? '0 2px 8px rgba(33, 150, 243, 0.3)'
+                : '0 2px 8px rgba(33, 150, 243, 0.4)',
               transition: 'all 0.3s ease',
               '&:hover': {
-                background: `linear-gradient(135deg, ${theme.palette.primary.dark} 0%, ${theme.palette.primary.main} 100%)`,
+                background: isDarkMode 
+                  ? 'linear-gradient(45deg, #1976D2 30%, #1E88E5 90%)'
+                  : 'linear-gradient(45deg, #1976D2 30%, #1E88E5 90%)',
                 transform: 'translateY(-1px)',
-                boxShadow: `0 4px 12px ${alpha(theme.palette.primary.main, 0.4)}`,
+                boxShadow: isDarkMode 
+                  ? '0 4px 12px rgba(33, 150, 243, 0.4)'
+                  : '0 4px 12px rgba(33, 150, 243, 0.5)',
               },
             }}
             startIcon={null}
-            endIcon={<ArrowIcon sx={{ fontSize: '12px', transform: currentLanguage === 'ar' ? 'scaleX(-1)' : 'none' }} />}
+            endIcon={<ArrowIcon sx={{ fontSize: { xs: '14px', sm: '12px' }, transform: currentLanguage === 'ar' ? 'scaleX(-1)' : 'none' }} />}
           >
             {t('viewDetails')}
           </Button>
