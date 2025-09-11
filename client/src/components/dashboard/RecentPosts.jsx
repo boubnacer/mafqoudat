@@ -383,13 +383,23 @@ const RecentPosts = ({ _id, categoryname, exactLocation, image, createdAt, count
           }}
         >
           {/* Location Info - Only City */}
-          <Box sx={{ display: 'flex', alignItems: 'center', gap: 1.5 }}>
+          <Box 
+            sx={{ 
+              display: 'flex', 
+              alignItems: 'center', 
+              gap: 1.5,
+              backgroundColor: isDarkMode ? '#2a2a2a' : '#f8f9fa',
+              padding: { xs: '12px', sm: '10px' },
+              borderRadius: '12px',
+              border: `1px solid ${isDarkMode ? alpha('#fff', 0.08) : alpha('#000', 0.06)}`,
+            }}
+          >
             <Avatar
               sx={{
                 width: { xs: 32, sm: 28 },
                 height: { xs: 32, sm: 28 },
-                backgroundColor: alpha(theme.palette.text.secondary, 0.1),
-                color: theme.palette.text.secondary,
+                backgroundColor: isDarkMode ? '#3a3a3a' : '#e9ecef',
+                color: isDarkMode ? alpha('#fff', 0.8) : alpha('#000', 0.7),
               }}
             >
               <LocationIcon sx={{ fontSize: { xs: '18px', sm: '16px' } }} />
@@ -417,7 +427,7 @@ const RecentPosts = ({ _id, categoryname, exactLocation, image, createdAt, count
             p: { xs: 2, sm: 2 },
             borderTop: '1px solid',
             borderColor: isDarkMode ? alpha('#fff', 0.06) : alpha('#000', 0.04),
-            backgroundColor: isDarkMode ? alpha('#000', 0.2) : '#ffffff',
+            backgroundColor: isDarkMode ? '#2a2a2a' : '#f8f9fa',
             gap: 3,
             mt: 'auto',
             flexShrink: 0,
