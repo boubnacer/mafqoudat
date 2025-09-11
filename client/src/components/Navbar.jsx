@@ -50,21 +50,25 @@ import { useGetflOptionsQuery } from "../features/dependencies/dependenciesApiSl
 
 // Global keyframes for logo animation
 const globalStyles = `
-  @keyframes italicLineSweep {
+  @keyframes mirrorReflection {
     0% {
       left: 0px;
       opacity: 0;
+      transform: translateY(-50%) skew(-15deg) scaleX(0.5);
     }
-    10% {
+    15% {
       opacity: 1;
+      transform: translateY(-50%) skew(-15deg) scaleX(1);
     }
-    90% {
+    85% {
       left: 100%;
       opacity: 1;
+      transform: translateY(-50%) skew(-15deg) scaleX(1);
     }
     100% {
       left: 100%;
       opacity: 0;
+      transform: translateY(-50%) skew(-15deg) scaleX(0.5);
     }
   }
 `;
@@ -477,15 +481,14 @@ const Navbar = () => {
                 position: 'absolute',
                 top: '50%',
                 left: '0px',
-                width: '16px',
-                height: '70%',
-                background: theme.palette.mode === 'dark' 
-                  ? 'linear-gradient(45deg, transparent, rgba(255, 255, 255, 0.9), transparent)'
-                  : 'linear-gradient(45deg, transparent, rgba(0, 0, 0, 0.6), transparent)',
+                width: '20px',
+                height: '80%',
+                background: 'linear-gradient(45deg, transparent, rgba(255, 255, 255, 0.8), rgba(255, 255, 255, 0.4), transparent)',
                 transform: 'translateY(-50%) skew(-15deg)',
                 borderRadius: '2px',
                 zIndex: 1,
-                animation: logoAnimationTrigger ? 'italicLineSweep 5s ease-in-out infinite' : 'none',
+                animation: logoAnimationTrigger ? 'mirrorReflection 5s ease-in-out infinite' : 'none',
+                boxShadow: '0 0 10px rgba(255, 255, 255, 0.3)',
               }
             }}
           >
