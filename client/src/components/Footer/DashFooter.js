@@ -43,26 +43,34 @@ const DashFooter = () => {
   };
 
   let createPostButton = null;
-  createPostButton = (
-    <IconButton 
-      title={t('addNewPost')} 
-      onClick={onCreatePostClicked}
-      sx={{ 
-        position: 'fixed',
-        bottom: '2rem',
-        right: '2rem',
-        backgroundColor: 'transparent',
-        color: theme.palette.primary.main,
-        border: `2px solid ${theme.palette.primary.main}`,
-        '&:hover': {
-          backgroundColor: theme.palette.primary.main,
+  // Only show the plus icon on posts list page
+  if (pathname === "/dash/posts") {
+    createPostButton = (
+      <IconButton 
+        title={t('addNewPost')} 
+        onClick={onCreatePostClicked}
+        sx={{ 
+          position: 'fixed',
+          bottom: '2rem',
+          right: '2rem',
+          width: '60px',
+          height: '60px',
+          backgroundColor: '#2196F3',
           color: 'white',
-        },
-      }}
-    >
-      <FontAwesomeIcon icon={faPlus} />
-    </IconButton>
-  );
+          border: 'none',
+          boxShadow: '0 4px 12px rgba(33, 150, 243, 0.4)',
+          '&:hover': {
+            backgroundColor: '#1976D2',
+            boxShadow: '0 6px 16px rgba(33, 150, 243, 0.6)',
+            transform: 'translateY(-2px)',
+          },
+          transition: 'all 0.3s ease',
+        }}
+      >
+        <FontAwesomeIcon icon={faPlus} size="lg" />
+      </IconButton>
+    );
+  }
 
   const content = (
     <Box
