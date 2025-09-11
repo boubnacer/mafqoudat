@@ -1,5 +1,5 @@
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
-import { faHouse } from "@fortawesome/free-solid-svg-icons";
+import { faPlus } from "@fortawesome/free-solid-svg-icons";
 import { useNavigate, useLocation } from "react-router-dom";
 import {
   Facebook,
@@ -34,29 +34,35 @@ const DashFooter = () => {
   const theme = useTheme();
   const { t, currentLanguage } = useTranslation();
 
-  const onGoHomeClicked = () => navigate("/dash");
+  const onCreatePostClicked = () => {
+    if (!username) {
+      navigate('/login');
+    } else {
+      navigate("/dash/posts/new");
+    }
+  };
 
-  let goHomeButton = null;
-  if (pathname !== "/dash") {
-    goHomeButton = (
-      <IconButton 
-        title={t('home')} 
-        onClick={onGoHomeClicked}
-        sx={{ 
-          position: 'fixed',
-          bottom: '2rem',
-          right: '2rem',
+  let createPostButton = null;
+  createPostButton = (
+    <IconButton 
+      title={t('addNewPost')} 
+      onClick={onCreatePostClicked}
+      sx={{ 
+        position: 'fixed',
+        bottom: '2rem',
+        right: '2rem',
+        backgroundColor: 'transparent',
+        color: theme.palette.primary.main,
+        border: `2px solid ${theme.palette.primary.main}`,
+        '&:hover': {
           backgroundColor: theme.palette.primary.main,
           color: 'white',
-          '&:hover': {
-            backgroundColor: theme.palette.primary.dark,
-          },
-        }}
-      >
-        <FontAwesomeIcon icon={faHouse} />
-      </IconButton>
-    );
-  }
+        },
+      }}
+    >
+      <FontAwesomeIcon icon={faPlus} />
+    </IconButton>
+  );
 
   const content = (
     <Box
@@ -234,7 +240,7 @@ const DashFooter = () => {
         </Grid>
       </Grid>
 
-      {goHomeButton}
+      {createPostButton}
     </Box>
   );
   return content;

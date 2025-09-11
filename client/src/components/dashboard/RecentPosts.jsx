@@ -242,7 +242,7 @@ const RecentPosts = ({ _id, categoryname, exactLocation, image, createdAt, count
           display: 'flex',
           flexDirection: 'column',
           transition: 'all 0.3s cubic-bezier(0.4, 0, 0.2, 1)',
-          borderRadius: '20px',
+          borderRadius: '12px',
           overflow: 'hidden',
           '&:hover': {
             transform: { xs: 'none', sm: 'translateY(-4px)' },
