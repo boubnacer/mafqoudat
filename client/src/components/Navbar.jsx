@@ -476,8 +476,19 @@ const Navbar = () => {
               padding: { xs: '8px 14px', sm: '8px 16px' },
               position: 'relative',
               overflow: 'hidden',
-              '&::before': {
-                content: '""',
+            }}
+          >
+            <img
+              src="/maflogo.png"
+              alt={t("brandName")}
+              loading="lazy"
+              style={{
+                position: 'relative',
+                zIndex: 2,
+              }}
+            />
+            <div
+              style={{
                 position: 'absolute',
                 top: '50%',
                 left: '0px',
@@ -486,16 +497,11 @@ const Navbar = () => {
                 background: 'linear-gradient(45deg, transparent, rgba(255, 255, 255, 0.8), rgba(255, 255, 255, 0.4), transparent)',
                 transform: 'translateY(-50%) skew(-15deg)',
                 borderRadius: '2px',
-                zIndex: 1,
+                zIndex: 3,
                 animation: logoAnimationTrigger ? 'mirrorReflection 5s ease-in-out infinite' : 'none',
                 boxShadow: '0 0 10px rgba(255, 255, 255, 0.3)',
-              }
-            }}
-          >
-            <img
-              src="/maflogo.png"
-              alt={t("brandName")}
-              loading="lazy"
+                pointerEvents: 'none',
+              }}
             />
           </LogoButton>
         </Box>
