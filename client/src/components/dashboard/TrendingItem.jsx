@@ -448,7 +448,7 @@ const TrendingItem = ({ trend, isLoading }) => {
                 <Typography
                   sx={{
                     color: '#fff',
-                    fontSize: { xs: '14px', sm: '12px' },
+                    fontSize: { xs: '16px', sm: '14px' },
                     fontWeight: 500,
                   }}
                 >
@@ -461,7 +461,7 @@ const TrendingItem = ({ trend, isLoading }) => {
                 <Typography
                   sx={{
                     color: '#fff',
-                    fontSize: { xs: '13px', sm: '11px' },
+                    fontSize: { xs: '15px', sm: '13px' },
                     fontWeight: 400,
                     maxWidth: '80px',
                     overflow: 'hidden',

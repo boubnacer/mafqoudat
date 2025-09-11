@@ -334,8 +334,8 @@ const RecentPosts = ({ _id, categoryname, exactLocation, image, createdAt, count
               <Typography
                 sx={{
                   color: isDarkMode ? categoryStyle.main : categoryStyle.text,
-                  fontSize: { xs: '12px', sm: '10px' },
-                  fontWeight: 600,
+                  fontSize: { xs: '14px', sm: '12px' },
+                  fontWeight: 700,
                 }}
               >
                 {categoryDisplayName}
@@ -362,7 +362,7 @@ const RecentPosts = ({ _id, categoryname, exactLocation, image, createdAt, count
               <Typography
                 sx={{
                   color: '#fff',
-                  fontSize: { xs: '12px', sm: '10px' },
+                  fontSize: { xs: '14px', sm: '12px' },
                   fontWeight: 600,
                 }}
               >
@@ -412,7 +412,7 @@ const RecentPosts = ({ _id, categoryname, exactLocation, image, createdAt, count
               <Typography
                 sx={{
                   color: isDarkMode ? alpha('#fff', 0.9) : alpha('#000', 0.8),
-                  fontSize: { xs: '16px', sm: '16px' },
+                  fontSize: { xs: '18px', sm: '17px' },
                   fontWeight: 700,
                   lineHeight: 1.2,
                 }}
@@ -447,7 +447,7 @@ const RecentPosts = ({ _id, categoryname, exactLocation, image, createdAt, count
               color: isDarkMode ? '#f44336' : '#d32f2f',
               borderColor: isDarkMode ? '#f44336' : '#d32f2f',
               textTransform: 'none',
-              fontSize: { xs: '12px', sm: '11px' },
+              fontSize: { xs: '14px', sm: '13px' },
               fontWeight: 600,
               padding: { xs: '10px 14px', sm: '8px 12px' },
               borderRadius: '8px',
@@ -476,7 +476,7 @@ const RecentPosts = ({ _id, categoryname, exactLocation, image, createdAt, count
                 : 'linear-gradient(45deg, #2196F3 30%, #21CBF3 90%)',
               color: '#fff',
               textTransform: 'none',
-              fontSize: { xs: '12px', sm: '11px' },
+              fontSize: { xs: '14px', sm: '13px' },
               fontWeight: 700,
               padding: { xs: '10px 14px', sm: '8px 12px' },
               borderRadius: '8px',

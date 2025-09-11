@@ -63,7 +63,7 @@ const Process = () => {
         <Typography 
           variant="h2" 
           fontWeight="600" 
-          fontSize={{ xs: "24px", md: "32px" }}
+          fontSize={{ xs: "28px", md: "36px" }}
           sx={{
             color: theme.palette.mode === 'dark' ? '#ffffff' : '#2c3e50',
             transition: "color 0.3s ease"
@@ -74,7 +74,7 @@ const Process = () => {
         <Typography 
           variant="h3" 
           fontWeight="800" 
-          fontSize={{ xs: "20px", md: "24px" }} 
+          fontSize={{ xs: "24px", md: "28px" }} 
           mt="1rem"
           sx={{
             color: theme.palette.mode === 'dark' ? '#ffffff' : '#2c3e50',
@@ -121,7 +121,7 @@ const Process = () => {
                   component="div"
                   sx={{ 
                     color: theme.palette.textColor.main,
-                    fontSize: "16px",
+                    fontSize: { xs: "18px", sm: "17px" },
                     fontWeight: 600,
                     transition: "color 0.3s ease",
                     direction: isRTLMode ? 'rtl' : 'ltr'
@@ -133,7 +133,7 @@ const Process = () => {
                   component="div"
                   sx={{ 
                     color: theme.palette.textColor.secondary,
-                    fontSize: "14px",
+                    fontSize: { xs: "16px", sm: "15px" },
                     mt: 0.5,
                     transition: "color 0.3s ease",
                     direction: isRTLMode ? 'rtl' : 'ltr'

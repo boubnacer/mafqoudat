@@ -78,6 +78,7 @@ const DashFooter = () => {
             sx={{ 
               mb: 2,
               fontWeight: 'bold',
+              fontSize: { xs: '20px', sm: '18px' },
               background: 'linear-gradient(45deg, #2196F3 30%, #21CBF3 90%)',
               WebkitBackgroundClip: 'text',
               WebkitTextFillColor: 'transparent',
@@ -85,7 +86,7 @@ const DashFooter = () => {
           >
             Mafqoudat
           </Typography>
-          <Typography variant="body2" color="text.secondary" sx={{ mb: 2 }}>
+          <Typography variant="body2" color="text.secondary" sx={{ mb: 2, fontSize: { xs: '16px', sm: '14px' } }}>
             {t('footerDescription')}
           </Typography>
           <Box sx={{ display: 'flex', gap: 1 }}>
@@ -118,28 +119,28 @@ const DashFooter = () => {
 
         {/* Quick Links */}
         <Grid item xs={12} md={4}>
-          <Typography variant="h6" sx={{ mb: 2, fontWeight: 'bold' }}>
+          <Typography variant="h6" sx={{ mb: 2, fontWeight: 'bold', fontSize: { xs: '18px', sm: '16px' } }}>
             {t('quickLinks')}
           </Typography>
           <List dense>
             <ListItem button onClick={() => navigate('/dash/posts/new?type=lost')}>
-              <ListItemText primary={t('reportLostItem')} />
+              <ListItemText primary={t('reportLostItem')} sx={{ '& .MuiListItemText-primary': { fontSize: { xs: '16px', sm: '14px' } } }} />
             </ListItem>
             <ListItem button onClick={() => navigate('/dash/posts/new?type=found')}>
-              <ListItemText primary={t('reportFoundItem')} />
+              <ListItemText primary={t('reportFoundItem')} sx={{ '& .MuiListItemText-primary': { fontSize: { xs: '16px', sm: '14px' } } }} />
             </ListItem>
             <ListItem button onClick={() => navigate('/dash/search')}>
-              <ListItemText primary={t('searchItems')} />
+              <ListItemText primary={t('searchItems')} sx={{ '& .MuiListItemText-primary': { fontSize: { xs: '16px', sm: '14px' } } }} />
             </ListItem>
             <ListItem button onClick={() => navigate('/dash/help')}>
-              <ListItemText primary={t('getHelp')} />
+              <ListItemText primary={t('getHelp')} sx={{ '& .MuiListItemText-primary': { fontSize: { xs: '16px', sm: '14px' } } }} />
             </ListItem>
           </List>
         </Grid>
 
         {/* Contact Info */}
         <Grid item xs={12} md={4}>
-          <Typography variant="h6" sx={{ mb: 2, fontWeight: 'bold' }}>
+          <Typography variant="h6" sx={{ mb: 2, fontWeight: 'bold', fontSize: { xs: '18px', sm: '16px' } }}>
             {t('contactUs')}
           </Typography>
           <List dense>
@@ -150,6 +151,10 @@ const DashFooter = () => {
               <ListItemText 
                 primary="support@mafqoudat.com"
                 secondary={t('emailUsForSupport')}
+                sx={{ 
+                  '& .MuiListItemText-primary': { fontSize: { xs: '16px', sm: '14px' } },
+                  '& .MuiListItemText-secondary': { fontSize: { xs: '14px', sm: '12px' } }
+                }}
               />
             </ListItem>
             <ListItem>
@@ -159,6 +164,10 @@ const DashFooter = () => {
               <ListItemText 
                 primary="+1 234 567 890"
                 secondary={t('callUsForAssistance')}
+                sx={{ 
+                  '& .MuiListItemText-primary': { fontSize: { xs: '16px', sm: '14px' } },
+                  '& .MuiListItemText-secondary': { fontSize: { xs: '14px', sm: '12px' } }
+                }}
               />
             </ListItem>
             <ListItem>
@@ -168,6 +177,10 @@ const DashFooter = () => {
               <ListItemText 
                 primary={country || t('yourLocation')}
                 secondary={t('currentRegion')}
+                sx={{ 
+                  '& .MuiListItemText-primary': { fontSize: { xs: '16px', sm: '14px' } },
+                  '& .MuiListItemText-secondary': { fontSize: { xs: '14px', sm: '12px' } }
+                }}
               />
             </ListItem>
           </List>
@@ -179,7 +192,7 @@ const DashFooter = () => {
       {/* Bottom Section */}
       <Grid container spacing={2} sx={{ maxWidth: '1200px', margin: '0 auto' }}>
         <Grid item xs={12} md={6}>
-          <Typography variant="body2" color="text.secondary">
+          <Typography variant="body2" color="text.secondary" sx={{ fontSize: { xs: '16px', sm: '14px' } }}>
             © {new Date().getFullYear()} Mafqoudat. {t('allRightsReserved')}.
           </Typography>
         </Grid>
@@ -195,7 +208,7 @@ const DashFooter = () => {
               onClick={() => navigate('/privacy')} 
               color="text.secondary" 
               underline="hover"
-              sx={{ background: 'none', border: 'none', cursor: 'pointer' }}
+              sx={{ background: 'none', border: 'none', cursor: 'pointer', fontSize: { xs: '16px', sm: '14px' } }}
             >
               {t('privacyPolicy')}
             </Link>
@@ -204,7 +217,7 @@ const DashFooter = () => {
               onClick={() => navigate('/terms')} 
               color="text.secondary" 
               underline="hover"
-              sx={{ background: 'none', border: 'none', cursor: 'pointer' }}
+              sx={{ background: 'none', border: 'none', cursor: 'pointer', fontSize: { xs: '16px', sm: '14px' } }}
             >
               {t('termsOfUse')}
             </Link>
@@ -213,7 +226,7 @@ const DashFooter = () => {
               onClick={() => navigate('/cookies')} 
               color="text.secondary" 
               underline="hover"
-              sx={{ background: 'none', border: 'none', cursor: 'pointer' }}
+              sx={{ background: 'none', border: 'none', cursor: 'pointer', fontSize: { xs: '16px', sm: '14px' } }}
             >
               {t('cookieNotice')}
             </Link>
