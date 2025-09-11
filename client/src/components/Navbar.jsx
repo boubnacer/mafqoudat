@@ -99,36 +99,34 @@ const LogoButton = styled(Button)(({ theme }) => ({
       padding: '12px',
       boxShadow: '0 2px 8px rgba(0, 0, 0, 0.2)',
     }),
-    // Cursor-style gradient reveal animation
+    // White light line sweep animation
     '&::before': {
       content: '""',
       position: 'absolute',
       top: 0,
-      left: 0,
-      right: 0,
-      bottom: 0,
-      background: 'linear-gradient(90deg, transparent 0%, #667eea 20%, #764ba2 40%, #f093fb 60%, #f5576c 80%, transparent 100%)',
-      backgroundSize: '200% 100%',
+      left: '-100%',
+      width: '100%',
+      height: '100%',
+      background: 'linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.8), transparent)',
       borderRadius: '8px',
-      zIndex: -1,
-      opacity: 0,
-      animation: 'gradientReveal 2s ease-out forwards',
+      zIndex: 1,
+      animation: 'lightSweep 2s ease-out forwards',
       animationDelay: '0.5s',
     },
-    '@keyframes gradientReveal': {
+    '@keyframes lightSweep': {
       '0%': {
-        backgroundPosition: '-200% 0',
+        left: '-100%',
         opacity: 0,
       },
       '10%': {
         opacity: 1,
       },
       '90%': {
-        backgroundPosition: '200% 0',
+        left: '100%',
         opacity: 1,
       },
       '100%': {
-        backgroundPosition: '200% 0',
+        left: '100%',
         opacity: 0,
       }
     }
