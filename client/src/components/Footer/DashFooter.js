@@ -43,7 +43,7 @@ const DashFooter = () => {
   };
 
   let createPostButton = null;
-  // Only show the plus icon on posts list page
+  // Only show the plus icon on posts list page and mobile view
   if (pathname === "/dash/posts") {
     createPostButton = (
       <IconButton 
@@ -59,6 +59,8 @@ const DashFooter = () => {
           color: 'white',
           border: 'none',
           boxShadow: '0 4px 12px rgba(33, 150, 243, 0.4)',
+          zIndex: 9999, // Ensure it's on top of all elements
+          display: { xs: 'flex', sm: 'none' }, // Only show on mobile (xs), hide on small screens and up
           '&:hover': {
             backgroundColor: '#1976D2',
             boxShadow: '0 6px 16px rgba(33, 150, 243, 0.6)',
