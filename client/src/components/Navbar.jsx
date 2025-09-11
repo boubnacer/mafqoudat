@@ -120,37 +120,6 @@ const LogoButton = styled(Button)(({ theme }) => ({
       padding: '12px',
       boxShadow: '0 2px 8px rgba(0, 0, 0, 0.2)',
     }),
-    // White light line sweep animation
-    '&::before': {
-      content: '""',
-      position: 'absolute',
-      top: 0,
-      left: '-100%',
-      width: '100%',
-      height: '100%',
-      background: 'linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.9), transparent)',
-      borderRadius: '8px',
-      zIndex: 1,
-      animation: 'lightSweep 2s ease-out forwards',
-      animationDelay: '0.5s',
-    },
-    '@keyframes lightSweep': {
-      '0%': {
-        left: '-100%',
-        opacity: 0,
-      },
-      '10%': {
-        opacity: 1,
-      },
-      '90%': {
-        left: '100%',
-        opacity: 1,
-      },
-      '100%': {
-        left: '100%',
-        opacity: 0,
-      }
-    }
   },
   [theme.breakpoints.down('sm')]: {
     padding: '4px 6px',
@@ -510,7 +479,18 @@ const Navbar = () => {
             onClick={onGoHomeClicked}
             sx={{
               padding: { xs: '8px 14px', sm: '8px 16px' },
-              '& img': {
+              position: 'relative',
+              overflow: 'hidden',
+              '&::before': {
+                content: '""',
+                position: 'absolute',
+                top: 0,
+                left: '-100%',
+                width: '100%',
+                height: '100%',
+                background: 'linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.9), transparent)',
+                borderRadius: '8px',
+                zIndex: 1,
                 animation: logoAnimationTrigger ? 'lightSweep 2s ease-out forwards' : 'none',
               }
             }}
