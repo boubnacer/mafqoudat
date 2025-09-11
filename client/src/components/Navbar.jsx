@@ -89,8 +89,9 @@ const LogoButton = styled(Button)(({ theme }) => ({
         : 'drop-shadow(0 0 12px rgba(59, 130, 246, 0.5))',
       transform: 'scale(1.05)',
       '&::before': {
-        opacity: 0.4,
-        animation: 'pulseGlow 1.5s ease-in-out infinite',
+        opacity: 0.8,
+        animation: 'gradientShift 2s ease-in-out infinite, pulseGlow 1.5s ease-in-out infinite',
+        backgroundSize: '200% 200%',
       },
       '&::after': {
         animation: 'lightSweep 2s ease-in-out infinite',
@@ -116,7 +117,7 @@ const LogoButton = styled(Button)(({ theme }) => ({
       padding: '12px', // Extra padding for much larger logo
       boxShadow: '0 2px 8px rgba(0, 0, 0, 0.2)',
     }),
-    // Animated lighting effect
+    // Animated gradient background
     '&::before': {
       content: '""',
       position: 'absolute',
@@ -125,13 +126,13 @@ const LogoButton = styled(Button)(({ theme }) => ({
       right: '-3px',
       bottom: '-3px',
       background: theme.palette.mode === 'dark'
-        ? 'linear-gradient(45deg, transparent, rgba(255, 255, 255, 0.1), rgba(59, 130, 246, 0.2), transparent)'
-        : 'linear-gradient(45deg, transparent, rgba(59, 130, 246, 0.2), transparent)',
+        ? 'linear-gradient(45deg, #667eea, #764ba2, #f093fb, #f5576c, #4facfe, #00f2fe, #667eea)'
+        : 'linear-gradient(45deg, #667eea, #764ba2, #f093fb, #f5576c, #4facfe, #00f2fe, #667eea)',
+      backgroundSize: '400% 400%',
       borderRadius: '10px',
-      opacity: 0,
-      transition: 'opacity 0.4s ease',
+      opacity: 0.3,
       zIndex: -1,
-      animation: 'pulseGlow 4s ease-in-out infinite',
+      animation: 'gradientShift 6s ease-in-out infinite, pulseGlow 4s ease-in-out infinite',
     },
     '&::after': {
       content: '""',
@@ -148,6 +149,28 @@ const LogoButton = styled(Button)(({ theme }) => ({
       zIndex: 1,
       borderRadius: '2px',
     },
+    '@keyframes gradientShift': {
+      '0%': { 
+        backgroundPosition: '0% 50%',
+        opacity: 0.3
+      },
+      '25%': { 
+        backgroundPosition: '100% 50%',
+        opacity: 0.5
+      },
+      '50%': { 
+        backgroundPosition: '100% 100%',
+        opacity: 0.4
+      },
+      '75%': { 
+        backgroundPosition: '0% 100%',
+        opacity: 0.6
+      },
+      '100%': { 
+        backgroundPosition: '0% 50%',
+        opacity: 0.3
+      }
+    },
     '@keyframes lightSweep': {
       '0%': { left: '-100%', opacity: 0 },
       '10%': { opacity: 1 },
@@ -156,8 +179,8 @@ const LogoButton = styled(Button)(({ theme }) => ({
       '100%': { left: '100%', opacity: 0 }
     },
     '@keyframes pulseGlow': {
-      '0%, 100%': { opacity: 0, transform: 'scale(1)' },
-      '50%': { opacity: 0.3, transform: 'scale(1.05)' }
+      '0%, 100%': { opacity: 0.3, transform: 'scale(1)' },
+      '50%': { opacity: 0.6, transform: 'scale(1.05)' }
     }
   },
   [theme.breakpoints.down('sm')]: {
