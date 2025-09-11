@@ -113,15 +113,13 @@ const LogoButton = styled(Button)(({ theme }) => ({
     transition: 'all 0.3s ease',
     position: 'relative',
     zIndex: 2,
-    // Consistent styling for both modes
-    backgroundColor: theme.palette.mode === 'dark' 
-      ? 'rgba(255, 255, 255, 0.95)' 
-      : 'rgba(255, 255, 255, 0.95)',
-    borderRadius: '8px',
-    padding: theme.palette.mode === 'dark' ? '12px' : '8px',
-    boxShadow: theme.palette.mode === 'dark' 
-      ? '0 2px 8px rgba(0, 0, 0, 0.2)' 
-      : '0 2px 8px rgba(0, 0, 0, 0.1)',
+    // Clean styling - no background in light mode, white background in dark mode
+    ...(theme.palette.mode === 'dark' && {
+      backgroundColor: 'rgba(255, 255, 255, 0.95)',
+      borderRadius: '8px',
+      padding: '8px',
+      boxShadow: '0 2px 8px rgba(0, 0, 0, 0.1)',
+    }),
   },
   [theme.breakpoints.down('sm')]: {
     padding: '4px 6px',
