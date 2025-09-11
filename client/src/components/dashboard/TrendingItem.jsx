@@ -213,7 +213,7 @@ const TrendingItem = ({ trend, isLoading }) => {
   }
 
   return (
-    <Box flex={1} sx={{ width: { xs: '100%', sm: 'auto' } }}>
+    <Box flex={1}>
       <Card
         sx={{
           background: theme.palette.mode === 'dark'
@@ -235,8 +235,6 @@ const TrendingItem = ({ trend, isLoading }) => {
           },
           height: '100%',
           minHeight: { xs: '400px', sm: '300px' },
-          width: { xs: '100%', sm: 'auto' }, // Match Recent posts pattern
-          maxWidth: { xs: '100%', sm: 'auto' }, // Match Recent posts pattern
           position: 'relative',
           '&::before': {
             content: '""',
