@@ -395,7 +395,7 @@ const RecentPosts = ({ _id, categoryname, exactLocation, image, createdAt, count
               display: 'flex', 
               alignItems: 'center', 
               gap: 1.5,
-              backgroundColor: isDarkMode ? '#3a3a3a' : '#F8F9FA',
+              backgroundColor: isDarkMode ? '#3a3a3a' : '#E9ECEF',
             }}
           >
             <Avatar
@@ -431,7 +431,7 @@ const RecentPosts = ({ _id, categoryname, exactLocation, image, createdAt, count
             p: { xs: 2, sm: 2 },
             borderTop: '1px solid',
             borderColor: isDarkMode ? alpha('#fff', 0.06) : alpha('#000', 0.04),
-            backgroundColor: isDarkMode ? '#3A3A3A' : '#f8f9fa',
+            backgroundColor: isDarkMode ? '#3A3A3A' : '#E9ECEF',
             gap: 3,
             mt: 'auto',
             flexShrink: 0,
