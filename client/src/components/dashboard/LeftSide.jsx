@@ -32,6 +32,8 @@ const LeftSide = ({
           : '0 8px 32px 0 rgba(0,0,0,0.05)',
         height: 'fit-content', // Fix height issue
         maxHeight: '100%', // Prevent overflow
+        width: isMobile ? '100%' : 'auto', // Full width on mobile
+        minWidth: isMobile ? '100%' : 'auto', // Ensure full width on mobile
       }}
     >
       {/* Title Section */}
