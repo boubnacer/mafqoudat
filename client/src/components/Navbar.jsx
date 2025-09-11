@@ -52,18 +52,18 @@ import { useGetflOptionsQuery } from "../features/dependencies/dependenciesApiSl
 const globalStyles = `
   @keyframes italicLineSweep {
     0% {
-      left: -20px;
+      left: 0px;
       opacity: 0;
     }
     10% {
       opacity: 1;
     }
     90% {
-      left: calc(100% + 20px);
+      left: 100%;
       opacity: 1;
     }
     100% {
-      left: calc(100% + 20px);
+      left: 100%;
       opacity: 0;
     }
   }
@@ -476,12 +476,10 @@ const Navbar = () => {
                 content: '""',
                 position: 'absolute',
                 top: '50%',
-                left: '-20px',
-                width: '8px',
-                height: '60%',
-                background: theme.palette.mode === 'dark' 
-                  ? 'linear-gradient(45deg, transparent, rgba(255, 255, 255, 0.9), transparent)'
-                  : 'linear-gradient(45deg, transparent, rgba(0, 0, 0, 0.4), transparent)',
+                left: '0px',
+                width: '12px',
+                height: '70%',
+                background: 'linear-gradient(45deg, transparent, rgba(255, 255, 255, 0.9), transparent)',
                 transform: 'translateY(-50%) skew(-15deg)',
                 borderRadius: '2px',
                 zIndex: 1,
