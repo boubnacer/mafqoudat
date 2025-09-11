@@ -48,6 +48,27 @@ import CountryModal from "./CountryModal";
 import { useTranslation } from "../utils/translations";
 import { useGetflOptionsQuery } from "../features/dependencies/dependenciesApiSlice";
 
+// Global keyframes for logo animation
+const globalStyles = `
+  @keyframes lightSweep {
+    0% {
+      left: -100%;
+      opacity: 0;
+    }
+    10% {
+      opacity: 1;
+    }
+    90% {
+      left: 100%;
+      opacity: 1;
+    }
+    100% {
+      left: 100%;
+      opacity: 0;
+    }
+  }
+`;
+
 const StyledToolbar = styled(Toolbar)(({ theme }) => ({
   justifyContent: "space-between",
   background: theme.palette.mode === 'dark'
@@ -107,7 +128,7 @@ const LogoButton = styled(Button)(({ theme }) => ({
       left: '-100%',
       width: '100%',
       height: '100%',
-      background: 'linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.8), transparent)',
+      background: 'linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.9), transparent)',
       borderRadius: '8px',
       zIndex: 1,
       animation: 'lightSweep 2s ease-out forwards',
@@ -292,6 +313,7 @@ const Navbar = () => {
   const [navigationAnchorEl, setNavigationAnchorEl] = useState(null);
   const [isUserSelectingCountry, setIsUserSelectingCountry] = useState(false);
   const [isInitialized, setIsInitialized] = useState(false);
+  const [logoAnimationTrigger, setLogoAnimationTrigger] = useState(false);
 
   const isAuthenticated = Boolean(user?.username);
 
@@ -313,6 +335,25 @@ const Navbar = () => {
       setIsInitialized(true);
     }
   }, [country, currentCountry, isInitialized]);
+
+  // Inject global styles for animation
+  useEffect(() => {
+    const styleElement = document.createElement('style');
+    styleElement.textContent = globalStyles;
+    document.head.appendChild(styleElement);
+    
+    return () => {
+      document.head.removeChild(styleElement);
+    };
+  }, []);
+
+  // Trigger logo animation on mount
+  useEffect(() => {
+    const timer = setTimeout(() => {
+      setLogoAnimationTrigger(true);
+    }, 1000); // Start animation after 1 second
+    return () => clearTimeout(timer);
+  }, []);
 
   const handleCountrySelection = (newCountryId) => {
     setIsUserSelectingCountry(true);
@@ -469,6 +510,9 @@ const Navbar = () => {
             onClick={onGoHomeClicked}
             sx={{
               padding: { xs: '8px 14px', sm: '8px 16px' },
+              '& img': {
+                animation: logoAnimationTrigger ? 'lightSweep 2s ease-out forwards' : 'none',
+              }
             }}
           >
             <img
