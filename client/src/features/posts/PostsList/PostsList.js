@@ -483,8 +483,8 @@ const PostsList = () => {
                 />
               </Grid> */}
 
-              {/* Sort */}
-              <Grid item xs={12} sm={6} md={3}>
+              {/* Sort - Hidden for now */}
+              {/* <Grid item xs={12} sm={6} md={3}>
                 <FormControl fullWidth>
                   <InputLabel>{t('sortBy')}</InputLabel>
                   <Select
@@ -499,10 +499,10 @@ const PostsList = () => {
                     <MenuItem value="category">{t('byCategory')}</MenuItem>
                   </Select>
                 </FormControl>
-              </Grid>
+              </Grid> */}
 
               {/* Category Filter */}
-              <Grid item xs={12} sm={6} md={3}>
+              <Grid item xs={12} sm={6} md={6}>
                 <FormControl fullWidth>
                   <InputLabel>{t('category')}</InputLabel>
                   <Select
@@ -521,8 +521,8 @@ const PostsList = () => {
                 </FormControl>
               </Grid>
 
-              {/* View Mode Toggle */}
-              <Grid item xs={12} md={3}>
+              {/* View Mode Toggle - Hidden for now */}
+              {/* <Grid item xs={12} md={3}>
                 <Box display="flex" justifyContent="center" gap={1}>
                   <Tooltip title={t('gridView')}>
                     <IconButton
@@ -549,7 +549,7 @@ const PostsList = () => {
                     </IconButton>
                   </Tooltip>
                 </Box>
-              </Grid>
+              </Grid> */}
 
               {/* Active Filters Display */}
               <Grid item xs={12}>
