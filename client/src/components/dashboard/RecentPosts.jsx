@@ -402,7 +402,7 @@ const RecentPosts = ({ _id, categoryname, exactLocation, image, createdAt, count
               sx={{
                 width: { xs: 32, sm: 28 },
                 height: { xs: 32, sm: 28 },
-                backgroundColor: isDarkMode ? 'transparent' : '#F8F9FA',
+                backgroundColor: isDarkMode ? '#000000' : '#F8F9FA',
                 color: isDarkMode ? alpha('#fff', 0.8) : alpha('#000', 0.7),
               }}
             >
