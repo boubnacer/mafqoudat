@@ -124,7 +124,7 @@ const LogoButton = styled(Button)(({ theme }) => ({
     marginLeft: theme.direction === 'rtl' ? '0' : '-6px',
     marginRight: theme.direction === 'rtl' ? '-6px' : '0',
     '& img': {
-      maxHeight: '18px', // Consistent size in both modes
+      maxHeight: '28px', // Larger size for mobile
     }
   }
 }));
@@ -485,6 +485,10 @@ const Navbar = () => {
               style={{
                 position: 'relative',
                 zIndex: 2,
+                backgroundColor: theme.palette.mode === 'dark' ? 'rgba(255, 255, 255, 0.1)' : 'transparent',
+                borderRadius: '6px',
+                padding: theme.palette.mode === 'dark' ? '6px' : '0px',
+                transition: 'all 0.3s ease',
               }}
             />
             <div
@@ -492,7 +496,7 @@ const Navbar = () => {
                 position: 'absolute',
                 top: '50%',
                 left: '0px',
-                width: '20px',
+                width: '30px',
                 height: '80%',
                 background: 'linear-gradient(45deg, transparent, rgba(255, 255, 255, 0.8), rgba(255, 255, 255, 0.4), transparent)',
                 transform: 'translateY(-50%) skew(-15deg)',
