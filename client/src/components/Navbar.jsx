@@ -83,104 +83,54 @@ const LogoButton = styled(Button)(({ theme }) => ({
     transform: 'translateY(-2px)',
     background: 'transparent',
     boxShadow: 'none',
-    '& img': {
-      filter: theme.palette.mode === 'dark' 
-        ? 'drop-shadow(0 0 16px rgba(59, 130, 246, 0.8))'
-        : 'drop-shadow(0 0 12px rgba(59, 130, 246, 0.5))',
-      transform: 'scale(1.05)',
-      '&::before': {
-        opacity: 0.8,
-        animation: 'gradientShift 2s ease-in-out infinite, pulseGlow 1.5s ease-in-out infinite',
-        backgroundSize: '200% 200%',
-      },
-      '&::after': {
-        animation: 'lightSweep 2s ease-in-out infinite',
-      }
-    }
   },
   '& img': {
     height: 'auto',
-    maxHeight: theme.palette.mode === 'dark' ? '40px' : '24px', // Significantly bigger in dark mode
+    maxHeight: theme.palette.mode === 'dark' ? '40px' : '24px',
     width: 'auto',
     objectFit: 'contain',
     transition: 'all 0.3s ease',
     position: 'relative',
     zIndex: 2,
-    // Theme-aware glow effect
-    filter: theme.palette.mode === 'dark' 
-      ? 'drop-shadow(0 0 12px rgba(59, 130, 246, 0.6))'
-      : 'drop-shadow(0 0 8px rgba(59, 130, 246, 0.3))',
     // Add white background in dark mode for better contrast
     ...(theme.palette.mode === 'dark' && {
       backgroundColor: 'rgba(255, 255, 255, 0.95)',
       borderRadius: '8px',
-      padding: '12px', // Extra padding for much larger logo
+      padding: '12px',
       boxShadow: '0 2px 8px rgba(0, 0, 0, 0.2)',
     }),
-    // Animated gradient background
+    // Cursor-style gradient reveal animation
     '&::before': {
       content: '""',
       position: 'absolute',
-      top: '-3px',
-      left: '-3px',
-      right: '-3px',
-      bottom: '-3px',
-      background: theme.palette.mode === 'dark'
-        ? 'linear-gradient(45deg, #667eea, #764ba2, #f093fb, #f5576c, #4facfe, #00f2fe, #667eea)'
-        : 'linear-gradient(45deg, #667eea, #764ba2, #f093fb, #f5576c, #4facfe, #00f2fe, #667eea)',
-      backgroundSize: '400% 400%',
-      borderRadius: '10px',
-      opacity: 0.3,
+      top: 0,
+      left: 0,
+      right: 0,
+      bottom: 0,
+      background: 'linear-gradient(90deg, transparent 0%, #667eea 20%, #764ba2 40%, #f093fb 60%, #f5576c 80%, transparent 100%)',
+      backgroundSize: '200% 100%',
+      borderRadius: '8px',
       zIndex: -1,
-      animation: 'gradientShift 6s ease-in-out infinite, pulseGlow 4s ease-in-out infinite',
+      opacity: 0,
+      animation: 'gradientReveal 2s ease-out forwards',
+      animationDelay: '0.5s',
     },
-    '&::after': {
-      content: '""',
-      position: 'absolute',
-      top: '50%',
-      left: '-100%',
-      width: '100%',
-      height: '3px',
-      background: theme.palette.mode === 'dark'
-        ? 'linear-gradient(90deg, transparent, rgba(59, 130, 246, 0.9), rgba(255, 255, 255, 0.7), rgba(59, 130, 246, 0.9), transparent)'
-        : 'linear-gradient(90deg, transparent, rgba(59, 130, 246, 0.8), rgba(255, 255, 255, 0.6), rgba(59, 130, 246, 0.8), transparent)',
-      transform: 'translateY(-50%)',
-      animation: 'lightSweep 4s ease-in-out infinite',
-      zIndex: 1,
-      borderRadius: '2px',
-    },
-    '@keyframes gradientShift': {
-      '0%': { 
-        backgroundPosition: '0% 50%',
-        opacity: 0.3
+    '@keyframes gradientReveal': {
+      '0%': {
+        backgroundPosition: '-200% 0',
+        opacity: 0,
       },
-      '25%': { 
-        backgroundPosition: '100% 50%',
-        opacity: 0.5
+      '10%': {
+        opacity: 1,
       },
-      '50%': { 
-        backgroundPosition: '100% 100%',
-        opacity: 0.4
+      '90%': {
+        backgroundPosition: '200% 0',
+        opacity: 1,
       },
-      '75%': { 
-        backgroundPosition: '0% 100%',
-        opacity: 0.6
-      },
-      '100%': { 
-        backgroundPosition: '0% 50%',
-        opacity: 0.3
+      '100%': {
+        backgroundPosition: '200% 0',
+        opacity: 0,
       }
-    },
-    '@keyframes lightSweep': {
-      '0%': { left: '-100%', opacity: 0 },
-      '10%': { opacity: 1 },
-      '50%': { left: '100%', opacity: 1 },
-      '90%': { opacity: 0 },
-      '100%': { left: '100%', opacity: 0 }
-    },
-    '@keyframes pulseGlow': {
-      '0%, 100%': { opacity: 0.3, transform: 'scale(1)' },
-      '50%': { opacity: 0.6, transform: 'scale(1.05)' }
     }
   },
   [theme.breakpoints.down('sm')]: {
@@ -188,9 +138,9 @@ const LogoButton = styled(Button)(({ theme }) => ({
     marginLeft: theme.direction === 'rtl' ? '0' : '-6px',
     marginRight: theme.direction === 'rtl' ? '-6px' : '0',
     '& img': {
-      maxHeight: theme.palette.mode === 'dark' ? '36px' : '18px', // Even bigger in dark mode mobile
+      maxHeight: theme.palette.mode === 'dark' ? '36px' : '18px',
       ...(theme.palette.mode === 'dark' && {
-        padding: '8px', // Mobile-specific padding for dark mode
+        padding: '8px',
       }),
     }
   }
