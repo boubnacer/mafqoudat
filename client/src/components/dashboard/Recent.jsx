@@ -20,6 +20,8 @@ const Recent = ({ recent, isLoading, emptyState = "NoRecentFounds", maxItems, sx
       gap={3}
       sx={{
         backgroundColor: 'transparent',
+        // Add padding to see the container background
+        padding: '20px',
         gridTemplateColumns: {
           xs: "repeat(1, 1fr)", // Single column on mobile
           sm: "repeat(2, 1fr)", // Two columns on small tablets
