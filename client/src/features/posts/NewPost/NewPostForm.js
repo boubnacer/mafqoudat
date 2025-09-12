@@ -1030,6 +1030,18 @@ const NewPostForm = ({ user, countries, categories, flOptions }) => {
                   >
                     {t('phoneNumber')} *
                   </FormLabel>
+                  <Typography 
+                    variant="caption" 
+                    sx={{ 
+                      mb: 1, 
+                      display: "block", 
+                      fontSize: '1rem',
+                      color: theme.palette.mode === 'dark' ? 'rgba(255,255,255,0.7)' : 'rgba(0,0,0,0.6)',
+                      fontWeight: 500
+                    }}
+                  >
+                    {t('phoneNumberDescription')}
+                  </Typography>
                   <Textfield 
                     name="contact" 
                     variant="outlined" 
@@ -1053,21 +1065,6 @@ const NewPostForm = ({ user, countries, categories, flOptions }) => {
                   >
                     {t('whatsappContact')} ({t('optional')})
                   </FormLabel>
-                  <Typography 
-                    variant="caption" 
-                    sx={{ 
-                      mb: 1, 
-                      display: "block", 
-                      fontSize: '1rem',
-                      color: theme.palette.mode === 'dark' ? 'rgba(255,255,255,0.7)' : 'rgba(0,0,0,0.6)',
-                      fontWeight: 500
-                    }}
-                  >
-                    {getFoundLostType(values.foundLost) === 'LOST' 
-                      ? (t('whatsappContactLostMessage') || "We'll use this WhatsApp number to contact you if someone finds your lost item.")
-                      : (t('whatsappContactFoundMessage') || "We'll use this WhatsApp number to contact you if the owner of the found item wants to reach you.")
-                    }
-                  </Typography>
                   <Typography 
                     variant="caption" 
                     sx={{ 
@@ -1235,7 +1232,7 @@ const NewPostForm = ({ user, countries, categories, flOptions }) => {
                       background: theme.palette.mode === 'dark'
                         ? 'linear-gradient(45deg, #4CAF50 30%, #66BB6A 90%)'
                         : 'linear-gradient(45deg, #2E7D32 30%, #388E3C 90%)',
-                      color: '#ffffff',
+                      color: '#ffffff !important',
                       '&:hover': {
                         background: theme.palette.mode === 'dark'
                           ? 'linear-gradient(45deg, #388E3C 30%, #4CAF50 90%)'
@@ -1248,6 +1245,9 @@ const NewPostForm = ({ user, countries, categories, flOptions }) => {
                       '&:disabled': {
                         background: theme.palette.mode === 'dark' ? 'rgba(76, 175, 80, 0.3)' : 'rgba(46, 125, 50, 0.3)',
                         color: theme.palette.mode === 'dark' ? 'rgba(255,255,255,0.5)' : 'rgba(255,255,255,0.7)',
+                      },
+                      '& .MuiButton-root': {
+                        color: '#ffffff !important',
                       },
                       transition: 'all 0.3s ease-in-out',
                       boxShadow: theme.palette.mode === 'dark'
