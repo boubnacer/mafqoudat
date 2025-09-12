@@ -1155,13 +1155,7 @@ const NewPostForm = ({ user, countries, categories, flOptions }) => {
                         name="image"
                         type="file"
                         accept="image/*"
-                        capture="environment"
-                        style={{ 
-                          position: 'absolute',
-                          left: '-9999px',
-                          opacity: 0,
-                          pointerEvents: 'none'
-                        }}
+                        hidden
                         onChange={async (event) => {
                           const file = event.currentTarget.files[0];
                           // Clear previous compression info
@@ -1214,19 +1208,6 @@ const NewPostForm = ({ user, countries, categories, flOptions }) => {
                     }}
                   >
                     {t('imageOptionalMessage')}
-                  </Typography>
-                  <Typography 
-                    variant="caption" 
-                    sx={{ 
-                      mt: 0.5, 
-                      display: "block", 
-                      fontSize: '0.9rem',
-                      color: theme.palette.mode === 'dark' ? '#ff9800' : '#f57c00',
-                      fontWeight: 500,
-                      fontStyle: 'italic'
-                    }}
-                  >
-                    {t('mobileImageTip') || "💡 Tip: On mobile, after selecting an image, look for the 'Done' or 'Select' button in the top-right corner of your screen."}
                   </Typography>
                 </Box>
                 
