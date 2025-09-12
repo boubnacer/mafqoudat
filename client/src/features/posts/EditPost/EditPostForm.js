@@ -1285,7 +1285,8 @@ const EditPostForm = ({ post, user, countries, flOptions, categories, cities }) 
                     {t('deletePost')}
                   </Button>
                   
-                  <SubmitButton 
+                  <Button 
+                    type="submit"
                     disabled={isLoading || !selectedCountry || !values.city || !values.exactDate}
                     sx={{ 
                       minWidth: 140,
@@ -1298,6 +1299,7 @@ const EditPostForm = ({ post, user, countries, flOptions, categories, cities }) 
                       background: theme.palette.mode === 'dark'
                         ? 'linear-gradient(45deg, #4CAF50 30%, #66BB6A 90%)'
                         : 'linear-gradient(45deg, #2E7D32 30%, #388E3C 90%)',
+                      color: 'white',
                       '&:hover': {
                         background: theme.palette.mode === 'dark'
                           ? 'linear-gradient(45deg, #388E3C 30%, #4CAF50 90%)'
@@ -1311,14 +1313,14 @@ const EditPostForm = ({ post, user, countries, flOptions, categories, cities }) 
                         background: theme.palette.mode === 'dark' ? 'rgba(76, 175, 80, 0.3)' : 'rgba(46, 125, 50, 0.3)',
                         color: theme.palette.mode === 'dark' ? 'rgba(255,255,255,0.5)' : 'rgba(255,255,255,0.7)',
                       },
-                      transition: 'all 0.3s ease-in-out',
+                      transition: 'all 0.2s ease-in-out',
                       boxShadow: theme.palette.mode === 'dark'
                         ? '0 4px 16px rgba(76, 175, 80, 0.3)'
                         : '0 4px 16px rgba(46, 125, 50, 0.3)',
                     }}
                   >
                     {isLoading ? <CircularProgress size={20} /> : t('updatePost')}
-                  </SubmitButton>
+                  </Button>
                 </Box>
               </Box>
             </Form>
