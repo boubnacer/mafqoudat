@@ -52,12 +52,27 @@ const EditPostForm = ({ post, user, countries, flOptions, categories, cities }) 
   const [setFieldValueCallback, setSetFieldValueCallback] = useState(null);
   const [fieldErrors, setFieldErrors] = useState({});
   const [hasFormChanged, setHasFormChanged] = useState(false);
+  const [showSuccessMessage, setShowSuccessMessage] = useState(false);
+  const [successMessage, setSuccessMessage] = useState('');
 
   useEffect(() => {
-    if (isSuccess || isDelSuccess) {
-      navigate("/dash");
+    if (isSuccess) {
+      setSuccessMessage(t('postUpdatedSuccessfully') || 'Post updated successfully! Your changes have been saved.');
+      setShowSuccessMessage(true);
+      setTimeout(() => {
+        setShowSuccessMessage(false);
+        navigate("/dash");
+      }, 2000);
     }
-  }, [isSuccess, isDelSuccess, navigate]);
+    if (isDelSuccess) {
+      setSuccessMessage(t('postDeletedSuccessfully') || 'Post deleted successfully! The post has been removed.');
+      setShowSuccessMessage(true);
+      setTimeout(() => {
+        setShowSuccessMessage(false);
+        navigate("/dash");
+      }, 2000);
+    }
+  }, [isSuccess, isDelSuccess, navigate, t]);
 
   // Initialize selected country from post data
   useEffect(() => {
@@ -563,6 +578,86 @@ const EditPostForm = ({ post, user, countries, flOptions, categories, cities }) 
         >
           {t('editPost')}
         </Typography>
+
+        {/* Success Message */}
+        {showSuccessMessage && (
+          <Box
+            sx={{
+              position: 'fixed',
+              top: { xs: '80px', md: '100px' },
+              left: '50%',
+              transform: 'translateX(-50%)',
+              zIndex: 9999,
+              maxWidth: { xs: '90%', sm: '400px' },
+              width: '100%',
+              animation: 'slideDown 0.3s ease-out',
+              '@keyframes slideDown': {
+                '0%': {
+                  opacity: 0,
+                  transform: 'translateX(-50%) translateY(-20px)',
+                },
+                '100%': {
+                  opacity: 1,
+                  transform: 'translateX(-50%) translateY(0)',
+                },
+              },
+            }}
+          >
+            <Alert
+              severity="success"
+              sx={{
+                borderRadius: 3,
+                boxShadow: theme.palette.mode === 'dark'
+                  ? '0 8px 32px rgba(76, 175, 80, 0.3)'
+                  : '0 8px 32px rgba(76, 175, 80, 0.2)',
+                border: `2px solid ${theme.palette.mode === 'dark' ? 'rgba(76, 175, 80, 0.3)' : 'rgba(76, 175, 80, 0.2)'}`,
+                backgroundColor: theme.palette.mode === 'dark'
+                  ? 'rgba(76, 175, 80, 0.1)'
+                  : 'rgba(76, 175, 80, 0.05)',
+                backdropFilter: 'blur(10px)',
+                '& .MuiAlert-icon': {
+                  fontSize: '1.5rem',
+                  color: theme.palette.mode === 'dark' ? '#4CAF50' : '#2E7D32',
+                },
+                '& .MuiAlert-message': {
+                  fontSize: '1rem',
+                  fontWeight: 600,
+                  color: theme.palette.mode === 'dark' ? '#4CAF50' : '#2E7D32',
+                  display: 'flex',
+                  alignItems: 'center',
+                  gap: 1,
+                },
+              }}
+            >
+              <Box display="flex" alignItems="center" gap={1}>
+                <Box
+                  sx={{
+                    width: 8,
+                    height: 8,
+                    borderRadius: '50%',
+                    backgroundColor: theme.palette.mode === 'dark' ? '#4CAF50' : '#2E7D32',
+                    animation: 'pulse 1.5s ease-in-out infinite',
+                    '@keyframes pulse': {
+                      '0%': {
+                        transform: 'scale(1)',
+                        opacity: 1,
+                      },
+                      '50%': {
+                        transform: 'scale(1.2)',
+                        opacity: 0.7,
+                      },
+                      '100%': {
+                        transform: 'scale(1)',
+                        opacity: 1,
+                      },
+                    },
+                  }}
+                />
+                {successMessage}
+              </Box>
+            </Alert>
+          </Box>
+        )}
 
         <Formik
           initialValues={initialFormState}
