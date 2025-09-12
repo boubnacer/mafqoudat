@@ -1265,11 +1265,10 @@ const EditPostForm = ({ post, user, countries, flOptions, categories, cities }) 
                     variant="outlined" 
                     disabled={isLoading}
                     sx={{ 
-                      width: { xs: "100%", sm: "100%", md: "100%" },
-                      maxWidth: { xs: "100%", sm: "400px", md: "500px" },
-                      py: { xs: 3, sm: 2, md: 2 },
-                      px: { xs: 5, sm: 3, md: 3 },
-                      fontSize: { xs: "1.5rem", sm: "1.3rem", md: "1.3rem" },
+                      minWidth: 140,
+                      py: 2,
+                      px: 3,
+                      fontSize: '1.3rem',
                       fontWeight: 700,
                       borderRadius: 3,
                       textTransform: 'none',
@@ -1296,11 +1295,10 @@ const EditPostForm = ({ post, user, countries, flOptions, categories, cities }) 
                     type="submit"
                     disabled={isLoading || !selectedCountry || !values.city || !values.exactDate}
                     sx={{ 
-                      width: { xs: "100%", sm: "100%", md: "100%" },
-                      maxWidth: { xs: "100%", sm: "400px", md: "500px" },
-                      py: { xs: 3, sm: 2, md: 2 },
-                      px: { xs: 5, sm: 3, md: 3 },
-                      fontSize: { xs: "1.5rem", sm: "1.3rem", md: "1.3rem" },
+                      minWidth: 140,
+                      py: 2,
+                      px: 3,
+                      fontSize: '1.3rem',
                       fontWeight: 700,
                       borderRadius: 3,
                       textTransform: 'none',
