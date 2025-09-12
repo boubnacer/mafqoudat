@@ -573,7 +573,7 @@ const NewPostForm = ({ user, countries, categories, flOptions }) => {
                       color: theme.palette.text.primary
                     }}
                   >
-                    {t('foundOrLost')} *
+                    {t('haveYouLostOrFoundSomething')} *
                   </FormLabel>
                   <SelectOption 
                     name="foundLost" 
@@ -1028,7 +1028,7 @@ const NewPostForm = ({ user, countries, categories, flOptions }) => {
                       color: theme.palette.text.primary
                     }}
                   >
-                    {t('contact')} *
+                    {t('phoneNumber')} *
                   </FormLabel>
                   <Textfield 
                     name="contact" 
@@ -1051,7 +1051,7 @@ const NewPostForm = ({ user, countries, categories, flOptions }) => {
                       color: theme.palette.text.primary
                     }}
                   >
-                    {t('whatsappContact')}
+                    {t('whatsappContact')} ({t('optional')})
                   </FormLabel>
                   <Typography 
                     variant="caption" 
@@ -1067,6 +1067,19 @@ const NewPostForm = ({ user, countries, categories, flOptions }) => {
                       ? (t('whatsappContactLostMessage') || "We'll use this WhatsApp number to contact you if someone finds your lost item.")
                       : (t('whatsappContactFoundMessage') || "We'll use this WhatsApp number to contact you if the owner of the found item wants to reach you.")
                     }
+                  </Typography>
+                  <Typography 
+                    variant="caption" 
+                    sx={{ 
+                      mb: 1, 
+                      display: "block", 
+                      fontSize: '1rem',
+                      color: theme.palette.mode === 'dark' ? '#4CAF50' : '#2E7D32',
+                      fontWeight: 500,
+                      fontStyle: 'italic'
+                    }}
+                  >
+                    {t('whatsappOptionalMessage') || "This is optional - you can provide your WhatsApp number if you prefer to be contacted via WhatsApp."}
                   </Typography>
                   <Box display="flex" flexDirection="column" gap={2}>
                     <Textfield 
@@ -1201,18 +1214,28 @@ const NewPostForm = ({ user, countries, categories, flOptions }) => {
                   </Typography>
                 </Box>
                 
-                <Box mt={4}>
+                <Box 
+                  mt={4} 
+                  sx={{ 
+                    display: 'flex', 
+                    justifyContent: 'center',
+                    width: '100%'
+                  }}
+                >
                   <SubmitButton
                     disabled={isSubmitting}
                     sx={{ 
-                      width: "100%",
-                      py: 2,
-                      fontSize: "1.3rem",
+                      width: { xs: "100%", sm: "100%", md: "100%" },
+                      maxWidth: { xs: "100%", sm: "400px", md: "500px" },
+                      py: { xs: 2.5, sm: 2, md: 2 },
+                      px: { xs: 4, sm: 3, md: 3 },
+                      fontSize: { xs: "1.4rem", sm: "1.3rem", md: "1.3rem" },
                       fontWeight: 700,
                       borderRadius: 3,
                       background: theme.palette.mode === 'dark'
                         ? 'linear-gradient(45deg, #4CAF50 30%, #66BB6A 90%)'
                         : 'linear-gradient(45deg, #2E7D32 30%, #388E3C 90%)',
+                      color: '#ffffff',
                       '&:hover': {
                         background: theme.palette.mode === 'dark'
                           ? 'linear-gradient(45deg, #388E3C 30%, #4CAF50 90%)'
@@ -1238,13 +1261,16 @@ const NewPostForm = ({ user, countries, categories, flOptions }) => {
                       t('createPost')
                     )}
                   </SubmitButton>
-                  
-                  {/* Dynamic validation error message */}
-                  {status?.validationError && (
+                </Box>
+                
+                {/* Dynamic validation error message */}
+                {status?.validationError && (
+                  <Box mt={2} sx={{ display: 'flex', justifyContent: 'center', width: '100%' }}>
                     <Alert 
                       severity="error" 
                       sx={{ 
-                        mt: 2,
+                        width: '100%',
+                        maxWidth: { xs: "100%", sm: "400px", md: "500px" },
                         borderRadius: 2,
                         '& .MuiAlert-message': {
                           width: '100%'
@@ -1255,9 +1281,8 @@ const NewPostForm = ({ user, countries, categories, flOptions }) => {
                         {status.validationError}
                       </Typography>
                     </Alert>
-                  )}
-                  
-                </Box>
+                  </Box>
+                )}
               </Box>
             </Form>
             );
