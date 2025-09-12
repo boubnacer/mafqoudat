@@ -29,11 +29,13 @@ import {
 } from "@mui/material";
 import { Add as AddIcon, Close as CloseIcon } from '@mui/icons-material';
 import { useTranslation } from "../../../utils/translations";
+import useAuth from "../../../hooks/useAuth";
 
 const EditPostForm = ({ post, user, countries, flOptions, categories, cities }) => {
   const [updatePost, { isLoading, isSuccess, isError, error }] = useUpdatePostMutation();
   const [deletePost, { isSuccess: isDelSuccess, isError: isDelError, error: delerror }] = useDeletePostMutation();
   const { t, currentLanguage } = useTranslation();
+  const { role } = useAuth();
 
   const navigate = useNavigate();
   const theme = useTheme();
@@ -83,7 +85,7 @@ const EditPostForm = ({ post, user, countries, flOptions, categories, cities }) 
       // Handle both object and string city formats
       const cityId = post.city?.id || post.city;
       // Check if the post city exists in available cities
-      const cityExists = availableCities.find(city => city.id === cityId || city._id === cityId);
+      const cityExists = availableCities.find(city => city.id === cityId);
       if (cityExists) {
         setFieldValueCallback('city', cityId);
       }
@@ -220,7 +222,7 @@ const EditPostForm = ({ post, user, countries, flOptions, categories, cities }) 
   // Get city display name for selected city
   const getCityDisplayName = (cityId) => {
     if (!cityId) return '';
-    const city = availableCities.find(c => c.id === cityId || c._id === cityId);
+    const city = availableCities.find(c => c.id === cityId);
     return city ? (city.label || city.name || 'Unknown City') : cityId;
   };
 
@@ -680,7 +682,7 @@ const EditPostForm = ({ post, user, countries, flOptions, categories, cities }) 
                       color: theme.palette.text.primary
                     }}
                   >
-                    {t('foundOrLost')} *
+                    {t('haveYouLostOrFoundSomething')} *
                   </FormLabel>
                   <SelectOption 
                     name="foundLost" 
@@ -911,7 +913,7 @@ const EditPostForm = ({ post, user, countries, flOptions, categories, cities }) 
                       }}
                     >
                       {availableCities.map((city) => (
-                        <MenuItem key={city.id || city._id} value={city.id || city._id}>
+                        <MenuItem key={city.id} value={city.id}>
                           {city.label || city.name || 'Unknown City'}
                         </MenuItem>
                       ))}
@@ -1141,7 +1143,7 @@ const EditPostForm = ({ post, user, countries, flOptions, categories, cities }) 
                       color: theme.palette.text.primary
                     }}
                   >
-                    {t('contact')} *
+                    {t('phoneNumber')} *
                   </FormLabel>
                   <Textfield 
                     name="contact" 
@@ -1164,7 +1166,7 @@ const EditPostForm = ({ post, user, countries, flOptions, categories, cities }) 
                       color: theme.palette.text.primary
                     }}
                   >
-                    {t('whatsappContact')}
+                    {t('whatsappContact')} ({t('optional')})
                   </FormLabel>
                   <Typography 
                     variant="caption" 
@@ -1190,61 +1192,65 @@ const EditPostForm = ({ post, user, countries, flOptions, categories, cities }) 
                   </Box>
                 </Box>
 
-                {/* Status Section */}
-                <Typography 
-                  variant="h5" 
-                  sx={{ 
-                    fontWeight: 700, 
-                    color: theme.palette.mode === 'dark' ? '#4CAF50' : '#2E7D32',
-                    fontSize: '1.4rem',
-                    mb: 1,
-                    textShadow: theme.palette.mode === 'dark' ? '0 1px 2px rgba(0,0,0,0.3)' : '0 1px 2px rgba(0,0,0,0.1)'
-                  }}
-                >
-                  {t('status')}
-                </Typography>
-
-                <Box>
-                  <FormLabel 
-                    htmlFor="status" 
-                    sx={{ 
-                      mb: 1, 
-                      display: "block", 
-                      fontWeight: 600, 
-                      fontSize: '1.15rem',
-                      color: theme.palette.text.primary
-                    }}
-                  >
-                    {t('postStatus')}
-                  </FormLabel>
-                  <FormControl fullWidth>
-                    <Select
-                      name="status"
-                      value={values.status}
-                      onChange={(e) => setFieldValue('status', e.target.value)}
-                      variant="outlined"
-                      sx={{
-                        borderRadius: 3,
-                        '& .MuiOutlinedInput-notchedOutline': {
-                          borderColor: theme.palette.mode === 'dark' ? 'rgba(255,255,255,0.3)' : 'rgba(0,0,0,0.2)',
-                        },
-                        '&:hover .MuiOutlinedInput-notchedOutline': {
-                          borderColor: theme.palette.mode === 'dark' ? 'rgba(255,255,255,0.5)' : 'rgba(0,0,0,0.4)',
-                        },
-                        '&.Mui-focused .MuiOutlinedInput-notchedOutline': {
-                          borderColor: theme.palette.mode === 'dark' ? '#4CAF50' : '#2E7D32',
-                        },
-                        color: theme.palette.text.primary,
-                        fontWeight: 500
+                {/* Status Section - Only visible for admin */}
+                {role === 'admin' && (
+                  <>
+                    <Typography 
+                      variant="h5" 
+                      sx={{ 
+                        fontWeight: 700, 
+                        color: theme.palette.mode === 'dark' ? '#4CAF50' : '#2E7D32',
+                        fontSize: '1.4rem',
+                        mb: 1,
+                        textShadow: theme.palette.mode === 'dark' ? '0 1px 2px rgba(0,0,0,0.3)' : '0 1px 2px rgba(0,0,0,0.1)'
                       }}
                     >
-                      <MenuItem value="active">{t('active')}</MenuItem>
-                      <MenuItem value="resolved">{t('resolved')}</MenuItem>
-                      <MenuItem value="expired">{t('expired')}</MenuItem>
-                      <MenuItem value="suspended">{t('suspended')}</MenuItem>
-                    </Select>
-                  </FormControl>
-                </Box>
+                      {t('status')}
+                    </Typography>
+
+                    <Box>
+                      <FormLabel 
+                        htmlFor="status" 
+                        sx={{ 
+                          mb: 1, 
+                          display: "block", 
+                          fontWeight: 600, 
+                          fontSize: '1.15rem',
+                          color: theme.palette.text.primary
+                        }}
+                      >
+                        {t('postStatus')}
+                      </FormLabel>
+                      <FormControl fullWidth>
+                        <Select
+                          name="status"
+                          value={values.status}
+                          onChange={(e) => setFieldValue('status', e.target.value)}
+                          variant="outlined"
+                          sx={{
+                            borderRadius: 3,
+                            '& .MuiOutlinedInput-notchedOutline': {
+                              borderColor: theme.palette.mode === 'dark' ? 'rgba(255,255,255,0.3)' : 'rgba(0,0,0,0.2)',
+                            },
+                            '&:hover .MuiOutlinedInput-notchedOutline': {
+                              borderColor: theme.palette.mode === 'dark' ? 'rgba(255,255,255,0.5)' : 'rgba(0,0,0,0.4)',
+                            },
+                            '&.Mui-focused .MuiOutlinedInput-notchedOutline': {
+                              borderColor: theme.palette.mode === 'dark' ? '#4CAF50' : '#2E7D32',
+                            },
+                            color: theme.palette.text.primary,
+                            fontWeight: 500
+                          }}
+                        >
+                          <MenuItem value="active">{t('active')}</MenuItem>
+                          <MenuItem value="resolved">{t('resolved')}</MenuItem>
+                          <MenuItem value="expired">{t('expired')}</MenuItem>
+                          <MenuItem value="suspended">{t('suspended')}</MenuItem>
+                        </Select>
+                      </FormControl>
+                    </Box>
+                  </>
+                )}
 
 
                 {/* Action Buttons */}
