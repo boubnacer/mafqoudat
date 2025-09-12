@@ -1109,6 +1109,22 @@ const EditPostForm = ({ post, user, countries, flOptions, categories, cities }) 
                       : t('descriptionFoundPlaceholder')
                     }
                   </Typography>
+                  <Typography 
+                    variant="caption" 
+                    sx={{ 
+                      mb: 1, 
+                      display: "block", 
+                      fontStyle: "italic", 
+                      fontSize: '1rem',
+                      color: theme.palette.mode === 'dark' ? '#ff9800' : '#f57c00',
+                      fontWeight: 500
+                    }}
+                  >
+                    {getFoundLostType(values.foundLost) === 'LOST' 
+                      ? (t('descriptionOptionalLostMessage') || "Description is optional but recommended when you don't have an image of the lost item.")
+                      : (t('descriptionOptionalFoundMessage') || "Description is optional. You can add an image instead, or provide both for better identification.")
+                    }
+                  </Typography>
                   <Textfield 
                     name="description" 
                     variant="outlined" 
@@ -1145,6 +1161,18 @@ const EditPostForm = ({ post, user, countries, flOptions, categories, cities }) 
                   >
                     {t('phoneNumber')} *
                   </FormLabel>
+                  <Typography 
+                    variant="caption" 
+                    sx={{ 
+                      mb: 1, 
+                      display: "block", 
+                      fontSize: '1rem',
+                      color: theme.palette.mode === 'dark' ? 'rgba(255,255,255,0.7)' : 'rgba(0,0,0,0.6)',
+                      fontWeight: 500
+                    }}
+                  >
+                    {t('phoneNumberDescription')}
+                  </Typography>
                   <Textfield 
                     name="contact" 
                     variant="outlined" 
@@ -1174,14 +1202,12 @@ const EditPostForm = ({ post, user, countries, flOptions, categories, cities }) 
                       mb: 1, 
                       display: "block", 
                       fontSize: '1rem',
-                      color: theme.palette.mode === 'dark' ? 'rgba(255,255,255,0.7)' : 'rgba(0,0,0,0.6)',
-                      fontWeight: 500
+                      color: theme.palette.mode === 'dark' ? '#ff9800' : '#f57c00',
+                      fontWeight: 500,
+                      fontStyle: 'italic'
                     }}
                   >
-                    {getFoundLostType(values.foundLost) === 'LOST' 
-                      ? (t('whatsappContactLostMessage') || "We'll use this WhatsApp number to contact you if someone finds your lost item.")
-                      : (t('whatsappContactFoundMessage') || "We'll use this WhatsApp number to contact you if the owner of the found item wants to reach you.")
-                    }
+                    {t('whatsappOptionalMessage') || "This is optional - you can provide your WhatsApp number if you prefer to be contacted via WhatsApp."}
                   </Typography>
                   <Box display="flex" flexDirection="column" gap={2}>
                     <Textfield 
@@ -1260,7 +1286,7 @@ const EditPostForm = ({ post, user, countries, flOptions, categories, cities }) 
                     variant="outlined" 
                     disabled={isLoading}
                     sx={{ 
-                      minWidth: 120,
+                      minWidth: 140,
                       borderRadius: 3,
                       textTransform: 'none',
                       fontWeight: 600,
