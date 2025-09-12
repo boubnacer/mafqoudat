@@ -1268,18 +1268,24 @@ const EditPostForm = ({ post, user, countries, flOptions, categories, cities }) 
                       minWidth: 140,
                       borderRadius: 3,
                       textTransform: 'none',
-                      fontWeight: 600,
-                      fontSize: '1rem',
-                      py: 1.5,
+                      fontWeight: 700,
+                      fontSize: '1.1rem',
+                      py: 2,
                       px: 3,
                       borderColor: theme.palette.mode === 'dark' ? '#f44336' : '#d32f2f',
                       color: theme.palette.mode === 'dark' ? '#f44336' : '#d32f2f',
                       '&:hover': {
                         borderColor: theme.palette.mode === 'dark' ? '#e53935' : '#c62828',
                         backgroundColor: theme.palette.mode === 'dark' ? 'rgba(244, 67, 54, 0.08)' : 'rgba(211, 47, 47, 0.08)',
-                        transform: 'translateY(-1px)',
+                        transform: 'translateY(-2px)',
+                        boxShadow: theme.palette.mode === 'dark'
+                          ? '0 8px 24px rgba(244, 67, 54, 0.4)'
+                          : '0 8px 24px rgba(211, 47, 47, 0.4)',
                       },
-                      transition: 'all 0.2s ease-in-out'
+                      transition: 'all 0.3s ease-in-out',
+                      boxShadow: theme.palette.mode === 'dark'
+                        ? '0 4px 16px rgba(244, 67, 54, 0.3)'
+                        : '0 4px 16px rgba(211, 47, 47, 0.3)',
                     }}
                   >
                     {t('deletePost')}
@@ -1292,9 +1298,9 @@ const EditPostForm = ({ post, user, countries, flOptions, categories, cities }) 
                       minWidth: 140,
                       borderRadius: 3,
                       textTransform: 'none',
-                      fontWeight: 600,
-                      fontSize: '1rem',
-                      py: 1.5,
+                      fontWeight: 700,
+                      fontSize: '1.1rem',
+                      py: 2,
                       px: 3,
                       background: theme.palette.mode === 'dark'
                         ? 'linear-gradient(45deg, #4CAF50 30%, #66BB6A 90%)'
@@ -1304,7 +1310,7 @@ const EditPostForm = ({ post, user, countries, flOptions, categories, cities }) 
                         background: theme.palette.mode === 'dark'
                           ? 'linear-gradient(45deg, #388E3C 30%, #4CAF50 90%)'
                           : 'linear-gradient(45deg, #1B5E20 30%, #2E7D32 90%)',
-                        transform: 'translateY(-1px)',
+                        transform: 'translateY(-2px)',
                         boxShadow: theme.palette.mode === 'dark'
                           ? '0 8px 24px rgba(76, 175, 80, 0.4)'
                           : '0 8px 24px rgba(46, 125, 50, 0.4)',
@@ -1313,7 +1319,7 @@ const EditPostForm = ({ post, user, countries, flOptions, categories, cities }) 
                         background: theme.palette.mode === 'dark' ? 'rgba(76, 175, 80, 0.3)' : 'rgba(46, 125, 50, 0.3)',
                         color: theme.palette.mode === 'dark' ? 'rgba(255,255,255,0.5)' : 'rgba(255,255,255,0.7)',
                       },
-                      transition: 'all 0.2s ease-in-out',
+                      transition: 'all 0.3s ease-in-out',
                       boxShadow: theme.palette.mode === 'dark'
                         ? '0 4px 16px rgba(76, 175, 80, 0.3)'
                         : '0 4px 16px rgba(46, 125, 50, 0.3)',
