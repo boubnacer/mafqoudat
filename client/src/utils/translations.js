@@ -1567,7 +1567,7 @@ export const translations = {
     postedOn: "نشر في",
     contact: "اتصال",
     phoneNumber: "رقم الهاتف",
-    haveYouLostOrFoundSomething: "هل فقدت شيئاً أم وجدت شيئاً؟",
+    haveYouLostOrFoundSomething: "هل فقدت شيئاً أم وجدته ؟",
     whatsappOptionalMessage: "هذا اختياري - يمكنك تقديم رقم الواتساب الخاص بك إذا كنت تفضل التواصل عبر الواتساب.",
     viewDetails: "عرض التفاصيل",
     report: "إبلاغ",

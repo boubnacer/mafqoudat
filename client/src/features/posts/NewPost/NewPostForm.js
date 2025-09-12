@@ -1074,7 +1074,7 @@ const NewPostForm = ({ user, countries, categories, flOptions }) => {
                       mb: 1, 
                       display: "block", 
                       fontSize: '1rem',
-                      color: theme.palette.mode === 'dark' ? '#4CAF50' : '#2E7D32',
+                      color: theme.palette.mode === 'dark' ? '#ff9800' : '#f57c00',
                       fontWeight: 500,
                       fontStyle: 'italic'
                     }}
@@ -1227,9 +1227,9 @@ const NewPostForm = ({ user, countries, categories, flOptions }) => {
                     sx={{ 
                       width: { xs: "100%", sm: "100%", md: "100%" },
                       maxWidth: { xs: "100%", sm: "400px", md: "500px" },
-                      py: { xs: 2.5, sm: 2, md: 2 },
-                      px: { xs: 4, sm: 3, md: 3 },
-                      fontSize: { xs: "1.4rem", sm: "1.3rem", md: "1.3rem" },
+                      py: { xs: 3, sm: 2, md: 2 },
+                      px: { xs: 5, sm: 3, md: 3 },
+                      fontSize: { xs: "1.5rem", sm: "1.3rem", md: "1.3rem" },
                       fontWeight: 700,
                       borderRadius: 3,
                       background: theme.palette.mode === 'dark'
