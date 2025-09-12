@@ -1291,9 +1291,9 @@ const EditPostForm = ({ post, user, countries, flOptions, categories, cities }) 
                       minWidth: 140,
                       borderRadius: 3,
                       textTransform: 'none',
-                      fontWeight: 700,
-                      fontSize: '1.1rem',
-                      py: 2,
+                      fontWeight: 600,
+                      fontSize: '1rem',
+                      py: 1.5,
                       px: 3,
                       background: theme.palette.mode === 'dark'
                         ? 'linear-gradient(45deg, #4CAF50 30%, #66BB6A 90%)'
