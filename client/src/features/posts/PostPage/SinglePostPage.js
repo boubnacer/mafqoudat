@@ -611,7 +611,7 @@ const SinglePostPage = ({
         p: { xs: 2, md: 4 },
         pt: { xs: "8rem", md: "10rem" },
         minHeight: "100vh",
-        background: theme.palette.background.default
+        background: isDarkMode ? theme.palette.background.default : '#f5f5f5'
       }}
     >
       {/* Back Button */}
