@@ -1302,7 +1302,7 @@ const EditPostForm = ({ post, user, countries, flOptions, categories, cities }) 
                         background: theme.palette.mode === 'dark'
                           ? 'linear-gradient(45deg, #388E3C 30%, #4CAF50 90%)'
                           : 'linear-gradient(45deg, #1B5E20 30%, #2E7D32 90%)',
-                        transform: 'translateY(-2px)',
+                        transform: 'translateY(-1px)',
                         boxShadow: theme.palette.mode === 'dark'
                           ? '0 8px 24px rgba(76, 175, 80, 0.4)'
                           : '0 8px 24px rgba(46, 125, 50, 0.4)',
