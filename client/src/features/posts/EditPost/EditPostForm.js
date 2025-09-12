@@ -1265,10 +1265,11 @@ const EditPostForm = ({ post, user, countries, flOptions, categories, cities }) 
                     variant="outlined" 
                     disabled={isLoading}
                     sx={{ 
-                      minWidth: 140,
-                      py: 2,
-                      px: 3,
-                      fontSize: '1.3rem',
+                      width: { xs: "100%", sm: "100%", md: "100%" },
+                      maxWidth: { xs: "100%", sm: "400px", md: "500px" },
+                      py: { xs: 3, sm: 2, md: 2 },
+                      px: { xs: 5, sm: 3, md: 3 },
+                      fontSize: { xs: "1.5rem", sm: "1.3rem", md: "1.3rem" },
                       fontWeight: 700,
                       borderRadius: 3,
                       textTransform: 'none',
@@ -1281,6 +1282,13 @@ const EditPostForm = ({ post, user, countries, flOptions, categories, cities }) 
                         boxShadow: theme.palette.mode === 'dark'
                           ? '0 8px 24px rgba(244, 67, 54, 0.4)'
                           : '0 8px 24px rgba(211, 47, 47, 0.4)',
+                      },
+                      '&:disabled': {
+                        borderColor: theme.palette.mode === 'dark' ? 'rgba(244, 67, 54, 0.3)' : 'rgba(211, 47, 47, 0.3)',
+                        color: theme.palette.mode === 'dark' ? 'rgba(244, 67, 54, 0.5)' : 'rgba(211, 47, 47, 0.7)',
+                      },
+                      '& .MuiButton-root': {
+                        color: theme.palette.mode === 'dark' ? '#f44336' : '#d32f2f',
                       },
                       transition: 'all 0.3s ease-in-out',
                       boxShadow: theme.palette.mode === 'dark'
@@ -1295,17 +1303,18 @@ const EditPostForm = ({ post, user, countries, flOptions, categories, cities }) 
                     type="submit"
                     disabled={isLoading || !selectedCountry || !values.city || !values.exactDate}
                     sx={{ 
-                      minWidth: 140,
-                      py: 2,
-                      px: 3,
-                      fontSize: '1.3rem',
+                      width: { xs: "100%", sm: "100%", md: "100%" },
+                      maxWidth: { xs: "100%", sm: "400px", md: "500px" },
+                      py: { xs: 3, sm: 2, md: 2 },
+                      px: { xs: 5, sm: 3, md: 3 },
+                      fontSize: { xs: "1.5rem", sm: "1.3rem", md: "1.3rem" },
                       fontWeight: 700,
                       borderRadius: 3,
                       textTransform: 'none',
                       background: theme.palette.mode === 'dark'
                         ? 'linear-gradient(45deg, #4CAF50 30%, #66BB6A 90%)'
                         : 'linear-gradient(45deg, #2E7D32 30%, #388E3C 90%)',
-                      color: 'white',
+                      color: '#ffffff !important',
                       '&:hover': {
                         background: theme.palette.mode === 'dark'
                           ? 'linear-gradient(45deg, #388E3C 30%, #4CAF50 90%)'
@@ -1318,6 +1327,9 @@ const EditPostForm = ({ post, user, countries, flOptions, categories, cities }) 
                       '&:disabled': {
                         background: theme.palette.mode === 'dark' ? 'rgba(76, 175, 80, 0.3)' : 'rgba(46, 125, 50, 0.3)',
                         color: theme.palette.mode === 'dark' ? 'rgba(255,255,255,0.5)' : 'rgba(255,255,255,0.7)',
+                      },
+                      '& .MuiButton-root': {
+                        color: '#ffffff !important',
                       },
                       transition: 'all 0.3s ease-in-out',
                       boxShadow: theme.palette.mode === 'dark'
