@@ -723,21 +723,11 @@ const EditPostForm = ({ post, user, countries, flOptions, categories, cities }) 
                     }
                   </Typography>
                   <FormControl fullWidth error={!!fieldErrors.country}>
-                    <InputLabel 
-                      id="country-select-label"
-                      sx={{
-                        color: theme.palette.mode === 'dark' ? 'rgba(255,255,255,0.7)' : 'rgba(0,0,0,0.6)',
-                        fontWeight: 500
-                      }}
-                    >
-                      {t('chooseCountry')}
-                    </InputLabel>
                     <Select
-                      labelId="country-select-label"
                       value={values.country || ""}
-                      label={t('chooseCountry')}
                       onChange={(e) => handleCountrySelect(e, setFieldValue)}
                       data-testid="country-select"
+                      displayEmpty
                       sx={{
                         borderRadius: 2,
                         '& .MuiOutlinedInput-notchedOutline': {
@@ -862,20 +852,9 @@ const EditPostForm = ({ post, user, countries, flOptions, categories, cities }) 
                   </Typography>
                   
                   <FormControl fullWidth disabled={!selectedCountry || loadingCities} error={!!fieldErrors.city}>
-                    <InputLabel 
-                      id="city-select-label"
-                      sx={{
-                        color: theme.palette.mode === 'dark' ? 'rgba(255,255,255,0.7)' : 'rgba(0,0,0,0.6)',
-                        fontWeight: 500
-                      }}
-                    >
-                      {t('chooseCity')}
-                    </InputLabel>
                     <Select
                       name="city"
-                      labelId="city-select-label"
                       value={values.city || ""}
-                      label={t('chooseCity')}
                       onChange={(e) => {
                         const selectedValue = e.target.value;
                         if (selectedValue === 'other') {
