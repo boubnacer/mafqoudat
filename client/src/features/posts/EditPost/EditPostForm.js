@@ -51,6 +51,7 @@ const EditPostForm = ({ post, user, countries, flOptions, categories, cities }) 
   const [isCreatingCity, setIsCreatingCity] = useState(false);
   const [setFieldValueCallback, setSetFieldValueCallback] = useState(null);
   const [fieldErrors, setFieldErrors] = useState({});
+  const [hasFormChanged, setHasFormChanged] = useState(false);
 
   useEffect(() => {
     if (isSuccess || isDelSuccess) {
@@ -309,6 +310,17 @@ const EditPostForm = ({ post, user, countries, flOptions, categories, cities }) 
     returned: post?.returned || false
   };
 
+  // Function to check if form has changed
+  const checkFormChanged = (currentValues) => {
+    const hasChanged = Object.keys(initialFormState).some(key => {
+      if (key === 'additionalContact') {
+        return JSON.stringify(currentValues[key]) !== JSON.stringify(initialFormState[key]);
+      }
+      return currentValues[key] !== initialFormState[key];
+    });
+    setHasFormChanged(hasChanged);
+  };
+
   console.log('🔍 EditPostForm - Initial form state:', initialFormState);
   console.log('🔍 EditPostForm - Categories available:', categories);
   console.log('🔍 EditPostForm - FlOptions available:', flOptions);
@@ -561,6 +573,11 @@ const EditPostForm = ({ post, user, countries, flOptions, categories, cities }) 
           {({ isSubmitting, status, setFieldValue, values }) => {
             // Store setFieldValue function for use in custom city creation
             setSetFieldValueCallback(() => setFieldValue);
+            
+            // Check if form has changed whenever values change
+            useEffect(() => {
+              checkFormChanged(values);
+            }, [values]);
             
             return (
             <Form>
@@ -1267,6 +1284,7 @@ const EditPostForm = ({ post, user, countries, flOptions, categories, cities }) 
                   alignItems="center"
                   sx={{ mt: 4 }}
                 >
+                  {/* Cancel Button - Left in LTR, Right in RTL */}
                   <Button 
                     onClick={() => navigate(`/post/${post._id}`)}
                     variant="outlined" 
@@ -1303,6 +1321,7 @@ const EditPostForm = ({ post, user, countries, flOptions, categories, cities }) 
                     {t('cancel')}
                   </Button>
 
+                  {/* Delete Button - Center */}
                   <Button 
                     onClick={handleDeletePost}
                     variant="outlined" 
@@ -1339,9 +1358,10 @@ const EditPostForm = ({ post, user, countries, flOptions, categories, cities }) 
                     {t('deletePost')}
                   </Button>
                   
+                  {/* Update Button - Right in LTR, Left in RTL */}
                   <Button 
                     type="submit"
-                    disabled={isLoading || !selectedCountry || !values.city || !values.exactDate}
+                    disabled={isLoading || !selectedCountry || !values.city || !values.exactDate || !hasFormChanged}
                     sx={{ 
                       width: { xs: "90%", sm: "100%" },
                       justifySelf: { xs: "center", sm: "stretch" },
@@ -1351,11 +1371,13 @@ const EditPostForm = ({ post, user, countries, flOptions, categories, cities }) 
                       fontWeight: 600,
                       borderRadius: 3,
                       textTransform: 'none',
-                      background: theme.palette.mode === 'dark'
-                        ? 'linear-gradient(45deg, #4CAF50 30%, #66BB6A 90%)'
-                        : 'linear-gradient(45deg, #2E7D32 30%, #388E3C 90%)',
-                      color: '#ffffff !important',
-                      '&:hover': {
+                      background: hasFormChanged 
+                        ? (theme.palette.mode === 'dark'
+                            ? 'linear-gradient(45deg, #4CAF50 30%, #66BB6A 90%)'
+                            : 'linear-gradient(45deg, #2E7D32 30%, #388E3C 90%)')
+                        : (theme.palette.mode === 'dark' ? 'rgba(76, 175, 80, 0.3)' : 'rgba(46, 125, 50, 0.3)'),
+                      color: hasFormChanged ? '#ffffff !important' : (theme.palette.mode === 'dark' ? 'rgba(255,255,255,0.5)' : 'rgba(255,255,255,0.7)'),
+                      '&:hover': hasFormChanged ? {
                         background: theme.palette.mode === 'dark'
                           ? 'linear-gradient(45deg, #388E3C 30%, #4CAF50 90%)'
                           : 'linear-gradient(45deg, #1B5E20 30%, #2E7D32 90%)',
@@ -1363,15 +1385,15 @@ const EditPostForm = ({ post, user, countries, flOptions, categories, cities }) 
                         boxShadow: theme.palette.mode === 'dark'
                           ? '0 6px 16px rgba(76, 175, 80, 0.3)'
                           : '0 6px 16px rgba(46, 125, 50, 0.3)',
-                      },
+                      } : {},
                       '&:disabled': {
                         background: theme.palette.mode === 'dark' ? 'rgba(76, 175, 80, 0.3)' : 'rgba(46, 125, 50, 0.3)',
                         color: theme.palette.mode === 'dark' ? 'rgba(255,255,255,0.5)' : 'rgba(255,255,255,0.7)',
                       },
                       transition: 'all 0.2s ease-in-out',
-                      boxShadow: theme.palette.mode === 'dark'
+                      boxShadow: hasFormChanged ? (theme.palette.mode === 'dark'
                         ? '0 3px 8px rgba(76, 175, 80, 0.2)'
-                        : '0 3px 8px rgba(46, 125, 50, 0.2)',
+                        : '0 3px 8px rgba(46, 125, 50, 0.2)') : 'none',
                     }}
                   >
                     {isLoading ? <CircularProgress size={24} color="inherit" /> : t('updatePost')}
