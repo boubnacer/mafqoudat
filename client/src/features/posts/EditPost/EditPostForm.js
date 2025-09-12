@@ -1259,7 +1259,13 @@ const EditPostForm = ({ post, user, countries, flOptions, categories, cities }) 
 
 
                 {/* Action Buttons */}
-                <Box display="flex" gap={2} justifyContent="space-between" sx={{ mt: 4 }}>
+                <Box 
+                  display="flex" 
+                  flexDirection={{ xs: "column", sm: "row" }}
+                  gap={2} 
+                  justifyContent="space-between" 
+                  sx={{ mt: 4 }}
+                >
                   <Button 
                     onClick={handleDeletePost}
                     variant="outlined" 
