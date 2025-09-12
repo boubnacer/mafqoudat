@@ -1263,7 +1263,8 @@ const EditPostForm = ({ post, user, countries, flOptions, categories, cities }) 
                   display="flex" 
                   flexDirection={{ xs: "column", sm: "row" }}
                   gap={2} 
-                  justifyContent="space-between" 
+                  justifyContent="center" 
+                  alignItems="center"
                   sx={{ mt: 4 }}
                 >
                   <Button 
