@@ -640,8 +640,9 @@ const SinglePostPage = ({
             sx={{ 
               borderRadius: 4,
               overflow: 'hidden',
-              border: `1px solid ${isDarkMode ? alpha('#fff', 0.08) : alpha('#000', 0.06)}`,
-              backgroundColor: isDarkMode ? alpha('#1a1a1a', 0.8) : '#ffffff'
+              border: `1px solid ${isDarkMode ? alpha('#fff', 0.08) : alpha('#000', 0.12)}`,
+              backgroundColor: isDarkMode ? alpha('#1a1a1a', 0.8) : '#ffffff',
+              boxShadow: isDarkMode ? 'none' : '0 2px 8px rgba(0, 0, 0, 0.1), 0 1px 3px rgba(0, 0, 0, 0.08)'
             }}
           >
             {/* Image Section */}
@@ -765,7 +766,8 @@ const SinglePostPage = ({
                 sx={{ 
                   mb: 3,
                   direction: currentLanguage === 'ar' ? 'rtl' : 'ltr',
-                  color: isDarkMode ? '#ffffff' : '#1a1a1a'
+                  color: isDarkMode ? '#ffffff' : '#1a1a1a',
+                  fontSize: { xs: '1.5rem', sm: '2rem', md: '2.125rem' }
                 }}
               >
                 {displayCityName}
@@ -779,7 +781,8 @@ const SinglePostPage = ({
                     mb: 3,
                     lineHeight: 1.6,
                     direction: currentLanguage === 'ar' ? 'rtl' : 'ltr',
-                    color: isDarkMode ? alpha('#fff', 0.8) : alpha('#000', 0.7)
+                    color: isDarkMode ? alpha('#fff', 0.8) : alpha('#000', 0.7),
+                    fontSize: { xs: '1rem', sm: '1rem', md: '1rem' }
                   }}
                 >
                   {description}
@@ -795,7 +798,10 @@ const SinglePostPage = ({
                       <Typography 
                         variant="body2" 
                         color="text.secondary"
-                        sx={{ direction: currentLanguage === 'ar' ? 'rtl' : 'ltr' }}
+                        sx={{ 
+                          direction: currentLanguage === 'ar' ? 'rtl' : 'ltr',
+                          fontSize: { xs: '0.9rem', sm: '0.875rem', md: '0.875rem' }
+                        }}
                       >
                         {exactLocation || displayCityName}
                       </Typography>
@@ -807,7 +813,10 @@ const SinglePostPage = ({
                       <Typography 
                         variant="body2" 
                         color="text.secondary"
-                        sx={{ direction: currentLanguage === 'ar' ? 'rtl' : 'ltr' }}
+                        sx={{ 
+                          direction: currentLanguage === 'ar' ? 'rtl' : 'ltr',
+                          fontSize: { xs: '0.9rem', sm: '0.875rem', md: '0.875rem' }
+                        }}
                       >
                         {createdDate}
                       </Typography>
@@ -825,7 +834,8 @@ const SinglePostPage = ({
                     sx={{ 
                       mb: 2,
                       direction: currentLanguage === 'ar' ? 'rtl' : 'ltr',
-                      color: isDarkMode ? '#ffffff' : '#1a1a1a'
+                      color: isDarkMode ? '#ffffff' : '#1a1a1a',
+                      fontSize: { xs: '1.1rem', sm: '1.25rem', md: '1.25rem' }
                     }}
                   >
                     {t('contactInformation')}
@@ -834,7 +844,8 @@ const SinglePostPage = ({
                     variant="body1"
                     sx={{ 
                       direction: currentLanguage === 'ar' ? 'rtl' : 'ltr',
-                      color: isDarkMode ? alpha('#fff', 0.8) : alpha('#000', 0.7)
+                      color: isDarkMode ? alpha('#fff', 0.8) : alpha('#000', 0.7),
+                      fontSize: { xs: '1rem', sm: '1rem', md: '1rem' }
                     }}
                   >
                     {contact}
@@ -851,7 +862,8 @@ const SinglePostPage = ({
                     sx={{ 
                       mb: 2,
                       direction: currentLanguage === 'ar' ? 'rtl' : 'ltr',
-                      color: isDarkMode ? '#ffffff' : '#1a1a1a'
+                      color: isDarkMode ? '#ffffff' : '#1a1a1a',
+                      fontSize: { xs: '1.1rem', sm: '1.25rem', md: '1.25rem' }
                     }}
                   >
                     {t('additionalContact')}
@@ -862,7 +874,8 @@ const SinglePostPage = ({
                         variant="body1"
                         sx={{ 
                           direction: currentLanguage === 'ar' ? 'rtl' : 'ltr',
-                          color: isDarkMode ? alpha('#fff', 0.8) : alpha('#000', 0.7)
+                          color: isDarkMode ? alpha('#fff', 0.8) : alpha('#000', 0.7),
+                          fontSize: { xs: '1rem', sm: '1rem', md: '1rem' }
                         }}
                       >
                         {t('phone')}: {sanitizedAdditionalContact.phone}
@@ -873,7 +886,8 @@ const SinglePostPage = ({
                         variant="body1"
                         sx={{ 
                           direction: currentLanguage === 'ar' ? 'rtl' : 'ltr',
-                          color: isDarkMode ? alpha('#fff', 0.8) : alpha('#000', 0.7)
+                          color: isDarkMode ? alpha('#fff', 0.8) : alpha('#000', 0.7),
+                          fontSize: { xs: '1rem', sm: '1rem', md: '1rem' }
                         }}
                       >
                         {t('email')}: {sanitizedAdditionalContact.email}
@@ -884,7 +898,8 @@ const SinglePostPage = ({
                         variant="body1"
                         sx={{ 
                           direction: currentLanguage === 'ar' ? 'rtl' : 'ltr',
-                          color: isDarkMode ? alpha('#fff', 0.8) : alpha('#000', 0.7)
+                          color: isDarkMode ? alpha('#fff', 0.8) : alpha('#000', 0.7),
+                          fontSize: { xs: '1rem', sm: '1rem', md: '1rem' }
                         }}
                       >
                         WhatsApp: {sanitizedAdditionalContact.whatsapp}
@@ -907,8 +922,9 @@ const SinglePostPage = ({
                 p: 3, 
                 mb: 3,
                 borderRadius: 3,
-                border: `1px solid ${isDarkMode ? alpha('#fff', 0.08) : alpha('#000', 0.06)}`,
-                backgroundColor: isDarkMode ? alpha('#1a1a1a', 0.8) : '#ffffff'
+                border: `1px solid ${isDarkMode ? alpha('#fff', 0.08) : alpha('#000', 0.12)}`,
+                backgroundColor: isDarkMode ? alpha('#1a1a1a', 0.8) : '#ffffff',
+                boxShadow: isDarkMode ? 'none' : '0 2px 8px rgba(0, 0, 0, 0.1), 0 1px 3px rgba(0, 0, 0, 0.08)'
               }}
             >
               <Typography 
@@ -917,7 +933,8 @@ const SinglePostPage = ({
                 sx={{ 
                   mb: 3,
                   direction: currentLanguage === 'ar' ? 'rtl' : 'ltr',
-                  color: isDarkMode ? '#ffffff' : '#1a1a1a'
+                  color: isDarkMode ? '#ffffff' : '#1a1a1a',
+                  fontSize: { xs: '1.1rem', sm: '1.25rem', md: '1.25rem' }
                 }}
               >
                 {t('actions')}
@@ -972,8 +989,9 @@ const SinglePostPage = ({
               sx={{ 
                 p: 3,
                 borderRadius: 3,
-                border: `1px solid ${isDarkMode ? alpha('#fff', 0.08) : alpha('#000', 0.06)}`,
-                backgroundColor: isDarkMode ? alpha('#1a1a1a', 0.8) : '#ffffff'
+                border: `1px solid ${isDarkMode ? alpha('#fff', 0.08) : alpha('#000', 0.12)}`,
+                backgroundColor: isDarkMode ? alpha('#1a1a1a', 0.8) : '#ffffff',
+                boxShadow: isDarkMode ? 'none' : '0 2px 8px rgba(0, 0, 0, 0.1), 0 1px 3px rgba(0, 0, 0, 0.08)'
               }}
             >
               <Typography 
@@ -982,7 +1000,8 @@ const SinglePostPage = ({
                 sx={{ 
                   mb: 3,
                   direction: currentLanguage === 'ar' ? 'rtl' : 'ltr',
-                  color: isDarkMode ? '#ffffff' : '#1a1a1a'
+                  color: isDarkMode ? '#ffffff' : '#1a1a1a',
+                  fontSize: { xs: '1.1rem', sm: '1.25rem', md: '1.25rem' }
                 }}
               >
                 {t('postDetails')}
@@ -993,7 +1012,10 @@ const SinglePostPage = ({
                   <Typography 
                     variant="body2" 
                     color="text.secondary"
-                    sx={{ direction: currentLanguage === 'ar' ? 'rtl' : 'ltr' }}
+                    sx={{ 
+                      direction: currentLanguage === 'ar' ? 'rtl' : 'ltr',
+                      fontSize: { xs: '0.9rem', sm: '0.875rem', md: '0.875rem' }
+                    }}
                   >
                     {t('postedBy')}:
                   </Typography>
@@ -1002,7 +1024,8 @@ const SinglePostPage = ({
                     fontWeight={600}
                     sx={{ 
                       direction: currentLanguage === 'ar' ? 'rtl' : 'ltr',
-                      color: isDarkMode ? '#ffffff' : '#1a1a1a'
+                      color: isDarkMode ? '#ffffff' : '#1a1a1a',
+                      fontSize: { xs: '0.9rem', sm: '0.875rem', md: '0.875rem' }
                     }}
                   >
                     {username || t('anonymous')}
@@ -1013,7 +1036,10 @@ const SinglePostPage = ({
                   <Typography 
                     variant="body2" 
                     color="text.secondary"
-                    sx={{ direction: currentLanguage === 'ar' ? 'rtl' : 'ltr' }}
+                    sx={{ 
+                      direction: currentLanguage === 'ar' ? 'rtl' : 'ltr',
+                      fontSize: { xs: '0.9rem', sm: '0.875rem', md: '0.875rem' }
+                    }}
                   >
                     {t('created')}:
                   </Typography>
@@ -1022,7 +1048,8 @@ const SinglePostPage = ({
                     fontWeight={600}
                     sx={{ 
                       direction: currentLanguage === 'ar' ? 'rtl' : 'ltr',
-                      color: isDarkMode ? '#ffffff' : '#1a1a1a'
+                      color: isDarkMode ? '#ffffff' : '#1a1a1a',
+                      fontSize: { xs: '0.9rem', sm: '0.875rem', md: '0.875rem' }
                     }}
                   >
                     {createdDate}
@@ -1034,7 +1061,10 @@ const SinglePostPage = ({
                     <Typography 
                       variant="body2" 
                       color="text.secondary"
-                      sx={{ direction: currentLanguage === 'ar' ? 'rtl' : 'ltr' }}
+                      sx={{ 
+                        direction: currentLanguage === 'ar' ? 'rtl' : 'ltr',
+                        fontSize: { xs: '0.9rem', sm: '0.875rem', md: '0.875rem' }
+                      }}
                     >
                       {t('updated')}:
                     </Typography>
@@ -1043,7 +1073,8 @@ const SinglePostPage = ({
                       fontWeight={600}
                       sx={{ 
                         direction: currentLanguage === 'ar' ? 'rtl' : 'ltr',
-                        color: isDarkMode ? '#ffffff' : '#1a1a1a'
+                        color: isDarkMode ? '#ffffff' : '#1a1a1a',
+                        fontSize: { xs: '0.9rem', sm: '0.875rem', md: '0.875rem' }
                       }}
                     >
                       {updatedDate}
@@ -1056,7 +1087,10 @@ const SinglePostPage = ({
                     <Typography 
                       variant="body2" 
                       color="text.secondary"
-                      sx={{ direction: currentLanguage === 'ar' ? 'rtl' : 'ltr' }}
+                      sx={{ 
+                        direction: currentLanguage === 'ar' ? 'rtl' : 'ltr',
+                        fontSize: { xs: '0.9rem', sm: '0.875rem', md: '0.875rem' }
+                      }}
                     >
                       {t('views')}:
                     </Typography>
@@ -1065,7 +1099,8 @@ const SinglePostPage = ({
                       fontWeight={600}
                       sx={{ 
                         direction: currentLanguage === 'ar' ? 'rtl' : 'ltr',
-                        color: isDarkMode ? '#ffffff' : '#1a1a1a'
+                        color: isDarkMode ? '#ffffff' : '#1a1a1a',
+                        fontSize: { xs: '0.9rem', sm: '0.875rem', md: '0.875rem' }
                       }}
                     >
                       {views}
