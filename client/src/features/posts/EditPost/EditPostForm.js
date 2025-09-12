@@ -1272,12 +1272,11 @@ const EditPostForm = ({ post, user, countries, flOptions, categories, cities }) 
                     variant="outlined" 
                     disabled={isLoading}
                     sx={{ 
-                      width: { xs: "100%", sm: "100%", md: "100%" },
-                      maxWidth: { xs: "100%", sm: "400px", md: "500px" },
-                      py: { xs: 3, sm: 2, md: 2 },
-                      px: { xs: 5, sm: 3, md: 3 },
-                      fontSize: { xs: "1.5rem", sm: "1.3rem", md: "1.3rem" },
-                      fontWeight: 700,
+                      minWidth: 140,
+                      py: 1.5,
+                      px: 3,
+                      fontSize: '1rem',
+                      fontWeight: 600,
                       borderRadius: 3,
                       textTransform: 'none',
                       borderColor: theme.palette.mode === 'dark' ? '#f44336' : '#d32f2f',
@@ -1285,22 +1284,19 @@ const EditPostForm = ({ post, user, countries, flOptions, categories, cities }) 
                       '&:hover': {
                         borderColor: theme.palette.mode === 'dark' ? '#e53935' : '#c62828',
                         backgroundColor: theme.palette.mode === 'dark' ? 'rgba(244, 67, 54, 0.08)' : 'rgba(211, 47, 47, 0.08)',
-                        transform: 'translateY(-2px)',
+                        transform: 'translateY(-1px)',
                         boxShadow: theme.palette.mode === 'dark'
-                          ? '0 8px 24px rgba(244, 67, 54, 0.4)'
-                          : '0 8px 24px rgba(211, 47, 47, 0.4)',
+                          ? '0 6px 16px rgba(244, 67, 54, 0.3)'
+                          : '0 6px 16px rgba(211, 47, 47, 0.3)',
                       },
                       '&:disabled': {
                         borderColor: theme.palette.mode === 'dark' ? 'rgba(244, 67, 54, 0.3)' : 'rgba(211, 47, 47, 0.3)',
                         color: theme.palette.mode === 'dark' ? 'rgba(244, 67, 54, 0.5)' : 'rgba(211, 47, 47, 0.7)',
                       },
-                      '& .MuiButton-root': {
-                        color: theme.palette.mode === 'dark' ? '#f44336' : '#d32f2f',
-                      },
-                      transition: 'all 0.3s ease-in-out',
+                      transition: 'all 0.2s ease-in-out',
                       boxShadow: theme.palette.mode === 'dark'
-                        ? '0 4px 16px rgba(244, 67, 54, 0.3)'
-                        : '0 4px 16px rgba(211, 47, 47, 0.3)',
+                        ? '0 3px 8px rgba(244, 67, 54, 0.2)'
+                        : '0 3px 8px rgba(211, 47, 47, 0.2)',
                     }}
                   >
                     {t('deletePost')}
@@ -1310,12 +1306,11 @@ const EditPostForm = ({ post, user, countries, flOptions, categories, cities }) 
                     type="submit"
                     disabled={isLoading || !selectedCountry || !values.city || !values.exactDate}
                     sx={{ 
-                      width: { xs: "100%", sm: "100%", md: "100%" },
-                      maxWidth: { xs: "100%", sm: "400px", md: "500px" },
-                      py: { xs: 3, sm: 2, md: 2 },
-                      px: { xs: 5, sm: 3, md: 3 },
-                      fontSize: { xs: "1.5rem", sm: "1.3rem", md: "1.3rem" },
-                      fontWeight: 700,
+                      minWidth: 140,
+                      py: 1.5,
+                      px: 3,
+                      fontSize: '1rem',
+                      fontWeight: 600,
                       borderRadius: 3,
                       textTransform: 'none',
                       background: theme.palette.mode === 'dark'
@@ -1326,22 +1321,19 @@ const EditPostForm = ({ post, user, countries, flOptions, categories, cities }) 
                         background: theme.palette.mode === 'dark'
                           ? 'linear-gradient(45deg, #388E3C 30%, #4CAF50 90%)'
                           : 'linear-gradient(45deg, #1B5E20 30%, #2E7D32 90%)',
-                        transform: 'translateY(-2px)',
+                        transform: 'translateY(-1px)',
                         boxShadow: theme.palette.mode === 'dark'
-                          ? '0 8px 24px rgba(76, 175, 80, 0.4)'
-                          : '0 8px 24px rgba(46, 125, 50, 0.4)',
+                          ? '0 6px 16px rgba(76, 175, 80, 0.3)'
+                          : '0 6px 16px rgba(46, 125, 50, 0.3)',
                       },
                       '&:disabled': {
                         background: theme.palette.mode === 'dark' ? 'rgba(76, 175, 80, 0.3)' : 'rgba(46, 125, 50, 0.3)',
                         color: theme.palette.mode === 'dark' ? 'rgba(255,255,255,0.5)' : 'rgba(255,255,255,0.7)',
                       },
-                      '& .MuiButton-root': {
-                        color: '#ffffff !important',
-                      },
-                      transition: 'all 0.3s ease-in-out',
+                      transition: 'all 0.2s ease-in-out',
                       boxShadow: theme.palette.mode === 'dark'
-                        ? '0 4px 16px rgba(76, 175, 80, 0.3)'
-                        : '0 4px 16px rgba(46, 125, 50, 0.3)',
+                        ? '0 3px 8px rgba(76, 175, 80, 0.2)'
+                        : '0 3px 8px rgba(46, 125, 50, 0.2)',
                     }}
                   >
                     {isLoading ? <CircularProgress size={24} color="inherit" /> : t('updatePost')}
