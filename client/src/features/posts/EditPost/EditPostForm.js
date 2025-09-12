@@ -1261,9 +1261,9 @@ const EditPostForm = ({ post, user, countries, flOptions, categories, cities }) 
                 {/* Action Buttons */}
                 <Box 
                   display="flex" 
-                  flexDirection={{ xs: "column", sm: "row" }}
+                  flexDirection={{ xs: "row", sm: "row" }}
                   gap={2} 
-                  justifyContent="center" 
+                  justifyContent="space-between" 
                   alignItems="center"
                   sx={{ mt: 4 }}
                 >
