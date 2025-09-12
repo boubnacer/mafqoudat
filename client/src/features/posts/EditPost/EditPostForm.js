@@ -1260,19 +1260,56 @@ const EditPostForm = ({ post, user, countries, flOptions, categories, cities }) 
 
                 {/* Action Buttons */}
                 <Box 
-                  display="flex" 
-                  flexDirection={{ xs: "row", sm: "row" }}
+                  display="grid"
+                  gridTemplateColumns={{ xs: "1fr", sm: "1fr 1fr 1fr" }}
                   gap={2} 
-                  justifyContent="space-between" 
+                  justifyContent="center" 
                   alignItems="center"
                   sx={{ mt: 4 }}
                 >
+                  <Button 
+                    onClick={() => navigate(`/post/${post._id}`)}
+                    variant="outlined" 
+                    disabled={isLoading}
+                    sx={{ 
+                      width: { xs: "90%", sm: "100%" },
+                      justifySelf: { xs: "center", sm: "stretch" },
+                      py: 1.5,
+                      px: 3,
+                      fontSize: '1rem',
+                      fontWeight: 600,
+                      borderRadius: 3,
+                      textTransform: 'none',
+                      borderColor: theme.palette.mode === 'dark' ? 'rgba(255, 255, 255, 0.3)' : 'rgba(0, 0, 0, 0.3)',
+                      color: theme.palette.mode === 'dark' ? 'rgba(255, 255, 255, 0.8)' : 'rgba(0, 0, 0, 0.8)',
+                      '&:hover': {
+                        borderColor: theme.palette.mode === 'dark' ? 'rgba(255, 255, 255, 0.5)' : 'rgba(0, 0, 0, 0.5)',
+                        backgroundColor: theme.palette.mode === 'dark' ? 'rgba(255, 255, 255, 0.04)' : 'rgba(0, 0, 0, 0.04)',
+                        transform: 'translateY(-1px)',
+                        boxShadow: theme.palette.mode === 'dark'
+                          ? '0 6px 16px rgba(0, 0, 0, 0.3)'
+                          : '0 6px 16px rgba(0, 0, 0, 0.1)',
+                      },
+                      '&:disabled': {
+                        borderColor: theme.palette.mode === 'dark' ? 'rgba(255, 255, 255, 0.2)' : 'rgba(0, 0, 0, 0.2)',
+                        color: theme.palette.mode === 'dark' ? 'rgba(255, 255, 255, 0.4)' : 'rgba(0, 0, 0, 0.4)',
+                      },
+                      transition: 'all 0.2s ease-in-out',
+                      boxShadow: theme.palette.mode === 'dark'
+                        ? '0 3px 8px rgba(0, 0, 0, 0.2)'
+                        : '0 3px 8px rgba(0, 0, 0, 0.1)',
+                    }}
+                  >
+                    {t('cancel')}
+                  </Button>
+
                   <Button 
                     onClick={handleDeletePost}
                     variant="outlined" 
                     disabled={isLoading}
                     sx={{ 
-                      minWidth: 140,
+                      width: { xs: "90%", sm: "100%" },
+                      justifySelf: { xs: "center", sm: "stretch" },
                       py: 1.5,
                       px: 3,
                       fontSize: '1rem',
@@ -1306,7 +1343,8 @@ const EditPostForm = ({ post, user, countries, flOptions, categories, cities }) 
                     type="submit"
                     disabled={isLoading || !selectedCountry || !values.city || !values.exactDate}
                     sx={{ 
-                      minWidth: 140,
+                      width: { xs: "90%", sm: "100%" },
+                      justifySelf: { xs: "center", sm: "stretch" },
                       py: 1.5,
                       px: 3,
                       fontSize: '1rem',
