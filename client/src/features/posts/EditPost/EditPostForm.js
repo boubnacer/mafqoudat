@@ -1265,13 +1265,14 @@ const EditPostForm = ({ post, user, countries, flOptions, categories, cities }) 
                     variant="outlined" 
                     disabled={isLoading}
                     sx={{ 
-                      minWidth: 140,
+                      width: { xs: "100%", sm: "100%", md: "100%" },
+                      maxWidth: { xs: "100%", sm: "400px", md: "500px" },
+                      py: { xs: 3, sm: 2, md: 2 },
+                      px: { xs: 5, sm: 3, md: 3 },
+                      fontSize: { xs: "1.5rem", sm: "1.3rem", md: "1.3rem" },
+                      fontWeight: 700,
                       borderRadius: 3,
                       textTransform: 'none',
-                      fontWeight: 700,
-                      fontSize: '1.1rem',
-                      py: 2,
-                      px: 3,
                       borderColor: theme.palette.mode === 'dark' ? '#f44336' : '#d32f2f',
                       color: theme.palette.mode === 'dark' ? '#f44336' : '#d32f2f',
                       '&:hover': {
@@ -1295,13 +1296,14 @@ const EditPostForm = ({ post, user, countries, flOptions, categories, cities }) 
                     type="submit"
                     disabled={isLoading || !selectedCountry || !values.city || !values.exactDate}
                     sx={{ 
-                      minWidth: 140,
+                      width: { xs: "100%", sm: "100%", md: "100%" },
+                      maxWidth: { xs: "100%", sm: "400px", md: "500px" },
+                      py: { xs: 3, sm: 2, md: 2 },
+                      px: { xs: 5, sm: 3, md: 3 },
+                      fontSize: { xs: "1.5rem", sm: "1.3rem", md: "1.3rem" },
+                      fontWeight: 700,
                       borderRadius: 3,
                       textTransform: 'none',
-                      fontWeight: 700,
-                      fontSize: '1.1rem',
-                      py: 2,
-                      px: 3,
                       background: theme.palette.mode === 'dark'
                         ? 'linear-gradient(45deg, #4CAF50 30%, #66BB6A 90%)'
                         : 'linear-gradient(45deg, #2E7D32 30%, #388E3C 90%)',
@@ -1325,7 +1327,7 @@ const EditPostForm = ({ post, user, countries, flOptions, categories, cities }) 
                         : '0 4px 16px rgba(46, 125, 50, 0.3)',
                     }}
                   >
-                    {isLoading ? <CircularProgress size={20} /> : t('updatePost')}
+                    {isLoading ? <CircularProgress size={24} color="inherit" /> : t('updatePost')}
                   </Button>
                 </Box>
               </Box>
