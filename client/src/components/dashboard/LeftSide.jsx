@@ -86,17 +86,17 @@ const LeftSide = ({
           }}
           titleStyle={{ 
             color: theme.palette.mode === 'dark' ? '#E0E0E0' : '#2D3748',
-            fontSize: isMobile ? '0.9rem' : '1.1rem', // Adjusted for mobile
+            fontSize: isMobile ? '1rem' : '1.1rem', // Increased for mobile
             fontWeight: 600
           }}
           valueStyle={{ 
             color: theme.palette.mode === 'dark' ? '#48BB78' : '#2F855A',
-            fontSize: isMobile ? '1.5rem' : '2rem', // Adjusted for mobile
+            fontSize: isMobile ? '1.75rem' : '2rem', // Increased for mobile
             fontWeight: 700
           }}
           descriptionStyle={{ 
             color: theme.palette.mode === 'dark' ? '#A0AEC0' : '#4A5568',
-            fontSize: isMobile ? '0.8rem' : '0.9rem' // Adjusted for mobile
+            fontSize: isMobile ? '0.9rem' : '0.9rem' // Increased for mobile
           }}
           iconStyle={{
             background: theme.palette.mode === 'dark'
@@ -122,17 +122,17 @@ const LeftSide = ({
           }}
           titleStyle={{ 
             color: theme.palette.mode === 'dark' ? '#E0E0E0' : '#2D3748',
-            fontSize: isMobile ? '0.9rem' : '1.1rem', // Adjusted for mobile
+            fontSize: isMobile ? '1rem' : '1.1rem', // Increased for mobile
             fontWeight: 600
           }}
           valueStyle={{ 
             color: theme.palette.mode === 'dark' ? '#F56565' : '#C53030',
-            fontSize: isMobile ? '1.5rem' : '2rem', // Adjusted for mobile
+            fontSize: isMobile ? '1.75rem' : '2rem', // Increased for mobile
             fontWeight: 700
           }}
           descriptionStyle={{ 
             color: theme.palette.mode === 'dark' ? '#A0AEC0' : '#4A5568',
-            fontSize: isMobile ? '0.8rem' : '0.9rem' // Adjusted for mobile
+            fontSize: isMobile ? '0.9rem' : '0.9rem' // Increased for mobile
           }}
           iconStyle={{
             background: theme.palette.mode === 'dark'
@@ -158,17 +158,17 @@ const LeftSide = ({
           }}
           titleStyle={{ 
             color: theme.palette.mode === 'dark' ? '#E0E0E0' : '#2D3748',
-            fontSize: isMobile ? '0.9rem' : '1.1rem', // Adjusted for mobile
+            fontSize: isMobile ? '1rem' : '1.1rem', // Increased for mobile
             fontWeight: 600
           }}
           valueStyle={{ 
             color: theme.palette.mode === 'dark' ? '#4299E1' : '#2B6CB0',
-            fontSize: isMobile ? '1.5rem' : '2rem', // Adjusted for mobile
+            fontSize: isMobile ? '1.75rem' : '2rem', // Increased for mobile
             fontWeight: 700
           }}
           descriptionStyle={{ 
             color: theme.palette.mode === 'dark' ? '#A0AEC0' : '#4A5568',
-            fontSize: isMobile ? '0.8rem' : '0.9rem' // Adjusted for mobile
+            fontSize: isMobile ? '0.9rem' : '0.9rem' // Increased for mobile
           }}
           iconStyle={{
             background: theme.palette.mode === 'dark'
@@ -194,17 +194,17 @@ const LeftSide = ({
           }}
           titleStyle={{ 
             color: theme.palette.mode === 'dark' ? '#E0E0E0' : '#2D3748',
-            fontSize: isMobile ? '0.9rem' : '1.1rem', // Adjusted for mobile
+            fontSize: isMobile ? '1rem' : '1.1rem', // Increased for mobile
             fontWeight: 600
           }}
           valueStyle={{ 
             color: theme.palette.mode === 'dark' ? '#9F7AEA' : '#6B46C1',
-            fontSize: isMobile ? '1.5rem' : '2rem', // Adjusted for mobile
+            fontSize: isMobile ? '1.75rem' : '2rem', // Increased for mobile
             fontWeight: 700
           }}
           descriptionStyle={{ 
             color: theme.palette.mode === 'dark' ? '#A0AEC0' : '#4A5568',
-            fontSize: isMobile ? '0.8rem' : '0.9rem' // Adjusted for mobile
+            fontSize: isMobile ? '0.9rem' : '0.9rem' // Increased for mobile
           }}
           iconStyle={{
             background: theme.palette.mode === 'dark'
