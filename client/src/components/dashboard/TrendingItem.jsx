@@ -200,7 +200,7 @@ const TrendingItem = ({ trend, isLoading }) => {
   };
 
   // Get optimized image URL
-  const finalImageUrl = image ? (image.startsWith('http') ? getOptimizedImageUrl(image, 'hero') : `${API_BASE_URL}/${image}`) : ma;
+  const finalImageUrl = image ? (image.startsWith('http') ? getOptimizedImageUrl(image, 'card') : `${API_BASE_URL}/${image}`) : ma;
 
   if (isLoading) return <TrendingItemSkeleton />;
   if (!trendData) {
@@ -280,7 +280,7 @@ const TrendingItem = ({ trend, isLoading }) => {
               height: '100%',
               objectFit: 'cover',
               objectPosition: 'center',
-              filter: 'brightness(0.6)',
+              filter: 'brightness(0.8)', // Reduced darkness for better clarity
             }}
           />
           {/* Gradient overlay for better text readability */}
@@ -291,7 +291,7 @@ const TrendingItem = ({ trend, isLoading }) => {
               left: 0,
               right: 0,
               bottom: 0,
-              background: 'linear-gradient(135deg, rgba(0,0,0,0.3) 0%, rgba(0,0,0,0.7) 100%)',
+              background: 'linear-gradient(135deg, rgba(0,0,0,0.2) 0%, rgba(0,0,0,0.5) 100%)', // Lighter overlay for better image visibility
               pointerEvents: 'none'
             }}
           />
