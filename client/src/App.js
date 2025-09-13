@@ -11,25 +11,27 @@ import { themeSettings } from "./theme";
 import { LanguageProvider, useLanguage } from "./utils/languageContext";
 import { cleanupLocalStorage, initializeLocalStorage } from "./utils/localStorageUtils";
 
-// Add CSS keyframes for loading animations
+// Add CSS keyframes for loading animations (mirrorReflection from navbar)
 const loadingStyles = `
-@keyframes pulse {
-  0%, 100% {
-    opacity: 1;
-    transform: scale(1);
-  }
-  50% {
-    opacity: 0.7;
-    transform: scale(1.05);
-  }
-}
-
-@keyframes rotate {
+@keyframes mirrorReflection {
   0% {
-    transform: rotate(0deg);
+    left: 0px;
+    opacity: 0;
+    transform: translateY(-50%) skew(-15deg) scaleX(0.5);
+  }
+  15% {
+    opacity: 1;
+    transform: translateY(-50%) skew(-15deg) scaleX(1);
+  }
+  85% {
+    left: 100%;
+    opacity: 1;
+    transform: translateY(-50%) skew(-15deg) scaleX(1);
   }
   100% {
-    transform: rotate(360deg);
+    left: 100%;
+    opacity: 0;
+    transform: translateY(-50%) skew(-15deg) scaleX(0.5);
   }
 }
 `;
@@ -83,8 +85,8 @@ const LoadingFallback = () => (
     color: '#666',
     flexDirection: 'column',
     gap: '1rem',
-    backgroundColor: 'rgba(255,255,255,0.1)',
-    backdropFilter: 'blur(6px)'
+    backgroundColor: 'white',
+    position: 'relative'
   }}>
     <div style={{
       width: '80px',
@@ -92,7 +94,9 @@ const LoadingFallback = () => (
       display: 'flex',
       alignItems: 'center',
       justifyContent: 'center',
-      marginBottom: '1rem'
+      marginBottom: '1rem',
+      position: 'relative',
+      overflow: 'hidden'
     }}>
       <img
         src="/maflogo.png"
@@ -101,9 +105,24 @@ const LoadingFallback = () => (
           width: '100%',
           height: '100%',
           objectFit: 'contain',
-          animation: 'pulse 2s ease-in-out infinite, rotate 3s linear infinite',
+          position: 'relative',
+          zIndex: 2
         }}
       />
+      <div style={{
+        position: 'absolute',
+        top: '50%',
+        left: '0px',
+        width: '30px',
+        height: '80%',
+        background: 'linear-gradient(45deg, transparent, rgba(255, 255, 255, 0.8), rgba(255, 255, 255, 0.4), transparent)',
+        transform: 'translateY(-50%) skew(-15deg)',
+        borderRadius: '2px',
+        zIndex: 3,
+        animation: 'mirrorReflection 5s ease-in-out infinite',
+        boxShadow: '0 0 10px rgba(255, 255, 255, 0.3)',
+        pointerEvents: 'none',
+      }} />
     </div>
     <div>Loading...</div>
   </div>

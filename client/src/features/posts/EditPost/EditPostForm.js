@@ -31,25 +31,27 @@ import { Add as AddIcon, Close as CloseIcon } from '@mui/icons-material';
 import { useTranslation } from "../../../utils/translations";
 import useAuth from "../../../hooks/useAuth";
 
-// Add CSS keyframes for loading animations
+// Add CSS keyframes for loading animations (mirrorReflection from navbar)
 const loadingStyles = `
-@keyframes pulse {
-  0%, 100% {
-    opacity: 1;
-    transform: scale(1);
-  }
-  50% {
-    opacity: 0.7;
-    transform: scale(1.05);
-  }
-}
-
-@keyframes rotate {
+@keyframes mirrorReflection {
   0% {
-    transform: rotate(0deg);
+    left: 0px;
+    opacity: 0;
+    transform: translateY(-50%) skew(-15deg) scaleX(0.5);
+  }
+  15% {
+    opacity: 1;
+    transform: translateY(-50%) skew(-15deg) scaleX(1);
+  }
+  85% {
+    left: 100%;
+    opacity: 1;
+    transform: translateY(-50%) skew(-15deg) scaleX(1);
   }
   100% {
-    transform: rotate(360deg);
+    left: 100%;
+    opacity: 0;
+    transform: translateY(-50%) skew(-15deg) scaleX(0.5);
   }
 }
 `;
@@ -524,6 +526,7 @@ const EditPostForm = ({ post, user, countries, flOptions, categories, cities }) 
         alignItems="center" 
         minHeight="50vh"
         gap={2}
+        sx={{ backgroundColor: 'white' }}
       >
         <Box
           sx={{
@@ -534,16 +537,33 @@ const EditPostForm = ({ post, user, countries, flOptions, categories, cities }) 
             justifyContent: 'center',
           }}
         >
-          <img
-            src="/maflogo.png"
-            alt="Loading..."
-            style={{
-              width: '100%',
-              height: '100%',
-              objectFit: 'contain',
-              animation: 'pulse 2s ease-in-out infinite, rotate 3s linear infinite',
-            }}
-          />
+          <div style={{ position: 'relative', width: '100%', height: '100%', overflow: 'hidden' }}>
+            <img
+              src="/maflogo.png"
+              alt="Loading..."
+              style={{
+                width: '100%',
+                height: '100%',
+                objectFit: 'contain',
+                position: 'relative',
+                zIndex: 2
+              }}
+            />
+            <div style={{
+              position: 'absolute',
+              top: '50%',
+              left: '0px',
+              width: '30px',
+              height: '80%',
+              background: 'linear-gradient(45deg, transparent, rgba(255, 255, 255, 0.8), rgba(255, 255, 255, 0.4), transparent)',
+              transform: 'translateY(-50%) skew(-15deg)',
+              borderRadius: '2px',
+              zIndex: 3,
+              animation: 'mirrorReflection 5s ease-in-out infinite',
+              boxShadow: '0 0 10px rgba(255, 255, 255, 0.3)',
+              pointerEvents: 'none',
+            }} />
+          </div>
         </Box>
         <Typography>{t('loadingPostData')}</Typography>
       </Box>
