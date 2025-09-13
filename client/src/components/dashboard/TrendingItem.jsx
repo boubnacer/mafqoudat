@@ -213,7 +213,7 @@ const TrendingItem = ({ trend, isLoading }) => {
   }
 
   return (
-    <Box flex={1} sx={{ minWidth: isMobile ? '90%' : 'auto' }}>
+    <Box flex={1} sx={{ minWidth: isMobile ? '100%' : 'auto', width: isMobile ? '100%' : 'auto' }}>
       <Card
         sx={{
           background: theme.palette.mode === 'dark'

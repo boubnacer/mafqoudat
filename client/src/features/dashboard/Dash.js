@@ -165,7 +165,7 @@ const Dash = () => {
 
       {/* Header Section with Stats and Trending */}
       <Box
-        m={{ xs: "0 1rem", sm: "0 2rem" }}
+        m={{ xs: 0, sm: "0 2rem" }}
         mb={4}
         p={{ xs: 2, sm: 3, md: 4 }}
         gap="20px"
@@ -174,6 +174,7 @@ const Dash = () => {
           gridTemplateColumns: { xs: "repeat(1,1fr)", sm: "repeat(2,1fr)" },
           maxWidth: '100%',
           overflow: 'hidden',
+          width: '100%', // Ensure full width
         }}
       >
         <LeftSide
