@@ -122,7 +122,7 @@ const LoadingFallback = () => (
         transform: 'translateY(-50%) skew(-15deg)',
         borderRadius: '2px',
         zIndex: 3,
-        animation: 'mirrorReflection 2s ease-in-out infinite',
+        animation: 'mirrorReflection 1s ease-in-out infinite',
         boxShadow: '0 0 10px rgba(255, 255, 255, 0.3)',
         pointerEvents: 'none',
       }} />
