@@ -12,7 +12,8 @@ import {
   Grid,
   useTheme,
   useMediaQuery,
-  alpha
+  alpha,
+  Alert
 } from "@mui/material";
 import { useNavigate } from "react-router-dom";
 import useAuth from "../../../hooks/useAuth";
@@ -102,7 +103,9 @@ const SinglePostPage = ({
   const canEdit = user === usernameId;
   const [reportDialogOpen, setReportDialogOpen] = useState(false);
   const [submitReport] = useSubmitReportMutation();
-  const [deletePost, { isLoading: isDeleting }] = useDeletePostMutation();
+  const [deletePost, { isLoading: isDeleting, isSuccess: isDeleteSuccess }] = useDeletePostMutation();
+  const [showSuccessMessage, setShowSuccessMessage] = useState(false);
+  const [successMessage, setSuccessMessage] = useState('');
 
   // Memoized event handlers
   const handleEdit = useCallback(() => {
@@ -146,7 +149,12 @@ const SinglePostPage = ({
     if (window.confirm(t('confirmDeletePost') || 'Are you sure you want to delete this post? This action cannot be undone.')) {
       try {
         await deletePost({ id: _id }).unwrap();
-        navigate('/dash');
+        setSuccessMessage(t('postDeletedSuccessfully') || 'Post deleted successfully! The post has been removed.');
+        setShowSuccessMessage(true);
+        setTimeout(() => {
+          setShowSuccessMessage(false);
+          navigate('/dash');
+        }, 2000);
       } catch (error) {
         console.error('Delete failed:', error);
       }
@@ -956,7 +964,10 @@ const SinglePostPage = ({
                           ? `1px solid ${theme.palette.primary.main}` 
                           : `1px solid ${alpha('#000', 0.3)}`,
                         '&:hover': {
-                          boxShadow: 'none'
+                          boxShadow: 'none',
+                          backgroundColor: isDarkMode 
+                            ? alpha(theme.palette.primary.main, 0.1) 
+                            : alpha(theme.palette.primary.main, 0.08)
                         }
                       }}
                     >
@@ -1145,6 +1156,53 @@ const SinglePostPage = ({
           </Box>
         </Grid>
       </Grid>
+
+      {/* Success Message */}
+      {showSuccessMessage && (
+        <Box
+          sx={{
+            position: 'fixed',
+            top: { xs: '80px', md: '100px' },
+            left: '50%',
+            transform: 'translateX(-50%)',
+            zIndex: 9999,
+            maxWidth: { xs: '90%', sm: '400px' },
+            width: '100%',
+            animation: 'slideDown 0.3s ease-out',
+            '@keyframes slideDown': {
+              '0%': {
+                opacity: 0,
+                transform: 'translateX(-50%) translateY(-20px)',
+              },
+              '100%': {
+                opacity: 1,
+                transform: 'translateX(-50%) translateY(0)',
+              },
+            },
+          }}
+        >
+          <Alert
+            severity="success"
+            sx={{
+              borderRadius: 3,
+              boxShadow: '0 4px 12px rgba(76, 175, 80, 0.15)',
+              border: `1px solid ${alpha('#4CAF50', 0.2)}`,
+              backgroundColor: isDarkMode ? alpha('#1B5E20', 0.9) : alpha('#E8F5E8', 0.95),
+              backdropFilter: 'blur(10px)',
+              '& .MuiAlert-message': {
+                color: isDarkMode ? '#E8F5E8' : '#2E7D32',
+                fontWeight: 600,
+                direction: currentLanguage === 'ar' ? 'rtl' : 'ltr',
+              },
+              '& .MuiAlert-icon': {
+                color: '#4CAF50',
+              },
+            }}
+          >
+            {successMessage}
+          </Alert>
+        </Box>
+      )}
 
       {/* Report Dialog */}
       <ReportDialog
