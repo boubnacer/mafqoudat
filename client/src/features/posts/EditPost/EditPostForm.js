@@ -530,8 +530,8 @@ const EditPostForm = ({ post, user, countries, flOptions, categories, cities }) 
       >
         <Box
           sx={{
-            width: 100,
-            height: 100,
+            width: 150,
+            height: 150,
             display: 'flex',
             alignItems: 'center',
             justifyContent: 'center',
@@ -559,13 +559,12 @@ const EditPostForm = ({ post, user, countries, flOptions, categories, cities }) 
               transform: 'translateY(-50%) skew(-15deg)',
               borderRadius: '2px',
               zIndex: 3,
-              animation: 'mirrorReflection 5s ease-in-out infinite',
+              animation: 'mirrorReflection 2s ease-in-out infinite',
               boxShadow: '0 0 10px rgba(255, 255, 255, 0.3)',
               pointerEvents: 'none',
             }} />
           </div>
         </Box>
-        <Typography>{t('loadingPostData')}</Typography>
       </Box>
     );
   }

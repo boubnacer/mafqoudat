@@ -89,12 +89,11 @@ const LoadingFallback = () => (
     position: 'relative'
   }}>
     <div style={{
-      width: '100px',
-      height: '100px',
+      width: '150px',
+      height: '150px',
       display: 'flex',
       alignItems: 'center',
       justifyContent: 'center',
-      marginBottom: '1rem',
       position: 'relative',
       overflow: 'hidden'
     }}>
@@ -119,12 +118,11 @@ const LoadingFallback = () => (
         transform: 'translateY(-50%) skew(-15deg)',
         borderRadius: '2px',
         zIndex: 3,
-        animation: 'mirrorReflection 5s ease-in-out infinite',
+        animation: 'mirrorReflection 2s ease-in-out infinite',
         boxShadow: '0 0 10px rgba(255, 255, 255, 0.3)',
         pointerEvents: 'none',
       }} />
     </div>
-    <div>Loading...</div>
   </div>
 );
 
