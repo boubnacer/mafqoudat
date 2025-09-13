@@ -190,8 +190,8 @@ export const LoadingState = ({ message = "Loading...", size = "medium" }) => {
     >
       <Box
         sx={{
-          width: size === 'large' ? 120 : size === 'small' ? 60 : 80,
-          height: size === 'large' ? 120 : size === 'small' ? 60 : 80,
+          width: 100,
+          height: 100,
           display: 'flex',
           alignItems: 'center',
           justifyContent: 'center',

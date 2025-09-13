@@ -89,8 +89,8 @@ const LoadingFallback = () => (
     position: 'relative'
   }}>
     <div style={{
-      width: '80px',
-      height: '80px',
+      width: '100px',
+      height: '100px',
       display: 'flex',
       alignItems: 'center',
       justifyContent: 'center',
