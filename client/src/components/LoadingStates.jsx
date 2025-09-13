@@ -179,7 +179,7 @@ export const LoadingState = ({ message = "Loading...", size = "medium" }) => {
         left: 0,
         width: '100vw',
         height: '100vh',
-        zIndex: 2000,
+        zIndex: 9999,
         display: 'flex',
         flexDirection: 'column',
         alignItems: 'center',

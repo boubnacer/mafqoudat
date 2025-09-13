@@ -81,12 +81,16 @@ const LoadingFallback = () => (
     justifyContent: 'center', 
     alignItems: 'center', 
     height: '100vh',
+    width: '100vw',
     fontSize: '1.2rem',
     color: '#666',
     flexDirection: 'column',
     gap: '1rem',
     backgroundColor: 'white',
-    position: 'relative'
+    position: 'fixed',
+    top: 0,
+    left: 0,
+    zIndex: 9999
   }}>
     <div style={{
       width: '150px',

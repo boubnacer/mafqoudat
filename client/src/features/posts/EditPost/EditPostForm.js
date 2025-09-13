@@ -524,9 +524,16 @@ const EditPostForm = ({ post, user, countries, flOptions, categories, cities }) 
         flexDirection="column"
         justifyContent="center" 
         alignItems="center" 
-        minHeight="50vh"
+        minHeight="100vh"
+        width="100vw"
         gap={2}
-        sx={{ backgroundColor: 'white' }}
+        sx={{ 
+          backgroundColor: 'white',
+          position: 'fixed',
+          top: 0,
+          left: 0,
+          zIndex: 9999
+        }}
       >
         <Box
           sx={{
