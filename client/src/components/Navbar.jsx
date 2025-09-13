@@ -94,8 +94,8 @@ const StyledToolbar = styled(Toolbar)(({ theme }) => ({
 }));
 
 const LogoButton = styled(Button)(({ theme }) => ({
-  padding: '6px 10px',
-  borderRadius: '12px',
+  padding: '8px 12px',
+  borderRadius: '10px',
   transition: 'all 0.3s cubic-bezier(0.4, 0, 0.2, 1)',
   position: 'relative',
   overflow: 'hidden',
@@ -119,7 +119,7 @@ const LogoButton = styled(Button)(({ theme }) => ({
     zIndex: 2,
   },
   [theme.breakpoints.down('sm')]: {
-    padding: '4px 6px',
+    padding: '8px 10px',
     marginLeft: theme.direction === 'rtl' ? '0' : '-6px',
     marginRight: theme.direction === 'rtl' ? '-6px' : '0',
     '& img': {
@@ -472,7 +472,6 @@ const Navbar = () => {
           <LogoButton 
             onClick={onGoHomeClicked}
             sx={{
-              padding: { xs: '8px 14px', sm: '8px 16px' },
               position: 'relative',
               overflow: 'hidden',
             }}
