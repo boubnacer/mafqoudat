@@ -31,6 +31,37 @@ import { Add as AddIcon, Close as CloseIcon } from '@mui/icons-material';
 import { useTranslation } from "../../../utils/translations";
 import useAuth from "../../../hooks/useAuth";
 
+// Add CSS keyframes for loading animations
+const loadingStyles = `
+@keyframes pulse {
+  0%, 100% {
+    opacity: 1;
+    transform: scale(1);
+  }
+  50% {
+    opacity: 0.7;
+    transform: scale(1.05);
+  }
+}
+
+@keyframes rotate {
+  0% {
+    transform: rotate(0deg);
+  }
+  100% {
+    transform: rotate(360deg);
+  }
+}
+`;
+
+// Inject styles into the document
+if (typeof document !== 'undefined') {
+  const styleSheet = document.createElement("style");
+  styleSheet.type = "text/css";
+  styleSheet.innerText = loadingStyles;
+  document.head.appendChild(styleSheet);
+}
+
 const EditPostForm = ({ post, user, countries, flOptions, categories, cities }) => {
   const [updatePost, { isLoading, isSuccess, isError, error }] = useUpdatePostMutation();
   const [deletePost, { isSuccess: isDelSuccess, isError: isDelError, error: delerror }] = useDeletePostMutation();
@@ -503,19 +534,16 @@ const EditPostForm = ({ post, user, countries, flOptions, categories, cities }) 
             justifyContent: 'center',
           }}
         >
-          <video
-            autoPlay
-            loop
-            muted
-            playsInline
+          <img
+            src="/maflogo.png"
+            alt="Loading..."
             style={{
               width: '100%',
               height: '100%',
               objectFit: 'contain',
+              animation: 'pulse 2s ease-in-out infinite, rotate 3s linear infinite',
             }}
-          >
-            <source src="/loadingLogo.mp4" type="video/mp4" />
-          </video>
+          />
         </Box>
         <Typography>{t('loadingPostData')}</Typography>
       </Box>
