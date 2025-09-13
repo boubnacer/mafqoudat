@@ -30,8 +30,8 @@ const LeftSide = ({
         boxShadow: theme.palette.mode === 'dark'
           ? '0 8px 32px 0 rgba(0,0,0,0.15)'
           : '0 8px 32px 0 rgba(0,0,0,0.05)',
-        height: 'fit-content', // Fix height issue
-        maxHeight: '100%', // Prevent overflow
+        height: '100%', // Allow stretching to match container
+        minHeight: 'fit-content', // Ensure minimum content height
         width: isMobile ? '100%' : 'auto', // Full width on mobile
         mx: isMobile ? 0 : 'auto', // Remove horizontal margin on mobile
       }}
@@ -67,7 +67,8 @@ const LeftSide = ({
             sm: "repeat(2, 1fr)", // 2 columns on tablet
             md: "repeat(2, 1fr)", // 2 columns on desktop
           },
-          height: "auto", // Fix height issue
+          height: "100%", // Use full available height
+          alignContent: "start", // Align content to top
         }}
       >
         <TotalBox
