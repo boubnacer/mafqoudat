@@ -99,15 +99,15 @@ const LogoButton = styled(Button)(({ theme }) => ({
   transition: 'all 0.3s cubic-bezier(0.4, 0, 0.2, 1)',
   position: 'relative',
   overflow: 'hidden',
-  background: 'transparent',
+  background: theme.palette.mode === 'dark' ? '#ffffff' : 'transparent',
   minWidth: 'auto',
-  boxShadow: 'none',
+  boxShadow: theme.palette.mode === 'dark' ? '0 2px 8px rgba(0, 0, 0, 0.15)' : 'none',
   marginLeft: theme.direction === 'rtl' ? '0' : '-4px',
   marginRight: theme.direction === 'rtl' ? '-4px' : '0',
   '&:hover': {
     transform: 'translateY(-2px)',
-    background: 'transparent',
-    boxShadow: 'none',
+    background: theme.palette.mode === 'dark' ? '#ffffff' : 'transparent',
+    boxShadow: theme.palette.mode === 'dark' ? '0 4px 12px rgba(0, 0, 0, 0.2)' : 'none',
   },
   '& img': {
     height: 'auto',
@@ -117,7 +117,6 @@ const LogoButton = styled(Button)(({ theme }) => ({
     transition: 'all 0.3s ease',
     position: 'relative',
     zIndex: 2,
-    // Clean styling - no background in both modes
   },
   [theme.breakpoints.down('sm')]: {
     padding: '4px 6px',
