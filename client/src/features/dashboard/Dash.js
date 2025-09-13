@@ -165,7 +165,7 @@ const Dash = () => {
 
       {/* Header Section with Stats and Trending */}
       <Box
-        m={{ xs: 0, sm: "0 2rem" }}
+        mx={{ xs: 0, sm: "2rem" }}
         mb={4}
         p={{ xs: 2, sm: 3, md: 4 }}
         gap="20px"
