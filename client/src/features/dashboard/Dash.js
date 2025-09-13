@@ -73,7 +73,7 @@ const Dash = () => {
   if (!currentCountry) {
     return (
       <Box 
-        pt={{ xs: "5.5rem", sm: "6rem" }} 
+        pt={{ xs: "5.5rem", sm: "5.5rem" }} 
         width="100%"
         display="flex"
         justifyContent="center"
@@ -138,7 +138,7 @@ const Dash = () => {
 
   return (
     <Box 
-      pt={{ xs: "4rem", sm: "4.5rem" }} 
+      pt={{ xs: "4rem", sm: "4rem" }} 
       width="100%"
       sx={{
         transition: 'padding 0.3s ease',
