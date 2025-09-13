@@ -213,7 +213,12 @@ const TrendingItem = ({ trend, isLoading }) => {
   }
 
   return (
-    <Box flex={1} sx={{ minWidth: isMobile ? '100%' : 'auto', width: isMobile ? '100%' : 'auto' }}>
+    <Box flex={1} sx={{ 
+      minWidth: isMobile ? '100%' : 'auto', 
+      width: isMobile ? '100%' : 'auto',
+      mx: isMobile ? 0 : 'auto', // Center the component only on desktop
+      direction: currentLanguage === 'ar' ? 'rtl' : 'ltr', // Ensure proper direction
+    }}>
       <Card
         sx={{
           background: theme.palette.mode === 'dark'

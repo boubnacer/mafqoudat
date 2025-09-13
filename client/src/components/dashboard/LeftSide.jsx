@@ -33,7 +33,8 @@ const LeftSide = ({
         height: '100%', // Allow stretching to match container
         minHeight: 'fit-content', // Ensure minimum content height
         width: isMobile ? '100%' : 'auto', // Full width on mobile
-        mx: isMobile ? 0 : 'auto', // Remove horizontal margin on mobile
+        mx: isMobile ? 0 : 'auto', // Center the component only on desktop
+        direction: currentLanguage === 'ar' ? 'rtl' : 'ltr', // Ensure proper direction
       }}
     >
       {/* Title Section */}
