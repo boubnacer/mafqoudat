@@ -44,6 +44,7 @@ const DashFooter = () => {
 
   let createPostButton = null;
   // Only show the plus icon on posts list page and mobile view
+  // Make sure it only shows on the exact posts list page, not on dashboard or other pages
   if (pathname === "/dash/posts") {
     createPostButton = (
       <IconButton 
