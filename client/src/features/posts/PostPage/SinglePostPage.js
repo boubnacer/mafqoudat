@@ -609,28 +609,11 @@ const SinglePostPage = ({
     <Box 
       sx={{ 
         p: { xs: 2, md: 4 },
-        pt: { xs: "6rem", md: "7rem" },
+        pt: { xs: "4rem", md: "5rem" },
         minHeight: "100vh",
         background: isDarkMode ? theme.palette.background.default : '#f5f5f5'
       }}
     >
-      {/* Back Button */}
-      <Box sx={{ mb: 3 }}>
-        <Button
-          startIcon={!isRTLMode ? <ArrowBackIcon /> : null}
-          endIcon={isRTLMode ? <ArrowBackIcon /> : null}
-          onClick={handleBack}
-          sx={{
-            color: theme.palette.textColor.secondary,
-            direction: isRTLMode ? 'rtl' : 'ltr',
-            '&:hover': {
-              backgroundColor: theme.palette.action.hover
-            }
-          }}
-        >
-          {t('back')} {t('to')} {t('posts')}
-        </Button>
-      </Box>
 
       <Grid container spacing={{ xs: 2, md: 4 }}>
         {/* Main Content */}
@@ -952,7 +935,12 @@ const SinglePostPage = ({
                       textTransform: 'none',
                       fontWeight: 600,
                       direction: currentLanguage === 'ar' ? 'rtl' : 'ltr',
-                      gap: currentLanguage === 'ar' ? 1 : 0.5
+                      gap: currentLanguage === 'ar' ? 1 : 0.5,
+                      boxShadow: 'none',
+                      border: `1px solid ${theme.palette.primary.main}`,
+                      '&:hover': {
+                        boxShadow: 'none'
+                      }
                     }}
                   >
                     {t('editPost')}
@@ -972,9 +960,11 @@ const SinglePostPage = ({
                     gap: currentLanguage === 'ar' ? 1 : 0.5,
                     borderColor: theme.palette.error.main,
                     color: theme.palette.error.main,
+                    boxShadow: 'none',
                     '&:hover': {
                       backgroundColor: theme.palette.error.main,
-                      color: 'white'
+                      color: 'white',
+                      boxShadow: 'none'
                     }
                   }}
                 >
