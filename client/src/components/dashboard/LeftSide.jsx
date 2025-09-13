@@ -24,15 +24,16 @@ const LeftSide = ({
           ? 'linear-gradient(135deg, rgba(18,18,18,0.95) 0%, rgba(28,28,28,0.95) 100%)'
           : 'linear-gradient(135deg, rgba(255,255,255,0.95) 0%, rgba(255,255,255,0.95) 100%)',
         backdropFilter: 'blur(10px)',
-        borderRadius: '24px',
+        borderRadius: isMobile ? '16px' : '24px',
         border: `1px solid ${theme.palette.mode === 'dark' ? 'rgba(255,255,255,0.08)' : 'rgba(0,0,0,0.08)'}`,
-        padding: isMobile ? '1.5rem' : '2rem',
+        padding: isMobile ? '1.25rem' : '2rem',
         boxShadow: theme.palette.mode === 'dark'
           ? '0 8px 32px 0 rgba(0,0,0,0.15)'
           : '0 8px 32px 0 rgba(0,0,0,0.05)',
         height: 'fit-content', // Fix height issue
         maxHeight: '100%', // Prevent overflow
         width: isMobile ? '100%' : 'auto', // Full width on mobile
+        mx: isMobile ? 0 : 'auto', // Remove horizontal margin on mobile
       }}
     >
       {/* Title Section */}
@@ -58,11 +59,11 @@ const LeftSide = ({
 
       {/* Stats Grid */}
       <Box
-        gap={isMobile ? "1rem" : "1.5rem"}
+        gap={isMobile ? "0.75rem" : "1.5rem"}
         sx={{
           display: "grid",
           gridTemplateColumns: {
-            xs: "repeat(1, 1fr)", // Single column on mobile
+            xs: "repeat(2, 1fr)", // 2 columns on mobile
             sm: "repeat(2, 1fr)", // 2 columns on tablet
             md: "repeat(2, 1fr)", // 2 columns on desktop
           },
@@ -80,22 +81,22 @@ const LeftSide = ({
               ? 'linear-gradient(135deg, rgba(72, 187, 120, 0.15) 0%, rgba(72, 187, 120, 0.08) 100%)'
               : 'linear-gradient(135deg, rgba(72, 187, 120, 0.2) 0%, rgba(72, 187, 120, 0.15) 100%)',
             border: `1px solid ${theme.palette.mode === 'dark' ? 'rgba(72, 187, 120, 0.3)' : 'rgba(72, 187, 120, 0.4)'}`,
-            padding: isMobile ? '1.25rem' : '1.5rem',
-            minHeight: isMobile ? '120px' : '140px', // Increased height
+            padding: isMobile ? '1rem' : '1.5rem',
+            minHeight: isMobile ? '110px' : '140px', // Adjusted height for mobile
           }}
           titleStyle={{ 
             color: theme.palette.mode === 'dark' ? '#E0E0E0' : '#2D3748',
-            fontSize: isMobile ? '1rem' : '1.1rem', // Bigger title
+            fontSize: isMobile ? '0.9rem' : '1.1rem', // Adjusted for mobile
             fontWeight: 600
           }}
           valueStyle={{ 
             color: theme.palette.mode === 'dark' ? '#48BB78' : '#2F855A',
-            fontSize: isMobile ? '1.75rem' : '2rem', // Bigger value
+            fontSize: isMobile ? '1.5rem' : '2rem', // Adjusted for mobile
             fontWeight: 700
           }}
           descriptionStyle={{ 
             color: theme.palette.mode === 'dark' ? '#A0AEC0' : '#4A5568',
-            fontSize: isMobile ? '0.875rem' : '0.9rem' // Bigger description
+            fontSize: isMobile ? '0.8rem' : '0.9rem' // Adjusted for mobile
           }}
           iconStyle={{
             background: theme.palette.mode === 'dark'
@@ -116,22 +117,22 @@ const LeftSide = ({
               ? 'linear-gradient(135deg, rgba(245, 101, 101, 0.15) 0%, rgba(245, 101, 101, 0.08) 100%)'
               : 'linear-gradient(135deg, rgba(245, 101, 101, 0.2) 0%, rgba(245, 101, 101, 0.15) 100%)',
             border: `1px solid ${theme.palette.mode === 'dark' ? 'rgba(245, 101, 101, 0.3)' : 'rgba(245, 101, 101, 0.4)'}`,
-            padding: isMobile ? '1.25rem' : '1.5rem',
-            minHeight: isMobile ? '120px' : '140px', // Increased height
+            padding: isMobile ? '1rem' : '1.5rem',
+            minHeight: isMobile ? '110px' : '140px', // Adjusted height for mobile
           }}
           titleStyle={{ 
             color: theme.palette.mode === 'dark' ? '#E0E0E0' : '#2D3748',
-            fontSize: isMobile ? '1rem' : '1.1rem', // Bigger title
+            fontSize: isMobile ? '0.9rem' : '1.1rem', // Adjusted for mobile
             fontWeight: 600
           }}
           valueStyle={{ 
             color: theme.palette.mode === 'dark' ? '#F56565' : '#C53030',
-            fontSize: isMobile ? '1.75rem' : '2rem', // Bigger value
+            fontSize: isMobile ? '1.5rem' : '2rem', // Adjusted for mobile
             fontWeight: 700
           }}
           descriptionStyle={{ 
             color: theme.palette.mode === 'dark' ? '#A0AEC0' : '#4A5568',
-            fontSize: isMobile ? '0.875rem' : '0.9rem' // Bigger description
+            fontSize: isMobile ? '0.8rem' : '0.9rem' // Adjusted for mobile
           }}
           iconStyle={{
             background: theme.palette.mode === 'dark'
@@ -152,22 +153,22 @@ const LeftSide = ({
               ? 'linear-gradient(135deg, rgba(66, 153, 225, 0.15) 0%, rgba(66, 153, 225, 0.08) 100%)'
               : 'linear-gradient(135deg, rgba(66, 153, 225, 0.2) 0%, rgba(66, 153, 225, 0.15) 100%)',
             border: `1px solid ${theme.palette.mode === 'dark' ? 'rgba(66, 153, 225, 0.3)' : 'rgba(66, 153, 225, 0.4)'}`,
-            padding: isMobile ? '1.25rem' : '1.5rem',
-            minHeight: isMobile ? '120px' : '140px', // Increased height
+            padding: isMobile ? '1rem' : '1.5rem',
+            minHeight: isMobile ? '110px' : '140px', // Adjusted height for mobile
           }}
           titleStyle={{ 
             color: theme.palette.mode === 'dark' ? '#E0E0E0' : '#2D3748',
-            fontSize: isMobile ? '1rem' : '1.1rem', // Bigger title
+            fontSize: isMobile ? '0.9rem' : '1.1rem', // Adjusted for mobile
             fontWeight: 600
           }}
           valueStyle={{ 
             color: theme.palette.mode === 'dark' ? '#4299E1' : '#2B6CB0',
-            fontSize: isMobile ? '1.75rem' : '2rem', // Bigger value
+            fontSize: isMobile ? '1.5rem' : '2rem', // Adjusted for mobile
             fontWeight: 700
           }}
           descriptionStyle={{ 
             color: theme.palette.mode === 'dark' ? '#A0AEC0' : '#4A5568',
-            fontSize: isMobile ? '0.875rem' : '0.9rem' // Bigger description
+            fontSize: isMobile ? '0.8rem' : '0.9rem' // Adjusted for mobile
           }}
           iconStyle={{
             background: theme.palette.mode === 'dark'
@@ -188,22 +189,22 @@ const LeftSide = ({
               ? 'linear-gradient(135deg, rgba(159, 122, 234, 0.15) 0%, rgba(159, 122, 234, 0.08) 100%)'
               : 'linear-gradient(135deg, rgba(159, 122, 234, 0.2) 0%, rgba(159, 122, 234, 0.15) 100%)',
             border: `1px solid ${theme.palette.mode === 'dark' ? 'rgba(159, 122, 234, 0.3)' : 'rgba(159, 122, 234, 0.4)'}`,
-            padding: isMobile ? '1.25rem' : '1.5rem',
-            minHeight: isMobile ? '120px' : '140px', // Increased height
+            padding: isMobile ? '1rem' : '1.5rem',
+            minHeight: isMobile ? '110px' : '140px', // Adjusted height for mobile
           }}
           titleStyle={{ 
             color: theme.palette.mode === 'dark' ? '#E0E0E0' : '#2D3748',
-            fontSize: isMobile ? '1rem' : '1.1rem', // Bigger title
+            fontSize: isMobile ? '0.9rem' : '1.1rem', // Adjusted for mobile
             fontWeight: 600
           }}
           valueStyle={{ 
             color: theme.palette.mode === 'dark' ? '#9F7AEA' : '#6B46C1',
-            fontSize: isMobile ? '1.75rem' : '2rem', // Bigger value
+            fontSize: isMobile ? '1.5rem' : '2rem', // Adjusted for mobile
             fontWeight: 700
           }}
           descriptionStyle={{ 
             color: theme.palette.mode === 'dark' ? '#A0AEC0' : '#4A5568',
-            fontSize: isMobile ? '0.875rem' : '0.9rem' // Bigger description
+            fontSize: isMobile ? '0.8rem' : '0.9rem' // Adjusted for mobile
           }}
           iconStyle={{
             background: theme.palette.mode === 'dark'
