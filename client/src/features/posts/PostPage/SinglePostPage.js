@@ -609,7 +609,7 @@ const SinglePostPage = ({
     <Box 
       sx={{ 
         p: { xs: 2, md: 4 },
-        pt: { xs: "8rem", md: "10rem" },
+        pt: { xs: "6rem", md: "7rem" },
         minHeight: "100vh",
         background: isDarkMode ? theme.palette.background.default : '#f5f5f5'
       }}
@@ -800,7 +800,7 @@ const SinglePostPage = ({
                         color="text.secondary"
                         sx={{ 
                           direction: currentLanguage === 'ar' ? 'rtl' : 'ltr',
-                          fontSize: { xs: '0.9rem', sm: '0.875rem', md: '0.875rem' }
+                          fontSize: { xs: '1rem', sm: '0.95rem', md: '0.95rem' }
                         }}
                       >
                         {exactLocation || displayCityName}
@@ -815,7 +815,7 @@ const SinglePostPage = ({
                         color="text.secondary"
                         sx={{ 
                           direction: currentLanguage === 'ar' ? 'rtl' : 'ltr',
-                          fontSize: { xs: '0.9rem', sm: '0.875rem', md: '0.875rem' }
+                          fontSize: { xs: '1rem', sm: '0.95rem', md: '0.95rem' }
                         }}
                       >
                         {createdDate}
@@ -866,7 +866,7 @@ const SinglePostPage = ({
                       fontSize: { xs: '1.1rem', sm: '1.25rem', md: '1.25rem' }
                     }}
                   >
-                    {t('additionalContact')}
+                    {t('additionalContactInformation')}
                   </Typography>
                   <Box display="flex" flexDirection="column" gap={1}>
                     {sanitizedAdditionalContact.phone && (
@@ -878,7 +878,7 @@ const SinglePostPage = ({
                           fontSize: { xs: '1rem', sm: '1rem', md: '1rem' }
                         }}
                       >
-                        {t('phone')}: {sanitizedAdditionalContact.phone}
+                        {t('phoneNumber')}: {sanitizedAdditionalContact.phone}
                       </Typography>
                     )}
                     {sanitizedAdditionalContact.email && (
@@ -890,7 +890,7 @@ const SinglePostPage = ({
                           fontSize: { xs: '1rem', sm: '1rem', md: '1rem' }
                         }}
                       >
-                        {t('email')}: {sanitizedAdditionalContact.email}
+                        {t('emailAddress')}: {sanitizedAdditionalContact.email}
                       </Typography>
                     )}
                     {sanitizedAdditionalContact.whatsapp && (
@@ -902,7 +902,7 @@ const SinglePostPage = ({
                           fontSize: { xs: '1rem', sm: '1rem', md: '1rem' }
                         }}
                       >
-                        WhatsApp: {sanitizedAdditionalContact.whatsapp}
+                        {t('whatsapp')}: {sanitizedAdditionalContact.whatsapp}
                       </Typography>
                     )}
                   </Box>
