@@ -20,8 +20,10 @@ import sear from "../../../img/sear.svg";
 import { useState, useCallback, useMemo } from "react";
 import ReportDialog from "../../../components/ReportDialog";
 import { useSubmitReportMutation } from "../reportsApiSlice";
+import { useDeletePostMutation } from "../postsApiSlice";
 import {
   Edit as EditIcon,
+  Delete as DeleteIcon,
   LocationOn as LocationIcon,
   Person as PersonIcon,
   CalendarToday as CalendarIcon,
@@ -100,6 +102,7 @@ const SinglePostPage = ({
   const canEdit = user === usernameId;
   const [reportDialogOpen, setReportDialogOpen] = useState(false);
   const [submitReport] = useSubmitReportMutation();
+  const [deletePost, { isLoading: isDeleting }] = useDeletePostMutation();
 
   // Memoized event handlers
   const handleEdit = useCallback(() => {
@@ -138,6 +141,17 @@ const SinglePostPage = ({
   const handleCloseReportDialog = useCallback(() => {
     setReportDialogOpen(false);
   }, []);
+
+  const handleDeletePost = useCallback(async () => {
+    if (window.confirm(t('confirmDeletePost') || 'Are you sure you want to delete this post? This action cannot be undone.')) {
+      try {
+        await deletePost({ id: _id }).unwrap();
+        navigate('/dash');
+      } catch (error) {
+        console.error('Delete failed:', error);
+      }
+    }
+  }, [deletePost, _id, navigate, t]);
 
   // Memoized computed values
   const locale = useMemo(() => {
@@ -925,26 +939,55 @@ const SinglePostPage = ({
 
               <Box display="flex" flexDirection="column" gap={2}>
                 {canEdit && (
-                  <Button
-                    variant="contained"
-                    startIcon={<EditIcon />}
-                    onClick={handleEdit}
-                    fullWidth
-                    sx={{
-                      borderRadius: 2,
-                      textTransform: 'none',
-                      fontWeight: 600,
-                      direction: currentLanguage === 'ar' ? 'rtl' : 'ltr',
-                      gap: currentLanguage === 'ar' ? 1 : 0.5,
-                      boxShadow: 'none',
-                      border: `1px solid ${theme.palette.primary.main}`,
-                      '&:hover': {
-                        boxShadow: 'none'
-                      }
-                    }}
-                  >
-                    {t('editPost')}
-                  </Button>
+                  <>
+                    <Button
+                      variant="contained"
+                      startIcon={<EditIcon />}
+                      onClick={handleEdit}
+                      fullWidth
+                      sx={{
+                        borderRadius: 2,
+                        textTransform: 'none',
+                        fontWeight: 600,
+                        direction: currentLanguage === 'ar' ? 'rtl' : 'ltr',
+                        gap: currentLanguage === 'ar' ? 1 : 0.5,
+                        boxShadow: 'none',
+                        border: isDarkMode 
+                          ? `1px solid ${theme.palette.primary.main}` 
+                          : `1px solid ${alpha('#000', 0.3)}`,
+                        '&:hover': {
+                          boxShadow: 'none'
+                        }
+                      }}
+                    >
+                      {t('editPost')}
+                    </Button>
+                    
+                    <Button
+                      variant="outlined"
+                      startIcon={<DeleteIcon />}
+                      onClick={handleDeletePost}
+                      disabled={isDeleting}
+                      fullWidth
+                      sx={{
+                        borderRadius: 2,
+                        textTransform: 'none',
+                        fontWeight: 600,
+                        direction: currentLanguage === 'ar' ? 'rtl' : 'ltr',
+                        gap: currentLanguage === 'ar' ? 1 : 0.5,
+                        boxShadow: 'none',
+                        borderColor: theme.palette.error.main,
+                        color: theme.palette.error.main,
+                        '&:hover': {
+                          backgroundColor: theme.palette.error.main,
+                          color: 'white',
+                          boxShadow: 'none'
+                        }
+                      }}
+                    >
+                      {isDeleting ? t('deleting') || 'Deleting...' : t('deletePost')}
+                    </Button>
+                  </>
                 )}
 
                 <Button
