@@ -34,6 +34,27 @@ const loadingStyles = `
     transform: translateY(-50%) skew(-15deg) scaleX(0.5);
   }
 }
+
+@keyframes logoFadeIn {
+  0% {
+    opacity: 0;
+    transform: scale(0.8);
+  }
+  100% {
+    opacity: 1;
+    transform: scale(1);
+  }
+}
+
+.loading-logo-container {
+  background-color: #f8f9fa;
+  border-radius: 8px;
+}
+
+.loading-logo-image {
+  opacity: 0;
+  animation: logoFadeIn 0.3s ease-out 0.1s forwards;
+}
 `;
 
 // Inject styles into the document
@@ -88,7 +109,7 @@ const LoadingFallback = () => (
     backgroundColor: 'white',
     position: 'relative'
   }}>
-    <div style={{
+    <div className="loading-logo-container" style={{
       width: '150px',
       height: '150px',
       display: 'flex',
@@ -100,6 +121,7 @@ const LoadingFallback = () => (
       <img
         src="/maflogo.png"
         alt="Loading..."
+        className="loading-logo-image"
         style={{
           width: '100%',
           height: '100%',
