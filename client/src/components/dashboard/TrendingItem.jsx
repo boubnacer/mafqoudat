@@ -234,7 +234,7 @@ const TrendingItem = ({ trend, isLoading }) => {
               : '0 16px 48px 0 rgba(0,0,0,0.15), 0 0 0 2px rgba(255,152,0,0.6), 0 0 35px rgba(255,152,0,0.3)',
           },
           height: '100%',
-          minHeight: { xs: '400px', sm: '300px' },
+          minHeight: { xs: '450px', sm: '350px' },
           position: 'relative',
           '&::before': {
             content: '""',
