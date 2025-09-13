@@ -642,7 +642,7 @@ const SinglePostPage = ({
               overflow: 'hidden',
               border: `1px solid ${isDarkMode ? alpha('#fff', 0.08) : alpha('#000', 0.12)}`,
               backgroundColor: isDarkMode ? alpha('#1a1a1a', 0.8) : '#ffffff',
-              boxShadow: isDarkMode ? 'none' : '0 2px 8px rgba(0, 0, 0, 0.1), 0 1px 3px rgba(0, 0, 0, 0.08)'
+              boxShadow: 'none'
             }}
           >
             {/* Image Section */}
@@ -866,7 +866,7 @@ const SinglePostPage = ({
                       fontSize: { xs: '1.1rem', sm: '1.25rem', md: '1.25rem' }
                     }}
                   >
-                    {t('additionalContactInformation')}
+                    {t('additionalContactDetails')}
                   </Typography>
                   <Box display="flex" flexDirection="column" gap={1}>
                     {sanitizedAdditionalContact.phone && (
@@ -902,7 +902,7 @@ const SinglePostPage = ({
                           fontSize: { xs: '1rem', sm: '1rem', md: '1rem' }
                         }}
                       >
-                        {t('whatsapp')}: {sanitizedAdditionalContact.whatsapp}
+                        {t('whatsappNumber')}: {sanitizedAdditionalContact.whatsapp}
                       </Typography>
                     )}
                   </Box>
@@ -924,7 +924,7 @@ const SinglePostPage = ({
                 borderRadius: 3,
                 border: `1px solid ${isDarkMode ? alpha('#fff', 0.08) : alpha('#000', 0.12)}`,
                 backgroundColor: isDarkMode ? alpha('#1a1a1a', 0.8) : '#ffffff',
-                boxShadow: isDarkMode ? 'none' : '0 2px 8px rgba(0, 0, 0, 0.1), 0 1px 3px rgba(0, 0, 0, 0.08)'
+                boxShadow: 'none'
               }}
             >
               <Typography 
@@ -991,7 +991,7 @@ const SinglePostPage = ({
                 borderRadius: 3,
                 border: `1px solid ${isDarkMode ? alpha('#fff', 0.08) : alpha('#000', 0.12)}`,
                 backgroundColor: isDarkMode ? alpha('#1a1a1a', 0.8) : '#ffffff',
-                boxShadow: isDarkMode ? 'none' : '0 2px 8px rgba(0, 0, 0, 0.1), 0 1px 3px rgba(0, 0, 0, 0.08)'
+                boxShadow: 'none'
               }}
             >
               <Typography 
