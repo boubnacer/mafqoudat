@@ -175,6 +175,7 @@ const Dash = () => {
           overflow: 'hidden',
           width: '100%', // Ensure full width
           alignItems: { xs: 'stretch', sm: 'stretch' }, // Ensure both components stretch to same height
+          marginLeft: { xs: 0, sm: 'auto' }, // Remove left margin on mobile
         }}
       >
         <LeftSide
