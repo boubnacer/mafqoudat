@@ -67,11 +67,7 @@ const LeftSide = ({
             sm: "repeat(2, 1fr)", // 2 columns on tablet
             md: "repeat(2, 1fr)", // 2 columns on desktop
           },
-          gridTemplateRows: {
-            xs: "repeat(2, 180px)", // Fixed height rows on mobile - 180px each
-            sm: "auto", // Auto rows on desktop
-            md: "auto", // Auto rows on desktop
-          },
+          gridAutoRows: "auto", // Auto rows for all screen sizes
           height: "auto", // Let content determine height
           minHeight: "fit-content", // Ensure minimum content height
           alignContent: "start", // Align content to top

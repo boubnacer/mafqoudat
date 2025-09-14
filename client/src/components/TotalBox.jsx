@@ -25,8 +25,8 @@ const StatBox = ({ title, value, increase, icon, description, titleStyle, valueS
             ? '0 12px 40px 0 rgba(0,0,0,0.15)'
             : '0 12px 40px 0 rgba(0,0,0,0.1)',
         },
-        height: '100%', // Ensure full height
-        minHeight: { xs: '100%', sm: 'fit-content' }, // Use full grid cell height on mobile, content-based on desktop
+        height: { xs: '180px', sm: 'auto' }, // Fixed height on mobile, auto on desktop
+        minHeight: { xs: '180px', sm: 'fit-content' }, // Fixed minimum height on mobile
         display: 'flex',
         flexDirection: 'column',
         ...sx
