@@ -25,7 +25,7 @@ const LeftSide = ({
           : 'linear-gradient(135deg, rgba(255,255,255,0.95) 0%, rgba(255,255,255,0.95) 100%)',
         backdropFilter: 'blur(10px)',
         borderRadius: isMobile ? '16px' : '24px',
-        border: `1px solid ${theme.palette.mode === 'dark' ? 'rgba(255,255,255,0.08)' : 'rgba(0,0,0,0.08)'}`,
+        border: `1px solid ${theme.palette.mode === 'dark' ? 'rgba(255,255,255,0.08)' : 'rgba(0,0,0,0.15)'}`,
         padding: isMobile ? '1.5rem' : '2rem',
         boxShadow: theme.palette.mode === 'dark'
           ? '0 8px 32px 0 rgba(0,0,0,0.15)'

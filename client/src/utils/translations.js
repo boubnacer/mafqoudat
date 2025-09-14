@@ -1934,7 +1934,7 @@ export const translations = {
     foundItems: "العناصر التي عثر عليها",
     lostItems: "العناصر المفقودة",
     totalItems: "إجمالي العناصر",
-    returnedItems: "العناصر المُرجعة",
+    returnedItems: "العناصر المُسترجعة",
     today: "اليوم",
     sinceLastMonth: "منذ الشهر الماضي",
     

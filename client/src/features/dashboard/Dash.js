@@ -138,7 +138,7 @@ const Dash = () => {
 
   return (
     <Box 
-      pt={{ xs: "4rem", sm: "4rem" }} 
+      pt={{ xs: "4rem", sm: "3rem" }} 
       width="100%"
       sx={{
         transition: 'padding 0.3s ease',
