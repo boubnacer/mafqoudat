@@ -63,7 +63,7 @@ const LeftSide = ({
         sx={{
           display: "grid",
           gridTemplateColumns: {
-            xs: "1fr 1fr", // Fixed equal columns on mobile - exactly 50% each
+            xs: "calc(50% - 0.5rem) calc(50% - 0.5rem)", // Fixed equal columns accounting for gap
             sm: "repeat(2, 1fr)", // 2 columns on tablet
             md: "repeat(2, 1fr)", // 2 columns on desktop
           },
