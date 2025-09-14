@@ -169,7 +169,7 @@ const TopControlsContainer = styled(Box)(({ theme }) => ({
   width: '100%',
   padding: theme?.spacing?.(2) || '16px',
   position: 'absolute',
-  top: 0,
+  top: '10px',
   left: 0,
   right: 0,
   zIndex: 10,
