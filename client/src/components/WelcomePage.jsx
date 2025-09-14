@@ -170,7 +170,7 @@ const ActionButton = styled(IconButton)(({ theme }) => ({
 
 const TopRightContainer = styled(Box)(({ theme }) => ({
   position: 'absolute',
-  top: theme?.spacing?.(2) || '16px',
+  top: { xs: '40px', sm: theme?.spacing?.(2) || '16px' },
   right: theme?.spacing?.(2) || '16px',
   zIndex: 10,
   marginTop: { xs: '20px', sm: '0px' },
@@ -189,7 +189,7 @@ const TopRightContainer = styled(Box)(({ theme }) => ({
 
 const TopLeftContainer = styled(Box)(({ theme }) => ({
   position: 'absolute',
-  top: theme?.spacing?.(2) || '16px',
+  top: { xs: '40px', sm: theme?.spacing?.(2) || '16px' },
   left: theme?.spacing?.(2) || '16px',
   zIndex: 10,
   marginTop: { xs: '20px', sm: '0px' },
