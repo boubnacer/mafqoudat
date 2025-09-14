@@ -68,7 +68,7 @@ const LeftSide = ({
             md: "repeat(2, 1fr)", // 2 columns on desktop
           },
           gridTemplateRows: {
-            xs: "repeat(2, 220px)", // Fixed height rows on mobile - exactly 220px each
+            xs: "repeat(2, 240px)", // Increased height rows on mobile - exactly 240px each
             sm: "auto", // Auto rows on desktop
             md: "auto", // Auto rows on desktop
           },

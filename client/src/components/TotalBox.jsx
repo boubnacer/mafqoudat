@@ -25,8 +25,8 @@ const StatBox = ({ title, value, increase, icon, description, titleStyle, valueS
             ? '0 12px 40px 0 rgba(0,0,0,0.15)'
             : '0 12px 40px 0 rgba(0,0,0,0.1)',
         },
-        height: { xs: '220px', sm: 'auto' }, // Same height for all boxes on mobile
-        minHeight: { xs: '220px', sm: 'fit-content' }, // Same minimum height for all boxes on mobile
+        height: { xs: '240px', sm: 'auto' }, // Increased height for longer text in mobile
+        minHeight: { xs: '240px', sm: 'fit-content' }, // Increased minimum height for longer text in mobile
         width: { xs: '100%', sm: 'auto' }, // Same width for all boxes on mobile
         display: 'flex',
         flexDirection: 'column',
@@ -102,9 +102,11 @@ const StatBox = ({ title, value, increase, icon, description, titleStyle, valueS
             ...descriptionStyle,
             alignSelf: 'flex-start', // Bottom-left in LTR
             marginTop: 'auto', // Push to bottom
+            textAlign: 'left', // Left align in LTR
             // RTL support
             '[dir="rtl"] &': {
               alignSelf: 'flex-end', // Bottom-right in RTL
+              textAlign: 'right', // Right align in RTL
             }
           }}
         >
