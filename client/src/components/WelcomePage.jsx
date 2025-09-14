@@ -33,7 +33,6 @@ import {
   ArrowBack,
   Language,
   KeyboardArrowDown,
-  Menu,
   DarkModeOutlined,
   LightModeOutlined,
 } from "@mui/icons-material";
