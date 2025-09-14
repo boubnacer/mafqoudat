@@ -88,7 +88,7 @@ const StatBox = ({ title, value, increase, icon, description, titleStyle, valueS
         {icon}
       </Box>
 
-      <Box mt="1rem" sx={{ flexGrow: 1, display: 'flex', flexDirection: 'column', justifyContent: 'center' }}>
+      <Box mt="1rem" sx={{ flexGrow: 1, display: 'flex', flexDirection: 'column', justifyContent: 'space-between' }}>
         <Typography
           fontWeight="600"
           fontSize="2rem"
@@ -98,7 +98,15 @@ const StatBox = ({ title, value, increase, icon, description, titleStyle, valueS
         </Typography>
         <Typography
           fontSize="0.875rem"
-          sx={descriptionStyle}
+          sx={{
+            ...descriptionStyle,
+            alignSelf: 'flex-start', // Bottom-left in LTR
+            marginTop: 'auto', // Push to bottom
+            // RTL support
+            '[dir="rtl"] &': {
+              alignSelf: 'flex-end', // Bottom-right in RTL
+            }
+          }}
         >
           {description}
         </Typography>
