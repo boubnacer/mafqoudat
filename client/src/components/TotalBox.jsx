@@ -26,7 +26,7 @@ const StatBox = ({ title, value, increase, icon, description, titleStyle, valueS
             : '0 12px 40px 0 rgba(0,0,0,0.1)',
         },
         height: '100%', // Ensure full height
-        minHeight: '160px', // Fixed minimum height for mobile consistency
+        minHeight: { xs: '160px', sm: '150px' }, // Fixed minimum height for mobile consistency across all languages
         display: 'flex',
         flexDirection: 'column',
         ...sx
