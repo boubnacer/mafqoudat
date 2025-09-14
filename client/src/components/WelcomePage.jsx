@@ -1,7 +1,7 @@
 import React, { useState } from "react";
 import { useNavigate } from "react-router-dom";
-import { useDispatch } from "react-redux";
-import { setCurrentCountry } from "../app/state";
+import { useDispatch, useSelector } from "react-redux";
+import { setCurrentCountry, setMode } from "../app/state";
 import { useGetCountriesQuery } from "../features/dependencies/dependenciesApiSlice"; // Fixed: Use dependenciesApiSlice instead of countriesApiSlice
 import { useTranslation } from "../utils/translations";
 import { useLanguage } from "../utils/languageContext";
@@ -22,6 +22,7 @@ import {
   MenuItem,
   ListItemIcon,
   ListItemText,
+  IconButton,
 } from "@mui/material";
 import {
   Public,
@@ -31,6 +32,8 @@ import {
   Language,
   KeyboardArrowDown,
   Menu,
+  DarkModeOutlined,
+  LightModeOutlined,
 } from "@mui/icons-material";
 
 
@@ -111,28 +114,60 @@ const FeatureCard = styled(Paper)(({ theme }) => ({
 
 
 const LanguageSelector = styled(Box)(({ theme }) => ({
-  position: 'absolute',
-  top: theme?.spacing?.(2) || '16px',
-  left: theme?.spacing?.(2) || '16px',
   display: 'flex',
   alignItems: 'center',
-  padding: '8px 16px',
-  borderRadius: '12px',
+  padding: '6px 12px',
+  borderRadius: '10px',
   cursor: 'pointer',
-  background: theme?.palette?.mode === 'dark' 
-    ? alpha(theme?.palette?.common?.white, 0.05)
-    : alpha(theme?.palette?.common?.black, 0.05),
-  transition: 'all 0.3s ease',
+  background: theme.palette.mode === 'dark' 
+    ? alpha(theme.palette.common.white, 0.05)
+    : alpha(theme.palette.common.black, 0.03),
+  border: `1px solid ${alpha(theme.palette.divider, 0.1)}`,
+  transition: 'all 0.3s cubic-bezier(0.4, 0, 0.2, 1)',
   '&:hover': {
-    background: theme?.palette?.mode === 'dark' 
-      ? alpha(theme?.palette?.common?.white, 0.1)
-      : alpha(theme?.palette?.common?.black, 0.1),
+    background: theme.palette.mode === 'dark' 
+      ? alpha(theme.palette.common.white, 0.12)
+      : alpha(theme.palette.common.black, 0.08),
     transform: 'translateY(-2px)',
+    boxShadow: theme.palette.mode === 'dark'
+      ? '0 4px 15px rgba(0, 0, 0, 0.3)'
+      : '0 4px 15px rgba(0, 0, 0, 0.1)',
   },
   '& .MuiSvgIcon-root': {
     marginRight: '8px',
     fontSize: '20px',
   },
+}));
+
+const ActionButton = styled(IconButton)(({ theme }) => ({
+  color: theme.palette.mode === 'dark' ? '#fff' : '#1a1a1a',
+  transition: 'all 0.3s cubic-bezier(0.4, 0, 0.2, 1)',
+  margin: '0 4px',
+  padding: '10px',
+  borderRadius: '10px',
+  background: theme.palette.mode === 'dark' 
+    ? alpha(theme.palette.common.white, 0.05)
+    : alpha(theme.palette.common.black, 0.03),
+  '&:hover': {
+    background: theme.palette.mode === 'dark' 
+      ? alpha(theme.palette.common.white, 0.12)
+      : alpha(theme.palette.common.black, 0.08),
+    transform: 'translateY(-2px)',
+    boxShadow: theme.palette.mode === 'dark'
+      ? '0 4px 15px rgba(0, 0, 0, 0.3)'
+      : '0 4px 15px rgba(0, 0, 0, 0.1)',
+  },
+}));
+
+const TopControlsContainer = styled(Box)(({ theme }) => ({
+  position: 'absolute',
+  top: theme?.spacing?.(2) || '16px',
+  left: theme?.spacing?.(2) || '16px',
+  right: theme?.spacing?.(2) || '16px',
+  display: 'flex',
+  alignItems: 'center',
+  justifyContent: 'space-between',
+  zIndex: 10,
 }));
 
 const WelcomePage = () => {
@@ -144,6 +179,9 @@ const WelcomePage = () => {
   
   const [selectedCountry, setSelectedCountry] = useState(null);
   const [languageAnchorEl, setLanguageAnchorEl] = useState(null);
+  
+  // Get mode from Redux store
+  const mode = useSelector((state) => state.global.mode);
 
   // Debug logging
   console.log('WelcomePage: currentLanguage from useTranslation:', currentLanguage);
@@ -223,13 +261,20 @@ const WelcomePage = () => {
     }
   };
 
-  const handleLanguageChange = (language) => {
-    console.log('WelcomePage: Changing language to:', language);
-    setLanguage(language);
+  const handleLanguageChange = (newLanguage) => {
+    console.log('WelcomePage: Changing language to:', newLanguage);
+    localStorage.setItem('currentLanguage', newLanguage);
+    localStorage.setItem('language', newLanguage);
+    localStorage.setItem('app_language', newLanguage);
+    setLanguage(newLanguage);
     setLanguageAnchorEl(null);
-    // Force a re-render without page refresh to apply language changes
     window.dispatchEvent(new Event('languageChange'));
     console.log('WelcomePage: Language change event dispatched');
+    
+    // Force page refresh to apply language changes [[memory:5294070]]
+    setTimeout(() => {
+      window.location.reload();
+    }, 100);
   };
 
   const handleLanguageClick = (event) => {
@@ -238,6 +283,19 @@ const WelcomePage = () => {
 
   const handleLanguageClose = () => {
     setLanguageAnchorEl(null);
+  };
+
+  const handleModeToggle = () => {
+    dispatch(setMode());
+  };
+
+  const getLanguageDisplayName = (lang) => {
+    switch (lang) {
+      case 'en': return 'English';
+      case 'ar': return 'العربية';
+      case 'fr': return 'Français';
+      default: return 'English';
+    }
   };
 
 
@@ -272,26 +330,52 @@ const WelcomePage = () => {
 
   return (
     <PageContainer>
-      {/* Language Selector */}
-      <LanguageSelector onClick={handleLanguageClick}>
-        <Language />
-        <Typography variant="body2" sx={{ display: { xs: 'none', sm: 'block' } }}>
-          {currentLanguage === 'ar' ? 'العربية' : currentLanguage === 'fr' ? 'Français' : 'English'}
-        </Typography>
-        <KeyboardArrowDown />
-      </LanguageSelector>
+      {/* Top Controls Container */}
+      <TopControlsContainer>
+        {/* Language Selector */}
+        <LanguageSelector onClick={handleLanguageClick}>
+          <Language />
+          <Typography
+            variant="body2"
+            sx={{
+              fontWeight: 500,
+              fontSize: { xs: '0.8rem', sm: '0.9rem' },
+              display: 'block',
+              textAlign: currentLanguage === 'ar' ? 'right' : 'left'
+            }}
+          >
+            {getLanguageDisplayName(currentLanguage)}
+          </Typography>
+          <KeyboardArrowDown sx={{ fontSize: '16px', ml: 0.5 }} />
+        </LanguageSelector>
 
+        {/* Dark/Light mode toggle */}
+        <ActionButton onClick={handleModeToggle}>
+          {mode === 'light' ? (
+            <DarkModeOutlined sx={{ fontSize: "20px" }} />
+          ) : (
+            <LightModeOutlined sx={{ fontSize: "20px" }} />
+          )}
+        </ActionButton>
+      </TopControlsContainer>
+
+      {/* Language Menu */}
       <Menu
         anchorEl={languageAnchorEl}
         open={Boolean(languageAnchorEl)}
         onClose={handleLanguageClose}
         PaperProps={{
           sx: {
-            background: theme?.palette?.mode === 'dark' 
+            mt: 1,
+            borderRadius: 2,
+            boxShadow: theme.palette.mode === 'dark'
+              ? '0 8px 32px rgba(0, 0, 0, 0.4)'
+              : '0 8px 32px rgba(0, 0, 0, 0.1)',
+            background: theme.palette.mode === 'dark'
               ? 'rgba(30, 30, 30, 0.95)'
               : 'rgba(255, 255, 255, 0.95)',
             backdropFilter: 'blur(20px)',
-            border: `1px solid ${alpha(theme?.palette?.divider, 0.1)}`,
+            border: `1px solid ${alpha(theme.palette.divider, 0.1)}`,
             zIndex: 9999,
           }
         }}
@@ -304,42 +388,57 @@ const WelcomePage = () => {
           sx={{
             minWidth: 120,
             '&:hover': {
-              backgroundColor: alpha(theme?.palette?.primary?.main, 0.1),
+              backgroundColor: alpha(theme.palette.primary.main, 0.1),
             }
           }}
         >
           <ListItemIcon>
             <Language sx={{ fontSize: 20 }} />
           </ListItemIcon>
-          <ListItemText primary="English" />
+          <ListItemText 
+            primary="English" 
+            primaryTypographyProps={{
+              textAlign: currentLanguage === 'ar' ? 'right' : 'left'
+            }}
+          />
         </MenuItem>
         <MenuItem 
           onClick={() => handleLanguageChange('ar')}
           sx={{
             minWidth: 120,
             '&:hover': {
-              backgroundColor: alpha(theme?.palette?.primary?.main, 0.1),
+              backgroundColor: alpha(theme.palette.primary.main, 0.1),
             }
           }}
         >
           <ListItemIcon>
             <Language sx={{ fontSize: 20 }} />
           </ListItemIcon>
-          <ListItemText primary="العربية" />
+          <ListItemText 
+            primary="العربية" 
+            primaryTypographyProps={{
+              textAlign: currentLanguage === 'ar' ? 'right' : 'left'
+            }}
+          />
         </MenuItem>
         <MenuItem 
           onClick={() => handleLanguageChange('fr')}
           sx={{
             minWidth: 120,
             '&:hover': {
-              backgroundColor: alpha(theme?.palette?.primary?.main, 0.1),
+              backgroundColor: alpha(theme.palette.primary.main, 0.1),
             }
           }}
         >
           <ListItemIcon>
             <Language sx={{ fontSize: 20 }} />
           </ListItemIcon>
-          <ListItemText primary="Français" />
+          <ListItemText 
+            primary="Français" 
+            primaryTypographyProps={{
+              textAlign: currentLanguage === 'ar' ? 'right' : 'left'
+            }}
+          />
         </MenuItem>
       </Menu>
 
