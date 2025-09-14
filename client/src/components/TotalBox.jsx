@@ -37,6 +37,13 @@ const StatBox = ({ title, value, increase, icon, description, titleStyle, valueS
         fontSize="1rem"
         sx={{ 
           letterSpacing: '0.5px',
+          paddingRight: { xs: '50px', sm: 0 }, // Add right padding on mobile to avoid icon overlap (LTR)
+          paddingLeft: { xs: 0, sm: 0 }, // No left padding needed (LTR)
+          // RTL support for padding
+          '[dir="rtl"] &': {
+            paddingRight: { xs: 0, sm: 0 }, // No right padding in RTL
+            paddingLeft: { xs: '50px', sm: 0 }, // Add left padding on mobile in RTL to avoid icon overlap
+          },
           ...titleStyle 
         }}
       >
