@@ -67,8 +67,8 @@ const LeftSide = ({
             sm: "repeat(2, 1fr)", // 2 columns on tablet
             md: "repeat(2, 1fr)", // 2 columns on desktop
           },
-          gridAutoRows: {
-            xs: "auto", // Auto rows on mobile to prevent overflow
+          gridTemplateRows: {
+            xs: "repeat(2, 180px)", // Fixed height rows on mobile - 180px each
             sm: "auto", // Auto rows on desktop
             md: "auto", // Auto rows on desktop
           },
