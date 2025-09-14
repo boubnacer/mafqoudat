@@ -175,6 +175,16 @@ const TopRightContainer = styled(Box)(({ theme }) => ({
   zIndex: 10,
   marginTop: { xs: '20px', sm: '0px' },
   marginRight: { xs: '20px', sm: '0px' },
+  // Add visual styling to make it more prominent
+  '& > *': {
+    boxShadow: theme.palette.mode === 'dark'
+      ? '0 8px 32px rgba(0, 0, 0, 0.6), 0 0 0 2px rgba(255, 255, 255, 0.1)'
+      : '0 8px 32px rgba(0, 0, 0, 0.2), 0 0 0 2px rgba(0, 0, 0, 0.1)',
+    border: `2px solid ${theme.palette.primary.main}`,
+    background: theme.palette.mode === 'dark'
+      ? `linear-gradient(135deg, ${alpha(theme.palette.primary.main, 0.2)}, ${alpha(theme.palette.secondary.main, 0.2)})`
+      : `linear-gradient(135deg, ${alpha(theme.palette.primary.main, 0.1)}, ${alpha(theme.palette.secondary.main, 0.1)})`,
+  }
 }));
 
 const TopLeftContainer = styled(Box)(({ theme }) => ({
@@ -184,6 +194,16 @@ const TopLeftContainer = styled(Box)(({ theme }) => ({
   zIndex: 10,
   marginTop: { xs: '20px', sm: '0px' },
   marginLeft: { xs: '20px', sm: '0px' },
+  // Add visual styling to make it more prominent
+  '& > *': {
+    boxShadow: theme.palette.mode === 'dark'
+      ? '0 8px 32px rgba(0, 0, 0, 0.6), 0 0 0 2px rgba(255, 255, 255, 0.1)'
+      : '0 8px 32px rgba(0, 0, 0, 0.2), 0 0 0 2px rgba(0, 0, 0, 0.1)',
+    border: `2px solid ${theme.palette.secondary.main}`,
+    background: theme.palette.mode === 'dark'
+      ? `linear-gradient(135deg, ${alpha(theme.palette.secondary.main, 0.2)}, ${alpha(theme.palette.primary.main, 0.2)})`
+      : `linear-gradient(135deg, ${alpha(theme.palette.secondary.main, 0.1)}, ${alpha(theme.palette.primary.main, 0.1)})`,
+  }
 }));
 
 const WelcomePage = () => {
