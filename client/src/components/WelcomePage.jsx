@@ -19,6 +19,7 @@ import {
   Autocomplete,
   TextField,
   Paper,
+  Menu,
   MenuItem,
   ListItemIcon,
   ListItemText,
@@ -78,6 +79,7 @@ const WelcomeCard = styled(Card)(({ theme }) => ({
 const HeaderSection = styled(Box)(({ theme }) => ({
   textAlign: 'center',
   marginBottom: theme?.spacing?.(4) || '32px',
+  marginTop:'50px',
   position: 'relative',
 }));
 
@@ -118,90 +120,55 @@ const FeatureCard = styled(Paper)(({ theme }) => ({
 const LanguageSelector = styled(Box)(({ theme }) => ({
   display: 'flex',
   alignItems: 'center',
-  padding: { xs: '24px 28px', sm: '18px 24px' },
-  borderRadius: '14px',
+  padding: '8px 16px',
+  borderRadius: '12px',
   cursor: 'pointer',
-  background: theme.palette.mode === 'dark' 
-    ? alpha(theme.palette.common.white, 0.05)
-    : alpha(theme.palette.common.black, 0.03),
-  border: `1px solid ${alpha(theme.palette.divider, 0.1)}`,
-  transition: 'all 0.3s cubic-bezier(0.4, 0, 0.2, 1)',
-  minHeight: { xs: '72px', sm: '60px' },
-  minWidth: { xs: '180px', sm: '160px' },
+  background: theme?.palette?.mode === 'dark' 
+    ? 'rgba(255, 255, 255, 0.1)'
+    : 'rgba(0, 0, 0, 0.05)',
+  backdropFilter: 'blur(10px)',
+  border: `1px solid ${alpha(theme?.palette?.primary?.main || '#667eea', 0.1)}`,
+  transition: 'all 0.3s ease',
   '&:hover': {
-    background: theme.palette.mode === 'dark' 
-      ? alpha(theme.palette.common.white, 0.12)
-      : alpha(theme.palette.common.black, 0.08),
+    background: theme?.palette?.mode === 'dark' 
+      ? 'rgba(255, 255, 255, 0.2)'
+      : 'rgba(0, 0, 0, 0.1)',
     transform: 'translateY(-2px)',
-    boxShadow: theme.palette.mode === 'dark'
-      ? '0 4px 15px rgba(0, 0, 0, 0.3)'
-      : '0 4px 15px rgba(0, 0, 0, 0.1)',
   },
   '& .MuiSvgIcon-root': {
-    marginRight: '12px',
-    fontSize: { xs: '34px', sm: '28px' },
+    marginRight: '8px',
+    fontSize: '20px',
   },
 }));
 
 const ActionButton = styled(IconButton)(({ theme }) => ({
-  color: theme.palette.mode === 'dark' ? '#fff' : '#1a1a1a',
-  transition: 'all 0.3s cubic-bezier(0.4, 0, 0.2, 1)',
-  padding: { xs: '26px', sm: '20px' },
-  borderRadius: '14px',
-  background: theme.palette.mode === 'dark' 
-    ? alpha(theme.palette.common.white, 0.05)
-    : alpha(theme.palette.common.black, 0.03),
-  border: `1px solid ${alpha(theme.palette.divider, 0.1)}`,
-  minWidth: { xs: '72px', sm: '60px' },
-  minHeight: { xs: '72px', sm: '60px' },
+  backgroundColor: theme?.palette?.mode === 'dark' 
+    ? 'rgba(255, 255, 255, 0.1)'
+    : 'rgba(0, 0, 0, 0.05)',
+  backdropFilter: 'blur(10px)',
+  border: `1px solid ${alpha(theme?.palette?.primary?.main || '#667eea', 0.1)}`,
+  color: theme?.palette?.text?.primary,
+  transition: 'all 0.3s ease',
   '&:hover': {
-    background: theme.palette.mode === 'dark' 
-      ? alpha(theme.palette.common.white, 0.12)
-      : alpha(theme.palette.common.black, 0.08),
-    transform: 'translateY(-2px)',
-    boxShadow: theme.palette.mode === 'dark'
-      ? '0 4px 15px rgba(0, 0, 0, 0.3)'
-      : '0 4px 15px rgba(0, 0, 0, 0.1)',
-  },
-  '& .MuiSvgIcon-root': {
-    fontSize: { xs: '36px', sm: '30px' },
-  },
+    backgroundColor: theme?.palette?.mode === 'dark' 
+      ? 'rgba(255, 255, 255, 0.2)'
+      : 'rgba(0, 0, 0, 0.1)',
+    transform: 'scale(1.05)',
+  }
 }));
 
 const TopRightContainer = styled(Box)(({ theme }) => ({
   position: 'absolute',
-  top: '30px',
-  right: '30px',
-  zIndex: 1000,
-  marginRight: { xs: '8px', sm: '0px' },
-  // Add visual styling to make it more prominent
-  '& > *': {
-    boxShadow: theme.palette.mode === 'dark'
-      ? '0 8px 32px rgba(0, 0, 0, 0.6), 0 0 0 2px rgba(255, 255, 255, 0.1)'
-      : '0 8px 32px rgba(0, 0, 0, 0.2), 0 0 0 2px rgba(0, 0, 0, 0.1)',
-    border: `2px solid ${theme.palette.primary.main}`,
-    background: theme.palette.mode === 'dark'
-      ? `linear-gradient(135deg, ${alpha(theme.palette.primary.main, 0.2)}, ${alpha(theme.palette.secondary.main, 0.2)})`
-      : `linear-gradient(135deg, ${alpha(theme.palette.primary.main, 0.1)}, ${alpha(theme.palette.secondary.main, 0.1)})`,
-  }
+  top: theme?.spacing?.(3) || '24px',
+  right: theme?.spacing?.(3) || '24px',
+  zIndex: 10,
 }));
 
 const TopLeftContainer = styled(Box)(({ theme }) => ({
   position: 'absolute',
-  top: '30px',
-  left: '30px',
-  zIndex: 1000,
-  marginLeft: { xs: '8px', sm: '0px' },
-  // Add visual styling to make it more prominent
-  '& > *': {
-    boxShadow: theme.palette.mode === 'dark'
-      ? '0 8px 32px rgba(0, 0, 0, 0.6), 0 0 0 2px rgba(255, 255, 255, 0.1)'
-      : '0 8px 32px rgba(0, 0, 0, 0.2), 0 0 0 2px rgba(0, 0, 0, 0.1)',
-    border: `2px solid ${theme.palette.secondary.main}`,
-    background: theme.palette.mode === 'dark'
-      ? `linear-gradient(135deg, ${alpha(theme.palette.secondary.main, 0.2)}, ${alpha(theme.palette.primary.main, 0.2)})`
-      : `linear-gradient(135deg, ${alpha(theme.palette.secondary.main, 0.1)}, ${alpha(theme.palette.primary.main, 0.1)})`,
-  }
+  top: theme?.spacing?.(3) || '24px',
+  left: theme?.spacing?.(3) || '24px',
+  zIndex: 10,
 }));
 
 const WelcomePage = () => {
@@ -395,115 +362,93 @@ const WelcomePage = () => {
             variant="body2"
             sx={{
               fontWeight: 500,
-              fontSize: { xs: '1.3rem', sm: '1.2rem' },
-              display: 'block',
-              textAlign: (currentLanguage || langContext) === 'ar' ? 'right' : 'left'
+              fontSize: '0.9rem',
+              display: { xs: 'none', sm: 'block' }
             }}
           >
             {getLanguageDisplayName(currentLanguage || langContext || 'en')}
           </Typography>
-          <KeyboardArrowDown sx={{ fontSize: { xs: '32px', sm: '26px' }, ml: 0.5 }} />
+          <KeyboardArrowDown sx={{ fontSize: '16px', ml: 0.5 }} />
         </LanguageSelector>
       </TopRightContainer>
 
       {/* Top Left Container - Dark/Light mode toggle */}
       <TopLeftContainer>
-        <ActionButton onClick={handleModeToggle}>
+        <ActionButton onClick={handleModeToggle} size="small">
           {mode === 'light' ? (
-            <DarkModeOutlined sx={{ fontSize: "20px" }} />
+            <DarkModeOutlined />
           ) : (
-            <LightModeOutlined sx={{ fontSize: "20px" }} />
+            <LightModeOutlined />
           )}
         </ActionButton>
       </TopLeftContainer>
 
-      {/* Language Menu - Custom Dropdown */}
-      {Boolean(languageAnchorEl) && (
-        <Box
-          sx={{
-            position: 'absolute',
-            top: { xs: '60px', sm: '65px' },
-            right: { xs: '16px', sm: '16px' },
-            zIndex: 9999,
+      {/* Language Menu - Using Material-UI Menu like Login page */}
+      <Menu
+        anchorEl={languageAnchorEl}
+        open={Boolean(languageAnchorEl)}
+        onClose={handleLanguageClose}
+        PaperProps={{
+          sx: {
+            mt: 1,
+            borderRadius: 2,
+            boxShadow: theme.palette.mode === 'dark'
+              ? '0 8px 32px rgba(0, 0, 0, 0.4)'
+              : '0 8px 32px rgba(0, 0, 0, 0.1)',
             background: theme.palette.mode === 'dark'
               ? 'rgba(30, 30, 30, 0.95)'
               : 'rgba(255, 255, 255, 0.95)',
             backdropFilter: 'blur(20px)',
             border: `1px solid ${alpha(theme.palette.divider, 0.1)}`,
-            borderRadius: 2,
-            boxShadow: theme.palette.mode === 'dark'
-              ? '0 8px 32px rgba(0, 0, 0, 0.4)'
-              : '0 8px 32px rgba(0, 0, 0, 0.1)',
-            minWidth: { xs: '180px', sm: '200px' },
-            overflow: 'hidden',
+          }
+        }}
+        transformOrigin={{ horizontal: 'right', vertical: 'top' }}
+        anchorOrigin={{ horizontal: 'right', vertical: 'bottom' }}
+      >
+        <MenuItem 
+          onClick={() => handleLanguageChange('en')}
+          sx={{
+            minWidth: 120,
+            '&:hover': {
+              backgroundColor: alpha(theme.palette.primary.main, 0.1),
+            }
           }}
         >
-          <Box
-            onClick={() => handleLanguageChange('en')}
-            sx={{
-              display: 'flex',
-              alignItems: 'center',
-              padding: { xs: '16px 20px', sm: '18px 24px' },
-              cursor: 'pointer',
-              minHeight: { xs: '56px', sm: '60px' },
-              '&:hover': {
-                backgroundColor: alpha(theme.palette.primary.main, 0.1),
-              }
-            }}
-          >
-            <Language sx={{ fontSize: { xs: '26px', sm: '28px' }, mr: 1.5 }} />
-            <Typography variant="body2" sx={{ fontSize: { xs: '1.1rem', sm: '1.2rem' }, fontWeight: 500 }}>English</Typography>
-          </Box>
-          <Box
-            onClick={() => handleLanguageChange('ar')}
-            sx={{
-              display: 'flex',
-              alignItems: 'center',
-              padding: { xs: '16px 20px', sm: '18px 24px' },
-              cursor: 'pointer',
-              minHeight: { xs: '56px', sm: '60px' },
-              '&:hover': {
-                backgroundColor: alpha(theme.palette.primary.main, 0.1),
-              }
-            }}
-          >
-            <Language sx={{ fontSize: { xs: '26px', sm: '28px' }, mr: 1.5 }} />
-            <Typography variant="body2" sx={{ fontSize: { xs: '1.1rem', sm: '1.2rem' }, fontWeight: 500 }}>العربية</Typography>
-          </Box>
-          <Box
-            onClick={() => handleLanguageChange('fr')}
-            sx={{
-              display: 'flex',
-              alignItems: 'center',
-              padding: { xs: '16px 20px', sm: '18px 24px' },
-              cursor: 'pointer',
-              minHeight: { xs: '56px', sm: '60px' },
-              '&:hover': {
-                backgroundColor: alpha(theme.palette.primary.main, 0.1),
-              }
-            }}
-          >
-            <Language sx={{ fontSize: { xs: '26px', sm: '28px' }, mr: 1.5 }} />
-            <Typography variant="body2" sx={{ fontSize: { xs: '1.1rem', sm: '1.2rem' }, fontWeight: 500 }}>Français</Typography>
-          </Box>
-        </Box>
-      )}
-
-      {/* Click outside to close */}
-      {Boolean(languageAnchorEl) && (
-        <Box
-          onClick={handleLanguageClose}
+          <ListItemIcon>
+            <Language sx={{ fontSize: 20 }} />
+          </ListItemIcon>
+          <ListItemText primary="English" />
+        </MenuItem>
+        <MenuItem 
+          onClick={() => handleLanguageChange('ar')}
           sx={{
-            position: 'fixed',
-            top: 0,
-            left: 0,
-            right: 0,
-            bottom: 0,
-            zIndex: 9998,
-            background: 'transparent',
+            minWidth: 120,
+            '&:hover': {
+              backgroundColor: alpha(theme.palette.primary.main, 0.1),
+            }
           }}
-        />
-      )}
+        >
+          <ListItemIcon>
+            <Language sx={{ fontSize: 20 }} />
+          </ListItemIcon>
+          <ListItemText primary="العربية" />
+        </MenuItem>
+        <MenuItem 
+          onClick={() => handleLanguageChange('fr')}
+          sx={{
+            minWidth: 120,
+            '&:hover': {
+              backgroundColor: alpha(theme.palette.primary.main, 0.1),
+            }
+          }}
+        >
+          <ListItemIcon>
+            <Language sx={{ fontSize: 20 }} />
+          </ListItemIcon>
+          <ListItemText primary="Français" />
+        </MenuItem>
+      </Menu>
+
 
 
 
