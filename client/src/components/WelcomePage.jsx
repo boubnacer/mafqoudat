@@ -117,7 +117,7 @@ const FeatureCard = styled(Paper)(({ theme }) => ({
 const LanguageSelector = styled(Box)(({ theme }) => ({
   display: 'flex',
   alignItems: 'center',
-  padding: { xs: '10px 14px', sm: '12px 16px' },
+  padding: { xs: '12px 16px', sm: '14px 18px' },
   borderRadius: '12px',
   cursor: 'pointer',
   background: theme.palette.mode === 'dark' 
@@ -125,7 +125,8 @@ const LanguageSelector = styled(Box)(({ theme }) => ({
     : alpha(theme.palette.common.black, 0.03),
   border: `1px solid ${alpha(theme.palette.divider, 0.1)}`,
   transition: 'all 0.3s cubic-bezier(0.4, 0, 0.2, 1)',
-  minHeight: { xs: '44px', sm: '48px' },
+  minHeight: { xs: '48px', sm: '52px' },
+  minWidth: { xs: '120px', sm: '140px' },
   '&:hover': {
     background: theme.palette.mode === 'dark' 
       ? alpha(theme.palette.common.white, 0.12)
@@ -136,22 +137,22 @@ const LanguageSelector = styled(Box)(({ theme }) => ({
       : '0 4px 15px rgba(0, 0, 0, 0.1)',
   },
   '& .MuiSvgIcon-root': {
-    marginRight: '8px',
-    fontSize: { xs: '20px', sm: '22px' },
+    marginRight: '10px',
+    fontSize: { xs: '22px', sm: '24px' },
   },
 }));
 
 const ActionButton = styled(IconButton)(({ theme }) => ({
   color: theme.palette.mode === 'dark' ? '#fff' : '#1a1a1a',
   transition: 'all 0.3s cubic-bezier(0.4, 0, 0.2, 1)',
-  padding: { xs: '12px', sm: '14px' },
+  padding: { xs: '14px', sm: '16px' },
   borderRadius: '12px',
   background: theme.palette.mode === 'dark' 
     ? alpha(theme.palette.common.white, 0.05)
     : alpha(theme.palette.common.black, 0.03),
   border: `1px solid ${alpha(theme.palette.divider, 0.1)}`,
-  minWidth: { xs: '44px', sm: '48px' },
-  minHeight: { xs: '44px', sm: '48px' },
+  minWidth: { xs: '48px', sm: '52px' },
+  minHeight: { xs: '48px', sm: '52px' },
   '&:hover': {
     background: theme.palette.mode === 'dark' 
       ? alpha(theme.palette.common.white, 0.12)
@@ -162,7 +163,7 @@ const ActionButton = styled(IconButton)(({ theme }) => ({
       : '0 4px 15px rgba(0, 0, 0, 0.1)',
   },
   '& .MuiSvgIcon-root': {
-    fontSize: { xs: '22px', sm: '24px' },
+    fontSize: { xs: '24px', sm: '26px' },
   },
 }));
 
@@ -368,14 +369,14 @@ const WelcomePage = () => {
             variant="body2"
             sx={{
               fontWeight: 500,
-              fontSize: { xs: '0.9rem', sm: '1rem' },
+              fontSize: { xs: '1rem', sm: '1.1rem' },
               display: 'block',
               textAlign: (currentLanguage || langContext) === 'ar' ? 'right' : 'left'
             }}
           >
             {getLanguageDisplayName(currentLanguage || langContext || 'en')}
           </Typography>
-          <KeyboardArrowDown sx={{ fontSize: { xs: '18px', sm: '20px' }, ml: 0.5 }} />
+          <KeyboardArrowDown sx={{ fontSize: { xs: '20px', sm: '22px' }, ml: 0.5 }} />
         </LanguageSelector>
 
         {/* Dark/Light mode toggle */}
@@ -393,8 +394,8 @@ const WelcomePage = () => {
         <Box
           sx={{
             position: 'absolute',
-            top: '80px',
-            right: '16px',
+            top: { xs: '70px', sm: '75px' },
+            right: { xs: '16px', sm: '16px' },
             zIndex: 9999,
             background: theme.palette.mode === 'dark'
               ? 'rgba(30, 30, 30, 0.95)'
@@ -405,7 +406,7 @@ const WelcomePage = () => {
             boxShadow: theme.palette.mode === 'dark'
               ? '0 8px 32px rgba(0, 0, 0, 0.4)'
               : '0 8px 32px rgba(0, 0, 0, 0.1)',
-            minWidth: 150,
+            minWidth: { xs: '160px', sm: '180px' },
             overflow: 'hidden',
           }}
         >
@@ -414,45 +415,48 @@ const WelcomePage = () => {
             sx={{
               display: 'flex',
               alignItems: 'center',
-              padding: '12px 16px',
+              padding: { xs: '14px 18px', sm: '16px 20px' },
               cursor: 'pointer',
+              minHeight: { xs: '48px', sm: '52px' },
               '&:hover': {
                 backgroundColor: alpha(theme.palette.primary.main, 0.1),
               }
             }}
           >
-            <Language sx={{ fontSize: 20, mr: 1 }} />
-            <Typography variant="body2">English</Typography>
+            <Language sx={{ fontSize: { xs: '22px', sm: '24px' }, mr: 1.5 }} />
+            <Typography variant="body2" sx={{ fontSize: { xs: '0.95rem', sm: '1rem' }, fontWeight: 500 }}>English</Typography>
           </Box>
           <Box
             onClick={() => handleLanguageChange('ar')}
             sx={{
               display: 'flex',
               alignItems: 'center',
-              padding: '12px 16px',
+              padding: { xs: '14px 18px', sm: '16px 20px' },
               cursor: 'pointer',
+              minHeight: { xs: '48px', sm: '52px' },
               '&:hover': {
                 backgroundColor: alpha(theme.palette.primary.main, 0.1),
               }
             }}
           >
-            <Language sx={{ fontSize: 20, mr: 1 }} />
-            <Typography variant="body2">العربية</Typography>
+            <Language sx={{ fontSize: { xs: '22px', sm: '24px' }, mr: 1.5 }} />
+            <Typography variant="body2" sx={{ fontSize: { xs: '0.95rem', sm: '1rem' }, fontWeight: 500 }}>العربية</Typography>
           </Box>
           <Box
             onClick={() => handleLanguageChange('fr')}
             sx={{
               display: 'flex',
               alignItems: 'center',
-              padding: '12px 16px',
+              padding: { xs: '14px 18px', sm: '16px 20px' },
               cursor: 'pointer',
+              minHeight: { xs: '48px', sm: '52px' },
               '&:hover': {
                 backgroundColor: alpha(theme.palette.primary.main, 0.1),
               }
             }}
           >
-            <Language sx={{ fontSize: 20, mr: 1 }} />
-            <Typography variant="body2">Français</Typography>
+            <Language sx={{ fontSize: { xs: '22px', sm: '24px' }, mr: 1.5 }} />
+            <Typography variant="body2" sx={{ fontSize: { xs: '0.95rem', sm: '1rem' }, fontWeight: 500 }}>Français</Typography>
           </Box>
         </Box>
       )}
