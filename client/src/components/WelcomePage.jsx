@@ -29,6 +29,7 @@ import {
   Search,
   LocationOn,
   ArrowForward,
+  ArrowBack,
   Language,
   KeyboardArrowDown,
   Menu,
@@ -494,7 +495,7 @@ const WelcomePage = () => {
                 width: 'auto',
                 maxWidth: '100%',
                 objectFit: 'contain',
-                mb: 6,
+                mb: 8,
                 display: 'block',
                 margin: '0 auto',
                 filter: theme?.palette?.mode === 'dark' 
@@ -644,7 +645,7 @@ const WelcomePage = () => {
               fullWidth
               disabled={!selectedCountry}
               onClick={handleContinue}
-              endIcon={<ArrowForward />}
+              endIcon={(currentLanguage || langContext) === 'ar' ? <ArrowBack /> : <ArrowForward />}
               sx={{
                 mt: 3,
                 py: 1.5,
