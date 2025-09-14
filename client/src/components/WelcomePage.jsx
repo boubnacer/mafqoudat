@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { useDispatch, useSelector } from "react-redux";
 import { setCurrentCountry, setMode } from "../app/state";
@@ -50,6 +50,7 @@ const PageContainer = styled(Box)(({ theme }) => ({
   padding: theme?.spacing?.(2) || '16px',
   position: 'relative',
   direction: theme?.direction || 'ltr',
+  zIndex: 1,
 }));
 
 const WelcomeCard = styled(Card)(({ theme }) => ({
@@ -188,6 +189,12 @@ const WelcomePage = () => {
   // Get mode from Redux store
   const mode = useSelector((state) => state.global.mode);
 
+  // Monitor languageAnchorEl changes
+  useEffect(() => {
+    console.log('WelcomePage: languageAnchorEl changed to:', languageAnchorEl);
+    console.log('WelcomePage: Menu should be open:', Boolean(languageAnchorEl));
+  }, [languageAnchorEl]);
+
   // Debug logging
   console.log('WelcomePage: currentLanguage from useTranslation:', currentLanguage);
   console.log('WelcomePage: langContext from useLanguage:', langContext);
@@ -285,12 +292,27 @@ const WelcomePage = () => {
   };
 
   const handleLanguageClick = (event) => {
+    event.preventDefault();
+    event.stopPropagation();
     console.log('WelcomePage: Language click triggered', event.currentTarget);
+    console.log('WelcomePage: Current languageAnchorEl before:', languageAnchorEl);
     setLanguageAnchorEl(event.currentTarget);
+    console.log('WelcomePage: Setting languageAnchorEl to:', event.currentTarget);
   };
 
   const handleLanguageClose = () => {
+    console.log('WelcomePage: Closing language menu');
     setLanguageAnchorEl(null);
+  };
+
+  // Test function to manually toggle menu
+  const testMenuToggle = () => {
+    console.log('WelcomePage: Test menu toggle clicked');
+    if (languageAnchorEl) {
+      setLanguageAnchorEl(null);
+    } else {
+      setLanguageAnchorEl(document.getElementById('language-selector'));
+    }
   };
 
   const handleModeToggle = () => {
@@ -341,7 +363,15 @@ const WelcomePage = () => {
       {/* Top Controls Container */}
       <TopControlsContainer>
         {/* Language Selector */}
-        <LanguageSelector onClick={handleLanguageClick}>
+        <LanguageSelector 
+          id="language-selector"
+          onClick={handleLanguageClick}
+          sx={{
+            '&:hover': {
+              cursor: 'pointer',
+            }
+          }}
+        >
           <Language />
           <Typography
             variant="body2"
@@ -356,6 +386,11 @@ const WelcomePage = () => {
           </Typography>
           <KeyboardArrowDown sx={{ fontSize: { xs: '18px', sm: '20px' }, ml: 0.5 }} />
         </LanguageSelector>
+
+        {/* Test button for debugging */}
+        <ActionButton onClick={testMenuToggle} sx={{ background: 'red !important' }}>
+          <Typography sx={{ fontSize: '12px', color: 'white' }}>TEST</Typography>
+        </ActionButton>
 
         {/* Dark/Light mode toggle */}
         <ActionButton onClick={handleModeToggle}>
@@ -372,6 +407,7 @@ const WelcomePage = () => {
         anchorEl={languageAnchorEl}
         open={Boolean(languageAnchorEl)}
         onClose={handleLanguageClose}
+        disableScrollLock={false}
         PaperProps={{
           sx: {
             mt: 1,
@@ -385,11 +421,17 @@ const WelcomePage = () => {
             backdropFilter: 'blur(20px)',
             border: `1px solid ${alpha(theme.palette.divider, 0.1)}`,
             zIndex: 9999,
+            minWidth: 150,
           }
         }}
-        transformOrigin={{ horizontal: 'left', vertical: 'top' }}
-        anchorOrigin={{ horizontal: 'left', vertical: 'bottom' }}
-        sx={{ zIndex: 9999 }}
+        transformOrigin={{ horizontal: 'right', vertical: 'top' }}
+        anchorOrigin={{ horizontal: 'right', vertical: 'bottom' }}
+        sx={{ 
+          zIndex: 9999,
+          '& .MuiPaper-root': {
+            zIndex: 9999,
+          }
+        }}
       >
         <MenuItem 
           onClick={() => handleLanguageChange('en')}
