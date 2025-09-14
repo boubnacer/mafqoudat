@@ -680,9 +680,24 @@ const WelcomePage = () => {
                 borderRadius: 2,
                 fontSize: { xs: '1rem', md: '1.1rem' },
                 fontWeight: 600,
+                color: '#ffffff',
                 background: `linear-gradient(135deg, ${theme?.palette?.primary?.main} 0%, ${theme?.palette?.secondary?.main} 100%)`,
+                boxShadow: theme?.palette?.mode === 'dark' 
+                  ? '0 4px 20px rgba(0, 0, 0, 0.3)'
+                  : '0 4px 20px rgba(0, 0, 0, 0.2)',
                 '&:hover': {
                   background: `linear-gradient(135deg, ${theme?.palette?.primary?.dark} 0%, ${theme?.palette?.secondary?.dark} 100%)`,
+                  boxShadow: theme?.palette?.mode === 'dark' 
+                    ? '0 6px 25px rgba(0, 0, 0, 0.4)'
+                    : '0 6px 25px rgba(0, 0, 0, 0.3)',
+                },
+                '&:disabled': {
+                  background: theme?.palette?.mode === 'dark' 
+                    ? 'rgba(255, 255, 255, 0.12)'
+                    : 'rgba(0, 0, 0, 0.12)',
+                  color: theme?.palette?.mode === 'dark' 
+                    ? 'rgba(255, 255, 255, 0.3)'
+                    : 'rgba(0, 0, 0, 0.26)',
                 },
                 '& .MuiButton-endIcon': {
                   marginLeft: (currentLanguage || langContext) === 'ar' ? '8px' : '4px',
@@ -698,7 +713,11 @@ const WelcomePage = () => {
             <Grid item xs={12} md={4}>
               <FeatureCard>
                 <Box sx={{ textAlign: 'center' }}>
-                  <Search sx={{ fontSize: 40, color: 'primary.main', mb: 2 }} />
+                  <Search sx={{ 
+                    fontSize: 40, 
+                    color: theme?.palette?.mode === 'dark' ? 'primary.main' : 'primary.dark', 
+                    mb: 2 
+                  }} />
                   <Typography variant="h6" gutterBottom>
                     {t('searchItems')}
                   </Typography>
@@ -711,7 +730,11 @@ const WelcomePage = () => {
             <Grid item xs={12} md={4}>
               <FeatureCard>
                 <Box sx={{ textAlign: 'center' }}>
-                  <LocationOn sx={{ fontSize: 40, color: 'primary.main', mb: 2 }} />
+                  <LocationOn sx={{ 
+                    fontSize: 40, 
+                    color: theme?.palette?.mode === 'dark' ? 'primary.main' : 'primary.dark', 
+                    mb: 2 
+                  }} />
                   <Typography variant="h6" gutterBottom>
                     {t('localPosts')}
                   </Typography>
@@ -724,7 +747,11 @@ const WelcomePage = () => {
             <Grid item xs={12} md={4}>
               <FeatureCard>
                 <Box sx={{ textAlign: 'center' }}>
-                  <Public sx={{ fontSize: 40, color: 'primary.main', mb: 2 }} />
+                  <Public sx={{ 
+                    fontSize: 40, 
+                    color: theme?.palette?.mode === 'dark' ? 'primary.main' : 'primary.dark', 
+                    mb: 2 
+                  }} />
                   <Typography variant="h6" gutterBottom>
                     {t('communityHelp')}
                   </Typography>
@@ -744,7 +771,7 @@ const WelcomePage = () => {
               variant="contained"
               onClick={() => navigate('/login')}
               sx={{ 
-                mr: 2,
+                mr: 3,
                 background: 'linear-gradient(135deg, #2196F3 0%, #21CBF3 100%)',
                 color: 'white',
                 '&:hover': {
@@ -758,6 +785,7 @@ const WelcomePage = () => {
               variant="contained"
               onClick={() => navigate('/signup')}
               sx={{
+                ml: 1,
                 background: 'linear-gradient(135deg, #4CAF50 0%, #66BB6A 100%)',
                 color: 'white',
                 '&:hover': {
