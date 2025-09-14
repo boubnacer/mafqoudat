@@ -99,6 +99,7 @@ const BrandLogo = styled(Box)(({ theme }) => ({
 }));
 
 const FeatureCard = styled(Paper)(({ theme }) => ({
+  marginTop:'15px',
   padding: theme?.spacing?.(3) || '24px',
   borderRadius: 16,
   background: theme?.palette?.mode === 'dark'
