@@ -116,14 +116,15 @@ const FeatureCard = styled(Paper)(({ theme }) => ({
 const LanguageSelector = styled(Box)(({ theme }) => ({
   display: 'flex',
   alignItems: 'center',
-  padding: '6px 12px',
-  borderRadius: '10px',
+  padding: { xs: '10px 14px', sm: '12px 16px' },
+  borderRadius: '12px',
   cursor: 'pointer',
   background: theme.palette.mode === 'dark' 
     ? alpha(theme.palette.common.white, 0.05)
     : alpha(theme.palette.common.black, 0.03),
   border: `1px solid ${alpha(theme.palette.divider, 0.1)}`,
   transition: 'all 0.3s cubic-bezier(0.4, 0, 0.2, 1)',
+  minHeight: { xs: '44px', sm: '48px' },
   '&:hover': {
     background: theme.palette.mode === 'dark' 
       ? alpha(theme.palette.common.white, 0.12)
@@ -135,19 +136,21 @@ const LanguageSelector = styled(Box)(({ theme }) => ({
   },
   '& .MuiSvgIcon-root': {
     marginRight: '8px',
-    fontSize: '20px',
+    fontSize: { xs: '20px', sm: '22px' },
   },
 }));
 
 const ActionButton = styled(IconButton)(({ theme }) => ({
   color: theme.palette.mode === 'dark' ? '#fff' : '#1a1a1a',
   transition: 'all 0.3s cubic-bezier(0.4, 0, 0.2, 1)',
-  margin: '0 4px',
-  padding: '10px',
-  borderRadius: '10px',
+  padding: { xs: '12px', sm: '14px' },
+  borderRadius: '12px',
   background: theme.palette.mode === 'dark' 
     ? alpha(theme.palette.common.white, 0.05)
     : alpha(theme.palette.common.black, 0.03),
+  border: `1px solid ${alpha(theme.palette.divider, 0.1)}`,
+  minWidth: { xs: '44px', sm: '48px' },
+  minHeight: { xs: '44px', sm: '48px' },
   '&:hover': {
     background: theme.palette.mode === 'dark' 
       ? alpha(theme.palette.common.white, 0.12)
@@ -157,16 +160,18 @@ const ActionButton = styled(IconButton)(({ theme }) => ({
       ? '0 4px 15px rgba(0, 0, 0, 0.3)'
       : '0 4px 15px rgba(0, 0, 0, 0.1)',
   },
+  '& .MuiSvgIcon-root': {
+    fontSize: { xs: '22px', sm: '24px' },
+  },
 }));
 
 const TopControlsContainer = styled(Box)(({ theme }) => ({
   position: 'absolute',
   top: theme?.spacing?.(2) || '16px',
-  left: theme?.spacing?.(2) || '16px',
   right: theme?.spacing?.(2) || '16px',
   display: 'flex',
   alignItems: 'center',
-  justifyContent: 'space-between',
+  gap: theme?.spacing?.(1) || '8px',
   zIndex: 10,
 }));
 
@@ -188,6 +193,8 @@ const WelcomePage = () => {
   console.log('WelcomePage: langContext from useLanguage:', langContext);
   console.log('WelcomePage: localStorage language:', localStorage.getItem('language'));
   console.log('WelcomePage: localStorage app_language:', localStorage.getItem('app_language'));
+  console.log('WelcomePage: languageAnchorEl:', languageAnchorEl);
+  console.log('WelcomePage: Menu open state:', Boolean(languageAnchorEl));
 
   // Get countries list - Fixed: Use dependenciesApiSlice and proper error handling
   const { data: countriesData, error: countriesError, isLoading: countriesLoading } = useGetCountriesQuery({
@@ -278,6 +285,7 @@ const WelcomePage = () => {
   };
 
   const handleLanguageClick = (event) => {
+    console.log('WelcomePage: Language click triggered', event.currentTarget);
     setLanguageAnchorEl(event.currentTarget);
   };
 
@@ -339,14 +347,14 @@ const WelcomePage = () => {
             variant="body2"
             sx={{
               fontWeight: 500,
-              fontSize: { xs: '0.8rem', sm: '0.9rem' },
+              fontSize: { xs: '0.9rem', sm: '1rem' },
               display: 'block',
-              textAlign: currentLanguage === 'ar' ? 'right' : 'left'
+              textAlign: (currentLanguage || langContext) === 'ar' ? 'right' : 'left'
             }}
           >
-            {getLanguageDisplayName(currentLanguage)}
+            {getLanguageDisplayName(currentLanguage || langContext || 'en')}
           </Typography>
-          <KeyboardArrowDown sx={{ fontSize: '16px', ml: 0.5 }} />
+          <KeyboardArrowDown sx={{ fontSize: { xs: '18px', sm: '20px' }, ml: 0.5 }} />
         </LanguageSelector>
 
         {/* Dark/Light mode toggle */}
@@ -398,7 +406,7 @@ const WelcomePage = () => {
           <ListItemText 
             primary="English" 
             primaryTypographyProps={{
-              textAlign: currentLanguage === 'ar' ? 'right' : 'left'
+              textAlign: (currentLanguage || langContext) === 'ar' ? 'right' : 'left'
             }}
           />
         </MenuItem>
@@ -417,7 +425,7 @@ const WelcomePage = () => {
           <ListItemText 
             primary="العربية" 
             primaryTypographyProps={{
-              textAlign: currentLanguage === 'ar' ? 'right' : 'left'
+              textAlign: (currentLanguage || langContext) === 'ar' ? 'right' : 'left'
             }}
           />
         </MenuItem>
@@ -436,7 +444,7 @@ const WelcomePage = () => {
           <ListItemText 
             primary="Français" 
             primaryTypographyProps={{
-              textAlign: currentLanguage === 'ar' ? 'right' : 'left'
+              textAlign: (currentLanguage || langContext) === 'ar' ? 'right' : 'left'
             }}
           />
         </MenuItem>
