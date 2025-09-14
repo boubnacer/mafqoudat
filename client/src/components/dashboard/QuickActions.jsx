@@ -160,15 +160,7 @@ const QuickActions = () => {
                     background: `linear-gradient(135deg, ${action.color}20, ${action.color}10)`,
                     border: `2px solid ${action.color}30`,
                     mb: 2,
-                    mx: 'auto',
-                    // RTL positioning for mobile
-                    ...(isMobile && {
-                      position: 'absolute',
-                      top: 16,
-                      [isRTLMode ? 'left' : 'right']: 16,
-                      mx: 0,
-                      mb: 0
-                    })
+                    mx: 'auto'
                   }}
                 >
                   <Box sx={{ 
@@ -186,12 +178,7 @@ const QuickActions = () => {
                 {/* Content */}
                 <Box sx={{ 
                   textAlign: 'center', 
-                  flex: 1,
-                  // Adjust padding for mobile when icon is repositioned
-                  ...(isMobile && {
-                    pt: 4,
-                    textAlign: isRTLMode ? 'right' : 'left'
-                  })
+                  flex: 1
                 }}>
                   <Typography 
                     variant="h6" 
