@@ -68,11 +68,12 @@ const LeftSide = ({
             md: "repeat(2, 1fr)", // 2 columns on desktop
           },
           gridAutoRows: {
-            xs: "1fr", // Equal height rows on mobile
+            xs: "auto", // Auto rows on mobile to prevent overflow
             sm: "auto", // Auto rows on desktop
             md: "auto", // Auto rows on desktop
           },
-          height: "100%", // Use full available height
+          height: "auto", // Let content determine height
+          minHeight: "fit-content", // Ensure minimum content height
           alignContent: "start", // Align content to top
           alignItems: "stretch", // Ensure all grid items have same height
         }}
