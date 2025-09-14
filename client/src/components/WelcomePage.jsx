@@ -173,7 +173,7 @@ const TopRightContainer = styled(Box)(({ theme }) => ({
   // top: { xs: '24px', sm: theme?.spacing?.(2) || '16px' },
   right: theme?.spacing?.(2) || '16px',
   zIndex: 10,
-  marginTop: { xs: '8px', sm: '0px' },
+  // marginTop: { xs: '8px', sm: '0px' },
   marginRight: { xs: '8px', sm: '0px' },
   // Add visual styling to make it more prominent
   '& > *': {
