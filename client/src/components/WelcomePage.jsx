@@ -119,7 +119,7 @@ const FeatureCard = styled(Paper)(({ theme }) => ({
 const LanguageSelector = styled(Box)(({ theme }) => ({
   display: 'flex',
   alignItems: 'center',
-  padding: '8px 16px',
+  padding: '12px 20px',
   borderRadius: '12px',
   cursor: 'pointer',
   background: theme?.palette?.mode === 'dark' 
@@ -128,6 +128,7 @@ const LanguageSelector = styled(Box)(({ theme }) => ({
   backdropFilter: 'blur(10px)',
   border: `1px solid ${alpha(theme?.palette?.primary?.main || '#667eea', 0.1)}`,
   transition: 'all 0.3s ease',
+  minHeight: '48px',
   '&:hover': {
     background: theme?.palette?.mode === 'dark' 
       ? 'rgba(255, 255, 255, 0.2)'
@@ -135,8 +136,8 @@ const LanguageSelector = styled(Box)(({ theme }) => ({
     transform: 'translateY(-2px)',
   },
   '& .MuiSvgIcon-root': {
-    marginRight: '8px',
-    fontSize: '20px',
+    marginRight: '12px',
+    fontSize: '24px',
   },
 }));
 
@@ -148,11 +149,16 @@ const ActionButton = styled(IconButton)(({ theme }) => ({
   border: `1px solid ${alpha(theme?.palette?.primary?.main || '#667eea', 0.1)}`,
   color: theme?.palette?.text?.primary,
   transition: 'all 0.3s ease',
+  width: '48px',
+  height: '48px',
   '&:hover': {
     backgroundColor: theme?.palette?.mode === 'dark' 
       ? 'rgba(255, 255, 255, 0.2)'
       : 'rgba(0, 0, 0, 0.1)',
     transform: 'scale(1.05)',
+  },
+  '& .MuiSvgIcon-root': {
+    fontSize: '24px',
   }
 }));
 
@@ -360,20 +366,20 @@ const WelcomePage = () => {
           <Typography
             variant="body2"
             sx={{
-              fontWeight: 500,
-              fontSize: '0.9rem',
-              display: { xs: 'none', sm: 'block' }
+              fontWeight: 600,
+              fontSize: '1rem',
+              display: 'block'
             }}
           >
             {getLanguageDisplayName(currentLanguage || langContext || 'en')}
           </Typography>
-          <KeyboardArrowDown sx={{ fontSize: '16px', ml: 0.5 }} />
+          <KeyboardArrowDown sx={{ fontSize: '20px', ml: 0.5 }} />
         </LanguageSelector>
       </TopRightContainer>
 
       {/* Top Left Container - Dark/Light mode toggle */}
       <TopLeftContainer>
-        <ActionButton onClick={handleModeToggle} size="small">
+        <ActionButton onClick={handleModeToggle} size="large">
           {mode === 'light' ? (
             <DarkModeOutlined />
           ) : (
