@@ -162,18 +162,21 @@ const ActionButton = styled(IconButton)(({ theme }) => ({
   }
 }));
 
-const TopRightContainer = styled(Box)(({ theme }) => ({
+const TopControlsContainer = styled(Box)(({ theme }) => ({
+  display: 'flex',
+  justifyContent: 'space-between',
+  alignItems: 'center',
+  width: '100%',
+  padding: theme?.spacing?.(2) || '16px',
   position: 'absolute',
-  top: '40px',
-  right: '40px',
+  top: 0,
+  left: 0,
+  right: 0,
   zIndex: 10,
-}));
-
-const TopLeftContainer = styled(Box)(({ theme }) => ({
-  position: 'absolute',
-  top: '40px',
-  left: '40px',
-  zIndex: 10,
+  [theme?.breakpoints?.down?.('sm') || '@media (max-width: 600px)']: {
+    justifyContent: 'center',
+    gap: theme?.spacing?.(2) || '16px',
+  },
 }));
 
 const WelcomePage = () => {
@@ -351,8 +354,18 @@ const WelcomePage = () => {
 
   return (
     <PageContainer>
-      {/* Top Right Container - Language Selector */}
-      <TopRightContainer>
+      {/* Top Controls Container */}
+      <TopControlsContainer>
+        {/* Dark/Light mode toggle */}
+        <ActionButton onClick={handleModeToggle} size="large">
+          {mode === 'light' ? (
+            <DarkModeOutlined />
+          ) : (
+            <LightModeOutlined />
+          )}
+        </ActionButton>
+
+        {/* Language Selector */}
         <LanguageSelector 
           id="language-selector"
           onClick={handleLanguageClick}
@@ -375,18 +388,7 @@ const WelcomePage = () => {
           </Typography>
           <KeyboardArrowDown sx={{ fontSize: '20px', ml: 0.5 }} />
         </LanguageSelector>
-      </TopRightContainer>
-
-      {/* Top Left Container - Dark/Light mode toggle */}
-      <TopLeftContainer>
-        <ActionButton onClick={handleModeToggle} size="large">
-          {mode === 'light' ? (
-            <DarkModeOutlined />
-          ) : (
-            <LightModeOutlined />
-          )}
-        </ActionButton>
-      </TopLeftContainer>
+      </TopControlsContainer>
 
       {/* Language Menu - Using Material-UI Menu like Login page */}
       <Menu
