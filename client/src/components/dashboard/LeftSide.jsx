@@ -67,6 +67,11 @@ const LeftSide = ({
             sm: "repeat(2, 1fr)", // 2 columns on tablet
             md: "repeat(2, 1fr)", // 2 columns on desktop
           },
+          gridTemplateRows: {
+            xs: "repeat(2, 1fr)", // 2 rows on mobile for uniform height
+            sm: "auto", // Auto rows on desktop
+            md: "auto", // Auto rows on desktop
+          },
           height: "100%", // Use full available height
           alignContent: "start", // Align content to top
           alignItems: "stretch", // Ensure all grid items have same height
@@ -84,7 +89,7 @@ const LeftSide = ({
               : 'linear-gradient(135deg, rgba(72, 187, 120, 0.2) 0%, rgba(72, 187, 120, 0.15) 100%)',
             border: `1px solid ${theme.palette.mode === 'dark' ? 'rgba(72, 187, 120, 0.3)' : 'rgba(72, 187, 120, 0.4)'}`,
             padding: isMobile ? '1.25rem' : '1.5rem',
-            minHeight: isMobile ? '140px' : '150px', // Uniform height for all boxes
+            minHeight: isMobile ? '160px' : '150px', // Bigger uniform height for mobile
           }}
           titleStyle={{ 
             color: theme.palette.mode === 'dark' ? '#E0E0E0' : '#2D3748',
@@ -120,7 +125,7 @@ const LeftSide = ({
               : 'linear-gradient(135deg, rgba(245, 101, 101, 0.2) 0%, rgba(245, 101, 101, 0.15) 100%)',
             border: `1px solid ${theme.palette.mode === 'dark' ? 'rgba(245, 101, 101, 0.3)' : 'rgba(245, 101, 101, 0.4)'}`,
             padding: isMobile ? '1.25rem' : '1.5rem',
-            minHeight: isMobile ? '140px' : '150px', // Uniform height for all boxes
+            minHeight: isMobile ? '160px' : '150px', // Bigger uniform height for mobile
           }}
           titleStyle={{ 
             color: theme.palette.mode === 'dark' ? '#E0E0E0' : '#2D3748',
@@ -156,7 +161,7 @@ const LeftSide = ({
               : 'linear-gradient(135deg, rgba(66, 153, 225, 0.2) 0%, rgba(66, 153, 225, 0.15) 100%)',
             border: `1px solid ${theme.palette.mode === 'dark' ? 'rgba(66, 153, 225, 0.3)' : 'rgba(66, 153, 225, 0.4)'}`,
             padding: isMobile ? '1.25rem' : '1.5rem',
-            minHeight: isMobile ? '140px' : '150px', // Uniform height for all boxes
+            minHeight: isMobile ? '160px' : '150px', // Bigger uniform height for mobile
           }}
           titleStyle={{ 
             color: theme.palette.mode === 'dark' ? '#E0E0E0' : '#2D3748',
@@ -192,7 +197,7 @@ const LeftSide = ({
               : 'linear-gradient(135deg, rgba(159, 122, 234, 0.2) 0%, rgba(159, 122, 234, 0.15) 100%)',
             border: `1px solid ${theme.palette.mode === 'dark' ? 'rgba(159, 122, 234, 0.3)' : 'rgba(159, 122, 234, 0.4)'}`,
             padding: isMobile ? '1.25rem' : '1.5rem',
-            minHeight: isMobile ? '140px' : '150px', // Uniform height for all boxes
+            minHeight: isMobile ? '160px' : '150px', // Bigger uniform height for mobile
           }}
           titleStyle={{ 
             color: theme.palette.mode === 'dark' ? '#E0E0E0' : '#2D3748',
