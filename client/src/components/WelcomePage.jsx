@@ -78,7 +78,7 @@ const WelcomeCard = styled(Card)(({ theme }) => ({
 const HeaderSection = styled(Box)(({ theme }) => ({
   textAlign: 'center',
   marginBottom: theme?.spacing?.(4) || '32px',
-  marginTop:'50px',
+  marginTop:'70px',
   position: 'relative',
 }));
 
@@ -99,7 +99,6 @@ const BrandLogo = styled(Box)(({ theme }) => ({
 }));
 
 const FeatureCard = styled(Paper)(({ theme }) => ({
-  marginTop:'15px',
   padding: theme?.spacing?.(3) || '24px',
   borderRadius: 16,
   background: theme?.palette?.mode === 'dark'
