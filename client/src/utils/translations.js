@@ -1762,7 +1762,7 @@ export const translations = {
     // Authentication translations
     brandName: "مفقودات",
     welcomeBack: "مرحباً بعودتك",
-    welcomeMessage: "ساعد الناس في العثور على أغراضهم المفقودة وإعادة الأغراض الموجودة لأصحابها.",
+    welcomeMessage: "ساعد الناس في العثور على أشيائهم المفقودة وإعادة الأشياء التي عثر عليها إلى أصحابها.",
     welcomePage: "صفحة الترحيب",
     goToWelcomePage: "الذهاب إلى صفحة الترحيب",
     signin: "تسجيل الدخول",
