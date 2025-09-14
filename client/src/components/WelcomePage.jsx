@@ -118,7 +118,7 @@ const FeatureCard = styled(Paper)(({ theme }) => ({
 const LanguageSelector = styled(Box)(({ theme }) => ({
   display: 'flex',
   alignItems: 'center',
-  padding: { xs: '20px 24px', sm: '18px 24px' },
+  padding: { xs: '24px 28px', sm: '18px 24px' },
   borderRadius: '14px',
   cursor: 'pointer',
   background: theme.palette.mode === 'dark' 
@@ -126,8 +126,8 @@ const LanguageSelector = styled(Box)(({ theme }) => ({
     : alpha(theme.palette.common.black, 0.03),
   border: `1px solid ${alpha(theme.palette.divider, 0.1)}`,
   transition: 'all 0.3s cubic-bezier(0.4, 0, 0.2, 1)',
-  minHeight: { xs: '64px', sm: '60px' },
-  minWidth: { xs: '160px', sm: '160px' },
+  minHeight: { xs: '72px', sm: '60px' },
+  minWidth: { xs: '180px', sm: '160px' },
   '&:hover': {
     background: theme.palette.mode === 'dark' 
       ? alpha(theme.palette.common.white, 0.12)
@@ -139,21 +139,21 @@ const LanguageSelector = styled(Box)(({ theme }) => ({
   },
   '& .MuiSvgIcon-root': {
     marginRight: '12px',
-    fontSize: { xs: '30px', sm: '28px' },
+    fontSize: { xs: '34px', sm: '28px' },
   },
 }));
 
 const ActionButton = styled(IconButton)(({ theme }) => ({
   color: theme.palette.mode === 'dark' ? '#fff' : '#1a1a1a',
   transition: 'all 0.3s cubic-bezier(0.4, 0, 0.2, 1)',
-  padding: { xs: '22px', sm: '20px' },
+  padding: { xs: '26px', sm: '20px' },
   borderRadius: '14px',
   background: theme.palette.mode === 'dark' 
     ? alpha(theme.palette.common.white, 0.05)
     : alpha(theme.palette.common.black, 0.03),
   border: `1px solid ${alpha(theme.palette.divider, 0.1)}`,
-  minWidth: { xs: '64px', sm: '60px' },
-  minHeight: { xs: '64px', sm: '60px' },
+  minWidth: { xs: '72px', sm: '60px' },
+  minHeight: { xs: '72px', sm: '60px' },
   '&:hover': {
     background: theme.palette.mode === 'dark' 
       ? alpha(theme.palette.common.white, 0.12)
@@ -164,19 +164,22 @@ const ActionButton = styled(IconButton)(({ theme }) => ({
       : '0 4px 15px rgba(0, 0, 0, 0.1)',
   },
   '& .MuiSvgIcon-root': {
-    fontSize: { xs: '32px', sm: '30px' },
+    fontSize: { xs: '36px', sm: '30px' },
   },
 }));
 
-const TopControlsContainer = styled(Box)(({ theme }) => ({
+const TopRightContainer = styled(Box)(({ theme }) => ({
   position: 'absolute',
   top: theme?.spacing?.(2) || '16px',
   right: theme?.spacing?.(2) || '16px',
-  display: 'flex',
-  alignItems: 'center',
-  gap: theme?.spacing?.(1) || '8px',
   zIndex: 10,
-  flexDirection: { xs: 'row-reverse', sm: 'row' },
+}));
+
+const TopLeftContainer = styled(Box)(({ theme }) => ({
+  position: 'absolute',
+  top: theme?.spacing?.(2) || '16px',
+  left: theme?.spacing?.(2) || '16px',
+  zIndex: 10,
 }));
 
 const WelcomePage = () => {
@@ -354,9 +357,8 @@ const WelcomePage = () => {
 
   return (
     <PageContainer>
-      {/* Top Controls Container */}
-      <TopControlsContainer>
-        {/* Language Selector */}
+      {/* Top Right Container - Language Selector */}
+      <TopRightContainer>
         <LanguageSelector 
           id="language-selector"
           onClick={handleLanguageClick}
@@ -371,17 +373,19 @@ const WelcomePage = () => {
             variant="body2"
             sx={{
               fontWeight: 500,
-              fontSize: { xs: '1.2rem', sm: '1.2rem' },
+              fontSize: { xs: '1.3rem', sm: '1.2rem' },
               display: 'block',
               textAlign: (currentLanguage || langContext) === 'ar' ? 'right' : 'left'
             }}
           >
             {getLanguageDisplayName(currentLanguage || langContext || 'en')}
           </Typography>
-          <KeyboardArrowDown sx={{ fontSize: { xs: '28px', sm: '26px' }, ml: 0.5 }} />
+          <KeyboardArrowDown sx={{ fontSize: { xs: '32px', sm: '26px' }, ml: 0.5 }} />
         </LanguageSelector>
+      </TopRightContainer>
 
-        {/* Dark/Light mode toggle */}
+      {/* Top Left Container - Dark/Light mode toggle */}
+      <TopLeftContainer>
         <ActionButton onClick={handleModeToggle}>
           {mode === 'light' ? (
             <DarkModeOutlined sx={{ fontSize: "20px" }} />
@@ -389,7 +393,7 @@ const WelcomePage = () => {
             <LightModeOutlined sx={{ fontSize: "20px" }} />
           )}
         </ActionButton>
-      </TopControlsContainer>
+      </TopLeftContainer>
 
       {/* Language Menu - Custom Dropdown */}
       {Boolean(languageAnchorEl) && (
