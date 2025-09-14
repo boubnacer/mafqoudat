@@ -769,9 +769,15 @@ const WelcomePage = () => {
             </Typography>
             <Button
               variant="contained"
+              size="large"
               onClick={() => navigate('/login')}
               sx={{ 
-                mr: 3,
+                marginRight: (currentLanguage || langContext) === 'ar' ? '0px' : '16px',
+                marginLeft: (currentLanguage || langContext) === 'ar' ? '16px' : '0px',
+                minWidth: { xs: '140px', sm: '160px' },
+                minHeight: { xs: '48px', sm: '52px' },
+                fontSize: { xs: '1rem', sm: '1.1rem' },
+                fontWeight: 600,
                 background: 'linear-gradient(135deg, #2196F3 0%, #21CBF3 100%)',
                 color: 'white',
                 '&:hover': {
@@ -783,9 +789,15 @@ const WelcomePage = () => {
             </Button>
             <Button
               variant="contained"
+              size="large"
               onClick={() => navigate('/signup')}
               sx={{
-                ml: 1,
+                marginLeft: (currentLanguage || langContext) === 'ar' ? '0px' : '8px',
+                marginRight: (currentLanguage || langContext) === 'ar' ? '8px' : '0px',
+                minWidth: { xs: '140px', sm: '160px' },
+                minHeight: { xs: '48px', sm: '52px' },
+                fontSize: { xs: '1rem', sm: '1.1rem' },
+                fontWeight: 600,
                 background: 'linear-gradient(135deg, #4CAF50 0%, #66BB6A 100%)',
                 color: 'white',
                 '&:hover': {
