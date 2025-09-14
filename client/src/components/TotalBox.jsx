@@ -53,9 +53,16 @@ const StatBox = ({ title, value, increase, icon, description, titleStyle, valueS
             alignItems: 'center',
             justifyContent: 'center',
             transition: 'all 0.3s ease',
+            width: '40px', // Fixed width for uniform sizing
+            height: '40px', // Fixed height for uniform sizing
+            minWidth: '40px', // Ensure minimum width
+            minHeight: '40px', // Ensure minimum height
             '& svg': {
               color: iconStyle?.color || (theme.palette.mode === 'dark' ? '#B0BEC5' : '#4A5568'),
-              transition: 'color 0.3s ease'
+              transition: 'color 0.3s ease',
+              fontSize: '20px', // Fixed icon size for consistency
+              width: '20px',
+              height: '20px'
             }
           }}
         >

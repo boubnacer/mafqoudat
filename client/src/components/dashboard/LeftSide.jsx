@@ -69,6 +69,7 @@ const LeftSide = ({
           },
           height: "100%", // Use full available height
           alignContent: "start", // Align content to top
+          alignItems: "stretch", // Ensure all grid items have same height
         }}
       >
         <TotalBox
@@ -83,7 +84,7 @@ const LeftSide = ({
               : 'linear-gradient(135deg, rgba(72, 187, 120, 0.2) 0%, rgba(72, 187, 120, 0.15) 100%)',
             border: `1px solid ${theme.palette.mode === 'dark' ? 'rgba(72, 187, 120, 0.3)' : 'rgba(72, 187, 120, 0.4)'}`,
             padding: isMobile ? '1.25rem' : '1.5rem',
-            minHeight: isMobile ? '130px' : '140px', // Increased height for mobile
+            minHeight: isMobile ? '140px' : '150px', // Uniform height for all boxes
           }}
           titleStyle={{ 
             color: theme.palette.mode === 'dark' ? '#E0E0E0' : '#2D3748',
@@ -119,7 +120,7 @@ const LeftSide = ({
               : 'linear-gradient(135deg, rgba(245, 101, 101, 0.2) 0%, rgba(245, 101, 101, 0.15) 100%)',
             border: `1px solid ${theme.palette.mode === 'dark' ? 'rgba(245, 101, 101, 0.3)' : 'rgba(245, 101, 101, 0.4)'}`,
             padding: isMobile ? '1.25rem' : '1.5rem',
-            minHeight: isMobile ? '130px' : '140px', // Increased height for mobile
+            minHeight: isMobile ? '140px' : '150px', // Uniform height for all boxes
           }}
           titleStyle={{ 
             color: theme.palette.mode === 'dark' ? '#E0E0E0' : '#2D3748',
@@ -155,7 +156,7 @@ const LeftSide = ({
               : 'linear-gradient(135deg, rgba(66, 153, 225, 0.2) 0%, rgba(66, 153, 225, 0.15) 100%)',
             border: `1px solid ${theme.palette.mode === 'dark' ? 'rgba(66, 153, 225, 0.3)' : 'rgba(66, 153, 225, 0.4)'}`,
             padding: isMobile ? '1.25rem' : '1.5rem',
-            minHeight: isMobile ? '130px' : '140px', // Increased height for mobile
+            minHeight: isMobile ? '140px' : '150px', // Uniform height for all boxes
           }}
           titleStyle={{ 
             color: theme.palette.mode === 'dark' ? '#E0E0E0' : '#2D3748',
@@ -191,7 +192,7 @@ const LeftSide = ({
               : 'linear-gradient(135deg, rgba(159, 122, 234, 0.2) 0%, rgba(159, 122, 234, 0.15) 100%)',
             border: `1px solid ${theme.palette.mode === 'dark' ? 'rgba(159, 122, 234, 0.3)' : 'rgba(159, 122, 234, 0.4)'}`,
             padding: isMobile ? '1.25rem' : '1.5rem',
-            minHeight: isMobile ? '130px' : '140px', // Increased height for mobile
+            minHeight: isMobile ? '140px' : '150px', // Uniform height for all boxes
           }}
           titleStyle={{ 
             color: theme.palette.mode === 'dark' ? '#E0E0E0' : '#2D3748',
