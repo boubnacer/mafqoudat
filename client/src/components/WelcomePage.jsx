@@ -494,7 +494,7 @@ const WelcomePage = () => {
                 width: 'auto',
                 maxWidth: '100%',
                 objectFit: 'contain',
-                mb: 2,
+                mb: 4,
                 display: 'block',
                 margin: '0 auto',
                 filter: theme?.palette?.mode === 'dark' 
@@ -507,7 +507,9 @@ const WelcomePage = () => {
               color="text.secondary" 
               sx={{ 
                 mb: 3,
-                fontSize: { xs: '1rem', md: '1.25rem' }
+                fontSize: { xs: '1rem', md: '1.25rem' },
+                textAlign: 'center',
+                lineHeight: 1.6,
               }}
             >
               {t('welcomeMessage')}
