@@ -494,7 +494,7 @@ const WelcomePage = () => {
                 width: 'auto',
                 maxWidth: '100%',
                 objectFit: 'contain',
-                mb: 4,
+                mb: 6,
                 display: 'block',
                 margin: '0 auto',
                 filter: theme?.palette?.mode === 'dark' 
@@ -654,6 +654,10 @@ const WelcomePage = () => {
                 background: `linear-gradient(135deg, ${theme?.palette?.primary?.main} 0%, ${theme?.palette?.secondary?.main} 100%)`,
                 '&:hover': {
                   background: `linear-gradient(135deg, ${theme?.palette?.primary?.dark} 0%, ${theme?.palette?.secondary?.dark} 100%)`,
+                },
+                '& .MuiButton-endIcon': {
+                  marginLeft: (currentLanguage || langContext) === 'ar' ? '8px' : '4px',
+                  marginRight: (currentLanguage || langContext) === 'ar' ? '4px' : '8px',
                 }
               }}
             >
