@@ -305,15 +305,6 @@ const WelcomePage = () => {
     setLanguageAnchorEl(null);
   };
 
-  // Test function to manually toggle menu
-  const testMenuToggle = () => {
-    console.log('WelcomePage: Test menu toggle clicked');
-    if (languageAnchorEl) {
-      setLanguageAnchorEl(null);
-    } else {
-      setLanguageAnchorEl(document.getElementById('language-selector'));
-    }
-  };
 
   const handleModeToggle = () => {
     dispatch(setMode());
@@ -387,11 +378,6 @@ const WelcomePage = () => {
           <KeyboardArrowDown sx={{ fontSize: { xs: '18px', sm: '20px' }, ml: 0.5 }} />
         </LanguageSelector>
 
-        {/* Test button for debugging */}
-        <ActionButton onClick={testMenuToggle} sx={{ background: 'red !important' }}>
-          <Typography sx={{ fontSize: '12px', color: 'white' }}>TEST</Typography>
-        </ActionButton>
-
         {/* Dark/Light mode toggle */}
         <ActionButton onClick={handleModeToggle}>
           {mode === 'light' ? (
@@ -402,95 +388,90 @@ const WelcomePage = () => {
         </ActionButton>
       </TopControlsContainer>
 
-      {/* Language Menu */}
-      <Menu
-        anchorEl={languageAnchorEl}
-        open={Boolean(languageAnchorEl)}
-        onClose={handleLanguageClose}
-        disableScrollLock={false}
-        PaperProps={{
-          sx: {
-            mt: 1,
-            borderRadius: 2,
-            boxShadow: theme.palette.mode === 'dark'
-              ? '0 8px 32px rgba(0, 0, 0, 0.4)'
-              : '0 8px 32px rgba(0, 0, 0, 0.1)',
+      {/* Language Menu - Custom Dropdown */}
+      {Boolean(languageAnchorEl) && (
+        <Box
+          sx={{
+            position: 'absolute',
+            top: '80px',
+            right: '16px',
+            zIndex: 9999,
             background: theme.palette.mode === 'dark'
               ? 'rgba(30, 30, 30, 0.95)'
               : 'rgba(255, 255, 255, 0.95)',
             backdropFilter: 'blur(20px)',
             border: `1px solid ${alpha(theme.palette.divider, 0.1)}`,
-            zIndex: 9999,
+            borderRadius: 2,
+            boxShadow: theme.palette.mode === 'dark'
+              ? '0 8px 32px rgba(0, 0, 0, 0.4)'
+              : '0 8px 32px rgba(0, 0, 0, 0.1)',
             minWidth: 150,
-          }
-        }}
-        transformOrigin={{ horizontal: 'right', vertical: 'top' }}
-        anchorOrigin={{ horizontal: 'right', vertical: 'bottom' }}
-        sx={{ 
-          zIndex: 9999,
-          '& .MuiPaper-root': {
-            zIndex: 9999,
-          }
-        }}
-      >
-        <MenuItem 
-          onClick={() => handleLanguageChange('en')}
-          sx={{
-            minWidth: 120,
-            '&:hover': {
-              backgroundColor: alpha(theme.palette.primary.main, 0.1),
-            }
+            overflow: 'hidden',
           }}
         >
-          <ListItemIcon>
-            <Language sx={{ fontSize: 20 }} />
-          </ListItemIcon>
-          <ListItemText 
-            primary="English" 
-            primaryTypographyProps={{
-              textAlign: (currentLanguage || langContext) === 'ar' ? 'right' : 'left'
+          <Box
+            onClick={() => handleLanguageChange('en')}
+            sx={{
+              display: 'flex',
+              alignItems: 'center',
+              padding: '12px 16px',
+              cursor: 'pointer',
+              '&:hover': {
+                backgroundColor: alpha(theme.palette.primary.main, 0.1),
+              }
             }}
-          />
-        </MenuItem>
-        <MenuItem 
-          onClick={() => handleLanguageChange('ar')}
+          >
+            <Language sx={{ fontSize: 20, mr: 1 }} />
+            <Typography variant="body2">English</Typography>
+          </Box>
+          <Box
+            onClick={() => handleLanguageChange('ar')}
+            sx={{
+              display: 'flex',
+              alignItems: 'center',
+              padding: '12px 16px',
+              cursor: 'pointer',
+              '&:hover': {
+                backgroundColor: alpha(theme.palette.primary.main, 0.1),
+              }
+            }}
+          >
+            <Language sx={{ fontSize: 20, mr: 1 }} />
+            <Typography variant="body2">العربية</Typography>
+          </Box>
+          <Box
+            onClick={() => handleLanguageChange('fr')}
+            sx={{
+              display: 'flex',
+              alignItems: 'center',
+              padding: '12px 16px',
+              cursor: 'pointer',
+              '&:hover': {
+                backgroundColor: alpha(theme.palette.primary.main, 0.1),
+              }
+            }}
+          >
+            <Language sx={{ fontSize: 20, mr: 1 }} />
+            <Typography variant="body2">Français</Typography>
+          </Box>
+        </Box>
+      )}
+
+      {/* Click outside to close */}
+      {Boolean(languageAnchorEl) && (
+        <Box
+          onClick={handleLanguageClose}
           sx={{
-            minWidth: 120,
-            '&:hover': {
-              backgroundColor: alpha(theme.palette.primary.main, 0.1),
-            }
+            position: 'fixed',
+            top: 0,
+            left: 0,
+            right: 0,
+            bottom: 0,
+            zIndex: 9998,
+            background: 'transparent',
           }}
-        >
-          <ListItemIcon>
-            <Language sx={{ fontSize: 20 }} />
-          </ListItemIcon>
-          <ListItemText 
-            primary="العربية" 
-            primaryTypographyProps={{
-              textAlign: (currentLanguage || langContext) === 'ar' ? 'right' : 'left'
-            }}
-          />
-        </MenuItem>
-        <MenuItem 
-          onClick={() => handleLanguageChange('fr')}
-          sx={{
-            minWidth: 120,
-            '&:hover': {
-              backgroundColor: alpha(theme.palette.primary.main, 0.1),
-            }
-          }}
-        >
-          <ListItemIcon>
-            <Language sx={{ fontSize: 20 }} />
-          </ListItemIcon>
-          <ListItemText 
-            primary="Français" 
-            primaryTypographyProps={{
-              textAlign: (currentLanguage || langContext) === 'ar' ? 'right' : 'left'
-            }}
-          />
-        </MenuItem>
-      </Menu>
+        />
+      )}
 
 
 
