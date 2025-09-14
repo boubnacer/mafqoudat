@@ -84,12 +84,12 @@ const BrandLogo = styled(Box)(({ theme }) => ({
   width: 80,
   height: 80,
   borderRadius: '50%',
-  background: `linear-gradient(135deg, ${theme?.palette?.primary?.main || '#667eea'} 0%, ${theme?.palette?.secondary?.main || '#764ba2'} 100%)`,
+  background: `linear-gradient(135deg, #023DA5 0%, #1B6FEF 100%)`,
   display: 'flex',
   alignItems: 'center',
   justifyContent: 'center',
   margin: '0 auto 16px',
-  boxShadow: `0 8px 32px ${alpha(theme?.palette?.primary?.main || '#667eea', 0.3)}`,
+  boxShadow: `0 8px 32px ${alpha('#023DA5', 0.3)}`,
   '& .MuiSvgIcon-root': {
     fontSize: 40,
     color: 'white',
@@ -121,46 +121,43 @@ const LanguageSelector = styled(Box)(({ theme }) => ({
   borderRadius: '14px',
   cursor: 'pointer',
   background: theme.palette.mode === 'dark' 
-    ? alpha(theme.palette.common.white, 0.05)
-    : alpha(theme.palette.common.black, 0.03),
-  border: `1px solid ${alpha(theme.palette.divider, 0.1)}`,
+    ? alpha('#023DA5', 0.1)
+    : alpha('#023DA5', 0.05),
+  border: `1px solid ${alpha('#023DA5', 0.2)}`,
   transition: 'all 0.3s cubic-bezier(0.4, 0, 0.2, 1)',
   minHeight: { xs: '56px', sm: '60px' },
   minWidth: { xs: '140px', sm: '160px' },
   '&:hover': {
     background: theme.palette.mode === 'dark' 
-      ? alpha(theme.palette.common.white, 0.12)
-      : alpha(theme.palette.common.black, 0.08),
+      ? alpha('#023DA5', 0.2)
+      : alpha('#023DA5', 0.1),
     transform: 'translateY(-2px)',
-    boxShadow: theme.palette.mode === 'dark'
-      ? '0 4px 15px rgba(0, 0, 0, 0.3)'
-      : '0 4px 15px rgba(0, 0, 0, 0.1)',
+    boxShadow: `0 4px 15px ${alpha('#023DA5', 0.3)}`,
   },
   '& .MuiSvgIcon-root': {
     marginRight: '12px',
     fontSize: { xs: '26px', sm: '28px' },
+    color: '#023DA5',
   },
 }));
 
 const ActionButton = styled(IconButton)(({ theme }) => ({
-  color: theme.palette.mode === 'dark' ? '#fff' : '#1a1a1a',
+  color: '#023DA5',
   transition: 'all 0.3s cubic-bezier(0.4, 0, 0.2, 1)',
   padding: { xs: '18px', sm: '20px' },
   borderRadius: '14px',
   background: theme.palette.mode === 'dark' 
-    ? alpha(theme.palette.common.white, 0.05)
-    : alpha(theme.palette.common.black, 0.03),
-  border: `1px solid ${alpha(theme.palette.divider, 0.1)}`,
+    ? alpha('#023DA5', 0.1)
+    : alpha('#023DA5', 0.05),
+  border: `1px solid ${alpha('#023DA5', 0.2)}`,
   minWidth: { xs: '56px', sm: '60px' },
   minHeight: { xs: '56px', sm: '60px' },
   '&:hover': {
     background: theme.palette.mode === 'dark' 
-      ? alpha(theme.palette.common.white, 0.12)
-      : alpha(theme.palette.common.black, 0.08),
+      ? alpha('#023DA5', 0.2)
+      : alpha('#023DA5', 0.1),
     transform: 'translateY(-2px)',
-    boxShadow: theme.palette.mode === 'dark'
-      ? '0 4px 15px rgba(0, 0, 0, 0.3)'
-      : '0 4px 15px rgba(0, 0, 0, 0.1)',
+    boxShadow: `0 4px 15px ${alpha('#023DA5', 0.3)}`,
   },
   '& .MuiSvgIcon-root': {
     fontSize: { xs: '28px', sm: '30px' },
@@ -419,12 +416,12 @@ const WelcomePage = () => {
               cursor: 'pointer',
               minHeight: { xs: '56px', sm: '60px' },
               '&:hover': {
-                backgroundColor: alpha(theme.palette.primary.main, 0.1),
+                backgroundColor: alpha('#023DA5', 0.1),
               }
             }}
           >
-            <Language sx={{ fontSize: { xs: '26px', sm: '28px' }, mr: 1.5 }} />
-            <Typography variant="body2" sx={{ fontSize: { xs: '1.1rem', sm: '1.2rem' }, fontWeight: 500 }}>English</Typography>
+            <Language sx={{ fontSize: { xs: '26px', sm: '28px' }, mr: 1.5, color: '#023DA5' }} />
+            <Typography variant="body2" sx={{ fontSize: { xs: '1.1rem', sm: '1.2rem' }, fontWeight: 500, color: '#023DA5' }}>English</Typography>
           </Box>
           <Box
             onClick={() => handleLanguageChange('ar')}
@@ -435,12 +432,12 @@ const WelcomePage = () => {
               cursor: 'pointer',
               minHeight: { xs: '56px', sm: '60px' },
               '&:hover': {
-                backgroundColor: alpha(theme.palette.primary.main, 0.1),
+                backgroundColor: alpha('#023DA5', 0.1),
               }
             }}
           >
-            <Language sx={{ fontSize: { xs: '26px', sm: '28px' }, mr: 1.5 }} />
-            <Typography variant="body2" sx={{ fontSize: { xs: '1.1rem', sm: '1.2rem' }, fontWeight: 500 }}>العربية</Typography>
+            <Language sx={{ fontSize: { xs: '26px', sm: '28px' }, mr: 1.5, color: '#023DA5' }} />
+            <Typography variant="body2" sx={{ fontSize: { xs: '1.1rem', sm: '1.2rem' }, fontWeight: 500, color: '#023DA5' }}>العربية</Typography>
           </Box>
           <Box
             onClick={() => handleLanguageChange('fr')}
@@ -451,11 +448,11 @@ const WelcomePage = () => {
               cursor: 'pointer',
               minHeight: { xs: '56px', sm: '60px' },
               '&:hover': {
-                backgroundColor: alpha(theme.palette.primary.main, 0.1),
+                backgroundColor: alpha('#023DA5', 0.1),
               }
             }}
           >
-            <Language sx={{ fontSize: { xs: '26px', sm: '28px' }, mr: 1.5 }} />
+            <Language sx={{ fontSize: { xs: '26px', sm: '28px' }, mr: 1.5, color: '#023DA5' }} />
             <Typography variant="body2" sx={{ fontSize: { xs: '1.1rem', sm: '1.2rem' }, fontWeight: 500 }}>Français</Typography>
           </Box>
         </Box>
@@ -647,9 +644,9 @@ const WelcomePage = () => {
                 borderRadius: 2,
                 fontSize: { xs: '1rem', md: '1.1rem' },
                 fontWeight: 600,
-                background: `linear-gradient(135deg, ${theme?.palette?.primary?.main} 0%, ${theme?.palette?.secondary?.main} 100%)`,
+                background: `linear-gradient(135deg, #023DA5 0%, #1B6FEF 100%)`,
                 '&:hover': {
-                  background: `linear-gradient(135deg, ${theme?.palette?.primary?.dark} 0%, ${theme?.palette?.secondary?.dark} 100%)`,
+                  background: `linear-gradient(135deg, #1a4bb8 0%, #2a7cff 100%)`,
                 }
               }}
             >
@@ -661,7 +658,7 @@ const WelcomePage = () => {
             <Grid item xs={12} md={4}>
               <FeatureCard>
                 <Box sx={{ textAlign: 'center' }}>
-                  <Search sx={{ fontSize: 40, color: 'primary.main', mb: 2 }} />
+                  <Search sx={{ fontSize: 40, color: '#023DA5', mb: 2 }} />
                   <Typography variant="h6" gutterBottom>
                     {t('searchItems')}
                   </Typography>
@@ -674,7 +671,7 @@ const WelcomePage = () => {
             <Grid item xs={12} md={4}>
               <FeatureCard>
                 <Box sx={{ textAlign: 'center' }}>
-                  <LocationOn sx={{ fontSize: 40, color: 'primary.main', mb: 2 }} />
+                  <LocationOn sx={{ fontSize: 40, color: '#023DA5', mb: 2 }} />
                   <Typography variant="h6" gutterBottom>
                     {t('localPosts')}
                   </Typography>
@@ -687,7 +684,7 @@ const WelcomePage = () => {
             <Grid item xs={12} md={4}>
               <FeatureCard>
                 <Box sx={{ textAlign: 'center' }}>
-                  <Public sx={{ fontSize: 40, color: 'primary.main', mb: 2 }} />
+                  <Public sx={{ fontSize: 40, color: '#023DA5', mb: 2 }} />
                   <Typography variant="h6" gutterBottom>
                     {t('communityHelp')}
                   </Typography>
@@ -708,10 +705,10 @@ const WelcomePage = () => {
               onClick={() => navigate('/login')}
               sx={{ 
                 mr: 2,
-                background: 'linear-gradient(135deg, #2196F3 0%, #21CBF3 100%)',
+                background: 'linear-gradient(135deg, #023DA5 0%, #1B6FEF 100%)',
                 color: 'white',
                 '&:hover': {
-                  background: 'linear-gradient(135deg, #1976D2 0%, #0288D1 100%)',
+                  background: 'linear-gradient(135deg, #1a4bb8 0%, #2a7cff 100%)',
                 }
               }}
             >
@@ -721,10 +718,10 @@ const WelcomePage = () => {
               variant="contained"
               onClick={() => navigate('/signup')}
               sx={{
-                background: 'linear-gradient(135deg, #4CAF50 0%, #66BB6A 100%)',
+                background: 'linear-gradient(135deg, #1B6FEF 0%, #023DA5 100%)',
                 color: 'white',
                 '&:hover': {
-                  background: 'linear-gradient(135deg, #388E3C 0%, #43A047 100%)',
+                  background: 'linear-gradient(135deg, #2a7cff 0%, #1a4bb8 100%)',
                 }
               }}
             >
