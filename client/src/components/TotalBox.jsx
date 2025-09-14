@@ -26,7 +26,7 @@ const StatBox = ({ title, value, increase, icon, description, titleStyle, valueS
             : '0 12px 40px 0 rgba(0,0,0,0.1)',
         },
         height: { xs: '240px', sm: 'auto' }, // Increased height for longer text in mobile
-        minHeight: { xs: '240px', sm: 'fit-content' }, // Increased minimum height for longer text in mobile
+        minHeight: { xs: '240px', sm: '180px' }, // Increased minimum height for desktop mode
         width: { xs: '100%', sm: 'auto' }, // Same width for all boxes on mobile
         display: 'flex',
         flexDirection: 'column',
