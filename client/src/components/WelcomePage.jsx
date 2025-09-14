@@ -490,7 +490,7 @@ const WelcomePage = () => {
               src="/maflogo.png"
               alt="Mafqoudat"
               sx={{
-                height: { xs: '60px', md: '80px' },
+                height: { xs: '40px', md: '50px' },
                 width: 'auto',
                 maxWidth: '100%',
                 objectFit: 'contain',
