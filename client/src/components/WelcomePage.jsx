@@ -169,11 +169,10 @@ const ActionButton = styled(IconButton)(({ theme }) => ({
 }));
 
 const TopRightContainer = styled(Box)(({ theme }) => ({
-  position: 'absolute',
-  // top: { xs: '24px', sm: theme?.spacing?.(2) || '16px' },
+  position: 'fixed',
+  top: { xs: '16px', sm: '16px' },
   right: theme?.spacing?.(2) || '16px',
-  zIndex: 10,
-  // marginTop: { xs: '8px', sm: '0px' },
+  zIndex: 1000,
   marginRight: { xs: '8px', sm: '0px' },
   // Add visual styling to make it more prominent
   '& > *': {
@@ -188,11 +187,10 @@ const TopRightContainer = styled(Box)(({ theme }) => ({
 }));
 
 const TopLeftContainer = styled(Box)(({ theme }) => ({
-  position: 'absolute',
-  // top: { xs: '24px', sm: theme?.spacing?.(2) || '16px' },
+  position: 'fixed',
+  top: { xs: '16px', sm: '16px' },
   left: theme?.spacing?.(2) || '16px',
-  zIndex: 10,
-  // marginTop: { xs: '8px', sm: '0px' },
+  zIndex: 1000,
   marginLeft: { xs: '8px', sm: '0px' },
   // Add visual styling to make it more prominent
   '& > *': {
