@@ -173,6 +173,8 @@ const TopRightContainer = styled(Box)(({ theme }) => ({
   top: theme?.spacing?.(2) || '16px',
   right: theme?.spacing?.(2) || '16px',
   zIndex: 10,
+  marginTop: { xs: '8px', sm: '0px' },
+  marginRight: { xs: '8px', sm: '0px' },
 }));
 
 const TopLeftContainer = styled(Box)(({ theme }) => ({
@@ -180,6 +182,8 @@ const TopLeftContainer = styled(Box)(({ theme }) => ({
   top: theme?.spacing?.(2) || '16px',
   left: theme?.spacing?.(2) || '16px',
   zIndex: 10,
+  marginTop: { xs: '8px', sm: '0px' },
+  marginLeft: { xs: '8px', sm: '0px' },
 }));
 
 const WelcomePage = () => {
