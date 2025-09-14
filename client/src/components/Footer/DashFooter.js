@@ -45,7 +45,12 @@ const DashFooter = () => {
   let createPostButton = null;
   // Only show the plus icon on posts list page and mobile view
   // Make sure it only shows on the exact posts list page, not on dashboard or other pages
-  if (pathname === "/dash/posts") {
+  console.log('DashFooter: Current pathname:', pathname);
+  console.log('DashFooter: Should show button?', pathname === "/dash/posts");
+  
+  // Completely disable the floating button for now
+  if (false) {
+    console.log('DashFooter: Showing floating button for posts page');
     createPostButton = (
       <IconButton 
         title={t('addNewPost')} 
