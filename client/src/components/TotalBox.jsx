@@ -31,44 +31,53 @@ const StatBox = ({ title, value, increase, icon, description, titleStyle, valueS
         ...sx
       }}
     >
-      <FlexBetween>
-        <Typography 
-          fontWeight="600" 
-          fontSize="1rem"
-          sx={{ 
-            letterSpacing: '0.5px',
-            ...titleStyle 
-          }}
-        >
-          {title}
-        </Typography>
-        <Box
-          sx={{
-            background: iconStyle?.background || (theme.palette.mode === 'dark'
-              ? 'rgba(255,255,255,0.1)'
-              : 'rgba(0,0,0,0.1)'),
-            borderRadius: '12px',
-            padding: '8px',
-            display: 'flex',
-            alignItems: 'center',
-            justifyContent: 'center',
-            transition: 'all 0.3s ease',
-            width: '40px', // Fixed width for uniform sizing
-            height: '40px', // Fixed height for uniform sizing
-            minWidth: '40px', // Ensure minimum width
-            minHeight: '40px', // Ensure minimum height
-            '& svg': {
-              color: iconStyle?.color || (theme.palette.mode === 'dark' ? '#B0BEC5' : '#4A5568'),
-              transition: 'color 0.3s ease',
-              fontSize: '20px', // Fixed icon size for consistency
-              width: '20px',
-              height: '20px'
-            }
-          }}
-        >
-          {icon}
-        </Box>
-      </FlexBetween>
+      {/* Title */}
+      <Typography 
+        fontWeight="600" 
+        fontSize="1rem"
+        sx={{ 
+          letterSpacing: '0.5px',
+          ...titleStyle 
+        }}
+      >
+        {title}
+      </Typography>
+
+      {/* Icon positioned absolutely */}
+      <Box
+        sx={{
+          position: 'absolute',
+          top: '12px',
+          right: '12px', // Top-right in LTR
+          background: iconStyle?.background || (theme.palette.mode === 'dark'
+            ? 'rgba(255,255,255,0.1)'
+            : 'rgba(0,0,0,0.1)'),
+          borderRadius: '12px',
+          padding: '8px',
+          display: 'flex',
+          alignItems: 'center',
+          justifyContent: 'center',
+          transition: 'all 0.3s ease',
+          width: '40px', // Fixed width for uniform sizing
+          height: '40px', // Fixed height for uniform sizing
+          minWidth: '40px', // Ensure minimum width
+          minHeight: '40px', // Ensure minimum height
+          '& svg': {
+            color: iconStyle?.color || (theme.palette.mode === 'dark' ? '#B0BEC5' : '#4A5568'),
+            transition: 'color 0.3s ease',
+            fontSize: '20px', // Fixed icon size for consistency
+            width: '20px',
+            height: '20px'
+          },
+          // RTL support
+          '[dir="rtl"] &': {
+            right: 'auto',
+            left: '12px', // Top-left in RTL
+          }
+        }}
+      >
+        {icon}
+      </Box>
 
       <Box mt="1rem" sx={{ flexGrow: 1, display: 'flex', flexDirection: 'column', justifyContent: 'center' }}>
         <Typography
