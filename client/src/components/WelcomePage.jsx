@@ -485,21 +485,21 @@ const WelcomePage = () => {
             <BrandLogo>
               <Public />
             </BrandLogo>
-            <Typography 
-              variant="h3" 
-              component="h1" 
-              gutterBottom
-              sx={{ 
-                fontWeight: 700,
-                background: `linear-gradient(135deg, ${theme?.palette?.primary?.main} 0%, ${theme?.palette?.secondary?.main} 100%)`,
-                backgroundClip: 'text',
-                WebkitBackgroundClip: 'text',
-                WebkitTextFillColor: 'transparent',
-                fontSize: { xs: '2rem', md: '3rem' }
+            <Box
+              component="img"
+              src="/maflogo.png"
+              alt="Mafqoudat"
+              sx={{
+                height: { xs: '60px', md: '80px' },
+                width: 'auto',
+                maxWidth: '100%',
+                objectFit: 'contain',
+                mb: 2,
+                filter: theme?.palette?.mode === 'dark' 
+                  ? 'brightness(1.1) contrast(1.1)' 
+                  : 'none',
               }}
-            >
-              {t('brandName')}
-            </Typography>
+            />
             <Typography 
               variant="h6" 
               color="text.secondary" 
