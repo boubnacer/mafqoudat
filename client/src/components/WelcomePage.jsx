@@ -169,7 +169,7 @@ const ActionButton = styled(IconButton)(({ theme }) => ({
 }));
 
 const TopRightContainer = styled(Box)(({ theme }) => ({
-  position: 'fixed',
+  position: 'absolute',
   top: '30px',
   right: '30px',
   zIndex: 1000,
@@ -187,7 +187,7 @@ const TopRightContainer = styled(Box)(({ theme }) => ({
 }));
 
 const TopLeftContainer = styled(Box)(({ theme }) => ({
-  position: 'fixed',
+  position: 'absolute',
   top: '30px',
   left: '30px',
   zIndex: 1000,
