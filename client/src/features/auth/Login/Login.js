@@ -148,16 +148,16 @@ const ActionButton = styled(Button)(({ theme }) => ({
   fontSize: '1rem',
   fontWeight: 600,
   textTransform: 'none',
-  background: 'linear-gradient(135deg, #043FA5 0%, #1B6EEF 100%)',
+  background: 'linear-gradient(135deg, #4A7BC8 0%, #5B8FDF 100%)',
   color: 'white',
   border: 'none',
   transition: 'all 0.3s ease',
   position: 'relative',
   overflow: 'hidden',
   '&:hover': {
-    background: 'linear-gradient(135deg, #033A94 0%, #1A5BD8 100%)',
+    background: 'linear-gradient(135deg, #3A6BB8 0%, #4B7FCF 100%)',
     transform: 'translateY(-2px)',
-    boxShadow: '0 10px 25px rgba(4, 63, 165, 0.4)',
+    boxShadow: '0 10px 25px rgba(74, 123, 200, 0.4)',
   },
   '&:active': {
     transform: 'translateY(0)',
@@ -653,16 +653,16 @@ const Login = () => {
                   borderRadius: 3,
                   textTransform: 'none',
                   fontWeight: 600,
-                  background: 'linear-gradient(135deg, #1B6EEF 0%, #043FA5 100%)',
+                  background: 'linear-gradient(135deg, #5B8FDF 0%, #4A7BC8 100%)',
                   color: 'white',
                   py: 1.5,
                   px: 4,
                   fontSize: '1rem',
-                  boxShadow: '0 8px 25px rgba(27, 110, 239, 0.3)',
+                  boxShadow: '0 8px 25px rgba(91, 143, 223, 0.3)',
                   '&:hover': {
-                    background: 'linear-gradient(135deg, #1A5BD8 0%, #033A94 100%)',
+                    background: 'linear-gradient(135deg, #4B7FCF 0%, #3A6BB8 100%)',
                     transform: 'translateY(-2px)',
-                    boxShadow: '0 12px 35px rgba(27, 110, 239, 0.4)',
+                    boxShadow: '0 12px 35px rgba(91, 143, 223, 0.4)',
                   }
                 }}
               >
