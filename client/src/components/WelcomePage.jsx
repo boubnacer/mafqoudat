@@ -106,11 +106,13 @@ const FeatureCard = styled(Paper)(({ theme }) => ({
     : 'rgba(255, 255, 255, 0.7)',
   border: `1px solid ${alpha(theme?.palette?.divider, 0.1)}`,
   transition: 'all 0.3s ease',
+  // Remove default Paper shadow
+  boxShadow: 'none',
   '&:hover': {
     transform: 'translateY(-2px)',
-    boxShadow: theme?.palette?.mode === 'dark'
-      ? '0 8px 32px rgba(0, 0, 0, 0.3)'
-      : '0 8px 32px rgba(0, 0, 0, 0.1)',
+    // Keep only border on hover, no shadow
+    border: `1px solid ${alpha(theme?.palette?.primary?.main || '#667eea', 0.3)}`,
+    boxShadow: 'none',
   }
 }));
 
@@ -390,7 +392,11 @@ const WelcomePage = () => {
               sx={{
                 fontWeight: 600,
                 fontSize: '1rem',
-                display: 'block'
+                display: 'block',
+                // Arabic font size fix
+                ...(currentLanguage === 'ar' && {
+                  fontSize: '1.1rem',
+                }),
               }}
             >
               {getLanguageDisplayName(currentLanguage || langContext || 'en')}
@@ -512,6 +518,10 @@ const WelcomePage = () => {
                 fontSize: { xs: '1rem', md: '1.25rem' },
                 textAlign: 'center',
                 lineHeight: 1.6,
+                // Arabic font size fix
+                ...(currentLanguage === 'ar' && {
+                  fontSize: { xs: '1.1rem', md: '1.35rem' },
+                }),
               }}
             >
               {t('welcomeMessage')}
