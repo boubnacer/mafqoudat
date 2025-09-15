@@ -164,7 +164,7 @@ const ActionButton = styled(IconButton)(({ theme }) => ({
 
 const TopControlsContainer = styled(Box)(({ theme }) => ({
   display: 'flex',
-  justifyContent: 'space-between',
+  justifyContent: 'flex-end',
   alignItems: 'center',
   width: '100%',
   padding: theme?.spacing?.(2) || '16px',
@@ -173,6 +173,7 @@ const TopControlsContainer = styled(Box)(({ theme }) => ({
   left: 0,
   right: 0,
   zIndex: 10,
+  gap: theme?.spacing?.(1) || '8px',
   [theme?.breakpoints?.down?.('sm') || '@media (max-width: 600px)']: {
     justifyContent: 'center',
     gap: theme?.spacing?.(2) || '16px',
