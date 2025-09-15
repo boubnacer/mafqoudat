@@ -183,8 +183,8 @@ const ControlsGroup = styled(Box)(({ theme, currentLanguage }) => ({
   marginLeft: currentLanguage === 'ar' ? theme?.spacing?.(2) || '16px' : 0,
   [theme?.breakpoints?.down?.('sm') || '@media (max-width: 600px)']: {
     gap: theme?.spacing?.(2) || '16px',
-    marginRight: currentLanguage === 'ar' ? 0 : theme?.spacing?.(2) || '16px',
-    marginLeft: currentLanguage === 'ar' ? theme?.spacing?.(2) || '16px' : 0,
+    marginRight: currentLanguage === 'ar' ? theme?.spacing?.(2) || '16px' : 0,
+    marginLeft: currentLanguage === 'ar' ? 0 : theme?.spacing?.(2) || '16px',
   },
 }));
 
@@ -367,17 +367,9 @@ const WelcomePage = () => {
       <TopControlsContainer>
         {/* Controls Group */}
         <ControlsGroup currentLanguage={currentLanguage || langContext}>
-          {/* Dark/Light mode toggle */}
-          <ActionButton onClick={handleModeToggle} size="large">
-            {mode === 'light' ? (
-              <DarkModeOutlined />
-            ) : (
-              <LightModeOutlined />
-            )}
-          </ActionButton>
 
-          {/* Language Selector */}
-          <LanguageSelector 
+{/* Language Selector */}
+<LanguageSelector 
             id="language-selector"
             onClick={handleLanguageClick}
             sx={{
@@ -399,6 +391,17 @@ const WelcomePage = () => {
             </Typography>
             <KeyboardArrowDown sx={{ fontSize: '20px', ml: 0.5 }} />
           </LanguageSelector>
+
+          {/* Dark/Light mode toggle */}
+          <ActionButton onClick={handleModeToggle} size="large">
+            {mode === 'light' ? (
+              <DarkModeOutlined />
+            ) : (
+              <LightModeOutlined />
+            )}
+          </ActionButton>
+
+          
         </ControlsGroup>
       </TopControlsContainer>
 
