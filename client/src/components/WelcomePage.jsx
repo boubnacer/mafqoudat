@@ -162,7 +162,7 @@ const ActionButton = styled(IconButton)(({ theme }) => ({
   }
 }));
 
-const TopControlsContainer = styled(Box)(({ theme }) => ({
+const TopControlsContainer = styled(Box)(({ theme, currentLanguage }) => ({
   display: 'flex',
   justifyContent: 'flex-end',
   alignItems: 'center',
@@ -175,7 +175,7 @@ const TopControlsContainer = styled(Box)(({ theme }) => ({
   zIndex: 10,
   gap: theme?.spacing?.(1) || '8px',
   [theme?.breakpoints?.down?.('sm') || '@media (max-width: 600px)']: {
-    justifyContent: 'center',
+    justifyContent: currentLanguage === 'ar' ? 'flex-end' : 'flex-start',
     gap: theme?.spacing?.(2) || '16px',
   },
 }));
@@ -356,7 +356,7 @@ const WelcomePage = () => {
   return (
     <PageContainer>
       {/* Top Controls Container */}
-      <TopControlsContainer>
+      <TopControlsContainer currentLanguage={currentLanguage || langContext}>
         {/* Dark/Light mode toggle */}
         <ActionButton onClick={handleModeToggle} size="large">
           {mode === 'light' ? (
