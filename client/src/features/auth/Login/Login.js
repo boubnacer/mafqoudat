@@ -552,6 +552,7 @@ const Login = () => {
                   fontWeight: 500,
                   mb: 2,
                   fontSize: { xs: '1.25rem', md: '1.5rem' },
+                  marginTop:'3rem'
                 }}
               >
                 {t('welcomeBack')}
