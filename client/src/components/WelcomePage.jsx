@@ -162,7 +162,7 @@ const ActionButton = styled(IconButton)(({ theme }) => ({
   }
 }));
 
-const TopControlsContainer = styled(Box)(({ theme, currentLanguage }) => ({
+const TopControlsContainer = styled(Box)(({ theme }) => ({
   display: 'flex',
   justifyContent: 'flex-end',
   alignItems: 'center',
@@ -173,9 +173,13 @@ const TopControlsContainer = styled(Box)(({ theme, currentLanguage }) => ({
   left: '20px',
   right: 0,
   zIndex: 10,
+}));
+
+const ControlsGroup = styled(Box)(({ theme, currentLanguage }) => ({
+  display: 'flex',
+  alignItems: 'center',
   gap: theme?.spacing?.(1) || '8px',
   [theme?.breakpoints?.down?.('sm') || '@media (max-width: 600px)']: {
-    justifyContent: currentLanguage === 'ar' ? 'flex-end' : 'flex-start',
     gap: theme?.spacing?.(2) || '16px',
   },
 }));
@@ -356,39 +360,42 @@ const WelcomePage = () => {
   return (
     <PageContainer>
       {/* Top Controls Container */}
-      <TopControlsContainer currentLanguage={currentLanguage || langContext}>
-        {/* Dark/Light mode toggle */}
-        <ActionButton onClick={handleModeToggle} size="large">
-          {mode === 'light' ? (
-            <DarkModeOutlined />
-          ) : (
-            <LightModeOutlined />
-          )}
-        </ActionButton>
+      <TopControlsContainer>
+        {/* Controls Group */}
+        <ControlsGroup currentLanguage={currentLanguage || langContext}>
+          {/* Dark/Light mode toggle */}
+          <ActionButton onClick={handleModeToggle} size="large">
+            {mode === 'light' ? (
+              <DarkModeOutlined />
+            ) : (
+              <LightModeOutlined />
+            )}
+          </ActionButton>
 
-        {/* Language Selector */}
-        <LanguageSelector 
-          id="language-selector"
-          onClick={handleLanguageClick}
-          sx={{
-            '&:hover': {
-              cursor: 'pointer',
-            }
-          }}
-        >
-          <Language />
-          <Typography
-            variant="body2"
+          {/* Language Selector */}
+          <LanguageSelector 
+            id="language-selector"
+            onClick={handleLanguageClick}
             sx={{
-              fontWeight: 600,
-              fontSize: '1rem',
-              display: 'block'
+              '&:hover': {
+                cursor: 'pointer',
+              }
             }}
           >
-            {getLanguageDisplayName(currentLanguage || langContext || 'en')}
-          </Typography>
-          <KeyboardArrowDown sx={{ fontSize: '20px', ml: 0.5 }} />
-        </LanguageSelector>
+            <Language />
+            <Typography
+              variant="body2"
+              sx={{
+                fontWeight: 600,
+                fontSize: '1rem',
+                display: 'block'
+              }}
+            >
+              {getLanguageDisplayName(currentLanguage || langContext || 'en')}
+            </Typography>
+            <KeyboardArrowDown sx={{ fontSize: '20px', ml: 0.5 }} />
+          </LanguageSelector>
+        </ControlsGroup>
       </TopControlsContainer>
 
       {/* Language Menu - Using Material-UI Menu like Login page */}
