@@ -118,6 +118,7 @@ const ModernTextField = styled(TextField)(({ theme }) => ({
       : 'rgba(0, 0, 0, 0.02)',
     border: `1px solid ${alpha(theme?.palette?.primary?.main || '#667eea', 0.1)}`,
     transition: 'all 0.3s ease',
+    fontSize: { xs: '1rem', md: '1.1rem' },
     '&:hover': {
       borderColor: alpha(theme?.palette?.primary?.main || '#667eea', 0.3),
       backgroundColor: theme?.palette?.mode === 'dark' 
@@ -135,6 +136,7 @@ const ModernTextField = styled(TextField)(({ theme }) => ({
   '& .MuiInputLabel-root': {
     color: theme?.palette?.text?.secondary,
     fontWeight: 500,
+    fontSize: { xs: '1rem', md: '1.1rem' },
   },
   '& .MuiInputLabel-root.Mui-focused': {
     color: theme?.palette?.primary?.main || '#667eea',
@@ -145,7 +147,7 @@ const ModernTextField = styled(TextField)(({ theme }) => ({
 const ActionButton = styled(Button)(({ theme }) => ({
   borderRadius: 12,
   padding: '12px 24px',
-  fontSize: '1rem',
+  fontSize: { xs: '1rem', md: '1.1rem' },
   fontWeight: 600,
   textTransform: 'none',
   background: 'linear-gradient(135deg, #4A7BC8 0%, #5B8FDF 100%)',
@@ -177,36 +179,42 @@ const ActionButton = styled(Button)(({ theme }) => ({
   }
 }));
 
-const ControlPanel = styled(Box)(({ theme }) => ({
+const TopControlsContainer = styled(Box)(({ theme, currentLanguage }) => ({
+  display: 'flex',
+  justifyContent: 'flex-end',
+  alignItems: 'center',
+  width: '100%',
+  padding: theme?.spacing?.(2) || '16px',
   position: 'absolute',
-  top: theme?.spacing?.(3) || '24px',
-  right: theme?.spacing?.(3) || '24px',
+  top: '10px',
+  left: '20px',
+  right: 0,
+  zIndex: 10,
+  [theme?.breakpoints?.down?.('sm') || '@media (max-width: 600px)']: {
+    left: 0,
+    right: 0,
+    padding: theme?.spacing?.(1) || '8px',
+  },
+}));
+
+const ControlsGroup = styled(Box)(({ theme, currentLanguage }) => ({
   display: 'flex',
   alignItems: 'center',
   gap: theme?.spacing?.(1) || '8px',
-  zIndex: 10,
-}));
-
-const ControlButton = styled(IconButton)(({ theme }) => ({
-  backgroundColor: theme?.palette?.mode === 'dark' 
-    ? 'rgba(255, 255, 255, 0.1)'
-    : 'rgba(0, 0, 0, 0.05)',
-  backdropFilter: 'blur(10px)',
-  border: `1px solid ${alpha(theme?.palette?.primary?.main || '#667eea', 0.1)}`,
-  color: theme?.palette?.text?.primary,
-  transition: 'all 0.3s ease',
-  '&:hover': {
-    backgroundColor: theme?.palette?.mode === 'dark' 
-      ? 'rgba(255, 255, 255, 0.2)'
-      : 'rgba(0, 0, 0, 0.1)',
-    transform: 'scale(1.05)',
-  }
+  marginRight: currentLanguage === 'ar' ? 0 : theme?.spacing?.(2) || '16px',
+  marginLeft: currentLanguage === 'ar' ? theme?.spacing?.(2) || '16px' : 0,
+  [theme?.breakpoints?.down?.('sm') || '@media (max-width: 600px)']: {
+    gap: theme?.spacing?.(2) || '16px',
+    marginTop:'10px',
+    marginRight:  '20px',
+    marginLeft:  '20px',
+  },
 }));
 
 const LanguageSelector = styled(Box)(({ theme }) => ({
   display: 'flex',
   alignItems: 'center',
-  padding: '8px 16px',
+  padding: '12px 20px',
   borderRadius: '12px',
   cursor: 'pointer',
   background: theme?.palette?.mode === 'dark' 
@@ -215,6 +223,7 @@ const LanguageSelector = styled(Box)(({ theme }) => ({
   backdropFilter: 'blur(10px)',
   border: `1px solid ${alpha(theme?.palette?.primary?.main || '#667eea', 0.1)}`,
   transition: 'all 0.3s ease',
+  minHeight: '48px',
   '&:hover': {
     background: theme?.palette?.mode === 'dark' 
       ? 'rgba(255, 255, 255, 0.2)'
@@ -222,9 +231,30 @@ const LanguageSelector = styled(Box)(({ theme }) => ({
     transform: 'translateY(-2px)',
   },
   '& .MuiSvgIcon-root': {
-    marginRight: '8px',
-    fontSize: '20px',
+    marginRight: '12px',
+    fontSize: '24px',
   },
+}));
+
+const ActionButton = styled(IconButton)(({ theme }) => ({
+  backgroundColor: theme?.palette?.mode === 'dark' 
+    ? 'rgba(255, 255, 255, 0.1)'
+    : 'rgba(0, 0, 0, 0.05)',
+  backdropFilter: 'blur(10px)',
+  border: `1px solid ${alpha(theme?.palette?.primary?.main || '#667eea', 0.1)}`,
+  color: theme?.palette?.text?.primary,
+  transition: 'all 0.3s ease',
+  width: '48px',
+  height: '48px',
+  '&:hover': {
+    backgroundColor: theme?.palette?.mode === 'dark' 
+      ? 'rgba(255, 255, 255, 0.2)'
+      : 'rgba(0, 0, 0, 0.1)',
+    transform: 'scale(1.05)',
+  },
+  '& .MuiSvgIcon-root': {
+    fontSize: '24px',
+  }
 }));
 
 const Login = () => {
@@ -320,8 +350,17 @@ const Login = () => {
   const handleSubmit = async (event) => {
     event.preventDefault();
     
-    if (!formData.emailOrPhone.trim() || !formData.password.trim()) {
-      setError(t('invalidCredentials'));
+    // Clear previous errors
+    setError("");
+    
+    // Validate form fields
+    if (!formData.emailOrPhone.trim()) {
+      setError(t('emailOrPhone') + ' ' + t('required'));
+      return;
+    }
+    
+    if (!formData.password.trim()) {
+      setError(t('password') + ' ' + t('required'));
       return;
     }
 
@@ -372,101 +411,114 @@ const Login = () => {
 
   return (
     <PageContainer key={currentLanguage}>
-      {/* Control Panel */}
-      <ControlPanel>
-        {/* Language selector */}
-        <LanguageSelector onClick={handleLanguageClick}>
-          <Language />
-          <Typography
-            variant="body2"
+      {/* Top Controls Container */}
+      <TopControlsContainer currentLanguage={currentLanguage || langContext}>
+        {/* Controls Group */}
+        <ControlsGroup currentLanguage={currentLanguage || langContext}>
+          {/* Language Selector */}
+          <LanguageSelector 
+            id="language-selector"
+            onClick={handleLanguageClick}
             sx={{
-              fontWeight: 500,
-              fontSize: '0.9rem',
-              display: { xs: 'none', sm: 'block' }
+              '&:hover': {
+                cursor: 'pointer',
+              }
             }}
           >
-            {getLanguageDisplayName(currentLanguage)}
-          </Typography>
-          <KeyboardArrowDown sx={{ fontSize: '16px', ml: 0.5 }} />
-        </LanguageSelector>
+            <Language />
+            <Typography
+              variant="body2"
+              sx={{
+                fontWeight: 600,
+                fontSize: '1rem',
+                display: 'block',
+                // Arabic font size fix
+                ...(currentLanguage === 'ar' && {
+                  fontSize: '1.1rem',
+                }),
+              }}
+            >
+              {getLanguageDisplayName(currentLanguage || langContext || 'en')}
+            </Typography>
+            <KeyboardArrowDown sx={{ fontSize: '20px', ml: 0.5 }} />
+          </LanguageSelector>
 
-        {/* Language dropdown menu */}
-        <Menu
-          anchorEl={languageAnchorEl}
-          open={Boolean(languageAnchorEl)}
-          onClose={handleLanguageClose}
-          PaperProps={{
-            sx: {
-              mt: 1,
-              borderRadius: 2,
-              boxShadow: theme.palette.mode === 'dark'
-                ? '0 8px 32px rgba(0, 0, 0, 0.4)'
-                : '0 8px 32px rgba(0, 0, 0, 0.1)',
-              background: theme.palette.mode === 'dark'
-                ? 'rgba(30, 30, 30, 0.95)'
-                : 'rgba(255, 255, 255, 0.95)',
-              backdropFilter: 'blur(20px)',
-              border: `1px solid ${alpha(theme.palette.divider, 0.1)}`,
+          {/* Dark/Light mode toggle */}
+          <ActionButton onClick={() => dispatch(setMode())} size="large">
+            {theme.palette.mode === 'light' ? (
+              <DarkModeOutlined />
+            ) : (
+              <LightModeOutlined />
+            )}
+          </ActionButton>
+        </ControlsGroup>
+      </TopControlsContainer>
+
+      {/* Language Menu - Using Material-UI Menu like Welcome page */}
+      <Menu
+        anchorEl={languageAnchorEl}
+        open={Boolean(languageAnchorEl)}
+        onClose={handleLanguageClose}
+        PaperProps={{
+          sx: {
+            mt: 1,
+            borderRadius: 2,
+            boxShadow: theme.palette.mode === 'dark'
+              ? '0 8px 32px rgba(0, 0, 0, 0.4)'
+              : '0 8px 32px rgba(0, 0, 0, 0.1)',
+            background: theme.palette.mode === 'dark'
+              ? 'rgba(30, 30, 30, 0.95)'
+              : 'rgba(255, 255, 255, 0.95)',
+            backdropFilter: 'blur(20px)',
+            border: `1px solid ${alpha(theme.palette.divider, 0.1)}`,
+          }
+        }}
+        transformOrigin={{ horizontal: 'right', vertical: 'top' }}
+        anchorOrigin={{ horizontal: 'right', vertical: 'bottom' }}
+      >
+        <MenuItem 
+          onClick={() => handleLanguageChange('en')}
+          sx={{
+            minWidth: 120,
+            '&:hover': {
+              backgroundColor: alpha(theme.palette.primary.main, 0.1),
             }
           }}
-          transformOrigin={{ horizontal: 'right', vertical: 'top' }}
-          anchorOrigin={{ horizontal: 'right', vertical: 'bottom' }}
         >
-          <MenuItem 
-            onClick={() => handleLanguageChange('en')}
-            sx={{
-              minWidth: 120,
-              '&:hover': {
-                backgroundColor: alpha(theme.palette.primary.main, 0.1),
-              }
-            }}
-          >
-            <ListItemIcon>
-              <Language sx={{ fontSize: 20 }} />
-            </ListItemIcon>
-            <ListItemText primary="English" />
-          </MenuItem>
-          <MenuItem 
-            onClick={() => handleLanguageChange('ar')}
-            sx={{
-              minWidth: 120,
-              '&:hover': {
-                backgroundColor: alpha(theme.palette.primary.main, 0.1),
-              }
-            }}
-          >
-            <ListItemIcon>
-              <Language sx={{ fontSize: 20 }} />
-            </ListItemIcon>
-            <ListItemText primary="العربية" />
-          </MenuItem>
-          <MenuItem 
-            onClick={() => handleLanguageChange('fr')}
-            sx={{
-              minWidth: 120,
-              '&:hover': {
-                backgroundColor: alpha(theme.palette.primary.main, 0.1),
-              }
-            }}
-          >
-            <ListItemIcon>
-              <Language sx={{ fontSize: 20 }} />
-            </ListItemIcon>
-            <ListItemText primary="Français" />
-          </MenuItem>
-        </Menu>
-
-        <ControlButton
-          onClick={() => dispatch(setMode())}
-          size="small"
+          <ListItemIcon>
+            <Language sx={{ fontSize: 20 }} />
+          </ListItemIcon>
+          <ListItemText primary="English" />
+        </MenuItem>
+        <MenuItem 
+          onClick={() => handleLanguageChange('ar')}
+          sx={{
+            minWidth: 120,
+            '&:hover': {
+              backgroundColor: alpha(theme.palette.primary.main, 0.1),
+            }
+          }}
         >
-          {theme.palette.mode === "dark" ? (
-            <LightModeOutlined />
-          ) : (
-            <DarkModeOutlined />
-          )}
-        </ControlButton>
-      </ControlPanel>
+          <ListItemIcon>
+            <Language sx={{ fontSize: 20 }} />
+          </ListItemIcon>
+          <ListItemText primary="العربية" />
+        </MenuItem>
+        <MenuItem 
+          onClick={() => handleLanguageChange('fr')}
+          sx={{
+            minWidth: 120,
+            '&:hover': {
+              backgroundColor: alpha(theme.palette.primary.main, 0.1),
+            }
+          }}
+        >
+          <ListItemIcon>
+            <Language sx={{ fontSize: 20 }} />
+          </ListItemIcon>
+          <ListItemText primary="Français" />
+        </MenuItem>
+      </Menu>
 
       <FloatingCard>
         <CardContent sx={{ p: { xs: 3, md: 4 } }}>
@@ -484,7 +536,7 @@ const Login = () => {
                 width: 'auto',
                 maxWidth: '100%',
                 objectFit: 'contain',
-                mb: 2,
+                mb: 4,
                 display: 'block',
                 margin: '0 auto',
                 filter: theme?.palette?.mode === 'dark' 
@@ -493,20 +545,22 @@ const Login = () => {
               }}
             />
               <Typography
-                variant="h6"
+                variant="h5"
                 sx={{
                   color: theme.palette.text.secondary,
                   fontWeight: 500,
-                  mb: 1,
+                  mb: 2,
+                  fontSize: { xs: '1.25rem', md: '1.5rem' },
                 }}
               >
                 {t('welcomeBack')}
               </Typography>
               <Typography
-                variant="body2"
+                variant="body1"
                 sx={{
                   color: theme.palette.text.secondary,
                   opacity: 0.8,
+                  fontSize: { xs: '1rem', md: '1.1rem' },
                 }}
               >
                 {t('welcomeMessage')}
@@ -596,7 +650,7 @@ const Login = () => {
                   sx={{
                     color: theme.palette.primary.main,
                     textDecoration: 'none',
-                    fontSize: '0.875rem',
+                    fontSize: { xs: '0.9rem', md: '1rem' },
                     fontWeight: 500,
                     '&:hover': {
                       textDecoration: 'underline',
@@ -636,10 +690,11 @@ const Login = () => {
             {/* Sign Up Link */}
             <Box sx={{ textAlign: 'center' }}>
               <Typography 
-                variant="body2" 
+                variant="body1" 
                 sx={{ 
                   mb: 2,
                   color: theme.palette.text.secondary,
+                  fontSize: { xs: '1rem', md: '1.1rem' },
                 }}
               >
                 {t('firstTime')}
@@ -657,7 +712,7 @@ const Login = () => {
                   color: 'white',
                   py: 1.5,
                   px: 4,
-                  fontSize: '1rem',
+                  fontSize: { xs: '1rem', md: '1.1rem' },
                   boxShadow: '0 8px 25px rgba(91, 143, 223, 0.3)',
                   '&:hover': {
                     background: 'linear-gradient(135deg, #4B7FCF 0%, #3A6BB8 100%)',
