@@ -31,7 +31,6 @@ import {
   InputLabel,
   Select,
   MenuItem,
-  Container,
   Grid,
   Paper,
   Chip,
@@ -99,67 +98,54 @@ const MainCard = styled(Card)(({ theme }) => ({
 
 const HeaderSection = styled(Box)(({ theme }) => ({
   textAlign: 'center',
+  marginTop: '70px',
   marginBottom: theme?.spacing?.(4) || '32px',
   position: 'relative',
 }));
 
 const BrandLogo = styled(Box)(({ theme }) => ({
-  width: 90,
-  height: 90,
+  width: 80,
+  height: 80,
   borderRadius: '50%',
-  background: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)',
+  background: 'linear-gradient(135deg, #043FA5 0%, #1B6EEF 100%)',
   display: 'flex',
   alignItems: 'center',
   justifyContent: 'center',
-  margin: '0 auto 20px',
-  boxShadow: '0 15px 35px rgba(102, 126, 234, 0.4)',
-  position: 'relative',
-  '&::before': {
-    content: '""',
-    position: 'absolute',
-    top: -2,
-    left: -2,
-    right: -2,
-    bottom: -2,
-    borderRadius: '50%',
-    background: 'linear-gradient(135deg, #667eea, #764ba2, #f093fb)',
-    zIndex: -1,
-    opacity: 0.7,
-  },
+  margin: '0 auto 16px',
+  boxShadow: '0 10px 30px rgba(4, 63, 165, 0.3)',
   '& svg': {
-    fontSize: 45,
+    fontSize: 40,
     color: 'white',
   }
 }));
 
 const ModernTextField = styled(TextField)(({ theme }) => ({
   '& .MuiOutlinedInput-root': {
-    borderRadius: 16,
+    borderRadius: 12,
     backgroundColor: theme?.palette?.mode === 'dark' 
-      ? 'rgba(255, 255, 255, 0.03)'
+      ? 'rgba(255, 255, 255, 0.05)'
       : 'rgba(0, 0, 0, 0.02)',
-    border: `2px solid ${alpha(theme?.palette?.primary?.main || '#667eea', 0.1)}`,
+    border: `1px solid ${alpha(theme?.palette?.primary?.main || '#667eea', 0.1)}`,
     transition: 'all 0.3s ease',
+    fontSize: { xs: '1rem', md: '1.1rem' },
     '&:hover': {
-      borderColor: alpha(theme?.palette?.primary?.main || '#667eea', 0.4),
+      borderColor: alpha(theme?.palette?.primary?.main || '#667eea', 0.3),
       backgroundColor: theme?.palette?.mode === 'dark' 
-        ? 'rgba(255, 255, 255, 0.06)'
+        ? 'rgba(255, 255, 255, 0.08)'
         : 'rgba(0, 0, 0, 0.04)',
-      transform: 'translateY(-2px)',
     },
     '&.Mui-focused': {
       borderColor: theme?.palette?.primary?.main || '#667eea',
       backgroundColor: theme?.palette?.mode === 'dark' 
-        ? 'rgba(255, 255, 255, 0.08)'
+        ? 'rgba(255, 255, 255, 0.1)'
         : 'rgba(0, 0, 0, 0.06)',
-      transform: 'translateY(-3px)',
-      boxShadow: `0 8px 25px ${alpha(theme?.palette?.primary?.main || '#667eea', 0.15)}`,
+      boxShadow: `0 0 0 3px ${alpha(theme?.palette?.primary?.main || '#667eea', 0.1)}`,
     }
   },
   '& .MuiInputLabel-root': {
     color: theme?.palette?.text?.secondary,
     fontWeight: 500,
-    fontSize: '0.95rem',
+    fontSize: { xs: '1rem', md: '1.1rem' },
   },
   '& .MuiInputLabel-root.Mui-focused': {
     color: theme?.palette?.primary?.main || '#667eea',
@@ -169,32 +155,31 @@ const ModernTextField = styled(TextField)(({ theme }) => ({
 
 const ModernSelect = styled(FormControl)(({ theme }) => ({
   '& .MuiOutlinedInput-root': {
-    borderRadius: 16,
+    borderRadius: 12,
     backgroundColor: theme?.palette?.mode === 'dark' 
-      ? 'rgba(255, 255, 255, 0.03)'
+      ? 'rgba(255, 255, 255, 0.05)'
       : 'rgba(0, 0, 0, 0.02)',
-    border: `2px solid ${alpha(theme?.palette?.primary?.main || '#667eea', 0.1)}`,
+    border: `1px solid ${alpha(theme?.palette?.primary?.main || '#667eea', 0.1)}`,
     transition: 'all 0.3s ease',
+    fontSize: { xs: '1rem', md: '1.1rem' },
     '&:hover': {
-      borderColor: alpha(theme?.palette?.primary?.main || '#667eea', 0.4),
+      borderColor: alpha(theme?.palette?.primary?.main || '#667eea', 0.3),
       backgroundColor: theme?.palette?.mode === 'dark' 
-        ? 'rgba(255, 255, 255, 0.06)'
+        ? 'rgba(255, 255, 255, 0.08)'
         : 'rgba(0, 0, 0, 0.04)',
-      transform: 'translateY(-2px)',
     },
     '&.Mui-focused': {
       borderColor: theme?.palette?.primary?.main || '#667eea',
       backgroundColor: theme?.palette?.mode === 'dark' 
-        ? 'rgba(255, 255, 255, 0.08)'
+        ? 'rgba(255, 255, 255, 0.1)'
         : 'rgba(0, 0, 0, 0.06)',
-      transform: 'translateY(-3px)',
-      boxShadow: `0 8px 25px ${alpha(theme?.palette?.primary?.main || '#667eea', 0.15)}`,
+      boxShadow: `0 0 0 3px ${alpha(theme?.palette?.primary?.main || '#667eea', 0.1)}`,
     }
   },
   '& .MuiInputLabel-root': {
     color: theme?.palette?.text?.secondary,
     fontWeight: 500,
-    fontSize: '0.95rem',
+    fontSize: { xs: '1rem', md: '1.1rem' },
   },
   '& .MuiInputLabel-root.Mui-focused': {
     color: theme?.palette?.primary?.main || '#667eea',
@@ -203,24 +188,24 @@ const ModernSelect = styled(FormControl)(({ theme }) => ({
 }));
 
 const ActionButton = styled(Button)(({ theme }) => ({
-  borderRadius: 16,
-  padding: '14px 28px',
-  fontSize: '1.1rem',
+  borderRadius: 12,
+  padding: '12px 24px',
+  fontSize: { xs: '1rem', md: '1.1rem' },
   fontWeight: 600,
   textTransform: 'none',
-  background: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)',
+  background: 'linear-gradient(135deg, #4A7BC8 0%, #5B8FDF 100%)',
   color: 'white',
   border: 'none',
   transition: 'all 0.3s ease',
   position: 'relative',
   overflow: 'hidden',
   '&:hover': {
-    background: 'linear-gradient(135deg, #5a6fd8 0%, #6a4190 100%)',
-    transform: 'translateY(-3px)',
-    boxShadow: '0 15px 35px rgba(102, 126, 234, 0.5)',
+    background: 'linear-gradient(135deg, #3A6BB8 0%, #4B7FCF 100%)',
+    transform: 'translateY(-2px)',
+    boxShadow: '0 10px 25px rgba(74, 123, 200, 0.4)',
   },
   '&:active': {
-    transform: 'translateY(-1px)',
+    transform: 'translateY(0)',
   },
   '&::before': {
     content: '""',
@@ -229,22 +214,69 @@ const ActionButton = styled(Button)(({ theme }) => ({
     left: '-100%',
     width: '100%',
     height: '100%',
-    background: 'linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.3), transparent)',
-    transition: 'left 0.6s',
+    background: 'linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.2), transparent)',
+    transition: 'left 0.5s',
   },
   '&:hover::before': {
     left: '100%',
   }
 }));
 
-const ControlPanel = styled(Box)(({ theme }) => ({
+const TopControlsContainer = styled(Box)(({ theme, currentLanguage }) => ({
+  display: 'flex',
+  justifyContent: 'flex-end',
+  alignItems: 'center',
+  width: '100%',
+  padding: theme?.spacing?.(2) || '16px',
   position: 'absolute',
-  top: theme?.spacing?.(3) || '24px',
-  right: theme?.spacing?.(3) || '24px',
+  top: '10px',
+  left: '20px',
+  right: 0,
+  zIndex: 10,
+  [theme?.breakpoints?.down?.('sm') || '@media (max-width: 600px)']: {
+    left: 0,
+    right: 0,
+    padding: theme?.spacing?.(1) || '8px',
+  },
+}));
+
+const ControlsGroup = styled(Box)(({ theme, currentLanguage }) => ({
   display: 'flex',
   alignItems: 'center',
   gap: theme?.spacing?.(1) || '8px',
-  zIndex: 10,
+  marginRight: currentLanguage === 'ar' ? 0 : theme?.spacing?.(2) || '16px',
+  marginLeft: currentLanguage === 'ar' ? theme?.spacing?.(2) || '16px' : 0,
+  [theme?.breakpoints?.down?.('sm') || '@media (max-width: 600px)']: {
+    gap: theme?.spacing?.(2) || '16px',
+    marginTop:'10px',
+    marginRight:  '20px',
+    marginLeft:  '20px',
+  },
+}));
+
+const LanguageSelector = styled(Box)(({ theme }) => ({
+  display: 'flex',
+  alignItems: 'center',
+  padding: '12px 20px',
+  borderRadius: '12px',
+  cursor: 'pointer',
+  background: theme?.palette?.mode === 'dark' 
+    ? 'rgba(255, 255, 255, 0.1)'
+    : 'rgba(0, 0, 0, 0.05)',
+  backdropFilter: 'blur(10px)',
+  border: `1px solid ${alpha(theme?.palette?.primary?.main || '#667eea', 0.1)}`,
+  transition: 'all 0.3s ease',
+  minHeight: '48px',
+  '&:hover': {
+    background: theme?.palette?.mode === 'dark' 
+      ? 'rgba(255, 255, 255, 0.2)'
+      : 'rgba(0, 0, 0, 0.1)',
+    transform: 'translateY(-2px)',
+  },
+  '& .MuiSvgIcon-root': {
+    marginRight: '12px',
+    fontSize: '24px',
+  },
 }));
 
 const ControlButton = styled(IconButton)(({ theme }) => ({
@@ -255,36 +287,17 @@ const ControlButton = styled(IconButton)(({ theme }) => ({
   border: `1px solid ${alpha(theme?.palette?.primary?.main || '#667eea', 0.1)}`,
   color: theme?.palette?.text?.primary,
   transition: 'all 0.3s ease',
+  width: '48px',
+  height: '48px',
   '&:hover': {
     backgroundColor: theme?.palette?.mode === 'dark' 
       ? 'rgba(255, 255, 255, 0.2)'
       : 'rgba(0, 0, 0, 0.1)',
     transform: 'scale(1.05)',
-  }
-}));
-
-const LanguageSelector = styled(Box)(({ theme }) => ({
-  display: 'flex',
-  alignItems: 'center',
-  padding: '8px 16px',
-  borderRadius: '12px',
-  cursor: 'pointer',
-  background: theme?.palette?.mode === 'dark' 
-    ? 'rgba(255, 255, 255, 0.1)'
-    : 'rgba(0, 0, 0, 0.05)',
-  backdropFilter: 'blur(10px)',
-  border: `1px solid ${alpha(theme?.palette?.primary?.main || '#667eea', 0.1)}`,
-  transition: 'all 0.3s ease',
-  '&:hover': {
-    background: theme?.palette?.mode === 'dark' 
-      ? 'rgba(255, 255, 255, 0.2)'
-      : 'rgba(0, 0, 0, 0.1)',
-    transform: 'translateY(-2px)',
   },
   '& .MuiSvgIcon-root': {
-    marginRight: '8px',
-    fontSize: '20px',
-  },
+    fontSize: '24px',
+  }
 }));
 
 const NewUserForm = ({ countries }) => {
@@ -508,129 +521,147 @@ const NewUserForm = ({ countries }) => {
 
   return (
     <PageContainer key={currentLanguage}>
-      {/* Control Panel */}
-      <ControlPanel>
-        {/* Language selector */}
-        <LanguageSelector onClick={handleLanguageClick}>
-          <Language />
-          <Typography
-            variant="body2"
+      {/* Top Controls Container */}
+      <TopControlsContainer currentLanguage={currentLanguage || langContext}>
+        {/* Controls Group */}
+        <ControlsGroup currentLanguage={currentLanguage || langContext}>
+          {/* Language Selector */}
+          <LanguageSelector 
+            id="language-selector"
+            onClick={handleLanguageClick}
             sx={{
-              fontWeight: 500,
-              fontSize: '0.9rem',
-              display: { xs: 'none', sm: 'block' }
+              '&:hover': {
+                cursor: 'pointer',
+              }
             }}
           >
-            {getLanguageDisplayName(currentLanguage)}
-          </Typography>
-          <KeyboardArrowDown sx={{ fontSize: '16px', ml: 0.5 }} />
-        </LanguageSelector>
+            <Language />
+            <Typography
+              variant="body2"
+              sx={{
+                fontWeight: 600,
+                fontSize: '1rem',
+                display: 'block',
+                // Arabic font size fix
+                ...(currentLanguage === 'ar' && {
+                  fontSize: '1.1rem',
+                }),
+              }}
+            >
+              {getLanguageDisplayName(currentLanguage || langContext || 'en')}
+            </Typography>
+            <KeyboardArrowDown sx={{ fontSize: '20px', ml: 0.5 }} />
+          </LanguageSelector>
 
-        {/* Language dropdown menu */}
-        <Menu
-          anchorEl={languageAnchorEl}
-          open={Boolean(languageAnchorEl)}
-          onClose={handleLanguageClose}
-          PaperProps={{
-            sx: {
-              mt: 1,
-              borderRadius: 2,
-              boxShadow: theme.palette.mode === 'dark'
-                ? '0 8px 32px rgba(0, 0, 0, 0.4)'
-                : '0 8px 32px rgba(0, 0, 0, 0.1)',
-              background: theme.palette.mode === 'dark'
-                ? 'rgba(30, 30, 30, 0.95)'
-                : 'rgba(255, 255, 255, 0.95)',
-              backdropFilter: 'blur(20px)',
-              border: `1px solid ${alpha(theme.palette.divider, 0.1)}`,
+          {/* Dark/Light mode toggle */}
+          <ControlButton onClick={() => dispatch(setMode())} size="large">
+            {theme.palette.mode === 'light' ? (
+              <DarkModeOutlined />
+            ) : (
+              <LightModeOutlined />
+            )}
+          </ControlButton>
+        </ControlsGroup>
+      </TopControlsContainer>
+
+      {/* Language Menu - Using Material-UI Menu like Welcome page */}
+      <Menu
+        anchorEl={languageAnchorEl}
+        open={Boolean(languageAnchorEl)}
+        onClose={handleLanguageClose}
+        PaperProps={{
+          sx: {
+            mt: 1,
+            borderRadius: 2,
+            boxShadow: theme.palette.mode === 'dark'
+              ? '0 8px 32px rgba(0, 0, 0, 0.4)'
+              : '0 8px 32px rgba(0, 0, 0, 0.1)',
+            background: theme.palette.mode === 'dark'
+              ? 'rgba(30, 30, 30, 0.95)'
+              : 'rgba(255, 255, 255, 0.95)',
+            backdropFilter: 'blur(20px)',
+            border: `1px solid ${alpha(theme.palette.divider, 0.1)}`,
+          }
+        }}
+        transformOrigin={{ horizontal: 'right', vertical: 'top' }}
+        anchorOrigin={{ horizontal: 'right', vertical: 'bottom' }}
+      >
+        <MenuItem 
+          onClick={() => handleLanguageChange('en')}
+          sx={{
+            minWidth: 120,
+            '&:hover': {
+              backgroundColor: alpha(theme.palette.primary.main, 0.1),
             }
           }}
-          transformOrigin={{ horizontal: 'right', vertical: 'top' }}
-          anchorOrigin={{ horizontal: 'right', vertical: 'bottom' }}
         >
-          <MenuItem 
-            onClick={() => handleLanguageChange('en')}
-            sx={{
-              minWidth: 120,
-              '&:hover': {
-                backgroundColor: alpha(theme.palette.primary.main, 0.1),
-              }
-            }}
-          >
-            <ListItemIcon>
-              <Language sx={{ fontSize: 20 }} />
-            </ListItemIcon>
-            <ListItemText primary="English" />
-          </MenuItem>
-          <MenuItem 
-            onClick={() => handleLanguageChange('ar')}
-            sx={{
-              minWidth: 120,
-              '&:hover': {
-                backgroundColor: alpha(theme.palette.primary.main, 0.1),
-              }
-            }}
-          >
-            <ListItemIcon>
-              <Language sx={{ fontSize: 20 }} />
-            </ListItemIcon>
-            <ListItemText primary="العربية" />
-          </MenuItem>
-          <MenuItem 
-            onClick={() => handleLanguageChange('fr')}
-            sx={{
-              minWidth: 120,
-              '&:hover': {
-                backgroundColor: alpha(theme.palette.primary.main, 0.1),
-              }
-            }}
-          >
-            <ListItemIcon>
-              <Language sx={{ fontSize: 20 }} />
-            </ListItemIcon>
-            <ListItemText primary="Français" />
-          </MenuItem>
-        </Menu>
-
-        <ControlButton
-          onClick={() => dispatch(setMode())}
-          size="small"
+          <ListItemIcon>
+            <Language sx={{ fontSize: 20 }} />
+          </ListItemIcon>
+          <ListItemText primary="English" />
+        </MenuItem>
+        <MenuItem 
+          onClick={() => handleLanguageChange('ar')}
+          sx={{
+            minWidth: 120,
+            '&:hover': {
+              backgroundColor: alpha(theme.palette.primary.main, 0.1),
+            }
+          }}
         >
-          {theme.palette.mode === "dark" ? (
-            <LightModeOutlined />
-          ) : (
-            <DarkModeOutlined />
-          )}
-        </ControlButton>
-      </ControlPanel>
+          <ListItemIcon>
+            <Language sx={{ fontSize: 20 }} />
+          </ListItemIcon>
+          <ListItemText primary="العربية" />
+        </MenuItem>
+        <MenuItem 
+          onClick={() => handleLanguageChange('fr')}
+          sx={{
+            minWidth: 120,
+            '&:hover': {
+              backgroundColor: alpha(theme.palette.primary.main, 0.1),
+            }
+          }}
+        >
+          <ListItemIcon>
+            <Language sx={{ fontSize: 20 }} />
+          </ListItemIcon>
+          <ListItemText primary="Français" />
+        </MenuItem>
+      </Menu>
 
-      <Container maxWidth="md">
-        <MainCard>
+      <MainCard>
           <CardContent sx={{ p: { xs: 3, md: 4 } }}>
             {/* Header */}
             <HeaderSection>
               <BrandLogo>
                 <AccountCircle />
               </BrandLogo>
-              <Typography
-                variant="h3"
+              <Box
+                component="img"
+                src="/maflogo.png"
+                alt="Mafqoudat"
                 sx={{
-                  fontWeight: 700,
-                  background: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)',
-                  WebkitBackgroundClip: 'text',
-                  WebkitTextFillColor: 'transparent',
-                  backgroundClip: 'text',
-                  mb: 1,
+                  height: { xs: '40px', md: '50px' },
+                  width: 'auto',
+                  maxWidth: '100%',
+                  objectFit: 'contain',
+                  mb: 4,
+                  display: 'block',
+                  margin: '0 auto',
+                  filter: theme?.palette?.mode === 'dark' 
+                    ? 'brightness(1.1) contrast(1.1)' 
+                    : 'none',
                 }}
-              >
-                {t('brandName')}
-              </Typography>
+              />
               <Typography
                 variant="h5"
                 sx={{
                   color: theme.palette.text.secondary,
                   fontWeight: 500,
-                  mb: 1,
+                  mb: 2,
+                  fontSize: { xs: '1.25rem', md: '1.5rem' },
+                  marginTop: '3rem'
                 }}
               >
                 {t('createAccount')}
@@ -642,6 +673,7 @@ const NewUserForm = ({ countries }) => {
                   opacity: 0.8,
                   maxWidth: 400,
                   margin: '0 auto',
+                  fontSize: { xs: '1rem', md: '1.1rem' },
                 }}
               >
                 {t('createAccountMessage')}
@@ -837,7 +869,6 @@ const NewUserForm = ({ countries }) => {
                   fullWidth
                   variant="contained"
                   disabled={isSubmitting}
-                  startIcon={<CheckCircle />}
                   sx={{ 
                     mb: 3,
                     py: 2,
@@ -865,6 +896,7 @@ const NewUserForm = ({ countries }) => {
                 sx={{ 
                   mb: 2,
                   color: theme.palette.text.secondary,
+                  fontSize: { xs: '1rem', md: '1.1rem' },
                 }}
               >
                 {t('alreadyMember')}
@@ -877,25 +909,24 @@ const NewUserForm = ({ countries }) => {
                    borderRadius: 3,
                    textTransform: 'none',
                    fontWeight: 600,
-                   background: 'linear-gradient(135deg, #764ba2 0%, #667eea 100%)',
+                   background: 'linear-gradient(135deg, #5B8FDF 0%, #4A7BC8 100%)',
                    color: 'white',
                    py: 1.5,
                    px: 4,
-                   fontSize: '1rem',
-                   boxShadow: '0 8px 25px rgba(118, 75, 162, 0.3)',
+                   fontSize: { xs: '1rem', md: '1.1rem' },
+                   boxShadow: '0 8px 25px rgba(91, 143, 223, 0.3)',
                    '&:hover': {
-                     background: 'linear-gradient(135deg, #6a4190 0%, #5a6fd8 100%)',
+                     background: 'linear-gradient(135deg, #4B7FCF 0%, #3A6BB8 100%)',
                      transform: 'translateY(-2px)',
-                     boxShadow: '0 12px 35px rgba(118, 75, 162, 0.4)',
+                     boxShadow: '0 12px 35px rgba(91, 143, 223, 0.4)',
                    }
                  }}
                >
                  {t('signin')}
                </Button>
             </Box>
-          </CardContent>
-        </MainCard>
-      </Container>
+        </CardContent>
+      </MainCard>
     </PageContainer>
   );
 };

@@ -669,7 +669,6 @@ const Login = () => {
                 fullWidth
                 variant="contained"
                 disabled={isSubmitting}
-                startIcon={<LoginIcon />}
                 sx={{ 
                   mb: 3,
                   py: 1.5,
