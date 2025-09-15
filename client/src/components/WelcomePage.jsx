@@ -184,13 +184,13 @@ const ControlsGroup = styled(Box)(({ theme, currentLanguage }) => ({
   display: 'flex',
   alignItems: 'center',
   gap: theme?.spacing?.(1) || '8px',
-  marginRight: currentLanguage === 'ar' ? 0 : theme?.spacing?.(2) || '20px',
-  marginLeft: currentLanguage === 'ar' ? theme?.spacing?.(2) || '20px' : 0,
+  marginRight: currentLanguage === 'ar' ? 0 : theme?.spacing?.(2) || '16px',
+  marginLeft: currentLanguage === 'ar' ? theme?.spacing?.(2) || '16px' : 0,
   [theme?.breakpoints?.down?.('sm') || '@media (max-width: 600px)']: {
     gap: theme?.spacing?.(2) || '16px',
     marginTop:'10px',
-    marginRight: currentLanguage === 'ar' ? 0 : theme?.spacing?.(2) || '20px',
-    marginLeft: currentLanguage === 'ar' ? theme?.spacing?.(2) || '20px' : 0,
+    marginRight:  '20px',
+    marginLeft:  '20px',
   },
 }));
 
