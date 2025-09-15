@@ -173,12 +173,6 @@ const TopControlsContainer = styled(Box)(({ theme, currentLanguage }) => ({
   left: '20px',
   right: 0,
   zIndex: 10,
-  [theme?.breakpoints?.down?.('sm') || '@media (max-width: 600px)']: {
-    justifyContent: 'flex-start',
-    left: 0,
-    right: 0,
-    padding: theme?.spacing?.(1) || '8px',
-  },
 }));
 
 const ControlsGroup = styled(Box)(({ theme, currentLanguage }) => ({
@@ -187,12 +181,6 @@ const ControlsGroup = styled(Box)(({ theme, currentLanguage }) => ({
   gap: theme?.spacing?.(1) || '8px',
   marginRight: currentLanguage === 'ar' ? 0 : theme?.spacing?.(2) || '16px',
   marginLeft: currentLanguage === 'ar' ? theme?.spacing?.(2) || '16px' : 0,
-  [theme?.breakpoints?.down?.('sm') || '@media (max-width: 600px)']: {
-    gap: theme?.spacing?.(2) || '16px',
-    // Force positioning for RTL
-    marginLeft: currentLanguage === 'ar' ? 'auto' : theme?.spacing?.(2) || '16px',
-    marginRight: currentLanguage === 'ar' ? theme?.spacing?.(2) || '16px' : 'auto',
-  },
 }));
 
 const WelcomePage = () => {
