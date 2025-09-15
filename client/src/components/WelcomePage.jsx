@@ -183,7 +183,7 @@ const ControlsGroup = styled(Box)(({ theme, currentLanguage }) => ({
   marginLeft: currentLanguage === 'ar' ? theme?.spacing?.(2) || '16px' : 0,
   [theme?.breakpoints?.down?.('sm') || '@media (max-width: 600px)']: {
     gap: theme?.spacing?.(2) || '16px',
-    marginRight: currentLanguage === 'ar' ? 0 : theme?.spacing?.(2) || '16px',
+    marginRight: currentLanguage === 'ar' ? 0 : theme?.spacing?.(2) || '30px',
     marginLeft: currentLanguage === 'ar' ? theme?.spacing?.(2) || '16px' : 0,
   },
 }));
