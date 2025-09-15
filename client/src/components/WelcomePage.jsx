@@ -162,7 +162,7 @@ const ActionButton = styled(IconButton)(({ theme }) => ({
   }
 }));
 
-const TopControlsContainer = styled(Box)(({ theme }) => ({
+const TopControlsContainer = styled(Box)(({ theme, currentLanguage }) => ({
   display: 'flex',
   justifyContent: 'flex-end',
   alignItems: 'center',
@@ -173,18 +173,23 @@ const TopControlsContainer = styled(Box)(({ theme }) => ({
   left: '20px',
   right: 0,
   zIndex: 10,
+  [theme?.breakpoints?.down?.('sm') || '@media (max-width: 600px)']: {
+    justifyContent: currentLanguage === 'ar' ? 'flex-end' : 'flex-start',
+    left: 0,
+    right: 0,
+  },
 }));
 
 const ControlsGroup = styled(Box)(({ theme, currentLanguage }) => ({
   display: 'flex',
   alignItems: 'center',
   gap: theme?.spacing?.(1) || '8px',
-  marginRight: currentLanguage === 'ar' ? 0 : theme?.spacing?.(2) || '30px',
+  marginRight: currentLanguage === 'ar' ? 0 : theme?.spacing?.(2) || '16px',
   marginLeft: currentLanguage === 'ar' ? theme?.spacing?.(2) || '16px' : 0,
   [theme?.breakpoints?.down?.('sm') || '@media (max-width: 600px)']: {
     gap: theme?.spacing?.(2) || '16px',
-    marginRight: currentLanguage === 'ar' ? 0 : theme?.spacing?.(2) || '30px',
-    marginLeft: currentLanguage === 'ar' ? theme?.spacing?.(2) || '16px' : 0,
+    marginRight: currentLanguage === 'ar' ? theme?.spacing?.(2) || '16px' : 0,
+    marginLeft: currentLanguage === 'ar' ? 0 : theme?.spacing?.(2) || '16px',
   },
 }));
 
@@ -364,7 +369,7 @@ const WelcomePage = () => {
   return (
     <PageContainer>
       {/* Top Controls Container */}
-      <TopControlsContainer>
+      <TopControlsContainer currentLanguage={currentLanguage || langContext}>
         {/* Controls Group */}
         <ControlsGroup currentLanguage={currentLanguage || langContext}>
 
