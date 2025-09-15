@@ -27,7 +27,6 @@ import {
   useMediaQuery,
   alpha,
   styled,
-  Container,
   Grid,
   Paper,
   Chip,
@@ -469,27 +468,30 @@ const Login = () => {
         </ControlButton>
       </ControlPanel>
 
-      <Container maxWidth="md">
-        <FloatingCard>
-          <CardContent sx={{ p: { xs: 3, md: 4 } }}>
-            {/* Header */}
-            <HeaderSection>
-              <BrandLogo>
-                <Security />
-              </BrandLogo>
-              <Typography
-                variant="h4"
-                sx={{
-                  fontWeight: 700,
-                  background: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)',
-                  WebkitBackgroundClip: 'text',
-                  WebkitTextFillColor: 'transparent',
-                  backgroundClip: 'text',
-                  mb: 1,
-                }}
-              >
-                {t('brandName')}
-              </Typography>
+      <FloatingCard>
+        <CardContent sx={{ p: { xs: 3, md: 4 } }}>
+          {/* Header */}
+          <HeaderSection>
+            <BrandLogo>
+              <Security />
+            </BrandLogo>
+            <Box
+              component="img"
+              src="/maflogo.png"
+              alt="Mafqoudat"
+              sx={{
+                height: { xs: '40px', md: '50px' },
+                width: 'auto',
+                maxWidth: '100%',
+                objectFit: 'contain',
+                mb: 2,
+                display: 'block',
+                margin: '0 auto',
+                filter: theme?.palette?.mode === 'dark' 
+                  ? 'brightness(1.1) contrast(1.1)' 
+                  : 'none',
+              }}
+            />
               <Typography
                 variant="h6"
                 sx={{
@@ -667,9 +669,8 @@ const Login = () => {
                 {t('createAccount')}
               </Button>
             </Box>
-          </CardContent>
-        </FloatingCard>
-      </Container>
+        </CardContent>
+      </FloatingCard>
     </PageContainer>
   );
 };
