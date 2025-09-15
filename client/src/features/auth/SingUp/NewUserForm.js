@@ -606,7 +606,7 @@ const NewUserForm = ({ countries }) => {
 
       <Container maxWidth="md">
         <MainCard>
-          <CardContent sx={{ padding: isMobile ? 3 : 5 }}>
+          <CardContent sx={{ p: { xs: 3, md: 4 } }}>
             {/* Header */}
             <HeaderSection>
               <BrandLogo>

@@ -70,8 +70,8 @@ const PageContainer = styled(Box)(({ theme }) => ({
 
 const FloatingCard = styled(Card)(({ theme }) => ({
   width: '100%',
-  maxWidth: 450,
-  borderRadius: 20,
+  maxWidth: 600,
+  borderRadius: 24,
   boxShadow: theme?.palette?.mode === 'dark'
     ? '0 25px 50px rgba(0, 0, 0, 0.5), 0 0 0 1px rgba(255, 255, 255, 0.05)'
     : '0 25px 50px rgba(0, 0, 0, 0.1), 0 0 0 1px rgba(255, 255, 255, 0.8)',
@@ -469,9 +469,9 @@ const Login = () => {
         </ControlButton>
       </ControlPanel>
 
-      <Container maxWidth="sm">
+      <Container maxWidth="md">
         <FloatingCard>
-          <CardContent sx={{ padding: isMobile ? 3 : 4 }}>
+          <CardContent sx={{ p: { xs: 3, md: 4 } }}>
             {/* Header */}
             <HeaderSection>
               <BrandLogo>
