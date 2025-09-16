@@ -1203,10 +1203,9 @@ const NewPostForm = ({ user, countries, categories, flOptions }) => {
                     sx={{ 
                       width: { xs: "100%", sm: "100%", md: "100%" },
                       maxWidth: { xs: "100%", sm: "400px", md: "500px" },
-                      py: { xs: 3, sm: 2, md: 2 },
-                      px: { xs: 5, sm: 3, md: 3 },
-                      fontSize: { xs: "1.5rem", sm: "1.3rem", md: "1.3rem" },
-                      fontWeight: 700,
+                      padding: '8px 16px',
+                      fontSize: '0.9rem',
+                      fontWeight: 600,
                       borderRadius: '4px',
                       background: 'linear-gradient(45deg, #4A8BFF 30%, #1A6EEE 90%)',
                       color: '#fff',
