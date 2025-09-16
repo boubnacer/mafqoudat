@@ -43,50 +43,22 @@ const SeeAll = ({ foundOrlostId, totalItems, variant = "desktop" }) => {
             : hanldeAddNewPost
         }
         sx={{
-          background: theme.palette.mode === 'dark' 
-            ? 'linear-gradient(45deg, #1A6EEE 30%, #013BA4 90%)'
-            : 'linear-gradient(45deg, #4A8BFF 30%, #1A6EEE 90%)',
+          background: 'linear-gradient(45deg, #2196F3 30%, #21CBF3 90%)',
           color: '#fff',
           border: 'none',
           textTransform: 'none',
           fontSize: '0.8rem',
           fontWeight: 700,
           padding: '8px 16px',
-          borderRadius: '8px',
+          borderRadius: '4px',
           minWidth: 'auto',
           width: '100%', // Full width for mobile
           maxWidth: '200px', // Limit maximum width
-          boxShadow: theme.palette.mode === 'dark'
-            ? '0 4px 15px rgba(26, 110, 238, 0.3)'
-            : '0 4px 15px rgba(74, 139, 255, 0.3)',
+          boxShadow: '0 3px 5px 2px rgba(33, 203, 243, .3)',
           transition: 'all 0.3s cubic-bezier(0.4, 0, 0.2, 1)',
-          position: 'relative',
-          overflow: 'hidden',
-          '&::before': {
-            content: '""',
-            position: 'absolute',
-            top: 0,
-            left: 0,
-            right: 0,
-            bottom: 0,
-            background: 'linear-gradient(45deg, rgba(255,255,255,0.1) 0%, transparent 100%)',
-            opacity: 0,
-            transition: 'opacity 0.3s ease',
-          },
           '&:hover': {
-            transform: 'translateY(-2px)',
-            boxShadow: theme.palette.mode === 'dark'
-              ? '0 8px 25px rgba(26, 110, 238, 0.4)'
-              : '0 8px 25px rgba(74, 139, 255, 0.4)',
-            '&::before': {
-              opacity: 1,
-            }
-          },
-          '&:active': {
-            transform: 'translateY(0px)',
-            boxShadow: theme.palette.mode === 'dark'
-              ? '0 2px 10px rgba(26, 110, 238, 0.3)'
-              : '0 2px 10px rgba(74, 139, 255, 0.3)',
+            background: 'linear-gradient(45deg, #1976D2 30%, #1E88E5 90%)',
+            boxShadow: '0 4px 8px 2px rgba(33, 203, 243, .4)',
           },
           '& .MuiButton-endIcon': {
             marginLeft: currentLanguage === 'ar' ? 0 : '6px',
@@ -118,48 +90,20 @@ const SeeAll = ({ foundOrlostId, totalItems, variant = "desktop" }) => {
           : hanldeAddNewPost
       }
         sx={{
-          background: theme.palette.mode === 'dark' 
-            ? 'linear-gradient(45deg, #1A6EEE 30%, #013BA4 90%)'
-            : 'linear-gradient(45deg, #4A8BFF 30%, #1A6EEE 90%)',
+          background: 'linear-gradient(45deg, #2196F3 30%, #21CBF3 90%)',
           color: '#fff',
           border: 'none',
           textTransform: 'none',
           fontSize: '0.9rem',
           fontWeight: 700,
           padding: '10px 20px',
-          borderRadius: '10px',
+          borderRadius: '4px',
           minWidth: 'auto',
-          boxShadow: theme.palette.mode === 'dark'
-            ? '0 6px 20px rgba(26, 110, 238, 0.3)'
-            : '0 6px 20px rgba(74, 139, 255, 0.3)',
+          boxShadow: '0 3px 5px 2px rgba(33, 203, 243, .3)',
           transition: 'all 0.3s cubic-bezier(0.4, 0, 0.2, 1)',
-          position: 'relative',
-          overflow: 'hidden',
-          '&::before': {
-            content: '""',
-            position: 'absolute',
-            top: 0,
-            left: 0,
-            right: 0,
-            bottom: 0,
-            background: 'linear-gradient(45deg, rgba(255,255,255,0.15) 0%, transparent 100%)',
-            opacity: 0,
-            transition: 'opacity 0.3s ease',
-          },
           '&:hover': {
-            transform: 'translateY(-3px)',
-            boxShadow: theme.palette.mode === 'dark'
-              ? '0 12px 30px rgba(26, 110, 238, 0.4)'
-              : '0 12px 30px rgba(74, 139, 255, 0.4)',
-            '&::before': {
-              opacity: 1,
-            }
-          },
-          '&:active': {
-            transform: 'translateY(-1px)',
-            boxShadow: theme.palette.mode === 'dark'
-              ? '0 4px 15px rgba(26, 110, 238, 0.3)'
-              : '0 4px 15px rgba(74, 139, 255, 0.3)',
+            background: 'linear-gradient(45deg, #1976D2 30%, #1E88E5 90%)',
+            boxShadow: '0 4px 8px 2px rgba(33, 203, 243, .4)',
           },
           '& .MuiButton-endIcon': {
             marginLeft: currentLanguage === 'ar' ? 0 : '8px',

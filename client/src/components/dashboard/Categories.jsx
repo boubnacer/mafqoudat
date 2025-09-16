@@ -132,27 +132,18 @@ const Categories = () => {
             variant="contained"
             endIcon={showAllCategories ? <ExpandLess /> : <ExpandMore />}
             sx={{
-              background: theme.palette.mode === 'dark' 
-                ? 'linear-gradient(45deg, #1A6EEE 30%, #013BA4 90%)'
-                : 'linear-gradient(45deg, #4A8BFF 30%, #1A6EEE 90%)',
+              background: 'linear-gradient(45deg, #2196F3 30%, #21CBF3 90%)',
               color: '#fff',
-              borderRadius: 2,
+              borderRadius: '4px',
               px: 3,
               py: 1,
               textTransform: 'none',
               fontWeight: 600,
-              boxShadow: theme.palette.mode === 'dark'
-                ? '0 4px 15px rgba(26, 110, 238, 0.3)'
-                : '0 4px 15px rgba(74, 139, 255, 0.3)',
+              boxShadow: '0 3px 5px 2px rgba(33, 203, 243, .3)',
               transition: 'all 0.3s ease',
               '&:hover': {
-                background: theme.palette.mode === 'dark'
-                  ? 'linear-gradient(45deg, #2A7EFF 30%, #1A6EEE 90%)'
-                  : 'linear-gradient(45deg, #5A9BFF 30%, #2A7EFF 90%)',
-                transform: 'translateY(-2px)',
-                boxShadow: theme.palette.mode === 'dark'
-                  ? '0 6px 20px rgba(26, 110, 238, 0.4)'
-                  : '0 6px 20px rgba(74, 139, 255, 0.4)',
+                background: 'linear-gradient(45deg, #1976D2 30%, #1E88E5 90%)',
+                boxShadow: '0 4px 8px 2px rgba(33, 203, 243, .4)',
               }
             }}
           >

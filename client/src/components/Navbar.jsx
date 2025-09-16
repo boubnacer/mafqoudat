@@ -241,26 +241,17 @@ const LanguageSelector = styled(Box)(({ theme }) => ({
 }));
 
 const CreatePostButton = styled(Button)(({ theme }) => ({
-  background: theme.palette.mode === 'dark' 
-    ? 'linear-gradient(135deg, #1A6EEE, #013BA4)'
-    : 'linear-gradient(135deg, #4A8BFF, #1A6EEE)',
+  background: 'linear-gradient(45deg, #2196F3 30%, #21CBF3 90%)',
   color: '#fff',
   fontSize: '0.9rem',
   fontWeight: 600,
   padding: '8px 16px',
-  borderRadius: '10px',
+  borderRadius: '4px',
   transition: 'all 0.3s cubic-bezier(0.4, 0, 0.2, 1)',
-  boxShadow: theme.palette.mode === 'dark'
-    ? '0 4px 15px rgba(26, 110, 238, 0.3)'
-    : '0 4px 15px rgba(74, 139, 255, 0.3)',
+  boxShadow: '0 3px 5px 2px rgba(33, 203, 243, .3)',
   '&:hover': {
-    transform: 'translateY(-2px)',
-    boxShadow: theme.palette.mode === 'dark'
-      ? '0 8px 25px rgba(26, 110, 238, 0.4)'
-      : '0 8px 25px rgba(74, 139, 255, 0.4)',
-    background: theme.palette.mode === 'dark'
-      ? 'linear-gradient(135deg, #2A7EFF, #1A6EEE)'
-      : 'linear-gradient(135deg, #5A9BFF, #2A7EFF)',
+    background: 'linear-gradient(45deg, #1976D2 30%, #1E88E5 90%)',
+    boxShadow: '0 4px 8px 2px rgba(33, 203, 243, .4)',
   },
 }));
 
