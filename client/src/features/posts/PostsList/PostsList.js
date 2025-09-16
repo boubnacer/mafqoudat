@@ -363,8 +363,13 @@ const PostsList = () => {
             startIcon={<Language />}
             onClick={handleSelectCountry}
             sx={{
-              background: "linear-gradient(45deg, #2196F3 30%, #21CBF3 90%)",
-              boxShadow: "0 3px 5px 2px rgba(33, 203, 243, .3)",
+              background: "linear-gradient(45deg, #4A8BFF 30%, #1A6EEE 90%)",
+              boxShadow: "0 3px 5px 2px rgba(26, 110, 238, .3)",
+              borderRadius: '4px',
+              '&:hover': {
+                background: 'linear-gradient(45deg, #5A9BFF 30%, #2A7EFF 90%)',
+                boxShadow: '0 4px 8px 2px rgba(26, 110, 238, .4)',
+              }
             }}
           >
             {t('selectCountry')}
@@ -440,11 +445,17 @@ const PostsList = () => {
               startIcon={<AddIcon />}
               onClick={handleAddNewPost}
               sx={{
-                borderRadius: 2,
+                borderRadius: '4px',
                 px: 3,
                 py: 1,
                 textTransform: 'none',
-                fontWeight: 600
+                fontWeight: 600,
+                background: 'linear-gradient(45deg, #4A8BFF 30%, #1A6EEE 90%)',
+                boxShadow: '0 3px 5px 2px rgba(26, 110, 238, .3)',
+                '&:hover': {
+                  background: 'linear-gradient(45deg, #5A9BFF 30%, #2A7EFF 90%)',
+                  boxShadow: '0 4px 8px 2px rgba(26, 110, 238, .4)',
+                }
               }}
             >
               {t('addNewPost')}
@@ -678,11 +689,17 @@ const PostsList = () => {
                     variant="contained" 
                     startIcon={<AddIcon />}
                     sx={{ 
-                      borderRadius: 2,
+                      borderRadius: '4px',
                       px: 3,
                       py: 1,
                       textTransform: 'none',
-                      fontWeight: 600
+                      fontWeight: 600,
+                      background: 'linear-gradient(45deg, #4A8BFF 30%, #1A6EEE 90%)',
+                      boxShadow: '0 3px 5px 2px rgba(26, 110, 238, .3)',
+                      '&:hover': {
+                        background: 'linear-gradient(45deg, #5A9BFF 30%, #2A7EFF 90%)',
+                        boxShadow: '0 4px 8px 2px rgba(26, 110, 238, .4)',
+                      }
                     }}
                   >
                     {t('addNewPost')}
@@ -693,11 +710,17 @@ const PostsList = () => {
                   startIcon={<Language />}
                   onClick={handleSelectCountry}
                   sx={{ 
-                    borderRadius: 2,
+                    borderRadius: '4px',
                     px: 3,
                     py: 1,
                     textTransform: 'none',
-                    fontWeight: 600
+                    fontWeight: 600,
+                    borderColor: '#4A8BFF',
+                    color: '#4A8BFF',
+                    '&:hover': {
+                      borderColor: '#5A9BFF',
+                      backgroundColor: 'rgba(74, 139, 255, 0.1)',
+                    }
                   }}
                 >
                   {t('changeCountry')}
