@@ -453,7 +453,8 @@ const RecentPosts = ({ _id, categoryname, exactLocation, image, createdAt, count
               borderRadius: '8px',
               minWidth: 'auto',
               flexShrink: 0,
-              gap: currentLanguage === 'ar' ? 1 : 0.5,
+              marginLeft: '0px !important',
+              marginRight: '0px !important',
               backgroundColor: isDarkMode ? alpha('#f44336', 0.1) : alpha('#d32f2f', 0.05),
               '&:hover': {
                 backgroundColor: isDarkMode ? '#f44336' : '#d32f2f',
@@ -480,6 +481,8 @@ const RecentPosts = ({ _id, categoryname, exactLocation, image, createdAt, count
             borderRadius: '4px',
             minWidth: 'auto',
             flexShrink: 0,
+            marginLeft: '0px !important',
+            marginRight: '0px !important',
             boxShadow: '0 3px 5px 2px rgba(26, 110, 238, .3)',
             transition: 'all 0.3s ease',
             '&:hover': {
