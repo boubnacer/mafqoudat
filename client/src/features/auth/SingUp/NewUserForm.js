@@ -703,7 +703,7 @@ const NewUserForm = ({ countries }) => {
                       textAlign: 'center',
                     }}
                   >
-                    Join our community and help find lost items
+{t('createAccountMessage')}
                   </Typography>
                 </Grid>
                                  <Grid item xs={12}>

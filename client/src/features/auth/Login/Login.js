@@ -57,7 +57,7 @@ import { setMode } from "../../../app/state";
 const PageContainer = styled(Box)(({ theme }) => ({
   minHeight: '100vh',
   background: theme?.palette?.mode === 'dark' 
-    ? 'linear-gradient(45deg, #0a0a0a 0%, #1a1a1a 50%, #2d2d2d 100%)'
+    ? 'linear-gradient(135deg, #121226 0%, #1a1a3a 25%, #2a2a4a 50%, #1a1a3a 75%, #121226 100%)'
     : 'linear-gradient(45deg, #f8fafc 0%, #e2e8f0 50%, #cbd5e1 100%)',
   display: 'flex',
   alignItems: 'center',
@@ -119,7 +119,9 @@ const ModernTextField = styled(TextField)(({ theme }) => ({
       : 'rgba(0, 0, 0, 0.02)',
     border: `1px solid ${alpha(theme?.palette?.primary?.main || '#667eea', 0.1)}`,
     transition: 'all 0.3s ease',
-    fontSize: { xs: '1rem', md: '1.1rem' },
+    fontSize: { xs: '1.1rem', md: '1.2rem' },
+    padding: { xs: '8px 12px', md: '12px 16px' },
+    minHeight: { xs: '56px', md: '60px' },
     '&:hover': {
       borderColor: alpha(theme?.palette?.primary?.main || '#667eea', 0.3),
       backgroundColor: theme?.palette?.mode === 'dark' 
@@ -137,7 +139,7 @@ const ModernTextField = styled(TextField)(({ theme }) => ({
   '& .MuiInputLabel-root': {
     color: theme?.palette?.text?.secondary,
     fontWeight: 500,
-    fontSize: { xs: '1rem', md: '1.1rem' },
+    fontSize: { xs: '1.1rem', md: '1.2rem' },
   },
   '& .MuiInputLabel-root.Mui-focused': {
     color: theme?.palette?.primary?.main || '#667eea',
@@ -147,8 +149,8 @@ const ModernTextField = styled(TextField)(({ theme }) => ({
 
 const ActionButton = styled(Button)(({ theme }) => ({
   borderRadius: 12,
-  padding: '12px 24px',
-  fontSize: { xs: '1rem', md: '1.1rem' },
+  padding: { xs: '16px 24px', md: '18px 32px' },
+  fontSize: { xs: '1.1rem', md: '1.2rem' },
   fontWeight: 600,
   textTransform: 'none',
   background: 'linear-gradient(135deg, #4A7BC8 0%, #5B8FDF 100%)',
@@ -157,6 +159,7 @@ const ActionButton = styled(Button)(({ theme }) => ({
   transition: 'all 0.3s ease',
   position: 'relative',
   overflow: 'hidden',
+  minHeight: { xs: '56px', md: '60px' },
   '&:hover': {
     background: 'linear-gradient(135deg, #3A6BB8 0%, #4B7FCF 100%)',
     transform: 'translateY(-2px)',
@@ -551,7 +554,7 @@ const Login = () => {
                   color: theme.palette.text.secondary,
                   fontWeight: 500,
                   mb: 2,
-                  fontSize: { xs: '1.25rem', md: '1.5rem' },
+                  fontSize: { xs: '1.4rem', md: '1.6rem' },
                   marginTop:'3rem'
                 }}
               >
@@ -562,7 +565,7 @@ const Login = () => {
                 sx={{
                   color: theme.palette.text.secondary,
                   opacity: 0.8,
-                  fontSize: { xs: '1rem', md: '1.1rem' },
+                  fontSize: { xs: '1.1rem', md: '1.2rem' },
                 }}
               >
                 {t('welcomeMessage')}
@@ -652,7 +655,7 @@ const Login = () => {
                   sx={{
                     color: theme.palette.primary.main,
                     textDecoration: 'none',
-                    fontSize: { xs: '0.9rem', md: '1rem' },
+                    fontSize: { xs: '1rem', md: '1.1rem' },
                     fontWeight: 500,
                     '&:hover': {
                       textDecoration: 'underline',
@@ -695,7 +698,7 @@ const Login = () => {
                 sx={{ 
                   mb: 2,
                   color: theme.palette.text.secondary,
-                  fontSize: { xs: '1rem', md: '1.1rem' },
+                  fontSize: { xs: '1.1rem', md: '1.2rem' },
                 }}
               >
                 {t('firstTime')}
@@ -713,7 +716,7 @@ const Login = () => {
                   color: 'white',
                   py: 1.5,
                   px: 4,
-                  fontSize: { xs: '1rem', md: '1.1rem' },
+                  fontSize: { xs: '1.1rem', md: '1.2rem' },
                   boxShadow: '0 8px 25px rgba(91, 143, 223, 0.3)',
                   '&:hover': {
                     background: 'linear-gradient(135deg, #4B7FCF 0%, #3A6BB8 100%)',
