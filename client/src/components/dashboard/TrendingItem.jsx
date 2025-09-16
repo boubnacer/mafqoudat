@@ -483,7 +483,9 @@ const TrendingItem = ({ trend, isLoading }) => {
               variant="contained"
               onClick={handleViewPost}
               sx={{
-                background: 'linear-gradient(45deg, #2196F3 30%, #21CBF3 90%)',
+                background: theme.palette.mode === 'dark' 
+                  ? 'linear-gradient(45deg, #1A6EEE 30%, #013BA4 90%)'
+                  : 'linear-gradient(45deg, #4A8BFF 30%, #1A6EEE 90%)',
                 color: '#fff',
                 borderRadius: '12px',
                 padding: { xs: '14px', sm: '12px' },
@@ -491,11 +493,17 @@ const TrendingItem = ({ trend, isLoading }) => {
                 fontSize: { xs: '16px', sm: '14px' },
                 fontWeight: 600,
                 transition: 'all 0.3s ease',
-                boxShadow: '0 4px 15px rgba(33, 150, 243, 0.3)',
+                boxShadow: theme.palette.mode === 'dark'
+                  ? '0 4px 15px rgba(26, 110, 238, 0.3)'
+                  : '0 4px 15px rgba(74, 139, 255, 0.3)',
                 '&:hover': {
-                  background: 'linear-gradient(45deg, #1976D2 30%, #1E88E5 90%)',
+                  background: theme.palette.mode === 'dark'
+                    ? 'linear-gradient(45deg, #2A7EFF 30%, #1A6EEE 90%)'
+                    : 'linear-gradient(45deg, #5A9BFF 30%, #2A7EFF 90%)',
                   transform: 'translateY(-2px)',
-                  boxShadow: '0 6px 20px rgba(33, 150, 243, 0.4)',
+                  boxShadow: theme.palette.mode === 'dark'
+                    ? '0 6px 20px rgba(26, 110, 238, 0.4)'
+                    : '0 6px 20px rgba(74, 139, 255, 0.4)',
                 }
               }}
               endIcon={<RenderIcon name="view" sx={{ fontSize: { xs: '18px', sm: '16px' } }} />}

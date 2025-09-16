@@ -43,9 +43,9 @@ const SeeAll = ({ foundOrlostId, totalItems, variant = "desktop" }) => {
             : hanldeAddNewPost
         }
         sx={{
-          background: totalItems > 4 
-            ? 'linear-gradient(45deg, #2196F3 30%, #21CBF3 90%)'
-            : 'linear-gradient(45deg, #2196F3 30%, #21CBF3 90%)',
+          background: theme.palette.mode === 'dark' 
+            ? 'linear-gradient(45deg, #1A6EEE 30%, #013BA4 90%)'
+            : 'linear-gradient(45deg, #4A8BFF 30%, #1A6EEE 90%)',
           color: '#fff',
           border: 'none',
           textTransform: 'none',
@@ -56,9 +56,9 @@ const SeeAll = ({ foundOrlostId, totalItems, variant = "desktop" }) => {
           minWidth: 'auto',
           width: '100%', // Full width for mobile
           maxWidth: '200px', // Limit maximum width
-          boxShadow: totalItems > 4
-            ? '0 4px 15px rgba(33, 150, 243, 0.3)'
-            : '0 4px 15px rgba(33, 150, 243, 0.3)',
+          boxShadow: theme.palette.mode === 'dark'
+            ? '0 4px 15px rgba(26, 110, 238, 0.3)'
+            : '0 4px 15px rgba(74, 139, 255, 0.3)',
           transition: 'all 0.3s cubic-bezier(0.4, 0, 0.2, 1)',
           position: 'relative',
           overflow: 'hidden',
@@ -75,18 +75,18 @@ const SeeAll = ({ foundOrlostId, totalItems, variant = "desktop" }) => {
           },
           '&:hover': {
             transform: 'translateY(-2px)',
-            boxShadow: totalItems > 4
-              ? '0 8px 25px rgba(33, 150, 243, 0.4)'
-              : '0 8px 25px rgba(33, 150, 243, 0.4)',
+            boxShadow: theme.palette.mode === 'dark'
+              ? '0 8px 25px rgba(26, 110, 238, 0.4)'
+              : '0 8px 25px rgba(74, 139, 255, 0.4)',
             '&::before': {
               opacity: 1,
             }
           },
           '&:active': {
             transform: 'translateY(0px)',
-            boxShadow: totalItems > 4
-              ? '0 2px 10px rgba(33, 150, 243, 0.3)'
-              : '0 2px 10px rgba(33, 150, 243, 0.3)',
+            boxShadow: theme.palette.mode === 'dark'
+              ? '0 2px 10px rgba(26, 110, 238, 0.3)'
+              : '0 2px 10px rgba(74, 139, 255, 0.3)',
           },
           '& .MuiButton-endIcon': {
             marginLeft: currentLanguage === 'ar' ? 0 : '6px',
@@ -118,9 +118,9 @@ const SeeAll = ({ foundOrlostId, totalItems, variant = "desktop" }) => {
           : hanldeAddNewPost
       }
         sx={{
-          background: totalItems > 4 
-            ? 'linear-gradient(45deg, #2196F3 30%, #21CBF3 90%)'
-            : 'linear-gradient(45deg, #2196F3 30%, #21CBF3 90%)',
+          background: theme.palette.mode === 'dark' 
+            ? 'linear-gradient(45deg, #1A6EEE 30%, #013BA4 90%)'
+            : 'linear-gradient(45deg, #4A8BFF 30%, #1A6EEE 90%)',
           color: '#fff',
           border: 'none',
           textTransform: 'none',
@@ -129,9 +129,9 @@ const SeeAll = ({ foundOrlostId, totalItems, variant = "desktop" }) => {
           padding: '10px 20px',
           borderRadius: '10px',
           minWidth: 'auto',
-          boxShadow: totalItems > 4
-            ? '0 6px 20px rgba(33, 150, 243, 0.3)'
-            : '0 6px 20px rgba(33, 150, 243, 0.3)',
+          boxShadow: theme.palette.mode === 'dark'
+            ? '0 6px 20px rgba(26, 110, 238, 0.3)'
+            : '0 6px 20px rgba(74, 139, 255, 0.3)',
           transition: 'all 0.3s cubic-bezier(0.4, 0, 0.2, 1)',
           position: 'relative',
           overflow: 'hidden',
@@ -148,18 +148,18 @@ const SeeAll = ({ foundOrlostId, totalItems, variant = "desktop" }) => {
           },
           '&:hover': {
             transform: 'translateY(-3px)',
-            boxShadow: totalItems > 4
-              ? '0 12px 30px rgba(33, 150, 243, 0.4)'
-              : '0 12px 30px rgba(33, 150, 243, 0.4)',
+            boxShadow: theme.palette.mode === 'dark'
+              ? '0 12px 30px rgba(26, 110, 238, 0.4)'
+              : '0 12px 30px rgba(74, 139, 255, 0.4)',
             '&::before': {
               opacity: 1,
             }
           },
           '&:active': {
             transform: 'translateY(-1px)',
-            boxShadow: totalItems > 4
-              ? '0 4px 15px rgba(33, 150, 243, 0.3)'
-              : '0 4px 15px rgba(33, 150, 243, 0.3)',
+            boxShadow: theme.palette.mode === 'dark'
+              ? '0 4px 15px rgba(26, 110, 238, 0.3)'
+              : '0 4px 15px rgba(74, 139, 255, 0.3)',
           },
           '& .MuiButton-endIcon': {
             marginLeft: currentLanguage === 'ar' ? 0 : '8px',

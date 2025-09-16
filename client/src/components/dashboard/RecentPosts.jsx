@@ -472,8 +472,8 @@ const RecentPosts = ({ _id, categoryname, exactLocation, image, createdAt, count
             variant="contained"
             sx={{
               background: isDarkMode 
-                ? 'linear-gradient(45deg, #2196F3 30%, #21CBF3 90%)'
-                : 'linear-gradient(45deg, #2196F3 30%, #21CBF3 90%)',
+                ? 'linear-gradient(45deg, #1A6EEE 30%, #013BA4 90%)'
+                : 'linear-gradient(45deg, #4A8BFF 30%, #1A6EEE 90%)',
               color: '#fff',
               textTransform: 'none',
               fontSize: { xs: '14px', sm: '13px' },
@@ -484,17 +484,17 @@ const RecentPosts = ({ _id, categoryname, exactLocation, image, createdAt, count
               flexShrink: 0,
               gap: currentLanguage === 'ar' ? 1 : 0.5,
               boxShadow: isDarkMode 
-                ? '0 2px 8px rgba(33, 150, 243, 0.3)'
-                : '0 2px 8px rgba(33, 150, 243, 0.4)',
+                ? '0 2px 8px rgba(26, 110, 238, 0.3)'
+                : '0 2px 8px rgba(74, 139, 255, 0.4)',
               transition: 'all 0.3s ease',
               '&:hover': {
                 background: isDarkMode 
-                  ? 'linear-gradient(45deg, #1976D2 30%, #1E88E5 90%)'
-                  : 'linear-gradient(45deg, #1976D2 30%, #1E88E5 90%)',
+                  ? 'linear-gradient(45deg, #2A7EFF 30%, #1A6EEE 90%)'
+                  : 'linear-gradient(45deg, #5A9BFF 30%, #2A7EFF 90%)',
                 transform: 'translateY(-1px)',
                 boxShadow: isDarkMode 
-                  ? '0 4px 12px rgba(33, 150, 243, 0.4)'
-                  : '0 4px 12px rgba(33, 150, 243, 0.5)',
+                  ? '0 4px 12px rgba(26, 110, 238, 0.4)'
+                  : '0 4px 12px rgba(74, 139, 255, 0.5)',
               },
             }}
             startIcon={null}
