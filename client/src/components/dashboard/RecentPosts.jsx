@@ -467,32 +467,32 @@ const RecentPosts = ({ _id, categoryname, exactLocation, image, createdAt, count
             {t('report')}
           </Button>
 
-          <Button
-            onClick={handleViewDetails}
-            variant="contained"
-            sx={{
-              background: 'linear-gradient(45deg, #2196F3 30%, #21CBF3 90%)',
-              color: '#fff',
-              textTransform: 'none',
-              fontSize: { xs: '14px', sm: '13px' },
-              fontWeight: 700,
-              padding: { xs: '10px 14px', sm: '8px 12px' },
-              borderRadius: '4px',
-              minWidth: 'auto',
-              flexShrink: 0,
-              gap: currentLanguage === 'ar' ? 1 : 0.5,
-              boxShadow: '0 3px 5px 2px rgba(33, 203, 243, .3)',
-              transition: 'all 0.3s ease',
-              '&:hover': {
-                background: 'linear-gradient(45deg, #1976D2 30%, #1E88E5 90%)',
-                boxShadow: '0 4px 8px 2px rgba(33, 203, 243, .4)',
-              },
-            }}
-            startIcon={null}
-            endIcon={<ArrowIcon sx={{ fontSize: { xs: '14px', sm: '12px' }, transform: currentLanguage === 'ar' ? 'scaleX(-1)' : 'none' }} />}
-          >
-            {t('viewDetails')}
-          </Button>
+        <Button
+          onClick={handleViewDetails}
+          variant="contained"
+          sx={{
+            background: 'linear-gradient(45deg, #4A8BFF 30%, #1A6EEE 90%)',
+            color: '#fff',
+            textTransform: 'none',
+            fontSize: { xs: '14px', sm: '13px' },
+            fontWeight: 700,
+            padding: { xs: '10px 14px', sm: '8px 12px' },
+            borderRadius: '4px',
+            minWidth: 'auto',
+            flexShrink: 0,
+            gap: currentLanguage === 'ar' ? 1 : 0.5,
+            boxShadow: '0 3px 5px 2px rgba(26, 110, 238, .3)',
+            transition: 'all 0.3s ease',
+            '&:hover': {
+              background: 'linear-gradient(45deg, #5A9BFF 30%, #2A7EFF 90%)',
+              boxShadow: '0 4px 8px 2px rgba(26, 110, 238, .4)',
+            },
+          }}
+          startIcon={null}
+          endIcon={<ArrowIcon sx={{ fontSize: { xs: '14px', sm: '12px' }, transform: currentLanguage === 'ar' ? 'scaleX(-1)' : 'none' }} />}
+        >
+          {t('viewDetails')}
+        </Button>
         </CardActions>
       </Card>
     

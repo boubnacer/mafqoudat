@@ -43,7 +43,7 @@ const SeeAll = ({ foundOrlostId, totalItems, variant = "desktop" }) => {
             : hanldeAddNewPost
         }
         sx={{
-          background: 'linear-gradient(45deg, #2196F3 30%, #21CBF3 90%)',
+          background: 'linear-gradient(45deg, #4A8BFF 30%, #1A6EEE 90%)',
           color: '#fff',
           border: 'none',
           textTransform: 'none',
@@ -54,11 +54,11 @@ const SeeAll = ({ foundOrlostId, totalItems, variant = "desktop" }) => {
           minWidth: 'auto',
           width: '100%', // Full width for mobile
           maxWidth: '200px', // Limit maximum width
-          boxShadow: '0 3px 5px 2px rgba(33, 203, 243, .3)',
+          boxShadow: '0 3px 5px 2px rgba(26, 110, 238, .3)',
           transition: 'all 0.3s cubic-bezier(0.4, 0, 0.2, 1)',
           '&:hover': {
-            background: 'linear-gradient(45deg, #1976D2 30%, #1E88E5 90%)',
-            boxShadow: '0 4px 8px 2px rgba(33, 203, 243, .4)',
+            background: 'linear-gradient(45deg, #5A9BFF 30%, #2A7EFF 90%)',
+            boxShadow: '0 4px 8px 2px rgba(26, 110, 238, .4)',
           },
           '& .MuiButton-endIcon': {
             marginLeft: currentLanguage === 'ar' ? 0 : '6px',
@@ -90,7 +90,7 @@ const SeeAll = ({ foundOrlostId, totalItems, variant = "desktop" }) => {
           : hanldeAddNewPost
       }
         sx={{
-          background: 'linear-gradient(45deg, #2196F3 30%, #21CBF3 90%)',
+          background: 'linear-gradient(45deg, #4A8BFF 30%, #1A6EEE 90%)',
           color: '#fff',
           border: 'none',
           textTransform: 'none',
@@ -99,11 +99,11 @@ const SeeAll = ({ foundOrlostId, totalItems, variant = "desktop" }) => {
           padding: '10px 20px',
           borderRadius: '4px',
           minWidth: 'auto',
-          boxShadow: '0 3px 5px 2px rgba(33, 203, 243, .3)',
+          boxShadow: '0 3px 5px 2px rgba(26, 110, 238, .3)',
           transition: 'all 0.3s cubic-bezier(0.4, 0, 0.2, 1)',
           '&:hover': {
-            background: 'linear-gradient(45deg, #1976D2 30%, #1E88E5 90%)',
-            boxShadow: '0 4px 8px 2px rgba(33, 203, 243, .4)',
+            background: 'linear-gradient(45deg, #5A9BFF 30%, #2A7EFF 90%)',
+            boxShadow: '0 4px 8px 2px rgba(26, 110, 238, .4)',
           },
           '& .MuiButton-endIcon': {
             marginLeft: currentLanguage === 'ar' ? 0 : '8px',

@@ -127,28 +127,28 @@ const Categories = () => {
       
       {hasMoreCategories && (
         <Box display="flex" justifyContent="center" mt={3}>
-          <Button
-            onClick={toggleShowAllCategories}
-            variant="contained"
-            endIcon={showAllCategories ? <ExpandLess /> : <ExpandMore />}
-            sx={{
-              background: 'linear-gradient(45deg, #2196F3 30%, #21CBF3 90%)',
-              color: '#fff',
-              borderRadius: '4px',
-              px: 3,
-              py: 1,
-              textTransform: 'none',
-              fontWeight: 600,
-              boxShadow: '0 3px 5px 2px rgba(33, 203, 243, .3)',
-              transition: 'all 0.3s ease',
-              '&:hover': {
-                background: 'linear-gradient(45deg, #1976D2 30%, #1E88E5 90%)',
-                boxShadow: '0 4px 8px 2px rgba(33, 203, 243, .4)',
-              }
-            }}
-          >
-            {showAllCategories ? t('showLess') : t('showAllCategories')}
-          </Button>
+        <Button
+          onClick={toggleShowAllCategories}
+          variant="contained"
+          endIcon={showAllCategories ? <ExpandLess /> : <ExpandMore />}
+          sx={{
+            background: 'linear-gradient(45deg, #4A8BFF 30%, #1A6EEE 90%)',
+            color: '#fff',
+            borderRadius: '4px',
+            px: 3,
+            py: 1,
+            textTransform: 'none',
+            fontWeight: 600,
+            boxShadow: '0 3px 5px 2px rgba(26, 110, 238, .3)',
+            transition: 'all 0.3s ease',
+            '&:hover': {
+              background: 'linear-gradient(45deg, #5A9BFF 30%, #2A7EFF 90%)',
+              boxShadow: '0 4px 8px 2px rgba(26, 110, 238, .4)',
+            }
+          }}
+        >
+          {showAllCategories ? t('showLess') : t('showAllCategories')}
+        </Button>
         </Box>
       )}
     </Box>

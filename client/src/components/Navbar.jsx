@@ -241,17 +241,17 @@ const LanguageSelector = styled(Box)(({ theme }) => ({
 }));
 
 const CreatePostButton = styled(Button)(({ theme }) => ({
-  background: 'linear-gradient(45deg, #2196F3 30%, #21CBF3 90%)',
+  background: 'linear-gradient(45deg, #4A8BFF 30%, #1A6EEE 90%)',
   color: '#fff',
   fontSize: '0.9rem',
   fontWeight: 600,
   padding: '8px 16px',
   borderRadius: '4px',
   transition: 'all 0.3s cubic-bezier(0.4, 0, 0.2, 1)',
-  boxShadow: '0 3px 5px 2px rgba(33, 203, 243, .3)',
+  boxShadow: '0 3px 5px 2px rgba(26, 110, 238, .3)',
   '&:hover': {
-    background: 'linear-gradient(45deg, #1976D2 30%, #1E88E5 90%)',
-    boxShadow: '0 4px 8px 2px rgba(33, 203, 243, .4)',
+    background: 'linear-gradient(45deg, #5A9BFF 30%, #2A7EFF 90%)',
+    boxShadow: '0 4px 8px 2px rgba(26, 110, 238, .4)',
   },
 }));
 

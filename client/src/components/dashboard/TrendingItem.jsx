@@ -478,29 +478,29 @@ const TrendingItem = ({ trend, isLoading }) => {
             </Box>
 
             {/* Action Button */}
-            <Button
-              fullWidth
-              variant="contained"
-              onClick={handleViewPost}
-              sx={{
-                background: 'linear-gradient(45deg, #2196F3 30%, #21CBF3 90%)',
-                color: '#fff',
-                borderRadius: '4px',
-                padding: { xs: '14px', sm: '12px' },
-                textTransform: 'none',
-                fontSize: { xs: '16px', sm: '14px' },
-                fontWeight: 600,
-                transition: 'all 0.3s ease',
-                boxShadow: '0 3px 5px 2px rgba(33, 203, 243, .3)',
-                '&:hover': {
-                  background: 'linear-gradient(45deg, #1976D2 30%, #1E88E5 90%)',
-                  boxShadow: '0 4px 8px 2px rgba(33, 203, 243, .4)',
-                }
-              }}
-              endIcon={<RenderIcon name="view" sx={{ fontSize: { xs: '18px', sm: '16px' } }} />}
-            >
-              {t('viewDetails')}
-            </Button>
+        <Button
+          fullWidth
+          variant="contained"
+          onClick={handleViewPost}
+          sx={{
+            background: 'linear-gradient(45deg, #4A8BFF 30%, #1A6EEE 90%)',
+            color: '#fff',
+            borderRadius: '4px',
+            padding: { xs: '14px', sm: '12px' },
+            textTransform: 'none',
+            fontSize: { xs: '16px', sm: '14px' },
+            fontWeight: 600,
+            transition: 'all 0.3s ease',
+            boxShadow: '0 3px 5px 2px rgba(26, 110, 238, .3)',
+            '&:hover': {
+              background: 'linear-gradient(45deg, #5A9BFF 30%, #2A7EFF 90%)',
+              boxShadow: '0 4px 8px 2px rgba(26, 110, 238, .4)',
+            }
+          }}
+          endIcon={<RenderIcon name="view" sx={{ fontSize: { xs: '18px', sm: '16px' } }} />}
+        >
+          {t('viewDetails')}
+        </Button>
           </Box>
         </Box>
       </Card>
