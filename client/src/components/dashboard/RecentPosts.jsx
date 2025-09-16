@@ -480,13 +480,16 @@ const RecentPosts = ({ _id, categoryname, exactLocation, image, createdAt, count
             borderRadius: '4px',
             minWidth: 'auto',
             flexShrink: 0,
-            gap: currentLanguage === 'ar' ? 1 : 0.5,
             boxShadow: '0 3px 5px 2px rgba(26, 110, 238, .3)',
             transition: 'all 0.3s ease',
             '&:hover': {
               background: 'linear-gradient(45deg, #5A9BFF 30%, #2A7EFF 90%)',
               boxShadow: '0 4px 8px 2px rgba(26, 110, 238, .4)',
             },
+            '& .MuiButton-endIcon': {
+              marginLeft: '4px',
+              marginRight: '0px',
+            }
           }}
           startIcon={null}
           endIcon={<ArrowIcon sx={{ fontSize: { xs: '14px', sm: '12px' }, transform: currentLanguage === 'ar' ? 'scaleX(-1)' : 'none' }} />}
