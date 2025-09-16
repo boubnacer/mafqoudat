@@ -1447,20 +1447,24 @@ const EditPostForm = ({ post, user, countries, flOptions, categories, cities }) 
                       fontWeight: 600,
                       borderRadius: '4px',
                       textTransform: 'none',
-                      borderColor: '#4A8BFF',
-                      color: '#4A8BFF',
+                      borderColor: theme.palette.mode === 'dark' ? 'rgba(255,255,255,0.3)' : 'rgba(0,0,0,0.2)',
+                      color: theme.palette.text.primary,
                       '&:hover': {
-                        borderColor: '#5A9BFF',
-                        backgroundColor: 'rgba(74, 139, 255, 0.1)',
+                        borderColor: theme.palette.mode === 'dark' ? 'rgba(255,255,255,0.5)' : 'rgba(0,0,0,0.4)',
+                        backgroundColor: theme.palette.mode === 'dark' ? 'rgba(255,255,255,0.08)' : 'rgba(0,0,0,0.04)',
                         transform: 'translateY(-1px)',
-                        boxShadow: '0 6px 16px rgba(74, 139, 255, 0.2)',
+                        boxShadow: theme.palette.mode === 'dark'
+                          ? '0 6px 16px rgba(0,0,0,0.3)'
+                          : '0 6px 16px rgba(0,0,0,0.1)',
                       },
                       '&:disabled': {
-                        borderColor: 'rgba(74, 139, 255, 0.3)',
-                        color: 'rgba(74, 139, 255, 0.5)',
+                        borderColor: theme.palette.mode === 'dark' ? 'rgba(255,255,255,0.1)' : 'rgba(0,0,0,0.1)',
+                        color: theme.palette.mode === 'dark' ? 'rgba(255,255,255,0.3)' : 'rgba(0,0,0,0.3)',
                       },
                       transition: 'all 0.2s ease-in-out',
-                      boxShadow: '0 3px 8px rgba(74, 139, 255, 0.1)',
+                      boxShadow: theme.palette.mode === 'dark'
+                        ? '0 3px 8px rgba(0,0,0,0.2)'
+                        : '0 3px 8px rgba(0,0,0,0.05)',
                     }}
                   >
                     {t('cancel')}
@@ -1478,7 +1482,7 @@ const EditPostForm = ({ post, user, countries, flOptions, categories, cities }) 
                       px: 3,
                       fontSize: '1rem',
                       fontWeight: 600,
-                      borderRadius: 3,
+                      borderRadius: '4px',
                       textTransform: 'none',
                       borderColor: theme.palette.mode === 'dark' ? '#f44336' : '#d32f2f',
                       color: theme.palette.mode === 'dark' ? '#f44336' : '#d32f2f',
