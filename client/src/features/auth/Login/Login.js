@@ -57,7 +57,7 @@ import { setMode } from "../../../app/state";
 const PageContainer = styled(Box)(({ theme }) => ({
   minHeight: '100vh',
   background: theme?.palette?.mode === 'dark' 
-    ? 'linear-gradient(135deg, #121226 0%, #1a1a3a 25%, #2a2a4a 50%, #1a1a3a 75%, #121226 100%)'
+    ? 'linear-gradient(135deg, #0a0a0a 0%, #1a1a1a 25%, #2d2d2d 50%, #1a1a1a 75%, #0a0a0a 100%)'
     : 'linear-gradient(135deg, #e3f2fd 0%, #f3e5f5 50%, #fff3e0 100%)',
   display: 'flex',
   alignItems: 'center',
@@ -148,7 +148,7 @@ const ModernTextField = styled(TextField)(({ theme }) => ({
 }));
 
 const ActionButton = styled(Button)(({ theme }) => ({
-  borderRadius: 12,
+  borderRadius: 8,
   padding: { xs: '16px 24px', md: '18px 32px' },
   fontSize: { xs: '1.1rem', md: '1.2rem' },
   fontWeight: 600,
@@ -709,7 +709,7 @@ const Login = () => {
                 to="/signup"
                 variant="contained"
                 sx={{
-                  borderRadius: 3,
+                  borderRadius: 2,
                   textTransform: 'none',
                   fontWeight: 600,
                   background: 'linear-gradient(135deg, #5B8FDF 0%, #4A7BC8 100%)',

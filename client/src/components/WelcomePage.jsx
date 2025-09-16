@@ -43,7 +43,7 @@ import {
 const PageContainer = styled(Box)(({ theme }) => ({
   minHeight: '100vh',
   background: theme?.palette?.mode === 'dark' 
-    ? 'linear-gradient(135deg, #121226 0%, #1a1a3a 25%, #2a2a4a 50%, #1a1a3a 75%, #121226 100%)'
+    ? 'linear-gradient(135deg, #0a0a0a 0%, #1a1a1a 25%, #2d2d2d 50%, #1a1a1a 75%, #0a0a0a 100%)'
     : 'linear-gradient(135deg, #e3f2fd 0%, #f3e5f5 50%, #fff3e0 100%)',
   display: 'flex',
   alignItems: 'center',
