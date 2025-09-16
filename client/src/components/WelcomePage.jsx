@@ -693,18 +693,17 @@ const WelcomePage = () => {
                 mt: 3,
                 py: { xs: 2, md: 2.5 },
                 px: { xs: 3, md: 4 },
-                borderRadius: 12,
+                borderRadius: '4px',
                 fontSize: { xs: '1.1rem', md: '1.2rem' },
                 fontWeight: 600,
                 color: '#ffffff',
                 minHeight: { xs: '56px', md: '60px' },
-                background: 'linear-gradient(135deg, #4A7BC8 0%, #5B8FDF 100%)',
-                boxShadow: '0 8px 25px rgba(74, 123, 200, 0.3)',
+                background: 'linear-gradient(45deg, #2196F3 30%, #21CBF3 90%)',
+                boxShadow: '0 3px 5px 2px rgba(33, 203, 243, .3)',
                 transition: 'all 0.3s ease',
                 '&:hover': {
-                  background: 'linear-gradient(135deg, #3A6BB8 0%, #4B7FCF 100%)',
-                  transform: 'translateY(-2px)',
-                  boxShadow: '0 12px 35px rgba(74, 123, 200, 0.4)',
+                  background: 'linear-gradient(45deg, #1976D2 30%, #1E88E5 90%)',
+                  boxShadow: '0 4px 8px 2px rgba(33, 203, 243, .4)',
                 },
                 '&:disabled': {
                   background: theme?.palette?.mode === 'dark' 
@@ -795,15 +794,14 @@ const WelcomePage = () => {
                 minHeight: { xs: '48px', sm: '52px' },
                 fontSize: { xs: '1.1rem', sm: '1.2rem' },
                 fontWeight: 600,
-                borderRadius: 2,
-                background: 'linear-gradient(135deg, #4A7BC8 0%, #5B8FDF 100%)',
+                borderRadius: '4px',
+                background: 'linear-gradient(45deg, #2196F3 30%, #21CBF3 90%)',
                 color: 'white',
-                boxShadow: '0 8px 25px rgba(74, 123, 200, 0.3)',
+                boxShadow: '0 3px 5px 2px rgba(33, 203, 243, .3)',
                 transition: 'all 0.3s ease',
                 '&:hover': {
-                  background: 'linear-gradient(135deg, #3A6BB8 0%, #4B7FCF 100%)',
-                  transform: 'translateY(-2px)',
-                  boxShadow: '0 12px 35px rgba(74, 123, 200, 0.4)',
+                  background: 'linear-gradient(45deg, #1976D2 30%, #1E88E5 90%)',
+                  boxShadow: '0 4px 8px 2px rgba(33, 203, 243, .4)',
                 }
               }}
             >
@@ -820,15 +818,14 @@ const WelcomePage = () => {
                 minHeight: { xs: '48px', sm: '52px' },
                 fontSize: { xs: '1.1rem', sm: '1.2rem' },
                 fontWeight: 600,
-                borderRadius: 2,
-                background: 'linear-gradient(135deg, #5B8FDF 0%, #4A7BC8 100%)',
+                borderRadius: '4px',
+                background: 'linear-gradient(45deg, #2196F3 30%, #21CBF3 90%)',
                 color: 'white',
-                boxShadow: '0 8px 25px rgba(91, 143, 223, 0.3)',
+                boxShadow: '0 3px 5px 2px rgba(33, 203, 243, .3)',
                 transition: 'all 0.3s ease',
                 '&:hover': {
-                  background: 'linear-gradient(135deg, #4B7FCF 0%, #3A6BB8 100%)',
-                  transform: 'translateY(-2px)',
-                  boxShadow: '0 12px 35px rgba(91, 143, 223, 0.4)',
+                  background: 'linear-gradient(45deg, #1976D2 30%, #1E88E5 90%)',
+                  boxShadow: '0 4px 8px 2px rgba(33, 203, 243, .4)',
                 }
               }}
             >

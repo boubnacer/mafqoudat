@@ -192,38 +192,25 @@ const ModernSelect = styled(FormControl)(({ theme }) => ({
 }));
 
 const ActionButton = styled(Button)(({ theme }) => ({
-  borderRadius: 8,
+  borderRadius: '4px',
   padding: { xs: '16px 24px', md: '18px 32px' },
   fontSize: { xs: '1.1rem', md: '1.2rem' },
   fontWeight: 600,
   textTransform: 'none',
-  background: 'linear-gradient(135deg, #4A7BC8 0%, #5B8FDF 100%)',
+  background: 'linear-gradient(45deg, #2196F3 30%, #21CBF3 90%)',
   color: 'white',
   border: 'none',
   transition: 'all 0.3s ease',
   position: 'relative',
   overflow: 'hidden',
   minHeight: { xs: '56px', md: '60px' },
+  boxShadow: '0 3px 5px 2px rgba(33, 203, 243, .3)',
   '&:hover': {
-    background: 'linear-gradient(135deg, #3A6BB8 0%, #4B7FCF 100%)',
-    transform: 'translateY(-2px)',
-    boxShadow: '0 10px 25px rgba(74, 123, 200, 0.4)',
+    background: 'linear-gradient(45deg, #1976D2 30%, #1E88E5 90%)',
+    boxShadow: '0 4px 8px 2px rgba(33, 203, 243, .4)',
   },
   '&:active': {
     transform: 'translateY(0)',
-  },
-  '&::before': {
-    content: '""',
-    position: 'absolute',
-    top: 0,
-    left: '-100%',
-    width: '100%',
-    height: '100%',
-    background: 'linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.2), transparent)',
-    transition: 'left 0.5s',
-  },
-  '&:hover::before': {
-    left: '100%',
   }
 }));
 
@@ -914,19 +901,18 @@ const NewUserForm = ({ countries }) => {
                  to="/login"
                  variant="contained"
                  sx={{
-                   borderRadius: 2,
+                   borderRadius: '4px',
                    textTransform: 'none',
                    fontWeight: 600,
-                   background: 'linear-gradient(135deg, #5B8FDF 0%, #4A7BC8 100%)',
+                   background: 'linear-gradient(45deg, #2196F3 30%, #21CBF3 90%)',
                    color: 'white',
                    py: 1,
                    px: 3,
                    fontSize: { xs: '1.1rem', md: '1.2rem' },
-                   boxShadow: '0 8px 25px rgba(91, 143, 223, 0.3)',
+                   boxShadow: '0 3px 5px 2px rgba(33, 203, 243, .3)',
                    '&:hover': {
-                     background: 'linear-gradient(135deg, #4B7FCF 0%, #3A6BB8 100%)',
-                     transform: 'translateY(-2px)',
-                     boxShadow: '0 12px 35px rgba(91, 143, 223, 0.4)',
+                     background: 'linear-gradient(45deg, #1976D2 30%, #1E88E5 90%)',
+                     boxShadow: '0 4px 8px 2px rgba(33, 203, 243, .4)',
                    }
                  }}
                >
