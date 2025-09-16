@@ -450,7 +450,7 @@ const RecentPosts = ({ _id, categoryname, exactLocation, image, createdAt, count
               fontSize: { xs: '14px', sm: '13px' },
               fontWeight: 600,
               padding: { xs: '10px 14px', sm: '8px 12px' },
-              borderRadius: '8px',
+              borderRadius: '4px',
               minWidth: 'auto',
               flexShrink: 0,
               marginLeft: '0px !important',
