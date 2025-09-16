@@ -127,7 +127,9 @@ const ModernTextField = styled(TextField)(({ theme }) => ({
       : 'rgba(0, 0, 0, 0.02)',
     border: `1px solid ${alpha(theme?.palette?.primary?.main || '#667eea', 0.1)}`,
     transition: 'all 0.3s ease',
-    fontSize: { xs: '1rem', md: '1.1rem' },
+    fontSize: { xs: '1.1rem', md: '1.2rem' },
+    padding: { xs: '8px 12px', md: '12px 16px' },
+    minHeight: { xs: '56px', md: '60px' },
     '&:hover': {
       borderColor: alpha(theme?.palette?.primary?.main || '#667eea', 0.3),
       backgroundColor: theme?.palette?.mode === 'dark' 
@@ -145,7 +147,7 @@ const ModernTextField = styled(TextField)(({ theme }) => ({
   '& .MuiInputLabel-root': {
     color: theme?.palette?.text?.secondary,
     fontWeight: 500,
-    fontSize: { xs: '1rem', md: '1.1rem' },
+    fontSize: { xs: '1.1rem', md: '1.2rem' },
   },
   '& .MuiInputLabel-root.Mui-focused': {
     color: theme?.palette?.primary?.main || '#667eea',
@@ -161,7 +163,9 @@ const ModernSelect = styled(FormControl)(({ theme }) => ({
       : 'rgba(0, 0, 0, 0.02)',
     border: `1px solid ${alpha(theme?.palette?.primary?.main || '#667eea', 0.1)}`,
     transition: 'all 0.3s ease',
-    fontSize: { xs: '1rem', md: '1.1rem' },
+    fontSize: { xs: '1.1rem', md: '1.2rem' },
+    padding: { xs: '8px 12px', md: '12px 16px' },
+    minHeight: { xs: '56px', md: '60px' },
     '&:hover': {
       borderColor: alpha(theme?.palette?.primary?.main || '#667eea', 0.3),
       backgroundColor: theme?.palette?.mode === 'dark' 
@@ -179,7 +183,7 @@ const ModernSelect = styled(FormControl)(({ theme }) => ({
   '& .MuiInputLabel-root': {
     color: theme?.palette?.text?.secondary,
     fontWeight: 500,
-    fontSize: { xs: '1rem', md: '1.1rem' },
+    fontSize: { xs: '1.1rem', md: '1.2rem' },
   },
   '& .MuiInputLabel-root.Mui-focused': {
     color: theme?.palette?.primary?.main || '#667eea',
@@ -189,8 +193,8 @@ const ModernSelect = styled(FormControl)(({ theme }) => ({
 
 const ActionButton = styled(Button)(({ theme }) => ({
   borderRadius: 12,
-  padding: '12px 24px',
-  fontSize: { xs: '1rem', md: '1.1rem' },
+  padding: { xs: '16px 24px', md: '18px 32px' },
+  fontSize: { xs: '1.1rem', md: '1.2rem' },
   fontWeight: 600,
   textTransform: 'none',
   background: 'linear-gradient(135deg, #4A7BC8 0%, #5B8FDF 100%)',
@@ -199,6 +203,7 @@ const ActionButton = styled(Button)(({ theme }) => ({
   transition: 'all 0.3s ease',
   position: 'relative',
   overflow: 'hidden',
+  minHeight: { xs: '56px', md: '60px' },
   '&:hover': {
     background: 'linear-gradient(135deg, #3A6BB8 0%, #4B7FCF 100%)',
     transform: 'translateY(-2px)',
@@ -660,7 +665,7 @@ const NewUserForm = ({ countries }) => {
                   color: theme.palette.text.secondary,
                   fontWeight: 500,
                   mb: 2,
-                  fontSize: { xs: '1.25rem', md: '1.5rem' },
+                  fontSize: { xs: '1.4rem', md: '1.6rem' },
                   marginTop: '3rem'
                 }}
               >
@@ -673,7 +678,7 @@ const NewUserForm = ({ countries }) => {
                   opacity: 0.8,
                   maxWidth: 400,
                   margin: '0 auto',
-                  fontSize: { xs: '1rem', md: '1.1rem' },
+                  fontSize: { xs: '1.1rem', md: '1.2rem' },
                 }}
               >
                 {t('createAccountMessage')}
@@ -697,7 +702,22 @@ const NewUserForm = ({ countries }) => {
 
             {/* Signup Form */}
             <Box component="form" onSubmit={handleSubmit} sx={{ mb: 3 }}>
-              <Grid container spacing={2}>
+              <Grid container spacing={3}>
+                <Grid item xs={12}>
+                  <Typography
+                    variant="body1"
+                    sx={{
+                      color: theme.palette.text.secondary,
+                      display: 'block',
+                      mb: 3,
+                      fontSize: { xs: '1.1rem', md: '1.2rem' },
+                      fontWeight: 500,
+                      textAlign: 'center',
+                    }}
+                  >
+                    {t('contactInfoMessage')}
+                  </Typography>
+                </Grid>
                                  <Grid item xs={12}>
                    <ModernTextField
                      fullWidth
@@ -761,19 +781,6 @@ const NewUserForm = ({ countries }) => {
                   />
                 </Grid>
 
-                <Grid item xs={12}>
-                  <Typography
-                    variant="caption"
-                    sx={{
-                      color: theme.palette.text.secondary,
-                      display: 'block',
-                      mb: 1,
-                      fontStyle: 'italic',
-                    }}
-                  >
-                    {t('contactInfoMessage')}
-                  </Typography>
-                </Grid>
 
                 <Grid item xs={12}>
                   <ModernSelect fullWidth>
@@ -815,34 +822,47 @@ const NewUserForm = ({ countries }) => {
                 </Grid>
 
                 <Grid item xs={12}>
-                  <Box sx={{ display: 'flex', alignItems: 'flex-start', gap: 1, mt: 1 }}>
+                  <Box sx={{ display: 'flex', alignItems: 'center', gap: 1.5, mt: 2 }}>
                     <Checkbox
                       checked={formData.acceptTerms}
                       onChange={handleCheckboxChange('acceptTerms')}
                       sx={{
-                        mt: 0.5,
                         '&.Mui-checked': {
-                          color: theme.palette.primary.main,
+                          color: '#4A7BC8',
+                        },
+                        '&.MuiCheckbox-root': {
+                          color: theme.palette.text.secondary,
+                        },
+                        '&:hover': {
+                          backgroundColor: alpha('#4A7BC8', 0.1),
                         },
                       }}
                     />
                     <Box sx={{ flex: 1 }}>
-                      <Typography variant="body2" sx={{ lineHeight: 1.5 }}>
+                      <Typography 
+                        variant="body1" 
+                        sx={{ 
+                          lineHeight: 1.6,
+                          fontSize: { xs: '1rem', md: '1.1rem' },
+                          color: theme.palette.text.primary,
+                        }}
+                      >
                         {t('acceptTerms')}{' '}
                         <Button
                           component={Link}
                           to="/terms"
                           sx={{
-                            color: theme.palette.primary.main,
+                            color: '#4A7BC8',
                             textDecoration: 'underline',
                             p: 0,
                             minWidth: 'auto',
                             fontSize: 'inherit',
-                            fontWeight: 'inherit',
+                            fontWeight: 600,
                             textTransform: 'none',
                             '&:hover': {
                               backgroundColor: 'transparent',
                               textDecoration: 'none',
+                              color: '#3A6BB8',
                             }
                           }}
                         >
@@ -851,9 +871,9 @@ const NewUserForm = ({ countries }) => {
                       </Typography>
                       {errors.acceptTerms && (
                         <Typography
-                          variant="caption"
+                          variant="body2"
                           color="error"
-                          sx={{ display: 'block', mt: 0.5 }}
+                          sx={{ display: 'block', mt: 0.5, fontSize: { xs: '0.9rem', md: '1rem' } }}
                         >
                           {errors.acceptTerms}
                         </Typography>
@@ -896,7 +916,7 @@ const NewUserForm = ({ countries }) => {
                 sx={{ 
                   mb: 2,
                   color: theme.palette.text.secondary,
-                  fontSize: { xs: '1rem', md: '1.1rem' },
+                  fontSize: { xs: '1.1rem', md: '1.2rem' },
                 }}
               >
                 {t('alreadyMember')}
@@ -913,7 +933,7 @@ const NewUserForm = ({ countries }) => {
                    color: 'white',
                    py: 1.5,
                    px: 4,
-                   fontSize: { xs: '1rem', md: '1.1rem' },
+                   fontSize: { xs: '1.1rem', md: '1.2rem' },
                    boxShadow: '0 8px 25px rgba(91, 143, 223, 0.3)',
                    '&:hover': {
                      background: 'linear-gradient(135deg, #4B7FCF 0%, #3A6BB8 100%)',
