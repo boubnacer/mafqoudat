@@ -43,8 +43,8 @@ import {
 const PageContainer = styled(Box)(({ theme }) => ({
   minHeight: '100vh',
   background: theme?.palette?.mode === 'dark' 
-    ? 'linear-gradient(135deg, #0a0a0a 0%, #1a1a1a 25%, #2d2d2d 50%, #1a1a1a 75%, #0a0a0a 100%)'
-    : 'linear-gradient(135deg, #f8fafc 0%, #e2e8f0 25%, #cbd5e1 50%, #e2e8f0 75%, #f8fafc 100%)',
+    ? 'linear-gradient(135deg, #121226 0%, #1a1a3a 25%, #2a2a4a 50%, #1a1a3a 75%, #121226 100%)'
+    : 'linear-gradient(135deg, #e3f2fd 0%, #f3e5f5 50%, #fff3e0 100%)',
   display: 'flex',
   alignItems: 'center',
   justifyContent: 'center',
@@ -86,12 +86,12 @@ const BrandLogo = styled(Box)(({ theme }) => ({
   width: 80,
   height: 80,
   borderRadius: '50%',
-  background: `linear-gradient(135deg, #023DA5 0%, #1B6FEF 100%)`,
+  background: 'linear-gradient(135deg, #043FA5 0%, #1B6EEF 100%)',
   display: 'flex',
   alignItems: 'center',
   justifyContent: 'center',
   margin: '0 auto 16px',
-  boxShadow: `0 8px 32px ${alpha('#023DA5', 0.3)}`,
+  boxShadow: '0 10px 30px rgba(4, 63, 165, 0.3)',
   '& .MuiSvgIcon-root': {
     fontSize: 40,
     color: 'white',
@@ -515,12 +515,12 @@ const WelcomePage = () => {
               sx={{ 
                 mb: 3,
                 mt: 4,
-                fontSize: { xs: '1rem', md: '1.25rem' },
+                fontSize: { xs: '1.1rem', md: '1.2rem' },
                 textAlign: 'center',
                 lineHeight: 1.6,
                 // Arabic font size fix
                 ...(currentLanguage === 'ar' && {
-                  fontSize: { xs: '1.1rem', md: '1.35rem' },
+                  fontSize: { xs: '1.2rem', md: '1.3rem' },
                 }),
               }}
             >
@@ -536,7 +536,7 @@ const WelcomePage = () => {
               sx={{ 
                 fontWeight: 600,
                 mb: 2,
-                fontSize: { xs: '1.25rem', md: '1.5rem' }
+                fontSize: { xs: '1.4rem', md: '1.6rem' }
               }}
             >
               {t('chooseCountryTitle')}
@@ -545,7 +545,10 @@ const WelcomePage = () => {
               variant="body1" 
               color="text.secondary" 
               align="center"
-              sx={{ mb: 3 }}
+              sx={{ 
+                mb: 3,
+                fontSize: { xs: '1.1rem', md: '1.2rem' }
+              }}
             >
               {t('chooseCountryDescription')}
             </Typography>
@@ -638,8 +641,37 @@ const WelcomePage = () => {
                   fullWidth
                   sx={{
                     '& .MuiOutlinedInput-root': {
-                      borderRadius: 2,
-                      fontSize: { xs: '1rem', md: '1.1rem' }
+                      borderRadius: 12,
+                      fontSize: { xs: '1.1rem', md: '1.2rem' },
+                      padding: { xs: '8px 12px', md: '12px 16px' },
+                      minHeight: { xs: '56px', md: '60px' },
+                      backgroundColor: theme?.palette?.mode === 'dark' 
+                        ? 'rgba(255, 255, 255, 0.05)'
+                        : 'rgba(0, 0, 0, 0.02)',
+                      border: `1px solid ${alpha(theme?.palette?.primary?.main || '#667eea', 0.1)}`,
+                      transition: 'all 0.3s ease',
+                      '&:hover': {
+                        borderColor: alpha(theme?.palette?.primary?.main || '#667eea', 0.3),
+                        backgroundColor: theme?.palette?.mode === 'dark' 
+                          ? 'rgba(255, 255, 255, 0.08)'
+                          : 'rgba(0, 0, 0, 0.04)',
+                      },
+                      '&.Mui-focused': {
+                        borderColor: theme?.palette?.primary?.main || '#667eea',
+                        backgroundColor: theme?.palette?.mode === 'dark' 
+                          ? 'rgba(255, 255, 255, 0.1)'
+                          : 'rgba(0, 0, 0, 0.06)',
+                        boxShadow: `0 0 0 3px ${alpha(theme?.palette?.primary?.main || '#667eea', 0.1)}`,
+                      }
+                    },
+                    '& .MuiInputLabel-root': {
+                      color: theme?.palette?.text?.secondary,
+                      fontWeight: 500,
+                      fontSize: { xs: '1.1rem', md: '1.2rem' },
+                    },
+                    '& .MuiInputLabel-root.Mui-focused': {
+                      color: theme?.palette?.primary?.main || '#667eea',
+                      fontWeight: 600,
                     }
                   }}
                   inputProps={{
@@ -659,20 +691,20 @@ const WelcomePage = () => {
               endIcon={(currentLanguage || langContext) === 'ar' ? <ArrowBack /> : <ArrowForward />}
               sx={{
                 mt: 3,
-                py: 1.5,
-                borderRadius: 2,
-                fontSize: { xs: '1rem', md: '1.1rem' },
+                py: { xs: 2, md: 2.5 },
+                px: { xs: 3, md: 4 },
+                borderRadius: 12,
+                fontSize: { xs: '1.1rem', md: '1.2rem' },
                 fontWeight: 600,
                 color: '#ffffff',
-                background: `linear-gradient(135deg, ${theme?.palette?.primary?.main} 0%, ${theme?.palette?.secondary?.main} 100%)`,
-                boxShadow: theme?.palette?.mode === 'dark' 
-                  ? '0 4px 20px rgba(0, 0, 0, 0.3)'
-                  : '0 4px 20px rgba(0, 0, 0, 0.2)',
+                minHeight: { xs: '56px', md: '60px' },
+                background: 'linear-gradient(135deg, #4A7BC8 0%, #5B8FDF 100%)',
+                boxShadow: '0 8px 25px rgba(74, 123, 200, 0.3)',
+                transition: 'all 0.3s ease',
                 '&:hover': {
-                  background: `linear-gradient(135deg, ${theme?.palette?.primary?.dark} 0%, ${theme?.palette?.secondary?.dark} 100%)`,
-                  boxShadow: theme?.palette?.mode === 'dark' 
-                    ? '0 6px 25px rgba(0, 0, 0, 0.4)'
-                    : '0 6px 25px rgba(0, 0, 0, 0.3)',
+                  background: 'linear-gradient(135deg, #3A6BB8 0%, #4B7FCF 100%)',
+                  transform: 'translateY(-2px)',
+                  boxShadow: '0 12px 35px rgba(74, 123, 200, 0.4)',
                 },
                 '&:disabled': {
                   background: theme?.palette?.mode === 'dark' 
@@ -681,6 +713,8 @@ const WelcomePage = () => {
                   color: theme?.palette?.mode === 'dark' 
                     ? 'rgba(255, 255, 255, 0.3)'
                     : 'rgba(0, 0, 0, 0.26)',
+                  transform: 'none',
+                  boxShadow: 'none',
                 },
                 '& .MuiButton-endIcon': {
                   marginLeft: (currentLanguage || langContext) === 'ar' ? '8px' : '4px',
@@ -701,10 +735,10 @@ const WelcomePage = () => {
                     color: theme?.palette?.mode === 'dark' ? 'primary.main' : 'primary.dark', 
                     mb: 2 
                   }} />
-                  <Typography variant="h6" gutterBottom>
+                  <Typography variant="h6" gutterBottom sx={{ fontSize: { xs: '1.1rem', md: '1.2rem' } }}>
                     {t('searchItems')}
                   </Typography>
-                  <Typography variant="body2" color="text.secondary">
+                  <Typography variant="body2" color="text.secondary" sx={{ fontSize: { xs: '1rem', md: '1.1rem' } }}>
                     {t('searchItemsDesc')}
                   </Typography>
                 </Box>
@@ -718,10 +752,10 @@ const WelcomePage = () => {
                     color: theme?.palette?.mode === 'dark' ? 'primary.main' : 'primary.dark', 
                     mb: 2 
                   }} />
-                  <Typography variant="h6" gutterBottom>
+                  <Typography variant="h6" gutterBottom sx={{ fontSize: { xs: '1.1rem', md: '1.2rem' } }}>
                     {t('localPosts')}
                   </Typography>
-                  <Typography variant="body2" color="text.secondary">
+                  <Typography variant="body2" color="text.secondary" sx={{ fontSize: { xs: '1rem', md: '1.1rem' } }}>
                     {t('localPostsDesc')}
                   </Typography>
                 </Box>
@@ -735,10 +769,10 @@ const WelcomePage = () => {
                     color: theme?.palette?.mode === 'dark' ? 'primary.main' : 'primary.dark', 
                     mb: 2 
                   }} />
-                  <Typography variant="h6" gutterBottom>
+                  <Typography variant="h6" gutterBottom sx={{ fontSize: { xs: '1.1rem', md: '1.2rem' } }}>
                     {t('communityHelp')}
                   </Typography>
-                  <Typography variant="body2" color="text.secondary">
+                  <Typography variant="body2" color="text.secondary" sx={{ fontSize: { xs: '1rem', md: '1.1rem' } }}>
                     {t('communityHelpDesc')}
                   </Typography>
                 </Box>
@@ -747,7 +781,7 @@ const WelcomePage = () => {
           </Grid>
 
           <Box sx={{ mt: 4, textAlign: 'center' }}>
-            <Typography variant="body2" color="text.secondary" gutterBottom>
+            <Typography variant="body2" color="text.secondary" gutterBottom sx={{ fontSize: { xs: '1rem', md: '1.1rem' } }}>
               {t('alreadyHaveAccount')}
             </Typography>
             <Button
@@ -758,13 +792,18 @@ const WelcomePage = () => {
                 marginRight: (currentLanguage || langContext) === 'ar' ? '0px' : '16px',
                 marginLeft: (currentLanguage || langContext) === 'ar' ? '16px' : '0px',
                 minWidth: { xs: '140px', sm: '160px' },
-                minHeight: { xs: '48px', sm: '52px' },
-                fontSize: { xs: '1rem', sm: '1.1rem' },
+                minHeight: { xs: '56px', sm: '60px' },
+                fontSize: { xs: '1.1rem', sm: '1.2rem' },
                 fontWeight: 600,
-                background: 'linear-gradient(135deg, #2196F3 0%, #21CBF3 100%)',
+                borderRadius: 12,
+                background: 'linear-gradient(135deg, #4A7BC8 0%, #5B8FDF 100%)',
                 color: 'white',
+                boxShadow: '0 8px 25px rgba(74, 123, 200, 0.3)',
+                transition: 'all 0.3s ease',
                 '&:hover': {
-                  background: 'linear-gradient(135deg, #1976D2 0%, #0288D1 100%)',
+                  background: 'linear-gradient(135deg, #3A6BB8 0%, #4B7FCF 100%)',
+                  transform: 'translateY(-2px)',
+                  boxShadow: '0 12px 35px rgba(74, 123, 200, 0.4)',
                 }
               }}
             >
@@ -778,13 +817,18 @@ const WelcomePage = () => {
                 marginLeft: (currentLanguage || langContext) === 'ar' ? '0px' : '8px',
                 marginRight: (currentLanguage || langContext) === 'ar' ? '8px' : '0px',
                 minWidth: { xs: '140px', sm: '160px' },
-                minHeight: { xs: '48px', sm: '52px' },
-                fontSize: { xs: '1rem', sm: '1.1rem' },
+                minHeight: { xs: '56px', sm: '60px' },
+                fontSize: { xs: '1.1rem', sm: '1.2rem' },
                 fontWeight: 600,
-                background: 'linear-gradient(135deg, #4CAF50 0%, #66BB6A 100%)',
+                borderRadius: 12,
+                background: 'linear-gradient(135deg, #5B8FDF 0%, #4A7BC8 100%)',
                 color: 'white',
+                boxShadow: '0 8px 25px rgba(91, 143, 223, 0.3)',
+                transition: 'all 0.3s ease',
                 '&:hover': {
-                  background: 'linear-gradient(135deg, #388E3C 0%, #43A047 100%)',
+                  background: 'linear-gradient(135deg, #4B7FCF 0%, #3A6BB8 100%)',
+                  transform: 'translateY(-2px)',
+                  boxShadow: '0 12px 35px rgba(91, 143, 223, 0.4)',
                 }
               }}
             >
