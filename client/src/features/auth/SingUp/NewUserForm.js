@@ -65,7 +65,7 @@ import { setMode } from "../../../app/state";
 const PageContainer = styled(Box)(({ theme }) => ({
   minHeight: '100vh',
   background: theme?.palette?.mode === 'dark' 
-    ? 'linear-gradient(135deg, #0f0f23 0%, #1a1a2e 50%, #16213e 100%)'
+    ? 'linear-gradient(135deg, #121226 0%, #1a1a3a 25%, #2a2a4a 50%, #1a1a3a 75%, #121226 100%)'
     : 'linear-gradient(135deg, #e3f2fd 0%, #f3e5f5 50%, #fff3e0 100%)',
   display: 'flex',
   alignItems: 'center',
@@ -671,18 +671,6 @@ const NewUserForm = ({ countries }) => {
               >
                 {t('createAccount')}
               </Typography>
-              <Typography
-                variant="body1"
-                sx={{
-                  color: theme.palette.text.secondary,
-                  opacity: 0.8,
-                  maxWidth: 400,
-                  margin: '0 auto',
-                  fontSize: { xs: '1.1rem', md: '1.2rem' },
-                }}
-              >
-                {t('createAccountMessage')}
-              </Typography>
             </HeaderSection>
 
             {/* Error Alert */}
@@ -715,7 +703,7 @@ const NewUserForm = ({ countries }) => {
                       textAlign: 'center',
                     }}
                   >
-                    {t('contactInfoMessage')}
+                    Join our community and help find lost items
                   </Typography>
                 </Grid>
                                  <Grid item xs={12}>
