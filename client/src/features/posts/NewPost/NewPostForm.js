@@ -1101,23 +1101,31 @@ const NewPostForm = ({ user, countries, categories, flOptions }) => {
                       disabled={isCompressing}
                       sx={{ 
                         textTransform: 'none', 
-                        borderRadius: '4px',
+                        borderRadius: 3,
                         px: 3,
                         py: 1.5,
                         fontSize: '1rem',
                         fontWeight: 600,
-                        background: 'linear-gradient(45deg, #4A8BFF 30%, #1A6EEE 90%)',
-                        boxShadow: '0 3px 5px 2px rgba(26, 110, 238, .3)',
+                        background: theme.palette.mode === 'dark'
+                          ? 'linear-gradient(45deg, #4CAF50 30%, #66BB6A 90%)'
+                          : 'linear-gradient(45deg, #2E7D32 30%, #388E3C 90%)',
                         '&:hover': {
-                          background: 'linear-gradient(45deg, #5A9BFF 30%, #2A7EFF 90%)',
-                          boxShadow: '0 4px 8px 2px rgba(26, 110, 238, .4)',
+                          background: theme.palette.mode === 'dark'
+                            ? 'linear-gradient(45deg, #388E3C 30%, #4CAF50 90%)'
+                            : 'linear-gradient(45deg, #1B5E20 30%, #2E7D32 90%)',
                           transform: 'translateY(-1px)',
+                          boxShadow: theme.palette.mode === 'dark'
+                            ? '0 6px 16px rgba(76, 175, 80, 0.3)'
+                            : '0 6px 16px rgba(46, 125, 50, 0.3)',
                         },
                         '&:disabled': {
-                          background: theme.palette.mode === 'dark' ? 'rgba(74, 139, 255, 0.3)' : 'rgba(26, 110, 238, 0.3)',
+                          background: theme.palette.mode === 'dark' ? 'rgba(76, 175, 80, 0.3)' : 'rgba(46, 125, 50, 0.3)',
                           color: theme.palette.mode === 'dark' ? 'rgba(255,255,255,0.5)' : 'rgba(255,255,255,0.7)',
                         },
                         transition: 'all 0.2s ease-in-out',
+                        boxShadow: theme.palette.mode === 'dark'
+                          ? '0 3px 8px rgba(76, 175, 80, 0.2)'
+                          : '0 3px 8px rgba(46, 125, 50, 0.2)',
                       }}
                     >
                       {isCompressing ? t('compressingImage') || 'Compressing...' : t('chooseFile')}
@@ -1201,12 +1209,11 @@ const NewPostForm = ({ user, countries, categories, flOptions }) => {
                       fontWeight: 700,
                       borderRadius: '4px',
                       background: 'linear-gradient(45deg, #4A8BFF 30%, #1A6EEE 90%)',
-                      color: '#ffffff !important',
+                      color: '#fff',
                       boxShadow: '0 3px 5px 2px rgba(26, 110, 238, .3)',
                       '&:hover': {
                         background: 'linear-gradient(45deg, #5A9BFF 30%, #2A7EFF 90%)',
                         boxShadow: '0 4px 8px 2px rgba(26, 110, 238, .4)',
-                        transform: 'translateY(-2px)',
                       },
                       '&:disabled': {
                         background: theme.palette.mode === 'dark' ? 'rgba(74, 139, 255, 0.3)' : 'rgba(26, 110, 238, 0.3)',
@@ -1215,7 +1222,7 @@ const NewPostForm = ({ user, countries, categories, flOptions }) => {
                       '& .MuiButton-root': {
                         color: '#ffffff !important',
                       },
-                      transition: 'all 0.3s ease-in-out',
+                      transition: 'all 0.3s cubic-bezier(0.4, 0, 0.2, 1)',
                     }}
                   >
                     {isSubmitting ? (

@@ -452,9 +452,11 @@ const PostsList = () => {
                 fontWeight: 600,
                 background: 'linear-gradient(45deg, #4A8BFF 30%, #1A6EEE 90%)',
                 boxShadow: '0 3px 5px 2px rgba(26, 110, 238, .3)',
+                color: '#fff !important',
                 '&:hover': {
                   background: 'linear-gradient(45deg, #5A9BFF 30%, #2A7EFF 90%)',
                   boxShadow: '0 4px 8px 2px rgba(26, 110, 238, .4)',
+                  color: '#fff !important',
                 }
               }}
             >
@@ -696,9 +698,11 @@ const PostsList = () => {
                       fontWeight: 600,
                       background: 'linear-gradient(45deg, #4A8BFF 30%, #1A6EEE 90%)',
                       boxShadow: '0 3px 5px 2px rgba(26, 110, 238, .3)',
+                      color: '#fff !important',
                       '&:hover': {
                         background: 'linear-gradient(45deg, #5A9BFF 30%, #2A7EFF 90%)',
                         boxShadow: '0 4px 8px 2px rgba(26, 110, 238, .4)',
+                        color: '#fff !important',
                       }
                     }}
                   >

@@ -782,30 +782,22 @@ const Post = ({ post, viewMode = "grid" }) => {
             onClick={handleViewDetails}
             variant="contained"
             sx={{
-              background: isDarkMode 
-                ? 'linear-gradient(45deg, #2196F3 30%, #21CBF3 90%)'
-                : 'linear-gradient(45deg, #2196F3 30%, #21CBF3 90%)',
+              background: 'linear-gradient(45deg, #4A8BFF 30%, #1A6EEE 90%)',
               color: '#fff',
               textTransform: 'none',
               fontSize: { xs: '14px', sm: '13px' },
               fontWeight: 700,
               padding: { xs: '10px 14px', sm: '8px 12px' },
-              borderRadius: '8px',
+              borderRadius: '4px',
               minWidth: 'auto',
               flexShrink: 0,
               gap: currentLanguage === 'ar' ? 1 : 0.5,
-              boxShadow: isDarkMode 
-                ? '0 2px 8px rgba(33, 150, 243, 0.3)'
-                : '0 2px 8px rgba(33, 150, 243, 0.4)',
+              boxShadow: '0 3px 5px 2px rgba(26, 110, 238, .3)',
               transition: 'all 0.3s ease',
               '&:hover': {
-                background: isDarkMode 
-                  ? 'linear-gradient(45deg, #1976D2 30%, #1E88E5 90%)'
-                  : 'linear-gradient(45deg, #1976D2 30%, #1E88E5 90%)',
+                background: 'linear-gradient(45deg, #5A9BFF 30%, #2A7EFF 90%)',
+                boxShadow: '0 4px 8px 2px rgba(26, 110, 238, .4)',
                 transform: 'translateY(-1px)',
-                boxShadow: isDarkMode 
-                  ? '0 4px 12px rgba(33, 150, 243, 0.4)'
-                  : '0 4px 12px rgba(33, 150, 243, 0.5)',
               },
             }}
             startIcon={null}
