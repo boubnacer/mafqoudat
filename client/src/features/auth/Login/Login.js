@@ -714,8 +714,8 @@ const Login = () => {
                   fontWeight: 600,
                   background: 'linear-gradient(135deg, #5B8FDF 0%, #4A7BC8 100%)',
                   color: 'white',
-                  py: 1.5,
-                  px: 4,
+                  py: 1,
+                  px: 3,
                   fontSize: { xs: '1.1rem', md: '1.2rem' },
                   boxShadow: '0 8px 25px rgba(91, 143, 223, 0.3)',
                   '&:hover': {

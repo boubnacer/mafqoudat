@@ -80,19 +80,19 @@ const MainCard = styled(Card)(({ theme }) => ({
   maxWidth: 600,
   borderRadius: 24,
   boxShadow: theme?.palette?.mode === 'dark'
-    ? '0 30px 60px rgba(0, 0, 0, 0.6), 0 0 0 1px rgba(255, 255, 255, 0.05)'
-    : '0 30px 60px rgba(0, 0, 0, 0.1), 0 0 0 1px rgba(255, 255, 255, 0.9)',
+    ? '0 25px 50px rgba(0, 0, 0, 0.5), 0 0 0 1px rgba(255, 255, 255, 0.05)'
+    : '0 25px 50px rgba(0, 0, 0, 0.1), 0 0 0 1px rgba(255, 255, 255, 0.8)',
   backdropFilter: 'blur(20px)',
   background: theme?.palette?.mode === 'dark'
-    ? 'rgba(25, 25, 35, 0.95)'
-    : 'rgba(255, 255, 255, 0.95)',
+    ? 'rgba(30, 30, 30, 0.9)'
+    : 'rgba(255, 255, 255, 0.9)',
   border: `1px solid ${alpha(theme?.palette?.primary?.main || '#667eea', 0.1)}`,
   transition: 'all 0.3s ease',
   '&:hover': {
-    transform: 'translateY(-8px)',
+    transform: 'translateY(-5px)',
     boxShadow: theme?.palette?.mode === 'dark'
-      ? '0 40px 80px rgba(0, 0, 0, 0.7), 0 0 0 1px rgba(255, 255, 255, 0.1)'
-      : '0 40px 80px rgba(0, 0, 0, 0.15), 0 0 0 1px rgba(255, 255, 255, 0.95)',
+      ? '0 35px 70px rgba(0, 0, 0, 0.6), 0 0 0 1px rgba(255, 255, 255, 0.1)'
+      : '0 35px 70px rgba(0, 0, 0, 0.15), 0 0 0 1px rgba(255, 255, 255, 0.9)',
   }
 }));
 
@@ -919,8 +919,8 @@ const NewUserForm = ({ countries }) => {
                    fontWeight: 600,
                    background: 'linear-gradient(135deg, #5B8FDF 0%, #4A7BC8 100%)',
                    color: 'white',
-                   py: 1.5,
-                   px: 4,
+                   py: 1,
+                   px: 3,
                    fontSize: { xs: '1.1rem', md: '1.2rem' },
                    boxShadow: '0 8px 25px rgba(91, 143, 223, 0.3)',
                    '&:hover': {
