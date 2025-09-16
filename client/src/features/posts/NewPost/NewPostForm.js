@@ -1219,9 +1219,6 @@ const NewPostForm = ({ user, countries, categories, flOptions }) => {
                         background: theme.palette.mode === 'dark' ? 'rgba(74, 139, 255, 0.3)' : 'rgba(26, 110, 238, 0.3)',
                         color: theme.palette.mode === 'dark' ? 'rgba(255,255,255,0.5)' : 'rgba(255,255,255,0.7)',
                       },
-                      '& .MuiButton-root': {
-                        color: '#ffffff !important',
-                      },
                       transition: 'all 0.3s cubic-bezier(0.4, 0, 0.2, 1)',
                     }}
                   >
