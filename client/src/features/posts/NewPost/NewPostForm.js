@@ -1198,7 +1198,8 @@ const NewPostForm = ({ user, countries, categories, flOptions }) => {
                     width: '100%'
                   }}
                 >
-                  <SubmitButton
+                  <Button
+                    type="submit"
                     disabled={isSubmitting}
                     sx={{ 
                       width: { xs: "100%", sm: "100%", md: "100%" },
@@ -1226,7 +1227,7 @@ const NewPostForm = ({ user, countries, categories, flOptions }) => {
                     ) : (
                       t('createPost')
                     )}
-                  </SubmitButton>
+                  </Button>
                 </Box>
                 
                 {/* Dynamic validation error message */}
