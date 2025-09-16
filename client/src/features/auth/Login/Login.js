@@ -153,17 +153,17 @@ const ActionButton = styled(Button)(({ theme }) => ({
   fontSize: { xs: '1.1rem', md: '1.2rem' },
   fontWeight: 600,
   textTransform: 'none',
-  background: 'linear-gradient(45deg, #2196F3 30%, #21CBF3 90%)',
+  background: 'linear-gradient(45deg, #4A8BFF 30%, #1A6EEE 90%)',
   color: 'white',
   border: 'none',
   transition: 'all 0.3s ease',
   position: 'relative',
   overflow: 'hidden',
   minHeight: { xs: '56px', md: '60px' },
-  boxShadow: '0 3px 5px 2px rgba(33, 203, 243, .3)',
+  boxShadow: '0 3px 5px 2px rgba(26, 110, 238, .3)',
   '&:hover': {
-    background: 'linear-gradient(45deg, #1976D2 30%, #1E88E5 90%)',
-    boxShadow: '0 4px 8px 2px rgba(33, 203, 243, .4)',
+    background: 'linear-gradient(45deg, #5A9BFF 30%, #2A7EFF 90%)',
+    boxShadow: '0 4px 8px 2px rgba(26, 110, 238, .4)',
   },
   '&:active': {
     transform: 'translateY(0)',
@@ -699,15 +699,15 @@ const Login = () => {
                   borderRadius: '4px',
                   textTransform: 'none',
                   fontWeight: 600,
-                  background: 'linear-gradient(45deg, #2196F3 30%, #21CBF3 90%)',
+                  background: 'linear-gradient(45deg, #4A8BFF 30%, #1A6EEE 90%)',
                   color: 'white',
                   py: 1,
                   px: 3,
                   fontSize: { xs: '1.1rem', md: '1.2rem' },
-                  boxShadow: '0 3px 5px 2px rgba(33, 203, 243, .3)',
+                  boxShadow: '0 3px 5px 2px rgba(26, 110, 238, .3)',
                   '&:hover': {
-                    background: 'linear-gradient(45deg, #1976D2 30%, #1E88E5 90%)',
-                    boxShadow: '0 4px 8px 2px rgba(33, 203, 243, .4)',
+                    background: 'linear-gradient(45deg, #5A9BFF 30%, #2A7EFF 90%)',
+                    boxShadow: '0 4px 8px 2px rgba(26, 110, 238, .4)',
                   }
                 }}
               >

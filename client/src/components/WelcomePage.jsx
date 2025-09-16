@@ -698,12 +698,12 @@ const WelcomePage = () => {
                 fontWeight: 600,
                 color: '#ffffff',
                 minHeight: { xs: '56px', md: '60px' },
-                background: 'linear-gradient(45deg, #2196F3 30%, #21CBF3 90%)',
-                boxShadow: '0 3px 5px 2px rgba(33, 203, 243, .3)',
+                background: 'linear-gradient(45deg, #4A8BFF 30%, #1A6EEE 90%)',
+                boxShadow: '0 3px 5px 2px rgba(26, 110, 238, .3)',
                 transition: 'all 0.3s ease',
                 '&:hover': {
-                  background: 'linear-gradient(45deg, #1976D2 30%, #1E88E5 90%)',
-                  boxShadow: '0 4px 8px 2px rgba(33, 203, 243, .4)',
+                  background: 'linear-gradient(45deg, #5A9BFF 30%, #2A7EFF 90%)',
+                  boxShadow: '0 4px 8px 2px rgba(26, 110, 238, .4)',
                 },
                 '&:disabled': {
                   background: theme?.palette?.mode === 'dark' 
@@ -795,13 +795,13 @@ const WelcomePage = () => {
                 fontSize: { xs: '1.1rem', sm: '1.2rem' },
                 fontWeight: 600,
                 borderRadius: '4px',
-                background: 'linear-gradient(45deg, #2196F3 30%, #21CBF3 90%)',
+                background: 'linear-gradient(45deg, #4A8BFF 30%, #1A6EEE 90%)',
                 color: 'white',
-                boxShadow: '0 3px 5px 2px rgba(33, 203, 243, .3)',
+                boxShadow: '0 3px 5px 2px rgba(26, 110, 238, .3)',
                 transition: 'all 0.3s ease',
                 '&:hover': {
-                  background: 'linear-gradient(45deg, #1976D2 30%, #1E88E5 90%)',
-                  boxShadow: '0 4px 8px 2px rgba(33, 203, 243, .4)',
+                  background: 'linear-gradient(45deg, #5A9BFF 30%, #2A7EFF 90%)',
+                  boxShadow: '0 4px 8px 2px rgba(26, 110, 238, .4)',
                 }
               }}
             >
@@ -819,13 +819,13 @@ const WelcomePage = () => {
                 fontSize: { xs: '1.1rem', sm: '1.2rem' },
                 fontWeight: 600,
                 borderRadius: '4px',
-                background: 'linear-gradient(45deg, #2196F3 30%, #21CBF3 90%)',
+                background: 'linear-gradient(45deg, #4A8BFF 30%, #1A6EEE 90%)',
                 color: 'white',
-                boxShadow: '0 3px 5px 2px rgba(33, 203, 243, .3)',
+                boxShadow: '0 3px 5px 2px rgba(26, 110, 238, .3)',
                 transition: 'all 0.3s ease',
                 '&:hover': {
-                  background: 'linear-gradient(45deg, #1976D2 30%, #1E88E5 90%)',
-                  boxShadow: '0 4px 8px 2px rgba(33, 203, 243, .4)',
+                  background: 'linear-gradient(45deg, #5A9BFF 30%, #2A7EFF 90%)',
+                  boxShadow: '0 4px 8px 2px rgba(26, 110, 238, .4)',
                 }
               }}
             >
