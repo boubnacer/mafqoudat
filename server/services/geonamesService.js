@@ -57,7 +57,6 @@ class GeoNamesService {
         q: cityName,
         country: countryCode,
         featureClass: 'P', // Populated places (cities, towns, villages)
-        featureCode: 'PPL,PPLA,PPLA2,PPLA3,PPLA4,PPLC', // Various city types
         maxRows: 20, // Limit results
         username: this.username,
         style: 'FULL' // Get full details

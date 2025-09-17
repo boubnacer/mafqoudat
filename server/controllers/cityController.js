@@ -163,7 +163,9 @@ const searchCities = async (req, res) => {
     if (localCities.length < parseInt(limit) && countryCode) {
       try {
         console.log(`🌐 Searching GeoNames API for more cities...`);
+        console.log(`🔍 Service call: geonamesService.searchCities("${q}", "${countryCode}", "${language}")`);
         apiCities = await geonamesService.searchCities(q, countryCode, language);
+        console.log(`🔍 Service returned ${apiCities.length} cities`);
         
         // Filter out cities that already exist in our database
         const existingCityNames = localCities.map(city => 
@@ -176,6 +178,8 @@ const searchCities = async (req, res) => {
         });
 
         console.log(`🌐 GeoNames API found ${apiCities.length} additional cities`);
+        console.log(`🔍 API cities before filtering:`, apiCities.map(c => c.labels?.en || c.code));
+        console.log(`🔍 Existing city names:`, existingCityNames);
         
         // Add API cities to results (limit total results)
         const remainingSlots = parseInt(limit) - localCities.length;

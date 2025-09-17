@@ -6,7 +6,7 @@ async function testSearchAPI() {
     
     // Test 1: Search for "Casablanca" (should be in database)
     console.log('1. Testing "Casablanca" search:');
-    const response1 = await axios.get('https://mafqoudat-production.up.railway.app/api/cities/search', {
+    const response1 = await axios.get('https://mafqoudat-production.up.railway.app/cities/search', {
       params: {
         q: 'Casablanca',
         language: 'en',
@@ -21,7 +21,7 @@ async function testSearchAPI() {
     
     // Test 2: Search for "Tiflet" (should be from API)
     console.log('2. Testing "Tiflet" search:');
-    const response2 = await axios.get('https://mafqoudat-production.up.railway.app/api/cities/search', {
+    const response2 = await axios.get('https://mafqoudat-production.up.railway.app/cities/search', {
       params: {
         q: 'Tiflet',
         language: 'en',
@@ -36,7 +36,7 @@ async function testSearchAPI() {
     
     // Test 3: Search for "Safi" (should be from API)
     console.log('3. Testing "Safi" search:');
-    const response3 = await axios.get('https://mafqoudat-production.up.railway.app/api/cities/search', {
+    const response3 = await axios.get('https://mafqoudat-production.up.railway.app/cities/search', {
       params: {
         q: 'Safi',
         language: 'en',

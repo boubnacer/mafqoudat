@@ -1,64 +1,67 @@
-const mongoose = require('mongoose');
-const City = require('./server/models/City');
-const Country = require('./server/models/Country');
-
-const MONGODB_URI = 'mongodb+srv://boubkraouinacer:NB%40mafBase2025@clustermafqm0.mty6zln.mongodb.net/mafqoudat?retryWrites=true&w=majority&appName=ClusterMafqM0';
+const axios = require('axios');
 
 async function testDatabaseCities() {
   try {
-    await mongoose.connect(MONGODB_URI);
-    console.log('✅ Connected to MongoDB');
+    console.log('🧪 Testing Database Cities...\n');
     
-    // Get Morocco country
-    const morocco = await Country.findOne({ code: 'MA' });
-    console.log('🇲🇦 Morocco country:', morocco ? morocco.labels.en : 'Not found');
+    // Test 1: Get all cities for Morocco
+    console.log('1. Getting all cities for Morocco:');
+    const response1 = await axios.get('https://mafqoudat-production.up.railway.app/cities-public', {
+      params: {
+        countryId: '68b708a085dd243c40a90809', // Morocco ID from your logs
+        language: 'en'
+      }
+    });
     
-    if (morocco) {
-      // Get all cities for Morocco
-      const cities = await City.find({ country: morocco._id }).limit(10);
-      console.log(`\n🏙️ Cities in Morocco (${cities.length} found):`);
-      
-      cities.forEach((city, index) => {
-        console.log(`${index + 1}. ${city.labels.en} (${city.labels.ar}) - ${city.isCapital ? 'Capital' : 'City'}`);
-      });
-      
-      // Test search for "sifi ifni"
-      console.log('\n🔍 Testing search for "sifi ifni":');
-      const searchResults = await City.find({
-        country: morocco._id,
-        $or: [
-          { "labels.en": { $regex: /sifi/i } },
-          { "labels.ar": { $regex: /sifi/i } },
-          { "labels.fr": { $regex: /sifi/i } }
-        ]
-      });
-      
-      console.log(`Found ${searchResults.length} cities matching "sifi"`);
-      searchResults.forEach(city => {
-        console.log(`- ${city.labels.en} (${city.labels.ar})`);
-      });
-      
-      // Test search for "ifni"
-      console.log('\n🔍 Testing search for "ifni":');
-      const ifniResults = await City.find({
-        country: morocco._id,
-        $or: [
-          { "labels.en": { $regex: /ifni/i } },
-          { "labels.ar": { $regex: /ifni/i } },
-          { "labels.fr": { $regex: /ifni/i } }
-        ]
-      });
-      
-      console.log(`Found ${ifniResults.length} cities matching "ifni"`);
-      ifniResults.forEach(city => {
-        console.log(`- ${city.labels.en} (${city.labels.ar})`);
+    console.log('Status:', response1.status);
+    console.log('Total cities:', response1.data.data?.length || 0);
+    
+    if (response1.data.data && response1.data.data.length > 0) {
+      console.log('First 5 cities:');
+      response1.data.data.slice(0, 5).forEach((city, index) => {
+        console.log(`${index + 1}. ${city.label || city.name} (${city.code})`);
       });
     }
+    console.log('');
     
-    process.exit(0);
+    // Test 2: Search for "Casablanca" in database
+    console.log('2. Searching for "Casablanca" in database:');
+    const response2 = await axios.get('https://mafqoudat-production.up.railway.app/cities/search-name', {
+      params: {
+        query: 'Casablanca',
+        countryId: '68b708a085dd243c40a90809',
+        limit: 5
+      }
+    });
+    
+    console.log('Status:', response2.status);
+    console.log('Results:', response2.data.data?.length || 0);
+    if (response2.data.data && response2.data.data.length > 0) {
+      console.log('Found:', response2.data.data[0]);
+    }
+    console.log('');
+    
+    // Test 3: Search for "Safi" in database
+    console.log('3. Searching for "Safi" in database:');
+    const response3 = await axios.get('https://mafqoudat-production.up.railway.app/cities/search-name', {
+      params: {
+        query: 'Safi',
+        countryId: '68b708a085dd243c40a90809',
+        limit: 5
+      }
+    });
+    
+    console.log('Status:', response3.status);
+    console.log('Results:', response3.data.data?.length || 0);
+    if (response3.data.data && response3.data.data.length > 0) {
+      console.log('Found:', response3.data.data[0]);
+    }
+    
   } catch (error) {
-    console.error('❌ Error:', error);
-    process.exit(1);
+    console.error('❌ Error:', error.message);
+    if (error.response) {
+      console.error('Response:', error.response.data);
+    }
   }
 }
 
