@@ -92,18 +92,19 @@ const NewPostForm = ({ user, countries, categories, flOptions }) => {
   const [fieldErrors, setFieldErrors] = useState({});
   const formikRef = useRef(null);
   
-  // New state for hybrid city search
+  // New state for unified city dropdown
   const [citySearchQuery, setCitySearchQuery] = useState("");
   const [searchResults, setSearchResults] = useState([]);
   const [isSearching, setIsSearching] = useState(false);
-  const [showSearchResults, setShowSearchResults] = useState(false);
+  const [showCityDropdown, setShowCityDropdown] = useState(false);
   const [selectedCityFromSearch, setSelectedCityFromSearch] = useState(null);
+  const [filteredCities, setFilteredCities] = useState([]);
 
-  // Click outside handler to close search results
+  // Click outside handler to close city dropdown
   useEffect(() => {
     const handleClickOutside = (event) => {
-      if (showSearchResults && !event.target.closest('[data-testid="city-search"]')) {
-        setShowSearchResults(false);
+      if (showCityDropdown && !event.target.closest('[data-testid="city-dropdown"]')) {
+        setShowCityDropdown(false);
       }
     };
 
@@ -111,7 +112,26 @@ const NewPostForm = ({ user, countries, categories, flOptions }) => {
     return () => {
       document.removeEventListener('mousedown', handleClickOutside);
     };
-  }, [showSearchResults]);
+  }, [showCityDropdown]);
+
+  // Update filtered cities when cities or search query changes
+  useEffect(() => {
+    if (cities.length > 0) {
+      if (citySearchQuery.trim()) {
+        // Filter existing cities based on search query
+        const filtered = cities.filter(city => 
+          city.label?.toLowerCase().includes(citySearchQuery.toLowerCase()) ||
+          city.name?.toLowerCase().includes(citySearchQuery.toLowerCase()) ||
+          city.labels?.en?.toLowerCase().includes(citySearchQuery.toLowerCase()) ||
+          city.labels?.ar?.toLowerCase().includes(citySearchQuery.toLowerCase()) ||
+          city.labels?.fr?.toLowerCase().includes(citySearchQuery.toLowerCase())
+        );
+        setFilteredCities(filtered);
+      } else {
+        setFilteredCities(cities);
+      }
+    }
+  }, [cities, citySearchQuery]);
 
   // Function to clear specific field error
   const clearFieldError = (fieldName) => {
@@ -479,7 +499,6 @@ const NewPostForm = ({ user, countries, categories, flOptions }) => {
         
         if (results.length > 0) {
           setSearchResults(results);
-          setShowSearchResults(true);
         } else {
           // Fallback to traditional search
           console.log('🔄 Trying traditional search as fallback...');
@@ -487,7 +506,6 @@ const NewPostForm = ({ user, countries, categories, flOptions }) => {
           
           if (fallbackResults.length > 0) {
             setSearchResults(fallbackResults);
-            setShowSearchResults(true);
           } else {
             // Final fallback: filter existing cities
             console.log('🔄 Using local city filter as final fallback...');
@@ -500,14 +518,7 @@ const NewPostForm = ({ user, countries, categories, flOptions }) => {
               _id: city.id || city._id
             }));
             
-            if (localResults.length > 0) {
-              setSearchResults(localResults);
-              setShowSearchResults(true);
-            } else {
-              // Show a message that no cities were found
-              setSearchResults([]);
-              setShowSearchResults(true);
-            }
+            setSearchResults(localResults);
           }
         }
       } catch (error) {
@@ -518,15 +529,14 @@ const NewPostForm = ({ user, countries, categories, flOptions }) => {
       }
     } else {
       setSearchResults([]);
-      setShowSearchResults(false);
     }
-  }, [searchCitiesHybrid, selectedCountry]);
+  }, [searchCitiesHybrid, selectedCountry, cities]);
 
-  // Handle city selection from search results
-  const handleCitySelectFromSearch = (city) => {
+  // Handle city selection from dropdown
+  const handleCitySelect = (city) => {
     setSelectedCityFromSearch(city);
-    setCitySearchQuery(city.label);
-    setShowSearchResults(false);
+    setCitySearchQuery(city.label || city.labels?.en || city.name || '');
+    setShowCityDropdown(false);
     
     // Set the city value in the form
     if (setFieldValueCallback) {
@@ -541,6 +551,16 @@ const NewPostForm = ({ user, countries, categories, flOptions }) => {
     
     // Clear city field error
     clearFieldError('city');
+  };
+
+  // Handle dropdown toggle
+  const handleCityDropdownToggle = () => {
+    setShowCityDropdown(!showCityDropdown);
+    if (!showCityDropdown) {
+      // When opening, reset search and show all cities
+      setCitySearchQuery('');
+      setSearchResults([]);
+    }
   };
 
   // Create custom city in backend
@@ -900,63 +920,50 @@ const NewPostForm = ({ user, countries, categories, flOptions }) => {
                   >
                     {t('city')} *
                   </FormLabel>
-                    <Typography 
-                      variant="caption" 
-                      sx={{ 
-                        mb: 1, 
-                        display: "block", 
-                        fontSize: '1rem',
-                        color: theme.palette.mode === 'dark' ? 'rgba(255,255,255,0.7)' : 'rgba(0,0,0,0.6)',
-                        fontWeight: 500
-                      }}
-                    >
-                      {!selectedCountry 
-                        ? t('selectCountryFirst') 
-                        : t('searchOrSelectCity') || 'Type to search for a city...'
-                      }
-                    </Typography>
-                    
-                    {/* Debug info */}
-                    {process.env.NODE_ENV === 'development' && selectedCountry && (
-                      <Box>
-                        <Typography 
-                          variant="caption" 
-                          sx={{ 
-                            mb: 1, 
-                            display: "block", 
-                            fontSize: '0.8rem',
-                            color: theme.palette.mode === 'dark' ? '#ff9800' : '#f57c00',
-                            fontWeight: 500
-                          }}
-                        >
-                          Debug: Country: {selectedCountry.code || selectedCountry.labels?.en || 'No code'} | Cities loaded: {cities.length}
-                        </Typography>
-                        {cities.length > 0 && (
-                          <Typography 
-                            variant="caption" 
-                            sx={{ 
-                              mb: 1, 
-                              display: "block", 
-                              fontSize: '0.7rem',
-                              color: theme.palette.mode === 'dark' ? '#4CAF50' : '#2E7D32',
-                              fontWeight: 500
-                            }}
-                          >
-                            Available cities: {cities.slice(0, 3).map(c => c.label || c.name).join(', ')}{cities.length > 3 ? '...' : ''}
-                          </Typography>
-                        )}
-                      </Box>
-                    )}
+                  <Typography 
+                    variant="caption" 
+                    sx={{ 
+                      mb: 1, 
+                      display: "block", 
+                      fontSize: '1rem',
+                      color: theme.palette.mode === 'dark' ? 'rgba(255,255,255,0.7)' : 'rgba(0,0,0,0.6)',
+                      fontWeight: 500
+                    }}
+                  >
+                    {!selectedCountry 
+                      ? t('selectCountryFirst') 
+                        : t('searchOrSelectCity') || 'Search or select a city...'
+                    }
+                  </Typography>
                   
-                  <Box sx={{ position: 'relative' }}>
-                    {/* City Search Input */}
+                  {/* Debug info */}
+                  {process.env.NODE_ENV === 'development' && selectedCountry && (
+                    <Box>
+                      <Typography 
+                        variant="caption" 
+                        sx={{ 
+                          mb: 1, 
+                          display: "block", 
+                          fontSize: '0.8rem',
+                          color: theme.palette.mode === 'dark' ? '#ff9800' : '#f57c00',
+                          fontWeight: 500
+                        }}
+                      >
+                        Debug: Country: {selectedCountry.code || selectedCountry.labels?.en || 'No code'} | Cities loaded: {cities.length}
+                      </Typography>
+                    </Box>
+                  )}
+                  
+                  <Box sx={{ position: 'relative' }} data-testid="city-dropdown">
+                    {/* City Input with Dropdown Toggle */}
                     <TextField
                       fullWidth
-                      placeholder={t('searchCityPlaceholder') || "Type to search for a city..."}
+                      placeholder={t('searchCityPlaceholder') || "Search or select a city..."}
                       value={citySearchQuery}
                       onChange={handleCitySearchChange}
                       disabled={!selectedCountry}
                       data-testid="city-search"
+                      onClick={handleCityDropdownToggle}
                       sx={{
                         borderRadius: 2,
                         '& .MuiOutlinedInput-root': {
@@ -970,7 +977,8 @@ const NewPostForm = ({ user, countries, categories, flOptions }) => {
                             borderColor: theme.palette.mode === 'dark' ? 'rgba(255,255,255,0.3)' : 'rgba(0,0,0,0.2)',
                           },
                           color: theme.palette.text.primary,
-                          fontWeight: 500
+                          fontWeight: 500,
+                          cursor: 'pointer'
                         }
                       }}
                       InputProps={{
@@ -982,8 +990,8 @@ const NewPostForm = ({ user, countries, categories, flOptions }) => {
                       }}
                     />
 
-                    {/* Search Results Dropdown */}
-                    {showSearchResults && (
+                    {/* Unified City Dropdown */}
+                    {showCityDropdown && selectedCountry && (
                       <Box
                         sx={{
                           position: 'absolute',
@@ -1002,135 +1010,172 @@ const NewPostForm = ({ user, countries, categories, flOptions }) => {
                           boxShadow: theme.palette.mode === 'dark'
                             ? '0 8px 32px rgba(0, 0, 0, 0.5)'
                             : '0 8px 32px rgba(0, 0, 0, 0.1)',
-                          maxHeight: 300,
-                          overflow: 'auto',
+                          maxHeight: 400,
+                          overflow: 'hidden',
                           mt: 0.5
                         }}
                       >
-                        {searchResults.length > 0 ? (
-                          searchResults.map((city, index) => (
-                            <Box
-                              key={city._id || city.code || city.id || index}
-                              onClick={() => handleCitySelectFromSearch(city)}
-                              sx={{
-                                p: 2,
-                                cursor: 'pointer',
-                                borderBottom: index < searchResults.length - 1 ? `1px solid ${theme.palette.divider}` : 'none',
-                                '&:hover': {
-                                  backgroundColor: theme.palette.mode === 'dark' 
-                                    ? 'rgba(255, 255, 255, 0.1)' 
-                                    : 'rgba(0, 0, 0, 0.05)',
-                                  transform: 'translateX(4px)',
-                                  transition: 'all 0.2s ease-in-out'
+                        {/* Search Bar Inside Dropdown */}
+                        <Box sx={{ p: 2, borderBottom: `1px solid ${theme.palette.divider}` }}>
+                          <TextField
+                            fullWidth
+                            size="small"
+                            placeholder={t('searchCityPlaceholder') || "Search cities..."}
+                            value={citySearchQuery}
+                            onChange={handleCitySearchChange}
+                            sx={{
+                              '& .MuiOutlinedInput-root': {
+                                '& fieldset': {
+                                  borderColor: theme.palette.mode === 'dark' ? 'rgba(255,255,255,0.2)' : 'rgba(0,0,0,0.1)',
                                 },
-                                display: 'flex',
-                                alignItems: 'center',
-                                gap: 1,
-                                transition: 'all 0.2s ease-in-out'
-                              }}
-                            >
-                              <LocationOn fontSize="small" color="primary" />
-                              <Box>
-                                <Typography variant="body2" sx={{ fontWeight: 500 }}>
-                                  {city.label || city.labels?.en || city.name || city.code || 'Unknown City'}
-                                </Typography>
-                                <Typography variant="caption" color="text.secondary">
-                                  {city.source === 'database' ? 'From Database' : 'From GeoNames'} 
-                                  {city.isCapital && ` • Capital`}
-                                  {city.population && ` • ${city.population.toLocaleString()} people`}
-                                  {city.labels?.ar && ` • ${city.labels.ar}`}
+                                '&:hover fieldset': {
+                                  borderColor: theme.palette.mode === 'dark' ? 'rgba(255,255,255,0.3)' : 'rgba(0,0,0,0.2)',
+                                },
+                                '&.Mui-focused fieldset': {
+                                  borderColor: theme.palette.mode === 'dark' ? '#4CAF50' : '#2E7D32',
+                                }
+                              }
+                            }}
+                            InputProps={{
+                              startAdornment: <LocationOn sx={{ color: theme.palette.text.secondary, mr: 1 }} />
+                            }}
+                          />
+                        </Box>
+
+                        {/* Cities List */}
+                        <Box sx={{ maxHeight: 300, overflow: 'auto' }}>
+                          {/* Show search results if searching */}
+                          {citySearchQuery.trim() && searchResults.length > 0 ? (
+                            <>
+                              <Box sx={{ p: 1, backgroundColor: theme.palette.mode === 'dark' ? 'rgba(255,255,255,0.05)' : 'rgba(0,0,0,0.02)' }}>
+                                <Typography variant="caption" color="text.secondary" sx={{ fontWeight: 600 }}>
+                                  {t('searchResults') || 'Search Results'}
                                 </Typography>
                               </Box>
-                            </Box>
-                          ))
-                        ) : (
-                          <Box sx={{ p: 2, textAlign: 'center' }}>
-                            <Typography variant="body2" color="text.secondary">
-                              {isSearching ? 'Searching...' : 'No cities found'}
-                            </Typography>
-                            {!isSearching && (
-                              <Typography variant="caption" color="text.secondary" sx={{ mt: 1, display: 'block' }}>
-                                Try a different search term or add a new city
+                              {searchResults.map((city, index) => (
+                                <Box
+                                  key={city._id || city.code || city.id || index}
+                                  onClick={() => handleCitySelect(city)}
+                                  sx={{
+                                    p: 2,
+                                    cursor: 'pointer',
+                                    borderBottom: index < searchResults.length - 1 ? `1px solid ${theme.palette.divider}` : 'none',
+                                    '&:hover': {
+                                      backgroundColor: theme.palette.mode === 'dark' 
+                                        ? 'rgba(255, 255, 255, 0.1)' 
+                                        : 'rgba(0, 0, 0, 0.05)',
+                                      transform: 'translateX(4px)',
+                                      transition: 'all 0.2s ease-in-out'
+                                    },
+                                    display: 'flex',
+                                    alignItems: 'center',
+                                    gap: 1,
+                                    transition: 'all 0.2s ease-in-out'
+                                  }}
+                                >
+                                  <LocationOn fontSize="small" color="primary" />
+                                  <Box>
+                                    <Typography variant="body2" sx={{ fontWeight: 500 }}>
+                                      {city.label || city.labels?.en || city.name || city.code || 'Unknown City'}
+                                    </Typography>
+                                    <Typography variant="caption" color="text.secondary">
+                                      {city.source === 'database' ? t('fromDatabase') || 'From Database' : t('fromGeoNames') || 'From GeoNames'} 
+                                      {city.isCapital && ` • ${t('capital') || 'Capital'}`}
+                                      {city.population && ` • ${city.population.toLocaleString()} ${t('people') || 'people'}`}
+                                      {city.labels?.ar && ` • ${city.labels.ar}`}
+                                    </Typography>
+                                  </Box>
+                                </Box>
+                              ))}
+                            </>
+                          ) : citySearchQuery.trim() && searchResults.length === 0 && !isSearching ? (
+                            <Box sx={{ p: 3, textAlign: 'center' }}>
+                              <Typography variant="body2" color="text.secondary">
+                                {t('noCitiesFound') || 'No cities found'}
                               </Typography>
-                            )}
-                          </Box>
-                        )}
-                      </Box>
-                    )}
+                              <Typography variant="caption" color="text.secondary" sx={{ mt: 1, display: 'block' }}>
+                                {t('tryDifferentSearch') || 'Try a different search term'}
+                              </Typography>
+                            </Box>
+                          ) : (
+                            <>
+                              {/* Show existing cities when not searching */}
+                              <Box sx={{ p: 1, backgroundColor: theme.palette.mode === 'dark' ? 'rgba(255,255,255,0.05)' : 'rgba(0,0,0,0.02)' }}>
+                                <Typography variant="caption" color="text.secondary" sx={{ fontWeight: 600 }}>
+                                  {t('availableCities') || 'Available Cities'} ({filteredCities.length})
+                                </Typography>
+                              </Box>
+                              {filteredCities.length > 0 ? (
+                                filteredCities.map((city, index) => (
+                                  <Box
+                                    key={city.id || city._id}
+                                    onClick={() => handleCitySelect(city)}
+                                    sx={{
+                                      p: 2,
+                                      cursor: 'pointer',
+                                      borderBottom: index < filteredCities.length - 1 ? `1px solid ${theme.palette.divider}` : 'none',
+                                      '&:hover': {
+                                        backgroundColor: theme.palette.mode === 'dark' 
+                                          ? 'rgba(255, 255, 255, 0.1)' 
+                                          : 'rgba(0, 0, 0, 0.05)',
+                                        transform: 'translateX(4px)',
+                                        transition: 'all 0.2s ease-in-out'
+                                      },
+                                      display: 'flex',
+                                      alignItems: 'center',
+                                      gap: 1,
+                                      transition: 'all 0.2s ease-in-out'
+                                    }}
+                                  >
+                                    <LocationOn fontSize="small" color="primary" />
+                                    <Box>
+                                      <Typography variant="body2" sx={{ fontWeight: 500 }}>
+                                        {city.label || city.name || 'Unknown City'}
+                                      </Typography>
+                                      <Typography variant="caption" color="text.secondary">
+                                        {t('fromDatabase') || 'From Database'}
+                                        {city.isCapital && ` • ${t('capital') || 'Capital'}`}
+                                        {city.labels?.ar && ` • ${city.labels.ar}`}
+                                      </Typography>
+                                    </Box>
+                                  </Box>
+                                ))
+                              ) : (
+                                <Box sx={{ p: 3, textAlign: 'center' }}>
+                                  <Typography variant="body2" color="text.secondary">
+                                    {t('noCitiesAvailable') || 'No cities available'}
+                                  </Typography>
+                                </Box>
+                              )}
+                            </>
+                          )}
 
-                    {/* Traditional City Dropdown (fallback) */}
-                    {!citySearchQuery && cities.length > 0 && (
-                      <FormControl fullWidth sx={{ mt: 2 }} error={!!fieldErrors.city}>
-                        <Select
-                          name="city"
-                          value={values.city || ""}
-                          onChange={(e) => {
-                            const selectedValue = e.target.value;
-                            if (selectedValue === 'other') {
-                              setShowCustomCityInput(true);
-                            } else {
-                              setFieldValue('city', selectedValue);
-                              // Clear city field error if city is selected
-                              if (selectedValue) {
-                                clearFieldError('city');
-                              }
-                            }
-                          }}
-                          displayEmpty
-                          data-testid="city-select"
-                          sx={{
-                            borderRadius: 2,
-                            '& .MuiOutlinedInput-notchedOutline': {
-                              borderColor: theme.palette.mode === 'dark' ? 'rgba(255,255,255,0.3)' : 'rgba(0,0,0,0.2)',
-                            },
-                            '&:hover .MuiOutlinedInput-notchedOutline': {
-                              borderColor: theme.palette.mode === 'dark' ? 'rgba(255,255,255,0.5)' : 'rgba(0,0,0,0.4)',
-                            },
-                            '&.Mui-focused .MuiOutlinedInput-notchedOutline': {
-                              borderColor: theme.palette.mode === 'dark' ? '#4CAF50' : '#2E7D32',
-                            },
-                            color: theme.palette.text.primary,
-                            fontWeight: 500
-                          }}
-                          MenuProps={{
-                            PaperProps: {
-                              sx: {
-                                maxHeight: 300,
-                              }
-                            }
-                          }}
-                        >
-                          <MenuItem value="" disabled>
-                            <Typography variant="body2" color="text.secondary">
-                              {t('orSelectFromList')}
-                            </Typography>
-                          </MenuItem>
-                          {cities.map((city) => (
-                            <MenuItem key={city.id} value={city.id}>
-                              {city.label || city.name || 'Unknown City'}
-                            </MenuItem>
-                          ))}
+                          {/* Add New City Option */}
                           <Divider />
-                          <MenuItem
-                            value="other" 
-                            sx={{ 
+                          <Box
+                            onClick={() => {
+                              setShowCityDropdown(false);
+                              setShowCustomCityInput(true);
+                            }}
+                            sx={{
+                              p: 2,
+                              cursor: 'pointer',
                               color: theme.palette.mode === 'dark' ? '#fff' : '#1976d2',
                               fontWeight: 600,
                               backgroundColor: theme.palette.mode === 'dark' 
-                                ? 'rgba(255, 255, 255, 0.08)' 
-                                : 'rgba(25, 118, 210, 0.08)',
-                              border: `1px solid ${theme.palette.mode === 'dark' ? 'rgba(255, 255, 255, 0.2)' : 'rgba(25, 118, 210, 0.3)'}`,
-                              borderRadius: 2,
+                                ? 'rgba(255, 255, 255, 0.05)' 
+                                : 'rgba(25, 118, 210, 0.05)',
+                              border: `1px solid ${theme.palette.mode === 'dark' ? 'rgba(255, 255, 255, 0.1)' : 'rgba(25, 118, 210, 0.2)'}`,
                               margin: '6px 8px',
-                              padding: '12px 16px',
+                              borderRadius: 2,
                               transition: 'all 0.2s ease-in-out',
                               '&:hover': {
                                 backgroundColor: theme.palette.mode === 'dark' 
-                                  ? 'rgba(255, 255, 255, 0.12)' 
-                                  : 'rgba(25, 118, 210, 0.12)',
+                                  ? 'rgba(255, 255, 255, 0.1)' 
+                                  : 'rgba(25, 118, 210, 0.1)',
                                 borderColor: theme.palette.mode === 'dark' 
-                                  ? 'rgba(255, 255, 255, 0.4)' 
-                                  : 'rgba(25, 118, 210, 0.5)',
+                                  ? 'rgba(255, 255, 255, 0.2)' 
+                                  : 'rgba(25, 118, 210, 0.3)',
                                 transform: 'translateY(-1px)',
                                 boxShadow: theme.palette.mode === 'dark'
                                   ? '0 4px 8px rgba(0, 0, 0, 0.3)'
@@ -1140,11 +1185,11 @@ const NewPostForm = ({ user, countries, categories, flOptions }) => {
                           >
                             <Box display="flex" alignItems="center" gap={1}>
                               <AddIcon fontSize="small" />
-                              {t('other')} - {t('addNewCity')}
+                              {t('addNewCity') || 'Add New City'}
                             </Box>
-                          </MenuItem>
-                        </Select>
-                      </FormControl>
+                          </Box>
+                        </Box>
+                      </Box>
                     )}
 
                     {fieldErrors.city && (
