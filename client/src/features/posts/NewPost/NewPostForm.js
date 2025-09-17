@@ -247,8 +247,13 @@ const NewPostForm = ({ user, countries, categories, flOptions }) => {
       const baseUrl = process.env.REACT_APP_API_URL || "http://localhost:3500";
       const url = `${baseUrl}/cities/search?q=${encodeURIComponent(searchQuery)}&language=${currentLanguage || 'en'}&countryCode=${countryCode}&limit=10`;
       
+      console.log('🌐 API Request:', url);
+      
       const response = await fetch(url);
+      console.log('🌐 API Response Status:', response.status);
+      
       const data = await response.json();
+      console.log('🌐 API Response Data:', data);
       
       if (data.success) {
         return data.data;
@@ -261,6 +266,34 @@ const NewPostForm = ({ user, countries, categories, flOptions }) => {
       return [];
     }
   }, [currentLanguage]);
+
+  // Traditional city search function (fallback)
+  const searchCitiesTraditional = useCallback(async (searchQuery, countryId) => {
+    try {
+      const baseUrl = process.env.REACT_APP_API_URL || "http://localhost:3500";
+      const url = `${baseUrl}/cities/search-name?query=${encodeURIComponent(searchQuery)}&countryId=${countryId}&limit=10`;
+      
+      console.log('🔄 Traditional API Request:', url);
+      
+      const response = await fetch(url);
+      const data = await response.json();
+      
+      if (data.success) {
+        // Transform traditional results to match hybrid format
+        return data.data.map(city => ({
+          ...city,
+          source: 'database',
+          _id: city._id
+        }));
+      } else {
+        console.error('Failed to search cities traditionally:', data.message);
+        return [];
+      }
+    } catch (error) {
+      console.error('Error in traditional city search:', error);
+      return [];
+    }
+  }, []);
 
   const handleSubmit = async (values, { setSubmitting, setStatus }) => {
     try {
@@ -426,12 +459,50 @@ const NewPostForm = ({ user, countries, categories, flOptions }) => {
     const query = event.target.value;
     setCitySearchQuery(query);
     
-    if (query.length >= 2 && selectedCountry?.code) {
+    // Get country code from selectedCountry object
+    const countryCode = selectedCountry?.code || selectedCountry?.labels?.en || selectedCountry?.names?.en;
+    
+    console.log('🔍 Search Debug:', {
+      query,
+      selectedCountry,
+      countryCode,
+      hasCountry: !!selectedCountry
+    });
+    
+    if (query.length >= 2 && selectedCountry?._id) {
       setIsSearching(true);
       try {
-        const results = await searchCitiesHybrid(query, selectedCountry.code);
-        setSearchResults(results);
-        setShowSearchResults(true);
+        // Try hybrid search first
+        const results = await searchCitiesHybrid(query, countryCode);
+        console.log('🔍 Search Results:', results);
+        
+        if (results.length > 0) {
+          setSearchResults(results);
+          setShowSearchResults(true);
+        } else {
+          // Fallback to traditional search
+          console.log('🔄 Trying traditional search as fallback...');
+          const fallbackResults = await searchCitiesTraditional(query, selectedCountry._id);
+          
+          if (fallbackResults.length > 0) {
+            setSearchResults(fallbackResults);
+            setShowSearchResults(true);
+          } else {
+            // Final fallback: filter existing cities
+            console.log('🔄 Using local city filter as final fallback...');
+            const localResults = cities.filter(city => 
+              city.label?.toLowerCase().includes(query.toLowerCase()) ||
+              city.name?.toLowerCase().includes(query.toLowerCase())
+            ).map(city => ({
+              ...city,
+              source: 'database',
+              _id: city.id || city._id
+            }));
+            
+            setSearchResults(localResults);
+            setShowSearchResults(localResults.length > 0);
+          }
+        }
       } catch (error) {
         console.error('Error searching cities:', error);
         setSearchResults([]);
@@ -442,7 +513,7 @@ const NewPostForm = ({ user, countries, categories, flOptions }) => {
       setSearchResults([]);
       setShowSearchResults(false);
     }
-  }, [searchCitiesHybrid, selectedCountry?.code]);
+  }, [searchCitiesHybrid, selectedCountry]);
 
   // Handle city selection from search results
   const handleCitySelectFromSearch = (city) => {
@@ -822,21 +893,37 @@ const NewPostForm = ({ user, countries, categories, flOptions }) => {
                   >
                     {t('city')} *
                   </FormLabel>
-                  <Typography 
-                    variant="caption" 
-                    sx={{ 
-                      mb: 1, 
-                      display: "block", 
-                      fontSize: '1rem',
-                      color: theme.palette.mode === 'dark' ? 'rgba(255,255,255,0.7)' : 'rgba(0,0,0,0.6)',
-                      fontWeight: 500
-                    }}
-                  >
-                    {!selectedCountry 
-                      ? t('selectCountryFirst') 
-                      : t('searchOrSelectCity')
-                    }
-                  </Typography>
+                    <Typography 
+                      variant="caption" 
+                      sx={{ 
+                        mb: 1, 
+                        display: "block", 
+                        fontSize: '1rem',
+                        color: theme.palette.mode === 'dark' ? 'rgba(255,255,255,0.7)' : 'rgba(0,0,0,0.6)',
+                        fontWeight: 500
+                      }}
+                    >
+                      {!selectedCountry 
+                        ? t('selectCountryFirst') 
+                        : t('searchOrSelectCity') || 'Type to search for a city...'
+                      }
+                    </Typography>
+                    
+                    {/* Debug info */}
+                    {process.env.NODE_ENV === 'development' && selectedCountry && (
+                      <Typography 
+                        variant="caption" 
+                        sx={{ 
+                          mb: 1, 
+                          display: "block", 
+                          fontSize: '0.8rem',
+                          color: theme.palette.mode === 'dark' ? '#ff9800' : '#f57c00',
+                          fontWeight: 500
+                        }}
+                      >
+                        Debug: Country: {selectedCountry.code || selectedCountry.labels?.en || 'No code'} | Cities loaded: {cities.length}
+                      </Typography>
+                    )}
                   
                   <Box sx={{ position: 'relative' }}>
                     {/* City Search Input */}
