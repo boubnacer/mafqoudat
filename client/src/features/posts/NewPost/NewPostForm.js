@@ -932,7 +932,11 @@ const NewPostForm = ({ user, countries, categories, flOptions }) => {
                   >
                     {!selectedCountry 
                       ? t('selectCountryFirst') 
-                        : t('searchOrSelectCity') || 'Search or select a city...'
+                        : currentLanguage === 'ar' 
+                          ? 'ابحث أو اختر مدينة...'
+                          : currentLanguage === 'fr'
+                            ? 'Rechercher ou sélectionner une ville...'
+                            : 'Search or select a city...'
                     }
                   </Typography>
                   
@@ -968,7 +972,7 @@ const NewPostForm = ({ user, countries, categories, flOptions }) => {
                         borderRadius: 2,
                         '& .MuiOutlinedInput-root': {
                           '&:hover fieldset': {
-                            borderColor: theme.palette.mode === 'dark' ? '#4CAF50' : '#2E7D32',
+                            borderColor: theme.palette.mode === 'dark' ? 'rgba(255,255,255,0.5)' : 'rgba(0,0,0,0.4)',
                           },
                           '&.Mui-focused fieldset': {
                             borderColor: theme.palette.mode === 'dark' ? '#4CAF50' : '#2E7D32',
@@ -999,57 +1003,26 @@ const NewPostForm = ({ user, countries, categories, flOptions }) => {
                           left: 0,
                           right: 0,
                           zIndex: 1000,
-                          backgroundColor: theme.palette.mode === 'dark' 
-                            ? 'rgba(18, 18, 18, 0.95)' 
-                            : 'rgba(255, 255, 255, 0.95)',
-                          backdropFilter: 'blur(10px)',
+                          backgroundColor: theme.palette.background.paper,
                           border: `1px solid ${theme.palette.mode === 'dark' 
-                            ? 'rgba(255, 255, 255, 0.2)' 
-                            : 'rgba(0, 0, 0, 0.1)'}`,
+                            ? 'rgba(255, 255, 255, 0.3)' 
+                            : 'rgba(0, 0, 0, 0.2)'}`,
                           borderRadius: 2,
-                          boxShadow: theme.palette.mode === 'dark'
-                            ? '0 8px 32px rgba(0, 0, 0, 0.5)'
-                            : '0 8px 32px rgba(0, 0, 0, 0.1)',
+                          boxShadow: theme.shadows[8],
                           maxHeight: 400,
                           overflow: 'hidden',
                           mt: 0.5
                         }}
                       >
-                        {/* Search Bar Inside Dropdown */}
-                        <Box sx={{ p: 2, borderBottom: `1px solid ${theme.palette.divider}` }}>
-                          <TextField
-                            fullWidth
-                            size="small"
-                            placeholder={t('searchCityPlaceholder') || "Search cities..."}
-                            value={citySearchQuery}
-                            onChange={handleCitySearchChange}
-                            sx={{
-                              '& .MuiOutlinedInput-root': {
-                                '& fieldset': {
-                                  borderColor: theme.palette.mode === 'dark' ? 'rgba(255,255,255,0.2)' : 'rgba(0,0,0,0.1)',
-                                },
-                                '&:hover fieldset': {
-                                  borderColor: theme.palette.mode === 'dark' ? 'rgba(255,255,255,0.3)' : 'rgba(0,0,0,0.2)',
-                                },
-                                '&.Mui-focused fieldset': {
-                                  borderColor: theme.palette.mode === 'dark' ? '#4CAF50' : '#2E7D32',
-                                }
-                              }
-                            }}
-                            InputProps={{
-                              startAdornment: <LocationOn sx={{ color: theme.palette.text.secondary, mr: 1 }} />
-                            }}
-                          />
-                        </Box>
 
                         {/* Cities List */}
                         <Box sx={{ maxHeight: 300, overflow: 'auto' }}>
                           {/* Show search results if searching */}
                           {citySearchQuery.trim() && searchResults.length > 0 ? (
                             <>
-                              <Box sx={{ p: 1, backgroundColor: theme.palette.mode === 'dark' ? 'rgba(255,255,255,0.05)' : 'rgba(0,0,0,0.02)' }}>
+                              <Box sx={{ p: 1, backgroundColor: theme.palette.action.hover }}>
                                 <Typography variant="caption" color="text.secondary" sx={{ fontWeight: 600 }}>
-                                  {t('searchResults') || 'Search Results'}
+                                  {currentLanguage === 'ar' ? 'نتائج البحث' : currentLanguage === 'fr' ? 'Résultats de recherche' : 'Search Results'}
                                 </Typography>
                               </Box>
                               {searchResults.map((city, index) => (
@@ -1061,9 +1034,7 @@ const NewPostForm = ({ user, countries, categories, flOptions }) => {
                                     cursor: 'pointer',
                                     borderBottom: index < searchResults.length - 1 ? `1px solid ${theme.palette.divider}` : 'none',
                                     '&:hover': {
-                                      backgroundColor: theme.palette.mode === 'dark' 
-                                        ? 'rgba(255, 255, 255, 0.1)' 
-                                        : 'rgba(0, 0, 0, 0.05)',
+                                      backgroundColor: theme.palette.action.hover,
                                       transform: 'translateX(4px)',
                                       transition: 'all 0.2s ease-in-out'
                                     },
@@ -1100,9 +1071,9 @@ const NewPostForm = ({ user, countries, categories, flOptions }) => {
                           ) : (
                             <>
                               {/* Show existing cities when not searching */}
-                              <Box sx={{ p: 1, backgroundColor: theme.palette.mode === 'dark' ? 'rgba(255,255,255,0.05)' : 'rgba(0,0,0,0.02)' }}>
+                              <Box sx={{ p: 1, backgroundColor: theme.palette.action.hover }}>
                                 <Typography variant="caption" color="text.secondary" sx={{ fontWeight: 600 }}>
-                                  {t('availableCities') || 'Available Cities'} ({filteredCities.length})
+                                  {currentLanguage === 'ar' ? `المدن المتاحة (${filteredCities.length})` : currentLanguage === 'fr' ? `Villes disponibles (${filteredCities.length})` : `Available Cities (${filteredCities.length})`}
                                 </Typography>
                               </Box>
                               {filteredCities.length > 0 ? (
@@ -1115,9 +1086,7 @@ const NewPostForm = ({ user, countries, categories, flOptions }) => {
                                       cursor: 'pointer',
                                       borderBottom: index < filteredCities.length - 1 ? `1px solid ${theme.palette.divider}` : 'none',
                                       '&:hover': {
-                                        backgroundColor: theme.palette.mode === 'dark' 
-                                          ? 'rgba(255, 255, 255, 0.1)' 
-                                          : 'rgba(0, 0, 0, 0.05)',
+                                        backgroundColor: theme.palette.action.hover,
                                         transform: 'translateX(4px)',
                                         transition: 'all 0.2s ease-in-out'
                                       },
@@ -1160,26 +1129,18 @@ const NewPostForm = ({ user, countries, categories, flOptions }) => {
                             sx={{
                               p: 2,
                               cursor: 'pointer',
-                              color: theme.palette.mode === 'dark' ? '#fff' : '#1976d2',
+                              color: theme.palette.primary.main,
                               fontWeight: 600,
-                              backgroundColor: theme.palette.mode === 'dark' 
-                                ? 'rgba(255, 255, 255, 0.05)' 
-                                : 'rgba(25, 118, 210, 0.05)',
-                              border: `1px solid ${theme.palette.mode === 'dark' ? 'rgba(255, 255, 255, 0.1)' : 'rgba(25, 118, 210, 0.2)'}`,
+                              backgroundColor: theme.palette.action.hover,
+                              border: `1px solid ${theme.palette.divider}`,
                               margin: '6px 8px',
                               borderRadius: 2,
                               transition: 'all 0.2s ease-in-out',
                               '&:hover': {
-                                backgroundColor: theme.palette.mode === 'dark' 
-                                  ? 'rgba(255, 255, 255, 0.1)' 
-                                  : 'rgba(25, 118, 210, 0.1)',
-                                borderColor: theme.palette.mode === 'dark' 
-                                  ? 'rgba(255, 255, 255, 0.2)' 
-                                  : 'rgba(25, 118, 210, 0.3)',
+                                backgroundColor: theme.palette.action.selected,
+                                borderColor: theme.palette.primary.main,
                                 transform: 'translateY(-1px)',
-                                boxShadow: theme.palette.mode === 'dark'
-                                  ? '0 4px 8px rgba(0, 0, 0, 0.3)'
-                                  : '0 4px 8px rgba(25, 118, 210, 0.2)',
+                                boxShadow: theme.shadows[4],
                               }
                             }}
                           >
