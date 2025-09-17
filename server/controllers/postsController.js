@@ -591,6 +591,7 @@ const createNewPost = async (req, res) => {
       contact, 
       foundLost,
       city,
+      cityData, // New field for API city data
       exactLocation,
       exactDate,
       description,
@@ -688,6 +689,45 @@ const createNewPost = async (req, res) => {
          cityId = city;
        } else {
          console.warn(`City with ID ${city} not found in database`);
+         cityId = null;
+       }
+     } else if (cityData) {
+       // Handle API city data from GeoNames
+       try {
+         console.log(`Processing API city data for: ${city}`);
+         const apiCityData = JSON.parse(cityData);
+         
+         // Check if city already exists in database
+         const existingCity = await City.findOne({
+           country: country,
+           $or: [
+             { "labels.en": { $regex: new RegExp(apiCityData.labels.en, 'i') } },
+             { "labels.ar": { $regex: new RegExp(apiCityData.labels.ar, 'i') } },
+             { "labels.fr": { $regex: new RegExp(apiCityData.labels.fr, 'i') } }
+           ]
+         });
+         
+         if (existingCity) {
+           cityId = existingCity._id;
+           console.log(`Using existing city: ${existingCity.labels.en} (${cityId})`);
+         } else {
+           // Create new city from API data
+           const newCity = await City.create({
+             code: apiCityData.code,
+             country: country,
+             labels: apiCityData.labels,
+             isCapital: apiCityData.isCapital || false,
+             isActive: true,
+             isDynamic: true, // Mark as dynamically created from API
+             population: apiCityData.population || 0,
+             searchTerms: apiCityData.searchTerms || []
+           });
+           
+           cityId = newCity._id;
+           console.log(`Created new city from API data: ${apiCityData.labels.en} (${cityId})`);
+         }
+       } catch (apiCityError) {
+         console.error('Error processing API city data:', apiCityError.message);
          cityId = null;
        }
      } else if (city && city !== 'other' && typeof city === 'string') {

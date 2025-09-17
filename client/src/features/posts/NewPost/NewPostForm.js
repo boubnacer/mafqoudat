@@ -91,6 +91,27 @@ const NewPostForm = ({ user, countries, categories, flOptions }) => {
   const [setFieldValueCallback, setSetFieldValueCallback] = useState(null);
   const [fieldErrors, setFieldErrors] = useState({});
   const formikRef = useRef(null);
+  
+  // New state for hybrid city search
+  const [citySearchQuery, setCitySearchQuery] = useState("");
+  const [searchResults, setSearchResults] = useState([]);
+  const [isSearching, setIsSearching] = useState(false);
+  const [showSearchResults, setShowSearchResults] = useState(false);
+  const [selectedCityFromSearch, setSelectedCityFromSearch] = useState(null);
+
+  // Click outside handler to close search results
+  useEffect(() => {
+    const handleClickOutside = (event) => {
+      if (showSearchResults && !event.target.closest('[data-testid="city-search"]')) {
+        setShowSearchResults(false);
+      }
+    };
+
+    document.addEventListener('mousedown', handleClickOutside);
+    return () => {
+      document.removeEventListener('mousedown', handleClickOutside);
+    };
+  }, [showSearchResults]);
 
   // Function to clear specific field error
   const clearFieldError = (fieldName) => {
@@ -199,20 +220,45 @@ const NewPostForm = ({ user, countries, categories, flOptions }) => {
       const baseUrl = process.env.REACT_APP_API_URL || "http://localhost:3500";
       const url = `${baseUrl}/cities-public?countryId=${countryId}&language=${currentLanguage || 'en'}`;
       
-             const response = await fetch(url);
-       const data = await response.json();
-       
-       if (data.success) {
-         setCities(data.data);
-       } else {
-         console.error('Failed to fetch cities:', data.message);
-         setCities([]);
-       }
+      const response = await fetch(url);
+      const data = await response.json();
+      
+      if (data.success) {
+        setCities(data.data);
+      } else {
+        console.error('Failed to fetch cities:', data.message);
+        setCities([]);
+      }
     } catch (error) {
       console.error('Error fetching cities:', error);
       setCities([]);
     } finally {
       setLoadingCities(false);
+    }
+  }, [currentLanguage]);
+
+  // New function to search cities using hybrid search
+  const searchCitiesHybrid = useCallback(async (searchQuery, countryCode) => {
+    try {
+      if (!searchQuery || searchQuery.length < 2) {
+        return [];
+      }
+
+      const baseUrl = process.env.REACT_APP_API_URL || "http://localhost:3500";
+      const url = `${baseUrl}/cities/search?q=${encodeURIComponent(searchQuery)}&language=${currentLanguage || 'en'}&countryCode=${countryCode}&limit=10`;
+      
+      const response = await fetch(url);
+      const data = await response.json();
+      
+      if (data.success) {
+        return data.data;
+      } else {
+        console.error('Failed to search cities:', data.message);
+        return [];
+      }
+    } catch (error) {
+      console.error('Error searching cities:', error);
+      return [];
     }
   }, [currentLanguage]);
 
@@ -311,7 +357,17 @@ const NewPostForm = ({ user, countries, categories, flOptions }) => {
       formData.append("country", selectedCountry?._id || values.country);
       formData.append("category", values.category);
       formData.append("foundLost", values.foundLost);
-      formData.append("city", values.city);
+      
+      // Handle city - check if it's an API city or database city
+      if (values.city && values.city.startsWith('api_')) {
+        // API city - send the city data
+        formData.append("city", selectedCityFromSearch?.code || values.city.replace('api_', ''));
+        formData.append("cityData", JSON.stringify(selectedCityFromSearch));
+      } else {
+        // Database city
+        formData.append("city", values.city);
+      }
+      
       formData.append("exactLocation", values.exactLocation);
       formData.append("exactDate", values.exactDate);
       formData.append("contact", values.contact);
@@ -363,6 +419,50 @@ const NewPostForm = ({ user, countries, categories, flOptions }) => {
   // Handle custom city name change
   const handleCustomCityChange = (event) => {
     setCustomCityName(event.target.value);
+  };
+
+  // Handle city search input change
+  const handleCitySearchChange = useCallback(async (event) => {
+    const query = event.target.value;
+    setCitySearchQuery(query);
+    
+    if (query.length >= 2 && selectedCountry?.code) {
+      setIsSearching(true);
+      try {
+        const results = await searchCitiesHybrid(query, selectedCountry.code);
+        setSearchResults(results);
+        setShowSearchResults(true);
+      } catch (error) {
+        console.error('Error searching cities:', error);
+        setSearchResults([]);
+      } finally {
+        setIsSearching(false);
+      }
+    } else {
+      setSearchResults([]);
+      setShowSearchResults(false);
+    }
+  }, [searchCitiesHybrid, selectedCountry?.code]);
+
+  // Handle city selection from search results
+  const handleCitySelectFromSearch = (city) => {
+    setSelectedCityFromSearch(city);
+    setCitySearchQuery(city.label);
+    setShowSearchResults(false);
+    
+    // Set the city value in the form
+    if (setFieldValueCallback) {
+      if (city._id) {
+        // Database city
+        setFieldValueCallback('city', city._id);
+      } else {
+        // API city - we'll handle this in the submit
+        setFieldValueCallback('city', `api_${city.code}`);
+      }
+    }
+    
+    // Clear city field error
+    clearFieldError('city');
   };
 
   // Create custom city in backend
@@ -734,93 +834,183 @@ const NewPostForm = ({ user, countries, categories, flOptions }) => {
                   >
                     {!selectedCountry 
                       ? t('selectCountryFirst') 
-                      : loadingCities 
-                        ? t('loadingCities') 
-                        : cities.length === 0 
-                          ? t('noCitiesFound') 
-                          : t('selectCity')
+                      : t('searchOrSelectCity')
                     }
                   </Typography>
                   
-                  <FormControl fullWidth disabled={!selectedCountry || loadingCities} error={!!fieldErrors.city}>
-                    <Select
-                      name="city"
-                      value={values.city || ""}
-                      onChange={(e) => {
-                        const selectedValue = e.target.value;
-                        if (selectedValue === 'other') {
-                          setShowCustomCityInput(true);
-                        } else {
-                          setFieldValue('city', selectedValue);
-                          // Clear city field error if city is selected
-                          if (selectedValue) {
-                            clearFieldError('city');
-                          }
-                        }
-                      }}
-                      displayEmpty
-                      data-testid="city-select"
+                  <Box sx={{ position: 'relative' }}>
+                    {/* City Search Input */}
+                    <TextField
+                      fullWidth
+                      placeholder={t('searchCityPlaceholder') || "Type to search for a city..."}
+                      value={citySearchQuery}
+                      onChange={handleCitySearchChange}
+                      disabled={!selectedCountry}
+                      data-testid="city-search"
                       sx={{
                         borderRadius: 2,
-                        '& .MuiOutlinedInput-notchedOutline': {
-                          borderColor: theme.palette.mode === 'dark' ? 'rgba(255,255,255,0.3)' : 'rgba(0,0,0,0.2)',
-                        },
-                        '&:hover .MuiOutlinedInput-notchedOutline': {
-                          borderColor: theme.palette.mode === 'dark' ? 'rgba(255,255,255,0.5)' : 'rgba(0,0,0,0.4)',
-                        },
-                        '&.Mui-focused .MuiOutlinedInput-notchedOutline': {
-                          borderColor: theme.palette.mode === 'dark' ? '#4CAF50' : '#2E7D32',
-                        },
-                        color: theme.palette.text.primary,
-                        fontWeight: 500
-                      }}
-                      MenuProps={{
-                        PaperProps: {
-                          sx: {
-                            maxHeight: 300,
-                          }
+                        '& .MuiOutlinedInput-root': {
+                          '&:hover fieldset': {
+                            borderColor: theme.palette.mode === 'dark' ? '#4CAF50' : '#2E7D32',
+                          },
+                          '&.Mui-focused fieldset': {
+                            borderColor: theme.palette.mode === 'dark' ? '#4CAF50' : '#2E7D32',
+                          },
+                          '& fieldset': {
+                            borderColor: theme.palette.mode === 'dark' ? 'rgba(255,255,255,0.3)' : 'rgba(0,0,0,0.2)',
+                          },
+                          color: theme.palette.text.primary,
+                          fontWeight: 500
                         }
                       }}
-                    >
-                      {cities.map((city) => (
-                        <MenuItem key={city.id} value={city.id}>
-                          {city.label || city.name || 'Unknown City'}
-                        </MenuItem>
-                      ))}
-                      <Divider />
-                      <MenuItem
-                        value="other" 
-                        sx={{ 
-                          color: theme.palette.mode === 'dark' ? '#fff' : '#1976d2',
-                          fontWeight: 600,
-                          backgroundColor: theme.palette.mode === 'dark' 
-                            ? 'rgba(255, 255, 255, 0.08)' 
-                            : 'rgba(25, 118, 210, 0.08)',
-                          border: `1px solid ${theme.palette.mode === 'dark' ? 'rgba(255, 255, 255, 0.2)' : 'rgba(25, 118, 210, 0.3)'}`,
+                      InputProps={{
+                        endAdornment: isSearching ? (
+                          <CircularProgress size={20} />
+                        ) : (
+                          <LocationOn sx={{ color: theme.palette.text.secondary }} />
+                        )
+                      }}
+                    />
+
+                    {/* Search Results Dropdown */}
+                    {showSearchResults && searchResults.length > 0 && (
+                      <Box
+                        sx={{
+                          position: 'absolute',
+                          top: '100%',
+                          left: 0,
+                          right: 0,
+                          zIndex: 1000,
+                          backgroundColor: theme.palette.background.paper,
+                          border: `1px solid ${theme.palette.divider}`,
                           borderRadius: 2,
-                          margin: '6px 8px',
-                          padding: '12px 16px',
-                          transition: 'all 0.2s ease-in-out',
-                          '&:hover': {
-                            backgroundColor: theme.palette.mode === 'dark' 
-                              ? 'rgba(255, 255, 255, 0.12)' 
-                              : 'rgba(25, 118, 210, 0.12)',
-                            borderColor: theme.palette.mode === 'dark' 
-                              ? 'rgba(255, 255, 255, 0.4)' 
-                              : 'rgba(25, 118, 210, 0.5)',
-                            transform: 'translateY(-1px)',
-                            boxShadow: theme.palette.mode === 'dark'
-                              ? '0 4px 8px rgba(0, 0, 0, 0.3)'
-                              : '0 4px 8px rgba(25, 118, 210, 0.2)',
-                          }
+                          boxShadow: theme.shadows[4],
+                          maxHeight: 300,
+                          overflow: 'auto',
+                          mt: 0.5
                         }}
                       >
-                        <Box display="flex" alignItems="center" gap={1}>
-                          <AddIcon fontSize="small" />
-                          {t('other')} - {t('addNewCity')}
-                        </Box>
-                      </MenuItem>
-                    </Select>
+                        {searchResults.map((city, index) => (
+                          <Box
+                            key={city._id || city.code || index}
+                            onClick={() => handleCitySelectFromSearch(city)}
+                            sx={{
+                              p: 2,
+                              cursor: 'pointer',
+                              borderBottom: index < searchResults.length - 1 ? `1px solid ${theme.palette.divider}` : 'none',
+                              '&:hover': {
+                                backgroundColor: theme.palette.action.hover,
+                              },
+                              display: 'flex',
+                              alignItems: 'center',
+                              gap: 1
+                            }}
+                          >
+                            <LocationOn fontSize="small" color="primary" />
+                            <Box>
+                              <Typography variant="body2" sx={{ fontWeight: 500 }}>
+                                {city.label}
+                              </Typography>
+                              <Typography variant="caption" color="text.secondary">
+                                {city.source === 'database' ? t('fromDatabase') : t('fromGeoNames')} 
+                                {city.isCapital && ` • ${t('capital')}`}
+                                {city.population && ` • ${city.population.toLocaleString()} ${t('people')}`}
+                              </Typography>
+                            </Box>
+                          </Box>
+                        ))}
+                      </Box>
+                    )}
+
+                    {/* Traditional City Dropdown (fallback) */}
+                    {!citySearchQuery && cities.length > 0 && (
+                      <FormControl fullWidth sx={{ mt: 2 }} error={!!fieldErrors.city}>
+                        <Select
+                          name="city"
+                          value={values.city || ""}
+                          onChange={(e) => {
+                            const selectedValue = e.target.value;
+                            if (selectedValue === 'other') {
+                              setShowCustomCityInput(true);
+                            } else {
+                              setFieldValue('city', selectedValue);
+                              // Clear city field error if city is selected
+                              if (selectedValue) {
+                                clearFieldError('city');
+                              }
+                            }
+                          }}
+                          displayEmpty
+                          data-testid="city-select"
+                          sx={{
+                            borderRadius: 2,
+                            '& .MuiOutlinedInput-notchedOutline': {
+                              borderColor: theme.palette.mode === 'dark' ? 'rgba(255,255,255,0.3)' : 'rgba(0,0,0,0.2)',
+                            },
+                            '&:hover .MuiOutlinedInput-notchedOutline': {
+                              borderColor: theme.palette.mode === 'dark' ? 'rgba(255,255,255,0.5)' : 'rgba(0,0,0,0.4)',
+                            },
+                            '&.Mui-focused .MuiOutlinedInput-notchedOutline': {
+                              borderColor: theme.palette.mode === 'dark' ? '#4CAF50' : '#2E7D32',
+                            },
+                            color: theme.palette.text.primary,
+                            fontWeight: 500
+                          }}
+                          MenuProps={{
+                            PaperProps: {
+                              sx: {
+                                maxHeight: 300,
+                              }
+                            }
+                          }}
+                        >
+                          <MenuItem value="" disabled>
+                            <Typography variant="body2" color="text.secondary">
+                              {t('orSelectFromList')}
+                            </Typography>
+                          </MenuItem>
+                          {cities.map((city) => (
+                            <MenuItem key={city.id} value={city.id}>
+                              {city.label || city.name || 'Unknown City'}
+                            </MenuItem>
+                          ))}
+                          <Divider />
+                          <MenuItem
+                            value="other" 
+                            sx={{ 
+                              color: theme.palette.mode === 'dark' ? '#fff' : '#1976d2',
+                              fontWeight: 600,
+                              backgroundColor: theme.palette.mode === 'dark' 
+                                ? 'rgba(255, 255, 255, 0.08)' 
+                                : 'rgba(25, 118, 210, 0.08)',
+                              border: `1px solid ${theme.palette.mode === 'dark' ? 'rgba(255, 255, 255, 0.2)' : 'rgba(25, 118, 210, 0.3)'}`,
+                              borderRadius: 2,
+                              margin: '6px 8px',
+                              padding: '12px 16px',
+                              transition: 'all 0.2s ease-in-out',
+                              '&:hover': {
+                                backgroundColor: theme.palette.mode === 'dark' 
+                                  ? 'rgba(255, 255, 255, 0.12)' 
+                                  : 'rgba(25, 118, 210, 0.12)',
+                                borderColor: theme.palette.mode === 'dark' 
+                                  ? 'rgba(255, 255, 255, 0.4)' 
+                                  : 'rgba(25, 118, 210, 0.5)',
+                                transform: 'translateY(-1px)',
+                                boxShadow: theme.palette.mode === 'dark'
+                                  ? '0 4px 8px rgba(0, 0, 0, 0.3)'
+                                  : '0 4px 8px rgba(25, 118, 210, 0.2)',
+                              }
+                            }}
+                          >
+                            <Box display="flex" alignItems="center" gap={1}>
+                              <AddIcon fontSize="small" />
+                              {t('other')} - {t('addNewCity')}
+                            </Box>
+                          </MenuItem>
+                        </Select>
+                      </FormControl>
+                    )}
+
                     {fieldErrors.city && (
                       <Typography 
                         variant="caption" 
@@ -834,7 +1024,7 @@ const NewPostForm = ({ user, countries, categories, flOptions }) => {
                         {fieldErrors.city}
                       </Typography>
                     )}
-                  </FormControl>
+                  </Box>
                 </Box>
 
                 <Box>
