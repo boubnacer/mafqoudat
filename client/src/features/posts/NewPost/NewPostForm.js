@@ -556,11 +556,7 @@ const NewPostForm = ({ user, countries, categories, flOptions }) => {
   // Handle dropdown toggle
   const handleCityDropdownToggle = () => {
     setShowCityDropdown(!showCityDropdown);
-    if (!showCityDropdown) {
-      // When opening, reset search and show all cities
-      setCitySearchQuery('');
-      setSearchResults([]);
-    }
+    // Don't reset search when opening - let both search bars work together
   };
 
   // Create custom city in backend
@@ -959,33 +955,40 @@ const NewPostForm = ({ user, countries, categories, flOptions }) => {
                   )}
                   
                   <Box sx={{ position: 'relative' }} data-testid="city-dropdown">
-                    {/* City Selection Button */}
-                    <Button
+                    {/* City Search Input */}
+                    <TextField
                       fullWidth
-                      variant="outlined"
-                      onClick={handleCityDropdownToggle}
+                      placeholder={currentLanguage === 'ar' ? 'ابحث أو اختر مدينة...' : currentLanguage === 'fr' ? 'Rechercher ou sélectionner une ville...' : 'Search or select a city...'}
+                      value={citySearchQuery}
+                      onChange={handleCitySearchChange}
                       disabled={!selectedCountry}
-                      data-testid="city-select-button"
+                      data-testid="city-search"
+                      onClick={handleCityDropdownToggle}
                       sx={{
                         borderRadius: 2,
-                        borderColor: theme.palette.mode === 'dark' ? 'rgba(255,255,255,0.3)' : 'rgba(0,0,0,0.2)',
-                        color: theme.palette.text.primary,
-                        fontWeight: 500,
-                        textTransform: 'none',
-                        justifyContent: 'flex-start',
-                        padding: '16px 14px',
-                        '&:hover': {
-                          borderColor: theme.palette.mode === 'dark' ? 'rgba(255,255,255,0.5)' : 'rgba(0,0,0,0.4)',
-                        },
-                        '&:focus': {
-                          borderColor: theme.palette.mode === 'dark' ? '#4CAF50' : '#2E7D32',
+                        '& .MuiOutlinedInput-root': {
+                          '&:hover fieldset': {
+                            borderColor: theme.palette.mode === 'dark' ? 'rgba(255,255,255,0.5)' : 'rgba(0,0,0,0.4)',
+                          },
+                          '&.Mui-focused fieldset': {
+                            borderColor: theme.palette.mode === 'dark' ? '#4CAF50' : '#2E7D32',
+                          },
+                          '& fieldset': {
+                            borderColor: theme.palette.mode === 'dark' ? 'rgba(255,255,255,0.3)' : 'rgba(0,0,0,0.2)',
+                          },
+                          color: theme.palette.text.primary,
+                          fontWeight: 500,
+                          cursor: 'pointer'
                         }
                       }}
-                      startIcon={<LocationOn sx={{ color: theme.palette.text.secondary }} />}
-                      endIcon={isSearching ? <CircularProgress size={20} /> : null}
-                    >
-                      {citySearchQuery || (currentLanguage === 'ar' ? 'اختر مدينة...' : currentLanguage === 'fr' ? 'Sélectionner une ville...' : 'Select a city...')}
-                    </Button>
+                      InputProps={{
+                        endAdornment: isSearching ? (
+                          <CircularProgress size={20} />
+                        ) : (
+                          <LocationOn sx={{ color: theme.palette.text.secondary }} />
+                        )
+                      }}
+                    />
 
                     {/* Unified City Dropdown */}
                     {showCityDropdown && selectedCountry && (
