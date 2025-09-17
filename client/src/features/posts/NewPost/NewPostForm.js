@@ -475,6 +475,7 @@ const NewPostForm = ({ user, countries, categories, flOptions }) => {
         // Try hybrid search first
         const results = await searchCitiesHybrid(query, countryCode);
         console.log('🔍 Search Results:', results);
+        console.log('🔍 First result structure:', results[0]);
         
         if (results.length > 0) {
           setSearchResults(results);
@@ -499,8 +500,14 @@ const NewPostForm = ({ user, countries, categories, flOptions }) => {
               _id: city.id || city._id
             }));
             
-            setSearchResults(localResults);
-            setShowSearchResults(localResults.length > 0);
+            if (localResults.length > 0) {
+              setSearchResults(localResults);
+              setShowSearchResults(true);
+            } else {
+              // Show a message that no cities were found
+              setSearchResults([]);
+              setShowSearchResults(true);
+            }
           }
         }
       } catch (error) {
@@ -984,10 +991,17 @@ const NewPostForm = ({ user, countries, categories, flOptions }) => {
                           left: 0,
                           right: 0,
                           zIndex: 1000,
-                          backgroundColor: theme.palette.background.paper,
-                          border: `1px solid ${theme.palette.divider}`,
+                          backgroundColor: theme.palette.mode === 'dark' 
+                            ? 'rgba(18, 18, 18, 0.95)' 
+                            : 'rgba(255, 255, 255, 0.95)',
+                          backdropFilter: 'blur(10px)',
+                          border: `1px solid ${theme.palette.mode === 'dark' 
+                            ? 'rgba(255, 255, 255, 0.2)' 
+                            : 'rgba(0, 0, 0, 0.1)'}`,
                           borderRadius: 2,
-                          boxShadow: theme.shadows[4],
+                          boxShadow: theme.palette.mode === 'dark'
+                            ? '0 8px 32px rgba(0, 0, 0, 0.5)'
+                            : '0 8px 32px rgba(0, 0, 0, 0.1)',
                           maxHeight: 300,
                           overflow: 'auto',
                           mt: 0.5
@@ -1003,22 +1017,28 @@ const NewPostForm = ({ user, countries, categories, flOptions }) => {
                                 cursor: 'pointer',
                                 borderBottom: index < searchResults.length - 1 ? `1px solid ${theme.palette.divider}` : 'none',
                                 '&:hover': {
-                                  backgroundColor: theme.palette.action.hover,
+                                  backgroundColor: theme.palette.mode === 'dark' 
+                                    ? 'rgba(255, 255, 255, 0.1)' 
+                                    : 'rgba(0, 0, 0, 0.05)',
+                                  transform: 'translateX(4px)',
+                                  transition: 'all 0.2s ease-in-out'
                                 },
                                 display: 'flex',
                                 alignItems: 'center',
-                                gap: 1
+                                gap: 1,
+                                transition: 'all 0.2s ease-in-out'
                               }}
                             >
                               <LocationOn fontSize="small" color="primary" />
                               <Box>
                                 <Typography variant="body2" sx={{ fontWeight: 500 }}>
-                                  {city.label || city.name || 'Unknown City'}
+                                  {city.label || city.labels?.en || city.name || city.code || 'Unknown City'}
                                 </Typography>
                                 <Typography variant="caption" color="text.secondary">
                                   {city.source === 'database' ? 'From Database' : 'From GeoNames'} 
                                   {city.isCapital && ` • Capital`}
                                   {city.population && ` • ${city.population.toLocaleString()} people`}
+                                  {city.labels?.ar && ` • ${city.labels.ar}`}
                                 </Typography>
                               </Box>
                             </Box>
