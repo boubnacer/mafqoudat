@@ -1,6 +1,7 @@
 const City = require("../models/City");
 const Country = require("../models/Country");
 const TranslationService = require("../services/translationService");
+const geonamesService = require("../services/geonamesService");
 const { cacheService } = require("../config/cache");
 
 const getCities = async (req, res) => {
@@ -111,6 +112,24 @@ const searchCities = async (req, res) => {
       });
     }
 
+    // Generate cache key for hybrid search
+    const cacheKey = cacheService.generateKey('cities-hybrid-search', {
+      q: q.toLowerCase(),
+      language,
+      countryCode,
+      limit
+    });
+
+    // Check cache first
+    const cachedResult = await cacheService.get(cacheKey);
+    if (cachedResult) {
+      console.log('📦 Hybrid search served from cache');
+      return res.json(cachedResult);
+    }
+
+    console.log(`🔍 Hybrid search: "${q}" in ${countryCode || 'all countries'} (${language})`);
+
+    // Step 1: Search local database first
     let query = {
       $text: { $search: q },
       $or: [
@@ -120,42 +139,115 @@ const searchCities = async (req, res) => {
     };
 
     // Filter by country if specified
+    let country = null;
     if (countryCode) {
-      const country = await Country.findOne({ code: countryCode.toUpperCase() });
+      country = await Country.findOne({ code: countryCode.toUpperCase() });
       if (country) {
         query.country = country._id;
       }
     }
 
-    const cities = await City.find(query)
+    const localCities = await City.find(query)
       .populate('country', 'code labels flag')
-      .select('code labels isCapital country')
+      .select('code labels isCapital country isDynamic')
       .limit(parseInt(limit))
       .lean()
       .exec();
 
-    const transformedCities = cities.map(city => ({
-      _id: city._id,
-      code: city.code,
-      label: city.labels[language] || city.labels.en,
-      labels: city.labels,
-      isCapital: city.isCapital,
-      country: city.country ? {
-        _id: city.country._id,
-        code: city.country.code,
-        label: city.country.labels[language] || city.country.labels.en,
-        labels: city.country.labels,
-        flag: city.country.flag
-      } : null
-    }));
+    console.log(`📊 Local database found ${localCities.length} cities`);
 
-    res.json({
+    let allCities = [...localCities];
+    let apiCities = [];
+
+    // Step 2: If we need more results or found few local results, search GeoNames API
+    if (localCities.length < parseInt(limit) && countryCode) {
+      try {
+        console.log(`🌐 Searching GeoNames API for more cities...`);
+        apiCities = await geonamesService.searchCities(q, countryCode, language);
+        
+        // Filter out cities that already exist in our database
+        const existingCityNames = localCities.map(city => 
+          city.labels[language]?.toLowerCase() || city.labels.en?.toLowerCase()
+        );
+        
+        apiCities = apiCities.filter(apiCity => {
+          const apiCityName = apiCity.labels[language]?.toLowerCase() || apiCity.labels.en?.toLowerCase();
+          return !existingCityNames.includes(apiCityName);
+        });
+
+        console.log(`🌐 GeoNames API found ${apiCities.length} additional cities`);
+        
+        // Add API cities to results (limit total results)
+        const remainingSlots = parseInt(limit) - localCities.length;
+        allCities = [...localCities, ...apiCities.slice(0, remainingSlots)];
+
+      } catch (apiError) {
+        console.warn('⚠️ GeoNames API error:', apiError.message);
+        // Continue with local results only
+      }
+    }
+
+    // Step 3: Transform results
+    const transformedCities = allCities.map(city => {
+      // Handle both local database cities and API cities
+      if (city._id) {
+        // Local database city
+        return {
+          _id: city._id,
+          code: city.code,
+          label: city.labels[language] || city.labels.en,
+          labels: city.labels,
+          isCapital: city.isCapital,
+          isDynamic: city.isDynamic || false,
+          source: 'database',
+          country: city.country ? {
+            _id: city.country._id,
+            code: city.country.code,
+            label: city.country.labels[language] || city.country.labels.en,
+            labels: city.country.labels,
+            flag: city.country.flag
+          } : null
+        };
+      } else {
+        // API city
+        return {
+          _id: null, // No database ID for API cities
+          code: city.code,
+          label: city.labels[language] || city.labels.en,
+          labels: city.labels,
+          isCapital: city.isCapital,
+          isDynamic: true,
+          source: 'api',
+          population: city.population,
+          coordinates: city.coordinates,
+          country: country ? {
+            _id: country._id,
+            code: country.code,
+            label: country.labels[language] || country.labels.en,
+            labels: country.labels,
+            flag: country.flag
+          } : null
+        };
+      }
+    });
+
+    const response = {
       success: true,
       data: transformedCities,
-      total: transformedCities.length
-    });
+      total: transformedCities.length,
+      sources: {
+        database: localCities.length,
+        api: apiCities.length
+      },
+      geonamesStats: geonamesService.getUsageStats()
+    };
+
+    // Cache the response for 1 hour (shorter cache for search results)
+    await cacheService.set(cacheKey, response, 3600);
+
+    res.json(response);
   } catch (error) {
-    console.error('Error searching cities:', error);
+    console.error('Error in hybrid city search:', error);
     res.status(500).json({ 
       success: false,
       message: "Failed to search cities",
@@ -542,6 +634,61 @@ const createDynamicCity = async (req, res) => {
   }
 };
 
+// Smart caching function for API results
+const shouldCacheCity = (city, searchCount = 1) => {
+  // Cache cities that meet certain criteria
+  const criteria = [
+    city.population > 10000, // Cities with significant population
+    city.isCapital, // Capital cities
+    searchCount > 2, // Frequently searched cities
+    city.fcode === 'PPLA' || city.fcode === 'PPLA2' // Administrative centers
+  ];
+  
+  return criteria.some(criterion => criterion);
+};
+
+// Cache API city to database
+const cacheApiCityToDatabase = async (apiCity, countryId) => {
+  try {
+    // Check if city already exists
+    const existingCity = await City.findOne({
+      country: countryId,
+      $or: [
+        { "labels.en": { $regex: new RegExp(apiCity.labels.en, 'i') } },
+        { "labels.ar": { $regex: new RegExp(apiCity.labels.ar, 'i') } },
+        { "labels.fr": { $regex: new RegExp(apiCity.labels.fr, 'i') } }
+      ]
+    });
+
+    if (existingCity) {
+      return existingCity;
+    }
+
+    // Create new city from API data
+    const newCity = new City({
+      code: apiCity.code,
+      country: countryId,
+      labels: apiCity.labels,
+      isCapital: apiCity.isCapital,
+      isActive: true,
+      isDynamic: true,
+      population: apiCity.population,
+      searchTerms: apiCity.searchTerms || []
+    });
+
+    await newCity.save();
+    console.log(`💾 Cached API city to database: ${apiCity.labels.en}`);
+    
+    // Invalidate cache
+    await cacheService.invalidatePattern('cities*');
+    
+    return newCity;
+  } catch (error) {
+    console.error('Error caching API city:', error);
+    return null;
+  }
+};
+
 // Search cities by name (for the "Other" option)
 const searchCitiesByName = async (req, res) => {
   try {
@@ -586,6 +733,60 @@ const searchCitiesByName = async (req, res) => {
   }
 };
 
+// Cache API city endpoint (for manual caching of popular cities)
+const cacheApiCity = async (req, res) => {
+  try {
+    const { apiCity, countryId } = req.body;
+
+    if (!apiCity || !countryId) {
+      return res.status(400).json({
+        success: false,
+        message: "API city data and country ID are required"
+      });
+    }
+
+    const cachedCity = await cacheApiCityToDatabase(apiCity, countryId);
+    
+    if (cachedCity) {
+      res.json({
+        success: true,
+        message: "City cached successfully",
+        data: cachedCity
+      });
+    } else {
+      res.status(500).json({
+        success: false,
+        message: "Failed to cache city"
+      });
+    }
+  } catch (error) {
+    console.error('Error caching API city:', error);
+    res.status(500).json({
+      success: false,
+      message: "Failed to cache city",
+      error: error.message
+    });
+  }
+};
+
+// Get GeoNames API usage statistics
+const getGeonamesStats = async (req, res) => {
+  try {
+    const stats = geonamesService.getUsageStats();
+    res.json({
+      success: true,
+      data: stats
+    });
+  } catch (error) {
+    console.error('Error getting GeoNames stats:', error);
+    res.status(500).json({
+      success: false,
+      message: "Failed to get GeoNames statistics",
+      error: error.message
+    });
+  }
+};
+
 module.exports = {
   getCities,
   searchCities,
@@ -594,5 +795,9 @@ module.exports = {
   updateCity,
   deleteCity,
   createDynamicCity,
-  searchCitiesByName
+  searchCitiesByName,
+  cacheApiCity,
+  getGeonamesStats,
+  shouldCacheCity,
+  cacheApiCityToDatabase
 };

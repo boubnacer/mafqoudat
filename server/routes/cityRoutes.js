@@ -21,6 +21,10 @@ router
   .route("/country/:countryId")
   .get(staticDataCache('cities-by-country'), cityController.getCitiesByCountry);
 
+router
+  .route("/geonames-stats")
+  .get(cityController.getGeonamesStats);
+
 // Protected routes - authentication required
 router.use(verifyJWT);
 
@@ -31,6 +35,10 @@ router
 router
   .route("/dynamic")
   .post(cityController.createDynamicCity);
+
+router
+  .route("/cache-api")
+  .post(cityController.cacheApiCity);
 
 router
   .route("/:id")
