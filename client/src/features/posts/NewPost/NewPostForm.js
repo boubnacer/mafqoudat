@@ -959,40 +959,33 @@ const NewPostForm = ({ user, countries, categories, flOptions }) => {
                   )}
                   
                   <Box sx={{ position: 'relative' }} data-testid="city-dropdown">
-                    {/* City Input with Dropdown Toggle */}
-                    <TextField
+                    {/* City Selection Button */}
+                    <Button
                       fullWidth
-                      placeholder={t('searchCityPlaceholder') || "Search or select a city..."}
-                      value={citySearchQuery}
-                      onChange={handleCitySearchChange}
-                      disabled={!selectedCountry}
-                      data-testid="city-search"
+                      variant="outlined"
                       onClick={handleCityDropdownToggle}
+                      disabled={!selectedCountry}
+                      data-testid="city-select-button"
                       sx={{
                         borderRadius: 2,
-                        '& .MuiOutlinedInput-root': {
-                          '&:hover fieldset': {
-                            borderColor: theme.palette.mode === 'dark' ? 'rgba(255,255,255,0.5)' : 'rgba(0,0,0,0.4)',
-                          },
-                          '&.Mui-focused fieldset': {
-                            borderColor: theme.palette.mode === 'dark' ? '#4CAF50' : '#2E7D32',
-                          },
-                          '& fieldset': {
-                            borderColor: theme.palette.mode === 'dark' ? 'rgba(255,255,255,0.3)' : 'rgba(0,0,0,0.2)',
-                          },
-                          color: theme.palette.text.primary,
-                          fontWeight: 500,
-                          cursor: 'pointer'
+                        borderColor: theme.palette.mode === 'dark' ? 'rgba(255,255,255,0.3)' : 'rgba(0,0,0,0.2)',
+                        color: theme.palette.text.primary,
+                        fontWeight: 500,
+                        textTransform: 'none',
+                        justifyContent: 'flex-start',
+                        padding: '16px 14px',
+                        '&:hover': {
+                          borderColor: theme.palette.mode === 'dark' ? 'rgba(255,255,255,0.5)' : 'rgba(0,0,0,0.4)',
+                        },
+                        '&:focus': {
+                          borderColor: theme.palette.mode === 'dark' ? '#4CAF50' : '#2E7D32',
                         }
                       }}
-                      InputProps={{
-                        endAdornment: isSearching ? (
-                          <CircularProgress size={20} />
-                        ) : (
-                          <LocationOn sx={{ color: theme.palette.text.secondary }} />
-                        )
-                      }}
-                    />
+                      startIcon={<LocationOn sx={{ color: theme.palette.text.secondary }} />}
+                      endIcon={isSearching ? <CircularProgress size={20} /> : null}
+                    >
+                      {citySearchQuery || (currentLanguage === 'ar' ? 'اختر مدينة...' : currentLanguage === 'fr' ? 'Sélectionner une ville...' : 'Select a city...')}
+                    </Button>
 
                     {/* Unified City Dropdown */}
                     {showCityDropdown && selectedCountry && (
@@ -1014,6 +1007,32 @@ const NewPostForm = ({ user, countries, categories, flOptions }) => {
                           mt: 0.5
                         }}
                       >
+                        {/* Search Bar Inside Dropdown */}
+                        <Box sx={{ p: 2, borderBottom: `1px solid ${theme.palette.divider}` }}>
+                          <TextField
+                            fullWidth
+                            size="small"
+                            placeholder={currentLanguage === 'ar' ? 'ابحث عن مدينة...' : currentLanguage === 'fr' ? 'Rechercher une ville...' : 'Search cities...'}
+                            value={citySearchQuery}
+                            onChange={handleCitySearchChange}
+                            sx={{
+                              '& .MuiOutlinedInput-root': {
+                                '& fieldset': {
+                                  borderColor: theme.palette.mode === 'dark' ? 'rgba(255,255,255,0.3)' : 'rgba(0,0,0,0.2)',
+                                },
+                                '&:hover fieldset': {
+                                  borderColor: theme.palette.mode === 'dark' ? 'rgba(255,255,255,0.5)' : 'rgba(0,0,0,0.4)',
+                                },
+                                '&.Mui-focused fieldset': {
+                                  borderColor: theme.palette.mode === 'dark' ? '#4CAF50' : '#2E7D32',
+                                }
+                              }
+                            }}
+                            InputProps={{
+                              startAdornment: <LocationOn sx={{ color: theme.palette.text.secondary, mr: 1 }} />
+                            }}
+                          />
+                        </Box>
 
                         {/* Cities List */}
                         <Box sx={{ maxHeight: 300, overflow: 'auto' }}>
