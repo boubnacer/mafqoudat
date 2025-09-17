@@ -911,18 +911,34 @@ const NewPostForm = ({ user, countries, categories, flOptions }) => {
                     
                     {/* Debug info */}
                     {process.env.NODE_ENV === 'development' && selectedCountry && (
-                      <Typography 
-                        variant="caption" 
-                        sx={{ 
-                          mb: 1, 
-                          display: "block", 
-                          fontSize: '0.8rem',
-                          color: theme.palette.mode === 'dark' ? '#ff9800' : '#f57c00',
-                          fontWeight: 500
-                        }}
-                      >
-                        Debug: Country: {selectedCountry.code || selectedCountry.labels?.en || 'No code'} | Cities loaded: {cities.length}
-                      </Typography>
+                      <Box>
+                        <Typography 
+                          variant="caption" 
+                          sx={{ 
+                            mb: 1, 
+                            display: "block", 
+                            fontSize: '0.8rem',
+                            color: theme.palette.mode === 'dark' ? '#ff9800' : '#f57c00',
+                            fontWeight: 500
+                          }}
+                        >
+                          Debug: Country: {selectedCountry.code || selectedCountry.labels?.en || 'No code'} | Cities loaded: {cities.length}
+                        </Typography>
+                        {cities.length > 0 && (
+                          <Typography 
+                            variant="caption" 
+                            sx={{ 
+                              mb: 1, 
+                              display: "block", 
+                              fontSize: '0.7rem',
+                              color: theme.palette.mode === 'dark' ? '#4CAF50' : '#2E7D32',
+                              fontWeight: 500
+                            }}
+                          >
+                            Available cities: {cities.slice(0, 3).map(c => c.label || c.name).join(', ')}{cities.length > 3 ? '...' : ''}
+                          </Typography>
+                        )}
+                      </Box>
                     )}
                   
                   <Box sx={{ position: 'relative' }}>
@@ -960,7 +976,7 @@ const NewPostForm = ({ user, countries, categories, flOptions }) => {
                     />
 
                     {/* Search Results Dropdown */}
-                    {showSearchResults && searchResults.length > 0 && (
+                    {showSearchResults && (
                       <Box
                         sx={{
                           position: 'absolute',
@@ -977,35 +993,48 @@ const NewPostForm = ({ user, countries, categories, flOptions }) => {
                           mt: 0.5
                         }}
                       >
-                        {searchResults.map((city, index) => (
-                          <Box
-                            key={city._id || city.code || index}
-                            onClick={() => handleCitySelectFromSearch(city)}
-                            sx={{
-                              p: 2,
-                              cursor: 'pointer',
-                              borderBottom: index < searchResults.length - 1 ? `1px solid ${theme.palette.divider}` : 'none',
-                              '&:hover': {
-                                backgroundColor: theme.palette.action.hover,
-                              },
-                              display: 'flex',
-                              alignItems: 'center',
-                              gap: 1
-                            }}
-                          >
-                            <LocationOn fontSize="small" color="primary" />
-                            <Box>
-                              <Typography variant="body2" sx={{ fontWeight: 500 }}>
-                                {city.label}
-                              </Typography>
-                              <Typography variant="caption" color="text.secondary">
-                                {city.source === 'database' ? t('fromDatabase') : t('fromGeoNames')} 
-                                {city.isCapital && ` • ${t('capital')}`}
-                                {city.population && ` • ${city.population.toLocaleString()} ${t('people')}`}
-                              </Typography>
+                        {searchResults.length > 0 ? (
+                          searchResults.map((city, index) => (
+                            <Box
+                              key={city._id || city.code || city.id || index}
+                              onClick={() => handleCitySelectFromSearch(city)}
+                              sx={{
+                                p: 2,
+                                cursor: 'pointer',
+                                borderBottom: index < searchResults.length - 1 ? `1px solid ${theme.palette.divider}` : 'none',
+                                '&:hover': {
+                                  backgroundColor: theme.palette.action.hover,
+                                },
+                                display: 'flex',
+                                alignItems: 'center',
+                                gap: 1
+                              }}
+                            >
+                              <LocationOn fontSize="small" color="primary" />
+                              <Box>
+                                <Typography variant="body2" sx={{ fontWeight: 500 }}>
+                                  {city.label || city.name || 'Unknown City'}
+                                </Typography>
+                                <Typography variant="caption" color="text.secondary">
+                                  {city.source === 'database' ? 'From Database' : 'From GeoNames'} 
+                                  {city.isCapital && ` • Capital`}
+                                  {city.population && ` • ${city.population.toLocaleString()} people`}
+                                </Typography>
+                              </Box>
                             </Box>
+                          ))
+                        ) : (
+                          <Box sx={{ p: 2, textAlign: 'center' }}>
+                            <Typography variant="body2" color="text.secondary">
+                              {isSearching ? 'Searching...' : 'No cities found'}
+                            </Typography>
+                            {!isSearching && (
+                              <Typography variant="caption" color="text.secondary" sx={{ mt: 1, display: 'block' }}>
+                                Try a different search term or add a new city
+                              </Typography>
+                            )}
                           </Box>
-                        ))}
+                        )}
                       </Box>
                     )}
 
