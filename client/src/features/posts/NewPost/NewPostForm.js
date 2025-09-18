@@ -479,6 +479,11 @@ const NewPostForm = ({ user, countries, categories, flOptions }) => {
     const query = event.target.value;
     setCitySearchQuery(query);
     
+    // Always show dropdown when there's a query
+    if (query.trim().length > 0) {
+      setShowCityDropdown(true);
+    }
+    
     // Get country code from selectedCountry object
     const countryCode = selectedCountry?.code || selectedCountry?.labels?.en || selectedCountry?.names?.en;
     
@@ -527,6 +532,17 @@ const NewPostForm = ({ user, countries, categories, flOptions }) => {
       } finally {
         setIsSearching(false);
       }
+    } else if (query.length > 0) {
+      // Show local filtered results for shorter queries
+      const localResults = cities.filter(city => 
+        city.label?.toLowerCase().includes(query.toLowerCase()) ||
+        city.name?.toLowerCase().includes(query.toLowerCase())
+      ).map(city => ({
+        ...city,
+        source: 'database',
+        _id: city.id || city._id
+      }));
+      setSearchResults(localResults);
     } else {
       setSearchResults([]);
     }
@@ -556,7 +572,12 @@ const NewPostForm = ({ user, countries, categories, flOptions }) => {
   // Handle dropdown toggle
   const handleCityDropdownToggle = () => {
     setShowCityDropdown(!showCityDropdown);
-    // Don't reset search when opening - let both search bars work together
+    // If opening dropdown and there's a search query, ensure results are shown
+    if (!showCityDropdown && citySearchQuery.trim().length > 0) {
+      // Trigger search again to ensure results are displayed
+      const event = { target: { value: citySearchQuery } };
+      handleCitySearchChange(event);
+    }
   };
 
   // Create custom city in backend
@@ -955,8 +976,7 @@ const NewPostForm = ({ user, countries, categories, flOptions }) => {
                   )}
                   
                   <Box sx={{ 
-                    position: 'relative',
-                    zIndex: '99999 !important'
+                    position: 'relative'
                   }} data-testid="city-dropdown">
                     {/* City Search Input */}
                     <TextField
