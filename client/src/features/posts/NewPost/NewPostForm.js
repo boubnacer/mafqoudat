@@ -1041,12 +1041,12 @@ const NewPostForm = ({ user, countries, categories, flOptions }) => {
                                   sx={{
                                     p: 2,
                                     cursor: 'pointer',
-                                    backgroundColor: theme.palette.background.paper,
+                                    backgroundColor: theme.palette.mode === 'dark' ? '#1a1a1a' : '#ffffff',
                                     borderBottom: index < searchResults.length - 1 ? `1px solid ${theme.palette.divider}` : 'none',
                                     position: 'relative',
                                     zIndex: '999999 !important',
                                     '&:hover': {
-                                      backgroundColor: theme.palette.mode === 'dark' ? 'rgba(255,255,255,0.12)' : 'rgba(0,0,0,0.08)',
+                                      backgroundColor: theme.palette.mode === 'dark' ? '#2a2a2a' : '#f5f5f5',
                                       transform: 'translateX(4px)',
                                       transition: 'all 0.2s ease-in-out'
                                     },
@@ -1080,7 +1080,7 @@ const NewPostForm = ({ user, countries, categories, flOptions }) => {
                             <Box sx={{ 
                               p: 3, 
                               textAlign: 'center',
-                              backgroundColor: theme.palette.background.paper,
+                              backgroundColor: theme.palette.mode === 'dark' ? '#1a1a1a' : '#ffffff',
                               position: 'relative',
                               zIndex: '999999 !important'
                             }}>
@@ -1107,12 +1107,12 @@ const NewPostForm = ({ user, countries, categories, flOptions }) => {
                                     sx={{
                                       p: 2,
                                       cursor: 'pointer',
-                                      backgroundColor: theme.palette.background.paper,
+                                      backgroundColor: theme.palette.mode === 'dark' ? '#1a1a1a' : '#ffffff',
                                       borderBottom: index < filteredCities.length - 1 ? `1px solid ${theme.palette.divider}` : 'none',
                                       position: 'relative',
                                       zIndex: '999999 !important',
                                       '&:hover': {
-                                        backgroundColor: theme.palette.mode === 'dark' ? 'rgba(255,255,255,0.12)' : 'rgba(0,0,0,0.08)',
+                                        backgroundColor: theme.palette.mode === 'dark' ? '#2a2a2a' : '#f5f5f5',
                                         transform: 'translateX(4px)',
                                         transition: 'all 0.2s ease-in-out'
                                       },
