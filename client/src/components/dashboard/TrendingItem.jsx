@@ -409,6 +409,7 @@ const TrendingItem = ({ trend, isLoading }) => {
                   gap: 0.5,
                   backdropFilter: 'blur(10px)',
                   border: `1px solid ${theme.palette.mode === 'dark' ? alpha(categoryStyle.main, 0.3) : categoryStyle.main}`,
+                  zIndex: 11, // Higher z-index for category badge (same as RecentPosts)
                 }}
               >
                 <RenderIcon 
@@ -422,7 +423,7 @@ const TrendingItem = ({ trend, isLoading }) => {
                   sx={{
                     color: theme.palette.mode === 'dark' ? categoryStyle.main : categoryStyle.text,
                     fontSize: { xs: '14px', sm: '14px' },
-                    fontWeight: 600,
+                    fontWeight: 700, // Changed from 600 to 700 (same as RecentPosts)
                     lineHeight: 1,
                   }}
                 >
