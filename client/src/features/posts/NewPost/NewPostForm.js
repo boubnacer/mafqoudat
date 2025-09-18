@@ -1026,6 +1026,7 @@ const NewPostForm = ({ user, countries, categories, flOptions }) => {
                                   sx={{
                                     p: 2,
                                     cursor: 'pointer',
+                                    backgroundColor: theme.palette.background.paper,
                                     borderBottom: index < searchResults.length - 1 ? `1px solid ${theme.palette.divider}` : 'none',
                                     '&:hover': {
                                       backgroundColor: theme.palette.mode === 'dark' ? 'rgba(255,255,255,0.12)' : 'rgba(0,0,0,0.08)',
@@ -1045,7 +1046,6 @@ const NewPostForm = ({ user, countries, categories, flOptions }) => {
                                     </Typography>
                                     <Typography variant="caption" color="text.secondary">
                                       {city.isCapital && `${t('capital') || 'Capital'}`}
-                                      {city.population && ` • ${city.population.toLocaleString()} ${t('people') || 'people'}`}
                                       {city.labels?.ar && ` • ${city.labels.ar}`}
                                     </Typography>
                                   </Box>
@@ -1077,6 +1077,7 @@ const NewPostForm = ({ user, countries, categories, flOptions }) => {
                                     sx={{
                                       p: 2,
                                       cursor: 'pointer',
+                                      backgroundColor: theme.palette.background.paper,
                                       borderBottom: index < filteredCities.length - 1 ? `1px solid ${theme.palette.divider}` : 'none',
                                       '&:hover': {
                                         backgroundColor: theme.palette.mode === 'dark' ? 'rgba(255,255,255,0.12)' : 'rgba(0,0,0,0.08)',
