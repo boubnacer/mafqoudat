@@ -1094,7 +1094,13 @@ const NewPostForm = ({ user, countries, categories, flOptions }) => {
                           ) : (
                             <>
                               {/* Show existing cities when not searching */}
-                              <Box sx={{ p: 1, backgroundColor: theme.palette.mode === 'dark' ? 'rgba(255,255,255,0.08)' : 'rgba(0,0,0,0.04)' }}>
+                              <Box sx={{ 
+                                p: 1, 
+                                backgroundColor: theme.palette.mode === 'dark' ? '#1a1a1a' : '#ffffff',
+                                position: 'sticky',
+                                top: 0,
+                                zIndex: 2
+                              }}>
                                 <Typography variant="caption" color="text.secondary" sx={{ fontWeight: 600 }}>
                                   {currentLanguage === 'ar' ? `المدن المتاحة (${filteredCities.length})` : currentLanguage === 'fr' ? `Villes disponibles (${filteredCities.length})` : `Available Cities (${filteredCities.length})`}
                                 </Typography>
@@ -1142,7 +1148,13 @@ const NewPostForm = ({ user, countries, categories, flOptions }) => {
                                   </Box>
                                 ))
                               ) : (
-                                <Box sx={{ p: 3, textAlign: 'center' }}>
+                                <Box sx={{ 
+                                  p: 3, 
+                                  textAlign: 'center',
+                                  backgroundColor: theme.palette.mode === 'dark' ? '#1a1a1a' : '#ffffff',
+                                  position: 'relative',
+                                  zIndex: '999999 !important'
+                                }}>
                                   <Typography variant="body2" color="text.secondary">
                                     {t('noCitiesAvailable') || 'No cities available'}
                                   </Typography>
@@ -1163,13 +1175,13 @@ const NewPostForm = ({ user, countries, categories, flOptions }) => {
                               cursor: 'pointer',
                               color: theme.palette.primary.main,
                               fontWeight: 600,
-                              backgroundColor: theme.palette.mode === 'dark' ? 'rgba(255,255,255,0.08)' : 'rgba(0,0,0,0.04)',
+                              backgroundColor: theme.palette.mode === 'dark' ? '#1a1a1a' : '#ffffff',
                               border: `1px solid ${theme.palette.divider}`,
                               margin: '6px 8px',
                               borderRadius: 2,
                               transition: 'all 0.2s ease-in-out',
                               '&:hover': {
-                                backgroundColor: theme.palette.mode === 'dark' ? 'rgba(255,255,255,0.12)' : 'rgba(0,0,0,0.08)',
+                                backgroundColor: theme.palette.mode === 'dark' ? '#2a2a2a' : '#f5f5f5',
                                 borderColor: theme.palette.primary.main,
                                 transform: 'translateY(-1px)',
                                 boxShadow: theme.shadows[4],
