@@ -954,7 +954,10 @@ const NewPostForm = ({ user, countries, categories, flOptions }) => {
                     </Box>
                   )}
                   
-                  <Box sx={{ position: 'relative' }} data-testid="city-dropdown">
+                  <Box sx={{ 
+                    position: 'relative',
+                    zIndex: '99999 !important'
+                  }} data-testid="city-dropdown">
                     {/* City Search Input */}
                     <TextField
                       fullWidth
@@ -998,7 +1001,7 @@ const NewPostForm = ({ user, countries, categories, flOptions }) => {
                           top: '100%',
                           left: 0,
                           right: 0,
-                          zIndex: 9999,
+                          zIndex: '99999 !important',
                           backgroundColor: theme.palette.background.paper,
                           border: `1px solid ${theme.palette.divider}`,
                           borderRadius: 2,
