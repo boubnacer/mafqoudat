@@ -1108,7 +1108,7 @@ const NewPostForm = ({ user, countries, categories, flOptions }) => {
                                 {t('noCitiesFound') || 'No cities found'}
                               </Typography>
                               <Typography variant="caption" color="text.secondary" sx={{ mt: 1, display: 'block' }}>
-                                {t('tryDifferentSearch') || 'Try a different search term'}
+                                {t('addNewCityName') || 'Add new city name'}
                               </Typography>
                             </Box>
                           ) : (
