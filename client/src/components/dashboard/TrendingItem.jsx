@@ -223,7 +223,7 @@ const TrendingItem = ({ trend, isLoading }) => {
             ? 'linear-gradient(135deg, rgba(18,18,18,0.95) 0%, rgba(28,28,28,0.95) 100%)'
             : '#ffffff',
           backdropFilter: 'blur(10px)',
-          borderRadius: '20px',
+          borderRadius: isMobile ? '12px' : '20px',
           border: `3px solid ${theme.palette.mode === 'dark' ? 'rgba(255,152,0,0.4)' : 'rgba(255,152,0,0.5)'}`,
           overflow: 'hidden',
           transition: 'transform 0.3s ease, box-shadow 0.3s ease',
@@ -247,7 +247,7 @@ const TrendingItem = ({ trend, isLoading }) => {
             right: '-2px',
             bottom: '-2px',
             background: 'linear-gradient(45deg, rgba(255,152,0,0.1), rgba(255,193,7,0.1), rgba(255,152,0,0.1))',
-            borderRadius: '22px',
+            borderRadius: isMobile ? '14px' : '22px',
             zIndex: -1,
             animation: 'trendingGlow 3s ease-in-out infinite alternate',
           },
@@ -366,33 +366,7 @@ const TrendingItem = ({ trend, isLoading }) => {
                 alignItems: 'flex-end',
               }}
             >
-              {/* Category Badge */}
-              <Box
-                sx={{
-                  backgroundColor: theme.palette.mode === 'dark' ? alpha(categoryStyle.main, 0.2) : categoryStyle.background,
-                  padding: { xs: '6px 12px', sm: '6px 12px' },
-                  borderRadius: '12px',
-                  display: 'flex',
-                  alignItems: 'center',
-                  gap: 0.5,
-                  backdropFilter: 'blur(10px)',
-                  border: `1px solid ${theme.palette.mode === 'dark' ? alpha(categoryStyle.main, 0.3) : categoryStyle.main}`,
-                }}
-              >
-                <RenderIcon name={`${categoryname?.toLowerCase()}cate`} sx={{ fontSize: { xs: '18px', sm: '18px' }, color: categoryStyle.main }} />
-                <Typography
-                  sx={{
-                    color: categoryStyle.main,
-                    fontSize: { xs: '14px', sm: '14px' },
-                    fontWeight: 600,
-                    lineHeight: 1,
-                  }}
-                >
-                  {categoryDisplayName}
-                </Typography>
-              </Box>
-              
-              {/* Status Badge */}
+              {/* Status Badge - Moved to top */}
               <Chip
                 icon={<RenderIcon name={`${foundLostStatus.value.toLowerCase()}fl`} sx={{ fontSize: { xs: '16px', sm: '16px' } }} />}
                 label={foundLostStatus.label}
@@ -423,6 +397,32 @@ const TrendingItem = ({ trend, isLoading }) => {
                   }
                 }}
               />
+              
+              {/* Category Badge - Moved to bottom */}
+              <Box
+                sx={{
+                  backgroundColor: theme.palette.mode === 'dark' ? alpha(categoryStyle.main, 0.2) : categoryStyle.background,
+                  padding: { xs: '6px 12px', sm: '6px 12px' },
+                  borderRadius: '12px',
+                  display: 'flex',
+                  alignItems: 'center',
+                  gap: 0.5,
+                  backdropFilter: 'blur(10px)',
+                  border: `1px solid ${theme.palette.mode === 'dark' ? alpha(categoryStyle.main, 0.3) : categoryStyle.main}`,
+                }}
+              >
+                <RenderIcon name={`${categoryname?.toLowerCase()}cate`} sx={{ fontSize: { xs: '18px', sm: '18px' }, color: categoryStyle.main }} />
+                <Typography
+                  sx={{
+                    color: categoryStyle.main,
+                    fontSize: { xs: '14px', sm: '14px' },
+                    fontWeight: 600,
+                    lineHeight: 1,
+                  }}
+                >
+                  {categoryDisplayName}
+                </Typography>
+              </Box>
             </Box>
           </Box>
 
