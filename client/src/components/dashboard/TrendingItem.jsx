@@ -401,7 +401,7 @@ const TrendingItem = ({ trend, isLoading }) => {
               {/* Category Badge - Moved to bottom */}
               <Box
                 sx={{
-                  backgroundColor: theme.palette.mode === 'dark' ? alpha(categoryStyle.main, 0.2) : categoryStyle.background,
+                  backgroundColor: theme.palette.mode === 'dark' ? 'rgb(232, 245, 233)' : categoryStyle.background,
                   padding: { xs: '6px 12px', sm: '6px 12px' },
                   borderRadius: '12px',
                   display: 'flex',
