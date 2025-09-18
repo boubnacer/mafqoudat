@@ -1044,7 +1044,7 @@ const NewPostForm = ({ user, countries, categories, flOptions }) => {
                                     backgroundColor: theme.palette.background.paper,
                                     borderBottom: index < searchResults.length - 1 ? `1px solid ${theme.palette.divider}` : 'none',
                                     position: 'relative',
-                                    zIndex: 3,
+                                    zIndex: '999999 !important',
                                     '&:hover': {
                                       backgroundColor: theme.palette.mode === 'dark' ? 'rgba(255,255,255,0.12)' : 'rgba(0,0,0,0.08)',
                                       transform: 'translateX(4px)',
@@ -1056,12 +1056,19 @@ const NewPostForm = ({ user, countries, categories, flOptions }) => {
                                     transition: 'all 0.2s ease-in-out'
                                   }}
                                 >
-                                  <LocationOn fontSize="small" color="primary" />
-                                  <Box>
-                                    <Typography variant="body2" sx={{ fontWeight: 500 }}>
+                                  <LocationOn fontSize="small" color="primary" sx={{ zIndex: '999999 !important', position: 'relative' }} />
+                                  <Box sx={{ zIndex: '999999 !important', position: 'relative' }}>
+                                    <Typography variant="body2" sx={{ 
+                                      fontWeight: 500,
+                                      zIndex: '999999 !important',
+                                      position: 'relative'
+                                    }}>
                                       {city.label || city.labels?.en || city.name || city.code || 'Unknown City'}
                                     </Typography>
-                                    <Typography variant="caption" color="text.secondary">
+                                    <Typography variant="caption" color="text.secondary" sx={{
+                                      zIndex: '999999 !important',
+                                      position: 'relative'
+                                    }}>
                                       {city.isCapital && `${t('capital') || 'Capital'}`}
                                       {city.labels?.ar && ` • ${city.labels.ar}`}
                                     </Typography>
@@ -1075,7 +1082,7 @@ const NewPostForm = ({ user, countries, categories, flOptions }) => {
                               textAlign: 'center',
                               backgroundColor: theme.palette.background.paper,
                               position: 'relative',
-                              zIndex: 3
+                              zIndex: '999999 !important'
                             }}>
                               <Typography variant="body2" color="text.secondary">
                                 {t('noCitiesFound') || 'No cities found'}
@@ -1102,6 +1109,8 @@ const NewPostForm = ({ user, countries, categories, flOptions }) => {
                                       cursor: 'pointer',
                                       backgroundColor: theme.palette.background.paper,
                                       borderBottom: index < filteredCities.length - 1 ? `1px solid ${theme.palette.divider}` : 'none',
+                                      position: 'relative',
+                                      zIndex: '999999 !important',
                                       '&:hover': {
                                         backgroundColor: theme.palette.mode === 'dark' ? 'rgba(255,255,255,0.12)' : 'rgba(0,0,0,0.08)',
                                         transform: 'translateX(4px)',
@@ -1113,12 +1122,19 @@ const NewPostForm = ({ user, countries, categories, flOptions }) => {
                                       transition: 'all 0.2s ease-in-out'
                                     }}
                                   >
-                                    <LocationOn fontSize="small" color="primary" />
-                                    <Box>
-                                      <Typography variant="body2" sx={{ fontWeight: 500 }}>
+                                    <LocationOn fontSize="small" color="primary" sx={{ zIndex: '999999 !important', position: 'relative' }} />
+                                    <Box sx={{ zIndex: '999999 !important', position: 'relative' }}>
+                                      <Typography variant="body2" sx={{ 
+                                        fontWeight: 500,
+                                        zIndex: '999999 !important',
+                                        position: 'relative'
+                                      }}>
                                         {city.label || city.name || 'Unknown City'}
                                       </Typography>
-                                      <Typography variant="caption" color="text.secondary">
+                                      <Typography variant="caption" color="text.secondary" sx={{
+                                        zIndex: '999999 !important',
+                                        position: 'relative'
+                                      }}>
                                         {city.isCapital && `${t('capital') || 'Capital'}`}
                                         {city.labels?.ar && ` • ${city.labels.ar}`}
                                       </Typography>
