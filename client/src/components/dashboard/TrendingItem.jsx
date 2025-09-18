@@ -419,16 +419,12 @@ const TrendingItem = ({ trend, isLoading }) => {
                   name={`${categoryname?.toLowerCase()}cate`} 
                   sx={{ 
                     fontSize: { xs: '18px', sm: '18px' }, 
-                    color: theme.palette.mode === 'dark' 
-                      ? categoryStyle.main 
-                      : categoryStyle.main 
+                    color: categoryStyle.main
                   }} 
                 />
                 <Typography
                   sx={{
-                    color: theme.palette.mode === 'dark' 
-                      ? '#ffffff' 
-                      : categoryStyle.main,
+                    color: categoryStyle.main,
                     fontSize: { xs: '14px', sm: '14px' },
                     fontWeight: 600,
                     lineHeight: 1,
