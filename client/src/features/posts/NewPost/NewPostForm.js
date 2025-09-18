@@ -1299,7 +1299,7 @@ const NewPostForm = ({ user, countries, categories, flOptions }) => {
                     }}
                   >
                     {currentLanguage === 'ar' 
-                      ? 'أدخل اسم القرية أو المنطقة والموقع الدقيق (مثال: قرية النور، شارع الملك، بجانب المسجد)'
+                      ? 'أدخل اسم أقرب منطقة،قرية أو مدينة والموقع الدقيق (مثال: حي،قرية،مدينة النور، شارع الملك، بجانب المسجد)'
                       : currentLanguage === 'fr'
                         ? 'Entrez le nom du village/quartier et l\'emplacement exact (ex: Village Al-Nour, Rue du Roi, près de la mosquée)'
                         : 'Enter the village/area name and exact location (e.g., Al-Nour Village, King Street, near the mosque)'
