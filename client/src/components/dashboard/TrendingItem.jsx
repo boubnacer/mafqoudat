@@ -401,20 +401,34 @@ const TrendingItem = ({ trend, isLoading }) => {
               {/* Category Badge - Moved to bottom */}
               <Box
                 sx={{
-                  backgroundColor: theme.palette.mode === 'dark' ? alpha(categoryStyle.main, 0.2) : categoryStyle.background,
+                  backgroundColor: theme.palette.mode === 'dark' 
+                    ? alpha('#ffffff', 0.15) 
+                    : categoryStyle.background,
                   padding: { xs: '6px 12px', sm: '6px 12px' },
                   borderRadius: '12px',
                   display: 'flex',
                   alignItems: 'center',
                   gap: 0.5,
                   backdropFilter: 'blur(10px)',
-                  border: `1px solid ${theme.palette.mode === 'dark' ? alpha(categoryStyle.main, 0.3) : categoryStyle.main}`,
+                  border: `1px solid ${theme.palette.mode === 'dark' 
+                    ? alpha(categoryStyle.main, 0.6) 
+                    : categoryStyle.main}`,
                 }}
               >
-                <RenderIcon name={`${categoryname?.toLowerCase()}cate`} sx={{ fontSize: { xs: '18px', sm: '18px' }, color: categoryStyle.main }} />
+                <RenderIcon 
+                  name={`${categoryname?.toLowerCase()}cate`} 
+                  sx={{ 
+                    fontSize: { xs: '18px', sm: '18px' }, 
+                    color: theme.palette.mode === 'dark' 
+                      ? categoryStyle.main 
+                      : categoryStyle.main 
+                  }} 
+                />
                 <Typography
                   sx={{
-                    color: categoryStyle.main,
+                    color: theme.palette.mode === 'dark' 
+                      ? '#ffffff' 
+                      : categoryStyle.main,
                     fontSize: { xs: '14px', sm: '14px' },
                     fontWeight: 600,
                     lineHeight: 1,
