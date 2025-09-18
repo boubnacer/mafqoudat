@@ -998,7 +998,7 @@ const NewPostForm = ({ user, countries, categories, flOptions }) => {
                           top: '100%',
                           left: 0,
                           right: 0,
-                          zIndex: 1000,
+                          zIndex: 9999,
                           backgroundColor: theme.palette.background.paper,
                           border: `1px solid ${theme.palette.divider}`,
                           borderRadius: 2,
@@ -1044,8 +1044,7 @@ const NewPostForm = ({ user, countries, categories, flOptions }) => {
                                       {city.label || city.labels?.en || city.name || city.code || 'Unknown City'}
                                     </Typography>
                                     <Typography variant="caption" color="text.secondary">
-                                      {city.source === 'database' ? t('fromDatabase') || 'From Database' : t('fromGeoNames') || 'From GeoNames'} 
-                                      {city.isCapital && ` • ${t('capital') || 'Capital'}`}
+                                      {city.isCapital && `${t('capital') || 'Capital'}`}
                                       {city.population && ` • ${city.population.toLocaleString()} ${t('people') || 'people'}`}
                                       {city.labels?.ar && ` • ${city.labels.ar}`}
                                     </Typography>
@@ -1096,8 +1095,7 @@ const NewPostForm = ({ user, countries, categories, flOptions }) => {
                                         {city.label || city.name || 'Unknown City'}
                                       </Typography>
                                       <Typography variant="caption" color="text.secondary">
-                                        {t('fromDatabase') || 'From Database'}
-                                        {city.isCapital && ` • ${t('capital') || 'Capital'}`}
+                                        {city.isCapital && `${t('capital') || 'Capital'}`}
                                         {city.labels?.ar && ` • ${city.labels.ar}`}
                                       </Typography>
                                     </Box>
