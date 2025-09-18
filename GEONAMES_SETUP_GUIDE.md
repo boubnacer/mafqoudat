@@ -17,7 +17,7 @@ Before using the hybrid city search feature, you need to set up a GeoNames API a
 2. **Find Username**: Your username will be displayed (e.g., "your_username")
 3. **Copy Username**: Copy this username for the next step
 
-## ⚙️ **Step 3: Configure Environment Variables**
+## ⚙️ **Step 3: Configure Environment Variables** 
 
 ### **For Development:**
 1. **Copy env.example**: `cp server/env.example server/.env`
