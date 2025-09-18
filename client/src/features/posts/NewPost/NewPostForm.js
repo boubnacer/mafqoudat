@@ -1010,11 +1010,23 @@ const NewPostForm = ({ user, countries, categories, flOptions }) => {
                       >
 
                         {/* Cities List */}
-                        <Box sx={{ maxHeight: 300, overflow: 'auto' }}>
+                        <Box sx={{ 
+                          maxHeight: 300, 
+                          overflow: 'auto',
+                          backgroundColor: theme.palette.background.paper,
+                          position: 'relative',
+                          zIndex: 1
+                        }}>
                           {/* Show search results if searching */}
                           {citySearchQuery.trim() && searchResults.length > 0 ? (
                             <>
-                              <Box sx={{ p: 1, backgroundColor: theme.palette.mode === 'dark' ? 'rgba(255,255,255,0.08)' : 'rgba(0,0,0,0.04)' }}>
+                              <Box sx={{ 
+                                p: 1, 
+                                backgroundColor: theme.palette.mode === 'dark' ? 'rgba(255,255,255,0.08)' : 'rgba(0,0,0,0.04)',
+                                position: 'sticky',
+                                top: 0,
+                                zIndex: 2
+                              }}>
                                 <Typography variant="caption" color="text.secondary" sx={{ fontWeight: 600 }}>
                                   {currentLanguage === 'ar' ? 'نتائج البحث' : currentLanguage === 'fr' ? 'Résultats de recherche' : 'Search Results'}
                                 </Typography>
@@ -1028,6 +1040,8 @@ const NewPostForm = ({ user, countries, categories, flOptions }) => {
                                     cursor: 'pointer',
                                     backgroundColor: theme.palette.background.paper,
                                     borderBottom: index < searchResults.length - 1 ? `1px solid ${theme.palette.divider}` : 'none',
+                                    position: 'relative',
+                                    zIndex: 3,
                                     '&:hover': {
                                       backgroundColor: theme.palette.mode === 'dark' ? 'rgba(255,255,255,0.12)' : 'rgba(0,0,0,0.08)',
                                       transform: 'translateX(4px)',
@@ -1053,7 +1067,13 @@ const NewPostForm = ({ user, countries, categories, flOptions }) => {
                               ))}
                             </>
                           ) : citySearchQuery.trim() && searchResults.length === 0 && !isSearching ? (
-                            <Box sx={{ p: 3, textAlign: 'center' }}>
+                            <Box sx={{ 
+                              p: 3, 
+                              textAlign: 'center',
+                              backgroundColor: theme.palette.background.paper,
+                              position: 'relative',
+                              zIndex: 3
+                            }}>
                               <Typography variant="body2" color="text.secondary">
                                 {t('noCitiesFound') || 'No cities found'}
                               </Typography>
