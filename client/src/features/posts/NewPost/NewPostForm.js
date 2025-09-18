@@ -950,10 +950,10 @@ const NewPostForm = ({ user, countries, categories, flOptions }) => {
                     {!selectedCountry 
                       ? t('selectCountryFirst') 
                         : currentLanguage === 'ar' 
-                          ? 'ابحث أو اختر مدينة...'
+                          ? 'اختر أقرب مدينة كبيرة لك (مثل العاصمة أو المحافظة)'
                           : currentLanguage === 'fr'
-                            ? 'Rechercher ou sélectionner une ville...'
-                            : 'Search or select a city...'
+                            ? 'Sélectionnez la grande ville la plus proche de vous (capitale ou province)'
+                            : 'Select the closest major city to you (capital or province)'
                     }
                   </Typography>
                   
@@ -1298,9 +1298,11 @@ const NewPostForm = ({ user, countries, categories, flOptions }) => {
                       fontWeight: 500
                     }}
                   >
-                    {getFoundLostType(values.foundLost) === 'LOST' 
-                      ? t('exactLocationLostPlaceholder') 
-                      : t('exactLocationFoundPlaceholder')
+                    {currentLanguage === 'ar' 
+                      ? 'أدخل اسم القرية أو المنطقة والموقع الدقيق (مثال: قرية النور، شارع الملك، بجانب المسجد)'
+                      : currentLanguage === 'fr'
+                        ? 'Entrez le nom du village/quartier et l\'emplacement exact (ex: Village Al-Nour, Rue du Roi, près de la mosquée)'
+                        : 'Enter the village/area name and exact location (e.g., Al-Nour Village, King Street, near the mosque)'
                     }
                   </Typography>
                   <Textfield 
