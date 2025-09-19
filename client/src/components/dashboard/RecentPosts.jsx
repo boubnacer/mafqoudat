@@ -389,11 +389,11 @@ const RecentPosts = ({ _id, categoryname, exactLocation, image, createdAt, count
             }
           }}
         >
-          {/* Location Info - Only City */}
+          {/* Location Info - City and Exact Location */}
           <Box 
             sx={{ 
               display: 'flex', 
-              alignItems: 'center', 
+              alignItems: 'flex-start', 
               gap: 1.5,
               backgroundColor: isDarkMode ? '#3a3a3a' : '#E9ECEF',
             }}
@@ -404,21 +404,43 @@ const RecentPosts = ({ _id, categoryname, exactLocation, image, createdAt, count
                 height: { xs: 32, sm: 28 },
                 backgroundColor: isDarkMode ? '#000000' : '#F8F9FA',
                 color: isDarkMode ? alpha('#fff', 0.8) : alpha('#000', 0.7),
+                flexShrink: 0,
+                mt: 0.5, // Small top margin to align with first line of text
               }}
             >
               <LocationIcon sx={{ fontSize: { xs: '18px', sm: '16px' } }} />
             </Avatar>
-            <Box>
+            <Box sx={{ flex: 1, minWidth: 0 }}>
               <Typography
                 sx={{
                   color: isDarkMode ? alpha('#fff', 0.9) : alpha('#000', 0.8),
                   fontSize: { xs: '18px', sm: '17px' },
                   fontWeight: 700,
                   lineHeight: 1.2,
+                  mb: 0.5,
                 }}
               >
                 {displayCityName}
               </Typography>
+              {/* Exact Location */}
+              {exactLocation && (
+                <Typography
+                  sx={{
+                    color: isDarkMode ? alpha('#fff', 0.7) : alpha('#000', 0.6),
+                    fontSize: { xs: '14px', sm: '13px' },
+                    fontWeight: 500,
+                    lineHeight: 1.3,
+                    wordBreak: 'break-word',
+                    display: '-webkit-box',
+                    WebkitLineClamp: 2,
+                    WebkitBoxOrient: 'vertical',
+                    overflow: 'hidden',
+                    textOverflow: 'ellipsis',
+                  }}
+                >
+                  {exactLocation}
+                </Typography>
+              )}
             </Box>
           </Box>
         </CardContent>
