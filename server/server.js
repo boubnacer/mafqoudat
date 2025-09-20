@@ -148,6 +148,7 @@ app.use("/cities-api", require("./routes/citiesRoutes"));
 
 app.use("/promotion", require("./routes/promotionRoutes"));
 app.use("/admin", require("./routes/adminRoutes"));
+app.use("/cost-monitoring", require("./routes/costMonitoringRoutes"));
 
 // Database health and monitoring routes
 app.use("/db-health", require("./routes/dbHealthRoutes"));

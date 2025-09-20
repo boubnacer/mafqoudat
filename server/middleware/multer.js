@@ -1,7 +1,7 @@
 const multer = require("multer");
 const path = require("path");
 const fs = require("fs").promises;
-const { uploadToCloudinary } = require("../config/cloudinary");
+const { uploadToCloudinary } = require("../config/optimizedCloudinary");
 
 // Memory-optimized storage configuration
 const storage = multer.memoryStorage();
@@ -47,14 +47,20 @@ const uploadToCloudinaryMiddleware = async (req, res, next) => {
       const tempDir = os.tmpdir();
       tempFilePath = path.join(tempDir, `${Date.now()}-${Math.random().toString(36).substring(7)}-${req.file.originalname}`);
       
+      // Store buffer before clearing it
+      const fileBuffer = req.file.buffer;
+      
       // Write file asynchronously to prevent blocking
-      await fs.writeFile(tempFilePath, req.file.buffer);
+      await fs.writeFile(tempFilePath, fileBuffer);
       
       // Clear the buffer immediately to free memory
       req.file.buffer = null;
       
-      // Upload to Cloudinary
-      const result = await uploadToCloudinary({ path: tempFilePath });
+      // Upload to Cloudinary with optimization
+      const result = await uploadToCloudinary({ 
+        buffer: fileBuffer,
+        path: tempFilePath 
+      });
       
       // Store Cloudinary URL and public_id in request
       req.cloudinaryResult = result;
