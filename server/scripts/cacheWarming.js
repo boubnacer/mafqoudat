@@ -132,13 +132,13 @@ class CacheWarmingService {
       const oneDayAgo = new Date(Date.now() - 24 * 60 * 60 * 1000);
       
       const recentPosts = await Post.find({ 
-        isActive: true,
+        status: 'active',
         createdAt: { $gte: oneDayAgo }
       })
-      .populate('userId', 'username profilePicture')
-      .populate('categoryId', 'code labels color icon')
-      .populate('countryId', 'code labels flag')
-      .populate('cityId', 'name')
+      .populate('user', 'username profilePicture')
+      .populate('category', 'code labels color icon')
+      .populate('country', 'code labels flag')
+      .populate('city', 'name')
       .sort({ createdAt: -1 })
       .limit(50)
       .lean();
@@ -150,11 +150,11 @@ class CacheWarmingService {
       );
       
       // Trending posts (based on views and interactions)
-      const trendingPosts = await Post.find({ isActive: true })
-        .populate('userId', 'username profilePicture')
-        .populate('categoryId', 'code labels color icon')
-        .populate('countryId', 'code labels flag')
-        .populate('cityId', 'name')
+      const trendingPosts = await Post.find({ status: 'active' })
+        .populate('user', 'username profilePicture')
+        .populate('category', 'code labels color icon')
+        .populate('country', 'code labels flag')
+        .populate('city', 'name')
         .sort({ views: -1, createdAt: -1 })
         .limit(20)
         .lean();
@@ -167,8 +167,8 @@ class CacheWarmingService {
       
       // Top countries by post count
       const countryStats = await Post.aggregate([
-        { $match: { isActive: true } },
-        { $group: { _id: '$countryId', count: { $sum: 1 } } },
+        { $match: { status: 'active' } },
+        { $group: { _id: '$country', count: { $sum: 1 } } },
         { $sort: { count: -1 } },
         { $limit: 10 },
         { $lookup: { from: 'countries', localField: '_id', foreignField: '_id', as: 'country' } },
@@ -208,19 +208,21 @@ class CacheWarmingService {
       for (const term of commonSearchTerms) {
         const searchResults = await Post.find({
           $and: [
-            { isActive: true },
+            { status: 'active' },
             {
               $or: [
                 { title: { $regex: term, $options: 'i' } },
-                { description: { $regex: term, $options: 'i' } }
+                { description: { $regex: term, $options: 'i' } },
+                { 'titleLabels.en': { $regex: term, $options: 'i' } },
+                { 'descriptionLabels.en': { $regex: term, $options: 'i' } }
               ]
             }
           ]
         })
-        .populate('userId', 'username profilePicture')
-        .populate('categoryId', 'code labels color icon')
-        .populate('countryId', 'code labels flag')
-        .populate('cityId', 'name')
+        .populate('user', 'username profilePicture')
+        .populate('category', 'code labels color icon')
+        .populate('country', 'code labels flag')
+        .populate('city', 'name')
         .sort({ createdAt: -1 })
         .limit(20)
         .lean();
@@ -251,8 +253,8 @@ class CacheWarmingService {
     try {
       // Get top 10 countries by activity
       const topCountries = await Post.aggregate([
-        { $match: { isActive: true } },
-        { $group: { _id: '$countryId', count: { $sum: 1 } } },
+        { $match: { status: 'active' } },
+        { $group: { _id: '$country', count: { $sum: 1 } } },
         { $sort: { count: -1 } },
         { $limit: 10 },
         { $lookup: { from: 'countries', localField: '_id', foreignField: '_id', as: 'country' } },
@@ -267,40 +269,40 @@ class CacheWarmingService {
         const [trendingPost, recentFounds, recentLosts] = await Promise.all([
           // Trending post
           Post.findOne({ 
-            isActive: true, 
-            countryId: countryId 
+            status: 'active', 
+            country: countryId 
           })
-          .populate('userId', 'username profilePicture')
-          .populate('categoryId', 'code labels color icon')
-          .populate('countryId', 'code labels flag')
-          .populate('cityId', 'name')
+          .populate('user', 'username profilePicture')
+          .populate('category', 'code labels color icon')
+          .populate('country', 'code labels flag')
+          .populate('city', 'name')
           .sort({ views: -1, createdAt: -1 })
           .lean(),
           
           // Recent found posts
           Post.find({ 
-            isActive: true, 
-            countryId: countryId,
-            foundLost: 'found'
+            status: 'active', 
+            country: countryId,
+            foundLost: { $exists: true } // We'll need to check the FoundLost model structure
           })
-          .populate('userId', 'username profilePicture')
-          .populate('categoryId', 'code labels color icon')
-          .populate('countryId', 'code labels flag')
-          .populate('cityId', 'name')
+          .populate('user', 'username profilePicture')
+          .populate('category', 'code labels color icon')
+          .populate('country', 'code labels flag')
+          .populate('city', 'name')
           .sort({ createdAt: -1 })
           .limit(5)
           .lean(),
           
           // Recent lost posts
           Post.find({ 
-            isActive: true, 
-            countryId: countryId,
-            foundLost: 'lost'
+            status: 'active', 
+            country: countryId,
+            foundLost: { $exists: true } // We'll need to check the FoundLost model structure
           })
-          .populate('userId', 'username profilePicture')
-          .populate('categoryId', 'code labels color icon')
-          .populate('countryId', 'code labels flag')
-          .populate('cityId', 'name')
+          .populate('user', 'username profilePicture')
+          .populate('category', 'code labels color icon')
+          .populate('country', 'code labels flag')
+          .populate('city', 'name')
           .sort({ createdAt: -1 })
           .limit(5)
           .lean()

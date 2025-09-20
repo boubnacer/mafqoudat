@@ -333,60 +333,62 @@ class OptimizedCacheService {
       const City = require('../models/City');
       const Post = require('../models/Post');
       
-      // Warm reference data caches (most important for 80% reduction)
-      const warmReferenceData = async () => {
-        // Countries - most frequently accessed
-        const countries = await Country.find({ 
-          $or: [{ isActive: true }, { isActive: null }] 
-        })
-        .select('code labels flag isActive searchTerms')
+  // Warm reference data caches (most important for 80% reduction)
+  const warmReferenceData = async () => {
+    try {
+      // Countries - most frequently accessed
+      const countries = await Country.find({ 
+        $or: [{ isActive: true }, { isActive: null }] 
+      })
+      .select('code labels flag isActive searchTerms')
+      .lean();
+      
+      await this.set(
+        this.generateKey('reference', 'countries', { active: true }),
+        countries,
+        CACHE_TTL.COUNTRIES
+      );
+      
+      // Categories - frequently accessed
+      const categories = await Category.find({ 
+        $or: [{ isActive: true }, { isActive: null }] 
+      })
+      .select('code labels color icon isActive description')
+      .lean();
+      
+      await this.set(
+        this.generateKey('reference', 'categories', { active: true }),
+        categories,
+        CACHE_TTL.CATEGORIES
+      );
+      
+      // Found/Lost options
+      const foundLostOptions = await FoundLost.find({ 
+        $or: [{ isActive: true }, { isActive: null }] 
+      })
+      .select('code labels color icon isActive description')
+      .lean();
+      
+      await this.set(
+        this.generateKey('reference', 'foundlost', { active: true }),
+        foundLostOptions,
+        CACHE_TTL.FOUNDLOST
+      );
+      
+      // Top cities by country (limited to avoid issues)
+      const topCountries = await Country.find({ isActive: true })
+        .select('_id code')
+        .limit(5) // Reduced from 20 to 5 to avoid startup issues
         .lean();
-        
-        await this.set(
-          this.generateKey('reference', 'countries', { active: true }),
-          countries,
-          CACHE_TTL.COUNTRIES
-        );
-        
-        // Categories - frequently accessed
-        const categories = await Category.find({ 
-          $or: [{ isActive: true }, { isActive: null }] 
-        })
-        .select('code labels color icon isActive description')
-        .lean();
-        
-        await this.set(
-          this.generateKey('reference', 'categories', { active: true }),
-          categories,
-          CACHE_TTL.CATEGORIES
-        );
-        
-        // Found/Lost options
-        const foundLostOptions = await FoundLost.find({ 
-          $or: [{ isActive: true }, { isActive: null }] 
-        })
-        .select('code labels color icon isActive description')
-        .lean();
-        
-        await this.set(
-          this.generateKey('reference', 'foundlost', { active: true }),
-          foundLostOptions,
-          CACHE_TTL.FOUNDLOST
-        );
-        
-        // Top cities by country (most accessed)
-        const topCountries = await Country.find({ isActive: true })
-          .select('_id code')
-          .limit(20)
-          .lean();
-        
-        for (const country of topCountries) {
+      
+      for (const country of topCountries) {
+        try {
           const cities = await City.find({ 
             countryId: country._id,
             $or: [{ isActive: true }, { isActive: null }]
           })
           .select('name countryId isActive')
-          .limit(50)
+          .limit(20) // Reduced from 50 to 20
           .lean();
           
           await this.set(
@@ -394,30 +396,32 @@ class OptimizedCacheService {
             cities,
             CACHE_TTL.CITIES
           );
+        } catch (error) {
+          console.error(`❌ Failed to cache cities for country ${country._id}:`, error.message);
         }
-        
-        console.log('✅ Reference data cache warming completed');
-      };
+      }
       
-      // Warm dynamic data caches
+      console.log('✅ Reference data cache warming completed');
+    } catch (error) {
+      console.error('❌ Reference data warming failed:', error);
+      throw error;
+    }
+  };
+      
+      // Warm dynamic data caches (disabled to prevent startup issues)
       const warmDynamicData = async () => {
-        // Recent posts for dashboard
-        const recentPosts = await Post.find({ isActive: true })
-          .populate('userId', 'username profilePicture')
-          .populate('categoryId', 'code labels color icon')
-          .populate('countryId', 'code labels flag')
-          .populate('cityId', 'name')
-          .sort({ createdAt: -1 })
-          .limit(20)
-          .lean();
-        
-        await this.set(
-          this.generateKey('dynamic', 'recent-posts', { limit: 20 }),
-          recentPosts,
-          CACHE_TTL.POSTS
-        );
-        
-        console.log('✅ Dynamic data cache warming completed');
+        try {
+          console.log('⚠️  Dynamic data warming disabled to prevent startup issues');
+          console.log('💡 Use manual cache warming after startup if needed');
+          // Dynamic data warming disabled to prevent populate errors
+          // await this.set(
+          //   this.generateKey('dynamic', 'recent-posts', { limit: 20 }),
+          //   recentPosts,
+          //   CACHE_TTL.POSTS
+          // );
+        } catch (error) {
+          console.error('❌ Dynamic data warming failed:', error);
+        }
       };
       
       // Execute warming
@@ -583,20 +587,28 @@ const scheduleCacheWarming = () => {
   // Reference data warming every 4 hours
   setInterval(async () => {
     console.log('🔄 Scheduled reference data cache warming...');
-    await warmCache(false);
+    try {
+      await warmCache(false);
+    } catch (error) {
+      console.error('❌ Scheduled cache warming failed:', error);
+    }
   }, 4 * 60 * 60 * 1000); // 4 hours
   
   // Dynamic data warming every hour
   setInterval(async () => {
     console.log('🔄 Scheduled dynamic data cache warming...');
-    await warmCache(true);
+    try {
+      await warmCache(true);
+    } catch (error) {
+      console.error('❌ Scheduled dynamic cache warming failed:', error);
+    }
   }, 60 * 60 * 1000); // 1 hour
   
-  // Initial warming on startup
-  setTimeout(() => {
-    console.log('🚀 Initial cache warming on startup...');
-    warmCache(true);
-  }, 5000); // 5 seconds after startup
+  // Initial warming on startup (disabled to prevent startup errors)
+  // setTimeout(() => {
+  //   console.log('🚀 Initial cache warming on startup...');
+  //   warmCache(true);
+  // }, 5000); // 5 seconds after startup
 };
 
 // Cache middleware factory with optimizations
