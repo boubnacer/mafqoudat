@@ -28,7 +28,7 @@ const getAllReports = async (req, res) => {
 
     // Get reports with populated data
     const reports = await Report.find(filter)
-      .populate('postId', '_id title description exactLocation contact createdAt status')
+      .populate('postId', '_id description exactLocation contact createdAt status')
       .populate('reportedBy', 'username')
       .populate('reviewedBy', 'username')
       .sort({ [sortBy]: sortOrder })
@@ -92,7 +92,7 @@ const getAllPromotions = async (req, res) => {
       .populate('country', 'labels.en code names.en')
       .populate('foundLost', 'code')
       .populate('city', 'labels.en')
-      .select('_id title description exactLocation contact createdAt promotionRequested promotionRequestedAt promotionProcessed promotionProcessedAt')
+      .select('_id description exactLocation contact createdAt promotionRequested promotionRequestedAt promotionProcessed promotionProcessedAt')
       .sort({ [sortBy]: sortOrder })
       .skip(skip)
       .limit(limit)
@@ -154,7 +154,7 @@ const updateReportStatus = async (req, res) => {
       },
       { new: true }
     )
-      .populate('postId', 'title description exactLocation contact createdAt status')
+      .populate('postId', 'description exactLocation contact createdAt status')
       .populate('reportedBy', 'username')
       .populate('reviewedBy', 'username');
 
@@ -249,7 +249,7 @@ const getAdminDashboard = async (req, res) => {
       Post.countDocuments(),
       User.countDocuments(),
       Report.find({ status: 'pending' })
-        .populate('postId', 'title description')
+        .populate('postId', 'description')
         .populate('reportedBy', 'username')
         .sort({ createdAt: -1 })
         .limit(5)
@@ -330,7 +330,6 @@ const deletePost = async (req, res) => {
       data: {
         deletedPost: {
           id: post._id,
-          title: post.title,
           user: post.user?.username,
           category: post.category?.labels?.en || post.category?.code,
           country: post.country?.labels?.en || post.country?.names?.en,

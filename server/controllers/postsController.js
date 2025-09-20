@@ -1019,7 +1019,7 @@ const updatePost = async (req, res) => {
   await cacheService.invalidatePattern('posts:*');
   await cacheService.invalidatePattern('dashboard:*');
 
-  res.json(`'${updatedPost.title || updatedPost._id}' updated`);
+  res.json(`Post with ID ${updatedPost._id} updated`);
 };
 
 // @desc Delete a post
@@ -1034,7 +1034,7 @@ const deletePost = async (req, res) => {
   }
 
   // Confirm post exists to delete - only select fields needed for deletion (cloudinary cleanup)
-  const post = await Post.findById(id).select('_id cloudinaryPublicId title').exec();
+  const post = await Post.findById(id).select('_id cloudinaryPublicId').exec();
 
   if (!post) {
     return res.status(400).json({ message: "Post not found" });
@@ -1051,7 +1051,7 @@ const deletePost = async (req, res) => {
   await cacheService.invalidatePattern('posts:*');
   await cacheService.invalidatePattern('dashboard:*');
 
-  const reply = `Post '${result.title || result._id}' with ID ${result._id} deleted`;
+  const reply = `Post with ID ${result._id} deleted`;
 
   res.json(reply);
 };

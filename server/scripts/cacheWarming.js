@@ -211,10 +211,8 @@ class CacheWarmingService {
             { status: 'active' },
             {
               $or: [
-                { title: { $regex: term, $options: 'i' } },
                 { description: { $regex: term, $options: 'i' } },
-                { 'titleLabels.en': { $regex: term, $options: 'i' } },
-                { 'descriptionLabels.en': { $regex: term, $options: 'i' } }
+                { exactLocation: { $regex: term, $options: 'i' } }
               ]
             }
           ]

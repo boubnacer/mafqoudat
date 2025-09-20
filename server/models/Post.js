@@ -50,50 +50,9 @@ const postSchema = new mongoose.Schema(
       type: String,
     },
 
-    // Updated to support multilingual content
-    title: {
-      type: String,
-      default: "",
-    },
-    // New multilingual title field
-    titleLabels: {
-      en: {
-        type: String,
-        default: "",
-        trim: true
-      },
-      fr: {
-        type: String,
-        default: "",
-        trim: true
-      },
-      ar: {
-        type: String,
-        default: "",
-        trim: true
-      }
-    },
     description: {
       type: String,
       default: "",
-    },
-    // New multilingual description field
-    descriptionLabels: {
-      en: {
-        type: String,
-        default: "",
-        trim: true
-      },
-      fr: {
-        type: String,
-        default: "",
-        trim: true
-      },
-      ar: {
-        type: String,
-        default: "",
-        trim: true
-      }
     },
     // Promotion fields
     promotionRequested: {
@@ -170,14 +129,8 @@ const postSchema = new mongoose.Schema(
   }
 );
 
-// Index for efficient multilingual search
+// Index for efficient text search
 postSchema.index({ 
-  "titleLabels.en": "text", 
-  "titleLabels.fr": "text", 
-  "titleLabels.ar": "text",
-  "descriptionLabels.en": "text", 
-  "descriptionLabels.fr": "text", 
-  "descriptionLabels.ar": "text",
   "exactLocation": "text",
   "description": "text"
 });
@@ -220,12 +173,8 @@ postSchema.index(
 );
 
 // Virtual for backward compatibility
-postSchema.virtual('titleText').get(function() {
-  return this.title || this.titleLabels?.en || '';
-});
-
 postSchema.virtual('descriptionText').get(function() {
-  return this.description || this.descriptionLabels?.en || '';
+  return this.description || '';
 });
 
 // Virtual for image URL (prioritize Cloudinary URL)
@@ -238,14 +187,9 @@ postSchema.virtual('hasImage').get(function() {
   return !!(this.cloudinaryUrl || this.image);
 });
 
-// Method to get title by language
-postSchema.methods.getTitle = function(language = 'en') {
-  return this.titleLabels?.[language] || this.titleLabels?.en || this.title || '';
-};
-
-// Method to get description by language
-postSchema.methods.getDescription = function(language = 'en') {
-  return this.descriptionLabels?.[language] || this.descriptionLabels?.en || this.description || '';
+// Method to get description
+postSchema.methods.getDescription = function() {
+  return this.description || '';
 };
 
 // Method to increment views

@@ -242,7 +242,6 @@ const postsOptimizationMiddleware = () => {
     fieldProjectionMiddleware({
       // Default fields for posts
       id: true,
-      title: false, // Not used in current schema
       description: true,
       contact: true,
       exactLocation: true,
