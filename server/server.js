@@ -9,12 +9,13 @@ const cookieParser = require("cookie-parser");
 const cors = require("cors");
 const corsOptions = require("./config/corsOptions");
 const connectDB = require("./config/dbConn");
-const { initRedis } = require("./config/cache");
-const { initRedis: initOptimizedRedis, scheduleCacheWarming } = require("./config/optimizedCache");
+// Use unified cache system only
+const { initRedis, scheduleCacheWarming } = require("./config/unifiedCache");
 const mongoose = require("mongoose");
 const helmet = require("helmet");
 const compression = require("compression");
 const { enhancedCompressionMiddleware } = require("./middleware/enhancedCompression");
+const { memoryOptimizer } = require("./utils/memoryOptimizer");
 const PORT = process.env.PORT || 3500;
 
 console.log(process.env.NODE_ENV);
@@ -53,15 +54,9 @@ connectDB().catch(err => {
   process.exit(1);
 });
 
-// Initialize Redis cache
+// Initialize unified Redis cache
 initRedis().catch(err => {
-  console.error('Failed to initialize Redis cache:', err);
-  // Don't exit process, continue with in-memory cache only
-});
-
-// Initialize optimized Redis cache
-initOptimizedRedis().catch(err => {
-  console.error('Failed to initialize optimized Redis cache:', err);
+  console.error('Failed to initialize unified Redis cache:', err);
   // Don't exit process, continue with in-memory cache only
 });
 
@@ -125,19 +120,84 @@ app.use("/cities-api", require("./routes/citiesRoutes"));
 app.use("/promotion", require("./routes/promotionRoutes"));
 app.use("/admin", require("./routes/adminRoutes"));
 
-// Cache management routes
-app.get("/cache/stats", require("./middleware/cacheMiddleware").cacheStatsMiddleware);
-app.delete("/cache/clear", require("./middleware/cacheMiddleware").clearCacheMiddleware);
-
-// Optimized cache management routes
-app.get("/cache/optimized/stats", require("./middleware/optimizedCacheMiddleware").cacheStatsMiddleware);
-app.delete("/cache/optimized/clear", require("./middleware/optimizedCacheMiddleware").clearCacheMiddleware);
-app.post("/cache/optimized/warm", require("./middleware/optimizedCacheMiddleware").warmCacheMiddleware);
-app.get("/cache/optimized/health", async (req, res) => {
+// Unified cache management routes
+app.get("/cache/stats", async (req, res) => {
   try {
-    const { optimizedCacheService } = require("./config/optimizedCache");
-    const health = await optimizedCacheService.healthCheck();
+    const { unifiedCacheService } = require("./config/unifiedCache");
+    const stats = unifiedCacheService.getStats();
+    res.json({ success: true, data: stats });
+  } catch (error) {
+    res.status(500).json({ success: false, message: error.message });
+  }
+});
+
+app.delete("/cache/clear", async (req, res) => {
+  try {
+    const { unifiedCacheService } = require("./config/unifiedCache");
+    const { confirm } = req.query;
+    if (confirm !== 'true') {
+      return res.status(400).json({ 
+        success: false, 
+        message: 'Please add ?confirm=true to clear cache' 
+      });
+    }
+    await unifiedCacheService.clear(true);
+    res.json({ success: true, message: 'Cache cleared successfully' });
+  } catch (error) {
+    res.status(500).json({ success: false, message: error.message });
+  }
+});
+
+app.post("/cache/warm", async (req, res) => {
+  try {
+    const { warmCache } = require("./config/unifiedCache");
+    const result = await warmCache();
+    res.json({ 
+      success: result, 
+      message: result ? 'Cache warming completed' : 'Cache warming failed' 
+    });
+  } catch (error) {
+    res.status(500).json({ success: false, message: error.message });
+  }
+});
+
+app.get("/cache/health", async (req, res) => {
+  try {
+    const { unifiedCacheService } = require("./config/unifiedCache");
+    const health = await unifiedCacheService.healthCheck();
     res.json({ success: true, data: health });
+  } catch (error) {
+    res.status(500).json({ success: false, message: error.message });
+  }
+});
+
+// Memory monitoring endpoints
+app.get("/memory/stats", async (req, res) => {
+  try {
+    const stats = memoryOptimizer.getMemoryStats();
+    res.json({ success: true, data: stats });
+  } catch (error) {
+    res.status(500).json({ success: false, message: error.message });
+  }
+});
+
+app.post("/memory/optimize", async (req, res) => {
+  try {
+    const stats = await memoryOptimizer.optimizeMemory();
+    res.json({ success: true, data: stats, message: 'Memory optimization completed' });
+  } catch (error) {
+    res.status(500).json({ success: false, message: error.message });
+  }
+});
+
+app.get("/memory/report", async (req, res) => {
+  try {
+    const reportPath = await memoryOptimizer.exportMemoryReport();
+    if (reportPath) {
+      res.json({ success: true, message: 'Memory report exported', path: reportPath });
+    } else {
+      res.status(500).json({ success: false, message: 'Failed to export memory report' });
+    }
   } catch (error) {
     res.status(500).json({ success: false, message: error.message });
   }

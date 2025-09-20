@@ -1,0 +1,22 @@
+{
+  "name": "memory-optimization-scripts",
+  "version": "1.0.0",
+  "description": "Memory optimization scripts for Node.js application",
+  "scripts": {
+    "start:memory-optimized": "node --max-old-space-size=512 --expose-gc server.js",
+    "start:production": "NODE_ENV=production node --max-old-space-size=256 --expose-gc server.js",
+    "memory:monitor": "node --expose-gc scripts/monitor-memory.js",
+    "memory:report": "node scripts/generate-memory-report.js",
+    "cache:clear": "curl -X DELETE http://localhost:3500/cache/clear?confirm=true",
+    "cache:stats": "curl http://localhost:3500/cache/stats",
+    "memory:stats": "curl http://localhost:3500/memory/stats",
+    "memory:optimize": "curl -X POST http://localhost:3500/memory/optimize"
+  },
+  "dependencies": {
+    "node-cache": "^5.1.2",
+    "redis": "^4.6.0"
+  },
+  "engines": {
+    "node": ">=16.0.0"
+  }
+}
