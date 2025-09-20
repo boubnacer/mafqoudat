@@ -8,9 +8,12 @@ const errorHandler = require("./middleware/errorHandler");
 const cookieParser = require("cookie-parser");
 const cors = require("cors");
 const corsOptions = require("./config/corsOptions");
-const { connectDB } = require("./config/dbConn");
+const { connectDB, disconnectDB, getConnectionMetrics } = require("./config/dbConn");
 // Use unified cache system only
 const { initRedis, scheduleCacheWarming } = require("./config/unifiedCache");
+
+// Initialize database monitoring
+const { dbMonitor } = require("./utils/dbMonitor");
 const mongoose = require("mongoose");
 const helmet = require("helmet");
 const compression = require("compression");
@@ -42,22 +45,37 @@ process.on('unhandledRejection', (reason, promise) => {
   process.exit(1);
 });
 
-// Graceful shutdown
-process.on('SIGTERM', () => {
-  console.log('SIGTERM received, shutting down gracefully');
-  mongoose.connection.close(() => {
-    console.log('MongoDB connection closed');
-    process.exit(0);
-  });
-});
+// Enhanced graceful shutdown with metrics
+const gracefulShutdown = async (signal) => {
+  console.log(`${signal} received, shutting down gracefully`);
+  
+  try {
+    // Stop database monitoring
+    dbMonitor.stopMonitoring();
+    
+    // Log final connection metrics
+    console.log('📊 Final Connection Metrics:', getConnectionMetrics());
+    
+    // Close database connection gracefully
+    await disconnectDB();
+    
+    // Close server
+    if (server) {
+      server.close(() => {
+        console.log('✅ Server closed successfully');
+        process.exit(0);
+      });
+    } else {
+      process.exit(0);
+    }
+  } catch (error) {
+    console.error('❌ Error during graceful shutdown:', error);
+    process.exit(1);
+  }
+};
 
-process.on('SIGINT', () => {
-  console.log('SIGINT received, shutting down gracefully');
-  mongoose.connection.close(() => {
-    console.log('MongoDB connection closed');
-    process.exit(0);
-  });
-});
+process.on('SIGTERM', () => gracefulShutdown('SIGTERM'));
+process.on('SIGINT', () => gracefulShutdown('SIGINT'));
 
 // Connect to database with error handling
 connectDB().catch(err => {
@@ -130,6 +148,9 @@ app.use("/cities-api", require("./routes/citiesRoutes"));
 
 app.use("/promotion", require("./routes/promotionRoutes"));
 app.use("/admin", require("./routes/adminRoutes"));
+
+// Database health and monitoring routes
+app.use("/db-health", require("./routes/dbHealthRoutes"));
 
 // Unified cache management routes
 app.get("/cache/stats", async (req, res) => {
