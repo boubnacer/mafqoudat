@@ -63,11 +63,6 @@ const smartCompression = (options = {}) => {
   const config = { ...compressionConfig, ...options };
   
   return (req, res, next) => {
-    // Track original response methods
-    const originalJson = res.json;
-    const originalSend = res.send;
-    const originalEnd = res.end;
-    
     // Get content type
     const contentType = res.get('Content-Type') || 'application/json';
     
@@ -100,43 +95,6 @@ const smartCompression = (options = {}) => {
         filter: filter,
         threshold: config.thresholds.minSize
       });
-      
-      // Override response methods to track compression
-      res.json = function(data) {
-        const startTime = Date.now();
-        const originalSize = JSON.stringify(data).length;
-        
-        res.set('X-Original-Size', originalSize.toString());
-        res.set('X-Compression-Level', level.toString());
-        
-        const result = originalJson.call(this, data);
-        
-        // Add compression timing
-        res.on('finish', () => {
-          const compressionTime = Date.now() - startTime;
-          res.set('X-Compression-Time', `${compressionTime}ms`);
-        });
-        
-        return result;
-      };
-      
-      res.send = function(data) {
-        const startTime = Date.now();
-        const originalSize = Buffer.byteLength(data || '', 'utf8');
-        
-        res.set('X-Original-Size', originalSize.toString());
-        res.set('X-Compression-Level', level.toString());
-        
-        const result = originalSend.call(this, data);
-        
-        // Add compression timing
-        res.on('finish', () => {
-          const compressionTime = Date.now() - startTime;
-          res.set('X-Compression-Time', `${compressionTime}ms`);
-        });
-        
-        return result;
-      };
       
       // Apply compression middleware
       compressionMiddleware(req, res, next);
@@ -177,14 +135,17 @@ const compressionStatsMiddleware = (req, res, next) => {
     const originalSize = JSON.stringify(data).length;
     const contentType = res.get('Content-Type') || 'application/json';
     
-    // Add compression statistics
-    res.set('X-Content-Type', contentType);
-    res.set('X-Payload-Size', originalSize.toString());
-    
-    // Add optimization recommendations
-    if (originalSize > compressionConfig.thresholds.warningSize) {
-      res.set('X-Optimization-Warning', 'Large response detected');
-      res.set('X-Optimization-Suggestion', 'Consider implementing pagination or field selection');
+    // Only add headers if response hasn't been sent yet
+    if (!res.headersSent) {
+      // Add compression statistics
+      res.set('X-Content-Type', contentType);
+      res.set('X-Payload-Size', originalSize.toString());
+      
+      // Add optimization recommendations
+      if (originalSize > compressionConfig.thresholds.warningSize) {
+        res.set('X-Optimization-Warning', 'Large response detected');
+        res.set('X-Optimization-Suggestion', 'Consider implementing pagination or field selection');
+      }
     }
     
     return originalJson.call(this, data);
@@ -213,7 +174,11 @@ const responseSizeMonitoring = (options = {}) => {
     
     res.json = function(data) {
       responseSize = JSON.stringify(data).length;
-      addSizeHeaders(res, responseSize, startTime);
+      
+      // Only add headers if response hasn't been sent yet
+      if (!res.headersSent) {
+        addSizeHeaders(res, responseSize, startTime);
+      }
       
       if (logLargeResponses && responseSize > largeResponseThreshold) {
         console.warn(`Large response detected: ${responseSize} bytes for ${req.method} ${req.originalUrl}`);
@@ -224,7 +189,11 @@ const responseSizeMonitoring = (options = {}) => {
     
     res.send = function(data) {
       responseSize = Buffer.byteLength(data || '', 'utf8');
-      addSizeHeaders(res, responseSize, startTime);
+      
+      // Only add headers if response hasn't been sent yet
+      if (!res.headersSent) {
+        addSizeHeaders(res, responseSize, startTime);
+      }
       
       if (logLargeResponses && responseSize > largeResponseThreshold) {
         console.warn(`Large response detected: ${responseSize} bytes for ${req.method} ${req.originalUrl}`);
@@ -266,9 +235,8 @@ function addSizeHeaders(res, size, startTime) {
  */
 const enhancedCompressionMiddleware = (options = {}) => {
   return [
-    compressionStatsMiddleware,
-    responseSizeMonitoring(options),
-    smartCompression(options)
+    smartCompression(options),
+    responseSizeMonitoring(options)
   ];
 };
 

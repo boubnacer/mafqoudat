@@ -89,15 +89,18 @@ const responseCompressionMiddleware = (threshold = 1024) => {
     const originalJson = res.json;
     
     res.json = function(data) {
-      // Check if response should be compressed
-      const shouldCompress = req.accepts('gzip') && 
-                           JSON.stringify(data).length > threshold &&
-                           !res.get('Content-Encoding');
-      
-      if (shouldCompress) {
-        res.set('Content-Encoding', 'gzip');
-        res.set('X-Response-Compressed', 'true');
-        res.set('X-Original-Size', JSON.stringify(data).length);
+      // Only set headers if response hasn't been sent yet
+      if (!res.headersSent) {
+        // Check if response should be compressed
+        const shouldCompress = req.accepts('gzip') && 
+                             JSON.stringify(data).length > threshold &&
+                             !res.get('Content-Encoding');
+        
+        if (shouldCompress) {
+          res.set('Content-Encoding', 'gzip');
+          res.set('X-Response-Compressed', 'true');
+          res.set('X-Original-Size', JSON.stringify(data).length);
+        }
       }
       
       return originalJson.call(this, data);
@@ -209,14 +212,17 @@ const payloadOptimizationMiddleware = (options = {}) => {
           selectedFields: req.selectedFields
         });
         
-        // Add optimization info to headers
-        const originalSize = JSON.stringify(data).length;
-        const optimizedSize = JSON.stringify(optimizedData).length;
-        const reductionPercent = ((originalSize - optimizedSize) / originalSize * 100).toFixed(2);
-        
-        res.set('X-Payload-Original-Size', originalSize.toString());
-        res.set('X-Payload-Optimized-Size', optimizedSize.toString());
-        res.set('X-Payload-Reduction', `${reductionPercent}%`);
+        // Only add headers if response hasn't been sent yet
+        if (!res.headersSent) {
+          // Add optimization info to headers
+          const originalSize = JSON.stringify(data).length;
+          const optimizedSize = JSON.stringify(optimizedData).length;
+          const reductionPercent = ((originalSize - optimizedSize) / originalSize * 100).toFixed(2);
+          
+          res.set('X-Payload-Original-Size', originalSize.toString());
+          res.set('X-Payload-Optimized-Size', optimizedSize.toString());
+          res.set('X-Payload-Reduction', `${reductionPercent}%`);
+        }
         
         return originalJson.call(this, optimizedData);
       } catch (error) {
@@ -289,8 +295,7 @@ const postsOptimizationMiddleware = () => {
       removeEmptyObjects: false,
       compressNestedData: true,
       maxNestingLevel: 3
-    }),
-    responseCompressionMiddleware(1024) // Compress responses > 1KB
+    })
   ];
 };
 

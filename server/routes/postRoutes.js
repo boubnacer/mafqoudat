@@ -107,6 +107,16 @@ router.route("/optimization-test")
     res.json(testData);
   });
 
+// Simple health check endpoint to test header setting
+router.route("/health-check")
+  .get((req, res) => {
+    res.json({
+      status: "OK",
+      timestamp: new Date().toISOString(),
+      message: "Headers should be set correctly without errors"
+    });
+  });
+
 // Protected routes - require authentication
 router.use(verifyJWT);
 
