@@ -50,7 +50,7 @@ const invalidateCache = (patterns = [], dataType = null) => {
           // Add invalidation info to response headers
           res.set('X-Cache-Invalidated', totalInvalidated.toString());
         }
-        return originalJson.call(this, data);
+        return originalJson.call(res, data);
       };
       
       next();
@@ -124,7 +124,7 @@ const paginatedCache = (prefix, ttl = null) => {
           const finalTTL = ttl || CACHE_TTL.POSTS_PAGINATED;
           optimizedCacheService.set(cacheKey, data, finalTTL);
         }
-        return originalJson.call(this, data);
+        return originalJson.call(res, data);
       };
       
       next();
@@ -191,7 +191,7 @@ const searchResultsCache = (prefix, ttl = null) => {
           const finalTTL = ttl || CACHE_TTL.SEARCH_RESULTS;
           optimizedCacheService.set(cacheKey, data, finalTTL);
         }
-        return originalJson.call(this, data);
+        return originalJson.call(res, data);
       };
       
       next();
@@ -240,7 +240,7 @@ const dashboardCacheMiddleware = (prefix) => {
         if (data && !data.error && !data.message?.includes('error')) {
           optimizedCacheService.set(cacheKey, data, CACHE_TTL.DASHBOARD);
         }
-        return originalJson.call(this, data);
+        return originalJson.call(res, data);
       };
       
       next();

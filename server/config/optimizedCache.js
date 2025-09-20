@@ -653,8 +653,8 @@ const createCacheMiddleware = (namespace, prefix, ttl = null, options = {}) => {
         if (data && !data.error && !data.message?.includes('error')) {
           optimizedCacheService.set(cacheKey, data, ttl, options);
         }
-        return originalJson.call(this, data);
-      }.bind(optimizedCacheService);
+        return originalJson.call(res, data);
+      };
       
       next();
     } catch (error) {

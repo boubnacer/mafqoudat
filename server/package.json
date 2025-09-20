@@ -22,6 +22,7 @@
     "monitor-cache": "node scripts/cachePerformanceMonitor.js",
     "test-cache-integration": "node scripts/integrateOptimizedCache.js",
     "test-cache-system": "node scripts/testCacheSystem.js",
+    "test-cache-middleware": "node scripts/testCacheMiddleware.js",
     "build": "echo 'No build step required for Node.js'",
     "postinstall": "echo 'Server dependencies installed'"
   },

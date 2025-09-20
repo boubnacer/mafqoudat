@@ -45,7 +45,7 @@ const cacheMiddleware = (prefix, ttl = CACHE_TTL.DYNAMIC_DATA) => {
         if (data && !data.error) {
           cacheService.set(cacheKey, data, ttl);
         }
-        return originalJson.call(this, data);
+        return originalJson.call(res, data);
       };
       
       next();
@@ -80,7 +80,7 @@ const invalidateCache = (patterns = []) => {
           }
           console.log(`🗑️ Cache invalidated for patterns: ${patterns.join(', ')}`);
         }
-        return originalJson.call(this, data);
+        return originalJson.call(res, data);
       };
       
       next();
@@ -144,7 +144,7 @@ const paginatedCache = (prefix, ttl = CACHE_TTL.DYNAMIC_DATA) => {
         if (data && !data.error) {
           cacheService.set(cacheKey, data, ttl);
         }
-        return originalJson.call(this, data);
+        return originalJson.call(res, data);
       };
       
       next();
