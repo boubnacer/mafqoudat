@@ -14,6 +14,7 @@ const { initRedis: initOptimizedRedis, scheduleCacheWarming } = require("./confi
 const mongoose = require("mongoose");
 const helmet = require("helmet");
 const compression = require("compression");
+const { enhancedCompressionMiddleware } = require("./middleware/enhancedCompression");
 const PORT = process.env.PORT || 3500;
 
 console.log(process.env.NODE_ENV);
@@ -88,8 +89,12 @@ if (process.env.NODE_ENV === 'production') {
   }));
 }
 
-// Compression middleware
-app.use(compression());
+// Enhanced compression middleware with smart optimization
+app.use(...enhancedCompressionMiddleware({
+  logLargeResponses: process.env.NODE_ENV === 'development',
+  largeResponseThreshold: 1024 * 1024, // 1MB
+  enableMetrics: true
+}));
 
 app.use(logger);
 

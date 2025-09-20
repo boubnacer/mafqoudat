@@ -9,6 +9,7 @@ const { deleteFromCloudinary } = require("../config/cloudinary");
 const mongoose = require("mongoose");
 const TranslationService = require("../services/translationService");
 const { cacheService } = require("../config/cache");
+const { optimizePostsResponse, generateResponseMetadata } = require("../utils/responseUtils");
 // const getCountryIso3 = require("country-iso-2-to-3");
 const getCountryIso3 = require("country-iso-2-to-3");
 
@@ -100,7 +101,98 @@ const getAllPosts = async (req, res) => {
     }
   }
 
-  // Build the aggregation pipeline
+  // Build optimized aggregation pipeline with field projection
+  const selectedFields = req.selectedFields || {};
+  const includeDebugInfo = req.query.debug === 'true';
+  
+  // Create dynamic projection based on selected fields
+  const createProjection = () => {
+    const baseProjection = {
+      _id: 1,
+      user: 1,
+      country: 1,
+      exactLocation: 1,
+      returned: 1,
+      createdAt: 1,
+      contact: 1,
+      image: 1,
+      foundLost: 1,
+      description: 1,
+      contactPreferences: 1,
+      additionalContact: 1,
+    };
+    
+    // Add optional fields based on selection
+    if (selectedFields.updatedAt || !Object.keys(selectedFields).length) {
+      baseProjection.updatedAt = 1;
+    }
+    
+    // Add city information
+    if (selectedFields.city || !Object.keys(selectedFields).length) {
+      baseProjection.city = {
+        $cond: {
+          if: { $ne: ["$City", null] },
+          then: {
+            id: "$City._id",
+            code: "$City.code",
+            labels: "$City.labels",
+            isDynamic: "$City.isDynamic"
+          },
+          else: null
+        }
+      };
+      baseProjection.cityName = { 
+        $cond: {
+          if: { $ne: ["$City", null] },
+          then: { $ifNull: ["$City.labels.en", "$City.code"] },
+          else: null
+        }
+      };
+    }
+    
+    // Add user information
+    if (selectedFields.user || selectedFields.username || !Object.keys(selectedFields).length) {
+      baseProjection.username = "$User.username";
+    }
+    
+    // Add category information
+    if (selectedFields.category || selectedFields.categoryname || !Object.keys(selectedFields).length) {
+      baseProjection.categoryname = { 
+        $cond: {
+          if: { $ne: ["$Category", null] },
+          then: "$Category.code",
+          else: "OTHER"
+        }
+      };
+      if (selectedFields.categoryLabels || !Object.keys(selectedFields).length) {
+        baseProjection.categoryLabels = { $ifNull: ["$Category.labels", null] };
+      }
+    }
+    
+    // Add country information
+    if (selectedFields.country || selectedFields.countryname || !Object.keys(selectedFields).length) {
+      baseProjection.countryname = "$Country.code";
+      if (selectedFields.countryLabels || !Object.keys(selectedFields).length) {
+        baseProjection.countryLabels = "$Country.labels";
+      }
+    }
+    
+    // Add debug information only if requested
+    if (includeDebugInfo) {
+      baseProjection.cityDebug = {
+        originalCityId: "$city",
+        cityFound: { $ne: ["$City", null] },
+        cityLabels: "$City.labels",
+        cityData: "$City",
+        cityId: "$City._id",
+        cityCode: "$City.code",
+        cityIsDynamic: "$City.isDynamic"
+      };
+    }
+    
+    return baseProjection;
+  };
+
   const pipeline = [
     {
       $match: {
@@ -120,7 +212,7 @@ const getAllPosts = async (req, res) => {
     {
       $lookup: {
         from: "foundlosts",
-        localField: "foundLost", // was 'foundlost'
+        localField: "foundLost",
         foreignField: "_id",
         as: "Floptions",
       },
@@ -143,19 +235,6 @@ const getAllPosts = async (req, res) => {
       },
     },
     { $unwind: { path: "$City", preserveNullAndEmptyArrays: true } },
-          {
-        $addFields: {
-          cityDebug: {
-            originalCityId: "$city",
-            cityFound: { $ne: ["$City", null] },
-            cityLabels: "$City.labels",
-            cityData: "$City",
-            cityId: "$City._id",
-            cityCode: "$City.code",
-            cityIsDynamic: "$City.isDynamic"
-          }
-        }
-      },
     {
       $lookup: {
         from: "users",
@@ -166,60 +245,7 @@ const getAllPosts = async (req, res) => {
     },
     { $unwind: { path: "$User", preserveNullAndEmptyArrays: true } },
     {
-      $project: {
-        user: 1,
-        country: 1,
-        exactLocation: 1,
-        city: {
-          $cond: {
-            if: { $ne: ["$City", null] },
-            then: {
-              id: "$City._id",
-              code: "$City.code",
-              labels: "$City.labels",
-              isDynamic: "$City.isDynamic"
-            },
-            else: null
-          }
-        },
-        cityName: { 
-          $cond: {
-            if: { $ne: ["$City", null] },
-            then: { $ifNull: ["$City.labels.en", "$City.code"] },
-            else: null
-          }
-        },
-        cityLabels: { $ifNull: ["$City.labels", null] },
-        cityDebug: {
-          originalCityId: "$city",
-          cityFound: { $ne: ["$City", null] },
-          cityLabels: "$City.labels",
-          cityData: "$City",
-          cityId: "$City._id",
-          cityCode: "$City.code",
-          cityIsDynamic: "$City.isDynamic"
-        },
-        returned: 1,
-        createdAt: 1,
-        updatedAt: 1,
-        username: "$User.username",
-        categoryname: { 
-          $cond: {
-            if: { $ne: ["$Category", null] },
-            then: "$Category.code",
-            else: "OTHER"
-          }
-        },
-        categoryLabels: { $ifNull: ["$Category.labels", null] },
-        countryname: "$Country.code",
-        countryLabels: "$Country.labels",
-        contact: 1,
-        image: 1,
-        foundLost: 1,
-        description: 1,
-        contactPreferences: 1,
-        additionalContact: 1,
-      },
+      $project: createProjection(),
     },
     {
       $sort: {
@@ -245,25 +271,47 @@ const getAllPosts = async (req, res) => {
 
   // If no posts
   if (!postsWithUser?.length) {
-    return res.status(200).json({ 
+    const emptyResponse = { 
       postsWithUser: [],
       page: page + 1,
       totalPages: 0,
       total: 0
+    };
+    
+    // Add metadata for empty response
+    emptyResponse._metadata = generateResponseMetadata(emptyResponse, {
+      includeMetrics: true,
+      includeOptimizationInfo: true,
+      includePaginationInfo: true
     });
+    
+    return res.status(200).json(emptyResponse);
   }
 
-  const response = {
+  // Optimize posts response
+  const optimizedPosts = optimizePostsResponse({
     postsWithUser,
     page: page + 1,
     totalPages: Math.ceil(totalPosts / pageSize),
     total: totalPosts,
-  };
+  }, {
+    removeDebugInfo: !includeDebugInfo,
+    optimizeImages: true,
+    compressUserData: true,
+    limitDescriptionLength: 200
+  });
+
+  // Add response metadata
+  optimizedPosts._metadata = generateResponseMetadata(optimizedPosts, {
+    includeMetrics: true,
+    includeOptimizationInfo: true,
+    includePaginationInfo: true
+  });
   
-  // Cache the response for 5 minutes (dynamic data)
-  await cacheService.set(cacheKey, response, 300);
+  // Cache the optimized response for 5 minutes (dynamic data)
+  await cacheService.set(cacheKey, optimizedPosts, 300);
   
-  res.json(response);
+  res.json(optimizedPosts);
   } catch (error) {
     console.error('Error in getAllPosts:', error);
     res.status(500).json({ 

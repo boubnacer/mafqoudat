@@ -9,16 +9,103 @@ const {
   searchResultsCache,
   invalidateCache: optimizedInvalidateCache 
 } = require("../middleware/optimizedCacheMiddleware");
+const { postsOptimizationMiddleware } = require("../middleware/responseOptimization");
+const { generateFieldSelectionDocs, POSTS_SCHEMA } = require("../utils/graphqlFieldSelection");
 
 const { upload, uploadToCloudinaryMiddleware } = require("../middleware/multer");
 
 // Public routes - no authentication required (using optimized caching)
 router.route("/")
-  .get(optimizedPaginatedCache('posts'), postsController.getAllPosts);
+  .get(...postsOptimizationMiddleware(), optimizedPaginatedCache('posts'), postsController.getAllPosts);
 
-router.route("/filtered").get(searchResultsCache('posts-filtered'), postsController.getFilteredPosts);
+router.route("/filtered")
+  .get(...postsOptimizationMiddleware(), searchResultsCache('posts-filtered'), postsController.getFilteredPosts);
 
-router.route("/:id").get(postsCache('post-detail'), postsController.getPost);
+router.route("/:id")
+  .get(postsCache('post-detail'), postsController.getPost);
+
+// Field selection documentation endpoint
+router.route("/fields")
+  .get((req, res) => {
+    const docs = generateFieldSelectionDocs(POSTS_SCHEMA);
+    res.json({
+      success: true,
+      data: docs,
+      usage: {
+        description: "Use the 'fields' or 'select' query parameter to specify which fields to return",
+        examples: [
+          "GET /posts?fields=id,description,contact",
+          "GET /posts?fields=id,description,user{username},category{code}",
+          "GET /posts?fields=id,description,contact,exactLocation,city{code,labels}"
+        ],
+        syntax: {
+          simple: "field1,field2,field3",
+          nested: "field1,field2{child1,child2},field3",
+          description: "Use comma to separate fields, curly braces for nested selection"
+        }
+      }
+    });
+  });
+
+// Optimization test endpoint
+router.route("/optimization-test")
+  .get(...postsOptimizationMiddleware(), (req, res) => {
+    const testData = {
+      postsWithUser: [
+        {
+          _id: "test123",
+          description: "Test post for optimization demonstration",
+          contact: "test@example.com",
+          exactLocation: "Test Location",
+          createdAt: new Date(),
+          username: "testuser",
+          categoryname: "ELECTRONICS",
+          countryname: "MA",
+          cityName: "Casablanca",
+          image: "https://res.cloudinary.com/test/image/upload/test.jpg",
+          returned: false,
+          user: {
+            _id: "user123",
+            username: "testuser"
+          },
+          category: {
+            _id: "cat123",
+            code: "ELECTRONICS",
+            labels: { en: "Electronics", ar: "إلكترونيات", fr: "Électronique" }
+          },
+          country: {
+            _id: "country123",
+            code: "MA",
+            labels: { en: "Morocco", ar: "المغرب", fr: "Maroc" }
+          },
+          city: {
+            id: "city123",
+            code: "CASABLANCA",
+            labels: { en: "Casablanca", ar: "الدار البيضاء", fr: "Casablanca" },
+            isDynamic: false
+          }
+        }
+      ],
+      page: 1,
+      totalPages: 1,
+      total: 1
+    };
+
+    // Add optimization metadata
+    testData._metadata = {
+      timestamp: new Date().toISOString(),
+      optimization: {
+        fieldProjection: !!req.selectedFields,
+        compression: true,
+        cacheHeaders: true,
+        paginationOptimized: true
+      },
+      testMode: true,
+      description: "This is a test endpoint to demonstrate API optimization features"
+    };
+
+    res.json(testData);
+  });
 
 // Protected routes - require authentication
 router.use(verifyJWT);
