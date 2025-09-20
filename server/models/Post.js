@@ -188,42 +188,42 @@ postSchema.index({
   "description": "text"
 });
 
-// Compound indexes for common query patterns
-// 1. Country + Category + Status (for category filtering)
-postSchema.index({ country: 1, category: 1, status: 1 });
+// Optimized compound indexes for common query patterns
+// 1. Primary query pattern: Country + FoundLost + Status + CreatedAt (most common)
+postSchema.index({ country: 1, foundLost: 1, status: 1, createdAt: -1 });
 
-// 2. FoundLost + Status + CreatedAt (for found/lost filtering with date sorting)
-postSchema.index({ foundLost: 1, status: 1, createdAt: -1 });
+// 2. Category filtering: Country + Category + Status + CreatedAt
+postSchema.index({ country: 1, category: 1, status: 1, createdAt: -1 });
 
-// 3. Country + FoundLost + Status (for country-specific found/lost filtering)
-postSchema.index({ country: 1, foundLost: 1, status: 1 });
-
-// 4. User + Status + CreatedAt (for user's posts with date sorting)
+// 3. User posts: User + Status + CreatedAt
 postSchema.index({ user: 1, status: 1, createdAt: -1 });
 
-// 5. Status + CreatedAt (for general listing with date sorting)
-postSchema.index({ status: 1, createdAt: -1 });
-
-// 6. Country + Status + CreatedAt (for country-specific listing with date sorting)
+// 4. Country listing: Country + Status + CreatedAt
 postSchema.index({ country: 1, status: 1, createdAt: -1 });
 
-// 7. City + Status + CreatedAt (for city-specific listing)
-postSchema.index({ city: 1, status: 1, createdAt: -1 });
+// 5. City-based queries: Country + City + Status + CreatedAt
+postSchema.index({ country: 1, city: 1, status: 1, createdAt: -1 });
 
-// 8. Returned + Status + CreatedAt (for resolved/unresolved filtering)
+// 6. Returned items: Returned + Status + CreatedAt
 postSchema.index({ returned: 1, status: 1, createdAt: -1 });
 
-// 9. ExactDate + Status (for date-based queries)
-postSchema.index({ exactDate: -1, status: 1 });
-
-// 10. Views + Status (for trending/popular posts)
-postSchema.index({ views: -1, status: 1 });
-
-// 11. ExpiresAt + Status (for expired post cleanup)
+// 7. Expiration cleanup: ExpiresAt + Status
 postSchema.index({ expiresAt: 1, status: 1 });
 
-// 12. Promotion fields for admin queries
-postSchema.index({ promotionRequested: 1, promotionProcessed: 1, status: 1 });
+// 8. Partial index for active posts only (most common query pattern)
+postSchema.index(
+  { country: 1, foundLost: 1, createdAt: -1 },
+  { 
+    name: "active_posts_country_foundlost_createdat",
+    partialFilterExpression: { status: "active" }
+  }
+);
+
+// 9. Search optimization: Country + Status + Text search
+postSchema.index(
+  { country: 1, status: 1, exactLocation: "text", description: "text" },
+  { name: "country_status_text_search_optimized" }
+);
 
 // Virtual for backward compatibility
 postSchema.virtual('titleText').get(function() {

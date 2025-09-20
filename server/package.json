@@ -13,6 +13,10 @@
     "test-email": "node test-email-config.js",
     "create-indexes": "node scripts/create-indexes.js",
     "monitor-indexes": "node scripts/monitor-indexes.js",
+    "optimize-indexes": "node scripts/index-optimization-implementation.js",
+    "backup-indexes": "node scripts/backup-and-restore-indexes.js backup",
+    "restore-indexes": "node scripts/backup-and-restore-indexes.js restore",
+    "index-backup-info": "node scripts/backup-and-restore-indexes.js info",
     "build": "echo 'No build step required for Node.js'",
     "postinstall": "echo 'Server dependencies installed'"
   },
