@@ -1,5 +1,10 @@
 const mongoose = require('mongoose')
 
+// Suppress deprecation warnings in production
+if (process.env.NODE_ENV === 'production') {
+    mongoose.set('strictQuery', false);
+}
+
 const connectDB = async () => {
     try {
         const conn = await mongoose.connect(process.env.MONGODB_URI, {
@@ -13,10 +18,8 @@ const connectDB = async () => {
             socketTimeoutMS: 30000, // Reduced from 45s to 30s
             connectTimeoutMS: 10000, // 10 second connection timeout
             retryWrites: true,
-            w: 'majority',
-            // Memory optimization options
-            bufferMaxEntries: 0, // Disable mongoose buffering
-            bufferCommands: false, // Disable mongoose buffering
+            w: 'majority'
+            // Removed deprecated bufferMaxEntries and bufferCommands options
         })
         
         console.log(`MongoDB Connected: ${conn.connection.host}`)

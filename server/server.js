@@ -20,6 +20,17 @@ const PORT = process.env.PORT || 3500;
 
 console.log(process.env.NODE_ENV);
 
+// Suppress deprecation warnings in production
+if (process.env.NODE_ENV === 'production') {
+    process.removeAllListeners('warning');
+    process.on('warning', (warning) => {
+        // Only log critical warnings, suppress deprecation warnings
+        if (warning.name !== 'DeprecationWarning') {
+            console.warn(warning.name + ': ' + warning.message);
+        }
+    });
+}
+
 // Error handling for uncaught exceptions
 process.on('uncaughtException', (err) => {
   console.error('Uncaught Exception:', err);
