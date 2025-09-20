@@ -80,7 +80,6 @@ const getAllPosts = async (req, res) => {
     match.$or = [
       { exactLocation: { $regex: search, $options: 'i' } },
       { contact: { $regex: search, $options: 'i' } },
-      { "Category.code": { $regex: search, $options: 'i' } },
       { description: { $regex: search, $options: 'i' } }
     ];
   }
@@ -100,13 +99,24 @@ const getAllPosts = async (req, res) => {
     }
   }
 
-  // Build the aggregation pipeline
+  // Build a simple aggregation pipeline
   const pipeline = [
     {
       $match: {
         ...match,
         country: new mongoose.Types.ObjectId(countryId),
       },
+    },
+    {
+      $sort: {
+        createdAt: -1,
+      },
+    },
+    {
+      $skip: page * pageSize,
+    },
+    {
+      $limit: pageSize,
     },
     {
       $lookup: {
@@ -120,7 +130,7 @@ const getAllPosts = async (req, res) => {
     {
       $lookup: {
         from: "foundlosts",
-        localField: "foundLost", // was 'foundlost'
+        localField: "foundLost",
         foreignField: "_id",
         as: "Floptions",
       },
@@ -143,19 +153,6 @@ const getAllPosts = async (req, res) => {
       },
     },
     { $unwind: { path: "$City", preserveNullAndEmptyArrays: true } },
-          {
-        $addFields: {
-          cityDebug: {
-            originalCityId: "$city",
-            cityFound: { $ne: ["$City", null] },
-            cityLabels: "$City.labels",
-            cityData: "$City",
-            cityId: "$City._id",
-            cityCode: "$City.code",
-            cityIsDynamic: "$City.isDynamic"
-          }
-        }
-      },
     {
       $lookup: {
         from: "users",
@@ -167,6 +164,7 @@ const getAllPosts = async (req, res) => {
     { $unwind: { path: "$User", preserveNullAndEmptyArrays: true } },
     {
       $project: {
+        _id: 1,
         user: 1,
         country: 1,
         exactLocation: 1,
@@ -190,15 +188,6 @@ const getAllPosts = async (req, res) => {
           }
         },
         cityLabels: { $ifNull: ["$City.labels", null] },
-        cityDebug: {
-          originalCityId: "$city",
-          cityFound: { $ne: ["$City", null] },
-          cityLabels: "$City.labels",
-          cityData: "$City",
-          cityId: "$City._id",
-          cityCode: "$City.code",
-          cityIsDynamic: "$City.isDynamic"
-        },
         returned: 1,
         createdAt: 1,
         updatedAt: 1,
@@ -219,18 +208,8 @@ const getAllPosts = async (req, res) => {
         description: 1,
         contactPreferences: 1,
         additionalContact: 1,
+        Floptions: 1,
       },
-    },
-    {
-      $sort: {
-        createdAt: -1,
-      },
-    },
-    {
-      $skip: page * pageSize,
-    },
-    {
-      $limit: pageSize,
     },
   ];
 
