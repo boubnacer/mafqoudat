@@ -3,11 +3,12 @@ const router = express.Router();
 const countrycontroller = require("../controllers/countryController");
 const verifyJWT = require("../middleware/verifyJWT");
 const { staticDataCache } = require("../middleware/cacheMiddleware");
+const { staticDataCache: optimizedStaticDataCache } = require("../middleware/optimizedCacheMiddleware");
 
-// Public routes - no authentication required
+// Public routes - no authentication required (using optimized caching)
 router
   .route("/")
-  .get(staticDataCache('countries'), countrycontroller.getCountries);
+  .get(optimizedStaticDataCache('countries'), countrycontroller.getCountries);
 
 router
   .route("/search")

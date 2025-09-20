@@ -17,6 +17,9 @@
     "backup-indexes": "node scripts/backup-and-restore-indexes.js backup",
     "restore-indexes": "node scripts/backup-and-restore-indexes.js restore",
     "index-backup-info": "node scripts/backup-and-restore-indexes.js info",
+    "warm-cache": "node scripts/cacheWarming.js",
+    "monitor-cache": "node scripts/cachePerformanceMonitor.js",
+    "test-cache-integration": "node scripts/integrateOptimizedCache.js",
     "build": "echo 'No build step required for Node.js'",
     "postinstall": "echo 'Server dependencies installed'"
   },

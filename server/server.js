@@ -10,6 +10,7 @@ const cors = require("cors");
 const corsOptions = require("./config/corsOptions");
 const connectDB = require("./config/dbConn");
 const { initRedis } = require("./config/cache");
+const { initRedis: initOptimizedRedis, scheduleCacheWarming } = require("./config/optimizedCache");
 const mongoose = require("mongoose");
 const helmet = require("helmet");
 const compression = require("compression");
@@ -56,6 +57,15 @@ initRedis().catch(err => {
   console.error('Failed to initialize Redis cache:', err);
   // Don't exit process, continue with in-memory cache only
 });
+
+// Initialize optimized Redis cache
+initOptimizedRedis().catch(err => {
+  console.error('Failed to initialize optimized Redis cache:', err);
+  // Don't exit process, continue with in-memory cache only
+});
+
+// Schedule cache warming for optimized cache
+scheduleCacheWarming();
 
 // Security middleware - more flexible for development
 if (process.env.NODE_ENV === 'production') {
@@ -113,6 +123,20 @@ app.use("/admin", require("./routes/adminRoutes"));
 // Cache management routes
 app.get("/cache/stats", require("./middleware/cacheMiddleware").cacheStatsMiddleware);
 app.delete("/cache/clear", require("./middleware/cacheMiddleware").clearCacheMiddleware);
+
+// Optimized cache management routes
+app.get("/cache/optimized/stats", require("./middleware/optimizedCacheMiddleware").cacheStatsMiddleware);
+app.delete("/cache/optimized/clear", require("./middleware/optimizedCacheMiddleware").clearCacheMiddleware);
+app.post("/cache/optimized/warm", require("./middleware/optimizedCacheMiddleware").warmCacheMiddleware);
+app.get("/cache/optimized/health", async (req, res) => {
+  try {
+    const { optimizedCacheService } = require("./config/optimizedCache");
+    const health = await optimizedCacheService.healthCheck();
+    res.json({ success: true, data: health });
+  } catch (error) {
+    res.status(500).json({ success: false, message: error.message });
+  }
+});
 
 // Admin routes removed for security
 
