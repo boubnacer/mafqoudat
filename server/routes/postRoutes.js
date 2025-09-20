@@ -15,11 +15,12 @@ const { generateFieldSelectionDocs, POSTS_SCHEMA } = require("../utils/graphqlFi
 const { upload, uploadToCloudinaryMiddleware } = require("../middleware/multer");
 
 // Public routes - no authentication required (using optimized caching)
+// Temporarily disable optimization middleware to test
 router.route("/")
-  .get(...postsOptimizationMiddleware(), optimizedPaginatedCache('posts'), postsController.getAllPosts);
+  .get(optimizedPaginatedCache('posts'), postsController.getAllPosts);
 
 router.route("/filtered")
-  .get(...postsOptimizationMiddleware(), searchResultsCache('posts-filtered'), postsController.getFilteredPosts);
+  .get(searchResultsCache('posts-filtered'), postsController.getFilteredPosts);
 
 router.route("/:id")
   .get(postsCache('post-detail'), postsController.getPost);
