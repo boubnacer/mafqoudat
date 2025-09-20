@@ -96,7 +96,6 @@ const testPostsWithCities = async () => {
           foundLost: 1,
           description: 1,
           contactPreferences: 1,
-          additionalContact: 1,
         },
       },
       {

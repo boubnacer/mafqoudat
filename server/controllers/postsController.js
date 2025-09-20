@@ -207,7 +207,6 @@ const getAllPosts = async (req, res) => {
         foundLost: 1,
         description: 1,
         contactPreferences: 1,
-        additionalContact: 1,
         Floptions: 1,
       },
     },
@@ -336,7 +335,6 @@ const getPost = async (req, res) => {
           foundLost: 1,
           description: 1,
           contactPreferences: 1,
-          additionalContact: 1,
         },
       },
     ]);
@@ -506,7 +504,6 @@ const getFilteredPosts = async (req, res) => {
           foundLost: 1,
           description: 1,
           contactPreferences: 1,
-          additionalContact: 1,
         },
       },
       {
@@ -574,8 +571,7 @@ const createNewPost = async (req, res) => {
       exactLocation,
       exactDate,
       description,
-      contactPreferences,
-      additionalContact
+      contactPreferences
     } = req.body;
     
 
@@ -787,20 +783,6 @@ const createNewPost = async (req, res) => {
      }
    }
 
-   // Add additional contact if provided
-   if (additionalContact) {
-     try {
-       const parsedAdditionalContact = JSON.parse(additionalContact);
-       postData.additionalContact = parsedAdditionalContact;
-     } catch (error) {
-       // Use empty additional contact
-       postData.additionalContact = {
-         phone: "",
-         email: "",
-         whatsapp: ""
-       };
-     }
-   }
 
    // Add Cloudinary image data if available
    if (req.cloudinaryResult) {

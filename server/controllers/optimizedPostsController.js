@@ -152,7 +152,6 @@ const getAllPostsOptimized = async (req, res) => {
           createdAt: 1,
           updatedAt: 1,
           contactPreferences: 1,
-          additionalContact: 1,
           
           // Simplified city data
           city: {

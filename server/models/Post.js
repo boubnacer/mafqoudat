@@ -164,12 +164,6 @@ const postSchema = new mongoose.Schema(
       type: String,
       trim: true
     }],
-    // Additional contact information
-    additionalContact: {
-      phone: String,
-      email: String,
-      whatsapp: String
-    }
   },
   {
     timestamps: true,

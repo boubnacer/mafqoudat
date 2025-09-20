@@ -198,9 +198,6 @@ const NewPostForm = ({ user, countries, categories, flOptions }) => {
     exactDate: new Date().toLocaleDateString(), // Default to current date as string
     description: "",
     image: null,
-    additionalContact: {
-      whatsapp: user.username || ""
-    }
   };
 
   // Remove Yup validation - we'll handle validation in handleSubmit
@@ -426,7 +423,6 @@ const NewPostForm = ({ user, countries, categories, flOptions }) => {
       formData.append("contact", values.contact);
       formData.append("description", values.description || "");
       formData.append("contactPreferences", JSON.stringify({ whatsapp: true }));
-      formData.append("additionalContact", JSON.stringify(values.additionalContact));
       if (values.image) {
         formData.append("image", values.image);
       }
@@ -1432,40 +1428,6 @@ const NewPostForm = ({ user, countries, categories, flOptions }) => {
                   />
                 </Box>
 
-                {/* WhatsApp Contact Details */}
-                <Box>
-                  <FormLabel 
-                    sx={{ 
-                      mb: 1, 
-                      display: "block", 
-                      fontWeight: 600, 
-                      fontSize: '1.15rem',
-                      color: theme.palette.text.primary
-                    }}
-                  >
-                    {t('whatsappContact')} ({t('optional')})
-                  </FormLabel>
-                  <Typography 
-                    variant="caption" 
-                    sx={{ 
-                      mb: 1, 
-                      display: "block", 
-                      fontSize: '1rem',
-                      color: theme.palette.mode === 'dark' ? '#ff9800' : '#f57c00',
-                      fontWeight: 500,
-                      fontStyle: 'italic'
-                    }}
-                  >
-                    {t('whatsappOptionalMessage') || "This is optional - you can provide your WhatsApp number if you prefer to be contacted via WhatsApp."}
-                  </Typography>
-                  <Box display="flex" flexDirection="column" gap={2}>
-                    <Textfield 
-                      name="additionalContact.whatsapp" 
-                      variant="outlined" 
-                      placeholder={t('whatsappNumber') || "Enter your WhatsApp number (e.g., +1234567890)"}
-                    />
-                  </Box>
-                </Box>
 
                 {/* Image Section */}
                 <Typography 

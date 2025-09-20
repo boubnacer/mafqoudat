@@ -349,10 +349,6 @@ const EditPostForm = ({ post, user, countries, flOptions, categories, cities }) 
       return "";
     })(),
     description: post?.description || "",
-    // Additional contact (only WhatsApp like NewPostForm)
-    additionalContact: {
-      whatsapp: post?.additionalContact?.whatsapp || user?.username || ""
-    },
     // Status fields
     status: post?.status || "active",
     returned: post?.returned || false
@@ -361,9 +357,6 @@ const EditPostForm = ({ post, user, countries, flOptions, categories, cities }) 
   // Function to check if form has changed
   const checkFormChanged = (currentValues) => {
     const hasChanged = Object.keys(initialFormState).some(key => {
-      if (key === 'additionalContact') {
-        return JSON.stringify(currentValues[key]) !== JSON.stringify(initialFormState[key]);
-      }
       return currentValues[key] !== initialFormState[key];
     });
     setHasFormChanged(hasChanged);
@@ -378,9 +371,6 @@ const EditPostForm = ({ post, user, countries, flOptions, categories, cities }) 
   const formValidation = Yup.object().shape({
     // Only validate optional fields, required fields will be validated in handleSubmit
     description: Yup.string().optional(),
-    additionalContact: Yup.object().shape({
-      whatsapp: Yup.string().optional()
-    }),
     status: Yup.string().oneOf(['active', 'resolved', 'expired', 'suspended']),
     returned: Yup.boolean()
   });
@@ -1328,40 +1318,6 @@ const EditPostForm = ({ post, user, countries, flOptions, categories, cities }) 
                   />
                 </Box>
 
-                {/* WhatsApp Contact Details */}
-                <Box>
-                  <FormLabel 
-                    sx={{ 
-                      mb: 1, 
-                      display: "block", 
-                      fontWeight: 600, 
-                      fontSize: '1.15rem',
-                      color: theme.palette.text.primary
-                    }}
-                  >
-                    {t('whatsappContact')} ({t('optional')})
-                  </FormLabel>
-                  <Typography 
-                    variant="caption" 
-                    sx={{ 
-                      mb: 1, 
-                      display: "block", 
-                      fontSize: '1rem',
-                      color: theme.palette.mode === 'dark' ? '#ff9800' : '#f57c00',
-                      fontWeight: 500,
-                      fontStyle: 'italic'
-                    }}
-                  >
-                    {t('whatsappOptionalMessage') || "This is optional - you can provide your WhatsApp number if you prefer to be contacted via WhatsApp."}
-                  </Typography>
-                  <Box display="flex" flexDirection="column" gap={2}>
-                    <Textfield 
-                      name="additionalContact.whatsapp" 
-                      variant="outlined" 
-                      placeholder={t('whatsappNumber') || "Enter your WhatsApp number (e.g., +1234567890)"}
-                    />
-                  </Box>
-                </Box>
 
                 {/* Status Section - Only visible for admin */}
                 {role === 'admin' && (
