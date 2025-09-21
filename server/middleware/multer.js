@@ -2,13 +2,14 @@ const multer = require("multer");
 const path = require("path");
 const fs = require("fs").promises;
 
-// Try to use optimized Cloudinary, fallback to basic version if needed
+// Use simple Cloudinary for now to ensure uploads work
 let uploadToCloudinary;
 try {
+  // Try optimized first, but fallback to simple if there are issues
   uploadToCloudinary = require("../config/optimizedCloudinary").uploadToCloudinary;
 } catch (error) {
-  console.warn('⚠️ Optimized Cloudinary not available, using fallback version');
-  uploadToCloudinary = require("../config/cloudinaryFallback").uploadToCloudinary;
+  console.warn('⚠️ Optimized Cloudinary not available, using simple version');
+  uploadToCloudinary = require("../config/simpleCloudinary").uploadToCloudinary;
 }
 
 // Memory-optimized storage configuration
@@ -65,10 +66,20 @@ const uploadToCloudinaryMiddleware = async (req, res, next) => {
       req.file.buffer = null;
       
       // Upload to Cloudinary with optimization
-      const result = await uploadToCloudinary({ 
-        buffer: fileBuffer,
-        path: tempFilePath 
-      });
+      let result;
+      try {
+        result = await uploadToCloudinary({ 
+          buffer: fileBuffer,
+          path: tempFilePath 
+        });
+      } catch (uploadError) {
+        console.error('Upload failed with optimized version, trying simple version:', uploadError.message);
+        // Fallback to simple Cloudinary
+        const { uploadToCloudinary: simpleUpload } = require("../config/simpleCloudinary");
+        result = await simpleUpload({ 
+          path: tempFilePath 
+        });
+      }
       
       // Store Cloudinary URL and public_id in request
       req.cloudinaryResult = result;

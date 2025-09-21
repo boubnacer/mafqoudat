@@ -48,9 +48,9 @@ const TRANSFORMATION_PRESETS = {
  * Enhanced upload with pre-processing and duplicate detection
  */
 const uploadToCloudinary = async (file, folder = 'mafqoudat', options = {}) => {
+  let tempFilePath = null;
   try {
     let fileBuffer = file.buffer;
-    let tempFilePath = null;
 
     // If file has a path, read it into buffer
     if (file.path && !file.buffer) {
@@ -116,16 +116,14 @@ const uploadToCloudinary = async (file, folder = 'mafqoudat', options = {}) => {
       resource_type: 'auto',
       // Use minimal transformations during upload to reduce processing costs
       transformation: [
-        { quality: 'auto', fetch_format: 'auto' },
+        { quality: 'auto' },
         { flags: 'progressive' }
       ],
-      // Enable automatic format optimization
-      format: 'auto',
       // Optimize for delivery
       eager: [
         // Pre-generate only the most common sizes to reduce API calls
-        { width: 400, height: 300, crop: 'limit', quality: 'auto:low', fetch_format: 'auto' },
-        { width: 800, height: 600, crop: 'limit', quality: 'auto:good', fetch_format: 'auto' }
+        { width: 400, height: 300, crop: 'limit', quality: 'auto:low' },
+        { width: 800, height: 600, crop: 'limit', quality: 'auto:good' }
       ],
       eager_async: true, // Process eager transformations asynchronously
       ...options
