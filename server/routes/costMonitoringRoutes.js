@@ -2,7 +2,7 @@ const express = require('express');
 const router = express.Router();
 const costMonitor = require('../utils/costMonitor');
 const { getCloudinaryStats } = require('../config/optimizedCloudinary');
-const { verifyAdmin } = require('../middleware/verifyAdmin');
+const verifyAdmin = require('../middleware/verifyAdmin');
 
 /**
  * Cost Monitoring Routes
