@@ -1,7 +1,15 @@
 const multer = require("multer");
 const path = require("path");
 const fs = require("fs").promises;
-const { uploadToCloudinary } = require("../config/optimizedCloudinary");
+
+// Try to use optimized Cloudinary, fallback to basic version if needed
+let uploadToCloudinary;
+try {
+  uploadToCloudinary = require("../config/optimizedCloudinary").uploadToCloudinary;
+} catch (error) {
+  console.warn('⚠️ Optimized Cloudinary not available, using fallback version');
+  uploadToCloudinary = require("../config/cloudinaryFallback").uploadToCloudinary;
+}
 
 // Memory-optimized storage configuration
 const storage = multer.memoryStorage();

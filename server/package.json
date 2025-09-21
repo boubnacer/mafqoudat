@@ -24,7 +24,7 @@
     "test-cache-system": "node scripts/testCacheSystem.js",
     "test-cache-middleware": "node scripts/testCacheMiddleware.js",
     "build": "echo 'No build step required for Node.js'",
-    "postinstall": "echo 'Server dependencies installed'"
+    "postinstall": "echo 'Server dependencies installed' && (npm list sharp > /dev/null 2>&1 && echo 'Sharp available for image optimization' || echo 'Sharp not available - will use fallback mode')"
   },
   "keywords": [],
   "author": "",
@@ -52,6 +52,7 @@
     "node-cache": "^5.1.2",
     "nodemailer": "^6.10.1",
     "redis": "^4.6.7",
+    "sharp": "^0.33.0",
     "uuid": "^8.3.2"
   },
   "devDependencies": {

@@ -59,12 +59,24 @@ const uploadToCloudinary = async (file, folder = 'mafqoudat', options = {}) => {
     }
 
     // Process image with optimization and duplicate detection
-    const processResult = await imageOptimizer.processImage(fileBuffer, {
-      maxWidth: 1920,
-      maxHeight: 1080,
-      quality: 85,
-      progressive: true
-    });
+    let processResult;
+    try {
+      processResult = await imageOptimizer.processImage(fileBuffer, {
+        maxWidth: 1920,
+        maxHeight: 1080,
+        quality: 85,
+        progressive: true
+      });
+    } catch (optimizationError) {
+      console.warn('⚠️ Image optimization failed, using original buffer:', optimizationError.message);
+      // Fallback to original buffer if optimization fails
+      processResult = {
+        optimizedBuffer: fileBuffer,
+        isDuplicate: false,
+        existingUrl: null,
+        compressionRatio: 0
+      };
+    }
 
     // If duplicate found, return existing URL
     if (processResult.isDuplicate) {

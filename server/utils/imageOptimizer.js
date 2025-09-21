@@ -1,7 +1,15 @@
-const sharp = require('sharp');
 const crypto = require('crypto');
 const fs = require('fs').promises;
 const path = require('path');
+
+// Try to load Sharp, but make it optional
+let sharp;
+try {
+  sharp = require('sharp');
+} catch (error) {
+  console.warn('⚠️ Sharp not available, image optimization will be limited');
+  sharp = null;
+}
 
 /**
  * Advanced Image Optimization Utility
@@ -22,14 +30,19 @@ class ImageOptimizer {
    */
   async calculateImageHash(buffer) {
     try {
-      // Create a perceptual hash by resizing to 8x8 and converting to grayscale
-      const smallImage = await sharp(buffer)
-        .resize(8, 8, { fit: 'fill' })
-        .grayscale()
-        .raw()
-        .toBuffer();
-      
-      return crypto.createHash('md5').update(smallImage).digest('hex');
+      if (sharp) {
+        // Create a perceptual hash by resizing to 8x8 and converting to grayscale
+        const smallImage = await sharp(buffer)
+          .resize(8, 8, { fit: 'fill' })
+          .grayscale()
+          .raw()
+          .toBuffer();
+        
+        return crypto.createHash('md5').update(smallImage).digest('hex');
+      } else {
+        // Fallback: use buffer hash if Sharp is not available
+        return crypto.createHash('md5').update(buffer).digest('hex');
+      }
     } catch (error) {
       console.error('Error calculating image hash:', error);
       return crypto.createHash('md5').update(buffer).digest('hex');
@@ -113,6 +126,12 @@ class ImageOptimizer {
    */
   async optimizeImage(buffer, options = {}) {
     try {
+      // If Sharp is not available, return original buffer
+      if (!sharp) {
+        console.log('⚠️ Sharp not available, skipping image optimization');
+        return buffer;
+      }
+
       const {
         maxWidth = 1920,
         maxHeight = 1080,
