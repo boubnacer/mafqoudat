@@ -26,18 +26,26 @@ const fileFilter = (req, file, cb) => {
     'image/gif'
   ];
   
+  console.log(`🔧 File info - Name: ${file.originalname}, MIME: ${file.mimetype}, Field: ${file.fieldname}`);
+  
   if (!allowedMimeTypes.includes(file.mimetype)) {
     console.log(`🔧 MIME type rejected: ${file.mimetype} for file: ${file.originalname}`);
     return cb(new Error(`Invalid file type! Allowed: ${allowedMimeTypes.join(', ')}`), false);
   }
 
-  // Check file extension - only allow common image extensions
-  const allowedExtensions = ['.jpg', '.jpeg', '.png', '.gif'];
+  // Check file extension - only if filename has an extension
   const fileExtension = path.extname(file.originalname).toLowerCase();
   
-  if (!allowedExtensions.includes(fileExtension)) {
-    console.log(`🔧 File extension rejected: ${fileExtension} for file: ${file.originalname}`);
-    return cb(new Error(`Invalid file extension! Allowed: ${allowedExtensions.join(', ')}`), false);
+  // If filename has an extension, validate it
+  if (fileExtension && fileExtension !== '') {
+    const allowedExtensions = ['.jpg', '.jpeg', '.png', '.gif'];
+    if (!allowedExtensions.includes(fileExtension)) {
+      console.log(`🔧 File extension rejected: ${fileExtension} for file: ${file.originalname}`);
+      return cb(new Error(`Invalid file extension! Allowed: ${allowedExtensions.join(', ')}`), false);
+    }
+  } else {
+    // If no extension (like 'blob'), rely on MIME type validation only
+    console.log(`🔧 No file extension for: ${file.originalname}, relying on MIME type validation`);
   }
 
   // Check for suspicious file names
