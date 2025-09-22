@@ -763,7 +763,7 @@ const createNewPost = async (req, res) => {
    }
 
      // Prepare post data
-  const postData = {
+  const newPostData = {
     user,
     category,
     country,
@@ -776,7 +776,7 @@ const createNewPost = async (req, res) => {
 
      // Handle city field - cityId is already processed above
    if (cityId) {
-     postData.city = cityId;
+     newPostData.city = cityId;
      console.log(`Setting city field in post data: ${cityId}`);
      console.log(`City field type: ${typeof cityId}`);
      console.log(`City field is valid ObjectId: ${mongoose.Types.ObjectId.isValid(cityId)}`);
@@ -790,10 +790,10 @@ const createNewPost = async (req, res) => {
    if (contactPreferences) {
      try {
        const parsedContactPreferences = JSON.parse(contactPreferences);
-       postData.contactPreferences = parsedContactPreferences;
+       newPostData.contactPreferences = parsedContactPreferences;
      } catch (error) {
        // Use default contact preferences
-       postData.contactPreferences = {
+       newPostData.contactPreferences = {
          phone: true,
          email: false,
          whatsapp: false
@@ -804,21 +804,21 @@ const createNewPost = async (req, res) => {
 
    // Add Cloudinary image data if available
    if (req.cloudinaryResult) {
-     postData.cloudinaryUrl = req.cloudinaryResult.url;
-     postData.cloudinaryPublicId = req.cloudinaryResult.public_id;
+     newPostData.cloudinaryUrl = req.cloudinaryResult.url;
+     newPostData.cloudinaryPublicId = req.cloudinaryResult.public_id;
      // Keep backward compatibility with image field
-     postData.image = req.cloudinaryResult.url;
+     newPostData.image = req.cloudinaryResult.url;
    }
 
      // Create and store the new post
    try {
      console.log('Final post data before creation:', {
-       city: postData.city,
-       cityType: typeof postData.city,
-       cityIsValidObjectId: mongoose.Types.ObjectId.isValid(postData.city),
-       hasCity: !!postData.city
+       city: newPostData.city,
+       cityType: typeof newPostData.city,
+       cityIsValidObjectId: mongoose.Types.ObjectId.isValid(newPostData.city),
+       hasCity: !!newPostData.city
      });
-     const post = await Post.create(postData);
+     const post = await Post.create(newPostData);
 
     if (post) {
       // Invalidate related cache entries
