@@ -107,17 +107,18 @@ const uploadToCloudinaryMiddleware = async (req, res, next) => {
   
   try {
     console.log('🔧 Multer middleware - req.file:', req.file ? 'File present' : 'No file');
-    console.log('🔧 Multer middleware - req.files:', req.files ? req.files.length : 0);
+    console.log('🔧 Multer middleware - req.files:', req.files ? (Array.isArray(req.files) ? req.files.length : Object.keys(req.files).length) : 0);
     console.log('🔧 Multer middleware - req.body keys:', Object.keys(req.body));
     console.log('🔧 Multer middleware - req.body.postData exists:', !!req.body.postData);
     
-    // Handle files array from uploadWithFields
-    if (req.files && req.files.length > 0) {
-      const imageFile = req.files.find(file => file.fieldname === 'image');
-      if (imageFile) {
-        req.file = imageFile;
-        console.log('🔧 Extracted image file from files array');
-      }
+    // Handle files object from uploadWithFields.fields()
+    console.log('🔧 req.files structure:', req.files);
+    if (req.files && req.files.image && req.files.image.length > 0) {
+      req.file = req.files.image[0]; // Extract the first image file
+      console.log('🔧 Extracted image file from files object:', req.file.originalname);
+    } else if (req.files && req.files.image) {
+      req.file = req.files.image; // If it's not an array, use directly
+      console.log('🔧 Extracted image file from files object (single):', req.file.originalname);
     }
     
     if (req.file) {
