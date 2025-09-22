@@ -156,10 +156,22 @@ router
       console.log('🔧 Before multer - req.body keys:', Object.keys(req.body));
       next();
     },
-    uploadWithFields.fields([
-      { name: 'image', maxCount: 1 },
-      { name: 'postData', maxCount: 1 }
-    ]),
+    (req, res, next) => {
+      uploadWithFields.fields([
+        { name: 'image', maxCount: 1 },
+        { name: 'postData', maxCount: 1 }
+      ])(req, res, (err) => {
+        if (err) {
+          console.error('🔧 Multer error:', err);
+          console.error('🔧 Multer error details:', err.message);
+          return res.status(400).json({ 
+            success: false, 
+            error: { message: 'File upload error: ' + err.message } 
+          });
+        }
+        next();
+      });
+    },
     (req, res, next) => {
       console.log('🔧 After multer - req.body keys:', Object.keys(req.body));
       console.log('🔧 After multer - req.body.postData exists:', !!req.body.postData);
