@@ -18,26 +18,26 @@ const storage = multer.memoryStorage();
 
 // Enhanced file filter with security checks
 const fileFilter = (req, file, cb) => {
-  // Allowed MIME types
+  // Check file type - only allow common image MIME types
   const allowedMimeTypes = [
     'image/jpeg',
     'image/jpg', 
     'image/png',
-    'image/webp',
     'image/gif'
   ];
-
-  // Check file type
+  
   if (!allowedMimeTypes.includes(file.mimetype)) {
-    return cb(new Error('Only JPEG, PNG, WebP, and GIF images are allowed!'), false);
+    console.log(`🔧 MIME type rejected: ${file.mimetype} for file: ${file.originalname}`);
+    return cb(new Error(`Invalid file type! Allowed: ${allowedMimeTypes.join(', ')}`), false);
   }
 
-  // Check file extension
-  const allowedExtensions = ['.jpg', '.jpeg', '.png', '.webp', '.gif'];
+  // Check file extension - only allow common image extensions
+  const allowedExtensions = ['.jpg', '.jpeg', '.png', '.gif'];
   const fileExtension = path.extname(file.originalname).toLowerCase();
   
   if (!allowedExtensions.includes(fileExtension)) {
-    return cb(new Error('Invalid file extension!'), false);
+    console.log(`🔧 File extension rejected: ${fileExtension} for file: ${file.originalname}`);
+    return cb(new Error(`Invalid file extension! Allowed: ${allowedExtensions.join(', ')}`), false);
   }
 
   // Check for suspicious file names
