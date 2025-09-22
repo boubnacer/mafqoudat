@@ -158,40 +158,64 @@ const validationSets = {
   postCreation: [
     // Custom validation to handle postData JSON format
     body().custom((value, { req }) => {
+      console.log('🔍 Validation middleware - Starting post creation validation');
+      console.log('📥 Request body keys:', Object.keys(req.body));
+      console.log('📥 Request body postData exists:', !!req.body.postData);
+      
       let postData;
       
       // Check if data comes as postData JSON field (new format)
       if (req.body.postData) {
+        console.log('📋 Parsing postData JSON field');
         try {
           postData = JSON.parse(req.body.postData);
+          console.log('✅ Successfully parsed postData:', postData);
         } catch (error) {
+          console.log('❌ Failed to parse postData JSON:', error.message);
           throw new Error('Invalid postData JSON format');
         }
       } else {
         // Legacy format - use individual fields
+        console.log('📋 Using legacy individual fields format');
         postData = req.body;
       }
       
       // Validate required fields
+      console.log('🔍 Validating required fields...');
+      console.log('👤 User:', postData.user);
+      console.log('🌍 Country:', postData.country);
+      console.log('📂 Category:', postData.category);
+      console.log('🔍 Found/Lost:', postData.foundLost);
+      console.log('📞 Contact:', postData.contact);
+      console.log('📍 Exact Location:', postData.exactLocation);
+      console.log('📅 Exact Date:', postData.exactDate);
+      
       if (!postData.user) {
+        console.log('❌ Validation failed: User ID is required');
         throw new Error('User ID is required');
       }
       if (!postData.country) {
+        console.log('❌ Validation failed: Country ID is required');
         throw new Error('Country ID is required');
       }
       if (!postData.category) {
+        console.log('❌ Validation failed: Category ID is required');
         throw new Error('Category ID is required');
       }
       if (!postData.foundLost) {
+        console.log('❌ Validation failed: Found/Lost ID is required');
         throw new Error('Found/Lost ID is required');
       }
       if (!postData.contact) {
+        console.log('❌ Validation failed: Contact is required');
         throw new Error('Contact is required');
       }
       if (!postData.exactLocation) {
+        console.log('❌ Validation failed: Exact location is required');
         throw new Error('Exact location is required');
       }
       if (!postData.exactDate) {
+        console.log('❌ Validation failed: Exact date is required');
         throw new Error('Exact date is required');
       }
       
@@ -226,6 +250,7 @@ const validationSets = {
       
       // Store parsed data for controller to use
       req.parsedPostData = postData;
+      console.log('✅ Validation passed, storing parsed data in req.parsedPostData');
       
       return true;
     })

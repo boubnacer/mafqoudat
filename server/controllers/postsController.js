@@ -559,12 +559,20 @@ const getFilteredPosts = async (req, res) => {
 // @route POST /posts
 // @access Private
 const createNewPost = async (req, res) => {
+  console.log('🚀 createNewPost controller called');
+  console.log('📥 Request body keys:', Object.keys(req.body));
+  console.log('📥 Request has parsedPostData:', !!req.parsedPostData);
+  console.log('📥 Request has postData field:', !!req.body.postData);
+  console.log('📥 Request has file:', !!req.file);
+  console.log('📥 Request has cloudinaryResult:', !!req.cloudinaryResult);
+  
   try {
     // Use parsed data from validation middleware if available, otherwise parse from req.body
     let postData, user, country, category, contact, foundLost, city, cityData, exactLocation, exactDate, description, contactPreferences;
     
     if (req.parsedPostData) {
       // Use data parsed by validation middleware
+      console.log('✅ Using parsedPostData from validation middleware');
       postData = req.parsedPostData;
       user = postData.user;
       country = postData.country;
@@ -579,6 +587,7 @@ const createNewPost = async (req, res) => {
       contactPreferences = postData.contactPreferences;
     } else if (req.body.postData) {
       // Fallback: parse from postData JSON field
+      console.log('🔄 Fallback: parsing from postData JSON field');
       postData = JSON.parse(req.body.postData);
       user = postData.user;
       country = postData.country;
@@ -593,6 +602,7 @@ const createNewPost = async (req, res) => {
       contactPreferences = postData.contactPreferences;
     } else {
       // Legacy format: individual fields
+      console.log('🔄 Using legacy individual fields format');
       user = req.body.user;
       country = req.body.country;
       category = req.body.category;
@@ -605,6 +615,10 @@ const createNewPost = async (req, res) => {
       description = req.body.description;
       contactPreferences = req.body.contactPreferences;
     }
+    
+    console.log('📋 Extracted data:', {
+      user, country, category, contact, foundLost, city, exactLocation, exactDate, description
+    });
     
 
          // Confirm required data

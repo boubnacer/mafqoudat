@@ -126,12 +126,37 @@ export const postsApiSlice = apiSlice.injectEndpoints({
     }),
 
     addNewPost: builder.mutation({
-      query: (formData) => ({
-        url: "/posts",
-        method: "POST",
-        body: formData,
-      }),
+      query: (formData) => {
+        console.log('🌐 API Call - addNewPost mutation called');
+        console.log('📤 FormData being sent:', formData);
+        
+        // Log FormData contents
+        if (formData instanceof FormData) {
+          console.log('📊 FormData entries:');
+          for (let [key, value] of formData.entries()) {
+            if (key === 'postData') {
+              console.log(`  ${key}:`, value);
+            } else {
+              console.log(`  ${key}:`, value.name || value);
+            }
+          }
+        }
+        
+        return {
+          url: "/posts",
+          method: "POST",
+          body: formData,
+        };
+      },
+      transformResponse: (response) => {
+        console.log('✅ API Success Response:', response);
+        return response;
+      },
       transformErrorResponse: (response) => {
+        console.log('❌ API Error Response:', response);
+        console.log('❌ Error Status:', response.status);
+        console.log('❌ Error Data:', response.data);
+        
         // Handle server error responses
         if (response.status === 400) {
           return { 

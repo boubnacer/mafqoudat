@@ -313,10 +313,17 @@ const NewPostForm = ({ user, countries, categories, flOptions }) => {
   }, []);
 
   const handleSubmit = async (values, { setSubmitting, setStatus }) => {
+    console.log('🚀 Starting form submission...');
+    console.log('📝 Form values:', values);
+    console.log('🌍 Selected country:', selectedCountry);
+    console.log('🏙️ Selected city from search:', selectedCityFromSearch);
+    
     try {
       // Clear any previous validation errors
       setStatus(null);
       setFieldErrors({});
+      
+      console.log('✅ Cleared previous validation errors');
       
       // Validate required fields
       const missingFields = [];
@@ -351,8 +358,11 @@ const NewPostForm = ({ user, countries, categories, flOptions }) => {
         newFieldErrors.contact = t('required');
       }
       
+      console.log('🔍 Validation results:', { missingFields, newFieldErrors });
+      
       if (missingFields.length > 0) {
         const errorMessage = `${t('fillRequiredFields')}: ${missingFields.join(', ')}`;
+        console.log('❌ Validation failed:', errorMessage);
         setStatus({ validationError: errorMessage });
         setFieldErrors(newFieldErrors);
         setSubmitting(false);
@@ -399,9 +409,12 @@ const NewPostForm = ({ user, countries, categories, flOptions }) => {
         return;
       }
       
+      console.log('✅ Client-side validation passed');
+      
       // Store the submitted values to check if it's a lost item
       setLastSubmittedValues(values);
       
+      console.log('📦 Creating FormData...');
       const formData = new FormData();
       
       // Combine basic fields into a single JSON object to reduce field count
@@ -417,33 +430,64 @@ const NewPostForm = ({ user, countries, categories, flOptions }) => {
         contactPreferences: { whatsapp: true }
       };
       
+      console.log('📋 Post data object:', postData);
+      
       // Handle city - check if it's an API city or database city
       if (values.city && values.city.startsWith('api_')) {
         // API city - send the city data
         postData.city = selectedCityFromSearch?.code || values.city.replace('api_', '');
         postData.cityData = selectedCityFromSearch;
+        console.log('🌐 Using API city:', postData.city, postData.cityData);
       } else {
         // Database city
         postData.city = values.city;
+        console.log('🏙️ Using database city:', postData.city);
       }
       
       // Append combined data as single field
-      formData.append("postData", JSON.stringify(postData));
+      const postDataString = JSON.stringify(postData);
+      console.log('📤 PostData JSON string:', postDataString);
+      formData.append("postData", postDataString);
       
       // Only append image if present
       if (values.image) {
+        console.log('📷 Adding image to FormData:', values.image.name, values.image.size);
         formData.append("image", values.image);
+      } else {
+        console.log('📷 No image to upload');
       }
 
+      console.log('🚀 Calling addNewPost mutation...');
+      console.log('📊 FormData contents:');
+      for (let [key, value] of formData.entries()) {
+        if (key === 'postData') {
+          console.log(`  ${key}:`, value);
+        } else {
+          console.log(`  ${key}:`, value.name || value);
+        }
+      }
+      
       const result = await addNewPost(formData);
+      console.log('📨 API Response:', result);
       
       // Store the created post ID for promotion dialog
       if (result.data?.postId) {
+        console.log('✅ Post created successfully with ID:', result.data.postId);
         setCreatedPostId(result.data.postId);
+      } else {
+        console.log('⚠️ Post created but no postId returned');
       }
     } catch (error) {
+      console.error('❌ Error in handleSubmit:', error);
+      console.error('❌ Error details:', {
+        message: error.message,
+        data: error.data,
+        status: error.status,
+        stack: error.stack
+      });
       setStatus({ error: error.message });
     } finally {
+      console.log('🏁 Form submission completed, setting submitting to false');
       setSubmitting(false);
     }
   };
