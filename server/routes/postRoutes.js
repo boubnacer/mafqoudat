@@ -152,18 +152,11 @@ router
   .post(
     uploadRateLimit,
     (req, res, next) => {
-      console.log('🔧 Before multer - Content-Type:', req.headers['content-type']);
-      console.log('🔧 Before multer - req.body keys:', Object.keys(req.body));
-      next();
-    },
-    (req, res, next) => {
       uploadWithFields.fields([
         { name: 'image', maxCount: 1 },
         { name: 'postData', maxCount: 1 }
       ])(req, res, (err) => {
         if (err) {
-          console.error('🔧 Multer error:', err);
-          console.error('🔧 Multer error details:', err.message);
           return res.status(400).json({ 
             success: false, 
             error: { message: 'File upload error: ' + err.message } 
@@ -171,12 +164,6 @@ router
         }
         next();
       });
-    },
-    (req, res, next) => {
-      console.log('🔧 After multer - req.body keys:', Object.keys(req.body));
-      console.log('🔧 After multer - req.body.postData exists:', !!req.body.postData);
-      console.log('🔧 After multer - req.files:', req.files ? req.files.length : 0);
-      next();
     },
     uploadToCloudinaryMiddleware, 
     validationSets.postCreation,

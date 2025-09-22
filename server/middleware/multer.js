@@ -26,10 +26,7 @@ const fileFilter = (req, file, cb) => {
     'image/gif'
   ];
   
-  console.log(`🔧 File info - Name: ${file.originalname}, MIME: ${file.mimetype}, Field: ${file.fieldname}`);
-  
   if (!allowedMimeTypes.includes(file.mimetype)) {
-    console.log(`🔧 MIME type rejected: ${file.mimetype} for file: ${file.originalname}`);
     return cb(new Error(`Invalid file type! Allowed: ${allowedMimeTypes.join(', ')}`), false);
   }
 
@@ -40,12 +37,8 @@ const fileFilter = (req, file, cb) => {
   if (fileExtension && fileExtension !== '') {
     const allowedExtensions = ['.jpg', '.jpeg', '.png', '.gif'];
     if (!allowedExtensions.includes(fileExtension)) {
-      console.log(`🔧 File extension rejected: ${fileExtension} for file: ${file.originalname}`);
       return cb(new Error(`Invalid file extension! Allowed: ${allowedExtensions.join(', ')}`), false);
     }
-  } else {
-    // If no extension (like 'blob'), rely on MIME type validation only
-    console.log(`🔧 No file extension for: ${file.originalname}, relying on MIME type validation`);
   }
 
   // Check for suspicious file names
@@ -106,19 +99,11 @@ const uploadToCloudinaryMiddleware = async (req, res, next) => {
   let tempFilePath = null;
   
   try {
-    console.log('🔧 Multer middleware - req.file:', req.file ? 'File present' : 'No file');
-    console.log('🔧 Multer middleware - req.files:', req.files ? (Array.isArray(req.files) ? req.files.length : Object.keys(req.files).length) : 0);
-    console.log('🔧 Multer middleware - req.body keys:', Object.keys(req.body));
-    console.log('🔧 Multer middleware - req.body.postData exists:', !!req.body.postData);
-    
     // Handle files object from uploadWithFields.fields()
-    console.log('🔧 req.files structure:', req.files);
     if (req.files && req.files.image && req.files.image.length > 0) {
       req.file = req.files.image[0]; // Extract the first image file
-      console.log('🔧 Extracted image file from files object:', req.file.originalname);
     } else if (req.files && req.files.image) {
       req.file = req.files.image; // If it's not an array, use directly
-      console.log('🔧 Extracted image file from files object (single):', req.file.originalname);
     }
     
     if (req.file) {

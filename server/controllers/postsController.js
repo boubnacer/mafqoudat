@@ -559,12 +559,6 @@ const getFilteredPosts = async (req, res) => {
 // @route POST /posts
 // @access Private
 const createNewPost = async (req, res) => {
-  console.log('🚀 createNewPost controller called');
-  console.log('📥 Request body keys:', Object.keys(req.body));
-  console.log('📥 Request has parsedPostData:', !!req.parsedPostData);
-  console.log('📥 Request has postData field:', !!req.body.postData);
-  console.log('📥 Request has file:', !!req.file);
-  console.log('📥 Request has cloudinaryResult:', !!req.cloudinaryResult);
   
   try {
     // Use parsed data from validation middleware if available, otherwise parse from req.body
@@ -572,7 +566,6 @@ const createNewPost = async (req, res) => {
     
     if (req.parsedPostData) {
       // Use data parsed by validation middleware
-      console.log('✅ Using parsedPostData from validation middleware');
       postData = req.parsedPostData;
       user = postData.user;
       country = postData.country;
@@ -587,7 +580,6 @@ const createNewPost = async (req, res) => {
       contactPreferences = postData.contactPreferences;
     } else if (req.body.postData) {
       // Fallback: parse from postData JSON field
-      console.log('🔄 Fallback: parsing from postData JSON field');
       postData = JSON.parse(req.body.postData);
       user = postData.user;
       country = postData.country;
@@ -602,7 +594,6 @@ const createNewPost = async (req, res) => {
       contactPreferences = postData.contactPreferences;
     } else {
       // Legacy format: individual fields
-      console.log('🔄 Using legacy individual fields format');
       user = req.body.user;
       country = req.body.country;
       category = req.body.category;
@@ -616,9 +607,6 @@ const createNewPost = async (req, res) => {
       contactPreferences = req.body.contactPreferences;
     }
     
-    console.log('📋 Extracted data:', {
-      user, country, category, contact, foundLost, city, exactLocation, exactDate, description
-    });
     
 
          // Confirm required data
@@ -715,15 +703,11 @@ const createNewPost = async (req, res) => {
      } else if (cityData) {
        // Handle API city data from GeoNames
        try {
-         console.log(`Processing API city data for: ${city}`);
-         console.log(`CityData type: ${typeof cityData}`);
-         console.log(`CityData:`, cityData);
          
          // cityData might already be an object or a JSON string
          const apiCityData = typeof cityData === 'string' ? JSON.parse(cityData) : cityData;
          
          // Check if city already exists in database
-         console.log(`Searching for existing city with labels:`, apiCityData.labels);
          const existingCity = await City.findOne({
            country: country,
            $or: [
@@ -732,23 +716,11 @@ const createNewPost = async (req, res) => {
              { "labels.fr": { $regex: new RegExp(apiCityData.labels.fr, 'i') } }
            ]
          });
-         console.log(`Existing city found:`, existingCity ? existingCity._id : 'None');
          
          if (existingCity) {
            cityId = existingCity._id;
-           console.log(`Using existing city: ${existingCity.labels.en} (${cityId})`);
          } else {
            // Create new city from API data
-           console.log(`Creating new city with data:`, {
-             code: apiCityData.code,
-             country: country,
-             labels: apiCityData.labels,
-             isCapital: apiCityData.isCapital || false,
-             isActive: true,
-             isDynamic: true,
-             population: apiCityData.population || 0,
-             searchTerms: apiCityData.searchTerms || []
-           });
            
            const newCity = await City.create({
              code: apiCityData.code,
@@ -762,18 +734,15 @@ const createNewPost = async (req, res) => {
            });
            
            cityId = newCity._id;
-           console.log(`Created new city from API data: ${apiCityData.labels.en} (${cityId})`);
          }
        } catch (apiCityError) {
          console.error('Error processing API city data:', apiCityError.message);
-         console.error('API city error details:', apiCityError);
          cityId = null;
        }
      } else if (city && city !== 'other' && typeof city === 'string') {
        // Fallback: If we have a city name but no valid cityId, create a new city record
        // This is a fallback for cases where the frontend didn't create the city first
        try {
-         console.log(`Creating fallback city for: ${city}`);
          // Use translation service to get proper translations for the custom city
          const translations = await TranslationService.translateCityName(city, 'en');
          
@@ -794,8 +763,7 @@ const createNewPost = async (req, res) => {
            searchTerms: [city.toLowerCase()]
          });
          
-         cityId = newCity._id; // Use the new city's ObjectId
-         console.log(`Created fallback city with ID: ${cityId}`);
+           cityId = newCity._id; // Use the new city's ObjectId
        } catch (cityCreationError) {
          console.error('Error creating fallback city:', cityCreationError.message);
          cityId = null;
@@ -825,13 +793,6 @@ const createNewPost = async (req, res) => {
      // Handle city field - cityId is already processed above
    if (cityId) {
      newPostData.city = cityId;
-     console.log(`Setting city field in post data: ${cityId}`);
-     console.log(`City field type: ${typeof cityId}`);
-     console.log(`City field is valid ObjectId: ${mongoose.Types.ObjectId.isValid(cityId)}`);
-   } else {
-     console.log('No cityId set, city field will be null');
-     console.log(`Original city value: ${city}`);
-     console.log(`City value type: ${typeof city}`);
    }
 
    // Add contact preferences if provided
@@ -860,12 +821,6 @@ const createNewPost = async (req, res) => {
 
      // Create and store the new post
    try {
-     console.log('Final post data before creation:', {
-       city: newPostData.city,
-       cityType: typeof newPostData.city,
-       cityIsValidObjectId: mongoose.Types.ObjectId.isValid(newPostData.city),
-       hasCity: !!newPostData.city
-     });
      const post = await Post.create(newPostData);
 
     if (post) {
