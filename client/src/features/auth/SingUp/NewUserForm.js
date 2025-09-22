@@ -924,19 +924,20 @@ const NewUserForm = ({ countries }) => {
                 <Button
                   component={Link}
                   to="/"
-                  variant="outlined"
+                  variant="contained"
                   sx={{
                     borderRadius: '4px',
                     textTransform: 'none',
                     fontWeight: 600,
-                    borderColor: theme.palette.primary.main,
-                    color: theme.palette.primary.main,
+                    background: 'linear-gradient(45deg, #4A8BFF 30%, #1A6EEE 90%)',
+                    color: 'white',
                     py: 1,
                     px: 3,
                     fontSize: { xs: '1.1rem', md: '1.2rem' },
+                    boxShadow: '0 3px 5px 2px rgba(26, 110, 238, .3)',
                     '&:hover': {
-                      borderColor: theme.palette.primary.dark,
-                      backgroundColor: alpha(theme.palette.primary.main, 0.04),
+                      background: 'linear-gradient(45deg, #5A9BFF 30%, #2A7EFF 90%)',
+                      boxShadow: '0 4px 8px 2px rgba(26, 110, 238, .4)',
                     }
                   }}
                 >
