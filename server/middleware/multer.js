@@ -78,14 +78,39 @@ const upload = multer({
   }
 });
 
+// Create a multer instance that handles both files and fields
+const uploadWithFields = multer({
+  storage: storage,
+  fileFilter: fileFilter,
+  limits: {
+    fileSize: 2 * 1024 * 1024, // 2MB limit
+    files: 1, // Limit to 1 file at a time
+    fieldSize: 1024 * 1024, // 1MB field size limit
+    fieldNameSize: 100, // Limit field name size
+    fields: 10, // Limit number of fields
+    parts: 20, // Limit number of parts
+    headerPairs: 2000 // Limit header pairs
+  }
+});
+
 // Enhanced security middleware for file uploads
 const uploadToCloudinaryMiddleware = async (req, res, next) => {
   let tempFilePath = null;
   
   try {
     console.log('🔧 Multer middleware - req.file:', req.file ? 'File present' : 'No file');
+    console.log('🔧 Multer middleware - req.files:', req.files ? req.files.length : 0);
     console.log('🔧 Multer middleware - req.body keys:', Object.keys(req.body));
     console.log('🔧 Multer middleware - req.body.postData exists:', !!req.body.postData);
+    
+    // Handle files array from uploadWithFields
+    if (req.files && req.files.length > 0) {
+      const imageFile = req.files.find(file => file.fieldname === 'image');
+      if (imageFile) {
+        req.file = imageFile;
+        console.log('🔧 Extracted image file from files array');
+      }
+    }
     
     if (req.file) {
       // Enhanced file validation
@@ -173,4 +198,4 @@ const uploadToCloudinaryMiddleware = async (req, res, next) => {
   }
 };
 
-module.exports = { upload, uploadToCloudinaryMiddleware };
+module.exports = { upload, uploadWithFields, uploadToCloudinaryMiddleware };

@@ -22,6 +22,8 @@ const formDataParser = multer({
 const parseFormData = (req, res, next) => {
   console.log('🔧 FormData parser middleware called');
   console.log('📥 Content-Type:', req.headers['content-type']);
+  console.log('📥 Request method:', req.method);
+  console.log('📥 Request URL:', req.url);
   
   // Only process if it's FormData
   if (req.headers['content-type'] && req.headers['content-type'].includes('multipart/form-data')) {
@@ -55,5 +57,7 @@ const parseFormData = (req, res, next) => {
     next();
   }
 };
+
+console.log('📦 FormData parser middleware loaded successfully');
 
 module.exports = { parseFormData };

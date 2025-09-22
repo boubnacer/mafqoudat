@@ -11,7 +11,7 @@ const {
 } = require("../middleware/optimizedCacheMiddleware");
 const { postsOptimizationMiddleware } = require("../middleware/responseOptimization");
 const { generateFieldSelectionDocs, POSTS_SCHEMA } = require("../utils/graphqlFieldSelection");
-const { upload, uploadToCloudinaryMiddleware } = require("../middleware/multer");
+const { upload, uploadWithFields, uploadToCloudinaryMiddleware } = require("../middleware/multer");
 const { validateRequest, validationSets, commonValidations } = require("../middleware/validation");
 const { parseFormData } = require("../middleware/formDataParser");
 const { upload: uploadRateLimit, report: reportRateLimit, search: searchRateLimit } = require("../middleware/rateLimiting");
@@ -151,11 +151,18 @@ router
   .route("/")
   .post(
     uploadRateLimit,
-    parseFormData,
+    (req, res, next) => {
+      console.log('🧪 Test middleware - Route reached');
+      console.log('🧪 Content-Type:', req.headers['content-type']);
+      next();
+    },
+    uploadWithFields.fields([
+      { name: 'image', maxCount: 1 },
+      { name: 'postData', maxCount: 1 }
+    ]),
+    uploadToCloudinaryMiddleware, 
     validationSets.postCreation,
     validateRequest,
-    upload.single("image"), 
-    uploadToCloudinaryMiddleware, 
     optimizedInvalidateCache([], 'posts'), 
     postsController.createNewPost
   )
