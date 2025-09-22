@@ -151,10 +151,21 @@ router
   .route("/")
   .post(
     uploadRateLimit,
+    (req, res, next) => {
+      console.log('🔧 Before multer - Content-Type:', req.headers['content-type']);
+      console.log('🔧 Before multer - req.body keys:', Object.keys(req.body));
+      next();
+    },
     uploadWithFields.fields([
       { name: 'image', maxCount: 1 },
       { name: 'postData', maxCount: 1 }
     ]),
+    (req, res, next) => {
+      console.log('🔧 After multer - req.body keys:', Object.keys(req.body));
+      console.log('🔧 After multer - req.body.postData exists:', !!req.body.postData);
+      console.log('🔧 After multer - req.files:', req.files ? req.files.length : 0);
+      next();
+    },
     uploadToCloudinaryMiddleware, 
     validationSets.postCreation,
     validateRequest,
