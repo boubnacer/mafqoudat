@@ -151,11 +151,6 @@ router
   .route("/")
   .post(
     uploadRateLimit,
-    (req, res, next) => {
-      console.log('🧪 Test middleware - Route reached');
-      console.log('🧪 Content-Type:', req.headers['content-type']);
-      next();
-    },
     uploadWithFields.fields([
       { name: 'image', maxCount: 1 },
       { name: 'postData', maxCount: 1 }
