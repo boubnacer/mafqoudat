@@ -956,10 +956,10 @@ const NewPostForm = ({ user, countries, categories, flOptions }) => {
                     {!selectedCountry 
                       ? t('selectCountryFirst') 
                         : currentLanguage === 'ar' 
-                          ? 'اختر أقرب مدينة كبيرة لك (مثل العاصمة أو المحافظة،العمالة...)'
+                          ? 'اختر مدينتك أو أقرب مدينة رئيسية إليك (العاصمة، العمالة، المقاطعة أو الولاية)'
                           : currentLanguage === 'fr'
-                            ? 'Sélectionnez la grande ville la plus proche de vous (capitale ou province)'
-                            : 'Select the closest major city to you (capital or province)'
+                            ? 'Sélectionnez votre ville ou la grande ville la plus proche (capitale, préfecture, province ou état)'
+                            : 'Select your city or the nearest major city to you (capital, prefecture, province or state)'
                     }
                   </Typography>
                   
