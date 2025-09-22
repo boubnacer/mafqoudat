@@ -5,10 +5,16 @@ const app = express();
 const path = require("path");
 const { logger, logEvents } = require("./middleware/logger");
 const errorHandler = require("./middleware/errorHandler");
+const { 
+  resilientErrorHandler, 
+  memoryMonitoring, 
+  requestTimeout,
+  gracefulShutdownHandler 
+} = require("./middleware/resilientErrorHandler");
 const cookieParser = require("cookie-parser");
 const cors = require("cors");
 const corsOptions = require("./config/corsOptions");
-const { connectDB, disconnectDB, getConnectionMetrics } = require("./config/dbConn");
+const { connectDB, disconnectDB, getConnectionMetrics } = require("./config/resilientDbConn");
 // Use unified cache system only
 const { initRedis, scheduleCacheWarming } = require("./config/unifiedCache");
 
@@ -122,6 +128,10 @@ app.use(...enhancedCompressionMiddleware({
 
 app.use(logger);
 
+// Resilience middleware
+app.use(memoryMonitoring);
+app.use(requestTimeout(30000)); // 30 second timeout
+
 app.use(cors(corsOptions));
 
 app.use(express.json({ limit: '10mb' }));
@@ -149,6 +159,7 @@ app.use("/cities-api", require("./routes/citiesRoutes"));
 app.use("/promotion", require("./routes/promotionRoutes"));
 app.use("/admin", require("./routes/adminRoutes"));
 app.use("/cost-monitoring", require("./routes/costMonitoringRoutes"));
+app.use("/resilience", require("./routes/resilienceRoutes"));
 
 // Database health and monitoring routes
 app.use("/db-health", require("./routes/dbHealthRoutes"));
@@ -286,7 +297,8 @@ app.all("*", (req, res) => {
   }
 });
 
-app.use(errorHandler);
+// Enhanced error handling with resilience
+app.use(resilientErrorHandler);
 
 // Start server after MongoDB connection is established
 let server;
