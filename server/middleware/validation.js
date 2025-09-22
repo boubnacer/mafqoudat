@@ -242,8 +242,9 @@ const validationSets = {
       if (!postData.foundLost.match(/^[0-9a-fA-F]{24}$/)) {
         throw new Error('Invalid found/lost ID format');
       }
-      if (postData.city && !postData.city.match(/^[0-9a-fA-F]{24}$/) && !postData.city.startsWith('api_')) {
-        throw new Error('Invalid city ID format');
+      // City validation is flexible - can be ObjectId, API city code, or custom city name
+      if (postData.city && typeof postData.city !== 'string') {
+        throw new Error('City must be a string');
       }
       if (postData.contact.length < 1 || postData.contact.length > 100) {
         throw new Error('Contact must be 1-100 characters');
