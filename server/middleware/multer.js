@@ -72,8 +72,8 @@ const upload = multer({
     files: 1, // Limit to 1 file at a time
     fieldSize: 1024 * 1024, // 1MB field size limit
     fieldNameSize: 100, // Limit field name size
-    fields: 15, // Limit number of fields (increased to accommodate all form fields)
-    parts: 30, // Limit number of parts (increased proportionally)
+    fields: 10, // Limit number of fields
+    parts: 20, // Limit number of parts
     headerPairs: 2000 // Limit header pairs
   }
 });

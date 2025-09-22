@@ -403,26 +403,34 @@ const NewPostForm = ({ user, countries, categories, flOptions }) => {
       setLastSubmittedValues(values);
       
       const formData = new FormData();
-      formData.append("user", user._id);
-      formData.append("country", selectedCountry?._id || values.country);
-      formData.append("category", values.category);
-      formData.append("foundLost", values.foundLost);
+      
+      // Combine basic fields into a single JSON object to reduce field count
+      const postData = {
+        user: user._id,
+        country: selectedCountry?._id || values.country,
+        category: values.category,
+        foundLost: values.foundLost,
+        exactLocation: values.exactLocation,
+        exactDate: values.exactDate,
+        contact: values.contact,
+        description: values.description || "",
+        contactPreferences: { whatsapp: true }
+      };
       
       // Handle city - check if it's an API city or database city
       if (values.city && values.city.startsWith('api_')) {
         // API city - send the city data
-        formData.append("city", selectedCityFromSearch?.code || values.city.replace('api_', ''));
-        formData.append("cityData", JSON.stringify(selectedCityFromSearch));
+        postData.city = selectedCityFromSearch?.code || values.city.replace('api_', '');
+        postData.cityData = selectedCityFromSearch;
       } else {
         // Database city
-      formData.append("city", values.city);
+        postData.city = values.city;
       }
       
-      formData.append("exactLocation", values.exactLocation);
-      formData.append("exactDate", values.exactDate);
-      formData.append("contact", values.contact);
-      formData.append("description", values.description || "");
-      formData.append("contactPreferences", JSON.stringify({ whatsapp: true }));
+      // Append combined data as single field
+      formData.append("postData", JSON.stringify(postData));
+      
+      // Only append image if present
       if (values.image) {
         formData.append("image", values.image);
       }

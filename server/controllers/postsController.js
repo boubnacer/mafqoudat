@@ -560,19 +560,37 @@ const getFilteredPosts = async (req, res) => {
 // @access Private
 const createNewPost = async (req, res) => {
   try {
-    const { 
-      user, 
-      country, 
-      category, 
-      contact, 
-      foundLost,
-      city,
-      cityData, // New field for API city data
-      exactLocation,
-      exactDate,
-      description,
-      contactPreferences
-    } = req.body;
+    // Handle new format where data comes as single postData JSON field
+    let postData, user, country, category, contact, foundLost, city, cityData, exactLocation, exactDate, description, contactPreferences;
+    
+    if (req.body.postData) {
+      // New format: data comes as single JSON field
+      postData = JSON.parse(req.body.postData);
+      user = postData.user;
+      country = postData.country;
+      category = postData.category;
+      contact = postData.contact;
+      foundLost = postData.foundLost;
+      city = postData.city;
+      cityData = postData.cityData;
+      exactLocation = postData.exactLocation;
+      exactDate = postData.exactDate;
+      description = postData.description;
+      contactPreferences = postData.contactPreferences;
+    } else {
+      // Legacy format: individual fields
+      user = req.body.user;
+      country = req.body.country;
+      category = req.body.category;
+      contact = req.body.contact;
+      foundLost = req.body.foundLost;
+      city = req.body.city;
+      cityData = req.body.cityData;
+      exactLocation = req.body.exactLocation;
+      exactDate = req.body.exactDate;
+      description = req.body.description;
+      contactPreferences = req.body.contactPreferences;
+    }
     
 
          // Confirm required data
