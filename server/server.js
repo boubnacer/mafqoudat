@@ -8,13 +8,25 @@ const errorHandler = require("./middleware/errorHandler");
 const { 
   resilientErrorHandler, 
   memoryMonitoring, 
-  requestTimeout,
+  requestTimeout: resilientRequestTimeout,
   gracefulShutdownHandler 
 } = require("./middleware/resilientErrorHandler");
 const cookieParser = require("cookie-parser");
 const cors = require("cors");
 const corsOptions = require("./config/corsOptions");
 const { connectDB, disconnectDB, getConnectionMetrics } = require("./config/resilientDbConn");
+
+// Security middleware imports
+const { 
+  securityHeaders, 
+  requestSizeLimiter, 
+  requestTimeout, 
+  requestLogger, 
+  apiSecurityHeaders 
+} = require("./middleware/securityHeaders");
+const { sanitizeInput } = require("./middleware/validation");
+const { general: generalRateLimit, dynamicRateLimiter } = require("./middleware/rateLimiting");
+const dbSecurity = require("./middleware/dbSecurity");
 // Use unified cache system only
 const { initRedis, scheduleCacheWarming } = require("./config/unifiedCache");
 
@@ -98,26 +110,17 @@ initRedis().catch(err => {
 // Schedule cache warming for optimized cache
 scheduleCacheWarming();
 
-// Security middleware - more flexible for development
-if (process.env.NODE_ENV === 'production') {
-  app.use(helmet({
-    contentSecurityPolicy: {
-      directives: {
-        defaultSrc: ["'self'"],
-        styleSrc: ["'self'", "'unsafe-inline'", "https://fonts.googleapis.com"],
-        fontSrc: ["'self'", "https://fonts.gstatic.com"],
-        imgSrc: ["'self'", "data:", "https:"],
-        scriptSrc: ["'self'"],
-        connectSrc: ["'self'", process.env.FRONTEND_URL || "http://localhost:3000"]
-      }
-    }
-  }));
-} else {
-  // Basic helmet for development
-  app.use(helmet({
-    contentSecurityPolicy: false
-  }));
-}
+// Enhanced security middleware
+app.use(securityHeaders);
+app.use(apiSecurityHeaders);
+app.use(requestSizeLimiter);
+app.use(requestLogger);
+
+// Input sanitization
+app.use(sanitizeInput);
+
+// Database security
+app.use(dbSecurity.validateQuery);
 
 // Enhanced compression middleware with smart optimization
 app.use(...enhancedCompressionMiddleware({
@@ -132,7 +135,11 @@ app.use(logger);
 app.use(memoryMonitoring);
 app.use(requestTimeout(30000)); // 30 second timeout
 
+// CORS
 app.use(cors(corsOptions));
+
+// Rate limiting
+app.use(generalRateLimit);
 
 app.use(express.json({ limit: '10mb' }));
 app.use(express.urlencoded({ extended: true, limit: '10mb' }));

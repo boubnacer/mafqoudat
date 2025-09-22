@@ -1,7 +1,8 @@
 const User = require("../models/User");
 const bcrypt = require("bcrypt");
-const jwt = require("jsonwebtoken");
 const Country = require("../models/Country");
+const { generateTokens, getSecureCookieOptions, logout } = require("../middleware/jwtSecurity");
+const { logEvents } = require("../middleware/logger");
 
 // @desc Login
 // @route POST /auth
@@ -31,32 +32,22 @@ const login = async (req, res) => {
 
   // const code = await Country.findById(foundUser.country).lean().exec()
 
-  const accessToken = jwt.sign(
-    {
-      UserInfo: {
-        username: foundUser.username,
-        usernameId: foundUser.id,
-        country: foundUser.country,
-        role: foundUser.role,
-      },
-    },
-            process.env.JWT_SECRET,
-    { expiresIn: "15m" }
-  );
-
-  const refreshToken = jwt.sign(
-    { username: foundUser.username },
-    process.env.JWT_REFRESH_SECRET,
-    { expiresIn: "7d" }
-  );
+  // Generate secure tokens
+  const { accessToken, refreshToken } = generateTokens({
+    username: foundUser.username,
+    id: foundUser.id,
+    country: foundUser.country,
+    role: foundUser.role
+  });
 
   // Create secure cookie with refresh token
-  res.cookie("jwt", refreshToken, {
-    httpOnly: true, //accessible only by web server
-    secure: true, //https
-    sameSite: "None", //cross-site cookie
-    maxAge: 7 * 24 * 60 * 60 * 1000, //cookie expiry: set to match rT
-  });
+  res.cookie("jwt", refreshToken, getSecureCookieOptions());
+
+  // Log successful login
+  logEvents(
+    `Successful login: ${foundUser.username}\t${req.method}\t${req.url}\t${req.ip}`,
+    "reqLog.log"
+  );
 
   // Send accessToken containing username and country
   res.json({ accessToken });
@@ -65,56 +56,85 @@ const login = async (req, res) => {
 // @desc Refresh
 // @route GET /auth/refresh
 // @access Public - because access token has expired
-const refresh = (req, res) => {
+const refresh = async (req, res) => {
   const cookies = req.cookies;
 
-  if (!cookies?.jwt) return res.status(401).json({ message: "Unauthorized" });
+  if (!cookies?.jwt) {
+    return res.status(401).json({ 
+      message: "Unauthorized - No refresh token",
+      isError: true 
+    });
+  }
 
   const refreshToken = cookies.jwt;
 
-  jwt.verify(
-    refreshToken,
-    process.env.JWT_REFRESH_SECRET,
-    async (err, decoded) => {
-      if (err) return res.status(403).json({ message: "Forbidden" });
+  try {
+    const jwt = require("jsonwebtoken");
+    const decoded = jwt.verify(
+      refreshToken,
+      process.env.JWT_REFRESH_SECRET,
+      {
+        issuer: 'mafqoudat-api',
+        audience: 'mafqoudat-client',
+        algorithms: ['HS256']
+      }
+    );
 
-      const foundUser = await User.findOne({
-        username: decoded.username,
-      }).select('_id username country role').exec();
-
-      if (!foundUser) return res.status(401).json({ message: "Unauthorized" });
-      // verify the userInfo country !!!!!!!!!!
-      const accessToken = jwt.sign(
-        {
-          UserInfo: {
-            username: foundUser.username,
-            usernameId: foundUser.id,
-            country: foundUser.country,
-            role: foundUser.role,
-          },
-        },
-        process.env.JWT_SECRET,
-        { expiresIn: "15m" }
-      );
-
-      res.json({ accessToken });
+    if (decoded.tokenType !== 'refresh') {
+      return res.status(403).json({ 
+        message: "Invalid token type",
+        isError: true 
+      });
     }
-  );
+
+    const foundUser = await User.findOne({
+      username: decoded.username,
+    }).select('_id username country role').exec();
+
+    if (!foundUser) {
+      return res.status(401).json({ 
+        message: "Unauthorized - User not found",
+        isError: true 
+      });
+    }
+
+    // Generate new access token
+    const { accessToken } = generateTokens({
+      username: foundUser.username,
+      id: foundUser.id,
+      country: foundUser.country,
+      role: foundUser.role
+    });
+
+    res.json({ accessToken });
+  } catch (err) {
+    let errorMessage = "Forbidden - Invalid refresh token";
+    
+    if (err.name === 'TokenExpiredError') {
+      errorMessage = "Refresh token expired";
+    }
+
+    logEvents(
+      `Refresh token verification failed: ${err.name} - ${err.message}\t${req.method}\t${req.url}\t${req.ip}`,
+      "errLog.log"
+    );
+
+    return res.status(403).json({ 
+      message: errorMessage,
+      isError: true 
+    });
+  }
 };
 
 // @desc Logout
 // @route POST /auth/logout
-// @access Public - just to clear cookie if exists
-const logout = (req, res) => {
-  console.log("logout called");
-  const cookies = req.cookies;
-  if (!cookies?.jwt) return res.sendStatus(204); //No content
-  res.clearCookie("jwt", { httpOnly: true, sameSite: "None", secure: true });
-  res.json({ message: "Cookie cleared" });
+// @access Private
+const logoutHandler = (req, res) => {
+  return logout(req, res);
 };
 
 module.exports = {
   login,
   refresh,
-  logout,
+  logout: logoutHandler,
 };

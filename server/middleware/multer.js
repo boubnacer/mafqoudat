@@ -1,6 +1,7 @@
 const multer = require("multer");
 const path = require("path");
 const fs = require("fs").promises;
+const crypto = require("crypto");
 
 // Use simple Cloudinary for now to ensure uploads work
 let uploadToCloudinary;
@@ -15,28 +16,69 @@ try {
 // Memory-optimized storage configuration
 const storage = multer.memoryStorage();
 
-// File filter to only allow images
+// Enhanced file filter with security checks
 const fileFilter = (req, file, cb) => {
+  // Allowed MIME types
+  const allowedMimeTypes = [
+    'image/jpeg',
+    'image/jpg', 
+    'image/png',
+    'image/webp',
+    'image/gif'
+  ];
+
   // Check file type
-  if (file.mimetype.startsWith('image/')) {
-    cb(null, true);
-  } else {
-    cb(new Error('Only image files are allowed!'), false);
+  if (!allowedMimeTypes.includes(file.mimetype)) {
+    return cb(new Error('Only JPEG, PNG, WebP, and GIF images are allowed!'), false);
   }
+
+  // Check file extension
+  const allowedExtensions = ['.jpg', '.jpeg', '.png', '.webp', '.gif'];
+  const fileExtension = path.extname(file.originalname).toLowerCase();
+  
+  if (!allowedExtensions.includes(fileExtension)) {
+    return cb(new Error('Invalid file extension!'), false);
+  }
+
+  // Check for suspicious file names
+  const suspiciousPatterns = [
+    /\.exe$/i,
+    /\.bat$/i,
+    /\.cmd$/i,
+    /\.scr$/i,
+    /\.pif$/i,
+    /\.vbs$/i,
+    /\.js$/i,
+    /\.html$/i,
+    /\.htm$/i,
+    /\.php$/i,
+    /\.asp$/i,
+    /\.jsp$/i
+  ];
+
+  if (suspiciousPatterns.some(pattern => pattern.test(file.originalname))) {
+    return cb(new Error('Suspicious file name detected!'), false);
+  }
+
+  cb(null, true);
 };
 
-// Configure multer with memory optimization
+// Configure multer with enhanced security and memory optimization
 const upload = multer({
   storage: storage,
   fileFilter: fileFilter,
   limits: {
-    fileSize: 2 * 1024 * 1024, // Reduced to 2MB limit to save memory
+    fileSize: 2 * 1024 * 1024, // 2MB limit
     files: 1, // Limit to 1 file at a time
     fieldSize: 1024 * 1024, // 1MB field size limit
+    fieldNameSize: 100, // Limit field name size
+    fields: 10, // Limit number of fields
+    parts: 20, // Limit number of parts
+    headerPairs: 2000 // Limit header pairs
   }
 });
 
-// Memory-optimized middleware to handle Cloudinary upload
+// Enhanced security middleware for file uploads
 const uploadToCloudinaryMiddleware = async (req, res, next) => {
   let tempFilePath = null;
   
@@ -44,17 +86,31 @@ const uploadToCloudinaryMiddleware = async (req, res, next) => {
     console.log('Multer middleware - req.file:', req.file ? 'File present' : 'No file');
     
     if (req.file) {
-      // Validate file size before processing
+      // Enhanced file validation
       if (req.file.size > 2 * 1024 * 1024) {
         return res.status(400).json({ 
-          error: 'File size too large. Maximum 2MB allowed.' 
+          error: 'File size too large. Maximum 2MB allowed.',
+          isError: true
         });
       }
+
+      // Check for minimum file size (prevent empty files)
+      if (req.file.size < 100) {
+        return res.status(400).json({ 
+          error: 'File too small. Minimum 100 bytes required.',
+          isError: true
+        });
+      }
+
+      // Generate secure filename with hash
+      const fileHash = crypto.createHash('sha256').update(req.file.buffer).digest('hex').substring(0, 16);
+      const sanitizedOriginalName = req.file.originalname.replace(/[^a-zA-Z0-9.-]/g, '_');
+      const fileExtension = path.extname(sanitizedOriginalName);
       
       // Use os.tmpdir() for cross-platform compatibility
       const os = require('os');
       const tempDir = os.tmpdir();
-      tempFilePath = path.join(tempDir, `${Date.now()}-${Math.random().toString(36).substring(7)}-${req.file.originalname}`);
+      tempFilePath = path.join(tempDir, `${fileHash}-${Date.now()}${fileExtension}`);
       
       // Store buffer before clearing it
       const fileBuffer = req.file.buffer;

@@ -1,7 +1,7 @@
 const express = require("express");
 const router = express.Router();
 const postsController = require("../controllers/postsController");
-const verifyJWT = require("../middleware/verifyJWT");
+const { verifyJWT } = require("../middleware/jwtSecurity");
 const { dynamicDataCache, paginatedCache, invalidateCache } = require("../middleware/cacheMiddleware");
 const { 
   postsCache, 
@@ -11,19 +11,36 @@ const {
 } = require("../middleware/optimizedCacheMiddleware");
 const { postsOptimizationMiddleware } = require("../middleware/responseOptimization");
 const { generateFieldSelectionDocs, POSTS_SCHEMA } = require("../utils/graphqlFieldSelection");
-
 const { upload, uploadToCloudinaryMiddleware } = require("../middleware/multer");
+const { validateRequest, validationSets, commonValidations } = require("../middleware/validation");
+const { upload: uploadRateLimit, report: reportRateLimit, search: searchRateLimit } = require("../middleware/rateLimiting");
 
 // Public routes - no authentication required (using optimized caching)
-// Temporarily disable optimization middleware to test
 router.route("/")
-  .get(optimizedPaginatedCache('posts'), postsController.getAllPosts);
+  .get(
+    searchRateLimit,
+    commonValidations.pagination(),
+    validateRequest,
+    optimizedPaginatedCache('posts'), 
+    postsController.getAllPosts
+  );
 
 router.route("/filtered")
-  .get(searchResultsCache('posts-filtered'), postsController.getFilteredPosts);
+  .get(
+    searchRateLimit,
+    commonValidations.pagination(),
+    validateRequest,
+    searchResultsCache('posts-filtered'), 
+    postsController.getFilteredPosts
+  );
 
 router.route("/:id")
-  .get(postsCache('post-detail'), postsController.getPost);
+  .get(
+    commonValidations.objectId('id'),
+    validateRequest,
+    postsCache('post-detail'), 
+    postsController.getPost
+  );
 
 // Field selection documentation endpoint
 router.route("/fields")
@@ -122,13 +139,36 @@ router.route("/health-check")
 router.use(verifyJWT);
 
 // Report route - requires authentication
-router.route("/report").post(postsController.submitPostReport);
+router.route("/report").post(
+  reportRateLimit,
+  validationSets.reportSubmission,
+  validateRequest,
+  postsController.submitPostReport
+);
 
 router
   .route("/")
-  .post(upload.single("image"), uploadToCloudinaryMiddleware, optimizedInvalidateCache([], 'posts'), postsController.createNewPost)
-  .patch(optimizedInvalidateCache([], 'posts'), postsController.updatePost)
-  .delete(optimizedInvalidateCache([], 'posts'), postsController.deletePost);
+  .post(
+    uploadRateLimit,
+    upload.single("image"), 
+    uploadToCloudinaryMiddleware, 
+    validationSets.postCreation,
+    validateRequest,
+    optimizedInvalidateCache([], 'posts'), 
+    postsController.createNewPost
+  )
+  .patch(
+    commonValidations.objectId('id'),
+    validateRequest,
+    optimizedInvalidateCache([], 'posts'), 
+    postsController.updatePost
+  )
+  .delete(
+    commonValidations.objectId('id'),
+    validateRequest,
+    optimizedInvalidateCache([], 'posts'), 
+    postsController.deletePost
+  );
 
 
 module.exports = router;
