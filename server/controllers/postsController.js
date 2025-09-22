@@ -560,11 +560,25 @@ const getFilteredPosts = async (req, res) => {
 // @access Private
 const createNewPost = async (req, res) => {
   try {
-    // Handle new format where data comes as single postData JSON field
+    // Use parsed data from validation middleware if available, otherwise parse from req.body
     let postData, user, country, category, contact, foundLost, city, cityData, exactLocation, exactDate, description, contactPreferences;
     
-    if (req.body.postData) {
-      // New format: data comes as single JSON field
+    if (req.parsedPostData) {
+      // Use data parsed by validation middleware
+      postData = req.parsedPostData;
+      user = postData.user;
+      country = postData.country;
+      category = postData.category;
+      contact = postData.contact;
+      foundLost = postData.foundLost;
+      city = postData.city;
+      cityData = postData.cityData;
+      exactLocation = postData.exactLocation;
+      exactDate = postData.exactDate;
+      description = postData.description;
+      contactPreferences = postData.contactPreferences;
+    } else if (req.body.postData) {
+      // Fallback: parse from postData JSON field
       postData = JSON.parse(req.body.postData);
       user = postData.user;
       country = postData.country;
@@ -771,7 +785,9 @@ const createNewPost = async (req, res) => {
     foundLost,
     exactLocation,
     exactDate: new Date(exactDate),
+    mainDate: exactDate, // Store original date string for display purposes
     description: description || "",
+    contactPreferences: contactPreferences || { whatsapp: true, phone: true, email: false },
   };
 
      // Handle city field - cityId is already processed above

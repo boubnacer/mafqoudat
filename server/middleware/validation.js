@@ -154,18 +154,81 @@ const validationSets = {
     body('country').isMongoId().withMessage('Invalid country ID')
   ],
   
-  // Post creation
+  // Post creation - handle both new postData format and legacy individual fields
   postCreation: [
-    body('user').isMongoId().withMessage('Invalid user ID'),
-    body('country').isMongoId().withMessage('Invalid country ID'),
-    body('category').isMongoId().withMessage('Invalid category ID'),
-    body('foundLost').isMongoId().withMessage('Invalid found/lost ID'),
-    body('city').optional().isMongoId().withMessage('Invalid city ID'),
-    body('contact').isLength({ min: 1, max: 100 }).withMessage('Contact must be 1-100 characters'),
-    body('exactLocation').isLength({ min: 1, max: 200 }).withMessage('Location must be 1-200 characters'),
-    body('exactDate').isISO8601().withMessage('Invalid date format'),
-    body('description').optional().isLength({ max: 2000 }).withMessage('Description must be less than 2000 characters'),
-    body('contactPreferences').optional().isArray().withMessage('Contact preferences must be an array')
+    // Custom validation to handle postData JSON format
+    body().custom((value, { req }) => {
+      let postData;
+      
+      // Check if data comes as postData JSON field (new format)
+      if (req.body.postData) {
+        try {
+          postData = JSON.parse(req.body.postData);
+        } catch (error) {
+          throw new Error('Invalid postData JSON format');
+        }
+      } else {
+        // Legacy format - use individual fields
+        postData = req.body;
+      }
+      
+      // Validate required fields
+      if (!postData.user) {
+        throw new Error('User ID is required');
+      }
+      if (!postData.country) {
+        throw new Error('Country ID is required');
+      }
+      if (!postData.category) {
+        throw new Error('Category ID is required');
+      }
+      if (!postData.foundLost) {
+        throw new Error('Found/Lost ID is required');
+      }
+      if (!postData.contact) {
+        throw new Error('Contact is required');
+      }
+      if (!postData.exactLocation) {
+        throw new Error('Exact location is required');
+      }
+      if (!postData.exactDate) {
+        throw new Error('Exact date is required');
+      }
+      
+      // Validate field formats
+      if (!postData.user.match(/^[0-9a-fA-F]{24}$/)) {
+        throw new Error('Invalid user ID format');
+      }
+      if (!postData.country.match(/^[0-9a-fA-F]{24}$/)) {
+        throw new Error('Invalid country ID format');
+      }
+      if (!postData.category.match(/^[0-9a-fA-F]{24}$/)) {
+        throw new Error('Invalid category ID format');
+      }
+      if (!postData.foundLost.match(/^[0-9a-fA-F]{24}$/)) {
+        throw new Error('Invalid found/lost ID format');
+      }
+      if (postData.city && !postData.city.match(/^[0-9a-fA-F]{24}$/) && !postData.city.startsWith('api_')) {
+        throw new Error('Invalid city ID format');
+      }
+      if (postData.contact.length < 1 || postData.contact.length > 100) {
+        throw new Error('Contact must be 1-100 characters');
+      }
+      if (postData.exactLocation.length < 1 || postData.exactLocation.length > 200) {
+        throw new Error('Location must be 1-200 characters');
+      }
+      if (postData.description && postData.description.length > 2000) {
+        throw new Error('Description must be less than 2000 characters');
+      }
+      
+      // Note: exactDate validation is flexible - can be string or Date
+      // The controller will handle date parsing
+      
+      // Store parsed data for controller to use
+      req.parsedPostData = postData;
+      
+      return true;
+    })
   ],
   
   // Report submission
