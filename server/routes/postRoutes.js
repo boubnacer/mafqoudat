@@ -150,10 +150,10 @@ router
   .route("/")
   .post(
     uploadRateLimit,
-    upload.single("image"), 
-    uploadToCloudinaryMiddleware, 
     validationSets.postCreation,
     validateRequest,
+    upload.single("image"), 
+    uploadToCloudinaryMiddleware, 
     optimizedInvalidateCache([], 'posts'), 
     postsController.createNewPost
   )

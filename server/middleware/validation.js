@@ -3,13 +3,21 @@ const { logEvents } = require('./logger');
 
 // Custom validation middleware
 const validateRequest = (req, res, next) => {
+  console.log('🔍 validateRequest middleware called');
+  console.log('📥 Request body keys:', Object.keys(req.body));
+  console.log('📥 Request body postData exists:', !!req.body.postData);
+  
   const errors = validationResult(req);
+  console.log('🔍 Validation errors:', errors.array());
+  
   if (!errors.isEmpty()) {
     const errorMessages = errors.array().map(error => ({
       field: error.path || error.param,
       message: error.msg,
       value: error.value
     }));
+    
+    console.log('❌ Validation failed with errors:', errorMessages);
     
     logEvents(
       `Validation Error: ${JSON.stringify(errorMessages)}\t${req.method}\t${req.url}\t${req.headers.origin}`,
@@ -22,6 +30,8 @@ const validateRequest = (req, res, next) => {
       isError: true
     });
   }
+  
+  console.log('✅ Validation passed, calling next()');
   next();
 };
 

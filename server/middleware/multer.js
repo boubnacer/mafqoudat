@@ -83,7 +83,9 @@ const uploadToCloudinaryMiddleware = async (req, res, next) => {
   let tempFilePath = null;
   
   try {
-    console.log('Multer middleware - req.file:', req.file ? 'File present' : 'No file');
+    console.log('🔧 Multer middleware - req.file:', req.file ? 'File present' : 'No file');
+    console.log('🔧 Multer middleware - req.body keys:', Object.keys(req.body));
+    console.log('🔧 Multer middleware - req.body.postData exists:', !!req.body.postData);
     
     if (req.file) {
       // Enhanced file validation
