@@ -2,7 +2,8 @@ const User = require("../models/User");
 const Post = require("../models/Post");
 const bcrypt = require("bcrypt");
 const Country = require("../models/Country");
-const jwt = require("jsonwebtoken");
+const { generateTokens, getSecureCookieOptions } = require("../middleware/jwtSecurity");
+const { logEvents } = require("../middleware/logger");
 
 // @desc Get all users
 // @route GET /users
@@ -116,36 +117,24 @@ const createNewUser = async (req, res) => {
     const user = await User.create(userObject);
     console.log('User created successfully:', user._id);
 
-  const accessToken = jwt.sign(
-    {
-      UserInfo: {
-        username: user.username,
-        usernameId: user.id,
-        country: user.country,
-        role: user.role,
-      },
-    },
-            process.env.JWT_SECRET,
-    { expiresIn: "15m" }
-  );
-
-  const refreshToken = jwt.sign(
-    { username: user.username },
-    process.env.JWT_REFRESH_SECRET,
-    { expiresIn: "7d" }
-  );
-
-  // Create secure cookie with refresh token
-  res.cookie("jwt", refreshToken, {
-    httpOnly: true, //accessible only by web server
-    secure: true, //https
-    sameSite: "None", //cross-site cookie
-    maxAge: 7 * 24 * 60 * 60 * 1000, //cookie expiry: set to match rT
+  // Generate secure tokens
+  const { accessToken, refreshToken } = generateTokens({
+    username: user.username,
+    id: user.id,
+    country: user.country,
+    role: user.role
   });
 
-    console.log(accessToken);
+  // Create secure cookie with refresh token
+  res.cookie("jwt", refreshToken, getSecureCookieOptions());
 
-    res.json({ accessToken });
+  // Log successful registration
+  logEvents(
+    `Successful user registration: ${user.username}\t${req.method}\t${req.url}\t${req.ip}`,
+    "reqLog.log"
+  );
+
+  res.json({ accessToken });
   } catch (error) {
     console.error('Error creating user:', error);
     return res.status(500).json({ message: "Error creating user" });

@@ -124,8 +124,23 @@ const commonValidations = {
 
 // Specific validation sets for different endpoints
 const validationSets = {
-  // User registration/login
-  userAuth: [
+  // User login
+  userLogin: [
+    body('emailOrPhone')
+      .custom((value) => {
+        const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+        const phoneRegex = /^\+?[1-9]\d{1,14}$/;
+        
+        if (!emailRegex.test(value) && !phoneRegex.test(value)) {
+          throw new Error('Email or phone must be a valid email or phone number');
+        }
+        return true;
+      }),
+    commonValidations.password('password')
+  ],
+
+  // User registration
+  userRegistration: [
     body('username')
       .custom((value) => {
         const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
