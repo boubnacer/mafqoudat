@@ -13,6 +13,7 @@ const { postsOptimizationMiddleware } = require("../middleware/responseOptimizat
 const { generateFieldSelectionDocs, POSTS_SCHEMA } = require("../utils/graphqlFieldSelection");
 const { upload, uploadToCloudinaryMiddleware } = require("../middleware/multer");
 const { validateRequest, validationSets, commonValidations } = require("../middleware/validation");
+const { parseFormData } = require("../middleware/formDataParser");
 const { upload: uploadRateLimit, report: reportRateLimit, search: searchRateLimit } = require("../middleware/rateLimiting");
 
 // Public routes - no authentication required (using optimized caching)
@@ -150,6 +151,7 @@ router
   .route("/")
   .post(
     uploadRateLimit,
+    parseFormData,
     validationSets.postCreation,
     validateRequest,
     upload.single("image"), 
