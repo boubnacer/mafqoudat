@@ -10,25 +10,40 @@ const { logEvents } = require("../middleware/logger");
 const login = async (req, res) => {
   const { emailOrPhone, password } = req.body;
 
+  console.log('Login attempt received:', { emailOrPhone, hasPassword: !!password });
+
   if (!emailOrPhone || !password) {
     return res.status(400).json({ message: "All fields are required" });
   }
 
-  // Find user by email or phone - optimized with selective fields for authentication
-  const foundUser = await User.findOne({
+  // Find user by email, phone, or username - optimized with selective fields for authentication
+  const searchQuery = {
     $or: [
       { email: emailOrPhone.toLowerCase() },
-      { phone: emailOrPhone }
+      { phone: emailOrPhone },
+      { username: emailOrPhone }
     ]
-  }).select('_id username password country role').exec();
+  };
+  
+  console.log('Searching with query:', JSON.stringify(searchQuery, null, 2));
+  
+  const foundUser = await User.findOne(searchQuery)
+    .collation({ locale: "en", strength: 2 })
+    .select('_id username password country role email phone').exec();
 
   if (!foundUser) {
-    return res.status(401).json({ message: "User does not exist" });
+    console.log('Login attempt - User not found for:', emailOrPhone);
+    return res.status(401).json({ message: "Invalid credentials" });
   }
+
+  console.log('Login attempt - User found:', foundUser.username, 'Email:', foundUser.email, 'Phone:', foundUser.phone);
 
   const match = await bcrypt.compare(password, foundUser.password);
 
-  if (!match) return res.status(401).json({ message: "Password doesn't match" });
+  if (!match) {
+    console.log('Login attempt - Password mismatch for user:', foundUser.username);
+    return res.status(401).json({ message: "Invalid credentials" });
+  }
 
   // const code = await Country.findById(foundUser.country).lean().exec()
 

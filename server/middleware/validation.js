@@ -127,16 +127,15 @@ const validationSets = {
   // User login
   userLogin: [
     body('emailOrPhone')
-      .custom((value) => {
-        const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-        const phoneRegex = /^\+?[1-9]\d{1,14}$/;
-        
-        if (!emailRegex.test(value) && !phoneRegex.test(value)) {
-          throw new Error('Email or phone must be a valid email or phone number');
-        }
-        return true;
-      }),
-    commonValidations.password('password')
+      .notEmpty()
+      .withMessage('Email or phone is required')
+      .isLength({ min: 3, max: 100 })
+      .withMessage('Email or phone must be 3-100 characters'),
+    body('password')
+      .notEmpty()
+      .withMessage('Password is required')
+      .isLength({ min: 1, max: 128 })
+      .withMessage('Password must be 1-128 characters')
   ],
 
   // User registration
