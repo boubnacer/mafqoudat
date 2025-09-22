@@ -75,7 +75,7 @@ export const initializeLocalStorage = () => {
   const defaults = {
     isLoggedIn: 'false',
     language: 'en',
-    theme: 'dark'
+    theme: 'light'
   };
 
   Object.entries(defaults).forEach(([key, value]) => {

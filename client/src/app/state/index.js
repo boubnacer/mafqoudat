@@ -19,7 +19,7 @@ const getInitialState = () => {
   console.log('Redux: No saved state found, using default state');
   return {
     currentCountry: null, // Use null instead of empty string to distinguish from unset
-    mode: "dark",
+    mode: "light",
     isSidebarOpen: false,
     openModal: false,
     activeLink: "",
