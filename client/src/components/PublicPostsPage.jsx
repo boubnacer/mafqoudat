@@ -279,7 +279,7 @@ const PublicPostsPage = () => {
           <Button
             variant="contained"
             startIcon={<Add />}
-            onClick={() => navigate('/login')}
+            onClick={() => navigate('/signup')}
           >
             {t('createNewPost')}
           </Button>
@@ -424,7 +424,7 @@ const PublicPostsPage = () => {
             </Typography>
             <Button 
               variant="contained" 
-              onClick={() => navigate('/login')}
+              onClick={() => navigate('/signup')}
               sx={{ mt: 2 }}
             >
               {t('createNewPost')}
@@ -482,7 +482,7 @@ const PublicPostsPage = () => {
                       variant="outlined"
                       size="small"
                       startIcon={<Visibility />}
-                      onClick={() => navigate('/login')}
+                      onClick={() => navigate('/signup')}
                       fullWidth
                     >
                       {t('viewDetails')}

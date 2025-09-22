@@ -43,7 +43,7 @@ const QuickActions = () => {
       color: '#ff6b6b',
       action: () => {
         if (!token) {
-          navigate('/login');
+          navigate('/signup');
         } else {
           scrollToHelpSection();
         }
@@ -56,7 +56,7 @@ const QuickActions = () => {
       color: '#4ecdc4',
       action: () => {
         if (!token) {
-          navigate('/login');
+          navigate('/signup');
         } else {
           navigate('/dash/posts/new?type=found');
         }

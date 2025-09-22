@@ -115,12 +115,12 @@ const SinglePostPage = ({
   const handleReport = useCallback(() => {
     // Check if user is authenticated
     if (!usernameId) {
-      // Store the current post URL in localStorage for redirect after login
+      // Store the current post URL in localStorage for redirect after signup
       const currentPostUrl = window.location.pathname;
       localStorage.setItem('redirectAfterLogin', currentPostUrl);
       
-      // Redirect to login page
-      navigate('/login');
+      // Redirect to signup page
+      navigate('/signup');
       return;
     }
     

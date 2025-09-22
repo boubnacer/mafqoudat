@@ -318,11 +318,11 @@ const Post = ({ post, viewMode = "grid" }) => {
   const handleReport = useCallback(() => {
     // Simple check: if no usernameId, redirect to login
     if (!usernameId) {
-      // Store the current post URL for redirect after login
+      // Store the current post URL for redirect after signup
       const currentPostUrl = `/dash/posts/${post?._id}`;
       localStorage.setItem('redirectAfterLogin', currentPostUrl);
       
-      navigate('/login');
+      navigate('/signup');
       return;
     }
     

@@ -273,7 +273,7 @@ const PostsList = () => {
 
   const handleAddNewPost = useCallback(() => {
     if (!user.username) {
-      navigate('/login');
+      navigate('/signup');
     } else {
       navigate("/dash/posts/new");
     }

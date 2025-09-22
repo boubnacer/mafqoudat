@@ -36,7 +36,7 @@ const DashFooter = () => {
 
   const onCreatePostClicked = () => {
     if (!username) {
-      navigate('/login');
+      navigate('/signup');
     } else {
       navigate("/dash/posts/new");
     }

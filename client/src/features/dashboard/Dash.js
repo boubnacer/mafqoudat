@@ -55,7 +55,7 @@ const Dash = () => {
 
   const handleCreateNewPost = (type) => {
     if (!user.username) {
-      navigate('/login');
+      navigate('/signup');
     } else {
       navigate(`/dash/posts/new?type=${type}`);
     }

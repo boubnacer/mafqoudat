@@ -357,7 +357,7 @@ const Navbar = () => {
   const [sendLogout, { isSuccess }] = useSendLogoutMutation();
 
   useEffect(() => {
-    if (isSuccess) navigate("/");
+    if (isSuccess) navigate("/login");
   }, [isSuccess, navigate]);
 
   const onGoHomeClicked = () => navigate("/dash");

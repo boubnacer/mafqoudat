@@ -64,11 +64,11 @@ const RecentPosts = ({ _id, categoryname, exactLocation, image, createdAt, count
   const handleReport = () => {
     // Check if user is authenticated
     if (!usernameId) {
-      // Store the current post URL for redirect after login
+      // Store the current post URL for redirect after signup
       const currentPostUrl = `/dash/posts/${_id}`;
       localStorage.setItem('redirectAfterLogin', currentPostUrl);
       
-      navigate('/login');
+      navigate('/signup');
       return;
     }
     
