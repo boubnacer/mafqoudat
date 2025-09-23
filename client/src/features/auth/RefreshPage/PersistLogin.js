@@ -52,7 +52,6 @@ const PersistLogin = () => {
     content = <LoadingState message="Refreshing session..." />;
   } else if (isError) {
     //persist: yes, token: no
-    console.log("error no token");
     content = (
       <ErrorState
         title="Session expired"

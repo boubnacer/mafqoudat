@@ -53,7 +53,6 @@ export const authApiSlice = apiSlice.injectEndpoints({
             dispatch(apiSlice.util.resetApiState());
           }, 1000);
         } catch (err) {
-          console.log(err);
           // Even if logout fails, clear local state
           dispatch(logOut());
           localStorage.setItem('isLoggedIn', 'false');
