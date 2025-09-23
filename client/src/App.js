@@ -10,6 +10,7 @@ import { useLocation } from "react-router-dom";
 import { themeSettings } from "./theme";
 import { LanguageProvider, useLanguage } from "./utils/languageContext";
 import { cleanupLocalStorage, initializeLocalStorage } from "./utils/localStorageUtils";
+import useAuthErrorHandler from "./hooks/useAuthErrorHandler";
 
 // Add CSS keyframes for loading animations (mirrorReflection from navbar)
 const loadingStyles = `
@@ -135,6 +136,9 @@ const AppContent = () => {
   const mode = useSelector((state) => state.global.mode);
   const { currentLanguage } = useLanguage();
   const location = useLocation();
+  
+  // Initialize authentication error handler
+  useAuthErrorHandler();
   
   // Debug Redux store
   console.log('AppContent: Redux store state:', {

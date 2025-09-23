@@ -71,11 +71,17 @@ export const authApiSlice = apiSlice.injectEndpoints({
           const { accessToken } = data;
           dispatch(setCredentials({ accessToken }));
           localStorage.setItem('isLoggedIn', 'true');
+          console.log('Token refresh successful');
         } catch (err) {
-          console.log(err);
-          // If refresh fails, logout user
+          console.log('Token refresh failed:', err);
+          // If refresh fails, logout user immediately
           dispatch(logOut());
           localStorage.setItem('isLoggedIn', 'false');
+          
+          // Dispatch a custom event to notify components of auth failure
+          window.dispatchEvent(new CustomEvent('authError', { 
+            detail: { error: { status: 401, message: 'Your login has expired.' } } 
+          }));
         }
       },
     }),

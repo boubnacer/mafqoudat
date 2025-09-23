@@ -96,11 +96,11 @@ const SinglePostPage = ({
   const navigate = useNavigate();
   const theme = useTheme();
   const isMobile = useMediaQuery("(max-width:768px)");
-  const { usernameId } = useAuth();
+  const { usernameId, isAuthenticated } = useAuth();
   const { t, currentLanguage } = useTranslation();
   const isRTLMode = isRTL();
 
-  const canEdit = user === usernameId;
+  const canEdit = user === usernameId && isAuthenticated;
   const [reportDialogOpen, setReportDialogOpen] = useState(false);
   const [submitReport] = useSubmitReportMutation();
   const [deletePost, { isLoading: isDeleting, isSuccess: isDeleteSuccess }] = useDeletePostMutation();

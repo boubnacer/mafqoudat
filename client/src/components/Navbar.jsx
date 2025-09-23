@@ -256,7 +256,7 @@ const CreatePostButton = styled(Button)(({ theme }) => ({
 }));
 
 const Navbar = () => {
-  const { country, username, role } = useAuth();
+  const { country, username, role, isAuthenticated } = useAuth();
   const user = { username };
   const theme = useTheme();
   const dispatch = useDispatch();
@@ -276,8 +276,6 @@ const Navbar = () => {
   const [isUserSelectingCountry, setIsUserSelectingCountry] = useState(false);
   const [isInitialized, setIsInitialized] = useState(false);
   const [logoAnimationTrigger, setLogoAnimationTrigger] = useState(false);
-
-  const isAuthenticated = Boolean(user?.username);
 
   // Get found/lost options for navigation
   const { data: flOptionsData } = useGetflOptionsQuery({
