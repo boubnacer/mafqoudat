@@ -961,7 +961,7 @@ const NewPostForm = ({ user, countries, categories, flOptions }) => {
                             ? 'Sélectionnez votre ville ou la grande ville la plus proche (capitale, préfecture, province ou état)'
                             : 'Select your city or the nearest major city to you (capital, prefecture, province or state)'
                     }
-                  </Typography>
+                  </Typography> 
                   
                   {/* Debug info */}
                   {process.env.NODE_ENV === 'development' && selectedCountry && (
