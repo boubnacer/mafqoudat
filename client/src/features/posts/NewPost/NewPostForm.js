@@ -1821,4 +1821,5 @@ const NewPostForm = ({ user, countries, categories, flOptions }) => {
   );
 };
 
+
 export default NewPostForm;
