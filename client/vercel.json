@@ -35,6 +35,10 @@
       "dest": "/logo512.png"
     },
     {
+      "src": "/maflogo.png",
+      "dest": "/maflogo.png"
+    },
+    {
       "src": "/language-test.html",
       "dest": "/language-test.html"
     },
