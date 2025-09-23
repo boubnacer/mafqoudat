@@ -71,9 +71,7 @@ export const authApiSlice = apiSlice.injectEndpoints({
           const { accessToken } = data;
           dispatch(setCredentials({ accessToken }));
           localStorage.setItem('isLoggedIn', 'true');
-          console.log('Token refresh successful');
         } catch (err) {
-          console.log('Token refresh failed:', err);
           // If refresh fails, logout user immediately
           dispatch(logOut());
           localStorage.setItem('isLoggedIn', 'false');

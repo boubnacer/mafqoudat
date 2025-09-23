@@ -34,7 +34,6 @@ const baseQueryWithReauth = async (args, api, extraOptions) => {
   // Handle both 401 and 403 errors for authenticated routes
   // Skip reauth for public routes like dashboard
   if ((result?.error?.status === 401 || result?.error?.status === 403) && !args.url?.includes("/dashboard")) {
-    console.log("sending refresh token");
 
     // send refresh token to get new access token
     const refreshResult = await baseQuery("/auth/refresh", api, extraOptions);
@@ -47,7 +46,6 @@ const baseQueryWithReauth = async (args, api, extraOptions) => {
       result = await baseQuery(args, api, extraOptions);
     } else {
       // If refresh fails, immediately logout user and clear state
-      console.log("Refresh failed, logging out user");
       api.dispatch(logOut());
       localStorage.setItem('isLoggedIn', 'false');
       

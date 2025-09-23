@@ -19,7 +19,6 @@ const authSlice = createSlice({
   reducers: {
     setCredentials: (state, action) => {
       const { accessToken, user } = action.payload;
-      console.log('authSlice - setCredentials called with accessToken:', accessToken);
       state.token = accessToken;
       state.isLoggedIn = true;
       state.user = user || null;
@@ -27,10 +26,8 @@ const authSlice = createSlice({
       // Persist to localStorage
       localStorage.setItem('accessToken', accessToken);
       localStorage.setItem('isLoggedIn', 'true');
-      console.log('authSlice - credentials set, token in state:', state.token);
     },
     logOut: (state, action) => {
-      console.log('authSlice - logOut called, clearing all auth state');
       state.token = null;
       state.isLoggedIn = false;
       state.user = null;
@@ -47,7 +44,6 @@ const authSlice = createSlice({
       state.isLoading = action.payload;
     },
     clearAuth: (state, action) => {
-      console.log('authSlice - clearAuth called, clearing all auth state');
       state.token = null;
       state.isLoggedIn = false;
       state.user = null;
@@ -62,11 +58,7 @@ const authSlice = createSlice({
 
 export const { setCredentials, logOut, setUser, setLoading, clearAuth } = authSlice.actions;
 
-export const selectCurrentToken = (state) => {
-  const token = state.auth.token;
-  console.log('selectCurrentToken - called, returning:', token);
-  return token;
-};
+export const selectCurrentToken = (state) => state.auth.token;
 export const selectIsLoggedIn = (state) => state.auth.isLoggedIn;
 export const selectCurrentUser = (state) => state.auth.user;
 export const selectAuthLoading = (state) => state.auth.isLoading;

@@ -16,7 +16,6 @@ const useAuthErrorHandler = () => {
       
       // Check if this is an authentication error
       if (detail?.error?.status === 401 || detail?.error?.status === 403) {
-        console.log('Authentication error detected, clearing auth state');
         dispatch(logOut());
         localStorage.setItem('isLoggedIn', 'false');
       }
