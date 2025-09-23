@@ -641,7 +641,7 @@ const WelcomePage = () => {
                   fullWidth
                   sx={{
                     '& .MuiOutlinedInput-root': {
-                      borderRadius: 12,
+                      borderRadius: 8,
                       fontSize: { xs: '1.1rem', md: '1.2rem' },
                       padding: { xs: '8px 12px', md: '12px 16px' },
                       minHeight: { xs: '56px', md: '60px' },
@@ -662,6 +662,19 @@ const WelcomePage = () => {
                           ? 'rgba(255, 255, 255, 0.1)'
                           : 'rgba(0, 0, 0, 0.06)',
                         boxShadow: `0 0 0 3px ${alpha(theme?.palette?.primary?.main || '#667eea', 0.1)}`,
+                      },
+                      // Enhanced dropdown icon styling
+                      '& .MuiAutocomplete-endAdornment': {
+                        right: '12px',
+                        '& .MuiSvgIcon-root': {
+                          fontSize: '28px',
+                          color: theme?.palette?.text?.secondary,
+                          transition: 'all 0.3s ease',
+                        },
+                        '&:hover .MuiSvgIcon-root': {
+                          color: theme?.palette?.primary?.main || '#667eea',
+                          transform: 'scale(1.1)',
+                        }
                       }
                     },
                     '& .MuiInputLabel-root': {
@@ -679,6 +692,41 @@ const WelcomePage = () => {
                     autoComplete: "new-password",
                   }}
                 />
+              )}
+              // Enhanced popup styling
+              ListboxProps={{
+                sx: {
+                  '& .MuiAutocomplete-option': {
+                    padding: '12px 16px',
+                    fontSize: { xs: '1.1rem', md: '1.2rem' },
+                    '&:hover': {
+                      backgroundColor: alpha(theme?.palette?.primary?.main || '#667eea', 0.1),
+                    },
+                    '&.Mui-focused': {
+                      backgroundColor: alpha(theme?.palette?.primary?.main || '#667eea', 0.15),
+                    }
+                  }
+                }
+              }}
+              PaperComponent={({ children, ...other }) => (
+                <Paper
+                  {...other}
+                  sx={{
+                    borderRadius: 2,
+                    boxShadow: theme?.palette?.mode === 'dark'
+                      ? '0 8px 32px rgba(0, 0, 0, 0.4)'
+                      : '0 8px 32px rgba(0, 0, 0, 0.1)',
+                    background: theme?.palette?.mode === 'dark'
+                      ? 'rgba(30, 30, 30, 0.95)'
+                      : 'rgba(255, 255, 255, 0.95)',
+                    backdropFilter: 'blur(20px)',
+                    border: `1px solid ${alpha(theme?.palette?.divider, 0.1)}`,
+                    maxHeight: '300px',
+                    overflow: 'auto',
+                  }}
+                >
+                  {children}
+                </Paper>
               )}
             />
 
