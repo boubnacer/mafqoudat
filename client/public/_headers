@@ -1,11 +1,11 @@
 # Static files with proper content-type headers
 /*.js
   Content-Type: application/javascript
-  Cache-Control: public, max-age=86400, s-maxage=31536000
+  Cache-Control: public, max-age=3600, s-maxage=86400
 
 /*.css
   Content-Type: text/css
-  Cache-Control: public, max-age=86400, s-maxage=31536000
+  Cache-Control: public, max-age=3600, s-maxage=86400
 
 /*.png
   Content-Type: image/png
@@ -53,6 +53,12 @@
 
 # HTML files (no caching for SPA)
 /*.html
+  Cache-Control: no-cache, no-store, must-revalidate
+  Pragma: no-cache
+  Expires: 0
+
+# Force refresh for main files
+/index.html
   Cache-Control: no-cache, no-store, must-revalidate
   Pragma: no-cache
   Expires: 0
