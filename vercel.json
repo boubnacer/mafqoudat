@@ -9,6 +9,11 @@
       }
     }
   ],
+  "functions": {
+    "client/build/**": {
+      "maxDuration": 10
+    }
+  },
   "routes": [
     {
       "src": "/static/(.*)",
