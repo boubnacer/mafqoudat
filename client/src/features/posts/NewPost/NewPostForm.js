@@ -69,12 +69,23 @@ const CitySelectOption = ({ name, cities, disabled }) => {
 };
 
 const NewPostForm = ({ user, countries, categories, flOptions }) => {
+  console.log('🔍 NewPostForm: Component starting to render');
+  
   const [addNewPost, { isSuccess, isError, error }] = useAddNewPostMutation();
+  console.log('🔍 NewPostForm: useAddNewPostMutation hook completed');
+  
   const { t, currentLanguage } = useTranslation();
+  console.log('🔍 NewPostForm: useTranslation hook completed, currentLanguage:', currentLanguage);
+  
   const token = useSelector(selectCurrentToken);
+  console.log('🔍 NewPostForm: useSelector hook completed');
   
   const navigate = useNavigate();
+  console.log('🔍 NewPostForm: useNavigate hook completed');
+  
   const theme = useTheme();
+  console.log('🔍 NewPostForm: useTheme hook completed');
+  
   const [showSuccess, setShowSuccess] = useState(false);
   const [selectedFileName, setSelectedFileName] = useState("");
   const [showPromotionDialog, setShowPromotionDialog] = useState(false);
@@ -91,6 +102,8 @@ const NewPostForm = ({ user, countries, categories, flOptions }) => {
   const [setFieldValueCallback, setSetFieldValueCallback] = useState(null);
   const [fieldErrors, setFieldErrors] = useState({});
   const formikRef = useRef(null);
+  
+  console.log('🔍 NewPostForm: All useState hooks completed');
 
   // New state for unified city dropdown
   const [citySearchQuery, setCitySearchQuery] = useState("");
@@ -232,20 +245,23 @@ const NewPostForm = ({ user, countries, categories, flOptions }) => {
   };
 
   const fetchCitiesByCountry = useCallback(async (countryId) => {
+    console.log('🔍 NewPostForm: fetchCitiesByCountry called with countryId:', countryId);
     try {
       setLoadingCities(true);
       const baseUrl = process.env.REACT_APP_API_URL || "http://localhost:3500";
       const url = `${baseUrl}/cities-public?countryId=${countryId}&language=${currentLanguage || 'en'}`;
       
-             const response = await fetch(url);
-       const data = await response.json();
-       
-       if (data.success) {
-         setCities(data.data);
-       } else {
-         console.error('Failed to fetch cities:', data.message);
-         setCities([]);
-       }
+      console.log('🔍 NewPostForm: Fetching cities from URL:', url);
+      const response = await fetch(url);
+      const data = await response.json();
+      
+      if (data.success) {
+        console.log('🔍 NewPostForm: Cities fetched successfully:', data.data.length, 'cities');
+        setCities(data.data);
+      } else {
+        console.error('Failed to fetch cities:', data.message);
+        setCities([]);
+      }
     } catch (error) {
       console.error('Error fetching cities:', error);
       setCities([]);
