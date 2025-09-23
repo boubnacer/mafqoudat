@@ -69,22 +69,12 @@ const CitySelectOption = ({ name, cities, disabled }) => {
 };
 
 const NewPostForm = ({ user, countries, categories, flOptions }) => {
-  console.log('🔍 NewPostForm: Component starting to render');
-  
   const [addNewPost, { isSuccess, isError, error }] = useAddNewPostMutation();
-  console.log('🔍 NewPostForm: useAddNewPostMutation hook completed');
-  
   const { t, currentLanguage } = useTranslation();
-  console.log('🔍 NewPostForm: useTranslation hook completed, currentLanguage:', currentLanguage);
-  
   const token = useSelector(selectCurrentToken);
-  console.log('🔍 NewPostForm: useSelector hook completed');
   
   const navigate = useNavigate();
-  console.log('🔍 NewPostForm: useNavigate hook completed');
-  
   const theme = useTheme();
-  console.log('🔍 NewPostForm: useTheme hook completed');
   
   const [showSuccess, setShowSuccess] = useState(false);
   const [selectedFileName, setSelectedFileName] = useState("");
@@ -102,8 +92,6 @@ const NewPostForm = ({ user, countries, categories, flOptions }) => {
   const [setFieldValueCallback, setSetFieldValueCallback] = useState(null);
   const [fieldErrors, setFieldErrors] = useState({});
   const formikRef = useRef(null);
-  
-  console.log('🔍 NewPostForm: All useState hooks completed');
 
   // New state for unified city dropdown
   const [citySearchQuery, setCitySearchQuery] = useState("");
@@ -112,12 +100,9 @@ const NewPostForm = ({ user, countries, categories, flOptions }) => {
   const [showCityDropdown, setShowCityDropdown] = useState(false);
   const [selectedCityFromSearch, setSelectedCityFromSearch] = useState(null);
   const [filteredCities, setFilteredCities] = useState([]);
-  
-  console.log('🔍 NewPostForm: Additional useState hooks completed');
 
   // Click outside handler to close city dropdown
   useEffect(() => {
-    console.log('🔍 NewPostForm: First useEffect (click outside) starting');
     const handleClickOutside = (event) => {
       if (showCityDropdown && !event.target.closest('[data-testid="city-dropdown"]')) {
         setShowCityDropdown(false);
@@ -129,11 +114,9 @@ const NewPostForm = ({ user, countries, categories, flOptions }) => {
       document.removeEventListener('mousedown', handleClickOutside);
     };
   }, [showCityDropdown]);
-  console.log('🔍 NewPostForm: First useEffect (click outside) completed');
 
   // Update filtered cities when cities or search query changes
   useEffect(() => {
-    console.log('🔍 NewPostForm: Second useEffect (filtered cities) starting');
     if (cities.length > 0) {
       if (citySearchQuery.trim()) {
         // Filter existing cities based on search query
@@ -150,11 +133,9 @@ const NewPostForm = ({ user, countries, categories, flOptions }) => {
       }
     }
   }, [cities, citySearchQuery]);
-  console.log('🔍 NewPostForm: Second useEffect (filtered cities) completed');
 
   // Function to clear specific field error
   const clearFieldError = (fieldName) => {
-    console.log('🔍 NewPostForm: clearFieldError function defined');
     if (fieldErrors[fieldName]) {
       setFieldErrors(prev => {
         const newErrors = { ...prev };
@@ -163,23 +144,18 @@ const NewPostForm = ({ user, countries, categories, flOptions }) => {
       });
     }
   };
-  console.log('🔍 NewPostForm: clearFieldError function completed');
 
   // Define fetchCitiesByCountry BEFORE it's used in useEffect
-  console.log('🔍 NewPostForm: About to define fetchCitiesByCountry useCallback');
   const fetchCitiesByCountry = useCallback(async (countryId) => {
-    console.log('🔍 NewPostForm: fetchCitiesByCountry called with countryId:', countryId);
     try {
       setLoadingCities(true);
       const baseUrl = process.env.REACT_APP_API_URL || "http://localhost:3500";
       const url = `${baseUrl}/cities-public?countryId=${countryId}&language=${currentLanguage || 'en'}`;
       
-      console.log('🔍 NewPostForm: Fetching cities from URL:', url);
       const response = await fetch(url);
       const data = await response.json();
       
       if (data.success) {
-        console.log('🔍 NewPostForm: Cities fetched successfully:', data.data.length, 'cities');
         setCities(data.data);
       } else {
         console.error('Failed to fetch cities:', data.message);
@@ -192,11 +168,9 @@ const NewPostForm = ({ user, countries, categories, flOptions }) => {
       setLoadingCities(false);
     }
   }, [currentLanguage]);
-  console.log('🔍 NewPostForm: fetchCitiesByCountry useCallback completed');
 
   // Initialize selectedCountry with user's country
   useEffect(() => {
-    console.log('🔍 NewPostForm: Third useEffect (initialize country) starting');
     if (user.country && countries.length > 0 && !selectedCountry) {
       const userCountry = countries.find(c => c._id === user.country);
       if (userCountry) {
@@ -205,7 +179,6 @@ const NewPostForm = ({ user, countries, categories, flOptions }) => {
       }
     }
   }, [user.country, countries, selectedCountry, fetchCitiesByCountry]);
-  console.log('🔍 NewPostForm: Third useEffect (initialize country) completed');
 
   useEffect(() => {
     if (isSuccess) {
@@ -283,7 +256,6 @@ const NewPostForm = ({ user, countries, categories, flOptions }) => {
   };
 
   // New function to search cities using hybrid search
-  console.log('🔍 NewPostForm: About to define searchCitiesHybrid useCallback');
   const searchCitiesHybrid = useCallback(async (searchQuery, countryCode) => {
     try {
       if (!searchQuery || searchQuery.length < 2) {
@@ -293,13 +265,8 @@ const NewPostForm = ({ user, countries, categories, flOptions }) => {
       const baseUrl = process.env.REACT_APP_API_URL || "http://localhost:3500";
       const url = `${baseUrl}/cities/search?q=${encodeURIComponent(searchQuery)}&language=${currentLanguage || 'en'}&countryCode=${countryCode}&limit=10`;
       
-      console.log('🌐 API Request:', url);
-      
       const response = await fetch(url);
-      console.log('🌐 API Response Status:', response.status);
-      
       const data = await response.json();
-      console.log('🌐 API Response Data:', data);
       
       if (data.success) {
         return data.data;
@@ -312,7 +279,6 @@ const NewPostForm = ({ user, countries, categories, flOptions }) => {
       return [];
     }
   }, [currentLanguage]);
-  console.log('🔍 NewPostForm: searchCitiesHybrid useCallback completed');
 
   // Traditional city search function (fallback)
   const searchCitiesTraditional = useCallback(async (searchQuery, countryId) => {
@@ -523,20 +489,12 @@ const NewPostForm = ({ user, countries, categories, flOptions }) => {
     // Get country code from selectedCountry object
     const countryCode = selectedCountry?.code || selectedCountry?.labels?.en || selectedCountry?.names?.en;
     
-    console.log('🔍 Search Debug:', {
-      query,
-      selectedCountry,
-      countryCode,
-      hasCountry: !!selectedCountry
-    });
     
     if (query.length >= 2 && selectedCountry?._id) {
       setIsSearching(true);
       try {
         // Try hybrid search first
         const results = await searchCitiesHybrid(query, countryCode);
-        console.log('🔍 Search Results:', results);
-        console.log('🔍 First result structure:', results[0]);
         
         if (results.length > 0) {
           setSearchResults(results);
