@@ -300,7 +300,7 @@ const NewUserForm = ({ countries }) => {
   const theme = useTheme() || {};
   const isMobile = useMediaQuery(theme?.breakpoints?.down?.('sm') || '(max-width: 600px)');
   const { t, currentLanguage } = useTranslation();
-  const { setLanguage } = useLanguage();
+  const { currentLanguage: langContext, setLanguage } = useLanguage();
   const isRTLMode = isRTL();
 
   // Debug logging

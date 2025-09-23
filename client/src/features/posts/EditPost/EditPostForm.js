@@ -713,10 +713,8 @@ const EditPostForm = ({ post, user, countries, flOptions, categories, cities }) 
             // Store setFieldValue function for use in custom city creation
             setSetFieldValueCallback(() => setFieldValue);
             
-            // Check if form has changed whenever values change
-            useEffect(() => {
-              checkFormChanged(values);
-            }, [values]);
+            // Check if form has changed whenever values change (call directly instead of useEffect)
+            checkFormChanged(values);
             
             return (
             <Form>

@@ -11,6 +11,15 @@ import {
   Alert,
   Button,
 } from '@mui/material';
+import {
+  Search,
+  TrendingUp,
+  People,
+  Help,
+  EmojiEvents,
+  Category,
+  WhatshotOutlined,
+} from '@mui/icons-material';
 import { useTranslation } from '../utils/translations';
 
 // Add CSS keyframes for loading animations (mirrorReflection from navbar)
@@ -45,16 +54,6 @@ if (typeof document !== 'undefined') {
   styleSheet.innerText = loadingStyles;
   document.head.appendChild(styleSheet);
 }
-
-import {
-  Search,
-  TrendingUp,
-  People,
-  Help,
-  EmojiEvents,
-  Category,
-  WhatshotOutlined,
-} from '@mui/icons-material';
 
 // Loading Skeleton for Dashboard Stats
 export const DashboardStatsSkeleton = () => {
