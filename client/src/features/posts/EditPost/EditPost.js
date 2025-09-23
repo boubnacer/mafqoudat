@@ -7,7 +7,6 @@ import useTitle from "../../../hooks/useTitle";
 import { useGetCountriesQuery } from "../../dependencies/dependenciesApiSlice";
 import useAuth from "../../../hooks/useAuth";
 import { useTranslation } from "../../../utils/translations";
-import { useLanguage } from "../../../utils/languageContext";
 import {
   useGetCategoriesQuery,
   useGetflOptionsQuery,
@@ -18,14 +17,13 @@ const EditPost = () => {
   useTitle("mafkoudat: Edit Post");
 
   const { t, currentLanguage } = useTranslation();
-  const { currentLanguage: langContext } = useLanguage();
 
   const { usernameId } = useAuth();
 
   const { id } = useParams();
 
   const { countries } = useGetCountriesQuery({
-    language: currentLanguage || langContext || 'en'
+    language: currentLanguage || 'en'
   }, {
     selectFromResult: ({ data }) => ({
       countries: data?.ids.map((id) => data?.entities[id]),
@@ -40,7 +38,7 @@ const EditPost = () => {
 
   const { data } = useGetPostQuery({
     postId: id,
-    language: currentLanguage || langContext || 'en'
+    language: currentLanguage || 'en'
   });
 
   const { user } = useGetUsersQuery("usersList", {
@@ -50,7 +48,7 @@ const EditPost = () => {
   });
 
   const { categories } = useGetCategoriesQuery({
-    language: currentLanguage || langContext || 'en'
+    language: currentLanguage || 'en'
   }, {
     selectFromResult: ({ data }) => ({
       categories: data?.ids.map((id) => data?.entities[id]),
@@ -58,7 +56,7 @@ const EditPost = () => {
   });
 
   const { flOptions } = useGetflOptionsQuery({
-    language: currentLanguage || langContext || 'en'
+    language: currentLanguage || 'en'
   }, {
     selectFromResult: ({ data }) => ({
       flOptions: data?.ids.map((id) => data?.entities[id]),
@@ -66,7 +64,7 @@ const EditPost = () => {
   });
 
   const { cities } = useGetCitiesQuery({
-    language: currentLanguage || langContext || 'en',
+    language: currentLanguage || 'en',
     countryId: data?.country
   }, {
     selectFromResult: ({ data }) => ({
