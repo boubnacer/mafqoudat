@@ -192,6 +192,17 @@ const getSecureCookieOptions = (isProduction = process.env.NODE_ENV === 'product
   };
 };
 
+// Secure cookie clear options (without maxAge for clearing cookies)
+const getSecureCookieClearOptions = (isProduction = process.env.NODE_ENV === 'production') => {
+  return {
+    httpOnly: true, // Prevent XSS attacks
+    secure: isProduction, // HTTPS only in production
+    sameSite: isProduction ? "None" : "Lax", // CSRF protection
+    path: '/', // Available to all routes
+    domain: isProduction ? '.mafqoudat.com' : undefined // Domain restriction in production
+  };
+};
+
 // Token blacklist for logout functionality
 const tokenBlacklist = new Set();
 
@@ -217,7 +228,7 @@ const logout = (req, res) => {
   }
 
   // Clear refresh token cookie
-  res.clearCookie('jwt', getSecureCookieOptions());
+  res.clearCookie('jwt', getSecureCookieClearOptions());
   
   res.json({ 
     message: "Logged out successfully",
@@ -230,6 +241,7 @@ module.exports = {
   verifyJWT,
   verifyRefreshToken,
   getSecureCookieOptions,
+  getSecureCookieClearOptions,
   logout,
   isTokenBlacklisted,
   JWT_CONFIG
