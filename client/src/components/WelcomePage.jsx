@@ -952,7 +952,7 @@ const WelcomePage = () => {
                 }
               }}
             >
-              {t('signup')}
+              {t('signup')}fuck
             </Button>
           </Box>
         </CardContent>
