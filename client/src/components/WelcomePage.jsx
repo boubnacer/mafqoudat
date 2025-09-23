@@ -122,20 +122,27 @@ const LanguageSelector = styled(Box)(({ theme }) => ({
   display: 'flex',
   alignItems: 'center',
   padding: '12px 20px',
-  borderRadius: '12px',
+  borderRadius: 2,
   cursor: 'pointer',
   background: theme?.palette?.mode === 'dark' 
-    ? 'rgba(255, 255, 255, 0.1)'
-    : 'rgba(0, 0, 0, 0.05)',
+    ? 'rgba(255, 255, 255, 0.08)'
+    : 'rgba(0, 0, 0, 0.04)',
   backdropFilter: 'blur(10px)',
-  border: `1px solid ${alpha(theme?.palette?.primary?.main || '#667eea', 0.1)}`,
-  transition: 'all 0.3s ease',
+  border: `1px solid ${alpha(theme?.palette?.primary?.main || '#1976d2', 0.1)}`,
+  transition: 'all 0.3s cubic-bezier(0.4, 0, 0.2, 1)',
   minHeight: '48px',
+  boxShadow: theme?.palette?.mode === 'dark'
+    ? '0 2px 8px rgba(0, 0, 0, 0.2)'
+    : '0 2px 8px rgba(0, 0, 0, 0.1)',
   '&:hover': {
     background: theme?.palette?.mode === 'dark' 
-      ? 'rgba(255, 255, 255, 0.2)'
-      : 'rgba(0, 0, 0, 0.1)',
-    transform: 'translateY(-2px)',
+      ? 'rgba(255, 255, 255, 0.12)'
+      : 'rgba(0, 0, 0, 0.08)',
+    borderColor: alpha(theme?.palette?.primary?.main || '#1976d2', 0.3),
+    transform: 'translateY(-1px)',
+    boxShadow: theme?.palette?.mode === 'dark'
+      ? '0 4px 12px rgba(0, 0, 0, 0.3)'
+      : '0 4px 12px rgba(0, 0, 0, 0.15)',
   },
   '& .MuiSvgIcon-root': {
     marginRight: '12px',
@@ -145,19 +152,27 @@ const LanguageSelector = styled(Box)(({ theme }) => ({
 
 const ActionButton = styled(IconButton)(({ theme }) => ({
   backgroundColor: theme?.palette?.mode === 'dark' 
-    ? 'rgba(255, 255, 255, 0.1)'
-    : 'rgba(0, 0, 0, 0.05)',
+    ? 'rgba(255, 255, 255, 0.08)'
+    : 'rgba(0, 0, 0, 0.04)',
   backdropFilter: 'blur(10px)',
-  border: `1px solid ${alpha(theme?.palette?.primary?.main || '#667eea', 0.1)}`,
+  border: `1px solid ${alpha(theme?.palette?.primary?.main || '#1976d2', 0.1)}`,
   color: theme?.palette?.text?.primary,
-  transition: 'all 0.3s ease',
+  transition: 'all 0.3s cubic-bezier(0.4, 0, 0.2, 1)',
   width: '48px',
   height: '48px',
+  borderRadius: 2,
+  boxShadow: theme?.palette?.mode === 'dark'
+    ? '0 2px 8px rgba(0, 0, 0, 0.2)'
+    : '0 2px 8px rgba(0, 0, 0, 0.1)',
   '&:hover': {
     backgroundColor: theme?.palette?.mode === 'dark' 
-      ? 'rgba(255, 255, 255, 0.2)'
-      : 'rgba(0, 0, 0, 0.1)',
-    transform: 'scale(1.05)',
+      ? 'rgba(255, 255, 255, 0.12)'
+      : 'rgba(0, 0, 0, 0.08)',
+    borderColor: alpha(theme?.palette?.primary?.main || '#1976d2', 0.3),
+    transform: 'translateY(-1px)',
+    boxShadow: theme?.palette?.mode === 'dark'
+      ? '0 4px 12px rgba(0, 0, 0, 0.3)'
+      : '0 4px 12px rgba(0, 0, 0, 0.15)',
   },
   '& .MuiSvgIcon-root': {
     fontSize: '24px',
@@ -641,7 +656,7 @@ const WelcomePage = () => {
                   fullWidth
                   sx={{
                     '& .MuiOutlinedInput-root': {
-                      borderRadius: 8,
+                      borderRadius: 4,
                       fontSize: { xs: '1.1rem', md: '1.2rem' },
                       padding: { xs: '8px 12px', md: '12px 16px' },
                       minHeight: { xs: '56px', md: '60px' },
@@ -741,20 +756,38 @@ const WelcomePage = () => {
                 mt: 3,
                 py: { xs: 2, md: 2.5 },
                 px: { xs: 3, md: 4 },
-                borderRadius: '4px',
+                borderRadius: 2,
                 fontSize: { xs: '1.1rem', md: '1.2rem' },
                 fontWeight: 600,
-                color: '#ffffff',
                 minHeight: { xs: '56px', md: '60px' },
-                background: 'linear-gradient(45deg, #4A8BFF 30%, #1A6EEE 90%)',
-                boxShadow: '0 3px 5px 2px rgba(26, 110, 238, .3)',
-                transition: 'all 0.3s ease',
+                // Professional color scheme for both modes
+                backgroundColor: theme?.palette?.mode === 'dark' 
+                  ? theme?.palette?.primary?.main || '#1976d2'
+                  : theme?.palette?.primary?.main || '#1976d2',
+                color: theme?.palette?.mode === 'dark' 
+                  ? '#ffffff'
+                  : '#ffffff',
+                boxShadow: theme?.palette?.mode === 'dark'
+                  ? '0 4px 12px rgba(25, 118, 210, 0.3)'
+                  : '0 4px 12px rgba(25, 118, 210, 0.2)',
+                transition: 'all 0.3s cubic-bezier(0.4, 0, 0.2, 1)',
                 '&:hover': {
-                  background: 'linear-gradient(45deg, #5A9BFF 30%, #2A7EFF 90%)',
-                  boxShadow: '0 4px 8px 2px rgba(26, 110, 238, .4)',
+                  backgroundColor: theme?.palette?.mode === 'dark' 
+                    ? theme?.palette?.primary?.dark || '#1565c0'
+                    : theme?.palette?.primary?.dark || '#1565c0',
+                  boxShadow: theme?.palette?.mode === 'dark'
+                    ? '0 6px 16px rgba(25, 118, 210, 0.4)'
+                    : '0 6px 16px rgba(25, 118, 210, 0.3)',
+                  transform: 'translateY(-1px)',
+                },
+                '&:active': {
+                  transform: 'translateY(0px)',
+                  boxShadow: theme?.palette?.mode === 'dark'
+                    ? '0 2px 8px rgba(25, 118, 210, 0.3)'
+                    : '0 2px 8px rgba(25, 118, 210, 0.2)',
                 },
                 '&:disabled': {
-                  background: theme?.palette?.mode === 'dark' 
+                  backgroundColor: theme?.palette?.mode === 'dark' 
                     ? 'rgba(255, 255, 255, 0.12)'
                     : 'rgba(0, 0, 0, 0.12)',
                   color: theme?.palette?.mode === 'dark' 
@@ -842,21 +875,39 @@ const WelcomePage = () => {
                 minHeight: { xs: '48px', sm: '52px' },
                 fontSize: { xs: '1.1rem', sm: '1.2rem' },
                 fontWeight: 600,
-                borderRadius: '4px',
-                background: 'linear-gradient(45deg, #4A8BFF 30%, #1A6EEE 90%)',
-                color: 'white',
-                boxShadow: '0 3px 5px 2px rgba(26, 110, 238, .3)',
-                transition: 'all 0.3s ease',
+                borderRadius: 2,
+                // Professional color scheme for both modes
+                backgroundColor: theme?.palette?.mode === 'dark' 
+                  ? theme?.palette?.primary?.main || '#1976d2'
+                  : theme?.palette?.primary?.main || '#1976d2',
+                color: theme?.palette?.mode === 'dark' 
+                  ? '#ffffff'
+                  : '#ffffff',
+                boxShadow: theme?.palette?.mode === 'dark'
+                  ? '0 4px 12px rgba(25, 118, 210, 0.3)'
+                  : '0 4px 12px rgba(25, 118, 210, 0.2)',
+                transition: 'all 0.3s cubic-bezier(0.4, 0, 0.2, 1)',
                 '&:hover': {
-                  background: 'linear-gradient(45deg, #5A9BFF 30%, #2A7EFF 90%)',
-                  boxShadow: '0 4px 8px 2px rgba(26, 110, 238, .4)',
+                  backgroundColor: theme?.palette?.mode === 'dark' 
+                    ? theme?.palette?.primary?.dark || '#1565c0'
+                    : theme?.palette?.primary?.dark || '#1565c0',
+                  boxShadow: theme?.palette?.mode === 'dark'
+                    ? '0 6px 16px rgba(25, 118, 210, 0.4)'
+                    : '0 6px 16px rgba(25, 118, 210, 0.3)',
+                  transform: 'translateY(-1px)',
+                },
+                '&:active': {
+                  transform: 'translateY(0px)',
+                  boxShadow: theme?.palette?.mode === 'dark'
+                    ? '0 2px 8px rgba(25, 118, 210, 0.3)'
+                    : '0 2px 8px rgba(25, 118, 210, 0.2)',
                 }
               }}
             >
               {t('signin')}
             </Button>
             <Button
-              variant="contained"
+              variant="outlined"
               size="large"
               onClick={() => navigate('/signup')}
               sx={{
@@ -866,14 +917,38 @@ const WelcomePage = () => {
                 minHeight: { xs: '48px', sm: '52px' },
                 fontSize: { xs: '1.1rem', sm: '1.2rem' },
                 fontWeight: 600,
-                borderRadius: '4px',
-                background: 'linear-gradient(45deg, #4A8BFF 30%, #1A6EEE 90%)',
-                color: 'white',
-                boxShadow: '0 3px 5px 2px rgba(26, 110, 238, .3)',
-                transition: 'all 0.3s ease',
+                borderRadius: 2,
+                // Professional outlined button for both modes
+                borderColor: theme?.palette?.mode === 'dark' 
+                  ? theme?.palette?.primary?.main || '#1976d2'
+                  : theme?.palette?.primary?.main || '#1976d2',
+                color: theme?.palette?.mode === 'dark' 
+                  ? theme?.palette?.primary?.main || '#1976d2'
+                  : theme?.palette?.primary?.main || '#1976d2',
+                backgroundColor: theme?.palette?.mode === 'dark' 
+                  ? 'rgba(25, 118, 210, 0.08)'
+                  : 'rgba(25, 118, 210, 0.04)',
+                boxShadow: theme?.palette?.mode === 'dark'
+                  ? '0 2px 8px rgba(25, 118, 210, 0.2)'
+                  : '0 2px 8px rgba(25, 118, 210, 0.1)',
+                transition: 'all 0.3s cubic-bezier(0.4, 0, 0.2, 1)',
                 '&:hover': {
-                  background: 'linear-gradient(45deg, #5A9BFF 30%, #2A7EFF 90%)',
-                  boxShadow: '0 4px 8px 2px rgba(26, 110, 238, .4)',
+                  borderColor: theme?.palette?.mode === 'dark' 
+                    ? theme?.palette?.primary?.dark || '#1565c0'
+                    : theme?.palette?.primary?.dark || '#1565c0',
+                  backgroundColor: theme?.palette?.mode === 'dark' 
+                    ? 'rgba(25, 118, 210, 0.12)'
+                    : 'rgba(25, 118, 210, 0.08)',
+                  boxShadow: theme?.palette?.mode === 'dark'
+                    ? '0 4px 12px rgba(25, 118, 210, 0.3)'
+                    : '0 4px 12px rgba(25, 118, 210, 0.2)',
+                  transform: 'translateY(-1px)',
+                },
+                '&:active': {
+                  transform: 'translateY(0px)',
+                  boxShadow: theme?.palette?.mode === 'dark'
+                    ? '0 1px 4px rgba(25, 118, 210, 0.2)'
+                    : '0 1px 4px rgba(25, 118, 210, 0.1)',
                 }
               }}
             >
