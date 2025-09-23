@@ -1,5 +1,0 @@
-[33m3e060dc[m[33m ([m[1;36mHEAD[m[33m -> [m[1;32mmain[m[33m, [m[1;31morigin/main[m[33m, [m[1;31morigin/HEAD[m[33m)[m Add debugging to identify why category and date fields are not displaying
-[33m1e013ac[m Fix client-side data transformation to preserve categoryname and createdAt fields
-[33m9b4edf4[m adding date and category fields to posts cards
-[33mb0bd4dc[m fix single post page
-[33m88c65e3[m fix single post page
