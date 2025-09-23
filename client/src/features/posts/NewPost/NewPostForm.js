@@ -930,6 +930,7 @@ const NewPostForm = ({ user, countries, categories, flOptions }) => {
                   {t('location')}
                 </Typography>
 
+
                 <Box>
                   <FormLabel 
                     htmlFor="city" 
