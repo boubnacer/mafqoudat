@@ -165,6 +165,34 @@ const NewPostForm = ({ user, countries, categories, flOptions }) => {
   };
   console.log('🔍 NewPostForm: clearFieldError function completed');
 
+  // Define fetchCitiesByCountry BEFORE it's used in useEffect
+  console.log('🔍 NewPostForm: About to define fetchCitiesByCountry useCallback');
+  const fetchCitiesByCountry = useCallback(async (countryId) => {
+    console.log('🔍 NewPostForm: fetchCitiesByCountry called with countryId:', countryId);
+    try {
+      setLoadingCities(true);
+      const baseUrl = process.env.REACT_APP_API_URL || "http://localhost:3500";
+      const url = `${baseUrl}/cities-public?countryId=${countryId}&language=${currentLanguage || 'en'}`;
+      
+      console.log('🔍 NewPostForm: Fetching cities from URL:', url);
+      const response = await fetch(url);
+      const data = await response.json();
+      
+      if (data.success) {
+        console.log('🔍 NewPostForm: Cities fetched successfully:', data.data.length, 'cities');
+        setCities(data.data);
+      } else {
+        console.error('Failed to fetch cities:', data.message);
+        setCities([]);
+      }
+    } catch (error) {
+      console.error('Error fetching cities:', error);
+      setCities([]);
+    } finally {
+      setLoadingCities(false);
+    }
+  }, [currentLanguage]);
+  console.log('🔍 NewPostForm: fetchCitiesByCountry useCallback completed');
 
   // Initialize selectedCountry with user's country
   useEffect(() => {
@@ -253,34 +281,6 @@ const NewPostForm = ({ user, countries, categories, flOptions }) => {
       fetchCitiesByCountry(countryId);
     }
   };
-
-  console.log('🔍 NewPostForm: About to define fetchCitiesByCountry useCallback');
-  const fetchCitiesByCountry = useCallback(async (countryId) => {
-    console.log('🔍 NewPostForm: fetchCitiesByCountry called with countryId:', countryId);
-    try {
-      setLoadingCities(true);
-      const baseUrl = process.env.REACT_APP_API_URL || "http://localhost:3500";
-      const url = `${baseUrl}/cities-public?countryId=${countryId}&language=${currentLanguage || 'en'}`;
-      
-      console.log('🔍 NewPostForm: Fetching cities from URL:', url);
-      const response = await fetch(url);
-      const data = await response.json();
-      
-      if (data.success) {
-        console.log('🔍 NewPostForm: Cities fetched successfully:', data.data.length, 'cities');
-        setCities(data.data);
-      } else {
-        console.error('Failed to fetch cities:', data.message);
-        setCities([]);
-      }
-    } catch (error) {
-      console.error('Error fetching cities:', error);
-      setCities([]);
-    } finally {
-      setLoadingCities(false);
-    }
-  }, [currentLanguage]);
-  console.log('🔍 NewPostForm: fetchCitiesByCountry useCallback completed');
 
   // New function to search cities using hybrid search
   console.log('🔍 NewPostForm: About to define searchCitiesHybrid useCallback');
