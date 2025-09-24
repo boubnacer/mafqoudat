@@ -33,13 +33,18 @@ export const selectTokenTimeRemaining = createSelector(
 
 export const selectAuthStatus = createSelector(
   [selectIsLoggedIn, selectTokenValidation, selectIsRefreshing],
-  (isLoggedIn, tokenValidation, isRefreshing) => ({
-    isAuthenticated: isLoggedIn && tokenValidation.isValid,
-    isExpired: !tokenValidation.isValid && tokenValidation.reason === 'TOKEN_EXPIRED',
-    isExpiringSoon: tokenValidation.reason === 'TOKEN_EXPIRING_SOON',
-    isRefreshing,
-    needsRefresh: isExpiringSoon || isExpired
-  })
+  (isLoggedIn, tokenValidation, isRefreshing) => {
+    const isExpired = !tokenValidation.isValid && tokenValidation.reason === 'TOKEN_EXPIRED';
+    const isExpiringSoon = tokenValidation.reason === 'TOKEN_EXPIRING_SOON';
+    
+    return {
+      isAuthenticated: isLoggedIn && tokenValidation.isValid,
+      isExpired,
+      isExpiringSoon,
+      isRefreshing,
+      needsRefresh: isExpiringSoon || isExpired
+    };
+  }
 );
 
 export const selectUserInfo = createSelector(
