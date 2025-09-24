@@ -376,7 +376,6 @@ const LoginComponent = () => {
       
       // Use centralized error handling
       const errorResult = await authErrorHandler.handleLoginError(err, {
-        customMessage: t('loginError') || 'Login failed. Please try again.',
         t: t
       });
       

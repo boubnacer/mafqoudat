@@ -333,14 +333,20 @@ const isAuthError = (error, req) => {
     req.originalUrl.startsWith(endpoint)
   );
 
-  // Check if it's an auth endpoint or JWT-related error
+  // Check if it's an auth endpoint or JWT-related error or custom auth error
   return isAuthEndpoint || 
          error.name === 'JsonWebTokenError' ||
          error.name === 'TokenExpiredError' ||
          error.name === 'NotBeforeError' ||
+         error.isAuthError === true ||
          error.code === 'INVALID_CREDENTIALS' ||
          error.code === 'TOKEN_EXPIRED' ||
-         error.code === 'TOKEN_INVALID';
+         error.code === 'TOKEN_INVALID' ||
+         error.code === 'VALIDATION_ERROR' ||
+         error.code === 'ACCOUNT_LOCKED' ||
+         error.code === 'ACCOUNT_NOT_FOUND' ||
+         error.code === 'DATABASE_ERROR' ||
+         error.code === 'RATE_LIMITED';
 };
 
 /**

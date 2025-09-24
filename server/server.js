@@ -306,7 +306,7 @@ app.all("*", (req, res) => {
 });
 
 // Authentication error handling (must come before general error handler)
-app.use('/api/auth', authErrorMiddleware);
+app.use('/auth', authErrorMiddleware);
 
 // Enhanced error handling with resilience
 app.use(resilientErrorHandler);

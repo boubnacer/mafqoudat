@@ -88,6 +88,29 @@ class AuthErrorHandler {
   categorizeError(error) {
     const status = error?.status || error?.response?.status;
     const message = error?.data?.message || error?.message || '';
+    const code = error?.data?.error?.code || error?.data?.code;
+
+    // Check for auth error codes first (regardless of status)
+    if (code) {
+      switch (code) {
+        case 'INVALID_CREDENTIALS':
+          return AUTH_ERROR_TYPES.INVALID_CREDENTIALS;
+        case 'TOKEN_EXPIRED':
+          return AUTH_ERROR_TYPES.TOKEN_EXPIRED;
+        case 'TOKEN_INVALID':
+          return AUTH_ERROR_TYPES.TOKEN_INVALID;
+        case 'ACCOUNT_LOCKED':
+          return AUTH_ERROR_TYPES.ACCOUNT_LOCKED;
+        case 'VALIDATION_ERROR':
+          return AUTH_ERROR_TYPES.VALIDATION_ERROR;
+        case 'RATE_LIMITED':
+          return AUTH_ERROR_TYPES.RATE_LIMITED;
+        case 'DATABASE_ERROR':
+          return AUTH_ERROR_TYPES.SERVER_ERROR;
+        default:
+          break;
+      }
+    }
 
     // Network errors
     if (!status || status === 'FETCH_ERROR' || status === 'PARSING_ERROR') {
