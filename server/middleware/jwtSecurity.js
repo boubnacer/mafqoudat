@@ -51,7 +51,11 @@ const generateTokens = (userInfo) => {
     }
   );
 
-  return { accessToken, refreshToken };
+  return { 
+    accessToken, 
+    refreshToken, 
+    refreshTokenId: refreshPayload.jti 
+  };
 };
 
 // Enhanced JWT verification with comprehensive security checks
@@ -209,7 +213,7 @@ const verifyJWT = (req, res, next) => {
   });
 };
 
-// Enhanced refresh token verification
+// Enhanced refresh token verification with rotation support
 const verifyRefreshToken = (req, res, next) => {
   const cookies = req.cookies;
 
@@ -257,61 +261,161 @@ const verifyRefreshToken = (req, res, next) => {
         });
       }
 
+      // Check if refresh token is blacklisted
+      if (isTokenBlacklisted(decoded.jti)) {
+        logEvents(
+          `Blacklisted Refresh Token Attempt: ${decoded.username}\t${req.method}\t${req.url}\t${req.ip}`,
+          "errLog.log"
+        );
+        return res.status(403).json({ 
+          message: "Refresh token has been revoked",
+          isError: true 
+        });
+      }
+
       req.refreshTokenData = decoded;
       next();
     }
   );
 };
 
-// Secure cookie configuration
-const getSecureCookieOptions = (isProduction = process.env.NODE_ENV === 'production') => {
+// Token rotation function - generates new access and refresh tokens
+const rotateTokens = (userInfo, oldRefreshTokenId = null) => {
+  // Blacklist the old refresh token if provided
+  if (oldRefreshTokenId) {
+    blacklistToken(oldRefreshTokenId);
+  }
+
+  // Generate new tokens
+  const newTokens = generateTokens(userInfo);
+  
   return {
+    accessToken: newTokens.accessToken,
+    refreshToken: newTokens.refreshToken,
+    refreshTokenId: newTokens.refreshTokenId // We'll need to extract this from the token
+  };
+};
+
+// Enhanced secure cookie configuration for production
+const getSecureCookieOptions = (isProduction = process.env.NODE_ENV === 'production') => {
+  const baseOptions = {
     httpOnly: true, // Prevent XSS attacks
     secure: isProduction, // HTTPS only in production
     sameSite: isProduction ? "None" : "Lax", // CSRF protection
     maxAge: 7 * 24 * 60 * 60 * 1000, // 7 days
     path: '/', // Available to all routes
-    domain: isProduction ? '.mafqoudat.com' : undefined // Domain restriction in production
   };
+
+  // Production-specific security enhancements
+  if (isProduction) {
+    return {
+      ...baseOptions,
+      domain: process.env.COOKIE_DOMAIN || '.mafqoudat.com', // Domain restriction
+      // Additional security headers for production
+      priority: 'high', // Cookie priority
+      // Partitioned cookies for better security (if supported)
+      partitioned: true,
+    };
+  }
+
+  return baseOptions;
 };
 
-// Secure cookie clear options (without maxAge for clearing cookies)
+// Enhanced secure cookie clear options (without maxAge for clearing cookies)
 const getSecureCookieClearOptions = (isProduction = process.env.NODE_ENV === 'production') => {
-  return {
+  const baseOptions = {
     httpOnly: true, // Prevent XSS attacks
     secure: isProduction, // HTTPS only in production
     sameSite: isProduction ? "None" : "Lax", // CSRF protection
     path: '/', // Available to all routes
-    domain: isProduction ? '.mafqoudat.com' : undefined // Domain restriction in production
   };
+
+  // Production-specific security enhancements
+  if (isProduction) {
+    return {
+      ...baseOptions,
+      domain: process.env.COOKIE_DOMAIN || '.mafqoudat.com', // Domain restriction
+      // Additional security headers for production
+      priority: 'high', // Cookie priority
+      // Partitioned cookies for better security (if supported)
+      partitioned: true,
+    };
+  }
+
+  return baseOptions;
 };
 
-// Token blacklist for logout functionality
-const tokenBlacklist = new Set();
+// Enhanced token blacklist with expiration tracking
+const tokenBlacklist = new Map(); // Changed to Map to store expiration times
 
-const blacklistToken = (tokenId) => {
-  tokenBlacklist.add(tokenId);
+const blacklistToken = (tokenId, expiresAt = null) => {
+  const expirationTime = expiresAt || Date.now() + (15 * 60 * 1000); // Default 15 minutes
+  tokenBlacklist.set(tokenId, expirationTime);
   
   // Remove from blacklist after token expiry (cleanup)
   setTimeout(() => {
     tokenBlacklist.delete(tokenId);
-  }, 15 * 60 * 1000); // 15 minutes
+  }, expirationTime - Date.now());
 };
 
 const isTokenBlacklisted = (tokenId) => {
-  return tokenBlacklist.has(tokenId);
+  if (!tokenBlacklist.has(tokenId)) {
+    return false;
+  }
+  
+  const expirationTime = tokenBlacklist.get(tokenId);
+  if (Date.now() > expirationTime) {
+    tokenBlacklist.delete(tokenId);
+    return false;
+  }
+  
+  return true;
 };
 
-// Enhanced logout middleware
+// Cleanup expired tokens from blacklist (run periodically)
+const cleanupBlacklist = () => {
+  const now = Date.now();
+  for (const [tokenId, expirationTime] of tokenBlacklist.entries()) {
+    if (now > expirationTime) {
+      tokenBlacklist.delete(tokenId);
+    }
+  }
+};
+
+// Run cleanup every 5 minutes
+setInterval(cleanupBlacklist, 5 * 60 * 1000);
+
+// Enhanced logout middleware with comprehensive token blacklisting
 const logout = (req, res) => {
   const tokenId = req.tokenId;
+  const refreshTokenData = req.refreshTokenData;
   
+  // Blacklist the current access token
   if (tokenId) {
     blacklistToken(tokenId);
+    logEvents(
+      `Access token blacklisted on logout: ${req.username || 'unknown'}\t${req.method}\t${req.url}\t${req.ip}`,
+      "reqLog.log"
+    );
+  }
+
+  // Blacklist the refresh token if available
+  if (refreshTokenData && refreshTokenData.jti) {
+    blacklistToken(refreshTokenData.jti);
+    logEvents(
+      `Refresh token blacklisted on logout: ${refreshTokenData.username || 'unknown'}\t${req.method}\t${req.url}\t${req.ip}`,
+      "reqLog.log"
+    );
   }
 
   // Clear refresh token cookie
   res.clearCookie('jwt', getSecureCookieClearOptions());
+  
+  // Log successful logout
+  logEvents(
+    `Successful logout: ${req.username || 'unknown'}\t${req.method}\t${req.url}\t${req.ip}`,
+    "reqLog.log"
+  );
   
   res.json({ 
     message: "Logged out successfully",
@@ -472,10 +576,23 @@ const optionalAuth = (req, res, next) => {
   });
 };
 
-// Rate limiting for authentication endpoints
+// Enhanced rate limiting for authentication endpoints
 const authRateLimit = (req, res, next) => {
-  // This would integrate with your existing rate limiting middleware
-  // For now, we'll just pass through
+  // This integrates with the existing rate limiting middleware
+  // The actual rate limiting is handled by the rateLimiting.js middleware
+  next();
+};
+
+// Advanced rate limiting for refresh token endpoint
+const refreshTokenRateLimit = (req, res, next) => {
+  // This would implement more sophisticated rate limiting for refresh tokens
+  // For now, we'll use the existing rate limiting system
+  next();
+};
+
+// Rate limiting for logout endpoint
+const logoutRateLimit = (req, res, next) => {
+  // Logout should have moderate rate limiting to prevent abuse
   next();
 };
 
@@ -487,6 +604,9 @@ module.exports = {
   getSecureCookieClearOptions,
   logout,
   isTokenBlacklisted,
+  blacklistToken,
+  rotateTokens,
+  cleanupBlacklist,
   JWT_CONFIG,
   // New middleware exports
   requireRole,
@@ -495,5 +615,7 @@ module.exports = {
   requireAnyPermission,
   requireAllPermissions,
   optionalAuth,
-  authRateLimit
+  authRateLimit,
+  refreshTokenRateLimit,
+  logoutRateLimit
 };

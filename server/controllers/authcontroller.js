@@ -1,7 +1,7 @@
 const User = require("../models/User");
 const bcrypt = require("bcrypt");
 const Country = require("../models/Country");
-const { generateTokens, getSecureCookieOptions, logout } = require("../middleware/jwtSecurity");
+const { generateTokens, getSecureCookieOptions, logout, rotateTokens, verifyRefreshToken } = require("../middleware/jwtSecurity");
 const { logEvents } = require("../middleware/logger");
 const { createAuthError, asyncAuthHandler } = require("../middleware/authErrorHandler");
 
@@ -117,7 +117,7 @@ const login = async (req, res) => {
   res.json({ accessToken });
 };
 
-// @desc Refresh
+// @desc Refresh with token rotation
 // @route GET /auth/refresh
 // @access Public - because access token has expired
 const refresh = async (req, res) => {
@@ -162,13 +162,24 @@ const refresh = async (req, res) => {
       });
     }
 
-    // Generate new access token
-    const { accessToken } = generateTokens({
+    // Token rotation: Generate new access and refresh tokens
+    const userInfo = {
       username: foundUser.username,
       id: foundUser.id,
       country: foundUser.country,
       role: foundUser.role
-    });
+    };
+
+    const { accessToken, refreshToken: newRefreshToken } = rotateTokens(userInfo, decoded.jti);
+
+    // Set new refresh token cookie
+    res.cookie("jwt", newRefreshToken, getSecureCookieOptions());
+
+    // Log successful token rotation
+    logEvents(
+      `Token rotation successful: ${foundUser.username}\t${req.method}\t${req.url}\t${req.ip}`,
+      "reqLog.log"
+    );
 
     res.json({ accessToken });
   } catch (err) {
