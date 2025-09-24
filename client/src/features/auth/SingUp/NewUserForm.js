@@ -490,7 +490,8 @@ const NewUserFormComponent = ({ countries }) => {
       
       // Use centralized error handling
       const errorResult = await authErrorHandler.handleLoginError(err, {
-        customMessage: t('signupError') || 'Signup failed. Please try again.'
+        customMessage: t('signupError') || 'Signup failed. Please try again.',
+        t: t
       });
       
       // Set local error state for form display

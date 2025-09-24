@@ -376,7 +376,8 @@ const LoginComponent = () => {
       
       // Use centralized error handling
       const errorResult = await authErrorHandler.handleLoginError(err, {
-        customMessage: t('loginError') || 'Login failed. Please try again.'
+        customMessage: t('loginError') || 'Login failed. Please try again.',
+        t: t
       });
       
       // Set local error state for form display

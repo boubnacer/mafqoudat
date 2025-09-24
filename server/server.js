@@ -11,6 +11,7 @@ const {
   requestTimeout: resilientRequestTimeout,
   gracefulShutdownHandler 
 } = require("./middleware/resilientErrorHandler");
+const { authErrorMiddleware } = require("./middleware/authErrorHandler");
 const cookieParser = require("cookie-parser");
 const cors = require("cors");
 const corsOptions = require("./config/corsOptions");
@@ -303,6 +304,9 @@ app.all("*", (req, res) => {
     res.type("txt").send("404 Not Found - API Server");
   }
 });
+
+// Authentication error handling (must come before general error handler)
+app.use('/api/auth', authErrorMiddleware);
 
 // Enhanced error handling with resilience
 app.use(resilientErrorHandler);

@@ -22,52 +22,52 @@ export const AUTH_ERROR_TYPES = {
   UNKNOWN_ERROR: 'UNKNOWN_ERROR'
 };
 
-// User-friendly error messages
+// User-friendly error messages with translation support
 export const AUTH_ERROR_MESSAGES = {
   [AUTH_ERROR_TYPES.NETWORK_ERROR]: {
-    title: 'Connection Error',
-    message: 'Unable to connect to the server. Please check your internet connection and try again.',
-    action: 'Retry'
+    titleKey: 'networkErrorTitle',
+    messageKey: 'networkErrorMessage',
+    actionKey: 'retry'
   },
   [AUTH_ERROR_TYPES.INVALID_CREDENTIALS]: {
-    title: 'Invalid Credentials',
-    message: 'The email/phone or password you entered is incorrect. Please try again.',
-    action: 'Try Again'
+    titleKey: 'invalidCredentialsTitle',
+    messageKey: 'invalidCredentialsMessage',
+    actionKey: 'retry'
   },
   [AUTH_ERROR_TYPES.TOKEN_EXPIRED]: {
-    title: 'Session Expired',
-    message: 'Your session has expired. Please log in again to continue.',
-    action: 'Log In'
+    titleKey: 'sessionExpiredTitle',
+    messageKey: 'sessionExpiredMessage',
+    actionKey: 'login'
   },
   [AUTH_ERROR_TYPES.TOKEN_INVALID]: {
-    title: 'Invalid Session',
-    message: 'Your session is no longer valid. Please log in again.',
-    action: 'Log In'
+    titleKey: 'invalidSessionTitle',
+    messageKey: 'invalidSessionMessage',
+    actionKey: 'login'
   },
   [AUTH_ERROR_TYPES.ACCOUNT_LOCKED]: {
-    title: 'Account Locked',
-    message: 'Your account has been temporarily locked due to multiple failed login attempts.',
-    action: 'Contact Support'
+    titleKey: 'accountLockedTitle',
+    messageKey: 'accountLockedMessage',
+    actionKey: 'contactSupport'
   },
   [AUTH_ERROR_TYPES.SERVER_ERROR]: {
-    title: 'Server Error',
-    message: 'Something went wrong on our end. Please try again later.',
-    action: 'Try Again'
+    titleKey: 'serverErrorTitle',
+    messageKey: 'serverErrorMessage',
+    actionKey: 'retry'
   },
   [AUTH_ERROR_TYPES.VALIDATION_ERROR]: {
-    title: 'Invalid Input',
-    message: 'Please check your input and try again.',
-    action: 'Fix Input'
+    titleKey: 'invalidInputTitle',
+    messageKey: 'invalidInputMessage',
+    actionKey: 'retry'
   },
   [AUTH_ERROR_TYPES.RATE_LIMITED]: {
-    title: 'Too Many Attempts',
-    message: 'Too many login attempts. Please wait a moment before trying again.',
-    action: 'Wait'
+    titleKey: 'tooManyAttemptsTitle',
+    messageKey: 'tooManyAttemptsMessage',
+    actionKey: 'retry'
   },
   [AUTH_ERROR_TYPES.UNKNOWN_ERROR]: {
-    title: 'Unexpected Error',
-    message: 'An unexpected error occurred. Please try again.',
-    action: 'Try Again'
+    titleKey: 'unexpectedErrorTitle',
+    messageKey: 'unexpectedErrorMessage',
+    actionKey: 'retry'
   }
 };
 
@@ -129,6 +129,12 @@ class AuthErrorHandler {
 
     // Server errors
     if (status >= 500) {
+      // Check if it's a server error that should be treated as auth error
+      if (message.toLowerCase().includes('credentials') || 
+          message.toLowerCase().includes('authentication') ||
+          message.toLowerCase().includes('unauthorized')) {
+        return AUTH_ERROR_TYPES.INVALID_CREDENTIALS;
+      }
       return AUTH_ERROR_TYPES.SERVER_ERROR;
     }
 
@@ -139,19 +145,36 @@ class AuthErrorHandler {
    * Get user-friendly error message for error type
    * @param {string} errorType - Error type category
    * @param {string} customMessage - Custom error message (optional)
+   * @param {Function} t - Translation function (optional)
    * @returns {Object} Error message object with title, message, and action
    */
-  getErrorMessage(errorType, customMessage = null) {
+  getErrorMessage(errorType, customMessage = null, t = null) {
     const defaultMessage = AUTH_ERROR_MESSAGES[errorType] || AUTH_ERROR_MESSAGES[AUTH_ERROR_TYPES.UNKNOWN_ERROR];
     
+    // If translation function is provided, use translated messages
+    if (t) {
+      const translatedMessage = {
+        title: t(defaultMessage.titleKey) || defaultMessage.titleKey,
+        message: customMessage || t(defaultMessage.messageKey) || defaultMessage.messageKey,
+        action: t(defaultMessage.actionKey) || defaultMessage.actionKey
+      };
+      return translatedMessage;
+    }
+    
+    // Fallback to default messages
     if (customMessage) {
       return {
-        ...defaultMessage,
-        message: customMessage
+        title: defaultMessage.titleKey,
+        message: customMessage,
+        action: defaultMessage.actionKey
       };
     }
 
-    return defaultMessage;
+    return {
+      title: defaultMessage.titleKey,
+      message: defaultMessage.messageKey,
+      action: defaultMessage.actionKey
+    };
   }
 
   /**
@@ -170,7 +193,7 @@ class AuthErrorHandler {
 
     try {
       const errorType = this.categorizeError(error);
-      const errorMessage = this.getErrorMessage(errorType, options.customMessage);
+      const errorMessage = this.getErrorMessage(errorType, options.customMessage, options.t);
       const shouldCleanupState = options.cleanupState !== false; // Default to true
       const shouldRedirect = options.redirect !== false; // Default to true
       const redirectPath = options.redirectPath || '/login';
@@ -295,9 +318,18 @@ class AuthErrorHandler {
    * @returns {Object} Processed error information
    */
   async handleLoginError(error, options = {}) {
+    const errorType = this.categorizeError(error);
+    
+    // Determine if cleanup is needed based on error type
+    const shouldCleanupState = [
+      AUTH_ERROR_TYPES.TOKEN_EXPIRED,
+      AUTH_ERROR_TYPES.TOKEN_INVALID,
+      AUTH_ERROR_TYPES.ACCOUNT_LOCKED
+    ].includes(errorType);
+    
     return await this.handleAuthError(error, {
       ...options,
-      cleanupState: false, // Don't cleanup state for login errors
+      cleanupState: shouldCleanupState,
       redirect: false // Don't redirect for login errors
     });
   }

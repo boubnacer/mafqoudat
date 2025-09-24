@@ -14,7 +14,12 @@ const login = async (req, res) => {
   console.log('Login attempt received:', { emailOrPhone, hasPassword: !!password });
 
   if (!emailOrPhone || !password) {
-    return res.status(400).json({ message: "All fields are required" });
+    throw createAuthError('VALIDATION_ERROR', 'All fields are required', {
+      emailOrPhone: !!emailOrPhone,
+      password: !!password,
+      ip: req.ip,
+      userAgent: req.get('User-Agent')
+    });
   }
 
   // Find user by email, phone, or username - optimized with selective fields for authentication
@@ -28,9 +33,20 @@ const login = async (req, res) => {
   
   console.log('Searching with query:', JSON.stringify(searchQuery, null, 2));
   
-  const foundUser = await User.findOne(searchQuery)
-    .collation({ locale: "en", strength: 2 })
-    .select('_id username password country role email phone').exec();
+  let foundUser;
+  try {
+    foundUser = await User.findOne(searchQuery)
+      .collation({ locale: "en", strength: 2 })
+      .select('_id username password country role email phone').exec();
+  } catch (dbError) {
+    console.error('Database error during login:', dbError);
+    throw createAuthError('DATABASE_ERROR', 'Database connection error', {
+      emailOrPhone,
+      ip: req.ip,
+      userAgent: req.get('User-Agent'),
+      dbError: dbError.message
+    });
+  }
 
   if (!foundUser) {
     console.log('Login attempt - User not found for:', emailOrPhone);
@@ -43,7 +59,18 @@ const login = async (req, res) => {
 
   console.log('Login attempt - User found:', foundUser.username, 'Email:', foundUser.email, 'Phone:', foundUser.phone);
 
-  const match = await bcrypt.compare(password, foundUser.password);
+  let match;
+  try {
+    match = await bcrypt.compare(password, foundUser.password);
+  } catch (bcryptError) {
+    console.error('Bcrypt error during login:', bcryptError);
+    throw createAuthError('SERVER_ERROR', 'Password verification error', {
+      username: foundUser.username,
+      ip: req.ip,
+      userAgent: req.get('User-Agent'),
+      bcryptError: bcryptError.message
+    });
+  }
 
   if (!match) {
     console.log('Login attempt - Password mismatch for user:', foundUser.username);
@@ -57,12 +84,25 @@ const login = async (req, res) => {
   // const code = await Country.findById(foundUser.country).lean().exec()
 
   // Generate secure tokens
-  const { accessToken, refreshToken } = generateTokens({
-    username: foundUser.username,
-    id: foundUser.id,
-    country: foundUser.country,
-    role: foundUser.role
-  });
+  let accessToken, refreshToken;
+  try {
+    const tokens = generateTokens({
+      username: foundUser.username,
+      id: foundUser.id,
+      country: foundUser.country,
+      role: foundUser.role
+    });
+    accessToken = tokens.accessToken;
+    refreshToken = tokens.refreshToken;
+  } catch (tokenError) {
+    console.error('Token generation error during login:', tokenError);
+    throw createAuthError('SERVER_ERROR', 'Token generation error', {
+      username: foundUser.username,
+      ip: req.ip,
+      userAgent: req.get('User-Agent'),
+      tokenError: tokenError.message
+    });
+  }
 
   // Create secure cookie with refresh token
   res.cookie("jwt", refreshToken, getSecureCookieOptions());
