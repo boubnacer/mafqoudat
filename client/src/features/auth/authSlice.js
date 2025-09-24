@@ -98,6 +98,7 @@ export const {
   clearRefreshState
 } = authSlice.actions;
 
+// Legacy selectors for backward compatibility
 export const selectCurrentToken = (state) => state.auth.token;
 export const selectIsLoggedIn = (state) => state.auth.isLoggedIn;
 export const selectCurrentUser = (state) => state.auth.user;
@@ -105,5 +106,15 @@ export const selectAuthLoading = (state) => state.auth.isLoading;
 export const selectIsRefreshing = (state) => state.auth.isRefreshing;
 export const selectRefreshAttempts = (state) => state.auth.refreshAttempts;
 export const selectLastRefreshError = (state) => state.auth.lastRefreshError;
+
+// Re-export optimized selectors for better performance
+export {
+  selectAuthState as selectOptimizedAuthState,
+  selectIsAuthenticated as selectOptimizedIsAuthenticated,
+  selectCurrentUser as selectOptimizedCurrentUser,
+  selectTokenValidation as selectOptimizedTokenValidation,
+  selectAuthStatus as selectOptimizedAuthStatus,
+  selectUserInfo as selectOptimizedUserInfo
+} from './authSelectors';
 
 export default authSlice.reducer;

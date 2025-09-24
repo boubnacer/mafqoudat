@@ -1,35 +1,52 @@
 import { useSelector } from "react-redux";
-import { selectCurrentToken, selectCurrentUser } from "../features/auth/authSlice";
-import { isTokenExpired, isTokenExpiringSoon } from "../utils/tokenUtils";
-import jwtDecode from "jwt-decode";
+import { useMemo } from "react";
+import { 
+  selectAuthState, 
+  selectIsAuthenticated, 
+  selectCurrentUser,
+  selectIsTokenExpiringSoon 
+} from "../features/auth/authSelectors";
 
+/**
+ * Optimized useAuth hook with memoization
+ * Uses memoized selectors to prevent unnecessary re-renders
+ */
 const useAuth = () => {
-  const token = useSelector(selectCurrentToken);
+  // Use memoized selectors for better performance
+  const authState = useSelector(selectAuthState);
+  const isAuthenticated = useSelector(selectIsAuthenticated);
   const user = useSelector(selectCurrentUser);
+  const isTokenExpiringSoon = useSelector(selectIsTokenExpiringSoon);
 
-  // Check if token exists and is valid
-  if (token && !isTokenExpired(token)) {
-    try {
-      const decoded = jwtDecode(token);
-      const { username, country, usernameId, foundLost, role } = decoded.UserInfo;
-      
+  // Memoize the return value to prevent unnecessary re-renders
+  return useMemo(() => {
+    if (!isAuthenticated || !user) {
       return { 
-        username, 
-        country, 
-        usernameId, 
-        foundLost, 
-        role, 
-        isAuthenticated: true,
-        token,
-        isTokenExpiringSoon: isTokenExpiringSoon(token)
+        username: "", 
+        country: "", 
+        usernameId: "", 
+        foundLost: "", 
+        role: "", 
+        isAuthenticated: false,
+        token: null,
+        isTokenExpiringSoon: false
       };
-    } catch (error) {
-      // Token is invalid, return empty values
-      console.error('Token decode error:', error);
-      return { username: "", country: "", usernameId: "", foundLost: "", role: "", isAuthenticated: false };
     }
-  }
 
-  return { username: "", country: "", usernameId: "", foundLost: "", role: "", isAuthenticated: false };
+    return {
+      username: user.username || "",
+      country: user.country || "",
+      usernameId: user.usernameId || "",
+      foundLost: user.foundLost || "",
+      role: user.role || "",
+      isAuthenticated: true,
+      token: authState.token,
+      isTokenExpiringSoon,
+      // Additional performance data
+      userSource: user.isFromToken ? 'token' : 'storage',
+      ...authState
+    };
+  }, [isAuthenticated, user, authState.token, isTokenExpiringSoon, authState]);
 };
+
 export default useAuth;

@@ -7,12 +7,15 @@ import {
   setRefreshError,
   clearRefreshState 
 } from "../../features/auth/authSlice";
+import { getOptimizedTokenValidation, getTokenRefreshTiming } from "../../utils/optimizedTokenUtils";
 
 // Refresh attempt tracking to prevent concurrent refresh calls
 let refreshPromise = null;
 let refreshAttempts = 0;
+let proactiveRefreshTimeout = null;
 const MAX_REFRESH_ATTEMPTS = 3;
 const BASE_RETRY_DELAY = 1000; // 1 second base delay
+const PROACTIVE_REFRESH_THRESHOLD = 0.3; // Refresh when 30% of token lifetime remains
 
 // Exponential backoff delay calculation
 const getRetryDelay = (attempt) => {
@@ -23,6 +26,30 @@ const getRetryDelay = (attempt) => {
 const resetRefreshTracking = () => {
   refreshPromise = null;
   refreshAttempts = 0;
+  if (proactiveRefreshTimeout) {
+    clearTimeout(proactiveRefreshTimeout);
+    proactiveRefreshTimeout = null;
+  }
+};
+
+// Schedule proactive token refresh
+const scheduleProactiveRefresh = (api, token) => {
+  if (proactiveRefreshTimeout) {
+    clearTimeout(proactiveRefreshTimeout);
+  }
+
+  const refreshTiming = getTokenRefreshTiming(token);
+  
+  if (refreshTiming.shouldRefresh && refreshTiming.timeUntilRefresh > 0) {
+    console.log(`Scheduling proactive token refresh in ${refreshTiming.timeUntilRefresh}ms (priority: ${refreshTiming.priority})`);
+    
+    proactiveRefreshTimeout = setTimeout(() => {
+      console.log('Executing proactive token refresh');
+      attemptTokenRefresh(api).catch(error => {
+        console.warn('Proactive token refresh failed:', error);
+      });
+    }, refreshTiming.timeUntilRefresh);
+  }
 };
 
 // Enhanced error handling for network failures
@@ -30,29 +57,9 @@ const isNetworkError = (error) => {
   return !error?.status || error.status === 'FETCH_ERROR' || error.status === 'PARSING_ERROR';
 };
 
-// Enhanced token validation before requests
+// Optimized token validation using cached validation
 const validateTokenBeforeRequest = (token) => {
-  if (!token) return { isValid: false, reason: 'NO_TOKEN' };
-  
-  try {
-    const decoded = JSON.parse(atob(token.split('.')[1]));
-    const currentTime = Date.now() / 1000;
-    
-    // Check if token is expired
-    if (decoded.exp && decoded.exp < currentTime) {
-      return { isValid: false, reason: 'TOKEN_EXPIRED' };
-    }
-    
-    // Check if token is expiring soon (within 1 minute)
-    if (decoded.exp && (decoded.exp - currentTime) < 60) {
-      return { isValid: true, reason: 'TOKEN_EXPIRING_SOON' };
-    }
-    
-    return { isValid: true, reason: 'TOKEN_VALID' };
-  } catch (error) {
-    console.error('Token validation error:', error);
-    return { isValid: false, reason: 'TOKEN_MALFORMED' };
-  }
+  return getOptimizedTokenValidation(token);
 };
 
 // Enhanced refresh token logic with better error handling
@@ -177,9 +184,10 @@ const baseQuery = fetchBaseQuery({
         return headers;
       }
       
-      // Log if token is expiring soon
+      // Schedule proactive refresh if token is expiring soon
       if (tokenValidation.reason === 'TOKEN_EXPIRING_SOON') {
-        console.warn('Token expiring soon, consider refreshing');
+        console.warn('Token expiring soon, scheduling proactive refresh');
+        scheduleProactiveRefresh({ dispatch: getState().dispatch, getState }, token);
       }
     }
     
