@@ -47,6 +47,7 @@ import useAuth from "../hooks/useAuth";
 import CountryModal from "./CountryModal";
 import { useTranslation } from "../utils/translations";
 import { useGetflOptionsQuery } from "../features/dependencies/dependenciesApiSlice";
+import { languageStorage } from "../utils/authStorage";
 
 // Global keyframes for logo animation
 const globalStyles = `
@@ -369,16 +370,10 @@ const Navbar = () => {
   const handleNavigationClose = () => setNavigationAnchorEl(null);
 
   const handleLanguageChange = (newLanguage) => {
-    localStorage.setItem('currentLanguage', newLanguage);
-    localStorage.setItem('language', newLanguage);
-    localStorage.setItem('app_language', newLanguage);
+    // Use centralized language storage utility with page refresh
+    languageStorage.setLanguage(newLanguage, true); // true = refresh page
     window.dispatchEvent(new Event('languageChange'));
     handleLanguageClose();
-    
-    // Force page refresh to ensure all components update properly
-    setTimeout(() => {
-      window.location.reload();
-    }, 100);
   };
 
   const handleModeToggle = () => {

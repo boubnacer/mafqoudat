@@ -1,14 +1,14 @@
 import { createSlice } from "@reduxjs/toolkit";
+import { authStorage } from "../../utils/authStorage";
 
-// Get initial state from localStorage
+// Get initial state from localStorage using centralized auth utility
 const getInitialState = () => {
-  const isLoggedIn = localStorage.getItem('isLoggedIn') === 'true';
-  const token = localStorage.getItem('accessToken');
+  const authState = authStorage.getAuthState();
   
   return {
-    token: token || null,
-    isLoggedIn: isLoggedIn && !!token, // Ensure isLoggedIn is only true if we have a token
-    user: null,
+    token: authState.token,
+    isLoggedIn: authState.isLoggedIn,
+    user: authState.user,
     isLoading: false,
   };
 };
@@ -23,9 +23,8 @@ const authSlice = createSlice({
       state.isLoggedIn = true;
       state.user = user || null;
       
-      // Persist to localStorage
-      localStorage.setItem('accessToken', accessToken);
-      localStorage.setItem('isLoggedIn', 'true');
+      // Persist to localStorage using centralized auth utility
+      authStorage.setCredentials({ accessToken, user });
     },
     logOut: (state, action) => {
       state.token = null;
@@ -33,12 +32,14 @@ const authSlice = createSlice({
       state.user = null;
       state.isLoading = false;
       
-      // Clear localStorage
-      localStorage.removeItem('accessToken');
-      localStorage.setItem('isLoggedIn', 'false');
+      // Clear localStorage using centralized auth utility
+      authStorage.setLoggedOut();
     },
     setUser: (state, action) => {
       state.user = action.payload;
+      
+      // Update user data in localStorage using centralized auth utility
+      authStorage.updateUserData(action.payload);
     },
     setLoading: (state, action) => {
       state.isLoading = action.payload;
@@ -49,9 +50,8 @@ const authSlice = createSlice({
       state.user = null;
       state.isLoading = false;
       
-      // Clear all auth-related localStorage
-      localStorage.removeItem('accessToken');
-      localStorage.setItem('isLoggedIn', 'false');
+      // Clear all auth-related localStorage using centralized auth utility
+      authStorage.clearAuth();
     },
   },
 });

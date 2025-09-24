@@ -13,6 +13,7 @@ import { useTranslation } from "../../utils/translations";
 import { useSelector } from "react-redux";
 import { selectCurrentToken } from "../../features/auth/authSlice";
 import { isRTL } from "../../utils/languageUtils";
+import { authStorage } from "../../utils/authStorage";
 import {
   AddCircleOutline,
   Search,
@@ -58,7 +59,7 @@ const QuickActions = () => {
         if (!token) {
           // Store the intended destination for redirect after login
           const intendedDestination = '/dash/posts/new?type=found';
-          localStorage.setItem('redirectAfterLogin', intendedDestination);
+          authStorage.setRedirectAfterLogin(intendedDestination);
           
           navigate('/login');
         } else {

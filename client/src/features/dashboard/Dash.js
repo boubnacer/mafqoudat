@@ -8,6 +8,7 @@ import { WhatshotOutlined, Search, Language } from "@mui/icons-material";
 import { useTranslation } from "../../utils/translations";
 import { selectCurrentToken } from "../../features/auth/authSlice";
 import useAuth from "../../hooks/useAuth";
+import { authStorage } from "../../utils/authStorage";
 
 // Custom hook
 import { useDashboard } from "../../hooks/useDashboard";
@@ -57,7 +58,7 @@ const Dash = () => {
     if (!user.username) {
       // Store the intended destination for redirect after login
       const intendedDestination = `/dash/posts/new?type=${type}`;
-      localStorage.setItem('redirectAfterLogin', intendedDestination);
+      authStorage.setRedirectAfterLogin(intendedDestination);
       
       navigate('/login');
     } else {

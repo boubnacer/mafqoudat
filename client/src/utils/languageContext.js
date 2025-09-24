@@ -1,4 +1,5 @@
 import React, { createContext, useContext, useState, useEffect } from 'react';
+import { languageStorage } from './authStorage';
 
 // Language context
 const LanguageContext = createContext();
@@ -6,8 +7,8 @@ const LanguageContext = createContext();
 // Initialize language settings
 export const initializeLanguage = (language = null) => {
   try {
-    // Check both 'language' and 'app_language' keys for backward compatibility
-    const savedLanguage = localStorage.getItem('language') || localStorage.getItem('app_language');
+    // Use centralized language storage utility
+    const savedLanguage = languageStorage.getCurrentLanguage();
     const currentLang = language || savedLanguage || 'en';
     
     // Set document language attribute
@@ -36,19 +37,20 @@ export const LanguageProvider = ({ children }) => {
   const [currentLanguage, setCurrentLanguage] = useState('en'); // Start with default
   const [isInitialized, setIsInitialized] = useState(false);
 
-  const setLanguage = (language) => {
+  const setLanguage = (language, shouldRefresh = false) => {
     try {
       if (['en', 'ar', 'fr'].includes(language)) {
         
-        // Save to both keys for compatibility
-        localStorage.setItem('language', language);
-        localStorage.setItem('app_language', language);
+        // Use centralized language storage utility with page refresh option
+        languageStorage.setLanguage(language, shouldRefresh);
         
-        // Apply language settings immediately
-        initializeLanguage(language);
-        
-        // Update state
-        setCurrentLanguage(language);
+        // Apply language settings immediately (only if not refreshing)
+        if (!shouldRefresh) {
+          initializeLanguage(language);
+          
+          // Update state
+          setCurrentLanguage(language);
+        }
         
         return true;
       }
@@ -62,8 +64,8 @@ export const LanguageProvider = ({ children }) => {
   useEffect(() => {
     // Load language from localStorage on mount
     try {
-      // Check both keys for backward compatibility
-      const savedLanguage = localStorage.getItem('language') || localStorage.getItem('app_language');
+      // Use centralized language storage utility
+      const savedLanguage = languageStorage.getCurrentLanguage();
       
       if (savedLanguage && ['en', 'ar', 'fr'].includes(savedLanguage)) {
         setCurrentLanguage(savedLanguage);
@@ -87,7 +89,7 @@ export const LanguageProvider = ({ children }) => {
     const handleLanguageChange = () => {
       // Force re-render of components that depend on language
       setCurrentLanguage(prev => {
-        const newLang = localStorage.getItem('language') || localStorage.getItem('app_language') || 'en';
+        const newLang = languageStorage.getCurrentLanguage();
         if (prev !== newLang) {
           initializeLanguage(newLang);
           return newLang;
@@ -99,7 +101,7 @@ export const LanguageProvider = ({ children }) => {
     // Also listen for the specific event name used in WelcomePage
     const handleLanguageChanged = () => {
       setCurrentLanguage(prev => {
-        const newLang = localStorage.getItem('language') || localStorage.getItem('app_language') || 'en';
+        const newLang = languageStorage.getCurrentLanguage();
         if (prev !== newLang) {
           initializeLanguage(newLang);
           return newLang;

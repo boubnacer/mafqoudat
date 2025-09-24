@@ -6,6 +6,7 @@ import { useGetCountriesQuery } from "../features/dependencies/dependenciesApiSl
 import { useTranslation } from "../utils/translations";
 import { useLanguage } from "../utils/languageContext";
 import { LoadingState } from "./LoadingStates";
+import { languageStorage } from "../utils/authStorage";
 import {
   Box,
   Card,
@@ -274,17 +275,11 @@ const WelcomePage = () => {
   };
 
   const handleLanguageChange = (newLanguage) => {
-    localStorage.setItem('currentLanguage', newLanguage);
-    localStorage.setItem('language', newLanguage);
-    localStorage.setItem('app_language', newLanguage);
+    // Use centralized language storage utility with page refresh
+    languageStorage.setLanguage(newLanguage, true); // true = refresh page
     setLanguage(newLanguage);
     setLanguageAnchorEl(null);
     window.dispatchEvent(new Event('languageChange'));
-    
-    // Force page refresh to apply language changes [[memory:5294070]]
-    setTimeout(() => {
-      window.location.reload();
-    }, 100);
   };
 
   const handleLanguageClick = (event) => {

@@ -11,6 +11,7 @@ import {
 } from "@mui/icons-material";
 import useAuth from "../../hooks/useAuth";
 import "./footer.css";
+import { authStorage } from "../../utils/authStorage";
 import { useTranslation } from "../../utils/translations";
 import {
   Typography,
@@ -38,7 +39,7 @@ const DashFooter = () => {
     if (!username) {
       // Store the intended destination for redirect after login
       const intendedDestination = "/dash/posts/new";
-      localStorage.setItem('redirectAfterLogin', intendedDestination);
+      authStorage.setRedirectAfterLogin(intendedDestination);
       
       navigate('/login');
     } else {

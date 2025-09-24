@@ -48,6 +48,7 @@ import LazyCardMedia from "../../../components/LazyCardMedia";
 import { formatDistanceToNow } from 'date-fns';
 import { ar, fr, enUS } from 'date-fns/locale';
 import RenderIcon from "../../../components/RenderIcon";
+import { authStorage } from "../../../utils/authStorage";
 import { getCategoryConfig } from "../../../config/categories";
 
 const SinglePostPage = ({
@@ -117,7 +118,7 @@ const SinglePostPage = ({
     if (!usernameId) {
       // Store the current post URL in localStorage for redirect after login
       const currentPostUrl = window.location.pathname;
-      localStorage.setItem('redirectAfterLogin', currentPostUrl);
+      authStorage.setRedirectAfterLogin(currentPostUrl);
       
       // Redirect to login page
       navigate('/login');

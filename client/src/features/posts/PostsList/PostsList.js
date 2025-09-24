@@ -37,6 +37,7 @@ import { useEffect, useState, useMemo, useCallback } from "react";
 import useAuth from "../../../hooks/useAuth";
 import { selectCurrentCountry, selectFoundOrLost, selectCategoryFilter, selectActiveLink } from "../../../app/state";
 import FlexCenter from "../../../components/FlexCenter";
+import { authStorage } from "../../../utils/authStorage";
 
 
 
@@ -275,7 +276,7 @@ const PostsList = () => {
     if (!user.username) {
       // Store the intended destination for redirect after login
       const intendedDestination = "/dash/posts/new";
-      localStorage.setItem('redirectAfterLogin', intendedDestination);
+      authStorage.setRedirectAfterLogin(intendedDestination);
       
       navigate('/login');
     } else {

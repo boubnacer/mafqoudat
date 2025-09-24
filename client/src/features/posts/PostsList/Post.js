@@ -38,6 +38,7 @@ import { getOptimizedImageUrl } from "../../../utils/cloudinaryUtils";
 import { formatDistanceToNow } from 'date-fns';
 import { ar, fr, enUS } from 'date-fns/locale';
 import RenderIcon from "../../../components/RenderIcon";
+import { authStorage } from "../../../utils/authStorage";
 import { getCategoryConfig } from "../../../config/categories";
 import LazyCardMedia from "../../../components/LazyCardMedia";
 
@@ -320,7 +321,7 @@ const Post = ({ post, viewMode = "grid" }) => {
     if (!usernameId) {
       // Store the current post URL for redirect after login
       const currentPostUrl = `/dash/posts/${post?._id}`;
-      localStorage.setItem('redirectAfterLogin', currentPostUrl);
+      authStorage.setRedirectAfterLogin(currentPostUrl);
       
       navigate('/login');
       return;

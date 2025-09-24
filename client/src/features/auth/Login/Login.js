@@ -3,6 +3,7 @@ import { useNavigate, Link } from "react-router-dom";
 import { useDispatch } from "react-redux";
 import { setCredentials } from "../authSlice";
 import { useLoginMutation } from "../authApiSlice";
+import { authStorage } from "../../../utils/authStorage";
 import useTitle from "../../../hooks/useTitle";
 import { LoadingState } from "../../../components/LoadingStates";
 import { useTranslation } from "../../../utils/translations";
@@ -276,13 +277,11 @@ const Login = () => {
 
   // Check if already logged in
   useEffect(() => {
-    const isLoggedIn = localStorage.getItem('isLoggedIn');
-    if (isLoggedIn === 'true') {
+    if (authStorage.isAuthenticated()) {
       // Check for redirect URL and handle it directly here
-      const redirectUrl = localStorage.getItem('redirectAfterLogin');
+      const redirectUrl = authStorage.getAndClearRedirectUrl();
       
       if (redirectUrl) {
-        localStorage.removeItem('redirectAfterLogin');
         navigate(redirectUrl);
       } else {
         navigate("/dash");
@@ -357,13 +356,11 @@ const Login = () => {
       }).unwrap();
 
       dispatch(setCredentials({ accessToken }));
-      localStorage.setItem('isLoggedIn', 'true');
       
       // Check for redirect URL and handle it directly here
-      const redirectUrl = localStorage.getItem('redirectAfterLogin');
+      const redirectUrl = authStorage.getAndClearRedirectUrl();
       
       if (redirectUrl) {
-        localStorage.removeItem('redirectAfterLogin');
         navigate(redirectUrl);
       } else {
         navigate("/dash");

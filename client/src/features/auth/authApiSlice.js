@@ -1,5 +1,6 @@
 import { apiSlice } from "../../app/api/apiSlice";
 import { logOut, setCredentials } from "./authSlice";
+import { authStorage } from "../../utils/authStorage";
 
 export const authApiSlice = apiSlice.injectEndpoints({
   endpoints: (builder) => ({
@@ -48,14 +49,12 @@ export const authApiSlice = apiSlice.injectEndpoints({
         try {
           const { data } = await queryFulfilled;
           dispatch(logOut());
-          localStorage.setItem('isLoggedIn', 'false');
           setTimeout(() => {
             dispatch(apiSlice.util.resetApiState());
           }, 1000);
         } catch (err) {
           // Even if logout fails, clear local state
           dispatch(logOut());
-          localStorage.setItem('isLoggedIn', 'false');
         }
       },
     }),
@@ -69,11 +68,9 @@ export const authApiSlice = apiSlice.injectEndpoints({
           const { data } = await queryFulfilled;
           const { accessToken } = data;
           dispatch(setCredentials({ accessToken }));
-          localStorage.setItem('isLoggedIn', 'true');
         } catch (err) {
           // If refresh fails, logout user immediately
           dispatch(logOut());
-          localStorage.setItem('isLoggedIn', 'false');
           
           // Dispatch a custom event to notify components of auth failure
           window.dispatchEvent(new CustomEvent('authError', { 

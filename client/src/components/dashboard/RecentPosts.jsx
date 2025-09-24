@@ -17,6 +17,7 @@ import RenderIcon from "../RenderIcon";
 import { useTranslation } from "../../utils/translations";
 import { getOptimizedImageUrl } from "../../utils/cloudinaryUtils";
 import LazyCardMedia from "../LazyCardMedia";
+import { authStorage } from "../../utils/authStorage";
 import { 
   LocationOn as LocationIcon,
   CalendarToday as CalendarIcon,
@@ -66,7 +67,7 @@ const RecentPosts = ({ _id, categoryname, exactLocation, image, createdAt, count
     if (!usernameId) {
       // Store the current post URL for redirect after login
       const currentPostUrl = `/dash/posts/${_id}`;
-      localStorage.setItem('redirectAfterLogin', currentPostUrl);
+      authStorage.setRedirectAfterLogin(currentPostUrl);
       
       navigate('/login');
       return;
