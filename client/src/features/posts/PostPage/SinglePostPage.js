@@ -603,7 +603,7 @@ const SinglePostPage = ({
             }}
           >
             {/* Image Section */}
-            <Box sx={{ position: 'relative' }}>
+            <Box sx={{ position: 'relative', zIndex: 1 }}>
               <LazyCardMedia
                 component="img"
                 sx={{
@@ -623,7 +623,7 @@ const SinglePostPage = ({
                   position: 'absolute',
                   top: 16,
                   left: 16,
-                  zIndex: 1
+                  zIndex: 10
                 }}
               >
                 <Chip
@@ -640,21 +640,19 @@ const SinglePostPage = ({
                     height: 32,
                     padding: '0 12px',
                     borderRadius: '16px',
-                    boxShadow: `0 2px 8px ${alpha(
+                    boxShadow: `0 4px 12px ${alpha('#000', 0.3)}, 0 2px 8px ${alpha(
                       foundLostStatus.statusColor === 'success' ? '#4CAF50' : 
                       foundLostStatus.statusColor === 'error' ? '#F44336' : 
                       '#FF9800', 0.4
                     )}`,
-                    border: `1px solid ${alpha(
-                      foundLostStatus.statusColor === 'success' ? '#4CAF50' : 
-                      foundLostStatus.statusColor === 'error' ? '#F44336' : 
-                      '#FF9800', 0.3
-                    )}`,
+                    border: `2px solid ${alpha('#fff', 0.8)}`,
                     backdropFilter: 'blur(10px)',
                     transition: 'all 0.3s ease',
+                    textShadow: '0 1px 2px rgba(0,0,0,0.5)',
                     '& .MuiChip-label': {
                       color: 'white',
-                      fontWeight: 700
+                      fontWeight: 700,
+                      textShadow: '0 1px 2px rgba(0,0,0,0.5)'
                     },
                     '&:hover': {
                       backgroundColor: alpha(
@@ -663,7 +661,7 @@ const SinglePostPage = ({
                         '#FF9800', 1
                       ),
                       transform: 'translateY(-1px)',
-                      boxShadow: `0 4px 12px ${alpha(
+                      boxShadow: `0 6px 16px ${alpha('#000', 0.4)}, 0 4px 12px ${alpha(
                         foundLostStatus.statusColor === 'success' ? '#4CAF50' : 
                         foundLostStatus.statusColor === 'error' ? '#F44336' : 
                         '#FF9800', 0.6
@@ -679,33 +677,42 @@ const SinglePostPage = ({
                   position: 'absolute',
                   top: 16,
                   right: 16,
-                  zIndex: 1
+                  zIndex: 10
                 }}
               >
                 <Box
                   sx={{
-                    backgroundColor: isDarkMode ? alpha(categoryStyle.main, 0.2) : categoryStyle.background,
+                    backgroundColor: isDarkMode ? alpha(categoryStyle.main, 0.9) : alpha(categoryStyle.background, 0.95),
                     padding: '8px 12px',
                     borderRadius: '16px',
                     display: 'flex',
                     alignItems: 'center',
                     gap: 1,
                     backdropFilter: 'blur(10px)',
-                    border: `1px solid ${isDarkMode ? alpha(categoryStyle.main, 0.3) : categoryStyle.main}`,
+                    border: `2px solid ${alpha('#fff', 0.8)}`,
+                    boxShadow: `0 4px 12px ${alpha('#000', 0.3)}, 0 2px 8px ${alpha(categoryStyle.main, 0.4)}`,
+                    transition: 'all 0.3s ease',
+                    '&:hover': {
+                      backgroundColor: isDarkMode ? alpha(categoryStyle.main, 1) : alpha(categoryStyle.background, 1),
+                      transform: 'translateY(-1px)',
+                      boxShadow: `0 6px 16px ${alpha('#000', 0.4)}, 0 4px 12px ${alpha(categoryStyle.main, 0.6)}`
+                    }
                   }}
                 >
                   <RenderIcon 
                     name={`${categoryname?.toLowerCase()}cate`} 
                     sx={{ 
                       fontSize: '16px', 
-                      color: isDarkMode ? categoryStyle.main : categoryStyle.text 
+                      color: isDarkMode ? '#fff' : categoryStyle.text,
+                      filter: 'drop-shadow(0 1px 2px rgba(0,0,0,0.5))'
                     }} 
                   />
                   <Typography
                     sx={{
-                      color: isDarkMode ? categoryStyle.main : categoryStyle.text,
+                      color: isDarkMode ? '#fff' : categoryStyle.text,
                       fontSize: '14px',
                       fontWeight: 600,
+                      textShadow: isDarkMode ? '0 1px 2px rgba(0,0,0,0.5)' : 'none'
                     }}
                   >
                     {categoryDisplayName}
