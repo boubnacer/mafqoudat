@@ -3,6 +3,7 @@ const bcrypt = require("bcrypt");
 const Country = require("../models/Country");
 const { generateTokens, getSecureCookieOptions, logout } = require("../middleware/jwtSecurity");
 const { logEvents } = require("../middleware/logger");
+const { createAuthError, asyncAuthHandler } = require("../middleware/authErrorHandler");
 
 // @desc Login
 // @route POST /auth
@@ -33,7 +34,11 @@ const login = async (req, res) => {
 
   if (!foundUser) {
     console.log('Login attempt - User not found for:', emailOrPhone);
-    return res.status(401).json({ message: "Invalid credentials" });
+    throw createAuthError('INVALID_CREDENTIALS', 'Invalid credentials', {
+      emailOrPhone,
+      ip: req.ip,
+      userAgent: req.get('User-Agent')
+    });
   }
 
   console.log('Login attempt - User found:', foundUser.username, 'Email:', foundUser.email, 'Phone:', foundUser.phone);
@@ -42,7 +47,11 @@ const login = async (req, res) => {
 
   if (!match) {
     console.log('Login attempt - Password mismatch for user:', foundUser.username);
-    return res.status(401).json({ message: "Invalid credentials" });
+    throw createAuthError('INVALID_CREDENTIALS', 'Invalid credentials', {
+      username: foundUser.username,
+      ip: req.ip,
+      userAgent: req.get('User-Agent')
+    });
   }
 
   // const code = await Country.findById(foundUser.country).lean().exec()

@@ -9,6 +9,9 @@ import { LoadingState } from "../../../components/LoadingStates";
 import { useTranslation } from "../../../utils/translations";
 import { isRTL } from "../../../utils/languageUtils";
 import { useLanguage } from "../../../utils/languageContext";
+import authErrorHandler from "../../../utils/authErrorHandler";
+import AuthErrorBoundary from "../../../components/AuthErrorBoundary";
+import { useAuthErrorFeedback } from "../../../components/AuthErrorFeedback";
 
 // Material-UI imports
 import {
@@ -249,7 +252,7 @@ const ControlButton = styled(IconButton)(({ theme }) => ({
   }
 }));
 
-const Login = () => {
+const LoginComponent = () => {
   useTitle("Mafqoudat | Login");
   
   const navigate = useNavigate();
@@ -271,6 +274,9 @@ const Login = () => {
   const [error, setError] = useState("");
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [languageAnchorEl, setLanguageAnchorEl] = useState(null);
+  
+  // Error feedback hook
+  const { showError: showAuthError } = useAuthErrorFeedback();
 
   // API
   const [login, { isLoading }] = useLoginMutation();
@@ -368,15 +374,19 @@ const Login = () => {
     } catch (err) {
       console.error('Login error:', err);
       
-      if (!err.status) {
-        setError(t('networkError'));
-      } else if (err.status === 400) {
-        setError(t('invalidCredentials'));
-      } else if (err.status === 401) {
-        setError(t('invalidCredentials'));
-      } else {
-        setError(err.data?.message || t('serverError'));
-      }
+      // Use centralized error handling
+      const errorResult = await authErrorHandler.handleLoginError(err, {
+        customMessage: t('loginError') || 'Login failed. Please try again.'
+      });
+      
+      // Set local error state for form display
+      setError(errorResult.errorMessage.message);
+      
+      // Show enhanced error feedback
+      showAuthError(err, errorResult.errorType, {
+        autoHide: false,
+        showDialog: errorResult.errorType === 'ACCOUNT_LOCKED'
+      });
     } finally {
       setIsSubmitting(false);
     }
@@ -730,5 +740,12 @@ const Login = () => {
     </PageContainer>
   );
 };
+
+// Wrap with error boundary
+const Login = () => (
+  <AuthErrorBoundary>
+    <LoginComponent />
+  </AuthErrorBoundary>
+);
 
 export default Login; 
