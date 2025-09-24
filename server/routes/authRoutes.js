@@ -10,7 +10,6 @@ const { authErrorMiddleware, asyncAuthHandler, checkAuthRateLimit } = require(".
 // /auth - Login with enhanced validation and rate limiting
 router.route("/").post(
   authRateLimit,
-  checkAuthRateLimit,
   validationSets.userLogin,
   validateRequest,
   asyncAuthHandler(authController.login)
@@ -19,8 +18,8 @@ router.route("/").post(
 // /auth/refresh - Token refresh with rate limiting
 router.route("/refresh").get(refreshTokenRateLimit, asyncAuthHandler(authController.refresh));
 
-// /auth/logout - Logout with JWT verification and refresh token blacklisting
-router.route("/logout").post(logoutRateLimit, verifyJWT, verifyRefreshToken, asyncAuthHandler(authController.logout));
+// /auth/logout - Logout with JWT verification (refresh token verification is optional)
+router.route("/logout").post(logoutRateLimit, verifyJWT, asyncAuthHandler(authController.logout));
 
 // /auth/logout-fallback - Logout fallback for expired/invalid tokens
 router.route("/logout-fallback").post(asyncAuthHandler(authController.logoutFallback));

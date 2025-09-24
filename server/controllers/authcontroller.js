@@ -205,6 +205,30 @@ const refresh = async (req, res) => {
 // @route POST /auth/logout
 // @access Private
 const logoutHandler = (req, res) => {
+  // Try to get refresh token data from cookies for blacklisting
+  const cookies = req.cookies;
+  if (cookies?.jwt) {
+    try {
+      const jwt = require("jsonwebtoken");
+      const decoded = jwt.verify(
+        cookies.jwt,
+        process.env.JWT_REFRESH_SECRET,
+        {
+          issuer: 'mafqoudat-api',
+          audience: 'mafqoudat-client',
+          algorithms: ['HS256']
+        }
+      );
+      
+      if (decoded.tokenType === 'refresh' && decoded.jti) {
+        req.refreshTokenData = decoded;
+      }
+    } catch (err) {
+      // Refresh token is invalid/expired, but we'll still proceed with logout
+      console.log('Refresh token invalid during logout, proceeding with access token blacklisting only');
+    }
+  }
+  
   return logout(req, res);
 };
 
