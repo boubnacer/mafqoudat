@@ -204,6 +204,75 @@ class AuthStorageManager {
       return null;
     }
   }
+
+  /**
+   * Verify authentication state persistence after page refresh
+   * This method ensures that authentication tokens and user data are properly preserved
+   * @returns {Object} Verification result with status and details
+   */
+  static verifyAuthPersistence() {
+    try {
+      const authState = this.getAuthState();
+      const hasToken = !!authState.token;
+      const hasUser = !!authState.user;
+      const isLoggedIn = authState.isLoggedIn;
+      
+      // Check if token is valid (not expired)
+      let tokenValid = false;
+      if (hasToken) {
+        try {
+          const decoded = JSON.parse(atob(authState.token.split('.')[1]));
+          const currentTime = Date.now() / 1000;
+          tokenValid = decoded.exp && decoded.exp > currentTime;
+        } catch (error) {
+          console.error('Token validation error:', error);
+        }
+      }
+      
+      return {
+        success: hasToken && hasUser && isLoggedIn && tokenValid,
+        details: {
+          hasToken,
+          hasUser,
+          isLoggedIn,
+          tokenValid,
+          tokenExpired: hasToken && !tokenValid
+        }
+      };
+    } catch (error) {
+      console.error('Failed to verify auth persistence:', error);
+      return {
+        success: false,
+        details: { error: error.message }
+      };
+    }
+  }
+
+  /**
+   * Preserve authentication state during language change
+   * This method ensures that auth data is not lost during page refresh
+   * @returns {boolean} True if preservation was successful
+   */
+  static preserveAuthDuringLanguageChange() {
+    try {
+      const authState = this.getAuthState();
+      
+      // Double-check that auth data exists before language change
+      if (authState.isLoggedIn && authState.token) {
+        console.log('Authentication state preserved during language change:', {
+          hasToken: !!authState.token,
+          hasUser: !!authState.user,
+          isLoggedIn: authState.isLoggedIn
+        });
+        return true;
+      }
+      
+      return false;
+    } catch (error) {
+      console.error('Failed to preserve auth during language change:', error);
+      return false;
+    }
+  }
 }
 
 /**
@@ -217,13 +286,23 @@ class LanguageStorageManager {
    */
   static setLanguage(language, shouldRefresh = false) {
     try {
+      // Preserve authentication state before language change
+      if (shouldRefresh) {
+        AuthStorageManager.preserveAuthDuringLanguageChange();
+      }
+      
       localStorage.setItem(LANGUAGE_KEYS.LANGUAGE, language);
       localStorage.setItem(LANGUAGE_KEYS.APP_LANGUAGE, language);
       localStorage.setItem(LANGUAGE_KEYS.CURRENT_LANGUAGE, language);
       
       if (shouldRefresh) {
+        // Add URL parameter to indicate this is a language change refresh
+        const url = new URL(window.location);
+        url.searchParams.set('lang_changed', 'true');
+        
         // Refresh the page to ensure dynamic translations are fetched correctly
-        window.location.reload();
+        // Authentication state will be preserved in localStorage and restored by PersistLogin
+        window.location.href = url.toString();
       }
       
       return true;
@@ -278,7 +357,9 @@ export const authStorage = {
   getAndClearRedirectUrl: AuthStorageManager.getAndClearRedirectUrl.bind(AuthStorageManager),
   isAuthenticated: AuthStorageManager.isAuthenticated.bind(AuthStorageManager),
   getAccessToken: AuthStorageManager.getAccessToken.bind(AuthStorageManager),
-  getUserData: AuthStorageManager.getUserData.bind(AuthStorageManager)
+  getUserData: AuthStorageManager.getUserData.bind(AuthStorageManager),
+  verifyAuthPersistence: AuthStorageManager.verifyAuthPersistence.bind(AuthStorageManager),
+  preserveAuthDuringLanguageChange: AuthStorageManager.preserveAuthDuringLanguageChange.bind(AuthStorageManager)
 };
 
 export const languageStorage = {

@@ -6,6 +6,7 @@ import { useSelector } from "react-redux";
 import { selectCurrentToken } from "../authSlice";
 import { LoadingState, ErrorState } from "../../../components/LoadingStates";
 import { Button } from "@mui/material";
+import { authStorage } from "../../../utils/authStorage";
 
 // to stay logged in when refreshing page
 const PersistLogin = () => {
@@ -35,6 +36,20 @@ const PersistLogin = () => {
           console.error(err);
         }
       };
+
+      // Verify authentication state persistence after page refresh (e.g., from language change)
+      const verifyAuthPersistence = () => {
+        const authVerification = authStorage.verifyAuthPersistence();
+        if (authVerification.success) {
+          console.log('Authentication state successfully preserved after page refresh');
+        } else {
+          console.warn('Authentication state verification failed:', authVerification.details);
+        }
+      };
+
+      // Verify auth persistence on component mount
+      verifyAuthPersistence();
+      
       // line below changed
       if (!token) verifyRefreshToken();
     }

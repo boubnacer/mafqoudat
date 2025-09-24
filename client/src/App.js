@@ -12,6 +12,7 @@ import { LanguageProvider, useLanguage } from "./utils/languageContext";
 import { cleanupLocalStorage, initializeLocalStorage } from "./utils/localStorageUtils";
 import useAuthErrorHandler from "./hooks/useAuthErrorHandler";
 import RefreshStatus from "./components/RefreshStatus";
+import LanguageSwitchHandler from "./components/LanguageSwitchHandler";
 
 // Add CSS keyframes for loading animations (mirrorReflection from navbar)
 const loadingStyles = `
@@ -156,6 +157,7 @@ const AppContent = () => {
     <ThemeProvider theme={theme}>
       <CssBaseline />
       <RefreshStatus />
+      <LanguageSwitchHandler />
       <Routes>
         {/* Welcome page - first time access */}
         <Route path="/" element={
