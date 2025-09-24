@@ -260,11 +260,6 @@ const Login = () => {
   const { currentLanguage: langContext, setLanguage } = useLanguage();
   const isRTLMode = isRTL();
 
-  // Debug logging
-  useEffect(() => {
-    console.log('Login component - currentLanguage:', currentLanguage);
-    console.log('Login component - langContext:', langContext);
-  }, [currentLanguage, langContext]);
 
   // State
   const [formData, setFormData] = useState({
@@ -285,14 +280,11 @@ const Login = () => {
     if (isLoggedIn === 'true') {
       // Check for redirect URL and handle it directly here
       const redirectUrl = localStorage.getItem('redirectAfterLogin');
-      console.log('Already logged in - checking for redirect URL:', redirectUrl);
       
       if (redirectUrl) {
-        console.log('Already logged in - redirecting to stored URL:', redirectUrl);
         localStorage.removeItem('redirectAfterLogin');
         navigate(redirectUrl);
       } else {
-        console.log('Already logged in - no redirect URL, going to dashboard');
         navigate("/dash");
       }
     }
@@ -369,14 +361,11 @@ const Login = () => {
       
       // Check for redirect URL and handle it directly here
       const redirectUrl = localStorage.getItem('redirectAfterLogin');
-      console.log('Login success - checking for redirect URL:', redirectUrl);
       
       if (redirectUrl) {
-        console.log('Login success - redirecting to stored URL:', redirectUrl);
         localStorage.removeItem('redirectAfterLogin');
         navigate(redirectUrl);
       } else {
-        console.log('Login success - no redirect URL, going to dashboard');
         navigate("/dash");
       }
     } catch (err) {

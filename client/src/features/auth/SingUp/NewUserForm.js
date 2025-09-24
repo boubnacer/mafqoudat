@@ -303,10 +303,6 @@ const NewUserForm = ({ countries }) => {
   const { currentLanguage: langContext, setLanguage } = useLanguage();
   const isRTLMode = isRTL();
 
-  // Debug logging
-  useEffect(() => {
-    console.log('SignUp component - currentLanguage:', currentLanguage);
-  }, [currentLanguage]);
 
   // Check for already logged in users and redirect if needed
   useEffect(() => {
@@ -314,14 +310,11 @@ const NewUserForm = ({ countries }) => {
     if (isLoggedIn === 'true') {
       // Check for redirect URL and handle it directly here
       const redirectUrl = localStorage.getItem('redirectAfterLogin');
-      console.log('Already logged in - checking for redirect URL:', redirectUrl);
       
       if (redirectUrl) {
-        console.log('Already logged in - redirecting to stored URL:', redirectUrl);
         localStorage.removeItem('redirectAfterLogin');
         navigate(redirectUrl);
       } else {
-        console.log('Already logged in - no redirect URL, going to dashboard');
         navigate("/dash");
       }
     }
@@ -482,14 +475,11 @@ const NewUserForm = ({ countries }) => {
       
       // Check for redirect URL and handle it directly here
       const redirectUrl = localStorage.getItem('redirectAfterLogin');
-      console.log('Signup success - checking for redirect URL:', redirectUrl);
       
       if (redirectUrl) {
-        console.log('Signup success - redirecting to stored URL:', redirectUrl);
         localStorage.removeItem('redirectAfterLogin');
         navigate(redirectUrl);
       } else {
-        console.log('Signup success - no redirect URL, going to dashboard');
         navigate("/dash");
       }
     } catch (err) {
