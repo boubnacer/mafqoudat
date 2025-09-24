@@ -677,7 +677,7 @@ const SinglePostPage = ({
                   position: 'absolute',
                   top: 16,
                   right: 16,
-                  zIndex: 10
+                  zIndex: 5
                 }}
               >
                 <Box
