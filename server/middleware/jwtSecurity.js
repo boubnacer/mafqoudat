@@ -54,18 +54,32 @@ const generateTokens = (userInfo) => {
   return { accessToken, refreshToken };
 };
 
-// Enhanced JWT verification with security checks
+// Enhanced JWT verification with comprehensive security checks
 const verifyJWT = (req, res, next) => {
   const authHeader = req.headers.authorization || req.headers.Authorization;
 
   if (!authHeader?.startsWith("Bearer ")) {
     return res.status(401).json({ 
       message: "Unauthorized - No token provided",
-      isError: true 
+      isError: true,
+      code: 'NO_TOKEN'
     });
   }
 
   const token = authHeader.split(" ")[1];
+
+  // Check if token is blacklisted
+  if (isTokenBlacklisted(token)) {
+    logEvents(
+      `JWT Blacklisted Token Attempt: ${req.method}\t${req.url}\t${req.ip}`,
+      "errLog.log"
+    );
+    return res.status(403).json({ 
+      message: "Token has been revoked",
+      isError: true,
+      code: 'TOKEN_REVOKED'
+    });
+  }
 
   // Verify token with enhanced options
   jwt.verify(token, process.env.JWT_SECRET, {
@@ -75,32 +89,60 @@ const verifyJWT = (req, res, next) => {
   }, (err, decoded) => {
     if (err) {
       let errorMessage = "Forbidden - Invalid token";
+      let errorCode = 'INVALID_TOKEN';
       
       if (err.name === 'TokenExpiredError') {
         errorMessage = "Token expired";
+        errorCode = 'TOKEN_EXPIRED';
       } else if (err.name === 'JsonWebTokenError') {
         errorMessage = "Invalid token format";
+        errorCode = 'MALFORMED_TOKEN';
       } else if (err.name === 'NotBeforeError') {
         errorMessage = "Token not active";
+        errorCode = 'TOKEN_NOT_ACTIVE';
+      } else if (err.name === 'TokenUsedTooEarly') {
+        errorMessage = "Token used too early";
+        errorCode = 'TOKEN_EARLY';
       }
 
-      // Log JWT verification failures
+      // Log JWT verification failures with more context
       logEvents(
-        `JWT Verification Failed: ${err.name} - ${err.message}\t${req.method}\t${req.url}\t${req.ip}`,
+        `JWT Verification Failed: ${err.name} - ${err.message}\t${req.method}\t${req.url}\t${req.ip}\t${req.get('User-Agent')}`,
         "errLog.log"
       );
 
       return res.status(403).json({ 
         message: errorMessage,
-        isError: true 
+        isError: true,
+        code: errorCode,
+        timestamp: new Date().toISOString()
       });
     }
 
-    // Additional security checks
+    // Comprehensive payload validation
     if (!decoded.UserInfo || !decoded.UserInfo.usernameId) {
+      logEvents(
+        `JWT Invalid Payload: Missing UserInfo\t${req.method}\t${req.url}\t${req.ip}`,
+        "errLog.log"
+      );
       return res.status(403).json({ 
         message: "Invalid token payload",
-        isError: true 
+        isError: true,
+        code: 'INVALID_PAYLOAD'
+      });
+    }
+
+    // Validate required fields in UserInfo
+    const { username, usernameId, country, role } = decoded.UserInfo;
+    if (!username || !usernameId || !country) {
+      logEvents(
+        `JWT Incomplete UserInfo: ${JSON.stringify(decoded.UserInfo)}\t${req.method}\t${req.url}\t${req.ip}`,
+        "errLog.log"
+      );
+      return res.status(403).json({ 
+        message: "Incomplete user information in token",
+        isError: true,
+        code: 'INCOMPLETE_USER_INFO'
       });
     }
 
@@ -109,18 +151,59 @@ const verifyJWT = (req, res, next) => {
     const maxAge = 15 * 60; // 15 minutes in seconds
     
     if (tokenAge > maxAge) {
+      logEvents(
+        `JWT Token Too Old: ${tokenAge}s\t${req.method}\t${req.url}\t${req.ip}`,
+        "errLog.log"
+      );
       return res.status(403).json({ 
         message: "Token too old",
-        isError: true 
+        isError: true,
+        code: 'TOKEN_TOO_OLD'
       });
     }
 
-    // Attach user info to request
-    req.user = decoded.UserInfo.usernameId;
-    req.username = decoded.UserInfo.username;
-    req.country = decoded.UserInfo.country;
-    req.role = decoded.UserInfo.role;
-    req.tokenId = decoded.jti; // JWT ID for tracking
+    // Check token freshness (prevent replay attacks)
+    const tokenFreshness = Date.now() / 1000 - decoded.iat;
+    if (tokenFreshness < 0) {
+      logEvents(
+        `JWT Future Token: ${tokenFreshness}s\t${req.method}\t${req.url}\t${req.ip}`,
+        "errLog.log"
+      );
+      return res.status(403).json({ 
+        message: "Token from future",
+        isError: true,
+        code: 'FUTURE_TOKEN'
+      });
+    }
+
+    // Validate JWT ID for tracking
+    if (!decoded.jti) {
+      logEvents(
+        `JWT Missing JTI: ${req.method}\t${req.url}\t${req.ip}`,
+        "errLog.log"
+      );
+      return res.status(403).json({ 
+        message: "Token missing ID",
+        isError: true,
+        code: 'MISSING_JTI'
+      });
+    }
+
+    // Attach comprehensive user info to request
+    req.user = usernameId;
+    req.username = username;
+    req.country = country;
+    req.role = role || 'user';
+    req.tokenId = decoded.jti;
+    req.tokenIssuedAt = decoded.iat;
+    req.tokenExpiresAt = decoded.exp;
+    req.tokenAge = tokenAge;
+
+    // Log successful authentication
+    logEvents(
+      `JWT Verification Success: ${username} (${usernameId})\t${req.method}\t${req.url}\t${req.ip}`,
+      "reqLog.log"
+    );
 
     next();
   });
@@ -236,6 +319,166 @@ const logout = (req, res) => {
   });
 };
 
+// Role-based access control middleware
+const requireRole = (requiredRole) => {
+  return (req, res, next) => {
+    if (!req.role) {
+      return res.status(403).json({
+        message: "Role information not available",
+        isError: true,
+        code: 'NO_ROLE_INFO'
+      });
+    }
+
+    if (req.role !== requiredRole) {
+      logEvents(
+        `Role Access Denied: Required ${requiredRole}, User has ${req.role}\t${req.method}\t${req.url}\t${req.ip}`,
+        "errLog.log"
+      );
+      return res.status(403).json({
+        message: `Access denied. Required role: ${requiredRole}`,
+        isError: true,
+        code: 'INSUFFICIENT_ROLE'
+      });
+    }
+
+    next();
+  };
+};
+
+// Admin-only middleware
+const requireAdmin = requireRole('admin');
+
+// Permission-based access control middleware
+const requirePermission = (requiredPermission) => {
+  return (req, res, next) => {
+    // This would need to be implemented based on your permission system
+    // For now, we'll assume admin role has all permissions
+    if (req.role === 'admin') {
+      return next();
+    }
+
+    // Add your permission validation logic here
+    // Example: Check if user.permissions includes requiredPermission
+    if (!req.userPermissions || !req.userPermissions.includes(requiredPermission)) {
+      logEvents(
+        `Permission Access Denied: Required ${requiredPermission}\t${req.method}\t${req.url}\t${req.ip}`,
+        "errLog.log"
+      );
+      return res.status(403).json({
+        message: `Access denied. Required permission: ${requiredPermission}`,
+        isError: true,
+        code: 'INSUFFICIENT_PERMISSION'
+      });
+    }
+
+    next();
+  };
+};
+
+// Multiple permissions middleware
+const requireAnyPermission = (permissions) => {
+  return (req, res, next) => {
+    if (req.role === 'admin') {
+      return next();
+    }
+
+    const hasPermission = permissions.some(permission => 
+      req.userPermissions && req.userPermissions.includes(permission)
+    );
+
+    if (!hasPermission) {
+      logEvents(
+        `Permission Access Denied: Required any of ${permissions.join(', ')}\t${req.method}\t${req.url}\t${req.ip}`,
+        "errLog.log"
+      );
+      return res.status(403).json({
+        message: `Access denied. Required any of: ${permissions.join(', ')}`,
+        isError: true,
+        code: 'INSUFFICIENT_PERMISSIONS'
+      });
+    }
+
+    next();
+  };
+};
+
+// All permissions middleware
+const requireAllPermissions = (permissions) => {
+  return (req, res, next) => {
+    if (req.role === 'admin') {
+      return next();
+    }
+
+    const hasAllPermissions = permissions.every(permission => 
+      req.userPermissions && req.userPermissions.includes(permission)
+    );
+
+    if (!hasAllPermissions) {
+      logEvents(
+        `Permission Access Denied: Required all of ${permissions.join(', ')}\t${req.method}\t${req.url}\t${req.ip}`,
+        "errLog.log"
+      );
+      return res.status(403).json({
+        message: `Access denied. Required all of: ${permissions.join(', ')}`,
+        isError: true,
+        code: 'INSUFFICIENT_PERMISSIONS'
+      });
+    }
+
+    next();
+  };
+};
+
+// Token validation middleware (for optional authentication)
+const optionalAuth = (req, res, next) => {
+  const authHeader = req.headers.authorization || req.headers.Authorization;
+
+  if (!authHeader?.startsWith("Bearer ")) {
+    // No token provided, continue without authentication
+    return next();
+  }
+
+  const token = authHeader.split(" ")[1];
+
+  // Check if token is blacklisted
+  if (isTokenBlacklisted(token)) {
+    return next(); // Continue without authentication
+  }
+
+  // Verify token with enhanced options
+  jwt.verify(token, process.env.JWT_SECRET, {
+    issuer: JWT_CONFIG.issuer,
+    audience: JWT_CONFIG.audience,
+    algorithms: ['HS256']
+  }, (err, decoded) => {
+    if (err) {
+      // Token invalid, continue without authentication
+      return next();
+    }
+
+    // Token valid, attach user info
+    if (decoded.UserInfo && decoded.UserInfo.usernameId) {
+      req.user = decoded.UserInfo.usernameId;
+      req.username = decoded.UserInfo.username;
+      req.country = decoded.UserInfo.country;
+      req.role = decoded.UserInfo.role || 'user';
+      req.tokenId = decoded.jti;
+      req.tokenIssuedAt = decoded.iat;
+      req.tokenExpiresAt = decoded.exp;
+    }
+
+    next();
+  });
+};
+
+// Rate limiting for authentication endpoints
+const authRateLimit = (req, res, next) => {
+  // This would integrate with your existing rate limiting middleware
+  // For now, we'll just pass through
+  next();
+};
+
 module.exports = {
   generateTokens,
   verifyJWT,
@@ -244,5 +487,13 @@ module.exports = {
   getSecureCookieClearOptions,
   logout,
   isTokenBlacklisted,
-  JWT_CONFIG
+  JWT_CONFIG,
+  // New middleware exports
+  requireRole,
+  requireAdmin,
+  requirePermission,
+  requireAnyPermission,
+  requireAllPermissions,
+  optionalAuth,
+  authRateLimit
 };

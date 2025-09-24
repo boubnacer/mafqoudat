@@ -30,6 +30,107 @@ const isNetworkError = (error) => {
   return !error?.status || error.status === 'FETCH_ERROR' || error.status === 'PARSING_ERROR';
 };
 
+// Enhanced token validation before requests
+const validateTokenBeforeRequest = (token) => {
+  if (!token) return { isValid: false, reason: 'NO_TOKEN' };
+  
+  try {
+    const decoded = JSON.parse(atob(token.split('.')[1]));
+    const currentTime = Date.now() / 1000;
+    
+    // Check if token is expired
+    if (decoded.exp && decoded.exp < currentTime) {
+      return { isValid: false, reason: 'TOKEN_EXPIRED' };
+    }
+    
+    // Check if token is expiring soon (within 1 minute)
+    if (decoded.exp && (decoded.exp - currentTime) < 60) {
+      return { isValid: true, reason: 'TOKEN_EXPIRING_SOON' };
+    }
+    
+    return { isValid: true, reason: 'TOKEN_VALID' };
+  } catch (error) {
+    console.error('Token validation error:', error);
+    return { isValid: false, reason: 'TOKEN_MALFORMED' };
+  }
+};
+
+// Enhanced refresh token logic with better error handling
+const attemptTokenRefresh = async (api) => {
+  if (refreshPromise) {
+    return refreshPromise;
+  }
+
+  refreshAttempts++;
+  
+  if (refreshAttempts > MAX_REFRESH_ATTEMPTS) {
+    console.error('Max refresh attempts reached');
+    handleRefreshFailure(api, { status: 401, data: { message: 'Max refresh attempts reached' } });
+    return Promise.reject(new Error('Max refresh attempts reached'));
+  }
+
+  console.log(`Attempting token refresh (attempt ${refreshAttempts}/${MAX_REFRESH_ATTEMPTS})`);
+  
+  // Set refreshing state
+  api.dispatch(setRefreshing(true));
+  api.dispatch(setRefreshAttempts(refreshAttempts));
+
+  refreshPromise = fetch('/auth/refresh', {
+    method: 'POST',
+    credentials: 'include',
+    headers: {
+      'Content-Type': 'application/json',
+    },
+  })
+    .then(async (response) => {
+      if (!response.ok) {
+        const errorData = await response.json().catch(() => ({}));
+        throw { status: response.status, data: errorData };
+      }
+      return response.json();
+    })
+    .then((data) => {
+      console.log('Token refresh successful');
+      
+      // Update credentials
+      api.dispatch(setCredentials({ 
+        accessToken: data.accessToken, 
+        user: data.user 
+      }));
+      
+      // Reset refresh tracking
+      resetRefreshTracking();
+      
+      return data;
+    })
+    .catch((error) => {
+      console.error('Token refresh failed:', error);
+      
+      // Calculate retry delay with exponential backoff
+      const retryDelay = getRetryDelay(refreshAttempts - 1);
+      
+      if (refreshAttempts < MAX_REFRESH_ATTEMPTS) {
+        console.log(`Retrying token refresh in ${retryDelay}ms`);
+        
+        return new Promise((resolve, reject) => {
+          setTimeout(() => {
+            refreshPromise = null;
+            attemptTokenRefresh(api).then(resolve).catch(reject);
+          }, retryDelay);
+        });
+      } else {
+        handleRefreshFailure(api, error);
+        throw error;
+      }
+    })
+    .finally(() => {
+      refreshPromise = null;
+      api.dispatch(setRefreshing(false));
+    });
+
+  return refreshPromise;
+};
+
 // Cleanup function for failed refresh
 const handleRefreshFailure = (api, error) => {
   console.warn('Token refresh failed, logging out user:', error);
@@ -65,6 +166,22 @@ const baseQuery = fetchBaseQuery({
   prepareHeaders: (headers, { getState, endpoint }) => {
     // api => api.getState => {getState}
     const token = getState().auth.token;
+    
+    // Enhanced token validation before adding to headers
+    if (token) {
+      const tokenValidation = validateTokenBeforeRequest(token);
+      
+      if (!tokenValidation.isValid) {
+        console.warn('Invalid token detected, not adding to headers:', tokenValidation.reason);
+        // Don't add the token if it's invalid
+        return headers;
+      }
+      
+      // Log if token is expiring soon
+      if (tokenValidation.reason === 'TOKEN_EXPIRING_SOON') {
+        console.warn('Token expiring soon, consider refreshing');
+      }
+    }
     
     // Only add authorization header for authenticated endpoints
     // Skip for public endpoints like dashboard
@@ -106,96 +223,32 @@ const baseQueryWithReauth = async (args, api, extraOptions) => {
       }
     }
 
-    // Set refreshing state
-    api.dispatch(setRefreshing(true));
-    
-    // Start refresh process with exponential backoff
-    refreshPromise = performTokenRefresh(api, extraOptions);
-    
-    try {
-      const refreshResult = await refreshPromise;
-      
-      if (refreshResult?.data) {
-        // Reset refresh tracking on success
-        resetRefreshTracking();
-        
-        // Clear refresh state
-        api.dispatch(clearRefreshState());
-        
-        // Store the new token
-        api.dispatch(setCredentials({ ...refreshResult.data }));
+    // Check if we should attempt refresh based on error code
+    const errorCode = result?.error?.data?.code;
+    const shouldRefresh = !errorCode || 
+      ['TOKEN_EXPIRED', 'TOKEN_TOO_OLD', 'INVALID_TOKEN', 'MALFORMED_TOKEN'].includes(errorCode);
 
-        // Retry original query with new access token
+    if (shouldRefresh) {
+      console.log('Attempting token refresh due to authentication error');
+      try {
+        await attemptTokenRefresh(api);
+        // Retry the original request with new token
         result = await baseQuery(args, api, extraOptions);
-      } else {
-        // Refresh failed
-        return handleRefreshFailure(api, refreshResult?.error || { status: 401 });
+        return result;
+      } catch (error) {
+        console.error('Token refresh failed:', error);
+        return handleRefreshFailure(api, error);
       }
-    } catch (error) {
-      console.error('Token refresh error:', error);
-      return handleRefreshFailure(api, error);
-    } finally {
-      // Clear the refresh promise and state
-      refreshPromise = null;
-      api.dispatch(setRefreshing(false));
+    } else {
+      // Don't attempt refresh for certain error types
+      console.log('Not attempting refresh due to error type:', errorCode);
+      return result;
     }
   }
 
   return result;
 };
 
-// Enhanced token refresh with exponential backoff
-const performTokenRefresh = async (api, extraOptions) => {
-  for (let attempt = 0; attempt < MAX_REFRESH_ATTEMPTS; attempt++) {
-    refreshAttempts = attempt + 1;
-    
-    // Update refresh attempts in state
-    api.dispatch(setRefreshAttempts(refreshAttempts));
-    
-    try {
-      console.log(`Token refresh attempt ${refreshAttempts}/${MAX_REFRESH_ATTEMPTS}`);
-      
-      const refreshResult = await baseQuery("/auth/refresh", api, extraOptions);
-      
-      if (refreshResult?.data) {
-        console.log('Token refresh successful');
-        return refreshResult;
-      }
-      
-      // If refresh fails with 401/403, don't retry
-      if (refreshResult?.error?.status === 401 || refreshResult?.error?.status === 403) {
-        console.warn('Token refresh failed with authentication error, not retrying');
-        return refreshResult;
-      }
-      
-      // For other errors, retry with exponential backoff
-      if (attempt < MAX_REFRESH_ATTEMPTS - 1) {
-        const delay = getRetryDelay(attempt);
-        console.log(`Token refresh failed, retrying in ${delay}ms...`);
-        await new Promise(resolve => setTimeout(resolve, delay));
-      }
-      
-    } catch (error) {
-      console.error(`Token refresh attempt ${refreshAttempts} failed:`, error);
-      
-      // If this is a network error and we have retries left, wait and retry
-      if (isNetworkError(error) && attempt < MAX_REFRESH_ATTEMPTS - 1) {
-        const delay = getRetryDelay(attempt);
-        console.log(`Network error during refresh, retrying in ${delay}ms...`);
-        await new Promise(resolve => setTimeout(resolve, delay));
-        continue;
-      }
-      
-      // If this is the last attempt or not a network error, throw
-      if (attempt === MAX_REFRESH_ATTEMPTS - 1) {
-        throw error;
-      }
-    }
-  }
-  
-  // If we get here, all attempts failed
-  throw new Error('All token refresh attempts failed');
-};
 
 export const apiSlice = createApi({
   baseQuery: baseQueryWithReauth,
