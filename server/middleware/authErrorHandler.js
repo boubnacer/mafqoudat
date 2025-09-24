@@ -296,20 +296,10 @@ class AuthErrorHandler {
       headers: req.headers
     };
 
-    console.log('Categorizing error:', {
-      message: error.message,
-      code: error.code,
-      name: error.name,
-      isAuthError: error.isAuthError
-    });
-
     const errorType = this.categorizeError(error, context);
-    console.log('Categorized as:', errorType);
-    
     this.logAuthError(error, context, errorType);
     
     const errorResponse = this.createErrorResponse(errorType, error, context);
-    console.log('Sending response:', errorResponse);
     
     res.status(errorResponse.status).json(errorResponse.body);
   }
@@ -322,21 +312,11 @@ const authErrorHandler = new AuthErrorHandler();
  * Middleware function for handling authentication errors
  */
 const authErrorMiddleware = (error, req, res, next) => {
-  console.log('Auth error middleware received error:', {
-    message: error.message,
-    code: error.code,
-    isAuthError: error.isAuthError,
-    url: req.originalUrl,
-    method: req.method
-  });
-  
   // Only handle authentication-related errors
   if (isAuthError(error, req)) {
-    console.log('Handling as auth error');
     return authErrorHandler.handleAuthError(error, req, res, next);
   }
   
-  console.log('Passing to next error handler');
   // Pass non-auth errors to next error handler
   next(error);
 };

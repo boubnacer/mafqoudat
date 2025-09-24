@@ -50,13 +50,11 @@ const login = async (req, res) => {
 
   if (!foundUser) {
     console.log('Login attempt - User not found for:', emailOrPhone);
-    const error = createAuthError('INVALID_CREDENTIALS', 'Invalid credentials', {
+    throw createAuthError('INVALID_CREDENTIALS', 'Invalid credentials', {
       emailOrPhone,
       ip: req.ip,
       userAgent: req.get('User-Agent')
     });
-    console.log('Throwing INVALID_CREDENTIALS error:', error);
-    throw error;
   }
 
   console.log('Login attempt - User found:', foundUser.username, 'Email:', foundUser.email, 'Phone:', foundUser.phone);

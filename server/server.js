@@ -150,6 +150,9 @@ app.use(cookieParser());
 // Serve static files
 app.use("/", express.static(path.join(__dirname, "public")));
 
+// Authentication error handling (must come before routes)
+app.use('/auth', authErrorMiddleware);
+
 // API routes
 app.use("/", require("./routes/root"));
 app.use("/dashboard", require("./routes/dashRoutes"));
@@ -304,9 +307,6 @@ app.all("*", (req, res) => {
     res.type("txt").send("404 Not Found - API Server");
   }
 });
-
-// Authentication error handling (must come before general error handler)
-app.use('/auth', authErrorMiddleware);
 
 // Enhanced error handling with resilience
 app.use(resilientErrorHandler);

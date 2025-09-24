@@ -90,8 +90,6 @@ class AuthErrorHandler {
     const message = error?.data?.message || error?.message || '';
     const code = error?.data?.error?.code || error?.data?.code;
 
-    console.log('Categorizing error:', { status, message, code });
-
     // Check for auth error codes first (regardless of status)
     if (code) {
       switch (code) {
