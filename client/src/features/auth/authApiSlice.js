@@ -1,6 +1,7 @@
 import { apiSlice } from "../../app/api/apiSlice";
 import { logOut, setCredentials } from "./authSlice";
 import { authStorage } from "../../utils/authStorage";
+import { performLogout } from "../../utils/logoutUtils";
 
 export const authApiSlice = apiSlice.injectEndpoints({
   endpoints: (builder) => ({
@@ -53,8 +54,26 @@ export const authApiSlice = apiSlice.injectEndpoints({
             dispatch(apiSlice.util.resetApiState());
           }, 1000);
         } catch (err) {
-          // Even if logout fails, clear local state
-          dispatch(logOut());
+          // Use the robust logout utility for fallback
+          console.warn('Primary logout failed, using robust logout utility:', err);
+          
+          await performLogout({
+            onSuccess: (message) => {
+              console.log('Logout completed:', message);
+              dispatch(logOut());
+              setTimeout(() => {
+                dispatch(apiSlice.util.resetApiState());
+              }, 1000);
+            },
+            onError: (error) => {
+              console.error('Logout failed:', error);
+              // Even if logout utility fails, ensure local cleanup
+              dispatch(logOut());
+              setTimeout(() => {
+                dispatch(apiSlice.util.resetApiState());
+              }, 1000);
+            }
+          });
         }
       },
     }),
@@ -69,13 +88,26 @@ export const authApiSlice = apiSlice.injectEndpoints({
           const { accessToken } = data;
           dispatch(setCredentials({ accessToken }));
         } catch (err) {
-          // If refresh fails, logout user immediately
-          dispatch(logOut());
+          // If refresh fails, use robust logout utility
+          console.warn('Token refresh failed, performing logout:', err);
           
-          // Dispatch a custom event to notify components of auth failure
-          window.dispatchEvent(new CustomEvent('authError', { 
-            detail: { error: { status: 401, message: 'Your login has expired.' } } 
-          }));
+          performLogout({
+            forceClientSide: true,
+            onSuccess: () => {
+              dispatch(logOut());
+              // Dispatch a custom event to notify components of auth failure
+              window.dispatchEvent(new CustomEvent('authError', { 
+                detail: { error: { status: 401, message: 'Your login has expired.' } } 
+              }));
+            },
+            onError: () => {
+              // Even if logout utility fails, ensure local cleanup
+              dispatch(logOut());
+              window.dispatchEvent(new CustomEvent('authError', { 
+                detail: { error: { status: 401, message: 'Your login has expired.' } } 
+              }));
+            }
+          });
         }
       },
     }),

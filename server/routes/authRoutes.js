@@ -20,6 +20,9 @@ router.route("/refresh").get(authController.refresh);
 // /auth/logout - Logout with JWT verification
 router.route("/logout").post(verifyJWT, authController.logout);
 
+// /auth/logout-fallback - Logout fallback for expired/invalid tokens
+router.route("/logout-fallback").post(authController.logoutFallback);
+
 // /auth/register - User registration with enhanced security
 router.route("/register").post(
   registrationRateLimit,

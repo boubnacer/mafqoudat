@@ -148,8 +148,28 @@ const logoutHandler = (req, res) => {
   return logout(req, res);
 };
 
+// @desc Logout (fallback for expired/invalid tokens)
+// @route POST /auth/logout-fallback
+// @access Public
+const logoutFallback = (req, res) => {
+  // Always clear refresh token cookie regardless of token validity
+  res.clearCookie('jwt', {
+    httpOnly: true,
+    secure: process.env.NODE_ENV === 'production',
+    sameSite: process.env.NODE_ENV === 'production' ? "None" : "Lax",
+    path: '/',
+    domain: process.env.NODE_ENV === 'production' ? '.mafqoudat.com' : undefined
+  });
+  
+  res.json({ 
+    message: "Logged out successfully (fallback)",
+    isError: false 
+  });
+};
+
 module.exports = {
   login,
   refresh,
   logout: logoutHandler,
+  logoutFallback,
 };
