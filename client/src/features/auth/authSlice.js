@@ -10,6 +10,9 @@ const getInitialState = () => {
     isLoggedIn: authState.isLoggedIn,
     user: authState.user,
     isLoading: false,
+    isRefreshing: false,
+    refreshAttempts: 0,
+    lastRefreshError: null,
   };
 };
 
@@ -22,6 +25,9 @@ const authSlice = createSlice({
       state.token = accessToken;
       state.isLoggedIn = true;
       state.user = user || null;
+      state.isRefreshing = false;
+      state.refreshAttempts = 0;
+      state.lastRefreshError = null;
       
       // Persist to localStorage using centralized auth utility
       authStorage.setCredentials({ accessToken, user });
@@ -31,6 +37,9 @@ const authSlice = createSlice({
       state.isLoggedIn = false;
       state.user = null;
       state.isLoading = false;
+      state.isRefreshing = false;
+      state.refreshAttempts = 0;
+      state.lastRefreshError = null;
       
       // Clear localStorage using centralized auth utility
       authStorage.setLoggedOut();
@@ -49,18 +58,52 @@ const authSlice = createSlice({
       state.isLoggedIn = false;
       state.user = null;
       state.isLoading = false;
+      state.isRefreshing = false;
+      state.refreshAttempts = 0;
+      state.lastRefreshError = null;
       
       // Clear all auth-related localStorage using centralized auth utility
       authStorage.clearAuth();
     },
+    setRefreshing: (state, action) => {
+      state.isRefreshing = action.payload;
+      if (action.payload) {
+        state.lastRefreshError = null;
+      }
+    },
+    setRefreshAttempts: (state, action) => {
+      state.refreshAttempts = action.payload;
+    },
+    setRefreshError: (state, action) => {
+      state.lastRefreshError = action.payload;
+      state.isRefreshing = false;
+    },
+    clearRefreshState: (state) => {
+      state.isRefreshing = false;
+      state.refreshAttempts = 0;
+      state.lastRefreshError = null;
+    },
   },
 });
 
-export const { setCredentials, logOut, setUser, setLoading, clearAuth } = authSlice.actions;
+export const { 
+  setCredentials, 
+  logOut, 
+  setUser, 
+  setLoading, 
+  clearAuth,
+  setRefreshing,
+  setRefreshAttempts,
+  setRefreshError,
+  clearRefreshState
+} = authSlice.actions;
 
 export const selectCurrentToken = (state) => state.auth.token;
 export const selectIsLoggedIn = (state) => state.auth.isLoggedIn;
 export const selectCurrentUser = (state) => state.auth.user;
 export const selectAuthLoading = (state) => state.auth.isLoading;
+export const selectIsRefreshing = (state) => state.auth.isRefreshing;
+export const selectRefreshAttempts = (state) => state.auth.refreshAttempts;
+export const selectLastRefreshError = (state) => state.auth.lastRefreshError;
 
 export default authSlice.reducer;
