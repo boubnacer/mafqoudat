@@ -12,7 +12,6 @@ import { LanguageProvider, useLanguage } from "./utils/languageContext";
 import { cleanupLocalStorage, initializeLocalStorage } from "./utils/localStorageUtils";
 import useAuthErrorHandler from "./hooks/useAuthErrorHandler";
 import RefreshStatus from "./components/RefreshStatus";
-import { AuthErrorFeedbackProvider } from "./components/AuthErrorFeedback";
 
 // Add CSS keyframes for loading animations (mirrorReflection from navbar)
 const loadingStyles = `
@@ -156,9 +155,8 @@ const AppContent = () => {
   return (
     <ThemeProvider theme={theme}>
       <CssBaseline />
-      <AuthErrorFeedbackProvider>
-        <RefreshStatus />
-        <Routes>
+      <RefreshStatus />
+      <Routes>
         {/* Welcome page - first time access */}
         <Route path="/" element={
           <Suspense fallback={<LoadingFallback />}>
@@ -295,8 +293,7 @@ const AppContent = () => {
             <p>Path: {window.location.pathname}</p>
           </div>
         } />
-        </Routes>
-        </AuthErrorFeedbackProvider>
+      </Routes>
       </ThemeProvider>
     );
   };
