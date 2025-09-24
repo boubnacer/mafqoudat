@@ -2,7 +2,7 @@ import { createSelector } from '@reduxjs/toolkit';
 import { getOptimizedTokenValidation, isTokenExpiringSoon, getTokenTimeRemaining } from '../../utils/optimizedTokenUtils';
 
 // Base selectors (these are already memoized by Redux)
-const selectAuthState = (state) => state.auth;
+const selectAuthSlice = (state) => state.auth;
 const selectToken = (state) => state.auth.token;
 const selectUser = (state) => state.auth.user;
 const selectIsLoggedIn = (state) => state.auth.isLoggedIn;
