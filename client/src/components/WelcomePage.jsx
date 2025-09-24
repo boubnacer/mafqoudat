@@ -209,19 +209,6 @@ const WelcomePage = () => {
   // Get mode from Redux store
   const mode = useSelector((state) => state.global.mode);
 
-  // Monitor languageAnchorEl changes
-  useEffect(() => {
-    console.log('WelcomePage: languageAnchorEl changed to:', languageAnchorEl);
-    console.log('WelcomePage: Menu should be open:', Boolean(languageAnchorEl));
-  }, [languageAnchorEl]);
-
-  // Debug logging
-  console.log('WelcomePage: currentLanguage from useTranslation:', currentLanguage);
-  console.log('WelcomePage: langContext from useLanguage:', langContext);
-  console.log('WelcomePage: localStorage language:', localStorage.getItem('language'));
-  console.log('WelcomePage: localStorage app_language:', localStorage.getItem('app_language'));
-  console.log('WelcomePage: languageAnchorEl:', languageAnchorEl);
-  console.log('WelcomePage: Menu open state:', Boolean(languageAnchorEl));
 
   // Get countries list - Fixed: Use dependenciesApiSlice and proper error handling
   const { data: countriesData, error: countriesError, isLoading: countriesLoading } = useGetCountriesQuery({
@@ -234,14 +221,6 @@ const WelcomePage = () => {
     }),
   });
 
-  // Debug logging for API call
-  console.log('WelcomePage: API call details:', {
-    countriesData,
-    countriesError,
-    countriesLoading,
-    currentLanguage,
-    langContext
-  });
 
   // Country code to name mapping for fallback
   const countryCodeToName = {
@@ -288,7 +267,6 @@ const WelcomePage = () => {
     if (selectedCountry) {
       // Use the selected country ID directly
       const countryId = selectedCountry._id;
-      console.log('WelcomePage: Setting country:', countryId, 'for country:', selectedCountry);
       dispatch(setCurrentCountry({ currentCountry: countryId }));
       // Navigate to dashboard (public view)
       navigate('/dash');
@@ -296,14 +274,12 @@ const WelcomePage = () => {
   };
 
   const handleLanguageChange = (newLanguage) => {
-    console.log('WelcomePage: Changing language to:', newLanguage);
     localStorage.setItem('currentLanguage', newLanguage);
     localStorage.setItem('language', newLanguage);
     localStorage.setItem('app_language', newLanguage);
     setLanguage(newLanguage);
     setLanguageAnchorEl(null);
     window.dispatchEvent(new Event('languageChange'));
-    console.log('WelcomePage: Language change event dispatched');
     
     // Force page refresh to apply language changes [[memory:5294070]]
     setTimeout(() => {
@@ -314,14 +290,10 @@ const WelcomePage = () => {
   const handleLanguageClick = (event) => {
     event.preventDefault();
     event.stopPropagation();
-    console.log('WelcomePage: Language click triggered', event.currentTarget);
-    console.log('WelcomePage: Current languageAnchorEl before:', languageAnchorEl);
     setLanguageAnchorEl(event.currentTarget);
-    console.log('WelcomePage: Setting languageAnchorEl to:', event.currentTarget);
   };
 
   const handleLanguageClose = () => {
-    console.log('WelcomePage: Closing language menu');
     setLanguageAnchorEl(null);
   };
 

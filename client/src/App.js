@@ -140,19 +140,6 @@ const AppContent = () => {
   // Initialize authentication error handler
   useAuthErrorHandler();
   
-  // Debug Redux store
-  console.log('AppContent: Redux store state:', {
-    mode,
-    currentLanguage,
-    location: location.pathname
-  });
-  
-  // Redirect logic is now handled directly in Login component
-  console.log('🚀 AppContent: Redirect logic moved to Login component');
-  
-  console.log('AppContent: Current location:', location.pathname);
-  console.log('AppContent: Current URL:', window.location.href);
-  console.log('AppContent: Current pathname:', window.location.pathname);
   
   const theme = React.useMemo(() => {
     try {

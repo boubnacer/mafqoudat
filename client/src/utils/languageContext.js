@@ -39,7 +39,6 @@ export const LanguageProvider = ({ children }) => {
   const setLanguage = (language) => {
     try {
       if (['en', 'ar', 'fr'].includes(language)) {
-        console.log('LanguageContext: Setting language to:', language);
         
         // Save to both keys for compatibility
         localStorage.setItem('language', language);
@@ -67,12 +66,10 @@ export const LanguageProvider = ({ children }) => {
       const savedLanguage = localStorage.getItem('language') || localStorage.getItem('app_language');
       
       if (savedLanguage && ['en', 'ar', 'fr'].includes(savedLanguage)) {
-        console.log('LanguageContext: Loading saved language:', savedLanguage);
         setCurrentLanguage(savedLanguage);
         initializeLanguage(savedLanguage);
       } else {
         // No saved language or invalid, use default
-        console.log('LanguageContext: No saved language found, using default: en');
         initializeLanguage('en');
       }
       setIsInitialized(true);
@@ -88,11 +85,9 @@ export const LanguageProvider = ({ children }) => {
 
     // Listen for language change events
     const handleLanguageChange = () => {
-      console.log('Language change event received');
       // Force re-render of components that depend on language
       setCurrentLanguage(prev => {
         const newLang = localStorage.getItem('language') || localStorage.getItem('app_language') || 'en';
-        console.log('Language change:', { prev, newLang });
         if (prev !== newLang) {
           initializeLanguage(newLang);
           return newLang;
@@ -103,10 +98,8 @@ export const LanguageProvider = ({ children }) => {
 
     // Also listen for the specific event name used in WelcomePage
     const handleLanguageChanged = () => {
-      console.log('Language changed event received');
       setCurrentLanguage(prev => {
         const newLang = localStorage.getItem('language') || localStorage.getItem('app_language') || 'en';
-        console.log('Language changed:', { prev, newLang });
         if (prev !== newLang) {
           initializeLanguage(newLang);
           return newLang;

@@ -3,20 +3,16 @@ import { createSlice } from "@reduxjs/toolkit";
 // Get initial state from localStorage
 const getInitialState = () => {
   const savedState = localStorage.getItem('globalState');
-  console.log('Redux: Loading saved state from localStorage:', savedState);
   
   if (savedState) {
     try {
       const parsedState = JSON.parse(savedState);
-      console.log('Redux: Parsed state:', parsedState);
-      console.log('Redux: currentCountry from saved state:', parsedState.currentCountry);
       return parsedState;
     } catch (error) {
       console.error('Error parsing saved global state:', error);
     }
   }
   
-  console.log('Redux: No saved state found, using default state');
   return {
     currentCountry: null, // Use null instead of empty string to distinguish from unset
     mode: "light",
@@ -52,19 +48,15 @@ export const globalSlice = createSlice({
     },
     setCurrentCountry: (state, action) => {
       const { currentCountry } = action.payload;
-      console.log('Redux: Setting currentCountry:', currentCountry);
       state.currentCountry = currentCountry;
       // Save to localStorage
       localStorage.setItem('globalState', JSON.stringify(state));
-      console.log('Redux: Country saved to localStorage successfully');
     },
     setFoundOrLost: (state, action) => {
       const { foundOrlost } = action.payload;
-      console.log('Redux: Setting foundOrlost:', foundOrlost);
       state.foundOrlost = foundOrlost;
       // Save to localStorage
       localStorage.setItem('globalState', JSON.stringify(state));
-      console.log('Redux: foundOrlost saved to localStorage successfully');
     },
     setCategoryFilter: (state, action) => {
       const { categoryFilter } = action.payload;
