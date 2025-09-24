@@ -76,7 +76,6 @@ class AuthStateCleanupManager {
         preserveLanguage = true
       } = options;
 
-      console.log('Starting comprehensive auth state cleanup...');
 
       const cleanupResults = {
         reduxState: false,
@@ -127,7 +126,6 @@ class AuthStateCleanupManager {
       // 8. Execute custom cleanup callbacks
       cleanupResults.customCallbacks = await this.executeCleanupCallbacks();
 
-      console.log('Auth state cleanup completed:', cleanupResults);
 
       return {
         success: true,
@@ -162,7 +160,6 @@ class AuthStateCleanupManager {
       // Reset API state
       store.dispatch({ type: 'api/resetApiState' });
       
-      console.log('Redux state cleared successfully');
       return true;
     } catch (error) {
       console.error('Failed to clear Redux state:', error);
@@ -195,7 +192,6 @@ class AuthStateCleanupManager {
         });
       }
 
-      console.log('localStorage cleared successfully');
       return true;
     } catch (error) {
       console.error('Failed to clear localStorage:', error);
@@ -210,7 +206,6 @@ class AuthStateCleanupManager {
   async clearSessionStorage() {
     try {
       sessionStorage.clear();
-      console.log('sessionStorage cleared successfully');
       return true;
     } catch (error) {
       console.error('Failed to clear sessionStorage:', error);
@@ -232,7 +227,6 @@ class AuthStateCleanupManager {
         document.cookie = `${cookieName}=; expires=Thu, 01 Jan 1970 00:00:00 UTC; path=/; domain=.${window.location.hostname};`;
       });
 
-      console.log('Cookies cleared successfully');
       return true;
     } catch (error) {
       console.error('Failed to clear cookies:', error);
@@ -247,7 +241,6 @@ class AuthStateCleanupManager {
   async performLogoutCleanup() {
     try {
       await performLogout({ forceClientSide: true });
-      console.log('Logout cleanup completed successfully');
       return true;
     } catch (error) {
       console.error('Failed to perform logout cleanup:', error);
@@ -272,7 +265,6 @@ class AuthStateCleanupManager {
         );
       }
 
-      console.log('API cache cleared successfully');
       return true;
     } catch (error) {
       console.error('Failed to clear API cache:', error);
@@ -293,7 +285,6 @@ class AuthStateCleanupManager {
       // Clear error handler state
       authErrorHandler.clearListeners();
 
-      console.log('Error state cleared successfully');
       return true;
     } catch (error) {
       console.error('Failed to clear error state:', error);
@@ -372,7 +363,6 @@ export const authNavigation = {
       }
 
       if (showMessage) {
-        console.log('Redirecting to login...');
       }
 
       window.location.href = '/login';

@@ -14,8 +14,6 @@ const useAuthErrorHandler = () => {
   useEffect(() => {
     // Listen for authentication errors from the centralized error handler
     const handleAuthError = async (errorInfo) => {
-      console.log('Global auth error handler received error:', errorInfo);
-      
       // If error requires logout, perform cleanup
       if (errorInfo.requiresLogout) {
         try {

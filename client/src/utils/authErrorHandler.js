@@ -221,13 +221,6 @@ class AuthErrorHandler {
       const shouldRedirect = options.redirect !== false; // Default to true
       const redirectPath = options.redirectPath || '/login';
 
-      console.error('Auth Error Handler:', {
-        errorType,
-        originalError: error,
-        errorMessage,
-        shouldCleanupState,
-        shouldRedirect
-      });
 
       // Determine if this error requires immediate logout
       const requiresLogout = this.shouldLogoutOnError(errorType);
@@ -290,7 +283,6 @@ class AuthErrorHandler {
    */
   async performErrorCleanup() {
     try {
-      console.log('Performing auth error cleanup...');
       
       // Clear authentication state
       authStorage.clearAuth();
@@ -298,7 +290,6 @@ class AuthErrorHandler {
       // Perform logout to clear server-side state
       await performLogout({ forceClientSide: true });
       
-      console.log('Auth error cleanup completed');
     } catch (cleanupError) {
       console.error('Error during auth cleanup:', cleanupError);
     }

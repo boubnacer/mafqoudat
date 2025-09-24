@@ -11,7 +11,6 @@ import { isRTL } from "../../../utils/languageUtils";
 import { useLanguage } from "../../../utils/languageContext";
 import authErrorHandler from "../../../utils/authErrorHandler";
 import AuthErrorBoundary from "../../../components/AuthErrorBoundary";
-import { useAuthErrorFeedback } from "../../../components/AuthErrorFeedback";
 
 // Material-UI imports
 import {
@@ -275,8 +274,6 @@ const LoginComponent = () => {
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [languageAnchorEl, setLanguageAnchorEl] = useState(null);
   
-  // Error feedback hook
-  const { showError: showAuthError } = useAuthErrorFeedback();
 
   // API
   const [login, { isLoading }] = useLoginMutation();
@@ -372,8 +369,6 @@ const LoginComponent = () => {
         navigate("/dash");
       }
     } catch (err) {
-      console.error('Login error:', err);
-      
       // Use centralized error handling
       const errorResult = await authErrorHandler.handleLoginError(err, {
         t: t
@@ -381,12 +376,6 @@ const LoginComponent = () => {
       
       // Set local error state for form display
       setError(errorResult.errorMessage.message);
-      
-      // Show enhanced error feedback
-      showAuthError(err, errorResult.errorType, {
-        autoHide: false,
-        showDialog: errorResult.errorType === 'ACCOUNT_LOCKED'
-      });
     } finally {
       setIsSubmitting(false);
     }

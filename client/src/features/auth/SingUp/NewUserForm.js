@@ -10,7 +10,6 @@ import { isRTL } from "../../../utils/languageUtils";
 import { useLanguage } from "../../../utils/languageContext";
 import authErrorHandler from "../../../utils/authErrorHandler";
 import AuthErrorBoundary from "../../../components/AuthErrorBoundary";
-import { useAuthErrorFeedback } from "../../../components/AuthErrorFeedback";
 
 import { LoadingState } from "../../../components/LoadingStates";
 // Material-UI imports
@@ -325,8 +324,6 @@ const NewUserFormComponent = ({ countries }) => {
   // API
   const [addNewUser, { isLoading, isError, error }] = useAddNewUserMutation();
 
-  // Error feedback hook
-  const { showError: showAuthError } = useAuthErrorFeedback();
 
   // State
   const [formData, setFormData] = useState({
@@ -486,8 +483,6 @@ const NewUserFormComponent = ({ countries }) => {
         navigate("/dash");
       }
     } catch (err) {
-      console.error('Signup error:', err);
-      
       // Use centralized error handling
       const errorResult = await authErrorHandler.handleLoginError(err, {
         t: t
@@ -495,12 +490,6 @@ const NewUserFormComponent = ({ countries }) => {
       
       // Set local error state for form display
       setErrors({ general: errorResult.errorMessage.message });
-      
-      // Show enhanced error feedback
-      showAuthError(err, errorResult.errorType, {
-        autoHide: false,
-        showDialog: errorResult.errorType === 'ACCOUNT_LOCKED'
-      });
     } finally {
       setIsSubmitting(false);
     }
