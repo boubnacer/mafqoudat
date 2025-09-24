@@ -659,25 +659,30 @@ const SinglePostPage = ({
               >
                 <Box
                   sx={{
-                    backgroundColor: isDarkMode ? alpha(categoryStyle.main, 0.9) : alpha(categoryStyle.background, 0.95),
-                    padding: '8px 12px',
+                    backgroundColor: isDarkMode ? 'rgb(232, 245, 233)' : categoryStyle.background,
+                    padding: '6px 12px',
+                    borderRadius: '12px',
                     display: 'flex',
                     alignItems: 'center',
-                    gap: 1
+                    gap: 0.5,
+                    backdropFilter: 'blur(10px)',
+                    border: `1px solid ${isDarkMode ? alpha(categoryStyle.main, 0.3) : categoryStyle.main}`,
+                    zIndex: 11
                   }}
                 >
                   <RenderIcon 
                     name={`${categoryname?.toLowerCase()}cate`} 
                     sx={{ 
-                      fontSize: '16px', 
-                      color: isDarkMode ? '#fff' : categoryStyle.text
+                      fontSize: '18px', 
+                      color: isDarkMode ? categoryStyle.main : categoryStyle.text
                     }} 
                   />
                   <Typography
                     sx={{
-                      color: isDarkMode ? '#fff' : categoryStyle.text,
+                      color: isDarkMode ? categoryStyle.main : categoryStyle.text,
                       fontSize: '14px',
-                      fontWeight: 600
+                      fontWeight: 700,
+                      lineHeight: 1
                     }}
                   >
                     {categoryDisplayName}
