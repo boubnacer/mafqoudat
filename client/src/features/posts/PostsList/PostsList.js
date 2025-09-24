@@ -273,7 +273,11 @@ const PostsList = () => {
 
   const handleAddNewPost = useCallback(() => {
     if (!user.username) {
-      navigate('/signup');
+      // Store the intended destination for redirect after login
+      const intendedDestination = "/dash/posts/new";
+      localStorage.setItem('redirectAfterLogin', intendedDestination);
+      
+      navigate('/login');
     } else {
       navigate("/dash/posts/new");
     }

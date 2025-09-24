@@ -43,7 +43,7 @@ const QuickActions = () => {
       color: '#ff6b6b',
       action: () => {
         if (!token) {
-          navigate('/signup');
+          navigate('/login');
         } else {
           scrollToHelpSection();
         }
@@ -56,7 +56,11 @@ const QuickActions = () => {
       color: '#4ecdc4',
       action: () => {
         if (!token) {
-          navigate('/signup');
+          // Store the intended destination for redirect after login
+          const intendedDestination = '/dash/posts/new?type=found';
+          localStorage.setItem('redirectAfterLogin', intendedDestination);
+          
+          navigate('/login');
         } else {
           navigate('/dash/posts/new?type=found');
         }

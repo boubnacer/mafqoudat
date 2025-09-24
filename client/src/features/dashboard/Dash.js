@@ -55,7 +55,11 @@ const Dash = () => {
 
   const handleCreateNewPost = (type) => {
     if (!user.username) {
-      navigate('/signup');
+      // Store the intended destination for redirect after login
+      const intendedDestination = `/dash/posts/new?type=${type}`;
+      localStorage.setItem('redirectAfterLogin', intendedDestination);
+      
+      navigate('/login');
     } else {
       navigate(`/dash/posts/new?type=${type}`);
     }
