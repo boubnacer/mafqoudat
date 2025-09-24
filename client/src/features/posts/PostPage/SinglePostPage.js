@@ -375,17 +375,6 @@ const SinglePostPage = ({
 
   // Memoized found/lost status computation
   const foundLostStatus = useMemo(() => {
-    // Debug logging to see what data we're receiving
-    console.log('🔍 SinglePostPage Found/Lost Debug:', {
-      foundLost,
-      Floptions,
-      foundLostLabel,
-      foundLostType: typeof foundLost,
-      FloptionsType: typeof Floptions,
-      FloptionsKeys: Floptions ? Object.keys(Floptions) : null,
-      FloptionsIsArray: Array.isArray(Floptions),
-      FloptionsLength: Array.isArray(Floptions) ? Floptions.length : 'N/A'
-    });
 
     let foundLostValue = null;
     let displayLabel = null;
@@ -393,22 +382,14 @@ const SinglePostPage = ({
     
     // Priority 1: Use Floptions.code if available (populated object from server)
     if (Floptions) {
-      console.log('🔍 Floptions data:', Floptions);
-      console.log('🔍 Floptions structure:', {
-        isArray: Array.isArray(Floptions),
-        length: Array.isArray(Floptions) ? Floptions.length : 'N/A',
-        keys: Array.isArray(Floptions) ? (Floptions[0] ? Object.keys(Floptions[0]) : 'No elements') : Object.keys(Floptions)
-      });
       
       // Handle both array and object formats
       let flOption = Floptions;
       if (Array.isArray(Floptions)) {
         flOption = Floptions[0]; // Take first element if it's an array
-        console.log('🔍 First Floptions element:', flOption);
       }
       
       if (flOption && flOption.code) {
-        console.log('🔍 Using Floptions.code:', flOption.code);
         foundLostValue = flOption.code;
         foundLostColor = flOption.color;
         
@@ -421,18 +402,15 @@ const SinglePostPage = ({
           foundLostColor = foundLostColor || "#F44336";
         }
       } else {
-        console.log('🔍 Floptions element has no code:', flOption);
       }
     }
     // Priority 2: Use foundLost as fallback (could be ObjectId or object)
     else if (foundLost) {
-      console.log('🔍 Using foundLost fallback:', foundLost);
       if (typeof foundLost === 'string') {
         // If it's a string, check if it's an ObjectId or a code
         if (foundLost.length === 24) {
           // It's likely an ObjectId, we can't determine the value from this
           // This should be handled by the server to populate Floptions
-          console.log('🔍 Found ObjectId, cannot determine status without server population');
           foundLostValue = null;
         } else {
           // It's a code string
@@ -463,12 +441,10 @@ const SinglePostPage = ({
     // If we still don't have a value, we need to determine it from the data
     // Check if we can infer from other fields or if we need to make an API call
     if (!foundLostValue) {
-      console.log('🔍 No foundLost value determined, checking for alternative sources...');
       
       // Try to get from the API response or make a fallback determination
       if (foundLost && typeof foundLost === 'object' && foundLost._id) {
         // We have an ObjectId reference, but need the actual data
-        console.log('🔍 Have ObjectId reference, need server to populate this field');
       }
       
       // Check if we can determine from the post title or description
@@ -476,12 +452,10 @@ const SinglePostPage = ({
       if (titleLabels && titleLabels[currentLanguage]) {
         const title = titleLabels[currentLanguage].toLowerCase();
         if (title.includes('lost') || title.includes('perdu') || title.includes('مفقود')) {
-          console.log('🔍 Determined LOST from title');
           foundLostValue = "LOST";
           displayLabel = t('lost');
           foundLostColor = "#F44336";
         } else if (title.includes('found') || title.includes('trouvé') || title.includes('موجود')) {
-          console.log('🔍 Determined FOUND from title');
           foundLostValue = "FOUND";
           displayLabel = t('found');
           foundLostColor = "#4CAF50";
@@ -492,12 +466,10 @@ const SinglePostPage = ({
       if (!foundLostValue && description) {
         const desc = description.toLowerCase();
         if (desc.includes('lost') || desc.includes('perdu') || desc.includes('مفقود')) {
-          console.log('🔍 Determined LOST from description');
           foundLostValue = "LOST";
           displayLabel = t('lost');
           foundLostColor = "#F44336";
         } else if (desc.includes('found') || desc.includes('trouvé') || desc.includes('موجود')) {
-          console.log('🔍 Determined FOUND from description');
           foundLostValue = "FOUND";
           displayLabel = t('found');
           foundLostColor = "#4CAF50";
@@ -508,12 +480,10 @@ const SinglePostPage = ({
       if (!foundLostValue && foundLostLabel) {
         const label = foundLostLabel.toLowerCase();
         if (label.includes('lost') || label.includes('perdu') || label.includes('مفقود')) {
-          console.log('🔍 Determined LOST from foundLostLabel');
           foundLostValue = "LOST";
           displayLabel = t('lost');
           foundLostColor = "#F44336";
         } else if (label.includes('found') || label.includes('trouvé') || label.includes('موجود')) {
-          console.log('🔍 Determined FOUND from foundLostLabel');
           foundLostValue = "FOUND";
           displayLabel = t('found');
           foundLostColor = "#4CAF50";
@@ -522,16 +492,13 @@ const SinglePostPage = ({
       
       // Additional fallback: Check if there's a foundLostType field
       if (!foundLostValue && foundLost && typeof foundLost === 'object') {
-        console.log('🔍 Checking foundLost object for additional fields:', foundLost);
         if (foundLost.foundLostType) {
           const type = foundLost.foundLostType.toLowerCase();
           if (type.includes('lost')) {
-            console.log('🔍 Determined LOST from foundLostType');
             foundLostValue = "LOST";
             displayLabel = t('lost');
             foundLostColor = "#F44336";
           } else if (type.includes('found')) {
-            console.log('🔍 Determined FOUND from foundLostType');
             foundLostValue = "FOUND";
             displayLabel = t('found');
             foundLostColor = "#4CAF50";
@@ -541,31 +508,18 @@ const SinglePostPage = ({
       
       // Last resort: Check if there's any other field that might indicate status
       if (!foundLostValue) {
-        console.log('🔍 Checking all available fields for status clues...');
-        console.log('🔍 Available fields:', {
-          foundLost,
-          Floptions,
-          foundLostLabel,
-          titleLabels,
-          description,
-          title,
-          categoryname
-        });
         
 
         
         // Additional fallback: Check if we can determine from the foundLost ObjectId
         // This is a last resort when the server doesn't populate the lookup fields
         if (!foundLostValue && foundLost && typeof foundLost === 'string' && foundLost.length === 24) {
-          console.log('🔍 Have ObjectId, attempting to determine status from known IDs...');
           // These are the known ObjectIds from your database
           if (foundLost === '68b708a085dd243c40a90826') { // LOST
-            console.log('🔍 Determined LOST from ObjectId');
             foundLostValue = "LOST";
             displayLabel = t('lost');
             foundLostColor = "#F44336";
           } else if (foundLost === '68b708a085dd243c40a90825') { // FOUND
-            console.log('🔍 Determined FOUND from ObjectId');
             foundLostValue = "FOUND";
             displayLabel = t('found');
             foundLostColor = "#4CAF50";
@@ -578,7 +532,6 @@ const SinglePostPage = ({
 
     // Set defaults only if we couldn't determine the actual value
     if (!foundLostValue) {
-      console.log('🔍 No status determined, using intelligent default');
       // Try to infer from the post title, description, or other fields
       // For now, we'll use a neutral approach and let the user know
       foundLostValue = "UNKNOWN";
@@ -591,7 +544,6 @@ const SinglePostPage = ({
     const statusText = displayLabel;
 
     const result = { isFound, statusColor, statusText };
-    console.log('🔍 SinglePostPage Found/Lost Final result:', result);
     
     return result;
   }, [foundLost, Floptions, foundLostLabel, titleLabels, description, currentLanguage, t]);
