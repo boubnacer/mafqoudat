@@ -41,8 +41,12 @@ const PersistLogin = () => {
       const verifyAuthPersistence = () => {
         const authVerification = authStorage.verifyAuthPersistence();
         if (authVerification.success) {
-          console.log('Authentication state successfully preserved after page refresh');
+          // Only log success in development mode to avoid console spam
+          if (process.env.NODE_ENV === 'development') {
+            console.log('Authentication state successfully preserved after page refresh');
+          }
         } else {
+          // Always log warnings for debugging
           console.warn('Authentication state verification failed:', authVerification.details);
         }
       };

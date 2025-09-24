@@ -154,7 +154,10 @@ export const testAuthAfterPageRefresh = () => {
       message: 'Authentication state after page refresh simulation',
       data: {
         authState,
-        verification
+        verification,
+        explanation: verification.success 
+          ? 'Auth state preserved - token valid and contains user data'
+          : 'Auth state verification failed - check token validity and user data'
       }
     };
   } catch (error) {

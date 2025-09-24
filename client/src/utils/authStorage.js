@@ -214,29 +214,48 @@ class AuthStorageManager {
     try {
       const authState = this.getAuthState();
       const hasToken = !!authState.token;
-      const hasUser = !!authState.user;
       const isLoggedIn = authState.isLoggedIn;
       
-      // Check if token is valid (not expired)
+      // Check if token is valid (not expired) and extract user data from token
       let tokenValid = false;
+      let hasUserData = false;
+      let userDataFromToken = null;
+      
       if (hasToken) {
         try {
           const decoded = JSON.parse(atob(authState.token.split('.')[1]));
           const currentTime = Date.now() / 1000;
           tokenValid = decoded.exp && decoded.exp > currentTime;
+          
+          // Check if token contains user data
+          if (decoded.UserInfo) {
+            hasUserData = true;
+            userDataFromToken = decoded.UserInfo;
+          }
         } catch (error) {
           console.error('Token validation error:', error);
         }
       }
       
+      // For authentication verification, we consider it successful if:
+      // 1. We have a valid token
+      // 2. User is marked as logged in
+      // 3. Token is not expired
+      // 4. Token contains user data (either in localStorage or in the token itself)
+      const hasUser = !!authState.user || hasUserData;
+      const success = hasToken && isLoggedIn && tokenValid && hasUser;
+      
       return {
-        success: hasToken && hasUser && isLoggedIn && tokenValid,
+        success,
         details: {
           hasToken,
           hasUser,
+          hasUserInStorage: !!authState.user,
+          hasUserInToken: hasUserData,
           isLoggedIn,
           tokenValid,
-          tokenExpired: hasToken && !tokenValid
+          tokenExpired: hasToken && !tokenValid,
+          userDataFromToken
         }
       };
     } catch (error) {
@@ -257,13 +276,30 @@ class AuthStorageManager {
     try {
       const authState = this.getAuthState();
       
+      // Check if token is valid and contains user data
+      let hasUserData = false;
+      if (authState.token) {
+        try {
+          const decoded = JSON.parse(atob(authState.token.split('.')[1]));
+          hasUserData = !!decoded.UserInfo;
+        } catch (error) {
+          console.error('Token validation error during language change:', error);
+        }
+      }
+      
       // Double-check that auth data exists before language change
-      if (authState.isLoggedIn && authState.token) {
-        console.log('Authentication state preserved during language change:', {
-          hasToken: !!authState.token,
-          hasUser: !!authState.user,
-          isLoggedIn: authState.isLoggedIn
-        });
+      const hasUser = !!authState.user || hasUserData;
+      if (authState.isLoggedIn && authState.token && hasUser) {
+        // Only log in development mode to avoid console spam
+        if (process.env.NODE_ENV === 'development') {
+          console.log('Authentication state preserved during language change:', {
+            hasToken: !!authState.token,
+            hasUser,
+            hasUserInStorage: !!authState.user,
+            hasUserInToken: hasUserData,
+            isLoggedIn: authState.isLoggedIn
+          });
+        }
         return true;
       }
       
