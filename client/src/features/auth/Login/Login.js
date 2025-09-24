@@ -373,6 +373,7 @@ const LoginComponent = () => {
       }
     } catch (err) {
       console.error('Login error:', err);
+      console.error('Error structure:', JSON.stringify(err, null, 2));
       
       // Use centralized error handling
       const errorResult = await authErrorHandler.handleLoginError(err, {
