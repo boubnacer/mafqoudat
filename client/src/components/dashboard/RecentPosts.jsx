@@ -210,8 +210,8 @@ const RecentPosts = ({ _id, categoryname, exactLocation, image, createdAt, count
           border: `1px solid ${isDarkMode ? alpha('#fff', 0.08) : alpha('#000', 0.06)}`,
           height: { xs: 'auto', sm: '380px' },
           minHeight: { xs: '360px', sm: '380px' },
-          width: { xs: '100%', sm: 'auto' },
-          maxWidth: { xs: '100%', sm: 'auto' },
+          width: { xs: '100%', sm: '100%' },
+          maxWidth: { xs: '100%', sm: '100%' },
           display: 'flex',
           flexDirection: 'column',
           transition: 'all 0.3s cubic-bezier(0.4, 0, 0.2, 1)',
@@ -428,7 +428,7 @@ const RecentPosts = ({ _id, categoryname, exactLocation, image, createdAt, count
         <CardActions
           sx={{
             display: 'flex',
-            justifyContent: 'center',
+            justifyContent: currentLanguage === 'ar' ? 'flex-start' : 'flex-end',
             p: { xs: 2, sm: 2 },
             borderTop: '1px solid',
             borderColor: isDarkMode ? alpha('#fff', 0.06) : alpha('#000', 0.04),
