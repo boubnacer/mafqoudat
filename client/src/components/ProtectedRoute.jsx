@@ -24,8 +24,12 @@ const ProtectedRoute = ({
   const isLoggedIn = useSelector(selectIsLoggedIn);
   const currentCountry = useSelector(selectCurrentCountry);
 
+  // Debug logging
+  console.log('ProtectedRoute - Location:', location.pathname, 'RequireAuth:', requireAuth, 'RequireCountry:', requireCountry, 'LoggedIn:', isLoggedIn, 'Country:', currentCountry);
+
   // Check authentication requirement
   if (requireAuth && !isLoggedIn) {
+    console.log('ProtectedRoute - Authentication required but user not logged in, redirecting to login');
     // Store the attempted URL for redirect after login
     const redirectUrl = location.pathname + location.search;
     if (redirectUrl !== '/login') {
@@ -36,6 +40,7 @@ const ProtectedRoute = ({
 
   // Check country selection requirement
   if (requireCountry && !currentCountry) {
+    console.log('ProtectedRoute - Country required but not selected, redirecting to Welcome page');
     // Store the attempted URL for redirect after country selection
     const redirectUrl = location.pathname + location.search;
     if (redirectUrl !== '/') {
@@ -45,6 +50,7 @@ const ProtectedRoute = ({
   }
 
   // All conditions met, render children
+  console.log('ProtectedRoute - All conditions met, rendering children');
   return children;
 };
 

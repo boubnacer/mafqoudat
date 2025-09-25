@@ -2,6 +2,7 @@ import React from 'react';
 import { Navigate, useLocation } from 'react-router-dom';
 import { useSelector } from 'react-redux';
 import { selectCurrentCountry } from '../app/state';
+import { selectIsLoggedIn } from '../features/auth/authSlice';
 
 /**
  * CountryGuard component that ensures a country is selected before accessing certain routes
@@ -9,16 +10,34 @@ import { selectCurrentCountry } from '../app/state';
  * 
  * @param {Object} props - Component props
  * @param {React.ReactNode} props.children - Child components to render
+ * @param {boolean} props.allowAuthenticatedWithoutCountry - Allow authenticated users to access even without country (default: true)
  * @returns {React.ReactNode} Protected content or redirect to Welcome page
  */
-const CountryGuard = ({ children }) => {
+const CountryGuard = ({ children, allowAuthenticatedWithoutCountry = true }) => {
   const location = useLocation();
   const currentCountry = useSelector(selectCurrentCountry);
+  const isLoggedIn = useSelector(selectIsLoggedIn);
 
-  // If no country is selected, redirect to Welcome page
+  // Debug logging
+  console.log('CountryGuard - Location:', location.pathname, 'Country:', currentCountry, 'LoggedIn:', isLoggedIn, 'AllowAuthWithoutCountry:', allowAuthenticatedWithoutCountry);
+
+  // If no country is selected
   if (!currentCountry) {
-    // Store the attempted URL for redirect after country selection
+    // If user is authenticated and we allow authenticated users without country, let them through
+    if (isLoggedIn && allowAuthenticatedWithoutCountry) {
+      console.log('CountryGuard - Allowing authenticated user without country');
+      return children;
+    }
+    
+    // Don't redirect if we're already on the Welcome page
+    if (location.pathname === '/') {
+      console.log('CountryGuard - Already on Welcome page, rendering children');
+      return children;
+    }
+    
+    // Otherwise, redirect to Welcome page
     const redirectUrl = location.pathname + location.search;
+    console.log('CountryGuard - Redirecting to Welcome page, storing redirect URL:', redirectUrl);
     if (redirectUrl !== '/') {
       localStorage.setItem('redirectAfterCountrySelection', redirectUrl);
     }
@@ -26,6 +45,7 @@ const CountryGuard = ({ children }) => {
   }
 
   // Country is selected, render children
+  console.log('CountryGuard - Country selected, rendering children');
   return children;
 };
 

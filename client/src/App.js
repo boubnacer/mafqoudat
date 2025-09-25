@@ -170,7 +170,7 @@ const AppContent = () => {
         
         {/* Public routes - require country selection but no authentication */}
         <Route path="/posts" element={
-          <CountryGuard>
+          <CountryGuard allowAuthenticatedWithoutCountry={false}>
             <Suspense fallback={<LoadingFallback />}>
               <PublicPostsPage />
             </Suspense>
