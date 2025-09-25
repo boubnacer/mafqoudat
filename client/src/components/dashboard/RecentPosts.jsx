@@ -23,15 +23,13 @@ import {
   CalendarToday as CalendarIcon,
   ArrowForward as ArrowIcon,
   AccessTime as TimeIcon,
-  ReportProblemOutlined,
+  Share as ShareIcon,
 } from "@mui/icons-material";
 import { formatDistanceToNow } from 'date-fns';
 import { ar, fr, enUS } from 'date-fns/locale';
 import useAuth from "../../hooks/useAuth";
 import { getCategoryConfig } from "../../config/categories";
 import { useState } from "react";
-import ReportDialog from "../ReportDialog";
-import { useSubmitReportMutation } from "../../features/posts/reportsApiSlice";
 
 // Get the API base URL for image construction
 const API_BASE_URL = process.env.REACT_APP_API_URL || "http://localhost:3500";
@@ -42,8 +40,6 @@ const RecentPosts = ({ _id, categoryname, exactLocation, image, createdAt, count
   const { t, currentLanguage } = useTranslation();
   const isMobile = useMediaQuery("(max-width:768px)");
   const { usernameId } = useAuth();
-  const [reportDialogOpen, setReportDialogOpen] = useState(false);
-  const [submitReport] = useSubmitReportMutation();
 
 
 
@@ -62,27 +58,30 @@ const RecentPosts = ({ _id, categoryname, exactLocation, image, createdAt, count
   });
 
   const handleViewDetails = () => navigate(`/dash/posts/${_id}`);
-  const handleReport = () => {
-    // Check if user is authenticated
-    if (!usernameId) {
-      // Store the current post URL for redirect after login
-      const currentPostUrl = `/dash/posts/${_id}`;
-      authStorage.setRedirectAfterLogin(currentPostUrl);
-      
-      navigate('/login');
-      return;
-    }
+  
+  const handleShare = async () => {
+    const postUrl = `${window.location.origin}/dash/posts/${_id}`;
     
-    // If authenticated, open the dialog
-    setReportDialogOpen(true);
-  };
-
-  const handleSubmitReport = async (reportData) => {
-    try {
-      const result = await submitReport(reportData).unwrap();
-      return result;
-    } catch (error) {
-      throw new Error(error.data?.message || 'Failed to submit report');
+    if (navigator.share) {
+      try {
+        await navigator.share({
+          title: `${categoryDisplayName} - ${displayCityName}`,
+          text: `Check out this ${categoryDisplayName.toLowerCase()} post in ${displayCityName}`,
+          url: postUrl,
+        });
+      } catch (error) {
+        // User cancelled sharing or error occurred
+        console.log('Share cancelled or failed:', error);
+      }
+    } else {
+      // Fallback to copying URL to clipboard
+      try {
+        await navigator.clipboard.writeText(postUrl);
+        // You could add a toast notification here if you have one
+        console.log('URL copied to clipboard');
+      } catch (error) {
+        console.error('Failed to copy URL:', error);
+      }
     }
   };
 
@@ -462,33 +461,39 @@ const RecentPosts = ({ _id, categoryname, exactLocation, image, createdAt, count
             backdropFilter: isDarkMode ? 'none' : 'blur(8px)',
           }}
         >
+          {/* Share Icon Button */}
           <Button
-            onClick={handleReport}
+            onClick={handleShare}
             variant="outlined"
             size="small"
             sx={{
-              color: isDarkMode ? '#f44336' : '#d32f2f',
-              borderColor: isDarkMode ? '#f44336' : '#d32f2f',
+              color: isDarkMode ? alpha('#fff', 0.8) : alpha('#000', 0.7),
+              borderColor: isDarkMode ? alpha('#fff', 0.2) : alpha('#000', 0.2),
               textTransform: 'none',
               fontSize: { xs: '14px', sm: '13px' },
               fontWeight: 600,
               padding: { xs: '10px 14px', sm: '8px 12px' },
-              borderRadius: '4px',
+              borderRadius: '8px',
               minWidth: 'auto',
               flexShrink: 0,
               marginLeft: '0px !important',
               marginRight: '0px !important',
-              backgroundColor: isDarkMode ? alpha('#f44336', 0.1) : alpha('#d32f2f', 0.05),
+              backgroundColor: isDarkMode ? alpha('#fff', 0.05) : alpha('#000', 0.03),
+              transition: 'all 0.3s ease',
               '&:hover': {
-                backgroundColor: isDarkMode ? '#f44336' : '#d32f2f',
-                color: '#fff',
-                borderColor: isDarkMode ? '#f44336' : '#d32f2f',
+                backgroundColor: isDarkMode ? alpha('#fff', 0.1) : alpha('#000', 0.08),
+                color: isDarkMode ? '#fff' : '#000',
+                borderColor: isDarkMode ? alpha('#fff', 0.3) : alpha('#000', 0.3),
+                transform: 'translateY(-1px)',
+                boxShadow: isDarkMode 
+                  ? '0 4px 12px rgba(255,255,255,0.1)' 
+                  : '0 4px 12px rgba(0,0,0,0.1)',
               },
             }}
-            startIcon={<ReportProblemOutlined sx={{ fontSize: { xs: '14px', sm: '12px' } }} />}
+            startIcon={<ShareIcon sx={{ fontSize: { xs: '16px', sm: '14px' } }} />}
             endIcon={null}
           >
-            {t('report')}
+            {t('share')}
           </Button>
 
         <Button
@@ -524,30 +529,6 @@ const RecentPosts = ({ _id, categoryname, exactLocation, image, createdAt, count
         </Button>
         </CardActions>
       </Card>
-    
-      {/* Report Dialog */}
-      <ReportDialog
-        open={reportDialogOpen}
-        onClose={() => setReportDialogOpen(false)}
-        post={{
-          _id,
-          categoryname,
-          exactLocation,
-          image,
-          createdAt,
-          countryLabels,
-          countryname,
-          contact,
-          city,
-          cityLabels,
-          cityName,
-          // Add missing fields with fallbacks
-          user: 'anonymous', // RecentPosts doesn't have user data, use fallback
-          foundLost: 'UNKNOWN', // RecentPosts doesn't have foundLost data, use fallback
-          username: 'Anonymous' // RecentPosts doesn't have username, use fallback
-        }}
-        onSubmit={handleSubmitReport}
-      />
     </>
   );
 };
