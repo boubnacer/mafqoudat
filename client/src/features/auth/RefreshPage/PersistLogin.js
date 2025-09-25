@@ -2,16 +2,18 @@ import { Outlet, Link, useNavigate } from "react-router-dom";
 import { useEffect, useRef, useState } from "react";
 import { useRefreshMutation } from "../authApiSlice";
 import usePersist from "../../../hooks/usePersist";
-import { useSelector } from "react-redux";
-import { selectCurrentToken } from "../authSlice";
+import { useSelector, useDispatch } from "react-redux";
+import { selectCurrentToken, logOut } from "../authSlice";
 import { LoadingState, ErrorState } from "../../../components/LoadingStates";
 import { Button } from "@mui/material";
 import { authStorage } from "../../../utils/authStorage";
+import { getOptimizedTokenValidation } from "../../../utils/optimizedTokenUtils";
 
 // to stay logged in when refreshing page
 const PersistLogin = () => {
   const [persist] = usePersist();
   const token = useSelector(selectCurrentToken);
+  const dispatch = useDispatch();
   const effectRan = useRef(false);
 
   const [trueSuccess, setTrueSuccess] = useState(false);
@@ -51,11 +53,28 @@ const PersistLogin = () => {
         }
       };
 
+      // Check if token is expired and logout if necessary
+      const checkTokenExpiry = () => {
+        if (token) {
+          const tokenValidation = getOptimizedTokenValidation(token);
+          if (!tokenValidation.isValid && tokenValidation.reason === 'TOKEN_EXPIRED') {
+            console.log('Token expired on page load, logging out user');
+            dispatch(logOut());
+            authStorage.setLoggedOut();
+            return false; // Token is expired
+          }
+        }
+        return true; // Token is valid or no token
+      };
+
       // Verify auth persistence on component mount
       verifyAuthPersistence();
       
-      // line below changed
-      if (!token) verifyRefreshToken();
+      // Check token expiry first, then attempt refresh if needed
+      const tokenIsValid = checkTokenExpiry();
+      if (!token || !tokenIsValid) {
+        verifyRefreshToken();
+      }
     }
 
     return () => (effectRan.current = true);

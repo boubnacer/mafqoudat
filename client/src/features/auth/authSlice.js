@@ -1,9 +1,30 @@
 import { createSlice } from "@reduxjs/toolkit";
 import { authStorage } from "../../utils/authStorage";
+import { getOptimizedTokenValidation } from "../../utils/optimizedTokenUtils";
 
 // Get initial state from localStorage using centralized auth utility
 const getInitialState = () => {
   const authState = authStorage.getAuthState();
+  
+  // Validate token if it exists
+  if (authState.token) {
+    const tokenValidation = getOptimizedTokenValidation(authState.token);
+    
+    // If token is expired, clear the auth state
+    if (!tokenValidation.isValid && tokenValidation.reason === 'TOKEN_EXPIRED') {
+      console.log('Token expired on app initialization, clearing auth state');
+      authStorage.setLoggedOut();
+      return {
+        token: null,
+        isLoggedIn: false,
+        user: null,
+        isLoading: false,
+        isRefreshing: false,
+        refreshAttempts: 0,
+        lastRefreshError: null,
+      };
+    }
+  }
   
   return {
     token: authState.token,

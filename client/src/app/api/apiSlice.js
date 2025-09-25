@@ -180,6 +180,19 @@ const baseQuery = fetchBaseQuery({
       
       if (!tokenValidation.isValid) {
         console.warn('Invalid token detected, not adding to headers:', tokenValidation.reason);
+        
+        // If token is expired, logout the user immediately
+        if (tokenValidation.reason === 'TOKEN_EXPIRED') {
+          console.log('Token expired, logging out user');
+          // Dispatch logout action to clear auth state
+          getState().dispatch(logOut());
+          // Clear localStorage
+          localStorage.setItem('isLoggedIn', 'false');
+          localStorage.removeItem('accessToken');
+          localStorage.removeItem('userData');
+          localStorage.removeItem('refreshToken');
+        }
+        
         // Don't add the token if it's invalid
         return headers;
       }
