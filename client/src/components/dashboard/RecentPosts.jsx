@@ -23,7 +23,6 @@ import {
   CalendarToday as CalendarIcon,
   ArrowForward as ArrowIcon,
   AccessTime as TimeIcon,
-  Share as ShareIcon,
 } from "@mui/icons-material";
 import { formatDistanceToNow } from 'date-fns';
 import { ar, fr, enUS } from 'date-fns/locale';
@@ -58,32 +57,6 @@ const RecentPosts = ({ _id, categoryname, exactLocation, image, createdAt, count
   });
 
   const handleViewDetails = () => navigate(`/dash/posts/${_id}`);
-  
-  const handleShare = async () => {
-    const postUrl = `${window.location.origin}/dash/posts/${_id}`;
-    
-    if (navigator.share) {
-      try {
-        await navigator.share({
-          title: `${categoryDisplayName} - ${displayCityName}`,
-          text: `Check out this ${categoryDisplayName.toLowerCase()} post in ${displayCityName}`,
-          url: postUrl,
-        });
-      } catch (error) {
-        // User cancelled sharing or error occurred
-        console.log('Share cancelled or failed:', error);
-      }
-    } else {
-      // Fallback to copying URL to clipboard
-      try {
-        await navigator.clipboard.writeText(postUrl);
-        // You could add a toast notification here if you have one
-        console.log('URL copied to clipboard');
-      } catch (error) {
-        console.error('Failed to copy URL:', error);
-      }
-    }
-  };
 
   // Extract city from location (show only city)
   const getCityFromLocation = (location) => {
@@ -455,53 +428,17 @@ const RecentPosts = ({ _id, categoryname, exactLocation, image, createdAt, count
         <CardActions
           sx={{
             display: 'flex',
-            justifyContent: 'space-between',
+            justifyContent: 'center',
             p: { xs: 2, sm: 2 },
             borderTop: '1px solid',
             borderColor: isDarkMode ? alpha('#fff', 0.06) : alpha('#000', 0.04),
             backgroundColor: isDarkMode ? '#3A3A3A' : '#E9ECEF',
-            gap: 3,
             mt: 'auto',
             flexShrink: 0,
             minHeight: { xs: '70px', sm: '60px' },
             backdropFilter: isDarkMode ? 'none' : 'blur(8px)',
           }}
         >
-          {/* Share Icon Button */}
-          <Button
-            onClick={handleShare}
-            variant="outlined"
-            size="small"
-            sx={{
-              color: isDarkMode ? alpha('#fff', 0.8) : alpha('#000', 0.7),
-              borderColor: isDarkMode ? alpha('#fff', 0.2) : alpha('#000', 0.2),
-              textTransform: 'none',
-              fontSize: { xs: '14px', sm: '13px' },
-              fontWeight: 600,
-              padding: { xs: '10px 14px', sm: '8px 12px' },
-              borderRadius: '8px',
-              minWidth: 'auto',
-              flexShrink: 0,
-              marginLeft: '0px !important',
-              marginRight: '0px !important',
-              backgroundColor: isDarkMode ? alpha('#fff', 0.05) : alpha('#000', 0.03),
-              transition: 'all 0.3s ease',
-              '&:hover': {
-                backgroundColor: isDarkMode ? alpha('#fff', 0.1) : alpha('#000', 0.08),
-                color: isDarkMode ? '#fff' : '#000',
-                borderColor: isDarkMode ? alpha('#fff', 0.3) : alpha('#000', 0.3),
-                transform: 'translateY(-1px)',
-                boxShadow: isDarkMode 
-                  ? '0 4px 12px rgba(255,255,255,0.1)' 
-                  : '0 4px 12px rgba(0,0,0,0.1)',
-              },
-            }}
-            startIcon={<ShareIcon sx={{ fontSize: { xs: '16px', sm: '14px' } }} />}
-            endIcon={null}
-          >
-            {t('share')}
-          </Button>
-
         <Button
           onClick={handleViewDetails}
           variant="contained"
