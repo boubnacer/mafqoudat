@@ -437,12 +437,16 @@ const RecentPosts = ({ _id, categoryname, exactLocation, image, createdAt, count
             flexShrink: 0,
             minHeight: { xs: '70px', sm: '60px' },
             backdropFilter: isDarkMode ? 'none' : 'blur(8px)',
-            // Force button position based on language
-            ...(currentLanguage === 'ar' ? {
-              justifyContent: 'flex-start',
-            } : {
-              justifyContent: 'flex-end',
-            }),
+            // Debug: Log current language
+            '&::before': {
+              content: `"Debug: ${currentLanguage}"`,
+              position: 'absolute',
+              top: '-20px',
+              left: '10px',
+              fontSize: '10px',
+              color: 'red',
+              zIndex: 9999,
+            },
           }}
         >
         <Button
@@ -458,8 +462,8 @@ const RecentPosts = ({ _id, categoryname, exactLocation, image, createdAt, count
             borderRadius: '4px',
             minWidth: 'auto',
             flexShrink: 0,
-            marginLeft: '0px !important',
-            marginRight: '0px !important',
+            marginLeft: currentLanguage === 'ar' ? '0' : 'auto',
+            marginRight: currentLanguage === 'ar' ? 'auto' : '0',
             boxShadow: '0 3px 5px 2px rgba(26, 110, 238, .3)',
             transition: 'all 0.3s ease',
             '&:hover': {
