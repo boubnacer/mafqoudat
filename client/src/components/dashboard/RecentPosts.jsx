@@ -402,10 +402,15 @@ const RecentPosts = ({ _id, categoryname, exactLocation, image, createdAt, count
               sx={{
                 width: { xs: 32, sm: 28 },
                 height: { xs: 32, sm: 28 },
-                backgroundColor: isDarkMode ? '#000000' : '#F8F9FA',
+                backgroundColor: 'transparent',
                 color: isDarkMode ? alpha('#fff', 0.8) : alpha('#000', 0.7),
+                border: `2px solid ${isDarkMode ? alpha('#fff', 0.2) : alpha('#000', 0.2)}`,
                 flexShrink: 0,
                 mt: 0.5, // Small top margin to align with first line of text
+                transition: 'all 0.3s ease',
+                '&:hover': {
+                  borderColor: isDarkMode ? alpha('#fff', 0.3) : alpha('#000', 0.3),
+                },
               }}
             >
               <LocationIcon sx={{ fontSize: { xs: '18px', sm: '16px' } }} />
