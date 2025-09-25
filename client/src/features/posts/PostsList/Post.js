@@ -3,9 +3,6 @@ import { memo, useState, useCallback, useMemo } from "react";
 import React from "react";
 // import "./postslist.css"; // Removed to prevent CSS conflicts with Material-UI
 import ma from "../../../img/ma.jpg";
-import useAuth from "../../../hooks/useAuth";
-import ReportDialog from "../../../components/ReportDialog";
-import { useSubmitReportMutation } from "../reportsApiSlice";
 import {
   Button,
   Card,
@@ -24,7 +21,6 @@ import {
 } from "@mui/material";
 import {
   LocationOn as LocationIcon,
-  ReportProblemOutlined,
   CalendarToday as CalendarIcon,
   Category as CategoryIcon,
   Visibility as VisibilityIcon,
@@ -38,7 +34,6 @@ import { getOptimizedImageUrl } from "../../../utils/cloudinaryUtils";
 import { formatDistanceToNow } from 'date-fns';
 import { ar, fr, enUS } from 'date-fns/locale';
 import RenderIcon from "../../../components/RenderIcon";
-import { authStorage } from "../../../utils/authStorage";
 import { getCategoryConfig } from "../../../config/categories";
 import LazyCardMedia from "../../../components/LazyCardMedia";
 
@@ -46,14 +41,11 @@ import LazyCardMedia from "../../../components/LazyCardMedia";
 const API_BASE_URL = process.env.REACT_APP_API_URL || "http://localhost:3500";
 
 const Post = ({ post, viewMode = "grid" }) => {
-  const { usernameId } = useAuth();
   const theme = useTheme();
   const isMobile = useMediaQuery("(max-width:768px)");
   const navigate = useNavigate();
   const { t, currentLanguage } = useTranslation();
 
-  const [reportDialogOpen, setReportDialogOpen] = useState(false);
-  const [submitReport] = useSubmitReportMutation();
 
   // Memoized computed values - ALL HOOKS MUST BE AT TOP LEVEL
   const locale = useMemo(() => {
@@ -303,37 +295,11 @@ const Post = ({ post, viewMode = "grid" }) => {
   }, []);
 
   // Memoized event handlers
-  const handleSubmitReport = useCallback(async (reportData) => {
-    try {
-      const result = await submitReport(reportData).unwrap();
-      return result;
-    } catch (error) {
-      throw new Error(error.data?.message || 'Failed to submit report');
-    }
-  }, [submitReport]);
 
   const handleViewDetails = useCallback(() => {
     navigate(`/dash/posts/${post?._id}`);
   }, [navigate, post?._id]);
 
-  const handleReport = useCallback(() => {
-    // Simple check: if no usernameId, redirect to login
-    if (!usernameId) {
-      // Store the current post URL for redirect after login
-      const currentPostUrl = `/dash/posts/${post?._id}`;
-      authStorage.setRedirectAfterLogin(currentPostUrl);
-      
-      navigate('/login');
-      return;
-    }
-    
-    // If authenticated, open the dialog
-    setReportDialogOpen(true);
-  }, [usernameId, post?._id, navigate]);
-
-  const handleCloseReportDialog = useCallback(() => {
-    setReportDialogOpen(false);
-  }, []);
 
   // Early return after all hooks
   if (!post) return null;
@@ -462,18 +428,6 @@ const Post = ({ post, viewMode = "grid" }) => {
                       <VisibilityIcon sx={{ fontSize: 18 }} />
                     </IconButton>
                   </Tooltip>
-                  <Tooltip title={t('report')}>
-                    <IconButton 
-                      onClick={handleReport}
-                      size="small"
-                      sx={{ 
-                        color: theme.palette.error.main,
-                        '&:hover': { backgroundColor: alpha(theme.palette.error.main, 0.1) }
-                      }}
-                    >
-                      <ReportProblemOutlined sx={{ fontSize: 18 }} />
-                    </IconButton>
-                  </Tooltip>
                 </Box>
               </Box>
 
@@ -547,8 +501,8 @@ const Post = ({ post, viewMode = "grid" }) => {
           border: `1px solid ${isDarkMode ? alpha('#fff', 0.08) : alpha('#000', 0.06)}`,
           height: { xs: 'auto', sm: '380px' },
           minHeight: { xs: '360px', sm: '380px' },
-          width: { xs: '100%', sm: 'auto' },
-          maxWidth: { xs: '100%', sm: 'auto' },
+          width: { xs: '100%', sm: '100%' },
+          maxWidth: { xs: '100%', sm: '100%' },
           display: 'flex',
           flexDirection: 'column',
           transition: 'all 0.3s cubic-bezier(0.4, 0, 0.2, 1)',
@@ -712,8 +666,16 @@ const Post = ({ post, viewMode = "grid" }) => {
               sx={{
                 width: { xs: 32, sm: 28 },
                 height: { xs: 32, sm: 28 },
-                backgroundColor: isDarkMode ? '#000000' : '#F8F9FA',
+                backgroundColor: 'transparent',
                 color: isDarkMode ? alpha('#fff', 0.8) : alpha('#000', 0.7),
+                borderColor: isDarkMode ? alpha('#fff', 0.2) : alpha('#000', 0.2),
+                border: '1px solid',
+                flexShrink: 0,
+                mt: 0.5, // Small top margin to align with first line of text
+                transition: 'all 0.3s ease',
+                '&:hover': {
+                  borderColor: isDarkMode ? alpha('#fff', 0.3) : alpha('#000', 0.3),
+                },
               }}
             >
               <LocationIcon sx={{ fontSize: { xs: '18px', sm: '16px' } }} />
@@ -739,47 +701,17 @@ const Post = ({ post, viewMode = "grid" }) => {
         <CardActions
           sx={{
             display: 'flex',
-            justifyContent: 'space-between',
+            justifyContent: 'flex-start',
             p: { xs: 2, sm: 2 },
             borderTop: '1px solid',
             borderColor: isDarkMode ? alpha('#fff', 0.06) : alpha('#000', 0.04),
             backgroundColor: isDarkMode ? '#3A3A3A' : '#E9ECEF',
-            gap: 3,
             mt: 'auto',
             flexShrink: 0,
             minHeight: { xs: '70px', sm: '60px' },
             backdropFilter: isDarkMode ? 'none' : 'blur(8px)',
           }}
         >
-          <Button
-            onClick={handleReport}
-            variant="outlined"
-            size="small"
-            sx={{
-              color: isDarkMode ? '#f44336' : '#d32f2f',
-              borderColor: isDarkMode ? '#f44336' : '#d32f2f',
-              textTransform: 'none',
-              fontSize: { xs: '14px', sm: '13px' },
-              fontWeight: 600,
-              padding: { xs: '10px 14px', sm: '8px 12px' },
-              borderRadius: '4px',
-              minWidth: 'auto',
-              flexShrink: 0,
-              marginLeft: '0px !important',
-              marginRight: '0px !important',
-              backgroundColor: isDarkMode ? alpha('#f44336', 0.1) : alpha('#d32f2f', 0.05),
-              '&:hover': {
-                backgroundColor: isDarkMode ? '#f44336' : '#d32f2f',
-                color: '#fff',
-                borderColor: isDarkMode ? '#f44336' : '#d32f2f',
-              },
-            }}
-            startIcon={<ReportProblemOutlined sx={{ fontSize: { xs: '14px', sm: '12px' } }} />}
-            endIcon={null}
-          >
-            {t('report')}
-          </Button>
-
           <Button
             onClick={handleViewDetails}
             variant="contained"
@@ -793,8 +725,8 @@ const Post = ({ post, viewMode = "grid" }) => {
               borderRadius: '4px',
               minWidth: 'auto',
               flexShrink: 0,
-              marginLeft: '0px !important',
-              marginRight: '0px !important',
+              marginLeft: currentLanguage === 'ar' ? '0' : 'auto',
+              marginRight: currentLanguage === 'ar' ? 'auto' : '0',
               boxShadow: '0 3px 5px 2px rgba(26, 110, 238, .3)',
               transition: 'all 0.3s ease',
               '&:hover': {
@@ -814,14 +746,6 @@ const Post = ({ post, viewMode = "grid" }) => {
           </Button>
         </CardActions>
       </Card>
-      
-      {/* Report Dialog */}
-      <ReportDialog
-        open={reportDialogOpen}
-        onClose={handleCloseReportDialog}
-        post={post}
-        onSubmit={handleSubmitReport}
-      />
     </>
   );
 };
