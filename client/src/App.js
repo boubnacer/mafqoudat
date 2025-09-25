@@ -13,6 +13,8 @@ import { cleanupLocalStorage, initializeLocalStorage } from "./utils/localStorag
 import useAuthErrorHandler from "./hooks/useAuthErrorHandler";
 import RefreshStatus from "./components/RefreshStatus";
 import LanguageSwitchHandler from "./components/LanguageSwitchHandler";
+import ProtectedRoute from "./components/ProtectedRoute";
+import CountryGuard from "./components/CountryGuard";
 
 // Add CSS keyframes for loading animations (mirrorReflection from navbar)
 const loadingStyles = `
@@ -166,11 +168,13 @@ const AppContent = () => {
           </Suspense>
         } />
         
-        {/* Public routes - no authentication required */}
+        {/* Public routes - require country selection but no authentication */}
         <Route path="/posts" element={
-          <Suspense fallback={<LoadingFallback />}>
-            <PublicPostsPage />
-          </Suspense>
+          <CountryGuard>
+            <Suspense fallback={<LoadingFallback />}>
+              <PublicPostsPage />
+            </Suspense>
+          </CountryGuard>
         } />
         
         {/* Legal and Information Pages - Public Access */}
@@ -212,11 +216,13 @@ const AppContent = () => {
           </Suspense>
         } />
 
-        {/* Dashboard layout - all dashboard routes go through this */}
+        {/* Dashboard layout - all dashboard routes go through this - require country selection */}
         <Route path="dash" element={
-          <Suspense fallback={<LoadingFallback />}>
-            <DashLayout />
-          </Suspense>
+          <CountryGuard>
+            <Suspense fallback={<LoadingFallback />}>
+              <DashLayout />
+            </Suspense>
+          </CountryGuard>
         }>
           {/* Dashboard home - public access */}
           <Route index element={
@@ -243,9 +249,11 @@ const AppContent = () => {
            
           {/* Protected routes - require authentication for creating/editing posts and admin actions */}
           <Route element={
-            <Suspense fallback={<LoadingFallback />}>
-              <PersistLogin />
-            </Suspense>
+            <ProtectedRoute requireAuth={true} requireCountry={true}>
+              <Suspense fallback={<LoadingFallback />}>
+                <PersistLogin />
+              </Suspense>
+            </ProtectedRoute>
           }>
             <Route element={
               <Suspense fallback={<LoadingFallback />}>

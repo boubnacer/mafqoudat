@@ -366,7 +366,14 @@ const LoginComponent = () => {
       if (redirectUrl) {
         navigate(redirectUrl);
       } else {
-        navigate("/dash");
+        // Check if there's a stored redirect URL from country selection
+        const countryRedirectUrl = localStorage.getItem('redirectAfterCountrySelection');
+        if (countryRedirectUrl) {
+          localStorage.removeItem('redirectAfterCountrySelection');
+          navigate(countryRedirectUrl);
+        } else {
+          navigate("/dash");
+        }
       }
     } catch (err) {
       // Use centralized error handling

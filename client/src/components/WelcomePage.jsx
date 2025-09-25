@@ -269,8 +269,16 @@ const WelcomePage = () => {
       // Use the selected country ID directly
       const countryId = selectedCountry._id;
       dispatch(setCurrentCountry({ currentCountry: countryId }));
-      // Navigate to dashboard (public view)
-      navigate('/dash');
+      
+      // Check if there's a redirect URL stored after country selection
+      const redirectUrl = localStorage.getItem('redirectAfterCountrySelection');
+      if (redirectUrl) {
+        localStorage.removeItem('redirectAfterCountrySelection');
+        navigate(redirectUrl);
+      } else {
+        // Navigate to dashboard (public view)
+        navigate('/dash');
+      }
     }
   };
 
