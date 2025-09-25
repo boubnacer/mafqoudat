@@ -437,6 +437,7 @@ const RecentPosts = ({ _id, categoryname, exactLocation, image, createdAt, count
             flexShrink: 0,
             minHeight: { xs: '70px', sm: '60px' },
             backdropFilter: isDarkMode ? 'none' : 'blur(8px)',
+            direction: currentLanguage === 'ar' ? 'rtl' : 'ltr',
           }}
         >
         <Button
