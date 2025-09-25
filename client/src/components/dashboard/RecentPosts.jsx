@@ -437,16 +437,6 @@ const RecentPosts = ({ _id, categoryname, exactLocation, image, createdAt, count
             flexShrink: 0,
             minHeight: { xs: '70px', sm: '60px' },
             backdropFilter: isDarkMode ? 'none' : 'blur(8px)',
-            // Debug: Log current language
-            '&::before': {
-              content: `"Debug: ${currentLanguage}"`,
-              position: 'absolute',
-              top: '-20px',
-              left: '10px',
-              fontSize: '10px',
-              color: 'red',
-              zIndex: 9999,
-            },
           }}
         >
         <Button
