@@ -30,7 +30,7 @@ export const getOptimizedTokenValidation = (token) => {
     
     if (decoded.exp && decoded.exp < currentTime) {
       validationResult = { isValid: false, reason: 'TOKEN_EXPIRED', decoded };
-    } else if (decoded.exp && (decoded.exp - currentTime) < 60) {
+    } else if (decoded.exp && (decoded.exp - currentTime) < 300) { // 5 minutes warning
       validationResult = { isValid: true, reason: 'TOKEN_EXPIRING_SOON', decoded };
     } else {
       validationResult = { isValid: true, reason: 'TOKEN_VALID', decoded };
@@ -116,7 +116,7 @@ export const getTokenRefreshTiming = (token) => {
   const timeRemaining = getTokenTimeRemaining(token);
   const totalLifetime = validation.decoded?.exp && validation.decoded?.iat 
     ? (validation.decoded.exp - validation.decoded.iat) * 1000 
-    : 15 * 60 * 1000; // Assume 15 minutes default
+    : 4 * 60 * 60 * 1000; // Assume 4 hours default (updated to match new config)
 
   const remainingPercentage = timeRemaining / totalLifetime;
 

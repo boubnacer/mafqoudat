@@ -1,10 +1,24 @@
 const jwt = require("jsonwebtoken");
 const { logEvents } = require("./logger");
 
-// JWT security configuration
+// JWT security configuration with environment-based settings
 const JWT_CONFIG = {
-  accessTokenExpiry: '15m',
-  refreshTokenExpiry: '7d',
+  // Access token expiry - configurable via environment variable
+  // Default: 4 hours (good balance of security and user experience)
+  // Can be overridden with JWT_ACCESS_EXPIRES_IN environment variable
+  accessTokenExpiry: process.env.JWT_ACCESS_EXPIRES_IN || '4h',
+  
+  // Refresh token expiry - configurable via environment variable  
+  // Default: 7 days (standard for refresh tokens)
+  // Can be overridden with JWT_REFRESH_EXPIRES_IN environment variable
+  refreshTokenExpiry: process.env.JWT_REFRESH_EXPIRES_IN || '7d',
+  
+  // Legacy support - if JWT_EXPIRES_IN is set, use it for access token
+  // This maintains backward compatibility
+  ...(process.env.JWT_EXPIRES_IN && !process.env.JWT_ACCESS_EXPIRES_IN && {
+    accessTokenExpiry: process.env.JWT_EXPIRES_IN
+  }),
+  
   issuer: 'mafqoudat-api',
   audience: 'mafqoudat-client'
 };
@@ -152,11 +166,28 @@ const verifyJWT = (req, res, next) => {
 
     // Check token age (additional security layer)
     const tokenAge = Date.now() / 1000 - decoded.iat;
-    const maxAge = 15 * 60; // 15 minutes in seconds
+    
+    // Parse the access token expiry to get max age in seconds
+    const parseExpiryToSeconds = (expiry) => {
+      if (!expiry) return 3600; // Default 1 hour
+      
+      const unit = expiry.slice(-1);
+      const value = parseInt(expiry.slice(0, -1));
+      
+      switch (unit) {
+        case 's': return value;
+        case 'm': return value * 60;
+        case 'h': return value * 3600;
+        case 'd': return value * 86400;
+        default: return 3600; // Default 1 hour
+      }
+    };
+    
+    const maxAge = parseExpiryToSeconds(JWT_CONFIG.accessTokenExpiry);
     
     if (tokenAge > maxAge) {
       logEvents(
-        `JWT Token Too Old: ${tokenAge}s\t${req.method}\t${req.url}\t${req.ip}`,
+        `JWT Token Too Old: ${tokenAge}s (max: ${maxAge}s)\t${req.method}\t${req.url}\t${req.ip}`,
         "errLog.log"
       );
       return res.status(403).json({ 

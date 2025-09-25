@@ -15,7 +15,7 @@ let refreshAttempts = 0;
 let proactiveRefreshTimeout = null;
 const MAX_REFRESH_ATTEMPTS = 3;
 const BASE_RETRY_DELAY = 1000; // 1 second base delay
-const PROACTIVE_REFRESH_THRESHOLD = 0.3; // Refresh when 30% of token lifetime remains
+const PROACTIVE_REFRESH_THRESHOLD = 0.2; // Refresh when 20% of token lifetime remains (48 minutes for 4h token)
 
 // Exponential backoff delay calculation
 const getRetryDelay = (attempt) => {
