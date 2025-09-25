@@ -428,7 +428,7 @@ const RecentPosts = ({ _id, categoryname, exactLocation, image, createdAt, count
         <CardActions
           sx={{
             display: 'flex',
-            justifyContent: currentLanguage === 'ar' ? 'flex-start' : 'flex-end',
+            justifyContent: 'flex-start',
             p: { xs: 2, sm: 2 },
             borderTop: '1px solid',
             borderColor: isDarkMode ? alpha('#fff', 0.06) : alpha('#000', 0.04),
@@ -437,6 +437,12 @@ const RecentPosts = ({ _id, categoryname, exactLocation, image, createdAt, count
             flexShrink: 0,
             minHeight: { xs: '70px', sm: '60px' },
             backdropFilter: isDarkMode ? 'none' : 'blur(8px)',
+            // Force button position based on language
+            ...(currentLanguage === 'ar' ? {
+              justifyContent: 'flex-start',
+            } : {
+              justifyContent: 'flex-end',
+            }),
           }}
         >
         <Button
