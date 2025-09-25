@@ -96,7 +96,14 @@ The system stores redirect URLs in localStorage to ensure users return to their 
 ### App.js Routing Updates
 - Wrapped `/posts` route with `CountryGuard`
 - Wrapped `/dash` route with `CountryGuard`
-- Wrapped protected routes with `ProtectedRoute` component
+- Protected routes use `PersistLogin` for authentication, then `ProtectedRoute` with `requireAuth={false}` for country selection
+- This ensures authentication is handled first, then country selection is checked within authenticated routes
+
+### Authentication Flow Fix
+The routing structure was updated to prevent conflicts between authentication and country selection:
+1. `PersistLogin` handles authentication and token refresh first
+2. `ProtectedRoute` with `requireAuth={false}` and `requireCountry={true}` handles country selection within authenticated routes
+3. This prevents authenticated users from being redirected to Welcome page when they have valid tokens
 
 ## Testing Scenarios
 

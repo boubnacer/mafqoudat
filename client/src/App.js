@@ -249,16 +249,16 @@ const AppContent = () => {
            
           {/* Protected routes - require authentication for creating/editing posts and admin actions */}
           <Route element={
-            <ProtectedRoute requireAuth={true} requireCountry={true}>
-              <Suspense fallback={<LoadingFallback />}>
-                <PersistLogin />
-              </Suspense>
-            </ProtectedRoute>
+            <Suspense fallback={<LoadingFallback />}>
+              <PersistLogin />
+            </Suspense>
           }>
             <Route element={
-              <Suspense fallback={<LoadingFallback />}>
-                <Prefetch />
-              </Suspense>
+              <ProtectedRoute requireAuth={false} requireCountry={true}>
+                <Suspense fallback={<LoadingFallback />}>
+                  <Prefetch />
+                </Suspense>
+              </ProtectedRoute>
             }>
               <Route path="posts/new" element={
                 <Suspense fallback={<LoadingFallback />}>
