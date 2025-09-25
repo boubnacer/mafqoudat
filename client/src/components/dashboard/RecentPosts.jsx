@@ -404,7 +404,8 @@ const RecentPosts = ({ _id, categoryname, exactLocation, image, createdAt, count
                 height: { xs: 32, sm: 28 },
                 backgroundColor: 'transparent',
                 color: isDarkMode ? alpha('#fff', 0.8) : alpha('#000', 0.7),
-                border: `2px solid ${isDarkMode ? alpha('#fff', 0.2) : alpha('#000', 0.2)}`,
+                borderColor: isDarkMode ? alpha('#fff', 0.2) : alpha('#000', 0.2),
+                border: '1px solid',
                 flexShrink: 0,
                 mt: 0.5, // Small top margin to align with first line of text
                 transition: 'all 0.3s ease',
