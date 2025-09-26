@@ -309,11 +309,13 @@ const Post = ({ post, viewMode = "grid" }) => {
     return (
       <Paper 
         elevation={0}
+        onClick={handleViewDetails}
         sx={{ 
           borderRadius: 4,
           overflow: 'hidden',
           transition: 'all 0.3s ease',
           border: `1px solid ${isDarkMode ? alpha('#fff', 0.08) : alpha('#000', 0.06)}`,
+          cursor: 'pointer',
           '&:hover': {
             transform: 'translateY(-2px)',
             boxShadow: isDarkMode 
@@ -415,20 +417,6 @@ const Post = ({ post, viewMode = "grid" }) => {
                     </Box>
                   </Box>
                 </Box>
-                <Box display="flex" gap={0.5}>
-                  <Tooltip title={t('viewDetails')}>
-                    <IconButton 
-                      onClick={handleViewDetails}
-                      size="small"
-                      sx={{ 
-                        color: theme.palette.primary.main,
-                        '&:hover': { backgroundColor: alpha(theme.palette.primary.main, 0.1) }
-                      }}
-                    >
-                      <VisibilityIcon sx={{ fontSize: 18 }} />
-                    </IconButton>
-                  </Tooltip>
-                </Box>
               </Box>
 
               {/* Location and Time */}
@@ -456,28 +444,6 @@ const Post = ({ post, viewMode = "grid" }) => {
               </Box>
             </Box>
 
-            {/* Actions */}
-            <Box sx={{ mt: 'auto' }}>
-              <Button
-                variant="contained"
-                fullWidth
-                onClick={handleViewDetails}
-                sx={{
-                  borderRadius: 2,
-                  textTransform: 'none',
-                  fontWeight: 600,
-                  direction: currentLanguage === 'ar' ? 'rtl' : 'ltr',
-                  background: `linear-gradient(135deg, ${theme.palette.primary.main} 0%, ${theme.palette.primary.dark} 100%)`,
-                  '&:hover': {
-                    background: `linear-gradient(135deg, ${theme.palette.primary.dark} 0%, ${theme.palette.primary.main} 100%)`,
-                  }
-                }}
-                startIcon={currentLanguage === 'ar' ? <ArrowIcon sx={{ fontSize: '12px', transform: 'scaleX(-1)' }} /> : null}
-                endIcon={currentLanguage === 'ar' ? null : <ArrowIcon sx={{ fontSize: '12px' }} />}
-              >
-                {t('viewDetails')}
-              </Button>
-            </Box>
           </Box>
         </Box>
       </Paper>
@@ -489,9 +455,11 @@ const Post = ({ post, viewMode = "grid" }) => {
     <>
       <Card
         className="recent-post-card"
+        onClick={handleViewDetails}
         style={{
           backgroundColor: isDarkMode ? '#1a1a1a' : '#ffffff',
           background: isDarkMode ? '#1a1a1a' : '#ffffff',
+          cursor: 'pointer',
         }}
         sx={{
           backgroundColor: isDarkMode ? '#1a1a1a' : '#ffffff',
@@ -508,6 +476,7 @@ const Post = ({ post, viewMode = "grid" }) => {
           transition: 'all 0.3s cubic-bezier(0.4, 0, 0.2, 1)',
           borderRadius: '12px',
           overflow: 'hidden',
+          cursor: 'pointer',
           '&:hover': {
             transform: { xs: 'none', sm: 'translateY(-4px)' },
             boxShadow: 'none',
@@ -697,54 +666,6 @@ const Post = ({ post, viewMode = "grid" }) => {
           {/* Removed description preview to match RecentPosts design */}
         </CardContent>
 
-        {/* Actions Section */}
-        <CardActions
-          sx={{
-            display: 'flex',
-            justifyContent: 'flex-start',
-            p: { xs: 2, sm: 2 },
-            borderTop: '1px solid',
-            borderColor: isDarkMode ? alpha('#fff', 0.06) : alpha('#000', 0.04),
-            backgroundColor: isDarkMode ? '#3A3A3A' : '#E9ECEF',
-            mt: 'auto',
-            flexShrink: 0,
-            minHeight: { xs: '70px', sm: '60px' },
-            backdropFilter: isDarkMode ? 'none' : 'blur(8px)',
-          }}
-        >
-          <Button
-            onClick={handleViewDetails}
-            variant="contained"
-            sx={{
-              background: 'linear-gradient(45deg, #4A8BFF 30%, #1A6EEE 90%)',
-              color: '#fff',
-              textTransform: 'none',
-              fontSize: { xs: '14px', sm: '13px' },
-              fontWeight: 700,
-              padding: { xs: '10px 14px', sm: '8px 12px' },
-              borderRadius: '4px',
-              minWidth: 'auto',
-              flexShrink: 0,
-              marginLeft: currentLanguage === 'ar' ? '0' : 'auto',
-              marginRight: currentLanguage === 'ar' ? 'auto' : '0',
-              boxShadow: '0 3px 5px 2px rgba(26, 110, 238, .3)',
-              transition: 'all 0.3s ease',
-              '&:hover': {
-                background: 'linear-gradient(45deg, #5A9BFF 30%, #2A7EFF 90%)',
-                boxShadow: '0 4px 8px 2px rgba(26, 110, 238, .4)',
-                transform: 'translateY(-1px)',
-              },
-              '& .MuiButton-endIcon': {
-                marginLeft: '4px',
-                marginRight: '0px',
-              }
-            }}
-            startIcon={null}
-            endIcon={<ArrowIcon sx={{ fontSize: { xs: '14px', sm: '12px' }, transform: currentLanguage === 'ar' ? 'scaleX(-1)' : 'none' }} />}
-          >
-            {t('viewDetails')}
-          </Button>
-        </CardActions>
       </Card>
     </>
   );

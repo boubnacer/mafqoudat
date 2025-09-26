@@ -198,9 +198,11 @@ const RecentPosts = ({ _id, categoryname, exactLocation, image, createdAt, count
     <>
       <Card
         className="recent-post-card"
+        onClick={handleViewDetails}
         style={{
           backgroundColor: isDarkMode ? '#1a1a1a' : '#ffffff',
           background: isDarkMode ? '#1a1a1a' : '#ffffff',
+          cursor: 'pointer',
         }}
         sx={{
           backgroundColor: isDarkMode ? '#1a1a1a' : '#ffffff',
@@ -217,6 +219,7 @@ const RecentPosts = ({ _id, categoryname, exactLocation, image, createdAt, count
           transition: 'all 0.3s cubic-bezier(0.4, 0, 0.2, 1)',
           borderRadius: '12px',
           overflow: 'hidden',
+          cursor: 'pointer',
           '&:hover': {
             transform: { xs: 'none', sm: 'translateY(-4px)' },
             boxShadow: 'none',
@@ -424,53 +427,6 @@ const RecentPosts = ({ _id, categoryname, exactLocation, image, createdAt, count
           </Box>
         </CardContent>
 
-        {/* Actions Section */}
-        <CardActions
-          sx={{
-            display: 'flex',
-            justifyContent: 'flex-start',
-            p: { xs: 2, sm: 2 },
-            borderTop: '1px solid',
-            borderColor: isDarkMode ? alpha('#fff', 0.06) : alpha('#000', 0.04),
-            backgroundColor: isDarkMode ? '#3A3A3A' : '#E9ECEF',
-            mt: 'auto',
-            flexShrink: 0,
-            minHeight: { xs: '70px', sm: '60px' },
-            backdropFilter: isDarkMode ? 'none' : 'blur(8px)',
-          }}
-        >
-        <Button
-          onClick={handleViewDetails}
-          variant="contained"
-          sx={{
-            background: 'linear-gradient(45deg, #4A8BFF 30%, #1A6EEE 90%)',
-            color: '#fff',
-            textTransform: 'none',
-            fontSize: { xs: '14px', sm: '13px' },
-            fontWeight: 700,
-            padding: { xs: '10px 14px', sm: '8px 12px' },
-            borderRadius: '4px',
-            minWidth: 'auto',
-            flexShrink: 0,
-            marginLeft: currentLanguage === 'ar' ? '0' : 'auto',
-            marginRight: currentLanguage === 'ar' ? 'auto' : '0',
-            boxShadow: '0 3px 5px 2px rgba(26, 110, 238, .3)',
-            transition: 'all 0.3s ease',
-            '&:hover': {
-              background: 'linear-gradient(45deg, #5A9BFF 30%, #2A7EFF 90%)',
-              boxShadow: '0 4px 8px 2px rgba(26, 110, 238, .4)',
-            },
-            '& .MuiButton-endIcon': {
-              marginLeft: '4px',
-              marginRight: '0px',
-            }
-          }}
-          startIcon={null}
-          endIcon={<ArrowIcon sx={{ fontSize: { xs: '14px', sm: '12px' }, transform: currentLanguage === 'ar' ? 'scaleX(-1)' : 'none' }} />}
-        >
-          {t('viewDetails')}
-        </Button>
-        </CardActions>
       </Card>
     </>
   );
