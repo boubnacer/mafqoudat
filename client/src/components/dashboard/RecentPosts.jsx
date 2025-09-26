@@ -210,8 +210,8 @@ const RecentPosts = ({ _id, categoryname, exactLocation, image, createdAt, count
           position: 'relative',
           boxShadow: 'none',
           border: `1px solid ${isDarkMode ? alpha('#fff', 0.08) : alpha('#000', 0.06)}`,
-          height: { xs: 'auto', sm: '380px' },
-          minHeight: { xs: '360px', sm: '380px' },
+          height: { xs: 'auto', sm: '320px' },
+          minHeight: { xs: '300px', sm: '320px' },
           width: { xs: '100%', sm: '100%' },
           maxWidth: { xs: '100%', sm: '100%' },
           display: 'flex',
@@ -382,20 +382,15 @@ const RecentPosts = ({ _id, categoryname, exactLocation, image, createdAt, count
             >
               <Avatar
                 sx={{
-                  width: { xs: 32, sm: 28 },
-                  height: { xs: 32, sm: 28 },
+                  width: { xs: 40, sm: 36 },
+                  height: { xs: 40, sm: 36 },
                   backgroundColor: 'transparent',
                   color: isDarkMode ? alpha('#fff', 0.8) : alpha('#000', 0.7),
-                  borderColor: isDarkMode ? alpha('#fff', 0.2) : alpha('#000', 0.2),
-                  border: '1px solid',
                   flexShrink: 0,
                   transition: 'all 0.3s ease',
-                  '&:hover': {
-                    borderColor: isDarkMode ? alpha('#fff', 0.3) : alpha('#000', 0.3),
-                  },
                 }}
               >
-                <LocationIcon sx={{ fontSize: { xs: '18px', sm: '16px' } }} />
+                <LocationIcon sx={{ fontSize: { xs: '22px', sm: '20px' } }} />
               </Avatar>
               <Typography
                 sx={{
@@ -423,7 +418,7 @@ const RecentPosts = ({ _id, categoryname, exactLocation, image, createdAt, count
                   WebkitBoxOrient: 'vertical',
                   overflow: 'hidden',
                   textOverflow: 'ellipsis',
-                  ml: { xs: 5.5, sm: 5 }, // Add left margin to align with city text (icon width + gap)
+                  ml: { xs: 6, sm: 5.5 }, // Add left margin to align with city text (icon width + gap)
                 }}
               >
                 {exactLocation}
