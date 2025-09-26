@@ -649,17 +649,37 @@ const Post = ({ post, viewMode = "grid" }) => {
             >
               <LocationIcon sx={{ fontSize: { xs: '18px', sm: '16px' } }} />
             </Avatar>
-            <Box>
+            <Box sx={{ flex: 1, minWidth: 0 }}>
               <Typography
                 sx={{
                   color: isDarkMode ? alpha('#fff', 0.9) : alpha('#000', 0.8),
                   fontSize: { xs: '18px', sm: '17px' },
                   fontWeight: 700,
                   lineHeight: 1.2,
+                  mb: 0.5,
                 }}
               >
                 {cityName}
               </Typography>
+              {/* Exact Location */}
+              {post?.exactLocation && (
+                <Typography
+                  sx={{
+                    color: isDarkMode ? alpha('#fff', 0.7) : alpha('#000', 0.6),
+                    fontSize: { xs: '14px', sm: '13px' },
+                    fontWeight: 500,
+                    lineHeight: 1.3,
+                    wordBreak: 'break-word',
+                    display: '-webkit-box',
+                    WebkitLineClamp: 2,
+                    WebkitBoxOrient: 'vertical',
+                    overflow: 'hidden',
+                    textOverflow: 'ellipsis',
+                  }}
+                >
+                  {post.exactLocation}
+                </Typography>
+              )}
             </Box>
           </Box>
 
