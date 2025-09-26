@@ -622,65 +622,70 @@ const Post = ({ post, viewMode = "grid" }) => {
             }
           }}
         >
-          {/* Location Info - Only City */}
+          {/* Location Info - City and Exact Location */}
           <Box 
             sx={{ 
-              display: 'flex', 
-              alignItems: 'center', 
-              gap: 1.5,
               backgroundColor: isDarkMode ? '#3a3a3a' : '#E9ECEF',
             }}
           >
-            <Avatar
-              sx={{
-                width: { xs: 32, sm: 28 },
-                height: { xs: 32, sm: 28 },
-                backgroundColor: 'transparent',
-                color: isDarkMode ? alpha('#fff', 0.8) : alpha('#000', 0.7),
-                borderColor: isDarkMode ? alpha('#fff', 0.2) : alpha('#000', 0.2),
-                border: '1px solid',
-                flexShrink: 0,
-                mt: 0.5, // Small top margin to align with first line of text
-                transition: 'all 0.3s ease',
-                '&:hover': {
-                  borderColor: isDarkMode ? alpha('#fff', 0.3) : alpha('#000', 0.3),
-                },
+            {/* City with Location Icon */}
+            <Box 
+              sx={{ 
+                display: 'flex', 
+                alignItems: 'center', 
+                gap: 1.5,
+                mb: 0.5,
               }}
             >
-              <LocationIcon sx={{ fontSize: { xs: '18px', sm: '16px' } }} />
-            </Avatar>
-            <Box sx={{ flex: 1, minWidth: 0 }}>
+              <Avatar
+                sx={{
+                  width: { xs: 32, sm: 28 },
+                  height: { xs: 32, sm: 28 },
+                  backgroundColor: 'transparent',
+                  color: isDarkMode ? alpha('#fff', 0.8) : alpha('#000', 0.7),
+                  borderColor: isDarkMode ? alpha('#fff', 0.2) : alpha('#000', 0.2),
+                  border: '1px solid',
+                  flexShrink: 0,
+                  transition: 'all 0.3s ease',
+                  '&:hover': {
+                    borderColor: isDarkMode ? alpha('#fff', 0.3) : alpha('#000', 0.3),
+                  },
+                }}
+              >
+                <LocationIcon sx={{ fontSize: { xs: '18px', sm: '16px' } }} />
+              </Avatar>
               <Typography
                 sx={{
                   color: isDarkMode ? alpha('#fff', 0.9) : alpha('#000', 0.8),
                   fontSize: { xs: '18px', sm: '17px' },
                   fontWeight: 700,
                   lineHeight: 1.2,
-                  mb: 0.5,
                 }}
               >
                 {cityName}
               </Typography>
-              {/* Exact Location */}
-              {post?.exactLocation && (
-                <Typography
-                  sx={{
-                    color: isDarkMode ? alpha('#fff', 0.7) : alpha('#000', 0.6),
-                    fontSize: { xs: '14px', sm: '13px' },
-                    fontWeight: 500,
-                    lineHeight: 1.3,
-                    wordBreak: 'break-word',
-                    display: '-webkit-box',
-                    WebkitLineClamp: 2,
-                    WebkitBoxOrient: 'vertical',
-                    overflow: 'hidden',
-                    textOverflow: 'ellipsis',
-                  }}
-                >
-                  {post.exactLocation}
-                </Typography>
-              )}
             </Box>
+            
+            {/* Exact Location - Below city and icon */}
+            {post?.exactLocation && (
+              <Typography
+                sx={{
+                  color: isDarkMode ? alpha('#fff', 0.7) : alpha('#000', 0.6),
+                  fontSize: { xs: '14px', sm: '13px' },
+                  fontWeight: 500,
+                  lineHeight: 1.3,
+                  wordBreak: 'break-word',
+                  display: '-webkit-box',
+                  WebkitLineClamp: 2,
+                  WebkitBoxOrient: 'vertical',
+                  overflow: 'hidden',
+                  textOverflow: 'ellipsis',
+                  ml: { xs: 5.5, sm: 5 }, // Add left margin to align with city text (icon width + gap)
+                }}
+              >
+                {post.exactLocation}
+              </Typography>
+            )}
           </Box>
 
           {/* Removed description preview to match RecentPosts design */}
