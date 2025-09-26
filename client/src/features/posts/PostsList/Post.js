@@ -633,7 +633,7 @@ const Post = ({ post, viewMode = "grid" }) => {
               sx={{ 
                 display: 'flex', 
                 alignItems: 'center', 
-                gap: 1.5,
+                gap: 1,
                 mb: 0.5,
               }}
             >
@@ -675,7 +675,8 @@ const Post = ({ post, viewMode = "grid" }) => {
                   WebkitBoxOrient: 'vertical',
                   overflow: 'hidden',
                   textOverflow: 'ellipsis',
-                  ml: { xs: 6, sm: 5.5 }, // Add left margin to align with city text (icon width + gap)
+                  ml: { xs: 5.5, sm: 5 }, // Add left margin to align with city text (icon width + gap)
+                  mr: currentLanguage === 'ar' ? { xs: 5.5, sm: 5 } : 0, // Add right margin for RTL mode
                 }}
               >
                 {post.exactLocation}
