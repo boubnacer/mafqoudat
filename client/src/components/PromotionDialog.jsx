@@ -14,7 +14,7 @@ import {
 } from '@mui/material';
 import { 
   Share as ShareIcon, 
-  Email as EmailIcon,
+  WhatsApp as WhatsAppIcon,
   CheckCircle as CheckCircleIcon,
   TrendingUp as TrendingUpIcon,
   Phone as PhoneIcon
@@ -120,6 +120,17 @@ const PromotionDialog = ({ open, onClose, postId, onPromotionRequested, isLostIt
   }, [isError, promotionError, t]);
 
   const handleClose = () => {
+    // Only allow closing if not loading and user explicitly clicks close
+    if (!isLoading) {
+      onClose();
+      setIsSuccess(false);
+      setError(null);
+      setPhoneNumber('');
+      setPhoneError('');
+    }
+  };
+
+  const handleNoThanks = () => {
     if (!isLoading) {
       onClose();
       setIsSuccess(false);
@@ -132,7 +143,7 @@ const PromotionDialog = ({ open, onClose, postId, onPromotionRequested, isLostIt
   return (
     <Dialog 
       open={open} 
-      onClose={handleClose}
+      onClose={isLoading ? undefined : handleClose}
       maxWidth="sm"
       fullWidth
       PaperProps={{
@@ -210,7 +221,7 @@ const PromotionDialog = ({ open, onClose, postId, onPromotionRequested, isLostIt
               paragraph 
               sx={{ 
                 mb: 4,
-                fontSize: '1.1rem',
+                fontSize: { xs: '1.2rem', md: '1.1rem' },
                 color: theme.palette.text.primary,
                 textAlign: 'center'
               }}
@@ -249,7 +260,8 @@ const PromotionDialog = ({ open, onClose, postId, onPromotionRequested, isLostIt
                   color: theme.palette.mode === 'dark' ? '#4CAF50' : '#2E7D32',
                   fontWeight: 600,
                   mb: 2,
-                  textAlign: 'center'
+                  textAlign: 'center',
+                  fontSize: { xs: '1.3rem', md: '1.5rem' }
                 }}
               >
                 {isLostItem ? t('ourTeamCanHelp') : t('ourTeamCanPromote')}
@@ -258,7 +270,7 @@ const PromotionDialog = ({ open, onClose, postId, onPromotionRequested, isLostIt
                 variant="body1" 
                 paragraph 
                 sx={{ 
-                  fontSize: '1.05rem',
+                  fontSize: { xs: '1.15rem', md: '1.05rem' },
                   color: theme.palette.text.primary,
                   textAlign: 'center',
                   mb: 2
@@ -267,7 +279,7 @@ const PromotionDialog = ({ open, onClose, postId, onPromotionRequested, isLostIt
                 {isLostItem ? t('teamHasTechniques') : t('teamHasPromotionTechniques')}
               </Typography>
               <Box display="flex" alignItems="center" justifyContent="center" gap={1.5} mt={3}>
-                <EmailIcon sx={{ 
+                <WhatsAppIcon sx={{ 
                   color: theme.palette.mode === 'dark' ? '#4CAF50' : '#2E7D32',
                   fontSize: 20
                 }} />
@@ -275,7 +287,7 @@ const PromotionDialog = ({ open, onClose, postId, onPromotionRequested, isLostIt
                   variant="body2" 
                   sx={{ 
                     color: theme.palette.text.secondary,
-                    fontSize: '1rem',
+                    fontSize: { xs: '1.1rem', md: '1rem' },
                     fontWeight: 500
                   }}
                 >
@@ -290,7 +302,7 @@ const PromotionDialog = ({ open, onClose, postId, onPromotionRequested, isLostIt
                 variant="body2" 
                 sx={{ 
                   mb: 1,
-                  fontSize: '1rem',
+                  fontSize: { xs: '1.1rem', md: '1rem' },
                   color: theme.palette.text.primary,
                   fontWeight: 600
                 }}
@@ -350,7 +362,7 @@ const PromotionDialog = ({ open, onClose, postId, onPromotionRequested, isLostIt
       <DialogActions sx={{ px: 4, pb: 4, gap: 2, justifyContent: 'center' }}>
         {!isSuccess && (
           <Button 
-            onClick={handleClose} 
+            onClick={handleNoThanks} 
             disabled={isLoading}
             variant="outlined"
             sx={{ 
@@ -358,7 +370,7 @@ const PromotionDialog = ({ open, onClose, postId, onPromotionRequested, isLostIt
               py: 1.5,
               px: 3,
               borderRadius: 3,
-              fontSize: '1rem',
+              fontSize: { xs: '1.1rem', md: '1rem' },
               fontWeight: 600,
               borderColor: theme.palette.mode === 'dark' ? 'rgba(255,255,255,0.3)' : 'rgba(0,0,0,0.3)',
               color: theme.palette.mode === 'dark' ? 'rgba(255,255,255,0.8)' : 'rgba(0,0,0,0.8)',
@@ -377,14 +389,15 @@ const PromotionDialog = ({ open, onClose, postId, onPromotionRequested, isLostIt
             onClick={handlePromotionRequest}
             disabled={isLoading}
             variant="contained"
-            startIcon={isLoading ? <CircularProgress size={20} /> : <EmailIcon sx={{ ml: 0.5 }} />}
+            startIcon={isLoading ? <CircularProgress size={20} /> : <WhatsAppIcon sx={{ ml: 0.5 }} />}
             sx={{ 
               minWidth: 160,
               py: 1.5,
               px: 3,
               borderRadius: 3,
-              fontSize: '1rem',
+              fontSize: { xs: '1.1rem', md: '1rem' },
               fontWeight: 600,
+              color: '#ffffff',
               background: theme.palette.mode === 'dark'
                 ? 'linear-gradient(45deg, #4CAF50 30%, #66BB6A 90%)'
                 : 'linear-gradient(45deg, #2E7D32 30%, #388E3C 90%)',
