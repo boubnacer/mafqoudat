@@ -49,8 +49,14 @@ const PromotionDialog = ({ open, onClose, postId, onPromotionRequested, isLostIt
       return;
     }
 
+    // Phone number is required for both lost and found items
+    if (!phoneNumber.trim()) {
+      setPhoneError(t('phoneNumberRequired'));
+      return;
+    }
+
     // Basic phone number validation - only numbers allowed
-    if (!isLostItem && phoneNumber.trim() && !/^[0-9]+$/.test(phoneNumber.trim())) {
+    if (phoneNumber.trim() && !/^[0-9]+$/.test(phoneNumber.trim())) {
       setPhoneError(t('invalidPhoneNumber'));
       return;
     }
@@ -59,10 +65,10 @@ const PromotionDialog = ({ open, onClose, postId, onPromotionRequested, isLostIt
       // Debug: Log what we're sending
       console.log('PromotionDialog - Requesting promotion for postId:', postId);
       
-      const promotionData = { postId };
-      if (!isLostItem && phoneNumber.trim()) {
-        promotionData.phoneNumber = phoneNumber.trim();
-      }
+      const promotionData = { 
+        postId,
+        phoneNumber: phoneNumber.trim()
+      };
       
       const result = await requestPromotion(promotionData).unwrap();
       
@@ -275,53 +281,51 @@ const PromotionDialog = ({ open, onClose, postId, onPromotionRequested, isLostIt
               </Box>
             </Box>
 
-            {/* Phone Number Field for Found Items */}
-            {!isLostItem && (
-              <Box sx={{ mb: 3 }}>
-                <Typography 
-                  variant="body2" 
-                  sx={{ 
-                    mb: 1,
-                    fontSize: '1rem',
+            {/* Phone Number Field for Both Lost and Found Items */}
+            <Box sx={{ mb: 3 }}>
+              <Typography 
+                variant="body2" 
+                sx={{ 
+                  mb: 1,
+                  fontSize: '1rem',
+                  color: theme.palette.text.primary,
+                  fontWeight: 600
+                }}
+              >
+                {t('phoneNumberForContact')} *
+              </Typography>
+              <TextField
+                fullWidth
+                placeholder={t('enterPhoneNumber')}
+                value={phoneNumber}
+                onChange={(e) => {
+                  // Only allow numbers
+                  const value = e.target.value.replace(/[^0-9]/g, '');
+                  setPhoneNumber(value);
+                  if (phoneError) setPhoneError('');
+                }}
+                error={!!phoneError}
+                helperText={phoneError || t('phoneNumberDescription')}
+                InputProps={{
+                  startAdornment: <PhoneIcon sx={{ mr: 1, color: theme.palette.text.secondary }} />
+                }}
+                sx={{
+                  '& .MuiOutlinedInput-root': {
+                    '&:hover fieldset': {
+                      borderColor: theme.palette.mode === 'dark' ? '#4CAF50' : '#2E7D32',
+                    },
+                    '&.Mui-focused fieldset': {
+                      borderColor: theme.palette.mode === 'dark' ? '#4CAF50' : '#2E7D32',
+                    },
+                    '& fieldset': {
+                      borderColor: theme.palette.mode === 'dark' ? 'rgba(255,255,255,0.3)' : 'rgba(0,0,0,0.2)',
+                    },
                     color: theme.palette.text.primary,
-                    fontWeight: 600
-                  }}
-                >
-                  {t('phoneNumberForContact')} *
-                </Typography>
-                <TextField
-                  fullWidth
-                  placeholder={t('enterPhoneNumber')}
-                  value={phoneNumber}
-                  onChange={(e) => {
-                    // Only allow numbers
-                    const value = e.target.value.replace(/[^0-9]/g, '');
-                    setPhoneNumber(value);
-                    if (phoneError) setPhoneError('');
-                  }}
-                  error={!!phoneError}
-                  helperText={phoneError || t('phoneNumberDescription')}
-                  InputProps={{
-                    startAdornment: <PhoneIcon sx={{ mr: 1, color: theme.palette.text.secondary }} />
-                  }}
-                  sx={{
-                    '& .MuiOutlinedInput-root': {
-                      '&:hover fieldset': {
-                        borderColor: theme.palette.mode === 'dark' ? '#4CAF50' : '#2E7D32',
-                      },
-                      '&.Mui-focused fieldset': {
-                        borderColor: theme.palette.mode === 'dark' ? '#4CAF50' : '#2E7D32',
-                      },
-                      '& fieldset': {
-                        borderColor: theme.palette.mode === 'dark' ? 'rgba(255,255,255,0.3)' : 'rgba(0,0,0,0.2)',
-                      },
-                      color: theme.palette.text.primary,
-                      fontWeight: 500
-                    }
-                  }}
-                />
-              </Box>
-            )}
+                    fontWeight: 500
+                  }
+                }}
+              />
+            </Box>
 
             {error && (
               <Alert 

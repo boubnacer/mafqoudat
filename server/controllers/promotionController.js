@@ -38,6 +38,11 @@ const requestPromotion = async (req, res) => {
       return res.status(400).json({ message: "Promotion is only available for lost or found items" });
     }
 
+    // Phone number is required for both lost and found items
+    if (!phoneNumber || !phoneNumber.trim()) {
+      return res.status(400).json({ message: "Phone number is required for promotion" });
+    }
+
     // Get user data
     const user = await User.findById(userId).lean();
     if (!user) {
@@ -51,8 +56,8 @@ const requestPromotion = async (req, res) => {
       promotionRequestedAt: new Date()
     };
 
-    // Add phone number for found items
-    if (post.foundLost.code.toLowerCase() === 'found' && phoneNumber) {
+    // Add phone number for both lost and found items
+    if (phoneNumber) {
       updateData.promotionPhoneNumber = phoneNumber;
     }
 
