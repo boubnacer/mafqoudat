@@ -1808,6 +1808,7 @@ const NewPostForm = ({ user, countries, categories, flOptions }) => {
         }}
         postId={createdPostId}
         isLostItem={isLostItem}
+        userPhone={user.phone || ''}
         onPromotionRequested={() => {
           // Handle successful promotion request
         }}

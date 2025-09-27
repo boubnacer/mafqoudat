@@ -22,12 +22,12 @@ import {
 import { useTranslation } from '../utils/translations';
 import { useRequestPromotionMutation } from '../features/posts/postsApiSlice';
 
-const PromotionDialog = ({ open, onClose, postId, onPromotionRequested, isLostItem = true }) => {
+const PromotionDialog = ({ open, onClose, postId, onPromotionRequested, isLostItem = true, userPhone = '' }) => {
   const { t } = useTranslation();
   const theme = useTheme();
   const [isSuccess, setIsSuccess] = useState(false);
   const [error, setError] = useState(null);
-  const [phoneNumber, setPhoneNumber] = useState('');
+  const [phoneNumber, setPhoneNumber] = useState(userPhone || '');
   const [phoneError, setPhoneError] = useState('');
   
   const [requestPromotion, { isLoading, isError, error: promotionError }] = useRequestPromotionMutation();
@@ -38,6 +38,13 @@ const PromotionDialog = ({ open, onClose, postId, onPromotionRequested, isLostIt
       console.log('PromotionDialog - Post ID:', postId);
     }
   }, [open, postId]);
+
+  // Update phone number when userPhone prop changes
+  React.useEffect(() => {
+    if (userPhone) {
+      setPhoneNumber(userPhone);
+    }
+  }, [userPhone]);
 
   const handlePromotionRequest = async () => {
     setError(null);

@@ -4,12 +4,12 @@ const FoundLost = require("../models/FoundLost");
 const Category = require("../models/Category");
 const Country = require("../models/Country");
 
-// @desc Request promotion for a lost item
+// @desc Request promotion for a lost or found item
 // @route POST /promotion/request
 // @access Private
 const requestPromotion = async (req, res) => {
   try {
-    const { postId, userContact, itemDescription } = req.body;
+    const { postId, userContact, itemDescription, phoneNumber } = req.body;
     const userId = req.user;
 
     // Validate required fields
@@ -33,9 +33,9 @@ const requestPromotion = async (req, res) => {
       return res.status(403).json({ message: "Not authorized to promote this post" });
     }
 
-    // Check if this is a lost item
-    if (!post.foundLost || post.foundLost.code.toLowerCase() !== 'lost') {
-      return res.status(400).json({ message: "Promotion is only available for lost items" });
+    // Check if this is a lost or found item (both are now allowed)
+    if (!post.foundLost || !['lost', 'found'].includes(post.foundLost.code.toLowerCase())) {
+      return res.status(400).json({ message: "Promotion is only available for lost or found items" });
     }
 
     // Get user data
@@ -44,12 +44,23 @@ const requestPromotion = async (req, res) => {
       return res.status(404).json({ message: "User not found" });
     }
 
+    // For found items, phone number is required
+    if (post.foundLost.code.toLowerCase() === 'found' && !phoneNumber) {
+      return res.status(400).json({ message: "Phone number is required for found item promotion" });
+    }
 
     // Update post to mark promotion requested
-    await Post.findByIdAndUpdate(postId, {
+    const updateData = {
       promotionRequested: true,
       promotionRequestedAt: new Date()
-    });
+    };
+
+    // Add phone number for found items
+    if (post.foundLost.code.toLowerCase() === 'found' && phoneNumber) {
+      updateData.promotionPhoneNumber = phoneNumber;
+    }
+
+    await Post.findByIdAndUpdate(postId, updateData);
 
     // Return success response
     res.status(200).json({
