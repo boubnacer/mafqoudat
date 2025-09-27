@@ -23,7 +23,7 @@ import { useTranslation } from '../utils/translations';
 import { useRequestPromotionMutation } from '../features/posts/postsApiSlice';
 
 const PromotionDialog = ({ open, onClose, postId, onPromotionRequested, isLostItem = true }) => {
-  const { t } = useTranslation();
+  const { t, currentLanguage } = useTranslation();
   const theme = useTheme();
   const [isSuccess, setIsSuccess] = useState(false);
   const [error, setError] = useState(null);
@@ -143,9 +143,10 @@ const PromotionDialog = ({ open, onClose, postId, onPromotionRequested, isLostIt
   return (
     <Dialog 
       open={open} 
-      onClose={isLoading ? undefined : handleClose}
+      onClose={isLoading ? undefined : undefined}
       maxWidth="sm"
       fullWidth
+      disableEscapeKeyDown={isLoading}
       PaperProps={{
         sx: {
           borderRadius: 4,
@@ -389,7 +390,10 @@ const PromotionDialog = ({ open, onClose, postId, onPromotionRequested, isLostIt
             onClick={handlePromotionRequest}
             disabled={isLoading}
             variant="contained"
-            startIcon={isLoading ? <CircularProgress size={20} /> : <WhatsAppIcon sx={{ ml: 0.5 }} />}
+            startIcon={isLoading ? <CircularProgress size={20} /> : <WhatsAppIcon sx={{ 
+              ml: 0.5,
+              mr: currentLanguage === 'ar' ? 0.5 : 0
+            }} />}
             sx={{ 
               minWidth: 160,
               py: 1.5,
