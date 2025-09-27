@@ -752,6 +752,9 @@ const AdminDashboard = () => {
                 <strong>{t('category')}:</strong> {selectedPromotion.category?.labels?.en || selectedPromotion.category?.code || t('unknown')}
               </Typography>
               <Typography variant="body2" paragraph>
+                <strong>{t('phoneNumber')}:</strong> {selectedPromotion.promotionPhoneNumber || t('noPhoneNumber')}
+              </Typography>
+              <Typography variant="body2" paragraph>
                 <strong>{t('requestedAt')}:</strong> {new Date(selectedPromotion.promotionRequestedAt).toLocaleString()}
               </Typography>
               <Typography variant="body2" paragraph>

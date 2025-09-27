@@ -261,7 +261,7 @@ const PromotionDialog = ({ open, onClose, postId, onPromotionRequested, isLostIt
                   mb: 3
                 }}
               >
-                {isLostItem ? t('justClickYes') : t('justClickYesToPromote')}
+                {isLostItem ? t('justClickYes') : t('justClickYes')}
               </Typography>
               <Box display="flex" alignItems="center" justifyContent="center" gap={1.5} mt={3}>
                 <EmailIcon sx={{ 

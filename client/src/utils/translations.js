@@ -413,6 +413,7 @@ export const translations = {
     enterPhoneNumber: "Enter your phone number",
     phoneNumberRequired: "Phone number is required for found item promotion",
     invalidPhoneNumber: "Please enter a valid phone number",
+    noPhoneNumber: "No phone number provided",
     
     // Edit Post Form translations
     editPost: "Edit Post",
@@ -1260,6 +1261,7 @@ export const translations = {
     enterPhoneNumber: "Entrez votre numéro de téléphone",
     phoneNumberRequired: "Le numéro de téléphone est requis pour la promotion d'objets trouvés",
     invalidPhoneNumber: "Veuillez entrer un numéro de téléphone valide",
+    noPhoneNumber: "Aucun numéro de téléphone fourni",
     
     // Edit Post Form translations
     editPost: "Modifier la publication",
@@ -2071,6 +2073,7 @@ export const translations = {
     enterPhoneNumber: "أدخل رقم هاتفك",
     phoneNumberRequired: "رقم الهاتف مطلوب لترويج العناصر الموجودة",
     invalidPhoneNumber: "يرجى إدخال رقم هاتف صحيح",
+    noPhoneNumber: "لم يتم توفير رقم هاتف",
     
     // Edit Post Form translations
     editPost: "تعديل المنشور",
