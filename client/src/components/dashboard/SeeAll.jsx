@@ -10,6 +10,7 @@ import { setActiveLink, setFoundOrLost } from "../../app/state";
 import PulseLoader from "react-spinners/PulseLoader";
 import RenderIcon from "../RenderIcon";
 import { useTranslation } from "../../utils/translations";
+import { useGetflOptionsQuery } from "../../features/dependencies/dependenciesApiSlice";
 
 const SeeAll = ({ foundOrlostId, totalItems, variant = "desktop" }) => {
   const navigate = useNavigate();
@@ -17,10 +18,20 @@ const SeeAll = ({ foundOrlostId, totalItems, variant = "desktop" }) => {
   const theme = useTheme();
   const { t, currentLanguage } = useTranslation();
 
+  // Get found/lost options for navigation (same as navbar)
+  const { data: flOptionsData } = useGetflOptionsQuery({
+    language: currentLanguage
+  }, {
+    selectFromResult: ({ data }) => ({
+      data: data?.ids?.map((id) => data?.entities[id]) || [],
+    }),
+  });
+
   const hanldeAddNewPost = () => navigate("/dash/posts/new");
 
   const hanldeSeeAllPosts = ({ foundOrlostId }) => {
-    navigate("/dash/posts");
+    // Navigate with the correct found/lost ID filter (same as navbar)
+    navigate(`/dash/posts?fl=${foundOrlostId}`);
     dispatch(
       setFoundOrLost({
         foundOrlost: foundOrlostId,
