@@ -37,7 +37,9 @@ import {
   AccessTime as TimeIcon,
   Tag as TagIcon,
   Visibility as ViewIcon,
-  Flag as FlagIcon
+  Flag as FlagIcon,
+  TrendingUp as TrendingUpIcon,
+  WhatsApp as WhatsAppIcon
 } from "@mui/icons-material";
 
 import "./editpost.css";
@@ -50,6 +52,7 @@ import { ar, fr, enUS } from 'date-fns/locale';
 import RenderIcon from "../../../components/RenderIcon";
 import { authStorage } from "../../../utils/authStorage";
 import { getCategoryConfig } from "../../../config/categories";
+import PromotionDialog from "../../../components/PromotionDialog";
 
 const SinglePostPage = ({
   _id,
@@ -107,6 +110,7 @@ const SinglePostPage = ({
   const [deletePost, { isLoading: isDeleting, isSuccess: isDeleteSuccess }] = useDeletePostMutation();
   const [showSuccessMessage, setShowSuccessMessage] = useState(false);
   const [successMessage, setSuccessMessage] = useState('');
+  const [showPromotionDialog, setShowPromotionDialog] = useState(false);
 
   // Memoized event handlers
   const handleEdit = useCallback(() => {
@@ -161,6 +165,23 @@ const SinglePostPage = ({
       }
     }
   }, [deletePost, _id, navigate, t]);
+
+  const handlePromotionRequest = useCallback(() => {
+    setShowPromotionDialog(true);
+  }, []);
+
+  const handleClosePromotionDialog = useCallback(() => {
+    setShowPromotionDialog(false);
+  }, []);
+
+  const handlePromotionRequested = useCallback(() => {
+    // Handle successful promotion request
+    setSuccessMessage(t('promotionRequested') || 'Promotion request submitted successfully!');
+    setShowSuccessMessage(true);
+    setTimeout(() => {
+      setShowSuccessMessage(false);
+    }, 3000);
+  }, [t]);
 
   // Memoized computed values
   const locale = useMemo(() => {
@@ -850,6 +871,118 @@ const SinglePostPage = ({
         {/* Sidebar */}
         <Grid item xs={12} lg={4}>
           <Box sx={{ position: 'sticky', top: '2rem' }}>
+            {/* Promotion Section - Only show for post owner */}
+            {canEdit && !promotionRequested && (
+              <Paper 
+                elevation={0}
+                sx={{ 
+                  p: 3, 
+                  mb: 3,
+                  borderRadius: 3,
+                  border: `1px solid ${isDarkMode ? alpha('#fff', 0.08) : alpha('#000', 0.12)}`,
+                  backgroundColor: isDarkMode ? alpha('#1a1a1a', 0.8) : '#ffffff',
+                  boxShadow: 'none',
+                  background: isDarkMode 
+                    ? 'linear-gradient(135deg, rgba(76, 175, 80, 0.05) 0%, rgba(102, 187, 106, 0.02) 100%)'
+                    : 'linear-gradient(135deg, rgba(46, 125, 50, 0.05) 0%, rgba(56, 142, 60, 0.02) 100%)',
+                  border: `2px solid ${isDarkMode ? alpha('#4CAF50', 0.2) : alpha('#2E7D32', 0.2)}`,
+                  position: 'relative',
+                  overflow: 'hidden',
+                  '&::before': {
+                    content: '""',
+                    position: 'absolute',
+                    top: 0,
+                    left: 0,
+                    right: 0,
+                    height: '3px',
+                    background: isDarkMode 
+                      ? 'linear-gradient(90deg, #4CAF50, #66BB6A)' 
+                      : 'linear-gradient(90deg, #2E7D32, #388E3C)',
+                  }
+                }}
+              >
+                <Box display="flex" alignItems="center" gap={2} mb={2}>
+                  <Box
+                    sx={{
+                      backgroundColor: isDarkMode ? alpha('#4CAF50', 0.2) : alpha('#2E7D32', 0.1),
+                      borderRadius: '50%',
+                      p: 1.5,
+                      display: 'flex',
+                      alignItems: 'center',
+                      justifyContent: 'center'
+                    }}
+                  >
+                    <TrendingUpIcon sx={{ 
+                      color: isDarkMode ? '#4CAF50' : '#2E7D32',
+                      fontSize: 24
+                    }} />
+                  </Box>
+                  <Typography 
+                    variant="h6" 
+                    fontWeight={700}
+                    sx={{ 
+                      color: isDarkMode ? '#4CAF50' : '#2E7D32',
+                      fontSize: { xs: '1.1rem', sm: '1.25rem', md: '1.25rem' },
+                      direction: currentLanguage === 'ar' ? 'rtl' : 'ltr'
+                    }}
+                  >
+                    {foundLostStatus.isFound ? t('promoteYourFoundItem') : t('boostYourChances')}
+                  </Typography>
+                </Box>
+
+                <Typography 
+                  variant="body1" 
+                  sx={{ 
+                    mb: 3,
+                    color: isDarkMode ? alpha('#fff', 0.8) : alpha('#000', 0.7),
+                    fontSize: { xs: '1rem', sm: '1rem', md: '1rem' },
+                    lineHeight: 1.6,
+                    direction: currentLanguage === 'ar' ? 'rtl' : 'ltr'
+                  }}
+                >
+                  {foundLostStatus.isFound 
+                    ? t('teamHasPromotionTechniques') 
+                    : t('teamHasTechniques')
+                  }
+                </Typography>
+
+                <Button
+                  variant="contained"
+                  onClick={handlePromotionRequest}
+                  fullWidth
+                  startIcon={<WhatsAppIcon />}
+                  sx={{
+                    borderRadius: 2,
+                    textTransform: 'none',
+                    fontWeight: 600,
+                    direction: currentLanguage === 'ar' ? 'rtl' : 'ltr',
+                    gap: currentLanguage === 'ar' ? 1 : 0.5,
+                    background: isDarkMode
+                      ? 'linear-gradient(45deg, #4CAF50 30%, #66BB6A 90%)'
+                      : 'linear-gradient(45deg, #2E7D32 30%, #388E3C 90%)',
+                    color: '#ffffff',
+                    py: 1.5,
+                    fontSize: { xs: '1rem', sm: '1rem', md: '1rem' },
+                    '&:hover': {
+                      background: isDarkMode
+                        ? 'linear-gradient(45deg, #388E3C 30%, #4CAF50 90%)'
+                        : 'linear-gradient(45deg, #1B5E20 30%, #2E7D32 90%)',
+                      transform: 'translateY(-1px)',
+                      boxShadow: isDarkMode
+                        ? '0 8px 20px rgba(76, 175, 80, 0.3)'
+                        : '0 8px 20px rgba(46, 125, 50, 0.3)',
+                    },
+                    transition: 'all 0.2s ease-in-out',
+                    boxShadow: isDarkMode
+                      ? '0 4px 12px rgba(76, 175, 80, 0.2)'
+                      : '0 4px 12px rgba(46, 125, 50, 0.2)',
+                  }}
+                >
+                  {t('yesPromote')}
+                </Button>
+              </Paper>
+            )}
+
             {/* Actions Card */}
             <Paper 
               elevation={0}
@@ -1178,6 +1311,15 @@ const SinglePostPage = ({
           Category
         }}
         onSubmit={handleSubmitReport}
+      />
+
+      {/* Promotion Dialog */}
+      <PromotionDialog
+        open={showPromotionDialog}
+        onClose={handleClosePromotionDialog}
+        postId={_id}
+        isLostItem={!foundLostStatus.isFound}
+        onPromotionRequested={handlePromotionRequested}
       />
     </Box>
   );
