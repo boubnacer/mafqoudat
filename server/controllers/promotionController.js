@@ -44,10 +44,6 @@ const requestPromotion = async (req, res) => {
       return res.status(404).json({ message: "User not found" });
     }
 
-    // For found items, phone number is required
-    if (post.foundLost.code.toLowerCase() === 'found' && !phoneNumber) {
-      return res.status(400).json({ message: "Phone number is required for found item promotion" });
-    }
 
     // Update post to mark promotion requested
     const updateData = {
