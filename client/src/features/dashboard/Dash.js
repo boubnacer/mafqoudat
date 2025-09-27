@@ -308,7 +308,7 @@ const Dash = () => {
                       sx={{
                         color: theme.palette.mode === 'dark' ? '#fff' : '#2c3e50',
                         fontWeight: 700,
-                        fontSize: '20px',
+                        fontSize: '24px',
                         textAlign: 'center',
                         order: currentLanguage === 'ar' ? 1 : 2
                       }}
@@ -325,14 +325,6 @@ const Dash = () => {
                      flexDirection: currentLanguage === 'ar' ? 'row-reverse' : 'row'
                    }}>
 
-                     {/* Show "see all" button inline when there are posts */}
-                     {data?.totalFounds > 0 && (
-                       <SeeAll 
-                         foundOrlostId={foundsId} 
-                         totalItems={data?.totalFounds}
-                         variant="mobile"
-                       />
-                     )}
                    </Box>
                 </Box>
 
@@ -494,7 +486,7 @@ const Dash = () => {
                         sx={{
                           color: theme.palette.mode === 'dark' ? '#fff' : '#2c3e50',
                           fontWeight: 700,
-                          fontSize: '20px',
+                          fontSize: '24px',
                           textAlign: 'center',
                           order: currentLanguage === 'ar' ? 1 : 2
                         }}
@@ -510,14 +502,6 @@ const Dash = () => {
                       gap: 2,
                       flexDirection: currentLanguage === 'ar' ? 'row-reverse' : 'row'
                     }}>
-                      {/* Show "see all" button inline when there are posts */}
-                      {data?.totalLosts > 0 && (
-                        <SeeAll 
-                          foundOrlostId={lostsId} 
-                          totalItems={data?.totalLosts}
-                          variant="mobile"
-                        />
-                      )}
                     </Box>
                   </Box>
 

@@ -39,24 +39,22 @@ const SeeAll = ({ foundOrlostId, totalItems, variant = "desktop" }) => {
         endIcon={currentLanguage === 'ar' ? null : <RenderIcon name="seeall" />}
         onClick={() => hanldeSeeAllPosts({ foundOrlostId })}
         sx={{
-          // Modern gradient style
-          background: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)',
+          background: 'linear-gradient(45deg, #4A8BFF 30%, #1A6EEE 90%)',
           color: '#fff',
           border: 'none',
           textTransform: 'none',
           fontSize: '0.8rem',
-          fontWeight: 600,
+          fontWeight: 700,
           padding: '8px 16px',
-          borderRadius: '8px',
+          borderRadius: '4px',
           minWidth: 'auto',
           width: '100%',
           maxWidth: '200px',
-          boxShadow: '0 4px 15px rgba(102, 126, 234, 0.3)',
+          boxShadow: '0 3px 5px 2px rgba(26, 110, 238, .3)',
           transition: 'all 0.3s cubic-bezier(0.4, 0, 0.2, 1)',
           '&:hover': {
-            background: 'linear-gradient(135deg, #5a6fd8 0%, #6a4190 100%)',
-            boxShadow: '0 6px 20px rgba(102, 126, 234, 0.4)',
-            transform: 'translateY(-1px)',
+            background: 'linear-gradient(45deg, #5A9BFF 30%, #2A7EFF 90%)',
+            boxShadow: '0 4px 8px 2px rgba(26, 110, 238, .4)',
           },
           '& .MuiButton-endIcon': {
             marginLeft: currentLanguage === 'ar' ? 0 : '6px',
@@ -88,22 +86,20 @@ const SeeAll = ({ foundOrlostId, totalItems, variant = "desktop" }) => {
           : hanldeAddNewPost
       }
       sx={{
-        // Modern gradient style matching mobile
-        background: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)',
+        background: 'linear-gradient(45deg, #4A8BFF 30%, #1A6EEE 90%)',
         color: '#fff',
         border: 'none',
         textTransform: 'none',
         fontSize: '0.9rem',
-        fontWeight: 600,
+        fontWeight: 700,
         padding: '10px 20px',
-        borderRadius: '8px',
+        borderRadius: '4px',
         minWidth: 'auto',
-        boxShadow: '0 4px 15px rgba(102, 126, 234, 0.3)',
+        boxShadow: '0 3px 5px 2px rgba(26, 110, 238, .3)',
         transition: 'all 0.3s cubic-bezier(0.4, 0, 0.2, 1)',
         '&:hover': {
-          background: 'linear-gradient(135deg, #5a6fd8 0%, #6a4190 100%)',
-          boxShadow: '0 6px 20px rgba(102, 126, 234, 0.4)',
-          transform: 'translateY(-1px)',
+          background: 'linear-gradient(45deg, #5A9BFF 30%, #2A7EFF 90%)',
+          boxShadow: '0 4px 8px 2px rgba(26, 110, 238, .4)',
         },
         '& .MuiButton-endIcon': {
           marginLeft: currentLanguage === 'ar' ? 0 : '8px',
