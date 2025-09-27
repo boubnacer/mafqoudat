@@ -326,7 +326,7 @@ const Dash = () => {
                    }}>
 
                      {/* Show "+add" button inline only when there are posts */}
-                     {data?.totalFounds > 0 && data?.totalFounds <= 4 && (
+                     {data?.totalFounds > 0 && data?.totalFounds <= 2 && (
                        <SeeAll 
                          foundOrlostId={foundsId} 
                          totalItems={data?.totalFounds}
@@ -401,11 +401,11 @@ const Dash = () => {
                   recent={data?.recentFounds}
                   isLoading={isLoading}
                   emptyState="NoRecentFounds"
-                  maxItems={4}
+                  maxItems={{ xs: 2, sm: 4 }}
                 />
                  
                  {/* Mobile See All Button - Bottom (only when there are posts) */}
-                 {(data?.totalFounds && data?.totalFounds > 4) && (
+                 {(data?.totalFounds && data?.totalFounds > 2) && (
                    <Box
                      sx={{
                        display: { xs: 'flex', sm: 'none' },
@@ -511,7 +511,7 @@ const Dash = () => {
                       flexDirection: currentLanguage === 'ar' ? 'row-reverse' : 'row'
                     }}>
                       {/* Show "+add" button inline only when there are posts */}
-                      {data?.totalLosts > 0 && data?.totalLosts <= 4 && (
+                      {data?.totalLosts > 0 && data?.totalLosts <= 2 && (
                         <SeeAll 
                           foundOrlostId={lostsId} 
                           totalItems={data?.totalLosts}
@@ -585,11 +585,11 @@ const Dash = () => {
                     recent={data?.recentLosts}
                     isLoading={isLoading}
                     emptyState="NoRecentLosts"
-                    maxItems={4}
+                    maxItems={{ xs: 2, sm: 4 }}
                   />
                   
                   {/* Mobile See All Button - Bottom (only when there are posts) */}
-                  {(data?.totalLosts && data?.totalLosts > 4) && (
+                  {(data?.totalLosts && data?.totalLosts > 2) && (
                     <Box
                       sx={{
                         display: { xs: 'flex', sm: 'none' },
