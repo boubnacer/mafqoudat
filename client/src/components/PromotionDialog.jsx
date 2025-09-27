@@ -51,7 +51,8 @@ const PromotionDialog = ({ open, onClose, postId, onPromotionRequested, isLostIt
 
     // Phone number is required for both lost and found items
     if (!phoneNumber.trim()) {
-      setPhoneError(t('phoneNumberRequired'));
+      const errorMessage = isLostItem ? t('phoneNumberRequiredLost') : t('phoneNumberRequiredFound');
+      setPhoneError(errorMessage);
       // Scroll to phone field and highlight it
       setTimeout(() => {
         const phoneField = document.querySelector('[data-testid="phone-field"]');

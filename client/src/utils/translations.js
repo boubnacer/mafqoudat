@@ -389,7 +389,7 @@ export const translations = {
     // Promotion Dialog translations
     boostYourChances: "Boost Your Chances",
     promoteYourFoundItem: "Promote Your Found Item",
-    postPublishedSuccessfully: "Your post has been published successfully! We'll also share it on our social media platforms.",
+    postPublishedSuccessfully: "Your post has been published successfully!",
     foundItemPostedSuccessfully: "Your found item has been posted successfully!",
     ourTeamCanHelp: "Want to increase your chances?",
     ourTeamCanPromote: "Want to promote your found item?",
@@ -411,7 +411,9 @@ export const translations = {
     promotionRequestError: "Error requesting promotion. Please try again.",
     phoneNumberForContact: "Phone Number for Contact",
     enterPhoneNumber: "Enter your phone number",
-    phoneNumberRequired: "Phone number is required for found item promotion",
+    phoneNumberRequired: "Phone number is required for promotion",
+    phoneNumberRequiredLost: "Phone number is required for lost item promotion",
+    phoneNumberRequiredFound: "Phone number is required for found item promotion",
     invalidPhoneNumber: "Please enter a valid phone number",
     noPhoneNumber: "No phone number provided",
     
@@ -1237,7 +1239,7 @@ export const translations = {
     // Promotion Dialog translations
     boostYourChances: "Augmentez Vos Chances",
     promoteYourFoundItem: "Promouvoir Votre Objet Trouvé",
-    postPublishedSuccessfully: "Votre publication a été publiée avec succès ! Nous la partagerons également sur nos plateformes de médias sociaux.",
+    postPublishedSuccessfully: "Votre publication a été publiée avec succès !",
     foundItemPostedSuccessfully: "Votre objet trouvé a été publié avec succès !",
     ourTeamCanHelp: "Voulez-vous augmenter vos chances ?",
     ourTeamCanPromote: "Voulez-vous promouvoir votre objet trouvé ?",
@@ -1259,7 +1261,9 @@ export const translations = {
     promotionRequestError: "Erreur lors de la demande de promotion. Veuillez réessayer.",
     phoneNumberForContact: "Numéro de Téléphone pour Contact",
     enterPhoneNumber: "Entrez votre numéro de téléphone",
-    phoneNumberRequired: "Le numéro de téléphone est requis pour la promotion d'objets trouvés",
+    phoneNumberRequired: "Le numéro de téléphone est requis pour la promotion",
+    phoneNumberRequiredLost: "Le numéro de téléphone est requis pour la promotion d'objets perdus",
+    phoneNumberRequiredFound: "Le numéro de téléphone est requis pour la promotion d'objets trouvés",
     invalidPhoneNumber: "Veuillez entrer un numéro de téléphone valide",
     noPhoneNumber: "Aucun numéro de téléphone fourni",
     
@@ -2049,7 +2053,7 @@ export const translations = {
     // Promotion Dialog translations
     boostYourChances: "عزز فرصك",
     promoteYourFoundItem: "روج للعنصر الذي وجدته",
-    postPublishedSuccessfully: "تم نشر منشورك بنجاح! سنشاركه أيضاً على منصات وسائل التواصل الاجتماعي الخاصة بنا.",
+    postPublishedSuccessfully: "تم نشر منشورك بنجاح!",
     foundItemPostedSuccessfully: "تم نشر العنصر الذي وجدته بنجاح!",
     ourTeamCanHelp: "هل تريد زيادة فرصك؟",
     ourTeamCanPromote: "هل تريد الترويج للعنصر الذي وجدته؟",
@@ -2071,7 +2075,9 @@ export const translations = {
     promotionRequestError: "خطأ في طلب الترويج. يرجى المحاولة مرة أخرى.",
     phoneNumberForContact: "رقم الهاتف للتواصل",
     enterPhoneNumber: "أدخل رقم هاتفك",
-    phoneNumberRequired: "رقم الهاتف مطلوب لترويج العناصر الموجودة",
+    phoneNumberRequired: "رقم الهاتف مطلوب للترويج",
+    phoneNumberRequiredLost: "رقم الهاتف مطلوب لترويج العناصر المفقودة",
+    phoneNumberRequiredFound: "رقم الهاتف مطلوب لترويج العناصر الموجودة",
     invalidPhoneNumber: "يرجى إدخال رقم هاتف صحيح",
     noPhoneNumber: "لم يتم توفير رقم هاتف",
     
