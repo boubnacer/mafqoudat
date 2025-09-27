@@ -108,7 +108,7 @@ const PostsList = () => {
     setTimeout(checkStore, 100);
   }, []);
 
-  // Get categories for dynamic filtering
+  // Get categories for dynamic filtering (with debouncing to prevent rate limits)
   const { data: categoriesData, isLoading: categoriesLoading, error: categoriesError } = useGetCategoriesQuery({
     language: currentLanguage
   }, {
@@ -117,6 +117,8 @@ const PostsList = () => {
       isLoading,
       error
     }),
+    // Add debouncing to prevent multiple API calls during language switch
+    refetchOnMountOrArgChange: 500, // 500ms debounce
   });
 
   // Memoize effectiveFl computation
@@ -134,7 +136,7 @@ const PostsList = () => {
     language: currentLanguage,
   }, {
     // Add debugging
-    refetchOnMountOrArgChange: true,
+    refetchOnMountOrArgChange: 500, // 500ms debounce to prevent rate limits
     // Skip the query if dependencies are not ready or store is not ready
     // Remove the categoriesData?.length requirement to prevent infinite loading
     skip: !storeReady || !currentCountry || categoriesLoading,

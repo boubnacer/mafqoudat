@@ -28,6 +28,15 @@ export const postsApiSlice = apiSlice.injectEndpoints({
           return response.status === 200 && !result.isError;
         },
       }),
+      // Add retry logic for rate limit errors
+      retry: (failureCount, error) => {
+        if (error?.status === 429) {
+          // Retry up to 3 times for rate limit errors with exponential backoff
+          return failureCount < 3;
+        }
+        return failureCount < 2;
+      },
+      retryDelay: (attemptIndex) => Math.min(1000 * 2 ** attemptIndex, 30000),
       transformResponse: (responseData, meta, arg) => {
         // Simply return the data as-is without transformations
         return responseData;

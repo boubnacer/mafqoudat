@@ -15,6 +15,15 @@ export const dependencieaApiSlice = apiSlice.injectEndpoints({
           return response.status === 200 && !result.isError;
         },
       }),
+      // Add retry logic for rate limit errors
+      retry: (failureCount, error) => {
+        if (error?.status === 429) {
+          // Retry up to 3 times for rate limit errors with exponential backoff
+          return failureCount < 3;
+        }
+        return failureCount < 2;
+      },
+      retryDelay: (attemptIndex) => Math.min(1000 * 2 ** attemptIndex, 30000),
       transformResponse: (responseData) => {
         // Handle both old and new response formats
         const flOptions = responseData.data || responseData;
@@ -56,6 +65,15 @@ export const dependencieaApiSlice = apiSlice.injectEndpoints({
           return response.status === 200 && !result.isError;
         },
       }),
+      // Add retry logic for rate limit errors
+      retry: (failureCount, error) => {
+        if (error?.status === 429) {
+          // Retry up to 3 times for rate limit errors with exponential backoff
+          return failureCount < 3;
+        }
+        return failureCount < 2;
+      },
+      retryDelay: (attemptIndex) => Math.min(1000 * 2 ** attemptIndex, 30000),
       transformResponse: (responseData) => {
         // Handle both old and new response formats
         const countries = responseData.data || responseData;
@@ -97,6 +115,15 @@ export const dependencieaApiSlice = apiSlice.injectEndpoints({
           return response.status === 200 && !result.isError;
         },
       }),
+      // Add retry logic for rate limit errors
+      retry: (failureCount, error) => {
+        if (error?.status === 429) {
+          // Retry up to 3 times for rate limit errors with exponential backoff
+          return failureCount < 3;
+        }
+        return failureCount < 2;
+      },
+      retryDelay: (attemptIndex) => Math.min(1000 * 2 ** attemptIndex, 30000),
       transformResponse: (responseData) => {
         // Handle both old and new response formats
         const categories = responseData.data || responseData;

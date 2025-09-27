@@ -342,6 +342,8 @@ const Navbar = () => {
     selectFromResult: ({ data }) => ({
       countries: data?.ids.map((id) => data?.entities[id]),
     }),
+    // Add debouncing to prevent multiple API calls during language switch
+    refetchOnMountOrArgChange: 500, // 500ms debounce
   });
 
   const { currentCountryData } = useGetCountriesQuery({
@@ -351,6 +353,8 @@ const Navbar = () => {
       currentCountryData: data?.entities[countryId || currentCountry],
     }),
     skip: !isInitialized || !countryId,
+    // Add debouncing to prevent multiple API calls during language switch
+    refetchOnMountOrArgChange: 500, // 500ms debounce
   });
 
   const [sendLogout, { isSuccess }] = useSendLogoutMutation();

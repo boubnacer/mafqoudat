@@ -199,10 +199,15 @@ const NewPostForm = ({ user, countries, categories, flOptions }) => {
     }
   }, [isSuccess, navigate, flOptions, lastSubmittedValues, selectedCountry?._id]);
 
-  // Re-fetch cities when language changes
+  // Re-fetch cities when language changes (with debouncing to prevent rate limits)
   useEffect(() => {
     if (selectedCountry?._id) {
-      fetchCitiesByCountry(selectedCountry._id);
+      // Add a small delay to prevent multiple simultaneous API calls
+      const timeoutId = setTimeout(() => {
+        fetchCitiesByCountry(selectedCountry._id);
+      }, 300);
+      
+      return () => clearTimeout(timeoutId);
     }
   }, [fetchCitiesByCountry, selectedCountry?._id, currentLanguage]);
 
