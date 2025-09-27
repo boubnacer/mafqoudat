@@ -81,6 +81,7 @@ const NewPostForm = ({ user, countries, categories, flOptions }) => {
   const [showPromotionDialog, setShowPromotionDialog] = useState(false);
   const [createdPostId, setCreatedPostId] = useState(null);
   const [lastSubmittedValues, setLastSubmittedValues] = useState(null);
+  const [isLostItem, setIsLostItem] = useState(true);
   const [selectedCountry, setSelectedCountry] = useState(null);
   const [cities, setCities] = useState([]);
   const [loadingCities, setLoadingCities] = useState(false);
@@ -185,7 +186,8 @@ const NewPostForm = ({ user, countries, categories, flOptions }) => {
       setShowSuccess(true);
       // Check if this is a lost item post using the stored values
       const foundLostOption = lastSubmittedValues && flOptions.find(option => option.id === lastSubmittedValues.foundLost);
-      const isLostItem = foundLostOption && foundLostOption.code === 'LOST';
+      const lostItemStatus = foundLostOption && foundLostOption.code === 'LOST';
+      setIsLostItem(lostItemStatus);
       
       // Refresh cities list to include any newly created cities
       if (selectedCountry?._id) {
