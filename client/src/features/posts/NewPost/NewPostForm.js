@@ -192,16 +192,8 @@ const NewPostForm = ({ user, countries, categories, flOptions }) => {
         fetchCitiesByCountry(selectedCountry._id);
       }
       
-      if (isLostItem) {
-        // Show promotion dialog instead of redirecting immediately
-        setShowPromotionDialog(true);
-      } else {
-        // For found items, redirect after success message
-        setTimeout(() => {
-          setShowSuccess(false);
-          navigate("/dash");
-        }, 1500);
-      }
+      // Show promotion dialog for both lost and found items
+      setShowPromotionDialog(true);
     }
   }, [isSuccess, navigate, flOptions, lastSubmittedValues, selectedCountry?._id]);
 
@@ -1813,6 +1805,7 @@ const NewPostForm = ({ user, countries, categories, flOptions }) => {
           navigate("/dash");
         }}
         postId={createdPostId}
+        isLostItem={isLostItem}
         onPromotionRequested={() => {
           // Handle successful promotion request
         }}

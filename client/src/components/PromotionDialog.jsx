@@ -9,22 +9,26 @@ import {
   Box,
   Alert,
   CircularProgress,
-  useTheme
+  useTheme,
+  TextField
 } from '@mui/material';
 import { 
   Share as ShareIcon, 
   Email as EmailIcon,
   CheckCircle as CheckCircleIcon,
-  TrendingUp as TrendingUpIcon
+  TrendingUp as TrendingUpIcon,
+  Phone as PhoneIcon
 } from '@mui/icons-material';
 import { useTranslation } from '../utils/translations';
 import { useRequestPromotionMutation } from '../features/posts/postsApiSlice';
 
-const PromotionDialog = ({ open, onClose, postId, onPromotionRequested }) => {
+const PromotionDialog = ({ open, onClose, postId, onPromotionRequested, isLostItem = true }) => {
   const { t } = useTranslation();
   const theme = useTheme();
   const [isSuccess, setIsSuccess] = useState(false);
   const [error, setError] = useState(null);
+  const [phoneNumber, setPhoneNumber] = useState('');
+  const [phoneError, setPhoneError] = useState('');
   
   const [requestPromotion, { isLoading, isError, error: promotionError }] = useRequestPromotionMutation();
 
@@ -37,9 +41,22 @@ const PromotionDialog = ({ open, onClose, postId, onPromotionRequested }) => {
 
   const handlePromotionRequest = async () => {
     setError(null);
+    setPhoneError('');
 
     if (!postId) {
       setError('Invalid post ID');
+      return;
+    }
+
+    // Validate phone number for found items
+    if (!isLostItem && !phoneNumber.trim()) {
+      setPhoneError(t('phoneNumberRequired'));
+      return;
+    }
+
+    // Basic phone number validation
+    if (!isLostItem && phoneNumber.trim() && !/^[\+]?[0-9\s\-\(\)]{8,}$/.test(phoneNumber.trim())) {
+      setPhoneError(t('invalidPhoneNumber'));
       return;
     }
 
@@ -47,7 +64,12 @@ const PromotionDialog = ({ open, onClose, postId, onPromotionRequested }) => {
       // Debug: Log what we're sending
       console.log('PromotionDialog - Requesting promotion for postId:', postId);
       
-      const result = await requestPromotion({ postId }).unwrap();
+      const promotionData = { postId };
+      if (!isLostItem && phoneNumber.trim()) {
+        promotionData.phoneNumber = phoneNumber.trim();
+      }
+      
+      const result = await requestPromotion(promotionData).unwrap();
       
       // Debug: Log the result
       console.log('PromotionDialog - Result:', result);
@@ -62,6 +84,7 @@ const PromotionDialog = ({ open, onClose, postId, onPromotionRequested }) => {
         setTimeout(() => {
           onClose();
           setIsSuccess(false);
+          setPhoneNumber('');
         }, 3000);
       } else {
         throw new Error(result?.message || t('promotionRequestError'));
@@ -84,6 +107,8 @@ const PromotionDialog = ({ open, onClose, postId, onPromotionRequested }) => {
       onClose();
       setIsSuccess(false);
       setError(null);
+      setPhoneNumber('');
+      setPhoneError('');
     }
   };
 
@@ -127,7 +152,7 @@ const PromotionDialog = ({ open, onClose, postId, onPromotionRequested }) => {
               fontSize: { xs: '1.5rem', md: '1.75rem' }
             }}
           >
-            {t('boostYourChances')}
+            {isLostItem ? t('boostYourChances') : t('promoteYourFoundItem')}
           </Typography>
         </Box>
       </DialogTitle>
@@ -173,7 +198,7 @@ const PromotionDialog = ({ open, onClose, postId, onPromotionRequested }) => {
                 textAlign: 'center'
               }}
             >
-              {t('postPublishedSuccessfully')}
+              {isLostItem ? t('postPublishedSuccessfully') : t('foundItemPostedSuccessfully')}
             </Typography>
             
             <Box 
@@ -210,7 +235,7 @@ const PromotionDialog = ({ open, onClose, postId, onPromotionRequested }) => {
                   textAlign: 'center'
                 }}
               >
-                {t('ourTeamCanHelp')}
+                {isLostItem ? t('ourTeamCanHelp') : t('ourTeamCanPromote')}
               </Typography>
               <Typography 
                 variant="body1" 
@@ -222,7 +247,7 @@ const PromotionDialog = ({ open, onClose, postId, onPromotionRequested }) => {
                   mb: 2
                 }}
               >
-                {t('teamHasTechniques')}
+                {isLostItem ? t('teamHasTechniques') : t('teamHasPromotionTechniques')}
               </Typography>
               <Typography 
                 variant="body1" 
@@ -235,7 +260,7 @@ const PromotionDialog = ({ open, onClose, postId, onPromotionRequested }) => {
                   mb: 3
                 }}
               >
-                {t('justClickYes')}
+                {isLostItem ? t('justClickYes') : t('justClickYesToPromote')}
               </Typography>
               <Box display="flex" alignItems="center" justifyContent="center" gap={1.5} mt={3}>
                 <EmailIcon sx={{ 
@@ -250,10 +275,56 @@ const PromotionDialog = ({ open, onClose, postId, onPromotionRequested }) => {
                     fontWeight: 500
                   }}
                 >
-                  {t('teamWillContactYou')}
+                  {isLostItem ? t('teamWillContactYou') : t('teamWillContactYouForPromotion')}
                 </Typography>
               </Box>
             </Box>
+
+            {/* Phone Number Field for Found Items */}
+            {!isLostItem && (
+              <Box sx={{ mb: 3 }}>
+                <Typography 
+                  variant="body2" 
+                  sx={{ 
+                    mb: 1,
+                    fontSize: '1rem',
+                    color: theme.palette.text.primary,
+                    fontWeight: 600
+                  }}
+                >
+                  {t('phoneNumberForContact')} *
+                </Typography>
+                <TextField
+                  fullWidth
+                  placeholder={t('enterPhoneNumber')}
+                  value={phoneNumber}
+                  onChange={(e) => {
+                    setPhoneNumber(e.target.value);
+                    if (phoneError) setPhoneError('');
+                  }}
+                  error={!!phoneError}
+                  helperText={phoneError || t('phoneNumberDescription')}
+                  InputProps={{
+                    startAdornment: <PhoneIcon sx={{ mr: 1, color: theme.palette.text.secondary }} />
+                  }}
+                  sx={{
+                    '& .MuiOutlinedInput-root': {
+                      '&:hover fieldset': {
+                        borderColor: theme.palette.mode === 'dark' ? '#4CAF50' : '#2E7D32',
+                      },
+                      '&.Mui-focused fieldset': {
+                        borderColor: theme.palette.mode === 'dark' ? '#4CAF50' : '#2E7D32',
+                      },
+                      '& fieldset': {
+                        borderColor: theme.palette.mode === 'dark' ? 'rgba(255,255,255,0.3)' : 'rgba(0,0,0,0.2)',
+                      },
+                      color: theme.palette.text.primary,
+                      fontWeight: 500
+                    }
+                  }}
+                />
+              </Box>
+            )}
 
             {error && (
               <Alert 
@@ -331,7 +402,7 @@ const PromotionDialog = ({ open, onClose, postId, onPromotionRequested }) => {
                 : '0 4px 12px rgba(46, 125, 50, 0.2)',
             }}
           >
-            {isLoading ? t('requesting') : t('yesPromote')}
+            {isLoading ? t('requesting') : (isLostItem ? t('yesPromote') : t('yesPromoteFound'))}
           </Button>
         )}
       </DialogActions>
