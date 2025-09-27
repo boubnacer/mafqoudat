@@ -69,6 +69,10 @@ const postSchema = new mongoose.Schema(
     promotionProcessedAt: {
       type: Date,
     },
+    promotionPhoneNumber: {
+      type: String,
+      trim: true,
+    },
     // Additional useful fields
     city: {
       type: mongoose.Schema.Types.ObjectId,

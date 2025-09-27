@@ -52,6 +52,21 @@ const PromotionDialog = ({ open, onClose, postId, onPromotionRequested, isLostIt
     // Phone number is required for both lost and found items
     if (!phoneNumber.trim()) {
       setPhoneError(t('phoneNumberRequired'));
+      // Scroll to phone field and highlight it
+      setTimeout(() => {
+        const phoneField = document.querySelector('[data-testid="phone-field"]');
+        if (phoneField) {
+          phoneField.scrollIntoView({ behavior: 'smooth', block: 'center' });
+          phoneField.focus();
+          // Add highlight effect
+          phoneField.style.borderColor = '#f44336';
+          phoneField.style.boxShadow = '0 0 0 2px rgba(244, 67, 54, 0.2)';
+          setTimeout(() => {
+            phoneField.style.borderColor = '';
+            phoneField.style.boxShadow = '';
+          }, 3000);
+        }
+      }, 100);
       return;
     }
 
@@ -250,19 +265,6 @@ const PromotionDialog = ({ open, onClose, postId, onPromotionRequested, isLostIt
               >
                 {isLostItem ? t('teamHasTechniques') : t('teamHasPromotionTechniques')}
               </Typography>
-              <Typography 
-                variant="body1" 
-                paragraph 
-                sx={{ 
-                  fontWeight: 600, 
-                  color: theme.palette.mode === 'dark' ? '#4CAF50' : '#2E7D32',
-                  textAlign: 'center',
-                  fontSize: '1.1rem',
-                  mb: 3
-                }}
-              >
-                {isLostItem ? t('justClickYes') : t('justClickYes')}
-              </Typography>
               <Box display="flex" alignItems="center" justifyContent="center" gap={1.5} mt={3}>
                 <EmailIcon sx={{ 
                   color: theme.palette.mode === 'dark' ? '#4CAF50' : '#2E7D32',
@@ -294,37 +296,38 @@ const PromotionDialog = ({ open, onClose, postId, onPromotionRequested, isLostIt
               >
                 {t('phoneNumberForContact')} *
               </Typography>
-              <TextField
-                fullWidth
-                placeholder={t('enterPhoneNumber')}
-                value={phoneNumber}
-                onChange={(e) => {
-                  // Only allow numbers
-                  const value = e.target.value.replace(/[^0-9]/g, '');
-                  setPhoneNumber(value);
-                  if (phoneError) setPhoneError('');
-                }}
-                error={!!phoneError}
-                helperText={phoneError || t('phoneNumberDescription')}
-                InputProps={{
-                  startAdornment: <PhoneIcon sx={{ mr: 1, color: theme.palette.text.secondary }} />
-                }}
-                sx={{
-                  '& .MuiOutlinedInput-root': {
-                    '&:hover fieldset': {
-                      borderColor: theme.palette.mode === 'dark' ? '#4CAF50' : '#2E7D32',
-                    },
-                    '&.Mui-focused fieldset': {
-                      borderColor: theme.palette.mode === 'dark' ? '#4CAF50' : '#2E7D32',
-                    },
-                    '& fieldset': {
-                      borderColor: theme.palette.mode === 'dark' ? 'rgba(255,255,255,0.3)' : 'rgba(0,0,0,0.2)',
-                    },
-                    color: theme.palette.text.primary,
-                    fontWeight: 500
-                  }
-                }}
-              />
+                <TextField
+                  fullWidth
+                  placeholder={t('enterPhoneNumber')}
+                  value={phoneNumber}
+                  data-testid="phone-field"
+                  onChange={(e) => {
+                    // Only allow numbers
+                    const value = e.target.value.replace(/[^0-9]/g, '');
+                    setPhoneNumber(value);
+                    if (phoneError) setPhoneError('');
+                  }}
+                  error={!!phoneError}
+                  helperText={phoneError || t('phoneNumberDescription')}
+                  InputProps={{
+                    startAdornment: <PhoneIcon sx={{ mr: 1, color: theme.palette.text.secondary }} />
+                  }}
+                  sx={{
+                    '& .MuiOutlinedInput-root': {
+                      '&:hover fieldset': {
+                        borderColor: theme.palette.mode === 'dark' ? '#4CAF50' : '#2E7D32',
+                      },
+                      '&.Mui-focused fieldset': {
+                        borderColor: theme.palette.mode === 'dark' ? '#4CAF50' : '#2E7D32',
+                      },
+                      '& fieldset': {
+                        borderColor: theme.palette.mode === 'dark' ? 'rgba(255,255,255,0.3)' : 'rgba(0,0,0,0.2)',
+                      },
+                      color: theme.palette.text.primary,
+                      fontWeight: 500
+                    }
+                  }}
+                />
             </Box>
 
             {error && (
@@ -403,7 +406,7 @@ const PromotionDialog = ({ open, onClose, postId, onPromotionRequested, isLostIt
                 : '0 4px 12px rgba(46, 125, 50, 0.2)',
             }}
           >
-            {isLoading ? t('requesting') : (isLostItem ? t('yesPromote') : t('yesPromoteFound'))}
+            {isLoading ? t('requesting') : t('yesPromote')}
           </Button>
         )}
       </DialogActions>

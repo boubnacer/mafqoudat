@@ -92,7 +92,7 @@ const getAllPromotions = async (req, res) => {
       .populate('country', 'labels.en code names.en')
       .populate('foundLost', 'code')
       .populate('city', 'labels.en')
-      .select('_id description exactLocation contact createdAt promotionRequested promotionRequestedAt promotionProcessed promotionProcessedAt')
+      .select('_id description exactLocation contact createdAt promotionRequested promotionRequestedAt promotionProcessed promotionProcessedAt promotionPhoneNumber')
       .sort({ [sortBy]: sortOrder })
       .skip(skip)
       .limit(limit)
