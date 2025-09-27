@@ -325,8 +325,8 @@ const Dash = () => {
                      flexDirection: currentLanguage === 'ar' ? 'row-reverse' : 'row'
                    }}>
 
-                     {/* Show "+add" button inline only when there are posts */}
-                     {data?.totalFounds > 0 && data?.totalFounds <= 2 && (
+                     {/* Show "see all" button inline when there are posts */}
+                     {data?.totalFounds > 0 && (
                        <SeeAll 
                          foundOrlostId={foundsId} 
                          totalItems={data?.totalFounds}
@@ -510,8 +510,8 @@ const Dash = () => {
                       gap: 2,
                       flexDirection: currentLanguage === 'ar' ? 'row-reverse' : 'row'
                     }}>
-                      {/* Show "+add" button inline only when there are posts */}
-                      {data?.totalLosts > 0 && data?.totalLosts <= 2 && (
+                      {/* Show "see all" button inline when there are posts */}
+                      {data?.totalLosts > 0 && (
                         <SeeAll 
                           foundOrlostId={lostsId} 
                           totalItems={data?.totalLosts}

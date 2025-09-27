@@ -29,36 +29,34 @@ const SeeAll = ({ foundOrlostId, totalItems, variant = "desktop" }) => {
     dispatch(setActiveLink({ active: foundOrlostId }));
   };
 
-  // Mobile variant styling
+  // Mobile variant styling - always show "see all"
   if (variant === "mobile") {
     return (
       <Button
         variant="contained"
         size="small"
-        startIcon={currentLanguage === 'ar' ? (totalItems > 4 ? <RenderIcon name="seeall" /> : <Add />) : null}
-        endIcon={currentLanguage === 'ar' ? null : (totalItems > 4 ? <RenderIcon name="seeall" /> : <Add />)}
-        onClick={
-          totalItems > 4
-            ? () => hanldeSeeAllPosts({ foundOrlostId })
-            : hanldeAddNewPost
-        }
+        startIcon={currentLanguage === 'ar' ? <RenderIcon name="seeall" /> : null}
+        endIcon={currentLanguage === 'ar' ? null : <RenderIcon name="seeall" />}
+        onClick={() => hanldeSeeAllPosts({ foundOrlostId })}
         sx={{
-          background: 'linear-gradient(45deg, #4A8BFF 30%, #1A6EEE 90%)',
+          // Modern gradient style
+          background: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)',
           color: '#fff',
           border: 'none',
           textTransform: 'none',
           fontSize: '0.8rem',
-          fontWeight: 700,
+          fontWeight: 600,
           padding: '8px 16px',
-          borderRadius: '4px',
+          borderRadius: '8px',
           minWidth: 'auto',
-          width: '100%', // Full width for mobile
-          maxWidth: '200px', // Limit maximum width
-          boxShadow: '0 3px 5px 2px rgba(26, 110, 238, .3)',
+          width: '100%',
+          maxWidth: '200px',
+          boxShadow: '0 4px 15px rgba(102, 126, 234, 0.3)',
           transition: 'all 0.3s cubic-bezier(0.4, 0, 0.2, 1)',
           '&:hover': {
-            background: 'linear-gradient(45deg, #5A9BFF 30%, #2A7EFF 90%)',
-            boxShadow: '0 4px 8px 2px rgba(26, 110, 238, .4)',
+            background: 'linear-gradient(135deg, #5a6fd8 0%, #6a4190 100%)',
+            boxShadow: '0 6px 20px rgba(102, 126, 234, 0.4)',
+            transform: 'translateY(-1px)',
           },
           '& .MuiButton-endIcon': {
             marginLeft: currentLanguage === 'ar' ? 0 : '6px',
@@ -72,7 +70,7 @@ const SeeAll = ({ foundOrlostId, totalItems, variant = "desktop" }) => {
           }
         }}
       >
-        {totalItems > 4 ? t('seeAll') : t('add')}
+        {t('seeAll')}
       </Button>
     );
   }
@@ -89,36 +87,38 @@ const SeeAll = ({ foundOrlostId, totalItems, variant = "desktop" }) => {
           ? () => hanldeSeeAllPosts({ foundOrlostId })
           : hanldeAddNewPost
       }
-        sx={{
-          background: 'linear-gradient(45deg, #4A8BFF 30%, #1A6EEE 90%)',
-          color: '#fff',
-          border: 'none',
-          textTransform: 'none',
-          fontSize: '0.9rem',
-          fontWeight: 700,
-          padding: '10px 20px',
-          borderRadius: '4px',
-          minWidth: 'auto',
-          boxShadow: '0 3px 5px 2px rgba(26, 110, 238, .3)',
-          transition: 'all 0.3s cubic-bezier(0.4, 0, 0.2, 1)',
-          '&:hover': {
-            background: 'linear-gradient(45deg, #5A9BFF 30%, #2A7EFF 90%)',
-            boxShadow: '0 4px 8px 2px rgba(26, 110, 238, .4)',
-          },
-          '& .MuiButton-endIcon': {
-            marginLeft: currentLanguage === 'ar' ? 0 : '8px',
-            marginRight: currentLanguage === 'ar' ? '8px' : 0,
-            fontSize: '18px'
-          },
-          '& .MuiButton-startIcon': {
-            marginRight: currentLanguage === 'ar' ? 0 : '8px',
-            marginLeft: currentLanguage === 'ar' ? '8px' : 0,
-            fontSize: '18px'
-          }
-        }}
-      >
-        {totalItems > 4 ? t('seeAll') : t('add')}
-      </Button>
+      sx={{
+        // Modern gradient style matching mobile
+        background: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)',
+        color: '#fff',
+        border: 'none',
+        textTransform: 'none',
+        fontSize: '0.9rem',
+        fontWeight: 600,
+        padding: '10px 20px',
+        borderRadius: '8px',
+        minWidth: 'auto',
+        boxShadow: '0 4px 15px rgba(102, 126, 234, 0.3)',
+        transition: 'all 0.3s cubic-bezier(0.4, 0, 0.2, 1)',
+        '&:hover': {
+          background: 'linear-gradient(135deg, #5a6fd8 0%, #6a4190 100%)',
+          boxShadow: '0 6px 20px rgba(102, 126, 234, 0.4)',
+          transform: 'translateY(-1px)',
+        },
+        '& .MuiButton-endIcon': {
+          marginLeft: currentLanguage === 'ar' ? 0 : '8px',
+          marginRight: currentLanguage === 'ar' ? '8px' : 0,
+          fontSize: '18px'
+        },
+        '& .MuiButton-startIcon': {
+          marginRight: currentLanguage === 'ar' ? 0 : '8px',
+          marginLeft: currentLanguage === 'ar' ? '8px' : 0,
+          fontSize: '18px'
+        }
+      }}
+    >
+      {totalItems > 4 ? t('seeAll') : t('add')}
+    </Button>
   );
 };
 
