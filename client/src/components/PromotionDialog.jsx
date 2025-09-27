@@ -322,7 +322,7 @@ const PromotionDialog = ({ open, onClose, postId, onPromotionRequested, isLostIt
                     if (phoneError) setPhoneError('');
                   }}
                   error={!!phoneError}
-                  helperText={phoneError || t('phoneNumberDescription')}
+                  helperText={phoneError || (isLostItem ? t('phoneNumberDescriptionLost') : t('phoneNumberDescriptionFound'))}
                   InputProps={{
                     startAdornment: <PhoneIcon sx={{ mr: 1, color: theme.palette.text.secondary }} />
                   }}
@@ -391,7 +391,7 @@ const PromotionDialog = ({ open, onClose, postId, onPromotionRequested, isLostIt
             disabled={isLoading}
             variant="contained"
             startIcon={isLoading ? <CircularProgress size={20} /> : <WhatsAppIcon sx={{ 
-              ml: 0.5,
+              ml: currentLanguage === 'ar' ? 1 : 0.5,
               mr: currentLanguage === 'ar' ? 0.5 : 0
             }} />}
             sx={{ 
