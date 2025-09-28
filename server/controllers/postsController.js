@@ -979,8 +979,6 @@ const submitPostReport = async (req, res) => {
 // @route PATCH /posts
 // @access Private
 const updatePost = async (req, res) => {
-  console.log('🔍 UPDATE POST SERVER - Request body:', req.body);
-  
   const {
     id,
     user,
@@ -994,19 +992,6 @@ const updatePost = async (req, res) => {
     foundLost,
     description,
   } = req.body;
-  
-  console.log('🔍 UPDATE POST SERVER - Extracted fields:');
-  console.log('  - id:', id);
-  console.log('  - user:', user);
-  console.log('  - category:', category);
-  console.log('  - exactLocation:', exactLocation);
-  console.log('  - exactDate:', exactDate);
-  console.log('  - country:', country);
-  console.log('  - contact:', contact);
-  console.log('  - foundLost:', foundLost);
-  console.log('  - returned:', returned, '(type:', typeof returned, ')');
-  console.log('  - city:', city);
-  console.log('  - description:', description);
 
   // Confirm data
   if (
