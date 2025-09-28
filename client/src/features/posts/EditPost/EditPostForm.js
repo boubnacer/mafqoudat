@@ -420,20 +420,11 @@ const EditPostForm = ({ post, user, countries, flOptions, categories }) => {
         exactDate: values.exactDate,
         contact: values.contact,
         description: values.description || "",
-        contactPreferences: { whatsapp: true },
-        status: values.status,
-        returned: values.returned
+        contactPreferences: { whatsapp: true }
       };
       
-      // Handle city - check if it's an API city or database city
-      if (values.city && values.city.startsWith('api_')) {
-        // API city - send the city data
-        postData.city = selectedCityFromSearch?.code || values.city.replace('api_', '');
-        postData.cityData = selectedCityFromSearch;
-      } else {
-        // Database city
-        postData.city = values.city;
-      }
+      // Handle city - simplified for database cities only
+      postData.city = values.city;
       
       // Append combined data as single field
       const postDataString = JSON.stringify(postData);
