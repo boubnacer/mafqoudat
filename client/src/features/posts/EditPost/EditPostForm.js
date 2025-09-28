@@ -7,7 +7,6 @@ import * as Yup from "yup";
 import { Formik, Form } from "formik";
 import Textfield from "../../../components/Textfield";
 import SelectOption from "../../../components/SelectOption";
-// import imageCompression from "browser-image-compression";
 import { 
   Box, 
   FormLabel, 
@@ -20,7 +19,6 @@ import {
   Select,
   MenuItem,
   FormControl,
-  InputLabel,
   TextField,
   Divider,
   Dialog,
@@ -29,7 +27,7 @@ import {
   DialogActions,
   IconButton
 } from "@mui/material";
-import { PhotoCamera, LocationOn, Add as AddIcon, Close as CloseIcon } from '@mui/icons-material';
+import { LocationOn, Add as AddIcon, Close as CloseIcon } from '@mui/icons-material';
 import { useTranslation } from "../../../utils/translations";
 import useAuth from "../../../hooks/useAuth";
 
@@ -62,18 +60,18 @@ const EditPostForm = ({ post, user, countries, flOptions, categories }) => {
   const [showSuccessMessage, setShowSuccessMessage] = useState(false);
   const [successMessage, setSuccessMessage] = useState('');
 
-  // New state for unified city dropdown (matching NewPostForm)
-  const [citySearchQuery, setCitySearchQuery] = useState("");
-  const [searchResults, setSearchResults] = useState([]);
-  const [isSearching, setIsSearching] = useState(false);
-  const [showCityDropdown, setShowCityDropdown] = useState(false);
-  const [selectedCityFromSearch, setSelectedCityFromSearch] = useState(null);
-  const [filteredCities, setFilteredCities] = useState([]);
+  // New state for unified city dropdown - temporarily simplified
+  // const [citySearchQuery, setCitySearchQuery] = useState("");
+  // const [searchResults, setSearchResults] = useState([]);
+  // const [isSearching, setIsSearching] = useState(false);
+  // const [showCityDropdown, setShowCityDropdown] = useState(false);
+  // const [selectedCityFromSearch, setSelectedCityFromSearch] = useState(null);
+  // const [filteredCities, setFilteredCities] = useState([]);
 
-  // Image upload state
-  const [selectedFileName, setSelectedFileName] = useState("");
-  const [isCompressing, setIsCompressing] = useState(false);
-  const [compressionInfo, setCompressionInfo] = useState(null);
+  // Image upload state - temporarily disabled
+  // const [selectedFileName, setSelectedFileName] = useState("");
+  // const [isCompressing, setIsCompressing] = useState(false);
+  // const [compressionInfo, setCompressionInfo] = useState(null);
   const formikRef = useRef(null);
 
   // Inject CSS styles for loading animations
@@ -110,38 +108,25 @@ const EditPostForm = ({ post, user, countries, flOptions, categories }) => {
     }
   }, []);
 
-  // Click outside handler to close city dropdown
-  useEffect(() => {
-    const handleClickOutside = (event) => {
-      if (showCityDropdown && !event.target.closest('[data-testid="city-dropdown"]')) {
-        setShowCityDropdown(false);
-      }
-    };
+  // Click outside handler and filtered cities - temporarily disabled
+  // useEffect(() => {
+  //   const handleClickOutside = (event) => {
+  //     if (showCityDropdown && !event.target.closest('[data-testid="city-dropdown"]')) {
+  //       setShowCityDropdown(false);
+  //     }
+  //   };
 
-    document.addEventListener('mousedown', handleClickOutside);
-    return () => {
-      document.removeEventListener('mousedown', handleClickOutside);
-    };
-  }, [showCityDropdown]);
+  //   document.addEventListener('mousedown', handleClickOutside);
+  //   return () => {
+  //     document.removeEventListener('mousedown', handleClickOutside);
+  //   };
+  // }, [showCityDropdown]);
 
-  // Update filtered cities when cities or search query changes
-  useEffect(() => {
-    if (availableCities.length > 0) {
-      if (citySearchQuery.trim()) {
-        // Filter existing cities based on search query
-        const filtered = availableCities.filter(city => 
-          city.label?.toLowerCase().includes(citySearchQuery.toLowerCase()) ||
-          city.name?.toLowerCase().includes(citySearchQuery.toLowerCase()) ||
-          city.labels?.en?.toLowerCase().includes(citySearchQuery.toLowerCase()) ||
-          city.labels?.ar?.toLowerCase().includes(citySearchQuery.toLowerCase()) ||
-          city.labels?.fr?.toLowerCase().includes(citySearchQuery.toLowerCase())
-        );
-        setFilteredCities(filtered);
-      } else {
-        setFilteredCities(availableCities);
-      }
-    }
-  }, [availableCities, citySearchQuery]);
+  // useEffect(() => {
+  //   if (availableCities.length > 0) {
+  //     setFilteredCities(availableCities);
+  //   }
+  // }, [availableCities]);
 
   useEffect(() => {
     if (isSuccess) {
@@ -192,8 +177,8 @@ const EditPostForm = ({ post, user, countries, flOptions, categories }) => {
       const cityExists = availableCities.find(city => city.id === cityId);
       if (cityExists) {
         setFieldValueCallback('city', cityId);
-        // Set the city search query to show the selected city
-        setCitySearchQuery(cityExists.label || cityExists.name || '');
+        // Set the city search query to show the selected city - temporarily disabled
+        // setCitySearchQuery(cityExists.label || cityExists.name || '');
       }
     }
   }, [post?.city, availableCities, setFieldValueCallback]);
@@ -240,58 +225,14 @@ const EditPostForm = ({ post, user, countries, flOptions, categories }) => {
     }
   }, [currentLanguage]);
 
-  // New function to search cities using hybrid search
-  const searchCitiesHybrid = useCallback(async (searchQuery, countryCode) => {
-    try {
-      if (!searchQuery || searchQuery.length < 2) {
-        return [];
-      }
+  // City search functions - temporarily disabled
+  // const searchCitiesHybrid = useCallback(async (searchQuery, countryCode) => {
+  //   return [];
+  // }, [currentLanguage]);
 
-      const baseUrl = process.env.REACT_APP_API_URL || "http://localhost:3500";
-      const url = `${baseUrl}/cities/search?q=${encodeURIComponent(searchQuery)}&language=${currentLanguage || 'en'}&countryCode=${countryCode}&limit=10`;
-      
-      const response = await fetch(url);
-      const data = await response.json();
-      
-      if (data.success) {
-        return data.data;
-      } else {
-        console.error('Failed to search cities:', data.message);
-        return [];
-      }
-    } catch (error) {
-      console.error('Error searching cities:', error);
-      return [];
-    }
-  }, [currentLanguage]);
-
-  // Traditional city search function (fallback)
-  const searchCitiesTraditional = useCallback(async (searchQuery, countryId) => {
-    try {
-      const baseUrl = process.env.REACT_APP_API_URL || "http://localhost:3500";
-      const url = `${baseUrl}/cities/search-name?query=${encodeURIComponent(searchQuery)}&countryId=${countryId}&limit=10`;
-      
-      console.log('🔄 Traditional API Request:', url);
-      
-      const response = await fetch(url);
-      const data = await response.json();
-      
-      if (data.success) {
-        // Transform traditional results to match hybrid format
-        return data.data.map(city => ({
-          ...city,
-          source: 'database',
-          _id: city._id
-        }));
-      } else {
-        console.error('Failed to search cities traditionally:', data.message);
-        return [];
-      }
-    } catch (error) {
-      console.error('Error in traditional city search:', error);
-      return [];
-    }
-  }, []);
+  // const searchCitiesTraditional = useCallback(async (searchQuery, countryId) => {
+  //   return [];
+  // }, []);
 
   // Function to clear specific field error
   const clearFieldError = (fieldName) => {
@@ -309,103 +250,18 @@ const EditPostForm = ({ post, user, countries, flOptions, categories }) => {
     setCustomCityName(event.target.value);
   };
 
-  // Handle city search input change
-  const handleCitySearchChange = useCallback(async (event) => {
-    const query = event.target.value;
-    setCitySearchQuery(query);
-    
-    // Always show dropdown when there's a query
-    if (query.trim().length > 0) {
-      setShowCityDropdown(true);
-    }
-    
-    // Get country code from selectedCountry object
-    const countryCode = selectedCountry?.code || selectedCountry?.labels?.en || selectedCountry?.names?.en;
-    
-    
-    if (query.length >= 2 && selectedCountry?._id) {
-      setIsSearching(true);
-      try {
-        // Try hybrid search first
-        const results = await searchCitiesHybrid(query, countryCode);
-        
-        if (results.length > 0) {
-          setSearchResults(results);
-        } else {
-          // Fallback to traditional search
-          console.log('🔄 Trying traditional search as fallback...');
-          const fallbackResults = await searchCitiesTraditional(query, selectedCountry._id);
-          
-          if (fallbackResults.length > 0) {
-            setSearchResults(fallbackResults);
-          } else {
-            // Final fallback: filter existing cities
-            console.log('🔄 Using local city filter as final fallback...');
-            const localResults = availableCities.filter(city => 
-              city.label?.toLowerCase().includes(query.toLowerCase()) ||
-              city.name?.toLowerCase().includes(query.toLowerCase())
-            ).map(city => ({
-              ...city,
-              source: 'database',
-              _id: city.id || city._id
-            }));
-            
-            setSearchResults(localResults);
-          }
-        }
-      } catch (error) {
-        console.error('Error searching cities:', error);
-        setSearchResults([]);
-      } finally {
-        setIsSearching(false);
-      }
-    } else if (query.length > 0) {
-      // Show local filtered results for shorter queries
-      const localResults = availableCities.filter(city => 
-        city.label?.toLowerCase().includes(query.toLowerCase()) ||
-        city.name?.toLowerCase().includes(query.toLowerCase())
-      ).map(city => ({
-        ...city,
-        source: 'database',
-        _id: city.id || city._id
-      }));
-      setSearchResults(localResults);
-    } else {
-      setSearchResults([]);
-    }
-  }, [searchCitiesHybrid, selectedCountry, availableCities]);
+  // City search handlers - temporarily disabled
+  // const handleCitySearchChange = useCallback(async (event) => {
+  //   // Simplified for now
+  // }, []);
 
-  // Handle city selection from dropdown
-  const handleCitySelect = (city) => {
-    setSelectedCityFromSearch(city);
-    setCitySearchQuery(city.label || city.labels?.en || city.name || '');
-    setShowCityDropdown(false);
-    
-    // Set the city value in the form
-    if (setFieldValueCallback) {
-      if (city._id) {
-        // Database city
-        setFieldValueCallback('city', city._id);
-      } else {
-        // API city - we'll handle this in the submit
-        setFieldValueCallback('city', `api_${city.code}`);
-      }
-    }
-    
-    // Clear city field error
-    clearFieldError('city');
-  };
+  // const handleCitySelect = (city) => {
+  //   // Simplified for now
+  // };
 
-  // Handle dropdown toggle
-  const handleCityDropdownToggle = () => {
-    setShowCityDropdown(!showCityDropdown);
-    // If opening dropdown and there's a search query, ensure results are shown
-    if (!showCityDropdown && citySearchQuery.trim().length > 0) {
-      // Trigger search again to ensure results are displayed
-      const event = { target: { value: citySearchQuery } };
-      handleCitySearchChange(event);
-    }
-  };
+  // const handleCityDropdownToggle = () => {
+  //   // Simplified for now
+  // };
 
   // Create custom city in backend
   const createCustomCity = async (cityName, countryId) => {
@@ -444,20 +300,11 @@ const EditPostForm = ({ post, user, countries, flOptions, categories }) => {
     }
   };
 
-  // Image compression function (temporarily disabled)
-  const compressImage = async (file) => {
-    if (!file) return null;
-    
-    // Check if file is an image
-    if (!file.type.startsWith('image/')) {
-      console.warn('File is not an image:', file.type);
-      return file;
-    }
-    
-    // For now, just return the original file without compression
-    setIsCompressing(false);
-    return file;
-  };
+  // Image compression function - temporarily disabled
+  // const compressImage = async (file) => {
+  //   if (!file) return null;
+  //   return file;
+  // };
 
   const handleCountrySelect = (event, setFieldValue) => {
     const countryId = event.target.value;
@@ -583,7 +430,7 @@ const EditPostForm = ({ post, user, countries, flOptions, categories }) => {
       return "";
     })(),
     description: post?.description || "",
-    image: null, // For new image uploads
+    // image: null, // For new image uploads - temporarily disabled
     // Status fields
     status: post?.status || "active",
     returned: post?.returned || false
@@ -606,7 +453,7 @@ const EditPostForm = ({ post, user, countries, flOptions, categories }) => {
   const formValidation = Yup.object().shape({
     // Only validate optional fields, required fields will be validated in handleSubmit
     description: Yup.string().optional(),
-    image: Yup.mixed().nullable(),
+    // image: Yup.mixed().nullable(), // temporarily disabled
     status: Yup.string().oneOf(['active', 'resolved', 'expired', 'suspended']),
     returned: Yup.boolean()
   });
@@ -733,10 +580,10 @@ const EditPostForm = ({ post, user, countries, flOptions, categories }) => {
       const postDataString = JSON.stringify(postData);
       formData.append("postData", postDataString);
       
-      // Only append image if present
-      if (values.image) {
-        formData.append("image", values.image);
-      }
+      // Only append image if present - temporarily disabled
+      // if (values.image) {
+      //   formData.append("image", values.image);
+      // }
 
       await updatePost(formData).unwrap();
     } catch (error) {
@@ -1287,251 +1134,85 @@ const EditPostForm = ({ post, user, countries, flOptions, categories }) => {
                     </Box>
                   )}
                   
-                  <Box sx={{ 
-                    position: 'relative'
-                  }} data-testid="city-dropdown">
-                    {/* City Search Input */}
-                    <TextField
-                      fullWidth
-                      placeholder={currentLanguage === 'ar' ? 'ابحث أو اختر مدينة...' : currentLanguage === 'fr' ? 'Rechercher ou sélectionner une ville...' : 'Search or select a city...'}
-                      value={citySearchQuery}
-                      onChange={handleCitySearchChange}
-                      disabled={!selectedCountry}
-                      data-testid="city-search"
-                      onClick={handleCityDropdownToggle}
-                      sx={{
-                        borderRadius: 2,
-                        '& .MuiOutlinedInput-root': {
-                          '&:hover fieldset': {
-                          borderColor: theme.palette.mode === 'dark' ? 'rgba(255,255,255,0.5)' : 'rgba(0,0,0,0.4)',
-                        },
-                          '&.Mui-focused fieldset': {
-                          borderColor: theme.palette.mode === 'dark' ? '#4CAF50' : '#2E7D32',
-                        },
-                          '& fieldset': {
-                            borderColor: theme.palette.mode === 'dark' ? 'rgba(255,255,255,0.3)' : 'rgba(0,0,0,0.2)',
-                          },
-                        color: theme.palette.text.primary,
-                          fontWeight: 500,
-                          cursor: 'pointer'
+                  <FormControl fullWidth disabled={!selectedCountry || loadingCities} error={!!fieldErrors.city}>
+                    <Select
+                      name="city"
+                      value={values.city || ""}
+                      onChange={(e) => {
+                        const selectedValue = e.target.value;
+                        if (selectedValue === 'other') {
+                          setShowCustomCityInput(true);
+                        } else {
+                          setFieldValue('city', selectedValue);
+                          // Clear city field error if city is selected
+                          if (selectedValue) {
+                            clearFieldError('city');
+                          }
                         }
                       }}
-                      InputProps={{
-                        endAdornment: isSearching ? (
-                          <CircularProgress size={20} />
-                        ) : (
-                          <LocationOn sx={{ color: theme.palette.text.secondary }} />
-                        )
+                      displayEmpty
+                      data-testid="city-select"
+                      sx={{
+                        borderRadius: 2,
+                        '& .MuiOutlinedInput-notchedOutline': {
+                          borderColor: theme.palette.mode === 'dark' ? 'rgba(255,255,255,0.3)' : 'rgba(0,0,0,0.2)',
+                        },
+                        '&:hover .MuiOutlinedInput-notchedOutline': {
+                          borderColor: theme.palette.mode === 'dark' ? 'rgba(255,255,255,0.5)' : 'rgba(0,0,0,0.4)',
+                        },
+                        '&.Mui-focused .MuiOutlinedInput-notchedOutline': {
+                          borderColor: theme.palette.mode === 'dark' ? '#4CAF50' : '#2E7D32',
+                        },
+                        color: theme.palette.text.primary,
+                        fontWeight: 500
                       }}
-                    />
-
-                    {/* Unified City Dropdown */}
-                    {showCityDropdown && selectedCountry && (
-                      <Box
-                        sx={{
-                          position: 'absolute',
-                          top: '100%',
-                          left: 0,
-                          right: 0,
-                          zIndex: '99999 !important',
-                          backgroundColor: theme.palette.background.paper,
-                          border: `1px solid ${theme.palette.divider}`,
-                          borderRadius: 2,
-                          boxShadow: theme.shadows[8],
-                          maxHeight: 400,
-                          overflow: 'hidden',
-                          mt: 0.5
-                        }}
-                      >
-
-                        {/* Cities List */}
-                        <Box sx={{ 
-                          maxHeight: 300, 
-                          overflow: 'auto',
-                          backgroundColor: theme.palette.mode === 'dark' ? '#1a1a1a' : '#ffffff',
-                          position: 'relative',
-                          zIndex: 1
-                        }}>
-                          {/* Show search results if searching */}
-                          {citySearchQuery.trim() && searchResults.length > 0 ? (
-                            <>
-                              <Box sx={{ 
-                                p: 1, 
-                                backgroundColor: theme.palette.mode === 'dark' ? '#1a1a1a' : '#ffffff',
-                                position: 'sticky',
-                                top: 0,
-                                zIndex: 2
-                              }}>
-                                <Typography variant="caption" color="text.secondary" sx={{ fontWeight: 600 }}>
-                                  {currentLanguage === 'ar' ? 'نتائج البحث' : currentLanguage === 'fr' ? 'Résultats de recherche' : 'Search Results'}
-                                </Typography>
-                              </Box>
-                              {searchResults.map((city, index) => (
-                                <Box
-                                  key={city._id || city.code || city.id || index}
-                                  onClick={() => handleCitySelect(city)}
-                                  sx={{
-                                    p: 2,
-                                    cursor: 'pointer',
-                                    backgroundColor: theme.palette.mode === 'dark' ? '#1a1a1a' : '#ffffff',
-                                    borderBottom: index < searchResults.length - 1 ? `1px solid ${theme.palette.divider}` : 'none',
-                                    position: 'relative',
-                                    zIndex: '999999 !important',
-                                    '&:hover': {
-                                      backgroundColor: theme.palette.mode === 'dark' ? '#2a2a2a' : '#f5f5f5',
-                                      transform: 'translateX(4px)',
-                                      transition: 'all 0.2s ease-in-out'
-                                    },
-                                    display: 'flex',
-                                    alignItems: 'center',
-                                    gap: 1,
-                                    transition: 'all 0.2s ease-in-out'
-                                  }}
-                                >
-                                  <LocationOn fontSize="small" color="primary" sx={{ zIndex: '999999 !important', position: 'relative' }} />
-                                  <Box sx={{ zIndex: '999999 !important', position: 'relative' }}>
-                                    <Typography variant="body2" sx={{ 
-                                      fontWeight: 500,
-                                      zIndex: '999999 !important',
-                                      position: 'relative'
-                                    }}>
-                                      {city.label || city.labels?.en || city.name || city.code || 'Unknown City'}
-                                    </Typography>
-                                    <Typography variant="caption" color="text.secondary" sx={{
-                                      zIndex: '999999 !important',
-                                      position: 'relative'
-                                    }}>
-                                      {city.isCapital && `${t('capital') || 'Capital'}`}
-                                      {city.labels?.ar && ` • ${city.labels.ar}`}
-                                    </Typography>
-                                  </Box>
-                                </Box>
-                              ))}
-                            </>
-                          ) : citySearchQuery.trim() && searchResults.length === 0 && !isSearching ? (
-                            <Box sx={{ 
-                              p: 3, 
-                              textAlign: 'center',
-                              backgroundColor: theme.palette.mode === 'dark' ? '#1a1a1a' : '#ffffff',
-                              position: 'relative',
-                              zIndex: '999999 !important'
-                            }}>
-                              <Typography variant="body2" color="text.secondary">
-                                {t('noCitiesFound') || 'No cities found'}
-                              </Typography>
-                              <Typography variant="caption" color="text.secondary" sx={{ mt: 1, display: 'block' }}>
-                                {currentLanguage === 'ar' ? 'أضف اسم المدينة الجديدة' : 
-                                 currentLanguage === 'fr' ? 'Ajouter un nouveau nom de ville' : 
-                                 'Add new city name'}
-                              </Typography>
-                            </Box>
-                          ) : (
-                            <>
-                              {/* Show existing cities when not searching */}
-                              <Box sx={{ 
-                                p: 1, 
-                                backgroundColor: theme.palette.mode === 'dark' ? '#1a1a1a' : '#ffffff',
-                                position: 'sticky',
-                                top: 0,
-                                zIndex: 2
-                              }}>
-                                <Typography variant="caption" color="text.secondary" sx={{ fontWeight: 600 }}>
-                                  {currentLanguage === 'ar' ? `المدن المتاحة (${filteredCities.length})` : currentLanguage === 'fr' ? `Villes disponibles (${filteredCities.length})` : `Available Cities (${filteredCities.length})`}
-                                </Typography>
-                              </Box>
-                              {filteredCities.length > 0 ? (
-                                filteredCities.map((city, index) => (
-                                  <Box
-                                    key={city.id || city._id}
-                                    onClick={() => handleCitySelect(city)}
-                                    sx={{
-                                      p: 2,
-                                      cursor: 'pointer',
-                                      backgroundColor: theme.palette.mode === 'dark' ? '#1a1a1a' : '#ffffff',
-                                      borderBottom: index < filteredCities.length - 1 ? `1px solid ${theme.palette.divider}` : 'none',
-                                      position: 'relative',
-                                      zIndex: '999999 !important',
-                                      '&:hover': {
-                                        backgroundColor: theme.palette.mode === 'dark' ? '#2a2a2a' : '#f5f5f5',
-                                        transform: 'translateX(4px)',
-                                        transition: 'all 0.2s ease-in-out'
-                                      },
-                                      display: 'flex',
-                                      alignItems: 'center',
-                                      gap: 1,
-                                      transition: 'all 0.2s ease-in-out'
-                                    }}
-                                  >
-                                    <LocationOn fontSize="small" color="primary" sx={{ zIndex: '999999 !important', position: 'relative' }} />
-                                    <Box sx={{ zIndex: '999999 !important', position: 'relative' }}>
-                                      <Typography variant="body2" sx={{ 
-                                        fontWeight: 500,
-                                        zIndex: '999999 !important',
-                                        position: 'relative'
-                                      }}>
-                                        {city.label || city.name || 'Unknown City'}
-                                      </Typography>
-                                      <Typography variant="caption" color="text.secondary" sx={{
-                                        zIndex: '999999 !important',
-                                        position: 'relative'
-                                      }}>
-                                        {city.isCapital && `${t('capital') || 'Capital'}`}
-                                        {city.labels?.ar && ` • ${city.labels.ar}`}
-                                      </Typography>
-                                    </Box>
-                                  </Box>
-                                ))
-                              ) : (
-                                <Box sx={{ 
-                                  p: 3, 
-                                  textAlign: 'center',
-                                  backgroundColor: theme.palette.mode === 'dark' ? '#1a1a1a' : '#ffffff',
-                                  position: 'relative',
-                                  zIndex: '999999 !important'
-                                }}>
-                                  <Typography variant="body2" color="text.secondary">
-                                    {t('noCitiesAvailable') || 'No cities available'}
-                                  </Typography>
-                                </Box>
-                              )}
-                            </>
-                          )}
-
-                          {/* Add New City Option */}
+                      MenuProps={{
+                        PaperProps: {
+                          sx: {
+                            maxHeight: 300,
+                          }
+                        }
+                      }}
+                    >
+                      {availableCities.map((city) => (
+                        <MenuItem key={city.id} value={city.id}>
+                          {city.label || city.name || 'Unknown City'}
+                        </MenuItem>
+                      ))}
                       <Divider />
-                          <Box
-                            onClick={() => {
-                              setShowCityDropdown(false);
-                              setShowCustomCityInput(true);
-                            }}
-                            sx={{
-                              p: 2,
-                              cursor: 'pointer',
-                              color: theme.palette.mode === 'dark' ? '#ffffff' : '#000000',
-                              fontWeight: 600,
-                              backgroundColor: theme.palette.mode === 'dark' ? '#1a1a1a' : '#ffffff',
-                              border: `1px solid ${theme.palette.divider}`,
-                              margin: '6px 8px',
-                              borderRadius: 2,
-                              transition: 'all 0.2s ease-in-out',
-                              '&:hover': {
-                                backgroundColor: theme.palette.mode === 'dark' ? '#2a2a2a' : '#f5f5f5',
-                                color: theme.palette.mode === 'dark' ? '#ffffff' : '#000000',
-                                borderColor: theme.palette.primary.main,
-                                transform: 'translateY(-1px)',
-                                boxShadow: theme.shadows[4],
-                              }
-                            }}
+                      <MenuItem
+                        value="other" 
+                        sx={{ 
+                          color: theme.palette.mode === 'dark' ? '#fff' : '#1976d2',
+                          fontWeight: 600,
+                          backgroundColor: theme.palette.mode === 'dark' 
+                            ? 'rgba(255, 255, 255, 0.08)' 
+                            : 'rgba(25, 118, 210, 0.08)',
+                          border: `1px solid ${theme.palette.mode === 'dark' ? 'rgba(255, 255, 255, 0.2)' : 'rgba(25, 118, 210, 0.3)'}`,
+                          borderRadius: 2,
+                          margin: '6px 8px',
+                          padding: '12px 16px',
+                          transition: 'all 0.2s ease-in-out',
+                          '&:hover': {
+                            backgroundColor: theme.palette.mode === 'dark' 
+                              ? 'rgba(255, 255, 255, 0.12)' 
+                              : 'rgba(25, 118, 210, 0.12)',
+                            borderColor: theme.palette.mode === 'dark' 
+                              ? 'rgba(255, 255, 255, 0.4)' 
+                              : 'rgba(25, 118, 210, 0.5)',
+                            transform: 'translateY(-1px)',
+                            boxShadow: theme.palette.mode === 'dark'
+                              ? '0 4px 8px rgba(0, 0, 0, 0.3)'
+                              : '0 4px 8px rgba(25, 118, 210, 0.2)',
+                          }
+                        }}
                       >
                         <Box display="flex" alignItems="center" gap={1}>
                           <AddIcon fontSize="small" />
-                              {t('addNewCity') || 'Add New City'}
+                          {t('other')} - {t('addNewCity')}
                         </Box>
-                          </Box>
-                        </Box>
-                      </Box>
-                    )}
-
+                      </MenuItem>
+                    </Select>
                     {fieldErrors.city && (
                       <Typography 
                         variant="caption" 
@@ -1545,7 +1226,7 @@ const EditPostForm = ({ post, user, countries, flOptions, categories }) => {
                         {fieldErrors.city}
                       </Typography>
                     )}
-                  </Box>
+                  </FormControl>
                 </Box>
 
                 <Box>
@@ -1764,8 +1445,8 @@ const EditPostForm = ({ post, user, countries, flOptions, categories }) => {
                   />
                 </Box>
 
-                {/* Image Section */}
-                <Typography 
+                {/* Image Section - Temporarily disabled */}
+                {/* <Typography 
                   variant="h5" 
                   sx={{ 
                     fontWeight: 700, 
@@ -1776,117 +1457,7 @@ const EditPostForm = ({ post, user, countries, flOptions, categories }) => {
                   }}
                 >
                   {t('itemImage')}
-                </Typography>
-
-                <Box>
-                  <FormLabel 
-                    htmlFor="image" 
-                    sx={{ 
-                      mb: 1, 
-                      display: "block", 
-                      fontWeight: 600, 
-                      fontSize: '1.15rem',
-                      color: theme.palette.text.primary
-                    }}
-                  >
-                    {t('addItemImage')} ({t('optional')})
-                  </FormLabel>
-                  <Box display="flex" alignItems="center" gap={2}>
-                    <Button
-                      variant="contained"
-                      component="label"
-                      startIcon={isCompressing ? <CircularProgress size={16} color="inherit" /> : <PhotoCamera sx={{ ml: 0.5 }} />}
-                      disabled={isCompressing}
-                      sx={{ 
-                        textTransform: 'none', 
-                        borderRadius: 3,
-                        px: 3,
-                        py: 1.5,
-                        fontSize: '1rem',
-                        fontWeight: 600,
-                        background: theme.palette.mode === 'dark'
-                          ? 'linear-gradient(45deg, #4CAF50 30%, #66BB6A 90%)'
-                          : 'linear-gradient(45deg, #2E7D32 30%, #388E3C 90%)',
-                        '&:hover': {
-                          background: theme.palette.mode === 'dark'
-                            ? 'linear-gradient(45deg, #388E3C 30%, #4CAF50 90%)'
-                            : 'linear-gradient(45deg, #1B5E20 30%, #2E7D32 90%)',
-                          transform: 'translateY(-1px)',
-                          boxShadow: theme.palette.mode === 'dark'
-                            ? '0 6px 16px rgba(76, 175, 80, 0.3)'
-                            : '0 6px 16px rgba(46, 125, 50, 0.3)',
-                        },
-                        '&:disabled': {
-                          background: theme.palette.mode === 'dark' ? 'rgba(76, 175, 80, 0.3)' : 'rgba(46, 125, 50, 0.3)',
-                          color: theme.palette.mode === 'dark' ? 'rgba(255,255,255,0.5)' : 'rgba(255,255,255,0.7)',
-                        },
-                        transition: 'all 0.2s ease-in-out',
-                        boxShadow: theme.palette.mode === 'dark'
-                          ? '0 3px 8px rgba(76, 175, 80, 0.2)'
-                          : '0 3px 8px rgba(46, 125, 50, 0.2)',
-                      }}
-                    >
-                      {isCompressing ? t('compressingImage') || 'Compressing...' : t('chooseFile')}
-                      <input
-                        id="image"
-                        name="image"
-                        type="file"
-                        accept="image/*"
-                        hidden
-                        onChange={async (event) => {
-                          const file = event.currentTarget.files[0];
-                          // Clear previous compression info
-                          setCompressionInfo(null);
-                          
-                          if (file) {
-                            const compressedFile = await compressImage(file);
-                            setFieldValue("image", compressedFile);
-                            setSelectedFileName(compressedFile ? compressedFile.name : "");
-                          } else {
-                            setFieldValue("image", null);
-                            setSelectedFileName("");
-                          }
-                        }}
-                      />
-                    </Button>
-                    {selectedFileName && (
-                      <Typography 
-                        variant="body2" 
-                        sx={{ 
-                          color: theme.palette.mode === 'dark' ? 'rgba(255,255,255,0.8)' : 'rgba(0,0,0,0.7)',
-                          fontWeight: 500
-                        }}
-                      >
-                        {selectedFileName}
-                      </Typography>
-                    )}
-                    {compressionInfo && (
-                      <Typography 
-                        variant="caption" 
-                        sx={{ 
-                          display: "block", 
-                          mt: 0.5,
-                          color: theme.palette.mode === 'dark' ? '#4CAF50' : '#2E7D32',
-                          fontWeight: 500
-                        }}
-                      >
-                        {t('compressionSuccess') || `Compressed: ${compressionInfo.originalSize}MB → ${compressionInfo.compressedSize}MB (${compressionInfo.compressionRatio}% smaller)`}
-                      </Typography>
-                    )}
-                  </Box>
-                  <Typography 
-                    variant="caption" 
-                    sx={{ 
-                      mt: 1, 
-                      display: "block", 
-                      fontSize: '1rem',
-                      color: theme.palette.mode === 'dark' ? 'rgba(255,255,255,0.7)' : 'rgba(0,0,0,0.6)',
-                      fontWeight: 500
-                    }}
-                  >
-                    {t('imageOptionalMessage')}
-                  </Typography>
-                </Box>
+                </Typography> */}
 
 
                 {/* Status Section - Only visible for admin */}
