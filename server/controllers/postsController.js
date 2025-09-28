@@ -1057,13 +1057,16 @@ const updatePost = async (req, res) => {
     return res.status(400).json({ message: "Post not found" });
   }
 
+  console.log('🔍 UPDATE POST SERVER - Updating post fields...');
   post.user = user;
   post.country = country;
   post.category = category;
   if (city !== undefined) {
+    console.log('🔍 UPDATE POST SERVER - Setting city to:', city);
     post.city = city;
   }
   post.exactLocation = exactLocation;
+  console.log('🔍 UPDATE POST SERVER - Setting exactDate to:', exactDate);
   post.exactDate = exactDate;
   post.contact = contact;
   post.returned = returned;
@@ -1074,13 +1077,24 @@ const updatePost = async (req, res) => {
 
 
 
-  const updatedPost = await post.save();
+  console.log('🔍 UPDATE POST SERVER - Saving post...');
+  try {
+    const updatedPost = await post.save();
+    console.log('✅ UPDATE POST SERVER - Post saved successfully:', updatedPost._id);
 
-  // Invalidate related cache entries
-  await cacheService.invalidatePattern('posts:*');
-  await cacheService.invalidatePattern('dashboard:*');
+    // Invalidate related cache entries
+    console.log('🔍 UPDATE POST SERVER - Invalidating cache...');
+    await cacheService.invalidatePattern('posts:*');
+    await cacheService.invalidatePattern('dashboard:*');
+    console.log('✅ UPDATE POST SERVER - Cache invalidated');
 
-  res.json(`Post with ID ${updatedPost._id} updated`);
+    console.log('✅ UPDATE POST SERVER - Sending success response');
+    res.json(`Post with ID ${updatedPost._id} updated`);
+  } catch (error) {
+    console.log('❌ UPDATE POST SERVER - Error saving post:', error.message);
+    console.log('❌ UPDATE POST SERVER - Error details:', error);
+    return res.status(400).json({ message: "Error updating post: " + error.message });
+  }
 };
 
 // @desc Delete a post
