@@ -1,16 +1,15 @@
 import { useParams } from "react-router-dom";
 import EditPostForm from "./EditPostForm";
-import { useGetPostQuery, useGetPostsQuery } from "../postsApiSlice";
+import { useGetPostQuery } from "../postsApiSlice";
 import { useGetUsersQuery } from "../../userSettings/usersApiSlice";
 import { LoadingState } from "../../../components/LoadingStates";
 import useTitle from "../../../hooks/useTitle";
-import { useGetCountriesQuery } from "../../dependencies/dependenciesApiSlice";
 import useAuth from "../../../hooks/useAuth";
 import { useTranslation } from "../../../utils/translations";
 import {
   useGetCategoriesQuery,
+  useGetCountriesQuery,
   useGetflOptionsQuery,
-  useGetCitiesQuery,
 } from "../../dependencies/dependenciesApiSlice";
 
 const EditPost = () => {
@@ -63,23 +62,12 @@ const EditPost = () => {
     }),
   });
 
-  const { cities } = useGetCitiesQuery({
-    language: currentLanguage || 'en',
-    countryId: data?.country
-  }, {
-    selectFromResult: ({ data }) => ({
-      cities: data?.ids.map((id) => data?.entities[id]),
-    }),
-    skip: !data?.country // Skip if no country is selected
-  });
-
   // Debug: Log the data being passed to EditPostForm
   console.log('🔍 EditPost - Post data from API:', data);
   console.log('🔍 EditPost - User data:', user);
   console.log('🔍 EditPost - Countries:', countries);
   console.log('🔍 EditPost - Categories:', categories);
   console.log('🔍 EditPost - FlOptions:', flOptions);
-  console.log('🔍 EditPost - Cities:', cities);
 
   if (!data || !user || !countries || !categories || !flOptions)
     return <LoadingState message={t('loadingEditForm')} />;
@@ -88,7 +76,6 @@ const EditPost = () => {
     <EditPostForm
       categories={categories}
       flOptions={flOptions}
-      cities={cities}
       post={data}
       user={user}
       countries={countries}

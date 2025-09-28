@@ -4,11 +4,10 @@ import { useUpdatePostMutation, useDeletePostMutation } from "../postsApiSlice";
 import { useSelector } from "react-redux";
 import { selectCurrentToken } from "../../auth/authSlice";
 import * as Yup from "yup";
-import { Formik, Form, useField } from "formik";
+import { Formik, Form } from "formik";
 import Textfield from "../../../components/Textfield";
-import SubmitButton from "../../../components/SubmitButton";
 import SelectOption from "../../../components/SelectOption";
-import imageCompression from "browser-image-compression";
+// import imageCompression from "browser-image-compression";
 import { 
   Box, 
   FormLabel, 
@@ -30,44 +29,15 @@ import {
   DialogActions,
   IconButton
 } from "@mui/material";
-import { PhotoCamera, LocationOn, WhatsApp, Add as AddIcon, Close as CloseIcon } from '@mui/icons-material';
+import { PhotoCamera, LocationOn, Add as AddIcon, Close as CloseIcon } from '@mui/icons-material';
 import { useTranslation } from "../../../utils/translations";
 import useAuth from "../../../hooks/useAuth";
 
-// Add CSS keyframes for loading animations (mirrorReflection from navbar)
-const loadingStyles = `
-@keyframes mirrorReflection {
-  0% {
-    left: 0px;
-    opacity: 0;
-    transform: translateY(-50%) skew(-15deg) scaleX(0.5);
-  }
-  15% {
-    opacity: 1;
-    transform: translateY(-50%) skew(-15deg) scaleX(1);
-  }
-  85% {
-    left: 100%;
-    opacity: 1;
-    transform: translateY(-50%) skew(-15deg) scaleX(1);
-  }
-  100% {
-    left: 100%;
-    opacity: 0;
-    transform: translateY(-50%) skew(-15deg) scaleX(0.5);
-  }
-}
-`;
+// CSS keyframes for loading animations will be injected in useEffect
 
-// Inject styles into the document
-if (typeof document !== 'undefined') {
-  const styleSheet = document.createElement("style");
-  styleSheet.type = "text/css";
-  styleSheet.innerText = loadingStyles;
-  document.head.appendChild(styleSheet);
-}
-
-const EditPostForm = ({ post, user, countries, flOptions, categories, cities }) => {
+const EditPostForm = ({ post, user, countries, flOptions, categories }) => {
+  console.log('🔍 EditPostForm - Component rendering with props:', { post, user, countries, flOptions, categories });
+  
   const [updatePost, { isLoading, isSuccess, isError, error }] = useUpdatePostMutation();
   const [deletePost, { isSuccess: isDelSuccess, isError: isDelError, error: delerror }] = useDeletePostMutation();
   const { t, currentLanguage } = useTranslation();
@@ -79,7 +49,7 @@ const EditPostForm = ({ post, user, countries, flOptions, categories, cities }) 
   
   // State for cities
   const [selectedCountry, setSelectedCountry] = useState(null);
-  const [availableCities, setAvailableCities] = useState(cities || []);
+  const [availableCities, setAvailableCities] = useState([]);
   const [loadingCities, setLoadingCities] = useState(false);
   
   // State for custom city functionality
@@ -105,6 +75,40 @@ const EditPostForm = ({ post, user, countries, flOptions, categories, cities }) 
   const [isCompressing, setIsCompressing] = useState(false);
   const [compressionInfo, setCompressionInfo] = useState(null);
   const formikRef = useRef(null);
+
+  // Inject CSS styles for loading animations
+  useEffect(() => {
+    const loadingStyles = `
+      @keyframes mirrorReflection {
+        0% {
+          left: 0px;
+          opacity: 0;
+          transform: translateY(-50%) skew(-15deg) scaleX(0.5);
+        }
+        15% {
+          opacity: 1;
+          transform: translateY(-50%) skew(-15deg) scaleX(1);
+        }
+        85% {
+          left: 100%;
+          opacity: 1;
+          transform: translateY(-50%) skew(-15deg) scaleX(1);
+        }
+        100% {
+          left: 100%;
+          opacity: 0;
+          transform: translateY(-50%) skew(-15deg) scaleX(0.5);
+        }
+      }
+    `;
+
+    if (typeof document !== 'undefined') {
+      const styleSheet = document.createElement("style");
+      styleSheet.type = "text/css";
+      styleSheet.innerText = loadingStyles;
+      document.head.appendChild(styleSheet);
+    }
+  }, []);
 
   // Click outside handler to close city dropdown
   useEffect(() => {
@@ -188,6 +192,8 @@ const EditPostForm = ({ post, user, countries, flOptions, categories, cities }) 
       const cityExists = availableCities.find(city => city.id === cityId);
       if (cityExists) {
         setFieldValueCallback('city', cityId);
+        // Set the city search query to show the selected city
+        setCitySearchQuery(cityExists.label || cityExists.name || '');
       }
     }
   }, [post?.city, availableCities, setFieldValueCallback]);
@@ -438,7 +444,7 @@ const EditPostForm = ({ post, user, countries, flOptions, categories, cities }) 
     }
   };
 
-  // Image compression function
+  // Image compression function (temporarily disabled)
   const compressImage = async (file) => {
     if (!file) return null;
     
@@ -448,37 +454,9 @@ const EditPostForm = ({ post, user, countries, flOptions, categories, cities }) 
       return file;
     }
     
-    const options = {
-      maxSizeMB: 1,
-      maxWidthOrHeight: 1200,
-      useWebWorker: true,
-      quality: 0.8
-    };
-
-    try {
-      setIsCompressing(true);
-      const compressedFile = await imageCompression(file, options);
-      
-      // Log compression results for debugging
-      const originalSize = (file.size / 1024 / 1024).toFixed(2);
-      const compressedSize = (compressedFile.size / 1024 / 1024).toFixed(2);
-      const compressionRatio = ((1 - compressedFile.size / file.size) * 100).toFixed(1);
-      
-      // Store compression info for display
-      setCompressionInfo({
-        originalSize,
-        compressedSize,
-        compressionRatio
-      });
-      
-      setIsCompressing(false);
-      return compressedFile;
-    } catch (error) {
-      console.error('Error compressing image:', error);
-      setIsCompressing(false);
-      // Return original file if compression fails
-      return file;
-    }
+    // For now, just return the original file without compression
+    setIsCompressing(false);
+    return file;
   };
 
   const handleCountrySelect = (event, setFieldValue) => {
