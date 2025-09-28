@@ -587,17 +587,25 @@ if (typeof document !== 'undefined') {
     }
     
     const hasChanged = Object.keys(initialFormState).some(key => {
-      // Skip status and returned fields for change detection
-      if (key === 'status' || key === 'returned') {
+      // Skip only status field for change detection (admin-only field)
+      if (key === 'status') {
         return false;
       }
       const initialValue = initialFormState[key];
       const currentValue = currentValues[key];
       const isChanged = currentValue !== initialValue;
       
+      if (isChanged) {
+        console.log(`🔍 FORM CHANGE - Field '${key}' changed:`, {
+          initial: initialValue,
+          current: currentValue
+        });
+      }
+      
       return isChanged;
     });
     
+    console.log('🔍 FORM CHANGE - Has form changed:', hasChanged);
     setHasFormChanged(hasChanged);
   };
 
