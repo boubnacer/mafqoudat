@@ -104,6 +104,8 @@ const EditPostForm = ({ post, user, countries, flOptions, categories }) => {
   const formikRef = useRef(null);
   console.log('✅ EditPostForm - formikRef initialized');
 
+  console.log('🔧 EditPostForm - About to start useEffect hooks...');
+  
   // Inject CSS styles for loading animations
   useEffect(() => {
     console.log('🔧 EditPostForm - CSS injection useEffect starting...');
@@ -139,6 +141,8 @@ if (typeof document !== 'undefined') {
       console.log('✅ EditPostForm - CSS styles injected successfully');
     }
   }, []);
+  
+  console.log('✅ EditPostForm - CSS injection useEffect completed');
 
   // Click outside handler and filtered cities - temporarily disabled
   // useEffect(() => {
@@ -160,6 +164,8 @@ if (typeof document !== 'undefined') {
   //   }
   // }, [availableCities]);
 
+  console.log('🔧 EditPostForm - About to start Success/Delete useEffect...');
+  
   useEffect(() => {
     console.log('🔧 EditPostForm - Success/Delete useEffect starting...');
     if (isSuccess) {
@@ -181,7 +187,11 @@ if (typeof document !== 'undefined') {
       }, 2000);
     }
   }, [isSuccess, isDelSuccess, navigate, t]);
+  
+  console.log('✅ EditPostForm - Success/Delete useEffect completed');
 
+  console.log('🔧 EditPostForm - About to start Country initialization useEffect...');
+  
   // Initialize selected country from post data
   useEffect(() => {
     console.log('🔧 EditPostForm - Country initialization useEffect starting...');
@@ -194,7 +204,11 @@ if (typeof document !== 'undefined') {
       }
     }
   }, [post?.country, countries]);
+  
+  console.log('✅ EditPostForm - Country initialization useEffect completed');
 
+  console.log('🔧 EditPostForm - About to start Cities initialization useEffect...');
+  
   // Initialize cities when post data is available
   useEffect(() => {
     console.log('🔧 EditPostForm - Cities initialization useEffect starting...');
@@ -208,7 +222,11 @@ if (typeof document !== 'undefined') {
       }
     }
   }, [post?.country, countries, selectedCountry, fetchCitiesByCountry]);
+  
+  console.log('✅ EditPostForm - Cities initialization useEffect completed');
 
+  console.log('🔧 EditPostForm - About to start City value setting useEffect...');
+  
   // Set the city value when cities are loaded and we have a post city
   useEffect(() => {
     console.log('🔧 EditPostForm - City value setting useEffect starting...');
@@ -226,7 +244,11 @@ if (typeof document !== 'undefined') {
       }
     }
   }, [post?.city, availableCities, setFieldValueCallback]);
+  
+  console.log('✅ EditPostForm - City value setting useEffect completed');
 
+  console.log('🔧 EditPostForm - About to define fetchCitiesByCountry function...');
+  
   const fetchCitiesByCountry = useCallback(async (countryId) => {
     console.log('🔧 EditPostForm - fetchCitiesByCountry function called with countryId:', countryId);
     try {
@@ -252,7 +274,11 @@ if (typeof document !== 'undefined') {
       setLoadingCities(false);
     }
   }, [currentLanguage]);
+  
+  console.log('✅ EditPostForm - fetchCitiesByCountry function defined');
 
+  console.log('🔧 EditPostForm - About to start Country change useEffect...');
+  
   // Update cities when country changes
   useEffect(() => {
     console.log('🔧 EditPostForm - Country change useEffect starting...');
@@ -261,7 +287,11 @@ if (typeof document !== 'undefined') {
       fetchCitiesByCountry(selectedCountry._id);
     }
   }, [selectedCountry, fetchCitiesByCountry]);
+  
+  console.log('✅ EditPostForm - Country change useEffect completed');
 
+  console.log('🔧 EditPostForm - About to start Language change useEffect...');
+  
   // Re-fetch cities when language changes (with debouncing to prevent rate limits)
   useEffect(() => {
     console.log('🔧 EditPostForm - Language change useEffect starting...');
@@ -275,6 +305,8 @@ if (typeof document !== 'undefined') {
       return () => clearTimeout(timeoutId);
     }
   }, [fetchCitiesByCountry, selectedCountry?._id, currentLanguage]);
+  
+  console.log('✅ EditPostForm - Language change useEffect completed');
 
   // City search functions - temporarily disabled
   // const searchCitiesHybrid = useCallback(async (searchQuery, countryCode) => {
@@ -285,6 +317,8 @@ if (typeof document !== 'undefined') {
   //   return [];
   // }, []);
 
+  console.log('🔧 EditPostForm - About to define helper functions...');
+  
   // Function to clear specific field error
   const clearFieldError = (fieldName) => {
     if (fieldErrors[fieldName]) {
