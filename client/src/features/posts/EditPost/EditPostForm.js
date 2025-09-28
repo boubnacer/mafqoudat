@@ -568,19 +568,35 @@ if (typeof document !== 'undefined') {
     // Status fields
     status: post?.status || "active",
     returned: post?.returned || false
-    };
+  };
   }, [post, categories]);
 
   // Function to check if form has changed
   const checkFormChanged = (currentValues) => {
+    console.log('🔍 FORM CHANGE DEBUG - Checking form changes...');
+    console.log('🔍 FORM CHANGE DEBUG - Initial form state:', initialFormState);
+    console.log('🔍 FORM CHANGE DEBUG - Current values:', currentValues);
+    
     const hasChanged = Object.keys(initialFormState).some(key => {
       // Skip status and returned fields for change detection
       if (key === 'status' || key === 'returned') {
         return false;
       }
-      return currentValues[key] !== initialFormState[key];
+      const initialValue = initialFormState[key];
+      const currentValue = currentValues[key];
+      const isChanged = currentValue !== initialValue;
+      
+      if (isChanged) {
+        console.log(`🔍 FORM CHANGE DEBUG - Field '${key}' changed:`, {
+          initial: initialValue,
+          current: currentValue
+        });
+      }
+      
+      return isChanged;
     });
     
+    console.log('🔍 FORM CHANGE DEBUG - Has form changed:', hasChanged);
     setHasFormChanged(hasChanged);
   };
 
@@ -1289,7 +1305,7 @@ if (typeof document !== 'undefined') {
                         },
                           '& fieldset': {
                             borderColor: theme.palette.mode === 'dark' ? 'rgba(255,255,255,0.3)' : 'rgba(0,0,0,0.2)',
-                          },
+                        },
                         color: theme.palette.text.primary,
                           fontWeight: 500,
                           cursor: 'pointer'
@@ -1324,7 +1340,7 @@ if (typeof document !== 'undefined') {
                       >
                         {/* Cities List */}
                         <Box sx={{ 
-                          maxHeight: 300, 
+                            maxHeight: 300,
                           overflow: 'auto',
                           backgroundColor: theme.palette.mode === 'dark' ? '#1a1a1a' : '#ffffff',
                           position: 'relative',
@@ -1422,14 +1438,14 @@ if (typeof document !== 'undefined') {
                                   <Box
                                     key={city.id || city._id}
                                     onClick={() => handleCitySelect(city, setFieldValue)}
-                                    sx={{
+                        sx={{ 
                                       p: 2,
                                       cursor: 'pointer',
                                       backgroundColor: theme.palette.mode === 'dark' ? '#1a1a1a' : '#ffffff',
                                       borderBottom: index < filteredCities.length - 1 ? `1px solid ${theme.palette.divider}` : 'none',
                                       position: 'relative',
                                       zIndex: '999999 !important',
-                                      '&:hover': {
+                          '&:hover': {
                                         backgroundColor: theme.palette.mode === 'dark' ? '#2a2a2a' : '#f5f5f5',
                                         transform: 'translateX(4px)',
                                         transition: 'all 0.2s ease-in-out'
@@ -1456,7 +1472,7 @@ if (typeof document !== 'undefined') {
                                         {city.isCapital && `${t('capital') || 'Capital'}`}
                                         {city.labels?.ar && ` • ${city.labels.ar}`}
                                       </Typography>
-                                    </Box>
+                        </Box>
                                   </Box>
                                 ))
                               ) : (
