@@ -1,4 +1,5 @@
 import { useParams } from "react-router-dom";
+import { useEffect } from "react";
 import EditPostForm from "./EditPostForm";
 import { useGetPostQuery } from "../postsApiSlice";
 import { useGetUsersQuery } from "../../userSettings/usersApiSlice";
@@ -39,6 +40,15 @@ const EditPost = () => {
     postId: id,
     language: currentLanguage || 'en'
   });
+
+  // Debug: Log post data when it's loaded
+  useEffect(() => {
+    if (data) {
+      console.log('📋 POST DATA LOADED - Full post data:', data);
+      console.log('📋 POST DATA LOADED - Post city:', data.city);
+      console.log('📋 POST DATA LOADED - Post city type:', typeof data.city);
+    }
+  }, [data]);
 
   const { user } = useGetUsersQuery("usersList", {
     selectFromResult: ({ data }) => ({

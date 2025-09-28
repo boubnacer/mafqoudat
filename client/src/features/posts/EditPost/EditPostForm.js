@@ -497,7 +497,14 @@ if (typeof document !== 'undefined') {
 
   // Initialize form state with existing post data
   const initialFormState = useMemo(() => {
-    if (!post) return {};
+    if (!post) {
+      console.log('🏗️ INITIAL FORM STATE - No post data available yet');
+      return {};
+    }
+    
+    console.log('🏗️ INITIAL FORM STATE - Post data:', post);
+    console.log('🏗️ INITIAL FORM STATE - Post city:', post?.city);
+    console.log('🏗️ INITIAL FORM STATE - Post city type:', typeof post?.city);
     
     return {
     country: post?.country || "",
@@ -529,13 +536,21 @@ if (typeof document !== 'undefined') {
     foundLost: post?.foundLost || "",
     city: (() => {
       // Handle both object and string city formats
+      console.log('🏗️ CITY INIT - Processing city field...');
+      console.log('🏗️ CITY INIT - post?.city:', post?.city);
+      console.log('🏗️ CITY INIT - typeof post?.city:', typeof post?.city);
+      
       if (post?.city) {
         if (typeof post.city === 'object') {
-          return post.city.id || post.city._id || "";
+          const cityId = post.city.id || post.city._id || "";
+          console.log('🏗️ CITY INIT - Object city, returning:', cityId);
+          return cityId;
         }
         // Return the actual city value from post, regardless of availableCities
+        console.log('🏗️ CITY INIT - String city, returning:', post.city);
         return post.city;
       }
+      console.log('🏗️ CITY INIT - No city found, returning empty string');
       return "";
     })(),
     exactLocation: post?.exactLocation || "",
@@ -574,9 +589,17 @@ if (typeof document !== 'undefined') {
 
   // Function to check if form has changed
   const checkFormChanged = (currentValues) => {
+    // Only check for changes if we have a proper initial form state
+    if (!initialFormState || Object.keys(initialFormState).length === 0) {
+      console.log('🔍 FORM CHANGE DEBUG - Skipping change detection - no initial form state');
+      return;
+    }
+    
     console.log('🔍 FORM CHANGE DEBUG - Checking form changes...');
     console.log('🔍 FORM CHANGE DEBUG - Initial form state:', initialFormState);
     console.log('🔍 FORM CHANGE DEBUG - Current values:', currentValues);
+    console.log('🔍 FORM CHANGE DEBUG - Initial city:', initialFormState.city);
+    console.log('🔍 FORM CHANGE DEBUG - Current city:', currentValues.city);
     
     const hasChanged = Object.keys(initialFormState).some(key => {
       // Skip status and returned fields for change detection
