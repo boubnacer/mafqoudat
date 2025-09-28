@@ -62,12 +62,6 @@ const EditPost = () => {
     }),
   });
 
-  // Debug: Log the data being passed to EditPostForm
-  console.log('🔍 EditPost - Post data from API:', data);
-  console.log('🔍 EditPost - User data:', user);
-  console.log('🔍 EditPost - Countries:', countries);
-  console.log('🔍 EditPost - Categories:', categories);
-  console.log('🔍 EditPost - FlOptions:', flOptions);
 
   if (!data || !user || !countries || !categories || !flOptions)
     return <LoadingState message={t('loadingEditForm')} />;

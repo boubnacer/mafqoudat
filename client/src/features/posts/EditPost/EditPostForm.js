@@ -237,6 +237,11 @@ const EditPostForm = ({ post, user, countries, flOptions, categories }) => {
     return city ? (city.label || city.name || 'Unknown City') : cityId;
   };
 
+  // Debug: Log city field differences
+  console.log('🏙️ CITY FIELD DEBUG - Post city data:', post?.city);
+  console.log('🏙️ CITY FIELD DEBUG - Available cities:', availableCities);
+  console.log('🏙️ CITY FIELD DEBUG - Selected country:', selectedCountry);
+
   // Initialize form state with existing post data
   const initialFormState = {
     country: post?.country || "",
@@ -318,6 +323,12 @@ const EditPostForm = ({ post, user, countries, flOptions, categories }) => {
   });
 
   const handleSubmit = async (values, { setSubmitting, setStatus }) => {
+    console.log('🚀 UPDATE POST - Starting update process...');
+    console.log('📊 UPDATE POST - Form values:', values);
+    console.log('📊 UPDATE POST - Selected country:', selectedCountry);
+    console.log('📊 UPDATE POST - Available cities:', availableCities);
+    console.log('📊 UPDATE POST - Post data:', post);
+    
     try {
       // Clear any previous validation errors
       setStatus(null);
@@ -426,18 +437,33 @@ const EditPostForm = ({ post, user, countries, flOptions, categories }) => {
       // Handle city - simplified for database cities only
       postData.city = values.city;
       
+      console.log('📦 UPDATE POST - Prepared postData:', postData);
+      console.log('📦 UPDATE POST - City value:', values.city);
+      console.log('📦 UPDATE POST - Country value:', selectedCountry?._id || values.country);
+      
       // Append combined data as single field
       const postDataString = JSON.stringify(postData);
       formData.append("postData", postDataString);
+      
+      console.log('📦 UPDATE POST - FormData contents:');
+      for (let [key, value] of formData.entries()) {
+        console.log(`📦 UPDATE POST - ${key}:`, value);
+      }
       
       // Only append image if present - temporarily disabled
       // if (values.image) {
       //   formData.append("image", values.image);
       // }
 
-      await updatePost(formData).unwrap();
+      console.log('🌐 UPDATE POST - Calling updatePost API...');
+      const result = await updatePost(formData).unwrap();
+      console.log('✅ UPDATE POST - API call successful:', result);
     } catch (error) {
-      console.error('Update failed:', error);
+      console.error('❌ UPDATE POST - Update failed:', error);
+      console.error('❌ UPDATE POST - Error status:', error?.status);
+      console.error('❌ UPDATE POST - Error data:', error?.data);
+      console.error('❌ UPDATE POST - Error message:', error?.data?.message);
+      console.error('❌ UPDATE POST - Error details:', error?.data?.errors);
       setStatus({
         type: 'error',
         message: error?.data?.message || t('updateFailed')
@@ -448,10 +474,20 @@ const EditPostForm = ({ post, user, countries, flOptions, categories }) => {
   };
 
   const handleDeletePost = async () => {
+    console.log('🗑️ DELETE POST - Starting delete process...');
+    console.log('📊 DELETE POST - Post ID:', post._id);
+    console.log('📊 DELETE POST - Post data:', post);
+    
     try {
-      await deletePost({ id: post._id }).unwrap();
+      console.log('🌐 DELETE POST - Calling deletePost API...');
+      const result = await deletePost({ id: post._id }).unwrap();
+      console.log('✅ DELETE POST - API call successful:', result);
     } catch (error) {
-      console.error('Delete failed:', error);
+      console.error('❌ DELETE POST - Delete failed:', error);
+      console.error('❌ DELETE POST - Error status:', error?.status);
+      console.error('❌ DELETE POST - Error data:', error?.data);
+      console.error('❌ DELETE POST - Error message:', error?.data?.message);
+      console.error('❌ DELETE POST - Error details:', error?.data?.errors);
     }
   };
 
