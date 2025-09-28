@@ -47,6 +47,8 @@ const EditPost = () => {
       console.log('📋 POST DATA LOADED - Full post data:', data);
       console.log('📋 POST DATA LOADED - Post city:', data.city);
       console.log('📋 POST DATA LOADED - Post city type:', typeof data.city);
+      console.log('📋 POST DATA LOADED - Post city keys:', data.city ? Object.keys(data.city) : 'N/A');
+      console.log('📋 POST DATA LOADED - Post city values:', data.city ? Object.values(data.city) : 'N/A');
     }
   }, [data]);
 
@@ -80,6 +82,13 @@ const EditPost = () => {
   console.log('📤 PASSING TO FORM - data:', data);
   console.log('📤 PASSING TO FORM - data.city:', data?.city);
   console.log('📤 PASSING TO FORM - data.city type:', typeof data?.city);
+  console.log('📤 PASSING TO FORM - All data keys:', data ? Object.keys(data) : 'N/A');
+  console.log('📤 PASSING TO FORM - City-related fields:', data ? {
+    city: data.city,
+    cityName: data.cityName,
+    cityLabels: data.cityLabels,
+    cityDebug: data.cityDebug
+  } : 'N/A');
 
   const content = (
     <EditPostForm

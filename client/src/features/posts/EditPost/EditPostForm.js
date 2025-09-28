@@ -549,9 +549,15 @@ if (typeof document !== 'undefined') {
       
       if (post?.city) {
         if (typeof post.city === 'object') {
-          const cityId = post.city.id || post.city._id || "";
-          console.log('🏗️ CITY INIT - Object city, returning:', cityId);
-          return cityId;
+          // Check if the object is empty or has no id/_id
+          const cityId = post.city.id || post.city._id;
+          if (cityId) {
+            console.log('🏗️ CITY INIT - Object city with ID, returning:', cityId);
+            return cityId;
+          } else {
+            console.log('🏗️ CITY INIT - Empty object city, returning empty string');
+            return "";
+          }
         }
         // Return the actual city value from post, regardless of availableCities
         console.log('🏗️ CITY INIT - String city, returning:', post.city);
