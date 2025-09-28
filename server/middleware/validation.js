@@ -84,7 +84,17 @@ const commonValidations = {
   objectId: (field) => param(field).isMongoId().withMessage('Invalid ID format'),
   
   // ObjectId validation for request body
-  bodyObjectId: (field) => body(field).isMongoId().withMessage('Invalid ID format'),
+  bodyObjectId: (field) => {
+    console.log(`🔍 VALIDATION - Setting up bodyObjectId validation for field: ${field}`);
+    return body(field)
+      .isMongoId()
+      .withMessage('Invalid ID format')
+      .custom((value, { req }) => {
+        console.log(`🔍 VALIDATION - Validating ${field}:`, value, 'Type:', typeof value);
+        console.log(`🔍 VALIDATION - Request body:`, req.body);
+        return true;
+      });
+  },
   
   // Email validation
   email: (field) => body(field)
