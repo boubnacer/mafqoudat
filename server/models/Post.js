@@ -75,8 +75,7 @@ const postSchema = new mongoose.Schema(
     },
     // Additional useful fields
     city: {
-      type: mongoose.Schema.Types.ObjectId,
-      ref: "City",
+      type: mongoose.Schema.Types.Mixed,
       required: false,
     },
     exactLocation: {

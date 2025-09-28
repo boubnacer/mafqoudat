@@ -595,17 +595,17 @@ if (typeof document !== 'undefined') {
       const currentValue = currentValues[key];
       const isChanged = currentValue !== initialValue;
       
-      if (isChanged) {
-        console.log(`🔍 FORM CHANGE - Field '${key}' changed:`, {
-          initial: initialValue,
-          current: currentValue
-        });
-      }
+      // if (isChanged) {
+      //   console.log(`🔍 FORM CHANGE - Field '${key}' changed:`, {
+      //     initial: initialValue,
+      //     current: currentValue
+      //   });
+      // }
       
       return isChanged;
     });
     
-    console.log('🔍 FORM CHANGE - Has form changed:', hasChanged);
+    // console.log('🔍 FORM CHANGE - Has form changed:', hasChanged);
     setHasFormChanged(hasChanged);
   };
 
@@ -732,12 +732,12 @@ if (typeof document !== 'undefined') {
         postData.city = values.city;
       }
       
-      console.log('🚀 UPDATE POST - Starting update process...');
-      console.log('📦 UPDATE POST - Prepared postData:', postData);
-      console.log('🌐 UPDATE POST - Calling updatePost API...');
+      // console.log('🚀 UPDATE POST - Starting update process...');
+      // console.log('📦 UPDATE POST - Prepared postData:', postData);
+      // console.log('🌐 UPDATE POST - Calling updatePost API...');
       
       const result = await updatePost({ id: post._id, ...postData }).unwrap();
-      console.log('✅ UPDATE POST - API call successful:', result);
+      // console.log('✅ UPDATE POST - API call successful:', result);
     } catch (error) {
       console.error('❌ UPDATE POST - Update failed:', error);
       console.error('❌ UPDATE POST - Error status:', error?.status);

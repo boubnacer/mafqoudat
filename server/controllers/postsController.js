@@ -994,8 +994,8 @@ const updatePost = async (req, res) => {
   } = req.body;
 
   // Debug: Log the request body
-  console.log('🔍 UPDATE POST SERVER - Request body:', req.body);
-  console.log('🔍 UPDATE POST SERVER - City value:', city, 'Type:', typeof city);
+  // console.log('🔍 UPDATE POST SERVER - Request body:', req.body);
+  // console.log('🔍 UPDATE POST SERVER - City value:', city, 'Type:', typeof city);
   
   // Confirm data
   if (
@@ -1027,46 +1027,46 @@ const updatePost = async (req, res) => {
   // Validate city if it's a valid ObjectId (skip validation for API cities)
   let cityExists = true;
   if (city && mongoose.Types.ObjectId.isValid(city)) {
-    console.log('🔍 UPDATE POST SERVER - Validating ObjectId city:', city);
+    // console.log('🔍 UPDATE POST SERVER - Validating ObjectId city:', city);
     cityExists = await City.exists({ _id: city });
-    console.log('🔍 UPDATE POST SERVER - City exists:', cityExists);
+    // console.log('🔍 UPDATE POST SERVER - City exists:', cityExists);
   } else if (city) {
-    console.log('🔍 UPDATE POST SERVER - API city (non-ObjectId):', city);
+    // console.log('🔍 UPDATE POST SERVER - API city (non-ObjectId):', city);
   }
   // For API cities (non-ObjectId strings), we'll accept them as-is
   
-  console.log('🔍 UPDATE POST SERVER - Database existence checks:');
-  console.log('  - userExists:', userExists);
-  console.log('  - countryExists:', countryExists);
-  console.log('  - categoryExists:', categoryExists);
-  console.log('  - foundLostExists:', foundLostExists);
-  console.log('  - cityExists:', cityExists);
+  // console.log('🔍 UPDATE POST SERVER - Database existence checks:');
+  // console.log('  - userExists:', userExists);
+  // console.log('  - countryExists:', countryExists);
+  // console.log('  - categoryExists:', categoryExists);
+  // console.log('  - foundLostExists:', foundLostExists);
+  // console.log('  - cityExists:', cityExists);
   
   if (!userExists || !countryExists || !categoryExists || !foundLostExists || !cityExists) {
-    console.log('❌ UPDATE POST SERVER - Database validation failed');
+    // console.log('❌ UPDATE POST SERVER - Database validation failed');
     return res.status(400).json({ message: "Invalid reference in user/country/category/foundLost/city" });
   }
 
   // Confirm post exists to update - only select fields needed for update
-  console.log('🔍 UPDATE POST SERVER - Looking for post with ID:', id);
+  // console.log('🔍 UPDATE POST SERVER - Looking for post with ID:', id);
   const post = await Post.findById(id).select('_id user country category city exactLocation exactDate contact returned foundLost description').exec();
-  console.log('🔍 UPDATE POST SERVER - Post found:', !!post);
+  // console.log('🔍 UPDATE POST SERVER - Post found:', !!post);
   
   if (!post) {
-    console.log('❌ UPDATE POST SERVER - Post not found with ID:', id);
+    // console.log('❌ UPDATE POST SERVER - Post not found with ID:', id);
     return res.status(400).json({ message: "Post not found" });
   }
 
-  console.log('🔍 UPDATE POST SERVER - Updating post fields...');
+  // console.log('🔍 UPDATE POST SERVER - Updating post fields...');
   post.user = user;
   post.country = country;
   post.category = category;
   if (city !== undefined) {
-    console.log('🔍 UPDATE POST SERVER - Setting city to:', city);
+    // console.log('🔍 UPDATE POST SERVER - Setting city to:', city);
     post.city = city;
   }
   post.exactLocation = exactLocation;
-  console.log('🔍 UPDATE POST SERVER - Setting exactDate to:', exactDate);
+  // console.log('🔍 UPDATE POST SERVER - Setting exactDate to:', exactDate);
   post.exactDate = exactDate;
   post.contact = contact;
   post.returned = returned;
@@ -1077,18 +1077,18 @@ const updatePost = async (req, res) => {
 
 
 
-  console.log('🔍 UPDATE POST SERVER - Saving post...');
+  // console.log('🔍 UPDATE POST SERVER - Saving post...');
   try {
     const updatedPost = await post.save();
-    console.log('✅ UPDATE POST SERVER - Post saved successfully:', updatedPost._id);
+    // console.log('✅ UPDATE POST SERVER - Post saved successfully:', updatedPost._id);
 
     // Invalidate related cache entries
-    console.log('🔍 UPDATE POST SERVER - Invalidating cache...');
+    // console.log('🔍 UPDATE POST SERVER - Invalidating cache...');
     await cacheService.invalidatePattern('posts:*');
     await cacheService.invalidatePattern('dashboard:*');
-    console.log('✅ UPDATE POST SERVER - Cache invalidated');
+    // console.log('✅ UPDATE POST SERVER - Cache invalidated');
 
-    console.log('✅ UPDATE POST SERVER - Sending success response');
+    // console.log('✅ UPDATE POST SERVER - Sending success response');
     res.json(`Post with ID ${updatedPost._id} updated`);
   } catch (error) {
     console.log('❌ UPDATE POST SERVER - Error saving post:', error.message);
