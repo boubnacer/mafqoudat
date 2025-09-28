@@ -108,6 +108,7 @@ const EditPostForm = ({ post, user, countries, flOptions, categories }) => {
       const data = await response.json();
       
       if (data.success) {
+        console.log('🔍 CITIES LOADED - Available cities:', data.data);
         setAvailableCities(data.data);
       } else {
         console.error('Failed to fetch cities:', data.message);
@@ -434,6 +435,7 @@ if (typeof document !== 'undefined') {
         const results = await searchCitiesHybrid(query, countryCode);
         
         if (results.length > 0) {
+          console.log('🔍 CITY SEARCH - Hybrid search results:', results);
           setSearchResults(results);
         } else {
           // Fallback to traditional search
@@ -441,6 +443,7 @@ if (typeof document !== 'undefined') {
           const fallbackResults = await searchCitiesTraditional(query, selectedCountry._id);
           
           if (fallbackResults.length > 0) {
+            console.log('🔍 CITY SEARCH - Traditional search results:', fallbackResults);
             setSearchResults(fallbackResults);
           } else {
             // Final fallback: filter existing cities
@@ -454,6 +457,7 @@ if (typeof document !== 'undefined') {
               _id: city.id || city._id
             }));
             
+            console.log('🔍 CITY SEARCH - Local filter results:', localResults);
             setSearchResults(localResults);
           }
         }
@@ -481,6 +485,11 @@ if (typeof document !== 'undefined') {
 
   // Handle city selection from dropdown (from NewPostForm)
   const handleCitySelect = (city, setFieldValue) => {
+    console.log('🔍 CITY SELECT - Selected city:', city);
+    console.log('🔍 CITY SELECT - City has _id:', !!city._id);
+    console.log('🔍 CITY SELECT - City has id:', !!city.id);
+    console.log('🔍 CITY SELECT - City code:', city.code);
+    
     setSelectedCityFromSearch(city);
     setCitySearchQuery(city.label || city.labels?.en || city.name || '');
     setShowCityDropdown(false);
@@ -488,10 +497,14 @@ if (typeof document !== 'undefined') {
     // Set the city value in the form
     if (city._id || city.id) {
       // Database city
-      setFieldValue('city', city._id || city.id);
+      const cityId = city._id || city.id;
+      console.log('🔍 CITY SELECT - Setting database city ObjectId:', cityId);
+      setFieldValue('city', cityId);
     } else {
       // API city - we'll handle this in the submit
-      setFieldValue('city', `api_${city.code}`);
+      const apiCityValue = `api_${city.code}`;
+      console.log('🔍 CITY SELECT - Setting API city:', apiCityValue);
+      setFieldValue('city', apiCityValue);
     }
     
     // Clear city field error
