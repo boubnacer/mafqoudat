@@ -64,6 +64,39 @@ const EditPostForm = ({ post, user, countries, flOptions, categories }) => {
   const [customCityName, setCustomCityName] = useState("");
   const [isCreatingCity, setIsCreatingCity] = useState(false);
 
+  // Click outside handler to close city dropdown
+  useEffect(() => {
+    const handleClickOutside = (event) => {
+      if (showCityDropdown && !event.target.closest('[data-testid="city-dropdown"]')) {
+        setShowCityDropdown(false);
+      }
+    };
+
+    document.addEventListener('mousedown', handleClickOutside);
+    return () => {
+      document.removeEventListener('mousedown', handleClickOutside);
+    };
+  }, [showCityDropdown]);
+
+  // Update filtered cities when cities or search query changes
+  useEffect(() => {
+    if (availableCities.length > 0) {
+      if (citySearchQuery.trim()) {
+        // Filter existing cities based on search query
+        const filtered = availableCities.filter(city => 
+          city.label?.toLowerCase().includes(citySearchQuery.toLowerCase()) ||
+          city.name?.toLowerCase().includes(citySearchQuery.toLowerCase()) ||
+          city.labels?.en?.toLowerCase().includes(citySearchQuery.toLowerCase()) ||
+          city.labels?.ar?.toLowerCase().includes(citySearchQuery.toLowerCase()) ||
+          city.labels?.fr?.toLowerCase().includes(citySearchQuery.toLowerCase())
+        );
+        setFilteredCities(filtered);
+      } else {
+        setFilteredCities(availableCities);
+      }
+    }
+  }, [availableCities, citySearchQuery]);
+
   // Define fetchCitiesByCountry function FIRST, before any useEffect that uses it
   const fetchCitiesByCountry = useCallback(async (countryId) => {
     try {
@@ -88,38 +121,91 @@ const EditPostForm = ({ post, user, countries, flOptions, categories }) => {
     }
   }, [currentLanguage]);
 
+  // New function to search cities using hybrid search (from NewPostForm)
+  const searchCitiesHybrid = useCallback(async (searchQuery, countryCode) => {
+    try {
+      if (!searchQuery || searchQuery.length < 2) {
+        return [];
+      }
+
+      const baseUrl = process.env.REACT_APP_API_URL || "http://localhost:3500";
+      const url = `${baseUrl}/cities/search?q=${encodeURIComponent(searchQuery)}&language=${currentLanguage || 'en'}&countryCode=${countryCode}&limit=10`;
+      
+      const response = await fetch(url);
+      const data = await response.json();
+      
+      if (data.success) {
+        return data.data;
+      } else {
+        console.error('Failed to search cities:', data.message);
+        return [];
+      }
+    } catch (error) {
+      console.error('Error searching cities:', error);
+      return [];
+    }
+  }, [currentLanguage]);
+
+  // Traditional city search function (fallback)
+  const searchCitiesTraditional = useCallback(async (searchQuery, countryId) => {
+    try {
+      const baseUrl = process.env.REACT_APP_API_URL || "http://localhost:3500";
+      const url = `${baseUrl}/cities/search-name?query=${encodeURIComponent(searchQuery)}&countryId=${countryId}&limit=10`;
+      
+      console.log('🔄 Traditional API Request:', url);
+      
+      const response = await fetch(url);
+      const data = await response.json();
+      
+      if (data.success) {
+        // Transform traditional results to match hybrid format
+        return data.data.map(city => ({
+          ...city,
+          source: 'database',
+          _id: city._id
+        }));
+      } else {
+        console.error('Failed to search cities traditionally:', data.message);
+        return [];
+      }
+    } catch (error) {
+      console.error('Error in traditional city search:', error);
+      return [];
+    }
+  }, []);
+
   // Inject CSS styles for loading animations
   useEffect(() => {
-    const loadingStyles = `
-      @keyframes mirrorReflection {
-        0% {
-          left: 0px;
-          opacity: 0;
-          transform: translateY(-50%) skew(-15deg) scaleX(0.5);
-        }
-        15% {
-          opacity: 1;
-          transform: translateY(-50%) skew(-15deg) scaleX(1);
-        }
-        85% {
-          left: 100%;
-          opacity: 1;
-          transform: translateY(-50%) skew(-15deg) scaleX(1);
-        }
-        100% {
-          left: 100%;
-          opacity: 0;
-          transform: translateY(-50%) skew(-15deg) scaleX(0.5);
-        }
-      }
-    `;
+const loadingStyles = `
+@keyframes mirrorReflection {
+  0% {
+    left: 0px;
+    opacity: 0;
+    transform: translateY(-50%) skew(-15deg) scaleX(0.5);
+  }
+  15% {
+    opacity: 1;
+    transform: translateY(-50%) skew(-15deg) scaleX(1);
+  }
+  85% {
+    left: 100%;
+    opacity: 1;
+    transform: translateY(-50%) skew(-15deg) scaleX(1);
+  }
+  100% {
+    left: 100%;
+    opacity: 0;
+    transform: translateY(-50%) skew(-15deg) scaleX(0.5);
+  }
+}
+`;
 
-    if (typeof document !== 'undefined') {
-      const styleSheet = document.createElement("style");
-      styleSheet.type = "text/css";
-      styleSheet.innerText = loadingStyles;
-      document.head.appendChild(styleSheet);
-    }
+if (typeof document !== 'undefined') {
+  const styleSheet = document.createElement("style");
+  styleSheet.type = "text/css";
+  styleSheet.innerText = loadingStyles;
+  document.head.appendChild(styleSheet);
+}
   }, []);
 
   useEffect(() => {
@@ -257,6 +343,9 @@ const EditPostForm = ({ post, user, countries, flOptions, categories }) => {
     
     // Reset cities when country changes
     setAvailableCities([]);
+    setFilteredCities([]);
+    setCitySearchQuery("");
+    setSearchResults([]);
     
     // Clear the city field in the form
     setFieldValue('city', '');
@@ -264,6 +353,101 @@ const EditPostForm = ({ post, user, countries, flOptions, categories }) => {
     // Fetch cities for the selected country
     if (countryId) {
       fetchCitiesByCountry(countryId);
+    }
+  };
+
+  // Handle city search input change (from NewPostForm)
+  const handleCitySearchChange = useCallback(async (event) => {
+    const query = event.target.value;
+    setCitySearchQuery(query);
+    
+    // Always show dropdown when there's a query
+    if (query.trim().length > 0) {
+      setShowCityDropdown(true);
+    }
+    
+    // Get country code from selectedCountry object
+    const countryCode = selectedCountry?.code || selectedCountry?.labels?.en || selectedCountry?.names?.en;
+    
+    if (query.length >= 2 && selectedCountry?._id) {
+      setIsSearching(true);
+      try {
+        // Try hybrid search first
+        const results = await searchCitiesHybrid(query, countryCode);
+        
+        if (results.length > 0) {
+          setSearchResults(results);
+        } else {
+          // Fallback to traditional search
+          console.log('🔄 Trying traditional search as fallback...');
+          const fallbackResults = await searchCitiesTraditional(query, selectedCountry._id);
+          
+          if (fallbackResults.length > 0) {
+            setSearchResults(fallbackResults);
+          } else {
+            // Final fallback: filter existing cities
+            console.log('🔄 Using local city filter as final fallback...');
+            const localResults = availableCities.filter(city => 
+              city.label?.toLowerCase().includes(query.toLowerCase()) ||
+              city.name?.toLowerCase().includes(query.toLowerCase())
+            ).map(city => ({
+              ...city,
+              source: 'database',
+              _id: city.id || city._id
+            }));
+            
+            setSearchResults(localResults);
+          }
+        }
+      } catch (error) {
+        console.error('Error searching cities:', error);
+        setSearchResults([]);
+      } finally {
+        setIsSearching(false);
+      }
+    } else if (query.length > 0) {
+      // Show local filtered results for shorter queries
+      const localResults = availableCities.filter(city => 
+        city.label?.toLowerCase().includes(query.toLowerCase()) ||
+        city.name?.toLowerCase().includes(query.toLowerCase())
+      ).map(city => ({
+        ...city,
+        source: 'database',
+        _id: city.id || city._id
+      }));
+      setSearchResults(localResults);
+    } else {
+      setSearchResults([]);
+    }
+  }, [searchCitiesHybrid, selectedCountry, availableCities]);
+
+  // Handle city selection from dropdown (from NewPostForm)
+  const handleCitySelect = (city, setFieldValue) => {
+    setSelectedCityFromSearch(city);
+    setCitySearchQuery(city.label || city.labels?.en || city.name || '');
+    setShowCityDropdown(false);
+    
+    // Set the city value in the form
+    if (city._id || city.id) {
+      // Database city
+      setFieldValue('city', city._id || city.id);
+    } else {
+      // API city - we'll handle this in the submit
+      setFieldValue('city', `api_${city.code}`);
+    }
+    
+    // Clear city field error
+    clearFieldError('city');
+  };
+
+  // Handle dropdown toggle (from NewPostForm)
+  const handleCityDropdownToggle = () => {
+    setShowCityDropdown(!showCityDropdown);
+    // If opening dropdown and there's a search query, ensure results are shown
+    if (!showCityDropdown && citySearchQuery.trim().length > 0) {
+      // Trigger search again to ensure results are displayed
+      const event = { target: { value: citySearchQuery } };
+      handleCitySearchChange(event);
     }
   };
 
@@ -375,6 +559,10 @@ const EditPostForm = ({ post, user, countries, flOptions, categories }) => {
   // Function to check if form has changed
   const checkFormChanged = (currentValues) => {
     const hasChanged = Object.keys(initialFormState).some(key => {
+      // Skip status and returned fields for change detection
+      if (key === 'status' || key === 'returned') {
+        return false;
+      }
       return currentValues[key] !== initialFormState[key];
     });
     setHasFormChanged(hasChanged);
@@ -499,7 +687,7 @@ const EditPostForm = ({ post, user, countries, flOptions, categories }) => {
         description: values.description || "",
         contactPreferences: { whatsapp: true }
       };
-      
+
       // Handle city - match NewPostForm logic
       if (values.city && values.city.startsWith('api_')) {
         // API city - send the city data (for future compatibility)
@@ -1089,48 +1277,218 @@ const EditPostForm = ({ post, user, countries, flOptions, categories }) => {
                     </Box>
                   )}
                   
-                  <FormControl fullWidth disabled={!selectedCountry || loadingCities} error={!!fieldErrors.city}>
-                    <Select
-                      name="city"
-                      value={values.city || ""}
-                      onChange={(e) => {
-                        const selectedValue = e.target.value;
-                        setFieldValue('city', selectedValue);
-                        // Clear city field error if city is selected
-                        if (selectedValue) {
-                          clearFieldError('city');
-                        }
-                      }}
-                      displayEmpty
-                      data-testid="city-select"
+                  <Box sx={{ 
+                    position: 'relative'
+                  }} data-testid="city-dropdown">
+                    {/* City Search Input */}
+                    <TextField
+                      fullWidth
+                      placeholder={currentLanguage === 'ar' ? 'ابحث أو اختر مدينة...' : currentLanguage === 'fr' ? 'Rechercher ou sélectionner une ville...' : 'Search or select a city...'}
+                      value={citySearchQuery}
+                      onChange={handleCitySearchChange}
+                      disabled={!selectedCountry}
+                      data-testid="city-search"
+                      onClick={handleCityDropdownToggle}
                       sx={{
                         borderRadius: 2,
-                        '& .MuiOutlinedInput-notchedOutline': {
-                          borderColor: theme.palette.mode === 'dark' ? 'rgba(255,255,255,0.3)' : 'rgba(0,0,0,0.2)',
-                        },
-                        '&:hover .MuiOutlinedInput-notchedOutline': {
+                        '& .MuiOutlinedInput-root': {
+                          '&:hover fieldset': {
                           borderColor: theme.palette.mode === 'dark' ? 'rgba(255,255,255,0.5)' : 'rgba(0,0,0,0.4)',
                         },
-                        '&.Mui-focused .MuiOutlinedInput-notchedOutline': {
+                          '&.Mui-focused fieldset': {
                           borderColor: theme.palette.mode === 'dark' ? '#4CAF50' : '#2E7D32',
                         },
+                          '& fieldset': {
+                            borderColor: theme.palette.mode === 'dark' ? 'rgba(255,255,255,0.3)' : 'rgba(0,0,0,0.2)',
+                          },
                         color: theme.palette.text.primary,
-                        fontWeight: 500
-                      }}
-                      MenuProps={{
-                        PaperProps: {
-                          sx: {
-                            maxHeight: 300,
-                          }
+                          fontWeight: 500,
+                          cursor: 'pointer'
                         }
                       }}
-                    >
-                      {availableCities.map((city) => (
-                        <MenuItem key={city.id || city._id} value={city.id || city._id}>
-                          {city.label || city.name || 'Unknown City'}
-                        </MenuItem>
-                      ))}
-                    </Select>
+                      InputProps={{
+                        endAdornment: isSearching ? (
+                          <CircularProgress size={20} />
+                        ) : (
+                          <LocationOn sx={{ color: theme.palette.text.secondary }} />
+                        )
+                      }}
+                    />
+
+                    {/* Unified City Dropdown */}
+                    {showCityDropdown && selectedCountry && (
+                      <Box
+                        sx={{
+                          position: 'absolute',
+                          top: '100%',
+                          left: 0,
+                          right: 0,
+                          zIndex: '99999 !important',
+                          backgroundColor: theme.palette.background.paper,
+                          border: `1px solid ${theme.palette.divider}`,
+                          borderRadius: 2,
+                          boxShadow: theme.shadows[8],
+                          maxHeight: 400,
+                          overflow: 'hidden',
+                          mt: 0.5
+                        }}
+                      >
+                        {/* Cities List */}
+                        <Box sx={{ 
+                          maxHeight: 300, 
+                          overflow: 'auto',
+                          backgroundColor: theme.palette.mode === 'dark' ? '#1a1a1a' : '#ffffff',
+                          position: 'relative',
+                          zIndex: 1
+                        }}>
+                          {/* Show search results if searching */}
+                          {citySearchQuery.trim() && searchResults.length > 0 ? (
+                            <>
+                              <Box sx={{ 
+                                p: 1, 
+                                backgroundColor: theme.palette.mode === 'dark' ? '#1a1a1a' : '#ffffff',
+                                position: 'sticky',
+                                top: 0,
+                                zIndex: 2
+                              }}>
+                                <Typography variant="caption" color="text.secondary" sx={{ fontWeight: 600 }}>
+                                  {currentLanguage === 'ar' ? 'نتائج البحث' : currentLanguage === 'fr' ? 'Résultats de recherche' : 'Search Results'}
+                                </Typography>
+                              </Box>
+                              {searchResults.map((city, index) => (
+                                <Box
+                                  key={city._id || city.code || city.id || index}
+                                  onClick={() => handleCitySelect(city, setFieldValue)}
+                                  sx={{
+                                    p: 2,
+                                    cursor: 'pointer',
+                                    backgroundColor: theme.palette.mode === 'dark' ? '#1a1a1a' : '#ffffff',
+                                    borderBottom: index < searchResults.length - 1 ? `1px solid ${theme.palette.divider}` : 'none',
+                                    position: 'relative',
+                                    zIndex: '999999 !important',
+                                    '&:hover': {
+                                      backgroundColor: theme.palette.mode === 'dark' ? '#2a2a2a' : '#f5f5f5',
+                                      transform: 'translateX(4px)',
+                                      transition: 'all 0.2s ease-in-out'
+                                    },
+                                    display: 'flex',
+                                    alignItems: 'center',
+                                    gap: 1,
+                                    transition: 'all 0.2s ease-in-out'
+                                  }}
+                                >
+                                  <LocationOn fontSize="small" color="primary" sx={{ zIndex: '999999 !important', position: 'relative' }} />
+                                  <Box sx={{ zIndex: '999999 !important', position: 'relative' }}>
+                                    <Typography variant="body2" sx={{ 
+                                      fontWeight: 500,
+                                      zIndex: '999999 !important',
+                                      position: 'relative'
+                                    }}>
+                                      {city.label || city.labels?.en || city.name || city.code || 'Unknown City'}
+                                    </Typography>
+                                    <Typography variant="caption" color="text.secondary" sx={{
+                                      zIndex: '999999 !important',
+                                      position: 'relative'
+                                    }}>
+                                      {city.isCapital && `${t('capital') || 'Capital'}`}
+                                      {city.labels?.ar && ` • ${city.labels.ar}`}
+                                    </Typography>
+                                  </Box>
+                                </Box>
+                              ))}
+                            </>
+                          ) : citySearchQuery.trim() && searchResults.length === 0 && !isSearching ? (
+                            <Box sx={{ 
+                              p: 3, 
+                              textAlign: 'center',
+                              backgroundColor: theme.palette.mode === 'dark' ? '#1a1a1a' : '#ffffff',
+                              position: 'relative',
+                              zIndex: '999999 !important'
+                            }}>
+                              <Typography variant="body2" color="text.secondary">
+                                {t('noCitiesFound') || 'No cities found'}
+                              </Typography>
+                              <Typography variant="caption" color="text.secondary" sx={{ mt: 1, display: 'block' }}>
+                                {currentLanguage === 'ar' ? 'أضف اسم المدينة الجديدة' : 
+                                 currentLanguage === 'fr' ? 'Ajouter un nouveau nom de ville' : 
+                                 'Add new city name'}
+                              </Typography>
+                            </Box>
+                          ) : (
+                            <>
+                              {/* Show existing cities when not searching */}
+                              <Box sx={{ 
+                                p: 1, 
+                                backgroundColor: theme.palette.mode === 'dark' ? '#1a1a1a' : '#ffffff',
+                                position: 'sticky',
+                                top: 0,
+                                zIndex: 2
+                              }}>
+                                <Typography variant="caption" color="text.secondary" sx={{ fontWeight: 600 }}>
+                                  {currentLanguage === 'ar' ? `المدن المتاحة (${filteredCities.length})` : currentLanguage === 'fr' ? `Villes disponibles (${filteredCities.length})` : `Available Cities (${filteredCities.length})`}
+                                </Typography>
+                              </Box>
+                              {filteredCities.length > 0 ? (
+                                filteredCities.map((city, index) => (
+                                  <Box
+                                    key={city.id || city._id}
+                                    onClick={() => handleCitySelect(city, setFieldValue)}
+                                    sx={{
+                                      p: 2,
+                                      cursor: 'pointer',
+                                      backgroundColor: theme.palette.mode === 'dark' ? '#1a1a1a' : '#ffffff',
+                                      borderBottom: index < filteredCities.length - 1 ? `1px solid ${theme.palette.divider}` : 'none',
+                                      position: 'relative',
+                                      zIndex: '999999 !important',
+                                      '&:hover': {
+                                        backgroundColor: theme.palette.mode === 'dark' ? '#2a2a2a' : '#f5f5f5',
+                                        transform: 'translateX(4px)',
+                                        transition: 'all 0.2s ease-in-out'
+                                      },
+                                      display: 'flex',
+                                      alignItems: 'center',
+                                      gap: 1,
+                                      transition: 'all 0.2s ease-in-out'
+                                    }}
+                                  >
+                                    <LocationOn fontSize="small" color="primary" sx={{ zIndex: '999999 !important', position: 'relative' }} />
+                                    <Box sx={{ zIndex: '999999 !important', position: 'relative' }}>
+                                      <Typography variant="body2" sx={{ 
+                                        fontWeight: 500,
+                                        zIndex: '999999 !important',
+                                        position: 'relative'
+                                      }}>
+                                        {city.label || city.name || 'Unknown City'}
+                                      </Typography>
+                                      <Typography variant="caption" color="text.secondary" sx={{
+                                        zIndex: '999999 !important',
+                                        position: 'relative'
+                                      }}>
+                                        {city.isCapital && `${t('capital') || 'Capital'}`}
+                                        {city.labels?.ar && ` • ${city.labels.ar}`}
+                                      </Typography>
+                                    </Box>
+                                  </Box>
+                                ))
+                              ) : (
+                                <Box sx={{ 
+                                  p: 3, 
+                                  textAlign: 'center',
+                                  backgroundColor: theme.palette.mode === 'dark' ? '#1a1a1a' : '#ffffff',
+                                  position: 'relative',
+                                  zIndex: '999999 !important'
+                                }}>
+                                  <Typography variant="body2" color="text.secondary">
+                                    {t('noCitiesAvailable') || 'No cities available'}
+                                  </Typography>
+                                </Box>
+                              )}
+                            </>
+                          )}
+                        </Box>
+                      </Box>
+                    )}
+
                     {fieldErrors.city && (
                       <Typography 
                         variant="caption" 
@@ -1144,7 +1502,7 @@ const EditPostForm = ({ post, user, countries, flOptions, categories }) => {
                         {fieldErrors.city}
                       </Typography>
                     )}
-                  </FormControl>
+                  </Box>
                 </Box>
 
                 <Box>
