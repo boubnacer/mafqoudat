@@ -558,13 +558,30 @@ if (typeof document !== 'undefined') {
 
   // Function to check if form has changed
   const checkFormChanged = (currentValues) => {
+    console.log('🔍 FORM CHANGE DEBUG - Checking form changes...');
+    console.log('🔍 FORM CHANGE DEBUG - Initial form state:', initialFormState);
+    console.log('🔍 FORM CHANGE DEBUG - Current values:', currentValues);
+    
     const hasChanged = Object.keys(initialFormState).some(key => {
       // Skip status and returned fields for change detection
       if (key === 'status' || key === 'returned') {
         return false;
       }
-      return currentValues[key] !== initialFormState[key];
+      const initialValue = initialFormState[key];
+      const currentValue = currentValues[key];
+      const isChanged = currentValue !== initialValue;
+      
+      if (isChanged) {
+        console.log(`🔍 FORM CHANGE DEBUG - Field '${key}' changed:`, {
+          initial: initialValue,
+          current: currentValue
+        });
+      }
+      
+      return isChanged;
     });
+    
+    console.log('🔍 FORM CHANGE DEBUG - Has form changed:', hasChanged);
     setHasFormChanged(hasChanged);
   };
 
@@ -672,11 +689,9 @@ if (typeof document !== 'undefined') {
 
       setSubmitting(true);
 
-      // Prepare form data for submission (like NewPostForm)
-      const formData = new FormData();
-      
-      // Combine basic fields into a single JSON object to reduce field count (match NewPostForm structure)
+      // Prepare data for submission (match API expectations)
       const postData = {
+        id: post._id, // Include the post ID for update
         user: post.user, // Use the original post's user ID to avoid validation issues
         country: selectedCountry?._id || values.country,
         category: values.category,
@@ -701,23 +716,10 @@ if (typeof document !== 'undefined') {
       console.log('📦 UPDATE POST - Prepared postData:', postData);
       console.log('📦 UPDATE POST - City value:', values.city);
       console.log('📦 UPDATE POST - Country value:', selectedCountry?._id || values.country);
-      
-      // Append combined data as single field
-      const postDataString = JSON.stringify(postData);
-      formData.append("postData", postDataString);
-      
-      console.log('📦 UPDATE POST - FormData contents:');
-      for (let [key, value] of formData.entries()) {
-        console.log(`📦 UPDATE POST - ${key}:`, value);
-      }
-      
-      // Only append image if present - temporarily disabled
-      // if (values.image) {
-      //   formData.append("image", values.image);
-      // }
+      console.log('📦 UPDATE POST - Post ID:', post._id);
 
       console.log('🌐 UPDATE POST - Calling updatePost API...');
-      const result = await updatePost(formData).unwrap();
+      const result = await updatePost(postData).unwrap();
       console.log('✅ UPDATE POST - API call successful:', result);
     } catch (error) {
       console.error('❌ UPDATE POST - Update failed:', error);
