@@ -371,32 +371,20 @@ const SinglePostPage = ({
 
   // Memoized city name computation
   const displayCityName = useMemo(() => {
-    console.log('🔍 SINGLE POST CLIENT - City data received:', {
-      city: city,
-      cityType: typeof city,
-      cityName: cityName,
-      cityLabels: cityLabels,
-      currentLanguage: currentLanguage
-    });
-    
     // Get city name with proper multilingual support
     // First priority: Use the populated city data from the API
     if (cityLabels && cityLabels[currentLanguage]) {
-      console.log('🔍 SINGLE POST CLIENT - Using cityLabels:', cityLabels[currentLanguage]);
       return cityLabels[currentLanguage];
     }
     // Second priority: Use the English city name as fallback
     if (cityName) {
-      console.log('🔍 SINGLE POST CLIENT - Using cityName:', cityName);
       return cityName;
     }
     // Third priority: Use the city field directly (for custom city names like API cities)
     if (city && typeof city === 'string' && city.trim()) {
-      console.log('🔍 SINGLE POST CLIENT - Using city string:', city.trim());
       return city.trim();
     }
     // Last fallback: "Unknown City"
-    console.log('🔍 SINGLE POST CLIENT - Using fallback: Unknown City');
     return t('unknownCity') || 'Unknown City';
   }, [cityLabels, cityName, city, currentLanguage, t]);
 
