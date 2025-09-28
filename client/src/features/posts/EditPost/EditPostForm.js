@@ -34,10 +34,6 @@ import useAuth from "../../../hooks/useAuth";
 // CSS keyframes for loading animations will be injected in useEffect
 
 const EditPostForm = ({ post, user, countries, flOptions, categories }) => {
-  // Debug: Log post data received by EditPostForm
-  console.log('📥 FORM RECEIVED - post:', post);
-  console.log('📥 FORM RECEIVED - post.city:', post?.city);
-  console.log('📥 FORM RECEIVED - post.city type:', typeof post?.city);
   const [updatePost, { isLoading, isSuccess, isError, error }] = useUpdatePostMutation();
   const [deletePost, { isSuccess: isDelSuccess, isError: isDelError, error: delerror }] = useDeletePostMutation();
   const { t, currentLanguage } = useTranslation();
@@ -501,17 +497,7 @@ if (typeof document !== 'undefined') {
 
   // Initialize form state with existing post data
   const initialFormState = useMemo(() => {
-    console.log('🏗️ INITIAL FORM STATE - useMemo triggered');
-    console.log('🏗️ INITIAL FORM STATE - post exists:', !!post);
-    
-    if (!post) {
-      console.log('🏗️ INITIAL FORM STATE - No post data available yet');
-      return {};
-    }
-    
-    console.log('🏗️ INITIAL FORM STATE - Post data:', post);
-    console.log('🏗️ INITIAL FORM STATE - Post city:', post?.city);
-    console.log('🏗️ INITIAL FORM STATE - Post city type:', typeof post?.city);
+    if (!post) return {};
     
     return {
     country: post?.country || "",
@@ -543,27 +529,20 @@ if (typeof document !== 'undefined') {
     foundLost: post?.foundLost || "",
     city: (() => {
       // Handle both object and string city formats
-      console.log('🏗️ CITY INIT - Processing city field...');
-      console.log('🏗️ CITY INIT - post?.city:', post?.city);
-      console.log('🏗️ CITY INIT - typeof post?.city:', typeof post?.city);
-      
       if (post?.city) {
         if (typeof post.city === 'object') {
           // Check if the object is empty or has no id/_id
           const cityId = post.city.id || post.city._id;
           if (cityId) {
-            console.log('🏗️ CITY INIT - Object city with ID, returning:', cityId);
             return cityId;
           } else {
-            console.log('🏗️ CITY INIT - Empty object city, returning empty string');
+            // If the city object is empty, return empty string
             return "";
           }
         }
-        // Return the actual city value from post, regardless of availableCities
-        console.log('🏗️ CITY INIT - String city, returning:', post.city);
+        // Return the actual city value from post
         return post.city;
       }
-      console.log('🏗️ CITY INIT - No city found, returning empty string');
       return "";
     })(),
     exactLocation: post?.exactLocation || "",
@@ -604,15 +583,8 @@ if (typeof document !== 'undefined') {
   const checkFormChanged = (currentValues) => {
     // Only check for changes if we have a proper initial form state
     if (!initialFormState || Object.keys(initialFormState).length === 0) {
-      console.log('🔍 FORM CHANGE DEBUG - Skipping change detection - no initial form state');
       return;
     }
-    
-    console.log('🔍 FORM CHANGE DEBUG - Checking form changes...');
-    console.log('🔍 FORM CHANGE DEBUG - Initial form state:', initialFormState);
-    console.log('🔍 FORM CHANGE DEBUG - Current values:', currentValues);
-    console.log('🔍 FORM CHANGE DEBUG - Initial city:', initialFormState.city);
-    console.log('🔍 FORM CHANGE DEBUG - Current city:', currentValues.city);
     
     const hasChanged = Object.keys(initialFormState).some(key => {
       // Skip status and returned fields for change detection
@@ -623,17 +595,9 @@ if (typeof document !== 'undefined') {
       const currentValue = currentValues[key];
       const isChanged = currentValue !== initialValue;
       
-      if (isChanged) {
-        console.log(`🔍 FORM CHANGE DEBUG - Field '${key}' changed:`, {
-          initial: initialValue,
-          current: currentValue
-        });
-      }
-      
       return isChanged;
     });
     
-    console.log('🔍 FORM CHANGE DEBUG - Has form changed:', hasChanged);
     setHasFormChanged(hasChanged);
   };
 

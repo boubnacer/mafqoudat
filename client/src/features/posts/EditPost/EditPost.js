@@ -41,16 +41,6 @@ const EditPost = () => {
     language: currentLanguage || 'en'
   });
 
-  // Debug: Log post data when it's loaded
-  useEffect(() => {
-    if (data) {
-      console.log('📋 POST DATA LOADED - Full post data:', data);
-      console.log('📋 POST DATA LOADED - Post city:', data.city);
-      console.log('📋 POST DATA LOADED - Post city type:', typeof data.city);
-      console.log('📋 POST DATA LOADED - Post city keys:', data.city ? Object.keys(data.city) : 'N/A');
-      console.log('📋 POST DATA LOADED - Post city values:', data.city ? Object.values(data.city) : 'N/A');
-    }
-  }, [data]);
 
   const { user } = useGetUsersQuery("usersList", {
     selectFromResult: ({ data }) => ({
@@ -78,17 +68,6 @@ const EditPost = () => {
   if (!data || !user || !countries || !categories || !flOptions)
     return <LoadingState message={t('loadingEditForm')} />;
 
-  // Debug: Log data being passed to EditPostForm
-  console.log('📤 PASSING TO FORM - data:', data);
-  console.log('📤 PASSING TO FORM - data.city:', data?.city);
-  console.log('📤 PASSING TO FORM - data.city type:', typeof data?.city);
-  console.log('📤 PASSING TO FORM - All data keys:', data ? Object.keys(data) : 'N/A');
-  console.log('📤 PASSING TO FORM - City-related fields:', data ? {
-    city: data.city,
-    cityName: data.cityName,
-    cityLabels: data.cityLabels,
-    cityDebug: data.cityDebug
-  } : 'N/A');
 
   const content = (
     <EditPostForm

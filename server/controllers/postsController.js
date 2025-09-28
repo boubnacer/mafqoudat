@@ -318,7 +318,7 @@ const getPost = async (req, res) => {
                 labels: "$City.labels",
                 isDynamic: "$City.isDynamic"
               },
-              else: null
+              else: "$city"  // Return the original city value if lookup fails
             }
           },
           cityName: { $ifNull: ["$City.labels.en", "$City.code"] },
