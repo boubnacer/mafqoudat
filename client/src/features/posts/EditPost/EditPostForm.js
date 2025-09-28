@@ -149,10 +149,14 @@ const EditPostForm = ({ post, user, countries, flOptions, categories }) => {
     if (post?.city && availableCities.length > 0 && setFieldValueCallback) {
       // Handle both object and string city formats
       const cityId = post.city?.id || post.city;
-      // Check if the post city exists in available cities
-      const cityExists = availableCities.find(city => city.id === cityId);
+      // Check if the post city exists in available cities (support both id and _id)
+      const cityExists = availableCities.find(city => 
+        city.id === cityId || city._id === cityId
+      );
       if (cityExists) {
-        setFieldValueCallback('city', cityId);
+        // Use the city's id or _id as the form value
+        const formCityId = cityExists.id || cityExists._id;
+        setFieldValueCallback('city', formCityId);
       }
     }
   }, [post?.city, availableCities, setFieldValueCallback]);
@@ -274,7 +278,16 @@ const EditPostForm = ({ post, user, countries, flOptions, categories }) => {
       return categoryValue;
     })(),
     foundLost: post?.foundLost || "",
-    city: post?.city?.id || post?.city || "",
+    city: (() => {
+      // Handle both object and string city formats
+      if (post?.city) {
+        if (typeof post.city === 'object') {
+          return post.city.id || post.city._id || "";
+        }
+        return post.city;
+      }
+      return "";
+    })(),
     exactLocation: post?.exactLocation || "",
     exactDate: (() => {
       // Try multiple date fields in order of preference
@@ -423,10 +436,9 @@ const EditPostForm = ({ post, user, countries, flOptions, categories }) => {
       // Prepare form data for submission (like NewPostForm)
       const formData = new FormData();
       
-      // Combine basic fields into a single JSON object to reduce field count
+      // Combine basic fields into a single JSON object to reduce field count (match NewPostForm structure)
       const postData = {
         user: user._id,
-        id: post._id,
         country: selectedCountry?._id || values.country,
         category: values.category,
         foundLost: values.foundLost,
@@ -437,8 +449,15 @@ const EditPostForm = ({ post, user, countries, flOptions, categories }) => {
         contactPreferences: { whatsapp: true }
       };
       
-      // Handle city - simplified for database cities only
-      postData.city = values.city;
+      // Handle city - match NewPostForm logic
+      if (values.city && values.city.startsWith('api_')) {
+        // API city - send the city data (for future compatibility)
+        postData.city = values.city.replace('api_', '');
+        // Note: selectedCityFromSearch would be needed for full API city support
+      } else {
+        // Database city
+        postData.city = values.city;
+      }
       
       console.log('📦 UPDATE POST - Prepared postData:', postData);
       console.log('📦 UPDATE POST - City value:', values.city);
@@ -1025,10 +1044,10 @@ const EditPostForm = ({ post, user, countries, flOptions, categories }) => {
                       value={values.city || ""}
                       onChange={(e) => {
                         const selectedValue = e.target.value;
-                          setFieldValue('city', selectedValue);
-                          // Clear city field error if city is selected
-                          if (selectedValue) {
-                            clearFieldError('city');
+                        setFieldValue('city', selectedValue);
+                        // Clear city field error if city is selected
+                        if (selectedValue) {
+                          clearFieldError('city');
                         }
                       }}
                       displayEmpty
@@ -1056,7 +1075,7 @@ const EditPostForm = ({ post, user, countries, flOptions, categories }) => {
                       }}
                     >
                       {availableCities.map((city) => (
-                        <MenuItem key={city.id} value={city.id}>
+                        <MenuItem key={city.id || city._id} value={city.id || city._id}>
                           {city.label || city.name || 'Unknown City'}
                         </MenuItem>
                       ))}
