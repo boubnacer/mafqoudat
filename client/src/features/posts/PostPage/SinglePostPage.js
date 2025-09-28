@@ -371,29 +371,22 @@ const SinglePostPage = ({
 
   // Memoized city name computation
   const displayCityName = useMemo(() => {
-    // Extract city from location (show only city)
-    const getCityFromLocation = (location) => {
-      if (!location) return t('unknownLocation');
-      // Split by comma and take the first part (usually the city)
-      const parts = location.split(',');
-      const city = parts[0].trim();
-      // Remove any extra location details that might be in parentheses
-      const cleanCity = city.split('(')[0].trim();
-      // Remove any numbers or extra details
-      return cleanCity.replace(/\d+/g, '').trim();
-    };
-
     // Get city name with proper multilingual support
-    // First try to use the populated city data from the API
+    // First priority: Use the populated city data from the API
     if (cityLabels && cityLabels[currentLanguage]) {
       return cityLabels[currentLanguage];
     }
+    // Second priority: Use the English city name as fallback
     if (cityName) {
       return cityName;
     }
-    // Fallback to extracting from exactLocation
-    return getCityFromLocation(exactLocation);
-  }, [cityLabels, cityName, exactLocation, currentLanguage, t]);
+    // Third priority: Use the city field directly (for custom city names like API cities)
+    if (city && typeof city === 'string' && city.trim()) {
+      return city.trim();
+    }
+    // Last fallback: "Unknown City"
+    return t('unknownCity') || 'Unknown City';
+  }, [cityLabels, cityName, city, currentLanguage, t]);
 
   // Memoized found/lost status computation
   const foundLostStatus = useMemo(() => {
