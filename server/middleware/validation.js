@@ -73,8 +73,11 @@ const sanitizeInput = (req, res, next) => {
 
 // Common validation rules
 const commonValidations = {
-  // ObjectId validation
+  // ObjectId validation for URL parameters
   objectId: (field) => param(field).isMongoId().withMessage('Invalid ID format'),
+  
+  // ObjectId validation for request body
+  bodyObjectId: (field) => body(field).isMongoId().withMessage('Invalid ID format'),
   
   // Email validation
   email: (field) => body(field)

@@ -533,15 +533,7 @@ if (typeof document !== 'undefined') {
         if (typeof post.city === 'object') {
           return post.city.id || post.city._id || "";
         }
-        // If we have available cities, try to find the matching city
-        if (availableCities.length > 0) {
-          const matchingCity = availableCities.find(city => 
-            city.id === post.city || city._id === post.city
-          );
-          if (matchingCity) {
-            return matchingCity.id || matchingCity._id;
-          }
-        }
+        // Return the actual city value from post, regardless of availableCities
         return post.city;
       }
       return "";
@@ -578,7 +570,7 @@ if (typeof document !== 'undefined') {
     status: post?.status || "active",
     returned: post?.returned || false
   };
-  }, [post, categories, availableCities]);
+  }, [post, categories]);
 
   // Function to check if form has changed
   const checkFormChanged = (currentValues) => {

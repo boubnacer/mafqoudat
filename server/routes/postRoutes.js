@@ -172,13 +172,13 @@ router
     postsController.createNewPost
   )
   .patch(
-    commonValidations.objectId('id'),
+    commonValidations.bodyObjectId('id'),
     validateRequest,
     optimizedInvalidateCache([], 'posts'), 
     postsController.updatePost
   )
   .delete(
-    commonValidations.objectId('id'),
+    commonValidations.bodyObjectId('id'),
     validateRequest,
     optimizedInvalidateCache([], 'posts'), 
     postsController.deletePost
