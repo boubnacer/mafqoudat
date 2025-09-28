@@ -19,8 +19,15 @@ import {
   Select,
   MenuItem,
   FormControl,
-  TextField
+  TextField,
+  Divider,
+  Dialog,
+  DialogTitle,
+  DialogContent,
+  DialogActions,
+  IconButton
 } from "@mui/material";
+import { LocationOn, Add as AddIcon, Close as CloseIcon } from '@mui/icons-material';
 import { useTranslation } from "../../../utils/translations";
 import useAuth from "../../../hooks/useAuth";
 
@@ -45,6 +52,17 @@ const EditPostForm = ({ post, user, countries, flOptions, categories }) => {
   const [showSuccessMessage, setShowSuccessMessage] = useState(false);
   const [successMessage, setSuccessMessage] = useState('');
   const formikRef = useRef(null);
+
+  // New state for unified city dropdown (from NewPostForm)
+  const [citySearchQuery, setCitySearchQuery] = useState("");
+  const [searchResults, setSearchResults] = useState([]);
+  const [isSearching, setIsSearching] = useState(false);
+  const [showCityDropdown, setShowCityDropdown] = useState(false);
+  const [selectedCityFromSearch, setSelectedCityFromSearch] = useState(null);
+  const [filteredCities, setFilteredCities] = useState([]);
+  const [showCustomCityInput, setShowCustomCityInput] = useState(false);
+  const [customCityName, setCustomCityName] = useState("");
+  const [isCreatingCity, setIsCreatingCity] = useState(false);
 
   // Define fetchCitiesByCountry function FIRST, before any useEffect that uses it
   const fetchCitiesByCountry = useCallback(async (countryId) => {
@@ -179,6 +197,39 @@ const EditPostForm = ({ post, user, countries, flOptions, categories }) => {
       return () => clearTimeout(timeoutId);
     }
   }, [fetchCitiesByCountry, selectedCountry?._id, currentLanguage]);
+
+  // Click outside handler to close city dropdown
+  useEffect(() => {
+    const handleClickOutside = (event) => {
+      if (showCityDropdown && !event.target.closest('[data-testid="city-dropdown"]')) {
+        setShowCityDropdown(false);
+      }
+    };
+
+    document.addEventListener('mousedown', handleClickOutside);
+    return () => {
+      document.removeEventListener('mousedown', handleClickOutside);
+    };
+  }, [showCityDropdown]);
+
+  // Update filtered cities when cities or search query changes
+  useEffect(() => {
+    if (availableCities.length > 0) {
+      if (citySearchQuery.trim()) {
+        // Filter existing cities based on search query
+        const filtered = availableCities.filter(city => 
+          city.label?.toLowerCase().includes(citySearchQuery.toLowerCase()) ||
+          city.name?.toLowerCase().includes(citySearchQuery.toLowerCase()) ||
+          city.labels?.en?.toLowerCase().includes(citySearchQuery.toLowerCase()) ||
+          city.labels?.ar?.toLowerCase().includes(citySearchQuery.toLowerCase()) ||
+          city.labels?.fr?.toLowerCase().includes(citySearchQuery.toLowerCase())
+        );
+        setFilteredCities(filtered);
+      } else {
+        setFilteredCities(availableCities);
+      }
+    }
+  }, [availableCities, citySearchQuery]);
 
   // Function to clear specific field error
   const clearFieldError = (fieldName) => {
@@ -438,7 +489,7 @@ const EditPostForm = ({ post, user, countries, flOptions, categories }) => {
       
       // Combine basic fields into a single JSON object to reduce field count (match NewPostForm structure)
       const postData = {
-        user: user._id,
+        user: post.user, // Use the original post's user ID to avoid validation issues
         country: selectedCountry?._id || values.country,
         category: values.category,
         foundLost: values.foundLost,
