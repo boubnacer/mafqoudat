@@ -685,7 +685,6 @@ if (typeof document !== 'undefined') {
 
       // Prepare data for submission (match API expectations)
       const postData = {
-        _id: post._id, // Include the post ID for update
         user: post.user, // Use the original post's user ID to avoid validation issues
         country: selectedCountry?._id || values.country,
         category: values.category,
@@ -713,7 +712,7 @@ if (typeof document !== 'undefined') {
       console.log('📦 UPDATE POST - Prepared postData:', postData);
       console.log('🌐 UPDATE POST - Calling updatePost API...');
       
-      const result = await updatePost(postData).unwrap();
+      const result = await updatePost({ id: post._id, ...postData }).unwrap();
       console.log('✅ UPDATE POST - API call successful:', result);
     } catch (error) {
       console.error('❌ UPDATE POST - Update failed:', error);
