@@ -1048,9 +1048,12 @@ const updatePost = async (req, res) => {
   }
 
   // Confirm post exists to update - only select fields needed for update
+  console.log('🔍 UPDATE POST SERVER - Looking for post with ID:', id);
   const post = await Post.findById(id).select('_id user country category city exactLocation exactDate contact returned foundLost description').exec();
-
+  console.log('🔍 UPDATE POST SERVER - Post found:', !!post);
+  
   if (!post) {
+    console.log('❌ UPDATE POST SERVER - Post not found with ID:', id);
     return res.status(400).json({ message: "Post not found" });
   }
 
