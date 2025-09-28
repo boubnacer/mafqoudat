@@ -241,6 +241,9 @@ const EditPostForm = ({ post, user, countries, flOptions, categories }) => {
   console.log('🏙️ CITY FIELD DEBUG - Post city data:', post?.city);
   console.log('🏙️ CITY FIELD DEBUG - Available cities:', availableCities);
   console.log('🏙️ CITY FIELD DEBUG - Selected country:', selectedCountry);
+  if (availableCities.length > 0) {
+    console.log('🏙️ CITY FIELD DEBUG - First available city structure:', availableCities[0]);
+  }
 
   // Initialize form state with existing post data
   const initialFormState = {
@@ -464,6 +467,11 @@ const EditPostForm = ({ post, user, countries, flOptions, categories }) => {
       console.error('❌ UPDATE POST - Error data:', error?.data);
       console.error('❌ UPDATE POST - Error message:', error?.data?.message);
       console.error('❌ UPDATE POST - Error details:', error?.data?.errors);
+      if (error?.data?.errors && error.data.errors.length > 0) {
+        console.error('❌ UPDATE POST - First error:', error.data.errors[0]);
+        console.error('❌ UPDATE POST - Error field:', error.data.errors[0]?.field);
+        console.error('❌ UPDATE POST - Error message:', error.data.errors[0]?.message);
+      }
       setStatus({
         type: 'error',
         message: error?.data?.message || t('updateFailed')
@@ -488,6 +496,11 @@ const EditPostForm = ({ post, user, countries, flOptions, categories }) => {
       console.error('❌ DELETE POST - Error data:', error?.data);
       console.error('❌ DELETE POST - Error message:', error?.data?.message);
       console.error('❌ DELETE POST - Error details:', error?.data?.errors);
+      if (error?.data?.errors && error.data.errors.length > 0) {
+        console.error('❌ DELETE POST - First error:', error.data.errors[0]);
+        console.error('❌ DELETE POST - Error field:', error.data.errors[0]?.field);
+        console.error('❌ DELETE POST - Error message:', error.data.errors[0]?.message);
+      }
     }
   };
 
