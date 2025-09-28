@@ -107,35 +107,35 @@ const EditPostForm = ({ post, user, countries, flOptions, categories }) => {
   // Inject CSS styles for loading animations
   useEffect(() => {
     console.log('🔧 EditPostForm - CSS injection useEffect starting...');
-    const loadingStyles = `
-      @keyframes mirrorReflection {
-        0% {
-          left: 0px;
-          opacity: 0;
-          transform: translateY(-50%) skew(-15deg) scaleX(0.5);
-        }
-        15% {
-          opacity: 1;
-          transform: translateY(-50%) skew(-15deg) scaleX(1);
-        }
-        85% {
-          left: 100%;
-          opacity: 1;
-          transform: translateY(-50%) skew(-15deg) scaleX(1);
-        }
-        100% {
-          left: 100%;
-          opacity: 0;
-          transform: translateY(-50%) skew(-15deg) scaleX(0.5);
-        }
-      }
-    `;
+const loadingStyles = `
+@keyframes mirrorReflection {
+  0% {
+    left: 0px;
+    opacity: 0;
+    transform: translateY(-50%) skew(-15deg) scaleX(0.5);
+  }
+  15% {
+    opacity: 1;
+    transform: translateY(-50%) skew(-15deg) scaleX(1);
+  }
+  85% {
+    left: 100%;
+    opacity: 1;
+    transform: translateY(-50%) skew(-15deg) scaleX(1);
+  }
+  100% {
+    left: 100%;
+    opacity: 0;
+    transform: translateY(-50%) skew(-15deg) scaleX(0.5);
+  }
+}
+`;
 
-    if (typeof document !== 'undefined') {
-      const styleSheet = document.createElement("style");
-      styleSheet.type = "text/css";
-      styleSheet.innerText = loadingStyles;
-      document.head.appendChild(styleSheet);
+if (typeof document !== 'undefined') {
+  const styleSheet = document.createElement("style");
+  styleSheet.type = "text/css";
+  styleSheet.innerText = loadingStyles;
+  document.head.appendChild(styleSheet);
       console.log('✅ EditPostForm - CSS styles injected successfully');
     }
   }, []);
@@ -624,7 +624,10 @@ const EditPostForm = ({ post, user, countries, flOptions, categories }) => {
     }
   };
 
+  console.log('🔧 EditPostForm - Checking error states...');
+
   if (isError || isDelError) {
+    console.log('❌ EditPostForm - Error state detected, showing error UI');
     return (
       <Box display="flex" justifyContent="center" alignItems="center" minHeight="50vh">
         <Alert severity="error" sx={{ maxWidth: 600 }}>
@@ -634,9 +637,14 @@ const EditPostForm = ({ post, user, countries, flOptions, categories }) => {
       </Box>
     );
   }
+  
+  console.log('✅ EditPostForm - No error state, proceeding to main form');
 
   // Show loading state while post data is being loaded
+  console.log('🔧 EditPostForm - Checking post data...');
+  
   if (!post) {
+    console.log('⏳ EditPostForm - No post data, showing loading state');
     return (
       <Box 
         display="flex" 
@@ -694,6 +702,10 @@ const EditPostForm = ({ post, user, countries, flOptions, categories }) => {
       </Box>
     );
   }
+  
+  console.log('✅ EditPostForm - Post data available, proceeding to form rendering');
+
+  console.log('🎨 EditPostForm - Starting main JSX rendering...');
 
   return (
     <Box 
@@ -723,6 +735,8 @@ const EditPostForm = ({ post, user, countries, flOptions, categories }) => {
           boxShadow: theme.shadows[8]
         }}
       >
+        {console.log('📄 EditPostForm - Paper component rendered')}
+        {console.log('📝 EditPostForm - Typography component rendered')}
         <Typography 
           variant="h3" 
           gutterBottom 
@@ -818,6 +832,7 @@ const EditPostForm = ({ post, user, countries, flOptions, categories }) => {
           </Box>
         )}
 
+        {console.log('📋 EditPostForm - Formik component starting...')}
         <Formik
           ref={formikRef}
           initialValues={initialFormState}
@@ -826,12 +841,14 @@ const EditPostForm = ({ post, user, countries, flOptions, categories }) => {
           enableReinitialize={true}
         >
           {({ isSubmitting, status, setFieldValue, values }) => {
+            console.log('🔧 EditPostForm - Formik render prop executing...');
             // Store setFieldValue function for use in custom city creation
             setSetFieldValueCallback(() => setFieldValue);
             
             // Check if form has changed whenever values change (call directly instead of useEffect)
             checkFormChanged(values);
             
+            console.log('📝 EditPostForm - Form component starting...');
             return (
             <Form>
               {status?.error && (
@@ -1119,7 +1136,7 @@ const EditPostForm = ({ post, user, countries, flOptions, categories }) => {
                             ? 'Sélectionnez votre ville ou la grande ville la plus proche (capitale, préfecture, province ou état)'
                             : 'Select your city or the nearest major city to you (capital, prefecture, province or state)'
                     }
-                  </Typography> 
+                  </Typography>
                   
                   {/* Debug info */}
                   {process.env.NODE_ENV === 'development' && selectedCountry && (
@@ -1145,10 +1162,10 @@ const EditPostForm = ({ post, user, countries, flOptions, categories }) => {
                       value={values.city || ""}
                       onChange={(e) => {
                         const selectedValue = e.target.value;
-                        setFieldValue('city', selectedValue);
-                        // Clear city field error if city is selected
-                        if (selectedValue) {
-                          clearFieldError('city');
+                          setFieldValue('city', selectedValue);
+                          // Clear city field error if city is selected
+                          if (selectedValue) {
+                            clearFieldError('city');
                         }
                       }}
                       displayEmpty
