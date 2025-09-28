@@ -710,6 +710,7 @@ if (typeof document !== 'undefined') {
         exactDate: values.exactDate,
         contact: values.contact,
         description: values.description || "",
+        returned: values.returned || false, // Add the returned field
         contactPreferences: { whatsapp: true }
       };
 
@@ -727,6 +728,17 @@ if (typeof document !== 'undefined') {
       console.log('📊 UPDATE POST - Form values:', values);
       console.log('📊 UPDATE POST - Post data:', post);
       console.log('📦 UPDATE POST - Prepared postData:', postData);
+      console.log('🔍 UPDATE POST - Checking required fields:');
+      console.log('  - id:', post._id);
+      console.log('  - user:', postData.user);
+      console.log('  - category:', postData.category);
+      console.log('  - exactLocation:', postData.exactLocation);
+      console.log('  - exactDate:', postData.exactDate);
+      console.log('  - country:', postData.country);
+      console.log('  - contact:', postData.contact);
+      console.log('  - foundLost:', postData.foundLost);
+      console.log('  - returned:', postData.returned, '(type:', typeof postData.returned, ')');
+      console.log('  - city:', postData.city);
       console.log('🌐 UPDATE POST - Calling updatePost API...');
       
       const result = await updatePost({ id: post._id, ...postData }).unwrap();
