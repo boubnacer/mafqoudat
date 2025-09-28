@@ -227,6 +227,23 @@ if (typeof document !== 'undefined') {
     }
   }, [isSuccess, isDelSuccess, navigate, t]);
 
+  // Set city search query when post and cities are available
+  useEffect(() => {
+    if (post?.city && availableCities.length > 0) {
+      // Find the city in the available cities
+      const existingCity = availableCities.find(city => 
+        city.id === post.city || 
+        city._id === post.city ||
+        (typeof post.city === 'object' && (city.id === post.city.id || city._id === post.city._id))
+      );
+      
+      if (existingCity) {
+        setCitySearchQuery(existingCity.label || existingCity.name || '');
+        console.log('🏙️ CITY INIT - Set city search query:', existingCity.label || existingCity.name);
+      }
+    }
+  }, [post?.city, availableCities]);
+
   // Initialize selected country from post data
   useEffect(() => {
     if (post?.country && countries) {
@@ -690,9 +707,25 @@ if (typeof document !== 'undefined') {
         postData.city = values.city;
       }
       
+      console.log('🚀 UPDATE POST - Starting update process...');
+      console.log('📊 UPDATE POST - Form values:', values);
+      console.log('📊 UPDATE POST - Post data:', post);
+      console.log('📦 UPDATE POST - Prepared postData:', postData);
+      console.log('🌐 UPDATE POST - Calling updatePost API...');
+      
       const result = await updatePost(postData).unwrap();
+      console.log('✅ UPDATE POST - API call successful:', result);
     } catch (error) {
-      console.error('Update failed:', error?.data?.message || error.message);
+      console.error('❌ UPDATE POST - Update failed:', error);
+      console.error('❌ UPDATE POST - Error status:', error?.status);
+      console.error('❌ UPDATE POST - Error data:', error?.data);
+      console.error('❌ UPDATE POST - Error message:', error?.data?.message);
+      console.error('❌ UPDATE POST - Error details:', error?.data?.errors);
+      if (error?.data?.errors && error.data.errors.length > 0) {
+        console.error('❌ UPDATE POST - First error:', error.data.errors[0]);
+        console.error('❌ UPDATE POST - Error field:', error.data.errors[0]?.field);
+        console.error('❌ UPDATE POST - Error message:', error.data.errors[0]?.message);
+      }
       setStatus({
         type: 'error',
         message: error?.data?.message || t('updateFailed')
