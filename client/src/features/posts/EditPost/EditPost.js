@@ -79,6 +79,7 @@ const EditPost = () => {
   console.log('🔍 EditPost - Countries:', countries);
   console.log('🔍 EditPost - Categories:', categories);
   console.log('🔍 EditPost - FlOptions:', flOptions);
+  console.log('🔍 EditPost - Cities:', cities);
 
   if (!data || !user || !countries || !categories || !flOptions)
     return <LoadingState message={t('loadingEditForm')} />;
