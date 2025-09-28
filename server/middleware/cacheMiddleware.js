@@ -30,7 +30,9 @@ const cacheMiddleware = (prefix, ttl = CACHE_TTL.DYNAMIC_DATA) => {
       
       if (cachedData) {
         res.set('X-Cache', 'HIT');
-        res.set('X-Cache-Key', cacheKey);
+        // Sanitize cache key for header (remove invalid characters)
+        const sanitizedKey = cacheKey.replace(/[^\x20-\x7E]/g, '');
+        res.set('X-Cache-Key', sanitizedKey);
         return res.json(cachedData);
       }
       
@@ -129,7 +131,9 @@ const paginatedCache = (prefix, ttl = CACHE_TTL.DYNAMIC_DATA) => {
       
       if (cachedData) {
         res.set('X-Cache', 'HIT');
-        res.set('X-Cache-Key', cacheKey);
+        // Sanitize cache key for header (remove invalid characters)
+        const sanitizedKey = cacheKey.replace(/[^\x20-\x7E]/g, '');
+        res.set('X-Cache-Key', sanitizedKey);
         return res.json(cachedData);
       }
       

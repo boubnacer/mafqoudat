@@ -321,8 +321,20 @@ const getPost = async (req, res) => {
               else: "$city"  // Return the original city value if lookup fails
             }
           },
-          cityName: { $ifNull: ["$City.labels.en", "$City.code"] },
-          cityLabels: { $ifNull: ["$City.labels", null] },
+          cityName: {
+            $cond: {
+              if: { $ne: ["$City", null] },
+              then: { $ifNull: ["$City.labels.en", "$City.code"] },
+              else: "$city"  // For API cities, use the original city value
+            }
+          },
+          cityLabels: {
+            $cond: {
+              if: { $ne: ["$City", null] },
+              then: "$City.labels",
+              else: null  // API cities don't have labels
+            }
+          },
           returned: 1,
           createdAt: 1,
           updatedAt: 1,
