@@ -26,150 +26,85 @@ import useAuth from "../../../hooks/useAuth";
 // CSS keyframes for loading animations will be injected in useEffect
 
 const EditPostForm = ({ post, user, countries, flOptions, categories }) => {
-  console.log('🚀 EditPostForm - Starting component initialization');
-  console.log('📊 EditPostForm - Props received:', { 
-    post: post ? 'Present' : 'Missing', 
-    user: user ? 'Present' : 'Missing', 
-    countries: countries?.length || 0, 
-    flOptions: flOptions?.length || 0, 
-    categories: categories?.length || 0 
-  });
-  
-  console.log('🔧 EditPostForm - Initializing hooks...');
-  
   const [updatePost, { isLoading, isSuccess, isError, error }] = useUpdatePostMutation();
-  console.log('✅ EditPostForm - useUpdatePostMutation initialized');
-  
   const [deletePost, { isSuccess: isDelSuccess, isError: isDelError, error: delerror }] = useDeletePostMutation();
-  console.log('✅ EditPostForm - useDeletePostMutation initialized');
-  
   const { t, currentLanguage } = useTranslation();
-  console.log('✅ EditPostForm - useTranslation initialized');
-  
   const { role } = useAuth();
-  console.log('✅ EditPostForm - useAuth initialized');
-  
   const token = useSelector(selectCurrentToken);
-  console.log('✅ EditPostForm - useSelector initialized');
-
   const navigate = useNavigate();
-  console.log('✅ EditPostForm - useNavigate initialized');
-  
   const theme = useTheme();
-  console.log('✅ EditPostForm - useTheme initialized');
-  
-  console.log('🔧 EditPostForm - Initializing state variables...');
   
   // State for cities
   const [selectedCountry, setSelectedCountry] = useState(null);
-  console.log('✅ EditPostForm - selectedCountry state initialized');
-  
   const [availableCities, setAvailableCities] = useState([]);
-  console.log('✅ EditPostForm - availableCities state initialized');
-  
   const [loadingCities, setLoadingCities] = useState(false);
-  console.log('✅ EditPostForm - loadingCities state initialized');
-  
-  // State for custom city functionality - temporarily disabled
-  // const [showCustomCityInput, setShowCustomCityInput] = useState(false);
-  // const [customCityName, setCustomCityName] = useState("");
-  // const [isCreatingCity, setIsCreatingCity] = useState(false);
   const [setFieldValueCallback, setSetFieldValueCallback] = useState(null);
-  console.log('✅ EditPostForm - setFieldValueCallback state initialized');
-  
   const [fieldErrors, setFieldErrors] = useState({});
-  console.log('✅ EditPostForm - fieldErrors state initialized');
-  
   const [hasFormChanged, setHasFormChanged] = useState(false);
-  console.log('✅ EditPostForm - hasFormChanged state initialized');
-  
   const [showSuccessMessage, setShowSuccessMessage] = useState(false);
-  console.log('✅ EditPostForm - showSuccessMessage state initialized');
-  
   const [successMessage, setSuccessMessage] = useState('');
-  console.log('✅ EditPostForm - successMessage state initialized');
-
-  // New state for unified city dropdown - temporarily simplified
-  // const [citySearchQuery, setCitySearchQuery] = useState("");
-  // const [searchResults, setSearchResults] = useState([]);
-  // const [isSearching, setIsSearching] = useState(false);
-  // const [showCityDropdown, setShowCityDropdown] = useState(false);
-  // const [selectedCityFromSearch, setSelectedCityFromSearch] = useState(null);
-  // const [filteredCities, setFilteredCities] = useState([]);
-
-  // Image upload state - temporarily disabled
-  // const [selectedFileName, setSelectedFileName] = useState("");
-  // const [isCompressing, setIsCompressing] = useState(false);
-  // const [compressionInfo, setCompressionInfo] = useState(null);
   const formikRef = useRef(null);
-  console.log('✅ EditPostForm - formikRef initialized');
 
-  console.log('🔧 EditPostForm - About to start useEffect hooks...');
-  
+  // Define fetchCitiesByCountry function FIRST, before any useEffect that uses it
+  const fetchCitiesByCountry = useCallback(async (countryId) => {
+    try {
+      setLoadingCities(true);
+      const baseUrl = process.env.REACT_APP_API_URL || "http://localhost:3500";
+      const url = `${baseUrl}/cities-public?countryId=${countryId}&language=${currentLanguage || 'en'}`;
+      
+      const response = await fetch(url);
+      const data = await response.json();
+      
+      if (data.success) {
+        setAvailableCities(data.data);
+      } else {
+        console.error('Failed to fetch cities:', data.message);
+        setAvailableCities([]);
+      }
+    } catch (error) {
+      console.error('Error fetching cities:', error);
+      setAvailableCities([]);
+    } finally {
+      setLoadingCities(false);
+    }
+  }, [currentLanguage]);
+
   // Inject CSS styles for loading animations
   useEffect(() => {
-    console.log('🔧 EditPostForm - CSS injection useEffect starting...');
-const loadingStyles = `
-@keyframes mirrorReflection {
-  0% {
-    left: 0px;
-    opacity: 0;
-    transform: translateY(-50%) skew(-15deg) scaleX(0.5);
-  }
-  15% {
-    opacity: 1;
-    transform: translateY(-50%) skew(-15deg) scaleX(1);
-  }
-  85% {
-    left: 100%;
-    opacity: 1;
-    transform: translateY(-50%) skew(-15deg) scaleX(1);
-  }
-  100% {
-    left: 100%;
-    opacity: 0;
-    transform: translateY(-50%) skew(-15deg) scaleX(0.5);
-  }
-}
-`;
+    const loadingStyles = `
+      @keyframes mirrorReflection {
+        0% {
+          left: 0px;
+          opacity: 0;
+          transform: translateY(-50%) skew(-15deg) scaleX(0.5);
+        }
+        15% {
+          opacity: 1;
+          transform: translateY(-50%) skew(-15deg) scaleX(1);
+        }
+        85% {
+          left: 100%;
+          opacity: 1;
+          transform: translateY(-50%) skew(-15deg) scaleX(1);
+        }
+        100% {
+          left: 100%;
+          opacity: 0;
+          transform: translateY(-50%) skew(-15deg) scaleX(0.5);
+        }
+      }
+    `;
 
-if (typeof document !== 'undefined') {
-  const styleSheet = document.createElement("style");
-  styleSheet.type = "text/css";
-  styleSheet.innerText = loadingStyles;
-  document.head.appendChild(styleSheet);
-      console.log('✅ EditPostForm - CSS styles injected successfully');
+    if (typeof document !== 'undefined') {
+      const styleSheet = document.createElement("style");
+      styleSheet.type = "text/css";
+      styleSheet.innerText = loadingStyles;
+      document.head.appendChild(styleSheet);
     }
   }, []);
-  
-  console.log('✅ EditPostForm - CSS injection useEffect completed');
 
-  // Click outside handler and filtered cities - temporarily disabled
-  // useEffect(() => {
-  //   const handleClickOutside = (event) => {
-  //     if (showCityDropdown && !event.target.closest('[data-testid="city-dropdown"]')) {
-  //       setShowCityDropdown(false);
-  //     }
-  //   };
-
-  //   document.addEventListener('mousedown', handleClickOutside);
-  //   return () => {
-  //     document.removeEventListener('mousedown', handleClickOutside);
-  //   };
-  // }, [showCityDropdown]);
-
-  // useEffect(() => {
-  //   if (availableCities.length > 0) {
-  //     setFilteredCities(availableCities);
-  //   }
-  // }, [availableCities]);
-
-  console.log('🔧 EditPostForm - About to start Success/Delete useEffect...');
-  
   useEffect(() => {
-    console.log('🔧 EditPostForm - Success/Delete useEffect starting...');
     if (isSuccess) {
-      console.log('✅ EditPostForm - Post update successful, showing success message');
       setSuccessMessage(t('postUpdatedSuccessfully') || 'Post updated successfully! Your changes have been saved.');
       setShowSuccessMessage(true);
       setTimeout(() => {
@@ -178,7 +113,6 @@ if (typeof document !== 'undefined') {
       }, 2000);
     }
     if (isDelSuccess) {
-      console.log('✅ EditPostForm - Post delete successful, showing success message');
       setSuccessMessage(t('postDeletedSuccessfully') || 'Post deleted successfully! The post has been removed.');
       setShowSuccessMessage(true);
       setTimeout(() => {
@@ -187,116 +121,51 @@ if (typeof document !== 'undefined') {
       }, 2000);
     }
   }, [isSuccess, isDelSuccess, navigate, t]);
-  
-  console.log('✅ EditPostForm - Success/Delete useEffect completed');
 
-  console.log('🔧 EditPostForm - About to start Country initialization useEffect...');
-  
   // Initialize selected country from post data
   useEffect(() => {
-    console.log('🔧 EditPostForm - Country initialization useEffect starting...');
     if (post?.country && countries) {
-      console.log('✅ EditPostForm - Post country found, looking for matching country in list');
       const country = countries.find(c => c._id === post.country);
       if (country) {
-        console.log('✅ EditPostForm - Country found, setting selected country');
         setSelectedCountry(country);
       }
     }
   }, [post?.country, countries]);
-  
-  console.log('✅ EditPostForm - Country initialization useEffect completed');
 
-  console.log('🔧 EditPostForm - About to start Cities initialization useEffect...');
-  
   // Initialize cities when post data is available
   useEffect(() => {
-    console.log('🔧 EditPostForm - Cities initialization useEffect starting...');
     if (post?.country && !selectedCountry) {
-      console.log('✅ EditPostForm - Post country found but no selected country, looking for country');
       const country = countries?.find(c => c._id === post.country);
       if (country) {
-        console.log('✅ EditPostForm - Country found, setting selected country and fetching cities');
         setSelectedCountry(country);
         fetchCitiesByCountry(post.country);
       }
     }
   }, [post?.country, countries, selectedCountry, fetchCitiesByCountry]);
-  
-  console.log('✅ EditPostForm - Cities initialization useEffect completed');
 
-  console.log('🔧 EditPostForm - About to start City value setting useEffect...');
-  
   // Set the city value when cities are loaded and we have a post city
   useEffect(() => {
-    console.log('🔧 EditPostForm - City value setting useEffect starting...');
     if (post?.city && availableCities.length > 0 && setFieldValueCallback) {
-      console.log('✅ EditPostForm - Post city found, looking for matching city in available cities');
       // Handle both object and string city formats
       const cityId = post.city?.id || post.city;
       // Check if the post city exists in available cities
       const cityExists = availableCities.find(city => city.id === cityId);
       if (cityExists) {
-        console.log('✅ EditPostForm - City found, setting field value');
         setFieldValueCallback('city', cityId);
-        // Set the city search query to show the selected city - temporarily disabled
-        // setCitySearchQuery(cityExists.label || cityExists.name || '');
       }
     }
   }, [post?.city, availableCities, setFieldValueCallback]);
-  
-  console.log('✅ EditPostForm - City value setting useEffect completed');
 
-  console.log('🔧 EditPostForm - About to define fetchCitiesByCountry function...');
-  
-  const fetchCitiesByCountry = useCallback(async (countryId) => {
-    console.log('🔧 EditPostForm - fetchCitiesByCountry function called with countryId:', countryId);
-    try {
-      setLoadingCities(true);
-      const baseUrl = process.env.REACT_APP_API_URL || "http://localhost:3500";
-      const url = `${baseUrl}/cities-public?countryId=${countryId}&language=${currentLanguage || 'en'}`;
-      
-      console.log('🌐 EditPostForm - Fetching cities from URL:', url);
-      const response = await fetch(url);
-      const data = await response.json();
-      
-      if (data.success) {
-        console.log('✅ EditPostForm - Cities fetched successfully, count:', data.data?.length || 0);
-        setAvailableCities(data.data);
-      } else {
-        console.error('❌ EditPostForm - Failed to fetch cities:', data.message);
-        setAvailableCities([]);
-      }
-    } catch (error) {
-      console.error('❌ EditPostForm - Error fetching cities:', error);
-      setAvailableCities([]);
-    } finally {
-      setLoadingCities(false);
-    }
-  }, [currentLanguage]);
-  
-  console.log('✅ EditPostForm - fetchCitiesByCountry function defined');
-
-  console.log('🔧 EditPostForm - About to start Country change useEffect...');
-  
   // Update cities when country changes
   useEffect(() => {
-    console.log('🔧 EditPostForm - Country change useEffect starting...');
     if (selectedCountry) {
-      console.log('✅ EditPostForm - Selected country changed, fetching cities');
       fetchCitiesByCountry(selectedCountry._id);
     }
   }, [selectedCountry, fetchCitiesByCountry]);
-  
-  console.log('✅ EditPostForm - Country change useEffect completed');
 
-  console.log('🔧 EditPostForm - About to start Language change useEffect...');
-  
   // Re-fetch cities when language changes (with debouncing to prevent rate limits)
   useEffect(() => {
-    console.log('🔧 EditPostForm - Language change useEffect starting...');
     if (selectedCountry?._id) {
-      console.log('✅ EditPostForm - Language changed, fetching cities with debounce');
       // Add a small delay to prevent multiple simultaneous API calls
       const timeoutId = setTimeout(() => {
         fetchCitiesByCountry(selectedCountry._id);
@@ -305,20 +174,7 @@ if (typeof document !== 'undefined') {
       return () => clearTimeout(timeoutId);
     }
   }, [fetchCitiesByCountry, selectedCountry?._id, currentLanguage]);
-  
-  console.log('✅ EditPostForm - Language change useEffect completed');
 
-  // City search functions - temporarily disabled
-  // const searchCitiesHybrid = useCallback(async (searchQuery, countryCode) => {
-  //   return [];
-  // }, [currentLanguage]);
-
-  // const searchCitiesTraditional = useCallback(async (searchQuery, countryId) => {
-  //   return [];
-  // }, []);
-
-  console.log('🔧 EditPostForm - About to define helper functions...');
-  
   // Function to clear specific field error
   const clearFieldError = (fieldName) => {
     if (fieldErrors[fieldName]) {
@@ -329,35 +185,6 @@ if (typeof document !== 'undefined') {
       });
     }
   };
-
-  // Handle custom city name change - temporarily disabled
-  // const handleCustomCityChange = (event) => {
-  //   setCustomCityName(event.target.value);
-  // };
-
-  // City search handlers - temporarily disabled
-  // const handleCitySearchChange = useCallback(async (event) => {
-  //   // Simplified for now
-  // }, []);
-
-  // const handleCitySelect = (city) => {
-  //   // Simplified for now
-  // };
-
-  // const handleCityDropdownToggle = () => {
-  //   // Simplified for now
-  // };
-
-  // Create custom city in backend - temporarily disabled
-  // const createCustomCity = async (cityName, countryId) => {
-  //   // Simplified for now
-  // };
-
-  // Image compression function - temporarily disabled
-  // const compressImage = async (file) => {
-  //   if (!file) return null;
-  //   return file;
-  // };
 
   const handleCountrySelect = (event, setFieldValue) => {
     const countryId = event.target.value;
@@ -409,22 +236,7 @@ if (typeof document !== 'undefined') {
     return city ? (city.label || city.name || 'Unknown City') : cityId;
   };
 
-  // Debug: Log the post data to see what we're receiving
-  console.log('🔍 EditPostForm - Post data received:', post);
-  console.log('🔍 EditPostForm - Post country:', post?.country);
-  console.log('🔍 EditPostForm - Post category:', post?.category);
-  console.log('🔍 EditPostForm - Post categoryname:', post?.categoryname);
-  console.log('🔍 EditPostForm - Post Category object:', post?.Category);
-  console.log('🔍 EditPostForm - Post foundLost:', post?.foundLost);
-  console.log('🔍 EditPostForm - Post contact:', post?.contact);
-  console.log('🔍 EditPostForm - Post exactLocation:', post?.exactLocation);
-  console.log('🔍 EditPostForm - Post exactDate:', post?.exactDate);
-  console.log('🔍 EditPostForm - Post mainDate:', post?.mainDate);
-  console.log('🔍 EditPostForm - Post createdAt:', post?.createdAt);
-  console.log('🔍 EditPostForm - Post updatedAt:', post?.updatedAt);
-
   // Initialize form state with existing post data
-  console.log('🔧 EditPostForm - Creating initial form state...');
   const initialFormState = {
     country: post?.country || "",
     contact: post?.contact || "",
@@ -450,7 +262,6 @@ if (typeof document !== 'undefined') {
         categoryValue = post?.category || "";
       }
       
-      console.log('🔍 Category initialization - post.categoryname:', post?.categoryname, 'post.category:', post?.category, 'matching category:', categoryValue);
       return categoryValue;
     })(),
     foundLost: post?.foundLost || "",
@@ -471,16 +282,14 @@ if (typeof document !== 'undefined') {
             const date = new Date(value);
             if (!isNaN(date.getTime())) {
               const formattedDate = date.toISOString().split('T')[0];
-              console.log(`🔍 Date conversion - ${field}:`, value, '->', formattedDate);
               return formattedDate;
             }
           } catch (error) {
-            console.log(`🔍 Date conversion error - ${field}:`, value, error);
+            // Date conversion failed, continue to next field
           }
         }
       }
       
-      console.log('🔍 No valid date found in any field');
       return "";
     })(),
     description: post?.description || "",
@@ -498,13 +307,7 @@ if (typeof document !== 'undefined') {
     setHasFormChanged(hasChanged);
   };
 
-  console.log('🔍 EditPostForm - Initial form state:', initialFormState);
-  console.log('🔍 EditPostForm - Categories available:', categories);
-  console.log('🔍 EditPostForm - FlOptions available:', flOptions);
-  console.log('🔍 EditPostForm - Countries available:', countries);
-
   // Remove Yup validation - we'll handle validation in handleSubmit
-  console.log('🔧 EditPostForm - Creating form validation schema...');
   const formValidation = Yup.object().shape({
     // Only validate optional fields, required fields will be validated in handleSubmit
     description: Yup.string().optional(),
@@ -660,10 +463,7 @@ if (typeof document !== 'undefined') {
     }
   };
 
-  console.log('🔧 EditPostForm - Checking error states...');
-
   if (isError || isDelError) {
-    console.log('❌ EditPostForm - Error state detected, showing error UI');
     return (
       <Box display="flex" justifyContent="center" alignItems="center" minHeight="50vh">
         <Alert severity="error" sx={{ maxWidth: 600 }}>
@@ -673,14 +473,9 @@ if (typeof document !== 'undefined') {
       </Box>
     );
   }
-  
-  console.log('✅ EditPostForm - No error state, proceeding to main form');
 
   // Show loading state while post data is being loaded
-  console.log('🔧 EditPostForm - Checking post data...');
-  
   if (!post) {
-    console.log('⏳ EditPostForm - No post data, showing loading state');
     return (
       <Box 
         display="flex" 
@@ -738,10 +533,6 @@ if (typeof document !== 'undefined') {
       </Box>
     );
   }
-  
-  console.log('✅ EditPostForm - Post data available, proceeding to form rendering');
-
-  console.log('🎨 EditPostForm - Starting main JSX rendering...');
 
   return (
     <Box 
@@ -771,8 +562,6 @@ if (typeof document !== 'undefined') {
           boxShadow: theme.shadows[8]
         }}
       >
-        {console.log('📄 EditPostForm - Paper component rendered')}
-        {console.log('📝 EditPostForm - Typography component rendered')}
         <Typography 
           variant="h3" 
           gutterBottom 
@@ -868,7 +657,6 @@ if (typeof document !== 'undefined') {
           </Box>
         )}
 
-        {console.log('📋 EditPostForm - Formik component starting...')}
         <Formik
           ref={formikRef}
           initialValues={initialFormState}
@@ -877,14 +665,12 @@ if (typeof document !== 'undefined') {
           enableReinitialize={true}
         >
           {({ isSubmitting, status, setFieldValue, values }) => {
-            console.log('🔧 EditPostForm - Formik render prop executing...');
             // Store setFieldValue function for use in custom city creation
             setSetFieldValueCallback(() => setFieldValue);
             
             // Check if form has changed whenever values change (call directly instead of useEffect)
             checkFormChanged(values);
             
-            console.log('📝 EditPostForm - Form component starting...');
             return (
             <Form>
               {status?.error && (
