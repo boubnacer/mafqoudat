@@ -18,16 +18,8 @@ import {
   Button,
   Select,
   MenuItem,
-  FormControl,
-  TextField,
-  Divider,
-  Dialog,
-  DialogTitle,
-  DialogContent,
-  DialogActions,
-  IconButton
+  FormControl
 } from "@mui/material";
-import { LocationOn, Add as AddIcon, Close as CloseIcon } from '@mui/icons-material';
 import { useTranslation } from "../../../utils/translations";
 import useAuth from "../../../hooks/useAuth";
 
@@ -50,10 +42,10 @@ const EditPostForm = ({ post, user, countries, flOptions, categories }) => {
   const [availableCities, setAvailableCities] = useState([]);
   const [loadingCities, setLoadingCities] = useState(false);
   
-  // State for custom city functionality
-  const [showCustomCityInput, setShowCustomCityInput] = useState(false);
-  const [customCityName, setCustomCityName] = useState("");
-  const [isCreatingCity, setIsCreatingCity] = useState(false);
+  // State for custom city functionality - temporarily disabled
+  // const [showCustomCityInput, setShowCustomCityInput] = useState(false);
+  // const [customCityName, setCustomCityName] = useState("");
+  // const [isCreatingCity, setIsCreatingCity] = useState(false);
   const [setFieldValueCallback, setSetFieldValueCallback] = useState(null);
   const [fieldErrors, setFieldErrors] = useState({});
   const [hasFormChanged, setHasFormChanged] = useState(false);
@@ -245,10 +237,10 @@ const EditPostForm = ({ post, user, countries, flOptions, categories }) => {
     }
   };
 
-  // Handle custom city name change
-  const handleCustomCityChange = (event) => {
-    setCustomCityName(event.target.value);
-  };
+  // Handle custom city name change - temporarily disabled
+  // const handleCustomCityChange = (event) => {
+  //   setCustomCityName(event.target.value);
+  // };
 
   // City search handlers - temporarily disabled
   // const handleCitySearchChange = useCallback(async (event) => {
@@ -263,42 +255,10 @@ const EditPostForm = ({ post, user, countries, flOptions, categories }) => {
   //   // Simplified for now
   // };
 
-  // Create custom city in backend
-  const createCustomCity = async (cityName, countryId) => {
-    try {
-      const baseUrl = process.env.REACT_APP_API_URL || "http://localhost:3500";
-      const headers = {
-        'Content-Type': 'application/json',
-      };
-      
-      // Add authentication token if available
-      if (token) {
-        headers['Authorization'] = `Bearer ${token}`;
-      }
-      
-      const response = await fetch(`${baseUrl}/cities/dynamic`, {
-        method: 'POST',
-        headers,
-        body: JSON.stringify({
-          cityName: cityName.trim(),
-          countryId: countryId,
-          sourceLanguage: currentLanguage || 'en'
-        })
-      });
-
-      const data = await response.json();
-      
-      if (data.success) {
-        return data.data; // Return the created city object
-      } else {
-        console.error('Failed to create custom city:', data.message);
-        throw new Error(data.message || 'Failed to create custom city');
-      }
-    } catch (error) {
-      console.error('Error creating custom city:', error);
-      throw error;
-    }
-  };
+  // Create custom city in backend - temporarily disabled
+  // const createCustomCity = async (cityName, countryId) => {
+  //   // Simplified for now
+  // };
 
   // Image compression function - temporarily disabled
   // const compressImage = async (file) => {
@@ -690,24 +650,10 @@ const EditPostForm = ({ post, user, countries, flOptions, categories }) => {
         position: 'relative'
       }}
     >
-      {/* Backdrop overlay when dialog is open */}
-      {showCustomCityInput && (
-        <Box
-          sx={{
-            position: 'fixed',
-            top: 0,
-            left: 0,
-            right: 0,
-            bottom: 0,
-            backgroundColor: theme.palette.mode === 'dark' 
-              ? 'rgba(0, 0, 0, 0.7)' 
-              : 'rgba(0, 0, 0, 0.5)',
-            backdropFilter: 'blur(4px)',
-            zIndex: 1200,
-            pointerEvents: 'auto'
-          }}
-        />
-      )}
+      {/* Backdrop overlay - temporarily disabled */}
+      {/* {showCustomCityInput && (
+        <Box>...</Box>
+      )} */}
       <Paper 
         elevation={4} 
         sx={{ 
@@ -1140,14 +1086,10 @@ const EditPostForm = ({ post, user, countries, flOptions, categories }) => {
                       value={values.city || ""}
                       onChange={(e) => {
                         const selectedValue = e.target.value;
-                        if (selectedValue === 'other') {
-                          setShowCustomCityInput(true);
-                        } else {
-                          setFieldValue('city', selectedValue);
-                          // Clear city field error if city is selected
-                          if (selectedValue) {
-                            clearFieldError('city');
-                          }
+                        setFieldValue('city', selectedValue);
+                        // Clear city field error if city is selected
+                        if (selectedValue) {
+                          clearFieldError('city');
                         }
                       }}
                       displayEmpty
@@ -1179,39 +1121,6 @@ const EditPostForm = ({ post, user, countries, flOptions, categories }) => {
                           {city.label || city.name || 'Unknown City'}
                         </MenuItem>
                       ))}
-                      <Divider />
-                      <MenuItem
-                        value="other" 
-                        sx={{ 
-                          color: theme.palette.mode === 'dark' ? '#fff' : '#1976d2',
-                          fontWeight: 600,
-                          backgroundColor: theme.palette.mode === 'dark' 
-                            ? 'rgba(255, 255, 255, 0.08)' 
-                            : 'rgba(25, 118, 210, 0.08)',
-                          border: `1px solid ${theme.palette.mode === 'dark' ? 'rgba(255, 255, 255, 0.2)' : 'rgba(25, 118, 210, 0.3)'}`,
-                          borderRadius: 2,
-                          margin: '6px 8px',
-                          padding: '12px 16px',
-                          transition: 'all 0.2s ease-in-out',
-                          '&:hover': {
-                            backgroundColor: theme.palette.mode === 'dark' 
-                              ? 'rgba(255, 255, 255, 0.12)' 
-                              : 'rgba(25, 118, 210, 0.12)',
-                            borderColor: theme.palette.mode === 'dark' 
-                              ? 'rgba(255, 255, 255, 0.4)' 
-                              : 'rgba(25, 118, 210, 0.5)',
-                            transform: 'translateY(-1px)',
-                            boxShadow: theme.palette.mode === 'dark'
-                              ? '0 4px 8px rgba(0, 0, 0, 0.3)'
-                              : '0 4px 8px rgba(25, 118, 210, 0.2)',
-                          }
-                        }}
-                      >
-                        <Box display="flex" alignItems="center" gap={1}>
-                          <AddIcon fontSize="small" />
-                          {t('other')} - {t('addNewCity')}
-                        </Box>
-                      </MenuItem>
                     </Select>
                     {fieldErrors.city && (
                       <Typography 
@@ -1644,190 +1553,8 @@ const EditPostForm = ({ post, user, countries, flOptions, categories }) => {
         </Formik>
       </Paper>
       
-      {/* Custom City Dialog */}
-      <Dialog
-        open={showCustomCityInput}
-        onClose={() => {
-          if (!isCreatingCity) {
-            setShowCustomCityInput(false);
-            setCustomCityName("");
-          }
-        }}
-        maxWidth="sm"
-        fullWidth
-        sx={{ zIndex: 1300 }}
-        PaperProps={{
-          sx: {
-            borderRadius: 4,
-            background: theme.palette.mode === 'dark' 
-              ? 'linear-gradient(135deg, rgba(20,20,20,0.98) 0%, rgba(35,35,35,0.98) 100%)' 
-              : 'linear-gradient(135deg, rgba(255,255,255,0.98) 0%, rgba(248,250,252,0.98) 100%)',
-            backdropFilter: 'blur(20px)',
-            border: `2px solid ${theme.palette.mode === 'dark' 
-              ? 'rgba(255, 255, 255, 0.15)' 
-              : 'rgba(0, 0, 0, 0.08)'}`,
-            boxShadow: theme.palette.mode === 'dark'
-              ? '0 20px 40px rgba(0,0,0,0.6), 0 0 0 1px rgba(255,255,255,0.05)'
-              : '0 20px 40px rgba(0,0,0,0.15), 0 0 0 1px rgba(0,0,0,0.05)'
-          }
-        }}
-        BackdropProps={{
-          sx: {
-            backgroundColor: 'transparent'
-          }
-        }}
-      >
-        <DialogTitle
-          sx={{
-            display: 'flex',
-            justifyContent: 'space-between',
-            alignItems: 'center',
-            pb: 1,
-            borderBottom: `1px solid ${theme.palette.divider}`
-          }}
-        >
-          <Typography 
-            variant="h6" 
-            sx={{ 
-              fontWeight: 700, 
-              color: theme.palette.text.primary,
-              fontSize: '1.3rem'
-            }}
-          >
-            {t('addNewCity')}
-          </Typography>
-          <IconButton
-            onClick={() => {
-              setShowCustomCityInput(false);
-              setCustomCityName("");
-            }}
-            disabled={isCreatingCity}
-            sx={{
-              color: theme.palette.text.secondary,
-              '&:hover': {
-                backgroundColor: theme.palette.action.hover
-              }
-            }}
-          >
-            <CloseIcon />
-          </IconButton>
-        </DialogTitle>
-        
-        <DialogContent sx={{ pt: 3 }}>
-          <Typography 
-            variant="body2" 
-            sx={{ 
-              mb: 2,
-              color: theme.palette.mode === 'dark' ? 'rgba(255,255,255,0.7)' : 'rgba(0,0,0,0.6)',
-              fontSize: '1rem',
-              fontWeight: 500
-            }}
-          >
-            {t('enterCustomCityName')}
-          </Typography>
-          <TextField
-            fullWidth
-            placeholder={t('cityNamePlaceholder')}
-            value={customCityName}
-            onChange={handleCustomCityChange}
-            variant="outlined"
-            autoFocus
-            sx={{ 
-              borderRadius: 3,
-              '& .MuiOutlinedInput-root': {
-                '&:hover fieldset': {
-                  borderColor: theme.palette.mode === 'dark' ? '#4CAF50' : '#2E7D32',
-                },
-                '&.Mui-focused fieldset': {
-                  borderColor: theme.palette.mode === 'dark' ? '#4CAF50' : '#2E7D32',
-                },
-                '& fieldset': {
-                  borderColor: theme.palette.mode === 'dark' ? 'rgba(255,255,255,0.3)' : 'rgba(0,0,0,0.2)',
-                },
-                color: theme.palette.text.primary,
-                fontWeight: 500
-              }
-            }}
-          />
-        </DialogContent>
-        
-        <DialogActions sx={{ p: 3, pt: 1 }}>
-          <Button
-            variant="outlined"
-            onClick={() => {
-              setShowCustomCityInput(false);
-              setCustomCityName("");
-            }}
-            disabled={isCreatingCity}
-            sx={{ 
-              borderRadius: '4px',
-              borderColor: '#4A8BFF',
-              color: '#4A8BFF',
-              fontSize: '1rem',
-              fontWeight: 600,
-              py: 1.5,
-              px: 3,
-              '&:hover': {
-                borderColor: '#5A9BFF',
-                backgroundColor: 'rgba(74, 139, 255, 0.1)',
-              },
-              transition: 'all 0.2s ease-in-out'
-            }}
-          >
-            {t('cancel')}
-          </Button>
-          <Button
-            variant="contained"
-            onClick={async () => {
-              if (customCityName.trim() && selectedCountry?._id) {
-                setIsCreatingCity(true);
-                try {
-                  // Create the custom city in the backend
-                  const createdCity = await createCustomCity(customCityName.trim(), selectedCountry._id);
-                  
-                  // Close the dialog first
-                  setShowCustomCityInput(false);
-                  setCustomCityName("");
-                  
-                  // Refresh the cities list to get the newly created city
-                  await fetchCitiesByCountry(selectedCountry._id);
-                  
-                  // Set the field value directly using setFieldValue from Formik
-                  if (setFieldValueCallback) {
-                    setFieldValueCallback('city', createdCity._id);
-                  }
-                  
-                } catch (error) {
-                  console.error('Error creating custom city:', error);
-                  // Show error message to user
-                  alert(t('errorCreatingCustomCity') || 'Error creating custom city. Please try again.');
-                } finally {
-                  setIsCreatingCity(false);
-                }
-              }
-            }}
-            disabled={!customCityName.trim() || !selectedCountry?._id || isCreatingCity}
-            sx={{ 
-              borderRadius: '4px',
-              background: 'linear-gradient(45deg, #4A8BFF 30%, #1A6EEE 90%)',
-              boxShadow: '0 3px 5px 2px rgba(26, 110, 238, .3)',
-              fontSize: '1rem',
-              fontWeight: 600,
-              py: 1.5,
-              px: 3,
-              '&:hover': {
-                background: 'linear-gradient(45deg, #5A9BFF 30%, #2A7EFF 90%)',
-                boxShadow: '0 4px 8px 2px rgba(26, 110, 238, .4)',
-                transform: 'translateY(-1px)',
-              },
-              transition: 'all 0.2s ease-in-out',
-            }}
-            startIcon={isCreatingCity ? <CircularProgress size={16} color="inherit" /> : null}
-          >
-            {isCreatingCity ? (t('creatingCity') || 'Creating City...') : t('confirm')}
-          </Button>
-        </DialogActions>
-      </Dialog>
+      {/* Custom City Dialog - temporarily disabled */}
+      {/* <Dialog>...</Dialog> */}
     </Box>
   );
 };
