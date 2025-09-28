@@ -1,4 +1,4 @@
-import { useState, useEffect, useCallback, useRef } from "react";
+import { useState, useEffect, useCallback, useRef, useMemo } from "react";
 import { useNavigate } from "react-router-dom";
 import { useUpdatePostMutation, useDeletePostMutation } from "../postsApiSlice";
 import { useSelector } from "react-redux";
@@ -477,15 +477,12 @@ if (typeof document !== 'undefined') {
   };
 
   // Debug: Log city field differences
-  console.log('🏙️ CITY FIELD DEBUG - Post city data:', post?.city);
-  console.log('🏙️ CITY FIELD DEBUG - Available cities:', availableCities);
-  console.log('🏙️ CITY FIELD DEBUG - Selected country:', selectedCountry);
-  if (availableCities.length > 0) {
-    console.log('🏙️ CITY FIELD DEBUG - First available city structure:', availableCities[0]);
-  }
 
   // Initialize form state with existing post data
-  const initialFormState = {
+  const initialFormState = useMemo(() => {
+    if (!post) return {};
+    
+    return {
     country: post?.country || "",
     contact: post?.contact || "",
     category: (() => {
@@ -554,34 +551,19 @@ if (typeof document !== 'undefined') {
     // Status fields
     status: post?.status || "active",
     returned: post?.returned || false
-  };
+    };
+  }, [post, categories]);
 
   // Function to check if form has changed
   const checkFormChanged = (currentValues) => {
-    console.log('🔍 FORM CHANGE DEBUG - Checking form changes...');
-    console.log('🔍 FORM CHANGE DEBUG - Initial form state:', initialFormState);
-    console.log('🔍 FORM CHANGE DEBUG - Current values:', currentValues);
-    
     const hasChanged = Object.keys(initialFormState).some(key => {
       // Skip status and returned fields for change detection
       if (key === 'status' || key === 'returned') {
         return false;
       }
-      const initialValue = initialFormState[key];
-      const currentValue = currentValues[key];
-      const isChanged = currentValue !== initialValue;
-      
-      if (isChanged) {
-        console.log(`🔍 FORM CHANGE DEBUG - Field '${key}' changed:`, {
-          initial: initialValue,
-          current: currentValue
-        });
-      }
-      
-      return isChanged;
+      return currentValues[key] !== initialFormState[key];
     });
     
-    console.log('🔍 FORM CHANGE DEBUG - Has form changed:', hasChanged);
     setHasFormChanged(hasChanged);
   };
 
@@ -595,11 +577,6 @@ if (typeof document !== 'undefined') {
   });
 
   const handleSubmit = async (values, { setSubmitting, setStatus }) => {
-    console.log('🚀 UPDATE POST - Starting update process...');
-    console.log('📊 UPDATE POST - Form values:', values);
-    console.log('📊 UPDATE POST - Selected country:', selectedCountry);
-    console.log('📊 UPDATE POST - Available cities:', availableCities);
-    console.log('📊 UPDATE POST - Post data:', post);
     
     try {
       // Clear any previous validation errors
@@ -691,7 +668,7 @@ if (typeof document !== 'undefined') {
 
       // Prepare data for submission (match API expectations)
       const postData = {
-        id: post._id, // Include the post ID for update
+        _id: post._id, // Include the post ID for update
         user: post.user, // Use the original post's user ID to avoid validation issues
         country: selectedCountry?._id || values.country,
         category: values.category,
@@ -713,25 +690,9 @@ if (typeof document !== 'undefined') {
         postData.city = values.city;
       }
       
-      console.log('📦 UPDATE POST - Prepared postData:', postData);
-      console.log('📦 UPDATE POST - City value:', values.city);
-      console.log('📦 UPDATE POST - Country value:', selectedCountry?._id || values.country);
-      console.log('📦 UPDATE POST - Post ID:', post._id);
-
-      console.log('🌐 UPDATE POST - Calling updatePost API...');
       const result = await updatePost(postData).unwrap();
-      console.log('✅ UPDATE POST - API call successful:', result);
     } catch (error) {
-      console.error('❌ UPDATE POST - Update failed:', error);
-      console.error('❌ UPDATE POST - Error status:', error?.status);
-      console.error('❌ UPDATE POST - Error data:', error?.data);
-      console.error('❌ UPDATE POST - Error message:', error?.data?.message);
-      console.error('❌ UPDATE POST - Error details:', error?.data?.errors);
-      if (error?.data?.errors && error.data.errors.length > 0) {
-        console.error('❌ UPDATE POST - First error:', error.data.errors[0]);
-        console.error('❌ UPDATE POST - Error field:', error.data.errors[0]?.field);
-        console.error('❌ UPDATE POST - Error message:', error.data.errors[0]?.message);
-      }
+      console.error('Update failed:', error?.data?.message || error.message);
       setStatus({
         type: 'error',
         message: error?.data?.message || t('updateFailed')
@@ -742,25 +703,19 @@ if (typeof document !== 'undefined') {
   };
 
   const handleDeletePost = async () => {
-    console.log('🗑️ DELETE POST - Starting delete process...');
-    console.log('📊 DELETE POST - Post ID:', post._id);
-    console.log('📊 DELETE POST - Post data:', post);
-    
     try {
-      console.log('🌐 DELETE POST - Calling deletePost API...');
-      const result = await deletePost({ id: post._id }).unwrap();
-      console.log('✅ DELETE POST - API call successful:', result);
+      await deletePost({ id: post._id }).unwrap();
+      setSuccessMessage(t('postDeletedSuccessfully'));
+      setShowSuccessMessage(true);
+      setTimeout(() => {
+        navigate("/dash");
+      }, 2000);
     } catch (error) {
-      console.error('❌ DELETE POST - Delete failed:', error);
-      console.error('❌ DELETE POST - Error status:', error?.status);
-      console.error('❌ DELETE POST - Error data:', error?.data);
-      console.error('❌ DELETE POST - Error message:', error?.data?.message);
-      console.error('❌ DELETE POST - Error details:', error?.data?.errors);
-      if (error?.data?.errors && error.data.errors.length > 0) {
-        console.error('❌ DELETE POST - First error:', error.data.errors[0]);
-        console.error('❌ DELETE POST - Error field:', error.data.errors[0]?.field);
-        console.error('❌ DELETE POST - Error message:', error.data.errors[0]?.message);
-      }
+      console.error('Delete failed:', error?.data?.message || error.message);
+      setStatus({
+        type: 'error',
+        message: error?.data?.message || t('deleteFailed')
+      });
     }
   };
 
