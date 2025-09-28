@@ -390,6 +390,7 @@ if (typeof document !== 'undefined') {
   console.log('🔍 EditPostForm - Post updatedAt:', post?.updatedAt);
 
   // Initialize form state with existing post data
+  console.log('🔧 EditPostForm - Creating initial form state...');
   const initialFormState = {
     country: post?.country || "",
     contact: post?.contact || "",
@@ -469,6 +470,7 @@ if (typeof document !== 'undefined') {
   console.log('🔍 EditPostForm - Countries available:', countries);
 
   // Remove Yup validation - we'll handle validation in handleSubmit
+  console.log('🔧 EditPostForm - Creating form validation schema...');
   const formValidation = Yup.object().shape({
     // Only validate optional fields, required fields will be validated in handleSubmit
     description: Yup.string().optional(),
