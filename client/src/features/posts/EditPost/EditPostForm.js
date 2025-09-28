@@ -26,31 +26,68 @@ import useAuth from "../../../hooks/useAuth";
 // CSS keyframes for loading animations will be injected in useEffect
 
 const EditPostForm = ({ post, user, countries, flOptions, categories }) => {
-  console.log('🔍 EditPostForm - Component rendering with props:', { post, user, countries, flOptions, categories });
+  console.log('🚀 EditPostForm - Starting component initialization');
+  console.log('📊 EditPostForm - Props received:', { 
+    post: post ? 'Present' : 'Missing', 
+    user: user ? 'Present' : 'Missing', 
+    countries: countries?.length || 0, 
+    flOptions: flOptions?.length || 0, 
+    categories: categories?.length || 0 
+  });
+  
+  console.log('🔧 EditPostForm - Initializing hooks...');
   
   const [updatePost, { isLoading, isSuccess, isError, error }] = useUpdatePostMutation();
+  console.log('✅ EditPostForm - useUpdatePostMutation initialized');
+  
   const [deletePost, { isSuccess: isDelSuccess, isError: isDelError, error: delerror }] = useDeletePostMutation();
+  console.log('✅ EditPostForm - useDeletePostMutation initialized');
+  
   const { t, currentLanguage } = useTranslation();
+  console.log('✅ EditPostForm - useTranslation initialized');
+  
   const { role } = useAuth();
+  console.log('✅ EditPostForm - useAuth initialized');
+  
   const token = useSelector(selectCurrentToken);
+  console.log('✅ EditPostForm - useSelector initialized');
 
   const navigate = useNavigate();
+  console.log('✅ EditPostForm - useNavigate initialized');
+  
   const theme = useTheme();
+  console.log('✅ EditPostForm - useTheme initialized');
+  
+  console.log('🔧 EditPostForm - Initializing state variables...');
   
   // State for cities
   const [selectedCountry, setSelectedCountry] = useState(null);
+  console.log('✅ EditPostForm - selectedCountry state initialized');
+  
   const [availableCities, setAvailableCities] = useState([]);
+  console.log('✅ EditPostForm - availableCities state initialized');
+  
   const [loadingCities, setLoadingCities] = useState(false);
+  console.log('✅ EditPostForm - loadingCities state initialized');
   
   // State for custom city functionality - temporarily disabled
   // const [showCustomCityInput, setShowCustomCityInput] = useState(false);
   // const [customCityName, setCustomCityName] = useState("");
   // const [isCreatingCity, setIsCreatingCity] = useState(false);
   const [setFieldValueCallback, setSetFieldValueCallback] = useState(null);
+  console.log('✅ EditPostForm - setFieldValueCallback state initialized');
+  
   const [fieldErrors, setFieldErrors] = useState({});
+  console.log('✅ EditPostForm - fieldErrors state initialized');
+  
   const [hasFormChanged, setHasFormChanged] = useState(false);
+  console.log('✅ EditPostForm - hasFormChanged state initialized');
+  
   const [showSuccessMessage, setShowSuccessMessage] = useState(false);
+  console.log('✅ EditPostForm - showSuccessMessage state initialized');
+  
   const [successMessage, setSuccessMessage] = useState('');
+  console.log('✅ EditPostForm - successMessage state initialized');
 
   // New state for unified city dropdown - temporarily simplified
   // const [citySearchQuery, setCitySearchQuery] = useState("");
@@ -65,9 +102,11 @@ const EditPostForm = ({ post, user, countries, flOptions, categories }) => {
   // const [isCompressing, setIsCompressing] = useState(false);
   // const [compressionInfo, setCompressionInfo] = useState(null);
   const formikRef = useRef(null);
+  console.log('✅ EditPostForm - formikRef initialized');
 
   // Inject CSS styles for loading animations
   useEffect(() => {
+    console.log('🔧 EditPostForm - CSS injection useEffect starting...');
     const loadingStyles = `
       @keyframes mirrorReflection {
         0% {
@@ -97,6 +136,7 @@ const EditPostForm = ({ post, user, countries, flOptions, categories }) => {
       styleSheet.type = "text/css";
       styleSheet.innerText = loadingStyles;
       document.head.appendChild(styleSheet);
+      console.log('✅ EditPostForm - CSS styles injected successfully');
     }
   }, []);
 
@@ -121,7 +161,9 @@ const EditPostForm = ({ post, user, countries, flOptions, categories }) => {
   // }, [availableCities]);
 
   useEffect(() => {
+    console.log('🔧 EditPostForm - Success/Delete useEffect starting...');
     if (isSuccess) {
+      console.log('✅ EditPostForm - Post update successful, showing success message');
       setSuccessMessage(t('postUpdatedSuccessfully') || 'Post updated successfully! Your changes have been saved.');
       setShowSuccessMessage(true);
       setTimeout(() => {
@@ -130,6 +172,7 @@ const EditPostForm = ({ post, user, countries, flOptions, categories }) => {
       }, 2000);
     }
     if (isDelSuccess) {
+      console.log('✅ EditPostForm - Post delete successful, showing success message');
       setSuccessMessage(t('postDeletedSuccessfully') || 'Post deleted successfully! The post has been removed.');
       setShowSuccessMessage(true);
       setTimeout(() => {
@@ -141,9 +184,12 @@ const EditPostForm = ({ post, user, countries, flOptions, categories }) => {
 
   // Initialize selected country from post data
   useEffect(() => {
+    console.log('🔧 EditPostForm - Country initialization useEffect starting...');
     if (post?.country && countries) {
+      console.log('✅ EditPostForm - Post country found, looking for matching country in list');
       const country = countries.find(c => c._id === post.country);
       if (country) {
+        console.log('✅ EditPostForm - Country found, setting selected country');
         setSelectedCountry(country);
       }
     }
@@ -151,9 +197,12 @@ const EditPostForm = ({ post, user, countries, flOptions, categories }) => {
 
   // Initialize cities when post data is available
   useEffect(() => {
+    console.log('🔧 EditPostForm - Cities initialization useEffect starting...');
     if (post?.country && !selectedCountry) {
+      console.log('✅ EditPostForm - Post country found but no selected country, looking for country');
       const country = countries?.find(c => c._id === post.country);
       if (country) {
+        console.log('✅ EditPostForm - Country found, setting selected country and fetching cities');
         setSelectedCountry(country);
         fetchCitiesByCountry(post.country);
       }
@@ -162,12 +211,15 @@ const EditPostForm = ({ post, user, countries, flOptions, categories }) => {
 
   // Set the city value when cities are loaded and we have a post city
   useEffect(() => {
+    console.log('🔧 EditPostForm - City value setting useEffect starting...');
     if (post?.city && availableCities.length > 0 && setFieldValueCallback) {
+      console.log('✅ EditPostForm - Post city found, looking for matching city in available cities');
       // Handle both object and string city formats
       const cityId = post.city?.id || post.city;
       // Check if the post city exists in available cities
       const cityExists = availableCities.find(city => city.id === cityId);
       if (cityExists) {
+        console.log('✅ EditPostForm - City found, setting field value');
         setFieldValueCallback('city', cityId);
         // Set the city search query to show the selected city - temporarily disabled
         // setCitySearchQuery(cityExists.label || cityExists.name || '');
@@ -175,16 +227,46 @@ const EditPostForm = ({ post, user, countries, flOptions, categories }) => {
     }
   }, [post?.city, availableCities, setFieldValueCallback]);
 
+  const fetchCitiesByCountry = useCallback(async (countryId) => {
+    console.log('🔧 EditPostForm - fetchCitiesByCountry function called with countryId:', countryId);
+    try {
+      setLoadingCities(true);
+      const baseUrl = process.env.REACT_APP_API_URL || "http://localhost:3500";
+      const url = `${baseUrl}/cities-public?countryId=${countryId}&language=${currentLanguage || 'en'}`;
+      
+      console.log('🌐 EditPostForm - Fetching cities from URL:', url);
+      const response = await fetch(url);
+      const data = await response.json();
+      
+      if (data.success) {
+        console.log('✅ EditPostForm - Cities fetched successfully, count:', data.data?.length || 0);
+        setAvailableCities(data.data);
+      } else {
+        console.error('❌ EditPostForm - Failed to fetch cities:', data.message);
+        setAvailableCities([]);
+      }
+    } catch (error) {
+      console.error('❌ EditPostForm - Error fetching cities:', error);
+      setAvailableCities([]);
+    } finally {
+      setLoadingCities(false);
+    }
+  }, [currentLanguage]);
+
   // Update cities when country changes
   useEffect(() => {
+    console.log('🔧 EditPostForm - Country change useEffect starting...');
     if (selectedCountry) {
+      console.log('✅ EditPostForm - Selected country changed, fetching cities');
       fetchCitiesByCountry(selectedCountry._id);
     }
-  }, [selectedCountry]);
+  }, [selectedCountry, fetchCitiesByCountry]);
 
   // Re-fetch cities when language changes (with debouncing to prevent rate limits)
   useEffect(() => {
+    console.log('🔧 EditPostForm - Language change useEffect starting...');
     if (selectedCountry?._id) {
+      console.log('✅ EditPostForm - Language changed, fetching cities with debounce');
       // Add a small delay to prevent multiple simultaneous API calls
       const timeoutId = setTimeout(() => {
         fetchCitiesByCountry(selectedCountry._id);
@@ -193,29 +275,6 @@ const EditPostForm = ({ post, user, countries, flOptions, categories }) => {
       return () => clearTimeout(timeoutId);
     }
   }, [fetchCitiesByCountry, selectedCountry?._id, currentLanguage]);
-
-  const fetchCitiesByCountry = useCallback(async (countryId) => {
-    try {
-      setLoadingCities(true);
-      const baseUrl = process.env.REACT_APP_API_URL || "http://localhost:3500";
-      const url = `${baseUrl}/cities-public?countryId=${countryId}&language=${currentLanguage || 'en'}`;
-      
-      const response = await fetch(url);
-      const data = await response.json();
-      
-      if (data.success) {
-        setAvailableCities(data.data);
-      } else {
-        console.error('Failed to fetch cities:', data.message);
-        setAvailableCities([]);
-      }
-    } catch (error) {
-      console.error('Error fetching cities:', error);
-      setAvailableCities([]);
-    } finally {
-      setLoadingCities(false);
-    }
-  }, [currentLanguage]);
 
   // City search functions - temporarily disabled
   // const searchCitiesHybrid = useCallback(async (searchQuery, countryCode) => {
