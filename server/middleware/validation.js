@@ -12,15 +12,22 @@ const validateRequest = (req, res, next) => {
       value: error.value
     }));
     
+    console.log('🔍 VALIDATION ERROR - Request:', req.method, req.url);
+    console.log('🔍 VALIDATION ERROR - Body:', req.body);
+    console.log('🔍 VALIDATION ERROR - Errors:', errorMessages);
+    
     logEvents(
       `Validation Error: ${JSON.stringify(errorMessages)}\t${req.method}\t${req.url}\t${req.headers.origin}`,
       'errLog.log'
     );
     
     return res.status(400).json({
-      message: 'Validation failed',
-      errors: errorMessages,
-      isError: true
+      success: false,
+      error: {
+        message: 'Validation Error',
+        code: `err_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`,
+        timestamp: new Date().toISOString()
+      }
     });
   }
   
