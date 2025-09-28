@@ -1089,8 +1089,15 @@ const updatePost = async (req, res) => {
 
 
 
+  console.log('🔍 UPDATE POST SERVER - Received city value:', req.body.city);
+  console.log('🔍 UPDATE POST SERVER - Received city type:', typeof req.body.city);
+  console.log('🔍 UPDATE POST SERVER - Post city before save:', post.city);
+  console.log('🔍 UPDATE POST SERVER - Post city type before save:', typeof post.city);
+  
   try {
     const updatedPost = await post.save();
+    console.log('🔍 UPDATE POST SERVER - Post city after save:', updatedPost.city);
+    console.log('🔍 UPDATE POST SERVER - Post city type after save:', typeof updatedPost.city);
 
     // Invalidate related cache entries
     await cacheService.invalidatePattern('posts:*');
