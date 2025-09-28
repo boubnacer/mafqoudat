@@ -355,6 +355,12 @@ const getPost = async (req, res) => {
       return res.status(404).json({ message: "Post not found" });
     }
 
+    console.log('🔍 GET POST SERVER - Post data being returned:');
+    console.log('🔍 GET POST SERVER - Post city:', post[0].city);
+    console.log('🔍 GET POST SERVER - Post city type:', typeof post[0].city);
+    console.log('🔍 GET POST SERVER - Post cityName:', post[0].cityName);
+    console.log('🔍 GET POST SERVER - Post cityLabels:', post[0].cityLabels);
+
     res.status(200).json(post[0]);
   } catch (error) {
     console.error('Error fetching post:', error);
@@ -1089,18 +1095,23 @@ const updatePost = async (req, res) => {
 
 
 
-  // console.log('🔍 UPDATE POST SERVER - Saving post...');
+  console.log('🔍 UPDATE POST SERVER - Saving post...');
+  console.log('🔍 UPDATE POST SERVER - Post city before save:', post.city);
+  console.log('🔍 UPDATE POST SERVER - Post city type:', typeof post.city);
+  
   try {
     const updatedPost = await post.save();
-    // console.log('✅ UPDATE POST SERVER - Post saved successfully:', updatedPost._id);
+    console.log('✅ UPDATE POST SERVER - Post saved successfully:', updatedPost._id);
+    console.log('✅ UPDATE POST SERVER - Updated post city:', updatedPost.city);
+    console.log('✅ UPDATE POST SERVER - Updated post city type:', typeof updatedPost.city);
 
     // Invalidate related cache entries
-    // console.log('🔍 UPDATE POST SERVER - Invalidating cache...');
+    console.log('🔍 UPDATE POST SERVER - Invalidating cache...');
     await cacheService.invalidatePattern('posts:*');
     await cacheService.invalidatePattern('dashboard:*');
-    // console.log('✅ UPDATE POST SERVER - Cache invalidated');
+    console.log('✅ UPDATE POST SERVER - Cache invalidated');
 
-    // console.log('✅ UPDATE POST SERVER - Sending success response');
+    console.log('✅ UPDATE POST SERVER - Sending success response');
     res.json(`Post with ID ${updatedPost._id} updated`);
   } catch (error) {
     console.log('❌ UPDATE POST SERVER - Error saving post:', error.message);

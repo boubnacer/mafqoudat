@@ -229,6 +229,13 @@ if (typeof document !== 'undefined') {
 
   // Set city search query when post and cities are available
   useEffect(() => {
+    console.log('🔍 EDIT POST CLIENT - Post data received:', {
+      city: post?.city,
+      cityType: typeof post?.city,
+      cityName: post?.cityName,
+      cityLabels: post?.cityLabels
+    });
+    
     if (post?.city) {
       // Handle both database cities (ObjectId) and API cities (string)
       if (typeof post.city === 'string') {
