@@ -1035,7 +1035,15 @@ const updatePost = async (req, res) => {
   }
   // For API cities (non-ObjectId strings), we'll accept them as-is
   
+  console.log('🔍 UPDATE POST SERVER - Database existence checks:');
+  console.log('  - userExists:', userExists);
+  console.log('  - countryExists:', countryExists);
+  console.log('  - categoryExists:', categoryExists);
+  console.log('  - foundLostExists:', foundLostExists);
+  console.log('  - cityExists:', cityExists);
+  
   if (!userExists || !countryExists || !categoryExists || !foundLostExists || !cityExists) {
+    console.log('❌ UPDATE POST SERVER - Database validation failed');
     return res.status(400).json({ message: "Invalid reference in user/country/category/foundLost/city" });
   }
 
