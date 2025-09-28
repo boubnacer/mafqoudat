@@ -984,7 +984,9 @@ const updatePost = async (req, res) => {
     user,
     country,
     category,
+    city,
     exactLocation,
+    exactDate,
     contact,
     returned,
     foundLost,
@@ -997,6 +999,7 @@ const updatePost = async (req, res) => {
     !user ||
     !category ||
     !exactLocation ||
+    !exactDate ||
     !country ||
     !contact ||
     !foundLost ||
@@ -1004,18 +1007,31 @@ const updatePost = async (req, res) => {
   ) {
     return res.status(400).json({ message: "All fields are required" });
   }
+  
+  // City is optional but if provided, should not be empty
+  if (city !== undefined && !city) {
+    return res.status(400).json({ message: "City cannot be empty if provided" });
+  }
 
   // Validate references - using exists() is already optimized for checking existence
   const userExists = await User.exists({ _id: user });
   const countryExists = await Country.exists({ _id: country });
   const categoryExists = await Category.exists({ _id: category });
   const foundLostExists = await FoundLost.exists({ _id: foundLost });
-  if (!userExists || !countryExists || !categoryExists || !foundLostExists) {
-    return res.status(400).json({ message: "Invalid reference in user/country/category/foundLost" });
+  
+  // Validate city if it's a valid ObjectId (skip validation for API cities)
+  let cityExists = true;
+  if (city && mongoose.Types.ObjectId.isValid(city)) {
+    cityExists = await City.exists({ _id: city });
+  }
+  // For API cities (non-ObjectId strings), we'll accept them as-is
+  
+  if (!userExists || !countryExists || !categoryExists || !foundLostExists || !cityExists) {
+    return res.status(400).json({ message: "Invalid reference in user/country/category/foundLost/city" });
   }
 
   // Confirm post exists to update - only select fields needed for update
-  const post = await Post.findById(id).select('_id user country category exactLocation contact returned foundLost description').exec();
+  const post = await Post.findById(id).select('_id user country category city exactLocation exactDate contact returned foundLost description').exec();
 
   if (!post) {
     return res.status(400).json({ message: "Post not found" });
@@ -1024,7 +1040,11 @@ const updatePost = async (req, res) => {
   post.user = user;
   post.country = country;
   post.category = category;
+  if (city !== undefined) {
+    post.city = city;
+  }
   post.exactLocation = exactLocation;
+  post.exactDate = exactDate;
   post.contact = contact;
   post.returned = returned;
   post.foundLost = foundLost;

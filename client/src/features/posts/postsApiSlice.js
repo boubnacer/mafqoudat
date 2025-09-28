@@ -167,7 +167,7 @@ export const postsApiSlice = apiSlice.injectEndpoints({
 
     updatePost: builder.mutation({
       query: (initialPost) => ({
-        url: `/posts/${initialPost.id}`,
+        url: `/posts`,
         method: "PATCH",
         body: {
           ...initialPost,
