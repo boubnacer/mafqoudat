@@ -859,7 +859,7 @@ const createNewPost = async (req, res) => {
 // @access Public (no authentication required)
 const submitPostReport = async (req, res) => {
   try {
-    const { postId, reason, reasonType, userId } = req.body;
+    const { postId, reason, reasonType, reasonLabel, userId } = req.body;
     
     // Debug: Check request data
     console.log('Report submission - req.body:', req.body);
@@ -934,8 +934,8 @@ const submitPostReport = async (req, res) => {
       const reportData = {
         postId: post._id,
         reportedBy: reportingUserId,
-        reason: reason,
-        reasonType: reasonType || 'other',
+        reason: reasonLabel || reason, // Use translated label if available, fallback to reason type
+        reasonType: reasonType || reason || 'other',
         postData: {
           userId: post.user._id,
           category: emailPostData.category,

@@ -127,8 +127,9 @@ const ReportDialog = ({ open, onClose, post, onSubmit }) => {
       
       const reportData = {
         postId: post._id,
-        reason: finalReason,
+        reason: selectedReason, // Send the reason type value, not the translated label
         reasonType: selectedReason,
+        reasonLabel: finalReason, // Send the translated label as a separate field
         userId: post.user || 'anonymous',
         postCategory: post.categoryname || 'unknown',
         postLocation: post.exactLocation || 'unknown',

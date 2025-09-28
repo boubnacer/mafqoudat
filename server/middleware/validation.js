@@ -260,7 +260,15 @@ const validationSets = {
   // Report submission
   reportSubmission: [
     body('postId').isMongoId().withMessage('Invalid post ID'),
-    body('reason').isIn(['spam', 'inappropriate', 'fake', 'duplicate', 'other']).withMessage('Invalid report reason'),
+    body('reason').isIn([
+      'inappropriate_content',
+      'spam_fake', 
+      'duplicate',
+      'wrong_category',
+      'suspicious_activity',
+      'personal_info',
+      'other'
+    ]).withMessage('Invalid report reason'),
     body('description').optional().isLength({ max: 500 }).withMessage('Description must be less than 500 characters')
   ],
   
