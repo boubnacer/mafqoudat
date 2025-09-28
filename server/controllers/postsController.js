@@ -993,6 +993,10 @@ const updatePost = async (req, res) => {
     description,
   } = req.body;
 
+  // Debug: Log the request body
+  console.log('🔍 UPDATE POST SERVER - Request body:', req.body);
+  console.log('🔍 UPDATE POST SERVER - City value:', city, 'Type:', typeof city);
+  
   // Confirm data
   if (
     !id ||
@@ -1005,6 +1009,7 @@ const updatePost = async (req, res) => {
     !foundLost ||
     typeof returned !== "boolean"
   ) {
+    console.log('❌ UPDATE POST SERVER - Missing required fields');
     return res.status(400).json({ message: "All fields are required" });
   }
   
@@ -1022,7 +1027,11 @@ const updatePost = async (req, res) => {
   // Validate city if it's a valid ObjectId (skip validation for API cities)
   let cityExists = true;
   if (city && mongoose.Types.ObjectId.isValid(city)) {
+    console.log('🔍 UPDATE POST SERVER - Validating ObjectId city:', city);
     cityExists = await City.exists({ _id: city });
+    console.log('🔍 UPDATE POST SERVER - City exists:', cityExists);
+  } else if (city) {
+    console.log('🔍 UPDATE POST SERVER - API city (non-ObjectId):', city);
   }
   // For API cities (non-ObjectId strings), we'll accept them as-is
   
