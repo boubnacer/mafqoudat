@@ -34,6 +34,10 @@ import useAuth from "../../../hooks/useAuth";
 // CSS keyframes for loading animations will be injected in useEffect
 
 const EditPostForm = ({ post, user, countries, flOptions, categories }) => {
+  // Debug: Log post data received by EditPostForm
+  console.log('📥 FORM RECEIVED - post:', post);
+  console.log('📥 FORM RECEIVED - post.city:', post?.city);
+  console.log('📥 FORM RECEIVED - post.city type:', typeof post?.city);
   const [updatePost, { isLoading, isSuccess, isError, error }] = useUpdatePostMutation();
   const [deletePost, { isSuccess: isDelSuccess, isError: isDelError, error: delerror }] = useDeletePostMutation();
   const { t, currentLanguage } = useTranslation();
@@ -497,6 +501,9 @@ if (typeof document !== 'undefined') {
 
   // Initialize form state with existing post data
   const initialFormState = useMemo(() => {
+    console.log('🏗️ INITIAL FORM STATE - useMemo triggered');
+    console.log('🏗️ INITIAL FORM STATE - post exists:', !!post);
+    
     if (!post) {
       console.log('🏗️ INITIAL FORM STATE - No post data available yet');
       return {};

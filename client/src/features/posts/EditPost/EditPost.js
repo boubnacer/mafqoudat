@@ -76,6 +76,11 @@ const EditPost = () => {
   if (!data || !user || !countries || !categories || !flOptions)
     return <LoadingState message={t('loadingEditForm')} />;
 
+  // Debug: Log data being passed to EditPostForm
+  console.log('📤 PASSING TO FORM - data:', data);
+  console.log('📤 PASSING TO FORM - data.city:', data?.city);
+  console.log('📤 PASSING TO FORM - data.city type:', typeof data?.city);
+
   const content = (
     <EditPostForm
       categories={categories}
