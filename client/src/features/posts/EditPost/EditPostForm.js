@@ -229,17 +229,41 @@ if (typeof document !== 'undefined') {
 
   // Set city search query when post and cities are available
   useEffect(() => {
-    if (post?.city && availableCities.length > 0) {
-      // Find the city in the available cities
-      const existingCity = availableCities.find(city => 
-        city.id === post.city || 
-        city._id === post.city ||
-        (typeof post.city === 'object' && (city.id === post.city.id || city._id === post.city._id))
-      );
-      
-      if (existingCity) {
-        setCitySearchQuery(existingCity.label || existingCity.name || '');
-        console.log('🏙️ CITY INIT - Set city search query:', existingCity.label || existingCity.name);
+    if (post?.city) {
+      // Handle both database cities (ObjectId) and API cities (string)
+      if (typeof post.city === 'string') {
+        if (availableCities.length > 0) {
+          // Check if it's a database city (ObjectId format)
+          const existingCity = availableCities.find(city => 
+            city.id === post.city || 
+            city._id === post.city
+          );
+          
+          if (existingCity) {
+            setCitySearchQuery(existingCity.label || existingCity.name || '');
+            console.log('🏙️ CITY INIT - Set city search query (database city):', existingCity.label || existingCity.name);
+          } else {
+            // It's an API city (string like "DAKHLA")
+            setCitySearchQuery(post.city);
+            console.log('🏙️ CITY INIT - Set city search query (API city):', post.city);
+          }
+        } else {
+          // No available cities yet, but we have a string city - likely API city
+          setCitySearchQuery(post.city);
+          console.log('🏙️ CITY INIT - Set city search query (API city, no available cities):', post.city);
+        }
+      } else if (typeof post.city === 'object' && post.city.id) {
+        // Handle object format cities
+        if (availableCities.length > 0) {
+          const existingCity = availableCities.find(city => 
+            city.id === post.city.id || city._id === post.city.id
+          );
+          
+          if (existingCity) {
+            setCitySearchQuery(existingCity.label || existingCity.name || '');
+            console.log('🏙️ CITY INIT - Set city search query (object city):', existingCity.label || existingCity.name);
+          }
+        }
       }
     }
   }, [post?.city, availableCities]);
@@ -267,17 +291,41 @@ if (typeof document !== 'undefined') {
 
   // Set the city value when cities are loaded and we have a post city
   useEffect(() => {
-    if (post?.city && availableCities.length > 0 && setFieldValueCallback) {
+    if (post?.city && setFieldValueCallback) {
       // Handle both object and string city formats
-      const cityId = post.city?.id || post.city;
-      // Check if the post city exists in available cities (support both id and _id)
-      const cityExists = availableCities.find(city => 
-        city.id === cityId || city._id === cityId
-      );
-      if (cityExists) {
-        // Use the city's id or _id as the form value
-        const formCityId = cityExists.id || cityExists._id;
-        setFieldValueCallback('city', formCityId);
+      if (typeof post.city === 'string') {
+        // Check if it's a database city (ObjectId format)
+        if (availableCities.length > 0) {
+          const cityExists = availableCities.find(city => 
+            city.id === post.city || city._id === post.city
+          );
+          if (cityExists) {
+            // Use the city's id or _id as the form value
+            const formCityId = cityExists.id || cityExists._id;
+            setFieldValueCallback('city', formCityId);
+            console.log('🏙️ CITY VALUE - Set form city value (database city):', formCityId);
+          } else {
+            // It's an API city (string like "DAKHLA")
+            setFieldValueCallback('city', `api_${post.city}`);
+            console.log('🏙️ CITY VALUE - Set form city value (API city):', `api_${post.city}`);
+          }
+        } else {
+          // No available cities yet, but we have a string city - likely API city
+          setFieldValueCallback('city', `api_${post.city}`);
+          console.log('🏙️ CITY VALUE - Set form city value (API city, no available cities):', `api_${post.city}`);
+        }
+      } else if (typeof post.city === 'object' && post.city.id) {
+        // Handle object format cities
+        if (availableCities.length > 0) {
+          const cityExists = availableCities.find(city => 
+            city.id === post.city.id || city._id === post.city.id
+          );
+          if (cityExists) {
+            const formCityId = cityExists.id || cityExists._id;
+            setFieldValueCallback('city', formCityId);
+            console.log('🏙️ CITY VALUE - Set form city value (object city):', formCityId);
+          }
+        }
       }
     }
   }, [post?.city, availableCities, setFieldValueCallback]);
