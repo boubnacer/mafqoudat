@@ -343,7 +343,7 @@ const Post = ({ post, viewMode = "grid" }) => {
                 width: '100%',
                 objectFit: post?.image ? 'cover' : 'contain',
                 objectPosition: 'center',
-                backgroundColor: 'transparent',
+                backgroundColor: post?.image ? 'transparent' : (theme.palette.mode === 'dark' ? '#000' : '#fff'),
               }}
               image={imageUrl}
               alt={categoryName || 'Item Image'}
@@ -540,7 +540,7 @@ const Post = ({ post, viewMode = "grid" }) => {
               objectFit: post?.image ? 'cover' : 'contain',
               objectPosition: 'center',
               zIndex: 1, // Base layer for image
-              backgroundColor: 'transparent',
+              backgroundColor: post?.image ? 'transparent' : (theme.palette.mode === 'dark' ? '#000' : '#fff'),
             }}
             image={imageUrl}
             alt={categoryName || 'Item Image'}

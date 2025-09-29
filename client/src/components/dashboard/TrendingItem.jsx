@@ -284,11 +284,11 @@ const TrendingItem = ({ trend, isLoading }) => {
             fallback={noImageSvg}
             sx={{
               width: image ? '100%' : '100%',
-              height: image ? '100%' : '60%',
+              height: image ? '100%' : '100%',
               objectFit: image ? 'cover' : 'contain',
               objectPosition: 'center',
               filter: image ? 'brightness(0.8)' : 'none',
-              backgroundColor: 'transparent',
+              backgroundColor: image ? 'transparent' : (theme.palette.mode === 'dark' ? '#000' : '#fff'),
               // Ensure the smaller image is properly centered
               ...(image ? {} : {
                 margin: 'auto',
