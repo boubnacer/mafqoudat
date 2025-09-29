@@ -997,6 +997,7 @@ const updatePost = async (req, res) => {
     country,
     category,
     city,
+    cityData,
     exactLocation,
     exactDate,
     contact,
@@ -1078,8 +1079,45 @@ const updatePost = async (req, res) => {
     if (typeof city === 'string' && city.match(/^[0-9a-fA-F]{24}$/)) {
       // It's a valid ObjectId string, convert to ObjectId
       post.city = new mongoose.Types.ObjectId(city);
+    } else if (typeof city === 'string' && cityData) {
+      // It's an API city with cityData - create or find database city record
+      try {
+        const apiCityData = typeof cityData === 'string' ? JSON.parse(cityData) : cityData;
+        
+        // Check if city already exists in database
+        const existingCity = await City.findOne({
+          country: country,
+          $or: [
+            { "labels.en": { $regex: new RegExp(apiCityData.labels.en, 'i') } },
+            { "labels.ar": { $regex: new RegExp(apiCityData.labels.ar, 'i') } },
+            { "labels.fr": { $regex: new RegExp(apiCityData.labels.fr, 'i') } }
+          ]
+        });
+        
+        if (existingCity) {
+          post.city = existingCity._id;
+        } else {
+          // Create new city from API data
+          const newCity = await City.create({
+            code: apiCityData.code,
+            country: country,
+            labels: apiCityData.labels,
+            isCapital: apiCityData.isCapital || false,
+            isActive: true,
+            isDynamic: true, // Mark as dynamically created from API
+            population: apiCityData.population || 0,
+            searchTerms: apiCityData.searchTerms || []
+          });
+          
+          post.city = newCity._id;
+        }
+      } catch (apiCityError) {
+        console.error('Error processing API city data in update:', apiCityError.message);
+        // Fallback to storing as string
+        post.city = city;
+      }
     } else {
-      // It's an API city (string like "DAKHLA") or already an ObjectId
+      // It's an API city (string like "DAKHLA") without cityData or already an ObjectId
       post.city = city;
     }
   }
