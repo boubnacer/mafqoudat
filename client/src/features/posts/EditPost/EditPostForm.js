@@ -958,7 +958,7 @@ if (typeof document !== 'undefined') {
         
         result = { data: await response.text() };
         
-        // Manually trigger success flow for FormData requests
+        // Manually trigger success flow for FormData requests - show immediately
         setSuccessMessage(t('postUpdatedSuccessfully') || 'Post updated successfully! Your changes have been saved.');
         setShowSuccessMessage(true);
         setTimeout(() => {
@@ -1154,8 +1154,8 @@ if (typeof document !== 'undefined') {
                   : '0 8px 32px rgba(76, 175, 80, 0.2)',
                 border: `2px solid ${theme.palette.mode === 'dark' ? 'rgba(76, 175, 80, 0.3)' : 'rgba(76, 175, 80, 0.2)'}`,
                 backgroundColor: theme.palette.mode === 'dark'
-                  ? 'rgba(76, 175, 80, 0.1)'
-                  : 'rgba(76, 175, 80, 0.05)',
+                  ? 'rgba(76, 175, 80, 0.2)'
+                  : 'rgba(76, 175, 80, 0.15)',
                 backdropFilter: 'blur(10px)',
                 '& .MuiAlert-icon': {
                   fontSize: '1.5rem',
@@ -2321,7 +2321,7 @@ if (typeof document !== 'undefined') {
                   {/* Update Button - Right in LTR, Left in RTL */}
                   <Button 
                     type="submit"
-                    disabled={isLoading || !selectedCountry || !values.city || !values.exactDate || !hasFormChanged}
+                    disabled={isSubmitting || !selectedCountry || !values.city || !values.exactDate || !hasFormChanged}
                     sx={{ 
                       width: { xs: "90%", sm: "100%" },
                       justifySelf: { xs: "center", sm: "stretch" },
@@ -2348,7 +2348,7 @@ if (typeof document !== 'undefined') {
                       transition: 'all 0.2s ease-in-out',
                     }}
                   >
-                    {isLoading ? <CircularProgress size={24} color="inherit" /> : t('updatePost')}
+                    {isSubmitting ? <CircularProgress size={24} color="inherit" /> : t('updatePost')}
                   </Button>
                 </Box>
               </Box>
