@@ -17,7 +17,7 @@ import {
 } from "@mui/material";
 import { useNavigate } from "react-router-dom";
 import useAuth from "../../../hooks/useAuth";
-import noImageSvg from "../../../img/noimage.svg";
+import noImagePng from "../../../img/noimage.png";
 import { useState, useCallback, useMemo } from "react";
 import ReportDialog from "../../../components/ReportDialog";
 import { useSubmitReportMutation } from "../reportsApiSlice";
@@ -565,7 +565,7 @@ const SinglePostPage = ({
 
   // Memoized image URL computation - only use Cloudinary if image exists and is uploaded by user
   const imageUrl = useMemo(() => {
-    if (!image) return noImageSvg;
+    if (!image) return noImagePng;
     return image.startsWith('http') 
       ? getOptimizedImageUrl(image, 'large') 
       : image;
@@ -628,16 +628,16 @@ const SinglePostPage = ({
                   objectFit: image ? 'cover' : 'contain',
                   objectPosition: 'center',
                   backgroundColor: image ? 'transparent' : (isDarkMode ? '#1a1a1a' : '#f5f5f5'),
-                  // Make SVG smaller when no image
+                  // Make PNG smaller when no image
                   ...(image ? {} : {
-                    maxWidth: '50%',
-                    maxHeight: '50%',
+                    maxWidth: '60%',
+                    maxHeight: '60%',
                     margin: 'auto',
                   }),
                 }}
                 image={imageUrl}
                 alt={categoryDisplayName || 'Post Image'}
-                fallback={noImageSvg}
+                fallback={noImagePng}
               />
               
               {/* No Image Overlay */}

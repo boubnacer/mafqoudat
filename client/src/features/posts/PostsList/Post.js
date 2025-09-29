@@ -2,7 +2,7 @@ import { useNavigate } from "react-router-dom";
 import { memo, useState, useCallback, useMemo } from "react";
 import React from "react";
 // import "./postslist.css"; // Removed to prevent CSS conflicts with Material-UI
-import noImageSvg from "../../../img/noimage.svg";
+import noImagePng from "../../../img/noimage.png";
 import {
   Button,
   Card,
@@ -283,7 +283,7 @@ const Post = ({ post, viewMode = "grid" }) => {
 
   // Memoized image URL computation - only use Cloudinary if image exists and is uploaded by user
   const imageUrl = useMemo(() => {
-    if (!post?.image) return noImageSvg;
+    if (!post?.image) return noImagePng;
     return post.image.startsWith('http') 
       ? getOptimizedImageUrl(post.image, 'card') 
       : `${API_BASE_URL}/${post.image}`;
@@ -343,16 +343,16 @@ const Post = ({ post, viewMode = "grid" }) => {
                 objectFit: post?.image ? 'cover' : 'contain',
                 objectPosition: 'center',
                 backgroundColor: post?.image ? 'transparent' : (theme.palette.mode === 'dark' ? '#1a1a1a' : '#f5f5f5'),
-                // Make SVG smaller when no image
+                // Make PNG smaller when no image
                 ...(post?.image ? {} : {
-                  maxWidth: '60%',
-                  maxHeight: '60%',
+                  maxWidth: '70%',
+                  maxHeight: '70%',
                   margin: 'auto',
                 }),
               }}
               image={imageUrl}
               alt={categoryName || 'Item Image'}
-              fallback={noImageSvg}
+              fallback={noImagePng}
               onError={handleImageError}
             />
             
@@ -546,16 +546,16 @@ const Post = ({ post, viewMode = "grid" }) => {
               objectPosition: 'center',
               zIndex: 1, // Base layer for image
               backgroundColor: post?.image ? 'transparent' : (theme.palette.mode === 'dark' ? '#1a1a1a' : '#f5f5f5'),
-              // Make SVG smaller when no image
+              // Make PNG smaller when no image
               ...(post?.image ? {} : {
-                maxWidth: '60%',
-                maxHeight: '60%',
+                maxWidth: '70%',
+                maxHeight: '70%',
                 margin: 'auto',
               }),
             }}
             image={imageUrl}
             alt={categoryName || 'Item Image'}
-            fallback={noImageSvg}
+            fallback={noImagePng}
             onError={handleImageError}
           />
           

@@ -21,7 +21,7 @@ import LazyCardMedia from "../LazyCardMedia";
 import { getCategoryConfig } from "../../config/categories";
 import { useNavigate } from "react-router-dom";
 import { getLabel } from "../../utils/languageUtils";
-import noImageSvg from "../../img/noimage.svg";
+import noImagePng from "../../img/noimage.png";
 
 // Get the API base URL for image construction
 const API_BASE_URL = process.env.REACT_APP_API_URL || "http://localhost:3500";
@@ -200,7 +200,7 @@ const TrendingItem = ({ trend, isLoading }) => {
   };
 
   // Get optimized image URL - only use Cloudinary if image exists and is uploaded by user
-  const finalImageUrl = image ? (image.startsWith('http') ? getOptimizedImageUrl(image, 'card') : `${API_BASE_URL}/${image}`) : noImageSvg;
+  const finalImageUrl = image ? (image.startsWith('http') ? getOptimizedImageUrl(image, 'card') : `${API_BASE_URL}/${image}`) : noImagePng;
 
   if (isLoading) return <TrendingItemSkeleton />;
   if (!trendData) {
@@ -277,7 +277,7 @@ const TrendingItem = ({ trend, isLoading }) => {
             component="img"
             image={finalImageUrl}
             alt={categoryDisplayName || 'Item Image'}
-            fallback={noImageSvg}
+            fallback={noImagePng}
             sx={{
               width: '100%',
               height: '100%',
@@ -285,10 +285,10 @@ const TrendingItem = ({ trend, isLoading }) => {
               objectPosition: 'center',
               filter: image ? 'brightness(0.8)' : 'none',
               backgroundColor: image ? 'transparent' : (theme.palette.mode === 'dark' ? '#1a1a1a' : '#f5f5f5'),
-              // Make SVG smaller when no image
+              // Make PNG smaller when no image
               ...(image ? {} : {
-                maxWidth: '60%',
-                maxHeight: '60%',
+                maxWidth: '70%',
+                maxHeight: '70%',
                 margin: 'auto',
               }),
             }}

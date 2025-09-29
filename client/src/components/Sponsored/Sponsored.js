@@ -1,6 +1,6 @@
 import React, { useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
-import noImageSvg from "../../img/noimage.svg";
+import noImagePng from "../../img/noimage.png";
 import "./sponsored.css";
 import { useTranslation } from "../../utils/translations";
 import { getOptimizedImageUrl } from "../../utils/cloudinaryUtils";
@@ -68,9 +68,9 @@ const Sponsored = ({ post }) => {
         </div>
         <div className="card__img">
           <LazyImage 
-            src={post.image ? (post.image.startsWith('http') ? getOptimizedImageUrl(post.image, 'card') : post.image) : noImageSvg} 
+            src={post.image ? (post.image.startsWith('http') ? getOptimizedImageUrl(post.image, 'card') : post.image) : noImagePng} 
             alt={`${post.category} - ${post.region}`}
-            fallback={noImageSvg}
+            fallback={noImagePng}
             onError={(e) => {
               console.log('Image failed to load:', e.target.src);
             }}
@@ -78,10 +78,10 @@ const Sponsored = ({ post }) => {
               width: '100%',
               height: '100%',
               objectFit: post.image ? 'cover' : 'contain',
-              // Make SVG smaller when no image
+              // Make PNG smaller when no image
               ...(post.image ? {} : {
-                maxWidth: '60%',
-                maxHeight: '60%',
+                maxWidth: '70%',
+                maxHeight: '70%',
                 margin: 'auto',
               }),
             }}
