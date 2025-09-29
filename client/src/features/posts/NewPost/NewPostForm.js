@@ -679,16 +679,8 @@ const NewPostForm = ({ user, countries, categories, flOptions }) => {
 
   // Handle image selection
   const handleImageSelect = useCallback(async (event) => {
-    console.log('🖼️ Image selection triggered:', event);
-    console.log('🖼️ Files:', event.currentTarget.files);
-    
     const file = event.currentTarget.files[0];
-    if (!file) {
-      console.log('🖼️ No file selected');
-      return;
-    }
-
-    console.log('🖼️ File selected:', file.name, file.size, file.type);
+    if (!file) return;
 
     // Clear previous compression info
     setCompressionInfo(null);
@@ -701,8 +693,6 @@ const NewPostForm = ({ user, countries, categories, flOptions }) => {
       // Create preview URL
       const previewUrl = URL.createObjectURL(compressedFile);
       setImagePreview(previewUrl);
-      
-      console.log('🖼️ Image processed successfully');
       
       // Clear the input value to allow selecting the same file again if needed
       // This is important for mobile devices to ensure the onChange event fires again
@@ -724,20 +714,6 @@ const NewPostForm = ({ user, countries, categories, flOptions }) => {
     }
   }, [compressImage, isMobile]);
 
-  // Handle button click to trigger file input
-  const handleImageButtonClick = useCallback((event) => {
-    console.log('🖼️ Button clicked, triggering file input');
-    event.preventDefault();
-    const fileInput = document.getElementById('image');
-    if (fileInput) {
-      console.log('🖼️ File input found, resetting value and clicking');
-      // Reset the input value to ensure onChange fires
-      fileInput.value = '';
-      fileInput.click();
-    } else {
-      console.log('🖼️ File input not found!');
-    }
-  }, []);
 
   // Handle image removal
   const handleImageRemove = useCallback(() => {
@@ -1725,7 +1701,7 @@ const NewPostForm = ({ user, countries, categories, flOptions }) => {
                     >
                       {isCompressing ? t('compressingImage') : imagePreview ? t('replaceImage') : t('chooseFile')}
                       <input
-                        id="image"
+                        id="image-main"
                         name="image"
                         type="file"
                         accept="image/*"
@@ -2124,6 +2100,7 @@ const NewPostForm = ({ user, countries, categories, flOptions }) => {
             >
               {t('replaceImage')}
               <input
+                id="image-dialog"
                 type="file"
                 accept="image/*"
                 hidden
