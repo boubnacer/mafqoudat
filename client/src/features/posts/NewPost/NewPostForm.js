@@ -219,11 +219,22 @@ const NewPostForm = ({ user, countries, categories, flOptions }) => {
 
   // Re-fetch cities when language changes (with debouncing to prevent rate limits)
   useEffect(() => {
-    if (selectedCountry?._id) {
+    // Check if this is a language change refresh to avoid interference
+    const urlParams = new URLSearchParams(window.location.search);
+    const isLanguageChange = urlParams.get('lang_changed') === 'true';
+    
+    if (selectedCountry?._id && !isLanguageChange) {
       // Add a small delay to prevent multiple simultaneous API calls
       const timeoutId = setTimeout(() => {
         fetchCitiesByCountry(selectedCountry._id);
       }, 300);
+      
+      return () => clearTimeout(timeoutId);
+    } else if (selectedCountry?._id && isLanguageChange) {
+      // For language changes, wait longer to ensure auth state is restored
+      const timeoutId = setTimeout(() => {
+        fetchCitiesByCountry(selectedCountry._id);
+      }, 1000);
       
       return () => clearTimeout(timeoutId);
     }

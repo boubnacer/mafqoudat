@@ -20,21 +20,28 @@ const LanguageChangeHandler = () => {
     const isLanguageChange = urlParams.get('lang_changed') === 'true';
     
     if (isLanguageChange) {
+      console.log('🔄 LanguageChangeHandler: Language change detected');
+      console.log('🔄 Current location:', location.pathname + location.search);
+      console.log('🔄 Auth state:', isLoggedIn);
+      
       // Clean up the auth preservation flag
       localStorage.removeItem('preserveAuthAfterLanguageChange');
       
       // Get the preserved URL from localStorage
       const preservedUrl = languageStorage.getAndClearLanguageChangeRedirectUrl();
+      console.log('🔄 Preserved URL:', preservedUrl);
       
       if (preservedUrl && preservedUrl !== location.pathname + location.search) {
         // Only redirect if we have a preserved URL and it's different from current location
-        console.log('Language change detected: Redirecting to preserved URL:', preservedUrl);
+        console.log('🔄 Language change: Redirecting to preserved URL:', preservedUrl);
         
         // Small delay to ensure authentication state is fully restored
         setTimeout(() => {
+          console.log('🔄 Language change: Executing redirect to:', preservedUrl);
           navigate(preservedUrl, { replace: true });
-        }, 100);
+        }, 300);
       } else {
+        console.log('🔄 Language change: No redirect needed, cleaning up URL parameters');
         // Clean up URL parameters if no redirect is needed
         if (urlParams.has('lang_changed')) {
           urlParams.delete('lang_changed');

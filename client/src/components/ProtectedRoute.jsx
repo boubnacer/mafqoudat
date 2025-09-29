@@ -34,7 +34,7 @@ const ProtectedRoute = ({
       // Give authentication state time to restore after language change
       const timer = setTimeout(() => {
         setIsInitialized(true);
-      }, 200);
+      }, 500);
       
       return () => clearTimeout(timer);
     } else {
@@ -43,7 +43,7 @@ const ProtectedRoute = ({
   }, [location.search]);
 
   // Debug logging
-  console.log('ProtectedRoute - Location:', location.pathname, 'RequireAuth:', requireAuth, 'RequireCountry:', requireCountry, 'LoggedIn:', isLoggedIn, 'Country:', currentCountry, 'Initialized:', isInitialized);
+  console.log('🔒 ProtectedRoute - Location:', location.pathname, 'RequireAuth:', requireAuth, 'RequireCountry:', requireCountry, 'LoggedIn:', isLoggedIn, 'Country:', currentCountry, 'Initialized:', isInitialized);
 
   // Don't make routing decisions until initialized (especially after language change)
   if (!isInitialized) {

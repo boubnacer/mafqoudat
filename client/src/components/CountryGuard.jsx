@@ -28,7 +28,7 @@ const CountryGuard = ({ children, allowAuthenticatedWithoutCountry = true }) => 
       // Give authentication state time to restore after language change
       const timer = setTimeout(() => {
         setIsInitialized(true);
-      }, 200);
+      }, 500);
       
       return () => clearTimeout(timer);
     } else {
@@ -37,7 +37,7 @@ const CountryGuard = ({ children, allowAuthenticatedWithoutCountry = true }) => 
   }, [location.search]);
 
   // Debug logging
-  console.log('CountryGuard - Location:', location.pathname, 'Country:', currentCountry, 'LoggedIn:', isLoggedIn, 'AllowAuthWithoutCountry:', allowAuthenticatedWithoutCountry, 'Initialized:', isInitialized);
+  console.log('🛡️ CountryGuard - Location:', location.pathname, 'Country:', currentCountry, 'LoggedIn:', isLoggedIn, 'AllowAuthWithoutCountry:', allowAuthenticatedWithoutCountry, 'Initialized:', isInitialized);
 
   // Don't make routing decisions until initialized (especially after language change)
   if (!isInitialized) {
