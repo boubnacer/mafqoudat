@@ -310,17 +310,29 @@ if (typeof document !== 'undefined') {
             setFieldValueCallback('city', formCityId);
           } else {
             // It's an API city (string like "EL_JADIDA")
-            // Use the original city string without api_ prefix for consistency
-            setFieldValueCallback('city', post.city);
+            // Set form value with api_ prefix to match NewPostForm logic
+            setFieldValueCallback('city', `api_${post.city}`);
+            // Create a mock city object for selectedCityFromSearch
+            setSelectedCityFromSearch({
+              code: post.city,
+              label: post.cityName || post.city,
+              labels: { en: post.cityName || post.city }
+            });
           }
         } else {
           // No available cities yet, but we have a string city - likely API city
-          // Use the original city string without api_ prefix for consistency
-          setFieldValueCallback('city', post.city);
+          // Set form value with api_ prefix to match NewPostForm logic
+          setFieldValueCallback('city', `api_${post.city}`);
+          // Create a mock city object for selectedCityFromSearch
+          setSelectedCityFromSearch({
+            code: post.city,
+            label: post.cityName || post.city,
+            labels: { en: post.cityName || post.city }
+          });
         }
       }
     }
-  }, [post?.city, availableCities, setFieldValueCallback]);
+  }, [post?.city, post?.cityName, availableCities, setFieldValueCallback]);
 
   // Update cities when country changes
   useEffect(() => {
@@ -484,14 +496,13 @@ if (typeof document !== 'undefined') {
     setCitySearchQuery(city.label || city.labels?.en || city.name || '');
     setShowCityDropdown(false);
     
-    // Set the city value in the form
-    if (city._id || city.id) {
-      // Database city - use the ObjectId
-      const cityId = city._id || city.id;
-      setFieldValue('city', cityId);
+    // Set the city value in the form - match NewPostForm logic exactly
+    if (city._id) {
+      // Database city
+      setFieldValue('city', city._id);
     } else {
-      // API city - use the city code directly (like "EL_JADIDA")
-      setFieldValue('city', city.code);
+      // API city - we'll handle this in the submit (match NewPostForm)
+      setFieldValue('city', `api_${city.code}`);
     }
     
     // Clear city field error
@@ -569,15 +580,15 @@ if (typeof document !== 'undefined') {
     })(),
     foundLost: post?.foundLost || "",
     city: (() => {
-      // Handle both object and string city formats
+      // Handle both object and string city formats - match NewPostForm logic
       if (post?.city) {
         if (typeof post.city === 'object' && post.city.id) {
           // Database city object - return the id
           return post.city.id;
         } else if (typeof post.city === 'string') {
           // String city - could be ObjectId or API city
-          // For API cities, return the string as-is (no api_ prefix needed)
-          return post.city;
+          // For API cities, return with api_ prefix to match NewPostForm
+          return `api_${post.city}`;
         }
       }
       return "";
@@ -759,10 +770,15 @@ if (typeof document !== 'undefined') {
         contactPreferences: { whatsapp: true }
       };
 
-      // Handle city - send the city value as-is
-      // For database cities: values.city will be an ObjectId string
-      // For API cities: values.city will be the city name string (like "EL_JADIDA")
-      postData.city = values.city;
+      // Handle city - match NewPostForm logic exactly
+      if (values.city && values.city.startsWith('api_')) {
+        // API city - send the city data
+        postData.city = selectedCityFromSearch?.code || values.city.replace('api_', '');
+        postData.cityData = selectedCityFromSearch;
+      } else {
+        // Database city
+        postData.city = values.city;
+      }
       
       // console.log('🚀 UPDATE POST - Starting update process...');
       // console.log('📦 UPDATE POST - Prepared postData:', postData);
