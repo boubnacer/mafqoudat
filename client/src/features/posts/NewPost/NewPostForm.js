@@ -695,11 +695,24 @@ const NewPostForm = ({ user, countries, categories, flOptions }) => {
       setImagePreview(previewUrl);
       
       // Clear the input value to allow selecting the same file again if needed
+      // This is important for mobile devices to ensure the onChange event fires again
       event.target.value = '';
+      
+      // For mobile devices, provide immediate feedback
+      if (isMobile()) {
+        // Small delay to ensure the UI updates smoothly on mobile
+        setTimeout(() => {
+          // Optional: Scroll to show the selected image preview
+          const imagePreviewElement = document.querySelector('[data-testid="image-preview"]');
+          if (imagePreviewElement) {
+            imagePreviewElement.scrollIntoView({ behavior: 'smooth', block: 'center' });
+          }
+        }, 100);
+      }
     } catch (error) {
       console.error('Error processing image:', error);
     }
-  }, [compressImage]);
+  }, [compressImage, isMobile]);
 
   // Handle image removal
   const handleImageRemove = useCallback(() => {
@@ -1559,7 +1572,7 @@ const NewPostForm = ({ user, countries, categories, flOptions }) => {
                   
                   {/* Current Image Display */}
                   {imagePreview && (
-                    <Box sx={{ mb: 3 }}>
+                    <Box sx={{ mb: 3 }} data-testid="image-preview">
                       <Card 
                         sx={{ 
                           maxWidth: 400,
@@ -1693,8 +1706,9 @@ const NewPostForm = ({ user, countries, categories, flOptions }) => {
                         accept="image/*"
                         hidden
                         onChange={handleImageSelect}
-                        capture={isMobile() ? "environment" : undefined}
                         multiple={false}
+                        webkitdirectory="false"
+                        style={{ display: 'none' }}
                       />
                     </Button>
                     
@@ -2085,8 +2099,9 @@ const NewPostForm = ({ user, countries, categories, flOptions }) => {
                 accept="image/*"
                 hidden
                 onChange={handleImageSelect}
-                capture={isMobile() ? "environment" : undefined}
                 multiple={false}
+                webkitdirectory="false"
+                style={{ display: 'none' }}
               />
             </Button>
           )}
