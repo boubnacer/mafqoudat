@@ -120,12 +120,6 @@ const NewPostForm = ({ user, countries, categories, flOptions }) => {
   const [selectedCityFromSearch, setSelectedCityFromSearch] = useState(null);
   const [filteredCities, setFilteredCities] = useState([]);
 
-  // Detect if device is mobile
-  const isMobile = useCallback(() => {
-    return /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent) || 
-           window.innerWidth <= 768;
-  }, []);
-
   // Click outside handler to close city dropdown
   useEffect(() => {
     const handleClickOutside = (event) => {
@@ -693,26 +687,10 @@ const NewPostForm = ({ user, countries, categories, flOptions }) => {
       // Create preview URL
       const previewUrl = URL.createObjectURL(compressedFile);
       setImagePreview(previewUrl);
-      
-      // Clear the input value to allow selecting the same file again if needed
-      // This is important for mobile devices to ensure the onChange event fires again
-      event.target.value = '';
-      
-      // For mobile devices, provide immediate feedback
-      if (isMobile()) {
-        // Small delay to ensure the UI updates smoothly on mobile
-        setTimeout(() => {
-          // Optional: Scroll to show the selected image preview
-          const imagePreviewElement = document.querySelector('[data-testid="image-preview"]');
-          if (imagePreviewElement) {
-            imagePreviewElement.scrollIntoView({ behavior: 'smooth', block: 'center' });
-          }
-        }, 100);
-      }
     } catch (error) {
       console.error('Error processing image:', error);
     }
-  }, [compressImage, isMobile]);
+  }, [compressImage]);
 
 
   // Handle image removal
@@ -1573,7 +1551,7 @@ const NewPostForm = ({ user, countries, categories, flOptions }) => {
                   
                   {/* Current Image Display */}
                   {imagePreview && (
-                    <Box sx={{ mb: 3 }} data-testid="image-preview">
+                    <Box sx={{ mb: 3 }}>
                       <Card 
                         sx={{ 
                           maxWidth: 400,
@@ -1701,19 +1679,12 @@ const NewPostForm = ({ user, countries, categories, flOptions }) => {
                     >
                       {isCompressing ? t('compressingImage') : imagePreview ? t('replaceImage') : t('chooseFile')}
                       <input
-                        id="image-main"
+                        id="image"
                         name="image"
                         type="file"
                         accept="image/*"
                         hidden
                         onChange={handleImageSelect}
-                        multiple={false}
-                        webkitdirectory="false"
-                        style={{ display: 'none' }}
-                        autoComplete="off"
-                        autoCorrect="off"
-                        autoCapitalize="off"
-                        spellCheck="false"
                       />
                     </Button>
                     
@@ -2081,8 +2052,8 @@ const NewPostForm = ({ user, countries, categories, flOptions }) => {
           </Button>
           {imagePreview && (
             <Button
-              variant="contained"
               component="label"
+              variant="contained"
               startIcon={<CloudUploadIcon />}
               sx={{
                 textTransform: 'none',
@@ -2100,18 +2071,10 @@ const NewPostForm = ({ user, countries, categories, flOptions }) => {
             >
               {t('replaceImage')}
               <input
-                id="image-dialog"
                 type="file"
                 accept="image/*"
                 hidden
                 onChange={handleImageSelect}
-                multiple={false}
-                webkitdirectory="false"
-                style={{ display: 'none' }}
-                autoComplete="off"
-                autoCorrect="off"
-                autoCapitalize="off"
-                spellCheck="false"
               />
             </Button>
           )}
