@@ -374,6 +374,7 @@ const Navbar = () => {
   const handleNavigationClose = () => setNavigationAnchorEl(null);
 
   const handleLanguageChange = (newLanguage) => {
+    console.log('🌐 [NAVBAR] Language change triggered:', { newLanguage, currentUrl: window.location.href });
     // Use centralized language storage utility with page refresh
     languageStorage.setLanguage(newLanguage, true); // true = refresh page
     window.dispatchEvent(new Event('languageChange'));

@@ -39,6 +39,7 @@ export const LanguageProvider = ({ children }) => {
 
   const setLanguage = (language, shouldRefresh = false) => {
     try {
+      console.log('🌐 [LANGUAGE-CONTEXT] setLanguage called:', { language, shouldRefresh, currentUrl: window.location.href });
       if (['en', 'ar', 'fr'].includes(language)) {
         
         // Use centralized language storage utility with page refresh option

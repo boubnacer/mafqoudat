@@ -31,6 +31,7 @@ const LanguageSwitcher = ({ variant = 'button', onLanguageChange }) => {
   };
 
   const handleLanguageChange = (language) => {
+    console.log('🌐 [LANGUAGE-SWITCHER] Language change triggered:', { language, currentUrl: window.location.href });
     if (setLanguage(language, true)) { // Pass true to trigger page refresh
       handleClose();
       

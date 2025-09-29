@@ -69,6 +69,8 @@ const ProtectedRoute = ({
     const urlParams = new URLSearchParams(location.search);
     const isLanguageChange = urlParams.get('lang_changed') === 'true';
     
+    console.log('🔒 [LANG-FIX] ProtectedRoute - Checking language change:', { isLanguageChange, urlParams: location.search });
+    
     if (isLanguageChange) {
       console.log('🔒 [LANG-FIX] ProtectedRoute - Language change detected, waiting for country state to restore...');
       // During language change, give more time for country state to restore
