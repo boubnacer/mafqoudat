@@ -108,7 +108,6 @@ const EditPostForm = ({ post, user, countries, flOptions, categories }) => {
       const data = await response.json();
       
       if (data.success) {
-        console.log('🔍 CITIES LOADED - Available cities:', data.data);
         setAvailableCities(data.data);
       } else {
         console.error('Failed to fetch cities:', data.message);
@@ -293,14 +292,9 @@ if (typeof document !== 'undefined') {
   // Set the city value when cities are loaded and we have a post city
   useEffect(() => {
     if (post?.city && setFieldValueCallback) {
-      console.log('🔍 EDIT POST CITY INIT - Post city received:', post.city);
-      console.log('🔍 EDIT POST CITY INIT - Post city type:', typeof post.city);
-      console.log('🔍 EDIT POST CITY INIT - Post city.id:', post.city?.id);
-      
       // Handle both object and string city formats
       if (typeof post.city === 'object' && post.city.id) {
         // Database city - use the id directly
-        console.log('🔍 EDIT POST CITY INIT - Setting database city ObjectId:', post.city.id);
         setFieldValueCallback('city', post.city.id);
       } else if (typeof post.city === 'string') {
         // Check if it's a database city (ObjectId format) or API city
@@ -435,7 +429,6 @@ if (typeof document !== 'undefined') {
         const results = await searchCitiesHybrid(query, countryCode);
         
         if (results.length > 0) {
-          console.log('🔍 CITY SEARCH - Hybrid search results:', results);
           setSearchResults(results);
         } else {
           // Fallback to traditional search
@@ -443,7 +436,6 @@ if (typeof document !== 'undefined') {
           const fallbackResults = await searchCitiesTraditional(query, selectedCountry._id);
           
           if (fallbackResults.length > 0) {
-            console.log('🔍 CITY SEARCH - Traditional search results:', fallbackResults);
             setSearchResults(fallbackResults);
           } else {
             // Final fallback: filter existing cities
@@ -457,7 +449,6 @@ if (typeof document !== 'undefined') {
               _id: city.id || city._id
             }));
             
-            console.log('🔍 CITY SEARCH - Local filter results:', localResults);
             setSearchResults(localResults);
           }
         }
@@ -485,11 +476,6 @@ if (typeof document !== 'undefined') {
 
   // Handle city selection from dropdown (from NewPostForm)
   const handleCitySelect = (city, setFieldValue) => {
-    console.log('🔍 CITY SELECT - Selected city:', city);
-    console.log('🔍 CITY SELECT - City has _id:', !!city._id);
-    console.log('🔍 CITY SELECT - City has id:', !!city.id);
-    console.log('🔍 CITY SELECT - City code:', city.code);
-    
     setSelectedCityFromSearch(city);
     setCitySearchQuery(city.label || city.labels?.en || city.name || '');
     setShowCityDropdown(false);
@@ -498,12 +484,10 @@ if (typeof document !== 'undefined') {
     if (city._id || city.id) {
       // Database city
       const cityId = city._id || city.id;
-      console.log('🔍 CITY SELECT - Setting database city ObjectId:', cityId);
       setFieldValue('city', cityId);
     } else {
       // API city - we'll handle this in the submit
       const apiCityValue = `api_${city.code}`;
-      console.log('🔍 CITY SELECT - Setting API city:', apiCityValue);
       setFieldValue('city', apiCityValue);
     }
     
@@ -584,21 +568,14 @@ if (typeof document !== 'undefined') {
     city: (() => {
       // Handle both object and string city formats
       if (post?.city) {
-        console.log('🔍 EDIT POST INITIAL STATE - Post city:', post.city);
-        console.log('🔍 EDIT POST INITIAL STATE - Post city type:', typeof post.city);
-        console.log('🔍 EDIT POST INITIAL STATE - Post city.id:', post.city?.id);
-        
         if (typeof post.city === 'object' && post.city.id) {
           // Database city object - return the id
-          console.log('🔍 EDIT POST INITIAL STATE - Returning database city ObjectId:', post.city.id);
           return post.city.id;
         } else if (typeof post.city === 'string') {
           // String city - could be ObjectId or API city
-          console.log('🔍 EDIT POST INITIAL STATE - Returning string city:', post.city);
           return post.city;
         }
       }
-      console.log('🔍 EDIT POST INITIAL STATE - No city found, returning empty string');
       return "";
     })(),
     exactLocation: post?.exactLocation || "",
@@ -779,19 +756,13 @@ if (typeof document !== 'undefined') {
       };
 
       // Handle city - match NewPostForm logic
-      console.log('🔍 EDIT POST SUBMIT - City value being sent:', values.city);
-      console.log('🔍 EDIT POST SUBMIT - City value type:', typeof values.city);
-      console.log('🔍 EDIT POST SUBMIT - City starts with api_:', values.city?.startsWith('api_'));
-      
       if (values.city && values.city.startsWith('api_')) {
         // API city - send the city data (for future compatibility)
         postData.city = values.city.replace('api_', '');
-        console.log('🔍 EDIT POST SUBMIT - Sending API city:', postData.city);
         // Note: selectedCityFromSearch would be needed for full API city support
       } else {
         // Database city
         postData.city = values.city;
-        console.log('🔍 EDIT POST SUBMIT - Sending database city:', postData.city);
       }
       
       // console.log('🚀 UPDATE POST - Starting update process...');

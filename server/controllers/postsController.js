@@ -1074,8 +1074,14 @@ const updatePost = async (req, res) => {
   post.country = country;
   post.category = category;
   if (city !== undefined) {
-    // console.log('🔍 UPDATE POST SERVER - Setting city to:', city);
-    post.city = city;
+    // Convert string ObjectId to actual ObjectId if needed
+    if (typeof city === 'string' && city.match(/^[0-9a-fA-F]{24}$/)) {
+      // It's a valid ObjectId string, convert to ObjectId
+      post.city = new mongoose.Types.ObjectId(city);
+    } else {
+      // It's an API city (string like "DAKHLA") or already an ObjectId
+      post.city = city;
+    }
   }
   post.exactLocation = exactLocation;
   // console.log('🔍 UPDATE POST SERVER - Setting exactDate to:', exactDate);
@@ -1089,15 +1095,8 @@ const updatePost = async (req, res) => {
 
 
 
-  console.log('🔍 UPDATE POST SERVER - Received city value:', req.body.city);
-  console.log('🔍 UPDATE POST SERVER - Received city type:', typeof req.body.city);
-  console.log('🔍 UPDATE POST SERVER - Post city before save:', post.city);
-  console.log('🔍 UPDATE POST SERVER - Post city type before save:', typeof post.city);
-  
   try {
     const updatedPost = await post.save();
-    console.log('🔍 UPDATE POST SERVER - Post city after save:', updatedPost.city);
-    console.log('🔍 UPDATE POST SERVER - Post city type after save:', typeof updatedPost.city);
 
     // Invalidate related cache entries
     await cacheService.invalidatePattern('posts:*');
