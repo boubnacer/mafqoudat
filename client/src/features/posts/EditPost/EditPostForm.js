@@ -463,6 +463,11 @@ if (typeof document !== 'undefined') {
 
   // Get current image URL for display
   const getCurrentImageUrl = useCallback(() => {
+    // If image was removed, don't show anything
+    if (selectedImage === "REMOVED") {
+      return null;
+    }
+    
     if (imagePreview) {
       return imagePreview;
     }
@@ -473,7 +478,7 @@ if (typeof document !== 'undefined') {
         : `${API_BASE_URL}/${post.image}`;
     }
     return null;
-  }, [post?.image, imagePreview]);
+  }, [post?.image, imagePreview, selectedImage]);
 
   // Handle image selection
   const handleImageSelect = useCallback(async (event) => {
@@ -507,6 +512,9 @@ if (typeof document !== 'undefined') {
       URL.revokeObjectURL(imagePreview);
       setImagePreview(null);
     }
+    
+    // Mark that image has been removed (set to null to indicate removal)
+    setSelectedImage("REMOVED");
   }, [imagePreview]);
 
   // Handle image dialog open/close
@@ -773,18 +781,13 @@ if (typeof document !== 'undefined') {
       const currentValue = currentValues[key];
       const isChanged = currentValue !== initialValue;
       
-      // if (isChanged) {
-      //   console.log(`🔍 FORM CHANGE - Field '${key}' changed:`, {
-      //     initial: initialValue,
-      //     current: currentValue
-      //   });
-      // }
-      
       return isChanged;
     });
     
-    // console.log('🔍 FORM CHANGE - Has form changed:', hasChanged);
-    setHasFormChanged(hasChanged);
+    // Also check for image changes
+    const hasImageChanged = selectedImage !== null;
+    
+    setHasFormChanged(hasChanged || hasImageChanged);
   };
 
   // Remove Yup validation - we'll handle validation in handleSubmit
@@ -900,9 +903,11 @@ if (typeof document !== 'undefined') {
         contactPreferences: { whatsapp: true }
       };
 
-      // Handle image - include new image if selected
-      if (selectedImage) {
-        postData.image = selectedImage;
+      // Handle image - include new image if selected or mark for removal
+      if (selectedImage === "REMOVED") {
+        postData.image = null; // Mark image for removal
+      } else if (selectedImage && selectedImage !== "REMOVED") {
+        postData.image = selectedImage; // New image
       }
 
       // Handle city - match NewPostForm logic exactly
@@ -1981,10 +1986,15 @@ if (typeof document !== 'undefined') {
                           <Box display="flex" alignItems="center" gap={1}>
                             <Chip 
                               icon={<PhotoCamera />}
-                              label={imagePreview ? t('newImage') || 'New Image' : t('currentImage') || 'Current Image'}
+                              label={imagePreview ? t('newImage') : t('currentImage')}
                               color={imagePreview ? 'primary' : 'default'}
                               size="small"
                               variant="outlined"
+                              sx={{
+                                color: theme.palette.text.primary,
+                                borderColor: theme.palette.divider,
+                                backgroundColor: theme.palette.mode === 'dark' ? 'rgba(255,255,255,0.1)' : 'rgba(0,0,0,0.05)'
+                              }}
                             />
                             {compressionInfo && (
                               <Chip 
@@ -1992,6 +2002,11 @@ if (typeof document !== 'undefined') {
                                 color="success"
                                 size="small"
                                 variant="outlined"
+                                sx={{
+                                  color: theme.palette.success.main,
+                                  borderColor: theme.palette.success.main,
+                                  backgroundColor: theme.palette.mode === 'dark' ? 'rgba(76, 175, 80, 0.1)' : 'rgba(76, 175, 80, 0.05)'
+                                }}
                               />
                             )}
                           </Box>
@@ -2062,7 +2077,7 @@ if (typeof document !== 'undefined') {
                           : '0 3px 8px rgba(46, 125, 50, 0.2)',
                       }}
                     >
-                      {isCompressing ? t('compressingImage') || 'Compressing...' : getCurrentImageUrl() ? t('replaceImage') || 'Replace Image' : t('chooseFile') || 'Choose File'}
+                      {isCompressing ? t('compressingImage') : getCurrentImageUrl() ? t('replaceImage') : t('chooseFile')}
                       <input
                         id="image"
                         name="image"
@@ -2096,7 +2111,7 @@ if (typeof document !== 'undefined') {
                         fontWeight: 500
                       }}
                     >
-                      {t('compressionSuccess') || `Compressed: ${compressionInfo.originalSize}MB → ${compressionInfo.compressedSize}MB (${compressionInfo.compressionRatio}% smaller)`}
+                      {t('compressionSuccess')}
                     </Typography>
                   )}
                   
@@ -2110,7 +2125,7 @@ if (typeof document !== 'undefined') {
                       fontWeight: 500
                     }}
                   >
-                    {t('imageOptionalMessage') || 'You can add, replace, or remove the item image. Images help others identify your lost or found item.'}
+                    {t('imageOptionalMessage')}
                   </Typography>
                 </Box>
 
@@ -2366,7 +2381,7 @@ if (typeof document !== 'undefined') {
               px: 3
             }}
           >
-            {t('close') || 'Close'}
+            {t('close')}
           </Button>
           {getCurrentImageUrl() && (
             <Button
@@ -2387,7 +2402,7 @@ if (typeof document !== 'undefined') {
                 }
               }}
             >
-              {t('replaceImage') || 'Replace Image'}
+              {t('replaceImage')}
               <input
                 type="file"
                 accept="image/*"

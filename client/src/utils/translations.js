@@ -336,6 +336,10 @@ export const translations = {
     location: "Location",
     contactInformation: "Contact Information",
     itemImage: "Item Image",
+    newImage: "New Image",
+    currentImage: "Current Image",
+    replaceImage: "Replace Image",
+    imagePreview: "Image Preview",
     
     // Form fields
     description: "Description",
@@ -1188,6 +1192,10 @@ export const translations = {
     location: "Localisation",
     contactInformation: "Informations de contact",
     itemImage: "Image de l'objet",
+    newImage: "Nouvelle Image",
+    currentImage: "Image Actuelle",
+    replaceImage: "Remplacer l'Image",
+    imagePreview: "Aperçu de l'Image",
     
     // Form fields
     description: "Description",
@@ -2004,6 +2012,10 @@ export const translations = {
     location: "الموقع",
     contactInformation: "معلومات الاتصال",
     itemImage: "صورة العنصر",
+    newImage: "صورة جديدة",
+    currentImage: "الصورة الحالية",
+    replaceImage: "استبدال الصورة",
+    imagePreview: "معاينة الصورة",
     
     // Form fields
     description: "الوصف",
