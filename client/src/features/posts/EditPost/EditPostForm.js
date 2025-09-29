@@ -294,9 +294,14 @@ if (typeof document !== 'undefined') {
   // Set the city value when cities are loaded and we have a post city
   useEffect(() => {
     if (post?.city && setFieldValueCallback) {
+      console.log('🔍 EDIT POST CITY INIT - Post city received:', post.city);
+      console.log('🔍 EDIT POST CITY INIT - Post city type:', typeof post.city);
+      console.log('🔍 EDIT POST CITY INIT - Post city.id:', post.city?.id);
+      
       // Handle both object and string city formats
       if (typeof post.city === 'object' && post.city.id) {
         // Database city - use the id directly
+        console.log('🔍 EDIT POST CITY INIT - Setting database city ObjectId:', post.city.id);
         setFieldValueCallback('city', post.city.id);
       } else if (typeof post.city === 'string') {
         // Check if it's a database city (ObjectId format) or API city
@@ -582,15 +587,22 @@ if (typeof document !== 'undefined') {
     city: (() => {
       // Handle both object and string city formats - match NewPostForm logic
       if (post?.city) {
+        console.log('🔍 EDIT POST INITIAL STATE - Post city:', post.city);
+        console.log('🔍 EDIT POST INITIAL STATE - Post city type:', typeof post.city);
+        console.log('🔍 EDIT POST INITIAL STATE - Post city.id:', post.city?.id);
+        
         if (typeof post.city === 'object' && post.city.id) {
           // Database city object - return the id
+          console.log('🔍 EDIT POST INITIAL STATE - Returning database city ObjectId:', post.city.id);
           return post.city.id;
         } else if (typeof post.city === 'string') {
           // String city - could be ObjectId or API city
           // For API cities, return with api_ prefix to match NewPostForm
+          console.log('🔍 EDIT POST INITIAL STATE - Returning API city with prefix:', `api_${post.city}`);
           return `api_${post.city}`;
         }
       }
+      console.log('🔍 EDIT POST INITIAL STATE - No city found, returning empty string');
       return "";
     })(),
     exactLocation: post?.exactLocation || "",
@@ -771,13 +783,20 @@ if (typeof document !== 'undefined') {
       };
 
       // Handle city - match NewPostForm logic exactly
+      console.log('🔍 EDIT POST SUBMIT - City value being sent:', values.city);
+      console.log('🔍 EDIT POST SUBMIT - City value type:', typeof values.city);
+      console.log('🔍 EDIT POST SUBMIT - City starts with api_:', values.city?.startsWith('api_'));
+      console.log('🔍 EDIT POST SUBMIT - selectedCityFromSearch:', selectedCityFromSearch);
+      
       if (values.city && values.city.startsWith('api_')) {
         // API city - send the city data
         postData.city = selectedCityFromSearch?.code || values.city.replace('api_', '');
         postData.cityData = selectedCityFromSearch;
+        console.log('🔍 EDIT POST SUBMIT - Sending API city:', postData.city);
       } else {
         // Database city
         postData.city = values.city;
+        console.log('🔍 EDIT POST SUBMIT - Sending database city:', postData.city);
       }
       
       // console.log('🚀 UPDATE POST - Starting update process...');
