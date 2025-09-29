@@ -1496,7 +1496,18 @@ const NewPostForm = ({ user, countries, categories, flOptions }) => {
                       fontWeight: 500
                     }}
                   >
-                    {t('phoneNumberDescription')}
+                    {getFoundLostType(values.foundLost) === 'LOST'
+                      ? currentLanguage === 'ar' 
+                        ? 'سنقوم بالتواصل معك عبر هذا الرقم في حالة العثور على عنصرك المفقود من قبل شخص آخر'
+                        : currentLanguage === 'fr'
+                          ? 'Nous vous contacterons via ce numéro si quelqu\'un trouve votre objet perdu'
+                          : 'We will contact you through this number if someone finds your lost item'
+                      : currentLanguage === 'ar' 
+                        ? 'سنقوم بالتواصل معك عبر هذا الرقم في حالة تواصل مالك العنصر معنا'
+                        : currentLanguage === 'fr'
+                          ? 'Nous vous contacterons via ce numéro si le propriétaire de l\'objet nous contacte'
+                          : 'We will contact you through this number if the item owner contacts us'
+                    }
                   </Typography>
                   <Textfield 
                     name="contact" 
@@ -1633,7 +1644,7 @@ const NewPostForm = ({ user, countries, categories, flOptions }) => {
                     <Button
                       variant="contained"
                       component="label"
-                      startIcon={isCompressing ? <CircularProgress size={16} color="inherit" /> : <CloudUploadIcon />}
+                      startIcon={isCompressing ? <CircularProgress size={16} sx={{ color: 'white' }} /> : <CloudUploadIcon sx={{ color: 'white' }} />}
                       disabled={isCompressing}
                       sx={{ 
                         textTransform: 'none', 
@@ -1642,6 +1653,7 @@ const NewPostForm = ({ user, countries, categories, flOptions }) => {
                         py: 1.5,
                         fontSize: '1rem',
                         fontWeight: 600,
+                        color: 'white',
                         background: theme.palette.mode === 'dark'
                           ? 'linear-gradient(45deg, #4CAF50 30%, #66BB6A 90%)'
                           : 'linear-gradient(45deg, #2E7D32 30%, #388E3C 90%)',
@@ -1656,7 +1668,7 @@ const NewPostForm = ({ user, countries, categories, flOptions }) => {
                         },
                         '&:disabled': {
                           background: theme.palette.mode === 'dark' ? 'rgba(76, 175, 80, 0.3)' : 'rgba(46, 125, 50, 0.3)',
-                          color: theme.palette.mode === 'dark' ? 'rgba(255,255,255,0.5)' : 'rgba(255,255,255,0.7)',
+                          color: 'rgba(255,255,255,0.5)',
                         },
                         transition: 'all 0.2s ease-in-out',
                         boxShadow: theme.palette.mode === 'dark'
