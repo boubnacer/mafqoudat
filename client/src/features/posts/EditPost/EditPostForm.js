@@ -929,7 +929,10 @@ if (typeof document !== 'undefined') {
       if (selectedImage && selectedImage !== "REMOVED") {
         // Create FormData for image upload
         const formData = new FormData();
-        formData.append("postData", JSON.stringify({ id: post._id, ...postData }));
+        const postDataWithId = { id: post._id, ...postData };
+        console.log('🔍 UPDATE POST - Sending FormData with postData:', postDataWithId);
+        console.log('🔍 UPDATE POST - Image file:', selectedImage);
+        formData.append("postData", JSON.stringify(postDataWithId));
         formData.append("image", selectedImage);
         
         // Use fetch directly for FormData
@@ -943,7 +946,13 @@ if (typeof document !== 'undefined') {
         });
         
         if (!response.ok) {
-          const errorData = await response.json();
+          let errorData;
+          try {
+            errorData = await response.json();
+          } catch (e) {
+            errorData = { message: `HTTP ${response.status}: ${response.statusText}` };
+          }
+          console.error('❌ UPDATE POST - Server error response:', errorData);
           throw new Error(errorData.message || 'Update failed');
         }
         

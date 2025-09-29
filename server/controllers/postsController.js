@@ -1026,10 +1026,22 @@ const updatePost = async (req, res) => {
   } = requestData;
 
   // Debug: Log the request body
-  // console.log('🔍 UPDATE POST SERVER - Request body:', req.body);
-  // console.log('🔍 UPDATE POST SERVER - City value:', city, 'Type:', typeof city);
+  console.log('🔍 UPDATE POST SERVER - Request body:', req.body);
+  console.log('🔍 UPDATE POST SERVER - Parsed requestData:', requestData);
+  console.log('🔍 UPDATE POST SERVER - City value:', city, 'Type:', typeof city);
   
   // Confirm data
+  console.log('🔍 UPDATE POST SERVER - Validation check:');
+  console.log('  - id:', id, 'exists:', !!id);
+  console.log('  - user:', user, 'exists:', !!user);
+  console.log('  - category:', category, 'exists:', !!category);
+  console.log('  - exactLocation:', exactLocation, 'exists:', !!exactLocation);
+  console.log('  - exactDate:', exactDate, 'exists:', !!exactDate);
+  console.log('  - country:', country, 'exists:', !!country);
+  console.log('  - contact:', contact, 'exists:', !!contact);
+  console.log('  - foundLost:', foundLost, 'exists:', !!foundLost);
+  console.log('  - returned:', returned, 'type:', typeof returned, 'isBoolean:', typeof returned === "boolean");
+  
   if (
     !id ||
     !user ||

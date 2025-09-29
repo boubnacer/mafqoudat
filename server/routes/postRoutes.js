@@ -188,6 +188,29 @@ router
       });
     },
     uploadToCloudinaryMiddleware,
+    // Custom validation for FormData requests
+    (req, res, next) => {
+      // If this is a FormData request (has postData field), validate the parsed data
+      if (req.body.postData) {
+        try {
+          const postData = JSON.parse(req.body.postData);
+          if (!postData.id || !postData.id.match(/^[0-9a-fA-F]{24}$/)) {
+            return res.status(400).json({ 
+              success: false, 
+              error: { message: 'Invalid post ID in FormData' } 
+            });
+          }
+          // Add the id to req.body for compatibility with existing validation
+          req.body.id = postData.id;
+        } catch (error) {
+          return res.status(400).json({ 
+            success: false, 
+            error: { message: 'Invalid postData format' } 
+          });
+        }
+      }
+      next();
+    },
     commonValidations.bodyObjectId('id'),
     validateRequest,
     optimizedInvalidateCache([], 'posts'), 
