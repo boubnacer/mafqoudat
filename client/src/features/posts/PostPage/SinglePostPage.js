@@ -17,7 +17,8 @@ import {
 } from "@mui/material";
 import { useNavigate } from "react-router-dom";
 import useAuth from "../../../hooks/useAuth";
-import maflogo from "../../../../public/maflogo.png";
+// Use the public directory path for static assets
+const maflogo = "/maflogo.png";
 import { useState, useCallback, useMemo } from "react";
 import ReportDialog from "../../../components/ReportDialog";
 import { useSubmitReportMutation } from "../reportsApiSlice";

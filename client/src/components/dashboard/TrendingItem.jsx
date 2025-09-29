@@ -21,7 +21,8 @@ import LazyCardMedia from "../LazyCardMedia";
 import { getCategoryConfig } from "../../config/categories";
 import { useNavigate } from "react-router-dom";
 import { getLabel } from "../../utils/languageUtils";
-import maflogo from "../../../public/maflogo.png";
+// Use the public directory path for static assets
+const maflogo = "/maflogo.png";
 
 // Get the API base URL for image construction
 const API_BASE_URL = process.env.REACT_APP_API_URL || "http://localhost:3500";

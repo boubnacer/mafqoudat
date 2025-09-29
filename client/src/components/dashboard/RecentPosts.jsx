@@ -11,7 +11,8 @@ import {
   useMediaQuery,
   Avatar,
 } from "@mui/material";
-import maflogo from "../../../public/maflogo.png";
+// Use the public directory path for static assets
+const maflogo = "/maflogo.png";
 import { useNavigate } from "react-router-dom";
 import RenderIcon from "../RenderIcon";
 import { useTranslation } from "../../utils/translations";

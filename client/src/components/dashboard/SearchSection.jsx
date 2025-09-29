@@ -16,7 +16,8 @@ import { useNavigate } from "react-router-dom";
 import { SearchLoadingStates } from "../LoadingStates";
 import { useTranslation } from "../../utils/translations";
 import LazyCardMedia from "../LazyCardMedia";
-import maflogo from "../../../public/maflogo.png";
+// Use the public directory path for static assets
+const maflogo = "/maflogo.png";
 
 const SearchSection = ({
   searchQuery,

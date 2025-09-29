@@ -2,7 +2,8 @@ import { useNavigate } from "react-router-dom";
 import { memo, useState, useCallback, useMemo } from "react";
 import React from "react";
 // import "./postslist.css"; // Removed to prevent CSS conflicts with Material-UI
-import maflogo from "../../../../public/maflogo.png";
+// Use the public directory path for static assets
+const maflogo = "/maflogo.png";
 import {
   Button,
   Card,
