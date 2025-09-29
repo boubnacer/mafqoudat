@@ -1496,11 +1496,17 @@ if (typeof document !== 'undefined') {
                   >
                     {!selectedCountry 
                       ? t('selectCountryFirst') 
-                        : currentLanguage === 'ar' 
-                          ? 'اختر مدينتك أو أقرب مدينة رئيسية إليك (العاصمة، العمالة، المقاطعة أو الولاية)'
-                          : currentLanguage === 'fr'
-                            ? 'Sélectionnez votre ville ou la grande ville la plus proche (capitale, préfecture, province ou état)'
-                            : 'Select your city or the nearest major city to you (capital, prefecture, province or state)'
+                        : getFoundLostType(values.foundLost) === 'LOST'
+                          ? currentLanguage === 'ar' 
+                            ? 'يرجى تحديد المدينة التي فقدت فيها العنصر أو أقرب مدينة رئيسية إليها (العاصمة، العمالة، المقاطعة، الولاية، أو المحافظة)'
+                            : currentLanguage === 'fr'
+                              ? 'Veuillez sélectionner la ville où vous avez perdu l\'objet ou la ville principale la plus proche (capitale, préfecture, province, état ou gouvernorat)'
+                              : 'Please select the city where you lost the item or the nearest major administrative center (capital, prefecture, province, state, or governorate)'
+                          : currentLanguage === 'ar' 
+                            ? 'يرجى تحديد المدينة التي وجدت فيها العنصر أو أقرب مدينة رئيسية إليها (العاصمة، العمالة، المقاطعة، الولاية، أو المحافظة)'
+                            : currentLanguage === 'fr'
+                              ? 'Veuillez sélectionner la ville où vous avez trouvé l\'objet ou la ville principale la plus proche (capitale, préfecture, province, état ou gouvernorat)'
+                              : 'Please select the city where you found the item or the nearest major administrative center (capital, prefecture, province, state, or governorate)'
                     }
                   </Typography>
                   
@@ -1752,6 +1758,53 @@ if (typeof document !== 'undefined') {
 
                 <Box>
                   <FormLabel 
+                    htmlFor="exactLocation" 
+                    sx={{ 
+                      mb: 1, 
+                      display: "block", 
+                      fontWeight: 600, 
+                      fontSize: '1.15rem',
+                      color: theme.palette.text.primary
+                    }}
+                  >
+                    {t('exactLocation')} *
+                  </FormLabel>
+                  <Typography 
+                    variant="caption" 
+                    sx={{ 
+                      mb: 1, 
+                      display: "block", 
+                      fontSize: '1rem',
+                      color: theme.palette.mode === 'dark' ? 'rgba(255,255,255,0.7)' : 'rgba(0,0,0,0.6)',
+                      fontWeight: 500
+                    }}
+                  >
+                    {getFoundLostType(values.foundLost) === 'LOST'
+                      ? currentLanguage === 'ar' 
+                        ? 'يرجى تحديد الموقع الدقيق والتفصيلي حيث فقدت العنصر (مثال: حي النور، شارع الملك، بجانب المسجد، أو أي معلم مميز)'
+                        : currentLanguage === 'fr'
+                          ? 'Veuillez spécifier l\'emplacement exact et détaillé où vous avez perdu l\'objet (ex: Quartier Al-Nour, Rue du Roi, près de la mosquée, ou tout point de repère distinctif)'
+                          : 'Please specify the precise and detailed location where you lost the item (e.g., Al-Nour District, King Street, near the mosque, or any distinctive landmark)'
+                      : currentLanguage === 'ar' 
+                        ? 'يرجى تحديد الموقع الدقيق والتفصيلي حيث وجدت العنصر (مثال: حي النور، شارع الملك، بجانب المسجد، أو أي معلم مميز)'
+                        : currentLanguage === 'fr'
+                          ? 'Veuillez spécifier l\'emplacement exact et détaillé où vous avez trouvé l\'objet (ex: Quartier Al-Nour, Rue du Roi, près de la mosquée, ou tout point de repère distinctif)'
+                          : 'Please specify the precise and detailed location where you found the item (e.g., Al-Nour District, King Street, near the mosque, or any distinctive landmark)'
+                    }
+                  </Typography>
+                  <Textfield 
+                    name="exactLocation" 
+                    variant="outlined" 
+                    placeholder={t('exactLocationPlaceholder')}
+                    data-testid="exactLocation"
+                    error={!!fieldErrors.exactLocation}
+                    helperText={fieldErrors.exactLocation}
+                    onErrorClear={clearFieldError}
+                  />
+                </Box>
+
+                <Box>
+                  <FormLabel 
                     htmlFor="exactDate" 
                     sx={{ 
                       mb: 1, 
@@ -1808,45 +1861,6 @@ if (typeof document !== 'undefined') {
                       color: theme.palette.text.primary,
                       fontWeight: 500
                     }}
-                  />
-                </Box>
-
-                <Box>
-                  <FormLabel 
-                    htmlFor="exactLocation" 
-                    sx={{ 
-                      mb: 1, 
-                      display: "block", 
-                      fontWeight: 600, 
-                      fontSize: '1.15rem',
-                      color: theme.palette.text.primary
-                    }}
-                  >
-                    {t('exactLocation')} *
-                  </FormLabel>
-                  <Typography 
-                    variant="caption" 
-                    sx={{ 
-                      mb: 1, 
-                      display: "block", 
-                      fontSize: '1rem',
-                      color: theme.palette.mode === 'dark' ? 'rgba(255,255,255,0.7)' : 'rgba(0,0,0,0.6)',
-                      fontWeight: 500
-                    }}
-                  >
-                    {getFoundLostType(values.foundLost) === 'LOST' 
-                      ? t('exactLocationLostPlaceholder') 
-                      : t('exactLocationFoundPlaceholder')
-                    }
-                  </Typography>
-                  <Textfield 
-                    name="exactLocation" 
-                    variant="outlined" 
-                    placeholder={t('exactLocationPlaceholder')}
-                    data-testid="exactLocation"
-                    error={!!fieldErrors.exactLocation}
-                    helperText={fieldErrors.exactLocation}
-                    onErrorClear={clearFieldError}
                   />
                 </Box>
 
@@ -1954,7 +1968,18 @@ if (typeof document !== 'undefined') {
                       fontWeight: 500
                     }}
                   >
-                    {t('phoneNumberDescription')}
+                    {getFoundLostType(values.foundLost) === 'LOST'
+                      ? currentLanguage === 'ar' 
+                        ? 'سنقوم بالتواصل معك عبر هذا الرقم في حالة العثور على عنصرك المفقود من قبل شخص آخر'
+                        : currentLanguage === 'fr'
+                          ? 'Nous vous contacterons via ce numéro si quelqu\'un trouve votre objet perdu'
+                          : 'We will contact you through this number if someone finds your lost item'
+                      : currentLanguage === 'ar' 
+                        ? 'سنقوم بالتواصل معك عبر هذا الرقم في حالة تواصل مالك العنصر معنا'
+                        : currentLanguage === 'fr'
+                          ? 'Nous vous contacterons via ce numéro si le propriétaire de l\'objet nous contacte'
+                          : 'We will contact you through this number if the item owner contacts us'
+                    }
                   </Typography>
                   <Textfield 
                     name="contact" 
@@ -2090,7 +2115,7 @@ if (typeof document !== 'undefined') {
                     <Button
                       variant="contained"
                       component="label"
-                      startIcon={isCompressing ? <CircularProgress size={16} color="inherit" /> : <CloudUploadIcon />}
+                      startIcon={isCompressing ? <CircularProgress size={16} sx={{ color: 'white' }} /> : <CloudUploadIcon sx={{ color: 'white' }} />}
                       disabled={isCompressing}
                       sx={{ 
                         textTransform: 'none', 
@@ -2099,6 +2124,7 @@ if (typeof document !== 'undefined') {
                         py: 1.5,
                         fontSize: '1rem',
                         fontWeight: 600,
+                        color: 'white',
                         background: theme.palette.mode === 'dark'
                           ? 'linear-gradient(45deg, #4CAF50 30%, #66BB6A 90%)'
                           : 'linear-gradient(45deg, #2E7D32 30%, #388E3C 90%)',
@@ -2113,7 +2139,7 @@ if (typeof document !== 'undefined') {
                         },
                         '&:disabled': {
                           background: theme.palette.mode === 'dark' ? 'rgba(76, 175, 80, 0.3)' : 'rgba(46, 125, 50, 0.3)',
-                          color: theme.palette.mode === 'dark' ? 'rgba(255,255,255,0.5)' : 'rgba(255,255,255,0.7)',
+                          color: 'rgba(255,255,255,0.5)',
                         },
                         transition: 'all 0.2s ease-in-out',
                         boxShadow: theme.palette.mode === 'dark'
