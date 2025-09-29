@@ -21,7 +21,7 @@ import LazyCardMedia from "../LazyCardMedia";
 import { getCategoryConfig } from "../../config/categories";
 import { useNavigate } from "react-router-dom";
 import { getLabel } from "../../utils/languageUtils";
-import ma from "../../img/ma.jpg";
+import maflogo from "../../../public/maflogo.png";
 
 // Get the API base URL for image construction
 const API_BASE_URL = process.env.REACT_APP_API_URL || "http://localhost:3500";
@@ -200,7 +200,7 @@ const TrendingItem = ({ trend, isLoading }) => {
   };
 
   // Get optimized image URL
-  const finalImageUrl = image ? (image.startsWith('http') ? getOptimizedImageUrl(image, 'card') : `${API_BASE_URL}/${image}`) : ma;
+  const finalImageUrl = image ? (image.startsWith('http') ? getOptimizedImageUrl(image, 'card') : `${API_BASE_URL}/${image}`) : maflogo;
 
   if (isLoading) return <TrendingItemSkeleton />;
   if (!trendData) {
@@ -277,15 +277,47 @@ const TrendingItem = ({ trend, isLoading }) => {
             component="img"
             image={finalImageUrl}
             alt={categoryDisplayName || 'Item Image'}
-            fallback={ma}
+            fallback={maflogo}
             sx={{
               width: '100%',
               height: '100%',
-              objectFit: 'cover',
+              objectFit: image ? 'cover' : 'contain',
               objectPosition: 'center',
-              filter: 'brightness(0.8)', // Reduced darkness for better clarity
+              filter: image ? 'brightness(0.8)' : 'none',
+              backgroundColor: image ? 'transparent' : (theme.palette.mode === 'dark' ? '#1a1a1a' : '#f5f5f5'),
             }}
           />
+          
+          {/* No Image Overlay */}
+          {!image && (
+            <Box
+              sx={{
+                position: 'absolute',
+                top: '50%',
+                left: '50%',
+                transform: 'translate(-50%, -50%)',
+                zIndex: 3,
+                textAlign: 'center',
+                backgroundColor: alpha(theme.palette.mode === 'dark' ? '#000' : '#fff', 0.9),
+                borderRadius: '12px',
+                padding: '12px 16px',
+                backdropFilter: 'blur(10px)',
+                border: `1px solid ${alpha(theme.palette.mode === 'dark' ? '#fff' : '#000', 0.1)}`,
+                boxShadow: '0 4px 12px rgba(0,0,0,0.15)',
+              }}
+            >
+              <Typography
+                sx={{
+                  color: theme.palette.mode === 'dark' ? '#fff' : '#000',
+                  fontSize: { xs: '12px', sm: '13px' },
+                  fontWeight: 600,
+                  lineHeight: 1.2,
+                }}
+              >
+                {t('noImageAvailable')}
+              </Typography>
+            </Box>
+          )}
           {/* Gradient overlay for better text readability */}
           <Box
             sx={{

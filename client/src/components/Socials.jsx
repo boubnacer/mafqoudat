@@ -1,7 +1,6 @@
 import { Box, Typography, useTheme } from "@mui/material";
 import React from "react";
 import FlexBetween from "./FlexBetween";
-import sear from "../img/sear.svg";
 
 const Socials = ({ title, value, increase, icon, description }) => {
   const theme = useTheme();

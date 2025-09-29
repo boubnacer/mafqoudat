@@ -11,7 +11,7 @@ import {
   useMediaQuery,
   Avatar,
 } from "@mui/material";
-import ma from "../../img/ma.jpg";
+import maflogo from "../../../public/maflogo.png";
 import { useNavigate } from "react-router-dom";
 import RenderIcon from "../RenderIcon";
 import { useTranslation } from "../../utils/translations";
@@ -246,17 +246,49 @@ const RecentPosts = ({ _id, categoryname, exactLocation, image, createdAt, count
             sx={{
               height: '100%',
               width: '100%',
-              objectFit: 'cover',
+              objectFit: image ? 'cover' : 'contain',
               objectPosition: 'center',
               zIndex: 1, // Base layer for image
+              backgroundColor: image ? 'transparent' : (theme.palette.mode === 'dark' ? '#1a1a1a' : '#f5f5f5'),
             }}
-            image={image ? (image.startsWith('http') ? getOptimizedImageUrl(image, 'card') : `${API_BASE_URL}/${image}`) : ma}
+            image={image ? (image.startsWith('http') ? getOptimizedImageUrl(image, 'card') : `${API_BASE_URL}/${image}`) : maflogo}
             alt={categoryname}
-            fallback={ma}
+            fallback={maflogo}
             onError={(e) => {
               // Image failed to load - silently handle
             }}
           />
+          
+          {/* No Image Overlay */}
+          {!image && (
+            <Box
+              sx={{
+                position: 'absolute',
+                top: '50%',
+                left: '50%',
+                transform: 'translate(-50%, -50%)',
+                zIndex: 3,
+                textAlign: 'center',
+                backgroundColor: alpha(theme.palette.mode === 'dark' ? '#000' : '#fff', 0.9),
+                borderRadius: '12px',
+                padding: '12px 16px',
+                backdropFilter: 'blur(10px)',
+                border: `1px solid ${alpha(theme.palette.mode === 'dark' ? '#fff' : '#000', 0.1)}`,
+                boxShadow: '0 4px 12px rgba(0,0,0,0.15)',
+              }}
+            >
+              <Typography
+                sx={{
+                  color: theme.palette.mode === 'dark' ? '#fff' : '#000',
+                  fontSize: { xs: '12px', sm: '13px' },
+                  fontWeight: 600,
+                  lineHeight: 1.2,
+                }}
+              >
+                {t('noImageAvailable')}
+              </Typography>
+            </Box>
+          )}
           
           {/* Gradient Overlay */}
           <Box

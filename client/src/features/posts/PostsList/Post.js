@@ -2,7 +2,7 @@ import { useNavigate } from "react-router-dom";
 import { memo, useState, useCallback, useMemo } from "react";
 import React from "react";
 // import "./postslist.css"; // Removed to prevent CSS conflicts with Material-UI
-import ma from "../../../img/ma.jpg";
+import maflogo from "../../../../public/maflogo.png";
 import {
   Button,
   Card,
@@ -283,7 +283,7 @@ const Post = ({ post, viewMode = "grid" }) => {
 
   // Memoized image URL computation
   const imageUrl = useMemo(() => {
-    if (!post?.image) return ma;
+    if (!post?.image) return maflogo;
     return post.image.startsWith('http') 
       ? getOptimizedImageUrl(post.image, 'card') 
       : `${API_BASE_URL}/${post.image}`;
@@ -332,21 +332,54 @@ const Post = ({ post, viewMode = "grid" }) => {
           <Box sx={{ 
             width: { xs: '100%', sm: 200 }, 
             height: { xs: 160, sm: 180 },
-            flexShrink: 0 
+            flexShrink: 0,
+            position: 'relative'
           }}>
             <LazyCardMedia
               component="img"
               sx={{ 
                 height: '100%',
                 width: '100%',
-                objectFit: 'cover',
-                objectPosition: 'center'
+                objectFit: post?.image ? 'cover' : 'contain',
+                objectPosition: 'center',
+                backgroundColor: post?.image ? 'transparent' : (theme.palette.mode === 'dark' ? '#1a1a1a' : '#f5f5f5'),
               }}
               image={imageUrl}
               alt={categoryName || 'Item Image'}
-              fallback={ma}
+              fallback={maflogo}
               onError={handleImageError}
             />
+            
+            {/* No Image Overlay for List View */}
+            {!post?.image && (
+              <Box
+                sx={{
+                  position: 'absolute',
+                  top: '50%',
+                  left: '50%',
+                  transform: 'translate(-50%, -50%)',
+                  zIndex: 3,
+                  textAlign: 'center',
+                  backgroundColor: alpha(theme.palette.mode === 'dark' ? '#000' : '#fff', 0.9),
+                  borderRadius: '12px',
+                  padding: '12px 16px',
+                  backdropFilter: 'blur(10px)',
+                  border: `1px solid ${alpha(theme.palette.mode === 'dark' ? '#fff' : '#000', 0.1)}`,
+                  boxShadow: '0 4px 12px rgba(0,0,0,0.15)',
+                }}
+              >
+                <Typography
+                  sx={{
+                    color: theme.palette.mode === 'dark' ? '#fff' : '#000',
+                    fontSize: { xs: '12px', sm: '13px' },
+                    fontWeight: 600,
+                    lineHeight: 1.2,
+                  }}
+                >
+                  {t('noImageAvailable')}
+                </Typography>
+              </Box>
+            )}
           </Box>
 
           {/* Content Section */}
@@ -503,15 +536,47 @@ const Post = ({ post, viewMode = "grid" }) => {
             sx={{
               height: '100%',
               width: '100%',
-              objectFit: 'cover',
+              objectFit: post?.image ? 'cover' : 'contain',
               objectPosition: 'center',
               zIndex: 1, // Base layer for image
+              backgroundColor: post?.image ? 'transparent' : (theme.palette.mode === 'dark' ? '#1a1a1a' : '#f5f5f5'),
             }}
             image={imageUrl}
             alt={categoryName || 'Item Image'}
-            fallback={ma}
+            fallback={maflogo}
             onError={handleImageError}
           />
+          
+          {/* No Image Overlay for Grid View */}
+          {!post?.image && (
+            <Box
+              sx={{
+                position: 'absolute',
+                top: '50%',
+                left: '50%',
+                transform: 'translate(-50%, -50%)',
+                zIndex: 3,
+                textAlign: 'center',
+                backgroundColor: alpha(theme.palette.mode === 'dark' ? '#000' : '#fff', 0.9),
+                borderRadius: '12px',
+                padding: '12px 16px',
+                backdropFilter: 'blur(10px)',
+                border: `1px solid ${alpha(theme.palette.mode === 'dark' ? '#fff' : '#000', 0.1)}`,
+                boxShadow: '0 4px 12px rgba(0,0,0,0.15)',
+              }}
+            >
+              <Typography
+                sx={{
+                  color: theme.palette.mode === 'dark' ? '#fff' : '#000',
+                  fontSize: { xs: '12px', sm: '13px' },
+                  fontWeight: 600,
+                  lineHeight: 1.2,
+                }}
+              >
+                {t('noImageAvailable')}
+              </Typography>
+            </Box>
+          )}
           
 
 

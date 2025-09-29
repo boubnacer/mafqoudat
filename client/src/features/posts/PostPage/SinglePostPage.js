@@ -17,7 +17,7 @@ import {
 } from "@mui/material";
 import { useNavigate } from "react-router-dom";
 import useAuth from "../../../hooks/useAuth";
-import sear from "../../../img/sear.svg";
+import maflogo from "../../../../public/maflogo.png";
 import { useState, useCallback, useMemo } from "react";
 import ReportDialog from "../../../components/ReportDialog";
 import { useSubmitReportMutation } from "../reportsApiSlice";
@@ -565,7 +565,7 @@ const SinglePostPage = ({
 
   // Memoized image URL computation
   const imageUrl = useMemo(() => {
-    if (!image) return sear;
+    if (!image) return maflogo;
     return image.startsWith('http') 
       ? getOptimizedImageUrl(image, 'large') 
       : image;
@@ -625,13 +625,57 @@ const SinglePostPage = ({
                 sx={{
                   width: '100%',
                   height: { xs: 300, sm: 400, md: 500 },
-                  objectFit: 'cover',
-                  objectPosition: 'center'
+                  objectFit: image ? 'cover' : 'contain',
+                  objectPosition: 'center',
+                  backgroundColor: image ? 'transparent' : (isDarkMode ? '#1a1a1a' : '#f5f5f5'),
                 }}
                 image={imageUrl}
                 alt={categoryDisplayName || 'Post Image'}
-                fallback={sear}
+                fallback={maflogo}
               />
+              
+              {/* No Image Overlay */}
+              {!image && (
+                <Box
+                  sx={{
+                    position: 'absolute',
+                    top: '50%',
+                    left: '50%',
+                    transform: 'translate(-50%, -50%)',
+                    zIndex: 3,
+                    textAlign: 'center',
+                    backgroundColor: alpha(isDarkMode ? '#000' : '#fff', 0.9),
+                    borderRadius: '16px',
+                    padding: '20px 24px',
+                    backdropFilter: 'blur(10px)',
+                    border: `1px solid ${alpha(isDarkMode ? '#fff' : '#000', 0.1)}`,
+                    boxShadow: '0 8px 24px rgba(0,0,0,0.15)',
+                    maxWidth: '80%',
+                  }}
+                >
+                  <Typography
+                    sx={{
+                      color: isDarkMode ? '#fff' : '#000',
+                      fontSize: { xs: '16px', sm: '18px', md: '20px' },
+                      fontWeight: 600,
+                      lineHeight: 1.3,
+                      mb: 1,
+                    }}
+                  >
+                    {t('noImageAvailable')}
+                  </Typography>
+                  <Typography
+                    sx={{
+                      color: isDarkMode ? alpha('#fff', 0.7) : alpha('#000', 0.6),
+                      fontSize: { xs: '12px', sm: '14px', md: '16px' },
+                      fontWeight: 400,
+                      lineHeight: 1.4,
+                    }}
+                  >
+                    {t('postHasNoImage')}
+                  </Typography>
+                </Box>
+              )}
               
               {/* Status Badge Overlay */}
               <Box

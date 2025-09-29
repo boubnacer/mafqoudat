@@ -1,6 +1,6 @@
 import React, { useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
-import defaultImage from "../../../img/ma.jpg";
+import defaultImage from "../../../../public/maflogo.png";
 import "./sponsored.css";
 import { useTranslation } from "../../utils/translations";
 import { getOptimizedImageUrl } from "../../utils/cloudinaryUtils";

@@ -26,6 +26,8 @@ export const translations = {
     unknownCategory: "Unknown Category",
     unknownCity: "Unknown City",
     statusUnknown: "Status Unknown",
+    noImageAvailable: "No Image Available",
+    postHasNoImage: "This post has no image",
     
     // Report Dialog translations
     reportPostDescription: "Please select a reason for reporting this post. This helps us review and take appropriate action.",
@@ -880,6 +882,8 @@ export const translations = {
     unknownCategory: "Catégorie inconnue",
     unknownCity: "Ville inconnue",
     statusUnknown: "Statut inconnu",
+    noImageAvailable: "Aucune image disponible",
+    postHasNoImage: "Ce post n'a pas d'image",
     
     // Report Dialog translations
     reportPostDescription: "Veuillez sélectionner une raison pour signaler cette publication. Cela nous aide à examiner et à prendre les mesures appropriées.",
@@ -1715,6 +1719,8 @@ export const translations = {
     unknownCategory: "فئة غير معروفة",
     unknownCity: "مدينة غير معروفة",
     statusUnknown: "الحالة غير معروفة",
+    noImageAvailable: "لا توجد صورة متاحة",
+    postHasNoImage: "هذا المنشور لا يحتوي على صورة",
     
     // Report Dialog translations
     reportPostDescription: "يرجى اختيار سبب للإبلاغ عن هذا المنشور. هذا يساعدنا في المراجعة واتخاذ الإجراء المناسب.",
