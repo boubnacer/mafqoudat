@@ -996,6 +996,19 @@ const submitPostReport = async (req, res) => {
 // @route PATCH /posts
 // @access Private
 const updatePost = async (req, res) => {
+  // Handle both JSON and FormData requests
+  let requestData = req.body;
+  
+  // If postData exists in body (FormData request), parse it
+  if (req.body.postData) {
+    try {
+      requestData = JSON.parse(req.body.postData);
+    } catch (error) {
+      console.error('Error parsing postData:', error);
+      return res.status(400).json({ message: "Invalid postData format" });
+    }
+  }
+  
   const {
     id,
     user,
@@ -1009,7 +1022,8 @@ const updatePost = async (req, res) => {
     returned,
     foundLost,
     description,
-  } = req.body;
+    image,
+  } = requestData;
 
   // Debug: Log the request body
   // console.log('🔍 UPDATE POST SERVER - Request body:', req.body);
@@ -1136,7 +1150,27 @@ const updatePost = async (req, res) => {
     post.description = description;
   }
 
+  // Handle image update/removal
+  if (image !== undefined) {
+    if (image === null) {
+      // Image removal - clear all image fields
+      post.image = null;
+      post.cloudinaryUrl = null;
+      post.cloudinaryPublicId = null;
+    } else if (image && typeof image === 'object' && image.constructor === File) {
+      // New image file - this will be handled by multer middleware
+      // The image will be processed and uploaded to Cloudinary
+      // The cloudinaryResult will be available in req.cloudinaryResult
+    }
+  }
 
+  // Handle Cloudinary image data if available (from multer middleware)
+  if (req.cloudinaryResult) {
+    post.cloudinaryUrl = req.cloudinaryResult.url;
+    post.cloudinaryPublicId = req.cloudinaryResult.public_id;
+    // Keep backward compatibility with image field
+    post.image = req.cloudinaryResult.url;
+  }
 
   try {
     const updatedPost = await post.save();

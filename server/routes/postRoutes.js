@@ -172,6 +172,22 @@ router
     postsController.createNewPost
   )
   .patch(
+    uploadRateLimit,
+    (req, res, next) => {
+      uploadWithFields.fields([
+        { name: 'image', maxCount: 1 },
+        { name: 'postData', maxCount: 1 }
+      ])(req, res, (err) => {
+        if (err) {
+          return res.status(400).json({ 
+            success: false, 
+            error: { message: 'File upload error: ' + err.message } 
+          });
+        }
+        next();
+      });
+    },
+    uploadToCloudinaryMiddleware,
     commonValidations.bodyObjectId('id'),
     validateRequest,
     optimizedInvalidateCache([], 'posts'), 

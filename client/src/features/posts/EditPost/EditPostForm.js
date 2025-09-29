@@ -924,7 +924,34 @@ if (typeof document !== 'undefined') {
       // console.log('📦 UPDATE POST - Prepared postData:', postData);
       // console.log('🌐 UPDATE POST - Calling updatePost API...');
       
-      const result = await updatePost({ id: post._id, ...postData }).unwrap();
+      // Use FormData if there's an image, otherwise use regular JSON
+      let result;
+      if (selectedImage && selectedImage !== "REMOVED") {
+        // Create FormData for image upload
+        const formData = new FormData();
+        formData.append("postData", JSON.stringify({ id: post._id, ...postData }));
+        formData.append("image", selectedImage);
+        
+        // Use fetch directly for FormData
+        const baseUrl = process.env.REACT_APP_API_URL || "http://localhost:3500";
+        const response = await fetch(`${baseUrl}/posts`, {
+          method: 'PATCH',
+          headers: {
+            'Authorization': `Bearer ${token}`
+          },
+          body: formData
+        });
+        
+        if (!response.ok) {
+          const errorData = await response.json();
+          throw new Error(errorData.message || 'Update failed');
+        }
+        
+        result = { data: await response.text() };
+      } else {
+        // Use regular JSON for non-image updates
+        result = await updatePost({ id: post._id, ...postData }).unwrap();
+      }
       // console.log('✅ UPDATE POST - API call successful:', result);
     } catch (error) {
       console.error('❌ UPDATE POST - Update failed:', error);
