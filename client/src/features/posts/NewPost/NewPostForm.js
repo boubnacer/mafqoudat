@@ -1013,11 +1013,17 @@ const NewPostForm = ({ user, countries, categories, flOptions }) => {
                   >
                     {!selectedCountry 
                       ? t('selectCountryFirst') 
-                        : currentLanguage === 'ar' 
-                          ? 'يرجى تحديد المدينة التي وجدت أو فقدت فيها العنصر أو أقرب مدينة رئيسية إليها (العاصمة، العمالة، المقاطعة، الولاية، أو المحافظة)'
-                          : currentLanguage === 'fr'
-                            ? 'Veuillez sélectionner la ville où vous avez trouvé ou perdu l\'objet ou la ville principale la plus proche (capitale, préfecture, province, état ou gouvernorat)'
-                            : 'Please select the city where you found or lost the item or the nearest major administrative center (capital, prefecture, province, state, or governorate)'
+                        : getFoundLostType(values.foundLost) === 'LOST'
+                          ? currentLanguage === 'ar' 
+                            ? 'يرجى تحديد المدينة التي فقدت فيها العنصر أو أقرب مدينة رئيسية إليها (العاصمة، العمالة، المقاطعة، الولاية، أو المحافظة)'
+                            : currentLanguage === 'fr'
+                              ? 'Veuillez sélectionner la ville où vous avez perdu l\'objet ou la ville principale la plus proche (capitale, préfecture, province, état ou gouvernorat)'
+                              : 'Please select the city where you lost the item or the nearest major administrative center (capital, prefecture, province, state, or governorate)'
+                          : currentLanguage === 'ar' 
+                            ? 'يرجى تحديد المدينة التي وجدت فيها العنصر أو أقرب مدينة رئيسية إليها (العاصمة، العمالة، المقاطعة، الولاية، أو المحافظة)'
+                            : currentLanguage === 'fr'
+                              ? 'Veuillez sélectionner la ville où vous avez trouvé l\'objet ou la ville principale la plus proche (capitale, préfecture, province, état ou gouvernorat)'
+                              : 'Please select the city where you found the item or the nearest major administrative center (capital, prefecture, province, state, or governorate)'
                     }
                   </Typography> 
                   
@@ -1323,11 +1329,17 @@ const NewPostForm = ({ user, countries, categories, flOptions }) => {
                       fontWeight: 500
                     }}
                   >
-                    {currentLanguage === 'ar' 
-                      ? 'يرجى تحديد الموقع الدقيق والتفصيلي حيث وجدت أو فقدت العنصر (مثال: حي النور، شارع الملك، بجانب المسجد، أو أي معلم مميز)'
-                      : currentLanguage === 'fr'
-                        ? 'Veuillez spécifier l\'emplacement exact et détaillé où vous avez trouvé ou perdu l\'objet (ex: Quartier Al-Nour, Rue du Roi, près de la mosquée, ou tout point de repère distinctif)'
-                        : 'Please specify the precise and detailed location where you found or lost the item (e.g., Al-Nour District, King Street, near the mosque, or any distinctive landmark)'
+                    {getFoundLostType(values.foundLost) === 'LOST'
+                      ? currentLanguage === 'ar' 
+                        ? 'يرجى تحديد الموقع الدقيق والتفصيلي حيث فقدت العنصر (مثال: حي النور، شارع الملك، بجانب المسجد، أو أي معلم مميز)'
+                        : currentLanguage === 'fr'
+                          ? 'Veuillez spécifier l\'emplacement exact et détaillé où vous avez perdu l\'objet (ex: Quartier Al-Nour, Rue du Roi, près de la mosquée, ou tout point de repère distinctif)'
+                          : 'Please specify the precise and detailed location where you lost the item (e.g., Al-Nour District, King Street, near the mosque, or any distinctive landmark)'
+                      : currentLanguage === 'ar' 
+                        ? 'يرجى تحديد الموقع الدقيق والتفصيلي حيث وجدت العنصر (مثال: حي النور، شارع الملك، بجانب المسجد، أو أي معلم مميز)'
+                        : currentLanguage === 'fr'
+                          ? 'Veuillez spécifier l\'emplacement exact et détaillé où vous avez trouvé l\'objet (ex: Quartier Al-Nour, Rue du Roi, près de la mosquée, ou tout point de repère distinctif)'
+                          : 'Please specify the precise and detailed location where you found the item (e.g., Al-Nour District, King Street, near the mosque, or any distinctive landmark)'
                     }
                   </Typography>
                   <Textfield 
