@@ -247,8 +247,8 @@ if (typeof document !== 'undefined') {
           }
         }
       } else if (typeof post.city === 'string') {
+        // Check if it's a database city (ObjectId format) or API city
         if (availableCities.length > 0) {
-          // Check if it's a database city (ObjectId format)
           const existingCity = availableCities.find(city => 
             city.id === post.city || 
             city._id === post.city
@@ -257,16 +257,18 @@ if (typeof document !== 'undefined') {
           if (existingCity) {
             setCitySearchQuery(existingCity.label || existingCity.name || '');
           } else {
-            // It's an API city (string like "DAKHLA")
-            setCitySearchQuery(post.city);
+            // It's an API city (string like "EL_JADIDA")
+            // Use cityName if available (from server aggregation), otherwise use the city string
+            setCitySearchQuery(post.cityName || post.city);
           }
         } else {
           // No available cities yet, but we have a string city - likely API city
-          setCitySearchQuery(post.city);
+          // Use cityName if available (from server aggregation), otherwise use the city string
+          setCitySearchQuery(post.cityName || post.city);
         }
       }
     }
-  }, [post?.city, availableCities, currentLanguage]);
+  }, [post?.city, post?.cityName, availableCities, currentLanguage]);
 
   // Initialize selected country from post data
   useEffect(() => {
@@ -307,12 +309,14 @@ if (typeof document !== 'undefined') {
             const formCityId = cityExists.id || cityExists._id;
             setFieldValueCallback('city', formCityId);
           } else {
-            // It's an API city (string like "DAKHLA")
-            setFieldValueCallback('city', `api_${post.city}`);
+            // It's an API city (string like "EL_JADIDA")
+            // Use the original city string without api_ prefix for consistency
+            setFieldValueCallback('city', post.city);
           }
         } else {
           // No available cities yet, but we have a string city - likely API city
-          setFieldValueCallback('city', `api_${post.city}`);
+          // Use the original city string without api_ prefix for consistency
+          setFieldValueCallback('city', post.city);
         }
       }
     }
@@ -482,13 +486,12 @@ if (typeof document !== 'undefined') {
     
     // Set the city value in the form
     if (city._id || city.id) {
-      // Database city
+      // Database city - use the ObjectId
       const cityId = city._id || city.id;
       setFieldValue('city', cityId);
     } else {
-      // API city - we'll handle this in the submit
-      const apiCityValue = `api_${city.code}`;
-      setFieldValue('city', apiCityValue);
+      // API city - use the city code directly (like "EL_JADIDA")
+      setFieldValue('city', city.code);
     }
     
     // Clear city field error
@@ -573,6 +576,7 @@ if (typeof document !== 'undefined') {
           return post.city.id;
         } else if (typeof post.city === 'string') {
           // String city - could be ObjectId or API city
+          // For API cities, return the string as-is (no api_ prefix needed)
           return post.city;
         }
       }
@@ -755,15 +759,10 @@ if (typeof document !== 'undefined') {
         contactPreferences: { whatsapp: true }
       };
 
-      // Handle city - match NewPostForm logic
-      if (values.city && values.city.startsWith('api_')) {
-        // API city - send the city data (for future compatibility)
-        postData.city = values.city.replace('api_', '');
-        // Note: selectedCityFromSearch would be needed for full API city support
-      } else {
-        // Database city
-        postData.city = values.city;
-      }
+      // Handle city - send the city value as-is
+      // For database cities: values.city will be an ObjectId string
+      // For API cities: values.city will be the city name string (like "EL_JADIDA")
+      postData.city = values.city;
       
       // console.log('🚀 UPDATE POST - Starting update process...');
       // console.log('📦 UPDATE POST - Prepared postData:', postData);
