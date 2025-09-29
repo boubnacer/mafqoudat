@@ -930,8 +930,8 @@ if (typeof document !== 'undefined') {
         // Create FormData for image upload
         const formData = new FormData();
         const postDataWithId = { id: post._id, ...postData };
-        console.log('🔍 UPDATE POST - Sending FormData with postData:', postDataWithId);
-        console.log('🔍 UPDATE POST - Image file:', selectedImage);
+        // console.log('🔍 UPDATE POST - Sending FormData with postData:', postDataWithId);
+        // console.log('🔍 UPDATE POST - Image file:', selectedImage);
         formData.append("postData", JSON.stringify(postDataWithId));
         formData.append("image", selectedImage);
         
@@ -952,11 +952,19 @@ if (typeof document !== 'undefined') {
           } catch (e) {
             errorData = { message: `HTTP ${response.status}: ${response.statusText}` };
           }
-          console.error('❌ UPDATE POST - Server error response:', errorData);
+          // console.error('❌ UPDATE POST - Server error response:', errorData);
           throw new Error(errorData.message || 'Update failed');
         }
         
         result = { data: await response.text() };
+        
+        // Manually trigger success flow for FormData requests
+        setSuccessMessage(t('postUpdatedSuccessfully') || 'Post updated successfully! Your changes have been saved.');
+        setShowSuccessMessage(true);
+        setTimeout(() => {
+          setShowSuccessMessage(false);
+          navigate("/dash");
+        }, 2000);
       } else {
         // Use regular JSON for non-image updates
         result = await updatePost({ id: post._id, ...postData }).unwrap();
