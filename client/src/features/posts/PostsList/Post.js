@@ -343,6 +343,12 @@ const Post = ({ post, viewMode = "grid" }) => {
                 objectFit: post?.image ? 'cover' : 'contain',
                 objectPosition: 'center',
                 backgroundColor: post?.image ? 'transparent' : (theme.palette.mode === 'dark' ? '#1a1a1a' : '#f5f5f5'),
+                // Make SVG smaller when no image
+                ...(post?.image ? {} : {
+                  maxWidth: '60%',
+                  maxHeight: '60%',
+                  margin: 'auto',
+                }),
               }}
               image={imageUrl}
               alt={categoryName || 'Item Image'}
@@ -540,6 +546,12 @@ const Post = ({ post, viewMode = "grid" }) => {
               objectPosition: 'center',
               zIndex: 1, // Base layer for image
               backgroundColor: post?.image ? 'transparent' : (theme.palette.mode === 'dark' ? '#1a1a1a' : '#f5f5f5'),
+              // Make SVG smaller when no image
+              ...(post?.image ? {} : {
+                maxWidth: '60%',
+                maxHeight: '60%',
+                margin: 'auto',
+              }),
             }}
             image={imageUrl}
             alt={categoryName || 'Item Image'}

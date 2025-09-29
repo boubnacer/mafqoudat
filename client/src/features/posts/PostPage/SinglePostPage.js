@@ -628,6 +628,12 @@ const SinglePostPage = ({
                   objectFit: image ? 'cover' : 'contain',
                   objectPosition: 'center',
                   backgroundColor: image ? 'transparent' : (isDarkMode ? '#1a1a1a' : '#f5f5f5'),
+                  // Make SVG smaller when no image
+                  ...(image ? {} : {
+                    maxWidth: '50%',
+                    maxHeight: '50%',
+                    margin: 'auto',
+                  }),
                 }}
                 image={imageUrl}
                 alt={categoryDisplayName || 'Post Image'}

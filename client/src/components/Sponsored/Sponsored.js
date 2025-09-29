@@ -77,7 +77,13 @@ const Sponsored = ({ post }) => {
             sx={{
               width: '100%',
               height: '100%',
-              objectFit: 'cover'
+              objectFit: post.image ? 'cover' : 'contain',
+              // Make SVG smaller when no image
+              ...(post.image ? {} : {
+                maxWidth: '60%',
+                maxHeight: '60%',
+                margin: 'auto',
+              }),
             }}
           />
           <p className="trending__date">{formatDate(post.createdAt)}</p>

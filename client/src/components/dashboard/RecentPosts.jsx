@@ -250,6 +250,12 @@ const RecentPosts = ({ _id, categoryname, exactLocation, image, createdAt, count
               objectPosition: 'center',
               zIndex: 1, // Base layer for image
               backgroundColor: image ? 'transparent' : (theme.palette.mode === 'dark' ? '#1a1a1a' : '#f5f5f5'),
+              // Make SVG smaller when no image
+              ...(image ? {} : {
+                maxWidth: '60%',
+                maxHeight: '60%',
+                margin: 'auto',
+              }),
             }}
             image={image ? (image.startsWith('http') ? getOptimizedImageUrl(image, 'card') : `${API_BASE_URL}/${image}`) : noImageSvg}
             alt={categoryname}

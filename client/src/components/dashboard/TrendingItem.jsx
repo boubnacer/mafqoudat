@@ -285,6 +285,12 @@ const TrendingItem = ({ trend, isLoading }) => {
               objectPosition: 'center',
               filter: image ? 'brightness(0.8)' : 'none',
               backgroundColor: image ? 'transparent' : (theme.palette.mode === 'dark' ? '#1a1a1a' : '#f5f5f5'),
+              // Make SVG smaller when no image
+              ...(image ? {} : {
+                maxWidth: '60%',
+                maxHeight: '60%',
+                margin: 'auto',
+              }),
             }}
           />
           

@@ -86,7 +86,16 @@ const SearchSection = ({
                       onClick={() => navigate(`/dash/posts/${post._id}`)}
                     >
                       <LazyCardMedia
-                        sx={{ height: 150 }}
+                        sx={{ 
+                          height: 150,
+                          // Make SVG smaller when no image
+                          ...(post.image ? {} : {
+                            objectFit: 'contain',
+                            maxWidth: '60%',
+                            maxHeight: '60%',
+                            margin: 'auto',
+                          }),
+                        }}
                         image={post.image ? `${process.env.REACT_APP_API_URL || "http://localhost:3500"}/${post.image}` : noImageSvg}
                         alt={post.image}
                         fallback={noImageSvg}
