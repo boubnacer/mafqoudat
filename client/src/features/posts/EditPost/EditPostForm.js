@@ -7,6 +7,7 @@ import * as Yup from "yup";
 import { Formik, Form } from "formik";
 import Textfield from "../../../components/Textfield";
 import SelectOption from "../../../components/SelectOption";
+import imageCompression from "browser-image-compression";
 import { 
   Box, 
   FormLabel, 
@@ -25,11 +26,24 @@ import {
   DialogTitle,
   DialogContent,
   DialogActions,
-  IconButton
+  IconButton,
+  Card,
+  CardMedia,
+  CardActions,
+  Chip
 } from "@mui/material";
-import { LocationOn, Add as AddIcon, Close as CloseIcon } from '@mui/icons-material';
+import { 
+  LocationOn, 
+  Add as AddIcon, 
+  Close as CloseIcon, 
+  PhotoCamera, 
+  Delete as DeleteIcon,
+  Edit as EditIcon,
+  CloudUpload as CloudUploadIcon
+} from '@mui/icons-material';
 import { useTranslation } from "../../../utils/translations";
 import useAuth from "../../../hooks/useAuth";
+import { getOptimizedImageUrl } from "../../../utils/cloudinaryUtils";
 
 // CSS keyframes for loading animations will be injected in useEffect
 
@@ -63,6 +77,14 @@ const EditPostForm = ({ post, user, countries, flOptions, categories }) => {
   const [showCustomCityInput, setShowCustomCityInput] = useState(false);
   const [customCityName, setCustomCityName] = useState("");
   const [isCreatingCity, setIsCreatingCity] = useState(false);
+
+  // Image management state
+  const [selectedImage, setSelectedImage] = useState(null);
+  const [isCompressing, setIsCompressing] = useState(false);
+  const [compressionInfo, setCompressionInfo] = useState(null);
+  const [selectedFileName, setSelectedFileName] = useState("");
+  const [imagePreview, setImagePreview] = useState(null);
+  const [showImageDialog, setShowImageDialog] = useState(false);
 
   // Click outside handler to close city dropdown
   useEffect(() => {
@@ -404,6 +426,106 @@ if (typeof document !== 'undefined') {
       });
     }
   };
+
+  // Image compression function (from NewPostForm)
+  const compressImage = useCallback(async (file) => {
+    const options = {
+      maxSizeMB: 1,
+      maxWidthOrHeight: 1920,
+      useWebWorker: true,
+      quality: 0.8
+    };
+
+    try {
+      setIsCompressing(true);
+      const compressedFile = await imageCompression(file, options);
+      
+      // Log compression results for debugging
+      const originalSize = (file.size / 1024 / 1024).toFixed(2);
+      const compressedSize = (compressedFile.size / 1024 / 1024).toFixed(2);
+      const compressionRatio = ((1 - compressedFile.size / file.size) * 100).toFixed(1);
+      
+      setCompressionInfo({
+        originalSize,
+        compressedSize,
+        compressionRatio
+      });
+      
+      return compressedFile;
+    } catch (error) {
+      console.error('Image compression failed:', error);
+      setCompressionInfo(null);
+      return file; // Return original file if compression fails
+    } finally {
+      setIsCompressing(false);
+    }
+  }, []);
+
+  // Get current image URL for display
+  const getCurrentImageUrl = useCallback(() => {
+    if (imagePreview) {
+      return imagePreview;
+    }
+    if (post?.image) {
+      const API_BASE_URL = process.env.REACT_APP_API_URL || "http://localhost:3500";
+      return post.image.startsWith('http') 
+        ? getOptimizedImageUrl(post.image, 'card') 
+        : `${API_BASE_URL}/${post.image}`;
+    }
+    return null;
+  }, [post?.image, imagePreview]);
+
+  // Handle image selection
+  const handleImageSelect = useCallback(async (event) => {
+    const file = event.currentTarget.files[0];
+    if (!file) return;
+
+    // Clear previous compression info
+    setCompressionInfo(null);
+    
+    try {
+      const compressedFile = await compressImage(file);
+      setSelectedImage(compressedFile);
+      setSelectedFileName(compressedFile.name);
+      
+      // Create preview URL
+      const previewUrl = URL.createObjectURL(compressedFile);
+      setImagePreview(previewUrl);
+    } catch (error) {
+      console.error('Error processing image:', error);
+    }
+  }, [compressImage]);
+
+  // Handle image removal
+  const handleImageRemove = useCallback(() => {
+    setSelectedImage(null);
+    setSelectedFileName("");
+    setCompressionInfo(null);
+    
+    // Clean up preview URL
+    if (imagePreview) {
+      URL.revokeObjectURL(imagePreview);
+      setImagePreview(null);
+    }
+  }, [imagePreview]);
+
+  // Handle image dialog open/close
+  const handleImageDialogOpen = useCallback(() => {
+    setShowImageDialog(true);
+  }, []);
+
+  const handleImageDialogClose = useCallback(() => {
+    setShowImageDialog(false);
+  }, []);
+
+  // Cleanup image preview URL on unmount
+  useEffect(() => {
+    return () => {
+      if (imagePreview) {
+        URL.revokeObjectURL(imagePreview);
+      }
+    };
+  }, [imagePreview]);
 
   const handleCountrySelect = (event, setFieldValue) => {
     const countryId = event.target.value;
@@ -777,6 +899,11 @@ if (typeof document !== 'undefined') {
         returned: values.returned || false, // Add the returned field
         contactPreferences: { whatsapp: true }
       };
+
+      // Handle image - include new image if selected
+      if (selectedImage) {
+        postData.image = selectedImage;
+      }
 
       // Handle city - match NewPostForm logic exactly
       if (values.city && values.city.startsWith('api_')) {
@@ -1790,8 +1917,8 @@ if (typeof document !== 'undefined') {
                   />
                 </Box>
 
-                {/* Image Section - Temporarily disabled */}
-                {/* <Typography 
+                {/* Image Section */}
+                <Typography 
                   variant="h5" 
                   sx={{ 
                     fontWeight: 700, 
@@ -1802,7 +1929,190 @@ if (typeof document !== 'undefined') {
                   }}
                 >
                   {t('itemImage')}
-                </Typography> */}
+                </Typography>
+
+                <Box>
+                  <FormLabel 
+                    htmlFor="image" 
+                    sx={{ 
+                      mb: 1, 
+                      display: "block", 
+                      fontWeight: 600, 
+                      fontSize: '1.15rem',
+                      color: theme.palette.text.primary
+                    }}
+                  >
+                    {t('itemImage')} ({t('optional')})
+                  </FormLabel>
+                  
+                  {/* Current Image Display */}
+                  {getCurrentImageUrl() && (
+                    <Box sx={{ mb: 3 }}>
+                      <Card 
+                        sx={{ 
+                          maxWidth: 400,
+                          borderRadius: 3,
+                          overflow: 'hidden',
+                          boxShadow: theme.shadows[4],
+                          border: `2px solid ${theme.palette.mode === 'dark' ? 'rgba(255,255,255,0.1)' : 'rgba(0,0,0,0.1)'}`,
+                          transition: 'all 0.3s ease-in-out',
+                          '&:hover': {
+                            transform: 'translateY(-2px)',
+                            boxShadow: theme.shadows[8],
+                          }
+                        }}
+                      >
+                        <CardMedia
+                          component="img"
+                          height="200"
+                          image={getCurrentImageUrl()}
+                          alt="Current item image"
+                          sx={{
+                            objectFit: 'cover',
+                            cursor: 'pointer'
+                          }}
+                          onClick={handleImageDialogOpen}
+                        />
+                        <CardActions sx={{ 
+                          justifyContent: 'space-between',
+                          p: 2,
+                          backgroundColor: theme.palette.mode === 'dark' ? 'rgba(255,255,255,0.02)' : 'rgba(0,0,0,0.02)'
+                        }}>
+                          <Box display="flex" alignItems="center" gap={1}>
+                            <Chip 
+                              icon={<PhotoCamera />}
+                              label={imagePreview ? t('newImage') || 'New Image' : t('currentImage') || 'Current Image'}
+                              color={imagePreview ? 'primary' : 'default'}
+                              size="small"
+                              variant="outlined"
+                            />
+                            {compressionInfo && (
+                              <Chip 
+                                label={`${compressionInfo.compressedSize}MB`}
+                                color="success"
+                                size="small"
+                                variant="outlined"
+                              />
+                            )}
+                          </Box>
+                          <Box display="flex" gap={1}>
+                            <IconButton
+                              size="small"
+                              onClick={handleImageDialogOpen}
+                              sx={{
+                                color: theme.palette.primary.main,
+                                '&:hover': {
+                                  backgroundColor: theme.palette.primary.main + '20'
+                                }
+                              }}
+                            >
+                              <EditIcon />
+                            </IconButton>
+                            <IconButton
+                              size="small"
+                              onClick={handleImageRemove}
+                              sx={{
+                                color: theme.palette.error.main,
+                                '&:hover': {
+                                  backgroundColor: theme.palette.error.main + '20'
+                                }
+                              }}
+                            >
+                              <DeleteIcon />
+                            </IconButton>
+                          </Box>
+                        </CardActions>
+                      </Card>
+                    </Box>
+                  )}
+
+                  {/* Image Upload Controls */}
+                  <Box display="flex" alignItems="center" gap={2} flexWrap="wrap">
+                    <Button
+                      variant="contained"
+                      component="label"
+                      startIcon={isCompressing ? <CircularProgress size={16} color="inherit" /> : <CloudUploadIcon />}
+                      disabled={isCompressing}
+                      sx={{ 
+                        textTransform: 'none', 
+                        borderRadius: 3,
+                        px: 3,
+                        py: 1.5,
+                        fontSize: '1rem',
+                        fontWeight: 600,
+                        background: theme.palette.mode === 'dark'
+                          ? 'linear-gradient(45deg, #4CAF50 30%, #66BB6A 90%)'
+                          : 'linear-gradient(45deg, #2E7D32 30%, #388E3C 90%)',
+                        '&:hover': {
+                          background: theme.palette.mode === 'dark'
+                            ? 'linear-gradient(45deg, #388E3C 30%, #4CAF50 90%)'
+                            : 'linear-gradient(45deg, #1B5E20 30%, #2E7D32 90%)',
+                          transform: 'translateY(-1px)',
+                          boxShadow: theme.palette.mode === 'dark'
+                            ? '0 6px 16px rgba(76, 175, 80, 0.3)'
+                            : '0 6px 16px rgba(46, 125, 50, 0.3)',
+                        },
+                        '&:disabled': {
+                          background: theme.palette.mode === 'dark' ? 'rgba(76, 175, 80, 0.3)' : 'rgba(46, 125, 50, 0.3)',
+                          color: theme.palette.mode === 'dark' ? 'rgba(255,255,255,0.5)' : 'rgba(255,255,255,0.7)',
+                        },
+                        transition: 'all 0.2s ease-in-out',
+                        boxShadow: theme.palette.mode === 'dark'
+                          ? '0 3px 8px rgba(76, 175, 80, 0.2)'
+                          : '0 3px 8px rgba(46, 125, 50, 0.2)',
+                      }}
+                    >
+                      {isCompressing ? t('compressingImage') || 'Compressing...' : getCurrentImageUrl() ? t('replaceImage') || 'Replace Image' : t('chooseFile') || 'Choose File'}
+                      <input
+                        id="image"
+                        name="image"
+                        type="file"
+                        accept="image/*"
+                        hidden
+                        onChange={handleImageSelect}
+                      />
+                    </Button>
+                    
+                    {selectedFileName && (
+                      <Typography 
+                        variant="body2" 
+                        sx={{ 
+                          color: theme.palette.mode === 'dark' ? 'rgba(255,255,255,0.8)' : 'rgba(0,0,0,0.7)',
+                          fontWeight: 500
+                        }}
+                      >
+                        {selectedFileName}
+                      </Typography>
+                    )}
+                  </Box>
+                  
+                  {compressionInfo && (
+                    <Typography 
+                      variant="caption" 
+                      sx={{ 
+                        display: "block", 
+                        mt: 1,
+                        color: theme.palette.mode === 'dark' ? '#4CAF50' : '#2E7D32',
+                        fontWeight: 500
+                      }}
+                    >
+                      {t('compressionSuccess') || `Compressed: ${compressionInfo.originalSize}MB → ${compressionInfo.compressedSize}MB (${compressionInfo.compressionRatio}% smaller)`}
+                    </Typography>
+                  )}
+                  
+                  <Typography 
+                    variant="caption" 
+                    sx={{ 
+                      mt: 1, 
+                      display: "block", 
+                      fontSize: '1rem',
+                      color: theme.palette.mode === 'dark' ? 'rgba(255,255,255,0.7)' : 'rgba(0,0,0,0.6)',
+                      fontWeight: 500
+                    }}
+                  >
+                    {t('imageOptionalMessage') || 'You can add, replace, or remove the item image. Images help others identify your lost or found item.'}
+                  </Typography>
+                </Box>
 
 
                 {/* Status Section - Only visible for admin */}
@@ -1989,8 +2299,105 @@ if (typeof document !== 'undefined') {
         </Formik>
       </Paper>
       
-      {/* Custom City Dialog - temporarily disabled */}
-      {/* <Dialog>...</Dialog> */}
+      {/* Image Preview Dialog */}
+      <Dialog
+        open={showImageDialog}
+        onClose={handleImageDialogClose}
+        maxWidth="md"
+        fullWidth
+        sx={{
+          '& .MuiDialog-paper': {
+            borderRadius: 3,
+            backgroundColor: theme.palette.background.paper,
+            boxShadow: theme.shadows[12],
+          }
+        }}
+      >
+        <DialogTitle sx={{ 
+          display: 'flex', 
+          justifyContent: 'space-between', 
+          alignItems: 'center',
+          pb: 1
+        }}>
+          <Typography variant="h6" sx={{ fontWeight: 600 }}>
+            {t('imagePreview') || 'Image Preview'}
+          </Typography>
+          <IconButton
+            onClick={handleImageDialogClose}
+            sx={{
+              color: theme.palette.text.secondary,
+              '&:hover': {
+                backgroundColor: theme.palette.action.hover
+              }
+            }}
+          >
+            <CloseIcon />
+          </IconButton>
+        </DialogTitle>
+        <DialogContent sx={{ p: 0 }}>
+          {getCurrentImageUrl() && (
+            <Box sx={{ 
+              position: 'relative',
+              width: '100%',
+              height: 'auto',
+              maxHeight: '70vh',
+              overflow: 'hidden'
+            }}>
+              <img
+                src={getCurrentImageUrl()}
+                alt="Item preview"
+                style={{
+                  width: '100%',
+                  height: 'auto',
+                  objectFit: 'contain',
+                  display: 'block'
+                }}
+              />
+            </Box>
+          )}
+        </DialogContent>
+        <DialogActions sx={{ p: 2, gap: 1 }}>
+          <Button
+            onClick={handleImageDialogClose}
+            variant="outlined"
+            sx={{
+              textTransform: 'none',
+              borderRadius: 2,
+              px: 3
+            }}
+          >
+            {t('close') || 'Close'}
+          </Button>
+          {getCurrentImageUrl() && (
+            <Button
+              component="label"
+              variant="contained"
+              startIcon={<CloudUploadIcon />}
+              sx={{
+                textTransform: 'none',
+                borderRadius: 2,
+                px: 3,
+                background: theme.palette.mode === 'dark'
+                  ? 'linear-gradient(45deg, #4CAF50 30%, #66BB6A 90%)'
+                  : 'linear-gradient(45deg, #2E7D32 30%, #388E3C 90%)',
+                '&:hover': {
+                  background: theme.palette.mode === 'dark'
+                    ? 'linear-gradient(45deg, #388E3C 30%, #4CAF50 90%)'
+                    : 'linear-gradient(45deg, #1B5E20 30%, #2E7D32 90%)',
+                }
+              }}
+            >
+              {t('replaceImage') || 'Replace Image'}
+              <input
+                type="file"
+                accept="image/*"
+                hidden
+                onChange={handleImageSelect}
+              />
+            </Button>
+          )}
+        </DialogActions>
+      </Dialog>
     </Box>
   );
 };
