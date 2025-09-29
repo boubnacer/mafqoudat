@@ -249,7 +249,7 @@ const RecentPosts = ({ _id, categoryname, exactLocation, image, createdAt, count
               objectFit: image ? 'cover' : 'contain',
               objectPosition: 'center',
               zIndex: 1, // Base layer for image
-              backgroundColor: image ? 'transparent' : (theme.palette.mode === 'dark' ? '#1a1a1a' : '#f5f5f5'),
+              backgroundColor: 'transparent',
               // Make PNG smaller when no image
               ...(image ? {} : {
                 maxWidth: '70%',

@@ -284,7 +284,7 @@ const TrendingItem = ({ trend, isLoading }) => {
               objectFit: image ? 'cover' : 'contain',
               objectPosition: 'center',
               filter: image ? 'brightness(0.8)' : 'none',
-              backgroundColor: image ? 'transparent' : (theme.palette.mode === 'dark' ? '#1a1a1a' : '#f5f5f5'),
+              backgroundColor: 'transparent',
               // Make PNG smaller when no image
               ...(image ? {} : {
                 maxWidth: '70%',

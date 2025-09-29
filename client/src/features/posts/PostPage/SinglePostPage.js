@@ -627,7 +627,7 @@ const SinglePostPage = ({
                   height: { xs: 300, sm: 400, md: 500 },
                   objectFit: image ? 'cover' : 'contain',
                   objectPosition: 'center',
-                  backgroundColor: image ? 'transparent' : (isDarkMode ? '#1a1a1a' : '#f5f5f5'),
+                  backgroundColor: 'transparent',
                   // Make PNG smaller when no image
                   ...(image ? {} : {
                     maxWidth: '60%',

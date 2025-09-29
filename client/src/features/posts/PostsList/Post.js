@@ -342,7 +342,7 @@ const Post = ({ post, viewMode = "grid" }) => {
                 width: '100%',
                 objectFit: post?.image ? 'cover' : 'contain',
                 objectPosition: 'center',
-                backgroundColor: post?.image ? 'transparent' : (theme.palette.mode === 'dark' ? '#1a1a1a' : '#f5f5f5'),
+                backgroundColor: 'transparent',
                 // Make PNG smaller when no image
                 ...(post?.image ? {} : {
                   maxWidth: '70%',
@@ -545,7 +545,7 @@ const Post = ({ post, viewMode = "grid" }) => {
               objectFit: post?.image ? 'cover' : 'contain',
               objectPosition: 'center',
               zIndex: 1, // Base layer for image
-              backgroundColor: post?.image ? 'transparent' : (theme.palette.mode === 'dark' ? '#1a1a1a' : '#f5f5f5'),
+              backgroundColor: 'transparent',
               // Make PNG smaller when no image
               ...(post?.image ? {} : {
                 maxWidth: '70%',
