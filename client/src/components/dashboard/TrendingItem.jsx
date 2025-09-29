@@ -283,7 +283,7 @@ const TrendingItem = ({ trend, isLoading }) => {
             alt={categoryDisplayName || 'Item Image'}
             fallback={noImageSvg}
             sx={{
-              width: image ? '100%' : '60%',
+              width: image ? '100%' : '100%',
               height: image ? '100%' : '60%',
               objectFit: image ? 'cover' : 'contain',
               objectPosition: 'center',
