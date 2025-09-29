@@ -333,13 +333,14 @@ const Post = ({ post, viewMode = "grid" }) => {
             width: { xs: '100%', sm: 200 }, 
             height: { xs: 160, sm: 180 },
             flexShrink: 0,
-            position: 'relative'
+            position: 'relative',
+            backgroundColor: 'transparent'
           }}>
             <LazyCardMedia
               component="img"
               sx={{ 
                 height: '100%',
-                width: '100%',
+                width: post?.image ? '100%' : '70%',
                 objectFit: post?.image ? 'cover' : 'contain',
                 objectPosition: 'center',
                 backgroundColor: 'transparent',
@@ -530,12 +531,12 @@ const Post = ({ post, viewMode = "grid" }) => {
         }}
       >
         {/* Image Section with Overlays */}
-        <Box sx={{ position: 'relative', height: { xs: '260px', sm: '220px' } }}>
+        <Box sx={{ position: 'relative', height: { xs: '260px', sm: '220px' }, backgroundColor: 'transparent' }}>
           <LazyCardMedia
             component="img"
             sx={{
               height: '100%',
-              width: '100%',
+              width: post?.image ? '100%' : '70%',
               objectFit: post?.image ? 'cover' : 'contain',
               objectPosition: 'center',
               zIndex: 1, // Base layer for image

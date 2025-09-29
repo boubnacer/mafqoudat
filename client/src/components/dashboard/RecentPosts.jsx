@@ -240,12 +240,12 @@ const RecentPosts = ({ _id, categoryname, exactLocation, image, createdAt, count
         }}
       >
         {/* Image Section with Overlays */}
-        <Box sx={{ position: 'relative', height: { xs: '260px', sm: '220px' } }}>
+        <Box sx={{ position: 'relative', height: { xs: '260px', sm: '220px' }, backgroundColor: 'transparent' }}>
           <LazyCardMedia
             component="img"
             sx={{
               height: '100%',
-              width: '100%',
+              width: image ? '100%' : '70%',
               objectFit: image ? 'cover' : 'contain',
               objectPosition: 'center',
               zIndex: 1, // Base layer for image
