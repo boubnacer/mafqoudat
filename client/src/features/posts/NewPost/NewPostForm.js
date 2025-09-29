@@ -120,6 +120,12 @@ const NewPostForm = ({ user, countries, categories, flOptions }) => {
   const [selectedCityFromSearch, setSelectedCityFromSearch] = useState(null);
   const [filteredCities, setFilteredCities] = useState([]);
 
+  // Detect if device is mobile
+  const isMobile = useCallback(() => {
+    return /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent) || 
+           window.innerWidth <= 768;
+  }, []);
+
   // Click outside handler to close city dropdown
   useEffect(() => {
     const handleClickOutside = (event) => {
@@ -687,6 +693,9 @@ const NewPostForm = ({ user, countries, categories, flOptions }) => {
       // Create preview URL
       const previewUrl = URL.createObjectURL(compressedFile);
       setImagePreview(previewUrl);
+      
+      // Clear the input value to allow selecting the same file again if needed
+      event.target.value = '';
     } catch (error) {
       console.error('Error processing image:', error);
     }
@@ -1684,6 +1693,8 @@ const NewPostForm = ({ user, countries, categories, flOptions }) => {
                         accept="image/*"
                         hidden
                         onChange={handleImageSelect}
+                        capture={isMobile() ? "environment" : undefined}
+                        multiple={false}
                       />
                     </Button>
                     
@@ -2074,6 +2085,8 @@ const NewPostForm = ({ user, countries, categories, flOptions }) => {
                 accept="image/*"
                 hidden
                 onChange={handleImageSelect}
+                capture={isMobile() ? "environment" : undefined}
+                multiple={false}
               />
             </Button>
           )}
