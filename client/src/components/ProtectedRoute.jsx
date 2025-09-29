@@ -63,13 +63,24 @@ const ProtectedRoute = ({
 
   // Check country selection requirement
   if (requireCountry && !currentCountry) {
-    console.log('ProtectedRoute - Country required but not selected, redirecting to Welcome page');
-    // Store the attempted URL for redirect after country selection
-    const redirectUrl = location.pathname + location.search;
-    if (redirectUrl !== '/') {
-      localStorage.setItem('redirectAfterCountrySelection', redirectUrl);
+    // Check if this is a language change refresh - if so, wait a bit longer for country state to restore
+    const urlParams = new URLSearchParams(location.search);
+    const isLanguageChange = urlParams.get('lang_changed') === 'true';
+    
+    if (isLanguageChange) {
+      console.log('🔒 ProtectedRoute - Language change detected, waiting for country state to restore...');
+      // During language change, give more time for country state to restore
+      // Don't redirect immediately, let the component re-render and check again
+      return null; // or a loading indicator
+    } else {
+      console.log('🔒 ProtectedRoute - Country required but not selected, redirecting to Welcome page');
+      // Store the attempted URL for redirect after country selection
+      const redirectUrl = location.pathname + location.search;
+      if (redirectUrl !== '/') {
+        localStorage.setItem('redirectAfterCountrySelection', redirectUrl);
+      }
+      return <Navigate to="/" replace />;
     }
-    return <Navigate to="/" replace />;
   }
 
   // All conditions met, render children

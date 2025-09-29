@@ -28,6 +28,8 @@ const LanguageChangeHandler = () => {
       localStorage.removeItem('preserveAuthAfterLanguageChange');
       
       // Get the preserved URL from localStorage
+      console.log('🔄 Checking localStorage for preserved URL...');
+      console.log('🔄 Raw localStorage.getItem:', localStorage.getItem('languageChangeRedirectUrl'));
       const preservedUrl = languageStorage.getAndClearLanguageChangeRedirectUrl();
       console.log('🔄 Preserved URL:', preservedUrl);
       
@@ -42,13 +44,24 @@ const LanguageChangeHandler = () => {
         }, 300);
       } else {
         console.log('🔄 Language change: No redirect needed, cleaning up URL parameters');
-        // Clean up URL parameters if no redirect is needed
+        
+        // If no preserved URL but we're on a valid route, just clean up the parameters
+        // This handles the case where URL preservation failed but user is on a valid page
         if (urlParams.has('lang_changed')) {
           urlParams.delete('lang_changed');
           const cleanUrl = location.pathname + (urlParams.toString() ? '?' + urlParams.toString() : '');
+          
+          // Only navigate if the URL actually changes
           if (cleanUrl !== location.pathname + location.search) {
+            console.log('🔄 Language change: Cleaning up URL parameters:', cleanUrl);
             navigate(cleanUrl, { replace: true });
           }
+        }
+        
+        // If we're on a valid route (not root or login), we can stay here
+        // This prevents unnecessary redirects when URL preservation fails
+        if (location.pathname !== '/' && !location.pathname.startsWith('/login')) {
+          console.log('🔄 Language change: Staying on current valid route:', location.pathname);
         }
       }
     }

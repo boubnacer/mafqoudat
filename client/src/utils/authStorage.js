@@ -342,17 +342,32 @@ class LanguageStorageManager {
    */
   static setLanguage(language, shouldRefresh = false) {
     try {
+      console.log('🌐 LanguageStorageManager.setLanguage called:', { language, shouldRefresh });
+      
       // Preserve authentication state before language change
       if (shouldRefresh) {
+        console.log('🌐 Should refresh is true, preserving auth state and URL');
         AuthStorageManager.preserveAuthDuringLanguageChange();
         
         // Preserve the current URL path to restore after refresh
-        const currentPath = window.location.pathname + window.location.search;
+        // Remove lang_changed parameter if it exists to avoid preserving it
+        let currentPath = window.location.pathname + window.location.search;
+        if (currentPath.includes('lang_changed=')) {
+          const url = new URL(window.location);
+          url.searchParams.delete('lang_changed');
+          currentPath = url.pathname + (url.search || '');
+        }
+        
+        console.log('🌐 Current path to preserve:', currentPath);
         localStorage.setItem('languageChangeRedirectUrl', currentPath);
+        
+        // Verify the URL was saved
+        const savedUrl = localStorage.getItem('languageChangeRedirectUrl');
+        console.log('🌐 Verified saved URL:', savedUrl);
         
         // Only preserve if we're not already on the root or login page
         if (currentPath !== '/' && !currentPath.startsWith('/login')) {
-          console.log('Language change: Preserving URL path:', currentPath);
+          console.log('🌐 Language change: Preserving URL path:', currentPath);
         }
       }
       
@@ -415,10 +430,15 @@ class LanguageStorageManager {
   static getAndClearLanguageChangeRedirectUrl() {
     try {
       const redirectUrl = localStorage.getItem('languageChangeRedirectUrl');
+      console.log('🌐 Getting preserved URL from localStorage:', redirectUrl);
+      
       if (redirectUrl) {
         localStorage.removeItem('languageChangeRedirectUrl');
+        console.log('🌐 Returning preserved URL:', redirectUrl);
         return redirectUrl;
       }
+      
+      console.log('🌐 No preserved URL found, returning null');
       return null;
     } catch (error) {
       console.error('Failed to get language change redirect URL:', error);
