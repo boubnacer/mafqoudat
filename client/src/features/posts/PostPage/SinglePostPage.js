@@ -17,8 +17,7 @@ import {
 } from "@mui/material";
 import { useNavigate } from "react-router-dom";
 import useAuth from "../../../hooks/useAuth";
-// Use the public directory path for static assets
-const maflogo = "/maflogo.png";
+import noImageSvg from "../../../img/noimage.svg";
 import { useState, useCallback, useMemo } from "react";
 import ReportDialog from "../../../components/ReportDialog";
 import { useSubmitReportMutation } from "../reportsApiSlice";
@@ -564,9 +563,9 @@ const SinglePostPage = ({
     return result;
   }, [foundLost, Floptions, foundLostLabel, titleLabels, description, currentLanguage, t]);
 
-  // Memoized image URL computation
+  // Memoized image URL computation - only use Cloudinary if image exists and is uploaded by user
   const imageUrl = useMemo(() => {
-    if (!image) return maflogo;
+    if (!image) return noImageSvg;
     return image.startsWith('http') 
       ? getOptimizedImageUrl(image, 'large') 
       : image;
@@ -632,7 +631,7 @@ const SinglePostPage = ({
                 }}
                 image={imageUrl}
                 alt={categoryDisplayName || 'Post Image'}
-                fallback={maflogo}
+                fallback={noImageSvg}
               />
               
               {/* No Image Overlay */}

@@ -11,8 +11,7 @@ import {
   useMediaQuery,
   Avatar,
 } from "@mui/material";
-// Use the public directory path for static assets
-const maflogo = "/maflogo.png";
+import noImageSvg from "../../img/noimage.svg";
 import { useNavigate } from "react-router-dom";
 import RenderIcon from "../RenderIcon";
 import { useTranslation } from "../../utils/translations";
@@ -252,9 +251,9 @@ const RecentPosts = ({ _id, categoryname, exactLocation, image, createdAt, count
               zIndex: 1, // Base layer for image
               backgroundColor: image ? 'transparent' : (theme.palette.mode === 'dark' ? '#1a1a1a' : '#f5f5f5'),
             }}
-            image={image ? (image.startsWith('http') ? getOptimizedImageUrl(image, 'card') : `${API_BASE_URL}/${image}`) : maflogo}
+            image={image ? (image.startsWith('http') ? getOptimizedImageUrl(image, 'card') : `${API_BASE_URL}/${image}`) : noImageSvg}
             alt={categoryname}
-            fallback={maflogo}
+            fallback={noImageSvg}
             onError={(e) => {
               // Image failed to load - silently handle
             }}

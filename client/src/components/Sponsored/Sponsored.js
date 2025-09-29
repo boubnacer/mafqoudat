@@ -1,7 +1,6 @@
 import React, { useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
-// Use the public directory path for static assets
-const defaultImage = "/maflogo.png";
+import noImageSvg from "../../img/noimage.svg";
 import "./sponsored.css";
 import { useTranslation } from "../../utils/translations";
 import { getOptimizedImageUrl } from "../../utils/cloudinaryUtils";
@@ -69,9 +68,9 @@ const Sponsored = ({ post }) => {
         </div>
         <div className="card__img">
           <LazyImage 
-            src={post.image ? (post.image.startsWith('http') ? getOptimizedImageUrl(post.image, 'card') : post.image) : defaultImage} 
+            src={post.image ? (post.image.startsWith('http') ? getOptimizedImageUrl(post.image, 'card') : post.image) : noImageSvg} 
             alt={`${post.category} - ${post.region}`}
-            fallback={defaultImage}
+            fallback={noImageSvg}
             onError={(e) => {
               console.log('Image failed to load:', e.target.src);
             }}

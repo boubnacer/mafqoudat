@@ -2,8 +2,7 @@ import { useNavigate } from "react-router-dom";
 import { memo, useState, useCallback, useMemo } from "react";
 import React from "react";
 // import "./postslist.css"; // Removed to prevent CSS conflicts with Material-UI
-// Use the public directory path for static assets
-const maflogo = "/maflogo.png";
+import noImageSvg from "../../../img/noimage.svg";
 import {
   Button,
   Card,
@@ -282,9 +281,9 @@ const Post = ({ post, viewMode = "grid" }) => {
     return getCityFromLocation(post?.exactLocation);
   }, [post?.cityLabel, post?.cityLabels, post?.cityName, post?.city, post?.exactLocation, currentLanguage, t]);
 
-  // Memoized image URL computation
+  // Memoized image URL computation - only use Cloudinary if image exists and is uploaded by user
   const imageUrl = useMemo(() => {
-    if (!post?.image) return maflogo;
+    if (!post?.image) return noImageSvg;
     return post.image.startsWith('http') 
       ? getOptimizedImageUrl(post.image, 'card') 
       : `${API_BASE_URL}/${post.image}`;
@@ -347,7 +346,7 @@ const Post = ({ post, viewMode = "grid" }) => {
               }}
               image={imageUrl}
               alt={categoryName || 'Item Image'}
-              fallback={maflogo}
+              fallback={noImageSvg}
               onError={handleImageError}
             />
             
@@ -544,7 +543,7 @@ const Post = ({ post, viewMode = "grid" }) => {
             }}
             image={imageUrl}
             alt={categoryName || 'Item Image'}
-            fallback={maflogo}
+            fallback={noImageSvg}
             onError={handleImageError}
           />
           

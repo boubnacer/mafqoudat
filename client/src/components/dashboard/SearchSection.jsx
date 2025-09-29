@@ -16,8 +16,7 @@ import { useNavigate } from "react-router-dom";
 import { SearchLoadingStates } from "../LoadingStates";
 import { useTranslation } from "../../utils/translations";
 import LazyCardMedia from "../LazyCardMedia";
-// Use the public directory path for static assets
-const maflogo = "/maflogo.png";
+import noImageSvg from "../../img/noimage.svg";
 
 const SearchSection = ({
   searchQuery,
@@ -88,9 +87,9 @@ const SearchSection = ({
                     >
                       <LazyCardMedia
                         sx={{ height: 150 }}
-                        image={post.image ? `${process.env.REACT_APP_API_URL || "http://localhost:3500"}/${post.image}` : maflogo}
+                        image={post.image ? `${process.env.REACT_APP_API_URL || "http://localhost:3500"}/${post.image}` : noImageSvg}
                         alt={post.image}
-                        fallback={maflogo}
+                        fallback={noImageSvg}
                       />
                       <CardContent>
                         <Typography variant="h6">{post.categoryname}</Typography>

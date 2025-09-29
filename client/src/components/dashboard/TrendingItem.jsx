@@ -21,8 +21,7 @@ import LazyCardMedia from "../LazyCardMedia";
 import { getCategoryConfig } from "../../config/categories";
 import { useNavigate } from "react-router-dom";
 import { getLabel } from "../../utils/languageUtils";
-// Use the public directory path for static assets
-const maflogo = "/maflogo.png";
+import noImageSvg from "../../img/noimage.svg";
 
 // Get the API base URL for image construction
 const API_BASE_URL = process.env.REACT_APP_API_URL || "http://localhost:3500";
@@ -200,8 +199,8 @@ const TrendingItem = ({ trend, isLoading }) => {
     }
   };
 
-  // Get optimized image URL
-  const finalImageUrl = image ? (image.startsWith('http') ? getOptimizedImageUrl(image, 'card') : `${API_BASE_URL}/${image}`) : maflogo;
+  // Get optimized image URL - only use Cloudinary if image exists and is uploaded by user
+  const finalImageUrl = image ? (image.startsWith('http') ? getOptimizedImageUrl(image, 'card') : `${API_BASE_URL}/${image}`) : noImageSvg;
 
   if (isLoading) return <TrendingItemSkeleton />;
   if (!trendData) {
@@ -278,7 +277,7 @@ const TrendingItem = ({ trend, isLoading }) => {
             component="img"
             image={finalImageUrl}
             alt={categoryDisplayName || 'Item Image'}
-            fallback={maflogo}
+            fallback={noImageSvg}
             sx={{
               width: '100%',
               height: '100%',
