@@ -714,6 +714,32 @@ const NewPostForm = ({ user, countries, categories, flOptions }) => {
     }
   }, [compressImage, isMobile]);
 
+  // Handle button click to trigger file input
+  const handleImageButtonClick = useCallback((event) => {
+    event.preventDefault();
+    const fileInput = document.getElementById('image');
+    if (fileInput) {
+      // Reset the input value to ensure onChange fires
+      fileInput.value = '';
+      
+      // For mobile devices, add additional attributes that might help
+      if (isMobile()) {
+        // Remove and re-add the input to force a fresh state
+        const parent = fileInput.parentNode;
+        const newInput = fileInput.cloneNode(true);
+        parent.removeChild(fileInput);
+        parent.appendChild(newInput);
+        
+        // Trigger click on the new input
+        setTimeout(() => {
+          newInput.click();
+        }, 10);
+      } else {
+        fileInput.click();
+      }
+    }
+  }, [isMobile]);
+
   // Handle image removal
   const handleImageRemove = useCallback(() => {
     setSelectedImage(null);
@@ -1665,7 +1691,7 @@ const NewPostForm = ({ user, countries, categories, flOptions }) => {
                   <Box display="flex" alignItems="center" gap={2} flexWrap="wrap">
                     <Button
                       variant="contained"
-                      component="label"
+                      onClick={handleImageButtonClick}
                       startIcon={isCompressing ? <CircularProgress size={16} sx={{ color: 'white' }} /> : <CloudUploadIcon sx={{ color: 'white' }} />}
                       disabled={isCompressing}
                       sx={{ 
@@ -1699,18 +1725,24 @@ const NewPostForm = ({ user, countries, categories, flOptions }) => {
                       }}
                     >
                       {isCompressing ? t('compressingImage') : imagePreview ? t('replaceImage') : t('chooseFile')}
-                      <input
-                        id="image"
-                        name="image"
-                        type="file"
-                        accept="image/*"
-                        hidden
-                        onChange={handleImageSelect}
-                        multiple={false}
-                        webkitdirectory="false"
-                        style={{ display: 'none' }}
-                      />
                     </Button>
+                    
+                    {/* Hidden file input */}
+                    <input
+                      id="image"
+                      name="image"
+                      type="file"
+                      accept="image/*"
+                      hidden
+                      onChange={handleImageSelect}
+                      multiple={false}
+                      webkitdirectory="false"
+                      style={{ display: 'none' }}
+                      autoComplete="off"
+                      autoCorrect="off"
+                      autoCapitalize="off"
+                      spellCheck="false"
+                    />
                     
                     {selectedFileName && (
                       <Typography 
@@ -2076,8 +2108,8 @@ const NewPostForm = ({ user, countries, categories, flOptions }) => {
           </Button>
           {imagePreview && (
             <Button
-              component="label"
               variant="contained"
+              onClick={handleImageButtonClick}
               startIcon={<CloudUploadIcon />}
               sx={{
                 textTransform: 'none',
@@ -2094,15 +2126,6 @@ const NewPostForm = ({ user, countries, categories, flOptions }) => {
               }}
             >
               {t('replaceImage')}
-              <input
-                type="file"
-                accept="image/*"
-                hidden
-                onChange={handleImageSelect}
-                multiple={false}
-                webkitdirectory="false"
-                style={{ display: 'none' }}
-              />
             </Button>
           )}
         </DialogActions>
