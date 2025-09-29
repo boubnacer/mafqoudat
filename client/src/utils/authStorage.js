@@ -278,18 +278,23 @@ class AuthStorageManager {
       
       // Check if token is valid and contains user data
       let hasUserData = false;
+      let tokenValid = false;
       if (authState.token) {
         try {
           const decoded = JSON.parse(atob(authState.token.split('.')[1]));
           hasUserData = !!decoded.UserInfo;
+          
+          // Check if token is not expired
+          const currentTime = Date.now() / 1000;
+          tokenValid = decoded.exp && decoded.exp > currentTime;
         } catch (error) {
           console.error('Token validation error during language change:', error);
         }
       }
       
-      // Double-check that auth data exists before language change
+      // Double-check that auth data exists and token is valid before language change
       const hasUser = !!authState.user || hasUserData;
-      if (authState.isLoggedIn && authState.token && hasUser) {
+      if (authState.isLoggedIn && authState.token && hasUser && tokenValid) {
         // Only log in development mode to avoid console spam
         if (process.env.NODE_ENV === 'development') {
           console.log('Authentication state preserved during language change:', {
@@ -297,10 +302,25 @@ class AuthStorageManager {
             hasUser,
             hasUserInStorage: !!authState.user,
             hasUserInToken: hasUserData,
+            isLoggedIn: authState.isLoggedIn,
+            tokenValid
+          });
+        }
+        
+        // Set a flag to indicate that auth state should be preserved
+        localStorage.setItem('preserveAuthAfterLanguageChange', 'true');
+        return true;
+      } else {
+        // Clear the preservation flag if auth state is not valid
+        localStorage.removeItem('preserveAuthAfterLanguageChange');
+        if (process.env.NODE_ENV === 'development') {
+          console.warn('Authentication state not preserved during language change:', {
+            hasToken: !!authState.token,
+            hasUser,
+            tokenValid,
             isLoggedIn: authState.isLoggedIn
           });
         }
-        return true;
       }
       
       return false;
@@ -325,6 +345,15 @@ class LanguageStorageManager {
       // Preserve authentication state before language change
       if (shouldRefresh) {
         AuthStorageManager.preserveAuthDuringLanguageChange();
+        
+        // Preserve the current URL path to restore after refresh
+        const currentPath = window.location.pathname + window.location.search;
+        localStorage.setItem('languageChangeRedirectUrl', currentPath);
+        
+        // Only preserve if we're not already on the root or login page
+        if (currentPath !== '/' && !currentPath.startsWith('/login')) {
+          console.log('Language change: Preserving URL path:', currentPath);
+        }
       }
       
       localStorage.setItem(LANGUAGE_KEYS.LANGUAGE, language);
@@ -371,10 +400,29 @@ class LanguageStorageManager {
       localStorage.removeItem(LANGUAGE_KEYS.LANGUAGE);
       localStorage.removeItem(LANGUAGE_KEYS.APP_LANGUAGE);
       localStorage.removeItem(LANGUAGE_KEYS.CURRENT_LANGUAGE);
+      localStorage.removeItem('languageChangeRedirectUrl');
       return true;
     } catch (error) {
       console.error('Failed to clear language data:', error);
       return false;
+    }
+  }
+
+  /**
+   * Get and clear the preserved URL after language change
+   * @returns {string|null} The preserved URL or null
+   */
+  static getAndClearLanguageChangeRedirectUrl() {
+    try {
+      const redirectUrl = localStorage.getItem('languageChangeRedirectUrl');
+      if (redirectUrl) {
+        localStorage.removeItem('languageChangeRedirectUrl');
+        return redirectUrl;
+      }
+      return null;
+    } catch (error) {
+      console.error('Failed to get language change redirect URL:', error);
+      return null;
     }
   }
 }
@@ -401,7 +449,8 @@ export const authStorage = {
 export const languageStorage = {
   setLanguage: LanguageStorageManager.setLanguage.bind(LanguageStorageManager),
   getCurrentLanguage: LanguageStorageManager.getCurrentLanguage.bind(LanguageStorageManager),
-  clearLanguageData: LanguageStorageManager.clearLanguageData.bind(LanguageStorageManager)
+  clearLanguageData: LanguageStorageManager.clearLanguageData.bind(LanguageStorageManager),
+  getAndClearLanguageChangeRedirectUrl: LanguageStorageManager.getAndClearLanguageChangeRedirectUrl.bind(LanguageStorageManager)
 };
 
 // Default export

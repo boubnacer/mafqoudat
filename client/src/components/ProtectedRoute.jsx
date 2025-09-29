@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useState, useEffect } from 'react';
 import { Navigate, useLocation } from 'react-router-dom';
 import { useSelector } from 'react-redux';
 import { selectIsLoggedIn } from '../features/auth/authSlice';
@@ -23,9 +23,32 @@ const ProtectedRoute = ({
   const location = useLocation();
   const isLoggedIn = useSelector(selectIsLoggedIn);
   const currentCountry = useSelector(selectCurrentCountry);
+  const [isInitialized, setIsInitialized] = useState(false);
+
+  // Check if this is a language change refresh and give auth state time to restore
+  useEffect(() => {
+    const urlParams = new URLSearchParams(location.search);
+    const isLanguageChange = urlParams.get('lang_changed') === 'true';
+    
+    if (isLanguageChange) {
+      // Give authentication state time to restore after language change
+      const timer = setTimeout(() => {
+        setIsInitialized(true);
+      }, 200);
+      
+      return () => clearTimeout(timer);
+    } else {
+      setIsInitialized(true);
+    }
+  }, [location.search]);
 
   // Debug logging
-  console.log('ProtectedRoute - Location:', location.pathname, 'RequireAuth:', requireAuth, 'RequireCountry:', requireCountry, 'LoggedIn:', isLoggedIn, 'Country:', currentCountry);
+  console.log('ProtectedRoute - Location:', location.pathname, 'RequireAuth:', requireAuth, 'RequireCountry:', requireCountry, 'LoggedIn:', isLoggedIn, 'Country:', currentCountry, 'Initialized:', isInitialized);
+
+  // Don't make routing decisions until initialized (especially after language change)
+  if (!isInitialized) {
+    return null; // or a loading indicator
+  }
 
   // Check authentication requirement
   if (requireAuth && !isLoggedIn) {

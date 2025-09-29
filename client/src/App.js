@@ -13,6 +13,7 @@ import { cleanupLocalStorage, initializeLocalStorage } from "./utils/localStorag
 import useAuthErrorHandler from "./hooks/useAuthErrorHandler";
 import RefreshStatus from "./components/RefreshStatus";
 import LanguageSwitchHandler from "./components/LanguageSwitchHandler";
+import LanguageChangeHandler from "./components/LanguageChangeHandler";
 import ProtectedRoute from "./components/ProtectedRoute";
 import CountryGuard from "./components/CountryGuard";
 
@@ -160,6 +161,7 @@ const AppContent = () => {
       <CssBaseline />
       <RefreshStatus />
       <LanguageSwitchHandler />
+      <LanguageChangeHandler />
       <Routes>
         {/* Welcome page - first time access */}
         <Route path="/" element={

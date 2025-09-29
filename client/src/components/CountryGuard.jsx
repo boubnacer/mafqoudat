@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useState, useEffect } from 'react';
 import { Navigate, useLocation } from 'react-router-dom';
 import { useSelector } from 'react-redux';
 import { selectCurrentCountry } from '../app/state';
@@ -17,9 +17,32 @@ const CountryGuard = ({ children, allowAuthenticatedWithoutCountry = true }) => 
   const location = useLocation();
   const currentCountry = useSelector(selectCurrentCountry);
   const isLoggedIn = useSelector(selectIsLoggedIn);
+  const [isInitialized, setIsInitialized] = useState(false);
+
+  // Check if this is a language change refresh and give auth state time to restore
+  useEffect(() => {
+    const urlParams = new URLSearchParams(location.search);
+    const isLanguageChange = urlParams.get('lang_changed') === 'true';
+    
+    if (isLanguageChange) {
+      // Give authentication state time to restore after language change
+      const timer = setTimeout(() => {
+        setIsInitialized(true);
+      }, 200);
+      
+      return () => clearTimeout(timer);
+    } else {
+      setIsInitialized(true);
+    }
+  }, [location.search]);
 
   // Debug logging
-  console.log('CountryGuard - Location:', location.pathname, 'Country:', currentCountry, 'LoggedIn:', isLoggedIn, 'AllowAuthWithoutCountry:', allowAuthenticatedWithoutCountry);
+  console.log('CountryGuard - Location:', location.pathname, 'Country:', currentCountry, 'LoggedIn:', isLoggedIn, 'AllowAuthWithoutCountry:', allowAuthenticatedWithoutCountry, 'Initialized:', isInitialized);
+
+  // Don't make routing decisions until initialized (especially after language change)
+  if (!isInitialized) {
+    return null; // or a loading indicator
+  }
 
   // If no country is selected
   if (!currentCountry) {
