@@ -20,49 +20,37 @@ const LanguageChangeHandler = () => {
     const isLanguageChange = urlParams.get('lang_changed') === 'true';
     
     if (isLanguageChange) {
-      console.log('🔄 LanguageChangeHandler: Language change detected');
-      console.log('🔄 Current location:', location.pathname + location.search);
-      console.log('🔄 Auth state:', isLoggedIn);
+      console.log('🔄 [LANG-FIX] Language change detected on:', location.pathname);
       
       // Clean up the auth preservation flag
       localStorage.removeItem('preserveAuthAfterLanguageChange');
       
       // Get the preserved URL from localStorage
-      console.log('🔄 Checking localStorage for preserved URL...');
-      console.log('🔄 Raw localStorage.getItem:', localStorage.getItem('languageChangeRedirectUrl'));
       const preservedUrl = languageStorage.getAndClearLanguageChangeRedirectUrl();
-      console.log('🔄 Preserved URL:', preservedUrl);
+      console.log('🔄 [LANG-FIX] Preserved URL:', preservedUrl);
       
       if (preservedUrl && preservedUrl !== location.pathname + location.search) {
         // Only redirect if we have a preserved URL and it's different from current location
-        console.log('🔄 Language change: Redirecting to preserved URL:', preservedUrl);
+        console.log('🔄 [LANG-FIX] Redirecting to preserved URL:', preservedUrl);
         
         // Small delay to ensure authentication state is fully restored
         setTimeout(() => {
-          console.log('🔄 Language change: Executing redirect to:', preservedUrl);
           navigate(preservedUrl, { replace: true });
         }, 300);
       } else {
-        console.log('🔄 Language change: No redirect needed, cleaning up URL parameters');
-        
         // If no preserved URL but we're on a valid route, just clean up the parameters
-        // This handles the case where URL preservation failed but user is on a valid page
         if (urlParams.has('lang_changed')) {
           urlParams.delete('lang_changed');
           const cleanUrl = location.pathname + (urlParams.toString() ? '?' + urlParams.toString() : '');
           
           // Only navigate if the URL actually changes
           if (cleanUrl !== location.pathname + location.search) {
-            console.log('🔄 Language change: Cleaning up URL parameters:', cleanUrl);
+            console.log('🔄 [LANG-FIX] Cleaning up URL parameters');
             navigate(cleanUrl, { replace: true });
           }
         }
         
-        // If we're on a valid route (not root or login), we can stay here
-        // This prevents unnecessary redirects when URL preservation fails
-        if (location.pathname !== '/' && !location.pathname.startsWith('/login')) {
-          console.log('🔄 Language change: Staying on current valid route:', location.pathname);
-        }
+        console.log('🔄 [LANG-FIX] Staying on current route:', location.pathname);
       }
     }
   }, [location, navigate, isLoggedIn]);

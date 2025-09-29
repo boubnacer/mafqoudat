@@ -342,32 +342,35 @@ class LanguageStorageManager {
    */
   static setLanguage(language, shouldRefresh = false) {
     try {
-      console.log('🌐 LanguageStorageManager.setLanguage called:', { language, shouldRefresh });
+      console.log('🌐 [URL-PRESERVE] setLanguage called:', { language, shouldRefresh, currentUrl: window.location.href });
       
       // Preserve authentication state before language change
       if (shouldRefresh) {
-        console.log('🌐 Should refresh is true, preserving auth state and URL');
+        console.log('🌐 [URL-PRESERVE] Should refresh is true, preserving auth state and URL');
         AuthStorageManager.preserveAuthDuringLanguageChange();
         
         // Preserve the current URL path to restore after refresh
         // Remove lang_changed parameter if it exists to avoid preserving it
         let currentPath = window.location.pathname + window.location.search;
         if (currentPath.includes('lang_changed=')) {
+          console.log('🌐 [URL-PRESERVE] Removing lang_changed parameter from URL before preserving');
           const url = new URL(window.location);
           url.searchParams.delete('lang_changed');
           currentPath = url.pathname + (url.search || '');
         }
         
-        console.log('🌐 Current path to preserve:', currentPath);
-        localStorage.setItem('languageChangeRedirectUrl', currentPath);
-        
-        // Verify the URL was saved
-        const savedUrl = localStorage.getItem('languageChangeRedirectUrl');
-        console.log('🌐 Verified saved URL:', savedUrl);
+        console.log('🌐 [URL-PRESERVE] Current path to preserve:', currentPath);
         
         // Only preserve if we're not already on the root or login page
         if (currentPath !== '/' && !currentPath.startsWith('/login')) {
-          console.log('🌐 Language change: Preserving URL path:', currentPath);
+          localStorage.setItem('languageChangeRedirectUrl', currentPath);
+          
+          // Verify the URL was saved
+          const savedUrl = localStorage.getItem('languageChangeRedirectUrl');
+          console.log('🌐 [URL-PRESERVE] Verified saved URL:', savedUrl);
+          console.log('🌐 [URL-PRESERVE] Language change: Preserving URL path:', currentPath);
+        } else {
+          console.log('🌐 [URL-PRESERVE] Not preserving URL for root or login page:', currentPath);
         }
       }
       

@@ -36,8 +36,10 @@ const CountryGuard = ({ children, allowAuthenticatedWithoutCountry = true }) => 
     }
   }, [location.search]);
 
-  // Debug logging
-  console.log('🛡️ CountryGuard - Location:', location.pathname, 'Country:', currentCountry, 'LoggedIn:', isLoggedIn, 'AllowAuthWithoutCountry:', allowAuthenticatedWithoutCountry, 'Initialized:', isInitialized);
+  // Debug logging - only for language changes or issues
+  if (!isInitialized || !currentCountry) {
+    console.log('🛡️ [LANG-FIX] CountryGuard - Location:', location.pathname, 'Country:', currentCountry, 'Initialized:', isInitialized);
+  }
 
   // Don't make routing decisions until initialized (especially after language change)
   if (!isInitialized) {

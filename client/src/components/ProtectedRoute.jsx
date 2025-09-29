@@ -42,8 +42,10 @@ const ProtectedRoute = ({
     }
   }, [location.search]);
 
-  // Debug logging
-  console.log('🔒 ProtectedRoute - Location:', location.pathname, 'RequireAuth:', requireAuth, 'RequireCountry:', requireCountry, 'LoggedIn:', isLoggedIn, 'Country:', currentCountry, 'Initialized:', isInitialized);
+  // Debug logging - only for language changes or issues
+  if (!isInitialized || (requireCountry && !currentCountry)) {
+    console.log('🔒 [LANG-FIX] ProtectedRoute - Location:', location.pathname, 'RequireCountry:', requireCountry, 'Country:', currentCountry, 'Initialized:', isInitialized);
+  }
 
   // Don't make routing decisions until initialized (especially after language change)
   if (!isInitialized) {
@@ -68,7 +70,7 @@ const ProtectedRoute = ({
     const isLanguageChange = urlParams.get('lang_changed') === 'true';
     
     if (isLanguageChange) {
-      console.log('🔒 ProtectedRoute - Language change detected, waiting for country state to restore...');
+      console.log('🔒 [LANG-FIX] ProtectedRoute - Language change detected, waiting for country state to restore...');
       // During language change, give more time for country state to restore
       // Don't redirect immediately, let the component re-render and check again
       return null; // or a loading indicator
