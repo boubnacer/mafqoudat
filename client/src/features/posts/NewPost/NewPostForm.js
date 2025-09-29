@@ -28,9 +28,22 @@ import {
   DialogTitle,
   DialogContent,
   DialogActions,
-  IconButton
+  IconButton,
+  Card,
+  CardMedia,
+  CardActions,
+  Chip
 } from "@mui/material";
-import { PhotoCamera, LocationOn, WhatsApp, Add as AddIcon, Close as CloseIcon } from '@mui/icons-material';
+import { 
+  PhotoCamera, 
+  LocationOn, 
+  WhatsApp, 
+  Add as AddIcon, 
+  Close as CloseIcon,
+  Delete as DeleteIcon,
+  Edit as EditIcon,
+  CloudUpload as CloudUploadIcon
+} from '@mui/icons-material';
 import { useTranslation } from "../../../utils/translations";
 import PromotionDialog from "../../../components/PromotionDialog";
 
@@ -93,6 +106,11 @@ const NewPostForm = ({ user, countries, categories, flOptions }) => {
   const [setFieldValueCallback, setSetFieldValueCallback] = useState(null);
   const [fieldErrors, setFieldErrors] = useState({});
   const formikRef = useRef(null);
+
+  // Image management state
+  const [selectedImage, setSelectedImage] = useState(null);
+  const [imagePreview, setImagePreview] = useState(null);
+  const [showImageDialog, setShowImageDialog] = useState(false);
 
   // New state for unified city dropdown
   const [citySearchQuery, setCitySearchQuery] = useState("");
@@ -427,8 +445,8 @@ const NewPostForm = ({ user, countries, categories, flOptions }) => {
       formData.append("postData", postDataString);
       
       // Only append image if present
-      if (values.image) {
-        formData.append("image", values.image);
+      if (selectedImage) {
+        formData.append("image", selectedImage);
       }
 
       const result = await addNewPost(formData);
@@ -611,7 +629,7 @@ const NewPostForm = ({ user, countries, categories, flOptions }) => {
   };
 
   // Image compression function
-  const compressImage = async (file) => {
+  const compressImage = useCallback(async (file) => {
     if (!file) return null;
     
     // Check if file is an image
@@ -622,7 +640,7 @@ const NewPostForm = ({ user, countries, categories, flOptions }) => {
     
     const options = {
       maxSizeMB: 1,
-      maxWidthOrHeight: 1200,
+      maxWidthOrHeight: 1920,
       useWebWorker: true,
       quality: 0.8
     };
@@ -643,15 +661,67 @@ const NewPostForm = ({ user, countries, categories, flOptions }) => {
         compressionRatio
       });
       
-      setIsCompressing(false);
       return compressedFile;
     } catch (error) {
       console.error('Error compressing image:', error);
+      setCompressionInfo(null);
+      return file; // Return original file if compression fails
+    } finally {
       setIsCompressing(false);
-      // Return original file if compression fails
-      return file;
     }
-  };
+  }, []);
+
+  // Handle image selection
+  const handleImageSelect = useCallback(async (event) => {
+    const file = event.currentTarget.files[0];
+    if (!file) return;
+
+    // Clear previous compression info
+    setCompressionInfo(null);
+    
+    try {
+      const compressedFile = await compressImage(file);
+      setSelectedImage(compressedFile);
+      setSelectedFileName(compressedFile.name);
+      
+      // Create preview URL
+      const previewUrl = URL.createObjectURL(compressedFile);
+      setImagePreview(previewUrl);
+    } catch (error) {
+      console.error('Error processing image:', error);
+    }
+  }, [compressImage]);
+
+  // Handle image removal
+  const handleImageRemove = useCallback(() => {
+    setSelectedImage(null);
+    setSelectedFileName("");
+    setCompressionInfo(null);
+    
+    // Clean up preview URL
+    if (imagePreview) {
+      URL.revokeObjectURL(imagePreview);
+      setImagePreview(null);
+    }
+  }, [imagePreview]);
+
+  // Handle image dialog open/close
+  const handleImageDialogOpen = useCallback(() => {
+    setShowImageDialog(true);
+  }, []);
+
+  const handleImageDialogClose = useCallback(() => {
+    setShowImageDialog(false);
+  }, []);
+
+  // Cleanup image preview URL on unmount
+  useEffect(() => {
+    return () => {
+      if (imagePreview) {
+        URL.revokeObjectURL(imagePreview);
+      }
+    };
+  }, [imagePreview]);
 
   if (isError) {
     return (
@@ -1452,13 +1522,106 @@ const NewPostForm = ({ user, countries, categories, flOptions }) => {
                       color: theme.palette.text.primary
                     }}
                   >
-                    {t('addItemImage')} ({t('optional')})
+                    {t('itemImage')} ({t('optional')})
                   </FormLabel>
-                  <Box display="flex" alignItems="center" gap={2}>
+                  
+                  {/* Current Image Display */}
+                  {imagePreview && (
+                    <Box sx={{ mb: 3 }}>
+                      <Card 
+                        sx={{ 
+                          maxWidth: 400,
+                          borderRadius: 3,
+                          overflow: 'hidden',
+                          boxShadow: theme.shadows[4],
+                          border: `2px solid ${theme.palette.mode === 'dark' ? 'rgba(255,255,255,0.1)' : 'rgba(0,0,0,0.1)'}`,
+                          transition: 'all 0.3s ease-in-out',
+                          '&:hover': {
+                            transform: 'translateY(-2px)',
+                            boxShadow: theme.shadows[8],
+                          }
+                        }}
+                      >
+                        <CardMedia
+                          component="img"
+                          height="200"
+                          image={imagePreview}
+                          alt="Selected item image"
+                          sx={{
+                            objectFit: 'cover',
+                            cursor: 'pointer'
+                          }}
+                          onClick={handleImageDialogOpen}
+                        />
+                        <CardActions sx={{ 
+                          justifyContent: 'space-between',
+                          p: 2,
+                          backgroundColor: theme.palette.mode === 'dark' ? 'rgba(255,255,255,0.02)' : 'rgba(0,0,0,0.02)'
+                        }}>
+                          <Box display="flex" alignItems="center" gap={1}>
+                            <Chip 
+                              icon={<PhotoCamera />}
+                              label={t('newImage') || 'New Image'}
+                              color="primary"
+                              size="small"
+                              variant="outlined"
+                              sx={{
+                                color: theme.palette.text.primary,
+                                borderColor: theme.palette.divider,
+                                backgroundColor: theme.palette.mode === 'dark' ? 'rgba(255,255,255,0.1)' : 'rgba(0,0,0,0.05)'
+                              }}
+                            />
+                            {compressionInfo && (
+                              <Chip 
+                                label={`${compressionInfo.compressedSize}MB`}
+                                color="success"
+                                size="small"
+                                variant="outlined"
+                                sx={{
+                                  color: theme.palette.success.main,
+                                  borderColor: theme.palette.success.main,
+                                  backgroundColor: theme.palette.mode === 'dark' ? 'rgba(76, 175, 80, 0.1)' : 'rgba(76, 175, 80, 0.05)'
+                                }}
+                              />
+                            )}
+                          </Box>
+                          <Box display="flex" gap={1}>
+                            <IconButton
+                              size="small"
+                              onClick={handleImageDialogOpen}
+                              sx={{
+                                color: theme.palette.primary.main,
+                                '&:hover': {
+                                  backgroundColor: theme.palette.primary.main + '20'
+                                }
+                              }}
+                            >
+                              <EditIcon />
+                            </IconButton>
+                            <IconButton
+                              size="small"
+                              onClick={handleImageRemove}
+                              sx={{
+                                color: theme.palette.error.main,
+                                '&:hover': {
+                                  backgroundColor: theme.palette.error.main + '20'
+                                }
+                              }}
+                            >
+                              <DeleteIcon />
+                            </IconButton>
+                          </Box>
+                        </CardActions>
+                      </Card>
+                    </Box>
+                  )}
+
+                  {/* Image Upload Controls */}
+                  <Box display="flex" alignItems="center" gap={2} flexWrap="wrap">
                     <Button
                       variant="contained"
                       component="label"
-                      startIcon={isCompressing ? <CircularProgress size={16} color="inherit" /> : <PhotoCamera sx={{ ml: 0.5 }} />}
+                      startIcon={isCompressing ? <CircularProgress size={16} color="inherit" /> : <CloudUploadIcon />}
                       disabled={isCompressing}
                       sx={{ 
                         textTransform: 'none', 
@@ -1489,29 +1652,17 @@ const NewPostForm = ({ user, countries, categories, flOptions }) => {
                           : '0 3px 8px rgba(46, 125, 50, 0.2)',
                       }}
                     >
-                      {isCompressing ? t('compressingImage') || 'Compressing...' : t('chooseFile')}
+                      {isCompressing ? t('compressingImage') : imagePreview ? t('replaceImage') : t('chooseFile')}
                       <input
                         id="image"
                         name="image"
                         type="file"
                         accept="image/*"
                         hidden
-                        onChange={async (event) => {
-                          const file = event.currentTarget.files[0];
-                          // Clear previous compression info
-                          setCompressionInfo(null);
-                          
-                          if (file) {
-                            const compressedFile = await compressImage(file);
-                            setFieldValue("image", compressedFile);
-                            setSelectedFileName(compressedFile ? compressedFile.name : "");
-                          } else {
-                            setFieldValue("image", null);
-                            setSelectedFileName("");
-                          }
-                        }}
+                        onChange={handleImageSelect}
                       />
                     </Button>
+                    
                     {selectedFileName && (
                       <Typography 
                         variant="body2" 
@@ -1523,20 +1674,22 @@ const NewPostForm = ({ user, countries, categories, flOptions }) => {
                         {selectedFileName}
                       </Typography>
                     )}
-                    {compressionInfo && (
-                      <Typography 
-                        variant="caption" 
-                        sx={{ 
-                          display: "block", 
-                          mt: 0.5,
-                          color: theme.palette.mode === 'dark' ? '#4CAF50' : '#2E7D32',
-                          fontWeight: 500
-                        }}
-                      >
-                        {t('compressionSuccess') || `Compressed: ${compressionInfo.originalSize}MB → ${compressionInfo.compressedSize}MB (${compressionInfo.compressionRatio}% smaller)`}
-                      </Typography>
-                    )}
                   </Box>
+                  
+                  {compressionInfo && (
+                    <Typography 
+                      variant="caption" 
+                      sx={{ 
+                        display: "block", 
+                        mt: 1,
+                        color: theme.palette.mode === 'dark' ? '#4CAF50' : '#2E7D32',
+                        fontWeight: 500
+                      }}
+                    >
+                      {t('compressionSuccess')}
+                    </Typography>
+                  )}
+                  
                   <Typography 
                     variant="caption" 
                     sx={{ 
@@ -1800,6 +1953,106 @@ const NewPostForm = ({ user, countries, categories, flOptions }) => {
           >
             {isCreatingCity ? (t('creatingCity') || 'Creating City...') : t('confirm')}
           </Button>
+        </DialogActions>
+      </Dialog>
+      
+      {/* Image Preview Dialog */}
+      <Dialog
+        open={showImageDialog}
+        onClose={handleImageDialogClose}
+        maxWidth="md"
+        fullWidth
+        sx={{
+          '& .MuiDialog-paper': {
+            borderRadius: 3,
+            backgroundColor: theme.palette.background.paper,
+            boxShadow: theme.shadows[12],
+          }
+        }}
+      >
+        <DialogTitle sx={{ 
+          display: 'flex', 
+          justifyContent: 'space-between', 
+          alignItems: 'center',
+          pb: 1
+        }}>
+          <Typography variant="h6" sx={{ fontWeight: 600 }}>
+            {t('imagePreview') || 'Image Preview'}
+          </Typography>
+          <IconButton
+            onClick={handleImageDialogClose}
+            sx={{
+              color: theme.palette.text.secondary,
+              '&:hover': {
+                backgroundColor: theme.palette.action.hover
+              }
+            }}
+          >
+            <CloseIcon />
+          </IconButton>
+        </DialogTitle>
+        <DialogContent sx={{ p: 0 }}>
+          {imagePreview && (
+            <Box sx={{ 
+              position: 'relative',
+              width: '100%',
+              height: 'auto',
+              maxHeight: '70vh',
+              overflow: 'hidden'
+            }}>
+              <img
+                src={imagePreview}
+                alt="Item preview"
+                style={{
+                  width: '100%',
+                  height: 'auto',
+                  objectFit: 'contain',
+                  display: 'block'
+                }}
+              />
+            </Box>
+          )}
+        </DialogContent>
+        <DialogActions sx={{ p: 2, gap: 1 }}>
+          <Button
+            onClick={handleImageDialogClose}
+            variant="outlined"
+            sx={{
+              textTransform: 'none',
+              borderRadius: 2,
+              px: 3
+            }}
+          >
+            {t('close')}
+          </Button>
+          {imagePreview && (
+            <Button
+              component="label"
+              variant="contained"
+              startIcon={<CloudUploadIcon />}
+              sx={{
+                textTransform: 'none',
+                borderRadius: 2,
+                px: 3,
+                background: theme.palette.mode === 'dark'
+                  ? 'linear-gradient(45deg, #4CAF50 30%, #66BB6A 90%)'
+                  : 'linear-gradient(45deg, #2E7D32 30%, #388E3C 90%)',
+                '&:hover': {
+                  background: theme.palette.mode === 'dark'
+                    ? 'linear-gradient(45deg, #388E3C 30%, #4CAF50 90%)'
+                    : 'linear-gradient(45deg, #1B5E20 30%, #2E7D32 90%)',
+                }
+              }}
+            >
+              {t('replaceImage')}
+              <input
+                type="file"
+                accept="image/*"
+                hidden
+                onChange={handleImageSelect}
+              />
+            </Button>
+          )}
         </DialogActions>
       </Dialog>
       
