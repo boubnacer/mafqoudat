@@ -289,6 +289,11 @@ const TrendingItem = ({ trend, isLoading }) => {
               objectPosition: 'center',
               filter: image ? 'brightness(0.8)' : 'none',
               backgroundColor: 'transparent',
+              // Ensure the smaller image is properly centered
+              ...(image ? {} : {
+                margin: 'auto',
+                display: 'block',
+              }),
             }}
           />
           

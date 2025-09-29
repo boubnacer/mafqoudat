@@ -245,7 +245,7 @@ const RecentPosts = ({ _id, categoryname, exactLocation, image, createdAt, count
             component="img"
             sx={{
               height: '100%',
-              width: image ? '100%' : '70%',
+              width: '100%',
               objectFit: image ? 'cover' : 'contain',
               objectPosition: 'center',
               zIndex: 1, // Base layer for image

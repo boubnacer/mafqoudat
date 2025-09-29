@@ -340,7 +340,7 @@ const Post = ({ post, viewMode = "grid" }) => {
               component="img"
               sx={{ 
                 height: '100%',
-                width: post?.image ? '100%' : '70%',
+                width: '100%',
                 objectFit: post?.image ? 'cover' : 'contain',
                 objectPosition: 'center',
                 backgroundColor: 'transparent',
@@ -536,7 +536,7 @@ const Post = ({ post, viewMode = "grid" }) => {
             component="img"
             sx={{
               height: '100%',
-              width: post?.image ? '100%' : '70%',
+              width: '100%',
               objectFit: post?.image ? 'cover' : 'contain',
               objectPosition: 'center',
               zIndex: 1, // Base layer for image
