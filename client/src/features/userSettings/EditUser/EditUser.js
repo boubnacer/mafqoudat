@@ -6,7 +6,7 @@ import useTitle from "../../../hooks/useTitle";
 import { useGetCountriesQuery } from "../../dependencies/dependenciesApiSlice";
 
 const EditUser = () => {
-  useTitle("mafkoudat: Edit User");
+  useTitle("mafqoudat: Edit User");
 
   const { id } = useParams();
 

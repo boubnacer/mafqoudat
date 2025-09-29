@@ -1,7 +1,7 @@
 {
-  "name": "mafkoudat-server",
+  "name": "mafqoudat-server",
   "version": "1.0.0",
-  "description": "Mafkoudat",
+  "description": "Mafqoudat",
   "main": "server.js",
   "scripts": {
     "start": "node server.js",

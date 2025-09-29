@@ -29,10 +29,10 @@ const Process = () => {
   ];
 
   const socialLinks = [
-    { name: "face", url: "https://facebook.com/mafkoudat" },
-    { name: "whats", url: "https://wa.me/mafkoudat" },
-    { name: "x", url: "https://twitter.com/mafkoudat" },
-    { name: "insta", url: "https://instagram.com/mafkoudat" }
+    { name: "face", url: "https://facebook.com/mafqoudat" },
+    { name: "whats", url: "https://wa.me/mafqoudat" },
+    { name: "x", url: "https://twitter.com/mafqoudat" },
+    { name: "insta", url: "https://instagram.com/mafqoudat" }
   ];
 
   return (
@@ -81,7 +81,7 @@ const Process = () => {
             transition: "color 0.3s ease"
           }}
         >
-          {t('afterPostingInMafkoudat')}
+          {t('afterPostingInMafqoudat')}
         </Typography>
 
         <Box mt="3rem" display="flex" flexDirection="column" gap="1.5rem">

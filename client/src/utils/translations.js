@@ -244,7 +244,7 @@ export const translations = {
     localPostsDesc: "See posts from your selected country",
     communityHelp: "Community Help",
     communityHelpDesc: "Help others find their lost items",
-    welcomeToMafkoudat: "Welcome to Mafkoudat",
+    welcomeToMafqoudat: "Welcome to Mafqoudat",
     welcomeMessage: "Help people find their lost items and return found items to their owners.",
     quickActions: "Quick Actions",
     features: "Features",
@@ -511,7 +511,7 @@ export const translations = {
     
     // Process Section
     whatWeDo: "What we do",
-    afterPostingInMafkoudat: "After posting in the mafkoudat website",
+    afterPostingInMafqoudat: "After posting in the mafqoudat website",
     shareToOurSocials: "Share to our socials",
     shareToOurSocialsDesc: "We'll help spread your post across our network",
     makeAdvertising: "Make advertising",
@@ -533,8 +533,8 @@ export const translations = {
     of: "of",
     total: "total",
     
-    // Mafkoudat specific
-    mafkoudat: "Mafkoudat",
+    // Mafqoudat specific
+    mafqoudat: "Mafqoudat",
     lostAndFound: "Lost and Found",
     community: "Community",
     help: "Help",
@@ -1100,7 +1100,7 @@ export const translations = {
     localPostsDesc: "Voir les publications de votre pays sélectionné",
     communityHelp: "Aide Communautaire",
     communityHelpDesc: "Aidez les autres à trouver leurs objets perdus",
-    welcomeToMafkoudat: "Bienvenue sur Mafkoudat",
+    welcomeToMafqoudat: "Bienvenue sur Mafqoudat",
     welcomeMessage: "Aidez les gens à retrouver leurs objets perdus et à rendre les objets trouvés à leurs propriétaires.",
     quickActions: "Actions Rapides",
     quickActionsDesc: "Comience con estas acciones esenciales para reportar, buscar y obtener ayuda",
@@ -1371,7 +1371,7 @@ export const translations = {
     
     // Process Section
     whatWeDo: "Ce que nous faisons",
-    afterPostingInMafkoudat: "Après avoir publié sur le site web mafkoudat",
+    afterPostingInMafqoudat: "Après avoir publié sur le site web mafqoudat",
     shareToOurSocials: "Partager sur nos réseaux sociaux",
     shareToOurSocialsDesc: "Nous vous aiderons à diffuser votre publication sur notre réseau",
     makeAdvertising: "Faire de la publicité",
@@ -1393,8 +1393,8 @@ export const translations = {
     of: "sur",
     total: "total",
     
-    // Mafkoudat specific
-    mafkoudat: "Mafkoudat",
+    // Mafqoudat specific
+    mafqoudat: "Mafqoudat",
     lostAndFound: "Objets perdus et trouvés",
     community: "Communauté",
     help: "Aide",
@@ -2193,7 +2193,7 @@ export const translations = {
     
     // Process Section
     whatWeDo: "ما نقوم به",
-    afterPostingInMafkoudat: "بعد النشر في موقع مفقودات",
+    afterPostingInMafqoudat: "بعد النشر في موقع مفقودات",
     shareToOurSocials: "مشاركة على وسائل التواصل الاجتماعي",
     shareToOurSocialsDesc: "سنساعد في نشر منشورك عبر شبكتنا",
     makeAdvertising: "عمل إعلانات",
@@ -2215,8 +2215,8 @@ export const translations = {
     of: "من",
     total: "إجمالي",
     
-    // Mafkoudat specific
-    mafkoudat: "مفقودات",
+    // Mafqoudat specific
+    mafqoudat: "مفقودات",
     lostAndFound: "الأشياء المفقودة والتي عثر عليها",
     community: "المجتمع",
     help: "المساعدة",

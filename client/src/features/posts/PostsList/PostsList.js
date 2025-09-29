@@ -42,7 +42,7 @@ import { authStorage } from "../../../utils/authStorage";
 
 
 const PostsList = () => {
-  useTitle("Mafkoudat | Posts List");
+  useTitle("Mafqoudat | Posts List");
 
   const theme = useTheme();
   const isMobile = useMediaQuery("(max-width:768px)");

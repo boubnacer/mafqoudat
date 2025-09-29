@@ -11,7 +11,7 @@ import useAuth from "../../../hooks/useAuth";
 import { useTranslation } from "../../../utils/translations";
 
 const NewPost = () => {
-  useTitle("Mafkoudat| New Post");
+  useTitle("Mafqoudat| New Post");
 
   const { usernameId } = useAuth();
 

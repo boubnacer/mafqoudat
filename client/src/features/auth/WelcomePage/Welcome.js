@@ -2,7 +2,7 @@ import { Link } from "react-router-dom";
 import useTitle from "../../../hooks/useTitle";
 
 const Welcome = () => {
-  useTitle(`Mafkoudat:`);
+  useTitle(`Mafqoudat:`);
 
   const date = new Date();
   const today = new Intl.DateTimeFormat("en-US", {

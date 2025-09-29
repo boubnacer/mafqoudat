@@ -40,7 +40,7 @@ import useTitle from "../../../hooks/useTitle";
 import { useLanguage } from "../../../utils/languageContext";
 
 const DependenciesManager = () => {
-  useTitle("Mafkoudat | Admin Dashboard - Dependencies");
+  useTitle("Mafqoudat | Admin Dashboard - Dependencies");
 
   const theme = useTheme();
   const isNonMediumScreens = useMediaQuery("(min-width:1200px)");

@@ -14,7 +14,7 @@ import {
 } from "../../dependencies/dependenciesApiSlice";
 
 const EditPost = () => {
-  useTitle("mafkoudat: Edit Post");
+  useTitle("mafqoudat: Edit Post");
 
   const { t, currentLanguage } = useTranslation();
 

@@ -6,7 +6,7 @@ import { LoadingState, ErrorState } from "../../../components/LoadingStates";
 import "./users.css";
 
 const UsersList = () => {
-  useTitle("Mafkoudat | Users List");
+  useTitle("Mafqoudat | Users List");
 
   const {
     data: users,
