@@ -332,7 +332,12 @@ const getPost = async (req, res) => {
             $cond: {
               if: { $ne: ["$City", null] },
               then: "$City.labels",
-              else: null  // API cities don't have labels
+              else: {
+                // For API cities, create basic labels from the city name
+                en: "$city",
+                fr: "$city", 
+                ar: "$city"
+              }
             }
           },
           returned: 1,

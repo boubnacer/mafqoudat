@@ -258,17 +258,25 @@ if (typeof document !== 'undefined') {
             setCitySearchQuery(existingCity.label || existingCity.name || '');
           } else {
             // It's an API city (string like "EL_JADIDA")
-            // Use cityName if available (from server aggregation), otherwise use the city string
-            setCitySearchQuery(post.cityName || post.city);
+            // Use cityLabels for proper translation, then cityName, then city string
+            if (post.cityLabels && post.cityLabels[currentLanguage]) {
+              setCitySearchQuery(post.cityLabels[currentLanguage]);
+            } else {
+              setCitySearchQuery(post.cityName || post.city);
+            }
           }
         } else {
           // No available cities yet, but we have a string city - likely API city
-          // Use cityName if available (from server aggregation), otherwise use the city string
-          setCitySearchQuery(post.cityName || post.city);
+          // Use cityLabels for proper translation, then cityName, then city string
+          if (post.cityLabels && post.cityLabels[currentLanguage]) {
+            setCitySearchQuery(post.cityLabels[currentLanguage]);
+          } else {
+            setCitySearchQuery(post.cityName || post.city);
+          }
         }
       }
     }
-  }, [post?.city, post?.cityName, availableCities, currentLanguage]);
+  }, [post?.city, post?.cityName, post?.cityLabels, availableCities, currentLanguage]);
 
   // Initialize selected country from post data
   useEffect(() => {
@@ -315,8 +323,8 @@ if (typeof document !== 'undefined') {
             // Create a mock city object for selectedCityFromSearch
             setSelectedCityFromSearch({
               code: post.city,
-              label: post.cityName || post.city,
-              labels: { en: post.cityName || post.city }
+              label: post.cityLabels?.[currentLanguage] || post.cityName || post.city,
+              labels: post.cityLabels || { en: post.cityName || post.city }
             });
           }
         } else {
@@ -326,13 +334,13 @@ if (typeof document !== 'undefined') {
           // Create a mock city object for selectedCityFromSearch
           setSelectedCityFromSearch({
             code: post.city,
-            label: post.cityName || post.city,
-            labels: { en: post.cityName || post.city }
+            label: post.cityLabels?.[currentLanguage] || post.cityName || post.city,
+            labels: post.cityLabels || { en: post.cityName || post.city }
           });
         }
       }
     }
-  }, [post?.city, post?.cityName, availableCities, setFieldValueCallback]);
+  }, [post?.city, post?.cityName, post?.cityLabels, availableCities, setFieldValueCallback, currentLanguage]);
 
   // Update cities when country changes
   useEffect(() => {
