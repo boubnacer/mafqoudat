@@ -1014,10 +1014,10 @@ const NewPostForm = ({ user, countries, categories, flOptions }) => {
                     {!selectedCountry 
                       ? t('selectCountryFirst') 
                         : currentLanguage === 'ar' 
-                          ? 'اختر مدينتك أو أقرب مدينة رئيسية إليك (العاصمة، العمالة، المقاطعة أو الولاية)'
+                          ? 'يرجى تحديد المدينة التي وجدت أو فقدت فيها العنصر أو أقرب مدينة رئيسية إليها (العاصمة، العمالة، المقاطعة، الولاية، أو المحافظة)'
                           : currentLanguage === 'fr'
-                            ? 'Sélectionnez votre ville ou la grande ville la plus proche (capitale, préfecture, province ou état)'
-                            : 'Select your city or the nearest major city to you (capital, prefecture, province or state)'
+                            ? 'Veuillez sélectionner la ville où vous avez trouvé ou perdu l\'objet ou la ville principale la plus proche (capitale, préfecture, province, état ou gouvernorat)'
+                            : 'Please select the city where you found or lost the item or the nearest major administrative center (capital, prefecture, province, state, or governorate)'
                     }
                   </Typography> 
                   
@@ -1302,6 +1302,47 @@ const NewPostForm = ({ user, countries, categories, flOptions }) => {
 
                 <Box>
                   <FormLabel 
+                    htmlFor="exactLocation" 
+                    sx={{ 
+                      mb: 1, 
+                      display: "block", 
+                      fontWeight: 600, 
+                      fontSize: '1.15rem',
+                      color: theme.palette.text.primary
+                    }}
+                  >
+                    {t('exactLocation')} *
+                  </FormLabel>
+                  <Typography 
+                    variant="caption" 
+                    sx={{ 
+                      mb: 1, 
+                      display: "block", 
+                      fontSize: '1rem',
+                      color: theme.palette.mode === 'dark' ? 'rgba(255,255,255,0.7)' : 'rgba(0,0,0,0.6)',
+                      fontWeight: 500
+                    }}
+                  >
+                    {currentLanguage === 'ar' 
+                      ? 'يرجى تحديد الموقع الدقيق والتفصيلي حيث وجدت أو فقدت العنصر (مثال: حي النور، شارع الملك، بجانب المسجد، أو أي معلم مميز)'
+                      : currentLanguage === 'fr'
+                        ? 'Veuillez spécifier l\'emplacement exact et détaillé où vous avez trouvé ou perdu l\'objet (ex: Quartier Al-Nour, Rue du Roi, près de la mosquée, ou tout point de repère distinctif)'
+                        : 'Please specify the precise and detailed location where you found or lost the item (e.g., Al-Nour District, King Street, near the mosque, or any distinctive landmark)'
+                    }
+                  </Typography>
+                  <Textfield 
+                    name="exactLocation" 
+                    variant="outlined" 
+                    placeholder={t('exactLocationPlaceholder')}
+                    data-testid="exactLocation"
+                    error={!!fieldErrors.exactLocation}
+                    helperText={fieldErrors.exactLocation}
+                    onErrorClear={clearFieldError}
+                  />
+                </Box>
+
+                <Box>
+                  <FormLabel 
                     htmlFor="exactDate" 
                     sx={{ 
                       mb: 1, 
@@ -1335,47 +1376,6 @@ const NewPostForm = ({ user, countries, categories, flOptions }) => {
                     data-testid="exactDate"
                     error={!!fieldErrors.exactDate}
                     helperText={fieldErrors.exactDate}
-                    onErrorClear={clearFieldError}
-                  />
-                </Box>
-
-                <Box>
-                  <FormLabel 
-                    htmlFor="exactLocation" 
-                    sx={{ 
-                      mb: 1, 
-                      display: "block", 
-                      fontWeight: 600, 
-                      fontSize: '1.15rem',
-                      color: theme.palette.text.primary
-                    }}
-                  >
-                    {t('exactLocation')} *
-                  </FormLabel>
-                  <Typography 
-                    variant="caption" 
-                    sx={{ 
-                      mb: 1, 
-                      display: "block", 
-                      fontSize: '1rem',
-                      color: theme.palette.mode === 'dark' ? 'rgba(255,255,255,0.7)' : 'rgba(0,0,0,0.6)',
-                      fontWeight: 500
-                    }}
-                  >
-                    {currentLanguage === 'ar' 
-                      ? 'أدخل اسم أقرب منطقة،قرية أو مدينة والموقع الدقيق (مثال: حي،قرية،مدينة النور، شارع الملك، بجانب المسجد)'
-                      : currentLanguage === 'fr'
-                        ? 'Entrez le nom du village/quartier et l\'emplacement exact (ex: Village Al-Nour, Rue du Roi, près de la mosquée)'
-                        : 'Enter the village/area name and exact location (e.g., Al-Nour Village, King Street, near the mosque)'
-                    }
-                  </Typography>
-                  <Textfield 
-                    name="exactLocation" 
-                    variant="outlined" 
-                    placeholder={t('exactLocationPlaceholder')}
-                    data-testid="exactLocation"
-                    error={!!fieldErrors.exactLocation}
-                    helperText={fieldErrors.exactLocation}
                     onErrorClear={clearFieldError}
                   />
                 </Box>
