@@ -270,7 +270,11 @@ const TrendingItem = ({ trend, isLoading }) => {
             right: 0,
             bottom: 0,
             zIndex: 0,
-            overflow: 'hidden'
+            overflow: 'hidden',
+            backgroundColor: 'transparent',
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'center'
           }}
         >
           <LazyCardMedia
@@ -279,17 +283,17 @@ const TrendingItem = ({ trend, isLoading }) => {
             alt={categoryDisplayName || 'Item Image'}
             fallback={noImagePng}
             sx={{
-              width: '100%',
-              height: '100%',
+              width: image ? '100%' : '70%',
+              height: image ? '100%' : '70%',
               objectFit: image ? 'cover' : 'contain',
               objectPosition: 'center',
               filter: image ? 'brightness(0.8)' : 'none',
               backgroundColor: 'transparent',
-              // Make PNG smaller when no image
+              // Center the image properly
               ...(image ? {} : {
                 maxWidth: '70%',
                 maxHeight: '70%',
-                margin: 'auto',
+                flexShrink: 0,
               }),
             }}
           />
