@@ -2,7 +2,7 @@ import { useNavigate } from "react-router-dom";
 import { memo, useState, useCallback, useMemo } from "react";
 import React from "react";
 // import "./postslist.css"; // Removed to prevent CSS conflicts with Material-UI
-import noImagePng from "../../../img/noimage.png";
+import noImageSvg from "../../../img/noimage.svg";
 import {
   Button,
   Card,
@@ -283,7 +283,7 @@ const Post = ({ post, viewMode = "grid" }) => {
 
   // Memoized image URL computation - only use Cloudinary if image exists and is uploaded by user
   const imageUrl = useMemo(() => {
-    if (!post?.image) return noImagePng;
+    if (!post?.image) return noImageSvg;
     return post.image.startsWith('http') 
       ? getOptimizedImageUrl(post.image, 'card') 
       : `${API_BASE_URL}/${post.image}`;
@@ -343,16 +343,10 @@ const Post = ({ post, viewMode = "grid" }) => {
                 objectFit: post?.image ? 'cover' : 'contain',
                 objectPosition: 'center',
                 backgroundColor: 'transparent',
-                // Make PNG smaller when no image
-                ...(post?.image ? {} : {
-                  maxWidth: '70%',
-                  maxHeight: '70%',
-                  margin: 'auto',
-                }),
               }}
               image={imageUrl}
               alt={categoryName || 'Item Image'}
-              fallback={noImagePng}
+              fallback={noImageSvg}
               onError={handleImageError}
             />
             
@@ -546,16 +540,10 @@ const Post = ({ post, viewMode = "grid" }) => {
               objectPosition: 'center',
               zIndex: 1, // Base layer for image
               backgroundColor: 'transparent',
-              // Make PNG smaller when no image
-              ...(post?.image ? {} : {
-                maxWidth: '70%',
-                maxHeight: '70%',
-                margin: 'auto',
-              }),
             }}
             image={imageUrl}
             alt={categoryName || 'Item Image'}
-            fallback={noImagePng}
+            fallback={noImageSvg}
             onError={handleImageError}
           />
           

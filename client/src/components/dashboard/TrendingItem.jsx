@@ -21,7 +21,7 @@ import LazyCardMedia from "../LazyCardMedia";
 import { getCategoryConfig } from "../../config/categories";
 import { useNavigate } from "react-router-dom";
 import { getLabel } from "../../utils/languageUtils";
-import noImagePng from "../../img/noimage.png";
+import noImageSvg from "../../img/noimage.svg";
 
 // Get the API base URL for image construction
 const API_BASE_URL = process.env.REACT_APP_API_URL || "http://localhost:3500";
@@ -200,7 +200,7 @@ const TrendingItem = ({ trend, isLoading }) => {
   };
 
   // Get optimized image URL - only use Cloudinary if image exists and is uploaded by user
-  const finalImageUrl = image ? (image.startsWith('http') ? getOptimizedImageUrl(image, 'card') : `${API_BASE_URL}/${image}`) : noImagePng;
+  const finalImageUrl = image ? (image.startsWith('http') ? getOptimizedImageUrl(image, 'card') : `${API_BASE_URL}/${image}`) : noImageSvg;
 
   if (isLoading) return <TrendingItemSkeleton />;
   if (!trendData) {
@@ -281,20 +281,14 @@ const TrendingItem = ({ trend, isLoading }) => {
             component="img"
             image={finalImageUrl}
             alt={categoryDisplayName || 'Item Image'}
-            fallback={noImagePng}
+            fallback={noImageSvg}
             sx={{
-              width: image ? '100%' : '70%',
-              height: image ? '100%' : '70%',
+              width: '100%',
+              height: '100%',
               objectFit: image ? 'cover' : 'contain',
               objectPosition: 'center',
               filter: image ? 'brightness(0.8)' : 'none',
               backgroundColor: 'transparent',
-              // Center the image properly
-              ...(image ? {} : {
-                maxWidth: '70%',
-                maxHeight: '70%',
-                flexShrink: 0,
-              }),
             }}
           />
           

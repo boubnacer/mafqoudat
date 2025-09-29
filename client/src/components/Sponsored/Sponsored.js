@@ -1,6 +1,6 @@
 import React, { useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
-import noImagePng from "../../img/noimage.png";
+import noImageSvg from "../../img/noimage.svg";
 import "./sponsored.css";
 import { useTranslation } from "../../utils/translations";
 import { getOptimizedImageUrl } from "../../utils/cloudinaryUtils";
@@ -68,9 +68,9 @@ const Sponsored = ({ post }) => {
         </div>
         <div className="card__img">
           <LazyImage 
-            src={post.image ? (post.image.startsWith('http') ? getOptimizedImageUrl(post.image, 'card') : post.image) : noImagePng} 
+            src={post.image ? (post.image.startsWith('http') ? getOptimizedImageUrl(post.image, 'card') : post.image) : noImageSvg} 
             alt={`${post.category} - ${post.region}`}
-            fallback={noImagePng}
+            fallback={noImageSvg}
             onError={(e) => {
               console.log('Image failed to load:', e.target.src);
             }}
@@ -78,12 +78,6 @@ const Sponsored = ({ post }) => {
               width: '100%',
               height: '100%',
               objectFit: post.image ? 'cover' : 'contain',
-              // Make PNG smaller when no image
-              ...(post.image ? {} : {
-                maxWidth: '70%',
-                maxHeight: '70%',
-                margin: 'auto',
-              }),
             }}
           />
           <p className="trending__date">{formatDate(post.createdAt)}</p>

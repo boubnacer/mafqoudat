@@ -11,7 +11,7 @@ import {
   useMediaQuery,
   Avatar,
 } from "@mui/material";
-import noImagePng from "../../img/noimage.png";
+import noImageSvg from "../../img/noimage.svg";
 import { useNavigate } from "react-router-dom";
 import RenderIcon from "../RenderIcon";
 import { useTranslation } from "../../utils/translations";
@@ -250,16 +250,10 @@ const RecentPosts = ({ _id, categoryname, exactLocation, image, createdAt, count
               objectPosition: 'center',
               zIndex: 1, // Base layer for image
               backgroundColor: 'transparent',
-              // Make PNG smaller when no image
-              ...(image ? {} : {
-                maxWidth: '70%',
-                maxHeight: '70%',
-                margin: 'auto',
-              }),
             }}
-            image={image ? (image.startsWith('http') ? getOptimizedImageUrl(image, 'card') : `${API_BASE_URL}/${image}`) : noImagePng}
+            image={image ? (image.startsWith('http') ? getOptimizedImageUrl(image, 'card') : `${API_BASE_URL}/${image}`) : noImageSvg}
             alt={categoryname}
-            fallback={noImagePng}
+            fallback={noImageSvg}
             onError={(e) => {
               // Image failed to load - silently handle
             }}

@@ -16,7 +16,7 @@ import { useNavigate } from "react-router-dom";
 import { SearchLoadingStates } from "../LoadingStates";
 import { useTranslation } from "../../utils/translations";
 import LazyCardMedia from "../LazyCardMedia";
-import noImagePng from "../../img/noimage.png";
+import noImageSvg from "../../img/noimage.svg";
 
 const SearchSection = ({
   searchQuery,
@@ -88,17 +88,10 @@ const SearchSection = ({
                       <LazyCardMedia
                         sx={{ 
                           height: 150,
-                          // Make PNG smaller when no image
-                          ...(post.image ? {} : {
-                            objectFit: 'contain',
-                            maxWidth: '70%',
-                            maxHeight: '70%',
-                            margin: 'auto',
-                          }),
                         }}
-                        image={post.image ? `${process.env.REACT_APP_API_URL || "http://localhost:3500"}/${post.image}` : noImagePng}
+                        image={post.image ? `${process.env.REACT_APP_API_URL || "http://localhost:3500"}/${post.image}` : noImageSvg}
                         alt={post.image}
-                        fallback={noImagePng}
+                        fallback={noImageSvg}
                       />
                       <CardContent>
                         <Typography variant="h6">{post.categoryname}</Typography>
