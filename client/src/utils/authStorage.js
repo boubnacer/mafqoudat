@@ -372,6 +372,8 @@ class LanguageStorageManager {
         } else {
           console.log('🌐 [URL-PRESERVE] Not preserving URL for root or login page:', currentPath);
         }
+      } else {
+        console.log('🌐 [URL-PRESERVE] Should refresh is false, not preserving URL');
       }
       
       localStorage.setItem(LANGUAGE_KEYS.LANGUAGE, language);

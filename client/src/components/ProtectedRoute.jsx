@@ -68,10 +68,15 @@ const ProtectedRoute = ({
     // Check if this is a language change refresh - if so, wait a bit longer for country state to restore
     const urlParams = new URLSearchParams(location.search);
     const isLanguageChange = urlParams.get('lang_changed') === 'true';
+    const isLanguageChanging = localStorage.getItem('isLanguageChanging') === 'true';
     
-    console.log('🔒 [LANG-FIX] ProtectedRoute - Checking language change:', { isLanguageChange, urlParams: location.search });
+    console.log('🔒 [LANG-FIX] ProtectedRoute - Checking language change:', { 
+      isLanguageChange, 
+      isLanguageChanging, 
+      urlParams: location.search 
+    });
     
-    if (isLanguageChange) {
+    if (isLanguageChange || isLanguageChanging) {
       console.log('🔒 [LANG-FIX] ProtectedRoute - Language change detected, waiting for country state to restore...');
       // During language change, give more time for country state to restore
       // Don't redirect immediately, let the component re-render and check again

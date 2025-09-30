@@ -22,6 +22,10 @@ const LanguageChangeHandler = () => {
     if (isLanguageChange) {
       console.log('🔄 [LANG-FIX] Language change detected on:', location.pathname);
       
+      // Set a flag to indicate we're in a language change process
+      // This helps other components (like ProtectedRoute) know about the language change
+      localStorage.setItem('isLanguageChanging', 'true');
+      
       // Clean up the auth preservation flag
       localStorage.removeItem('preserveAuthAfterLanguageChange');
       
@@ -51,6 +55,11 @@ const LanguageChangeHandler = () => {
         }
         
         console.log('🔄 [LANG-FIX] Staying on current route:', location.pathname);
+        
+        // Clear the language change flag after a delay to allow other components to detect it
+        setTimeout(() => {
+          localStorage.removeItem('isLanguageChanging');
+        }, 1000);
       }
     }
   }, [location, navigate, isLoggedIn]);
