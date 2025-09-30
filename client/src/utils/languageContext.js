@@ -1,5 +1,6 @@
 import React, { createContext, useContext, useState, useEffect } from 'react';
 import { languageStorage } from './authStorage';
+import { triggerLanguageDependentRefetch } from './languageRefetchUtils';
 
 // Language context
 const LanguageContext = createContext();
@@ -37,28 +38,50 @@ export const LanguageProvider = ({ children }) => {
   const [currentLanguage, setCurrentLanguage] = useState('en'); // Start with default
   const [isInitialized, setIsInitialized] = useState(false);
 
-  const setLanguage = (language, shouldRefresh = false) => {
+  const setLanguage = (language) => {
     try {
-      console.log('🌐 [LANGUAGE-CONTEXT] setLanguage called:', { language, shouldRefresh, currentUrl: window.location.href });
+      console.log('🌐 [LANGUAGE-CONTEXT] setLanguage called:', { language, currentUrl: window.location.href });
       if (['en', 'ar', 'fr'].includes(language)) {
         
-        // Use centralized language storage utility with page refresh option
-        languageStorage.setLanguage(language, shouldRefresh);
+        // Use centralized language storage utility (no page refresh)
+        const success = languageStorage.setLanguage(language);
         
-        // Apply language settings immediately (only if not refreshing)
-        if (!shouldRefresh) {
-          initializeLanguage(language);
-          
-          // Update state
+        if (success) {
+          // Update context state immediately
           setCurrentLanguage(language);
+          
+          // Trigger RTK Query refetch for all language-dependent queries
+          handleLanguageRefetch(language);
+          
+          console.log('🌐 [LANGUAGE-CONTEXT] Language changed successfully:', language);
         }
         
-        return true;
+        return success;
       }
       return false;
     } catch (error) {
       console.error('Error setting language:', error);
       return false;
+    }
+  };
+
+  /**
+   * Trigger refetch for all language-dependent RTK Query endpoints
+   * @param {string} language - New language code
+   */
+  const handleLanguageRefetch = (language) => {
+    try {
+      console.log('🌐 [LANGUAGE-CONTEXT] Triggering refetch for language:', language);
+      
+      // Use the utility function to trigger refetch
+      triggerLanguageDependentRefetch(language, {
+        forceRefetch: true,
+        priority: 'medium' // Refetch medium and high priority endpoints
+      });
+      
+      console.log('🌐 [LANGUAGE-CONTEXT] Refetch triggered for all language-dependent endpoints');
+    } catch (error) {
+      console.error('Error triggering language-dependent refetch:', error);
     }
   };
 
@@ -86,36 +109,25 @@ export const LanguageProvider = ({ children }) => {
   useEffect(() => {
     if (!isInitialized) return;
 
-    // Listen for language change events
-    const handleLanguageChange = () => {
-      // Force re-render of components that depend on language
+    // Listen for language change events (smooth switching)
+    const handleLanguageChanged = (event) => {
+      console.log('🌐 [LANGUAGE-CONTEXT] Language change event received:', event.detail);
+      
+      // Update context state
       setCurrentLanguage(prev => {
         const newLang = languageStorage.getCurrentLanguage();
         if (prev !== newLang) {
-          initializeLanguage(newLang);
+          console.log('🌐 [LANGUAGE-CONTEXT] Language changed from', prev, 'to', newLang);
           return newLang;
         }
         return prev;
       });
     };
 
-    // Also listen for the specific event name used in WelcomePage
-    const handleLanguageChanged = () => {
-      setCurrentLanguage(prev => {
-        const newLang = languageStorage.getCurrentLanguage();
-        if (prev !== newLang) {
-          initializeLanguage(newLang);
-          return newLang;
-        }
-        return prev;
-      });
-    };
-
-    window.addEventListener('languageChange', handleLanguageChange);
+    // Listen for the custom language change event
     window.addEventListener('languageChanged', handleLanguageChanged);
     
     return () => {
-      window.removeEventListener('languageChange', handleLanguageChange);
       window.removeEventListener('languageChanged', handleLanguageChanged);
     };
   }, [isInitialized]);

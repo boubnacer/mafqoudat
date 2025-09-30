@@ -32,7 +32,7 @@ const LanguageSwitcher = ({ variant = 'button', onLanguageChange }) => {
 
   const handleLanguageChange = (language) => {
     console.log('🌐 [LANGUAGE-SWITCHER] Language change triggered:', { language, currentUrl: window.location.href });
-    if (setLanguage(language, true)) { // Pass true to trigger page refresh
+    if (setLanguage(language)) { // No page refresh - smooth switching
       handleClose();
       
       // Notify parent component if callback provided
@@ -40,8 +40,9 @@ const LanguageSwitcher = ({ variant = 'button', onLanguageChange }) => {
         onLanguageChange(language);
       }
       
-      // Page refresh will be handled by the languageStorage.setLanguage method
-      // This ensures dynamic translations are fetched correctly and authentication state is preserved
+      // Smooth language switching will be handled by the languageStorage.setLanguage method
+      // This ensures dynamic translations are fetched correctly without page refresh
+      console.log('🌐 [LANGUAGE-SWITCHER] Language changed smoothly to:', language);
     }
   };
 

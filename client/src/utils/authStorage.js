@@ -332,68 +332,68 @@ class AuthStorageManager {
 }
 
 /**
- * Language Storage Manager (for page refresh functionality)
+ * Language Storage Manager (smooth switching without page refresh)
  */
 class LanguageStorageManager {
   /**
-   * Set language and trigger page refresh if needed
+   * Set language and trigger smooth context updates
    * @param {string} language - Language code
-   * @param {boolean} shouldRefresh - Whether to refresh the page
    */
-  static setLanguage(language, shouldRefresh = false) {
+  static setLanguage(language) {
     try {
-      console.log('🌐 [URL-PRESERVE] setLanguage called:', { language, shouldRefresh, currentUrl: window.location.href });
+      console.log('🌐 [SMOOTH-SWITCHING] setLanguage called:', { language, currentUrl: window.location.href });
       
-      // Preserve authentication state before language change
-      if (shouldRefresh) {
-        console.log('🌐 [URL-PRESERVE] Should refresh is true, preserving auth state and URL');
-        AuthStorageManager.preserveAuthDuringLanguageChange();
-        
-        // Preserve the current URL path to restore after refresh
-        // Remove lang_changed parameter if it exists to avoid preserving it
-        let currentPath = window.location.pathname + window.location.search;
-        if (currentPath.includes('lang_changed=')) {
-          console.log('🌐 [URL-PRESERVE] Removing lang_changed parameter from URL before preserving');
-          const url = new URL(window.location);
-          url.searchParams.delete('lang_changed');
-          currentPath = url.pathname + (url.search || '');
-        }
-        
-        console.log('🌐 [URL-PRESERVE] Current path to preserve:', currentPath);
-        
-        // Only preserve if we're not already on the root or login page
-        if (currentPath !== '/' && !currentPath.startsWith('/login')) {
-          localStorage.setItem('languageChangeRedirectUrl', currentPath);
-          
-          // Verify the URL was saved
-          const savedUrl = localStorage.getItem('languageChangeRedirectUrl');
-          console.log('🌐 [URL-PRESERVE] Verified saved URL:', savedUrl);
-          console.log('🌐 [URL-PRESERVE] Language change: Preserving URL path:', currentPath);
-        } else {
-          console.log('🌐 [URL-PRESERVE] Not preserving URL for root or login page:', currentPath);
-        }
-      } else {
-        console.log('🌐 [URL-PRESERVE] Should refresh is false, not preserving URL');
+      // Validate language
+      if (!['en', 'ar', 'fr'].includes(language)) {
+        console.error('Invalid language code:', language);
+        return false;
       }
       
+      // Store language in localStorage
       localStorage.setItem(LANGUAGE_KEYS.LANGUAGE, language);
       localStorage.setItem(LANGUAGE_KEYS.APP_LANGUAGE, language);
       localStorage.setItem(LANGUAGE_KEYS.CURRENT_LANGUAGE, language);
       
-      if (shouldRefresh) {
-        // Add URL parameter to indicate this is a language change refresh
-        const url = new URL(window.location);
-        url.searchParams.set('lang_changed', 'true');
-        
-        // Refresh the page to ensure dynamic translations are fetched correctly
-        // Authentication state will be preserved in localStorage and restored by PersistLogin
-        window.location.href = url.toString();
-      }
+      // Update document attributes immediately
+      this.updateDocumentAttributes(language);
       
+      // Dispatch custom event to notify components of language change
+      const languageChangeEvent = new CustomEvent('languageChanged', {
+        detail: { language, timestamp: Date.now() }
+      });
+      window.dispatchEvent(languageChangeEvent);
+      
+      console.log('🌐 [SMOOTH-SWITCHING] Language changed successfully:', language);
       return true;
     } catch (error) {
       console.error('Failed to set language:', error);
       return false;
+    }
+  }
+
+  /**
+   * Update document language and RTL/LTR direction
+   * @param {string} language - Language code
+   */
+  static updateDocumentAttributes(language) {
+    try {
+      // Set document language attribute
+      document.documentElement.setAttribute("lang", language);
+      
+      // Update RTL/LTR direction
+      if (language === "ar") {
+        document.body.setAttribute("dir", "rtl");
+        document.body.style.direction = "rtl";
+        document.body.style.textAlign = "right";
+      } else {
+        document.body.setAttribute("dir", "ltr");
+        document.body.style.direction = "ltr";
+        document.body.style.textAlign = "left";
+      }
+      
+      console.log('🌐 [SMOOTH-SWITCHING] Document attributes updated for language:', language);
+    } catch (error) {
+      console.error('Failed to update document attributes:', error);
     }
   }
 
