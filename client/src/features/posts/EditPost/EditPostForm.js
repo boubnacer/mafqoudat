@@ -388,7 +388,7 @@ if (typeof document !== 'undefined') {
       // For language changes, wait longer to ensure auth state is restored
       const timeoutId = setTimeout(() => {
         fetchCitiesByCountry(selectedCountry._id);
-      }, 400); // Reduced delay to minimize loading oscillation
+      }, 600); // Balanced delay to ensure auth state is restored
       
       return () => clearTimeout(timeoutId);
     }
