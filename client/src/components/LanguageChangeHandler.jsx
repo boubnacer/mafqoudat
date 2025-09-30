@@ -59,7 +59,7 @@ const LanguageChangeHandler = () => {
         // Clear the language change flag after a delay to allow other components to detect it
         setTimeout(() => {
           localStorage.removeItem('isLanguageChanging');
-        }, 1000);
+        }, 500); // Reduced delay to minimize loading oscillation
       }
     }
   }, [location, navigate, isLoggedIn]);

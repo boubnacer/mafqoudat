@@ -234,7 +234,7 @@ const NewPostForm = ({ user, countries, categories, flOptions }) => {
       // For language changes, wait longer to ensure auth state is restored
       const timeoutId = setTimeout(() => {
         fetchCitiesByCountry(selectedCountry._id);
-      }, 1000);
+      }, 400); // Reduced delay to minimize loading oscillation
       
       return () => clearTimeout(timeoutId);
     }

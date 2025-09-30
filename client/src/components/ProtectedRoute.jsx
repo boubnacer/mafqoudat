@@ -29,12 +29,13 @@ const ProtectedRoute = ({
   useEffect(() => {
     const urlParams = new URLSearchParams(location.search);
     const isLanguageChange = urlParams.get('lang_changed') === 'true';
+    const isLanguageChanging = localStorage.getItem('isLanguageChanging') === 'true';
     
-    if (isLanguageChange) {
+    if (isLanguageChange || isLanguageChanging) {
       // Give authentication state time to restore after language change
       const timer = setTimeout(() => {
         setIsInitialized(true);
-      }, 500);
+      }, 200); // Reduced delay to minimize loading oscillation
       
       return () => clearTimeout(timer);
     } else {
