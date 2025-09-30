@@ -29,7 +29,7 @@ const CountryGuard = ({ children, allowAuthenticatedWithoutCountry = true }) => 
       // Give authentication state time to restore after language change
       const timer = setTimeout(() => {
         setIsInitialized(true);
-      }, 400); // Balanced delay to prevent race condition while minimizing oscillation
+      }, 500); // Original working delay
       
       return () => clearTimeout(timer);
     } else {
