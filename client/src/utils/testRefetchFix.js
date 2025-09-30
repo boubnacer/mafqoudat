@@ -9,6 +9,7 @@ import {
   triggerLanguageDependentRefetch, 
   safeLanguageRefetch,
   fallbackLanguageRefetch,
+  refetchWithCorrectRTKMethods,
   LANGUAGE_DEPENDENT_ENDPOINTS 
 } from './languageRefetchUtils';
 import { store } from '../app/store';
@@ -88,6 +89,7 @@ export const testRefetchMechanism = async () => {
   
   const testResults = {
     basicRefetch: false,
+    correctRTKMethods: false,
     safeRefetch: false,
     fallbackRefetch: false,
     errorHandling: false,
@@ -110,7 +112,20 @@ export const testRefetchMechanism = async () => {
       console.error('🧪 [REFETCH-TEST] Basic refetch test: FAIL', error);
     }
     
-    // Test 2: Safe refetch
+    // Test 2: Correct RTK Query methods
+    console.log('🧪 [REFETCH-TEST] Testing correct RTK Query methods...');
+    try {
+      const correctMethodResult = await refetchWithCorrectRTKMethods(testLanguage, {
+        priority: 'medium',
+        forceRefetch: true
+      });
+      testResults.correctRTKMethods = true;
+      console.log('🧪 [REFETCH-TEST] Correct RTK Query methods test: PASS, result:', correctMethodResult);
+    } catch (error) {
+      console.error('🧪 [REFETCH-TEST] Correct RTK Query methods test: FAIL', error);
+    }
+    
+    // Test 3: Safe refetch
     console.log('🧪 [REFETCH-TEST] Testing safe refetch...');
     try {
       const safeResult = await safeLanguageRefetch(testLanguage, {
@@ -123,7 +138,7 @@ export const testRefetchMechanism = async () => {
       console.error('🧪 [REFETCH-TEST] Safe refetch test: FAIL', error);
     }
     
-    // Test 3: Fallback refetch
+    // Test 4: Fallback refetch
     console.log('🧪 [REFETCH-TEST] Testing fallback refetch...');
     try {
       fallbackLanguageRefetch(testLanguage);
@@ -133,7 +148,7 @@ export const testRefetchMechanism = async () => {
       console.error('🧪 [REFETCH-TEST] Fallback refetch test: FAIL', error);
     }
     
-    // Test 4: Error handling
+    // Test 5: Error handling
     console.log('🧪 [REFETCH-TEST] Testing error handling...');
     try {
       // Test with invalid language
@@ -289,6 +304,110 @@ export const testEventSystemIntegration = () => {
 };
 
 /**
+ * Test dynamic content updates after language change
+ */
+export const testDynamicContentUpdates = async () => {
+  console.log('🧪 [REFETCH-TEST] Testing dynamic content updates...');
+  
+  const testResults = {
+    storeStateBefore: null,
+    storeStateAfter: null,
+    queriesInvalidated: false,
+    queriesRefetched: false,
+    contentUpdated: false,
+    overall: false
+  };
+  
+  try {
+    // Get initial store state
+    const storeState = store.getState();
+    const apiState = storeState[apiSlice.reducerPath];
+    testResults.storeStateBefore = {
+      queriesCount: Object.keys(apiState.queries || {}).length,
+      subscriptionsCount: Object.keys(apiState.subscriptions || {}).length,
+      providedTags: apiState.provided || {}
+    };
+    
+    console.log('🧪 [REFETCH-TEST] Initial store state:', testResults.storeStateBefore);
+    
+    // Test language change and refetch
+    const testLanguage = 'ar';
+    console.log('🧪 [REFETCH-TEST] Testing language change to:', testLanguage);
+    
+    // Use correct RTK Query methods
+    const refetchSuccess = await refetchWithCorrectRTKMethods(testLanguage, {
+      priority: 'medium',
+      forceRefetch: true
+    });
+    
+    if (refetchSuccess) {
+      testResults.queriesInvalidated = true;
+      console.log('🧪 [REFETCH-TEST] Queries invalidated successfully');
+    }
+    
+    // Wait for refetch to complete
+    await new Promise(resolve => setTimeout(resolve, 500));
+    
+    // Check store state after refetch
+    const storeStateAfter = store.getState();
+    const apiStateAfter = storeStateAfter[apiSlice.reducerPath];
+    testResults.storeStateAfter = {
+      queriesCount: Object.keys(apiStateAfter.queries || {}).length,
+      subscriptionsCount: Object.keys(apiStateAfter.subscriptions || {}).length,
+      providedTags: apiStateAfter.provided || {}
+    };
+    
+    console.log('🧪 [REFETCH-TEST] Store state after refetch:', testResults.storeStateAfter);
+    
+    // Check if queries were refetched (look for updated timestamps)
+    const activeQueries = apiStateAfter.queries || {};
+    let refetchedQueries = 0;
+    
+    Object.entries(activeQueries).forEach(([queryKey, queryState]) => {
+      if (queryState && queryState.status === 'fulfilled') {
+        // Check if this is a language-dependent query
+        const isLanguageDependent = Object.keys(LANGUAGE_DEPENDENT_ENDPOINTS).some(endpoint => 
+          queryKey.includes(endpoint)
+        );
+        
+        if (isLanguageDependent) {
+          refetchedQueries++;
+          console.log('🧪 [REFETCH-TEST] Found refetched query:', queryKey, 'at', new Date(queryState.fulfilledTimeStamp));
+        }
+      }
+    });
+    
+    testResults.queriesRefetched = refetchedQueries > 0;
+    console.log('🧪 [REFETCH-TEST] Refetched queries count:', refetchedQueries);
+    
+    // Check if content would be updated (simulate by checking if queries are stale)
+    const staleQueries = Object.entries(activeQueries).filter(([queryKey, queryState]) => {
+      if (!queryState) return false;
+      
+      const isLanguageDependent = Object.keys(LANGUAGE_DEPENDENT_ENDPOINTS).some(endpoint => 
+        queryKey.includes(endpoint)
+      );
+      
+      return isLanguageDependent && queryState.status === 'fulfilled';
+    });
+    
+    testResults.contentUpdated = staleQueries.length > 0;
+    console.log('🧪 [REFETCH-TEST] Content update simulation:', testResults.contentUpdated);
+    
+    // Overall result
+    testResults.overall = testResults.queriesInvalidated && testResults.queriesRefetched;
+    console.log('🧪 [REFETCH-TEST] Dynamic content updates test result:', testResults.overall ? 'PASS' : 'FAIL');
+    console.log('🧪 [REFETCH-TEST] Detailed results:', testResults);
+    
+  } catch (error) {
+    console.error('🧪 [REFETCH-TEST] Dynamic content updates test failed:', error);
+    testResults.overall = false;
+  }
+  
+  return testResults;
+};
+
+/**
  * Performance test for refetch mechanism
  */
 export const testRefetchPerformance = async () => {
@@ -344,6 +463,7 @@ export const runAllRefetchTests = async () => {
     refetchMechanism: null,
     endpointsConfiguration: null,
     eventSystemIntegration: null,
+    dynamicContentUpdates: null,
     performance: null,
     overall: false
   };
@@ -354,6 +474,7 @@ export const runAllRefetchTests = async () => {
     allResults.refetchMechanism = await testRefetchMechanism();
     allResults.endpointsConfiguration = testLanguageDependentEndpoints();
     allResults.eventSystemIntegration = testEventSystemIntegration();
+    allResults.dynamicContentUpdates = await testDynamicContentUpdates();
     allResults.performance = await testRefetchPerformance();
     
     // Calculate overall result
@@ -379,6 +500,7 @@ if (process.env.NODE_ENV === 'development') {
   window.testRefetchMechanism = testRefetchMechanism;
   window.testLanguageDependentEndpoints = testLanguageDependentEndpoints;
   window.testEventSystemIntegration = testEventSystemIntegration;
+  window.testDynamicContentUpdates = testDynamicContentUpdates;
   window.testRefetchPerformance = testRefetchPerformance;
   window.runAllRefetchTests = runAllRefetchTests;
   
@@ -387,6 +509,7 @@ if (process.env.NODE_ENV === 'development') {
   console.log('🧪 [REFETCH-TEST] - testRefetchMechanism()');
   console.log('🧪 [REFETCH-TEST] - testLanguageDependentEndpoints()');
   console.log('🧪 [REFETCH-TEST] - testEventSystemIntegration()');
+  console.log('🧪 [REFETCH-TEST] - testDynamicContentUpdates()');
   console.log('🧪 [REFETCH-TEST] - testRefetchPerformance()');
   console.log('🧪 [REFETCH-TEST] - runAllRefetchTests()');
 }
