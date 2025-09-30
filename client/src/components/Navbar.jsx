@@ -47,7 +47,7 @@ import useAuth from "../hooks/useAuth";
 import CountryModal from "./CountryModal";
 import { useTranslation } from "../utils/translations";
 import { useGetflOptionsQuery } from "../features/dependencies/dependenciesApiSlice";
-import { languageStorage } from "../utils/authStorage";
+import { useUnifiedLanguageChange } from "../hooks/useUnifiedLanguageChange";
 
 // Global keyframes for logo animation
 const globalStyles = `
@@ -265,6 +265,11 @@ const Navbar = () => {
   const isMobile = useMediaQuery("(max-width:600px)");
   const isTablet = useMediaQuery("(max-width:900px)");
   const { t, currentLanguage } = useTranslation();
+  const { changeLanguage, isChanging: isLanguageChanging } = useUnifiedLanguageChange({
+    showLoadingState: false,
+    refetchPriority: 'medium',
+    enableLogging: process.env.NODE_ENV === 'development'
+  });
 
   const currentCountry = useSelector(selectCurrentCountry);
   const openModal = useSelector(selectOpenModal);
@@ -373,12 +378,22 @@ const Navbar = () => {
   const handleNavigationClick = (event) => setNavigationAnchorEl(event.currentTarget);
   const handleNavigationClose = () => setNavigationAnchorEl(null);
 
-  const handleLanguageChange = (newLanguage) => {
+  const handleLanguageChange = async (newLanguage) => {
     console.log('🌐 [NAVBAR] Language change triggered:', { newLanguage, currentUrl: window.location.href });
-    // Use centralized language storage utility with page refresh
-    languageStorage.setLanguage(newLanguage, true); // true = refresh page
-    window.dispatchEvent(new Event('languageChange'));
-    handleLanguageClose();
+    
+    try {
+      // Use unified language change handler
+      const success = await changeLanguage(newLanguage);
+      
+      if (success) {
+        console.log('🌐 [NAVBAR] Language changed successfully to:', newLanguage);
+        handleLanguageClose();
+      } else {
+        console.error('🌐 [NAVBAR] Failed to change language to:', newLanguage);
+      }
+    } catch (error) {
+      console.error('🌐 [NAVBAR] Error changing language:', error);
+    }
   };
 
   const handleModeToggle = () => {

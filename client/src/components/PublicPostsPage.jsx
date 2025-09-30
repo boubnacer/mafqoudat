@@ -5,7 +5,7 @@ import { useGetPostsQuery } from "../features/posts/postsApiSlice";
 import { useGetCountriesQuery } from "../features/countries/countriesApiSlice";
 import { selectCurrentCountry, setCurrentCountry } from "../app/state";
 import { useTranslation } from "../utils/translations";
-import { useLanguage } from "../utils/languageContext";
+import { useUnifiedLanguageChange } from "../hooks/useUnifiedLanguageChange";
 import { LoadingState } from "./LoadingStates";
 import LazyCardMedia from "./LazyCardMedia";
 import {
@@ -122,7 +122,11 @@ const PublicPostsPage = () => {
   const navigate = useNavigate();
   const dispatch = useDispatch();
   const { t, currentLanguage } = useTranslation();
-  const { currentLanguage: langContext, setLanguage } = useLanguage();
+  const { currentLanguage: langContext, changeLanguage, isChanging } = useUnifiedLanguageChange({
+    showLoadingState: false,
+    refetchPriority: 'medium',
+    enableLogging: process.env.NODE_ENV === 'development'
+  });
   
   const currentCountry = useSelector(selectCurrentCountry);
   const [searchQuery, setSearchQuery] = useState("");
@@ -164,11 +168,22 @@ const PublicPostsPage = () => {
     return matchesSearch && matchesCategory && matchesFoundLost;
   });
 
-  const handleLanguageChange = (language) => {
-    setLanguage(language);
-    setLanguageAnchorEl(null);
-    // Refresh the page to apply language changes
-    window.location.reload();
+  const handleLanguageChange = async (language) => {
+    console.log('🌐 [PUBLIC-POSTS-PAGE] Language change triggered:', { language, currentUrl: window.location.href });
+    
+    try {
+      // Use unified language change handler
+      const success = await changeLanguage(language);
+      
+      if (success) {
+        setLanguageAnchorEl(null);
+        console.log('🌐 [PUBLIC-POSTS-PAGE] Language changed successfully to:', language);
+      } else {
+        console.error('🌐 [PUBLIC-POSTS-PAGE] Failed to change language to:', language);
+      }
+    } catch (error) {
+      console.error('🌐 [PUBLIC-POSTS-PAGE] Error changing language:', error);
+    }
   };
 
   const handleLanguageClick = (event) => {

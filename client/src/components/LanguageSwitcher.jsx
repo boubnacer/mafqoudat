@@ -15,11 +15,15 @@ import { setCurrentCountry } from '../app/state';
 import { useGetCountriesQuery } from '../features/countries/countriesApiSlice';
 import { LoadingState } from './LoadingStates';
 import { SUPPORTED_LANGUAGES } from '../utils/languageUtils';
-import { useLanguage } from '../utils/languageContext';
+import { useUnifiedLanguageChange } from '../hooks/useUnifiedLanguageChange';
 
 const LanguageSwitcher = ({ variant = 'button', onLanguageChange }) => {
   const [anchorEl, setAnchorEl] = useState(null);
-  const { currentLanguage, setLanguage } = useLanguage();
+  const { currentLanguage, changeLanguage, isChanging } = useUnifiedLanguageChange({
+    showLoadingState: false,
+    refetchPriority: 'medium',
+    enableLogging: process.env.NODE_ENV === 'development'
+  });
   const theme = useTheme();
 
   const handleClick = (event) => {
@@ -30,19 +34,27 @@ const LanguageSwitcher = ({ variant = 'button', onLanguageChange }) => {
     setAnchorEl(null);
   };
 
-  const handleLanguageChange = (language) => {
+  const handleLanguageChange = async (language) => {
     console.log('🌐 [LANGUAGE-SWITCHER] Language change triggered:', { language, currentUrl: window.location.href });
-    if (setLanguage(language)) { // No page refresh - smooth switching
-      handleClose();
+    
+    try {
+      // Use unified language change handler
+      const success = await changeLanguage(language);
       
-      // Notify parent component if callback provided
-      if (onLanguageChange) {
-        onLanguageChange(language);
+      if (success) {
+        handleClose();
+        
+        // Notify parent component if callback provided
+        if (onLanguageChange) {
+          onLanguageChange(language);
+        }
+        
+        console.log('🌐 [LANGUAGE-SWITCHER] Language changed successfully to:', language);
+      } else {
+        console.error('🌐 [LANGUAGE-SWITCHER] Failed to change language to:', language);
       }
-      
-      // Smooth language switching will be handled by the languageStorage.setLanguage method
-      // This ensures dynamic translations are fetched correctly without page refresh
-      console.log('🌐 [LANGUAGE-SWITCHER] Language changed smoothly to:', language);
+    } catch (error) {
+      console.error('🌐 [LANGUAGE-SWITCHER] Error changing language:', error);
     }
   };
 
