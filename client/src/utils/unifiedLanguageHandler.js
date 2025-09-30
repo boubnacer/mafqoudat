@@ -7,7 +7,7 @@
  */
 
 import { languageStorage } from './authStorage';
-import { triggerLanguageDependentRefetch } from './languageRefetchUtils';
+import { safeLanguageRefetch, triggerLanguageDependentRefetch } from './languageRefetchUtils';
 
 /**
  * Language change options
@@ -98,15 +98,21 @@ export const unifiedLanguageChange = async (language, options = {}) => {
       console.log('🌐 [UNIFIED-HANDLER] Language changed in storage:', language);
     }
     
-    // Trigger RTK Query refetch
+    // Trigger RTK Query refetch with error handling
     if (config.forceRefetch) {
-      triggerLanguageDependentRefetch(language, {
-        priority: config.refetchPriority,
-        forceRefetch: true
-      });
-      
-      if (config.enableLogging) {
-        console.log('🌐 [UNIFIED-HANDLER] RTK Query refetch triggered');
+      try {
+        const refetchSuccess = await safeLanguageRefetch(language, {
+          priority: config.refetchPriority,
+          forceRefetch: true
+        });
+        
+        if (config.enableLogging) {
+          console.log('🌐 [UNIFIED-HANDLER] RTK Query refetch result:', refetchSuccess ? 'SUCCESS' : 'FALLBACK');
+        }
+      } catch (refetchError) {
+        if (config.enableLogging) {
+          console.error('🌐 [UNIFIED-HANDLER] RTK Query refetch failed:', refetchError);
+        }
       }
     }
     

@@ -1,6 +1,6 @@
 import React, { createContext, useContext, useState, useEffect } from 'react';
 import { languageStorage } from './authStorage';
-import { triggerLanguageDependentRefetch } from './languageRefetchUtils';
+import { safeLanguageRefetch } from './languageRefetchUtils';
 
 // Language context
 const LanguageContext = createContext();
@@ -69,17 +69,17 @@ export const LanguageProvider = ({ children }) => {
    * Trigger refetch for all language-dependent RTK Query endpoints
    * @param {string} language - New language code
    */
-  const handleLanguageRefetch = (language) => {
+  const handleLanguageRefetch = async (language) => {
     try {
       console.log('🌐 [LANGUAGE-CONTEXT] Triggering refetch for language:', language);
       
-      // Use the utility function to trigger refetch
-      triggerLanguageDependentRefetch(language, {
+      // Use the safe refetch function with error handling
+      const refetchSuccess = await safeLanguageRefetch(language, {
         forceRefetch: true,
         priority: 'medium' // Refetch medium and high priority endpoints
       });
       
-      console.log('🌐 [LANGUAGE-CONTEXT] Refetch triggered for all language-dependent endpoints');
+      console.log('🌐 [LANGUAGE-CONTEXT] Refetch result:', refetchSuccess ? 'SUCCESS' : 'FALLBACK');
     } catch (error) {
       console.error('Error triggering language-dependent refetch:', error);
     }

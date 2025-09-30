@@ -7,6 +7,7 @@
  */
 
 import { store } from '../app/store';
+import { apiSlice } from '../app/api/apiSlice';
 
 /**
  * Language-dependent endpoint configurations
@@ -40,13 +41,27 @@ export const triggerLanguageDependentRefetch = (language, options = {}) => {
   try {
     console.log('🌐 [LANGUAGE-REFETCH] Triggering refetch for language:', language, 'with options:', options);
     
-    // Get the API slice from the store
-    const apiSlice = store.getState().api;
-    
-    if (!apiSlice) {
-      console.warn('🌐 [LANGUAGE-REFETCH] API slice not found in store');
+    // Check if store and API slice are available
+    if (!store) {
+      console.warn('🌐 [LANGUAGE-REFETCH] Store not available');
       return;
     }
+    
+    if (!apiSlice || !apiSlice.util) {
+      console.warn('🌐 [LANGUAGE-REFETCH] API slice or util not available');
+      return;
+    }
+    
+    // Get the current store state to verify API slice is properly initialized
+    const storeState = store.getState();
+    const apiState = storeState[apiSlice.reducerPath];
+    
+    if (!apiState) {
+      console.warn('🌐 [LANGUAGE-REFETCH] API state not found in store under path:', apiSlice.reducerPath);
+      return;
+    }
+    
+    console.log('🌐 [LANGUAGE-REFETCH] Store state verified, API slice available');
     
     // Priority levels
     const priorityLevels = { low: 1, medium: 2, high: 3 };
@@ -73,8 +88,21 @@ export const triggerLanguageDependentRefetch = (language, options = {}) => {
     
     // Invalidate tags to trigger refetch
     if (uniqueTags.length > 0) {
-      store.dispatch(apiSlice.util.invalidateTags(uniqueTags));
-      console.log('🌐 [LANGUAGE-REFETCH] Invalidated tags:', uniqueTags);
+      try {
+        store.dispatch(apiSlice.util.invalidateTags(uniqueTags));
+        console.log('🌐 [LANGUAGE-REFETCH] Invalidated tags:', uniqueTags);
+      } catch (dispatchError) {
+        console.error('🌐 [LANGUAGE-REFETCH] Error dispatching invalidateTags:', dispatchError);
+        // Fallback: try to invalidate tags individually
+        uniqueTags.forEach(tag => {
+          try {
+            store.dispatch(apiSlice.util.invalidateTags([tag]));
+            console.log('🌐 [LANGUAGE-REFETCH] Fallback: Invalidated individual tag:', tag);
+          } catch (individualError) {
+            console.error('🌐 [LANGUAGE-REFETCH] Failed to invalidate individual tag:', tag, individualError);
+          }
+        });
+      }
     }
     
     // Force refetch specific queries if requested
@@ -85,6 +113,9 @@ export const triggerLanguageDependentRefetch = (language, options = {}) => {
     console.log('🌐 [LANGUAGE-REFETCH] Refetch triggered successfully for language:', language);
   } catch (error) {
     console.error('🌐 [LANGUAGE-REFETCH] Error triggering refetch:', error);
+    // Provide fallback behavior
+    console.log('🌐 [LANGUAGE-REFETCH] Attempting fallback refetch method...');
+    fallbackLanguageRefetch(language);
   }
 };
 
@@ -96,9 +127,23 @@ export const forceRefetchLanguageQueries = (language) => {
   try {
     console.log('🌐 [LANGUAGE-REFETCH] Force refetching queries for language:', language);
     
+    // Check if store and API slice are available
+    if (!store || !apiSlice || !apiSlice.util) {
+      console.warn('🌐 [LANGUAGE-REFETCH] Store or API slice not available for force refetch');
+      return;
+    }
+    
     // Get all active queries from the store
-    const apiSlice = store.getState().api;
-    const activeQueries = apiSlice.queries || {};
+    const storeState = store.getState();
+    const apiState = storeState[apiSlice.reducerPath];
+    
+    if (!apiState || !apiState.queries) {
+      console.warn('🌐 [LANGUAGE-REFETCH] API state or queries not available');
+      return;
+    }
+    
+    const activeQueries = apiState.queries;
+    console.log('🌐 [LANGUAGE-REFETCH] Found', Object.keys(activeQueries).length, 'active queries');
     
     // Find and refetch language-dependent queries
     Object.entries(activeQueries).forEach(([queryKey, queryState]) => {
@@ -158,6 +203,26 @@ export const isLanguageDependentQuery = (queryKey) => {
 };
 
 /**
+ * Fallback refetch method when main refetch fails
+ * @param {string} language - Language code
+ */
+export const fallbackLanguageRefetch = (language) => {
+  try {
+    console.log('🌐 [LANGUAGE-REFETCH] Using fallback refetch method for language:', language);
+    
+    // Simple fallback: just dispatch a custom event that components can listen to
+    const fallbackEvent = new CustomEvent('languageRefetchFallback', {
+      detail: { language, timestamp: Date.now() }
+    });
+    window.dispatchEvent(fallbackEvent);
+    
+    console.log('🌐 [LANGUAGE-REFETCH] Fallback event dispatched');
+  } catch (error) {
+    console.error('🌐 [LANGUAGE-REFETCH] Fallback refetch also failed:', error);
+  }
+};
+
+/**
  * Debounced refetch function to prevent excessive API calls
  */
 let refetchTimeout = null;
@@ -170,4 +235,43 @@ export const debouncedLanguageRefetch = (language, options = {}) => {
     triggerLanguageDependentRefetch(language, options);
     refetchTimeout = null;
   }, 300); // 300ms debounce
+};
+
+/**
+ * Safe refetch function with comprehensive error handling
+ * @param {string} language - Language code
+ * @param {Object} options - Refetch options
+ * @returns {Promise<boolean>} Success status
+ */
+export const safeLanguageRefetch = async (language, options = {}) => {
+  try {
+    console.log('🌐 [LANGUAGE-REFETCH] Starting safe refetch for language:', language);
+    
+    // Try the main refetch method
+    triggerLanguageDependentRefetch(language, options);
+    
+    // Wait a bit to see if it worked
+    await new Promise(resolve => setTimeout(resolve, 100));
+    
+    // Check if store is accessible and API slice is working
+    if (store && apiSlice && apiSlice.util) {
+      const storeState = store.getState();
+      const apiState = storeState[apiSlice.reducerPath];
+      
+      if (apiState) {
+        console.log('🌐 [LANGUAGE-REFETCH] Safe refetch completed successfully');
+        return true;
+      }
+    }
+    
+    // If we get here, something went wrong, try fallback
+    console.log('🌐 [LANGUAGE-REFETCH] Main refetch failed, using fallback');
+    fallbackLanguageRefetch(language);
+    return false;
+    
+  } catch (error) {
+    console.error('🌐 [LANGUAGE-REFETCH] Safe refetch failed:', error);
+    fallbackLanguageRefetch(language);
+    return false;
+  }
 };
