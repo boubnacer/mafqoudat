@@ -225,98 +225,25 @@ const TrendingItem = ({ trend, isLoading }) => {
           backdropFilter: 'blur(20px) saturate(180%)',
           WebkitBackdropFilter: 'blur(20px) saturate(180%)',
           borderRadius: isMobile ? '16px' : '24px',
-          border: `2px solid ${theme.palette.mode === 'dark' ? 'rgba(255,152,0,0.3)' : 'rgba(255,152,0,0.4)'}`,
+          border: 'none',
           overflow: 'hidden',
-          transition: 'all 0.4s cubic-bezier(0.4, 0, 0.2, 1)',
+          transition: 'none',
           boxShadow: theme.palette.mode === 'dark'
             ? `
               0 4px 6px -1px rgba(0, 0, 0, 0.1),
               0 2px 4px -1px rgba(0, 0, 0, 0.06),
-              0 0 0 1px rgba(255, 152, 0, 0.2),
               0 8px 25px -5px rgba(0, 0, 0, 0.25),
-              0 0 30px rgba(255, 152, 0, 0.1),
               inset 0 1px 0 rgba(255, 255, 255, 0.1)
             `
             : `
               0 4px 6px -1px rgba(0, 0, 0, 0.1),
               0 2px 4px -1px rgba(0, 0, 0, 0.06),
-              0 0 0 1px rgba(255, 152, 0, 0.3),
               0 8px 25px -5px rgba(0, 0, 0, 0.1),
-              0 0 30px rgba(255, 152, 0, 0.15),
               inset 0 1px 0 rgba(255, 255, 255, 0.8)
             `,
-          '&:hover': {
-            transform: 'translateY(-12px) scale(1.02)',
-            boxShadow: theme.palette.mode === 'dark'
-              ? `
-                0 10px 15px -3px rgba(0, 0, 0, 0.1),
-                0 4px 6px -2px rgba(0, 0, 0, 0.05),
-                0 0 0 1px rgba(255, 152, 0, 0.4),
-                0 20px 40px -10px rgba(0, 0, 0, 0.4),
-                0 0 50px rgba(255, 152, 0, 0.2),
-                inset 0 1px 0 rgba(255, 255, 255, 0.15)
-              `
-              : `
-                0 10px 15px -3px rgba(0, 0, 0, 0.1),
-                0 4px 6px -2px rgba(0, 0, 0, 0.05),
-                0 0 0 1px rgba(255, 152, 0, 0.5),
-                0 20px 40px -10px rgba(0, 0, 0, 0.2),
-                0 0 50px rgba(255, 152, 0, 0.25),
-                inset 0 1px 0 rgba(255, 255, 255, 0.9)
-              `,
-            border: `2px solid ${theme.palette.mode === 'dark' ? 'rgba(255,152,0,0.6)' : 'rgba(255,152,0,0.7)'}`,
-          },
           height: '100%',
           minHeight: { xs: '450px', sm: '350px' },
           position: 'relative',
-          '&::before': {
-            content: '""',
-            position: 'absolute',
-            top: '-3px',
-            left: '-3px',
-            right: '-3px',
-            bottom: '-3px',
-            background: 'linear-gradient(45deg, rgba(255,152,0,0.2), rgba(255,193,7,0.3), rgba(255,152,0,0.2), rgba(255,193,7,0.1))',
-            borderRadius: isMobile ? '18px' : '26px',
-            zIndex: -1,
-            animation: 'trendingGlow 4s ease-in-out infinite alternate',
-            filter: 'blur(1px)',
-          },
-          '&::after': {
-            content: '""',
-            position: 'absolute',
-            top: '-1px',
-            left: '-1px',
-            right: '-1px',
-            bottom: '-1px',
-            background: 'linear-gradient(135deg, rgba(255,152,0,0.1), rgba(255,193,7,0.15), rgba(255,152,0,0.1))',
-            borderRadius: isMobile ? '16px' : '24px',
-            zIndex: -1,
-            animation: 'trendingShimmer 3s ease-in-out infinite',
-            opacity: 0.7,
-          },
-          '@keyframes trendingGlow': {
-            '0%': {
-              opacity: 0.4,
-              transform: 'scale(1) rotate(0deg)',
-            },
-            '50%': {
-              opacity: 0.8,
-              transform: 'scale(1.01) rotate(1deg)',
-            },
-            '100%': {
-              opacity: 0.6,
-              transform: 'scale(1) rotate(0deg)',
-            },
-          },
-          '@keyframes trendingShimmer': {
-            '0%': {
-              backgroundPosition: '-200% 0',
-            },
-            '100%': {
-              backgroundPosition: '200% 0',
-            },
-          },
         }}
       >
         {/* Large Background Image */}
