@@ -218,7 +218,7 @@ const EnhancedTextField = ({ name, label, icon, required, multiline, rows, place
 };
 
 // Enhanced Select Field
-const EnhancedSelectField = ({ name, label, icon, required, options, theme, ...props }) => {
+const EnhancedSelectField = ({ name, label, icon, required, options, theme, placeholder, ...props }) => {
   const [field, meta, helpers] = useField(name);
   const [focused, setFocused] = useState(false);
   const hasValue = field.value && field.value.toString().trim() !== '';
@@ -1228,6 +1228,7 @@ const NewPostForm = ({ user, countries, categories, flOptions }) => {
                   required={true}
                   options={flOptions}
                   theme={theme}
+                  placeholder={t('selectOption') || 'Select an option'}
                   data-testid="foundLost"
                   error={!!fieldErrors.foundLost}
                   helperText={fieldErrors.foundLost}
@@ -1305,6 +1306,7 @@ const NewPostForm = ({ user, countries, categories, flOptions }) => {
                   required={true}
                   options={categories}
                   theme={theme}
+                  placeholder={t('selectCategory') || 'Select a category'}
                   data-testid="category"
                   error={!!fieldErrors.category}
                   helperText={fieldErrors.category}
