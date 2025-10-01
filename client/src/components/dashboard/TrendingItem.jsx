@@ -556,4 +556,5 @@ const TrendingItem = ({ trend, isLoading }) => {
   );
 };
 
+
 export default TrendingItem;
