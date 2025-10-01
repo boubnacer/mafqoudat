@@ -35,7 +35,8 @@ import {
   Chip,
   LinearProgress,
   Fade,
-  Slide
+  Slide,
+  Skeleton
 } from "@mui/material";
 import { 
   PhotoCamera, 
@@ -45,10 +46,240 @@ import {
   Close as CloseIcon,
   Delete as DeleteIcon,
   Edit as EditIcon,
-  CloudUpload as CloudUploadIcon
+  CloudUpload as CloudUploadIcon,
+  Person as PersonIcon,
+  Category as CategoryIcon,
+  Public as PublicIcon,
+  CalendarToday as CalendarIcon,
+  Place as PlaceIcon,
+  Phone as PhoneIcon,
+  Description as DescriptionIcon,
+  CheckCircle as CheckCircleIcon,
+  Error as ErrorIcon
 } from '@mui/icons-material';
 import { useTranslation } from "../../../utils/translations";
 import PromotionDialog from "../../../components/PromotionDialog";
+
+// Enhanced Field Container Component
+const FieldContainer = ({ children, icon, label, error, helperText, required, theme }) => {
+  const getFieldIcon = () => {
+    if (error) return <ErrorIcon sx={{ color: theme.palette.error.main, fontSize: 20 }} />;
+    if (helperText && !error) return <CheckCircleIcon sx={{ color: theme.palette.success.main, fontSize: 20 }} />;
+    return icon;
+  };
+
+  return (
+    <Box
+      sx={{
+        position: 'relative',
+        mb: 3,
+        p: 3,
+        borderRadius: 3,
+        border: `2px solid ${error 
+          ? theme.palette.error.main 
+          : theme.palette.mode === 'dark' 
+            ? 'rgba(255,255,255,0.1)' 
+            : 'rgba(0,0,0,0.08)'}`,
+        backgroundColor: theme.palette.mode === 'dark' 
+          ? 'rgba(255,255,255,0.02)' 
+          : 'rgba(0,0,0,0.02)',
+        transition: 'all 0.3s cubic-bezier(0.4, 0, 0.2, 1)',
+        '&:hover': {
+          borderColor: error 
+            ? theme.palette.error.main 
+            : theme.palette.mode === 'dark' 
+              ? 'rgba(76, 175, 80, 0.5)' 
+              : 'rgba(46, 125, 50, 0.5)',
+          backgroundColor: theme.palette.mode === 'dark' 
+            ? 'rgba(255,255,255,0.04)' 
+            : 'rgba(0,0,0,0.04)',
+          transform: 'translateY(-2px)',
+          boxShadow: theme.palette.mode === 'dark'
+            ? '0 8px 25px rgba(0,0,0,0.3)'
+            : '0 8px 25px rgba(0,0,0,0.1)'
+        },
+        '&:focus-within': {
+          borderColor: error 
+            ? theme.palette.error.main 
+            : theme.palette.mode === 'dark' 
+              ? '#4CAF50' 
+              : '#2E7D32',
+          backgroundColor: theme.palette.mode === 'dark' 
+            ? 'rgba(76, 175, 80, 0.05)' 
+            : 'rgba(46, 125, 50, 0.05)',
+          boxShadow: theme.palette.mode === 'dark'
+            ? '0 0 0 3px rgba(76, 175, 80, 0.1)'
+            : '0 0 0 3px rgba(46, 125, 50, 0.1)'
+        }
+      }}
+    >
+      {/* Field Header */}
+      <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, mb: 2 }}>
+        {getFieldIcon()}
+        <Typography 
+          variant="subtitle1" 
+          sx={{ 
+            fontWeight: 600, 
+            color: theme.palette.text.primary,
+            fontSize: '1rem'
+          }}
+        >
+          {label} {required && <span style={{ color: theme.palette.error.main }}>*</span>}
+        </Typography>
+      </Box>
+      
+      {/* Field Content */}
+      {children}
+      
+      {/* Helper Text */}
+      {helperText && (
+        <Typography 
+          variant="caption" 
+          sx={{ 
+            mt: 1, 
+            display: 'block',
+            color: error ? theme.palette.error.main : theme.palette.text.secondary,
+            fontWeight: 500
+          }}
+        >
+          {helperText}
+        </Typography>
+      )}
+    </Box>
+  );
+};
+
+// Enhanced TextField with Floating Label
+const EnhancedTextField = ({ name, label, icon, required, multiline, rows, placeholder, theme, ...props }) => {
+  const [field, meta, helpers] = useField(name);
+  const [focused, setFocused] = useState(false);
+  const hasValue = field.value && field.value.toString().trim() !== '';
+
+  return (
+    <FieldContainer 
+      icon={icon} 
+      label={label} 
+      error={meta.touched && meta.error} 
+      helperText={meta.touched && meta.error ? meta.error : props.helperText}
+      required={required}
+      theme={theme}
+    >
+      <TextField
+        {...field}
+        {...props}
+        fullWidth
+        multiline={multiline}
+        rows={rows}
+        placeholder={placeholder}
+        variant="outlined"
+        onFocus={() => setFocused(true)}
+        onBlur={(e) => {
+          setFocused(false);
+          field.onBlur(e);
+        }}
+        sx={{
+          '& .MuiOutlinedInput-root': {
+            backgroundColor: 'transparent',
+            '& fieldset': {
+              border: 'none',
+            },
+            '&:hover fieldset': {
+              border: 'none',
+            },
+            '&.Mui-focused fieldset': {
+              border: 'none',
+            },
+          },
+          '& .MuiInputLabel-root': {
+            color: theme.palette.text.secondary,
+            '&.Mui-focused': {
+              color: theme.palette.mode === 'dark' ? '#4CAF50' : '#2E7D32',
+            },
+            '&.MuiInputLabel-shrink': {
+              color: theme.palette.mode === 'dark' ? '#4CAF50' : '#2E7D32',
+            }
+          },
+          '& .MuiOutlinedInput-input': {
+            color: theme.palette.text.primary,
+            fontSize: '1rem',
+            fontWeight: 500,
+            '&::placeholder': {
+              color: theme.palette.text.secondary,
+              opacity: 0.7
+            }
+          }
+        }}
+        InputLabelProps={{
+          shrink: focused || hasValue,
+        }}
+      />
+    </FieldContainer>
+  );
+};
+
+// Enhanced Select Field
+const EnhancedSelectField = ({ name, label, icon, required, options, theme, ...props }) => {
+  const [field, meta, helpers] = useField(name);
+  const [focused, setFocused] = useState(false);
+  const hasValue = field.value && field.value.toString().trim() !== '';
+
+  const handleChange = (event) => {
+    helpers.setValue(event.target.value);
+  };
+
+  return (
+    <FieldContainer 
+      icon={icon} 
+      label={label} 
+      error={meta.touched && meta.error} 
+      helperText={meta.touched && meta.error ? meta.error : props.helperText}
+      required={required}
+      theme={theme}
+    >
+      <FormControl fullWidth>
+        <Select
+          {...field}
+          value={field.value || ''}
+          onChange={handleChange}
+          onFocus={() => setFocused(true)}
+          onBlur={(e) => {
+            setFocused(false);
+            field.onBlur(e);
+          }}
+          displayEmpty
+          sx={{
+            backgroundColor: 'transparent',
+            '& .MuiOutlinedInput-notchedOutline': {
+              border: 'none',
+            },
+            '&:hover .MuiOutlinedInput-notchedOutline': {
+              border: 'none',
+            },
+            '&.Mui-focused .MuiOutlinedInput-notchedOutline': {
+              border: 'none',
+            },
+            '& .MuiSelect-select': {
+              color: theme.palette.text.primary,
+              fontSize: '1rem',
+              fontWeight: 500,
+            }
+          }}
+        >
+          <MenuItem value="" disabled>
+            <em style={{ color: theme.palette.text.secondary, fontStyle: 'italic' }}>
+              {placeholder || `Select ${label.toLowerCase()}`}
+            </em>
+          </MenuItem>
+          {options?.map((option) => (
+            <MenuItem key={option.id || option._id} value={option.id || option._id}>
+              {option.label || option.name || option.code}
+            </MenuItem>
+          ))}
+        </Select>
+      </FormControl>
+    </FieldContainer>
+  );
+};
 
 // Custom City Select Option Component (based on SelectOption but with city icons)
 const CitySelectOption = ({ name, cities, disabled }) => {
@@ -990,78 +1221,58 @@ const NewPostForm = ({ user, countries, categories, flOptions }) => {
                   </Box>
                 </Fade>
 
-                <Box sx={{ mb: 3 }}>
-                  <FormLabel 
-                    htmlFor="foundLost" 
-                    sx={{ 
-                      mb: 1, 
-                      display: "block", 
-                      fontWeight: 600, 
-                      fontSize: '1.15rem',
-                      color: theme.palette.text.primary
-                    }}
-                  >
-                    {t('haveYouLostOrFoundSomething')} *
-                  </FormLabel>
-                  <SelectOption 
-                    name="foundLost" 
-                    options={flOptions} 
-                    data-testid="foundLost"
-                    error={!!fieldErrors.foundLost}
-                    helperText={fieldErrors.foundLost}
-                    onErrorClear={clearFieldError}
-                  />
-                </Box>
+                <EnhancedSelectField
+                  name="foundLost"
+                  label={t('haveYouLostOrFoundSomething')}
+                  icon={<PersonIcon sx={{ color: theme.palette.text.secondary, fontSize: 20 }} />}
+                  required={true}
+                  options={flOptions}
+                  theme={theme}
+                  data-testid="foundLost"
+                  error={!!fieldErrors.foundLost}
+                  helperText={fieldErrors.foundLost}
+                  onErrorClear={clearFieldError}
+                />
 
-                <Box>
-                  <FormLabel 
-                    htmlFor="country" 
-                    sx={{ 
-                      mb: 1, 
-                      display: "block", 
-                      fontWeight: 600, 
-                      fontSize: '1.15rem',
-                      color: theme.palette.text.primary
-                    }}
-                  >
-                    {t('country')} *
-                  </FormLabel>
-                  <Typography 
-                    variant="caption" 
-                    sx={{ 
-                      mb: 1, 
-                      display: "block", 
-                      fontSize: '1rem',
-                      color: theme.palette.mode === 'dark' ? 'rgba(255,255,255,0.7)' : 'rgba(0,0,0,0.6)',
-                      fontWeight: 500
-                    }}
-                  >
-                    {getFoundLostType(values.foundLost) === 'LOST' 
-                      ? t('chooseCountryLost') 
-                      : t('chooseCountryFound')
-                    }
-                  </Typography>
-                  <FormControl fullWidth error={!!fieldErrors.country}>
+                <FieldContainer 
+                  icon={<PublicIcon sx={{ color: theme.palette.text.secondary, fontSize: 20 }} />}
+                  label={t('country')}
+                  error={!!fieldErrors.country}
+                  helperText={fieldErrors.country || (getFoundLostType(values.foundLost) === 'LOST' 
+                    ? t('chooseCountryLost') 
+                    : t('chooseCountryFound'))}
+                  required={true}
+                  theme={theme}
+                >
+                  <FormControl fullWidth>
                     <Select
                       value={selectedCountry?._id || ""}
                       onChange={handleCountrySelect}
                       data-testid="country-select"
                       displayEmpty
                       sx={{
-                        borderRadius: 2,
+                        backgroundColor: 'transparent',
                         '& .MuiOutlinedInput-notchedOutline': {
-                          borderColor: theme.palette.mode === 'dark' ? 'rgba(255,255,255,0.3)' : 'rgba(0,0,0,0.2)',
+                          border: 'none',
                         },
                         '&:hover .MuiOutlinedInput-notchedOutline': {
-                          borderColor: theme.palette.mode === 'dark' ? 'rgba(255,255,255,0.5)' : 'rgba(0,0,0,0.4)',
+                          border: 'none',
                         },
                         '&.Mui-focused .MuiOutlinedInput-notchedOutline': {
-                          borderColor: theme.palette.mode === 'dark' ? '#4CAF50' : '#2E7D32',
+                          border: 'none',
                         },
-                        color: theme.palette.text.primary,
-                        fontWeight: 500
+                        '& .MuiSelect-select': {
+                          color: theme.palette.text.primary,
+                          fontSize: '1rem',
+                          fontWeight: 500,
+                        }
                       }}
                     >
+                      <MenuItem value="" disabled>
+                        <em style={{ color: theme.palette.text.secondary, fontStyle: 'italic' }}>
+                          {t('selectCountry') || 'Select Country'}
+                        </em>
+                      </MenuItem>
                       {countries?.map((country) => (
                         <MenuItem key={country._id} value={country._id}>
                           <Box display="flex" alignItems="center" gap={1}>
@@ -1084,44 +1295,21 @@ const NewPostForm = ({ user, countries, categories, flOptions }) => {
                         </MenuItem>
                       ))}
                     </Select>
-                    {fieldErrors.country && (
-                      <Typography 
-                        variant="caption" 
-                        sx={{ 
-                          mt: 1, 
-                          display: 'block',
-                          color: theme.palette.mode === 'dark' ? '#f44336' : '#d32f2f',
-                          fontWeight: 500
-                        }}
-                      >
-                        {fieldErrors.country}
-                      </Typography>
-                    )}
                   </FormControl>
-                </Box>
+                </FieldContainer>
 
-                <Box sx={{ mb: 3 }}>
-                  <FormLabel 
-                    htmlFor="category" 
-                    sx={{ 
-                      mb: 1, 
-                      display: "block", 
-                      fontWeight: 600, 
-                      fontSize: '1.15rem',
-                      color: theme.palette.text.primary
-                    }}
-                  >
-                    {t('category')} *
-                  </FormLabel>
-                  <SelectOption 
-                    name="category" 
-                    options={categories} 
-                    data-testid="category"
-                    error={!!fieldErrors.category}
-                    helperText={fieldErrors.category}
-                    onErrorClear={clearFieldError}
-                  />
-                </Box>
+                <EnhancedSelectField
+                  name="category"
+                  label={t('category')}
+                  icon={<CategoryIcon sx={{ color: theme.palette.text.secondary, fontSize: 20 }} />}
+                  required={true}
+                  options={categories}
+                  theme={theme}
+                  data-testid="category"
+                  error={!!fieldErrors.category}
+                  helperText={fieldErrors.category}
+                  onErrorClear={clearFieldError}
+                />
 
                 {/* Section Divider */}
                 <Slide direction="right" in timeout={800}>
@@ -1170,53 +1358,33 @@ const NewPostForm = ({ user, countries, categories, flOptions }) => {
                 </Fade>
 
 
-                <Box sx={{ mb: 3 }}>
-                  <FormLabel 
-                    htmlFor="city" 
-                    sx={{ 
-                      mb: 1, 
-                      display: "block", 
-                      fontWeight: 600, 
-                      fontSize: '1.15rem',
-                      color: theme.palette.text.primary
-                    }}
-                  >
-                    {t('city')} *
-                  </FormLabel>
-                  <Typography 
-                    variant="caption" 
-                    sx={{ 
-                      mb: 1, 
-                      display: "block", 
-                      fontSize: '1rem',
-                      color: theme.palette.mode === 'dark' ? 'rgba(255,255,255,0.7)' : 'rgba(0,0,0,0.6)',
-                      fontWeight: 500
-                    }}
-                  >
-                    {!selectedCountry 
-                      ? t('selectCountryFirst') 
-                        : getFoundLostType(values.foundLost) === 'LOST'
-                          ? currentLanguage === 'ar' 
-                            ? 'يرجى تحديد المدينة التي فقدت فيها العنصر أو أقرب مدينة رئيسية إليها (العاصمة، العمالة، المقاطعة، الولاية، أو المحافظة)'
-                            : currentLanguage === 'fr'
-                              ? 'Veuillez sélectionner la ville où vous avez perdu l\'objet ou la ville principale la plus proche (capitale, préfecture, province, état ou gouvernorat)'
-                              : 'Please select the city where you lost the item or the nearest major administrative center (capital, prefecture, province, state, or governorate)'
-                          : currentLanguage === 'ar' 
-                            ? 'يرجى تحديد المدينة التي وجدت فيها العنصر أو أقرب مدينة رئيسية إليها (العاصمة، العمالة، المقاطعة، الولاية، أو المحافظة)'
-                            : currentLanguage === 'fr'
-                              ? 'Veuillez sélectionner la ville où vous avez trouvé l\'objet ou la ville principale la plus proche (capitale, préfecture, province, état ou gouvernorat)'
-                              : 'Please select the city where you found the item or the nearest major administrative center (capital, prefecture, province, state, or governorate)'
-                    }
-                  </Typography> 
+                <FieldContainer 
+                  icon={<LocationOn sx={{ color: theme.palette.text.secondary, fontSize: 20 }} />}
+                  label={t('city')}
+                  error={!!fieldErrors.city}
+                  helperText={fieldErrors.city || (!selectedCountry 
+                    ? t('selectCountryFirst') 
+                      : getFoundLostType(values.foundLost) === 'LOST'
+                        ? currentLanguage === 'ar' 
+                          ? 'يرجى تحديد المدينة التي فقدت فيها العنصر أو أقرب مدينة رئيسية إليها (العاصمة، العمالة، المقاطعة، الولاية، أو المحافظة)'
+                          : currentLanguage === 'fr'
+                            ? 'Veuillez sélectionner la ville où vous avez perdu l\'objet ou la ville principale la plus proche (capitale, préfecture, province, état ou gouvernorat)'
+                            : 'Please select the city where you lost the item or the nearest major administrative center (capital, prefecture, province, state, or governorate)'
+                        : currentLanguage === 'ar' 
+                          ? 'يرجى تحديد المدينة التي وجدت فيها العنصر أو أقرب مدينة رئيسية إليها (العاصمة، العمالة، المقاطعة، الولاية، أو المحافظة)'
+                          : currentLanguage === 'fr'
+                            ? 'Veuillez sélectionner la ville où vous avez trouvé l\'objet ou la ville principale la plus proche (capitale, préfecture, province, état ou gouvernorat)'
+                            : 'Please select the city where you found the item or the nearest major administrative center (capital, prefecture, province, state, or governorate)')}
+                  required={true}
+                  theme={theme}
+                > 
                   
                   {/* Debug info */}
                   {process.env.NODE_ENV === 'development' && selectedCountry && (
-                    <Box>
+                    <Box sx={{ mb: 2 }}>
                       <Typography 
                         variant="caption" 
                         sx={{ 
-                          mb: 1, 
-                          display: "block", 
                           fontSize: '0.8rem',
                           color: theme.palette.mode === 'dark' ? '#ff9800' : '#f57c00',
                           fontWeight: 500
@@ -1230,7 +1398,7 @@ const NewPostForm = ({ user, countries, categories, flOptions }) => {
                   <Box sx={{ 
                     position: 'relative'
                   }} data-testid="city-dropdown">
-                    {/* City Search Input */}
+                    {/* Enhanced City Search Input */}
                     <TextField
                       fullWidth
                       placeholder={currentLanguage === 'ar' ? 'ابحث أو اختر مدينة...' : currentLanguage === 'fr' ? 'Rechercher ou sélectionner une ville...' : 'Search or select a city...'}
@@ -1240,32 +1408,53 @@ const NewPostForm = ({ user, countries, categories, flOptions }) => {
                       data-testid="city-search"
                       onClick={handleCityDropdownToggle}
                       sx={{
-                        borderRadius: 2,
                         '& .MuiOutlinedInput-root': {
-                          '&:hover fieldset': {
-                          borderColor: theme.palette.mode === 'dark' ? 'rgba(255,255,255,0.5)' : 'rgba(0,0,0,0.4)',
-                        },
-                          '&.Mui-focused fieldset': {
-                          borderColor: theme.palette.mode === 'dark' ? '#4CAF50' : '#2E7D32',
-                        },
+                          backgroundColor: 'transparent',
                           '& fieldset': {
-                            borderColor: theme.palette.mode === 'dark' ? 'rgba(255,255,255,0.3)' : 'rgba(0,0,0,0.2)',
+                            border: 'none',
                           },
-                        color: theme.palette.text.primary,
+                          '&:hover fieldset': {
+                            border: 'none',
+                          },
+                          '&.Mui-focused fieldset': {
+                            border: 'none',
+                          },
+                          color: theme.palette.text.primary,
                           fontWeight: 500,
-                          cursor: 'pointer'
+                          cursor: 'pointer',
+                          transition: 'all 0.2s ease-in-out',
+                          '&:hover': {
+                            backgroundColor: theme.palette.mode === 'dark' 
+                              ? 'rgba(255,255,255,0.05)' 
+                              : 'rgba(0,0,0,0.05)',
+                          }
+                        },
+                        '& .MuiOutlinedInput-input': {
+                          color: theme.palette.text.primary,
+                          fontSize: '1rem',
+                          fontWeight: 500,
+                          '&::placeholder': {
+                            color: theme.palette.text.secondary,
+                            opacity: 0.7
+                          }
                         }
                       }}
                       InputProps={{
                         endAdornment: isSearching ? (
-                          <CircularProgress size={20} />
+                          <CircularProgress size={20} sx={{ color: theme.palette.primary.main }} />
                         ) : (
-                          <LocationOn sx={{ color: theme.palette.text.secondary }} />
+                          <LocationOn sx={{ 
+                            color: theme.palette.text.secondary,
+                            transition: 'color 0.2s ease-in-out',
+                            '&:hover': {
+                              color: theme.palette.primary.main
+                            }
+                          }} />
                         )
                       }}
                     />
 
-                    {/* Unified City Dropdown */}
+                    {/* Enhanced City Dropdown */}
                     {showCityDropdown && selectedCountry && (
                       <Box
                         sx={{
@@ -1274,13 +1463,31 @@ const NewPostForm = ({ user, countries, categories, flOptions }) => {
                           left: 0,
                           right: 0,
                           zIndex: '99999 !important',
-                          backgroundColor: theme.palette.background.paper,
-                          border: `1px solid ${theme.palette.divider}`,
-                          borderRadius: 2,
-                          boxShadow: theme.shadows[8],
+                          backgroundColor: theme.palette.mode === 'dark'
+                            ? 'rgba(30, 30, 30, 0.98)'
+                            : 'rgba(255, 255, 255, 0.98)',
+                          backdropFilter: 'blur(20px)',
+                          border: `2px solid ${theme.palette.mode === 'dark' 
+                            ? 'rgba(255, 255, 255, 0.1)' 
+                            : 'rgba(0, 0, 0, 0.08)'}`,
+                          borderRadius: 3,
+                          boxShadow: theme.palette.mode === 'dark'
+                            ? '0 20px 40px rgba(0,0,0,0.4), 0 0 0 1px rgba(255,255,255,0.05)'
+                            : '0 20px 40px rgba(0,0,0,0.1), 0 0 0 1px rgba(0,0,0,0.05)',
                           maxHeight: 400,
                           overflow: 'hidden',
-                          mt: 0.5
+                          mt: 1,
+                          animation: 'slideDown 0.3s cubic-bezier(0.4, 0, 0.2, 1)',
+                          '@keyframes slideDown': {
+                            '0%': {
+                              opacity: 0,
+                              transform: 'translateY(-10px)'
+                            },
+                            '100%': {
+                              opacity: 1,
+                              transform: 'translateY(0)'
+                            }
+                          }
                         }}
                       >
 
@@ -1288,21 +1495,46 @@ const NewPostForm = ({ user, countries, categories, flOptions }) => {
                         <Box sx={{ 
                           maxHeight: 300, 
                           overflow: 'auto',
-                          backgroundColor: theme.palette.mode === 'dark' ? '#1a1a1a' : '#ffffff',
+                          backgroundColor: 'transparent',
                           position: 'relative',
                           zIndex: 1
                         }}>
+                          {/* Loading Skeletons */}
+                          {isSearching && (
+                            <Box sx={{ p: 2 }}>
+                              {[...Array(3)].map((_, index) => (
+                                <Box key={index} sx={{ mb: 2, display: 'flex', alignItems: 'center', gap: 2 }}>
+                                  <Skeleton variant="circular" width={24} height={24} />
+                                  <Box sx={{ flex: 1 }}>
+                                    <Skeleton variant="text" width="60%" height={20} />
+                                    <Skeleton variant="text" width="40%" height={16} />
+                                  </Box>
+                                </Box>
+                              ))}
+                            </Box>
+                          )}
+                          
                           {/* Show search results if searching */}
-                          {citySearchQuery.trim() && searchResults.length > 0 ? (
+                          {!isSearching && citySearchQuery.trim() && searchResults.length > 0 ? (
                             <>
                               <Box sx={{ 
-                                p: 1, 
-                                backgroundColor: theme.palette.mode === 'dark' ? '#1a1a1a' : '#ffffff',
+                                p: 2, 
+                                backgroundColor: theme.palette.mode === 'dark' 
+                                  ? 'rgba(76, 175, 80, 0.1)' 
+                                  : 'rgba(46, 125, 50, 0.1)',
+                                borderBottom: `1px solid ${theme.palette.mode === 'dark' 
+                                  ? 'rgba(76, 175, 80, 0.2)' 
+                                  : 'rgba(46, 125, 50, 0.2)'}`,
                                 position: 'sticky',
                                 top: 0,
                                 zIndex: 2
                               }}>
-                                <Typography variant="caption" color="text.secondary" sx={{ fontWeight: 600 }}>
+                                <Typography variant="caption" sx={{ 
+                                  fontWeight: 600,
+                                  color: theme.palette.mode === 'dark' ? '#4CAF50' : '#2E7D32',
+                                  textTransform: 'uppercase',
+                                  letterSpacing: '0.5px'
+                                }}>
                                   {currentLanguage === 'ar' ? 'نتائج البحث' : currentLanguage === 'fr' ? 'Résultats de recherche' : 'Search Results'}
                                 </Typography>
                               </Box>
@@ -1313,36 +1545,76 @@ const NewPostForm = ({ user, countries, categories, flOptions }) => {
                                   sx={{
                                     p: 2,
                                     cursor: 'pointer',
-                                    backgroundColor: theme.palette.mode === 'dark' ? '#1a1a1a' : '#ffffff',
+                                    backgroundColor: 'transparent',
                                     borderBottom: index < searchResults.length - 1 ? `1px solid ${theme.palette.divider}` : 'none',
                                     position: 'relative',
                                     zIndex: '999999 !important',
+                                    transition: 'all 0.3s cubic-bezier(0.4, 0, 0.2, 1)',
                                     '&:hover': {
-                                      backgroundColor: theme.palette.mode === 'dark' ? '#2a2a2a' : '#f5f5f5',
-                                      transform: 'translateX(4px)',
-                                      transition: 'all 0.2s ease-in-out'
+                                      backgroundColor: theme.palette.mode === 'dark' 
+                                        ? 'rgba(76, 175, 80, 0.1)' 
+                                        : 'rgba(46, 125, 50, 0.1)',
+                                      transform: 'translateX(8px)',
+                                      boxShadow: theme.palette.mode === 'dark'
+                                        ? '0 4px 12px rgba(76, 175, 80, 0.2)'
+                                        : '0 4px 12px rgba(46, 125, 50, 0.2)',
                                     },
                                     display: 'flex',
                                     alignItems: 'center',
-                                    gap: 1,
-                                    transition: 'all 0.2s ease-in-out'
+                                    gap: 2
                                   }}
                                 >
-                                  <LocationOn fontSize="small" color="primary" sx={{ zIndex: '999999 !important', position: 'relative' }} />
-                                  <Box sx={{ zIndex: '999999 !important', position: 'relative' }}>
+                                  <Box sx={{
+                                    p: 1,
+                                    borderRadius: '50%',
+                                    backgroundColor: theme.palette.mode === 'dark' 
+                                      ? 'rgba(76, 175, 80, 0.2)' 
+                                      : 'rgba(46, 125, 50, 0.2)',
+                                    display: 'flex',
+                                    alignItems: 'center',
+                                    justifyContent: 'center',
+                                    transition: 'all 0.2s ease-in-out'
+                                  }}>
+                                    <LocationOn fontSize="small" sx={{ 
+                                      color: theme.palette.mode === 'dark' ? '#4CAF50' : '#2E7D32',
+                                      zIndex: '999999 !important', 
+                                      position: 'relative' 
+                                    }} />
+                                  </Box>
+                                  <Box sx={{ zIndex: '999999 !important', position: 'relative', flex: 1 }}>
                                     <Typography variant="body2" sx={{ 
-                                      fontWeight: 500,
+                                      fontWeight: 600,
+                                      color: theme.palette.text.primary,
                                       zIndex: '999999 !important',
-                                      position: 'relative'
+                                      position: 'relative',
+                                      mb: 0.5
                                     }}>
                                       {city.label || city.labels?.en || city.name || city.code || 'Unknown City'}
                                     </Typography>
-                                    <Typography variant="caption" color="text.secondary" sx={{
+                                    <Typography variant="caption" sx={{
+                                      color: theme.palette.text.secondary,
                                       zIndex: '999999 !important',
-                                      position: 'relative'
+                                      position: 'relative',
+                                      display: 'flex',
+                                      alignItems: 'center',
+                                      gap: 1
                                     }}>
-                                      {city.isCapital && `${t('capital') || 'Capital'}`}
-                                      {city.labels?.ar && ` • ${city.labels.ar}`}
+                                      {city.isCapital && (
+                                        <Chip 
+                                          label={t('capital') || 'Capital'} 
+                                          size="small" 
+                                          color="primary" 
+                                          variant="outlined"
+                                          sx={{ 
+                                            height: 20, 
+                                            fontSize: '0.7rem',
+                                            '& .MuiChip-label': { px: 1 }
+                                          }} 
+                                        />
+                                      )}
+                                      {city.labels?.ar && (
+                                        <span>• {city.labels.ar}</span>
+                                      )}
                                     </Typography>
                                   </Box>
                                 </Box>
@@ -1486,93 +1758,45 @@ const NewPostForm = ({ user, countries, categories, flOptions }) => {
                       </Typography>
                     )}
                   </Box>
-                </Box>
+                </FieldContainer>
 
-                <Box sx={{ mb: 3 }}>
-                  <FormLabel 
-                    htmlFor="exactLocation" 
-                    sx={{ 
-                      mb: 1, 
-                      display: "block", 
-                      fontWeight: 600, 
-                      fontSize: '1.15rem',
-                      color: theme.palette.text.primary
-                    }}
-                  >
-                    {t('exactLocation')} *
-                  </FormLabel>
-                  <Typography 
-                    variant="caption" 
-                    sx={{ 
-                      mb: 1, 
-                      display: "block", 
-                      fontSize: '1rem',
-                      color: theme.palette.mode === 'dark' ? 'rgba(255,255,255,0.7)' : 'rgba(0,0,0,0.6)',
-                      fontWeight: 500
-                    }}
-                  >
-                    {getFoundLostType(values.foundLost) === 'LOST'
-                      ? currentLanguage === 'ar' 
-                        ? 'يرجى تحديد الموقع الدقيق والتفصيلي حيث فقدت العنصر (مثال: حي النور، شارع الملك، بجانب المسجد، أو أي معلم مميز)'
-                        : currentLanguage === 'fr'
-                          ? 'Veuillez spécifier l\'emplacement exact et détaillé où vous avez perdu l\'objet (ex: Quartier Al-Nour, Rue du Roi, près de la mosquée, ou tout point de repère distinctif)'
-                          : 'Please specify the precise and detailed location where you lost the item (e.g., Al-Nour District, King Street, near the mosque, or any distinctive landmark)'
-                      : currentLanguage === 'ar' 
-                        ? 'يرجى تحديد الموقع الدقيق والتفصيلي حيث وجدت العنصر (مثال: حي النور، شارع الملك، بجانب المسجد، أو أي معلم مميز)'
-                        : currentLanguage === 'fr'
-                          ? 'Veuillez spécifier l\'emplacement exact et détaillé où vous avez trouvé l\'objet (ex: Quartier Al-Nour, Rue du Roi, près de la mosquée, ou tout point de repère distinctif)'
-                          : 'Please specify the precise and detailed location where you found the item (e.g., Al-Nour District, King Street, near the mosque, or any distinctive landmark)'
-                    }
-                  </Typography>
-                  <Textfield 
-                    name="exactLocation" 
-                    variant="outlined" 
-                    placeholder={t('exactLocationPlaceholder')}
-                    data-testid="exactLocation"
-                    error={!!fieldErrors.exactLocation}
-                    helperText={fieldErrors.exactLocation}
-                    onErrorClear={clearFieldError}
-                  />
-                </Box>
+                <EnhancedTextField
+                  name="exactLocation"
+                  label={t('exactLocation')}
+                  icon={<PlaceIcon sx={{ color: theme.palette.text.secondary, fontSize: 20 }} />}
+                  required={true}
+                  placeholder={t('exactLocationPlaceholder')}
+                  theme={theme}
+                  data-testid="exactLocation"
+                  error={!!fieldErrors.exactLocation}
+                  helperText={fieldErrors.exactLocation || (getFoundLostType(values.foundLost) === 'LOST'
+                    ? currentLanguage === 'ar' 
+                      ? 'يرجى تحديد الموقع الدقيق والتفصيلي حيث فقدت العنصر (مثال: حي النور، شارع الملك، بجانب المسجد، أو أي معلم مميز)'
+                      : currentLanguage === 'fr'
+                        ? 'Veuillez spécifier l\'emplacement exact et détaillé où vous avez perdu l\'objet (ex: Quartier Al-Nour, Rue du Roi, près de la mosquée, ou tout point de repère distinctif)'
+                        : 'Please specify the precise and detailed location where you lost the item (e.g., Al-Nour District, King Street, near the mosque, or any distinctive landmark)'
+                    : currentLanguage === 'ar' 
+                      ? 'يرجى تحديد الموقع الدقيق والتفصيلي حيث وجدت العنصر (مثال: حي النور، شارع الملك، بجانب المسجد، أو أي معلم مميز)'
+                      : currentLanguage === 'fr'
+                        ? 'Veuillez spécifier l\'emplacement exact et détaillé où vous avez trouvé l\'objet (ex: Quartier Al-Nour, Rue du Roi, près de la mosquée, ou tout point de repère distinctif)'
+                        : 'Please specify the precise and detailed location where you found the item (e.g., Al-Nour District, King Street, near the mosque, or any distinctive landmark)')}
+                  onErrorClear={clearFieldError}
+                />
 
-                <Box sx={{ mb: 3 }}>
-                  <FormLabel 
-                    htmlFor="exactDate" 
-                    sx={{ 
-                      mb: 1, 
-                      display: "block", 
-                      fontWeight: 600, 
-                      fontSize: '1.15rem',
-                      color: theme.palette.text.primary
-                    }}
-                  >
-                    {t('exactDate')} *
-                  </FormLabel>
-                  <Typography 
-                    variant="caption" 
-                    sx={{ 
-                      mb: 1, 
-                      display: "block", 
-                      fontSize: '1rem',
-                      color: theme.palette.mode === 'dark' ? 'rgba(255,255,255,0.7)' : 'rgba(0,0,0,0.6)',
-                      fontWeight: 500
-                    }}
-                  >
-                    {getFoundLostType(values.foundLost) === 'LOST' 
-                      ? t('exactDateLostPlaceholder') 
-                      : t('exactDateFoundPlaceholder')
-                    }
-                  </Typography>
-                  <Textfield 
-                    name="exactDate" 
-                    variant="outlined" 
-                    placeholder={t('exactDatePlaceholder') || "Enter the date (e.g., 15/12/2023 or December 15, 2023)"}
-                    data-testid="exactDate"
-                    error={!!fieldErrors.exactDate}
-                    helperText={fieldErrors.exactDate}
-                    onErrorClear={clearFieldError}
-                  />
-                </Box>
+                <EnhancedTextField
+                  name="exactDate"
+                  label={t('exactDate')}
+                  icon={<CalendarIcon sx={{ color: theme.palette.text.secondary, fontSize: 20 }} />}
+                  required={true}
+                  placeholder={t('exactDatePlaceholder') || "Enter the date (e.g., 15/12/2023 or December 15, 2023)"}
+                  theme={theme}
+                  data-testid="exactDate"
+                  error={!!fieldErrors.exactDate}
+                  helperText={fieldErrors.exactDate || (getFoundLostType(values.foundLost) === 'LOST' 
+                    ? t('exactDateLostPlaceholder') 
+                    : t('exactDateFoundPlaceholder'))}
+                  onErrorClear={clearFieldError}
+                />
 
                 {/* Section Divider */}
                 <Slide direction="right" in timeout={1000}>
@@ -1620,58 +1844,19 @@ const NewPostForm = ({ user, countries, categories, flOptions }) => {
                   </Box>
                 </Fade>
 
-                <Box sx={{ mb: 3 }}>
-                  <FormLabel 
-                    htmlFor="description" 
-                    sx={{ 
-                      mb: 1, 
-                      display: "block", 
-                      fontWeight: 600, 
-                      fontSize: '1.15rem',
-                      color: theme.palette.text.primary
-                    }}
-                  >
-                    {t('description')} ({t('optional')})
-                  </FormLabel>
-                  <Typography 
-                    variant="caption" 
-                    sx={{ 
-                      mb: 1, 
-                      display: "block", 
-                      fontSize: '1rem',
-                      color: theme.palette.mode === 'dark' ? 'rgba(255,255,255,0.7)' : 'rgba(0,0,0,0.6)',
-                      fontWeight: 500
-                    }}
-                  >
-                    {getFoundLostType(values.foundLost) === 'LOST' 
-                      ? t('descriptionLostPlaceholder') 
-                      : t('descriptionFoundPlaceholder')
-                    }
-                  </Typography>
-                  <Typography 
-                    variant="caption" 
-                    sx={{ 
-                      mb: 1, 
-                      display: "block", 
-                      fontStyle: "italic", 
-                      fontSize: '1rem',
-                      color: theme.palette.mode === 'dark' ? '#ff9800' : '#f57c00',
-                      fontWeight: 500
-                    }}
-                  >
-                    {getFoundLostType(values.foundLost) === 'LOST' 
-                      ? (t('descriptionOptionalLostMessage') || "Description is optional but recommended when you don't have an image of the lost item.")
-                      : (t('descriptionOptionalFoundMessage') || "Description is optional. You can add an image instead, or provide both for better identification.")
-                    }
-                  </Typography>
-                  <Textfield 
-                    name="description" 
-                    variant="outlined" 
-                    multiline 
-                    rows={4}
-                    placeholder={t('descriptionPlaceholder')}
-                  />
-                </Box>
+                <EnhancedTextField
+                  name="description"
+                  label={`${t('description')} (${t('optional')})`}
+                  icon={<DescriptionIcon sx={{ color: theme.palette.text.secondary, fontSize: 20 }} />}
+                  required={false}
+                  multiline={true}
+                  rows={4}
+                  placeholder={t('descriptionPlaceholder')}
+                  theme={theme}
+                  helperText={getFoundLostType(values.foundLost) === 'LOST' 
+                    ? (t('descriptionOptionalLostMessage') || "Description is optional but recommended when you don't have an image of the lost item.")
+                    : (t('descriptionOptionalFoundMessage') || "Description is optional. You can add an image instead, or provide both for better identification.")}
+                />
 
                 {/* Section Divider */}
                 <Slide direction="right" in timeout={1200}>
@@ -1719,51 +1904,28 @@ const NewPostForm = ({ user, countries, categories, flOptions }) => {
                   </Box>
                 </Fade>
 
-                <Box sx={{ mb: 3 }}>
-                  <FormLabel 
-                    htmlFor="contact" 
-                    sx={{ 
-                      mb: 1, 
-                      display: "block", 
-                      fontWeight: 600, 
-                      fontSize: '1.15rem',
-                      color: theme.palette.text.primary
-                    }}
-                  >
-                    {t('phoneNumber')} *
-                  </FormLabel>
-                  <Typography 
-                    variant="caption" 
-                    sx={{ 
-                      mb: 1, 
-                      display: "block", 
-                      fontSize: '1rem',
-                      color: theme.palette.mode === 'dark' ? 'rgba(255,255,255,0.7)' : 'rgba(0,0,0,0.6)',
-                      fontWeight: 500
-                    }}
-                  >
-                    {getFoundLostType(values.foundLost) === 'LOST'
-                      ? currentLanguage === 'ar' 
-                        ? 'سنقوم بالتواصل معك عبر هذا الرقم في حالة العثور على عنصرك المفقود من قبل شخص آخر'
-                        : currentLanguage === 'fr'
-                          ? 'Nous vous contacterons via ce numéro si quelqu\'un trouve votre objet perdu'
-                          : 'We will contact you through this number if someone finds your lost item'
-                      : currentLanguage === 'ar' 
-                        ? 'سنقوم بالتواصل معك عبر هذا الرقم في حالة تواصل مالك العنصر معنا'
-                        : currentLanguage === 'fr'
-                          ? 'Nous vous contacterons via ce numéro si le propriétaire de l\'objet nous contacte'
-                          : 'We will contact you through this number if the item owner contacts us'
-                    }
-                  </Typography>
-                  <Textfield 
-                    name="contact" 
-                    variant="outlined" 
-                    data-testid="contact"
-                    error={!!fieldErrors.contact}
-                    helperText={fieldErrors.contact}
-                    onErrorClear={clearFieldError}
-                  />
-                </Box>
+                <EnhancedTextField
+                  name="contact"
+                  label={t('phoneNumber')}
+                  icon={<PhoneIcon sx={{ color: theme.palette.text.secondary, fontSize: 20 }} />}
+                  required={true}
+                  placeholder={t('phoneNumberPlaceholder') || "Enter your phone number"}
+                  theme={theme}
+                  data-testid="contact"
+                  error={!!fieldErrors.contact}
+                  helperText={fieldErrors.contact || (getFoundLostType(values.foundLost) === 'LOST'
+                    ? currentLanguage === 'ar' 
+                      ? 'سنقوم بالتواصل معك عبر هذا الرقم في حالة العثور على عنصرك المفقود من قبل شخص آخر'
+                      : currentLanguage === 'fr'
+                        ? 'Nous vous contacterons via ce numéro si quelqu\'un trouve votre objet perdu'
+                        : 'We will contact you through this number if someone finds your lost item'
+                    : currentLanguage === 'ar' 
+                      ? 'سنقوم بالتواصل معك عبر هذا الرقم في حالة تواصل مالك العنصر معنا'
+                      : currentLanguage === 'fr'
+                        ? 'Nous vous contacterons via ce numéro si le propriétaire de l\'objet nous contacte'
+                        : 'We will contact you through this number if the item owner contacts us')}
+                  onErrorClear={clearFieldError}
+                />
 
                 {/* Section Divider */}
                 <Slide direction="right" in timeout={1400}>
@@ -1811,19 +1973,14 @@ const NewPostForm = ({ user, countries, categories, flOptions }) => {
                   </Box>
                 </Fade>
 
-                <Box sx={{ mb: 4 }}>
-                  <FormLabel 
-                    htmlFor="image" 
-                    sx={{ 
-                      mb: 1, 
-                      display: "block", 
-                      fontWeight: 600, 
-                      fontSize: '1.15rem',
-                      color: theme.palette.text.primary
-                    }}
-                  >
-                    {t('itemImage')} ({t('optional')})
-                  </FormLabel>
+                <FieldContainer 
+                  icon={<PhotoCamera sx={{ color: theme.palette.text.secondary, fontSize: 20 }} />}
+                  label={`${t('itemImage')} (${t('optional')})`}
+                  error={false}
+                  helperText={t('imageOptionalMessage')}
+                  required={false}
+                  theme={theme}
+                >
                   
                   {/* Current Image Display */}
                   {imagePreview && (
@@ -1916,7 +2073,7 @@ const NewPostForm = ({ user, countries, categories, flOptions }) => {
                     </Box>
                   )}
 
-                  {/* Image Upload Controls */}
+                  {/* Enhanced Image Upload Controls */}
                   <Box display="flex" alignItems="center" gap={2} flexWrap="wrap">
                     <Button
                       variant="contained"
@@ -1926,31 +2083,53 @@ const NewPostForm = ({ user, countries, categories, flOptions }) => {
                       sx={{ 
                         textTransform: 'none', 
                         borderRadius: 3,
-                        px: 3,
-                        py: 1.5,
+                        px: 4,
+                        py: 2,
                         fontSize: '1rem',
                         fontWeight: 600,
                         color: 'white',
                         background: theme.palette.mode === 'dark'
                           ? 'linear-gradient(45deg, #4CAF50 30%, #66BB6A 90%)'
                           : 'linear-gradient(45deg, #2E7D32 30%, #388E3C 90%)',
+                        position: 'relative',
+                        overflow: 'hidden',
+                        '&::before': {
+                          content: '""',
+                          position: 'absolute',
+                          top: 0,
+                          left: '-100%',
+                          width: '100%',
+                          height: '100%',
+                          background: 'linear-gradient(90deg, transparent, rgba(255,255,255,0.2), transparent)',
+                          transition: 'left 0.5s ease-in-out'
+                        },
                         '&:hover': {
                           background: theme.palette.mode === 'dark'
                             ? 'linear-gradient(45deg, #388E3C 30%, #4CAF50 90%)'
                             : 'linear-gradient(45deg, #1B5E20 30%, #2E7D32 90%)',
-                          transform: 'translateY(-1px)',
+                          transform: 'translateY(-2px) scale(1.02)',
                           boxShadow: theme.palette.mode === 'dark'
-                            ? '0 6px 16px rgba(76, 175, 80, 0.3)'
-                            : '0 6px 16px rgba(46, 125, 50, 0.3)',
+                            ? '0 8px 25px rgba(76, 175, 80, 0.4)'
+                            : '0 8px 25px rgba(46, 125, 50, 0.4)',
+                          '&::before': {
+                            left: '100%'
+                          }
+                        },
+                        '&:active': {
+                          transform: 'translateY(0) scale(0.98)'
                         },
                         '&:disabled': {
                           background: theme.palette.mode === 'dark' ? 'rgba(76, 175, 80, 0.3)' : 'rgba(46, 125, 50, 0.3)',
                           color: 'rgba(255,255,255,0.5)',
+                          transform: 'none',
+                          '&::before': {
+                            display: 'none'
+                          }
                         },
-                        transition: 'all 0.2s ease-in-out',
+                        transition: 'all 0.3s cubic-bezier(0.4, 0, 0.2, 1)',
                         boxShadow: theme.palette.mode === 'dark'
-                          ? '0 3px 8px rgba(76, 175, 80, 0.2)'
-                          : '0 3px 8px rgba(46, 125, 50, 0.2)',
+                          ? '0 4px 12px rgba(76, 175, 80, 0.3)'
+                          : '0 4px 12px rgba(46, 125, 50, 0.3)',
                       }}
                     >
                       {isCompressing ? t('compressingImage') : imagePreview ? t('replaceImage') : t('chooseFile')}
@@ -1991,19 +2170,7 @@ const NewPostForm = ({ user, countries, categories, flOptions }) => {
                     </Typography>
                   )}
                   
-                  <Typography 
-                    variant="caption" 
-                    sx={{ 
-                      mt: 1, 
-                      display: "block", 
-                      fontSize: '1rem',
-                      color: theme.palette.mode === 'dark' ? 'rgba(255,255,255,0.7)' : 'rgba(0,0,0,0.6)',
-                      fontWeight: 500
-                    }}
-                  >
-                    {t('imageOptionalMessage')}
-                  </Typography>
-                </Box>
+                </FieldContainer>
                 
                 <Box 
                   mt={6} 
@@ -2019,20 +2186,44 @@ const NewPostForm = ({ user, countries, categories, flOptions }) => {
                     sx={{ 
                       width: { xs: "100%", sm: "100%", md: "100%" },
                       maxWidth: { xs: "100%", sm: "400px", md: "500px" },
-                      padding: '8px 16px',
-                      fontSize: '0.9rem',
+                      padding: '12px 24px',
+                      fontSize: '1rem',
                       fontWeight: 600,
-                      borderRadius: '4px',
+                      borderRadius: 3,
                       background: 'linear-gradient(45deg, #4A8BFF 30%, #1A6EEE 90%)',
                       color: '#fff',
-                      boxShadow: '0 3px 5px 2px rgba(26, 110, 238, .3)',
+                      position: 'relative',
+                      overflow: 'hidden',
+                      boxShadow: '0 4px 15px rgba(26, 110, 238, 0.3)',
+                      '&::before': {
+                        content: '""',
+                        position: 'absolute',
+                        top: 0,
+                        left: '-100%',
+                        width: '100%',
+                        height: '100%',
+                        background: 'linear-gradient(90deg, transparent, rgba(255,255,255,0.2), transparent)',
+                        transition: 'left 0.6s ease-in-out'
+                      },
                       '&:hover': {
                         background: 'linear-gradient(45deg, #5A9BFF 30%, #2A7EFF 90%)',
-                        boxShadow: '0 4px 8px 2px rgba(26, 110, 238, .4)',
+                        boxShadow: '0 8px 25px rgba(26, 110, 238, 0.4)',
+                        transform: 'translateY(-2px) scale(1.02)',
+                        '&::before': {
+                          left: '100%'
+                        }
+                      },
+                      '&:active': {
+                        transform: 'translateY(0) scale(0.98)'
                       },
                       '&:disabled': {
                         background: theme.palette.mode === 'dark' ? 'rgba(74, 139, 255, 0.3)' : 'rgba(26, 110, 238, 0.3)',
                         color: theme.palette.mode === 'dark' ? 'rgba(255,255,255,0.5)' : 'rgba(255,255,255,0.7)',
+                        transform: 'none',
+                        boxShadow: 'none',
+                        '&::before': {
+                          display: 'none'
+                        }
                       },
                       transition: 'all 0.3s cubic-bezier(0.4, 0, 0.2, 1)',
                     }}
