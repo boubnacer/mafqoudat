@@ -71,15 +71,11 @@ export const LanguageProvider = ({ children }) => {
    */
   const handleLanguageRefetch = async (language) => {
     try {
-      console.log('🌐 [LANGUAGE-CONTEXT] Triggering refetch for language:', language);
-      
       // Use the safe refetch function with error handling
-      const refetchSuccess = await safeLanguageRefetch(language, {
+      await safeLanguageRefetch(language, {
         forceRefetch: true,
         priority: 'medium' // Refetch medium and high priority endpoints
       });
-      
-      console.log('🌐 [LANGUAGE-CONTEXT] Refetch result:', refetchSuccess ? 'SUCCESS' : 'FALLBACK');
     } catch (error) {
       console.error('Error triggering language-dependent refetch:', error);
     }

@@ -39,8 +39,6 @@ export const triggerLanguageDependentRefetch = (language, options = {}) => {
   const { forceRefetch = false, priority = 'low' } = options;
   
   try {
-    console.log('🌐 [LANGUAGE-REFETCH] Triggering refetch for language:', language, 'with options:', options);
-    
     // Check if store and API slice are available
     if (!store) {
       console.warn('🌐 [LANGUAGE-REFETCH] Store not available');
@@ -61,8 +59,6 @@ export const triggerLanguageDependentRefetch = (language, options = {}) => {
       return;
     }
     
-    console.log('🌐 [LANGUAGE-REFETCH] Store state verified, API slice available');
-    
     // Priority levels
     const priorityLevels = { low: 1, medium: 2, high: 3 };
     const currentPriority = priorityLevels[priority] || 1;
@@ -77,7 +73,6 @@ export const triggerLanguageDependentRefetch = (language, options = {}) => {
       // Only process endpoints with sufficient priority
       if (endpointPriority >= currentPriority) {
         tagsToInvalidate.push(...config.tags.map(tag => ({ type: tag, id: 'LIST' })));
-        console.log(`🌐 [LANGUAGE-REFETCH] Added ${endpointName} (${config.priority}) to refetch queue`);
       }
     });
     
@@ -91,28 +86,6 @@ export const triggerLanguageDependentRefetch = (language, options = {}) => {
       try {
         // Use the correct RTK Query method to invalidate tags
         store.dispatch(apiSlice.util.invalidateTags(uniqueTags));
-        console.log('🌐 [LANGUAGE-REFETCH] Invalidated tags:', uniqueTags);
-        
-        // Also trigger a general refetch of all queries to ensure updates
-        try {
-          store.dispatch(apiSlice.util.refetchQueries({
-            type: 'query',
-            predicate: (query) => {
-              // Only refetch queries that have language-dependent tags
-              return query.fulfilledTimeStamp && 
-                     uniqueTags.some(tag => 
-                       query.providesTags && 
-                       query.providesTags.some(providedTag => 
-                         providedTag.type === tag.type
-                       )
-                     );
-            }
-          }));
-          console.log('🌐 [LANGUAGE-REFETCH] Triggered refetch for queries with invalidated tags');
-        } catch (refetchError) {
-          console.warn('🌐 [LANGUAGE-REFETCH] Could not trigger refetchQueries:', refetchError);
-          // This is not critical as invalidateTags should be sufficient
-        }
         
       } catch (dispatchError) {
         console.error('🌐 [LANGUAGE-REFETCH] Error dispatching invalidateTags:', dispatchError);
@@ -120,7 +93,6 @@ export const triggerLanguageDependentRefetch = (language, options = {}) => {
         uniqueTags.forEach(tag => {
           try {
             store.dispatch(apiSlice.util.invalidateTags([tag]));
-            console.log('🌐 [LANGUAGE-REFETCH] Fallback: Invalidated individual tag:', tag);
           } catch (individualError) {
             console.error('🌐 [LANGUAGE-REFETCH] Failed to invalidate individual tag:', tag, individualError);
           }
@@ -132,8 +104,6 @@ export const triggerLanguageDependentRefetch = (language, options = {}) => {
     if (forceRefetch) {
       forceRefetchLanguageQueries(language);
     }
-    
-    console.log('🌐 [LANGUAGE-REFETCH] Refetch triggered successfully for language:', language);
   } catch (error) {
     console.error('🌐 [LANGUAGE-REFETCH] Error triggering refetch:', error);
     // Provide fallback behavior
@@ -148,8 +118,6 @@ export const triggerLanguageDependentRefetch = (language, options = {}) => {
  */
 export const forceRefetchLanguageQueries = (language) => {
   try {
-    console.log('🌐 [LANGUAGE-REFETCH] Force refetching queries for language:', language);
-    
     // Check if store and API slice are available
     if (!store || !apiSlice || !apiSlice.util) {
       console.warn('🌐 [LANGUAGE-REFETCH] Store or API slice not available for force refetch');
@@ -166,7 +134,6 @@ export const forceRefetchLanguageQueries = (language) => {
     }
     
     const activeQueries = apiState.queries;
-    console.log('🌐 [LANGUAGE-REFETCH] Found', Object.keys(activeQueries).length, 'active queries');
     
     // Collect language-dependent query keys for refetching
     const languageDependentQueryKeys = [];
@@ -181,48 +148,29 @@ export const forceRefetchLanguageQueries = (language) => {
         
         if (isLanguageDependent) {
           languageDependentQueryKeys.push(queryKey);
-          console.log('🌐 [LANGUAGE-REFETCH] Found language-dependent query:', queryKey);
         }
       }
     });
     
-    // Use correct RTK Query method to refetch queries
+    // Use invalidateTags to trigger refetch (this is the standard RTK Query approach)
     if (languageDependentQueryKeys.length > 0) {
       try {
-        // Use refetchQueries with specific query keys
-        store.dispatch(apiSlice.util.refetchQueries({
-          type: 'query',
-          predicate: (query) => {
-            // Check if this query is in our language-dependent list
-            const queryKey = `${query.endpointName}(${JSON.stringify(query.originalArgs)})`;
-            return languageDependentQueryKeys.includes(queryKey);
-          }
-        }));
+        // Get all tags that need to be invalidated
+        const tagsToInvalidate = [];
+        Object.values(LANGUAGE_DEPENDENT_ENDPOINTS).forEach(config => {
+          tagsToInvalidate.push(...config.tags.map(tag => ({ type: tag, id: 'LIST' })));
+        });
         
-        console.log('🌐 [LANGUAGE-REFETCH] Successfully triggered refetch for', languageDependentQueryKeys.length, 'queries');
+        // Remove duplicates
+        const uniqueTags = tagsToInvalidate.filter((tag, index, self) => 
+          index === self.findIndex(t => t.type === tag.type && t.id === tag.id)
+        );
+        
+        // Invalidate tags to trigger refetch
+        store.dispatch(apiSlice.util.invalidateTags(uniqueTags));
       } catch (error) {
-        console.warn('🌐 [LANGUAGE-REFETCH] Failed to refetch queries:', error);
-        
-        // Fallback: try to invalidate and refetch all language-dependent tags
-        try {
-          const tagsToInvalidate = [];
-          Object.values(LANGUAGE_DEPENDENT_ENDPOINTS).forEach(config => {
-            tagsToInvalidate.push(...config.tags.map(tag => ({ type: tag, id: 'LIST' })));
-          });
-          
-          // Remove duplicates
-          const uniqueTags = tagsToInvalidate.filter((tag, index, self) => 
-            index === self.findIndex(t => t.type === tag.type && t.id === tag.id)
-          );
-          
-          store.dispatch(apiSlice.util.invalidateTags(uniqueTags));
-          console.log('🌐 [LANGUAGE-REFETCH] Fallback: Invalidated tags for refetch');
-        } catch (fallbackError) {
-          console.error('🌐 [LANGUAGE-REFETCH] Fallback refetch also failed:', fallbackError);
-        }
+        console.warn('🌐 [LANGUAGE-REFETCH] Failed to invalidate tags:', error);
       }
-    } else {
-      console.log('🌐 [LANGUAGE-REFETCH] No language-dependent queries found to refetch');
     }
   } catch (error) {
     console.error('🌐 [LANGUAGE-REFETCH] Error force refetching queries:', error);
@@ -296,8 +244,6 @@ export const debouncedLanguageRefetch = (language, options = {}) => {
  */
 export const refetchWithCorrectRTKMethods = async (language, options = {}) => {
   try {
-    console.log('🌐 [LANGUAGE-REFETCH] Using correct RTK Query methods for refetch');
-    
     // Check if store and API slice are available
     if (!store || !apiSlice || !apiSlice.util) {
       console.warn('🌐 [LANGUAGE-REFETCH] Store or API slice not available');
@@ -316,30 +262,12 @@ export const refetchWithCorrectRTKMethods = async (language, options = {}) => {
     );
     
     if (uniqueTags.length === 0) {
-      console.log('🌐 [LANGUAGE-REFETCH] No tags to invalidate');
       return true;
     }
     
-    // Step 1: Invalidate tags (this will mark queries as stale)
+    // Invalidate tags (this will mark queries as stale and trigger refetch)
     store.dispatch(apiSlice.util.invalidateTags(uniqueTags));
-    console.log('🌐 [LANGUAGE-REFETCH] Invalidated tags:', uniqueTags);
     
-    // Step 2: Refetch queries that provide these tags
-    store.dispatch(apiSlice.util.refetchQueries({
-      type: 'query',
-      predicate: (query) => {
-        // Only refetch queries that provide language-dependent tags
-        if (!query.providesTags) return false;
-        
-        return query.providesTags.some(providedTag => 
-          uniqueTags.some(invalidatedTag => 
-            providedTag.type === invalidatedTag.type
-          )
-        );
-      }
-    }));
-    
-    console.log('🌐 [LANGUAGE-REFETCH] Successfully used correct RTK Query methods');
     return true;
     
   } catch (error) {
@@ -356,18 +284,14 @@ export const refetchWithCorrectRTKMethods = async (language, options = {}) => {
  */
 export const safeLanguageRefetch = async (language, options = {}) => {
   try {
-    console.log('🌐 [LANGUAGE-REFETCH] Starting safe refetch for language:', language);
-    
     // First try the correct RTK Query methods
     const correctMethodSuccess = await refetchWithCorrectRTKMethods(language, options);
     
     if (correctMethodSuccess) {
-      console.log('🌐 [LANGUAGE-REFETCH] Safe refetch completed successfully using correct RTK Query methods');
       return true;
     }
     
     // If correct methods fail, try the legacy approach
-    console.log('🌐 [LANGUAGE-REFETCH] Correct methods failed, trying legacy approach');
     triggerLanguageDependentRefetch(language, options);
     
     // Wait a bit to see if it worked
@@ -379,13 +303,11 @@ export const safeLanguageRefetch = async (language, options = {}) => {
       const apiState = storeState[apiSlice.reducerPath];
       
       if (apiState) {
-        console.log('🌐 [LANGUAGE-REFETCH] Safe refetch completed successfully using legacy approach');
         return true;
       }
     }
     
     // If we get here, something went wrong, try fallback
-    console.log('🌐 [LANGUAGE-REFETCH] All refetch methods failed, using fallback');
     fallbackLanguageRefetch(language);
     return false;
     
