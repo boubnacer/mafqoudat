@@ -32,7 +32,10 @@ import {
   Card,
   CardMedia,
   CardActions,
-  Chip
+  Chip,
+  LinearProgress,
+  Fade,
+  Slide
 } from "@mui/material";
 import { 
   PhotoCamera, 
@@ -105,6 +108,7 @@ const NewPostForm = ({ user, countries, categories, flOptions }) => {
   const [compressionInfo, setCompressionInfo] = useState(null);
   const [setFieldValueCallback, setSetFieldValueCallback] = useState(null);
   const [fieldErrors, setFieldErrors] = useState({});
+  const [formProgress, setFormProgress] = useState(0);
   const formikRef = useRef(null);
 
   // Image management state
@@ -162,6 +166,38 @@ const NewPostForm = ({ user, countries, categories, flOptions }) => {
         return newErrors;
       });
     }
+  };
+
+  // Function to calculate form completion progress
+  const calculateFormProgress = (values) => {
+    const requiredFields = ['foundLost', 'category', 'country', 'city', 'exactDate', 'exactLocation', 'contact'];
+    const optionalFields = ['description', 'image'];
+    
+    let completedRequired = 0;
+    let completedOptional = 0;
+    
+    // Check required fields
+    requiredFields.forEach(field => {
+      if (field === 'country') {
+        if (selectedCountry?._id) completedRequired++;
+      } else if (values[field] && values[field].toString().trim()) {
+        completedRequired++;
+      }
+    });
+    
+    // Check optional fields
+    optionalFields.forEach(field => {
+      if (field === 'image') {
+        if (selectedImage) completedOptional++;
+      } else if (values[field] && values[field].toString().trim()) {
+        completedOptional++;
+      }
+    });
+    
+    const requiredProgress = (completedRequired / requiredFields.length) * 80; // 80% for required fields
+    const optionalProgress = (completedOptional / optionalFields.length) * 20; // 20% for optional fields
+    
+    return Math.round(requiredProgress + optionalProgress);
   };
 
   // Define fetchCitiesByCountry BEFORE it's used in useEffect
@@ -767,12 +803,22 @@ const NewPostForm = ({ user, countries, categories, flOptions }) => {
         display: "flex",
         justifyContent: "center",
         alignItems: "flex-start",
-        background: theme.palette.background.default,
+        background: theme.palette.mode === 'dark' 
+          ? 'radial-gradient(ellipse at top, rgba(76, 175, 80, 0.1) 0%, transparent 50%), linear-gradient(135deg, #0a0a0a 0%, #1a1a1a 100%)'
+          : 'radial-gradient(ellipse at top, rgba(46, 125, 50, 0.05) 0%, transparent 50%), linear-gradient(135deg, #f8f9fa 0%, #e9ecef 100%)',
         position: 'relative',
-        // Add shimmer animation styles
-        '@keyframes shimmer': {
-          '0%': { transform: 'translateX(-100%)' },
-          '100%': { transform: 'translateX(100%)' }
+        '&::before': {
+          content: '""',
+          position: 'absolute',
+          top: 0,
+          left: 0,
+          right: 0,
+          bottom: 0,
+          background: theme.palette.mode === 'dark'
+            ? 'radial-gradient(circle at 20% 80%, rgba(76, 175, 80, 0.03) 0%, transparent 50%), radial-gradient(circle at 80% 20%, rgba(76, 175, 80, 0.03) 0%, transparent 50%)'
+            : 'radial-gradient(circle at 20% 80%, rgba(46, 125, 50, 0.02) 0%, transparent 50%), radial-gradient(circle at 80% 20%, rgba(46, 125, 50, 0.02) 0%, transparent 50%)',
+          pointerEvents: 'none',
+          zIndex: 0
         }
       }}
     >
@@ -795,13 +841,37 @@ const NewPostForm = ({ user, countries, categories, flOptions }) => {
         />
       )}
       <Paper 
-        elevation={4} 
+        elevation={0} 
         sx={{ 
-          p: { xs: 3, md: 5 }, 
+          p: { xs: 4, md: 6 }, 
           maxWidth: 700, 
           width: "100%",
-          borderRadius: 3,
-          boxShadow: theme.shadows[8]
+          borderRadius: 4,
+          position: 'relative',
+          zIndex: 1,
+          background: theme.palette.mode === 'dark'
+            ? 'linear-gradient(135deg, rgba(30, 30, 30, 0.95) 0%, rgba(45, 45, 45, 0.95) 100%)'
+            : 'linear-gradient(135deg, rgba(255, 255, 255, 0.95) 0%, rgba(248, 250, 252, 0.95) 100%)',
+          backdropFilter: 'blur(20px)',
+          border: `1px solid ${theme.palette.mode === 'dark' 
+            ? 'rgba(255, 255, 255, 0.1)' 
+            : 'rgba(0, 0, 0, 0.08)'}`,
+          boxShadow: theme.palette.mode === 'dark'
+            ? '0 20px 40px rgba(0,0,0,0.4), 0 0 0 1px rgba(255,255,255,0.05), inset 0 1px 0 rgba(255,255,255,0.1)'
+            : '0 20px 40px rgba(0,0,0,0.1), 0 0 0 1px rgba(0,0,0,0.05), inset 0 1px 0 rgba(255,255,255,0.8)',
+          '&::before': {
+            content: '""',
+            position: 'absolute',
+            top: 0,
+            left: 0,
+            right: 0,
+            height: '4px',
+            background: theme.palette.mode === 'dark'
+              ? 'linear-gradient(90deg, #4CAF50 0%, #66BB6A 50%, #4CAF50 100%)'
+              : 'linear-gradient(90deg, #2E7D32 0%, #388E3C 50%, #2E7D32 100%)',
+            borderRadius: '4px 4px 0 0',
+            opacity: 0.8
+          }
         }}
       >
         <Typography 
@@ -810,7 +880,7 @@ const NewPostForm = ({ user, countries, categories, flOptions }) => {
           textAlign="center" 
           sx={{ 
             color: theme.palette.text.primary,
-            mb: 4,
+            mb: 3,
             fontWeight: 700,
             fontSize: { xs: '1.8rem', md: '2.2rem' },
             textShadow: theme.palette.mode === 'dark' ? '0 2px 4px rgba(0,0,0,0.3)' : '0 1px 2px rgba(0,0,0,0.1)'
@@ -818,6 +888,50 @@ const NewPostForm = ({ user, countries, categories, flOptions }) => {
         >
           {t('createNewPost')}
         </Typography>
+
+        {/* Progress Indicator */}
+        <Box sx={{ mb: 4 }}>
+          <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 1 }}>
+            <Typography 
+              variant="body2" 
+              sx={{ 
+                color: theme.palette.text.secondary,
+                fontWeight: 500,
+                fontSize: '0.9rem'
+              }}
+            >
+              {t('formProgress') || 'Form Progress'}
+            </Typography>
+            <Typography 
+              variant="body2" 
+              sx={{ 
+                color: theme.palette.mode === 'dark' ? '#4CAF50' : '#2E7D32',
+                fontWeight: 600,
+                fontSize: '0.9rem'
+              }}
+            >
+              {formProgress}%
+            </Typography>
+          </Box>
+          <LinearProgress
+            variant="determinate"
+            value={formProgress}
+            sx={{
+              height: 8,
+              borderRadius: 4,
+              backgroundColor: theme.palette.mode === 'dark' ? 'rgba(255,255,255,0.1)' : 'rgba(0,0,0,0.1)',
+              '& .MuiLinearProgress-bar': {
+                borderRadius: 4,
+                background: theme.palette.mode === 'dark'
+                  ? 'linear-gradient(90deg, #4CAF50 0%, #66BB6A 50%, #81C784 100%)'
+                  : 'linear-gradient(90deg, #2E7D32 0%, #388E3C 50%, #4CAF50 100%)',
+                boxShadow: theme.palette.mode === 'dark'
+                  ? '0 2px 8px rgba(76, 175, 80, 0.3)'
+                  : '0 2px 8px rgba(46, 125, 50, 0.3)'
+              }
+            }}
+          />
+        </Box>
 
         <Formik
           ref={formikRef}
@@ -829,6 +943,12 @@ const NewPostForm = ({ user, countries, categories, flOptions }) => {
             // Store setFieldValue function for use in custom city creation
             setSetFieldValueCallback(() => setFieldValue);
             
+            // Update form progress when values change
+            useEffect(() => {
+              const progress = calculateFormProgress(values);
+              setFormProgress(progress);
+            }, [values, selectedCountry, selectedImage]);
+            
             return (
             <Form>
               {status?.error && (
@@ -837,22 +957,40 @@ const NewPostForm = ({ user, countries, categories, flOptions }) => {
                 </Alert>
               )}
               
-              <Box display="flex" flexDirection="column" gap={3}>
+              <Box display="flex" flexDirection="column" gap={4}>
                 {/* Basic Information Section */}
-                <Typography 
-                  variant="h5" 
-                  sx={{ 
-                    fontWeight: 700, 
-                    color: theme.palette.mode === 'dark' ? '#4CAF50' : '#2E7D32',
-                    fontSize: '1.4rem',
-                    mb: 1,
-                    textShadow: theme.palette.mode === 'dark' ? '0 1px 2px rgba(0,0,0,0.3)' : '0 1px 2px rgba(0,0,0,0.1)'
-                  }}
-                >
-                  {t('basicInformation')}
-                </Typography>
+                <Fade in timeout={600}>
+                  <Box>
+                    <Typography 
+                      variant="h5" 
+                      sx={{ 
+                        fontWeight: 700, 
+                        color: theme.palette.mode === 'dark' ? '#4CAF50' : '#2E7D32',
+                        fontSize: '1.4rem',
+                        mb: 2,
+                        textShadow: theme.palette.mode === 'dark' ? '0 1px 2px rgba(0,0,0,0.3)' : '0 1px 2px rgba(0,0,0,0.1)',
+                        position: 'relative',
+                        '&::after': {
+                          content: '""',
+                          position: 'absolute',
+                          bottom: -8,
+                          left: 0,
+                          width: '40px',
+                          height: '3px',
+                          background: theme.palette.mode === 'dark'
+                            ? 'linear-gradient(90deg, #4CAF50 0%, #66BB6A 100%)'
+                            : 'linear-gradient(90deg, #2E7D32 0%, #388E3C 100%)',
+                          borderRadius: '2px',
+                          opacity: 0.8
+                        }
+                      }}
+                    >
+                      {t('basicInformation')}
+                    </Typography>
+                  </Box>
+                </Fade>
 
-                <Box>
+                <Box sx={{ mb: 3 }}>
                   <FormLabel 
                     htmlFor="foundLost" 
                     sx={{ 
@@ -962,7 +1100,7 @@ const NewPostForm = ({ user, countries, categories, flOptions }) => {
                   </FormControl>
                 </Box>
 
-                <Box>
+                <Box sx={{ mb: 3 }}>
                   <FormLabel 
                     htmlFor="category" 
                     sx={{ 
@@ -985,22 +1123,54 @@ const NewPostForm = ({ user, countries, categories, flOptions }) => {
                   />
                 </Box>
 
+                {/* Section Divider */}
+                <Slide direction="right" in timeout={800}>
+                  <Divider 
+                    sx={{ 
+                      my: 4,
+                      '&::before, &::after': {
+                        borderColor: theme.palette.mode === 'dark' 
+                          ? 'rgba(76, 175, 80, 0.3)' 
+                          : 'rgba(46, 125, 50, 0.3)'
+                      }
+                    }}
+                  />
+                </Slide>
+
                 {/* Location Section */}
-                <Typography 
-                  variant="h5" 
-                  sx={{ 
-                    fontWeight: 700, 
-                    color: theme.palette.mode === 'dark' ? '#4CAF50' : '#2E7D32',
-                    fontSize: '1.4rem',
-                    mb: 1,
-                    textShadow: theme.palette.mode === 'dark' ? '0 1px 2px rgba(0,0,0,0.3)' : '0 1px 2px rgba(0,0,0,0.1)'
-                  }}
-                >
-                  {t('location')}
-                </Typography>
+                <Fade in timeout={800}>
+                  <Box>
+                    <Typography 
+                      variant="h5" 
+                      sx={{ 
+                        fontWeight: 700, 
+                        color: theme.palette.mode === 'dark' ? '#4CAF50' : '#2E7D32',
+                        fontSize: '1.4rem',
+                        mb: 2,
+                        textShadow: theme.palette.mode === 'dark' ? '0 1px 2px rgba(0,0,0,0.3)' : '0 1px 2px rgba(0,0,0,0.1)',
+                        position: 'relative',
+                        '&::after': {
+                          content: '""',
+                          position: 'absolute',
+                          bottom: -8,
+                          left: 0,
+                          width: '40px',
+                          height: '3px',
+                          background: theme.palette.mode === 'dark'
+                            ? 'linear-gradient(90deg, #4CAF50 0%, #66BB6A 100%)'
+                            : 'linear-gradient(90deg, #2E7D32 0%, #388E3C 100%)',
+                          borderRadius: '2px',
+                          opacity: 0.8
+                        }
+                      }}
+                    >
+                      {t('location')}
+                    </Typography>
+                  </Box>
+                </Fade>
 
 
-                <Box>
+                <Box sx={{ mb: 3 }}>
                   <FormLabel 
                     htmlFor="city" 
                     sx={{ 
@@ -1318,7 +1488,7 @@ const NewPostForm = ({ user, countries, categories, flOptions }) => {
                   </Box>
                 </Box>
 
-                <Box>
+                <Box sx={{ mb: 3 }}>
                   <FormLabel 
                     htmlFor="exactLocation" 
                     sx={{ 
@@ -1365,7 +1535,7 @@ const NewPostForm = ({ user, countries, categories, flOptions }) => {
                   />
                 </Box>
 
-                <Box>
+                <Box sx={{ mb: 3 }}>
                   <FormLabel 
                     htmlFor="exactDate" 
                     sx={{ 
@@ -1404,21 +1574,53 @@ const NewPostForm = ({ user, countries, categories, flOptions }) => {
                   />
                 </Box>
 
-                {/* Item Details Section */}
-                <Typography 
-                  variant="h5" 
-                  sx={{ 
-                    fontWeight: 700, 
-                    color: theme.palette.mode === 'dark' ? '#4CAF50' : '#2E7D32',
-                    fontSize: '1.4rem',
-                    mb: 1,
-                    textShadow: theme.palette.mode === 'dark' ? '0 1px 2px rgba(0,0,0,0.3)' : '0 1px 2px rgba(0,0,0,0.1)'
-                  }}
-                >
-                  {t('itemDetails')}
-                </Typography>
+                {/* Section Divider */}
+                <Slide direction="right" in timeout={1000}>
+                  <Divider 
+                    sx={{ 
+                      my: 4,
+                      '&::before, &::after': {
+                        borderColor: theme.palette.mode === 'dark' 
+                          ? 'rgba(76, 175, 80, 0.3)' 
+                          : 'rgba(46, 125, 50, 0.3)'
+                      }
+                    }}
+                  />
+                </Slide>
 
-                <Box>
+                {/* Item Details Section */}
+                <Fade in timeout={1000}>
+                  <Box>
+                    <Typography 
+                      variant="h5" 
+                      sx={{ 
+                        fontWeight: 700, 
+                        color: theme.palette.mode === 'dark' ? '#4CAF50' : '#2E7D32',
+                        fontSize: '1.4rem',
+                        mb: 2,
+                        textShadow: theme.palette.mode === 'dark' ? '0 1px 2px rgba(0,0,0,0.3)' : '0 1px 2px rgba(0,0,0,0.1)',
+                        position: 'relative',
+                        '&::after': {
+                          content: '""',
+                          position: 'absolute',
+                          bottom: -8,
+                          left: 0,
+                          width: '40px',
+                          height: '3px',
+                          background: theme.palette.mode === 'dark'
+                            ? 'linear-gradient(90deg, #4CAF50 0%, #66BB6A 100%)'
+                            : 'linear-gradient(90deg, #2E7D32 0%, #388E3C 100%)',
+                          borderRadius: '2px',
+                          opacity: 0.8
+                        }
+                      }}
+                    >
+                      {t('itemDetails')}
+                    </Typography>
+                  </Box>
+                </Fade>
+
+                <Box sx={{ mb: 3 }}>
                   <FormLabel 
                     htmlFor="description" 
                     sx={{ 
@@ -1471,21 +1673,53 @@ const NewPostForm = ({ user, countries, categories, flOptions }) => {
                   />
                 </Box>
 
-                {/* Contact Information Section */}
-                <Typography 
-                  variant="h5" 
-                  sx={{ 
-                    fontWeight: 700, 
-                    color: theme.palette.mode === 'dark' ? '#4CAF50' : '#2E7D32',
-                    fontSize: '1.4rem',
-                    mb: 1,
-                    textShadow: theme.palette.mode === 'dark' ? '0 1px 2px rgba(0,0,0,0.3)' : '0 1px 2px rgba(0,0,0,0.1)'
-                  }}
-                >
-                  {t('contactInformation')}
-                </Typography>
+                {/* Section Divider */}
+                <Slide direction="right" in timeout={1200}>
+                  <Divider 
+                    sx={{ 
+                      my: 4,
+                      '&::before, &::after': {
+                        borderColor: theme.palette.mode === 'dark' 
+                          ? 'rgba(76, 175, 80, 0.3)' 
+                          : 'rgba(46, 125, 50, 0.3)'
+                      }
+                    }}
+                  />
+                </Slide>
 
-                <Box>
+                {/* Contact Information Section */}
+                <Fade in timeout={1200}>
+                  <Box>
+                    <Typography 
+                      variant="h5" 
+                      sx={{ 
+                        fontWeight: 700, 
+                        color: theme.palette.mode === 'dark' ? '#4CAF50' : '#2E7D32',
+                        fontSize: '1.4rem',
+                        mb: 2,
+                        textShadow: theme.palette.mode === 'dark' ? '0 1px 2px rgba(0,0,0,0.3)' : '0 1px 2px rgba(0,0,0,0.1)',
+                        position: 'relative',
+                        '&::after': {
+                          content: '""',
+                          position: 'absolute',
+                          bottom: -8,
+                          left: 0,
+                          width: '40px',
+                          height: '3px',
+                          background: theme.palette.mode === 'dark'
+                            ? 'linear-gradient(90deg, #4CAF50 0%, #66BB6A 100%)'
+                            : 'linear-gradient(90deg, #2E7D32 0%, #388E3C 100%)',
+                          borderRadius: '2px',
+                          opacity: 0.8
+                        }
+                      }}
+                    >
+                      {t('contactInformation')}
+                    </Typography>
+                  </Box>
+                </Fade>
+
+                <Box sx={{ mb: 3 }}>
                   <FormLabel 
                     htmlFor="contact" 
                     sx={{ 
@@ -1531,22 +1765,53 @@ const NewPostForm = ({ user, countries, categories, flOptions }) => {
                   />
                 </Box>
 
+                {/* Section Divider */}
+                <Slide direction="right" in timeout={1400}>
+                  <Divider 
+                    sx={{ 
+                      my: 4,
+                      '&::before, &::after': {
+                        borderColor: theme.palette.mode === 'dark' 
+                          ? 'rgba(76, 175, 80, 0.3)' 
+                          : 'rgba(46, 125, 50, 0.3)'
+                      }
+                    }}
+                  />
+                </Slide>
 
                 {/* Image Section */}
-                <Typography 
-                  variant="h5" 
-                  sx={{ 
-                    fontWeight: 700, 
-                    color: theme.palette.mode === 'dark' ? '#4CAF50' : '#2E7D32',
-                    fontSize: '1.4rem',
-                    mb: 1,
-                    textShadow: theme.palette.mode === 'dark' ? '0 1px 2px rgba(0,0,0,0.3)' : '0 1px 2px rgba(0,0,0,0.1)'
-                  }}
-                >
-                  {t('itemImage')}
-                </Typography>
+                <Fade in timeout={1400}>
+                  <Box>
+                    <Typography 
+                      variant="h5" 
+                      sx={{ 
+                        fontWeight: 700, 
+                        color: theme.palette.mode === 'dark' ? '#4CAF50' : '#2E7D32',
+                        fontSize: '1.4rem',
+                        mb: 2,
+                        textShadow: theme.palette.mode === 'dark' ? '0 1px 2px rgba(0,0,0,0.3)' : '0 1px 2px rgba(0,0,0,0.1)',
+                        position: 'relative',
+                        '&::after': {
+                          content: '""',
+                          position: 'absolute',
+                          bottom: -8,
+                          left: 0,
+                          width: '40px',
+                          height: '3px',
+                          background: theme.palette.mode === 'dark'
+                            ? 'linear-gradient(90deg, #4CAF50 0%, #66BB6A 100%)'
+                            : 'linear-gradient(90deg, #2E7D32 0%, #388E3C 100%)',
+                          borderRadius: '2px',
+                          opacity: 0.8
+                        }
+                      }}
+                    >
+                      {t('itemImage')}
+                    </Typography>
+                  </Box>
+                </Fade>
 
-                <Box>
+                <Box sx={{ mb: 4 }}>
                   <FormLabel 
                     htmlFor="image" 
                     sx={{ 
@@ -1741,7 +2006,7 @@ const NewPostForm = ({ user, countries, categories, flOptions }) => {
                 </Box>
                 
                 <Box 
-                  mt={4} 
+                  mt={6} 
                   sx={{ 
                     display: 'flex', 
                     justifyContent: 'center',
