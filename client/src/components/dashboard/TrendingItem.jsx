@@ -220,21 +220,51 @@ const TrendingItem = ({ trend, isLoading }) => {
       <Card
         sx={{
           background: theme.palette.mode === 'dark'
-            ? 'linear-gradient(135deg, rgba(18,18,18,0.95) 0%, rgba(28,28,28,0.95) 100%)'
-            : '#ffffff',
-          backdropFilter: 'blur(10px)',
-          borderRadius: isMobile ? '12px' : '20px',
-          border: `3px solid ${theme.palette.mode === 'dark' ? 'rgba(255,152,0,0.4)' : 'rgba(255,152,0,0.5)'}`,
+            ? 'linear-gradient(135deg, rgba(18,18,18,0.85) 0%, rgba(28,28,28,0.9) 50%, rgba(35,35,35,0.85) 100%)'
+            : 'linear-gradient(135deg, rgba(255,255,255,0.9) 0%, rgba(248,250,252,0.95) 50%, rgba(255,255,255,0.9) 100%)',
+          backdropFilter: 'blur(20px) saturate(180%)',
+          WebkitBackdropFilter: 'blur(20px) saturate(180%)',
+          borderRadius: isMobile ? '16px' : '24px',
+          border: `2px solid ${theme.palette.mode === 'dark' ? 'rgba(255,152,0,0.3)' : 'rgba(255,152,0,0.4)'}`,
           overflow: 'hidden',
-          transition: 'transform 0.3s ease, box-shadow 0.3s ease',
+          transition: 'all 0.4s cubic-bezier(0.4, 0, 0.2, 1)',
           boxShadow: theme.palette.mode === 'dark'
-            ? '0 8px 32px 0 rgba(0,0,0,0.15), 0 0 0 2px rgba(255,152,0,0.3), 0 0 25px rgba(255,152,0,0.15)'
-            : '0 8px 32px 0 rgba(0,0,0,0.05), 0 0 0 2px rgba(255,152,0,0.4), 0 0 25px rgba(255,152,0,0.2)',
+            ? `
+              0 4px 6px -1px rgba(0, 0, 0, 0.1),
+              0 2px 4px -1px rgba(0, 0, 0, 0.06),
+              0 0 0 1px rgba(255, 152, 0, 0.2),
+              0 8px 25px -5px rgba(0, 0, 0, 0.25),
+              0 0 30px rgba(255, 152, 0, 0.1),
+              inset 0 1px 0 rgba(255, 255, 255, 0.1)
+            `
+            : `
+              0 4px 6px -1px rgba(0, 0, 0, 0.1),
+              0 2px 4px -1px rgba(0, 0, 0, 0.06),
+              0 0 0 1px rgba(255, 152, 0, 0.3),
+              0 8px 25px -5px rgba(0, 0, 0, 0.1),
+              0 0 30px rgba(255, 152, 0, 0.15),
+              inset 0 1px 0 rgba(255, 255, 255, 0.8)
+            `,
           '&:hover': {
-            transform: 'translateY(-8px)',
+            transform: 'translateY(-12px) scale(1.02)',
             boxShadow: theme.palette.mode === 'dark'
-              ? '0 16px 48px 0 rgba(0,0,0,0.25), 0 0 0 2px rgba(255,152,0,0.5), 0 0 35px rgba(255,152,0,0.25)'
-              : '0 16px 48px 0 rgba(0,0,0,0.15), 0 0 0 2px rgba(255,152,0,0.6), 0 0 35px rgba(255,152,0,0.3)',
+              ? `
+                0 10px 15px -3px rgba(0, 0, 0, 0.1),
+                0 4px 6px -2px rgba(0, 0, 0, 0.05),
+                0 0 0 1px rgba(255, 152, 0, 0.4),
+                0 20px 40px -10px rgba(0, 0, 0, 0.4),
+                0 0 50px rgba(255, 152, 0, 0.2),
+                inset 0 1px 0 rgba(255, 255, 255, 0.15)
+              `
+              : `
+                0 10px 15px -3px rgba(0, 0, 0, 0.1),
+                0 4px 6px -2px rgba(0, 0, 0, 0.05),
+                0 0 0 1px rgba(255, 152, 0, 0.5),
+                0 20px 40px -10px rgba(0, 0, 0, 0.2),
+                0 0 50px rgba(255, 152, 0, 0.25),
+                inset 0 1px 0 rgba(255, 255, 255, 0.9)
+              `,
+            border: `2px solid ${theme.palette.mode === 'dark' ? 'rgba(255,152,0,0.6)' : 'rgba(255,152,0,0.7)'}`,
           },
           height: '100%',
           minHeight: { xs: '450px', sm: '350px' },
@@ -242,21 +272,49 @@ const TrendingItem = ({ trend, isLoading }) => {
           '&::before': {
             content: '""',
             position: 'absolute',
-            top: '-2px',
-            left: '-2px',
-            right: '-2px',
-            bottom: '-2px',
-            background: 'linear-gradient(45deg, rgba(255,152,0,0.1), rgba(255,193,7,0.1), rgba(255,152,0,0.1))',
-            borderRadius: isMobile ? '14px' : '22px',
+            top: '-3px',
+            left: '-3px',
+            right: '-3px',
+            bottom: '-3px',
+            background: 'linear-gradient(45deg, rgba(255,152,0,0.2), rgba(255,193,7,0.3), rgba(255,152,0,0.2), rgba(255,193,7,0.1))',
+            borderRadius: isMobile ? '18px' : '26px',
             zIndex: -1,
-            animation: 'trendingGlow 3s ease-in-out infinite alternate',
+            animation: 'trendingGlow 4s ease-in-out infinite alternate',
+            filter: 'blur(1px)',
+          },
+          '&::after': {
+            content: '""',
+            position: 'absolute',
+            top: '-1px',
+            left: '-1px',
+            right: '-1px',
+            bottom: '-1px',
+            background: 'linear-gradient(135deg, rgba(255,152,0,0.1), rgba(255,193,7,0.15), rgba(255,152,0,0.1))',
+            borderRadius: isMobile ? '16px' : '24px',
+            zIndex: -1,
+            animation: 'trendingShimmer 3s ease-in-out infinite',
+            opacity: 0.7,
           },
           '@keyframes trendingGlow': {
             '0%': {
-              opacity: 0.3,
+              opacity: 0.4,
+              transform: 'scale(1) rotate(0deg)',
+            },
+            '50%': {
+              opacity: 0.8,
+              transform: 'scale(1.01) rotate(1deg)',
             },
             '100%': {
               opacity: 0.6,
+              transform: 'scale(1) rotate(0deg)',
+            },
+          },
+          '@keyframes trendingShimmer': {
+            '0%': {
+              backgroundPosition: '-200% 0',
+            },
+            '100%': {
+              backgroundPosition: '200% 0',
             },
           },
         }}
@@ -366,20 +424,41 @@ const TrendingItem = ({ trend, isLoading }) => {
             {/* Left Side - Trending Badge */}
             <Box
               sx={{
-                background: 'linear-gradient(45deg, #FF9800, #FFC107)',
+                background: 'linear-gradient(45deg, #FF9800, #FFC107, #FF9800)',
+                backgroundSize: '200% 200%',
                 padding: { xs: '4px 8px', sm: '6px 12px' },
                 borderRadius: '20px',
-                boxShadow: '0 4px 15px rgba(255,152,0,0.4)',
-                animation: 'trendingPulse 2s ease-in-out infinite',
+                boxShadow: '0 4px 15px rgba(255,152,0,0.4), 0 0 20px rgba(255,152,0,0.2)',
+                animation: 'trendingPulse 3s ease-in-out infinite, trendingGradient 4s ease-in-out infinite',
+                transition: 'all 0.3s cubic-bezier(0.4, 0, 0.2, 1)',
+                cursor: 'pointer',
+                '&:hover': {
+                  transform: 'scale(1.05)',
+                  boxShadow: '0 6px 20px rgba(255,152,0,0.6), 0 0 30px rgba(255,152,0,0.3)',
+                },
                 '@keyframes trendingPulse': {
                   '0%': {
-                    boxShadow: '0 4px 15px rgba(255,152,0,0.4)',
+                    boxShadow: '0 4px 15px rgba(255,152,0,0.4), 0 0 20px rgba(255,152,0,0.2)',
+                    transform: 'scale(1)',
                   },
                   '50%': {
-                    boxShadow: '0 4px 25px rgba(255,152,0,0.6)',
+                    boxShadow: '0 6px 25px rgba(255,152,0,0.6), 0 0 35px rgba(255,152,0,0.4)',
+                    transform: 'scale(1.02)',
                   },
                   '100%': {
-                    boxShadow: '0 4px 15px rgba(255,152,0,0.4)',
+                    boxShadow: '0 4px 15px rgba(255,152,0,0.4), 0 0 20px rgba(255,152,0,0.2)',
+                    transform: 'scale(1)',
+                  },
+                },
+                '@keyframes trendingGradient': {
+                  '0%': {
+                    backgroundPosition: '0% 50%',
+                  },
+                  '50%': {
+                    backgroundPosition: '100% 50%',
+                  },
+                  '100%': {
+                    backgroundPosition: '0% 50%',
                   },
                 },
               }}
@@ -419,22 +498,31 @@ const TrendingItem = ({ trend, isLoading }) => {
                   height: { xs: '30px', sm: '30px', md: '32px' },
                   padding: { xs: '0 12px', sm: '0 12px', md: '0 16px' },
                   borderRadius: { xs: '12px', sm: '16px' },
-                  boxShadow: `0 2px 8px ${alpha(foundLostStatus.color, 0.4)}`,
+                  boxShadow: `0 2px 8px ${alpha(foundLostStatus.color, 0.4)}, 0 0 15px ${alpha(foundLostStatus.color, 0.2)}`,
                   border: `1px solid ${alpha(foundLostStatus.color, 0.3)}`,
-                  backdropFilter: 'blur(10px)',
-                  transition: 'all 0.3s ease',
+                  backdropFilter: 'blur(15px)',
+                  transition: 'all 0.3s cubic-bezier(0.4, 0, 0.2, 1)',
+                  cursor: 'pointer',
                   '& .MuiChip-icon': {
                     color: '#fff',
-                    marginLeft: 0
+                    marginLeft: 0,
+                    transition: 'transform 0.3s ease',
                   },
                   '& .MuiChip-label': {
                     paddingLeft: { xs: '4px', sm: '6px' },
-                    paddingRight: { xs: '4px', sm: '6px' }
+                    paddingRight: { xs: '4px', sm: '6px' },
+                    transition: 'all 0.3s ease',
                   },
                   '&:hover': {
                     backgroundColor: alpha(foundLostStatus.color, 1),
-                    transform: 'translateY(-1px)',
-                    boxShadow: `0 4px 12px ${alpha(foundLostStatus.color, 0.6)}`
+                    transform: 'translateY(-2px) scale(1.05)',
+                    boxShadow: `0 6px 20px ${alpha(foundLostStatus.color, 0.6)}, 0 0 25px ${alpha(foundLostStatus.color, 0.3)}`,
+                    '& .MuiChip-icon': {
+                      transform: 'scale(1.1) rotate(5deg)',
+                    },
+                    '& .MuiChip-label': {
+                      transform: 'scale(1.02)',
+                    }
                   }
                 }}
               />
@@ -448,9 +536,19 @@ const TrendingItem = ({ trend, isLoading }) => {
                   display: 'flex',
                   alignItems: 'center',
                   gap: 0.5,
-                  backdropFilter: 'blur(10px)',
+                  backdropFilter: 'blur(15px)',
                   border: `1px solid ${theme.palette.mode === 'dark' ? alpha(categoryStyle.main, 0.3) : categoryStyle.main}`,
                   zIndex: 11, // Higher z-index for category badge (same as RecentPosts)
+                  transition: 'all 0.3s cubic-bezier(0.4, 0, 0.2, 1)',
+                  cursor: 'pointer',
+                  boxShadow: `0 2px 8px ${alpha(categoryStyle.main, 0.2)}, 0 0 12px ${alpha(categoryStyle.main, 0.1)}`,
+                  '&:hover': {
+                    transform: 'translateY(-1px) scale(1.03)',
+                    boxShadow: `0 4px 15px ${alpha(categoryStyle.main, 0.3)}, 0 0 20px ${alpha(categoryStyle.main, 0.15)}`,
+                    backgroundColor: theme.palette.mode === 'dark' 
+                      ? alpha('rgb(232, 245, 233)', 0.9) 
+                      : alpha(categoryStyle.background, 0.8),
+                  }
                 }}
               >
                 <RenderIcon 
@@ -489,9 +587,17 @@ const TrendingItem = ({ trend, isLoading }) => {
                 alignItems: 'center',
                 mb: 2,
                 p: { xs: 2, sm: 1.5 },
-                backgroundColor: alpha('#000', 0.3),
-                borderRadius: '12px',
-                backdropFilter: 'blur(10px)'
+                backgroundColor: alpha('#000', 0.4),
+                borderRadius: '16px',
+                backdropFilter: 'blur(20px) saturate(180%)',
+                WebkitBackdropFilter: 'blur(20px) saturate(180%)',
+                border: '1px solid rgba(255, 255, 255, 0.1)',
+                boxShadow: '0 4px 15px rgba(0, 0, 0, 0.2), inset 0 1px 0 rgba(255, 255, 255, 0.1)',
+                transition: 'all 0.3s ease',
+                '&:hover': {
+                  backgroundColor: alpha('#000', 0.5),
+                  boxShadow: '0 6px 20px rgba(0, 0, 0, 0.3), inset 0 1px 0 rgba(255, 255, 255, 0.15)',
+                }
               }}
             >
               <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
@@ -532,20 +638,43 @@ const TrendingItem = ({ trend, isLoading }) => {
           onClick={handleViewPost}
           sx={{
             background: 'linear-gradient(45deg, #4A8BFF 30%, #1A6EEE 90%)',
+            backgroundSize: '200% 200%',
             color: '#fff',
-            borderRadius: '4px',
+            borderRadius: '12px',
             padding: { xs: '14px', sm: '12px' },
             textTransform: 'none',
             fontSize: { xs: '16px', sm: '14px' },
             fontWeight: 600,
-            transition: 'all 0.3s ease',
-            boxShadow: '0 3px 5px 2px rgba(26, 110, 238, .3)',
+            transition: 'all 0.4s cubic-bezier(0.4, 0, 0.2, 1)',
+            boxShadow: '0 4px 15px rgba(26, 110, 238, 0.3), 0 0 20px rgba(26, 110, 238, 0.1)',
+            backdropFilter: 'blur(10px)',
+            border: '1px solid rgba(255, 255, 255, 0.2)',
+            position: 'relative',
+            overflow: 'hidden',
+            '&::before': {
+              content: '""',
+              position: 'absolute',
+              top: 0,
+              left: '-100%',
+              width: '100%',
+              height: '100%',
+              background: 'linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.2), transparent)',
+              transition: 'left 0.5s ease',
+            },
             '&:hover': {
               background: 'linear-gradient(45deg, #5A9BFF 30%, #2A7EFF 90%)',
-              boxShadow: '0 4px 8px 2px rgba(26, 110, 238, .4)',
+              boxShadow: '0 8px 25px rgba(26, 110, 238, 0.4), 0 0 30px rgba(26, 110, 238, 0.2)',
+              transform: 'translateY(-2px)',
+              '&::before': {
+                left: '100%',
+              },
+            },
+            '&:active': {
+              transform: 'translateY(0px)',
+              boxShadow: '0 4px 15px rgba(26, 110, 238, 0.3)',
             }
           }}
-          endIcon={<RenderIcon name="view" sx={{ fontSize: { xs: '18px', sm: '16px' } }} />}
+          endIcon={<RenderIcon name="view" sx={{ fontSize: { xs: '18px', sm: '16px' }, transition: 'transform 0.3s ease' }} />}
         >
           {t('viewDetails')}
         </Button>
