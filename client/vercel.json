@@ -27,12 +27,12 @@
       "dest": "/favicon.ico"
     },
     {
-      "src": "/logo192.png",
-      "dest": "/logo192.png"
+      "src": "/maficon.png",
+      "dest": "/maficon.png"
     },
     {
-      "src": "/logo512.png",
-      "dest": "/logo512.png"
+      "src": "/maficon.png",
+      "dest": "/maficon.png"
     },
     {
       "src": "/maflogo.png",

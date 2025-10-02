@@ -16,8 +16,7 @@
 # Handle manifest and favicon
 /manifest.json /manifest.json 200
 /favicon.ico /favicon.ico 200
-/logo192.png /logo192.png 200
-/logo512.png /logo512.png 200
+/maficon.png /maficon.png 200
 
 # Handle all other routes - SPA fallback
 /* /index.html 200
