@@ -1729,9 +1729,9 @@ const NewPostForm = ({ user, countries, categories, flOptions }) => {
                     width: '100%'
                   }}
                 >
-                  <SubmitButton 
-                    isSubmitting={isSubmitting}
-                    text={t('createPost')}
+                  <Button
+                    type="submit"
+                    disabled={isSubmitting}
                     sx={{ 
                       width: { xs: "100%", sm: "100%", md: "100%" },
                       maxWidth: { xs: "100%", sm: "400px", md: "500px" },
@@ -1740,22 +1740,29 @@ const NewPostForm = ({ user, countries, categories, flOptions }) => {
                       fontWeight: 600,
                       borderRadius: 2,
                       background: 'linear-gradient(45deg, #4A8BFF 30%, #1A6EEE 90%)',
-                      color: '#fff',
+                      color: '#fff !important',
                       boxShadow: '0 4px 15px rgba(26, 110, 238, 0.3)',
                       '&:hover': {
                         background: 'linear-gradient(45deg, #5A9BFF 30%, #2A7EFF 90%)',
                         boxShadow: '0 6px 20px rgba(26, 110, 238, 0.4)',
                         transform: 'translateY(-1px)',
+                        color: '#fff !important',
                       },
                       '&:disabled': {
                         background: theme.palette.mode === 'dark' ? 'rgba(74, 139, 255, 0.3)' : 'rgba(26, 110, 238, 0.3)',
-                        color: theme.palette.mode === 'dark' ? 'rgba(255,255,255,0.5)' : 'rgba(255,255,255,0.7)',
+                        color: theme.palette.mode === 'dark' ? 'rgba(255,255,255,0.5) !important' : 'rgba(255,255,255,0.7) !important',
                         transform: 'none',
                         boxShadow: 'none',
                       },
                       transition: 'all 0.2s ease-in-out',
                     }}
-                  />
+                  >
+                    {isSubmitting ? (
+                      <CircularProgress size={24} color="inherit" />
+                    ) : (
+                      t('createPost')
+                    )}
+                  </Button>
                 </Box>
                 
                 {/* Dynamic validation error message */}
