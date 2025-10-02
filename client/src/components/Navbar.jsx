@@ -95,7 +95,7 @@ const StyledToolbar = styled(Toolbar)(({ theme }) => ({
 }));
 
 const LogoButton = styled(Button)(({ theme }) => ({
-  padding: '8px 12px',
+  padding: '12px 16px',
   borderRadius: theme.palette.mode === 'dark' ? '4px' : '10px',
   transition: 'all 0.3s cubic-bezier(0.4, 0, 0.2, 1)',
   position: 'relative',
@@ -120,7 +120,7 @@ const LogoButton = styled(Button)(({ theme }) => ({
     zIndex: 2,
   },
   [theme.breakpoints.down('sm')]: {
-    padding: '8px 10px',
+    padding: '10px 12px',
     marginLeft: theme.direction === 'rtl' ? '0' : '-6px',
     marginRight: theme.direction === 'rtl' ? '-6px' : '0',
     gap: '6px',
