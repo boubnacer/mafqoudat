@@ -557,7 +557,6 @@ const TrendingItem = ({ trend, isLoading }) => {
                 </Typography>
               </Box>
             </Box>
-
             {/* Action Button */}
         <Button
           fullWidth
