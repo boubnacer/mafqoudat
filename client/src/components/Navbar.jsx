@@ -123,8 +123,13 @@ const LogoButton = styled(Button)(({ theme }) => ({
     padding: '8px 10px',
     marginLeft: theme.direction === 'rtl' ? '0' : '-6px',
     marginRight: theme.direction === 'rtl' ? '-6px' : '0',
+    gap: '6px',
     '& img': {
       maxHeight: '22px', // Slightly larger size for mobile
+    },
+    '& img[alt="Mafqoudat Icon"]': {
+      height: '18px',
+      width: '18px',
     }
   }
 }));
@@ -486,8 +491,23 @@ const Navbar = () => {
             sx={{
               position: 'relative',
               overflow: 'hidden',
+              display: 'flex',
+              alignItems: 'center',
+              gap: '8px',
             }}
           >
+            <img
+              src="/maficon.png"
+              alt="Mafqoudat Icon"
+              loading="lazy"
+              style={{
+                height: '20px',
+                width: '20px',
+                objectFit: 'contain',
+                position: 'relative',
+                zIndex: 2,
+              }}
+            />
             <img
               src="/maflogo.png"
               alt={t("brandName")}
