@@ -110,7 +110,7 @@ const LogoButton = styled(Button)(({ theme }) => ({
     background: theme.palette.mode === 'dark' ? '#ffffff' : 'transparent',
     boxShadow: theme.palette.mode === 'dark' ? '0 1px 3px rgba(0, 0, 0, 0.1)' : 'none',
   },
-  '& img[alt*="brandName"]': {
+  '& img': {
     height: 'auto',
     maxHeight: '16px', // Consistent size in both modes
     width: 'auto',
@@ -124,7 +124,7 @@ const LogoButton = styled(Button)(({ theme }) => ({
     marginLeft: theme.direction === 'rtl' ? '0' : '-6px',
     marginRight: theme.direction === 'rtl' ? '-6px' : '0',
     gap: '6px',
-    '& img[alt*="brandName"]': {
+    '& img': {
       maxHeight: '14px', // Slightly larger size for mobile
     },
     '& img[alt="Mafqoudat Icon"]': {
