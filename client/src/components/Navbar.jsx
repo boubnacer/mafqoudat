@@ -128,8 +128,8 @@ const LogoButton = styled(Button)(({ theme }) => ({
       maxHeight: '14px', // Slightly larger size for mobile
     },
     '& img[alt="Mafqoudat Icon"]': {
-      height: '26px',
-      width: '26px',
+      height: '30px',
+      width: '30px',
     }
   }
 }));
@@ -501,8 +501,8 @@ const Navbar = () => {
               alt="Mafqoudat Icon"
               loading="lazy"
               style={{
-                height: '32px',
-                width: '32px',
+                height: '38px',
+                width: '38px',
                 objectFit: 'contain',
                 position: 'relative',
                 zIndex: 2,
