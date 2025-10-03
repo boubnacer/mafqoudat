@@ -97,18 +97,16 @@ const StyledToolbar = styled(Toolbar)(({ theme }) => ({
 const LogoButton = styled(Button)(({ theme }) => ({
   padding: '8px 12px',
   borderRadius: theme.palette.mode === 'dark' ? '4px' : '10px',
-  transition: 'all 0.3s cubic-bezier(0.4, 0, 0.2, 1)',
   position: 'relative',
   overflow: 'hidden',
-  background: theme.palette.mode === 'dark' ? '#ffffff' : 'transparent',
+  background: 'transparent',
   minWidth: 'auto',
-  boxShadow: theme.palette.mode === 'dark' ? '0 1px 3px rgba(0, 0, 0, 0.1)' : 'none',
+  boxShadow: 'none',
   marginLeft: theme.direction === 'rtl' ? '0' : '-4px',
   marginRight: theme.direction === 'rtl' ? '-4px' : '0',
   '&:hover': {
-    transform: theme.palette.mode === 'dark' ? 'none' : 'translateY(-2px)',
-    background: theme.palette.mode === 'dark' ? '#ffffff' : 'transparent',
-    boxShadow: theme.palette.mode === 'dark' ? '0 1px 3px rgba(0, 0, 0, 0.1)' : 'none',
+    background: 'transparent',
+    boxShadow: 'none',
   },
   '& img': {
     height: 'auto',
