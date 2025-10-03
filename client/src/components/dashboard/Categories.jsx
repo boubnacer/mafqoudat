@@ -129,21 +129,21 @@ const Categories = () => {
         <Box display="flex" justifyContent="center" mt={3}>
         <Button
           onClick={toggleShowAllCategories}
-          variant="contained"
+          variant="outlined"
           endIcon={showAllCategories ? <ExpandLess /> : <ExpandMore />}
           sx={{
-            background: 'linear-gradient(45deg, #4A8BFF 30%, #1A6EEE 90%)',
-            color: '#fff',
+            color: theme.palette.primary.main,
+            borderColor: theme.palette.primary.main,
             borderRadius: '4px',
             px: 3,
             py: 1,
             textTransform: 'none',
             fontWeight: 600,
-            boxShadow: '0 3px 5px 2px rgba(26, 110, 238, .3)',
             transition: 'all 0.3s ease',
             '&:hover': {
-              background: 'linear-gradient(45deg, #5A9BFF 30%, #2A7EFF 90%)',
-              boxShadow: '0 4px 8px 2px rgba(26, 110, 238, .4)',
+              backgroundColor: theme.palette.primary.main,
+              color: '#fff',
+              borderColor: theme.palette.primary.main,
             }
           }}
         >
