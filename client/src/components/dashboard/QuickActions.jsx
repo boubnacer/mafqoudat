@@ -68,10 +68,7 @@ const QuickActions = () => {
     // 2. Touch duration is reasonable (less than 500ms)
     // 3. Not a scroll gesture
     if (!touchMoved && deltaX < 10 && deltaY < 10 && touchDuration < 500) {
-      console.log('📱 Valid tap detected, executing action');
       action();
-    } else {
-      console.log('📱 Touch ignored - movement:', touchMoved, 'deltaX:', deltaX, 'deltaY:', deltaY, 'duration:', touchDuration);
     }
     
     // Reset touch state
@@ -80,68 +77,52 @@ const QuickActions = () => {
   };
 
   const scrollToHelpSection = () => {
-    console.log('🔍 scrollToHelpSection called, isMobile:', isMobile);
     
     const helpSection = document.querySelector('[data-section="help"]');
-    console.log('🔍 helpSection found:', !!helpSection, helpSection);
     
     if (helpSection) {
       if (isMobile) {
-        console.log('📱 Mobile scrolling triggered');
         // Mobile-specific scrolling with manual calculation
         const navbar = document.querySelector('.MuiAppBar-root');
         const navbarHeight = navbar ? navbar.offsetHeight : 0;
-        console.log('📱 Navbar height:', navbarHeight);
         
         // Get the element's position relative to the document
         const elementRect = helpSection.getBoundingClientRect();
         const absoluteElementTop = elementRect.top + window.pageYOffset;
-        console.log('📱 Element position:', { elementRect, absoluteElementTop });
         
         // Calculate scroll position accounting for navbar
         const scrollPosition = absoluteElementTop - navbarHeight - 20;
-        console.log('📱 Scroll position:', scrollPosition);
         
         // Use multiple scrolling methods for mobile compatibility
         const finalScrollPosition = Math.max(0, scrollPosition);
-        console.log('📱 Final scroll position:', finalScrollPosition);
-        console.log('📱 Current scroll position:', window.pageYOffset);
         
         // Real mobile device detection
         const isRealMobile = /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent);
-        console.log('📱 Real mobile device detected:', isRealMobile);
         
         if (isRealMobile) {
-          console.log('📱 Using real mobile scroll strategy');
           
           // Method 1: Try to focus the element first (sometimes helps with mobile scrolling)
           try {
             helpSection.focus();
-            console.log('📱 Focused help section');
           } catch (e) {
-            console.log('📱 Focus failed:', e);
           }
           
           // Method 2: Simple instant scroll for real mobile devices
           const instantScrollToPosition = (targetPosition) => {
-            console.log('📱 Instant scrolling to:', targetPosition);
             
             // Try multiple scroll methods for maximum compatibility
             try {
               // Method 1: Direct window scroll
               window.scrollTo(0, targetPosition);
-              console.log('📱 Method 1: window.scrollTo called');
               
               // Method 2: Direct DOM manipulation
               document.documentElement.scrollTop = targetPosition;
               document.body.scrollTop = targetPosition;
-              console.log('📱 Method 2: DOM manipulation called');
               
               // Method 3: Force scroll on main container
               const mainContainer = document.querySelector('main');
               if (mainContainer) {
                 mainContainer.scrollTop = targetPosition;
-                console.log('📱 Method 3: Main container scroll called');
               }
               
               // Method 4: Use scrollIntoView with instant behavior
@@ -150,13 +131,10 @@ const QuickActions = () => {
                 block: 'start',
                 inline: 'nearest'
               });
-              console.log('📱 Method 4: scrollIntoView instant called');
               
             } catch (error) {
-              console.error('📱 Scroll error:', error);
             }
             
-            console.log('📱 After instant scroll, position:', window.pageYOffset);
           };
           
           // Use instant scrolling
@@ -164,10 +142,8 @@ const QuickActions = () => {
           
         } else {
           // Desktop/emulator approach
-          console.log('📱 Using desktop/emulator scroll strategy');
           
           try {
-            console.log('📱 Method 1: Direct scrollIntoView on help section');
             helpSection.scrollIntoView({ 
               behavior: 'smooth', 
               block: 'start',
@@ -177,11 +153,8 @@ const QuickActions = () => {
             // Check if it worked after a delay
             setTimeout(() => {
               const currentScroll = window.pageYOffset;
-              console.log('📱 After scrollIntoView, current position:', currentScroll);
-              console.log('📱 Distance from target:', Math.abs(currentScroll - finalScrollPosition));
               
               if (Math.abs(currentScroll - finalScrollPosition) > 100) {
-                console.log('📱 Method 2: scrollIntoView failed, trying manual scroll');
                 
                 // Method 2: Manual scroll with animation
                 const startPosition = window.pageYOffset;
@@ -206,7 +179,6 @@ const QuickActions = () => {
                   if (progress < 1) {
                     requestAnimationFrame(animateScroll);
                   } else {
-                    console.log('📱 Manual scroll animation completed');
                   }
                 };
                 
@@ -215,16 +187,13 @@ const QuickActions = () => {
             }, 300);
             
           } catch (error) {
-            console.error('📱 Scroll error:', error);
             // Final fallback - force scroll
-            console.log('📱 Method 3: Force scroll fallback');
             window.scrollTo(0, finalScrollPosition);
             document.documentElement.scrollTop = finalScrollPosition;
             document.body.scrollTop = finalScrollPosition;
           }
         }
       } else {
-        console.log('🖥️ Desktop scrolling triggered');
         // Desktop scrolling
         helpSection.scrollIntoView({ 
           behavior: 'smooth', 
@@ -233,7 +202,6 @@ const QuickActions = () => {
         });
       }
     } else {
-      console.log('⚠️ Help section not found, trying fallback');
       // Fallback: try to find the help section by text content
       const helpElements = document.querySelectorAll('*');
       let foundElement = null;
@@ -241,14 +209,12 @@ const QuickActions = () => {
       for (let element of helpElements) {
         if (element.textContent && element.textContent.includes('Help & Support')) {
           foundElement = element;
-          console.log('🔍 Found help section by text:', element);
           break;
         }
       }
       
       if (foundElement) {
         if (isMobile) {
-          console.log('📱 Mobile fallback scrolling');
           const navbar = document.querySelector('.MuiAppBar-root');
           const navbarHeight = navbar ? navbar.offsetHeight : 0;
           const elementRect = foundElement.getBoundingClientRect();
@@ -276,11 +242,9 @@ const QuickActions = () => {
             }, 200);
             
           } catch (error) {
-            console.error('📱 Fallback scroll error:', error);
             window.scrollTo(0, finalScrollPosition);
           }
         } else {
-          console.log('🖥️ Desktop fallback scrolling');
           foundElement.scrollIntoView({ 
             behavior: 'smooth', 
             block: 'start',
@@ -288,7 +252,6 @@ const QuickActions = () => {
           });
         }
       } else {
-        console.log('❌ No help section found at all');
       }
     }
   };
@@ -336,10 +299,7 @@ const QuickActions = () => {
       description: t('getHelpDesc'),
       icon: <HelpOutline sx={{ fontSize: '2rem' }} />,
       color: '#96ceb4',
-      action: () => {
-        console.log('🔘 Get Help button clicked!');
-        scrollToHelpSection();
-      }
+      action: () => scrollToHelpSection()
     }
   ];
 
@@ -415,7 +375,6 @@ const QuickActions = () => {
               onTouchMove={handleTouchMove}
               onTouchEnd={(e) => {
                 e.preventDefault();
-                console.log('📱 Touch end event on card:', action.title);
                 handleTouchEnd(e, action.action);
               }}
             >
