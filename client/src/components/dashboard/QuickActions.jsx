@@ -57,62 +57,122 @@ const QuickActions = () => {
         console.log('📱 Final scroll position:', finalScrollPosition);
         console.log('📱 Current scroll position:', window.pageYOffset);
         
-        // Method 1: Try scrollIntoView with the element directly
-        try {
-          console.log('📱 Method 1: Direct scrollIntoView on help section');
-          helpSection.scrollIntoView({ 
-            behavior: 'smooth', 
-            block: 'start',
-            inline: 'nearest'
-          });
+        // Real mobile device detection
+        const isRealMobile = /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent);
+        console.log('📱 Real mobile device detected:', isRealMobile);
+        
+        if (isRealMobile) {
+          console.log('📱 Using real mobile scroll strategy');
           
-          // Check if it worked after a delay
-          setTimeout(() => {
-            const currentScroll = window.pageYOffset;
-            console.log('📱 After scrollIntoView, current position:', currentScroll);
-            console.log('📱 Distance from target:', Math.abs(currentScroll - finalScrollPosition));
+          // Method 1: Try to focus the element first (sometimes helps with mobile scrolling)
+          try {
+            helpSection.focus();
+            console.log('📱 Focused help section');
+          } catch (e) {
+            console.log('📱 Focus failed:', e);
+          }
+          
+          // Method 2: Use a more aggressive scroll approach for real mobile
+          const scrollToPosition = (position) => {
+            console.log('📱 Attempting to scroll to:', position);
             
-            if (Math.abs(currentScroll - finalScrollPosition) > 100) {
-              console.log('📱 Method 2: scrollIntoView failed, trying manual scroll');
-              
-              // Method 2: Manual scroll with animation
-              const startPosition = window.pageYOffset;
-              const distance = finalScrollPosition - startPosition;
-              const duration = 500; // 500ms animation
-              let startTime = null;
-              
-              const animateScroll = (currentTime) => {
-                if (startTime === null) startTime = currentTime;
-                const timeElapsed = currentTime - startTime;
-                const progress = Math.min(timeElapsed / duration, 1);
-                
-                // Easing function (ease-out)
-                const easeOut = 1 - Math.pow(1 - progress, 3);
-                const currentPosition = startPosition + (distance * easeOut);
-                
-                // Try multiple scroll methods
-                window.scrollTo(0, currentPosition);
-                document.documentElement.scrollTop = currentPosition;
-                document.body.scrollTop = currentPosition;
-                
-                if (progress < 1) {
-                  requestAnimationFrame(animateScroll);
-                } else {
-                  console.log('📱 Manual scroll animation completed');
-                }
-              };
-              
-              requestAnimationFrame(animateScroll);
+            // Try all possible scroll methods
+            window.scrollTo(0, position);
+            window.scrollTo({ top: position, left: 0, behavior: 'auto' });
+            document.documentElement.scrollTop = position;
+            document.body.scrollTop = position;
+            
+            // Try scrolling the main container if it exists
+            const mainContainer = document.querySelector('main') || document.querySelector('#root') || document.body;
+            if (mainContainer && mainContainer.scrollTop !== undefined) {
+              mainContainer.scrollTop = position;
             }
-          }, 300);
+            
+            // Force a reflow
+            helpSection.offsetHeight;
+            
+            console.log('📱 After scroll attempt, position:', window.pageYOffset);
+          };
           
-        } catch (error) {
-          console.error('📱 Scroll error:', error);
-          // Final fallback - force scroll
-          console.log('📱 Method 3: Force scroll fallback');
-          window.scrollTo(0, finalScrollPosition);
-          document.documentElement.scrollTop = finalScrollPosition;
-          document.body.scrollTop = finalScrollPosition;
+          // Immediate scroll attempt
+          scrollToPosition(finalScrollPosition);
+          
+          // Try again after a short delay
+          setTimeout(() => {
+            console.log('📱 Second scroll attempt');
+            scrollToPosition(finalScrollPosition);
+          }, 100);
+          
+          // Final attempt with scrollIntoView
+          setTimeout(() => {
+            console.log('📱 Final scrollIntoView attempt');
+            helpSection.scrollIntoView({ 
+              behavior: 'auto', 
+              block: 'start',
+              inline: 'nearest'
+            });
+          }, 200);
+          
+        } else {
+          // Desktop/emulator approach
+          console.log('📱 Using desktop/emulator scroll strategy');
+          
+          try {
+            console.log('📱 Method 1: Direct scrollIntoView on help section');
+            helpSection.scrollIntoView({ 
+              behavior: 'smooth', 
+              block: 'start',
+              inline: 'nearest'
+            });
+            
+            // Check if it worked after a delay
+            setTimeout(() => {
+              const currentScroll = window.pageYOffset;
+              console.log('📱 After scrollIntoView, current position:', currentScroll);
+              console.log('📱 Distance from target:', Math.abs(currentScroll - finalScrollPosition));
+              
+              if (Math.abs(currentScroll - finalScrollPosition) > 100) {
+                console.log('📱 Method 2: scrollIntoView failed, trying manual scroll');
+                
+                // Method 2: Manual scroll with animation
+                const startPosition = window.pageYOffset;
+                const distance = finalScrollPosition - startPosition;
+                const duration = 500; // 500ms animation
+                let startTime = null;
+                
+                const animateScroll = (currentTime) => {
+                  if (startTime === null) startTime = currentTime;
+                  const timeElapsed = currentTime - startTime;
+                  const progress = Math.min(timeElapsed / duration, 1);
+                  
+                  // Easing function (ease-out)
+                  const easeOut = 1 - Math.pow(1 - progress, 3);
+                  const currentPosition = startPosition + (distance * easeOut);
+                  
+                  // Try multiple scroll methods
+                  window.scrollTo(0, currentPosition);
+                  document.documentElement.scrollTop = currentPosition;
+                  document.body.scrollTop = currentPosition;
+                  
+                  if (progress < 1) {
+                    requestAnimationFrame(animateScroll);
+                  } else {
+                    console.log('📱 Manual scroll animation completed');
+                  }
+                };
+                
+                requestAnimationFrame(animateScroll);
+              }
+            }, 300);
+            
+          } catch (error) {
+            console.error('📱 Scroll error:', error);
+            // Final fallback - force scroll
+            console.log('📱 Method 3: Force scroll fallback');
+            window.scrollTo(0, finalScrollPosition);
+            document.documentElement.scrollTop = finalScrollPosition;
+            document.body.scrollTop = finalScrollPosition;
+          }
         }
       } else {
         console.log('🖥️ Desktop scrolling triggered');
