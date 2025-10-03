@@ -14,6 +14,9 @@ import {
   ListItemIcon,
   ListItemText,
   Divider,
+  Autocomplete,
+  TextField,
+  Paper,
 } from "@mui/material";
 import {
   DarkModeOutlined,
@@ -34,18 +37,15 @@ import {
 import FlexBetween from "./FlexBetween";
 import {
   selectCurrentCountry,
-  selectOpenModal,
   setMode,
-  setOpenModal,
+  setCurrentCountry,
 } from "../app/state";
 import { useDispatch, useSelector } from "react-redux";
 import { useSendLogoutMutation } from "../features/auth/authApiSlice";
 import { useNavigate } from "react-router-dom";
 import { useEffect, useState } from "react";
 import { useGetCountriesQuery } from "../features/countries/countriesApiSlice";
-import { setCurrentCountry } from "../app/state";
 import useAuth from "../hooks/useAuth";
-import CountryModal from "./CountryModal";
 import { useTranslation } from "../utils/translations";
 import { useGetflOptionsQuery } from "../features/dependencies/dependenciesApiSlice";
 import { useUnifiedLanguageChange } from "../hooks/useUnifiedLanguageChange";
@@ -182,37 +182,11 @@ const NavigationButton = styled(Button)(({ theme }) => ({
 }));
 
 const CountrySelector = styled(Box)(({ theme }) => ({
-  display: 'flex',
-  alignItems: 'center',
-  justifyContent: 'center',
-  padding: '6px 12px',
-  borderRadius: '10px',
-  cursor: 'pointer',
-  background: theme.palette.mode === 'dark' 
-    ? alpha(theme.palette.common.white, 0.05)
-    : alpha(theme.palette.common.black, 0.03),
-  border: `1px solid ${alpha(theme.palette.divider, 0.1)}`,
-  transition: 'all 0.3s cubic-bezier(0.4, 0, 0.2, 1)',
-  '&:hover': {
-    background: theme.palette.mode === 'dark' 
-      ? alpha(theme.palette.common.white, 0.12)
-      : alpha(theme.palette.common.black, 0.08),
-    transform: 'translateY(-2px)',
-    boxShadow: theme.palette.mode === 'dark'
-      ? '0 4px 15px rgba(0, 0, 0, 0.3)'
-      : '0 4px 15px rgba(0, 0, 0, 0.1)',
-  },
-  '& img': {
-    borderRadius: '4px',
-    marginRight: '8px',
-    transition: 'all 0.3s ease',
-  },
+  minWidth: { xs: '120px', sm: '140px' },
+  maxWidth: { xs: '140px', sm: '180px' },
   [theme.breakpoints.down('sm')]: {
-    padding: '8px 10px',
-    justifyContent: 'center',
-    '& img': {
-      marginRight: '0',
-    }
+    minWidth: '100px',
+    maxWidth: '120px',
   }
 }));
 
@@ -282,15 +256,13 @@ const Navbar = () => {
   });
 
   const currentCountry = useSelector(selectCurrentCountry);
-  const openModal = useSelector(selectOpenModal);
   const mode = useSelector((state) => state.global.mode);
 
-  const [countryId, setCountryId] = useState(null);
+  const [selectedCountry, setSelectedCountry] = useState(null);
   const [languageAnchorEl, setLanguageAnchorEl] = useState(null);
   const [mobileMenuAnchorEl, setMobileMenuAnchorEl] = useState(null);
   const [navigationAnchorEl, setNavigationAnchorEl] = useState(null);
   const [profileAnchorEl, setProfileAnchorEl] = useState(null);
-  const [isUserSelectingCountry, setIsUserSelectingCountry] = useState(false);
   const [isInitialized, setIsInitialized] = useState(false);
   const [logoAnimationTrigger, setLogoAnimationTrigger] = useState(false);
 
@@ -307,11 +279,9 @@ const Navbar = () => {
   // Initialize country on component mount
   useEffect(() => {
     if (!isInitialized) {
-      const initialCountry = country || currentCountry || '68a4b54ab46524c54c553ca9';
-      setCountryId(initialCountry);
       setIsInitialized(true);
     }
-  }, [country, currentCountry, isInitialized]);
+  }, [isInitialized]);
 
   // Inject global styles for animation
   useEffect(() => {
@@ -332,25 +302,12 @@ const Navbar = () => {
     return () => clearTimeout(timer);
   }, []);
 
-  const handleCountrySelection = (newCountryId) => {
-    setIsUserSelectingCountry(true);
-    setCountryId(newCountryId);
-    dispatch(setCurrentCountry({ currentCountry: newCountryId }));
-    setTimeout(() => {
-      setIsUserSelectingCountry(false);
-    }, 100);
-  };
-
-  useEffect(() => {
-    if (!isInitialized) return;
-    if (isUserSelectingCountry) return;
-
-    if (countryId && countryId !== currentCountry) {
-      dispatch(setCurrentCountry({ currentCountry: countryId }));
-    } else if (currentCountry && currentCountry !== countryId) {
-      setCountryId(currentCountry);
+  const handleCountrySelect = (_, value) => {
+    setSelectedCountry(value);
+    if (value) {
+      dispatch(setCurrentCountry({ currentCountry: value._id }));
     }
-  }, [countryId, currentCountry, dispatch, isUserSelectingCountry, isInitialized]);
+  };
 
   const { countries } = useGetCountriesQuery({
     language: currentLanguage
@@ -362,16 +319,42 @@ const Navbar = () => {
     refetchOnMountOrArgChange: 500, // 500ms debounce
   });
 
-  const { currentCountryData } = useGetCountriesQuery({
-    language: currentLanguage
-  }, {
-    selectFromResult: ({ data }) => ({
-      currentCountryData: data?.entities[countryId || currentCountry],
-    }),
-    skip: !isInitialized || !countryId,
-    // Add debouncing to prevent multiple API calls during language switch
-    refetchOnMountOrArgChange: 500, // 500ms debounce
-  });
+  // Country code to name mapping for fallback
+  const countryCodeToName = {
+    'MA': { en: 'Morocco', ar: 'المغرب', fr: 'Maroc' },
+    'DZ': { en: 'Algeria', ar: 'الجزائر', fr: 'Algérie' },
+    'TN': { en: 'Tunisia', ar: 'تونس', fr: 'Tunisie' },
+    'EG': { en: 'Egypt', ar: 'مصر', fr: 'Égypte' },
+    'SA': { en: 'Saudi Arabia', ar: 'المملكة العربية السعودية', fr: 'Arabie Saoudite' },
+    'AE': { en: 'United Arab Emirates', ar: 'الإمارات العربية المتحدة', fr: 'Émirats Arabes Unis' },
+    'QA': { en: 'Qatar', ar: 'قطر', fr: 'Qatar' },
+    'KW': { en: 'Kuwait', ar: 'الكويت', fr: 'Koweït' },
+    'BH': { en: 'Bahrain', ar: 'البحرين', fr: 'Bahreïn' },
+    'OM': { en: 'Oman', ar: 'عُمان', fr: 'Oman' },
+    'JO': { en: 'Jordan', ar: 'الأردن', fr: 'Jordanie' },
+    'LB': { en: 'Lebanon', ar: 'لبنان', fr: 'Liban' },
+    'SY': { en: 'Syria', ar: 'سوريا', fr: 'Syrie' },
+    'IQ': { en: 'Iraq', ar: 'العراق', fr: 'Irak' },
+    'PS': { en: 'Palestine', ar: 'فلسطين', fr: 'Palestine' },
+    'LY': { en: 'Libya', ar: 'ليبيا', fr: 'Libye' },
+    'SD': { en: 'Sudan', ar: 'السودان', fr: 'Soudan' },
+    'SO': { en: 'Somalia', ar: 'الصومال', fr: 'Somalie' },
+    'DJ': { en: 'Djibouti', ar: 'جيبوتي', fr: 'Djibouti' },
+    'KM': { en: 'Comoros', ar: 'جزر القمر', fr: 'Comores' },
+    'MR': { en: 'Mauritania', ar: 'موريتانيا', fr: 'Mauritanie' },
+    'ML': { en: 'Mali', ar: 'مالي', fr: 'Mali' },
+    'NE': { en: 'Niger', ar: 'النيجر', fr: 'Niger' },
+    'TD': { en: 'Chad', ar: 'تشاد', fr: 'Tchad' },
+    'CF': { en: 'Central African Republic', ar: 'جمهورية أفريقيا الوسطى', fr: 'République Centrafricaine' }
+  };
+
+  // Fallback countries in case API fails
+  const fallbackCountries = [
+    { _id: '68a4b54ab46524c54c553ca9', code: 'MA', label: 'Morocco', labels: { en: 'MA', ar: 'MA', fr: 'MA' }, names: { en: 'Morocco', ar: 'المغرب', fr: 'Maroc' }, flag: '🇲🇦' },
+  ];
+
+  // Use countries from API or fallback
+  const countriesToUse = countries || fallbackCountries;
 
   const [sendLogout, { isSuccess }] = useSendLogoutMutation();
 
@@ -422,14 +405,6 @@ const Navbar = () => {
     }
   };
 
-  const fallbackCountries = [
-            { _id: '68a4b54ab46524c54c553ca9', code: 'MA', label: 'Morocco', labels: { en: 'MA', ar: 'MA', fr: 'MA' }, names: { en: 'Morocco', ar: 'المغرب', fr: 'Maroc' }, flag: '🇲🇦' },
-  ];
-
-  const countriesToUse = countries || fallbackCountries;
-  const currentCountryDataToUse = isInitialized && countryId 
-    ? (currentCountryData || fallbackCountries.find(c => c._id === countryId) || fallbackCountries[0])
-    : null;
 
   // Navigation menu items
   const navigationItems = [
@@ -570,66 +545,155 @@ const Navbar = () => {
           direction: 'ltr !important'
         }}>
           {/* Country selector */}
-          <CountrySelector 
-            onClick={() => dispatch(setOpenModal())}
-            sx={{
-              padding: { xs: '8px 10px', sm: '6px 12px' },
-            }}
-          >
-            {isInitialized && currentCountryDataToUse ? (
-              <>
-                <img
-                  loading="lazy"
-                  width={isMobile ? "32" : "30"}
-                  height={isMobile ? "20" : "20"}
-                  src={`https://flagcdn.com/w20/${currentCountryDataToUse.code.toLowerCase()}.png`}
-                  srcSet={`https://flagcdn.com/w40/${currentCountryDataToUse.code.toLowerCase()}.png 2x`}
-                  alt=""
-                />
-                {!isMobile && (
-                  <Typography
-                    variant="body2"
-                    sx={{
-                      fontWeight: 500,
-                      fontSize: { xs: '0.85rem', sm: '0.9rem' },
-                      display: 'block',
-                      // Only apply RTL to text content, not layout
-                      textAlign: currentLanguage === 'ar' ? 'right' : 'left'
-                    }}
-                  >
-                    {currentCountryDataToUse.names?.[currentLanguage] || currentCountryDataToUse.names?.en || currentCountryDataToUse.code}
-                  </Typography>
-                )}
-              </>
-            ) : (
-              <Box
-                sx={{
-                  width: isMobile ? 32 : 30,
-                  height: isMobile ? 20 : 20,
-                  backgroundColor: 'rgba(255,255,255,0.1)',
-                  borderRadius: '4px',
-                  display: 'flex',
-                  alignItems: 'center',
-                  justifyContent: 'center'
-                }}
-              >
+          <CountrySelector>
+            <Autocomplete
+              options={countriesToUse || []}
+              autoHighlight
+              disableClearable
+              value={selectedCountry}
+              onChange={handleCountrySelect}
+              getOptionLabel={(option) => {
+                if (!option) return '';
+                const currentLang = currentLanguage || 'en';
+                
+                // Get the appropriate name based on language (names field contains actual country names)
+                if (option.names && option.names[currentLang]) {
+                  return option.names[currentLang];
+                }
+                
+                // Fallback to labels if names is not available
+                if (option.labels && option.labels[currentLang]) {
+                  const label = option.labels[currentLang];
+                  // If label is a 2-letter code, try to get the name from mapping
+                  if (label && label.length === 2 && label === label.toUpperCase()) {
+                    // This is likely a country code, try to get the name from mapping
+                    return countryCodeToName[label]?.[currentLang] || option.code;
+                  }
+                  return label;
+                }
+                
+                // Final fallback to country code mapping
+                if (option.code && countryCodeToName[option.code]) {
+                  return countryCodeToName[option.code][currentLang] || option.code;
+                }
+                
+                return option.label || option.code;
+              }}
+              isOptionEqualToValue={(option, value) => option._id === value._id}
+              renderOption={(props, option) => (
                 <Box
+                  component="li"
+                  sx={{ "& > img": { mr: 2, flexShrink: 0 } }}
+                  {...props}
+                >
+                  {option.flag ? (
+                    <span style={{ marginRight: 8, fontSize: '20px' }}>
+                      {option.flag}
+                    </span>
+                  ) : (
+                    <img
+                      loading="lazy"
+                      width="20"
+                      src={`https://flagcdn.com/w20/${option.code.toLowerCase()}.png`}
+                      srcSet={`https://flagcdn.com/w40/${option.code.toLowerCase()}.png 2x`}
+                      alt=""
+                    />
+                  )}
+                  {(() => {
+                    const currentLang = currentLanguage || 'en';
+                    
+                    // Get the appropriate name based on language
+                    if (option.names && option.names[currentLang]) {
+                      return option.names[currentLang];
+                    }
+                    
+                    // Fallback to labels if names is not available
+                    if (option.labels && option.labels[currentLang]) {
+                      const label = option.labels[currentLang];
+                      // If label is a 2-letter code, try to get the name from mapping
+                      if (label && label.length === 2 && label === label.toUpperCase()) {
+                        return countryCodeToName[label]?.[currentLang] || option.code;
+                      }
+                      return label;
+                    }
+                    
+                    // Final fallback to country code mapping
+                    if (option.code && countryCodeToName[option.code]) {
+                      return countryCodeToName[option.code][currentLang] || option.code;
+                    }
+                    
+                    return option.label || option.code;
+                  })()} ({option.code})
+                </Box>
+              )}
+              renderInput={(params) => (
+                <TextField
+                  {...params}
+                  variant="outlined"
+                  size="small"
                   sx={{
-                    width: 12,
-                    height: 12,
-                    border: '2px solid rgba(255,255,255,0.3)',
-                    borderTop: '2px solid rgba(255,255,255,0.8)',
-                    borderRadius: '50%',
-                    animation: 'spin 1s linear infinite',
-                    '@keyframes spin': {
-                      '0%': { transform: 'rotate(0deg)' },
-                      '100%': { transform: 'rotate(360deg)' }
+                    '& .MuiOutlinedInput-root': {
+                      borderRadius: 2,
+                      fontSize: { xs: '0.8rem', sm: '0.9rem' },
+                      padding: { xs: '4px 8px', sm: '6px 12px' },
+                      minHeight: { xs: '36px', sm: '40px' },
+                      backgroundColor: theme.palette.mode === 'dark' 
+                        ? alpha(theme.palette.common.white, 0.05)
+                        : alpha(theme.palette.common.black, 0.03),
+                      border: `1px solid ${alpha(theme.palette.divider, 0.1)}`,
+                      transition: 'all 0.3s ease',
+                      '&:hover': {
+                        borderColor: alpha(theme.palette.primary.main, 0.3),
+                        backgroundColor: theme.palette.mode === 'dark' 
+                          ? alpha(theme.palette.common.white, 0.08)
+                          : alpha(theme.palette.common.black, 0.05),
+                      },
+                      '&.Mui-focused': {
+                        borderColor: theme.palette.primary.main,
+                        backgroundColor: theme.palette.mode === 'dark' 
+                          ? alpha(theme.palette.common.white, 0.1)
+                          : alpha(theme.palette.common.black, 0.06),
+                        boxShadow: `0 0 0 2px ${alpha(theme.palette.primary.main, 0.1)}`,
+                      },
+                    },
+                    '& .MuiInputLabel-root': {
+                      display: 'none', // Hide label for compact navbar
+                    },
+                    '& .MuiAutocomplete-endAdornment': {
+                      right: '8px',
+                      '& .MuiSvgIcon-root': {
+                        fontSize: '16px',
+                        color: theme.palette.text.secondary,
+                      },
                     }
                   }}
+                  inputProps={{
+                    ...params.inputProps,
+                    autoComplete: "new-password",
+                  }}
                 />
-              </Box>
-            )}
-            {!isMobile && <KeyboardArrowDown sx={{ fontSize: '16px', ml: 0.5 }} />}
+              )}
+              PaperComponent={({ children, ...other }) => (
+                <Paper
+                  {...other}
+                  sx={{
+                    borderRadius: 2,
+                    boxShadow: theme.palette.mode === 'dark'
+                      ? '0 8px 32px rgba(0, 0, 0, 0.4)'
+                      : '0 8px 32px rgba(0, 0, 0, 0.1)',
+                    background: theme.palette.mode === 'dark'
+                      ? 'rgba(30, 30, 30, 0.95)'
+                      : 'rgba(255, 255, 255, 0.95)',
+                    backdropFilter: 'blur(20px)',
+                    border: `1px solid ${alpha(theme.palette.divider, 0.1)}`,
+                    maxHeight: '300px',
+                    overflow: 'auto',
+                  }}
+                >
+                  {children}
+                </Paper>
+              )}
+            />
           </CountrySelector>
 
           {/* Language selector */}
@@ -1064,12 +1128,6 @@ const Navbar = () => {
           </Box>
         </Menu>
 
-        {/* Country Modal */}
-        <CountryModal
-          setCountryId={handleCountrySelection}
-          countries={countriesToUse}
-          openModal={openModal}
-        />
       </StyledToolbar>
     </AppBar>
   );
