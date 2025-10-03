@@ -182,11 +182,37 @@ const NavigationButton = styled(Button)(({ theme }) => ({
 }));
 
 const CountrySelector = styled(Box)(({ theme }) => ({
-  minWidth: { xs: '120px', sm: '140px' },
-  maxWidth: { xs: '140px', sm: '180px' },
+  display: 'flex',
+  alignItems: 'center',
+  justifyContent: 'center',
+  padding: '6px 12px',
+  borderRadius: '10px',
+  cursor: 'pointer',
+  background: theme.palette.mode === 'dark' 
+    ? alpha(theme.palette.common.white, 0.05)
+    : alpha(theme.palette.common.black, 0.03),
+  border: `1px solid ${alpha(theme.palette.divider, 0.1)}`,
+  transition: 'all 0.3s cubic-bezier(0.4, 0, 0.2, 1)',
+  '&:hover': {
+    background: theme.palette.mode === 'dark' 
+      ? alpha(theme.palette.common.white, 0.12)
+      : alpha(theme.palette.common.black, 0.08),
+    transform: 'translateY(-2px)',
+    boxShadow: theme.palette.mode === 'dark'
+      ? '0 4px 15px rgba(0, 0, 0, 0.3)'
+      : '0 4px 15px rgba(0, 0, 0, 0.1)',
+  },
+  '& img': {
+    borderRadius: '4px',
+    marginRight: '8px',
+    transition: 'all 0.3s ease',
+  },
   [theme.breakpoints.down('sm')]: {
-    minWidth: '100px',
-    maxWidth: '120px',
+    padding: '8px 10px',
+    justifyContent: 'center',
+    '& img': {
+      marginRight: '0',
+    }
   }
 }));
 
@@ -259,6 +285,7 @@ const Navbar = () => {
   const mode = useSelector((state) => state.global.mode);
 
   const [selectedCountry, setSelectedCountry] = useState(null);
+  const [countryAnchorEl, setCountryAnchorEl] = useState(null);
   const [languageAnchorEl, setLanguageAnchorEl] = useState(null);
   const [mobileMenuAnchorEl, setMobileMenuAnchorEl] = useState(null);
   const [navigationAnchorEl, setNavigationAnchorEl] = useState(null);
@@ -307,6 +334,15 @@ const Navbar = () => {
     if (value) {
       dispatch(setCurrentCountry({ currentCountry: value._id }));
     }
+    setCountryAnchorEl(null);
+  };
+
+  const handleCountryClick = (event) => {
+    setCountryAnchorEl(event.currentTarget);
+  };
+
+  const handleCountryClose = () => {
+    setCountryAnchorEl(null);
   };
 
   const { countries } = useGetCountriesQuery({
@@ -355,6 +391,9 @@ const Navbar = () => {
 
   // Use countries from API or fallback
   const countriesToUse = countries || fallbackCountries;
+
+  // Get current country data for display
+  const currentCountryData = countriesToUse.find(c => c._id === currentCountry) || countriesToUse[0];
 
   const [sendLogout, { isSuccess }] = useSendLogoutMutation();
 
@@ -545,155 +584,61 @@ const Navbar = () => {
           direction: 'ltr !important'
         }}>
           {/* Country selector */}
-          <CountrySelector>
-            <Autocomplete
-              options={countriesToUse || []}
-              autoHighlight
-              disableClearable
-              value={selectedCountry}
-              onChange={handleCountrySelect}
-              getOptionLabel={(option) => {
-                if (!option) return '';
-                const currentLang = currentLanguage || 'en';
-                
-                // Get the appropriate name based on language (names field contains actual country names)
-                if (option.names && option.names[currentLang]) {
-                  return option.names[currentLang];
-                }
-                
-                // Fallback to labels if names is not available
-                if (option.labels && option.labels[currentLang]) {
-                  const label = option.labels[currentLang];
-                  // If label is a 2-letter code, try to get the name from mapping
-                  if (label && label.length === 2 && label === label.toUpperCase()) {
-                    // This is likely a country code, try to get the name from mapping
-                    return countryCodeToName[label]?.[currentLang] || option.code;
-                  }
-                  return label;
-                }
-                
-                // Final fallback to country code mapping
-                if (option.code && countryCodeToName[option.code]) {
-                  return countryCodeToName[option.code][currentLang] || option.code;
-                }
-                
-                return option.label || option.code;
-              }}
-              isOptionEqualToValue={(option, value) => option._id === value._id}
-              renderOption={(props, option) => (
+          <CountrySelector onClick={handleCountryClick}>
+            {isInitialized && currentCountryData ? (
+              <>
+                <img
+                  loading="lazy"
+                  width={isMobile ? "32" : "30"}
+                  height={isMobile ? "20" : "20"}
+                  src={`https://flagcdn.com/w20/${currentCountryData.code.toLowerCase()}.png`}
+                  srcSet={`https://flagcdn.com/w40/${currentCountryData.code.toLowerCase()}.png 2x`}
+                  alt=""
+                />
+                {!isMobile && (
+                  <Typography
+                    variant="body2"
+                    sx={{
+                      fontWeight: 500,
+                      fontSize: { xs: '0.85rem', sm: '0.9rem' },
+                      display: 'block',
+                      // Only apply RTL to text content, not layout
+                      textAlign: currentLanguage === 'ar' ? 'right' : 'left'
+                    }}
+                  >
+                    {currentCountryData.names?.[currentLanguage] || currentCountryData.names?.en || currentCountryData.code}
+                  </Typography>
+                )}
+              </>
+            ) : (
+              <Box
+                sx={{
+                  width: isMobile ? 32 : 30,
+                  height: isMobile ? 20 : 20,
+                  backgroundColor: 'rgba(255,255,255,0.1)',
+                  borderRadius: '4px',
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'center'
+                }}
+              >
                 <Box
-                  component="li"
-                  sx={{ "& > img": { mr: 2, flexShrink: 0 } }}
-                  {...props}
-                >
-                  {option.flag ? (
-                    <span style={{ marginRight: 8, fontSize: '20px' }}>
-                      {option.flag}
-                    </span>
-                  ) : (
-                    <img
-                      loading="lazy"
-                      width="20"
-                      src={`https://flagcdn.com/w20/${option.code.toLowerCase()}.png`}
-                      srcSet={`https://flagcdn.com/w40/${option.code.toLowerCase()}.png 2x`}
-                      alt=""
-                    />
-                  )}
-                  {(() => {
-                    const currentLang = currentLanguage || 'en';
-                    
-                    // Get the appropriate name based on language
-                    if (option.names && option.names[currentLang]) {
-                      return option.names[currentLang];
-                    }
-                    
-                    // Fallback to labels if names is not available
-                    if (option.labels && option.labels[currentLang]) {
-                      const label = option.labels[currentLang];
-                      // If label is a 2-letter code, try to get the name from mapping
-                      if (label && label.length === 2 && label === label.toUpperCase()) {
-                        return countryCodeToName[label]?.[currentLang] || option.code;
-                      }
-                      return label;
-                    }
-                    
-                    // Final fallback to country code mapping
-                    if (option.code && countryCodeToName[option.code]) {
-                      return countryCodeToName[option.code][currentLang] || option.code;
-                    }
-                    
-                    return option.label || option.code;
-                  })()} ({option.code})
-                </Box>
-              )}
-              renderInput={(params) => (
-                <TextField
-                  {...params}
-                  variant="outlined"
-                  size="small"
                   sx={{
-                    '& .MuiOutlinedInput-root': {
-                      borderRadius: 2,
-                      fontSize: { xs: '0.8rem', sm: '0.9rem' },
-                      padding: { xs: '4px 8px', sm: '6px 12px' },
-                      minHeight: { xs: '36px', sm: '40px' },
-                      backgroundColor: theme.palette.mode === 'dark' 
-                        ? alpha(theme.palette.common.white, 0.05)
-                        : alpha(theme.palette.common.black, 0.03),
-                      border: `1px solid ${alpha(theme.palette.divider, 0.1)}`,
-                      transition: 'all 0.3s ease',
-                      '&:hover': {
-                        borderColor: alpha(theme.palette.primary.main, 0.3),
-                        backgroundColor: theme.palette.mode === 'dark' 
-                          ? alpha(theme.palette.common.white, 0.08)
-                          : alpha(theme.palette.common.black, 0.05),
-                      },
-                      '&.Mui-focused': {
-                        borderColor: theme.palette.primary.main,
-                        backgroundColor: theme.palette.mode === 'dark' 
-                          ? alpha(theme.palette.common.white, 0.1)
-                          : alpha(theme.palette.common.black, 0.06),
-                        boxShadow: `0 0 0 2px ${alpha(theme.palette.primary.main, 0.1)}`,
-                      },
-                    },
-                    '& .MuiInputLabel-root': {
-                      display: 'none', // Hide label for compact navbar
-                    },
-                    '& .MuiAutocomplete-endAdornment': {
-                      right: '8px',
-                      '& .MuiSvgIcon-root': {
-                        fontSize: '16px',
-                        color: theme.palette.text.secondary,
-                      },
+                    width: 12,
+                    height: 12,
+                    border: '2px solid rgba(255,255,255,0.3)',
+                    borderTop: '2px solid rgba(255,255,255,0.8)',
+                    borderRadius: '50%',
+                    animation: 'spin 1s linear infinite',
+                    '@keyframes spin': {
+                      '0%': { transform: 'rotate(0deg)' },
+                      '100%': { transform: 'rotate(360deg)' }
                     }
-                  }}
-                  inputProps={{
-                    ...params.inputProps,
-                    autoComplete: "new-password",
                   }}
                 />
-              )}
-              PaperComponent={({ children, ...other }) => (
-                <Paper
-                  {...other}
-                  sx={{
-                    borderRadius: 2,
-                    boxShadow: theme.palette.mode === 'dark'
-                      ? '0 8px 32px rgba(0, 0, 0, 0.4)'
-                      : '0 8px 32px rgba(0, 0, 0, 0.1)',
-                    background: theme.palette.mode === 'dark'
-                      ? 'rgba(30, 30, 30, 0.95)'
-                      : 'rgba(255, 255, 255, 0.95)',
-                    backdropFilter: 'blur(20px)',
-                    border: `1px solid ${alpha(theme.palette.divider, 0.1)}`,
-                    maxHeight: '300px',
-                    overflow: 'auto',
-                  }}
-                >
-                  {children}
-                </Paper>
-              )}
-            />
+              </Box>
+            )}
+            {!isMobile && <KeyboardArrowDown sx={{ fontSize: '16px', ml: 0.5 }} />}
           </CountrySelector>
 
           {/* Language selector */}
@@ -894,6 +839,179 @@ const Navbar = () => {
               }}
             />
           </MenuItem>
+        </Menu>
+
+        {/* Country Dropdown Menu with Search */}
+        <Menu
+          anchorEl={countryAnchorEl}
+          open={Boolean(countryAnchorEl)}
+          onClose={handleCountryClose}
+          PaperProps={{
+            sx: {
+              mt: 1,
+              borderRadius: 2,
+              boxShadow: theme.palette.mode === 'dark'
+                ? '0 8px 32px rgba(0, 0, 0, 0.4)'
+                : '0 8px 32px rgba(0, 0, 0, 0.1)',
+              background: theme.palette.mode === 'dark'
+                ? 'rgba(30, 30, 30, 0.95)'
+                : 'rgba(255, 255, 255, 0.95)',
+              backdropFilter: 'blur(20px)',
+              border: `1px solid ${alpha(theme.palette.divider, 0.1)}`,
+              minWidth: 320,
+              maxWidth: 400,
+              maxHeight: 400,
+              overflow: 'hidden',
+            }
+          }}
+          transformOrigin={{ horizontal: 'left', vertical: 'top' }}
+          anchorOrigin={{ horizontal: 'left', vertical: 'bottom' }}
+        >
+          <Box sx={{ p: 2 }}>
+            <Autocomplete
+              options={countriesToUse || []}
+              autoHighlight
+              disableClearable
+              value={selectedCountry}
+              onChange={handleCountrySelect}
+              getOptionLabel={(option) => {
+                if (!option) return '';
+                const currentLang = currentLanguage || 'en';
+                
+                // Get the appropriate name based on language (names field contains actual country names)
+                if (option.names && option.names[currentLang]) {
+                  return option.names[currentLang];
+                }
+                
+                // Fallback to labels if names is not available
+                if (option.labels && option.labels[currentLang]) {
+                  const label = option.labels[currentLang];
+                  // If label is a 2-letter code, try to get the name from mapping
+                  if (label && label.length === 2 && label === label.toUpperCase()) {
+                    // This is likely a country code, try to get the name from mapping
+                    return countryCodeToName[label]?.[currentLang] || option.code;
+                  }
+                  return label;
+                }
+                
+                // Final fallback to country code mapping
+                if (option.code && countryCodeToName[option.code]) {
+                  return countryCodeToName[option.code][currentLang] || option.code;
+                }
+                
+                return option.label || option.code;
+              }}
+              isOptionEqualToValue={(option, value) => option._id === value._id}
+              renderOption={(props, option) => (
+                <Box
+                  component="li"
+                  sx={{ 
+                    "& > img": { mr: 2, flexShrink: 0 },
+                    display: 'flex',
+                    alignItems: 'center',
+                    width: '100%',
+                    py: 1,
+                    px: 2,
+                  }}
+                  {...props}
+                >
+                  {option.flag ? (
+                    <span style={{ marginRight: 12, fontSize: '20px' }}>
+                      {option.flag}
+                    </span>
+                  ) : (
+                    <img
+                      loading="lazy"
+                      width="20"
+                      src={`https://flagcdn.com/w20/${option.code.toLowerCase()}.png`}
+                      srcSet={`https://flagcdn.com/w40/${option.code.toLowerCase()}.png 2x`}
+                      alt=""
+                      style={{ marginRight: 12 }}
+                    />
+                  )}
+                  <Box sx={{ flex: 1, minWidth: 0 }}>
+                    <Typography variant="body2" sx={{ fontWeight: 500, fontSize: '0.9rem' }}>
+                      {(() => {
+                        const currentLang = currentLanguage || 'en';
+                        
+                        // Get the appropriate name based on language
+                        if (option.names && option.names[currentLang]) {
+                          return option.names[currentLang];
+                        }
+                        
+                        // Fallback to labels if names is not available
+                        if (option.labels && option.labels[currentLang]) {
+                          const label = option.labels[currentLang];
+                          // If label is a 2-letter code, try to get the name from mapping
+                          if (label && label.length === 2 && label === label.toUpperCase()) {
+                            return countryCodeToName[label]?.[currentLang] || option.code;
+                          }
+                          return label;
+                        }
+                        
+                        // Final fallback to country code mapping
+                        if (option.code && countryCodeToName[option.code]) {
+                          return countryCodeToName[option.code][currentLang] || option.code;
+                        }
+                        
+                        return option.label || option.code;
+                      })()}
+                    </Typography>
+                    <Typography variant="caption" color="text.secondary" sx={{ fontSize: '0.75rem' }}>
+                      {option.code}
+                    </Typography>
+                  </Box>
+                </Box>
+              )}
+              renderInput={(params) => (
+                <TextField
+                  {...params}
+                  placeholder={t('searchCountries') || 'Search countries...'}
+                  variant="outlined"
+                  size="small"
+                  sx={{
+                    '& .MuiOutlinedInput-root': {
+                      borderRadius: 2,
+                      fontSize: '0.9rem',
+                      padding: '8px 12px',
+                      backgroundColor: theme.palette.mode === 'dark' 
+                        ? alpha(theme.palette.common.white, 0.05)
+                        : alpha(theme.palette.common.black, 0.03),
+                      border: `1px solid ${alpha(theme.palette.divider, 0.1)}`,
+                      '&:hover': {
+                        borderColor: alpha(theme.palette.primary.main, 0.3),
+                      },
+                      '&.Mui-focused': {
+                        borderColor: theme.palette.primary.main,
+                        boxShadow: `0 0 0 2px ${alpha(theme.palette.primary.main, 0.1)}`,
+                      },
+                    },
+                    '& .MuiInputLabel-root': {
+                      fontSize: '0.9rem',
+                    },
+                  }}
+                  inputProps={{
+                    ...params.inputProps,
+                    autoComplete: "new-password",
+                  }}
+                />
+              )}
+              ListboxProps={{
+                sx: {
+                  maxHeight: 250,
+                  '& .MuiAutocomplete-option': {
+                    padding: 0,
+                    '&:hover': {
+                      backgroundColor: alpha(theme.palette.primary.main, 0.1),
+                    },
+                    '&.Mui-focused': {
+                      backgroundColor: alpha(theme.palette.primary.main, 0.15),
+                    }
+                  }
+                }
+              }}
+            />
+          </Box>
         </Menu>
 
         {/* Profile Dropdown Menu */}
