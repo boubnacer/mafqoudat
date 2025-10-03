@@ -72,83 +72,45 @@ const QuickActions = () => {
             console.log('📱 Focus failed:', e);
           }
           
-          // Method 2: Smart mobile scroll that finds the correct container
-          const smartScrollToPosition = (targetPosition) => {
-            console.log('📱 Smart scrolling to:', targetPosition);
+          // Method 2: Simple instant scroll for real mobile devices
+          const instantScrollToPosition = (targetPosition) => {
+            console.log('📱 Instant scrolling to:', targetPosition);
             
-            // Find the actual scrollable container by checking which one has scroll
-            const findScrollableContainer = () => {
-              const containers = [
-                document.documentElement,
-                document.body,
-                document.querySelector('main'),
-                document.querySelector('#root')
-              ].filter(Boolean);
+            // Try multiple scroll methods for maximum compatibility
+            try {
+              // Method 1: Direct window scroll
+              window.scrollTo(0, targetPosition);
+              console.log('📱 Method 1: window.scrollTo called');
               
-              for (let container of containers) {
-                if (container.scrollHeight > container.clientHeight) {
-                  console.log('📱 Found scrollable container:', container.tagName, 'scrollHeight:', container.scrollHeight, 'clientHeight:', container.clientHeight);
-                  return container;
-                }
+              // Method 2: Direct DOM manipulation
+              document.documentElement.scrollTop = targetPosition;
+              document.body.scrollTop = targetPosition;
+              console.log('📱 Method 2: DOM manipulation called');
+              
+              // Method 3: Force scroll on main container
+              const mainContainer = document.querySelector('main');
+              if (mainContainer) {
+                mainContainer.scrollTop = targetPosition;
+                console.log('📱 Method 3: Main container scroll called');
               }
-              return document.documentElement; // fallback
-            };
-            
-            const scrollableContainer = findScrollableContainer();
-            
-            // Use smooth scrolling on the correct container
-            if (scrollableContainer === document.documentElement || scrollableContainer === document.body) {
-              console.log('📱 Using window.scrollTo with smooth behavior');
-              window.scrollTo({
-                top: targetPosition,
-                behavior: 'smooth'
-              });
-            } else {
-              console.log('📱 Using container scroll with smooth behavior');
-              // For other containers, we need to animate manually
-              const startPosition = scrollableContainer.scrollTop;
-              const distance = targetPosition - startPosition;
-              const duration = 600; // 600ms smooth animation
-              let startTime = null;
               
-              const animateScroll = (currentTime) => {
-                if (startTime === null) startTime = currentTime;
-                const timeElapsed = currentTime - startTime;
-                const progress = Math.min(timeElapsed / duration, 1);
-                
-                // Easing function (ease-out)
-                const easeOut = 1 - Math.pow(1 - progress, 3);
-                const currentPosition = startPosition + (distance * easeOut);
-                
-                scrollableContainer.scrollTop = currentPosition;
-                
-                if (progress < 1) {
-                  requestAnimationFrame(animateScroll);
-                } else {
-                  console.log('📱 Container scroll animation completed');
-                }
-              };
-              
-              requestAnimationFrame(animateScroll);
-            }
-            
-            console.log('📱 After smart scroll, position:', window.pageYOffset);
-          };
-          
-          // Use smart scrolling
-          smartScrollToPosition(finalScrollPosition);
-          
-          // Fallback with scrollIntoView if needed
-          setTimeout(() => {
-            if (Math.abs(window.pageYOffset - finalScrollPosition) > 100) {
-              console.log('📱 Smart scroll failed, using scrollIntoView fallback');
+              // Method 4: Use scrollIntoView with instant behavior
               helpSection.scrollIntoView({ 
-                behavior: 'smooth', 
+                behavior: 'instant', 
                 block: 'start',
                 inline: 'nearest'
               });
+              console.log('📱 Method 4: scrollIntoView instant called');
+              
+            } catch (error) {
+              console.error('📱 Scroll error:', error);
             }
-          }, 800);
+            
+            console.log('📱 After instant scroll, position:', window.pageYOffset);
+          };
+          
+          // Use instant scrolling
+          instantScrollToPosition(finalScrollPosition);
           
         } else {
           // Desktop/emulator approach
