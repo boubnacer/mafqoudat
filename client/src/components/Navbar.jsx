@@ -556,15 +556,19 @@ const Navbar = () => {
               {t('explore')}
             </NavigationButton>
 
-            {/* Create Post Button - only for authenticated users */}
-            {isAuthenticated && (
-              <CreatePostButton
-                onClick={() => navigate('/dash/posts/new')}
-                startIcon={<PostAdd />}
-              >
-                {t('createPost')}
-              </CreatePostButton>
-            )}
+            {/* Dynamic Button - Sign In for logged out, Create Post for logged in */}
+            <CreatePostButton
+              onClick={() => {
+                if (isAuthenticated) {
+                  navigate('/dash/posts/new');
+                } else {
+                  navigate('/login');
+                }
+              }}
+              startIcon={isAuthenticated ? <PostAdd /> : <Login />}
+            >
+              {isAuthenticated ? t('createPost') : t('signin')}
+            </CreatePostButton>
           </Box>
         )}
 
