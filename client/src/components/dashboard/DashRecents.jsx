@@ -24,4 +24,10 @@ const DashRecents = styled(Box)((props) => ({
   // borderTop: "1px solid #333333",
 }));
 
-export default DashRecents;
+// Create a wrapper component that forwards data attributes
+const DashRecentsWrapper = (props) => {
+  const { cate, ...otherProps } = props;
+  return <DashRecents cate={cate} {...otherProps} />;
+};
+
+export default DashRecentsWrapper;
