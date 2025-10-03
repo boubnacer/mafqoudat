@@ -867,7 +867,7 @@ const Navbar = () => {
           transformOrigin={{ horizontal: 'left', vertical: 'top' }}
           anchorOrigin={{ horizontal: 'left', vertical: 'bottom' }}
         >
-          <Box sx={{ p: 2 }}>
+          <Box sx={{ p: 3 }}>
             <Autocomplete
               options={countriesToUse || []}
               autoHighlight
@@ -906,61 +906,56 @@ const Navbar = () => {
                 <Box
                   component="li"
                   sx={{ 
-                    "& > img": { mr: 2, flexShrink: 0 },
                     display: 'flex',
                     alignItems: 'center',
                     width: '100%',
-                    py: 1,
+                    py: 1.5,
                     px: 2,
                   }}
                   {...props}
                 >
                   {option.flag ? (
-                    <span style={{ marginRight: 12, fontSize: '20px' }}>
+                    <span style={{ marginRight: 12, fontSize: '20px', display: 'flex', alignItems: 'center' }}>
                       {option.flag}
                     </span>
                   ) : (
                     <img
                       loading="lazy"
                       width="20"
+                      height="15"
                       src={`https://flagcdn.com/w20/${option.code.toLowerCase()}.png`}
                       srcSet={`https://flagcdn.com/w40/${option.code.toLowerCase()}.png 2x`}
                       alt=""
-                      style={{ marginRight: 12 }}
+                      style={{ marginRight: 12, borderRadius: '2px' }}
                     />
                   )}
-                  <Box sx={{ flex: 1, minWidth: 0 }}>
-                    <Typography variant="body2" sx={{ fontWeight: 500, fontSize: '0.9rem' }}>
-                      {(() => {
-                        const currentLang = currentLanguage || 'en';
-                        
-                        // Get the appropriate name based on language
-                        if (option.names && option.names[currentLang]) {
-                          return option.names[currentLang];
+                  <Typography variant="body2" sx={{ fontWeight: 500, fontSize: '0.9rem', lineHeight: 1.2 }}>
+                    {(() => {
+                      const currentLang = currentLanguage || 'en';
+                      
+                      // Get the appropriate name based on language
+                      if (option.names && option.names[currentLang]) {
+                        return option.names[currentLang];
+                      }
+                      
+                      // Fallback to labels if names is not available
+                      if (option.labels && option.labels[currentLang]) {
+                        const label = option.labels[currentLang];
+                        // If label is a 2-letter code, try to get the name from mapping
+                        if (label && label.length === 2 && label === label.toUpperCase()) {
+                          return countryCodeToName[label]?.[currentLang] || option.code;
                         }
-                        
-                        // Fallback to labels if names is not available
-                        if (option.labels && option.labels[currentLang]) {
-                          const label = option.labels[currentLang];
-                          // If label is a 2-letter code, try to get the name from mapping
-                          if (label && label.length === 2 && label === label.toUpperCase()) {
-                            return countryCodeToName[label]?.[currentLang] || option.code;
-                          }
-                          return label;
-                        }
-                        
-                        // Final fallback to country code mapping
-                        if (option.code && countryCodeToName[option.code]) {
-                          return countryCodeToName[option.code][currentLang] || option.code;
-                        }
-                        
-                        return option.label || option.code;
-                      })()}
-                    </Typography>
-                    <Typography variant="caption" color="text.secondary" sx={{ fontSize: '0.75rem' }}>
-                      {option.code}
-                    </Typography>
-                  </Box>
+                        return label;
+                      }
+                      
+                      // Final fallback to country code mapping
+                      if (option.code && countryCodeToName[option.code]) {
+                        return countryCodeToName[option.code][currentLang] || option.code;
+                      }
+                      
+                      return option.label || option.code;
+                    })()}
+                  </Typography>
                 </Box>
               )}
               renderInput={(params) => (
