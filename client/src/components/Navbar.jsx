@@ -29,6 +29,7 @@ import {
   Dashboard,
   PostAdd,
   AdminPanelSettings,
+  Person,
 } from "@mui/icons-material";
 import FlexBetween from "./FlexBetween";
 import {
@@ -284,6 +285,7 @@ const Navbar = () => {
   const [languageAnchorEl, setLanguageAnchorEl] = useState(null);
   const [mobileMenuAnchorEl, setMobileMenuAnchorEl] = useState(null);
   const [navigationAnchorEl, setNavigationAnchorEl] = useState(null);
+  const [profileAnchorEl, setProfileAnchorEl] = useState(null);
   const [isUserSelectingCountry, setIsUserSelectingCountry] = useState(false);
   const [isInitialized, setIsInitialized] = useState(false);
   const [logoAnimationTrigger, setLogoAnimationTrigger] = useState(false);
@@ -382,6 +384,8 @@ const Navbar = () => {
   const handleMobileMenuClose = () => setMobileMenuAnchorEl(null);
   const handleNavigationClick = (event) => setNavigationAnchorEl(event.currentTarget);
   const handleNavigationClose = () => setNavigationAnchorEl(null);
+  const handleProfileClick = (event) => setProfileAnchorEl(event.currentTarget);
+  const handleProfileClose = () => setProfileAnchorEl(null);
 
   const handleLanguageChange = async (newLanguage) => {
     console.log('🌐 [NAVBAR] Language change triggered:', { newLanguage, currentUrl: window.location.href });
@@ -661,19 +665,15 @@ const Navbar = () => {
             )}
           </ActionButton>
 
-          {/* Logout button for authenticated users - desktop only */}
+          {/* Profile button for authenticated users - desktop only */}
           {isAuthenticated && (
             <ActionButton
-              onClick={() => sendLogout()}
+              onClick={handleProfileClick}
               sx={{
-                display: { xs: 'none', sm: 'flex' },
-                background: alpha(theme.palette.error.main, 0.1),
-                '&:hover': {
-                  background: alpha(theme.palette.error.main, 0.2),
-                }
+                display: { xs: 'none', sm: 'flex' }
               }}
             >
-              <LogoutOutlined sx={{ fontSize: "20px", color: 'error.main' }} />
+              <Person sx={{ fontSize: "20px" }} />
             </ActionButton>
           )}
 
@@ -822,6 +822,84 @@ const Navbar = () => {
             <ListItemText 
               primary="Français" 
               primaryTypographyProps={{
+                textAlign: currentLanguage === 'ar' ? 'right' : 'left'
+              }}
+            />
+          </MenuItem>
+        </Menu>
+
+        {/* Profile Dropdown Menu */}
+        <Menu
+          anchorEl={profileAnchorEl}
+          open={Boolean(profileAnchorEl)}
+          onClose={handleProfileClose}
+          PaperProps={{
+            sx: {
+              mt: 1,
+              borderRadius: 2,
+              boxShadow: theme.palette.mode === 'dark'
+                ? '0 8px 32px rgba(0, 0, 0, 0.4)'
+                : '0 8px 32px rgba(0, 0, 0, 0.1)',
+              background: theme.palette.mode === 'dark'
+                ? 'rgba(30, 30, 30, 0.95)'
+                : 'rgba(255, 255, 255, 0.95)',
+              backdropFilter: 'blur(20px)',
+              border: `1px solid ${alpha(theme.palette.divider, 0.1)}`,
+              minWidth: 200,
+            }
+          }}
+          transformOrigin={{ horizontal: 'right', vertical: 'top' }}
+          anchorOrigin={{ horizontal: 'right', vertical: 'bottom' }}
+        >
+          <MenuItem 
+            onClick={() => {
+              handleProfileClose();
+              // TODO: Navigate to profile page when implemented
+              console.log('Navigate to profile page');
+            }}
+            sx={{
+              py: 1.5,
+              px: 2,
+              '&:hover': {
+                backgroundColor: alpha(theme.palette.primary.main, 0.1),
+              }
+            }}
+          >
+            <ListItemIcon>
+              <Person sx={{ fontSize: 20 }} />
+            </ListItemIcon>
+            <ListItemText 
+              primary={t('profile')}
+              primaryTypographyProps={{
+                fontWeight: 600,
+                fontSize: '0.95rem',
+                textAlign: currentLanguage === 'ar' ? 'right' : 'left'
+              }}
+            />
+          </MenuItem>
+          <Divider sx={{ my: 0.5, opacity: 0.3 }} />
+          <MenuItem 
+            onClick={() => {
+              handleProfileClose();
+              sendLogout();
+            }}
+            sx={{
+              py: 1.5,
+              px: 2,
+              '&:hover': {
+                backgroundColor: alpha(theme.palette.error.main, 0.1),
+              }
+            }}
+          >
+            <ListItemIcon>
+              <LogoutOutlined sx={{ fontSize: 20, color: 'error.main' }} />
+            </ListItemIcon>
+            <ListItemText 
+              primary={t('logout')}
+              sx={{ color: 'error.main' }}
+              primaryTypographyProps={{
+                fontWeight: 600,
+                fontSize: '0.95rem',
                 textAlign: currentLanguage === 'ar' ? 'right' : 'left'
               }}
             />
