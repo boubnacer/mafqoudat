@@ -112,7 +112,7 @@ const LogoButton = styled(Button)(({ theme }) => ({
   },
   '& img': {
     height: 'auto',
-    maxHeight: '16px', // Consistent size in both modes
+    maxHeight: '50px', // Increased size for maficon
     width: 'auto',
     objectFit: 'contain',
     transition: 'all 0.3s ease',
@@ -128,8 +128,8 @@ const LogoButton = styled(Button)(({ theme }) => ({
       maxHeight: '14px', // Slightly larger size for mobile
     },
     '& img[alt="Mafqoudat Icon"]': {
-      height: '30px',
-      width: '30px',
+      height: '40px',
+      width: '40px',
     }
   }
 }));
@@ -501,8 +501,8 @@ const Navbar = () => {
               alt="Mafqoudat Icon"
               loading="lazy"
               style={{
-                height: '38px',
-                width: '38px',
+                height: '48px',
+                width: '48px',
                 objectFit: 'contain',
                 position: 'relative',
                 zIndex: 2,
