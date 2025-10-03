@@ -72,60 +72,73 @@ const QuickActions = () => {
             console.log('📱 Focus failed:', e);
           }
           
-          // Method 2: Smooth animated scroll for real mobile
-          const animateScrollToPosition = (targetPosition) => {
-            console.log('📱 Starting smooth scroll animation to:', targetPosition);
+          // Method 2: Aggressive mobile scroll with multiple strategies
+          const forceScrollToPosition = (targetPosition) => {
+            console.log('📱 Force scrolling to:', targetPosition);
             
-            const startPosition = window.pageYOffset;
-            const distance = targetPosition - startPosition;
-            const duration = 800; // 800ms for smooth animation
-            let startTime = null;
+            // Strategy 1: Direct DOM manipulation
+            document.documentElement.scrollTop = targetPosition;
+            document.body.scrollTop = targetPosition;
             
-            const animateScroll = (currentTime) => {
-              if (startTime === null) startTime = currentTime;
-              const timeElapsed = currentTime - startTime;
-              const progress = Math.min(timeElapsed / duration, 1);
-              
-              // Easing function (ease-out for smooth deceleration)
-              const easeOut = 1 - Math.pow(1 - progress, 3);
-              const currentPosition = startPosition + (distance * easeOut);
-              
-              console.log('📱 Animation progress:', Math.round(progress * 100) + '%', 'Position:', Math.round(currentPosition));
-              
-              // Try all scroll methods for maximum compatibility
-              window.scrollTo(0, currentPosition);
-              document.documentElement.scrollTop = currentPosition;
-              document.body.scrollTop = currentPosition;
-              
-              // Try scrolling main containers
-              const mainContainer = document.querySelector('main') || document.querySelector('#root');
-              if (mainContainer && mainContainer.scrollTop !== undefined) {
-                mainContainer.scrollTop = currentPosition;
+            // Strategy 2: Window scroll methods
+            window.scrollTo(0, targetPosition);
+            window.scrollTo({ top: targetPosition, left: 0, behavior: 'auto' });
+            
+            // Strategy 3: Try to find and scroll the actual scrollable container
+            const scrollableContainers = [
+              document.documentElement,
+              document.body,
+              document.querySelector('main'),
+              document.querySelector('#root'),
+              document.querySelector('.MuiBox-root'),
+              document.querySelector('[data-section="help"]').closest('.MuiBox-root')
+            ].filter(Boolean);
+            
+            scrollableContainers.forEach(container => {
+              if (container && container.scrollTop !== undefined) {
+                container.scrollTop = targetPosition;
+                console.log('📱 Scrolled container:', container.tagName, 'to:', targetPosition);
               }
-              
-              if (progress < 1) {
-                requestAnimationFrame(animateScroll);
-              } else {
-                console.log('📱 Smooth scroll animation completed at position:', window.pageYOffset);
-                
-                // Final verification and correction if needed
-                setTimeout(() => {
-                  const finalPosition = window.pageYOffset;
-                  if (Math.abs(finalPosition - targetPosition) > 50) {
-                    console.log('📱 Final position correction needed');
-                    window.scrollTo(0, targetPosition);
-                    document.documentElement.scrollTop = targetPosition;
-                    document.body.scrollTop = targetPosition;
-                  }
-                }, 100);
-              }
-            };
+            });
             
-            requestAnimationFrame(animateScroll);
+            // Strategy 4: Force a reflow and try again
+            helpSection.offsetHeight;
+            
+            // Strategy 5: Use scrollIntoView as fallback
+            setTimeout(() => {
+              console.log('📱 Final scrollIntoView attempt');
+              helpSection.scrollIntoView({ 
+                behavior: 'auto', 
+                block: 'start',
+                inline: 'nearest'
+              });
+            }, 50);
+            
+            console.log('📱 After force scroll, position:', window.pageYOffset);
           };
           
-          // Start smooth animation
-          animateScrollToPosition(finalScrollPosition);
+          // Try immediate scroll first
+          forceScrollToPosition(finalScrollPosition);
+          
+          // If that doesn't work, try with a delay
+          setTimeout(() => {
+            if (Math.abs(window.pageYOffset - finalScrollPosition) > 100) {
+              console.log('📱 First attempt failed, trying again');
+              forceScrollToPosition(finalScrollPosition);
+            }
+          }, 200);
+          
+          // Final attempt with scrollIntoView
+          setTimeout(() => {
+            if (Math.abs(window.pageYOffset - finalScrollPosition) > 100) {
+              console.log('📱 All attempts failed, using scrollIntoView only');
+              helpSection.scrollIntoView({ 
+                behavior: 'smooth', 
+                block: 'start',
+                inline: 'nearest'
+              });
+            }
+          }, 500);
           
         } else {
           // Desktop/emulator approach
