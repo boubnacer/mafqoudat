@@ -141,6 +141,12 @@ const Categories = () => {
             textTransform: 'none',
             fontWeight: 600,
             transition: 'all 0.3s ease',
+            gap: currentLanguage === 'ar' ? 1 : 0.5,
+            direction: currentLanguage === 'ar' ? 'rtl' : 'ltr',
+            '& .MuiButton-endIcon': {
+              marginLeft: currentLanguage === 'ar' ? 0 : '8px',
+              marginRight: currentLanguage === 'ar' ? '8px' : 0,
+            },
             '&:hover': {
               backgroundColor: theme.palette.primary.main,
               color: '#fff',

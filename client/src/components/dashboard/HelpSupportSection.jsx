@@ -206,6 +206,10 @@ const HelpSupportSection = () => {
                       backgroundColor: theme.palette.mode === 'dark' ? 'transparent' : theme.palette.background.paper,
                       gap: isRTLMode ? 1 : 0.5,
                       direction: isRTLMode ? 'rtl' : 'ltr',
+                      '& .MuiButton-startIcon': {
+                        marginRight: isRTLMode ? 0 : '8px',
+                        marginLeft: isRTLMode ? '8px' : 0,
+                      },
                       '&:hover': {
                         backgroundColor: theme.palette.primary.main,
                         color: '#fff',
