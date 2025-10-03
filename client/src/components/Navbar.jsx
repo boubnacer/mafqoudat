@@ -184,6 +184,7 @@ const NavigationButton = styled(Button)(({ theme }) => ({
 const CountrySelector = styled(Box)(({ theme }) => ({
   display: 'flex',
   alignItems: 'center',
+  justifyContent: 'center',
   padding: '6px 12px',
   borderRadius: '10px',
   cursor: 'pointer',
@@ -208,8 +209,9 @@ const CountrySelector = styled(Box)(({ theme }) => ({
   },
   [theme.breakpoints.down('sm')]: {
     padding: '8px 10px',
+    justifyContent: 'center',
     '& img': {
-      marginRight: '6px',
+      marginRight: '0',
     }
   }
 }));
@@ -217,6 +219,7 @@ const CountrySelector = styled(Box)(({ theme }) => ({
 const LanguageSelector = styled(Box)(({ theme }) => ({
   display: 'flex',
   alignItems: 'center',
+  justifyContent: 'center',
   padding: '6px 12px',
   borderRadius: '10px',
   cursor: 'pointer',
@@ -240,9 +243,10 @@ const LanguageSelector = styled(Box)(({ theme }) => ({
   },
   [theme.breakpoints.down('sm')]: {
     padding: '8px 10px',
+    justifyContent: 'center',
     '& .MuiSvgIcon-root': {
-      marginRight: '6px',
-      fontSize: '18px',
+      marginRight: '0',
+      fontSize: '20px',
     }
   }
 }));
