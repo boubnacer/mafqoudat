@@ -32,22 +32,54 @@ const QuickActions = () => {
   const scrollToHelpSection = () => {
     const helpSection = document.querySelector('[data-section="help"]');
     if (helpSection) {
-      // Use scrollIntoView with block: 'start' and inline: 'nearest' for better mobile support
-      helpSection.scrollIntoView({ 
-        behavior: 'smooth', 
-        block: 'start',
-        inline: 'nearest'
-      });
+      if (isMobile) {
+        // Mobile-specific scrolling with manual calculation
+        const navbar = document.querySelector('.MuiAppBar-root');
+        const navbarHeight = navbar ? navbar.offsetHeight : 0;
+        
+        // Get the element's position relative to the document
+        const elementRect = helpSection.getBoundingClientRect();
+        const absoluteElementTop = elementRect.top + window.pageYOffset;
+        
+        // Calculate scroll position accounting for navbar
+        const scrollPosition = absoluteElementTop - navbarHeight - 20;
+        
+        // Use window.scrollTo for mobile
+        window.scrollTo({
+          top: Math.max(0, scrollPosition),
+          behavior: 'smooth'
+        });
+      } else {
+        // Desktop scrolling
+        helpSection.scrollIntoView({ 
+          behavior: 'smooth', 
+          block: 'start',
+          inline: 'nearest'
+        });
+      }
     } else {
       // Fallback: try to find the help section by text content
       const helpElements = document.querySelectorAll('*');
       for (let element of helpElements) {
         if (element.textContent && element.textContent.includes('Help & Support')) {
-          element.scrollIntoView({ 
-            behavior: 'smooth', 
-            block: 'start',
-            inline: 'nearest'
-          });
+          if (isMobile) {
+            const navbar = document.querySelector('.MuiAppBar-root');
+            const navbarHeight = navbar ? navbar.offsetHeight : 0;
+            const elementRect = element.getBoundingClientRect();
+            const absoluteElementTop = elementRect.top + window.pageYOffset;
+            const scrollPosition = absoluteElementTop - navbarHeight - 20;
+            
+            window.scrollTo({
+              top: Math.max(0, scrollPosition),
+              behavior: 'smooth'
+            });
+          } else {
+            element.scrollIntoView({ 
+              behavior: 'smooth', 
+              block: 'start',
+              inline: 'nearest'
+            });
+          }
           break;
         }
       }
