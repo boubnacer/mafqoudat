@@ -30,26 +30,36 @@ const QuickActions = () => {
   const isRTLMode = isRTL();
 
   const scrollToHelpSection = () => {
+    console.log('🔍 scrollToHelpSection called, isMobile:', isMobile);
+    
     const helpSection = document.querySelector('[data-section="help"]');
+    console.log('🔍 helpSection found:', !!helpSection, helpSection);
+    
     if (helpSection) {
       if (isMobile) {
+        console.log('📱 Mobile scrolling triggered');
         // Mobile-specific scrolling with manual calculation
         const navbar = document.querySelector('.MuiAppBar-root');
         const navbarHeight = navbar ? navbar.offsetHeight : 0;
+        console.log('📱 Navbar height:', navbarHeight);
         
         // Get the element's position relative to the document
         const elementRect = helpSection.getBoundingClientRect();
         const absoluteElementTop = elementRect.top + window.pageYOffset;
+        console.log('📱 Element position:', { elementRect, absoluteElementTop });
         
         // Calculate scroll position accounting for navbar
         const scrollPosition = absoluteElementTop - navbarHeight - 20;
+        console.log('📱 Scroll position:', scrollPosition);
         
         // Use window.scrollTo for mobile
         window.scrollTo({
           top: Math.max(0, scrollPosition),
           behavior: 'smooth'
         });
+        console.log('📱 Scrolled to:', Math.max(0, scrollPosition));
       } else {
+        console.log('🖥️ Desktop scrolling triggered');
         // Desktop scrolling
         helpSection.scrollIntoView({ 
           behavior: 'smooth', 
@@ -58,30 +68,42 @@ const QuickActions = () => {
         });
       }
     } else {
+      console.log('⚠️ Help section not found, trying fallback');
       // Fallback: try to find the help section by text content
       const helpElements = document.querySelectorAll('*');
+      let foundElement = null;
+      
       for (let element of helpElements) {
         if (element.textContent && element.textContent.includes('Help & Support')) {
-          if (isMobile) {
-            const navbar = document.querySelector('.MuiAppBar-root');
-            const navbarHeight = navbar ? navbar.offsetHeight : 0;
-            const elementRect = element.getBoundingClientRect();
-            const absoluteElementTop = elementRect.top + window.pageYOffset;
-            const scrollPosition = absoluteElementTop - navbarHeight - 20;
-            
-            window.scrollTo({
-              top: Math.max(0, scrollPosition),
-              behavior: 'smooth'
-            });
-          } else {
-            element.scrollIntoView({ 
-              behavior: 'smooth', 
-              block: 'start',
-              inline: 'nearest'
-            });
-          }
+          foundElement = element;
+          console.log('🔍 Found help section by text:', element);
           break;
         }
+      }
+      
+      if (foundElement) {
+        if (isMobile) {
+          console.log('📱 Mobile fallback scrolling');
+          const navbar = document.querySelector('.MuiAppBar-root');
+          const navbarHeight = navbar ? navbar.offsetHeight : 0;
+          const elementRect = foundElement.getBoundingClientRect();
+          const absoluteElementTop = elementRect.top + window.pageYOffset;
+          const scrollPosition = absoluteElementTop - navbarHeight - 20;
+          
+          window.scrollTo({
+            top: Math.max(0, scrollPosition),
+            behavior: 'smooth'
+          });
+        } else {
+          console.log('🖥️ Desktop fallback scrolling');
+          foundElement.scrollIntoView({ 
+            behavior: 'smooth', 
+            block: 'start',
+            inline: 'nearest'
+          });
+        }
+      } else {
+        console.log('❌ No help section found at all');
       }
     }
   };
@@ -129,7 +151,10 @@ const QuickActions = () => {
       description: t('getHelpDesc'),
       icon: <HelpOutline sx={{ fontSize: '2rem' }} />,
       color: '#96ceb4',
-      action: () => scrollToHelpSection()
+      action: () => {
+        console.log('🔘 Get Help button clicked!');
+        scrollToHelpSection();
+      }
     }
   ];
 
@@ -201,6 +226,11 @@ const QuickActions = () => {
                 }
               }}
               onClick={action.action}
+              onTouchEnd={(e) => {
+                e.preventDefault();
+                console.log('📱 Touch end event on card:', action.title);
+                action.action();
+              }}
             >
               <CardContent sx={{ p: { xs: 2, sm: 3 }, height: '100%', display: 'flex', flexDirection: 'column' }}>
                 {/* Icon */}
