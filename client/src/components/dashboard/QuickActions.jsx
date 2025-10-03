@@ -55,36 +55,64 @@ const QuickActions = () => {
         // Use multiple scrolling methods for mobile compatibility
         const finalScrollPosition = Math.max(0, scrollPosition);
         console.log('📱 Final scroll position:', finalScrollPosition);
+        console.log('📱 Current scroll position:', window.pageYOffset);
         
-        // Try multiple scrolling approaches for mobile
+        // Method 1: Try scrollIntoView with the element directly
         try {
-          // Method 1: window.scrollTo with smooth behavior
-          window.scrollTo({
-            top: finalScrollPosition,
-            behavior: 'smooth'
+          console.log('📱 Method 1: Direct scrollIntoView on help section');
+          helpSection.scrollIntoView({ 
+            behavior: 'smooth', 
+            block: 'start',
+            inline: 'nearest'
           });
-          console.log('📱 Method 1: window.scrollTo called');
           
-          // Method 2: Fallback with immediate scroll after a delay
+          // Check if it worked after a delay
           setTimeout(() => {
-            if (Math.abs(window.pageYOffset - finalScrollPosition) > 50) {
-              console.log('📱 Method 2: Fallback scroll triggered');
-              window.scrollTo(0, finalScrollPosition);
+            const currentScroll = window.pageYOffset;
+            console.log('📱 After scrollIntoView, current position:', currentScroll);
+            console.log('📱 Distance from target:', Math.abs(currentScroll - finalScrollPosition));
+            
+            if (Math.abs(currentScroll - finalScrollPosition) > 100) {
+              console.log('📱 Method 2: scrollIntoView failed, trying manual scroll');
+              
+              // Method 2: Manual scroll with animation
+              const startPosition = window.pageYOffset;
+              const distance = finalScrollPosition - startPosition;
+              const duration = 500; // 500ms animation
+              let startTime = null;
+              
+              const animateScroll = (currentTime) => {
+                if (startTime === null) startTime = currentTime;
+                const timeElapsed = currentTime - startTime;
+                const progress = Math.min(timeElapsed / duration, 1);
+                
+                // Easing function (ease-out)
+                const easeOut = 1 - Math.pow(1 - progress, 3);
+                const currentPosition = startPosition + (distance * easeOut);
+                
+                // Try multiple scroll methods
+                window.scrollTo(0, currentPosition);
+                document.documentElement.scrollTop = currentPosition;
+                document.body.scrollTop = currentPosition;
+                
+                if (progress < 1) {
+                  requestAnimationFrame(animateScroll);
+                } else {
+                  console.log('📱 Manual scroll animation completed');
+                }
+              };
+              
+              requestAnimationFrame(animateScroll);
             }
-          }, 100);
-          
-          // Method 3: Use document.documentElement.scrollTop for better mobile support
-          setTimeout(() => {
-            if (Math.abs(window.pageYOffset - finalScrollPosition) > 50) {
-              console.log('📱 Method 3: documentElement scroll triggered');
-              document.documentElement.scrollTop = finalScrollPosition;
-            }
-          }, 200);
+          }, 300);
           
         } catch (error) {
           console.error('📱 Scroll error:', error);
-          // Final fallback
+          // Final fallback - force scroll
+          console.log('📱 Method 3: Force scroll fallback');
           window.scrollTo(0, finalScrollPosition);
+          document.documentElement.scrollTop = finalScrollPosition;
+          document.body.scrollTop = finalScrollPosition;
         }
       } else {
         console.log('🖥️ Desktop scrolling triggered');
