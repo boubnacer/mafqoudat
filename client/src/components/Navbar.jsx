@@ -995,6 +995,7 @@ const Navbar = () => {
                 sx: {
                   maxHeight: 250,
                   py: 1,
+                  px: 1,
                   '& .MuiAutocomplete-option': {
                     padding: 0,
                     '&:hover': {
