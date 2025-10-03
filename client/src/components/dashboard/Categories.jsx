@@ -132,8 +132,9 @@ const Categories = () => {
           variant="outlined"
           endIcon={showAllCategories ? <ExpandLess /> : <ExpandMore />}
           sx={{
-            color: theme.palette.primary.main,
-            borderColor: theme.palette.primary.main,
+            color: theme.palette.mode === 'dark' ? theme.palette.primary.main : theme.palette.text.primary,
+            borderColor: theme.palette.mode === 'dark' ? theme.palette.primary.main : theme.palette.divider,
+            backgroundColor: theme.palette.mode === 'dark' ? 'transparent' : theme.palette.background.paper,
             borderRadius: '4px',
             px: 3,
             py: 1,

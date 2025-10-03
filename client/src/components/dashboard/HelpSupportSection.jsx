@@ -201,8 +201,9 @@ const HelpSupportSection = () => {
                     startIcon={<Help />}
                     sx={{ 
                       mt: 2,
-                      color: theme.palette.primary.main,
-                      borderColor: theme.palette.primary.main,
+                      color: theme.palette.mode === 'dark' ? theme.palette.primary.main : theme.palette.text.primary,
+                      borderColor: theme.palette.mode === 'dark' ? theme.palette.primary.main : theme.palette.divider,
+                      backgroundColor: theme.palette.mode === 'dark' ? 'transparent' : theme.palette.background.paper,
                       gap: isRTLMode ? 1 : 0.5,
                       direction: isRTLMode ? 'rtl' : 'ltr',
                       '&:hover': {
