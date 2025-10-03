@@ -503,8 +503,8 @@ const Navbar = () => {
               alt="Mafqoudat Icon"
               loading="lazy"
               style={{
-                height: '48px',
-                width: '48px',
+                height: '35px',
+                width: '35px',
                 objectFit: 'contain',
                 position: 'relative',
                 zIndex: 2,
