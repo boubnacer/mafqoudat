@@ -641,7 +641,7 @@ const Navbar = () => {
               sx={{
                 fontWeight: 500,
                 fontSize: { xs: '0.8rem', sm: '0.9rem' },
-                display: 'block',
+                display: { xs: 'none', sm: 'block' },
                 // Only apply RTL to text content, not layout
                 textAlign: currentLanguage === 'ar' ? 'right' : 'left'
               }}
@@ -851,33 +851,6 @@ const Navbar = () => {
           transformOrigin={{ horizontal: 'right', vertical: 'top' }}
           anchorOrigin={{ horizontal: 'right', vertical: 'bottom' }}
         >
-          <MenuItem 
-            onClick={() => {
-              handleProfileClose();
-              // TODO: Navigate to profile page when implemented
-              console.log('Navigate to profile page');
-            }}
-            sx={{
-              py: 1.5,
-              px: 2,
-              '&:hover': {
-                backgroundColor: alpha(theme.palette.primary.main, 0.1),
-              }
-            }}
-          >
-            <ListItemIcon>
-              <Person sx={{ fontSize: 20 }} />
-            </ListItemIcon>
-            <ListItemText 
-              primary={t('profile')}
-              primaryTypographyProps={{
-                fontWeight: 600,
-                fontSize: '0.95rem',
-                textAlign: currentLanguage === 'ar' ? 'right' : 'left'
-              }}
-            />
-          </MenuItem>
-          <Divider sx={{ my: 0.5, opacity: 0.3 }} />
           <MenuItem 
             onClick={() => {
               handleProfileClose();
