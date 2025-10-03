@@ -29,6 +29,56 @@ const QuickActions = () => {
   const isMobile = useMediaQuery(theme.breakpoints.down('sm'));
   const isRTLMode = isRTL();
 
+  // Touch handling state
+  const [touchStart, setTouchStart] = React.useState(null);
+  const [touchMoved, setTouchMoved] = React.useState(false);
+
+  // Touch event handlers
+  const handleTouchStart = (e) => {
+    setTouchStart({
+      x: e.touches[0].clientX,
+      y: e.touches[0].clientY,
+      time: Date.now()
+    });
+    setTouchMoved(false);
+  };
+
+  const handleTouchMove = (e) => {
+    if (!touchStart) return;
+    
+    const touch = e.touches[0];
+    const deltaX = Math.abs(touch.clientX - touchStart.x);
+    const deltaY = Math.abs(touch.clientY - touchStart.y);
+    
+    // If touch moved more than 10px, consider it a scroll
+    if (deltaX > 10 || deltaY > 10) {
+      setTouchMoved(true);
+    }
+  };
+
+  const handleTouchEnd = (e, action) => {
+    if (!touchStart) return;
+    
+    const touchDuration = Date.now() - touchStart.time;
+    const deltaX = Math.abs(e.changedTouches[0].clientX - touchStart.x);
+    const deltaY = Math.abs(e.changedTouches[0].clientY - touchStart.y);
+    
+    // Only trigger action if:
+    // 1. Touch didn't move much (less than 10px)
+    // 2. Touch duration is reasonable (less than 500ms)
+    // 3. Not a scroll gesture
+    if (!touchMoved && deltaX < 10 && deltaY < 10 && touchDuration < 500) {
+      console.log('📱 Valid tap detected, executing action');
+      action();
+    } else {
+      console.log('📱 Touch ignored - movement:', touchMoved, 'deltaX:', deltaX, 'deltaY:', deltaY, 'duration:', touchDuration);
+    }
+    
+    // Reset touch state
+    setTouchStart(null);
+    setTouchMoved(false);
+  };
+
   const scrollToHelpSection = () => {
     console.log('🔍 scrollToHelpSection called, isMobile:', isMobile);
     
@@ -361,10 +411,12 @@ const QuickActions = () => {
                 }
               }}
               onClick={action.action}
+              onTouchStart={handleTouchStart}
+              onTouchMove={handleTouchMove}
               onTouchEnd={(e) => {
                 e.preventDefault();
                 console.log('📱 Touch end event on card:', action.title);
-                action.action();
+                handleTouchEnd(e, action.action);
               }}
             >
               <CardContent sx={{ p: { xs: 2, sm: 3 }, height: '100%', display: 'flex', flexDirection: 'column' }}>
