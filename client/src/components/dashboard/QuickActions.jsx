@@ -52,12 +52,40 @@ const QuickActions = () => {
         const scrollPosition = absoluteElementTop - navbarHeight - 20;
         console.log('📱 Scroll position:', scrollPosition);
         
-        // Use window.scrollTo for mobile
-        window.scrollTo({
-          top: Math.max(0, scrollPosition),
-          behavior: 'smooth'
-        });
-        console.log('📱 Scrolled to:', Math.max(0, scrollPosition));
+        // Use multiple scrolling methods for mobile compatibility
+        const finalScrollPosition = Math.max(0, scrollPosition);
+        console.log('📱 Final scroll position:', finalScrollPosition);
+        
+        // Try multiple scrolling approaches for mobile
+        try {
+          // Method 1: window.scrollTo with smooth behavior
+          window.scrollTo({
+            top: finalScrollPosition,
+            behavior: 'smooth'
+          });
+          console.log('📱 Method 1: window.scrollTo called');
+          
+          // Method 2: Fallback with immediate scroll after a delay
+          setTimeout(() => {
+            if (Math.abs(window.pageYOffset - finalScrollPosition) > 50) {
+              console.log('📱 Method 2: Fallback scroll triggered');
+              window.scrollTo(0, finalScrollPosition);
+            }
+          }, 100);
+          
+          // Method 3: Use document.documentElement.scrollTop for better mobile support
+          setTimeout(() => {
+            if (Math.abs(window.pageYOffset - finalScrollPosition) > 50) {
+              console.log('📱 Method 3: documentElement scroll triggered');
+              document.documentElement.scrollTop = finalScrollPosition;
+            }
+          }, 200);
+          
+        } catch (error) {
+          console.error('📱 Scroll error:', error);
+          // Final fallback
+          window.scrollTo(0, finalScrollPosition);
+        }
       } else {
         console.log('🖥️ Desktop scrolling triggered');
         // Desktop scrolling
@@ -89,11 +117,31 @@ const QuickActions = () => {
           const elementRect = foundElement.getBoundingClientRect();
           const absoluteElementTop = elementRect.top + window.pageYOffset;
           const scrollPosition = absoluteElementTop - navbarHeight - 20;
+          const finalScrollPosition = Math.max(0, scrollPosition);
           
-          window.scrollTo({
-            top: Math.max(0, scrollPosition),
-            behavior: 'smooth'
-          });
+          // Use the same multiple-method approach for fallback
+          try {
+            window.scrollTo({
+              top: finalScrollPosition,
+              behavior: 'smooth'
+            });
+            
+            setTimeout(() => {
+              if (Math.abs(window.pageYOffset - finalScrollPosition) > 50) {
+                window.scrollTo(0, finalScrollPosition);
+              }
+            }, 100);
+            
+            setTimeout(() => {
+              if (Math.abs(window.pageYOffset - finalScrollPosition) > 50) {
+                document.documentElement.scrollTop = finalScrollPosition;
+              }
+            }, 200);
+            
+          } catch (error) {
+            console.error('📱 Fallback scroll error:', error);
+            window.scrollTo(0, finalScrollPosition);
+          }
         } else {
           console.log('🖥️ Desktop fallback scrolling');
           foundElement.scrollIntoView({ 
