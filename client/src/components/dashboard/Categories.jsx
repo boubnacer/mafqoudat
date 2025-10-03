@@ -147,7 +147,12 @@ const Categories = () => {
               marginLeft: currentLanguage === 'ar' ? 0 : '8px',
               marginRight: currentLanguage === 'ar' ? '8px' : 0,
             },
-            '&:hover': {
+            '&:hover, &:active, &:focus': {
+              backgroundColor: theme.palette.primary.main,
+              color: '#fff',
+              borderColor: theme.palette.primary.main,
+            },
+            '&.Mui-focusVisible': {
               backgroundColor: theme.palette.primary.main,
               color: '#fff',
               borderColor: theme.palette.primary.main,

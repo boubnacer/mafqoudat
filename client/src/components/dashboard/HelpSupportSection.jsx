@@ -210,7 +210,12 @@ const HelpSupportSection = () => {
                         marginRight: isRTLMode ? 0 : '8px',
                         marginLeft: isRTLMode ? '8px' : 0,
                       },
-                      '&:hover': {
+                      '&:hover, &:active, &:focus': {
+                        backgroundColor: theme.palette.primary.main,
+                        color: '#fff',
+                        borderColor: theme.palette.primary.main,
+                      },
+                      '&.Mui-focusVisible': {
                         backgroundColor: theme.palette.primary.main,
                         color: '#fff',
                         borderColor: theme.palette.primary.main,
