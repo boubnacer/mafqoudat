@@ -867,7 +867,7 @@ const Navbar = () => {
           transformOrigin={{ horizontal: 'left', vertical: 'top' }}
           anchorOrigin={{ horizontal: 'left', vertical: 'bottom' }}
         >
-          <Box sx={{ p: 3 }}>
+          <Box sx={{ p: 2 }}>
             <Autocomplete
               options={countriesToUse || []}
               autoHighlight
@@ -994,6 +994,7 @@ const Navbar = () => {
               ListboxProps={{
                 sx: {
                   maxHeight: 250,
+                  py: 1,
                   '& .MuiAutocomplete-option': {
                     padding: 0,
                     '&:hover': {
