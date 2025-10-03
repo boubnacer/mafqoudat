@@ -149,12 +149,12 @@ const Categories = () => {
             },
             '&:hover, &:active, &:focus': {
               backgroundColor: theme.palette.primary.main,
-              color: '#fff',
+              color: '#fff !important',
               borderColor: theme.palette.primary.main,
             },
             '&.Mui-focusVisible': {
               backgroundColor: theme.palette.primary.main,
-              color: '#fff',
+              color: '#fff !important',
               borderColor: theme.palette.primary.main,
             }
           }}
