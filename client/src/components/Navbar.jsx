@@ -517,22 +517,6 @@ const Navbar = () => {
                 zIndex: 2,
               }}
             />
-            <div
-              style={{
-                position: 'absolute',
-                top: '50%',
-                left: '0px',
-                width: '30px',
-                height: '80%',
-                background: 'linear-gradient(45deg, transparent, rgba(255, 255, 255, 0.8), rgba(255, 255, 255, 0.4), transparent)',
-                transform: 'translateY(-50%) skew(-15deg)',
-                borderRadius: '2px',
-                zIndex: 3,
-                animation: logoAnimationTrigger ? 'mirrorReflection 5s ease-in-out infinite' : 'none',
-                boxShadow: '0 0 10px rgba(255, 255, 255, 0.3)',
-                pointerEvents: 'none',
-              }}
-            />
           </LogoButton>
         </Box>
 
