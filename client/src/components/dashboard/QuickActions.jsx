@@ -32,7 +32,36 @@ const QuickActions = () => {
   const scrollToHelpSection = () => {
     const helpSection = document.querySelector('[data-section="help"]');
     if (helpSection) {
-      helpSection.scrollIntoView({ behavior: 'smooth' });
+      // Get the navbar height to account for fixed positioning
+      const navbar = document.querySelector('.MuiAppBar-root');
+      const navbarHeight = navbar ? navbar.offsetHeight : 0;
+      
+      // Calculate the position to scroll to, accounting for navbar height
+      const elementPosition = helpSection.offsetTop;
+      const offsetPosition = elementPosition - navbarHeight - 20; // 20px extra padding
+      
+      // Use window.scrollTo for better mobile compatibility
+      window.scrollTo({
+        top: offsetPosition,
+        behavior: 'smooth'
+      });
+    } else {
+      // Fallback: try to find the help section by text content
+      const helpElements = document.querySelectorAll('*');
+      for (let element of helpElements) {
+        if (element.textContent && element.textContent.includes('Help & Support')) {
+          const navbar = document.querySelector('.MuiAppBar-root');
+          const navbarHeight = navbar ? navbar.offsetHeight : 0;
+          const elementPosition = element.offsetTop;
+          const offsetPosition = elementPosition - navbarHeight - 20;
+          
+          window.scrollTo({
+            top: offsetPosition,
+            behavior: 'smooth'
+          });
+          break;
+        }
+      }
     }
   };
 
