@@ -396,8 +396,8 @@ const Dash = () => {
                   maxItems={{ xs: 2, sm: 4 }}
                 />
                  
-                 {/* Mobile See All Button - Bottom (only when there are posts) */}
-                 {(data?.totalFounds && data?.totalFounds > 2) && (
+                 {/* Mobile See All Button - Bottom (show when there are posts) */}
+                 {data?.totalFounds > 0 && (
                    <Box
                      sx={{
                        display: { xs: 'flex', sm: 'none' },
@@ -411,6 +411,7 @@ const Dash = () => {
                        foundOrlostId={foundsId} 
                        totalItems={data?.totalFounds}
                        variant="mobile"
+                       postType="found"
                      />
                    </Box>
                  )}
@@ -572,8 +573,8 @@ const Dash = () => {
                     maxItems={{ xs: 2, sm: 4 }}
                   />
                   
-                  {/* Mobile See All Button - Bottom (only when there are posts) */}
-                  {(data?.totalLosts && data?.totalLosts > 2) && (
+                  {/* Mobile See All Button - Bottom (show when there are posts) */}
+                  {data?.totalLosts > 0 && (
                     <Box
                       sx={{
                         display: { xs: 'flex', sm: 'none' },
@@ -587,6 +588,7 @@ const Dash = () => {
                         foundOrlostId={lostsId} 
                         totalItems={data?.totalLosts}
                         variant="mobile"
+                        postType="lost"
                       />
                     </Box>
                   )}

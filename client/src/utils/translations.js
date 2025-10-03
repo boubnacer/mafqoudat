@@ -525,6 +525,8 @@ export const translations = {
     recentLosts: "Recent Losts",
     items: "items",
     seeAll: "See All",
+    onlyOneFoundPost: "There is only one found post in your country. Add another to help others find their lost items.",
+    onlyOneLostPost: "There is only one lost post in your country. Add another to help others find their lost items.",
     
     // Country Selection
     selectCountry: "Select Country",
@@ -1386,6 +1388,8 @@ export const translations = {
     recentLosts: "Objets perdus récents",
     items: "objets",
     seeAll: "Voir Tout",
+    onlyOneFoundPost: "Il n'y a qu'un seul objet trouvé dans votre pays. Ajoutez-en un autre pour aider les autres à retrouver leurs objets perdus.",
+    onlyOneLostPost: "Il n'y a qu'un seul objet perdu dans votre pays. Ajoutez-en un autre pour aider les autres à retrouver leurs objets perdus.",
     
     // Country Selection
     selectCountry: "Sélectionner un pays",
@@ -2209,6 +2213,8 @@ export const translations = {
     recentLosts: "العناصر المفقودة حديثاً",
     items: "عناصر",
     seeAll: "عرض الكل",
+    onlyOneFoundPost: "يوجد منشور واحد فقط للعناصر التي عثر عليها في بلدك. أضف منشوراً آخر لمساعدة الآخرين في العثور على عناصرهم المفقودة.",
+    onlyOneLostPost: "يوجد منشور واحد فقط للعناصر المفقودة في بلدك. أضف منشوراً آخر لمساعدة الآخرين في العثور على عناصرهم المفقودة.",
     
     // Country Selection
     selectCountry: "اختر البلد",
