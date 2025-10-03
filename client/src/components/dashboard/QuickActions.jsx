@@ -72,73 +72,83 @@ const QuickActions = () => {
             console.log('📱 Focus failed:', e);
           }
           
-          // Method 2: Aggressive mobile scroll with multiple strategies
-          const forceScrollToPosition = (targetPosition) => {
-            console.log('📱 Force scrolling to:', targetPosition);
+          // Method 2: Smart mobile scroll that finds the correct container
+          const smartScrollToPosition = (targetPosition) => {
+            console.log('📱 Smart scrolling to:', targetPosition);
             
-            // Strategy 1: Direct DOM manipulation
-            document.documentElement.scrollTop = targetPosition;
-            document.body.scrollTop = targetPosition;
-            
-            // Strategy 2: Window scroll methods
-            window.scrollTo(0, targetPosition);
-            window.scrollTo({ top: targetPosition, left: 0, behavior: 'auto' });
-            
-            // Strategy 3: Try to find and scroll the actual scrollable container
-            const scrollableContainers = [
-              document.documentElement,
-              document.body,
-              document.querySelector('main'),
-              document.querySelector('#root'),
-              document.querySelector('.MuiBox-root'),
-              document.querySelector('[data-section="help"]').closest('.MuiBox-root')
-            ].filter(Boolean);
-            
-            scrollableContainers.forEach(container => {
-              if (container && container.scrollTop !== undefined) {
-                container.scrollTop = targetPosition;
-                console.log('📱 Scrolled container:', container.tagName, 'to:', targetPosition);
+            // Find the actual scrollable container by checking which one has scroll
+            const findScrollableContainer = () => {
+              const containers = [
+                document.documentElement,
+                document.body,
+                document.querySelector('main'),
+                document.querySelector('#root')
+              ].filter(Boolean);
+              
+              for (let container of containers) {
+                if (container.scrollHeight > container.clientHeight) {
+                  console.log('📱 Found scrollable container:', container.tagName, 'scrollHeight:', container.scrollHeight, 'clientHeight:', container.clientHeight);
+                  return container;
+                }
               }
-            });
+              return document.documentElement; // fallback
+            };
             
-            // Strategy 4: Force a reflow and try again
-            helpSection.offsetHeight;
+            const scrollableContainer = findScrollableContainer();
             
-            // Strategy 5: Use scrollIntoView as fallback
-            setTimeout(() => {
-              console.log('📱 Final scrollIntoView attempt');
-              helpSection.scrollIntoView({ 
-                behavior: 'auto', 
-                block: 'start',
-                inline: 'nearest'
+            // Use smooth scrolling on the correct container
+            if (scrollableContainer === document.documentElement || scrollableContainer === document.body) {
+              console.log('📱 Using window.scrollTo with smooth behavior');
+              window.scrollTo({
+                top: targetPosition,
+                behavior: 'smooth'
               });
-            }, 50);
+            } else {
+              console.log('📱 Using container scroll with smooth behavior');
+              // For other containers, we need to animate manually
+              const startPosition = scrollableContainer.scrollTop;
+              const distance = targetPosition - startPosition;
+              const duration = 600; // 600ms smooth animation
+              let startTime = null;
+              
+              const animateScroll = (currentTime) => {
+                if (startTime === null) startTime = currentTime;
+                const timeElapsed = currentTime - startTime;
+                const progress = Math.min(timeElapsed / duration, 1);
+                
+                // Easing function (ease-out)
+                const easeOut = 1 - Math.pow(1 - progress, 3);
+                const currentPosition = startPosition + (distance * easeOut);
+                
+                scrollableContainer.scrollTop = currentPosition;
+                
+                if (progress < 1) {
+                  requestAnimationFrame(animateScroll);
+                } else {
+                  console.log('📱 Container scroll animation completed');
+                }
+              };
+              
+              requestAnimationFrame(animateScroll);
+            }
             
-            console.log('📱 After force scroll, position:', window.pageYOffset);
+            console.log('📱 After smart scroll, position:', window.pageYOffset);
           };
           
-          // Try immediate scroll first
-          forceScrollToPosition(finalScrollPosition);
+          // Use smart scrolling
+          smartScrollToPosition(finalScrollPosition);
           
-          // If that doesn't work, try with a delay
+          // Fallback with scrollIntoView if needed
           setTimeout(() => {
             if (Math.abs(window.pageYOffset - finalScrollPosition) > 100) {
-              console.log('📱 First attempt failed, trying again');
-              forceScrollToPosition(finalScrollPosition);
-            }
-          }, 200);
-          
-          // Final attempt with scrollIntoView
-          setTimeout(() => {
-            if (Math.abs(window.pageYOffset - finalScrollPosition) > 100) {
-              console.log('📱 All attempts failed, using scrollIntoView only');
+              console.log('📱 Smart scroll failed, using scrollIntoView fallback');
               helpSection.scrollIntoView({ 
                 behavior: 'smooth', 
                 block: 'start',
                 inline: 'nearest'
               });
             }
-          }, 500);
+          }, 800);
           
         } else {
           // Desktop/emulator approach
