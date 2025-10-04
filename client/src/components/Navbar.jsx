@@ -222,8 +222,8 @@ const CountrySelector = styled(Box)(({ theme }) => ({
     '& img': {
       marginRight: '0',
       borderRadius: '10px',
-      width: '32px !important',
-      height: '20px !important',
+      width: '40px !important',
+      height: '28px !important',
       objectFit: 'cover',
       border: `1px solid ${alpha(theme.palette.divider, 0.1)}`,
     }
@@ -603,8 +603,8 @@ const Navbar = () => {
               <>
                 <img
                   loading="lazy"
-                  width={isMobile ? "32" : "30"}
-                  height={isMobile ? "20" : "20"}
+                  width={isMobile ? "40" : "30"}
+                  height={isMobile ? "28" : "20"}
                   src={`https://flagcdn.com/w20/${currentCountryData.code.toLowerCase()}.png`}
                   srcSet={`https://flagcdn.com/w40/${currentCountryData.code.toLowerCase()}.png 2x`}
                   alt=""
@@ -627,8 +627,8 @@ const Navbar = () => {
             ) : (
               <Box
                 sx={{
-                  width: isMobile ? 32 : 30,
-                  height: isMobile ? 20 : 20,
+                  width: isMobile ? 40 : 30,
+                  height: isMobile ? 28 : 20,
                   backgroundColor: 'rgba(255,255,255,0.1)',
                   borderRadius: isMobile ? '10px' : '4px',
                   border: isMobile ? `1px solid ${alpha(theme.palette.divider, 0.1)}` : 'none',
