@@ -582,6 +582,14 @@ const getUserPosts = async (req, res) => {
     const pageSize = Math.min(Math.max(parseInt(req.query.pageSize) || 8, 1), 50);
     const language = req.query.language || 'en';
 
+    console.log('🔍 [getUserPosts] API Debug:', {
+      userId,
+      page,
+      pageSize,
+      language,
+      userFromToken: req.user
+    });
+
     // Generate cache key
     const cacheKey = cacheService.generateKey('user-posts', {
       userId,
@@ -745,10 +753,22 @@ const getUserPosts = async (req, res) => {
 
     const userPosts = await Post.aggregate(pipeline);
     
+    console.log('🔍 [getUserPosts] Query Results:', {
+      userPostsCount: userPosts?.length,
+      userPosts: userPosts?.map(post => ({
+        _id: post._id,
+        title: post.title,
+        categoryname: post.categoryname,
+        floptionName: post.floptionName
+      }))
+    });
+    
     // Get total count for pagination
     const totalPosts = await Post.countDocuments({
       user: new mongoose.Types.ObjectId(userId)
     });
+
+    console.log('🔍 [getUserPosts] Total Posts Count:', totalPosts);
 
     // If no posts
     if (!userPosts?.length) {
@@ -770,6 +790,12 @@ const getUserPosts = async (req, res) => {
       totalPages: Math.ceil(totalPosts / pageSize),
       total: totalPosts
     };
+    
+    console.log('🔍 [getUserPosts] Final Response:', {
+      postsWithUserCount: response.postsWithUser?.length,
+      total: response.total,
+      page: response.page
+    });
     
     // Cache the response for 2 minutes (user-specific data)
     await cacheService.set(cacheKey, response, 120);

@@ -56,6 +56,15 @@ const Dash = () => {
     countriesData,
   } = useDashboard();
 
+  // Debug logging for dashboard
+  console.log('🔍 [Dash] Dashboard Debug:', {
+    user: user.username,
+    userPostsData,
+    isUserPostsLoading,
+    hasUserPosts: userPostsData?.postsWithUser?.length > 0,
+    userPostsLength: userPostsData?.postsWithUser?.length
+  });
+
   const handleCreateNewPost = (type) => {
     if (!user.username) {
       // Store the intended destination for redirect after login

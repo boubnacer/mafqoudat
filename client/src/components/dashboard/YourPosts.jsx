@@ -31,6 +31,14 @@ const YourPosts = ({ userPosts = [], isLoading = false }) => {
   const navigate = useNavigate();
   const { t, currentLanguage } = useTranslation();
 
+  // Debug logging for YourPosts component
+  console.log('🔍 [YourPosts] Component Debug:', {
+    userPosts,
+    userPostsLength: userPosts?.length,
+    isLoading,
+    shouldRender: userPosts && userPosts.length > 0
+  });
+
   const formatDate = (dateString) => {
     const date = new Date(dateString);
     return date.toLocaleDateString(currentLanguage === 'ar' ? 'ar-SA' : currentLanguage === 'fr' ? 'fr-FR' : 'en-US', {

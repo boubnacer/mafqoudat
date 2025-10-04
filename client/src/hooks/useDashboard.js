@@ -99,13 +99,24 @@ export const useDashboard = () => {
   const { 
     data: userPostsData, 
     isLoading: isUserPostsLoading,
-    isFetching: isUserPostsFetching
+    isFetching: isUserPostsFetching,
+    error: userPostsError
   } = useGetUserPostsQuery({
     page: 1,
     pageSize: 4,
     language: currentLanguage
   }, {
     skip: !token // Skip if user is not authenticated
+  });
+
+  // Debug logging for user posts
+  console.log('🔍 [useDashboard] User Posts Debug:', {
+    token: !!token,
+    userPostsData,
+    isUserPostsLoading,
+    isUserPostsFetching,
+    userPostsError,
+    currentLanguage
   });
 
   // Create a debounced search function
