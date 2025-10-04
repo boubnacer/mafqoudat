@@ -24,6 +24,7 @@ import Recent from "../../components/dashboard/Recent";
 import SeeAll from "../../components/dashboard/SeeAll";
 import HelpSupportSection from "../../components/dashboard/HelpSupportSection";
 import DashRecents from "../../components/dashboard/DashRecents";
+import YourPosts from "../../components/dashboard/YourPosts";
 
 import "./dash.css";
 
@@ -49,7 +50,8 @@ const Dash = () => {
     error,
     isLoading,
     trend,
-
+    userPostsData,
+    isUserPostsLoading,
     currentCountry,
     countriesData,
   } = useDashboard();
@@ -612,6 +614,14 @@ const Dash = () => {
 
           {/* Quick Actions */}
           <QuickActions />
+
+          {/* Your Posts Section - Only show if user is signed in */}
+          {user.username && (
+            <YourPosts 
+              userPosts={userPostsData?.postsWithUser}
+              isLoading={isUserPostsLoading}
+            />
+          )}
 
           {/* Categories Section */}
           <Box mb={4}>

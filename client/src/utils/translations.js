@@ -457,6 +457,13 @@ export const translations = {
     today: "today",
     sinceLastMonth: "Since last month",
     
+    // Your Posts Section
+    yourPosts: "Your Posts",
+    yourPostsDesc: "Manage and view your posted items",
+    noYourPosts: "You haven't posted any items yet",
+    createYourFirstPost: "Create your first post",
+    viewAllYourPosts: "View All Your Posts",
+    
     // Search Section
     searchResults: "Search Results",
     filters: "Filters",
@@ -1318,6 +1325,13 @@ export const translations = {
     today: "aujourd'hui",
     sinceLastMonth: "Depuis le mois dernier",
     
+    // Your Posts Section
+    yourPosts: "Vos Publications",
+    yourPostsDesc: "Gérez et consultez vos articles publiés",
+    noYourPosts: "Vous n'avez encore publié aucun article",
+    createYourFirstPost: "Créez votre première publication",
+    viewAllYourPosts: "Voir Toutes Vos Publications",
+    
     // Search Section
     searchResults: "Résultats de recherche",
     filters: "Filtres",
@@ -2142,6 +2156,13 @@ export const translations = {
     returnedItems: "العناصر المُسترجعة",
     today: "اليوم",
     sinceLastMonth: "منذ الشهر الماضي",
+    
+    // Your Posts Section
+    yourPosts: "منشوراتك",
+    yourPostsDesc: "إدارة ومشاهدة العناصر التي نشرتها",
+    noYourPosts: "لم تنشر أي عناصر بعد",
+    createYourFirstPost: "أنشئ منشورك الأول",
+    viewAllYourPosts: "عرض جميع منشوراتك",
     
     // Search Section
     searchResults: "نتائج البحث",

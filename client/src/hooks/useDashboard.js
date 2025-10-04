@@ -1,6 +1,6 @@
 import { useState, useCallback, useEffect } from 'react';
 import { useSelector, useDispatch } from 'react-redux';
-import { useGetDashboardQuery, useGetPostsQuery } from '../features/posts/postsApiSlice';
+import { useGetDashboardQuery, useGetPostsQuery, useGetUserPostsQuery } from '../features/posts/postsApiSlice';
 import { selectCurrentCountry, setCurrentCountry } from '../app/state';
 import { useGetCountriesQuery } from '../features/dependencies/dependenciesApiSlice';
 import debounce from 'lodash/debounce';
@@ -95,6 +95,19 @@ export const useDashboard = () => {
     skip: !currentCountry
   });
 
+  // User posts query - only for authenticated users
+  const { 
+    data: userPostsData, 
+    isLoading: isUserPostsLoading,
+    isFetching: isUserPostsFetching
+  } = useGetUserPostsQuery({
+    page: 1,
+    pageSize: 4,
+    language: currentLanguage
+  }, {
+    skip: !token // Skip if user is not authenticated
+  });
+
   // Create a debounced search function
   const debouncedSearch = useCallback(
     debounce((query) => {
@@ -131,6 +144,7 @@ export const useDashboard = () => {
     // Loading states
     isLoading: isLoading || isFetching,
     isSearchLoading: isSearchLoading || isSearchFetching,
+    isUserPostsLoading: isUserPostsLoading || isUserPostsFetching,
     
     // Data
     data,
@@ -141,6 +155,8 @@ export const useDashboard = () => {
     createdtoday,
     searchData,
     isSearchLoading,
+    userPostsData,
+    isUserPostsLoading,
     countriesData,
     countriesError,
     

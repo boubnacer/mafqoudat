@@ -572,6 +572,218 @@ const getFilteredPosts = async (req, res) => {
   }
 };
 
+// @desc Get user's posts
+// @route GET /posts/user
+// @access Private
+const getUserPosts = async (req, res) => {
+  try {
+    const userId = req.user.id;
+    const page = Math.max(0, parseInt(req.query.page) - 1) || 0;
+    const pageSize = Math.min(Math.max(parseInt(req.query.pageSize) || 8, 1), 50);
+    const language = req.query.language || 'en';
+
+    // Generate cache key
+    const cacheKey = cacheService.generateKey('user-posts', {
+      userId,
+      page,
+      pageSize,
+      language
+    });
+    
+    // Check cache first
+    const cachedPosts = await cacheService.get(cacheKey);
+    if (cachedPosts) {
+      console.log('📦 User posts served from cache');
+      return res.json(cachedPosts);
+    }
+
+    // Build aggregation pipeline for user posts
+    const pipeline = [
+      {
+        $match: {
+          user: new mongoose.Types.ObjectId(userId)
+        }
+      },
+      {
+        $sort: {
+          createdAt: -1
+        }
+      },
+      {
+        $skip: page * pageSize
+      },
+      {
+        $limit: pageSize
+      },
+      {
+        $lookup: {
+          from: "categories",
+          localField: "category",
+          foreignField: "_id",
+          as: "Category"
+        }
+      },
+      { $unwind: { path: "$Category", preserveNullAndEmptyArrays: true } },
+      {
+        $lookup: {
+          from: "foundlosts",
+          localField: "foundLost",
+          foreignField: "_id",
+          as: "Floptions"
+        }
+      },
+      { $unwind: { path: "$Floptions", preserveNullAndEmptyArrays: true } },
+      {
+        $lookup: {
+          from: "countries",
+          localField: "country",
+          foreignField: "_id",
+          as: "Country"
+        }
+      },
+      { $unwind: { path: "$Country", preserveNullAndEmptyArrays: true } },
+      {
+        $lookup: {
+          from: "cities",
+          localField: "city",
+          foreignField: "_id",
+          as: "City"
+        }
+      },
+      { $unwind: { path: "$City", preserveNullAndEmptyArrays: true } },
+      {
+        $project: {
+          _id: 1,
+          user: 1,
+          country: 1,
+          exactLocation: 1,
+          city: {
+            $cond: {
+              if: { $ne: ["$City", null] },
+              then: {
+                id: "$City._id",
+                code: "$City.code",
+                labels: "$City.labels",
+                isDynamic: "$City.isDynamic"
+              },
+              else: null
+            }
+          },
+          category: {
+            $cond: {
+              if: { $ne: ["$Category", null] },
+              then: {
+                id: "$Category._id",
+                code: "$Category.code",
+                labels: "$Category.labels"
+              },
+              else: null
+            }
+          },
+          foundLost: {
+            $cond: {
+              if: { $ne: ["$Floptions", null] },
+              then: {
+                id: "$Floptions._id",
+                code: "$Floptions.code",
+                labels: "$Floptions.labels"
+              },
+              else: null
+            }
+          },
+          country: {
+            $cond: {
+              if: { $ne: ["$Country", null] },
+              then: {
+                id: "$Country._id",
+                code: "$Country.code",
+                labels: "$Country.labels"
+              },
+              else: null
+            }
+          },
+          contact: 1,
+          description: 1,
+          image: 1,
+          exactDate: 1,
+          createdAt: 1,
+          updatedAt: 1,
+          returned: 1,
+          // Add computed fields for easier frontend usage
+          title: {
+            $cond: {
+              if: { $ne: ["$Category", null] },
+              then: {
+                $cond: {
+                  if: { $ne: ["$Floptions", null] },
+                  then: {
+                    $concat: [
+                      { $ifNull: [{ $objectToArray: "$Category.labels" }, []] },
+                      " ",
+                      { $ifNull: [{ $objectToArray: "$Floptions.labels" }, []] }
+                    ]
+                  },
+                  else: { $ifNull: [{ $objectToArray: "$Category.labels" }, []] }
+                }
+              },
+              else: "Unknown Item"
+            }
+          },
+          categoryname: { $ifNull: ["$Category.code", "UNKNOWN"] },
+          floptionName: { $ifNull: ["$Floptions.code", "UNKNOWN"] },
+          countryname: { $ifNull: ["$Country.code", "UNKNOWN"] },
+          cityName: {
+            $cond: {
+              if: { $ne: ["$City", null] },
+              then: { $ifNull: ["$City.code", "UNKNOWN"] },
+              else: "UNKNOWN"
+            }
+          }
+        }
+      }
+    ];
+
+    const userPosts = await Post.aggregate(pipeline);
+    
+    // Get total count for pagination
+    const totalPosts = await Post.countDocuments({
+      user: new mongoose.Types.ObjectId(userId)
+    });
+
+    // If no posts
+    if (!userPosts?.length) {
+      const response = {
+        postsWithUser: [],
+        page: page + 1,
+        totalPages: 0,
+        total: 0
+      };
+      
+      // Cache empty response for 1 minute
+      await cacheService.set(cacheKey, response, 60);
+      return res.status(200).json(response);
+    }
+
+    const response = {
+      postsWithUser: userPosts,
+      page: page + 1,
+      totalPages: Math.ceil(totalPosts / pageSize),
+      total: totalPosts
+    };
+    
+    // Cache the response for 2 minutes (user-specific data)
+    await cacheService.set(cacheKey, response, 120);
+    
+    res.json(response);
+  } catch (error) {
+    console.error('Error in getUserPosts:', error);
+    res.status(500).json({ 
+      message: "Error fetching user posts",
+      error: error.message 
+    });
+  }
+};
+
 // @desc Create new post
 // @route POST /posts
 // @access Private
@@ -1238,6 +1450,7 @@ module.exports = {
   getAllPosts,
   getPost,
   getFilteredPosts,
+  getUserPosts,
   createNewPost,
   submitPostReport,
   updatePost,

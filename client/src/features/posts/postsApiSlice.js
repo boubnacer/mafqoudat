@@ -134,6 +134,37 @@ export const postsApiSlice = apiSlice.injectEndpoints({
       },
     }),
 
+    getUserPosts: builder.query({
+      query: ({ page = 1, pageSize = 8, language = 'en' } = {}) => ({
+        url: "/posts/user",
+        method: "GET",
+        params: {
+          page,
+          pageSize,
+          language
+        },
+        validateStatus: (response, result) => {
+          return response.status === 200 && !result.isError;
+        },
+      }),
+      // Add retry logic for rate limit errors
+      retry: (failureCount, error) => {
+        if (error?.status === 429) {
+          return failureCount < 2; // Retry up to 2 times for rate limit errors
+        }
+        return failureCount < 1; // Retry once for other errors
+      },
+      retryDelay: attemptIndex => Math.min(1000 * 2 ** attemptIndex, 30000),
+      providesTags: (result, error, arg) => {
+        if (result?.ids) {
+          return [
+            { type: "Post", id: "USER_POSTS" },
+            ...result.ids.map(id => ({ type: "Post", id }))
+          ];
+        } else return [{ type: "Post", id: "USER_POSTS" }];
+      },
+    }),
+
     addNewPost: builder.mutation({
       query: (formData) => {
         return {
@@ -266,6 +297,7 @@ export const postsApiSlice = apiSlice.injectEndpoints({
 export const {
   useGetPostsQuery,
   useGetPostQuery,
+  useGetUserPostsQuery,
   useAddNewPostMutation,
   useUpdatePostMutation,
   useDeletePostMutation,

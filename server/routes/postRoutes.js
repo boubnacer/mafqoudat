@@ -35,6 +35,15 @@ router.route("/filtered")
     postsController.getFilteredPosts
   );
 
+router.route("/user")
+  .get(
+    verifyJWT,
+    searchRateLimit,
+    commonValidations.pagination(),
+    validateRequest,
+    postsController.getUserPosts
+  );
+
 router.route("/:id")
   .get(
     commonValidations.objectId('id'),
