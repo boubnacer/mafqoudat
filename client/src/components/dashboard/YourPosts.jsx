@@ -264,7 +264,7 @@ const YourPosts = ({ userPosts = [], isLoading = false }) => {
         >
           <Grid container spacing={2}>
             {userPosts.slice(0, 4).map((post) => (
-              <Grid item xs={12} sm={6} key={post._id}>
+              <Grid item xs={12} sm={6} md={3} key={post._id}>
                 <Card
                   sx={{
                     height: '100%',
@@ -292,10 +292,10 @@ const YourPosts = ({ userPosts = [], isLoading = false }) => {
                     <CardMedia
                       component="img"
                       height="160"
-                      image={post.image ? (post.image.startsWith('http') ? getOptimizedImageUrl(post.image, 'card') : `${API_BASE_URL}/${post.image}`) : noImageSvg}
-                      alt={post.title}
+                      image={post.image && typeof post.image === 'string' ? (post.image.startsWith('http') ? getOptimizedImageUrl(post.image, 'card') : `${API_BASE_URL}/${post.image}`) : noImageSvg}
+                      alt={String(post.title || post.categoryname || 'Unknown Item')}
                       sx={{ 
-                        objectFit: post.image ? 'cover' : 'contain',
+                        objectFit: post.image && typeof post.image === 'string' ? 'cover' : 'contain',
                         backgroundColor: theme.palette.mode === 'dark' ? '#2d2d2d' : '#f5f5f5'
                       }}
                     />
@@ -329,7 +329,7 @@ const YourPosts = ({ userPosts = [], isLoading = false }) => {
                         overflow: 'hidden'
                       }}
                     >
-                      {String(post.title || post.categoryname || 'Unknown Item')}
+                      {post.categoryname ? t(post.categoryname) : 'Unknown Item'}
                     </Typography>
 
                     <Typography
