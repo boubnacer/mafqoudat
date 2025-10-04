@@ -208,10 +208,22 @@ const CountrySelector = styled(Box)(({ theme }) => ({
     transition: 'all 0.3s ease',
   },
   [theme.breakpoints.down('sm')]: {
-    padding: '8px 10px',
+    padding: '0',
+    background: 'transparent',
+    border: 'none',
+    borderRadius: '0',
     justifyContent: 'center',
+    '&:hover': {
+      background: 'transparent',
+      transform: 'none',
+      boxShadow: 'none',
+    },
     '& img': {
       marginRight: '0',
+      borderRadius: '0',
+      width: '32px !important',
+      height: '20px !important',
+      objectFit: 'cover',
     }
   }
 }));
@@ -616,7 +628,7 @@ const Navbar = () => {
                   width: isMobile ? 32 : 30,
                   height: isMobile ? 20 : 20,
                   backgroundColor: 'rgba(255,255,255,0.1)',
-                  borderRadius: '4px',
+                  borderRadius: isMobile ? '0' : '4px',
                   display: 'flex',
                   alignItems: 'center',
                   justifyContent: 'center'
