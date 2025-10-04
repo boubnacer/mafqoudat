@@ -116,7 +116,8 @@ export const useDashboard = () => {
     isUserPostsLoading,
     isUserPostsFetching,
     userPostsError,
-    currentLanguage
+    currentLanguage,
+    fullUserPostsData: userPostsData
   });
 
   // Create a debounced search function

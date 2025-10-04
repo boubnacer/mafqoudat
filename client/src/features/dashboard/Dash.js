@@ -62,7 +62,8 @@ const Dash = () => {
     userPostsData,
     isUserPostsLoading,
     hasUserPosts: userPostsData?.postsWithUser?.length > 0,
-    userPostsLength: userPostsData?.postsWithUser?.length
+    userPostsLength: userPostsData?.postsWithUser?.length,
+    fullUserPostsData: userPostsData
   });
 
   const handleCreateNewPost = (type) => {

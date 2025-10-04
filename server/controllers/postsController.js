@@ -587,7 +587,9 @@ const getUserPosts = async (req, res) => {
       page,
       pageSize,
       language,
-      userFromToken: req.user
+      userFromToken: req.user,
+      userIdType: typeof userId,
+      userIdValid: mongoose.Types.ObjectId.isValid(userId)
     });
 
     // Generate cache key
@@ -769,6 +771,18 @@ const getUserPosts = async (req, res) => {
     });
 
     console.log('🔍 [getUserPosts] Total Posts Count:', totalPosts);
+
+    // Debug: Check if there are any posts for this user at all
+    const allUserPosts = await Post.find({ user: new mongoose.Types.ObjectId(userId) }).limit(5);
+    console.log('🔍 [getUserPosts] Raw User Posts Check:', {
+      allUserPostsCount: allUserPosts.length,
+      samplePosts: allUserPosts.map(post => ({
+        _id: post._id,
+        user: post.user,
+        userType: typeof post.user,
+        userString: post.user.toString()
+      }))
+    });
 
     // If no posts
     if (!userPosts?.length) {
