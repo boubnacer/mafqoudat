@@ -17,7 +17,8 @@ import {
   PersonOutline, 
   Edit, 
   Visibility,
-  Add
+  Add,
+  AccessTime
 } from '@mui/icons-material';
 import { useTranslation } from '../../utils/translations';
 import { getOptimizedImageUrl } from '../../utils/cloudinaryUtils';
