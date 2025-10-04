@@ -36,7 +36,15 @@ const YourPosts = ({ userPosts = [], isLoading = false }) => {
     userPosts,
     userPostsLength: userPosts?.length,
     isLoading,
-    shouldRender: userPosts && userPosts.length > 0
+    shouldRender: userPosts && userPosts.length > 0,
+    samplePost: userPosts?.[0] ? {
+      _id: userPosts[0]._id,
+      title: userPosts[0].title,
+      categoryname: userPosts[0].categoryname,
+      floptionName: userPosts[0].floptionName,
+      foundLost: userPosts[0].foundLost,
+      exactLocation: userPosts[0].exactLocation
+    } : null
   });
 
   const formatDate = (dateString) => {
@@ -287,8 +295,8 @@ const YourPosts = ({ userPosts = [], isLoading = false }) => {
                       }}
                     />
                     <Chip
-                      label={t(post.foundLost)}
-                      color={post.foundLost === 'found' ? 'success' : 'error'}
+                      label={t(post.foundLost || post.floptionName || 'unknown')}
+                      color={(post.foundLost || post.floptionName) === 'found' ? 'success' : 'error'}
                       size="small"
                       sx={{
                         position: 'absolute',
@@ -316,7 +324,7 @@ const YourPosts = ({ userPosts = [], isLoading = false }) => {
                         overflow: 'hidden'
                       }}
                     >
-                      {post.title}
+                      {post.title || post.categoryname || 'Unknown Item'}
                     </Typography>
 
                     <Typography
@@ -331,7 +339,7 @@ const YourPosts = ({ userPosts = [], isLoading = false }) => {
                         overflow: 'hidden'
                       }}
                     >
-                      {post.exactLocation}
+                      {post.exactLocation || 'No location specified'}
                     </Typography>
 
                     <Typography
