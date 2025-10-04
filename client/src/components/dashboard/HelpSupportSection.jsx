@@ -65,7 +65,7 @@ const HelpSupportSection = () => {
   const emergencyContacts = [
     {
       name: t('contactUs'),
-      details: t('contactUsDetails'),
+      details: "+212711621132",
       icon: <Phone />,
       action: t('call'),
       actionIcon: <Send />
@@ -75,14 +75,14 @@ const HelpSupportSection = () => {
       details: t('support24_7'),
       icon: null,
       action: t('call'),
-      actionIcon: <Send />
+      actionIcon: null
     },
     {
       name: t('email'),
       details: t('supportEmail'),
       icon: <Phone />,
       action: t('emailAction'),
-      actionIcon: <Send />
+      actionIcon: null
     }
   ];
 
