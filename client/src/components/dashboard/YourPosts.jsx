@@ -23,6 +23,8 @@ import {
 import { useTranslation } from '../../utils/translations';
 import { getOptimizedImageUrl } from '../../utils/cloudinaryUtils';
 import noImageSvg from '../../img/noimage.svg';
+import { formatDistanceToNow } from 'date-fns';
+import { ar, fr, enUS } from 'date-fns/locale';
 
 const API_BASE_URL = process.env.REACT_APP_API_URL || "http://localhost:3500";
 
@@ -31,6 +33,15 @@ const YourPosts = ({ userPosts = [], isLoading = false }) => {
   const isMobile = useMediaQuery('(max-width:600px)');
   const navigate = useNavigate();
   const { t, currentLanguage } = useTranslation();
+
+  // Format date using date-fns with proper locale support (same as RecentPosts)
+  const getLocale = () => {
+    switch (currentLanguage) {
+      case 'ar': return ar;
+      case 'fr': return fr;
+      default: return enUS;
+    }
+  };
 
   // Debug logging for YourPosts component
   console.log('🔍 [YourPosts] Component Debug:', {
@@ -363,11 +374,9 @@ const YourPosts = ({ userPosts = [], isLoading = false }) => {
                       }}
                     >
                       <AccessTime sx={{ fontSize: '12px' }} />
-                      {new Date(post.createdAt).toLocaleDateString(currentLanguage === 'ar' ? 'ar-SA' : currentLanguage === 'fr' ? 'fr-FR' : 'en-US', {
-                        year: 'numeric',
-                        month: 'short',
-                        day: 'numeric',
-                        numberingSystem: currentLanguage === 'ar' ? 'latn' : undefined
+                      {formatDistanceToNow(new Date(post.createdAt), { 
+                        addSuffix: true,
+                        locale: getLocale()
                       })}
                     </Typography>
 
