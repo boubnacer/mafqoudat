@@ -243,6 +243,14 @@ const Dash = () => {
             }}
           />
 
+          {/* Your Posts Section - Only show if user is signed in and has posts */}
+          {user.username && userPostsData?.postsWithUser?.length > 0 && (
+            <YourPosts 
+              userPosts={userPostsData?.postsWithUser}
+              isLoading={isUserPostsLoading}
+            />
+          )}
+
           {/* Enhanced Recent Founds Section - Only show when there are posts */}
           {data?.totalFounds > 0 && (
             <Box mb={4}>
@@ -614,14 +622,6 @@ const Dash = () => {
 
           {/* Quick Actions */}
           <QuickActions />
-
-          {/* Your Posts Section - Only show if user is signed in */}
-          {user.username && (
-            <YourPosts 
-              userPosts={userPostsData?.postsWithUser}
-              isLoading={isUserPostsLoading}
-            />
-          )}
 
           {/* Categories Section */}
           <Box mb={4}>
