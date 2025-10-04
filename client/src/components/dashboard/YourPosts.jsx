@@ -300,7 +300,7 @@ const YourPosts = ({ userPosts = [], isLoading = false }) => {
                       }}
                     />
                     <Chip
-                      label={t(String(post.floptionName || 'unknown'))}
+                      label={post.foundLost?.labels?.[currentLanguage] || t(String(post.floptionName || 'unknown'))}
                       color={String(post.floptionName) === 'found' ? 'success' : 'error'}
                       size="small"
                       sx={{
@@ -378,6 +378,10 @@ const YourPosts = ({ userPosts = [], isLoading = false }) => {
                           '&:hover': {
                             borderColor: theme.palette.mode === 'dark' ? '#66BB6A' : '#34495e',
                             backgroundColor: theme.palette.mode === 'dark' ? 'rgba(76, 175, 80, 0.1)' : 'rgba(44, 62, 80, 0.1)',
+                          },
+                          '& .MuiButton-startIcon': {
+                            marginRight: currentLanguage === 'ar' ? '4px' : '8px',
+                            marginLeft: currentLanguage === 'ar' ? '8px' : '0px'
                           }
                         }}
                       >
@@ -397,10 +401,14 @@ const YourPosts = ({ userPosts = [], isLoading = false }) => {
                           '&:hover': {
                             borderColor: theme.palette.mode === 'dark' ? '#FFB74D' : '#34495e',
                             backgroundColor: theme.palette.mode === 'dark' ? 'rgba(255, 152, 0, 0.1)' : 'rgba(44, 62, 80, 0.1)',
+                          },
+                          '& .MuiButton-startIcon': {
+                            marginRight: currentLanguage === 'ar' ? '4px' : '8px',
+                            marginLeft: currentLanguage === 'ar' ? '8px' : '0px'
                           }
                         }}
                       >
-                        {t('edit')}
+                        {t('editPost')}
                       </Button>
                     </Box>
                   </CardContent>
