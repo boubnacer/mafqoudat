@@ -74,7 +74,7 @@ const HelpSupportSection = () => {
       name: t('support'),
       details: t('support24_7'),
       icon: null,
-      action: t('call'),
+      action: null,
       actionIcon: null
     },
     {
@@ -82,7 +82,7 @@ const HelpSupportSection = () => {
       details: t('supportEmail'),
       icon: <Phone />,
       action: t('emailAction'),
-      actionIcon: null
+      actionIcon: <Send />
     }
   ];
 
@@ -256,24 +256,26 @@ const HelpSupportSection = () => {
                           primaryTypographyProps={{ color: theme.palette.text.primary, sx: { direction: isRTLMode ? 'rtl' : 'ltr' } }}
                           secondaryTypographyProps={{ color: theme.palette.text.secondary, sx: { direction: isRTLMode ? 'rtl' : 'ltr' } }}
                         />
-                        <Button
-                          variant="outlined"
-                          size="small"
-                          startIcon={contact.actionIcon}
-                          sx={{
-                            color: theme.palette.error.main,
-                            borderColor: theme.palette.error.main,
-                            gap: isRTLMode ? 1 : 0.5,
-                            direction: isRTLMode ? 'rtl' : 'ltr',
-                            '&:hover': {
-                              backgroundColor: theme.palette.error.main,
-                              color: '#fff',
+                        {contact.action && (
+                          <Button
+                            variant="outlined"
+                            size="small"
+                            startIcon={contact.actionIcon}
+                            sx={{
+                              color: theme.palette.error.main,
                               borderColor: theme.palette.error.main,
-                            }
-                          }}
-                        >
-                          {contact.action}
-                        </Button>
+                              gap: isRTLMode ? 1 : 0.5,
+                              direction: isRTLMode ? 'rtl' : 'ltr',
+                              '&:hover': {
+                                backgroundColor: theme.palette.error.main,
+                                color: '#fff',
+                                borderColor: theme.palette.error.main,
+                              }
+                            }}
+                          >
+                            {contact.action}
+                          </Button>
+                        )}
                       </ListItem>
                     ))}
                   </List>
