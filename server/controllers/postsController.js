@@ -738,12 +738,12 @@ const getUserPosts = async (req, res) => {
                   if: { $ne: ["$Floptions", null] },
                   then: {
                     $concat: [
-                      { $ifNull: [{ $objectToArray: "$Category.labels" }, []] },
+                      { $ifNull: ["$Category.labels.en", "Unknown"] },
                       " ",
-                      { $ifNull: [{ $objectToArray: "$Floptions.labels" }, []] }
+                      { $ifNull: ["$Floptions.labels.en", "Item"] }
                     ]
                   },
-                  else: { $ifNull: [{ $objectToArray: "$Category.labels" }, []] }
+                  else: { $ifNull: ["$Category.labels.en", "Unknown Item"] }
                 }
               },
               else: "Unknown Item"
