@@ -208,28 +208,24 @@ const CountrySelector = styled(Box)(({ theme }) => ({
     transition: 'all 0.3s ease',
   },
   [theme.breakpoints.down('sm')]: {
-    padding: '6px 10px',
-    background: theme.palette.mode === 'dark' 
-      ? alpha(theme.palette.common.white, 0.05)
-      : alpha(theme.palette.common.black, 0.03),
-    border: `1px solid ${alpha(theme.palette.divider, 0.1)}`,
+    padding: '0',
+    background: 'transparent',
+    border: 'none',
     borderRadius: '10px',
     justifyContent: 'center',
+    overflow: 'hidden',
     '&:hover': {
-      background: theme.palette.mode === 'dark' 
-        ? alpha(theme.palette.common.white, 0.12)
-        : alpha(theme.palette.common.black, 0.08),
-      transform: 'translateY(-2px)',
-      boxShadow: theme.palette.mode === 'dark'
-        ? '0 4px 15px rgba(0, 0, 0, 0.3)'
-        : '0 4px 15px rgba(0, 0, 0, 0.1)',
+      background: 'transparent',
+      transform: 'none',
+      boxShadow: 'none',
     },
     '& img': {
       marginRight: '0',
-      borderRadius: '4px',
+      borderRadius: '10px',
       width: '32px !important',
       height: '20px !important',
       objectFit: 'cover',
+      border: `1px solid ${alpha(theme.palette.divider, 0.1)}`,
     }
   }
 }));
@@ -634,7 +630,8 @@ const Navbar = () => {
                   width: isMobile ? 32 : 30,
                   height: isMobile ? 20 : 20,
                   backgroundColor: 'rgba(255,255,255,0.1)',
-                  borderRadius: '4px',
+                  borderRadius: isMobile ? '10px' : '4px',
+                  border: isMobile ? `1px solid ${alpha(theme.palette.divider, 0.1)}` : 'none',
                   display: 'flex',
                   alignItems: 'center',
                   justifyContent: 'center'
