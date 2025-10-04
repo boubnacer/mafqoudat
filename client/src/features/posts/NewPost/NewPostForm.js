@@ -241,11 +241,30 @@ const NewPostForm = ({ user, countries, categories, flOptions }) => {
     }
   }, [fetchCitiesByCountry, selectedCountry?._id, currentLanguage]);
 
+  // Function to get default foundLost value based on URL parameters
+  const getDefaultFoundLost = () => {
+    const urlParams = new URLSearchParams(window.location.search);
+    const type = urlParams.get('type');
+    
+    if (type === 'found') {
+      // Find the "found" option
+      const foundOption = flOptions.find(option => option.code === 'FOUND');
+      return foundOption?.id || flOptions[0]?.id || "";
+    } else if (type === 'lost') {
+      // Find the "lost" option
+      const lostOption = flOptions.find(option => option.code === 'LOST');
+      return lostOption?.id || flOptions[0]?.id || "";
+    }
+    
+    // Default to first option if no type parameter or unknown type
+    return flOptions[0]?.id || "";
+  };
+
   const initialFormState = {
     country: user.country,
     contact: user.username,
     category: categories[0]?.id || "",
-    foundLost: flOptions[0]?.id || "",
+    foundLost: getDefaultFoundLost(),
     city: "",
     exactLocation: "",
     exactDate: new Date().toLocaleDateString(), // Default to current date as string
