@@ -21,7 +21,7 @@ import {
 } from '@mui/icons-material';
 import { useTranslation } from '../../utils/translations';
 import { getOptimizedImageUrl } from '../../utils/cloudinaryUtils';
-import noImageSvg from '../../img/no-image.svg';
+import noImageSvg from '../../img/noimage.svg';
 
 const API_BASE_URL = process.env.REACT_APP_API_URL || "http://localhost:3500";
 
