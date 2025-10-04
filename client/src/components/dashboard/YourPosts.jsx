@@ -20,7 +20,7 @@ import {
   Add
 } from '@mui/icons-material';
 import { useTranslation } from '../../utils/translations';
-import { getOptimizedImageUrl } from '../../utils/imageUtils';
+import { getOptimizedImageUrl } from '../../utils/cloudinaryUtils';
 import { API_BASE_URL } from '../../config/config';
 import noImageSvg from '../../img/no-image.svg';
 
