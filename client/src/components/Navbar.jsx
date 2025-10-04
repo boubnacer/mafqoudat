@@ -209,27 +209,9 @@ const CountrySelector = styled(Box)(({ theme }) => ({
   },
   [theme.breakpoints.down('sm')]: {
     padding: '8px 10px',
-    background: theme.palette.mode === 'dark' 
-      ? alpha(theme.palette.common.white, 0.05)
-      : alpha(theme.palette.common.black, 0.03),
-    border: `1px solid ${alpha(theme.palette.divider, 0.1)}`,
-    borderRadius: '10px',
     justifyContent: 'center',
-    '&:hover': {
-      background: theme.palette.mode === 'dark' 
-        ? alpha(theme.palette.common.white, 0.12)
-        : alpha(theme.palette.common.black, 0.08),
-      transform: 'translateY(-2px)',
-      boxShadow: theme.palette.mode === 'dark'
-        ? '0 4px 15px rgba(0, 0, 0, 0.3)'
-        : '0 4px 15px rgba(0, 0, 0, 0.1)',
-    },
     '& img': {
       marginRight: '0',
-      borderRadius: '4px',
-      width: '20px !important',
-      height: '20px !important',
-      objectFit: 'cover',
     }
   }
 }));
@@ -607,7 +589,7 @@ const Navbar = () => {
               <>
                 <img
                   loading="lazy"
-                  width={isMobile ? "20" : "30"}
+                  width={isMobile ? "32" : "30"}
                   height={isMobile ? "20" : "20"}
                   src={`https://flagcdn.com/w20/${currentCountryData.code.toLowerCase()}.png`}
                   srcSet={`https://flagcdn.com/w40/${currentCountryData.code.toLowerCase()}.png 2x`}
@@ -631,7 +613,7 @@ const Navbar = () => {
             ) : (
               <Box
                 sx={{
-                  width: isMobile ? 20 : 30,
+                  width: isMobile ? 32 : 30,
                   height: isMobile ? 20 : 20,
                   backgroundColor: 'rgba(255,255,255,0.1)',
                   borderRadius: '4px',
