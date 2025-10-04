@@ -577,7 +577,8 @@ const getFilteredPosts = async (req, res) => {
 // @access Private
 const getUserPosts = async (req, res) => {
   try {
-    const userId = req.user.id;
+    // Fix: req.user is the user ID string, not an object with .id property
+    const userId = req.user;
     const page = Math.max(0, parseInt(req.query.page) - 1) || 0;
     const pageSize = Math.min(Math.max(parseInt(req.query.pageSize) || 8, 1), 50);
     const language = req.query.language || 'en';
