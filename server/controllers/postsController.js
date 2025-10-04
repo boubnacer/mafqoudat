@@ -593,6 +593,15 @@ const getUserPosts = async (req, res) => {
       userIdValid: mongoose.Types.ObjectId.isValid(userId)
     });
 
+    // Validate userId before proceeding
+    if (!userId || !mongoose.Types.ObjectId.isValid(userId)) {
+      console.error('❌ [getUserPosts] Invalid userId:', userId);
+      return res.status(400).json({ 
+        message: "Invalid user ID",
+        error: "User ID is missing or invalid"
+      });
+    }
+
     // Generate cache key
     const cacheKey = cacheService.generateKey('user-posts', {
       userId,
@@ -754,17 +763,26 @@ const getUserPosts = async (req, res) => {
       }
     ];
 
-    const userPosts = await Post.aggregate(pipeline);
-    
-    console.log('🔍 [getUserPosts] Query Results:', {
-      userPostsCount: userPosts?.length,
-      userPosts: userPosts?.map(post => ({
-        _id: post._id,
-        title: post.title,
-        categoryname: post.categoryname,
-        floptionName: post.floptionName
-      }))
-    });
+    let userPosts;
+    try {
+      userPosts = await Post.aggregate(pipeline);
+      console.log('🔍 [getUserPosts] Query Results:', {
+        userPostsCount: userPosts?.length,
+        userPosts: userPosts?.map(post => ({
+          _id: post._id,
+          title: post.title,
+          categoryname: post.categoryname,
+          floptionName: post.floptionName
+        }))
+      });
+    } catch (aggregationError) {
+      console.error('❌ [getUserPosts] Aggregation Error:', {
+        message: aggregationError.message,
+        stack: aggregationError.stack,
+        pipeline: pipeline
+      });
+      throw aggregationError;
+    }
     
     // Get total count for pagination
     const totalPosts = await Post.countDocuments({
@@ -817,7 +835,12 @@ const getUserPosts = async (req, res) => {
     
     res.json(response);
   } catch (error) {
-    console.error('Error in getUserPosts:', error);
+    console.error('❌ [getUserPosts] Error:', {
+      message: error.message,
+      stack: error.stack,
+      userId: req.user,
+      query: req.query
+    });
     res.status(500).json({ 
       message: "Error fetching user posts",
       error: error.message 
