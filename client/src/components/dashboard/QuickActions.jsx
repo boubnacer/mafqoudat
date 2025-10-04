@@ -264,9 +264,13 @@ const QuickActions = () => {
       color: '#ff6b6b',
       action: () => {
         if (!token) {
+          // Store the intended destination for redirect after login
+          const intendedDestination = '/dash/posts/new?type=lost';
+          authStorage.setRedirectAfterLogin(intendedDestination);
+          
           navigate('/login');
         } else {
-          scrollToHelpSection();
+          navigate('/dash/posts/new?type=lost');
         }
       }
     },
