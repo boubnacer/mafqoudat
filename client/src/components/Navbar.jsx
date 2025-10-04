@@ -208,24 +208,28 @@ const CountrySelector = styled(Box)(({ theme }) => ({
     transition: 'all 0.3s ease',
   },
   [theme.breakpoints.down('sm')]: {
-    padding: '0',
-    background: 'transparent',
-    border: 'none',
+    padding: '8px 10px',
+    background: theme.palette.mode === 'dark' 
+      ? alpha(theme.palette.common.white, 0.05)
+      : alpha(theme.palette.common.black, 0.03),
+    border: `1px solid ${alpha(theme.palette.divider, 0.1)}`,
     borderRadius: '10px',
     justifyContent: 'center',
-    overflow: 'hidden',
     '&:hover': {
-      background: 'transparent',
-      transform: 'none',
-      boxShadow: 'none',
+      background: theme.palette.mode === 'dark' 
+        ? alpha(theme.palette.common.white, 0.12)
+        : alpha(theme.palette.common.black, 0.08),
+      transform: 'translateY(-2px)',
+      boxShadow: theme.palette.mode === 'dark'
+        ? '0 4px 15px rgba(0, 0, 0, 0.3)'
+        : '0 4px 15px rgba(0, 0, 0, 0.1)',
     },
     '& img': {
       marginRight: '0',
-      borderRadius: '10px',
-      width: '40px !important',
-      height: '28px !important',
+      borderRadius: '4px',
+      width: '20px !important',
+      height: '20px !important',
       objectFit: 'cover',
-      border: `1px solid ${alpha(theme.palette.divider, 0.1)}`,
     }
   }
 }));
@@ -603,8 +607,8 @@ const Navbar = () => {
               <>
                 <img
                   loading="lazy"
-                  width={isMobile ? "40" : "30"}
-                  height={isMobile ? "28" : "20"}
+                  width={isMobile ? "20" : "30"}
+                  height={isMobile ? "20" : "20"}
                   src={`https://flagcdn.com/w20/${currentCountryData.code.toLowerCase()}.png`}
                   srcSet={`https://flagcdn.com/w40/${currentCountryData.code.toLowerCase()}.png 2x`}
                   alt=""
@@ -627,11 +631,10 @@ const Navbar = () => {
             ) : (
               <Box
                 sx={{
-                  width: isMobile ? 40 : 30,
-                  height: isMobile ? 28 : 20,
+                  width: isMobile ? 20 : 30,
+                  height: isMobile ? 20 : 20,
                   backgroundColor: 'rgba(255,255,255,0.1)',
-                  borderRadius: isMobile ? '10px' : '4px',
-                  border: isMobile ? `1px solid ${alpha(theme.palette.divider, 0.1)}` : 'none',
+                  borderRadius: '4px',
                   display: 'flex',
                   alignItems: 'center',
                   justifyContent: 'center'
