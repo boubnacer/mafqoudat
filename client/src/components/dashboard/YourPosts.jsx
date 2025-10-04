@@ -300,8 +300,8 @@ const YourPosts = ({ userPosts = [], isLoading = false }) => {
                       }}
                     />
                     <Chip
-                      label={t(String(post.foundLost || post.floptionName || 'unknown'))}
-                      color={String(post.foundLost || post.floptionName) === 'found' ? 'success' : 'error'}
+                      label={t(String(post.floptionName || 'unknown'))}
+                      color={String(post.floptionName) === 'found' ? 'success' : 'error'}
                       size="small"
                       sx={{
                         position: 'absolute',
@@ -329,7 +329,7 @@ const YourPosts = ({ userPosts = [], isLoading = false }) => {
                         overflow: 'hidden'
                       }}
                     >
-                      {post.categoryname ? t(post.categoryname) : 'Unknown Item'}
+                      {post.category?.labels?.[currentLanguage] || post.categoryname || 'Unknown Item'}
                     </Typography>
 
                     <Typography
