@@ -132,7 +132,7 @@ const Categories = () => {
           variant="outlined"
           endIcon={showAllCategories ? <ExpandLess /> : <ExpandMore />}
           sx={{
-            color: theme.palette.mode === 'dark' ? theme.palette.primary.main : theme.palette.text.primary,
+            color: theme.palette.mode === 'dark' ? '#fff' : theme.palette.text.primary,
             borderColor: theme.palette.mode === 'dark' ? theme.palette.primary.main : theme.palette.divider,
             backgroundColor: theme.palette.mode === 'dark' ? 'transparent' : theme.palette.background.paper,
             borderRadius: '4px',
@@ -146,6 +146,7 @@ const Categories = () => {
             '& .MuiButton-endIcon': {
               marginLeft: currentLanguage === 'ar' ? 0 : '8px',
               marginRight: currentLanguage === 'ar' ? '8px' : 0,
+              color: theme.palette.mode === 'dark' ? '#fff' : 'inherit',
             },
             '&:hover': {
               backgroundColor: theme.palette.mode === 'dark' ? 'rgba(255, 255, 255, 0.08)' : 'rgba(0, 0, 0, 0.04)',

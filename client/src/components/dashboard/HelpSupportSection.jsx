@@ -201,7 +201,7 @@ const HelpSupportSection = () => {
                     startIcon={<Help />}
                     sx={{ 
                       mt: 2,
-                      color: theme.palette.mode === 'dark' ? theme.palette.primary.main : theme.palette.text.primary,
+                      color: theme.palette.mode === 'dark' ? '#fff' : theme.palette.text.primary,
                       borderColor: theme.palette.mode === 'dark' ? theme.palette.primary.main : theme.palette.divider,
                       backgroundColor: theme.palette.mode === 'dark' ? 'transparent' : theme.palette.background.paper,
                       gap: isRTLMode ? 1 : 0.5,
@@ -209,6 +209,7 @@ const HelpSupportSection = () => {
                       '& .MuiButton-startIcon': {
                         marginRight: isRTLMode ? 0 : '8px',
                         marginLeft: isRTLMode ? '8px' : 0,
+                        color: theme.palette.mode === 'dark' ? '#fff' : 'inherit',
                       },
                       '&:hover': {
                         backgroundColor: theme.palette.mode === 'dark' ? 'rgba(255, 255, 255, 0.08)' : 'rgba(0, 0, 0, 0.04)',
