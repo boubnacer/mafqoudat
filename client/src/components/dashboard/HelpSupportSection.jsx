@@ -64,8 +64,8 @@ const HelpSupportSection = () => {
 
   const emergencyContacts = [
     {
-      name: t('police'),
-      details: "911",
+      name: t('contactUs'),
+      details: t('contactUsDetails'),
       icon: <Phone />,
       action: t('call'),
       actionIcon: <Send />
@@ -73,7 +73,7 @@ const HelpSupportSection = () => {
     {
       name: t('support'),
       details: t('support24_7'),
-      icon: <Phone />,
+      icon: null,
       action: t('call'),
       actionIcon: <Send />
     },
@@ -135,7 +135,7 @@ const HelpSupportSection = () => {
           >
             {t('helpAndSupport')}
           </Typography>
-          <Button
+          {/* <Button
             variant="contained"
             startIcon={<Help />}
             onClick={() => setShowHelpDialog(true)}
@@ -147,7 +147,7 @@ const HelpSupportSection = () => {
             }}
           >
             {t('getHelp')}
-          </Button>
+          </Button> */}
         </Box>
 
         <Box p={2}>
@@ -195,7 +195,7 @@ const HelpSupportSection = () => {
                       </Accordion>
                     ))}
                   </List>
-                  <Button
+                  {/* <Button
                     fullWidth
                     variant="outlined"
                     startIcon={<Help />}
@@ -220,7 +220,7 @@ const HelpSupportSection = () => {
                     }}
                   >
                     {t('viewAllFaqs')}
-                  </Button>
+                  </Button> */}
                 </CardContent>
               </Card>
             </Grid>
@@ -245,9 +245,11 @@ const HelpSupportSection = () => {
                   <List>
                     {emergencyContacts.map((contact, index) => (
                       <ListItem key={index}>
-                        <ListItemIcon>
-                          {contact.icon}
-                        </ListItemIcon>
+                        {contact.icon && (
+                          <ListItemIcon>
+                            {contact.icon}
+                          </ListItemIcon>
+                        )}
                         <ListItemText 
                           primary={contact.name}
                           secondary={contact.details}
