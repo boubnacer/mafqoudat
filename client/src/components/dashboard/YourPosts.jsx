@@ -43,8 +43,13 @@ const YourPosts = ({ userPosts = [], isLoading = false }) => {
       categoryname: userPosts[0].categoryname,
       floptionName: userPosts[0].floptionName,
       foundLost: userPosts[0].foundLost,
-      exactLocation: userPosts[0].exactLocation
-    } : null
+      exactLocation: userPosts[0].exactLocation,
+      category: userPosts[0].category,
+      foundLostObj: userPosts[0].foundLost,
+      country: userPosts[0].country,
+      city: userPosts[0].city
+    } : null,
+    fullSamplePost: userPosts?.[0] || null
   });
 
   const formatDate = (dateString) => {
@@ -132,6 +137,20 @@ const YourPosts = ({ userPosts = [], isLoading = false }) => {
           direction: currentLanguage === 'ar' ? 'rtl' : 'ltr'
         }}
       >
+        {/* Temporary debug section */}
+        <Box sx={{ p: 2, backgroundColor: 'red', color: 'white' }}>
+          <Typography>DEBUG: {userPosts.length} posts found</Typography>
+          {userPosts.map((post, index) => (
+            <Typography key={index}>
+              Post {index + 1}: {JSON.stringify({
+                _id: post._id,
+                title: post.title,
+                categoryname: post.categoryname,
+                floptionName: post.floptionName
+              })}
+            </Typography>
+          ))}
+        </Box>
         {/* Header Section */}
         <Box 
           sx={{
