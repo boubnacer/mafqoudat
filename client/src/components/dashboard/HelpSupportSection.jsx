@@ -33,7 +33,8 @@ import {
   VideoLibrary,
   ExpandMore,
   CheckCircle,
-  Send
+  Send,
+  Email
 } from "@mui/icons-material";
 import DashRecents from './DashRecents';
 import { useTranslation } from "../../utils/translations";
@@ -67,8 +68,15 @@ const HelpSupportSection = () => {
       name: t('contactUs'),
       details: "+212711621132",
       icon: <Phone />,
-      action: t('call'),
-      actionIcon: <Send />
+      action: null,
+      actionIcon: null
+    },
+    {
+      name: t('email'),
+      details: t('supportEmail'),
+      icon: <Email />,
+      action: null,
+      actionIcon: null
     },
     {
       name: t('support'),
@@ -76,13 +84,6 @@ const HelpSupportSection = () => {
       icon: null,
       action: null,
       actionIcon: null
-    },
-    {
-      name: t('email'),
-      details: t('supportEmail'),
-      icon: <Phone />,
-      action: t('emailAction'),
-      actionIcon: <Send />
     }
   ];
 
