@@ -43,26 +43,6 @@ const YourPosts = ({ userPosts = [], isLoading = false }) => {
     }
   };
 
-  // Debug logging for YourPosts component
-  console.log('🔍 [YourPosts] Component Debug:', {
-    userPosts,
-    userPostsLength: userPosts?.length,
-    isLoading,
-    shouldRender: userPosts && userPosts.length > 0,
-    samplePost: userPosts?.[0] ? {
-      _id: userPosts[0]._id,
-      title: userPosts[0].title,
-      categoryname: userPosts[0].categoryname,
-      floptionName: userPosts[0].floptionName,
-      foundLost: userPosts[0].foundLost,
-      exactLocation: userPosts[0].exactLocation,
-      category: userPosts[0].category,
-      foundLostObj: userPosts[0].foundLost,
-      country: userPosts[0].country,
-      city: userPosts[0].city
-    } : null,
-    fullSamplePost: userPosts?.[0] || null
-  });
 
   const formatDate = (dateString) => {
     const date = new Date(dateString);
