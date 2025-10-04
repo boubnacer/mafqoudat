@@ -253,13 +253,13 @@ const Dash = () => {
             }}
           />
 
-          {/* Your Posts Section - Temporarily disabled for debugging */}
-          {/* {user.username && userPostsData?.postsWithUser?.length > 0 && (
+          {/* Your Posts Section - Only show if user is signed in and has posts */}
+          {user.username && userPostsData?.postsWithUser?.length > 0 && (
             <YourPosts 
               userPosts={userPostsData?.postsWithUser}
               isLoading={isUserPostsLoading}
             />
-          )} */}
+          )}
 
           {/* Enhanced Recent Founds Section - Only show when there are posts */}
           {data?.totalFounds > 0 && (

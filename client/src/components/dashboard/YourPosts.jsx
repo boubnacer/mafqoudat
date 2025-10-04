@@ -137,20 +137,6 @@ const YourPosts = ({ userPosts = [], isLoading = false }) => {
           direction: currentLanguage === 'ar' ? 'rtl' : 'ltr'
         }}
       >
-        {/* Temporary debug section */}
-        <Box sx={{ p: 2, backgroundColor: 'red', color: 'white' }}>
-          <Typography>DEBUG: {userPosts.length} posts found</Typography>
-          {userPosts.map((post, index) => (
-            <Typography key={index}>
-              Post {index + 1}: {JSON.stringify({
-                _id: post._id,
-                title: post.title,
-                categoryname: post.categoryname,
-                floptionName: post.floptionName
-              })}
-            </Typography>
-          ))}
-        </Box>
         {/* Header Section */}
         <Box 
           sx={{
@@ -314,8 +300,8 @@ const YourPosts = ({ userPosts = [], isLoading = false }) => {
                       }}
                     />
                     <Chip
-                      label={t(post.foundLost || post.floptionName || 'unknown')}
-                      color={(post.foundLost || post.floptionName) === 'found' ? 'success' : 'error'}
+                      label={t(String(post.foundLost || post.floptionName || 'unknown'))}
+                      color={String(post.foundLost || post.floptionName) === 'found' ? 'success' : 'error'}
                       size="small"
                       sx={{
                         position: 'absolute',
@@ -343,7 +329,7 @@ const YourPosts = ({ userPosts = [], isLoading = false }) => {
                         overflow: 'hidden'
                       }}
                     >
-                      {post.title || post.categoryname || 'Unknown Item'}
+                      {String(post.title || post.categoryname || 'Unknown Item')}
                     </Typography>
 
                     <Typography
@@ -358,7 +344,7 @@ const YourPosts = ({ userPosts = [], isLoading = false }) => {
                         overflow: 'hidden'
                       }}
                     >
-                      {post.exactLocation || 'No location specified'}
+                      {String(post.exactLocation || 'No location specified')}
                     </Typography>
 
                     <Typography
