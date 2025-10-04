@@ -21,8 +21,9 @@ import {
 } from '@mui/icons-material';
 import { useTranslation } from '../../utils/translations';
 import { getOptimizedImageUrl } from '../../utils/cloudinaryUtils';
-import { API_BASE_URL } from '../../config/config';
 import noImageSvg from '../../img/no-image.svg';
+
+const API_BASE_URL = process.env.REACT_APP_API_URL || "http://localhost:3500";
 
 // Mock data for now - will be replaced with real API call
 const mockUserPosts = [
