@@ -165,8 +165,8 @@ const Process = () => {
                 display: "flex",
                 alignItems: "center",
                 justifyContent: "center",
-                width: "40px",
-                height: "40px",
+                width: "50px",
+                height: "50px",
                 borderRadius: "50%",
                 backgroundColor: theme.palette.mode === 'dark'
                   ? 'rgba(255, 255, 255, 0.05)'

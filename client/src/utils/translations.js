@@ -516,9 +516,9 @@ export const translations = {
     shareToOurSocials: "Share to our socials",
     shareToOurSocialsDesc: "We'll help spread your post across our network",
     makeAdvertising: "Make advertising",
-    makeAdvertisingDesc: "Targeted ads to reach more potential helpers",
+    makeAdvertisingDesc: "Targeted ads to reach more views in the area where you've lost or found items",
     wellNotifyYou: "We'll notify you",
-    wellNotifyYouDesc: "Get instant updates when someone contacts you",
+    wellNotifyYouDesc: "Get instant updates",
     
     // Recent Sections
     recentFounds: "Recent Founds",
@@ -1379,9 +1379,9 @@ export const translations = {
     shareToOurSocials: "Partager sur nos réseaux sociaux",
     shareToOurSocialsDesc: "Nous vous aiderons à diffuser votre publication sur notre réseau",
     makeAdvertising: "Faire de la publicité",
-    makeAdvertisingDesc: "Publicités ciblées pour atteindre plus d'aides potentielles",
+    makeAdvertisingDesc: "Publicités ciblées pour atteindre plus de vues dans la zone où vous avez perdu ou trouvé des objets",
     wellNotifyYou: "Nous vous notifierons",
-    wellNotifyYouDesc: "Recevez des mises à jour instantanées quand quelqu'un vous contacte",
+    wellNotifyYouDesc: "Recevez des mises à jour instantanées",
     
     // Recent Sections
     recentFounds: "Objets trouvés récents",
@@ -2204,9 +2204,9 @@ export const translations = {
     shareToOurSocials: "مشاركة على وسائل التواصل الاجتماعي",
     shareToOurSocialsDesc: "سنساعد في نشر منشورك عبر شبكتنا",
     makeAdvertising: "عمل إعلانات",
-    makeAdvertisingDesc: "إعلانات مستهدفة للوصول إلى المزيد من المساعدين المحتملين",
+    makeAdvertisingDesc: "إعلانات مستهدفة للوصول إلى المزيد من المشاهدات في المنطقة التي فقدت أو وجدت فيها العناصر",
     wellNotifyYou: "سنخطرك",
-    wellNotifyYouDesc: "احصل على تحديثات فورية عندما يتصل بك شخص ما",
+    wellNotifyYouDesc: "احصل على تحديثات فورية",
     
     // Recent Sections
     recentFounds: "العناصر التي عثر عليها حديثاً",
