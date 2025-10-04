@@ -307,7 +307,11 @@ const YourPosts = ({ userPosts = [], isLoading = false }) => {
                         position: 'absolute',
                         top: 8,
                         right: 8,
-                        fontWeight: 600
+                        fontWeight: 600,
+                        backgroundColor: String(post.floptionName) === 'found' 
+                          ? (theme.palette.mode === 'dark' ? '#2e7d32' : '#4caf50')
+                          : (theme.palette.mode === 'dark' ? '#d32f2f' : '#f44336'),
+                        color: '#ffffff'
                       }}
                     />
                   </Box>
@@ -351,10 +355,19 @@ const YourPosts = ({ userPosts = [], isLoading = false }) => {
                       variant="caption"
                       sx={{
                         color: 'text.secondary',
-                        fontSize: '11px'
+                        fontSize: '11px',
+                        display: 'flex',
+                        alignItems: 'center',
+                        gap: 0.5
                       }}
                     >
-                      {formatDate(post.createdAt)}
+                      <AccessTime sx={{ fontSize: '12px' }} />
+                      {new Date(post.createdAt).toLocaleDateString(currentLanguage === 'ar' ? 'ar-SA' : currentLanguage === 'fr' ? 'fr-FR' : 'en-US', {
+                        year: 'numeric',
+                        month: 'short',
+                        day: 'numeric',
+                        numberingSystem: currentLanguage === 'ar' ? 'latn' : undefined
+                      })}
                     </Typography>
 
                     {/* Actions */}
