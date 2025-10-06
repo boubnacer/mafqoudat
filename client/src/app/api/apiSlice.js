@@ -97,6 +97,7 @@ const attemptTokenRefresh = async (api) => {
   api.dispatch(setRefreshAttempts(refreshAttempts));
 
   console.log('🔄 CLIENT REFRESH: Making fetch request to /auth/refresh');
+  console.log('🔄 CLIENT REFRESH: Full URL will be:', window.location.origin + '/auth/refresh');
   refreshPromise = fetch('/auth/refresh', {
     method: 'GET',
     credentials: 'include',
