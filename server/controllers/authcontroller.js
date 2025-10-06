@@ -121,9 +121,15 @@ const login = async (req, res) => {
 // @route GET /auth/refresh
 // @access Public - because access token has expired
 const refresh = async (req, res) => {
+  console.log('🔄 REFRESH TOKEN: Starting refresh token process');
+  console.log('🔄 REFRESH TOKEN: Request IP:', req.ip);
+  console.log('🔄 REFRESH TOKEN: Request headers:', req.headers);
+  
   const cookies = req.cookies;
+  console.log('🔄 REFRESH TOKEN: Cookies received:', cookies ? 'Present' : 'Missing');
 
   if (!cookies?.jwt) {
+    console.log('❌ REFRESH TOKEN: No refresh token cookie found');
     return res.status(401).json({ 
       message: "Unauthorized - No refresh token",
       isError: true 
@@ -131,8 +137,10 @@ const refresh = async (req, res) => {
   }
 
   const refreshToken = cookies.jwt;
+  console.log('🔄 REFRESH TOKEN: Refresh token found, length:', refreshToken.length);
 
   try {
+    console.log('🔄 REFRESH TOKEN: Verifying refresh token...');
     const jwt = require("jsonwebtoken");
     const decoded = jwt.verify(
       refreshToken,
@@ -143,26 +151,39 @@ const refresh = async (req, res) => {
         algorithms: ['HS256']
       }
     );
+    console.log('✅ REFRESH TOKEN: Token verified successfully');
+    console.log('🔄 REFRESH TOKEN: Decoded token data:', {
+      username: decoded.username,
+      tokenType: decoded.tokenType,
+      jti: decoded.jti,
+      iat: new Date(decoded.iat * 1000).toISOString(),
+      exp: new Date(decoded.exp * 1000).toISOString()
+    });
 
     if (decoded.tokenType !== 'refresh') {
+      console.log('❌ REFRESH TOKEN: Invalid token type:', decoded.tokenType);
       return res.status(403).json({ 
         message: "Invalid token type",
         isError: true 
       });
     }
 
+    console.log('🔄 REFRESH TOKEN: Looking up user:', decoded.username);
     const foundUser = await User.findOne({
       username: decoded.username,
     }).select('_id username country role').exec();
 
     if (!foundUser) {
+      console.log('❌ REFRESH TOKEN: User not found:', decoded.username);
       return res.status(401).json({ 
         message: "Unauthorized - User not found",
         isError: true 
       });
     }
+    console.log('✅ REFRESH TOKEN: User found:', foundUser.username);
 
     // Token rotation: Generate new access and refresh tokens
+    console.log('🔄 REFRESH TOKEN: Generating new tokens...');
     const userInfo = {
       username: foundUser.username,
       id: foundUser.id,
@@ -171,8 +192,12 @@ const refresh = async (req, res) => {
     };
 
     const { accessToken, refreshToken: newRefreshToken } = rotateTokens(userInfo, decoded.jti);
+    console.log('✅ REFRESH TOKEN: New tokens generated successfully');
+    console.log('🔄 REFRESH TOKEN: New access token length:', accessToken.length);
+    console.log('🔄 REFRESH TOKEN: New refresh token length:', newRefreshToken.length);
 
     // Set new refresh token cookie
+    console.log('🔄 REFRESH TOKEN: Setting new refresh token cookie...');
     res.cookie("jwt", newRefreshToken, getSecureCookieOptions());
 
     // Log successful token rotation
@@ -181,12 +206,19 @@ const refresh = async (req, res) => {
       "reqLog.log"
     );
 
+    console.log('✅ REFRESH TOKEN: Refresh successful, sending new access token');
     res.json({ accessToken });
   } catch (err) {
+    console.log('❌ REFRESH TOKEN: Error during refresh:', err.name, err.message);
     let errorMessage = "Forbidden - Invalid refresh token";
     
     if (err.name === 'TokenExpiredError') {
       errorMessage = "Refresh token expired";
+      console.log('❌ REFRESH TOKEN: Refresh token has expired');
+    } else if (err.name === 'JsonWebTokenError') {
+      console.log('❌ REFRESH TOKEN: Invalid refresh token format');
+    } else if (err.name === 'NotBeforeError') {
+      console.log('❌ REFRESH TOKEN: Token not active yet');
     }
 
     logEvents(
@@ -194,6 +226,7 @@ const refresh = async (req, res) => {
       "errLog.log"
     );
 
+    console.log('❌ REFRESH TOKEN: Returning error response:', errorMessage);
     return res.status(403).json({ 
       message: errorMessage,
       isError: true 
