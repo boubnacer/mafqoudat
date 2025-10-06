@@ -137,6 +137,29 @@ window.testFullUrl = () => {
   });
 };
 
+// Force proactive refresh test
+window.forceProactiveRefresh = () => {
+  console.log('🧪 FORCE REFRESH: Forcing proactive refresh test');
+  const token = localStorage.getItem('accessToken');
+  if (token) {
+    console.log('🧪 FORCE REFRESH: Current token found, forcing refresh');
+    // Simulate the proactive refresh mechanism
+    attemptTokenRefresh({ 
+      dispatch: (action) => {
+        console.log('🧪 FORCE REFRESH: Dispatch action:', action);
+        // You can manually dispatch this if needed
+      },
+      getState: () => ({ auth: { token } })
+    }).then(result => {
+      console.log('🧪 FORCE REFRESH: Refresh result:', result);
+    }).catch(error => {
+      console.log('🧪 FORCE REFRESH: Refresh error:', error);
+    });
+  } else {
+    console.log('🧪 FORCE REFRESH: No token found in localStorage');
+  }
+};
+
 // Enhanced error handling for network failures
 const isNetworkError = (error) => {
   return !error?.status || error.status === 'FETCH_ERROR' || error.status === 'PARSING_ERROR';
@@ -315,7 +338,8 @@ const baseQuery = fetchBaseQuery({
       console.log('🔄 PROACTIVE REFRESH: Token validation result:', {
         isValid: tokenValidation.isValid,
         reason: tokenValidation.reason,
-        timeRemaining: tokenValidation.timeRemaining
+        timeRemaining: tokenValidation.timeRemaining,
+        shouldRefresh: tokenValidation.shouldRefresh
       });
     }
     }
