@@ -118,6 +118,18 @@ export const getTokenRefreshTiming = (token) => {
     ? (validation.decoded.exp - validation.decoded.iat) * 1000 
     : 4 * 60 * 60 * 1000; // Assume 4 hours default (updated to match new config)
 
+  // For short-lived tokens (5 minutes or less), use time-based logic instead of percentage
+  if (totalLifetime <= 5 * 60 * 1000) { // 5 minutes or less
+    if (timeRemaining > 1.5 * 60 * 1000) { // More than 1.5 minutes remaining
+      return { shouldRefresh: false, timeUntilRefresh: timeRemaining - (1.5 * 60 * 1000), priority: 'low' };
+    } else if (timeRemaining > 30 * 1000) { // More than 30 seconds remaining
+      return { shouldRefresh: true, timeUntilRefresh: 0, priority: 'medium' };
+    } else {
+      return { shouldRefresh: true, timeUntilRefresh: 0, priority: 'high' };
+    }
+  }
+
+  // For longer-lived tokens, use percentage-based logic
   const remainingPercentage = timeRemaining / totalLifetime;
 
   if (remainingPercentage > 0.5) {
