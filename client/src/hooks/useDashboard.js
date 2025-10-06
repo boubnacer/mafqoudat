@@ -109,16 +109,6 @@ export const useDashboard = () => {
     skip: !token // Skip if user is not authenticated
   });
 
-  // Debug logging for user posts
-  console.log('🔍 [useDashboard] User Posts Debug:', {
-    token: !!token,
-    userPostsData,
-    isUserPostsLoading,
-    isUserPostsFetching,
-    userPostsError,
-    currentLanguage,
-    fullUserPostsData: userPostsData
-  });
 
   // Create a debounced search function
   const debouncedSearch = useCallback(

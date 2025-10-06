@@ -58,7 +58,6 @@ const getAllPosts = async (req, res) => {
   // Check cache first
   const cachedPosts = await cacheService.get(cacheKey);
   if (cachedPosts) {
-    console.log('📦 Posts served from cache');
     return res.json(cachedPosts);
   }
 
@@ -539,14 +538,6 @@ const getFilteredPosts = async (req, res) => {
     const postsWithUser = await Post.aggregate(pipeline);
     
     // Debug: Log city information for posts
-    console.log('🔍 DEBUG: Posts with city info:', postsWithUser.map(post => ({
-      id: post._id,
-      city: post.city,
-      cityName: post.cityName,
-      cityLabels: post.cityLabels,
-      hasCity: !!post.city,
-      cityDebug: post.cityDebug
-    })));
 
     // If no posts
     if (!postsWithUser?.length) {
@@ -583,15 +574,6 @@ const getUserPosts = async (req, res) => {
     const pageSize = Math.min(Math.max(parseInt(req.query.pageSize) || 8, 1), 50);
     const language = req.query.language || 'en';
 
-    console.log('🔍 [getUserPosts] API Debug:', {
-      userId,
-      page,
-      pageSize,
-      language,
-      userFromToken: req.user,
-      userIdType: typeof userId,
-      userIdValid: mongoose.Types.ObjectId.isValid(userId)
-    });
 
     // Validate userId before proceeding
     if (!userId || !mongoose.Types.ObjectId.isValid(userId)) {
@@ -613,7 +595,6 @@ const getUserPosts = async (req, res) => {
     // Check cache first
     const cachedPosts = await cacheService.get(cacheKey);
     if (cachedPosts) {
-      console.log('📦 User posts served from cache');
       return res.json(cachedPosts);
     }
 
@@ -766,15 +747,6 @@ const getUserPosts = async (req, res) => {
     let userPosts;
     try {
       userPosts = await Post.aggregate(pipeline);
-      console.log('🔍 [getUserPosts] Query Results:', {
-        userPostsCount: userPosts?.length,
-        userPosts: userPosts?.map(post => ({
-          _id: post._id,
-          title: post.title,
-          categoryname: post.categoryname,
-          floptionName: post.floptionName
-        }))
-      });
     } catch (aggregationError) {
       console.error('❌ [getUserPosts] Aggregation Error:', {
         message: aggregationError.message,
@@ -789,19 +761,9 @@ const getUserPosts = async (req, res) => {
       user: new mongoose.Types.ObjectId(userId)
     });
 
-    console.log('🔍 [getUserPosts] Total Posts Count:', totalPosts);
 
     // Debug: Check if there are any posts for this user at all
     const allUserPosts = await Post.find({ user: new mongoose.Types.ObjectId(userId) }).limit(5);
-    console.log('🔍 [getUserPosts] Raw User Posts Check:', {
-      allUserPostsCount: allUserPosts.length,
-      samplePosts: allUserPosts.map(post => ({
-        _id: post._id,
-        user: post.user,
-        userType: typeof post.user,
-        userString: post.user.toString()
-      }))
-    });
 
     // If no posts
     if (!userPosts?.length) {
@@ -824,23 +786,12 @@ const getUserPosts = async (req, res) => {
       total: totalPosts
     };
     
-    console.log('🔍 [getUserPosts] Final Response:', {
-      postsWithUserCount: response.postsWithUser?.length,
-      total: response.total,
-      page: response.page
-    });
     
     // Cache the response for 2 minutes (user-specific data)
     await cacheService.set(cacheKey, response, 120);
     
     res.json(response);
   } catch (error) {
-    console.error('❌ [getUserPosts] Error:', {
-      message: error.message,
-      stack: error.stack,
-      userId: req.user,
-      query: req.query
-    });
     res.status(500).json({ 
       message: "Error fetching user posts",
       error: error.message 
