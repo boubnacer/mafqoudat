@@ -65,6 +65,8 @@ const scheduleProactiveRefresh = (api, token) => {
 // Manual refresh test function (for debugging)
 window.testRefreshToken = () => {
   console.log('🧪 MANUAL TEST: Testing refresh token endpoint');
+  const fullUrl = window.location.origin + '/auth/refresh';
+  console.log('🧪 MANUAL TEST: Full URL:', fullUrl);
   fetch('/auth/refresh', {
     method: 'GET',
     credentials: 'include',
@@ -106,6 +108,33 @@ window.testProactiveRefresh = () => {
   } else {
     console.log('🧪 PROACTIVE TEST: No token found in localStorage');
   }
+};
+
+// Test full URL directly
+window.testFullUrl = () => {
+  const fullUrl = 'https://mafqoudat-production.up.railway.app/auth/refresh';
+  console.log('🧪 FULL URL TEST: Testing direct server URL:', fullUrl);
+  fetch(fullUrl, {
+    method: 'GET',
+    credentials: 'include',
+    headers: { 'Content-Type': 'application/json' }
+  })
+  .then(response => {
+    console.log('🧪 FULL URL TEST: Response status:', response.status);
+    return response.text();
+  })
+  .then(text => {
+    console.log('🧪 FULL URL TEST: Response text (first 200 chars):', text.substring(0, 200));
+    try {
+      const json = JSON.parse(text);
+      console.log('🧪 FULL URL TEST: Parsed JSON:', json);
+    } catch (e) {
+      console.log('🧪 FULL URL TEST: Not valid JSON');
+    }
+  })
+  .catch(error => {
+    console.log('🧪 FULL URL TEST: Error:', error);
+  });
 };
 
 // Enhanced error handling for network failures
