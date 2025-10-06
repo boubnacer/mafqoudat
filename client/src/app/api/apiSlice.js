@@ -65,9 +65,9 @@ const scheduleProactiveRefresh = (api, token) => {
 // Manual refresh test function (for debugging)
 window.testRefreshToken = () => {
   console.log('🧪 MANUAL TEST: Testing refresh token endpoint');
-  const fullUrl = window.location.origin + '/auth/refresh';
+  const fullUrl = `${process.env.REACT_APP_API_URL || "http://localhost:3500"}/auth/refresh`;
   console.log('🧪 MANUAL TEST: Full URL:', fullUrl);
-  fetch('/auth/refresh', {
+  fetch(fullUrl, {
     method: 'GET',
     credentials: 'include',
     headers: { 'Content-Type': 'application/json' }
@@ -171,9 +171,9 @@ const attemptTokenRefresh = async (api) => {
   api.dispatch(setRefreshing(true));
   api.dispatch(setRefreshAttempts(refreshAttempts));
 
-  console.log('🔄 CLIENT REFRESH: Making fetch request to /auth/refresh');
-  console.log('🔄 CLIENT REFRESH: Full URL will be:', window.location.origin + '/auth/refresh');
-  refreshPromise = fetch('/auth/refresh', {
+  const refreshUrl = `${process.env.REACT_APP_API_URL || "http://localhost:3500"}/auth/refresh`;
+  console.log('🔄 CLIENT REFRESH: Making fetch request to:', refreshUrl);
+  refreshPromise = fetch(refreshUrl, {
     method: 'GET',
     credentials: 'include',
     headers: {
