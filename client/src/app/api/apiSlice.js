@@ -62,6 +62,33 @@ const scheduleProactiveRefresh = (api, token) => {
   }
 };
 
+// Manual refresh test function (for debugging)
+window.testRefreshToken = () => {
+  console.log('🧪 MANUAL TEST: Testing refresh token endpoint');
+  fetch('/auth/refresh', {
+    method: 'GET',
+    credentials: 'include',
+    headers: { 'Content-Type': 'application/json' }
+  })
+  .then(response => {
+    console.log('🧪 MANUAL TEST: Response status:', response.status);
+    console.log('🧪 MANUAL TEST: Response headers:', response.headers);
+    return response.text();
+  })
+  .then(text => {
+    console.log('🧪 MANUAL TEST: Response text:', text);
+    try {
+      const json = JSON.parse(text);
+      console.log('🧪 MANUAL TEST: Parsed JSON:', json);
+    } catch (e) {
+      console.log('🧪 MANUAL TEST: Not valid JSON, first 200 chars:', text.substring(0, 200));
+    }
+  })
+  .catch(error => {
+    console.log('🧪 MANUAL TEST: Error:', error);
+  });
+};
+
 // Enhanced error handling for network failures
 const isNetworkError = (error) => {
   return !error?.status || error.status === 'FETCH_ERROR' || error.status === 'PARSING_ERROR';
