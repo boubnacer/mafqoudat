@@ -66,8 +66,15 @@ class BackgroundTokenRefreshService {
     }
 
     // Schedule refresh if needed
-    if (refreshTiming.shouldRefresh && refreshTiming.timeUntilRefresh > 0) {
-      this.scheduleRefresh(refreshTiming.timeUntilRefresh, refreshTiming.priority);
+    if (refreshTiming.shouldRefresh) {
+      if (refreshTiming.timeUntilRefresh > 0) {
+        this.scheduleRefresh(refreshTiming.timeUntilRefresh, refreshTiming.priority);
+      } else {
+        console.log('Token needs immediate refresh, executing now');
+        this.forceRefresh().catch(error => {
+          console.error('Immediate background refresh failed:', error);
+        });
+      }
     }
   }
 
