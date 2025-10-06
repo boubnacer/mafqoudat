@@ -11,6 +11,9 @@ class BackgroundTokenRefreshService {
     this.refreshCallback = null;
     this.store = null;
     this.checkInterval = null;
+    this.lastRefreshTime = 0;
+    this.minRefreshInterval = 60000; // Minimum 1 minute between refreshes
+    this.rateLimitBackoff = 0; // Backoff time when rate limited
   }
 
   /**
@@ -65,6 +68,21 @@ class BackgroundTokenRefreshService {
       return;
     }
 
+    // Check if we're in rate limit backoff period
+    const now = Date.now();
+    if (this.rateLimitBackoff > now) {
+      const remainingBackoff = Math.ceil((this.rateLimitBackoff - now) / 1000);
+      console.log(`Rate limit backoff active, waiting ${remainingBackoff} seconds before next refresh attempt`);
+      return;
+    }
+
+    // Check minimum refresh interval
+    if (this.lastRefreshTime > 0 && (now - this.lastRefreshTime) < this.minRefreshInterval) {
+      const remainingInterval = Math.ceil((this.minRefreshInterval - (now - this.lastRefreshTime)) / 1000);
+      console.log(`Minimum refresh interval not met, waiting ${remainingInterval} seconds`);
+      return;
+    }
+
     // Schedule refresh if needed
     if (refreshTiming.shouldRefresh) {
       if (refreshTiming.timeUntilRefresh > 0) {
@@ -99,14 +117,25 @@ class BackgroundTokenRefreshService {
     this.refreshTimeout = setTimeout(async () => {
       try {
         console.log(`Executing background token refresh (priority: ${priority})`);
+        this.lastRefreshTime = Date.now();
         await this.refreshCallback();
         
         // Clear cache after successful refresh
         clearTokenValidationCache();
         
         console.log('Background token refresh completed successfully');
+        
+        // Reset rate limit backoff on successful refresh
+        this.rateLimitBackoff = 0;
       } catch (error) {
         console.error('Background token refresh failed:', error);
+        
+        // Handle rate limiting
+        if (error?.status === 429 || error?.error?.status === 429) {
+          console.warn('Rate limited, setting backoff period');
+          this.rateLimitBackoff = Date.now() + (15 * 60 * 1000); // 15 minutes backoff
+          return; // Don't retry if rate limited
+        }
         
         // Retry with exponential backoff for high priority refreshes
         if (priority === 'high') {
@@ -140,11 +169,22 @@ class BackgroundTokenRefreshService {
     
     try {
       console.log('Forcing immediate token refresh');
+      this.lastRefreshTime = Date.now();
       await this.refreshCallback();
       clearTokenValidationCache();
       console.log('Forced token refresh completed');
+      
+      // Reset rate limit backoff on successful refresh
+      this.rateLimitBackoff = 0;
     } catch (error) {
       console.error('Forced token refresh failed:', error);
+      
+      // Handle rate limiting
+      if (error?.status === 429 || error?.error?.status === 429) {
+        console.warn('Rate limited, setting backoff period');
+        this.rateLimitBackoff = Date.now() + (15 * 60 * 1000); // 15 minutes backoff
+      }
+      
       throw error;
     }
   }
