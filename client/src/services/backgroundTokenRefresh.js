@@ -132,8 +132,8 @@ class BackgroundTokenRefreshService {
    * Force immediate token refresh
    */
   async forceRefresh() {
-    if (!this.refreshCallback) {
-      throw new Error('Refresh callback not initialized');
+    if (!this.refreshCallback || !this.store) {
+      throw new Error('Refresh callback or store not initialized');
     }
 
     this.clearScheduledRefresh();

@@ -32,42 +32,8 @@ const resetRefreshTracking = () => {
   }
 };
 
-// Schedule proactive token refresh
-const scheduleProactiveRefresh = (api, token) => {
-  console.log('🔄 PROACTIVE REFRESH: Checking if proactive refresh should be scheduled');
-  
-  if (proactiveRefreshTimeout) {
-    console.log('🔄 PROACTIVE REFRESH: Clearing existing timeout');
-    clearTimeout(proactiveRefreshTimeout);
-  }
-
-  const refreshTiming = getTokenRefreshTiming(token);
-  console.log('🔄 PROACTIVE REFRESH: Token timing analysis:', {
-    shouldRefresh: refreshTiming.shouldRefresh,
-    timeUntilRefresh: refreshTiming.timeUntilRefresh,
-    priority: refreshTiming.priority
-  });
-  
-  if (refreshTiming.shouldRefresh) {
-    if (refreshTiming.timeUntilRefresh > 0) {
-      console.log(`🔄 PROACTIVE REFRESH: Scheduling proactive token refresh in ${refreshTiming.timeUntilRefresh}ms (priority: ${refreshTiming.priority})`);
-      
-      proactiveRefreshTimeout = setTimeout(() => {
-        console.log('🔄 PROACTIVE REFRESH: Executing proactive token refresh');
-        attemptTokenRefresh(api).catch(error => {
-          console.warn('❌ PROACTIVE REFRESH: Proactive token refresh failed:', error);
-        });
-      }, refreshTiming.timeUntilRefresh);
-    } else {
-      console.log('🔄 PROACTIVE REFRESH: Token needs immediate refresh, executing now');
-      attemptTokenRefresh(api).catch(error => {
-        console.warn('❌ PROACTIVE REFRESH: Immediate token refresh failed:', error);
-      });
-    }
-  } else {
-    console.log('🔄 PROACTIVE REFRESH: No proactive refresh needed at this time');
-  }
-};
+// Note: Proactive refresh is now handled by the background service
+// This function is kept for compatibility but is no longer used
 
 // Manual refresh test function (for debugging)
 window.testRefreshToken = () => {
@@ -340,7 +306,8 @@ const baseQuery = fetchBaseQuery({
     // Schedule proactive refresh if token is expiring soon
     if (tokenValidation.reason === 'TOKEN_EXPIRING_SOON') {
       console.warn('🔄 PROACTIVE REFRESH: Token expiring soon, scheduling proactive refresh');
-      scheduleProactiveRefresh({ dispatch: getState().dispatch, getState }, token);
+      // Let the background service handle the refresh instead of trying to do it here
+      console.log('🔄 PROACTIVE REFRESH: Background service will handle the refresh');
     } else {
       console.log('🔄 PROACTIVE REFRESH: Token validation result:', {
         isValid: tokenValidation.isValid,
@@ -351,8 +318,8 @@ const baseQuery = fetchBaseQuery({
       
       // Force proactive refresh for testing (remove this after testing)
       if (tokenValidation.isValid && tokenValidation.timeRemaining < 300000) { // 5 minutes
-        console.warn('🔄 PROACTIVE REFRESH: Token expires in less than 5 minutes, forcing proactive refresh');
-        scheduleProactiveRefresh({ dispatch: getState().dispatch, getState }, token);
+        console.warn('🔄 PROACTIVE REFRESH: Token expires in less than 5 minutes, background service will handle refresh');
+        // Let the background service handle the refresh instead of trying to do it here
       }
     }
     }

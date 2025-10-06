@@ -58,7 +58,7 @@ export const authApiSlice = apiSlice.injectEndpoints({
               return refreshResult.data;
             };
             
-            backgroundTokenRefreshService.initialize(refreshCallback, { getState });
+            backgroundTokenRefreshService.initialize(refreshCallback, { getState, dispatch });
           }
           
         } catch (error) {
@@ -138,7 +138,7 @@ export const authApiSlice = apiSlice.injectEndpoints({
               return refreshResult.data;
             };
             
-            backgroundTokenRefreshService.initialize(refreshCallback, { getState });
+            backgroundTokenRefreshService.initialize(refreshCallback, { getState, dispatch });
           }
           
         } catch (err) {
