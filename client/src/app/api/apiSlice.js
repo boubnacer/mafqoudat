@@ -341,6 +341,12 @@ const baseQuery = fetchBaseQuery({
         timeRemaining: tokenValidation.timeRemaining,
         shouldRefresh: tokenValidation.shouldRefresh
       });
+      
+      // Force proactive refresh for testing (remove this after testing)
+      if (tokenValidation.isValid && tokenValidation.timeRemaining < 300000) { // 5 minutes
+        console.warn('🔄 PROACTIVE REFRESH: Token expires in less than 5 minutes, forcing proactive refresh');
+        scheduleProactiveRefresh({ dispatch: getState().dispatch, getState }, token);
+      }
     }
     }
     
