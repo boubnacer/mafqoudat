@@ -83,7 +83,7 @@ const attemptTokenRefresh = async (api) => {
   api.dispatch(setRefreshAttempts(refreshAttempts));
 
   refreshPromise = fetch('/auth/refresh', {
-    method: 'POST',
+    method: 'GET',
     credentials: 'include',
     headers: {
       'Content-Type': 'application/json',
