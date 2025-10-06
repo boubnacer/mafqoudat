@@ -89,6 +89,25 @@ window.testRefreshToken = () => {
   });
 };
 
+// Manual proactive refresh test
+window.testProactiveRefresh = () => {
+  console.log('🧪 PROACTIVE TEST: Testing proactive refresh mechanism');
+  const token = localStorage.getItem('accessToken');
+  if (token) {
+    console.log('🧪 PROACTIVE TEST: Current token found, testing validation');
+    const validation = getOptimizedTokenValidation(token);
+    console.log('🧪 PROACTIVE TEST: Token validation:', validation);
+    
+    if (validation.reason === 'TOKEN_EXPIRING_SOON') {
+      console.log('🧪 PROACTIVE TEST: Token is expiring soon, should schedule refresh');
+    } else {
+      console.log('🧪 PROACTIVE TEST: Token is not expiring soon, reason:', validation.reason);
+    }
+  } else {
+    console.log('🧪 PROACTIVE TEST: No token found in localStorage');
+  }
+};
+
 // Enhanced error handling for network failures
 const isNetworkError = (error) => {
   return !error?.status || error.status === 'FETCH_ERROR' || error.status === 'PARSING_ERROR';
@@ -259,11 +278,17 @@ const baseQuery = fetchBaseQuery({
         return headers;
       }
       
-      // Schedule proactive refresh if token is expiring soon
-      if (tokenValidation.reason === 'TOKEN_EXPIRING_SOON') {
-        console.warn('Token expiring soon, scheduling proactive refresh');
-        scheduleProactiveRefresh({ dispatch: getState().dispatch, getState }, token);
-      }
+    // Schedule proactive refresh if token is expiring soon
+    if (tokenValidation.reason === 'TOKEN_EXPIRING_SOON') {
+      console.warn('🔄 PROACTIVE REFRESH: Token expiring soon, scheduling proactive refresh');
+      scheduleProactiveRefresh({ dispatch: getState().dispatch, getState }, token);
+    } else {
+      console.log('🔄 PROACTIVE REFRESH: Token validation result:', {
+        isValid: tokenValidation.isValid,
+        reason: tokenValidation.reason,
+        timeRemaining: tokenValidation.timeRemaining
+      });
+    }
     }
     
     // Only add authorization header for authenticated endpoints
