@@ -105,7 +105,11 @@ const login = async (req, res) => {
   }
 
   // Create secure cookie with refresh token
-  res.cookie("jwt", refreshToken, getSecureCookieOptions());
+  const cookieOptions = getSecureCookieOptions();
+  console.log('🍪 LOGIN: Setting refresh token cookie with options:', cookieOptions);
+  console.log('🍪 LOGIN: Refresh token length:', refreshToken.length);
+  
+  res.cookie("jwt", refreshToken, cookieOptions);
 
   // Log successful login
   logEvents(
@@ -113,6 +117,7 @@ const login = async (req, res) => {
     "reqLog.log"
   );
 
+  console.log('✅ LOGIN: Login successful, sending access token');
   // Send accessToken containing username and country
   res.json({ accessToken });
 };

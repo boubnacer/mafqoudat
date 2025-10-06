@@ -341,7 +341,7 @@ const getSecureCookieOptions = (isProduction = process.env.NODE_ENV === 'product
   if (isProduction) {
     return {
       ...baseOptions,
-      domain: process.env.COOKIE_DOMAIN || '.mafqoudat.com', // Domain restriction
+      // domain: process.env.COOKIE_DOMAIN || '.mafqoudat.com', // Domain restriction - DISABLED for Railway
       // Additional security headers for production
       priority: 'high', // Cookie priority
       // Partitioned cookies for better security (if supported)
@@ -365,7 +365,7 @@ const getSecureCookieClearOptions = (isProduction = process.env.NODE_ENV === 'pr
   if (isProduction) {
     return {
       ...baseOptions,
-      domain: process.env.COOKIE_DOMAIN || '.mafqoudat.com', // Domain restriction
+      // domain: process.env.COOKIE_DOMAIN || '.mafqoudat.com', // Domain restriction - DISABLED for Railway
       // Additional security headers for production
       priority: 'high', // Cookie priority
       // Partitioned cookies for better security (if supported)
