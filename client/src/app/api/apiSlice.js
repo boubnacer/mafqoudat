@@ -48,15 +48,22 @@ const scheduleProactiveRefresh = (api, token) => {
     priority: refreshTiming.priority
   });
   
-  if (refreshTiming.shouldRefresh && refreshTiming.timeUntilRefresh > 0) {
-    console.log(`🔄 PROACTIVE REFRESH: Scheduling proactive token refresh in ${refreshTiming.timeUntilRefresh}ms (priority: ${refreshTiming.priority})`);
-    
-    proactiveRefreshTimeout = setTimeout(() => {
-      console.log('🔄 PROACTIVE REFRESH: Executing proactive token refresh');
+  if (refreshTiming.shouldRefresh) {
+    if (refreshTiming.timeUntilRefresh > 0) {
+      console.log(`🔄 PROACTIVE REFRESH: Scheduling proactive token refresh in ${refreshTiming.timeUntilRefresh}ms (priority: ${refreshTiming.priority})`);
+      
+      proactiveRefreshTimeout = setTimeout(() => {
+        console.log('🔄 PROACTIVE REFRESH: Executing proactive token refresh');
+        attemptTokenRefresh(api).catch(error => {
+          console.warn('❌ PROACTIVE REFRESH: Proactive token refresh failed:', error);
+        });
+      }, refreshTiming.timeUntilRefresh);
+    } else {
+      console.log('🔄 PROACTIVE REFRESH: Token needs immediate refresh, executing now');
       attemptTokenRefresh(api).catch(error => {
-        console.warn('❌ PROACTIVE REFRESH: Proactive token refresh failed:', error);
+        console.warn('❌ PROACTIVE REFRESH: Immediate token refresh failed:', error);
       });
-    }, refreshTiming.timeUntilRefresh);
+    }
   } else {
     console.log('🔄 PROACTIVE REFRESH: No proactive refresh needed at this time');
   }
