@@ -1,8 +1,10 @@
 import { getOptimizedTokenValidation, getTokenRefreshTiming, clearTokenValidationCache } from '../utils/optimizedTokenUtils';
+import { rateLimitManager, isRateLimitError, getRateLimitBackoffDelay } from '../utils/rateLimitUtils';
 
 /**
  * Background Token Refresh Service
  * Handles proactive token refresh to prevent authentication interruptions
+ * Enhanced with proper rate limiting, exponential backoff, and request deduplication
  */
 class BackgroundTokenRefreshService {
   constructor() {
@@ -12,8 +14,15 @@ class BackgroundTokenRefreshService {
     this.store = null;
     this.checkInterval = null;
     this.lastRefreshTime = 0;
-    this.minRefreshInterval = 30000; // Minimum 30 seconds between refreshes
+    this.minRefreshInterval = 60000; // Minimum 60 seconds between refreshes (increased from 30s)
     this.rateLimitBackoff = 0; // Backoff time when rate limited
+    this.isRefreshing = false; // Prevent simultaneous refresh requests
+    this.refreshPromise = null; // Store ongoing refresh promise
+    this.consecutiveFailures = 0; // Track consecutive failures for exponential backoff
+    this.maxConsecutiveFailures = 3; // Max failures before extended backoff
+    this.baseBackoffDelay = 30000; // Base 30 seconds backoff
+    this.maxBackoffDelay = 15 * 60 * 1000; // Max 15 minutes backoff
+    this.retryAfterHeader = null; // Store retry-after header from 429 responses
   }
 
   /**
@@ -68,10 +77,15 @@ class BackgroundTokenRefreshService {
       return;
     }
 
+    // Check if we're already refreshing to prevent duplicate requests
+    if (this.isRefreshing) {
+      console.log('Refresh already in progress, skipping health check');
+      return;
+    }
+
     // Check if we're in rate limit backoff period
-    const now = Date.now();
-    if (this.rateLimitBackoff > now) {
-      const remainingBackoff = Math.ceil((this.rateLimitBackoff - now) / 1000);
+    if (rateLimitManager.isInBackoff()) {
+      const remainingBackoff = rateLimitManager.getRemainingBackoff();
       console.log(`Rate limit backoff active, waiting ${remainingBackoff} seconds before next refresh attempt`);
       return;
     }
@@ -98,7 +112,18 @@ class BackgroundTokenRefreshService {
   }
 
   /**
-   * Schedule a token refresh
+   * Calculate exponential backoff delay (fallback method)
+   * @param {number} attempt - Current attempt number (0-based)
+   * @returns {number} Delay in milliseconds
+   */
+  calculateBackoffDelay(attempt) {
+    const exponentialDelay = this.baseBackoffDelay * Math.pow(2, attempt);
+    const jitter = Math.random() * 0.1 * exponentialDelay; // Add 10% jitter
+    return Math.min(exponentialDelay + jitter, this.maxBackoffDelay);
+  }
+
+  /**
+   * Schedule a token refresh with enhanced rate limiting
    * @param {number} delay - Delay in milliseconds
    * @param {string} priority - Refresh priority (low, medium, high)
    */
@@ -107,45 +132,87 @@ class BackgroundTokenRefreshService {
     this.clearScheduledRefresh();
 
     // Don't schedule if already refreshing
+    if (this.isRefreshing) {
+      console.log('Token refresh already in progress, skipping background refresh');
+      return;
+    }
+
+    // Don't schedule if already refreshing in Redux state
     const state = this.store.getState();
     if (state.auth?.isRefreshing) {
-      console.log('Token refresh already in progress, skipping background refresh');
+      console.log('Token refresh already in progress (Redux state), skipping background refresh');
       return;
     }
 
     console.log(`Scheduling background token refresh in ${delay}ms (priority: ${priority})`);
 
     this.refreshTimeout = setTimeout(async () => {
-      try {
-        console.log(`Executing background token refresh (priority: ${priority})`);
-        this.lastRefreshTime = Date.now();
-        await this.refreshCallback();
+      await this.executeRefresh(priority);
+    }, delay);
+  }
+
+  /**
+   * Execute token refresh with proper error handling and backoff
+   * @param {string} priority - Refresh priority
+   */
+  async executeRefresh(priority = 'medium') {
+    if (this.isRefreshing) {
+      console.log('Refresh already in progress, skipping duplicate request');
+      return;
+    }
+
+    this.isRefreshing = true;
+    this.refreshPromise = null;
+
+    try {
+      console.log(`Executing background token refresh (priority: ${priority})`);
+      this.lastRefreshTime = Date.now();
+      
+      // Execute the refresh callback
+      this.refreshPromise = this.refreshCallback();
+      await this.refreshPromise;
+      
+      // Clear cache after successful refresh
+      clearTokenValidationCache();
+      
+      console.log('Background token refresh completed successfully');
+      
+      // Reset failure tracking on successful refresh
+      this.consecutiveFailures = 0;
+      rateLimitManager.resetFailures();
+      
+    } catch (error) {
+      console.error('Background token refresh failed:', error);
+      this.consecutiveFailures++;
+      
+      // Handle rate limiting (429 errors)
+      if (isRateLimitError(error)) {
+        const backoffDelay = rateLimitManager.handleRateLimit(error);
         
-        // Clear cache after successful refresh
-        clearTokenValidationCache();
+        console.warn(`Rate limited, setting backoff period of ${Math.ceil(backoffDelay / 1000)} seconds`);
         
-        console.log('Background token refresh completed successfully');
+        // Don't retry immediately for rate limiting
+        return;
+      }
+      
+      // Handle other errors with exponential backoff
+      if (this.consecutiveFailures <= this.maxConsecutiveFailures) {
+        const retryDelay = this.calculateBackoffDelay(this.consecutiveFailures - 1);
+        console.log(`Retrying background refresh in ${Math.ceil(retryDelay / 1000)} seconds (attempt ${this.consecutiveFailures})`);
         
-        // Reset rate limit backoff on successful refresh
-        this.rateLimitBackoff = 0;
-      } catch (error) {
-        console.error('Background token refresh failed:', error);
-        
-        // Handle rate limiting
-        if (error?.status === 429 || error?.error?.status === 429) {
-          console.warn('Rate limited, setting backoff period');
-          this.rateLimitBackoff = Date.now() + (15 * 60 * 1000); // 15 minutes backoff
-          return; // Don't retry if rate limited
-        }
-        
-        // Retry with exponential backoff for high priority refreshes
-        if (priority === 'high') {
-          const retryDelay = Math.min(delay * 2, 60000); // Max 1 minute
-          console.log(`Retrying background refresh in ${retryDelay}ms`);
+        // Only retry for high priority refreshes or if we haven't exceeded max failures
+        if (priority === 'high' || this.consecutiveFailures < this.maxConsecutiveFailures) {
           this.scheduleRefresh(retryDelay, 'medium');
         }
+      } else {
+        console.error('Max consecutive failures reached, stopping background refresh attempts');
+        this.rateLimitBackoff = Date.now() + this.maxBackoffDelay;
       }
-    }, delay);
+      
+    } finally {
+      this.isRefreshing = false;
+      this.refreshPromise = null;
+    }
   }
 
   /**
@@ -168,26 +235,29 @@ class BackgroundTokenRefreshService {
 
     this.clearScheduledRefresh();
     
-    try {
-      console.log('Forcing immediate token refresh');
-      this.lastRefreshTime = Date.now();
-      await this.refreshCallback();
-      clearTokenValidationCache();
-      console.log('Forced token refresh completed');
-      
-      // Reset rate limit backoff on successful refresh
-      this.rateLimitBackoff = 0;
-    } catch (error) {
-      console.error('Forced token refresh failed:', error);
-      
-      // Handle rate limiting
-      if (error?.status === 429 || error?.error?.status === 429) {
-        console.warn('Rate limited, setting backoff period');
-        this.rateLimitBackoff = Date.now() + (15 * 60 * 1000); // 15 minutes backoff
-      }
-      
-      throw error;
+    // If already refreshing, return the existing promise
+    if (this.isRefreshing && this.refreshPromise) {
+      console.log('Refresh already in progress, returning existing promise');
+      return this.refreshPromise;
     }
+    
+    return this.executeRefresh('high');
+  }
+
+  /**
+   * Get the current refresh promise if one exists
+   * @returns {Promise|null} Current refresh promise or null
+   */
+  getCurrentRefreshPromise() {
+    return this.refreshPromise;
+  }
+
+  /**
+   * Check if a refresh is currently in progress
+   * @returns {boolean} True if refresh is in progress
+   */
+  isRefreshInProgress() {
+    return this.isRefreshing;
   }
 
   /**
@@ -202,6 +272,12 @@ class BackgroundTokenRefreshService {
       this.checkInterval = null;
     }
     
+    // Reset all state
+    this.isRefreshing = false;
+    this.refreshPromise = null;
+    this.consecutiveFailures = 0;
+    rateLimitManager.resetFailures();
+    
     console.log('Background token refresh service stopped');
   }
 
@@ -209,10 +285,16 @@ class BackgroundTokenRefreshService {
    * Get service status
    */
   getStatus() {
+    const rateLimitStatus = rateLimitManager.getStatus();
     return {
       isActive: this.isActive,
       hasScheduledRefresh: !!this.refreshTimeout,
-      isHealthCheckActive: !!this.checkInterval
+      isHealthCheckActive: !!this.checkInterval,
+      isRefreshing: this.isRefreshing,
+      consecutiveFailures: this.consecutiveFailures,
+      rateLimitBackoff: rateLimitStatus.remainingBackoff,
+      lastRefreshTime: this.lastRefreshTime,
+      rateLimitStatus: rateLimitStatus
     };
   }
 }

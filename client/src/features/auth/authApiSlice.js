@@ -58,7 +58,13 @@ export const authApiSlice = apiSlice.injectEndpoints({
               return refreshResult.data;
             };
             
-            backgroundTokenRefreshService.initialize(refreshCallback, { getState, dispatch });
+            // Initialize with enhanced error handling
+            try {
+              backgroundTokenRefreshService.initialize(refreshCallback, { getState, dispatch });
+              console.log('✅ Background token refresh service initialized successfully');
+            } catch (error) {
+              console.error('❌ Failed to initialize background token refresh service:', error);
+            }
           }
           
         } catch (error) {
@@ -138,7 +144,13 @@ export const authApiSlice = apiSlice.injectEndpoints({
               return refreshResult.data;
             };
             
-            backgroundTokenRefreshService.initialize(refreshCallback, { getState, dispatch });
+            // Initialize with enhanced error handling
+            try {
+              backgroundTokenRefreshService.initialize(refreshCallback, { getState, dispatch });
+              console.log('✅ Background token refresh service re-initialized after refresh');
+            } catch (error) {
+              console.error('❌ Failed to re-initialize background token refresh service:', error);
+            }
           }
           
         } catch (err) {

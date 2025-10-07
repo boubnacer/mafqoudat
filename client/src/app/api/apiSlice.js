@@ -8,6 +8,7 @@ import {
   clearRefreshState 
 } from "../../features/auth/authSlice";
 import { getOptimizedTokenValidation, getTokenRefreshTiming } from "../../utils/optimizedTokenUtils";
+import backgroundTokenRefreshService from "../../services/backgroundTokenRefresh";
 
 // Refresh attempt tracking to prevent concurrent refresh calls
 let refreshPromise = null;
@@ -67,9 +68,20 @@ const validateTokenBeforeRequest = (token) => {
   return validation;
 };
 
-// Enhanced refresh token logic with better error handling
+// Enhanced refresh token logic with better error handling and background service integration
 const attemptTokenRefresh = async (api) => {
+  // Check if background service is already handling refresh
+  if (backgroundTokenRefreshService.isRefreshInProgress()) {
+    console.log('🔄 API SLICE: Background service is refreshing, waiting for completion');
+    const backgroundPromise = backgroundTokenRefreshService.getCurrentRefreshPromise();
+    if (backgroundPromise) {
+      return backgroundPromise;
+    }
+  }
+
+  // Check if we already have a refresh in progress
   if (refreshPromise) {
+    console.log('🔄 API SLICE: Refresh already in progress, returning existing promise');
     return refreshPromise;
   }
 
@@ -96,7 +108,17 @@ const attemptTokenRefresh = async (api) => {
     .then(async (response) => {
       if (!response.ok) {
         const errorData = await response.json().catch(() => ({}));
-        throw { status: response.status, data: errorData };
+        const error = { status: response.status, data: errorData };
+        
+        // Handle 429 rate limiting with retry-after header
+        if (response.status === 429) {
+          const retryAfter = response.headers.get('retry-after');
+          if (retryAfter) {
+            error.retryAfter = retryAfter;
+          }
+        }
+        
+        throw error;
       }
       return response.json();
     })
@@ -115,7 +137,27 @@ const attemptTokenRefresh = async (api) => {
     .catch((error) => {
       console.error('❌ CLIENT REFRESH: Token refresh failed:', error);
       
-      // Calculate retry delay with exponential backoff
+      // Handle 429 rate limiting with proper backoff
+      if (error?.status === 429) {
+        const retryAfter = error.retryAfter || '900'; // Default 15 minutes
+        const retryDelay = parseInt(retryAfter, 10) * 1000;
+        
+        console.warn(`🔄 API SLICE: Rate limited, retrying after ${retryAfter} seconds`);
+        
+        if (refreshAttempts < MAX_REFRESH_ATTEMPTS) {
+          return new Promise((resolve, reject) => {
+            setTimeout(() => {
+              refreshPromise = null;
+              attemptTokenRefresh(api).then(resolve).catch(reject);
+            }, retryDelay);
+          });
+        } else {
+          handleRefreshFailure(api, error);
+          throw error;
+        }
+      }
+      
+      // Calculate retry delay with exponential backoff for other errors
       const retryDelay = getRetryDelay(refreshAttempts - 1);
       
       if (refreshAttempts < MAX_REFRESH_ATTEMPTS) {
