@@ -4,6 +4,7 @@ import { useSelector } from 'react-redux';
 import { selectIsLoggedIn, selectIsRefreshing } from '../features/auth/authSlice';
 import { selectCurrentCountry } from '../app/state';
 import { authStorage } from '../utils/authStorage';
+import useAuth from '../hooks/useAuth';
 
 /**
  * ProtectedRoute component that checks authentication and country selection
@@ -25,6 +26,7 @@ const ProtectedRoute = ({
   const isLoggedIn = useSelector(selectIsLoggedIn);
   const isRefreshing = useSelector(selectIsRefreshing);
   const currentCountry = useSelector(selectCurrentCountry);
+  const { country: userCountry } = useAuth();
   const [isInitialized, setIsInitialized] = useState(false);
   const [authRestorationInProgress, setAuthRestorationInProgress] = useState(false);
 
@@ -133,6 +135,12 @@ const ProtectedRoute = ({
 
   // Check country selection requirement
   if (requireCountry && !currentCountry) {
+    // For logged-in users: Skip country requirement since they already have a country in their profile
+    if (isLoggedIn && userCountry) {
+      console.log('🔒 ProtectedRoute - Logged-in user with country in profile, skipping country requirement');
+      return children;
+    }
+    
     // Check if this is a language change refresh or auth restoration - if so, wait for state to restore
     const urlParams = new URLSearchParams(location.search);
     const isLanguageChange = urlParams.get('lang_changed') === 'true';
@@ -144,6 +152,8 @@ const ProtectedRoute = ({
       isLanguageChanging, 
       preserveAuthFlag,
       authRestorationInProgress,
+      isLoggedIn,
+      userCountry,
       urlParams: location.search 
     });
     

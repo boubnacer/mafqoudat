@@ -256,7 +256,7 @@ const AppContent = () => {
             </Suspense>
           }>
             <Route element={
-              <ProtectedRoute requireAuth={false} requireCountry={true}>
+              <ProtectedRoute requireAuth={true} requireCountry={true}>
                 <Suspense fallback={<LoadingFallback />}>
                   <Prefetch />
                 </Suspense>

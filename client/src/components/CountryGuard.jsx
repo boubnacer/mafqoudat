@@ -3,6 +3,7 @@ import { Navigate, useLocation } from 'react-router-dom';
 import { useSelector } from 'react-redux';
 import { selectCurrentCountry } from '../app/state';
 import { selectIsLoggedIn } from '../features/auth/authSlice';
+import useAuth from '../hooks/useAuth';
 
 /**
  * CountryGuard component that ensures a country is selected before accessing certain routes
@@ -17,6 +18,7 @@ const CountryGuard = ({ children, allowAuthenticatedWithoutCountry = true }) => 
   const location = useLocation();
   const currentCountry = useSelector(selectCurrentCountry);
   const isLoggedIn = useSelector(selectIsLoggedIn);
+  const { country: userCountry } = useAuth();
   const [isInitialized, setIsInitialized] = useState(false);
 
   // Check if this is a language change refresh and give auth state time to restore
@@ -49,6 +51,12 @@ const CountryGuard = ({ children, allowAuthenticatedWithoutCountry = true }) => 
 
   // If no country is selected
   if (!currentCountry) {
+    // If user is authenticated and has a country in their profile, let them through
+    if (isLoggedIn && userCountry) {
+      console.log('CountryGuard - Allowing authenticated user with country in profile');
+      return children;
+    }
+    
     // If user is authenticated and we allow authenticated users without country, let them through
     if (isLoggedIn && allowAuthenticatedWithoutCountry) {
       console.log('CountryGuard - Allowing authenticated user without country');
