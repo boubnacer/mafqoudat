@@ -2,16 +2,44 @@ import { createSlice } from "@reduxjs/toolkit";
 import { authStorage } from "../../utils/authStorage";
 import { getOptimizedTokenValidation } from "../../utils/optimizedTokenUtils";
 
+// Debug configuration
+const DEBUG_AUTH = true;
+
+// Debug logging function
+const debugLog = (message, data = null) => {
+  if (DEBUG_AUTH) {
+    const timestamp = new Date().toISOString();
+    if (data) {
+      console.log(`🔍 [AUTH-SLICE] ${message}`, { timestamp, ...data });
+    } else {
+      console.log(`🔍 [AUTH-SLICE] ${message} - ${timestamp}`);
+    }
+  }
+};
+
 // Get initial state from localStorage using centralized auth utility
 const getInitialState = () => {
+  debugLog('Getting initial state from localStorage');
   const authState = authStorage.getAuthState();
+  
+  debugLog('Retrieved auth state from storage', {
+    hasToken: !!authState.token,
+    isLoggedIn: authState.isLoggedIn,
+    hasUser: !!authState.user,
+    tokenLength: authState.token?.length
+  });
   
   // Validate token if it exists
   if (authState.token) {
     const tokenValidation = getOptimizedTokenValidation(authState.token);
+    debugLog('Token validation result', {
+      isValid: tokenValidation.isValid,
+      reason: tokenValidation.reason
+    });
     
     // If token is expired, clear the auth state
     if (!tokenValidation.isValid && tokenValidation.reason === 'TOKEN_EXPIRED') {
+      debugLog('Token expired on app initialization, clearing auth state');
       console.log('Token expired on app initialization, clearing auth state');
       authStorage.setLoggedOut();
       return {
@@ -26,7 +54,7 @@ const getInitialState = () => {
     }
   }
   
-  return {
+  const initialState = {
     token: authState.token,
     isLoggedIn: authState.isLoggedIn,
     user: authState.user,
@@ -35,6 +63,9 @@ const getInitialState = () => {
     refreshAttempts: 0,
     lastRefreshError: null,
   };
+  
+  debugLog('Returning initial state', initialState);
+  return initialState;
 };
 
 const authSlice = createSlice({
@@ -43,6 +74,20 @@ const authSlice = createSlice({
   reducers: {
     setCredentials: (state, action) => {
       const { accessToken, user } = action.payload;
+      
+      debugLog('setCredentials action dispatched', {
+        hasAccessToken: !!accessToken,
+        hasUser: !!user,
+        tokenLength: accessToken?.length,
+        userId: user?.id
+      });
+      
+      const previousState = {
+        token: state.token,
+        isLoggedIn: state.isLoggedIn,
+        user: state.user
+      };
+      
       state.token = accessToken;
       state.isLoggedIn = true;
       state.user = user || null;
@@ -50,10 +95,32 @@ const authSlice = createSlice({
       state.refreshAttempts = 0;
       state.lastRefreshError = null;
       
+      debugLog('setCredentials state updated', {
+        previous: previousState,
+        new: {
+          token: state.token,
+          isLoggedIn: state.isLoggedIn,
+          user: state.user
+        }
+      });
+      
       // Persist to localStorage using centralized auth utility
-      authStorage.setCredentials({ accessToken, user });
+      const storageResult = authStorage.setCredentials({ accessToken, user });
+      debugLog('setCredentials localStorage result', { success: storageResult });
     },
     logOut: (state, action) => {
+      debugLog('logOut action dispatched', {
+        reason: action.payload?.reason || 'unknown',
+        previousToken: !!state.token,
+        previousUser: !!state.user
+      });
+      
+      const previousState = {
+        token: state.token,
+        isLoggedIn: state.isLoggedIn,
+        user: state.user
+      };
+      
       state.token = null;
       state.isLoggedIn = false;
       state.user = null;
@@ -62,19 +129,44 @@ const authSlice = createSlice({
       state.refreshAttempts = 0;
       state.lastRefreshError = null;
       
+      debugLog('logOut state updated', {
+        previous: previousState,
+        new: {
+          token: state.token,
+          isLoggedIn: state.isLoggedIn,
+          user: state.user
+        }
+      });
+      
       // Clear localStorage using centralized auth utility
-      authStorage.setLoggedOut();
+      const storageResult = authStorage.setLoggedOut();
+      debugLog('logOut localStorage result', { success: storageResult });
     },
     setUser: (state, action) => {
+      debugLog('setUser action dispatched', {
+        hasUser: !!action.payload,
+        userId: action.payload?.id
+      });
+      
       state.user = action.payload;
       
       // Update user data in localStorage using centralized auth utility
-      authStorage.updateUserData(action.payload);
+      const storageResult = authStorage.updateUserData(action.payload);
+      debugLog('setUser localStorage result', { success: storageResult });
     },
     setLoading: (state, action) => {
+      debugLog('setLoading action dispatched', { isLoading: action.payload });
       state.isLoading = action.payload;
     },
     clearAuth: (state, action) => {
+      debugLog('clearAuth action dispatched');
+      
+      const previousState = {
+        token: state.token,
+        isLoggedIn: state.isLoggedIn,
+        user: state.user
+      };
+      
       state.token = null;
       state.isLoggedIn = false;
       state.user = null;
@@ -83,23 +175,37 @@ const authSlice = createSlice({
       state.refreshAttempts = 0;
       state.lastRefreshError = null;
       
+      debugLog('clearAuth state updated', {
+        previous: previousState,
+        new: {
+          token: state.token,
+          isLoggedIn: state.isLoggedIn,
+          user: state.user
+        }
+      });
+      
       // Clear all auth-related localStorage using centralized auth utility
-      authStorage.clearAuth();
+      const storageResult = authStorage.clearAuth();
+      debugLog('clearAuth localStorage result', { success: storageResult });
     },
     setRefreshing: (state, action) => {
+      debugLog('setRefreshing action dispatched', { isRefreshing: action.payload });
       state.isRefreshing = action.payload;
       if (action.payload) {
         state.lastRefreshError = null;
       }
     },
     setRefreshAttempts: (state, action) => {
+      debugLog('setRefreshAttempts action dispatched', { attempts: action.payload });
       state.refreshAttempts = action.payload;
     },
     setRefreshError: (state, action) => {
+      debugLog('setRefreshError action dispatched', { error: action.payload });
       state.lastRefreshError = action.payload;
       state.isRefreshing = false;
     },
     clearRefreshState: (state) => {
+      debugLog('clearRefreshState action dispatched');
       state.isRefreshing = false;
       state.refreshAttempts = 0;
       state.lastRefreshError = null;

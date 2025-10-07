@@ -10,6 +10,21 @@ import {
 import { getOptimizedTokenValidation, getTokenRefreshTiming } from "../../utils/optimizedTokenUtils";
 import backgroundTokenRefreshService from "../../services/backgroundTokenRefresh";
 
+// Debug configuration
+const DEBUG_AUTH = true;
+
+// Debug logging function
+const debugLog = (message, data = null) => {
+  if (DEBUG_AUTH) {
+    const timestamp = new Date().toISOString();
+    if (data) {
+      console.log(`🔍 [API-SLICE] ${message}`, { timestamp, ...data });
+    } else {
+      console.log(`🔍 [API-SLICE] ${message} - ${timestamp}`);
+    }
+  }
+};
+
 // Refresh attempt tracking to prevent concurrent refresh calls
 let refreshPromise = null;
 let refreshAttempts = 0;
@@ -30,6 +45,12 @@ const getRetryDelay = (attempt) => {
 
 // Reset refresh tracking
 const resetRefreshTracking = () => {
+  debugLog('Resetting refresh tracking', {
+    previousAttempts: refreshAttempts,
+    hadPromise: !!refreshPromise,
+    hadTimeout: !!proactiveRefreshTimeout
+  });
+  
   refreshPromise = null;
   refreshAttempts = 0;
   if (proactiveRefreshTimeout) {
@@ -39,6 +60,8 @@ const resetRefreshTracking = () => {
   // Clear validation cache when resetting refresh tracking
   tokenValidationCache = null;
   lastValidationTime = 0;
+  
+  debugLog('Refresh tracking reset complete');
 };
 
 // Note: Proactive refresh is now handled by the background service
@@ -53,10 +76,21 @@ const isNetworkError = (error) => {
 const validateTokenBeforeRequest = (token) => {
   const now = Date.now();
   
+  debugLog('Validating token before request', {
+    hasToken: !!token,
+    tokenLength: token?.length,
+    hasCache: !!tokenValidationCache,
+    cacheAge: now - lastValidationTime
+  });
+  
   // Return cached validation if it's still valid and token hasn't changed
   if (tokenValidationCache && 
       (now - lastValidationTime) < VALIDATION_CACHE_DURATION &&
       tokenValidationCache.token === token) {
+    debugLog('Using cached token validation', {
+      isValid: tokenValidationCache.validation.isValid,
+      reason: tokenValidationCache.validation.reason
+    });
     return tokenValidationCache.validation;
   }
   
@@ -65,13 +99,25 @@ const validateTokenBeforeRequest = (token) => {
   tokenValidationCache = { token, validation };
   lastValidationTime = now;
   
+  debugLog('New token validation performed', {
+    isValid: validation.isValid,
+    reason: validation.reason
+  });
+  
   return validation;
 };
 
 // Enhanced refresh token logic with better error handling and background service integration
 const attemptTokenRefresh = async (api) => {
+  debugLog('Starting token refresh attempt', {
+    currentAttempts: refreshAttempts,
+    maxAttempts: MAX_REFRESH_ATTEMPTS,
+    hasExistingPromise: !!refreshPromise
+  });
+  
   // Check if background service is already handling refresh
   if (backgroundTokenRefreshService.isRefreshInProgress()) {
+    debugLog('Background service is refreshing, waiting for completion');
     console.log('🔄 API SLICE: Background service is refreshing, waiting for completion');
     const backgroundPromise = backgroundTokenRefreshService.getCurrentRefreshPromise();
     if (backgroundPromise) {
@@ -81,23 +127,37 @@ const attemptTokenRefresh = async (api) => {
 
   // Check if we already have a refresh in progress
   if (refreshPromise) {
+    debugLog('Refresh already in progress, returning existing promise');
     console.log('🔄 API SLICE: Refresh already in progress, returning existing promise');
     return refreshPromise;
   }
 
   refreshAttempts++;
   
+  debugLog('Incremented refresh attempts', { 
+    newAttempts: refreshAttempts,
+    maxAttempts: MAX_REFRESH_ATTEMPTS 
+  });
+  
   if (refreshAttempts > MAX_REFRESH_ATTEMPTS) {
+    debugLog('Max refresh attempts reached, failing');
     console.error('❌ CLIENT REFRESH: Max refresh attempts reached');
     handleRefreshFailure(api, { status: 401, data: { message: 'Max refresh attempts reached' } });
     return Promise.reject(new Error('Max refresh attempts reached'));
   }
 
   // Set refreshing state
+  debugLog('Setting refreshing state to true');
   api.dispatch(setRefreshing(true));
   api.dispatch(setRefreshAttempts(refreshAttempts));
 
   const refreshUrl = `${process.env.REACT_APP_API_URL || "http://localhost:3500"}/auth/refresh`;
+  
+  debugLog('Making refresh request', { 
+    url: refreshUrl,
+    attempt: refreshAttempts 
+  });
+  
   refreshPromise = fetch(refreshUrl, {
     method: 'GET',
     credentials: 'include',
@@ -106,9 +166,21 @@ const attemptTokenRefresh = async (api) => {
     },
   })
     .then(async (response) => {
+      debugLog('Refresh response received', {
+        status: response.status,
+        ok: response.ok,
+        attempt: refreshAttempts
+      });
+      
       if (!response.ok) {
         const errorData = await response.json().catch(() => ({}));
         const error = { status: response.status, data: errorData };
+        
+        debugLog('Refresh request failed', {
+          status: response.status,
+          errorData,
+          attempt: refreshAttempts
+        });
         
         // Handle 429 rate limiting with retry-after header
         if (response.status === 429) {
@@ -123,6 +195,12 @@ const attemptTokenRefresh = async (api) => {
       return response.json();
     })
     .then((data) => {
+      debugLog('Refresh request successful', {
+        hasAccessToken: !!data.accessToken,
+        hasUser: !!data.user,
+        attempt: refreshAttempts
+      });
+      
       // Update credentials
       api.dispatch(setCredentials({ 
         accessToken: data.accessToken, 
@@ -135,12 +213,25 @@ const attemptTokenRefresh = async (api) => {
       return data;
     })
     .catch((error) => {
+      debugLog('Refresh request caught error', {
+        error: error.message,
+        status: error?.status,
+        attempt: refreshAttempts,
+        maxAttempts: MAX_REFRESH_ATTEMPTS
+      });
+      
       console.error('❌ CLIENT REFRESH: Token refresh failed:', error);
       
       // Handle 429 rate limiting with proper backoff
       if (error?.status === 429) {
         const retryAfter = error.retryAfter || '900'; // Default 15 minutes
         const retryDelay = parseInt(retryAfter, 10) * 1000;
+        
+        debugLog('Rate limited, scheduling retry', {
+          retryAfter,
+          retryDelay,
+          attempt: refreshAttempts
+        });
         
         console.warn(`🔄 API SLICE: Rate limited, retrying after ${retryAfter} seconds`);
         
@@ -160,6 +251,12 @@ const attemptTokenRefresh = async (api) => {
       // Calculate retry delay with exponential backoff for other errors
       const retryDelay = getRetryDelay(refreshAttempts - 1);
       
+      debugLog('Scheduling retry with exponential backoff', {
+        retryDelay,
+        attempt: refreshAttempts,
+        maxAttempts: MAX_REFRESH_ATTEMPTS
+      });
+      
       if (refreshAttempts < MAX_REFRESH_ATTEMPTS) {
         return new Promise((resolve, reject) => {
           setTimeout(() => {
@@ -173,6 +270,7 @@ const attemptTokenRefresh = async (api) => {
       }
     })
     .finally(() => {
+      debugLog('Refresh request finally block - cleaning up');
       refreshPromise = null;
       api.dispatch(setRefreshing(false));
     });
@@ -182,6 +280,12 @@ const attemptTokenRefresh = async (api) => {
 
 // Cleanup function for failed refresh
 const handleRefreshFailure = (api, error) => {
+  debugLog('Handling refresh failure', {
+    error: error?.message,
+    status: error?.status,
+    data: error?.data
+  });
+  
   console.warn('Token refresh failed, logging out user:', error);
   
   // Clear refresh tracking
@@ -192,6 +296,7 @@ const handleRefreshFailure = (api, error) => {
   api.dispatch(clearRefreshState());
   
   // Logout user and clear state
+  debugLog('Dispatching logout due to refresh failure');
   api.dispatch(logOut());
   localStorage.setItem('isLoggedIn', 'false');
   
@@ -199,6 +304,11 @@ const handleRefreshFailure = (api, error) => {
   const errorMessage = isNetworkError(error) 
     ? "Network error. Please check your connection and try again."
     : "Your session has expired. Please log in again.";
+  
+  debugLog('Refresh failure handled, returning error response', {
+    errorMessage,
+    status: error?.status || 401
+  });
   
   return {
     error: {
@@ -216,15 +326,26 @@ const baseQuery = fetchBaseQuery({
     // api => api.getState => {getState}
     const token = getState().auth.token;
     
+    debugLog('Preparing headers for request', {
+      endpoint,
+      hasToken: !!token,
+      tokenLength: token?.length
+    });
+    
     // Enhanced token validation before adding to headers
     if (token) {
       const tokenValidation = validateTokenBeforeRequest(token);
       
       if (!tokenValidation.isValid) {
+        debugLog('Invalid token detected, not adding to headers', {
+          reason: tokenValidation.reason,
+          endpoint
+        });
         console.warn('Invalid token detected, not adding to headers:', tokenValidation.reason);
         
         // If token is expired, logout the user immediately
         if (tokenValidation.reason === 'TOKEN_EXPIRED') {
+          debugLog('Token expired, logging out user');
           console.log('Token expired, logging out user');
           // Dispatch logout action to clear auth state
           getState().dispatch(logOut());
@@ -242,6 +363,7 @@ const baseQuery = fetchBaseQuery({
     // Schedule proactive refresh if token is expiring soon
     if (tokenValidation.reason === 'TOKEN_EXPIRING_SOON') {
       // Only log when actually scheduling a refresh, not on every request
+      debugLog('Token expiring soon, background service will handle refresh');
       console.log('🔄 PROACTIVE REFRESH: Token expiring soon, background service will handle refresh');
     }
     }
@@ -250,11 +372,13 @@ const baseQuery = fetchBaseQuery({
     // Skip for public endpoints like dashboard
     if (token && !endpoint?.includes("getDashboard")) {
       headers.set("authorization", `Bearer ${token}`);
+      debugLog('Added authorization header', { endpoint });
     }
     
     // Special case: Always add authorization for report endpoint if we have a token
     if (endpoint === 'submitReport' && token) {
       headers.set("authorization", `Bearer ${token}`);
+      debugLog('Added authorization header for submitReport', { endpoint });
     }
 
     return headers;
@@ -262,19 +386,40 @@ const baseQuery = fetchBaseQuery({
 });
 
 const baseQueryWithReauth = async (args, api, extraOptions) => {
+  debugLog('Base query with reauth started', {
+    url: args.url,
+    method: args.method
+  });
+  
   let result = await baseQuery(args, api, extraOptions);
+
+  debugLog('Base query completed', {
+    url: args.url,
+    hasError: !!result?.error,
+    errorStatus: result?.error?.status,
+    errorCode: result?.error?.data?.code
+  });
 
   // Handle both 401 and 403 errors for authenticated routes
   // Skip reauth for public routes like dashboard
   if ((result?.error?.status === 401 || result?.error?.status === 403) && !args.url?.includes("/dashboard")) {
+    debugLog('Authentication error detected, attempting reauth', {
+      status: result?.error?.status,
+      code: result?.error?.data?.code,
+      hasRefreshPromise: !!refreshPromise
+    });
+    
     // If we're already refreshing, wait for that to complete
     if (refreshPromise) {
+      debugLog('Refresh already in progress, waiting for completion');
       try {
         await refreshPromise;
         // After waiting, retry the original request
+        debugLog('Refresh completed, retrying original request');
         result = await baseQuery(args, api, extraOptions);
         return result;
       } catch (error) {
+        debugLog('Failed to wait for refresh', { error: error.message });
         console.error('❌ BASE QUERY: Failed to wait for refresh:', error);
         return handleRefreshFailure(api, error);
       }
@@ -285,18 +430,33 @@ const baseQueryWithReauth = async (args, api, extraOptions) => {
     const shouldRefresh = !errorCode || 
       ['TOKEN_EXPIRED', 'TOKEN_TOO_OLD', 'INVALID_TOKEN', 'MALFORMED_TOKEN'].includes(errorCode);
 
+    debugLog('Refresh decision', {
+      errorCode,
+      shouldRefresh,
+      refreshableCodes: ['TOKEN_EXPIRED', 'TOKEN_TOO_OLD', 'INVALID_TOKEN', 'MALFORMED_TOKEN']
+    });
+
     if (shouldRefresh) {
       try {
+        debugLog('Attempting token refresh');
         await attemptTokenRefresh(api);
         // Retry the original request with new token
+        debugLog('Token refresh successful, retrying original request');
         result = await baseQuery(args, api, extraOptions);
         return result;
       } catch (error) {
+        debugLog('Token refresh failed', { error: error.message });
         console.error('❌ BASE QUERY: Token refresh failed:', error);
         return handleRefreshFailure(api, error);
       }
     }
   }
+
+  debugLog('Base query with reauth completed', {
+    url: args.url,
+    finalResult: !!result,
+    hasError: !!result?.error
+  });
 
   return result;
 };

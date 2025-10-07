@@ -5,6 +5,21 @@
  * localStorage operations, ensuring consistency across the application.
  */
 
+// Debug configuration
+const DEBUG_AUTH = true;
+
+// Debug logging function
+const debugLog = (message, data = null) => {
+  if (DEBUG_AUTH) {
+    const timestamp = new Date().toISOString();
+    if (data) {
+      console.log(`🔍 [AUTH-STORAGE] ${message}`, { timestamp, ...data });
+    } else {
+      console.log(`🔍 [AUTH-STORAGE] ${message} - ${timestamp}`);
+    }
+  }
+};
+
 // Authentication-related localStorage keys
 export const AUTH_KEYS = {
   ACCESS_TOKEN: 'accessToken',
@@ -33,22 +48,35 @@ class AuthStorageManager {
    * @param {string} [credentials.refreshToken] - Refresh token
    */
   static setCredentials({ accessToken, user = null, refreshToken = null }) {
+    debugLog('Setting credentials in localStorage', {
+      hasAccessToken: !!accessToken,
+      hasUser: !!user,
+      hasRefreshToken: !!refreshToken,
+      tokenLength: accessToken?.length,
+      userId: user?.id
+    });
+    
     try {
       if (accessToken) {
         localStorage.setItem(AUTH_KEYS.ACCESS_TOKEN, accessToken);
         localStorage.setItem(AUTH_KEYS.IS_LOGGED_IN, 'true');
+        debugLog('Access token and login status set in localStorage');
       }
       
       if (user) {
         localStorage.setItem(AUTH_KEYS.USER_DATA, JSON.stringify(user));
+        debugLog('User data set in localStorage', { userId: user.id });
       }
       
       if (refreshToken) {
         localStorage.setItem(AUTH_KEYS.REFRESH_TOKEN, refreshToken);
+        debugLog('Refresh token set in localStorage');
       }
       
+      debugLog('Credentials set successfully');
       return true;
     } catch (error) {
+      debugLog('Failed to set credentials', { error: error.message });
       console.error('Failed to set authentication credentials:', error);
       return false;
     }
@@ -59,19 +87,33 @@ class AuthStorageManager {
    * @returns {Object} Authentication state
    */
   static getAuthState() {
+    debugLog('Getting authentication state from localStorage');
+    
     try {
       const isLoggedIn = localStorage.getItem(AUTH_KEYS.IS_LOGGED_IN) === 'true';
       const token = localStorage.getItem(AUTH_KEYS.ACCESS_TOKEN);
       const userData = localStorage.getItem(AUTH_KEYS.USER_DATA);
       const refreshToken = localStorage.getItem(AUTH_KEYS.REFRESH_TOKEN);
 
-      return {
+      const authState = {
         isLoggedIn: isLoggedIn && !!token, // Ensure isLoggedIn is only true if we have a token
         token: token || null,
         user: userData ? JSON.parse(userData) : null,
         refreshToken: refreshToken || null
       };
+
+      debugLog('Retrieved authentication state', {
+        isLoggedIn: authState.isLoggedIn,
+        hasToken: !!authState.token,
+        hasUser: !!authState.user,
+        hasRefreshToken: !!authState.refreshToken,
+        tokenLength: authState.token?.length,
+        userId: authState.user?.id
+      });
+
+      return authState;
     } catch (error) {
+      debugLog('Failed to get authentication state', { error: error.message });
       console.error('Failed to get authentication state:', error);
       return {
         isLoggedIn: false,
@@ -86,6 +128,8 @@ class AuthStorageManager {
    * Clear all authentication data from localStorage
    */
   static clearAuth() {
+    debugLog('Clearing all authentication data from localStorage');
+    
     try {
       localStorage.removeItem(AUTH_KEYS.ACCESS_TOKEN);
       localStorage.removeItem(AUTH_KEYS.IS_LOGGED_IN);
@@ -93,8 +137,10 @@ class AuthStorageManager {
       localStorage.removeItem(AUTH_KEYS.REFRESH_TOKEN);
       localStorage.removeItem(AUTH_KEYS.REDIRECT_AFTER_LOGIN);
       
+      debugLog('All authentication data cleared successfully');
       return true;
     } catch (error) {
+      debugLog('Failed to clear authentication data', { error: error.message });
       console.error('Failed to clear authentication data:', error);
       return false;
     }
@@ -104,14 +150,18 @@ class AuthStorageManager {
    * Set user as logged out (keeps isLoggedIn as false but clears sensitive data)
    */
   static setLoggedOut() {
+    debugLog('Setting user as logged out');
+    
     try {
       localStorage.removeItem(AUTH_KEYS.ACCESS_TOKEN);
       localStorage.removeItem(AUTH_KEYS.USER_DATA);
       localStorage.removeItem(AUTH_KEYS.REFRESH_TOKEN);
       localStorage.setItem(AUTH_KEYS.IS_LOGGED_IN, 'false');
       
+      debugLog('User logged out state set successfully');
       return true;
     } catch (error) {
+      debugLog('Failed to set logged out state', { error: error.message });
       console.error('Failed to set logged out state:', error);
       return false;
     }
@@ -122,13 +172,21 @@ class AuthStorageManager {
    * @param {Object} userData - Updated user data
    */
   static updateUserData(userData) {
+    debugLog('Updating user data in localStorage', {
+      hasUserData: !!userData,
+      userId: userData?.id
+    });
+    
     try {
       if (userData) {
         localStorage.setItem(AUTH_KEYS.USER_DATA, JSON.stringify(userData));
+        debugLog('User data updated successfully');
         return true;
       }
+      debugLog('No user data provided, skipping update');
       return false;
     } catch (error) {
+      debugLog('Failed to update user data', { error: error.message });
       console.error('Failed to update user data:', error);
       return false;
     }
@@ -211,10 +269,18 @@ class AuthStorageManager {
    * @returns {Object} Verification result with status and details
    */
   static verifyAuthPersistence() {
+    debugLog('Verifying authentication state persistence');
+    
     try {
       const authState = this.getAuthState();
       const hasToken = !!authState.token;
       const isLoggedIn = authState.isLoggedIn;
+      
+      debugLog('Initial auth state check', {
+        hasToken,
+        isLoggedIn,
+        hasUser: !!authState.user
+      });
       
       // Check if token is valid (not expired) and extract user data from token
       let tokenValid = false;
@@ -227,12 +293,21 @@ class AuthStorageManager {
           const currentTime = Date.now() / 1000;
           tokenValid = decoded.exp && decoded.exp > currentTime;
           
+          debugLog('Token validation', {
+            tokenValid,
+            exp: decoded.exp,
+            currentTime,
+            timeUntilExpiry: decoded.exp - currentTime
+          });
+          
           // Check if token contains user data
           if (decoded.UserInfo) {
             hasUserData = true;
             userDataFromToken = decoded.UserInfo;
+            debugLog('User data found in token', { userId: userDataFromToken.id });
           }
         } catch (error) {
+          debugLog('Token validation error', { error: error.message });
           console.error('Token validation error:', error);
         }
       }
@@ -245,7 +320,7 @@ class AuthStorageManager {
       const hasUser = !!authState.user || hasUserData;
       const success = hasToken && isLoggedIn && tokenValid && hasUser;
       
-      return {
+      const result = {
         success,
         details: {
           hasToken,
@@ -258,7 +333,12 @@ class AuthStorageManager {
           userDataFromToken
         }
       };
+      
+      debugLog('Auth persistence verification result', result);
+      
+      return result;
     } catch (error) {
+      debugLog('Failed to verify auth persistence', { error: error.message });
       console.error('Failed to verify auth persistence:', error);
       return {
         success: false,

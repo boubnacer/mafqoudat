@@ -6,6 +6,21 @@ import { selectCurrentCountry } from '../app/state';
 import { authStorage } from '../utils/authStorage';
 import useAuth from '../hooks/useAuth';
 
+// Debug configuration
+const DEBUG_AUTH = true;
+
+// Debug logging function
+const debugLog = (message, data = null) => {
+  if (DEBUG_AUTH) {
+    const timestamp = new Date().toISOString();
+    if (data) {
+      console.log(`🔍 [PROTECTED-ROUTE] ${message}`, { timestamp, ...data });
+    } else {
+      console.log(`🔍 [PROTECTED-ROUTE] ${message} - ${timestamp}`);
+    }
+  }
+};
+
 /**
  * ProtectedRoute component that checks authentication and country selection
  * 
@@ -30,8 +45,24 @@ const ProtectedRoute = ({
   const [isInitialized, setIsInitialized] = useState(false);
   const [authRestorationInProgress, setAuthRestorationInProgress] = useState(false);
 
+  // Debug initial state
+  debugLog('ProtectedRoute component initialized', {
+    pathname: location.pathname,
+    requireAuth,
+    requireCountry,
+    redirectTo,
+    isLoggedIn,
+    isRefreshing,
+    currentCountry,
+    userCountry,
+    isInitialized,
+    authRestorationInProgress
+  });
+
   // Check for authentication restoration in progress
   useEffect(() => {
+    debugLog('useEffect triggered for auth restoration check');
+    
     // Check if we're in the middle of authentication restoration
     const checkAuthRestoration = () => {
       const urlParams = new URLSearchParams(location.search);
@@ -49,9 +80,21 @@ const ProtectedRoute = ({
       // Set restoration flag if any of these conditions are true
       const inRestoration = isLanguageChange || isLanguageChanging || preserveAuthFlag || isRestoring || isRefreshing;
       
+      debugLog('Auth restoration check result', {
+        isLanguageChange,
+        isLanguageChanging,
+        preserveAuthFlag,
+        hasStoredAuth,
+        isRestoring,
+        isRefreshing,
+        inRestoration,
+        pathname: location.pathname
+      });
+      
       setAuthRestorationInProgress(inRestoration);
       
       if (inRestoration) {
+        debugLog('Authentication restoration in progress, setting timer');
         console.log('🔒 [AUTH-RESTORATION] ProtectedRoute - Authentication restoration in progress:', {
           isLanguageChange,
           isLanguageChanging,
@@ -64,12 +107,14 @@ const ProtectedRoute = ({
         
         // Give more time for authentication restoration
         const timer = setTimeout(() => {
+          debugLog('Auth restoration timer completed, setting initialized to true');
           setIsInitialized(true);
         }, 1000); // Increased delay for auth restoration
         
         return () => clearTimeout(timer);
       } else {
         // Normal initialization
+        debugLog('Normal initialization, setting initialized to true immediately');
         setIsInitialized(true);
       }
     };
@@ -79,11 +124,19 @@ const ProtectedRoute = ({
 
   // Debug logging - only for auth restoration or issues
   if (!isInitialized || authRestorationInProgress || (requireCountry && !currentCountry)) {
+    debugLog('Debug logging triggered', {
+      isInitialized,
+      authRestorationInProgress,
+      requireCountry,
+      currentCountry,
+      pathname: location.pathname
+    });
     console.log('🔒 [AUTH-RESTORATION] ProtectedRoute - Location:', location.pathname, 'RequireAuth:', requireAuth, 'RequireCountry:', requireCountry, 'Country:', currentCountry, 'Initialized:', isInitialized, 'AuthRestoration:', authRestorationInProgress);
   }
 
   // Don't make routing decisions until initialized and auth restoration is complete
   if (!isInitialized || authRestorationInProgress) {
+    debugLog('Not initialized or auth restoration in progress, showing loading');
     return (
       <div style={{
         display: 'flex',
@@ -124,19 +177,33 @@ const ProtectedRoute = ({
 
   // Check authentication requirement
   if (requireAuth && !isLoggedIn) {
+    debugLog('Authentication required but user not logged in, redirecting to login', {
+      requireAuth,
+      isLoggedIn,
+      pathname: location.pathname
+    });
     console.log('ProtectedRoute - Authentication required but user not logged in, redirecting to login');
     // Store the attempted URL for redirect after login
     const redirectUrl = location.pathname + location.search;
     if (redirectUrl !== '/login') {
       localStorage.setItem('redirectAfterLogin', redirectUrl);
+      debugLog('Stored redirect URL after login', { redirectUrl });
     }
     return <Navigate to="/login" replace />;
   }
 
   // Check country selection requirement
   if (requireCountry && !currentCountry) {
+    debugLog('Country selection requirement check', {
+      requireCountry,
+      currentCountry,
+      isLoggedIn,
+      userCountry
+    });
+    
     // For logged-in users: Skip country requirement since they already have a country in their profile
     if (isLoggedIn && userCountry) {
+      debugLog('Logged-in user with country in profile, skipping country requirement');
       console.log('🔒 ProtectedRoute - Logged-in user with country in profile, skipping country requirement');
       return children;
     }
@@ -146,6 +213,16 @@ const ProtectedRoute = ({
     const isLanguageChange = urlParams.get('lang_changed') === 'true';
     const isLanguageChanging = localStorage.getItem('isLanguageChanging') === 'true';
     const preserveAuthFlag = localStorage.getItem('preserveAuthAfterLanguageChange') === 'true';
+    
+    debugLog('Country requirement - checking restoration flags', { 
+      isLanguageChange, 
+      isLanguageChanging, 
+      preserveAuthFlag,
+      authRestorationInProgress,
+      isLoggedIn,
+      userCountry,
+      urlParams: location.search 
+    });
     
     console.log('🔒 [AUTH-RESTORATION] ProtectedRoute - Checking country requirement:', { 
       isLanguageChange, 
@@ -158,6 +235,7 @@ const ProtectedRoute = ({
     });
     
     if (isLanguageChange || isLanguageChanging || preserveAuthFlag || authRestorationInProgress) {
+      debugLog('Auth restoration detected, waiting for country state to restore');
       console.log('🔒 [AUTH-RESTORATION] ProtectedRoute - Auth restoration detected, waiting for country state to restore...');
       // During auth restoration, give more time for country state to restore
       // Show loading indicator while waiting
@@ -198,17 +276,26 @@ const ProtectedRoute = ({
         </div>
       );
     } else {
+      debugLog('Country required but not selected, redirecting to Welcome page');
       console.log('🔒 ProtectedRoute - Country required but not selected, redirecting to Welcome page');
       // Store the attempted URL for redirect after country selection
       const redirectUrl = location.pathname + location.search;
       if (redirectUrl !== '/') {
         localStorage.setItem('redirectAfterCountrySelection', redirectUrl);
+        debugLog('Stored redirect URL after country selection', { redirectUrl });
       }
       return <Navigate to="/" replace />;
     }
   }
 
   // All conditions met, render children
+  debugLog('All conditions met, rendering children', {
+    requireAuth,
+    isLoggedIn,
+    requireCountry,
+    currentCountry,
+    pathname: location.pathname
+  });
   console.log('ProtectedRoute - All conditions met, rendering children');
   return children;
 };
