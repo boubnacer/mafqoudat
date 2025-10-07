@@ -6,7 +6,7 @@ import { selectCurrentCountry } from '../app/state';
 import { authStorage } from '../utils/authStorage';
 import useAuth from '../hooks/useAuth';
 import { Alert, Snackbar } from '@mui/material';
-import store from '../app/store';
+import { store } from '../app/store';
 
 // Debug configuration
 const DEBUG_AUTH = true;
