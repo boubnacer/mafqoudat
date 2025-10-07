@@ -58,12 +58,20 @@ export const authApiSlice = apiSlice.injectEndpoints({
               return refreshResult.data;
             };
             
-            // Initialize with enhanced error handling
+            // Initialize with enhanced error handling and recovery
             try {
               backgroundTokenRefreshService.initialize(refreshCallback, { getState, dispatch });
               console.log('✅ Background token refresh service initialized successfully');
             } catch (error) {
               console.error('❌ Failed to initialize background token refresh service:', error);
+              // Attempt to recover the service
+              try {
+                backgroundTokenRefreshService.recover(refreshCallback, { getState, dispatch });
+                console.log('✅ Background token refresh service recovered successfully');
+              } catch (recoveryError) {
+                console.error('❌ Failed to recover background token refresh service:', recoveryError);
+                // Service will continue without background refresh - user will need to manually refresh
+              }
             }
           }
           

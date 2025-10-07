@@ -31,14 +31,21 @@ class BackgroundTokenRefreshService {
    * @param {Object} store - Redux store for state access
    */
   initialize(refreshCallback, store) {
-    this.refreshCallback = refreshCallback;
-    this.store = store;
-    this.isActive = true;
-    
-    // Start periodic token health checks
-    this.startHealthChecks();
-    
-    console.log('Background token refresh service initialized');
+    try {
+      this.refreshCallback = refreshCallback;
+      this.store = store;
+      this.isActive = true;
+      
+      // Start periodic token health checks
+      this.startHealthChecks();
+      
+      console.log('Background token refresh service initialized');
+    } catch (error) {
+      console.error('Error initializing background token refresh service:', error);
+      // Attempt to recover by stopping and reinitializing
+      this.stop();
+      throw error;
+    }
   }
 
   /**
@@ -48,7 +55,12 @@ class BackgroundTokenRefreshService {
     // Check token health every 30 seconds
     this.checkInterval = setInterval(() => {
       if (this.isActive) {
-        this.checkTokenHealth();
+        try {
+          this.checkTokenHealth();
+        } catch (error) {
+          console.error('Error in health check interval:', error);
+          // Continue running the interval even if one check fails
+        }
       }
     }, 30000);
   }
@@ -57,57 +69,64 @@ class BackgroundTokenRefreshService {
    * Check token health and schedule refresh if needed
    */
   checkTokenHealth() {
-    if (!this.store || !this.refreshCallback) return;
+    try {
+      if (!this.store || !this.refreshCallback) return;
 
-    const state = this.store.getState();
-    const token = state.auth?.token;
+      const state = this.store.getState();
+      const token = state.auth?.token;
 
-    if (!token) {
-      this.clearScheduledRefresh();
-      return;
-    }
-
-    const validation = getOptimizedTokenValidation(token);
-    const refreshTiming = getTokenRefreshTiming(token);
-
-    // If token is invalid or expired, don't schedule refresh
-    if (!validation.isValid) {
-      console.warn('Token is invalid, not scheduling background refresh');
-      this.clearScheduledRefresh();
-      return;
-    }
-
-    // Check if we're already refreshing to prevent duplicate requests
-    if (this.isRefreshing) {
-      console.log('Refresh already in progress, skipping health check');
-      return;
-    }
-
-    // Check if we're in rate limit backoff period
-    if (rateLimitManager.isInBackoff()) {
-      const remainingBackoff = rateLimitManager.getRemainingBackoff();
-      console.log(`Rate limit backoff active, waiting ${remainingBackoff} seconds before next refresh attempt`);
-      return;
-    }
-
-    // Check minimum refresh interval (but allow override for critical situations)
-    const isCritical = refreshTiming.priority === 'high' && refreshTiming.timeUntilRefresh === 0;
-    if (this.lastRefreshTime > 0 && (now - this.lastRefreshTime) < this.minRefreshInterval && !isCritical) {
-      const remainingInterval = Math.ceil((this.minRefreshInterval - (now - this.lastRefreshTime)) / 1000);
-      console.log(`Minimum refresh interval not met, waiting ${remainingInterval} seconds`);
-      return;
-    }
-
-    // Schedule refresh if needed
-    if (refreshTiming.shouldRefresh) {
-      if (refreshTiming.timeUntilRefresh > 0) {
-        this.scheduleRefresh(refreshTiming.timeUntilRefresh, refreshTiming.priority);
-      } else {
-        console.log('Token needs immediate refresh, executing now');
-        this.forceRefresh().catch(error => {
-          console.error('Immediate background refresh failed:', error);
-        });
+      if (!token) {
+        this.clearScheduledRefresh();
+        return;
       }
+
+      const validation = getOptimizedTokenValidation(token);
+      const refreshTiming = getTokenRefreshTiming(token);
+
+      // If token is invalid or expired, don't schedule refresh
+      if (!validation.isValid) {
+        console.warn('Token is invalid, not scheduling background refresh');
+        this.clearScheduledRefresh();
+        return;
+      }
+
+      // Check if we're already refreshing to prevent duplicate requests
+      if (this.isRefreshing) {
+        console.log('Refresh already in progress, skipping health check');
+        return;
+      }
+
+      // Check if we're in rate limit backoff period
+      if (rateLimitManager.isInBackoff()) {
+        const remainingBackoff = rateLimitManager.getRemainingBackoff();
+        console.log(`Rate limit backoff active, waiting ${remainingBackoff} seconds before next refresh attempt`);
+        return;
+      }
+
+      // Check minimum refresh interval (but allow override for critical situations)
+      const now = Date.now(); // Fix: Define 'now' variable properly
+      const isCritical = refreshTiming.priority === 'high' && refreshTiming.timeUntilRefresh === 0;
+      if (this.lastRefreshTime > 0 && (now - this.lastRefreshTime) < this.minRefreshInterval && !isCritical) {
+        const remainingInterval = Math.ceil((this.minRefreshInterval - (now - this.lastRefreshTime)) / 1000);
+        console.log(`Minimum refresh interval not met, waiting ${remainingInterval} seconds`);
+        return;
+      }
+
+      // Schedule refresh if needed
+      if (refreshTiming.shouldRefresh) {
+        if (refreshTiming.timeUntilRefresh > 0) {
+          this.scheduleRefresh(refreshTiming.timeUntilRefresh, refreshTiming.priority);
+        } else {
+          console.log('Token needs immediate refresh, executing now');
+          this.forceRefresh().catch(error => {
+            console.error('Immediate background refresh failed:', error);
+          });
+        }
+      }
+    } catch (error) {
+      console.error('Error in checkTokenHealth:', error);
+      // Don't let the error crash the service - continue running
+      // The service will retry on the next health check interval
     }
   }
 
@@ -128,27 +147,37 @@ class BackgroundTokenRefreshService {
    * @param {string} priority - Refresh priority (low, medium, high)
    */
   scheduleRefresh(delay, priority = 'medium') {
-    // Clear existing refresh timeout
-    this.clearScheduledRefresh();
+    try {
+      // Clear existing refresh timeout
+      this.clearScheduledRefresh();
 
-    // Don't schedule if already refreshing
-    if (this.isRefreshing) {
-      console.log('Token refresh already in progress, skipping background refresh');
-      return;
+      // Don't schedule if already refreshing
+      if (this.isRefreshing) {
+        console.log('Token refresh already in progress, skipping background refresh');
+        return;
+      }
+
+      // Don't schedule if already refreshing in Redux state
+      if (this.store) {
+        const state = this.store.getState();
+        if (state.auth?.isRefreshing) {
+          console.log('Token refresh already in progress (Redux state), skipping background refresh');
+          return;
+        }
+      }
+
+      console.log(`Scheduling background token refresh in ${delay}ms (priority: ${priority})`);
+
+      this.refreshTimeout = setTimeout(async () => {
+        try {
+          await this.executeRefresh(priority);
+        } catch (error) {
+          console.error('Error in scheduled refresh execution:', error);
+        }
+      }, delay);
+    } catch (error) {
+      console.error('Error in scheduleRefresh:', error);
     }
-
-    // Don't schedule if already refreshing in Redux state
-    const state = this.store.getState();
-    if (state.auth?.isRefreshing) {
-      console.log('Token refresh already in progress (Redux state), skipping background refresh');
-      return;
-    }
-
-    console.log(`Scheduling background token refresh in ${delay}ms (priority: ${priority})`);
-
-    this.refreshTimeout = setTimeout(async () => {
-      await this.executeRefresh(priority);
-    }, delay);
   }
 
   /**
@@ -229,19 +258,24 @@ class BackgroundTokenRefreshService {
    * Force immediate token refresh
    */
   async forceRefresh() {
-    if (!this.refreshCallback || !this.store) {
-      throw new Error('Refresh callback or store not initialized');
-    }
+    try {
+      if (!this.refreshCallback || !this.store) {
+        throw new Error('Refresh callback or store not initialized');
+      }
 
-    this.clearScheduledRefresh();
-    
-    // If already refreshing, return the existing promise
-    if (this.isRefreshing && this.refreshPromise) {
-      console.log('Refresh already in progress, returning existing promise');
-      return this.refreshPromise;
+      this.clearScheduledRefresh();
+      
+      // If already refreshing, return the existing promise
+      if (this.isRefreshing && this.refreshPromise) {
+        console.log('Refresh already in progress, returning existing promise');
+        return this.refreshPromise;
+      }
+      
+      return this.executeRefresh('high');
+    } catch (error) {
+      console.error('Error in forceRefresh:', error);
+      throw error; // Re-throw to maintain expected behavior for callers
     }
-    
-    return this.executeRefresh('high');
   }
 
   /**
@@ -279,6 +313,23 @@ class BackgroundTokenRefreshService {
     rateLimitManager.resetFailures();
     
     console.log('Background token refresh service stopped');
+  }
+
+  /**
+   * Recover from critical errors by restarting the service
+   * @param {Function} refreshCallback - Callback to execute token refresh
+   * @param {Object} store - Redux store for state access
+   */
+  recover(refreshCallback, store) {
+    console.log('Attempting to recover background token refresh service...');
+    try {
+      this.stop();
+      this.initialize(refreshCallback, store);
+      console.log('Background token refresh service recovered successfully');
+    } catch (error) {
+      console.error('Failed to recover background token refresh service:', error);
+      throw error;
+    }
   }
 
   /**
