@@ -65,48 +65,21 @@ const PersistLogin = () => {
       debugLog('Effect execution started');
 
       const verifyRefreshToken = async () => {
-        debugLog('Starting refresh token verification');
-        
-        // Check if refresh is already in progress
-        if (isRefreshInProgress) {
-          debugLog('Refresh already in progress, skipping duplicate attempt');
-          console.warn('🔄 PERSIST-LOGIN: Refresh already in progress, skipping duplicate attempt');
-          return;
-        }
-        
-        // Clear any existing debounce timeout
-        if (refreshDebounceTimeout) {
-          clearTimeout(refreshDebounceTimeout);
-          refreshDebounceTimeout = null;
-        }
-        
-        // Set refresh in progress flag
-        isRefreshInProgress = true;
-        
         try {
-          debugLog('Making refresh request');
-          await refresh();
-          debugLog('Refresh token verification successful');
-          setTrueSuccess(true);
-        } catch (err) {
-          debugLog('Refresh token verification failed', { error: err });
-          
-          // Handle rate limiting errors gracefully
-          if (err?.status === 429) {
-            debugLog('Rate limited during refresh, will retry later');
-            console.warn('🔄 PERSIST-LOGIN: Rate limited during refresh, will retry later');
-            // Don't show error state for rate limiting - preserve auth state
+          if (!token) {
+            debugLog('No token found, attempting refresh...');
+            console.log('🔄 No token found, attempting refresh...');
+            const result = await refresh();
+            debugLog('Refresh result:', result);
+            console.log('✅ Refresh result:', result);
             return;
           }
-          
-          console.error('Refresh token verification failed:', err);
-        } finally {
-          // Clear refresh in progress flag after debounce period
-          refreshDebounceTimeout = setTimeout(() => {
-            isRefreshInProgress = false;
-            refreshDebounceTimeout = null;
-            debugLog('Refresh debounce period completed');
-          }, REFRESH_DEBOUNCE_TIME);
+
+          debugLog('Token exists, skipping refresh');
+          console.log('✅ Token exists, skipping refresh');
+        } catch (error) {
+          debugLog('Refresh token verification failed:', error);
+          console.error('❌ Refresh token verification failed:', error);
         }
       };
 
@@ -130,45 +103,17 @@ const PersistLogin = () => {
         }
       };
 
-      // Check if token is expired and logout if necessary
-      const checkTokenExpiry = () => {
-        debugLog('Checking token expiry', { hasToken: !!token });
-        
-        if (token) {
-          const tokenValidation = getOptimizedTokenValidation(token);
-          debugLog('Token validation result', { 
-            isValid: tokenValidation.isValid, 
-            reason: tokenValidation.reason 
-          });
-          
-          if (!tokenValidation.isValid && tokenValidation.reason === 'TOKEN_EXPIRED') {
-            debugLog('Token expired on page load, logging out user');
-            console.log('Token expired on page load, logging out user');
-            dispatch(logOut());
-            authStorage.setLoggedOut();
-            return false; // Token is expired
-          }
-        }
-        debugLog('Token is valid or no token present');
-        return true; // Token is valid or no token
-      };
-
       // Verify auth persistence on component mount
       verifyAuthPersistence();
       
-      // Check token expiry first, then attempt refresh if needed
-      const tokenIsValid = checkTokenExpiry();
-      debugLog('Token validation decision', { 
-        hasToken: !!token, 
-        tokenIsValid, 
-        willRefresh: !token || !tokenIsValid 
-      });
-      
-      if (!token || !tokenIsValid) {
-        debugLog('Proceeding with refresh token verification');
+      // Always attempt refresh if no token, regardless of isLoggedIn status
+      if (!token) {
+        debugLog('No token available, verifying refresh token...');
+        console.log('🚨 No token available, verifying refresh token...');
         verifyRefreshToken();
       } else {
-        debugLog('Token is valid, skipping refresh');
+        debugLog('Token available, no refresh needed');
+        console.log('✅ Token available, no refresh needed');
       }
     }
 
@@ -178,7 +123,7 @@ const PersistLogin = () => {
     };
 
     // eslint-disable-next-line
-  }, []);
+  }, [token, refresh]);
 
   let content;
   

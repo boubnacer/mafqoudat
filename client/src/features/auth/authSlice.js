@@ -37,11 +37,24 @@ const getInitialState = () => {
       reason: tokenValidation.reason
     });
     
-    // If token is expired, clear the auth state
-    if (!tokenValidation.isValid && tokenValidation.reason === 'TOKEN_EXPIRED') {
-      debugLog('Token expired on app initialization, clearing auth state');
-      console.log('Token expired on app initialization, clearing auth state');
-      authStorage.setLoggedOut();
+    // If token is valid, restore auth state
+    if (tokenValidation.isValid) {
+      debugLog('Token is valid, restoring auth state');
+      return {
+        token: authState.token,
+        isLoggedIn: true,
+        user: authState.user || null,
+        isLoading: false,
+        isRefreshing: false,
+        refreshAttempts: 0,
+        lastRefreshError: null,
+      };
+    } else {
+      // Token is invalid/expired, but don't clear immediately
+      // Return initial state but keep the refresh token cookie
+      // Let the PersistLogin component handle the refresh attempt
+      debugLog('Token expired, will attempt refresh on component mount');
+      console.log('🔄 Token expired, will attempt refresh on component mount');
       return {
         token: null,
         isLoggedIn: false,
@@ -54,17 +67,18 @@ const getInitialState = () => {
     }
   }
   
+  // No token found, return initial state
   const initialState = {
-    token: authState.token,
-    isLoggedIn: authState.isLoggedIn,
-    user: authState.user,
+    token: null,
+    isLoggedIn: false,
+    user: null,
     isLoading: false,
     isRefreshing: false,
     refreshAttempts: 0,
     lastRefreshError: null,
   };
   
-  debugLog('Returning initial state', initialState);
+  debugLog('Returning initial state (no token)', initialState);
   return initialState;
 };
 
