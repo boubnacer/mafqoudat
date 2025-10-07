@@ -7,6 +7,7 @@ import { selectCurrentToken, logOut } from "../authSlice";
 import { LoadingState, ErrorState } from "../../../components/LoadingStates";
 import { Button } from "@mui/material";
 import { authStorage } from "../../../utils/authStorage";
+import { getOptimizedTokenValidation } from "../../../utils/optimizedTokenUtils";
 
 // Debug configuration
 const DEBUG_AUTH = true;
@@ -74,8 +75,19 @@ const PersistLogin = () => {
             return;
           }
 
-          debugLog('Token exists, skipping refresh');
-          console.log('✅ Token exists, skipping refresh');
+          // Check if token is expired
+          const tokenValidation = getOptimizedTokenValidation(token);
+          if (!tokenValidation.isValid) {
+            debugLog('Token expired, attempting refresh...');
+            console.log('🔄 Token expired, attempting refresh...');
+            const result = await refresh();
+            debugLog('Refresh result:', result);
+            console.log('✅ Refresh result:', result);
+            return;
+          }
+
+          debugLog('Token exists and is valid, skipping refresh');
+          console.log('✅ Token exists and is valid, skipping refresh');
         } catch (error) {
           debugLog('Refresh token verification failed:', error);
           console.error('❌ Refresh token verification failed:', error);
@@ -105,14 +117,22 @@ const PersistLogin = () => {
       // Verify auth persistence on component mount
       verifyAuthPersistence();
       
-      // Always attempt refresh if no token, regardless of isLoggedIn status
+      // Always attempt refresh if no token or token is expired
       if (!token) {
         debugLog('No token available, verifying refresh token...');
         console.log('🚨 No token available, verifying refresh token...');
         verifyRefreshToken();
       } else {
-        debugLog('Token available, no refresh needed');
-        console.log('✅ Token available, no refresh needed');
+        // Check if token is expired
+        const tokenValidation = getOptimizedTokenValidation(token);
+        if (!tokenValidation.isValid) {
+          debugLog('Token expired, verifying refresh token...');
+          console.log('🚨 Token expired, verifying refresh token...');
+          verifyRefreshToken();
+        } else {
+          debugLog('Token available and valid, no refresh needed');
+          console.log('✅ Token available and valid, no refresh needed');
+        }
       }
     }
 

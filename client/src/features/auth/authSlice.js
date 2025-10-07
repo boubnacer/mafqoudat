@@ -30,36 +30,51 @@ const getInitialState = () => {
   });
   
   // Validate token if it exists
-  if (authState.token) {
-    const tokenValidation = getOptimizedTokenValidation(authState.token);
-    debugLog('Token validation result', {
-      isValid: tokenValidation.isValid,
-      reason: tokenValidation.reason
-    });
-    
-    // If token is valid, restore auth state
-    if (tokenValidation.isValid) {
-      debugLog('Token is valid, restoring auth state');
+  if (authState.token && authState.isLoggedIn) {
+    try {
+      const tokenValidation = getOptimizedTokenValidation(authState.token);
+      debugLog('Token validation result', {
+        isValid: tokenValidation.isValid,
+        reason: tokenValidation.reason
+      });
+      
+      // If token is valid, restore auth state
+      if (tokenValidation.isValid) {
+        debugLog('Token is valid, restoring auth state');
+        return {
+          token: authState.token,
+          isLoggedIn: true,
+          user: authState.user || null,
+          isLoading: false,
+          isRefreshing: false,
+          refreshAttempts: 0,
+          lastRefreshError: null,
+          lastUpdate: Date.now(),
+        };
+      } else {
+        // Token is invalid/expired, but keep the auth state
+        // Let PersistLogin handle the refresh attempt
+        debugLog('Token expired, keeping auth state for refresh attempt');
+        console.log('🔄 Token expired, keeping auth state for refresh attempt');
+        return {
+          token: authState.token, // Keep the expired token
+          isLoggedIn: true, // Keep logged in state
+          user: authState.user || null,
+          isLoading: false,
+          isRefreshing: false,
+          refreshAttempts: 0,
+          lastRefreshError: null,
+          lastUpdate: Date.now(),
+        };
+      }
+    } catch (error) {
+      debugLog('Token validation error:', error);
+      console.error('Token validation error:', error);
+      // Keep auth state even on validation error
       return {
         token: authState.token,
         isLoggedIn: true,
         user: authState.user || null,
-        isLoading: false,
-        isRefreshing: false,
-        refreshAttempts: 0,
-        lastRefreshError: null,
-        lastUpdate: Date.now(),
-      };
-    } else {
-      // Token is invalid/expired, but don't clear immediately
-      // Return initial state but keep the refresh token cookie
-      // Let the PersistLogin component handle the refresh attempt
-      debugLog('Token expired, will attempt refresh on component mount');
-      console.log('🔄 Token expired, will attempt refresh on component mount');
-      return {
-        token: null,
-        isLoggedIn: false,
-        user: null,
         isLoading: false,
         isRefreshing: false,
         refreshAttempts: 0,
