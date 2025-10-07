@@ -12,7 +12,7 @@ class BackgroundTokenRefreshService {
     this.store = null;
     this.checkInterval = null;
     this.lastRefreshTime = 0;
-    this.minRefreshInterval = 60000; // Minimum 1 minute between refreshes
+    this.minRefreshInterval = 30000; // Minimum 30 seconds between refreshes
     this.rateLimitBackoff = 0; // Backoff time when rate limited
   }
 
@@ -76,8 +76,9 @@ class BackgroundTokenRefreshService {
       return;
     }
 
-    // Check minimum refresh interval
-    if (this.lastRefreshTime > 0 && (now - this.lastRefreshTime) < this.minRefreshInterval) {
+    // Check minimum refresh interval (but allow override for critical situations)
+    const isCritical = refreshTiming.priority === 'high' && refreshTiming.timeUntilRefresh === 0;
+    if (this.lastRefreshTime > 0 && (now - this.lastRefreshTime) < this.minRefreshInterval && !isCritical) {
       const remainingInterval = Math.ceil((this.minRefreshInterval - (now - this.lastRefreshTime)) / 1000);
       console.log(`Minimum refresh interval not met, waiting ${remainingInterval} seconds`);
       return;
