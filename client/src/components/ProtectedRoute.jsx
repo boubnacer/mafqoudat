@@ -1,8 +1,9 @@
 import React, { useState, useEffect } from 'react';
 import { Navigate, useLocation } from 'react-router-dom';
 import { useSelector } from 'react-redux';
-import { selectIsLoggedIn } from '../features/auth/authSlice';
+import { selectIsLoggedIn, selectIsRefreshing } from '../features/auth/authSlice';
 import { selectCurrentCountry } from '../app/state';
+import { authStorage } from '../utils/authStorage';
 
 /**
  * ProtectedRoute component that checks authentication and country selection
@@ -22,35 +23,101 @@ const ProtectedRoute = ({
 }) => {
   const location = useLocation();
   const isLoggedIn = useSelector(selectIsLoggedIn);
+  const isRefreshing = useSelector(selectIsRefreshing);
   const currentCountry = useSelector(selectCurrentCountry);
   const [isInitialized, setIsInitialized] = useState(false);
+  const [authRestorationInProgress, setAuthRestorationInProgress] = useState(false);
 
-  // Check if this is a language change refresh and give auth state time to restore
+  // Check for authentication restoration in progress
   useEffect(() => {
-    const urlParams = new URLSearchParams(location.search);
-    const isLanguageChange = urlParams.get('lang_changed') === 'true';
-    const isLanguageChanging = localStorage.getItem('isLanguageChanging') === 'true';
-    
-    if (isLanguageChange || isLanguageChanging) {
-      // Give authentication state time to restore after language change
-      const timer = setTimeout(() => {
-        setIsInitialized(true);
-      }, 500); // Original working delay
+    // Check if we're in the middle of authentication restoration
+    const checkAuthRestoration = () => {
+      const urlParams = new URLSearchParams(location.search);
+      const isLanguageChange = urlParams.get('lang_changed') === 'true';
+      const isLanguageChanging = localStorage.getItem('isLanguageChanging') === 'true';
+      const preserveAuthFlag = localStorage.getItem('preserveAuthAfterLanguageChange') === 'true';
       
-      return () => clearTimeout(timer);
-    } else {
-      setIsInitialized(true);
-    }
-  }, [location.search]);
+      // Check if we have auth data in localStorage that needs to be restored
+      const authState = authStorage.getAuthState();
+      const hasStoredAuth = authState.isLoggedIn && authState.token;
+      
+      // If we have stored auth but Redux shows not logged in, we're in restoration
+      const isRestoring = hasStoredAuth && !isLoggedIn;
+      
+      // Set restoration flag if any of these conditions are true
+      const inRestoration = isLanguageChange || isLanguageChanging || preserveAuthFlag || isRestoring || isRefreshing;
+      
+      setAuthRestorationInProgress(inRestoration);
+      
+      if (inRestoration) {
+        console.log('🔒 [AUTH-RESTORATION] ProtectedRoute - Authentication restoration in progress:', {
+          isLanguageChange,
+          isLanguageChanging,
+          preserveAuthFlag,
+          hasStoredAuth,
+          isRestoring,
+          isRefreshing,
+          pathname: location.pathname
+        });
+        
+        // Give more time for authentication restoration
+        const timer = setTimeout(() => {
+          setIsInitialized(true);
+        }, 1000); // Increased delay for auth restoration
+        
+        return () => clearTimeout(timer);
+      } else {
+        // Normal initialization
+        setIsInitialized(true);
+      }
+    };
 
-  // Debug logging - only for language changes or issues
-  if (!isInitialized || (requireCountry && !currentCountry)) {
-    console.log('🔒 [LANG-FIX] ProtectedRoute - Location:', location.pathname, 'RequireCountry:', requireCountry, 'Country:', currentCountry, 'Initialized:', isInitialized);
+    checkAuthRestoration();
+  }, [location.search, isLoggedIn, isRefreshing]);
+
+  // Debug logging - only for auth restoration or issues
+  if (!isInitialized || authRestorationInProgress || (requireCountry && !currentCountry)) {
+    console.log('🔒 [AUTH-RESTORATION] ProtectedRoute - Location:', location.pathname, 'RequireAuth:', requireAuth, 'RequireCountry:', requireCountry, 'Country:', currentCountry, 'Initialized:', isInitialized, 'AuthRestoration:', authRestorationInProgress);
   }
 
-  // Don't make routing decisions until initialized (especially after language change)
-  if (!isInitialized) {
-    return null; // or a loading indicator
+  // Don't make routing decisions until initialized and auth restoration is complete
+  if (!isInitialized || authRestorationInProgress) {
+    return (
+      <div style={{
+        display: 'flex',
+        justifyContent: 'center',
+        alignItems: 'center',
+        height: '100vh',
+        backgroundColor: '#f5f5f5'
+      }}>
+        <div style={{
+          textAlign: 'center',
+          padding: '2rem',
+          backgroundColor: 'white',
+          borderRadius: '8px',
+          boxShadow: '0 2px 8px rgba(0,0,0,0.1)'
+        }}>
+          <div style={{
+            width: '40px',
+            height: '40px',
+            border: '4px solid #f3f3f3',
+            borderTop: '4px solid #3498db',
+            borderRadius: '50%',
+            animation: 'spin 1s linear infinite',
+            margin: '0 auto 1rem'
+          }} />
+          <p style={{ margin: 0, color: '#666' }}>
+            {authRestorationInProgress ? 'Restoring session...' : 'Loading...'}
+          </p>
+        </div>
+        <style>{`
+          @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+          }
+        `}</style>
+      </div>
+    );
   }
 
   // Check authentication requirement
@@ -66,22 +133,60 @@ const ProtectedRoute = ({
 
   // Check country selection requirement
   if (requireCountry && !currentCountry) {
-    // Check if this is a language change refresh - if so, wait a bit longer for country state to restore
+    // Check if this is a language change refresh or auth restoration - if so, wait for state to restore
     const urlParams = new URLSearchParams(location.search);
     const isLanguageChange = urlParams.get('lang_changed') === 'true';
     const isLanguageChanging = localStorage.getItem('isLanguageChanging') === 'true';
+    const preserveAuthFlag = localStorage.getItem('preserveAuthAfterLanguageChange') === 'true';
     
-    console.log('🔒 [LANG-FIX] ProtectedRoute - Checking language change:', { 
+    console.log('🔒 [AUTH-RESTORATION] ProtectedRoute - Checking country requirement:', { 
       isLanguageChange, 
       isLanguageChanging, 
+      preserveAuthFlag,
+      authRestorationInProgress,
       urlParams: location.search 
     });
     
-    if (isLanguageChange || isLanguageChanging) {
-      console.log('🔒 [LANG-FIX] ProtectedRoute - Language change detected, waiting for country state to restore...');
-      // During language change, give more time for country state to restore
-      // Don't redirect immediately, let the component re-render and check again
-      return null; // or a loading indicator
+    if (isLanguageChange || isLanguageChanging || preserveAuthFlag || authRestorationInProgress) {
+      console.log('🔒 [AUTH-RESTORATION] ProtectedRoute - Auth restoration detected, waiting for country state to restore...');
+      // During auth restoration, give more time for country state to restore
+      // Show loading indicator while waiting
+      return (
+        <div style={{
+          display: 'flex',
+          justifyContent: 'center',
+          alignItems: 'center',
+          height: '100vh',
+          backgroundColor: '#f5f5f5'
+        }}>
+          <div style={{
+            textAlign: 'center',
+            padding: '2rem',
+            backgroundColor: 'white',
+            borderRadius: '8px',
+            boxShadow: '0 2px 8px rgba(0,0,0,0.1)'
+          }}>
+            <div style={{
+              width: '40px',
+              height: '40px',
+              border: '4px solid #f3f3f3',
+              borderTop: '4px solid #3498db',
+              borderRadius: '50%',
+              animation: 'spin 1s linear infinite',
+              margin: '0 auto 1rem'
+            }} />
+            <p style={{ margin: 0, color: '#666' }}>
+              Restoring session...
+            </p>
+          </div>
+          <style>{`
+            @keyframes spin {
+              0% { transform: rotate(0deg); }
+              100% { transform: rotate(360deg); }
+            }
+          `}</style>
+        </div>
+      );
     } else {
       console.log('🔒 ProtectedRoute - Country required but not selected, redirecting to Welcome page');
       // Store the attempted URL for redirect after country selection
