@@ -331,7 +331,7 @@ const rotateTokens = (userInfo, oldRefreshTokenId = null) => {
 const getSecureCookieOptions = (isProduction = process.env.NODE_ENV === 'production') => {
   const baseOptions = {
     httpOnly: true, // Prevent XSS attacks
-    secure: true, // ALWAYS true for cross-domain cookies with sameSite: "None"
+    secure: isProduction, // true for HTTPS in production, false for HTTP in development
     sameSite: isProduction ? "None" : "Lax", // None for cross-domain, Lax for same-domain
     maxAge: 7 * 24 * 60 * 60 * 1000, // 7 days
     path: '/', // Available to all routes
@@ -358,7 +358,7 @@ const getSecureCookieOptions = (isProduction = process.env.NODE_ENV === 'product
 const getSecureCookieClearOptions = (isProduction = process.env.NODE_ENV === 'production') => {
   const baseOptions = {
     httpOnly: true, // Prevent XSS attacks
-    secure: true, // ALWAYS true for cross-domain cookies with sameSite: "None"
+    secure: isProduction, // true for HTTPS in production, false for HTTP in development
     sameSite: isProduction ? "None" : "Lax", // None for cross-domain, Lax for same-domain
     path: '/', // Available to all routes
   };
