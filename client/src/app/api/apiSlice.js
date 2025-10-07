@@ -33,6 +33,17 @@ const MAX_REFRESH_ATTEMPTS = 3;
 const BASE_RETRY_DELAY = 1000; // 1 second base delay
 const PROACTIVE_REFRESH_THRESHOLD = 0.2; // Refresh when 20% of token lifetime remains (48 minutes for 4h token)
 
+// Rate limiting tracking
+let rateLimitAttempts = 0;
+let rateLimitPromise = null;
+const MAX_RATE_LIMIT_ATTEMPTS = 3;
+const RATE_LIMIT_BASE_DELAY = 5000; // 5 seconds base delay for rate limiting
+const RATE_LIMIT_MAX_DELAY = 20000; // 20 seconds max delay
+
+// Request tracking to prevent duplicate API calls
+const activeRequests = new Map();
+const REQUEST_DEBOUNCE_TIME = 1000; // 1 second debounce
+
 // Token validation cache to prevent excessive validation calls
 let tokenValidationCache = null;
 let lastValidationTime = 0;
@@ -41,6 +52,11 @@ const VALIDATION_CACHE_DURATION = 30000; // Cache validation for 30 seconds
 // Exponential backoff delay calculation
 const getRetryDelay = (attempt) => {
   return Math.min(BASE_RETRY_DELAY * Math.pow(2, attempt), 10000); // Max 10 seconds
+};
+
+// Rate limiting exponential backoff delay calculation
+const getRateLimitDelay = (attempt) => {
+  return Math.min(RATE_LIMIT_BASE_DELAY * Math.pow(2, attempt), RATE_LIMIT_MAX_DELAY);
 };
 
 // Reset refresh tracking
@@ -64,12 +80,153 @@ const resetRefreshTracking = () => {
   debugLog('Refresh tracking reset complete');
 };
 
+// Reset rate limiting tracking
+const resetRateLimitTracking = () => {
+  debugLog('Resetting rate limit tracking', {
+    previousAttempts: rateLimitAttempts,
+    hadPromise: !!rateLimitPromise
+  });
+  
+  rateLimitPromise = null;
+  rateLimitAttempts = 0;
+  
+  debugLog('Rate limit tracking reset complete');
+};
+
+// Generate request key for deduplication
+const generateRequestKey = (args) => {
+  return `${args.method || 'GET'}:${args.url}:${JSON.stringify(args.body || {})}`;
+};
+
+// Check if request is already in progress
+const isRequestInProgress = (requestKey) => {
+  const request = activeRequests.get(requestKey);
+  if (!request) return false;
+  
+  // Check if request is still within debounce time
+  const now = Date.now();
+  if (now - request.timestamp < REQUEST_DEBOUNCE_TIME) {
+    return true;
+  }
+  
+  // Clean up expired request
+  activeRequests.delete(requestKey);
+  return false;
+};
+
+// Track active request
+const trackRequest = (requestKey) => {
+  activeRequests.set(requestKey, { timestamp: Date.now() });
+};
+
+// Clear request tracking
+const clearRequest = (requestKey) => {
+  activeRequests.delete(requestKey);
+};
+
 // Note: Proactive refresh is now handled by the background service
 // Debug functions removed to reduce console spam
 
 // Enhanced error handling for network failures
 const isNetworkError = (error) => {
   return !error?.status || error.status === 'FETCH_ERROR' || error.status === 'PARSING_ERROR';
+};
+
+// Check if error is a rate limiting error
+const isRateLimitError = (error) => {
+  return error?.status === 429;
+};
+
+// Handle rate limiting with exponential backoff
+const handleRateLimitError = async (args, api, extraOptions, error) => {
+  debugLog('Handling rate limit error', {
+    status: error?.status,
+    retryAfter: error?.retryAfter,
+    currentAttempts: rateLimitAttempts,
+    maxAttempts: MAX_RATE_LIMIT_ATTEMPTS
+  });
+
+  // If we already have a rate limit promise in progress, wait for it
+  if (rateLimitPromise) {
+    debugLog('Rate limit retry already in progress, waiting for completion');
+    try {
+      await rateLimitPromise;
+      // After waiting, retry the original request
+      debugLog('Rate limit retry completed, retrying original request');
+      return await baseQuery(args, api, extraOptions);
+    } catch (retryError) {
+      debugLog('Rate limit retry failed', { error: retryError.message });
+      return { error: retryError };
+    }
+  }
+
+  rateLimitAttempts++;
+  
+  if (rateLimitAttempts > MAX_RATE_LIMIT_ATTEMPTS) {
+    debugLog('Max rate limit attempts reached, failing gracefully');
+    console.warn('🔄 API SLICE: Max rate limit attempts reached, preserving auth state');
+    resetRateLimitTracking();
+    
+    // Dispatch rate limiting event for UI notification
+    const rateLimitEvent = new CustomEvent('rateLimitError', {
+      detail: {
+        status: 429,
+        data: { 
+          message: 'Too many requests. Please wait a moment and try again.',
+          code: 'RATE_LIMIT_EXCEEDED'
+        }
+      }
+    });
+    window.dispatchEvent(rateLimitEvent);
+    
+    // Don't logout on rate limiting - preserve auth state
+    return {
+      error: {
+        status: 429,
+        data: { 
+          message: 'Too many requests. Please wait a moment and try again.',
+          code: 'RATE_LIMIT_EXCEEDED'
+        }
+      }
+    };
+  }
+
+  // Calculate retry delay
+  const retryAfter = error?.retryAfter || '900'; // Default 15 minutes
+  const serverRetryDelay = parseInt(retryAfter, 10) * 1000;
+  const exponentialDelay = getRateLimitDelay(rateLimitAttempts - 1);
+  const finalDelay = Math.min(serverRetryDelay, exponentialDelay);
+
+  debugLog('Scheduling rate limit retry', {
+    retryAfter,
+    serverRetryDelay,
+    exponentialDelay,
+    finalDelay,
+    attempt: rateLimitAttempts
+  });
+
+  console.warn(`🔄 API SLICE: Rate limited, retrying after ${Math.round(finalDelay / 1000)} seconds (attempt ${rateLimitAttempts}/${MAX_RATE_LIMIT_ATTEMPTS})`);
+
+  rateLimitPromise = new Promise((resolve, reject) => {
+    setTimeout(async () => {
+      try {
+        rateLimitPromise = null;
+        const result = await baseQuery(args, api, extraOptions);
+        
+        // If successful, reset rate limit tracking
+        if (!result?.error) {
+          resetRateLimitTracking();
+        }
+        
+        resolve(result);
+      } catch (retryError) {
+        rateLimitPromise = null;
+        reject(retryError);
+      }
+    }, finalDelay);
+  });
+
+  return rateLimitPromise;
 };
 
 // Optimized token validation using cached validation
@@ -182,13 +339,17 @@ const attemptTokenRefresh = async (api) => {
           attempt: refreshAttempts
         });
         
-        // Handle 429 rate limiting with retry-after header
-        if (response.status === 429) {
-          const retryAfter = response.headers.get('retry-after');
-          if (retryAfter) {
-            error.retryAfter = retryAfter;
-          }
+      // Handle 429 rate limiting with retry-after header
+      if (response.status === 429) {
+        const retryAfter = response.headers.get('retry-after');
+        if (retryAfter) {
+          error.retryAfter = retryAfter;
         }
+        debugLog('Rate limit detected in refresh request', {
+          retryAfter,
+          attempt: refreshAttempts
+        });
+      }
         
         throw error;
       }
@@ -227,13 +388,13 @@ const attemptTokenRefresh = async (api) => {
         const retryAfter = error.retryAfter || '900'; // Default 15 minutes
         const retryDelay = parseInt(retryAfter, 10) * 1000;
         
-        debugLog('Rate limited, scheduling retry', {
+        debugLog('Rate limited during refresh, scheduling retry', {
           retryAfter,
           retryDelay,
           attempt: refreshAttempts
         });
         
-        console.warn(`🔄 API SLICE: Rate limited, retrying after ${retryAfter} seconds`);
+        console.warn(`🔄 API SLICE: Rate limited during refresh, retrying after ${retryAfter} seconds`);
         
         if (refreshAttempts < MAX_REFRESH_ATTEMPTS) {
           return new Promise((resolve, reject) => {
@@ -243,8 +404,12 @@ const attemptTokenRefresh = async (api) => {
             }, retryDelay);
           });
         } else {
-          handleRefreshFailure(api, error);
-          throw error;
+          // Don't logout on rate limiting - preserve auth state
+          debugLog('Max refresh attempts reached due to rate limiting, preserving auth state');
+          console.warn('🔄 API SLICE: Max refresh attempts reached due to rate limiting, preserving auth state');
+          resetRefreshTracking();
+          api.dispatch(setRefreshing(false));
+          throw new Error('Rate limited - too many refresh attempts');
         }
       }
       
@@ -391,7 +556,42 @@ const baseQueryWithReauth = async (args, api, extraOptions) => {
     method: args.method
   });
   
-  let result = await baseQuery(args, api, extraOptions);
+  // Generate request key for deduplication
+  const requestKey = generateRequestKey(args);
+  
+  // Check if request is already in progress (debouncing)
+  if (isRequestInProgress(requestKey)) {
+    debugLog('Request already in progress, skipping duplicate', {
+      requestKey,
+      url: args.url,
+      method: args.method
+    });
+    console.warn(`🔄 API SLICE: Request already in progress, skipping duplicate: ${args.method} ${args.url}`);
+    
+    // Return a pending promise that will resolve when the original request completes
+    return new Promise((resolve) => {
+      const checkInterval = setInterval(() => {
+        if (!isRequestInProgress(requestKey)) {
+          clearInterval(checkInterval);
+          // Retry the request after debounce period
+          setTimeout(() => {
+            baseQueryWithReauth(args, api, extraOptions).then(resolve);
+          }, REQUEST_DEBOUNCE_TIME);
+        }
+      }, 100);
+    });
+  }
+  
+  // Track this request
+  trackRequest(requestKey);
+  
+  let result;
+  try {
+    result = await baseQuery(args, api, extraOptions);
+  } finally {
+    // Clear request tracking
+    clearRequest(requestKey);
+  }
 
   debugLog('Base query completed', {
     url: args.url,
@@ -399,6 +599,28 @@ const baseQueryWithReauth = async (args, api, extraOptions) => {
     errorStatus: result?.error?.status,
     errorCode: result?.error?.data?.code
   });
+
+  // Handle 429 rate limiting errors first - don't attempt token refresh
+  if (isRateLimitError(result?.error)) {
+    debugLog('Rate limit error detected, handling with backoff', {
+      status: result?.error?.status,
+      retryAfter: result?.error?.retryAfter
+    });
+    
+    // Extract retry-after header if available
+    const retryAfter = result?.error?.retryAfter;
+    if (retryAfter) {
+      result.error.retryAfter = retryAfter;
+    }
+    
+    // Dispatch rate limiting event for UI notification
+    const rateLimitEvent = new CustomEvent('rateLimitError', {
+      detail: result.error
+    });
+    window.dispatchEvent(rateLimitEvent);
+    
+    return await handleRateLimitError(args, api, extraOptions, result.error);
+  }
 
   // Handle both 401 and 403 errors for authenticated routes
   // Skip reauth for public routes like dashboard

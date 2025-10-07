@@ -24,6 +24,11 @@ const debugLog = (message, data = null) => {
   }
 };
 
+// Request debouncing to prevent multiple simultaneous refresh attempts
+let refreshDebounceTimeout = null;
+let isRefreshInProgress = false;
+const REFRESH_DEBOUNCE_TIME = 2000; // 2 seconds debounce for refresh attempts
+
 // to stay logged in when refreshing page
 const PersistLogin = () => {
   const [persist] = usePersist();
@@ -61,15 +66,47 @@ const PersistLogin = () => {
 
       const verifyRefreshToken = async () => {
         debugLog('Starting refresh token verification');
+        
+        // Check if refresh is already in progress
+        if (isRefreshInProgress) {
+          debugLog('Refresh already in progress, skipping duplicate attempt');
+          console.warn('🔄 PERSIST-LOGIN: Refresh already in progress, skipping duplicate attempt');
+          return;
+        }
+        
+        // Clear any existing debounce timeout
+        if (refreshDebounceTimeout) {
+          clearTimeout(refreshDebounceTimeout);
+          refreshDebounceTimeout = null;
+        }
+        
+        // Set refresh in progress flag
+        isRefreshInProgress = true;
+        
         try {
-          //const response =
+          debugLog('Making refresh request');
           await refresh();
-          //const { accessToken } = response.data
           debugLog('Refresh token verification successful');
           setTrueSuccess(true);
         } catch (err) {
           debugLog('Refresh token verification failed', { error: err });
-          console.error(err);
+          
+          // Handle rate limiting errors gracefully
+          if (err?.status === 429) {
+            debugLog('Rate limited during refresh, will retry later');
+            console.warn('🔄 PERSIST-LOGIN: Rate limited during refresh, will retry later');
+            // Don't show error state for rate limiting - preserve auth state
+            return;
+          }
+          
+          console.error('Refresh token verification failed:', err);
+        } finally {
+          // Clear refresh in progress flag after debounce period
+          refreshDebounceTimeout = setTimeout(() => {
+            isRefreshInProgress = false;
+            refreshDebounceTimeout = null;
+            debugLog('Refresh debounce period completed');
+          }, REFRESH_DEBOUNCE_TIME);
         }
       };
 
@@ -164,17 +201,27 @@ const PersistLogin = () => {
   } else if (isError) {
     //persist: yes, token: no
     debugLog('Rendering error state', { error: error?.data?.message });
-    content = (
-      <ErrorState
-        title="Session expired"
-        message={error?.data?.message || "Please login again"}
-        action={
-          <Link to="/login">
-            <Button variant="contained">Login Again</Button>
-          </Link>
-        }
-      />
-    );
+    
+    // Handle rate limiting errors gracefully - don't show error state
+    if (error?.status === 429 || error?.data?.code === 'RATE_LIMIT_EXCEEDED') {
+      debugLog('Rate limiting error detected, preserving auth state');
+      console.warn('🔄 PERSIST-LOGIN: Rate limiting error detected, preserving auth state');
+      
+      // Show loading state instead of error for rate limiting
+      content = <LoadingState message="Please wait, too many requests..." />;
+    } else {
+      content = (
+        <ErrorState
+          title="Session expired"
+          message={error?.data?.message || "Please login again"}
+          action={
+            <Link to="/login">
+              <Button variant="contained">Login Again</Button>
+            </Link>
+          }
+        />
+      );
+    }
   } else if (isSuccess && trueSuccess) {
     //persist: yes, token: yes
     debugLog('Rendering success state - Outlet');

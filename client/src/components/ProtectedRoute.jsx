@@ -5,6 +5,7 @@ import { selectIsLoggedIn, selectIsRefreshing } from '../features/auth/authSlice
 import { selectCurrentCountry } from '../app/state';
 import { authStorage } from '../utils/authStorage';
 import useAuth from '../hooks/useAuth';
+import { Alert, Snackbar } from '@mui/material';
 
 // Debug configuration
 const DEBUG_AUTH = true;
@@ -44,6 +45,8 @@ const ProtectedRoute = ({
   const { country: userCountry } = useAuth();
   const [isInitialized, setIsInitialized] = useState(false);
   const [authRestorationInProgress, setAuthRestorationInProgress] = useState(false);
+  const [rateLimitError, setRateLimitError] = useState(null);
+  const [showRateLimitAlert, setShowRateLimitAlert] = useState(false);
 
   // Debug initial state
   debugLog('ProtectedRoute component initialized', {
@@ -58,6 +61,25 @@ const ProtectedRoute = ({
     isInitialized,
     authRestorationInProgress
   });
+
+  // Global error handler for rate limiting
+  useEffect(() => {
+    const handleGlobalError = (event) => {
+      // Check if this is a rate limiting error from API calls
+      if (event.detail && event.detail.status === 429) {
+        debugLog('Global rate limiting error detected', { error: event.detail });
+        setRateLimitError(event.detail);
+        setShowRateLimitAlert(true);
+      }
+    };
+
+    // Listen for custom rate limiting events
+    window.addEventListener('rateLimitError', handleGlobalError);
+    
+    return () => {
+      window.removeEventListener('rateLimitError', handleGlobalError);
+    };
+  }, []);
 
   // Check for authentication restoration in progress
   useEffect(() => {
@@ -288,6 +310,12 @@ const ProtectedRoute = ({
     }
   }
 
+  // Handle rate limit alert close
+  const handleRateLimitAlertClose = () => {
+    setShowRateLimitAlert(false);
+    setRateLimitError(null);
+  };
+
   // All conditions met, render children
   debugLog('All conditions met, rendering children', {
     requireAuth,
@@ -297,7 +325,28 @@ const ProtectedRoute = ({
     pathname: location.pathname
   });
   console.log('ProtectedRoute - All conditions met, rendering children');
-  return children;
+  
+  return (
+    <>
+      {children}
+      {/* Rate limiting error alert */}
+      <Snackbar
+        open={showRateLimitAlert}
+        autoHideDuration={10000}
+        onClose={handleRateLimitAlertClose}
+        anchorOrigin={{ vertical: 'top', horizontal: 'center' }}
+      >
+        <Alert 
+          onClose={handleRateLimitAlertClose} 
+          severity="warning"
+          variant="filled"
+          sx={{ width: '100%' }}
+        >
+          {rateLimitError?.data?.message || 'Too many requests. Please wait a moment and try again.'}
+        </Alert>
+      </Snackbar>
+    </>
+  );
 };
 
 export default ProtectedRoute;
