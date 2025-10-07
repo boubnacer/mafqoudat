@@ -197,22 +197,106 @@ const ProtectedRoute = ({
     );
   }
 
-  // Check authentication requirement
-  if (requireAuth && !isLoggedIn) {
-    debugLog('Authentication required but user not logged in, redirecting to login', {
-      requireAuth,
-      isLoggedIn,
-      pathname: location.pathname
-    });
-    console.log('ProtectedRoute - Authentication required but user not logged in, redirecting to login');
-    // Store the attempted URL for redirect after login
-    const redirectUrl = location.pathname + location.search;
-    if (redirectUrl !== '/login') {
-      localStorage.setItem('redirectAfterLogin', redirectUrl);
-      debugLog('Stored redirect URL after login', { redirectUrl });
-    }
-    return <Navigate to="/login" replace />;
+  // Check authentication requirement with delay to allow refresh attempt
+  useEffect(() => {
+    // Add a small delay to allow refresh attempt before redirecting
+    const redirectTimeout = setTimeout(() => {
+      if (requireAuth && !isLoggedIn && !isRefreshing && isInitialized && !authRestorationInProgress) {
+        debugLog('User not authenticated after delay, redirecting to login', {
+          requireAuth,
+          isLoggedIn,
+          isRefreshing,
+          isInitialized,
+          authRestorationInProgress,
+          pathname: location.pathname
+        });
+        console.log('🚨 User not authenticated after delay, redirecting to login');
+        
+        // Store the attempted URL for redirect after login
+        const redirectUrl = location.pathname + location.search;
+        if (redirectUrl !== '/login') {
+          localStorage.setItem('redirectAfterLogin', redirectUrl);
+          debugLog('Stored redirect URL after login', { redirectUrl });
+        }
+        
+        // Navigate to login
+        window.location.href = '/login';
+      }
+    }, 1000); // 1 second delay to allow refresh attempt
+
+    return () => clearTimeout(redirectTimeout);
+  }, [requireAuth, isLoggedIn, isRefreshing, isInitialized, authRestorationInProgress, location.pathname, location.search]);
+
+  // Show loading while waiting for redirect decision
+  if (requireAuth && !isLoggedIn && !isRefreshing && isInitialized && !authRestorationInProgress) {
+    debugLog('Waiting for redirect timeout, showing loading');
+    return (
+      <div style={{
+        display: 'flex',
+        justifyContent: 'center',
+        alignItems: 'center',
+        height: '100vh',
+        backgroundColor: '#f5f5f5'
+      }}>
+        <div style={{
+          textAlign: 'center',
+          padding: '2rem',
+          backgroundColor: 'white',
+          borderRadius: '8px',
+          boxShadow: '0 2px 8px rgba(0,0,0,0.1)'
+        }}>
+          <div style={{
+            width: '40px',
+            height: '40px',
+            border: '4px solid #f3f3f3',
+            borderTop: '4px solid #3498db',
+            borderRadius: '50%',
+            animation: 'spin 1s linear infinite',
+            margin: '0 auto 1rem'
+          }} />
+          <p style={{ margin: 0, color: '#666' }}>
+            Checking authentication...
+          </p>
+        </div>
+        <style>{`
+          @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+          }
+        `}</style>
+      </div>
+    );
   }
+
+  // Check country selection requirement with delay to allow refresh attempt
+  useEffect(() => {
+    // Add a small delay to allow refresh attempt before redirecting
+    const countryRedirectTimeout = setTimeout(() => {
+      if (requireCountry && !currentCountry && isLoggedIn && isInitialized && !authRestorationInProgress) {
+        debugLog('Country required but not selected after delay, redirecting to Welcome page', {
+          requireCountry,
+          currentCountry,
+          isLoggedIn,
+          isInitialized,
+          authRestorationInProgress,
+          pathname: location.pathname
+        });
+        console.log('🚨 Country required but not selected after delay, redirecting to Welcome page');
+        
+        // Store the attempted URL for redirect after country selection
+        const redirectUrl = location.pathname + location.search;
+        if (redirectUrl !== '/') {
+          localStorage.setItem('redirectAfterCountrySelection', redirectUrl);
+          debugLog('Stored redirect URL after country selection', { redirectUrl });
+        }
+        
+        // Navigate to welcome page
+        window.location.href = '/welcome';
+      }
+    }, 1000); // 1 second delay to allow refresh attempt
+
+    return () => clearTimeout(countryRedirectTimeout);
+  }, [requireCountry, currentCountry, isLoggedIn, isInitialized, authRestorationInProgress, location.pathname, location.search]);
 
   // Check country selection requirement
   if (requireCountry && !currentCountry) {
@@ -298,15 +382,44 @@ const ProtectedRoute = ({
         </div>
       );
     } else {
-      debugLog('Country required but not selected, redirecting to Welcome page');
-      console.log('🔒 ProtectedRoute - Country required but not selected, redirecting to Welcome page');
-      // Store the attempted URL for redirect after country selection
-      const redirectUrl = location.pathname + location.search;
-      if (redirectUrl !== '/') {
-        localStorage.setItem('redirectAfterCountrySelection', redirectUrl);
-        debugLog('Stored redirect URL after country selection', { redirectUrl });
-      }
-      return <Navigate to="/" replace />;
+      // Show loading while waiting for redirect decision
+      debugLog('Waiting for country redirect timeout, showing loading');
+      return (
+        <div style={{
+          display: 'flex',
+          justifyContent: 'center',
+          alignItems: 'center',
+          height: '100vh',
+          backgroundColor: '#f5f5f5'
+        }}>
+          <div style={{
+            textAlign: 'center',
+            padding: '2rem',
+            backgroundColor: 'white',
+            borderRadius: '8px',
+            boxShadow: '0 2px 8px rgba(0,0,0,0.1)'
+          }}>
+            <div style={{
+              width: '40px',
+              height: '40px',
+              border: '4px solid #f3f3f3',
+              borderTop: '4px solid #3498db',
+              borderRadius: '50%',
+              animation: 'spin 1s linear infinite',
+              margin: '0 auto 1rem'
+            }} />
+            <p style={{ margin: 0, color: '#666' }}>
+              Checking country selection...
+            </p>
+          </div>
+          <style>{`
+            @keyframes spin {
+              0% { transform: rotate(0deg); }
+              100% { transform: rotate(360deg); }
+            }
+          `}</style>
+        </div>
+      );
     }
   }
 
