@@ -212,8 +212,13 @@ class BackgroundTokenRefreshService {
       console.log('✅ Background refresh completed successfully');
       
       // Force a state update to ensure UI components re-render
-      if (typeof window !== 'undefined' && window.dispatch) {
-        window.dispatch({ type: 'auth/forceUpdate' });
+      if (typeof window !== 'undefined' && this.store) {
+        try {
+          this.store.dispatch({ type: 'auth/forceUpdate' });
+          console.log('✅ Dispatched forceUpdate action to trigger UI re-renders');
+        } catch (error) {
+          console.error('❌ Failed to dispatch forceUpdate action:', error);
+        }
       }
       
       // Reset failure tracking on successful refresh

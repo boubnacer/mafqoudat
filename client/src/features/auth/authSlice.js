@@ -146,6 +146,7 @@ const authSlice = createSlice({
       state.isRefreshing = false;
       state.refreshAttempts = 0;
       state.lastRefreshError = null;
+      state.lastUpdate = Date.now(); // Add timestamp to force re-renders
       
       debugLog('logOut state updated', {
         previous: previousState,
@@ -192,6 +193,7 @@ const authSlice = createSlice({
       state.isRefreshing = false;
       state.refreshAttempts = 0;
       state.lastRefreshError = null;
+      state.lastUpdate = Date.now(); // Add timestamp to force re-renders
       
       debugLog('clearAuth state updated', {
         previous: previousState,

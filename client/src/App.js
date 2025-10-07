@@ -5,7 +5,7 @@ import { Suspense, lazy } from "react";
 import { CssBaseline, ThemeProvider } from "@mui/material";
 import { createTheme } from "@mui/material/styles";
 import React, { useEffect } from "react";
-import { useSelector } from "react-redux";
+import { useSelector, useDispatch } from "react-redux";
 import { useLocation } from "react-router-dom";
 import { themeSettings } from "./theme";
 import { LanguageProvider, useLanguage } from "./utils/languageContext";
@@ -138,12 +138,24 @@ const LoadingFallback = () => (
 
 // Inner App component that has access to language context
 const AppContent = () => {
+  const dispatch = useDispatch();
   const mode = useSelector((state) => state.global.mode);
   const { currentLanguage } = useLanguage();
   const location = useLocation();
+  const authState = useSelector(state => state.auth);
   
   // Initialize authentication error handler
   useAuthErrorHandler();
+  
+  // Listen for auth state changes and log them
+  useEffect(() => {
+    console.log('🔄 App auth state changed:', {
+      isLoggedIn: authState.isLoggedIn,
+      hasToken: !!authState.token,
+      lastUpdate: authState.lastUpdate,
+      timestamp: new Date().toISOString()
+    });
+  }, [authState.lastUpdate, authState.isLoggedIn, authState.token]);
   
   
   const theme = React.useMemo(() => {
