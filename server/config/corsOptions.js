@@ -24,16 +24,22 @@ const corsOptions = {
         'Accept',
         'Authorization',
         'Cache-Control',
-        'X-CSRF-Token'
+        'X-CSRF-Token',
+        'Cookie' // Add Cookie header for cross-domain requests
     ],
     exposedHeaders: [
         'X-RateLimit-Limit',
         'X-RateLimit-Remaining',
         'X-RateLimit-Reset',
         'X-Cache',
-        'X-Cache-Key'
+        'X-Cache-Key',
+        'Set-Cookie' // Expose Set-Cookie header for cross-domain cookies
     ],
-    maxAge: 86400 // 24 hours
+    maxAge: 86400, // 24 hours
+    // Additional CORS options for cross-domain cookie support
+    preflightContinue: false,
+    // Ensure credentials are properly handled for cross-domain requests
+    optionsSuccessStatus: 200
 }
 
 module.exports = corsOptions 

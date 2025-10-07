@@ -332,7 +332,7 @@ const getSecureCookieOptions = (isProduction = process.env.NODE_ENV === 'product
   const baseOptions = {
     httpOnly: true, // Prevent XSS attacks
     secure: isProduction, // HTTPS only in production
-    sameSite: isProduction ? "None" : "Lax", // CSRF protection
+    sameSite: isProduction ? "None" : "Lax", // CSRF protection - None for cross-domain
     maxAge: 7 * 24 * 60 * 60 * 1000, // 7 days
     path: '/', // Available to all routes
   };
@@ -341,7 +341,9 @@ const getSecureCookieOptions = (isProduction = process.env.NODE_ENV === 'product
   if (isProduction) {
     return {
       ...baseOptions,
-      // domain: process.env.COOKIE_DOMAIN || '.mafqoudat.com', // Domain restriction - DISABLED for Railway
+      // For cross-domain cookies between Railway (server) and mafqoudat.com (client)
+      // We need to set the domain to the client domain for cross-domain cookie sharing
+      domain: process.env.COOKIE_DOMAIN || '.mafqoudat.com', // Enable domain restriction for cross-domain
       // Additional security headers for production
       priority: 'high', // Cookie priority
       // Partitioned cookies for better security (if supported)
@@ -357,7 +359,7 @@ const getSecureCookieClearOptions = (isProduction = process.env.NODE_ENV === 'pr
   const baseOptions = {
     httpOnly: true, // Prevent XSS attacks
     secure: isProduction, // HTTPS only in production
-    sameSite: isProduction ? "None" : "Lax", // CSRF protection
+    sameSite: isProduction ? "None" : "Lax", // CSRF protection - None for cross-domain
     path: '/', // Available to all routes
   };
 
@@ -365,7 +367,9 @@ const getSecureCookieClearOptions = (isProduction = process.env.NODE_ENV === 'pr
   if (isProduction) {
     return {
       ...baseOptions,
-      // domain: process.env.COOKIE_DOMAIN || '.mafqoudat.com', // Domain restriction - DISABLED for Railway
+      // For cross-domain cookies between Railway (server) and mafqoudat.com (client)
+      // We need to set the domain to the client domain for cross-domain cookie sharing
+      domain: process.env.COOKIE_DOMAIN || '.mafqoudat.com', // Enable domain restriction for cross-domain
       // Additional security headers for production
       priority: 'high', // Cookie priority
       // Partitioned cookies for better security (if supported)
