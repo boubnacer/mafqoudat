@@ -331,8 +331,8 @@ const rotateTokens = (userInfo, oldRefreshTokenId = null) => {
 const getSecureCookieOptions = (isProduction = process.env.NODE_ENV === 'production') => {
   const baseOptions = {
     httpOnly: true, // Prevent XSS attacks
-    secure: isProduction, // HTTPS only in production
-    sameSite: isProduction ? "None" : "Lax", // CSRF protection - None for cross-domain
+    secure: true, // ALWAYS true for cross-domain cookies with sameSite: "None"
+    sameSite: isProduction ? "None" : "Lax", // None for cross-domain, Lax for same-domain
     maxAge: 7 * 24 * 60 * 60 * 1000, // 7 days
     path: '/', // Available to all routes
   };
@@ -346,8 +346,8 @@ const getSecureCookieOptions = (isProduction = process.env.NODE_ENV === 'product
       domain: process.env.COOKIE_DOMAIN || '.mafqoudat.com', // Enable domain restriction for cross-domain
       // Additional security headers for production
       priority: 'high', // Cookie priority
-      // Partitioned cookies for better security (if supported)
-      partitioned: true,
+      // Note: Removed partitioned attribute as it can interfere with cross-domain cookies
+      // partitioned: true, // Disabled for cross-domain compatibility
     };
   }
 
@@ -358,8 +358,8 @@ const getSecureCookieOptions = (isProduction = process.env.NODE_ENV === 'product
 const getSecureCookieClearOptions = (isProduction = process.env.NODE_ENV === 'production') => {
   const baseOptions = {
     httpOnly: true, // Prevent XSS attacks
-    secure: isProduction, // HTTPS only in production
-    sameSite: isProduction ? "None" : "Lax", // CSRF protection - None for cross-domain
+    secure: true, // ALWAYS true for cross-domain cookies with sameSite: "None"
+    sameSite: isProduction ? "None" : "Lax", // None for cross-domain, Lax for same-domain
     path: '/', // Available to all routes
   };
 
@@ -372,8 +372,8 @@ const getSecureCookieClearOptions = (isProduction = process.env.NODE_ENV === 'pr
       domain: process.env.COOKIE_DOMAIN || '.mafqoudat.com', // Enable domain restriction for cross-domain
       // Additional security headers for production
       priority: 'high', // Cookie priority
-      // Partitioned cookies for better security (if supported)
-      partitioned: true,
+      // Note: Removed partitioned attribute as it can interfere with cross-domain cookies
+      // partitioned: true, // Disabled for cross-domain compatibility
     };
   }
 
