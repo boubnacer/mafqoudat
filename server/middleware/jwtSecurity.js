@@ -341,10 +341,9 @@ const getSecureCookieOptions = (isProduction = process.env.NODE_ENV === 'product
   if (isProduction) {
     return {
       ...baseOptions,
-      // For cross-domain cookies between Railway (server) and mafqoudat.com (client)
-      // We need to set the domain to the client domain for cross-domain cookie sharing
-      domain: process.env.COOKIE_DOMAIN || '.mafqoudat.com', // Enable domain restriction for cross-domain
-      // Additional security headers for production
+      // Note: No domain attribute - let browser handle cross-domain cookie sharing
+      // Server on Railway cannot set cookies for different domains
+      // sameSite: "None" + secure: true enables cross-domain cookies
       priority: 'high', // Cookie priority
       // Note: Removed partitioned attribute as it can interfere with cross-domain cookies
       // partitioned: true, // Disabled for cross-domain compatibility
@@ -367,10 +366,9 @@ const getSecureCookieClearOptions = (isProduction = process.env.NODE_ENV === 'pr
   if (isProduction) {
     return {
       ...baseOptions,
-      // For cross-domain cookies between Railway (server) and mafqoudat.com (client)
-      // We need to set the domain to the client domain for cross-domain cookie sharing
-      domain: process.env.COOKIE_DOMAIN || '.mafqoudat.com', // Enable domain restriction for cross-domain
-      // Additional security headers for production
+      // Note: No domain attribute - let browser handle cross-domain cookie sharing
+      // Server on Railway cannot set cookies for different domains
+      // sameSite: "None" + secure: true enables cross-domain cookies
       priority: 'high', // Cookie priority
       // Note: Removed partitioned attribute as it can interfere with cross-domain cookies
       // partitioned: true, // Disabled for cross-domain compatibility
