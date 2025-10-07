@@ -1,11 +1,12 @@
 import React, { useState, useEffect } from 'react';
 import { Navigate, useLocation } from 'react-router-dom';
-import { useSelector } from 'react-redux';
+import { useSelector, useDispatch } from 'react-redux';
 import { selectIsLoggedIn, selectIsRefreshing } from '../features/auth/authSlice';
 import { selectCurrentCountry } from '../app/state';
 import { authStorage } from '../utils/authStorage';
 import useAuth from '../hooks/useAuth';
 import { Alert, Snackbar } from '@mui/material';
+import store from '../app/store';
 
 // Debug configuration
 const DEBUG_AUTH = true;
@@ -39,6 +40,7 @@ const ProtectedRoute = ({
   redirectTo = '/' 
 }) => {
   const location = useLocation();
+  const dispatch = useDispatch();
   const isLoggedIn = useSelector(selectIsLoggedIn);
   const isRefreshing = useSelector(selectIsRefreshing);
   const currentCountry = useSelector(selectCurrentCountry);
@@ -80,6 +82,26 @@ const ProtectedRoute = ({
       window.removeEventListener('rateLimitError', handleGlobalError);
     };
   }, []);
+
+  // State synchronization check
+  useEffect(() => {
+    // Check if auth state is consistent
+    const checkAuthState = () => {
+      const state = store.getState();
+      const { token, isLoggedIn: stateIsLoggedIn, user } = state.auth;
+      
+      // If we have a token but isLoggedIn is false, something is wrong
+      if (token && !stateIsLoggedIn) {
+        console.warn('🚨 Auth state inconsistency detected, forcing update');
+        dispatch({ type: 'auth/forceUpdate' });
+      }
+    };
+    
+    // Check auth state periodically
+    const interval = setInterval(checkAuthState, 5000); // Check every 5 seconds
+    
+    return () => clearInterval(interval);
+  }, [dispatch]);
 
   // Check for authentication restoration in progress
   useEffect(() => {

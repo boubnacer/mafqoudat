@@ -199,19 +199,31 @@ class BackgroundTokenRefreshService {
       
       // Execute the refresh callback
       this.refreshPromise = this.refreshCallback();
-      await this.refreshPromise;
+      const result = await this.refreshPromise;
+      
+      if (result?.error) {
+        console.error('❌ Refresh failed:', result.error);
+        throw new Error(result.error);
+      }
       
       // Clear cache after successful refresh
       clearTokenValidationCache();
       
-      console.log('Background token refresh completed successfully');
+      console.log('✅ Background refresh completed successfully');
+      
+      // Force a state update to ensure UI components re-render
+      if (typeof window !== 'undefined' && window.dispatch) {
+        window.dispatch({ type: 'auth/forceUpdate' });
+      }
       
       // Reset failure tracking on successful refresh
       this.consecutiveFailures = 0;
       rateLimitManager.resetFailures();
       
+      return { success: true };
+      
     } catch (error) {
-      console.error('Background token refresh failed:', error);
+      console.error('❌ Refresh execution failed:', error);
       this.consecutiveFailures++;
       
       // Handle rate limiting (429 errors)
@@ -221,7 +233,7 @@ class BackgroundTokenRefreshService {
         console.warn(`Rate limited, setting backoff period of ${Math.ceil(backoffDelay / 1000)} seconds`);
         
         // Don't retry immediately for rate limiting
-        return;
+        return { success: false };
       }
       
       // Handle other errors with exponential backoff
@@ -237,6 +249,8 @@ class BackgroundTokenRefreshService {
         console.error('Max consecutive failures reached, stopping background refresh attempts');
         this.rateLimitBackoff = Date.now() + this.maxBackoffDelay;
       }
+      
+      return { success: false };
       
     } finally {
       this.isRefreshing = false;

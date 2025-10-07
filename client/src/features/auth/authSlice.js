@@ -48,6 +48,7 @@ const getInitialState = () => {
         isRefreshing: false,
         refreshAttempts: 0,
         lastRefreshError: null,
+        lastUpdate: Date.now(),
       };
     } else {
       // Token is invalid/expired, but don't clear immediately
@@ -63,6 +64,7 @@ const getInitialState = () => {
         isRefreshing: false,
         refreshAttempts: 0,
         lastRefreshError: null,
+        lastUpdate: Date.now(),
       };
     }
   }
@@ -76,6 +78,7 @@ const getInitialState = () => {
     isRefreshing: false,
     refreshAttempts: 0,
     lastRefreshError: null,
+    lastUpdate: Date.now(),
   };
   
   debugLog('Returning initial state (no token)', initialState);
@@ -108,6 +111,7 @@ const authSlice = createSlice({
       state.isRefreshing = false;
       state.refreshAttempts = 0;
       state.lastRefreshError = null;
+      state.lastUpdate = Date.now(); // Add timestamp for force updates
       
       debugLog('setCredentials state updated', {
         previous: previousState,
@@ -224,6 +228,11 @@ const authSlice = createSlice({
       state.refreshAttempts = 0;
       state.lastRefreshError = null;
     },
+    forceUpdate: (state) => {
+      // Force a state update to trigger re-renders
+      state.lastUpdate = Date.now();
+      debugLog('forceUpdate action dispatched', { timestamp: state.lastUpdate });
+    },
   },
 });
 
@@ -236,7 +245,8 @@ export const {
   setRefreshing,
   setRefreshAttempts,
   setRefreshError,
-  clearRefreshState
+  clearRefreshState,
+  forceUpdate
 } = authSlice.actions;
 
 // Legacy selectors for backward compatibility

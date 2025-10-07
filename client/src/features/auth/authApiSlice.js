@@ -136,42 +136,52 @@ export const authApiSlice = apiSlice.injectEndpoints({
       }),
       async onQueryStarted(arg, { dispatch, queryFulfilled, getState }) {
         try {
-          const { data } = await queryFulfilled;
-          const { accessToken, user } = data;
+          const result = await queryFulfilled;
+          const { accessToken, user } = result.data;
           
-          // Clear token validation cache before setting new credentials
-          clearTokenValidationCache();
-          
-          dispatch(setCredentials({ accessToken, user }));
-          
-          // Initialize background refresh service after successful refresh
           if (accessToken) {
+            // Clear token validation cache before setting new credentials
+            clearTokenValidationCache();
+            
+            // Update auth state with new token
+            dispatch(setCredentials({ 
+              accessToken, 
+              user 
+            }));
+            
+            // Force a state update to ensure all components re-render
+            dispatch({ type: 'auth/forceUpdate' });
+            
+            // Re-initialize background refresh service
             const refreshCallback = async () => {
               // Use the refresh mutation for background refresh
               const refreshResult = await dispatch(authApiSlice.endpoints.refresh.initiate());
               return refreshResult.data;
             };
             
-            // Initialize with enhanced error handling
             try {
               backgroundTokenRefreshService.initialize(refreshCallback, { getState, dispatch });
               console.log('✅ Background token refresh service re-initialized after refresh');
             } catch (error) {
               console.error('❌ Failed to re-initialize background token refresh service:', error);
             }
+            
+            console.log('✅ Auth state updated after refresh');
           }
           
-        } catch (err) {
-          // If refresh fails, use robust logout utility
-          console.warn('Token refresh failed, performing logout:', err);
+        } catch (error) {
+          console.error('❌ Refresh mutation failed:', error);
           
           // Stop background refresh service
           backgroundTokenRefreshService.stop();
           
+          // If refresh fails, use robust logout utility
+          console.warn('Token refresh failed, performing logout:', error);
+          
           performLogout({
             forceClientSide: true,
             onSuccess: () => {
-              dispatch(logOut());
+              dispatch(logOut({ reason: 'Refresh failed' }));
               // Dispatch a custom event to notify components of auth failure
               window.dispatchEvent(new CustomEvent('authError', { 
                 detail: { error: { status: 401, message: 'Your login has expired.' } } 
@@ -179,7 +189,7 @@ export const authApiSlice = apiSlice.injectEndpoints({
             },
             onError: () => {
               // Even if logout utility fails, ensure local cleanup
-              dispatch(logOut());
+              dispatch(logOut({ reason: 'Refresh failed' }));
               window.dispatchEvent(new CustomEvent('authError', { 
                 detail: { error: { status: 401, message: 'Your login has expired.' } } 
               }));

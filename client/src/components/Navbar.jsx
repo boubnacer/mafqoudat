@@ -49,6 +49,7 @@ import useAuth from "../hooks/useAuth";
 import { useTranslation } from "../utils/translations";
 import { useGetflOptionsQuery } from "../features/dependencies/dependenciesApiSlice";
 import { useUnifiedLanguageChange } from "../hooks/useUnifiedLanguageChange";
+import { selectIsLoggedIn, selectCurrentUser } from "../features/auth/authSlice";
 
 // Global keyframes for logo animation
 const globalStyles = `
@@ -281,8 +282,16 @@ const Navbar = () => {
     enableLogging: process.env.NODE_ENV === 'development'
   });
 
+  // Use Redux selectors directly for better state synchronization
+  const isLoggedIn = useSelector(selectIsLoggedIn);
+  const reduxUser = useSelector(selectCurrentUser);
+  const authState = useSelector(state => state.auth);
+  
   const currentCountry = useSelector(selectCurrentCountry);
   const mode = useSelector((state) => state.global.mode);
+  
+  // Force re-render when auth state changes
+  console.log('Navbar render - isLoggedIn:', isLoggedIn, 'user:', reduxUser?.username, 'authState:', authState);
 
   const [selectedCountry, setSelectedCountry] = useState(null);
   const [countryAnchorEl, setCountryAnchorEl] = useState(null);
@@ -475,7 +484,7 @@ const Navbar = () => {
   ];
 
   // Add admin button if user is admin
-  if (isAuthenticated && role === 'admin') {
+  if (isLoggedIn && reduxUser?.role === 'admin') {
     navigationItems.push({
       title: t('adminPanel'),
       icon: <AdminPanelSettings sx={{ fontSize: 20, color: theme.palette.error.main }} />,
@@ -565,15 +574,15 @@ const Navbar = () => {
             {/* Dynamic Button - Sign In for logged out, Create Post for logged in */}
             <CreatePostButton
               onClick={() => {
-                if (isAuthenticated) {
+                if (isLoggedIn) {
                   navigate('/dash/posts/new');
                 } else {
                   navigate('/login');
                 }
               }}
-              startIcon={isAuthenticated ? <PostAdd /> : <Login />}
+              startIcon={isLoggedIn ? <PostAdd /> : <Login />}
             >
-              {isAuthenticated ? t('createPost') : t('signin')}
+              {isLoggedIn ? t('createPost') : t('signin')}
             </CreatePostButton>
           </Box>
         )}
@@ -679,7 +688,7 @@ const Navbar = () => {
           </ActionButton>
 
           {/* Profile button for authenticated users - desktop only */}
-          {isAuthenticated && (
+          {isLoggedIn && (
             <ActionButton
               onClick={handleProfileClick}
               sx={{
@@ -1158,7 +1167,7 @@ const Navbar = () => {
             </MenuItem>
             
             {/* Authentication Section */}
-            {isAuthenticated ? (
+            {isLoggedIn ? (
               <MenuItem
                 onClick={() => {
                   handleMobileMenuClose();
