@@ -11,6 +11,7 @@ import { isRTL } from "../../../utils/languageUtils";
 import { useLanguage } from "../../../utils/languageContext";
 import authErrorHandler from "../../../utils/authErrorHandler";
 import AuthErrorBoundary from "../../../components/AuthErrorBoundary";
+import PasswordResetDialog from "../../../components/PasswordResetDialog";
 
 // Material-UI imports
 import {
@@ -273,6 +274,7 @@ const LoginComponent = () => {
   const [error, setError] = useState("");
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [languageAnchorEl, setLanguageAnchorEl] = useState(null);
+  const [resetPasswordDialogOpen, setResetPasswordDialogOpen] = useState(false);
   
 
   // API
@@ -629,8 +631,7 @@ const LoginComponent = () => {
                 mb: 3,
               }}>
                 <Button
-                  component={Link}
-                  to="/forgot-password"
+                  onClick={() => setResetPasswordDialogOpen(true)}
                   sx={{
                     color: theme.palette.primary.main,
                     textDecoration: 'none',
@@ -642,7 +643,7 @@ const LoginComponent = () => {
                     }
                   }}
                 >
-                  {t('forgotPassword')}
+                  {t('resetPassword')}
                 </Button>
               </Box>
 
@@ -733,6 +734,12 @@ const LoginComponent = () => {
             </Box>
         </CardContent>
       </FloatingCard>
+
+      {/* Password Reset Dialog */}
+      <PasswordResetDialog
+        open={resetPasswordDialogOpen}
+        onClose={() => setResetPasswordDialogOpen(false)}
+      />
     </PageContainer>
   );
 };

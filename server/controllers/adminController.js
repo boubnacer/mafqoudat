@@ -5,6 +5,7 @@ const Category = require("../models/Category");
 const Country = require("../models/Country");
 const FoundLost = require("../models/FoundLost");
 const City = require("../models/City");
+const PasswordResetRequest = require("../models/PasswordResetRequest");
 
 // @desc Get all reports with pagination and filtering
 // @route GET /admin/reports
@@ -239,8 +240,11 @@ const getAdminDashboard = async (req, res) => {
       pendingPromotions,
       totalPosts,
       totalUsers,
+      totalResetRequests,
+      pendingResetRequests,
       recentReports,
       recentPromotions,
+      recentResetRequests,
     ] = await Promise.all([
       Report.countDocuments(),
       Report.countDocuments({ status: 'pending' }),
@@ -248,6 +252,8 @@ const getAdminDashboard = async (req, res) => {
       Post.countDocuments({ promotionRequested: true, promotionProcessed: false }),
       Post.countDocuments(),
       User.countDocuments(),
+      PasswordResetRequest.countDocuments(),
+      PasswordResetRequest.countDocuments({ status: 'pending' }),
       Report.find({ status: 'pending' })
         .populate('postId', 'description')
         .populate('reportedBy', 'username')
@@ -258,6 +264,10 @@ const getAdminDashboard = async (req, res) => {
         .populate('user', 'username')
         .populate('category', 'labels.en')
         .sort({ promotionRequestedAt: -1 })
+        .limit(5)
+        .lean(),
+      PasswordResetRequest.find({ status: 'pending' })
+        .sort({ createdAt: -1 })
         .limit(5)
         .lean(),
     ]);
@@ -272,9 +282,12 @@ const getAdminDashboard = async (req, res) => {
           pendingPromotions,
           totalPosts,
           totalUsers,
+          totalResetRequests,
+          pendingResetRequests,
         },
         recentReports,
         recentPromotions,
+        recentResetRequests,
       },
     });
   } catch (error) {
@@ -346,6 +359,112 @@ const deletePost = async (req, res) => {
   }
 };
 
+// @desc Get all password reset requests with pagination and filtering
+// @route GET /admin/password-reset-requests
+// @access Private (Admin only)
+const getAllPasswordResetRequests = async (req, res) => {
+  try {
+    const page = parseInt(req.query.page) || 1;
+    const limit = parseInt(req.query.limit) || 10;
+    const status = req.query.status;
+    const sortBy = req.query.sortBy || 'createdAt';
+    const sortOrder = req.query.sortOrder === 'asc' ? 1 : -1;
+
+    // Build filter object
+    const filter = {};
+    if (status) filter.status = status;
+
+    // Calculate skip value for pagination
+    const skip = (page - 1) * limit;
+
+    // Get password reset requests with populated data
+    const resetRequests = await PasswordResetRequest.find(filter)
+      .populate('processedBy', 'username')
+      .sort({ [sortBy]: sortOrder })
+      .skip(skip)
+      .limit(limit)
+      .lean();
+
+    // Get total count for pagination
+    const totalRequests = await PasswordResetRequest.countDocuments(filter);
+    const totalPages = Math.ceil(totalRequests / limit);
+
+    res.status(200).json({
+      success: true,
+      data: {
+        resetRequests,
+        pagination: {
+          currentPage: page,
+          totalPages,
+          totalRequests,
+          hasNextPage: page < totalPages,
+          hasPrevPage: page > 1,
+        },
+      },
+    });
+  } catch (error) {
+    console.error('Error fetching password reset requests:', error);
+    res.status(500).json({
+      success: false,
+      message: "Error fetching password reset requests",
+      error: error.message,
+    });
+  }
+};
+
+// @desc Update password reset request status
+// @route PATCH /admin/password-reset-requests/:id
+// @access Private (Admin only)
+const updatePasswordResetRequestStatus = async (req, res) => {
+  try {
+    const { id } = req.params;
+    const { status, adminNotes } = req.body;
+    const adminId = req.user;
+
+    // Validate status
+    const validStatuses = ['pending', 'processed', 'rejected'];
+    if (!validStatuses.includes(status)) {
+      return res.status(400).json({
+        success: false,
+        message: "Invalid status. Must be one of: " + validStatuses.join(', '),
+      });
+    }
+
+    // Update request
+    const resetRequest = await PasswordResetRequest.findByIdAndUpdate(
+      id,
+      {
+        status,
+        processedBy: adminId,
+        processedAt: new Date(),
+        adminNotes: adminNotes || '',
+      },
+      { new: true }
+    )
+      .populate('processedBy', 'username');
+
+    if (!resetRequest) {
+      return res.status(404).json({
+        success: false,
+        message: "Password reset request not found",
+      });
+    }
+
+    res.status(200).json({
+      success: true,
+      message: "Password reset request status updated successfully",
+      data: resetRequest,
+    });
+  } catch (error) {
+    console.error('Error updating password reset request status:', error);
+    res.status(500).json({
+      success: false,
+      message: "Error updating password reset request status",
+      error: error.message,
+    });
+  }
+};
+
 module.exports = {
   getAllReports,
   getAllPromotions,
@@ -353,4 +472,6 @@ module.exports = {
   updatePromotionStatus,
   getAdminDashboard,
   deletePost,
+  getAllPasswordResetRequests,
+  updatePasswordResetRequestStatus,
 };

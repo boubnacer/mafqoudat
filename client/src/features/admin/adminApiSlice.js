@@ -75,6 +75,32 @@ export const adminApiSlice = apiSlice.injectEndpoints({
       },
       invalidatesTags: ['Reports', 'Promotions', 'AdminDashboard'],
     }),
+
+    // Get all password reset requests with pagination and filtering
+    getPasswordResetRequests: builder.query({
+      query: ({ page = 1, limit = 10, status, sortBy = 'createdAt', sortOrder = 'desc' } = {}) => {
+        const params = new URLSearchParams();
+        params.append('page', page);
+        params.append('limit', limit);
+        params.append('sortBy', sortBy);
+        params.append('sortOrder', sortOrder);
+        
+        if (status) params.append('status', status);
+        
+        return `/admin/password-reset-requests?${params.toString()}`;
+      },
+      providesTags: ['PasswordResetRequests'],
+    }),
+
+    // Update password reset request status
+    updatePasswordResetRequestStatus: builder.mutation({
+      query: ({ requestId, status, adminNotes }) => ({
+        url: `/admin/password-reset-requests/${requestId}`,
+        method: 'PATCH',
+        body: { status, adminNotes },
+      }),
+      invalidatesTags: ['PasswordResetRequests', 'AdminDashboard'],
+    }),
   }),
 });
 
@@ -85,4 +111,6 @@ export const {
   useUpdateReportStatusMutation,
   useUpdatePromotionStatusMutation,
   useDeletePostAdminMutation,
+  useGetPasswordResetRequestsQuery,
+  useUpdatePasswordResetRequestStatusMutation,
 } = adminApiSlice;

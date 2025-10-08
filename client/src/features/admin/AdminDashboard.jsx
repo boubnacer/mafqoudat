@@ -47,6 +47,7 @@ import {
   Refresh,
   FilterList,
   Search,
+  LockReset,
 } from '@mui/icons-material';
 import { useTranslation } from '../../utils/translations';
 import {
@@ -56,6 +57,8 @@ import {
   useUpdateReportStatusMutation,
   useUpdatePromotionStatusMutation,
   useDeletePostAdminMutation,
+  useGetPasswordResetRequestsQuery,
+  useUpdatePasswordResetRequestStatusMutation,
 } from './adminApiSlice';
 
 const AdminDashboard = () => {
@@ -66,14 +69,19 @@ const AdminDashboard = () => {
   const [activeTab, setActiveTab] = useState(0);
   const [reportsPage, setReportsPage] = useState(0);
   const [promotionsPage, setPromotionsPage] = useState(0);
+  const [resetRequestsPage, setResetRequestsPage] = useState(0);
   const [reportsRowsPerPage, setReportsRowsPerPage] = useState(10);
   const [promotionsRowsPerPage, setPromotionsRowsPerPage] = useState(10);
+  const [resetRequestsRowsPerPage, setResetRequestsRowsPerPage] = useState(10);
   const [reportStatusFilter, setReportStatusFilter] = useState('');
   const [promotionStatusFilter, setPromotionStatusFilter] = useState('');
+  const [resetRequestStatusFilter, setResetRequestStatusFilter] = useState('');
   const [selectedReport, setSelectedReport] = useState(null);
   const [selectedPromotion, setSelectedPromotion] = useState(null);
+  const [selectedResetRequest, setSelectedResetRequest] = useState(null);
   const [reportDialogOpen, setReportDialogOpen] = useState(false);
   const [promotionDialogOpen, setPromotionDialogOpen] = useState(false);
+  const [resetRequestDialogOpen, setResetRequestDialogOpen] = useState(false);
   const [adminNotes, setAdminNotes] = useState('');
 
   // API queries
@@ -88,11 +96,17 @@ const AdminDashboard = () => {
     limit: promotionsRowsPerPage,
     status: promotionStatusFilter || undefined,
   });
+  const { data: resetRequestsData, isLoading: resetRequestsLoading, error: resetRequestsError } = useGetPasswordResetRequestsQuery({
+    page: resetRequestsPage + 1,
+    limit: resetRequestsRowsPerPage,
+    status: resetRequestStatusFilter || undefined,
+  });
 
   // Mutations
   const [updateReportStatus, { isLoading: updatingReport }] = useUpdateReportStatusMutation();
   const [updatePromotionStatus, { isLoading: updatingPromotion }] = useUpdatePromotionStatusMutation();
   const [deletePost, { isLoading: deletingPost }] = useDeletePostAdminMutation();
+  const [updateResetRequestStatus, { isLoading: updatingResetRequest }] = useUpdatePasswordResetRequestStatusMutation();
 
   // Handlers
   const handleTabChange = (event, newValue) => {
@@ -115,6 +129,15 @@ const AdminDashboard = () => {
   const handlePromotionsRowsPerPageChange = (event) => {
     setPromotionsRowsPerPage(parseInt(event.target.value, 10));
     setPromotionsPage(0);
+  };
+
+  const handleResetRequestsPageChange = (event, newPage) => {
+    setResetRequestsPage(newPage);
+  };
+
+  const handleResetRequestsRowsPerPageChange = (event) => {
+    setResetRequestsRowsPerPage(parseInt(event.target.value, 10));
+    setResetRequestsPage(0);
   };
 
   const handleReportStatusUpdate = async (reportId, status) => {
@@ -176,6 +199,26 @@ const AdminDashboard = () => {
   const openPromotionDialog = (promotion) => {
     setSelectedPromotion(promotion);
     setPromotionDialogOpen(true);
+  };
+
+  const openResetRequestDialog = (request) => {
+    setSelectedResetRequest(request);
+    setResetRequestDialogOpen(true);
+  };
+
+  const handleResetRequestStatusUpdate = async (requestId, status) => {
+    try {
+      await updateResetRequestStatus({
+        requestId,
+        status,
+        adminNotes: adminNotes,
+      }).unwrap();
+      setResetRequestDialogOpen(false);
+      setAdminNotes('');
+      setSelectedResetRequest(null);
+    } catch (error) {
+      console.error('Error updating reset request status:', error);
+    }
   };
 
   const getStatusColor = (status) => {
@@ -313,6 +356,44 @@ const AdminDashboard = () => {
             </CardContent>
           </Card>
         </Grid>
+
+        <Grid item xs={12} sm={6} md={3}>
+          <Card sx={{ height: '100%' }}>
+            <CardContent>
+              <Box display="flex" alignItems="center" justifyContent="space-between">
+                <Box>
+                  <Typography color="text.secondary" gutterBottom>
+                    {t('totalResetRequests')}
+                  </Typography>
+                  <Typography variant="h4" fontWeight="bold">
+                    {statistics?.totalResetRequests || 0}
+                  </Typography>
+                </Box>
+                <Badge badgeContent={statistics?.pendingResetRequests || 0} color="warning">
+                  <LockReset sx={{ fontSize: 40, color: theme.palette.info.main }} />
+                </Badge>
+              </Box>
+            </CardContent>
+          </Card>
+        </Grid>
+
+        <Grid item xs={12} sm={6} md={3}>
+          <Card sx={{ height: '100%' }}>
+            <CardContent>
+              <Box display="flex" alignItems="center" justifyContent="space-between">
+                <Box>
+                  <Typography color="text.secondary" gutterBottom>
+                    {t('pendingResetRequests')}
+                  </Typography>
+                  <Typography variant="h4" fontWeight="bold" color="warning.main">
+                    {statistics?.pendingResetRequests || 0}
+                  </Typography>
+                </Box>
+                <LockReset sx={{ fontSize: 40, color: theme.palette.warning.main }} />
+              </Box>
+            </CardContent>
+          </Card>
+        </Grid>
       </Grid>
 
       {/* Tabs */}
@@ -346,6 +427,21 @@ const AdminDashboard = () => {
                 {statistics?.pendingPromotions > 0 && (
                   <Chip 
                     label={statistics.pendingPromotions} 
+                    size="small" 
+                    color="warning" 
+                  />
+                )}
+              </Box>
+            } 
+          />
+          <Tab 
+            label={
+              <Box display="flex" alignItems="center" gap={1}>
+                <LockReset />
+                {t('passwordResetRequests')}
+                {statistics?.pendingResetRequests > 0 && (
+                  <Chip 
+                    label={statistics.pendingResetRequests} 
                     size="small" 
                     color="warning" 
                   />
@@ -577,6 +673,102 @@ const AdminDashboard = () => {
         </Paper>
       )}
 
+      {/* Password Reset Requests Tab */}
+      {activeTab === 2 && (
+        <Paper>
+          <Box p={2}>
+            <Box display="flex" justifyContent="space-between" alignItems="center" mb={2}>
+              <Typography variant="h6" fontWeight="bold">
+                {t('passwordResetRequests')}
+              </Typography>
+              <FormControl size="small" sx={{ minWidth: 150 }}>
+                <InputLabel>{t('filterByStatus')}</InputLabel>
+                <Select
+                  value={resetRequestStatusFilter}
+                  label={t('filterByStatus')}
+                  onChange={(e) => setResetRequestStatusFilter(e.target.value)}
+                >
+                  <MenuItem value="">{t('allStatuses')}</MenuItem>
+                  <MenuItem value="pending">{t('pending')}</MenuItem>
+                  <MenuItem value="processed">{t('processed')}</MenuItem>
+                  <MenuItem value="rejected">{t('rejected')}</MenuItem>
+                </Select>
+              </FormControl>
+            </Box>
+
+            {resetRequestsLoading ? (
+              <Box display="flex" justifyContent="center" p={4}>
+                <CircularProgress />
+              </Box>
+            ) : resetRequestsError ? (
+              <Alert severity="error">
+                {t('errorLoadingReports')}: {resetRequestsError?.data?.message || resetRequestsError?.message}
+              </Alert>
+            ) : (
+              <>
+                <TableContainer>
+                  <Table>
+                    <TableHead>
+                      <TableRow>
+                        <TableCell>{t('contactInfoLabel')}</TableCell>
+                        <TableCell>{t('requestedAt')}</TableCell>
+                        <TableCell>{t('status')}</TableCell>
+                        <TableCell>{t('processedBy')}</TableCell>
+                        <TableCell>{t('actions')}</TableCell>
+                      </TableRow>
+                    </TableHead>
+                    <TableBody>
+                      {resetRequestsData?.data?.resetRequests?.map((request) => (
+                        <TableRow key={request._id}>
+                          <TableCell>
+                            <Typography variant="body2" fontWeight="bold">
+                              {request.contactInfo}
+                            </Typography>
+                          </TableCell>
+                          <TableCell>
+                            {new Date(request.createdAt).toLocaleString()}
+                          </TableCell>
+                          <TableCell>
+                            <Chip
+                              label={t(request.status)}
+                              color={getStatusColor(request.status)}
+                              size="small"
+                            />
+                          </TableCell>
+                          <TableCell>
+                            {request.processedBy?.username || '-'}
+                          </TableCell>
+                          <TableCell>
+                            <Tooltip title={t('viewDetails')}>
+                              <IconButton
+                                size="small"
+                                onClick={() => openResetRequestDialog(request)}
+                              >
+                                <Visibility />
+                              </IconButton>
+                            </Tooltip>
+                          </TableCell>
+                        </TableRow>
+                      ))}
+                    </TableBody>
+                  </Table>
+                </TableContainer>
+
+                <TablePagination
+                  rowsPerPageOptions={[5, 10, 25]}
+                  component="div"
+                  count={resetRequestsData?.data?.pagination?.totalRequests || 0}
+                  rowsPerPage={resetRequestsRowsPerPage}
+                  page={resetRequestsPage}
+                  onPageChange={handleResetRequestsPageChange}
+                  onRowsPerPageChange={handleResetRequestsRowsPerPageChange}
+                />
+              </>
+            )}
+          </Box>
+        </Paper>
+      )}
+
       {/* Report Details Dialog */}
       <Dialog
         open={reportDialogOpen}
@@ -789,6 +981,115 @@ const AdminDashboard = () => {
               onClick={() => handlePromotionStatusUpdate(selectedPromotion._id, false)}
               color="warning"
               disabled={updatingPromotion}
+            >
+              {t('markAsPending')}
+            </Button>
+          )}
+        </DialogActions>
+      </Dialog>
+
+      {/* Password Reset Request Details Dialog */}
+      <Dialog
+        open={resetRequestDialogOpen}
+        onClose={() => setResetRequestDialogOpen(false)}
+        maxWidth="md"
+        fullWidth
+        PaperProps={{
+          sx: {
+            backgroundColor: theme.palette.mode === 'dark' ? '#1e1e1e' : '#ffffff',
+            backgroundImage: 'none',
+          }
+        }}
+      >
+        <DialogTitle>
+          <Box display="flex" alignItems="center" gap={1}>
+            <LockReset />
+            {t('resetRequestDetails')}
+          </Box>
+        </DialogTitle>
+        <DialogContent>
+          {selectedResetRequest && (
+            <Box>
+              <Typography variant="h6" gutterBottom>
+                {t('resetRequestInformation')}
+              </Typography>
+              <Typography variant="body2" paragraph>
+                <strong>{t('contactInfoLabel')}:</strong> {selectedResetRequest.contactInfo}
+              </Typography>
+              <Typography variant="body2" paragraph>
+                <strong>{t('requestedAt')}:</strong> {new Date(selectedResetRequest.createdAt).toLocaleString()}
+              </Typography>
+              <Typography variant="body2" paragraph>
+                <strong>{t('status')}:</strong> {t(selectedResetRequest.status)}
+              </Typography>
+              {selectedResetRequest.processedBy && (
+                <Typography variant="body2" paragraph>
+                  <strong>{t('processedBy')}:</strong> {selectedResetRequest.processedBy.username}
+                </Typography>
+              )}
+              {selectedResetRequest.processedAt && (
+                <Typography variant="body2" paragraph>
+                  <strong>{t('processedAt')}:</strong> {new Date(selectedResetRequest.processedAt).toLocaleString()}
+                </Typography>
+              )}
+              {selectedResetRequest.ipAddress && (
+                <Typography variant="body2" paragraph>
+                  <strong>IP Address:</strong> {selectedResetRequest.ipAddress}
+                </Typography>
+              )}
+
+              <Divider sx={{ my: 2 }} />
+
+              <TextField
+                fullWidth
+                multiline
+                rows={3}
+                label={t('adminNotes')}
+                value={adminNotes}
+                onChange={(e) => setAdminNotes(e.target.value)}
+                placeholder={t('addNotesForThisReport')}
+                sx={{ mt: 2 }}
+              />
+            </Box>
+          )}
+        </DialogContent>
+        <DialogActions>
+          <Button onClick={() => setResetRequestDialogOpen(false)}>
+            {t('cancel')}
+          </Button>
+          {selectedResetRequest?.status === 'pending' && (
+            <>
+              <Button
+                onClick={() => handleResetRequestStatusUpdate(selectedResetRequest._id, 'rejected')}
+                color="error"
+                variant="outlined"
+                disabled={updatingResetRequest}
+              >
+                {t('markAsRejected')}
+              </Button>
+              <Button
+                onClick={() => handleResetRequestStatusUpdate(selectedResetRequest._id, 'processed')}
+                color="success"
+                disabled={updatingResetRequest}
+              >
+                {t('processResetRequest')}
+              </Button>
+            </>
+          )}
+          {selectedResetRequest?.status === 'processed' && (
+            <Button
+              onClick={() => handleResetRequestStatusUpdate(selectedResetRequest._id, 'pending')}
+              color="warning"
+              disabled={updatingResetRequest}
+            >
+              {t('markAsPending')}
+            </Button>
+          )}
+          {selectedResetRequest?.status === 'rejected' && (
+            <Button
+              onClick={() => handleResetRequestStatusUpdate(selectedResetRequest._id, 'pending')}
+              color="warning"
+              disabled={updatingResetRequest}
             >
               {t('markAsPending')}
             </Button>
