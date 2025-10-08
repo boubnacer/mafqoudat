@@ -1011,10 +1011,8 @@ if (typeof document !== 'undefined') {
       }, 2000);
     } catch (error) {
       console.error('Delete failed:', error?.data?.message || error.message);
-      setStatus({
-        type: 'error',
-        message: error?.data?.message || t('deleteFailed')
-      });
+      setSuccessMessage(error?.data?.message || t('deleteFailed'));
+      setShowSuccessMessage(true);
     }
   };
 
