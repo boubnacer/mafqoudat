@@ -77,12 +77,21 @@ export const initializeGlobalState = (options = {}) => {
       state.mode = mode;
     }
   } else {
+    // Migration: Check for legacy 'theme' in localStorage
+    const legacyTheme = localStorage.getItem('theme');
+    
     // Create new state
     state = {
       ...DEFAULT_GLOBAL_STATE,
       currentCountry: currentCountry || DEFAULT_GLOBAL_STATE.currentCountry,
-      mode: mode || localStorage.getItem('theme') || DEFAULT_GLOBAL_STATE.mode
+      mode: mode || legacyTheme || DEFAULT_GLOBAL_STATE.mode
     };
+    
+    // Remove legacy 'theme' key after migration
+    if (legacyTheme) {
+      localStorage.removeItem('theme');
+      console.log('Migrated legacy theme to globalState.mode');
+    }
   }
   
   // Save to localStorage

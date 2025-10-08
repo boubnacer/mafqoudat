@@ -6,7 +6,6 @@
 // Required localStorage keys
 const REQUIRED_KEYS = {
   language: 'en',
-  theme: 'light',
   isLoggedIn: 'false'
 };
 
@@ -192,11 +191,14 @@ export const autoRepairLocalStorage = (options = {}) => {
     // 3. Fix globalState if needed
     const globalStateCheck = validateGlobalState();
     if (!globalStateCheck.valid) {
+      // Migration: Check for legacy 'theme' in localStorage
+      const legacyTheme = localStorage.getItem('theme');
+      
       if (!globalStateCheck.state) {
         // Create new globalState
         const defaultState = {
           currentCountry: null,
-          mode: localStorage.getItem('theme') || 'light',
+          mode: legacyTheme || 'light',
           isSidebarOpen: false,
           openModal: false,
           activeLink: "",
@@ -207,12 +209,18 @@ export const autoRepairLocalStorage = (options = {}) => {
         
         localStorage.setItem('globalState', JSON.stringify(defaultState));
         actions.push('Created default globalState');
+        
+        // Remove legacy 'theme' key after migration
+        if (legacyTheme) {
+          localStorage.removeItem('theme');
+          actions.push('Migrated legacy theme to globalState.mode');
+        }
       } else {
         // Fix existing globalState
         const state = globalStateCheck.state;
         const defaultState = {
           currentCountry: state.currentCountry || null,
-          mode: state.mode || 'light',
+          mode: state.mode || legacyTheme || 'light',
           isSidebarOpen: state.isSidebarOpen ?? false,
           openModal: state.openModal ?? false,
           activeLink: state.activeLink || "",
@@ -223,6 +231,19 @@ export const autoRepairLocalStorage = (options = {}) => {
         
         localStorage.setItem('globalState', JSON.stringify(defaultState));
         actions.push('Repaired globalState structure');
+        
+        // Remove legacy 'theme' key after migration
+        if (legacyTheme) {
+          localStorage.removeItem('theme');
+          actions.push('Migrated legacy theme to globalState.mode');
+        }
+      }
+    } else {
+      // Even if globalState is valid, clean up legacy 'theme' key
+      const legacyTheme = localStorage.getItem('theme');
+      if (legacyTheme) {
+        localStorage.removeItem('theme');
+        actions.push('Removed legacy theme key');
       }
     }
     

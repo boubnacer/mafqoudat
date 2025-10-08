@@ -67,6 +67,7 @@ export const {
   setOpenModal,
 } = globalSlice.actions;
 
+export const selectMode = (state) => state.global.mode;
 export const selectIsSidebarOpen = (state) => state.global.isSidebarOpen;
 export const selectActiveLink = (state) => state.global.activeLink;
 export const selectCurrentCountry = (state) => state.global.currentCountry;

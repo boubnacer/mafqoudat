@@ -6,7 +6,6 @@ export const cleanupLocalStorage = () => {
     'accessToken',
     'isLoggedIn',
     'language',
-    'theme',
     'currentCountry',
     'globalState' // Added to preserve Redux global state
   ];
@@ -75,8 +74,7 @@ export const removeLocalStorageItem = (key) => {
 export const initializeLocalStorage = () => {
   const defaults = {
     isLoggedIn: 'false',
-    language: 'en',
-    theme: 'light'
+    language: 'en'
   };
 
   Object.entries(defaults).forEach(([key, value]) => {
@@ -84,6 +82,13 @@ export const initializeLocalStorage = () => {
       localStorage.setItem(key, value);
     }
   });
+  
+  // Migration: Remove legacy 'theme' key if it exists
+  const legacyTheme = localStorage.getItem('theme');
+  if (legacyTheme) {
+    localStorage.removeItem('theme');
+    console.log('Removed legacy theme key from localStorage');
+  }
 };
 
 // Export cleanup function for immediate use
