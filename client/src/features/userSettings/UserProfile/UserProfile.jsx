@@ -40,6 +40,7 @@ import { useGetUserByIdQuery, useUpdateUserMutation } from '../usersApiSlice';
 import { useGetCountriesQuery } from '../../dependencies/dependenciesApiSlice';
 import { authStorage } from '../../../utils/authStorage';
 import { setCredentials } from '../../auth/authSlice';
+import { setCurrentCountry } from '../../../app/state';
 
 const UserProfile = () => {
   const theme = useTheme();
@@ -186,6 +187,9 @@ const UserProfile = () => {
       updateData.password = formData.password;
     }
 
+    // Store the old country to check if it changed
+    const oldCountry = user?.country?._id || user?.country;
+
     try {
       const response = await updateUser(updateData).unwrap();
       
@@ -193,6 +197,12 @@ const UserProfile = () => {
       if (response.accessToken) {
         console.log('✅ [PROFILE] New token received, updating credentials');
         dispatch(setCredentials({ accessToken: response.accessToken }));
+      }
+
+      // If country changed, update the global state immediately for navbar
+      if (formData.country !== oldCountry) {
+        console.log('✅ [PROFILE] Country changed, updating global state');
+        dispatch(setCurrentCountry(formData.country));
       }
     } catch (err) {
       console.error('Failed to update profile:', err);
