@@ -73,6 +73,7 @@ const NewPost = lazy(() => import("./features/posts/NewPost/NewPost"));
 const Prefetch = lazy(() => import("./features/auth/PrefetchData/Prefetch"));
 const NewUser = lazy(() => import("./features/auth/SingUp/NewUser"));
 const SinglePost = lazy(() => import("./features/posts/PostPage/SinglePost"));
+const UserProfile = lazy(() => import("./features/userSettings/UserProfile/UserProfile"));
 
 
 // Lazy load dashboard components
@@ -264,6 +265,11 @@ const AppContent = () => {
             <Route path="posts/edit/:id" element={
               <Suspense fallback={<LoadingFallback />}>
                 <EditPost />
+              </Suspense>
+            } />
+            <Route path="profile" element={
+              <Suspense fallback={<LoadingFallback />}>
+                <UserProfile />
               </Suspense>
             } />
             <Route path="users">

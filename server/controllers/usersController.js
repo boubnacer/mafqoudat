@@ -27,6 +27,31 @@ const getAllUsers = async (req, res) => {
   res.json(usersWithCountry);
 };
 
+// @desc Get single user by ID
+// @route GET /users/:id
+// @access Private
+const getUserById = async (req, res) => {
+  const { id } = req.params;
+
+  // Confirm data
+  if (!id) {
+    return res.status(400).json({ message: "User ID Required" });
+  }
+
+  // Get user by ID - exclude password
+  const user = await User.findById(id)
+    .select("-password")
+    .populate('country', 'code names labels')
+    .lean()
+    .exec();
+
+  if (!user) {
+    return res.status(404).json({ message: "User not found" });
+  }
+
+  res.json(user);
+};
+
 // @desc Create new user
 // @route POST /users
 // @access Private
@@ -216,6 +241,7 @@ const deleteUser = async (req, res) => {
 
 module.exports = {
   getAllUsers,
+  getUserById,
   createNewUser,
   updateUser,
   deleteUser,

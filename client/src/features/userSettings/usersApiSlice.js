@@ -43,6 +43,30 @@ export const usersApiSlice = apiSlice.injectEndpoints({
                 } else return [{ type: 'User', id: 'LIST' }]
             }
         }),
+        getUserById: builder.query({
+            query: (id) => ({
+                url: `/users/${id}`,
+                validateStatus: (response, result) => {
+                    return response.status === 200 && !result.isError
+                },
+            }),
+            transformErrorResponse: (response) => {
+                if (response.status === 404) {
+                    return { 
+                        status: 404, 
+                        data: { message: "User not found." } 
+                    };
+                }
+                if (response.status === 500) {
+                    return { 
+                        status: 500, 
+                        data: { message: "Failed to load user. Please try again." } 
+                    };
+                }
+                return response;
+            },
+            providesTags: (result, error, arg) => [{ type: 'User', id: arg }]
+        }),
         addNewUser: builder.mutation({
             query: initialUserData => ({
                 url: '/users',
@@ -142,6 +166,7 @@ export const usersApiSlice = apiSlice.injectEndpoints({
 
 export const {
     useGetUsersQuery,
+    useGetUserByIdQuery,
     useAddNewUserMutation,
     useUpdateUserMutation,
     useDeleteUserMutation,

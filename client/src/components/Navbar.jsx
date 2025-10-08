@@ -1064,6 +1064,32 @@ const Navbar = () => {
           <MenuItem 
             onClick={() => {
               handleProfileClose();
+              navigate('/dash/profile');
+            }}
+            sx={{
+              py: 1.5,
+              px: 2,
+              '&:hover': {
+                backgroundColor: alpha(theme.palette.primary.main, 0.1),
+              }
+            }}
+          >
+            <ListItemIcon>
+              <Person sx={{ fontSize: 20 }} />
+            </ListItemIcon>
+            <ListItemText 
+              primary={t('myProfile')}
+              primaryTypographyProps={{
+                fontWeight: 600,
+                fontSize: '0.95rem',
+                textAlign: currentLanguage === 'ar' ? 'right' : 'left'
+              }}
+            />
+          </MenuItem>
+          <Divider />
+          <MenuItem 
+            onClick={() => {
+              handleProfileClose();
               sendLogout();
             }}
             sx={{
@@ -1186,32 +1212,60 @@ const Navbar = () => {
             
             {/* Authentication Section */}
             {authLoggedIn ? (
-              <MenuItem
-                onClick={() => {
-                  handleMobileMenuClose();
-                  sendLogout();
-                }}
-                sx={{
-                  borderRadius: 1,
-                  py: 1.5,
-                  '&:hover': {
-                    backgroundColor: alpha(theme.palette.error.main, 0.1),
-                  }
-                }}
-              >
-                <ListItemIcon>
-                  <LogoutOutlined sx={{ fontSize: 22, color: 'error.main' }} />
-                </ListItemIcon>
-                <ListItemText 
-                  primary={t('logout')} 
-                  sx={{ color: 'error.main' }}
-                  primaryTypographyProps={{
-                    fontWeight: 600,
-                    fontSize: '1rem',
-                    textAlign: currentLanguage === 'ar' ? 'right' : 'left'
+              <>
+                <MenuItem
+                  onClick={() => {
+                    handleMobileMenuClose();
+                    navigate('/dash/profile');
                   }}
-                />
-              </MenuItem>
+                  sx={{
+                    borderRadius: 1,
+                    py: 1.5,
+                    mb: 0.5,
+                    '&:hover': {
+                      backgroundColor: alpha(theme.palette.primary.main, 0.1),
+                    }
+                  }}
+                >
+                  <ListItemIcon>
+                    <Person sx={{ fontSize: 22 }} />
+                  </ListItemIcon>
+                  <ListItemText 
+                    primary={t('myProfile')}
+                    primaryTypographyProps={{
+                      fontWeight: 600,
+                      fontSize: '1rem',
+                      textAlign: currentLanguage === 'ar' ? 'right' : 'left'
+                    }}
+                  />
+                </MenuItem>
+                <MenuItem
+                  onClick={() => {
+                    handleMobileMenuClose();
+                    sendLogout();
+                  }}
+                  sx={{
+                    borderRadius: 1,
+                    py: 1.5,
+                    '&:hover': {
+                      backgroundColor: alpha(theme.palette.error.main, 0.1),
+                    }
+                  }}
+                >
+                  <ListItemIcon>
+                    <LogoutOutlined sx={{ fontSize: 22, color: 'error.main' }} />
+                  </ListItemIcon>
+                  <ListItemText 
+                    primary={t('logout')} 
+                    sx={{ color: 'error.main' }}
+                    primaryTypographyProps={{
+                      fontWeight: 600,
+                      fontSize: '1rem',
+                      textAlign: currentLanguage === 'ar' ? 'right' : 'left'
+                    }}
+                  />
+                </MenuItem>
+              </>
             ) : (
               <>
                 <MenuItem
