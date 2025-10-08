@@ -1,6 +1,7 @@
 import { createSlice } from "@reduxjs/toolkit";
 import { authStorage } from "../../utils/authStorage";
 import { getOptimizedTokenValidation } from "../../utils/optimizedTokenUtils";
+import { ensureGlobalStateWithUserCountry } from "../../utils/globalStateInitializer";
 
 // Debug configuration
 const DEBUG_AUTH = false;
@@ -61,6 +62,14 @@ const getInitialState = () => {
       hasUserData: !!userData,
       userId: userData?._id
     });
+    
+    // Ensure globalState exists with user's country on app startup
+    if (userData) {
+      ensureGlobalStateWithUserCountry(userData);
+      debugLog('GlobalState ensured on auth restoration', { 
+        country: userData.country || userData.Country 
+      });
+    }
     
     return {
       token: authState.token,
@@ -131,6 +140,14 @@ const authSlice = createSlice({
       // Persist to localStorage using centralized auth utility
       const storageResult = authStorage.setCredentials({ accessToken, user: userData });
       debugLog('setCredentials localStorage result', { success: storageResult });
+      
+      // Ensure globalState exists and is initialized with user's country
+      if (userData) {
+        ensureGlobalStateWithUserCountry(userData);
+        debugLog('GlobalState ensured with user country', { 
+          country: userData.country || userData.Country 
+        });
+      }
     },
     logOut: (state, action) => {
       debugLog('logOut action dispatched', {

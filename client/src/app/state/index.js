@@ -1,28 +1,13 @@
 import { createSlice } from "@reduxjs/toolkit";
+import { ensureGlobalStateAlwaysExists } from "../../utils/globalStateInitializer";
 
-// Get initial state from localStorage
+// Get initial state from localStorage, ensuring it ALWAYS exists
 const getInitialState = () => {
-  const savedState = localStorage.getItem('globalState');
+  // Ensure globalState exists in localStorage first
+  const state = ensureGlobalStateAlwaysExists();
   
-  if (savedState) {
-    try {
-      const parsedState = JSON.parse(savedState);
-      return parsedState;
-    } catch (error) {
-      console.error('Error parsing saved global state:', error);
-    }
-  }
-  
-  return {
-    currentCountry: null, // Use null instead of empty string to distinguish from unset
-    mode: "light",
-    isSidebarOpen: false,
-    openModal: false,
-    activeLink: "",
-    foundOrlost: "",
-    direction: "ltr",
-    categoryFilter: "all", // Add category filter state
-  };
+  // Return the guaranteed state
+  return state;
 };
 
 export const globalSlice = createSlice({
