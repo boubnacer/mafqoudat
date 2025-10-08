@@ -107,7 +107,7 @@ Content-Security-Policy: [Comprehensive CSP rules]
 ```bash
 # JWT Configuration
 JWT_SECRET=your_strong_jwt_secret_here
-JWT_REFRESH_SECRET=your_strong_refresh_secret_here
+JWT_ACCESS_EXPIRES_IN=30d
 
 # CORS Configuration
 FRONTEND_URL=https://your-frontend-domain.com
@@ -120,9 +120,7 @@ NODE_ENV=production
 ## Security Best Practices Implemented
 
 ### 1. Authentication & Authorization
-- JWT tokens with short expiration (15 minutes)
-- Refresh tokens with longer expiration (7 days)
-- Secure cookie configuration
+- JWT tokens with long expiration (30 days) for simplified authentication
 - Role-based access control
 - Token blacklisting on logout
 
@@ -186,7 +184,7 @@ NODE_ENV=production
 
 ### Environment Variables
 - [ ] `JWT_SECRET`: Strong secret for access tokens
-- [ ] `JWT_REFRESH_SECRET`: Strong secret for refresh tokens
+- [ ] `JWT_ACCESS_EXPIRES_IN`: Token expiration (default 30d)
 - [ ] `FRONTEND_URL`: Allowed frontend origin
 - [ ] `CLIENT_URL`: Allowed client origin
 - [ ] `NODE_ENV`: Set to 'production'

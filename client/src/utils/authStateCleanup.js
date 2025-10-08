@@ -220,7 +220,7 @@ class AuthStateCleanupManager {
   async clearCookies() {
     try {
       // Clear auth-related cookies
-      const authCookies = ['jwt', 'refreshToken', 'accessToken', 'authToken'];
+      const authCookies = ['jwt', 'accessToken', 'authToken'];
       
       authCookies.forEach(cookieName => {
         document.cookie = `${cookieName}=; expires=Thu, 01 Jan 1970 00:00:00 UTC; path=/;`;
@@ -278,10 +278,6 @@ class AuthStateCleanupManager {
    */
   async clearErrorState() {
     try {
-      // Clear any error states in Redux
-      store.dispatch({ type: 'auth/clearRefreshState' });
-      store.dispatch({ type: 'auth/setRefreshError', payload: null });
-      
       // Clear error handler state
       authErrorHandler.clearListeners();
 

@@ -97,31 +97,6 @@ const rateLimiters = {
     message: "Too many password reset attempts, please try again in an hour"
   }),
 
-  // Rate limiter for refresh token requests
-  refreshToken: createRateLimiter({
-    windowMs: 15 * 60 * 1000, // 15 minutes
-    max: 8, // Reduced from 10 to 8 refresh attempts per 15 minutes
-    message: "Too many token refresh attempts, please try again in 15 minutes",
-    handler: (req, res, next, options) => {
-      logEvents(
-        `Rate Limit Exceeded: ${options.message}\t${req.method}\t${req.url}\t${req.ip}\t${req.headers.origin}`,
-        "errLog.log"
-      );
-      
-      // Calculate retry-after time in seconds
-      const retryAfter = Math.round(options.windowMs / 1000);
-      
-      res.status(options.statusCode)
-         .set('Retry-After', retryAfter.toString())
-         .json({
-           message: options.message,
-           retryAfter: retryAfter,
-           isError: true,
-           code: 'RATE_LIMITED'
-         });
-    }
-  }),
-
   // Rate limiter for logout requests
   logout: createRateLimiter({
     windowMs: 5 * 60 * 1000, // 5 minutes
