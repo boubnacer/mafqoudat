@@ -75,7 +75,6 @@ const Prefetch = lazy(() => import("./features/auth/PrefetchData/Prefetch"));
 const NewUser = lazy(() => import("./features/auth/SingUp/NewUser"));
 const SinglePost = lazy(() => import("./features/posts/PostPage/SinglePost"));
 
-
 // Lazy load dashboard components
 const Dash = lazy(() => import("./features/dashboard/Dash"));
 const DependenciesManager = lazy(() => import("./features/MANAGER/Dependencies/DependenciesManager"));
