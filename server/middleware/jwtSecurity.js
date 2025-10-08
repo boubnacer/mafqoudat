@@ -4,26 +4,15 @@ const { logEvents } = require("./logger");
 // JWT security configuration with environment-based settings
 const JWT_CONFIG = {
   // Access token expiry - configurable via environment variable
-  // Default: 4 hours (good balance of security and user experience)
+  // Default: 30 days (long-lived tokens for simplicity)
   // Can be overridden with JWT_ACCESS_EXPIRES_IN environment variable
-  accessTokenExpiry: process.env.JWT_ACCESS_EXPIRES_IN || '4h',
-  
-  // Refresh token expiry - configurable via environment variable  
-  // Default: 7 days (standard for refresh tokens)
-  // Can be overridden with JWT_REFRESH_EXPIRES_IN environment variable
-  refreshTokenExpiry: process.env.JWT_REFRESH_EXPIRES_IN || '7d',
-  
-  // Legacy support - if JWT_EXPIRES_IN is set, use it for access token
-  // This maintains backward compatibility
-  ...(process.env.JWT_EXPIRES_IN && !process.env.JWT_ACCESS_EXPIRES_IN && {
-    accessTokenExpiry: process.env.JWT_EXPIRES_IN
-  }),
+  accessTokenExpiry: process.env.JWT_ACCESS_EXPIRES_IN || '30d',
   
   issuer: 'mafqoudat-api',
   audience: 'mafqoudat-client'
 };
 
-// Enhanced JWT token generation with security features
+// Simplified JWT token generation - only access tokens
 const generateTokens = (userInfo) => {
   const payload = {
     UserInfo: {
@@ -47,29 +36,7 @@ const generateTokens = (userInfo) => {
     }
   );
 
-  const refreshPayload = {
-    username: userInfo.username,
-    tokenType: 'refresh',
-    iat: Math.floor(Date.now() / 1000),
-    iss: JWT_CONFIG.issuer,
-    aud: JWT_CONFIG.audience,
-    jti: require('crypto').randomUUID()
-  };
-
-  const refreshToken = jwt.sign(
-    refreshPayload,
-    process.env.JWT_REFRESH_SECRET,
-    { 
-      expiresIn: JWT_CONFIG.refreshTokenExpiry,
-      algorithm: 'HS256'
-    }
-  );
-
-  return { 
-    accessToken, 
-    refreshToken, 
-    refreshTokenId: refreshPayload.jti 
-  };
+  return { accessToken };
 };
 
 // Enhanced JWT verification with comprehensive security checks
@@ -244,140 +211,6 @@ const verifyJWT = (req, res, next) => {
   });
 };
 
-// Enhanced refresh token verification with rotation support
-const verifyRefreshToken = (req, res, next) => {
-  const cookies = req.cookies;
-
-  if (!cookies?.jwt) {
-    return res.status(401).json({ 
-      message: "Unauthorized - No refresh token",
-      isError: true 
-    });
-  }
-
-  const refreshToken = cookies.jwt;
-
-  jwt.verify(
-    refreshToken,
-    process.env.JWT_REFRESH_SECRET,
-    {
-      issuer: JWT_CONFIG.issuer,
-      audience: JWT_CONFIG.audience,
-      algorithms: ['HS256']
-    },
-    async (err, decoded) => {
-      if (err) {
-        let errorMessage = "Forbidden - Invalid refresh token";
-        
-        if (err.name === 'TokenExpiredError') {
-          errorMessage = "Refresh token expired";
-        }
-
-        logEvents(
-          `Refresh Token Verification Failed: ${err.name} - ${err.message}\t${req.method}\t${req.url}\t${req.ip}`,
-          "errLog.log"
-        );
-
-        return res.status(403).json({ 
-          message: errorMessage,
-          isError: true 
-        });
-      }
-
-      // Verify token type
-      if (decoded.tokenType !== 'refresh') {
-        return res.status(403).json({ 
-          message: "Invalid token type",
-          isError: true 
-        });
-      }
-
-      // Check if refresh token is blacklisted
-      if (isTokenBlacklisted(decoded.jti)) {
-        logEvents(
-          `Blacklisted Refresh Token Attempt: ${decoded.username}\t${req.method}\t${req.url}\t${req.ip}`,
-          "errLog.log"
-        );
-        return res.status(403).json({ 
-          message: "Refresh token has been revoked",
-          isError: true 
-        });
-      }
-
-      req.refreshTokenData = decoded;
-      next();
-    }
-  );
-};
-
-// Token rotation function - generates new access and refresh tokens
-const rotateTokens = (userInfo, oldRefreshTokenId = null) => {
-  // Blacklist the old refresh token if provided
-  if (oldRefreshTokenId) {
-    blacklistToken(oldRefreshTokenId);
-  }
-
-  // Generate new tokens
-  const newTokens = generateTokens(userInfo);
-  
-  return {
-    accessToken: newTokens.accessToken,
-    refreshToken: newTokens.refreshToken,
-    refreshTokenId: newTokens.refreshTokenId // We'll need to extract this from the token
-  };
-};
-
-// Enhanced secure cookie configuration for production
-const getSecureCookieOptions = (isProduction = process.env.NODE_ENV === 'production') => {
-  const baseOptions = {
-    httpOnly: true, // Prevent XSS attacks
-    secure: isProduction, // true for HTTPS in production, false for HTTP in development
-    sameSite: isProduction ? "None" : "Lax", // None for cross-domain, Lax for same-domain
-    maxAge: 7 * 24 * 60 * 60 * 1000, // 7 days
-    path: '/', // Available to all routes
-  };
-
-  // Production-specific security enhancements
-  if (isProduction) {
-    return {
-      ...baseOptions,
-      // Note: No domain attribute - let browser handle cross-domain cookie sharing
-      // Server on Railway cannot set cookies for different domains
-      // sameSite: "None" + secure: true enables cross-domain cookies
-      priority: 'high', // Cookie priority
-      // Note: Removed partitioned attribute as it can interfere with cross-domain cookies
-      // partitioned: true, // Disabled for cross-domain compatibility
-    };
-  }
-
-  return baseOptions;
-};
-
-// Enhanced secure cookie clear options (without maxAge for clearing cookies)
-const getSecureCookieClearOptions = (isProduction = process.env.NODE_ENV === 'production') => {
-  const baseOptions = {
-    httpOnly: true, // Prevent XSS attacks
-    secure: isProduction, // true for HTTPS in production, false for HTTP in development
-    sameSite: isProduction ? "None" : "Lax", // None for cross-domain, Lax for same-domain
-    path: '/', // Available to all routes
-  };
-
-  // Production-specific security enhancements
-  if (isProduction) {
-    return {
-      ...baseOptions,
-      // Note: No domain attribute - let browser handle cross-domain cookie sharing
-      // Server on Railway cannot set cookies for different domains
-      // sameSite: "None" + secure: true enables cross-domain cookies
-      priority: 'high', // Cookie priority
-      // Note: Removed partitioned attribute as it can interfere with cross-domain cookies
-      // partitioned: true, // Disabled for cross-domain compatibility
-    };
-  }
-
-  return baseOptions;
-};
-
 // Enhanced token blacklist with expiration tracking
 const tokenBlacklist = new Map(); // Changed to Map to store expiration times
 
@@ -418,10 +251,9 @@ const cleanupBlacklist = () => {
 // Run cleanup every 5 minutes
 setInterval(cleanupBlacklist, 5 * 60 * 1000);
 
-// Enhanced logout middleware with comprehensive token blacklisting
+// Simplified logout middleware - blacklist access token only
 const logout = (req, res) => {
   const tokenId = req.tokenId;
-  const refreshTokenData = req.refreshTokenData;
   
   // Blacklist the current access token
   if (tokenId) {
@@ -431,18 +263,6 @@ const logout = (req, res) => {
       "reqLog.log"
     );
   }
-
-  // Blacklist the refresh token if available
-  if (refreshTokenData && refreshTokenData.jti) {
-    blacklistToken(refreshTokenData.jti);
-    logEvents(
-      `Refresh token blacklisted on logout: ${refreshTokenData.username || 'unknown'}\t${req.method}\t${req.url}\t${req.ip}`,
-      "reqLog.log"
-    );
-  }
-
-  // Clear refresh token cookie
-  res.clearCookie('jwt', getSecureCookieClearOptions());
   
   // Log successful logout
   logEvents(
@@ -616,13 +436,6 @@ const authRateLimit = (req, res, next) => {
   next();
 };
 
-// Advanced rate limiting for refresh token endpoint
-const refreshTokenRateLimit = (req, res, next) => {
-  // This would implement more sophisticated rate limiting for refresh tokens
-  // For now, we'll use the existing rate limiting system
-  next();
-};
-
 // Rate limiting for logout endpoint
 const logoutRateLimit = (req, res, next) => {
   // Logout should have moderate rate limiting to prevent abuse
@@ -632,13 +445,9 @@ const logoutRateLimit = (req, res, next) => {
 module.exports = {
   generateTokens,
   verifyJWT,
-  verifyRefreshToken,
-  getSecureCookieOptions,
-  getSecureCookieClearOptions,
   logout,
   isTokenBlacklisted,
   blacklistToken,
-  rotateTokens,
   cleanupBlacklist,
   JWT_CONFIG,
   // New middleware exports
@@ -649,6 +458,5 @@ module.exports = {
   requireAllPermissions,
   optionalAuth,
   authRateLimit,
-  refreshTokenRateLimit,
   logoutRateLimit
 };

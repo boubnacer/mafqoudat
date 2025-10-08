@@ -2,7 +2,7 @@ const User = require("../models/User");
 const Post = require("../models/Post");
 const bcrypt = require("bcrypt");
 const Country = require("../models/Country");
-const { generateTokens, getSecureCookieOptions } = require("../middleware/jwtSecurity");
+const { generateTokens } = require("../middleware/jwtSecurity");
 const { logEvents } = require("../middleware/logger");
 
 // @desc Get all users
@@ -117,16 +117,13 @@ const createNewUser = async (req, res) => {
     const user = await User.create(userObject);
     console.log('User created successfully:', user._id);
 
-  // Generate secure tokens
-  const { accessToken, refreshToken } = generateTokens({
+  // Generate access token (long-lived, no refresh token needed)
+  const { accessToken } = generateTokens({
     username: user.username,
     id: user.id,
     country: user.country,
     role: user.role
   });
-
-  // Create secure cookie with refresh token
-  res.cookie("jwt", refreshToken, getSecureCookieOptions());
 
   // Log successful registration
   logEvents(

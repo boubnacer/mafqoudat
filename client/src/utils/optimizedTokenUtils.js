@@ -5,7 +5,8 @@ const tokenValidationCache = new Map();
 const CACHE_DURATION = 5000; // 5 seconds cache
 
 /**
- * Optimized token validation with caching
+ * Simplified token validation - only checks if token exists and is well-formed
+ * Tokens are long-lived (30 days) so expiration checking is removed
  * @param {string} token - The JWT token to validate
  * @returns {Object} Validation result with caching
  */
@@ -24,17 +25,9 @@ export const getOptimizedTokenValidation = (token) => {
 
   try {
     const decoded = jwtDecode(token);
-    const currentTime = Date.now() / 1000;
     
-    let validationResult;
-    
-    if (decoded.exp && decoded.exp < currentTime) {
-      validationResult = { isValid: false, reason: 'TOKEN_EXPIRED', decoded };
-    } else if (decoded.exp && (decoded.exp - currentTime) < 300) { // 5 minutes warning
-      validationResult = { isValid: true, reason: 'TOKEN_EXPIRING_SOON', decoded };
-    } else {
-      validationResult = { isValid: true, reason: 'TOKEN_VALID', decoded };
-    }
+    // Token is valid if it can be decoded (no expiration checks needed)
+    const validationResult = { isValid: true, reason: 'TOKEN_VALID', decoded };
 
     // Cache the result
     tokenValidationCache.set(cacheKey, {
@@ -50,7 +43,7 @@ export const getOptimizedTokenValidation = (token) => {
 };
 
 /**
- * Smart token validation that skips validation for recently validated tokens
+ * Simple token validation
  * @param {string} token - The JWT token to validate
  * @returns {boolean} True if token is valid
  */
@@ -60,85 +53,10 @@ export const isTokenValid = (token) => {
 };
 
 /**
- * Check if token is expiring soon (optimized)
- * @param {string} token - The JWT token
- * @returns {boolean} True if token expires soon
- */
-export const isTokenExpiringSoon = (token) => {
-  const validation = getOptimizedTokenValidation(token);
-  return validation.reason === 'TOKEN_EXPIRING_SOON';
-};
-
-/**
- * Get token expiration time (optimized with caching)
- * @param {string} token - The JWT token
- * @returns {number|null} Expiration time in milliseconds
- */
-export const getTokenExpirationTime = (token) => {
-  const validation = getOptimizedTokenValidation(token);
-  return validation.decoded?.exp ? validation.decoded.exp * 1000 : null;
-};
-
-/**
- * Get time remaining until token expires
- * @param {string} token - The JWT token
- * @returns {number} Time remaining in milliseconds
- */
-export const getTokenTimeRemaining = (token) => {
-  const expirationTime = getTokenExpirationTime(token);
-  if (!expirationTime) return 0;
-  
-  const currentTime = Date.now();
-  const timeRemaining = expirationTime - currentTime;
-  
-  return Math.max(0, timeRemaining);
-};
-
-/**
  * Clear token validation cache
  */
 export const clearTokenValidationCache = () => {
   tokenValidationCache.clear();
-};
-
-/**
- * Get token refresh timing recommendations
- * @param {string} token - The JWT token
- * @returns {Object} Refresh timing recommendations
- */
-export const getTokenRefreshTiming = (token) => {
-  const validation = getOptimizedTokenValidation(token);
-  
-  if (!validation.isValid) {
-    return { shouldRefresh: false, timeUntilRefresh: 0, priority: 'none' };
-  }
-
-  const timeRemaining = getTokenTimeRemaining(token);
-  const totalLifetime = validation.decoded?.exp && validation.decoded?.iat 
-    ? (validation.decoded.exp - validation.decoded.iat) * 1000 
-    : 4 * 60 * 60 * 1000; // Assume 4 hours default (updated to match new config)
-
-  // For short-lived tokens (5 minutes or less), use time-based logic instead of percentage
-  if (totalLifetime <= 5 * 60 * 1000) { // 5 minutes or less
-    if (timeRemaining > 1.5 * 60 * 1000) { // More than 1.5 minutes remaining (for 2min tokens, this means >90 seconds)
-      return { shouldRefresh: false, timeUntilRefresh: timeRemaining - (1.5 * 60 * 1000), priority: 'low' };
-    } else if (timeRemaining > 30 * 1000) { // More than 30 seconds remaining
-      return { shouldRefresh: true, timeUntilRefresh: 0, priority: 'medium' };
-    } else {
-      return { shouldRefresh: true, timeUntilRefresh: 0, priority: 'high' };
-    }
-  }
-
-  // For longer-lived tokens, use percentage-based logic
-  const remainingPercentage = timeRemaining / totalLifetime;
-
-  if (remainingPercentage > 0.5) {
-    return { shouldRefresh: false, timeUntilRefresh: timeRemaining - (totalLifetime * 0.3), priority: 'low' };
-  } else if (remainingPercentage > 0.2) {
-    return { shouldRefresh: true, timeUntilRefresh: 0, priority: 'medium' };
-  } else {
-    return { shouldRefresh: true, timeUntilRefresh: 0, priority: 'high' };
-  }
 };
 
 /**

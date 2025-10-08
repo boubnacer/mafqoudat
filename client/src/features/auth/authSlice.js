@@ -53,73 +53,22 @@ const getInitialState = () => {
     tokenLength: authState.token?.length
   });
   
-  // Validate token if it exists
+  // Simply restore token and user from localStorage (tokens last 30 days, no expiration checks needed)
   if (authState.token && authState.isLoggedIn) {
-    try {
-      const tokenValidation = getOptimizedTokenValidation(authState.token);
-      debugLog('Token validation result', {
-        isValid: tokenValidation.isValid,
-        reason: tokenValidation.reason
-      });
-      
-      // Extract user data from token (whether valid or expired)
-      const userData = extractUserFromToken(authState.token);
-      debugLog('Extracted user data from token', {
-        hasUserData: !!userData,
-        userId: userData?._id
-      });
-      
-      // If token is valid, restore auth state with extracted user data
-      if (tokenValidation.isValid) {
-        debugLog('Token is valid, restoring auth state with user data');
-        return {
-          token: authState.token,
-          isLoggedIn: true,
-          user: userData || authState.user || null, // Use extracted data first, fallback to stored data
-          isLoading: false,
-          isRefreshing: false,
-          refreshAttempts: 0,
-          lastRefreshError: null,
-          lastUpdate: Date.now(),
-        };
-      } else {
-        // Token is invalid/expired, but keep the auth state and extracted user data
-        // Let PersistLogin handle the refresh attempt
-        debugLog('Token expired, keeping auth state for refresh attempt');
-        console.log('🔄 Token expired, keeping auth state for refresh attempt');
-        return {
-          token: authState.token, // Keep the expired token
-          isLoggedIn: true, // Keep logged in state
-          user: userData || authState.user || null, // Use extracted data first, fallback to stored data
-          isLoading: false,
-          isRefreshing: false,
-          refreshAttempts: 0,
-          lastRefreshError: null,
-          lastUpdate: Date.now(),
-        };
-      }
-    } catch (error) {
-      debugLog('Token validation error:', error);
-      console.error('Token validation error:', error);
-      
-      // Extract user data even on validation error
-      const userData = extractUserFromToken(authState.token);
-      debugLog('Extracted user data despite validation error', {
-        hasUserData: !!userData,
-        userId: userData?._id
-      });
-      
-      return {
-        token: authState.token,
-        isLoggedIn: true,
-        user: userData || authState.user || null, // Use extracted data first, fallback to stored data
-        isLoading: false,
-        isRefreshing: false,
-        refreshAttempts: 0,
-        lastRefreshError: null,
-        lastUpdate: Date.now(),
-      };
-    }
+    // Extract user data from token if not in storage
+    const userData = extractUserFromToken(authState.token) || authState.user;
+    debugLog('Restoring auth state with user data', {
+      hasUserData: !!userData,
+      userId: userData?._id
+    });
+    
+    return {
+      token: authState.token,
+      isLoggedIn: true,
+      user: userData || null,
+      isLoading: false,
+      lastUpdate: Date.now(),
+    };
   }
   
   // No token found, return initial state
@@ -128,9 +77,6 @@ const getInitialState = () => {
     isLoggedIn: false,
     user: null,
     isLoading: false,
-    isRefreshing: false,
-    refreshAttempts: 0,
-    lastRefreshError: null,
     lastUpdate: Date.now(),
   };
   
@@ -171,9 +117,6 @@ const authSlice = createSlice({
       state.token = accessToken;
       state.isLoggedIn = true;
       state.user = userData || null;
-      state.isRefreshing = false;
-      state.refreshAttempts = 0;
-      state.lastRefreshError = null;
       state.lastUpdate = Date.now(); // Add timestamp for force updates
       
       debugLog('setCredentials state updated', {
@@ -206,9 +149,6 @@ const authSlice = createSlice({
       state.isLoggedIn = false;
       state.user = null;
       state.isLoading = false;
-      state.isRefreshing = false;
-      state.refreshAttempts = 0;
-      state.lastRefreshError = null;
       state.lastUpdate = Date.now(); // Add timestamp to force re-renders
       
       debugLog('logOut state updated', {
@@ -253,9 +193,6 @@ const authSlice = createSlice({
       state.isLoggedIn = false;
       state.user = null;
       state.isLoading = false;
-      state.isRefreshing = false;
-      state.refreshAttempts = 0;
-      state.lastRefreshError = null;
       state.lastUpdate = Date.now(); // Add timestamp to force re-renders
       
       debugLog('clearAuth state updated', {
@@ -271,28 +208,6 @@ const authSlice = createSlice({
       const storageResult = authStorage.clearAuth();
       debugLog('clearAuth localStorage result', { success: storageResult });
     },
-    setRefreshing: (state, action) => {
-      debugLog('setRefreshing action dispatched', { isRefreshing: action.payload });
-      state.isRefreshing = action.payload;
-      if (action.payload) {
-        state.lastRefreshError = null;
-      }
-    },
-    setRefreshAttempts: (state, action) => {
-      debugLog('setRefreshAttempts action dispatched', { attempts: action.payload });
-      state.refreshAttempts = action.payload;
-    },
-    setRefreshError: (state, action) => {
-      debugLog('setRefreshError action dispatched', { error: action.payload });
-      state.lastRefreshError = action.payload;
-      state.isRefreshing = false;
-    },
-    clearRefreshState: (state) => {
-      debugLog('clearRefreshState action dispatched');
-      state.isRefreshing = false;
-      state.refreshAttempts = 0;
-      state.lastRefreshError = null;
-    },
     forceUpdate: (state) => {
       // Force a state update to trigger re-renders
       state.lastUpdate = Date.now();
@@ -307,10 +222,6 @@ export const {
   setUser, 
   setLoading, 
   clearAuth,
-  setRefreshing,
-  setRefreshAttempts,
-  setRefreshError,
-  clearRefreshState,
   forceUpdate
 } = authSlice.actions;
 
@@ -319,9 +230,6 @@ export const selectCurrentToken = (state) => state.auth.token;
 export const selectIsLoggedIn = (state) => state.auth.isLoggedIn;
 export const selectCurrentUser = (state) => state.auth.user;
 export const selectAuthLoading = (state) => state.auth.isLoading;
-export const selectIsRefreshing = (state) => state.auth.isRefreshing;
-export const selectRefreshAttempts = (state) => state.auth.refreshAttempts;
-export const selectLastRefreshError = (state) => state.auth.lastRefreshError;
 
 // Re-export optimized selectors for better performance
 export {

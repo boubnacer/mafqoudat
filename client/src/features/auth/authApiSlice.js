@@ -2,8 +2,6 @@ import { apiSlice } from "../../app/api/apiSlice";
 import { logOut, setCredentials } from "./authSlice";
 import { authStorage } from "../../utils/authStorage";
 import { performLogout } from "../../utils/logoutUtils";
-import backgroundTokenRefreshService from "../../services/backgroundTokenRefresh";
-import { clearTokenValidationCache } from "../../utils/optimizedTokenUtils";
 
 // Helper function to extract user data from token
 const extractUserFromToken = (token) => {
@@ -65,42 +63,18 @@ export const authApiSlice = apiSlice.injectEndpoints({
         }
         return response;
       },
-      async onQueryStarted(arg, { dispatch, queryFulfilled, getState }) {
+      async onQueryStarted(arg, { dispatch, queryFulfilled }) {
         try {
           const { data } = await queryFulfilled;
           const { accessToken, user } = data;
           
-          // Clear token validation cache after successful login
-          clearTokenValidationCache();
-          
-          // Initialize background refresh service after successful login
+          // Set credentials on successful login (no refresh service needed with long-lived tokens)
           if (accessToken) {
-            const refreshCallback = async () => {
-              // Use the refresh mutation for background refresh
-              const refreshResult = await dispatch(authApiSlice.endpoints.refresh.initiate());
-              return refreshResult.data;
-            };
-            
-            // Initialize with enhanced error handling and recovery
-            try {
-              backgroundTokenRefreshService.initialize(refreshCallback, { getState, dispatch });
-              console.log('✅ Background token refresh service initialized successfully');
-            } catch (error) {
-              console.error('❌ Failed to initialize background token refresh service:', error);
-              // Attempt to recover the service
-              try {
-                backgroundTokenRefreshService.recover(refreshCallback, { getState, dispatch });
-                console.log('✅ Background token refresh service recovered successfully');
-              } catch (recoveryError) {
-                console.error('❌ Failed to recover background token refresh service:', recoveryError);
-                // Service will continue without background refresh - user will need to manually refresh
-              }
-            }
+            const userData = extractUserFromToken(accessToken) || user;
+            dispatch(setCredentials({ accessToken, user: userData }));
+            console.log('✅ Login successful, credentials set');
           }
-          
         } catch (error) {
-          // Stop background refresh service on login failure
-          backgroundTokenRefreshService.stop();
           console.error('Login failed:', error);
         }
       },
@@ -112,14 +86,9 @@ export const authApiSlice = apiSlice.injectEndpoints({
       }),
       async onQueryStarted(arg, { dispatch, queryFulfilled }) {
         try {
-          const { data } = await queryFulfilled;
+          await queryFulfilled;
           
-          // Stop background refresh service
-          backgroundTokenRefreshService.stop();
-          
-          // Clear token validation cache
-          clearTokenValidationCache();
-          
+          // Clear auth state
           dispatch(logOut());
           setTimeout(() => {
             dispatch(apiSlice.util.resetApiState());
@@ -127,10 +96,6 @@ export const authApiSlice = apiSlice.injectEndpoints({
         } catch (err) {
           // Use the robust logout utility for fallback
           console.warn('Primary logout failed, using robust logout utility:', err);
-          
-          // Stop background refresh service even on error
-          backgroundTokenRefreshService.stop();
-          clearTokenValidationCache();
           
           await performLogout({
             onSuccess: (message) => {
@@ -152,81 +117,7 @@ export const authApiSlice = apiSlice.injectEndpoints({
         }
       },
     }),
-    refresh: builder.mutation({
-      query: () => ({
-        url: "/auth/refresh",
-        method: "GET",
-      }),
-      async onQueryStarted(arg, { dispatch, queryFulfilled, getState }) {
-        try {
-          const result = await queryFulfilled;
-          const { accessToken, user } = result.data;
-          
-          if (accessToken) {
-            // Extract user data from the new token
-            const userData = extractUserFromToken(accessToken);
-            console.log('✅ Extracted user data from refresh token:', userData);
-            
-            // Clear token validation cache before setting new credentials
-            clearTokenValidationCache();
-            
-            // Update auth state with new token and user data
-            dispatch(setCredentials({ 
-              accessToken, 
-              user: userData || user // Use extracted data or fallback to API response
-            }));
-            
-            // Force a state update to ensure all components re-render
-            dispatch({ type: 'auth/forceUpdate' });
-            
-            // Re-initialize background refresh service
-            const refreshCallback = async () => {
-              // Use the refresh mutation for background refresh
-              const refreshResult = await dispatch(authApiSlice.endpoints.refresh.initiate());
-              return refreshResult.data;
-            };
-            
-            try {
-              backgroundTokenRefreshService.initialize(refreshCallback, { getState, dispatch });
-              console.log('✅ Background token refresh service re-initialized after refresh');
-            } catch (error) {
-              console.error('❌ Failed to re-initialize background token refresh service:', error);
-            }
-            
-            console.log('✅ Auth state updated after refresh with user data:', userData);
-          }
-          
-        } catch (error) {
-          console.error('❌ Refresh mutation failed:', error);
-          
-          // Stop background refresh service
-          backgroundTokenRefreshService.stop();
-          
-          // If refresh fails, use robust logout utility
-          console.warn('Token refresh failed, performing logout:', error);
-          
-          performLogout({
-            forceClientSide: true,
-            onSuccess: () => {
-              dispatch(logOut({ reason: 'Refresh failed' }));
-              // Dispatch a custom event to notify components of auth failure
-              window.dispatchEvent(new CustomEvent('authError', { 
-                detail: { error: { status: 401, message: 'Your login has expired.' } } 
-              }));
-            },
-            onError: () => {
-              // Even if logout utility fails, ensure local cleanup
-              dispatch(logOut({ reason: 'Refresh failed' }));
-              window.dispatchEvent(new CustomEvent('authError', { 
-                detail: { error: { status: 401, message: 'Your login has expired.' } } 
-              }));
-            }
-          });
-        }
-      },
-    }),
   }),
 });
 
-export const { useLoginMutation, useSendLogoutMutation, useRefreshMutation } =
-  authApiSlice;
+export const { useLoginMutation, useSendLogoutMutation } = authApiSlice;

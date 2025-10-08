@@ -72,7 +72,6 @@ const EditPost = lazy(() => import("./features/posts/EditPost/EditPost"));
 const NewPost = lazy(() => import("./features/posts/NewPost/NewPost"));
 const Prefetch = lazy(() => import("./features/auth/PrefetchData/Prefetch"));
 const NewUser = lazy(() => import("./features/auth/SingUp/NewUser"));
-const PersistLogin = lazy(() => import("./features/auth/RefreshPage/PersistLogin"));
 const SinglePost = lazy(() => import("./features/posts/PostPage/SinglePost"));
 
 // Lazy load dashboard components
@@ -263,50 +262,44 @@ const AppContent = () => {
            
           {/* Protected routes - require authentication for creating/editing posts and admin actions */}
           <Route element={
-            <Suspense fallback={<LoadingFallback />}>
-              <PersistLogin />
-            </Suspense>
+            <ProtectedRoute requireAuth={true} requireCountry={true}>
+              <Suspense fallback={<LoadingFallback />}>
+                <Prefetch />
+              </Suspense>
+            </ProtectedRoute>
           }>
-            <Route element={
-              <ProtectedRoute requireAuth={true} requireCountry={true}>
+            <Route path="posts/new" element={
+              <Suspense fallback={<LoadingFallback />}>
+                <NewPost />
+              </Suspense>
+            } />
+            <Route path="posts/edit/:id" element={
+              <Suspense fallback={<LoadingFallback />}>
+                <EditPost />
+              </Suspense>
+            } />
+            <Route path="users">
+              <Route index element={
                 <Suspense fallback={<LoadingFallback />}>
-                  <Prefetch />
-                </Suspense>
-              </ProtectedRoute>
-            }>
-              <Route path="posts/new" element={
-                <Suspense fallback={<LoadingFallback />}>
-                  <NewPost />
-                </Suspense>
-              } />
-              <Route path="posts/edit/:id" element={
-                <Suspense fallback={<LoadingFallback />}>
-                  <EditPost />
-                </Suspense>
-              } />
-              <Route path="users">
-                <Route index element={
-                  <Suspense fallback={<LoadingFallback />}>
-                    <UsersList />
-                  </Suspense>
-                } />
-                <Route path=":id" element={
-                  <Suspense fallback={<LoadingFallback />}>
-                    <EditUser />
-                  </Suspense>
-                } />
-              </Route>
-              <Route path="dependencies" element={
-                <Suspense fallback={<LoadingFallback />}>
-                  <DependenciesManager />
+                  <UsersList />
                 </Suspense>
               } />
-              <Route path="admin" element={
+              <Route path=":id" element={
                 <Suspense fallback={<LoadingFallback />}>
-                  <AdminDashboard />
+                  <EditUser />
                 </Suspense>
               } />
             </Route>
+            <Route path="dependencies" element={
+              <Suspense fallback={<LoadingFallback />}>
+                <DependenciesManager />
+              </Suspense>
+            } />
+            <Route path="admin" element={
+              <Suspense fallback={<LoadingFallback />}>
+                <AdminDashboard />
+              </Suspense>
+            } />
           </Route>
         </Route>
 

@@ -1,9 +1,8 @@
 import React, { useState, useEffect } from 'react';
 import { Navigate, useLocation, useNavigate } from 'react-router-dom';
 import { useSelector, useDispatch } from 'react-redux';
-import { selectIsLoggedIn, selectIsRefreshing } from '../features/auth/authSlice';
+import { selectIsLoggedIn } from '../features/auth/authSlice';
 import { selectCurrentCountry } from '../app/state';
-import { authStorage } from '../utils/authStorage';
 import useAuth from '../hooks/useAuth';
 import { Alert, Snackbar } from '@mui/material';
 import { store } from '../app/store';
@@ -25,6 +24,7 @@ const debugLog = (message, data = null) => {
 
 /**
  * ProtectedRoute component that checks authentication and country selection
+ * Simplified - no refresh token logic, tokens are long-lived (30 days)
  * 
  * @param {Object} props - Component props
  * @param {React.ReactNode} props.children - Child components to render
@@ -39,42 +39,32 @@ const ProtectedRoute = ({
   requireCountry = false, 
   redirectTo = '/' 
 }) => {
-  // Always call hooks at the top level - no conditional hook calls
   const location = useLocation();
   const navigate = useNavigate();
   const dispatch = useDispatch();
   
-  // All useSelector hooks must be called unconditionally
   const isLoggedIn = useSelector(selectIsLoggedIn);
-  const isRefreshing = useSelector(selectIsRefreshing);
   const currentCountry = useSelector(selectCurrentCountry);
   const { country: userCountry } = useAuth();
   
-  // All useState hooks must be called unconditionally
   const [isInitialized, setIsInitialized] = useState(false);
-  const [authRestorationInProgress, setAuthRestorationInProgress] = useState(false);
   const [rateLimitError, setRateLimitError] = useState(null);
   const [showRateLimitAlert, setShowRateLimitAlert] = useState(false);
 
-  // Debug initial state
   debugLog('ProtectedRoute component initialized', {
     pathname: location.pathname,
     requireAuth,
     requireCountry,
     redirectTo,
     isLoggedIn,
-    isRefreshing,
     currentCountry,
     userCountry,
-    isInitialized,
-    authRestorationInProgress
+    isInitialized
   });
 
-  // Move all useEffect calls to the top level - no conditional hook calls
   // Global error handler for rate limiting
   useEffect(() => {
     const handleGlobalError = (event) => {
-      // Check if this is a rate limiting error from API calls
       if (event.detail && event.detail.status === 429) {
         debugLog('Global rate limiting error detected', { error: event.detail });
         setRateLimitError(event.detail);
@@ -82,7 +72,6 @@ const ProtectedRoute = ({
       }
     };
 
-    // Listen for custom rate limiting events
     window.addEventListener('rateLimitError', handleGlobalError);
     
     return () => {
@@ -92,147 +81,75 @@ const ProtectedRoute = ({
 
   // State synchronization check
   useEffect(() => {
-    // Check if auth state is consistent
     const checkAuthState = () => {
       const state = store.getState();
-      const { token, isLoggedIn: stateIsLoggedIn, user } = state.auth;
+      const { token, isLoggedIn: stateIsLoggedIn } = state.auth;
       
-      // If we have a token but isLoggedIn is false, something is wrong
       if (token && !stateIsLoggedIn) {
         console.warn('🚨 Auth state inconsistency detected, forcing update');
         dispatch({ type: 'auth/forceUpdate' });
       }
     };
     
-    // Check auth state periodically
-    const interval = setInterval(checkAuthState, 5000); // Check every 5 seconds
+    const interval = setInterval(checkAuthState, 5000);
     
     return () => clearInterval(interval);
   }, [dispatch]);
 
-  // Check for authentication restoration in progress
+  // Simple initialization - no complex refresh logic needed
   useEffect(() => {
-    debugLog('useEffect triggered for auth restoration check');
+    debugLog('Initializing protected route');
+    // Simple delay to ensure state is loaded
+    const timer = setTimeout(() => {
+      setIsInitialized(true);
+    }, 100);
     
-    // Check if we're in the middle of authentication restoration
-    const checkAuthRestoration = () => {
-      const urlParams = new URLSearchParams(location.search);
-      const isLanguageChange = urlParams.get('lang_changed') === 'true';
-      const isLanguageChanging = localStorage.getItem('isLanguageChanging') === 'true';
-      const preserveAuthFlag = localStorage.getItem('preserveAuthAfterLanguageChange') === 'true';
-      
-      // Check if we have auth data in localStorage that needs to be restored
-      const authState = authStorage.getAuthState();
-      const hasStoredAuth = authState.isLoggedIn && authState.token;
-      
-      // If we have stored auth but Redux shows not logged in, we're in restoration
-      const isRestoring = hasStoredAuth && !isLoggedIn;
-      
-      // Set restoration flag if any of these conditions are true
-      const inRestoration = isLanguageChange || isLanguageChanging || preserveAuthFlag || isRestoring || isRefreshing;
-      
-      debugLog('Auth restoration check result', {
-        isLanguageChange,
-        isLanguageChanging,
-        preserveAuthFlag,
-        hasStoredAuth,
-        isRestoring,
-        isRefreshing,
-        inRestoration,
-        pathname: location.pathname
-      });
-      
-      setAuthRestorationInProgress(inRestoration);
-      
-      if (inRestoration) {
-        debugLog('Authentication restoration in progress, setting timer');
-        console.log('🔒 [AUTH-RESTORATION] ProtectedRoute - Authentication restoration in progress:', {
-          isLanguageChange,
-          isLanguageChanging,
-          preserveAuthFlag,
-          hasStoredAuth,
-          isRestoring,
-          isRefreshing,
-          pathname: location.pathname
-        });
-        
-        // Give more time for authentication restoration
-        const timer = setTimeout(() => {
-          debugLog('Auth restoration timer completed, setting initialized to true');
-          setIsInitialized(true);
-        }, 1000); // Increased delay for auth restoration
-        
-        return () => clearTimeout(timer);
-      } else {
-        // Normal initialization
-        debugLog('Normal initialization, setting initialized to true immediately');
-        setIsInitialized(true);
-      }
-    };
+    return () => clearTimeout(timer);
+  }, []);
 
-    checkAuthRestoration();
-  }, [location.search, isLoggedIn, isRefreshing]);
-
-  // Redirect logic with timeout - moved to top level
+  // Redirect logic - no refresh delays needed with long-lived tokens
   useEffect(() => {
-    const redirectTimeout = setTimeout(() => {
-      if (requireAuth && !isLoggedIn && !isRefreshing && isInitialized && !authRestorationInProgress) {
-        debugLog('User not authenticated after delay, redirecting to login', {
-          requireAuth,
-          isLoggedIn,
-          isRefreshing,
-          isInitialized,
-          authRestorationInProgress,
-          pathname: location.pathname
-        });
-        console.log('🚨 User not authenticated after delay, redirecting to login');
-        // Store the attempted URL for redirect after login
-        const redirectUrl = location.pathname + location.search;
-        if (redirectUrl !== '/login') {
-          localStorage.setItem('redirectAfterLogin', redirectUrl);
-          debugLog('Stored redirect URL after login', { redirectUrl });
-        }
-        // Navigate to login
-        navigate('/auth/login', { replace: true });
-        return;
-      }
+    if (!isInitialized) return;
 
-      if (requireCountry && !currentCountry && isLoggedIn && isInitialized && !authRestorationInProgress) {
-        debugLog('Country required but not selected after delay, redirecting to Welcome page', {
-          requireCountry,
-          currentCountry,
-          isLoggedIn,
-          isInitialized,
-          authRestorationInProgress,
-          pathname: location.pathname
-        });
-        console.log('🚨 Country required but not selected after delay, redirecting to Welcome page');
-        // Store the attempted URL for redirect after country selection
-        const redirectUrl = location.pathname + location.search;
-        if (redirectUrl !== '/') {
-          localStorage.setItem('redirectAfterCountrySelection', redirectUrl);
-          debugLog('Stored redirect URL after country selection', { redirectUrl });
-        }
-        // Navigate to welcome page
-        navigate('/welcome', { replace: true, state: { from: location.pathname } });
-        return;
-      }
-
-      debugLog('All conditions met after delay, rendering children', {
+    if (requireAuth && !isLoggedIn) {
+      debugLog('User not authenticated, redirecting to login', {
         requireAuth,
         isLoggedIn,
-        isRefreshing,
-        requireCountry,
-        currentCountry,
-        isInitialized,
-        authRestorationInProgress,
         pathname: location.pathname
       });
-      console.log('✅ All conditions met after delay, rendering children');
-    }, 2000); // 2 second delay to allow refresh attempt
+      console.log('🚨 User not authenticated, redirecting to login');
+      const redirectUrl = location.pathname + location.search;
+      if (redirectUrl !== '/login') {
+        localStorage.setItem('redirectAfterLogin', redirectUrl);
+      }
+      navigate('/login', { replace: true });
+      return;
+    }
 
-    return () => clearTimeout(redirectTimeout);
-  }, [requireAuth, requireCountry, isLoggedIn, isRefreshing, currentCountry, isInitialized, authRestorationInProgress, location.pathname, location.search, navigate]);
+    if (requireCountry && !currentCountry && isLoggedIn && !userCountry) {
+      debugLog('Country required but not selected, redirecting to Welcome page', {
+        requireCountry,
+        currentCountry,
+        isLoggedIn,
+        pathname: location.pathname
+      });
+      console.log('🚨 Country required but not selected, redirecting to Welcome page');
+      const redirectUrl = location.pathname + location.search;
+      if (redirectUrl !== '/') {
+        localStorage.setItem('redirectAfterCountrySelection', redirectUrl);
+      }
+      navigate('/', { replace: true, state: { from: location.pathname } });
+      return;
+    }
+
+    debugLog('All conditions met, rendering children', {
+      requireAuth,
+      isLoggedIn,
+      requireCountry,
+      currentCountry,
+      pathname: location.pathname
+    });
+  }, [requireAuth, requireCountry, isLoggedIn, currentCountry, userCountry, isInitialized, location.pathname, location.search, navigate]);
 
   // Handle rate limit alert close
   const handleRateLimitAlertClose = () => {
@@ -240,24 +157,9 @@ const ProtectedRoute = ({
     setRateLimitError(null);
   };
 
-  // Render logic - no early returns before all hooks are called
-  // All hooks have been called at the top level, now we can do conditional rendering
-
-  // Debug logging - only for auth restoration or issues
-  if (!isInitialized || authRestorationInProgress || (requireCountry && !currentCountry)) {
-    debugLog('Debug logging triggered', {
-      isInitialized,
-      authRestorationInProgress,
-      requireCountry,
-      currentCountry,
-      pathname: location.pathname
-    });
-    console.log('🔒 [AUTH-RESTORATION] ProtectedRoute - Location:', location.pathname, 'RequireAuth:', requireAuth, 'RequireCountry:', requireCountry, 'Country:', currentCountry, 'Initialized:', isInitialized, 'AuthRestoration:', authRestorationInProgress);
-  }
-
-  // Loading state - show while not initialized or during auth restoration
-  if (!isInitialized || authRestorationInProgress) {
-    debugLog('Not initialized or auth restoration in progress, showing loading');
+  // Loading state while initializing
+  if (!isInitialized) {
+    debugLog('Not initialized, showing loading');
     return (
       <div style={{
         display: 'flex',
@@ -282,9 +184,7 @@ const ProtectedRoute = ({
             animation: 'spin 1s linear infinite',
             margin: '0 auto 1rem'
           }} />
-          <p style={{ margin: 0, color: '#666' }}>
-            {authRestorationInProgress ? 'Restoring session...' : 'Loading...'}
-          </p>
+          <p style={{ margin: 0, color: '#666' }}>Loading...</p>
         </div>
         <style>{`
           @keyframes spin {
@@ -294,180 +194,16 @@ const ProtectedRoute = ({
         `}</style>
       </div>
     );
-  }
-
-  // Authentication check - show loading while waiting for refresh
-  if (requireAuth && !isLoggedIn && !isRefreshing) {
-    debugLog('Authentication required but user not logged in, showing loading while waiting for refresh', {
-      requireAuth,
-      isLoggedIn,
-      isRefreshing,
-      pathname: location.pathname
-    });
-    console.log('ProtectedRoute - Authentication required but user not logged in, showing loading while waiting for refresh');
-    return (
-      <div style={{
-        display: 'flex',
-        justifyContent: 'center',
-        alignItems: 'center',
-        height: '100vh',
-        backgroundColor: '#f5f5f5'
-      }}>
-        <div style={{
-          textAlign: 'center',
-          padding: '2rem',
-          backgroundColor: 'white',
-          borderRadius: '8px',
-          boxShadow: '0 2px 8px rgba(0,0,0,0.1)'
-        }}>
-          <div style={{
-            width: '40px',
-            height: '40px',
-            border: '4px solid #f3f3f3',
-            borderTop: '4px solid #3498db',
-            borderRadius: '50%',
-            animation: 'spin 1s linear infinite',
-            margin: '0 auto 1rem'
-          }} />
-          <p style={{ margin: 0, color: '#666' }}>
-            Verifying authentication...
-          </p>
-        </div>
-        <style>{`
-          @keyframes spin {
-            0% { transform: rotate(0deg); }
-            100% { transform: rotate(360deg); }
-          }
-        `}</style>
-      </div>
-    );
-  }
-
-  // Country selection check
-  if (requireCountry && !currentCountry && isLoggedIn) {
-    debugLog('Country selection requirement check', {
-      requireCountry,
-      currentCountry,
-      isLoggedIn,
-      userCountry
-    });
-    
-    // For logged-in users: Skip country requirement since they already have a country in their profile
-    if (userCountry) {
-      debugLog('Logged-in user with country in profile, skipping country requirement');
-      console.log('🔒 ProtectedRoute - Logged-in user with country in profile, skipping country requirement');
-      return (
-        <>
-          {children}
-          {/* Rate limiting error alert */}
-          <Snackbar
-            open={showRateLimitAlert}
-            autoHideDuration={10000}
-            onClose={handleRateLimitAlertClose}
-            anchorOrigin={{ vertical: 'top', horizontal: 'center' }}
-          >
-            <Alert 
-              onClose={handleRateLimitAlertClose} 
-              severity="warning"
-              variant="filled"
-              sx={{ width: '100%' }}
-            >
-              {rateLimitError?.data?.message || 'Too many requests. Please wait a moment and try again.'}
-            </Alert>
-          </Snackbar>
-        </>
-      );
-    }
-    
-    // Check if this is a language change refresh or auth restoration - if so, wait for state to restore
-    const urlParams = new URLSearchParams(location.search);
-    const isLanguageChange = urlParams.get('lang_changed') === 'true';
-    const isLanguageChanging = localStorage.getItem('isLanguageChanging') === 'true';
-    const preserveAuthFlag = localStorage.getItem('preserveAuthAfterLanguageChange') === 'true';
-    
-    debugLog('Country requirement - checking restoration flags', { 
-      isLanguageChange, 
-      isLanguageChanging, 
-      preserveAuthFlag,
-      authRestorationInProgress,
-      isLoggedIn,
-      userCountry,
-      urlParams: location.search 
-    });
-    
-    console.log('🔒 [AUTH-RESTORATION] ProtectedRoute - Checking country requirement:', { 
-      isLanguageChange, 
-      isLanguageChanging, 
-      preserveAuthFlag,
-      authRestorationInProgress,
-      isLoggedIn,
-      userCountry,
-      urlParams: location.search 
-    });
-    
-    if (isLanguageChange || isLanguageChanging || preserveAuthFlag || authRestorationInProgress) {
-      debugLog('Auth restoration detected, waiting for country state to restore');
-      console.log('🔒 [AUTH-RESTORATION] ProtectedRoute - Auth restoration detected, waiting for country state to restore...');
-      // During auth restoration, give more time for country state to restore
-      // Show loading indicator while waiting
-      return (
-        <div style={{
-          display: 'flex',
-          justifyContent: 'center',
-          alignItems: 'center',
-          height: '100vh',
-          backgroundColor: '#f5f5f5'
-        }}>
-          <div style={{
-            textAlign: 'center',
-            padding: '2rem',
-            backgroundColor: 'white',
-            borderRadius: '8px',
-            boxShadow: '0 2px 8px rgba(0,0,0,0.1)'
-          }}>
-            <div style={{
-              width: '40px',
-              height: '40px',
-              border: '4px solid #f3f3f3',
-              borderTop: '4px solid #3498db',
-              borderRadius: '50%',
-              animation: 'spin 1s linear infinite',
-              margin: '0 auto 1rem'
-            }} />
-            <p style={{ margin: 0, color: '#666' }}>
-              Restoring session...
-            </p>
-          </div>
-          <style>{`
-            @keyframes spin {
-              0% { transform: rotate(0deg); }
-              100% { transform: rotate(360deg); }
-            }
-          `}</style>
-        </div>
-      );
-    } else {
-      debugLog('Country required but not selected, redirecting to Welcome page');
-      console.log('🔒 ProtectedRoute - Country required but not selected, redirecting to Welcome page');
-      // Store the attempted URL for redirect after country selection
-      const redirectUrl = location.pathname + location.search;
-      if (redirectUrl !== '/') {
-        localStorage.setItem('redirectAfterCountrySelection', redirectUrl);
-        debugLog('Stored redirect URL after country selection', { redirectUrl });
-      }
-      return <Navigate to="/" replace />;
-    }
   }
 
   // All conditions met, render children
-  debugLog('All conditions met, rendering children', {
+  debugLog('Rendering protected content', {
     requireAuth,
     isLoggedIn,
     requireCountry,
     currentCountry,
     pathname: location.pathname
   });
-  console.log('ProtectedRoute - All conditions met, rendering children');
   
   return (
     <>

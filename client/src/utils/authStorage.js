@@ -48,8 +48,7 @@ export const AUTH_KEYS = {
   ACCESS_TOKEN: 'accessToken',
   IS_LOGGED_IN: 'isLoggedIn',
   USER_DATA: 'userData',
-  REDIRECT_AFTER_LOGIN: 'redirectAfterLogin',
-  REFRESH_TOKEN: 'refreshToken'
+  REDIRECT_AFTER_LOGIN: 'redirectAfterLogin'
 };
 
 // Language-related localStorage keys (for page refresh functionality)
@@ -68,15 +67,13 @@ class AuthStorageManager {
    * @param {Object} credentials - Authentication data
    * @param {string} credentials.accessToken - JWT access token
    * @param {Object} [credentials.user] - User data
-   * @param {string} [credentials.refreshToken] - Refresh token
    * @param {boolean} [credentials.isLoggedIn] - Login status
    */
-  static setCredentials({ accessToken, user = null, refreshToken = null, isLoggedIn = true }) {
+  static setCredentials({ accessToken, user = null, isLoggedIn = true }) {
     debugLog('=== SET CREDENTIALS STARTED ===');
     debugLog('Input data:', {
       accessToken: accessToken ? 'present' : 'null',
       user: user ? 'present' : 'null',
-      refreshToken: refreshToken ? 'present' : 'null',
       isLoggedIn
     });
 
@@ -102,11 +99,6 @@ class AuthStorageManager {
         debugLog('User data set in localStorage', { userId: userData._id || userData.id });
       }
       
-      if (refreshToken) {
-        localStorage.setItem(AUTH_KEYS.REFRESH_TOKEN, refreshToken);
-        debugLog('Refresh token set in localStorage');
-      }
-      
       debugLog('✅ Auth data stored successfully');
       return true;
     } catch (error) {
@@ -127,7 +119,6 @@ class AuthStorageManager {
       const isLoggedIn = localStorage.getItem(AUTH_KEYS.IS_LOGGED_IN) === 'true';
       const token = localStorage.getItem(AUTH_KEYS.ACCESS_TOKEN);
       const userData = localStorage.getItem(AUTH_KEYS.USER_DATA);
-      const refreshToken = localStorage.getItem(AUTH_KEYS.REFRESH_TOKEN);
 
       // Parse user data from localStorage
       let parsedUserData = null;
@@ -152,15 +143,13 @@ class AuthStorageManager {
       const authState = {
         isLoggedIn: isLoggedIn && !!token, // Ensure isLoggedIn is only true if we have a token
         token: token || null,
-        user: finalUserData,
-        refreshToken: refreshToken || null
+        user: finalUserData
       };
 
       debugLog('Retrieved authentication state', {
         isLoggedIn: authState.isLoggedIn,
         hasToken: !!authState.token,
         hasUser: !!authState.user,
-        hasRefreshToken: !!authState.refreshToken,
         tokenLength: authState.token?.length,
         userId: authState.user?._id || authState.user?.id
       });
@@ -172,8 +161,7 @@ class AuthStorageManager {
       return {
         isLoggedIn: false,
         token: null,
-        user: null,
-        refreshToken: null
+        user: null
       };
     }
   }
@@ -188,7 +176,6 @@ class AuthStorageManager {
       localStorage.removeItem(AUTH_KEYS.ACCESS_TOKEN);
       localStorage.removeItem(AUTH_KEYS.IS_LOGGED_IN);
       localStorage.removeItem(AUTH_KEYS.USER_DATA);
-      localStorage.removeItem(AUTH_KEYS.REFRESH_TOKEN);
       localStorage.removeItem(AUTH_KEYS.REDIRECT_AFTER_LOGIN);
       
       debugLog('All authentication data cleared successfully');
@@ -209,7 +196,6 @@ class AuthStorageManager {
     try {
       localStorage.removeItem(AUTH_KEYS.ACCESS_TOKEN);
       localStorage.removeItem(AUTH_KEYS.USER_DATA);
-      localStorage.removeItem(AUTH_KEYS.REFRESH_TOKEN);
       localStorage.setItem(AUTH_KEYS.IS_LOGGED_IN, 'false');
       
       debugLog('User logged out state set successfully');
