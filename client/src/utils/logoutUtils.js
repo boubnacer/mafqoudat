@@ -47,7 +47,6 @@ export const performLogout = async (options = {}) => {
       });
 
       if (response.ok) {
-        console.log('Server-side logout successful');
         if (onSuccess) onSuccess('Server-side logout completed');
         return true;
       } else {
@@ -64,7 +63,6 @@ export const performLogout = async (options = {}) => {
         });
 
         if (fallbackResponse.ok) {
-          console.log('Fallback logout successful');
           if (onSuccess) onSuccess('Fallback logout completed');
           return true;
         } else {
@@ -105,7 +103,6 @@ export const performLocalLogout = () => {
       window.dispatchEvent(new CustomEvent('authLogout'));
     }
     
-    console.log('Local logout cleanup completed');
     return true;
   } catch (error) {
     console.error('Local logout cleanup failed:', error);
@@ -139,7 +136,6 @@ export const autoLogoutIfExpired = async () => {
   const token = authStorage.getAccessToken();
   
   if (isTokenExpired(token)) {
-    console.log('Token expired, performing auto-logout');
     await performLogout({ forceClientSide: true });
     return true;
   }
@@ -152,7 +148,6 @@ export const autoLogoutIfExpired = async () => {
  * @returns {Promise<boolean>} - True if logout was successful
  */
 export const forceLogout = async () => {
-  console.log('Force logout initiated');
   return await performLogout({ forceClientSide: true });
 };
 

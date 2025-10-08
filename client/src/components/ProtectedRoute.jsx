@@ -117,7 +117,6 @@ const ProtectedRoute = ({
         isLoggedIn,
         pathname: location.pathname
       });
-      console.log('🚨 User not authenticated, redirecting to login');
       const redirectUrl = location.pathname + location.search;
       if (redirectUrl !== '/login') {
         localStorage.setItem('redirectAfterLogin', redirectUrl);

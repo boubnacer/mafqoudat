@@ -406,8 +406,6 @@ const Navbar = () => {
 
   useEffect(() => {
     if (isSuccess) {
-      console.log('✅ Logout successful');
-      
       // Define routes that require authentication
       const protectedRoutes = [
         '/dash/posts/new',
@@ -426,10 +424,6 @@ const Navbar = () => {
       if (isProtectedRoute) {
         // Redirect to dashboard if on protected route
         navigate("/dash");
-        console.log('🔄 Redirected from protected route to dashboard');
-      } else {
-        // Stay on current page (dashboard, public posts, etc.)
-        console.log('📍 Staying on current page after logout');
       }
     }
   }, [isSuccess, navigate]);

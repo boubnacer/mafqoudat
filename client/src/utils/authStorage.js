@@ -417,18 +417,6 @@ class AuthStorageManager {
       // Double-check that auth data exists and token is valid before language change
       const hasUser = !!authState.user || hasUserData;
       if (authState.isLoggedIn && authState.token && hasUser && tokenValid) {
-        // Only log in development mode to avoid console spam
-        if (process.env.NODE_ENV === 'development') {
-          console.log('Authentication state preserved during language change:', {
-            hasToken: !!authState.token,
-            hasUser,
-            hasUserInStorage: !!authState.user,
-            hasUserInToken: hasUserData,
-            isLoggedIn: authState.isLoggedIn,
-            tokenValid
-          });
-        }
-        
         // Set a flag to indicate that auth state should be preserved
         localStorage.setItem('preserveAuthAfterLanguageChange', 'true');
         return true;

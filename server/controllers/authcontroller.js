@@ -11,8 +11,6 @@ const { createAuthError, asyncAuthHandler } = require("../middleware/authErrorHa
 const login = async (req, res) => {
   const { emailOrPhone, password } = req.body;
 
-  console.log('Login attempt received:', { emailOrPhone, hasPassword: !!password });
-
   if (!emailOrPhone || !password) {
     throw createAuthError('VALIDATION_ERROR', 'All fields are required', {
       emailOrPhone: !!emailOrPhone,
@@ -49,15 +47,12 @@ const login = async (req, res) => {
   }
 
   if (!foundUser) {
-    console.log('Login attempt - User not found for:', emailOrPhone);
     throw createAuthError('INVALID_CREDENTIALS', 'Invalid credentials', {
       emailOrPhone,
       ip: req.ip,
       userAgent: req.get('User-Agent')
     });
   }
-
-  console.log('Login attempt - User found:', foundUser.username, 'Email:', foundUser.email, 'Phone:', foundUser.phone);
 
   let match;
   try {
@@ -73,7 +68,6 @@ const login = async (req, res) => {
   }
 
   if (!match) {
-    console.log('Login attempt - Password mismatch for user:', foundUser.username);
     throw createAuthError('INVALID_CREDENTIALS', 'Invalid credentials', {
       username: foundUser.username,
       ip: req.ip,
@@ -107,7 +101,6 @@ const login = async (req, res) => {
     "reqLog.log"
   );
 
-  console.log('✅ LOGIN: Login successful, sending access token');
   // Send accessToken containing username and country
   res.json({ accessToken });
 };

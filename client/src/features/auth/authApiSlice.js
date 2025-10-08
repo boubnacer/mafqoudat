@@ -105,7 +105,6 @@ export const authApiSlice = apiSlice.injectEndpoints({
           
           await performLogout({
             onSuccess: (message) => {
-              console.log('Logout completed:', message);
               dispatch(logOut());
               setTimeout(() => {
                 dispatch(apiSlice.util.resetApiState());

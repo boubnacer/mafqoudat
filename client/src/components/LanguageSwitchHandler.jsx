@@ -21,12 +21,7 @@ const LanguageSwitchHandler = () => {
         // Verify that authentication state was preserved
         const authVerification = authStorage.verifyAuthPersistence();
         
-        if (authVerification.success) {
-          // Only log success in development mode to avoid console spam
-          if (process.env.NODE_ENV === 'development') {
-            console.log('✅ Language change completed successfully - Authentication state preserved');
-          }
-        } else {
+        if (!authVerification.success) {
           // Always log warnings for debugging
           console.warn('⚠️ Language change completed but authentication state verification failed:', authVerification.details);
         }
