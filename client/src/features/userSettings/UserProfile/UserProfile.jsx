@@ -206,7 +206,7 @@ const UserProfile = () => {
       // If country changed, update the global state immediately for navbar
       if (formData.country !== oldCountry) {
         console.log('✅ [PROFILE] Country changed, updating global state');
-        dispatch(setCurrentCountry(formData.country));
+        dispatch(setCurrentCountry({ currentCountry: formData.country }));
       }
     } catch (err) {
       console.error('Failed to update profile:', err);
@@ -381,11 +381,19 @@ const UserProfile = () => {
                       borderRadius: 2,
                       textTransform: 'none',
                       fontWeight: 600,
-                      borderColor: theme.palette.primary.main,
-                      color: theme.palette.primary.main,
+                      borderColor: theme.palette.mode === 'dark' 
+                        ? '#4A9FFF'
+                        : '#1976d2',
+                      color: theme.palette.mode === 'dark' 
+                        ? '#4A9FFF'
+                        : '#1976d2',
                       '&:hover': {
-                        borderColor: theme.palette.primary.dark,
-                        backgroundColor: alpha(theme.palette.primary.main, 0.08),
+                        borderColor: theme.palette.mode === 'dark' 
+                          ? '#5A9BFF'
+                          : '#1565C0',
+                        backgroundColor: theme.palette.mode === 'dark'
+                          ? alpha('#4A9FFF', 0.12)
+                          : alpha('#1976d2', 0.08),
                       }
                     }}
                   >
