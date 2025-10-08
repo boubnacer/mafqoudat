@@ -10,6 +10,7 @@ import { useLocation } from "react-router-dom";
 import { themeSettings } from "./theme";
 import { LanguageProvider, useLanguage } from "./utils/languageContext";
 import { cleanupLocalStorage, initializeLocalStorage } from "./utils/localStorageUtils";
+import { validateAndRepairLocalStorage } from "./utils/localStorageValidator";
 import useAuthErrorHandler from "./hooks/useAuthErrorHandler";
 import LanguageSwitchHandler from "./components/LanguageSwitchHandler";
 import LanguageChangeHandler from "./components/LanguageChangeHandler";
@@ -307,7 +308,22 @@ function App() {
   // Initialize localStorage (language is now handled by LanguageProvider)
   useEffect(() => {
     try {
+      // Step 1: Validate and repair localStorage before any other initialization
+      const validationReport = validateAndRepairLocalStorage({
+        autoRepair: true,
+        logResults: true,
+        preserveUserData: true
+      });
+      
+      // Log validation results in development
+      if (process.env.NODE_ENV === 'development') {
+        console.log('localStorage Validation Report:', validationReport);
+      }
+      
+      // Step 2: Initialize any missing default values
       initializeLocalStorage();
+      
+      // Step 3: Clean up any unused keys
       cleanupLocalStorage();
     } catch (error) {
       console.error('App initialization error:', error);

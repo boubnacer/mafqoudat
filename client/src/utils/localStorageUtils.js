@@ -7,7 +7,8 @@ export const cleanupLocalStorage = () => {
     'isLoggedIn',
     'language',
     'theme',
-    'currentCountry'
+    'currentCountry',
+    'globalState' // Added to preserve Redux global state
   ];
 
   // Get all localStorage keys
