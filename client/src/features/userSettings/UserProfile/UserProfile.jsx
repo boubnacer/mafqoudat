@@ -19,6 +19,8 @@ import {
   alpha,
   Autocomplete,
   MenuItem,
+  Snackbar,
+  Slide,
 } from '@mui/material';
 import {
   Person,
@@ -87,6 +89,7 @@ const UserProfile = () => {
   const [showPassword, setShowPassword] = useState(false);
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
   const [validationErrors, setValidationErrors] = useState({});
+  const [showSuccessSnackbar, setShowSuccessSnackbar] = useState(false);
 
   // Initialize form data when user data loads
   useEffect(() => {
@@ -109,6 +112,7 @@ const UserProfile = () => {
     if (isSuccess) {
       setIsEditing(false);
       setFormData(prev => ({ ...prev, password: '', confirmPassword: '' }));
+      setShowSuccessSnackbar(true); // Show success snackbar
       
       // Refetch user data and update localStorage
       const updateLocalStorage = async () => {
@@ -294,12 +298,7 @@ const UserProfile = () => {
         </Typography>
       </Box>
 
-      {/* Success/Error Messages */}
-      {isSuccess && (
-        <Alert severity="success" sx={{ mb: 3 }}>
-          {t('profileUpdated')}
-        </Alert>
-      )}
+      {/* Error Message (keep this at top for visibility) */}
       {isError && (
         <Alert severity="error" sx={{ mb: 3 }}>
           {error?.data?.message || t('profileUpdateFailed')}
@@ -649,6 +648,16 @@ const UserProfile = () => {
                             textTransform: 'none',
                             fontWeight: 600,
                             minWidth: 120,
+                            borderColor: theme.palette.mode === 'dark' 
+                              ? alpha(theme.palette.error.main, 0.7)
+                              : theme.palette.error.main,
+                            color: theme.palette.mode === 'dark' 
+                              ? alpha(theme.palette.error.main, 0.9)
+                              : theme.palette.error.main,
+                            '&:hover': {
+                              borderColor: theme.palette.error.dark,
+                              backgroundColor: alpha(theme.palette.error.main, 0.08),
+                            }
                           }}
                         >
                           {t('cancel')}
@@ -656,15 +665,25 @@ const UserProfile = () => {
                         <Button
                           type="submit"
                           variant="contained"
-                          startIcon={isUpdating ? <CircularProgress size={20} /> : <Save />}
+                          startIcon={isUpdating ? <CircularProgress size={20} color="inherit" /> : <Save />}
                           disabled={isUpdating}
                           sx={{
                             borderRadius: 2,
                             textTransform: 'none',
                             fontWeight: 600,
                             minWidth: 120,
-                            background: 'linear-gradient(45deg, #4A9FFF 30%, #1E88E5 90%)',
-                            boxShadow: '0 3px 5px 2px rgba(30, 136, 229, .3)',
+                            background: theme.palette.mode === 'dark'
+                              ? 'linear-gradient(45deg, #4A9FFF 30%, #1E88E5 90%)'
+                              : 'linear-gradient(45deg, #1976d2 30%, #1565C0 90%)',
+                            color: '#fff',
+                            boxShadow: theme.palette.mode === 'dark'
+                              ? '0 3px 5px 2px rgba(74, 159, 255, .3)'
+                              : '0 3px 5px 2px rgba(25, 118, 210, .3)',
+                            '&:hover': {
+                              background: theme.palette.mode === 'dark'
+                                ? 'linear-gradient(45deg, #5A9BFF 30%, #2A7EFF 90%)'
+                                : 'linear-gradient(45deg, #1565C0 30%, #0d47a1 90%)',
+                            }
                           }}
                         >
                           {isUpdating ? t('savingChanges') : t('saveChanges')}
@@ -678,6 +697,41 @@ const UserProfile = () => {
           </Card>
         </Grid>
       </Grid>
+
+      {/* Success Snackbar - Centered and Auto-dismiss */}
+      <Snackbar
+        open={showSuccessSnackbar}
+        autoHideDuration={3000}
+        onClose={() => setShowSuccessSnackbar(false)}
+        TransitionComponent={Slide}
+        anchorOrigin={{ vertical: 'top', horizontal: 'center' }}
+        sx={{
+          top: '50% !important',
+          transform: 'translateY(-50%)',
+          '& .MuiSnackbarContent-root': {
+            minWidth: '300px',
+          }
+        }}
+      >
+        <Alert 
+          onClose={() => setShowSuccessSnackbar(false)}
+          severity="success"
+          variant="filled"
+          sx={{
+            width: '100%',
+            fontSize: '1rem',
+            fontWeight: 600,
+            boxShadow: theme.palette.mode === 'dark'
+              ? '0 8px 32px rgba(76, 175, 80, 0.4)'
+              : '0 8px 32px rgba(76, 175, 80, 0.3)',
+            '& .MuiAlert-icon': {
+              fontSize: '28px',
+            }
+          }}
+        >
+          {t('profileUpdated')}
+        </Alert>
+      </Snackbar>
     </Container>
   );
 };
