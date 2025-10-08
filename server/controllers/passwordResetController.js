@@ -1,4 +1,5 @@
 const PasswordResetRequest = require("../models/PasswordResetRequest");
+const User = require("../models/User");
 
 // @desc Submit a password reset request
 // @route POST /api/password-reset/request
@@ -28,6 +29,29 @@ const submitPasswordResetRequest = async (req, res) => {
 
     console.log('✅ Validation passed');
 
+    // Check if user exists with this email or phone
+    console.log('Checking if user exists with:', contactInfo.trim());
+    const trimmedContact = contactInfo.trim();
+    
+    // Check if it's an email or phone
+    const isEmail = trimmedContact.includes('@');
+    const user = await User.findOne({
+      $or: [
+        { email: trimmedContact },
+        { phone: trimmedContact }
+      ]
+    }).lean();
+
+    if (!user) {
+      console.log('❌ User not found with contact info:', trimmedContact);
+      return res.status(404).json({
+        success: false,
+        message: "User not found with this email or phone number",
+      });
+    }
+
+    console.log('✅ User found:', user.username);
+
     // Get IP address from request
     const ipAddress = req.ip || req.connection.remoteAddress;
     console.log('Client IP:', ipAddress);
@@ -35,7 +59,7 @@ const submitPasswordResetRequest = async (req, res) => {
     // Create password reset request
     console.log('Creating password reset request in database...');
     const resetRequest = await PasswordResetRequest.create({
-      contactInfo: contactInfo.trim(),
+      contactInfo: trimmedContact,
       ipAddress,
     });
 

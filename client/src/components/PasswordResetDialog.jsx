@@ -50,7 +50,18 @@ const PasswordResetDialog = ({ open, onClose }) => {
       }, 3000);
     } catch (err) {
       console.error('Error submitting password reset request:', err);
-      setError(err.response?.data?.message || t('resetRequestError'));
+      
+      // Handle specific error cases
+      if (err.response?.status === 404) {
+        // User not found
+        setError(t('userNotFound'));
+      } else if (err.response?.data?.message) {
+        // Server returned an error message
+        setError(err.response.data.message);
+      } else {
+        // Generic error
+        setError(t('resetRequestError'));
+      }
     } finally {
       setIsSubmitting(false);
     }
