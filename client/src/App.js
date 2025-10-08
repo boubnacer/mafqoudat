@@ -1,4 +1,3 @@
-// Force deployment - PostsList dependencies fix applied - V11
 // Fixed Vercel routing - added basename and removed homepage field
 import { Routes, Route } from "react-router-dom";
 import { Suspense, lazy } from "react";
