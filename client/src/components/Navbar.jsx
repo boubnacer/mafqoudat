@@ -405,7 +405,33 @@ const Navbar = () => {
   const [sendLogout, { isSuccess }] = useSendLogoutMutation();
 
   useEffect(() => {
-    if (isSuccess) navigate("/login");
+    if (isSuccess) {
+      console.log('✅ Logout successful');
+      
+      // Define routes that require authentication
+      const protectedRoutes = [
+        '/dash/posts/new',
+        '/dash/posts/edit',
+        '/profile',
+        '/admin'
+      ];
+      
+      const currentPath = window.location.pathname;
+      
+      // Check if current page requires authentication
+      const isProtectedRoute = protectedRoutes.some(route => 
+        currentPath.startsWith(route)
+      );
+      
+      if (isProtectedRoute) {
+        // Redirect to dashboard if on protected route
+        navigate("/dash");
+        console.log('🔄 Redirected from protected route to dashboard');
+      } else {
+        // Stay on current page (dashboard, public posts, etc.)
+        console.log('📍 Staying on current page after logout');
+      }
+    }
   }, [isSuccess, navigate]);
 
   const onGoHomeClicked = () => navigate("/dash");
