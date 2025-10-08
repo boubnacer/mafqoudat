@@ -72,6 +72,9 @@ const PersistLogin = () => {
             const result = await refresh();
             debugLog('Refresh result:', result);
             console.log('✅ Refresh result:', result);
+            if (result.data) {
+              setTrueSuccess(true);
+            }
             return;
           }
 
@@ -83,11 +86,15 @@ const PersistLogin = () => {
             const result = await refresh();
             debugLog('Refresh result:', result);
             console.log('✅ Refresh result:', result);
+            if (result.data) {
+              setTrueSuccess(true);
+            }
             return;
           }
 
           debugLog('Token exists and is valid, skipping refresh');
           console.log('✅ Token exists and is valid, skipping refresh');
+          setTrueSuccess(true);
         } catch (error) {
           debugLog('Refresh token verification failed:', error);
           console.error('❌ Refresh token verification failed:', error);
@@ -132,6 +139,7 @@ const PersistLogin = () => {
         } else {
           debugLog('Token available and valid, no refresh needed');
           console.log('✅ Token available and valid, no refresh needed');
+          setTrueSuccess(true);
         }
       }
     }
@@ -143,6 +151,14 @@ const PersistLogin = () => {
 
     // eslint-disable-next-line
   }, [token, refresh]);
+
+  // Handle success state
+  useEffect(() => {
+    if (isSuccess && !trueSuccess) {
+      debugLog('Refresh successful, setting trueSuccess to true');
+      setTrueSuccess(true);
+    }
+  }, [isSuccess, trueSuccess]);
 
   let content;
   
