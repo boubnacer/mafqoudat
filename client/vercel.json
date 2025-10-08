@@ -1,14 +1,4 @@
 {
-  "version": 2,
-  "builds": [
-    {
-      "src": "package.json",
-      "use": "@vercel/static-build",
-      "config": {
-        "distDir": "build"
-      }
-    }
-  ],
   "rewrites": [
     {
       "source": "/api/:path*",
@@ -63,67 +53,23 @@
       "destination": "https://mafqoudat-production.up.railway.app/uploads/:path*"
     }
   ],
-  "routes": [
+  "headers": [
     {
-      "src": "/static/(.*)",
-      "dest": "/static/$1"
-    },
-    {
-      "src": "/asset-manifest.json",
-      "dest": "/asset-manifest.json"
-    },
-    {
-      "src": "/manifest.json",
-      "dest": "/manifest.json"
-    },
-    {
-      "src": "/favicon.ico",
-      "dest": "/favicon.ico"
-    },
-    {
-      "src": "/maficon.png",
-      "dest": "/maficon.png"
-    },
-    {
-      "src": "/maficon.png",
-      "dest": "/maficon.png"
-    },
-    {
-      "src": "/maflogo.png",
-      "dest": "/maflogo.png"
-    },
-    {
-      "src": "/language-test.html",
-      "dest": "/language-test.html"
-    },
-    {
-      "src": "/(.*)",
-      "dest": "/index.html"
+      "source": "/(.*)",
+      "headers": [
+        {
+          "key": "X-Content-Type-Options",
+          "value": "nosniff"
+        },
+        {
+          "key": "X-Frame-Options",
+          "value": "DENY"
+        },
+        {
+          "key": "X-XSS-Protection",
+          "value": "1; mode=block"
+        }
+      ]
     }
-  ],
-  "env": {
-    "REACT_APP_API_URL": "https://mafqoudat-production.up.railway.app",
-    "REACT_APP_DOMAIN": "https://mafqoudat.com",
-    "REACT_APP_CLOUDINARY_CLOUD_NAME": "du0tmvxhu",
-    "REACT_APP_CLOUDINARY_UPLOAD_PRESET": "mafqoudat",
-    "REACT_APP_CLOUDINARY_API_KEY": "593667419254217",
-    "CI": "false",
-    "DISABLE_ESLINT_PLUGIN": "true",
-    "GENERATE_SOURCEMAP": "false",
-    "SKIP_PREFLIGHT_CHECK": "true",
-    "NODE_ENV": "production",
-    "ESLINT_NO_DEV_ERRORS": "true",
-    "EXTEND_ESLINT": "false"
-  },
-  "build": {
-    "env": {
-      "CI": "false",
-      "DISABLE_ESLINT_PLUGIN": "true",
-      "GENERATE_SOURCEMAP": "false",
-      "SKIP_PREFLIGHT_CHECK": "true",
-      "NODE_ENV": "production",
-      "ESLINT_NO_DEV_ERRORS": "true",
-      "EXTEND_ESLINT": "false"
-    }
-  }
+  ]
 }
