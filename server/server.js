@@ -169,7 +169,11 @@ app.use("/cities-api", require("./routes/citiesRoutes"));
 
 app.use("/promotion", require("./routes/promotionRoutes"));
 app.use("/admin", require("./routes/adminRoutes"));
+
+// Password reset routes - logging to verify it's loaded
+console.log('📧 Loading password reset routes at /api/password-reset');
 app.use("/api/password-reset", require("./routes/passwordResetRoutes"));
+
 app.use("/cost-monitoring", require("./routes/costMonitoringRoutes"));
 app.use("/resilience", require("./routes/resilienceRoutes"));
 
