@@ -72,7 +72,6 @@ export const authApiSlice = apiSlice.injectEndpoints({
           if (accessToken) {
             const userData = extractUserFromToken(accessToken) || user;
             dispatch(setCredentials({ accessToken, user: userData }));
-            console.log('✅ Login successful, credentials set');
           }
         } catch (error) {
           console.error('Login failed:', error);

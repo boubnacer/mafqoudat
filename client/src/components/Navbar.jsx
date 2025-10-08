@@ -290,16 +290,6 @@ const Navbar = () => {
   
   const currentCountry = useSelector(selectCurrentCountry);
   const mode = useSelector((state) => state.global.mode);
-  
-  // Force re-render when auth state changes - subscribe to complete auth state
-  useEffect(() => {
-    console.log('🔄 Navbar auth state updated:', { 
-      isLoggedIn: authLoggedIn, 
-      user: authUser?.username, 
-      lastUpdate,
-      timestamp: new Date().toISOString()
-    });
-  }, [lastUpdate, authLoggedIn, authUser]);
 
   const [selectedCountry, setSelectedCountry] = useState(null);
   const [countryAnchorEl, setCountryAnchorEl] = useState(null);

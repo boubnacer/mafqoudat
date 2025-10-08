@@ -39,11 +39,6 @@ const CountryGuard = ({ children, allowAuthenticatedWithoutCountry = true }) => 
     }
   }, [location.search]);
 
-  // Debug logging - only for language changes or issues
-  if (!isInitialized || !currentCountry) {
-    console.log('🛡️ [LANG-FIX] CountryGuard - Location:', location.pathname, 'Country:', currentCountry, 'Initialized:', isInitialized);
-  }
-
   // Don't make routing decisions until initialized (especially after language change)
   if (!isInitialized) {
     return null; // or a loading indicator
@@ -53,25 +48,21 @@ const CountryGuard = ({ children, allowAuthenticatedWithoutCountry = true }) => 
   if (!currentCountry) {
     // If user is authenticated and has a country in their profile, let them through
     if (isLoggedIn && userCountry) {
-      console.log('CountryGuard - Allowing authenticated user with country in profile');
       return children;
     }
     
     // If user is authenticated and we allow authenticated users without country, let them through
     if (isLoggedIn && allowAuthenticatedWithoutCountry) {
-      console.log('CountryGuard - Allowing authenticated user without country');
       return children;
     }
     
     // Don't redirect if we're already on the Welcome page
     if (location.pathname === '/') {
-      console.log('CountryGuard - Already on Welcome page, rendering children');
       return children;
     }
     
     // Otherwise, redirect to Welcome page
     const redirectUrl = location.pathname + location.search;
-    console.log('CountryGuard - Redirecting to Welcome page, storing redirect URL:', redirectUrl);
     if (redirectUrl !== '/') {
       localStorage.setItem('redirectAfterCountrySelection', redirectUrl);
     }
@@ -79,7 +70,6 @@ const CountryGuard = ({ children, allowAuthenticatedWithoutCountry = true }) => 
   }
 
   // Country is selected, render children
-  console.log('CountryGuard - Country selected, rendering children');
   return children;
 };
 

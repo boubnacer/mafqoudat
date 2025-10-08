@@ -3,7 +3,7 @@ import { authStorage } from "../../utils/authStorage";
 import { getOptimizedTokenValidation } from "../../utils/optimizedTokenUtils";
 
 // Debug configuration
-const DEBUG_AUTH = true;
+const DEBUG_AUTH = false;
 
 // Debug logging function
 const debugLog = (message, data = null) => {

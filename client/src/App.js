@@ -140,21 +140,9 @@ const AppContent = () => {
   const mode = useSelector((state) => state.global.mode);
   const { currentLanguage } = useLanguage();
   const location = useLocation();
-  const authState = useSelector(state => state.auth);
   
   // Initialize authentication error handler
   useAuthErrorHandler();
-  
-  // Listen for auth state changes and log them
-  useEffect(() => {
-    console.log('🔄 App auth state changed:', {
-      isLoggedIn: authState.isLoggedIn,
-      hasToken: !!authState.token,
-      lastUpdate: authState.lastUpdate,
-      timestamp: new Date().toISOString()
-    });
-  }, [authState.lastUpdate, authState.isLoggedIn, authState.token]);
-  
   
   const theme = React.useMemo(() => {
     try {

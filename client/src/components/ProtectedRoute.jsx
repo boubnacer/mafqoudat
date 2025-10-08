@@ -8,7 +8,7 @@ import { Alert, Snackbar } from '@mui/material';
 import { store } from '../app/store';
 
 // Debug configuration
-const DEBUG_AUTH = true;
+const DEBUG_AUTH = false;
 
 // Debug logging function
 const debugLog = (message, data = null) => {
