@@ -11,7 +11,6 @@ import { themeSettings } from "./theme";
 import { LanguageProvider, useLanguage } from "./utils/languageContext";
 import { cleanupLocalStorage, initializeLocalStorage } from "./utils/localStorageUtils";
 import useAuthErrorHandler from "./hooks/useAuthErrorHandler";
-import RefreshStatus from "./components/RefreshStatus";
 import LanguageSwitchHandler from "./components/LanguageSwitchHandler";
 import LanguageChangeHandler from "./components/LanguageChangeHandler";
 import ProtectedRoute from "./components/ProtectedRoute";
@@ -170,7 +169,6 @@ const AppContent = () => {
   return (
     <ThemeProvider theme={theme}>
       <CssBaseline />
-      <RefreshStatus />
       <LanguageSwitchHandler />
       <LanguageChangeHandler />
       <Routes>

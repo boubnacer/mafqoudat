@@ -1,14 +1,11 @@
 import { createSelector } from '@reduxjs/toolkit';
-import { getOptimizedTokenValidation, isTokenExpiringSoon, getTokenTimeRemaining } from '../../utils/optimizedTokenUtils';
+import { getOptimizedTokenValidation } from '../../utils/optimizedTokenUtils';
 
 // Base selectors (these are already memoized by Redux)
 const selectAuthSlice = (state) => state.auth;
 const selectToken = (state) => state.auth.token;
 const selectUser = (state) => state.auth.user;
 const selectIsLoggedIn = (state) => state.auth.isLoggedIn;
-const selectIsRefreshing = (state) => state.auth.isRefreshing;
-const selectRefreshAttempts = (state) => state.auth.refreshAttempts;
-const selectLastRefreshError = (state) => state.auth.lastRefreshError;
 
 // Memoized selectors for better performance
 export const selectTokenValidation = createSelector(
@@ -21,28 +18,15 @@ export const selectIsTokenValid = createSelector(
   (validation) => validation.isValid
 );
 
-export const selectIsTokenExpiringSoon = createSelector(
-  [selectToken],
-  (token) => isTokenExpiringSoon(token)
-);
-
-export const selectTokenTimeRemaining = createSelector(
-  [selectToken],
-  (token) => getTokenTimeRemaining(token)
-);
-
 export const selectAuthStatus = createSelector(
-  [selectIsLoggedIn, selectTokenValidation, selectIsRefreshing],
-  (isLoggedIn, tokenValidation, isRefreshing) => {
-    const isExpired = !tokenValidation.isValid && tokenValidation.reason === 'TOKEN_EXPIRED';
-    const isExpiringSoon = tokenValidation.reason === 'TOKEN_EXPIRING_SOON';
-    
+  [selectIsLoggedIn, selectTokenValidation],
+  (isLoggedIn, tokenValidation) => {
     return {
       isAuthenticated: isLoggedIn && tokenValidation.isValid,
-      isExpired,
-      isExpiringSoon,
-      isRefreshing,
-      needsRefresh: isExpiringSoon || isExpired
+      isExpired: false, // Tokens are long-lived (30 days), no expiration tracking
+      isExpiringSoon: false,
+      isRefreshing: false,
+      needsRefresh: false
     };
   }
 );
@@ -72,28 +56,16 @@ export const selectUserInfo = createSelector(
   }
 );
 
-export const selectAuthPerformanceMetrics = createSelector(
-  [selectTokenValidation, selectIsRefreshing, selectRefreshAttempts],
-  (tokenValidation, isRefreshing, refreshAttempts) => ({
-    tokenStatus: tokenValidation.reason,
-    isRefreshing,
-    refreshAttempts,
-    lastValidationTime: Date.now(),
-    cacheHit: tokenValidation.cached || false
-  })
-);
-
 // Combined auth state selector for components that need multiple auth properties
 export const selectAuthState = createSelector(
-  [selectTokenValidation, selectUserInfo, selectAuthStatus, selectAuthPerformanceMetrics],
-  (tokenValidation, userInfo, authStatus, performanceMetrics) => ({
+  [selectTokenValidation, selectUserInfo, selectAuthStatus],
+  (tokenValidation, userInfo, authStatus) => ({
     token: tokenValidation.token || null,
     user: userInfo,
     ...authStatus,
-    performance: performanceMetrics,
     // Legacy compatibility
     isLoggedIn: authStatus.isAuthenticated,
-    isLoading: false // We don't use loading state in optimized version
+    isLoading: false
   })
 );
 
@@ -119,8 +91,5 @@ export const selectCurrentToken = createSelector(
 export {
   selectToken as selectCurrentTokenRaw,
   selectUser as selectCurrentUserRaw,
-  selectIsLoggedIn,
-  selectIsRefreshing,
-  selectRefreshAttempts,
-  selectLastRefreshError
+  selectIsLoggedIn
 };

@@ -5,7 +5,6 @@ import authReducer from "../features/auth/authSlice";
 import postsReducer from "../features/posts/postsSlice";
 import dashReducer from "../features/dashboard/dashSlice";
 import globalReducer from "./state/index";
-import backgroundTokenRefreshService from "../services/backgroundTokenRefresh";
 
 export const store = configureStore({
   reducer: {
@@ -21,6 +20,3 @@ export const store = configureStore({
 });
 
 setupListeners(store.dispatch);
-
-// Initialize background token refresh service
-// We'll initialize it when the user logs in, not here to avoid unnecessary overhead
