@@ -109,24 +109,31 @@ const UserProfile = () => {
       setIsEditing(false);
       setFormData(prev => ({ ...prev, password: '', confirmPassword: '' }));
       
-      // Refetch user data to get the latest information
-      refetch().then((result) => {
-        if (result.data) {
-          // Update localStorage with the new user data
-          const currentUserData = authStorage.getUserData();
-          if (currentUserData) {
-            const updatedUserData = {
-              ...currentUserData,
-              username: result.data.username,
-              email: result.data.email,
-              phone: result.data.phone,
-              country: result.data.country,
-            };
-            authStorage.updateUserData(updatedUserData);
-            console.log('✅ [PROFILE] localStorage synced with updated user data');
+      // Refetch user data and update localStorage
+      const updateLocalStorage = async () => {
+        try {
+          const result = await refetch();
+          if (result?.data) {
+            // Update localStorage with the new user data
+            const currentUserData = authStorage.getUserData();
+            if (currentUserData) {
+              const updatedUserData = {
+                ...currentUserData,
+                username: result.data.username,
+                email: result.data.email,
+                phone: result.data.phone,
+                country: result.data.country,
+              };
+              authStorage.updateUserData(updatedUserData);
+              console.log('✅ [PROFILE] localStorage synced with updated user data');
+            }
           }
+        } catch (error) {
+          console.error('Failed to sync localStorage:', error);
         }
-      });
+      };
+      
+      updateLocalStorage();
     }
   }, [isSuccess, refetch]);
 
