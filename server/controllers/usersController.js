@@ -167,7 +167,7 @@ const createNewUser = async (req, res) => {
 // @route PATCH /users
 // @access Private
 const updateUser = async (req, res) => {
-  const { id, username, password, country } = req.body;
+  const { id, username, password, country, email, phone } = req.body;
 
   // Confirm data
   if (!id || !username || !country) {
@@ -177,13 +177,13 @@ const updateUser = async (req, res) => {
   }
 
   // Does the user exist to update? - optimized with selective fields
-  const user = await User.findById(id).select('_id username country password').exec();
+  const user = await User.findById(id).select('_id username country password email phone').exec();
 
   if (!user) {
     return res.status(400).json({ message: "User not found" });
   }
 
-  // Check for duplicate - optimized with selective fields
+  // Check for duplicate username - optimized with selective fields
   const duplicate = await User.findOne({ username })
     .select('_id')
     .collation({ locale: "en", strength: 2 })
@@ -192,11 +192,45 @@ const updateUser = async (req, res) => {
 
   // Allow updates to the original user
   if (duplicate && duplicate?._id.toString() !== id) {
-    return res.status(409).json({ message: "Already user please singin" });
+    return res.status(409).json({ message: "Username already exists" });
+  }
+
+  // Check for duplicate email if email is being updated
+  if (email && email !== user.email) {
+    const duplicateEmail = await User.findOne({ email: email.toLowerCase() })
+      .select('_id')
+      .lean()
+      .exec();
+    
+    if (duplicateEmail && duplicateEmail._id.toString() !== id) {
+      return res.status(409).json({ message: "Email already exists" });
+    }
+  }
+
+  // Check for duplicate phone if phone is being updated
+  if (phone && phone !== user.phone) {
+    const duplicatePhone = await User.findOne({ phone })
+      .select('_id')
+      .lean()
+      .exec();
+    
+    if (duplicatePhone && duplicatePhone._id.toString() !== id) {
+      return res.status(409).json({ message: "Phone number already exists" });
+    }
   }
 
   user.username = username;
   user.country = country;
+
+  // Update email if provided
+  if (email !== undefined) {
+    user.email = email.toLowerCase() || null;
+  }
+
+  // Update phone if provided
+  if (phone !== undefined) {
+    user.phone = phone || null;
+  }
 
   if (password) {
     // Hash password

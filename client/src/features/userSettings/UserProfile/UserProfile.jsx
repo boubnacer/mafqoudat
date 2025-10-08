@@ -17,6 +17,8 @@ import {
   CardContent,
   useTheme,
   alpha,
+  Autocomplete,
+  MenuItem,
 } from '@mui/material';
 import {
   Person,
@@ -34,7 +36,7 @@ import { useNavigate } from 'react-router-dom';
 import { useTranslation } from '../../../utils/translations';
 import useAuth from '../../../hooks/useAuth';
 import { useGetUserByIdQuery, useUpdateUserMutation } from '../usersApiSlice';
-import { useGetCountriesQuery } from '../../countries/countriesApiSlice';
+import { useGetCountriesQuery } from '../../dependencies/dependenciesApiSlice';
 
 const UserProfile = () => {
   const theme = useTheme();
@@ -54,13 +56,13 @@ const UserProfile = () => {
   });
 
   // Fetch countries for the selector
-  const { data: countriesData } = useGetCountriesQuery('countriesList', {
-    pollingInterval: 0,
-    refetchOnFocus: false,
-    refetchOnMountOrArgChange: false
+  const { countries } = useGetCountriesQuery({
+    language: currentLanguage || 'en'
+  }, {
+    selectFromResult: ({ data }) => ({
+      countries: data?.ids?.map((id) => data?.entities[id]),
+    }),
   });
-
-  const countries = countriesData?.ids?.map(id => countriesData.entities[id]) || [];
 
   const [updateUser, { isLoading: isUpdating, isSuccess, isError, error }] = useUpdateUserMutation();
 
@@ -71,6 +73,8 @@ const UserProfile = () => {
     email: '',
     phone: '',
     country: '',
+    firstName: '',
+    lastName: '',
     password: '',
     confirmPassword: '',
   });
@@ -87,6 +91,8 @@ const UserProfile = () => {
         email: user.email || '',
         phone: user.phone || '',
         country: user.country?._id || user.country || '',
+        firstName: user.profile?.firstName || '',
+        lastName: user.profile?.lastName || '',
         password: '',
         confirmPassword: '',
       });
@@ -142,6 +148,8 @@ const UserProfile = () => {
       id: usernameId,
       username: formData.username,
       country: formData.country,
+      email: formData.email,
+      phone: formData.phone,
     };
 
     // Only include password if it was entered
@@ -166,6 +174,8 @@ const UserProfile = () => {
         email: user.email || '',
         phone: user.phone || '',
         country: user.country?._id || user.country || '',
+        firstName: user.profile?.firstName || '',
+        lastName: user.profile?.lastName || '',
         password: '',
         confirmPassword: '',
       });
@@ -327,6 +337,12 @@ const UserProfile = () => {
                       borderRadius: 2,
                       textTransform: 'none',
                       fontWeight: 600,
+                      borderColor: theme.palette.primary.main,
+                      color: theme.palette.primary.main,
+                      '&:hover': {
+                        borderColor: theme.palette.primary.dark,
+                        backgroundColor: alpha(theme.palette.primary.main, 0.08),
+                      }
                     }}
                   >
                     {t('editProfile')}
@@ -362,14 +378,16 @@ const UserProfile = () => {
                     />
                   </Grid>
 
-                  {/* Email (read-only) */}
+                  {/* Email */}
                   <Grid item xs={12} sm={6}>
                     <TextField
                       fullWidth
                       label={t('email')}
                       name="email"
                       value={formData.email}
-                      disabled
+                      onChange={handleChange}
+                      disabled={!isEditing}
+                      type="email"
                       InputProps={{
                         startAdornment: (
                           <InputAdornment position="start">
@@ -385,14 +403,15 @@ const UserProfile = () => {
                     />
                   </Grid>
 
-                  {/* Phone (read-only) */}
+                  {/* Phone */}
                   <Grid item xs={12} sm={6}>
                     <TextField
                       fullWidth
                       label={t('phone')}
                       name="phone"
                       value={formData.phone}
-                      disabled
+                      onChange={handleChange}
+                      disabled={!isEditing}
                       InputProps={{
                         startAdornment: (
                           <InputAdornment position="start">
@@ -408,27 +427,85 @@ const UserProfile = () => {
                     />
                   </Grid>
 
-                  {/* Country (read-only for now) */}
+                  {/* Country Selector */}
                   <Grid item xs={12}>
-                    <TextField
-                      fullWidth
-                      label={t('country')}
-                      name="country"
-                      value={getCountryName(formData.country)}
-                      disabled
-                      InputProps={{
-                        startAdornment: (
-                          <InputAdornment position="start">
-                            <Public />
-                          </InputAdornment>
-                        ),
-                      }}
-                      sx={{
-                        '& .MuiOutlinedInput-root': {
-                          borderRadius: 2,
+                    {isEditing ? (
+                      <Autocomplete
+                        options={countries || []}
+                        getOptionLabel={(option) => 
+                          option.names?.[currentLanguage] || option.names?.en || option.code || ''
                         }
-                      }}
-                    />
+                        value={countries?.find(c => c._id === formData.country || c.id === formData.country) || null}
+                        onChange={(event, newValue) => {
+                          setFormData(prev => ({ ...prev, country: newValue?._id || newValue?.id || '' }));
+                        }}
+                        renderInput={(params) => (
+                          <TextField
+                            {...params}
+                            label={t('country')}
+                            InputProps={{
+                              ...params.InputProps,
+                              startAdornment: (
+                                <>
+                                  <InputAdornment position="start">
+                                    <Public />
+                                  </InputAdornment>
+                                  {params.InputProps.startAdornment}
+                                </>
+                              ),
+                            }}
+                            sx={{
+                              '& .MuiOutlinedInput-root': {
+                                borderRadius: 2,
+                              }
+                            }}
+                          />
+                        )}
+                        renderOption={(props, option) => (
+                          <Box
+                            component="li"
+                            {...props}
+                            sx={{ 
+                              display: 'flex', 
+                              alignItems: 'center', 
+                              gap: 1,
+                              py: 1
+                            }}
+                          >
+                            <img
+                              loading="lazy"
+                              width="20"
+                              src={`https://flagcdn.com/w20/${option.code?.toLowerCase()}.png`}
+                              srcSet={`https://flagcdn.com/w40/${option.code?.toLowerCase()}.png 2x`}
+                              alt=""
+                            />
+                            <Typography>
+                              {option.names?.[currentLanguage] || option.names?.en || option.code}
+                            </Typography>
+                          </Box>
+                        )}
+                        disabled={!isEditing}
+                      />
+                    ) : (
+                      <TextField
+                        fullWidth
+                        label={t('country')}
+                        value={getCountryName(formData.country)}
+                        disabled
+                        InputProps={{
+                          startAdornment: (
+                            <InputAdornment position="start">
+                              <Public />
+                            </InputAdornment>
+                          ),
+                        }}
+                        sx={{
+                          '& .MuiOutlinedInput-root': {
+                            borderRadius: 2,
+                          }
+                        }}
+                      />
+                    )}
                   </Grid>
 
                   {isEditing && (
