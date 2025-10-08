@@ -169,27 +169,22 @@ class AuthStateCleanupManager {
 
   /**
    * Clear localStorage while preserving language settings
+   * Uses ONLY 'language' key as the single source of truth
    * @param {boolean} preserveLanguage - Whether to preserve language settings
    * @returns {Promise<boolean>} Success status
    */
   async clearLocalStorage(preserveLanguage = true) {
     try {
-      const languageData = preserveLanguage ? {
-        language: localStorage.getItem('language'),
-        app_language: localStorage.getItem('app_language'),
-        currentLanguage: localStorage.getItem('currentLanguage')
-      } : {};
+      // Only preserve the unified 'language' key
+      const languageData = preserveLanguage ? 
+        localStorage.getItem('language') : null;
 
       // Clear all localStorage
       localStorage.clear();
 
       // Restore language data if requested
-      if (preserveLanguage) {
-        Object.entries(languageData).forEach(([key, value]) => {
-          if (value) {
-            localStorage.setItem(key, value);
-          }
-        });
+      if (preserveLanguage && languageData) {
+        localStorage.setItem('language', languageData);
       }
 
       return true;

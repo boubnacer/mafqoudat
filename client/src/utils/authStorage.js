@@ -52,10 +52,12 @@ export const AUTH_KEYS = {
 };
 
 // Language-related localStorage keys (for page refresh functionality)
+// NOTE: We now use ONLY 'language' as the single source of truth
+// APP_LANGUAGE and CURRENT_LANGUAGE are deprecated and kept for reference only
 export const LANGUAGE_KEYS = {
   LANGUAGE: 'language',
-  APP_LANGUAGE: 'app_language',
-  CURRENT_LANGUAGE: 'currentLanguage'
+  APP_LANGUAGE: 'app_language', // DEPRECATED - do not use
+  CURRENT_LANGUAGE: 'currentLanguage' // DEPRECATED - do not use
 };
 
 /**
@@ -457,6 +459,7 @@ class AuthStorageManager {
 class LanguageStorageManager {
   /**
    * Set language and trigger smooth context updates
+   * Uses ONLY 'language' key as the single source of truth
    * @param {string} language - Language code
    */
   static setLanguage(language) {
@@ -469,10 +472,8 @@ class LanguageStorageManager {
         return false;
       }
       
-      // Store language in localStorage
+      // Store language in localStorage using ONLY the unified key
       localStorage.setItem(LANGUAGE_KEYS.LANGUAGE, language);
-      localStorage.setItem(LANGUAGE_KEYS.APP_LANGUAGE, language);
-      localStorage.setItem(LANGUAGE_KEYS.CURRENT_LANGUAGE, language);
       
       // Update document attributes immediately
       this.updateDocumentAttributes(language);
@@ -519,13 +520,12 @@ class LanguageStorageManager {
 
   /**
    * Get current language
+   * Reads ONLY from 'language' key (single source of truth)
    * @returns {string} Current language code
    */
   static getCurrentLanguage() {
     try {
-      return localStorage.getItem(LANGUAGE_KEYS.LANGUAGE) || 
-             localStorage.getItem(LANGUAGE_KEYS.APP_LANGUAGE) || 
-             'en';
+      return localStorage.getItem(LANGUAGE_KEYS.LANGUAGE) || 'en';
     } catch (error) {
       console.error('Failed to get current language:', error);
       return 'en';
@@ -534,10 +534,12 @@ class LanguageStorageManager {
 
   /**
    * Clear all language-related localStorage
+   * Also cleans up any deprecated keys that might still exist
    */
   static clearLanguageData() {
     try {
       localStorage.removeItem(LANGUAGE_KEYS.LANGUAGE);
+      // Also remove deprecated keys if they exist (cleanup)
       localStorage.removeItem(LANGUAGE_KEYS.APP_LANGUAGE);
       localStorage.removeItem(LANGUAGE_KEYS.CURRENT_LANGUAGE);
       localStorage.removeItem('languageChangeRedirectUrl');

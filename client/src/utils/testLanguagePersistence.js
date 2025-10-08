@@ -26,9 +26,9 @@ export const testLanguagePersistence = () => {
   setCurrentLanguage('en');
   const englishState = debugLanguageState();
   
-  // Test 5: Verify localStorage
+  // Test 5: Verify localStorage (using unified key)
   console.log('5. Verifying localStorage...');
-  const storedLanguage = localStorage.getItem('app_language');
+  const storedLanguage = localStorage.getItem('language');
   console.log('Stored language:', storedLanguage);
   
   // Test 6: Simulate page refresh

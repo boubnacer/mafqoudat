@@ -1,6 +1,7 @@
 import React, { createContext, useContext, useState, useEffect } from 'react';
 import { languageStorage } from './authStorage';
 import { safeLanguageRefetch } from './languageRefetchUtils';
+import { migrateLanguageStorage } from './languageMigration';
 
 // Language context
 const LanguageContext = createContext();
@@ -82,6 +83,17 @@ export const LanguageProvider = ({ children }) => {
   };
 
   useEffect(() => {
+    // First, run language storage migration
+    // This consolidates old keys (app_language, currentLanguage) into the unified 'language' key
+    try {
+      const migrationResult = migrateLanguageStorage();
+      if (migrationResult.success) {
+        console.log('✅ Language storage migration completed:', migrationResult);
+      }
+    } catch (error) {
+      console.error('Language migration error (non-fatal):', error);
+    }
+    
     // Load language from localStorage on mount
     try {
       // Use centralized language storage utility

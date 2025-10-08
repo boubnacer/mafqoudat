@@ -1,4 +1,5 @@
 // Simple language persistence test
+// UPDATED: Uses ONLY 'language' key as the single source of truth
 export const simpleLanguageTest = {
   // Check if localStorage is working
   testLocalStorage: () => {
@@ -25,7 +26,8 @@ export const simpleLanguageTest = {
   checkCurrentState: () => {
     const state = {
       localStorage_language: localStorage.getItem('language'),
-      localStorage_app_language: localStorage.getItem('app_language'),
+      localStorage_app_language: localStorage.getItem('app_language'), // deprecated
+      localStorage_currentLanguage: localStorage.getItem('currentLanguage'), // deprecated
       htmlLang: document.documentElement.getAttribute('lang'),
       bodyDir: document.body.getAttribute('dir'),
       bodyDirection: document.body.style.direction,
@@ -33,17 +35,19 @@ export const simpleLanguageTest = {
     };
     
     console.log('Current Language State:', state);
+    if (state.localStorage_app_language || state.localStorage_currentLanguage) {
+      console.warn('⚠️ Deprecated language keys detected! Consider running migration.');
+    }
     return state;
   },
   
-  // Set language directly
+  // Set language directly (using unified key)
   setLanguageDirect: (language) => {
     try {
-      console.log(`Setting language directly to: ${language}`);
+      console.log(`Setting language directly to: ${language} (using unified key)`);
       
-      // Save to both localStorage keys
+      // Save to ONLY the unified localStorage key
       localStorage.setItem('language', language);
-      localStorage.setItem('app_language', language);
       
       // Apply to DOM
       document.documentElement.setAttribute('lang', language);
@@ -69,7 +73,7 @@ export const simpleLanguageTest = {
   
   // Test full cycle
   runTest: () => {
-    console.log('=== Simple Language Test ===');
+    console.log('=== Simple Language Test (Unified Key) ===');
     
     // Step 1: Test localStorage
     if (!simpleLanguageTest.testLocalStorage()) {
@@ -88,7 +92,7 @@ export const simpleLanguageTest = {
     
     // Step 4: Simulate refresh (check localStorage)
     console.log('Simulating refresh...');
-    const savedLang = localStorage.getItem('app_language');
+    const savedLang = localStorage.getItem('language');
     console.log('Saved language:', savedLang);
     
     // Step 5: Set to English

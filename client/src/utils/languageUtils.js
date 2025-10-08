@@ -8,23 +8,23 @@ export const SUPPORTED_LANGUAGES = {
 };
 
 // Get current language from localStorage
+// Uses ONLY 'language' key as the single source of truth
 export const getCurrentLanguage = () => {
   try {
-    // Check both keys for backward compatibility
-    return localStorage.getItem('language') || localStorage.getItem('app_language') || 'en';
+    return localStorage.getItem('language') || 'en';
   } catch (error) {
     console.error('Error getting current language:', error);
     return 'en';
   }
 };
 
-// Set current language (legacy function for backward compatibility)
+// Set current language
+// Uses ONLY 'language' key as the single source of truth
 export const setCurrentLanguage = (language) => {
   try {
     if (SUPPORTED_LANGUAGES[language]) {
-      // Save to both keys for compatibility
+      // Save to unified key only
       localStorage.setItem('language', language);
-      localStorage.setItem('app_language', language);
       return true;
     }
     return false;

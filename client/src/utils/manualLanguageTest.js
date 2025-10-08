@@ -1,10 +1,11 @@
 // Manual test utility for language persistence
+// UPDATED: Uses ONLY 'language' key as the single source of truth
 export const manualLanguageTest = {
-  // Set language manually
+  // Set language manually (using unified key)
   setLanguage: (language) => {
     try {
-      console.log(`Manually setting language to: ${language}`);
-      localStorage.setItem('app_language', language);
+      console.log(`Manually setting language to: ${language} (using unified key)`);
+      localStorage.setItem('language', language);
       
       // Apply to DOM
       document.documentElement.setAttribute("lang", language);
@@ -31,7 +32,9 @@ export const manualLanguageTest = {
   // Get current language state
   getCurrentState: () => {
     return {
-      localStorage: localStorage.getItem('app_language'),
+      localStorage: localStorage.getItem('language'),
+      localStorage_app_language: localStorage.getItem('app_language'), // deprecated
+      localStorage_currentLanguage: localStorage.getItem('currentLanguage'), // deprecated
       htmlLang: document.documentElement.getAttribute('lang'),
       bodyDir: document.body.getAttribute('dir'),
       bodyDirection: document.body.style.direction,
@@ -41,7 +44,7 @@ export const manualLanguageTest = {
   
   // Test full cycle
   testCycle: () => {
-    console.log('=== Manual Language Test Cycle ===');
+    console.log('=== Manual Language Test Cycle (Unified Key) ===');
     
     // Step 1: Check initial state
     console.log('1. Initial state:', manualLanguageTest.getCurrentState());
@@ -53,7 +56,7 @@ export const manualLanguageTest = {
     
     // Step 3: Simulate refresh (just check localStorage)
     console.log('3. Simulating refresh...');
-    const savedLang = localStorage.getItem('app_language');
+    const savedLang = localStorage.getItem('language');
     console.log('   Saved language in localStorage:', savedLang);
     
     // Step 4: Set to French

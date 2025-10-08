@@ -1,11 +1,14 @@
 // Language reset and test utility
+// UPDATED: Uses ONLY 'language' key as the single source of truth
 export const languageReset = {
-  // Clear all language-related localStorage
+  // Clear all language-related localStorage (including deprecated keys)
   clearAll: () => {
     try {
       localStorage.removeItem('language');
+      // Also remove deprecated keys if they exist
       localStorage.removeItem('app_language');
-      console.log('✅ Cleared all language localStorage');
+      localStorage.removeItem('currentLanguage');
+      console.log('✅ Cleared all language localStorage (including deprecated keys)');
       return true;
     } catch (error) {
       console.error('❌ Error clearing localStorage:', error);
@@ -13,7 +16,7 @@ export const languageReset = {
     }
   },
   
-  // Set language and verify it's saved
+  // Set language and verify it's saved (using unified key)
   setAndVerify: (language) => {
     try {
       console.log(`Setting language to: ${language}`);
@@ -21,19 +24,16 @@ export const languageReset = {
       // Clear first
       languageReset.clearAll();
       
-      // Set language using the context approach
+      // Set language using ONLY the unified key
       localStorage.setItem('language', language);
-      localStorage.setItem('app_language', language);
       
       // Verify it's saved
       const savedLanguage = localStorage.getItem('language');
-      const savedAppLanguage = localStorage.getItem('app_language');
       
       console.log('Verification:');
       console.log('  localStorage.language:', savedLanguage);
-      console.log('  localStorage.app_language:', savedAppLanguage);
       
-      if (savedLanguage === language && savedAppLanguage === language) {
+      if (savedLanguage === language) {
         console.log('✅ Language saved successfully');
         return true;
       } else {
@@ -48,7 +48,7 @@ export const languageReset = {
   
   // Test full persistence cycle
   testPersistence: () => {
-    console.log('=== Language Persistence Test ===');
+    console.log('=== Language Persistence Test (Unified Key) ===');
     
     // Step 1: Clear everything
     console.log('1. Clearing all language data...');
@@ -64,9 +64,8 @@ export const languageReset = {
     // Step 3: Simulate page refresh (check localStorage)
     console.log('3. Simulating page refresh...');
     const savedLanguage = localStorage.getItem('language');
-    const savedAppLanguage = localStorage.getItem('app_language');
     
-    if (savedLanguage === 'ar' || savedAppLanguage === 'ar') {
+    if (savedLanguage === 'ar') {
       console.log('✅ Language persisted after "refresh"');
     } else {
       console.log('❌ Language not persisted');
@@ -88,11 +87,15 @@ export const languageReset = {
   checkCurrent: () => {
     const current = {
       language: localStorage.getItem('language'),
-      app_language: localStorage.getItem('app_language'),
+      app_language: localStorage.getItem('app_language'), // deprecated
+      currentLanguage: localStorage.getItem('currentLanguage'), // deprecated
       allKeys: Object.keys(localStorage)
     };
     
     console.log('Current localStorage state:', current);
+    if (current.app_language || current.currentLanguage) {
+      console.warn('⚠️ Deprecated language keys detected! Migration may be needed.');
+    }
     return current;
   }
 };
