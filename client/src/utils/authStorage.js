@@ -20,6 +20,29 @@ const debugLog = (message, data = null) => {
   }
 };
 
+// Helper function to extract user data from token
+const extractUserFromToken = (token) => {
+  try {
+    if (!token) return null;
+    
+    const payload = JSON.parse(atob(token.split('.')[1]));
+    
+    if (payload.UserInfo) {
+      return {
+        _id: payload.UserInfo.userId,
+        username: payload.UserInfo.username,
+        country: payload.UserInfo.country,
+        role: payload.UserInfo.role
+      };
+    }
+    
+    return null;
+  } catch (error) {
+    console.error('Error extracting user from token:', error);
+    return null;
+  }
+};
+
 // Authentication-related localStorage keys
 export const AUTH_KEYS = {
   ACCESS_TOKEN: 'accessToken',
@@ -46,26 +69,37 @@ class AuthStorageManager {
    * @param {string} credentials.accessToken - JWT access token
    * @param {Object} [credentials.user] - User data
    * @param {string} [credentials.refreshToken] - Refresh token
+   * @param {boolean} [credentials.isLoggedIn] - Login status
    */
-  static setCredentials({ accessToken, user = null, refreshToken = null }) {
-    debugLog('Setting credentials in localStorage', {
-      hasAccessToken: !!accessToken,
-      hasUser: !!user,
-      hasRefreshToken: !!refreshToken,
-      tokenLength: accessToken?.length,
-      userId: user?.id
+  static setCredentials({ accessToken, user = null, refreshToken = null, isLoggedIn = true }) {
+    debugLog('=== SET CREDENTIALS STARTED ===');
+    debugLog('Input data:', {
+      accessToken: accessToken ? 'present' : 'null',
+      user: user ? 'present' : 'null',
+      refreshToken: refreshToken ? 'present' : 'null',
+      isLoggedIn
     });
-    
+
     try {
+      // If no user data provided, extract from token
+      let userData = user;
+      if (!userData && accessToken) {
+        userData = extractUserFromToken(accessToken);
+        debugLog('Extracted user data from token', {
+          hasUserData: !!userData,
+          userId: userData?._id
+        });
+      }
+
       if (accessToken) {
         localStorage.setItem(AUTH_KEYS.ACCESS_TOKEN, accessToken);
-        localStorage.setItem(AUTH_KEYS.IS_LOGGED_IN, 'true');
+        localStorage.setItem(AUTH_KEYS.IS_LOGGED_IN, isLoggedIn.toString());
         debugLog('Access token and login status set in localStorage');
       }
       
-      if (user) {
-        localStorage.setItem(AUTH_KEYS.USER_DATA, JSON.stringify(user));
-        debugLog('User data set in localStorage', { userId: user.id });
+      if (userData) {
+        localStorage.setItem(AUTH_KEYS.USER_DATA, JSON.stringify(userData));
+        debugLog('User data set in localStorage', { userId: userData._id || userData.id });
       }
       
       if (refreshToken) {
@@ -73,10 +107,10 @@ class AuthStorageManager {
         debugLog('Refresh token set in localStorage');
       }
       
-      debugLog('Credentials set successfully');
+      debugLog('✅ Auth data stored successfully');
       return true;
     } catch (error) {
-      debugLog('Failed to set credentials', { error: error.message });
+      debugLog('❌ Error storing auth data:', error);
       console.error('Failed to set authentication credentials:', error);
       return false;
     }
@@ -95,10 +129,30 @@ class AuthStorageManager {
       const userData = localStorage.getItem(AUTH_KEYS.USER_DATA);
       const refreshToken = localStorage.getItem(AUTH_KEYS.REFRESH_TOKEN);
 
+      // Parse user data from localStorage
+      let parsedUserData = null;
+      if (userData) {
+        try {
+          parsedUserData = JSON.parse(userData);
+        } catch (error) {
+          debugLog('Failed to parse stored user data', { error: error.message });
+        }
+      }
+
+      // If no user data in localStorage but we have a token, extract from token
+      let finalUserData = parsedUserData;
+      if (!finalUserData && token) {
+        finalUserData = extractUserFromToken(token);
+        debugLog('Extracted user data from token in getAuthState', {
+          hasUserData: !!finalUserData,
+          userId: finalUserData?._id
+        });
+      }
+
       const authState = {
         isLoggedIn: isLoggedIn && !!token, // Ensure isLoggedIn is only true if we have a token
         token: token || null,
-        user: userData ? JSON.parse(userData) : null,
+        user: finalUserData,
         refreshToken: refreshToken || null
       };
 
@@ -108,7 +162,7 @@ class AuthStorageManager {
         hasUser: !!authState.user,
         hasRefreshToken: !!authState.refreshToken,
         tokenLength: authState.token?.length,
-        userId: authState.user?.id
+        userId: authState.user?._id || authState.user?.id
       });
 
       return authState;

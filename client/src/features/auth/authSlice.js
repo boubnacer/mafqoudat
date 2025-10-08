@@ -17,6 +17,30 @@ const debugLog = (message, data = null) => {
   }
 };
 
+// Helper function to extract user data from token
+const extractUserFromToken = (token) => {
+  try {
+    if (!token) return null;
+    
+    const payload = JSON.parse(atob(token.split('.')[1]));
+    
+    // Extract user data from token payload
+    if (payload.UserInfo) {
+      return {
+        _id: payload.UserInfo.userId,
+        username: payload.UserInfo.username,
+        country: payload.UserInfo.country,
+        role: payload.UserInfo.role
+      };
+    }
+    
+    return null;
+  } catch (error) {
+    console.error('Error extracting user from token:', error);
+    return null;
+  }
+};
+
 // Get initial state from localStorage using centralized auth utility
 const getInitialState = () => {
   debugLog('Getting initial state from localStorage');
@@ -38,13 +62,20 @@ const getInitialState = () => {
         reason: tokenValidation.reason
       });
       
-      // If token is valid, restore auth state
+      // Extract user data from token (whether valid or expired)
+      const userData = extractUserFromToken(authState.token);
+      debugLog('Extracted user data from token', {
+        hasUserData: !!userData,
+        userId: userData?._id
+      });
+      
+      // If token is valid, restore auth state with extracted user data
       if (tokenValidation.isValid) {
-        debugLog('Token is valid, restoring auth state');
+        debugLog('Token is valid, restoring auth state with user data');
         return {
           token: authState.token,
           isLoggedIn: true,
-          user: authState.user || null,
+          user: userData || authState.user || null, // Use extracted data first, fallback to stored data
           isLoading: false,
           isRefreshing: false,
           refreshAttempts: 0,
@@ -52,14 +83,14 @@ const getInitialState = () => {
           lastUpdate: Date.now(),
         };
       } else {
-        // Token is invalid/expired, but keep the auth state
+        // Token is invalid/expired, but keep the auth state and extracted user data
         // Let PersistLogin handle the refresh attempt
         debugLog('Token expired, keeping auth state for refresh attempt');
         console.log('🔄 Token expired, keeping auth state for refresh attempt');
         return {
           token: authState.token, // Keep the expired token
           isLoggedIn: true, // Keep logged in state
-          user: authState.user || null,
+          user: userData || authState.user || null, // Use extracted data first, fallback to stored data
           isLoading: false,
           isRefreshing: false,
           refreshAttempts: 0,
@@ -70,11 +101,18 @@ const getInitialState = () => {
     } catch (error) {
       debugLog('Token validation error:', error);
       console.error('Token validation error:', error);
-      // Keep auth state even on validation error
+      
+      // Extract user data even on validation error
+      const userData = extractUserFromToken(authState.token);
+      debugLog('Extracted user data despite validation error', {
+        hasUserData: !!userData,
+        userId: userData?._id
+      });
+      
       return {
         token: authState.token,
         isLoggedIn: true,
-        user: authState.user || null,
+        user: userData || authState.user || null, // Use extracted data first, fallback to stored data
         isLoading: false,
         isRefreshing: false,
         refreshAttempts: 0,
@@ -114,6 +152,16 @@ const authSlice = createSlice({
         userId: user?.id
       });
       
+      // Extract user data from token if not provided
+      let userData = user;
+      if (!userData && accessToken) {
+        userData = extractUserFromToken(accessToken);
+        debugLog('Extracted user data from token', {
+          hasUserData: !!userData,
+          userId: userData?._id
+        });
+      }
+      
       const previousState = {
         token: state.token,
         isLoggedIn: state.isLoggedIn,
@@ -122,7 +170,7 @@ const authSlice = createSlice({
       
       state.token = accessToken;
       state.isLoggedIn = true;
-      state.user = user || null;
+      state.user = userData || null;
       state.isRefreshing = false;
       state.refreshAttempts = 0;
       state.lastRefreshError = null;
@@ -138,7 +186,7 @@ const authSlice = createSlice({
       });
       
       // Persist to localStorage using centralized auth utility
-      const storageResult = authStorage.setCredentials({ accessToken, user });
+      const storageResult = authStorage.setCredentials({ accessToken, user: userData });
       debugLog('setCredentials localStorage result', { success: storageResult });
     },
     logOut: (state, action) => {

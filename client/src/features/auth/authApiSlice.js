@@ -5,6 +5,29 @@ import { performLogout } from "../../utils/logoutUtils";
 import backgroundTokenRefreshService from "../../services/backgroundTokenRefresh";
 import { clearTokenValidationCache } from "../../utils/optimizedTokenUtils";
 
+// Helper function to extract user data from token
+const extractUserFromToken = (token) => {
+  try {
+    if (!token) return null;
+    
+    const payload = JSON.parse(atob(token.split('.')[1]));
+    
+    if (payload.UserInfo) {
+      return {
+        _id: payload.UserInfo.userId,
+        username: payload.UserInfo.username,
+        country: payload.UserInfo.country,
+        role: payload.UserInfo.role
+      };
+    }
+    
+    return null;
+  } catch (error) {
+    console.error('Error extracting user from token:', error);
+    return null;
+  }
+};
+
 export const authApiSlice = apiSlice.injectEndpoints({
   endpoints: (builder) => ({
     login: builder.mutation({
@@ -140,13 +163,17 @@ export const authApiSlice = apiSlice.injectEndpoints({
           const { accessToken, user } = result.data;
           
           if (accessToken) {
+            // Extract user data from the new token
+            const userData = extractUserFromToken(accessToken);
+            console.log('✅ Extracted user data from refresh token:', userData);
+            
             // Clear token validation cache before setting new credentials
             clearTokenValidationCache();
             
-            // Update auth state with new token
+            // Update auth state with new token and user data
             dispatch(setCredentials({ 
               accessToken, 
-              user 
+              user: userData || user // Use extracted data or fallback to API response
             }));
             
             // Force a state update to ensure all components re-render
@@ -166,7 +193,7 @@ export const authApiSlice = apiSlice.injectEndpoints({
               console.error('❌ Failed to re-initialize background token refresh service:', error);
             }
             
-            console.log('✅ Auth state updated after refresh');
+            console.log('✅ Auth state updated after refresh with user data:', userData);
           }
           
         } catch (error) {
