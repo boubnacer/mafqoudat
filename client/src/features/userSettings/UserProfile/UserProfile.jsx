@@ -33,14 +33,18 @@ import {
   Public,
 } from '@mui/icons-material';
 import { useNavigate } from 'react-router-dom';
+import { useDispatch } from 'react-redux';
 import { useTranslation } from '../../../utils/translations';
 import useAuth from '../../../hooks/useAuth';
 import { useGetUserByIdQuery, useUpdateUserMutation } from '../usersApiSlice';
 import { useGetCountriesQuery } from '../../dependencies/dependenciesApiSlice';
+import { authStorage } from '../../../utils/authStorage';
+import { setCredentials } from '../../auth/authSlice';
 
 const UserProfile = () => {
   const theme = useTheme();
   const navigate = useNavigate();
+  const dispatch = useDispatch();
   const { t, currentLanguage } = useTranslation();
   const { usernameId, username } = useAuth();
 
@@ -99,12 +103,30 @@ const UserProfile = () => {
     }
   }, [user]);
 
-  // Handle success
+  // Handle success and sync localStorage
   useEffect(() => {
     if (isSuccess) {
       setIsEditing(false);
       setFormData(prev => ({ ...prev, password: '', confirmPassword: '' }));
-      refetch();
+      
+      // Refetch user data to get the latest information
+      refetch().then((result) => {
+        if (result.data) {
+          // Update localStorage with the new user data
+          const currentUserData = authStorage.getUserData();
+          if (currentUserData) {
+            const updatedUserData = {
+              ...currentUserData,
+              username: result.data.username,
+              email: result.data.email,
+              phone: result.data.phone,
+              country: result.data.country,
+            };
+            authStorage.updateUserData(updatedUserData);
+            console.log('✅ [PROFILE] localStorage synced with updated user data');
+          }
+        }
+      });
     }
   }, [isSuccess, refetch]);
 
@@ -158,7 +180,13 @@ const UserProfile = () => {
     }
 
     try {
-      await updateUser(updateData).unwrap();
+      const response = await updateUser(updateData).unwrap();
+      
+      // If a new token was returned (username or country changed), update the auth state
+      if (response.accessToken) {
+        console.log('✅ [PROFILE] New token received, updating credentials');
+        dispatch(setCredentials({ accessToken: response.accessToken }));
+      }
     } catch (err) {
       console.error('Failed to update profile:', err);
     }

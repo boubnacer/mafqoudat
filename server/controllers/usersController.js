@@ -219,6 +219,10 @@ const updateUser = async (req, res) => {
     }
   }
 
+  // Check if username or country is changing (before updating)
+  const usernameChanged = user.username !== username;
+  const countryChanged = user.country.toString() !== country.toString();
+
   user.username = username;
   user.country = country;
 
@@ -238,8 +242,22 @@ const updateUser = async (req, res) => {
   }
 
   const updatedUser = await user.save();
+  
+  let response = { message: `${updatedUser.username} updated` };
+  
+  if (usernameChanged || countryChanged) {
+    const { accessToken } = generateTokens({
+      username: updatedUser.username,
+      id: updatedUser.id,
+      country: updatedUser.country,
+      role: updatedUser.role
+    });
+    
+    response.accessToken = accessToken;
+    console.log('New access token generated due to username or country change');
+  }
 
-  res.json({ message: `${updatedUser.username} updated` });
+  res.json(response);
 };
 
 // @desc Delete a user
