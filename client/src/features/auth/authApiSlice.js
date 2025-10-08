@@ -1,5 +1,6 @@
 import { apiSlice } from "../../app/api/apiSlice";
 import { logOut, setCredentials } from "./authSlice";
+import { setCurrentCountry } from "../../app/state/index";
 import { authStorage } from "../../utils/authStorage";
 import { performLogout } from "../../utils/logoutUtils";
 
@@ -72,6 +73,12 @@ export const authApiSlice = apiSlice.injectEndpoints({
           if (accessToken) {
             const userData = extractUserFromToken(accessToken) || user;
             dispatch(setCredentials({ accessToken, user: userData }));
+            
+            // Update current country in Redux state
+            if (userData?.country) {
+              dispatch(setCurrentCountry({ currentCountry: userData.country }));
+              console.log('🌍 [AUTH-API] Updated currentCountry in Redux:', userData.country);
+            }
           }
         } catch (error) {
           console.error('Login failed:', error);
