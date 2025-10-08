@@ -9,6 +9,60 @@
       }
     }
   ],
+  "rewrites": [
+    {
+      "source": "/api/:path*",
+      "destination": "https://mafqoudat-production.up.railway.app/api/:path*"
+    },
+    {
+      "source": "/auth/:path*",
+      "destination": "https://mafqoudat-production.up.railway.app/auth/:path*"
+    },
+    {
+      "source": "/users/:path*",
+      "destination": "https://mafqoudat-production.up.railway.app/users/:path*"
+    },
+    {
+      "source": "/posts/:path*",
+      "destination": "https://mafqoudat-production.up.railway.app/posts/:path*"
+    },
+    {
+      "source": "/countries/:path*",
+      "destination": "https://mafqoudat-production.up.railway.app/countries/:path*"
+    },
+    {
+      "source": "/cities/:path*",
+      "destination": "https://mafqoudat-production.up.railway.app/cities/:path*"
+    },
+    {
+      "source": "/cities-public/:path*",
+      "destination": "https://mafqoudat-production.up.railway.app/cities-public/:path*"
+    },
+    {
+      "source": "/cities-api/:path*",
+      "destination": "https://mafqoudat-production.up.railway.app/cities-api/:path*"
+    },
+    {
+      "source": "/floptions/:path*",
+      "destination": "https://mafqoudat-production.up.railway.app/floptions/:path*"
+    },
+    {
+      "source": "/categories/:path*",
+      "destination": "https://mafqoudat-production.up.railway.app/categories/:path*"
+    },
+    {
+      "source": "/promotion/:path*",
+      "destination": "https://mafqoudat-production.up.railway.app/promotion/:path*"
+    },
+    {
+      "source": "/admin/:path*",
+      "destination": "https://mafqoudat-production.up.railway.app/admin/:path*"
+    },
+    {
+      "source": "/uploads/:path*",
+      "destination": "https://mafqoudat-production.up.railway.app/uploads/:path*"
+    }
+  ],
   "routes": [
     {
       "src": "/static/(.*)",
