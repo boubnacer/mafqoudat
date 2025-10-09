@@ -103,7 +103,7 @@ export const adminApiSlice = apiSlice.injectEndpoints({
     }),
 
     // Get all users with pagination, search, and sorting
-    getUsers: builder.query({
+    getUsersAdmin: builder.query({
       query: ({ page = 1, limit = 10, search, sortBy = 'createdAt', sortOrder = 'desc' } = {}) => {
         const params = new URLSearchParams();
         params.append('page', page);
@@ -185,7 +185,7 @@ export const {
   useDeletePostAdminMutation,
   useGetPasswordResetRequestsQuery,
   useUpdatePasswordResetRequestStatusMutation,
-  useGetUsersQuery,
+  useGetUsersAdminQuery,
   useGetUserPostsQuery,
   useAdminResetUserPasswordMutation,
   useDeleteUserMutation,

@@ -61,7 +61,7 @@ import {
   useDeletePostAdminMutation,
   useGetPasswordResetRequestsQuery,
   useUpdatePasswordResetRequestStatusMutation,
-  useGetUsersQuery,
+  useGetUsersAdminQuery,
   useAdminResetUserPasswordMutation,
   useDeleteUserMutation,
   useGetAllPostsAdminQuery,
@@ -136,7 +136,7 @@ const AdminDashboard = () => {
     limit: resetRequestsRowsPerPage,
     status: resetRequestStatusFilter || undefined,
   });
-  const { data: usersData, isLoading: usersLoading, error: usersError } = useGetUsersQuery({
+  const { data: usersData, isLoading: usersLoading, error: usersError } = useGetUsersAdminQuery({
     page: usersPage + 1,
     limit: usersRowsPerPage,
     search: searchQuery || undefined,
