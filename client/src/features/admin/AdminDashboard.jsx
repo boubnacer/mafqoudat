@@ -48,6 +48,7 @@ import {
   FilterList,
   Search,
   LockReset,
+  People,
 } from '@mui/icons-material';
 import { useTranslation } from '../../utils/translations';
 import {
@@ -59,7 +60,16 @@ import {
   useDeletePostAdminMutation,
   useGetPasswordResetRequestsQuery,
   useUpdatePasswordResetRequestStatusMutation,
+  useGetUsersQuery,
+  useAdminResetUserPasswordMutation,
+  useDeleteUserMutation,
 } from './adminApiSlice';
+import {
+  UsersTable,
+  UserPostsDialog,
+  ResetPasswordDialog,
+  UsersSearchBar,
+} from './components';
 
 const AdminDashboard = () => {
   const { t, currentLanguage } = useTranslation();
@@ -70,18 +80,24 @@ const AdminDashboard = () => {
   const [reportsPage, setReportsPage] = useState(0);
   const [promotionsPage, setPromotionsPage] = useState(0);
   const [resetRequestsPage, setResetRequestsPage] = useState(0);
+  const [usersPage, setUsersPage] = useState(0);
   const [reportsRowsPerPage, setReportsRowsPerPage] = useState(10);
   const [promotionsRowsPerPage, setPromotionsRowsPerPage] = useState(10);
   const [resetRequestsRowsPerPage, setResetRequestsRowsPerPage] = useState(10);
+  const [usersRowsPerPage, setUsersRowsPerPage] = useState(10);
   const [reportStatusFilter, setReportStatusFilter] = useState('');
   const [promotionStatusFilter, setPromotionStatusFilter] = useState('');
   const [resetRequestStatusFilter, setResetRequestStatusFilter] = useState('');
+  const [searchQuery, setSearchQuery] = useState('');
   const [selectedReport, setSelectedReport] = useState(null);
   const [selectedPromotion, setSelectedPromotion] = useState(null);
   const [selectedResetRequest, setSelectedResetRequest] = useState(null);
+  const [selectedUser, setSelectedUser] = useState(null);
   const [reportDialogOpen, setReportDialogOpen] = useState(false);
   const [promotionDialogOpen, setPromotionDialogOpen] = useState(false);
   const [resetRequestDialogOpen, setResetRequestDialogOpen] = useState(false);
+  const [userPostsDialogOpen, setUserPostsDialogOpen] = useState(false);
+  const [resetPasswordDialogOpen, setResetPasswordDialogOpen] = useState(false);
   const [adminNotes, setAdminNotes] = useState('');
 
   // API queries
@@ -101,12 +117,19 @@ const AdminDashboard = () => {
     limit: resetRequestsRowsPerPage,
     status: resetRequestStatusFilter || undefined,
   });
+  const { data: usersData, isLoading: usersLoading, error: usersError } = useGetUsersQuery({
+    page: usersPage + 1,
+    limit: usersRowsPerPage,
+    search: searchQuery || undefined,
+  });
 
   // Mutations
   const [updateReportStatus, { isLoading: updatingReport }] = useUpdateReportStatusMutation();
   const [updatePromotionStatus, { isLoading: updatingPromotion }] = useUpdatePromotionStatusMutation();
   const [deletePost, { isLoading: deletingPost }] = useDeletePostAdminMutation();
   const [updateResetRequestStatus, { isLoading: updatingResetRequest }] = useUpdatePasswordResetRequestStatusMutation();
+  const [adminResetUserPassword] = useAdminResetUserPasswordMutation();
+  const [deleteUser] = useDeleteUserMutation();
 
   // Handlers
   const handleTabChange = (event, newValue) => {
@@ -218,6 +241,60 @@ const AdminDashboard = () => {
       setSelectedResetRequest(null);
     } catch (error) {
       console.error('Error updating reset request status:', error);
+    }
+  };
+
+  // Users Management Handlers
+  const handleUsersPageChange = (event, newPage) => {
+    setUsersPage(newPage);
+  };
+
+  const handleUsersRowsPerPageChange = (event) => {
+    setUsersRowsPerPage(parseInt(event.target.value, 10));
+    setUsersPage(0);
+  };
+
+  const handleSearchChange = (value) => {
+    setSearchQuery(value);
+    setUsersPage(0);
+  };
+
+  const handleViewPosts = (user) => {
+    setSelectedUser(user);
+    setUserPostsDialogOpen(true);
+  };
+
+  const handleResetPassword = (user) => {
+    setSelectedUser(user);
+    setResetPasswordDialogOpen(true);
+  };
+
+  const handleResetPasswordConfirm = async (userId, newPassword) => {
+    try {
+      await adminResetUserPassword({ userId, newPassword }).unwrap();
+      alert(t('passwordResetSuccessfully') || 'Password reset successfully');
+    } catch (error) {
+      console.error('Error resetting password:', error);
+      throw error;
+    }
+  };
+
+  const handleDeleteUser = async (user) => {
+    if (user.role === 'admin') {
+      alert(t('cannotDeleteAdmin') || 'Cannot delete admin users');
+      return;
+    }
+
+    const confirmMessage = t('confirmDeleteUser') || `Are you sure you want to delete user "${user.username}"? This will also delete all their posts.`;
+    
+    if (window.confirm(confirmMessage)) {
+      try {
+        await deleteUser(user._id).unwrap();
+        alert(t('userDeletedSuccessfully') || 'User deleted successfully');
+      } catch (error) {
+        console.error('Error deleting user:', error);
+        alert(t('errorDeletingUser') || 'Error deleting user: ' + (error.data?.message || error.message));
+      }
     }
   };
 
@@ -394,6 +471,42 @@ const AdminDashboard = () => {
             </CardContent>
           </Card>
         </Grid>
+
+        <Grid item xs={12} sm={6} md={3}>
+          <Card sx={{ height: '100%' }}>
+            <CardContent>
+              <Box display="flex" alignItems="center" justifyContent="space-between">
+                <Box>
+                  <Typography color="text.secondary" gutterBottom>
+                    {t('totalUsers')}
+                  </Typography>
+                  <Typography variant="h4" fontWeight="bold">
+                    {statistics?.totalUsers || 0}
+                  </Typography>
+                </Box>
+                <People sx={{ fontSize: 40, color: theme.palette.success.main }} />
+              </Box>
+            </CardContent>
+          </Card>
+        </Grid>
+
+        <Grid item xs={12} sm={6} md={3}>
+          <Card sx={{ height: '100%' }}>
+            <CardContent>
+              <Box display="flex" alignItems="center" justifyContent="space-between">
+                <Box>
+                  <Typography color="text.secondary" gutterBottom>
+                    {t('totalPosts')}
+                  </Typography>
+                  <Typography variant="h4" fontWeight="bold">
+                    {statistics?.totalPosts || 0}
+                  </Typography>
+                </Box>
+                <Visibility sx={{ fontSize: 40, color: theme.palette.info.main }} />
+              </Box>
+            </CardContent>
+          </Card>
+        </Grid>
       </Grid>
 
       {/* Tabs */}
@@ -444,6 +557,21 @@ const AdminDashboard = () => {
                     label={statistics.pendingResetRequests} 
                     size="small" 
                     color="warning" 
+                  />
+                )}
+              </Box>
+            } 
+          />
+          <Tab 
+            label={
+              <Box display="flex" alignItems="center" gap={1}>
+                <People />
+                {t('usersManagement')}
+                {statistics?.totalUsers > 0 && (
+                  <Chip 
+                    label={statistics.totalUsers} 
+                    size="small" 
+                    color="default" 
                   />
                 )}
               </Box>
@@ -1096,6 +1224,73 @@ const AdminDashboard = () => {
           )}
         </DialogActions>
       </Dialog>
+
+      {/* Users Management Tab */}
+      {activeTab === 3 && (
+        <Paper>
+          <Box p={2}>
+            <Box display="flex" justifyContent="space-between" alignItems="center" mb={2}>
+              <Typography variant="h6" fontWeight="bold">
+                {t('usersManagement')}
+              </Typography>
+            </Box>
+
+            <Box mb={2}>
+              <UsersSearchBar
+                value={searchQuery}
+                onChange={handleSearchChange}
+                placeholder={t('searchUsers') || 'Search by username, email, or phone...'}
+              />
+            </Box>
+
+            {usersLoading ? (
+              <Box display="flex" justifyContent="center" p={4}>
+                <CircularProgress />
+              </Box>
+            ) : usersError ? (
+              <Alert severity="error">
+                {t('errorLoadingUsers')}: {usersError?.data?.message || usersError?.message}
+              </Alert>
+            ) : (
+              <UsersTable
+                users={usersData?.data?.users || []}
+                pagination={usersData?.data?.pagination || {}}
+                page={usersPage}
+                rowsPerPage={usersRowsPerPage}
+                onPageChange={handleUsersPageChange}
+                onRowsPerPageChange={handleUsersRowsPerPageChange}
+                onViewPosts={handleViewPosts}
+                onResetPassword={handleResetPassword}
+                onDeleteUser={handleDeleteUser}
+                isLoading={usersLoading}
+              />
+            )}
+          </Box>
+        </Paper>
+      )}
+
+      {/* User Posts Dialog */}
+      <UserPostsDialog
+        open={userPostsDialogOpen}
+        onClose={() => {
+          setUserPostsDialogOpen(false);
+          setSelectedUser(null);
+        }}
+        userId={selectedUser?._id}
+        username={selectedUser?.username}
+      />
+
+      {/* Reset Password Dialog */}
+      <ResetPasswordDialog
+        open={resetPasswordDialogOpen}
+        onClose={() => {
+          setResetPasswordDialogOpen(false);
+          setSelectedUser(null);
+        }}
+        userId={selectedUser?._id}
+        username={selectedUser?.username}
+        onConfirm={handleResetPasswordConfirm}
+      />
     </Container>
   );
 };
