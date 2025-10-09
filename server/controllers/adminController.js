@@ -732,6 +732,89 @@ const deleteUserAdmin = async (req, res) => {
   }
 };
 
+// @desc Get all posts with pagination, search, and filtering
+// @route GET /admin/posts
+// @access Private (Admin only)
+const getAllPostsAdmin = async (req, res) => {
+  try {
+    const page = parseInt(req.query.page) || 1;
+    const limit = parseInt(req.query.limit) || 10;
+    const search = req.query.search || '';
+    const status = req.query.status;
+    const category = req.query.category;
+    const country = req.query.country;
+    const sortBy = req.query.sortBy || 'createdAt';
+    const sortOrder = req.query.sortOrder === 'asc' ? 1 : -1;
+
+    // Build filter object
+    const filter = {};
+    
+    // Add status filter
+    if (status) {
+      filter.status = status;
+    }
+
+    // Add category filter
+    if (category) {
+      filter.category = category;
+    }
+
+    // Add country filter
+    if (country) {
+      filter.country = country;
+    }
+
+    // Add search filter for description and exactLocation
+    if (search) {
+      filter.$or = [
+        { description: { $regex: search, $options: 'i' } },
+        { exactLocation: { $regex: search, $options: 'i' } }
+      ];
+    }
+
+    // Calculate skip value for pagination
+    const skip = (page - 1) * limit;
+
+    // Get posts with populated data
+    const posts = await Post.find(filter)
+      .populate('user', 'username email')
+      .populate('category', 'labels code')
+      .populate('country', 'labels names code')
+      .populate('city', 'labels')
+      .populate('foundLost', 'code')
+      .select('_id description exactLocation contact createdAt updatedAt status returned image cloudinaryUrl mainDate exactDate promotionRequested promotionProcessed views')
+      .sort({ [sortBy]: sortOrder })
+      .skip(skip)
+      .limit(limit)
+      .lean();
+
+    // Get total count for pagination
+    const totalPosts = await Post.countDocuments(filter);
+    const totalPages = Math.ceil(totalPosts / limit);
+
+    res.status(200).json({
+      success: true,
+      data: {
+        posts,
+        pagination: {
+          currentPage: page,
+          totalPages,
+          totalPosts,
+          hasNextPage: page < totalPages,
+          hasPrevPage: page > 1,
+        },
+      },
+    });
+  } catch (error) {
+    console.error('Error fetching posts:', error);
+    res.status(500).json({
+      success: false,
+      message: "Error fetching posts",
+      error: error.message,
+    });
+  }
+};
+
 module.exports = {
   getAllReports,
   getAllPromotions,
@@ -745,4 +828,5 @@ module.exports = {
   getUserPosts,
   adminResetUserPassword,
   deleteUserAdmin,
+  getAllPostsAdmin,
 };

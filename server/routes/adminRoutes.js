@@ -15,6 +15,7 @@ const {
   getUserPosts,
   adminResetUserPassword,
   deleteUserAdmin,
+  getAllPostsAdmin,
 } = require("../controllers/adminController");
 
 
@@ -46,6 +47,11 @@ router.get("/promotions", getAllPromotions);
 // @desc Update promotion status
 // @access Private (Admin only)
 router.patch("/promotions/:id", updatePromotionStatus);
+
+// @route GET /admin/posts
+// @desc Get all posts with pagination, search, and filtering
+// @access Private (Admin only)
+router.get("/posts", getAllPostsAdmin);
 
 // @route DELETE /admin/posts/:id
 // @desc Delete a post
