@@ -6,6 +6,8 @@ const Country = require("../models/Country");
 const FoundLost = require("../models/FoundLost");
 const City = require("../models/City");
 const PasswordResetRequest = require("../models/PasswordResetRequest");
+const bcrypt = require("bcrypt");
+const { logEvents } = require("../middleware/logger");
 
 // @desc Get all reports with pagination and filtering
 // @route GET /admin/reports
@@ -465,6 +467,271 @@ const updatePasswordResetRequestStatus = async (req, res) => {
   }
 };
 
+// @desc Get all users with pagination, search, and sorting
+// @route GET /admin/users
+// @access Private (Admin only)
+const getAllUsersAdmin = async (req, res) => {
+  try {
+    const page = parseInt(req.query.page) || 1;
+    const limit = parseInt(req.query.limit) || 10;
+    const search = req.query.search || '';
+    const sortBy = req.query.sortBy || 'createdAt';
+    const sortOrder = req.query.sortOrder === 'asc' ? 1 : -1;
+
+    // Build filter object
+    const filter = {};
+    
+    // Add search filter for username, email, or phone
+    if (search) {
+      filter.$or = [
+        { username: { $regex: search, $options: 'i' } },
+        { email: { $regex: search, $options: 'i' } },
+        { phone: { $regex: search, $options: 'i' } }
+      ];
+    }
+
+    // Calculate skip value for pagination
+    const skip = (page - 1) * limit;
+
+    // Get users with populated data
+    const users = await User.find(filter)
+      .populate('country', 'labels.en code names.en')
+      .select('username email phone role isActive createdAt lastLogin profile.firstName profile.lastName')
+      .sort({ [sortBy]: sortOrder })
+      .skip(skip)
+      .limit(limit)
+      .lean();
+
+    // Get total count for pagination
+    const totalUsers = await User.countDocuments(filter);
+    const totalPages = Math.ceil(totalUsers / limit);
+
+    res.status(200).json({
+      success: true,
+      data: {
+        users,
+        pagination: {
+          currentPage: page,
+          totalPages,
+          totalUsers,
+          hasNextPage: page < totalPages,
+          hasPrevPage: page > 1,
+        },
+      },
+    });
+  } catch (error) {
+    console.error('Error fetching users:', error);
+    res.status(500).json({
+      success: false,
+      message: "Error fetching users",
+      error: error.message,
+    });
+  }
+};
+
+// @desc Get all posts for a specific user with pagination
+// @route GET /admin/users/:userId/posts
+// @access Private (Admin only)
+const getUserPosts = async (req, res) => {
+  try {
+    const { userId } = req.params;
+    const page = parseInt(req.query.page) || 1;
+    const limit = parseInt(req.query.limit) || 10;
+    const sortBy = req.query.sortBy || 'createdAt';
+    const sortOrder = req.query.sortOrder === 'asc' ? 1 : -1;
+
+    // Validate user exists
+    const user = await User.findById(userId).select('username email');
+    if (!user) {
+      return res.status(404).json({
+        success: false,
+        message: "User not found",
+      });
+    }
+
+    // Calculate skip value for pagination
+    const skip = (page - 1) * limit;
+
+    // Get user's posts with populated data
+    const posts = await Post.find({ user: userId })
+      .populate('category', 'labels.en code')
+      .populate('country', 'labels.en code names.en')
+      .populate('foundLost', 'code')
+      .populate('city', 'labels.en')
+      .select('_id description exactLocation contact createdAt status returned image cloudinaryUrl')
+      .sort({ [sortBy]: sortOrder })
+      .skip(skip)
+      .limit(limit)
+      .lean();
+
+    // Get total count for pagination
+    const totalPosts = await Post.countDocuments({ user: userId });
+    const totalPages = Math.ceil(totalPosts / limit);
+
+    res.status(200).json({
+      success: true,
+      data: {
+        user: {
+          _id: user._id,
+          username: user.username,
+          email: user.email,
+        },
+        posts,
+        pagination: {
+          currentPage: page,
+          totalPages,
+          totalPosts,
+          hasNextPage: page < totalPages,
+          hasPrevPage: page > 1,
+        },
+      },
+    });
+  } catch (error) {
+    console.error('Error fetching user posts:', error);
+    res.status(500).json({
+      success: false,
+      message: "Error fetching user posts",
+      error: error.message,
+    });
+  }
+};
+
+// @desc Admin reset user password
+// @route PATCH /admin/users/:userId/reset-password
+// @access Private (Admin only)
+const adminResetUserPassword = async (req, res) => {
+  try {
+    const { userId } = req.params;
+    const { newPassword } = req.body;
+    const adminId = req.user;
+
+    // Validate inputs
+    if (!newPassword) {
+      return res.status(400).json({
+        success: false,
+        message: "New password is required",
+      });
+    }
+
+    if (newPassword.length < 6) {
+      return res.status(400).json({
+        success: false,
+        message: "Password must be at least 6 characters long",
+      });
+    }
+
+    // Find the user
+    const user = await User.findById(userId).select('username email role');
+    if (!user) {
+      return res.status(404).json({
+        success: false,
+        message: "User not found",
+      });
+    }
+
+    // Hash the new password
+    const hashedPassword = await bcrypt.hash(newPassword, 10);
+
+    // Update user password
+    user.password = hashedPassword;
+    await user.save();
+
+    // Get admin info for logging
+    const admin = await User.findById(adminId).select('username');
+
+    // Log the password reset action
+    await logEvents(
+      `Admin ${admin?.username || adminId} reset password for user ${user.username} (ID: ${userId})`,
+      'adminActions.log'
+    );
+
+    res.status(200).json({
+      success: true,
+      message: "User password reset successfully",
+      data: {
+        userId: user._id,
+        username: user.username,
+      },
+    });
+  } catch (error) {
+    console.error('Error resetting user password:', error);
+    res.status(500).json({
+      success: false,
+      message: "Error resetting user password",
+      error: error.message,
+    });
+  }
+};
+
+// @desc Delete a user and all their posts
+// @route DELETE /admin/users/:userId
+// @access Private (Admin only)
+const deleteUserAdmin = async (req, res) => {
+  try {
+    const { userId } = req.params;
+    const adminId = req.user;
+
+    // Validate user exists
+    const user = await User.findById(userId).select('username email role');
+    if (!user) {
+      return res.status(404).json({
+        success: false,
+        message: "User not found",
+      });
+    }
+
+    // Prevent deleting admin users
+    if (user.role === 'admin') {
+      return res.status(403).json({
+        success: false,
+        message: "Cannot delete admin users",
+      });
+    }
+
+    // Count user's posts before deletion
+    const postCount = await Post.countDocuments({ user: userId });
+
+    // Delete all user's posts
+    await Post.deleteMany({ user: userId });
+
+    // Delete any reports created by the user
+    await Report.deleteMany({ reportedBy: userId });
+
+    // Delete the user
+    await User.findByIdAndDelete(userId);
+
+    // Get admin info for logging
+    const admin = await User.findById(adminId).select('username');
+
+    // Log the deletion action
+    await logEvents(
+      `Admin ${admin?.username || adminId} deleted user ${user.username} (ID: ${userId}) and ${postCount} posts`,
+      'adminActions.log'
+    );
+
+    res.status(200).json({
+      success: true,
+      message: "User and all their posts deleted successfully",
+      data: {
+        deletedUser: {
+          id: user._id,
+          username: user.username,
+          email: user.email,
+          role: user.role,
+        },
+        deletedPostsCount: postCount,
+      },
+    });
+  } catch (error) {
+    console.error('Error deleting user:', error);
+    res.status(500).json({
+      success: false,
+      message: "Error deleting user",
+      error: error.message,
+    });
+  }
+};
+
 module.exports = {
   getAllReports,
   getAllPromotions,
@@ -474,4 +741,8 @@ module.exports = {
   deletePost,
   getAllPasswordResetRequests,
   updatePasswordResetRequestStatus,
+  getAllUsersAdmin,
+  getUserPosts,
+  adminResetUserPassword,
+  deleteUserAdmin,
 };

@@ -11,6 +11,10 @@ const {
   deletePost,
   getAllPasswordResetRequests,
   updatePasswordResetRequestStatus,
+  getAllUsersAdmin,
+  getUserPosts,
+  adminResetUserPassword,
+  deleteUserAdmin,
 } = require("../controllers/adminController");
 
 // All admin routes require authentication and admin role
@@ -56,5 +60,25 @@ router.get("/password-reset-requests", getAllPasswordResetRequests);
 // @desc Update password reset request status
 // @access Private (Admin only)
 router.patch("/password-reset-requests/:id", updatePasswordResetRequestStatus);
+
+// @route GET /admin/users
+// @desc Get all users with pagination, search, and sorting
+// @access Private (Admin only)
+router.get("/users", getAllUsersAdmin);
+
+// @route GET /admin/users/:userId/posts
+// @desc Get all posts for a specific user with pagination
+// @access Private (Admin only)
+router.get("/users/:userId/posts", getUserPosts);
+
+// @route PATCH /admin/users/:userId/reset-password
+// @desc Admin reset user password
+// @access Private (Admin only)
+router.patch("/users/:userId/reset-password", adminResetUserPassword);
+
+// @route DELETE /admin/users/:userId
+// @desc Delete a user and all their posts
+// @access Private (Admin only)
+router.delete("/users/:userId", deleteUserAdmin);
 
 module.exports = router;
