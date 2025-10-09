@@ -101,6 +101,78 @@ export const adminApiSlice = apiSlice.injectEndpoints({
       }),
       invalidatesTags: ['PasswordResetRequests', 'AdminDashboard'],
     }),
+
+    // Get all users with pagination, search, and sorting
+    getUsers: builder.query({
+      query: ({ page = 1, limit = 10, search, sortBy = 'createdAt', sortOrder = 'desc' } = {}) => {
+        const params = new URLSearchParams();
+        params.append('page', page);
+        params.append('limit', limit);
+        params.append('sortBy', sortBy);
+        params.append('sortOrder', sortOrder);
+        
+        if (search) params.append('search', search);
+        
+        return `/admin/users?${params.toString()}`;
+      },
+      providesTags: ['AdminUsers'],
+    }),
+
+    // Get all posts for a specific user with pagination
+    getUserPosts: builder.query({
+      query: ({ userId, page = 1, limit = 10 } = {}) => {
+        const params = new URLSearchParams();
+        params.append('page', page);
+        params.append('limit', limit);
+        
+        return `/admin/users/${userId}/posts?${params.toString()}`;
+      },
+      providesTags: ['AdminUsers'],
+    }),
+
+    // Admin reset user password
+    adminResetUserPassword: builder.mutation({
+      query: ({ userId, newPassword }) => ({
+        url: `/admin/users/${userId}/reset-password`,
+        method: 'PATCH',
+        body: { newPassword },
+      }),
+      invalidatesTags: ['AdminUsers'],
+    }),
+
+    // Delete a user and all their posts
+    deleteUser: builder.mutation({
+      query: (userId) => {
+        if (!userId) {
+          throw new Error('User ID is required for deletion');
+        }
+        
+        return {
+          url: `/admin/users/${userId}`,
+          method: 'DELETE',
+        };
+      },
+      invalidatesTags: ['AdminUsers', 'AdminDashboard'],
+    }),
+
+    // Get all posts with pagination, search, and filtering
+    getAllPostsAdmin: builder.query({
+      query: ({ page = 1, limit = 10, search, status, category, country, sortBy = 'createdAt', sortOrder = 'desc' } = {}) => {
+        const params = new URLSearchParams();
+        params.append('page', page);
+        params.append('limit', limit);
+        params.append('sortBy', sortBy);
+        params.append('sortOrder', sortOrder);
+        
+        if (search) params.append('search', search);
+        if (status) params.append('status', status);
+        if (category) params.append('category', category);
+        if (country) params.append('country', country);
+        
+        return `/admin/posts?${params.toString()}`;
+      },
+      providesTags: ['AdminPosts'],
+    }),
   }),
 });
 
@@ -113,4 +185,9 @@ export const {
   useDeletePostAdminMutation,
   useGetPasswordResetRequestsQuery,
   useUpdatePasswordResetRequestStatusMutation,
+  useGetUsersQuery,
+  useGetUserPostsQuery,
+  useAdminResetUserPasswordMutation,
+  useDeleteUserMutation,
+  useGetAllPostsAdminQuery,
 } = adminApiSlice;
