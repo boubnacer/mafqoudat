@@ -49,6 +49,7 @@ import {
   Search,
   LockReset,
   People,
+  Article,
 } from '@mui/icons-material';
 import { useTranslation } from '../../utils/translations';
 import {
@@ -63,12 +64,20 @@ import {
   useGetUsersQuery,
   useAdminResetUserPasswordMutation,
   useDeleteUserMutation,
+  useGetAllPostsAdminQuery,
 } from './adminApiSlice';
+import {
+  useGetCategoriesQuery,
+  useGetCountriesQuery,
+} from '../dependencies/dependenciesApiSlice';
 import {
   UsersTable,
   UserPostsDialog,
   ResetPasswordDialog,
   UsersSearchBar,
+  PostsTable,
+  PostsFilterBar,
+  PostDetailsDialog,
 } from './components';
 
 const AdminDashboard = () => {
@@ -81,23 +90,33 @@ const AdminDashboard = () => {
   const [promotionsPage, setPromotionsPage] = useState(0);
   const [resetRequestsPage, setResetRequestsPage] = useState(0);
   const [usersPage, setUsersPage] = useState(0);
+  const [postsPage, setPostsPage] = useState(0);
   const [reportsRowsPerPage, setReportsRowsPerPage] = useState(10);
   const [promotionsRowsPerPage, setPromotionsRowsPerPage] = useState(10);
   const [resetRequestsRowsPerPage, setResetRequestsRowsPerPage] = useState(10);
   const [usersRowsPerPage, setUsersRowsPerPage] = useState(10);
+  const [postsRowsPerPage, setPostsRowsPerPage] = useState(10);
   const [reportStatusFilter, setReportStatusFilter] = useState('');
   const [promotionStatusFilter, setPromotionStatusFilter] = useState('');
   const [resetRequestStatusFilter, setResetRequestStatusFilter] = useState('');
   const [searchQuery, setSearchQuery] = useState('');
+  const [postsFilters, setPostsFilters] = useState({
+    search: '',
+    status: '',
+    category: '',
+    country: '',
+  });
   const [selectedReport, setSelectedReport] = useState(null);
   const [selectedPromotion, setSelectedPromotion] = useState(null);
   const [selectedResetRequest, setSelectedResetRequest] = useState(null);
   const [selectedUser, setSelectedUser] = useState(null);
+  const [selectedPost, setSelectedPost] = useState(null);
   const [reportDialogOpen, setReportDialogOpen] = useState(false);
   const [promotionDialogOpen, setPromotionDialogOpen] = useState(false);
   const [resetRequestDialogOpen, setResetRequestDialogOpen] = useState(false);
   const [userPostsDialogOpen, setUserPostsDialogOpen] = useState(false);
   const [resetPasswordDialogOpen, setResetPasswordDialogOpen] = useState(false);
+  const [postDetailsDialogOpen, setPostDetailsDialogOpen] = useState(false);
   const [adminNotes, setAdminNotes] = useState('');
 
   // API queries
@@ -122,6 +141,25 @@ const AdminDashboard = () => {
     limit: usersRowsPerPage,
     search: searchQuery || undefined,
   });
+  const { data: postsData, isLoading: postsLoading, error: postsError } = useGetAllPostsAdminQuery({
+    page: postsPage + 1,
+    limit: postsRowsPerPage,
+    search: postsFilters.search || undefined,
+    status: postsFilters.status || undefined,
+    category: postsFilters.category || undefined,
+    country: postsFilters.country || undefined,
+  });
+  
+  // Fetch categories and countries for filters
+  const { data: categoriesData } = useGetCategoriesQuery({
+    language: currentLanguage || 'en'
+  });
+  const { data: countriesData } = useGetCountriesQuery({
+    language: currentLanguage || 'en'
+  });
+  
+  const categories = categoriesData?.ids?.map((id) => categoriesData?.entities[id]) || [];
+  const countries = countriesData?.ids?.map((id) => countriesData?.entities[id]) || [];
 
   // Mutations
   const [updateReportStatus, { isLoading: updatingReport }] = useUpdateReportStatusMutation();
@@ -294,6 +332,40 @@ const AdminDashboard = () => {
       } catch (error) {
         console.error('Error deleting user:', error);
         alert(t('errorDeletingUser') || 'Error deleting user: ' + (error.data?.message || error.message));
+      }
+    }
+  };
+
+  // Posts Management Handlers
+  const handlePostsPageChange = (event, newPage) => {
+    setPostsPage(newPage);
+  };
+
+  const handlePostsRowsPerPageChange = (event) => {
+    setPostsRowsPerPage(parseInt(event.target.value, 10));
+    setPostsPage(0);
+  };
+
+  const handlePostsFilterChange = (newFilters) => {
+    setPostsFilters(newFilters);
+    setPostsPage(0);
+  };
+
+  const handleViewPost = (post) => {
+    setSelectedPost(post);
+    setPostDetailsDialogOpen(true);
+  };
+
+  const handleDeletePostFromTable = async (post) => {
+    const confirmMessage = t('confirmDeletePost') || `Are you sure you want to delete this post?`;
+    
+    if (window.confirm(confirmMessage)) {
+      try {
+        await deletePost(post._id).unwrap();
+        alert(t('postDeletedSuccessfully') || 'Post deleted successfully');
+      } catch (error) {
+        console.error('Error deleting post:', error);
+        alert(t('errorDeletingPost') || 'Error deleting post: ' + (error.data?.message || error.message));
       }
     }
   };
@@ -570,6 +642,21 @@ const AdminDashboard = () => {
                 {statistics?.totalUsers > 0 && (
                   <Chip 
                     label={statistics.totalUsers} 
+                    size="small" 
+                    color="default" 
+                  />
+                )}
+              </Box>
+            } 
+          />
+          <Tab 
+            label={
+              <Box display="flex" alignItems="center" gap={1}>
+                <Article />
+                {t('postsManagement')}
+                {statistics?.totalPosts > 0 && (
+                  <Chip 
+                    label={statistics.totalPosts} 
                     size="small" 
                     color="default" 
                   />
@@ -1290,6 +1377,61 @@ const AdminDashboard = () => {
         userId={selectedUser?._id}
         username={selectedUser?.username}
         onConfirm={handleResetPasswordConfirm}
+      />
+
+      {/* Posts Management Tab */}
+      {activeTab === 4 && (
+        <Paper>
+          <Box p={2}>
+            <Box display="flex" justifyContent="space-between" alignItems="center" mb={2}>
+              <Typography variant="h6" fontWeight="bold">
+                {t('postsManagement')}
+              </Typography>
+            </Box>
+
+            <Box mb={2}>
+              <PostsFilterBar
+                filters={postsFilters}
+                onFilterChange={handlePostsFilterChange}
+                categories={categories}
+                countries={countries}
+              />
+            </Box>
+
+            {postsLoading ? (
+              <Box display="flex" justifyContent="center" p={4}>
+                <CircularProgress />
+              </Box>
+            ) : postsError ? (
+              <Alert severity="error">
+                {t('errorLoadingPosts')}: {postsError?.data?.message || postsError?.message}
+              </Alert>
+            ) : (
+              <PostsTable
+                posts={postsData?.data?.posts || []}
+                pagination={postsData?.data?.pagination || {}}
+                page={postsPage}
+                rowsPerPage={postsRowsPerPage}
+                onPageChange={handlePostsPageChange}
+                onRowsPerPageChange={handlePostsRowsPerPageChange}
+                onViewPost={handleViewPost}
+                onDeletePost={handleDeletePostFromTable}
+                isLoading={postsLoading}
+              />
+            )}
+          </Box>
+        </Paper>
+      )}
+
+      {/* Post Details Dialog */}
+      <PostDetailsDialog
+        open={postDetailsDialogOpen}
+        onClose={() => {
+          setPostDetailsDialogOpen(false);
+          setSelectedPost(null);
+        }}
+        post={selectedPost}
+        onDelete={handleDeletePostFromTable}
       />
     </Container>
   );

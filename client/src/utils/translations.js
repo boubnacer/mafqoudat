@@ -164,6 +164,12 @@ export const translations = {
     errorLoadingUsers: "Error loading users",
     searchUsers: "Search by username, email, or phone...",
     
+    // Posts Management translations
+    postsManagement: "Posts Management",
+    errorLoadingPosts: "Error loading posts",
+    filterByCategory: "Filter by Category",
+    filterByCountry: "Filter by Country",
+    
     spamFake: "Spam or Fake",
     duplicate: "Duplicate",
     wrongCategory: "Wrong Category",
@@ -1092,6 +1098,12 @@ export const translations = {
     errorLoadingUsers: "Erreur lors du chargement des utilisateurs",
     searchUsers: "Rechercher par nom d'utilisateur, e-mail ou téléphone...",
     
+    // Posts Management translations
+    postsManagement: "Gestion des publications",
+    errorLoadingPosts: "Erreur lors du chargement des publications",
+    filterByCategory: "Filtrer par catégorie",
+    filterByCountry: "Filtrer par pays",
+    
     spamFake: "Spam ou faux",
     duplicate: "Dupliqué",
     wrongCategory: "Mauvaise catégorie",
@@ -2002,6 +2014,12 @@ export const translations = {
     errorDeletingUser: "خطأ في حذف المستخدم",
     errorLoadingUsers: "خطأ في تحميل المستخدمين",
     searchUsers: "البحث بالاسم أو البريد الإلكتروني أو الهاتف...",
+    
+    // Posts Management translations
+    postsManagement: "إدارة المنشورات",
+    errorLoadingPosts: "خطأ في تحميل المنشورات",
+    filterByCategory: "تصفية حسب الفئة",
+    filterByCountry: "تصفية حسب البلد",
     
     spamFake: "مزعج أو مزيف",
     duplicate: "مكرر",
