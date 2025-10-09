@@ -141,7 +141,7 @@ export const adminApiSlice = apiSlice.injectEndpoints({
     }),
 
     // Delete a user and all their posts
-    deleteUser: builder.mutation({
+    deleteUserAdmin: builder.mutation({
       query: (userId) => {
         if (!userId) {
           throw new Error('User ID is required for deletion');
@@ -188,6 +188,6 @@ export const {
   useGetUsersAdminQuery,
   useGetUserPostsQuery,
   useAdminResetUserPasswordMutation,
-  useDeleteUserMutation,
+  useDeleteUserAdminMutation,
   useGetAllPostsAdminQuery,
 } = adminApiSlice;
