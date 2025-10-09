@@ -119,7 +119,7 @@ export const adminApiSlice = apiSlice.injectEndpoints({
     }),
 
     // Get all posts for a specific user with pagination
-    getUserPosts: builder.query({
+    getUserPostsAdmin: builder.query({
       query: ({ userId, page = 1, limit = 10 } = {}) => {
         const params = new URLSearchParams();
         params.append('page', page);
@@ -186,7 +186,7 @@ export const {
   useGetPasswordResetRequestsQuery,
   useUpdatePasswordResetRequestStatusMutation,
   useGetUsersAdminQuery,
-  useGetUserPostsQuery,
+  useGetUserPostsAdminQuery,
   useAdminResetUserPasswordMutation,
   useDeleteUserAdminMutation,
   useGetAllPostsAdminQuery,

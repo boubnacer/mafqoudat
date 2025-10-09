@@ -27,7 +27,7 @@ import {
   Delete,
   Close,
 } from '@mui/icons-material';
-import { useGetUserPostsQuery } from '../adminApiSlice';
+import { useGetUserPostsAdminQuery } from '../adminApiSlice';
 
 const UserPostsDialog = ({
   open,
@@ -39,7 +39,7 @@ const UserPostsDialog = ({
   const [page, setPage] = useState(0);
   const [rowsPerPage, setRowsPerPage] = useState(10);
 
-  const { data, isLoading, error } = useGetUserPostsQuery(
+  const { data, isLoading, error } = useGetUserPostsAdminQuery(
     { userId, page: page + 1, limit: rowsPerPage },
     { skip: !open || !userId }
   );
