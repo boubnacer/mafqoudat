@@ -1330,13 +1330,24 @@ const AdminDashboard = () => {
               />
             </Box>
 
+            {/* Debug info */}
+            {console.log('Users Data:', usersData)}
+            {console.log('Users Array:', usersData?.data?.users)}
+            {console.log('Users Loading:', usersLoading)}
+            {console.log('Users Error:', usersError)}
+
             {usersLoading ? (
               <Box display="flex" justifyContent="center" p={4}>
                 <CircularProgress />
+                <Typography variant="body2" sx={{ ml: 2 }}>Loading users...</Typography>
               </Box>
             ) : usersError ? (
               <Alert severity="error">
                 {t('errorLoadingUsers')}: {usersError?.data?.message || usersError?.message}
+              </Alert>
+            ) : !usersData?.data?.users ? (
+              <Alert severity="warning">
+                No user data received from server
               </Alert>
             ) : (
               <UsersTable
