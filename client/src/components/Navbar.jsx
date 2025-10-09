@@ -1086,6 +1086,31 @@ const Navbar = () => {
               }}
             />
           </MenuItem>
+          <MenuItem 
+            onClick={() => {
+              handleProfileClose();
+              navigate('/dash/myposts');
+            }}
+            sx={{
+              py: 1.5,
+              px: 2,
+              '&:hover': {
+                backgroundColor: alpha(theme.palette.primary.main, 0.1),
+              }
+            }}
+          >
+            <ListItemIcon>
+              <PostAdd sx={{ fontSize: 20 }} />
+            </ListItemIcon>
+            <ListItemText 
+              primary={t('myPosts')}
+              primaryTypographyProps={{
+                fontWeight: 600,
+                fontSize: '0.95rem',
+                textAlign: currentLanguage === 'ar' ? 'right' : 'left'
+              }}
+            />
+          </MenuItem>
           <Divider />
           <MenuItem 
             onClick={() => {

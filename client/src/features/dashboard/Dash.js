@@ -24,7 +24,6 @@ import Recent from "../../components/dashboard/Recent";
 import SeeAll from "../../components/dashboard/SeeAll";
 import HelpSupportSection from "../../components/dashboard/HelpSupportSection";
 import DashRecents from "../../components/dashboard/DashRecents";
-import YourPosts from "../../components/dashboard/YourPosts";
 
 import "./dash.css";
 
@@ -50,8 +49,6 @@ const Dash = () => {
     error,
     isLoading,
     trend,
-    userPostsData,
-    isUserPostsLoading,
     currentCountry,
     countriesData,
   } = useDashboard();
@@ -243,14 +240,6 @@ const Dash = () => {
               borderRadius: 1
             }}
           />
-
-          {/* Your Posts Section - Only show if user is signed in and has posts */}
-          {user.username && userPostsData?.postsWithUser?.length > 0 && (
-            <YourPosts 
-              userPosts={userPostsData?.postsWithUser}
-              isLoading={isUserPostsLoading}
-            />
-          )}
 
           {/* Enhanced Recent Founds Section - Only show when there are posts */}
           {data?.totalFounds > 0 && (
