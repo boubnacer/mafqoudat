@@ -100,11 +100,12 @@ const SinglePostPage = ({
   const navigate = useNavigate();
   const theme = useTheme();
   const isMobile = useMediaQuery("(max-width:768px)");
-  const { usernameId, isAuthenticated } = useAuth();
+  const { usernameId, isAuthenticated, role } = useAuth();
   const { t, currentLanguage } = useTranslation();
   const isRTLMode = isRTL();
 
   const canEdit = user === usernameId && isAuthenticated;
+  const canDelete = canEdit || (role === 'admin' && isAuthenticated);
   const [reportDialogOpen, setReportDialogOpen] = useState(false);
   const [submitReport] = useSubmitReportMutation();
   const [deletePost, { isLoading: isDeleting, isSuccess: isDeleteSuccess }] = useDeletePostMutation();
@@ -1047,58 +1048,58 @@ const SinglePostPage = ({
 
               <Box display="flex" flexDirection="column" gap={2}>
                 {canEdit && (
-                  <>
-                    <Button
-                      variant="contained"
-                      startIcon={<EditIcon />}
-                      onClick={handleEdit}
-                      fullWidth
-                      sx={{
-                        borderRadius: 2,
-                        textTransform: 'none',
-                        fontWeight: 600,
-                        direction: currentLanguage === 'ar' ? 'rtl' : 'ltr',
-                        gap: currentLanguage === 'ar' ? 1 : 0.5,
+                  <Button
+                    variant="contained"
+                    startIcon={<EditIcon />}
+                    onClick={handleEdit}
+                    fullWidth
+                    sx={{
+                      borderRadius: 2,
+                      textTransform: 'none',
+                      fontWeight: 600,
+                      direction: currentLanguage === 'ar' ? 'rtl' : 'ltr',
+                      gap: currentLanguage === 'ar' ? 1 : 0.5,
+                      boxShadow: 'none',
+                      border: isDarkMode 
+                        ? `1px solid ${theme.palette.primary.main}` 
+                        : `1px solid ${alpha('#000', 0.3)}`,
+                      '&:hover': {
                         boxShadow: 'none',
-                        border: isDarkMode 
-                          ? `1px solid ${theme.palette.primary.main}` 
-                          : `1px solid ${alpha('#000', 0.3)}`,
-                        '&:hover': {
-                          boxShadow: 'none',
-                          backgroundColor: isDarkMode 
-                            ? alpha(theme.palette.primary.main, 0.1) 
-                            : alpha(theme.palette.primary.main, 0.08)
-                        }
-                      }}
-                    >
-                      {t('editPost')}
-                    </Button>
-                    
-                    <Button
-                      variant="outlined"
-                      startIcon={<DeleteIcon />}
-                      onClick={handleDeletePost}
-                      disabled={isDeleting}
-                      fullWidth
-                      sx={{
-                        borderRadius: 2,
-                        textTransform: 'none',
-                        fontWeight: 600,
-                        direction: currentLanguage === 'ar' ? 'rtl' : 'ltr',
-                        gap: currentLanguage === 'ar' ? 1 : 0.5,
-                        boxShadow: 'none',
-                        borderColor: theme.palette.error.main,
-                        color: theme.palette.error.main,
-                        '&:hover': {
-                          backgroundColor: theme.palette.error.main,
-                          color: 'white',
-                          boxShadow: 'none'
-                        }
-                      }}
-                    >
-                      {isDeleting ? t('deleting') || 'Deleting...' : t('deletePost')}
-                    </Button>
-                  </>
+                        backgroundColor: isDarkMode 
+                          ? alpha(theme.palette.primary.main, 0.1) 
+                          : alpha(theme.palette.primary.main, 0.08)
+                      }
+                    }}
+                  >
+                    {t('editPost')}
+                  </Button>
+                )}
+                
+                {canDelete && (
+                  <Button
+                    variant="outlined"
+                    startIcon={<DeleteIcon />}
+                    onClick={handleDeletePost}
+                    disabled={isDeleting}
+                    fullWidth
+                    sx={{
+                      borderRadius: 2,
+                      textTransform: 'none',
+                      fontWeight: 600,
+                      direction: currentLanguage === 'ar' ? 'rtl' : 'ltr',
+                      gap: currentLanguage === 'ar' ? 1 : 0.5,
+                      boxShadow: 'none',
+                      borderColor: theme.palette.error.main,
+                      color: theme.palette.error.main,
+                      '&:hover': {
+                        backgroundColor: theme.palette.error.main,
+                        color: 'white',
+                        boxShadow: 'none'
+                      }
+                    }}
+                  >
+                    {isDeleting ? t('deleting') || 'Deleting...' : t('deletePost')}
+                  </Button>
                 )}
 
                 <Button
