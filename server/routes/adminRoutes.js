@@ -17,6 +17,7 @@ const {
   deleteUserAdmin,
 } = require("../controllers/adminController");
 
+
 // All admin routes require authentication and admin role
 router.use(verifyJWT);
 router.use(verifyAdmin);
