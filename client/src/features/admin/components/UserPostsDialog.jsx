@@ -74,8 +74,7 @@ const UserPostsDialog = ({
 
   const handleDeletePost = (postId) => {
     // This can be implemented to call the delete post mutation
-    console.log('Delete post:', postId);
-    // You can add delete functionality here
+    // You can add delete functionality here if needed
   };
 
   return (
