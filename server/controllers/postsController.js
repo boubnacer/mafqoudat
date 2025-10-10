@@ -963,7 +963,6 @@ const createNewPost = async (req, res) => {
          
         if (existingCity) {
           cityId = existingCity._id;
-          console.log(`✅ City "${apiCityData.labels.en}" already exists in database (ID: ${cityId})`);
         } else {
           // Create new city from API data (GeoNames or Google Places)
           const cityDataToSave = {
@@ -980,21 +979,14 @@ const createNewPost = async (req, res) => {
           if (apiCityData.source === 'google') {
             cityDataToSave.apiSource = 'google';
             cityDataToSave.placeId = apiCityData.placeId;
-            console.log(`🌐 Creating new city from Google Places: "${apiCityData.labels.en}" (Place ID: ${apiCityData.placeId})`);
+            console.log(`🌐 Saved city from Google Places: ${apiCityData.labels.en}`);
           } else {
             cityDataToSave.apiSource = 'geonames';
-            console.log(`🗺️ Creating new city from GeoNames: "${apiCityData.labels.en}"`);
+            console.log(`🗺️ Saved city from GeoNames: ${apiCityData.labels.en}`);
           }
           
           const newCity = await City.create(cityDataToSave);
-          
           cityId = newCity._id;
-          console.log(`✅ City "${apiCityData.labels.en}" saved to database with translations:`,{
-            en: newCity.labels.en,
-            fr: newCity.labels.fr,
-            ar: newCity.labels.ar,
-            source: newCity.apiSource
-          });
         }
        } catch (apiCityError) {
          console.error('Error processing API city data:', apiCityError.message);

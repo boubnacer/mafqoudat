@@ -85,7 +85,8 @@ class GooglePlacesService {
       // Validate language
       const requestLanguage = this.supportedLanguages.includes(language) ? language : 'en';
 
-      console.log(`🔍 Google Places API: Searching for "${cityName}" in ${countryCode} (${requestLanguage})`);
+      // Log search
+      console.log(`🔍 Google Places: "${cityName}" in ${countryCode} (${requestLanguage})`);
 
       // Construct search query with country name for better results
       const searchQuery = `${cityName} ${this.getCountryName(countryCode)}`;
@@ -125,7 +126,7 @@ class GooglePlacesService {
           cities.map(city => this.enrichWithTranslations(city))
         );
 
-        console.log(`✅ Google Places API: Found ${enrichedCities.length} cities for "${cityName}"`);
+        console.log(`✅ Google Places: ${enrichedCities.length} cities found`);
         return enrichedCities;
       }
 
@@ -163,7 +164,6 @@ class GooglePlacesService {
   matchesCountryCode(place, countryCode) {
     // If no address components, be lenient since we're searching with country name
     if (!place.address_components) {
-      console.log(`⚠️  No address_components for ${place.name}, allowing (searched with country filter)`);
       return true; // Allow it since we searched with country name in query
     }
 
@@ -172,17 +172,10 @@ class GooglePlacesService {
     );
 
     if (!countryComponent) {
-      console.log(`⚠️  No country component for ${place.name}, allowing (searched with country filter)`);
       return true; // Allow it since we searched with country name in query
     }
 
-    const matches = countryComponent.short_name === countryCode;
-    
-    if (!matches) {
-      console.log(`⚠️  Country mismatch: ${place.name} is in ${countryComponent.short_name}, expected ${countryCode}`);
-    }
-
-    return matches;
+    return countryComponent.short_name === countryCode;
   }
 
   /**
@@ -330,8 +323,6 @@ class GooglePlacesService {
    */
   async enrichWithTranslations(cityData) {
     try {
-      console.log(`📝 Enriching "${cityData.placeId}" with native names in all languages...`);
-      
       const nativeNames = {
         en: cityData.labels.en, // Already have this
         fr: cityData.labels.en, // Will fetch
@@ -343,7 +334,6 @@ class GooglePlacesService {
       
       for (const lang of languagesToFetch) {
         if (!this.canMakeRequest()) {
-          console.log(`⚠️ Rate limit reached, skipping ${lang} translation`);
           break;
         }
         
@@ -364,12 +354,9 @@ class GooglePlacesService {
 
           if (response.data && response.data.status === 'OK' && response.data.result) {
             nativeNames[lang] = response.data.result.name;
-            console.log(`   ✅ ${lang.toUpperCase()}: ${response.data.result.name}`);
-          } else {
-            console.log(`   ⚠️  ${lang.toUpperCase()}: No native name, using default`);
           }
         } catch (error) {
-          console.log(`   ⚠️  ${lang.toUpperCase()}: API error, using default`);
+          // Silently continue with default name
         }
       }
       
@@ -382,8 +369,6 @@ class GooglePlacesService {
         nativeNames.fr.toLowerCase(),
         nativeNames.ar
       ].filter((term, index, self) => term && self.indexOf(term) === index);
-      
-      console.log(`✅ Native names collected - EN:"${nativeNames.en}", FR:"${nativeNames.fr}", AR:"${nativeNames.ar}"`);
 
       return cityData;
     } catch (error) {
