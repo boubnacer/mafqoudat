@@ -310,7 +310,7 @@ const CountrySelection = () => {
 
     try {
       const apiUrl = process.env.REACT_APP_API_URL || "http://localhost:3500";
-      const response = await axios.post(`${apiUrl}/auth/google/complete`, {
+      const response = await axios.post(`${apiUrl}/auth/complete`, {
         pendingToken,
         countryId: selectedCountry
       });

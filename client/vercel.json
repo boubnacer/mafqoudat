@@ -13,8 +13,8 @@
       "destination": "https://mafqoudat-production.up.railway.app/auth/google/callback"
     },
     {
-      "source": "/auth/google/complete",
-      "destination": "https://mafqoudat-production.up.railway.app/auth/google/complete"
+      "source": "/auth/complete",
+      "destination": "https://mafqoudat-production.up.railway.app/auth/complete"
     },
     {
       "source": "/auth/logout",
