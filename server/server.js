@@ -16,6 +16,8 @@ const cookieParser = require("cookie-parser");
 const cors = require("cors");
 const corsOptions = require("./config/corsOptions");
 const { connectDB, disconnectDB, getConnectionMetrics } = require("./config/resilientDbConn");
+const session = require("express-session");
+const passport = require("./config/passport");
 
 // Security middleware imports
 const { 
@@ -147,6 +149,21 @@ app.use(express.urlencoded({ extended: true, limit: '10mb' }));
 
 app.use(cookieParser());
 
+// Session configuration for OAuth
+app.use(session({
+  secret: process.env.JWT_SECRET,
+  resave: false,
+  saveUninitialized: false,
+  cookie: {
+    secure: process.env.NODE_ENV === 'production',
+    maxAge: 24 * 60 * 60 * 1000 // 24 hours
+  }
+}));
+
+// Initialize Passport for OAuth
+app.use(passport.initialize());
+app.use(passport.session());
+
 // Serve static files
 app.use("/", express.static(path.join(__dirname, "public")));
 
@@ -157,6 +174,7 @@ app.use('/auth', authErrorMiddleware);
 app.use("/", require("./routes/root"));
 app.use("/dashboard", require("./routes/dashRoutes"));
 app.use("/auth", require("./routes/authRoutes"));
+app.use("/auth", require("./routes/googleAuthRoutes"));
 app.use("/users", require("./routes/userRoutes"));
 app.use("/posts", require("./routes/postRoutes"));
 app.use("/countries", require("./routes/countryRoutes"));
