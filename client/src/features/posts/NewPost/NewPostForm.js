@@ -310,6 +310,8 @@ const NewPostForm = ({ user, countries, categories, flOptions }) => {
         return [];
       }
 
+      console.log(`🔍 Searching for city: "${searchQuery}" in country: ${countryCode}`);
+      
       const baseUrl = process.env.REACT_APP_API_URL || "http://localhost:3500";
       const url = `${baseUrl}/cities/search?q=${encodeURIComponent(searchQuery)}&language=${currentLanguage || 'en'}&countryCode=${countryCode}&limit=10`;
       
@@ -317,13 +319,40 @@ const NewPostForm = ({ user, countries, categories, flOptions }) => {
       const data = await response.json();
       
       if (data.success) {
+        // Log source breakdown
+        const sources = data.sources || {};
+        console.log('📊 City Search Results:');
+        console.log(`   💾 Database: ${sources.database || 0} cities`);
+        console.log(`   🗺️  GeoNames: ${sources.geonames || 0} cities`);
+        console.log(`   🌐 Google Places: ${sources.google || 0} cities`);
+        console.log(`   📍 Total: ${data.total || 0} cities`);
+        
+        // Log which tier was used
+        if (sources.google > 0) {
+          console.log('✨ Google Places API was used (3rd tier fallback)');
+        } else if (sources.geonames > 0) {
+          console.log('🌐 GeoNames API was used (2nd tier fallback)');
+        } else if (sources.database > 0) {
+          console.log('💾 Database only (1st tier - no external API calls)');
+        }
+        
+        // Log individual cities with their sources
+        if (data.data && data.data.length > 0) {
+          console.log('🏙️  Cities found:');
+          data.data.forEach((city, index) => {
+            const sourceIcon = city.source === 'google' ? '🌐' : 
+                              city.source === 'geonames' ? '🗺️' : '💾';
+            console.log(`   ${index + 1}. ${sourceIcon} ${city.label} (${city.code}) - Source: ${city.source}`);
+          });
+        }
+        
         return data.data;
       } else {
-        console.error('Failed to search cities:', data.message);
+        console.error('❌ Failed to search cities:', data.message);
         return [];
       }
     } catch (error) {
-      console.error('Error searching cities:', error);
+      console.error('❌ Error searching cities:', error);
       return [];
     }
   }, [currentLanguage]);
@@ -537,24 +566,35 @@ const NewPostForm = ({ user, countries, categories, flOptions }) => {
     // Get country code from selectedCountry object
     const countryCode = selectedCountry?.code || selectedCountry?.labels?.en || selectedCountry?.names?.en;
     
+    console.log(`\n${'='.repeat(60)}`);
+    console.log(`🔎 City Search Initiated in New Post Form`);
+    console.log(`   Query: "${query}"`);
+    console.log(`   Country: ${selectedCountry?.label || selectedCountry?.names?.en || 'Unknown'} (${countryCode})`);
+    console.log(`   Language: ${currentLanguage || 'en'}`);
+    console.log(`${'='.repeat(60)}\n`);
     
     if (query.length >= 2 && selectedCountry?._id) {
       setIsSearching(true);
       try {
         // Try hybrid search first
+        console.log('🚀 Starting 3-Tier Search: Database → GeoNames → Google Places');
         const results = await searchCitiesHybrid(query, countryCode);
         
         if (results.length > 0) {
+          console.log(`✅ Hybrid search returned ${results.length} results\n`);
           setSearchResults(results);
         } else {
           // Fallback to traditional search
+          console.log('⚠️  No results from hybrid search');
           console.log('🔄 Trying traditional search as fallback...');
           const fallbackResults = await searchCitiesTraditional(query, selectedCountry._id);
           
           if (fallbackResults.length > 0) {
+            console.log(`✅ Traditional search returned ${fallbackResults.length} results\n`);
             setSearchResults(fallbackResults);
           } else {
             // Final fallback: filter existing cities
+            console.log('⚠️  No results from traditional search');
             console.log('🔄 Using local city filter as final fallback...');
             const localResults = cities.filter(city => 
               city.label?.toLowerCase().includes(query.toLowerCase()) ||
@@ -564,18 +604,20 @@ const NewPostForm = ({ user, countries, categories, flOptions }) => {
               source: 'database',
               _id: city.id || city._id
             }));
+            console.log(`✅ Local filter returned ${localResults.length} results\n`);
             
             setSearchResults(localResults);
           }
         }
       } catch (error) {
-        console.error('Error searching cities:', error);
+        console.error('❌ Error searching cities:', error);
         setSearchResults([]);
       } finally {
         setIsSearching(false);
       }
     } else if (query.length > 0) {
       // Show local filtered results for shorter queries
+      console.log('ℹ️  Query too short (< 2 chars) or no country selected - filtering local cities only');
       const localResults = cities.filter(city => 
         city.label?.toLowerCase().includes(query.toLowerCase()) ||
         city.name?.toLowerCase().includes(query.toLowerCase())
@@ -588,7 +630,7 @@ const NewPostForm = ({ user, countries, categories, flOptions }) => {
     } else {
       setSearchResults([]);
     }
-  }, [searchCitiesHybrid, selectedCountry, cities]);
+  }, [searchCitiesHybrid, searchCitiesTraditional, selectedCountry, cities, currentLanguage]);
 
   // Handle city selection from dropdown
   const handleCitySelect = (city) => {
