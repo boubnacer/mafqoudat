@@ -193,36 +193,23 @@ const searchCities = async (req, res) => {
       }
     }
 
-    // Step 3: If we still need more results, search Google Places API
-    if (allCities.length < parseInt(limit) && countryCode) {
+    // Step 3: If we have NO results from database AND GeoNames, search Google Places API as last resort
+    if (allCities.length === 0 && countryCode) {
       try {
-        console.log(`🌐 Searching Google Places API for more cities...`);
+        console.log(`🌐 No results from Database or GeoNames. Trying Google Places API as last resort...`);
         console.log(`🔍 Service call: googlePlacesService.searchCities("${q}", "${countryCode}", "${language}")`);
         googleCities = await googlePlacesService.searchCities(q, countryCode, language);
         console.log(`🔍 Service returned ${googleCities.length} cities`);
         
-        // Filter out cities that already exist in database or GeoNames results
-        const existingCityNames = [
-          ...localCities.map(city => 
-            city.labels[language]?.toLowerCase() || city.labels.en?.toLowerCase()
-          ),
-          ...apiCities.map(city => 
-            city.labels[language]?.toLowerCase() || city.labels.en?.toLowerCase()
-          )
-        ];
+        // No need to filter duplicates since allCities is empty at this point (no database or GeoNames results)
         
-        googleCities = googleCities.filter(googleCity => {
-          const googleCityName = googleCity.labels[language]?.toLowerCase() || googleCity.labels.en?.toLowerCase();
-          return !existingCityNames.includes(googleCityName);
-        });
-
-        console.log(`✅ Google Places API found ${googleCities.length} additional cities`);
-        console.log(`🔍 Google cities before filtering:`, googleCities.map(c => c.labels?.en || c.code));
-        console.log(`🔍 Existing city names:`, existingCityNames);
+        console.log(`✅ Google Places API found ${googleCities.length} cities`);
+        if (googleCities.length > 0) {
+          console.log(`🔍 Google cities:`, googleCities.map(c => c.labels?.en || c.code));
+        }
         
-        // Add Google Places cities to results (limit total results)
-        const remainingSlots = parseInt(limit) - allCities.length;
-        allCities = [...allCities, ...googleCities.slice(0, remainingSlots)];
+        // Add Google Places cities to results (up to limit since allCities is empty at this point)
+        allCities = [...googleCities.slice(0, parseInt(limit))];
 
       } catch (googleError) {
         console.warn('⚠️ Google Places API error:', googleError.message);
