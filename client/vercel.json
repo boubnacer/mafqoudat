@@ -5,8 +5,28 @@
       "destination": "https://mafqoudat-production.up.railway.app/api/:path*"
     },
     {
-      "source": "/auth/:path*",
-      "destination": "https://mafqoudat-production.up.railway.app/auth/:path*"
+      "source": "/auth/google",
+      "destination": "https://mafqoudat-production.up.railway.app/auth/google"
+    },
+    {
+      "source": "/auth/google/callback",
+      "destination": "https://mafqoudat-production.up.railway.app/auth/google/callback"
+    },
+    {
+      "source": "/auth/google/complete",
+      "destination": "https://mafqoudat-production.up.railway.app/auth/google/complete"
+    },
+    {
+      "source": "/auth/logout",
+      "destination": "https://mafqoudat-production.up.railway.app/auth/logout"
+    },
+    {
+      "source": "/auth/register",
+      "destination": "https://mafqoudat-production.up.railway.app/auth/register"
+    },
+    {
+      "source": "/auth",
+      "destination": "https://mafqoudat-production.up.railway.app/auth"
     },
     {
       "source": "/users/:path*",
