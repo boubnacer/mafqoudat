@@ -158,12 +158,10 @@ const EditPostForm = ({ post, user, countries, flOptions, categories }) => {
       
       if (data.success) {
         return data.data;
-      } else {
-        console.error('Failed to search cities:', data.message);
-        return [];
       }
+      return [];
     } catch (error) {
-      console.error('Error searching cities:', error);
+      console.error('City search error:', error.message);
       return [];
     }
   }, [currentLanguage]);
@@ -173,8 +171,6 @@ const EditPostForm = ({ post, user, countries, flOptions, categories }) => {
     try {
       const baseUrl = process.env.REACT_APP_API_URL || "http://localhost:3500";
       const url = `${baseUrl}/cities/search-name?query=${encodeURIComponent(searchQuery)}&countryId=${countryId}&limit=10`;
-      
-      console.log('🔄 Traditional API Request:', url);
       
       const response = await fetch(url);
       const data = await response.json();
@@ -186,12 +182,9 @@ const EditPostForm = ({ post, user, countries, flOptions, categories }) => {
           source: 'database',
           _id: city._id
         }));
-      } else {
-        console.error('Failed to search cities traditionally:', data.message);
-        return [];
       }
+      return [];
     } catch (error) {
-      console.error('Error in traditional city search:', error);
       return [];
     }
   }, []);
@@ -597,14 +590,12 @@ if (typeof document !== 'undefined') {
           setSearchResults(results);
         } else {
           // Fallback to traditional search
-          console.log('🔄 Trying traditional search as fallback...');
           const fallbackResults = await searchCitiesTraditional(query, selectedCountry._id);
           
           if (fallbackResults.length > 0) {
             setSearchResults(fallbackResults);
           } else {
             // Final fallback: filter existing cities
-            console.log('🔄 Using local city filter as final fallback...');
             const localResults = availableCities.filter(city => 
               city.label?.toLowerCase().includes(query.toLowerCase()) ||
               city.name?.toLowerCase().includes(query.toLowerCase())
@@ -618,7 +609,6 @@ if (typeof document !== 'undefined') {
           }
         }
       } catch (error) {
-        console.error('Error searching cities:', error);
         setSearchResults([]);
       } finally {
         setIsSearching(false);
@@ -637,7 +627,7 @@ if (typeof document !== 'undefined') {
     } else {
       setSearchResults([]);
     }
-  }, [searchCitiesHybrid, selectedCountry, availableCities]);
+  }, [searchCitiesHybrid, searchCitiesTraditional, selectedCountry, availableCities, currentLanguage]);
 
   // Handle city selection from dropdown (from NewPostForm)
   const handleCitySelect = (city, setFieldValue) => {
@@ -1507,15 +1497,15 @@ if (typeof document !== 'undefined') {
                       ? t('selectCountryFirst') 
                         : getFoundLostType(values.foundLost) === 'LOST'
                           ? currentLanguage === 'ar' 
-                            ? 'يرجى تحديد المدينة التي فقدت فيها العنصر أو أقرب مدينة رئيسية إليها (العاصمة، العمالة، المقاطعة، الولاية، أو المحافظة)'
+                            ? 'يرجى تحديد المدينة التي فقدت فيها العنصر أو أقرب مدينة رئيسية إليها'
                             : currentLanguage === 'fr'
-                              ? 'Veuillez sélectionner la ville où vous avez perdu l\'objet ou la ville principale la plus proche (capitale, préfecture, province, état ou gouvernorat)'
-                              : 'Please select the city where you lost the item or the nearest major administrative center (capital, prefecture, province, state, or governorate)'
+                              ? 'Veuillez sélectionner la ville où vous avez perdu l\'objet ou la ville principale la plus proche'
+                              : 'Please select the city where you lost the item or the nearest major administrative center'
                           : currentLanguage === 'ar' 
-                            ? 'يرجى تحديد المدينة التي وجدت فيها العنصر أو أقرب مدينة رئيسية إليها (العاصمة، العمالة، المقاطعة، الولاية، أو المحافظة)'
+                            ? 'يرجى تحديد المدينة التي وجدت فيها العنصر أو أقرب مدينة رئيسية إليها'
                             : currentLanguage === 'fr'
-                              ? 'Veuillez sélectionner la ville où vous avez trouvé l\'objet ou la ville principale la plus proche (capitale, préfecture, province, état ou gouvernorat)'
-                              : 'Please select the city where you found the item or the nearest major administrative center (capital, prefecture, province, state, or governorate)'
+                              ? 'Veuillez sélectionner la ville où vous avez trouvé l\'objet ou la ville principale la plus proche'
+                              : 'Please select the city where you found the item or the nearest major administrative center'
                     }
                   </Typography>
                   
