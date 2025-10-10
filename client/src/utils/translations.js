@@ -338,6 +338,11 @@ export const translations = {
     passwordMismatch: "Passwords do not match",
     mustBeValid: "must be valid",
     or: "or",
+    selectYourCountry: "Select Your Country",
+    selectCountryDescription: "Please select your country to complete registration",
+    continueWithGoogle: "Continue with Google",
+    pleaseSelectCountry: "Please select a country",
+    completing: "Completing...",
     
     // Authentication Error Messages
     authErrorTitle: "Authentication Error",
@@ -1277,6 +1282,11 @@ export const translations = {
     mustBeValid: "doit être valide",
     required: "requis",
     or: "ou",
+    selectYourCountry: "Sélectionnez votre pays",
+    selectCountryDescription: "Veuillez sélectionner votre pays pour finaliser l'inscription",
+    continueWithGoogle: "Continuer avec Google",
+    pleaseSelectCountry: "Veuillez sélectionner un pays",
+    completing: "Finalisation...",
     
     // Authentication Error Messages
     authErrorTitle: "Erreur d'authentification",
@@ -2180,6 +2190,11 @@ export const translations = {
     mustBeValid: "يجب أن تكون صحيحة",
     required: "مطلوب",
     or: "أو",
+    selectYourCountry: "اختر بلدك",
+    selectCountryDescription: "يرجى اختيار بلدك لإكمال التسجيل",
+    continueWithGoogle: "المتابعة مع جوجل",
+    pleaseSelectCountry: "يرجى اختيار بلد",
+    completing: "جارٍ الإكمال...",
     
     // Authentication Error Messages
     authErrorTitle: "خطأ في المصادقة",
