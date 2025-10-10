@@ -2,6 +2,7 @@ const City = require("../models/City");
 const Country = require("../models/Country");
 const TranslationService = require("../services/translationService");
 const geonamesService = require("../services/geonamesService");
+const googlePlacesService = require("../services/googlePlacesService");
 const { cacheService } = require("../config/cache");
 
 const getCities = async (req, res) => {
@@ -112,8 +113,8 @@ const searchCities = async (req, res) => {
       });
     }
 
-    // Generate cache key for hybrid search
-    const cacheKey = cacheService.generateKey('cities-hybrid-search', {
+    // Generate cache key for hybrid search (including google places)
+    const cacheKey = cacheService.generateKey('cities-hybrid-search-google', {
       q: q.toLowerCase(),
       language,
       countryCode,
@@ -158,6 +159,7 @@ const searchCities = async (req, res) => {
 
     let allCities = [...localCities];
     let apiCities = [];
+    let googleCities = [];
 
     // Step 2: If we need more results or found few local results, search GeoNames API
     if (localCities.length < parseInt(limit) && countryCode) {
@@ -191,9 +193,46 @@ const searchCities = async (req, res) => {
       }
     }
 
-    // Step 3: Transform results
+    // Step 3: If we still need more results, search Google Places API
+    if (allCities.length < parseInt(limit) && countryCode) {
+      try {
+        console.log(`🌐 Searching Google Places API for more cities...`);
+        console.log(`🔍 Service call: googlePlacesService.searchCities("${q}", "${countryCode}", "${language}")`);
+        googleCities = await googlePlacesService.searchCities(q, countryCode, language);
+        console.log(`🔍 Service returned ${googleCities.length} cities`);
+        
+        // Filter out cities that already exist in database or GeoNames results
+        const existingCityNames = [
+          ...localCities.map(city => 
+            city.labels[language]?.toLowerCase() || city.labels.en?.toLowerCase()
+          ),
+          ...apiCities.map(city => 
+            city.labels[language]?.toLowerCase() || city.labels.en?.toLowerCase()
+          )
+        ];
+        
+        googleCities = googleCities.filter(googleCity => {
+          const googleCityName = googleCity.labels[language]?.toLowerCase() || googleCity.labels.en?.toLowerCase();
+          return !existingCityNames.includes(googleCityName);
+        });
+
+        console.log(`✅ Google Places API found ${googleCities.length} additional cities`);
+        console.log(`🔍 Google cities before filtering:`, googleCities.map(c => c.labels?.en || c.code));
+        console.log(`🔍 Existing city names:`, existingCityNames);
+        
+        // Add Google Places cities to results (limit total results)
+        const remainingSlots = parseInt(limit) - allCities.length;
+        allCities = [...allCities, ...googleCities.slice(0, remainingSlots)];
+
+      } catch (googleError) {
+        console.warn('⚠️ Google Places API error:', googleError.message);
+        // Continue with existing results
+      }
+    }
+
+    // Step 4: Transform results
     const transformedCities = allCities.map(city => {
-      // Handle both local database cities and API cities
+      // Handle database cities, GeoNames API cities, and Google Places cities
       if (city._id) {
         // Local database city
         return {
@@ -213,7 +252,8 @@ const searchCities = async (req, res) => {
           } : null
         };
       } else {
-        // API city
+        // External API city (GeoNames or Google Places)
+        const apiSource = city.source === 'google' ? 'google' : 'geonames';
         return {
           _id: null, // No database ID for API cities
           code: city.code,
@@ -221,9 +261,10 @@ const searchCities = async (req, res) => {
           labels: city.labels,
           isCapital: city.isCapital,
           isDynamic: true,
-          source: 'api',
+          source: apiSource,
           population: city.population,
           coordinates: city.coordinates,
+          placeId: city.placeId, // Google Places ID
           country: country ? {
             _id: country._id,
             code: country.code,
@@ -235,15 +276,20 @@ const searchCities = async (req, res) => {
       }
     });
 
+    // Log final source breakdown
+    console.log(`📊 Final source breakdown - Database: ${localCities.length}, GeoNames: ${apiCities.length}, Google: ${googleCities.length}, Total: ${transformedCities.length}`);
+
     const response = {
       success: true,
       data: transformedCities,
       total: transformedCities.length,
       sources: {
         database: localCities.length,
-        api: apiCities.length
+        geonames: apiCities.length,
+        google: googleCities.length
       },
-      geonamesStats: geonamesService.getUsageStats()
+      geonamesStats: geonamesService.getUsageStats(),
+      googlePlacesStats: googlePlacesService.getUsageStats()
     };
 
     // Cache the response for 1 hour (shorter cache for search results)
