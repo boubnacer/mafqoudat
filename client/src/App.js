@@ -54,6 +54,8 @@ if (typeof document !== 'undefined') {
 const WelcomePage = lazy(() => import("./components/WelcomePage"));
 const PublicPostsPage = lazy(() => import("./components/PublicPostsPage"));
 const Login = lazy(() => import("./features/auth/Login/Login"));
+const CountrySelection = lazy(() => import("./features/auth/CountrySelection"));
+const OAuthCallback = lazy(() => import("./features/auth/OAuthCallback"));
 const DashLayout = lazy(() => import("./components/Layout/DashLayout"));
 const PrefetchDependencies = lazy(() => import("./features/PrefetchData/PrefetchDependencies"));
 
@@ -216,6 +218,16 @@ const AppContent = () => {
         <Route path="/signup" element={
           <Suspense fallback={<LoadingFallback />}>
             <NewUser />
+          </Suspense>
+        } />
+        <Route path="/auth/select-country" element={
+          <Suspense fallback={<LoadingFallback />}>
+            <CountrySelection />
+          </Suspense>
+        } />
+        <Route path="/auth/callback" element={
+          <Suspense fallback={<LoadingFallback />}>
+            <OAuthCallback />
           </Suspense>
         } />
 
