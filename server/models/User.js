@@ -11,7 +11,10 @@ const userSchema = new mongoose.Schema({
   },
   password: {
     type: String,
-    required: true,
+    required: function() {
+      // Password is only required for local authentication
+      return !this.authProvider || this.authProvider === 'local';
+    },
     minlength: 6
   },
   email: {
@@ -28,6 +31,16 @@ const userSchema = new mongoose.Schema({
     trim: true,
     unique: true,
     sparse: true
+  },
+  googleId: {
+    type: String,
+    unique: true,
+    sparse: true
+  },
+  authProvider: {
+    type: String,
+    enum: ['local', 'google'],
+    default: 'local'
   },
   country: {
     type: mongoose.Schema.Types.ObjectId,
@@ -100,6 +113,7 @@ const userSchema = new mongoose.Schema({
 userSchema.index({ username: 1 });
 userSchema.index({ email: 1 }, { sparse: true });
 userSchema.index({ phone: 1 }, { sparse: true });
+userSchema.index({ googleId: 1 }, { sparse: true, unique: true });
 
 // 2. User management indexes
 userSchema.index({ country: 1, isActive: 1 });
