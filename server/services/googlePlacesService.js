@@ -160,15 +160,28 @@ class GooglePlacesService {
    * @returns {boolean}
    */
   matchesCountryCode(place, countryCode) {
+    // If no address components, be lenient since we're searching with country name
     if (!place.address_components) {
-      return false;
+      console.log(`⚠️  No address_components for ${place.name}, allowing (searched with country filter)`);
+      return true; // Allow it since we searched with country name in query
     }
 
     const countryComponent = place.address_components.find(component =>
       component.types.includes('country')
     );
 
-    return countryComponent && countryComponent.short_name === countryCode;
+    if (!countryComponent) {
+      console.log(`⚠️  No country component for ${place.name}, allowing (searched with country filter)`);
+      return true; // Allow it since we searched with country name in query
+    }
+
+    const matches = countryComponent.short_name === countryCode;
+    
+    if (!matches) {
+      console.log(`⚠️  Country mismatch: ${place.name} is in ${countryComponent.short_name}, expected ${countryCode}`);
+    }
+
+    return matches;
   }
 
   /**
