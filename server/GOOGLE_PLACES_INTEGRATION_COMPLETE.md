@@ -100,12 +100,12 @@ GOOGLE_PLACES_API_KEY=your_api_key_here
 
 ### 7. **Console Logs**
 
-#### Production Logs (Clean)
-```
-🔍 Google Places: "Akka" in MA (en)
-✅ Google Places: 1 cities found
-🌐 Saved city from Google Places: Akka
-```
+#### Production Logs (Clean & Minimal)
+All verbose debugging logs have been removed. Only essential errors are logged:
+- Client: Silent operation (errors only)
+- Server: Minimal logging for city saves
+  - `🌐 Saved city from Google Places: Akka`
+  - `🗺️ Saved city from GeoNames: Cairo`
 
 ### 8. **Database Schema**
 
