@@ -961,24 +961,41 @@ const createNewPost = async (req, res) => {
            ]
          });
          
-         if (existingCity) {
-           cityId = existingCity._id;
-         } else {
-           // Create new city from API data
-           
-           const newCity = await City.create({
-             code: apiCityData.code,
-             country: country,
-             labels: apiCityData.labels,
-             isCapital: apiCityData.isCapital || false,
-             isActive: true,
-             isDynamic: true, // Mark as dynamically created from API
-             population: apiCityData.population || 0,
-             searchTerms: apiCityData.searchTerms || []
-           });
-           
-           cityId = newCity._id;
-         }
+        if (existingCity) {
+          cityId = existingCity._id;
+          console.log(`✅ City "${apiCityData.labels.en}" already exists in database (ID: ${cityId})`);
+        } else {
+          // Create new city from API data (GeoNames or Google Places)
+          const cityDataToSave = {
+            code: apiCityData.code,
+            country: country,
+            labels: apiCityData.labels,
+            isCapital: apiCityData.isCapital || false,
+            isActive: true,
+            isDynamic: true, // Mark as dynamically created from API
+            searchTerms: apiCityData.searchTerms || []
+          };
+          
+          // Add API source and place ID if from Google Places
+          if (apiCityData.source === 'google') {
+            cityDataToSave.apiSource = 'google';
+            cityDataToSave.placeId = apiCityData.placeId;
+            console.log(`🌐 Creating new city from Google Places: "${apiCityData.labels.en}" (Place ID: ${apiCityData.placeId})`);
+          } else {
+            cityDataToSave.apiSource = 'geonames';
+            console.log(`🗺️ Creating new city from GeoNames: "${apiCityData.labels.en}"`);
+          }
+          
+          const newCity = await City.create(cityDataToSave);
+          
+          cityId = newCity._id;
+          console.log(`✅ City "${apiCityData.labels.en}" saved to database with translations:`,{
+            en: newCity.labels.en,
+            fr: newCity.labels.fr,
+            ar: newCity.labels.ar,
+            source: newCity.apiSource
+          });
+        }
        } catch (apiCityError) {
          console.error('Error processing API city data:', apiCityError.message);
          cityId = null;

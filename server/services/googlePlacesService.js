@@ -1,4 +1,5 @@
 const axios = require('axios');
+const TranslationService = require('./translationService');
 
 class GooglePlacesService {
   constructor() {
@@ -322,51 +323,67 @@ class GooglePlacesService {
   }
 
   /**
-   * Enrich city data with translations in multiple languages
+   * Enrich city data with NATIVE names in all languages (like GeoNames does)
+   * This makes 3 API calls to get the native name in each language
    * @param {Object} cityData - Formatted city data
-   * @returns {Promise<Object>} Enriched city data with translations
+   * @returns {Promise<Object>} Enriched city data with native names
    */
   async enrichWithTranslations(cityData) {
     try {
-      // If we don't have all language variants, try to fetch them
-      const missingLanguages = this.supportedLanguages.filter(
-        lang => cityData.labels[lang] === cityData.labels.en
-      );
+      console.log(`📝 Enriching "${cityData.placeId}" with native names in all languages...`);
+      
+      const nativeNames = {
+        en: cityData.labels.en, // Already have this
+        fr: cityData.labels.en, // Will fetch
+        ar: cityData.labels.en  // Will fetch
+      };
+      
+      // Fetch native names for French and Arabic by calling Place Details API
+      const languagesToFetch = ['fr', 'ar'];
+      
+      for (const lang of languagesToFetch) {
+        if (!this.canMakeRequest()) {
+          console.log(`⚠️ Rate limit reached, skipping ${lang} translation`);
+          break;
+        }
+        
+        try {
+          const params = {
+            place_id: cityData.placeId,
+            fields: 'name',
+            language: lang,
+            key: this.apiKey
+          };
 
-      if (missingLanguages.length > 0 && this.canMakeRequest()) {
-        // Use Place Details API to get name in different languages
-        for (const lang of missingLanguages) {
-          if (lang === 'en') continue; // Already have English
+          const response = await axios.get(`${this.baseURL}/details/json`, {
+            params,
+            timeout: 5000
+          });
 
-          try {
-            const params = {
-              place_id: cityData.placeId,
-              fields: 'name',
-              language: lang,
-              key: this.apiKey
-            };
+          this.incrementRequestCounter();
 
-            const response = await axios.get(`${this.baseURL}/details/json`, {
-              params,
-              timeout: 5000
-            });
-
-            this.incrementRequestCounter();
-
-            if (response.data && response.data.status === 'OK' && response.data.result) {
-              cityData.labels[lang] = response.data.result.name;
-            }
-          } catch (error) {
-            // Silently fail for translation enrichment
-            console.log(`⚠️ Could not fetch ${lang} translation for ${cityData.labels.en}`);
+          if (response.data && response.data.status === 'OK' && response.data.result) {
+            nativeNames[lang] = response.data.result.name;
+            console.log(`   ✅ ${lang.toUpperCase()}: ${response.data.result.name}`);
+          } else {
+            console.log(`   ⚠️  ${lang.toUpperCase()}: No native name, using default`);
           }
-
-          // Check rate limit between requests
-          if (!this.canMakeRequest()) {
-            break;
-          }
+        } catch (error) {
+          console.log(`   ⚠️  ${lang.toUpperCase()}: API error, using default`);
         }
       }
+      
+      // Update cityData with native names
+      cityData.labels = nativeNames;
+      
+      // Add search terms with all language variants
+      cityData.searchTerms = [
+        nativeNames.en.toLowerCase(),
+        nativeNames.fr.toLowerCase(),
+        nativeNames.ar
+      ].filter((term, index, self) => term && self.indexOf(term) === index);
+      
+      console.log(`✅ Native names collected - EN:"${nativeNames.en}", FR:"${nativeNames.fr}", AR:"${nativeNames.ar}"`);
 
       return cityData;
     } catch (error) {

@@ -41,6 +41,15 @@ const citySchema = new mongoose.Schema({
     type: Boolean,
     default: false
   },
+  apiSource: {
+    type: String,
+    enum: ['geonames', 'google', null],
+    default: null
+  },
+  placeId: {
+    type: String,
+    default: null
+  },
   searchTerms: {
     type: [String],
     default: []
