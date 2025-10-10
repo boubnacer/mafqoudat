@@ -44,11 +44,12 @@ router.get('/google',
 router.get('/google/callback',
   passport.authenticate('google', { 
     session: false,
-    failureRedirect: `${process.env.FRONTEND_URL}/login?error=oauth_failed`
+    failureRedirect: `${process.env.FRONTEND_URL || process.env.CLIENT_URL || 'http://localhost:3000'}/login?error=oauth_failed`
   }),
   async (req, res) => {
     try {
       const user = req.user;
+      const frontendUrl = process.env.FRONTEND_URL || process.env.CLIENT_URL || 'http://localhost:3000';
 
       // Check if this is a pending user (new registration)
       if (user && user.isPending) {
@@ -69,7 +70,7 @@ router.get('/google/callback',
 
         // Redirect to frontend to select country
         return res.redirect(
-          `${process.env.FRONTEND_URL}/auth/select-country?pendingToken=${pendingToken}`
+          `${frontendUrl}/auth/select-country?pendingToken=${pendingToken}`
         );
       }
 
@@ -91,7 +92,7 @@ router.get('/google/callback',
 
           // Redirect to frontend with token
           return res.redirect(
-            `${process.env.FRONTEND_URL}/auth/callback?token=${tokens.accessToken}`
+            `${frontendUrl}/auth/callback?token=${tokens.accessToken}`
           );
         } catch (tokenError) {
           console.error('Token generation error during Google OAuth:', tokenError);
@@ -100,7 +101,7 @@ router.get('/google/callback',
             'errLog.log'
           );
           return res.redirect(
-            `${process.env.FRONTEND_URL}/login?error=token_generation_failed`
+            `${frontendUrl}/login?error=token_generation_failed`
           );
         }
       }
@@ -111,7 +112,7 @@ router.get('/google/callback',
         'errLog.log'
       );
       return res.redirect(
-        `${process.env.FRONTEND_URL}/login?error=unexpected_state`
+        `${frontendUrl}/login?error=unexpected_state`
       );
     } catch (error) {
       console.error('Google OAuth callback error:', error);
@@ -120,7 +121,7 @@ router.get('/google/callback',
         'errLog.log'
       );
       return res.redirect(
-        `${process.env.FRONTEND_URL}/login?error=oauth_error`
+        `${frontendUrl}/login?error=oauth_error`
       );
     }
   }
