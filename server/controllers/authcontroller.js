@@ -54,6 +54,16 @@ const login = async (req, res) => {
     });
   }
 
+  // Check if user is an OAuth user (e.g., Google Sign-In)
+  if (foundUser.authProvider === 'google') {
+    throw createAuthError('OAUTH_USER', "This account uses Google Sign-In. Please use the 'Continue with Google' button.", {
+      username: foundUser.username,
+      authProvider: foundUser.authProvider,
+      ip: req.ip,
+      userAgent: req.get('User-Agent')
+    });
+  }
+
   let match;
   try {
     match = await bcrypt.compare(password, foundUser.password);
