@@ -464,7 +464,19 @@ const WelcomePage = () => {
       <WelcomeCard>
         <CardContent sx={{ p: { xs: 3, md: 4 } }}>
           <HeaderSection>
-            <BrandLogo>
+            <Box
+              sx={{
+                width: 80,
+                height: 80,
+                borderRadius: '50%',
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+                margin: '0 auto 16px',
+                boxShadow: '0 10px 30px rgba(4, 63, 165, 0.3)',
+                overflow: 'hidden',
+              }}
+            >
               <Box
                 component="img"
                 src="/maficon.png"
@@ -473,10 +485,9 @@ const WelcomePage = () => {
                   width: '100%',
                   height: '100%',
                   objectFit: 'cover',
-                  borderRadius: '50%',
                 }}
               />
-            </BrandLogo>
+            </Box>
             <Box
               component="img"
               src="/maflogo.png"
