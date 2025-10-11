@@ -698,13 +698,14 @@ const LoginComponent = () => {
                 <Button
                   onClick={() => setResetPasswordDialogOpen(true)}
                   sx={{
-                    color: theme.palette.primary.main,
+                    color: '#4A8BFF',
                     textDecoration: 'none',
                     fontSize: { xs: '1rem', md: '1.1rem' },
                     fontWeight: 500,
                     '&:hover': {
                       textDecoration: 'underline',
-                      backgroundColor: alpha(theme.palette.primary.main, 0.04),
+                      backgroundColor: alpha('#4A8BFF', 0.04),
+                      color: '#3A7BEF',
                     }
                   }}
                 >

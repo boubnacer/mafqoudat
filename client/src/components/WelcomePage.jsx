@@ -840,7 +840,7 @@ const WelcomePage = () => {
               {t('signin')}
             </Button>
             <Button
-              variant="contained"
+              variant="outlined"
               size="large"
               onClick={() => navigate('/signup')}
               sx={{
@@ -851,13 +851,17 @@ const WelcomePage = () => {
                 fontSize: { xs: '1.1rem', sm: '1.2rem' },
                 fontWeight: 600,
                 borderRadius: '4px',
-                background: 'linear-gradient(45deg, #4A8BFF 30%, #1A6EEE 90%)',
-                color: 'white',
-                boxShadow: '0 3px 5px 2px rgba(26, 110, 238, .3)',
+                borderColor: '#4A8BFF',
+                color: '#4A8BFF',
+                borderWidth: '2px',
                 transition: 'all 0.3s ease',
                 '&:hover': {
-                  background: 'linear-gradient(45deg, #5A9BFF 30%, #2A7EFF 90%)',
-                  boxShadow: '0 4px 8px 2px rgba(26, 110, 238, .4)',
+                  borderColor: '#3A7BEF',
+                  backgroundColor: alpha('#4A8BFF', 0.05),
+                  color: '#3A7BEF',
+                  borderWidth: '2px',
+                  transform: 'translateY(-1px)',
+                  boxShadow: `0 4px 12px ${alpha('#4A8BFF', 0.2)}`,
                 }
               }}
             >
