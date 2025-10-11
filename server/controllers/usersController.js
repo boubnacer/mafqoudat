@@ -71,13 +71,20 @@ const createNewUser = async (req, res) => {
   // Check for duplicate email only if input is an email - optimized with selective fields
   if (isEmail) {
     const duplicateEmail = await User.findOne({ email: username.toLowerCase() })
-      .select('_id')
+      .select('_id authProvider')
       .lean()
       .exec();
 
     console.log('Checking for duplicate email:', username.toLowerCase(), 'Found:', !!duplicateEmail);
 
     if (duplicateEmail) {
+      // Check if it's a Google OAuth account
+      if (duplicateEmail.authProvider === 'google') {
+        return res.status(409).json({ 
+          message: "This email is already registered with Google Sign-In. Please use the 'Continue with Google' button to log in.",
+          code: 'OAUTH_USER'
+        });
+      }
       return res.status(409).json({ message: "Email already exists" });
     }
   }
