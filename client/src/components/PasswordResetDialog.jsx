@@ -96,8 +96,8 @@ const PasswordResetDialog = ({ open, onClose }) => {
     >
       <DialogTitle>
         <Box display="flex" alignItems="center" gap={1}>
-          <LockReset sx={{ color: theme.palette.primary.main }} />
-          <Typography variant="h6" fontWeight="bold">
+          <LockReset sx={{ color: '#4A8BFF' }} />
+          <Typography variant="h6" fontWeight="bold" color="text.primary">
             {t('resetPasswordDialogTitle')}
           </Typography>
         </Box>
@@ -122,7 +122,7 @@ const PasswordResetDialog = ({ open, onClose }) => {
           </Box>
         ) : (
           <Box>
-            <Typography variant="body1" paragraph sx={{ mb: 3 }}>
+            <Typography variant="body1" paragraph sx={{ mb: 3 }} color="text.primary">
               {t('resetPasswordMessage')}
             </Typography>
 
@@ -144,6 +144,30 @@ const PasswordResetDialog = ({ open, onClose }) => {
               sx={{
                 '& .MuiOutlinedInput-root': {
                   borderRadius: 2,
+                  backgroundColor: theme.palette.mode === 'dark' 
+                    ? 'rgba(255, 255, 255, 0.05)'
+                    : 'rgba(0, 0, 0, 0.02)',
+                  border: `1px solid ${theme.palette.mode === 'dark' 
+                    ? 'rgba(255, 255, 255, 0.1)' 
+                    : 'rgba(0, 0, 0, 0.1)'}`,
+                  '&:hover': {
+                    borderColor: theme.palette.mode === 'dark' 
+                      ? 'rgba(255, 255, 255, 0.2)' 
+                      : 'rgba(0, 0, 0, 0.2)',
+                  },
+                  '&.Mui-focused': {
+                    borderColor: '#4A8BFF',
+                    boxShadow: `0 0 0 2px ${theme.palette.mode === 'dark' 
+                      ? 'rgba(74, 139, 255, 0.2)' 
+                      : 'rgba(74, 139, 255, 0.1)'}`,
+                  }
+                },
+                '& .MuiInputLabel-root': {
+                  color: theme.palette.text.primary,
+                  fontWeight: 500,
+                },
+                '& .MuiInputLabel-root.Mui-focused': {
+                  color: '#4A8BFF',
                 }
               }}
             />
@@ -156,7 +180,16 @@ const PasswordResetDialog = ({ open, onClose }) => {
           <Button
             onClick={handleClose}
             disabled={isSubmitting}
-            sx={{ textTransform: 'none' }}
+            sx={{ 
+              textTransform: 'none',
+              color: theme.palette.text.primary,
+              fontWeight: 500,
+              '&:hover': {
+                backgroundColor: theme.palette.mode === 'dark' 
+                  ? 'rgba(255, 255, 255, 0.1)'
+                  : 'rgba(0, 0, 0, 0.05)',
+              }
+            }}
           >
             {t('cancel')}
           </Button>
