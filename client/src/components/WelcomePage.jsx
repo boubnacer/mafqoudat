@@ -465,7 +465,17 @@ const WelcomePage = () => {
         <CardContent sx={{ p: { xs: 3, md: 4 } }}>
           <HeaderSection>
             <BrandLogo>
-              <Public />
+              <Box
+                component="img"
+                src="/maficon.png"
+                alt="Mafqoudat Icon"
+                sx={{
+                  width: '100%',
+                  height: '100%',
+                  objectFit: 'cover',
+                  borderRadius: '50%',
+                }}
+              />
             </BrandLogo>
             <Box
               component="img"
