@@ -483,9 +483,13 @@ const NewUserFormComponent = ({ countries }) => {
         navigate("/dash");
       }
     } catch (err) {
-      // Use centralized error handling
+      // Extract the actual error message from the server response
+      const serverMessage = err?.data?.message || err?.message || null;
+      
+      // Use centralized error handling with custom message
       const errorResult = await authErrorHandler.handleLoginError(err, {
-        t: t
+        t: t,
+        customMessage: serverMessage
       });
       
       // Set local error state for form display
