@@ -298,7 +298,7 @@ const DashFooter = () => {
             <IconButton 
               color="primary" 
               component={Link} 
-              href="https://facebook.com" 
+              href="https://www.facebook.com/profile.php?id=100075968495897" 
               target="_blank"
             >
               <Facebook />
@@ -306,7 +306,7 @@ const DashFooter = () => {
             <IconButton 
               color="primary" 
               component={Link} 
-              href="https://instagram.com" 
+              href="https://www.instagram.com/mafkoudat?igsh=d29saTdtajZ5dWpu" 
               target="_blank"
             >
               <Instagram />
@@ -314,7 +314,7 @@ const DashFooter = () => {
             <IconButton 
               color="primary" 
               component={Link} 
-              href="https://wa.me" 
+              href="https://wa.me/212711621132" 
               target="_blank"
             >
               <WhatsApp />

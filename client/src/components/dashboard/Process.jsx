@@ -29,10 +29,10 @@ const Process = () => {
   ];
 
   const socialLinks = [
-    { name: "face", url: "https://facebook.com/mafqoudat" },
-    { name: "whats", url: "https://wa.me/mafqoudat" },
+    { name: "face", url: "https://www.facebook.com/profile.php?id=100075968495897" },
+    { name: "whats", url: "https://wa.me/212711621132" },
     { name: "x", url: "https://twitter.com/mafqoudat" },
-    { name: "insta", url: "https://instagram.com/mafqoudat" }
+    { name: "insta", url: "https://www.instagram.com/mafkoudat?igsh=d29saTdtajZ5dWpu" }
   ];
 
   return (
