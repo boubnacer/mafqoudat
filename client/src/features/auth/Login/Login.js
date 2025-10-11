@@ -568,6 +568,62 @@ const LoginComponent = () => {
               </Alert>
             )}
 
+            {/* Google OAuth Button */}
+            <Button
+              fullWidth
+              variant="outlined"
+              onClick={() => {
+                const apiUrl = process.env.REACT_APP_API_URL || "http://localhost:3500";
+                window.location.href = `${apiUrl}/auth/google`;
+              }}
+              sx={{
+                borderRadius: '12px',
+                borderColor: '#dadce0',
+                color: theme?.palette?.text?.primary,
+                textTransform: 'none',
+                fontSize: { xs: '1.1rem', md: '1.2rem' },
+                fontWeight: 500,
+                padding: { xs: '14px 24px', md: '16px 32px' },
+                minHeight: { xs: '56px', md: '60px' },
+                mb: 3,
+                transition: 'all 0.3s ease',
+                '&:hover': {
+                  borderColor: alpha(theme?.palette?.primary?.main || '#667eea', 0.5),
+                  backgroundColor: alpha(theme?.palette?.primary?.main || '#667eea', 0.05),
+                  transform: 'translateY(-2px)',
+                  boxShadow: `0 4px 12px ${alpha(theme?.palette?.primary?.main || '#667eea', 0.2)}`,
+                },
+                '&:active': {
+                  transform: 'translateY(0)',
+                }
+              }}
+            >
+              <Box sx={{ display: 'flex', alignItems: 'center', gap: 2 }}>
+                <img
+                  src="https://www.gstatic.com/firebasejs/ui/2.0.0/images/auth/google.svg"
+                  alt="Google"
+                  style={{ width: '24px', height: '24px' }}
+                />
+                <Typography sx={{ fontSize: { xs: '1.1rem', md: '1.2rem' }, fontWeight: 500 }}>
+                  {t('continueWithGoogle') || 'Continue with Google'}
+                </Typography>
+              </Box>
+            </Button>
+
+            {/* Divider */}
+            <Divider sx={{ my: 3 }}>
+              <Chip 
+                label={t('or') || 'OR'} 
+                sx={{ 
+                  backgroundColor: theme?.palette?.mode === 'dark' 
+                    ? 'rgba(255, 255, 255, 0.05)'
+                    : 'rgba(0, 0, 0, 0.02)',
+                  color: theme?.palette?.text?.secondary,
+                  fontWeight: 500,
+                }}
+              />
+            </Divider>
+
             {/* Login Form */}
             <Box component="form" onSubmit={handleSubmit} sx={{ mb: 3 }}>
               <ModernTextField
@@ -659,62 +715,6 @@ const LoginComponent = () => {
               >
                 {isSubmitting ? t('signingIn') : t('signin')}
               </ActionButton>
-
-              {/* Divider */}
-              <Divider sx={{ my: 3 }}>
-                <Chip 
-                  label={t('or') || 'OR'} 
-                  sx={{ 
-                    backgroundColor: theme?.palette?.mode === 'dark' 
-                      ? 'rgba(255, 255, 255, 0.05)'
-                      : 'rgba(0, 0, 0, 0.02)',
-                    color: theme?.palette?.text?.secondary,
-                    fontWeight: 500,
-                  }}
-                />
-              </Divider>
-
-              {/* Google OAuth Button */}
-              <Button
-                fullWidth
-                variant="outlined"
-                onClick={() => {
-                  const apiUrl = process.env.REACT_APP_API_URL || "http://localhost:3500";
-                  window.location.href = `${apiUrl}/auth/google`;
-                }}
-                sx={{
-                  borderRadius: '12px',
-                  borderColor: '#dadce0',
-                  color: theme?.palette?.text?.primary,
-                  textTransform: 'none',
-                  fontSize: { xs: '1.1rem', md: '1.2rem' },
-                  fontWeight: 500,
-                  padding: { xs: '14px 24px', md: '16px 32px' },
-                  minHeight: { xs: '56px', md: '60px' },
-                  mb: 3,
-                  transition: 'all 0.3s ease',
-                  '&:hover': {
-                    borderColor: alpha(theme?.palette?.primary?.main || '#667eea', 0.5),
-                    backgroundColor: alpha(theme?.palette?.primary?.main || '#667eea', 0.05),
-                    transform: 'translateY(-2px)',
-                    boxShadow: `0 4px 12px ${alpha(theme?.palette?.primary?.main || '#667eea', 0.2)}`,
-                  },
-                  '&:active': {
-                    transform: 'translateY(0)',
-                  }
-                }}
-              >
-                <Box sx={{ display: 'flex', alignItems: 'center', gap: 2 }}>
-                  <img
-                    src="https://www.gstatic.com/firebasejs/ui/2.0.0/images/auth/google.svg"
-                    alt="Google"
-                    style={{ width: '24px', height: '24px' }}
-                  />
-                  <Typography sx={{ fontSize: { xs: '1.1rem', md: '1.2rem' }, fontWeight: 500 }}>
-                    {t('continueWithGoogle') || 'Continue with Google'}
-                  </Typography>
-                </Box>
-              </Button>
             </Box>
 
             <Divider sx={{ mb: 3 }}>

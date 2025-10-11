@@ -81,7 +81,7 @@ const createNewUser = async (req, res) => {
       // Check if it's a Google OAuth account
       if (duplicateEmail.authProvider === 'google') {
         return res.status(409).json({ 
-          message: "This email is already registered with Google Sign-In. Please use the 'Continue with Google' button to log in.",
+          message: "OAUTH_EMAIL_EXISTS",
           code: 'OAUTH_USER'
         });
       }

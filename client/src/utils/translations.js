@@ -343,6 +343,8 @@ export const translations = {
     continueWithGoogle: "Continue with Google",
     pleaseSelectCountry: "Please select a country",
     completing: "Completing...",
+    oauthEmailExists: "This email is already registered with Google Sign-In. Please use the 'Continue with Google' button to log in.",
+    oauthLoginAttempt: "This account uses Google Sign-In. Please use the 'Continue with Google' button.",
     
     // Authentication Error Messages
     authErrorTitle: "Authentication Error",
@@ -1287,6 +1289,8 @@ export const translations = {
     continueWithGoogle: "Continuer avec Google",
     pleaseSelectCountry: "Veuillez sélectionner un pays",
     completing: "Finalisation...",
+    oauthEmailExists: "Cet e-mail est déjà enregistré avec Google Sign-In. Veuillez utiliser le bouton 'Continuer avec Google' pour vous connecter.",
+    oauthLoginAttempt: "Ce compte utilise Google Sign-In. Veuillez utiliser le bouton 'Continuer avec Google'.",
     
     // Authentication Error Messages
     authErrorTitle: "Erreur d'authentification",
@@ -2195,6 +2199,8 @@ export const translations = {
     continueWithGoogle: "المتابعة مع جوجل",
     pleaseSelectCountry: "يرجى اختيار بلد",
     completing: "جارٍ الإكمال...",
+    oauthEmailExists: "هذا البريد الإلكتروني مسجل بالفعل باستخدام تسجيل الدخول عبر جوجل. يرجى استخدام زر 'المتابعة مع جوجل' لتسجيل الدخول.",
+    oauthLoginAttempt: "هذا الحساب يستخدم تسجيل الدخول عبر جوجل. يرجى استخدام زر 'المتابعة مع جوجل'.",
     
     // Authentication Error Messages
     authErrorTitle: "خطأ في المصادقة",
