@@ -509,15 +509,24 @@ const LoginComponent = () => {
         <CardContent sx={{ p: { xs: 3, md: 4 } }}>
           {/* Header */}
           <HeaderSection>
-            <BrandLogo>
-              <Security />
-            </BrandLogo>
+            <Box
+              component="img"
+              src="/maficon.png"
+              alt="Mafqoudat Icon"
+              sx={{
+                width: 80,
+                height: 80,
+                display: 'block',
+                margin: '0 auto 16px',
+                objectFit: 'contain',
+              }}
+            />
             <Box
               component="img"
               src="/maflogo.png"
               alt="Mafqoudat"
               sx={{
-                height: { xs: '40px', md: '50px' },
+                height: { xs: '35px', md: '40px' },
                 width: 'auto',
                 maxWidth: '100%',
                 objectFit: 'contain',
