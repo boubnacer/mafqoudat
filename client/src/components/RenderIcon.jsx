@@ -31,7 +31,6 @@ import {
   Facebook,
   Instagram,
   WhatsApp,
-  Twitter,
   Share,
   Campaign,
   Notifications
@@ -572,13 +571,6 @@ const RenderIcon = ({ name }) => {
       <WhatsApp
         sx={{
           color: "#25D366",
-          fontSize: "20px",
-        }}
-      />
-    ) : name === "x" ? (
-      <Twitter
-        sx={{
-          color: "#1DA1F2",
           fontSize: "20px",
         }}
       />
