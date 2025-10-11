@@ -334,6 +334,7 @@ const NewUserFormComponent = ({ countries }) => {
   });
   const [showPassword, setShowPassword] = useState(false);
   const [errors, setErrors] = useState({});
+  const [errorCode, setErrorCode] = useState(null); // Store error code for translation
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [languageAnchorEl, setLanguageAnchorEl] = useState(null);
 
@@ -341,6 +342,19 @@ const NewUserFormComponent = ({ countries }) => {
   const PWD_REGEX = /^[A-z0-9!@#$%]{4,12}$/;
   const EMAIL_REGEX = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
   const PHONE_REGEX = /^[+]?[\d\s\-\(\)]{7,20}$/;
+
+  // Update error message when language changes
+  useEffect(() => {
+    if (errorCode) {
+      let translatedMessage = errorCode;
+      if (errorCode === 'OAUTH_EMAIL_EXISTS') {
+        translatedMessage = t('oauthEmailExists');
+      } else if (errorCode === 'OAUTH_LOGIN_ATTEMPT') {
+        translatedMessage = t('oauthLoginAttempt');
+      }
+      setErrors(prev => ({ ...prev, general: translatedMessage }));
+    }
+  }, [currentLanguage, errorCode, t]);
 
   // Handle form input changes
   const handleInputChange = (field) => (event) => {
@@ -489,9 +503,13 @@ const NewUserFormComponent = ({ countries }) => {
       // Check if it's a translatable error code
       let displayMessage = serverMessage;
       if (serverMessage === 'OAUTH_EMAIL_EXISTS') {
+        setErrorCode('OAUTH_EMAIL_EXISTS');
         displayMessage = t('oauthEmailExists');
       } else if (serverMessage === 'OAUTH_LOGIN_ATTEMPT') {
+        setErrorCode('OAUTH_LOGIN_ATTEMPT');
         displayMessage = t('oauthLoginAttempt');
+      } else {
+        setErrorCode(null);
       }
       
       // Use centralized error handling with custom message
@@ -669,67 +687,14 @@ const NewUserFormComponent = ({ countries }) => {
                   borderRadius: 3,
                   border: `1px solid ${alpha(theme.palette.error.main, 0.2)}`,
                 }}
-                onClose={() => setErrors(prev => ({ ...prev, general: "" }))}
+                onClose={() => {
+                  setErrors(prev => ({ ...prev, general: "" }));
+                  setErrorCode(null);
+                }}
               >
                 {errors.general}
               </Alert>
             )}
-
-            {/* Google OAuth Button */}
-            <Button
-              fullWidth
-              variant="outlined"
-              onClick={() => {
-                const apiUrl = process.env.REACT_APP_API_URL || "http://localhost:3500";
-                window.location.href = `${apiUrl}/auth/google`;
-              }}
-              sx={{
-                borderRadius: '12px',
-                borderColor: '#dadce0',
-                color: theme?.palette?.text?.primary,
-                textTransform: 'none',
-                fontSize: { xs: '1.1rem', md: '1.2rem' },
-                fontWeight: 500,
-                padding: { xs: '14px 24px', md: '16px 32px' },
-                minHeight: { xs: '56px', md: '60px' },
-                mb: 3,
-                transition: 'all 0.3s ease',
-                '&:hover': {
-                  borderColor: alpha(theme?.palette?.primary?.main || '#667eea', 0.5),
-                  backgroundColor: alpha(theme?.palette?.primary?.main || '#667eea', 0.05),
-                  transform: 'translateY(-2px)',
-                  boxShadow: `0 4px 12px ${alpha(theme?.palette?.primary?.main || '#667eea', 0.2)}`,
-                },
-                '&:active': {
-                  transform: 'translateY(0)',
-                }
-              }}
-            >
-              <Box sx={{ display: 'flex', alignItems: 'center', gap: 2 }}>
-                <img
-                  src="https://www.gstatic.com/firebasejs/ui/2.0.0/images/auth/google.svg"
-                  alt="Google"
-                  style={{ width: '24px', height: '24px' }}
-                />
-                <Typography sx={{ fontSize: { xs: '1.1rem', md: '1.2rem' }, fontWeight: 500 }}>
-                  {t('continueWithGoogle') || 'Continue with Google'}
-                </Typography>
-              </Box>
-            </Button>
-
-            {/* Divider */}
-            <Divider sx={{ my: 3 }}>
-              <Chip 
-                label={t('or') || 'OR'} 
-                sx={{ 
-                  backgroundColor: theme?.palette?.mode === 'dark' 
-                    ? 'rgba(255, 255, 255, 0.05)'
-                    : 'rgba(0, 0, 0, 0.02)',
-                  color: theme?.palette?.text?.secondary,
-                  fontWeight: 500,
-                }}
-              />
-            </Divider>
 
             {/* Signup Form */}
             <Box component="form" onSubmit={handleSubmit} sx={{ mb: 3 }}>
@@ -748,6 +713,64 @@ const NewUserFormComponent = ({ countries }) => {
                   >
 {t('createAccountMessage')}
                   </Typography>
+                </Grid>
+
+                <Grid item xs={12}>
+                  {/* Google OAuth Button */}
+                  <Button
+                    fullWidth
+                    variant="outlined"
+                    onClick={() => {
+                      const apiUrl = process.env.REACT_APP_API_URL || "http://localhost:3500";
+                      window.location.href = `${apiUrl}/auth/google`;
+                    }}
+                    sx={{
+                      borderRadius: '12px',
+                      borderColor: '#dadce0',
+                      color: theme?.palette?.text?.primary,
+                      textTransform: 'none',
+                      fontSize: { xs: '1.1rem', md: '1.2rem' },
+                      fontWeight: 500,
+                      padding: { xs: '14px 24px', md: '16px 32px' },
+                      minHeight: { xs: '56px', md: '60px' },
+                      mb: 2,
+                      transition: 'all 0.3s ease',
+                      '&:hover': {
+                        borderColor: alpha(theme?.palette?.primary?.main || '#667eea', 0.5),
+                        backgroundColor: alpha(theme?.palette?.primary?.main || '#667eea', 0.05),
+                        transform: 'translateY(-2px)',
+                        boxShadow: `0 4px 12px ${alpha(theme?.palette?.primary?.main || '#667eea', 0.2)}`,
+                      },
+                      '&:active': {
+                        transform: 'translateY(0)',
+                      }
+                    }}
+                  >
+                    <Box sx={{ display: 'flex', alignItems: 'center', gap: 2 }}>
+                      <img
+                        src="https://www.gstatic.com/firebasejs/ui/2.0.0/images/auth/google.svg"
+                        alt="Google"
+                        style={{ width: '24px', height: '24px' }}
+                      />
+                      <Typography sx={{ fontSize: { xs: '1.1rem', md: '1.2rem' }, fontWeight: 500 }}>
+                        {t('continueWithGoogle') || 'Continue with Google'}
+                      </Typography>
+                    </Box>
+                  </Button>
+
+                  {/* Divider */}
+                  <Divider sx={{ my: 2 }}>
+                    <Chip 
+                      label={t('or') || 'OR'} 
+                      sx={{ 
+                        backgroundColor: theme?.palette?.mode === 'dark' 
+                          ? 'rgba(255, 255, 255, 0.05)'
+                          : 'rgba(0, 0, 0, 0.02)',
+                        color: theme?.palette?.text?.secondary,
+                        fontWeight: 500,
+                      }}
+                    />
+                  </Divider>
                 </Grid>
                                  <Grid item xs={12}>
                    <ModernTextField
