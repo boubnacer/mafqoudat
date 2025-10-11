@@ -753,20 +753,25 @@ const LoginComponent = () => {
                 <Button
                   component={Link}
                   to="/signup"
-                  variant="contained"
+                  variant="outlined"
                   sx={{
                     borderRadius: '4px',
                     textTransform: 'none',
                     fontWeight: 600,
-                    background: 'linear-gradient(45deg, #4A8BFF 30%, #1A6EEE 90%)',
-                    color: 'white',
+                    borderColor: '#4A8BFF',
+                    color: '#4A8BFF',
                     py: 1,
                     px: 3,
                     fontSize: { xs: '1.1rem', md: '1.2rem' },
-                    boxShadow: '0 3px 5px 2px rgba(26, 110, 238, .3)',
+                    borderWidth: '2px',
+                    transition: 'all 0.3s ease',
                     '&:hover': {
-                      background: 'linear-gradient(45deg, #5A9BFF 30%, #2A7EFF 90%)',
-                      boxShadow: '0 4px 8px 2px rgba(26, 110, 238, .4)',
+                      borderColor: '#3A7BEF',
+                      backgroundColor: alpha('#4A8BFF', 0.05),
+                      color: '#3A7BEF',
+                      borderWidth: '2px',
+                      transform: 'translateY(-1px)',
+                      boxShadow: `0 4px 12px ${alpha('#4A8BFF', 0.2)}`,
                     }
                   }}
                 >
@@ -776,20 +781,23 @@ const LoginComponent = () => {
                 <Button
                   component={Link}
                   to="/"
-                  variant="contained"
+                  variant="outlined"
                   sx={{
                     borderRadius: '4px',
                     textTransform: 'none',
-                    fontWeight: 600,
-                    background: 'linear-gradient(45deg, #4A8BFF 30%, #1A6EEE 90%)',
-                    color: 'white',
+                    fontWeight: 500,
+                    borderColor: alpha(theme.palette.text.secondary, 0.3),
+                    color: theme.palette.text.secondary,
                     py: 1,
                     px: 3,
                     fontSize: { xs: '1.1rem', md: '1.2rem' },
-                    boxShadow: '0 3px 5px 2px rgba(26, 110, 238, .3)',
+                    borderWidth: '1px',
+                    transition: 'all 0.3s ease',
                     '&:hover': {
-                      background: 'linear-gradient(45deg, #5A9BFF 30%, #2A7EFF 90%)',
-                      boxShadow: '0 4px 8px 2px rgba(26, 110, 238, .4)',
+                      borderColor: alpha(theme.palette.text.secondary, 0.6),
+                      backgroundColor: alpha(theme.palette.text.secondary, 0.05),
+                      color: theme.palette.text.primary,
+                      borderWidth: '1px',
                     }
                   }}
                 >
