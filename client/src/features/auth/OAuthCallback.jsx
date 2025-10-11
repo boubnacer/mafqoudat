@@ -31,8 +31,8 @@ const OAuthCallback = () => {
         // Dispatch credentials to Redux store
         dispatch(setCredentials({ accessToken: token }));
         
-        // Navigate to home page
-        navigate('/');
+        // Navigate to dashboard
+        navigate('/dash');
       } catch (err) {
         console.error('Error setting credentials:', err);
         navigate('/login?error=authentication_failed');

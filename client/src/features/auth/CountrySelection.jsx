@@ -321,8 +321,8 @@ const CountrySelection = () => {
           accessToken: response.data.accessToken 
         }));
 
-        // Navigate to home
-        navigate('/');
+        // Navigate to dashboard
+        navigate('/dash');
       } else {
         setError('Failed to complete registration. Please try again.');
       }
