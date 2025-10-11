@@ -65,8 +65,8 @@ const HelpSupportSection = () => {
 
   const emergencyContacts = [
     {
-      name: t('contactUs'),
-      details: "+212711621132",
+      name: t('phoneNumber'),
+      details: "+212 711 621 132",
       icon: <Phone />,
       action: null,
       actionIcon: null
@@ -241,7 +241,7 @@ const HelpSupportSection = () => {
                 <CardContent>
                   <Box display="flex" alignItems="center" mb={2}>
                     <Phone sx={{ mr: isRTLMode ? 0 : 1, ml: isRTLMode ? 1 : 0, color: 'error.main' }} />
-                    <Typography variant="h6" color={theme.palette.text.primary} sx={{ direction: isRTLMode ? 'rtl' : 'ltr' }}>{t('emergencyContacts')}</Typography>
+                    <Typography variant="h6" color={theme.palette.text.primary} sx={{ direction: isRTLMode ? 'rtl' : 'ltr' }}>{t('contactUs')}</Typography>
                   </Box>
                   <List>
                     {emergencyContacts.map((contact, index) => (
