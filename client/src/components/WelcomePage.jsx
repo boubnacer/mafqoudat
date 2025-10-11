@@ -465,29 +465,17 @@ const WelcomePage = () => {
         <CardContent sx={{ p: { xs: 3, md: 4 } }}>
           <HeaderSection>
             <Box
+              component="img"
+              src="/maficon.png"
+              alt="Mafqoudat Icon"
               sx={{
                 width: 80,
                 height: 80,
-                borderRadius: '50%',
-                display: 'flex',
-                alignItems: 'center',
-                justifyContent: 'center',
+                display: 'block',
                 margin: '0 auto 16px',
-                boxShadow: '0 10px 30px rgba(4, 63, 165, 0.3)',
-                overflow: 'hidden',
+                objectFit: 'contain',
               }}
-            >
-              <Box
-                component="img"
-                src="/maficon.png"
-                alt="Mafqoudat Icon"
-                sx={{
-                  width: '100%',
-                  height: '100%',
-                  objectFit: 'cover',
-                }}
-              />
-            </Box>
+            />
             <Box
               component="img"
               src="/maflogo.png"
