@@ -405,7 +405,7 @@ const CommunityGuidelines = () => {
                   {t('guidelinesQuestions')}
                 </Typography>
                 <Typography variant="body2" color="text.secondary">
-                  {t('email')}: community@mafqoudat.com
+                  {t('email')}: team.mafqoudat@gmail.com
                 </Typography>
               </Box>
             </Paper>

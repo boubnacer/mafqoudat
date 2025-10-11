@@ -378,7 +378,7 @@ const DashFooter = () => {
                 <Email color="primary" />
               </ListItemIcon>
               <ListItemText 
-                primary="support@mafqoudat.com"
+                primary="team.mafqoudat@gmail.com"
                 secondary={t('emailUsForSupport')}
                 sx={{ 
                   '& .MuiListItemText-primary': { fontSize: { xs: '16px', sm: '14px' } },

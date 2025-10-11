@@ -448,7 +448,7 @@ const SafetyTips = () => {
                   {t('safetyQuestions')}
                 </Typography>
                 <Typography variant="body2" color="text.secondary">
-                  {t('email')}: safety@mafqoudat.com
+                  {t('email')}: team.mafqoudat@gmail.com
                 </Typography>
               </Box>
             </Paper>

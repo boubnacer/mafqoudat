@@ -322,7 +322,7 @@ const CookieNotice = () => {
                   {t('cookieQuestions')}
                 </Typography>
                 <Typography variant="body2" color="text.secondary">
-                  {t('email')}: privacy@mafqoudat.com
+                  {t('email')}: team.mafqoudat@gmail.com
                 </Typography>
               </Box>
             </Paper>

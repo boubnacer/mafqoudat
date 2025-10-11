@@ -292,7 +292,7 @@ const TermsOfUse = () => {
                   {t('termsQuestions')}
                 </Typography>
                 <Typography variant="body2" color="text.secondary">
-                  {t('email')}: legal@mafqoudat.com
+                  {t('email')}: team.mafqoudat@gmail.com
                 </Typography>
               </Box>
             </Paper>
