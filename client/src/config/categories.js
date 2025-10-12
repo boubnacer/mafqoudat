@@ -2,30 +2,26 @@ import {
   PhoneAndroidOutlined,
   ArticleOutlined,
   AttachMoneyOutlined,
-  LuggageOutlined,
   PetsOutlined,
   DirectionsCarOutlined,
   KeyOutlined,
-  CreditCardOutlined,
+  AccountBalanceWalletOutlined,
+  BackpackOutlined,
   WatchOutlined,
-  SportsEsportsOutlined,
-  LocalHospitalOutlined,
-  MoreHorizOutlined,
-  PersonOutlined,
-  ShoppingBagOutlined,
-  WorkOutlineOutlined,
+  GlassesOutlined,
+  HeadphonesOutlined,
+  UmbrellaOutlined,
+  CheckroomOutlined,
+  MenuBookOutlined,
   SportsSoccerOutlined,
-  MusicNoteOutlined,
   ToysOutlined,
-  FaceOutlined,
   CameraAltOutlined,
-  BuildOutlined,
-  LocalFloristOutlined,
-  HomeOutlined,
-  RestaurantOutlined
+  WaterBottleOutlined,
+  PersonSearchOutlined,
+  MoreHorizOutlined
 } from '@mui/icons-material';
 
-// Category configuration with Material UI icons
+// Category configuration with Material UI icons - Optimized for Lost & Found
 export const CATEGORY_CONFIG = {
   ELECTRONICS: {
     icon: PhoneAndroidOutlined,
@@ -46,15 +42,15 @@ export const CATEGORY_CONFIG = {
     priority: 3
   },
   CLOTHING: {
-    icon: LuggageOutlined,
+    icon: CheckroomOutlined,
     color: '#4CAF50',
     backgroundColor: '#E8F5E9',
     priority: 4
   },
   PETS: {
     icon: PetsOutlined,
-    color: '#795548',
-    backgroundColor: '#EFEBE9',
+    color: '#FF6B6B',
+    backgroundColor: '#FFEBEE',
     priority: 5
   },
   VEHICLES: {
@@ -69,52 +65,52 @@ export const CATEGORY_CONFIG = {
     backgroundColor: '#FFF3E0',
     priority: 7
   },
-  WALLET: {
-    icon: CreditCardOutlined,
+  WALLETS: {
+    icon: AccountBalanceWalletOutlined,
     color: '#FF5722',
     backgroundColor: '#FBE9E7',
     priority: 8
+  },
+  BAGS: {
+    icon: BackpackOutlined,
+    color: '#8D6E63',
+    backgroundColor: '#EFEBE9',
+    priority: 9
   },
   WATCHES: {
     icon: WatchOutlined,
     color: '#2196F3',
     backgroundColor: '#E3F2FD',
-    priority: 9
-  },
-  GAMING: {
-    icon: SportsEsportsOutlined,
-    color: '#E91E63',
-    backgroundColor: '#FCE4EC',
     priority: 10
   },
-  MEDICAL: {
-    icon: LocalHospitalOutlined,
-    color: '#F44336',
-    backgroundColor: '#FFEBEE',
+  GLASSES: {
+    icon: GlassesOutlined,
+    color: '#3F51B5',
+    backgroundColor: '#E8EAF6',
     priority: 11
   },
-  LUGGAGE: {
-    icon: LuggageOutlined,
-    color: '#795548',
-    backgroundColor: '#EFEBE9',
-    priority: 12
-  },
-  PERSON: {
-    icon: PersonOutlined,
-    color: '#2196F3',
-    backgroundColor: '#E3F2FD',
-    priority: 13
-  },
-  SHOPPING: {
-    icon: ShoppingBagOutlined,
+  HEADPHONES: {
+    icon: HeadphonesOutlined,
     color: '#9C27B0',
     backgroundColor: '#F3E5F5',
+    priority: 12
+  },
+  UMBRELLAS: {
+    icon: UmbrellaOutlined,
+    color: '#00BCD4',
+    backgroundColor: '#E0F7FA',
+    priority: 13
+  },
+  ACCESSORIES: {
+    icon: CheckroomOutlined,
+    color: '#EC407A',
+    backgroundColor: '#FCE4EC',
     priority: 14
   },
-  WORK: {
-    icon: WorkOutlineOutlined,
-    color: '#607D8B',
-    backgroundColor: '#ECEFF1',
+  BOOKS: {
+    icon: MenuBookOutlined,
+    color: '#5E35B1',
+    backgroundColor: '#EDE7F6',
     priority: 15
   },
   SPORTS: {
@@ -123,59 +119,35 @@ export const CATEGORY_CONFIG = {
     backgroundColor: '#E8F5E9',
     priority: 16
   },
-  MUSIC: {
-    icon: MusicNoteOutlined,
-    color: '#9C27B0',
-    backgroundColor: '#F3E5F5',
-    priority: 17
-  },
   TOYS: {
     icon: ToysOutlined,
     color: '#FF9800',
     backgroundColor: '#FFF3E0',
+    priority: 17
+  },
+  CAMERAS: {
+    icon: CameraAltOutlined,
+    color: '#00897B',
+    backgroundColor: '#E0F2F1',
     priority: 18
   },
-  BEAUTY: {
-    icon: FaceOutlined,
-    color: '#E91E63',
-    backgroundColor: '#FCE4EC',
+  BOTTLES: {
+    icon: WaterBottleOutlined,
+    color: '#26A69A',
+    backgroundColor: '#E0F2F1',
     priority: 19
   },
-  CAMERA: {
-    icon: CameraAltOutlined,
-    color: '#2196F3',
-    backgroundColor: '#E3F2FD',
+  PERSON: {
+    icon: PersonSearchOutlined,
+    color: '#F44336',
+    backgroundColor: '#FFEBEE',
     priority: 20
-  },
-  TOOLS: {
-    icon: BuildOutlined,
-    color: '#607D8B',
-    backgroundColor: '#ECEFF1',
-    priority: 21
-  },
-  GARDEN: {
-    icon: LocalFloristOutlined,
-    color: '#4CAF50',
-    backgroundColor: '#E8F5E9',
-    priority: 22
-  },
-  HOME: {
-    icon: HomeOutlined,
-    color: '#8BC34A',
-    backgroundColor: '#F1F8E9',
-    priority: 23
-  },
-  FOOD: {
-    icon: RestaurantOutlined,
-    color: '#FF9800',
-    backgroundColor: '#FFF3E0',
-    priority: 24
   },
   OTHER: {
     icon: MoreHorizOutlined,
     color: '#9E9E9E',
     backgroundColor: '#F5F5F5',
-    priority: 25
+    priority: 21
   }
 };
 
