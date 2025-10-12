@@ -75,8 +75,11 @@ const maintenanceMode = async (req, res, next) => {
       return next();
     }
 
-    // PRIORITY 1: Check if user is authenticated and is an admin FIRST
-    // Admins should be able to access ALL routes during maintenance
+    // ============================================
+    // MAINTENANCE MODE IS ACTIVE - Check bypass conditions
+    // ============================================
+
+    // 1. FIRST PRIORITY: Check if user is an admin (MUST CHECK THIS FIRST!)
     const authHeader = req.headers.authorization || req.headers.Authorization;
 
     if (authHeader?.startsWith("Bearer ")) {
@@ -99,44 +102,45 @@ const maintenanceMode = async (req, res, next) => {
           const user = await User.findById(userId).select('role username').lean();
 
           if (user && user.role === 'admin') {
-            // Admin user can bypass maintenance mode for ALL routes
+            // ✅ ADMIN USER - BYPASS ALL MAINTENANCE CHECKS
             logEvents(
               `MAINTENANCE_ADMIN_BYPASS\t${user.username}\t${req.method}\t${req.path}`,
               "reqLog.log"
             );
-            return next();
+            console.log(`✅ [MAINTENANCE] Admin '${user.username}' bypassed: ${req.method} ${req.path}`);
+            return next(); // <--- ADMIN GETS FULL ACCESS
           }
         }
       } catch (tokenError) {
         // Token verification failed, continue to check excluded routes
+        console.log(`⚠️ [MAINTENANCE] Invalid token for: ${req.method} ${req.path}`);
       }
     }
 
-    // PRIORITY 2: Check excluded routes (for non-admin users)
+    // 2. SECOND PRIORITY: Check if route is in excluded list (for non-admin users)
     const excludedRoutes = [
       '/health',
       '/auth',
-      '/api/password-reset'
+      '/api/password-reset',
+      '/system-settings' // Allow system settings for admin panel
     ];
 
     // Check if current route should be excluded
     const isExcluded = excludedRoutes.some(route => {
-      if (route.endsWith('*')) {
-        // Handle wildcard routes
-        const baseRoute = route.slice(0, -1);
-        return req.path.startsWith(baseRoute);
-      }
       return req.path.startsWith(route);
     });
 
     // Allow excluded routes to bypass maintenance mode
     if (isExcluded) {
+      console.log(`✅ [MAINTENANCE] Excluded route allowed: ${req.method} ${req.path}`);
       return next();
     }
 
-    // PRIORITY 3: Block non-admin or unauthenticated users
-    const origin = req.headers.origin || req.headers.referer || "Unknown";
+    // 3. NOT ADMIN AND NOT EXCLUDED - BLOCK ACCESS
+    console.log(`🚧 [MAINTENANCE] Blocking access: ${req.method} ${req.path} (Source: ${maintenanceStatus.source})`);
     
+    // Log maintenance mode access attempt
+    const origin = req.headers.origin || req.headers.referer || "Unknown";
     logEvents(
       `MAINTENANCE_BLOCKED\t${req.method}\t${req.path}\t${origin}\tSource: ${maintenanceStatus.source}`,
       "reqLog.log"
@@ -150,6 +154,7 @@ const maintenanceMode = async (req, res, next) => {
 
   } catch (error) {
     // Log error but don't expose internal details
+    console.error('❌ Maintenance Mode Middleware Error:', error);
     logEvents(
       `MAINTENANCE_ERROR\t${error.message}\t${req.method}\t${req.path}`,
       "errLog.log"
@@ -159,6 +164,7 @@ const maintenanceMode = async (req, res, next) => {
     const envMaintenanceMode = process.env.MAINTENANCE_MODE === 'true';
     
     if (envMaintenanceMode) {
+      console.log('⚠️ Maintenance Mode: Error in middleware, falling back to environment variable');
       return res.status(503).json({
         maintenanceMode: true,
         message: "We're currently performing scheduled maintenance. We'll be back soon! Thank you for your patience.",
@@ -167,6 +173,7 @@ const maintenanceMode = async (req, res, next) => {
     }
     
     // If no maintenance mode detected, allow access (fail open)
+    console.log('⚠️ Maintenance Mode: Error in middleware, allowing access (fail open)');
     return next();
   }
 };
