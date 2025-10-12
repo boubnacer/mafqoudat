@@ -28,16 +28,22 @@ client/
 ├── src/
 │   ├── components/
 │   │   └── MaintenanceMode.jsx               ✅ React component
+│   ├── hooks/
+│   │   └── useMaintenanceCheck.js            ✅ Custom hook for checking maintenance
 │   ├── app/state/
 │   │   └── maintenanceSlice.js               ✅ Redux state management
 │   ├── utils/
 │   │   ├── maintenanceModeInterceptor.js     ✅ Axios interceptor
 │   │   └── testMaintenanceMode.js            ✅ Testing utilities
 │   └── examples/
-│       └── MaintenanceModeExample.jsx        ✅ Implementation examples
+│       ├── MaintenanceModeExample.jsx        ✅ Implementation examples
+│       └── MaintenanceCheckExample.jsx       ✅ Hook usage examples
 └── [Documentation]
     ├── MAINTENANCE_MODE_INTEGRATION_GUIDE.md ✅ Complete frontend guide
-    └── MAINTENANCE_MODE_QUICK_START.md       ✅ Quick start guide
+    ├── MAINTENANCE_MODE_QUICK_START.md       ✅ Quick start guide
+    ├── USE_MAINTENANCE_CHECK_HOOK.md         ✅ Hook quick reference
+    └── hooks/
+        └── useMaintenanceCheck.md            ✅ Hook full documentation
 
 Root:
 └── MAINTENANCE_MODE_COMPLETE_SETUP.md        ✅ This file
@@ -63,7 +69,55 @@ MAINTENANCE_MODE=true
 MAINTENANCE_MODE=false
 ```
 
-### Part 2: Frontend Setup (5 Steps)
+### Part 2: Frontend Setup (Method A - Using Hook - Recommended)
+
+#### Quick Setup with useMaintenanceCheck Hook
+
+This is the easiest and recommended method:
+
+**Step 1: Add Redux Slice to Store**
+
+Edit `client/src/app/store.js`:
+```javascript
+import maintenanceReducer from './state/maintenanceSlice';
+
+export const store = configureStore({
+  reducer: {
+    // ... existing reducers
+    maintenance: maintenanceReducer, // Add this
+  },
+});
+```
+
+**Step 2: Use Hook in App.js**
+
+Edit `client/src/App.js`:
+```javascript
+import useMaintenanceCheck from './hooks/useMaintenanceCheck';
+import MaintenanceMode from './components/MaintenanceMode';
+
+function App() {
+  const { isMaintenanceMode, isLoading } = useMaintenanceCheck();
+  
+  if (isLoading) return <LoadingScreen />;
+  if (isMaintenanceMode) return <MaintenanceMode />;
+  
+  return (
+    // Your normal app structure
+  );
+}
+```
+
+**That's it!** The hook automatically:
+- Checks maintenance status on mount
+- Polls every 60 seconds if in maintenance
+- Handles admin bypass
+- Updates Redux state
+- Re-checks when auth changes
+
+---
+
+### Part 2: Frontend Setup (Method B - Manual Integration)
 
 #### Step 1: Add Redux Slice to Store
 
@@ -421,6 +475,12 @@ railway variables set MAINTENANCE_MODE=false
 
 ### Examples
 - **Implementation Examples**: `client/src/examples/MaintenanceModeExample.jsx`
+- **Hook Usage Examples**: `client/src/examples/MaintenanceCheckExample.jsx`
+
+### Hooks
+- **useMaintenanceCheck Hook**: `client/src/hooks/useMaintenanceCheck.js`
+- **Hook Quick Reference**: `client/USE_MAINTENANCE_CHECK_HOOK.md`
+- **Hook Full Documentation**: `client/src/hooks/useMaintenanceCheck.md`
 
 ---
 
