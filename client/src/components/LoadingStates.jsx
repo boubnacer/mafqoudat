@@ -302,11 +302,12 @@ export const DashboardEmptyStates = {
               variant="contained" 
               onClick={() => onCreatePost && onCreatePost('lost')}
               sx={{
+                backgroundColor: '#FF7828',
+                color: '#FFFFFF',
                 opacity: 1,
-                backgroundColor: 'primary.main',
-                color: 'primary.contrastText',
+                fontWeight: 600,
                 '&:hover': {
-                  backgroundColor: 'primary.dark',
+                  backgroundColor: '#E66920',
                   opacity: 1,
                 },
               }}
@@ -473,11 +474,12 @@ export const SearchLoadingStates = {
               variant="contained" 
               onClick={() => onCreatePost('lost')}
               sx={{
+                backgroundColor: '#FF7828',
+                color: '#FFFFFF',
                 opacity: 1,
-                backgroundColor: 'primary.main',
-                color: 'primary.contrastText',
+                fontWeight: 600,
                 '&:hover': {
-                  backgroundColor: 'primary.dark',
+                  backgroundColor: '#E66920',
                   opacity: 1,
                 },
               }}
