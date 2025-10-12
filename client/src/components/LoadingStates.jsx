@@ -301,6 +301,15 @@ export const DashboardEmptyStates = {
             <Button 
               variant="contained" 
               onClick={() => onCreatePost && onCreatePost('lost')}
+              sx={{
+                opacity: 1,
+                backgroundColor: 'primary.main',
+                color: 'primary.contrastText',
+                '&:hover': {
+                  backgroundColor: 'primary.dark',
+                  opacity: 1,
+                },
+              }}
             >
               {t('reportLostItem')}
             </Button>
@@ -460,7 +469,19 @@ export const SearchLoadingStates = {
         description={t('noSearchResultsDescription', { query })}
         action={
           <Box sx={{ display: 'flex', gap: 2, flexWrap: 'wrap', justifyContent: 'center' }}>
-            <Button variant="contained" onClick={() => onCreatePost('lost')}>
+            <Button 
+              variant="contained" 
+              onClick={() => onCreatePost('lost')}
+              sx={{
+                opacity: 1,
+                backgroundColor: 'primary.main',
+                color: 'primary.contrastText',
+                '&:hover': {
+                  backgroundColor: 'primary.dark',
+                  opacity: 1,
+                },
+              }}
+            >
               {t('reportLostItem')}
             </Button>
             <Button variant="outlined" onClick={() => onCreatePost('found')}>
