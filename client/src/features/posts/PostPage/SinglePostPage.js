@@ -39,7 +39,8 @@ import {
   Visibility as ViewIcon,
   Flag as FlagIcon,
   TrendingUp as TrendingUpIcon,
-  WhatsApp as WhatsAppIcon
+  WhatsApp as WhatsAppIcon,
+  CheckCircle as CheckCircleIcon
 } from "@mui/icons-material";
 
 import "./editpost.css";
