@@ -170,6 +170,10 @@ app.use("/", express.static(path.join(__dirname, "public")));
 // Authentication error handling (must come before routes)
 app.use('/auth', authErrorMiddleware);
 
+// Maintenance mode middleware (after auth setup, before routes)
+const maintenanceMode = require("./middleware/maintenanceMode");
+app.use(maintenanceMode);
+
 // API routes
 app.use("/", require("./routes/root"));
 app.use("/dashboard", require("./routes/dashRoutes"));
