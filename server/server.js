@@ -191,6 +191,7 @@ app.use("/cities-api", require("./routes/citiesRoutes"));
 
 app.use("/promotion", require("./routes/promotionRoutes"));
 app.use("/admin", require("./routes/adminRoutes"));
+app.use("/api/system", require("./routes/systemRoutes"));
 
 // Request logger middleware - logs ALL requests
 app.use((req, res, next) => {
