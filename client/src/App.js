@@ -12,10 +12,12 @@ import { cleanupLocalStorage, initializeLocalStorage } from "./utils/localStorag
 import { validateAndRepairLocalStorage } from "./utils/localStorageValidator";
 import { ensureGlobalStateAlwaysExists } from "./utils/globalStateInitializer";
 import useAuthErrorHandler from "./hooks/useAuthErrorHandler";
+import useMaintenanceCheck from "./hooks/useMaintenanceCheck";
 import LanguageSwitchHandler from "./components/LanguageSwitchHandler";
 import LanguageChangeHandler from "./components/LanguageChangeHandler";
 import ProtectedRoute from "./components/ProtectedRoute";
 import CountryGuard from "./components/CountryGuard";
+import MaintenanceMode from "./components/MaintenanceMode";
 
 // Add CSS keyframes for loading animations (mirrorReflection from navbar)
 const loadingStyles = `
@@ -150,6 +152,9 @@ const AppContent = () => {
   // Initialize authentication error handler
   useAuthErrorHandler();
   
+  // Check maintenance mode status
+  const { isMaintenanceMode, isLoading: isCheckingMaintenance, isAdmin } = useMaintenanceCheck();
+  
   const theme = React.useMemo(() => {
     try {
       // Pass both mode and currentLanguage to theme settings
@@ -165,7 +170,16 @@ const AppContent = () => {
       <CssBaseline />
       <LanguageSwitchHandler />
       <LanguageChangeHandler />
-      <Routes>
+      
+      {/* Show loading during initial maintenance check */}
+      {isCheckingMaintenance ? (
+        <LoadingFallback />
+      ) : isMaintenanceMode && !isAdmin ? (
+        /* Show maintenance mode for non-admin users */
+        <MaintenanceMode />
+      ) : (
+        /* Show normal app routes */
+        <Routes>
         {/* Welcome page - first time access */}
         <Route path="/" element={
           <Suspense fallback={<LoadingFallback />}>
@@ -323,9 +337,10 @@ const AppContent = () => {
           </div>
         } />
       </Routes>
-      </ThemeProvider>
-    );
-  };
+      )}
+    </ThemeProvider>
+  );
+};
 
 function App() {
   // useTitle("Dan D. Repairs");

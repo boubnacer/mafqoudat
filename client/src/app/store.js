@@ -5,6 +5,7 @@ import authReducer from "../features/auth/authSlice";
 import postsReducer from "../features/posts/postsSlice";
 import dashReducer from "../features/dashboard/dashSlice";
 import globalReducer from "./state/index";
+import maintenanceReducer from "./state/maintenanceSlice";
 
 export const store = configureStore({
   reducer: {
@@ -13,6 +14,7 @@ export const store = configureStore({
     posts: postsReducer,
     dash: dashReducer,
     global: globalReducer,
+    maintenance: maintenanceReducer,
   },
   middleware: (getDefaultMiddleware) =>
     getDefaultMiddleware().concat(apiSlice.middleware),
