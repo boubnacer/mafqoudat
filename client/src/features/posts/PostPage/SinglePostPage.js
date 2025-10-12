@@ -53,6 +53,7 @@ import RenderIcon from "../../../components/RenderIcon";
 import { authStorage } from "../../../utils/authStorage";
 import { getCategoryConfig } from "../../../config/categories";
 import PromotionDialog from "../../../components/PromotionDialog";
+import ClaimItemDialog from "../../../components/ClaimItemDialog";
 
 const SinglePostPage = ({
   _id,
@@ -112,6 +113,7 @@ const SinglePostPage = ({
   const [showSuccessMessage, setShowSuccessMessage] = useState(false);
   const [successMessage, setSuccessMessage] = useState('');
   const [showPromotionDialog, setShowPromotionDialog] = useState(false);
+  const [showClaimDialog, setShowClaimDialog] = useState(false);
 
   // Memoized event handlers
   const handleEdit = useCallback(() => {
@@ -182,6 +184,37 @@ const SinglePostPage = ({
     setTimeout(() => {
       setShowSuccessMessage(false);
     }, 3000);
+  }, [t]);
+
+  const handleClaimItem = useCallback(() => {
+    // Check if user is authenticated
+    if (!isAuthenticated || !usernameId) {
+      // Store the current post URL in localStorage for redirect after login
+      const currentPostUrl = window.location.pathname;
+      authStorage.setRedirectAfterLogin(currentPostUrl);
+      
+      // Redirect to login page
+      navigate('/login');
+      return;
+    }
+    
+    // If authenticated, open the claim dialog
+    setShowClaimDialog(true);
+  }, [isAuthenticated, usernameId, navigate]);
+
+  const handleCloseClaimDialog = useCallback(() => {
+    setShowClaimDialog(false);
+  }, []);
+
+  const handleItemMarkedAsReturned = useCallback(() => {
+    // Handle successful marking as returned
+    setSuccessMessage(t('itemMarkedAsReturned') || 'Item marked as returned successfully!');
+    setShowSuccessMessage(true);
+    setTimeout(() => {
+      setShowSuccessMessage(false);
+      // Optionally refresh the page or update the post status
+      window.location.reload();
+    }, 2000);
   }, [t]);
 
   // Memoized computed values
@@ -909,6 +942,118 @@ const SinglePostPage = ({
         {/* Sidebar */}
         <Grid item xs={12} lg={4}>
           <Box sx={{ position: 'sticky', top: '2rem' }}>
+            {/* Claim Item Section - Only show for authenticated users who are NOT the post owner */}
+            {isAuthenticated && usernameId && usernameId !== user && !returned && (
+              <Paper 
+                elevation={0}
+                sx={{ 
+                  p: 3, 
+                  mb: 3,
+                  borderRadius: 3,
+                  border: `1px solid ${isDarkMode ? alpha('#fff', 0.08) : alpha('#000', 0.12)}`,
+                  backgroundColor: isDarkMode ? alpha('#1a1a1a', 0.8) : '#ffffff',
+                  boxShadow: 'none',
+                  background: isDarkMode 
+                    ? 'linear-gradient(135deg, rgba(33, 150, 243, 0.05) 0%, rgba(66, 165, 245, 0.02) 100%)'
+                    : 'linear-gradient(135deg, rgba(25, 118, 210, 0.05) 0%, rgba(30, 136, 229, 0.02) 100%)',
+                  border: `2px solid ${isDarkMode ? alpha('#2196F3', 0.2) : alpha('#1976D2', 0.2)}`,
+                  position: 'relative',
+                  overflow: 'hidden',
+                  '&::before': {
+                    content: '""',
+                    position: 'absolute',
+                    top: 0,
+                    left: 0,
+                    right: 0,
+                    height: '3px',
+                    background: isDarkMode 
+                      ? 'linear-gradient(90deg, #2196F3, #42A5F5)' 
+                      : 'linear-gradient(90deg, #1976D2, #1E88E5)',
+                  }
+                }}
+              >
+                <Box display="flex" alignItems="center" gap={2} mb={2}>
+                  <Box
+                    sx={{
+                      backgroundColor: isDarkMode ? alpha('#2196F3', 0.2) : alpha('#1976D2', 0.1),
+                      borderRadius: '50%',
+                      p: 1.5,
+                      display: 'flex',
+                      alignItems: 'center',
+                      justifyContent: 'center'
+                    }}
+                  >
+                    <CheckCircleIcon sx={{ 
+                      color: isDarkMode ? '#2196F3' : '#1976D2',
+                      fontSize: 24
+                    }} />
+                  </Box>
+                  <Typography 
+                    variant="h6" 
+                    fontWeight={700}
+                    sx={{ 
+                      color: isDarkMode ? '#2196F3' : '#1976D2',
+                      fontSize: { xs: '1.1rem', sm: '1.25rem', md: '1.25rem' },
+                      direction: currentLanguage === 'ar' ? 'rtl' : 'ltr'
+                    }}
+                  >
+                    {foundLostStatus.isFound ? t('doYouThinkThisItemIsYours') : t('didYouFindThisItem')}
+                  </Typography>
+                </Box>
+
+                <Typography 
+                  variant="body1" 
+                  sx={{ 
+                    mb: 3,
+                    color: isDarkMode ? alpha('#fff', 0.8) : alpha('#000', 0.7),
+                    fontSize: { xs: '1rem', sm: '1rem', md: '1rem' },
+                    lineHeight: 1.6,
+                    direction: currentLanguage === 'ar' ? 'rtl' : 'ltr'
+                  }}
+                >
+                  {foundLostStatus.isFound 
+                    ? t('ifYouLostThisItem') 
+                    : t('ifYouFoundThisItem')
+                  }
+                </Typography>
+
+                <Button
+                  variant="contained"
+                  onClick={handleClaimItem}
+                  fullWidth
+                  startIcon={<CheckCircleIcon />}
+                  sx={{
+                    borderRadius: 2,
+                    textTransform: 'none',
+                    fontWeight: 600,
+                    direction: currentLanguage === 'ar' ? 'rtl' : 'ltr',
+                    gap: currentLanguage === 'ar' ? 1 : 0.5,
+                    background: isDarkMode
+                      ? 'linear-gradient(45deg, #2196F3 30%, #42A5F5 90%)'
+                      : 'linear-gradient(45deg, #1976D2 30%, #1E88E5 90%)',
+                    color: '#ffffff',
+                    py: 1.5,
+                    fontSize: { xs: '1rem', sm: '1rem', md: '1rem' },
+                    '&:hover': {
+                      background: isDarkMode
+                        ? 'linear-gradient(45deg, #1976D2 30%, #2196F3 90%)'
+                        : 'linear-gradient(45deg, #0D47A1 30%, #1565C0 90%)',
+                      transform: 'translateY(-1px)',
+                      boxShadow: isDarkMode
+                        ? '0 8px 20px rgba(33, 150, 243, 0.3)'
+                        : '0 8px 20px rgba(25, 118, 210, 0.3)',
+                    },
+                    transition: 'all 0.2s ease-in-out',
+                    boxShadow: isDarkMode
+                      ? '0 4px 12px rgba(33, 150, 243, 0.2)'
+                      : '0 4px 12px rgba(25, 118, 210, 0.2)',
+                  }}
+                >
+                  {foundLostStatus.isFound ? t('yesThisIsMyItem') : t('yesIFoundThisItem')}
+                </Button>
+              </Paper>
+            )}
+
             {/* Promotion Section - Only show for post owner */}
             {canEdit && !promotionRequested && (
               <Paper 
@@ -1358,6 +1503,19 @@ const SinglePostPage = ({
         postId={_id}
         isLostItem={!foundLostStatus.isFound}
         onPromotionRequested={handlePromotionRequested}
+      />
+
+      {/* Claim Item Dialog */}
+      <ClaimItemDialog
+        open={showClaimDialog}
+        onClose={handleCloseClaimDialog}
+        postId={_id}
+        isFoundPost={foundLostStatus.isFound}
+        contactInfo={{
+          phone: contact,
+          additionalContact: sanitizedAdditionalContact
+        }}
+        onItemMarkedAsReturned={handleItemMarkedAsReturned}
       />
     </Box>
   );

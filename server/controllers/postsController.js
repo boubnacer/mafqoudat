@@ -1469,6 +1469,58 @@ const deletePost = async (req, res) => {
   res.json(reply);
 };
 
+// @desc Mark post as returned
+// @route PATCH /posts/:postId/mark-returned
+// @access Private (requires authentication)
+const markPostAsReturned = async (req, res) => {
+  try {
+    const { postId } = req.params;
+
+    // Validate post ID
+    if (!postId || !mongoose.Types.ObjectId.isValid(postId)) {
+      return res.status(400).json({ 
+        success: false,
+        message: "Invalid post ID" 
+      });
+    }
+
+    // Find the post
+    const post = await Post.findById(postId).select('_id returned').exec();
+
+    if (!post) {
+      return res.status(404).json({ 
+        success: false,
+        message: "Post not found" 
+      });
+    }
+
+    // Update the post
+    post.returned = true;
+    post.resolvedAt = new Date();
+    await post.save();
+
+    // Invalidate related cache entries
+    await cacheService.invalidatePattern('posts:*');
+    await cacheService.invalidatePattern('dashboard:*');
+
+    res.json({ 
+      success: true,
+      message: "Post marked as returned successfully",
+      data: {
+        postId: post._id,
+        returned: post.returned,
+        resolvedAt: post.resolvedAt
+      }
+    });
+  } catch (error) {
+    console.error('Error marking post as returned:', error);
+    res.status(500).json({ 
+      success: false,
+      message: "Error marking post as returned",
+      error: error.message 
+    });
+  }
+};
 
 module.exports = {
   getAllPosts,
@@ -1479,4 +1531,5 @@ module.exports = {
   submitPostReport,
   updatePost,
   deletePost,
+  markPostAsReturned,
 };

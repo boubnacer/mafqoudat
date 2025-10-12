@@ -232,5 +232,12 @@ router
     postsController.deletePost
   );
 
+// Mark post as returned route - requires authentication
+router.patch('/:postId/mark-returned', 
+  commonValidations.objectId('postId'),
+  validateRequest,
+  optimizedInvalidateCache([], 'posts'),
+  postsController.markPostAsReturned
+);
 
 module.exports = router;

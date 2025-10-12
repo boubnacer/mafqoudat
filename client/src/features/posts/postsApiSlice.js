@@ -291,6 +291,40 @@ export const postsApiSlice = apiSlice.injectEndpoints({
         return response;
       },
     }),
+
+    // Mark post as returned
+    markPostAsReturned: builder.mutation({
+      query: (postId) => ({
+        url: `/posts/${postId}/mark-returned`,
+        method: "PATCH",
+      }),
+      transformErrorResponse: (response) => {
+        // Handle server error responses
+        if (response.status === 400) {
+          return { 
+            status: 400, 
+            data: { message: "Invalid post ID." } 
+          };
+        }
+        if (response.status === 404) {
+          return { 
+            status: 404, 
+            data: { message: "Post not found." } 
+          };
+        }
+        if (response.status === 500) {
+          return { 
+            status: 500, 
+            data: { message: "Failed to mark post as returned. Please try again." } 
+          };
+        }
+        return response;
+      },
+      invalidatesTags: (result, error, arg) => [
+        { type: "Post", id: arg },
+        { type: "Post", id: "LIST" }
+      ],
+    }),
   }),
 });
 
@@ -303,6 +337,7 @@ export const {
   useDeletePostMutation,
   useGetDashboardQuery,
   useRequestPromotionMutation,
+  useMarkPostAsReturnedMutation,
 } = postsApiSlice;
 
 // returns the query result object

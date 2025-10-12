@@ -502,6 +502,23 @@ export const translations = {
     invalidPhoneNumber: "Please enter a valid phone number",
     noPhoneNumber: "No phone number provided",
     
+    // Claim Item Dialog translations
+    doYouThinkThisItemIsYours: "Do you think this item belongs to you?",
+    ifYouLostThisItem: "If you've lost this item and believe it's yours, click below to view contact details and claim it.",
+    didYouFindThisItem: "Did you find this item?",
+    ifYouFoundThisItem: "If you've found this item and want to help return it, click below to view contact details.",
+    yesThisIsMyItem: "Yes, This Is My Item!",
+    yesIFoundThisItem: "Yes, I Found This Item!",
+    wonderfulNews: "Wonderful News! 🎉",
+    gladYouFoundYourItem: "We're so glad you found your item! Below are the contact details to help you reunite with your belongings.",
+    amazingThankYou: "Amazing! 🎉",
+    thankYouForHelping: "Thank you for being so helpful! The owner will be thrilled. Below are their contact details so you can arrange the return.",
+    claimItemContactDetails: "Contact Details",
+    markAsReturned: "Mark as Returned",
+    itemMarkedAsReturned: "Item marked as returned successfully!",
+    claimYourItem: "Claim Your Item",
+    helpReturnItem: "Help Return Item",
+    
     // Edit Post Form translations
     editPost: "Edit Post",
     updatePost: "Update Post",
@@ -1449,6 +1466,23 @@ export const translations = {
     invalidPhoneNumber: "Veuillez entrer un numéro de téléphone valide",
     noPhoneNumber: "Aucun numéro de téléphone fourni",
     
+    // Claim Item Dialog translations
+    doYouThinkThisItemIsYours: "Pensez-vous que cet article vous appartient ?",
+    ifYouLostThisItem: "Si vous avez perdu cet article et pensez qu'il est à vous, cliquez ci-dessous pour voir les coordonnées et le réclamer.",
+    didYouFindThisItem: "Avez-vous trouvé cet article ?",
+    ifYouFoundThisItem: "Si vous avez trouvé cet article et souhaitez aider à le retourner, cliquez ci-dessous pour voir les coordonnées.",
+    yesThisIsMyItem: "Oui, c'est mon article !",
+    yesIFoundThisItem: "Oui, j'ai trouvé cet article !",
+    wonderfulNews: "Merveilleuse nouvelle ! 🎉",
+    gladYouFoundYourItem: "Nous sommes ravis que vous ayez retrouvé votre article ! Voici les coordonnées pour vous aider à récupérer vos biens.",
+    amazingThankYou: "Incroyable ! 🎉",
+    thankYouForHelping: "Merci d'être si serviable ! Le propriétaire sera ravi. Voici ses coordonnées pour organiser le retour.",
+    claimItemContactDetails: "Coordonnées",
+    markAsReturned: "Marquer comme retourné",
+    itemMarkedAsReturned: "Article marqué comme retourné avec succès !",
+    claimYourItem: "Réclamer votre article",
+    helpReturnItem: "Aider à retourner l'article",
+    
     // Edit Post Form translations
     editPost: "Modifier la publication",
     updatePost: "Mettre à jour la publication",
@@ -2359,6 +2393,23 @@ export const translations = {
     phoneNumberRequiredFound: "رقم الهاتف مطلوب لترويج العناصر الموجودة",
     invalidPhoneNumber: "يرجى إدخال رقم هاتف صحيح",
     noPhoneNumber: "لم يتم توفير رقم هاتف",
+    
+    // Claim Item Dialog translations
+    doYouThinkThisItemIsYours: "هل تعتقد أن هذا العنصر يخصك؟",
+    ifYouLostThisItem: "إذا فقدت هذا العنصر وتعتقد أنه ملكك، انقر أدناه لعرض تفاصيل الاتصال والمطالبة به.",
+    didYouFindThisItem: "هل وجدت هذا العنصر؟",
+    ifYouFoundThisItem: "إذا وجدت هذا العنصر وتريد المساعدة في إعادته، انقر أدناه لعرض تفاصيل الاتصال.",
+    yesThisIsMyItem: "نعم، هذا عنصري!",
+    yesIFoundThisItem: "نعم، وجدت هذا العنصر!",
+    wonderfulNews: "أخبار رائعة! 🎉",
+    gladYouFoundYourItem: "نحن سعداء جداً أنك وجدت عنصرك! فيما يلي تفاصيل الاتصال لمساعدتك على استعادة ممتلكاتك.",
+    amazingThankYou: "رائع! 🎉",
+    thankYouForHelping: "شكراً لك على كونك متعاوناً! سيكون المالك سعيداً جداً. فيما يلي تفاصيل الاتصال الخاصة به لترتيب الإعادة.",
+    claimItemContactDetails: "تفاصيل الاتصال",
+    markAsReturned: "وضع علامة كمُرجع",
+    itemMarkedAsReturned: "تم وضع علامة على العنصر كمُرجع بنجاح!",
+    claimYourItem: "المطالبة بعنصرك",
+    helpReturnItem: "المساعدة في إعادة العنصر",
     
     // Edit Post Form translations
     editPost: "تعديل المنشور",
