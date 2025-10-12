@@ -75,36 +75,8 @@ const maintenanceMode = async (req, res, next) => {
       return next();
     }
 
-    // Define routes that should be excluded from maintenance checks
-    const excludedRoutes = [
-      '/health',
-      '/auth',
-      '/api/password-reset'
-    ];
-
-    // Check if current route should be excluded
-    const isExcluded = excludedRoutes.some(route => {
-      if (route.endsWith('*')) {
-        // Handle wildcard routes
-        const baseRoute = route.slice(0, -1);
-        return req.path.startsWith(baseRoute);
-      }
-      return req.path.startsWith(route);
-    });
-
-    // Allow excluded routes to bypass maintenance mode
-    if (isExcluded) {
-      return next();
-    }
-
-    // Log maintenance mode access attempt
-    const origin = req.headers.origin || req.headers.referer || "Unknown";
-    logEvents(
-      `MAINTENANCE_ACCESS_ATTEMPT\t${req.method}\t${req.path}\t${origin}`,
-      "reqLog.log"
-    );
-
-    // Check if user is authenticated and is an admin
+    // PRIORITY 1: Check if user is authenticated and is an admin FIRST
+    // Admins should be able to access ALL routes during maintenance
     const authHeader = req.headers.authorization || req.headers.Authorization;
 
     if (authHeader?.startsWith("Bearer ")) {
@@ -127,7 +99,7 @@ const maintenanceMode = async (req, res, next) => {
           const user = await User.findById(userId).select('role username').lean();
 
           if (user && user.role === 'admin') {
-            // Admin user can bypass maintenance mode
+            // Admin user can bypass maintenance mode for ALL routes
             logEvents(
               `MAINTENANCE_ADMIN_BYPASS\t${user.username}\t${req.method}\t${req.path}`,
               "reqLog.log"
@@ -136,11 +108,35 @@ const maintenanceMode = async (req, res, next) => {
           }
         }
       } catch (tokenError) {
-        // Token verification failed, treat as non-authenticated user
+        // Token verification failed, continue to check excluded routes
       }
     }
 
-    // Non-admin or unauthenticated user - return maintenance mode message
+    // PRIORITY 2: Check excluded routes (for non-admin users)
+    const excludedRoutes = [
+      '/health',
+      '/auth',
+      '/api/password-reset'
+    ];
+
+    // Check if current route should be excluded
+    const isExcluded = excludedRoutes.some(route => {
+      if (route.endsWith('*')) {
+        // Handle wildcard routes
+        const baseRoute = route.slice(0, -1);
+        return req.path.startsWith(baseRoute);
+      }
+      return req.path.startsWith(route);
+    });
+
+    // Allow excluded routes to bypass maintenance mode
+    if (isExcluded) {
+      return next();
+    }
+
+    // PRIORITY 3: Block non-admin or unauthenticated users
+    const origin = req.headers.origin || req.headers.referer || "Unknown";
+    
     logEvents(
       `MAINTENANCE_BLOCKED\t${req.method}\t${req.path}\t${origin}\tSource: ${maintenanceStatus.source}`,
       "reqLog.log"
