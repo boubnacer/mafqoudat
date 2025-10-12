@@ -287,7 +287,7 @@ const PostsList = () => {
   }, [user.username, navigate]);
 
   const handleSelectCountry = useCallback(() => {
-    navigate('/dash');
+    navigate('/');
   }, [navigate]);
 
   // Check if we have active filters

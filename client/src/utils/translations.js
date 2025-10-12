@@ -615,6 +615,7 @@ export const translations = {
     
     // Country Selection
     selectCountry: "Select Country",
+    changeCountry: "Change Country",
     
     // Additional translations
     showingResults: "Showing results",
@@ -1563,6 +1564,7 @@ export const translations = {
     
     // Country Selection
     selectCountry: "Sélectionner un pays",
+    changeCountry: "Changer de pays",
     
     // Additional translations
     showingResults: "Affichage des résultats",
@@ -2473,6 +2475,7 @@ export const translations = {
     
     // Country Selection
     selectCountry: "اختر البلد",
+    changeCountry: "تغيير البلد",
     
     // Additional translations
     showingResults: "عرض النتائج",
