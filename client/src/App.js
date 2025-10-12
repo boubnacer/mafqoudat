@@ -8,6 +8,7 @@ import { useSelector, useDispatch } from "react-redux";
 import { useLocation } from "react-router-dom";
 import { themeSettings } from "./theme";
 import { LanguageProvider, useLanguage } from "./utils/languageContext";
+import { selectIsMaintenanceActive } from "./app/state/maintenanceSlice";
 import { cleanupLocalStorage, initializeLocalStorage } from "./utils/localStorageUtils";
 import { validateAndRepairLocalStorage } from "./utils/localStorageValidator";
 import { ensureGlobalStateAlwaysExists } from "./utils/globalStateInitializer";
@@ -152,8 +153,14 @@ const AppContent = () => {
   // Initialize authentication error handler
   useAuthErrorHandler();
   
-  // Check maintenance mode status
-  const { isMaintenanceMode, isLoading: isCheckingMaintenance, isAdmin } = useMaintenanceCheck();
+  // Check maintenance mode status from hook
+  const { isMaintenanceMode: hookMaintenanceMode, isLoading: isCheckingMaintenance, isAdmin } = useMaintenanceCheck();
+  
+  // Also check Redux state (in case maintenance mode was detected from ANY API call)
+  const reduxMaintenanceMode = useSelector(selectIsMaintenanceActive);
+  
+  // Maintenance mode is active if EITHER hook OR Redux state says it is
+  const isMaintenanceMode = hookMaintenanceMode || reduxMaintenanceMode;
   
   const theme = React.useMemo(() => {
     try {

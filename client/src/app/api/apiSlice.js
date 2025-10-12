@@ -1,5 +1,6 @@
 import { createApi, fetchBaseQuery } from "@reduxjs/toolkit/query/react";
 import { logOut } from "../../features/auth/authSlice";
+import { setMaintenanceMode } from "../state/maintenanceSlice";
 
 // Debug configuration
 const DEBUG_AUTH = false;
@@ -64,6 +65,25 @@ const baseQueryWithReauth = async (args, api, extraOptions) => {
     errorStatus: result?.error?.status,
     errorCode: result?.error?.data?.code
   });
+
+  // Check for maintenance mode from ANY 503 response
+  // This ensures maintenance mode is detected immediately from any blocked API call
+  if (result?.error?.status === 503 && result?.error?.data?.maintenanceMode === true) {
+    console.log('🔧 [API-SLICE] Maintenance mode detected from API response:', {
+      url: args.url,
+      message: result.error.data.message
+    });
+    
+    // Dispatch maintenance mode to Redux
+    api.dispatch(setMaintenanceMode({
+      isActive: true,
+      message: result.error.data.message || "We're currently performing scheduled maintenance.",
+      estimatedReturn: result.error.data.estimatedReturn || 'soon'
+    }));
+    
+    // Return the error so the query fails gracefully
+    return result;
+  }
 
   // Handle authentication errors - long-lived tokens should rarely expire
   // If they do, user needs to login again

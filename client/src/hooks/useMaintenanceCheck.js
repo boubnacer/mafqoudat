@@ -161,6 +161,12 @@ const useMaintenanceCheck = () => {
    */
   useEffect(() => {
     console.log('🚀 [MAINTENANCE-CHECK] Initializing maintenance check hook');
+    
+    // Set loading to false immediately to prevent infinite loading
+    // The global API interceptor will detect maintenance mode from ANY 503 response
+    setIsLoading(false);
+    
+    // Still do the health check for polling setup
     checkMaintenance();
 
     // Cleanup on unmount
