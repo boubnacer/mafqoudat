@@ -10,6 +10,7 @@ import {
   CircularProgress,
   Alert,
   Button,
+  alpha,
 } from '@mui/material';
 import {
   Search,
@@ -19,6 +20,7 @@ import {
   EmojiEvents,
   Category,
   WhatshotOutlined,
+  Add as AddIcon,
 } from '@mui/icons-material';
 import { useTranslation } from '../utils/translations';
 
@@ -299,23 +301,49 @@ export const DashboardEmptyStates = {
         action={
           <Box sx={{ display: 'flex', gap: 2, flexWrap: 'wrap', justifyContent: 'center' }}>
             <Button 
-              variant="contained" 
+              variant="contained"
+              startIcon={<AddIcon />}
               onClick={() => onCreatePost && onCreatePost('lost')}
+              sx={{
+                borderRadius: '4px',
+                px: 3,
+                py: 1,
+                textTransform: 'none',
+                fontWeight: 600,
+                background: 'linear-gradient(45deg, #4A8BFF 30%, #1A6EEE 90%)',
+                boxShadow: '0 3px 5px 2px rgba(26, 110, 238, .3)',
+                color: '#fff !important',
+                '&:hover': {
+                  background: 'linear-gradient(45deg, #5A9BFF 30%, #2A7EFF 90%)',
+                  boxShadow: '0 4px 8px 2px rgba(26, 110, 238, .4)',
+                  color: '#fff !important',
+                }
+              }}
             >
               {t('reportLostItem')}
             </Button>
             <Button 
-              variant="contained" 
+              variant="outlined"
+              startIcon={<AddIcon />}
               onClick={() => onCreatePost && onCreatePost('found')}
               sx={{
-                backgroundColor: '#FF7828',
-                color: '#FFFFFF',
-                opacity: 1,
+                borderRadius: '4px',
+                px: 3,
+                py: 1,
+                textTransform: 'none',
                 fontWeight: 600,
+                borderColor: '#4A8BFF',
+                color: '#4A8BFF',
+                borderWidth: '2px',
+                transition: 'all 0.3s ease',
                 '&:hover': {
-                  backgroundColor: '#E66920',
-                  opacity: 1,
-                },
+                  borderColor: '#3A7BEF',
+                  backgroundColor: alpha('#4A8BFF', 0.05),
+                  color: '#3A7BEF',
+                  borderWidth: '2px',
+                  transform: 'translateY(-1px)',
+                  boxShadow: `0 4px 12px ${alpha('#4A8BFF', 0.2)}`,
+                }
               }}
             >
               {t('reportFoundItem')}
@@ -471,23 +499,49 @@ export const SearchLoadingStates = {
         action={
           <Box sx={{ display: 'flex', gap: 2, flexWrap: 'wrap', justifyContent: 'center' }}>
             <Button 
-              variant="contained" 
+              variant="contained"
+              startIcon={<AddIcon />}
               onClick={() => onCreatePost('lost')}
+              sx={{
+                borderRadius: '4px',
+                px: 3,
+                py: 1,
+                textTransform: 'none',
+                fontWeight: 600,
+                background: 'linear-gradient(45deg, #4A8BFF 30%, #1A6EEE 90%)',
+                boxShadow: '0 3px 5px 2px rgba(26, 110, 238, .3)',
+                color: '#fff !important',
+                '&:hover': {
+                  background: 'linear-gradient(45deg, #5A9BFF 30%, #2A7EFF 90%)',
+                  boxShadow: '0 4px 8px 2px rgba(26, 110, 238, .4)',
+                  color: '#fff !important',
+                }
+              }}
             >
               {t('reportLostItem')}
             </Button>
             <Button 
-              variant="contained" 
+              variant="outlined"
+              startIcon={<AddIcon />}
               onClick={() => onCreatePost('found')}
               sx={{
-                backgroundColor: '#FF7828',
-                color: '#FFFFFF',
-                opacity: 1,
+                borderRadius: '4px',
+                px: 3,
+                py: 1,
+                textTransform: 'none',
                 fontWeight: 600,
+                borderColor: '#4A8BFF',
+                color: '#4A8BFF',
+                borderWidth: '2px',
+                transition: 'all 0.3s ease',
                 '&:hover': {
-                  backgroundColor: '#E66920',
-                  opacity: 1,
-                },
+                  borderColor: '#3A7BEF',
+                  backgroundColor: alpha('#4A8BFF', 0.05),
+                  color: '#3A7BEF',
+                  borderWidth: '2px',
+                  transform: 'translateY(-1px)',
+                  boxShadow: `0 4px 12px ${alpha('#4A8BFF', 0.2)}`,
+                }
               }}
             >
               {t('reportFoundItem')}
