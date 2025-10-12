@@ -52,6 +52,7 @@ const useMaintenanceCheck = () => {
       setIsMaintenanceModeLocal(false);
       dispatch(clearMaintenanceMode());
       setError(null);
+      setIsLoading(false); // Clear loading state for admin users
       return false;
     }
 
