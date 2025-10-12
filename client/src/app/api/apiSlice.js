@@ -36,15 +36,9 @@ const baseQuery = fetchBaseQuery({
     });
     
     // Add token to headers if available (tokens are long-lived, no expiration checks needed)
-    if (token && !endpoint?.includes("getDashboard")) {
+    if (token) {
       headers.set("authorization", `Bearer ${token}`);
       debugLog('Added authorization header', { endpoint });
-    }
-    
-    // Special case: Always add authorization for report endpoint if we have a token
-    if (endpoint === 'submitReport' && token) {
-      headers.set("authorization", `Bearer ${token}`);
-      debugLog('Added authorization header for submitReport', { endpoint });
     }
 
     return headers;
