@@ -63,7 +63,7 @@ const MaintenanceContainer = styled(Box)(({ theme }) => ({
   display: 'flex',
   alignItems: 'center',
   justifyContent: 'center',
-  background: theme.palette.mode === 'dark'
+  background: theme?.palette?.mode === 'dark'
     ? 'linear-gradient(135deg, #0a0a0a 0%, #1a1a2e 25%, #16213e 50%, #1a1a2e 75%, #0a0a0a 100%)'
     : 'linear-gradient(135deg, #667eea 0%, #764ba2 25%, #f093fb 50%, #764ba2 75%, #667eea 100%)',
   position: 'fixed',
@@ -78,7 +78,7 @@ const MaintenanceContainer = styled(Box)(({ theme }) => ({
     left: '-50%',
     width: '200%',
     height: '200%',
-    background: theme.palette.mode === 'dark'
+    background: theme?.palette?.mode === 'dark'
       ? 'radial-gradient(circle, rgba(74, 139, 255, 0.1) 0%, transparent 50%)'
       : 'radial-gradient(circle, rgba(255, 255, 255, 0.2) 0%, transparent 50%)',
     animation: `${rotate} 30s linear infinite`,
@@ -89,37 +89,37 @@ const MaintenanceContainer = styled(Box)(({ theme }) => ({
 const MaintenanceCard = styled(Paper)(({ theme }) => ({
   maxWidth: '600px',
   width: '90%',
-  padding: theme.spacing(6, 4),
-  borderRadius: theme.spacing(3),
+  padding: theme?.spacing?.(6, 4) || '48px 32px',
+  borderRadius: theme?.spacing?.(3) || '24px',
   textAlign: 'center',
   position: 'relative',
   zIndex: 1,
-  background: theme.palette.mode === 'dark'
-    ? alpha(theme.palette.background.paper, 0.8)
-    : alpha('#ffffff', 0.9),
+  background: theme?.palette?.mode === 'dark'
+    ? 'rgba(18, 18, 18, 0.8)'
+    : 'rgba(255, 255, 255, 0.9)',
   backdropFilter: 'blur(20px)',
-  boxShadow: theme.palette.mode === 'dark'
+  boxShadow: theme?.palette?.mode === 'dark'
     ? '0 20px 60px rgba(0, 0, 0, 0.5), 0 0 0 1px rgba(255, 255, 255, 0.1)'
     : '0 20px 60px rgba(0, 0, 0, 0.2), 0 0 0 1px rgba(255, 255, 255, 0.5)',
   transition: 'transform 0.3s ease-in-out',
   '&:hover': {
     transform: 'translateY(-5px)',
   },
-  [theme.breakpoints.down('sm')]: {
-    padding: theme.spacing(4, 3),
+  '@media (max-width: 600px)': {
+    padding: '32px 24px',
   }
 }));
 
 // Logo container with animation
 const LogoContainer = styled(Box)(({ theme }) => ({
-  marginBottom: theme.spacing(4),
+  marginBottom: theme?.spacing?.(4) || '32px',
   animation: `${float} 3s ease-in-out infinite`,
   '& img': {
     maxWidth: '200px',
     height: 'auto',
-    filter: theme.palette.mode === 'dark' ? 'brightness(1.2)' : 'none',
+    filter: theme?.palette?.mode === 'dark' ? 'brightness(1.2)' : 'none',
   },
-  [theme.breakpoints.down('sm')]: {
+  '@media (max-width: 600px)': {
     '& img': {
       maxWidth: '150px',
     }
@@ -134,16 +134,16 @@ const IconWrapper = styled(Box)(({ theme }) => ({
   width: '80px',
   height: '80px',
   borderRadius: '50%',
-  background: theme.palette.mode === 'dark'
-    ? alpha(theme.palette.primary.main, 0.2)
-    : alpha(theme.palette.primary.main, 0.1),
-  marginBottom: theme.spacing(3),
+  background: theme?.palette?.mode === 'dark'
+    ? 'rgba(25, 118, 210, 0.2)'
+    : 'rgba(25, 118, 210, 0.1)',
+  marginBottom: theme?.spacing?.(3) || '24px',
   animation: `${pulse} 2s ease-in-out infinite`,
   '& .MuiSvgIcon-root': {
     fontSize: '40px',
-    color: theme.palette.mode === 'dark'
-      ? theme.palette.primary.light
-      : theme.palette.primary.main,
+    color: theme?.palette?.mode === 'dark'
+      ? '#90caf9'
+      : '#1976d2',
   }
 }));
 
@@ -152,9 +152,9 @@ const ProgressWrapper = styled(Box)(({ theme }) => ({
   display: 'flex',
   alignItems: 'center',
   justifyContent: 'center',
-  gap: theme.spacing(2),
-  marginTop: theme.spacing(4),
-  marginBottom: theme.spacing(2),
+  gap: theme?.spacing?.(2) || '16px',
+  marginTop: theme?.spacing?.(4) || '32px',
+  marginBottom: theme?.spacing?.(2) || '16px',
 }));
 
 // Decorative dots
@@ -162,9 +162,9 @@ const DecorativeDot = styled(Box)(({ theme, delay = 0 }) => ({
   width: '8px',
   height: '8px',
   borderRadius: '50%',
-  background: theme.palette.mode === 'dark'
-    ? theme.palette.primary.light
-    : theme.palette.primary.main,
+  background: theme?.palette?.mode === 'dark'
+    ? '#90caf9'
+    : '#1976d2',
   animation: `${pulse} 1.5s ease-in-out infinite`,
   animationDelay: `${delay}s`,
 }));
@@ -226,9 +226,9 @@ const MaintenanceMode = () => {
               gutterBottom
               sx={{
                 fontWeight: 700,
-                color: theme.palette.mode === 'dark'
-                  ? theme.palette.text.primary
-                  : theme.palette.grey[800],
+                color: theme?.palette?.mode === 'dark'
+                  ? theme?.palette?.text?.primary || '#fff'
+                  : theme?.palette?.grey?.[800] || '#424242',
                 mb: 2,
                 fontSize: { xs: '1.5rem', sm: '2rem', md: '2.125rem' },
                 direction: isRTL ? 'rtl' : 'ltr',
@@ -242,9 +242,9 @@ const MaintenanceMode = () => {
             <Typography
               variant="h6"
               sx={{
-                color: theme.palette.mode === 'dark'
-                  ? theme.palette.text.secondary
-                  : theme.palette.grey[600],
+                color: theme?.palette?.mode === 'dark'
+                  ? theme?.palette?.text?.secondary || '#aaa'
+                  : theme?.palette?.grey?.[600] || '#757575',
                 mb: 4,
                 fontSize: { xs: '1rem', sm: '1.25rem' },
                 fontWeight: 400,
@@ -261,17 +261,17 @@ const MaintenanceMode = () => {
                 size={24}
                 thickness={4}
                 sx={{
-                  color: theme.palette.mode === 'dark'
-                    ? theme.palette.primary.light
-                    : theme.palette.primary.main,
+                  color: theme?.palette?.mode === 'dark'
+                    ? theme?.palette?.primary?.light || '#90caf9'
+                    : theme?.palette?.primary?.main || '#1976d2',
                 }}
               />
               <Typography
                 variant="body2"
                 sx={{
-                  color: theme.palette.mode === 'dark'
-                    ? theme.palette.text.secondary
-                    : theme.palette.grey[600],
+                  color: theme?.palette?.mode === 'dark'
+                    ? theme?.palette?.text?.secondary || '#aaa'
+                    : theme?.palette?.grey?.[600] || '#757575',
                   fontWeight: 500,
                   direction: isRTL ? 'rtl' : 'ltr',
                 }}
@@ -304,25 +304,25 @@ const MaintenanceMode = () => {
                 mt: 3,
                 p: 2,
                 borderRadius: 2,
-                background: theme.palette.mode === 'dark'
-                  ? alpha(theme.palette.primary.main, 0.1)
-                  : alpha(theme.palette.primary.main, 0.05),
+                background: theme?.palette?.mode === 'dark'
+                  ? 'rgba(25, 118, 210, 0.1)'
+                  : 'rgba(25, 118, 210, 0.05)',
               }}
             >
               <ScheduleIcon
                 sx={{
                   fontSize: '20px',
-                  color: theme.palette.mode === 'dark'
-                    ? theme.palette.primary.light
-                    : theme.palette.primary.main,
+                  color: theme?.palette?.mode === 'dark'
+                    ? '#90caf9'
+                    : '#1976d2',
                 }}
               />
               <Typography
                 variant="body2"
                 sx={{
-                  color: theme.palette.mode === 'dark'
-                    ? theme.palette.text.primary
-                    : theme.palette.grey[700],
+                  color: theme?.palette?.mode === 'dark'
+                    ? theme?.palette?.text?.primary || '#fff'
+                    : theme?.palette?.grey?.[700] || '#616161',
                   fontWeight: 600,
                   direction: isRTL ? 'rtl' : 'ltr',
                 }}
@@ -336,18 +336,17 @@ const MaintenanceMode = () => {
               sx={{
                 mt: 4,
                 pt: 3,
-                borderTop: `1px solid ${alpha(
-                  theme.palette.divider,
-                  theme.palette.mode === 'dark' ? 0.2 : 0.1
-                )}`,
+                borderTop: theme?.palette?.mode === 'dark' 
+                  ? '1px solid rgba(255, 255, 255, 0.2)'
+                  : '1px solid rgba(0, 0, 0, 0.1)',
               }}
             >
               <Typography
                 variant="caption"
                 sx={{
-                  color: theme.palette.mode === 'dark'
-                    ? alpha(theme.palette.text.secondary, 0.7)
-                    : alpha(theme.palette.grey[600], 0.8),
+                  color: theme?.palette?.mode === 'dark'
+                    ? 'rgba(170, 170, 170, 0.7)'
+                    : 'rgba(117, 117, 117, 0.8)',
                   fontSize: '0.75rem',
                 }}
               >
