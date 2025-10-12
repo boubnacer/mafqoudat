@@ -48,7 +48,6 @@ const useMaintenanceCheck = () => {
   const checkMaintenance = useCallback(async () => {
     // Admin users bypass maintenance mode
     if (isAdmin()) {
-      console.log('👤 [MAINTENANCE-CHECK] Admin user detected - bypassing maintenance mode check');
       setIsMaintenanceModeLocal(false);
       dispatch(clearMaintenanceMode());
       setError(null);
@@ -57,7 +56,6 @@ const useMaintenanceCheck = () => {
     }
 
     try {
-      console.log('🔍 [MAINTENANCE-CHECK] Checking maintenance mode status...');
       
       const API_URL = process.env.REACT_APP_API_URL || 'http://localhost:3500';
       
@@ -72,11 +70,6 @@ const useMaintenanceCheck = () => {
 
       // Check if response indicates maintenance mode
       if (response.status === 503 && response.data?.maintenanceMode === true) {
-        console.log('🔧 [MAINTENANCE-CHECK] Maintenance mode is ACTIVE', {
-          message: response.data.message,
-          estimatedReturn: response.data.estimatedReturn
-        });
-
         setIsMaintenanceModeLocal(true);
         
         // Update Redux state
@@ -89,8 +82,6 @@ const useMaintenanceCheck = () => {
         setError(null);
         return true;
       } else {
-        console.log('✅ [MAINTENANCE-CHECK] Maintenance mode is INACTIVE - system operational');
-        
         setIsMaintenanceModeLocal(false);
         dispatch(clearMaintenanceMode());
         setError(null);
@@ -98,12 +89,9 @@ const useMaintenanceCheck = () => {
       }
     } catch (err) {
       // Network errors or timeouts
-      console.error('❌ [MAINTENANCE-CHECK] Error checking maintenance status:', err.message);
       
       // If we get a 503 error with maintenance mode data
       if (err.response?.status === 503 && err.response?.data?.maintenanceMode === true) {
-        console.log('🔧 [MAINTENANCE-CHECK] Maintenance mode detected from error response');
-        
         setIsMaintenanceModeLocal(true);
         dispatch(setMaintenanceMode({
           isActive: true,
@@ -137,18 +125,14 @@ const useMaintenanceCheck = () => {
 
     // Only poll if we're in maintenance mode and not an admin
     if (isMaintenanceMode && !isAdmin()) {
-      console.log('⏱️ [MAINTENANCE-CHECK] Setting up 60-second polling to detect when maintenance ends');
-      
       // Check every 60 seconds
       intervalIdRef.current = setInterval(() => {
-        console.log('🔄 [MAINTENANCE-CHECK] Polling maintenance status...');
         checkMaintenance();
       }, 60000); // 60 seconds
 
       // Cleanup function
       return () => {
         if (intervalIdRef.current) {
-          console.log('🛑 [MAINTENANCE-CHECK] Stopping maintenance polling');
           clearInterval(intervalIdRef.current);
           intervalIdRef.current = null;
         }
@@ -160,8 +144,6 @@ const useMaintenanceCheck = () => {
    * Initial check on mount
    */
   useEffect(() => {
-    console.log('🚀 [MAINTENANCE-CHECK] Initializing maintenance check hook');
-    
     // Set loading to false immediately to prevent infinite loading
     // The global API interceptor will detect maintenance mode from ANY 503 response
     setIsLoading(false);
@@ -184,7 +166,6 @@ const useMaintenanceCheck = () => {
    */
   useEffect(() => {
     if (isAuthenticated) {
-      console.log('🔐 [MAINTENANCE-CHECK] Auth state changed, re-checking maintenance mode');
       checkMaintenance();
     }
   }, [isAuthenticated, role, checkMaintenance]);

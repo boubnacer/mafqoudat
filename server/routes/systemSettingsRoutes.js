@@ -21,13 +21,10 @@ router.use(verifyAdmin);
  */
 router.get("/", async (req, res) => {
   try {
-    console.log("🔍 [SYSTEM-SETTINGS] Admin fetching system settings...");
-
     // Get or create the singleton instance
     const settings = await SystemSettings.getInstance();
 
     if (!settings) {
-      console.error("❌ [SYSTEM-SETTINGS] Failed to retrieve system settings");
       return res.status(500).json({
         success: false,
         message: "Failed to retrieve system settings"
@@ -36,8 +33,6 @@ router.get("/", async (req, res) => {
 
     // Populate lastUpdatedBy user information
     await settings.populate("maintenanceMode.lastUpdatedBy", "username");
-
-    console.log("✅ [SYSTEM-SETTINGS] System settings retrieved successfully");
 
     // Log the access
     logEvents(
@@ -60,7 +55,6 @@ router.get("/", async (req, res) => {
       }
     });
   } catch (error) {
-    console.error("❌ [SYSTEM-SETTINGS] Error fetching system settings:", error);
     logEvents(
       `SYSTEM_SETTINGS_ERROR\tGET\t${error.message}`,
       "errLog.log"
@@ -88,7 +82,6 @@ router.patch("/maintenance", async (req, res) => {
     const adminUsername = req.adminUser?.username || req.username || "Unknown";
 
     if (!adminUserId) {
-      console.error("❌ [SYSTEM-SETTINGS] No admin user ID found in request");
       return res.status(401).json({
         success: false,
         message: "User authentication required"
@@ -131,10 +124,6 @@ router.patch("/maintenance", async (req, res) => {
       });
     }
 
-    console.log(
-      `🔧 [SYSTEM-SETTINGS] Admin '${adminUsername}' updating maintenance mode...`
-    );
-
     // Get current settings
     const settings = await SystemSettings.getInstance();
 
@@ -166,10 +155,6 @@ router.patch("/maintenance", async (req, res) => {
       "reqLog.log"
     );
 
-    console.log(
-      `✅ [SYSTEM-SETTINGS] Maintenance mode ${newActiveState ? "ENABLED" : "DISABLED"} by ${adminUsername}`
-    );
-
     res.status(200).json({
       success: true,
       message: `Maintenance mode ${newActiveState ? "enabled" : "disabled"} successfully`,
@@ -184,7 +169,6 @@ router.patch("/maintenance", async (req, res) => {
       }
     });
   } catch (error) {
-    console.error("❌ [SYSTEM-SETTINGS] Error updating maintenance mode:", error);
     logEvents(
       `MAINTENANCE_UPDATE_ERROR\t${error.message}`,
       "errLog.log"

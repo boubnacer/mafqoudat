@@ -58,7 +58,7 @@ export const systemSettingsApiSlice = apiSlice.injectEndpoints({
      * const { data, isLoading, error } = useGetSystemSettingsQuery();
      * 
      * if (data) {
-     *   console.log('Maintenance active:', data.data.maintenanceMode.isActive);
+     *   // Use the data
      * }
      */
     getSystemSettings: builder.query({
@@ -68,15 +68,12 @@ export const systemSettingsApiSlice = apiSlice.injectEndpoints({
        * Transform the response to ensure consistent data structure
        */
       transformResponse: (response) => {
-        console.log('✅ [SYSTEM-SETTINGS] Settings fetched successfully');
         return response;
       },
       /**
        * Handle errors gracefully
        */
       transformErrorResponse: (error) => {
-        console.error('❌ [SYSTEM-SETTINGS] Error fetching settings:', error);
-        
         // Provide user-friendly error messages
         if (error.status === 401) {
           return {
@@ -161,20 +158,12 @@ export const systemSettingsApiSlice = apiSlice.injectEndpoints({
        * Handle successful update
        */
       transformResponse: (response) => {
-        const status = response.data?.maintenanceMode?.isActive ? 'enabled' : 'disabled';
-        console.log(`✅ [SYSTEM-SETTINGS] Maintenance mode ${status} successfully`);
-        
-        // Show success notification (if you have a notification system)
-        // You can dispatch a notification action here if needed
-        
         return response;
       },
       /**
        * Handle errors gracefully
        */
       transformErrorResponse: (error) => {
-        console.error('❌ [SYSTEM-SETTINGS] Error updating maintenance mode:', error);
-        
         // Provide user-friendly error messages
         if (error.status === 400) {
           return {
@@ -215,17 +204,10 @@ export const systemSettingsApiSlice = apiSlice.injectEndpoints({
        */
       async onQueryStarted(params, { dispatch, queryFulfilled }) {
         try {
-          const { data } = await queryFulfilled;
-          
-          // Log successful update
-          console.log('🔄 [SYSTEM-SETTINGS] Cache updated with new maintenance mode status');
-          
+          await queryFulfilled;
           // You can dispatch additional actions here if needed
           // For example, showing a success toast notification
-          
         } catch (error) {
-          console.error('❌ [SYSTEM-SETTINGS] Failed to update maintenance mode:', error);
-          
           // You can dispatch error notification actions here if needed
         }
       }

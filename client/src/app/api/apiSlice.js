@@ -69,11 +69,6 @@ const baseQueryWithReauth = async (args, api, extraOptions) => {
   // Check for maintenance mode from ANY 503 response
   // This ensures maintenance mode is detected immediately from any blocked API call
   if (result?.error?.status === 503 && result?.error?.data?.maintenanceMode === true) {
-    console.log('🔧 [API-SLICE] Maintenance mode detected from API response:', {
-      url: args.url,
-      message: result.error.data.message
-    });
-    
     // Dispatch maintenance mode to Redux
     api.dispatch(setMaintenanceMode({
       isActive: true,
@@ -92,8 +87,6 @@ const baseQueryWithReauth = async (args, api, extraOptions) => {
       status: result?.error?.status,
       code: result?.error?.data?.code
     });
-    
-    console.warn('Authentication error - token expired or invalid. Please login again.');
     
     // Logout user - no refresh token available with simplified auth
     api.dispatch(logOut({ reason: 'Token expired or invalid' }));

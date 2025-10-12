@@ -68,7 +68,6 @@ systemSettingsSchema.statics.getInstance = async function () {
 
     // If settings don't exist, create them with defaults
     if (!settings) {
-      console.log("📝 [SYSTEM-SETTINGS] Creating default system settings...");
       settings = await this.create({
         singleton: "system_settings",
         maintenanceMode: {
@@ -79,14 +78,12 @@ systemSettingsSchema.statics.getInstance = async function () {
           lastUpdatedAt: null
         }
       });
-      console.log("✅ [SYSTEM-SETTINGS] Default system settings created");
     }
 
     return settings;
   } catch (error) {
     // If error is duplicate key (shouldn't happen but just in case)
     if (error.code === 11000) {
-      console.log("⚠️ [SYSTEM-SETTINGS] Duplicate detected, fetching existing settings");
       return await this.findOne({ singleton: "system_settings" });
     }
     throw error;
@@ -111,11 +108,8 @@ systemSettingsSchema.statics.updateMaintenanceMode = async function (
 
     await settings.save();
 
-    console.log(`🔧 [SYSTEM-SETTINGS] Maintenance mode ${isActive ? 'ENABLED' : 'DISABLED'} by user: ${updatedBy}`);
-
     return settings;
   } catch (error) {
-    console.error("❌ [SYSTEM-SETTINGS] Error updating maintenance mode:", error);
     throw error;
   }
 };
@@ -128,12 +122,6 @@ systemSettingsSchema.methods.toggleMaintenanceMode = async function (updatedBy) 
 
   await this.save();
 
-  console.log(
-    `🔧 [SYSTEM-SETTINGS] Maintenance mode toggled to ${
-      this.maintenanceMode.isActive ? "ENABLED" : "DISABLED"
-    } by user: ${updatedBy}`
-  );
-
   return this;
 };
 
@@ -143,7 +131,6 @@ systemSettingsSchema.statics.isMaintenanceModeActive = async function () {
     const settings = await this.getInstance();
     return settings.maintenanceMode.isActive;
   } catch (error) {
-    console.error("❌ [SYSTEM-SETTINGS] Error checking maintenance mode:", error);
     // Default to false on error (fail open)
     return false;
   }
@@ -161,7 +148,6 @@ systemSettingsSchema.set("toObject", { virtuals: true });
 // Pre-remove middleware to prevent deletion of the singleton
 systemSettingsSchema.pre("remove", function (next) {
   const error = new Error("Cannot delete system settings. This is a singleton document.");
-  console.error("🚫 [SYSTEM-SETTINGS] Attempted to delete system settings");
   next(error);
 });
 
@@ -171,24 +157,19 @@ systemSettingsSchema.statics.verifySingleton = async function () {
     const count = await this.countDocuments();
 
     if (count === 0) {
-      console.log("⚠️ [SYSTEM-SETTINGS] No settings found, creating default...");
       await this.getInstance();
       return { status: "created", count: 1 };
     } else if (count === 1) {
-      console.log("✅ [SYSTEM-SETTINGS] Singleton integrity verified");
       return { status: "ok", count: 1 };
     } else {
-      console.error(`❌ [SYSTEM-SETTINGS] Multiple settings documents found: ${count}`);
       // Keep only the first one, delete others
       const settings = await this.find().sort({ createdAt: 1 });
       for (let i = 1; i < settings.length; i++) {
         await this.findByIdAndDelete(settings[i]._id);
-        console.log(`🗑️ [SYSTEM-SETTINGS] Deleted duplicate document: ${settings[i]._id}`);
       }
       return { status: "repaired", count: count, kept: 1, deleted: count - 1 };
     }
   } catch (error) {
-    console.error("❌ [SYSTEM-SETTINGS] Error verifying singleton:", error);
     throw error;
   }
 };

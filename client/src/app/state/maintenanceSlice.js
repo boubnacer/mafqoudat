@@ -18,24 +18,12 @@ const maintenanceSlice = createSlice({
       state.message = action.payload.message || '';
       state.estimatedReturn = action.payload.estimatedReturn || 'soon';
       state.detectedAt = action.payload.isActive ? new Date().toISOString() : null;
-      
-      // Log maintenance mode activation
-      if (action.payload.isActive) {
-        console.log('🔧 Maintenance mode activated:', {
-          message: state.message,
-          estimatedReturn: state.estimatedReturn,
-          timestamp: state.detectedAt
-        });
-      } else {
-        console.log('✅ Maintenance mode deactivated');
-      }
     },
     clearMaintenanceMode: (state) => {
       state.isActive = false;
       state.message = '';
       state.estimatedReturn = 'soon';
       state.detectedAt = null;
-      console.log('✅ Maintenance mode cleared');
     }
   }
 });

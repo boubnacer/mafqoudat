@@ -43,15 +43,10 @@ const checkMaintenanceMode = async () => {
     // Cache the result
     maintenanceCache.data = result;
     maintenanceCache.timestamp = now;
-
-    console.log(`✅ Maintenance Mode: Checked database - ${result.isActive ? 'ACTIVE' : 'INACTIVE'}`);
     
     return result;
   } catch (dbError) {
     // Database query failed, fall back to environment variable
-    console.warn('⚠️ Maintenance Mode: Database check failed, falling back to environment variable');
-    console.warn('Database error:', dbError.message);
-    
     const envMaintenanceMode = process.env.MAINTENANCE_MODE === 'true';
     
     const result = {
@@ -137,19 +132,15 @@ const maintenanceMode = async (req, res, next) => {
               `MAINTENANCE_ADMIN_BYPASS\t${user.username}\t${req.method}\t${req.path}`,
               "reqLog.log"
             );
-            console.log(`🔧 Maintenance Mode: Admin user '${user.username}' bypassed maintenance mode`);
             return next();
           }
         }
       } catch (tokenError) {
         // Token verification failed, treat as non-authenticated user
-        console.log('Maintenance Mode: Invalid token during maintenance mode check');
       }
     }
 
     // Non-admin or unauthenticated user - return maintenance mode message
-    console.log(`🚧 Maintenance Mode: Blocking access to ${req.method} ${req.path} (Source: ${maintenanceStatus.source})`);
-    
     logEvents(
       `MAINTENANCE_BLOCKED\t${req.method}\t${req.path}\t${origin}\tSource: ${maintenanceStatus.source}`,
       "reqLog.log"
@@ -163,7 +154,6 @@ const maintenanceMode = async (req, res, next) => {
 
   } catch (error) {
     // Log error but don't expose internal details
-    console.error('❌ Maintenance Mode Middleware Error:', error);
     logEvents(
       `MAINTENANCE_ERROR\t${error.message}\t${req.method}\t${req.path}`,
       "errLog.log"
@@ -173,7 +163,6 @@ const maintenanceMode = async (req, res, next) => {
     const envMaintenanceMode = process.env.MAINTENANCE_MODE === 'true';
     
     if (envMaintenanceMode) {
-      console.log('⚠️ Maintenance Mode: Error in middleware, falling back to environment variable');
       return res.status(503).json({
         maintenanceMode: true,
         message: "We're currently performing scheduled maintenance. We'll be back soon! Thank you for your patience.",
@@ -182,7 +171,6 @@ const maintenanceMode = async (req, res, next) => {
     }
     
     // If no maintenance mode detected, allow access (fail open)
-    console.log('⚠️ Maintenance Mode: Error in middleware, allowing access (fail open)');
     return next();
   }
 };

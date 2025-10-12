@@ -9,13 +9,10 @@ const { logEvents } = require("../middleware/logger");
  */
 const getSystemSettings = async (req, res) => {
   try {
-    console.log("🔍 [SYSTEM-CONTROLLER] Fetching system settings...");
-
     // Get or create the singleton instance
     const settings = await SystemSettings.getInstance();
 
     if (!settings) {
-      console.error("❌ [SYSTEM-CONTROLLER] Failed to get system settings");
       return res.status(500).json({
         success: false,
         message: "Failed to retrieve system settings"
@@ -24,8 +21,6 @@ const getSystemSettings = async (req, res) => {
 
     // Populate lastUpdatedBy user information
     await settings.populate("maintenanceMode.lastUpdatedBy", "username");
-
-    console.log("✅ [SYSTEM-CONTROLLER] System settings retrieved successfully");
 
     res.status(200).json({
       success: true,
@@ -41,7 +36,6 @@ const getSystemSettings = async (req, res) => {
       }
     });
   } catch (error) {
-    console.error("❌ [SYSTEM-CONTROLLER] Error fetching system settings:", error);
     logEvents(
       `SYSTEM_SETTINGS_ERROR\tGET\t${error.message}`,
       "errLog.log"
@@ -74,8 +68,6 @@ const getMaintenanceStatus = async (req, res) => {
       }
     });
   } catch (error) {
-    console.error("❌ [SYSTEM-CONTROLLER] Error checking maintenance status:", error);
-
     // Fail safely - assume maintenance is not active
     res.status(200).json({
       success: true,
@@ -101,7 +93,6 @@ const updateMaintenanceMode = async (req, res) => {
     const adminUserId = req.user || req.adminUser?.id;
 
     if (!adminUserId) {
-      console.error("❌ [SYSTEM-CONTROLLER] No admin user ID found in request");
       return res.status(401).json({
         success: false,
         message: "User authentication required"
@@ -130,10 +121,6 @@ const updateMaintenanceMode = async (req, res) => {
       });
     }
 
-    console.log(
-      `🔧 [SYSTEM-CONTROLLER] Admin user ${adminUserId} updating maintenance mode to: ${isActive}`
-    );
-
     // Update maintenance mode using the static method
     const settings = await SystemSettings.updateMaintenanceMode(
       isActive,
@@ -153,10 +140,6 @@ const updateMaintenanceMode = async (req, res) => {
       "reqLog.log"
     );
 
-    console.log(
-      `✅ [SYSTEM-CONTROLLER] Maintenance mode successfully updated to: ${isActive}`
-    );
-
     res.status(200).json({
       success: true,
       message: `Maintenance mode ${isActive ? "enabled" : "disabled"} successfully`,
@@ -171,7 +154,6 @@ const updateMaintenanceMode = async (req, res) => {
       }
     });
   } catch (error) {
-    console.error("❌ [SYSTEM-CONTROLLER] Error updating maintenance mode:", error);
     logEvents(
       `MAINTENANCE_UPDATE_ERROR\t${error.message}`,
       "errLog.log"
@@ -195,14 +177,11 @@ const toggleMaintenanceMode = async (req, res) => {
     const adminUserId = req.user || req.adminUser?.id;
 
     if (!adminUserId) {
-      console.error("❌ [SYSTEM-CONTROLLER] No admin user ID found in request");
       return res.status(401).json({
         success: false,
         message: "User authentication required"
       });
     }
-
-    console.log(`🔄 [SYSTEM-CONTROLLER] Admin user ${adminUserId} toggling maintenance mode`);
 
     // Get current settings
     const settings = await SystemSettings.getInstance();
@@ -221,10 +200,6 @@ const toggleMaintenanceMode = async (req, res) => {
       "reqLog.log"
     );
 
-    console.log(
-      `✅ [SYSTEM-CONTROLLER] Maintenance mode toggled to: ${settings.maintenanceMode.isActive}`
-    );
-
     res.status(200).json({
       success: true,
       message: `Maintenance mode ${settings.maintenanceMode.isActive ? "enabled" : "disabled"} successfully`,
@@ -239,7 +214,6 @@ const toggleMaintenanceMode = async (req, res) => {
       }
     });
   } catch (error) {
-    console.error("❌ [SYSTEM-CONTROLLER] Error toggling maintenance mode:", error);
     logEvents(
       `MAINTENANCE_TOGGLE_ERROR\t${error.message}`,
       "errLog.log"
@@ -260,11 +234,7 @@ const toggleMaintenanceMode = async (req, res) => {
  */
 const verifySingleton = async (req, res) => {
   try {
-    console.log("🔍 [SYSTEM-CONTROLLER] Verifying singleton integrity...");
-
     const result = await SystemSettings.verifySingleton();
-
-    console.log(`✅ [SYSTEM-CONTROLLER] Singleton verification result: ${result.status}`);
 
     res.status(200).json({
       success: true,
@@ -272,8 +242,6 @@ const verifySingleton = async (req, res) => {
       data: result
     });
   } catch (error) {
-    console.error("❌ [SYSTEM-CONTROLLER] Error verifying singleton:", error);
-
     res.status(500).json({
       success: false,
       message: "Error verifying singleton integrity",
@@ -289,11 +257,7 @@ const verifySingleton = async (req, res) => {
  */
 const initializeSystemSettings = async (req, res) => {
   try {
-    console.log("🚀 [SYSTEM-CONTROLLER] Initializing system settings...");
-
     const settings = await SystemSettings.getInstance();
-
-    console.log("✅ [SYSTEM-CONTROLLER] System settings initialized successfully");
 
     res.status(200).json({
       success: true,
@@ -307,8 +271,6 @@ const initializeSystemSettings = async (req, res) => {
       }
     });
   } catch (error) {
-    console.error("❌ [SYSTEM-CONTROLLER] Error initializing system settings:", error);
-
     res.status(500).json({
       success: false,
       message: "Error initializing system settings",
