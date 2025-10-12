@@ -288,11 +288,11 @@ All new categories have appropriate Material-UI icons:
 | Category | Icon Component | Visual |
 |----------|---------------|--------|
 | BAGS | BackpackOutlined | 🎒 |
-| GLASSES | GlassesOutlined | 👓 |
+| GLASSES | VisibilityOutlined (eye icon) | 👁️ |
 | HEADPHONES | HeadphonesOutlined | 🎧 |
 | UMBRELLAS | UmbrellaOutlined | ☂️ |
 | BOOKS | MenuBookOutlined | 📚 |
-| BOTTLES | WaterBottleOutlined | 🍶 |
+| BOTTLES | LocalDrinkOutlined | 🥤 |
 | CAMERAS | CameraAltOutlined | 📷 |
 | ACCESSORIES | CheckroomOutlined | 🧣 |
 | PERSON | PersonSearchOutlined | 👤 |

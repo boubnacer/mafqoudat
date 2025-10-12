@@ -8,7 +8,7 @@ import {
   AccountBalanceWalletOutlined,
   BackpackOutlined,
   WatchOutlined,
-  GlassesOutlined,
+  VisibilityOutlined,
   HeadphonesOutlined,
   UmbrellaOutlined,
   CheckroomOutlined,
@@ -16,7 +16,7 @@ import {
   SportsSoccerOutlined,
   ToysOutlined,
   CameraAltOutlined,
-  WaterBottleOutlined,
+  LocalDrinkOutlined,
   PersonSearchOutlined,
   MoreHorizOutlined
 } from '@mui/icons-material';
@@ -84,7 +84,7 @@ export const CATEGORY_CONFIG = {
     priority: 10
   },
   GLASSES: {
-    icon: GlassesOutlined,
+    icon: VisibilityOutlined,
     color: '#3F51B5',
     backgroundColor: '#E8EAF6',
     priority: 11
@@ -132,7 +132,7 @@ export const CATEGORY_CONFIG = {
     priority: 18
   },
   BOTTLES: {
-    icon: WaterBottleOutlined,
+    icon: LocalDrinkOutlined,
     color: '#26A69A',
     backgroundColor: '#E0F2F1',
     priority: 19
