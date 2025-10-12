@@ -35,6 +35,7 @@ import {
   Badge,
   Tooltip,
   Divider,
+  Switch,
 } from '@mui/material';
 import {
   AdminPanelSettings,
@@ -50,6 +51,8 @@ import {
   LockReset,
   People,
   Article,
+  Build,
+  Warning,
 } from '@mui/icons-material';
 import { useTranslation } from '../../utils/translations';
 import {
@@ -66,6 +69,10 @@ import {
   useDeleteUserAdminMutation,
   useGetAllPostsAdminQuery,
 } from './adminApiSlice';
+import {
+  useGetSystemSettingsQuery,
+  useUpdateMaintenanceModeMutation,
+} from './systemSettingsApiSlice';
 import {
   useGetCategoriesQuery,
   useGetCountriesQuery,
@@ -118,6 +125,12 @@ const AdminDashboard = () => {
   const [resetPasswordDialogOpen, setResetPasswordDialogOpen] = useState(false);
   const [postDetailsDialogOpen, setPostDetailsDialogOpen] = useState(false);
   const [adminNotes, setAdminNotes] = useState('');
+  
+  // Maintenance mode state
+  const [maintenanceMessage, setMaintenanceMessage] = useState('');
+  const [estimatedReturn, setEstimatedReturn] = useState('');
+  const [confirmMaintenanceDialogOpen, setConfirmMaintenanceDialogOpen] = useState(false);
+  const [maintenanceAlert, setMaintenanceAlert] = useState({ open: false, severity: 'success', message: '' });
 
   // API queries
   const { data: dashboardData, isLoading: dashboardLoading, error: dashboardError } = useGetAdminDashboardQuery();
@@ -161,6 +174,10 @@ const AdminDashboard = () => {
   const categories = categoriesData?.ids?.map((id) => categoriesData?.entities[id]) || [];
   const countries = countriesData?.ids?.map((id) => countriesData?.entities[id]) || [];
 
+  // System settings query
+  const { data: systemSettingsData, isLoading: settingsLoading } = useGetSystemSettingsQuery();
+  const maintenanceMode = systemSettingsData?.data?.maintenanceMode;
+
   // Mutations
   const [updateReportStatus, { isLoading: updatingReport }] = useUpdateReportStatusMutation();
   const [updatePromotionStatus, { isLoading: updatingPromotion }] = useUpdatePromotionStatusMutation();
@@ -168,6 +185,72 @@ const AdminDashboard = () => {
   const [updateResetRequestStatus, { isLoading: updatingResetRequest }] = useUpdatePasswordResetRequestStatusMutation();
   const [adminResetUserPassword] = useAdminResetUserPasswordMutation();
   const [deleteUserAdmin] = useDeleteUserAdminMutation();
+  const [updateMaintenanceMode, { isLoading: updatingMaintenance }] = useUpdateMaintenanceModeMutation();
+
+  // Sync maintenance message when data loads
+  React.useEffect(() => {
+    if (maintenanceMode) {
+      setMaintenanceMessage(maintenanceMode.message || '');
+      setEstimatedReturn(maintenanceMode.estimatedReturn || '');
+    }
+  }, [maintenanceMode]);
+
+  // Maintenance mode handlers
+  const handleMaintenanceToggle = () => {
+    if (!maintenanceMode?.isActive) {
+      // If turning ON, show confirmation dialog
+      setConfirmMaintenanceDialogOpen(true);
+    } else {
+      // If turning OFF, do it immediately
+      handleUpdateMaintenance(false);
+    }
+  };
+
+  const handleUpdateMaintenance = async (isActive) => {
+    try {
+      await updateMaintenanceMode({
+        isActive,
+        message: maintenanceMessage || undefined,
+        estimatedReturn: estimatedReturn || undefined,
+      }).unwrap();
+      
+      setMaintenanceAlert({
+        open: true,
+        severity: 'success',
+        message: `Maintenance mode ${isActive ? 'enabled' : 'disabled'} successfully`,
+      });
+      
+      setConfirmMaintenanceDialogOpen(false);
+    } catch (error) {
+      setMaintenanceAlert({
+        open: true,
+        severity: 'error',
+        message: error.message || 'Failed to update maintenance mode',
+      });
+    }
+  };
+
+  const handleSaveMaintenanceSettings = async () => {
+    try {
+      await updateMaintenanceMode({
+        isActive: maintenanceMode?.isActive,
+        message: maintenanceMessage,
+        estimatedReturn: estimatedReturn,
+      }).unwrap();
+      
+      setMaintenanceAlert({
+        open: true,
+        severity: 'success',
+        message: 'Maintenance settings updated successfully',
+      });
+    } catch (error) {
+      setMaintenanceAlert({
+        open: true,
+        severity: 'error',
+        message: error.message || 'Failed to update maintenance settings',
+      });
+    }
+  };
 
   // Handlers
   const handleTabChange = (event, newValue) => {
@@ -427,6 +510,189 @@ const AdminDashboard = () => {
           {t('adminDashboardDescription')}
         </Typography>
       </Box>
+
+      {/* Maintenance Mode Alert */}
+      {maintenanceAlert.open && (
+        <Alert 
+          severity={maintenanceAlert.severity} 
+          sx={{ mb: 3 }}
+          onClose={() => setMaintenanceAlert({ ...maintenanceAlert, open: false })}
+        >
+          {maintenanceAlert.message}
+        </Alert>
+      )}
+
+      {/* System Maintenance Mode Control */}
+      <Card 
+        sx={{ 
+          mb: 4, 
+          border: maintenanceMode?.isActive ? '2px solid' : '1px solid',
+          borderColor: maintenanceMode?.isActive ? 'warning.main' : 'divider',
+          background: maintenanceMode?.isActive 
+            ? theme.palette.mode === 'dark' 
+              ? 'linear-gradient(135deg, rgba(237, 108, 2, 0.15) 0%, rgba(251, 140, 0, 0.05) 100%)'
+              : 'linear-gradient(135deg, rgba(255, 152, 0, 0.1) 0%, rgba(255, 193, 7, 0.05) 100%)'
+            : 'default',
+        }}
+      >
+        <CardContent>
+          <Box display="flex" alignItems="center" gap={2} mb={3}>
+            <Build 
+              sx={{ 
+                fontSize: 40, 
+                color: maintenanceMode?.isActive ? 'warning.main' : 'action.active' 
+              }} 
+            />
+            <Box flex={1}>
+              <Typography variant="h5" fontWeight={700}>
+                System Maintenance Mode
+              </Typography>
+              <Typography variant="body2" color="text.secondary">
+                Control system-wide maintenance mode for all non-admin users
+              </Typography>
+            </Box>
+            <Chip
+              icon={maintenanceMode?.isActive ? <Build /> : <CheckCircle />}
+              label={maintenanceMode?.isActive ? 'ACTIVE' : 'INACTIVE'}
+              color={maintenanceMode?.isActive ? 'warning' : 'success'}
+              sx={{ fontWeight: 600, fontSize: '0.9rem', px: 1 }}
+            />
+          </Box>
+
+          <Divider sx={{ my: 2 }} />
+
+          {settingsLoading ? (
+            <Box display="flex" justifyContent="center" py={3}>
+              <CircularProgress />
+            </Box>
+          ) : (
+            <>
+              {/* Status and Toggle */}
+              <Grid container spacing={3}>
+                <Grid item xs={12} md={6}>
+                  <Box>
+                    <Typography variant="subtitle2" fontWeight={600} gutterBottom>
+                      Quick Toggle
+                    </Typography>
+                    <Box 
+                      display="flex" 
+                      alignItems="center" 
+                      gap={2} 
+                      p={2} 
+                      sx={{ 
+                        bgcolor: 'action.hover', 
+                        borderRadius: 1,
+                        border: '1px solid',
+                        borderColor: 'divider'
+                      }}
+                    >
+                      <Switch
+                        checked={maintenanceMode?.isActive || false}
+                        onChange={handleMaintenanceToggle}
+                        disabled={updatingMaintenance}
+                        color={maintenanceMode?.isActive ? 'warning' : 'success'}
+                      />
+                      <Box flex={1}>
+                        <Typography variant="body2" fontWeight={600}>
+                          {maintenanceMode?.isActive ? 'Maintenance Mode is ON' : 'Maintenance Mode is OFF'}
+                        </Typography>
+                        <Typography variant="caption" color="text.secondary">
+                          {maintenanceMode?.isActive 
+                            ? 'Site is inaccessible to non-admin users' 
+                            : 'Site is fully operational'}
+                        </Typography>
+                      </Box>
+                    </Box>
+                  </Box>
+                </Grid>
+
+                <Grid item xs={12} md={6}>
+                  <Box>
+                    <Typography variant="subtitle2" fontWeight={600} gutterBottom>
+                      Status Information
+                    </Typography>
+                    <Box 
+                      p={2} 
+                      sx={{ 
+                        bgcolor: 'action.hover', 
+                        borderRadius: 1,
+                        border: '1px solid',
+                        borderColor: 'divider'
+                      }}
+                    >
+                      {maintenanceMode?.lastUpdatedBy && (
+                        <Typography variant="body2" gutterBottom>
+                          <strong>Last Updated By:</strong> {maintenanceMode.lastUpdatedBy}
+                        </Typography>
+                      )}
+                      {maintenanceMode?.lastUpdatedAt && (
+                        <Typography variant="body2">
+                          <strong>Last Updated:</strong> {new Date(maintenanceMode.lastUpdatedAt).toLocaleString()}
+                        </Typography>
+                      )}
+                      {!maintenanceMode?.lastUpdatedBy && !maintenanceMode?.lastUpdatedAt && (
+                        <Typography variant="body2" color="text.secondary">
+                          No maintenance updates yet
+                        </Typography>
+                      )}
+                    </Box>
+                  </Box>
+                </Grid>
+              </Grid>
+
+              <Divider sx={{ my: 3 }} />
+
+              {/* Message and Settings */}
+              <Grid container spacing={3}>
+                <Grid item xs={12} md={8}>
+                  <Typography variant="subtitle2" fontWeight={600} gutterBottom>
+                    Maintenance Message
+                  </Typography>
+                  <TextField
+                    fullWidth
+                    multiline
+                    rows={3}
+                    value={maintenanceMessage}
+                    onChange={(e) => setMaintenanceMessage(e.target.value)}
+                    placeholder="Enter the message users will see during maintenance (max 500 characters)"
+                    disabled={updatingMaintenance}
+                    helperText={`${maintenanceMessage.length}/500 characters`}
+                    variant="outlined"
+                  />
+                </Grid>
+
+                <Grid item xs={12} md={4}>
+                  <Typography variant="subtitle2" fontWeight={600} gutterBottom>
+                    Estimated Return Time
+                  </Typography>
+                  <TextField
+                    fullWidth
+                    value={estimatedReturn}
+                    onChange={(e) => setEstimatedReturn(e.target.value)}
+                    placeholder="e.g., '2 hours', '30 minutes', 'soon'"
+                    disabled={updatingMaintenance}
+                    helperText="Optional - leave blank for 'soon'"
+                    variant="outlined"
+                  />
+                </Grid>
+              </Grid>
+
+              {/* Save Button */}
+              <Box mt={3} display="flex" justifyContent="flex-end">
+                <Button
+                  variant="contained"
+                  startIcon={updatingMaintenance ? <CircularProgress size={20} /> : <CheckCircle />}
+                  onClick={handleSaveMaintenanceSettings}
+                  disabled={updatingMaintenance || !maintenanceMessage.trim()}
+                  sx={{ minWidth: 200 }}
+                >
+                  {updatingMaintenance ? 'Saving...' : 'Save Settings'}
+                </Button>
+              </Box>
+            </>
+          )}
+        </CardContent>
+      </Card>
 
       {/* Statistics Cards */}
       <Grid container spacing={3} sx={{ mb: 4 }}>
@@ -1433,6 +1699,81 @@ const AdminDashboard = () => {
         post={selectedPost}
         onDelete={handleDeletePostFromTable}
       />
+
+      {/* Maintenance Mode Confirmation Dialog */}
+      <Dialog
+        open={confirmMaintenanceDialogOpen}
+        onClose={() => setConfirmMaintenanceDialogOpen(false)}
+        maxWidth="sm"
+        fullWidth
+      >
+        <DialogTitle>
+          <Box display="flex" alignItems="center" gap={2}>
+            <Warning sx={{ color: 'warning.main', fontSize: 32 }} />
+            <Typography variant="h6" fontWeight={700}>
+              Confirm Enable Maintenance Mode
+            </Typography>
+          </Box>
+        </DialogTitle>
+        <DialogContent>
+          <Alert severity="warning" sx={{ mb: 2 }}>
+            <Typography variant="body2" fontWeight={600} gutterBottom>
+              ⚠️ Warning: Site Accessibility Impact
+            </Typography>
+            <Typography variant="body2">
+              This will make the site inaccessible to all non-admin users. 
+              Only administrators will be able to access the system.
+            </Typography>
+          </Alert>
+          
+          <Typography variant="body2" gutterBottom>
+            <strong>Current Message:</strong>
+          </Typography>
+          <Typography 
+            variant="body2" 
+            sx={{ 
+              p: 2, 
+              bgcolor: 'action.hover', 
+              borderRadius: 1,
+              fontStyle: 'italic'
+            }}
+          >
+            "{maintenanceMessage || "We're currently performing scheduled maintenance. We'll be back soon! Thank you for your patience."}"
+          </Typography>
+          
+          {estimatedReturn && (
+            <>
+              <Typography variant="body2" sx={{ mt: 2 }} gutterBottom>
+                <strong>Estimated Return:</strong>
+              </Typography>
+              <Typography variant="body2" color="text.secondary">
+                {estimatedReturn}
+              </Typography>
+            </>
+          )}
+          
+          <Typography variant="body2" sx={{ mt: 2 }} color="error">
+            Are you sure you want to proceed?
+          </Typography>
+        </DialogContent>
+        <DialogActions>
+          <Button 
+            onClick={() => setConfirmMaintenanceDialogOpen(false)}
+            color="inherit"
+          >
+            Cancel
+          </Button>
+          <Button
+            onClick={() => handleUpdateMaintenance(true)}
+            variant="contained"
+            color="warning"
+            disabled={updatingMaintenance}
+            startIcon={updatingMaintenance ? <CircularProgress size={20} /> : <Warning />}
+          >
+            {updatingMaintenance ? 'Enabling...' : 'Yes, Enable Maintenance Mode'}
+          </Button>
+        </DialogActions>
+      </Dialog>
     </Container>
   );
 };
