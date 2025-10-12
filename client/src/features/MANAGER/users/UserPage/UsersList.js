@@ -50,6 +50,9 @@ const UsersList = () => {
             <th scope="col" className="table__th user__roles">
               Country
             </th>
+            <th scope="col" className="table__th user__ip">
+              IP Address
+            </th>
             <th scope="col" className="table__th user__edit">
               Edit
             </th>

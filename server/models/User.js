@@ -103,6 +103,10 @@ const userSchema = new mongoose.Schema({
       type: String,
       default: null
     }
+  },
+  ipAddress: {
+    type: String,
+    default: null
   }
 }, {
   timestamps: true

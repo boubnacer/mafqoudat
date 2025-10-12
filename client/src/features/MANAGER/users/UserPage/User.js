@@ -24,6 +24,7 @@ const User = ({ userId }) => {
       <tr className="table__row user">
         <td className={`table__cell ${cellStatus}`}>{user.username}</td>
         <td className={`table__cell ${cellStatus}`}>{user.code}</td>
+        <td className={`table__cell ${cellStatus}`}>{user.ipAddress || 'N/A'}</td>
         <td className={`table__cell ${cellStatus}`}>
           <button className="icon-button table__button" onClick={handleEdit}>
             <FontAwesomeIcon icon={faPenToSquare} />

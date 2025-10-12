@@ -194,6 +194,20 @@ const EditUserForm = ({ user, countries }) => {
             <FontAwesomeIcon icon={faPlus} />
           </button>
         </div>
+
+        <label className="form__label" htmlFor="ipAddress">
+          IP Address (Registration):
+        </label>
+        <input
+          className="form__input"
+          id="ipAddress"
+          name="ipAddress"
+          type="text"
+          value={user.ipAddress || 'N/A'}
+          disabled
+          readOnly
+          style={{ backgroundColor: '#f5f5f5', cursor: 'not-allowed' }}
+        />
       </form>
 
       {/* New Country Dialog */}

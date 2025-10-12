@@ -135,11 +135,22 @@ const createNewUser = async (req, res) => {
     userObject.phone = username;
   }
 
+  // Capture user's IP address
+  const ipAddress = req.headers['x-forwarded-for']?.split(',')[0].trim() || 
+                    req.headers['x-real-ip'] || 
+                    req.connection?.remoteAddress || 
+                    req.socket?.remoteAddress || 
+                    req.ip || 
+                    'unknown';
+  
+  userObject.ipAddress = ipAddress;
+
   console.log('Creating user with object:', {
     username: userObject.username,
     email: userObject.email,
     phone: userObject.phone,
     country: userObject.country,
+    ipAddress: userObject.ipAddress,
     isEmail,
     isPhone
   });

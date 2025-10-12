@@ -241,6 +241,14 @@ router.post('/complete', async (req, res) => {
       });
     }
 
+    // Capture user's IP address
+    const ipAddress = req.headers['x-forwarded-for']?.split(',')[0].trim() || 
+                      req.headers['x-real-ip'] || 
+                      req.connection?.remoteAddress || 
+                      req.socket?.remoteAddress || 
+                      req.ip || 
+                      'unknown';
+
     // Create new user
     const newUser = await User.create({
       username,
@@ -255,6 +263,7 @@ router.post('/complete', async (req, res) => {
         firstNameLabels: userData.profile.firstNameLabels,
         lastNameLabels: userData.profile.lastNameLabels
       },
+      ipAddress,
       lastLogin: new Date(),
       isActive: true,
       role: 'user'
