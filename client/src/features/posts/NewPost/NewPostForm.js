@@ -172,7 +172,13 @@ const NewPostForm = ({ user, countries, categories, flOptions }) => {
       const baseUrl = process.env.REACT_APP_API_URL || "http://localhost:3500";
       const url = `${baseUrl}/cities-public?countryId=${countryId}&language=${currentLanguage || 'en'}`;
       
-      const response = await fetch(url);
+      // Include Authorization header if token exists (needed for admin bypass during maintenance)
+      const headers = {};
+      if (token) {
+        headers['Authorization'] = `Bearer ${token}`;
+      }
+      
+      const response = await fetch(url, { headers });
       const data = await response.json();
       
       if (data.success) {
@@ -187,7 +193,7 @@ const NewPostForm = ({ user, countries, categories, flOptions }) => {
     } finally {
       setLoadingCities(false);
     }
-  }, [currentLanguage]);
+  }, [currentLanguage, token]);
 
   // Initialize selectedCountry with user's country
   useEffect(() => {
@@ -313,7 +319,13 @@ const NewPostForm = ({ user, countries, categories, flOptions }) => {
       const baseUrl = process.env.REACT_APP_API_URL || "http://localhost:3500";
       const url = `${baseUrl}/cities/search?q=${encodeURIComponent(searchQuery)}&language=${currentLanguage || 'en'}&countryCode=${countryCode}&limit=10`;
       
-      const response = await fetch(url);
+      // Include Authorization header if token exists (needed for admin bypass during maintenance)
+      const headers = {};
+      if (token) {
+        headers['Authorization'] = `Bearer ${token}`;
+      }
+      
+      const response = await fetch(url, { headers });
       const data = await response.json();
       
       if (data.success) {
@@ -325,7 +337,7 @@ const NewPostForm = ({ user, countries, categories, flOptions }) => {
       console.error('City search error:', error.message);
       return [];
     }
-  }, [currentLanguage]);
+  }, [currentLanguage, token]);
 
   // Traditional city search function (fallback)
   const searchCitiesTraditional = useCallback(async (searchQuery, countryId) => {
@@ -333,7 +345,13 @@ const NewPostForm = ({ user, countries, categories, flOptions }) => {
       const baseUrl = process.env.REACT_APP_API_URL || "http://localhost:3500";
       const url = `${baseUrl}/cities/search-name?query=${encodeURIComponent(searchQuery)}&countryId=${countryId}&limit=10`;
       
-      const response = await fetch(url);
+      // Include Authorization header if token exists (needed for admin bypass during maintenance)
+      const headers = {};
+      if (token) {
+        headers['Authorization'] = `Bearer ${token}`;
+      }
+      
+      const response = await fetch(url, { headers });
       const data = await response.json();
       
       if (data.success) {
