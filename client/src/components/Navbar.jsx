@@ -17,6 +17,8 @@ import {
   Autocomplete,
   TextField,
   Paper,
+  Chip,
+  Tooltip,
 } from "@mui/material";
 import {
   DarkModeOutlined,
@@ -33,6 +35,7 @@ import {
   PostAdd,
   AdminPanelSettings,
   Person,
+  Build,
 } from "@mui/icons-material";
 import FlexBetween from "./FlexBetween";
 import {
@@ -50,6 +53,7 @@ import { useTranslation } from "../utils/translations";
 import { useGetflOptionsQuery } from "../features/dependencies/dependenciesApiSlice";
 import { useUnifiedLanguageChange } from "../hooks/useUnifiedLanguageChange";
 import { selectIsLoggedIn, selectCurrentUser } from "../features/auth/authSlice";
+import { useGetSystemSettingsQuery } from "../features/admin/systemSettingsApiSlice";
 
 // Global keyframes for logo animation
 const globalStyles = `
@@ -308,6 +312,13 @@ const Navbar = () => {
       data: data?.ids?.map((id) => data?.entities[id]) || [],
     }),
   });
+
+  // Get system settings for maintenance mode indicator (only for admins)
+  const { data: systemSettingsData } = useGetSystemSettingsQuery(undefined, {
+    skip: role !== 'admin', // Only fetch if user is admin
+    pollingInterval: 30000, // Poll every 30 seconds
+  });
+  const isMaintenanceActive = systemSettingsData?.data?.maintenanceMode?.isActive || false;
 
 
   // Initialize country on component mount
@@ -690,6 +701,46 @@ const Navbar = () => {
             </Typography>
             {!isMobile && <KeyboardArrowDown sx={{ fontSize: '16px', ml: 0.5 }} />}
           </LanguageSelector>
+
+          {/* Maintenance Mode Indicator - Only for Admins */}
+          {role === 'admin' && isMaintenanceActive && (
+            <Tooltip 
+              title="Maintenance mode is currently active. Non-admin users cannot access the site."
+              arrow
+            >
+              <Chip
+                icon={<Build sx={{ fontSize: '16px' }} />}
+                label="⚠️ Maintenance Active"
+                size="small"
+                sx={{
+                  backgroundColor: theme.palette.mode === 'dark'
+                    ? 'rgba(237, 108, 2, 0.2)'
+                    : 'rgba(255, 152, 0, 0.15)',
+                  color: 'warning.main',
+                  fontWeight: 600,
+                  fontSize: '0.75rem',
+                  border: '1px solid',
+                  borderColor: 'warning.main',
+                  animation: 'pulse 2s ease-in-out infinite',
+                  '@keyframes pulse': {
+                    '0%, 100%': {
+                      opacity: 1,
+                    },
+                    '50%': {
+                      opacity: 0.7,
+                    },
+                  },
+                  '&:hover': {
+                    backgroundColor: theme.palette.mode === 'dark'
+                      ? 'rgba(237, 108, 2, 0.3)'
+                      : 'rgba(255, 152, 0, 0.25)',
+                  },
+                  display: { xs: 'none', md: 'flex' },
+                  mr: 1,
+                }}
+              />
+            </Tooltip>
+          )}
 
           {/* Dark/Light mode toggle */}
           <ActionButton
@@ -1164,6 +1215,38 @@ const Navbar = () => {
           anchorOrigin={{ horizontal: 'right', vertical: 'bottom' }}
         >
           <Box sx={{ p: 1.5 }}>
+            {/* Maintenance Mode Indicator - Mobile - Only for Admins */}
+            {role === 'admin' && isMaintenanceActive && (
+              <>
+                <Box
+                  sx={{
+                    p: 2,
+                    mb: 2,
+                    borderRadius: 2,
+                    backgroundColor: theme.palette.mode === 'dark'
+                      ? 'rgba(237, 108, 2, 0.2)'
+                      : 'rgba(255, 152, 0, 0.15)',
+                    border: '2px solid',
+                    borderColor: 'warning.main',
+                    display: 'flex',
+                    alignItems: 'center',
+                    gap: 1.5,
+                  }}
+                >
+                  <Build sx={{ color: 'warning.main', fontSize: 24 }} />
+                  <Box flex={1}>
+                    <Typography variant="body2" fontWeight={700} color="warning.main">
+                      ⚠️ Maintenance Mode Active
+                    </Typography>
+                    <Typography variant="caption" color="text.secondary">
+                      Site is inaccessible to non-admin users
+                    </Typography>
+                  </Box>
+                </Box>
+                <Divider sx={{ mb: 1 }} />
+              </>
+            )}
+            
             {/* Navigation Items */}
             {navigationItems.map((item, index) => (
               <MenuItem
