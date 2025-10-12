@@ -317,6 +317,10 @@ export const DashboardEmptyStates = {
                   background: 'linear-gradient(45deg, #5A9BFF 30%, #2A7EFF 90%)',
                   boxShadow: '0 4px 8px 2px rgba(26, 110, 238, .4)',
                   color: '#fff !important',
+                },
+                '& .MuiButton-startIcon': {
+                  marginRight: currentLanguage === 'ar' ? 0 : '8px',
+                  marginLeft: currentLanguage === 'ar' ? '8px' : 0,
                 }
               }}
             >
@@ -343,6 +347,10 @@ export const DashboardEmptyStates = {
                   borderWidth: '2px',
                   transform: 'translateY(-1px)',
                   boxShadow: `0 4px 12px ${alpha('#4A8BFF', 0.2)}`,
+                },
+                '& .MuiButton-startIcon': {
+                  marginRight: currentLanguage === 'ar' ? 0 : '8px',
+                  marginLeft: currentLanguage === 'ar' ? '8px' : 0,
                 }
               }}
             >
@@ -489,7 +497,7 @@ export const SearchLoadingStates = {
   },
   
   NoSearchResults: ({ query, onCreatePost }) => {
-    const { t } = useTranslation();
+    const { t, currentLanguage } = useTranslation();
     
     return (
       <EmptyState
@@ -515,6 +523,10 @@ export const SearchLoadingStates = {
                   background: 'linear-gradient(45deg, #5A9BFF 30%, #2A7EFF 90%)',
                   boxShadow: '0 4px 8px 2px rgba(26, 110, 238, .4)',
                   color: '#fff !important',
+                },
+                '& .MuiButton-startIcon': {
+                  marginRight: currentLanguage === 'ar' ? 0 : '8px',
+                  marginLeft: currentLanguage === 'ar' ? '8px' : 0,
                 }
               }}
             >
@@ -541,6 +553,10 @@ export const SearchLoadingStates = {
                   borderWidth: '2px',
                   transform: 'translateY(-1px)',
                   boxShadow: `0 4px 12px ${alpha('#4A8BFF', 0.2)}`,
+                },
+                '& .MuiButton-startIcon': {
+                  marginRight: currentLanguage === 'ar' ? 0 : '8px',
+                  marginLeft: currentLanguage === 'ar' ? '8px' : 0,
                 }
               }}
             >

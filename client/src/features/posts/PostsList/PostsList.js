@@ -710,6 +710,10 @@ const PostsList = () => {
                         background: 'linear-gradient(45deg, #5A9BFF 30%, #2A7EFF 90%)',
                         boxShadow: '0 4px 8px 2px rgba(26, 110, 238, .4)',
                         color: '#fff !important',
+                      },
+                      '& .MuiButton-startIcon': {
+                        marginRight: currentLanguage === 'ar' ? 0 : '8px',
+                        marginLeft: currentLanguage === 'ar' ? '8px' : 0,
                       }
                     }}
                   >
@@ -731,6 +735,10 @@ const PostsList = () => {
                     '&:hover': {
                       borderColor: '#5A9BFF',
                       backgroundColor: 'rgba(74, 139, 255, 0.1)',
+                    },
+                    '& .MuiButton-startIcon': {
+                      marginRight: currentLanguage === 'ar' ? 0 : '8px',
+                      marginLeft: currentLanguage === 'ar' ? '8px' : 0,
                     }
                   }}
                 >
