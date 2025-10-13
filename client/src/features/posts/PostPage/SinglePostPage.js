@@ -725,8 +725,8 @@ const SinglePostPage = ({
                 </Grid>
               </Box>
 
-              {/* Post Details Card - Desktop Only */}
-              <Box sx={{ display: { xs: 'none', lg: 'block' }, mb: 3 }}>
+              {/* Post Details Card - All Devices */}
+                <Box sx={{ mb: 3 }}>
                 <Paper 
                   elevation={0}
                   sx={{ 
@@ -753,20 +753,21 @@ const SinglePostPage = ({
 
                   <Box display="flex" flexDirection="column" gap={2}>
                     {/* Title with titleLabels support */}
-                    <Box display="flex" justifyContent="space-between" alignItems="flex-start" 
+                    <Box display="flex" 
                          sx={{ 
                            flexDirection: { xs: 'column', sm: 'row' }, 
-                           gap: 1,
-                           alignItems: { xs: 'flex-start', sm: 'center' }
+                           gap: { xs: 0.5, sm: 2 },
+                           alignItems: { xs: 'flex-start', sm: 'flex-start' }
                          }}>
-                      <Typography 
+                  <Typography 
                         variant="body2" 
                         color="text.secondary"
-                        sx={{ 
-                          direction: currentLanguage === 'ar' ? 'rtl' : 'ltr',
+                    sx={{ 
+                      direction: currentLanguage === 'ar' ? 'rtl' : 'ltr',
                           fontSize: '0.875rem',
-                          minWidth: '120px',
-                          fontWeight: 500
+                          minWidth: { xs: 'auto', sm: '120px' },
+                          fontWeight: 500,
+                          flexShrink: 0
                         }}
                       >
                         {t('title')}:
@@ -784,14 +785,50 @@ const SinglePostPage = ({
                         }}
                       >
                         {(titleLabels && titleLabels[currentLanguage]) || title || t('noTitleProvided')}
-                      </Typography>
-                    </Box>
+                  </Typography>
+                </Box>
 
                     {/* Description with descriptionLabels support */}
-                    <Box display="flex" justifyContent="space-between" alignItems="flex-start" 
+                    <Box display="flex" 
                          sx={{ 
                            flexDirection: { xs: 'column', sm: 'row' }, 
-                           gap: 1,
+                           gap: { xs: 0.5, sm: 2 },
+                           alignItems: { xs: 'flex-start', sm: 'flex-start' }
+                         }}>
+                  <Typography 
+                        variant="body2" 
+                        color="text.secondary"
+                        sx={{ 
+                          direction: currentLanguage === 'ar' ? 'rtl' : 'ltr',
+                          fontSize: '0.875rem',
+                          minWidth: { xs: 'auto', sm: '120px' },
+                          fontWeight: 500,
+                          flexShrink: 0
+                        }}
+                      >
+                        {t('description')}:
+                      </Typography>
+                      <Typography 
+                        variant="body2" 
+                    fontWeight={600}
+                    sx={{ 
+                      direction: currentLanguage === 'ar' ? 'rtl' : 'ltr',
+                      color: isDarkMode ? '#ffffff' : '#1a1a1a',
+                          fontSize: '0.875rem',
+                          textAlign: currentLanguage === 'ar' ? 'right' : 'left',
+                          flex: 1,
+                          lineHeight: 1.4
+                    }}
+                  >
+                        {(descriptionLabels && descriptionLabels[currentLanguage]) || description || t('noDescriptionProvided')}
+                  </Typography>
+                    </Box>
+
+                    {/* Category with categoryDisplayName */}
+                    <Box display="flex" 
+                         sx={{ 
+                           flexDirection: { xs: 'column', sm: 'row' }, 
+                           gap: { xs: 0.5, sm: 2 },
                            alignItems: { xs: 'flex-start', sm: 'flex-start' }
                          }}>
                       <Typography 
@@ -800,43 +837,9 @@ const SinglePostPage = ({
                         sx={{ 
                           direction: currentLanguage === 'ar' ? 'rtl' : 'ltr',
                           fontSize: '0.875rem',
-                          minWidth: '120px',
-                          fontWeight: 500
-                        }}
-                      >
-                        {t('description')}:
-                      </Typography>
-                      <Typography 
-                        variant="body2" 
-                        fontWeight={600}
-                        sx={{ 
-                          direction: currentLanguage === 'ar' ? 'rtl' : 'ltr',
-                          color: isDarkMode ? '#ffffff' : '#1a1a1a',
-                          fontSize: '0.875rem',
-                          textAlign: currentLanguage === 'ar' ? 'right' : 'left',
-                          flex: 1,
-                          lineHeight: 1.4
-                        }}
-                      >
-                        {(descriptionLabels && descriptionLabels[currentLanguage]) || description || t('noDescriptionProvided')}
-                      </Typography>
-                    </Box>
-
-                    {/* Category with categoryDisplayName */}
-                    <Box display="flex" justifyContent="space-between" alignItems="center"
-                         sx={{ 
-                           flexDirection: { xs: 'column', sm: 'row' }, 
-                           gap: 1,
-                           alignItems: { xs: 'flex-start', sm: 'center' }
-                         }}>
-                      <Typography 
-                        variant="body2" 
-                        color="text.secondary"
-                        sx={{ 
-                          direction: currentLanguage === 'ar' ? 'rtl' : 'ltr',
-                          fontSize: '0.875rem',
-                          minWidth: '120px',
-                          fontWeight: 500
+                          minWidth: { xs: 'auto', sm: '120px' },
+                          fontWeight: 500,
+                          flexShrink: 0
                         }}
                       >
                         {t('category')}:
@@ -856,11 +859,11 @@ const SinglePostPage = ({
                     </Box>
 
                     {/* Status with foundLostStatus */}
-                    <Box display="flex" justifyContent="space-between" alignItems="center"
+                    <Box display="flex" 
                          sx={{ 
                            flexDirection: { xs: 'column', sm: 'row' }, 
-                           gap: 1,
-                           alignItems: { xs: 'flex-start', sm: 'center' }
+                           gap: { xs: 0.5, sm: 2 },
+                           alignItems: { xs: 'flex-start', sm: 'flex-start' }
                          }}>
                       <Typography 
                         variant="body2" 
@@ -868,8 +871,9 @@ const SinglePostPage = ({
                         sx={{ 
                           direction: currentLanguage === 'ar' ? 'rtl' : 'ltr',
                           fontSize: '0.875rem',
-                          minWidth: '120px',
-                          fontWeight: 500
+                          minWidth: { xs: 'auto', sm: '120px' },
+                          fontWeight: 500,
+                          flexShrink: 0
                         }}
                       >
                         {t('status')}:
@@ -895,11 +899,11 @@ const SinglePostPage = ({
                     </Box>
 
                     {/* Location with exactLocation */}
-                    <Box display="flex" justifyContent="space-between" alignItems="center"
+                    <Box display="flex" 
                          sx={{ 
                            flexDirection: { xs: 'column', sm: 'row' }, 
-                           gap: 1,
-                           alignItems: { xs: 'flex-start', sm: 'center' }
+                           gap: { xs: 0.5, sm: 2 },
+                           alignItems: { xs: 'flex-start', sm: 'flex-start' }
                          }}>
                       <Typography 
                         variant="body2" 
@@ -907,8 +911,9 @@ const SinglePostPage = ({
                         sx={{ 
                           direction: currentLanguage === 'ar' ? 'rtl' : 'ltr',
                           fontSize: '0.875rem',
-                          minWidth: '120px',
-                          fontWeight: 500
+                          minWidth: { xs: 'auto', sm: '120px' },
+                          fontWeight: 500,
+                          flexShrink: 0
                         }}
                       >
                         {t('location')}:
@@ -928,11 +933,11 @@ const SinglePostPage = ({
                     </Box>
 
                     {/* City with displayCityName */}
-                    <Box display="flex" justifyContent="space-between" alignItems="center"
+                    <Box display="flex" 
                          sx={{ 
                            flexDirection: { xs: 'column', sm: 'row' }, 
-                           gap: 1,
-                           alignItems: { xs: 'flex-start', sm: 'center' }
+                           gap: { xs: 0.5, sm: 2 },
+                           alignItems: { xs: 'flex-start', sm: 'flex-start' }
                          }}>
                       <Typography 
                         variant="body2" 
@@ -940,8 +945,9 @@ const SinglePostPage = ({
                         sx={{ 
                           direction: currentLanguage === 'ar' ? 'rtl' : 'ltr',
                           fontSize: '0.875rem',
-                          minWidth: '120px',
-                          fontWeight: 500
+                          minWidth: { xs: 'auto', sm: '120px' },
+                          fontWeight: 500,
+                          flexShrink: 0
                         }}
                       >
                         {t('city')}:
@@ -961,11 +967,11 @@ const SinglePostPage = ({
                     </Box>
 
                     {/* Country with countryLabels support */}
-                    <Box display="flex" justifyContent="space-between" alignItems="center"
+                    <Box display="flex" 
                          sx={{ 
                            flexDirection: { xs: 'column', sm: 'row' }, 
-                           gap: 1,
-                           alignItems: { xs: 'flex-start', sm: 'center' }
+                           gap: { xs: 0.5, sm: 2 },
+                           alignItems: { xs: 'flex-start', sm: 'flex-start' }
                          }}>
                       <Typography 
                         variant="body2" 
@@ -973,8 +979,9 @@ const SinglePostPage = ({
                         sx={{ 
                           direction: currentLanguage === 'ar' ? 'rtl' : 'ltr',
                           fontSize: '0.875rem',
-                          minWidth: '120px',
-                          fontWeight: 500
+                          minWidth: { xs: 'auto', sm: '120px' },
+                          fontWeight: 500,
+                          flexShrink: 0
                         }}
                       >
                         {t('country')}:
@@ -994,11 +1001,11 @@ const SinglePostPage = ({
                     </Box>
 
                     {/* Main Date */}
-                    <Box display="flex" justifyContent="space-between" alignItems="center"
+                    <Box display="flex" 
                          sx={{ 
                            flexDirection: { xs: 'column', sm: 'row' }, 
-                           gap: 1,
-                           alignItems: { xs: 'flex-start', sm: 'center' }
+                           gap: { xs: 0.5, sm: 2 },
+                           alignItems: { xs: 'flex-start', sm: 'flex-start' }
                          }}>
                       <Typography 
                         variant="body2" 
@@ -1006,8 +1013,9 @@ const SinglePostPage = ({
                         sx={{ 
                           direction: currentLanguage === 'ar' ? 'rtl' : 'ltr',
                           fontSize: '0.875rem',
-                          minWidth: '120px',
-                          fontWeight: 500
+                          minWidth: { xs: 'auto', sm: '120px' },
+                          fontWeight: 500,
+                          flexShrink: 0
                         }}
                       >
                         {t('date')}:
@@ -1037,11 +1045,11 @@ const SinglePostPage = ({
 
                     {/* Exact Date - formatted properly */}
                     {exactDate && (
-                      <Box display="flex" justifyContent="space-between" alignItems="center"
+                      <Box display="flex" 
                            sx={{ 
                              flexDirection: { xs: 'column', sm: 'row' }, 
-                             gap: 1,
-                             alignItems: { xs: 'flex-start', sm: 'center' }
+                             gap: { xs: 0.5, sm: 2 },
+                             alignItems: { xs: 'flex-start', sm: 'flex-start' }
                            }}>
                         <Typography 
                           variant="body2" 
@@ -1049,8 +1057,9 @@ const SinglePostPage = ({
                           sx={{ 
                             direction: currentLanguage === 'ar' ? 'rtl' : 'ltr',
                             fontSize: '0.875rem',
-                            minWidth: '120px',
-                            fontWeight: 500
+                            minWidth: { xs: 'auto', sm: '120px' },
+                            fontWeight: 500,
+                            flexShrink: 0
                           }}
                         >
                           {t('exactDate')}:
@@ -1083,25 +1092,26 @@ const SinglePostPage = ({
 
                     {/* Tags - if available */}
                     {tags && tags.length > 0 && (
-                      <Box display="flex" justifyContent="space-between" alignItems="flex-start" 
+                      <Box display="flex" 
                            sx={{ 
                              flexDirection: { xs: 'column', sm: 'row' }, 
-                             gap: 1,
+                             gap: { xs: 0.5, sm: 2 },
                              alignItems: { xs: 'flex-start', sm: 'flex-start' }
                            }}>
-                        <Typography 
+                      <Typography 
                           variant="body2" 
                           color="text.secondary"
-                          sx={{ 
-                            direction: currentLanguage === 'ar' ? 'rtl' : 'ltr',
+                        sx={{ 
+                          direction: currentLanguage === 'ar' ? 'rtl' : 'ltr',
                             fontSize: '0.875rem',
-                            minWidth: '120px',
-                            fontWeight: 500
+                            minWidth: { xs: 'auto', sm: '120px' },
+                            fontWeight: 500,
+                            flexShrink: 0
                           }}
                         >
                           {t('tags')}:
-                        </Typography>
-                        <Box display="flex" flexWrap="wrap" gap={0.5} sx={{ maxWidth: '70%', flex: 1 }}>
+                      </Typography>
+                        <Box display="flex" flexWrap="wrap" gap={0.5} sx={{ flex: 1 }}>
                           {tags.map((tag, index) => (
                             <Chip
                               key={index}
@@ -1124,11 +1134,11 @@ const SinglePostPage = ({
                     )}
 
                     {/* Posted By with username */}
-                    <Box display="flex" justifyContent="space-between" alignItems="center"
+                    <Box display="flex" 
                          sx={{ 
                            flexDirection: { xs: 'column', sm: 'row' }, 
-                           gap: 1,
-                           alignItems: { xs: 'flex-start', sm: 'center' }
+                           gap: { xs: 0.5, sm: 2 },
+                           alignItems: { xs: 'flex-start', sm: 'flex-start' }
                          }}>
                       <Typography 
                         variant="body2" 
@@ -1136,8 +1146,9 @@ const SinglePostPage = ({
                         sx={{ 
                           direction: currentLanguage === 'ar' ? 'rtl' : 'ltr',
                           fontSize: '0.875rem',
-                          minWidth: '120px',
-                          fontWeight: 500
+                          minWidth: { xs: 'auto', sm: '120px' },
+                          fontWeight: 500,
+                          flexShrink: 0
                         }}
                       >
                         {t('postedBy')}:
@@ -1157,11 +1168,11 @@ const SinglePostPage = ({
                     </Box>
 
                     {/* Created date */}
-                    <Box display="flex" justifyContent="space-between" alignItems="center"
+                    <Box display="flex" 
                          sx={{ 
                            flexDirection: { xs: 'column', sm: 'row' }, 
-                           gap: 1,
-                           alignItems: { xs: 'flex-start', sm: 'center' }
+                           gap: { xs: 0.5, sm: 2 },
+                           alignItems: { xs: 'flex-start', sm: 'flex-start' }
                          }}>
                       <Typography 
                         variant="body2" 
@@ -1169,8 +1180,9 @@ const SinglePostPage = ({
                         sx={{ 
                           direction: currentLanguage === 'ar' ? 'rtl' : 'ltr',
                           fontSize: '0.875rem',
-                          minWidth: '120px',
-                          fontWeight: 500
+                          minWidth: { xs: 'auto', sm: '120px' },
+                          fontWeight: 500,
+                          flexShrink: 0
                         }}
                       >
                         {t('created')}:
@@ -1191,11 +1203,11 @@ const SinglePostPage = ({
 
                     {/* Updated date - if different from created */}
                     {updatedAt !== createdAt && (
-                      <Box display="flex" justifyContent="space-between" alignItems="center"
+                      <Box display="flex" 
                            sx={{ 
                              flexDirection: { xs: 'column', sm: 'row' }, 
-                             gap: 1,
-                             alignItems: { xs: 'flex-start', sm: 'center' }
+                             gap: { xs: 0.5, sm: 2 },
+                             alignItems: { xs: 'flex-start', sm: 'flex-start' }
                            }}>
                         <Typography 
                           variant="body2" 
@@ -1203,8 +1215,9 @@ const SinglePostPage = ({
                           sx={{ 
                             direction: currentLanguage === 'ar' ? 'rtl' : 'ltr',
                             fontSize: '0.875rem',
-                            minWidth: '120px',
-                            fontWeight: 500
+                            minWidth: { xs: 'auto', sm: '120px' },
+                            fontWeight: 500,
+                            flexShrink: 0
                           }}
                         >
                           {t('updated')}:
@@ -1226,11 +1239,11 @@ const SinglePostPage = ({
 
                     {/* Views */}
                     {views !== undefined && (
-                      <Box display="flex" justifyContent="space-between" alignItems="center"
+                      <Box display="flex" 
                            sx={{ 
                              flexDirection: { xs: 'column', sm: 'row' }, 
-                             gap: 1,
-                             alignItems: { xs: 'flex-start', sm: 'center' }
+                             gap: { xs: 0.5, sm: 2 },
+                             alignItems: { xs: 'flex-start', sm: 'flex-start' }
                            }}>
                         <Typography 
                           variant="body2" 
@@ -1238,8 +1251,9 @@ const SinglePostPage = ({
                           sx={{ 
                             direction: currentLanguage === 'ar' ? 'rtl' : 'ltr',
                             fontSize: '0.875rem',
-                            minWidth: '120px',
-                            fontWeight: 500
+                            minWidth: { xs: 'auto', sm: '120px' },
+                            fontWeight: 500,
+                            flexShrink: 0
                           }}
                         >
                           {t('views')}:
@@ -1256,16 +1270,16 @@ const SinglePostPage = ({
                         >
                           {views}
                         </Typography>
-                      </Box>
+                  </Box>
                     )}
 
                     {/* Post status - active/resolved/expired */}
                     {status && (
-                      <Box display="flex" justifyContent="space-between" alignItems="center"
+                      <Box display="flex" 
                            sx={{ 
                              flexDirection: { xs: 'column', sm: 'row' }, 
-                             gap: 1,
-                             alignItems: { xs: 'flex-start', sm: 'center' }
+                             gap: { xs: 0.5, sm: 2 },
+                             alignItems: { xs: 'flex-start', sm: 'flex-start' }
                            }}>
                         <Typography 
                           variant="body2" 
@@ -1273,8 +1287,9 @@ const SinglePostPage = ({
                           sx={{ 
                             direction: currentLanguage === 'ar' ? 'rtl' : 'ltr',
                             fontSize: '0.875rem',
-                            minWidth: '120px',
-                            fontWeight: 500
+                            minWidth: { xs: 'auto', sm: '120px' },
+                            fontWeight: 500,
+                            flexShrink: 0
                           }}
                         >
                           {t('postStatus')}:
@@ -1297,16 +1312,16 @@ const SinglePostPage = ({
                             }
                           }}
                         />
-                      </Box>
-                    )}
+                </Box>
+              )}
 
                     {/* Returned status */}
                     {returned !== undefined && (
-                      <Box display="flex" justifyContent="space-between" alignItems="center"
+                      <Box display="flex" 
                            sx={{ 
                              flexDirection: { xs: 'column', sm: 'row' }, 
-                             gap: 1,
-                             alignItems: { xs: 'flex-start', sm: 'center' }
+                             gap: { xs: 0.5, sm: 2 },
+                             alignItems: { xs: 'flex-start', sm: 'flex-start' }
                            }}>
                         <Typography 
                           variant="body2" 
@@ -1314,8 +1329,9 @@ const SinglePostPage = ({
                           sx={{ 
                             direction: currentLanguage === 'ar' ? 'rtl' : 'ltr',
                             fontSize: '0.875rem',
-                            minWidth: '120px',
-                            fontWeight: 500
+                            minWidth: { xs: 'auto', sm: '120px' },
+                            fontWeight: 500,
+                            flexShrink: 0
                           }}
                         >
                           {t('returned')}:
