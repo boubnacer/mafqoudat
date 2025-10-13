@@ -392,6 +392,17 @@ const getDashboard = async (req, res) => {
           updatedAt: 1,
           username: { $ifNull: ["$User.username", "Unknown"] },
           categoryname: { $ifNull: ["$Category.code", "ELECTRONICS"] },
+          Category: {
+            $cond: {
+              if: { $ne: ["$Category", null] },
+              then: {
+                _id: "$Category._id",
+                code: "$Category.code",
+                labels: "$Category.labels"
+              },
+              else: null
+            }
+          },
           contact: 1,
           image: 1,
           countryLabels: { $ifNull: ["$Country.labels", {}] },
@@ -532,6 +543,17 @@ const getDashboard = async (req, res) => {
           updatedAt: 1,
           username: { $ifNull: ["$User.username", "Unknown"] },
           categoryname: { $ifNull: ["$Category.code", "ELECTRONICS"] },
+          Category: {
+            $cond: {
+              if: { $ne: ["$Category", null] },
+              then: {
+                _id: "$Category._id",
+                code: "$Category.code",
+                labels: "$Category.labels"
+              },
+              else: null
+            }
+          },
           contact: 1,
           image: 1,
           countryLabels: { $ifNull: ["$Country.labels", {}] },
