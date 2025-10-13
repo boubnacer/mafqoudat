@@ -232,6 +232,17 @@ const getDashboard = async (req, res) => {
           returned: 1,
           createdAt: 1,
           categoryname: { $ifNull: ["$Category.code", "ELECTRONICS"] },
+          Category: {
+            $cond: {
+              if: { $ne: ["$Category", null] },
+              then: {
+                _id: "$Category._id",
+                code: "$Category.code", 
+                labels: "$Category.labels"
+              },
+              else: null
+            }
+          },
           floptionName: { $ifNull: ["$Floptions.code", "FOUND"] },
           username: { $ifNull: ["$User.username", "Unknown"] },
           Floptions: {
