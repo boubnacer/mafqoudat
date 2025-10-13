@@ -269,9 +269,9 @@ const SinglePostPage = ({
   const categoryDisplayName = useMemo(() => {
     // Debug: Log the Category object structure
     if (process.env.NODE_ENV === 'development') {
-      console.log('Category object:', Category);
-      console.log('categoryname:', categoryname);
-      console.log('currentLanguage:', currentLanguage);
+      console.log('SinglePostPage - Category object:', Category);
+      console.log('SinglePostPage - categoryname:', categoryname);
+      console.log('SinglePostPage - currentLanguage:', currentLanguage);
     }
     
     // First priority: Use the Category object from API aggregation (with labels)
