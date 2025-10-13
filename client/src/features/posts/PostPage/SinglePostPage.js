@@ -725,33 +725,9 @@ const SinglePostPage = ({
                 </Grid>
               </Box>
 
-              {/* Post Details Card - All Devices */}
-                <Box sx={{ mb: 3 }}>
-                <Paper 
-                  elevation={0}
-                  sx={{ 
-                    p: 3,
-                    borderRadius: 3,
-                    border: `1px solid ${isDarkMode ? alpha('#fff', 0.08) : alpha('#000', 0.12)}`,
-                    backgroundColor: isDarkMode ? alpha('#1a1a1a', 0.8) : '#ffffff',
-                    boxShadow: 'none'
-                  }}
-                >
-                  <Typography 
-                    variant="h6" 
-                    fontWeight={600}
-                    sx={{ 
-                      mb: 3,
-                      direction: currentLanguage === 'ar' ? 'rtl' : 'ltr',
-                      color: isDarkMode ? '#ffffff' : '#1a1a1a',
-                      fontSize: '1.25rem',
-                      textAlign: currentLanguage === 'ar' ? 'right' : 'left'
-                    }}
-                  >
-                    {t('postDetails')}
-                  </Typography>
-
-                  <Box display="flex" flexDirection="column" gap={2}>
+              {/* Additional Post Information */}
+              <Box sx={{ mb: 3 }}>
+                <Box display="flex" flexDirection="column" gap={{ xs: 1.5, sm: 2, md: 2 }}>
                     {/* Title with titleLabels support */}
                     <Box display="flex" 
                          sx={{ 
@@ -778,7 +754,7 @@ const SinglePostPage = ({
                         sx={{ 
                           direction: currentLanguage === 'ar' ? 'rtl' : 'ltr',
                           color: isDarkMode ? '#ffffff' : '#1a1a1a',
-                          fontSize: '0.875rem',
+                          fontSize: { xs: '0.9rem', sm: '0.875rem', md: '0.875rem' },
                           textAlign: currentLanguage === 'ar' ? 'right' : 'left',
                           flex: 1,
                           lineHeight: 1.4
@@ -800,7 +776,7 @@ const SinglePostPage = ({
                         color="text.secondary"
                         sx={{ 
                           direction: currentLanguage === 'ar' ? 'rtl' : 'ltr',
-                          fontSize: '0.875rem',
+                          fontSize: { xs: '0.9rem', sm: '0.875rem', md: '0.875rem' },
                           minWidth: { xs: 'auto', sm: '120px' },
                           fontWeight: 500,
                           flexShrink: 0
@@ -836,7 +812,7 @@ const SinglePostPage = ({
                         color="text.secondary"
                         sx={{ 
                           direction: currentLanguage === 'ar' ? 'rtl' : 'ltr',
-                          fontSize: '0.875rem',
+                          fontSize: { xs: '0.9rem', sm: '0.875rem', md: '0.875rem' },
                           minWidth: { xs: 'auto', sm: '120px' },
                           fontWeight: 500,
                           flexShrink: 0
@@ -850,7 +826,7 @@ const SinglePostPage = ({
                         sx={{ 
                           direction: currentLanguage === 'ar' ? 'rtl' : 'ltr',
                           color: categoryStyle.text,
-                          fontSize: '0.875rem',
+                          fontSize: { xs: '0.9rem', sm: '0.875rem', md: '0.875rem' },
                           textAlign: currentLanguage === 'ar' ? 'right' : 'left'
                         }}
                       >
@@ -870,7 +846,7 @@ const SinglePostPage = ({
                         color="text.secondary"
                         sx={{ 
                           direction: currentLanguage === 'ar' ? 'rtl' : 'ltr',
-                          fontSize: '0.875rem',
+                          fontSize: { xs: '0.9rem', sm: '0.875rem', md: '0.875rem' },
                           minWidth: { xs: 'auto', sm: '120px' },
                           fontWeight: 500,
                           flexShrink: 0
@@ -910,7 +886,7 @@ const SinglePostPage = ({
                         color="text.secondary"
                         sx={{ 
                           direction: currentLanguage === 'ar' ? 'rtl' : 'ltr',
-                          fontSize: '0.875rem',
+                          fontSize: { xs: '0.9rem', sm: '0.875rem', md: '0.875rem' },
                           minWidth: { xs: 'auto', sm: '120px' },
                           fontWeight: 500,
                           flexShrink: 0
@@ -924,7 +900,7 @@ const SinglePostPage = ({
                         sx={{ 
                           direction: currentLanguage === 'ar' ? 'rtl' : 'ltr',
                           color: isDarkMode ? '#ffffff' : '#1a1a1a',
-                          fontSize: '0.875rem',
+                          fontSize: { xs: '0.9rem', sm: '0.875rem', md: '0.875rem' },
                           textAlign: currentLanguage === 'ar' ? 'right' : 'left'
                         }}
                       >
@@ -944,7 +920,7 @@ const SinglePostPage = ({
                         color="text.secondary"
                         sx={{ 
                           direction: currentLanguage === 'ar' ? 'rtl' : 'ltr',
-                          fontSize: '0.875rem',
+                          fontSize: { xs: '0.9rem', sm: '0.875rem', md: '0.875rem' },
                           minWidth: { xs: 'auto', sm: '120px' },
                           fontWeight: 500,
                           flexShrink: 0
@@ -958,7 +934,7 @@ const SinglePostPage = ({
                         sx={{ 
                           direction: currentLanguage === 'ar' ? 'rtl' : 'ltr',
                           color: isDarkMode ? '#ffffff' : '#1a1a1a',
-                          fontSize: '0.875rem',
+                          fontSize: { xs: '0.9rem', sm: '0.875rem', md: '0.875rem' },
                           textAlign: currentLanguage === 'ar' ? 'right' : 'left'
                         }}
                       >
@@ -978,7 +954,7 @@ const SinglePostPage = ({
                         color="text.secondary"
                         sx={{ 
                           direction: currentLanguage === 'ar' ? 'rtl' : 'ltr',
-                          fontSize: '0.875rem',
+                          fontSize: { xs: '0.9rem', sm: '0.875rem', md: '0.875rem' },
                           minWidth: { xs: 'auto', sm: '120px' },
                           fontWeight: 500,
                           flexShrink: 0
@@ -992,7 +968,7 @@ const SinglePostPage = ({
                         sx={{ 
                           direction: currentLanguage === 'ar' ? 'rtl' : 'ltr',
                           color: isDarkMode ? '#ffffff' : '#1a1a1a',
-                          fontSize: '0.875rem',
+                          fontSize: { xs: '0.9rem', sm: '0.875rem', md: '0.875rem' },
                           textAlign: currentLanguage === 'ar' ? 'right' : 'left'
                         }}
                       >
@@ -1012,7 +988,7 @@ const SinglePostPage = ({
                         color="text.secondary"
                         sx={{ 
                           direction: currentLanguage === 'ar' ? 'rtl' : 'ltr',
-                          fontSize: '0.875rem',
+                          fontSize: { xs: '0.9rem', sm: '0.875rem', md: '0.875rem' },
                           minWidth: { xs: 'auto', sm: '120px' },
                           fontWeight: 500,
                           flexShrink: 0
@@ -1026,7 +1002,7 @@ const SinglePostPage = ({
                         sx={{ 
                           direction: currentLanguage === 'ar' ? 'rtl' : 'ltr',
                           color: isDarkMode ? '#ffffff' : '#1a1a1a',
-                          fontSize: '0.875rem',
+                          fontSize: { xs: '0.9rem', sm: '0.875rem', md: '0.875rem' },
                           textAlign: currentLanguage === 'ar' ? 'right' : 'left'
                         }}
                       >
@@ -1145,7 +1121,7 @@ const SinglePostPage = ({
                         color="text.secondary"
                         sx={{ 
                           direction: currentLanguage === 'ar' ? 'rtl' : 'ltr',
-                          fontSize: '0.875rem',
+                          fontSize: { xs: '0.9rem', sm: '0.875rem', md: '0.875rem' },
                           minWidth: { xs: 'auto', sm: '120px' },
                           fontWeight: 500,
                           flexShrink: 0
@@ -1159,7 +1135,7 @@ const SinglePostPage = ({
                         sx={{ 
                           direction: currentLanguage === 'ar' ? 'rtl' : 'ltr',
                           color: isDarkMode ? '#ffffff' : '#1a1a1a',
-                          fontSize: '0.875rem',
+                          fontSize: { xs: '0.9rem', sm: '0.875rem', md: '0.875rem' },
                           textAlign: currentLanguage === 'ar' ? 'right' : 'left'
                         }}
                       >
@@ -1179,7 +1155,7 @@ const SinglePostPage = ({
                         color="text.secondary"
                         sx={{ 
                           direction: currentLanguage === 'ar' ? 'rtl' : 'ltr',
-                          fontSize: '0.875rem',
+                          fontSize: { xs: '0.9rem', sm: '0.875rem', md: '0.875rem' },
                           minWidth: { xs: 'auto', sm: '120px' },
                           fontWeight: 500,
                           flexShrink: 0
@@ -1193,7 +1169,7 @@ const SinglePostPage = ({
                         sx={{ 
                           direction: currentLanguage === 'ar' ? 'rtl' : 'ltr',
                           color: isDarkMode ? '#ffffff' : '#1a1a1a',
-                          fontSize: '0.875rem',
+                          fontSize: { xs: '0.9rem', sm: '0.875rem', md: '0.875rem' },
                           textAlign: currentLanguage === 'ar' ? 'right' : 'left'
                         }}
                       >
@@ -1353,8 +1329,7 @@ const SinglePostPage = ({
                         />
                       </Box>
                     )}
-                  </Box>
-                </Paper>
+                </Box>
               </Box>
 
               {/* Contact Information - Removed as contact info will be shown in claim dialog */}
