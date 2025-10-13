@@ -1022,7 +1022,10 @@ const SinglePostPage = ({
                       direction: currentLanguage === 'ar' ? 'rtl' : 'ltr'
                     }}
                   >
-                    {foundLostStatus.isFound ? t('doYouThinkThisItemIsYours') : t('didYouFindThisItem')}
+                    {foundLostStatus.isFound 
+                      ? t('doYouThinkThisItemIsYours').replace('item', categoryDisplayName.toLowerCase())
+                      : t('didYouFindThisItem').replace('item', categoryDisplayName.toLowerCase())
+                    }
                   </Typography>
                 </Box>
 
@@ -1037,8 +1040,8 @@ const SinglePostPage = ({
                   }}
                 >
                   {foundLostStatus.isFound 
-                    ? t('ifYouLostThisItem') 
-                    : t('ifYouFoundThisItem')
+                    ? t('ifYouLostThisItem').replace('item', categoryDisplayName.toLowerCase())
+                    : t('ifYouFoundThisItem').replace('item', categoryDisplayName.toLowerCase())
                   }
                 </Typography>
 
