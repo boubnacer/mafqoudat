@@ -504,9 +504,9 @@ const SinglePostPage = ({
   return (
     <Box 
       sx={{ 
-        p: { xs: 2, md: 4 },
-        pt: { xs: "6rem", md: "7rem" },
-        mt: { xs: "2rem", md: "1rem" },
+        p: { xs: 1.5, sm: 2, md: 4 },
+        pt: { xs: "6rem", sm: "6.5rem", md: "7rem" },
+        mt: { xs: "2rem", sm: "1.5rem", md: "1rem" },
         minHeight: "100vh",
         background: isDarkMode ? theme.palette.background.default : '#f5f5f5'
       }}
@@ -733,7 +733,7 @@ const SinglePostPage = ({
 
         {/* Sidebar */}
         <Grid item xs={12} lg={4}>
-          <Box sx={{ position: 'sticky', top: '2rem' }}>
+          <Box sx={{ position: { xs: 'static', lg: 'sticky' }, top: { lg: '2rem' } }}>
             {/* Debug Info - Remove this after testing */}
             {process.env.NODE_ENV === 'development' && (
               <Paper sx={{ p: 2, mb: 2, backgroundColor: '#f0f0f0' }}>
@@ -1092,15 +1092,16 @@ const SinglePostPage = ({
               </Box>
             </Paper>
 
-            {/* Enhanced Post Details Card */}
+            {/* Comprehensive Post Details Card */}
             <Paper 
               elevation={0}
               sx={{ 
-                p: 3,
+                p: { xs: 2.5, sm: 3, md: 3 },
                 borderRadius: 3,
                 border: `1px solid ${isDarkMode ? alpha('#fff', 0.08) : alpha('#000', 0.12)}`,
                 backgroundColor: isDarkMode ? alpha('#1a1a1a', 0.8) : '#ffffff',
-                boxShadow: 'none'
+                boxShadow: 'none',
+                mb: { xs: 2, md: 3 }
               }}
             >
               <Typography 
@@ -1110,22 +1111,29 @@ const SinglePostPage = ({
                   mb: 3,
                   direction: currentLanguage === 'ar' ? 'rtl' : 'ltr',
                   color: isDarkMode ? '#ffffff' : '#1a1a1a',
-                  fontSize: { xs: '1.1rem', sm: '1.25rem', md: '1.25rem' }
+                  fontSize: { xs: '1.1rem', sm: '1.25rem', md: '1.25rem' },
+                  textAlign: currentLanguage === 'ar' ? 'right' : 'left'
                 }}
               >
                 {t('postDetails')}
               </Typography>
 
-              <Box display="flex" flexDirection="column" gap={2}>
-                {/* Title */}
-                <Box display="flex" justifyContent="space-between" alignItems="flex-start" sx={{ flexDirection: { xs: 'column', sm: 'row' }, gap: { xs: 0.5, sm: 0 } }}>
+              <Box display="flex" flexDirection="column" gap={{ xs: 1.5, sm: 2, md: 2 }}>
+                {/* Title with titleLabels support */}
+                <Box display="flex" justifyContent="space-between" alignItems="flex-start" 
+                     sx={{ 
+                       flexDirection: { xs: 'column', sm: 'row' }, 
+                       gap: { xs: 0.5, sm: 1, md: 1 },
+                       alignItems: { xs: 'flex-start', sm: 'center' }
+                     }}>
                   <Typography 
                     variant="body2" 
                     color="text.secondary"
                     sx={{ 
                       direction: currentLanguage === 'ar' ? 'rtl' : 'ltr',
                       fontSize: { xs: '0.9rem', sm: '0.875rem', md: '0.875rem' },
-                      minWidth: { sm: '120px' }
+                      minWidth: { sm: '120px' },
+                      fontWeight: 500
                     }}
                   >
                     {t('title')}:
@@ -1137,22 +1145,30 @@ const SinglePostPage = ({
                       direction: currentLanguage === 'ar' ? 'rtl' : 'ltr',
                       color: isDarkMode ? '#ffffff' : '#1a1a1a',
                       fontSize: { xs: '0.9rem', sm: '0.875rem', md: '0.875rem' },
-                      textAlign: { xs: currentLanguage === 'ar' ? 'right' : 'left', sm: currentLanguage === 'ar' ? 'right' : 'left' }
+                      textAlign: { xs: currentLanguage === 'ar' ? 'right' : 'left', sm: currentLanguage === 'ar' ? 'right' : 'left' },
+                      flex: 1,
+                      lineHeight: 1.4
                     }}
                   >
                     {(titleLabels && titleLabels[currentLanguage]) || title || t('noTitleProvided')}
                   </Typography>
                 </Box>
 
-                {/* Description */}
-                <Box display="flex" justifyContent="space-between" alignItems="flex-start" sx={{ flexDirection: { xs: 'column', sm: 'row' }, gap: { xs: 0.5, sm: 0 } }}>
+                {/* Description with descriptionLabels support */}
+                <Box display="flex" justifyContent="space-between" alignItems="flex-start" 
+                     sx={{ 
+                       flexDirection: { xs: 'column', sm: 'row' }, 
+                       gap: { xs: 0.5, sm: 1, md: 1 },
+                       alignItems: { xs: 'flex-start', sm: 'flex-start' }
+                     }}>
                   <Typography 
                     variant="body2" 
                     color="text.secondary"
                     sx={{ 
                       direction: currentLanguage === 'ar' ? 'rtl' : 'ltr',
                       fontSize: { xs: '0.9rem', sm: '0.875rem', md: '0.875rem' },
-                      minWidth: { sm: '120px' }
+                      minWidth: { sm: '120px' },
+                      fontWeight: 500
                     }}
                   >
                     {t('description')}:
@@ -1164,21 +1180,30 @@ const SinglePostPage = ({
                       direction: currentLanguage === 'ar' ? 'rtl' : 'ltr',
                       color: isDarkMode ? '#ffffff' : '#1a1a1a',
                       fontSize: { xs: '0.9rem', sm: '0.875rem', md: '0.875rem' },
-                      textAlign: { xs: currentLanguage === 'ar' ? 'right' : 'left', sm: currentLanguage === 'ar' ? 'right' : 'left' }
+                      textAlign: { xs: currentLanguage === 'ar' ? 'right' : 'left', sm: currentLanguage === 'ar' ? 'right' : 'left' },
+                      flex: 1,
+                      lineHeight: 1.4
                     }}
                   >
                     {(descriptionLabels && descriptionLabels[currentLanguage]) || description || t('noDescriptionProvided')}
                   </Typography>
                 </Box>
 
-                {/* Category */}
-                <Box display="flex" justifyContent="space-between" alignItems="center">
+                {/* Category with categoryDisplayName */}
+                <Box display="flex" justifyContent="space-between" alignItems="center"
+                     sx={{ 
+                       flexDirection: { xs: 'column', sm: 'row' }, 
+                       gap: { xs: 0.5, sm: 1, md: 1 },
+                       alignItems: { xs: 'flex-start', sm: 'center' }
+                     }}>
                   <Typography 
                     variant="body2" 
                     color="text.secondary"
                     sx={{ 
                       direction: currentLanguage === 'ar' ? 'rtl' : 'ltr',
-                      fontSize: { xs: '0.9rem', sm: '0.875rem', md: '0.875rem' }
+                      fontSize: { xs: '0.9rem', sm: '0.875rem', md: '0.875rem' },
+                      minWidth: { sm: '120px' },
+                      fontWeight: 500
                     }}
                   >
                     {t('category')}:
@@ -1188,47 +1213,69 @@ const SinglePostPage = ({
                     fontWeight={600}
                     sx={{ 
                       direction: currentLanguage === 'ar' ? 'rtl' : 'ltr',
-                      color: isDarkMode ? '#ffffff' : '#1a1a1a',
-                      fontSize: { xs: '0.9rem', sm: '0.875rem', md: '0.875rem' }
+                      color: categoryStyle.text,
+                      fontSize: { xs: '0.9rem', sm: '0.875rem', md: '0.875rem' },
+                      textAlign: { xs: currentLanguage === 'ar' ? 'right' : 'left', sm: currentLanguage === 'ar' ? 'right' : 'left' }
                     }}
                   >
                     {categoryDisplayName}
                   </Typography>
                 </Box>
 
-                {/* Status */}
-                <Box display="flex" justifyContent="space-between" alignItems="center">
+                {/* Status with foundLostStatus */}
+                <Box display="flex" justifyContent="space-between" alignItems="center"
+                     sx={{ 
+                       flexDirection: { xs: 'column', sm: 'row' }, 
+                       gap: { xs: 0.5, sm: 1, md: 1 },
+                       alignItems: { xs: 'flex-start', sm: 'center' }
+                     }}>
                   <Typography 
                     variant="body2" 
                     color="text.secondary"
                     sx={{ 
                       direction: currentLanguage === 'ar' ? 'rtl' : 'ltr',
-                      fontSize: { xs: '0.9rem', sm: '0.875rem', md: '0.875rem' }
+                      fontSize: { xs: '0.9rem', sm: '0.875rem', md: '0.875rem' },
+                      minWidth: { sm: '120px' },
+                      fontWeight: 500
                     }}
                   >
                     {t('status')}:
                   </Typography>
-                  <Typography 
-                    variant="body2" 
-                    fontWeight={600}
-                    sx={{ 
-                      direction: currentLanguage === 'ar' ? 'rtl' : 'ltr',
-                      color: isDarkMode ? '#ffffff' : '#1a1a1a',
-                      fontSize: { xs: '0.9rem', sm: '0.875rem', md: '0.875rem' }
+                  <Chip
+                    label={foundLostStatus.statusText}
+                    size="small"
+                    sx={{
+                      backgroundColor: foundLostStatus.statusColor === 'success' ? '#4CAF50' : 
+                                     foundLostStatus.statusColor === 'error' ? '#F44336' : 
+                                     '#FF9800',
+                      color: '#fff',
+                      fontWeight: 600,
+                      fontSize: '0.75rem',
+                      height: 24,
+                      '& .MuiChip-label': {
+                        direction: currentLanguage === 'ar' ? 'rtl' : 'ltr',
+                        color: 'white',
+                        fontWeight: 600
+                      }
                     }}
-                  >
-                    {foundLostStatus.statusText}
-                  </Typography>
+                  />
                 </Box>
 
-                {/* Location */}
-                <Box display="flex" justifyContent="space-between" alignItems="center">
+                {/* Location with exactLocation */}
+                <Box display="flex" justifyContent="space-between" alignItems="center"
+                     sx={{ 
+                       flexDirection: { xs: 'column', sm: 'row' }, 
+                       gap: { xs: 0.5, sm: 1, md: 1 },
+                       alignItems: { xs: 'flex-start', sm: 'center' }
+                     }}>
                   <Typography 
                     variant="body2" 
                     color="text.secondary"
                     sx={{ 
                       direction: currentLanguage === 'ar' ? 'rtl' : 'ltr',
-                      fontSize: { xs: '0.9rem', sm: '0.875rem', md: '0.875rem' }
+                      fontSize: { xs: '0.9rem', sm: '0.875rem', md: '0.875rem' },
+                      minWidth: { sm: '120px' },
+                      fontWeight: 500
                     }}
                   >
                     {t('location')}:
@@ -1239,21 +1286,29 @@ const SinglePostPage = ({
                     sx={{ 
                       direction: currentLanguage === 'ar' ? 'rtl' : 'ltr',
                       color: isDarkMode ? '#ffffff' : '#1a1a1a',
-                      fontSize: { xs: '0.9rem', sm: '0.875rem', md: '0.875rem' }
+                      fontSize: { xs: '0.9rem', sm: '0.875rem', md: '0.875rem' },
+                      textAlign: { xs: currentLanguage === 'ar' ? 'right' : 'left', sm: currentLanguage === 'ar' ? 'right' : 'left' }
                     }}
                   >
                     {exactLocation || t('noLocationProvided')}
                   </Typography>
                 </Box>
 
-                {/* City */}
-                <Box display="flex" justifyContent="space-between" alignItems="center">
+                {/* City with displayCityName */}
+                <Box display="flex" justifyContent="space-between" alignItems="center"
+                     sx={{ 
+                       flexDirection: { xs: 'column', sm: 'row' }, 
+                       gap: { xs: 0.5, sm: 1, md: 1 },
+                       alignItems: { xs: 'flex-start', sm: 'center' }
+                     }}>
                   <Typography 
                     variant="body2" 
                     color="text.secondary"
                     sx={{ 
                       direction: currentLanguage === 'ar' ? 'rtl' : 'ltr',
-                      fontSize: { xs: '0.9rem', sm: '0.875rem', md: '0.875rem' }
+                      fontSize: { xs: '0.9rem', sm: '0.875rem', md: '0.875rem' },
+                      minWidth: { sm: '120px' },
+                      fontWeight: 500
                     }}
                   >
                     {t('city')}:
@@ -1264,21 +1319,29 @@ const SinglePostPage = ({
                     sx={{ 
                       direction: currentLanguage === 'ar' ? 'rtl' : 'ltr',
                       color: isDarkMode ? '#ffffff' : '#1a1a1a',
-                      fontSize: { xs: '0.9rem', sm: '0.875rem', md: '0.875rem' }
+                      fontSize: { xs: '0.9rem', sm: '0.875rem', md: '0.875rem' },
+                      textAlign: { xs: currentLanguage === 'ar' ? 'right' : 'left', sm: currentLanguage === 'ar' ? 'right' : 'left' }
                     }}
                   >
                     {displayCityName}
                   </Typography>
                 </Box>
 
-                {/* Country */}
-                <Box display="flex" justifyContent="space-between" alignItems="center">
+                {/* Country with countryLabels support */}
+                <Box display="flex" justifyContent="space-between" alignItems="center"
+                     sx={{ 
+                       flexDirection: { xs: 'column', sm: 'row' }, 
+                       gap: { xs: 0.5, sm: 1, md: 1 },
+                       alignItems: { xs: 'flex-start', sm: 'center' }
+                     }}>
                   <Typography 
                     variant="body2" 
                     color="text.secondary"
                     sx={{ 
                       direction: currentLanguage === 'ar' ? 'rtl' : 'ltr',
-                      fontSize: { xs: '0.9rem', sm: '0.875rem', md: '0.875rem' }
+                      fontSize: { xs: '0.9rem', sm: '0.875rem', md: '0.875rem' },
+                      minWidth: { sm: '120px' },
+                      fontWeight: 500
                     }}
                   >
                     {t('country')}:
@@ -1289,21 +1352,29 @@ const SinglePostPage = ({
                     sx={{ 
                       direction: currentLanguage === 'ar' ? 'rtl' : 'ltr',
                       color: isDarkMode ? '#ffffff' : '#1a1a1a',
-                      fontSize: { xs: '0.9rem', sm: '0.875rem', md: '0.875rem' }
+                      fontSize: { xs: '0.9rem', sm: '0.875rem', md: '0.875rem' },
+                      textAlign: { xs: currentLanguage === 'ar' ? 'right' : 'left', sm: currentLanguage === 'ar' ? 'right' : 'left' }
                     }}
                   >
                     {(countryLabels && countryLabels[currentLanguage]) || countryname || t('noCountryProvided')}
                   </Typography>
                 </Box>
 
-                {/* Date */}
-                <Box display="flex" justifyContent="space-between" alignItems="center">
+                {/* Main Date */}
+                <Box display="flex" justifyContent="space-between" alignItems="center"
+                     sx={{ 
+                       flexDirection: { xs: 'column', sm: 'row' }, 
+                       gap: { xs: 0.5, sm: 1, md: 1 },
+                       alignItems: { xs: 'flex-start', sm: 'center' }
+                     }}>
                   <Typography 
                     variant="body2" 
                     color="text.secondary"
                     sx={{ 
                       direction: currentLanguage === 'ar' ? 'rtl' : 'ltr',
-                      fontSize: { xs: '0.9rem', sm: '0.875rem', md: '0.875rem' }
+                      fontSize: { xs: '0.9rem', sm: '0.875rem', md: '0.875rem' },
+                      minWidth: { sm: '120px' },
+                      fontWeight: 500
                     }}
                   >
                     {t('date')}:
@@ -1314,22 +1385,39 @@ const SinglePostPage = ({
                     sx={{ 
                       direction: currentLanguage === 'ar' ? 'rtl' : 'ltr',
                       color: isDarkMode ? '#ffffff' : '#1a1a1a',
-                      fontSize: { xs: '0.9rem', sm: '0.875rem', md: '0.875rem' }
+                      fontSize: { xs: '0.9rem', sm: '0.875rem', md: '0.875rem' },
+                      textAlign: { xs: currentLanguage === 'ar' ? 'right' : 'left', sm: currentLanguage === 'ar' ? 'right' : 'left' }
                     }}
                   >
-                    {mainDate ? new Date(mainDate).toLocaleDateString(currentLanguage === 'ar' ? 'ar-SA' : currentLanguage === 'fr' ? 'fr-FR' : 'en-US') : t('noDateProvided')}
+                    {mainDate ? new Date(mainDate).toLocaleDateString(
+                      currentLanguage === 'ar' ? 'ar-SA' : 
+                      currentLanguage === 'fr' ? 'fr-FR' : 
+                      'en-US',
+                      {
+                        year: 'numeric',
+                        month: 'long',
+                        day: 'numeric'
+                      }
+                    ) : t('noDateProvided')}
                   </Typography>
                 </Box>
 
-                {/* Exact Date */}
+                {/* Exact Date - formatted properly */}
                 {exactDate && (
-                  <Box display="flex" justifyContent="space-between" alignItems="center">
+                  <Box display="flex" justifyContent="space-between" alignItems="center"
+                       sx={{ 
+                         flexDirection: { xs: 'column', sm: 'row' }, 
+                         gap: { xs: 0.5, sm: 1, md: 1 },
+                         alignItems: { xs: 'flex-start', sm: 'center' }
+                       }}>
                     <Typography 
                       variant="body2" 
                       color="text.secondary"
                       sx={{ 
                         direction: currentLanguage === 'ar' ? 'rtl' : 'ltr',
-                        fontSize: { xs: '0.9rem', sm: '0.875rem', md: '0.875rem' }
+                        fontSize: { xs: '0.9rem', sm: '0.875rem', md: '0.875rem' },
+                        minWidth: { sm: '120px' },
+                        fontWeight: 500
                       }}
                     >
                       {t('exactDate')}:
@@ -1340,29 +1428,47 @@ const SinglePostPage = ({
                       sx={{ 
                         direction: currentLanguage === 'ar' ? 'rtl' : 'ltr',
                         color: isDarkMode ? '#ffffff' : '#1a1a1a',
-                        fontSize: { xs: '0.9rem', sm: '0.875rem', md: '0.875rem' }
+                        fontSize: { xs: '0.9rem', sm: '0.875rem', md: '0.875rem' },
+                        textAlign: { xs: currentLanguage === 'ar' ? 'right' : 'left', sm: currentLanguage === 'ar' ? 'right' : 'left' }
                       }}
                     >
-                      {new Date(exactDate).toLocaleDateString(currentLanguage === 'ar' ? 'ar-SA' : currentLanguage === 'fr' ? 'fr-FR' : 'en-US')}
+                      {new Date(exactDate).toLocaleDateString(
+                        currentLanguage === 'ar' ? 'ar-SA' : 
+                        currentLanguage === 'fr' ? 'fr-FR' : 
+                        'en-US',
+                        {
+                          year: 'numeric',
+                          month: 'long',
+                          day: 'numeric',
+                          hour: '2-digit',
+                          minute: '2-digit'
+                        }
+                      )}
                     </Typography>
                   </Box>
                 )}
 
-                {/* Tags */}
+                {/* Tags - if available */}
                 {tags && tags.length > 0 && (
-                  <Box display="flex" justifyContent="space-between" alignItems="flex-start" sx={{ flexDirection: { xs: 'column', sm: 'row' }, gap: { xs: 0.5, sm: 0 } }}>
+                  <Box display="flex" justifyContent="space-between" alignItems="flex-start" 
+                       sx={{ 
+                         flexDirection: { xs: 'column', sm: 'row' }, 
+                         gap: { xs: 0.5, sm: 1, md: 1 },
+                         alignItems: { xs: 'flex-start', sm: 'flex-start' }
+                       }}>
                     <Typography 
                       variant="body2" 
                       color="text.secondary"
                       sx={{ 
                         direction: currentLanguage === 'ar' ? 'rtl' : 'ltr',
                         fontSize: { xs: '0.9rem', sm: '0.875rem', md: '0.875rem' },
-                        minWidth: { sm: '120px' }
+                        minWidth: { sm: '120px' },
+                        fontWeight: 500
                       }}
                     >
                       {t('tags')}:
                     </Typography>
-                    <Box display="flex" flexWrap="wrap" gap={0.5} sx={{ maxWidth: { sm: '60%' } }}>
+                    <Box display="flex" flexWrap="wrap" gap={0.5} sx={{ maxWidth: { sm: '70%' }, flex: 1 }}>
                       {tags.map((tag, index) => (
                         <Chip
                           key={index}
@@ -1384,14 +1490,21 @@ const SinglePostPage = ({
                   </Box>
                 )}
 
-                {/* Posted By */}
-                <Box display="flex" justifyContent="space-between" alignItems="center">
+                {/* Posted By with username */}
+                <Box display="flex" justifyContent="space-between" alignItems="center"
+                     sx={{ 
+                       flexDirection: { xs: 'column', sm: 'row' }, 
+                       gap: { xs: 0.5, sm: 1, md: 1 },
+                       alignItems: { xs: 'flex-start', sm: 'center' }
+                     }}>
                   <Typography 
                     variant="body2" 
                     color="text.secondary"
                     sx={{ 
                       direction: currentLanguage === 'ar' ? 'rtl' : 'ltr',
-                      fontSize: { xs: '0.9rem', sm: '0.875rem', md: '0.875rem' }
+                      fontSize: { xs: '0.9rem', sm: '0.875rem', md: '0.875rem' },
+                      minWidth: { sm: '120px' },
+                      fontWeight: 500
                     }}
                   >
                     {t('postedBy')}:
@@ -1402,21 +1515,29 @@ const SinglePostPage = ({
                     sx={{ 
                       direction: currentLanguage === 'ar' ? 'rtl' : 'ltr',
                       color: isDarkMode ? '#ffffff' : '#1a1a1a',
-                      fontSize: { xs: '0.9rem', sm: '0.875rem', md: '0.875rem' }
+                      fontSize: { xs: '0.9rem', sm: '0.875rem', md: '0.875rem' },
+                      textAlign: { xs: currentLanguage === 'ar' ? 'right' : 'left', sm: currentLanguage === 'ar' ? 'right' : 'left' }
                     }}
                   >
                     {username || t('anonymous')}
                   </Typography>
                 </Box>
 
-                {/* Created */}
-                <Box display="flex" justifyContent="space-between" alignItems="center">
+                {/* Created date */}
+                <Box display="flex" justifyContent="space-between" alignItems="center"
+                     sx={{ 
+                       flexDirection: { xs: 'column', sm: 'row' }, 
+                       gap: { xs: 0.5, sm: 1, md: 1 },
+                       alignItems: { xs: 'flex-start', sm: 'center' }
+                     }}>
                   <Typography 
                     variant="body2" 
                     color="text.secondary"
                     sx={{ 
                       direction: currentLanguage === 'ar' ? 'rtl' : 'ltr',
-                      fontSize: { xs: '0.9rem', sm: '0.875rem', md: '0.875rem' }
+                      fontSize: { xs: '0.9rem', sm: '0.875rem', md: '0.875rem' },
+                      minWidth: { sm: '120px' },
+                      fontWeight: 500
                     }}
                   >
                     {t('created')}:
@@ -1427,22 +1548,30 @@ const SinglePostPage = ({
                     sx={{ 
                       direction: currentLanguage === 'ar' ? 'rtl' : 'ltr',
                       color: isDarkMode ? '#ffffff' : '#1a1a1a',
-                      fontSize: { xs: '0.9rem', sm: '0.875rem', md: '0.875rem' }
+                      fontSize: { xs: '0.9rem', sm: '0.875rem', md: '0.875rem' },
+                      textAlign: { xs: currentLanguage === 'ar' ? 'right' : 'left', sm: currentLanguage === 'ar' ? 'right' : 'left' }
                     }}
                   >
                     {createdDate}
                   </Typography>
                 </Box>
 
-                {/* Updated */}
+                {/* Updated date - if different from created */}
                 {updatedAt !== createdAt && (
-                  <Box display="flex" justifyContent="space-between" alignItems="center">
+                  <Box display="flex" justifyContent="space-between" alignItems="center"
+                       sx={{ 
+                         flexDirection: { xs: 'column', sm: 'row' }, 
+                         gap: { xs: 0.5, sm: 1, md: 1 },
+                         alignItems: { xs: 'flex-start', sm: 'center' }
+                       }}>
                     <Typography 
                       variant="body2" 
                       color="text.secondary"
                       sx={{ 
                         direction: currentLanguage === 'ar' ? 'rtl' : 'ltr',
-                        fontSize: { xs: '0.9rem', sm: '0.875rem', md: '0.875rem' }
+                        fontSize: { xs: '0.9rem', sm: '0.875rem', md: '0.875rem' },
+                        minWidth: { sm: '120px' },
+                        fontWeight: 500
                       }}
                     >
                       {t('updated')}:
@@ -1453,7 +1582,8 @@ const SinglePostPage = ({
                       sx={{ 
                         direction: currentLanguage === 'ar' ? 'rtl' : 'ltr',
                         color: isDarkMode ? '#ffffff' : '#1a1a1a',
-                        fontSize: { xs: '0.9rem', sm: '0.875rem', md: '0.875rem' }
+                        fontSize: { xs: '0.9rem', sm: '0.875rem', md: '0.875rem' },
+                        textAlign: { xs: currentLanguage === 'ar' ? 'right' : 'left', sm: currentLanguage === 'ar' ? 'right' : 'left' }
                       }}
                     >
                       {updatedDate}
@@ -1463,13 +1593,20 @@ const SinglePostPage = ({
 
                 {/* Views */}
                 {views !== undefined && (
-                  <Box display="flex" justifyContent="space-between" alignItems="center">
+                  <Box display="flex" justifyContent="space-between" alignItems="center"
+                       sx={{ 
+                         flexDirection: { xs: 'column', sm: 'row' }, 
+                         gap: { xs: 0.5, sm: 1, md: 1 },
+                         alignItems: { xs: 'flex-start', sm: 'center' }
+                       }}>
                     <Typography 
                       variant="body2" 
                       color="text.secondary"
                       sx={{ 
                         direction: currentLanguage === 'ar' ? 'rtl' : 'ltr',
-                        fontSize: { xs: '0.9rem', sm: '0.875rem', md: '0.875rem' }
+                        fontSize: { xs: '0.9rem', sm: '0.875rem', md: '0.875rem' },
+                        minWidth: { sm: '120px' },
+                        fontWeight: 500
                       }}
                     >
                       {t('views')}:
@@ -1480,7 +1617,8 @@ const SinglePostPage = ({
                       sx={{ 
                         direction: currentLanguage === 'ar' ? 'rtl' : 'ltr',
                         color: isDarkMode ? '#ffffff' : '#1a1a1a',
-                        fontSize: { xs: '0.9rem', sm: '0.875rem', md: '0.875rem' }
+                        fontSize: { xs: '0.9rem', sm: '0.875rem', md: '0.875rem' },
+                        textAlign: { xs: currentLanguage === 'ar' ? 'right' : 'left', sm: currentLanguage === 'ar' ? 'right' : 'left' }
                       }}
                     >
                       {views}
@@ -1488,57 +1626,82 @@ const SinglePostPage = ({
                   </Box>
                 )}
 
-                {/* Post Status */}
+                {/* Post status - active/resolved/expired */}
                 {status && (
-                  <Box display="flex" justifyContent="space-between" alignItems="center">
+                  <Box display="flex" justifyContent="space-between" alignItems="center"
+                       sx={{ 
+                         flexDirection: { xs: 'column', sm: 'row' }, 
+                         gap: { xs: 0.5, sm: 1, md: 1 },
+                         alignItems: { xs: 'flex-start', sm: 'center' }
+                       }}>
                     <Typography 
                       variant="body2" 
                       color="text.secondary"
                       sx={{ 
                         direction: currentLanguage === 'ar' ? 'rtl' : 'ltr',
-                        fontSize: { xs: '0.9rem', sm: '0.875rem', md: '0.875rem' }
+                        fontSize: { xs: '0.9rem', sm: '0.875rem', md: '0.875rem' },
+                        minWidth: { sm: '120px' },
+                        fontWeight: 500
                       }}
                     >
                       {t('postStatus')}:
                     </Typography>
-                    <Typography 
-                      variant="body2" 
-                      fontWeight={600}
-                      sx={{ 
-                        direction: currentLanguage === 'ar' ? 'rtl' : 'ltr',
-                        color: isDarkMode ? '#ffffff' : '#1a1a1a',
-                        fontSize: { xs: '0.9rem', sm: '0.875rem', md: '0.875rem' }
+                    <Chip
+                      label={status}
+                      size="small"
+                      sx={{
+                        backgroundColor: status === 'active' ? '#4CAF50' : 
+                                       status === 'resolved' ? '#2196F3' : 
+                                       status === 'expired' ? '#FF9800' : 
+                                       alpha(theme.palette.primary.main, 0.1),
+                        color: status === 'active' || status === 'resolved' || status === 'expired' ? '#fff' : theme.palette.primary.main,
+                        fontWeight: 600,
+                        fontSize: '0.75rem',
+                        height: 24,
+                        '& .MuiChip-label': {
+                          direction: currentLanguage === 'ar' ? 'rtl' : 'ltr',
+                          fontWeight: 600
+                        }
                       }}
-                    >
-                      {status}
-                    </Typography>
+                    />
                   </Box>
                 )}
 
-                {/* Returned */}
+                {/* Returned status */}
                 {returned !== undefined && (
-                  <Box display="flex" justifyContent="space-between" alignItems="center">
+                  <Box display="flex" justifyContent="space-between" alignItems="center"
+                       sx={{ 
+                         flexDirection: { xs: 'column', sm: 'row' }, 
+                         gap: { xs: 0.5, sm: 1, md: 1 },
+                         alignItems: { xs: 'flex-start', sm: 'center' }
+                       }}>
                     <Typography 
                       variant="body2" 
                       color="text.secondary"
                       sx={{ 
                         direction: currentLanguage === 'ar' ? 'rtl' : 'ltr',
-                        fontSize: { xs: '0.9rem', sm: '0.875rem', md: '0.875rem' }
+                        fontSize: { xs: '0.9rem', sm: '0.875rem', md: '0.875rem' },
+                        minWidth: { sm: '120px' },
+                        fontWeight: 500
                       }}
                     >
                       {t('returned')}:
                     </Typography>
-                    <Typography 
-                      variant="body2" 
-                      fontWeight={600}
-                      sx={{ 
-                        direction: currentLanguage === 'ar' ? 'rtl' : 'ltr',
-                        color: returned ? theme.palette.success.main : theme.palette.text.secondary,
-                        fontSize: { xs: '0.9rem', sm: '0.875rem', md: '0.875rem' }
+                    <Chip
+                      label={returned ? t('yes') : t('no')}
+                      size="small"
+                      sx={{
+                        backgroundColor: returned ? '#4CAF50' : '#F44336',
+                        color: '#fff',
+                        fontWeight: 600,
+                        fontSize: '0.75rem',
+                        height: 24,
+                        '& .MuiChip-label': {
+                          direction: currentLanguage === 'ar' ? 'rtl' : 'ltr',
+                          fontWeight: 600
+                        }
                       }}
-                    >
-                      {returned ? t('yes') : t('no')}
-                    </Typography>
+                    />
                   </Box>
                 )}
               </Box>
