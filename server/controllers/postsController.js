@@ -198,6 +198,17 @@ const getAllPosts = async (req, res) => {
             else: "OTHER"
           }
         },
+        Category: {
+          $cond: {
+            if: { $ne: ["$Category", null] },
+            then: {
+              _id: "$Category._id",
+              code: "$Category.code",
+              labels: "$Category.labels"
+            },
+            else: null
+          }
+        },
         categoryLabels: { $ifNull: ["$Category.labels", null] },
         countryname: "$Country.code",
         countryLabels: "$Country.labels",
@@ -344,6 +355,17 @@ const getPost = async (req, res) => {
           updatedAt: 1,
           username: "$User.username",
           categoryname: { $ifNull: ["$Category.code", "OTHER"] },
+          Category: {
+            $cond: {
+              if: { $ne: ["$Category", null] },
+              then: {
+                _id: "$Category._id",
+                code: "$Category.code",
+                labels: "$Category.labels"
+              },
+              else: null
+            }
+          },
           countryname: "$Country.code",
           countryLabels: "$Country.labels",
           contact: 1,
