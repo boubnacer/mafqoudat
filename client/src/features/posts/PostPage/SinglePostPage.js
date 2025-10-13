@@ -940,7 +940,7 @@ const SinglePostPage = ({
                           textAlign: currentLanguage === 'ar' ? 'right' : 'left'
                         }}
                       >
-                        {(countryLabels && countryLabels[currentLanguage]) || countryname || t('noCountryProvided')}
+                        {(countryLabels && countryLabels[currentLanguage]) || (countryname && typeof countryname === 'string' && countryname.length > 3 ? countryname : t('noCountryProvided'))}
                       </Typography>
                     </Box>
 
@@ -1144,42 +1144,6 @@ const SinglePostPage = ({
                         {createdDate}
                       </Typography>
                     </Box>
-
-                    {/* Updated date - if different from created */}
-                    {updatedAt !== createdAt && (
-                      <Box display="flex" 
-                           sx={{ 
-                             flexDirection: { xs: 'column', sm: 'row' }, 
-                             gap: { xs: 0.5, sm: 2 },
-                             alignItems: { xs: 'flex-start', sm: 'flex-start' }
-                           }}>
-                        <Typography 
-                          variant="body2" 
-                          color="text.secondary"
-                          sx={{ 
-                            direction: currentLanguage === 'ar' ? 'rtl' : 'ltr',
-                            fontSize: '0.875rem',
-                            minWidth: { xs: 'auto', sm: '120px' },
-                            fontWeight: 500,
-                            flexShrink: 0
-                          }}
-                        >
-                          {t('updated')}:
-                        </Typography>
-                        <Typography 
-                          variant="body2" 
-                          fontWeight={600}
-                          sx={{ 
-                            direction: currentLanguage === 'ar' ? 'rtl' : 'ltr',
-                            color: isDarkMode ? '#ffffff' : '#1a1a1a',
-                            fontSize: '0.875rem',
-                            textAlign: currentLanguage === 'ar' ? 'right' : 'left'
-                          }}
-                        >
-                          {updatedDate}
-                        </Typography>
-                      </Box>
-                    )}
 
                     {/* Views */}
                     {views !== undefined && (
