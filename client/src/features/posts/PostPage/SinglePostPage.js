@@ -725,44 +725,12 @@ const SinglePostPage = ({
                 </Grid>
               </Box>
 
+              {/* Separator Line */}
+              <Divider sx={{ my: 3, borderColor: isDarkMode ? alpha('#fff', 0.1) : alpha('#000', 0.1) }} />
+
               {/* Additional Post Information */}
               <Box sx={{ mb: 3 }}>
                 <Box display="flex" flexDirection="column" gap={{ xs: 1.5, sm: 2, md: 2 }}>
-                    {/* Title with titleLabels support */}
-                    <Box display="flex" 
-                         sx={{ 
-                           flexDirection: { xs: 'row', sm: 'row' }, 
-                           gap: { xs: 1, sm: 2 },
-                           alignItems: { xs: 'center', sm: 'flex-start' }
-                         }}>
-                  <Typography 
-                        variant="body2" 
-                        color="text.secondary"
-                    sx={{ 
-                      direction: currentLanguage === 'ar' ? 'rtl' : 'ltr',
-                          fontSize: '0.875rem',
-                          minWidth: { xs: 'auto', sm: '120px' },
-                          fontWeight: 500,
-                          flexShrink: 0
-                        }}
-                      >
-                        {t('title')}:
-                      </Typography>
-                      <Typography 
-                        variant="body2" 
-                        fontWeight={600}
-                        sx={{ 
-                          direction: currentLanguage === 'ar' ? 'rtl' : 'ltr',
-                          color: isDarkMode ? '#ffffff' : '#1a1a1a',
-                          fontSize: { xs: '1rem', sm: '1rem', md: '1rem' },
-                          textAlign: currentLanguage === 'ar' ? 'right' : 'left',
-                          flex: 1,
-                          lineHeight: 1.4
-                        }}
-                      >
-                        {(titleLabels && titleLabels[currentLanguage]) || title || t('noTitleProvided')}
-                  </Typography>
-                </Box>
 
                     {/* Description with descriptionLabels support */}
                     <Box display="flex" 
@@ -892,7 +860,7 @@ const SinglePostPage = ({
                           flexShrink: 0
                         }}
                       >
-                        {t('location')}:
+                        {t('exactLocation')}:
                       </Typography>
                       <Typography 
                         variant="body2" 
@@ -994,7 +962,7 @@ const SinglePostPage = ({
                           flexShrink: 0
                         }}
                       >
-                        {t('date')}:
+                        {t('exactDate')}:
                       </Typography>
                       <Typography 
                         variant="body2" 
@@ -1295,9 +1263,9 @@ const SinglePostPage = ({
                     {returned !== undefined && (
                       <Box display="flex" 
                            sx={{ 
-                             flexDirection: { xs: 'column', sm: 'row' }, 
-                             gap: { xs: 0.5, sm: 2 },
-                             alignItems: { xs: 'flex-start', sm: 'flex-start' }
+                             flexDirection: { xs: 'row', sm: 'row' }, 
+                             gap: { xs: 1, sm: 2 },
+                             alignItems: { xs: 'center', sm: 'flex-start' }
                            }}>
                         <Typography 
                           variant="body2" 
