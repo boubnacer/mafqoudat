@@ -1,6 +1,5 @@
 import { useMemo } from 'react';
-import { useSelector } from 'react-redux';
-import { selectCurrentLanguage } from '../features/language/languageSlice';
+import { useLanguage } from '../utils/languageContext';
 import { useGetCountriesQuery } from '../features/countries/countriesApiSlice';
 
 /**
@@ -9,7 +8,7 @@ import { useGetCountriesQuery } from '../features/countries/countriesApiSlice';
  * @returns {object} - { countryName, isLoading, error }
  */
 const useCountryName = (countryId) => {
-  const currentLanguage = useSelector(selectCurrentLanguage) || 'en';
+  const { currentLanguage } = useLanguage();
   
   // Fetch countries data
   const { 
