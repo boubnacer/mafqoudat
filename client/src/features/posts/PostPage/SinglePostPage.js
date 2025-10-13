@@ -505,8 +505,8 @@ const SinglePostPage = ({
     <Box 
       sx={{ 
         p: { xs: 2, md: 4 },
-        pt: { xs: "4rem", md: "5rem" },
-        mt: { xs: "1rem", md: 0 },
+        pt: { xs: "6rem", md: "7rem" },
+        mt: { xs: "2rem", md: "1rem" },
         minHeight: "100vh",
         background: isDarkMode ? theme.palette.background.default : '#f5f5f5'
       }}
@@ -725,89 +725,8 @@ const SinglePostPage = ({
                 </Grid>
               </Box>
 
-              {/* Contact Information */}
-              {contact && (
-                <Box sx={{ mb: 3 }}>
-                  <Typography 
-                    variant="h6" 
-                    fontWeight={600}
-                    sx={{ 
-                      mb: 2,
-                      direction: currentLanguage === 'ar' ? 'rtl' : 'ltr',
-                      color: isDarkMode ? '#ffffff' : '#1a1a1a',
-                      fontSize: { xs: '1.1rem', sm: '1.25rem', md: '1.25rem' }
-                    }}
-                  >
-                    {t('contactInformation')}
-                  </Typography>
-                  <Typography 
-                    variant="body1"
-                    sx={{ 
-                      direction: currentLanguage === 'ar' ? 'rtl' : 'ltr',
-                      color: isDarkMode ? alpha('#fff', 0.8) : alpha('#000', 0.7),
-                      fontSize: { xs: '1rem', sm: '1rem', md: '1rem' }
-                    }}
-                  >
-                    {contact}
-                  </Typography>
-                </Box>
-              )}
-
-              {/* Additional Contact */}
-              {sanitizedAdditionalContact && (sanitizedAdditionalContact.phone || sanitizedAdditionalContact.email || sanitizedAdditionalContact.whatsapp) && (
-                <Box sx={{ mb: 3 }}>
-                  <Typography 
-                    variant="h6" 
-                    fontWeight={600}
-                    sx={{ 
-                      mb: 2,
-                      direction: currentLanguage === 'ar' ? 'rtl' : 'ltr',
-                      color: isDarkMode ? '#ffffff' : '#1a1a1a',
-                      fontSize: { xs: '1.1rem', sm: '1.25rem', md: '1.25rem' }
-                    }}
-                  >
-                    {t('additionalContactDetails')}
-                  </Typography>
-                  <Box display="flex" flexDirection="column" gap={1}>
-                    {sanitizedAdditionalContact.phone && (
-                      <Typography 
-                        variant="body1"
-                        sx={{ 
-                          direction: currentLanguage === 'ar' ? 'rtl' : 'ltr',
-                          color: isDarkMode ? alpha('#fff', 0.8) : alpha('#000', 0.7),
-                          fontSize: { xs: '1rem', sm: '1rem', md: '1rem' }
-                        }}
-                      >
-                        {t('phoneNumber')}: {sanitizedAdditionalContact.phone}
-                      </Typography>
-                    )}
-                    {sanitizedAdditionalContact.email && (
-                      <Typography 
-                        variant="body1"
-                        sx={{ 
-                          direction: currentLanguage === 'ar' ? 'rtl' : 'ltr',
-                          color: isDarkMode ? alpha('#fff', 0.8) : alpha('#000', 0.7),
-                          fontSize: { xs: '1rem', sm: '1rem', md: '1rem' }
-                        }}
-                      >
-                        {t('emailAddress')}: {sanitizedAdditionalContact.email}
-                      </Typography>
-                    )}
-                    {sanitizedAdditionalContact.whatsapp && (
-                      <Typography 
-                        variant="body1"
-                        sx={{ 
-                          direction: currentLanguage === 'ar' ? 'rtl' : 'ltr',
-                          color: isDarkMode ? alpha('#fff', 0.8) : alpha('#000', 0.7),
-                          fontSize: { xs: '1rem', sm: '1rem', md: '1rem' }
-                        }}
-                      >
-                        {t('whatsappNumber')}: {sanitizedAdditionalContact.whatsapp}
-                      </Typography>
-                    )}
-                  </Box>
-                </Box>
-              )}
+              {/* Contact Information - Removed as contact info will be shown in claim dialog */}
+              {/* Additional Contact - Removed as contact info will be shown in claim dialog */}
             </Box>
           </Paper>
         </Grid>
@@ -1173,7 +1092,7 @@ const SinglePostPage = ({
               </Box>
             </Paper>
 
-            {/* Post Details Card */}
+            {/* Enhanced Post Details Card */}
             <Paper 
               elevation={0}
               sx={{ 
@@ -1198,6 +1117,274 @@ const SinglePostPage = ({
               </Typography>
 
               <Box display="flex" flexDirection="column" gap={2}>
+                {/* Title */}
+                <Box display="flex" justifyContent="space-between" alignItems="flex-start" sx={{ flexDirection: { xs: 'column', sm: 'row' }, gap: { xs: 0.5, sm: 0 } }}>
+                  <Typography 
+                    variant="body2" 
+                    color="text.secondary"
+                    sx={{ 
+                      direction: currentLanguage === 'ar' ? 'rtl' : 'ltr',
+                      fontSize: { xs: '0.9rem', sm: '0.875rem', md: '0.875rem' },
+                      minWidth: { sm: '120px' }
+                    }}
+                  >
+                    {t('title')}:
+                  </Typography>
+                  <Typography 
+                    variant="body2" 
+                    fontWeight={600}
+                    sx={{ 
+                      direction: currentLanguage === 'ar' ? 'rtl' : 'ltr',
+                      color: isDarkMode ? '#ffffff' : '#1a1a1a',
+                      fontSize: { xs: '0.9rem', sm: '0.875rem', md: '0.875rem' },
+                      textAlign: { xs: currentLanguage === 'ar' ? 'right' : 'left', sm: currentLanguage === 'ar' ? 'right' : 'left' }
+                    }}
+                  >
+                    {(titleLabels && titleLabels[currentLanguage]) || title || t('noTitleProvided')}
+                  </Typography>
+                </Box>
+
+                {/* Description */}
+                <Box display="flex" justifyContent="space-between" alignItems="flex-start" sx={{ flexDirection: { xs: 'column', sm: 'row' }, gap: { xs: 0.5, sm: 0 } }}>
+                  <Typography 
+                    variant="body2" 
+                    color="text.secondary"
+                    sx={{ 
+                      direction: currentLanguage === 'ar' ? 'rtl' : 'ltr',
+                      fontSize: { xs: '0.9rem', sm: '0.875rem', md: '0.875rem' },
+                      minWidth: { sm: '120px' }
+                    }}
+                  >
+                    {t('description')}:
+                  </Typography>
+                  <Typography 
+                    variant="body2" 
+                    fontWeight={600}
+                    sx={{ 
+                      direction: currentLanguage === 'ar' ? 'rtl' : 'ltr',
+                      color: isDarkMode ? '#ffffff' : '#1a1a1a',
+                      fontSize: { xs: '0.9rem', sm: '0.875rem', md: '0.875rem' },
+                      textAlign: { xs: currentLanguage === 'ar' ? 'right' : 'left', sm: currentLanguage === 'ar' ? 'right' : 'left' }
+                    }}
+                  >
+                    {(descriptionLabels && descriptionLabels[currentLanguage]) || description || t('noDescriptionProvided')}
+                  </Typography>
+                </Box>
+
+                {/* Category */}
+                <Box display="flex" justifyContent="space-between" alignItems="center">
+                  <Typography 
+                    variant="body2" 
+                    color="text.secondary"
+                    sx={{ 
+                      direction: currentLanguage === 'ar' ? 'rtl' : 'ltr',
+                      fontSize: { xs: '0.9rem', sm: '0.875rem', md: '0.875rem' }
+                    }}
+                  >
+                    {t('category')}:
+                  </Typography>
+                  <Typography 
+                    variant="body2" 
+                    fontWeight={600}
+                    sx={{ 
+                      direction: currentLanguage === 'ar' ? 'rtl' : 'ltr',
+                      color: isDarkMode ? '#ffffff' : '#1a1a1a',
+                      fontSize: { xs: '0.9rem', sm: '0.875rem', md: '0.875rem' }
+                    }}
+                  >
+                    {categoryDisplayName}
+                  </Typography>
+                </Box>
+
+                {/* Status */}
+                <Box display="flex" justifyContent="space-between" alignItems="center">
+                  <Typography 
+                    variant="body2" 
+                    color="text.secondary"
+                    sx={{ 
+                      direction: currentLanguage === 'ar' ? 'rtl' : 'ltr',
+                      fontSize: { xs: '0.9rem', sm: '0.875rem', md: '0.875rem' }
+                    }}
+                  >
+                    {t('status')}:
+                  </Typography>
+                  <Typography 
+                    variant="body2" 
+                    fontWeight={600}
+                    sx={{ 
+                      direction: currentLanguage === 'ar' ? 'rtl' : 'ltr',
+                      color: isDarkMode ? '#ffffff' : '#1a1a1a',
+                      fontSize: { xs: '0.9rem', sm: '0.875rem', md: '0.875rem' }
+                    }}
+                  >
+                    {foundLostStatus.statusText}
+                  </Typography>
+                </Box>
+
+                {/* Location */}
+                <Box display="flex" justifyContent="space-between" alignItems="center">
+                  <Typography 
+                    variant="body2" 
+                    color="text.secondary"
+                    sx={{ 
+                      direction: currentLanguage === 'ar' ? 'rtl' : 'ltr',
+                      fontSize: { xs: '0.9rem', sm: '0.875rem', md: '0.875rem' }
+                    }}
+                  >
+                    {t('location')}:
+                  </Typography>
+                  <Typography 
+                    variant="body2" 
+                    fontWeight={600}
+                    sx={{ 
+                      direction: currentLanguage === 'ar' ? 'rtl' : 'ltr',
+                      color: isDarkMode ? '#ffffff' : '#1a1a1a',
+                      fontSize: { xs: '0.9rem', sm: '0.875rem', md: '0.875rem' }
+                    }}
+                  >
+                    {exactLocation || t('noLocationProvided')}
+                  </Typography>
+                </Box>
+
+                {/* City */}
+                <Box display="flex" justifyContent="space-between" alignItems="center">
+                  <Typography 
+                    variant="body2" 
+                    color="text.secondary"
+                    sx={{ 
+                      direction: currentLanguage === 'ar' ? 'rtl' : 'ltr',
+                      fontSize: { xs: '0.9rem', sm: '0.875rem', md: '0.875rem' }
+                    }}
+                  >
+                    {t('city')}:
+                  </Typography>
+                  <Typography 
+                    variant="body2" 
+                    fontWeight={600}
+                    sx={{ 
+                      direction: currentLanguage === 'ar' ? 'rtl' : 'ltr',
+                      color: isDarkMode ? '#ffffff' : '#1a1a1a',
+                      fontSize: { xs: '0.9rem', sm: '0.875rem', md: '0.875rem' }
+                    }}
+                  >
+                    {displayCityName}
+                  </Typography>
+                </Box>
+
+                {/* Country */}
+                <Box display="flex" justifyContent="space-between" alignItems="center">
+                  <Typography 
+                    variant="body2" 
+                    color="text.secondary"
+                    sx={{ 
+                      direction: currentLanguage === 'ar' ? 'rtl' : 'ltr',
+                      fontSize: { xs: '0.9rem', sm: '0.875rem', md: '0.875rem' }
+                    }}
+                  >
+                    {t('country')}:
+                  </Typography>
+                  <Typography 
+                    variant="body2" 
+                    fontWeight={600}
+                    sx={{ 
+                      direction: currentLanguage === 'ar' ? 'rtl' : 'ltr',
+                      color: isDarkMode ? '#ffffff' : '#1a1a1a',
+                      fontSize: { xs: '0.9rem', sm: '0.875rem', md: '0.875rem' }
+                    }}
+                  >
+                    {(countryLabels && countryLabels[currentLanguage]) || countryname || t('noCountryProvided')}
+                  </Typography>
+                </Box>
+
+                {/* Date */}
+                <Box display="flex" justifyContent="space-between" alignItems="center">
+                  <Typography 
+                    variant="body2" 
+                    color="text.secondary"
+                    sx={{ 
+                      direction: currentLanguage === 'ar' ? 'rtl' : 'ltr',
+                      fontSize: { xs: '0.9rem', sm: '0.875rem', md: '0.875rem' }
+                    }}
+                  >
+                    {t('date')}:
+                  </Typography>
+                  <Typography 
+                    variant="body2" 
+                    fontWeight={600}
+                    sx={{ 
+                      direction: currentLanguage === 'ar' ? 'rtl' : 'ltr',
+                      color: isDarkMode ? '#ffffff' : '#1a1a1a',
+                      fontSize: { xs: '0.9rem', sm: '0.875rem', md: '0.875rem' }
+                    }}
+                  >
+                    {mainDate ? new Date(mainDate).toLocaleDateString(currentLanguage === 'ar' ? 'ar-SA' : currentLanguage === 'fr' ? 'fr-FR' : 'en-US') : t('noDateProvided')}
+                  </Typography>
+                </Box>
+
+                {/* Exact Date */}
+                {exactDate && (
+                  <Box display="flex" justifyContent="space-between" alignItems="center">
+                    <Typography 
+                      variant="body2" 
+                      color="text.secondary"
+                      sx={{ 
+                        direction: currentLanguage === 'ar' ? 'rtl' : 'ltr',
+                        fontSize: { xs: '0.9rem', sm: '0.875rem', md: '0.875rem' }
+                      }}
+                    >
+                      {t('exactDate')}:
+                    </Typography>
+                    <Typography 
+                      variant="body2" 
+                      fontWeight={600}
+                      sx={{ 
+                        direction: currentLanguage === 'ar' ? 'rtl' : 'ltr',
+                        color: isDarkMode ? '#ffffff' : '#1a1a1a',
+                        fontSize: { xs: '0.9rem', sm: '0.875rem', md: '0.875rem' }
+                      }}
+                    >
+                      {new Date(exactDate).toLocaleDateString(currentLanguage === 'ar' ? 'ar-SA' : currentLanguage === 'fr' ? 'fr-FR' : 'en-US')}
+                    </Typography>
+                  </Box>
+                )}
+
+                {/* Tags */}
+                {tags && tags.length > 0 && (
+                  <Box display="flex" justifyContent="space-between" alignItems="flex-start" sx={{ flexDirection: { xs: 'column', sm: 'row' }, gap: { xs: 0.5, sm: 0 } }}>
+                    <Typography 
+                      variant="body2" 
+                      color="text.secondary"
+                      sx={{ 
+                        direction: currentLanguage === 'ar' ? 'rtl' : 'ltr',
+                        fontSize: { xs: '0.9rem', sm: '0.875rem', md: '0.875rem' },
+                        minWidth: { sm: '120px' }
+                      }}
+                    >
+                      {t('tags')}:
+                    </Typography>
+                    <Box display="flex" flexWrap="wrap" gap={0.5} sx={{ maxWidth: { sm: '60%' } }}>
+                      {tags.map((tag, index) => (
+                        <Chip
+                          key={index}
+                          label={tag}
+                          size="small"
+                          sx={{
+                            fontSize: '0.75rem',
+                            height: 24,
+                            backgroundColor: isDarkMode ? alpha(theme.palette.primary.main, 0.2) : alpha(theme.palette.primary.main, 0.1),
+                            color: theme.palette.primary.main,
+                            border: `1px solid ${alpha(theme.palette.primary.main, 0.3)}`,
+                            '& .MuiChip-label': {
+                              direction: currentLanguage === 'ar' ? 'rtl' : 'ltr'
+                            }
+                          }}
+                        />
+                      ))}
+                    </Box>
+                  </Box>
+                )}
+
+                {/* Posted By */}
                 <Box display="flex" justifyContent="space-between" alignItems="center">
                   <Typography 
                     variant="body2" 
@@ -1222,6 +1409,7 @@ const SinglePostPage = ({
                   </Typography>
                 </Box>
 
+                {/* Created */}
                 <Box display="flex" justifyContent="space-between" alignItems="center">
                   <Typography 
                     variant="body2" 
@@ -1246,6 +1434,7 @@ const SinglePostPage = ({
                   </Typography>
                 </Box>
 
+                {/* Updated */}
                 {updatedAt !== createdAt && (
                   <Box display="flex" justifyContent="space-between" alignItems="center">
                     <Typography 
@@ -1272,6 +1461,7 @@ const SinglePostPage = ({
                   </Box>
                 )}
 
+                {/* Views */}
                 {views !== undefined && (
                   <Box display="flex" justifyContent="space-between" alignItems="center">
                     <Typography 
@@ -1294,6 +1484,60 @@ const SinglePostPage = ({
                       }}
                     >
                       {views}
+                    </Typography>
+                  </Box>
+                )}
+
+                {/* Post Status */}
+                {status && (
+                  <Box display="flex" justifyContent="space-between" alignItems="center">
+                    <Typography 
+                      variant="body2" 
+                      color="text.secondary"
+                      sx={{ 
+                        direction: currentLanguage === 'ar' ? 'rtl' : 'ltr',
+                        fontSize: { xs: '0.9rem', sm: '0.875rem', md: '0.875rem' }
+                      }}
+                    >
+                      {t('postStatus')}:
+                    </Typography>
+                    <Typography 
+                      variant="body2" 
+                      fontWeight={600}
+                      sx={{ 
+                        direction: currentLanguage === 'ar' ? 'rtl' : 'ltr',
+                        color: isDarkMode ? '#ffffff' : '#1a1a1a',
+                        fontSize: { xs: '0.9rem', sm: '0.875rem', md: '0.875rem' }
+                      }}
+                    >
+                      {status}
+                    </Typography>
+                  </Box>
+                )}
+
+                {/* Returned */}
+                {returned !== undefined && (
+                  <Box display="flex" justifyContent="space-between" alignItems="center">
+                    <Typography 
+                      variant="body2" 
+                      color="text.secondary"
+                      sx={{ 
+                        direction: currentLanguage === 'ar' ? 'rtl' : 'ltr',
+                        fontSize: { xs: '0.9rem', sm: '0.875rem', md: '0.875rem' }
+                      }}
+                    >
+                      {t('returned')}:
+                    </Typography>
+                    <Typography 
+                      variant="body2" 
+                      fontWeight={600}
+                      sx={{ 
+                        direction: currentLanguage === 'ar' ? 'rtl' : 'ltr',
+                        color: returned ? theme.palette.success.main : theme.palette.text.secondary,
+                        fontSize: { xs: '0.9rem', sm: '0.875rem', md: '0.875rem' }
+                      }}
+                    >
+                      {returned ? t('yes') : t('no')}
                     </Typography>
                   </Box>
                 )}
