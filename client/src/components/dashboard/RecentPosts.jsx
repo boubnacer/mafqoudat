@@ -33,7 +33,7 @@ import { useState } from "react";
 // Get the API base URL for image construction
 const API_BASE_URL = process.env.REACT_APP_API_URL || "http://localhost:3500";
 
-const RecentPosts = ({ _id, categoryname, exactLocation, image, createdAt, countryLabels, countryname, contact, city, cityLabels, cityName }) => {
+const RecentPosts = ({ _id, categoryname, exactLocation, image, createdAt, countryLabels, countryname, contact, city, cityLabels, cityName, Category }) => {
   const theme = useTheme();
   const navigate = useNavigate();
   const { t, currentLanguage } = useTranslation();
@@ -98,7 +98,12 @@ const RecentPosts = ({ _id, categoryname, exactLocation, image, createdAt, count
 
   // Get category name safely with multilingual support
   const getCategoryDisplayName = (categoryCode) => {
-    // Map category codes to their translated names
+    // First priority: Use the Category object from API aggregation (with labels)
+    if (Category && Category.labels) {
+      return Category.labels[currentLanguage] || Category.labels.en || Category.code || categoryCode;
+    }
+    
+    // Second priority: Use categoryname with hardcoded translations (fallback)
     const categoryTranslations = {
       'ELECTRONICS': {
         en: 'Electronics',
