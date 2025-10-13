@@ -282,129 +282,149 @@ const SinglePostPage = ({
     // Second priority: Use categoryname with hardcoded translations (fallback)
     const categoryTranslations = {
       'ELECTRONICS': {
-        en: 'Electronics',
-        fr: 'Électronique', 
+        en: 'electronics',
+        fr: 'électronique', 
         ar: 'إلكترونيات'
       },
+      'HEADPHONES': {
+        en: 'headphones',
+        fr: 'écouteurs',
+        ar: 'سماعات'
+      },
+      'PHONE': {
+        en: 'phone',
+        fr: 'téléphone',
+        ar: 'هاتف'
+      },
+      'LAPTOP': {
+        en: 'laptop',
+        fr: 'ordinateur portable',
+        ar: 'حاسوب محمول'
+      },
+      'TABLET': {
+        en: 'tablet',
+        fr: 'tablette',
+        ar: 'تابلت'
+      },
       'DOCUMENTS': {
-        en: 'Documents',
-        fr: 'Documents',
+        en: 'documents',
+        fr: 'documents',
         ar: 'وثائق'
       },
       'JEWELRY': {
-        en: 'Jewelry',
-        fr: 'Bijoux',
+        en: 'jewelry',
+        fr: 'bijoux',
         ar: 'مجوهرات'
       },
       'CLOTHING': {
-        en: 'Clothing',
-        fr: 'Vêtements',
+        en: 'clothing',
+        fr: 'vêtements',
         ar: 'ملابس'
       },
       'PETS': {
-        en: 'Pets',
-        fr: 'Animaux',
+        en: 'pets',
+        fr: 'animaux',
         ar: 'حيوانات أليفة'
       },
       'VEHICLES': {
-        en: 'Vehicles',
-        fr: 'Véhicules',
-        ar: 'مركبات'
+        en: 'vehicle',
+        fr: 'véhicule',
+        ar: 'مركبة'
       },
       'KEYS': {
-        en: 'Keys',
-        fr: 'Clés',
+        en: 'keys',
+        fr: 'clés',
         ar: 'مفاتيح'
       },
       'WALLET': {
-        en: 'Wallet',
-        fr: 'Portefeuille',
+        en: 'wallet',
+        fr: 'portefeuille',
         ar: 'محفظة'
       },
       'WATCHES': {
-        en: 'Watches',
-        fr: 'Montres',
-        ar: 'ساعات'
+        en: 'watch',
+        fr: 'montre',
+        ar: 'ساعة'
       },
       'GAMING': {
-        en: 'Gaming',
-        fr: 'Jeux',
+        en: 'gaming',
+        fr: 'jeux',
         ar: 'ألعاب'
       },
       'MEDICAL': {
-        en: 'Medical',
-        fr: 'Médical',
+        en: 'medical',
+        fr: 'médical',
         ar: 'طبي'
       },
       'LUGGAGE': {
-        en: 'Luggage',
-        fr: 'Bagages',
-        ar: 'أمتعة'
+        en: 'bag',
+        fr: 'sac',
+        ar: 'حقيبة'
       },
       'PERSON': {
-        en: 'Person',
-        fr: 'Personne',
+        en: 'person',
+        fr: 'personne',
         ar: 'شخص'
       },
       'SHOPPING': {
-        en: 'Shopping',
-        fr: 'Shopping',
+        en: 'shopping',
+        fr: 'shopping',
         ar: 'تسوق'
       },
       'WORK': {
-        en: 'Work',
-        fr: 'Travail',
+        en: 'work',
+        fr: 'travail',
         ar: 'عمل'
       },
       'SPORTS': {
-        en: 'Sports',
-        fr: 'Sports',
+        en: 'sports',
+        fr: 'sports',
         ar: 'رياضة'
       },
       'MUSIC': {
-        en: 'Music',
-        fr: 'Musique',
+        en: 'music',
+        fr: 'musique',
         ar: 'موسيقى'
       },
       'TOYS': {
-        en: 'Toys',
-        fr: 'Jouets',
+        en: 'toys',
+        fr: 'jouets',
         ar: 'ألعاب'
       },
       'BEAUTY': {
-        en: 'Beauty',
-        fr: 'Beauté',
+        en: 'beauty',
+        fr: 'beauté',
         ar: 'جمال'
       },
       'CAMERA': {
-        en: 'Camera',
-        fr: 'Caméra',
+        en: 'camera',
+        fr: 'caméra',
         ar: 'كاميرا'
       },
       'TOOLS': {
-        en: 'Tools',
-        fr: 'Outils',
+        en: 'tools',
+        fr: 'outils',
         ar: 'أدوات'
       },
       'GARDEN': {
-        en: 'Garden',
-        fr: 'Jardin',
+        en: 'garden',
+        fr: 'jardin',
         ar: 'حديقة'
       },
       'HOME': {
-        en: 'Home',
-        fr: 'Maison',
+        en: 'home',
+        fr: 'maison',
         ar: 'منزل'
       },
       'FOOD': {
-        en: 'Food',
-        fr: 'Nourriture',
+        en: 'food',
+        fr: 'nourriture',
         ar: 'طعام'
       },
       'OTHER': {
-        en: 'Other',
-        fr: 'Autre',
-        ar: 'أخرى'
+        en: 'item',
+        fr: 'article',
+        ar: 'عنصر'
       }
     };
     
