@@ -895,8 +895,8 @@ const SinglePostPage = ({
                     }}
                   >
                     {foundLostStatus.isFound 
-                      ? t('doYouThinkThisItemIsYours').replace(/item|article|العنصر/g, categoryDisplayName)
-                      : t('didYouFindThisItem').replace(/item|article|العنصر/g, categoryDisplayName)
+                      ? t('doYouThinkThisItemIsYours')
+                      : t('didYouFindThisItem')
                     }
                   </Typography>
                 </Box>
@@ -912,8 +912,8 @@ const SinglePostPage = ({
                   }}
                 >
                   {foundLostStatus.isFound 
-                    ? t('ifYouLostThisItem').replace(/item|article|العنصر/g, categoryDisplayName)
-                    : t('ifYouFoundThisItem').replace(/item|article|العنصر/g, categoryDisplayName)
+                    ? t('ifYouLostThisItem')
+                    : t('ifYouFoundThisItem')
                   }
                 </Typography>
 
