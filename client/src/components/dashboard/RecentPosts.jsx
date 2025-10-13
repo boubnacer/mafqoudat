@@ -98,85 +98,12 @@ const RecentPosts = ({ _id, categoryname, exactLocation, image, createdAt, count
 
   // Get category name safely with multilingual support
   const getCategoryDisplayName = (categoryCode) => {
-    
     // First priority: Use the Category object from API aggregation (with labels)
     if (Category && Category.labels) {
       return Category.labels[currentLanguage] || Category.labels.en || Category.code || categoryCode;
     }
     
-    // Second priority: Use categoryname with hardcoded translations (fallback)
-    const categoryTranslations = {
-      'ELECTRONICS': {
-        en: 'Electronics',
-        fr: 'Électronique', 
-        ar: 'إلكترونيات'
-      },
-      'DOCUMENTS': {
-        en: 'Documents',
-        fr: 'Documents',
-        ar: 'وثائق'
-      },
-      'JEWELRY': {
-        en: 'Jewelry',
-        fr: 'Bijoux',
-        ar: 'مجوهرات'
-      },
-      'CLOTHING': {
-        en: 'Clothing',
-        fr: 'Vêtements',
-        ar: 'ملابس'
-      },
-      'PETS': {
-        en: 'Pets',
-        fr: 'Animaux',
-        ar: 'حيوانات أليفة'
-      },
-      'VEHICLES': {
-        en: 'Vehicles',
-        fr: 'Véhicules',
-        ar: 'مركبات'
-      },
-      'KEYS': {
-        en: 'Keys',
-        fr: 'Clés',
-        ar: 'مفاتيح'
-      },
-      'WALLET': {
-        en: 'Wallet',
-        fr: 'Portefeuille',
-        ar: 'محفظة'
-      },
-      'WATCHES': {
-        en: 'Watches',
-        fr: 'Montres',
-        ar: 'ساعات'
-      },
-      'GAMING': {
-        en: 'Gaming',
-        fr: 'Jeux',
-        ar: 'ألعاب'
-      },
-      'MEDICAL': {
-        en: 'Medical',
-        fr: 'Médical',
-        ar: 'طبي'
-      },
-      'LUGGAGE': {
-        en: 'Luggage',
-        fr: 'Bagages',
-        ar: 'أمتعة'
-      },
-      'OTHER': {
-        en: 'Other',
-        fr: 'Autre',
-        ar: 'أخرى'
-      }
-    };
-    
-    const translations = categoryTranslations[categoryCode];
-    if (translations) {
-      return translations[currentLanguage] || translations.en || categoryCode;
-    }
+    // Last fallback: return the original categoryCode or unknown
     return categoryCode || t('unknownCategory');
   };
 
