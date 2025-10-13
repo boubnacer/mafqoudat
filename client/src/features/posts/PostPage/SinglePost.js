@@ -11,7 +11,7 @@ const SinglePost = () => {
   const { id } = useParams();
   const { t, currentLanguage } = useTranslation();
 
-  const { data: post, isLoading, isError, error } = useGetPostQuery({
+  const { data: post, isLoading, isError, error, refetch } = useGetPostQuery({
     postId: id,
     language: currentLanguage
   });
@@ -58,7 +58,7 @@ const SinglePost = () => {
     foundLostLabel: post.foundLostLabel || null
   };
 
-  return <SinglePostPage {...sanitizedPost} />;
+  return <SinglePostPage {...sanitizedPost} refetchPost={refetch} />;
 };
 
 export default SinglePost;

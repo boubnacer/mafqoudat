@@ -97,7 +97,9 @@ const SinglePostPage = ({
   // Category object from aggregation
   Category,
   // API transformation fields
-  foundLostLabel
+  foundLostLabel,
+  // Refetch function
+  refetchPost
 }) => {
   const navigate = useNavigate();
   const theme = useTheme();
@@ -213,10 +215,15 @@ const SinglePostPage = ({
     setShowSuccessMessage(true);
     setTimeout(() => {
       setShowSuccessMessage(false);
-      // Optionally refresh the page or update the post status
-      window.location.reload();
+      // Refetch the post data to get updated returned status
+      if (refetchPost) {
+        refetchPost();
+      } else {
+        // Fallback to page reload if refetch is not available
+        window.location.reload();
+      }
     }, 2000);
-  }, [t]);
+  }, [t, refetchPost]);
 
   // Memoized computed values
   const locale = useMemo(() => {
