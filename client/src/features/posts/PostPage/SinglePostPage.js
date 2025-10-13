@@ -1023,8 +1023,8 @@ const SinglePostPage = ({
                     }}
                   >
                     {foundLostStatus.isFound 
-                      ? t('doYouThinkThisItemIsYours').replace('item', categoryDisplayName.toLowerCase())
-                      : t('didYouFindThisItem').replace('item', categoryDisplayName.toLowerCase())
+                      ? t('doYouThinkThisItemIsYours').replace(/item|article|العنصر/g, categoryDisplayName.toLowerCase())
+                      : t('didYouFindThisItem').replace(/item|article|العنصر/g, categoryDisplayName.toLowerCase())
                     }
                   </Typography>
                 </Box>
@@ -1040,8 +1040,8 @@ const SinglePostPage = ({
                   }}
                 >
                   {foundLostStatus.isFound 
-                    ? t('ifYouLostThisItem').replace('item', categoryDisplayName.toLowerCase())
-                    : t('ifYouFoundThisItem').replace('item', categoryDisplayName.toLowerCase())
+                    ? t('ifYouLostThisItem').replace(/item|article|العنصر/g, categoryDisplayName.toLowerCase())
+                    : t('ifYouFoundThisItem').replace(/item|article|العنصر/g, categoryDisplayName.toLowerCase())
                   }
                 </Typography>
 
