@@ -29,7 +29,7 @@ const API_BASE_URL = process.env.REACT_APP_API_URL || "http://localhost:3500";
 const TrendingItem = ({ trend, isLoading }) => {
   // Handle both array and single object formats
   const trendData = Array.isArray(trend) ? trend[0] : trend;
-  const { _id, categoryname, floptionName, image, createdAt, countryLabels, countryname, city, cityLabels, cityName, Floptions } = trendData || {};
+  const { _id, categoryname, floptionName, image, createdAt, countryLabels, countryname, city, cityLabels, cityName, Floptions, Category } = trendData || {};
   const theme = useTheme();
   const isMobile = useMediaQuery(theme.breakpoints.down('sm'));
   const isTablet = useMediaQuery(theme.breakpoints.down('md'));
@@ -58,7 +58,12 @@ const TrendingItem = ({ trend, isLoading }) => {
 
   // Get category name safely with multilingual support (same as PostsList)
   const categoryDisplayName = useMemo(() => {
-    // Map category codes to their translated names
+    // First priority: Use the Category object from API aggregation (with labels)
+    if (Category && Category.labels) {
+      return Category.labels[currentLanguage] || Category.labels.en || Category.code || categoryname;
+    }
+    
+    // Second priority: Use categoryname with hardcoded translations (fallback)
     const categoryTranslations = {
       'ELECTRONICS': {
         en: 'Electronics',
@@ -132,7 +137,7 @@ const TrendingItem = ({ trend, isLoading }) => {
       return translations[currentLanguage] || translations.en || categoryname;
     }
     return categoryname || t('unknownCategory');
-  }, [categoryname, currentLanguage, t]);
+  }, [Category, categoryname, currentLanguage, t]);
 
   // Get category colors using centralized configuration (same as RecentPosts)
   const getCategoryColors = (category) => {

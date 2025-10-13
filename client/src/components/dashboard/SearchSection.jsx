@@ -27,7 +27,7 @@ const SearchSection = ({
   handleCreateNewPost
 }) => {
   const navigate = useNavigate();
-  const { t } = useTranslation();
+  const { t, currentLanguage } = useTranslation();
 
   return (
     <>
@@ -94,7 +94,9 @@ const SearchSection = ({
                         fallback={noImageSvg}
                       />
                       <CardContent>
-                        <Typography variant="h6">{post.categoryname}</Typography>
+                        <Typography variant="h6">
+                          {post.Category?.labels?.[currentLanguage] || post.Category?.labels?.en || post.categoryname}
+                        </Typography>
                         <Typography variant="body2" color="text.secondary">
                           {post.region}
                         </Typography>
