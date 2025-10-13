@@ -267,12 +267,6 @@ const SinglePostPage = ({
 
   // Memoized category display name computation
   const categoryDisplayName = useMemo(() => {
-    // Debug: Log the Category object structure
-    if (process.env.NODE_ENV === 'development') {
-      console.log('SinglePostPage - Category object:', Category);
-      console.log('SinglePostPage - categoryname:', categoryname);
-      console.log('SinglePostPage - currentLanguage:', currentLanguage);
-    }
     
     // First priority: Use the Category object from API aggregation (with labels)
     if (Category && Category.labels) {

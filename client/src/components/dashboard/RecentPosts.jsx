@@ -98,12 +98,6 @@ const RecentPosts = ({ _id, categoryname, exactLocation, image, createdAt, count
 
   // Get category name safely with multilingual support
   const getCategoryDisplayName = (categoryCode) => {
-    // Debug: Log the Category object structure
-    if (process.env.NODE_ENV === 'development') {
-      console.log('RecentPosts - Category object:', Category);
-      console.log('RecentPosts - categoryname:', categoryCode);
-      console.log('RecentPosts - currentLanguage:', currentLanguage);
-    }
     
     // First priority: Use the Category object from API aggregation (with labels)
     if (Category && Category.labels) {
