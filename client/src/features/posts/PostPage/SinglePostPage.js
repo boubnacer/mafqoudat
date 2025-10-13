@@ -943,6 +943,30 @@ const SinglePostPage = ({
         {/* Sidebar */}
         <Grid item xs={12} lg={4}>
           <Box sx={{ position: 'sticky', top: '2rem' }}>
+            {/* Debug Info - Remove this after testing */}
+            {process.env.NODE_ENV === 'development' && (
+              <Paper sx={{ p: 2, mb: 2, backgroundColor: '#f0f0f0' }}>
+                <Typography variant="caption" display="block">
+                  Debug Info:
+                </Typography>
+                <Typography variant="caption" display="block">
+                  isAuthenticated: {String(isAuthenticated)}
+                </Typography>
+                <Typography variant="caption" display="block">
+                  usernameId: {String(usernameId)}
+                </Typography>
+                <Typography variant="caption" display="block">
+                  user: {String(user)}
+                </Typography>
+                <Typography variant="caption" display="block">
+                  returned: {String(returned)}
+                </Typography>
+                <Typography variant="caption" display="block">
+                  Should show claim: {String(isAuthenticated && usernameId && usernameId !== user && !returned)}
+                </Typography>
+              </Paper>
+            )}
+
             {/* Claim Item Section - Only show for authenticated users who are NOT the post owner */}
             {isAuthenticated && usernameId && usernameId !== user && !returned && (
               <Paper 
