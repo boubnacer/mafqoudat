@@ -118,12 +118,12 @@ const Post = ({ post, viewMode = "grid" }) => {
 
   // Memoized category display name computation
   const categoryName = useMemo(() => {
-    // Check if categoryname exists
-    if (!post?.categoryname) {
-      return t('unknownCategory');
+    // First priority: Use the Category object from API aggregation (with labels)
+    if (post?.Category && post.Category.labels) {
+      return post.Category.labels[currentLanguage] || post.Category.labels.en || post.Category.code || post?.categoryname;
     }
     
-    // Map category codes to their translated names
+    // Second priority: Use categoryname with hardcoded translations (fallback)
     const categoryTranslations = {
       'ELECTRONICS': {
         en: 'Electronics',
@@ -192,12 +192,12 @@ const Post = ({ post, viewMode = "grid" }) => {
       }
     };
     
-    const translations = categoryTranslations[post.categoryname];
+    const translations = categoryTranslations[post?.categoryname];
     if (translations) {
-      return translations[currentLanguage] || translations.en || post.categoryname;
+      return translations[currentLanguage] || translations.en || post?.categoryname;
     }
-    return post.categoryname || t('unknownCategory');
-  }, [post?.categoryname, currentLanguage, t]);
+    return post?.categoryname || t('unknownCategory');
+  }, [post?.Category, post?.categoryname, currentLanguage, t]);
 
   // Memoized category colors computation
   const categoryStyle = useMemo(() => {
