@@ -503,10 +503,10 @@ export const translations = {
     noPhoneNumber: "No phone number provided",
     
     // Claim Item Dialog translations
-    doYouThinkThisItemIsYours: "Do you think this belongs to you?",
-    ifYouLostThisItem: "If you've lost this and believe it's yours, click below to view contact details and claim it.",
-    didYouFindThisItem: "Did you find this?",
-    ifYouFoundThisItem: "If you've found this and want to help return it, click below to view contact details.",
+    doYouThinkThisItemIsYours: "Do you think this item belongs to you?",
+    ifYouLostThisItem: "If you've lost this item and believe it's yours, click below to view contact details and claim it.",
+    didYouFindThisItem: "Did you find this item?",
+    ifYouFoundThisItem: "If you've found this item and want to help return it, click below to view contact details.",
     yesThisIsMyItem: "Yes, This Is My Item!",
     yesIFoundThisItem: "Yes, I Found This Item!",
     wonderfulNews: "Wonderful News! 🎉",
@@ -1467,10 +1467,10 @@ export const translations = {
     noPhoneNumber: "Aucun numéro de téléphone fourni",
     
     // Claim Item Dialog translations
-    doYouThinkThisItemIsYours: "Pensez-vous que ceci vous appartient ?",
-    ifYouLostThisItem: "Si vous avez perdu ceci et pensez que c'est à vous, cliquez ci-dessous pour voir les coordonnées et le réclamer.",
-    didYouFindThisItem: "Avez-vous trouvé ceci ?",
-    ifYouFoundThisItem: "Si vous avez trouvé ceci et souhaitez aider à le retourner, cliquez ci-dessous pour voir les coordonnées.",
+    doYouThinkThisItemIsYours: "Pensez-vous que cet article vous appartient ?",
+    ifYouLostThisItem: "Si vous avez perdu cet article et pensez qu'il est à vous, cliquez ci-dessous pour voir les coordonnées et le réclamer.",
+    didYouFindThisItem: "Avez-vous trouvé cet article ?",
+    ifYouFoundThisItem: "Si vous avez trouvé cet article et souhaitez aider à le retourner, cliquez ci-dessous pour voir les coordonnées.",
     yesThisIsMyItem: "Oui, c'est mon article !",
     yesIFoundThisItem: "Oui, j'ai trouvé cet article !",
     wonderfulNews: "Merveilleuse nouvelle ! 🎉",
@@ -2395,10 +2395,10 @@ export const translations = {
     noPhoneNumber: "لم يتم توفير رقم هاتف",
     
     // Claim Item Dialog translations
-    doYouThinkThisItemIsYours: "هل تعتقد أن هذا يخصك؟",
-    ifYouLostThisItem: "إذا فقدت هذا وتعتقد أنه ملكك، انقر أدناه لعرض تفاصيل الاتصال والمطالبة به.",
-    didYouFindThisItem: "هل وجدت هذا؟",
-    ifYouFoundThisItem: "إذا وجدت هذا وتريد المساعدة في إعادته، انقر أدناه لعرض تفاصيل الاتصال.",
+    doYouThinkThisItemIsYours: "هل تعتقد أن هذا العنصر يخصك؟",
+    ifYouLostThisItem: "إذا فقدت هذا العنصر وتعتقد أنه ملكك، انقر أدناه لعرض تفاصيل الاتصال والمطالبة به.",
+    didYouFindThisItem: "هل وجدت هذا العنصر؟",
+    ifYouFoundThisItem: "إذا وجدت هذا العنصر وتريد المساعدة في إعادته، انقر أدناه لعرض تفاصيل الاتصال.",
     yesThisIsMyItem: "نعم، هذا عنصري!",
     yesIFoundThisItem: "نعم، وجدت هذا العنصر!",
     wonderfulNews: "أخبار رائعة! 🎉",
