@@ -10,6 +10,7 @@ import {
   LocationOn,
 } from "@mui/icons-material";
 import useAuth from "../../hooks/useAuth";
+import useCountryName from "../../hooks/useCountryName";
 import "./footer.css";
 import { authStorage } from "../../utils/authStorage";
 import { useTranslation } from "../../utils/translations";
@@ -41,6 +42,9 @@ const DashFooter = () => {
   const { t, currentLanguage } = useTranslation();
   const isMobile = useMediaQuery(theme.breakpoints.down('sm'));
   const isRTLMode = isRTL();
+  
+  // Resolve country ID to country name
+  const { countryName, isLoading: isCountryLoading } = useCountryName(country);
 
   const onCreatePostClicked = () => {
     if (!username) {
@@ -404,7 +408,7 @@ const DashFooter = () => {
                 <LocationOn color="primary" />
               </ListItemIcon>
               <ListItemText 
-                primary={country || t('yourLocation')}
+                primary={isCountryLoading ? t('loadingCountries') : (countryName || t('yourLocation'))}
                 secondary={t('currentRegion')}
                 sx={{ 
                   '& .MuiListItemText-primary': { fontSize: { xs: '16px', sm: '14px' } },
