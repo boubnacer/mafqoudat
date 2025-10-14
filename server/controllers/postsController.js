@@ -373,6 +373,8 @@ const getPost = async (req, res) => {
           foundLost: 1,
           description: 1,
           contactPreferences: 1,
+          mainDate: 1,
+          exactDate: 1,
         },
       },
     ]);
