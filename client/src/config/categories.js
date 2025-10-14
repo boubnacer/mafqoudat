@@ -20,7 +20,6 @@ import {
 } from '@mui/icons-material';
 
 import DiamondOutlinedIcon from '@mui/icons-material/DiamondOutlined';
-import BusinessCenterOutlinedIcon from '@mui/icons-material/BusinessCenterOutlined';
 
 // Category configuration with Material UI icons - Optimized for Lost & Found
 export const CATEGORY_CONFIG = {
