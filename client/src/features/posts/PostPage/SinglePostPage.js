@@ -974,7 +974,7 @@ const SinglePostPage = ({
                           textAlign: currentLanguage === 'ar' ? 'right' : 'left'
                         }}
                       >
-                        {mainDate && mainDate.trim() ? mainDate : t('noDateProvided')}
+                        {mainDate && mainDate.trim() ? mainDate : (exactDate ? new Date(exactDate).toLocaleDateString() : t('noDateProvided'))}
                       </Typography>
                     </Box>
 
