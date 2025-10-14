@@ -210,7 +210,6 @@ const validationSets = {
       console.log('🔍 Found/Lost:', postData.foundLost);
       console.log('📞 Contact:', postData.contact);
       console.log('📍 Exact Location:', postData.exactLocation);
-      console.log('📅 Exact Date:', postData.exactDate);
       
       if (!postData.user) {
         console.log('❌ Validation failed: User ID is required');
@@ -235,10 +234,6 @@ const validationSets = {
       if (!postData.exactLocation) {
         console.log('❌ Validation failed: Exact location is required');
         throw new Error('Exact location is required');
-      }
-      if (!postData.exactDate) {
-        console.log('❌ Validation failed: Exact date is required');
-        throw new Error('Exact date is required');
       }
       
       // Validate field formats
@@ -268,7 +263,6 @@ const validationSets = {
         throw new Error('Description must be less than 2000 characters');
       }
       
-      // Note: exactDate validation is flexible - can be string or Date
       // The controller will handle date parsing
       
       // Store parsed data for controller to use

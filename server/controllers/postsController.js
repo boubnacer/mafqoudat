@@ -374,7 +374,6 @@ const getPost = async (req, res) => {
           description: 1,
           contactPreferences: 1,
           mainDate: 1,
-          exactDate: 1,
         },
       },
     ]);
@@ -730,7 +729,6 @@ const getUserPosts = async (req, res) => {
           contact: 1,
           description: 1,
           image: 1,
-          exactDate: 1,
           createdAt: 1,
           updatedAt: 1,
           returned: 1,
@@ -830,7 +828,7 @@ const createNewPost = async (req, res) => {
   
   try {
     // Use parsed data from validation middleware if available, otherwise parse from req.body
-    let postData, user, country, category, contact, foundLost, city, cityData, exactLocation, exactDate, description, contactPreferences;
+    let postData, user, country, category, contact, foundLost, city, cityData, exactLocation, description, contactPreferences;
     
     if (req.parsedPostData) {
       // Use data parsed by validation middleware
@@ -843,7 +841,6 @@ const createNewPost = async (req, res) => {
       city = postData.city;
       cityData = postData.cityData;
       exactLocation = postData.exactLocation;
-      exactDate = postData.exactDate;
       description = postData.description;
       contactPreferences = postData.contactPreferences;
     } else if (req.body.postData) {
@@ -857,7 +854,6 @@ const createNewPost = async (req, res) => {
       city = postData.city;
       cityData = postData.cityData;
       exactLocation = postData.exactLocation;
-      exactDate = postData.exactDate;
       description = postData.description;
       contactPreferences = postData.contactPreferences;
     } else {
@@ -870,7 +866,6 @@ const createNewPost = async (req, res) => {
       city = req.body.city;
       cityData = req.body.cityData;
       exactLocation = req.body.exactLocation;
-      exactDate = req.body.exactDate;
       description = req.body.description;
       contactPreferences = req.body.contactPreferences;
     }
@@ -884,8 +879,7 @@ const createNewPost = async (req, res) => {
        contact: !!contact,
        country: !!country,
        foundLost: !!foundLost,
-       exactLocation: !!exactLocation,
-       exactDate: !!exactDate
+       exactLocation: !!exactLocation
      };
      
      const missingFields = Object.entries(requiredFields)
@@ -1061,8 +1055,7 @@ const createNewPost = async (req, res) => {
     contact,
     foundLost,
     exactLocation,
-    exactDate: new Date(exactDate),
-    mainDate: exactDate, // Store original date string for display purposes
+    mainDate: exactLocation, // Store original date string for display purposes
     description: description || "",
     contactPreferences: contactPreferences || { whatsapp: true, phone: true, email: false },
   };
@@ -1277,7 +1270,6 @@ const updatePost = async (req, res) => {
     city,
     cityData,
     exactLocation,
-    exactDate,
     contact,
     returned,
     foundLost,
@@ -1296,7 +1288,6 @@ const updatePost = async (req, res) => {
   console.log('  - user:', user, 'exists:', !!user);
   console.log('  - category:', category, 'exists:', !!category);
   console.log('  - exactLocation:', exactLocation, 'exists:', !!exactLocation);
-  console.log('  - exactDate:', exactDate, 'exists:', !!exactDate);
   console.log('  - country:', country, 'exists:', !!country);
   console.log('  - contact:', contact, 'exists:', !!contact);
   console.log('  - foundLost:', foundLost, 'exists:', !!foundLost);
@@ -1307,7 +1298,6 @@ const updatePost = async (req, res) => {
     !user ||
     !category ||
     !exactLocation ||
-    !exactDate ||
     !country ||
     !contact ||
     !foundLost ||
@@ -1353,7 +1343,7 @@ const updatePost = async (req, res) => {
 
   // Confirm post exists to update - only select fields needed for update
   // console.log('🔍 UPDATE POST SERVER - Looking for post with ID:', id);
-  const post = await Post.findById(id).select('_id user country category city exactLocation exactDate contact returned foundLost description').exec();
+  const post = await Post.findById(id).select('_id user country category city exactLocation contact returned foundLost description').exec();
   // console.log('🔍 UPDATE POST SERVER - Post found:', !!post);
   
   if (!post) {
@@ -1413,8 +1403,6 @@ const updatePost = async (req, res) => {
     }
   }
   post.exactLocation = exactLocation;
-  // console.log('🔍 UPDATE POST SERVER - Setting exactDate to:', exactDate);
-  post.exactDate = exactDate;
   post.contact = contact;
   post.returned = returned;
   post.foundLost = foundLost;

@@ -61,7 +61,6 @@ const seedTestPosts = async () => {
         contact: 'test@mafqoudat.com',
         description: 'Found a smartphone in Casablanca. Black iPhone with a cracked screen. Please contact if this is yours.',
         image: 'https://res.cloudinary.com/du0tmvxhu/image/upload/v1/sample.jpg',
-        exactDate: new Date('2024-01-15'),
         returned: false
       },
       {
@@ -72,7 +71,6 @@ const seedTestPosts = async () => {
         exactLocation: 'Rabat, Morocco',
         contact: 'test@mafqoudat.com',
         description: 'Lost my passport in Rabat. It has a blue cover and was issued in 2023. Please contact if found.',
-        exactDate: new Date('2024-01-14'),
         returned: false
       },
       {
@@ -84,7 +82,6 @@ const seedTestPosts = async () => {
         contact: 'test@mafqoudat.com',
         description: 'Found a gold ring in Marrakech souk. Beautiful traditional design. Please contact if this belongs to you.',
         image: 'https://res.cloudinary.com/du0tmvxhu/image/upload/v1/sample2.jpg',
-        exactDate: new Date('2024-01-13'),
         returned: false
       },
       {
@@ -95,7 +92,6 @@ const seedTestPosts = async () => {
         exactLocation: 'Algiers, Algeria',
         contact: 'test@mafqoudat.com',
         description: 'Lost my jacket in Algiers. It\'s a black leather jacket with silver zippers. Please contact if found.',
-        exactDate: new Date('2024-01-12'),
         returned: false
       },
       {
@@ -107,7 +103,6 @@ const seedTestPosts = async () => {
         contact: 'test@mafqoudat.com',
         description: 'Found a friendly cat in Tunis. Orange tabby with white paws. Please contact if this is your pet.',
         image: 'https://res.cloudinary.com/du0tmvxhu/image/upload/v1/sample3.jpg',
-        exactDate: new Date('2024-01-11'),
         returned: false
       }
     ];

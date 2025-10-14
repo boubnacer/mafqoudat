@@ -70,11 +70,6 @@ async function createIndexes() {
     );
     console.log('✅ Created index: returned_status_createdAt');
 
-    await db.collection('posts').createIndex(
-      { exactDate: -1, status: 1 },
-      { background: true, name: 'exactDate_status' }
-    );
-    console.log('✅ Created index: exactDate_status');
 
     await db.collection('posts').createIndex(
       { views: -1, status: 1 },

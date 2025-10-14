@@ -782,7 +782,7 @@ const getAllPostsAdmin = async (req, res) => {
       .populate('country', 'labels names code')
       .populate('city', 'labels')
       .populate('foundLost', 'code')
-      .select('_id description exactLocation contact createdAt updatedAt status returned image cloudinaryUrl mainDate exactDate promotionRequested promotionProcessed views')
+      .select('_id description exactLocation contact createdAt updatedAt status returned image cloudinaryUrl mainDate promotionRequested promotionProcessed views')
       .sort({ [sortBy]: sortOrder })
       .skip(skip)
       .limit(limit)

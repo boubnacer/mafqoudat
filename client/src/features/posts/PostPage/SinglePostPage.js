@@ -82,7 +82,6 @@ const SinglePostPage = ({
   titleLabels,
   descriptionLabels,
   mainDate,
-  exactDate,
   views,
   lastViewedAt,
   status,
@@ -974,7 +973,7 @@ const SinglePostPage = ({
                           textAlign: currentLanguage === 'ar' ? 'right' : 'left'
                         }}
                       >
-                        {mainDate && mainDate.trim() ? mainDate : (exactDate ? new Date(exactDate).toLocaleDateString() : t('noDateProvided'))}
+                        {mainDate && mainDate.trim() ? mainDate : t('noDateProvided')}
                       </Typography>
                     </Box>
 
@@ -1656,7 +1655,6 @@ const SinglePostPage = ({
           titleLabels,
           descriptionLabels,
           mainDate,
-          exactDate,
           views,
           lastViewedAt,
           status,

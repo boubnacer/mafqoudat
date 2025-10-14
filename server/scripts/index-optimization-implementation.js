@@ -38,7 +38,6 @@ async function implementIndexOptimization() {
     
     const postIndexesToRemove = [
       'status_1_createdAt_-1',           // Redundant with country + status + createdAt
-      'exactDate_-1_status_1',           // Rarely used
       'views_-1_status_1',               // Low usage pattern
       'promotionRequested_1_promotionProcessed_1_status_1', // Admin-only, low volume
       'city_1_status_1_createdAt_-1'     // Redundant with country + city + status + createdAt

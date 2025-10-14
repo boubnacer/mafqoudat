@@ -288,8 +288,8 @@ const PostDetailsDialog = ({
             </Typography>
           </Grid>
 
-          {/* Exact Date (when item was lost/found) */}
-          {post.exactDate && (
+          {/* Main Date (when item was lost/found) */}
+          {post.mainDate && (
             <Grid item xs={12} sm={6}>
               <Box display="flex" alignItems="center" gap={1} mb={1}>
                 <Label sx={{ color: theme.palette.primary.main }} />
@@ -298,7 +298,7 @@ const PostDetailsDialog = ({
                 </Typography>
               </Box>
               <Typography variant="body1">
-                {new Date(post.exactDate).toLocaleDateString()}
+                {post.mainDate}
               </Typography>
             </Grid>
           )}
