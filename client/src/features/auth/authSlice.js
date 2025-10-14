@@ -8,14 +8,7 @@ const DEBUG_AUTH = false;
 
 // Debug logging function
 const debugLog = (message, data = null) => {
-  if (DEBUG_AUTH) {
-    const timestamp = new Date().toISOString();
-    if (data) {
-      console.log(`🔍 [AUTH-SLICE] ${message}`, { timestamp, ...data });
-    } else {
-      console.log(`🔍 [AUTH-SLICE] ${message} - ${timestamp}`);
-    }
-  }
+  // Debug logging disabled for production
 };
 
 // Helper function to extract user data from token
@@ -37,7 +30,6 @@ const extractUserFromToken = (token) => {
     
     return null;
   } catch (error) {
-    console.error('Error extracting user from token:', error);
     return null;
   }
 };

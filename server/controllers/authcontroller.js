@@ -29,7 +29,6 @@ const login = async (req, res) => {
     ]
   };
   
-  console.log('Searching with query:', JSON.stringify(searchQuery, null, 2));
   
   let foundUser;
   try {
@@ -56,7 +55,7 @@ const login = async (req, res) => {
 
   // Check if user is an OAuth user (e.g., Google Sign-In)
   if (foundUser.authProvider === 'google') {
-    throw createAuthError('OAUTH_USER', "This account uses Google Sign-In. Please use the 'Continue with Google' button.", {
+    throw createAuthError('OAUTH_USER', "OAUTH_LOGIN_ATTEMPT", {
       username: foundUser.username,
       authProvider: foundUser.authProvider,
       ip: req.ip,

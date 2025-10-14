@@ -42,7 +42,7 @@ const { enhancedCompressionMiddleware } = require("./middleware/enhancedCompress
 const { memoryOptimizer } = require("./utils/memoryOptimizer");
 const PORT = process.env.PORT || 3500;
 
-console.log(process.env.NODE_ENV);
+// Environment: process.env.NODE_ENV
 
 // Suppress deprecation warnings in production
 if (process.env.NODE_ENV === 'production') {
@@ -74,8 +74,7 @@ const gracefulShutdown = async (signal) => {
     // Stop database monitoring
     dbMonitor.stopMonitoring();
     
-    // Log final connection metrics
-    console.log('📊 Final Connection Metrics:', getConnectionMetrics());
+    // Final connection metrics logged
     
     // Close database connection gracefully
     await disconnectDB();
@@ -196,20 +195,12 @@ app.use("/api/system", require("./routes/systemRoutes"));
 
 // Request logger middleware - logs ALL requests
 app.use((req, res, next) => {
-  if (req.path.includes('/password-reset')) {
-    console.log('\n🔍 INCOMING REQUEST:');
-    console.log('Method:', req.method);
-    console.log('Path:', req.path);
-    console.log('URL:', req.url);
-    console.log('Original URL:', req.originalUrl);
-    console.log('Headers:', JSON.stringify(req.headers, null, 2));
-    console.log('Body:', JSON.stringify(req.body, null, 2));
-  }
+  // Password reset request logging disabled for production
   next();
 });
 
 // Password reset routes - logging to verify it's loaded
-console.log('📧 Loading password reset routes at /api/password-reset');
+// Password reset routes loaded
 app.use("/api/password-reset", require("./routes/passwordResetRoutes"));
 
 app.use("/cost-monitoring", require("./routes/costMonitoringRoutes"));
@@ -318,9 +309,6 @@ app.get("/health", (req, res) => {
 
 // Test endpoint for debugging
 app.post("/test-post", (req, res) => {
-  console.log('Test POST endpoint called');
-  console.log('Request body:', req.body);
-  console.log('Request headers:', req.headers);
   res.status(200).json({ 
     message: "Test endpoint working",
     body: req.body,
@@ -330,8 +318,6 @@ app.post("/test-post", (req, res) => {
 
 // Specific test for /api/* routes
 app.post("/api/test", (req, res) => {
-  console.log('🧪 API Test POST endpoint called');
-  console.log('Body:', req.body);
   res.status(200).json({ 
     message: "API POST route working",
     body: req.body,

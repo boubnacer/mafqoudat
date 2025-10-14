@@ -978,52 +978,6 @@ const SinglePostPage = ({
                       </Typography>
                     </Box>
 
-                    {/* Exact Date - formatted properly */}
-                    {exactDate && (
-                      <Box display="flex" 
-                           sx={{ 
-                             flexDirection: { xs: 'column', sm: 'row' }, 
-                             gap: { xs: 0.5, sm: 2 },
-                             alignItems: { xs: 'flex-start', sm: 'flex-start' }
-                           }}>
-                        <Typography 
-                          variant="body2" 
-                          color="text.secondary"
-                          sx={{ 
-                            direction: currentLanguage === 'ar' ? 'rtl' : 'ltr',
-                            fontSize: '0.875rem',
-                            minWidth: { xs: 'auto', sm: '120px' },
-                            fontWeight: 500,
-                            flexShrink: 0
-                          }}
-                        >
-                          {t('exactDate')}:
-                        </Typography>
-                        <Typography 
-                          variant="body2" 
-                          fontWeight={600}
-                          sx={{ 
-                            direction: currentLanguage === 'ar' ? 'rtl' : 'ltr',
-                            color: isDarkMode ? '#ffffff' : '#1a1a1a',
-                            fontSize: '0.875rem',
-                            textAlign: currentLanguage === 'ar' ? 'right' : 'left'
-                          }}
-                        >
-                          {new Date(exactDate).toLocaleDateString(
-                            currentLanguage === 'ar' ? 'ar-SA' : 
-                            currentLanguage === 'fr' ? 'fr-FR' : 
-                            'en-US',
-                            {
-                              year: 'numeric',
-                              month: 'long',
-                              day: 'numeric',
-                              hour: '2-digit',
-                              minute: '2-digit'
-                            }
-                          )}
-                        </Typography>
-                      </Box>
-                    )}
 
                     {/* Tags - if available */}
                     {tags && tags.length > 0 && (

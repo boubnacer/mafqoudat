@@ -41,7 +41,6 @@ export const LanguageProvider = ({ children }) => {
 
   const setLanguage = (language) => {
     try {
-      console.log('🌐 [LANGUAGE-CONTEXT] setLanguage called:', { language, currentUrl: window.location.href });
       if (['en', 'ar', 'fr'].includes(language)) {
         
         // Use centralized language storage utility (no page refresh)
@@ -54,7 +53,6 @@ export const LanguageProvider = ({ children }) => {
           // Trigger RTK Query refetch for all language-dependent queries
           handleLanguageRefetch(language);
           
-          console.log('🌐 [LANGUAGE-CONTEXT] Language changed successfully:', language);
         }
         
         return success;
@@ -88,10 +86,9 @@ export const LanguageProvider = ({ children }) => {
     try {
       const migrationResult = migrateLanguageStorage();
       if (migrationResult.success) {
-        console.log('✅ Language storage migration completed:', migrationResult);
       }
     } catch (error) {
-      console.error('Language migration error (non-fatal):', error);
+      // Language migration error (non-fatal)
     }
     
     // Load language from localStorage on mount
@@ -119,13 +116,11 @@ export const LanguageProvider = ({ children }) => {
 
     // Listen for language change events (smooth switching)
     const handleLanguageChanged = (event) => {
-      console.log('🌐 [LANGUAGE-CONTEXT] Language change event received:', event.detail);
       
       // Update context state
       setCurrentLanguage(prev => {
         const newLang = languageStorage.getCurrentLanguage();
         if (prev !== newLang) {
-          console.log('🌐 [LANGUAGE-CONTEXT] Language changed from', prev, 'to', newLang);
           return newLang;
         }
         return prev;
