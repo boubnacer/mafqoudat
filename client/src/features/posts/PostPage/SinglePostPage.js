@@ -939,7 +939,7 @@ const SinglePostPage = ({
                           textAlign: currentLanguage === 'ar' ? 'right' : 'left'
                         }}
                       >
-                        {(countryLabels && countryLabels[currentLanguage]) || (countryname && typeof countryname === 'string' && countryname.length > 3 ? countryname : t('noCountryProvided'))}
+                        {(countryLabels && countryLabels[currentLanguage]) || (countryLabels && countryLabels.en) || t('noCountryProvided')}
                       </Typography>
                     </Box>
 
