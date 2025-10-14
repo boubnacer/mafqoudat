@@ -828,7 +828,7 @@ const createNewPost = async (req, res) => {
   
   try {
     // Use parsed data from validation middleware if available, otherwise parse from req.body
-    let postData, user, country, category, contact, foundLost, city, cityData, exactLocation, description, contactPreferences;
+    let postData, user, country, category, contact, foundLost, city, cityData, exactLocation, exactDate, description, contactPreferences;
     
     if (req.parsedPostData) {
       // Use data parsed by validation middleware
@@ -841,6 +841,7 @@ const createNewPost = async (req, res) => {
       city = postData.city;
       cityData = postData.cityData;
       exactLocation = postData.exactLocation;
+      exactDate = postData.exactDate;
       description = postData.description;
       contactPreferences = postData.contactPreferences;
     } else if (req.body.postData) {
@@ -854,6 +855,7 @@ const createNewPost = async (req, res) => {
       city = postData.city;
       cityData = postData.cityData;
       exactLocation = postData.exactLocation;
+      exactDate = postData.exactDate;
       description = postData.description;
       contactPreferences = postData.contactPreferences;
     } else {
@@ -866,6 +868,7 @@ const createNewPost = async (req, res) => {
       city = req.body.city;
       cityData = req.body.cityData;
       exactLocation = req.body.exactLocation;
+      exactDate = req.body.exactDate;
       description = req.body.description;
       contactPreferences = req.body.contactPreferences;
     }
@@ -879,7 +882,8 @@ const createNewPost = async (req, res) => {
        contact: !!contact,
        country: !!country,
        foundLost: !!foundLost,
-       exactLocation: !!exactLocation
+       exactLocation: !!exactLocation,
+       exactDate: !!exactDate
      };
      
      const missingFields = Object.entries(requiredFields)
@@ -1055,7 +1059,7 @@ const createNewPost = async (req, res) => {
     contact,
     foundLost,
     exactLocation,
-    mainDate: exactLocation, // Store original date string for display purposes
+    mainDate: exactDate, // Store the exactDate from form as mainDate in the database
     description: description || "",
     contactPreferences: contactPreferences || { whatsapp: true, phone: true, email: false },
   };

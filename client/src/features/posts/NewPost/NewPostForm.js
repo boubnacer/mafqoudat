@@ -273,6 +273,7 @@ const NewPostForm = ({ user, countries, categories, flOptions }) => {
     foundLost: getDefaultFoundLost(),
     city: "",
     exactLocation: "",
+    exactDate: new Date().toLocaleDateString(), // Default to current date as string
     description: "",
     image: null,
   };
@@ -393,6 +394,10 @@ const NewPostForm = ({ user, countries, categories, flOptions }) => {
         missingFields.push(t('city'));
         newFieldErrors.city = t('required');
       }
+      if (!values.exactDate?.trim()) {
+        missingFields.push(t('exactDate'));
+        newFieldErrors.exactDate = t('required');
+      }
       if (!values.exactLocation?.trim()) {
         missingFields.push(t('exactLocation'));
         newFieldErrors.exactLocation = t('required');
@@ -421,6 +426,8 @@ const NewPostForm = ({ user, countries, categories, flOptions }) => {
             fieldToScroll = document.querySelector('[data-testid="country-select"]');
           } else if (missingFields.includes(t('city'))) {
             fieldToScroll = document.querySelector('[data-testid="city-select"]');
+          } else if (missingFields.includes(t('exactDate'))) {
+            fieldToScroll = document.querySelector('[data-testid="exactDate"]');
           } else if (missingFields.includes(t('exactLocation'))) {
             fieldToScroll = document.querySelector('[data-testid="exactLocation"]');
           } else if (missingFields.includes(t('contact'))) {
@@ -460,6 +467,7 @@ const NewPostForm = ({ user, countries, categories, flOptions }) => {
         category: values.category,
         foundLost: values.foundLost,
         exactLocation: values.exactLocation,
+        exactDate: values.exactDate, // This gets stored as mainDate in the server
         contact: values.contact,
         description: values.description || "",
         contactPreferences: { whatsapp: true }
@@ -1385,6 +1393,44 @@ const NewPostForm = ({ user, countries, categories, flOptions }) => {
                   />
                 </Box>
 
+                <Box>
+                  <FormLabel 
+                    htmlFor="exactDate" 
+                    sx={{ 
+                      mb: 1, 
+                      display: "block", 
+                      fontWeight: 600, 
+                      fontSize: '1.15rem',
+                      color: theme.palette.text.primary
+                    }}
+                  >
+                    {t('exactDate')} *
+                  </FormLabel>
+                  <Typography 
+                    variant="caption" 
+                    sx={{ 
+                      mb: 1, 
+                      display: "block", 
+                      fontSize: '1rem',
+                      color: theme.palette.mode === 'dark' ? 'rgba(255,255,255,0.7)' : 'rgba(0,0,0,0.6)',
+                      fontWeight: 500
+                    }}
+                  >
+                    {getFoundLostType(values.foundLost) === 'LOST' 
+                      ? t('exactDateLostPlaceholder') 
+                      : t('exactDateFoundPlaceholder')
+                    }
+                  </Typography>
+                  <Textfield 
+                    name="exactDate" 
+                    variant="outlined" 
+                    placeholder={t('exactDatePlaceholder') || "Enter the date (e.g., 15/12/2023 or December 15, 2023)"}
+                    data-testid="exactDate"
+                    error={!!fieldErrors.exactDate}
+                    helperText={fieldErrors.exactDate}
+                    onErrorClear={clearFieldError}
+                  />
+                </Box>
 
                 {/* Item Details Section */}
                 <Typography 
