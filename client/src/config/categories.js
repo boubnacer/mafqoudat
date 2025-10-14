@@ -16,7 +16,7 @@ import {
   CameraAltOutlined,
   PersonSearchOutlined,
   MoreHorizOutlined,
-  RemoveRedEyeOutlined
+  RemoveRedEyeOutlined,
 } from '@mui/icons-material';
 
 // Category configuration with Material UI icons - Optimized for Lost & Found
