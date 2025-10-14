@@ -974,7 +974,7 @@ const SinglePostPage = ({
                           textAlign: currentLanguage === 'ar' ? 'right' : 'left'
                         }}
                       >
-                        {mainDate ? new Date(mainDate).toLocaleDateString(
+                        {exactDate ? new Date(exactDate).toLocaleDateString(
                           currentLanguage === 'ar' ? 'ar-SA' : 
                           currentLanguage === 'fr' ? 'fr-FR' : 
                           'en-US',
