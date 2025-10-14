@@ -17,8 +17,9 @@ import {
   PersonSearchOutlined,
   MoreHorizOutlined,
   RemoveRedEyeOutlined,
-  DiamondOutlinedIcon
 } from '@mui/icons-material';
+
+import DiamondOutlinedIcon from '@mui/icons-material/DiamondOutlined';
 
 // Category configuration with Material UI icons - Optimized for Lost & Found
 export const CATEGORY_CONFIG = {
