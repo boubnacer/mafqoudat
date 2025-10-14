@@ -841,7 +841,7 @@ const SinglePostPage = ({
                       />
                     </Box>
 
-                    {/* Location with exactLocation */}
+                    {/* Country with countryLabels support */}
                     <Box display="flex" 
                          sx={{ 
                            flexDirection: { xs: 'row', sm: 'row' }, 
@@ -859,7 +859,7 @@ const SinglePostPage = ({
                           flexShrink: 0
                         }}
                       >
-                        {t('exactLocation')}:
+                        {t('country')}:
                       </Typography>
                       <Typography 
                         variant="body2" 
@@ -871,7 +871,7 @@ const SinglePostPage = ({
                           textAlign: currentLanguage === 'ar' ? 'right' : 'left'
                         }}
                       >
-                        {exactLocation || t('noLocationProvided')}
+                        {(countryLabels && countryLabels[currentLanguage]) || (countryLabels && countryLabels.en) || t('noCountryProvided')}
                       </Typography>
                     </Box>
 
@@ -909,7 +909,7 @@ const SinglePostPage = ({
                       </Typography>
                     </Box>
 
-                    {/* Country with countryLabels support */}
+                    {/* Location with exactLocation */}
                     <Box display="flex" 
                          sx={{ 
                            flexDirection: { xs: 'row', sm: 'row' }, 
@@ -927,7 +927,7 @@ const SinglePostPage = ({
                           flexShrink: 0
                         }}
                       >
-                        {t('country')}:
+                        {t('exactLocation')}:
                       </Typography>
                       <Typography 
                         variant="body2" 
@@ -939,7 +939,7 @@ const SinglePostPage = ({
                           textAlign: currentLanguage === 'ar' ? 'right' : 'left'
                         }}
                       >
-                        {(countryLabels && countryLabels[currentLanguage]) || (countryLabels && countryLabels.en) || t('noCountryProvided')}
+                        {exactLocation || t('noLocationProvided')}
                       </Typography>
                     </Box>
 
