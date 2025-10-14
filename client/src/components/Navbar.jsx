@@ -36,6 +36,7 @@ import {
   AdminPanelSettings,
   Person,
   Build,
+  Refresh,
 } from "@mui/icons-material";
 import FlexBetween from "./FlexBetween";
 import {
@@ -52,6 +53,7 @@ import useAuth from "../hooks/useAuth";
 import { useTranslation } from "../utils/translations";
 import { useGetflOptionsQuery } from "../features/dependencies/dependenciesApiSlice";
 import { useUnifiedLanguageChange } from "../hooks/useUnifiedLanguageChange";
+import { forceRefreshAllDependencies } from "../utils/cacheRefresh";
 import { selectIsLoggedIn, selectCurrentUser } from "../features/auth/authSlice";
 import { useGetSystemSettingsQuery } from "../features/admin/systemSettingsApiSlice";
 
@@ -303,6 +305,7 @@ const Navbar = () => {
   const [profileAnchorEl, setProfileAnchorEl] = useState(null);
   const [isInitialized, setIsInitialized] = useState(false);
   const [logoAnimationTrigger, setLogoAnimationTrigger] = useState(false);
+  const [isRefreshing, setIsRefreshing] = useState(false);
 
   // Get found/lost options for navigation
   const { data: flOptionsData } = useGetflOptionsQuery({
@@ -451,6 +454,19 @@ const Navbar = () => {
   const handleProfileClick = (event) => setProfileAnchorEl(event.currentTarget);
   const handleProfileClose = () => setProfileAnchorEl(null);
 
+  // Admin refresh handler
+  const handleRefreshAllData = async () => {
+    try {
+      setIsRefreshing(true);
+      await forceRefreshAllDependencies(currentLanguage);
+      console.log('✅ All data refreshed successfully from navbar');
+    } catch (error) {
+      console.error('❌ Failed to refresh data from navbar:', error);
+    } finally {
+      setIsRefreshing(false);
+    }
+  };
+
   const handleLanguageChange = async (newLanguage) => {
     console.log('🌐 [NAVBAR] Language change triggered:', { newLanguage, currentUrl: window.location.href });
     
@@ -512,8 +528,15 @@ const Navbar = () => {
     })) || [])
   ];
 
-  // Add admin button if user is admin - use destructured auth state
+  // Add admin buttons if user is admin - use destructured auth state
   if (authLoggedIn && authUser?.role === 'admin') {
+    navigationItems.push({
+      title: 'Refresh All Data',
+      icon: <Refresh sx={{ fontSize: 20, color: theme.palette.primary.main }} />,
+      action: () => handleRefreshAllData(),
+      description: 'Refresh categories, countries, and found/lost options'
+    });
+    
     navigationItems.push({
       title: t('adminPanel'),
       icon: <AdminPanelSettings sx={{ fontSize: 20, color: theme.palette.error.main }} />,
@@ -613,6 +636,34 @@ const Navbar = () => {
             >
               {authLoggedIn ? t('createPost') : t('signin')}
             </CreatePostButton>
+
+            {/* Admin-only refresh button */}
+            {authLoggedIn && role === 'admin' && (
+              <Tooltip title="Refresh all data (Categories, Countries, Found/Lost Options)" arrow>
+                <Button
+                  onClick={handleRefreshAllData}
+                  disabled={isRefreshing}
+                  variant="outlined"
+                  size="small"
+                  startIcon={<Refresh />}
+                  sx={{
+                    minWidth: 'auto',
+                    px: 2,
+                    color: theme.palette.mode === 'dark' ? '#fff' : theme.palette.text.primary,
+                    borderColor: theme.palette.mode === 'dark' ? theme.palette.primary.main : theme.palette.divider,
+                    backgroundColor: theme.palette.mode === 'dark' ? 'transparent' : theme.palette.background.paper,
+                    '&:hover': {
+                      backgroundColor: theme.palette.mode === 'dark' ? 'rgba(255, 255, 255, 0.08)' : 'rgba(0, 0, 0, 0.04)',
+                    },
+                    '&:disabled': {
+                      opacity: 0.6,
+                    }
+                  }}
+                >
+                  {isRefreshing ? 'Refreshing...' : 'Refresh'}
+                </Button>
+              </Tooltip>
+            )}
           </Box>
         )}
 

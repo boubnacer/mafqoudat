@@ -5,11 +5,8 @@ import { getCategoryIcon, getCategoryColor, getCategoryBackgroundColor } from ".
 import { useTranslation } from "../../utils/translations";
 import { useLanguage } from "../../utils/languageContext";
 import { useNavigate } from "react-router-dom";
-import { forceRefreshAllDependencies } from "../../utils/cacheRefresh";
-import useAuth from "../../hooks/useAuth";
-
 import { motion } from "framer-motion";
-import { ExpandMore, ExpandLess, Refresh } from "@mui/icons-material";
+import { ExpandMore, ExpandLess } from "@mui/icons-material";
 import { useState } from "react";
 
 const Categories = () => {
@@ -18,9 +15,7 @@ const Categories = () => {
   const theme = useTheme();
   const isMobile = useMediaQuery(theme.breakpoints.down('sm'));
   const { t } = useTranslation();
-  const { role, isAuthenticated } = useAuth();
   const [showAllCategories, setShowAllCategories] = useState(false);
-  const [isRefreshing, setIsRefreshing] = useState(false);
   
   const { categories, isLoading, isFetching } = useGetCategoriesQuery({
     language: currentLanguage
@@ -32,17 +27,6 @@ const Categories = () => {
     }),
   });
 
-  const handleRefreshAllData = async () => {
-    try {
-      setIsRefreshing(true);
-      await forceRefreshAllDependencies(currentLanguage);
-      console.log('✅ All data refreshed successfully (categories, countries, found/lost options)');
-    } catch (error) {
-      console.error('❌ Failed to refresh data:', error);
-    } finally {
-      setIsRefreshing(false);
-    }
-  };
 
   const handleCategoryClick = (categoryId) => {
     // Navigate to posts page with category filter in URL state
@@ -67,28 +51,6 @@ const Categories = () => {
 
   return (
     <Box sx={{ py: 4 }}>
-      {/* Admin-only cache refresh button */}
-      {isAuthenticated && role === 'admin' && (
-        <Box display="flex" justifyContent="flex-end" mb={2}>
-          <Button
-            onClick={handleRefreshAllData}
-            disabled={isRefreshing}
-            variant="outlined"
-            size="small"
-            startIcon={<Refresh />}
-            sx={{
-              color: theme.palette.mode === 'dark' ? '#fff' : theme.palette.text.primary,
-              borderColor: theme.palette.mode === 'dark' ? theme.palette.primary.main : theme.palette.divider,
-              '&:hover': {
-                backgroundColor: theme.palette.mode === 'dark' ? 'rgba(255, 255, 255, 0.08)' : 'rgba(0, 0, 0, 0.04)',
-              }
-            }}
-          >
-            {isRefreshing ? 'Refreshing...' : 'Refresh All Data'}
-          </Button>
-        </Box>
-      )}
-      
       <Grid container spacing={isMobile ? 2 : 3} justifyContent="center">
         {categoriesToShow.map(({ _id, code, labels }, index) => {
           const IconComponent = getCategoryIcon(code);
