@@ -944,7 +944,7 @@ const SinglePostPage = ({
                       </Typography>
                     </Box>
 
-                    {/* Main Date */}
+                    {/* Exact Date (using mainDate string) */}
                     <Box display="flex" 
                          sx={{ 
                            flexDirection: { xs: 'row', sm: 'row' }, 
@@ -974,16 +974,7 @@ const SinglePostPage = ({
                           textAlign: currentLanguage === 'ar' ? 'right' : 'left'
                         }}
                       >
-                        {exactDate && exactDate !== null && exactDate !== undefined ? new Date(exactDate).toLocaleDateString(
-                          currentLanguage === 'ar' ? 'ar-SA' : 
-                          currentLanguage === 'fr' ? 'fr-FR' : 
-                          'en-US',
-                          {
-                            year: 'numeric',
-                            month: 'long',
-                            day: 'numeric'
-                          }
-                        ) : t('noDateProvided')}
+                        {mainDate && mainDate.trim() ? mainDate : t('noDateProvided')}
                       </Typography>
                     </Box>
 
