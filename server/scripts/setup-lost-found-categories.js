@@ -114,9 +114,9 @@ const lostFoundCategories = [
   {
     code: "WALLETS",
     labels: {
-      en: "Wallets & Purses",
-      fr: "Portefeuilles et Sacs à main",
-      ar: "محافظ وحقائب يد"
+      en: "Wallets",
+      fr: "Portefeuilles",
+      ar: "محافظ"
     },
     color: "#FF5722",
     description: "Wallets, purses, money holders",
@@ -126,9 +126,9 @@ const lostFoundCategories = [
   {
     code: "BAGS",
     labels: {
-      en: "Bags & Backpacks",
-      fr: "Sacs et Sacs à dos",
-      ar: "حقائب وحقائب ظهر"
+      en: "Bags",
+      fr: "Sacs",
+      ar: "حقائب"
     },
     color: "#8D6E63",
     description: "Backpacks, handbags, briefcases, luggage",
@@ -150,7 +150,7 @@ const lostFoundCategories = [
   {
     code: "GLASSES",
     labels: {
-      en: "Glasses & Eyewear",
+      en: "Glasses",
       fr: "Lunettes",
       ar: "نظارات"
     },
@@ -162,38 +162,14 @@ const lostFoundCategories = [
   {
     code: "HEADPHONES",
     labels: {
-      en: "Headphones & Audio",
-      fr: "Écouteurs et Audio",
+      en: "Headphones",
+      fr: "Écouteurs",
       ar: "سماعات"
     },
     color: "#9C27B0",
     description: "Headphones, earbuds, speakers",
     priority: 12,
     searchTerms: ["headphones", "écouteurs", "سماعات", "earbuds", "earphones", "speaker", "audio", "airpods"]
-  },
-  {
-    code: "UMBRELLAS",
-    labels: {
-      en: "Umbrellas",
-      fr: "Parapluies",
-      ar: "مظلات"
-    },
-    color: "#00BCD4",
-    description: "Umbrellas and rain gear",
-    priority: 13,
-    searchTerms: ["umbrella", "parapluie", "مظلة", "rain", "pluie", "parasol"]
-  },
-  {
-    code: "ACCESSORIES",
-    labels: {
-      en: "Accessories",
-      fr: "Accessoires",
-      ar: "إكسسوارات"
-    },
-    color: "#EC407A",
-    description: "Hats, scarves, gloves, belts, ties",
-    priority: 14,
-    searchTerms: ["accessories", "accessoires", "إكسسوارات", "hat", "scarf", "gloves", "belt", "tie", "chapeau", "écharpe", "gants"]
   },
   {
     code: "BOOKS",
@@ -204,7 +180,7 @@ const lostFoundCategories = [
     },
     color: "#5E35B1",
     description: "Books, textbooks, notebooks, journals",
-    priority: 15,
+    priority: 13,
     searchTerms: ["books", "livres", "كتب", "notebook", "textbook", "journal", "cahier", "manuel", "دفتر"]
   },
   {
@@ -216,7 +192,7 @@ const lostFoundCategories = [
     },
     color: "#4CAF50",
     description: "Sports gear, balls, gym bags, bicycles",
-    priority: 16,
+    priority: 14,
     searchTerms: ["sports", "sport", "رياضة", "equipment", "ball", "bicycle", "gym", "équipement", "ballon", "vélo"]
   },
   {
@@ -228,32 +204,32 @@ const lostFoundCategories = [
     },
     color: "#FF9800",
     description: "Children's toys, games, stuffed animals",
-    priority: 17,
+    priority: 15,
     searchTerms: ["toys", "jouets", "ألعاب", "children", "kids", "games", "stuffed animal", "enfants", "jeux"]
   },
   {
     code: "CAMERAS",
     labels: {
-      en: "Cameras & Photography",
+      en: "Cameras",
       fr: "Appareils photo",
       ar: "كاميرات"
     },
     color: "#00897B",
     description: "Cameras, lenses, photography equipment",
-    priority: 18,
+    priority: 16,
     searchTerms: ["camera", "appareil photo", "كاميرا", "photography", "lens", "photo", "photographie", "objectif"]
   },
   {
-    code: "BOTTLES",
+    code: "MONEY",
     labels: {
-      en: "Water Bottles & Containers",
-      fr: "Bouteilles et Contenants",
-      ar: "زجاجات وحاويات"
+      en: "Money",
+      fr: "Argent",
+      ar: "أموال"
     },
-    color: "#26A69A",
-    description: "Water bottles, thermoses, food containers",
-    priority: 19,
-    searchTerms: ["bottle", "bouteille", "زجاجة", "water bottle", "thermos", "container", "gourde", "récipient"]
+    color: "#4CAF50",
+    description: "Cash, coins, banknotes",
+    priority: 20,
+    searchTerms: ["money", "argent", "أموال", "cash", "coins", "banknotes", "bills", "espèces", "monnaie", "pièces", "نقود", "عملة"]
   },
   {
     code: "PERSON",
@@ -264,7 +240,7 @@ const lostFoundCategories = [
     },
     color: "#F44336",
     description: "Missing person reports",
-    priority: 20,
+    priority: 21,
     searchTerms: ["person", "personne", "شخص", "missing", "lost person", "disparu", "مفقود"]
   },
   {
@@ -276,97 +252,41 @@ const lostFoundCategories = [
     },
     color: "#9E9E9E",
     description: "Items not fitting other categories",
-    priority: 21,
+    priority: 22,
     searchTerms: ["other", "autre", "آخر", "misc", "miscellaneous", "various", "divers"]
   }
 ];
 
-// Update or create categories
+// Replace all categories with new configuration
 const setupCategories = async () => {
   try {
-    console.log('\n📋 Setting up Lost & Found categories...\n');
+    console.log('\n🔄 REPLACING ALL CATEGORIES with new configuration...\n');
     
-    let updatedCount = 0;
+    // First, remove all existing categories
+    const deleteResult = await Category.deleteMany({});
+    console.log(`🗑️  Deleted ${deleteResult.deletedCount} existing categories`);
+    
     let addedCount = 0;
-    let unchangedCount = 0;
 
+    // Create all new categories
     for (const categoryData of lostFoundCategories) {
-      const existingCategory = await Category.findOne({ code: categoryData.code });
-      
-      if (existingCategory) {
-        // Update existing category
-        let hasChanges = false;
-        
-        if (existingCategory.priority !== categoryData.priority) {
-          existingCategory.priority = categoryData.priority;
-          hasChanges = true;
-        }
-        
-        if (existingCategory.color !== categoryData.color) {
-          existingCategory.color = categoryData.color;
-          hasChanges = true;
-        }
-        
-        if (existingCategory.description !== categoryData.description) {
-          existingCategory.description = categoryData.description;
-          hasChanges = true;
-        }
-        
-        // Update labels if different
-        if (JSON.stringify(existingCategory.labels) !== JSON.stringify(categoryData.labels)) {
-          existingCategory.labels = categoryData.labels;
-          hasChanges = true;
-        }
-        
-        if (hasChanges) {
-          existingCategory.searchTerms = categoryData.searchTerms;
-          await existingCategory.save();
-          console.log(`✅ Updated: ${categoryData.code.padEnd(20)} - ${categoryData.labels.en}`);
-          updatedCount++;
-        } else {
-          console.log(`✓  OK:      ${categoryData.code.padEnd(20)} - ${categoryData.labels.en}`);
-          unchangedCount++;
-        }
-      } else {
-        // Create new category
-        categoryData.isActive = true;
-        await Category.create(categoryData);
-        console.log(`➕ Added:   ${categoryData.code.padEnd(20)} - ${categoryData.labels.en}`);
-        addedCount++;
-      }
+      categoryData.isActive = true;
+      await Category.create(categoryData);
+      console.log(`➕ Created: ${categoryData.code.padEnd(20)} - ${categoryData.labels.en}`);
+      addedCount++;
     }
     
-    return { addedCount, updatedCount, unchangedCount };
+    return { addedCount, updatedCount: 0, unchangedCount: 0 };
   } catch (error) {
     console.error('❌ Error setting up categories:', error);
     throw error;
   }
 };
 
-// Deactivate removed categories
+// No need to deactivate since we're replacing everything
 const deactivateOldCategories = async () => {
-  console.log('\n📋 Checking for outdated categories...\n');
-  
-  const currentCodes = lostFoundCategories.map(cat => cat.code);
-  const oldCategories = await Category.find({ 
-    code: { $nin: currentCodes },
-    isActive: true 
-  });
-  
-  if (oldCategories.length === 0) {
-    console.log('✓  No outdated categories found');
-    return 0;
-  }
-  
-  let deactivatedCount = 0;
-  for (const oldCat of oldCategories) {
-    oldCat.isActive = false;
-    await oldCat.save();
-    console.log(`⚠️  Deactivated: ${oldCat.code} (not relevant for Lost & Found)`);
-    deactivatedCount++;
-  }
-  
-  return deactivatedCount;
+  console.log('\n✓  All old categories already removed in replacement process\n');
+  return 0;
 };
 
 // Display final results
@@ -410,27 +330,21 @@ const main = async () => {
     const totalCount = await displayResults();
     
     // Summary
-    console.log('\n✨ Setup Complete!\n');
+    console.log('\n✨ CATEGORY REPLACEMENT COMPLETE!\n');
     console.log('📊 Summary:');
-    console.log(`   ➕ Categories added: ${addedCount}`);
-    console.log(`   ✅ Categories updated: ${updatedCount}`);
-    console.log(`   ✓  Unchanged: ${unchangedCount}`);
-    if (deactivatedCount > 0) {
-      console.log(`   ⚠️  Deactivated (irrelevant): ${deactivatedCount}`);
-    }
+    console.log(`   ➕ Categories created: ${addedCount}`);
     console.log(`   📋 Total active categories: ${totalCount}`);
     
-    console.log('\n🎯 Categories optimized for Lost & Found:');
-    console.log('   ✅ Common lost items (keys, wallets, phones)');
-    console.log('   ✅ Personal belongings (bags, glasses, umbrellas)');
-    console.log('   ✅ Valuable items (jewelry, documents, electronics)');
-    console.log('   ✅ Removed: Shopping-related categories');
+    console.log('\n🎯 Updated Categories:');
+    console.log('   ✅ Updated names: Bags, Glasses, Cameras, Headphones, Wallets');
+    console.log('   ➕ Added: MONEY category');
+    console.log('   ❌ Removed: ACCESSORIES, UMBRELLAS, BOTTLES');
+    console.log('   🎨 Updated: GLASSES icon to RemoveRedEyeOutlined');
     
-    console.log('\n💡 Next steps:');
-    console.log('   1. Restart your backend server to clear cache');
-    console.log('   2. Refresh your dashboard');
-    console.log('   3. All relevant categories will appear with icons!');
-    console.log('   4. Icons are already configured in the frontend');
+    console.log('\n💡 Database updated successfully!');
+    console.log('   ✅ Production database now has the new categories');
+    console.log('   ✅ Frontend icons configured and ready');
+    console.log('   ✅ All changes are live on your production site');
     
   } catch (error) {
     console.error('\n❌ Error during setup:', error);

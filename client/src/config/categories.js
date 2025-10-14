@@ -8,17 +8,15 @@ import {
   AccountBalanceWalletOutlined,
   BackpackOutlined,
   WatchOutlined,
-  VisibilityOutlined,
   HeadphonesOutlined,
-  UmbrellaOutlined,
   CheckroomOutlined,
   MenuBookOutlined,
   SportsSoccerOutlined,
   ToysOutlined,
   CameraAltOutlined,
-  LocalDrinkOutlined,
   PersonSearchOutlined,
-  MoreHorizOutlined
+  MoreHorizOutlined,
+  RemoveRedEyeOutlined
 } from '@mui/icons-material';
 
 // Category configuration with Material UI icons - Optimized for Lost & Found
@@ -84,7 +82,7 @@ export const CATEGORY_CONFIG = {
     priority: 10
   },
   GLASSES: {
-    icon: VisibilityOutlined,
+    icon: RemoveRedEyeOutlined,
     color: '#3F51B5',
     backgroundColor: '#E8EAF6',
     priority: 11
@@ -95,59 +93,47 @@ export const CATEGORY_CONFIG = {
     backgroundColor: '#F3E5F5',
     priority: 12
   },
-  UMBRELLAS: {
-    icon: UmbrellaOutlined,
-    color: '#00BCD4',
-    backgroundColor: '#E0F7FA',
-    priority: 13
-  },
-  ACCESSORIES: {
-    icon: CheckroomOutlined,
-    color: '#EC407A',
-    backgroundColor: '#FCE4EC',
-    priority: 14
-  },
   BOOKS: {
     icon: MenuBookOutlined,
     color: '#5E35B1',
     backgroundColor: '#EDE7F6',
-    priority: 15
+    priority: 13
   },
   SPORTS: {
     icon: SportsSoccerOutlined,
     color: '#4CAF50',
     backgroundColor: '#E8F5E9',
-    priority: 16
+    priority: 14
   },
   TOYS: {
     icon: ToysOutlined,
     color: '#FF9800',
     backgroundColor: '#FFF3E0',
-    priority: 17
+    priority: 15
   },
   CAMERAS: {
     icon: CameraAltOutlined,
     color: '#00897B',
     backgroundColor: '#E0F2F1',
-    priority: 18
+    priority: 16
   },
-  BOTTLES: {
-    icon: LocalDrinkOutlined,
-    color: '#26A69A',
-    backgroundColor: '#E0F2F1',
-    priority: 19
+  MONEY: {
+    icon: AttachMoneyOutlined,
+    color: '#4CAF50',
+    backgroundColor: '#E8F5E9',
+    priority: 20
   },
   PERSON: {
     icon: PersonSearchOutlined,
     color: '#F44336',
     backgroundColor: '#FFEBEE',
-    priority: 20
+    priority: 21
   },
   OTHER: {
     icon: MoreHorizOutlined,
     color: '#9E9E9E',
     backgroundColor: '#F5F5F5',
-    priority: 21
+    priority: 22
   }
 };
 
