@@ -63,7 +63,7 @@ export const CATEGORY_CONFIG = {
     backgroundColor: '#FFF3E0',
     priority: 7
   },
-  WALLETS: {
+  WALLET: {
     icon: AccountBalanceWalletOutlined,
     color: '#FF5722',
     backgroundColor: '#FBE9E7',
