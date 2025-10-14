@@ -6,7 +6,7 @@ import {
   DirectionsCarOutlined,
   KeyOutlined,
   AccountBalanceWalletOutlined,
-  BackpackOutlined,
+  BusinessCenterOutlinedIcon,
   WatchOutlined,
   HeadphonesOutlined,
   CheckroomOutlined,
@@ -17,6 +17,7 @@ import {
   PersonSearchOutlined,
   MoreHorizOutlined,
   RemoveRedEyeOutlined,
+  DiamondOutlinedIcon
 } from '@mui/icons-material';
 
 // Category configuration with Material UI icons - Optimized for Lost & Found
@@ -34,7 +35,7 @@ export const CATEGORY_CONFIG = {
     priority: 2
   },
   JEWELRY: {
-    icon: AttachMoneyOutlined,
+    icon: DiamondOutlinedIcon,
     color: '#9C27B0',
     backgroundColor: '#F3E5F5',
     priority: 3
@@ -70,7 +71,7 @@ export const CATEGORY_CONFIG = {
     priority: 8
   },
   BAGS: {
-    icon: BackpackOutlined,
+    icon: BusinessCenterOutlinedIcon,
     color: '#8D6E63',
     backgroundColor: '#EFEBE9',
     priority: 9
