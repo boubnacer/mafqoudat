@@ -1292,13 +1292,13 @@ const SinglePostPage = ({
                   returned: {String(returned)}
                 </Typography>
                 <Typography variant="caption" display="block">
-                  Should show claim: {String(isAuthenticated && usernameId && usernameId !== user && !returned)}
+                  Should show claim: {String(usernameId !== user && !returned)}
                 </Typography>
               </Paper>
             )}
 
-            {/* Claim Item Section - Only show for authenticated users who are NOT the post owner */}
-            {isAuthenticated && usernameId && usernameId !== user && !returned && (
+            {/* Claim Item Section - Show for all users who are NOT the post owner */}
+            {usernameId !== user && !returned && (
               <Paper 
                 elevation={0}
                 sx={{ 
