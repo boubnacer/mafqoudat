@@ -1,23 +1,30 @@
-// File: server/scripts/clearCache.js
 require('dotenv').config();
 const { cacheService, initRedis } = require('../config/cache');
 
 const clearAllCache = async () => {
   try {
+    console.log('🔄 Starting cache clearing process...');
+    console.log('🔄 Environment check - REDIS_URL:', process.env.REDIS_URL ? 'Set' : 'Not set');
     console.log('🔄 Initializing Redis connection...');
     await initRedis();
     
-    console.log('🗑️  Clearing categories cache...');
+    console.log('🗑️  Clearing regular cache...');
     await cacheService.invalidatePattern('categories*');
-    
-    console.log('🗑️  Clearing posts cache...');
     await cacheService.invalidatePattern('posts*');
-    
-    console.log('🗑️  Clearing all static data cache...');
     await cacheService.invalidatePattern('static*');
-    
-    console.log('🗑️  Clearing all cache...');
     await cacheService.clear();
+    
+    console.log('🗑️  Attempting to clear optimized cache...');
+    try {
+      // Try to clear optimized cache if available
+      const { optimizedCacheService } = require('../config/optimizedCache');
+      await optimizedCacheService.invalidatePattern('categories*');
+      await optimizedCacheService.invalidatePattern('posts*');
+      await optimizedCacheService.clear(true);
+      console.log('✅ Optimized cache cleared');
+    } catch (optimizedError) {
+      console.log('⚠️  Optimized cache not available or error:', optimizedError.message);
+    }
     
     console.log('✅ All cache cleared successfully!');
     

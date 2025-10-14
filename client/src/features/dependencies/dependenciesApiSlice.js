@@ -101,16 +101,20 @@ export const dependencieaApiSlice = apiSlice.injectEndpoints({
           ];
         } else return [{ type: "Country", id: "LIST" }];
       },
-      // Add cache key based on language to ensure proper cache invalidation
+      // Add cache key based on language and nocache to ensure proper cache invalidation
       serializeQueryArgs: ({ queryArgs }) => {
-        return `${queryArgs.language || 'en'}-${queryArgs.search || ''}-${queryArgs.active || true}`;
+        return `${queryArgs.language || 'en'}-${queryArgs.search || ''}-${queryArgs.active || true}-${queryArgs.nocache || false}`;
       },
     }),
 
     getCategories: builder.query({
-      query: ({ language = 'en', active = true } = {}) => ({
+      query: ({ language = 'en', active = true, nocache = false } = {}) => ({
         url: "/categories", // Fixed: Added leading slash
-        params: { language, active },
+        params: { 
+          language, 
+          active,
+          ...(nocache && { nocache: 'true' })
+        },
         validateStatus: (response, result) => {
           return response.status === 200 && !result.isError;
         },
@@ -151,9 +155,9 @@ export const dependencieaApiSlice = apiSlice.injectEndpoints({
           ];
         } else return [{ type: "Category", id: "LIST" }];
       },
-      // Add cache key based on language to ensure proper cache invalidation
+      // Add cache key based on language and nocache to ensure proper cache invalidation
       serializeQueryArgs: ({ queryArgs }) => {
-        return `${queryArgs.language || 'en'}-${queryArgs.active || true}`;
+        return `${queryArgs.language || 'en'}-${queryArgs.active || true}-${queryArgs.nocache || false}`;
       },
     }),
 

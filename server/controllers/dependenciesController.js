@@ -861,20 +861,12 @@ const getCountries = async (req, res) => {
 
 const getCategories = async (req, res) => {
   try {
-    const { language = 'en', active = true } = req.query;
-    
-    // Generate cache key
-    const cacheKey = cacheService.generateKey('categories', {
-      language,
-      active
-    });
-    
-    // Check cache first
-    const cachedCategories = await cacheService.get(cacheKey);
-    if (cachedCategories) {
-      console.log('📦 Categories served from cache');
-      return res.json(cachedCategories);
+    // Cache bypass option for testing
+    if (req.query.nocache === 'true') {
+      console.log('🚫 Cache bypassed for categories');
     }
+    
+    const { language = 'en', active = true } = req.query;
     
     let query = {};
     if (active === 'true') {
@@ -941,9 +933,6 @@ const getCategories = async (req, res) => {
       data: transformedCategories,
       total: transformedCategories.length
     };
-    
-    // Cache the response for 24 hours (aggressive static data caching)
-    await cacheService.set(cacheKey, response, 86400);
     
     res.json(response);
   } catch (error) {

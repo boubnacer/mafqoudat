@@ -112,11 +112,11 @@ const lostFoundCategories = [
     searchTerms: ["keys", "clés", "مفاتيح", "keychain", "house keys", "car keys", "clés de voiture", "clés de maison"]
   },
   {
-    code: "WALLETS",
+    code: "WALLET",
     labels: {
-      en: "Wallets",
-      fr: "Portefeuilles",
-      ar: "محافظ"
+      en: "Wallet",
+      fr: "Portefeuille",
+      ar: "محفظة"
     },
     color: "#FF5722",
     description: "Wallets, purses, money holders",
@@ -196,18 +196,6 @@ const lostFoundCategories = [
     searchTerms: ["sports", "sport", "رياضة", "equipment", "ball", "bicycle", "gym", "équipement", "ballon", "vélo"]
   },
   {
-    code: "TOYS",
-    labels: {
-      en: "Toys & Children's Items",
-      fr: "Jouets et Articles pour enfants",
-      ar: "ألعاب ومستلزمات أطفال"
-    },
-    color: "#FF9800",
-    description: "Children's toys, games, stuffed animals",
-    priority: 15,
-    searchTerms: ["toys", "jouets", "ألعاب", "children", "kids", "games", "stuffed animal", "enfants", "jeux"]
-  },
-  {
     code: "CAMERAS",
     labels: {
       en: "Cameras",
@@ -224,7 +212,7 @@ const lostFoundCategories = [
     labels: {
       en: "Money",
       fr: "Argent",
-      ar: "أموال"
+      ar: "نقود"
     },
     color: "#4CAF50",
     description: "Cash, coins, banknotes",
@@ -234,9 +222,9 @@ const lostFoundCategories = [
   {
     code: "PERSON",
     labels: {
-      en: "Missing Persons",
-      fr: "Personnes disparues",
-      ar: "أشخاص مفقودون"
+      en: "Persons",
+      fr: "Personnes",
+      ar: "أشخاص"
     },
     color: "#F44336",
     description: "Missing person reports",
