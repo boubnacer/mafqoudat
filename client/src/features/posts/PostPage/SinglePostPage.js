@@ -871,7 +871,7 @@ const SinglePostPage = ({
                           textAlign: currentLanguage === 'ar' ? 'right' : 'left'
                         }}
                       >
-                        {(countryLabels && countryLabels[currentLanguage]) || (countryLabels && countryLabels.en) || t('noCountryProvided')}
+                        {(countryLabels && countryLabels.labels && countryLabels.labels[currentLanguage]) || (countryLabels && countryLabels.labels && countryLabels.labels.en) || t('noCountryProvided')}
                       </Typography>
                     </Box>
 
