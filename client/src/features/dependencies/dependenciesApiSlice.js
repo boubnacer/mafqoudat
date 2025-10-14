@@ -8,9 +8,13 @@ const initialState = dependenciesAdapter.getInitialState();
 export const dependencieaApiSlice = apiSlice.injectEndpoints({
   endpoints: (builder) => ({
     getflOptions: builder.query({
-      query: ({ language = 'en', active = true } = {}) => ({
+      query: ({ language = 'en', active = true, nocache = false } = {}) => ({
         url: "/floptions", // Fixed: Added leading slash
-        params: { language, active },
+        params: { 
+          language, 
+          active,
+          ...(nocache && { nocache: 'true' })
+        },
         validateStatus: (response, result) => {
           return response.status === 200 && !result.isError;
         },
@@ -58,9 +62,14 @@ export const dependencieaApiSlice = apiSlice.injectEndpoints({
     }),
 
     getCountries: builder.query({
-      query: ({ language = 'en', search, active = true } = {}) => ({
+      query: ({ language = 'en', search, active = true, nocache = false } = {}) => ({
         url: "/countries", // Fixed: Added leading slash
-        params: { language, search, active },
+        params: { 
+          language, 
+          search, 
+          active,
+          ...(nocache && { nocache: 'true' })
+        },
         validateStatus: (response, result) => {
           return response.status === 200 && !result.isError;
         },
