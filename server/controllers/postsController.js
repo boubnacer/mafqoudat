@@ -211,7 +211,7 @@ const getAllPosts = async (req, res) => {
         },
         categoryLabels: { $ifNull: ["$Category.labels", null] },
         countryname: "$Country.code",
-        countryLabels: "$Country.labels",
+        countryLabels: "$Country.names",
         contact: 1,
         image: 1,
         foundLost: 1,
@@ -367,7 +367,7 @@ const getPost = async (req, res) => {
             }
           },
           countryname: "$Country.code",
-          countryLabels: "$Country.labels",
+          countryLabels: "$Country.names",
           contact: 1,
           image: 1,
           foundLost: 1,
@@ -537,7 +537,7 @@ const getFilteredPosts = async (req, res) => {
             }
           },
           countryname: "$Country.code",
-          countryLabels: "$Country.labels",
+          countryLabels: "$Country.names",
           contact: 1,
           image: 1,
           foundLost: 1,
