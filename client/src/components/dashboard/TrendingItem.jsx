@@ -158,13 +158,13 @@ const TrendingItem = ({ trend, isLoading }) => {
             ? 'linear-gradient(135deg, #654321 0%, #8B4513 50%, #654321 100%)'
             : 'linear-gradient(135deg, #D2B48C 0%, #DEB887 50%, #D2B48C 100%)',
           borderRadius: isMobile ? '16px' : '20px',
-          padding: { xs: '20px', sm: '24px' },
+          padding: { xs: '8px', sm: '12px' },
           position: 'relative',
           overflow: 'visible',
           height: '100%',
           minHeight: { xs: '450px', sm: '350px' },
-          // Frame Border - Moved from image to entire card
-          border: '8px solid #f5f5f5',
+          // Frame Border - Reduced for tighter spacing
+          border: '4px solid #f5f5f5',
           boxShadow: theme.palette.mode === 'dark'
             ? `
               0 20px 40px rgba(0, 0, 0, 0.4),
@@ -223,14 +223,14 @@ const TrendingItem = ({ trend, isLoading }) => {
               '& .photo-frame': {
                 boxShadow: '0 25px 50px rgba(0,0,0,0.6), 0 10px 20px rgba(0,0,0,0.3)',
               },
-              '& .center-pin': {
+              '& .top-center-pin': {
                 transform: 'translate(-50%, -50%) rotate(12deg) scale(1.15)',
                 filter: 'drop-shadow(0 5px 10px rgba(0,0,0,0.5))',
               }
             }
           }}
         >
-          {/* Photo Frame Container - No Border */}
+          {/* Photo Frame Container - Minimal Padding */}
           <Box
             className="photo-frame"
             sx={{
@@ -238,7 +238,7 @@ const TrendingItem = ({ trend, isLoading }) => {
               height: '100%',
               background: 'transparent',
               borderRadius: '8px',
-              padding: 0,
+              padding: '2px', // Minimal padding between frame and image
               boxShadow: '0 15px 35px rgba(0,0,0,0.4), 0 5px 15px rgba(0,0,0,0.2)',
               position: 'relative',
               overflow: 'hidden',
@@ -324,12 +324,12 @@ const TrendingItem = ({ trend, isLoading }) => {
             />
           </Box>
 
-          {/* Center Pin - Most Prominent Element */}
+          {/* Top-Center Pin - Above Image Area */}
           <Box
-            className="center-pin"
+            className="top-center-pin"
             sx={{
               position: 'absolute',
-              top: '50%',
+              top: '25%', // Moved to top quarter of card
               left: '50%',
               transform: 'translate(-50%, -50%) rotate(8deg)',
               width: '40px',
@@ -339,18 +339,18 @@ const TrendingItem = ({ trend, isLoading }) => {
               backgroundRepeat: 'no-repeat',
               backgroundPosition: 'center',
               zIndex: 999,
-              filter: 'drop-shadow(0 4px 8px rgba(0,0,0,0.4))',
+              filter: 'drop-shadow(0 3px 6px rgba(0,0,0,0.4))',
               transition: 'all 0.3s cubic-bezier(0.4, 0, 0.2, 1)',
               cursor: 'pointer',
               '&:hover': {
                 transform: 'translate(-50%, -50%) rotate(12deg) scale(1.1)',
-                filter: 'drop-shadow(0 6px 12px rgba(0,0,0,0.5))',
+                filter: 'drop-shadow(0 5px 10px rgba(0,0,0,0.5))',
               }
             }}
           />
         </Box>
 
-        {/* Content Overlay - Below Center Pin */}
+        {/* Content Overlay - Below Top-Center Pin */}
         <Box
           sx={{
             position: 'absolute',
