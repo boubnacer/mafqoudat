@@ -82,7 +82,6 @@ const MoneyIcon = ({ sx, ...props }) => (
     {...props}
     style={{ 
       fill: 'currentColor',
-      filter: 'drop-shadow(0 0 1px currentColor)',
       ...sx 
     }}
   >
@@ -101,7 +100,6 @@ const JewelryIcon = ({ sx, ...props }) => (
     {...props}
     style={{ 
       fill: 'currentColor',
-      filter: 'drop-shadow(0 0 1px currentColor)',
       ...sx 
     }}
   >
