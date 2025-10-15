@@ -83,15 +83,17 @@ const MoneyIcon = ({ sx, ...props }) => (
     {...props}
     style={{ 
       stroke: 'currentColor',
-      strokeWidth: '2',
+      strokeWidth: '1.5',
       strokeLinecap: 'round',
       strokeLinejoin: 'round',
       ...sx 
     }}
   >
-    <rect x="3" y="6" width="18" height="10" rx="2"/>
-    <path d="M3 10h18"/>
-    <circle cx="12" cy="10" r="1"/>
+    <rect x="2" y="6" width="20" height="12" rx="2"/>
+    <path d="M6 10h.01M18 10h.01"/>
+    <path d="M10 6v4M14 6v4"/>
+    <path d="M6 14h12"/>
+    <circle cx="12" cy="10" r="2"/>
   </svg>
 );
 
@@ -106,8 +108,9 @@ const JewelryIcon = ({ sx, ...props }) => (
       ...sx 
     }}
   >
-    <circle cx="12" cy="12" r="6"/>
-    <circle cx="12" cy="12" r="2" fill="white"/>
+    <circle cx="12" cy="12" r="8" stroke="currentColor" strokeWidth="1.5" fill="none"/>
+    <circle cx="12" cy="12" r="3" fill="currentColor"/>
+    <path d="M8 12h8M12 8v8" stroke="currentColor" strokeWidth="1" strokeLinecap="round"/>
   </svg>
 );
 
