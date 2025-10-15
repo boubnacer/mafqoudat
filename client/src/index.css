@@ -57,6 +57,12 @@ body[dir="rtl"] .MuiToolbar-root * {
 body[dir="rtl"] .MuiAppBar-root .MuiBox-root {
   direction: ltr !important;
 }
+/* Phone number RTL protection */
+.phone-number {
+  direction: ltr !important;
+  unicode-bidi: bidi-override !important;
+}
+
 @media (prefers-color-scheme: dark) {
   body {
     background-color: #121212; /* Dark mode default */

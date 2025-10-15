@@ -395,7 +395,7 @@ const DashFooter = () => {
                 <Phone color="primary" />
               </ListItemIcon>
               <ListItemText 
-                primary="+1 234 567 890"
+                primary={<span className="phone-number">+212 711 621 132</span>}
                 secondary={t('callUsForAssistance')}
                 sx={{ 
                   '& .MuiListItemText-primary': { fontSize: { xs: '16px', sm: '14px' } },

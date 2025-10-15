@@ -66,7 +66,7 @@ const HelpSupportSection = () => {
   const emergencyContacts = [
     {
       name: t('phoneNumber'),
-      details: "+212 711 621 132",
+      details: <span className="phone-number">+212 711 621 132</span>,
       icon: <Phone />,
       action: null,
       actionIcon: null
