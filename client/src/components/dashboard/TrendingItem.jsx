@@ -135,14 +135,6 @@ const TrendingItem = ({ trend, isLoading }) => {
   // Get optimized image URL - only use Cloudinary if image exists and is uploaded by user
   const finalImageUrl = image ? (image.startsWith('http') ? getOptimizedImageUrl(image, 'card') : `${API_BASE_URL}/${image}`) : noImageSvg;
 
-  // Frame material configuration
-  const frameMaterial = 'brass'; // Can be 'brass', 'silver', or 'wood'
-  const frameGradients = {
-    brass: 'linear-gradient(45deg, #CD7F32, #FFD700)',
-    silver: 'linear-gradient(45deg, #C0C0C0, #E8E8E8)',
-    wood: 'linear-gradient(45deg, #8B4513, #D2691E)'
-  };
-
   if (isLoading) return <TrendingItemSkeleton />;
   if (!trendData) {
     return <DashboardEmptyStates.NoTrending />;
@@ -157,64 +149,37 @@ const TrendingItem = ({ trend, isLoading }) => {
     <Box flex={1} sx={{ 
       minWidth: isMobile ? '100%' : 'auto', 
       width: isMobile ? '100%' : 'auto',
-      perspective: '1000px',
     }}>
-      {/* Wall-mounted Frame Container */}
-      <Box
+      <Card
         sx={{
           background: theme.palette.mode === 'dark'
             ? 'linear-gradient(135deg, rgba(18,18,18,0.85) 0%, rgba(28,28,28,0.9) 50%, rgba(35,35,35,0.85) 100%)'
             : 'linear-gradient(135deg, rgba(255,255,255,0.9) 0%, rgba(248,250,252,0.95) 50%, rgba(255,255,255,0.9) 100%)',
           backdropFilter: 'blur(20px) saturate(180%)',
           WebkitBackdropFilter: 'blur(20px) saturate(180%)',
-          borderRadius: '4px', // Frame corner radius
+          borderRadius: isMobile ? '16px' : '24px',
+          border: 'none',
           overflow: 'hidden',
-          height: '100%',
-          minHeight: { xs: '450px', sm: '350px' },
-          position: 'relative',
-          transform: 'perspective(1000px) rotateX(2deg) rotateY(-1deg)',
-          transition: 'all 0.3s cubic-bezier(0.4, 0, 0.2, 1)',
-          // Multiple shadow layers for depth
+          transition: 'none',
           boxShadow: theme.palette.mode === 'dark'
             ? `
               0 4px 6px -1px rgba(0, 0, 0, 0.1),
               0 2px 4px -1px rgba(0, 0, 0, 0.06),
               0 8px 25px -5px rgba(0, 0, 0, 0.25),
-              0 15px 35px -5px rgba(0, 0, 0, 0.4),
-              0 25px 50px -10px rgba(0, 0, 0, 0.6),
               inset 0 1px 0 rgba(255, 255, 255, 0.1)
             `
             : `
               0 4px 6px -1px rgba(0, 0, 0, 0.1),
               0 2px 4px -1px rgba(0, 0, 0, 0.06),
               0 8px 25px -5px rgba(0, 0, 0, 0.1),
-              0 15px 35px -5px rgba(0, 0, 0, 0.15),
-              0 25px 50px -10px rgba(0, 0, 0, 0.25),
               inset 0 1px 0 rgba(255, 255, 255, 0.8)
             `,
-          '&:hover': {
-            transform: 'perspective(1000px) rotateX(2deg) rotateY(-1deg) translateY(-8px) scale(1.02)',
-            boxShadow: theme.palette.mode === 'dark'
-              ? `
-                0 6px 8px -1px rgba(0, 0, 0, 0.15),
-                0 4px 6px -1px rgba(0, 0, 0, 0.1),
-                0 12px 30px -5px rgba(0, 0, 0, 0.35),
-                0 20px 40px -5px rgba(0, 0, 0, 0.5),
-                0 30px 60px -10px rgba(0, 0, 0, 0.7),
-                inset 0 1px 0 rgba(255, 255, 255, 0.15)
-              `
-              : `
-                0 6px 8px -1px rgba(0, 0, 0, 0.15),
-                0 4px 6px -1px rgba(0, 0, 0, 0.1),
-                0 12px 30px -5px rgba(0, 0, 0, 0.15),
-                0 20px 40px -5px rgba(0, 0, 0, 0.2),
-                0 30px 60px -10px rgba(0, 0, 0, 0.3),
-                inset 0 1px 0 rgba(255, 255, 255, 0.9)
-              `,
-          }
+          height: '100%',
+          minHeight: { xs: '450px', sm: '350px' },
+          position: 'relative',
         }}
       >
-        {/* Frame Border with Material Gradient */}
+        {/* Large Background Image */}
         <Box
           sx={{
             position: 'absolute',
@@ -222,169 +187,90 @@ const TrendingItem = ({ trend, isLoading }) => {
             left: 0,
             right: 0,
             bottom: 0,
-            background: frameGradients[frameMaterial],
-            borderRadius: '4px',
-            padding: { xs: '12px', sm: '16px' }, // Frame thickness
-            backdropFilter: 'blur(10px) saturate(120%)',
-            WebkitBackdropFilter: 'blur(10px) saturate(120%)',
-            zIndex: 1,
-            '&::before': {
-              content: '""',
-              position: 'absolute',
-              top: '8px', // Inner matting
-              left: '8px',
-              right: '8px',
-              bottom: '8px',
-              background: theme.palette.mode === 'dark' ? 'rgba(255, 255, 255, 0.05)' : 'rgba(255, 255, 255, 0.9)',
-              borderRadius: '2px',
-              border: `1px solid ${theme.palette.mode === 'dark' ? 'rgba(255, 255, 255, 0.1)' : 'rgba(255, 255, 255, 0.8)'}`,
-            }
-          }}
-        />
-
-        {/* Hanging Wire */}
-        <Box
-          sx={{
-            position: 'absolute',
-            top: '20px',
-            left: '50%',
-            transform: 'translateX(-50%)',
-            width: '40%',
-            height: '2px',
-            background: 'linear-gradient(90deg, #8B4513, #D2691E, #8B4513)',
-            borderRadius: '1px',
-            zIndex: 2,
-            boxShadow: '0 1px 3px rgba(0, 0, 0, 0.3)',
-            '&::before': {
-              content: '""',
-              position: 'absolute',
-              top: '-4px',
-              left: '-2px',
-              width: '6px',
-              height: '10px',
-              background: 'linear-gradient(90deg, #8B4513, #D2691E)',
-              borderRadius: '3px',
-            },
-            '&::after': {
-              content: '""',
-              position: 'absolute',
-              top: '-4px',
-              right: '-2px',
-              width: '6px',
-              height: '10px',
-              background: 'linear-gradient(90deg, #D2691E, #8B4513)',
-              borderRadius: '3px',
-            }
-          }}
-        />
-
-        {/* Content Container */}
-        <Box
-          sx={{
-            position: 'relative',
-            zIndex: 3,
-            height: '100%',
-            padding: { xs: '24px 20px 20px', sm: '28px 24px 24px' }, // Account for frame thickness
+            zIndex: 0,
+            overflow: 'hidden',
+            backgroundColor: 'transparent',
             display: 'flex',
-            flexDirection: 'column',
+            alignItems: 'center',
+            justifyContent: 'center'
           }}
         >
-          {/* Large Background Image */}
-          <Box
+          <LazyCardMedia
+            component="img"
+            image={finalImageUrl}
+            alt={categoryDisplayName || 'Item Image'}
+            fallback={noImageSvg}
             sx={{
-              position: 'absolute',
-              top: { xs: '24px', sm: '28px' }, // Account for frame thickness
-              left: { xs: '20px', sm: '24px' },
-              right: { xs: '20px', sm: '24px' },
-              bottom: { xs: '20px', sm: '24px' },
-              zIndex: 0,
-              overflow: 'hidden',
-              backgroundColor: 'transparent',
-              display: 'flex',
-              alignItems: 'center',
-              justifyContent: 'center',
-              borderRadius: '2px', // Inner matting radius
-              border: `1px solid ${theme.palette.mode === 'dark' ? 'rgba(255, 255, 255, 0.1)' : 'rgba(255, 255, 255, 0.8)'}`,
+              width: image ? '100%' : '100%',
+              height: image ? '100%' : '100%',
+              objectFit: image ? 'cover' : 'contain',
+              objectPosition: 'center',
+              filter: image ? 'brightness(0.8)' : 'none',
+              backgroundColor: image ? 'transparent' : (theme.palette.mode === 'dark' ? '#000' : '#fff'),
+              // Ensure the smaller image is properly centered
+              ...(image ? {} : {
+                margin: 'auto',
+                display: 'block',
+              }),
             }}
-          >
-            <LazyCardMedia
-              component="img"
-              image={finalImageUrl}
-              alt={categoryDisplayName || 'Item Image'}
-              fallback={noImageSvg}
-              sx={{
-                width: image ? '100%' : '100%',
-                height: image ? '100%' : '100%',
-                objectFit: image ? 'cover' : 'contain',
-                objectPosition: 'center',
-                filter: image ? 'brightness(0.8)' : 'none',
-                backgroundColor: image ? 'transparent' : (theme.palette.mode === 'dark' ? '#000' : '#fff'),
-                borderRadius: '2px',
-                // Ensure the smaller image is properly centered
-                ...(image ? {} : {
-                  margin: 'auto',
-                  display: 'block',
-                }),
-              }}
-            />
-            
-            {/* No Image Overlay */}
-            {!image && (
-              <Box
-                sx={{
-                  position: 'absolute',
-                  top: '50%',
-                  left: '50%',
-                  transform: 'translate(-50%, -50%)',
-                  zIndex: 3,
-                  textAlign: 'center',
-                  backgroundColor: alpha(theme.palette.mode === 'dark' ? '#000' : '#fff', 0.9),
-                  borderRadius: '12px',
-                  padding: '12px 16px',
-                  backdropFilter: 'blur(10px)',
-                  border: `1px solid ${alpha(theme.palette.mode === 'dark' ? '#fff' : '#000', 0.1)}`,
-                  boxShadow: '0 4px 12px rgba(0,0,0,0.15)',
-                }}
-              >
-                <Typography
-                  sx={{
-                    color: theme.palette.mode === 'dark' ? '#fff' : '#000',
-                    fontSize: { xs: '12px', sm: '13px' },
-                    fontWeight: 600,
-                    lineHeight: 1.2,
-                  }}
-                >
-                  {t('noImageAvailable')}
-                </Typography>
-              </Box>
-            )}
-            {/* Gradient overlay for better text readability */}
+          />
+          
+          {/* No Image Overlay */}
+          {!image && (
             <Box
               sx={{
                 position: 'absolute',
-                top: 0,
-                left: 0,
-                right: 0,
-                bottom: 0,
-                background: 'linear-gradient(135deg, rgba(0,0,0,0.2) 0%, rgba(0,0,0,0.5) 100%)', // Lighter overlay for better image visibility
-                pointerEvents: 'none',
-                borderRadius: '2px',
+                top: '50%',
+                left: '50%',
+                transform: 'translate(-50%, -50%)',
+                zIndex: 3,
+                textAlign: 'center',
+                backgroundColor: alpha(theme.palette.mode === 'dark' ? '#000' : '#fff', 0.9),
+                borderRadius: '12px',
+                padding: '12px 16px',
+                backdropFilter: 'blur(10px)',
+                border: `1px solid ${alpha(theme.palette.mode === 'dark' ? '#fff' : '#000', 0.1)}`,
+                boxShadow: '0 4px 12px rgba(0,0,0,0.15)',
               }}
-            />
-          </Box>
-
-          {/* Content Overlay */}
+            >
+              <Typography
+                sx={{
+                  color: theme.palette.mode === 'dark' ? '#fff' : '#000',
+                  fontSize: { xs: '12px', sm: '13px' },
+                  fontWeight: 600,
+                  lineHeight: 1.2,
+                }}
+              >
+                {t('noImageAvailable')}
+              </Typography>
+            </Box>
+          )}
+          {/* Gradient overlay for better text readability */}
           <Box
             sx={{
-              position: 'relative',
-              zIndex: 4,
-              height: '100%',
-              display: 'flex',
-              flexDirection: 'column',
-              justifyContent: 'space-between',
-              // Remove padding since we're using the content container padding
+              position: 'absolute',
+              top: 0,
+              left: 0,
+              right: 0,
+              bottom: 0,
+              background: 'linear-gradient(135deg, rgba(0,0,0,0.2) 0%, rgba(0,0,0,0.5) 100%)', // Lighter overlay for better image visibility
+              pointerEvents: 'none'
             }}
-          >
+          />
+        </Box>
+
+        {/* Content Overlay */}
+        <Box
+          sx={{
+            position: 'relative',
+            zIndex: 1,
+            height: '100%',
+            display: 'flex',
+            flexDirection: 'column',
+            justifyContent: 'space-between',
+            p: { xs: 3, sm: 2.5 }
+          }}
+        >
 
           {/* Top Section - Badges */}
           <Box
@@ -653,8 +539,7 @@ const TrendingItem = ({ trend, isLoading }) => {
         </Button>
           </Box>
         </Box>
-        </Box>
-      </Box>
+      </Card>
     </Box>
   );
 };
