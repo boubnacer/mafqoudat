@@ -172,6 +172,7 @@ const Dash = () => {
       <Box
         mb={4}
         p={{ xs: 2, sm: 3, md: 4 }}
+        gap={{ xs: "32px" }}
         sx={{
           display: { xs: "grid", sm: "flex" },
           gridTemplateColumns: { xs: "repeat(1,1fr)", sm: "repeat(2,1fr)" },
