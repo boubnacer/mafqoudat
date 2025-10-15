@@ -179,7 +179,7 @@ const TrendingItem = ({ trend, isLoading }) => {
           position: 'relative',
         }}
       >
-        {/* Large Background Image */}
+        {/* Large Background Image with Frame Effect */}
         <Box
           sx={{
             position: 'absolute',
@@ -195,25 +195,86 @@ const TrendingItem = ({ trend, isLoading }) => {
             justifyContent: 'center'
           }}
         >
-          <LazyCardMedia
-            component="img"
-            image={finalImageUrl}
-            alt={categoryDisplayName || 'Item Image'}
-            fallback={noImageSvg}
+          {/* Frame Container */}
+          <Box
             sx={{
-              width: image ? '100%' : '100%',
-              height: image ? '100%' : '100%',
-              objectFit: image ? 'cover' : 'contain',
-              objectPosition: 'center',
-              filter: image ? 'brightness(0.8)' : 'none',
-              backgroundColor: image ? 'transparent' : (theme.palette.mode === 'dark' ? '#000' : '#fff'),
-              // Ensure the smaller image is properly centered
-              ...(image ? {} : {
-                margin: 'auto',
-                display: 'block',
-              }),
+              position: 'relative',
+              borderRadius: '8px',
+              padding: '12px', // Frame thickness
+              background: 'linear-gradient(45deg, #CD7F32, #FFD700, #CD7F32)', // Gold frame
+              boxShadow: `
+                0 20px 40px rgba(0,0,0,0.3), // Wall shadow
+                0 8px 16px rgba(0,0,0,0.2),  // Frame shadow
+                inset 0 2px 4px rgba(255,255,255,0.3), // Inner highlight
+                inset 0 -2px 4px rgba(0,0,0,0.2) // Inner shadow
+              `,
+              transform: 'perspective(1000px) rotateX(2deg) rotateY(-1deg)',
+              transition: 'all 0.3s cubic-bezier(0.4, 0, 0.2, 1)',
+              width: '80%',
+              height: '70%',
+              '&:hover': {
+                transform: 'perspective(1000px) rotateX(0deg) rotateY(0deg) translateY(-8px)',
+                boxShadow: `
+                  0 30px 60px rgba(0,0,0,0.4),
+                  0 12px 24px rgba(0,0,0,0.3),
+                  inset 0 2px 4px rgba(255,255,255,0.4),
+                  inset 0 -2px 4px rgba(0,0,0,0.3)
+                `,
+              }
             }}
-          />
+          >
+            {/* Hanging Wire */}
+            <Box
+              sx={{
+                position: 'absolute',
+                top: '-6px',
+                left: '50%',
+                transform: 'translateX(-50%)',
+                width: '60px',
+                height: '2px',
+                backgroundColor: '#8B4513',
+                borderRadius: '1px',
+                boxShadow: '0 1px 2px rgba(0,0,0,0.3)'
+              }}
+            />
+            
+            {/* Inner Matting */}
+            <Box
+              sx={{
+                borderRadius: '4px',
+                padding: '8px',
+                backgroundColor: '#F5F5F5',
+                border: '1px solid rgba(255,255,255,0.8)',
+                boxShadow: 'inset 0 1px 2px rgba(0,0,0,0.1)',
+                width: '100%',
+                height: '100%',
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center'
+              }}
+            >
+              <LazyCardMedia
+                component="img"
+                image={finalImageUrl}
+                alt={categoryDisplayName || 'Item Image'}
+                fallback={noImageSvg}
+                sx={{
+                  width: image ? '100%' : '100%',
+                  height: image ? '100%' : '100%',
+                  objectFit: image ? 'cover' : 'contain',
+                  objectPosition: 'center',
+                  filter: image ? 'brightness(0.9)' : 'none',
+                  backgroundColor: image ? 'transparent' : (theme.palette.mode === 'dark' ? '#000' : '#fff'),
+                  borderRadius: '4px',
+                  // Ensure the smaller image is properly centered
+                  ...(image ? {} : {
+                    margin: 'auto',
+                    display: 'block',
+                  }),
+                }}
+              />
+            </Box>
+          </Box>
           
           {/* No Image Overlay */}
           {!image && (
