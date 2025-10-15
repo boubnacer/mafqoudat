@@ -150,267 +150,163 @@ const TrendingItem = ({ trend, isLoading }) => {
       minWidth: isMobile ? '100%' : 'auto', 
       width: isMobile ? '100%' : 'auto',
     }}>
-      {/* Pinterest Pinboard Container with Frame Border */}
       <Card
         sx={{
-          // Corkboard/Wall Pinboard Background
           background: theme.palette.mode === 'dark'
-            ? 'linear-gradient(135deg, #654321 0%, #8B4513 50%, #654321 100%)'
-            : 'linear-gradient(135deg, #D2B48C 0%, #DEB887 50%, #D2B48C 100%)',
-          borderRadius: isMobile ? '16px' : '20px',
-          padding: { xs: '4px', sm: '6px' },
-          position: 'relative',
-          overflow: 'visible',
-          height: '100%',
-          minHeight: { xs: '450px', sm: '350px' },
-          // Frame Border - Reduced for tighter spacing
-          border: '4px solid #f5f5f5',
+            ? 'linear-gradient(135deg, rgba(18,18,18,0.85) 0%, rgba(28,28,28,0.9) 50%, rgba(35,35,35,0.85) 100%)'
+            : 'linear-gradient(135deg, rgba(255,255,255,0.9) 0%, rgba(248,250,252,0.95) 50%, rgba(255,255,255,0.9) 100%)',
+          backdropFilter: 'blur(20px) saturate(180%)',
+          WebkitBackdropFilter: 'blur(20px) saturate(180%)',
+          borderRadius: isMobile ? '16px' : '24px',
+          border: 'none',
+          overflow: 'hidden',
+          transition: 'none',
           boxShadow: theme.palette.mode === 'dark'
             ? `
-              0 20px 40px rgba(0, 0, 0, 0.4),
-              0 8px 16px rgba(0, 0, 0, 0.2),
-              0 0 0 2px rgba(245, 245, 245, 0.1),
+              0 4px 6px -1px rgba(0, 0, 0, 0.1),
+              0 2px 4px -1px rgba(0, 0, 0, 0.06),
+              0 8px 25px -5px rgba(0, 0, 0, 0.25),
               inset 0 1px 0 rgba(255, 255, 255, 0.1)
             `
             : `
-              0 20px 40px rgba(0, 0, 0, 0.15),
-              0 8px 16px rgba(0, 0, 0, 0.1),
-              0 0 0 2px rgba(245, 245, 245, 0.8),
-              inset 0 1px 0 rgba(255, 255, 255, 0.3)
+              0 4px 6px -1px rgba(0, 0, 0, 0.1),
+              0 2px 4px -1px rgba(0, 0, 0, 0.06),
+              0 8px 25px -5px rgba(0, 0, 0, 0.1),
+              inset 0 1px 0 rgba(255, 255, 255, 0.8)
             `,
-          '&::before': {
-            content: '""',
+          height: '100%',
+          minHeight: { xs: '450px', sm: '350px' },
+          position: 'relative',
+        }}
+      >
+        {/* Large Background Image */}
+        <Box
+          sx={{
             position: 'absolute',
             top: 0,
             left: 0,
             right: 0,
             bottom: 0,
-            borderRadius: isMobile ? '16px' : '20px',
-            background: theme.palette.mode === 'dark'
-              ? 'radial-gradient(circle at 30% 20%, rgba(139, 69, 19, 0.1) 0%, transparent 50%), radial-gradient(circle at 70% 80%, rgba(101, 67, 33, 0.08) 0%, transparent 50%)'
-              : 'radial-gradient(circle at 30% 20%, rgba(210, 180, 140, 0.1) 0%, transparent 50%), radial-gradient(circle at 70% 80%, rgba(222, 184, 135, 0.08) 0%, transparent 50%)',
-            backgroundSize: '20px 20px, 25px 25px',
-            pointerEvents: 'none',
-          },
-          '&::after': {
-            content: '""',
-            position: 'absolute',
-            top: '8px',
-            left: '8px',
-            right: '8px',
-            bottom: '8px',
-            borderRadius: isMobile ? '12px' : '16px',
-            background: theme.palette.mode === 'dark'
-              ? 'linear-gradient(45deg, transparent 0%, rgba(139, 69, 19, 0.05) 50%, transparent 100%)'
-              : 'linear-gradient(45deg, transparent 0%, rgba(210, 180, 140, 0.05) 50%, transparent 100%)',
-            pointerEvents: 'none',
-          }
-        }}
-      >
-        {/* Pinterest Photo Frame */}
-        <Box
-          sx={{
-            position: 'absolute',
-            top: '50%',
-            left: '50%',
-            transform: 'translate(-50%, -50%) rotate(1deg)',
-            width: { xs: '85%', sm: '80%' },
-            height: { xs: '70%', sm: '75%' },
-            zIndex: 2,
-            transition: 'all 0.4s cubic-bezier(0.4, 0, 0.2, 1)',
-            '&:hover': {
-              transform: 'translate(-50%, -50%) rotate(0deg) translateY(-8px)',
-              '& .photo-frame': {
-                boxShadow: '0 25px 50px rgba(0,0,0,0.6), 0 10px 20px rgba(0,0,0,0.3)',
-              },
-              '& .top-center-pin': {
-                transform: 'translate(-50%, -50%) rotate(12deg) scale(1.15)',
-                filter: 'drop-shadow(0 5px 10px rgba(0,0,0,0.5))',
-              }
-            }
+            zIndex: 0,
+            overflow: 'hidden',
+            backgroundColor: 'transparent',
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'center'
           }}
         >
-          {/* Photo Frame Container - Minimal Spacing */}
-          <Box
-            className="photo-frame"
+          <LazyCardMedia
+            component="img"
+            image={finalImageUrl}
+            alt={categoryDisplayName || 'Item Image'}
+            fallback={noImageSvg}
             sx={{
-              width: '100%',
-              height: '100%',
-              background: 'transparent',
-              borderRadius: '8px',
-              padding: '1px', // Minimal padding between frame and image
-              boxShadow: '0 15px 35px rgba(0,0,0,0.4), 0 5px 15px rgba(0,0,0,0.2)',
-              position: 'relative',
-              overflow: 'hidden',
-              transition: 'all 0.3s ease',
+              width: image ? '100%' : '100%',
+              height: image ? '100%' : '100%',
+              objectFit: image ? 'cover' : 'contain',
+              objectPosition: 'center',
+              filter: image ? 'brightness(0.8)' : 'none',
+              backgroundColor: image ? 'transparent' : (theme.palette.mode === 'dark' ? '#000' : '#fff'),
+              // Ensure the smaller image is properly centered
+              ...(image ? {} : {
+                margin: 'auto',
+                display: 'block',
+              }),
             }}
-          >
-            {/* Photo Content - Maximum Space Usage */}
-            <Box
-              sx={{
-                width: '100%',
-                height: '100%',
-                borderRadius: '8px',
-                overflow: 'hidden',
-                position: 'relative',
-                background: theme.palette.mode === 'dark' ? '#000' : '#fff',
-                border: 'none',
-                margin: '0px', // Remove any margin
-                padding: '0px', // Remove any padding
-              }}
-            >
-              <LazyCardMedia
-                component="img"
-                image={finalImageUrl}
-                alt={categoryDisplayName || 'Item Image'}
-                fallback={noImageSvg}
-                sx={{
-                  width: '100%',
-                  height: '100%',
-                  objectFit: image ? 'cover' : 'contain',
-                  objectPosition: 'center',
-                  filter: image ? 'brightness(0.9) contrast(1.05)' : 'none',
-                  transition: 'filter 0.3s ease',
-                }}
-              />
-              
-              {/* No Image Overlay */}
-              {!image && (
-                <Box
-                  sx={{
-                    position: 'absolute',
-                    top: '50%',
-                    left: '50%',
-                    transform: 'translate(-50%, -50%)',
-                    zIndex: 3,
-                    textAlign: 'center',
-                    backgroundColor: alpha(theme.palette.mode === 'dark' ? '#000' : '#fff', 0.95),
-                    borderRadius: '8px',
-                    padding: '16px 20px',
-                    backdropFilter: 'blur(10px)',
-                    border: `2px solid ${alpha(theme.palette.mode === 'dark' ? '#fff' : '#000', 0.1)}`,
-                    boxShadow: '0 4px 12px rgba(0,0,0,0.15)',
-                  }}
-                >
-                  <Typography
-                    sx={{
-                      color: theme.palette.mode === 'dark' ? '#fff' : '#000',
-                      fontSize: { xs: '14px', sm: '16px' },
-                      fontWeight: 600,
-                      lineHeight: 1.2,
-                    }}
-                  >
-                    {t('noImageAvailable')}
-                  </Typography>
-                </Box>
-              )}
-            </Box>
-
-            {/* Paper Curl Effect - Bottom Right */}
+          />
+          
+          {/* No Image Overlay */}
+          {!image && (
             <Box
               sx={{
                 position: 'absolute',
-                bottom: '8px',
-                right: '8px',
-                width: '30px',
-                height: '30px',
-                background: 'linear-gradient(135deg, transparent 0%, rgba(0,0,0,0.15) 70%, rgba(0,0,0,0.1) 100%)',
-                clipPath: 'polygon(0 0, 100% 0, 100% 100%, 0 70%)',
-                zIndex: 5,
-                transition: 'all 0.3s ease',
-                '&:hover': {
-                  transform: 'scale(1.1)',
-                  background: 'linear-gradient(135deg, transparent 0%, rgba(0,0,0,0.2) 70%, rgba(0,0,0,0.15) 100%)',
-                }
+                top: '50%',
+                left: '50%',
+                transform: 'translate(-50%, -50%)',
+                zIndex: 3,
+                textAlign: 'center',
+                backgroundColor: alpha(theme.palette.mode === 'dark' ? '#000' : '#fff', 0.9),
+                borderRadius: '12px',
+                padding: '12px 16px',
+                backdropFilter: 'blur(10px)',
+                border: `1px solid ${alpha(theme.palette.mode === 'dark' ? '#fff' : '#000', 0.1)}`,
+                boxShadow: '0 4px 12px rgba(0,0,0,0.15)',
               }}
-            />
-          </Box>
-
-          {/* Very Top-Center Pin - At Top Edge of Card */}
+            >
+              <Typography
+                sx={{
+                  color: theme.palette.mode === 'dark' ? '#fff' : '#000',
+                  fontSize: { xs: '12px', sm: '13px' },
+                  fontWeight: 600,
+                  lineHeight: 1.2,
+                }}
+              >
+                {t('noImageAvailable')}
+              </Typography>
+            </Box>
+          )}
+          {/* Gradient overlay for better text readability */}
           <Box
-            className="top-center-pin"
             sx={{
               position: 'absolute',
-              top: '0px', // Pin sits on top edge of card
-              left: '50%',
-              transform: 'translate(-50%, -50%) rotate(8deg)', // Pin sits on top edge
-              width: '40px',
-              height: '40px',
-              backgroundImage: 'url(/pinIcon.svg)',
-              backgroundSize: 'contain',
-              backgroundRepeat: 'no-repeat',
-              backgroundPosition: 'center',
-              zIndex: 999,
-              filter: 'drop-shadow(0 3px 6px rgba(0,0,0,0.4))',
-              transition: 'all 0.3s cubic-bezier(0.4, 0, 0.2, 1)',
-              cursor: 'pointer',
-              '&:hover': {
-                transform: 'translate(-50%, -50%) rotate(12deg) scale(1.1)',
-                filter: 'drop-shadow(0 5px 10px rgba(0,0,0,0.5))',
-              }
+              top: 0,
+              left: 0,
+              right: 0,
+              bottom: 0,
+              background: 'linear-gradient(135deg, rgba(0,0,0,0.2) 0%, rgba(0,0,0,0.5) 100%)', // Lighter overlay for better image visibility
+              pointerEvents: 'none'
             }}
           />
         </Box>
 
-        {/* Content Overlay - Below Top-Center Pin */}
+        {/* Content Overlay */}
         <Box
           sx={{
-            position: 'absolute',
-            top: 0,
-            left: 0,
-            right: 0,
-            bottom: 0,
-            zIndex: 10, // Below center pin (999)
+            position: 'relative',
+            zIndex: 1,
+            height: '100%',
             display: 'flex',
             flexDirection: 'column',
             justifyContent: 'space-between',
-            p: { xs: 3, sm: 2.5 },
-            pointerEvents: 'none', // Allow clicks to pass through to underlying elements
-            '& > *': {
-              pointerEvents: 'auto', // Re-enable pointer events for interactive elements
-            }
+            p: { xs: 3, sm: 2.5 }
           }}
         >
 
-          {/* Top Section - Pinterest Style Badges */}
+          {/* Top Section - Badges */}
           <Box
             sx={{
               display: 'flex',
               justifyContent: 'space-between',
               alignItems: 'flex-start',
-              mb: 2,
-              filter: 'drop-shadow(0 2px 4px rgba(0,0,0,0.3))',
+              mb: 2
             }}
           >
-            {/* Left Side - Pinterest Trending Badge */}
+            {/* Left Side - Trending Badge */}
             <Box
               sx={{
-                background: 'linear-gradient(45deg, #FF6B35, #FF9800, #FFC107)',
+                background: 'linear-gradient(45deg, #FF9800, #FFC107, #FF9800)',
                 backgroundSize: '200% 200%',
-                padding: { xs: '6px 12px', sm: '8px 16px' },
-                borderRadius: '25px',
-                boxShadow: '0 6px 20px rgba(255,107,53,0.5), 0 0 25px rgba(255,152,0,0.3), inset 0 1px 0 rgba(255,255,255,0.3)',
+                padding: { xs: '4px 8px', sm: '6px 12px' },
+                borderRadius: '20px',
+                boxShadow: '0 4px 15px rgba(255,152,0,0.4), 0 0 20px rgba(255,152,0,0.2)',
                 animation: 'trendingPulse 3s ease-in-out infinite, trendingGradient 4s ease-in-out infinite',
-                transition: 'all 0.4s cubic-bezier(0.4, 0, 0.2, 1)',
+                transition: 'all 0.3s cubic-bezier(0.4, 0, 0.2, 1)',
                 cursor: 'pointer',
-                border: '2px solid rgba(255,255,255,0.2)',
-                backdropFilter: 'blur(10px)',
                 '&:hover': {
-                  transform: 'scale(1.08) translateY(-2px)',
-                  boxShadow: '0 8px 25px rgba(255,107,53,0.7), 0 0 35px rgba(255,152,0,0.4), inset 0 1px 0 rgba(255,255,255,0.4)',
-                  border: '2px solid rgba(255,255,255,0.3)',
+                  transform: 'scale(1.05)',
+                  boxShadow: '0 6px 20px rgba(255,152,0,0.6), 0 0 30px rgba(255,152,0,0.3)',
                 },
                 '@keyframes trendingPulse': {
                   '0%': {
-                    boxShadow: '0 6px 20px rgba(255,107,53,0.5), 0 0 25px rgba(255,152,0,0.3), inset 0 1px 0 rgba(255,255,255,0.3)',
+                    boxShadow: '0 4px 15px rgba(255,152,0,0.4), 0 0 20px rgba(255,152,0,0.2)',
                     transform: 'scale(1)',
                   },
                   '50%': {
-                    boxShadow: '0 8px 30px rgba(255,107,53,0.7), 0 0 40px rgba(255,152,0,0.5), inset 0 1px 0 rgba(255,255,255,0.4)',
-                    transform: 'scale(1.03)',
+                    boxShadow: '0 6px 25px rgba(255,152,0,0.6), 0 0 35px rgba(255,152,0,0.4)',
+                    transform: 'scale(1.02)',
                   },
                   '100%': {
-                    boxShadow: '0 6px 20px rgba(255,107,53,0.5), 0 0 25px rgba(255,152,0,0.3), inset 0 1px 0 rgba(255,255,255,0.3)',
+                    boxShadow: '0 4px 15px rgba(255,152,0,0.4), 0 0 20px rgba(255,152,0,0.2)',
                     transform: 'scale(1)',
                   },
                 },
@@ -541,29 +437,26 @@ const TrendingItem = ({ trend, isLoading }) => {
             {/* Empty space for better visual balance */}
           </Box>
 
-          {/* Bottom Section - Pinterest Style Info and Action */}
+          {/* Bottom Section - Info and Action */}
           <Box>
-            {/* Pinterest Info Card */}
+            {/* Info Row */}
             <Box
               sx={{
                 display: 'flex',
                 justifyContent: 'space-between',
                 alignItems: 'center',
                 mb: 2,
-                p: { xs: 2.5, sm: 2 },
-                backgroundColor: alpha('#000', 0.75),
-                borderRadius: '20px',
-                backdropFilter: 'blur(25px) saturate(180%)',
-                WebkitBackdropFilter: 'blur(25px) saturate(180%)',
-                border: '2px solid rgba(255, 255, 255, 0.15)',
-                boxShadow: '0 8px 25px rgba(0, 0, 0, 0.4), 0 4px 12px rgba(0, 0, 0, 0.2), inset 0 1px 0 rgba(255, 255, 255, 0.2)',
-                transition: 'all 0.4s cubic-bezier(0.4, 0, 0.2, 1)',
-                filter: 'drop-shadow(0 4px 8px rgba(0,0,0,0.3))',
+                p: { xs: 2, sm: 1.5 },
+                backgroundColor: alpha('#000', 0.4),
+                borderRadius: '16px',
+                backdropFilter: 'blur(20px) saturate(180%)',
+                WebkitBackdropFilter: 'blur(20px) saturate(180%)',
+                border: '1px solid rgba(255, 255, 255, 0.1)',
+                boxShadow: '0 4px 15px rgba(0, 0, 0, 0.2), inset 0 1px 0 rgba(255, 255, 255, 0.1)',
+                transition: 'all 0.3s ease',
                 '&:hover': {
-                  backgroundColor: alpha('#000', 0.85),
-                  boxShadow: '0 12px 35px rgba(0, 0, 0, 0.5), 0 6px 18px rgba(0, 0, 0, 0.3), inset 0 1px 0 rgba(255, 255, 255, 0.25)',
-                  transform: 'translateY(-2px)',
-                  border: '2px solid rgba(255, 255, 255, 0.2)',
+                  backgroundColor: alpha('#000', 0.5),
+                  boxShadow: '0 6px 20px rgba(0, 0, 0, 0.3), inset 0 1px 0 rgba(255, 255, 255, 0.15)',
                 }
               }}
             >
@@ -597,27 +490,26 @@ const TrendingItem = ({ trend, isLoading }) => {
                 </Typography>
               </Box>
             </Box>
-            {/* Pinterest Style Action Button */}
+            {/* Action Button */}
         <Button
           fullWidth
           variant="contained"
           onClick={handleViewPost}
           sx={{
-            background: 'linear-gradient(45deg, #E91E63 30%, #F06292 60%, #E91E63 90%)',
+            background: 'linear-gradient(45deg, #4A8BFF 30%, #1A6EEE 90%)',
             backgroundSize: '200% 200%',
             color: '#fff',
-            borderRadius: '16px',
-            padding: { xs: '16px', sm: '14px' },
+            borderRadius: '12px',
+            padding: { xs: '14px', sm: '12px' },
             textTransform: 'none',
-            fontSize: { xs: '16px', sm: '15px' },
-            fontWeight: 700,
+            fontSize: { xs: '16px', sm: '14px' },
+            fontWeight: 600,
             transition: 'all 0.4s cubic-bezier(0.4, 0, 0.2, 1)',
-            boxShadow: '0 8px 25px rgba(233, 30, 99, 0.4), 0 0 30px rgba(240, 98, 146, 0.2), inset 0 1px 0 rgba(255,255,255,0.3)',
-            backdropFilter: 'blur(15px)',
-            border: '2px solid rgba(255, 255, 255, 0.2)',
+            boxShadow: '0 4px 15px rgba(26, 110, 238, 0.3), 0 0 20px rgba(26, 110, 238, 0.1)',
+            backdropFilter: 'blur(10px)',
+            border: '1px solid rgba(255, 255, 255, 0.2)',
             position: 'relative',
             overflow: 'hidden',
-            filter: 'drop-shadow(0 4px 8px rgba(0,0,0,0.3))',
             '&::before': {
               content: '""',
               position: 'absolute',
@@ -625,27 +517,23 @@ const TrendingItem = ({ trend, isLoading }) => {
               left: '-100%',
               width: '100%',
               height: '100%',
-              background: 'linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.3), transparent)',
-              transition: 'left 0.6s ease',
+              background: 'linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.2), transparent)',
+              transition: 'left 0.5s ease',
             },
             '&:hover': {
-              background: 'linear-gradient(45deg, #F06292 30%, #F48FB1 60%, #F06292 90%)',
-              boxShadow: '0 12px 35px rgba(233, 30, 99, 0.6), 0 0 40px rgba(240, 98, 146, 0.3), inset 0 1px 0 rgba(255,255,255,0.4)',
-              transform: 'translateY(-4px) scale(1.02)',
-              border: '2px solid rgba(255, 255, 255, 0.3)',
+              background: 'linear-gradient(45deg, #5A9BFF 30%, #2A7EFF 90%)',
+              boxShadow: '0 8px 25px rgba(26, 110, 238, 0.4), 0 0 30px rgba(26, 110, 238, 0.2)',
+              transform: 'translateY(-2px)',
               '&::before': {
                 left: '100%',
               },
-              '& .MuiButton-endIcon': {
-                transform: 'translateX(4px) scale(1.1)',
-              }
             },
             '&:active': {
-              transform: 'translateY(-2px) scale(1.01)',
-              boxShadow: '0 8px 25px rgba(233, 30, 99, 0.4), 0 0 30px rgba(240, 98, 146, 0.2)',
+              transform: 'translateY(0px)',
+              boxShadow: '0 4px 15px rgba(26, 110, 238, 0.3)',
             }
           }}
-          endIcon={<RenderIcon name="view" sx={{ fontSize: { xs: '20px', sm: '18px' }, transition: 'all 0.3s ease' }} />}
+          endIcon={<RenderIcon name="view" sx={{ fontSize: { xs: '18px', sm: '16px' }, transition: 'transform 0.3s ease' }} />}
         >
           {t('viewDetails')}
         </Button>
