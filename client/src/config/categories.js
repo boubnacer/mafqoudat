@@ -20,8 +20,8 @@ import BusinessCenterOutlinedIcon from '@mui/icons-material/BusinessCenterOutlin
 const WalletIcon = ({ sx, ...props }) => (
   <svg 
     viewBox="0 0 38 32" 
-    width="24" 
-    height="24" 
+    width="28" 
+    height="28" 
     {...props}
     style={{ 
       fill: 'currentColor',
@@ -39,8 +39,8 @@ const WalletIcon = ({ sx, ...props }) => (
 const KeysIcon = ({ sx, ...props }) => (
   <svg 
     viewBox="-0.5 0 25 25" 
-    width="24" 
-    height="24" 
+    width="28" 
+    height="28" 
     fill="none" 
     {...props}
     style={{ 
@@ -61,8 +61,8 @@ const KeysIcon = ({ sx, ...props }) => (
 const GlassesIcon = ({ sx, ...props }) => (
   <svg 
     viewBox="0 0 64 64" 
-    width="24" 
-    height="24" 
+    width="28" 
+    height="28" 
     {...props}
     style={{ 
       fill: 'currentColor',
@@ -76,8 +76,8 @@ const GlassesIcon = ({ sx, ...props }) => (
 const MoneyIcon = ({ sx, ...props }) => (
   <svg 
     viewBox="0 0 300.16 300.16" 
-    width="24" 
-    height="24" 
+    width="28" 
+    height="28" 
     {...props}
     style={{ 
       fill: 'currentColor',
@@ -100,8 +100,8 @@ const MoneyIcon = ({ sx, ...props }) => (
 const JewelryIcon = ({ sx, ...props }) => (
   <svg 
     viewBox="0 0 511.999 511.999" 
-    width="24" 
-    height="24" 
+    width="28" 
+    height="28" 
     {...props}
     style={{ 
       fill: 'currentColor',
