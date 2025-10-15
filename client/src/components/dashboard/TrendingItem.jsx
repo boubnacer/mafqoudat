@@ -150,7 +150,7 @@ const TrendingItem = ({ trend, isLoading }) => {
       minWidth: isMobile ? '100%' : 'auto', 
       width: isMobile ? '100%' : 'auto',
     }}>
-      {/* Pinterest Pinboard Container */}
+      {/* Pinterest Pinboard Container with Frame Border */}
       <Card
         sx={{
           // Corkboard/Wall Pinboard Background
@@ -163,15 +163,19 @@ const TrendingItem = ({ trend, isLoading }) => {
           overflow: 'visible',
           height: '100%',
           minHeight: { xs: '450px', sm: '350px' },
+          // Frame Border - Moved from image to entire card
+          border: '8px solid #f5f5f5',
           boxShadow: theme.palette.mode === 'dark'
             ? `
               0 20px 40px rgba(0, 0, 0, 0.4),
               0 8px 16px rgba(0, 0, 0, 0.2),
+              0 0 0 2px rgba(245, 245, 245, 0.1),
               inset 0 1px 0 rgba(255, 255, 255, 0.1)
             `
             : `
               0 20px 40px rgba(0, 0, 0, 0.15),
               0 8px 16px rgba(0, 0, 0, 0.1),
+              0 0 0 2px rgba(245, 245, 245, 0.8),
               inset 0 1px 0 rgba(255, 255, 255, 0.3)
             `,
           '&::before': {
@@ -219,37 +223,38 @@ const TrendingItem = ({ trend, isLoading }) => {
               '& .photo-frame': {
                 boxShadow: '0 25px 50px rgba(0,0,0,0.6), 0 10px 20px rgba(0,0,0,0.3)',
               },
-              '& .corner-pin': {
-                transform: 'rotate(5deg) scale(1.1)',
-                filter: 'drop-shadow(0 4px 8px rgba(0,0,0,0.4))',
+              '& .center-pin': {
+                transform: 'translate(-50%, -50%) rotate(12deg) scale(1.15)',
+                filter: 'drop-shadow(0 5px 10px rgba(0,0,0,0.5))',
               }
             }
           }}
         >
-          {/* Photo Frame Container */}
+          {/* Photo Frame Container - No Border */}
           <Box
             className="photo-frame"
             sx={{
               width: '100%',
               height: '100%',
-              background: '#fff',
+              background: 'transparent',
               borderRadius: '8px',
-              padding: '8px',
-              boxShadow: '0 15px 35px rgba(0,0,0,0.4), 0 5px 15px rgba(0,0,0,0.2), inset 0 1px 0 rgba(255,255,255,0.8)',
+              padding: 0,
+              boxShadow: '0 15px 35px rgba(0,0,0,0.4), 0 5px 15px rgba(0,0,0,0.2)',
               position: 'relative',
               overflow: 'hidden',
               transition: 'all 0.3s ease',
             }}
           >
-            {/* Photo Content */}
+            {/* Photo Content - No Border */}
             <Box
               sx={{
                 width: '100%',
                 height: '100%',
-                borderRadius: '4px',
+                borderRadius: '8px',
                 overflow: 'hidden',
                 position: 'relative',
                 background: theme.palette.mode === 'dark' ? '#000' : '#fff',
+                border: 'none',
               }}
             >
               <LazyCardMedia
@@ -319,49 +324,33 @@ const TrendingItem = ({ trend, isLoading }) => {
             />
           </Box>
 
-          {/* Corner Pins */}
-          {/* Top Left Pin */}
+          {/* Center Pin - Most Prominent Element */}
           <Box
-            className="corner-pin"
+            className="center-pin"
             sx={{
               position: 'absolute',
-              top: '-8px',
-              left: '-8px',
-              width: { xs: '24px', sm: '28px' },
-              height: { xs: '24px', sm: '28px' },
+              top: '50%',
+              left: '50%',
+              transform: 'translate(-50%, -50%) rotate(8deg)',
+              width: '40px',
+              height: '40px',
               backgroundImage: 'url(/pinIcon.svg)',
               backgroundSize: 'contain',
               backgroundRepeat: 'no-repeat',
               backgroundPosition: 'center',
-              zIndex: 10,
-              filter: 'drop-shadow(0 3px 6px rgba(0,0,0,0.3))',
-              transition: 'all 0.3s ease',
+              zIndex: 999,
+              filter: 'drop-shadow(0 4px 8px rgba(0,0,0,0.4))',
+              transition: 'all 0.3s cubic-bezier(0.4, 0, 0.2, 1)',
               cursor: 'pointer',
-            }}
-          />
-          
-          {/* Bottom Right Pin */}
-          <Box
-            className="corner-pin"
-            sx={{
-              position: 'absolute',
-              bottom: '-8px',
-              right: '-8px',
-              width: { xs: '24px', sm: '28px' },
-              height: { xs: '24px', sm: '28px' },
-              backgroundImage: 'url(/pinIcon.svg)',
-              backgroundSize: 'contain',
-              backgroundRepeat: 'no-repeat',
-              backgroundPosition: 'center',
-              zIndex: 10,
-              filter: 'drop-shadow(0 3px 6px rgba(0,0,0,0.3))',
-              transition: 'all 0.3s ease',
-              cursor: 'pointer',
+              '&:hover': {
+                transform: 'translate(-50%, -50%) rotate(12deg) scale(1.1)',
+                filter: 'drop-shadow(0 6px 12px rgba(0,0,0,0.5))',
+              }
             }}
           />
         </Box>
 
-        {/* Content Overlay - Above Pinboard */}
+        {/* Content Overlay - Below Center Pin */}
         <Box
           sx={{
             position: 'absolute',
@@ -369,7 +358,7 @@ const TrendingItem = ({ trend, isLoading }) => {
             left: 0,
             right: 0,
             bottom: 0,
-            zIndex: 15,
+            zIndex: 10, // Below center pin (999)
             display: 'flex',
             flexDirection: 'column',
             justifyContent: 'space-between',
