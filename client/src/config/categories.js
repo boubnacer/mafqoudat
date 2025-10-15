@@ -77,11 +77,12 @@ const GlassesIcon = ({ sx, ...props }) => (
 const MoneyIcon = ({ sx, ...props }) => (
   <svg 
     viewBox="0 0 512 512" 
-    width="28" 
-    height="28" 
+    width="32" 
+    height="32" 
     {...props}
     style={{ 
       fill: 'currentColor',
+      filter: 'drop-shadow(0 0 1px currentColor)',
       ...sx 
     }}
   >
@@ -95,11 +96,12 @@ const MoneyIcon = ({ sx, ...props }) => (
 const JewelryIcon = ({ sx, ...props }) => (
   <svg 
     viewBox="0 0 511.999 511.999" 
-    width="28" 
-    height="28" 
+    width="32" 
+    height="32" 
     {...props}
     style={{ 
       fill: 'currentColor',
+      filter: 'drop-shadow(0 0 1px currentColor)',
       ...sx 
     }}
   >
