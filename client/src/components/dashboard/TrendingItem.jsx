@@ -22,6 +22,7 @@ import { getCategoryConfig } from "../../config/categories";
 import { useNavigate } from "react-router-dom";
 import { getLabel } from "../../utils/languageUtils";
 import noImageSvg from "../../img/noimage.svg";
+import pinIcon from "../../img/pinIcon.svg";
 
 // Get the API base URL for image construction
 const API_BASE_URL = process.env.REACT_APP_API_URL || "http://localhost:3500";
@@ -149,395 +150,230 @@ const TrendingItem = ({ trend, isLoading }) => {
     <Box flex={1} sx={{ 
       minWidth: isMobile ? '100%' : 'auto', 
       width: isMobile ? '100%' : 'auto',
+      position: 'relative',
+      marginTop: '16px', // Space for the pin
     }}>
+      {/* Pin Icon */}
+      <Box
+        sx={{
+          position: 'absolute',
+          top: '-12px',
+          left: '50%',
+          transform: 'translateX(-50%)',
+          zIndex: 10,
+          filter: 'drop-shadow(0 2px 4px rgba(0,0,0,0.3))',
+        }}
+      >
+        <img 
+          src={pinIcon} 
+          alt="Pin" 
+          style={{ 
+            width: '24px', 
+            height: '24px',
+            display: 'block'
+          }} 
+        />
+      </Box>
+
       <Card
         sx={{
-          background: theme.palette.mode === 'dark'
-            ? 'linear-gradient(135deg, rgba(18,18,18,0.85) 0%, rgba(28,28,28,0.9) 50%, rgba(35,35,35,0.85) 100%)'
-            : 'linear-gradient(135deg, rgba(255,255,255,0.9) 0%, rgba(248,250,252,0.95) 50%, rgba(255,255,255,0.9) 100%)',
-          backdropFilter: 'blur(20px) saturate(180%)',
-          WebkitBackdropFilter: 'blur(20px) saturate(180%)',
-          borderRadius: isMobile ? '16px' : '24px',
-          border: 'none',
+          background: '#f8f8f8',
+          borderRadius: '8px',
+          border: '2px solid #333',
           overflow: 'hidden',
-          transition: 'none',
-          boxShadow: theme.palette.mode === 'dark'
-            ? `
-              0 4px 6px -1px rgba(0, 0, 0, 0.1),
-              0 2px 4px -1px rgba(0, 0, 0, 0.06),
-              0 8px 25px -5px rgba(0, 0, 0, 0.25),
-              inset 0 1px 0 rgba(255, 255, 255, 0.1)
-            `
-            : `
-              0 4px 6px -1px rgba(0, 0, 0, 0.1),
-              0 2px 4px -1px rgba(0, 0, 0, 0.06),
-              0 8px 25px -5px rgba(0, 0, 0, 0.1),
-              inset 0 1px 0 rgba(255, 255, 255, 0.8)
-            `,
           height: '100%',
           minHeight: { xs: '450px', sm: '350px' },
           position: 'relative',
+          boxShadow: '0 4px 8px rgba(0, 0, 0, 0.15)',
         }}
       >
-        {/* Large Background Image */}
+        {/* Poster Header */}
         <Box
           sx={{
-            position: 'absolute',
-            top: 0,
-            left: 0,
-            right: 0,
-            bottom: 0,
-            zIndex: 0,
-            overflow: 'hidden',
-            backgroundColor: 'transparent',
-            display: 'flex',
-            alignItems: 'center',
-            justifyContent: 'center'
+            backgroundColor: '#000',
+            color: '#fff',
+            padding: { xs: '16px', sm: '20px' },
+            textAlign: 'center',
+            borderBottom: '2px solid #333',
           }}
         >
-          <LazyCardMedia
-            component="img"
-            image={finalImageUrl}
-            alt={categoryDisplayName || 'Item Image'}
-            fallback={noImageSvg}
+          <Typography
             sx={{
-              width: image ? '100%' : '100%',
-              height: image ? '100%' : '100%',
-              objectFit: image ? 'cover' : 'contain',
-              objectPosition: 'center',
-              filter: image ? 'brightness(0.8)' : 'none',
-              backgroundColor: image ? 'transparent' : (theme.palette.mode === 'dark' ? '#000' : '#fff'),
-              // Ensure the smaller image is properly centered
-              ...(image ? {} : {
-                margin: 'auto',
-                display: 'block',
-              }),
+              fontSize: { xs: '20px', sm: '24px' },
+              fontWeight: 900,
+              textTransform: 'uppercase',
+              letterSpacing: '2px',
+              marginBottom: '8px',
+            }}
+          >
+            {foundLostStatus.isFound ? t('foundItem') : t('missingItem')}
+          </Typography>
+          
+          <Box sx={{ display: 'flex', justifyContent: 'center', alignItems: 'center', gap: 2, flexWrap: 'wrap' }}>
+            <Typography
+              sx={{
+                fontSize: { xs: '14px', sm: '16px' },
+                fontWeight: 600,
+                color: '#ccc',
+              }}
+            >
+              📍 {displayCityName}
+            </Typography>
+            
+            <Typography
+              sx={{
+                fontSize: { xs: '14px', sm: '16px' },
+                fontWeight: 600,
+                color: '#ccc',
+              }}
+            >
+              📅 {new Date(createdAt).toLocaleDateString()}
+            </Typography>
+          </Box>
+        </Box>
+
+        {/* Main Image Section */}
+        <Box
+          sx={{
+            padding: { xs: '16px', sm: '20px' },
+            display: 'flex',
+            justifyContent: 'center',
+            alignItems: 'center',
+            backgroundColor: '#fff',
+          }}
+        >
+          <Box
+            sx={{
+              width: { xs: '200px', sm: '250px' },
+              height: { xs: '200px', sm: '250px' },
+              borderRadius: '8px',
+              overflow: 'hidden',
+              border: '2px solid #333',
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'center',
+              backgroundColor: '#f5f5f5',
+            }}
+          >
+            <LazyCardMedia
+              component="img"
+              image={finalImageUrl}
+              alt={categoryDisplayName || 'Item Image'}
+              fallback={noImageSvg}
+              sx={{
+                width: '100%',
+                height: '100%',
+                objectFit: 'cover',
+                objectPosition: 'center',
+              }}
+            />
+          </Box>
+        </Box>
+
+        {/* Status and Category Section */}
+        <Box
+          sx={{
+            padding: { xs: '16px', sm: '20px' },
+            backgroundColor: '#f8f8f8',
+            display: 'flex',
+            flexDirection: 'column',
+            alignItems: 'center',
+            gap: 2,
+          }}
+        >
+          {/* Status Chip - Large and Centered */}
+          <Chip
+            icon={<RenderIcon name={`${foundLostStatus.value.toLowerCase()}fl`} sx={{ fontSize: { xs: '20px', sm: '22px' } }} />}
+            label={foundLostStatus.label}
+            sx={{
+              backgroundColor: foundLostStatus.color,
+              color: '#fff',
+              fontWeight: 900,
+              fontSize: { xs: '18px', sm: '20px' },
+              height: { xs: '50px', sm: '55px' },
+              padding: { xs: '0 20px', sm: '0 24px' },
+              borderRadius: '8px',
+              border: '3px solid #333',
+              boxShadow: '0 4px 8px rgba(0,0,0,0.3)',
+              '& .MuiChip-icon': {
+                color: '#fff',
+                marginLeft: 0,
+                fontSize: { xs: '20px', sm: '22px' },
+              },
+              '& .MuiChip-label': {
+                paddingLeft: { xs: '8px', sm: '10px' },
+                paddingRight: { xs: '8px', sm: '10px' },
+                textTransform: 'uppercase',
+                letterSpacing: '1px',
+              },
             }}
           />
           
-          {/* No Image Overlay */}
-          {!image && (
-            <Box
-              sx={{
-                position: 'absolute',
-                top: '50%',
-                left: '50%',
-                transform: 'translate(-50%, -50%)',
-                zIndex: 3,
-                textAlign: 'center',
-                backgroundColor: alpha(theme.palette.mode === 'dark' ? '#000' : '#fff', 0.9),
-                borderRadius: '12px',
-                padding: '12px 16px',
-                backdropFilter: 'blur(10px)',
-                border: `1px solid ${alpha(theme.palette.mode === 'dark' ? '#fff' : '#000', 0.1)}`,
-                boxShadow: '0 4px 12px rgba(0,0,0,0.15)',
-              }}
-            >
-              <Typography
-                sx={{
-                  color: theme.palette.mode === 'dark' ? '#fff' : '#000',
-                  fontSize: { xs: '12px', sm: '13px' },
-                  fontWeight: 600,
-                  lineHeight: 1.2,
-                }}
-              >
-                {t('noImageAvailable')}
-              </Typography>
-            </Box>
-          )}
-          {/* Gradient overlay for better text readability */}
+          {/* Category Badge - Centered */}
           <Box
             sx={{
-              position: 'absolute',
-              top: 0,
-              left: 0,
-              right: 0,
-              bottom: 0,
-              background: 'linear-gradient(135deg, rgba(0,0,0,0.2) 0%, rgba(0,0,0,0.5) 100%)', // Lighter overlay for better image visibility
-              pointerEvents: 'none'
-            }}
-          />
-        </Box>
-
-        {/* Content Overlay */}
-        <Box
-          sx={{
-            position: 'relative',
-            zIndex: 1,
-            height: '100%',
-            display: 'flex',
-            flexDirection: 'column',
-            justifyContent: 'space-between',
-            p: { xs: 3, sm: 2.5 }
-          }}
-        >
-
-          {/* Top Section - Badges */}
-          <Box
-            sx={{
+              backgroundColor: categoryStyle.background,
+              padding: { xs: '12px 20px', sm: '14px 24px' },
+              borderRadius: '8px',
               display: 'flex',
-              justifyContent: 'space-between',
-              alignItems: 'flex-start',
-              mb: 2
+              alignItems: 'center',
+              gap: 1,
+              border: '2px solid #333',
+              boxShadow: '0 2px 4px rgba(0,0,0,0.2)',
             }}
           >
-            {/* Left Side - Trending Badge */}
-            <Box
+            <RenderIcon 
+              name={`${categoryname?.toLowerCase()}cate`} 
+              sx={{ 
+                fontSize: { xs: '20px', sm: '22px' }, 
+                color: categoryStyle.main
+              }} 
+            />
+            <Typography
               sx={{
-                background: 'linear-gradient(45deg, #FF9800, #FFC107, #FF9800)',
-                backgroundSize: '200% 200%',
-                padding: { xs: '4px 8px', sm: '6px 12px' },
-                borderRadius: '20px',
-                boxShadow: '0 4px 15px rgba(255,152,0,0.4), 0 0 20px rgba(255,152,0,0.2)',
-                animation: 'trendingPulse 3s ease-in-out infinite, trendingGradient 4s ease-in-out infinite',
-                transition: 'all 0.3s cubic-bezier(0.4, 0, 0.2, 1)',
-                cursor: 'pointer',
-                '&:hover': {
-                  transform: 'scale(1.05)',
-                  boxShadow: '0 6px 20px rgba(255,152,0,0.6), 0 0 30px rgba(255,152,0,0.3)',
-                },
-                '@keyframes trendingPulse': {
-                  '0%': {
-                    boxShadow: '0 4px 15px rgba(255,152,0,0.4), 0 0 20px rgba(255,152,0,0.2)',
-                    transform: 'scale(1)',
-                  },
-                  '50%': {
-                    boxShadow: '0 6px 25px rgba(255,152,0,0.6), 0 0 35px rgba(255,152,0,0.4)',
-                    transform: 'scale(1.02)',
-                  },
-                  '100%': {
-                    boxShadow: '0 4px 15px rgba(255,152,0,0.4), 0 0 20px rgba(255,152,0,0.2)',
-                    transform: 'scale(1)',
-                  },
-                },
-                '@keyframes trendingGradient': {
-                  '0%': {
-                    backgroundPosition: '0% 50%',
-                  },
-                  '50%': {
-                    backgroundPosition: '100% 50%',
-                  },
-                  '100%': {
-                    backgroundPosition: '0% 50%',
-                  },
-                },
+                color: categoryStyle.main,
+                fontSize: { xs: '16px', sm: '18px' },
+                fontWeight: 700,
+                textTransform: 'uppercase',
+                letterSpacing: '1px',
               }}
             >
-              <Typography
-                sx={{
-                  color: '#fff',
-                  fontSize: { xs: '11px', sm: '13px' },
-                  fontWeight: 700,
-                  textTransform: 'uppercase',
-                  letterSpacing: '0.5px',
-                  textShadow: '0 1px 2px rgba(0,0,0,0.3)',
-                }}
-              >
-🔥 {t('trending')}
-              </Typography>
-            </Box>
-            
-            {/* Right Side Badges Container */}
-            <Box
-              sx={{
-                display: 'flex',
-                flexDirection: 'column',
-                gap: 1,
-                alignItems: 'flex-end',
-              }}
-            >
-              {/* Status Badge - Moved to top */}
-              <Chip
-                icon={<RenderIcon name={`${foundLostStatus.value.toLowerCase()}fl`} sx={{ fontSize: { xs: '16px', sm: '16px' } }} />}
-                label={foundLostStatus.label}
-                sx={{
-                  backgroundColor: alpha(foundLostStatus.color, 0.95),
-                  color: '#fff',
-                  fontWeight: 700,
-                  fontSize: { xs: '13px', sm: '13px', md: '14px' },
-                  height: { xs: '30px', sm: '30px', md: '32px' },
-                  padding: { xs: '0 12px', sm: '0 12px', md: '0 16px' },
-                  borderRadius: { xs: '12px', sm: '16px' },
-                  boxShadow: `0 2px 8px ${alpha(foundLostStatus.color, 0.4)}, 0 0 15px ${alpha(foundLostStatus.color, 0.2)}`,
-                  border: `1px solid ${alpha(foundLostStatus.color, 0.3)}`,
-                  backdropFilter: 'blur(15px)',
-                  transition: 'all 0.3s cubic-bezier(0.4, 0, 0.2, 1)',
-                  cursor: 'pointer',
-                  '& .MuiChip-icon': {
-                    color: '#fff',
-                    marginLeft: 0,
-                    transition: 'transform 0.3s ease',
-                  },
-                  '& .MuiChip-label': {
-                    paddingLeft: { xs: '4px', sm: '6px' },
-                    paddingRight: { xs: '4px', sm: '6px' },
-                    transition: 'all 0.3s ease',
-                  },
-                  '&:hover': {
-                    backgroundColor: alpha(foundLostStatus.color, 1),
-                    transform: 'translateY(-2px) scale(1.05)',
-                    boxShadow: `0 6px 20px ${alpha(foundLostStatus.color, 0.6)}, 0 0 25px ${alpha(foundLostStatus.color, 0.3)}`,
-                    '& .MuiChip-icon': {
-                      transform: 'scale(1.1) rotate(5deg)',
-                    },
-                    '& .MuiChip-label': {
-                      transform: 'scale(1.02)',
-                    }
-                  }
-                }}
-              />
-              
-              {/* Category Badge - Moved to bottom */}
-              <Box
-                sx={{
-                  backgroundColor: theme.palette.mode === 'dark' ? 'rgb(232, 245, 233)' : categoryStyle.background,
-                  padding: { xs: '6px 12px', sm: '6px 12px' },
-                  borderRadius: '12px',
-                  display: 'flex',
-                  alignItems: 'center',
-                  gap: 0.5,
-                  backdropFilter: 'blur(15px)',
-                  border: `1px solid ${theme.palette.mode === 'dark' ? alpha(categoryStyle.main, 0.3) : categoryStyle.main}`,
-                  zIndex: 11, // Higher z-index for category badge (same as RecentPosts)
-                  transition: 'all 0.3s cubic-bezier(0.4, 0, 0.2, 1)',
-                  cursor: 'pointer',
-                  boxShadow: `0 2px 8px ${alpha(categoryStyle.main, 0.2)}, 0 0 12px ${alpha(categoryStyle.main, 0.1)}`,
-                  '&:hover': {
-                    transform: 'translateY(-1px) scale(1.03)',
-                    boxShadow: `0 4px 15px ${alpha(categoryStyle.main, 0.3)}, 0 0 20px ${alpha(categoryStyle.main, 0.15)}`,
-                    backgroundColor: theme.palette.mode === 'dark' 
-                      ? alpha('rgb(232, 245, 233)', 0.9) 
-                      : alpha(categoryStyle.background, 0.8),
-                  }
-                }}
-              >
-                <RenderIcon 
-                  name={`${categoryname?.toLowerCase()}cate`} 
-                  sx={{ 
-                    fontSize: { xs: '18px', sm: '18px' }, 
-                    color: theme.palette.mode === 'dark' ? categoryStyle.main : categoryStyle.text
-                  }} 
-                />
-                <Typography
-                  sx={{
-                    color: theme.palette.mode === 'dark' ? categoryStyle.main : categoryStyle.text,
-                    fontSize: { xs: '14px', sm: '14px' },
-                    fontWeight: 700, // Changed from 600 to 700 (same as RecentPosts)
-                    lineHeight: 1,
-                  }}
-                >
-                  {categoryDisplayName}
-                </Typography>
-              </Box>
-            </Box>
+              {categoryDisplayName}
+            </Typography>
           </Box>
+        </Box>
 
-          {/* Middle Section - Main Content - Optimized for better image visibility */}
-          <Box sx={{ flex: 1, display: 'flex', flexDirection: 'column', justifyContent: 'center', alignItems: 'center' }}>
-            {/* Empty space for better visual balance */}
-          </Box>
-
-          {/* Bottom Section - Info and Action */}
-          <Box>
-            {/* Info Row */}
-            <Box
-              sx={{
-                display: 'flex',
-                justifyContent: 'space-between',
-                alignItems: 'center',
-                mb: 2,
-                p: { xs: 2, sm: 1.5 },
-                backgroundColor: alpha('#000', 0.4),
-                borderRadius: '16px',
-                backdropFilter: 'blur(20px) saturate(180%)',
-                WebkitBackdropFilter: 'blur(20px) saturate(180%)',
-                border: '1px solid rgba(255, 255, 255, 0.1)',
-                boxShadow: '0 4px 15px rgba(0, 0, 0, 0.2), inset 0 1px 0 rgba(255, 255, 255, 0.1)',
-                transition: 'all 0.3s ease',
-                '&:hover': {
-                  backgroundColor: alpha('#000', 0.5),
-                  boxShadow: '0 6px 20px rgba(0, 0, 0, 0.3), inset 0 1px 0 rgba(255, 255, 255, 0.15)',
-                }
-              }}
-            >
-              <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
-                <RenderIcon name="time" sx={{ fontSize: { xs: '18px', sm: '16px' }, color: '#fff' }} />
-                <Typography
-                  sx={{
-                    color: '#fff',
-                    fontSize: { xs: '16px', sm: '14px' },
-                    fontWeight: 500,
-                  }}
-                >
-                  {new Date(createdAt).toLocaleDateString()}
-                </Typography>
-              </Box>
-              
-              <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
-                <RenderIcon name="locat" sx={{ fontSize: { xs: '16px', sm: '14px' }, color: '#fff' }} />
-                <Typography
-                  sx={{
-                    color: '#fff',
-                    fontSize: { xs: '15px', sm: '13px' },
-                    fontWeight: 400,
-                    maxWidth: '80px',
-                    overflow: 'hidden',
-                    textOverflow: 'ellipsis',
-                    whiteSpace: 'nowrap'
-                  }}
-                >
-                  {displayCityName}
-                </Typography>
-              </Box>
-            </Box>
-            {/* Action Button */}
-        <Button
-          fullWidth
-          variant="contained"
-          onClick={handleViewPost}
+        {/* Contact Button */}
+        <Box
           sx={{
-            background: 'linear-gradient(45deg, #4A8BFF 30%, #1A6EEE 90%)',
-            backgroundSize: '200% 200%',
-            color: '#fff',
-            borderRadius: '12px',
-            padding: { xs: '14px', sm: '12px' },
-            textTransform: 'none',
-            fontSize: { xs: '16px', sm: '14px' },
-            fontWeight: 600,
-            transition: 'all 0.4s cubic-bezier(0.4, 0, 0.2, 1)',
-            boxShadow: '0 4px 15px rgba(26, 110, 238, 0.3), 0 0 20px rgba(26, 110, 238, 0.1)',
-            backdropFilter: 'blur(10px)',
-            border: '1px solid rgba(255, 255, 255, 0.2)',
-            position: 'relative',
-            overflow: 'hidden',
-            '&::before': {
-              content: '""',
-              position: 'absolute',
-              top: 0,
-              left: '-100%',
-              width: '100%',
-              height: '100%',
-              background: 'linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.2), transparent)',
-              transition: 'left 0.5s ease',
-            },
-            '&:hover': {
-              background: 'linear-gradient(45deg, #5A9BFF 30%, #2A7EFF 90%)',
-              boxShadow: '0 8px 25px rgba(26, 110, 238, 0.4), 0 0 30px rgba(26, 110, 238, 0.2)',
-              transform: 'translateY(-2px)',
-              '&::before': {
-                left: '100%',
-              },
-            },
-            '&:active': {
-              transform: 'translateY(0px)',
-              boxShadow: '0 4px 15px rgba(26, 110, 238, 0.3)',
-            }
+            padding: { xs: '16px', sm: '20px' },
+            backgroundColor: '#fff',
           }}
-          endIcon={<RenderIcon name="view" sx={{ fontSize: { xs: '18px', sm: '16px' }, transition: 'transform 0.3s ease' }} />}
         >
-          {t('viewDetails')}
-        </Button>
-          </Box>
+          <Button
+            fullWidth
+            variant="contained"
+            onClick={handleViewPost}
+            sx={{
+              backgroundColor: '#dc3545',
+              color: '#fff',
+              borderRadius: '8px',
+              padding: { xs: '16px', sm: '18px' },
+              textTransform: 'uppercase',
+              fontSize: { xs: '16px', sm: '18px' },
+              fontWeight: 900,
+              letterSpacing: '1px',
+              border: '2px solid #333',
+              boxShadow: '0 4px 8px rgba(0,0,0,0.3)',
+              '&:hover': {
+                backgroundColor: '#c82333',
+                boxShadow: '0 6px 12px rgba(0,0,0,0.4)',
+              },
+            }}
+            endIcon={<RenderIcon name="view" sx={{ fontSize: { xs: '20px', sm: '22px' } }} />}
+          >
+            {t('contactForInfo')}
+          </Button>
         </Box>
       </Card>
     </Box>
