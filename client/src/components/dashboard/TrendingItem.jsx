@@ -10,7 +10,6 @@ import {
   Chip,
   Avatar,
   alpha,
-  keyframes,
 } from "@mui/material";
 import { useMemo } from "react";
 import FlexBetween from "../FlexBetween";
@@ -26,28 +25,6 @@ import noImageSvg from "../../img/noimage.svg";
 
 // Get the API base URL for image construction
 const API_BASE_URL = process.env.REACT_APP_API_URL || "http://localhost:3500";
-
-// Frame animations
-const frameGlow = keyframes`
-  0% {
-    box-shadow: 0 0 20px rgba(255,215,0,0.3), 0 0 40px rgba(255,215,0,0.1);
-  }
-  50% {
-    box-shadow: 0 0 30px rgba(255,215,0,0.5), 0 0 60px rgba(255,215,0,0.2);
-  }
-  100% {
-    box-shadow: 0 0 20px rgba(255,215,0,0.3), 0 0 40px rgba(255,215,0,0.1);
-  }
-`;
-
-const subtleFloat = keyframes`
-  0%, 100% {
-    transform: rotateY(-2deg) rotateX(1deg) translateY(0px);
-  }
-  50% {
-    transform: rotateY(-1deg) rotateX(0.5deg) translateY(-2px);
-  }
-`;
 
 const TrendingItem = ({ trend, isLoading }) => {
   // Handle both array and single object formats
@@ -176,334 +153,122 @@ const TrendingItem = ({ trend, isLoading }) => {
       <Card
         sx={{
           background: theme.palette.mode === 'dark'
-            ? 'linear-gradient(135deg, rgba(25,25,25,0.95) 0%, rgba(35,35,35,0.98) 50%, rgba(45,45,45,0.95) 100%)'
-            : 'linear-gradient(135deg, rgba(252,252,252,0.95) 0%, rgba(248,250,252,0.98) 50%, rgba(245,247,249,0.95) 100%)',
-          backdropFilter: 'blur(25px) saturate(180%)',
-          WebkitBackdropFilter: 'blur(25px) saturate(180%)',
-          borderRadius: isMobile ? '20px' : '28px',
-          border: `1px solid ${alpha(theme.palette.mode === 'dark' ? '#fff' : '#000', 0.05)}`,
+            ? 'linear-gradient(135deg, rgba(18,18,18,0.85) 0%, rgba(28,28,28,0.9) 50%, rgba(35,35,35,0.85) 100%)'
+            : 'linear-gradient(135deg, rgba(255,255,255,0.9) 0%, rgba(248,250,252,0.95) 50%, rgba(255,255,255,0.9) 100%)',
+          backdropFilter: 'blur(20px) saturate(180%)',
+          WebkitBackdropFilter: 'blur(20px) saturate(180%)',
+          borderRadius: isMobile ? '16px' : '24px',
+          border: 'none',
           overflow: 'hidden',
-          transition: 'all 0.3s cubic-bezier(0.4, 0, 0.2, 1)',
+          transition: 'none',
           boxShadow: theme.palette.mode === 'dark'
             ? `
-              0 8px 32px -4px rgba(0, 0, 0, 0.3),
-              0 4px 16px -2px rgba(0, 0, 0, 0.2),
-              0 2px 8px -1px rgba(0, 0, 0, 0.1),
-              inset 0 1px 0 rgba(255, 255, 255, 0.05),
-              inset 0 -1px 0 rgba(255, 255, 255, 0.02)
+              0 4px 6px -1px rgba(0, 0, 0, 0.1),
+              0 2px 4px -1px rgba(0, 0, 0, 0.06),
+              0 8px 25px -5px rgba(0, 0, 0, 0.25),
+              inset 0 1px 0 rgba(255, 255, 255, 0.1)
             `
             : `
-              0 8px 32px -4px rgba(0, 0, 0, 0.12),
-              0 4px 16px -2px rgba(0, 0, 0, 0.08),
-              0 2px 8px -1px rgba(0, 0, 0, 0.04),
-              inset 0 1px 0 rgba(255, 255, 255, 0.8),
-              inset 0 -1px 0 rgba(0, 0, 0, 0.02)
+              0 4px 6px -1px rgba(0, 0, 0, 0.1),
+              0 2px 4px -1px rgba(0, 0, 0, 0.06),
+              0 8px 25px -5px rgba(0, 0, 0, 0.1),
+              inset 0 1px 0 rgba(255, 255, 255, 0.8)
             `,
           height: '100%',
-          minHeight: { xs: '480px', sm: '380px', md: '400px' },
+          minHeight: { xs: '450px', sm: '350px' },
           position: 'relative',
-          cursor: 'pointer',
-          '&:hover': {
-            transform: 'translateY(-4px)',
-            boxShadow: theme.palette.mode === 'dark'
-              ? `
-                0 12px 40px -4px rgba(0, 0, 0, 0.4),
-                0 8px 24px -2px rgba(0, 0, 0, 0.3),
-                0 4px 16px -1px rgba(0, 0, 0, 0.2),
-                inset 0 1px 0 rgba(255, 255, 255, 0.08),
-                0 0 0 1px rgba(255, 215, 0, 0.1)
-              `
-              : `
-                0 12px 40px -4px rgba(0, 0, 0, 0.15),
-                0 8px 24px -2px rgba(0, 0, 0, 0.1),
-                0 4px 16px -1px rgba(0, 0, 0, 0.06),
-                inset 0 1px 0 rgba(255, 255, 255, 0.9),
-                0 0 0 1px rgba(255, 215, 0, 0.05)
-              `,
-          }
         }}
       >
-        {/* Wall-Mounted Picture Frame */}
+        {/* Large Background Image */}
         <Box
           sx={{
             position: 'absolute',
-            top: '50%',
-            left: '50%',
-            transform: 'translate(-50%, -50%)',
+            top: 0,
+            left: 0,
+            right: 0,
+            bottom: 0,
             zIndex: 0,
-            width: { xs: '85%', sm: '75%', md: '70%' },
-            height: { xs: '60%', sm: '55%', md: '50%' },
-            perspective: '1000px',
-            // Wall texture background
-            '&::before': {
-              content: '""',
-              position: 'absolute',
-              top: '-20px',
-              left: '-20px',
-              right: '-20px',
-              bottom: '-20px',
-              background: theme.palette.mode === 'dark' 
-                ? 'radial-gradient(circle at 30% 20%, rgba(139, 69, 19, 0.1) 0%, transparent 50%), linear-gradient(45deg, rgba(101, 67, 33, 0.05) 25%, transparent 25%, transparent 75%, rgba(101, 67, 33, 0.05) 75%)'
-                : 'radial-gradient(circle at 30% 20%, rgba(139, 69, 19, 0.05) 0%, transparent 50%), linear-gradient(45deg, rgba(101, 67, 33, 0.03) 25%, transparent 25%, transparent 75%, rgba(101, 67, 33, 0.03) 75%)',
-              backgroundSize: '20px 20px, 40px 40px',
-              borderRadius: '8px',
-              zIndex: -2,
-            }
+            overflow: 'hidden',
+            backgroundColor: 'transparent',
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'center'
           }}
         >
-          {/* Hanging Wire Effect */}
+          <LazyCardMedia
+            component="img"
+            image={finalImageUrl}
+            alt={categoryDisplayName || 'Item Image'}
+            fallback={noImageSvg}
+            sx={{
+              width: image ? '100%' : '100%',
+              height: image ? '100%' : '100%',
+              objectFit: image ? 'cover' : 'contain',
+              objectPosition: 'center',
+              filter: image ? 'brightness(0.8)' : 'none',
+              backgroundColor: image ? 'transparent' : (theme.palette.mode === 'dark' ? '#000' : '#fff'),
+              // Ensure the smaller image is properly centered
+              ...(image ? {} : {
+                margin: 'auto',
+                display: 'block',
+              }),
+            }}
+          />
+          
+          {/* No Image Overlay */}
+          {!image && (
+            <Box
+              sx={{
+                position: 'absolute',
+                top: '50%',
+                left: '50%',
+                transform: 'translate(-50%, -50%)',
+                zIndex: 3,
+                textAlign: 'center',
+                backgroundColor: alpha(theme.palette.mode === 'dark' ? '#000' : '#fff', 0.9),
+                borderRadius: '12px',
+                padding: '12px 16px',
+                backdropFilter: 'blur(10px)',
+                border: `1px solid ${alpha(theme.palette.mode === 'dark' ? '#fff' : '#000', 0.1)}`,
+                boxShadow: '0 4px 12px rgba(0,0,0,0.15)',
+              }}
+            >
+              <Typography
+                sx={{
+                  color: theme.palette.mode === 'dark' ? '#fff' : '#000',
+                  fontSize: { xs: '12px', sm: '13px' },
+                  fontWeight: 600,
+                  lineHeight: 1.2,
+                }}
+              >
+                {t('noImageAvailable')}
+              </Typography>
+            </Box>
+          )}
+          {/* Gradient overlay for better text readability */}
           <Box
             sx={{
               position: 'absolute',
-              top: '-8px',
-              left: '50%',
-              transform: 'translateX(-50%)',
-              width: '40px',
-              height: '2px',
-              background: 'linear-gradient(90deg, #8B4513 0%, #CD853F 50%, #8B4513 100%)',
-              borderRadius: '1px',
-              boxShadow: '0 1px 3px rgba(0,0,0,0.3)',
-              zIndex: 1,
-              '&::after': {
-                content: '""',
-                position: 'absolute',
-                top: '-6px',
-                left: '50%',
-                transform: 'translateX(-50%)',
-                width: '6px',
-                height: '6px',
-                background: 'radial-gradient(circle, #CD853F 0%, #8B4513 100%)',
-                borderRadius: '50%',
-                boxShadow: 'inset 0 1px 2px rgba(255,255,255,0.3)',
-              }
+              top: 0,
+              left: 0,
+              right: 0,
+              bottom: 0,
+              background: 'linear-gradient(135deg, rgba(0,0,0,0.2) 0%, rgba(0,0,0,0.5) 100%)', // Lighter overlay for better image visibility
+              pointerEvents: 'none'
             }}
           />
-
-          {/* Main Frame Container */}
-          <Box
-            sx={{
-              width: '100%',
-              height: '100%',
-              position: 'relative',
-              transform: 'rotateY(-2deg) rotateX(1deg)',
-              transformStyle: 'preserve-3d',
-              transition: 'all 0.4s cubic-bezier(0.4, 0, 0.2, 1)',
-              animation: `${subtleFloat} 8s ease-in-out infinite`,
-              '&:hover': {
-                transform: 'rotateY(0deg) rotateX(0deg) translateY(-8px)',
-                animation: 'none', // Disable floating animation on hover
-                '& .frame-shadow': {
-                  boxShadow: '0 20px 60px rgba(0,0,0,0.4), 0 0 0 1px rgba(255,255,255,0.1)',
-                },
-                '& .frame-glow': {
-                  opacity: 1,
-                }
-              }
-            }}
-          >
-            {/* Frame Shadow */}
-            <Box
-              className="frame-shadow"
-              sx={{
-                position: 'absolute',
-                top: '8px',
-                left: '8px',
-                right: '8px',
-                bottom: '8px',
-                background: 'linear-gradient(145deg, rgba(0,0,0,0.6) 0%, rgba(0,0,0,0.3) 100%)',
-                borderRadius: '16px',
-                filter: 'blur(8px)',
-                zIndex: -1,
-                transition: 'all 0.4s cubic-bezier(0.4, 0, 0.2, 1)',
-              }}
-            />
-
-            {/* Frame Glow Effect */}
-            <Box
-              className="frame-glow"
-              sx={{
-                position: 'absolute',
-                top: '-2px',
-                left: '-2px',
-                right: '-2px',
-                bottom: '-2px',
-                background: 'linear-gradient(45deg, rgba(255,215,0,0.1), rgba(255,165,0,0.1), rgba(255,215,0,0.1))',
-                borderRadius: '20px',
-                opacity: 0,
-                transition: 'opacity 0.4s ease',
-                zIndex: -1,
-                filter: 'blur(1px)',
-              }}
-            />
-
-            {/* Outer Frame - Metallic/Golden */}
-            <Box
-              sx={{
-                position: 'absolute',
-                top: 0,
-                left: 0,
-                right: 0,
-                bottom: 0,
-                background: 'linear-gradient(145deg, #FFD700 0%, #FFA500 25%, #FF8C00 50%, #FFD700 75%, #FFF8DC 100%)',
-                borderRadius: '18px',
-                boxShadow: `
-                  inset 0 2px 4px rgba(255,255,255,0.3),
-                  inset 0 -2px 4px rgba(0,0,0,0.2),
-                  0 4px 12px rgba(0,0,0,0.3),
-                  0 0 0 1px rgba(255,215,0,0.5)
-                `,
-                zIndex: 2,
-                animation: `${frameGlow} 6s ease-in-out infinite`,
-                // Corner decorations
-                '&::before': {
-                  content: '""',
-                  position: 'absolute',
-                  top: '8px',
-                  left: '8px',
-                  right: '8px',
-                  bottom: '8px',
-                  border: '2px solid rgba(255,215,0,0.6)',
-                  borderRadius: '12px',
-                  background: 'linear-gradient(135deg, rgba(255,255,255,0.1) 0%, transparent 50%, rgba(0,0,0,0.1) 100%)',
-                }
-              }}
-            />
-
-            {/* Inner Matting */}
-            <Box
-              sx={{
-                position: 'absolute',
-                top: '12px',
-                left: '12px',
-                right: '12px',
-                bottom: '12px',
-                background: theme.palette.mode === 'dark' 
-                  ? 'linear-gradient(135deg, rgba(40,40,40,0.9) 0%, rgba(20,20,20,0.95) 100%)'
-                  : 'linear-gradient(135deg, rgba(248,248,248,0.9) 0%, rgba(240,240,240,0.95) 100%)',
-                borderRadius: '8px',
-                boxShadow: `
-                  inset 0 2px 4px rgba(0,0,0,0.1),
-                  inset 0 -1px 2px rgba(255,255,255,0.1)
-                `,
-                zIndex: 3,
-                // Beveled edge effect
-                '&::before': {
-                  content: '""',
-                  position: 'absolute',
-                  top: '2px',
-                  left: '2px',
-                  right: '2px',
-                  bottom: '2px',
-                  border: `1px solid ${alpha(theme.palette.mode === 'dark' ? '#fff' : '#000', 0.1)}`,
-                  borderRadius: '6px',
-                }
-              }}
-            />
-
-            {/* Picture Area */}
-            <Box
-              sx={{
-                position: 'absolute',
-                top: '20px',
-                left: '20px',
-                right: '20px',
-                bottom: '20px',
-                borderRadius: '4px',
-                overflow: 'hidden',
-                zIndex: 4,
-                background: theme.palette.mode === 'dark' ? '#000' : '#fff',
-                boxShadow: 'inset 0 1px 3px rgba(0,0,0,0.2)',
-              }}
-            >
-              <LazyCardMedia
-                component="img"
-                image={finalImageUrl}
-                alt={categoryDisplayName || 'Item Image'}
-                fallback={noImageSvg}
-                sx={{
-                  width: '100%',
-                  height: '100%',
-                  objectFit: image ? 'cover' : 'contain',
-                  objectPosition: 'center',
-                  filter: image ? 'brightness(0.9) contrast(1.05) saturate(1.1)' : 'none',
-                  transition: 'all 0.3s ease',
-                }}
-              />
-              
-              {/* No Image Overlay - Redesigned for frame */}
-              {!image && (
-                <Box
-                  sx={{
-                    position: 'absolute',
-                    top: '50%',
-                    left: '50%',
-                    transform: 'translate(-50%, -50%)',
-                    zIndex: 5,
-                    textAlign: 'center',
-                    backgroundColor: alpha(theme.palette.mode === 'dark' ? '#000' : '#fff', 0.95),
-                    borderRadius: '8px',
-                    padding: '16px 20px',
-                    backdropFilter: 'blur(10px)',
-                    border: `2px solid ${alpha(theme.palette.mode === 'dark' ? '#fff' : '#000', 0.1)}`,
-                    boxShadow: '0 4px 12px rgba(0,0,0,0.15), inset 0 1px 2px rgba(255,255,255,0.1)',
-                    minWidth: '120px',
-                  }}
-                >
-                  <RenderIcon 
-                    name="image" 
-                    sx={{ 
-                      fontSize: '32px', 
-                      color: theme.palette.mode === 'dark' ? '#fff' : '#666',
-                      mb: 1,
-                      display: 'block',
-                      margin: '0 auto 8px auto'
-                    }} 
-                  />
-                  <Typography
-                    sx={{
-                      color: theme.palette.mode === 'dark' ? '#fff' : '#666',
-                      fontSize: { xs: '11px', sm: '12px' },
-                      fontWeight: 600,
-                      lineHeight: 1.2,
-                    }}
-                  >
-                    {t('noImageAvailable')}
-                  </Typography>
-                </Box>
-              )}
-            </Box>
-
-            {/* Frame Reflection Effect */}
-            <Box
-              sx={{
-                position: 'absolute',
-                top: '12px',
-                left: '12px',
-                right: '12px',
-                height: '30%',
-                background: 'linear-gradient(180deg, rgba(255,255,255,0.1) 0%, transparent 100%)',
-                borderRadius: '8px 8px 0 0',
-                pointerEvents: 'none',
-                zIndex: 5,
-              }}
-            />
-          </Box>
         </Box>
 
-        {/* Content Overlay - Repositioned for frame design */}
+        {/* Content Overlay */}
         <Box
           sx={{
             position: 'relative',
-            zIndex: 10,
+            zIndex: 1,
             height: '100%',
             display: 'flex',
             flexDirection: 'column',
             justifyContent: 'space-between',
-            p: { xs: 2, sm: 2.5 },
-            pointerEvents: 'none', // Allow clicks to pass through to frame
-            '& > *': {
-              pointerEvents: 'auto', // Re-enable pointer events for interactive elements
-            }
+            p: { xs: 3, sm: 2.5 }
           }}
         >
 
