@@ -158,7 +158,7 @@ const TrendingItem = ({ trend, isLoading }) => {
             ? 'linear-gradient(135deg, #654321 0%, #8B4513 50%, #654321 100%)'
             : 'linear-gradient(135deg, #D2B48C 0%, #DEB887 50%, #D2B48C 100%)',
           borderRadius: isMobile ? '16px' : '20px',
-          padding: { xs: '8px', sm: '12px' },
+          padding: { xs: '4px', sm: '6px' },
           position: 'relative',
           overflow: 'visible',
           height: '100%',
@@ -230,7 +230,7 @@ const TrendingItem = ({ trend, isLoading }) => {
             }
           }}
         >
-          {/* Photo Frame Container - Minimal Padding */}
+          {/* Photo Frame Container - Minimal Spacing */}
           <Box
             className="photo-frame"
             sx={{
@@ -238,14 +238,14 @@ const TrendingItem = ({ trend, isLoading }) => {
               height: '100%',
               background: 'transparent',
               borderRadius: '8px',
-              padding: '2px', // Minimal padding between frame and image
+              padding: '1px', // Minimal padding between frame and image
               boxShadow: '0 15px 35px rgba(0,0,0,0.4), 0 5px 15px rgba(0,0,0,0.2)',
               position: 'relative',
               overflow: 'hidden',
               transition: 'all 0.3s ease',
             }}
           >
-            {/* Photo Content - No Border */}
+            {/* Photo Content - Maximum Space Usage */}
             <Box
               sx={{
                 width: '100%',
@@ -255,6 +255,8 @@ const TrendingItem = ({ trend, isLoading }) => {
                 position: 'relative',
                 background: theme.palette.mode === 'dark' ? '#000' : '#fff',
                 border: 'none',
+                margin: '0px', // Remove any margin
+                padding: '0px', // Remove any padding
               }}
             >
               <LazyCardMedia
@@ -324,14 +326,14 @@ const TrendingItem = ({ trend, isLoading }) => {
             />
           </Box>
 
-          {/* Top-Center Pin - Above Image Area */}
+          {/* Very Top-Center Pin - At Top Edge of Card */}
           <Box
             className="top-center-pin"
             sx={{
               position: 'absolute',
-              top: '25%', // Moved to top quarter of card
+              top: '0px', // Pin sits on top edge of card
               left: '50%',
-              transform: 'translate(-50%, -50%) rotate(8deg)',
+              transform: 'translate(-50%, -50%) rotate(8deg)', // Pin sits on top edge
               width: '40px',
               height: '40px',
               backgroundImage: 'url(/pinIcon.svg)',
