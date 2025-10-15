@@ -1,7 +1,7 @@
 import React from "react";
 import { useDispatch, useSelector } from "react-redux";
 import { useNavigate } from "react-router-dom";
-import { Box, Skeleton, useMediaQuery, useTheme, Typography, Chip, Button, Paper } from "@mui/material";
+import { Box, Skeleton, useMediaQuery, useTheme, Typography, Chip, Button, Paper, Divider } from "@mui/material";
 import { setActiveLink, setFoundOrLost, setOpenModal } from "../../app/state";
 import { LoadingState, DashboardEmptyStates } from "../../components/LoadingStates";
 import { WhatshotOutlined, Search, Language } from "@mui/icons-material";
@@ -191,6 +191,22 @@ const Dash = () => {
           totalReturned={data?.totalReturned}
           foundsToday={data?.createdToday?.todaysFoundPosts}
           lostsToday={data?.createdToday?.todaysLostPosts}
+        />
+        
+        {/* Mobile-only divider between stats and trending */}
+        <Divider 
+          sx={{ 
+            display: { xs: 'block', sm: 'none' },
+            my: 2,
+            borderColor: theme.palette.mode === 'dark' 
+              ? 'rgba(255,255,255,0.12)' 
+              : 'rgba(0,0,0,0.12)',
+            '&::before, &::after': {
+              borderColor: theme.palette.mode === 'dark' 
+                ? 'rgba(255,255,255,0.12)' 
+                : 'rgba(0,0,0,0.12)'
+            }
+          }} 
         />
         
         {isLoading ? (
