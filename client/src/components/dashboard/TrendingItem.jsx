@@ -22,7 +22,6 @@ import { getCategoryConfig } from "../../config/categories";
 import { useNavigate } from "react-router-dom";
 import { getLabel } from "../../utils/languageUtils";
 import noImageSvg from "../../img/noimage.svg";
-import pinIcon from "../../img/pinIcon.svg";
 
 // Get the API base URL for image construction
 const API_BASE_URL = process.env.REACT_APP_API_URL || "http://localhost:3500";
@@ -165,7 +164,7 @@ const TrendingItem = ({ trend, isLoading }) => {
         }}
       >
         <img 
-          src={pinIcon} 
+          src={`${process.env.PUBLIC_URL}/pinIcon.svg`} 
           alt="Pin" 
           style={{ 
             width: '24px', 
