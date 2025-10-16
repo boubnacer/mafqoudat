@@ -176,9 +176,11 @@ const TrendingItem = ({ trend, isLoading }) => {
 
       <Card
         sx={{
-          background: '#f8f8f8',
+          background: theme.palette.mode === 'dark'
+            ? 'linear-gradient(135deg, rgba(30,30,30,0.95) 0%, rgba(40,40,40,0.98) 50%, rgba(30,30,30,0.95) 100%)'
+            : 'linear-gradient(135deg, rgba(248,248,248,0.95) 0%, rgba(255,255,255,0.98) 50%, rgba(248,248,248,0.95) 100%)',
           borderRadius: '8px',
-          border: '2px solid #333',
+          border: `2px solid ${theme.palette.mode === 'dark' ? '#555' : '#333'}`,
           overflow: 'hidden',
           height: '100%',
           minHeight: { xs: '500px', sm: '320px' },
@@ -189,11 +191,13 @@ const TrendingItem = ({ trend, isLoading }) => {
         {/* Poster Header */}
         <Box
           sx={{
-            backgroundColor: '#000',
-            color: '#fff',
+            background: theme.palette.mode === 'dark'
+              ? 'linear-gradient(90deg, #1a1a1a 0%, #2d2d2d 50%, #1a1a1a 100%)'
+              : 'linear-gradient(90deg, #1a1a1a 0%, #2d2d2d 50%, #1a1a1a 100%)',
+            color: theme.palette.mode === 'dark' ? '#fff' : '#fff',
             padding: { xs: '16px', sm: '12px' },
             textAlign: 'center',
-            borderBottom: '2px solid #333',
+            borderBottom: `2px solid ${theme.palette.mode === 'dark' ? '#555' : '#333'}`,
           }}
         >
           <Typography
@@ -213,7 +217,7 @@ const TrendingItem = ({ trend, isLoading }) => {
               sx={{
                 fontSize: { xs: '14px', sm: '16px' },
                 fontWeight: 600,
-                color: '#ccc',
+                color: theme.palette.mode === 'dark' ? '#ccc' : '#ccc',
               }}
             >
               📍 {displayCityName}
@@ -223,7 +227,7 @@ const TrendingItem = ({ trend, isLoading }) => {
               sx={{
                 fontSize: { xs: '14px', sm: '16px' },
                 fontWeight: 600,
-                color: '#ccc',
+                color: theme.palette.mode === 'dark' ? '#ccc' : '#ccc',
               }}
             >
               📅 {new Date(createdAt).toLocaleDateString()}
@@ -238,7 +242,7 @@ const TrendingItem = ({ trend, isLoading }) => {
             display: 'flex',
             justifyContent: 'center',
             alignItems: 'center',
-            backgroundColor: '#fff',
+            backgroundColor: theme.palette.mode === 'dark' ? '#2a2a2a' : '#fff',
           }}
         >
           <Box
@@ -247,11 +251,11 @@ const TrendingItem = ({ trend, isLoading }) => {
               height: { xs: '200px', sm: '140px' },
               borderRadius: '8px',
               overflow: 'hidden',
-              border: '2px solid #333',
+              border: `2px solid ${theme.palette.mode === 'dark' ? '#555' : '#333'}`,
               display: 'flex',
               alignItems: 'center',
               justifyContent: 'center',
-              backgroundColor: '#f5f5f5',
+              backgroundColor: theme.palette.mode === 'dark' ? '#2a2a2a' : '#f5f5f5',
             }}
           >
             <LazyCardMedia
@@ -273,7 +277,7 @@ const TrendingItem = ({ trend, isLoading }) => {
         <Box
           sx={{
             padding: { xs: '16px', sm: '12px' },
-            backgroundColor: '#f8f8f8',
+            backgroundColor: theme.palette.mode === 'dark' ? '#333' : '#f8f8f8',
             display: 'flex',
             flexDirection: 'column',
             alignItems: 'center',
@@ -292,7 +296,7 @@ const TrendingItem = ({ trend, isLoading }) => {
               height: { xs: '32px', sm: '36px' },
               padding: { xs: '0 20px', sm: '0 24px' },
               borderRadius: '8px',
-              border: '3px solid #333',
+              border: `3px solid ${theme.palette.mode === 'dark' ? '#555' : '#333'}`,
               boxShadow: '0 4px 8px rgba(0,0,0,0.3)',
               '& .MuiChip-icon': {
                 color: '#fff',
@@ -317,7 +321,7 @@ const TrendingItem = ({ trend, isLoading }) => {
               display: 'flex',
               alignItems: 'center',
               gap: 1,
-              border: '2px solid #333',
+              border: `2px solid ${theme.palette.mode === 'dark' ? '#555' : '#333'}`,
               boxShadow: '0 2px 4px rgba(0,0,0,0.2)',
             }}
           >
@@ -346,7 +350,7 @@ const TrendingItem = ({ trend, isLoading }) => {
         <Box
           sx={{
             padding: { xs: '16px', sm: '12px' },
-            backgroundColor: '#fff',
+            backgroundColor: theme.palette.mode === 'dark' ? '#2a2a2a' : '#fff',
           }}
         >
           <Button
@@ -362,7 +366,7 @@ const TrendingItem = ({ trend, isLoading }) => {
               fontSize: { xs: '16px', sm: '18px' },
               fontWeight: 900,
               letterSpacing: '1px',
-              border: '2px solid #333',
+              border: `2px solid ${theme.palette.mode === 'dark' ? '#555' : '#333'}`,
               boxShadow: '0 4px 8px rgba(0,0,0,0.3)',
               '&:hover': {
                 backgroundColor: '#c82333',
