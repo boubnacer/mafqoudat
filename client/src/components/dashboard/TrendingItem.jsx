@@ -181,7 +181,7 @@ const TrendingItem = ({ trend, isLoading }) => {
           border: '2px solid #333',
           overflow: 'hidden',
           height: '100%',
-          minHeight: { xs: '450px', sm: '350px' },
+          minHeight: { xs: '500px', sm: '320px' },
           position: 'relative',
           boxShadow: '0 4px 8px rgba(0, 0, 0, 0.15)',
         }}
@@ -191,7 +191,7 @@ const TrendingItem = ({ trend, isLoading }) => {
           sx={{
             backgroundColor: '#000',
             color: '#fff',
-            padding: { xs: '16px', sm: '20px' },
+            padding: { xs: '16px', sm: '12px' },
             textAlign: 'center',
             borderBottom: '2px solid #333',
           }}
@@ -234,7 +234,7 @@ const TrendingItem = ({ trend, isLoading }) => {
         {/* Main Image Section */}
         <Box
           sx={{
-            padding: { xs: '16px', sm: '20px' },
+            padding: { xs: '16px', sm: '12px' },
             display: 'flex',
             justifyContent: 'center',
             alignItems: 'center',
@@ -243,8 +243,8 @@ const TrendingItem = ({ trend, isLoading }) => {
         >
           <Box
             sx={{
-              width: { xs: '200px', sm: '250px' },
-              height: { xs: '200px', sm: '250px' },
+              width: { xs: '200px', sm: '180px' },
+              height: { xs: '200px', sm: '140px' },
               borderRadius: '8px',
               overflow: 'hidden',
               border: '2px solid #333',
@@ -272,12 +272,12 @@ const TrendingItem = ({ trend, isLoading }) => {
         {/* Status and Category Section */}
         <Box
           sx={{
-            padding: { xs: '16px', sm: '20px' },
+            padding: { xs: '16px', sm: '12px' },
             backgroundColor: '#f8f8f8',
             display: 'flex',
             flexDirection: 'column',
             alignItems: 'center',
-            gap: 2,
+            gap: 1.5,
           }}
         >
           {/* Status Chip - Large and Centered */}
@@ -289,7 +289,7 @@ const TrendingItem = ({ trend, isLoading }) => {
               color: '#fff',
               fontWeight: 900,
               fontSize: { xs: '18px', sm: '20px' },
-              height: { xs: '50px', sm: '55px' },
+              height: { xs: '32px', sm: '36px' },
               padding: { xs: '0 20px', sm: '0 24px' },
               borderRadius: '8px',
               border: '3px solid #333',
@@ -312,7 +312,7 @@ const TrendingItem = ({ trend, isLoading }) => {
           <Box
             sx={{
               backgroundColor: categoryStyle.background,
-              padding: { xs: '12px 20px', sm: '14px 24px' },
+              padding: { xs: '6px 12px', sm: '8px 16px' },
               borderRadius: '8px',
               display: 'flex',
               alignItems: 'center',
@@ -345,7 +345,7 @@ const TrendingItem = ({ trend, isLoading }) => {
         {/* Contact Button */}
         <Box
           sx={{
-            padding: { xs: '16px', sm: '20px' },
+            padding: { xs: '16px', sm: '12px' },
             backgroundColor: '#fff',
           }}
         >
@@ -357,7 +357,7 @@ const TrendingItem = ({ trend, isLoading }) => {
               backgroundColor: '#dc3545',
               color: '#fff',
               borderRadius: '8px',
-              padding: { xs: '16px', sm: '18px' },
+              padding: { xs: '12px', sm: '14px' },
               textTransform: 'uppercase',
               fontSize: { xs: '16px', sm: '18px' },
               fontWeight: 900,
