@@ -7,6 +7,9 @@ export const translations = {
     // Post-related translations
     found: "Found",
     lost: "Lost",
+    foundItem: "Found Item",
+    missingItem: "Missing Item",
+    contactForInfo: "Contact for Info",
     postedOn: "Posted on",
     contact: "Contact",
     phoneNumber: "Phone Number",
@@ -993,6 +996,9 @@ export const translations = {
     // Post-related translations
     found: "Trouvé",
     lost: "Perdu",
+    foundItem: "Objet Trouvé",
+    missingItem: "Objet Manquant",
+    contactForInfo: "Contact pour Info",
     postedOn: "Publié le",
     contact: "Contact",
     phoneNumber: "Numéro de téléphone",
@@ -1960,6 +1966,9 @@ export const translations = {
     // Post-related translations
     found: "عثر عليه",
     lost: "مفقود",
+    foundItem: "عنصر موجود",
+    missingItem: "عنصر مفقود",
+    contactForInfo: "اتصل للمعلومات",
     postedOn: "نشر في",
     contact: "اتصال",
     phoneNumber: "رقم الهاتف",
