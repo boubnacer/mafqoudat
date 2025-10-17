@@ -270,14 +270,14 @@ const TrendingItem = ({ trend, isLoading }) => {
               top: 16,
               right: 16,
               zIndex: 2,
-              backgroundColor: 'rgba(0,0,0,0.7)',
+              backgroundColor: alpha(foundLostStatus.color, 0.95),
               color: '#fff',
               fontWeight: 900,
               fontSize: { xs: '14px', sm: '16px' },
               height: { xs: '28px', sm: '32px' },
               padding: { xs: '0 16px', sm: '0 18px' },
               borderRadius: '6px',
-              border: '1px solid rgba(255,255,255,0.3)',
+              border: `1px solid ${alpha(foundLostStatus.color, 0.3)}`,
               backdropFilter: 'blur(10px)',
               boxShadow: '0 4px 8px rgba(0,0,0,0.3)',
               '& .MuiChip-icon': {
@@ -301,13 +301,13 @@ const TrendingItem = ({ trend, isLoading }) => {
               top: 16,
               left: 16,
               zIndex: 2,
-              backgroundColor: 'rgba(0,0,0,0.7)',
+              backgroundColor: theme.palette.mode === 'dark' ? 'rgb(232, 245, 233)' : categoryStyle.background,
               padding: { xs: '6px 12px', sm: '8px 14px' },
               borderRadius: '6px',
               display: 'flex',
               alignItems: 'center',
               gap: 0.5,
-              border: '1px solid rgba(255,255,255,0.3)',
+              border: `1px solid ${theme.palette.mode === 'dark' ? alpha(categoryStyle.main, 0.3) : categoryStyle.main}`,
               backdropFilter: 'blur(10px)',
               boxShadow: '0 2px 4px rgba(0,0,0,0.3)',
             }}
@@ -316,12 +316,12 @@ const TrendingItem = ({ trend, isLoading }) => {
               name={`${categoryname?.toLowerCase()}cate`} 
               sx={{ 
                 fontSize: { xs: '16px', sm: '18px' }, 
-                color: '#fff'
+                color: theme.palette.mode === 'dark' ? categoryStyle.main : categoryStyle.text
               }} 
             />
             <Typography
               sx={{
-                color: '#fff',
+                color: theme.palette.mode === 'dark' ? categoryStyle.main : categoryStyle.text,
                 fontSize: { xs: '14px', sm: '16px' },
                 fontWeight: 700,
                 textTransform: 'uppercase',
