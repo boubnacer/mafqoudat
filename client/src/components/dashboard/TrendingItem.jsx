@@ -186,6 +186,7 @@ const TrendingItem = ({ trend, isLoading }) => {
           minHeight: { xs: '500px', sm: '320px' },
           position: 'relative',
           boxShadow: '0 4px 8px rgba(0, 0, 0, 0.15)',
+          paddingBottom: '20px', // Add padding to prevent button from being hidden
         }}
       >
         {/* Poster Header */}
@@ -358,7 +359,7 @@ const TrendingItem = ({ trend, isLoading }) => {
               variant="contained"
               onClick={handleViewPost}
               sx={{
-                backgroundColor: 'rgba(220, 53, 69, 0.9)',
+                background: 'linear-gradient(45deg, #4A8BFF 30%, #1A6EEE 90%)',
                 color: '#fff',
                 borderRadius: '8px',
                 padding: { xs: '12px', sm: '14px' },
@@ -368,10 +369,10 @@ const TrendingItem = ({ trend, isLoading }) => {
                 letterSpacing: '1px',
                 border: '1px solid rgba(255,255,255,0.3)',
                 backdropFilter: 'blur(10px)',
-                boxShadow: '0 4px 8px rgba(0,0,0,0.3)',
+                boxShadow: '0 3px 5px 2px rgba(26, 110, 238, .3)',
                 '&:hover': {
-                  backgroundColor: 'rgba(200, 35, 51, 0.95)',
-                  boxShadow: '0 6px 12px rgba(0,0,0,0.4)',
+                  background: 'linear-gradient(45deg, #5A9BFF 30%, #2A7EFF 90%)',
+                  boxShadow: '0 4px 8px 2px rgba(26, 110, 238, .4)',
                 },
               }}
               endIcon={<RenderIcon name="view" sx={{ fontSize: { xs: '20px', sm: '22px' } }} />}
