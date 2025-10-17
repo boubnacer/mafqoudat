@@ -200,8 +200,10 @@ const TrendingItem = ({ trend, isLoading }) => {
         {/* Poster Header */}
         <Box
           sx={{
-            background: 'linear-gradient(90deg, #1a1a1a 0%, #2d2d2d 50%, #1a1a1a 100%)',
-            color: '#fff',
+            background: theme.palette.mode === 'dark'
+              ? 'linear-gradient(90deg, #1a1a1a 0%, #2d2d2d 50%, #1a1a1a 100%)'
+              : 'linear-gradient(90deg, #f8f9fa 0%, #e9ecef 50%, #f8f9fa 100%)',
+            color: theme.palette.mode === 'dark' ? '#fff' : '#2c2c2c',
             padding: { xs: '12px 16px', sm: '16px 20px' },
             textAlign: 'center',
             direction: 'ltr', // Force LTR direction for centering
@@ -242,7 +244,7 @@ const TrendingItem = ({ trend, isLoading }) => {
           </Box>
           
           <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 1 }}>
-            <RenderIcon name="locat" sx={{ fontSize: { xs: '14px', sm: '16px' }, color: '#fff' }} />
+            <RenderIcon name="locat" sx={{ fontSize: { xs: '14px', sm: '16px' }, color: theme.palette.mode === 'dark' ? '#fff' : '#2c2c2c' }} />
             <Typography
               sx={{
                 fontSize: { xs: '14px', sm: '16px' },
