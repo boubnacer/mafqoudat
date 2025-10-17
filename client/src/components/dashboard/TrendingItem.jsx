@@ -214,7 +214,9 @@ const TrendingItem = ({ trend, isLoading }) => {
               left: 0,
               right: 0,
               bottom: 0,
-              background: 'repeating-linear-gradient(90deg, transparent, transparent 4px, rgba(255,255,255,0.1) 4px, rgba(255,255,255,0.1) 8px)',
+              background: theme.palette.mode === 'dark'
+                ? 'repeating-linear-gradient(90deg, transparent, transparent 4px, rgba(255,255,255,0.1) 4px, rgba(255,255,255,0.1) 8px)'
+                : 'repeating-linear-gradient(90deg, transparent, transparent 4px, rgba(0,0,0,0.05) 4px, rgba(0,0,0,0.05) 8px)',
               pointerEvents: 'none',
             },
             '& *': {
