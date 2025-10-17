@@ -43,10 +43,10 @@ const TrendingItem = ({ trend, isLoading }) => {
     const diffInHours = Math.floor((now - postDate) / (1000 * 60 * 60));
     
     if (diffInHours < 24) {
-      return diffInHours === 1 ? t('1HourAgo') : t('hoursAgo', { count: diffInHours });
+      return diffInHours === 1 ? t('1HourAgo') : `${diffInHours} ${t('hoursAgo')}`;
     } else {
       const diffInDays = Math.floor(diffInHours / 24);
-      return diffInDays === 1 ? t('1DayAgo') : t('daysAgo', { count: diffInDays });
+      return diffInDays === 1 ? t('1DayAgo') : `${diffInDays} ${t('daysAgo')}`;
     }
   };
 
@@ -375,7 +375,7 @@ const TrendingItem = ({ trend, isLoading }) => {
           <Box
             sx={{
               position: 'absolute',
-              bottom: '16px',
+              bottom: '32px',
               left: '16px',
               backgroundColor: theme.palette.mode === 'dark' 
                 ? 'rgba(0,0,0,0.7)' 
@@ -390,7 +390,7 @@ const TrendingItem = ({ trend, isLoading }) => {
               zIndex: 2,
             }}
           >
-            {t('posted')} {getTimeAgo(createdAt)}
+            {`${t('posted')} ${getTimeAgo(createdAt)}`}
           </Box>
         </Box>
       </Card>
