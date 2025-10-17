@@ -181,8 +181,8 @@ const TrendingItem = ({ trend, isLoading }) => {
             ? 'linear-gradient(135deg, rgba(30,30,30,0.95) 0%, rgba(40,40,40,0.98) 50%, rgba(30,30,30,0.95) 100%)'
             : 'linear-gradient(135deg, rgba(248,248,248,0.95) 0%, rgba(255,255,255,0.98) 50%, rgba(248,248,248,0.95) 100%)',
           borderRadius: '8px',
-          border: '2px solid #373737 !important',
-          borderColor: '#373737 !important',
+          border: '2px solid #6b6b6b !important',
+          borderColor: '#6b6b6b !important',
           overflow: 'hidden',
           height: '100%',
           minHeight: { xs: '500px', sm: '320px' },
