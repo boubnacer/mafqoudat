@@ -213,23 +213,22 @@ const TrendingItem = ({ trend, isLoading }) => {
             }
           }}
         >
-          <Typography
-            sx={{
-              fontSize: { xs: '20px', sm: '24px' },
-              fontWeight: 900,
-              textTransform: 'uppercase',
-              letterSpacing: '2px',
-              textShadow: '2px 2px 4px rgba(0,0,0,0.5)',
-              position: 'relative',
-              zIndex: 1,
-              textAlign: 'center', // Add this to force center alignment
-              direction: 'ltr', // Add this to prevent RTL from moving it
-              width: '100%', // Add this to ensure full width for centering
-              marginBottom: '8px',
-            }}
-          >
-            {displayCityName}
-          </Typography>
+          <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 1, marginBottom: '8px' }}>
+            <Typography
+              sx={{
+                fontSize: { xs: '20px', sm: '24px' },
+                fontWeight: 900,
+                textTransform: 'uppercase',
+                letterSpacing: '2px',
+                textShadow: '2px 2px 4px rgba(0,0,0,0.5)',
+                position: 'relative',
+                zIndex: 1,
+                textAlign: 'center',
+              }}
+            >
+              {displayCityName}
+            </Typography>
+          </Box>
           
           <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 1 }}>
             <RenderIcon name="locat" sx={{ fontSize: { xs: '14px', sm: '16px' }, color: '#fff' }} />
