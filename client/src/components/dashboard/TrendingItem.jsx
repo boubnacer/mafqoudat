@@ -390,7 +390,7 @@ const TrendingItem = ({ trend, isLoading }) => {
               zIndex: 2,
             }}
           >
-            {t('posted')} {getTimeAgo(createdAt)}
+            {t('posted')} getTimeAgo(createdAt)
           </Box>
         </Box>
       </Card>
