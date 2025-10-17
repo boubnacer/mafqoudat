@@ -191,13 +191,26 @@ const TrendingItem = ({ trend, isLoading }) => {
         {/* Poster Header */}
         <Box
           sx={{
-            background: theme.palette.mode === 'dark'
-              ? 'linear-gradient(90deg, #1a1a1a 0%, #2d2d2d 50%, #1a1a1a 100%)'
-              : 'linear-gradient(90deg, #1a1a1a 0%, #2d2d2d 50%, #1a1a1a 100%)',
-            color: theme.palette.mode === 'dark' ? '#fff' : '#fff',
-            padding: { xs: '16px', sm: '12px' },
+            background: 'linear-gradient(90deg, #1a1a1a 0%, #2d2d2d 50%, #1a1a1a 100%)',
+            color: '#fff',
+            padding: { xs: '12px 16px', sm: '16px 20px' },
             textAlign: 'center',
-            borderBottom: `2px solid ${theme.palette.mode === 'dark' ? '#555' : '#333'}`,
+            direction: 'ltr', // Force LTR direction for centering
+            borderBottom: '2px solid #333',
+            position: 'relative',
+            '&::before': {
+              content: '""',
+              position: 'absolute',
+              top: 0,
+              left: 0,
+              right: 0,
+              bottom: 0,
+              background: 'repeating-linear-gradient(90deg, transparent, transparent 4px, rgba(255,255,255,0.1) 4px, rgba(255,255,255,0.1) 8px)',
+              pointerEvents: 'none',
+            },
+            '& *': {
+              direction: 'ltr', // Force all child elements to LTR
+            }
           }}
         >
           <Typography
@@ -212,15 +225,19 @@ const TrendingItem = ({ trend, isLoading }) => {
             {displayCityName}
           </Typography>
           
-          <Typography
-            sx={{
-              fontSize: { xs: '14px', sm: '16px' },
-              fontWeight: 600,
-              color: theme.palette.mode === 'dark' ? '#ccc' : '#ccc',
-            }}
-          >
-            {new Date(createdAt).toLocaleDateString()}
-          </Typography>
+          <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 1 }}>
+            <RenderIcon name="locat" sx={{ fontSize: { xs: '14px', sm: '16px' }, color: '#fff' }} />
+            <Typography
+              sx={{
+                fontSize: { xs: '14px', sm: '16px' },
+                fontWeight: 600,
+                opacity: 0.9,
+                marginTop: '4px',
+              }}
+            >
+              {displayCityName} • {new Date(createdAt).toLocaleDateString()}
+            </Typography>
+          </Box>
         </Box>
 
         {/* Full Body Image Container */}
