@@ -219,6 +219,12 @@ const TrendingItem = ({ trend, isLoading }) => {
               fontWeight: 900,
               textTransform: 'uppercase',
               letterSpacing: '2px',
+              textShadow: '2px 2px 4px rgba(0,0,0,0.5)',
+              position: 'relative',
+              zIndex: 1,
+              textAlign: 'center', // Add this to force center alignment
+              direction: 'ltr', // Add this to prevent RTL from moving it
+              width: '100%', // Add this to ensure full width for centering
               marginBottom: '8px',
             }}
           >
@@ -235,7 +241,7 @@ const TrendingItem = ({ trend, isLoading }) => {
                 marginTop: '4px',
               }}
             >
-              {displayCityName} • {new Date(createdAt).toLocaleDateString()}
+              {new Date(createdAt).toLocaleDateString()}
             </Typography>
           </Box>
         </Box>
