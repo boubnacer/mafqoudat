@@ -235,107 +235,94 @@ const TrendingItem = ({ trend, isLoading }) => {
           </Box>
         </Box>
 
-        {/* Main Image Section */}
+        {/* Full Body Image Container */}
         <Box
           sx={{
-            padding: { xs: '16px', sm: '12px' },
-            display: 'flex',
-            justifyContent: 'center',
-            alignItems: 'center',
-            backgroundColor: theme.palette.mode === 'dark' ? '#2a2a2a' : '#fff',
+            position: 'relative',
+            height: 'calc(100% - 80px)',
+            overflow: 'hidden',
+            backgroundColor: theme.palette.mode === 'dark' ? '#2a2a2a' : '#f5f5f5',
           }}
         >
-          <Box
+          {/* Background Image */}
+          <LazyCardMedia
+            component="img"
+            image={finalImageUrl}
+            alt={categoryDisplayName || 'Item Image'}
+            fallback={noImageSvg}
             sx={{
-              width: { xs: '200px', sm: '180px' },
-              height: { xs: '200px', sm: '140px' },
-              borderRadius: '8px',
-              overflow: 'hidden',
-              border: `2px solid ${theme.palette.mode === 'dark' ? '#555' : '#333'}`,
-              display: 'flex',
-              alignItems: 'center',
-              justifyContent: 'center',
-              backgroundColor: theme.palette.mode === 'dark' ? '#2a2a2a' : '#f5f5f5',
+              position: 'absolute',
+              top: 0,
+              left: 0,
+              width: '100%',
+              height: '100%',
+              objectFit: 'cover',
+              objectPosition: 'center',
             }}
-          >
-            <LazyCardMedia
-              component="img"
-              image={finalImageUrl}
-              alt={categoryDisplayName || 'Item Image'}
-              fallback={noImageSvg}
-              sx={{
-                width: '100%',
-                height: '100%',
-                objectFit: 'cover',
-                objectPosition: 'center',
-              }}
-            />
-          </Box>
-        </Box>
+          />
 
-        {/* Status and Category Section */}
-        <Box
-          sx={{
-            padding: { xs: '16px', sm: '12px' },
-            backgroundColor: theme.palette.mode === 'dark' ? '#333' : '#f8f8f8',
-            display: 'flex',
-            flexDirection: 'column',
-            alignItems: 'center',
-            gap: 1.5,
-          }}
-        >
-          {/* Status Chip - Large and Centered */}
+          {/* Status Chip - Top Right Overlay */}
           <Chip
-            icon={<RenderIcon name={`${foundLostStatus.value.toLowerCase()}fl`} sx={{ fontSize: { xs: '20px', sm: '22px' } }} />}
+            icon={<RenderIcon name={`${foundLostStatus.value.toLowerCase()}fl`} sx={{ fontSize: { xs: '16px', sm: '18px' } }} />}
             label={foundLostStatus.label}
             sx={{
-              backgroundColor: foundLostStatus.color,
+              position: 'absolute',
+              top: 16,
+              right: 16,
+              zIndex: 2,
+              backgroundColor: 'rgba(0,0,0,0.7)',
               color: '#fff',
               fontWeight: 900,
-              fontSize: { xs: '18px', sm: '20px' },
-              height: { xs: '32px', sm: '36px' },
-              padding: { xs: '0 20px', sm: '0 24px' },
-              borderRadius: '8px',
-              border: `3px solid ${theme.palette.mode === 'dark' ? '#555' : '#333'}`,
+              fontSize: { xs: '14px', sm: '16px' },
+              height: { xs: '28px', sm: '32px' },
+              padding: { xs: '0 16px', sm: '0 18px' },
+              borderRadius: '6px',
+              border: '1px solid rgba(255,255,255,0.3)',
+              backdropFilter: 'blur(10px)',
               boxShadow: '0 4px 8px rgba(0,0,0,0.3)',
               '& .MuiChip-icon': {
                 color: '#fff',
                 marginLeft: 0,
-                fontSize: { xs: '20px', sm: '22px' },
+                fontSize: { xs: '16px', sm: '18px' },
               },
               '& .MuiChip-label': {
-                paddingLeft: { xs: '8px', sm: '10px' },
-                paddingRight: { xs: '8px', sm: '10px' },
+                paddingLeft: { xs: '6px', sm: '8px' },
+                paddingRight: { xs: '6px', sm: '8px' },
                 textTransform: 'uppercase',
                 letterSpacing: '1px',
               },
             }}
           />
           
-          {/* Category Badge - Centered */}
+          {/* Category Badge - Top Left Overlay */}
           <Box
             sx={{
-              backgroundColor: categoryStyle.background,
-              padding: { xs: '6px 12px', sm: '8px 16px' },
-              borderRadius: '8px',
+              position: 'absolute',
+              top: 16,
+              left: 16,
+              zIndex: 2,
+              backgroundColor: 'rgba(0,0,0,0.7)',
+              padding: { xs: '6px 12px', sm: '8px 14px' },
+              borderRadius: '6px',
               display: 'flex',
               alignItems: 'center',
-              gap: 1,
-              border: `2px solid ${theme.palette.mode === 'dark' ? '#555' : '#333'}`,
-              boxShadow: '0 2px 4px rgba(0,0,0,0.2)',
+              gap: 0.5,
+              border: '1px solid rgba(255,255,255,0.3)',
+              backdropFilter: 'blur(10px)',
+              boxShadow: '0 2px 4px rgba(0,0,0,0.3)',
             }}
           >
             <RenderIcon 
               name={`${categoryname?.toLowerCase()}cate`} 
               sx={{ 
-                fontSize: { xs: '20px', sm: '22px' }, 
-                color: categoryStyle.main
+                fontSize: { xs: '16px', sm: '18px' }, 
+                color: '#fff'
               }} 
             />
             <Typography
               sx={{
-                color: categoryStyle.main,
-                fontSize: { xs: '16px', sm: '18px' },
+                color: '#fff',
+                fontSize: { xs: '14px', sm: '16px' },
                 fontWeight: 700,
                 textTransform: 'uppercase',
                 letterSpacing: '1px',
@@ -344,39 +331,43 @@ const TrendingItem = ({ trend, isLoading }) => {
               {categoryDisplayName}
             </Typography>
           </Box>
-        </Box>
 
-        {/* Contact Button */}
-        <Box
-          sx={{
-            padding: { xs: '16px', sm: '12px' },
-            backgroundColor: theme.palette.mode === 'dark' ? '#2a2a2a' : '#fff',
-          }}
-        >
-          <Button
-            fullWidth
-            variant="contained"
-            onClick={handleViewPost}
+          {/* Action Button - Bottom Overlay */}
+          <Box
             sx={{
-              backgroundColor: '#dc3545',
-              color: '#fff',
-              borderRadius: '8px',
-              padding: { xs: '12px', sm: '14px' },
-              textTransform: 'uppercase',
-              fontSize: { xs: '16px', sm: '18px' },
-              fontWeight: 900,
-              letterSpacing: '1px',
-              border: `2px solid ${theme.palette.mode === 'dark' ? '#555' : '#333'}`,
-              boxShadow: '0 4px 8px rgba(0,0,0,0.3)',
-              '&:hover': {
-                backgroundColor: '#c82333',
-                boxShadow: '0 6px 12px rgba(0,0,0,0.4)',
-              },
+              position: 'absolute',
+              bottom: 16,
+              left: 16,
+              right: 16,
+              zIndex: 2,
             }}
-            endIcon={<RenderIcon name="view" sx={{ fontSize: { xs: '20px', sm: '22px' } }} />}
           >
-            {t('contactForInfo')}
-          </Button>
+            <Button
+              fullWidth
+              variant="contained"
+              onClick={handleViewPost}
+              sx={{
+                backgroundColor: 'rgba(220, 53, 69, 0.9)',
+                color: '#fff',
+                borderRadius: '8px',
+                padding: { xs: '12px', sm: '14px' },
+                textTransform: 'uppercase',
+                fontSize: { xs: '16px', sm: '18px' },
+                fontWeight: 900,
+                letterSpacing: '1px',
+                border: '1px solid rgba(255,255,255,0.3)',
+                backdropFilter: 'blur(10px)',
+                boxShadow: '0 4px 8px rgba(0,0,0,0.3)',
+                '&:hover': {
+                  backgroundColor: 'rgba(200, 35, 51, 0.95)',
+                  boxShadow: '0 6px 12px rgba(0,0,0,0.4)',
+                },
+              }}
+              endIcon={<RenderIcon name="view" sx={{ fontSize: { xs: '20px', sm: '22px' } }} />}
+            >
+              {t('contactForInfo')}
+            </Button>
+          </Box>
         </Box>
       </Card>
     </Box>
