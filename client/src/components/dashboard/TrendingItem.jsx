@@ -36,6 +36,20 @@ const TrendingItem = ({ trend, isLoading }) => {
   const { t, currentLanguage } = useTranslation();
   const navigate = useNavigate();
 
+  // Helper function to get relative time
+  const getTimeAgo = (date) => {
+    const now = new Date();
+    const postDate = new Date(date);
+    const diffInHours = Math.floor((now - postDate) / (1000 * 60 * 60));
+    
+    if (diffInHours < 24) {
+      return diffInHours === 1 ? t('1HourAgo') : t('hoursAgo', { count: diffInHours });
+    } else {
+      const diffInDays = Math.floor(diffInHours / 24);
+      return diffInDays === 1 ? t('1DayAgo') : t('daysAgo', { count: diffInDays });
+    }
+  };
+
   // Get city name with proper priority
   const getCityName = () => {
     // First priority: Use the populated city data from the API
@@ -253,7 +267,7 @@ const TrendingItem = ({ trend, isLoading }) => {
                 marginTop: '4px',
               }}
             >
-              {mainDate ? new Date(mainDate).toLocaleDateString() : new Date(createdAt).toLocaleDateString()}
+              {mainDate || new Date(createdAt).toLocaleDateString()}
             </Typography>
           </Box>
         </Box>
@@ -362,21 +376,21 @@ const TrendingItem = ({ trend, isLoading }) => {
             sx={{
               position: 'absolute',
               bottom: '16px',
-              right: '16px',
+              left: '16px',
               backgroundColor: theme.palette.mode === 'dark' 
                 ? 'rgba(0,0,0,0.7)' 
                 : 'rgba(255,255,255,0.9)',
               color: theme.palette.mode === 'dark' ? '#fff' : '#333',
-              padding: '6px 12px',
+              padding: '8px 16px',
               borderRadius: '12px',
-              fontSize: '12px',
+              fontSize: '14px',
               fontWeight: 600,
               backdropFilter: 'blur(10px)',
               border: `1px solid ${theme.palette.mode === 'dark' ? 'rgba(255,255,255,0.2)' : 'rgba(0,0,0,0.1)'}`,
               zIndex: 2,
             }}
           >
-            {new Date(createdAt).toLocaleDateString()}
+            {t('posted')} {getTimeAgo(createdAt)}
           </Box>
         </Box>
       </Card>
