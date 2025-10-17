@@ -175,18 +175,25 @@ const TrendingItem = ({ trend, isLoading }) => {
       </Box>
 
       <Card
+        onClick={handleViewPost}
         sx={{
           background: theme.palette.mode === 'dark'
             ? 'linear-gradient(135deg, rgba(30,30,30,0.95) 0%, rgba(40,40,40,0.98) 50%, rgba(30,30,30,0.95) 100%)'
             : 'linear-gradient(135deg, rgba(248,248,248,0.95) 0%, rgba(255,255,255,0.98) 50%, rgba(248,248,248,0.95) 100%)',
           borderRadius: '8px',
-          border: '2px solid #333',
+          border: '2px solid #333 !important',
           overflow: 'hidden',
           height: '100%',
           minHeight: { xs: '500px', sm: '320px' },
           position: 'relative',
           boxShadow: '0 4px 8px rgba(0, 0, 0, 0.15)',
           paddingBottom: '20px', // Add padding to prevent button from being hidden
+          cursor: 'pointer',
+          transition: 'all 0.3s ease',
+          '&:hover': {
+            transform: 'translateY(-2px)',
+            boxShadow: '0 8px 16px rgba(0, 0, 0, 0.2)',
+          },
         }}
       >
         {/* Poster Header */}
