@@ -12,6 +12,8 @@ import {
   alpha,
 } from "@mui/material";
 import { useMemo } from "react";
+import { formatDistanceToNow } from 'date-fns';
+import { ar, fr, enUS } from 'date-fns/locale';
 import FlexBetween from "../FlexBetween";
 import RenderIcon from "../RenderIcon";
 import { TrendingItemSkeleton, DashboardEmptyStates } from "../LoadingStates";
@@ -36,19 +38,20 @@ const TrendingItem = ({ trend, isLoading }) => {
   const { t, currentLanguage } = useTranslation();
   const navigate = useNavigate();
 
-  // Helper function to get relative time
-  const getTimeAgo = (date) => {
-    const now = new Date();
-    const postDate = new Date(date);
-    const diffInHours = Math.floor((now - postDate) / (1000 * 60 * 60));
-    
-    if (diffInHours < 24) {
-      return diffInHours === 1 ? t('1HourAgo') : `${diffInHours} ${t('hoursAgo')}`;
-    } else {
-      const diffInDays = Math.floor(diffInHours / 24);
-      return diffInDays === 1 ? t('1DayAgo') : `${diffInDays} ${t('daysAgo')}`;
+  // Get locale for date-fns
+  const getLocale = () => {
+    switch (currentLanguage) {
+      case 'ar': return ar;
+      case 'fr': return fr;
+      default: return enUS;
     }
   };
+
+  // Format date using date-fns (same as RecentPosts)
+  const created = formatDistanceToNow(new Date(createdAt), { 
+    addSuffix: true,
+    locale: getLocale()
+  });
 
   // Get city name with proper priority
   const getCityName = () => {
@@ -390,7 +393,7 @@ const TrendingItem = ({ trend, isLoading }) => {
               zIndex: 2,
             }}
           >
-            {`${t('posted')} ${getTimeAgo(createdAt)}`}
+            {`${t('posted')} ${created}`}
           </Box>
         </Box>
       </Card>
