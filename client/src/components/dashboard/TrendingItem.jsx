@@ -207,7 +207,7 @@ const TrendingItem = ({ trend, isLoading }) => {
             padding: { xs: '12px 16px', sm: '16px 20px' },
             textAlign: 'center',
             direction: 'ltr', // Force LTR direction for centering
-            borderBottom: '2px solid #333',
+            borderBottom: `2px solid ${theme.palette.mode === 'dark' ? '#333' : '#e0e0e0'}`,
             position: 'relative',
             '&::before': {
               content: '""',
