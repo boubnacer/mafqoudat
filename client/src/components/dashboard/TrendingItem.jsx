@@ -209,30 +209,18 @@ const TrendingItem = ({ trend, isLoading }) => {
               marginBottom: '8px',
             }}
           >
-            {foundLostStatus.isFound ? t('foundItem') : t('missingItem')}
+            {displayCityName}
           </Typography>
           
-          <Box sx={{ display: 'flex', justifyContent: 'center', alignItems: 'center', gap: 2, flexWrap: 'wrap' }}>
-            <Typography
-              sx={{
-                fontSize: { xs: '14px', sm: '16px' },
-                fontWeight: 600,
-                color: theme.palette.mode === 'dark' ? '#ccc' : '#ccc',
-              }}
-            >
-              📍 {displayCityName}
-            </Typography>
-            
-            <Typography
-              sx={{
-                fontSize: { xs: '14px', sm: '16px' },
-                fontWeight: 600,
-                color: theme.palette.mode === 'dark' ? '#ccc' : '#ccc',
-              }}
-            >
-              📅 {new Date(createdAt).toLocaleDateString()}
-            </Typography>
-          </Box>
+          <Typography
+            sx={{
+              fontSize: { xs: '14px', sm: '16px' },
+              fontWeight: 600,
+              color: theme.palette.mode === 'dark' ? '#ccc' : '#ccc',
+            }}
+          >
+            {new Date(createdAt).toLocaleDateString()}
+          </Typography>
         </Box>
 
         {/* Full Body Image Container */}
