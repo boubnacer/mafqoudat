@@ -273,7 +273,7 @@ const TrendingItem = ({ trend, isLoading }) => {
 
           {/* Status Chip - Top Right Overlay */}
           <Chip
-            icon={<RenderIcon name={`${foundLostStatus.value.toLowerCase()}fl`} sx={{ fontSize: { xs: '16px', sm: '18px' } }} />}
+            icon={<RenderIcon name={`${foundLostStatus.value.toLowerCase()}fl`} sx={{ fontSize: { xs: '14px', sm: '16px' } }} />}
             label={foundLostStatus.label}
             sx={{
               position: 'absolute',
@@ -284,16 +284,16 @@ const TrendingItem = ({ trend, isLoading }) => {
               color: '#fff',
               fontWeight: 900,
               fontSize: { xs: '14px', sm: '16px' },
-              height: { xs: '28px', sm: '32px' },
-              padding: { xs: '0 16px', sm: '0 18px' },
-              borderRadius: '6px',
+              height: { xs: '32px', sm: '36px' },
+              padding: { xs: '0 12px', sm: '0 16px' },
+              borderRadius: '18px',
               border: `1px solid ${alpha(foundLostStatus.color, 0.3)}`,
               backdropFilter: 'blur(10px)',
               boxShadow: '0 4px 8px rgba(0,0,0,0.3)',
               '& .MuiChip-icon': {
                 color: '#fff',
                 marginLeft: 0,
-                fontSize: { xs: '16px', sm: '18px' },
+                fontSize: { xs: '14px', sm: '16px' },
               },
               '& .MuiChip-label': {
                 paddingLeft: { xs: '6px', sm: '8px' },
@@ -311,13 +311,14 @@ const TrendingItem = ({ trend, isLoading }) => {
               top: 16,
               left: 16,
               zIndex: 2,
-              backgroundColor: theme.palette.mode === 'dark' ? 'rgb(232, 245, 233)' : categoryStyle.background,
-              padding: { xs: '6px 12px', sm: '8px 14px' },
-              borderRadius: '6px',
+              backgroundColor: categoryStyle.background,
+              padding: { xs: '0 12px', sm: '0 16px' },
+              borderRadius: '18px',
               display: 'flex',
               alignItems: 'center',
               gap: 0.5,
-              border: `1px solid ${theme.palette.mode === 'dark' ? alpha(categoryStyle.main, 0.3) : categoryStyle.main}`,
+              height: { xs: '32px', sm: '36px' },
+              border: `1px solid ${categoryStyle.main}`,
               backdropFilter: 'blur(10px)',
               boxShadow: '0 2px 4px rgba(0,0,0,0.3)',
             }}
@@ -325,13 +326,13 @@ const TrendingItem = ({ trend, isLoading }) => {
             <RenderIcon 
               name={`${categoryname?.toLowerCase()}cate`} 
               sx={{ 
-                fontSize: { xs: '16px', sm: '18px' }, 
-                color: theme.palette.mode === 'dark' ? categoryStyle.main : categoryStyle.text
+                fontSize: { xs: '14px', sm: '16px' }, 
+                color: categoryStyle.text
               }} 
             />
             <Typography
               sx={{
-                color: theme.palette.mode === 'dark' ? categoryStyle.main : categoryStyle.text,
+                color: categoryStyle.text,
                 fontSize: { xs: '14px', sm: '16px' },
                 fontWeight: 700,
                 textTransform: 'uppercase',
