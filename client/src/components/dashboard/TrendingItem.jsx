@@ -29,7 +29,7 @@ const API_BASE_URL = process.env.REACT_APP_API_URL || "http://localhost:3500";
 const TrendingItem = ({ trend, isLoading }) => {
   // Handle both array and single object formats
   const trendData = Array.isArray(trend) ? trend[0] : trend;
-  const { _id, categoryname, floptionName, image, createdAt, countryLabels, countryname, city, cityLabels, cityName, Floptions, Category } = trendData || {};
+  const { _id, categoryname, floptionName, image, createdAt, mainDate, countryLabels, countryname, city, cityLabels, cityName, Floptions, Category } = trendData || {};
   const theme = useTheme();
   const isMobile = useMediaQuery(theme.breakpoints.down('sm'));
   const isTablet = useMediaQuery(theme.breakpoints.down('md'));
@@ -253,7 +253,7 @@ const TrendingItem = ({ trend, isLoading }) => {
                 marginTop: '4px',
               }}
             >
-              {new Date(createdAt).toLocaleDateString()}
+              {mainDate ? new Date(mainDate).toLocaleDateString() : new Date(createdAt).toLocaleDateString()}
             </Typography>
           </Box>
         </Box>
@@ -357,41 +357,26 @@ const TrendingItem = ({ trend, isLoading }) => {
             </Typography>
           </Box>
 
-          {/* Action Button - Bottom Overlay */}
+          {/* Created Date Badge */}
           <Box
             sx={{
               position: 'absolute',
-              bottom: 16,
-              left: 16,
-              right: 16,
+              bottom: '16px',
+              right: '16px',
+              backgroundColor: theme.palette.mode === 'dark' 
+                ? 'rgba(0,0,0,0.7)' 
+                : 'rgba(255,255,255,0.9)',
+              color: theme.palette.mode === 'dark' ? '#fff' : '#333',
+              padding: '6px 12px',
+              borderRadius: '12px',
+              fontSize: '12px',
+              fontWeight: 600,
+              backdropFilter: 'blur(10px)',
+              border: `1px solid ${theme.palette.mode === 'dark' ? 'rgba(255,255,255,0.2)' : 'rgba(0,0,0,0.1)'}`,
               zIndex: 2,
             }}
           >
-            <Button
-              fullWidth
-              variant="contained"
-              onClick={handleViewPost}
-              sx={{
-                background: 'linear-gradient(45deg, #4A8BFF 30%, #1A6EEE 90%)',
-                color: '#fff',
-                borderRadius: '8px',
-                padding: { xs: '12px', sm: '14px' },
-                textTransform: 'uppercase',
-                fontSize: { xs: '16px', sm: '18px' },
-                fontWeight: 900,
-                letterSpacing: '1px',
-                border: '1px solid rgba(255,255,255,0.3)',
-                backdropFilter: 'blur(10px)',
-                boxShadow: '0 3px 5px 2px rgba(26, 110, 238, .3)',
-                '&:hover': {
-                  background: 'linear-gradient(45deg, #5A9BFF 30%, #2A7EFF 90%)',
-                  boxShadow: '0 4px 8px 2px rgba(26, 110, 238, .4)',
-                },
-              }}
-              endIcon={<RenderIcon name="view" sx={{ fontSize: { xs: '20px', sm: '22px' } }} />}
-            >
-              {t('contactForInfo')}
-            </Button>
+            {new Date(createdAt).toLocaleDateString()}
           </Box>
         </Box>
       </Card>
