@@ -167,7 +167,7 @@ const TrendingItem = ({ trend, isLoading }) => {
       minWidth: isMobile ? '100%' : 'auto', 
       width: isMobile ? '100%' : 'auto',
       position: 'relative',
-      marginTop: '16px', // Space for the pin
+      marginTop: '20px', // Space for the larger pin
     }}>
       {/* Pin Icon */}
       <Box
@@ -177,15 +177,22 @@ const TrendingItem = ({ trend, isLoading }) => {
           left: '50%',
           transform: 'translateX(-50%)',
           zIndex: 10,
-          filter: 'drop-shadow(0 2px 4px rgba(0,0,0,0.3))',
+          filter: theme.palette.mode === 'dark' 
+            ? 'drop-shadow(0 2px 4px rgba(0,0,0,0.5)) brightness(0.8)'
+            : 'drop-shadow(0 2px 4px rgba(0,0,0,0.3)) brightness(1.2)',
+          '& img': {
+            filter: theme.palette.mode === 'dark' 
+              ? 'brightness(0.8) contrast(1.2)'
+              : 'brightness(1.1) contrast(1.1)',
+          }
         }}
       >
         <img 
           src={`${process.env.PUBLIC_URL}/pinIcon.svg`} 
           alt="Pin" 
           style={{ 
-            width: '24px', 
-            height: '24px',
+            width: '32px', 
+            height: '32px',
             display: 'block'
           }} 
         />
