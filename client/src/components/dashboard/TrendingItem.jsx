@@ -337,11 +337,15 @@ const TrendingItem = ({ trend, isLoading }) => {
                 marginLeft: 0,
                 fontSize: { xs: '14px', sm: '16px' },
               },
-              '& .MuiChip-label': {
+                  '& .MuiChip-label': {
                 paddingLeft: { xs: '6px', sm: '8px' },
                 paddingRight: { xs: '6px', sm: '8px' },
                 textTransform: 'uppercase',
                 letterSpacing: '1px',
+                fontFamily: currentLanguage === 'ar' 
+                  ? '"Noto Sans Arabic", "Segoe UI", "Roboto", "Helvetica", "Arial", sans-serif'
+                  : '"Inter", "Segoe UI", "Roboto", "Helvetica", "Arial", sans-serif',
+                lineHeight: currentLanguage === 'ar' ? 1.6 : 1.4,
               },
             }}
           />
@@ -373,17 +377,21 @@ const TrendingItem = ({ trend, isLoading }) => {
                 color: categoryStyle.text
               }} 
             />
-            <Typography
-              sx={{
+                <Typography
+                  sx={{
                 color: categoryStyle.text,
                 fontSize: { xs: '14px', sm: '16px' },
                 fontWeight: 700,
                 textTransform: 'uppercase',
                 letterSpacing: '1px',
-              }}
-            >
-              {categoryDisplayName}
-            </Typography>
+                fontFamily: currentLanguage === 'ar' 
+                  ? '"Noto Sans Arabic", "Segoe UI", "Roboto", "Helvetica", "Arial", sans-serif'
+                  : '"Inter", "Segoe UI", "Roboto", "Helvetica", "Arial", sans-serif',
+                lineHeight: currentLanguage === 'ar' ? 1.6 : 1.4,
+                  }}
+                >
+                  {categoryDisplayName}
+                </Typography>
           </Box>
 
           {/* Created Date Badge */}
