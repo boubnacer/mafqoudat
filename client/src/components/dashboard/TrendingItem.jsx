@@ -256,7 +256,7 @@ const TrendingItem = ({ trend, isLoading }) => {
                 fontSize: { xs: '18px', sm: '20px' },
                 fontWeight: 700,
                 textTransform: 'uppercase',
-                letterSpacing: '1px',
+                letterSpacing: currentLanguage === 'ar' ? 'normal' : '1px',
                 textAlign: 'center',
                 fontFamily: currentLanguage === 'ar' 
                   ? '"Noto Sans Arabic", "Segoe UI", "Roboto", "Helvetica", "Arial", sans-serif'
