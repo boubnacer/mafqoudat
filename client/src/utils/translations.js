@@ -7,6 +7,9 @@ export const translations = {
     // Post-related translations
     found: "Found",
     lost: "Lost",
+    foundAt: "Found at",
+    lostAt: "Lost at",
+    in: "in",
     foundItem: "Found Item",
     missingItem: "Missing Item",
     contactForInfo: "Contact for Info",
@@ -1001,6 +1004,9 @@ export const translations = {
     // Post-related translations
     found: "Trouvé",
     lost: "Perdu",
+    foundAt: "Trouvé le",
+    lostAt: "Perdu le",
+    in: "à",
     foundItem: "Objet Trouvé",
     missingItem: "Objet Manquant",
     contactForInfo: "Contact pour Info",
@@ -1976,6 +1982,9 @@ export const translations = {
     // Post-related translations
     found: "عثر عليه",
     lost: "مفقود",
+    foundAt: "وُجد في",
+    lostAt: "فُقد في",
+    in: "في",
     foundItem: "عنصر موجود",
     missingItem: "عنصر مفقود",
     contactForInfo: "اتصل للمعلومات",

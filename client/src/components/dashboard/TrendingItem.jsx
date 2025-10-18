@@ -249,40 +249,36 @@ const TrendingItem = ({ trend, isLoading }) => {
             }
           }}
         >
-          <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 1, marginBottom: '8px' }}>
+          <Box sx={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 1 }}>
+            {/* First line: Status + Date */}
             <Typography
               sx={{
-                fontSize: { xs: '20px', sm: '24px' },
-                fontWeight: 900,
+                fontSize: { xs: '18px', sm: '20px' },
+                fontWeight: 700,
                 textTransform: 'uppercase',
-                letterSpacing: '2px',
-                textShadow: '2px 2px 4px rgba(0,0,0,0.5)',
-                position: 'relative',
-                zIndex: 1,
+                letterSpacing: '1px',
                 textAlign: 'center',
                 fontFamily: currentLanguage === 'ar' 
                   ? '"Noto Sans Arabic", "Segoe UI", "Roboto", "Helvetica", "Arial", sans-serif'
                   : '"Inter", "Segoe UI", "Roboto", "Helvetica", "Arial", sans-serif',
               }}
             >
-              {displayCityName}
+              {foundLostStatus.isFound ? t('foundAt') : t('lostAt')} {mainDate || new Date(createdAt).toLocaleDateString()}
             </Typography>
-          </Box>
-          
-          <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 1 }}>
-            <RenderIcon name="locat" sx={{ fontSize: { xs: '14px', sm: '16px' }, color: theme.palette.mode === 'dark' ? '#fff' : '#2c2c2c' }} />
+            
+            {/* Second line: Location */}
             <Typography
               sx={{
-                fontSize: { xs: '14px', sm: '16px' },
+                fontSize: { xs: '16px', sm: '18px' },
                 fontWeight: 600,
+                textAlign: 'center',
                 opacity: 0.9,
-                marginTop: '4px',
                 fontFamily: currentLanguage === 'ar' 
                   ? '"Noto Sans Arabic", "Segoe UI", "Roboto", "Helvetica", "Arial", sans-serif'
                   : '"Inter", "Segoe UI", "Roboto", "Helvetica", "Arial", sans-serif',
               }}
             >
-              {mainDate || new Date(createdAt).toLocaleDateString()}
+              {t('in')} {displayCityName}
             </Typography>
           </Box>
         </Box>
