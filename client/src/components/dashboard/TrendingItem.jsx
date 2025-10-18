@@ -178,12 +178,12 @@ const TrendingItem = ({ trend, isLoading }) => {
           transform: 'translateX(-50%)',
           zIndex: 10,
           filter: theme.palette.mode === 'dark' 
-            ? 'drop-shadow(0 2px 4px rgba(0,0,0,0.5)) brightness(0.8)'
-            : 'drop-shadow(0 2px 4px rgba(0,0,0,0.3)) brightness(1.2)',
+            ? 'drop-shadow(0 2px 4px rgba(0,0,0,0.5))'
+            : 'drop-shadow(0 2px 4px rgba(0,0,0,0.3))',
           '& img': {
             filter: theme.palette.mode === 'dark' 
-              ? 'brightness(0.8) contrast(1.2)'
-              : 'brightness(1.1) contrast(1.1)',
+              ? 'brightness(0) saturate(100%) invert(27%) sepia(51%) saturate(2878%) hue-rotate(346deg) brightness(104%) contrast(97%)' // Orange color
+              : 'brightness(0) saturate(100%) invert(20%) sepia(100%) saturate(2000%) hue-rotate(0deg) brightness(90%) contrast(120%)', // Red color
           }
         }}
       >
