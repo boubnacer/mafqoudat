@@ -182,8 +182,8 @@ const TrendingItem = ({ trend, isLoading }) => {
             : 'drop-shadow(0 2px 4px rgba(0,0,0,0.3))',
           '& img': {
             filter: theme.palette.mode === 'dark' 
-              ? 'brightness(0) saturate(100%) invert(42%) sepia(93%) saturate(1352%) hue-rotate(87deg) brightness(119%) contrast(119%)' // Orange
-              : 'brightness(0) saturate(100%) invert(13%) sepia(94%) saturate(7151%) hue-rotate(2deg) brightness(95%) contrast(112%)', // Red
+              ? 'brightness(0) saturate(100%) invert(100%) sepia(0%) saturate(0%) hue-rotate(0deg) brightness(100%) contrast(100%)' // White for dark mode
+              : 'brightness(0) saturate(100%) invert(0%) sepia(0%) saturate(0%) hue-rotate(0deg) brightness(0%) contrast(100%)', // Black for light mode
           }
         }}
       >
