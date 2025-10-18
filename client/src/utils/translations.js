@@ -1982,8 +1982,8 @@ export const translations = {
     // Post-related translations
     found: "عثر عليه",
     lost: "مفقود",
-    foundAt: "وُجد في",
-    lostAt: "فُقد في",
+    foundAt: "وُجد بتاريخ",
+    lostAt: "فُقد بتاريخ",
     in: "في",
     foundItem: "عنصر موجود",
     missingItem: "عنصر مفقود",
