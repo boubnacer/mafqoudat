@@ -174,8 +174,7 @@ const TrendingItem = ({ trend, isLoading }) => {
         sx={{
           position: 'absolute',
           top: '-12px',
-          left: '50%',
-          transform: 'translateX(-50%)',
+          left: '16px',
           zIndex: 10,
           filter: theme.palette.mode === 'dark' 
             ? 'drop-shadow(0 2px 4px rgba(0,0,0,0.5))'
