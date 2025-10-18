@@ -254,6 +254,9 @@ const TrendingItem = ({ trend, isLoading }) => {
                 position: 'relative',
                 zIndex: 1,
                 textAlign: 'center',
+                fontFamily: currentLanguage === 'ar' 
+                  ? '"Noto Sans Arabic", "Segoe UI", "Roboto", "Helvetica", "Arial", sans-serif'
+                  : '"Inter", "Segoe UI", "Roboto", "Helvetica", "Arial", sans-serif',
               }}
             >
               {displayCityName}
@@ -268,6 +271,9 @@ const TrendingItem = ({ trend, isLoading }) => {
                 fontWeight: 600,
                 opacity: 0.9,
                 marginTop: '4px',
+                fontFamily: currentLanguage === 'ar' 
+                  ? '"Noto Sans Arabic", "Segoe UI", "Roboto", "Helvetica", "Arial", sans-serif'
+                  : '"Inter", "Segoe UI", "Roboto", "Helvetica", "Arial", sans-serif',
               }}
             >
               {mainDate || new Date(createdAt).toLocaleDateString()}
@@ -384,13 +390,19 @@ const TrendingItem = ({ trend, isLoading }) => {
                 ? 'rgba(0,0,0,0.7)' 
                 : 'rgba(255,255,255,0.9)',
               color: theme.palette.mode === 'dark' ? '#fff' : '#333',
-              padding: '8px 16px',
-              borderRadius: '12px',
-              fontSize: '14px',
+              padding: { xs: '0 12px', sm: '0 16px' },
+              borderRadius: '8px',
+              fontSize: { xs: '14px', sm: '16px' },
               fontWeight: 600,
               backdropFilter: 'blur(10px)',
               border: `1px solid ${theme.palette.mode === 'dark' ? 'rgba(255,255,255,0.2)' : 'rgba(0,0,0,0.1)'}`,
               zIndex: 2,
+              height: { xs: '32px', sm: '36px' },
+              display: 'flex',
+              alignItems: 'center',
+              fontFamily: currentLanguage === 'ar' 
+                ? '"Noto Sans Arabic", "Segoe UI", "Roboto", "Helvetica", "Arial", sans-serif'
+                : '"Inter", "Segoe UI", "Roboto", "Helvetica", "Arial", sans-serif',
             }}
           >
             {`${t('posted')} ${created}`}
