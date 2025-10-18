@@ -167,7 +167,7 @@ const TrendingItem = ({ trend, isLoading }) => {
       minWidth: isMobile ? '100%' : 'auto', 
       width: isMobile ? '100%' : 'auto',
       position: 'relative',
-      marginTop: '20px', // Space for the larger pin
+      marginTop: '24px', // Space for the larger pin
     }}>
       {/* Pin Icon */}
       <Box
@@ -190,8 +190,8 @@ const TrendingItem = ({ trend, isLoading }) => {
           src={`${process.env.PUBLIC_URL}/pinIcon.svg`} 
           alt="Pin" 
           style={{ 
-            width: '32px', 
-            height: '32px',
+            width: '40px', 
+            height: '40px',
             display: 'block'
           }} 
         />
@@ -261,6 +261,8 @@ const TrendingItem = ({ trend, isLoading }) => {
                 fontFamily: currentLanguage === 'ar' 
                   ? '"Noto Sans Arabic", "Segoe UI", "Roboto", "Helvetica", "Arial", sans-serif'
                   : '"Inter", "Segoe UI", "Roboto", "Helvetica", "Arial", sans-serif',
+                // Add line height for better Arabic text
+                lineHeight: currentLanguage === 'ar' ? 1.6 : 1.4,
               }}
             >
               {foundLostStatus.isFound ? t('foundAt') : t('lostAt')} {mainDate || new Date(createdAt).toLocaleDateString()}
@@ -276,6 +278,8 @@ const TrendingItem = ({ trend, isLoading }) => {
                 fontFamily: currentLanguage === 'ar' 
                   ? '"Noto Sans Arabic", "Segoe UI", "Roboto", "Helvetica", "Arial", sans-serif'
                   : '"Inter", "Segoe UI", "Roboto", "Helvetica", "Arial", sans-serif',
+                // Add line height for better Arabic text
+                lineHeight: currentLanguage === 'ar' ? 1.6 : 1.4,
               }}
             >
               {t('in')} {displayCityName}
