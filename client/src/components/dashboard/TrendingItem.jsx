@@ -301,14 +301,14 @@ const TrendingItem = ({ trend, isLoading }) => {
             }}
           />
 
-          {/* Status Chip - Top Right Overlay */}
+          {/* Status Chip - Bottom Right Overlay */}
           <Chip
             icon={<RenderIcon name={`${foundLostStatus.value.toLowerCase()}fl`} sx={{ fontSize: { xs: '14px', sm: '16px' } }} />}
             label={foundLostStatus.label}
             sx={{
               position: 'absolute',
-              top: 16,
-              right: 16,
+              bottom: '32px',
+              right: '16px',
               zIndex: 2,
               backgroundColor: alpha(foundLostStatus.color, 0.95),
               color: '#fff',
