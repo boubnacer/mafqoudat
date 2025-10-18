@@ -341,7 +341,7 @@ const TrendingItem = ({ trend, isLoading }) => {
                 paddingLeft: { xs: '6px', sm: '8px' },
                 paddingRight: { xs: '6px', sm: '8px' },
                 textTransform: 'uppercase',
-                letterSpacing: '1px',
+                letterSpacing: currentLanguage === 'ar' ? 'normal' : '1px',
                 fontFamily: currentLanguage === 'ar' 
                   ? '"Noto Sans Arabic", "Segoe UI", "Roboto", "Helvetica", "Arial", sans-serif'
                   : '"Inter", "Segoe UI", "Roboto", "Helvetica", "Arial", sans-serif',
@@ -383,7 +383,7 @@ const TrendingItem = ({ trend, isLoading }) => {
                 fontSize: { xs: '14px', sm: '16px' },
                 fontWeight: 700,
                 textTransform: 'uppercase',
-                letterSpacing: '1px',
+                letterSpacing: currentLanguage === 'ar' ? 'normal' : '1px',
                 fontFamily: currentLanguage === 'ar' 
                   ? '"Noto Sans Arabic", "Segoe UI", "Roboto", "Helvetica", "Arial", sans-serif'
                   : '"Inter", "Segoe UI", "Roboto", "Helvetica", "Arial", sans-serif',
