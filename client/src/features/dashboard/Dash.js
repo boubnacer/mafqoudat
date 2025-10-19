@@ -183,8 +183,9 @@ const Dash = () => {
           margin: { xs: 0, sm: '0 auto' }, // Center the container on all screen sizes
           justifyContent: { xs: 'center', sm: 'center' }, // Center content
           '& > *': {
-            flex: { xs: 'none', sm: '1 1 50%' }, // Ensure equal flex distribution on desktop
+            flex: { xs: 'none', sm: '1 1 0' }, // Equal flex distribution - both grow equally
             minWidth: 0, // Prevent flex items from overflowing
+            maxWidth: { xs: '100%', sm: '50%' }, // Ensure neither takes more than 50%
           }
         }}
       >

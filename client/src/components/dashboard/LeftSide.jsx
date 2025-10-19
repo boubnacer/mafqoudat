@@ -18,7 +18,6 @@ const LeftSide = ({
 
   return (
     <Box 
-      flex={1}
       sx={{
         background: theme.palette.mode === 'dark' 
           ? 'linear-gradient(135deg, rgba(18,18,18,0.95) 0%, rgba(28,28,28,0.95) 100%)'

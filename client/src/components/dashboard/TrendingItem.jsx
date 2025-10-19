@@ -206,7 +206,7 @@ const TrendingItem = ({ trend, isLoading }) => {
   }
 
   return (
-    <Box flex={1} sx={{ 
+    <Box sx={{ 
       minWidth: isMobile ? '100%' : 'auto', 
       width: isMobile ? '100%' : 'auto',
       height: '100%',
