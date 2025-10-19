@@ -315,7 +315,6 @@ const TrendingItem = ({ trend, isLoading }) => {
 
           {/* Status Chip - Bottom Right Overlay */}
           <Chip
-            icon={<RenderIcon name={`${foundLostStatus.value.toLowerCase()}fl`} sx={{ fontSize: { xs: '14px', sm: '16px' } }} />}
             label={foundLostStatus.label}
             sx={{
               position: 'absolute',
@@ -359,7 +358,7 @@ const TrendingItem = ({ trend, isLoading }) => {
               zIndex: 2,
               backgroundColor: `${categoryStyle.background} !important`,
               color: categoryStyle.text,
-              padding: { xs: '0 12px', sm: '0 16px' },
+              padding: { xs: '4px 12px', sm: '6px 16px' },
               borderRadius: '8px',
               display: 'flex',
               alignItems: 'center',
