@@ -12,7 +12,7 @@ import {
   alpha,
 } from "@mui/material";
 import { AccessTime as TimeIcon } from "@mui/icons-material";
-import { useMemo } from "react";
+import { useMemo, useEffect } from "react";
 import { formatDistanceToNow } from 'date-fns';
 import { ar, fr, enUS } from 'date-fns/locale';
 import FlexBetween from "../FlexBetween";
@@ -32,7 +32,22 @@ const API_BASE_URL = process.env.REACT_APP_API_URL || "http://localhost:3500";
 const TrendingItem = ({ trend, isLoading }) => {
   // Handle both array and single object formats
   const trendData = Array.isArray(trend) ? trend[0] : trend;
+  
+  // Debug logging to understand the data structure
+  console.log('TrendingItem - trend prop:', trend);
+  console.log('TrendingItem - trendData:', trendData);
+  
   const { _id, categoryname, floptionName, image, createdAt, mainDate, countryLabels, countryname, city, cityLabels, cityName, Floptions, Category } = trendData || {};
+  
+  // Debug specific fields
+  useEffect(() => {
+    console.log('TrendingItem - image:', image);
+    console.log('TrendingItem - categoryname:', categoryname);
+    console.log('TrendingItem - Floptions:', Floptions);
+    console.log('TrendingItem - Category:', Category);
+    console.log('TrendingItem - foundLostStatus:', foundLostStatus);
+    console.log('TrendingItem - categoryDisplayName:', categoryDisplayName);
+  }, [image, categoryname, Floptions, Category, foundLostStatus, categoryDisplayName]);
   const theme = useTheme();
   const isMobile = useMediaQuery(theme.breakpoints.down('sm'));
   const isTablet = useMediaQuery(theme.breakpoints.down('md'));
@@ -172,6 +187,10 @@ const TrendingItem = ({ trend, isLoading }) => {
 
   // Get optimized image URL - only use Cloudinary if image exists and is uploaded by user
   const finalImageUrl = image ? (image.startsWith('http') ? getOptimizedImageUrl(image, 'card') : `${API_BASE_URL}/${image}`) : noImageSvg;
+  
+  // Debug final image URL
+  console.log('TrendingItem - finalImageUrl:', finalImageUrl);
+  console.log('TrendingItem - categoryStyle:', categoryStyle);
 
   if (isLoading) return <TrendingItemSkeleton />;
   if (!trendData) {
@@ -208,6 +227,8 @@ const TrendingItem = ({ trend, isLoading }) => {
           paddingBottom: '20px', // Add padding to prevent button from being hidden
           cursor: 'pointer',
           transition: 'all 0.3s ease',
+          display: 'flex',
+          flexDirection: 'column',
           '&:hover': {
             transform: 'translateY(-2px)',
             boxShadow: '0 8px 16px rgba(0, 0, 0, 0.2)',
@@ -221,11 +242,12 @@ const TrendingItem = ({ trend, isLoading }) => {
               ? 'linear-gradient(90deg, #1a1a1a 0%, #2d2d2d 50%, #1a1a1a 100%)'
               : 'linear-gradient(90deg, #f8f9fa 0%, #e9ecef 50%, #f8f9fa 100%)',
             color: theme.palette.mode === 'dark' ? '#fff' : '#2c2c2c',
-            padding: { xs: '12px 16px', sm: '16px 20px' },
+            padding: { xs: '8px 12px', sm: '12px 16px' },
             textAlign: 'center',
             direction: 'ltr', // Force LTR direction for centering
             borderBottom: `2px solid ${theme.palette.mode === 'dark' ? '#333' : '#e0e0e0'}`,
             position: 'relative',
+            flexShrink: 0,
             '&::before': {
               content: '""',
               position: 'absolute',
@@ -285,9 +307,10 @@ const TrendingItem = ({ trend, isLoading }) => {
         <Box
           sx={{
             position: 'relative',
-            height: 'calc(100% - 60px)',
+            height: { xs: '420px', sm: '250px' },
             overflow: 'hidden',
             backgroundColor: theme.palette.mode === 'dark' ? '#2a2a2a' : '#f5f5f5',
+            flex: 1,
           }}
         >
           {/* Background Image */}
@@ -314,7 +337,7 @@ const TrendingItem = ({ trend, isLoading }) => {
               position: 'absolute',
               top: 16,
               right: 16,
-              zIndex: 2,
+              zIndex: 10,
               backgroundColor: alpha(foundLostStatus.color, 0.2), // Soft green background
               color: foundLostStatus.color, // Text color matches border color
               fontWeight: 900,
@@ -349,7 +372,7 @@ const TrendingItem = ({ trend, isLoading }) => {
               position: 'absolute',
               top: 16,
               left: 16,
-              zIndex: 2,
+              zIndex: 10,
               backgroundColor: `${categoryStyle.background} !important`,
               color: categoryStyle.text,
               borderRadius: '8px',
@@ -398,6 +421,7 @@ const TrendingItem = ({ trend, isLoading }) => {
               position: 'absolute',
               bottom: '32px',
               left: '16px',
+              zIndex: 10,
               backgroundColor: theme.palette.mode === 'dark' 
                 ? 'rgba(0,0,0,0.7)' 
                 : 'rgba(255,255,255,0.9)',
