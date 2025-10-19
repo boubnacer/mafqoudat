@@ -1710,7 +1710,7 @@ const NewPostForm = ({ user, countries, categories, flOptions }) => {
                         boxShadow: theme.shadows[4],
                         // RTL spacing fix
                         '& .MuiButton-startIcon': {
-                          marginRight: currentLanguage === 'ar' ? '8px' : '8px',
+                          marginRight: currentLanguage === 'ar' ? '16px' : '8px',
                           marginLeft: currentLanguage === 'ar' ? '0px' : '0px',
                         },
                       }}
