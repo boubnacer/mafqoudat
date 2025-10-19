@@ -167,35 +167,8 @@ const TrendingItem = ({ trend, isLoading }) => {
       minWidth: isMobile ? '100%' : 'auto', 
       width: isMobile ? '100%' : 'auto',
       position: 'relative',
-      marginTop: '24px', // Space for the larger pin
+      marginTop: '0px', // No pin icon needed
     }}>
-      {/* Pin Icon */}
-      <Box
-        sx={{
-          position: 'absolute',
-          top: '-12px',
-          left: '16px',
-          zIndex: 10,
-          filter: theme.palette.mode === 'dark' 
-            ? 'drop-shadow(0 2px 4px rgba(0,0,0,0.5))'
-            : 'drop-shadow(0 2px 4px rgba(0,0,0,0.3))',
-          '& img': {
-            filter: theme.palette.mode === 'dark' 
-              ? 'brightness(0) saturate(100%) invert(22%) sepia(0%) saturate(0%) hue-rotate(0deg) brightness(100%) contrast(100%)' // #363636 for dark mode
-              : 'brightness(0) saturate(100%) invert(92%) sepia(0%) saturate(0%) hue-rotate(0deg) brightness(100%) contrast(100%)', // #e9ecef for light mode
-          }
-        }}
-      >
-        <img 
-          src={`${process.env.PUBLIC_URL}/pinIcon.svg`} 
-          alt="Pin" 
-          style={{ 
-            width: '40px', 
-            height: '40px',
-            display: 'block'
-          }} 
-        />
-      </Box>
 
       <Card
         onClick={handleViewPost}
@@ -371,7 +344,7 @@ const TrendingItem = ({ trend, isLoading }) => {
             <Box sx={{ 
               display: 'flex', 
               alignItems: 'center', 
-              gap: 0.5,
+              gap: 1.25, // 10px gap (1.25 * 8px = 10px)
             }}>
               <RenderIcon 
                 name={`${categoryname?.toLowerCase()}cate`} 
