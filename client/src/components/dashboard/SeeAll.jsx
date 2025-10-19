@@ -2,6 +2,7 @@ import {
   Add,
   ArrowRightAlt,
   KeyboardArrowRightOutlined,
+  ExpandMore,
 } from "@mui/icons-material";
 import { Box, Button, IconButton, useTheme, Typography } from "@mui/material";
 import { useDispatch } from "react-redux";
@@ -46,38 +47,34 @@ const SeeAll = ({ foundOrlostId, totalItems, variant = "desktop", postType = "fo
     if (totalItems >= 2) {
       return (
         <Button
-          variant="contained"
+          variant="outlined"
           size="small"
-          startIcon={currentLanguage === 'ar' ? <RenderIcon name="seeall" /> : null}
-          endIcon={currentLanguage === 'ar' ? null : <RenderIcon name="seeall" />}
+          endIcon={<ExpandMore />}
           onClick={() => hanldeSeeAllPosts({ foundOrlostId })}
           sx={{
-            background: 'linear-gradient(45deg, #4A8BFF 30%, #1A6EEE 90%)',
-            color: '#fff',
-            border: 'none',
-            textTransform: 'none',
-            fontSize: '0.8rem',
-            fontWeight: 700,
-            padding: '8px 16px',
+            color: theme.palette.mode === 'dark' ? '#fff' : theme.palette.text.primary,
+            borderColor: theme.palette.mode === 'dark' ? theme.palette.primary.main : theme.palette.divider,
+            backgroundColor: theme.palette.mode === 'dark' ? 'transparent' : theme.palette.background.paper,
             borderRadius: '4px',
-            minWidth: 'auto',
+            px: 3,
+            py: 1,
+            textTransform: 'none',
+            fontWeight: 600,
+            transition: 'all 0.3s ease',
+            gap: currentLanguage === 'ar' ? 1 : 0.5,
+            direction: currentLanguage === 'ar' ? 'rtl' : 'ltr',
             width: '100%',
             maxWidth: '200px',
-            boxShadow: '0 3px 5px 2px rgba(26, 110, 238, .3)',
-            transition: 'all 0.3s cubic-bezier(0.4, 0, 0.2, 1)',
-            '&:hover': {
-              background: 'linear-gradient(45deg, #5A9BFF 30%, #2A7EFF 90%)',
-              boxShadow: '0 4px 8px 2px rgba(26, 110, 238, .4)',
-            },
             '& .MuiButton-endIcon': {
-              marginLeft: currentLanguage === 'ar' ? 0 : '6px',
-              marginRight: currentLanguage === 'ar' ? '6px' : 0,
-              fontSize: '16px'
+              marginLeft: currentLanguage === 'ar' ? 0 : '8px',
+              marginRight: currentLanguage === 'ar' ? '8px' : 0,
+              color: theme.palette.mode === 'dark' ? '#fff' : 'inherit',
             },
-            '& .MuiButton-startIcon': {
-              marginRight: currentLanguage === 'ar' ? 0 : '6px',
-              marginLeft: currentLanguage === 'ar' ? '6px' : 0,
-              fontSize: '16px'
+            '&:hover': {
+              backgroundColor: theme.palette.mode === 'dark' ? 'rgba(255, 255, 255, 0.08)' : 'rgba(0, 0, 0, 0.04)',
+            },
+            '&:active': {
+              backgroundColor: theme.palette.mode === 'dark' ? 'rgba(255, 255, 255, 0.12)' : 'rgba(0, 0, 0, 0.08)',
             }
           }}
         >
