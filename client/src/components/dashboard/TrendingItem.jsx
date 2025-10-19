@@ -11,6 +11,7 @@ import {
   Avatar,
   alpha,
 } from "@mui/material";
+import { AccessTime as TimeIcon } from "@mui/icons-material";
 import { useMemo } from "react";
 import { formatDistanceToNow } from 'date-fns';
 import { ar, fr, enUS } from 'date-fns/locale';
@@ -322,8 +323,8 @@ const TrendingItem = ({ trend, isLoading }) => {
               bottom: '32px',
               right: '16px',
               zIndex: 2,
-              backgroundColor: alpha(foundLostStatus.color, 0.95),
-              color: foundLostStatus.color,
+              backgroundColor: alpha(foundLostStatus.color, 0.2), // Soft green background
+              color: '#fff', // White text for better contrast
               fontWeight: 900,
               fontSize: { xs: '14px', sm: '16px' },
               height: { xs: '32px', sm: '36px' },
@@ -333,7 +334,7 @@ const TrendingItem = ({ trend, isLoading }) => {
               backdropFilter: 'blur(10px)',
               boxShadow: '0 4px 8px rgba(0,0,0,0.3)',
               '& .MuiChip-icon': {
-                color: foundLostStatus.color,
+                color: '#fff', // White icon for better contrast
                 marginLeft: 0,
                 fontSize: { xs: '14px', sm: '16px' },
               },
@@ -357,7 +358,9 @@ const TrendingItem = ({ trend, isLoading }) => {
               top: 16,
               left: 16,
               zIndex: 2,
-              backgroundColor: `${categoryStyle.background} !important`,
+              backgroundColor: theme.palette.mode === 'dark' 
+                ? `${categoryStyle.background} !important`
+                : `${categoryStyle.background} !important`,
               color: categoryStyle.text,
               padding: { xs: '0 12px', sm: '0 16px' },
               borderRadius: '8px',
@@ -420,13 +423,10 @@ const TrendingItem = ({ trend, isLoading }) => {
                 : '"Inter", "Segoe UI", "Roboto", "Helvetica", "Arial", sans-serif',
             }}
           >
-            <RenderIcon 
-              name="time" 
-              sx={{ 
-                fontSize: { xs: '14px', sm: '16px' }, 
-                color: theme.palette.mode === 'dark' ? '#fff' : '#333'
-              }} 
-            />
+            <TimeIcon sx={{ 
+              fontSize: { xs: '14px', sm: '16px' }, 
+              color: theme.palette.mode === 'dark' ? '#fff' : '#333'
+            }} />
             {`${t('posted')} ${created}`}
           </Box>
         </Box>
