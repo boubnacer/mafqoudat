@@ -111,15 +111,11 @@ const TrendingItem = ({ trend, isLoading }) => {
     return categoryname || t('unknownCategory');
   }, [Category, categoryname, currentLanguage, t]);
 
-  // Debug specific fields
-  useEffect(() => {
-    console.log('TrendingItem - image:', image);
-    console.log('TrendingItem - categoryname:', categoryname);
-    console.log('TrendingItem - Floptions:', Floptions);
-    console.log('TrendingItem - Category:', Category);
-    console.log('TrendingItem - foundLostStatus:', foundLostStatus);
-    console.log('TrendingItem - categoryDisplayName:', categoryDisplayName);
-  }, [image, categoryname, Floptions, Category, foundLostStatus, categoryDisplayName]);
+  // Debug specific fields - using simple console.log instead of useEffect
+  console.log('TrendingItem - image:', image);
+  console.log('TrendingItem - categoryname:', categoryname);
+  console.log('TrendingItem - Floptions:', Floptions);
+  console.log('TrendingItem - Category:', Category);
 
   // Get category colors using centralized configuration (same as RecentPosts)
   const getCategoryColors = (category) => {
@@ -136,6 +132,10 @@ const TrendingItem = ({ trend, isLoading }) => {
   };
 
   const categoryStyle = getCategoryColors(categoryname);
+
+  // Debug computed values
+  console.log('TrendingItem - categoryStyle:', categoryStyle);
+  console.log('TrendingItem - categoryDisplayName:', categoryDisplayName);
 
   // Get found/lost status with proper colors from database (same as PostsList)
   const foundLostStatus = useMemo(() => {
@@ -177,6 +177,9 @@ const TrendingItem = ({ trend, isLoading }) => {
       isFound 
     };
   }, [Floptions, floptionName, currentLanguage, t]);
+
+  // Debug foundLostStatus
+  console.log('TrendingItem - foundLostStatus:', foundLostStatus);
 
   // Handle navigation to post
   const handleViewPost = () => {
