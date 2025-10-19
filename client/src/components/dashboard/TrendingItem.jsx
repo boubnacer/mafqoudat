@@ -358,7 +358,6 @@ const TrendingItem = ({ trend, isLoading }) => {
               zIndex: 2,
               backgroundColor: `${categoryStyle.background} !important`,
               color: categoryStyle.text,
-              padding: { xs: '4px 12px', sm: '10px 16px' },
               borderRadius: '8px',
               display: 'flex',
               alignItems: 'center',
@@ -369,28 +368,35 @@ const TrendingItem = ({ trend, isLoading }) => {
               boxShadow: '0 2px 4px rgba(0,0,0,0.3)',
             }}
           >
-            <RenderIcon 
-              name={`${categoryname?.toLowerCase()}cate`} 
-              sx={{ 
-                fontSize: { xs: '14px', sm: '16px' }, 
-                color: categoryStyle.text
-              }} 
-            />
-                <Typography
-                  sx={{
-                color: categoryStyle.text,
-                fontSize: { xs: '14px', sm: '16px' },
-                fontWeight: 700,
-                textTransform: 'uppercase',
-                letterSpacing: currentLanguage === 'ar' ? 'normal' : '1px',
-                fontFamily: currentLanguage === 'ar' 
-                  ? '"Noto Sans Arabic", "Segoe UI", "Roboto", "Helvetica", "Arial", sans-serif'
-                  : '"Inter", "Segoe UI", "Roboto", "Helvetica", "Arial", sans-serif',
-                lineHeight: currentLanguage === 'ar' ? 1.6 : 1.4,
-                  }}
-                >
-                  {categoryDisplayName}
-                </Typography>
+            <Box sx={{ 
+              display: 'flex', 
+              alignItems: 'center', 
+              gap: 0.5,
+              padding: { xs: '4px 12px', sm: '10px 16px' },
+            }}>
+              <RenderIcon 
+                name={`${categoryname?.toLowerCase()}cate`} 
+                sx={{ 
+                  fontSize: { xs: '14px', sm: '16px' }, 
+                  color: categoryStyle.text
+                }} 
+              />
+              <Typography
+                sx={{
+                  color: categoryStyle.text,
+                  fontSize: { xs: '14px', sm: '16px' },
+                  fontWeight: 700,
+                  textTransform: 'uppercase',
+                  letterSpacing: currentLanguage === 'ar' ? 'normal' : '1px',
+                  fontFamily: currentLanguage === 'ar' 
+                    ? '"Noto Sans Arabic", "Segoe UI", "Roboto", "Helvetica", "Arial", sans-serif'
+                    : '"Inter", "Segoe UI", "Roboto", "Helvetica", "Arial", sans-serif',
+                  lineHeight: currentLanguage === 'ar' ? 1.6 : 1.4,
+                }}
+              >
+                {categoryDisplayName}
+              </Typography>
+            </Box>
           </Box>
 
           {/* Created Date Badge */}
