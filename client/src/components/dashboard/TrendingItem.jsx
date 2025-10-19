@@ -347,15 +347,14 @@ const TrendingItem = ({ trend, isLoading }) => {
               top: 16,
               right: 16,
               zIndex: 10,
-              backgroundColor: alpha(foundLostStatus.color, 0.2), // Soft green background
-              color: foundLostStatus.color, // Text color matches border color
+              backgroundColor: foundLostStatus.color, // Solid background color
+              color: '#fff', // White text for better contrast
               fontWeight: 900,
               fontSize: { xs: '14px', sm: '16px' },
               height: { xs: '32px', sm: '36px' },
               padding: { xs: '0 12px', sm: '0 16px' },
               borderRadius: '8px',
               border: `1px solid ${foundLostStatus.color}`,
-              backdropFilter: 'blur(10px)',
               boxShadow: '0 4px 8px rgba(0,0,0,0.3)',
               '& .MuiChip-icon': {
                 color: '#fff', // White icon for better contrast
@@ -428,7 +427,7 @@ const TrendingItem = ({ trend, isLoading }) => {
           <Box
             sx={{
               position: 'absolute',
-              bottom: '32px',
+              bottom: '16px',
               left: '16px',
               zIndex: 10,
               backgroundColor: theme.palette.mode === 'dark' 
