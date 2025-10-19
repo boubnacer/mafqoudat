@@ -88,14 +88,13 @@ const TrendingItem = ({ trend, isLoading }) => {
   // Get category colors using centralized configuration (same as RecentPosts)
   const getCategoryColors = (category) => {
     const config = getCategoryConfig(category);
-    const isDarkMode = theme.palette.mode === 'dark';
     
     return {
       main: config.color,
       light: config.backgroundColor,
       dark: config.color,
       icon: config.color,
-      background: isDarkMode ? alpha(config.backgroundColor, 0.2) : config.backgroundColor,
+      background: config.backgroundColor, // ALWAYS use light mode background
       text: config.color
     };
   };
