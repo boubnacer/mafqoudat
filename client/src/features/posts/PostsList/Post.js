@@ -132,29 +132,26 @@ const Post = ({ post, viewMode = "grid" }) => {
     try {
       const config = getCategoryConfig(post?.categoryname);
       
-      const isDarkMode = theme.palette.mode === 'dark';
-      
       return {
         main: config.color,
         light: config.backgroundColor,
         dark: config.color,
         icon: config.color,
-        background: isDarkMode ? alpha(config.backgroundColor, 0.2) : config.backgroundColor,
+        background: config.backgroundColor, // Always use light mode background
         text: config.color
       };
     } catch (error) {
       // Fallback to default colors
-      const isDarkMode = theme.palette.mode === 'dark';
       return {
         main: '#2196F3',
         light: '#E3F2FD',
         dark: '#1976D2',
         icon: '#2196F3',
-        background: isDarkMode ? alpha('#E3F2FD', 0.2) : '#E3F2FD',
+        background: '#E3F2FD', // Always use light mode background
         text: '#2196F3'
       };
     }
-  }, [post?.categoryname, theme.palette.mode]);
+  }, [post?.categoryname]);
 
   const isDarkMode = theme.palette.mode === 'dark';
 
@@ -351,25 +348,25 @@ const Post = ({ post, viewMode = "grid" }) => {
                     />
                     <Box
                       sx={{
-                        backgroundColor: isDarkMode ? alpha(categoryStyle.main, 0.15) : categoryStyle.background,
+                        backgroundColor: categoryStyle.background, // Always use light mode background
                         padding: '4px 8px',
-                        borderRadius: '12px',
+                        borderRadius: '8px', // Match the time badge border radius
                         display: 'flex',
                         alignItems: 'center',
                         gap: 0.5,
-                        border: `1px solid ${isDarkMode ? alpha(categoryStyle.main, 0.3) : categoryStyle.main}`,
+                        border: `1px solid ${categoryStyle.main}`, // Always use light mode border
                       }}
                     >
                       <RenderIcon 
                         name={`${post.categoryname?.toLowerCase() || 'other'}cate`} 
                         sx={{ 
                           fontSize: '12px', 
-                          color: isDarkMode ? categoryStyle.main : categoryStyle.text 
+                          color: categoryStyle.text // Always use light mode text color
                         }} 
                       />
                       <Typography
                         sx={{
-                          color: isDarkMode ? categoryStyle.main : categoryStyle.text,
+                          color: categoryStyle.text, // Always use light mode text color
                           fontSize: '11px',
                           fontWeight: 600,
                         }}
@@ -526,14 +523,14 @@ const Post = ({ post, viewMode = "grid" }) => {
             {/* Category Badge */}
             <Box
               sx={{
-                backgroundColor: isDarkMode ? alpha(categoryStyle.main, 0.2) : categoryStyle.background,
+                backgroundColor: categoryStyle.background, // Always use light mode background
                 padding: '4px 8px',
-                borderRadius: '12px',
+                borderRadius: '8px', // Match the time badge border radius
                 display: 'flex',
                 alignItems: 'center',
                 gap: 0.5,
                 backdropFilter: 'blur(10px)',
-                border: `1px solid ${isDarkMode ? alpha(categoryStyle.main, 0.3) : categoryStyle.main}`,
+                border: `1px solid ${categoryStyle.main}`, // Always use light mode border
                 zIndex: 11, // Higher z-index for category badge
               }}
             >
@@ -541,12 +538,12 @@ const Post = ({ post, viewMode = "grid" }) => {
                 name={`${post?.categoryname?.toLowerCase() || 'other'}cate`} 
                 sx={{ 
                   fontSize: { xs: '14px', sm: '12px' }, 
-                  color: isDarkMode ? categoryStyle.main : categoryStyle.text 
+                  color: categoryStyle.text // Always use light mode text color
                 }} 
               />
               <Typography
                 sx={{
-                  color: isDarkMode ? categoryStyle.main : categoryStyle.text,
+                  color: categoryStyle.text, // Always use light mode text color
                   fontSize: { xs: '14px', sm: '12px' },
                   fontWeight: 700,
                 }}
@@ -562,19 +559,25 @@ const Post = ({ post, viewMode = "grid" }) => {
               position: 'absolute',
               bottom: 12,
               left: 12,
-              backgroundColor: alpha('#000', 0.7),
+              backgroundColor: theme.palette.mode === 'dark' 
+                ? 'rgba(0,0,0,0.7)' 
+                : 'rgba(255,255,255,0.9)',
+              color: theme.palette.mode === 'dark' ? '#fff' : '#333',
               padding: '4px 8px',
               borderRadius: '8px',
               backdropFilter: 'blur(10px)',
-              border: '1px solid rgba(255,255,255,0.1)',
+              border: `1px solid ${theme.palette.mode === 'dark' ? 'rgba(255,255,255,0.2)' : 'rgba(0,0,0,0.1)'}`,
               zIndex: 11, // Higher z-index for time badge
             }}
           >
             <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.5 }}>
-              <TimeIcon sx={{ fontSize: { xs: '14px', sm: '12px' }, color: '#fff' }} />
+              <TimeIcon sx={{ 
+                fontSize: { xs: '14px', sm: '12px' }, 
+                color: theme.palette.mode === 'dark' ? '#fff' : '#333'
+              }} />
               <Typography
                 sx={{
-                  color: '#fff',
+                  color: theme.palette.mode === 'dark' ? '#fff' : '#333',
                   fontSize: { xs: '14px', sm: '12px' },
                   fontWeight: 600,
                 }}
