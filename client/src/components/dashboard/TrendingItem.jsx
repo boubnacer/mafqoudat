@@ -323,17 +323,17 @@ const TrendingItem = ({ trend, isLoading }) => {
               right: '16px',
               zIndex: 2,
               backgroundColor: alpha(foundLostStatus.color, 0.95),
-              color: '#fff',
+              color: foundLostStatus.color,
               fontWeight: 900,
               fontSize: { xs: '14px', sm: '16px' },
               height: { xs: '32px', sm: '36px' },
               padding: { xs: '0 12px', sm: '0 16px' },
               borderRadius: '8px',
-              border: `1px solid ${alpha(foundLostStatus.color, 0.3)}`,
+              border: `1px solid ${foundLostStatus.color}`,
               backdropFilter: 'blur(10px)',
               boxShadow: '0 4px 8px rgba(0,0,0,0.3)',
               '& .MuiChip-icon': {
-                color: '#fff',
+                color: foundLostStatus.color,
                 marginLeft: 0,
                 fontSize: { xs: '14px', sm: '16px' },
               },
@@ -414,11 +414,19 @@ const TrendingItem = ({ trend, isLoading }) => {
               height: { xs: '32px', sm: '36px' },
               display: 'flex',
               alignItems: 'center',
+              gap: 0.5,
               fontFamily: currentLanguage === 'ar' 
                 ? '"Noto Sans Arabic", "Segoe UI", "Roboto", "Helvetica", "Arial", sans-serif'
                 : '"Inter", "Segoe UI", "Roboto", "Helvetica", "Arial", sans-serif',
             }}
           >
+            <RenderIcon 
+              name="time" 
+              sx={{ 
+                fontSize: { xs: '14px', sm: '16px' }, 
+                color: theme.palette.mode === 'dark' ? '#fff' : '#333'
+              }} 
+            />
             {`${t('posted')} ${created}`}
           </Box>
         </Box>
