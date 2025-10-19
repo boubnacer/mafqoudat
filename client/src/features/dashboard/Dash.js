@@ -377,15 +377,12 @@ const Dash = () => {
                     alignItems: 'center', 
                     justifyContent: 'center', 
                     gap: 1, 
-                    mb: 2,
                     flexDirection: currentLanguage === 'ar' ? 'row-reverse' : 'row',
                     width: '100%'
                   }}>
                     <WhatshotOutlined sx={{ 
                       color: '#FFA500', 
-                      fontSize: '24px',
-                      order: currentLanguage === 'ar' ? 2 : 1,
-                      flexShrink: 0
+                      fontSize: '24px'
                     }} />
                     <Typography
                       variant="h6"
@@ -393,12 +390,7 @@ const Dash = () => {
                         color: theme.palette.mode === 'dark' ? '#fff' : '#2c3e50',
                         fontWeight: 700,
                         fontSize: '24px',
-                        textAlign: 'center',
-                        order: currentLanguage === 'ar' ? 1 : 2,
-                        flex: '1 1 auto',
-                        display: 'flex',
-                        alignItems: 'center',
-                        justifyContent: 'center'
+                        textAlign: 'center'
                       }}
                     >
                       {t('recentFounds')}
@@ -562,15 +554,12 @@ const Dash = () => {
                       alignItems: 'center', 
                       justifyContent: 'center', 
                       gap: 1, 
-                      mb: 2,
                       flexDirection: currentLanguage === 'ar' ? 'row-reverse' : 'row',
                       width: '100%'
                     }}>
                       <Search sx={{ 
                         color: '#FFA500', 
-                        fontSize: '24px',
-                        order: currentLanguage === 'ar' ? 2 : 1,
-                        flexShrink: 0
+                        fontSize: '24px'
                       }} />
                       <Typography
                         variant="h6"
@@ -578,12 +567,7 @@ const Dash = () => {
                           color: theme.palette.mode === 'dark' ? '#fff' : '#2c3e50',
                           fontWeight: 700,
                           fontSize: '24px',
-                          textAlign: 'center',
-                          order: currentLanguage === 'ar' ? 1 : 2,
-                          flex: '1 1 auto',
-                          display: 'flex',
-                          alignItems: 'center',
-                          justifyContent: 'center'
+                          textAlign: 'center'
                         }}
                       >
                         {t('recentLosts')}
