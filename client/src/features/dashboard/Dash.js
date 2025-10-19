@@ -378,12 +378,14 @@ const Dash = () => {
                     justifyContent: 'center', 
                     gap: 1, 
                     mb: 2,
-                    flexDirection: currentLanguage === 'ar' ? 'row-reverse' : 'row'
+                    flexDirection: currentLanguage === 'ar' ? 'row-reverse' : 'row',
+                    width: '100%'
                   }}>
                     <WhatshotOutlined sx={{ 
-                      color: theme.palette.mode === 'dark' ? '#FFA500' : '#2c3e50', 
+                      color: '#FFA500', 
                       fontSize: '24px',
-                      order: currentLanguage === 'ar' ? 2 : 1
+                      order: currentLanguage === 'ar' ? 2 : 1,
+                      flexShrink: 0
                     }} />
                     <Typography
                       variant="h6"
@@ -392,7 +394,11 @@ const Dash = () => {
                         fontWeight: 700,
                         fontSize: '24px',
                         textAlign: 'center',
-                        order: currentLanguage === 'ar' ? 1 : 2
+                        order: currentLanguage === 'ar' ? 1 : 2,
+                        flex: '1 1 auto',
+                        display: 'flex',
+                        alignItems: 'center',
+                        justifyContent: 'center'
                       }}
                     >
                       {t('recentFounds')}
@@ -431,7 +437,7 @@ const Dash = () => {
                       gap: 1
                     }}>
                       <WhatshotOutlined sx={{ 
-                        color: theme.palette.mode === 'dark' ? '#FFA500' : '#2c3e50', 
+                        color: '#FFA500', 
                         fontSize: '28px'
                       }} />
                       <Typography
@@ -557,12 +563,14 @@ const Dash = () => {
                       justifyContent: 'center', 
                       gap: 1, 
                       mb: 2,
-                      flexDirection: currentLanguage === 'ar' ? 'row-reverse' : 'row'
+                      flexDirection: currentLanguage === 'ar' ? 'row-reverse' : 'row',
+                      width: '100%'
                     }}>
                       <Search sx={{ 
-                        color: theme.palette.mode === 'dark' ? '#fff' : '#2c3e50', 
+                        color: '#FFA500', 
                         fontSize: '24px',
-                        order: currentLanguage === 'ar' ? 2 : 1
+                        order: currentLanguage === 'ar' ? 2 : 1,
+                        flexShrink: 0
                       }} />
                       <Typography
                         variant="h6"
@@ -571,7 +579,11 @@ const Dash = () => {
                           fontWeight: 700,
                           fontSize: '24px',
                           textAlign: 'center',
-                          order: currentLanguage === 'ar' ? 1 : 2
+                          order: currentLanguage === 'ar' ? 1 : 2,
+                          flex: '1 1 auto',
+                          display: 'flex',
+                          alignItems: 'center',
+                          justifyContent: 'center'
                         }}
                       >
                         {t('recentLosts')}
@@ -609,7 +621,7 @@ const Dash = () => {
                         gap: 1
                       }}>
                         <Search sx={{ 
-                          color: theme.palette.mode === 'dark' ? '#fff' : '#2c3e50', 
+                          color: '#FFA500', 
                           fontSize: '28px'
                         }} />
                         <Typography
