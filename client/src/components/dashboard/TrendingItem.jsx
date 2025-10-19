@@ -318,11 +318,11 @@ const TrendingItem = ({ trend, isLoading }) => {
             label={foundLostStatus.label}
             sx={{
               position: 'absolute',
-              bottom: '32px',
-              right: '16px',
+              top: 16,
+              right: 16,
               zIndex: 2,
               backgroundColor: alpha(foundLostStatus.color, 0.2), // Soft green background
-              color: '#fff', // White text for better contrast
+              color: foundLostStatus.color, // Text color matches border color
               fontWeight: 900,
               fontSize: { xs: '14px', sm: '16px' },
               height: { xs: '32px', sm: '36px' },
