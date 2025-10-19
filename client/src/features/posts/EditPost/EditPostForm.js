@@ -2376,7 +2376,12 @@ if (typeof document !== 'undefined') {
                   background: theme.palette.mode === 'dark'
                     ? 'linear-gradient(45deg, #388E3C 30%, #4CAF50 90%)'
                     : 'linear-gradient(45deg, #1B5E20 30%, #2E7D32 90%)',
-                }
+                },
+                // RTL spacing fix - add space between icon and text
+                '& .MuiButton-startIcon': {
+                  marginRight: currentLanguage === 'ar' ? '0px' : '8px',
+                  marginLeft: currentLanguage === 'ar' ? '12px' : '0px',
+                },
               }}
             >
               {t('replaceImage')}
