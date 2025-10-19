@@ -362,7 +362,7 @@ const TrendingItem = ({ trend, isLoading }) => {
               display: 'flex',
               alignItems: 'center',
               gap: 0.5,
-              height: { xs: '32px', sm: '36px' },
+              padding: { xs: '4px 12px', sm: '10px 16px' },
               border: `1px solid ${categoryStyle.main}`,
               opacity: 1,
               boxShadow: '0 2px 4px rgba(0,0,0,0.3)',
@@ -372,7 +372,6 @@ const TrendingItem = ({ trend, isLoading }) => {
               display: 'flex', 
               alignItems: 'center', 
               gap: 0.5,
-              padding: { xs: '4px 12px', sm: '10px 16px' },
             }}>
               <RenderIcon 
                 name={`${categoryname?.toLowerCase()}cate`} 
