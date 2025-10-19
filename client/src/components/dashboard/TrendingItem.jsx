@@ -212,6 +212,8 @@ const TrendingItem = ({ trend, isLoading }) => {
       height: '100%',
       position: 'relative',
       marginTop: '0px', // No pin icon needed
+      maxWidth: '100%', // Prevent overflow
+      minWidth: 0, // Allow shrinking if needed
     }}>
 
       <Card

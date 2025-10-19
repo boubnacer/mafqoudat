@@ -182,6 +182,10 @@ const Dash = () => {
           alignItems: { xs: 'stretch', sm: 'stretch' }, // Ensure both components stretch to same height
           margin: { xs: 0, sm: '0 auto' }, // Center the container on all screen sizes
           justifyContent: { xs: 'center', sm: 'center' }, // Center content
+          '& > *': {
+            flex: { xs: 'none', sm: '1 1 50%' }, // Ensure equal flex distribution on desktop
+            minWidth: 0, // Prevent flex items from overflowing
+          }
         }}
       >
         <LeftSide
