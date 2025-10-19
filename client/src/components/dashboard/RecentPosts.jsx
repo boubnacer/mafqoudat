@@ -254,14 +254,14 @@ const RecentPosts = ({ _id, categoryname, exactLocation, image, createdAt, count
             {/* Category Badge */}
             <Box
               sx={{
-                backgroundColor: isDarkMode ? alpha(categoryStyle.main, 0.2) : categoryStyle.background,
+                backgroundColor: categoryStyle.background, // Always use light mode background
                 padding: '4px 8px',
-                borderRadius: '12px',
+                borderRadius: '8px', // Match the time badge border radius
                 display: 'flex',
                 alignItems: 'center',
                 gap: 0.5,
                 backdropFilter: 'blur(10px)',
-                border: `1px solid ${isDarkMode ? alpha(categoryStyle.main, 0.3) : categoryStyle.main}`,
+                border: `1px solid ${categoryStyle.main}`, // Always use light mode border
                 zIndex: 11, // Higher z-index for category badge
               }}
             >
@@ -269,12 +269,12 @@ const RecentPosts = ({ _id, categoryname, exactLocation, image, createdAt, count
                 name={`${categoryname?.toLowerCase()}cate`} 
                 sx={{ 
                   fontSize: { xs: '14px', sm: '12px' }, 
-                  color: isDarkMode ? categoryStyle.main : categoryStyle.text 
+                  color: categoryStyle.text // Always use light mode text color
                 }} 
               />
               <Typography
                 sx={{
-                  color: isDarkMode ? categoryStyle.main : categoryStyle.text,
+                  color: categoryStyle.text, // Always use light mode text color
                   fontSize: { xs: '14px', sm: '12px' },
                   fontWeight: 700,
                 }}
@@ -290,19 +290,25 @@ const RecentPosts = ({ _id, categoryname, exactLocation, image, createdAt, count
               position: 'absolute',
               bottom: 12,
               left: 12,
-              backgroundColor: alpha('#000', 0.7),
+              backgroundColor: theme.palette.mode === 'dark' 
+                ? 'rgba(0,0,0,0.7)' 
+                : 'rgba(255,255,255,0.9)',
+              color: theme.palette.mode === 'dark' ? '#fff' : '#333',
               padding: '4px 8px',
               borderRadius: '8px',
               backdropFilter: 'blur(10px)',
-              border: '1px solid rgba(255,255,255,0.1)',
+              border: `1px solid ${theme.palette.mode === 'dark' ? 'rgba(255,255,255,0.2)' : 'rgba(0,0,0,0.1)'}`,
               zIndex: 11, // Higher z-index for time badge
             }}
           >
             <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.5 }}>
-              <TimeIcon sx={{ fontSize: { xs: '14px', sm: '12px' }, color: '#fff' }} />
+              <TimeIcon sx={{ 
+                fontSize: { xs: '14px', sm: '12px' }, 
+                color: theme.palette.mode === 'dark' ? '#fff' : '#333'
+              }} />
               <Typography
                 sx={{
-                  color: '#fff',
+                  color: theme.palette.mode === 'dark' ? '#fff' : '#333',
                   fontSize: { xs: '14px', sm: '12px' },
                   fontWeight: 600,
                 }}
