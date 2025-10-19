@@ -1713,12 +1713,6 @@ const NewPostForm = ({ user, countries, categories, flOptions }) => {
                           marginRight: currentLanguage === 'ar' ? '12px' : '8px',
                           marginLeft: '0px',
                         },
-                        // Additional RTL spacing for better icon-text separation
-                        ...(currentLanguage === 'ar' && {
-                          '& .MuiButton-startIcon': {
-                            marginRight: '12px',
-                          }
-                        }),
                       }}
                     >
                       {isCompressing ? t('compressingImage') : imagePreview ? t('replaceImage') : t('chooseFile')}
