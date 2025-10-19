@@ -38,16 +38,6 @@ const TrendingItem = ({ trend, isLoading }) => {
   console.log('TrendingItem - trendData:', trendData);
   
   const { _id, categoryname, floptionName, image, createdAt, mainDate, countryLabels, countryname, city, cityLabels, cityName, Floptions, Category } = trendData || {};
-  
-  // Debug specific fields
-  useEffect(() => {
-    console.log('TrendingItem - image:', image);
-    console.log('TrendingItem - categoryname:', categoryname);
-    console.log('TrendingItem - Floptions:', Floptions);
-    console.log('TrendingItem - Category:', Category);
-    console.log('TrendingItem - foundLostStatus:', foundLostStatus);
-    console.log('TrendingItem - categoryDisplayName:', categoryDisplayName);
-  }, [image, categoryname, Floptions, Category, foundLostStatus, categoryDisplayName]);
   const theme = useTheme();
   const isMobile = useMediaQuery(theme.breakpoints.down('sm'));
   const isTablet = useMediaQuery(theme.breakpoints.down('md'));
@@ -120,6 +110,16 @@ const TrendingItem = ({ trend, isLoading }) => {
     // Last fallback: return the original categoryname or unknown
     return categoryname || t('unknownCategory');
   }, [Category, categoryname, currentLanguage, t]);
+
+  // Debug specific fields
+  useEffect(() => {
+    console.log('TrendingItem - image:', image);
+    console.log('TrendingItem - categoryname:', categoryname);
+    console.log('TrendingItem - Floptions:', Floptions);
+    console.log('TrendingItem - Category:', Category);
+    console.log('TrendingItem - foundLostStatus:', foundLostStatus);
+    console.log('TrendingItem - categoryDisplayName:', categoryDisplayName);
+  }, [image, categoryname, Floptions, Category, foundLostStatus, categoryDisplayName]);
 
   // Get category colors using centralized configuration (same as RecentPosts)
   const getCategoryColors = (category) => {
