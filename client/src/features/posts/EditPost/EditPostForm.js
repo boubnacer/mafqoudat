@@ -2379,7 +2379,7 @@ if (typeof document !== 'undefined') {
                 },
                 // RTL spacing fix - add space between icon and text
                 '& .MuiButton-startIcon': {
-                  marginRight: currentLanguage === 'ar' ? '0px' : '8px',
+                  marginRight: '0px',
                   marginLeft: currentLanguage === 'ar' ? '12px' : '0px',
                 },
               }}
