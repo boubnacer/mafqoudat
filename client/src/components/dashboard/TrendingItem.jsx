@@ -358,7 +358,7 @@ const TrendingItem = ({ trend, isLoading }) => {
               zIndex: 2,
               backgroundColor: `${categoryStyle.background} !important`,
               color: categoryStyle.text,
-              padding: { xs: '4px 12px', sm: '6px 16px' },
+              padding: { xs: '4px 12px', sm: '10px 16px' },
               borderRadius: '8px',
               display: 'flex',
               alignItems: 'center',
