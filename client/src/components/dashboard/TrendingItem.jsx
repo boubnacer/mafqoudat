@@ -48,11 +48,32 @@ const TrendingItem = ({ trend, isLoading }) => {
     }
   };
 
-  // Format date using date-fns (same as RecentPosts)
-  const created = formatDistanceToNow(new Date(createdAt), { 
-    addSuffix: true,
-    locale: getLocale()
-  });
+  // Format date using date-fns with proper validation and error handling
+  const created = useMemo(() => {
+    try {
+      // Check if createdAt exists and is valid
+      if (!createdAt) {
+        return t('unknownTime') || 'Unknown time';
+      }
+      
+      // Create date object and validate it
+      const date = new Date(createdAt);
+      
+      // Check if the date is valid
+      if (isNaN(date.getTime())) {
+        return t('invalidDate') || 'Invalid date';
+      }
+      
+      // Format the date using date-fns
+      return formatDistanceToNow(date, { 
+        addSuffix: true,
+        locale: getLocale()
+      });
+    } catch (error) {
+      console.warn('Date formatting error:', error);
+      return t('dateError') || 'Date error';
+    }
+  }, [createdAt, currentLanguage, t]);
 
   // Get city name with proper priority
   const getCityName = () => {
