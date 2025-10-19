@@ -227,7 +227,7 @@ const TrendingItem = ({ trend, isLoading }) => {
           borderColor: `${theme.palette.mode === 'dark' ? '#333' : '#e0e0e0'} !important`,
           overflow: 'hidden',
           height: '100%',
-          minHeight: { xs: '400px', sm: '280px' },
+          minHeight: { xs: '500px', sm: '280px' },
           position: 'relative',
           boxShadow: '0 4px 8px rgba(0, 0, 0, 0.15)',
           cursor: 'pointer',
@@ -247,7 +247,7 @@ const TrendingItem = ({ trend, isLoading }) => {
               ? 'linear-gradient(90deg, #1a1a1a 0%, #2d2d2d 50%, #1a1a1a 100%)'
               : 'linear-gradient(90deg, #f8f9fa 0%, #e9ecef 50%, #f8f9fa 100%)',
             color: theme.palette.mode === 'dark' ? '#fff' : '#2c2c2c',
-            padding: { xs: '6px 10px', sm: '10px 14px' },
+            padding: { xs: '12px 16px', sm: '16px 20px' },
             textAlign: 'center',
             direction: 'ltr', // Force LTR direction for centering
             borderBottom: `2px solid ${theme.palette.mode === 'dark' ? '#333' : '#e0e0e0'}`,
@@ -274,7 +274,7 @@ const TrendingItem = ({ trend, isLoading }) => {
             {/* First line: Status + Date */}
             <Typography
               sx={{
-                fontSize: { xs: '16px', sm: '18px' },
+                fontSize: { xs: '18px', sm: '20px' },
                 fontWeight: 700,
                 textTransform: 'uppercase',
                 letterSpacing: currentLanguage === 'ar' ? 'normal' : '1px',
@@ -292,7 +292,7 @@ const TrendingItem = ({ trend, isLoading }) => {
             {/* Second line: Location */}
             <Typography
               sx={{
-                fontSize: { xs: '14px', sm: '16px' },
+                fontSize: { xs: '16px', sm: '18px' },
                 fontWeight: 600,
                 textAlign: 'center',
                 opacity: 0.9,
@@ -312,7 +312,7 @@ const TrendingItem = ({ trend, isLoading }) => {
         <Box
           sx={{
             position: 'relative',
-            height: { xs: '320px', sm: '200px' },
+            height: { xs: '420px', sm: '200px' },
             overflow: 'hidden',
             backgroundColor: theme.palette.mode === 'dark' ? '#2a2a2a' : '#f5f5f5',
             flex: 1,
