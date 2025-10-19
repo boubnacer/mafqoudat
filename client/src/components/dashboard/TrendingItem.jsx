@@ -358,9 +358,7 @@ const TrendingItem = ({ trend, isLoading }) => {
               top: 16,
               left: 16,
               zIndex: 2,
-              backgroundColor: theme.palette.mode === 'dark' 
-                ? `${categoryStyle.background} !important`
-                : `${categoryStyle.background} !important`,
+              backgroundColor: `${categoryStyle.background} !important`,
               color: categoryStyle.text,
               padding: { xs: '0 12px', sm: '0 16px' },
               borderRadius: '8px',
