@@ -112,14 +112,13 @@ const RecentPosts = ({ _id, categoryname, exactLocation, image, createdAt, count
   // Get category colors using centralized configuration
   const getCategoryColors = (category) => {
     const config = getCategoryConfig(category);
-    const isDarkMode = theme.palette.mode === 'dark';
     
     return {
       main: config.color,
       light: config.backgroundColor,
       dark: config.color,
       icon: config.color,
-      background: isDarkMode ? alpha(config.backgroundColor, 0.2) : config.backgroundColor,
+      background: config.backgroundColor, // Always use light mode background
       text: config.color
     };
   };
