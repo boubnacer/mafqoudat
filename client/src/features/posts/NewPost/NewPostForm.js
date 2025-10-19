@@ -1708,10 +1708,10 @@ const NewPostForm = ({ user, countries, categories, flOptions }) => {
                         },
                         transition: 'all 0.2s ease-in-out',
                         boxShadow: theme.shadows[4],
-                        // RTL spacing fix
+                        // RTL spacing fix - add space between icon and text
                         '& .MuiButton-startIcon': {
-                          marginRight: currentLanguage === 'ar' ? '16px' : '8px',
-                          marginLeft: currentLanguage === 'ar' ? '0px' : '0px',
+                          marginRight: currentLanguage === 'ar' ? '12px' : '8px',
+                          marginLeft: '0px',
                         },
                       }}
                     >
