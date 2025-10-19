@@ -230,7 +230,6 @@ const TrendingItem = ({ trend, isLoading }) => {
           minHeight: { xs: '400px', sm: '280px' },
           position: 'relative',
           boxShadow: '0 4px 8px rgba(0, 0, 0, 0.15)',
-          paddingBottom: '20px', // Add padding to prevent button from being hidden
           cursor: 'pointer',
           transition: 'all 0.3s ease',
           display: 'flex',
@@ -317,6 +316,8 @@ const TrendingItem = ({ trend, isLoading }) => {
             overflow: 'hidden',
             backgroundColor: theme.palette.mode === 'dark' ? '#2a2a2a' : '#f5f5f5',
             flex: 1,
+            display: 'flex',
+            alignItems: 'stretch',
           }}
         >
           {/* Background Image */}
@@ -329,6 +330,8 @@ const TrendingItem = ({ trend, isLoading }) => {
               position: 'absolute',
               top: 0,
               left: 0,
+              right: 0,
+              bottom: 0,
               width: '100%',
               height: '100%',
               objectFit: 'cover',
