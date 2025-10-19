@@ -1689,6 +1689,7 @@ const NewPostForm = ({ user, countries, categories, flOptions }) => {
                         py: 1.5,
                         fontSize: '1rem',
                         fontWeight: 600,
+                        color: 'white !important',
                         background: theme.palette.mode === 'dark'
                           ? 'linear-gradient(45deg, #4CAF50 30%, #66BB6A 90%)'
                           : 'linear-gradient(45deg, #2E7D32 30%, #388E3C 90%)',
@@ -1698,14 +1699,20 @@ const NewPostForm = ({ user, countries, categories, flOptions }) => {
                             : 'linear-gradient(45deg, #1B5E20 30%, #2E7D32 90%)',
                           transform: 'translateY(-1px)',
                           boxShadow: theme.shadows[6],
+                          color: 'white !important',
                         },
                         '&:disabled': {
                           background: theme.palette.mode === 'dark' ? 'rgba(76, 175, 80, 0.3)' : 'rgba(46, 125, 50, 0.3)',
-                          color: 'rgba(255,255,255,0.5)',
+                          color: 'rgba(255,255,255,0.5) !important',
                           transform: 'none',
                         },
                         transition: 'all 0.2s ease-in-out',
                         boxShadow: theme.shadows[4],
+                        // RTL spacing fix
+                        '& .MuiButton-startIcon': {
+                          marginRight: currentLanguage === 'ar' ? '8px' : '8px',
+                          marginLeft: currentLanguage === 'ar' ? '0px' : '0px',
+                        },
                       }}
                     >
                       {isCompressing ? t('compressingImage') : imagePreview ? t('replaceImage') : t('chooseFile')}
