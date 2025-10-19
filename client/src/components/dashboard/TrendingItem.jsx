@@ -182,7 +182,7 @@ const TrendingItem = ({ trend, isLoading }) => {
           '& img': {
             filter: theme.palette.mode === 'dark' 
               ? 'brightness(0) saturate(100%) invert(22%) sepia(0%) saturate(0%) hue-rotate(0deg) brightness(100%) contrast(100%)' // #363636 for dark mode
-              : 'brightness(0) saturate(100%) invert(91%) sepia(0%) saturate(0%) hue-rotate(0deg) brightness(100%) contrast(100%)', // #E7E9E9 for light mode
+              : 'brightness(0) saturate(100%) invert(92%) sepia(0%) saturate(0%) hue-rotate(0deg) brightness(100%) contrast(100%)', // #e9ecef for light mode
           }
         }}
       >
@@ -291,7 +291,7 @@ const TrendingItem = ({ trend, isLoading }) => {
         <Box
           sx={{
             position: 'relative',
-            height: 'calc(100% - 80px)',
+            height: 'calc(100% - 60px)',
             overflow: 'hidden',
             backgroundColor: theme.palette.mode === 'dark' ? '#2a2a2a' : '#f5f5f5',
           }}
