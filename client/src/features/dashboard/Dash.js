@@ -212,7 +212,9 @@ const Dash = () => {
         {isLoading ? (
           <Skeleton variant="rounded" width={210} height={60} />
         ) : trend ? (
-          <TrendingItem trend={trend} isLoading={isLoading} />
+          <Box sx={{ display: { xs: hasNoData ? 'none' : 'block', sm: 'block' } }}>
+            <TrendingItem trend={trend} isLoading={isLoading} />
+          </Box>
         ) : (
           <Box 
             sx={{ 
@@ -220,7 +222,9 @@ const Dash = () => {
               textAlign: 'center',
               backgroundColor: theme.palette.mode === 'dark' ? 'rgba(255,255,255,0.05)' : 'rgba(0,0,0,0.02)',
               borderRadius: 2,
-              border: `1px dashed ${theme.palette.mode === 'dark' ? 'rgba(255,255,255,0.1)' : 'rgba(0,0,0,0.1)'}`
+              border: `1px dashed ${theme.palette.mode === 'dark' ? 'rgba(255,255,255,0.1)' : 'rgba(0,0,0,0.1)'}`,
+              // Hide on mobile when there are no posts
+              display: { xs: hasNoData ? 'none' : 'block', sm: 'block' }
             }}
           >
             <Typography variant="body2" color="text.secondary">
@@ -239,6 +243,63 @@ const Dash = () => {
             onCreatePost={handleCreateNewPost} 
           />
         </Box>
+      )}
+
+      {/* Show Categories and Process sections when there are no posts */}
+      {hasNoData && (
+        <>
+          {/* Categories Section - Show when no posts */}
+          <Box mb={4}>
+            <DashRecents 
+              cate="cate" 
+              sx={{ 
+                borderColor: theme.palette.primary.main,
+                backgroundColor: theme.palette.mode === 'dark' ? '#1a1a1a' : '#ffffff',
+                borderRadius: { xs: '12px', sm: '16px' },
+                boxShadow: theme.palette.mode === 'dark' 
+                  ? '0 8px 32px rgba(0,0,0,0.3)'
+                  : '0 8px 32px rgba(0,0,0,0.1)',
+                mx: { xs: 1, sm: 2 },
+                border: `1px solid ${theme.palette.mode === 'dark' ? 'rgba(255,255,255,0.05)' : 'rgba(0,0,0,0.08)'}`
+              }}
+            >
+              <Typography
+                fontWeight="700"
+                sx={{
+                  fontSize: { xs: "20px", sm: "24px", md: "26px" },
+                  color: theme.palette.mode === 'dark' ? '#ffffff' : '#2c3e50',
+                  textAlign: 'center',
+                  mb: 2
+                }}
+              >
+                {t('categories')}
+              </Typography>
+              <Categories />
+            </DashRecents>
+          </Box>
+
+          {/* Process Section - Show when no posts */}
+          <Box mb={4}>
+            <DashRecents
+              sx={{
+                backgroundColor: theme.palette.mode === 'dark' ? '#1a1a1a' : '#ffffff',
+                borderRadius: { xs: '12px', sm: '16px' },
+                boxShadow: theme.palette.mode === 'dark' 
+                  ? '0 8px 32px rgba(0,0,0,0.3)'
+                  : '0 8px 32px rgba(0,0,0,0.1)',
+                mx: { xs: 1, sm: 2 },
+                border: `1px solid ${theme.palette.mode === 'dark' ? 'rgba(255,255,255,0.05)' : 'rgba(0,0,0,0.08)'}`
+              }}
+            >
+              <Process />
+            </DashRecents>
+          </Box>
+
+          {/* Help &Support Section - Show when no posts */}
+          <Box mb={4}>
+            <HelpSupportSection />
+          </Box>
+        </>
       )}
 
       {/* Only show content sections if there are posts */}
