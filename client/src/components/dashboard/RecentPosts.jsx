@@ -340,7 +340,7 @@ const RecentPosts = ({ _id, categoryname, exactLocation, image, createdAt, count
           <Box 
             sx={{ 
               backgroundColor: isDarkMode ? '#3a3a3a' : '#E9ECEF',
-              mb: 0.5, // Add margin bottom for proper spacing from card border
+              mb: 1, // Add margin bottom for proper spacing from card border (8px)
             }}
           >
             {/* City with Location Icon */}
