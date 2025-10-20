@@ -323,6 +323,7 @@ const RecentPosts = ({ _id, categoryname, exactLocation, image, createdAt, count
           sx={{ 
             flexGrow: 1, 
             p: { xs: 2.5, sm: 2.5 },
+            pb: { xs: 3, sm: 3 }, // Explicit bottom padding for consistent spacing
             display: 'flex',
             flexDirection: 'column',
             gap: 1.5,
@@ -339,6 +340,7 @@ const RecentPosts = ({ _id, categoryname, exactLocation, image, createdAt, count
           <Box 
             sx={{ 
               backgroundColor: isDarkMode ? '#3a3a3a' : '#E9ECEF',
+              mb: 0.5, // Add margin bottom for proper spacing from card border
             }}
           >
             {/* City with Location Icon */}
