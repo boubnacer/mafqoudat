@@ -654,12 +654,12 @@ const Post = ({ post, viewMode = "grid" }) => {
                     transition: 'all 0.3s ease',
                   }}
                 >
-                  <EventIcon sx={{ fontSize: { xs: '22px', sm: '20px' } }} />
+                  <EventIcon sx={{ fontSize: { xs: '20px', sm: '18px' } }} />
                 </Avatar>
                 <Typography
                   sx={{
                     color: isDarkMode ? alpha('#fff', 0.9) : alpha('#000', 0.8),
-                    fontSize: { xs: '18px', sm: '17px' },
+                    fontSize: { xs: '16px', sm: '14px' },
                     fontWeight: 700,
                     lineHeight: 1.2,
                   }}
@@ -688,12 +688,12 @@ const Post = ({ post, viewMode = "grid" }) => {
                   transition: 'all 0.3s ease',
                 }}
               >
-                <LocationIcon sx={{ fontSize: { xs: '22px', sm: '20px' } }} />
+                <LocationIcon sx={{ fontSize: { xs: '20px', sm: '18px' } }} />
               </Avatar>
               <Typography
                 sx={{
                   color: isDarkMode ? alpha('#fff', 0.9) : alpha('#000', 0.8),
-                  fontSize: { xs: '18px', sm: '17px' },
+                  fontSize: { xs: '16px', sm: '14px' },
                   fontWeight: 700,
                   lineHeight: 1.2,
                 }}
