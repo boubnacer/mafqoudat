@@ -1199,8 +1199,9 @@ const NewPostForm = ({ user, countries, categories, flOptions }) => {
                                       zIndex: '999999 !important',
                                       position: 'relative'
                                     }}>
-                                      {city.isCapital && `${t('capital') || 'Capital'}`}
-                                      {city.labels?.ar && ` • ${city.labels.ar}`}
+                                      {city.labels?.ar && currentLanguage !== 'ar' && ` • ${city.labels.ar}`}
+                                      {city.labels?.fr && currentLanguage !== 'fr' && ` • ${city.labels.fr}`}
+                                      {city.labels?.en && currentLanguage !== 'en' && ` • ${city.labels.en}`}
                                     </Typography>
                                   </Box>
                                 </Box>
@@ -1273,8 +1274,9 @@ const NewPostForm = ({ user, countries, categories, flOptions }) => {
                                         zIndex: '999999 !important',
                                         position: 'relative'
                                       }}>
-                                        {city.isCapital && `${t('capital') || 'Capital'}`}
-                                        {city.labels?.ar && ` • ${city.labels.ar}`}
+                                        {city.labels?.ar && currentLanguage !== 'ar' && ` • ${city.labels.ar}`}
+                                        {city.labels?.fr && currentLanguage !== 'fr' && ` • ${city.labels.fr}`}
+                                        {city.labels?.en && currentLanguage !== 'en' && ` • ${city.labels.en}`}
                                       </Typography>
                                     </Box>
                                   </Box>
