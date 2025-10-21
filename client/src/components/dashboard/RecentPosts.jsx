@@ -23,6 +23,7 @@ import {
   CalendarToday as CalendarIcon,
   ArrowForward as ArrowIcon,
   AccessTime as TimeIcon,
+  Event as EventIcon,
 } from "@mui/icons-material";
 import { formatDistanceToNow } from 'date-fns';
 import { ar, fr, enUS } from 'date-fns/locale';
@@ -33,7 +34,7 @@ import { useState } from "react";
 // Get the API base URL for image construction
 const API_BASE_URL = process.env.REACT_APP_API_URL || "http://localhost:3500";
 
-const RecentPosts = ({ _id, categoryname, exactLocation, image, createdAt, countryLabels, countryname, contact, city, cityLabels, cityName, Category }) => {
+const RecentPosts = ({ _id, categoryname, exactLocation, image, createdAt, countryLabels, countryname, contact, city, cityLabels, cityName, Category, mainDate }) => {
   const theme = useTheme();
   const navigate = useNavigate();
   const { t, currentLanguage } = useTranslation();
@@ -344,13 +345,48 @@ const RecentPosts = ({ _id, categoryname, exactLocation, image, createdAt, count
             }
           }}
         >
-          {/* Location Info - City and Exact Location */}
+          {/* Location Info - Main Date, City and Exact Location */}
           <Box 
             sx={{ 
               backgroundColor: isDarkMode ? '#3a3a3a' : '#E9ECEF',
               mb: 1, // Add margin bottom for proper spacing from card border (8px)
             }}
           >
+            {/* Main Date with Event Icon */}
+            {mainDate && (
+              <Box 
+                sx={{ 
+                  display: 'flex', 
+                  alignItems: 'center', 
+                  gap: 1,
+                  mb: 0.5,
+                }}
+              >
+                <Avatar
+                  sx={{
+                    width: { xs: 40, sm: 36 },
+                    height: { xs: 40, sm: 36 },
+                    backgroundColor: 'transparent',
+                    color: isDarkMode ? alpha('#fff', 0.8) : alpha('#000', 0.7),
+                    flexShrink: 0,
+                    transition: 'all 0.3s ease',
+                  }}
+                >
+                  <EventIcon sx={{ fontSize: { xs: '22px', sm: '20px' } }} />
+                </Avatar>
+                <Typography
+                  sx={{
+                    color: isDarkMode ? alpha('#fff', 0.9) : alpha('#000', 0.8),
+                    fontSize: { xs: '18px', sm: '17px' },
+                    fontWeight: 700,
+                    lineHeight: 1.2,
+                  }}
+                >
+                  {mainDate}
+                </Typography>
+              </Box>
+            )}
+
             {/* City with Location Icon */}
             <Box 
               sx={{ 

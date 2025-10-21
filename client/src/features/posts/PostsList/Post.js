@@ -26,6 +26,7 @@ import {
   Visibility as VisibilityIcon,
   ArrowForward as ArrowIcon,
   AccessTime as TimeIcon,
+  Event as EventIcon,
 } from "@mui/icons-material";
 import FlexBetween from "../../../components/FlexBetween";
 import { useTranslation } from "../../../utils/translations";
@@ -627,12 +628,47 @@ const Post = ({ post, viewMode = "grid" }) => {
             }
           }}
         >
-          {/* Location Info - City and Exact Location */}
+          {/* Location Info - Main Date, City and Exact Location */}
           <Box 
             sx={{ 
               backgroundColor: isDarkMode ? '#3a3a3a' : '#E9ECEF',
             }}
           >
+            {/* Main Date with Event Icon */}
+            {post?.mainDate && (
+              <Box 
+                sx={{ 
+                  display: 'flex', 
+                  alignItems: 'center', 
+                  gap: 1,
+                  mb: 0.5,
+                }}
+              >
+                <Avatar
+                  sx={{
+                    width: { xs: 40, sm: 36 },
+                    height: { xs: 40, sm: 36 },
+                    backgroundColor: 'transparent',
+                    color: isDarkMode ? alpha('#fff', 0.8) : alpha('#000', 0.7),
+                    flexShrink: 0,
+                    transition: 'all 0.3s ease',
+                  }}
+                >
+                  <EventIcon sx={{ fontSize: { xs: '22px', sm: '20px' } }} />
+                </Avatar>
+                <Typography
+                  sx={{
+                    color: isDarkMode ? alpha('#fff', 0.9) : alpha('#000', 0.8),
+                    fontSize: { xs: '18px', sm: '17px' },
+                    fontWeight: 700,
+                    lineHeight: 1.2,
+                  }}
+                >
+                  {post.mainDate}
+                </Typography>
+              </Box>
+            )}
+
             {/* City with Location Icon */}
             <Box 
               sx={{ 
