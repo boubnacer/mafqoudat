@@ -331,6 +331,7 @@ class GooglePlacesService {
       
       // Fetch native names for French and Arabic by calling Place Details API
       const languagesToFetch = ['fr', 'ar'];
+      let translationQuality = 0;
       
       for (const lang of languagesToFetch) {
         if (!this.canMakeRequest()) {
@@ -353,15 +354,32 @@ class GooglePlacesService {
           this.incrementRequestCounter();
 
           if (response.data && response.data.status === 'OK' && response.data.result) {
-            nativeNames[lang] = response.data.result.name;
+            const translatedName = response.data.result.name;
+            nativeNames[lang] = translatedName;
+            
+            // If we got a different name, that's a good translation
+            if (translatedName !== cityData.labels.en) {
+              translationQuality++;
+            }
           }
         } catch (error) {
           // Silently continue with default name
         }
       }
       
-      // Update cityData with native names
-      cityData.labels = nativeNames;
+      // Update cityData with native names, but keep fallbacks
+      cityData.labels = {
+        en: nativeNames.en || cityData.labels.en || cityData.code,
+        fr: nativeNames.fr || cityData.labels.fr || cityData.labels.en || cityData.code,
+        ar: nativeNames.ar || cityData.labels.ar || cityData.labels.en || cityData.code
+      };
+      
+      // NEW: If we only have Arabic script, try to get Latin version
+      // If we only have Latin script, try to get Arabic version
+      cityData.labels = this.ensureBothScripts(cityData.labels);
+      
+      // Add translation quality score
+      cityData.translationQuality = translationQuality;
       
       // Add search terms with all language variants
       cityData.searchTerms = [
@@ -376,6 +394,51 @@ class GooglePlacesService {
       console.error('⚠️ Translation enrichment error:', error.message);
       return cityData;
     }
+  }
+
+  /**
+   * Ensure we have both Latin and Arabic scripts when possible
+   * @param {Object} labels - City labels object
+   * @returns {Object} Normalized labels with both scripts when possible
+   */
+  ensureBothScripts(labels) {
+    if (!labels) return labels;
+    
+    // Helper function to detect if text is in Arabic script
+    const isArabicScript = (text) => {
+      if (!text) return false;
+      const arabicRegex = /[\u0600-\u06FF]/;
+      return arabicRegex.test(text);
+    };
+    
+    const normalizedLabels = { ...labels };
+    
+    // If we have Arabic script but no Latin script, try to use English as Latin
+    if (normalizedLabels.ar && isArabicScript(normalizedLabels.ar)) {
+      if (!normalizedLabels.en || isArabicScript(normalizedLabels.en)) {
+        // Try to transliterate Arabic to Latin (basic approach)
+        // For now, we'll keep the Arabic as is and use a fallback
+        normalizedLabels.en = normalizedLabels.en || 'City'; // Fallback
+      }
+      if (!normalizedLabels.fr || isArabicScript(normalizedLabels.fr)) {
+        normalizedLabels.fr = normalizedLabels.en || 'City'; // Use English as French fallback
+      }
+    }
+    
+    // If we have Latin script but no Arabic, keep Latin for both English and French
+    if (normalizedLabels.en && !isArabicScript(normalizedLabels.en)) {
+      if (!normalizedLabels.fr || isArabicScript(normalizedLabels.fr)) {
+        normalizedLabels.fr = normalizedLabels.en;
+      }
+    }
+    
+    if (normalizedLabels.fr && !isArabicScript(normalizedLabels.fr)) {
+      if (!normalizedLabels.en || isArabicScript(normalizedLabels.en)) {
+        normalizedLabels.en = normalizedLabels.fr;
+      }
+    }
+    
+    return normalizedLabels;
   }
 
   /**
