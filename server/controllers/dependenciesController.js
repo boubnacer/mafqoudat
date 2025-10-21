@@ -395,6 +395,7 @@ const getDashboard = async (req, res) => {
           user: 1,
           country: 1,
           exactLocation: 1,
+          mainDate: 1,
           city: 1,
           cityName: { $ifNull: ["$City.labels.en", null] },
           cityLabels: { $ifNull: ["$City.labels", null] },
