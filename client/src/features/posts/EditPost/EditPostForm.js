@@ -106,8 +106,7 @@ const EditPostForm = ({ post, user, countries, flOptions, categories }) => {
       if (citySearchQuery.trim()) {
         // Filter existing cities based on search query
         const filtered = availableCities.filter(city => 
-          city.label?.toLowerCase().includes(citySearchQuery.toLowerCase()) ||
-          city.name?.toLowerCase().includes(citySearchQuery.toLowerCase()) ||
+          getCityDisplayName(city, currentLanguage).toLowerCase().includes(citySearchQuery.toLowerCase()) ||
           city.labels?.en?.toLowerCase().includes(citySearchQuery.toLowerCase()) ||
           city.labels?.ar?.toLowerCase().includes(citySearchQuery.toLowerCase()) ||
           city.labels?.fr?.toLowerCase().includes(citySearchQuery.toLowerCase())
@@ -117,7 +116,7 @@ const EditPostForm = ({ post, user, countries, flOptions, categories }) => {
         setFilteredCities(availableCities);
       }
     }
-  }, [availableCities, citySearchQuery]);
+  }, [availableCities, citySearchQuery, currentLanguage]);
 
   // Define fetchCitiesByCountry function FIRST, before any useEffect that uses it
   const fetchCitiesByCountry = useCallback(async (countryId) => {
@@ -157,7 +156,15 @@ const EditPostForm = ({ post, user, countries, flOptions, categories }) => {
       const data = await response.json();
       
       if (data.success) {
-        return data.data;
+        // Ensure each city has fallback labels
+        return data.data.map(city => ({
+          ...city,
+          fallbackLabels: city.fallbackLabels || {
+            en: city.labels?.en || city.label || city.name || city.code,
+            fr: city.labels?.fr || city.labels?.en || city.label || city.name || city.code,
+            ar: city.labels?.ar || city.labels?.en || city.label || city.name || city.code
+          }
+        }));
       }
       return [];
     } catch (error) {
@@ -176,11 +183,16 @@ const EditPostForm = ({ post, user, countries, flOptions, categories }) => {
       const data = await response.json();
       
       if (data.success) {
-        // Transform traditional results to match hybrid format
+        // Transform traditional results to match hybrid format with fallback labels
         return data.data.map(city => ({
           ...city,
           source: 'database',
-          _id: city._id
+          _id: city._id,
+          fallbackLabels: {
+            en: city.labels?.en || city.label || city.name || city.code,
+            fr: city.labels?.fr || city.labels?.en || city.label || city.name || city.code,
+            ar: city.labels?.ar || city.labels?.en || city.label || city.name || city.code
+          }
         }));
       }
       return [];
@@ -258,7 +270,7 @@ if (typeof document !== 'undefined') {
           );
           
           if (existingCity) {
-            setCitySearchQuery(existingCity.label || existingCity.name || '');
+            setCitySearchQuery(getCityDisplayName(existingCity, currentLanguage));
           }
         }
       } else if (typeof post.city === 'string') {
@@ -270,7 +282,7 @@ if (typeof document !== 'undefined') {
           );
           
           if (existingCity) {
-            setCitySearchQuery(existingCity.label || existingCity.name || '');
+            setCitySearchQuery(getCityDisplayName(existingCity, currentLanguage));
           } else {
             // It's an API city (string like "EL_JADIDA")
             // Use cityLabels for proper translation, then cityName, then city string
@@ -407,8 +419,7 @@ if (typeof document !== 'undefined') {
       if (citySearchQuery.trim()) {
         // Filter existing cities based on search query
         const filtered = availableCities.filter(city => 
-          city.label?.toLowerCase().includes(citySearchQuery.toLowerCase()) ||
-          city.name?.toLowerCase().includes(citySearchQuery.toLowerCase()) ||
+          getCityDisplayName(city, currentLanguage).toLowerCase().includes(citySearchQuery.toLowerCase()) ||
           city.labels?.en?.toLowerCase().includes(citySearchQuery.toLowerCase()) ||
           city.labels?.ar?.toLowerCase().includes(citySearchQuery.toLowerCase()) ||
           city.labels?.fr?.toLowerCase().includes(citySearchQuery.toLowerCase())
@@ -418,7 +429,7 @@ if (typeof document !== 'undefined') {
         setFilteredCities(availableCities);
       }
     }
-  }, [availableCities, citySearchQuery]);
+  }, [availableCities, citySearchQuery, currentLanguage]);
 
   // Function to clear specific field error
   const clearFieldError = (fieldName) => {
@@ -597,8 +608,10 @@ if (typeof document !== 'undefined') {
           } else {
             // Final fallback: filter existing cities
             const localResults = availableCities.filter(city => 
-              city.label?.toLowerCase().includes(query.toLowerCase()) ||
-              city.name?.toLowerCase().includes(query.toLowerCase())
+              getCityDisplayName(city, currentLanguage).toLowerCase().includes(query.toLowerCase()) ||
+              city.labels?.en?.toLowerCase().includes(query.toLowerCase()) ||
+              city.labels?.ar?.toLowerCase().includes(query.toLowerCase()) ||
+              city.labels?.fr?.toLowerCase().includes(query.toLowerCase())
             ).map(city => ({
               ...city,
               source: 'database',
@@ -616,8 +629,10 @@ if (typeof document !== 'undefined') {
     } else if (query.length > 0) {
       // Show local filtered results for shorter queries
       const localResults = availableCities.filter(city => 
-        city.label?.toLowerCase().includes(query.toLowerCase()) ||
-        city.name?.toLowerCase().includes(query.toLowerCase())
+        getCityDisplayName(city, currentLanguage).toLowerCase().includes(query.toLowerCase()) ||
+        city.labels?.en?.toLowerCase().includes(query.toLowerCase()) ||
+        city.labels?.ar?.toLowerCase().includes(query.toLowerCase()) ||
+        city.labels?.fr?.toLowerCase().includes(query.toLowerCase())
       ).map(city => ({
         ...city,
         source: 'database',
@@ -632,7 +647,7 @@ if (typeof document !== 'undefined') {
   // Handle city selection from dropdown (from NewPostForm)
   const handleCitySelect = (city, setFieldValue) => {
     setSelectedCityFromSearch(city);
-    setCitySearchQuery(city.label || city.labels?.en || city.name || '');
+    setCitySearchQuery(getCityDisplayName(city, currentLanguage));
     setShowCityDropdown(false);
     
     // Set the city value in the form - match NewPostForm logic exactly
@@ -677,11 +692,24 @@ if (typeof document !== 'undefined') {
     return option.label || option.code;
   };
 
-  // Get city display name for selected city
-  const getCityDisplayName = (cityId) => {
-    if (!cityId) return '';
-    const city = availableCities.find(c => c.id === cityId);
-    return city ? (city.label || city.name || 'Unknown City') : cityId;
+  // Get city display name for selected city or city object
+  const getCityDisplayName = (cityOrId, currentLang = 'en') => {
+    if (!cityOrId) return '';
+    
+    // If it's a city object (from search results or filtered cities)
+    if (typeof cityOrId === 'object') {
+      const city = cityOrId;
+      // Try to get the label in the current language first
+      if (city.labels && city.labels[currentLang]) {
+        return city.labels[currentLang];
+      }
+      // Fallback to other language labels or properties
+      return city.label || city.labels?.en || city.name || city.code || 'Unknown City';
+    }
+    
+    // If it's a city ID (existing logic)
+    const city = availableCities.find(c => c.id === cityOrId);
+    return city ? (city.label || city.name || 'Unknown City') : cityOrId;
   };
 
   // Debug: Log city field differences
@@ -1602,14 +1630,15 @@ if (typeof document !== 'undefined') {
                                       zIndex: '999999 !important',
                                       position: 'relative'
                                     }}>
-                                      {city.label || city.labels?.en || city.name || city.code || 'Unknown City'}
+                                      {getCityDisplayName(city, currentLanguage)}
                                     </Typography>
                                     <Typography variant="caption" color="text.secondary" sx={{
                                       zIndex: '999999 !important',
                                       position: 'relative'
                                     }}>
-                                      {city.isCapital && `${t('capital') || 'Capital'}`}
-                                      {city.labels?.ar && ` • ${city.labels.ar}`}
+                                      {city.labels?.ar && currentLanguage !== 'ar' && ` • ${city.labels.ar}`}
+                                      {city.labels?.fr && currentLanguage !== 'fr' && ` • ${city.labels.fr}`}
+                                      {city.labels?.en && currentLanguage !== 'en' && ` • ${city.labels.en}`}
                                     </Typography>
                                   </Box>
                                 </Box>
@@ -1676,14 +1705,15 @@ if (typeof document !== 'undefined') {
                                         zIndex: '999999 !important',
                                         position: 'relative'
                                       }}>
-                                        {city.label || city.name || 'Unknown City'}
+                                        {getCityDisplayName(city, currentLanguage)}
                                       </Typography>
                                       <Typography variant="caption" color="text.secondary" sx={{
                                         zIndex: '999999 !important',
                                         position: 'relative'
                                       }}>
-                                        {city.isCapital && `${t('capital') || 'Capital'}`}
-                                        {city.labels?.ar && ` • ${city.labels.ar}`}
+                                        {city.labels?.ar && currentLanguage !== 'ar' && ` • ${city.labels.ar}`}
+                                        {city.labels?.fr && currentLanguage !== 'fr' && ` • ${city.labels.fr}`}
+                                        {city.labels?.en && currentLanguage !== 'en' && ` • ${city.labels.en}`}
                                       </Typography>
                         </Box>
                                   </Box>
