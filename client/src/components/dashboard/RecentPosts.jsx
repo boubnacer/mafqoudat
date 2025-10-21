@@ -152,8 +152,8 @@ const RecentPosts = ({ _id, categoryname, exactLocation, image, createdAt, count
           position: 'relative',
           boxShadow: 'none',
           border: `1px solid ${isDarkMode ? alpha('#fff', 0.08) : alpha('#000', 0.06)}`,
-          height: { xs: 'auto', sm: '320px' },
-          minHeight: { xs: '300px', sm: '320px' },
+          height: { xs: 'auto', sm: 'auto' },
+          minHeight: { xs: '300px', sm: '350px' },
           width: { xs: '100%', sm: '100%' },
           maxWidth: { xs: '100%', sm: '100%' },
           display: 'flex',
@@ -182,7 +182,7 @@ const RecentPosts = ({ _id, categoryname, exactLocation, image, createdAt, count
         }}
       >
         {/* Image Section with Overlays */}
-        <Box sx={{ position: 'relative', height: { xs: '260px', sm: '220px' }, backgroundColor: 'transparent' }}>
+        <Box sx={{ position: 'relative', height: { xs: '260px', sm: '200px' }, backgroundColor: 'transparent' }}>
           <LazyCardMedia
             component="img"
             sx={{
