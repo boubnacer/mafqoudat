@@ -385,9 +385,7 @@ const RecentPosts = ({ _id, categoryname, exactLocation, image, createdAt, count
                   fontWeight: 500,
                   lineHeight: 1.3,
                   wordBreak: 'break-word',
-                  display: '-webkit-box',
-                  WebkitLineClamp: 2,
-                  WebkitBoxOrient: 'vertical',
+                  whiteSpace: 'nowrap',
                   overflow: 'hidden',
                   textOverflow: 'ellipsis',
                   ml: { xs: 5.5, sm: 5 }, // Add left margin to align with city text (icon width + gap)
