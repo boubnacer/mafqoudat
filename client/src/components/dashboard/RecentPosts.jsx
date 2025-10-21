@@ -43,6 +43,7 @@ const RecentPosts = ({ _id, categoryname, exactLocation, image, createdAt, count
 
 
 
+
   // Format date using date-fns with proper locale support
   const getLocale = () => {
     switch (currentLanguage) {
