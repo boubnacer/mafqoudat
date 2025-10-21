@@ -484,7 +484,6 @@ const Dash = () => {
                        justifyContent: 'center',
                        mt: 3,
                        pt: 2,
-                       borderTop: `1px solid ${theme.palette.mode === 'dark' ? 'rgba(255,255,255,0.1)' : 'rgba(0,0,0,0.1)'}`
                      }}
                    >
                      <SeeAll 
@@ -659,7 +658,6 @@ const Dash = () => {
                         justifyContent: 'center',
                         mt: 3,
                         pt: 2,
-                        borderTop: `1px solid ${theme.palette.mode === 'dark' ? 'rgba(255,255,255,0.1)' : 'rgba(0,0,0,0.1)'}`
                       }}
                     >
                       <SeeAll 
