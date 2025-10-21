@@ -74,7 +74,7 @@ const CitySelectOption = ({ name, cities, disabled }) => {
     <TextField {...selectConfig}>
       {cities.map((city) => (
         <MenuItem key={city._id} value={city._id}>
-          {city.label || city.name || 'Unknown City'}
+          {getCityDisplayName(city, currentLanguage)}
         </MenuItem>
       ))}
     </TextField>
@@ -524,11 +524,41 @@ const NewPostForm = ({ user, countries, categories, flOptions }) => {
     return option?.code || 'FOUND';
   };
 
-  // Get city display name for selected city
-  const getCityDisplayName = (cityId) => {
-    if (!cityId) return '';
-    const city = cities.find(c => c._id === cityId);
-    return city ? (city.label || city.name || 'Unknown City') : cityId;
+  // Helper function to get city display name with fallback logic
+  const getCityDisplayName = (city, currentLanguage) => {
+    if (!city) return 'Unknown City';
+    
+    // For Arabic language, prioritize Arabic script
+    if (currentLanguage === 'ar') {
+      // Priority: Arabic -> English -> French -> any available
+      const priorityOrder = ['ar', 'en', 'fr'];
+      for (const lang of priorityOrder) {
+        if (city.labels?.[lang]) {
+          return city.labels[lang];
+        }
+      }
+    } else {
+      // For English and French, prioritize Latin script (English/French)
+      // Priority: Current language -> English -> French -> Arabic (as last resort)
+      const priorityOrder = [currentLanguage, 'en', 'fr', 'ar'];
+      for (const lang of priorityOrder) {
+        if (city.labels?.[lang]) {
+          // For English and French, avoid Arabic script if possible
+          if ((currentLanguage === 'en' || currentLanguage === 'fr') && lang === 'ar') {
+            // Only use Arabic if no Latin script is available
+            continue;
+          }
+          return city.labels[lang];
+        }
+      }
+    }
+    
+    // Fallback to any available label
+    if (city.label) return city.label;
+    if (city.name) return city.name;
+    if (city.code) return city.code;
+    
+    return 'Unknown City';
   };
 
   // Handle custom city name change
@@ -601,7 +631,7 @@ const NewPostForm = ({ user, countries, categories, flOptions }) => {
   // Handle city selection from dropdown
   const handleCitySelect = (city) => {
     setSelectedCityFromSearch(city);
-    setCitySearchQuery(city.label || city.labels?.en || city.name || '');
+    setCitySearchQuery(getCityDisplayName(city, currentLanguage));
     setShowCityDropdown(false);
     
     // Set the city value in the form
@@ -1193,7 +1223,7 @@ const NewPostForm = ({ user, countries, categories, flOptions }) => {
                                       zIndex: '999999 !important',
                                       position: 'relative'
                                     }}>
-                                      {city.label || city.labels?.en || city.name || city.code || 'Unknown City'}
+                                      {getCityDisplayName(city, currentLanguage)}
                                     </Typography>
                                     <Typography variant="caption" color="text.secondary" sx={{
                                       zIndex: '999999 !important',
@@ -1268,7 +1298,7 @@ const NewPostForm = ({ user, countries, categories, flOptions }) => {
                                         zIndex: '999999 !important',
                                         position: 'relative'
                                       }}>
-                                        {city.label || city.name || 'Unknown City'}
+                                        {getCityDisplayName(city, currentLanguage)}
                                       </Typography>
                                       <Typography variant="caption" color="text.secondary" sx={{
                                         zIndex: '999999 !important',
