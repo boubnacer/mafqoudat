@@ -70,70 +70,13 @@ const RecentPosts = ({ _id, categoryname, exactLocation, image, createdAt, count
     return cleanCity.replace(/\d+/g, '').trim();
   };
 
-  // Helper function to detect if text is in Arabic script
-  const isArabicScript = (text) => {
-    if (!text) return false;
-    const arabicRegex = /[\u0600-\u06FF]/;
-    return arabicRegex.test(text);
-  };
-
-  // Get city name with proper multilingual support and smart script selection
+  // Get city name with proper multilingual support
   const getCityName = () => {
     // First priority: Use the populated city labels from the API (multilingual)
     if (cityLabels && typeof cityLabels === 'object') {
-      const availableLabels = {
-        en: cityLabels.en,
-        fr: cityLabels.fr,
-        ar: cityLabels.ar
-      };
-      
-      // Filter out empty labels
-      const validLabels = Object.entries(availableLabels)
-        .filter(([lang, label]) => label && label.trim())
-        .map(([lang, label]) => ({ lang, label: label.trim() }));
-      
-      if (validLabels.length > 0) {
-        // For Arabic language, prefer Arabic script
-        if (currentLanguage === 'ar') {
-          // Look for Arabic script first
-          const arabicLabel = validLabels.find(({ label }) => isArabicScript(label));
-          if (arabicLabel) return arabicLabel.label;
-          
-          // Fallback to any available label
-          return validLabels[0].label;
-        }
-        
-        // For English and French, prefer Latin script
-        if (currentLanguage === 'en' || currentLanguage === 'fr') {
-          // First try current language
-          const currentLangLabel = validLabels.find(({ lang }) => lang === currentLanguage);
-          if (currentLangLabel) return currentLangLabel.label;
-          
-          // Then try other Latin scripts (English/French)
-          const latinLabels = validLabels.filter(({ label }) => !isArabicScript(label));
-          if (latinLabels.length > 0) {
-            // Prefer English over French for English language
-            if (currentLanguage === 'en') {
-              const englishLabel = latinLabels.find(({ lang }) => lang === 'en');
-              if (englishLabel) return englishLabel.label;
-            }
-            // Prefer French over English for French language  
-            if (currentLanguage === 'fr') {
-              const frenchLabel = latinLabels.find(({ lang }) => lang === 'fr');
-              if (frenchLabel) return frenchLabel.label;
-            }
-            
-            // Return any Latin script
-            return latinLabels[0].label;
-          }
-          
-          // Last resort: Arabic script
-          const arabicLabel = validLabels.find(({ label }) => isArabicScript(label));
-          if (arabicLabel) return arabicLabel.label;
-        }
-        
-        // Fallback to any available label
-        return validLabels[0].label;
+      const cityLabel = cityLabels[currentLanguage] || cityLabels.en;
+      if (cityLabel && cityLabel.trim()) {
+        return cityLabel.trim();
       }
     }
     
