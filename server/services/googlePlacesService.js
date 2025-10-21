@@ -410,32 +410,17 @@ class GooglePlacesService {
       const arabicRegex = /[\u0600-\u06FF]/;
       return arabicRegex.test(text);
     };
-    
+
     const normalizedLabels = { ...labels };
     
-    // If we have Arabic script but no Latin script, try to use English as Latin
-    if (normalizedLabels.ar && isArabicScript(normalizedLabels.ar)) {
-      if (!normalizedLabels.en || isArabicScript(normalizedLabels.en)) {
-        // Try to transliterate Arabic to Latin (basic approach)
-        // For now, we'll keep the Arabic as is and use a fallback
-        normalizedLabels.en = normalizedLabels.en || 'City'; // Fallback
-      }
-      if (!normalizedLabels.fr || isArabicScript(normalizedLabels.fr)) {
-        normalizedLabels.fr = normalizedLabels.en || 'City'; // Use English as French fallback
-      }
-    }
+    // Find the first available label (any language)
+    const availableLabel = normalizedLabels.en || normalizedLabels.fr || normalizedLabels.ar;
     
-    // If we have Latin script but no Arabic, keep Latin for both English and French
-    if (normalizedLabels.en && !isArabicScript(normalizedLabels.en)) {
-      if (!normalizedLabels.fr || isArabicScript(normalizedLabels.fr)) {
-        normalizedLabels.fr = normalizedLabels.en;
-      }
-    }
-    
-    if (normalizedLabels.fr && !isArabicScript(normalizedLabels.fr)) {
-      if (!normalizedLabels.en || isArabicScript(normalizedLabels.en)) {
-        normalizedLabels.en = normalizedLabels.fr;
-      }
+    if (availableLabel) {
+      // Fill all missing labels with the available label
+      if (!normalizedLabels.en) normalizedLabels.en = availableLabel;
+      if (!normalizedLabels.fr) normalizedLabels.fr = availableLabel;
+      if (!normalizedLabels.ar) normalizedLabels.ar = availableLabel;
     }
     
     return normalizedLabels;

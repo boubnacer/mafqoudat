@@ -163,22 +163,17 @@ class GeoNamesService {
       const arabicRegex = /[\u0600-\u06FF]/;
       return arabicRegex.test(text);
     };
-    
+
     const normalizedLabels = { ...labels };
     
-    // If we have English or French (Latin script), ensure both have the same value
-    if (normalizedLabels.en && !isArabicScript(normalizedLabels.en)) {
-      // English is Latin script - copy to French if French is missing or Arabic
-      if (!normalizedLabels.fr || isArabicScript(normalizedLabels.fr)) {
-        normalizedLabels.fr = normalizedLabels.en;
-      }
-    }
+    // Find the first available label (any language)
+    const availableLabel = normalizedLabels.en || normalizedLabels.fr || normalizedLabels.ar;
     
-    if (normalizedLabels.fr && !isArabicScript(normalizedLabels.fr)) {
-      // French is Latin script - copy to English if English is missing or Arabic
-      if (!normalizedLabels.en || isArabicScript(normalizedLabels.en)) {
-        normalizedLabels.en = normalizedLabels.fr;
-      }
+    if (availableLabel) {
+      // Fill all missing labels with the available label
+      if (!normalizedLabels.en) normalizedLabels.en = availableLabel;
+      if (!normalizedLabels.fr) normalizedLabels.fr = availableLabel;
+      if (!normalizedLabels.ar) normalizedLabels.ar = availableLabel;
     }
     
     return normalizedLabels;
