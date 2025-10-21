@@ -5,6 +5,14 @@ const geonamesService = require("../services/geonamesService");
 const googlePlacesService = require("../services/googlePlacesService");
 const { cacheService } = require("../config/cache");
 
+// Helper function to check for Arabic text
+const isArabicText = (text) => {
+  if (!text) return false;
+  // Check if text contains Arabic characters
+  const arabicRegex = /[\u0600-\u06FF]/;
+  return arabicRegex.test(text);
+};
+
 const getCities = async (req, res) => {
   try {
     const { language = 'en', search, active = true, countryId, countryCode } = req.query;
@@ -180,12 +188,34 @@ const searchCities = async (req, res) => {
         });
 
         console.log(`🌐 GeoNames API found ${apiCities.length} additional cities`);
-        console.log(`🔍 API cities before filtering:`, apiCities.map(c => c.labels?.en || c.code));
-        console.log(`🔍 Existing city names:`, existingCityNames);
         
-        // Add API cities to results (limit total results)
-        const remainingSlots = parseInt(limit) - localCities.length;
-        allCities = [...localCities, ...apiCities.slice(0, remainingSlots)];
+        // NEW: Check if GeoNames results have proper translations
+        const hasProperTranslations = apiCities.some(city => {
+          // Check if we have different names for different languages (not all the same)
+          const labels = city.labels;
+          const hasDifferentNames = labels.en !== labels.fr || labels.en !== labels.ar || labels.fr !== labels.ar;
+          
+          // For Arabic language, check if we have actual Arabic text
+          if (language === 'ar') {
+            const hasArabicText = labels.ar && isArabicText(labels.ar);
+            return hasDifferentNames && hasArabicText;
+          }
+          
+          // For other languages, just check if we have different names
+          return hasDifferentNames;
+        });
+        
+        if (apiCities.length > 0 && !hasProperTranslations) {
+          console.log(`⚠️ GeoNames found cities but with poor translations (all names are the same). Skipping to Google Places...`);
+          apiCities = []; // Clear GeoNames results to trigger Google Places search
+        } else {
+          console.log(`✅ GeoNames API found ${apiCities.length} cities with good translations`);
+          console.log(`🔍 API cities:`, apiCities.map(c => c.labels?.en || c.code));
+          
+          // Add API cities to results (limit total results)
+          const remainingSlots = parseInt(limit) - localCities.length;
+          allCities = [...localCities, ...apiCities.slice(0, remainingSlots)];
+        }
 
       } catch (apiError) {
         console.warn('⚠️ GeoNames API error:', apiError.message);
@@ -193,22 +223,20 @@ const searchCities = async (req, res) => {
       }
     }
 
-    // Step 3: If we have NO results from database AND GeoNames, search Google Places API as last resort
-    if (allCities.length === 0 && countryCode) {
+    // Step 3: If we have NO results from database AND GeoNames, OR if GeoNames had poor translations, search Google Places API
+    if ((allCities.length === 0 || apiCities.length === 0) && countryCode) {
       try {
-        console.log(`🌐 No results from Database or GeoNames. Trying Google Places API as last resort...`);
+        console.log(`🌐 No results from Database/GeoNames or poor translations. Trying Google Places API...`);
         console.log(`🔍 Service call: googlePlacesService.searchCities("${q}", "${countryCode}", "${language}")`);
         googleCities = await googlePlacesService.searchCities(q, countryCode, language);
         console.log(`🔍 Service returned ${googleCities.length} cities`);
-        
-        // No need to filter duplicates since allCities is empty at this point (no database or GeoNames results)
         
         console.log(`✅ Google Places API found ${googleCities.length} cities`);
         if (googleCities.length > 0) {
           console.log(`🔍 Google cities:`, googleCities.map(c => c.labels?.en || c.code));
         }
         
-        // Add Google Places cities to results (up to limit since allCities is empty at this point)
+        // Add Google Places cities to results
         allCities = [...googleCities.slice(0, parseInt(limit))];
 
       } catch (googleError) {
