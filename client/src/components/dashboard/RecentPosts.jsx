@@ -96,6 +96,14 @@ const RecentPosts = ({ _id, categoryname, exactLocation, image, createdAt, count
 
   const displayCityName = getCityName();
 
+  // Function to detect if text contains Arabic characters
+  const isArabicText = (text) => {
+    if (!text) return false;
+    // Arabic Unicode range: U+0600-U+06FF, U+0750-U+077F, U+08A0-U+08FF, U+FB50-U+FDFF, U+FE70-U+FEFF
+    const arabicRegex = /[\u0600-\u06FF\u0750-\u077F\u08A0-\u08FF\uFB50-\uFDFF\uFE70-\uFEFF]/;
+    return arabicRegex.test(text);
+  };
+
   // Get category name safely with multilingual support
   const getCategoryDisplayName = (categoryCode) => {
     // First priority: Use the Category object from API aggregation (with labels)
@@ -388,10 +396,10 @@ const RecentPosts = ({ _id, categoryname, exactLocation, image, createdAt, count
                   whiteSpace: 'nowrap',
                   overflow: 'hidden',
                   textOverflow: 'ellipsis',
-                  textAlign: currentLanguage === 'ar' ? 'right' : 'left',
-                  direction: currentLanguage === 'ar' ? 'rtl' : 'ltr',
+                  textAlign: isArabicText(exactLocation) ? 'right' : 'left',
+                  direction: isArabicText(exactLocation) ? 'rtl' : 'ltr',
                   ml: { xs: 5.5, sm: 5 }, // Add left margin to align with city text (icon width + gap)
-                  mr: currentLanguage === 'ar' ? { xs: 5.5, sm: 5 } : 0, // Add right margin for RTL mode
+                  mr: isArabicText(exactLocation) ? { xs: 5.5, sm: 5 } : 0, // Add right margin for RTL mode
                 }}
               >
                 {exactLocation}
