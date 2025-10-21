@@ -13,6 +13,42 @@ const isArabicText = (text) => {
   return arabicRegex.test(text);
 };
 
+// Helper function to normalize city labels
+const normalizeCityLabels = (labels) => {
+  if (!labels) return labels;
+  
+  // Helper function to detect if text is in Arabic script
+  const isArabicScript = (text) => {
+    if (!text) return false;
+    const arabicRegex = /[\u0600-\u06FF]/;
+    return arabicRegex.test(text);
+  };
+  
+  const normalizedLabels = { ...labels };
+  
+  // If we have English or French (Latin script), ensure both have the same value
+  if (normalizedLabels.en && !isArabicScript(normalizedLabels.en)) {
+    // English is Latin script - copy to French if French is missing or Arabic
+    if (!normalizedLabels.fr || isArabicScript(normalizedLabels.fr)) {
+      normalizedLabels.fr = normalizedLabels.en;
+    }
+  }
+  
+  if (normalizedLabels.fr && !isArabicScript(normalizedLabels.fr)) {
+    // French is Latin script - copy to English if English is missing or Arabic
+    if (!normalizedLabels.en || isArabicScript(normalizedLabels.en)) {
+      normalizedLabels.en = normalizedLabels.fr;
+    }
+  }
+  
+  // If we have Arabic script, keep it as is
+  if (normalizedLabels.ar && isArabicScript(normalizedLabels.ar)) {
+    // Arabic script is preserved
+  }
+  
+  return normalizedLabels;
+};
+
 const getCities = async (req, res) => {
   try {
     const { language = 'en', search, active = true, countryId, countryCode } = req.query;
@@ -247,18 +283,21 @@ const searchCities = async (req, res) => {
 
     // Step 4: Transform results
     const transformedCities = allCities.map(city => {
+      // Normalize labels before processing
+      const normalizedLabels = normalizeCityLabels(city.labels);
+      
       // Handle database cities, GeoNames API cities, and Google Places cities
       if (city._id) {
         // Local database city
         return {
           _id: city._id,
           code: city.code,
-          label: city.labels[language] || city.labels.en,
-          labels: city.labels,
+          label: normalizedLabels[language] || normalizedLabels.en,
+          labels: normalizedLabels,
           fallbackLabels: {
-            en: city.labels.en || city.labels[language] || city.code,
-            fr: city.labels.fr || city.labels.en || city.labels[language] || city.code,
-            ar: city.labels.ar || city.labels.en || city.labels[language] || city.code
+            en: normalizedLabels.en || normalizedLabels[language] || city.code,
+            fr: normalizedLabels.fr || normalizedLabels.en || normalizedLabels[language] || city.code,
+            ar: normalizedLabels.ar || normalizedLabels.en || normalizedLabels[language] || city.code
           },
           isCapital: city.isCapital,
           isDynamic: city.isDynamic || false,
@@ -277,12 +316,12 @@ const searchCities = async (req, res) => {
         return {
           _id: null, // No database ID for API cities
           code: city.code,
-          label: city.labels[language] || city.labels.en,
-          labels: city.labels,
+          label: normalizedLabels[language] || normalizedLabels.en,
+          labels: normalizedLabels,
           fallbackLabels: {
-            en: city.labels.en || city.labels[language] || city.code,
-            fr: city.labels.fr || city.labels.en || city.labels[language] || city.code,
-            ar: city.labels.ar || city.labels.en || city.labels[language] || city.code
+            en: normalizedLabels.en || normalizedLabels[language] || city.code,
+            fr: normalizedLabels.fr || normalizedLabels.en || normalizedLabels[language] || city.code,
+            ar: normalizedLabels.ar || normalizedLabels.en || normalizedLabels[language] || city.code
           },
           isCapital: city.isCapital,
           isDynamic: true,
@@ -420,14 +459,17 @@ const createCity = async (req, res) => {
       });
     }
 
+         // Normalize labels before creating city
+         const normalizedLabels = normalizeCityLabels({
+           en: labels.en.trim(),
+           fr: labels.fr.trim(),
+           ar: labels.ar.trim()
+         });
+
          const newCity = {
        code: code.toUpperCase(),
        country: country._id,
-       labels: {
-         en: labels.en.trim(),
-         fr: labels.fr.trim(),
-         ar: labels.ar.trim()
-       },
+       labels: normalizedLabels,
        isCapital: isCapital || false,
        population: population || null
      };
@@ -489,11 +531,13 @@ const updateCity = async (req, res) => {
     const updateData = {};
     
     if (labels) {
-      updateData.labels = {
+      // Normalize labels before updating
+      const normalizedLabels = normalizeCityLabels({
         en: labels.en?.trim() || city.labels.en,
         fr: labels.fr?.trim() || city.labels.fr,
         ar: labels.ar?.trim() || city.labels.ar
-      };
+      });
+      updateData.labels = normalizedLabels;
     }
     
     
@@ -638,19 +682,22 @@ const createDynamicCity = async (req, res) => {
     const cityCode = await TranslationService.generateCityCode(cityName, country.code, countryId);
     console.log('Generated city code:', cityCode);
 
+         // Normalize labels before creating city
+         const normalizedLabels = normalizeCityLabels({
+           en: translations.en,
+           fr: translations.fr,
+           ar: translations.ar
+         });
+
          // Create the new city
      const newCity = new City({
        code: cityCode,
        country: countryId,
-       labels: {
-         en: translations.en,
-         fr: translations.fr,
-         ar: translations.ar
-       },
+       labels: normalizedLabels,
        isCapital: false,
        isDynamic: true,
        isActive: true,
-       searchTerms: [cityName, translations.en, translations.fr, translations.ar]
+       searchTerms: [cityName, normalizedLabels.en, normalizedLabels.fr, normalizedLabels.ar]
      });
 
     try {
@@ -739,11 +786,14 @@ const cacheApiCityToDatabase = async (apiCity, countryId) => {
       return existingCity;
     }
 
+    // Normalize labels before creating city
+    const normalizedLabels = normalizeCityLabels(apiCity.labels);
+
     // Create new city from API data
     const newCity = new City({
       code: apiCity.code,
       country: countryId,
-      labels: apiCity.labels,
+      labels: normalizedLabels,
       isCapital: apiCity.isCapital,
       isActive: true,
       isDynamic: true,
