@@ -388,6 +388,8 @@ const RecentPosts = ({ _id, categoryname, exactLocation, image, createdAt, count
                   whiteSpace: 'nowrap',
                   overflow: 'hidden',
                   textOverflow: 'ellipsis',
+                  textAlign: currentLanguage === 'ar' ? 'right' : 'left',
+                  direction: currentLanguage === 'ar' ? 'rtl' : 'ltr',
                   ml: { xs: 5.5, sm: 5 }, // Add left margin to align with city text (icon width + gap)
                   mr: currentLanguage === 'ar' ? { xs: 5.5, sm: 5 } : 0, // Add right margin for RTL mode
                 }}
