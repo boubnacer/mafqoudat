@@ -124,9 +124,12 @@ class GeoNamesService {
       });
     }
 
+    // Normalize labels to ensure Latin script consistency
+    const normalizedLabels = this.normalizeLabels(labels);
+
     return {
       code: place.name.toUpperCase().replace(/\s+/g, '_'),
-      labels: labels,
+      labels: normalizedLabels,
       isCapital: isCapital,
       isActive: true,
       isDynamic: true, // Mark as dynamically added
@@ -144,6 +147,41 @@ class GeoNamesService {
         ...(place.alternateNames || []).map(alt => alt.name.toLowerCase())
       ].filter(term => term && term.length > 0)
     };
+  }
+
+  /**
+   * Normalize labels to ensure Latin script consistency
+   * @param {Object} labels - City labels object
+   * @returns {Object} Normalized labels
+   */
+  normalizeLabels(labels) {
+    if (!labels) return labels;
+    
+    // Helper function to detect if text is in Arabic script
+    const isArabicScript = (text) => {
+      if (!text) return false;
+      const arabicRegex = /[\u0600-\u06FF]/;
+      return arabicRegex.test(text);
+    };
+    
+    const normalizedLabels = { ...labels };
+    
+    // If we have English or French (Latin script), ensure both have the same value
+    if (normalizedLabels.en && !isArabicScript(normalizedLabels.en)) {
+      // English is Latin script - copy to French if French is missing or Arabic
+      if (!normalizedLabels.fr || isArabicScript(normalizedLabels.fr)) {
+        normalizedLabels.fr = normalizedLabels.en;
+      }
+    }
+    
+    if (normalizedLabels.fr && !isArabicScript(normalizedLabels.fr)) {
+      // French is Latin script - copy to English if English is missing or Arabic
+      if (!normalizedLabels.en || isArabicScript(normalizedLabels.en)) {
+        normalizedLabels.en = normalizedLabels.fr;
+      }
+    }
+    
+    return normalizedLabels;
   }
 
   /**
