@@ -482,8 +482,8 @@ const Dash = () => {
                      sx={{
                        display: { xs: 'flex', sm: 'none' },
                        justifyContent: 'center',
-                       mt: 3,
-                       pt: 2,
+                       mt: 1.5,
+                       pt: 1,
                      }}
                    >
                      <SeeAll 
@@ -656,8 +656,8 @@ const Dash = () => {
                       sx={{
                         display: { xs: 'flex', sm: 'none' },
                         justifyContent: 'center',
-                        mt: 3,
-                        pt: 2,
+                        mt: 1.5,
+                        pt: 1,
                       }}
                     >
                       <SeeAll 
