@@ -227,6 +227,11 @@ const searchCities = async (req, res) => {
           code: city.code,
           label: city.labels[language] || city.labels.en,
           labels: city.labels,
+          fallbackLabels: {
+            en: city.labels.en || city.labels[language] || city.code,
+            fr: city.labels.fr || city.labels.en || city.labels[language] || city.code,
+            ar: city.labels.ar || city.labels.en || city.labels[language] || city.code
+          },
           isCapital: city.isCapital,
           isDynamic: city.isDynamic || false,
           source: 'database',
@@ -246,6 +251,11 @@ const searchCities = async (req, res) => {
           code: city.code,
           label: city.labels[language] || city.labels.en,
           labels: city.labels,
+          fallbackLabels: {
+            en: city.labels.en || city.labels[language] || city.code,
+            fr: city.labels.fr || city.labels.en || city.labels[language] || city.code,
+            ar: city.labels.ar || city.labels.en || city.labels[language] || city.code
+          },
           isCapital: city.isCapital,
           isDynamic: true,
           source: apiSource,
