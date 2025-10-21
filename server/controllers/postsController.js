@@ -167,6 +167,7 @@ const getAllPosts = async (req, res) => {
         user: 1,
         country: 1,
         exactLocation: 1,
+        mainDate: 1,
         city: {
           $cond: {
             if: { $ne: ["$City", null] },
