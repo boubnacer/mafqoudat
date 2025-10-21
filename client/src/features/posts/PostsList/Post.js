@@ -155,6 +155,14 @@ const Post = ({ post, viewMode = "grid" }) => {
 
   const isDarkMode = theme.palette.mode === 'dark';
 
+  // Function to detect if text contains Arabic characters
+  const isArabicText = (text) => {
+    if (!text) return false;
+    // Arabic Unicode range: U+0600-U+06FF, U+0750-U+077F, U+08A0-U+08FF, U+FB50-U+FDFF, U+FE70-U+FEFF
+    const arabicRegex = /[\u0600-\u06FF\u0750-\u077F\u08A0-\u08FF\uFB50-\uFDFF\uFE70-\uFEFF]/;
+    return arabicRegex.test(text);
+  };
+
   // Memoized city name computation
   const cityName = useMemo(() => {
     
@@ -667,13 +675,13 @@ const Post = ({ post, viewMode = "grid" }) => {
                   fontWeight: 500,
                   lineHeight: 1.3,
                   wordBreak: 'break-word',
-                  display: '-webkit-box',
-                  WebkitLineClamp: 2,
-                  WebkitBoxOrient: 'vertical',
+                  whiteSpace: 'nowrap',
                   overflow: 'hidden',
                   textOverflow: 'ellipsis',
+                  textAlign: isArabicText(post.exactLocation) ? 'right' : 'left',
+                  direction: isArabicText(post.exactLocation) ? 'rtl' : 'ltr',
                   ml: { xs: 5.5, sm: 5 }, // Add left margin to align with city text (icon width + gap)
-                  mr: currentLanguage === 'ar' ? { xs: 5.5, sm: 5 } : 0, // Add right margin for RTL mode
+                  mr: isArabicText(post.exactLocation) ? { xs: 5.5, sm: 5 } : 0, // Add right margin for RTL mode
                 }}
               >
                 {post.exactLocation}
