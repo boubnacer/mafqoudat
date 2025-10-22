@@ -715,54 +715,64 @@ const Post = ({ post, viewMode = "grid" }) => {
                 {/* L-shaped connector line */}
                 {isArabicText(post.exactLocation) ? (
                   // RTL Mode
-                  <Box
-                    sx={{
-                      position: 'absolute',
-                      left: '0px !important',
-                      right: { xs: -25, sm: -23 },
-                      top: '-10px',
-                      width: '1px',
-                      height: '23px',
-                      backgroundColor: isDarkMode ? alpha('#fff', 0.3) : alpha('#000', 0.3),
-                      borderRadius: '1px',
-                      '&::after': {
-                        content: '""',
+                  <>
+                    {/* Vertical line */}
+                    <Box
+                      sx={{
                         position: 'absolute',
-                        bottom: 0,
+                        left: '0px !important',
+                        right: { xs: -25, sm: -23 },
+                        top: '-10px',
+                        width: '1px',
+                        height: '23px',
+                        backgroundColor: isDarkMode ? alpha('#fff', 0.3) : alpha('#000', 0.3),
+                        borderRadius: '1px',
+                      }}
+                    />
+                    {/* Horizontal line */}
+                    <Box
+                      sx={{
+                        position: 'absolute',
                         left: '-16px',
+                        bottom: '0px',
                         width: '17px',
                         height: '1px',
                         backgroundColor: isDarkMode ? alpha('#fff', 0.3) : alpha('#000', 0.3),
                         borderRadius: '1px',
-                      }
-                    }}
-                  />
+                      }}
+                    />
+                  </>
                 ) : (
                   // LTR Mode
-                  <Box
-                    sx={{
-                      position: 'absolute',
-                      left: `${-24}px !important`,
-                      '@media (min-width: 600px)': {
-                        left: `${-22}px !important`,
-                      },
-                      top: { xs: -9, sm: -10 },
-                      width: '1px',
-                      height: '23px',
-                      backgroundColor: isDarkMode ? alpha('#fff', 0.3) : alpha('#000', 0.3),
-                      borderRadius: '1px',
-                      '&::after': {
-                        content: '""',
+                  <>
+                    {/* Vertical line */}
+                    <Box
+                      sx={{
                         position: 'absolute',
-                        bottom: 0,
+                        left: `${-24}px !important`,
+                        '@media (min-width: 600px)': {
+                          left: `${-22}px !important`,
+                        },
+                        top: { xs: -9, sm: -10 },
+                        width: '1px',
+                        height: '23px',
+                        backgroundColor: isDarkMode ? alpha('#fff', 0.3) : alpha('#000', 0.3),
+                        borderRadius: '1px',
+                      }}
+                    />
+                    {/* Horizontal line */}
+                    <Box
+                      sx={{
+                        position: 'absolute',
                         left: '1px',
+                        bottom: '0px',
                         width: '22px',
                         height: '1px',
                         backgroundColor: isDarkMode ? alpha('#fff', 0.3) : alpha('#000', 0.3),
                         borderRadius: '1px',
-                      }
-                    }}
-                  />
+                      }}
+                    />
+                  </>
                 )}
                 <Typography
                   sx={{
