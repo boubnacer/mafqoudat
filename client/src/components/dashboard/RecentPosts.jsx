@@ -473,7 +473,8 @@ const RecentPosts = ({ _id, categoryname, exactLocation, image, createdAt, count
                       id="ltr-vertical-line"
                       style={{
                         position: 'absolute',
-                        left: '-22px',
+                        left: '0px',
+                        right: isMobile ? '-25px' : '-23px',
                         top: '-10px',
                         width: '1px',
                         height: '23px',
@@ -483,12 +484,13 @@ const RecentPosts = ({ _id, categoryname, exactLocation, image, createdAt, count
                       }}
                     />
                     {/* Horizontal line */}
-                    <Box
+                    <div
                       style={{
                         position: 'absolute',
-                        left: '1px',
-                        bottom: '0px',
-                        width: '22px',
+                        left: '0px',
+                        right: isMobile ? '-25px' : '-23px',
+                        bottom: isMobile ? '5px' : '4px',
+                        width: '17px',
                         height: '1px',
                         backgroundColor: isDarkMode ? 'rgba(255, 255, 255, 0.3)' : 'rgba(0, 0, 0, 0.3)',
                         borderRadius: '1px',
