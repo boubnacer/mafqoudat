@@ -746,35 +746,8 @@ const Post = ({ post, viewMode = "grid" }) => {
                     />
                   </>
                 ) : (
-                  // LTR Mode
-                  <>
-                    {/* Vertical line */}
-                    <Box
-                      style={{
-                        position: 'absolute',
-                        left: isMobile ? '-24px' : '-22px',
-                        top: '-10px',
-                        width: '1px',
-                        height: '23px',
-                        backgroundColor: isDarkMode ? 'rgba(255, 255, 255, 0.3)' : 'rgba(0, 0, 0, 0.3)',
-                        borderRadius: '1px',
-                        zIndex: 1,
-                      }}
-                    />
-                    {/* Horizontal line */}
-                    <Box
-                      style={{
-                        position: 'absolute',
-                        left: '1px',
-                        bottom: '0px',
-                        width: '22px',
-                        height: '1px',
-                        backgroundColor: isDarkMode ? 'rgba(255, 255, 255, 0.3)' : 'rgba(0, 0, 0, 0.3)',
-                        borderRadius: '1px',
-                        zIndex: 1,
-                      }}
-                    />
-                  </>
+                  // LTR Mode - No L-shape connector
+                  null
                 )}
                 <Typography
                   sx={{

@@ -433,7 +433,6 @@ const RecentPosts = ({ _id, categoryname, exactLocation, image, createdAt, count
                 }}
               >
                 {/* L-shaped connector line */}
-                {console.log('exactLocation:', exactLocation, 'isArabicText:', isArabicText(exactLocation))}
                 {isArabicText(exactLocation) ? (
                   // RTL Mode
                   <>
@@ -467,54 +466,8 @@ const RecentPosts = ({ _id, categoryname, exactLocation, image, createdAt, count
                     />
                   </>
                 ) : (
-                  // LTR Mode
-                  <>
-                    {/* Vertical line */}
-                    <div
-                      id="ltr-vertical-connector"
-                      className="ltr-connector-line"
-                      style={{
-                        position: 'absolute',
-                        left: '0px',
-                        top: '-10px',
-                        width: '1px',
-                        height: '23px',
-                        backgroundColor: isDarkMode ? 'rgba(255, 255, 255, 0.3)' : 'rgba(0, 0, 0, 0.3)',
-                        borderRadius: '1px',
-                        zIndex: 1,
-                        // Force positioning with multiple approaches
-                        marginLeft: '-22px',
-                        transform: 'translateX(-22px)',
-                        // Override any inherited styles
-                        right: 'auto',
-                      }}
-                      ref={(el) => {
-                        if (el) {
-                          console.log('LTR Vertical Line Styles:', {
-                            computed: window.getComputedStyle(el),
-                            inline: el.style.cssText,
-                            left: el.style.left,
-                            right: el.style.right,
-                            marginLeft: el.style.marginLeft,
-                            transform: el.style.transform
-                          });
-                        }
-                      }}
-                    />
-                    {/* Horizontal line */}
-                    <Box
-                      sx={{
-                        position: 'absolute',
-                        left: '1px',
-                        bottom: '0px',
-                        width: '22px',
-                        height: '1px',
-                        backgroundColor: isDarkMode ? 'rgba(255, 255, 255, 0.3)' : 'rgba(0, 0, 0, 0.3)',
-                        borderRadius: '1px',
-                        zIndex: 1,
-                      }}
-                    />
-                  </>
+                  // LTR Mode - No L-shape connector
+                  null
                 )}
                 <Typography
                   sx={{
