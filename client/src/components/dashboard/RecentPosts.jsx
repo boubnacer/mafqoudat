@@ -440,7 +440,8 @@ const RecentPosts = ({ _id, categoryname, exactLocation, image, createdAt, count
                     <Box
                       style={{
                         position: 'absolute',
-                        left: '-22px', // Change from '0px' to '-22px' to match LTR mode
+                        left: '0px',
+                        right: isMobile ? '-25px' : '-23px',
                         top: '-10px',
                         width: '1px',
                         height: '23px',
