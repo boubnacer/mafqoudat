@@ -757,7 +757,7 @@ const Post = ({ post, viewMode = "grid" }) => {
                     <Box
                       style={{
                         position: 'absolute',
-                        left: isMobile ? '-25px' : '-22px',
+                        left: isMobile ? '-24px' : '-22px',
                         top: '-10px',
                         width: '1px',
                         height: '23px',
@@ -770,7 +770,7 @@ const Post = ({ post, viewMode = "grid" }) => {
                     <Box
                       style={{
                         position: 'absolute',
-                        left: isMobile ? '-25px' : '-22px',
+                        left: isMobile ? '-24px' : '-22px',
                         bottom: isMobile ? '5px' : '4px',
                         width: '22px',
                         height: '1px',
