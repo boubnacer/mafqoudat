@@ -432,6 +432,7 @@ const RecentPosts = ({ _id, categoryname, exactLocation, image, createdAt, count
                 }}
               >
                 {/* L-shaped connector line */}
+                {console.log('exactLocation:', exactLocation, 'isArabicText:', isArabicText(exactLocation))}
                 {isArabicText(exactLocation) ? (
                   // RTL Mode
                   <>
@@ -471,7 +472,7 @@ const RecentPosts = ({ _id, categoryname, exactLocation, image, createdAt, count
                     <Box
                       sx={{
                         position: 'absolute',
-                        left: '-22px !important',
+                        left: '-22px',
                         top: '-10px',
                         width: '1px',
                         height: '23px',
