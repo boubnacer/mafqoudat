@@ -469,9 +469,9 @@ const RecentPosts = ({ _id, categoryname, exactLocation, image, createdAt, count
                   <>
                     {/* Vertical line */}
                     <Box
-                      style={{
+                      sx={{
                         position: 'absolute',
-                        left: '-22px',
+                        left: '-22px !important',
                         top: '-10px',
                         width: '1px',
                         height: '23px',
