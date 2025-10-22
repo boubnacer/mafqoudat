@@ -476,13 +476,17 @@ const RecentPosts = ({ _id, categoryname, exactLocation, image, createdAt, count
                       style={{
                         position: 'absolute',
                         left: '0px',
-                        marginLeft: '-22px',
                         top: '-10px',
                         width: '1px',
                         height: '23px',
                         backgroundColor: isDarkMode ? 'rgba(255, 255, 255, 0.3)' : 'rgba(0, 0, 0, 0.3)',
                         borderRadius: '1px',
                         zIndex: 1,
+                        // Force positioning with multiple approaches
+                        marginLeft: '-22px',
+                        transform: 'translateX(-22px)',
+                        // Override any inherited styles
+                        right: 'auto',
                       }}
                     />
                     {/* Horizontal line */}

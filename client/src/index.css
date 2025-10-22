@@ -82,6 +82,22 @@ div#ltr-vertical-connector[style*="transform"] {
   right: auto !important;
 }
 
+/* Nuclear option - override everything with maximum specificity */
+div#ltr-vertical-connector.ltr-connector-line {
+  marginLeft: -22px !important;
+  left: 0px !important;
+  right: auto !important;
+  transform: translateX(-22px) !important;
+}
+
+/* Even more nuclear - target the exact element */
+[data-testid="recent-posts"] div#ltr-vertical-connector.ltr-connector-line {
+  marginLeft: -22px !important;
+  left: 0px !important;
+  right: auto !important;
+  transform: translateX(-22px) !important;
+}
+
 /* RTL Language Support */
 body[dir="rtl"] {
   direction: rtl;
