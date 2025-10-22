@@ -770,8 +770,8 @@ const Post = ({ post, viewMode = "grid" }) => {
                     <Box
                       style={{
                         position: 'absolute',
-                        left: isMobile ? '-25px' : '1px',
-                        bottom: '4px',
+                        left: isMobile ? '-25px' : '-22px',
+                        bottom: isMobile ? '5px' : '4px',
                         width: '22px',
                         height: '1px',
                         backgroundColor: isDarkMode ? 'rgba(255, 255, 255, 0.3)' : 'rgba(0, 0, 0, 0.3)',
