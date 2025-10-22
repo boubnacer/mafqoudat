@@ -716,10 +716,10 @@ const Post = ({ post, viewMode = "grid" }) => {
                 <Box
                   sx={{
                     position: 'absolute',
-                    left: { xs: -4.5, sm: -4 }, // Position to connect with icon
-                    top: -8,
+                    left: { xs: -4.5, sm: -4 }, // Position to connect with icon center
+                    top: -12, // Start right under the location icon
                     width: '2px',
-                    height: '8px',
+                    height: '16px', // Extend down to the text
                     backgroundColor: isDarkMode ? alpha('#fff', 0.3) : alpha('#000', 0.3),
                     borderRadius: '1px',
                     '&::after': {
@@ -727,7 +727,7 @@ const Post = ({ post, viewMode = "grid" }) => {
                       position: 'absolute',
                       bottom: 0,
                       left: 0,
-                      width: '12px',
+                      width: '8px', // Shorter horizontal line
                       height: '2px',
                       backgroundColor: isDarkMode ? alpha('#fff', 0.3) : alpha('#000', 0.3),
                       borderRadius: '1px',
