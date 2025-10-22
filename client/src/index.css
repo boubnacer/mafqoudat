@@ -39,6 +39,20 @@ body {
   position: absolute !important;
 }
 
+/* More specific selector to override any inheritance */
+div#ltr-vertical-connector {
+  left: -22px !important;
+  right: auto !important;
+  position: absolute !important;
+}
+
+/* Even more specific selector */
+[data-testid="recent-posts"] #ltr-vertical-connector {
+  left: -22px !important;
+  right: auto !important;
+  position: absolute !important;
+}
+
 /* RTL Language Support */
 body[dir="rtl"] {
   direction: rtl;

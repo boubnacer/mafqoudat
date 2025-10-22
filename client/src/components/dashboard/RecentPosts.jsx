@@ -140,6 +140,7 @@ const RecentPosts = ({ _id, categoryname, exactLocation, image, createdAt, count
     <>
       <Card
         className="recent-post-card"
+        data-testid="recent-posts"
         onClick={handleViewDetails}
         style={{
           backgroundColor: isDarkMode ? '#1a1a1a' : '#ffffff',
@@ -473,7 +474,8 @@ const RecentPosts = ({ _id, categoryname, exactLocation, image, createdAt, count
                       id="ltr-vertical-connector"
                       style={{
                         position: 'absolute',
-                        left: '-22px',
+                        left: '0px',
+                        transform: 'translateX(-22px)',
                         top: '-10px',
                         width: '1px',
                         height: '23px',
