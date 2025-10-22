@@ -748,17 +748,15 @@ const Post = ({ post, viewMode = "grid" }) => {
                   <>
                     {/* Vertical line */}
                     <Box
-                      sx={{
+                      style={{
                         position: 'absolute',
-                        left: `${-24}px !important`,
-                        '@media (min-width: 600px)': {
-                          left: `${-22}px !important`,
-                        },
+                        left: isMobile ? '-24px' : '-22px',
                         top: '-10px',
                         width: '1px',
                         height: '23px',
-                        backgroundColor: isDarkMode ? alpha('#fff', 0.3) : alpha('#000', 0.3),
+                        backgroundColor: isDarkMode ? 'rgba(255, 255, 255, 0.3)' : 'rgba(0, 0, 0, 0.3)',
                         borderRadius: '1px',
+                        zIndex: 1,
                       }}
                     />
                     {/* Horizontal line */}
