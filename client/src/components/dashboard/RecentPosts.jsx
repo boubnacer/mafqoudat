@@ -435,8 +435,9 @@ const RecentPosts = ({ _id, categoryname, exactLocation, image, createdAt, count
                 <Box
                   sx={{
                     position: 'absolute',
-                    left: isArabicText(exactLocation) ? { xs: 20, sm: 18 } : { xs: -24, sm: -22 }, // RTL: right side, LTR: left side
-                    top:  { xs: -9, sm: -10 }, // Start right under the location icon
+                    left: isArabicText(exactLocation) ? '0px' : { xs: -24, sm: -22 }, // RTL: left 0px, LTR: left side
+                    right: isArabicText(exactLocation) ? { xs: -25, sm: -23 } : 'auto', // RTL: right positioning
+                    top: isArabicText(exactLocation) ? '-10px' : { xs: -9, sm: -10 }, // RTL: top -10px, LTR: original
                     width: '1px',
                     height: '23px', // Extend down to the text
                     backgroundColor: isDarkMode ? alpha('#fff', 0.3) : alpha('#000', 0.3),
@@ -445,8 +446,8 @@ const RecentPosts = ({ _id, categoryname, exactLocation, image, createdAt, count
                       content: '""',
                       position: 'absolute',
                       bottom: 0,
-                      left: isArabicText(exactLocation) ? '-22px' : '0', // RTL: extend left, LTR: extend right
-                      width: '22px', // Longer horizontal line
+                      left: isArabicText(exactLocation) ? '-16px' : '0', // RTL: left -16px, LTR: extend right
+                      width: isArabicText(exactLocation) ? '17px' : '22px', // RTL: 17px width, LTR: 22px
                       height: '1px', // Match vertical line width
                       backgroundColor: isDarkMode ? alpha('#fff', 0.3) : alpha('#000', 0.3),
                       borderRadius: '1px',
