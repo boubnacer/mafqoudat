@@ -469,8 +469,9 @@ const RecentPosts = ({ _id, categoryname, exactLocation, image, createdAt, count
                   // LTR Mode
                   <>
                     {/* Vertical line */}
-                    <Box
-                      sx={{
+                    <div
+                      id="ltr-vertical-connector"
+                      style={{
                         position: 'absolute',
                         left: '-22px',
                         top: '-10px',
@@ -479,11 +480,6 @@ const RecentPosts = ({ _id, categoryname, exactLocation, image, createdAt, count
                         backgroundColor: isDarkMode ? 'rgba(255, 255, 255, 0.3)' : 'rgba(0, 0, 0, 0.3)',
                         borderRadius: '1px',
                         zIndex: 1,
-                        // Force override any inherited styles
-                        '&': {
-                          left: '-22px !important',
-                          right: 'auto !important',
-                        }
                       }}
                     />
                     {/* Horizontal line */}

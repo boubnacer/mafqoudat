@@ -31,7 +31,13 @@ body {
 .ltr-connector-vertical {
   left: -22px !important;
   right: auto !important;
-} */
+}
+
+#ltr-vertical-connector {
+  left: -22px !important;
+  right: auto !important;
+  position: absolute !important;
+}
 
 /* RTL Language Support */
 body[dir="rtl"] {
