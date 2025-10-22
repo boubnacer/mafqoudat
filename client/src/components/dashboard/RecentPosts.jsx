@@ -432,9 +432,14 @@ const RecentPosts = ({ _id, categoryname, exactLocation, image, createdAt, count
                 }}
               >
                 {/* L-shaped connector line */}
-                {isArabicText(exactLocation) ? (
+                {(() => {
+                  const isArabic = isArabicText(exactLocation);
+                  console.log('exactLocation:', exactLocation, 'isArabic:', isArabic);
+                  return isArabic;
+                })() ? (
                   // RTL Mode
                   <Box
+                    key="rtl-connector"
                     sx={{
                       position: 'absolute',
                       left: '0px',
@@ -459,6 +464,7 @@ const RecentPosts = ({ _id, categoryname, exactLocation, image, createdAt, count
                 ) : (
                   // LTR Mode
                   <Box
+                    key="ltr-connector"
                     sx={{
                       position: 'absolute',
                       left: { xs: -24, sm: -22 },
