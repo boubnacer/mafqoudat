@@ -472,13 +472,18 @@ const RecentPosts = ({ _id, categoryname, exactLocation, image, createdAt, count
                     <Box
                       sx={{
                         position: 'absolute',
-                        transform: 'translateX(-22px)',
+                        left: '-22px',
                         top: '-10px',
                         width: '1px',
                         height: '23px',
                         backgroundColor: isDarkMode ? 'rgba(255, 255, 255, 0.3)' : 'rgba(0, 0, 0, 0.3)',
                         borderRadius: '1px',
                         zIndex: 1,
+                        // Force override any inherited styles
+                        '&': {
+                          left: '-22px !important',
+                          right: 'auto !important',
+                        }
                       }}
                     />
                     {/* Horizontal line */}
