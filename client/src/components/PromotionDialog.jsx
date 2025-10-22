@@ -367,11 +367,11 @@ const PromotionDialog = ({ open, onClose, postId, onPromotionRequested, isLostIt
             disabled={isLoading}
             variant="outlined"
             sx={{ 
-              minWidth: 120,
-              py: 1.5,
-              px: 3,
+              minWidth: { xs: 100, md: 120 },
+              py: { xs: 1, md: 1.5 },
+              px: { xs: 2, md: 3 },
               borderRadius: 3,
-              fontSize: { xs: '1.1rem', md: '1rem' },
+              fontSize: { xs: '0.9rem', md: '1rem' },
               fontWeight: 600,
               borderColor: theme.palette.mode === 'dark' ? 'rgba(255,255,255,0.3)' : 'rgba(0,0,0,0.3)',
               color: theme.palette.mode === 'dark' ? 'rgba(255,255,255,0.8)' : 'rgba(0,0,0,0.8)',
@@ -395,11 +395,11 @@ const PromotionDialog = ({ open, onClose, postId, onPromotionRequested, isLostIt
               mr: currentLanguage === 'ar' ? 0.5 : 0
             }} />}
             sx={{ 
-              minWidth: 160,
-              py: 1.5,
-              px: 3,
+              minWidth: { xs: 140, md: 160 },
+              py: { xs: 1, md: 1.5 },
+              px: { xs: 2, md: 3 },
               borderRadius: 3,
-              fontSize: { xs: '1.1rem', md: '1rem' },
+              fontSize: { xs: '0.9rem', md: '1rem' },
               fontWeight: 600,
               color: '#ffffff',
               background: theme.palette.mode === 'dark'
