@@ -432,17 +432,9 @@ const RecentPosts = ({ _id, categoryname, exactLocation, image, createdAt, count
                 }}
               >
                 {/* L-shaped connector line */}
-                {(() => {
-                  const isArabic = isArabicText(exactLocation);
-                  console.log('🔍 Debug - exactLocation:', exactLocation);
-                  console.log('🔍 Debug - isArabic:', isArabic);
-                  console.log('🔍 Debug - currentLanguage:', currentLanguage);
-                  return isArabic;
-                })() ? (
+                {isArabicText(exactLocation) ? (
                   // RTL Mode
                   <>
-                    {/* Debug indicator */}
-                    <Box style={{ position: 'absolute', top: '-30px', left: '0px', color: 'red', fontSize: '10px', zIndex: 999 }}>RTL MODE</Box>
                     {/* Vertical line */}
                     <Box
                       style={{
@@ -475,8 +467,6 @@ const RecentPosts = ({ _id, categoryname, exactLocation, image, createdAt, count
                 ) : (
                   // LTR Mode
                   <>
-                    {/* Debug indicator */}
-                    <Box style={{ position: 'absolute', top: '-30px', left: '0px', color: 'blue', fontSize: '10px', zIndex: 999 }}>LTR MODE</Box>
                     {/* Vertical line */}
                     <Box
                       style={{
