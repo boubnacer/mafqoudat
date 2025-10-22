@@ -473,7 +473,7 @@ const RecentPosts = ({ _id, categoryname, exactLocation, image, createdAt, count
                         '@media (min-width: 600px)': {
                           left: `${-22}px !important`,
                         },
-                        top: { xs: -9, sm: -10 },
+                        top: '-10px',
                         width: '1px',
                         height: '23px',
                         backgroundColor: isDarkMode ? alpha('#fff', 0.3) : alpha('#000', 0.3),
