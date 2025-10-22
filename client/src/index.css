@@ -23,6 +23,11 @@ body {
   left: -22px !important;
 }
 
+#ltr-vertical-line {
+  left: -22px !important;
+  position: absolute !important;
+}
+
 /* RTL Language Support */
 body[dir="rtl"] {
   direction: rtl;
