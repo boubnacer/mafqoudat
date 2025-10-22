@@ -717,7 +717,7 @@ const Post = ({ post, viewMode = "grid" }) => {
                   sx={{
                     position: 'absolute',
                     left: isArabicText(post.exactLocation) ? '0px' : { xs: -24, sm: -22 }, // RTL: left 0px, LTR: left side
-                    right: isArabicText(post.exactLocation) ? { xs: -25, sm: -23 } : 'auto', // RTL: right positioning
+                    right: isArabicText(post.exactLocation) ? { xs: -25, sm: -23 } : undefined, // RTL: right positioning, LTR: no right
                     top: isArabicText(post.exactLocation) ? '-10px' : { xs: -9, sm: -10 }, // RTL: top -10px, LTR: original
                     width: '1px',
                     height: '23px', // Extend down to the text

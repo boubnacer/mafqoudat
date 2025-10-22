@@ -436,7 +436,7 @@ const RecentPosts = ({ _id, categoryname, exactLocation, image, createdAt, count
                   sx={{
                     position: 'absolute',
                     left: isArabicText(exactLocation) ? '0px' : { xs: -24, sm: -22 }, // RTL: left 0px, LTR: left side
-                    right: isArabicText(exactLocation) ? { xs: -25, sm: -23 } : 'auto', // RTL: right positioning
+                    right: isArabicText(exactLocation) ? { xs: -25, sm: -23 } : undefined, // RTL: right positioning, LTR: no right
                     top: isArabicText(exactLocation) ? '-10px' : { xs: -9, sm: -10 }, // RTL: top -10px, LTR: original
                     width: '1px',
                     height: '23px', // Extend down to the text
