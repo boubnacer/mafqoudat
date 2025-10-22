@@ -733,8 +733,9 @@ const Post = ({ post, viewMode = "grid" }) => {
                     <Box
                       sx={{
                         position: 'absolute',
-                        left: '-16px',
-                        bottom: '0px',
+                        left: '0px',
+                        right: { xs: -25, sm: -23 },
+                        bottom: { xs: '5px', sm: '4px' },
                         width: '17px',
                         height: '1px',
                         backgroundColor: isDarkMode ? alpha('#fff', 0.3) : alpha('#000', 0.3),
