@@ -488,6 +488,18 @@ const RecentPosts = ({ _id, categoryname, exactLocation, image, createdAt, count
                         // Override any inherited styles
                         right: 'auto',
                       }}
+                      ref={(el) => {
+                        if (el) {
+                          console.log('LTR Vertical Line Styles:', {
+                            computed: window.getComputedStyle(el),
+                            inline: el.style.cssText,
+                            left: el.style.left,
+                            right: el.style.right,
+                            marginLeft: el.style.marginLeft,
+                            transform: el.style.transform
+                          });
+                        }
+                      }}
                     />
                     {/* Horizontal line */}
                     <Box
