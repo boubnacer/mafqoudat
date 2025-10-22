@@ -676,6 +676,7 @@ const Post = ({ post, viewMode = "grid" }) => {
                 alignItems: 'center', 
                 gap: 1,
                 mb: 0.5,
+                position: 'relative',
               }}
             >
               <Avatar
@@ -702,26 +703,55 @@ const Post = ({ post, viewMode = "grid" }) => {
               </Typography>
             </Box>
             
-            {/* Exact Location - Below city and icon */}
+            {/* Exact Location with L-shaped connector */}
             {post?.exactLocation && (
-              <Typography
+              <Box
                 sx={{
-                  color: isDarkMode ? alpha('#fff', 0.7) : alpha('#000', 0.6),
-                  fontSize: { xs: '14px', sm: '13px' },
-                  fontWeight: 500,
-                  lineHeight: 1.3,
-                  wordBreak: 'break-word',
-                  whiteSpace: 'nowrap',
-                  overflow: 'hidden',
-                  textOverflow: 'ellipsis',
-                  textAlign: isArabicText(post.exactLocation) ? 'right' : 'left',
-                  direction: isArabicText(post.exactLocation) ? 'rtl' : 'ltr',
-                  ml: { xs: 5.5, sm: 5 }, // Add left margin to align with city text (icon width + gap)
-                  mr: isArabicText(post.exactLocation) ? { xs: 5.5, sm: 5 } : 0, // Add right margin for RTL mode
+                  position: 'relative',
+                  ml: { xs: 5.5, sm: 5 }, // Align with city text
+                  mr: isArabicText(post.exactLocation) ? { xs: 5.5, sm: 5 } : 0, // RTL support
                 }}
               >
-                {post.exactLocation}
-              </Typography>
+                {/* L-shaped connector line */}
+                <Box
+                  sx={{
+                    position: 'absolute',
+                    left: { xs: -4.5, sm: -4 }, // Position to connect with icon
+                    top: -8,
+                    width: '2px',
+                    height: '8px',
+                    backgroundColor: isDarkMode ? alpha('#fff', 0.3) : alpha('#000', 0.3),
+                    borderRadius: '1px',
+                    '&::after': {
+                      content: '""',
+                      position: 'absolute',
+                      bottom: 0,
+                      left: 0,
+                      width: '12px',
+                      height: '2px',
+                      backgroundColor: isDarkMode ? alpha('#fff', 0.3) : alpha('#000', 0.3),
+                      borderRadius: '1px',
+                    }
+                  }}
+                />
+                <Typography
+                  sx={{
+                    color: isDarkMode ? alpha('#fff', 0.7) : alpha('#000', 0.6),
+                    fontSize: { xs: '14px', sm: '13px' },
+                    fontWeight: 500,
+                    lineHeight: 1.3,
+                    wordBreak: 'break-word',
+                    whiteSpace: 'nowrap',
+                    overflow: 'hidden',
+                    textOverflow: 'ellipsis',
+                    textAlign: isArabicText(post.exactLocation) ? 'right' : 'left',
+                    direction: isArabicText(post.exactLocation) ? 'rtl' : 'ltr',
+                    pl: 1, // Add padding to account for connector line
+                  }}
+                >
+                  {post.exactLocation}
+                </Typography>
+              </Box>
             )}
           </Box>
 
