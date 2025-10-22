@@ -713,17 +713,12 @@ const Post = ({ post, viewMode = "grid" }) => {
                 }}
               >
                 {/* L-shaped connector line */}
-                {(() => {
-                  const isArabic = isArabicText(post.exactLocation);
-                  console.log('post.exactLocation:', post.exactLocation, 'isArabic:', isArabic);
-                  return isArabic;
-                })() ? (
+                {isArabicText(post.exactLocation) ? (
                   // RTL Mode
                   <Box
-                    key="rtl-connector"
                     sx={{
                       position: 'absolute',
-                      left: '0px',
+                      left: '0px !important',
                       right: { xs: -25, sm: -23 },
                       top: '-10px',
                       width: '1px',
@@ -745,10 +740,12 @@ const Post = ({ post, viewMode = "grid" }) => {
                 ) : (
                   // LTR Mode
                   <Box
-                    key="ltr-connector"
                     sx={{
                       position: 'absolute',
-                      left: { xs: -24, sm: -22 },
+                      left: `${-24}px !important`,
+                      '@media (min-width: 600px)': {
+                        left: `${-22}px !important`,
+                      },
                       top: { xs: -9, sm: -10 },
                       width: '1px',
                       height: '23px',
