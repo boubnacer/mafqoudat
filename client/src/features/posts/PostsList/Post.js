@@ -161,6 +161,14 @@ const Post = ({ post, viewMode = "grid" }) => {
     return currentLanguage === 'ar';
   };
 
+  // Function to detect if text contains Arabic characters (for exactLocation field alignment)
+  const isArabicText = (text) => {
+    if (!text) return false;
+    // Arabic Unicode range: U+0600-U+06FF, U+0750-U+077F, U+08A0-U+08FF, U+FB50-U+FDFF, U+FE70-U+FEFF
+    const arabicRegex = /[\u0600-\u06FF\u0750-\u077F\u08A0-\u08FF\uFB50-\uFDFF\uFE70-\uFEFF]/;
+    return arabicRegex.test(text);
+  };
+
   // Memoized city name computation
   const cityName = useMemo(() => {
     
@@ -706,7 +714,7 @@ const Post = ({ post, viewMode = "grid" }) => {
                 sx={{
                   position: 'relative',
                   ml: { xs: 5.5, sm: 5 }, // Align with city text
-                  mr: isRTLMode() ? { xs: 5.5, sm: 5 } : 0, // RTL support
+                  mr: isArabicText(post.exactLocation) ? { xs: 5.5, sm: 5 } : 0, // RTL support for Arabic text in exactLocation
                 }}
               >
                 {/* L-shaped connector line */}
@@ -783,8 +791,8 @@ const Post = ({ post, viewMode = "grid" }) => {
                     whiteSpace: 'nowrap',
                     overflow: 'hidden',
                     textOverflow: 'ellipsis',
-                    textAlign: isRTLMode() ? 'right' : 'left',
-                    direction: isRTLMode() ? 'rtl' : 'ltr',
+                    textAlign: isArabicText(post.exactLocation) ? 'right' : 'left',
+                    direction: isArabicText(post.exactLocation) ? 'rtl' : 'ltr',
                     pl: 1, // Add padding to account for connector line
                   }}
                 >
