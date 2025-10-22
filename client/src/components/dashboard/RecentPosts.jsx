@@ -360,7 +360,7 @@ const RecentPosts = ({ _id, categoryname, exactLocation, image, createdAt, count
                   display: 'flex', 
                   alignItems: 'center', 
                   gap: 1,
-                  mb: 0.5,
+                  mb: 0.25,
                 }}
               >
                 <Avatar
