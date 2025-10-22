@@ -156,12 +156,9 @@ const Post = ({ post, viewMode = "grid" }) => {
 
   const isDarkMode = theme.palette.mode === 'dark';
 
-  // Function to detect if text contains Arabic characters
-  const isArabicText = (text) => {
-    if (!text) return false;
-    // Arabic Unicode range: U+0600-U+06FF, U+0750-U+077F, U+08A0-U+08FF, U+FB50-U+FDFF, U+FE70-U+FEFF
-    const arabicRegex = /[\u0600-\u06FF\u0750-\u077F\u08A0-\u08FF\uFB50-\uFDFF\uFE70-\uFEFF]/;
-    return arabicRegex.test(text);
+  // Function to detect if the site is in RTL mode (Arabic language)
+  const isRTLMode = () => {
+    return currentLanguage === 'ar';
   };
 
   // Memoized city name computation
@@ -709,11 +706,11 @@ const Post = ({ post, viewMode = "grid" }) => {
                 sx={{
                   position: 'relative',
                   ml: { xs: 5.5, sm: 5 }, // Align with city text
-                  mr: isArabicText(post.exactLocation) ? { xs: 5.5, sm: 5 } : 0, // RTL support
+                  mr: isRTLMode() ? { xs: 5.5, sm: 5 } : 0, // RTL support
                 }}
               >
                 {/* L-shaped connector line */}
-                {isArabicText(post.exactLocation) ? (
+                {isRTLMode() ? (
                   // RTL Mode
                   <>
                     {/* Vertical line */}
@@ -746,8 +743,35 @@ const Post = ({ post, viewMode = "grid" }) => {
                     />
                   </>
                 ) : (
-                  // LTR Mode - No L-shape connector
-                  null
+                  // LTR Mode
+                  <>
+                    {/* Vertical line */}
+                    <Box
+                      style={{
+                        position: 'absolute',
+                        left: '-22px',
+                        top: '-10px',
+                        width: '1px',
+                        height: '23px',
+                        backgroundColor: isDarkMode ? 'rgba(255, 255, 255, 0.3)' : 'rgba(0, 0, 0, 0.3)',
+                        borderRadius: '1px',
+                        zIndex: 1,
+                      }}
+                    />
+                    {/* Horizontal line */}
+                    <Box
+                      style={{
+                        position: 'absolute',
+                        left: '1px',
+                        bottom: '0px',
+                        width: '22px',
+                        height: '1px',
+                        backgroundColor: isDarkMode ? 'rgba(255, 255, 255, 0.3)' : 'rgba(0, 0, 0, 0.3)',
+                        borderRadius: '1px',
+                        zIndex: 1,
+                      }}
+                    />
+                  </>
                 )}
                 <Typography
                   sx={{
@@ -759,8 +783,8 @@ const Post = ({ post, viewMode = "grid" }) => {
                     whiteSpace: 'nowrap',
                     overflow: 'hidden',
                     textOverflow: 'ellipsis',
-                    textAlign: isArabicText(post.exactLocation) ? 'right' : 'left',
-                    direction: isArabicText(post.exactLocation) ? 'rtl' : 'ltr',
+                    textAlign: isRTLMode() ? 'right' : 'left',
+                    direction: isRTLMode() ? 'rtl' : 'ltr',
                     pl: 1, // Add padding to account for connector line
                   }}
                 >
