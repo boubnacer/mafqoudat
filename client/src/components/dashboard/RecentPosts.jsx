@@ -469,12 +469,10 @@ const RecentPosts = ({ _id, categoryname, exactLocation, image, createdAt, count
                   // LTR Mode
                   <>
                     {/* Vertical line */}
-                    <div
-                      id="ltr-vertical-line"
-                      style={{
+                    <Box
+                      sx={{
                         position: 'absolute',
                         left: '-22px',
-                        right: isMobile ? '-25px' : '182px',
                         top: '-10px',
                         width: '1px',
                         height: '23px',
@@ -484,13 +482,12 @@ const RecentPosts = ({ _id, categoryname, exactLocation, image, createdAt, count
                       }}
                     />
                     {/* Horizontal line */}
-                    <div
-                      style={{
+                    <Box
+                      sx={{
                         position: 'absolute',
-                        left: '0px',
-                        right: isMobile ? '-25px' : '-23px',
-                        bottom: isMobile ? '5px' : '4px',
-                        width: '17px',
+                        left: '1px',
+                        bottom: '0px',
+                        width: '22px',
                         height: '1px',
                         backgroundColor: isDarkMode ? 'rgba(255, 255, 255, 0.3)' : 'rgba(0, 0, 0, 0.3)',
                         borderRadius: '1px',
