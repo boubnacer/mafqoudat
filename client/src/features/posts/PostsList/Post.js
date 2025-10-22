@@ -716,7 +716,7 @@ const Post = ({ post, viewMode = "grid" }) => {
                 <Box
                   sx={{
                     position: 'absolute',
-                    left: { xs: -24, sm: -22 }, // Position to connect with icon center
+                    left: isArabicText(post.exactLocation) ? { xs: 20, sm: 18 } : { xs: -24, sm: -22 }, // RTL: right side, LTR: left side
                     top: { xs: -9, sm: -10 }, // Start right under the location icon
                     width: '1px',
                     height: '23px', // Extend down to the text
@@ -726,7 +726,7 @@ const Post = ({ post, viewMode = "grid" }) => {
                       content: '""',
                       position: 'absolute',
                       bottom: 0,
-                      left: 0,
+                      left: isArabicText(post.exactLocation) ? '-22px' : '0', // RTL: extend left, LTR: extend right
                       width: '22px', // Longer horizontal line
                       height: '1px', // Match vertical line width
                       backgroundColor: isDarkMode ? alpha('#fff', 0.3) : alpha('#000', 0.3),
