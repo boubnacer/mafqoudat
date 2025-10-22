@@ -436,7 +436,7 @@ const RecentPosts = ({ _id, categoryname, exactLocation, image, createdAt, count
                   sx={{
                     position: 'absolute',
                     left: { xs: -25, sm: -23 }, // Position to connect with icon center
-                    top: -10, // Start right under the location icon
+                    top:  { xs: -12, sm: -10 }, // Start right under the location icon
                     width: '2px',
                     height: '16px', // Extend down to the text
                     backgroundColor: isDarkMode ? alpha('#fff', 0.3) : alpha('#000', 0.3),
