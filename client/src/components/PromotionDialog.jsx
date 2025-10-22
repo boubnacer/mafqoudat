@@ -22,7 +22,7 @@ import {
 import { useTranslation } from '../utils/translations';
 import { useRequestPromotionMutation } from '../features/posts/postsApiSlice';
 
-const PromotionDialog = ({ open, onClose, postId, onPromotionRequested, isLostItem = true }) => {
+const PromotionDialog = ({ open, onClose, postId, onPromotionRequested, isLostItem = true, showSuccessMessage = true }) => {
   const { t, currentLanguage } = useTranslation();
   const theme = useTheme();
   const [isSuccess, setIsSuccess] = useState(false);
@@ -217,18 +217,20 @@ const PromotionDialog = ({ open, onClose, postId, onPromotionRequested, isLostIt
           </Box>
         ) : (
           <>
-            <Typography 
-              variant="body1" 
-              paragraph 
-              sx={{ 
-                mb: 4,
-                fontSize: { xs: '1.2rem', md: '1.1rem' },
-                color: theme.palette.text.primary,
-                textAlign: 'center'
-              }}
-            >
-              {isLostItem ? t('postPublishedSuccessfully') : t('foundItemPostedSuccessfully')}
-            </Typography>
+            {showSuccessMessage && (
+              <Typography 
+                variant="body1" 
+                paragraph 
+                sx={{ 
+                  mb: 4,
+                  fontSize: { xs: '1.2rem', md: '1.1rem' },
+                  color: theme.palette.text.primary,
+                  textAlign: 'center'
+                }}
+              >
+                {isLostItem ? t('postPublishedSuccessfully') : t('foundItemPostedSuccessfully')}
+              </Typography>
+            )}
             
             <Box 
               sx={{ 

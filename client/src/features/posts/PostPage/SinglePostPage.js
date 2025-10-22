@@ -1678,6 +1678,7 @@ const SinglePostPage = ({
         postId={_id}
         isLostItem={!foundLostStatus.isFound}
         onPromotionRequested={handlePromotionRequested}
+        showSuccessMessage={false}
       />
 
       {/* Claim Item Dialog */}
