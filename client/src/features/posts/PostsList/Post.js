@@ -641,7 +641,7 @@ const Post = ({ post, viewMode = "grid" }) => {
                   display: 'flex', 
                   alignItems: 'center', 
                   gap: 1,
-                  mb: 0.25,
+                  // mb: 0.25,
                 }}
               >
                 <Avatar
