@@ -727,7 +727,7 @@ const Post = ({ post, viewMode = "grid" }) => {
                       content: '""',
                       position: 'absolute',
                       bottom: 0,
-                      left: isArabicText(post.exactLocation) ? '-16px' : '0', // RTL: left -16px, LTR: extend right
+                      left: isArabicText(post.exactLocation) ? '-16px' : '1px', // RTL: left -16px, LTR: left 1px
                       width: isArabicText(post.exactLocation) ? '17px' : '22px', // RTL: 17px width, LTR: 22px
                       height: '1px', // Match vertical line width
                       backgroundColor: isDarkMode ? alpha('#fff', 0.3) : alpha('#000', 0.3),
