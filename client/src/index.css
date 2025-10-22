@@ -18,8 +18,8 @@ body {
   background-color: #fafafa; /* Light mode default */
 }
 
-/* LTR Connector Line CSS */
-.ltr-connector-line {
+/* LTR Connector Line CSS - COMMENTED OUT TO FIX CONFLICTS */
+/* .ltr-connector-line {
   left: -22px !important;
 }
 
@@ -31,7 +31,7 @@ body {
 .ltr-connector-vertical {
   left: -22px !important;
   right: auto !important;
-}
+} */
 
 /* RTL Language Support */
 body[dir="rtl"] {
