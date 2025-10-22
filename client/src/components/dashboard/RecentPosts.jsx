@@ -472,10 +472,11 @@ const RecentPosts = ({ _id, categoryname, exactLocation, image, createdAt, count
                     {/* Vertical line */}
                     <div
                       id="ltr-vertical-connector"
+                      className="ltr-connector-line"
                       style={{
                         position: 'absolute',
                         left: '0px',
-                        transform: 'translateX(-22px)',
+                        marginLeft: '-22px',
                         top: '-10px',
                         width: '1px',
                         height: '23px',

@@ -53,6 +53,35 @@ div#ltr-vertical-connector {
   position: absolute !important;
 }
 
+/* Most aggressive override - target all possible inheritance */
+div#ltr-vertical-connector[style*="transform"] {
+  left: -22px !important;
+  right: auto !important;
+  position: absolute !important;
+  transform: translateX(-22px) !important;
+}
+
+/* Nuclear option - override everything */
+#ltr-vertical-connector[style] {
+  left: -22px !important;
+  right: auto !important;
+  position: absolute !important;
+  transform: translateX(-22px) !important;
+}
+
+/* Use marginLeft approach */
+.ltr-connector-line {
+  marginLeft: -22px !important;
+  left: 0px !important;
+  right: auto !important;
+}
+
+#ltr-vertical-connector {
+  marginLeft: -22px !important;
+  left: 0px !important;
+  right: auto !important;
+}
+
 /* RTL Language Support */
 body[dir="rtl"] {
   direction: rtl;
