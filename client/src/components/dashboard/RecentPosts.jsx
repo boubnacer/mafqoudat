@@ -446,8 +446,8 @@ const RecentPosts = ({ _id, categoryname, exactLocation, image, createdAt, count
                       position: 'absolute',
                       bottom: 0,
                       left: 0,
-                      width: '8px', // Shorter horizontal line
-                      height: '2px',
+                      width: '12px', // Longer horizontal line
+                      height: '1px', // Match vertical line width
                       backgroundColor: isDarkMode ? alpha('#fff', 0.3) : alpha('#000', 0.3),
                       borderRadius: '1px',
                     }
