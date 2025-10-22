@@ -432,28 +432,54 @@ const RecentPosts = ({ _id, categoryname, exactLocation, image, createdAt, count
                 }}
               >
                 {/* L-shaped connector line */}
-                <Box
-                  sx={{
-                    position: 'absolute',
-                    left: isArabicText(exactLocation) ? '0px' : { xs: -24, sm: -22 }, // RTL: left 0px, LTR: left side
-                    right: isArabicText(exactLocation) ? { xs: -25, sm: -23 } : undefined, // RTL: right positioning, LTR: no right
-                    top: isArabicText(exactLocation) ? '-10px' : { xs: -9, sm: -10 }, // RTL: top -10px, LTR: original
-                    width: '1px',
-                    height: '23px', // Extend down to the text
-                    backgroundColor: isDarkMode ? alpha('#fff', 0.3) : alpha('#000', 0.3),
-                    borderRadius: '1px',
-                    '&::after': {
-                      content: '""',
+                {isArabicText(exactLocation) ? (
+                  // RTL Mode
+                  <Box
+                    sx={{
                       position: 'absolute',
-                      bottom: 0,
-                      left: isArabicText(exactLocation) ? '-16px' : '1px', // RTL: left -16px, LTR: left 1px
-                      width: isArabicText(exactLocation) ? '17px' : '22px', // RTL: 17px width, LTR: 22px
-                      height: '1px', // Match vertical line width
+                      left: '0px',
+                      right: { xs: -25, sm: -23 },
+                      top: '-10px',
+                      width: '1px',
+                      height: '23px',
                       backgroundColor: isDarkMode ? alpha('#fff', 0.3) : alpha('#000', 0.3),
                       borderRadius: '1px',
-                    }
-                  }}
-                />
+                      '&::after': {
+                        content: '""',
+                        position: 'absolute',
+                        bottom: 0,
+                        left: '-16px',
+                        width: '17px',
+                        height: '1px',
+                        backgroundColor: isDarkMode ? alpha('#fff', 0.3) : alpha('#000', 0.3),
+                        borderRadius: '1px',
+                      }
+                    }}
+                  />
+                ) : (
+                  // LTR Mode
+                  <Box
+                    sx={{
+                      position: 'absolute',
+                      left: { xs: -24, sm: -22 },
+                      top: { xs: -9, sm: -10 },
+                      width: '1px',
+                      height: '23px',
+                      backgroundColor: isDarkMode ? alpha('#fff', 0.3) : alpha('#000', 0.3),
+                      borderRadius: '1px',
+                      '&::after': {
+                        content: '""',
+                        position: 'absolute',
+                        bottom: 0,
+                        left: '1px',
+                        width: '22px',
+                        height: '1px',
+                        backgroundColor: isDarkMode ? alpha('#fff', 0.3) : alpha('#000', 0.3),
+                        borderRadius: '1px',
+                      }
+                    }}
+                  />
+                )}
                 <Typography
                   sx={{
                     color: isDarkMode ? alpha('#fff', 0.7) : alpha('#000', 0.6),
