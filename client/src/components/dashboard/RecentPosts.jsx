@@ -482,8 +482,8 @@ const RecentPosts = ({ _id, categoryname, exactLocation, image, createdAt, count
                     <Box
                       style={{
                         position: 'absolute',
-                        left: isMobile ? '-25px' : '1px',
-                        bottom: '4px',
+                        left: isMobile ? '-25px' : '-22px',
+                        bottom: '5px',
                         width: '22px',
                         height: '1px',
                         backgroundColor: isDarkMode ? 'rgba(255, 255, 255, 0.3)' : 'rgba(0, 0, 0, 0.3)',
