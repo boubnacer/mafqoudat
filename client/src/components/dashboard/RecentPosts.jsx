@@ -470,9 +470,10 @@ const RecentPosts = ({ _id, categoryname, exactLocation, image, createdAt, count
                   <>
                     {/* Vertical line */}
                     <Box
+                      className="ltr-connector-line"
                       sx={{
-                        position: 'absolute !important',
-                        left: '-22px !important',
+                        position: 'absolute',
+                        left: '-22px',
                         top: '-10px',
                         width: '1px',
                         height: '23px',
