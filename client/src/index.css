@@ -93,8 +93,24 @@ div#ltr-vertical-connector.ltr-connector-line {
 /* Even more nuclear - target the exact element */
 [data-testid="recent-posts"] div#ltr-vertical-connector.ltr-connector-line {
   marginLeft: -22px !important;
-  left: 0px !important;
+  left: -22px !important;
   right: auto !important;
+  transform: translateX(-22px) !important;
+}
+
+/* Nuclear option - override the computed right value */
+div#ltr-vertical-connector.ltr-connector-line {
+  right: auto !important;
+  left: -22px !important;
+  marginLeft: -22px !important;
+  transform: translateX(-22px) !important;
+}
+
+/* Maximum specificity override */
+[data-testid="recent-posts"] div#ltr-vertical-connector.ltr-connector-line[style] {
+  right: auto !important;
+  left: -22px !important;
+  marginLeft: -22px !important;
   transform: translateX(-22px) !important;
 }
 
