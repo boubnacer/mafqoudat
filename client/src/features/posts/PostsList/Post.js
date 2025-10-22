@@ -718,28 +718,30 @@ const Post = ({ post, viewMode = "grid" }) => {
                   <>
                     {/* Vertical line */}
                     <Box
-                      sx={{
+                      style={{
                         position: 'absolute',
-                        left: '0px !important',
-                        right: { xs: -25, sm: -23 },
+                        left: '0px',
+                        right: isMobile ? '-25px' : '-23px',
                         top: '-10px',
                         width: '1px',
                         height: '23px',
-                        backgroundColor: isDarkMode ? alpha('#fff', 0.3) : alpha('#000', 0.3),
+                        backgroundColor: isDarkMode ? 'rgba(255, 255, 255, 0.3)' : 'rgba(0, 0, 0, 0.3)',
                         borderRadius: '1px',
+                        zIndex: 1,
                       }}
                     />
                     {/* Horizontal line */}
                     <Box
-                      sx={{
+                      style={{
                         position: 'absolute',
                         left: '0px',
-                        right: { xs: -25, sm: -23 },
-                        bottom: { xs: '5px', sm: '4px' },
+                        right: isMobile ? '-25px' : '-23px',
+                        bottom: isMobile ? '5px' : '4px',
                         width: '17px',
                         height: '1px',
-                        backgroundColor: isDarkMode ? alpha('#fff', 0.3) : alpha('#000', 0.3),
+                        backgroundColor: isDarkMode ? 'rgba(255, 255, 255, 0.3)' : 'rgba(0, 0, 0, 0.3)',
                         borderRadius: '1px',
+                        zIndex: 1,
                       }}
                     />
                   </>
@@ -761,14 +763,15 @@ const Post = ({ post, viewMode = "grid" }) => {
                     />
                     {/* Horizontal line */}
                     <Box
-                      sx={{
+                      style={{
                         position: 'absolute',
                         left: '1px',
                         bottom: '0px',
                         width: '22px',
                         height: '1px',
-                        backgroundColor: isDarkMode ? alpha('#fff', 0.3) : alpha('#000', 0.3),
+                        backgroundColor: isDarkMode ? 'rgba(255, 255, 255, 0.3)' : 'rgba(0, 0, 0, 0.3)',
                         borderRadius: '1px',
+                        zIndex: 1,
                       }}
                     />
                   </>
