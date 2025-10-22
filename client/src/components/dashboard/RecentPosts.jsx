@@ -435,8 +435,8 @@ const RecentPosts = ({ _id, categoryname, exactLocation, image, createdAt, count
                 <Box
                   sx={{
                     position: 'absolute',
-                    left: { xs: -25, sm: -23 }, // Position to connect with icon center
-                    top:  { xs: -12, sm: -10 }, // Start right under the location icon
+                    left: { xs: -24, sm: -22 }, // Position to connect with icon center
+                    top:  { xs: -9, sm: -10 }, // Start right under the location icon
                     width: '1px',
                     height: '23px', // Extend down to the text
                     backgroundColor: isDarkMode ? alpha('#fff', 0.3) : alpha('#000', 0.3),
@@ -446,7 +446,7 @@ const RecentPosts = ({ _id, categoryname, exactLocation, image, createdAt, count
                       position: 'absolute',
                       bottom: 0,
                       left: 0,
-                      width: '12px', // Longer horizontal line
+                      width: '22px', // Longer horizontal line
                       height: '1px', // Match vertical line width
                       backgroundColor: isDarkMode ? alpha('#fff', 0.3) : alpha('#000', 0.3),
                       borderRadius: '1px',
