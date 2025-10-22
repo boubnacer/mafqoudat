@@ -28,6 +28,11 @@ body {
   position: absolute !important;
 }
 
+.ltr-connector-vertical {
+  left: -22px !important;
+  right: auto !important;
+}
+
 /* RTL Language Support */
 body[dir="rtl"] {
   direction: rtl;
