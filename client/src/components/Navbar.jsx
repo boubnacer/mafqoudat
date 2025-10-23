@@ -43,6 +43,7 @@ import {
   selectCurrentCountry,
   setMode,
   setCurrentCountry,
+  setFoundOrLost,
 } from "../app/state";
 import { useDispatch, useSelector } from "react-redux";
 import { useSendLogoutMutation } from "../features/auth/authApiSlice";
@@ -511,9 +512,9 @@ const Navbar = () => {
       title: t('all'),
       icon: <Explore sx={{ fontSize: 20 }} />,
       action: () => {
+        // Reset found/lost state to show all posts
+        dispatch(setFoundOrLost({ foundOrlost: '' }));
         navigate('/dash/posts');
-        // Reset filters to show all posts
-        // You might need to dispatch actions here to reset filters
       },
       description: t('viewAllPosts')
     },
@@ -532,6 +533,8 @@ const Navbar = () => {
         title: displayTitle,
         icon: option.code === 'FOUND' ? <Search sx={{ fontSize: 20, color: '#4CAF50' }} /> : <Search sx={{ fontSize: 20, color: '#757575' }} />,
         action: () => {
+          // Update Redux state with the found/lost status
+          dispatch(setFoundOrLost({ foundOrlost: option.code }));
           // Navigate with the correct found/lost ID filter
           navigate(`/dash/posts?fl=${option._id}`);
         },
