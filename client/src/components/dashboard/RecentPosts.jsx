@@ -501,47 +501,23 @@ const RecentPosts = ({ _id, categoryname, exactLocation, image, createdAt, count
                     />
                   </>
                 )}
-                <Box
+                <Typography
                   sx={{
-                    position: 'relative',
+                    color: isDarkMode ? alpha('#fff', 0.7) : alpha('#000', 0.6),
+                    fontSize: { xs: '14px', sm: '13px' },
+                    fontWeight: 500,
+                    lineHeight: 1.3,
+                    wordBreak: 'break-word',
+                    whiteSpace: 'nowrap',
+                    overflow: 'hidden',
+                    textOverflow: 'ellipsis',
+                    textAlign: isArabicText(exactLocation) ? 'right' : 'left',
+                    direction: isArabicText(exactLocation) ? 'rtl' : 'ltr',
                     pl: 1, // Add padding to account for connector line
-                    display: 'flex',
-                    alignItems: 'center',
-                    justifyContent: isArabicText(exactLocation) ? 'flex-end' : 'flex-start',
                   }}
                 >
-                  <Typography
-                    sx={{
-                      color: isDarkMode ? alpha('#fff', 0.7) : alpha('#000', 0.6),
-                      fontSize: { xs: '14px', sm: '13px' },
-                      fontWeight: 500,
-                      lineHeight: 1.3,
-                      wordBreak: 'break-word',
-                      whiteSpace: 'nowrap',
-                      overflow: 'hidden',
-                      textOverflow: isArabicText(exactLocation) ? 'ellipsis' : 'clip',
-                      textAlign: isArabicText(exactLocation) ? 'right' : 'left',
-                      direction: isArabicText(exactLocation) ? 'rtl' : 'ltr',
-                      maxWidth: '100%',
-                    }}
-                  >
-                    {exactLocation}
-                  </Typography>
-                  {!isArabicText(exactLocation) && (
-                    <Typography
-                      sx={{
-                        color: isDarkMode ? alpha('#fff', 0.7) : alpha('#000', 0.6),
-                        fontSize: { xs: '14px', sm: '13px' },
-                        fontWeight: 500,
-                        lineHeight: 1.3,
-                        flexShrink: 0,
-                        ml: 0.5,
-                      }}
-                    >
-                      ...
-                    </Typography>
-                  )}
-                </Box>
+                  {exactLocation}
+                </Typography>
               </Box>
             )}
           </Box>
