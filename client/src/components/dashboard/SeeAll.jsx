@@ -53,8 +53,8 @@ const SeeAll = ({ foundOrlostId, totalItems, variant = "desktop", postType = "fo
           onClick={() => hanldeSeeAllPosts({ foundOrlostId })}
           sx={{
             color: theme.palette.mode === 'dark' ? '#fff' : theme.palette.text.primary,
-            borderColor: theme.palette.mode === 'dark' ? theme.palette.primary.main : theme.palette.divider,
-            backgroundColor: theme.palette.mode === 'dark' ? 'transparent' : theme.palette.background.paper,
+            borderColor: theme.palette.mode === 'dark' ? 'rgba(255, 255, 255, 0.2)' : 'rgba(0, 0, 0, 0.1)',
+            backgroundColor: theme.palette.mode === 'dark' ? '#1a1a1a' : '#ffffff',
             borderRadius: '4px',
             px: 3,
             py: 1,
@@ -71,10 +71,10 @@ const SeeAll = ({ foundOrlostId, totalItems, variant = "desktop", postType = "fo
               color: theme.palette.mode === 'dark' ? '#fff' : 'inherit',
             },
             '&:hover': {
-              backgroundColor: theme.palette.mode === 'dark' ? 'rgba(255, 255, 255, 0.08)' : 'rgba(0, 0, 0, 0.04)',
+              backgroundColor: theme.palette.mode === 'dark' ? '#2a2a2a' : '#f8f9fa',
             },
             '&:active': {
-              backgroundColor: theme.palette.mode === 'dark' ? 'rgba(255, 255, 255, 0.12)' : 'rgba(0, 0, 0, 0.08)',
+              backgroundColor: theme.palette.mode === 'dark' ? '#3a3a3a' : '#e9ecef',
             }
           }}
         >
