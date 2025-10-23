@@ -1391,25 +1391,10 @@ if (typeof document !== 'undefined') {
                     }}
                   >
                     {getFoundLostType(values.foundLost) === 'LOST' 
-                      ? t('whereDidYouLoseItem')
-                      : t('whereDidYouFindItem')
-                    } *
-                  </FormLabel>
-                  <Typography 
-                    variant="caption" 
-                    sx={{ 
-                      mb: 1, 
-                      display: "block", 
-                      fontSize: '1rem',
-                      color: theme.palette.mode === 'dark' ? 'rgba(255,255,255,0.7)' : 'rgba(0,0,0,0.6)',
-                      fontWeight: 500
-                    }}
-                  >
-                    {getFoundLostType(values.foundLost) === 'LOST' 
                       ? t('specifyItemTypeLost')
                       : t('specifyItemTypeFound')
-                    }
-                  </Typography>
+                    } *
+                  </FormLabel>
                   <SelectOption 
                     name="category" 
                     options={categories} 
