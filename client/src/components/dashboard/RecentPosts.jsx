@@ -434,18 +434,18 @@ const RecentPosts = ({ _id, categoryname, exactLocation, image, createdAt, count
                 sx={{
                   position: 'relative',
                   ml: { xs: 5.5, sm: 5 }, // Align with city text
-                  // Remove the problematic mr logic - let the connector positioning handle the layout
+                  mr: isArabicText(exactLocation) ? { xs: 5.5, sm: 5 } : 0, // RTL support for Arabic text in exactLocation
                 }}
               >
                 {/* L-shaped connector line */}
-                {/* Use hybrid logic: RTL connector only if site is RTL AND content is Arabic */}
-                {(isRTLMode() && isArabicText(exactLocation)) ? (
-                  // RTL Mode - only when site is RTL AND content is Arabic
+                {isRTLMode() ? (
+                  // RTL Mode
                   <>
                     {/* Vertical line */}
                     <Box
                       style={{
                         position: 'absolute',
+                        // left: '0px',
                         right: isMobile ? '-25px' : '-23px',
                         top: '-10px',
                         width: '1px',
@@ -459,6 +459,7 @@ const RecentPosts = ({ _id, categoryname, exactLocation, image, createdAt, count
                     <Box
                       style={{
                         position: 'absolute',
+                        left: '0px',
                         right: isMobile ? '-25px' : '-23px',
                         bottom: isMobile ? '5px' : '4px',
                         width: '17px',
@@ -470,7 +471,7 @@ const RecentPosts = ({ _id, categoryname, exactLocation, image, createdAt, count
                     />
                   </>
                 ) : (
-                  // LTR Mode - for all other cases (LTR site OR RTL site with Latin content)
+                  // LTR Mode
                   <>
                     {/* Vertical line */}
                     <Box
