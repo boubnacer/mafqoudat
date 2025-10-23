@@ -817,70 +817,70 @@ const WelcomePage = () => {
             <Typography variant="body2" color="text.secondary" gutterBottom sx={{ fontSize: { xs: '1rem', md: '1.1rem' } }}>
               {t('alreadyHaveAccount')}
             </Typography>
-            <Button
-              variant="contained"
-              size="large"
-              startIcon={<Login />}
-              onClick={() => navigate('/login')}
-              sx={{ 
-                marginRight: (currentLanguage || langContext) === 'ar' ? '0px' : '16px',
-                marginLeft: (currentLanguage || langContext) === 'ar' ? '16px' : '0px',
-                minWidth: { xs: '140px', sm: '160px' },
-                minHeight: { xs: '48px', sm: '52px' },
-                fontSize: { xs: '1.1rem', sm: '1.2rem' },
-                fontWeight: 600,
-                borderRadius: '4px',
-                textTransform: 'none',
-                background: 'linear-gradient(45deg, #4A8BFF 30%, #1A6EEE 90%)',
-                color: 'white',
-                boxShadow: '0 3px 5px 2px rgba(26, 110, 238, .3)',
-                transition: 'all 0.3s ease',
-                '&:hover': {
-                  background: 'linear-gradient(45deg, #5A9BFF 30%, #2A7EFF 90%)',
-                  boxShadow: '0 4px 8px 2px rgba(26, 110, 238, .4)',
-                },
-                '& .MuiButton-startIcon': {
-                  marginRight: (currentLanguage || langContext) === 'ar' ? 0 : '8px',
-                  marginLeft: (currentLanguage || langContext) === 'ar' ? '8px' : 0,
-                }
-              }}
-            >
-              {t('signin')}
-            </Button>
-            <Button
-              variant="outlined"
-              size="large"
-              startIcon={<PersonAdd />}
-              onClick={() => navigate('/signup')}
-              sx={{
-                marginLeft: (currentLanguage || langContext) === 'ar' ? '0px' : '8px',
-                marginRight: (currentLanguage || langContext) === 'ar' ? '8px' : '0px',
-                minWidth: { xs: '140px', sm: '160px' },
-                minHeight: { xs: '48px', sm: '52px' },
-                fontSize: { xs: '1.1rem', sm: '1.2rem' },
-                fontWeight: 600,
-                borderRadius: '4px',
-                textTransform: 'none',
-                borderColor: '#4A8BFF',
-                color: '#4A8BFF',
-                borderWidth: '2px',
-                transition: 'all 0.3s ease',
-                '&:hover': {
-                  borderColor: '#3A7BEF',
-                  backgroundColor: alpha('#4A8BFF', 0.05),
-                  color: '#3A7BEF',
+            
+            <Box sx={{ display: 'flex', gap: 2, justifyContent: 'center', flexWrap: 'wrap' }}>
+              <Button
+                variant="contained"
+                size="large"
+                startIcon={<Login />}
+                onClick={() => navigate('/login')}
+                sx={{ 
+                  minWidth: { xs: '140px', sm: '160px' },
+                  minHeight: { xs: '48px', sm: '52px' },
+                  fontSize: { xs: '1.1rem', sm: '1.2rem' },
+                  fontWeight: 600,
+                  borderRadius: '4px',
+                  textTransform: 'none',
+                  background: 'linear-gradient(45deg, #4A8BFF 30%, #1A6EEE 90%)',
+                  color: 'white',
+                  boxShadow: '0 3px 5px 2px rgba(26, 110, 238, .3)',
+                  transition: 'all 0.3s ease',
+                  '&:hover': {
+                    background: 'linear-gradient(45deg, #5A9BFF 30%, #2A7EFF 90%)',
+                    boxShadow: '0 4px 8px 2px rgba(26, 110, 238, .4)',
+                  },
+                  '& .MuiButton-startIcon': {
+                    marginRight: (currentLanguage || langContext) === 'ar' ? 0 : '8px',
+                    marginLeft: (currentLanguage || langContext) === 'ar' ? '8px' : 0,
+                  }
+                }}
+              >
+                {t('signin')}
+              </Button>
+              
+              <Button
+                variant="outlined"
+                size="large"
+                startIcon={<PersonAdd />}
+                onClick={() => navigate('/signup')}
+                sx={{
+                  minWidth: { xs: '140px', sm: '160px' },
+                  minHeight: { xs: '48px', sm: '52px' },
+                  fontSize: { xs: '1.1rem', sm: '1.2rem' },
+                  fontWeight: 600,
+                  borderRadius: '4px',
+                  textTransform: 'none',
+                  borderColor: '#4A8BFF',
+                  color: '#4A8BFF',
                   borderWidth: '2px',
-                  transform: 'translateY(-1px)',
-                  boxShadow: `0 4px 12px ${alpha('#4A8BFF', 0.2)}`,
-                },
-                '& .MuiButton-startIcon': {
-                  marginRight: (currentLanguage || langContext) === 'ar' ? 0 : '8px',
-                  marginLeft: (currentLanguage || langContext) === 'ar' ? '8px' : 0,
-                }
-              }}
-            >
-              {t('signup')}
-            </Button>
+                  transition: 'all 0.3s ease',
+                  '&:hover': {
+                    borderColor: '#3A7BEF',
+                    backgroundColor: alpha('#4A8BFF', 0.05),
+                    color: '#3A7BEF',
+                    borderWidth: '2px',
+                    transform: 'translateY(-1px)',
+                    boxShadow: `0 4px 12px ${alpha('#4A8BFF', 0.2)}`,
+                  },
+                  '& .MuiButton-startIcon': {
+                    marginRight: (currentLanguage || langContext) === 'ar' ? 0 : '8px',
+                    marginLeft: (currentLanguage || langContext) === 'ar' ? '8px' : 0,
+                  }
+                }}
+              >
+                {t('signup')}
+              </Button>
+            </Box>
           </Box>
         </CardContent>
       </WelcomeCard>
