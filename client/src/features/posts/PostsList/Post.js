@@ -795,8 +795,8 @@ const Post = ({ post, viewMode = "grid" }) => {
                     whiteSpace: 'nowrap',
                     overflow: 'hidden',
                     textOverflow: 'ellipsis',
-                    textAlign: isArabicText(post.exactLocation) ? 'right' : 'left',
-                    direction: isArabicText(post.exactLocation) ? 'rtl' : 'ltr',
+                    textAlign: 'left',
+                    direction: 'ltr',
                     pl: 1, // Add padding to account for connector line
                     // Add margin-right for RTL mode when text is not Arabic
                     ...(isRTLMode() && !isArabicText(post.exactLocation) && {
