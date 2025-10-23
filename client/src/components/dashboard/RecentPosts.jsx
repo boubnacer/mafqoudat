@@ -522,7 +522,7 @@ const RecentPosts = ({ _id, categoryname, exactLocation, image, createdAt, count
                     ...(isRTLMode() && !isArabicText(exactLocation) && {
                       marginRight: { xs: '48px', sm: '44px' },
                       textAlign: 'left',
-                      direction: 'ltr'
+                      direction: 'ltr !important'
                     }),
                   }}
                 >
