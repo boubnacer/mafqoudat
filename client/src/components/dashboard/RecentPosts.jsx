@@ -508,19 +508,13 @@ const RecentPosts = ({ _id, categoryname, exactLocation, image, createdAt, count
                     fontWeight: 500,
                     lineHeight: 1.3,
                     wordBreak: 'break-word',
-                    // For Latin text, show the beginning and allow wrapping
-                    // For Arabic text, keep the current behavior
-                    whiteSpace: isArabicText(exactLocation) ? 'nowrap' : 'normal',
-                    overflow: isArabicText(exactLocation) ? 'hidden' : 'visible',
-                    textOverflow: isArabicText(exactLocation) ? 'ellipsis' : 'clip',
+                    // For both Latin and Arabic text, show one line with ellipsis
+                    whiteSpace: 'nowrap',
+                    overflow: 'hidden',
+                    textOverflow: 'ellipsis',
                     textAlign: isArabicText(exactLocation) ? 'right' : 'left',
                     direction: isArabicText(exactLocation) ? 'rtl' : 'ltr',
                     pl: 1, // Add padding to account for connector line
-                    // Allow multiple lines for Latin text
-                    display: isArabicText(exactLocation) ? 'block' : '-webkit-box',
-                    WebkitLineClamp: isArabicText(exactLocation) ? 1 : 2,
-                    WebkitBoxOrient: 'vertical',
-                    maxHeight: isArabicText(exactLocation) ? 'auto' : '2.6em', // 2 lines max for Latin text
                   }}
                 >
                   {exactLocation}
