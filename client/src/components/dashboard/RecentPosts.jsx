@@ -445,8 +445,8 @@ const RecentPosts = ({ _id, categoryname, exactLocation, image, createdAt, count
                     <Box
                       style={{
                         position: 'absolute',
-                        left: '0px',
-                        right: isMobile ? '-24px' : '-22px',
+                        // left: '0px',
+                        right: isMobile ? '-25px' : '-23px',
                         top: '-10px',
                         width: '1px',
                         height: '23px',
@@ -460,7 +460,7 @@ const RecentPosts = ({ _id, categoryname, exactLocation, image, createdAt, count
                       style={{
                         position: 'absolute',
                         left: '0px',
-                        right: isMobile ? '-24px' : '-22px',
+                        right: isMobile ? '-25px' : '-23px',
                         bottom: isMobile ? '5px' : '4px',
                         width: '17px',
                         height: '1px',

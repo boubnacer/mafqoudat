@@ -726,7 +726,7 @@ const Post = ({ post, viewMode = "grid" }) => {
                       style={{
                         position: 'absolute',
                         left: '0px',
-                        right: isMobile ? '-24px' : '-22px',
+                        right: isMobile ? '-25px' : '-23px',
                         top: '-10px',
                         width: '1px',
                         height: '23px',
@@ -740,7 +740,7 @@ const Post = ({ post, viewMode = "grid" }) => {
                       style={{
                         position: 'absolute',
                         left: '0px',
-                        right: isMobile ? '-24px' : '-22px',
+                        right: isMobile ? '-25px' : '-23px',
                         bottom: isMobile ? '5px' : '4px',
                         width: '17px',
                         height: '1px',
