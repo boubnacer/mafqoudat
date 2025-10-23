@@ -2059,8 +2059,8 @@ export const translations = {
     viewAllPosts: "عرض جميع المنشورات",
     viewFoundItems: "عرض العناصر التي عثر عليها",
     viewLostItems: "عرض العناصر المفقودة",
-    viewFOUNDItems: "عرض العناصر التي عثر عليها",
-    viewLOSTItems: "عرض العناصر المفقودة",
+    viewFOUNDItems: "عرض لائحة العناصر التي عثر عليها",
+    viewLOSTItems: "عرض لائحة العناصر المفقودة",
     goToDashboard: "الذهاب إلى لوحة التحكم",
     
     // Admin translations

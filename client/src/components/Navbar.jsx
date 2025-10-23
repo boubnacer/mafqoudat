@@ -517,15 +517,27 @@ const Navbar = () => {
       },
       description: t('viewAllPosts')
     },
-    ...(flOptionsData?.map(option => ({
-      title: option.label || option.code,
-      icon: option.code === 'FOUND' ? <Search sx={{ fontSize: 20, color: '#4CAF50' }} /> : <Search sx={{ fontSize: 20, color: '#757575' }} />,
-      action: () => {
-        // Navigate with the correct found/lost ID filter
-        navigate(`/dash/posts?fl=${option._id}`);
-      },
-      description: t(`view${option.code}Items`)
-    })) || [])
+    ...(flOptionsData?.map(option => {
+      // Use custom Arabic titles for Found and Lost items
+      let displayTitle = option.label || option.code;
+      if (currentLanguage === 'ar') {
+        if (option.code === 'FOUND') {
+          displayTitle = 'عثر عليها';
+        } else if (option.code === 'LOST') {
+          displayTitle = 'مفقودات';
+        }
+      }
+      
+      return {
+        title: displayTitle,
+        icon: option.code === 'FOUND' ? <Search sx={{ fontSize: 20, color: '#4CAF50' }} /> : <Search sx={{ fontSize: 20, color: '#757575' }} />,
+        action: () => {
+          // Navigate with the correct found/lost ID filter
+          navigate(`/dash/posts?fl=${option._id}`);
+        },
+        description: t(`view${option.code}Items`)
+      };
+    }) || [])
   ];
 
   // Add admin buttons if user is admin - use destructured auth state
