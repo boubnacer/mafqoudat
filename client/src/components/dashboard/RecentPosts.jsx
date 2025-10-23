@@ -513,7 +513,7 @@ const RecentPosts = ({ _id, categoryname, exactLocation, image, createdAt, count
                     textOverflow: 'ellipsis',
                     textAlign: isArabicText(exactLocation) ? 'right' : 'left',
                     direction: isArabicText(exactLocation) ? 'rtl' : 'ltr',
-                    unicodeBidi: isArabicText(exactLocation) ? 'normal' : 'bidi-override', // Force LTR for Latin text
+                    unicodeBidi: isArabicText(exactLocation) ? 'normal' : 'embed', // Force LTR for Latin text
                     pl: 1, // Add padding to account for connector line
                   }}
                 >
