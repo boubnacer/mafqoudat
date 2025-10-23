@@ -126,6 +126,17 @@ const PostsList = () => {
     return urlFilter || '';
   }, [urlFilter]);
 
+  // Memoize dynamic title based on navigation state
+  const pageTitle = useMemo(() => {
+    if (effectiveFl === 'FOUND') {
+      return t('foundItems');
+    } else if (effectiveFl === 'LOST') {
+      return t('lostItems');
+    } else {
+      return t('postsList');
+    }
+  }, [effectiveFl, t]);
+
   const { data, isLoading, isSuccess, isError, error } = useGetPostsQuery({
     page,
     pageSize,
@@ -435,16 +446,7 @@ const PostsList = () => {
                   mb: 1
                 }}
               >
-                {t('posts')}
-              </Typography>
-              <Typography 
-                variant="h6" 
-                sx={{ 
-                  color: theme.palette.textColor.secondary,
-                  fontWeight: 400
-                }}
-              >
-                {filteredPosts.length} {t('posts')} {t('found')}
+                {pageTitle}
               </Typography>
             </Box>
             <Button

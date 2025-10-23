@@ -74,6 +74,9 @@ export const translations = {
     // Dashboard translations
     dashboard: "Dashboard",
     posts: "Posts",
+    postsList: "Posts List",
+    foundItems: "Found Items",
+    lostItems: "Lost Items",
     users: "Users",
     settings: "Settings",
     all: "All",
@@ -1074,6 +1077,9 @@ export const translations = {
     // Dashboard translations
     dashboard: "Tableau de bord",
     posts: "Publications",
+    postsList: "Liste des Publications",
+    foundItems: "Objets Trouvés",
+    lostItems: "Objets Perdus",
     users: "Utilisateurs",
     settings: "Paramètres",
     all: "Tous",
@@ -2055,6 +2061,9 @@ export const translations = {
     // Dashboard translations
     dashboard: "لوحة التحكم",
     posts: "المنشورات",
+    postsList: "قائمة المنشورات",
+    foundItems: "العناصر التي عثر عليها",
+    lostItems: "العناصر المفقودة",
     users: "المستخدمون",
     settings: "الإعدادات",
     all: "الكل",
