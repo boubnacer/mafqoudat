@@ -709,7 +709,7 @@ const LoginComponent = () => {
                     }
                   }}
                 >
-                  {t('resetPassword')}
+                  {t('forgotPassword')}
                 </Button>
               </Box>
 

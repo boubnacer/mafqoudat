@@ -139,6 +139,7 @@ export const translations = {
     
     // Password Reset Request translations
     resetPassword: "Reset Password",
+    forgotPassword: "Forgot password?",
     resetPasswordDialogTitle: "Password Reset Request",
     resetPasswordMessage: "Please provide the phone number or email address you used to register on this site so we can assist you with resetting your password.",
     contactInfoLabel: "Phone Number or Email",
@@ -1138,6 +1139,7 @@ export const translations = {
     
     // Password Reset Request translations
     resetPassword: "Réinitialiser le mot de passe",
+    forgotPassword: "Mot de passe oublié ?",
     resetPasswordDialogTitle: "Demande de réinitialisation de mot de passe",
     resetPasswordMessage: "Veuillez fournir le numéro de téléphone ou l'adresse e-mail que vous avez utilisé pour vous inscrire sur ce site afin que nous puissions vous aider à réinitialiser votre mot de passe.",
     contactInfoLabel: "Numéro de téléphone ou e-mail",
@@ -2120,6 +2122,7 @@ export const translations = {
     
     // Password Reset Request translations
     resetPassword: "إعادة تعيين كلمة المرور",
+    forgotPassword: "نسيت كلمة المرور؟",
     resetPasswordDialogTitle: "طلب إعادة تعيين كلمة المرور",
     resetPasswordMessage: "يرجى تقديم رقم الهاتف أو عنوان البريد الإلكتروني الذي استخدمته للتسجيل في هذا الموقع حتى نتمكن من مساعدتك في إعادة تعيين كلمة المرور.",
     contactInfoLabel: "رقم الهاتف أو البريد الإلكتروني",
