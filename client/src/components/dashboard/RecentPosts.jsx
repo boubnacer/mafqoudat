@@ -445,8 +445,8 @@ const RecentPosts = ({ _id, categoryname, exactLocation, image, createdAt, count
                     <Box
                       style={{
                         position: 'absolute',
-                        // left: '0px',
-                        right: isMobile ? '-25px' : '-23px',
+                        left: '0px',
+                        right: isMobile ? '-24px' : '-22px',
                         top: '-10px',
                         width: '1px',
                         height: '23px',
@@ -460,7 +460,7 @@ const RecentPosts = ({ _id, categoryname, exactLocation, image, createdAt, count
                       style={{
                         position: 'absolute',
                         left: '0px',
-                        right: isMobile ? '-25px' : '-23px',
+                        right: isMobile ? '-24px' : '-22px',
                         bottom: isMobile ? '5px' : '4px',
                         width: '17px',
                         height: '1px',
@@ -477,7 +477,7 @@ const RecentPosts = ({ _id, categoryname, exactLocation, image, createdAt, count
                     <Box
                       style={{
                         position: 'absolute',
-                        left: isMobile ? '-24px' : '-22px',
+                        left: isMobile ? '-25px' : '-22px',
                         top: '-10px',
                         width: '1px',
                         height: '23px',
@@ -490,8 +490,8 @@ const RecentPosts = ({ _id, categoryname, exactLocation, image, createdAt, count
                     <Box
                       style={{
                         position: 'absolute',
-                        left: isMobile ? '-24px' : '-22px',
-                        bottom: isMobile ? '5px' :'4px',
+                        left: isMobile ? '-25px' : '1px',
+                        bottom: isMobile ? '5px' : '4px',
                         width: '22px',
                         height: '1px',
                         backgroundColor: isDarkMode ? 'rgba(255, 255, 255, 0.3)' : 'rgba(0, 0, 0, 0.3)',
