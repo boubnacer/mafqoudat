@@ -234,11 +234,12 @@ const SinglePostPage = ({
   }, [currentLanguage]);
 
   const createdDate = useMemo(() => {
-    return formatDistanceToNow(new Date(createdAt), { 
+    const timeAgo = formatDistanceToNow(new Date(createdAt), { 
       addSuffix: true,
       locale
     });
-  }, [createdAt, locale]);
+    return `${t('posted')} ${timeAgo}`;
+  }, [createdAt, locale, t]);
 
   const updatedDate = useMemo(() => {
     return formatDistanceToNow(new Date(updatedAt), { 
@@ -664,7 +665,6 @@ const SinglePostPage = ({
                 <Grid container spacing={2}>
                   <Grid item xs={12} sm={6}>
                     <Box display="flex" alignItems="center" gap={1} mb={2}>
-                      <LocationIcon sx={{ color: 'text.secondary' }} />
                       <Typography 
                         variant="body2" 
                         color="text.secondary"
