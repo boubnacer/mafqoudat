@@ -501,24 +501,29 @@ const RecentPosts = ({ _id, categoryname, exactLocation, image, createdAt, count
                     />
                   </>
                 )}
-                <Typography
+                <Box
                   sx={{
-                    color: isDarkMode ? alpha('#fff', 0.7) : alpha('#000', 0.6),
-                    fontSize: { xs: '14px', sm: '13px' },
-                    fontWeight: 500,
-                    lineHeight: 1.3,
-                    wordBreak: 'break-word',
-                    whiteSpace: 'nowrap',
-                    overflow: 'hidden',
-                    textOverflow: 'ellipsis',
-                    textAlign: isArabicText(exactLocation) ? 'right' : 'left',
                     direction: isArabicText(exactLocation) ? 'rtl' : 'ltr',
-                    unicodeBidi: isArabicText(exactLocation) ? 'normal' : 'embed', // Force LTR for Latin text
+                    unicodeBidi: 'isolate',
                     pl: 1, // Add padding to account for connector line
                   }}
                 >
-                  {exactLocation}
-                </Typography>
+                  <Typography
+                    sx={{
+                      color: isDarkMode ? alpha('#fff', 0.7) : alpha('#000', 0.6),
+                      fontSize: { xs: '14px', sm: '13px' },
+                      fontWeight: 500,
+                      lineHeight: 1.3,
+                      wordBreak: 'break-word',
+                      whiteSpace: 'nowrap',
+                      overflow: 'hidden',
+                      textOverflow: 'ellipsis',
+                      textAlign: isArabicText(exactLocation) ? 'right' : 'left',
+                    }}
+                  >
+                    {exactLocation}
+                  </Typography>
+                </Box>
               </Box>
             )}
           </Box>
