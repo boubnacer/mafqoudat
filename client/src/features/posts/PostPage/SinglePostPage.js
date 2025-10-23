@@ -583,35 +583,6 @@ const SinglePostPage = ({
                 </Box>
               )}
               
-              {/* Status Badge Overlay */}
-              <Box
-                sx={{
-                  position: 'absolute',
-                  top: 16,
-                  left: 16,
-                  zIndex: 2
-                }}
-              >
-                <Chip
-                  label={foundLostStatus.statusText}
-                  sx={{
-                    backgroundColor: alpha(
-                      foundLostStatus.statusColor === 'success' ? '#4CAF50' : 
-                      foundLostStatus.statusColor === 'error' ? '#F44336' : 
-                      '#FF9800', 0.95
-                    ),
-                    color: '#fff',
-                    fontWeight: 700,
-                    fontSize: '14px',
-                    height: 32,
-                    padding: '0 12px',
-                    '& .MuiChip-label': {
-                      color: 'white',
-                      fontWeight: 700
-                    }
-                  }}
-                />
-              </Box>
 
               {/* Category Badge Overlay */}
               <Box
@@ -909,39 +880,6 @@ const SinglePostPage = ({
                       </Typography>
                     </Box>
 
-                    {/* Location with exactLocation */}
-                    <Box display="flex" 
-                         sx={{ 
-                           flexDirection: { xs: 'row', sm: 'row' }, 
-                           gap: { xs: 1, sm: 2 },
-                           alignItems: { xs: 'center', sm: 'flex-start' }
-                         }}>
-                      <Typography 
-                        variant="body2" 
-                        color="text.secondary"
-                        sx={{ 
-                          direction: currentLanguage === 'ar' ? 'rtl' : 'ltr',
-                          fontSize: { xs: '1rem', sm: '1rem', md: '1rem' },
-                          minWidth: { xs: 'auto', sm: '120px' },
-                          fontWeight: 500,
-                          flexShrink: 0
-                        }}
-                      >
-                        {t('exactLocation')}:
-                      </Typography>
-                      <Typography 
-                        variant="body2" 
-                        fontWeight={600}
-                        sx={{ 
-                          direction: currentLanguage === 'ar' ? 'rtl' : 'ltr',
-                          color: isDarkMode ? '#ffffff' : '#1a1a1a',
-                          fontSize: { xs: '1rem', sm: '1rem', md: '1rem' },
-                          textAlign: currentLanguage === 'ar' ? 'right' : 'left'
-                        }}
-                      >
-                        {exactLocation || t('noLocationProvided')}
-                      </Typography>
-                    </Box>
 
                     {/* Exact Date (using mainDate string) */}
                     <Box display="flex" 
@@ -1021,73 +959,7 @@ const SinglePostPage = ({
                       </Box>
                     )}
 
-                    {/* Posted By with username */}
-                    <Box display="flex" 
-                         sx={{ 
-                           flexDirection: { xs: 'row', sm: 'row' }, 
-                           gap: { xs: 1, sm: 2 },
-                           alignItems: { xs: 'center', sm: 'flex-start' }
-                         }}>
-                      <Typography 
-                        variant="body2" 
-                        color="text.secondary"
-                        sx={{ 
-                          direction: currentLanguage === 'ar' ? 'rtl' : 'ltr',
-                          fontSize: { xs: '1rem', sm: '1rem', md: '1rem' },
-                          minWidth: { xs: 'auto', sm: '120px' },
-                          fontWeight: 500,
-                          flexShrink: 0
-                        }}
-                      >
-                        {t('postedBy')}:
-                      </Typography>
-                      <Typography 
-                        variant="body2" 
-                        fontWeight={600}
-                        sx={{ 
-                          direction: currentLanguage === 'ar' ? 'rtl' : 'ltr',
-                          color: isDarkMode ? '#ffffff' : '#1a1a1a',
-                          fontSize: { xs: '1rem', sm: '1rem', md: '1rem' },
-                          textAlign: currentLanguage === 'ar' ? 'right' : 'left'
-                        }}
-                      >
-                        {username || t('anonymous')}
-                      </Typography>
-                    </Box>
 
-                    {/* Created date */}
-                    <Box display="flex" 
-                         sx={{ 
-                           flexDirection: { xs: 'row', sm: 'row' }, 
-                           gap: { xs: 1, sm: 2 },
-                           alignItems: { xs: 'center', sm: 'flex-start' }
-                         }}>
-                      <Typography 
-                        variant="body2" 
-                        color="text.secondary"
-                        sx={{ 
-                          direction: currentLanguage === 'ar' ? 'rtl' : 'ltr',
-                          fontSize: { xs: '1rem', sm: '1rem', md: '1rem' },
-                          minWidth: { xs: 'auto', sm: '120px' },
-                          fontWeight: 500,
-                          flexShrink: 0
-                        }}
-                      >
-                        {t('created')}:
-                      </Typography>
-                      <Typography 
-                        variant="body2" 
-                        fontWeight={600}
-                        sx={{ 
-                          direction: currentLanguage === 'ar' ? 'rtl' : 'ltr',
-                          color: isDarkMode ? '#ffffff' : '#1a1a1a',
-                          fontSize: { xs: '1rem', sm: '1rem', md: '1rem' },
-                          textAlign: currentLanguage === 'ar' ? 'right' : 'left'
-                        }}
-                      >
-                        {createdDate}
-                      </Typography>
-                    </Box>
 
                     {/* Views */}
                     {views !== undefined && (
