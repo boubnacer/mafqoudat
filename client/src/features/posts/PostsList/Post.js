@@ -802,7 +802,7 @@ const Post = ({ post, viewMode = "grid" }) => {
                     ...(isRTLMode() && !isArabicText(post.exactLocation) && {
                       marginRight: { xs: '48px', sm: '44px' },
                       textAlign: 'left',
-                      direction: 'ltr'
+                      direction: 'ltr !important'
                     }),
                   }}
                 >
