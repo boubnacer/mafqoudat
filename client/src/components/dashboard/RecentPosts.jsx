@@ -446,7 +446,9 @@ const RecentPosts = ({ _id, categoryname, exactLocation, image, createdAt, count
                       style={{
                         position: 'absolute',
                         // left: '0px',
-                        right: isMobile ? '-25px' : '-23px',
+                        right: !isArabicText(exactLocation) 
+                          ? (isMobile ? '19px' : '17px')
+                          : (isMobile ? '-25px' : '-23px'),
                         top: '-10px',
                         width: '1px',
                         height: '23px',
