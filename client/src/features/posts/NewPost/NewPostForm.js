@@ -936,6 +936,61 @@ const NewPostForm = ({ user, countries, categories, flOptions }) => {
 
                 <Box>
                   <FormLabel 
+                    htmlFor="category" 
+                    sx={{ 
+                      mb: 1, 
+                      display: "block", 
+                      fontWeight: 600, 
+                      fontSize: '1.15rem',
+                      color: theme.palette.text.primary
+                    }}
+                  >
+                    {getFoundLostType(values.foundLost) === 'LOST' 
+                      ? t('whereDidYouLoseItem')
+                      : t('whereDidYouFindItem')
+                    } *
+                  </FormLabel>
+                  <Typography 
+                    variant="caption" 
+                    sx={{ 
+                      mb: 1, 
+                      display: "block", 
+                      fontSize: '1rem',
+                      color: theme.palette.mode === 'dark' ? 'rgba(255,255,255,0.7)' : 'rgba(0,0,0,0.6)',
+                      fontWeight: 500
+                    }}
+                  >
+                    {getFoundLostType(values.foundLost) === 'LOST' 
+                      ? t('specifyItemTypeLost')
+                      : t('specifyItemTypeFound')
+                    }
+                  </Typography>
+                  <SelectOption 
+                    name="category" 
+                    options={categories} 
+                    data-testid="category"
+                    error={!!fieldErrors.category}
+                    helperText={fieldErrors.category}
+                    onErrorClear={clearFieldError}
+                  />
+                </Box>
+
+                {/* Location Section */}
+                <Typography 
+                  variant="h5" 
+                  sx={{ 
+                    fontWeight: 700, 
+                    color: theme.palette.mode === 'dark' ? '#4CAF50' : '#2E7D32',
+                    fontSize: '1.4rem',
+                    mb: 1,
+                    textShadow: theme.palette.mode === 'dark' ? '0 1px 2px rgba(0,0,0,0.3)' : '0 1px 2px rgba(0,0,0,0.1)'
+                  }}
+                >
+                  {t('location')}
+                </Typography>
+
+                <Box>
+                  <FormLabel 
                     htmlFor="country" 
                     sx={{ 
                       mb: 1, 
@@ -1020,44 +1075,6 @@ const NewPostForm = ({ user, countries, categories, flOptions }) => {
                     )}
                   </FormControl>
                 </Box>
-
-                <Box>
-                  <FormLabel 
-                    htmlFor="category" 
-                    sx={{ 
-                      mb: 1, 
-                      display: "block", 
-                      fontWeight: 600, 
-                      fontSize: '1.15rem',
-                      color: theme.palette.text.primary
-                    }}
-                  >
-                    {t('category')} *
-                  </FormLabel>
-                  <SelectOption 
-                    name="category" 
-                    options={categories} 
-                    data-testid="category"
-                    error={!!fieldErrors.category}
-                    helperText={fieldErrors.category}
-                    onErrorClear={clearFieldError}
-                  />
-                </Box>
-
-                {/* Location Section */}
-                <Typography 
-                  variant="h5" 
-                  sx={{ 
-                    fontWeight: 700, 
-                    color: theme.palette.mode === 'dark' ? '#4CAF50' : '#2E7D32',
-                    fontSize: '1.4rem',
-                    mb: 1,
-                    textShadow: theme.palette.mode === 'dark' ? '0 1px 2px rgba(0,0,0,0.3)' : '0 1px 2px rgba(0,0,0,0.1)'
-                  }}
-                >
-                  {t('location')}
-                </Typography>
-
 
                 <Box>
                   <FormLabel 
