@@ -508,19 +508,12 @@ const RecentPosts = ({ _id, categoryname, exactLocation, image, createdAt, count
                     fontWeight: 500,
                     lineHeight: 1.3,
                     wordBreak: 'break-word',
-                    // For both Latin and Arabic text, show one line with ellipsis
                     whiteSpace: 'nowrap',
                     overflow: 'hidden',
                     textOverflow: 'ellipsis',
                     textAlign: isArabicText(exactLocation) ? 'right' : 'left',
                     direction: isArabicText(exactLocation) ? 'rtl' : 'ltr',
                     pl: 1, // Add padding to account for connector line
-                    // Fix RTL ellipsis behavior to show beginning of text
-                    ...(isArabicText(exactLocation) && {
-                      textAlign: 'left', // Force left alignment for RTL text to show beginning
-                      direction: 'ltr', // Force LTR direction for proper ellipsis behavior
-                      unicodeBidi: 'bidi-override', // Override bidirectional text behavior
-                    }),
                   }}
                 >
                   {exactLocation}
