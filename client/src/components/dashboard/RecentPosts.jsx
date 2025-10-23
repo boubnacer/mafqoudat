@@ -501,29 +501,30 @@ const RecentPosts = ({ _id, categoryname, exactLocation, image, createdAt, count
                     />
                   </>
                 )}
-                <Box
+                <Typography
                   sx={{
+                    color: isDarkMode ? alpha('#fff', 0.7) : alpha('#000', 0.6),
+                    fontSize: { xs: '14px', sm: '13px' },
+                    fontWeight: 500,
+                    lineHeight: 1.3,
+                    wordBreak: 'break-word',
+                    whiteSpace: 'nowrap',
+                    overflow: 'hidden',
+                    textOverflow: isArabicText(exactLocation) ? 'ellipsis' : 'clip',
+                    textAlign: isArabicText(exactLocation) ? 'right' : 'left',
                     direction: isArabicText(exactLocation) ? 'rtl' : 'ltr',
-                    unicodeBidi: 'isolate',
                     pl: 1, // Add padding to account for connector line
+                    '&::after': !isArabicText(exactLocation) ? {
+                      content: '"..."',
+                      position: 'absolute',
+                      right: '8px',
+                      backgroundColor: isDarkMode ? '#3A3A3A' : '#E9ECEF',
+                      paddingLeft: '4px',
+                    } : {},
                   }}
                 >
-                  <Typography
-                    sx={{
-                      color: isDarkMode ? alpha('#fff', 0.7) : alpha('#000', 0.6),
-                      fontSize: { xs: '14px', sm: '13px' },
-                      fontWeight: 500,
-                      lineHeight: 1.3,
-                      wordBreak: 'break-word',
-                      whiteSpace: 'nowrap',
-                      overflow: 'hidden',
-                      textOverflow: 'ellipsis',
-                      textAlign: isArabicText(exactLocation) ? 'right' : 'left',
-                    }}
-                  >
-                    {exactLocation}
-                  </Typography>
-                </Box>
+                  {exactLocation}
+                </Typography>
               </Box>
             )}
           </Box>
