@@ -512,7 +512,7 @@ const RecentPosts = ({ _id, categoryname, exactLocation, image, createdAt, count
                     overflow: 'hidden',
                     textOverflow: 'ellipsis',
                     textAlign: (isRTLMode() || isArabicText(exactLocation)) ? 'right' : 'left',
-                    direction: isArabicText(exactLocation) ? 'rtl' : 'ltr',
+                    direction: (isRTLMode() || isArabicText(exactLocation)) ? 'rtl' : 'ltr',
                     pl: 1, // Add padding to account for connector line
                   }}
                 >
