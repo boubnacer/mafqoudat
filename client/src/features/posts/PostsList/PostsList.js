@@ -128,14 +128,14 @@ const PostsList = () => {
 
   // Memoize dynamic title based on navigation state
   const pageTitle = useMemo(() => {
-    if (effectiveFl === 'FOUND') {
+    if (foundOrlost === 'FOUND') {
       return t('foundItems');
-    } else if (effectiveFl === 'LOST') {
+    } else if (foundOrlost === 'LOST') {
       return t('lostItems');
     } else {
       return t('postsList');
     }
-  }, [effectiveFl, t]);
+  }, [foundOrlost, t]);
 
   const { data, isLoading, isSuccess, isError, error } = useGetPostsQuery({
     page,
