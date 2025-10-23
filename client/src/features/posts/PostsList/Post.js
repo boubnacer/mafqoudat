@@ -795,12 +795,14 @@ const Post = ({ post, viewMode = "grid" }) => {
                     whiteSpace: 'nowrap',
                     overflow: 'hidden',
                     textOverflow: 'ellipsis',
-                    textAlign: 'left',
-                    direction: 'ltr',
+                    textAlign: isArabicText(post.exactLocation) ? 'right' : 'left',
+                    direction: isArabicText(post.exactLocation) ? 'rtl' : 'ltr',
                     pl: 1, // Add padding to account for connector line
-                    // Add margin-right for RTL mode when text is not Arabic
+                    // Add margin-right and force LTR direction for RTL mode when text is not Arabic
                     ...(isRTLMode() && !isArabicText(post.exactLocation) && {
-                      marginRight: { xs: '48px', sm: '44px' }
+                      marginRight: { xs: '48px', sm: '44px' },
+                      textAlign: 'left',
+                      direction: 'ltr'
                     }),
                   }}
                 >
