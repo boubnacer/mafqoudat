@@ -434,7 +434,7 @@ const RecentPosts = ({ _id, categoryname, exactLocation, image, createdAt, count
                 sx={{
                   position: 'relative',
                   ml: { xs: 5.5, sm: 5 }, // Align with city text
-                  mr: isArabicText(exactLocation) ? { xs: 5.5, sm: 5 } : 0, // RTL support for Arabic text in exactLocation
+                  mr: (isRTLMode() && isArabicText(exactLocation)) ? { xs: 5.5, sm: 5 } : 0, // RTL support only for Arabic text in RTL mode
                 }}
               >
                 {/* L-shaped connector line */}
