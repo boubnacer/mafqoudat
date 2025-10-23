@@ -726,7 +726,9 @@ const Post = ({ post, viewMode = "grid" }) => {
                       style={{
                         position: 'absolute',
                         left: '0px',
-                        right: isMobile ? '-25px' : '-23px',
+                        right: !isArabicText(post.exactLocation) 
+                          ? (isMobile ? '19px' : '17px')
+                          : (isMobile ? '-25px' : '-23px'),
                         top: '-10px',
                         width: '1px',
                         height: '23px',
@@ -740,7 +742,9 @@ const Post = ({ post, viewMode = "grid" }) => {
                       style={{
                         position: 'absolute',
                         left: '0px',
-                        right: isMobile ? '-25px' : '-23px',
+                        right: !isArabicText(post.exactLocation) 
+                          ? (isMobile ? '19px' : '17px')
+                          : (isMobile ? '-25px' : '-23px'),
                         bottom: isMobile ? '5px' : '4px',
                         width: '17px',
                         height: '1px',
@@ -794,6 +798,10 @@ const Post = ({ post, viewMode = "grid" }) => {
                     textAlign: isArabicText(post.exactLocation) ? 'right' : 'left',
                     direction: isArabicText(post.exactLocation) ? 'rtl' : 'ltr',
                     pl: 1, // Add padding to account for connector line
+                    // Add margin-right for RTL mode when text is not Arabic
+                    ...(isRTLMode() && !isArabicText(post.exactLocation) && {
+                      marginRight: { xs: '48px', sm: '44px' }
+                    }),
                   }}
                 >
                   {post.exactLocation}
