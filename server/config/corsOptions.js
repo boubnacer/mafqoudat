@@ -2,15 +2,23 @@ const allowedOrigins = require('./allowedOrigins')
 
 const corsOptions = {
     origin: (origin, callback) => {
+        console.log('CORS: Checking origin:', origin);
+        console.log('CORS: Allowed origins:', allowedOrigins);
+        
         // Allow requests with no origin (mobile apps, curl, etc.)
-        if (!origin) return callback(null, true);
+        if (!origin) {
+            console.log('CORS: No origin provided, allowing');
+            return callback(null, true);
+        }
         
         // Check if origin is in allowed list
         if (allowedOrigins.indexOf(origin) !== -1) {
+            console.log('CORS: Origin allowed:', origin);
             callback(null, true);
         } else {
             // Log unauthorized CORS attempts
             console.warn(`CORS: Unauthorized origin attempt: ${origin}`);
+            console.warn(`CORS: Allowed origins: ${allowedOrigins.join(', ')}`);
             callback(new Error('Not allowed by CORS policy'));
         }
     },

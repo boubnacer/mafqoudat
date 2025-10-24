@@ -6,6 +6,13 @@ const { logger } = require("../middleware/logger");
 // @access  Public
 const submitContactForm = async (req, res) => {
   try {
+    console.log('Contact form submission received:', {
+      body: req.body,
+      headers: req.headers,
+      ip: req.ip,
+      timestamp: new Date().toISOString()
+    });
+
     const { name, email, subject, message } = req.body;
 
     // Basic validation
