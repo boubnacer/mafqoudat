@@ -200,7 +200,10 @@ const HelpSupportSection = () => {
           <Button
             variant="contained"
             startIcon={<ContactMail />}
-            onClick={() => setShowHelpDialog(true)}
+            onClick={() => {
+              console.log('Get Help button clicked!');
+              setShowHelpDialog(true);
+            }}
             sx={{
               background: "linear-gradient(45deg, #2196F3 30%, #21CBF3 90%)",
               boxShadow: "0 3px 5px 2px rgba(33, 203, 243, .3)",
@@ -436,7 +439,10 @@ const HelpSupportSection = () => {
       {/* Help Dialog */}
       <Dialog
         open={showHelpDialog}
-        onClose={() => setShowHelpDialog(false)}
+        onClose={() => {
+          console.log('Dialog closing');
+          setShowHelpDialog(false);
+        }}
         maxWidth="md"
         fullWidth
       >
@@ -445,7 +451,10 @@ const HelpSupportSection = () => {
         </DialogTitle>
         <DialogContent>
           <Box sx={{ mt: 2 }}>
-            <Tabs value={helpTab} onChange={(e, newValue) => setHelpTab(newValue)}>
+            <Tabs value={helpTab} onChange={(e, newValue) => {
+              console.log('Tab changed to:', newValue);
+              setHelpTab(newValue);
+            }}>
               <Tab label={t('contactSupport')} />
               <Tab label={t('liveChat')} />
               <Tab label={t('videoTutorials')} />
@@ -454,6 +463,7 @@ const HelpSupportSection = () => {
             <Box sx={{ mt: 2 }}>
               {helpTab === 0 && (
                 <Box>
+                  {console.log('Rendering contact form tab')}
                   <Typography variant="h6" gutterBottom sx={{ direction: isRTLMode ? 'rtl' : 'ltr' }}>
                     {t('contactOurSupportTeam')}
                   </Typography>
