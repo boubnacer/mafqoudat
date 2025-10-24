@@ -546,6 +546,12 @@ const Navbar = () => {
       icon: <PostAdd sx={{ fontSize: 20, color: theme.palette.primary.main }} />,
       action: () => navigate('/blog'),
       description: t('blogSubtitle')
+    },
+    {
+      title: t('helpCenter'),
+      icon: <Build sx={{ fontSize: 20, color: theme.palette.primary.main }} />,
+      action: () => navigate('/help'),
+      description: t('helpCenterSubtitle')
     }
   ];
 

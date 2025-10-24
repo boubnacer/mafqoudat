@@ -1138,7 +1138,85 @@ export const translations = {
 
     blogPost10Title: "Mobile App Features: Lost and Found on the Go",
     blogPost10Excerpt: "Discover the convenience of managing lost and found items through our mobile application.",
-    blogPost10Content: "Our mobile app brings the power of our platform to your fingertips. Post lost or found items instantly with your phone's camera. Receive real-time notifications when someone responds to your post. Use GPS to automatically tag your location when posting. Search nearby areas with our location-based filters. Access your post history and manage multiple items easily. Share posts directly to social media to increase visibility. The app works offline for basic functions and syncs when you're back online. With push notifications, you'll never miss an important update about your lost or found items."
+    blogPost10Content: "Our mobile app brings the power of our platform to your fingertips. Post lost or found items instantly with your phone's camera. Receive real-time notifications when someone responds to your post. Use GPS to automatically tag your location when posting. Search nearby areas with our location-based filters. Access your post history and manage multiple items easily. Share posts directly to social media to increase visibility. The app works offline for basic functions and syncs when you're back online. With push notifications, you'll never miss an important update about your lost or found items.",
+
+    // Help Center translations
+    helpCenter: "Help Center",
+    helpCenterSubtitle: "We're here to help",
+    helpCenterDescription: "Find answers to your questions, learn how to use the platform, and get the support you need.",
+    searchHelp: "Search help center...",
+    popularTopics: "Popular Topics",
+    frequentlyAskedQuestions: "Frequently Asked Questions",
+    stillNeedHelp: "Still need help?",
+    
+    // FAQ Categories
+    gettingStarted: "Getting Started",
+    reportingItems: "Reporting Items",
+    safetySecurity: "Safety & Security",
+    accountSettings: "Account Settings",
+    
+    // FAQ Questions and Answers
+    faq1Question: "How can I create a new account?",
+    faq1Answer: "To create a new account, click on the 'Sign In' button at the top of the page, then choose 'Create New Account'. You'll need to enter your name, email address, and a secure password. After verifying your email, you'll be able to use all platform features.",
+    
+    faq2Question: "How can I change the platform language?",
+    faq2Answer: "You can change the language by clicking on the language icon in the top navigation bar. We support Arabic, English, and French. Your choice will be automatically saved for future visits.",
+    
+    faq3Question: "Can I use the platform without an account?",
+    faq3Answer: "You can browse posts and search for items without an account, but to create new posts or communicate with other users, you'll need to create a free account.",
+    
+    faq4Question: "How can I report a lost item?",
+    faq4Answer: "Click on the 'Add New Post' button on the homepage, select 'Lost', then fill out the form with the required information including description, location, and photos if possible. The more detailed the information, the better your chances of finding your item.",
+    
+    faq5Question: "How can I report an item I found?",
+    faq5Answer: "Click on the 'Add New Post' button, select 'Found', then fill out the form with details. Make sure to describe the item accurately and include clear photos. This helps owners of lost items identify their belongings.",
+    
+    faq6Question: "Can I edit or delete my post?",
+    faq6Answer: "Yes, you can edit or delete your posts by going to your profile page and clicking on 'My Posts'. You can modify details or delete the post if you no longer need it.",
+    
+    faq7Question: "How do I ensure my safety when meeting someone to retrieve an item?",
+    faq7Answer: "We strongly recommend meeting people in public, well-lit places, bringing a friend or family member, and informing someone else about your meeting. Don't share sensitive personal information and trust your instincts.",
+    
+    faq8Question: "What should I do if I encounter suspicious behavior?",
+    faq8Answer: "If you encounter any suspicious or inappropriate behavior, please report it immediately by clicking the 'Report' button on the post or profile. Our team will review the report and take appropriate action.",
+    
+    faq9Question: "Does the platform share my personal information?",
+    faq9Answer: "We protect your privacy and do not share your personal information with third parties without your consent. Please review our privacy policy for complete details on how we collect and use your data.",
+    
+    faq10Question: "How can I change my password?",
+    faq10Answer: "Go to your profile page, click on 'Settings', then choose 'Change Password'. You'll need to enter your current password and then your new password. Make sure to use a strong and unique password.",
+    
+    faq11Question: "How can I update my profile information?",
+    faq11Answer: "You can update your profile information by going to your profile page and clicking on 'Edit Profile'. You can change your name, photo, and contact information.",
+    
+    faq12Question: "Can I delete my account?",
+    faq12Answer: "Yes, you can delete your account by going to Settings and choosing 'Delete Account'. Please note that this action cannot be undone and all your data will be permanently deleted.",
+    
+    // Help Topics
+    howToReportLost: "How to Report Lost Items",
+    howToReportLostDesc: "Learn the detailed steps to report a lost item and increase your chances of finding it.",
+    howToReportFound: "How to Report Found Items",
+    howToReportFoundDesc: "Discover how to report an item you found and help its owners locate it.",
+    safetyGuidelines: "Safety Guidelines",
+    safetyGuidelinesDesc: "Important tips to ensure your safety when meeting people to retrieve items.",
+    photoTips: "Photo Tips",
+    photoTipsDesc: "Learn how to take effective photos to increase your chances of finding your lost items.",
+    
+    // Categories
+    tutorials: "Tutorials",
+    safety: "Safety",
+    tips: "Tips",
+    
+    // Contact Options
+    liveChat: "Live Chat",
+    liveChatDesc: "Chat with our support team in real-time",
+    emailSupport: "Email Support",
+    emailSupportDesc: "Send us an email and we'll respond within 24 hours",
+    phoneSupport: "Phone Support",
+    phoneSupportDesc: "Call us for immediate assistance",
+    startChat: "Start Chat",
+    sendEmail: "Send Email",
+    callNow: "Call Now"
   },
   fr: {
     // Post-related translations
@@ -2256,7 +2334,85 @@ export const translations = {
 
     blogPost10Title: "Fonctionnalités de l'Application Mobile : Objets Perdus et Trouvés en Déplacement",
     blogPost10Excerpt: "Découvrez la commodité de gérer les objets perdus et trouvés grâce à notre application mobile.",
-    blogPost10Content: "Notre application mobile apporte la puissance de notre plateforme au bout de vos doigts. Publiez des objets perdus ou trouvés instantanément avec l'appareil photo de votre téléphone. Recevez des notifications en temps réel quand quelqu'un répond à votre publication. Utilisez le GPS pour marquer automatiquement votre localisation lors de la publication. Recherchez dans les zones proches avec nos filtres basés sur la localisation. Accédez à votre historique de publications et gérez facilement plusieurs objets. Partagez des publications directement sur les réseaux sociaux pour augmenter la visibilité. L'application fonctionne hors ligne pour les fonctions de base et se synchronise quand vous êtes de nouveau en ligne. Avec les notifications push, vous ne manquerez jamais une mise à jour importante sur vos objets perdus ou trouvés."
+    blogPost10Content: "Notre application mobile apporte la puissance de notre plateforme au bout de vos doigts. Publiez des objets perdus ou trouvés instantanément avec l'appareil photo de votre téléphone. Recevez des notifications en temps réel quand quelqu'un répond à votre publication. Utilisez le GPS pour marquer automatiquement votre localisation lors de la publication. Recherchez dans les zones proches avec nos filtres basés sur la localisation. Accédez à votre historique de publications et gérez facilement plusieurs objets. Partagez des publications directement sur les réseaux sociaux pour augmenter la visibilité. L'application fonctionne hors ligne pour les fonctions de base et se synchronise quand vous êtes de nouveau en ligne. Avec les notifications push, vous ne manquerez jamais une mise à jour importante sur vos objets perdus ou trouvés.",
+
+    // Help Center translations
+    helpCenter: "Centre d'Aide",
+    helpCenterSubtitle: "Nous sommes là pour vous aider",
+    helpCenterDescription: "Trouvez des réponses à vos questions, apprenez à utiliser la plateforme et obtenez le support dont vous avez besoin.",
+    searchHelp: "Rechercher dans le centre d'aide...",
+    popularTopics: "Sujets Populaires",
+    frequentlyAskedQuestions: "Questions Fréquemment Posées",
+    stillNeedHelp: "Vous avez encore besoin d'aide ?",
+    
+    // FAQ Categories
+    gettingStarted: "Commencer",
+    reportingItems: "Signaler des Objets",
+    safetySecurity: "Sécurité et Protection",
+    accountSettings: "Paramètres du Compte",
+    
+    // FAQ Questions and Answers
+    faq1Question: "Comment puis-je créer un nouveau compte ?",
+    faq1Answer: "Pour créer un nouveau compte, cliquez sur le bouton 'Se connecter' en haut de la page, puis choisissez 'Créer un nouveau compte'. Vous devrez entrer votre nom, adresse e-mail et un mot de passe sécurisé. Après avoir vérifié votre e-mail, vous pourrez utiliser toutes les fonctionnalités de la plateforme.",
+    
+    faq2Question: "Comment puis-je changer la langue de la plateforme ?",
+    faq2Answer: "Vous pouvez changer la langue en cliquant sur l'icône de langue dans la barre de navigation supérieure. Nous supportons l'arabe, l'anglais et le français. Votre choix sera automatiquement sauvegardé pour vos futures visites.",
+    
+    faq3Question: "Puis-je utiliser la plateforme sans compte ?",
+    faq3Answer: "Vous pouvez parcourir les publications et rechercher des objets sans compte, mais pour créer de nouvelles publications ou communiquer avec d'autres utilisateurs, vous devrez créer un compte gratuit.",
+    
+    faq4Question: "Comment puis-je signaler un objet perdu ?",
+    faq4Answer: "Cliquez sur le bouton 'Ajouter une nouvelle publication' sur la page d'accueil, sélectionnez 'Perdu', puis remplissez le formulaire avec les informations requises, y compris la description, l'emplacement et les photos si possible. Plus les informations sont détaillées, meilleures sont vos chances de retrouver votre objet.",
+    
+    faq5Question: "Comment puis-je signaler un objet que j'ai trouvé ?",
+    faq5Answer: "Cliquez sur le bouton 'Ajouter une nouvelle publication', sélectionnez 'Trouvé', puis remplissez le formulaire avec les détails. Assurez-vous de décrire l'objet avec précision et d'inclure des photos claires. Cela aide les propriétaires d'objets perdus à identifier leurs biens.",
+    
+    faq6Question: "Puis-je modifier ou supprimer ma publication ?",
+    faq6Answer: "Oui, vous pouvez modifier ou supprimer vos publications en allant sur votre page de profil et en cliquant sur 'Mes Publications'. Vous pouvez modifier les détails ou supprimer la publication si vous n'en avez plus besoin.",
+    
+    faq7Question: "Comment puis-je assurer ma sécurité lors de la rencontre avec quelqu'un pour récupérer un objet ?",
+    faq7Answer: "Nous recommandons fortement de rencontrer les gens dans des endroits publics et bien éclairés, d'amener un ami ou un membre de la famille, et d'informer quelqu'un d'autre de votre rendez-vous. Ne partagez pas d'informations personnelles sensibles et faites confiance à vos instincts.",
+    
+    faq8Question: "Que dois-je faire si je rencontre un comportement suspect ?",
+    faq8Answer: "Si vous rencontrez un comportement suspect ou inapproprié, veuillez le signaler immédiatement en cliquant sur le bouton 'Signaler' sur la publication ou le profil. Notre équipe examinera le signalement et prendra les mesures appropriées.",
+    
+    faq9Question: "La plateforme partage-t-elle mes informations personnelles ?",
+    faq9Answer: "Nous protégeons votre vie privée et ne partageons pas vos informations personnelles avec des tiers sans votre consentement. Veuillez consulter notre politique de confidentialité pour des détails complets sur la façon dont nous collectons et utilisons vos données.",
+    
+    faq10Question: "Comment puis-je changer mon mot de passe ?",
+    faq10Answer: "Allez sur votre page de profil, cliquez sur 'Paramètres', puis choisissez 'Changer le mot de passe'. Vous devrez entrer votre mot de passe actuel puis votre nouveau mot de passe. Assurez-vous d'utiliser un mot de passe fort et unique.",
+    
+    faq11Question: "Comment puis-je mettre à jour les informations de mon profil ?",
+    faq11Answer: "Vous pouvez mettre à jour les informations de votre profil en allant sur votre page de profil et en cliquant sur 'Modifier le profil'. Vous pouvez changer votre nom, photo et informations de contact.",
+    
+    faq12Question: "Puis-je supprimer mon compte ?",
+    faq12Answer: "Oui, vous pouvez supprimer votre compte en allant dans Paramètres et en choisissant 'Supprimer le compte'. Veuillez noter que cette action ne peut pas être annulée et toutes vos données seront définitivement supprimées.",
+    
+    // Help Topics
+    howToReportLost: "Comment Signaler des Objets Perdus",
+    howToReportLostDesc: "Apprenez les étapes détaillées pour signaler un objet perdu et augmenter vos chances de le retrouver.",
+    howToReportFound: "Comment Signaler des Objets Trouvés",
+    howToReportFoundDesc: "Découvrez comment signaler un objet que vous avez trouvé et aider ses propriétaires à le localiser.",
+    safetyGuidelines: "Directives de Sécurité",
+    safetyGuidelinesDesc: "Conseils importants pour assurer votre sécurité lors de rencontres avec des personnes pour récupérer des objets.",
+    photoTips: "Conseils Photo",
+    photoTipsDesc: "Apprenez comment prendre des photos efficaces pour augmenter vos chances de retrouver vos objets perdus.",
+    
+    // Categories
+    tutorials: "Tutoriels",
+    safety: "Sécurité",
+    tips: "Conseils",
+    
+    // Contact Options
+    liveChat: "Chat en Direct",
+    liveChatDesc: "Discutez avec notre équipe de support en temps réel",
+    emailSupport: "Support par E-mail",
+    emailSupportDesc: "Envoyez-nous un e-mail et nous répondrons dans les 24 heures",
+    phoneSupport: "Support Téléphonique",
+    phoneSupportDesc: "Appelez-nous pour une assistance immédiate",
+    startChat: "Commencer le Chat",
+    sendEmail: "Envoyer un E-mail",
+    callNow: "Appeler Maintenant"
   },
   ar: {
     // Post-related translations
@@ -3358,7 +3514,85 @@ export const translations = {
 
     blogPost10Title: "ميزات التطبيق المحمول: الأشياء المفقودة والموجودة أثناء التنقل",
     blogPost10Excerpt: "اكتشف راحة إدارة الأشياء المفقودة والموجودة من خلال تطبيقنا المحمول.",
-    blogPost10Content: "يأتي تطبيقنا المحمول بقوة منصتنا إلى أطراف أصابعك. انشر الأشياء المفقودة أو الموجودة فوراً بكاميرا هاتفك. استقبل إشعارات في الوقت الفعلي عندما يرد شخص على منشورك. استخدم GPS لوضع علامة تلقائية على موقعك عند النشر. ابحث في المناطق القريبة مع مرشحاتنا القائمة على الموقع. الوصول إلى تاريخ منشوراتك وإدارة عناصر متعددة بسهولة. شارك المنشورات مباشرة على وسائل التواصل الاجتماعي لزيادة الرؤية. يعمل التطبيق دون اتصال للوظائف الأساسية ويتزامن عندما تعود متصلاً. مع الإشعارات الفورية، لن تفوت أبداً تحديثاً مهماً حول أشياءك المفقودة أو الموجودة."
+    blogPost10Content: "يأتي تطبيقنا المحمول بقوة منصتنا إلى أطراف أصابعك. انشر الأشياء المفقودة أو الموجودة فوراً بكاميرا هاتفك. استقبل إشعارات في الوقت الفعلي عندما يرد شخص على منشورك. استخدم GPS لوضع علامة تلقائية على موقعك عند النشر. ابحث في المناطق القريبة مع مرشحاتنا القائمة على الموقع. الوصول إلى تاريخ منشوراتك وإدارة عناصر متعددة بسهولة. شارك المنشورات مباشرة على وسائل التواصل الاجتماعي لزيادة الرؤية. يعمل التطبيق دون اتصال للوظائف الأساسية ويتزامن عندما تعود متصلاً. مع الإشعارات الفورية، لن تفوت أبداً تحديثاً مهماً حول أشياءك المفقودة أو الموجودة.",
+
+    // Help Center translations
+    helpCenter: "مركز المساعدة",
+    helpCenterSubtitle: "نحن هنا لمساعدتك",
+    helpCenterDescription: "ابحث عن إجابات لأسئلتك، تعلم كيفية استخدام المنصة، واحصل على الدعم الذي تحتاجه.",
+    searchHelp: "ابحث في مركز المساعدة...",
+    popularTopics: "المواضيع الشائعة",
+    frequentlyAskedQuestions: "الأسئلة الشائعة",
+    stillNeedHelp: "ما زلت بحاجة إلى مساعدة؟",
+    
+    // FAQ Categories
+    gettingStarted: "البدء",
+    reportingItems: "الإبلاغ عن العناصر",
+    safetySecurity: "السلامة والأمان",
+    accountSettings: "إعدادات الحساب",
+    
+    // FAQ Questions and Answers
+    faq1Question: "كيف يمكنني إنشاء حساب جديد؟",
+    faq1Answer: "لإنشاء حساب جديد، انقر على زر 'تسجيل الدخول' في أعلى الصفحة، ثم اختر 'إنشاء حساب جديد'. ستحتاج إلى إدخال اسمك وبريدك الإلكتروني وكلمة مرور آمنة. بعد التحقق من بريدك الإلكتروني، ستتمكن من استخدام جميع ميزات المنصة.",
+    
+    faq2Question: "كيف يمكنني تغيير لغة المنصة؟",
+    faq2Answer: "يمكنك تغيير اللغة من خلال النقر على أيقونة اللغة في شريط التنقل العلوي. نقدم الدعم للعربية والإنجليزية والفرنسية. سيتم حفظ اختيارك تلقائياً لزياراتك المستقبلية.",
+    
+    faq3Question: "هل يمكنني استخدام المنصة بدون حساب؟",
+    faq3Answer: "يمكنك تصفح المنشورات والبحث عن العناصر بدون حساب، ولكن لإنشاء منشورات جديدة أو التواصل مع المستخدمين الآخرين، ستحتاج إلى إنشاء حساب مجاني.",
+    
+    faq4Question: "كيف يمكنني الإبلاغ عن عنصر مفقود؟",
+    faq4Answer: "انقر على زر 'إضافة منشور جديد' في الصفحة الرئيسية، اختر 'مفقود'، ثم املأ النموذج بالمعلومات المطلوبة بما في ذلك الوصف والموقع والصور إن أمكن. كلما كانت المعلومات أكثر تفصيلاً، زادت فرص العثور على عنصرك.",
+    
+    faq5Question: "كيف يمكنني الإبلاغ عن عنصر وجدته؟",
+    faq5Answer: "انقر على زر 'إضافة منشور جديد'، اختر 'موجود'، ثم املأ النموذج بالتفاصيل. تأكد من وصف العنصر بدقة وتضمين صور واضحة. هذا يساعد أصحاب العناصر المفقودة على التعرف على ممتلكاتهم.",
+    
+    faq6Question: "هل يمكنني تعديل أو حذف منشوري؟",
+    faq6Answer: "نعم، يمكنك تعديل أو حذف منشوراتك من خلال الذهاب إلى صفحة الملف الشخصي والنقر على 'منشوراتي'. يمكنك تعديل التفاصيل أو حذف المنشور إذا لم تعد بحاجة إليه.",
+    
+    faq7Question: "كيف أضمن سلامتي عند مقابلة شخص لاسترداد عنصر؟",
+    faq7Answer: "نوصي بشدة بمقابلة الأشخاص في أماكن عامة ومضاءة جيداً، وإحضار صديق أو فرد من العائلة، وإبلاغ شخص آخر عن موعدك. لا تشارك معلومات شخصية حساسة وتثق في غرائزك.",
+    
+    faq8Question: "ماذا أفعل إذا واجهت سلوكاً مشبوهاً؟",
+    faq8Answer: "إذا واجهت أي سلوك مشبوه أو غير لائق، يرجى الإبلاغ عنه فوراً من خلال النقر على زر 'الإبلاغ' في المنشور أو الملف الشخصي. فريقنا سيراجع البلاغ ويتخذ الإجراء المناسب.",
+    
+    faq9Question: "هل تشارك المنصة معلوماتي الشخصية؟",
+    faq9Answer: "نحن نحمي خصوصيتك ولا نشارك معلوماتك الشخصية مع أطراف ثالثة دون موافقتك. راجع سياسة الخصوصية الخاصة بنا للحصول على تفاصيل كاملة حول كيفية جمع واستخدام بياناتك.",
+    
+    faq10Question: "كيف يمكنني تغيير كلمة المرور الخاصة بي؟",
+    faq10Answer: "اذهب إلى صفحة الملف الشخصي، انقر على 'الإعدادات'، ثم اختر 'تغيير كلمة المرور'. ستحتاج إلى إدخال كلمة المرور الحالية ثم كلمة المرور الجديدة. تأكد من استخدام كلمة مرور قوية وفريدة.",
+    
+    faq11Question: "كيف يمكنني تحديث معلومات ملفي الشخصي؟",
+    faq11Answer: "يمكنك تحديث معلومات ملفك الشخصي من خلال الذهاب إلى صفحة الملف الشخصي والنقر على 'تحرير الملف الشخصي'. يمكنك تغيير اسمك وصورتك ومعلومات الاتصال.",
+    
+    faq12Question: "هل يمكنني حذف حسابي؟",
+    faq12Answer: "نعم، يمكنك حذف حسابك من خلال الذهاب إلى الإعدادات واختيار 'حذف الحساب'. يرجى ملاحظة أن هذا الإجراء لا يمكن التراجع عنه وسيتم حذف جميع بياناتك نهائياً.",
+    
+    // Help Topics
+    howToReportLost: "كيفية الإبلاغ عن عنصر مفقود",
+    howToReportLostDesc: "تعلم الخطوات التفصيلية للإبلاغ عن عنصر مفقود وزيادة فرص العثور عليه.",
+    howToReportFound: "كيفية الإبلاغ عن عنصر موجود",
+    howToReportFoundDesc: "اكتشف كيفية الإبلاغ عن عنصر وجدته ومساعدة أصحابه في العثور عليه.",
+    safetyGuidelines: "إرشادات السلامة",
+    safetyGuidelinesDesc: "نصائح مهمة لضمان سلامتك عند مقابلة أشخاص لاسترداد العناصر.",
+    photoTips: "نصائح التصوير",
+    photoTipsDesc: "تعلم كيفية التقاط صور فعالة لزيادة فرص العثور على عناصرك المفقودة.",
+    
+    // Categories
+    tutorials: "دروس",
+    safety: "السلامة",
+    tips: "نصائح",
+    
+    // Contact Options
+    liveChat: "الدردشة المباشرة",
+    liveChatDesc: "تحدث مع فريق الدعم في الوقت الفعلي",
+    emailSupport: "دعم البريد الإلكتروني",
+    emailSupportDesc: "أرسل لنا بريداً إلكترونياً وسنرد عليك خلال 24 ساعة",
+    phoneSupport: "دعم الهاتف",
+    phoneSupportDesc: "اتصل بنا للحصول على مساعدة فورية",
+    startChat: "بدء الدردشة",
+    sendEmail: "إرسال بريد إلكتروني",
+    callNow: "اتصل الآن"
   }
 };
 
