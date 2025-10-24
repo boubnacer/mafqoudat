@@ -307,26 +307,28 @@ const TrendingItem = ({ trend, isLoading }) => {
               {hasValidMainDate(mainDate) ? (
                 `${foundLostStatus.isFound ? t('foundAt') : t('lostAt')} ${mainDate.trim()}`
               ) : (
-                foundLostStatus.isFound ? t('found') : t('lost')
+                `${foundLostStatus.isFound ? t('found') : t('lost')} ${t('in')} ${displayCityName}`
               )}
             </Typography>
             
-            {/* Second line: Location */}
-            <Typography
-              sx={{
-                fontSize: { xs: '16px', sm: '18px' },
-                fontWeight: 600,
-                textAlign: 'center',
-                opacity: 0.9,
-                fontFamily: currentLanguage === 'ar' 
-                  ? '"Noto Sans Arabic", "Segoe UI", "Roboto", "Helvetica", "Arial", sans-serif'
-                  : '"Inter", "Segoe UI", "Roboto", "Helvetica", "Arial", sans-serif',
-                // Add line height for better Arabic text
-                lineHeight: currentLanguage === 'ar' ? 1.6 : 1.4,
-              }}
-            >
-              {t('in')} {displayCityName}
-            </Typography>
+            {/* Second line: Location - only show when mainDate is provided */}
+            {hasValidMainDate(mainDate) && (
+              <Typography
+                sx={{
+                  fontSize: { xs: '16px', sm: '18px' },
+                  fontWeight: 600,
+                  textAlign: 'center',
+                  opacity: 0.9,
+                  fontFamily: currentLanguage === 'ar' 
+                    ? '"Noto Sans Arabic", "Segoe UI", "Roboto", "Helvetica", "Arial", sans-serif'
+                    : '"Inter", "Segoe UI", "Roboto", "Helvetica", "Arial", sans-serif',
+                  // Add line height for better Arabic text
+                  lineHeight: currentLanguage === 'ar' ? 1.6 : 1.4,
+                }}
+              >
+                {t('in')} {displayCityName}
+              </Typography>
+            )}
           </Box>
         </Box>
 
