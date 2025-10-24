@@ -173,6 +173,49 @@ export const adminApiSlice = apiSlice.injectEndpoints({
       },
       providesTags: ['AdminPosts'],
     }),
+
+    // Get all contact submissions for admin management
+    getContactsAdmin: builder.query({
+      query: ({ page = 1, limit = 10, search, status, priority, sortBy = 'createdAt', sortOrder = 'desc' } = {}) => {
+        const params = new URLSearchParams();
+        params.append('page', page);
+        params.append('limit', limit);
+        params.append('sortBy', sortBy);
+        params.append('sortOrder', sortOrder);
+        
+        if (search) params.append('search', search);
+        if (status) params.append('status', status);
+        if (priority) params.append('priority', priority);
+        
+        return `/contact?${params.toString()}`;
+      },
+      providesTags: ['AdminContacts'],
+    }),
+
+    // Get contact statistics
+    getContactStats: builder.query({
+      query: () => '/contact/stats',
+      providesTags: ['ContactStats'],
+    }),
+
+    // Update contact status
+    updateContactStatus: builder.mutation({
+      query: ({ contactId, status, response }) => ({
+        url: `/contact/${contactId}`,
+        method: 'PATCH',
+        body: { status, response },
+      }),
+      invalidatesTags: ['AdminContacts', 'ContactStats'],
+    }),
+
+    // Delete contact submission
+    deleteContactAdmin: builder.mutation({
+      query: (contactId) => ({
+        url: `/contact/${contactId}`,
+        method: 'DELETE',
+      }),
+      invalidatesTags: ['AdminContacts', 'ContactStats'],
+    }),
   }),
 });
 
@@ -190,4 +233,8 @@ export const {
   useAdminResetUserPasswordMutation,
   useDeleteUserAdminMutation,
   useGetAllPostsAdminQuery,
+  useGetContactsAdminQuery,
+  useGetContactStatsQuery,
+  useUpdateContactStatusMutation,
+  useDeleteContactAdminMutation,
 } = adminApiSlice;

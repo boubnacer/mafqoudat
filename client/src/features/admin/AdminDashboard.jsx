@@ -53,6 +53,7 @@ import {
   Article,
   Build,
   Warning,
+  ContactMail,
 } from '@mui/icons-material';
 import { useTranslation } from '../../utils/translations';
 import {
@@ -68,6 +69,10 @@ import {
   useAdminResetUserPasswordMutation,
   useDeleteUserAdminMutation,
   useGetAllPostsAdminQuery,
+  useGetContactsAdminQuery,
+  useGetContactStatsQuery,
+  useUpdateContactStatusMutation,
+  useDeleteContactAdminMutation,
 } from './adminApiSlice';
 import {
   useGetSystemSettingsQuery,
@@ -98,11 +103,13 @@ const AdminDashboard = () => {
   const [resetRequestsPage, setResetRequestsPage] = useState(0);
   const [usersPage, setUsersPage] = useState(0);
   const [postsPage, setPostsPage] = useState(0);
+  const [contactsPage, setContactsPage] = useState(0);
   const [reportsRowsPerPage, setReportsRowsPerPage] = useState(10);
   const [promotionsRowsPerPage, setPromotionsRowsPerPage] = useState(10);
   const [resetRequestsRowsPerPage, setResetRequestsRowsPerPage] = useState(10);
   const [usersRowsPerPage, setUsersRowsPerPage] = useState(10);
   const [postsRowsPerPage, setPostsRowsPerPage] = useState(10);
+  const [contactsRowsPerPage, setContactsRowsPerPage] = useState(10);
   const [reportStatusFilter, setReportStatusFilter] = useState('');
   const [promotionStatusFilter, setPromotionStatusFilter] = useState('');
   const [resetRequestStatusFilter, setResetRequestStatusFilter] = useState('');
@@ -113,17 +120,24 @@ const AdminDashboard = () => {
     category: '',
     country: '',
   });
+  const [contactsFilters, setContactsFilters] = useState({
+    search: '',
+    status: '',
+    priority: '',
+  });
   const [selectedReport, setSelectedReport] = useState(null);
   const [selectedPromotion, setSelectedPromotion] = useState(null);
   const [selectedResetRequest, setSelectedResetRequest] = useState(null);
   const [selectedUser, setSelectedUser] = useState(null);
   const [selectedPost, setSelectedPost] = useState(null);
+  const [selectedContact, setSelectedContact] = useState(null);
   const [reportDialogOpen, setReportDialogOpen] = useState(false);
   const [promotionDialogOpen, setPromotionDialogOpen] = useState(false);
   const [resetRequestDialogOpen, setResetRequestDialogOpen] = useState(false);
   const [userPostsDialogOpen, setUserPostsDialogOpen] = useState(false);
   const [resetPasswordDialogOpen, setResetPasswordDialogOpen] = useState(false);
   const [postDetailsDialogOpen, setPostDetailsDialogOpen] = useState(false);
+  const [contactDialogOpen, setContactDialogOpen] = useState(false);
   const [adminNotes, setAdminNotes] = useState('');
   
   // Maintenance mode state
@@ -162,6 +176,14 @@ const AdminDashboard = () => {
     category: postsFilters.category || undefined,
     country: postsFilters.country || undefined,
   });
+  const { data: contactsData, isLoading: contactsLoading, error: contactsError } = useGetContactsAdminQuery({
+    page: contactsPage + 1,
+    limit: contactsRowsPerPage,
+    search: contactsFilters.search || undefined,
+    status: contactsFilters.status || undefined,
+    priority: contactsFilters.priority || undefined,
+  });
+  const { data: contactStatsData } = useGetContactStatsQuery();
   
   // Fetch categories and countries for filters
   const { data: categoriesData } = useGetCategoriesQuery({
@@ -186,6 +208,8 @@ const AdminDashboard = () => {
   const [adminResetUserPassword] = useAdminResetUserPasswordMutation();
   const [deleteUserAdmin] = useDeleteUserAdminMutation();
   const [updateMaintenanceMode, { isLoading: updatingMaintenance }] = useUpdateMaintenanceModeMutation();
+  const [updateContactStatus, { isLoading: updatingContact }] = useUpdateContactStatusMutation();
+  const [deleteContactAdmin] = useDeleteContactAdminMutation();
 
   // Sync maintenance message when data loads
   React.useEffect(() => {
@@ -449,6 +473,55 @@ const AdminDashboard = () => {
       } catch (error) {
         console.error('Error deleting post:', error);
         alert(t('errorDeletingPost') || 'Error deleting post: ' + (error.data?.message || error.message));
+      }
+    }
+  };
+
+  // Contact Management Handlers
+  const handleContactsPageChange = (event, newPage) => {
+    setContactsPage(newPage);
+  };
+
+  const handleContactsRowsPerPageChange = (event) => {
+    setContactsRowsPerPage(parseInt(event.target.value, 10));
+    setContactsPage(0);
+  };
+
+  const handleContactsFilterChange = (newFilters) => {
+    setContactsFilters(newFilters);
+    setContactsPage(0);
+  };
+
+  const openContactDialog = (contact) => {
+    setSelectedContact(contact);
+    setContactDialogOpen(true);
+  };
+
+  const handleContactStatusUpdate = async (contactId, status, response) => {
+    try {
+      await updateContactStatus({
+        contactId,
+        status,
+        response,
+      }).unwrap();
+      setContactDialogOpen(false);
+      setAdminNotes('');
+      setSelectedContact(null);
+    } catch (error) {
+      console.error('Error updating contact status:', error);
+    }
+  };
+
+  const handleDeleteContact = async (contact) => {
+    const confirmMessage = t('confirmDeleteContact') || `Are you sure you want to delete this contact submission?`;
+    
+    if (window.confirm(confirmMessage)) {
+      try {
+        await deleteContactAdmin(contact._id).unwrap();
+        alert(t('contactDeletedSuccessfully') || 'Contact submission deleted successfully');
+      } catch (error) {
+        console.error('Error deleting contact:', error);
+        alert(t('errorDeletingContact') || 'Error deleting contact: ' + (error.data?.message || error.message));
       }
     }
   };
@@ -845,6 +918,26 @@ const AdminDashboard = () => {
             </CardContent>
           </Card>
         </Grid>
+
+        <Grid item xs={12} sm={6} md={3}>
+          <Card sx={{ height: '100%' }}>
+            <CardContent>
+              <Box display="flex" alignItems="center" justifyContent="space-between">
+                <Box>
+                  <Typography color="text.secondary" gutterBottom>
+                    {t('totalContacts')}
+                  </Typography>
+                  <Typography variant="h4" fontWeight="bold">
+                    {contactStatsData?.data?.totalContacts || 0}
+                  </Typography>
+                </Box>
+                <Badge badgeContent={contactStatsData?.data?.newContacts || 0} color="error">
+                  <ContactMail sx={{ fontSize: 40, color: theme.palette.secondary.main }} />
+                </Badge>
+              </Box>
+            </CardContent>
+          </Card>
+        </Grid>
       </Grid>
 
       {/* Tabs */}
@@ -923,6 +1016,21 @@ const AdminDashboard = () => {
                 {statistics?.totalPosts > 0 && (
                   <Chip 
                     label={statistics.totalPosts} 
+                    size="small" 
+                    color="default" 
+                  />
+                )}
+              </Box>
+            } 
+          />
+          <Tab 
+            label={
+              <Box display="flex" alignItems="center" gap={1}>
+                <ContactMail />
+                {t('contactSubmissions')}
+                {contactStatsData?.data?.totalContacts > 0 && (
+                  <Chip 
+                    label={contactStatsData.data.totalContacts} 
                     size="small" 
                     color="default" 
                   />
@@ -1689,6 +1797,119 @@ const AdminDashboard = () => {
         </Paper>
       )}
 
+      {/* Contact Submissions Tab */}
+      {activeTab === 5 && (
+        <Paper>
+          <Box p={2}>
+            <Box display="flex" justifyContent="space-between" alignItems="center" mb={2}>
+              <Typography variant="h6" fontWeight="bold">
+                {t('contactSubmissions')}
+              </Typography>
+              <FormControl size="small" sx={{ minWidth: 150 }}>
+                <InputLabel>{t('filterByStatus')}</InputLabel>
+                <Select
+                  value={contactsFilters.status}
+                  label={t('filterByStatus')}
+                  onChange={(e) => handleContactsFilterChange({ ...contactsFilters, status: e.target.value })}
+                >
+                  <MenuItem value="">{t('allStatuses')}</MenuItem>
+                  <MenuItem value="new">{t('new')}</MenuItem>
+                  <MenuItem value="in_progress">{t('inProgress')}</MenuItem>
+                  <MenuItem value="resolved">{t('resolved')}</MenuItem>
+                  <MenuItem value="closed">{t('closed')}</MenuItem>
+                </Select>
+              </FormControl>
+            </Box>
+
+            {contactsLoading ? (
+              <Box display="flex" justifyContent="center" p={4}>
+                <CircularProgress />
+              </Box>
+            ) : contactsError ? (
+              <Alert severity="error">
+                {t('errorLoadingContacts')}: {contactsError?.data?.message || contactsError?.message}
+              </Alert>
+            ) : (
+              <>
+                <TableContainer>
+                  <Table>
+                    <TableHead>
+                      <TableRow>
+                        <TableCell>{t('name')}</TableCell>
+                        <TableCell>{t('email')}</TableCell>
+                        <TableCell>{t('subject')}</TableCell>
+                        <TableCell>{t('priority')}</TableCell>
+                        <TableCell>{t('status')}</TableCell>
+                        <TableCell>{t('submittedAt')}</TableCell>
+                        <TableCell>{t('actions')}</TableCell>
+                      </TableRow>
+                    </TableHead>
+                    <TableBody>
+                      {contactsData?.data?.contacts?.map((contact) => (
+                        <TableRow key={contact._id}>
+                          <TableCell>
+                            <Typography variant="body2" fontWeight="bold">
+                              {contact.name}
+                            </Typography>
+                          </TableCell>
+                          <TableCell>
+                            <Typography variant="body2">
+                              {contact.email}
+                            </Typography>
+                          </TableCell>
+                          <TableCell>
+                            <Typography variant="body2">
+                              {contact.subject}
+                            </Typography>
+                          </TableCell>
+                          <TableCell>
+                            <Chip
+                              label={contact.priority}
+                              color={contact.priority === 'high' ? 'error' : contact.priority === 'medium' ? 'warning' : 'default'}
+                              size="small"
+                            />
+                          </TableCell>
+                          <TableCell>
+                            <Chip
+                              label={t(contact.status)}
+                              color={getStatusColor(contact.status)}
+                              size="small"
+                            />
+                          </TableCell>
+                          <TableCell>
+                            {new Date(contact.createdAt).toLocaleDateString()}
+                          </TableCell>
+                          <TableCell>
+                            <Tooltip title={t('viewDetails')}>
+                              <IconButton
+                                size="small"
+                                onClick={() => openContactDialog(contact)}
+                              >
+                                <Visibility />
+                              </IconButton>
+                            </Tooltip>
+                          </TableCell>
+                        </TableRow>
+                      ))}
+                    </TableBody>
+                  </Table>
+                </TableContainer>
+
+                <TablePagination
+                  rowsPerPageOptions={[5, 10, 25]}
+                  component="div"
+                  count={contactsData?.data?.pagination?.totalContacts || 0}
+                  rowsPerPage={contactsRowsPerPage}
+                  page={contactsPage}
+                  onPageChange={handleContactsPageChange}
+                  onRowsPerPageChange={handleContactsRowsPerPageChange}
+                />
+              </>
+            )}
+          </Box>
+        </Paper>
+      )}
+
       {/* Post Details Dialog */}
       <PostDetailsDialog
         open={postDetailsDialogOpen}
@@ -1699,6 +1920,102 @@ const AdminDashboard = () => {
         post={selectedPost}
         onDelete={handleDeletePostFromTable}
       />
+
+      {/* Contact Details Dialog */}
+      <Dialog
+        open={contactDialogOpen}
+        onClose={() => setContactDialogOpen(false)}
+        maxWidth="md"
+        fullWidth
+        PaperProps={{
+          sx: {
+            backgroundColor: theme.palette.mode === 'dark' ? '#1e1e1e' : '#ffffff',
+            backgroundImage: 'none',
+          }
+        }}
+      >
+        <DialogTitle>
+          <Box display="flex" alignItems="center" gap={1}>
+            <ContactMail />
+            {t('contactDetails')}
+          </Box>
+        </DialogTitle>
+        <DialogContent>
+          {selectedContact && (
+            <Box>
+              <Typography variant="h6" gutterBottom>
+                {t('contactInformation')}
+              </Typography>
+              <Typography variant="body2" paragraph>
+                <strong>{t('name')}:</strong> {selectedContact.name}
+              </Typography>
+              <Typography variant="body2" paragraph>
+                <strong>{t('email')}:</strong> {selectedContact.email}
+              </Typography>
+              <Typography variant="body2" paragraph>
+                <strong>{t('subject')}:</strong> {selectedContact.subject}
+              </Typography>
+              <Typography variant="body2" paragraph>
+                <strong>{t('message')}:</strong> {selectedContact.message}
+              </Typography>
+              <Typography variant="body2" paragraph>
+                <strong>{t('priority')}:</strong> {selectedContact.priority}
+              </Typography>
+              <Typography variant="body2" paragraph>
+                <strong>{t('status')}:</strong> {t(selectedContact.status)}
+              </Typography>
+              <Typography variant="body2" paragraph>
+                <strong>{t('submittedAt')}:</strong> {new Date(selectedContact.createdAt).toLocaleString()}
+              </Typography>
+              {selectedContact.ipAddress && (
+                <Typography variant="body2" paragraph>
+                  <strong>IP Address:</strong> {selectedContact.ipAddress}
+                </Typography>
+              )}
+
+              <Divider sx={{ my: 2 }} />
+
+              <TextField
+                fullWidth
+                multiline
+                rows={3}
+                label={t('adminResponse')}
+                value={adminNotes}
+                onChange={(e) => setAdminNotes(e.target.value)}
+                placeholder={t('addResponseForThisContact')}
+                sx={{ mt: 2 }}
+              />
+            </Box>
+          )}
+        </DialogContent>
+        <DialogActions>
+          <Button onClick={() => setContactDialogOpen(false)}>
+            {t('cancel')}
+          </Button>
+          <Button
+            onClick={() => handleDeleteContact(selectedContact)}
+            color="error"
+            variant="outlined"
+            disabled={updatingContact}
+          >
+            {t('deleteContact')}
+          </Button>
+          <Button
+            onClick={() => handleContactStatusUpdate(selectedContact._id, 'in_progress', adminNotes)}
+            color="info"
+            disabled={updatingContact}
+          >
+            {t('markAsInProgress')}
+          </Button>
+          <Button
+            onClick={() => handleContactStatusUpdate(selectedContact._id, 'resolved', adminNotes)}
+            color="success"
+            disabled={updatingContact}
+          >
+            {t('markAsResolved')}
+          </Button>
+        </DialogActions>
+      </Dialog>
 
       {/* Maintenance Mode Confirmation Dialog */}
       <Dialog
