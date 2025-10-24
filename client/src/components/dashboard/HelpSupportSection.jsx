@@ -183,6 +183,13 @@ const HelpSupportSection = () => {
 
   return (
     <>
+      {/* Debug: Test if component is rendering */}
+      <Box sx={{ p: 2, bgcolor: 'warning.light', mb: 2 }}>
+        <Typography variant="h6" color="warning.contrastText">
+          🐛 DEBUG: HelpSupportSection is rendering! Contact form should be available.
+        </Typography>
+      </Box>
+      
       <DashRecents cate="help" sx={{ mt: 4 }} data-section="help">
         <Box display="flex" alignItems="center" justifyContent="space-between" pt="1rem" px={2}>
           <Typography
@@ -205,13 +212,15 @@ const HelpSupportSection = () => {
               setShowHelpDialog(true);
             }}
             sx={{
-              background: "linear-gradient(45deg, #2196F3 30%, #21CBF3 90%)",
-              boxShadow: "0 3px 5px 2px rgba(33, 203, 243, .3)",
+              background: "linear-gradient(45deg, #FF5722 30%, #FF9800 90%)",
+              boxShadow: "0 3px 5px 2px rgba(255, 152, 0, .3)",
               gap: isRTLMode ? 1 : 0.5,
-              direction: isRTLMode ? 'rtl' : 'ltr'
+              direction: isRTLMode ? 'rtl' : 'ltr',
+              fontSize: '1.1rem',
+              fontWeight: 'bold'
             }}
           >
-            {t('getHelp')}
+            🚀 {t('getHelp')} - CLICK HERE FOR CONTACT FORM
           </Button>
         </Box>
 
@@ -447,7 +456,7 @@ const HelpSupportSection = () => {
         fullWidth
       >
         <DialogTitle sx={{ direction: isRTLMode ? 'rtl' : 'ltr' }}>
-          {t('howCanWeHelpYou')}
+          🎯 {t('howCanWeHelpYou')} - CONTACT FORM IS IN FIRST TAB
         </DialogTitle>
         <DialogContent>
           <Box sx={{ mt: 2 }}>
@@ -455,7 +464,7 @@ const HelpSupportSection = () => {
               console.log('Tab changed to:', newValue);
               setHelpTab(newValue);
             }}>
-              <Tab label={t('contactSupport')} />
+              <Tab label={`📧 ${t('contactSupport')} - FORM HERE`} />
               <Tab label={t('liveChat')} />
               <Tab label={t('videoTutorials')} />
             </Tabs>
