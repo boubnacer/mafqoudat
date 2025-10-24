@@ -5,7 +5,10 @@
     <link rel="icon" href="%PUBLIC_URL%/maficon.png" />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
     <meta name="theme-color" content="#000000" />
-    <meta name="description" content="Mafqoudat - Find and report lost items" />
+    <meta name="description" content="Mafqoudat - The leading lost and found platform in Morocco and the Arab world. Connect with your community to recover lost belongings. Report lost items, help return found items, and reunite with your belongings." />
+    <meta name="keywords" content="lost and found, Morocco, Arabic, community, lost items, found items, recovery, reunite" />
+    <meta name="author" content="Mafqoudat Team" />
+    <meta name="robots" content="index, follow" />
     <link rel="apple-touch-icon" href="%PUBLIC_URL%/maficon.png" />
     <link rel="manifest" href="%PUBLIC_URL%/manifest.json" />
 
@@ -70,6 +73,22 @@
       src="https://www.facebook.com/tr?id=822628638471721&ev=PageView&noscript=1"
     /></noscript>
     <!-- End Facebook Pixel Code -->
+    
+    <!-- Structured Data -->
+    <script type="application/ld+json">
+    {
+      "@context": "https://schema.org",
+      "@type": "WebSite",
+      "name": "Mafqoudat",
+      "description": "Lost and found platform for Morocco and the Arab world",
+      "url": "https://www.mafqoudat.com",
+      "potentialAction": {
+        "@type": "SearchAction",
+        "target": "https://www.mafqoudat.com/dash/posts?search={search_term_string}",
+        "query-input": "required name=search_term_string"
+      }
+    }
+    </script>
   </head>
   <body dir="auto">
     <noscript>You need to enable JavaScript to run this app.</noscript>

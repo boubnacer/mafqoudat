@@ -1009,7 +1009,33 @@ export const translations = {
     unknown: "Unknown",
     
     // Additional translations
-    email: "Email"
+    email: "Email",
+    
+    // About Us page translations
+    aboutUs: "About Us",
+    reunitingCommunities: "Reuniting Communities, One Item at a Time",
+    aboutUsDescription: "Mafqoudat is a community-driven lost and found platform that connects people across Morocco and the Arab world. Our mission is to help reunite lost items with their owners through technology, community support, and trust.",
+    ourMission: "Our Mission",
+    missionDescription: "We believe that every lost item has a story and every found item has an owner waiting to be reunited. Through our platform, we create meaningful connections that restore hope and strengthen community bonds.",
+    whatMakesUsDifferent: "What Makes Us Different",
+    communityDriven: "Community-Driven",
+    communityDrivenDesc: "Built by the community, for the community. Our users are our greatest asset.",
+    securePlatform: "Secure & Trusted",
+    securePlatformDesc: "Advanced security measures protect your personal information and ensure safe transactions.",
+    fastMatching: "Fast Matching",
+    fastMatchingDesc: "Smart algorithms and community reporting help match lost and found items quickly.",
+    multiLanguage: "Multi-Language Support",
+    multiLanguageDesc: "Available in Arabic, English, and French to serve our diverse community.",
+    ourTeam: "Our Team",
+    developmentTeam: "Development Team",
+    technicalDevelopment: "Technical Development",
+    developmentTeamDesc: "Our technical team works tirelessly to improve the platform and add new features.",
+    supportTeam: "Support Team",
+    customerSupport: "Customer Support",
+    supportTeamDesc: "Our support team is here to help you with any questions or issues you may have.",
+    getInTouch: "Get in Touch",
+    servingMorocco: "Serving Morocco",
+    andArabWorld: "and the Arab World"
   },
   fr: {
     // Post-related translations

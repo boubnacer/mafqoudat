@@ -68,6 +68,7 @@ const TermsOfUse = lazy(() => import("./components/Pages/TermsOfUse"));
 const CookieNotice = lazy(() => import("./components/Pages/CookieNotice"));
 const CommunityGuidelines = lazy(() => import("./components/Pages/CommunityGuidelines"));
 const SafetyTips = lazy(() => import("./components/Pages/SafetyTips"));
+const AboutUs = lazy(() => import("./components/Pages/AboutUs"));
 
 // Lazy load heavy components
 const PostsList = lazy(() => import("./features/posts/PostsList/PostsList"));
@@ -227,6 +228,11 @@ const AppContent = () => {
         <Route path="/safety" element={
           <Suspense fallback={<LoadingFallback />}>
             <SafetyTips />
+          </Suspense>
+        } />
+        <Route path="/about" element={
+          <Suspense fallback={<LoadingFallback />}>
+            <AboutUs />
           </Suspense>
         } />
         
