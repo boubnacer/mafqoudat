@@ -540,7 +540,13 @@ const Navbar = () => {
         },
         description: t(`view${option.code}Items`)
       };
-    }) || [])
+    }) || []),
+    {
+      title: t('blog'),
+      icon: <PostAdd sx={{ fontSize: 20, color: theme.palette.primary.main }} />,
+      action: () => navigate('/blog'),
+      description: t('blogSubtitle')
+    }
   ];
 
   // Add admin buttons if user is admin - use destructured auth state

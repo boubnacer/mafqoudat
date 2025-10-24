@@ -1035,7 +1035,85 @@ export const translations = {
     supportTeamDesc: "Our support team is here to help you with any questions or issues you may have.",
     getInTouch: "Get in Touch",
     servingMorocco: "Serving Morocco",
-    andArabWorld: "and the Arab World"
+    andArabWorld: "and the Arab World",
+
+    // Blog translations
+    blog: "Blog",
+    blogSubtitle: "Stories, Tips & Insights",
+    blogDescription: "Discover helpful articles, success stories, and expert tips about lost and found items, community safety, and making the most of our platform.",
+    searchBlogPosts: "Search blog posts...",
+    readMore: "Read More",
+    noBlogPostsFound: "No blog posts found",
+    tryDifferentSearch: "Try a different search term",
+    mafqoudatTeam: "Mafqoudat Team",
+    safety: "Safety",
+    guidelines: "Guidelines",
+    success: "Success",
+    tips: "Tips",
+    legal: "Legal",
+    technology: "Technology",
+    community: "Community",
+    prevention: "Prevention",
+    international: "International",
+    mobile: "Mobile",
+    meeting: "Meeting",
+    respect: "Respect",
+    story: "Story",
+    reunion: "Reunion",
+    photography: "Photography",
+    description: "Description",
+    rights: "Rights",
+    responsibilities: "Responsibilities",
+    platform: "Platform",
+    features: "Features",
+    building: "Building",
+    trust: "Trust",
+    security: "Security",
+    travel: "Travel",
+    crossBorder: "Cross-Border",
+    app: "App",
+    convenience: "Convenience",
+
+    // Blog post titles and content
+    blogPost1Title: "Essential Safety Tips for Meeting Strangers",
+    blogPost1Excerpt: "Learn how to stay safe when meeting someone to return or claim a lost item. Important guidelines for secure exchanges.",
+    blogPost1Content: "When meeting someone to return or claim a lost item, safety should always be your top priority. Here are essential tips to ensure secure exchanges: Always meet in public places with good lighting and foot traffic. Bring a friend or family member with you. Inform someone about your meeting location and expected return time. Trust your instincts - if something feels off, reschedule or cancel the meeting. Verify the item details before meeting to ensure authenticity. Keep your personal information private until you're certain about the other person's intentions.",
+
+    blogPost2Title: "Community Guidelines: Building Trust Together",
+    blogPost2Excerpt: "Understanding our community guidelines helps create a safe and respectful environment for everyone using the platform.",
+    blogPost2Content: "Our community guidelines are designed to foster trust, respect, and safety among all users. Be honest and accurate in your posts - provide clear descriptions and genuine photos. Respect others' privacy and personal information. Use appropriate language and avoid offensive content. Report suspicious or inappropriate behavior immediately. Be patient and understanding when communicating with other users. Remember that behind every post is a real person who may be stressed about their lost item or excited about helping someone.",
+
+    blogPost3Title: "Success Story: Reunited After 6 Months",
+    blogPost3Excerpt: "Read about how our platform helped reunite a family with their lost heirloom after six months of searching.",
+    blogPost3Content: "Six months ago, Sarah lost her grandmother's wedding ring during a family trip to Marrakech. Despite extensive searching, the ring seemed gone forever. That was until Ahmed found it in a taxi and posted it on Mafqoudat. Through our platform's detailed matching system and community support, Sarah was able to identify her ring from Ahmed's post. The emotional reunion brought tears of joy to both families, proving that hope and community spirit can overcome even the longest odds.",
+
+    blogPost4Title: "Photography Tips for Better Lost Item Posts",
+    blogPost4Excerpt: "Learn how to take clear, helpful photos that increase your chances of finding the owner of a lost item.",
+    blogPost4Content: "Good photography is crucial for successful lost and found posts. Use natural lighting whenever possible - outdoor photos are often clearer than indoor ones. Take multiple angles of the item, including close-ups of any distinctive features, brand names, or serial numbers. Include a common object (like a coin or pen) for size reference. Ensure the item is clean and well-lit. Avoid blurry or dark photos. If the item has sentimental value, be respectful in how you photograph it. Remember, the goal is to help the owner identify their item quickly and accurately.",
+
+    blogPost5Title: "Legal Aspects of Lost and Found Items",
+    blogPost5Excerpt: "Understanding your rights and responsibilities when dealing with lost and found items in Morocco.",
+    blogPost5Content: "When handling lost and found items, it's important to understand the legal framework. In Morocco, finders have certain obligations to make reasonable efforts to locate the owner. Items of significant value should be reported to local authorities. Keep detailed records of your efforts to find the owner. Be aware of time limits for claiming items. Understand the difference between abandoned and lost property. Our platform helps facilitate legal and ethical returns while protecting both finders and owners. When in doubt, consult with local authorities or legal professionals.",
+
+    blogPost6Title: "How Technology is Revolutionizing Lost and Found",
+    blogPost6Excerpt: "Explore the innovative features and technology that make our platform more effective than traditional methods.",
+    blogPost6Content: "Modern technology has transformed how we handle lost and found items. Our platform uses advanced matching algorithms to connect similar items with potential owners. GPS integration helps pinpoint exact locations where items were lost or found. Image recognition technology assists in identifying items from photos. Real-time notifications ensure users don't miss important updates. Mobile optimization allows users to post and search on the go. These technological advances have significantly increased success rates and reduced the time it takes to reunite items with their owners.",
+
+    blogPost7Title: "Building a Trustworthy Community",
+    blogPost7Excerpt: "Learn how we foster trust and safety in our community through verification, moderation, and user education.",
+    blogPost7Content: "Trust is the foundation of our community. We implement multiple layers of verification to ensure user authenticity. Our moderation team reviews posts and user interactions to maintain quality standards. We provide clear guidelines and educational resources to help users make informed decisions. Community feedback and rating systems help identify trustworthy users. Regular security updates and privacy protections keep user information safe. By working together, we create an environment where people feel comfortable helping each other and sharing their stories.",
+
+    blogPost8Title: "Prevention Tips: How to Avoid Losing Items",
+    blogPost8Excerpt: "Practical advice on how to prevent losing your belongings in the first place.",
+    blogPost8Content: "Prevention is always better than searching. Here are practical tips to avoid losing your belongings: Always check your seat and surrounding area before leaving any location. Use tracking devices for valuable items like phones, keys, and bags. Take photos of important documents and items for easy identification. Keep a list of serial numbers for electronics. Use distinctive cases or accessories to make your items easily recognizable. Don't leave items unattended in public places. Consider engraving or marking valuable items with your contact information. These simple steps can save you time, stress, and potentially expensive replacements.",
+
+    blogPost9Title: "International Lost and Found: Cross-Border Solutions",
+    blogPost9Excerpt: "How our platform helps with lost items across different countries and cultures.",
+    blogPost9Content: "Lost items don't respect borders, and neither should our solutions. Our platform connects users across Morocco and the broader Arab world, facilitating cross-border returns. We support multiple languages to break down communication barriers. Our community includes travelers, expatriates, and locals who understand the challenges of international travel. We work with local authorities and embassies when necessary to facilitate returns. Cultural sensitivity guides our approach to different communities and traditions. Whether you're a tourist who lost something or a local who found a traveler's item, our platform bridges the gap.",
+
+    blogPost10Title: "Mobile App Features: Lost and Found on the Go",
+    blogPost10Excerpt: "Discover the convenience of managing lost and found items through our mobile application.",
+    blogPost10Content: "Our mobile app brings the power of our platform to your fingertips. Post lost or found items instantly with your phone's camera. Receive real-time notifications when someone responds to your post. Use GPS to automatically tag your location when posting. Search nearby areas with our location-based filters. Access your post history and manage multiple items easily. Share posts directly to social media to increase visibility. The app works offline for basic functions and syncs when you're back online. With push notifications, you'll never miss an important update about your lost or found items."
   },
   fr: {
     // Post-related translations
@@ -2050,7 +2128,85 @@ export const translations = {
     supportTeamDesc: "Notre équipe de support est là pour vous aider avec toutes vos questions ou problèmes.",
     getInTouch: "Contactez-Nous",
     servingMorocco: "Servir le Maroc",
-    andArabWorld: "et le Monde Arabe"
+    andArabWorld: "et le Monde Arabe",
+
+    // Blog translations
+    blog: "Blog",
+    blogSubtitle: "Histoires, Conseils et Aperçus",
+    blogDescription: "Découvrez des articles utiles, des histoires de succès et des conseils d'experts sur les objets perdus et trouvés, la sécurité communautaire et comment tirer le meilleur parti de notre plateforme.",
+    searchBlogPosts: "Rechercher des articles de blog...",
+    readMore: "Lire Plus",
+    noBlogPostsFound: "Aucun article de blog trouvé",
+    tryDifferentSearch: "Essayez un terme de recherche différent",
+    mafqoudatTeam: "Équipe Mafqoudat",
+    safety: "Sécurité",
+    guidelines: "Directives",
+    success: "Succès",
+    tips: "Conseils",
+    legal: "Légal",
+    technology: "Technologie",
+    community: "Communauté",
+    prevention: "Prévention",
+    international: "International",
+    mobile: "Mobile",
+    meeting: "Rencontre",
+    respect: "Respect",
+    story: "Histoire",
+    reunion: "Réunion",
+    photography: "Photographie",
+    description: "Description",
+    rights: "Droits",
+    responsibilities: "Responsabilités",
+    platform: "Plateforme",
+    features: "Fonctionnalités",
+    building: "Construction",
+    trust: "Confiance",
+    security: "Sécurité",
+    travel: "Voyage",
+    crossBorder: "Transfrontalier",
+    app: "Application",
+    convenience: "Commodité",
+
+    // Blog post titles and content
+    blogPost1Title: "Conseils de Sécurité Essentiels pour Rencontrer des Inconnus",
+    blogPost1Excerpt: "Apprenez comment rester en sécurité lors de la rencontre avec quelqu'un pour rendre ou réclamer un objet perdu. Directives importantes pour des échanges sécurisés.",
+    blogPost1Content: "Lors de la rencontre avec quelqu'un pour rendre ou réclamer un objet perdu, la sécurité doit toujours être votre priorité absolue. Voici des conseils essentiels pour assurer des échanges sécurisés : Rencontrez toujours dans des lieux publics avec un bon éclairage et du passage. Amenez un ami ou un membre de la famille avec vous. Informez quelqu'un de votre lieu de rencontre et de votre heure de retour prévue. Faites confiance à votre instinct - si quelque chose ne va pas, reportez ou annulez la rencontre. Vérifiez les détails de l'objet avant la rencontre pour assurer l'authenticité. Gardez vos informations personnelles privées jusqu'à ce que vous soyez certain des intentions de l'autre personne.",
+
+    blogPost2Title: "Directives Communautaires : Construire la Confiance Ensemble",
+    blogPost2Excerpt: "Comprendre nos directives communautaires aide à créer un environnement sûr et respectueux pour tous ceux qui utilisent la plateforme.",
+    blogPost2Content: "Nos directives communautaires sont conçues pour favoriser la confiance, le respect et la sécurité parmi tous les utilisateurs. Soyez honnête et précis dans vos publications - fournissez des descriptions claires et des photos authentiques. Respectez la vie privée et les informations personnelles des autres. Utilisez un langage approprié et évitez le contenu offensant. Signalez immédiatement tout comportement suspect ou inapproprié. Soyez patient et compréhensif lors de la communication avec d'autres utilisateurs. Rappelez-vous qu'il y a une vraie personne derrière chaque publication qui peut être stressée par son objet perdu ou excitée d'aider quelqu'un.",
+
+    blogPost3Title: "Histoire de Succès : Réunis Après 6 Mois",
+    blogPost3Excerpt: "Lisez comment notre plateforme a aidé à réunir une famille avec son héritage perdu après six mois de recherche.",
+    blogPost3Content: "Il y a six mois, Sarah a perdu l'alliance de sa grand-mère lors d'un voyage familial à Marrakech. Malgré des recherches approfondies, l'alliance semblait perdue à jamais. C'était jusqu'à ce qu'Ahmed la trouve dans un taxi et la publie sur Mafqoudat. Grâce au système de correspondance détaillé de notre plateforme et au soutien communautaire, Sarah a pu identifier son alliance à partir de la publication d'Ahmed. La réunion émotionnelle a apporté des larmes de joie aux deux familles, prouvant que l'espoir et l'esprit communautaire peuvent surmonter même les plus longues chances.",
+
+    blogPost4Title: "Conseils de Photographie pour de Meilleures Publications d'Objets Perdus",
+    blogPost4Excerpt: "Apprenez comment prendre des photos claires et utiles qui augmentent vos chances de trouver le propriétaire d'un objet perdu.",
+    blogPost4Content: "Une bonne photographie est cruciale pour des publications de recherche d'objets perdus réussies. Utilisez l'éclairage naturel chaque fois que possible - les photos extérieures sont souvent plus claires que les intérieures. Prenez plusieurs angles de l'objet, y compris des gros plans de toute caractéristique distinctive, marques ou numéros de série. Incluez un objet commun (comme une pièce ou un stylo) pour référence de taille. Assurez-vous que l'objet est propre et bien éclairé. Évitez les photos floues ou sombres. Si l'objet a une valeur sentimentale, soyez respectueux dans la façon dont vous le photographiez. Rappelez-vous, l'objectif est d'aider le propriétaire à identifier son objet rapidement et avec précision.",
+
+    blogPost5Title: "Aspects Légaux des Objets Perdus et Trouvés",
+    blogPost5Excerpt: "Comprendre vos droits et responsabilités lors de la gestion d'objets perdus et trouvés au Maroc.",
+    blogPost5Content: "Lors de la gestion d'objets perdus et trouvés, il est important de comprendre le cadre juridique. Au Maroc, les trouveurs ont certaines obligations de faire des efforts raisonnables pour localiser le propriétaire. Les objets de valeur significative doivent être signalés aux autorités locales. Gardez des dossiers détaillés de vos efforts pour trouver le propriétaire. Soyez conscient des limites de temps pour réclamer des objets. Comprenez la différence entre les biens abandonnés et perdus. Notre plateforme aide à faciliter les retours légaux et éthiques tout en protégeant les trouveurs et les propriétaires. En cas de doute, consultez les autorités locales ou des professionnels juridiques.",
+
+    blogPost6Title: "Comment la Technologie Révolutionne les Objets Perdus et Trouvés",
+    blogPost6Excerpt: "Explorez les fonctionnalités innovantes et la technologie qui rendent notre plateforme plus efficace que les méthodes traditionnelles.",
+    blogPost6Content: "La technologie moderne a transformé la façon dont nous gérons les objets perdus et trouvés. Notre plateforme utilise des algorithmes de correspondance avancés pour connecter des objets similaires avec des propriétaires potentiels. L'intégration GPS aide à localiser exactement les endroits où les objets ont été perdus ou trouvés. La technologie de reconnaissance d'image aide à identifier les objets à partir de photos. Les notifications en temps réel garantissent que les utilisateurs ne manquent pas de mises à jour importantes. L'optimisation mobile permet aux utilisateurs de publier et de rechercher en déplacement. Ces avancées technologiques ont considérablement augmenté les taux de succès et réduit le temps nécessaire pour réunir les objets avec leurs propriétaires.",
+
+    blogPost7Title: "Construire une Communauté Digne de Confiance",
+    blogPost7Excerpt: "Apprenez comment nous favorisons la confiance et la sécurité dans notre communauté grâce à la vérification, la modération et l'éducation des utilisateurs.",
+    blogPost7Content: "La confiance est le fondement de notre communauté. Nous mettons en œuvre plusieurs couches de vérification pour assurer l'authenticité des utilisateurs. Notre équipe de modération examine les publications et les interactions des utilisateurs pour maintenir les normes de qualité. Nous fournissons des directives claires et des ressources éducatives pour aider les utilisateurs à prendre des décisions éclairées. Les systèmes de commentaires et d'évaluation communautaires aident à identifier les utilisateurs dignes de confiance. Les mises à jour de sécurité régulières et les protections de confidentialité gardent les informations des utilisateurs en sécurité. En travaillant ensemble, nous créons un environnement où les gens se sentent à l'aise de s'entraider et de partager leurs histoires.",
+
+    blogPost8Title: "Conseils de Prévention : Comment Éviter de Perdre des Objets",
+    blogPost8Excerpt: "Conseils pratiques sur comment éviter de perdre vos affaires en premier lieu.",
+    blogPost8Content: "La prévention est toujours meilleure que la recherche. Voici des conseils pratiques pour éviter de perdre vos affaires : Vérifiez toujours votre siège et la zone environnante avant de quitter tout endroit. Utilisez des dispositifs de suivi pour les objets de valeur comme les téléphones, clés et sacs. Prenez des photos de documents et objets importants pour une identification facile. Gardez une liste des numéros de série pour l'électronique. Utilisez des étuis ou accessoires distinctifs pour rendre vos objets facilement reconnaissables. Ne laissez pas d'objets sans surveillance dans des lieux publics. Considérez graver ou marquer des objets de valeur avec vos informations de contact. Ces étapes simples peuvent vous faire économiser du temps, du stress et des remplacements potentiellement coûteux.",
+
+    blogPost9Title: "Objets Perdus et Trouvés Internationaux : Solutions Transfrontalières",
+    blogPost9Excerpt: "Comment notre plateforme aide avec les objets perdus à travers différents pays et cultures.",
+    blogPost9Content: "Les objets perdus ne respectent pas les frontières, et nos solutions ne devraient pas non plus. Notre plateforme connecte les utilisateurs à travers le Maroc et le monde arabe plus large, facilitant les retours transfrontaliers. Nous supportons plusieurs langues pour briser les barrières de communication. Notre communauté inclut des voyageurs, des expatriés et des locaux qui comprennent les défis du voyage international. Nous travaillons avec les autorités locales et les ambassades quand nécessaire pour faciliter les retours. La sensibilité culturelle guide notre approche des différentes communautés et traditions. Que vous soyez un touriste qui a perdu quelque chose ou un local qui a trouvé l'objet d'un voyageur, notre plateforme comble le fossé.",
+
+    blogPost10Title: "Fonctionnalités de l'Application Mobile : Objets Perdus et Trouvés en Déplacement",
+    blogPost10Excerpt: "Découvrez la commodité de gérer les objets perdus et trouvés grâce à notre application mobile.",
+    blogPost10Content: "Notre application mobile apporte la puissance de notre plateforme au bout de vos doigts. Publiez des objets perdus ou trouvés instantanément avec l'appareil photo de votre téléphone. Recevez des notifications en temps réel quand quelqu'un répond à votre publication. Utilisez le GPS pour marquer automatiquement votre localisation lors de la publication. Recherchez dans les zones proches avec nos filtres basés sur la localisation. Accédez à votre historique de publications et gérez facilement plusieurs objets. Partagez des publications directement sur les réseaux sociaux pour augmenter la visibilité. L'application fonctionne hors ligne pour les fonctions de base et se synchronise quand vous êtes de nouveau en ligne. Avec les notifications push, vous ne manquerez jamais une mise à jour importante sur vos objets perdus ou trouvés."
   },
   ar: {
     // Post-related translations
@@ -3049,7 +3205,85 @@ export const translations = {
     supportTeamDesc: "فريق الدعم لدينا هنا لمساعدتك في أي أسئلة أو مشاكل قد تواجهها.",
     getInTouch: "تواصل معنا",
     servingMorocco: "خدمة المغرب",
-    andArabWorld: "والعالم العربي"
+    andArabWorld: "والعالم العربي",
+
+    // Blog translations
+    blog: "المدونة",
+    blogSubtitle: "قصص ونصائح ورؤى",
+    blogDescription: "اكتشف مقالات مفيدة وقصص نجاح ونصائح خبراء حول الأشياء المفقودة والموجودة وسلامة المجتمع وكيفية الاستفادة القصوى من منصتنا.",
+    searchBlogPosts: "البحث في مقالات المدونة...",
+    readMore: "اقرأ المزيد",
+    noBlogPostsFound: "لم يتم العثور على مقالات مدونة",
+    tryDifferentSearch: "جرب مصطلح بحث مختلف",
+    mafqoudatTeam: "فريق مفقودات",
+    safety: "السلامة",
+    guidelines: "الإرشادات",
+    success: "النجاح",
+    tips: "النصائح",
+    legal: "قانوني",
+    technology: "التكنولوجيا",
+    community: "المجتمع",
+    prevention: "الوقاية",
+    international: "دولي",
+    mobile: "محمول",
+    meeting: "لقاء",
+    respect: "احترام",
+    story: "قصة",
+    reunion: "لم الشمل",
+    photography: "التصوير",
+    description: "الوصف",
+    rights: "الحقوق",
+    responsibilities: "المسؤوليات",
+    platform: "المنصة",
+    features: "الميزات",
+    building: "البناء",
+    trust: "الثقة",
+    security: "الأمان",
+    travel: "السفر",
+    crossBorder: "عبر الحدود",
+    app: "التطبيق",
+    convenience: "الراحة",
+
+    // Blog post titles and content
+    blogPost1Title: "نصائح السلامة الأساسية لمقابلة الغرباء",
+    blogPost1Excerpt: "تعلم كيفية البقاء آمناً عند مقابلة شخص لإرجاع أو المطالبة بعنصر مفقود. إرشادات مهمة للتبادلات الآمنة.",
+    blogPost1Content: "عند مقابلة شخص لإرجاع أو المطالبة بعنصر مفقود، يجب أن تكون السلامة دائماً أولويتك القصوى. إليك نصائح أساسية لضمان التبادلات الآمنة: قابل دائماً في أماكن عامة مع إضاءة جيدة وحركة مرور. أحضر صديقاً أو فرداً من العائلة معك. أخبر شخصاً عن مكان لقائك والوقت المتوقع للعودة. ثق بحدسك - إذا شعرت بشيء غريب، أعد الجدولة أو ألغِ اللقاء. تحقق من تفاصيل العنصر قبل اللقاء لضمان الأصالة. احتفظ بمعلوماتك الشخصية خاصة حتى تتأكد من نوايا الشخص الآخر.",
+
+    blogPost2Title: "إرشادات المجتمع: بناء الثقة معاً",
+    blogPost2Excerpt: "فهم إرشادات مجتمعنا يساعد في خلق بيئة آمنة ومحترمة للجميع الذين يستخدمون المنصة.",
+    blogPost2Content: "إرشادات مجتمعنا مصممة لتعزيز الثقة والاحترام والسلامة بين جميع المستخدمين. كن صادقاً ودقيقاً في منشوراتك - قدم أوصافاً واضحة وصوراً حقيقية. احترم خصوصية الآخرين ومعلوماتهم الشخصية. استخدم لغة مناسبة وتجنب المحتوى المسيء. أبلغ عن السلوك المشبوه أو غير المناسب فوراً. كن صبوراً ومتفهماً عند التواصل مع مستخدمين آخرين. تذكر أن وراء كل منشور شخص حقيقي قد يكون متوتراً بشأن عنصره المفقود أو متحمساً لمساعدة شخص ما.",
+
+    blogPost3Title: "قصة نجاح: لم الشمل بعد 6 أشهر",
+    blogPost3Excerpt: "اقرأ كيف ساعدت منصتنا في لم شمل عائلة مع تراثها المفقود بعد ستة أشهر من البحث.",
+    blogPost3Content: "منذ ستة أشهر، فقدت سارة خاتم زفاف جدتها أثناء رحلة عائلية إلى مراكش. رغم البحث المكثف، بدا الخاتم مفقوداً إلى الأبد. ذلك كان حتى وجده أحمد في تاكسي ونشره على مفقودات. من خلال نظام المطابقة المفصل في منصتنا والدعم المجتمعي، تمكنت سارة من التعرف على خاتمها من منشور أحمد. لم الشمل العاطفي جلب دموع الفرح للعائلتين، مما يثبت أن الأمل والروح المجتمعية يمكن أن تتغلب حتى على أطول الصعاب.",
+
+    blogPost4Title: "نصائح التصوير لمنشورات أفضل للأشياء المفقودة",
+    blogPost4Excerpt: "تعلم كيفية التقاط صور واضحة ومفيدة تزيد من فرصك في العثور على مالك عنصر مفقود.",
+    blogPost4Content: "التصوير الجيد أمر بالغ الأهمية لمنشورات البحث عن الأشياء المفقودة الناجحة. استخدم الإضاءة الطبيعية كلما أمكن - الصور الخارجية غالباً ما تكون أوضح من الداخلية. التقط زوايا متعددة للعنصر، بما في ذلك اللقطات المقربة لأي ميزات مميزة أو أسماء العلامات التجارية أو الأرقام التسلسلية. أدرج عنصراً شائعاً (مثل عملة معدنية أو قلم) كمرجع للحجم. تأكد من أن العنصر نظيف ومضاء جيداً. تجنب الصور الضبابية أو المظلمة. إذا كان للعنصر قيمة عاطفية، كن محترماً في كيفية تصويره. تذكر، الهدف هو مساعدة المالك في التعرف على عنصره بسرعة ودقة.",
+
+    blogPost5Title: "الجوانب القانونية للأشياء المفقودة والموجودة",
+    blogPost5Excerpt: "فهم حقوقك ومسؤولياتك عند التعامل مع الأشياء المفقودة والموجودة في المغرب.",
+    blogPost5Content: "عند التعامل مع الأشياء المفقودة والموجودة، من المهم فهم الإطار القانوني. في المغرب، على الواجدين التزامات معينة لبذل جهود معقولة لتحديد موقع المالك. يجب الإبلاغ عن العناصر ذات القيمة الكبيرة للسلطات المحلية. احتفظ بسجلات مفصلة لجهودك في العثور على المالك. كن على دراية بحدود الوقت للمطالبة بالعناصر. افهم الفرق بين الممتلكات المهجورة والمفقودة. تساعد منصتنا في تسهيل الإرجاعات القانونية والأخلاقية مع حماية الواجدين والملاك. عند الشك، استشر السلطات المحلية أو المهنيين القانونيين.",
+
+    blogPost6Title: "كيف تقوم التكنولوجيا بثورة في الأشياء المفقودة والموجودة",
+    blogPost6Excerpt: "استكشف الميزات والتكنولوجيا المبتكرة التي تجعل منصتنا أكثر فعالية من الطرق التقليدية.",
+    blogPost6Content: "لقد غيرت التكنولوجيا الحديثة كيفية التعامل مع الأشياء المفقودة والموجودة. تستخدم منصتنا خوارزميات مطابقة متقدمة لربط العناصر المماثلة مع الملاك المحتملين. تساعد تكامل GPS في تحديد المواقع الدقيقة حيث فُقدت أو وُجدت العناصر. تساعد تكنولوجيا التعرف على الصور في تحديد العناصر من الصور. تضمن الإشعارات في الوقت الفعلي ألا يفوت المستخدمون التحديثات المهمة. تسمح التحسينات المحمولة للمستخدمين بالنشر والبحث أثناء التنقل. هذه التطورات التكنولوجية زادت بشكل كبير من معدلات النجاح وقللت الوقت اللازم لإعادة لم شمل العناصر مع ملاكها.",
+
+    blogPost7Title: "بناء مجتمع جدير بالثقة",
+    blogPost7Excerpt: "تعلم كيف نعزز الثقة والسلامة في مجتمعنا من خلال التحقق والاعتدال وتعليم المستخدمين.",
+    blogPost7Content: "الثقة هي أساس مجتمعنا. ننفذ طبقات متعددة من التحقق لضمان أصالة المستخدمين. يراجع فريق الاعتدال لدينا المنشورات وتفاعلات المستخدمين للحفاظ على معايير الجودة. نوفر إرشادات واضحة وموارد تعليمية لمساعدة المستخدمين على اتخاذ قرارات مدروسة. تساعد أنظمة التعليقات والتقييم المجتمعية في تحديد المستخدمين الجديرين بالثقة. تحافظ التحديثات الأمنية المنتظمة وحمايات الخصوصية على أمان معلومات المستخدمين. من خلال العمل معاً، نخلق بيئة يشعر فيها الناس بالراحة في مساعدة بعضهم البعض ومشاركة قصصهم.",
+
+    blogPost8Title: "نصائح الوقاية: كيفية تجنب فقدان الأشياء",
+    blogPost8Excerpt: "نصائح عملية حول كيفية منع فقدان ممتلكاتك في المقام الأول.",
+    blogPost8Content: "الوقاية دائماً أفضل من البحث. إليك نصائح عملية لتجنب فقدان ممتلكاتك: تحقق دائماً من مقعدك والمنطقة المحيطة قبل مغادرة أي مكان. استخدم أجهزة التتبع للعناصر القيمة مثل الهواتف والمفاتيح والحقائب. التقط صوراً للوثائق والعناصر المهمة للتعرف السهل. احتفظ بقائمة بأرقام التسلسل للإلكترونيات. استخدم أغلفة أو إكسسوارات مميزة لجعل عناصرك قابلة للتعرف عليها بسهولة. لا تترك عناصر دون مراقبة في الأماكن العامة. فكر في نقش أو وضع علامة على العناصر القيمة بمعلومات الاتصال الخاصة بك. هذه الخطوات البسيطة يمكن أن توفر عليك الوقت والتوتر وبدائل مكلفة محتملة.",
+
+    blogPost9Title: "الأشياء المفقودة والموجودة الدولية: حلول عبر الحدود",
+    blogPost9Excerpt: "كيف تساعد منصتنا مع الأشياء المفقودة عبر دول وثقافات مختلفة.",
+    blogPost9Content: "الأشياء المفقودة لا تحترم الحدود، ولا يجب أن تحترمها حلولنا أيضاً. تربط منصتنا المستخدمين عبر المغرب والعالم العربي الأوسع، مما يسهل الإرجاعات عبر الحدود. ندعم لغات متعددة لكسر حواجز التواصل. مجتمعنا يشمل المسافرين والمغتربين والمحليين الذين يفهمون تحديات السفر الدولي. نعمل مع السلطات المحلية والسفارات عند الضرورة لتسهيل الإرجاعات. توجه الحساسية الثقافية نهجنا تجاه المجتمعات والتقاليد المختلفة. سواء كنت سائحاً فقد شيئاً أو محلياً وجد عنصر مسافر، منصتنا تملأ الفجوة.",
+
+    blogPost10Title: "ميزات التطبيق المحمول: الأشياء المفقودة والموجودة أثناء التنقل",
+    blogPost10Excerpt: "اكتشف راحة إدارة الأشياء المفقودة والموجودة من خلال تطبيقنا المحمول.",
+    blogPost10Content: "يأتي تطبيقنا المحمول بقوة منصتنا إلى أطراف أصابعك. انشر الأشياء المفقودة أو الموجودة فوراً بكاميرا هاتفك. استقبل إشعارات في الوقت الفعلي عندما يرد شخص على منشورك. استخدم GPS لوضع علامة تلقائية على موقعك عند النشر. ابحث في المناطق القريبة مع مرشحاتنا القائمة على الموقع. الوصول إلى تاريخ منشوراتك وإدارة عناصر متعددة بسهولة. شارك المنشورات مباشرة على وسائل التواصل الاجتماعي لزيادة الرؤية. يعمل التطبيق دون اتصال للوظائف الأساسية ويتزامن عندما تعود متصلاً. مع الإشعارات الفورية، لن تفوت أبداً تحديثاً مهماً حول أشياءك المفقودة أو الموجودة."
   }
 };
 

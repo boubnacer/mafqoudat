@@ -1,0 +1,3 @@
+# ads.txt file for Mafqoudat.com
+# This file will be updated with AdSense publisher ID after approval
+# For now, it serves as a placeholder for AdSense requirements
