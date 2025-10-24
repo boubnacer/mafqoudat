@@ -50,7 +50,7 @@ const Blog = () => {
       date: '2024-01-15',
       category: t('safety'),
       readTime: '5 min',
-      image: '/blog-images/safety-tips.jpg',
+      image: '/blog-images/safety-tips.png',
       tags: [t('safety'), t('meeting'), t('tips')],
     },
     {
@@ -62,7 +62,7 @@ const Blog = () => {
       date: '2024-01-10',
       category: t('guidelines'),
       readTime: '7 min',
-      image: '/blog-images/community-guidelines.jpg',
+      image: '/blog-images/community-guidelines.png',
       tags: [t('community'), t('guidelines'), t('respect')],
     },
     {
@@ -74,7 +74,7 @@ const Blog = () => {
       date: '2024-01-05',
       category: t('success'),
       readTime: '4 min',
-      image: '/blog-images/success-story.jpg',
+      image: '/blog-images/success-story.png',
       tags: [t('success'), t('story'), t('reunion')],
     },
     {
@@ -86,7 +86,7 @@ const Blog = () => {
       date: '2024-01-01',
       category: t('tips'),
       readTime: '6 min',
-      image: '/blog-images/photo-tips.jpg',
+      image: '/blog-images/photo-tips.png',
       tags: [t('photography'), t('tips'), t('description')],
     },
     {
@@ -98,7 +98,7 @@ const Blog = () => {
       date: '2023-12-28',
       category: t('legal'),
       readTime: '8 min',
-      image: '/blog-images/legal-aspects.jpg',
+      image: '/blog-images/legal-aspects.png',
       tags: [t('legal'), t('rights'), t('responsibilities')],
     },
     {
@@ -110,7 +110,7 @@ const Blog = () => {
       date: '2023-12-25',
       category: t('technology'),
       readTime: '5 min',
-      image: '/blog-images/technology.jpg',
+      image: '/blog-images/technology.png',
       tags: [t('technology'), t('platform'), t('features')],
     },
     {
@@ -122,7 +122,7 @@ const Blog = () => {
       date: '2023-12-20',
       category: t('community'),
       readTime: '6 min',
-      image: '/blog-images/community-building.jpg',
+      image: '/blog-images/community-building.png',
       tags: [t('community'), t('building'), t('trust')],
     },
     {
@@ -134,7 +134,7 @@ const Blog = () => {
       date: '2023-12-15',
       category: t('prevention'),
       readTime: '4 min',
-      image: '/blog-images/prevention.jpg',
+      image: '/blog-images/prevention.png',
       tags: [t('prevention'), t('tips'), t('security')],
     },
     {
@@ -146,7 +146,7 @@ const Blog = () => {
       date: '2023-12-10',
       category: t('international'),
       readTime: '7 min',
-      image: '/blog-images/international.jpg',
+      image: '/blog-images/international.png',
       tags: [t('international'), t('travel'), t('crossBorder')],
     },
     {
@@ -158,7 +158,7 @@ const Blog = () => {
       date: '2023-12-05',
       category: t('mobile'),
       readTime: '5 min',
-      image: '/blog-images/mobile-app.jpg',
+      image: '/blog-images/mobile-app.png',
       tags: [t('mobile'), t('app'), t('convenience')],
     },
   ];

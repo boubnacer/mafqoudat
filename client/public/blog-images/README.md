@@ -3,19 +3,19 @@
 This directory contains images for the blog posts. The following placeholder images are referenced in the blog posts:
 
 ## Required Images:
-- `safety-tips.jpg` - Image for safety tips article
-- `community-guidelines.jpg` - Image for community guidelines article  
-- `success-story.jpg` - Image for success story article
-- `photo-tips.jpg` - Image for photography tips article
-- `legal-aspects.jpg` - Image for legal aspects article
-- `technology.jpg` - Image for technology article
-- `community-building.jpg` - Image for community building article
-- `prevention.jpg` - Image for prevention tips article
-- `international.jpg` - Image for international article
-- `mobile-app.jpg` - Image for mobile app article
+- `safety-tips.png` - Image for safety tips article
+- `community-guidelines.png` - Image for community guidelines article  
+- `success-story.png` - Image for success story article
+- `photo-tips.png` - Image for photography tips article
+- `legal-aspects.png` - Image for legal aspects article
+- `technology.png` - Image for technology article
+- `community-building.png` - Image for community building article
+- `prevention.png` - Image for prevention tips article
+- `international.png` - Image for international article
+- `mobile-app.png` - Image for mobile app article
 
 ## Image Specifications:
-- Format: JPG or PNG
+- Format: PNG (preferred) or JPG
 - Dimensions: 400x200px (2:1 aspect ratio)
 - File size: Under 100KB for optimal loading
 - Content: Relevant to the article topic
