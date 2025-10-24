@@ -284,7 +284,7 @@ const Contact = () => {
                             },
                           }}
                         >
-                          {isLoading ? 'Sending...' : t('sendMessage')}
+                          {isLoading ? t('sending') : t('sendMessage')}
                         </Button>
                       </Grid>
                     </Grid>

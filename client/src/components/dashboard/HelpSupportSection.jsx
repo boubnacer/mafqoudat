@@ -183,13 +183,6 @@ const HelpSupportSection = () => {
 
   return (
     <>
-      {/* Debug: Test if component is rendering */}
-      <Box sx={{ p: 2, bgcolor: 'warning.light', mb: 2 }}>
-        <Typography variant="h6" color="warning.contrastText">
-          🐛 DEBUG: HelpSupportSection is rendering! Contact form should be available.
-        </Typography>
-      </Box>
-      
       <DashRecents cate="help" sx={{ mt: 4 }} data-section="help">
         <Box display="flex" alignItems="center" justifyContent="space-between" pt="1rem" px={2}>
           <Typography
@@ -207,20 +200,15 @@ const HelpSupportSection = () => {
           <Button
             variant="contained"
             startIcon={<ContactMail />}
-            onClick={() => {
-              console.log('Get Help button clicked!');
-              setShowHelpDialog(true);
-            }}
+            onClick={() => setShowHelpDialog(true)}
             sx={{
-              background: "linear-gradient(45deg, #FF5722 30%, #FF9800 90%)",
-              boxShadow: "0 3px 5px 2px rgba(255, 152, 0, .3)",
+              background: "linear-gradient(45deg, #2196F3 30%, #21CBF3 90%)",
+              boxShadow: "0 3px 5px 2px rgba(33, 203, 243, .3)",
               gap: isRTLMode ? 1 : 0.5,
-              direction: isRTLMode ? 'rtl' : 'ltr',
-              fontSize: '1.1rem',
-              fontWeight: 'bold'
+              direction: isRTLMode ? 'rtl' : 'ltr'
             }}
           >
-            🚀 {t('getHelp')} - CLICK HERE FOR CONTACT FORM
+            {t('getHelp')}
           </Button>
         </Box>
 
@@ -448,31 +436,55 @@ const HelpSupportSection = () => {
       {/* Help Dialog */}
       <Dialog
         open={showHelpDialog}
-        onClose={() => {
-          console.log('Dialog closing');
-          setShowHelpDialog(false);
-        }}
+        onClose={() => setShowHelpDialog(false)}
         maxWidth="md"
         fullWidth
+        PaperProps={{
+          sx: {
+            backgroundColor: theme.palette.mode === 'dark' ? '#1e1e1e' : '#ffffff',
+            backgroundImage: 'none',
+            border: theme.palette.mode === 'dark' 
+              ? '1px solid rgba(255, 255, 255, 0.1)' 
+              : '1px solid rgba(0, 0, 0, 0.1)',
+          }
+        }}
       >
-        <DialogTitle sx={{ direction: isRTLMode ? 'rtl' : 'ltr' }}>
-          🎯 {t('howCanWeHelpYou')} - CONTACT FORM IS IN FIRST TAB
+        <DialogTitle sx={{ 
+          direction: isRTLMode ? 'rtl' : 'ltr',
+          backgroundColor: theme.palette.mode === 'dark' ? '#2d2d2d' : '#f5f5f5',
+          borderBottom: theme.palette.mode === 'dark' 
+            ? '1px solid rgba(255, 255, 255, 0.1)' 
+            : '1px solid rgba(0, 0, 0, 0.1)',
+        }}>
+          {t('howCanWeHelpYou')}
         </DialogTitle>
         <DialogContent>
           <Box sx={{ mt: 2 }}>
-            <Tabs value={helpTab} onChange={(e, newValue) => {
-              console.log('Tab changed to:', newValue);
-              setHelpTab(newValue);
-            }}>
-              <Tab label={`📧 ${t('contactSupport')} - FORM HERE`} />
+            <Tabs 
+              value={helpTab} 
+              onChange={(e, newValue) => setHelpTab(newValue)}
+              sx={{
+                borderBottom: theme.palette.mode === 'dark' 
+                  ? '1px solid rgba(255, 255, 255, 0.1)' 
+                  : '1px solid rgba(0, 0, 0, 0.1)',
+                mb: 2
+              }}
+            >
+              <Tab label={t('contactSupport')} />
               <Tab label={t('liveChat')} />
               <Tab label={t('videoTutorials')} />
             </Tabs>
             
             <Box sx={{ mt: 2 }}>
               {helpTab === 0 && (
-                <Box>
-                  {console.log('Rendering contact form tab')}
+                <Box sx={{
+                  backgroundColor: theme.palette.mode === 'dark' ? 'rgba(255, 255, 255, 0.02)' : 'rgba(0, 0, 0, 0.02)',
+                  borderRadius: 2,
+                  p: 3,
+                  border: theme.palette.mode === 'dark' 
+                    ? '1px solid rgba(255, 255, 255, 0.05)' 
+                    : '1px solid rgba(0, 0, 0, 0.05)',
+                }}>
                   <Typography variant="h6" gutterBottom sx={{ direction: isRTLMode ? 'rtl' : 'ltr' }}>
                     {t('contactOurSupportTeam')}
                   </Typography>
@@ -501,6 +513,11 @@ const HelpSupportSection = () => {
                           required
                           variant="outlined"
                           size="small"
+                          sx={{
+                            '& .MuiOutlinedInput-root': {
+                              backgroundColor: theme.palette.mode === 'dark' ? 'rgba(255, 255, 255, 0.05)' : 'rgba(0, 0, 0, 0.02)',
+                            }
+                          }}
                         />
                       </Grid>
                       <Grid item xs={12} sm={6}>
@@ -514,6 +531,11 @@ const HelpSupportSection = () => {
                           required
                           variant="outlined"
                           size="small"
+                          sx={{
+                            '& .MuiOutlinedInput-root': {
+                              backgroundColor: theme.palette.mode === 'dark' ? 'rgba(255, 255, 255, 0.05)' : 'rgba(0, 0, 0, 0.02)',
+                            }
+                          }}
                         />
                       </Grid>
                       <Grid item xs={12}>
@@ -526,6 +548,11 @@ const HelpSupportSection = () => {
                           required
                           variant="outlined"
                           size="small"
+                          sx={{
+                            '& .MuiOutlinedInput-root': {
+                              backgroundColor: theme.palette.mode === 'dark' ? 'rgba(255, 255, 255, 0.05)' : 'rgba(0, 0, 0, 0.02)',
+                            }
+                          }}
                         />
                       </Grid>
                       <Grid item xs={12}>
@@ -541,6 +568,11 @@ const HelpSupportSection = () => {
                           variant="outlined"
                           size="small"
                           placeholder={t('messagePlaceholder')}
+                          sx={{
+                            '& .MuiOutlinedInput-root': {
+                              backgroundColor: theme.palette.mode === 'dark' ? 'rgba(255, 255, 255, 0.05)' : 'rgba(0, 0, 0, 0.02)',
+                            }
+                          }}
                         />
                       </Grid>
                       <Grid item xs={12}>
@@ -563,7 +595,7 @@ const HelpSupportSection = () => {
                             direction: isRTLMode ? 'rtl' : 'ltr'
                           }}
                         >
-                          {isContactLoading ? 'Sending...' : t('sendMessage')}
+                          {isContactLoading ? t('sending') : t('sendMessage')}
                         </Button>
                       </Grid>
                     </Grid>
