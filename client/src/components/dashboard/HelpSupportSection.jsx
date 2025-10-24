@@ -23,6 +23,8 @@ import {
   Grid,
   CardMedia,
   useTheme,
+  Alert,
+  CircularProgress,
 } from "@mui/material";
 import { 
   Help, 
@@ -34,11 +36,14 @@ import {
   ExpandMore,
   CheckCircle,
   Send,
-  Email
+  Email,
+  ContactMail,
+  Error as ErrorIcon,
 } from "@mui/icons-material";
 import DashRecents from './DashRecents';
 import { useTranslation } from "../../utils/translations";
 import { isRTL } from "../../utils/languageUtils";
+import { useSubmitContactFormMutation } from "../../features/contact/contactApiSlice";
 
 const HelpSupportSection = () => {
   const theme = useTheme();
@@ -47,6 +52,62 @@ const HelpSupportSection = () => {
   const isRTLMode = isRTL();
   const [showHelpDialog, setShowHelpDialog] = useState(false);
   const [helpTab, setHelpTab] = useState(0);
+  
+  // Contact form state
+  const [contactFormData, setContactFormData] = useState({
+    name: '',
+    email: '',
+    subject: '',
+    message: '',
+  });
+  const [isContactSubmitted, setIsContactSubmitted] = useState(false);
+  const [contactSubmitError, setContactSubmitError] = useState(null);
+
+  // RTK Query mutation hook
+  const [submitContactForm, { isLoading: isContactLoading }] = useSubmitContactFormMutation();
+
+  // Contact form handlers
+  const handleContactInputChange = (e) => {
+    const { name, value } = e.target;
+    setContactFormData(prev => ({
+      ...prev,
+      [name]: value,
+    }));
+    // Clear error when user starts typing
+    if (contactSubmitError) {
+      setContactSubmitError(null);
+    }
+  };
+
+  const handleContactSubmit = async (e) => {
+    e.preventDefault();
+    setContactSubmitError(null);
+
+    try {
+      const result = await submitContactForm(contactFormData).unwrap();
+      
+      // Success
+      setIsContactSubmitted(true);
+      setContactFormData({ name: '', email: '', subject: '', message: '' });
+      
+      // Reset success message after 5 seconds
+      setTimeout(() => {
+        setIsContactSubmitted(false);
+      }, 5000);
+      
+    } catch (err) {
+      // Handle different error types
+      if (err.status === 429) {
+        setContactSubmitError('Too many requests. Please wait a few minutes before submitting again.');
+      } else if (err.status === 400) {
+        setContactSubmitError(err.data?.message || 'Please check your input and try again.');
+      } else if (err.status === 500) {
+        setContactSubmitError('Server error. Please try again later.');
+      } else {
+        setContactSubmitError('An unexpected error occurred. Please try again.');
+      }
+    }
+  };
 
   const faqItems = [
     {
@@ -136,9 +197,9 @@ const HelpSupportSection = () => {
           >
             {t('helpAndSupport')}
           </Typography>
-          {/* <Button
+          <Button
             variant="contained"
-            startIcon={<Help />}
+            startIcon={<ContactMail />}
             onClick={() => setShowHelpDialog(true)}
             sx={{
               background: "linear-gradient(45deg, #2196F3 30%, #21CBF3 90%)",
@@ -148,7 +209,7 @@ const HelpSupportSection = () => {
             }}
           >
             {t('getHelp')}
-          </Button> */}
+          </Button>
         </Box>
 
         <Box p={2}>
@@ -396,29 +457,98 @@ const HelpSupportSection = () => {
                   <Typography variant="h6" gutterBottom sx={{ direction: isRTLMode ? 'rtl' : 'ltr' }}>
                     {t('contactOurSupportTeam')}
                   </Typography>
-                  <TextField
-                    fullWidth
-                    label={t('subject')}
-                    margin="normal"
-                  />
-                  <TextField
-                    fullWidth
-                    label={t('message')}
-                    multiline
-                    rows={4}
-                    margin="normal"
-                  />
-                  <Button
-                    variant="contained"
-                    fullWidth
-                    sx={{ 
-                      mt: 2,
-                      gap: isRTLMode ? 1 : 0.5,
-                      direction: isRTLMode ? 'rtl' : 'ltr'
-                    }}
-                  >
-                    {t('sendMessage')}
-                  </Button>
+                  
+                  {isContactSubmitted && (
+                    <Alert severity="success" sx={{ mb: 2 }} icon={<CheckCircle />}>
+                      {t('messageSentSuccessfully')}
+                    </Alert>
+                  )}
+
+                  {contactSubmitError && (
+                    <Alert severity="error" sx={{ mb: 2 }} icon={<ErrorIcon />}>
+                      {contactSubmitError}
+                    </Alert>
+                  )}
+
+                  <Box component="form" onSubmit={handleContactSubmit}>
+                    <Grid container spacing={2}>
+                      <Grid item xs={12} sm={6}>
+                        <TextField
+                          fullWidth
+                          label={t('yourName')}
+                          name="name"
+                          value={contactFormData.name}
+                          onChange={handleContactInputChange}
+                          required
+                          variant="outlined"
+                          size="small"
+                        />
+                      </Grid>
+                      <Grid item xs={12} sm={6}>
+                        <TextField
+                          fullWidth
+                          label={t('yourEmail')}
+                          name="email"
+                          type="email"
+                          value={contactFormData.email}
+                          onChange={handleContactInputChange}
+                          required
+                          variant="outlined"
+                          size="small"
+                        />
+                      </Grid>
+                      <Grid item xs={12}>
+                        <TextField
+                          fullWidth
+                          label={t('subject')}
+                          name="subject"
+                          value={contactFormData.subject}
+                          onChange={handleContactInputChange}
+                          required
+                          variant="outlined"
+                          size="small"
+                        />
+                      </Grid>
+                      <Grid item xs={12}>
+                        <TextField
+                          fullWidth
+                          label={t('yourMessage')}
+                          name="message"
+                          multiline
+                          rows={3}
+                          value={contactFormData.message}
+                          onChange={handleContactInputChange}
+                          required
+                          variant="outlined"
+                          size="small"
+                          placeholder={t('messagePlaceholder')}
+                        />
+                      </Grid>
+                      <Grid item xs={12}>
+                        <Button
+                          type="submit"
+                          variant="contained"
+                          fullWidth
+                          disabled={isContactLoading}
+                          startIcon={isContactLoading ? <CircularProgress size={20} color="inherit" /> : <Send />}
+                          sx={{
+                            background: 'linear-gradient(45deg, #2196F3 30%, #21CBF3 90%)',
+                            '&:hover': {
+                              background: 'linear-gradient(45deg, #1976D2 30%, #1CB5E0 90%)',
+                            },
+                            '&:disabled': {
+                              background: 'rgba(0, 0, 0, 0.12)',
+                              color: 'rgba(0, 0, 0, 0.26)',
+                            },
+                            gap: isRTLMode ? 1 : 0.5,
+                            direction: isRTLMode ? 'rtl' : 'ltr'
+                          }}
+                        >
+                          {isContactLoading ? 'Sending...' : t('sendMessage')}
+                        </Button>
+                      </Grid>
+                    </Grid>
+                  </Box>
                 </Box>
               )}
               
