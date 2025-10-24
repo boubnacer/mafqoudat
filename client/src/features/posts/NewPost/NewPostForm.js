@@ -1415,6 +1415,8 @@ const NewPostForm = ({ user, countries, categories, flOptions }) => {
                   <Textfield 
                     name="exactLocation" 
                     variant="outlined" 
+                    multiline
+                    rows={4}
                     placeholder={t('exactLocationPlaceholder')}
                     data-testid="exactLocation"
                     error={!!fieldErrors.exactLocation}

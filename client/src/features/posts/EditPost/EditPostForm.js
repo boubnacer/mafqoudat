@@ -1834,6 +1834,8 @@ if (typeof document !== 'undefined') {
                   <Textfield 
                     name="exactLocation" 
                     variant="outlined" 
+                    multiline
+                    rows={4}
                     placeholder={t('exactLocationPlaceholder')}
                     data-testid="exactLocation"
                     error={!!fieldErrors.exactLocation}
