@@ -184,6 +184,7 @@ app.use("/countries", require("./routes/countryRoutes"));
 app.use("/cities", require("./routes/cityRoutes"));
 app.use("/floptions", require("./routes/flOptionsRoutes"));
 app.use("/categories", require("./routes/categoryRoute"));
+app.use("/contact", require("./routes/contactRoutes"));
 app.use("/cities-public", require("./routes/citiesPublicRoutes"));
 app.use("/dependencies", require("./routes/dependenciesRoutes"));
 app.use("/cities-api", require("./routes/citiesRoutes"));

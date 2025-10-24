@@ -17,6 +17,7 @@ import {
   ListItemText,
   ListItemIcon,
   Divider,
+  CircularProgress,
 } from '@mui/material';
 import {
   Email,
@@ -28,8 +29,10 @@ import {
   Facebook,
   Instagram,
   WhatsApp,
+  Error as ErrorIcon,
 } from '@mui/icons-material';
 import { useTranslation } from '../../utils/translations';
+import { useSubmitContactFormMutation } from '../../features/contact/contactApiSlice';
 import Navbar from '../Navbar';
 import DashFooter from '../Footer/DashFooter';
 
@@ -44,6 +47,10 @@ const Contact = () => {
     message: '',
   });
   const [isSubmitted, setIsSubmitted] = useState(false);
+  const [submitError, setSubmitError] = useState(null);
+
+  // RTK Query mutation hook
+  const [submitContactForm, { isLoading, error }] = useSubmitContactFormMutation();
 
   const handleInputChange = (e) => {
     const { name, value } = e.target;
@@ -51,18 +58,40 @@ const Contact = () => {
       ...prev,
       [name]: value,
     }));
+    // Clear error when user starts typing
+    if (submitError) {
+      setSubmitError(null);
+    }
   };
 
-  const handleSubmit = (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault();
-    // Handle form submission here
-    console.log('Form submitted:', formData);
-    setIsSubmitted(true);
-    // Reset form after 3 seconds
-    setTimeout(() => {
-      setIsSubmitted(false);
+    setSubmitError(null);
+
+    try {
+      const result = await submitContactForm(formData).unwrap();
+      
+      // Success
+      setIsSubmitted(true);
       setFormData({ name: '', email: '', subject: '', message: '' });
-    }, 3000);
+      
+      // Reset success message after 5 seconds
+      setTimeout(() => {
+        setIsSubmitted(false);
+      }, 5000);
+      
+    } catch (err) {
+      // Handle different error types
+      if (err.status === 429) {
+        setSubmitError('Too many requests. Please wait a few minutes before submitting again.');
+      } else if (err.status === 400) {
+        setSubmitError(err.data?.message || 'Please check your input and try again.');
+      } else if (err.status === 500) {
+        setSubmitError('Server error. Please try again later.');
+      } else {
+        setSubmitError('An unexpected error occurred. Please try again.');
+      }
+    }
   };
 
   const contactInfo = [
@@ -181,6 +210,12 @@ const Contact = () => {
                     </Alert>
                   )}
 
+                  {submitError && (
+                    <Alert severity="error" sx={{ mb: 3 }} icon={<ErrorIcon />}>
+                      {submitError}
+                    </Alert>
+                  )}
+
                   <Box component="form" onSubmit={handleSubmit}>
                     <Grid container spacing={3}>
                       <Grid item xs={12} sm={6}>
@@ -236,15 +271,20 @@ const Contact = () => {
                           type="submit"
                           variant="contained"
                           size="large"
-                          startIcon={<Send />}
+                          disabled={isLoading}
+                          startIcon={isLoading ? <CircularProgress size={20} color="inherit" /> : <Send />}
                           sx={{
                             background: 'linear-gradient(45deg, #2196F3 30%, #21CBF3 90%)',
                             '&:hover': {
                               background: 'linear-gradient(45deg, #1976D2 30%, #1CB5E0 90%)',
                             },
+                            '&:disabled': {
+                              background: 'rgba(0, 0, 0, 0.12)',
+                              color: 'rgba(0, 0, 0, 0.26)',
+                            },
                           }}
                         >
-                          {t('sendMessage')}
+                          {isLoading ? 'Sending...' : t('sendMessage')}
                         </Button>
                       </Grid>
                     </Grid>
