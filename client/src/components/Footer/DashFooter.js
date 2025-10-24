@@ -371,6 +371,9 @@ const DashFooter = () => {
             <ListItem button onClick={() => navigate('/about')}>
               <ListItemText primary={t('aboutUs')} sx={{ '& .MuiListItemText-primary': { fontSize: { xs: '16px', sm: '14px' } } }} />
             </ListItem>
+            <ListItem button onClick={() => navigate('/contact')}>
+              <ListItemText primary={t('contactUs')} sx={{ '& .MuiListItemText-primary': { fontSize: { xs: '16px', sm: '14px' } } }} />
+            </ListItem>
           </List>
         </Grid>
 
