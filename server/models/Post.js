@@ -48,6 +48,7 @@ const postSchema = new mongoose.Schema(
     },
     mainDate: {
       type: String,
+      required: false, // Made optional
     },
 
     description: {

@@ -798,6 +798,7 @@ if (typeof document !== 'undefined') {
       return "";
     })(),
     exactLocation: post?.exactLocation || "",
+    exactDate: post?.mainDate || "", // Add mainDate field as exactDate
     description: post?.description || "",
     // image: null, // For new image uploads - temporarily disabled
     // Status fields
@@ -931,6 +932,7 @@ if (typeof document !== 'undefined') {
         category: values.category,
         foundLost: values.foundLost,
         exactLocation: values.exactLocation,
+        mainDate: values.exactDate || "", // Add mainDate field
         contact: values.contact,
         description: values.description || "",
         returned: values.returned || false, // Add the returned field
@@ -1840,6 +1842,41 @@ if (typeof document !== 'undefined') {
                   />
                 </Box>
 
+                <Box>
+                  <FormLabel 
+                    htmlFor="exactDate" 
+                    sx={{ 
+                      mb: 1, 
+                      display: "block", 
+                      fontWeight: 600, 
+                      fontSize: '1.15rem',
+                      color: theme.palette.text.primary
+                    }}
+                  >
+                    {t('exactDate')} ({t('optional')})
+                  </FormLabel>
+                  <Typography 
+                    variant="caption" 
+                    sx={{ 
+                      mb: 1, 
+                      display: "block", 
+                      fontSize: '1rem',
+                      color: theme.palette.mode === 'dark' ? 'rgba(255,255,255,0.7)' : 'rgba(0,0,0,0.6)',
+                      fontWeight: 500
+                    }}
+                  >
+                    {getFoundLostType(values.foundLost) === 'LOST' 
+                      ? t('exactDateLostPlaceholderOptional') 
+                      : t('exactDateFoundPlaceholderOptional')
+                    }
+                  </Typography>
+                  <Textfield 
+                    name="exactDate" 
+                    variant="outlined" 
+                    placeholder={t('exactDatePlaceholder') || "Enter the date (e.g., 15/12/2023 or December 15, 2023)"}
+                    data-testid="exactDate"
+                  />
+                </Box>
 
                 {/* Item Details Section */}
                 <Typography 

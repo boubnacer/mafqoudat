@@ -431,10 +431,7 @@ const NewPostForm = ({ user, countries, categories, flOptions }) => {
         missingFields.push(t('city'));
         newFieldErrors.city = t('required');
       }
-      if (!values.exactDate?.trim()) {
-        missingFields.push(t('exactDate'));
-        newFieldErrors.exactDate = t('required');
-      }
+      // exactDate is now optional - no validation needed
       if (!values.exactLocation?.trim()) {
         missingFields.push(t('exactLocation'));
         newFieldErrors.exactLocation = t('required');
@@ -463,8 +460,6 @@ const NewPostForm = ({ user, countries, categories, flOptions }) => {
             fieldToScroll = document.querySelector('[data-testid="country-select"]');
           } else if (missingFields.includes(t('city'))) {
             fieldToScroll = document.querySelector('[data-testid="city-select"]');
-          } else if (missingFields.includes(t('exactDate'))) {
-            fieldToScroll = document.querySelector('[data-testid="exactDate"]');
           } else if (missingFields.includes(t('exactLocation'))) {
             fieldToScroll = document.querySelector('[data-testid="exactLocation"]');
           } else if (missingFields.includes(t('contact'))) {
@@ -1439,7 +1434,7 @@ const NewPostForm = ({ user, countries, categories, flOptions }) => {
                       color: theme.palette.text.primary
                     }}
                   >
-                    {t('exactDate')} *
+                    {t('exactDate')} ({t('optional')})
                   </FormLabel>
                   <Typography 
                     variant="caption" 
@@ -1452,8 +1447,8 @@ const NewPostForm = ({ user, countries, categories, flOptions }) => {
                     }}
                   >
                     {getFoundLostType(values.foundLost) === 'LOST' 
-                      ? t('exactDateLostPlaceholder') 
-                      : t('exactDateFoundPlaceholder')
+                      ? t('exactDateLostPlaceholderOptional') 
+                      : t('exactDateFoundPlaceholderOptional')
                     }
                   </Typography>
                   <Textfield 
@@ -1461,9 +1456,6 @@ const NewPostForm = ({ user, countries, categories, flOptions }) => {
                     variant="outlined" 
                     placeholder={t('exactDatePlaceholder') || "Enter the date (e.g., 15/12/2023 or December 15, 2023)"}
                     data-testid="exactDate"
-                    error={!!fieldErrors.exactDate}
-                    helperText={fieldErrors.exactDate}
-                    onErrorClear={clearFieldError}
                   />
                 </Box>
 
