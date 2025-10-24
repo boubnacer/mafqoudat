@@ -44,6 +44,18 @@ const TrendingItem = ({ trend, isLoading }) => {
   const { t, currentLanguage } = useTranslation();
   const navigate = useNavigate();
 
+  // Helper function to check if mainDate has a meaningful value
+  const hasValidMainDate = (date) => {
+    if (!date) return false;
+    if (typeof date !== 'string') return false;
+    const trimmed = date.trim();
+    return trimmed !== '' && trimmed !== 'null' && trimmed !== 'undefined';
+  };
+
+  // Debug mainDate value
+  console.log('TrendingItem - mainDate:', mainDate, 'type:', typeof mainDate, 'trimmed:', mainDate?.trim());
+  console.log('TrendingItem - hasValidMainDate result:', hasValidMainDate(mainDate));
+
   // Get locale for date-fns
   const getLocale = () => {
     switch (currentLanguage) {
@@ -286,8 +298,8 @@ const TrendingItem = ({ trend, isLoading }) => {
                 lineHeight: currentLanguage === 'ar' ? 1.6 : 1.4,
               }}
             >
-              {mainDate && mainDate.trim() ? (
-                `${foundLostStatus.isFound ? t('foundAt') : t('lostAt')} ${mainDate}`
+              {hasValidMainDate(mainDate) ? (
+                `${foundLostStatus.isFound ? t('foundAt') : t('lostAt')} ${mainDate.trim()}`
               ) : (
                 foundLostStatus.isFound ? t('found') : t('lost')
               )}
