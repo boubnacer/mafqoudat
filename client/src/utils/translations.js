@@ -1216,6 +1216,179 @@ export const translations = {
     phoneSupportDesc: "Call us for immediate assistance",
     startChat: "Start Chat",
     sendEmail: "Send Email",
+    callNow: "Call Now",
+
+    // Blog translations
+    blog: "Blog",
+    blogSubtitle: "Helpful Articles & Tips",
+    blogDescription: "Discover helpful articles, safety tips, and community guidelines to make the most of your Mafqoudat experience.",
+    searchBlogPosts: "Search blog posts...",
+    readMore: "Read More",
+    noBlogPostsFound: "No blog posts found",
+    tryDifferentSearch: "Try a different search term",
+    mafqoudatTeam: "Mafqoudat Team",
+    safety: "Safety",
+    guidelines: "Guidelines",
+    success: "Success",
+    tips: "Tips",
+    legal: "Legal",
+    technology: "Technology",
+    community: "Community",
+    prevention: "Prevention",
+    international: "International",
+    mobile: "Mobile",
+    meeting: "Meeting",
+    respect: "Respect",
+    story: "Story",
+    reunion: "Reunion",
+    photography: "Photography",
+    description: "Description",
+    rights: "Rights",
+    responsibilities: "Responsibilities",
+    platform: "Platform",
+    features: "Features",
+    building: "Building",
+    trust: "Trust",
+    security: "Security",
+    travel: "Travel",
+    crossBorder: "Cross-Border",
+    app: "App",
+    convenience: "Convenience",
+
+    // Blog post titles and content
+    blogPost1Title: "Essential Safety Tips for Meeting Strangers",
+    blogPost1Excerpt: "Learn how to safely meet people when returning or claiming lost items through our platform.",
+    blogPost1Content: "When using Mafqoudat to return or claim lost items, your safety is our top priority. Here are essential safety tips to follow when meeting strangers: Always meet in public places like shopping centers, cafes, or police stations. Bring a friend or family member with you. Inform someone about your meeting location and time. Trust your instincts - if something feels wrong, don't proceed. Verify the person's identity through our platform's verification system. Never meet at private residences or isolated locations. Keep your personal information private until you're certain about the other person's intentions. If possible, meet during daylight hours. Consider bringing a witness or meeting in a location with security cameras. Remember, it's better to be cautious than to put yourself at risk. Our platform provides tools to help verify users, but your personal safety should always come first.",
+
+    blogPost2Title: "Community Guidelines: Building Trust Together",
+    blogPost2Excerpt: "Understanding our community guidelines helps create a safe and trustworthy environment for everyone.",
+    blogPost2Content: "At Mafqoudat, we believe in building a community based on trust, respect, and mutual support. Our community guidelines are designed to ensure everyone has a positive experience. Be honest and accurate in your posts - provide clear descriptions and photos. Respect other users and treat them with kindness. Report suspicious activity or inappropriate behavior immediately. Don't post false information or create fake listings. Be patient and understanding when communicating with other users. Follow local laws and regulations. Don't use the platform for commercial purposes without permission. Protect your personal information and respect others' privacy. Help maintain the platform's integrity by following these guidelines. Remember, we're all here to help each other reunite with lost belongings.",
+
+    blogPost3Title: "Success Story: Reunited After 6 Months",
+    blogPost3Excerpt: "Read about how our community helped reunite a family with their lost wedding ring after six months.",
+    blogPost3Content: "Last month, we received an incredible success story that reminded us why we do what we do. Sarah from Casablanca lost her grandmother's wedding ring while shopping at a local market. After six months of searching, she had almost given up hope. That's when Ahmed, a local vendor, found the ring and posted it on Mafqoudat. Within 24 hours, Sarah saw the post and recognized the unique engraving. The emotional reunion was captured in photos that brought tears to our eyes. This story highlights the power of community and the importance of never giving up hope. It also shows how detailed descriptions and photos can make all the difference in successful reunions. We're proud to be part of stories like this, where technology and human kindness come together to create magic.",
+
+    blogPost4Title: "How to Take Perfect Photos of Found Items",
+    blogPost4Excerpt: "Learn photography tips that will help you take clear, helpful photos of found items.",
+    blogPost4Content: "Taking good photos of found items is crucial for successful reunions. Here are professional tips to help you capture the perfect shot: Use natural lighting whenever possible - avoid harsh shadows. Take multiple angles including close-ups of distinctive features. Include a common object for size reference like a coin or pen. Clean the item before photographing if it's safe to do so. Capture any serial numbers, engravings, or unique markings. Take photos of the item in its found location if relevant. Use a plain background to avoid distractions. Ensure the item is in focus and well-lit. Include photos of any accessories or cases that came with the item. Don't forget to photograph any identifying marks or damage. These photos will help the rightful owner identify their item quickly and accurately.",
+
+    blogPost5Title: "Legal Aspects of Lost and Found Items",
+    blogPost5Excerpt: "Understanding your rights and responsibilities when dealing with lost and found items.",
+    blogPost5Content: "When dealing with lost and found items, it's important to understand the legal aspects involved. In Morocco, finders have certain obligations and rights. If you find an item, you should report it to local authorities within a reasonable time. You cannot keep valuable items without making efforts to find the owner. The platform helps facilitate legal and ethical returns. Document your efforts to find the owner through photos and records. Be aware of local laws regarding found property. Some items may need to be turned over to police stations. Keep records of all communications and attempts to return items. Understand that false claims of ownership can have legal consequences. Always act in good faith when dealing with lost and found situations. When in doubt, consult with local authorities or legal professionals.",
+
+    blogPost6Title: "Technology Behind Mafqoudat: How It Works",
+    blogPost6Excerpt: "Discover the technology and features that make Mafqoudat an effective lost and found platform.",
+    blogPost6Content: "Mafqoudat uses advanced technology to connect lost items with their owners efficiently. Our platform features intelligent matching algorithms that compare item descriptions, locations, and timeframes. The system uses machine learning to improve matching accuracy over time. We implement robust security measures to protect user data and prevent fraud. Our mobile-responsive design ensures accessibility across all devices. The platform supports multiple languages to serve our diverse community. Advanced search filters help users find relevant posts quickly. Our notification system keeps users updated about potential matches. The platform includes verification tools to build trust between users. We use cloud technology for reliable, fast performance. Regular updates and improvements ensure the platform stays current with user needs.",
+
+    blogPost7Title: "Building Community Trust: Our Approach",
+    blogPost7Excerpt: "Learn how we build and maintain trust within the Mafqoudat community.",
+    blogPost7Content: "Trust is the foundation of our community, and we take it seriously. We implement multiple verification systems to ensure user authenticity. Our community guidelines promote respectful and honest interactions. We provide clear communication channels for reporting issues. Regular monitoring helps maintain platform integrity. We encourage users to share their experiences and feedback. Our support team is always available to help resolve conflicts. We celebrate success stories to inspire continued participation. Educational content helps users understand best practices. We continuously improve our systems based on community feedback. Building trust takes time, but it's essential for our platform's success.",
+
+    blogPost8Title: "Prevention Tips: How to Avoid Losing Items",
+    blogPost8Excerpt: "Practical tips to help you keep track of your belongings and reduce the risk of losing them.",
+    blogPost8Content: "While we're here to help when items are lost, prevention is always better than cure. Here are practical tips to avoid losing your belongings: Always check your surroundings before leaving any location. Keep important items in designated, secure places. Use tracking devices for valuable items like phones and keys. Take photos of important items for identification purposes. Don't leave items unattended in public places. Use distinctive cases or accessories to make items easily identifiable. Keep a list of important items and their serial numbers. Be extra careful in crowded or unfamiliar areas. Consider using apps that remind you to check for your belongings. Share your location with trusted contacts when traveling. These simple habits can significantly reduce the risk of losing important items.",
+
+    blogPost9Title: "International Lost and Found: Cross-Border Cases",
+    blogPost9Excerpt: "How we handle lost and found cases that involve multiple countries and international travel.",
+    blogPost9Content: "In our connected world, lost items often cross borders. We handle international cases with special care and attention. Our platform supports multiple countries in the Arab world and beyond. We coordinate with local authorities in different jurisdictions. International cases may require additional documentation and verification. We help facilitate communication between parties in different countries. Some cases involve embassies or consulates for official documentation. We provide translation services for cross-border communications. International shipping and customs regulations may apply. We work with trusted partners in different countries. Each international case is handled individually based on local laws. Our goal is to reunite items with their owners regardless of borders.",
+
+    blogPost10Title: "Mobile App Features: Lost and Found on the Go",
+    blogPost10Excerpt: "Discover the convenience of using Mafqoudat through our mobile-optimized platform.",
+    blogPost10Content: "Our mobile platform brings lost and found services directly to your smartphone. The app allows instant posting of lost or found items with photos. GPS integration helps pinpoint exact locations where items were lost or found. Push notifications keep you updated about potential matches. The mobile interface is optimized for quick and easy use. You can search and filter posts while on the go. Camera integration makes it easy to take and upload photos. The app works offline and syncs when you're back online. Location services help you find nearby lost and found posts. Quick contact options make it easy to reach other users. The mobile experience is designed for convenience and efficiency.",
+
+    // Contact page translations
+    emailUs: "Email Us",
+    callUs: "Call Us",
+    ourLocation: "Our Location",
+    businessHours: "Business Hours",
+    emailDescription: "Send us an email and we'll respond within 24 hours",
+    phoneDescription: "Call us for immediate assistance during business hours",
+    locationDescription: "We serve Morocco and the Arab world",
+    available247: "Available 24/7",
+    hoursDescription: "Our support team is available around the clock",
+    sendUsMessage: "Send Us a Message",
+    yourName: "Your Name",
+    yourEmail: "Your Email",
+    subject: "Subject",
+    yourMessage: "Your Message",
+    messagePlaceholder: "Tell us how we can help you...",
+    sendMessage: "Send Message",
+    messageSentSuccessfully: "Your message has been sent successfully! We'll get back to you soon.",
+    followUs: "Follow Us",
+    needHelp: "Need Help?",
+    faqDescription: "Check our FAQ section for quick answers to common questions",
+    viewFAQ: "View FAQ",
+
+    // Help Center translations
+    helpCenter: "Help Center",
+    helpCenterSubtitle: "Find Answers and Get Support",
+    helpCenterDescription: "Browse our comprehensive help center for answers to common questions, tutorials, and support options.",
+    searchHelp: "Search help articles...",
+    popularTopics: "Popular Topics",
+    frequentlyAskedQuestions: "Frequently Asked Questions",
+    stillNeedHelp: "Still Need Help?",
+    gettingStarted: "Getting Started",
+    reportingItems: "Reporting Items",
+    safetySecurity: "Safety & Security",
+    accountSettings: "Account Settings",
+    tutorials: "Tutorials",
+
+    // FAQ questions and answers
+    faq1Question: "How do I create an account on Mafqoudat?",
+    faq1Answer: "Creating an account is simple! Click the 'Sign Up' button, enter your email or phone number, create a password, and verify your account. You can also sign up using your Google account for faster registration.",
+
+    faq2Question: "Is it free to use Mafqoudat?",
+    faq2Answer: "Yes, Mafqoudat is completely free to use. You can post lost and found items, search for items, and contact other users without any charges. We believe in helping our community without financial barriers.",
+
+    faq3Question: "How do I search for my lost item?",
+    faq3Answer: "Use our search function to look for your lost item by category, location, date, or keywords. You can also browse through recent posts or use our advanced filters to narrow down your search.",
+
+    faq4Question: "What information should I include when reporting a lost item?",
+    faq4Answer: "Include a detailed description, the location where you lost it, the date and time, any distinctive features, and clear photos if possible. The more information you provide, the easier it will be for someone to identify your item.",
+
+    faq5Question: "What should I do if I find someone's lost item?",
+    faq5Answer: "Post the found item on our platform with photos and location details. Keep the item safe and wait for the owner to contact you. Never keep valuable items without making efforts to find the owner.",
+
+    faq6Question: "How long should I keep a found item?",
+    faq6Answer: "We recommend keeping found items for at least 30 days while actively trying to find the owner. For valuable items, consider turning them over to local authorities if no owner is found.",
+
+    faq7Question: "How do I stay safe when meeting someone to return an item?",
+    faq7Answer: "Always meet in public places, bring a friend if possible, inform someone about your meeting, and trust your instincts. Never meet at private residences or isolated locations.",
+
+    faq8Question: "What if someone claims my item but I'm not sure it's really theirs?",
+    faq8Answer: "Ask for specific details about the item that only the real owner would know. Look for unique features, serial numbers, or personal items that can help verify ownership. When in doubt, don't hand over the item.",
+
+    faq9Question: "How do I report suspicious activity or fake posts?",
+    faq9Answer: "Use our reporting feature on any post or user profile. You can also contact our support team directly. We take all reports seriously and investigate them promptly.",
+
+    faq10Question: "How do I update my profile information?",
+    faq10Answer: "Go to your profile settings, click 'Edit Profile', make your changes, and save. You can update your contact information, preferences, and notification settings at any time.",
+
+    faq11Question: "How do I change my password?",
+    faq11Answer: "Go to your account settings, select 'Security', then 'Change Password'. Enter your current password and your new password twice to confirm the change.",
+
+    faq12Question: "How do I delete my account?",
+    faq12Answer: "Contact our support team to request account deletion. We'll help you through the process and ensure your data is properly removed from our systems.",
+
+    // Help topics
+    howToReportLost: "How to Report a Lost Item",
+    howToReportLostDesc: "Step-by-step guide to posting your lost item",
+    howToReportFound: "How to Report a Found Item",
+    howToReportFoundDesc: "Learn how to help others by posting found items",
+    safetyGuidelines: "Safety Guidelines",
+    safetyGuidelinesDesc: "Important safety tips for using our platform",
+    photoTips: "Photo Tips for Better Results",
+    photoTipsDesc: "Take better photos to increase your chances of success",
+
+    // Contact support options
+    liveChat: "Live Chat",
+    liveChatDesc: "Chat with our support team in real-time",
+    startChat: "Start Chat",
+    emailSupport: "Email Support",
+    emailSupportDesc: "Send us an email and we'll respond within 24 hours",
+    sendEmail: "Send Email",
+    phoneSupport: "Phone Support",
+    phoneSupportDesc: "Call us for immediate assistance",
     callNow: "Call Now"
   },
   fr: {
@@ -2412,6 +2585,179 @@ export const translations = {
     phoneSupportDesc: "Appelez-nous pour une assistance immédiate",
     startChat: "Commencer le Chat",
     sendEmail: "Envoyer un E-mail",
+    callNow: "Appeler Maintenant",
+
+    // Blog translations
+    blog: "Blog",
+    blogSubtitle: "Articles Utiles et Conseils",
+    blogDescription: "Découvrez des articles utiles, des conseils de sécurité et des directives communautaires pour tirer le meilleur parti de votre expérience Mafqoudat.",
+    searchBlogPosts: "Rechercher des articles de blog...",
+    readMore: "Lire Plus",
+    noBlogPostsFound: "Aucun article de blog trouvé",
+    tryDifferentSearch: "Essayez un terme de recherche différent",
+    mafqoudatTeam: "Équipe Mafqoudat",
+    safety: "Sécurité",
+    guidelines: "Directives",
+    success: "Succès",
+    tips: "Conseils",
+    legal: "Légal",
+    technology: "Technologie",
+    community: "Communauté",
+    prevention: "Prévention",
+    international: "International",
+    mobile: "Mobile",
+    meeting: "Rencontre",
+    respect: "Respect",
+    story: "Histoire",
+    reunion: "Réunion",
+    photography: "Photographie",
+    description: "Description",
+    rights: "Droits",
+    responsibilities: "Responsabilités",
+    platform: "Plateforme",
+    features: "Fonctionnalités",
+    building: "Construction",
+    trust: "Confiance",
+    security: "Sécurité",
+    travel: "Voyage",
+    crossBorder: "Transfrontalier",
+    app: "Application",
+    convenience: "Commodité",
+
+    // Blog post titles and content
+    blogPost1Title: "Conseils de Sécurité Essentiels pour Rencontrer des Inconnus",
+    blogPost1Excerpt: "Apprenez comment rencontrer des personnes en toute sécurité lors du retour ou de la réclamation d'objets perdus via notre plateforme.",
+    blogPost1Content: "Lors de l'utilisation de Mafqoudat pour retourner ou réclamer des objets perdus, votre sécurité est notre priorité absolue. Voici des conseils de sécurité essentiels à suivre lors de rencontres avec des inconnus : Rencontrez toujours dans des lieux publics comme des centres commerciaux, des cafés ou des commissariats. Amenez un ami ou un membre de la famille avec vous. Informez quelqu'un de votre lieu et heure de rencontre. Faites confiance à votre instinct - si quelque chose ne va pas, ne procédez pas. Vérifiez l'identité de la personne via le système de vérification de notre plateforme. Ne rencontrez jamais dans des résidences privées ou des endroits isolés. Gardez vos informations personnelles privées jusqu'à ce que vous soyez certain des intentions de l'autre personne. Si possible, rencontrez pendant les heures de jour. Considérez amener un témoin ou rencontrer dans un endroit avec des caméras de sécurité. Rappelez-vous, il vaut mieux être prudent que de vous mettre en danger. Notre plateforme fournit des outils pour aider à vérifier les utilisateurs, mais votre sécurité personnelle doit toujours passer en premier.",
+
+    blogPost2Title: "Directives Communautaires : Construire la Confiance Ensemble",
+    blogPost2Excerpt: "Comprendre nos directives communautaires aide à créer un environnement sûr et digne de confiance pour tous.",
+    blogPost2Content: "Chez Mafqoudat, nous croyons en la construction d'une communauté basée sur la confiance, le respect et l'entraide. Nos directives communautaires sont conçues pour s'assurer que tout le monde ait une expérience positive. Soyez honnête et précis dans vos publications - fournissez des descriptions claires et des photos. Respectez les autres utilisateurs et traitez-les avec gentillesse. Signalez immédiatement toute activité suspecte ou comportement inapproprié. Ne publiez pas de fausses informations ou ne créez pas de fausses annonces. Soyez patient et compréhensif lors de la communication avec d'autres utilisateurs. Respectez les lois et réglementations locales. N'utilisez pas la plateforme à des fins commerciales sans permission. Protégez vos informations personnelles et respectez la vie privée des autres. Aidez à maintenir l'intégrité de la plateforme en suivant ces directives. Rappelez-vous, nous sommes tous là pour nous aider mutuellement à retrouver nos objets perdus.",
+
+    blogPost3Title: "Histoire de Succès : Réunis Après 6 Mois",
+    blogPost3Excerpt: "Lisez comment notre communauté a aidé à réunir une famille avec leur alliance perdue après six mois.",
+    blogPost3Content: "Le mois dernier, nous avons reçu une incroyable histoire de succès qui nous a rappelé pourquoi nous faisons ce que nous faisons. Sarah de Casablanca a perdu l'alliance de sa grand-mère en faisant des courses dans un marché local. Après six mois de recherche, elle avait presque abandonné l'espoir. C'est alors qu'Ahmed, un vendeur local, a trouvé l'alliance et l'a publiée sur Mafqoudat. En 24 heures, Sarah a vu la publication et a reconnu la gravure unique. La réunion émotionnelle a été capturée en photos qui nous ont fait verser des larmes. Cette histoire met en évidence le pouvoir de la communauté et l'importance de ne jamais abandonner l'espoir. Elle montre aussi comment des descriptions détaillées et des photos peuvent faire toute la différence dans les réunions réussies. Nous sommes fiers de faire partie d'histoires comme celle-ci, où la technologie et la gentillesse humaine se réunissent pour créer de la magie.",
+
+    blogPost4Title: "Comment Prendre des Photos Parfaites d'Objets Trouvés",
+    blogPost4Excerpt: "Apprenez des conseils de photographie qui vous aideront à prendre des photos claires et utiles d'objets trouvés.",
+    blogPost4Content: "Prendre de bonnes photos d'objets trouvés est crucial pour des réunions réussies. Voici des conseils professionnels pour vous aider à capturer le cliché parfait : Utilisez l'éclairage naturel chaque fois que possible - évitez les ombres dures. Prenez plusieurs angles incluant des gros plans des caractéristiques distinctives. Incluez un objet commun comme référence de taille comme une pièce de monnaie ou un stylo. Nettoyez l'objet avant de le photographier si c'est sûr de le faire. Capturez tous les numéros de série, gravures ou marques uniques. Prenez des photos de l'objet dans son lieu de découverte si pertinent. Utilisez un arrière-plan uni pour éviter les distractions. Assurez-vous que l'objet est net et bien éclairé. Incluez des photos de tous les accessoires ou étuis qui sont venus avec l'objet. N'oubliez pas de photographier toutes les marques d'identification ou dommages. Ces photos aideront le propriétaire légitime à identifier son objet rapidement et avec précision.",
+
+    blogPost5Title: "Aspects Légaux des Objets Perdus et Trouvés",
+    blogPost5Excerpt: "Comprendre vos droits et responsabilités lors de la gestion d'objets perdus et trouvés.",
+    blogPost5Content: "Lors de la gestion d'objets perdus et trouvés, il est important de comprendre les aspects légaux impliqués. Au Maroc, les trouveurs ont certaines obligations et droits. Si vous trouvez un objet, vous devriez le signaler aux autorités locales dans un délai raisonnable. Vous ne pouvez pas garder des objets de valeur sans faire d'efforts pour trouver le propriétaire. La plateforme aide à faciliter les retours légaux et éthiques. Documentez vos efforts pour trouver le propriétaire par des photos et des enregistrements. Soyez conscient des lois locales concernant les biens trouvés. Certains objets peuvent devoir être remis aux commissariats. Gardez des enregistrements de toutes les communications et tentatives de retour d'objets. Comprenez que de fausses réclamations de propriété peuvent avoir des conséquences légales. Agissez toujours de bonne foi lors de la gestion de situations d'objets perdus et trouvés. En cas de doute, consultez les autorités locales ou des professionnels juridiques.",
+
+    blogPost6Title: "Technologie derrière Mafqoudat : Comment Ça Marche",
+    blogPost6Excerpt: "Découvrez la technologie et les fonctionnalités qui font de Mafqoudat une plateforme efficace d'objets perdus et trouvés.",
+    blogPost6Content: "Mafqoudat utilise une technologie avancée pour connecter efficacement les objets perdus avec leurs propriétaires. Notre plateforme dispose d'algorithmes de correspondance intelligents qui comparent les descriptions d'objets, les emplacements et les périodes. Le système utilise l'apprentissage automatique pour améliorer la précision de correspondance au fil du temps. Nous implémentons des mesures de sécurité robustes pour protéger les données utilisateur et prévenir la fraude. Notre conception responsive mobile assure l'accessibilité sur tous les appareils. La plateforme prend en charge plusieurs langues pour servir notre communauté diversifiée. Les filtres de recherche avancés aident les utilisateurs à trouver rapidement les publications pertinentes. Notre système de notification tient les utilisateurs informés des correspondances potentielles. La plateforme inclut des outils de vérification pour construire la confiance entre les utilisateurs. Nous utilisons la technologie cloud pour des performances fiables et rapides. Les mises à jour et améliorations régulières assurent que la plateforme reste actuelle avec les besoins des utilisateurs.",
+
+    blogPost7Title: "Construire la Confiance Communautaire : Notre Approche",
+    blogPost7Excerpt: "Apprenez comment nous construisons et maintenons la confiance au sein de la communauté Mafqoudat.",
+    blogPost7Content: "La confiance est le fondement de notre communauté, et nous la prenons au sérieux. Nous implémentons plusieurs systèmes de vérification pour assurer l'authenticité des utilisateurs. Nos directives communautaires promeuvent des interactions respectueuses et honnêtes. Nous fournissons des canaux de communication clairs pour signaler les problèmes. La surveillance régulière aide à maintenir l'intégrité de la plateforme. Nous encourageons les utilisateurs à partager leurs expériences et commentaires. Notre équipe de support est toujours disponible pour aider à résoudre les conflits. Nous célébrons les histoires de succès pour inspirer une participation continue. Le contenu éducatif aide les utilisateurs à comprendre les meilleures pratiques. Nous améliorons continuellement nos systèmes basés sur les commentaires de la communauté. Construire la confiance prend du temps, mais c'est essentiel pour le succès de notre plateforme.",
+
+    blogPost8Title: "Conseils de Prévention : Comment Éviter de Perdre des Objets",
+    blogPost8Excerpt: "Conseils pratiques pour vous aider à garder une trace de vos affaires et réduire le risque de les perdre.",
+    blogPost8Content: "Bien que nous soyons là pour aider quand les objets sont perdus, la prévention est toujours meilleure que la guérison. Voici des conseils pratiques pour éviter de perdre vos affaires : Vérifiez toujours votre environnement avant de quitter un endroit. Gardez les objets importants dans des endroits désignés et sécurisés. Utilisez des dispositifs de suivi pour les objets de valeur comme les téléphones et les clés. Prenez des photos d'objets importants à des fins d'identification. Ne laissez pas d'objets sans surveillance dans des lieux publics. Utilisez des étuis ou accessoires distinctifs pour rendre les objets facilement identifiables. Gardez une liste d'objets importants et de leurs numéros de série. Soyez particulièrement prudent dans les zones bondées ou inconnues. Considérez utiliser des applications qui vous rappellent de vérifier vos affaires. Partagez votre emplacement avec des contacts de confiance lors de voyages. Ces habitudes simples peuvent considérablement réduire le risque de perdre des objets importants.",
+
+    blogPost9Title: "Objets Perdus et Trouvés Internationaux : Cas Transfrontaliers",
+    blogPost9Excerpt: "Comment nous gérons les cas d'objets perdus et trouvés qui impliquent plusieurs pays et voyages internationaux.",
+    blogPost9Content: "Dans notre monde connecté, les objets perdus traversent souvent les frontières. Nous gérons les cas internationaux avec des soins et une attention particuliers. Notre plateforme prend en charge plusieurs pays dans le monde arabe et au-delà. Nous coordonnons avec les autorités locales dans différentes juridictions. Les cas internationaux peuvent nécessiter une documentation et une vérification supplémentaires. Nous aidons à faciliter la communication entre les parties dans différents pays. Certains cas impliquent des ambassades ou des consulats pour la documentation officielle. Nous fournissons des services de traduction pour les communications transfrontalières. Les réglementations d'expédition internationale et de douane peuvent s'appliquer. Nous travaillons avec des partenaires de confiance dans différents pays. Chaque cas international est géré individuellement basé sur les lois locales. Notre objectif est de réunir les objets avec leurs propriétaires indépendamment des frontières.",
+
+    blogPost10Title: "Fonctionnalités de l'Application Mobile : Objets Perdus et Trouvés en Déplacement",
+    blogPost10Excerpt: "Découvrez la commodité d'utiliser Mafqoudat via notre plateforme optimisée mobile.",
+    blogPost10Content: "Notre plateforme mobile apporte les services d'objets perdus et trouvés directement à votre smartphone. L'application permet la publication instantanée d'objets perdus ou trouvés avec des photos. L'intégration GPS aide à localiser précisément les emplacements où les objets ont été perdus ou trouvés. Les notifications push vous tiennent informé des correspondances potentielles. L'interface mobile est optimisée pour une utilisation rapide et facile. Vous pouvez rechercher et filtrer les publications en déplacement. L'intégration de l'appareil photo facilite la prise et le téléchargement de photos. L'application fonctionne hors ligne et se synchronise quand vous êtes de nouveau en ligne. Les services de localisation vous aident à trouver les publications d'objets perdus et trouvés à proximité. Les options de contact rapide facilitent la communication avec d'autres utilisateurs. L'expérience mobile est conçue pour la commodité et l'efficacité.",
+
+    // Contact page translations
+    emailUs: "Nous Écrire",
+    callUs: "Nous Appeler",
+    ourLocation: "Notre Emplacement",
+    businessHours: "Heures d'Ouverture",
+    emailDescription: "Envoyez-nous un e-mail et nous répondrons dans les 24 heures",
+    phoneDescription: "Appelez-nous pour une assistance immédiate pendant les heures d'ouverture",
+    locationDescription: "Nous servons le Maroc et le monde arabe",
+    available247: "Disponible 24h/24 7j/7",
+    hoursDescription: "Notre équipe de support est disponible 24h/24",
+    sendUsMessage: "Envoyez-nous un Message",
+    yourName: "Votre Nom",
+    yourEmail: "Votre E-mail",
+    subject: "Sujet",
+    yourMessage: "Votre Message",
+    messagePlaceholder: "Dites-nous comment nous pouvons vous aider...",
+    sendMessage: "Envoyer le Message",
+    messageSentSuccessfully: "Votre message a été envoyé avec succès ! Nous vous répondrons bientôt.",
+    followUs: "Suivez-nous",
+    needHelp: "Besoin d'Aide ?",
+    faqDescription: "Consultez notre section FAQ pour des réponses rapides aux questions courantes",
+    viewFAQ: "Voir la FAQ",
+
+    // Help Center translations
+    helpCenter: "Centre d'Aide",
+    helpCenterSubtitle: "Trouvez des Réponses et Obtenez du Support",
+    helpCenterDescription: "Parcourez notre centre d'aide complet pour des réponses aux questions courantes, des tutoriels et des options de support.",
+    searchHelp: "Rechercher des articles d'aide...",
+    popularTopics: "Sujets Populaires",
+    frequentlyAskedQuestions: "Questions Fréquemment Posées",
+    stillNeedHelp: "Besoin d'Aide ?",
+    gettingStarted: "Commencer",
+    reportingItems: "Signaler des Objets",
+    safetySecurity: "Sécurité et Protection",
+    accountSettings: "Paramètres du Compte",
+    tutorials: "Tutoriels",
+
+    // FAQ questions and answers
+    faq1Question: "Comment créer un compte sur Mafqoudat ?",
+    faq1Answer: "Créer un compte est simple ! Cliquez sur le bouton 'S'inscrire', entrez votre e-mail ou numéro de téléphone, créez un mot de passe et vérifiez votre compte. Vous pouvez aussi vous inscrire en utilisant votre compte Google pour une inscription plus rapide.",
+
+    faq2Question: "Est-ce gratuit d'utiliser Mafqoudat ?",
+    faq2Answer: "Oui, Mafqoudat est complètement gratuit à utiliser. Vous pouvez publier des objets perdus et trouvés, rechercher des objets et contacter d'autres utilisateurs sans aucun frais. Nous croyons en aider notre communauté sans barrières financières.",
+
+    faq3Question: "Comment rechercher mon objet perdu ?",
+    faq3Answer: "Utilisez notre fonction de recherche pour chercher votre objet perdu par catégorie, emplacement, date ou mots-clés. Vous pouvez aussi parcourir les publications récentes ou utiliser nos filtres avancés pour affiner votre recherche.",
+
+    faq4Question: "Quelles informations devrais-je inclure lors de la signalisation d'un objet perdu ?",
+    faq4Answer: "Incluez une description détaillée, l'emplacement où vous l'avez perdu, la date et l'heure, toutes les caractéristiques distinctives et des photos claires si possible. Plus vous fournissez d'informations, plus il sera facile pour quelqu'un d'identifier votre objet.",
+
+    faq5Question: "Que devrais-je faire si je trouve l'objet perdu de quelqu'un ?",
+    faq5Answer: "Publiez l'objet trouvé sur notre plateforme avec des photos et des détails d'emplacement. Gardez l'objet en sécurité et attendez que le propriétaire vous contacte. Ne gardez jamais d'objets de valeur sans faire d'efforts pour trouver le propriétaire.",
+
+    faq6Question: "Combien de temps devrais-je garder un objet trouvé ?",
+    faq6Answer: "Nous recommandons de garder les objets trouvés pendant au moins 30 jours tout en essayant activement de trouver le propriétaire. Pour les objets de valeur, considérez les remettre aux autorités locales si aucun propriétaire n'est trouvé.",
+
+    faq7Question: "Comment rester en sécurité lors de la rencontre avec quelqu'un pour retourner un objet ?",
+    faq7Answer: "Rencontrez toujours dans des lieux publics, amenez un ami si possible, informez quelqu'un de votre rencontre et faites confiance à votre instinct. Ne rencontrez jamais dans des résidences privées ou des endroits isolés.",
+
+    faq8Question: "Et si quelqu'un réclame mon objet mais je ne suis pas sûr que ce soit vraiment le sien ?",
+    faq8Answer: "Demandez des détails spécifiques sur l'objet que seul le vrai propriétaire connaîtrait. Cherchez des caractéristiques uniques, des numéros de série ou des objets personnels qui peuvent aider à vérifier la propriété. En cas de doute, ne remettez pas l'objet.",
+
+    faq9Question: "Comment signaler une activité suspecte ou de fausses publications ?",
+    faq9Answer: "Utilisez notre fonction de signalement sur toute publication ou profil d'utilisateur. Vous pouvez aussi contacter notre équipe de support directement. Nous prenons tous les signalements au sérieux et les enquêtons promptement.",
+
+    faq10Question: "Comment mettre à jour mes informations de profil ?",
+    faq10Answer: "Allez dans vos paramètres de profil, cliquez sur 'Modifier le Profil', faites vos changements et sauvegardez. Vous pouvez mettre à jour vos informations de contact, préférences et paramètres de notification à tout moment.",
+
+    faq11Question: "Comment changer mon mot de passe ?",
+    faq11Answer: "Allez dans vos paramètres de compte, sélectionnez 'Sécurité', puis 'Changer le Mot de Passe'. Entrez votre mot de passe actuel et votre nouveau mot de passe deux fois pour confirmer le changement.",
+
+    faq12Question: "Comment supprimer mon compte ?",
+    faq12Answer: "Contactez notre équipe de support pour demander la suppression du compte. Nous vous aiderons dans le processus et nous assurerons que vos données sont correctement supprimées de nos systèmes.",
+
+    // Help topics
+    howToReportLost: "Comment Signaler un Objet Perdu",
+    howToReportLostDesc: "Guide étape par étape pour publier votre objet perdu",
+    howToReportFound: "Comment Signaler un Objet Trouvé",
+    howToReportFoundDesc: "Apprenez comment aider les autres en publiant des objets trouvés",
+    safetyGuidelines: "Directives de Sécurité",
+    safetyGuidelinesDesc: "Conseils de sécurité importants pour utiliser notre plateforme",
+    photoTips: "Conseils Photo pour de Meilleurs Résultats",
+    photoTipsDesc: "Prenez de meilleures photos pour augmenter vos chances de succès",
+
+    // Contact support options
+    liveChat: "Chat en Direct",
+    liveChatDesc: "Chattez avec notre équipe de support en temps réel",
+    startChat: "Commencer le Chat",
+    emailSupport: "Support E-mail",
+    emailSupportDesc: "Envoyez-nous un e-mail et nous répondrons dans les 24 heures",
+    sendEmail: "Envoyer un E-mail",
+    phoneSupport: "Support Téléphonique",
+    phoneSupportDesc: "Appelez-nous pour une assistance immédiate",
     callNow: "Appeler Maintenant"
   },
   ar: {
@@ -3592,6 +3938,179 @@ export const translations = {
     phoneSupportDesc: "اتصل بنا للحصول على مساعدة فورية",
     startChat: "بدء الدردشة",
     sendEmail: "إرسال بريد إلكتروني",
+    callNow: "اتصل الآن",
+
+    // Blog translations
+    blog: "المدونة",
+    blogSubtitle: "مقالات مفيدة ونصائح",
+    blogDescription: "اكتشف المقالات المفيدة ونصائح السلامة والإرشادات المجتمعية لتحقيق أقصى استفادة من تجربتك مع مفقودات.",
+    searchBlogPosts: "البحث في مقالات المدونة...",
+    readMore: "اقرأ المزيد",
+    noBlogPostsFound: "لم يتم العثور على مقالات مدونة",
+    tryDifferentSearch: "جرب مصطلح بحث مختلف",
+    mafqoudatTeam: "فريق مفقودات",
+    safety: "السلامة",
+    guidelines: "الإرشادات",
+    success: "النجاح",
+    tips: "النصائح",
+    legal: "القانوني",
+    technology: "التكنولوجيا",
+    community: "المجتمع",
+    prevention: "الوقاية",
+    international: "الدولي",
+    mobile: "المحمول",
+    meeting: "اللقاء",
+    respect: "الاحترام",
+    story: "القصة",
+    reunion: "اللقاء",
+    photography: "التصوير",
+    description: "الوصف",
+    rights: "الحقوق",
+    responsibilities: "المسؤوليات",
+    platform: "المنصة",
+    features: "الميزات",
+    building: "البناء",
+    trust: "الثقة",
+    security: "الأمان",
+    travel: "السفر",
+    crossBorder: "عبر الحدود",
+    app: "التطبيق",
+    convenience: "الراحة",
+
+    // Blog post titles and content
+    blogPost1Title: "نصائح السلامة الأساسية للقاء الغرباء",
+    blogPost1Excerpt: "تعلم كيفية لقاء الأشخاص بأمان عند إرجاع أو المطالبة بالأشياء المفقودة من خلال منصتنا.",
+    blogPost1Content: "عند استخدام مفقودات لإرجاع أو المطالبة بالأشياء المفقودة، سلامتك هي أولويتنا القصوى. إليك نصائح السلامة الأساسية التي يجب اتباعها عند لقاء الغرباء: التق دائماً في الأماكن العامة مثل المراكز التجارية والمقاهي أو مراكز الشرطة. أحضر صديقاً أو فرداً من العائلة معك. أخبر شخصاً عن مكان ووقت لقائك. ثق بحدسك - إذا شعرت أن شيئاً ما خطأ، لا تتابع. تحقق من هوية الشخص من خلال نظام التحقق في منصتنا. لا تلتق أبداً في المنازل الخاصة أو الأماكن المعزولة. احتفظ بمعلوماتك الشخصية سرية حتى تتأكد من نوايا الشخص الآخر. إذا أمكن، التقي خلال ساعات النهار. فكر في إحضار شاهد أو اللقاء في مكان به كاميرات مراقبة. تذكر، من الأفضل أن تكون حذراً من أن تضع نفسك في خطر. توفر منصتنا أدوات لمساعدتك في التحقق من المستخدمين، لكن سلامتك الشخصية يجب أن تأتي دائماً في المقام الأول.",
+
+    blogPost2Title: "الإرشادات المجتمعية: بناء الثقة معاً",
+    blogPost2Excerpt: "فهم إرشاداتنا المجتمعية يساعد في خلق بيئة آمنة وموثوقة للجميع.",
+    blogPost2Content: "في مفقودات، نؤمن ببناء مجتمع قائم على الثقة والاحترام والدعم المتبادل. إرشاداتنا المجتمعية مصممة لضمان حصول الجميع على تجربة إيجابية. كن صادقاً ودقيقاً في منشوراتك - قدم أوصافاً واضحة وصوراً. احترم المستخدمين الآخرين وعاملهم بلطف. أبلغ فوراً عن أي نشاط مشبوه أو سلوك غير لائق. لا تنشر معلومات خاطئة أو تنشئ قوائم مزيفة. كن صبوراً ومتفهماً عند التواصل مع المستخدمين الآخرين. اتبع القوانين واللوائح المحلية. لا تستخدم المنصة لأغراض تجارية دون إذن. احم معلوماتك الشخصية واحترم خصوصية الآخرين. ساعد في الحفاظ على نزاهة المنصة باتباع هذه الإرشادات. تذكر، نحن جميعاً هنا لمساعدتنا في لم شمل ممتلكاتنا المفقودة.",
+
+    blogPost3Title: "قصة نجاح: لم الشمل بعد 6 أشهر",
+    blogPost3Excerpt: "اقرأ عن كيف ساعد مجتمعنا في لم شمل عائلة بخاتم زفافها المفقود بعد ستة أشهر.",
+    blogPost3Content: "الشهر الماضي، تلقينا قصة نجاح مذهلة ذكرتنا لماذا نفعل ما نفعل. سارة من الدار البيضاء فقدت خاتم زفاف جدتها أثناء التسوق في سوق محلي. بعد ستة أشهر من البحث، كانت قد فقدت الأمل تقريباً. عندها وجد أحمد، بائع محلي، الخاتم ونشره على مفقودات. في غضون 24 ساعة، رأت سارة المنشور وتعرفت على النقش الفريد. تم التقاط اللقاء العاطفي في صور أذرفت دموعنا. هذه القصة تسلط الضوء على قوة المجتمع وأهمية عدم فقدان الأمل أبداً. كما تظهر كيف يمكن للأوصاف التفصيلية والصور أن تحدث كل الفرق في اللقاءات الناجحة. نحن فخورون بأن نكون جزءاً من قصص مثل هذه، حيث تتحد التكنولوجيا واللطف البشري لخلق السحر.",
+
+    blogPost4Title: "كيفية التقاط صور مثالية للأشياء الموجودة",
+    blogPost4Excerpt: "تعلم نصائح التصوير التي ستساعدك في التقاط صور واضحة ومفيدة للأشياء الموجودة.",
+    blogPost4Content: "التقاط صور جيدة للأشياء الموجودة أمر بالغ الأهمية للقاءات الناجحة. إليك نصائح مهنية لمساعدتك في التقاط اللقطة المثالية: استخدم الإضاءة الطبيعية كلما أمكن - تجنب الظلال القاسية. التقط زوايا متعددة تشمل لقطات مقربة للميزات المميزة. أدرج شيئاً شائعاً كمرجع للحجم مثل عملة معدنية أو قلم. نظف الشيء قبل تصويره إذا كان آمناً للقيام بذلك. التقط أي أرقام تسلسلية أو نقوش أو علامات فريدة. التقط صوراً للشيء في مكان العثور عليه إذا كان ذا صلة. استخدم خلفية عادية لتجنب الإلهاء. تأكد من أن الشيء في التركيز ومضاء جيداً. أدرج صوراً لأي إكسسوارات أو حافظات جاءت مع الشيء. لا تنس تصوير أي علامات تعريفية أو أضرار. هذه الصور ستساعد المالك الشرعي في التعرف على الشيء بسرعة ودقة.",
+
+    blogPost5Title: "الجوانب القانونية للأشياء المفقودة والموجودة",
+    blogPost5Excerpt: "فهم حقوقك ومسؤولياتك عند التعامل مع الأشياء المفقودة والموجودة.",
+    blogPost5Content: "عند التعامل مع الأشياء المفقودة والموجودة، من المهم فهم الجوانب القانونية المعنية. في المغرب، للعثورين التزامات وحقوق معينة. إذا وجدت شيئاً، يجب أن تبلغ السلطات المحلية في غضون وقت معقول. لا يمكنك الاحتفاظ بأشياء ثمينة دون بذل جهود للعثور على المالك. تساعد المنصة في تسهيل الإرجاعات القانونية والأخلاقية. وثق جهودك للعثور على المالك من خلال الصور والسجلات. كن على دراية بالقوانين المحلية المتعلقة بالممتلكات الموجودة. قد تحتاج بعض الأشياء إلى تسليمها لمراكز الشرطة. احتفظ بسجلات لجميع الاتصالات ومحاولات إرجاع الأشياء. افهم أن المطالبات الكاذبة بالملكية يمكن أن تكون لها عواقب قانونية. تصرف دائماً بحسن نية عند التعامل مع حالات الأشياء المفقودة والموجودة. عند الشك، استشر السلطات المحلية أو المهنيين القانونيين.",
+
+    blogPost6Title: "التكنولوجيا وراء مفقودات: كيف تعمل",
+    blogPost6Excerpt: "اكتشف التكنولوجيا والميزات التي تجعل مفقودات منصة فعالة للأشياء المفقودة والموجودة.",
+    blogPost6Content: "تستخدم مفقودات تكنولوجيا متقدمة لربط الأشياء المفقودة بأصحابها بكفاءة. تتميز منصتنا بخوارزميات مطابقة ذكية تقارن أوصاف الأشياء والمواقع والأطر الزمنية. يستخدم النظام التعلم الآلي لتحسين دقة المطابقة مع مرور الوقت. نطبق تدابير أمنية قوية لحماية بيانات المستخدمين ومنع الاحتيال. تصميمنا المتجاوب للهاتف المحمول يضمن إمكانية الوصول عبر جميع الأجهزة. تدعم المنصة لغات متعددة لخدمة مجتمعنا المتنوع. تساعد فلاتر البحث المتقدمة المستخدمين في العثور على المنشورات ذات الصلة بسرعة. نظام الإشعارات لدينا يبقي المستخدمين محدثين حول المطابقات المحتملة. تتضمن المنصة أدوات التحقق لبناء الثقة بين المستخدمين. نستخدم تكنولوجيا السحابة لأداء موثوق وسريع. التحديثات والتحسينات المنتظمة تضمن بقاء المنصة محدثة مع احتياجات المستخدمين.",
+
+    blogPost7Title: "بناء الثقة المجتمعية: نهجنا",
+    blogPost7Excerpt: "تعلم كيف نبني ونحافظ على الثقة داخل مجتمع مفقودات.",
+    blogPost7Content: "الثقة هي أساس مجتمعنا، ونحن نأخذها على محمل الجد. نطبق أنظمة تحقق متعددة لضمان أصالة المستخدمين. إرشاداتنا المجتمعية تعزز التفاعلات المحترمة والصادقة. نوفر قنوات اتصال واضحة للإبلاغ عن المشاكل. المراقبة المنتظمة تساعد في الحفاظ على نزاهة المنصة. نشجع المستخدمين على مشاركة تجاربهم وملاحظاتهم. فريق الدعم لدينا متاح دائماً لمساعدتنا في حل النزاعات. نحتفل بقصص النجاح لإلهام المشاركة المستمرة. المحتوى التعليمي يساعد المستخدمين على فهم أفضل الممارسات. نحسن باستمرار أنظمتنا بناءً على ملاحظات المجتمع. بناء الثقة يستغرق وقتاً، لكنه ضروري لنجاح منصتنا.",
+
+    blogPost8Title: "نصائح الوقاية: كيفية تجنب فقدان الأشياء",
+    blogPost8Excerpt: "نصائح عملية لمساعدتك في تتبع ممتلكاتك وتقليل خطر فقدانها.",
+    blogPost8Content: "بينما نحن هنا للمساعدة عندما تُفقد الأشياء، الوقاية دائماً أفضل من العلاج. إليك نصائح عملية لتجنب فقدان ممتلكاتك: تحقق دائماً من محيطك قبل مغادرة أي مكان. احتفظ بالأشياء المهمة في أماكن مخصصة وآمنة. استخدم أجهزة التتبع للأشياء الثمينة مثل الهواتف والمفاتيح. التقط صوراً للأشياء المهمة لأغراض التعريف. لا تترك الأشياء دون مراقبة في الأماكن العامة. استخدم حافظات أو إكسسوارات مميزة لجعل الأشياء قابلة للتعريف بسهولة. احتفظ بقائمة بالأشياء المهمة وأرقامها التسلسلية. كن حذراً بشكل خاص في المناطق المزدحمة أو غير المألوفة. فكر في استخدام التطبيقات التي تذكرك بالتحقق من ممتلكاتك. شارك موقعك مع جهات اتصال موثوقة عند السفر. هذه العادات البسيطة يمكن أن تقلل بشكل كبير من خطر فقدان الأشياء المهمة.",
+
+    blogPost9Title: "الأشياء المفقودة والموجودة الدولية: الحالات عبر الحدود",
+    blogPost9Excerpt: "كيف نتعامل مع حالات الأشياء المفقودة والموجودة التي تشمل عدة دول والسفر الدولي.",
+    blogPost9Content: "في عالمنا المتصل، غالباً ما تعبر الأشياء المفقودة الحدود. نتعامل مع الحالات الدولية بعناية واهتمام خاصين. تدعم منصتنا عدة دول في العالم العربي وما بعده. ننسق مع السلطات المحلية في ولايات قضائية مختلفة. قد تتطلب الحالات الدولية وثائق وتحقق إضافيين. نساعد في تسهيل التواصل بين الأطراف في دول مختلفة. بعض الحالات تشمل السفارات أو القنصليات للوثائق الرسمية. نوفر خدمات الترجمة للاتصالات عبر الحدود. قد تنطبق لوائح الشحن والجمارك الدولية. نعمل مع شركاء موثوقين في دول مختلفة. كل حالة دولية تُعالج بشكل فردي بناءً على القوانين المحلية. هدفنا هو لم شمل الأشياء مع أصحابها بغض النظر عن الحدود.",
+
+    blogPost10Title: "ميزات التطبيق المحمول: الأشياء المفقودة والموجودة أثناء التنقل",
+    blogPost10Excerpt: "اكتشف راحة استخدام مفقودات من خلال منصتنا المحسنة للهاتف المحمول.",
+    blogPost10Content: "منصتنا المحمولة تجلب خدمات الأشياء المفقودة والموجودة مباشرة إلى هاتفك الذكي. يسمح التطبيق بالنشر الفوري للأشياء المفقودة أو الموجودة مع الصور. تساعد تكامل GPS في تحديد المواقع الدقيقة حيث فُقدت أو وُجدت الأشياء. إشعارات الدفع تبقي محدثاً حول المطابقات المحتملة. واجهة الهاتف المحمول محسنة للاستخدام السريع والسهل. يمكنك البحث وتصفية المنشورات أثناء التنقل. تكامل الكاميرا يجعل من السهل التقاط وتحميل الصور. يعمل التطبيق في وضع عدم الاتصال ويتزامن عندما تعود متصلاً. خدمات الموقع تساعدك في العثور على منشورات الأشياء المفقودة والموجودة القريبة. خيارات الاتصال السريع تجعل من السهل الوصول إلى المستخدمين الآخرين. تجربة الهاتف المحمول مصممة للراحة والكفاءة.",
+
+    // Contact page translations
+    emailUs: "راسلنا",
+    callUs: "اتصل بنا",
+    ourLocation: "موقعنا",
+    businessHours: "ساعات العمل",
+    emailDescription: "أرسل لنا بريداً إلكترونياً وسنرد عليك خلال 24 ساعة",
+    phoneDescription: "اتصل بنا للحصول على مساعدة فورية خلال ساعات العمل",
+    locationDescription: "نخدم المغرب والعالم العربي",
+    available247: "متاح 24/7",
+    hoursDescription: "فريق الدعم لدينا متاح على مدار الساعة",
+    sendUsMessage: "أرسل لنا رسالة",
+    yourName: "اسمك",
+    yourEmail: "بريدك الإلكتروني",
+    subject: "الموضوع",
+    yourMessage: "رسالتك",
+    messagePlaceholder: "أخبرنا كيف يمكننا مساعدتك...",
+    sendMessage: "إرسال الرسالة",
+    messageSentSuccessfully: "تم إرسال رسالتك بنجاح! سنعود إليك قريباً.",
+    followUs: "تابعنا",
+    needHelp: "تحتاج مساعدة؟",
+    faqDescription: "تحقق من قسم الأسئلة الشائعة للحصول على إجابات سريعة للأسئلة الشائعة",
+    viewFAQ: "عرض الأسئلة الشائعة",
+
+    // Help Center translations
+    helpCenter: "مركز المساعدة",
+    helpCenterSubtitle: "ابحث عن الإجابات واحصل على الدعم",
+    helpCenterDescription: "تصفح مركز المساعدة الشامل لدينا للحصول على إجابات للأسئلة الشائعة والدروس التعليمية وخيارات الدعم.",
+    searchHelp: "البحث في مقالات المساعدة...",
+    popularTopics: "المواضيع الشائعة",
+    frequentlyAskedQuestions: "الأسئلة الشائعة",
+    stillNeedHelp: "ما زلت تحتاج مساعدة؟",
+    gettingStarted: "البدء",
+    reportingItems: "الإبلاغ عن الأشياء",
+    safetySecurity: "السلامة والأمان",
+    accountSettings: "إعدادات الحساب",
+    tutorials: "الدروس التعليمية",
+
+    // FAQ questions and answers
+    faq1Question: "كيف أنشئ حساباً على مفقودات؟",
+    faq1Answer: "إنشاء حساب بسيط! انقر على زر 'التسجيل'، أدخل بريدك الإلكتروني أو رقم هاتفك، أنشئ كلمة مرور وتحقق من حسابك. يمكنك أيضاً التسجيل باستخدام حساب جوجل للتسجيل الأسرع.",
+
+    faq2Question: "هل استخدام مفقودات مجاني؟",
+    faq2Answer: "نعم، مفقودات مجاني تماماً للاستخدام. يمكنك نشر الأشياء المفقودة والموجودة والبحث عن الأشياء والاتصال بالمستخدمين الآخرين دون أي رسوم. نؤمن بمساعدة مجتمعنا دون حواجز مالية.",
+
+    faq3Question: "كيف أبحث عن الشيء المفقود؟",
+    faq3Answer: "استخدم وظيفة البحث للبحث عن الشيء المفقود حسب الفئة أو الموقع أو التاريخ أو الكلمات المفتاحية. يمكنك أيضاً تصفح المنشورات الحديثة أو استخدام فلاترنا المتقدمة لتضييق بحثك.",
+
+    faq4Question: "ما المعلومات التي يجب أن أدرجها عند الإبلاغ عن شيء مفقود؟",
+    faq4Answer: "أدرج وصفاً مفصلاً والموقع حيث فقدته والتاريخ والوقت وأي ميزات مميزة وصور واضحة إذا أمكن. كلما قدمت معلومات أكثر، كلما كان أسهل لشخص ما أن يتعرف على الشيء.",
+
+    faq5Question: "ماذا أفعل إذا وجدت شيئاً مفقوداً لشخص ما؟",
+    faq5Answer: "انشر الشيء الموجود على منصتنا مع الصور وتفاصيل الموقع. احتفظ بالشيء آمناً وانتظر أن يتصل بك المالك. لا تحتفظ أبداً بأشياء ثمينة دون بذل جهود للعثور على المالك.",
+
+    faq6Question: "كم من الوقت يجب أن أحتفظ بشيء موجود؟",
+    faq6Answer: "نوصي بالاحتفاظ بالأشياء الموجودة لمدة 30 يوماً على الأقل أثناء محاولة العثور على المالك بنشاط. للأشياء الثمينة، فكر في تسليمها للسلطات المحلية إذا لم يتم العثور على مالك.",
+
+    faq7Question: "كيف أبقى آمناً عند لقاء شخص لإرجاع شيء؟",
+    faq7Answer: "التق دائماً في الأماكن العامة، أحضر صديقاً إذا أمكن، أخبر شخصاً عن لقائك وثق بحدسك. لا تلتق أبداً في المنازل الخاصة أو الأماكن المعزولة.",
+
+    faq8Question: "ماذا لو ادعى شخص أن الشيء ملكه لكنني لست متأكداً أنه ملكه حقاً؟",
+    faq8Answer: "اطلب تفاصيل محددة عن الشيء لن يعرفها سوى المالك الحقيقي. ابحث عن ميزات فريدة أو أرقام تسلسلية أو أشياء شخصية يمكن أن تساعد في التحقق من الملكية. عند الشك، لا تسلم الشيء.",
+
+    faq9Question: "كيف أبلغ عن نشاط مشبوه أو منشورات مزيفة؟",
+    faq9Answer: "استخدم ميزة الإبلاغ على أي منشور أو ملف تعريف مستخدم. يمكنك أيضاً الاتصال بفريق الدعم مباشرة. نأخذ جميع التقارير على محمل الجد ونحقق فيها فوراً.",
+
+    faq10Question: "كيف أحدث معلومات ملفي الشخصي؟",
+    faq10Answer: "اذهب إلى إعدادات ملفك الشخصي، انقر على 'تحرير الملف الشخصي'، قم بالتغييرات واحفظ. يمكنك تحديث معلومات الاتصال والتفضيلات وإعدادات الإشعارات في أي وقت.",
+
+    faq11Question: "كيف أغير كلمة المرور؟",
+    faq11Answer: "اذهب إلى إعدادات حسابك، اختر 'الأمان'، ثم 'تغيير كلمة المرور'. أدخل كلمة المرور الحالية وكلمة المرور الجديدة مرتين لتأكيد التغيير.",
+
+    faq12Question: "كيف أحذف حسابي؟",
+    faq12Answer: "اتصل بفريق الدعم لطلب حذف الحساب. سنساعدك في العملية ونتأكد من إزالة بياناتك بشكل صحيح من أنظمتنا.",
+
+    // Help topics
+    howToReportLost: "كيفية الإبلاغ عن شيء مفقود",
+    howToReportLostDesc: "دليل خطوة بخطوة لنشر الشيء المفقود",
+    howToReportFound: "كيفية الإبلاغ عن شيء موجود",
+    howToReportFoundDesc: "تعلم كيفية مساعدة الآخرين بنشر الأشياء الموجودة",
+    safetyGuidelines: "إرشادات السلامة",
+    safetyGuidelinesDesc: "نصائح سلامة مهمة لاستخدام منصتنا",
+    photoTips: "نصائح التصوير لنتائج أفضل",
+    photoTipsDesc: "التقط صوراً أفضل لزيادة فرص نجاحك",
+
+    // Contact support options
+    liveChat: "الدردشة المباشرة",
+    liveChatDesc: "تحدث مع فريق الدعم في الوقت الفعلي",
+    startChat: "بدء الدردشة",
+    emailSupport: "دعم البريد الإلكتروني",
+    emailSupportDesc: "أرسل لنا بريداً إلكترونياً وسنرد عليك خلال 24 ساعة",
+    sendEmail: "إرسال بريد إلكتروني",
+    phoneSupport: "دعم الهاتف",
+    phoneSupportDesc: "اتصل بنا للحصول على مساعدة فورية",
     callNow: "اتصل الآن"
   }
 };
