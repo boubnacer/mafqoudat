@@ -231,6 +231,7 @@ const getDashboard = async (req, res) => {
           country: 1,
           returned: 1,
           createdAt: 1,
+          mainDate: 1, // Add mainDate field to projection
           categoryname: { $ifNull: ["$Category.code", "ELECTRONICS"] },
           Category: {
             $cond: {
@@ -417,6 +418,7 @@ const getDashboard = async (req, res) => {
           },
           contact: 1,
           image: 1,
+          mainDate: 1, // Add mainDate field to projection
           countryLabels: { $ifNull: ["$Country.labels", {}] },
           countryname: { $ifNull: ["$Country.code", "MOROCCO"] },
           // Add missing fields for debugging
@@ -569,6 +571,7 @@ const getDashboard = async (req, res) => {
           },
           contact: 1,
           image: 1,
+          mainDate: 1, // Add mainDate field to projection
           countryLabels: { $ifNull: ["$Country.labels", {}] },
           countryname: { $ifNull: ["$Country.code", "MOROCCO"] },
           // Add missing fields for debugging

@@ -34,9 +34,9 @@ const TrendingItem = ({ trend, isLoading }) => {
   const trendData = Array.isArray(trend) ? trend[0] : trend;
   
   // Debug logging to understand the data structure
-  console.log('TrendingItem - trend prop:', trend);
-  console.log('TrendingItem - trendData:', trendData);
-  console.log('TrendingItem - trendData keys:', trendData ? Object.keys(trendData) : 'no trendData');
+  // console.log('TrendingItem - trend prop:', trend);
+  // console.log('TrendingItem - trendData:', trendData);
+  // console.log('TrendingItem - trendData keys:', trendData ? Object.keys(trendData) : 'no trendData');
   
   const { _id, categoryname, floptionName, image, createdAt, mainDate, countryLabels, countryname, city, cityLabels, cityName, Floptions, Category } = trendData || {};
   const theme = useTheme();
@@ -54,8 +54,8 @@ const TrendingItem = ({ trend, isLoading }) => {
   };
 
   // Debug mainDate value
-  console.log('TrendingItem - mainDate:', mainDate, 'type:', typeof mainDate, 'trimmed:', mainDate?.trim());
-  console.log('TrendingItem - hasValidMainDate result:', hasValidMainDate(mainDate));
+  // console.log('TrendingItem - mainDate:', mainDate, 'type:', typeof mainDate, 'trimmed:', mainDate?.trim());
+  // console.log('TrendingItem - hasValidMainDate result:', hasValidMainDate(mainDate));
 
   // Get locale for date-fns
   const getLocale = () => {
@@ -192,12 +192,12 @@ const TrendingItem = ({ trend, isLoading }) => {
   }, [Floptions, floptionName, currentLanguage, t]);
 
   // Debug foundLostStatus
-  console.log('TrendingItem - foundLostStatus:', foundLostStatus);
+  // console.log('TrendingItem - foundLostStatus:', foundLostStatus);
   
   // Debug the actual condition that will be used in render
   const shouldShowDate = hasValidMainDate(mainDate);
-  console.log('TrendingItem - shouldShowDate:', shouldShowDate);
-  console.log('TrendingItem - foundLostStatus.isFound:', foundLostStatus.isFound);
+  // console.log('TrendingItem - shouldShowDate:', shouldShowDate);
+  // console.log('TrendingItem - foundLostStatus.isFound:', foundLostStatus.isFound);
 
   // Handle navigation to post
   const handleViewPost = () => {
@@ -307,12 +307,7 @@ const TrendingItem = ({ trend, isLoading }) => {
               {hasValidMainDate(mainDate) ? (
                 `${foundLostStatus.isFound ? t('foundAt') : t('lostAt')} ${mainDate.trim()}`
               ) : (
-                // Temporary: Show raw mainDate value for debugging
-                mainDate ? (
-                  `${foundLostStatus.isFound ? t('found') : t('lost')} (DEBUG: "${mainDate}")`
-                ) : (
-                  foundLostStatus.isFound ? t('found') : t('lost')
-                )
+                foundLostStatus.isFound ? t('found') : t('lost')
               )}
             </Typography>
             
