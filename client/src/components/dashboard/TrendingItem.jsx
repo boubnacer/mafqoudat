@@ -286,7 +286,11 @@ const TrendingItem = ({ trend, isLoading }) => {
                 lineHeight: currentLanguage === 'ar' ? 1.6 : 1.4,
               }}
             >
-              {foundLostStatus.isFound ? t('foundAt') : t('lostAt')} {mainDate || new Date(createdAt).toLocaleDateString()}
+              {mainDate && mainDate.trim() ? (
+                `${foundLostStatus.isFound ? t('foundAt') : t('lostAt')} ${mainDate}`
+              ) : (
+                foundLostStatus.isFound ? t('found') : t('lost')
+              )}
             </Typography>
             
             {/* Second line: Location */}
