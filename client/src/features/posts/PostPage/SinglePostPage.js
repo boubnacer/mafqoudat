@@ -899,7 +899,7 @@ const SinglePostPage = ({
                           flexShrink: 0
                         }}
                       >
-                        {t('exactDate')}:
+                        {foundLostStatus.isFound ? t('exactDateFound') : t('exactDateLost')}:
                       </Typography>
                       <Typography 
                         variant="body2" 

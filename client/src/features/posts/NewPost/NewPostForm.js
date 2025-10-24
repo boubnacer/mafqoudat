@@ -1434,7 +1434,10 @@ const NewPostForm = ({ user, countries, categories, flOptions }) => {
                       color: theme.palette.text.primary
                     }}
                   >
-                    {t('exactDate')} ({t('optional')})
+                    {getFoundLostType(values.foundLost) === 'LOST' 
+                      ? t('exactDateLost') 
+                      : t('exactDateFound')
+                    } ({t('optional')})
                   </FormLabel>
                   <Typography 
                     variant="caption" 

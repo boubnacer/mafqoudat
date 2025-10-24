@@ -1853,7 +1853,10 @@ if (typeof document !== 'undefined') {
                       color: theme.palette.text.primary
                     }}
                   >
-                    {t('exactDate')} ({t('optional')})
+                    {getFoundLostType(values.foundLost) === 'LOST' 
+                      ? t('exactDateLost') 
+                      : t('exactDateFound')
+                    } ({t('optional')})
                   </FormLabel>
                   <Typography 
                     variant="caption" 
