@@ -82,7 +82,7 @@ const submitContactForm = async (req, res) => {
     }
 
     // Log the contact submission
-    logger.info(`New contact form submission: ${contact._id}`, {
+    console.log(`New contact form submission: ${contact._id}`, {
       contactId: contact._id,
       email: contact.email,
       subject: contact.subject,
@@ -91,6 +91,7 @@ const submitContactForm = async (req, res) => {
     });
 
     // Send success response
+    console.log('Sending success response...');
     res.status(201).json({
       success: true,
       message: "Your message has been sent successfully. We'll get back to you soon!",
@@ -99,13 +100,16 @@ const submitContactForm = async (req, res) => {
         submittedAt: contact.createdAt
       }
     });
+    console.log('Success response sent');
 
   } catch (error) {
-    logger.error("Error submitting contact form:", error);
+    console.error("Error submitting contact form:", error);
+    console.error("Error stack:", error.stack);
     
     // Handle validation errors
     if (error.name === 'ValidationError') {
       const errors = Object.values(error.errors).map(err => err.message);
+      console.log('Validation errors:', errors);
       return res.status(400).json({
         success: false,
         message: "Validation error",
@@ -113,10 +117,12 @@ const submitContactForm = async (req, res) => {
       });
     }
 
+    console.log('Sending 500 error response...');
     res.status(500).json({
       success: false,
       message: "Internal server error. Please try again later."
     });
+    console.log('500 error response sent');
   }
 };
 

@@ -24,20 +24,18 @@ const contactRateLimit = createRateLimiter({
 // Public route for submitting contact forms - simplified for debugging
 router.post(
   "/",
-  (req, res, next) => {
-    console.log('Contact POST route hit:', {
-      method: req.method,
-      url: req.url,
-      headers: req.headers,
-      timestamp: new Date().toISOString()
-    });
-    next();
-  },
-  // Temporarily remove rate limiting and sanitization for debugging
-  // contactRateLimit,
-  // sanitizeInput,
   contactController.submitContactForm
 );
+
+// Ultra-simple test route
+router.post("/simple", (req, res) => {
+  console.log('Simple contact route hit with data:', req.body);
+  res.status(200).json({
+    success: true,
+    message: "Simple contact route working",
+    received: req.body
+  });
+});
 
 // Simple test route without middleware
 router.post("/test", (req, res) => {
