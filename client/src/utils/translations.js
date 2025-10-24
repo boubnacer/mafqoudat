@@ -2024,7 +2024,33 @@ export const translations = {
     // Additional translations
     email: "Email",
     itemFoundIn: "Objet trouvé dans",
-    area: "la zone"
+    area: "la zone",
+    
+    // About Us page translations
+    aboutUs: "À Propos",
+    reunitingCommunities: "Réunir les Communautés, Un Objet à la Fois",
+    aboutUsDescription: "Mafqoudat est une plateforme communautaire de recherche d'objets perdus qui connecte les personnes à travers le Maroc et le monde arabe. Notre mission est d'aider à réunir les objets perdus avec leurs propriétaires grâce à la technologie, au soutien communautaire et à la confiance.",
+    ourMission: "Notre Mission",
+    missionDescription: "Nous croyons que chaque objet perdu a une histoire et que chaque objet trouvé a un propriétaire qui attend d'être réuni. Grâce à notre plateforme, nous créons des connexions significatives qui restaurent l'espoir et renforcent les liens communautaires.",
+    whatMakesUsDifferent: "Ce Qui Nous Distingue",
+    communityDriven: "Axé sur la Communauté",
+    communityDrivenDesc: "Construit par la communauté, pour la communauté. Nos utilisateurs sont notre plus grand atout.",
+    securePlatform: "Sécurisé et Fiable",
+    securePlatformDesc: "Des mesures de sécurité avancées protègent vos informations personnelles et garantissent des transactions sécurisées.",
+    fastMatching: "Correspondance Rapide",
+    fastMatchingDesc: "Des algorithmes intelligents et les signalements communautaires aident à faire correspondre rapidement les objets perdus et trouvés.",
+    multiLanguage: "Support Multilingue",
+    multiLanguageDesc: "Disponible en arabe, anglais et français pour servir notre communauté diversifiée.",
+    ourTeam: "Notre Équipe",
+    developmentTeam: "Équipe de Développement",
+    technicalDevelopment: "Développement Technique",
+    developmentTeamDesc: "Notre équipe technique travaille sans relâche pour améliorer la plateforme et ajouter de nouvelles fonctionnalités.",
+    supportTeam: "Équipe de Support",
+    customerSupport: "Support Client",
+    supportTeamDesc: "Notre équipe de support est là pour vous aider avec toutes vos questions ou problèmes.",
+    getInTouch: "Contactez-Nous",
+    servingMorocco: "Servir le Maroc",
+    andArabWorld: "et le Monde Arabe"
   },
   ar: {
     // Post-related translations
@@ -2997,7 +3023,33 @@ export const translations = {
     unknown: "غير معروف",
     
     // Additional translations
-    email: "البريد الإلكتروني"
+    email: "البريد الإلكتروني",
+    
+    // About Us page translations
+    aboutUs: "من نحن",
+    reunitingCommunities: "جمع المجتمعات، عنصر واحد في كل مرة",
+    aboutUsDescription: "مفقودات هي منصة مجتمعية للبحث عن الأشياء المفقودة تربط الناس عبر المغرب والعالم العربي. مهمتنا هي المساعدة في جمع الأشياء المفقودة مع أصحابها من خلال التكنولوجيا والدعم المجتمعي والثقة.",
+    ourMission: "مهمتنا",
+    missionDescription: "نؤمن أن كل عنصر مفقود له قصة وكل عنصر عثر عليه له مالك ينتظر أن يجتمع معه. من خلال منصتنا، نخلق روابط ذات معنى تعيد الأمل وتقوي الروابط المجتمعية.",
+    whatMakesUsDifferent: "ما يميزنا",
+    communityDriven: "مدفوع بالمجتمع",
+    communityDrivenDesc: "مبني من المجتمع، للمجتمع. مستخدمونا هم أعظم أصولنا.",
+    securePlatform: "منصة آمنة وموثوقة",
+    securePlatformDesc: "تدابير أمنية متقدمة تحمي معلوماتك الشخصية وتضمن المعاملات الآمنة.",
+    fastMatching: "مطابقة سريعة",
+    fastMatchingDesc: "خوارزميات ذكية والتقارير المجتمعية تساعد في مطابقة العناصر المفقودة والعثر عليها بسرعة.",
+    multiLanguage: "دعم متعدد اللغات",
+    multiLanguageDesc: "متاح باللغة العربية والإنجليزية والفرنسية لخدمة مجتمعنا المتنوع.",
+    ourTeam: "فريقنا",
+    developmentTeam: "فريق التطوير",
+    technicalDevelopment: "التطوير التقني",
+    developmentTeamDesc: "فريقنا التقني يعمل بلا كلل لتحسين المنصة وإضافة ميزات جديدة.",
+    supportTeam: "فريق الدعم",
+    customerSupport: "دعم العملاء",
+    supportTeamDesc: "فريق الدعم لدينا هنا لمساعدتك في أي أسئلة أو مشاكل قد تواجهها.",
+    getInTouch: "تواصل معنا",
+    servingMorocco: "خدمة المغرب",
+    andArabWorld: "والعالم العربي"
   }
 };
 
