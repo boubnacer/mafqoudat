@@ -21,7 +21,6 @@ import {
   Tab,
   TextField,
   Grid,
-  CardMedia,
   useTheme,
   Alert,
   CircularProgress,
@@ -32,7 +31,6 @@ import {
   Security, 
   Book, 
   Chat, 
-  VideoLibrary,
   ExpandMore,
   CheckCircle,
   Send,
@@ -163,23 +161,6 @@ const HelpSupportSection = () => {
     }
   ];
 
-  const videoTutorials = [
-    {
-      title: t('howToReportLostItemVideo'),
-      description: t('howToReportLostItemVideoDesc'),
-      thumbnail: "https://example.com/thumbnail1.jpg"
-    },
-    {
-      title: t('howToClaimFoundItemVideo'),
-      description: t('howToClaimFoundItemVideoDesc'),
-      thumbnail: "https://example.com/thumbnail2.jpg"
-    },
-    {
-      title: t('usingMafqoudatSafely'),
-      description: t('usingMafqoudatSafelyDesc'),
-      thumbnail: "https://example.com/thumbnail3.jpg"
-    }
-  ];
 
   return (
     <>
@@ -467,12 +448,27 @@ const HelpSupportSection = () => {
                 borderBottom: theme.palette.mode === 'dark' 
                   ? '1px solid rgba(255, 255, 255, 0.1)' 
                   : '1px solid rgba(0, 0, 0, 0.1)',
-                mb: 2
+                mb: 2,
+                '& .MuiTab-root': {
+                  color: theme.palette.mode === 'dark' ? 'rgba(255, 255, 255, 0.7)' : 'rgba(0, 0, 0, 0.6)',
+                  fontWeight: 500,
+                  '&.Mui-selected': {
+                    color: theme.palette.mode === 'dark' ? '#ffffff' : '#1976d2',
+                    fontWeight: 600,
+                  },
+                  '&:hover': {
+                    color: theme.palette.mode === 'dark' ? '#ffffff' : '#1976d2',
+                  }
+                },
+                '& .MuiTabs-indicator': {
+                  backgroundColor: theme.palette.mode === 'dark' ? '#2196F3' : '#1976d2',
+                  height: 3,
+                  borderRadius: '2px 2px 0 0'
+                }
               }}
             >
               <Tab label={t('contactSupport')} />
               <Tab label={t('liveChat')} />
-              <Tab label={t('videoTutorials')} />
             </Tabs>
             
             <Box sx={{ mt: 2 }}>
@@ -614,43 +610,28 @@ const HelpSupportSection = () => {
                   </Typography>
                 </Box>
               )}
-              
-              {helpTab === 2 && (
-                <Box>
-                  <Typography variant="h6" gutterBottom sx={{ direction: isRTLMode ? 'rtl' : 'ltr' }}>
-                    {t('videoTutorials')}
-                  </Typography>
-                  <Grid container spacing={2}>
-                    {videoTutorials.map((tutorial, index) => (
-                      <Grid item xs={12} sm={6} key={index}>
-                        <Card>
-                          <CardMedia
-                            component="img"
-                            height="140"
-                            image={tutorial.thumbnail}
-                            alt={tutorial.title}
-                          />
-                          <CardContent>
-                            <Typography variant="h6">{tutorial.title}</Typography>
-                            <Typography variant="body2" color="text.secondary">
-                              {tutorial.description}
-                            </Typography>
-                          </CardContent>
-                        </Card>
-                      </Grid>
-                    ))}
-                  </Grid>
-                </Box>
-              )}
             </Box>
           </Box>
         </DialogContent>
-        <DialogActions>
+        <DialogActions sx={{
+          backgroundColor: theme.palette.mode === 'dark' ? '#2d2d2d' : '#f5f5f5',
+          borderTop: theme.palette.mode === 'dark' 
+            ? '1px solid rgba(255, 255, 255, 0.1)' 
+            : '1px solid rgba(0, 0, 0, 0.1)',
+          p: 2
+        }}>
           <Button 
             onClick={() => setShowHelpDialog(false)}
+            variant="outlined"
             sx={{
               gap: isRTLMode ? 1 : 0.5,
-              direction: isRTLMode ? 'rtl' : 'ltr'
+              direction: isRTLMode ? 'rtl' : 'ltr',
+              color: theme.palette.mode === 'dark' ? '#ffffff' : '#1976d2',
+              borderColor: theme.palette.mode === 'dark' ? 'rgba(255, 255, 255, 0.3)' : '#1976d2',
+              '&:hover': {
+                backgroundColor: theme.palette.mode === 'dark' ? 'rgba(255, 255, 255, 0.1)' : 'rgba(25, 118, 210, 0.1)',
+                borderColor: theme.palette.mode === 'dark' ? '#ffffff' : '#1976d2',
+              }
             }}
           >
             {t('close')}
