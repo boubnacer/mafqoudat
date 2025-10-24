@@ -1873,7 +1873,7 @@ if (typeof document !== 'undefined') {
                   <Textfield 
                     name="exactDate" 
                     variant="outlined" 
-                    placeholder={`${t('exactDatePlaceholder') || "Enter the date (e.g.,"} ${new Date().toLocaleDateString()})`}
+                    placeholder={`${t('exactDatePlaceholder')} ${new Date().toLocaleDateString()})`}
                     data-testid="exactDate"
                   />
                 </Box>
