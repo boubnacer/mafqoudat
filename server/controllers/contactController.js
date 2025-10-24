@@ -15,6 +15,15 @@ const submitContactForm = async (req, res) => {
 
     const { name, email, subject, message } = req.body;
 
+    // Check if Contact model is available
+    if (!Contact) {
+      console.error('Contact model is not available');
+      return res.status(500).json({
+        success: false,
+        message: "Contact service is not available"
+      });
+    }
+
     // Basic validation
     if (!name || !email || !subject || !message) {
       return res.status(400).json({
@@ -58,7 +67,19 @@ const submitContactForm = async (req, res) => {
       country: req.get('CF-IPCountry') || req.get('X-Country-Code') || null
     };
 
-    const contact = await Contact.create(contactData);
+    console.log('Creating contact with data:', contactData);
+    
+    let contact;
+    try {
+      contact = await Contact.create(contactData);
+      console.log('Contact created successfully:', contact._id);
+    } catch (dbError) {
+      console.error('Database error creating contact:', dbError);
+      return res.status(500).json({
+        success: false,
+        message: "Failed to save contact form. Please try again later."
+      });
+    }
 
     // Log the contact submission
     logger.info(`New contact form submission: ${contact._id}`, {

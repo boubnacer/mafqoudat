@@ -49,6 +49,15 @@ router.post("/test", (req, res) => {
   });
 });
 
+// Even simpler test route
+router.get("/ping", (req, res) => {
+  res.json({
+    success: true,
+    message: "Contact routes are working",
+    timestamp: new Date().toISOString()
+  });
+});
+
 // Admin routes - require authentication
 router.use(verifyJWT);
 

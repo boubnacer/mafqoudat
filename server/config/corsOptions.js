@@ -11,14 +11,23 @@ const corsOptions = {
             return callback(null, true);
         }
         
-        // Check if origin is in allowed list
-        if (allowedOrigins.indexOf(origin) !== -1) {
+        // Check if origin is in allowed list (support both strings and regex)
+        const isAllowed = allowedOrigins.some(allowedOrigin => {
+            if (typeof allowedOrigin === 'string') {
+                return allowedOrigin === origin;
+            } else if (allowedOrigin instanceof RegExp) {
+                return allowedOrigin.test(origin);
+            }
+            return false;
+        });
+        
+        if (isAllowed) {
             console.log('CORS: Origin allowed:', origin);
             callback(null, true);
         } else {
             // Log unauthorized CORS attempts
             console.warn(`CORS: Unauthorized origin attempt: ${origin}`);
-            console.warn(`CORS: Allowed origins: ${allowedOrigins.join(', ')}`);
+            console.warn(`CORS: Allowed origins: ${allowedOrigins.map(o => typeof o === 'string' ? o : o.toString()).join(', ')}`);
             callback(new Error('Not allowed by CORS policy'));
         }
     },
