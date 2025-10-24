@@ -883,8 +883,8 @@ const createNewPost = async (req, res) => {
        contact: !!contact,
        country: !!country,
        foundLost: !!foundLost,
-       exactLocation: !!exactLocation,
-       exactDate: !!exactDate
+       exactLocation: !!exactLocation
+       // exactDate is now optional - removed from required fields
      };
      
      const missingFields = Object.entries(requiredFields)
