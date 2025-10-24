@@ -310,7 +310,7 @@ const NewPostForm = ({ user, countries, categories, flOptions }) => {
     foundLost: getDefaultFoundLost(),
     city: "",
     exactLocation: "",
-    exactDate: new Date().toLocaleDateString(), // Default to current date as string
+    exactDate: "", // Empty by default - placeholder will show example
     description: "",
     image: null,
   };
@@ -1454,7 +1454,7 @@ const NewPostForm = ({ user, countries, categories, flOptions }) => {
                   <Textfield 
                     name="exactDate" 
                     variant="outlined" 
-                    placeholder={t('exactDatePlaceholder') || "Enter the date (e.g., 15/12/2023 or December 15, 2023)"}
+                    placeholder={`${t('exactDatePlaceholder') || "Enter the date (e.g.,"} ${new Date().toLocaleDateString()})`}
                     data-testid="exactDate"
                   />
                 </Box>
