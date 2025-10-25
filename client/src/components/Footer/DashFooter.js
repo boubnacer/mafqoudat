@@ -300,26 +300,44 @@ const DashFooter = () => {
           </Typography>
           <Box sx={{ display: 'flex', gap: 1 }}>
             <IconButton 
-              color="primary" 
               component={Link} 
               href="https://www.facebook.com/profile.php?id=100075968495897" 
               target="_blank"
+              sx={{ 
+                color: '#1877F2',
+                '&:hover': { 
+                  backgroundColor: 'rgba(24, 119, 242, 0.1)',
+                  color: '#1877F2' 
+                }
+              }}
             >
               <Facebook />
             </IconButton>
             <IconButton 
-              color="primary" 
               component={Link} 
               href="https://www.instagram.com/mafkoudat?igsh=d29saTdtajZ5dWpu" 
               target="_blank"
+              sx={{ 
+                color: '#E4405F',
+                '&:hover': { 
+                  backgroundColor: 'rgba(228, 64, 95, 0.1)',
+                  color: '#E4405F' 
+                }
+              }}
             >
               <Instagram />
             </IconButton>
             <IconButton 
-              color="primary" 
               component={Link} 
               href="https://wa.me/212711621132" 
               target="_blank"
+              sx={{ 
+                color: '#25D366',
+                '&:hover': { 
+                  backgroundColor: 'rgba(37, 211, 102, 0.1)',
+                  color: '#25D366' 
+                }
+              }}
             >
               <WhatsApp />
             </IconButton>
@@ -391,7 +409,7 @@ const DashFooter = () => {
           <List dense>
             <ListItem>
               <ListItemIcon>
-                <Email color="primary" />
+                <Email sx={{ color: '#EA4335' }} />
               </ListItemIcon>
               <ListItemText 
                 primary="team.mafqoudat@gmail.com"
@@ -404,7 +422,7 @@ const DashFooter = () => {
             </ListItem>
             <ListItem>
               <ListItemIcon>
-                <Phone color="primary" />
+                <Phone sx={{ color: '#34A853' }} />
               </ListItemIcon>
               <ListItemText 
                 primary={<span className="phone-number">+212 711 621 132</span>}
@@ -417,7 +435,7 @@ const DashFooter = () => {
             </ListItem>
             <ListItem>
               <ListItemIcon>
-                <LocationOn color="primary" />
+                <LocationOn sx={{ color: '#4285F4' }} />
               </ListItemIcon>
               <ListItemText 
                 primary={isCountryLoading ? t('loadingCountries') : (countryName || t('yourLocation'))}
