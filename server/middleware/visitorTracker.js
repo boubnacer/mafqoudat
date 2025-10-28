@@ -7,38 +7,35 @@ const { v4: uuidv4 } = require('uuid');
  */
 const visitorTracker = async (req, res, next) => {
   try {
-    // Skip tracking for certain paths
-    const skipPaths = [
-      '/api/visitor-stats',
-      '/api/admin/visitor-stats',
-      '/favicon.ico',
-      '/robots.txt',
-      '/sitemap.xml',
-      '/_headers',
-      '/_redirects',
-      '/health',
-      '/system-settings',
-      '/countries',
-      '/floptions',
-      '/admin/promotions',
-      '/admin/reports',
-      '/admin/users',
-      '/admin/posts',
-      '/admin/password-reset-requests',
-      '/admin/visitor-stats'
+    // Only track actual page visits - be very strict about what we track
+    const allowedPaths = [
+      '/dash',
+      '/dash/posts',
+      '/dash/posts/new',
+      '/dash/posts/edit',
+      '/dash/admin',
+      '/dash/myposts',
+      '/dash/profile',
+      '/dash/users',
+      '/dash/dependencies',
+      '/blog',
+      '/help',
+      '/login',
+      '/register',
+      '/forgot-password',
+      '/reset-password'
     ];
-    
-    if (skipPaths.some(path => req.path.startsWith(path))) {
-      return next();
-    }
 
-    // Skip tracking for all API routes (only track actual page visits)
-    if (req.path.startsWith('/api/')) {
-      return next();
-    }
+    // Check if this is an allowed path
+    const isAllowedPath = allowedPaths.some(path => {
+      if (path === '/dash') {
+        return req.path === '/dash' || req.path === '/';
+      }
+      return req.path.startsWith(path);
+    });
 
-    // Skip tracking for admin API routes
-    if (req.path.startsWith('/admin/') && req.path !== '/admin') {
+    // Skip if not an allowed path
+    if (!isAllowedPath) {
       return next();
     }
 
