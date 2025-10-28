@@ -870,6 +870,13 @@ const getVisitorStats = async (req, res) => {
       }
     ]);
 
+    // Add cache-busting headers
+    res.set({
+      'Cache-Control': 'no-cache, no-store, must-revalidate',
+      'Pragma': 'no-cache',
+      'Expires': '0'
+    });
+
     res.status(200).json({
       success: true,
       data: {

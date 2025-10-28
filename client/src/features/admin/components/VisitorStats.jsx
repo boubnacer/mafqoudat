@@ -21,7 +21,8 @@ import {
   MenuItem,
   useTheme,
   Divider,
-  LinearProgress
+  LinearProgress,
+  Button
 } from '@mui/material';
 import {
   Visibility,
@@ -99,11 +100,22 @@ const VisitorStats = () => {
   return (
     <Box>
       {/* Header */}
-      <Box display="flex" alignItems="center" gap={2} mb={3}>
-        <Visibility sx={{ fontSize: 32, color: theme.palette.primary.main }} />
-        <Typography variant="h5" fontWeight="bold">
-          Site Visit Statistics
-        </Typography>
+      <Box display="flex" alignItems="center" justifyContent="space-between" mb={3}>
+        <Box display="flex" alignItems="center" gap={2}>
+          <Visibility sx={{ fontSize: 32, color: theme.palette.primary.main }} />
+          <Typography variant="h5" fontWeight="bold">
+            Site Visit Statistics
+          </Typography>
+        </Box>
+        <Button
+          variant="outlined"
+          startIcon={<Refresh />}
+          onClick={refetch}
+          disabled={loading}
+          size="small"
+        >
+          Refresh
+        </Button>
       </Box>
 
       {/* Statistics Cards */}
