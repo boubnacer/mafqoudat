@@ -22,6 +22,9 @@ const visitorTracker = async (req, res, next) => {
       return next();
     }
 
+    // Debug logging
+    console.log('🔍 Visitor Tracker: Processing request to', req.path);
+
     // Skip tracking for API routes that don't need visitor tracking
     if (req.path.startsWith('/api/') && !req.path.startsWith('/api/posts') && !req.path.startsWith('/api/countries')) {
       return next();
@@ -73,10 +76,20 @@ const visitorTracker = async (req, res, next) => {
         isUnique: true
       };
 
-      // Save visitor data asynchronously (don't wait for it)
-      Visitor.create(visitorData).catch(err => {
-        console.error('Error saving visitor data:', err);
+      console.log('📊 Visitor Tracker: Saving visitor data:', {
+        path: visitorData.path,
+        country: visitorData.country,
+        sessionId: visitorData.sessionId.substring(0, 8) + '...'
       });
+
+      // Save visitor data asynchronously (don't wait for it)
+      Visitor.create(visitorData).then(() => {
+        console.log('✅ Visitor Tracker: Successfully saved visitor data');
+      }).catch(err => {
+        console.error('❌ Visitor Tracker: Error saving visitor data:', err);
+      });
+    } else {
+      console.log('⏭️ Visitor Tracker: Skipping duplicate visit for session today');
     }
   } catch (error) {
     // Don't let visitor tracking errors affect the main request
