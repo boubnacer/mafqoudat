@@ -7,25 +7,25 @@ const { v4: uuidv4 } = require('uuid');
  */
 const visitorTracker = async (req, res, next) => {
   try {
-    // Only track main site entry points - not individual pages
-    const allowedPaths = [
-      '/dash',
-      '/'
+    // Skip tracking for API routes and system endpoints
+    const skipPaths = [
+      '/api/',
+      '/admin/',
+      '/system-settings',
+      '/countries',
+      '/floptions',
+      '/categories',
+      '/users',
+      '/health',
+      '/favicon.ico',
+      '/robots.txt',
+      '/sitemap.xml',
+      '/_headers',
+      '/_redirects'
     ];
 
-    // Check if this is a main entry point
-    const isMainEntry = allowedPaths.some(path => {
-      if (path === '/dash') {
-        return req.path === '/dash';
-      }
-      if (path === '/') {
-        return req.path === '/' || req.path === '';
-      }
-      return false;
-    });
-
-    // Skip if not a main entry point
-    if (!isMainEntry) {
+    // Skip if it's an API route or system endpoint
+    if (skipPaths.some(path => req.path.startsWith(path))) {
       return next();
     }
 
@@ -33,6 +33,22 @@ const visitorTracker = async (req, res, next) => {
     if (req.path.match(/\.(js|css|png|jpg|jpeg|gif|ico|svg|woff|woff2|ttf|eot)$/)) {
       return next();
     }
+
+    // Only track main page visits (not individual page navigations)
+    // This will track when someone first visits the site
+    const isMainPageVisit = req.path === '/' || 
+                           req.path === '/dash' || 
+                           req.path.startsWith('/dash/') ||
+                           req.path === '/login' ||
+                           req.path === '/register' ||
+                           req.path === '/blog' ||
+                           req.path === '/help';
+
+    if (!isMainPageVisit) {
+      return next();
+    }
+
+    console.log('🔍 Visitor Tracker: Tracking visit to', req.path);
 
     const ip = req.ip || req.connection.remoteAddress || req.socket.remoteAddress || 'unknown';
     const userAgent = req.get('User-Agent') || 'unknown';
@@ -75,8 +91,10 @@ const visitorTracker = async (req, res, next) => {
       };
 
       // Save visitor data asynchronously (don't wait for it)
-      Visitor.create(visitorData).catch(err => {
-        console.error('Error saving visitor data:', err);
+      Visitor.create(visitorData).then(() => {
+        console.log('✅ Visitor saved:', { country: visitorData.country, path: visitorData.path });
+      }).catch(err => {
+        console.error('❌ Error saving visitor data:', err);
       });
     }
   } catch (error) {
