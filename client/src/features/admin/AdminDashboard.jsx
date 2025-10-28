@@ -1921,7 +1921,12 @@ const AdminDashboard = () => {
 
       {/* Visitor Statistics Tab */}
       {activeTab === 6 && (
-        <VisitorStats />
+        <Box>
+          <Typography variant="h6" color="primary" sx={{ mb: 2 }}>
+            Debug: Visitor Statistics Tab (activeTab: {activeTab})
+          </Typography>
+          <VisitorStats />
+        </Box>
       )}
 
       {/* Post Details Dialog */}

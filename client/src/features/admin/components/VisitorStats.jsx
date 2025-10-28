@@ -47,6 +47,13 @@ const VisitorStats = () => {
     refetch
   } = useGetVisitorStatsQuery({ days: daysFilter });
 
+  // Debug logging
+  console.log('VisitorStats component rendered');
+  console.log('visitorData:', visitorData);
+  console.log('loading:', loading);
+  console.log('isError:', isError);
+  console.log('error:', error);
+
   const handleDaysFilterChange = (event) => {
     setDaysFilter(event.target.value);
   };
