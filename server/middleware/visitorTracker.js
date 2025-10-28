@@ -7,7 +7,7 @@ const { v4: uuidv4 } = require('uuid');
  */
 const visitorTracker = async (req, res, next) => {
   try {
-    console.log('🔍 Visitor Tracker: Processing request to', req.path, 'Method:', req.method);
+    console.log('🔍 Visitor Tracker: Processing request to', req.path, 'Method:', req.method, 'Headers:', req.headers.host);
     
     // Skip tracking for API routes and system endpoints
     const skipPaths = [
@@ -50,6 +50,7 @@ const visitorTracker = async (req, res, next) => {
                            req.path === '/dashboard'; // Add dashboard route
 
     console.log('🔍 Visitor Tracker: isMainPageVisit:', isMainPageVisit, 'for path:', req.path);
+    console.log('🔍 Visitor Tracker: Full URL:', req.protocol + '://' + req.get('host') + req.originalUrl);
 
     if (!isMainPageVisit) {
       console.log('⏭️ Visitor Tracker: Not a main page visit, skipping:', req.path);
