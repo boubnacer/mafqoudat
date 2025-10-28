@@ -38,16 +38,14 @@ const visitorTracker = async (req, res, next) => {
       return next();
     }
 
-    // Track main page visits and dashboard visits
+    // Only track the root path and main entry points
     // This will track when someone first visits the site
     const isMainPageVisit = req.path === '/' || 
                            req.path === '/dash' || 
-                           req.path.startsWith('/dash/') ||
                            req.path === '/login' ||
                            req.path === '/register' ||
                            req.path === '/blog' ||
-                           req.path === '/help' ||
-                           req.path === '/dashboard'; // Add dashboard route
+                           req.path === '/help';
 
     console.log('🔍 Visitor Tracker: isMainPageVisit:', isMainPageVisit, 'for path:', req.path);
     console.log('🔍 Visitor Tracker: Full URL:', req.protocol + '://' + req.get('host') + req.originalUrl);
@@ -85,6 +83,7 @@ const visitorTracker = async (req, res, next) => {
     today.setHours(0, 0, 0, 0);
     
     console.log('🔍 Visitor Tracker: Checking existing visit for session:', sessionId.substring(0, 8) + '...');
+    console.log('🔍 Visitor Tracker: Today date:', today.toISOString());
     
     const existingVisit = await Visitor.findOne({
       sessionId,
@@ -92,6 +91,13 @@ const visitorTracker = async (req, res, next) => {
     });
 
     console.log('🔍 Visitor Tracker: Existing visit found:', !!existingVisit);
+    if (existingVisit) {
+      console.log('🔍 Visitor Tracker: Existing visit details:', {
+        path: existingVisit.path,
+        visitedAt: existingVisit.visitedAt,
+        country: existingVisit.country
+      });
+    }
 
     // Only track if this is a new session today
     if (!existingVisit) {
@@ -103,7 +109,7 @@ const visitorTracker = async (req, res, next) => {
         country,
         city,
         referer: req.get('Referer') || 'Direct',
-        path: req.path, // Record the actual path visited
+        path: '/', // Always record as main site visit
         sessionId,
         isUnique: true
       };
