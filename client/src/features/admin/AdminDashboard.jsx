@@ -570,6 +570,10 @@ const AdminDashboard = () => {
 
   const { statistics, recentReports, recentPromotions } = dashboardData?.data || {};
 
+  // Debug logging
+  console.log('AdminDashboard rendered, activeTab:', activeTab);
+  console.log('Total tabs should be 7 (0-6)');
+
   return (
     <Container maxWidth="xl" sx={{ mt: 4, mb: 4 }}>
       {/* Header */}
@@ -949,6 +953,10 @@ const AdminDashboard = () => {
           indicatorColor="primary"
           textColor="primary"
         >
+          {/* Debug: Show tab count */}
+          <Box sx={{ position: 'absolute', top: -30, left: 0, fontSize: '12px', color: 'red' }}>
+            Debug: Total tabs = 7, Current activeTab = {activeTab}
+          </Box>
           <Tab 
             label={
               <Box display="flex" alignItems="center" gap={1}>
@@ -1919,15 +1927,17 @@ const AdminDashboard = () => {
         </Paper>
       )}
 
-      {/* Visitor Statistics Tab */}
-      {activeTab === 6 && (
-        <Box>
-          <Typography variant="h6" color="primary" sx={{ mb: 2 }}>
-            Debug: Visitor Statistics Tab (activeTab: {activeTab})
-          </Typography>
+      {/* Visitor Statistics Tab - Always visible for debugging */}
+      <Box sx={{ mt: 2, p: 2, border: '2px solid red', backgroundColor: '#ffeeee' }}>
+        <Typography variant="h6" color="primary" sx={{ mb: 2 }}>
+          DEBUG: Visitor Statistics Tab (activeTab: {activeTab}, should show when activeTab === 6)
+        </Typography>
+        {activeTab === 6 ? (
           <VisitorStats />
-        </Box>
-      )}
+        ) : (
+          <Typography>This tab is only visible when activeTab === 6</Typography>
+        )}
+      </Box>
 
       {/* Post Details Dialog */}
       <PostDetailsDialog
