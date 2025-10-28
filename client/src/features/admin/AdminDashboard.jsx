@@ -1055,11 +1055,21 @@ const AdminDashboard = () => {
               <Box display="flex" alignItems="center" gap={1}>
                 <Visibility />
                 Visitor Statistics
+                <Chip label="NEW" size="small" color="error" />
               </Box>
             } 
           />
         </Tabs>
       </Paper>
+
+      {/* TEST: Visitor Statistics Tab at index 0.5 for debugging */}
+      {activeTab === 0 && (
+        <Box sx={{ mb: 2, p: 2, border: '2px solid blue', backgroundColor: '#eeeeff' }}>
+          <Typography variant="h6" color="primary">
+            TEST: If you can see this, the tab system is working. Click on "Visitor Statistics" tab to see the actual component.
+          </Typography>
+        </Box>
+      )}
 
       {/* Reports Tab */}
       {activeTab === 0 && (
