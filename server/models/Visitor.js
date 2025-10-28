@@ -52,7 +52,11 @@ visitorSchema.index({ sessionId: 1, visitedAt: -1 });
 // Static method to get visitor statistics
 visitorSchema.statics.getStats = async function() {
   const now = new Date();
+  
+  // Get start of today (00:00:00)
   const startOfDay = new Date(now.getFullYear(), now.getMonth(), now.getDate());
+  
+  // Get start of this month (1st day at 00:00:00)
   const startOfMonth = new Date(now.getFullYear(), now.getMonth(), 1);
   
   const [totalVisitors, todayVisitors, monthVisitors, uniqueVisitors] = await Promise.all([

@@ -15,16 +15,30 @@ const visitorTracker = async (req, res, next) => {
       '/robots.txt',
       '/sitemap.xml',
       '/_headers',
-      '/_redirects'
+      '/_redirects',
+      '/health',
+      '/system-settings',
+      '/countries',
+      '/floptions',
+      '/admin/promotions',
+      '/admin/reports',
+      '/admin/users',
+      '/admin/posts',
+      '/admin/password-reset-requests',
+      '/admin/visitor-stats'
     ];
     
     if (skipPaths.some(path => req.path.startsWith(path))) {
       return next();
     }
 
+    // Skip tracking for all API routes (only track actual page visits)
+    if (req.path.startsWith('/api/')) {
+      return next();
+    }
 
-    // Skip tracking for API routes that don't need visitor tracking
-    if (req.path.startsWith('/api/') && !req.path.startsWith('/api/posts') && !req.path.startsWith('/api/countries')) {
+    // Skip tracking for admin API routes
+    if (req.path.startsWith('/admin/') && req.path !== '/admin') {
       return next();
     }
 
