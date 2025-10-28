@@ -7,35 +7,25 @@ const { v4: uuidv4 } = require('uuid');
  */
 const visitorTracker = async (req, res, next) => {
   try {
-    // Only track actual page visits - be very strict about what we track
+    // Only track main site entry points - not individual pages
     const allowedPaths = [
       '/dash',
-      '/dash/posts',
-      '/dash/posts/new',
-      '/dash/posts/edit',
-      '/dash/admin',
-      '/dash/myposts',
-      '/dash/profile',
-      '/dash/users',
-      '/dash/dependencies',
-      '/blog',
-      '/help',
-      '/login',
-      '/register',
-      '/forgot-password',
-      '/reset-password'
+      '/'
     ];
 
-    // Check if this is an allowed path
-    const isAllowedPath = allowedPaths.some(path => {
+    // Check if this is a main entry point
+    const isMainEntry = allowedPaths.some(path => {
       if (path === '/dash') {
-        return req.path === '/dash' || req.path === '/';
+        return req.path === '/dash';
       }
-      return req.path.startsWith(path);
+      if (path === '/') {
+        return req.path === '/' || req.path === '';
+      }
+      return false;
     });
 
-    // Skip if not an allowed path
-    if (!isAllowedPath) {
+    // Skip if not a main entry point
+    if (!isMainEntry) {
       return next();
     }
 
@@ -46,8 +36,8 @@ const visitorTracker = async (req, res, next) => {
 
     const ip = req.ip || req.connection.remoteAddress || req.socket.remoteAddress || 'unknown';
     const userAgent = req.get('User-Agent') || 'unknown';
-    const referer = req.get('Referer') || 'Direct';
-    const path = req.originalUrl || req.url;
+    const country = req.headers['cf-ipcountry'] || 'Unknown';
+    const city = req.headers['cf-ipcity'] || 'Unknown';
     
     // Generate or get session ID from cookies
     let sessionId = req.cookies?.visitorSession;
@@ -62,25 +52,24 @@ const visitorTracker = async (req, res, next) => {
       });
     }
 
-    // Check if this is a unique visit for this session today
+    // Check if this session has already been counted today
     const today = new Date();
     today.setHours(0, 0, 0, 0);
     
     const existingVisit = await Visitor.findOne({
       sessionId,
-      path,
       visitedAt: { $gte: today }
     });
 
-    // Only track if it's a new visit for this session today
+    // Only track if this is a new session today
     if (!existingVisit) {
       const visitorData = {
         ip,
         userAgent,
-        country: req.headers['cf-ipcountry'] || 'Unknown',
-        city: req.headers['cf-ipcity'] || 'Unknown',
-        referer,
-        path,
+        country,
+        city,
+        referer: req.get('Referer') || 'Direct',
+        path: '/dash', // Always record as main site visit
         sessionId,
         isUnique: true
       };
