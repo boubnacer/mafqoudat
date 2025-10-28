@@ -216,6 +216,12 @@ export const adminApiSlice = apiSlice.injectEndpoints({
       }),
       invalidatesTags: ['AdminContacts', 'ContactStats'],
     }),
+
+    // Get visitor statistics
+    getVisitorStats: builder.query({
+      query: ({ days = 7 } = {}) => `/admin/visitor-stats?days=${days}`,
+      providesTags: ['VisitorStats'],
+    }),
   }),
 });
 
@@ -237,4 +243,5 @@ export const {
   useGetContactStatsQuery,
   useUpdateContactStatusMutation,
   useDeleteContactAdminMutation,
+  useGetVisitorStatsQuery,
 } = adminApiSlice;

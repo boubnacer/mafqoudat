@@ -91,6 +91,7 @@ import {
   PostsFilterBar,
   PostDetailsDialog,
 } from './components';
+import VisitorStats from './components/VisitorStats';
 
 const AdminDashboard = () => {
   const { t, currentLanguage } = useTranslation();
@@ -1038,6 +1039,14 @@ const AdminDashboard = () => {
               </Box>
             } 
           />
+          <Tab 
+            label={
+              <Box display="flex" alignItems="center" gap={1}>
+                <Visibility />
+                Visitor Statistics
+              </Box>
+            } 
+          />
         </Tabs>
       </Paper>
 
@@ -1908,6 +1917,11 @@ const AdminDashboard = () => {
             )}
           </Box>
         </Paper>
+      )}
+
+      {/* Visitor Statistics Tab */}
+      {activeTab === 6 && (
+        <VisitorStats />
       )}
 
       {/* Post Details Dialog */}

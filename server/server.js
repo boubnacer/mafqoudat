@@ -133,6 +133,10 @@ app.use(...enhancedCompressionMiddleware({
 
 app.use(logger);
 
+// Visitor tracking middleware
+const visitorTracker = require("./middleware/visitorTracker");
+app.use(visitorTracker);
+
 // Resilience middleware
 app.use(memoryMonitoring);
 app.use(requestTimeout(30000)); // 30 second timeout
