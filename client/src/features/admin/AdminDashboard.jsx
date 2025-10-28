@@ -570,10 +570,6 @@ const AdminDashboard = () => {
 
   const { statistics, recentReports, recentPromotions } = dashboardData?.data || {};
 
-  // Debug logging
-  console.log('AdminDashboard rendered, activeTab:', activeTab);
-  console.log('Total tabs should be 7 (0-6)');
-
   return (
     <Container maxWidth="xl" sx={{ mt: 4, mb: 4 }}>
       {/* Header */}
@@ -952,14 +948,7 @@ const AdminDashboard = () => {
           onChange={handleTabChange}
           indicatorColor="primary"
           textColor="primary"
-          variant="scrollable"
-          scrollButtons="auto"
-          allowScrollButtonsMobile
         >
-          {/* Debug: Show tab count */}
-          <Box sx={{ position: 'absolute', top: -30, left: 0, fontSize: '12px', color: 'red' }}>
-            Debug: Total tabs = 7, Current activeTab = {activeTab}
-          </Box>
           <Tab 
             label={
               <Box display="flex" alignItems="center" gap={1}>
@@ -1050,26 +1039,9 @@ const AdminDashboard = () => {
               </Box>
             } 
           />
-          <Tab 
-            label={
-              <Box display="flex" alignItems="center" gap={1}>
-                <Visibility />
-                Visitor Statistics
-                <Chip label="NEW" size="small" color="error" />
-              </Box>
-            } 
-          />
         </Tabs>
       </Paper>
 
-      {/* TEST: Visitor Statistics Tab at index 0.5 for debugging */}
-      {activeTab === 0 && (
-        <Box sx={{ mb: 2, p: 2, border: '2px solid blue', backgroundColor: '#eeeeff' }}>
-          <Typography variant="h6" color="primary">
-            TEST: If you can see this, the tab system is working. Click on "Visitor Statistics" tab to see the actual component.
-          </Typography>
-        </Box>
-      )}
 
       {/* Reports Tab */}
       {activeTab === 0 && (
@@ -1940,20 +1912,18 @@ const AdminDashboard = () => {
         </Paper>
       )}
 
-      {/* Visitor Statistics Tab - Always visible for debugging */}
-      <Box sx={{ mt: 2, p: 2, border: '2px solid red', backgroundColor: '#ffeeee' }}>
-        <Typography variant="h6" color="primary" sx={{ mb: 2 }}>
-          DEBUG: Visitor Statistics Tab (activeTab: {activeTab}, should show when activeTab === 6)
-        </Typography>
-        <Typography variant="body2" sx={{ mb: 2 }}>
-          Available tabs: Reports(0), Promotions(1), Password Reset(2), Users(3), Posts(4), Contacts(5), Visitor Stats(6)
-        </Typography>
-        {activeTab === 6 ? (
+      {/* Visitor Statistics - Always visible in main dashboard */}
+      <Paper sx={{ mt: 3 }}>
+        <Box p={2}>
+          <Box display="flex" alignItems="center" gap={2} mb={2}>
+            <Visibility sx={{ fontSize: 32, color: theme.palette.primary.main }} />
+            <Typography variant="h5" fontWeight="bold">
+              Visitor Statistics
+            </Typography>
+          </Box>
           <VisitorStats />
-        ) : (
-          <Typography>This tab is only visible when activeTab === 6. Click on the "Visitor Statistics" tab to see it.</Typography>
-        )}
-      </Box>
+        </Box>
+      </Paper>
 
       {/* Post Details Dialog */}
       <PostDetailsDialog
