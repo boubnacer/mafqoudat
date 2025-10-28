@@ -8,6 +8,8 @@ const { v4: uuidv4 } = require('uuid');
 const visitorTracker = async (req, res, next) => {
   try {
     console.log('🔍 Visitor Tracker: Processing request to', req.path, 'Method:', req.method, 'Headers:', req.headers.host);
+    console.log('🔍 Visitor Tracker: User-Agent:', req.get('User-Agent'));
+    console.log('🔍 Visitor Tracker: Referer:', req.get('Referer'));
     
     // Skip tracking for API routes and system endpoints
     const skipPaths = [
@@ -64,6 +66,9 @@ const visitorTracker = async (req, res, next) => {
     
     // Generate or get session ID from cookies
     let sessionId = req.cookies?.visitorSession;
+    console.log('🔍 Visitor Tracker: Existing cookies:', req.cookies);
+    console.log('🔍 Visitor Tracker: Session ID from cookies:', sessionId);
+    
     if (!sessionId) {
       sessionId = uuidv4();
       // Set cookie for 24 hours
