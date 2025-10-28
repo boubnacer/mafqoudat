@@ -38,7 +38,7 @@ const visitorTracker = async (req, res, next) => {
       return next();
     }
 
-    // Only track main page visits (not individual page navigations)
+    // Track main page visits and dashboard visits
     // This will track when someone first visits the site
     const isMainPageVisit = req.path === '/' || 
                            req.path === '/dash' || 
@@ -46,7 +46,8 @@ const visitorTracker = async (req, res, next) => {
                            req.path === '/login' ||
                            req.path === '/register' ||
                            req.path === '/blog' ||
-                           req.path === '/help';
+                           req.path === '/help' ||
+                           req.path === '/dashboard'; // Add dashboard route
 
     console.log('🔍 Visitor Tracker: isMainPageVisit:', isMainPageVisit, 'for path:', req.path);
 
@@ -55,7 +56,7 @@ const visitorTracker = async (req, res, next) => {
       return next();
     }
 
-    console.log('🔍 Visitor Tracker: Tracking visit to', req.path);
+    console.log('🔍 Visitor Tracker: Tracking main page visit:', req.path);
 
     const ip = req.ip || req.connection.remoteAddress || req.socket.remoteAddress || 'unknown';
     const userAgent = req.get('User-Agent') || 'unknown';
@@ -73,6 +74,9 @@ const visitorTracker = async (req, res, next) => {
         secure: process.env.NODE_ENV === 'production',
         sameSite: 'lax'
       });
+      console.log('🔍 Visitor Tracker: Created new session:', sessionId.substring(0, 8) + '...');
+    } else {
+      console.log('🔍 Visitor Tracker: Using existing session:', sessionId.substring(0, 8) + '...');
     }
 
     // Check if this session has already been counted today
@@ -90,35 +94,38 @@ const visitorTracker = async (req, res, next) => {
 
     // Only track if this is a new session today
     if (!existingVisit) {
+      console.log('🔍 Visitor Tracker: New visit today, creating visitor record');
+      
       const visitorData = {
         ip,
         userAgent,
         country,
         city,
         referer: req.get('Referer') || 'Direct',
-        path: '/dash', // Always record as main site visit
+        path: req.path, // Record the actual path visited
         sessionId,
         isUnique: true
       };
 
-      console.log('🔍 Visitor Tracker: Creating visitor data:', { 
+      console.log('🔍 Visitor Tracker: Visitor data:', { 
         country: visitorData.country, 
         path: visitorData.path,
-        sessionId: visitorData.sessionId.substring(0, 8) + '...'
+        sessionId: visitorData.sessionId.substring(0, 8) + '...',
+        ip: visitorData.ip
       });
 
       // Save visitor data asynchronously (don't wait for it)
       Visitor.create(visitorData).then(() => {
-        console.log('✅ Visitor saved successfully:', { country: visitorData.country, path: visitorData.path });
+        console.log('✅ Visitor Tracker: Successfully saved visitor data');
       }).catch(err => {
-        console.error('❌ Error saving visitor data:', err);
+        console.error('❌ Visitor Tracker: Error saving visitor data:', err);
       });
     } else {
-      console.log('⏭️ Visitor Tracker: Session already counted today, skipping');
+      console.log('🔍 Visitor Tracker: Session already counted today, skipping');
     }
   } catch (error) {
     // Don't let visitor tracking errors affect the main request
-    console.error('Visitor tracking error:', error);
+    console.error('❌ Visitor Tracker: Error in visitor tracking:', error);
   }
   
   next();
