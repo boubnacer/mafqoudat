@@ -952,6 +952,9 @@ const AdminDashboard = () => {
           onChange={handleTabChange}
           indicatorColor="primary"
           textColor="primary"
+          variant="scrollable"
+          scrollButtons="auto"
+          allowScrollButtonsMobile
         >
           {/* Debug: Show tab count */}
           <Box sx={{ position: 'absolute', top: -30, left: 0, fontSize: '12px', color: 'red' }}>
@@ -1932,10 +1935,13 @@ const AdminDashboard = () => {
         <Typography variant="h6" color="primary" sx={{ mb: 2 }}>
           DEBUG: Visitor Statistics Tab (activeTab: {activeTab}, should show when activeTab === 6)
         </Typography>
+        <Typography variant="body2" sx={{ mb: 2 }}>
+          Available tabs: Reports(0), Promotions(1), Password Reset(2), Users(3), Posts(4), Contacts(5), Visitor Stats(6)
+        </Typography>
         {activeTab === 6 ? (
           <VisitorStats />
         ) : (
-          <Typography>This tab is only visible when activeTab === 6</Typography>
+          <Typography>This tab is only visible when activeTab === 6. Click on the "Visitor Statistics" tab to see it.</Typography>
         )}
       </Box>
 
