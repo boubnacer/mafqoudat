@@ -133,10 +133,6 @@ app.use(...enhancedCompressionMiddleware({
 
 app.use(logger);
 
-// Visitor tracking middleware
-const visitorTracker = require("./middleware/visitorTracker");
-app.use(visitorTracker);
-
 // Resilience middleware
 app.use(memoryMonitoring);
 app.use(requestTimeout(30000)); // 30 second timeout
@@ -151,6 +147,10 @@ app.use(express.json({ limit: '10mb' }));
 app.use(express.urlencoded({ extended: true, limit: '10mb' }));
 
 app.use(cookieParser());
+
+// Visitor tracking middleware - must be after cookieParser to read cookies
+const visitorTracker = require("./middleware/visitorTracker");
+app.use(visitorTracker);
 
 // Session configuration for OAuth
 app.use(session({
