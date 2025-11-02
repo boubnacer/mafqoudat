@@ -119,7 +119,7 @@ const LogoButton = styled(Button)(({ theme }) => ({
   },
   '& img': {
     height: 'auto',
-    maxHeight: '45px', // Increased size for maflogo (desktop)
+    maxHeight: '35px', // Increased size for maflogo (desktop)
     width: 'auto',
     objectFit: 'contain',
     transition: 'all 0.3s ease',
