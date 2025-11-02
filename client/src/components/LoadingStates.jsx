@@ -200,7 +200,7 @@ export const LoadingState = ({ message = "Loading...", size = "medium" }) => {
       >
         <div style={{ position: 'relative', width: '100%', height: '100%', overflow: 'hidden' }}>
           <img
-            src="/maflogo.png"
+            src="/maflogoSVG.svg"
             alt="Loading..."
             style={{
               width: '100%',

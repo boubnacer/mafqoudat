@@ -206,7 +206,7 @@ const MaintenanceMode = () => {
             {/* Logo */}
             <LogoContainer>
               <img 
-                src="/maflogo.png" 
+                src="/maflogoSVG.svg" 
                 alt="Mafqoudat Logo" 
                 onError={(e) => {
                   e.target.style.display = 'none';
