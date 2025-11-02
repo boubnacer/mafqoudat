@@ -119,7 +119,7 @@ const LogoButton = styled(Button)(({ theme }) => ({
   },
   '& img': {
     height: 'auto',
-    maxHeight: '20px', // Default size for maflogo
+    maxHeight: '35px', // Increased size for maflogo (desktop)
     width: 'auto',
     objectFit: 'contain',
     transition: 'all 0.3s ease',
@@ -127,7 +127,7 @@ const LogoButton = styled(Button)(({ theme }) => ({
     zIndex: 2,
   },
   '& img[alt="Mafqoudat Icon"]': {
-    maxHeight: '50px', // Larger size specifically for maficon
+    display: 'none', // Hide maficon
   },
   [theme.breakpoints.down('sm')]: {
     padding: '6px 8px',
@@ -135,10 +135,10 @@ const LogoButton = styled(Button)(({ theme }) => ({
     marginRight: theme.direction === 'rtl' ? '-6px' : '0',
     gap: '6px',
     '& img': {
-      maxHeight: '16px', // Default size for maflogo on mobile
+      maxHeight: '28px', // Increased size for maflogo on mobile
     },
     '& img[alt="Mafqoudat Icon"]': {
-      maxHeight: '40px', // Larger size specifically for maficon on mobile
+      display: 'none', // Hide maficon on mobile
     }
   }
 }));
