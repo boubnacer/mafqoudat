@@ -98,7 +98,7 @@ const StyledToolbar = styled(Toolbar)(({ theme }) => ({
   // Force LTR layout for toolbar
   direction: 'ltr !important',
   [theme.breakpoints.down('sm')]: {
-    padding: "1rem 1.5rem",
+    padding: "1rem 0.8rem",
     minHeight: "72px",
   }
 }));
