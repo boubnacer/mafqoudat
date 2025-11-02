@@ -119,7 +119,7 @@ const LogoButton = styled(Button)(({ theme }) => ({
   },
   '& img': {
     height: 'auto',
-    maxHeight: '25px', // Increased size for maflogo (desktop)
+    maxHeight: '45px', // Increased size for maflogo (desktop)
     width: 'auto',
     objectFit: 'contain',
     transition: 'all 0.3s ease',
@@ -135,7 +135,7 @@ const LogoButton = styled(Button)(({ theme }) => ({
     marginRight: theme.direction === 'rtl' ? '-6px' : '0',
     gap: '6px',
     '& img': {
-      maxHeight: '20px', // Increased size for maflogo on mobile
+      maxHeight: '35px', // Increased size for maflogo on mobile
     },
     '& img[alt="Mafqoudat Icon"]': {
       display: 'none', // Hide maficon on mobile
