@@ -523,7 +523,7 @@ const LoginComponent = () => {
             />
             <Box
               component="img"
-              src="/maflogo.png"
+              src="/maflogoSVG.svg"
               alt="Mafqoudat"
               sx={{
                 height: { xs: '35px', md: '40px' },

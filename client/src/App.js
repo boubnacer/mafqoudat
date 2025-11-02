@@ -119,7 +119,7 @@ const LoadingFallback = () => (
       overflow: 'hidden'
     }}>
       <img
-        src="/maflogo.png"
+        src="/maflogoSVG.svg"
         alt="Loading..."
         style={{
           width: '100%',

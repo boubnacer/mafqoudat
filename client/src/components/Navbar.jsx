@@ -619,7 +619,7 @@ const Navbar = () => {
               }}
             />
             <img
-              src="/maflogo.png"
+              src="/maflogoSVG.svg"
               alt={t("brandName")}
               loading="lazy"
               style={{
