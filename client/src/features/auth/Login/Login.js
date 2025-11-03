@@ -514,11 +514,7 @@ const LoginComponent = () => {
               src="/maficonSVG.svg"
               alt="Mafqoudat Icon"
               sx={{
-                width: 80,
-                height: 80,
-                display: 'block',
-                margin: '0 auto 16px',
-                objectFit: 'contain',
+                display: 'none',
               }}
             />
             <Box
@@ -526,7 +522,7 @@ const LoginComponent = () => {
               src="/maflogoSVG.svg"
               alt="Mafqoudat"
               sx={{
-                height: { xs: '35px', md: '40px' },
+                height: { xs: '45px', md: '60px' },
                 width: 'auto',
                 maxWidth: '100%',
                 objectFit: 'contain',
