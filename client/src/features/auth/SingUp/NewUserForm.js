@@ -646,7 +646,7 @@ const NewUserFormComponent = ({ countries }) => {
             <HeaderSection>
               <Box
                 component="img"
-                src="/maficon.png"
+                src="/maficonSVG.svg"
                 alt="Mafqoudat Icon"
                 sx={{
                   width: 80,

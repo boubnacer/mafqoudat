@@ -607,7 +607,7 @@ const Navbar = () => {
             }}
           >
             <img
-              src="/maficon.png"
+              src="/maficonSVG.svg"
               alt="Mafqoudat Icon"
               loading="lazy"
               style={{
