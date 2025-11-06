@@ -36,6 +36,7 @@ import {
   Tooltip,
   Divider,
   Switch,
+  InputAdornment,
 } from '@mui/material';
 import {
   AdminPanelSettings,
@@ -122,6 +123,7 @@ const AdminDashboard = () => {
   const [selectedCountryId, setSelectedCountryId] = useState('');
   const [editingCity, setEditingCity] = useState(null);
   const [editCityLabels, setEditCityLabels] = useState({ en: '', fr: '', ar: '' });
+  const [citySearchQuery, setCitySearchQuery] = useState('');
   const [reportStatusFilter, setReportStatusFilter] = useState('');
   const [promotionStatusFilter, setPromotionStatusFilter] = useState('');
   const [resetRequestStatusFilter, setResetRequestStatusFilter] = useState('');
@@ -213,7 +215,19 @@ const AdminDashboard = () => {
     { countryId: selectedCountryId, language: currentLanguage || 'en' },
     { skip: !selectedCountryId }
   );
-  const cities = citiesData?.data || [];
+  const allCities = citiesData?.data || [];
+  
+  // Filter cities by search query
+  const cities = allCities.filter((city) => {
+    if (!citySearchQuery.trim()) return true;
+    const searchLower = citySearchQuery.toLowerCase();
+    return (
+      (city.labels?.en?.toLowerCase().includes(searchLower)) ||
+      (city.labels?.fr?.toLowerCase().includes(searchLower)) ||
+      (city.labels?.ar?.toLowerCase().includes(searchLower)) ||
+      (city.code?.toLowerCase().includes(searchLower))
+    );
+  });
 
   // System settings query
   const { data: systemSettingsData, isLoading: settingsLoading } = useGetSystemSettingsQuery();
@@ -552,6 +566,7 @@ const AdminDashboard = () => {
     setSelectedCountryId(event.target.value);
     setEditingCity(null);
     setEditCityLabels({ en: '', fr: '', ar: '' });
+    setCitySearchQuery(''); // Clear search when country changes
   };
 
   const handleEditCity = (city) => {
@@ -1892,23 +1907,44 @@ const AdminDashboard = () => {
 
             {/* Country Selection */}
             <Box mb={3}>
-              <FormControl fullWidth sx={{ mb: 2 }}>
-                <InputLabel>{t('selectCountry') || 'Select Country'}</InputLabel>
-                <Select
-                  value={selectedCountryId}
-                  label={t('selectCountry') || 'Select Country'}
-                  onChange={handleCountryChange}
-                >
-                  <MenuItem value="">
-                    <em>{t('selectCountry') || 'Select a country'}</em>
-                  </MenuItem>
-                  {countries.map((country) => (
-                    <MenuItem key={country._id} value={country._id}>
-                      {country.label || country.labels?.en || country.code}
-                    </MenuItem>
-                  ))}
-                </Select>
-              </FormControl>
+              <Grid container spacing={2}>
+                <Grid item xs={12} md={6}>
+                  <FormControl fullWidth>
+                    <InputLabel>{t('selectCountry') || 'Select Country'}</InputLabel>
+                    <Select
+                      value={selectedCountryId}
+                      label={t('selectCountry') || 'Select Country'}
+                      onChange={handleCountryChange}
+                    >
+                      <MenuItem value="">
+                        <em>{t('selectCountry') || 'Select a country'}</em>
+                      </MenuItem>
+                      {countries.map((country) => (
+                        <MenuItem key={country._id} value={country._id}>
+                          {country.label || country.labels?.en || country.code}
+                        </MenuItem>
+                      ))}
+                    </Select>
+                  </FormControl>
+                </Grid>
+                <Grid item xs={12} md={6}>
+                  <TextField
+                    fullWidth
+                    label={t('searchCity') || 'Search City'}
+                    placeholder={t('searchCityPlaceholder') || 'Search by city name...'}
+                    value={citySearchQuery}
+                    onChange={(e) => setCitySearchQuery(e.target.value)}
+                    InputProps={{
+                      startAdornment: (
+                        <InputAdornment position="start">
+                          <Search />
+                        </InputAdornment>
+                      ),
+                    }}
+                    disabled={!selectedCountryId}
+                  />
+                </Grid>
+              </Grid>
             </Box>
 
             {/* Cities Table */}
@@ -1923,7 +1959,10 @@ const AdminDashboard = () => {
                 </Alert>
               ) : cities.length === 0 ? (
                 <Alert severity="info">
-                  {t('noCitiesFound') || 'No cities found for this country'}
+                  {citySearchQuery.trim() 
+                    ? (t('noCitiesFoundForSearch') || `No cities found matching "${citySearchQuery}"`)
+                    : (t('noCitiesFound') || 'No cities found for this country')
+                  }
                 </Alert>
               ) : (
                 <TableContainer>
@@ -1934,7 +1973,6 @@ const AdminDashboard = () => {
                         <TableCell>{t('cityNameEnglish') || 'Name (English)'}</TableCell>
                         <TableCell>{t('cityNameFrench') || 'Name (French)'}</TableCell>
                         <TableCell>{t('cityNameArabic') || 'Name (Arabic)'}</TableCell>
-                        <TableCell>{t('isCapital') || 'Capital'}</TableCell>
                         <TableCell>{t('actions') || 'Actions'}</TableCell>
                       </TableRow>
                     </TableHead>
@@ -1987,13 +2025,6 @@ const AdminDashboard = () => {
                                 {city.labels?.ar || '-'}
                               </Typography>
                             )}
-                          </TableCell>
-                          <TableCell>
-                            <Chip
-                              label={city.isCapital ? t('yes') || 'Yes' : t('no') || 'No'}
-                              color={city.isCapital ? 'primary' : 'default'}
-                              size="small"
-                            />
                           </TableCell>
                           <TableCell>
                             {editingCity === city._id ? (
