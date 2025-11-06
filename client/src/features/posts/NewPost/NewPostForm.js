@@ -42,7 +42,8 @@ import {
   Close as CloseIcon,
   Delete as DeleteIcon,
   Edit as EditIcon,
-  CloudUpload as CloudUploadIcon
+  CloudUpload as CloudUploadIcon,
+  WarningAmber as WarningAmberIcon
 } from '@mui/icons-material';
 import { useTranslation } from "../../../utils/translations";
 import PromotionDialog from "../../../components/PromotionDialog";
@@ -143,11 +144,13 @@ const NewPostForm = ({ user, countries, categories, flOptions }) => {
   const [setFieldValueCallback, setSetFieldValueCallback] = useState(null);
   const [fieldErrors, setFieldErrors] = useState({});
   const formikRef = useRef(null);
+  const fileInputRef = useRef(null);
 
   // Image management state
   const [selectedImage, setSelectedImage] = useState(null);
   const [imagePreview, setImagePreview] = useState(null);
   const [showImageDialog, setShowImageDialog] = useState(false);
+  const [showImageWarningDialog, setShowImageWarningDialog] = useState(false);
 
   // New state for unified city dropdown
   const [citySearchQuery, setCitySearchQuery] = useState("");
@@ -734,6 +737,22 @@ const NewPostForm = ({ user, countries, categories, flOptions }) => {
     } finally {
       setIsCompressing(false);
     }
+  }, []);
+
+  const handleImageButtonClick = useCallback(() => {
+    if (isCompressing) return;
+    setShowImageWarningDialog(true);
+  }, [isCompressing]);
+
+  const handleImageWarningProceed = useCallback(() => {
+    setShowImageWarningDialog(false);
+    setTimeout(() => {
+      fileInputRef.current?.click();
+    }, 150);
+  }, [fileInputRef]);
+
+  const handleImageWarningClose = useCallback(() => {
+    setShowImageWarningDialog(false);
   }, []);
 
   // Handle image selection
@@ -1711,7 +1730,7 @@ const NewPostForm = ({ user, countries, categories, flOptions }) => {
                   <Box display="flex" alignItems="center" gap={2} flexWrap="wrap">
                     <Button
                       variant="contained"
-                      component="label"
+                      onClick={handleImageButtonClick}
                       startIcon={isCompressing ? <CircularProgress size={16} sx={{ color: 'white' }} /> : <CloudUploadIcon sx={{ color: 'white' }} />}
                       disabled={isCompressing}
                       sx={{ 
@@ -1748,15 +1767,16 @@ const NewPostForm = ({ user, countries, categories, flOptions }) => {
                       }}
                     >
                       {isCompressing ? t('compressingImage') : imagePreview ? t('replaceImage') : t('chooseFile')}
-                      <input
-                        id="image"
-                        name="image"
-                        type="file"
-                        accept="image/*"
-                        hidden
-                        onChange={handleImageSelect}
-                      />
                     </Button>
+                    <input
+                      ref={fileInputRef}
+                      id="image"
+                      name="image"
+                      type="file"
+                      accept="image/*"
+                      hidden
+                      onChange={handleImageSelect}
+                    />
                     
                     {selectedFileName && (
                       <Typography 
@@ -1852,6 +1872,128 @@ const NewPostForm = ({ user, countries, categories, flOptions }) => {
                   </Box>
                 )}
               </Box>
+
+            <Dialog
+              open={showImageWarningDialog}
+              onClose={handleImageWarningClose}
+              maxWidth="sm"
+              fullWidth
+              PaperProps={{
+                sx: {
+                  borderRadius: 3,
+                  boxShadow: theme.shadows[12],
+                  background: theme.palette.background.paper,
+                }
+              }}
+            >
+              <DialogTitle
+                sx={{
+                  px: { xs: 2.5, sm: 3 },
+                  pt: { xs: 2, sm: 3 },
+                  pb: { xs: 1.5, sm: 2 }
+                }}
+              >
+                <Box display="flex" alignItems="center" gap={1.5}>
+                  <WarningAmberIcon
+                    color="warning"
+                    sx={{
+                      fontSize: 30,
+                      flexShrink: 0
+                    }}
+                  />
+                  <Typography
+                    variant="h6"
+                    sx={{
+                      fontWeight: 700,
+                      color: theme.palette.text.primary,
+                      fontSize: { xs: '1.05rem', sm: '1.2rem' }
+                    }}
+                  >
+                    {t('imageWarningTitle')}
+                  </Typography>
+                </Box>
+              </DialogTitle>
+              <DialogContent
+                sx={{
+                  px: { xs: 2.5, sm: 3 },
+                  pb: { xs: 2, sm: 3 }
+                }}
+              >
+                <Typography
+                  variant="body1"
+                  sx={{
+                    color: theme.palette.text.primary,
+                    mb: 2,
+                    lineHeight: 1.6,
+                    fontSize: { xs: '0.95rem', sm: '1rem' }
+                  }}
+                >
+                  {getFoundLostType(values.foundLost) === 'FOUND'
+                    ? t('imageWarningDescriptionFound')
+                    : t('imageWarningDescriptionLost')}
+                </Typography>
+                <Box
+                  component="ul"
+                  sx={{
+                    pl: 2.5,
+                    m: 0,
+                    display: 'grid',
+                    gap: 1.25,
+                    color: theme.palette.text.secondary
+                  }}
+                >
+                  <Typography component="li" variant="body2" sx={{ lineHeight: 1.6 }}>
+                    {t('imageWarningBulletProtectDetails')}
+                  </Typography>
+                  <Typography component="li" variant="body2" sx={{ lineHeight: 1.6 }}>
+                    {t('imageWarningBulletUseNeutralBackground')}
+                  </Typography>
+                  <Typography component="li" variant="body2" sx={{ lineHeight: 1.6 }}>
+                    {t('imageWarningBulletSharePrivately')}
+                  </Typography>
+                </Box>
+              </DialogContent>
+              <DialogActions
+                sx={{
+                  px: { xs: 2.5, sm: 3 },
+                  pb: { xs: 2.5, sm: 3 },
+                  pt: 0,
+                  display: 'flex',
+                  flexWrap: 'wrap',
+                  gap: 1
+                }}
+              >
+                <Button
+                  variant="outlined"
+                  onClick={handleImageWarningClose}
+                  sx={{
+                    textTransform: 'none',
+                    borderRadius: 2,
+                    px: 3,
+                    fontWeight: 600
+                  }}
+                >
+                  {t('cancel')}
+                </Button>
+                <Button
+                  variant="contained"
+                  onClick={handleImageWarningProceed}
+                  sx={{
+                    textTransform: 'none',
+                    borderRadius: 2,
+                    px: 3,
+                    fontWeight: 700,
+                    background: 'linear-gradient(45deg, #4A8BFF 30%, #1A6EEE 90%)',
+                    color: '#fff',
+                    '&:hover': {
+                      background: 'linear-gradient(45deg, #5A9BFF 30%, #2A7EFF 90%)'
+                    }
+                  }}
+                >
+                  {t('imageWarningProceed')}
+                </Button>
+              </DialogActions>
+            </Dialog>
             </Form>
             );
           }}
