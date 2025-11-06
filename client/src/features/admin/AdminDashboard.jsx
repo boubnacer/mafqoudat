@@ -1018,6 +1018,9 @@ const AdminDashboard = () => {
           onChange={handleTabChange}
           indicatorColor="primary"
           textColor="primary"
+          variant="scrollable"
+          scrollButtons="auto"
+          allowScrollButtonsMobile
         >
           <Tab 
             label={
