@@ -1464,8 +1464,8 @@ const NewPostForm = ({ user, countries, categories, flOptions }) => {
                   />
                 </Box>
 
-                {/* Item Details Section */}
-                <Typography 
+                {/* Item Details Section - Hidden */}
+                {/* <Typography 
                   variant="h5" 
                   sx={{ 
                     fontWeight: 700, 
@@ -1513,7 +1513,7 @@ const NewPostForm = ({ user, countries, categories, flOptions }) => {
                     rows={4}
                     placeholder={t('descriptionPlaceholder')}
                   />
-                </Box>
+                </Box> */}
 
                 {/* Contact Information Section */}
                 <Typography 

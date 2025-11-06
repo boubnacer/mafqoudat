@@ -1883,8 +1883,8 @@ if (typeof document !== 'undefined') {
                   />
                 </Box>
 
-                {/* Item Details Section */}
-                <Typography 
+                {/* Item Details Section - Hidden */}
+                {/* <Typography 
                   variant="h5" 
                   sx={{ 
                     fontWeight: 700, 
@@ -1948,7 +1948,7 @@ if (typeof document !== 'undefined') {
                     rows={4}
                     placeholder={t('descriptionPlaceholder')}
                   />
-                </Box>
+                </Box> */}
 
                 {/* Contact Information Section */}
                 <Typography 
