@@ -222,6 +222,35 @@ export const adminApiSlice = apiSlice.injectEndpoints({
       query: ({ days = 7 } = {}) => `/admin/visitor-stats?days=${days}&_t=${Date.now()}`,
       providesTags: ['VisitorStats'],
     }),
+
+    // Get cities by country (admin only)
+    getCitiesByCountryAdmin: builder.query({
+      query: ({ countryId, language = 'en' }) => {
+        const params = new URLSearchParams();
+        params.append('language', language);
+        return `/admin/cities/country/${countryId}?${params.toString()}`;
+      },
+      providesTags: ['AdminCities'],
+    }),
+
+    // Update city (admin only)
+    updateCityAdmin: builder.mutation({
+      query: ({ cityId, labels, isCapital, isActive }) => ({
+        url: `/admin/cities/${cityId}`,
+        method: 'PUT',
+        body: { labels, isCapital, isActive },
+      }),
+      invalidatesTags: ['AdminCities'],
+    }),
+
+    // Delete city (admin only)
+    deleteCityAdmin: builder.mutation({
+      query: (cityId) => ({
+        url: `/admin/cities/${cityId}`,
+        method: 'DELETE',
+      }),
+      invalidatesTags: ['AdminCities'],
+    }),
   }),
 });
 
@@ -244,4 +273,7 @@ export const {
   useUpdateContactStatusMutation,
   useDeleteContactAdminMutation,
   useGetVisitorStatsQuery,
+  useGetCitiesByCountryAdminQuery,
+  useUpdateCityAdminMutation,
+  useDeleteCityAdminMutation,
 } = adminApiSlice;

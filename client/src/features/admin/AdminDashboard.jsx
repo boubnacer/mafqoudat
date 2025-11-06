@@ -54,6 +54,9 @@ import {
   Build,
   Warning,
   ContactMail,
+  LocationCity,
+  Delete,
+  Save,
 } from '@mui/icons-material';
 import { useTranslation } from '../../utils/translations';
 import {
@@ -83,6 +86,11 @@ import {
   useGetCountriesQuery,
 } from '../dependencies/dependenciesApiSlice';
 import {
+  useGetCitiesByCountryAdminQuery,
+  useUpdateCityAdminMutation,
+  useDeleteCityAdminMutation,
+} from './adminApiSlice';
+import {
   UsersTable,
   UserPostsDialog,
   ResetPasswordDialog,
@@ -111,6 +119,9 @@ const AdminDashboard = () => {
   const [usersRowsPerPage, setUsersRowsPerPage] = useState(10);
   const [postsRowsPerPage, setPostsRowsPerPage] = useState(10);
   const [contactsRowsPerPage, setContactsRowsPerPage] = useState(10);
+  const [selectedCountryId, setSelectedCountryId] = useState('');
+  const [editingCity, setEditingCity] = useState(null);
+  const [editCityLabels, setEditCityLabels] = useState({ en: '', fr: '', ar: '' });
   const [reportStatusFilter, setReportStatusFilter] = useState('');
   const [promotionStatusFilter, setPromotionStatusFilter] = useState('');
   const [resetRequestStatusFilter, setResetRequestStatusFilter] = useState('');
@@ -197,6 +208,13 @@ const AdminDashboard = () => {
   const categories = categoriesData?.ids?.map((id) => categoriesData?.entities[id]) || [];
   const countries = countriesData?.ids?.map((id) => countriesData?.entities[id]) || [];
 
+  // Get cities by country (admin only)
+  const { data: citiesData, isLoading: citiesLoading, error: citiesError } = useGetCitiesByCountryAdminQuery(
+    { countryId: selectedCountryId, language: currentLanguage || 'en' },
+    { skip: !selectedCountryId }
+  );
+  const cities = citiesData?.data || [];
+
   // System settings query
   const { data: systemSettingsData, isLoading: settingsLoading } = useGetSystemSettingsQuery();
   const maintenanceMode = systemSettingsData?.data?.maintenanceMode;
@@ -211,6 +229,8 @@ const AdminDashboard = () => {
   const [updateMaintenanceMode, { isLoading: updatingMaintenance }] = useUpdateMaintenanceModeMutation();
   const [updateContactStatus, { isLoading: updatingContact }] = useUpdateContactStatusMutation();
   const [deleteContactAdmin] = useDeleteContactAdminMutation();
+  const [updateCityAdmin, { isLoading: updatingCity }] = useUpdateCityAdminMutation();
+  const [deleteCityAdmin] = useDeleteCityAdminMutation();
 
   // Sync maintenance message when data loads
   React.useEffect(() => {
@@ -523,6 +543,56 @@ const AdminDashboard = () => {
       } catch (error) {
         console.error('Error deleting contact:', error);
         alert(t('errorDeletingContact') || 'Error deleting contact: ' + (error.data?.message || error.message));
+      }
+    }
+  };
+
+  // Cities Management Handlers
+  const handleCountryChange = (event) => {
+    setSelectedCountryId(event.target.value);
+    setEditingCity(null);
+    setEditCityLabels({ en: '', fr: '', ar: '' });
+  };
+
+  const handleEditCity = (city) => {
+    setEditingCity(city._id);
+    setEditCityLabels({
+      en: city.labels?.en || '',
+      fr: city.labels?.fr || '',
+      ar: city.labels?.ar || '',
+    });
+  };
+
+  const handleCancelEdit = () => {
+    setEditingCity(null);
+    setEditCityLabels({ en: '', fr: '', ar: '' });
+  };
+
+  const handleSaveCity = async (cityId) => {
+    try {
+      await updateCityAdmin({
+        cityId,
+        labels: editCityLabels,
+      }).unwrap();
+      setEditingCity(null);
+      setEditCityLabels({ en: '', fr: '', ar: '' });
+      alert(t('cityUpdatedSuccessfully') || 'City updated successfully');
+    } catch (error) {
+      console.error('Error updating city:', error);
+      alert(t('errorUpdatingCity') || 'Error updating city: ' + (error.data?.message || error.message));
+    }
+  };
+
+  const handleDeleteCity = async (city) => {
+    const confirmMessage = t('confirmDeleteCity') || `Are you sure you want to delete the city "${city.labels?.en || city.code}"?`;
+    
+    if (window.confirm(confirmMessage)) {
+      try {
+        await deleteCityAdmin(city._id).unwrap();
+        alert(t('cityDeletedSuccessfully') || 'City deleted successfully');
+      } catch (error) {
+        console.error('Error deleting city:', error);
+        alert(t('errorDeletingCity') || 'Error deleting city: ' + (error.data?.message || error.message));
       }
     }
   };
@@ -1036,6 +1106,14 @@ const AdminDashboard = () => {
                     color="default" 
                   />
                 )}
+              </Box>
+            } 
+          />
+          <Tab 
+            label={
+              <Box display="flex" alignItems="center" gap={1}>
+                <LocationCity />
+                {t('countriesCitiesManagement') || 'Countries & Cities'}
               </Box>
             } 
           />
@@ -1794,6 +1872,183 @@ const AdminDashboard = () => {
                 onDeletePost={handleDeletePostFromTable}
                 isLoading={postsLoading}
               />
+            )}
+          </Box>
+        </Paper>
+      )}
+
+      {/* Countries & Cities Management Tab */}
+      {activeTab === 6 && (
+        <Paper>
+          <Box p={2}>
+            <Box display="flex" justifyContent="space-between" alignItems="center" mb={2}>
+              <Typography variant="h6" fontWeight="bold">
+                {t('countriesCitiesManagement') || 'Countries & Cities Management'}
+              </Typography>
+            </Box>
+
+            {/* Country Selection */}
+            <Box mb={3}>
+              <FormControl fullWidth sx={{ mb: 2 }}>
+                <InputLabel>{t('selectCountry') || 'Select Country'}</InputLabel>
+                <Select
+                  value={selectedCountryId}
+                  label={t('selectCountry') || 'Select Country'}
+                  onChange={handleCountryChange}
+                >
+                  <MenuItem value="">
+                    <em>{t('selectCountry') || 'Select a country'}</em>
+                  </MenuItem>
+                  {countries.map((country) => (
+                    <MenuItem key={country._id} value={country._id}>
+                      {country.label || country.labels?.en || country.code}
+                    </MenuItem>
+                  ))}
+                </Select>
+              </FormControl>
+            </Box>
+
+            {/* Cities Table */}
+            {selectedCountryId ? (
+              citiesLoading ? (
+                <Box display="flex" justifyContent="center" p={4}>
+                  <CircularProgress />
+                </Box>
+              ) : citiesError ? (
+                <Alert severity="error">
+                  {t('errorLoadingCities') || 'Error loading cities'}: {citiesError?.data?.message || citiesError?.message}
+                </Alert>
+              ) : cities.length === 0 ? (
+                <Alert severity="info">
+                  {t('noCitiesFound') || 'No cities found for this country'}
+                </Alert>
+              ) : (
+                <TableContainer>
+                  <Table>
+                    <TableHead>
+                      <TableRow>
+                        <TableCell>{t('cityCode') || 'Code'}</TableCell>
+                        <TableCell>{t('cityNameEnglish') || 'Name (English)'}</TableCell>
+                        <TableCell>{t('cityNameFrench') || 'Name (French)'}</TableCell>
+                        <TableCell>{t('cityNameArabic') || 'Name (Arabic)'}</TableCell>
+                        <TableCell>{t('isCapital') || 'Capital'}</TableCell>
+                        <TableCell>{t('actions') || 'Actions'}</TableCell>
+                      </TableRow>
+                    </TableHead>
+                    <TableBody>
+                      {cities.map((city) => (
+                        <TableRow key={city._id}>
+                          <TableCell>
+                            <Typography variant="body2" fontWeight="bold">
+                              {city.code}
+                            </Typography>
+                          </TableCell>
+                          <TableCell>
+                            {editingCity === city._id ? (
+                              <TextField
+                                size="small"
+                                value={editCityLabels.en}
+                                onChange={(e) => setEditCityLabels({ ...editCityLabels, en: e.target.value })}
+                                fullWidth
+                              />
+                            ) : (
+                              <Typography variant="body2">
+                                {city.labels?.en || '-'}
+                              </Typography>
+                            )}
+                          </TableCell>
+                          <TableCell>
+                            {editingCity === city._id ? (
+                              <TextField
+                                size="small"
+                                value={editCityLabels.fr}
+                                onChange={(e) => setEditCityLabels({ ...editCityLabels, fr: e.target.value })}
+                                fullWidth
+                              />
+                            ) : (
+                              <Typography variant="body2">
+                                {city.labels?.fr || '-'}
+                              </Typography>
+                            )}
+                          </TableCell>
+                          <TableCell>
+                            {editingCity === city._id ? (
+                              <TextField
+                                size="small"
+                                value={editCityLabels.ar}
+                                onChange={(e) => setEditCityLabels({ ...editCityLabels, ar: e.target.value })}
+                                fullWidth
+                              />
+                            ) : (
+                              <Typography variant="body2">
+                                {city.labels?.ar || '-'}
+                              </Typography>
+                            )}
+                          </TableCell>
+                          <TableCell>
+                            <Chip
+                              label={city.isCapital ? t('yes') || 'Yes' : t('no') || 'No'}
+                              color={city.isCapital ? 'primary' : 'default'}
+                              size="small"
+                            />
+                          </TableCell>
+                          <TableCell>
+                            {editingCity === city._id ? (
+                              <Box display="flex" gap={1}>
+                                <Tooltip title={t('save') || 'Save'}>
+                                  <IconButton
+                                    size="small"
+                                    color="primary"
+                                    onClick={() => handleSaveCity(city._id)}
+                                    disabled={updatingCity}
+                                  >
+                                    <Save />
+                                  </IconButton>
+                                </Tooltip>
+                                <Tooltip title={t('cancel') || 'Cancel'}>
+                                  <IconButton
+                                    size="small"
+                                    color="inherit"
+                                    onClick={handleCancelEdit}
+                                    disabled={updatingCity}
+                                  >
+                                    <Cancel />
+                                  </IconButton>
+                                </Tooltip>
+                              </Box>
+                            ) : (
+                              <Box display="flex" gap={1}>
+                                <Tooltip title={t('edit') || 'Edit'}>
+                                  <IconButton
+                                    size="small"
+                                    color="primary"
+                                    onClick={() => handleEditCity(city)}
+                                  >
+                                    <Edit />
+                                  </IconButton>
+                                </Tooltip>
+                                <Tooltip title={t('delete') || 'Delete'}>
+                                  <IconButton
+                                    size="small"
+                                    color="error"
+                                    onClick={() => handleDeleteCity(city)}
+                                  >
+                                    <Delete />
+                                  </IconButton>
+                                </Tooltip>
+                              </Box>
+                            )}
+                          </TableCell>
+                        </TableRow>
+                      ))}
+                    </TableBody>
+                  </Table>
+                </TableContainer>
+              )
+            ) : (
+              <Alert severity="info">
+                {t('pleaseSelectCountry') || 'Please select a country to view and manage its cities'}
+              </Alert>
             )}
           </Box>
         </Paper>

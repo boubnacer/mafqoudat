@@ -93,4 +93,22 @@ router.delete("/users/:userId", deleteUserAdmin);
 // @access Private (Admin only)
 router.get("/visitor-stats", getVisitorStats);
 
+// Cities management routes - require admin authentication
+const cityController = require("../controllers/cityController");
+
+// @route GET /admin/cities/country/:countryId
+// @desc Get cities by country (admin only)
+// @access Private (Admin only)
+router.get("/cities/country/:countryId", cityController.getCitiesByCountry);
+
+// @route PUT /admin/cities/:id
+// @desc Update a city (admin only)
+// @access Private (Admin only)
+router.put("/cities/:id", cityController.updateCity);
+
+// @route DELETE /admin/cities/:id
+// @desc Delete a city (admin only)
+// @access Private (Admin only)
+router.delete("/cities/:id", cityController.deleteCity);
+
 module.exports = router;
