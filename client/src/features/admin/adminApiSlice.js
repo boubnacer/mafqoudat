@@ -223,11 +223,12 @@ export const adminApiSlice = apiSlice.injectEndpoints({
       providesTags: ['VisitorStats'],
     }),
 
-    // Get cities by country (admin only)
+    // Get cities by country (admin only) - get all cities including inactive ones
     getCitiesByCountryAdmin: builder.query({
       query: ({ countryId, language = 'en' }) => {
         const params = new URLSearchParams();
         params.append('language', language);
+        params.append('active', 'false'); // Get all cities (active and inactive) for admin
         return `/admin/cities/country/${countryId}?${params.toString()}`;
       },
       providesTags: ['AdminCities'],

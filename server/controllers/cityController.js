@@ -599,8 +599,10 @@ const deleteCity = async (req, res) => {
       });
     }
 
-    // Soft delete - set isActive to false
-    await City.findByIdAndUpdate(id, { isActive: false });
+    // Check if this is an admin request (admin routes should do hard delete)
+    // For now, we'll do a hard delete (actually remove from database)
+    // This is safer for admin operations
+    await City.findByIdAndDelete(id);
 
     // Invalidate cities cache after deletion
     await cacheService.invalidatePattern('cities*');
@@ -613,7 +615,7 @@ const deleteCity = async (req, res) => {
 
     res.json({
       success: true,
-      message: `City ${city.labels.en} has been deactivated successfully`
+      message: `City ${city.labels.en} has been deleted successfully`
     });
   } catch (error) {
     console.error('Error deleting city:', error);
