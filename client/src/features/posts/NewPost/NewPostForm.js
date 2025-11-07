@@ -1929,39 +1929,49 @@ const NewPostForm = ({ user, countries, categories, flOptions }) => {
                   pb: { xs: 2, sm: 3 }
                 }}
               >
-                <Typography
-                  variant="body1"
-                  sx={{
-                    color: theme.palette.text.primary,
-                    mb: 2,
-                    lineHeight: 1.6,
-                    fontSize: { xs: '0.95rem', sm: '1rem' }
-                  }}
-                >
-                  {getFoundLostType(values.foundLost) === 'FOUND'
-                    ? t('imageWarningDescriptionFound')
-                    : t('imageWarningDescriptionLost')}
-                </Typography>
-                <Box
-                  component="ul"
-                  sx={{
-                    pl: 2.5,
-                    m: 0,
-                    display: 'grid',
-                    gap: 1.25,
-                    color: theme.palette.text.secondary
-                  }}
-                >
-                  <Typography component="li" variant="body2" sx={{ lineHeight: 1.6 }}>
-                    {t('imageWarningBulletProtectDetails')}
+                {getFoundLostType(values.foundLost) === 'FOUND' ? (
+                  <>
+                    <Typography
+                      variant="body1"
+                      sx={{
+                        color: theme.palette.text.primary,
+                        mb: 2,
+                        lineHeight: 1.6,
+                        fontSize: { xs: '0.95rem', sm: '1rem' }
+                      }}
+                    >
+                      {t('imageWarningDescriptionFound')}
+                    </Typography>
+                    <Box
+                      component="ul"
+                      sx={{
+                        pl: 2.5,
+                        m: 0,
+                        display: 'grid',
+                        gap: 1.25,
+                        color: theme.palette.text.secondary
+                      }}
+                    >
+                      <Typography component="li" variant="body2" sx={{ lineHeight: 1.6 }}>
+                        {t('imageWarningBulletProtectDetails')}
+                      </Typography>
+                      <Typography component="li" variant="body2" sx={{ lineHeight: 1.6 }}>
+                        {t('imageWarningBulletUseNeutralBackground')}
+                      </Typography>
+                    </Box>
+                  </>
+                ) : (
+                  <Typography
+                    variant="body1"
+                    sx={{
+                      color: theme.palette.text.primary,
+                      lineHeight: 1.6,
+                      fontSize: { xs: '0.95rem', sm: '1rem' }
+                    }}
+                  >
+                    {t('imageWarningDescriptionLost')}
                   </Typography>
-                  <Typography component="li" variant="body2" sx={{ lineHeight: 1.6 }}>
-                    {t('imageWarningBulletUseNeutralBackground')}
-                  </Typography>
-                  <Typography component="li" variant="body2" sx={{ lineHeight: 1.6 }}>
-                    {t('imageWarningBulletSharePrivately')}
-                  </Typography>
-                </Box>
+                )}
               </DialogContent>
               <DialogActions
                 sx={{
@@ -1980,7 +1990,13 @@ const NewPostForm = ({ user, countries, categories, flOptions }) => {
                     textTransform: 'none',
                     borderRadius: 2,
                     px: 3,
-                    fontWeight: 600
+                    fontWeight: 600,
+                    borderColor: theme.palette.mode === 'dark' ? 'rgba(255,255,255,0.3)' : 'rgba(0,0,0,0.2)',
+                    color: theme.palette.text.primary,
+                    '&:hover': {
+                      borderColor: theme.palette.mode === 'dark' ? 'rgba(255,255,255,0.5)' : 'rgba(0,0,0,0.4)',
+                      backgroundColor: theme.palette.mode === 'dark' ? 'rgba(255,255,255,0.08)' : 'rgba(0,0,0,0.04)'
+                    }
                   }}
                 >
                   {t('cancel')}
