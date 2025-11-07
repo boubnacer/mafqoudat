@@ -1882,7 +1882,17 @@ const NewPostForm = ({ user, countries, categories, flOptions }) => {
                 sx: {
                   borderRadius: 3,
                   boxShadow: theme.shadows[12],
-                  background: theme.palette.background.paper,
+                  backgroundColor: theme.palette.mode === 'dark'
+                    ? theme.palette.grey[900]
+                    : theme.palette.common.white,
+                  backgroundImage: 'none'
+                }
+              }}
+              BackdropProps={{
+                sx: {
+                  backgroundColor: theme.palette.mode === 'dark'
+                    ? 'rgba(0,0,0,0.7)'
+                    : 'rgba(0,0,0,0.45)'
                 }
               }}
             >
