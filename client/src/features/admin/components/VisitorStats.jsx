@@ -43,7 +43,7 @@ const VisitorStats = () => {
   const {
     data: visitorData,
     isLoading: loading,
-    isError: isError,
+    isError: hasError,
     error,
     refetch
   } = useGetVisitorStatsQuery({ days: daysFilter });
@@ -71,7 +71,7 @@ const VisitorStats = () => {
     );
   }
 
-  if (isError) {
+  if (hasError) {
     return (
       <Alert 
         severity="error" 
