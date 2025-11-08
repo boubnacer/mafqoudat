@@ -8,6 +8,7 @@ import { useTranslation } from "../utils/translations";
 import { useUnifiedLanguageChange } from "../hooks/useUnifiedLanguageChange";
 import { LoadingState } from "./LoadingStates";
 import LazyCardMedia from "./LazyCardMedia";
+import SeoMeta from "./SeoMeta";
 import {
   Box,
   Container,
@@ -225,291 +226,299 @@ const PublicPostsPage = () => {
     );
   };
 
+  const seoMetadata = <SeoMeta pageKey="posts" />;
+
   if (!currentCountry) {
     return (
-      <PageContainer>
-        <Container maxWidth="md">
-          <Box sx={{ textAlign: 'center', py: 8 }}>
-            <Typography variant="h4" gutterBottom>
-              {t('pleaseSelectCountry')}
-            </Typography>
-            <Typography variant="body1" color="text.secondary" sx={{ mb: 4 }}>
-              {t('chooseCountryMessage')}
-            </Typography>
-            <Button 
-              variant="contained" 
-              onClick={() => navigate('/')}
-              size="large"
-            >
-              {t('chooseCountry')}
-            </Button>
-          </Box>
-        </Container>
-      </PageContainer>
+      <>
+        {seoMetadata}
+        <PageContainer>
+          <Container maxWidth="md">
+            <Box sx={{ textAlign: 'center', py: 8 }}>
+              <Typography variant="h4" gutterBottom>
+                {t('pleaseSelectCountry')}
+              </Typography>
+              <Typography variant="body1" color="text.secondary" sx={{ mb: 4 }}>
+                {t('chooseCountryMessage')}
+              </Typography>
+              <Button 
+                variant="contained" 
+                onClick={() => navigate('/')}
+                size="large"
+              >
+                {t('chooseCountry')}
+              </Button>
+            </Box>
+          </Container>
+        </PageContainer>
+      </>
     );
   }
 
   return (
-    <PageContainer>
-      {/* App Bar */}
-      <AppBar 
-        position="fixed" 
-        sx={{ 
-          background: theme?.palette?.mode === 'dark' 
-            ? 'rgba(30, 30, 30, 0.9)' 
-            : 'rgba(255, 255, 255, 0.9)',
-          backdropFilter: 'blur(20px)',
-          borderBottom: `1px solid ${alpha(theme?.palette?.divider, 0.1)}`,
-        }}
-      >
-        <Toolbar>
-          <Typography variant="h6" component="div" sx={{ flexGrow: 1 }}>
-            {t('brandName')}
-          </Typography>
-          
-          <LanguageSelector onClick={handleLanguageClick} sx={{ mr: 2 }}>
-            <Language />
-            <Typography variant="body2" sx={{ display: { xs: 'none', sm: 'block' } }}>
-              {currentLanguage === 'ar' ? 'العربية' : currentLanguage === 'fr' ? 'Français' : 'English'}
-            </Typography>
-            <KeyboardArrowDown />
-          </LanguageSelector>
-
-          <IconButton
-            onClick={() => dispatch(setMode())}
-            sx={{ mr: 2 }}
-          >
-            {theme?.palette?.mode === 'dark' ? '🌞' : '🌙'}
-          </IconButton>
-
-          <Button
-            variant="outlined"
-            startIcon={<Login />}
-            onClick={() => navigate('/login')}
-            sx={{ mr: 1 }}
-          >
-            {t('signin')}
-          </Button>
-
-          <Button
-            variant="contained"
-            startIcon={<Add />}
-            onClick={() => navigate('/signup')}
-          >
-            {t('createNewPost')}
-          </Button>
-        </Toolbar>
-      </AppBar>
-
-      <Menu
-        anchorEl={languageAnchorEl}
-        open={Boolean(languageAnchorEl)}
-        onClose={handleLanguageClose}
-        PaperProps={{
-          sx: {
+    <>
+      {seoMetadata}
+      <PageContainer>
+        {/* App Bar */}
+        <AppBar 
+          position="fixed" 
+          sx={{ 
             background: theme?.palette?.mode === 'dark' 
-              ? 'rgba(30, 30, 30, 0.95)'
-              : 'rgba(255, 255, 255, 0.95)',
+              ? 'rgba(30, 30, 30, 0.9)' 
+              : 'rgba(255, 255, 255, 0.9)',
             backdropFilter: 'blur(20px)',
-            border: `1px solid ${alpha(theme?.palette?.divider, 0.1)}`,
-          }
-        }}
-      >
-                    <MenuItem onClick={() => handleLanguageChange('en')}>
-              <ListItemIcon>
-                <Language sx={{ fontSize: 20 }} />
-              </ListItemIcon>
-              <ListItemText primary="English" />
-            </MenuItem>
-            <MenuItem onClick={() => handleLanguageChange('ar')}>
-              <ListItemIcon>
-                <Language sx={{ fontSize: 20 }} />
-              </ListItemIcon>
-              <ListItemText primary="العربية" />
-            </MenuItem>
-            <MenuItem onClick={() => handleLanguageChange('fr')}>
-              <ListItemIcon>
-                <Language sx={{ fontSize: 20 }} />
-              </ListItemIcon>
-              <ListItemText primary="Français" />
-            </MenuItem>
-      </Menu>
-
-      <Container maxWidth="lg" sx={{ py: 4 }}>
-        {/* Country Selector */}
-        <Box sx={{ mb: 4 }}>
-          <Autocomplete
-            options={countries}
-            value={countries.find(c => c._id === currentCountry) || null}
-            onChange={handleCountryChange}
-            getOptionLabel={(option) => getCountryLabel(option)}
-            renderOption={(props, option) => (
-              <Box component="li" sx={{ "& > img": { mr: 2, flexShrink: 0 } }} {...props}>
-                {option.flag ? (
-                  <span style={{ marginRight: 8, fontSize: '20px' }}>
-                    {option.flag}
-                  </span>
-                ) : (
-                  <img
-                    loading="lazy"
-                    width="20"
-                    src={getFlagSource(option)}
-                    srcSet={`https://flagcdn.com/w40/${option.code.toLowerCase()}.png 2x`}
-                    alt=""
-                  />
-                )}
-                {getCountryLabel(option)} ({option.code})
-              </Box>
-            )}
-            renderInput={(params) => (
-              <TextField
-                {...params}
-                label={t('chooseCountry')}
-                variant="outlined"
-                fullWidth
-              />
-            )}
-          />
-        </Box>
-
-        {/* Search and Filters */}
-        <SearchBar>
-          <Grid container spacing={3}>
-            <Grid item xs={12} md={6}>
-              <TextField
-                fullWidth
-                placeholder={t('searchPostsPlaceholder')}
-                value={searchQuery}
-                onChange={(e) => setSearchQuery(e.target.value)}
-                InputProps={{
-                  startAdornment: (
-                    <InputAdornment position="start">
-                      <Search />
-                    </InputAdornment>
-                  ),
-                }}
-              />
-            </Grid>
-            <Grid item xs={12} md={3}>
-              <FormControl fullWidth>
-                <InputLabel>{t('category')}</InputLabel>
-                <Select
-                  value={categoryFilter}
-                  onChange={(e) => setCategoryFilter(e.target.value)}
-                  label={t('category')}
-                >
-                  <MenuItem value="all">{t('allCategories')}</MenuItem>
-                  <MenuItem value="electronics">Electronics</MenuItem>
-                  <MenuItem value="documents">Documents</MenuItem>
-                  <MenuItem value="jewelry">Jewelry</MenuItem>
-                  <MenuItem value="clothing">Clothing</MenuItem>
-                </Select>
-              </FormControl>
-            </Grid>
-            <Grid item xs={12} md={3}>
-              <FormControl fullWidth>
-                <InputLabel>{t('foundOrLost')}</InputLabel>
-                <Select
-                  value={foundLostFilter}
-                  onChange={(e) => setFoundLostFilter(e.target.value)}
-                  label={t('foundOrLost')}
-                >
-                  <MenuItem value="all">{t('all')}</MenuItem>
-                  <MenuItem value="found">{t('found')}</MenuItem>
-                  <MenuItem value="lost">{t('lost')}</MenuItem>
-                </Select>
-              </FormControl>
-            </Grid>
-          </Grid>
-        </SearchBar>
-
-        {/* Posts Grid */}
-        {postsLoading ? (
-          <LoadingState message={t('loadingPosts')} />
-        ) : postsError ? (
-          <Typography variant="h6" color="error" align="center">
-            {t('errorLoadingPosts')}
-          </Typography>
-        ) : filteredPosts.length === 0 ? (
-          <Box sx={{ textAlign: 'center', py: 8 }}>
-            <Typography variant="h5" gutterBottom>
-              {searchQuery || categoryFilter !== 'all' || foundLostFilter !== 'all' 
-                ? t('noPostsMatchFilters') 
-                : t('noPostsInArea')}
+            borderBottom: `1px solid ${alpha(theme?.palette?.divider, 0.1)}`,
+          }}
+        >
+          <Toolbar>
+            <Typography variant="h6" component="div" sx={{ flexGrow: 1 }}>
+              {t('brandName')}
             </Typography>
-            <Button 
-              variant="contained" 
+            
+            <LanguageSelector onClick={handleLanguageClick} sx={{ mr: 2 }}>
+              <Language />
+              <Typography variant="body2" sx={{ display: { xs: 'none', sm: 'block' } }}>
+                {currentLanguage === 'ar' ? 'العربية' : currentLanguage === 'fr' ? 'Français' : 'English'}
+              </Typography>
+              <KeyboardArrowDown />
+            </LanguageSelector>
+
+            <IconButton
+              onClick={() => dispatch(setMode())}
+              sx={{ mr: 2 }}
+            >
+              {theme?.palette?.mode === 'dark' ? '🌞' : '🌙'}
+            </IconButton>
+
+            <Button
+              variant="outlined"
+              startIcon={<Login />}
+              onClick={() => navigate('/login')}
+              sx={{ mr: 1 }}
+            >
+              {t('signin')}
+            </Button>
+
+            <Button
+              variant="contained"
+              startIcon={<Add />}
               onClick={() => navigate('/signup')}
-              sx={{ mt: 2 }}
             >
               {t('createNewPost')}
             </Button>
-          </Box>
-        ) : (
-          <Grid container spacing={3}>
-            {filteredPosts.map((post) => (
-              <Grid item xs={12} sm={6} md={4} key={post.id}>
-                <PostCard>
-                  {post.image && (
-                    <LazyCardMedia
-                      component="img"
-                      height="200"
-                      image={post.image}
-                      alt={post.title}
-                      sx={{ objectFit: 'cover' }}
+          </Toolbar>
+        </AppBar>
+
+        <Menu
+          anchorEl={languageAnchorEl}
+          open={Boolean(languageAnchorEl)}
+          onClose={handleLanguageClose}
+          PaperProps={{
+            sx: {
+              background: theme?.palette?.mode === 'dark' 
+                ? 'rgba(30, 30, 30, 0.95)'
+                : 'rgba(255, 255, 255, 0.95)',
+              backdropFilter: 'blur(20px)',
+              border: `1px solid ${alpha(theme?.palette?.divider, 0.1)}`,
+            }
+          }}
+        >
+                      <MenuItem onClick={() => handleLanguageChange('en')}>
+                <ListItemIcon>
+                  <Language sx={{ fontSize: 20 }} />
+                </ListItemIcon>
+                <ListItemText primary="English" />
+              </MenuItem>
+              <MenuItem onClick={() => handleLanguageChange('ar')}>
+                <ListItemIcon>
+                  <Language sx={{ fontSize: 20 }} />
+                </ListItemIcon>
+                <ListItemText primary="العربية" />
+              </MenuItem>
+              <MenuItem onClick={() => handleLanguageChange('fr')}>
+                <ListItemIcon>
+                  <Language sx={{ fontSize: 20 }} />
+                </ListItemIcon>
+                <ListItemText primary="Français" />
+              </MenuItem>
+        </Menu>
+
+        <Container maxWidth="lg" sx={{ py: 4 }}>
+          {/* Country Selector */}
+          <Box sx={{ mb: 4 }}>
+            <Autocomplete
+              options={countries}
+              value={countries.find(c => c._id === currentCountry) || null}
+              onChange={handleCountryChange}
+              getOptionLabel={(option) => getCountryLabel(option)}
+              renderOption={(props, option) => (
+                <Box component="li" sx={{ "& > img": { mr: 2, flexShrink: 0 } }} {...props}>
+                  {option.flag ? (
+                    <span style={{ marginRight: 8, fontSize: '20px' }}>
+                      {option.flag}
+                    </span>
+                  ) : (
+                    <img
+                      loading="lazy"
+                      width="20"
+                      src={getFlagSource(option)}
+                      srcSet={`https://flagcdn.com/w40/${option.code.toLowerCase()}.png 2x`}
+                      alt=""
                     />
                   )}
-                  <CardContent sx={{ flexGrow: 1, display: 'flex', flexDirection: 'column' }}>
-                    <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', mb: 1 }}>
-                      <Chip 
-                        label={t(post.foundLost)} 
-                        color={post.foundLost === 'found' ? 'success' : 'error'}
-                        size="small"
-                      />
-                      <Typography variant="caption" color="text.secondary">
-                        {formatDate(post.createdAt)}
-                      </Typography>
-                    </Box>
-                    
-                    <Typography variant="h6" component="h2" gutterBottom sx={{ flexGrow: 1 }}>
-                      {post.title}
-                    </Typography>
-                    
-                    <Typography variant="body2" color="text.secondary" sx={{ mb: 2, flexGrow: 1 }}>
-                      {post.description?.substring(0, 100)}...
-                    </Typography>
-                    
-                    <Box sx={{ display: 'flex', alignItems: 'center', mb: 1 }}>
-                      <LocationOn sx={{ fontSize: 16, mr: 0.5, color: 'text.secondary' }} />
-                      <Typography variant="caption" color="text.secondary">
-                        {post.region || t('unknownRegion')}
-                      </Typography>
-                    </Box>
-                    
-                    <Box sx={{ display: 'flex', alignItems: 'center', mb: 2 }}>
-                      <Category sx={{ fontSize: 16, mr: 0.5, color: 'text.secondary' }} />
-                      <Typography variant="caption" color="text.secondary">
-                        {post.category || t('unknownCategory')}
-                      </Typography>
-                    </Box>
-                    
-                    <Button
-                      variant="outlined"
-                      size="small"
-                      startIcon={<Visibility />}
-                      onClick={() => navigate('/signup')}
-                      fullWidth
-                    >
-                      {t('viewDetails')}
-                    </Button>
-                  </CardContent>
-                </PostCard>
+                  {getCountryLabel(option)} ({option.code})
+                </Box>
+              )}
+              renderInput={(params) => (
+                <TextField
+                  {...params}
+                  label={t('chooseCountry')}
+                  variant="outlined"
+                  fullWidth
+                />
+              )}
+            />
+          </Box>
+
+          {/* Search and Filters */}
+          <SearchBar>
+            <Grid container spacing={3}>
+              <Grid item xs={12} md={6}>
+                <TextField
+                  fullWidth
+                  placeholder={t('searchPostsPlaceholder')}
+                  value={searchQuery}
+                  onChange={(e) => setSearchQuery(e.target.value)}
+                  InputProps={{
+                    startAdornment: (
+                      <InputAdornment position="start">
+                        <Search />
+                      </InputAdornment>
+                    ),
+                  }}
+                />
               </Grid>
-            ))}
-          </Grid>
-        )}
-      </Container>
-    </PageContainer>
+              <Grid item xs={12} md={3}>
+                <FormControl fullWidth>
+                  <InputLabel>{t('category')}</InputLabel>
+                  <Select
+                    value={categoryFilter}
+                    onChange={(e) => setCategoryFilter(e.target.value)}
+                    label={t('category')}
+                  >
+                    <MenuItem value="all">{t('allCategories')}</MenuItem>
+                    <MenuItem value="electronics">Electronics</MenuItem>
+                    <MenuItem value="documents">Documents</MenuItem>
+                    <MenuItem value="jewelry">Jewelry</MenuItem>
+                    <MenuItem value="clothing">Clothing</MenuItem>
+                  </Select>
+                </FormControl>
+              </Grid>
+              <Grid item xs={12} md={3}>
+                <FormControl fullWidth>
+                  <InputLabel>{t('foundOrLost')}</InputLabel>
+                  <Select
+                    value={foundLostFilter}
+                    onChange={(e) => setFoundLostFilter(e.target.value)}
+                    label={t('foundOrLost')}
+                  >
+                    <MenuItem value="all">{t('all')}</MenuItem>
+                    <MenuItem value="found">{t('found')}</MenuItem>
+                    <MenuItem value="lost">{t('lost')}</MenuItem>
+                  </Select>
+                </FormControl>
+              </Grid>
+            </Grid>
+          </SearchBar>
+
+          {/* Posts Grid */}
+          {postsLoading ? (
+            <LoadingState message={t('loadingPosts')} />
+          ) : postsError ? (
+            <Typography variant="h6" color="error" align="center">
+              {t('errorLoadingPosts')}
+            </Typography>
+          ) : filteredPosts.length === 0 ? (
+            <Box sx={{ textAlign: 'center', py: 8 }}>
+              <Typography variant="h5" gutterBottom>
+                {searchQuery || categoryFilter !== 'all' || foundLostFilter !== 'all' 
+                  ? t('noPostsMatchFilters') 
+                  : t('noPostsInArea')}
+              </Typography>
+              <Button 
+                variant="contained" 
+                onClick={() => navigate('/signup')}
+                sx={{ mt: 2 }}
+              >
+                {t('createNewPost')}
+              </Button>
+            </Box>
+          ) : (
+            <Grid container spacing={3}>
+              {filteredPosts.map((post) => (
+                <Grid item xs={12} sm={6} md={4} key={post.id}>
+                  <PostCard>
+                    {post.image && (
+                      <LazyCardMedia
+                        component="img"
+                        height="200"
+                        image={post.image}
+                        alt={post.title}
+                        sx={{ objectFit: 'cover' }}
+                      />
+                    )}
+                    <CardContent sx={{ flexGrow: 1, display: 'flex', flexDirection: 'column' }}>
+                      <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', mb: 1 }}>
+                        <Chip 
+                          label={t(post.foundLost)} 
+                          color={post.foundLost === 'found' ? 'success' : 'error'}
+                          size="small"
+                        />
+                        <Typography variant="caption" color="text.secondary">
+                          {formatDate(post.createdAt)}
+                        </Typography>
+                      </Box>
+                      
+                      <Typography variant="h6" component="h2" gutterBottom sx={{ flexGrow: 1 }}>
+                        {post.title}
+                      </Typography>
+                      
+                      <Typography variant="body2" color="text.secondary" sx={{ mb: 2, flexGrow: 1 }}>
+                        {post.description?.substring(0, 100)}...
+                      </Typography>
+                      
+                      <Box sx={{ display: 'flex', alignItems: 'center', mb: 1 }}>
+                        <LocationOn sx={{ fontSize: 16, mr: 0.5, color: 'text.secondary' }} />
+                        <Typography variant="caption" color="text.secondary">
+                          {post.region || t('unknownRegion')}
+                        </Typography>
+                      </Box>
+                      
+                      <Box sx={{ display: 'flex', alignItems: 'center', mb: 2 }}>
+                        <Category sx={{ fontSize: 16, mr: 0.5, color: 'text.secondary' }} />
+                        <Typography variant="caption" color="text.secondary">
+                          {post.category || t('unknownCategory')}
+                        </Typography>
+                      </Box>
+                      
+                      <Button
+                        variant="outlined"
+                        size="small"
+                        startIcon={<Visibility />}
+                        onClick={() => navigate('/signup')}
+                        fullWidth
+                      >
+                        {t('viewDetails')}
+                      </Button>
+                    </CardContent>
+                  </PostCard>
+                </Grid>
+              ))}
+            </Grid>
+          )}
+        </Container>
+      </PageContainer>
+    </>
   );
 };
 

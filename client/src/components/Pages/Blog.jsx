@@ -30,6 +30,7 @@ import {
 import { useTranslation } from '../../utils/translations';
 import Navbar from '../Navbar';
 import DashFooter from '../Footer/DashFooter';
+import SeoMeta from '../SeoMeta';
 
 const Blog = () => {
   const theme = useTheme();
@@ -174,212 +175,215 @@ const Blog = () => {
   const currentPosts = filteredPosts.slice(startIndex, startIndex + postsPerPage);
 
   return (
-    <Box width="100%" height="100%">
-      <Box sx={{ backgroundColor: theme.palette.background }}>
-        <Navbar />
-        <Box
-          sx={{
-            minHeight: '100vh',
-            pt: { xs: '6rem', sm: '7rem' },
-            pb: 4,
-            backgroundColor: theme.palette.background.default,
-          }}
-        >
-          <Container maxWidth="lg">
-            {/* Header */}
-            <Box textAlign="center" mb={4}>
-              <Typography
-                variant="h3"
-                component="h1"
-                sx={{
-                  fontWeight: 'bold',
-                  mb: 2,
-                  background: 'linear-gradient(45deg, #2196F3 30%, #21CBF3 90%)',
-                  WebkitBackgroundClip: 'text',
-                  WebkitTextFillColor: 'transparent',
-                  fontSize: { xs: '2rem', md: '3rem' },
-                }}
-              >
-                {t('blog')}
-              </Typography>
-              <Typography
-                variant="h6"
-                color="text.secondary"
-                sx={{ mb: 2 }}
-              >
-                {t('blogSubtitle')}
-              </Typography>
-              <Typography
-                variant="body1"
-                color="text.secondary"
-                sx={{ maxWidth: '800px', mx: 'auto', lineHeight: 1.7 }}
-              >
-                {t('blogDescription')}
-              </Typography>
-            </Box>
+    <>
+      <SeoMeta pageKey="blog" />
+      <Box width="100%" height="100%">
+        <Box sx={{ backgroundColor: theme.palette.background.default }}>
+          <Navbar />
+          <Box
+            sx={{
+              minHeight: '100vh',
+              pt: { xs: '6rem', sm: '7rem' },
+              pb: 4,
+              backgroundColor: theme.palette.background.default,
+            }}
+          >
+            <Container maxWidth="lg">
+              {/* Header */}
+              <Box textAlign="center" mb={4}>
+                <Typography
+                  variant="h3"
+                  component="h1"
+                  sx={{
+                    fontWeight: 'bold',
+                    mb: 2,
+                    background: 'linear-gradient(45deg, #2196F3 30%, #21CBF3 90%)',
+                    WebkitBackgroundClip: 'text',
+                    WebkitTextFillColor: 'transparent',
+                    fontSize: { xs: '2rem', md: '3rem' },
+                  }}
+                >
+                  {t('blog')}
+                </Typography>
+                <Typography
+                  variant="h6"
+                  color="text.secondary"
+                  sx={{ mb: 2 }}
+                >
+                  {t('blogSubtitle')}
+                </Typography>
+                <Typography
+                  variant="body1"
+                  color="text.secondary"
+                  sx={{ maxWidth: '800px', mx: 'auto', lineHeight: 1.7 }}
+                >
+                  {t('blogDescription')}
+                </Typography>
+              </Box>
 
-            {/* Search Bar */}
-            <Box mb={4}>
-              <TextField
-                fullWidth
-                placeholder={t('searchBlogPosts')}
-                value={searchTerm}
-                onChange={(e) => setSearchTerm(e.target.value)}
-                InputProps={{
-                  startAdornment: (
-                    <InputAdornment position="start">
-                      <Search />
-                    </InputAdornment>
-                  ),
-                }}
-                sx={{
-                  '& .MuiOutlinedInput-root': {
-                    borderRadius: 2,
-                  },
-                }}
-              />
-            </Box>
-
-            {/* Blog Posts Grid */}
-            <Grid container spacing={3} mb={4}>
-              {currentPosts.map((post) => (
-                <Grid item xs={12} md={6} lg={4} key={post.id}>
-                  <Card
-                    sx={{
-                      height: '100%',
-                      display: 'flex',
-                      flexDirection: 'column',
-                      transition: 'transform 0.2s ease-in-out',
-                      '&:hover': {
-                        transform: 'translateY(-4px)',
-                        boxShadow: theme.shadows[8],
-                      },
-                    }}
-                  >
-                    <CardMedia
-                      component="img"
-                      height="200"
-                      image={post.image}
-                      alt={post.title}
-                      sx={{
-                        objectFit: 'cover',
-                        backgroundColor: theme.palette.grey[200],
-                      }}
-                    />
-                    <CardContent sx={{ flexGrow: 1, display: 'flex', flexDirection: 'column' }}>
-                      <Box mb={2}>
-                        <Chip
-                          label={post.category}
-                          size="small"
-                          color="primary"
-                          sx={{ mb: 1 }}
-                        />
-                        <Typography
-                          variant="h6"
-                          component="h2"
-                          sx={{
-                            fontWeight: '600',
-                            mb: 1,
-                            lineHeight: 1.3,
-                            display: '-webkit-box',
-                            WebkitLineClamp: 2,
-                            WebkitBoxOrient: 'vertical',
-                            overflow: 'hidden',
-                          }}
-                        >
-                          {post.title}
-                        </Typography>
-                        <Typography
-                          variant="body2"
-                          color="text.secondary"
-                          sx={{
-                            mb: 2,
-                            display: '-webkit-box',
-                            WebkitLineClamp: 3,
-                            WebkitBoxOrient: 'vertical',
-                            overflow: 'hidden',
-                            lineHeight: 1.5,
-                          }}
-                        >
-                          {post.excerpt}
-                        </Typography>
-                      </Box>
-
-                      <Box sx={{ mt: 'auto' }}>
-                        <Box display="flex" alignItems="center" gap={1} mb={2}>
-                          <Person fontSize="small" color="action" />
-                          <Typography variant="caption" color="text.secondary">
-                            {post.author}
-                          </Typography>
-                          <CalendarToday fontSize="small" color="action" />
-                          <Typography variant="caption" color="text.secondary">
-                            {new Date(post.date).toLocaleDateString()}
-                          </Typography>
-                          <Visibility fontSize="small" color="action" />
-                          <Typography variant="caption" color="text.secondary">
-                            {post.readTime}
-                          </Typography>
-                        </Box>
-
-                        <Box display="flex" flexWrap="wrap" gap={0.5} mb={2}>
-                          {post.tags.map((tag, index) => (
-                            <Chip
-                              key={index}
-                              label={tag}
-                              size="small"
-                              variant="outlined"
-                              sx={{ fontSize: '0.7rem' }}
-                            />
-                          ))}
-                        </Box>
-
-                        <Button
-                          variant="outlined"
-                          fullWidth
-                          startIcon={<Article />}
-                          onClick={() => {
-                            // Navigate to full article (you can implement this later)
-                            console.log('Navigate to article:', post.id);
-                          }}
-                        >
-                          {t('readMore')}
-                        </Button>
-                      </Box>
-                    </CardContent>
-                  </Card>
-                </Grid>
-              ))}
-            </Grid>
-
-            {/* Pagination */}
-            {totalPages > 1 && (
-              <Box display="flex" justifyContent="center" mb={4}>
-                <Pagination
-                  count={totalPages}
-                  page={currentPage}
-                  onChange={(event, value) => setCurrentPage(value)}
-                  color="primary"
-                  size="large"
+              {/* Search Bar */}
+              <Box mb={4}>
+                <TextField
+                  fullWidth
+                  placeholder={t('searchBlogPosts')}
+                  value={searchTerm}
+                  onChange={(e) => setSearchTerm(e.target.value)}
+                  InputProps={{
+                    startAdornment: (
+                      <InputAdornment position="start">
+                        <Search />
+                      </InputAdornment>
+                    ),
+                  }}
+                  sx={{
+                    '& .MuiOutlinedInput-root': {
+                      borderRadius: 2,
+                    },
+                  }}
                 />
               </Box>
-            )}
 
-            {/* No Results */}
-            {filteredPosts.length === 0 && (
-              <Box textAlign="center" py={8}>
-                <Typography variant="h6" color="text.secondary" mb={2}>
-                  {t('noBlogPostsFound')}
-                </Typography>
-                <Typography variant="body2" color="text.secondary">
-                  {t('tryDifferentSearch')}
-                </Typography>
-              </Box>
-            )}
-          </Container>
+              {/* Blog Posts Grid */}
+              <Grid container spacing={3} mb={4}>
+                {currentPosts.map((post) => (
+                  <Grid item xs={12} md={6} lg={4} key={post.id}>
+                    <Card
+                      sx={{
+                        height: '100%',
+                        display: 'flex',
+                        flexDirection: 'column',
+                        transition: 'transform 0.2s ease-in-out',
+                        '&:hover': {
+                          transform: 'translateY(-4px)',
+                          boxShadow: theme.shadows[8],
+                        },
+                      }}
+                    >
+                      <CardMedia
+                        component="img"
+                        height="200"
+                        image={post.image}
+                        alt={post.title}
+                        sx={{
+                          objectFit: 'cover',
+                          backgroundColor: theme.palette.grey[200],
+                        }}
+                      />
+                      <CardContent sx={{ flexGrow: 1, display: 'flex', flexDirection: 'column' }}>
+                        <Box mb={2}>
+                          <Chip
+                            label={post.category}
+                            size="small"
+                            color="primary"
+                            sx={{ mb: 1 }}
+                          />
+                          <Typography
+                            variant="h6"
+                            component="h2"
+                            sx={{
+                              fontWeight: '600',
+                              mb: 1,
+                              lineHeight: 1.3,
+                              display: '-webkit-box',
+                              WebkitLineClamp: 2,
+                              WebkitBoxOrient: 'vertical',
+                              overflow: 'hidden',
+                            }}
+                          >
+                            {post.title}
+                          </Typography>
+                          <Typography
+                            variant="body2"
+                            color="text.secondary"
+                            sx={{
+                              mb: 2,
+                              display: '-webkit-box',
+                              WebkitLineClamp: 3,
+                              WebkitBoxOrient: 'vertical',
+                              overflow: 'hidden',
+                              lineHeight: 1.5,
+                            }}
+                          >
+                            {post.excerpt}
+                          </Typography>
+                        </Box>
+
+                        <Box sx={{ mt: 'auto' }}>
+                          <Box display="flex" alignItems="center" gap={1} mb={2}>
+                            <Person fontSize="small" color="action" />
+                            <Typography variant="caption" color="text.secondary">
+                              {post.author}
+                            </Typography>
+                            <CalendarToday fontSize="small" color="action" />
+                            <Typography variant="caption" color="text.secondary">
+                              {new Date(post.date).toLocaleDateString()}
+                            </Typography>
+                            <Visibility fontSize="small" color="action" />
+                            <Typography variant="caption" color="text.secondary">
+                              {post.readTime}
+                            </Typography>
+                          </Box>
+
+                          <Box display="flex" flexWrap="wrap" gap={0.5} mb={2}>
+                            {post.tags.map((tag, index) => (
+                              <Chip
+                                key={index}
+                                label={tag}
+                                size="small"
+                                variant="outlined"
+                                sx={{ fontSize: '0.7rem' }}
+                              />
+                            ))}
+                          </Box>
+
+                          <Button
+                            variant="outlined"
+                            fullWidth
+                            startIcon={<Article />}
+                            onClick={() => {
+                              // Navigate to full article (you can implement this later)
+                              console.log('Navigate to article:', post.id);
+                            }}
+                          >
+                            {t('readMore')}
+                          </Button>
+                        </Box>
+                      </CardContent>
+                    </Card>
+                  </Grid>
+                ))}
+              </Grid>
+
+              {/* Pagination */}
+              {totalPages > 1 && (
+                <Box display="flex" justifyContent="center" mb={4}>
+                  <Pagination
+                    count={totalPages}
+                    page={currentPage}
+                    onChange={(event, value) => setCurrentPage(value)}
+                    color="primary"
+                    size="large"
+                  />
+                </Box>
+              )}
+
+              {/* No Results */}
+              {filteredPosts.length === 0 && (
+                <Box textAlign="center" py={8}>
+                  <Typography variant="h6" color="text.secondary" mb={2}>
+                    {t('noBlogPostsFound')}
+                  </Typography>
+                  <Typography variant="body2" color="text.secondary">
+                    {t('tryDifferentSearch')}
+                  </Typography>
+                </Box>
+              )}
+            </Container>
+          </Box>
+          <DashFooter />
         </Box>
-        <DashFooter />
       </Box>
-    </Box>
+    </>
   );
 };
 

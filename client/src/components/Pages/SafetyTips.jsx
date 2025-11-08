@@ -34,6 +34,7 @@ import {
 import { useTranslation } from '../../utils/translations';
 import Navbar from '../Navbar';
 import DashFooter from '../Footer/DashFooter';
+import SeoMeta from '../SeoMeta';
 
 const SafetyTips = () => {
   const theme = useTheme();
@@ -162,17 +163,11 @@ const SafetyTips = () => {
   ];
 
   return (
-    <Box width="100%" height="100%">
-      <Box sx={{ backgroundColor: theme.palette.background }}>
+    <>
+      <SeoMeta pageKey="safety" />
+      <Box width="100%" minHeight="100vh" sx={{ backgroundColor: theme.palette.background.default }}>
         <Navbar />
-        <Box
-          sx={{
-            minHeight: '100vh',
-            pt: { xs: '6rem', sm: '7rem' },
-            pb: 4,
-            backgroundColor: theme.palette.background.default,
-          }}
-        >
+        <Box sx={{ pt: { xs: '6rem', md: '7rem' }, pb: 6 }}>
           <Container maxWidth="lg">
             <Paper
               elevation={2}
@@ -456,7 +451,7 @@ const SafetyTips = () => {
         </Box>
         <DashFooter />
       </Box>
-    </Box>
+    </>
   );
 };
 

@@ -2,59 +2,79 @@ import React, { createContext, useContext, useState, useEffect } from 'react';
 import { languageStorage } from './authStorage';
 import { safeLanguageRefetch } from './languageRefetchUtils';
 import { migrateLanguageStorage } from './languageMigration';
+import { SUPPORTED_LANGUAGES } from './seoConfig';
 
-// Language context
-const LanguageContext = createContext();
+const getLanguageFromUrl = () => {
+  if (typeof window === 'undefined') return null;
+  const params = new URLSearchParams(window.location.search);
+  const langParam = params.get('lang');
+  return SUPPORTED_LANGUAGES.includes(langParam) ? langParam : null;
+};
 
-// Initialize language settings
+const applyDocumentLanguage = (language) => {
+  if (typeof document === 'undefined') return;
+  document.documentElement.setAttribute('lang', language);
+
+  if (language === 'ar') {
+    document.body.setAttribute('dir', 'rtl');
+    document.body.style.direction = 'rtl';
+    document.body.style.textAlign = 'right';
+  } else {
+    document.body.setAttribute('dir', 'ltr');
+    document.body.style.direction = 'ltr';
+    document.body.style.textAlign = 'left';
+  }
+};
+
+const resolveLanguage = (preferredLanguage) => {
+  if (preferredLanguage && SUPPORTED_LANGUAGES.includes(preferredLanguage)) {
+    return preferredLanguage;
+  }
+  return 'en';
+};
+
 export const initializeLanguage = (language = null) => {
   try {
-    // Use centralized language storage utility
-    const savedLanguage = languageStorage.getCurrentLanguage();
-    const currentLang = language || savedLanguage || 'en';
-    
-    // Set document language attribute
-    document.documentElement.setAttribute("lang", currentLang);
-    
-    // Force re-render for RTL languages
-    if (currentLang === "ar") {
-      document.body.setAttribute("dir", "rtl");
-      document.body.style.direction = "rtl";
-      document.body.style.textAlign = "right";
-    } else {
-      document.body.setAttribute("dir", "ltr");
-      document.body.style.direction = "ltr";
-      document.body.style.textAlign = "left";
+    const urlLanguage = getLanguageFromUrl();
+    const storedLanguage = resolveLanguage(languageStorage.getCurrentLanguage());
+    const desiredLanguage = resolveLanguage(language || urlLanguage || storedLanguage);
+
+    if (typeof window === 'undefined') {
+      return desiredLanguage;
     }
-    
-    return currentLang;
+
+    const currentStored = resolveLanguage(languageStorage.getCurrentLanguage());
+
+    if (desiredLanguage !== currentStored || urlLanguage) {
+      languageStorage.setLanguage(desiredLanguage);
+    } else {
+      applyDocumentLanguage(desiredLanguage);
+    }
+
+    return desiredLanguage;
   } catch (error) {
     console.error('Error initializing language:', error);
+    applyDocumentLanguage('en');
     return 'en';
   }
 };
 
-// Language provider component
+const LanguageContext = createContext();
+
 export const LanguageProvider = ({ children }) => {
-  const [currentLanguage, setCurrentLanguage] = useState('en'); // Start with default
+  const [currentLanguage, setCurrentLanguage] = useState('en');
   const [isInitialized, setIsInitialized] = useState(false);
 
   const setLanguage = (language) => {
     try {
-      if (['en', 'ar', 'fr'].includes(language)) {
-        
-        // Use centralized language storage utility (no page refresh)
+      if (SUPPORTED_LANGUAGES.includes(language)) {
         const success = languageStorage.setLanguage(language);
-        
+
         if (success) {
-          // Update context state immediately
           setCurrentLanguage(language);
-          
-          // Trigger RTK Query refetch for all language-dependent queries
           handleLanguageRefetch(language);
-          
         }
-        
+
         return success;
       }
       return false;
@@ -64,16 +84,11 @@ export const LanguageProvider = ({ children }) => {
     }
   };
 
-  /**
-   * Trigger refetch for all language-dependent RTK Query endpoints
-   * @param {string} language - New language code
-   */
   const handleLanguageRefetch = async (language) => {
     try {
-      // Use the safe refetch function with error handling
       await safeLanguageRefetch(language, {
         forceRefetch: true,
-        priority: 'medium' // Refetch medium and high priority endpoints
+        priority: 'medium',
       });
     } catch (error) {
       console.error('Error triggering language-dependent refetch:', error);
@@ -81,32 +96,23 @@ export const LanguageProvider = ({ children }) => {
   };
 
   useEffect(() => {
-    // First, run language storage migration
-    // This consolidates old keys (app_language, currentLanguage) into the unified 'language' key
     try {
       const migrationResult = migrateLanguageStorage();
       if (migrationResult.success) {
       }
     } catch (error) {
-      // Language migration error (non-fatal)
     }
-    
-    // Load language from localStorage on mount
+
     try {
-      // Use centralized language storage utility
-      const savedLanguage = languageStorage.getCurrentLanguage();
-      
-      if (savedLanguage && ['en', 'ar', 'fr'].includes(savedLanguage)) {
-        setCurrentLanguage(savedLanguage);
-        initializeLanguage(savedLanguage);
-      } else {
-        // No saved language or invalid, use default
-        initializeLanguage('en');
-      }
+      const urlLanguage = getLanguageFromUrl();
+      const savedLanguage = resolveLanguage(languageStorage.getCurrentLanguage());
+      const initialLanguage = initializeLanguage(urlLanguage || savedLanguage);
+      setCurrentLanguage(initialLanguage);
       setIsInitialized(true);
     } catch (error) {
       console.error('Error loading saved language:', error);
-      initializeLanguage('en');
+      const fallbackLanguage = initializeLanguage('en');
+      setCurrentLanguage(fallbackLanguage);
       setIsInitialized(true);
     }
   }, []);
@@ -114,28 +120,24 @@ export const LanguageProvider = ({ children }) => {
   useEffect(() => {
     if (!isInitialized) return;
 
-    // Listen for language change events (smooth switching)
-    const handleLanguageChanged = (event) => {
-      
-      // Update context state
-      setCurrentLanguage(prev => {
-        const newLang = languageStorage.getCurrentLanguage();
-        if (prev !== newLang) {
-          return newLang;
+    const handleLanguageChanged = () => {
+      setCurrentLanguage((prev) => {
+        const newLanguage = resolveLanguage(languageStorage.getCurrentLanguage());
+        if (prev !== newLanguage) {
+          applyDocumentLanguage(newLanguage);
+          return newLanguage;
         }
         return prev;
       });
     };
 
-    // Listen for the custom language change event
     window.addEventListener('languageChanged', handleLanguageChanged);
-    
+
     return () => {
       window.removeEventListener('languageChanged', handleLanguageChanged);
     };
   }, [isInitialized]);
 
-  // Don't render children until language is initialized
   if (!isInitialized) {
     return null;
   }
@@ -147,7 +149,6 @@ export const LanguageProvider = ({ children }) => {
   );
 };
 
-// Hook to use language context
 export const useLanguage = () => {
   const context = useContext(LanguageContext);
   if (!context) {

@@ -7,6 +7,7 @@ import { useTranslation } from "../utils/translations";
 import { useLanguage } from "../utils/languageContext";
 import { LoadingState } from "./LoadingStates";
 import { languageStorage } from "../utils/authStorage";
+import SeoMeta from "./SeoMeta";
 import {
   Box,
   Card,
@@ -319,39 +320,51 @@ const WelcomePage = () => {
 
 
   // Show loading state only if we're actively loading and have no data
+  const seoMetadata = <SeoMeta pageKey="home" />;
+
   if (countriesLoading && countries.length === 0) {
-    return <LoadingState message={t('loadingCountries')} />;
+    return (
+      <>
+        {seoMetadata}
+        <LoadingState message={t('loadingCountries')} />
+      </>
+    );
   }
 
   // If there's an error but we have some countries, still show the page
   // If no countries at all, show a fallback
   if (countriesError && countries.length === 0) {
     return (
-      <PageContainer>
-        <WelcomeCard>
-          <CardContent>
-            <Typography variant="h6" color="error" align="center">
-              {t('errorLoadingCountries')}
-            </Typography>
-            <Button 
-              variant="contained" 
-              onClick={() => window.location.reload()}
-              sx={{ mt: 2 }}
-            >
-              Retry
-            </Button>
-          </CardContent>
-        </WelcomeCard>
-      </PageContainer>
+      <>
+        {seoMetadata}
+        <PageContainer>
+          <WelcomeCard>
+            <CardContent>
+              <Typography variant="h6" color="error" align="center">
+                {t('errorLoadingCountries')}
+              </Typography>
+              <Button 
+                variant="contained" 
+                onClick={() => window.location.reload()}
+                sx={{ mt: 2 }}
+              >
+                Retry
+              </Button>
+            </CardContent>
+          </WelcomeCard>
+        </PageContainer>
+      </>
     );
   }
 
   return (
-    <PageContainer>
-      {/* Top Controls Container */}
-      <TopControlsContainer currentLanguage={currentLanguage || langContext}>
-        {/* Controls Group */}
-        <ControlsGroup currentLanguage={currentLanguage || langContext}>
+    <>
+      {seoMetadata}
+      <PageContainer>
+        {/* Top Controls Container */}
+        <TopControlsContainer currentLanguage={currentLanguage || langContext}>
+          {/* Controls Group */}
+          <ControlsGroup currentLanguage={currentLanguage || langContext}>
 
 {/* Language Selector */}
 <LanguageSelector 
@@ -881,6 +894,7 @@ const WelcomePage = () => {
         </CardContent>
       </WelcomeCard>
     </PageContainer>
+    </>
   );
 };
 

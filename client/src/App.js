@@ -6,6 +6,7 @@ import { createTheme } from "@mui/material/styles";
 import React, { useEffect } from "react";
 import { useSelector, useDispatch } from "react-redux";
 import { useLocation } from "react-router-dom";
+import { HelmetProvider } from "react-helmet-async";
 import { themeSettings } from "./theme";
 import { LanguageProvider, useLanguage } from "./utils/languageContext";
 import { selectIsMaintenanceActive } from "./app/state/maintenanceSlice";
@@ -406,11 +407,13 @@ function App() {
   }, []);
 
   return (
-    <LanguageProvider>
-      <Suspense fallback={<LoadingFallback />}>
-        <AppContent />
-      </Suspense>
-    </LanguageProvider>
+    <HelmetProvider>
+      <LanguageProvider>
+        <Suspense fallback={<LoadingFallback />}>
+          <AppContent />
+        </Suspense>
+      </LanguageProvider>
+    </HelmetProvider>
   );
 }
 

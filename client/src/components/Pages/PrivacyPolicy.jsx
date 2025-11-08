@@ -11,11 +11,17 @@ import {
   ListItem,
   ListItemText,
   ListItemIcon,
+  alpha,
 } from '@mui/material';
 import {
+  PrivacyTip,
   Security,
-  Visibility,
+  Gavel,
+  Public,
+  VerifiedUser,
+  Update,
   DataUsage,
+  Visibility,
   Cookie,
   Shield,
   GpsFixed,
@@ -23,6 +29,7 @@ import {
 import { useTranslation } from '../../utils/translations';
 import Navbar from '../Navbar';
 import DashFooter from '../Footer/DashFooter';
+import SeoMeta from '../SeoMeta';
 
 const PrivacyPolicy = () => {
   const theme = useTheme();
@@ -99,143 +106,146 @@ const PrivacyPolicy = () => {
   ];
 
   return (
-    <Box width="100%" height="100%">
-      <Box sx={{ backgroundColor: theme.palette.background }}>
-        <Navbar />
-        <Box
-          sx={{
-            minHeight: '100vh',
-            pt: { xs: '6rem', sm: '7rem' },
-            pb: 4,
-            backgroundColor: theme.palette.background.default,
-          }}
-        >
-          <Container maxWidth="lg">
-            <Paper
-              elevation={2}
-              sx={{
-                p: { xs: 2, md: 4 },
-                borderRadius: 2,
-                background: theme.palette.mode === 'dark' 
-                  ? 'linear-gradient(145deg, #1a1a1a 0%, #2d2d2d 100%)'
-                  : 'linear-gradient(145deg, #ffffff 0%, #f8f9fa 100%)',
-              }}
-            >
-              {/* Header */}
-              <Box textAlign="center" mb={4}>
-                <Typography
-                  variant="h3"
-                  component="h1"
-                  sx={{
-                    fontWeight: 'bold',
-                    mb: 2,
-                    background: 'linear-gradient(45deg, #2196F3 30%, #21CBF3 90%)',
-                    WebkitBackgroundClip: 'text',
-                    WebkitTextFillColor: 'transparent',
-                    fontSize: { xs: '2rem', md: '3rem' },
-                  }}
-                >
-                  {t('privacyPolicy')}
-                </Typography>
-                <Typography
-                  variant="h6"
-                  color="text.secondary"
-                  sx={{ mb: 2 }}
-                >
-                  {t('lastUpdated')}: {new Date().toLocaleDateString()}
-                </Typography>
-                <Typography
-                  variant="body1"
-                  color="text.secondary"
-                  sx={{ maxWidth: '800px', mx: 'auto' }}
-                >
-                  {t('privacyPolicyDescription')}
-                </Typography>
-              </Box>
-
-              <Divider sx={{ mb: 4 }} />
-
-              {/* Content Sections */}
-              <Box>
-                {sections.map((section, index) => (
-                  <Box key={index} mb={4}>
-                    <Box display="flex" alignItems="center" mb={2}>
-                      <ListItemIcon sx={{ minWidth: 'auto', mr: 2 }}>
-                        {section.icon}
-                      </ListItemIcon>
-                      <Typography
-                        variant="h5"
-                        component="h2"
-                        sx={{
-                          fontWeight: '600',
-                          color: theme.palette.text.primary,
-                        }}
-                      >
-                        {section.title}
-                      </Typography>
-                    </Box>
-                    
-                    <Typography
-                      variant="body1"
-                      color="text.secondary"
-                      sx={{ mb: 2, lineHeight: 1.7 }}
-                    >
-                      {section.content}
-                    </Typography>
-
-                    <List dense>
-                      {section.items.map((item, itemIndex) => (
-                        <ListItem key={itemIndex} sx={{ pl: 0 }}>
-                          <ListItemText
-                            primary={item}
-                            primaryTypographyProps={{
-                              variant: 'body2',
-                              color: 'text.secondary',
-                            }}
-                          />
-                        </ListItem>
-                      ))}
-                    </List>
-
-                    {index < sections.length - 1 && (
-                      <Divider sx={{ mt: 3 }} />
-                    )}
-                  </Box>
-                ))}
-              </Box>
-
-              {/* Contact Information */}
-              <Box
+    <>
+      <SeoMeta pageKey="privacy" />
+      <Box width="100%" height="100%">
+        <Box sx={{ backgroundColor: theme.palette.background }}>
+          <Navbar />
+          <Box
+            sx={{
+              minHeight: '100vh',
+              pt: { xs: '6rem', sm: '7rem' },
+              pb: 4,
+              backgroundColor: theme.palette.background.default,
+            }}
+          >
+            <Container maxWidth="lg">
+              <Paper
+                elevation={2}
                 sx={{
-                  mt: 6,
-                  p: 3,
+                  p: { xs: 2, md: 4 },
                   borderRadius: 2,
-                  backgroundColor: theme.palette.mode === 'dark' 
-                    ? 'rgba(33, 150, 243, 0.1)' 
-                    : 'rgba(33, 150, 243, 0.05)',
-                  border: `1px solid ${theme.palette.primary.main}20`,
+                  background: theme.palette.mode === 'dark' 
+                    ? 'linear-gradient(145deg, #1a1a1a 0%, #2d2d2d 100%)'
+                    : 'linear-gradient(145deg, #ffffff 0%, #f8f9fa 100%)',
                 }}
               >
-                <Typography
-                  variant="h6"
-                  component="h3"
-                  sx={{ mb: 2, fontWeight: '600' }}
+                {/* Header */}
+                <Box textAlign="center" mb={4}>
+                  <Typography
+                    variant="h3"
+                    component="h1"
+                    sx={{
+                      fontWeight: 'bold',
+                      mb: 2,
+                      background: 'linear-gradient(45deg, #2196F3 30%, #21CBF3 90%)',
+                      WebkitBackgroundClip: 'text',
+                      WebkitTextFillColor: 'transparent',
+                      fontSize: { xs: '2rem', md: '3rem' },
+                    }}
+                  >
+                    {t('privacyPolicy')}
+                  </Typography>
+                  <Typography
+                    variant="h6"
+                    color="text.secondary"
+                    sx={{ mb: 2 }}
+                  >
+                    {t('lastUpdated')}: {new Date().toLocaleDateString()}
+                  </Typography>
+                  <Typography
+                    variant="body1"
+                    color="text.secondary"
+                    sx={{ maxWidth: '800px', mx: 'auto' }}
+                  >
+                    {t('privacyPolicyDescription')}
+                  </Typography>
+                </Box>
+
+                <Divider sx={{ mb: 4 }} />
+
+                {/* Content Sections */}
+                <Box>
+                  {sections.map((section, index) => (
+                    <Box key={index} mb={4}>
+                      <Box display="flex" alignItems="center" mb={2}>
+                        <ListItemIcon sx={{ minWidth: 'auto', mr: 2 }}>
+                          {section.icon}
+                        </ListItemIcon>
+                        <Typography
+                          variant="h5"
+                          component="h2"
+                          sx={{
+                            fontWeight: '600',
+                            color: theme.palette.text.primary,
+                          }}
+                        >
+                          {section.title}
+                        </Typography>
+                      </Box>
+                      
+                      <Typography
+                        variant="body1"
+                        color="text.secondary"
+                        sx={{ mb: 2, lineHeight: 1.7 }}
+                      >
+                        {section.content}
+                      </Typography>
+
+                      <List dense>
+                        {section.items.map((item, itemIndex) => (
+                          <ListItem key={itemIndex} sx={{ pl: 0 }}>
+                            <ListItemText
+                              primary={item}
+                              primaryTypographyProps={{
+                                variant: 'body2',
+                                color: 'text.secondary',
+                              }}
+                            />
+                          </ListItem>
+                        ))}
+                      </List>
+
+                      {index < sections.length - 1 && (
+                        <Divider sx={{ mt: 3 }} />
+                      )}
+                    </Box>
+                  ))}
+                </Box>
+
+                {/* Contact Information */}
+                <Box
+                  sx={{
+                    mt: 6,
+                    p: 3,
+                    borderRadius: 2,
+                    backgroundColor: theme.palette.mode === 'dark' 
+                      ? 'rgba(33, 150, 243, 0.1)' 
+                      : 'rgba(33, 150, 243, 0.05)',
+                    border: `1px solid ${theme.palette.primary.main}20`,
+                  }}
                 >
-                  {t('contactUs')}
-                </Typography>
-                <Typography variant="body2" color="text.secondary" sx={{ mb: 1 }}>
-                  {t('privacyQuestions')}
-                </Typography>
-                <Typography variant="body2" color="text.secondary">
-                  {t('email')}: team.mafqoudat@gmail.com
-                </Typography>
-              </Box>
-            </Paper>
-          </Container>
+                  <Typography
+                    variant="h6"
+                    component="h3"
+                    sx={{ mb: 2, fontWeight: '600' }}
+                  >
+                    {t('contactUs')}
+                  </Typography>
+                  <Typography variant="body2" color="text.secondary" sx={{ mb: 1 }}>
+                    {t('privacyQuestions')}
+                  </Typography>
+                  <Typography variant="body2" color="text.secondary">
+                    {t('email')}: team.mafqoudat@gmail.com
+                  </Typography>
+                </Box>
+              </Paper>
+            </Container>
+          </Box>
+          <DashFooter />
         </Box>
-        <DashFooter />
       </Box>
-    </Box>
+    </>
   );
 };
 
