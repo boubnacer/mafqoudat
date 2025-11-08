@@ -151,6 +151,7 @@ const NewPostForm = ({ user, countries, categories, flOptions }) => {
   const [imagePreview, setImagePreview] = useState(null);
   const [showImageDialog, setShowImageDialog] = useState(false);
   const [showImageWarningDialog, setShowImageWarningDialog] = useState(false);
+  const [proceedCountdown, setProceedCountdown] = useState(0);
 
   // New state for unified city dropdown
   const [citySearchQuery, setCitySearchQuery] = useState("");
@@ -741,19 +742,36 @@ const NewPostForm = ({ user, countries, categories, flOptions }) => {
 
   const handleImageButtonClick = useCallback(() => {
     if (isCompressing) return;
+    setProceedCountdown(6);
     setShowImageWarningDialog(true);
   }, [isCompressing]);
 
   const handleImageWarningProceed = useCallback(() => {
+    if (proceedCountdown > 0) return;
     setShowImageWarningDialog(false);
+    setProceedCountdown(0);
     setTimeout(() => {
       fileInputRef.current?.click();
     }, 150);
-  }, [fileInputRef]);
+  }, [fileInputRef, proceedCountdown]);
 
   const handleImageWarningClose = useCallback(() => {
     setShowImageWarningDialog(false);
+    setProceedCountdown(0);
   }, []);
+
+  useEffect(() => {
+    if (!showImageWarningDialog) {
+      return;
+    }
+    if (proceedCountdown <= 0) {
+      return;
+    }
+    const timer = setTimeout(() => {
+      setProceedCountdown(prev => (prev > 0 ? prev - 1 : 0));
+    }, 1000);
+    return () => clearTimeout(timer);
+  }, [showImageWarningDialog, proceedCountdown]);
 
   // Handle image selection
   const handleImageSelect = useCallback(async (event) => {
@@ -2004,19 +2022,24 @@ const NewPostForm = ({ user, countries, categories, flOptions }) => {
                 <Button
                   variant="contained"
                   onClick={handleImageWarningProceed}
+                  disabled={proceedCountdown > 0}
                   sx={{
                     textTransform: 'none',
                     borderRadius: 2,
                     px: 3,
                     fontWeight: 700,
-                    background: 'linear-gradient(45deg, #4A8BFF 30%, #1A6EEE 90%)',
-                    color: '#fff',
-                    '&:hover': {
+                    background: proceedCountdown > 0
+                      ? 'rgba(74, 139, 255, 0.3)'
+                      : 'linear-gradient(45deg, #4A8BFF 30%, #1A6EEE 90%)',
+                    color: proceedCountdown > 0 ? 'rgba(255,255,255,0.7)' : '#fff',
+                    '&:hover': proceedCountdown > 0 ? {} : {
                       background: 'linear-gradient(45deg, #5A9BFF 30%, #2A7EFF 90%)'
                     }
                   }}
                 >
-                  {t('imageWarningProceed')}
+                  {proceedCountdown > 0
+                    ? `${t('imageWarningProceed')} (${proceedCountdown})`
+                    : t('imageWarningProceed')}
                 </Button>
               </DialogActions>
             </Dialog>
