@@ -360,6 +360,14 @@ export const translations = {
     completing: "Completing...",
     oauthEmailExists: "This email is already registered with Google Sign-In. Please use the 'Continue with Google' button to log in.",
     oauthLoginAttempt: "This account uses Google Sign-In. Please use the 'Continue with Google' button.",
+    loginRequiredDefault: "Please log in to continue.",
+    loginRequiredCreatePost: "Please log in to create a post.",
+    loginRequiredEditPost: "Please log in to edit posts.",
+    loginRequiredReportPost: "Please log in to report this post.",
+    loginRequiredProfile: "Please log in to view your profile.",
+    loginRequiredMyPosts: "Please log in to view your posts.",
+    loginRequiredAdmin: "Please log in with an admin account to access this section.",
+    loginRequiredClaimItem: "Please log in to claim this item.",
     
     // Authentication Error Messages
     authErrorTitle: "Authentication Error",
@@ -1778,6 +1786,14 @@ export const translations = {
     completing: "Finalisation...",
     oauthEmailExists: "Cet e-mail est déjà enregistré avec Google Sign-In. Veuillez utiliser le bouton 'Continuer avec Google' pour vous connecter.",
     oauthLoginAttempt: "Ce compte utilise Google Sign-In. Veuillez utiliser le bouton 'Continuer avec Google'.",
+    loginRequiredDefault: "Veuillez vous connecter pour continuer.",
+    loginRequiredCreatePost: "Veuillez vous connecter pour créer une publication.",
+    loginRequiredEditPost: "Veuillez vous connecter pour modifier des publications.",
+    loginRequiredReportPost: "Veuillez vous connecter pour signaler cette publication.",
+    loginRequiredProfile: "Veuillez vous connecter pour voir votre profil.",
+    loginRequiredMyPosts: "Veuillez vous connecter pour voir vos publications.",
+    loginRequiredAdmin: "Veuillez vous connecter avec un compte administrateur pour accéder à cette section.",
+    loginRequiredClaimItem: "Veuillez vous connecter pour réclamer cet objet.",
     
     // Authentication Error Messages
     authErrorTitle: "Erreur d'authentification",
@@ -3160,6 +3176,14 @@ export const translations = {
     completing: "جارٍ الإكمال...",
     oauthEmailExists: "هذا البريد الإلكتروني مسجل بالفعل باستخدام تسجيل الدخول عبر جوجل. يرجى استخدام زر 'المتابعة مع جوجل' لتسجيل الدخول.",
     oauthLoginAttempt: "هذا الحساب يستخدم تسجيل الدخول عبر جوجل. يرجى استخدام زر 'المتابعة مع جوجل'.",
+    loginRequiredDefault: "يرجى تسجيل الدخول للمتابعة.",
+    loginRequiredCreatePost: "يرجى تسجيل الدخول لإنشاء منشور.",
+    loginRequiredEditPost: "يرجى تسجيل الدخول لتعديل المنشورات.",
+    loginRequiredReportPost: "يرجى تسجيل الدخول للإبلاغ عن هذا المنشور.",
+    loginRequiredProfile: "يرجى تسجيل الدخول لعرض ملفك الشخصي.",
+    loginRequiredMyPosts: "يرجى تسجيل الدخول لعرض منشوراتك.",
+    loginRequiredAdmin: "يرجى تسجيل الدخول بحساب إداري للوصول إلى هذا القسم.",
+    loginRequiredClaimItem: "يرجى تسجيل الدخول للمطالبة بهذا العنصر.",
     
     // Authentication Error Messages
     authErrorTitle: "خطأ في المصادقة",

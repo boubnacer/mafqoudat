@@ -48,7 +48,8 @@ export const AUTH_KEYS = {
   ACCESS_TOKEN: 'accessToken',
   IS_LOGGED_IN: 'isLoggedIn',
   USER_DATA: 'userData',
-  REDIRECT_AFTER_LOGIN: 'redirectAfterLogin'
+  REDIRECT_AFTER_LOGIN: 'redirectAfterLogin',
+  LOGIN_REDIRECT_MESSAGE: 'loginRedirectMessage'
 };
 
 // Language-related localStorage keys (for page refresh functionality)
@@ -179,6 +180,7 @@ class AuthStorageManager {
       localStorage.removeItem(AUTH_KEYS.IS_LOGGED_IN);
       localStorage.removeItem(AUTH_KEYS.USER_DATA);
       localStorage.removeItem(AUTH_KEYS.REDIRECT_AFTER_LOGIN);
+      localStorage.removeItem(AUTH_KEYS.LOGIN_REDIRECT_MESSAGE);
       
       debugLog('All authentication data cleared successfully');
       return true;
@@ -265,6 +267,67 @@ class AuthStorageManager {
       return null;
     } catch (error) {
       console.error('Failed to get redirect URL:', error);
+      return null;
+    }
+  }
+
+  /**
+   * Store a message to display on the login screen after redirect
+   * @param {string} messageKey - Translation key for the message
+   * @param {Object} params - Optional translation parameters
+   */
+  static setLoginRedirectMessage(messageKey, params = {}) {
+    try {
+      if (!messageKey) return false;
+
+      const payload = JSON.stringify({
+        messageKey,
+        params
+      });
+
+      localStorage.setItem(AUTH_KEYS.LOGIN_REDIRECT_MESSAGE, payload);
+      return true;
+    } catch (error) {
+      console.error('Failed to set login redirect message:', error);
+      return false;
+    }
+  }
+
+  /**
+   * Convenience method to store redirect URL and associated message together
+   * @param {string} url - URL to redirect to after login
+   * @param {string} messageKey - Translation key for the message
+   * @param {Object} params - Optional translation parameters
+   */
+  static setRedirectAfterLoginWithMessage(url, messageKey, params = {}) {
+    this.setRedirectAfterLogin(url);
+    this.setLoginRedirectMessage(messageKey, params);
+  }
+
+  /**
+   * Retrieve and clear any stored login redirect message
+   * @returns {{messageKey: string, params: Object}|null}
+   */
+  static getAndClearLoginRedirectMessage() {
+    try {
+      const payload = localStorage.getItem(AUTH_KEYS.LOGIN_REDIRECT_MESSAGE);
+      if (!payload) {
+        return null;
+      }
+
+      localStorage.removeItem(AUTH_KEYS.LOGIN_REDIRECT_MESSAGE);
+
+      try {
+        return JSON.parse(payload);
+      } catch (parseError) {
+        console.warn('Failed to parse login redirect message payload, returning default string', parseError);
+        return {
+          messageKey: payload,
+          params: {}
+        };
+      }
+    } catch (error) {
+      console.error('Failed to get login redirect message:', error);
       return null;
     }
   }
@@ -574,6 +637,9 @@ export const authStorage = {
   updateUserData: AuthStorageManager.updateUserData.bind(AuthStorageManager),
   setRedirectAfterLogin: AuthStorageManager.setRedirectAfterLogin.bind(AuthStorageManager),
   getAndClearRedirectUrl: AuthStorageManager.getAndClearRedirectUrl.bind(AuthStorageManager),
+  setLoginRedirectMessage: AuthStorageManager.setLoginRedirectMessage.bind(AuthStorageManager),
+  getAndClearLoginRedirectMessage: AuthStorageManager.getAndClearLoginRedirectMessage.bind(AuthStorageManager),
+  setRedirectAfterLoginWithMessage: AuthStorageManager.setRedirectAfterLoginWithMessage.bind(AuthStorageManager),
   isAuthenticated: AuthStorageManager.isAuthenticated.bind(AuthStorageManager),
   getAccessToken: AuthStorageManager.getAccessToken.bind(AuthStorageManager),
   getUserData: AuthStorageManager.getUserData.bind(AuthStorageManager),

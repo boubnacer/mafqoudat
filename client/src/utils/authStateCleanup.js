@@ -354,6 +354,7 @@ export const authNavigation = {
       }
 
       if (showMessage) {
+        authStorage.setLoginRedirectMessage('loginRequiredDefault');
       }
 
       window.location.href = '/login';

@@ -6,6 +6,7 @@ import { selectCurrentCountry } from '../app/state';
 import useAuth from '../hooks/useAuth';
 import { Alert, Snackbar } from '@mui/material';
 import { store } from '../app/store';
+import { authStorage } from '../utils/authStorage';
 
 // Debug configuration
 const DEBUG_AUTH = false;
@@ -20,6 +21,32 @@ const debugLog = (message, data = null) => {
       console.log(`🔍 [PROTECTED-ROUTE] ${message} - ${timestamp}`);
     }
   }
+};
+
+const getLoginRedirectMessageKey = (pathname = '') => {
+  if (!pathname) return 'loginRequiredDefault';
+
+  if (pathname.startsWith('/dash/posts/new')) {
+    return 'loginRequiredCreatePost';
+  }
+
+  if (pathname.startsWith('/dash/posts/edit')) {
+    return 'loginRequiredEditPost';
+  }
+
+  if (pathname.startsWith('/dash/profile')) {
+    return 'loginRequiredProfile';
+  }
+
+  if (pathname.startsWith('/dash/myposts')) {
+    return 'loginRequiredMyPosts';
+  }
+
+  if (pathname.startsWith('/dash/admin') || pathname.startsWith('/dash/users') || pathname.startsWith('/dash/dependencies')) {
+    return 'loginRequiredAdmin';
+  }
+
+  return 'loginRequiredDefault';
 };
 
 /**
@@ -119,9 +146,10 @@ const ProtectedRoute = ({
       });
       const redirectUrl = location.pathname + location.search;
       if (redirectUrl !== '/login') {
-        localStorage.setItem('redirectAfterLogin', redirectUrl);
+        const messageKey = getLoginRedirectMessageKey(redirectUrl);
+        authStorage.setRedirectAfterLoginWithMessage(redirectUrl, messageKey);
       }
-      navigate('/login', { replace: true });
+      navigate('/login', { replace: true, state: { from: redirectUrl } });
       return;
     }
 

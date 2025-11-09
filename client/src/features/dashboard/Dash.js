@@ -58,7 +58,7 @@ const Dash = () => {
     if (!user.username) {
       // Store the intended destination for redirect after login
       const intendedDestination = `/dash/posts/new?type=${type}`;
-      authStorage.setRedirectAfterLogin(intendedDestination);
+      authStorage.setRedirectAfterLoginWithMessage(intendedDestination, 'loginRequiredCreatePost');
       
       navigate('/login');
     } else {

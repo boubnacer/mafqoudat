@@ -127,7 +127,7 @@ const SinglePostPage = ({
     if (!usernameId) {
       // Store the current post URL in localStorage for redirect after login
       const currentPostUrl = window.location.pathname;
-      authStorage.setRedirectAfterLogin(currentPostUrl);
+      authStorage.setRedirectAfterLoginWithMessage(currentPostUrl, 'loginRequiredReportPost');
       
       // Redirect to login page
       navigate('/login');
@@ -193,7 +193,7 @@ const SinglePostPage = ({
     if (!isAuthenticated || !usernameId) {
       // Store the current post URL in localStorage for redirect after login
       const currentPostUrl = window.location.pathname;
-      authStorage.setRedirectAfterLogin(currentPostUrl);
+      authStorage.setRedirectAfterLoginWithMessage(currentPostUrl, 'loginRequiredClaimItem');
       
       // Redirect to login page
       navigate('/login');

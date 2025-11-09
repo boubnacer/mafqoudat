@@ -50,7 +50,7 @@ const DashFooter = () => {
     if (!username) {
       // Store the intended destination for redirect after login
       const intendedDestination = "/dash/posts/new";
-      authStorage.setRedirectAfterLogin(intendedDestination);
+      authStorage.setRedirectAfterLoginWithMessage(intendedDestination, 'loginRequiredCreatePost');
       
       navigate('/login');
     } else {
@@ -356,7 +356,7 @@ const DashFooter = () => {
                 if (!token) {
                   // Store the intended destination for redirect after login
                   const intendedDestination = '/dash/posts/new?type=lost';
-                  authStorage.setRedirectAfterLogin(intendedDestination);
+                  authStorage.setRedirectAfterLoginWithMessage(intendedDestination, 'loginRequiredCreatePost');
                   navigate('/login');
                 } else {
                   navigate('/dash/posts/new?type=lost');
@@ -371,7 +371,7 @@ const DashFooter = () => {
                 if (!token) {
                   // Store the intended destination for redirect after login
                   const intendedDestination = '/dash/posts/new?type=found';
-                  authStorage.setRedirectAfterLogin(intendedDestination);
+                  authStorage.setRedirectAfterLoginWithMessage(intendedDestination, 'loginRequiredCreatePost');
                   navigate('/login');
                 } else {
                   navigate('/dash/posts/new?type=found');

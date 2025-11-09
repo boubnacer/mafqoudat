@@ -1,5 +1,5 @@
-import React, { useState, useEffect } from "react";
-import { useNavigate, Link } from "react-router-dom";
+import React, { useState, useEffect, useRef } from "react";
+import { useNavigate, Link, useLocation } from "react-router-dom";
 import { useDispatch } from "react-redux";
 import { setCredentials } from "../authSlice";
 import { useLoginMutation } from "../authApiSlice";
@@ -256,6 +256,7 @@ const LoginComponent = () => {
   useTitle("Mafqoudat | Login");
   
   const navigate = useNavigate();
+  const location = useLocation();
   const dispatch = useDispatch();
   const theme = useTheme() || {};
   const isMobile = useMediaQuery(theme?.breakpoints?.down?.('sm') || '(max-width: 600px)');
@@ -263,6 +264,8 @@ const LoginComponent = () => {
   const { t, currentLanguage } = useTranslation();
   const { currentLanguage: langContext, setLanguage } = useLanguage();
   const isRTLMode = isRTL();
+
+  const hasLoadedRedirectMessage = useRef(false);
 
 
   // State
@@ -275,10 +278,35 @@ const LoginComponent = () => {
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [languageAnchorEl, setLanguageAnchorEl] = useState(null);
   const [resetPasswordDialogOpen, setResetPasswordDialogOpen] = useState(false);
+  const [loginNotice, setLoginNotice] = useState(null);
   
+  const infoAlertMessage = loginNotice
+    ? typeof loginNotice === 'string'
+      ? loginNotice
+      : loginNotice.messageKey
+        ? t(loginNotice.messageKey, loginNotice.params || {})
+        : loginNotice.fallback || ""
+    : "";
+
 
   // API
   const [login, { isLoading }] = useLoginMutation();
+
+  useEffect(() => {
+    if (hasLoadedRedirectMessage.current) return;
+    hasLoadedRedirectMessage.current = true;
+
+    const storedMessage = authStorage.getAndClearLoginRedirectMessage();
+    if (storedMessage) {
+      setLoginNotice(storedMessage);
+    } else if (location?.state?.loginMessageKey || location?.state?.loginMessage) {
+      setLoginNotice({
+        messageKey: location.state.loginMessageKey || null,
+        params: location.state.loginMessageParams || {},
+        fallback: location.state.loginMessage || null
+      });
+    }
+  }, [location]);
 
   // Check if already logged in
   useEffect(() => {
@@ -557,6 +585,21 @@ const LoginComponent = () => {
                 {t('welcomeMessage')}
               </Typography>
             </HeaderSection>
+
+            {/* Redirect Info Alert */}
+            {infoAlertMessage && (
+              <Alert
+                severity="info"
+                sx={{
+                  mb: 3,
+                  borderRadius: 2,
+                  border: `1px solid ${alpha(theme.palette.info.main, 0.2)}`,
+                }}
+                onClose={() => setLoginNotice(null)}
+              >
+                {infoAlertMessage}
+              </Alert>
+            )}
 
             {/* Error Alert */}
             {error && (
