@@ -1,8 +1,23 @@
-const allowedOrigins = require('./allowedOrigins')
+const allowedOrigins = require('./allowedOrigins');
+
+const normalizeOrigin = (origin) => {
+    if (!origin || origin instanceof RegExp) {
+        return origin;
+    }
+
+    try {
+        return new URL(origin).origin.toLowerCase();
+    } catch (error) {
+        // If origin isn't a valid URL, fall back to trimmed lower-case string
+        return origin.toLowerCase();
+    }
+};
 
 const corsOptions = {
     origin: (origin, callback) => {
-        console.log('CORS: Checking origin:', origin);
+        const normalizedOrigin = normalizeOrigin(origin);
+
+        console.log('CORS: Checking origin:', normalizedOrigin || origin);
         console.log('CORS: Allowed origins:', allowedOrigins);
         
         // Allow requests with no origin (mobile apps, curl, etc.)
@@ -14,8 +29,8 @@ const corsOptions = {
         // Check if origin is in allowed list (support both strings and regex)
         const isAllowed = allowedOrigins.some(allowedOrigin => {
             if (typeof allowedOrigin === 'string') {
-                return allowedOrigin === origin;
-            } else if (allowedOrigin instanceof RegExp) {
+                return allowedOrigin === normalizedOrigin;
+            } else if (allowedOrigin instanceof RegExp && typeof origin === 'string') {
                 return allowedOrigin.test(origin);
             }
             return false;
