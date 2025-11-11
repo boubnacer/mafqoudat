@@ -39,6 +39,11 @@ const visitorSchema = new mongoose.Schema({
     type: Date,
     default: Date.now,
     index: true
+  },
+  lastSeenAt: {
+    type: Date,
+    default: Date.now,
+    index: true
   }
 }, {
   timestamps: true
@@ -116,7 +121,10 @@ visitorSchema.statics.cleanupOldData = async function() {
   cutoffDate.setDate(cutoffDate.getDate() - 90);
   
   const result = await this.deleteMany({
-    visitedAt: { $lt: cutoffDate }
+    $and: [
+      { visitedAt: { $lt: cutoffDate } },
+      { lastSeenAt: { $lt: cutoffDate } }
+    ]
   });
   
   return result.deletedCount;

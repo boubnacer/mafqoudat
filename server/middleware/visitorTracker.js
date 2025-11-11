@@ -1,18 +1,33 @@
 const Visitor = require('../models/Visitor');
 const { v4: uuidv4 } = require('uuid');
 
+const SESSION_TIMEOUT_MINUTES = parseInt(process.env.VISITOR_SESSION_TIMEOUT || '30', 10);
+const SESSION_COOKIE_MAX_AGE = SESSION_TIMEOUT_MINUTES * 60 * 1000;
+
 /**
  * Visitor tracking middleware
- * Tracks unique visitors and page views
+ * Tracks a unique visit per browsing session.
+ *
+ * A session is considered active while the visitor keeps interacting with the site.
+ * Once the session is inactive for SESSION_TIMEOUT_MINUTES, a new visit will be counted.
  */
 const visitorTracker = async (req, res, next) => {
   try {
-    console.log('🔍 Visitor Tracker: Processing request to', req.path, 'Method:', req.method, 'Headers:', req.headers.host);
-    console.log('🔍 Visitor Tracker: User-Agent:', req.get('User-Agent'));
-    console.log('🔍 Visitor Tracker: Referer:', req.get('Referer'));
-    
-    // Skip tracking for API routes and system endpoints
-    const skipPaths = [
+    // Skip non-GET requests
+    if (req.method !== 'GET') {
+      return next();
+    }
+
+    const acceptHeader = req.get('Accept') || '';
+    const isHtmlRequest = acceptHeader.includes('text/html') || acceptHeader.includes('*/*');
+
+    // Only track page requests that are expected to render HTML
+    if (!isHtmlRequest) {
+      return next();
+    }
+
+    // Skip tracking for API routes, system endpoints, and static assets
+    const skipPrefixes = [
       '/api/',
       '/admin/',
       '/system-settings',
@@ -28,118 +43,80 @@ const visitorTracker = async (req, res, next) => {
       '/_redirects'
     ];
 
-    // Skip if it's an API route or system endpoint
-    if (skipPaths.some(path => req.path.startsWith(path))) {
-      console.log('⏭️ Visitor Tracker: Skipping API/system route:', req.path);
+    if (skipPrefixes.some((path) => req.path.startsWith(path))) {
       return next();
     }
 
-    // Skip tracking for static assets
-    if (req.path.match(/\.(js|css|png|jpg|jpeg|gif|ico|svg|woff|woff2|ttf|eot)$/)) {
-      console.log('⏭️ Visitor Tracker: Skipping static asset:', req.path);
+    if (req.path.match(/\.(js|css|png|jpg|jpeg|gif|ico|svg|woff|woff2|ttf|eot|map)$/)) {
       return next();
     }
 
-    // Only track the root path and main entry points
-    // This will track when someone first visits the site
-    const isMainPageVisit = req.path === '/' || 
-                           req.path === '/dash' || 
-                           req.path === '/login' ||
-                           req.path === '/register' ||
-                           req.path === '/blog' ||
-                           req.path === '/help';
+    const now = new Date();
+    const sessionTimeoutThreshold = new Date(now.getTime() - SESSION_COOKIE_MAX_AGE);
 
-    console.log('🔍 Visitor Tracker: isMainPageVisit:', isMainPageVisit, 'for path:', req.path);
-    console.log('🔍 Visitor Tracker: Full URL:', req.protocol + '://' + req.get('host') + req.originalUrl);
-
-    if (!isMainPageVisit) {
-      console.log('⏭️ Visitor Tracker: Not a main page visit, skipping:', req.path);
-      return next();
-    }
-
-    console.log('🔍 Visitor Tracker: Tracking main page visit:', req.path);
-
-    const ip = req.ip || req.connection.remoteAddress || req.socket.remoteAddress || 'unknown';
+    const ip =
+      req.headers['x-forwarded-for']?.split(',')[0]?.trim() ||
+      req.ip ||
+      req.connection?.remoteAddress ||
+      req.socket?.remoteAddress ||
+      'unknown';
     const userAgent = req.get('User-Agent') || 'unknown';
-    const country = req.headers['cf-ipcountry'] || 'Unknown';
-    const city = req.headers['cf-ipcity'] || 'Unknown';
-    
-    // Generate or get session ID from cookies
+    const country = req.headers['cf-ipcountry'] || req.headers['x-vercel-ip-country'] || 'Unknown';
+    const city = req.headers['cf-ipcity'] || req.headers['x-vercel-ip-city'] || 'Unknown';
+    const referer = req.get('Referer') || 'Direct';
+    const visitedPath = req.path || '/';
+
     let sessionId = req.cookies?.visitorSession;
-    console.log('🔍 Visitor Tracker: Existing cookies:', req.cookies);
-    console.log('🔍 Visitor Tracker: Session ID from cookies:', sessionId);
-    
-    if (!sessionId) {
-      sessionId = uuidv4();
-      // Set cookie for 24 hours
-      res.cookie('visitorSession', sessionId, { 
-        maxAge: 24 * 60 * 60 * 1000, // 24 hours
-        httpOnly: true,
-        secure: process.env.NODE_ENV === 'production',
-        sameSite: 'lax'
-      });
-      console.log('🔍 Visitor Tracker: Created new session:', sessionId.substring(0, 8) + '...');
-    } else {
-      console.log('🔍 Visitor Tracker: Using existing session:', sessionId.substring(0, 8) + '...');
+    let activeVisit = null;
+
+    if (sessionId) {
+      activeVisit = await Visitor.findOne({
+        sessionId,
+        lastSeenAt: { $gte: sessionTimeoutThreshold },
+      }).select('_id');
     }
 
-    // Check if this session has already been counted today
-    const today = new Date();
-    today.setHours(0, 0, 0, 0);
-    
-    console.log('🔍 Visitor Tracker: Checking existing visit for session:', sessionId.substring(0, 8) + '...');
-    console.log('🔍 Visitor Tracker: Today date:', today.toISOString());
-    
-    const existingVisit = await Visitor.findOne({
-      sessionId,
-      visitedAt: { $gte: today }
+    if (activeVisit) {
+      // Extend the current session activity window
+      await Visitor.updateOne(
+        { _id: activeVisit._id },
+        { $set: { lastSeenAt: now } },
+        { timestamps: false }
+      );
+      return next();
+    }
+
+    // Start a brand-new session
+    sessionId = uuidv4();
+
+    res.cookie('visitorSession', sessionId, {
+      maxAge: SESSION_COOKIE_MAX_AGE,
+      httpOnly: true,
+      secure: process.env.NODE_ENV === 'production',
+      sameSite: 'lax',
     });
 
-    console.log('🔍 Visitor Tracker: Existing visit found:', !!existingVisit);
-    if (existingVisit) {
-      console.log('🔍 Visitor Tracker: Existing visit details:', {
-        path: existingVisit.path,
-        visitedAt: existingVisit.visitedAt,
-        country: existingVisit.country
-      });
-    }
+    const visitorData = {
+      ip,
+      userAgent,
+      country,
+      city,
+      referer,
+      path: visitedPath,
+      sessionId,
+      isUnique: true,
+      visitedAt: now,
+      lastSeenAt: now,
+    };
 
-    // Only track if this is a new session today
-    if (!existingVisit) {
-      console.log('🔍 Visitor Tracker: New visit today, creating visitor record');
-      
-      const visitorData = {
-        ip,
-        userAgent,
-        country,
-        city,
-        referer: req.get('Referer') || 'Direct',
-        path: '/', // Always record as main site visit
-        sessionId,
-        isUnique: true
-      };
-
-      console.log('🔍 Visitor Tracker: Visitor data:', { 
-        country: visitorData.country, 
-        path: visitorData.path,
-        sessionId: visitorData.sessionId.substring(0, 8) + '...',
-        ip: visitorData.ip
-      });
-
-      // Save visitor data asynchronously (don't wait for it)
-      Visitor.create(visitorData).then(() => {
-        console.log('✅ Visitor Tracker: Successfully saved visitor data');
-      }).catch(err => {
-        console.error('❌ Visitor Tracker: Error saving visitor data:', err);
-      });
-    } else {
-      console.log('🔍 Visitor Tracker: Session already counted today, skipping');
-    }
+    Visitor.create(visitorData).catch((err) => {
+      console.error('❌ Visitor Tracker: Error saving visitor data:', err);
+    });
   } catch (error) {
     // Don't let visitor tracking errors affect the main request
     console.error('❌ Visitor Tracker: Error in visitor tracking:', error);
   }
-  
+
   next();
 };
 
