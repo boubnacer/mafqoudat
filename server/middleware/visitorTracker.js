@@ -19,10 +19,19 @@ const visitorTracker = async (req, res, next) => {
     }
 
     const acceptHeader = req.get('Accept') || '';
-    const isHtmlRequest = acceptHeader.includes('text/html') || acceptHeader.includes('*/*');
+    const secFetchDest = req.get('Sec-Fetch-Dest') || '';
+    const secFetchMode = req.get('Sec-Fetch-Mode') || '';
+    const xRequestedWith = req.get('X-Requested-With') || '';
 
-    // Only track page requests that are expected to render HTML
-    if (!isHtmlRequest) {
+    const isDocumentNavigation =
+      acceptHeader.includes('text/html') ||
+      secFetchDest === 'document' ||
+      secFetchMode === 'navigate';
+
+    const isAjaxLikeRequest = xRequestedWith.toLowerCase() === 'xmlhttprequest';
+
+    // Only track top-level navigations (skip API/fetch requests)
+    if (!isDocumentNavigation || isAjaxLikeRequest) {
       return next();
     }
 
