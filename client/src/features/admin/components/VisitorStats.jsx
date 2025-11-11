@@ -1,4 +1,4 @@
-import React, { useMemo, useState } from 'react';
+import React, { useState } from 'react';
 import {
   Box,
   Card,
@@ -97,22 +97,18 @@ const VisitorStats = () => {
 
   const { statistics, trends, topPages, visitorCountries } = visitorData.data;
 
-  const trendsWithChanges = useMemo(() => {
-    if (!Array.isArray(trends)) {
-      return [];
-    }
+  const trendsWithChanges = Array.isArray(trends)
+    ? trends.map((trend, index) => {
+        const previous = index > 0 ? trends[index - 1] : null;
+        const change = previous ? trend.count - previous.count : null;
 
-    return trends.map((trend, index) => {
-      const previous = index > 0 ? trends[index - 1] : null;
-      const change = previous ? trend.count - previous.count : null;
-
-      return {
-        ...trend,
-        change,
-        previousCount: previous?.count ?? null
-      };
-    });
-  }, [trends]);
+        return {
+          ...trend,
+          change,
+          previousCount: previous?.count ?? null
+        };
+      })
+    : [];
 
   return (
     <Box>

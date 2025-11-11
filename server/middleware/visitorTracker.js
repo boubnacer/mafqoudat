@@ -83,6 +83,14 @@ const visitorTracker = async (req, res, next) => {
         { $set: { lastSeenAt: now } },
         { timestamps: false }
       );
+
+      res.cookie('visitorSession', sessionId, {
+        maxAge: SESSION_COOKIE_MAX_AGE,
+        httpOnly: true,
+        secure: process.env.NODE_ENV === 'production',
+        sameSite: 'lax',
+      });
+
       return next();
     }
 
@@ -109,9 +117,7 @@ const visitorTracker = async (req, res, next) => {
       lastSeenAt: now,
     };
 
-    Visitor.create(visitorData).catch((err) => {
-      console.error('❌ Visitor Tracker: Error saving visitor data:', err);
-    });
+    await Visitor.create(visitorData);
   } catch (error) {
     // Don't let visitor tracking errors affect the main request
     console.error('❌ Visitor Tracker: Error in visitor tracking:', error);
