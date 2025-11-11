@@ -1,8 +1,8 @@
 const Visitor = require('../models/Visitor');
 const { v4: uuidv4 } = require('uuid');
 
-const SESSION_TIMEOUT_MINUTES = parseInt(process.env.VISITOR_SESSION_TIMEOUT || '30', 10);
-const SESSION_COOKIE_MAX_AGE = SESSION_TIMEOUT_MINUTES * 60 * 1000;
+const COOKIE_LIFETIME_DAYS = parseInt(process.env.VISITOR_COOKIE_LIFETIME_DAYS || '30', 10);
+const COOKIE_MAX_AGE = COOKIE_LIFETIME_DAYS * 24 * 60 * 60 * 1000;
 
 /**
  * Visitor tracking middleware
@@ -60,9 +60,6 @@ const visitorTracker = async (req, res, next) => {
       return next();
     }
 
-    const now = new Date();
-    const sessionTimeoutThreshold = new Date(now.getTime() - SESSION_COOKIE_MAX_AGE);
-
     const ip =
       req.headers['x-forwarded-for']?.split(',')[0]?.trim() ||
       req.ip ||
@@ -76,42 +73,20 @@ const visitorTracker = async (req, res, next) => {
     const visitedPath = req.path || '/';
 
     let sessionId = req.cookies?.visitorSession;
-    let activeVisit = null;
+    const isFirstVisit = !sessionId;
 
-    if (sessionId) {
-      activeVisit = await Visitor.findOne({
-        sessionId,
-        lastSeenAt: { $gte: sessionTimeoutThreshold },
-      }).select('_id');
+    if (!sessionId) {
+      sessionId = uuidv4();
     }
-
-    if (activeVisit) {
-      // Extend the current session activity window
-      await Visitor.updateOne(
-        { _id: activeVisit._id },
-        { $set: { lastSeenAt: now } },
-        { timestamps: false }
-      );
-
-      res.cookie('visitorSession', sessionId, {
-        maxAge: SESSION_COOKIE_MAX_AGE,
-        httpOnly: true,
-        secure: process.env.NODE_ENV === 'production',
-        sameSite: 'lax',
-      });
-
-      return next();
-    }
-
-    // Start a brand-new session
-    sessionId = uuidv4();
 
     res.cookie('visitorSession', sessionId, {
-      maxAge: SESSION_COOKIE_MAX_AGE,
+      maxAge: COOKIE_MAX_AGE,
       httpOnly: true,
       secure: process.env.NODE_ENV === 'production',
       sameSite: 'lax',
     });
+
+    const now = new Date();
 
     const visitorData = {
       ip,
@@ -121,7 +96,7 @@ const visitorTracker = async (req, res, next) => {
       referer,
       path: visitedPath,
       sessionId,
-      isUnique: true,
+      isUnique: isFirstVisit,
       visitedAt: now,
       lastSeenAt: now,
     };
