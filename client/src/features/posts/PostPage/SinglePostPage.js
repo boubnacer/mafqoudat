@@ -276,24 +276,42 @@ const SinglePostPage = ({
     return categoryname || t('unknownCategory');
   }, [Category, categoryname, currentLanguage, t]);
 
-  // Memoized city name computation
+  // Extract city from location (show only city) - helper function
+  const getCityFromLocation = useCallback((location) => {
+    if (!location) return t('unknownLocation');
+    // Split by comma and take the first part (usually the city)
+    const parts = location.split(',');
+    const city = parts[0].trim();
+    // Remove any extra location details that might be in parentheses
+    const cleanCity = city.split('(')[0].trim();
+    // Remove any numbers or extra details
+    return cleanCity.replace(/\d+/g, '').trim();
+  }, [t]);
+
+  // Memoized city name computation - standardized with RecentPosts approach
   const displayCityName = useMemo(() => {
     // Get city name with proper multilingual support
-    // First priority: Use the populated city data from the API
-    if (cityLabels && cityLabels[currentLanguage]) {
-      return cityLabels[currentLanguage];
+    // First priority: Use the populated city labels from the API (multilingual)
+    if (cityLabels && typeof cityLabels === 'object') {
+      const cityLabel = cityLabels[currentLanguage] || cityLabels.en;
+      if (cityLabel && cityLabel.trim()) {
+        return cityLabel.trim();
+      }
     }
-    // Second priority: Use the English city name as fallback
-    if (cityName) {
-      return cityName;
+    
+    // Second priority: Use the cityName field from API
+    if (cityName && typeof cityName === 'string' && cityName.trim()) {
+      return cityName.trim();
     }
-    // Third priority: Use the city field directly (for custom city names like API cities)
+    
+    // Third priority: Use the city field directly (for custom city names)
     if (city && typeof city === 'string' && city.trim()) {
       return city.trim();
     }
-    // Last fallback: "Unknown City"
-    return t('unknownCity') || 'Unknown City';
-  }, [cityLabels, cityName, city, currentLanguage, t]);
+    
+    // Last fallback: extracting from exactLocation
+    return getCityFromLocation(exactLocation);
+  }, [cityLabels, cityName, city, currentLanguage, exactLocation, getCityFromLocation]);
 
   // Memoized found/lost status computation
   const foundLostStatus = useMemo(() => {

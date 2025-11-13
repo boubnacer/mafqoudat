@@ -12,7 +12,7 @@ import {
   alpha,
 } from "@mui/material";
 import { AccessTime as TimeIcon } from "@mui/icons-material";
-import { useMemo, useEffect } from "react";
+import { useMemo, useEffect, useCallback } from "react";
 import { formatDistanceToNow } from 'date-fns';
 import { ar, fr, enUS } from 'date-fns/locale';
 import FlexBetween from "../FlexBetween";
@@ -38,7 +38,7 @@ const TrendingItem = ({ trend, isLoading }) => {
   // console.log('TrendingItem - trendData:', trendData);
   // console.log('TrendingItem - trendData keys:', trendData ? Object.keys(trendData) : 'no trendData');
   
-  const { _id, categoryname, floptionName, image, createdAt, mainDate, countryLabels, countryname, city, cityLabels, cityName, Floptions, Category } = trendData || {};
+  const { _id, categoryname, floptionName, image, createdAt, mainDate, countryLabels, countryname, city, cityLabels, cityName, Floptions, Category, exactLocation } = trendData || {};
   const theme = useTheme();
   const isMobile = useMediaQuery(theme.breakpoints.down('sm'));
   const isTablet = useMediaQuery(theme.breakpoints.down('md'));
@@ -93,25 +93,44 @@ const TrendingItem = ({ trend, isLoading }) => {
     }
   }, [createdAt, currentLanguage, t]);
 
-  // Get city name with proper priority
-  const getCityName = () => {
-    // First priority: Use the populated city data from the API
-    if (cityLabels && cityLabels[currentLanguage]) {
-      return cityLabels[currentLanguage];
+  // Extract city from location (show only city) - helper function
+  const getCityFromLocation = useCallback((location) => {
+    if (!location) return t('unknownLocation');
+    // Split by comma and take the first part (usually the city)
+    const parts = location.split(',');
+    const city = parts[0].trim();
+    // Remove any extra location details that might be in parentheses
+    const cleanCity = city.split('(')[0].trim();
+    // Remove any numbers or extra details
+    return cleanCity.replace(/\d+/g, '').trim();
+  }, [t]);
+
+  // Get city name with proper priority - standardized with RecentPosts approach
+  const displayCityName = useMemo(() => {
+    // First priority: Use the populated city labels from the API (multilingual)
+    if (cityLabels && typeof cityLabels === 'object') {
+      const cityLabel = cityLabels[currentLanguage] || cityLabels.en;
+      if (cityLabel && cityLabel.trim()) {
+        return cityLabel.trim();
+      }
     }
-    // Second priority: Use the English city name as fallback
-    if (cityName) {
-      return cityName;
+    
+    // Second priority: Use the cityName field from API
+    if (cityName && typeof cityName === 'string' && cityName.trim()) {
+      return cityName.trim();
     }
+    
     // Third priority: Use the city field directly (for custom city names)
     if (city && typeof city === 'string' && city.trim()) {
       return city.trim();
     }
-    // Last fallback: "Unknown City"
+    
+    // Last fallback: extracting from exactLocation (if available)
+    if (exactLocation) {
+      return getCityFromLocation(exactLocation);
+    }
     return t('unknownCity') || 'Unknown City';
-  };
-
-  const displayCityName = getCityName();
+  }, [cityLabels, cityName, city, currentLanguage, exactLocation, getCityFromLocation, t]);
 
   // Get category name safely with multilingual support (same as PostsList)
   const categoryDisplayName = useMemo(() => {
