@@ -41,6 +41,7 @@ const DashFooter = () => {
   const theme = useTheme();
   const { t, currentLanguage } = useTranslation();
   const isMobile = useMediaQuery(theme.breakpoints.down('sm'));
+  const isLargeScreen = useMediaQuery('(min-width: 1920px)');
   const isRTLMode = isRTL();
   
   // Resolve country ID to country name
@@ -274,12 +275,12 @@ const DashFooter = () => {
         backgroundColor: theme.palette.mode === 'dark' 
           ? 'rgba(0, 0, 0, 0.2)' 
           : 'rgba(0, 0, 0, 0.05)',
-        padding: "4rem 2rem 1rem",
+        padding: { xs: "4rem 2rem 1rem", '@media (min-width: 1920px)': "5rem 3rem 2rem" },
         position: "relative",
         borderTop: `1px solid ${theme.palette.divider}`,
       }}
     >
-      <Grid container spacing={4} sx={{ maxWidth: { xs: '100%', sm: '600px', md: '900px', lg: '1200px', xl: '1536px', xxl: '1800px' }, margin: '0 auto', px: { xs: 2, sm: 3 } }}>
+      <Grid container spacing={{ xs: 4, '@media (min-width: 1920px)': 6 }} sx={{ maxWidth: { xs: '100%', sm: '600px', md: '900px', lg: '1200px', xl: '1536px', xxl: '1800px' }, margin: '0 auto', px: { xs: 2, sm: 3, '@media (min-width: 1920px)': 4 } }}>
         {/* Company Info */}
         <Grid item xs={12} md={4}>
           <Typography 
@@ -288,6 +289,7 @@ const DashFooter = () => {
               mb: 2,
               fontWeight: 'bold',
               fontSize: { xs: '20px', sm: '18px' },
+              '@media (min-width: 1920px)': { fontSize: '24px' },
               background: 'linear-gradient(45deg, #2196F3 30%, #21CBF3 90%)',
               WebkitBackgroundClip: 'text',
               WebkitTextFillColor: 'transparent',
@@ -295,7 +297,7 @@ const DashFooter = () => {
           >
             Mafqoudat
           </Typography>
-          <Typography variant="body2" color="text.secondary" sx={{ mb: 2, fontSize: { xs: '16px', sm: '14px' } }}>
+          <Typography variant="body2" color="text.secondary" sx={{ mb: 2, fontSize: { xs: '16px', sm: '14px' }, '@media (min-width: 1920px)': { fontSize: '18px' } }}>
             {t('footerDescription')}
           </Typography>
           <Box sx={{ display: 'flex', gap: 1 }}>
@@ -305,6 +307,10 @@ const DashFooter = () => {
               target="_blank"
               sx={{ 
                 color: '#1877F2',
+                fontSize: { xs: '24px', '@media (min-width: 1920px)': '32px' },
+                '& .MuiSvgIcon-root': {
+                  fontSize: { xs: '24px', '@media (min-width: 1920px)': '32px' }
+                },
                 '&:hover': { 
                   backgroundColor: 'rgba(24, 119, 242, 0.1)',
                   color: '#1877F2' 
@@ -319,6 +325,10 @@ const DashFooter = () => {
               target="_blank"
               sx={{ 
                 color: '#E4405F',
+                fontSize: { xs: '24px', '@media (min-width: 1920px)': '32px' },
+                '& .MuiSvgIcon-root': {
+                  fontSize: { xs: '24px', '@media (min-width: 1920px)': '32px' }
+                },
                 '&:hover': { 
                   backgroundColor: 'rgba(228, 64, 95, 0.1)',
                   color: '#E4405F' 
@@ -333,6 +343,10 @@ const DashFooter = () => {
               target="_blank"
               sx={{ 
                 color: '#25D366',
+                fontSize: { xs: '24px', '@media (min-width: 1920px)': '32px' },
+                '& .MuiSvgIcon-root': {
+                  fontSize: { xs: '24px', '@media (min-width: 1920px)': '32px' }
+                },
                 '&:hover': { 
                   backgroundColor: 'rgba(37, 211, 102, 0.1)',
                   color: '#25D366' 
@@ -346,7 +360,7 @@ const DashFooter = () => {
 
         {/* Quick Links */}
         <Grid item xs={12} md={4}>
-          <Typography variant="h6" sx={{ mb: 2, fontWeight: 'bold', fontSize: { xs: '18px', sm: '16px' } }}>
+          <Typography variant="h6" sx={{ mb: 2, fontWeight: 'bold', fontSize: { xs: '18px', sm: '16px' }, '@media (min-width: 1920px)': { fontSize: '22px' } }}>
             {t('quickLinks')}
           </Typography>
           <List dense>
@@ -363,7 +377,7 @@ const DashFooter = () => {
                 }
               }}
             >
-              <ListItemText primary={t('reportLostItem')} sx={{ '& .MuiListItemText-primary': { fontSize: { xs: '16px', sm: '14px' } } }} />
+              <ListItemText primary={t('reportLostItem')} sx={{ '& .MuiListItemText-primary': { fontSize: { xs: '16px', sm: '14px' }, '@media (min-width: 1920px)': { fontSize: '18px' } } }} />
             </ListItem>
             <ListItem 
               button 
@@ -378,71 +392,71 @@ const DashFooter = () => {
                 }
               }}
             >
-              <ListItemText primary={t('reportFoundItem')} sx={{ '& .MuiListItemText-primary': { fontSize: { xs: '16px', sm: '14px' } } }} />
+              <ListItemText primary={t('reportFoundItem')} sx={{ '& .MuiListItemText-primary': { fontSize: { xs: '16px', sm: '14px' }, '@media (min-width: 1920px)': { fontSize: '18px' } } }} />
             </ListItem>
             <ListItem button onClick={() => navigate('/dash/posts')}>
-              <ListItemText primary={t('searchItems')} sx={{ '& .MuiListItemText-primary': { fontSize: { xs: '16px', sm: '14px' } } }} />
+              <ListItemText primary={t('searchItems')} sx={{ '& .MuiListItemText-primary': { fontSize: { xs: '16px', sm: '14px' }, '@media (min-width: 1920px)': { fontSize: '18px' } } }} />
             </ListItem>
             <ListItem button onClick={scrollToHelpSection}>
-              <ListItemText primary={t('getHelp')} sx={{ '& .MuiListItemText-primary': { fontSize: { xs: '16px', sm: '14px' } } }} />
+              <ListItemText primary={t('getHelp')} sx={{ '& .MuiListItemText-primary': { fontSize: { xs: '16px', sm: '14px' }, '@media (min-width: 1920px)': { fontSize: '18px' } } }} />
             </ListItem>
             <ListItem button onClick={() => navigate('/about')}>
-              <ListItemText primary={t('aboutUs')} sx={{ '& .MuiListItemText-primary': { fontSize: { xs: '16px', sm: '14px' } } }} />
+              <ListItemText primary={t('aboutUs')} sx={{ '& .MuiListItemText-primary': { fontSize: { xs: '16px', sm: '14px' }, '@media (min-width: 1920px)': { fontSize: '18px' } } }} />
             </ListItem>
             <ListItem button onClick={() => navigate('/blog')}>
-              <ListItemText primary={t('blog')} sx={{ '& .MuiListItemText-primary': { fontSize: { xs: '16px', sm: '14px' } } }} />
+              <ListItemText primary={t('blog')} sx={{ '& .MuiListItemText-primary': { fontSize: { xs: '16px', sm: '14px' }, '@media (min-width: 1920px)': { fontSize: '18px' } } }} />
             </ListItem>
             <ListItem button onClick={() => navigate('/help')}>
-              <ListItemText primary={t('helpCenter')} sx={{ '& .MuiListItemText-primary': { fontSize: { xs: '16px', sm: '14px' } } }} />
+              <ListItemText primary={t('helpCenter')} sx={{ '& .MuiListItemText-primary': { fontSize: { xs: '16px', sm: '14px' }, '@media (min-width: 1920px)': { fontSize: '18px' } } }} />
             </ListItem>
             <ListItem button onClick={() => navigate('/contact')}>
-              <ListItemText primary={t('contactUs')} sx={{ '& .MuiListItemText-primary': { fontSize: { xs: '16px', sm: '14px' } } }} />
+              <ListItemText primary={t('contactUs')} sx={{ '& .MuiListItemText-primary': { fontSize: { xs: '16px', sm: '14px' }, '@media (min-width: 1920px)': { fontSize: '18px' } } }} />
             </ListItem>
           </List>
         </Grid>
 
         {/* Contact Info */}
         <Grid item xs={12} md={4}>
-          <Typography variant="h6" sx={{ mb: 2, fontWeight: 'bold', fontSize: { xs: '18px', sm: '16px' } }}>
+          <Typography variant="h6" sx={{ mb: 2, fontWeight: 'bold', fontSize: { xs: '18px', sm: '16px' }, '@media (min-width: 1920px)': { fontSize: '22px' } }}>
             {t('contactUs')}
           </Typography>
           <List dense>
             <ListItem>
               <ListItemIcon>
-                <Email sx={{ color: '#EA4335' }} />
+                <Email sx={{ color: '#EA4335', fontSize: { xs: '24px', '@media (min-width: 1920px)': '32px' } }} />
               </ListItemIcon>
               <ListItemText 
                 primary="team.mafqoudat@gmail.com"
                 secondary={t('emailUsForSupport')}
                 sx={{ 
-                  '& .MuiListItemText-primary': { fontSize: { xs: '16px', sm: '14px' } },
-                  '& .MuiListItemText-secondary': { fontSize: { xs: '14px', sm: '12px' } }
+                  '& .MuiListItemText-primary': { fontSize: { xs: '16px', sm: '14px' }, '@media (min-width: 1920px)': { fontSize: '18px' } },
+                  '& .MuiListItemText-secondary': { fontSize: { xs: '14px', sm: '12px' }, '@media (min-width: 1920px)': { fontSize: '16px' } }
                 }}
               />
             </ListItem>
             <ListItem>
               <ListItemIcon>
-                <Phone sx={{ color: '#34A853' }} />
+                <Phone sx={{ color: '#34A853', fontSize: { xs: '24px', '@media (min-width: 1920px)': '32px' } }} />
               </ListItemIcon>
               <ListItemText 
                 primary={<span className="phone-number">+212 711 621 132</span>}
                 secondary={t('callUsForAssistance')}
                 sx={{ 
-                  '& .MuiListItemText-primary': { fontSize: { xs: '16px', sm: '14px' } },
-                  '& .MuiListItemText-secondary': { fontSize: { xs: '14px', sm: '12px' } }
+                  '& .MuiListItemText-primary': { fontSize: { xs: '16px', sm: '14px' }, '@media (min-width: 1920px)': { fontSize: '18px' } },
+                  '& .MuiListItemText-secondary': { fontSize: { xs: '14px', sm: '12px' }, '@media (min-width: 1920px)': { fontSize: '16px' } }
                 }}
               />
             </ListItem>
             <ListItem>
               <ListItemIcon>
-                <LocationOn sx={{ color: '#4285F4' }} />
+                <LocationOn sx={{ color: '#4285F4', fontSize: { xs: '24px', '@media (min-width: 1920px)': '32px' } }} />
               </ListItemIcon>
               <ListItemText 
                 primary={isCountryLoading ? t('loadingCountries') : (countryName || t('yourLocation'))}
                 secondary={t('currentRegion')}
                 sx={{ 
-                  '& .MuiListItemText-primary': { fontSize: { xs: '16px', sm: '14px' } },
-                  '& .MuiListItemText-secondary': { fontSize: { xs: '14px', sm: '12px' } }
+                  '& .MuiListItemText-primary': { fontSize: { xs: '16px', sm: '14px' }, '@media (min-width: 1920px)': { fontSize: '18px' } },
+                  '& .MuiListItemText-secondary': { fontSize: { xs: '14px', sm: '12px' }, '@media (min-width: 1920px)': { fontSize: '16px' } }
                 }}
               />
             </ListItem>
@@ -450,12 +464,12 @@ const DashFooter = () => {
         </Grid>
       </Grid>
 
-      <Divider sx={{ my: 3 }} />
+      <Divider sx={{ my: { xs: 3, '@media (min-width: 1920px)': 4 } }} />
 
       {/* Bottom Section */}
-      <Grid container spacing={2} sx={{ maxWidth: { xs: '100%', sm: '600px', md: '900px', lg: '1200px', xl: '1536px', xxl: '1800px' }, margin: '0 auto', px: { xs: 2, sm: 3 } }}>
+      <Grid container spacing={{ xs: 2, '@media (min-width: 1920px)': 3 }} sx={{ maxWidth: { xs: '100%', sm: '600px', md: '900px', lg: '1200px', xl: '1536px', xxl: '1800px' }, margin: '0 auto', px: { xs: 2, sm: 3, '@media (min-width: 1920px)': 4 } }}>
         <Grid item xs={12} md={6}>
-          <Typography variant="body2" color="text.secondary" sx={{ fontSize: { xs: '16px', sm: '14px' } }}>
+          <Typography variant="body2" color="text.secondary" sx={{ fontSize: { xs: '16px', sm: '14px' }, '@media (min-width: 1920px)': { fontSize: '18px' } }}>
             © {new Date().getFullYear()} Mafqoudat. {t('allRightsReserved')}.
           </Typography>
         </Grid>
@@ -471,7 +485,7 @@ const DashFooter = () => {
               onClick={() => navigate('/privacy')} 
               color="text.secondary" 
               underline="hover"
-              sx={{ background: 'none', border: 'none', cursor: 'pointer', fontSize: { xs: '16px', sm: '14px' } }}
+              sx={{ background: 'none', border: 'none', cursor: 'pointer', fontSize: { xs: '16px', sm: '14px' }, '@media (min-width: 1920px)': { fontSize: '18px' } }}
             >
               {t('privacyPolicy')}
             </Link>
@@ -480,7 +494,7 @@ const DashFooter = () => {
               onClick={() => navigate('/terms')} 
               color="text.secondary" 
               underline="hover"
-              sx={{ background: 'none', border: 'none', cursor: 'pointer', fontSize: { xs: '16px', sm: '14px' } }}
+              sx={{ background: 'none', border: 'none', cursor: 'pointer', fontSize: { xs: '16px', sm: '14px' }, '@media (min-width: 1920px)': { fontSize: '18px' } }}
             >
               {t('termsOfUse')}
             </Link>
@@ -489,7 +503,7 @@ const DashFooter = () => {
               onClick={() => navigate('/cookies')} 
               color="text.secondary" 
               underline="hover"
-              sx={{ background: 'none', border: 'none', cursor: 'pointer', fontSize: { xs: '16px', sm: '14px' } }}
+              sx={{ background: 'none', border: 'none', cursor: 'pointer', fontSize: { xs: '16px', sm: '14px' }, '@media (min-width: 1920px)': { fontSize: '18px' } }}
             >
               {t('cookieNotice')}
             </Link>
