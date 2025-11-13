@@ -5,6 +5,7 @@ import { RecentItemsSkeleton, DashboardEmptyStates } from "../LoadingStates";
 
 const Recent = ({ recent, isLoading, emptyState = "NoRecentFounds", maxItems, sx }) => {
   const isMobile = useMediaQuery("(max-width:600px)");
+  const isLargeScreen = useMediaQuery("(min-width:1920px)");
   
   if (isLoading) return <RecentItemsSkeleton />;
   if (!recent || recent.length === 0) {
@@ -15,8 +16,14 @@ const Recent = ({ recent, isLoading, emptyState = "NoRecentFounds", maxItems, sx
   // Handle responsive maxItems
   let itemsLimit;
   if (typeof maxItems === 'object' && maxItems !== null) {
-    // Responsive object like { xs: 2, sm: 4 }
-    itemsLimit = isMobile ? maxItems.xs : maxItems.sm;
+    // Responsive object like { xs: 2, sm: 4, xxl: 5 }
+    if (isLargeScreen && maxItems.xxl !== undefined) {
+      itemsLimit = maxItems.xxl;
+    } else if (isMobile) {
+      itemsLimit = maxItems.xs || maxItems.sm;
+    } else {
+      itemsLimit = maxItems.sm || maxItems.md || maxItems.lg || maxItems.xl;
+    }
   } else {
     // Single number
     itemsLimit = maxItems;
@@ -38,6 +45,10 @@ const Recent = ({ recent, isLoading, emptyState = "NoRecentFounds", maxItems, sx
           md: "repeat(3, 1fr)", // Three columns on medium screens
           lg: "repeat(4, 1fr)", // Four columns on large screens
           xl: "repeat(4, 1fr)", // Four columns on extra large screens
+        },
+        // Five columns on 1920px+ screens
+        '@media (min-width: 1920px)': {
+          gridTemplateColumns: "repeat(5, 1fr)",
         },
         // Ensure proper card sizing without overflow
         '& > *': {

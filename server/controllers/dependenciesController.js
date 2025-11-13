@@ -432,7 +432,7 @@ const getDashboard = async (req, res) => {
         },
       },
       {
-        $limit: 4,
+        $limit: 5,
       },
     ]);
     } catch (error) {
@@ -580,7 +580,7 @@ const getDashboard = async (req, res) => {
         },
       },
       {
-        $limit: 4,
+        $limit: 5,
       },
       {
         $sort: {

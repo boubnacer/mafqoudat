@@ -417,7 +417,7 @@ const getDashboardOptimized = async (req, res) => {
           recentFounds: [
             { $match: { foundLost: foundOption._id } },
             { $sort: { createdAt: -1 } },
-            { $limit: 4 },
+            { $limit: 5 },
             {
               $project: {
                 _id: 1,
@@ -441,7 +441,7 @@ const getDashboardOptimized = async (req, res) => {
           recentLosts: [
             { $match: { foundLost: lostOption._id } },
             { $sort: { createdAt: -1 } },
-            { $limit: 4 },
+            { $limit: 5 },
             {
               $project: {
                 _id: 1,

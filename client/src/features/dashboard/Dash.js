@@ -473,7 +473,7 @@ const Dash = () => {
                   recent={data?.recentFounds}
                   isLoading={isLoading}
                   emptyState="NoRecentFounds"
-                  maxItems={{ xs: 2, sm: 4 }}
+                  maxItems={{ xs: 2, sm: 4, xxl: 5 }}
                 />
                  
                  {/* Mobile See All Button - Bottom (show when there are posts) */}
@@ -647,7 +647,7 @@ const Dash = () => {
                     recent={data?.recentLosts}
                     isLoading={isLoading}
                     emptyState="NoRecentLosts"
-                    maxItems={{ xs: 2, sm: 4 }}
+                    maxItems={{ xs: 2, sm: 4, xxl: 5 }}
                   />
                   
                   {/* Mobile See All Button - Bottom (show when there are posts) */}
