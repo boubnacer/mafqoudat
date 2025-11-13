@@ -114,7 +114,7 @@ const TermsOfUse = () => {
               backgroundColor: theme.palette.background.default,
             }}
           >
-            <Container maxWidth="lg">
+            <Container maxWidth="xl">
               <Paper
                 elevation={2}
                 sx={{

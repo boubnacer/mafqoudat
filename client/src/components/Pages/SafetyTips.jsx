@@ -168,7 +168,7 @@ const SafetyTips = () => {
       <Box width="100%" minHeight="100vh" sx={{ backgroundColor: theme.palette.background.default }}>
         <Navbar />
         <Box sx={{ pt: { xs: '6rem', md: '7rem' }, pb: 6 }}>
-          <Container maxWidth="lg">
+          <Container maxWidth="xl">
             <Paper
               elevation={2}
               sx={{

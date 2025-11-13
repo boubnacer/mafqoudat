@@ -185,7 +185,7 @@ const HelpCenter = () => {
               backgroundColor: theme.palette.background.default,
             }}
           >
-            <Container maxWidth="lg">
+            <Container maxWidth="xl">
               {/* Header */}
               <Box textAlign="center" mb={4}>
                 <Typography

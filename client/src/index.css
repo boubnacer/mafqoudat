@@ -69,3 +69,21 @@ body[dir="rtl"] .MuiAppBar-root .MuiBox-root {
     background-color: #121212; /* Dark mode default */
   }
 }
+
+/* Large screen support (1920x1080 and above) */
+@media screen and (min-width: 1920px) {
+  /* Scale up font sizes slightly for better readability on large screens */
+  html {
+    font-size: 16px; /* Base font size */
+  }
+  
+  /* Ensure containers can use more space */
+  .MuiContainer-root {
+    max-width: 1800px !important;
+  }
+  
+  /* Scale up spacing for better visual balance */
+  body {
+    font-size: 1.05rem; /* Slightly larger base font */
+  }
+}

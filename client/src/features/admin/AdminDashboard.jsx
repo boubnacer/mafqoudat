@@ -645,7 +645,7 @@ const AdminDashboard = () => {
 
   if (dashboardError) {
     return (
-      <Container maxWidth="lg" sx={{ mt: 4 }}>
+      <Container maxWidth="xl" sx={{ mt: 4 }}>
         <Alert severity="error">
           {t('errorLoadingDashboard')}: {dashboardError?.data?.message || dashboardError?.message}
         </Alert>

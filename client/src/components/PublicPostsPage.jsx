@@ -233,7 +233,7 @@ const PublicPostsPage = () => {
       <>
         {seoMetadata}
         <PageContainer>
-          <Container maxWidth="md">
+          <Container maxWidth="xl">
             <Box sx={{ textAlign: 'center', py: 8 }}>
               <Typography variant="h4" gutterBottom>
                 {t('pleaseSelectCountry')}
@@ -343,7 +343,7 @@ const PublicPostsPage = () => {
               </MenuItem>
         </Menu>
 
-        <Container maxWidth="lg" sx={{ py: 4 }}>
+        <Container maxWidth="xl" sx={{ py: 4 }}>
           {/* Country Selector */}
           <Box sx={{ mb: 4 }}>
             <Autocomplete

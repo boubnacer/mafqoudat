@@ -171,12 +171,12 @@ const Dash = () => {
       {/* Header Section with Stats and Trending */}
       <Box
         mb={4}
-        p={{ xs: 2, sm: 3, md: 4 }}
-        gap={{ lg: "32px" }}
+        p={{ xs: 2, sm: 3, md: 4, lg: 5, xl: 6 }}
+        gap={{ lg: "32px", xl: "40px" }}
         sx={{
           display: { xs: "grid", sm: "flex" },
           gridTemplateColumns: { xs: "repeat(1,1fr)", sm: "repeat(2,1fr)" },
-          maxWidth: '100%',
+          maxWidth: { xs: '100%', sm: '100%', md: '100%', lg: '1400px', xl: '1600px' },
           overflow: 'hidden',
           width: '100%', // Ensure full width
           alignItems: { xs: 'stretch', sm: 'stretch' }, // Ensure both components stretch to same height

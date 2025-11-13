@@ -279,7 +279,7 @@ const DashFooter = () => {
         borderTop: `1px solid ${theme.palette.divider}`,
       }}
     >
-      <Grid container spacing={4} sx={{ maxWidth: '1200px', margin: '0 auto' }}>
+      <Grid container spacing={4} sx={{ maxWidth: { xs: '100%', sm: '600px', md: '900px', lg: '1200px', xl: '1536px', xxl: '1800px' }, margin: '0 auto', px: { xs: 2, sm: 3 } }}>
         {/* Company Info */}
         <Grid item xs={12} md={4}>
           <Typography 
@@ -453,7 +453,7 @@ const DashFooter = () => {
       <Divider sx={{ my: 3 }} />
 
       {/* Bottom Section */}
-      <Grid container spacing={2} sx={{ maxWidth: '1200px', margin: '0 auto' }}>
+      <Grid container spacing={2} sx={{ maxWidth: { xs: '100%', sm: '600px', md: '900px', lg: '1200px', xl: '1536px', xxl: '1800px' }, margin: '0 auto', px: { xs: 2, sm: 3 } }}>
         <Grid item xs={12} md={6}>
           <Typography variant="body2" color="text.secondary" sx={{ fontSize: { xs: '16px', sm: '14px' } }}>
             © {new Date().getFullYear()} Mafqoudat. {t('allRightsReserved')}.

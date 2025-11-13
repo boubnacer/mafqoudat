@@ -500,6 +500,18 @@ export const themeSettings = (mode, currentLanguage = 'en') => {
     // RTL-aware spacing
     spacing: (factor) => `${8 * factor}px`,
     
+    // Custom breakpoints for large screens (1920x1080 support)
+    breakpoints: {
+      values: {
+        xs: 0,
+        sm: 600,
+        md: 900,
+        lg: 1200,
+        xl: 1536,
+        xxl: 1920, // Custom breakpoint for 1920px screens
+      },
+    },
+    
     // RTL-aware components
     components: {
       MuiChip: {
@@ -590,6 +602,17 @@ export const themeSettings = (mode, currentLanguage = 'en') => {
             // Auto-rotate directional icons in RTL
             '[dir="rtl"] &[data-directional="true"]': {
               transform: 'scaleX(-1)',
+            },
+          },
+        },
+      },
+      // Container component - support for large screens (1920x1080)
+      MuiContainer: {
+        styleOverrides: {
+          root: {
+            // For screens 1920px and above, use a larger max-width
+            '@media (min-width: 1920px)': {
+              maxWidth: '1800px',
             },
           },
         },
