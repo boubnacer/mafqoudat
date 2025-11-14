@@ -1,5 +1,51 @@
 const Visitor = require('../models/Visitor');
 const { v4: uuidv4 } = require('uuid');
+const axios = require('axios');
+
+// Cache for IP to country lookups (to avoid repeated API calls)
+const ipCountryCache = new Map();
+const CACHE_DURATION = 24 * 60 * 60 * 1000; // 24 hours
+
+/**
+ * Get country code from IP address using free IP geolocation API
+ * @param {string} ip - IP address
+ * @returns {Promise<string>} Country code or 'Unknown'
+ */
+const getCountryFromIP = async (ip) => {
+  // Skip localhost and private IPs
+  if (!ip || ip === 'unknown' || ip.startsWith('127.') || ip.startsWith('192.168.') || ip.startsWith('10.') || ip.startsWith('172.')) {
+    return 'Unknown';
+  }
+
+  // Check cache first
+  const cached = ipCountryCache.get(ip);
+  if (cached && (Date.now() - cached.timestamp < CACHE_DURATION)) {
+    return cached.country;
+  }
+
+  try {
+    // Use ip-api.com (free, no API key required, 45 requests/minute)
+    // Using JSON endpoint: http://ip-api.com/json/{ip}?fields=countryCode
+    const response = await axios.get(`http://ip-api.com/json/${ip}?fields=countryCode`, {
+      timeout: 3000 // 3 second timeout
+    });
+
+    if (response.data && response.data.countryCode) {
+      const countryCode = response.data.countryCode;
+      // Cache the result
+      ipCountryCache.set(ip, {
+        country: countryCode,
+        timestamp: Date.now()
+      });
+      return countryCode;
+    }
+  } catch (error) {
+    // Silently fail - don't log to avoid spam
+    console.debug(`IP geolocation failed for ${ip}:`, error.message);
+  }
+
+  return 'Unknown';
+};
 
 // Cookie lifetime: 24 hours (user needs to close browser and wait 24h for new visit)
 const COOKIE_MAX_AGE = 24 * 60 * 60 * 1000; // 24 hours in milliseconds
@@ -140,17 +186,59 @@ const visitorTracker = async (req, res, next) => {
     // Use findOneAndUpdate with upsert to atomically check and create
     // This prevents race conditions when multiple requests arrive simultaneously
     const ip = req.headers['x-forwarded-for']?.split(',')[0]?.trim() ||
+               req.headers['x-real-ip'] ||
                req.ip ||
                req.connection?.remoteAddress ||
                req.socket?.remoteAddress ||
                'unknown';
     const userAgent = req.get('User-Agent') || 'unknown';
-    const country = req.headers['cf-ipcountry'] || 
-                   req.headers['x-vercel-ip-country'] || 
-                   'Unknown';
+    
+    // Try multiple header variations for country detection
+    // Cloudflare, Vercel, Railway, and other platforms use different headers
+    // Note: Railway doesn't provide country headers by default, so we use IP geolocation as fallback
+    let country = req.headers['cf-ipcountry'] || 
+                  req.headers['x-vercel-ip-country'] ||
+                  req.headers['x-country-code'] ||
+                  req.headers['cloudflare-ipcountry'] ||
+                  req.headers['cf-ip-country'] ||
+                  req.headers['x-geoip-country'] ||
+                  req.headers['cf-ip-country-code'] ||
+                  req.headers['x-country'] ||
+                  null;
+    
+    // If no country from headers, try IP geolocation (async, but we'll await it)
+    const countryFromHeader = country;
+    if (!country || country === 'Unknown') {
+      country = await getCountryFromIP(ip);
+      if (country !== 'Unknown' && isNewSession) {
+        console.log(`🌍 Country detected via IP geolocation: ${country} for IP: ${ip}`);
+      }
+    }
+    
     const city = req.headers['cf-ipcity'] || 
-                req.headers['x-vercel-ip-city'] || 
+                req.headers['x-vercel-ip-city'] ||
+                req.headers['x-city'] ||
+                req.headers['cf-ip-city'] ||
+                req.headers['x-geoip-city'] ||
                 'Unknown';
+    
+    // Log country detection for debugging (only log once per session to avoid spam)
+    if (country === 'Unknown' && isNewSession) {
+      console.log('🌍 Country detection - Available headers:', {
+        'cf-ipcountry': req.headers['cf-ipcountry'],
+        'x-vercel-ip-country': req.headers['x-vercel-ip-country'],
+        'x-country-code': req.headers['x-country-code'],
+        'cloudflare-ipcountry': req.headers['cloudflare-ipcountry'],
+        'cf-ip-country': req.headers['cf-ip-country'],
+        'x-geoip-country': req.headers['x-geoip-country'],
+        'cf-ip-country-code': req.headers['cf-ip-country-code'],
+        'x-country': req.headers['x-country'],
+        ip: ip,
+        countryFromHeader: countryFromHeader,
+        countryFromIP: country,
+        allHeaders: Object.keys(req.headers).filter(h => h.toLowerCase().includes('country') || h.toLowerCase().includes('geo') || h.toLowerCase().includes('ip'))
+      });
+    }
     const firstPage = req.path || '/';
 
     try {
