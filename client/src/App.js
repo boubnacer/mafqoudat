@@ -21,6 +21,7 @@ import ProtectedRoute from "./components/ProtectedRoute";
 import CountryGuard from "./components/CountryGuard";
 import MaintenanceMode from "./components/MaintenanceMode";
 import { initializeVisitorSession } from "./utils/visitorSessionSync";
+import { getVisitorSessionId } from "./utils/visitorSession";
 
 // Add CSS keyframes for loading animations (mirrorReflection from navbar)
 const loadingStyles = `
@@ -379,7 +380,16 @@ function App() {
   // useTitle("Dan D. Repairs");
 
   // Initialize visitor session on app load
+  // This MUST run first, before any other API calls
+  // The session ID is created synchronously in getVisitorSessionId(),
+  // so even if this async call hasn't completed, other API calls will use the same ID
   useEffect(() => {
+    // Create session ID synchronously first (ensures it exists immediately)
+    // This is critical - all API calls will use this same session ID
+    getVisitorSessionId();
+    
+    // Then sync with server (this will update the ID if server has a different one)
+    // This is async but doesn't block - other API calls will use the localStorage ID
     initializeVisitorSession();
   }, []);
 

@@ -5,6 +5,7 @@ const { v4: uuidv4 } = require('uuid');
 
 // Simple endpoint to get/sync visitor session ID
 // This is called by the frontend to ensure session ID is in sync
+// NOTE: Visit tracking happens in the middleware, not here
 router.get('/visitor-session', async (req, res) => {
   try {
     // Get session ID from header (preferred) or cookie (fallback)
@@ -13,12 +14,10 @@ router.get('/visitor-session', async (req, res) => {
                     req.cookies?.visitorSession;
 
     // If no session ID, create a new one
+    // This should rarely happen since client creates one synchronously
     if (!sessionId) {
       sessionId = uuidv4();
     }
-
-    // Check if this session was already counted
-    const existingVisit = await Visitor.findOne({ sessionId });
 
     // Return session ID in response header
     res.setHeader('X-Visitor-Session', sessionId);
@@ -34,8 +33,7 @@ router.get('/visitor-session', async (req, res) => {
 
     res.json({
       success: true,
-      sessionId: sessionId,
-      isNewSession: !existingVisit
+      sessionId: sessionId
     });
   } catch (error) {
     console.error('Error in visitor-session endpoint:', error);

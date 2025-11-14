@@ -69,18 +69,11 @@ const visitorTracker = async (req, res, next) => {
                     req.signedCookies?.visitorSession ||
                     (req.headers.cookie && req.headers.cookie.match(/visitorSession=([^;]+)/)?.[1]);
 
-    // Also track HTML page requests (for same-origin or direct access)
-    const acceptHeader = req.get('Accept') || '';
-    const isHtmlRequest = acceptHeader.includes('text/html') || acceptHeader.includes('*/*');
-    
-    // Track visits ONLY on:
-    // 1. HTML page requests (initial page loads) - for direct server access
-    // 2. Visitor session sync endpoint (called FIRST on app initialization) - for SPA
-    // We only track on /visitor-session to avoid duplicate counts from simultaneous requests
-    const isTrackableRequest = isHtmlRequest || req.path === '/visitor-session';
-    
-    // Skip if not a trackable request
-    if (!isTrackableRequest) {
+    // Track visits ONLY on the /visitor-session endpoint
+    // This is the single point of entry that's called first on app initialization
+    // We don't track HTML requests because in a SPA, the frontend is served separately
+    // and the backend only receives API calls
+    if (req.path !== '/visitor-session') {
       return next();
     }
 

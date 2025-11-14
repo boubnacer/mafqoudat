@@ -27,7 +27,7 @@ const baseQuery = fetchBaseQuery({
   baseUrl: process.env.REACT_APP_API_URL || "http://localhost:3500",
   credentials: "include", // important, to send the cookie back to the server along with the token
   timeout: 30000, // 30 seconds timeout for slow connections
-  prepareHeaders: (headers, { getState, endpoint }) => {
+  prepareHeaders: async (headers, { getState, endpoint }) => {
     const token = getState().auth.token;
     
     debugLog('Preparing headers for request', {
@@ -43,6 +43,7 @@ const baseQuery = fetchBaseQuery({
     }
     
     // Add visitor session ID header for cross-origin tracking
+    // Always get from localStorage - it should be set synchronously
     const visitorSessionId = getVisitorSessionId();
     if (visitorSessionId) {
       headers.set("X-Visitor-Session", visitorSessionId);
