@@ -1,6 +1,7 @@
 /**
  * Visitor Session Sync
- * Syncs visitor session ID from server to localStorage
+ * Syncs visitor session ID from server to sessionStorage
+ * sessionStorage is cleared when browser tab/window closes, creating a new visit on next open
  */
 
 import { getVisitorSessionId } from './visitorSession';
@@ -34,14 +35,21 @@ export const initializeVisitorSession = async () => {
           timestamp: Date.now()
         };
         
-        localStorage.setItem('visitorSessionId', JSON.stringify(sessionData));
+        sessionStorage.setItem('visitorSessionId', JSON.stringify(sessionData));
+        
+        // Also update localStorage as backup
+        try {
+          localStorage.setItem('visitorSessionId', JSON.stringify(sessionData));
+        } catch (e) {
+          // localStorage might be disabled, that's okay
+        }
         console.log('✅ Visitor session synced:', data.sessionId.substring(0, 8) + '...');
       }
     }
   } catch (error) {
-    // Silently fail - not critical, will use localStorage session ID
+    // Silently fail - not critical, will use sessionStorage session ID
     console.debug('Could not sync visitor session from server:', error);
-    // Fallback: ensure we have a session ID in localStorage
+    // Fallback: ensure we have a session ID in sessionStorage
     getVisitorSessionId();
   }
 };

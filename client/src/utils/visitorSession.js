@@ -1,50 +1,56 @@
 /**
  * Visitor Session Manager
- * Manages visitor session ID in localStorage for cross-origin cookie support
+ * Uses sessionStorage so each browser session (tab/window) counts as 1 visit
+ * sessionStorage is cleared when the browser tab/window closes, creating a new visit on next open
  */
 
 const VISITOR_SESSION_KEY = 'visitorSessionId';
-const SESSION_DURATION = 24 * 60 * 60 * 1000; // 24 hours
 
 /**
  * Get or create visitor session ID
- * This function is synchronous and always returns the same ID for the same browser session
+ * Uses sessionStorage so each browser session gets a new ID
+ * When the browser tab/window closes, sessionStorage is cleared, so next visit = new session = new visit
  * @returns {string} Session ID
  */
 export const getVisitorSessionId = () => {
   try {
-    const stored = localStorage.getItem(VISITOR_SESSION_KEY);
+    // Check sessionStorage first (cleared when tab/window closes)
+    let stored = sessionStorage.getItem(VISITOR_SESSION_KEY);
     
     if (stored) {
       try {
-        const { sessionId, timestamp } = JSON.parse(stored);
+        const { sessionId } = JSON.parse(stored);
         
         // Validate sessionId exists and is a string
         if (sessionId && typeof sessionId === 'string') {
-          // Check if session is still valid (within 24 hours)
-          const now = Date.now();
-          if (timestamp && (now - timestamp < SESSION_DURATION)) {
-            return sessionId;
-          }
+          return sessionId;
         }
       } catch (parseError) {
         // Invalid JSON, will create new session below
-        console.debug('Invalid session data in localStorage, creating new session');
+        console.debug('Invalid session data in sessionStorage, creating new session');
       }
-      
-      // Session expired or invalid, remove it
-      localStorage.removeItem(VISITOR_SESSION_KEY);
     }
     
-    // Create new session ID synchronously
-    // This ensures all API calls use the same session ID
+    // No valid session ID found - create a new one
+    // This happens on:
+    // 1. First visit (no sessionStorage)
+    // 2. After browser tab/window is closed and reopened (sessionStorage cleared)
     const newSessionId = generateSessionId();
     const sessionData = {
       sessionId: newSessionId,
       timestamp: Date.now()
     };
     
-    localStorage.setItem(VISITOR_SESSION_KEY, JSON.stringify(sessionData));
+    sessionStorage.setItem(VISITOR_SESSION_KEY, JSON.stringify(sessionData));
+    
+    // Also store in localStorage as backup (for cross-tab consistency)
+    // But we primarily use sessionStorage to detect new browser sessions
+    try {
+      localStorage.setItem(VISITOR_SESSION_KEY, JSON.stringify(sessionData));
+    } catch (e) {
+      // localStorage might be disabled, that's okay
+    }
+    
     return newSessionId;
   } catch (error) {
     console.error('Error managing visitor session:', error);
@@ -71,6 +77,7 @@ const generateSessionId = () => {
  */
 export const clearVisitorSession = () => {
   try {
+    sessionStorage.removeItem(VISITOR_SESSION_KEY);
     localStorage.removeItem(VISITOR_SESSION_KEY);
   } catch (error) {
     console.error('Error clearing visitor session:', error);
@@ -83,12 +90,11 @@ export const clearVisitorSession = () => {
  */
 export const hasValidVisitorSession = () => {
   try {
-    const stored = localStorage.getItem(VISITOR_SESSION_KEY);
+    const stored = sessionStorage.getItem(VISITOR_SESSION_KEY);
     if (!stored) return false;
     
-    const { timestamp } = JSON.parse(stored);
-    const now = Date.now();
-    return (now - timestamp < SESSION_DURATION);
+    const { sessionId } = JSON.parse(stored);
+    return !!(sessionId && typeof sessionId === 'string');
   } catch (error) {
     return false;
   }
