@@ -6,6 +6,7 @@ const Country = require("../models/Country");
 const FoundLost = require("../models/FoundLost");
 const City = require("../models/City");
 const PasswordResetRequest = require("../models/PasswordResetRequest");
+const Visitor = require("../models/Visitor");
 const bcrypt = require("bcrypt");
 const { logEvents } = require("../middleware/logger");
 
@@ -815,6 +816,40 @@ const getAllPostsAdmin = async (req, res) => {
   }
 };
 
+// @desc Get visitor statistics (Admin only)
+// @route GET /admin/visitor-stats
+// @access Private (Admin only)
+const getVisitorStats = async (req, res) => {
+  try {
+    const { days = 7 } = req.query;
+    
+    // Get basic statistics
+    const stats = await Visitor.getStats();
+    
+    // Get trends for the specified number of days
+    const trends = await Visitor.getTrends(parseInt(days));
+    
+    // Get visitor countries
+    const visitorCountries = await Visitor.getVisitorCountries();
+
+    res.status(200).json({
+      success: true,
+      data: {
+        statistics: stats,
+        trends,
+        visitorCountries
+      }
+    });
+  } catch (error) {
+    console.error('Error fetching visitor stats:', error);
+    res.status(500).json({
+      success: false,
+      message: "Error fetching visitor statistics",
+      error: error.message,
+    });
+  }
+};
+
 module.exports = {
   getAllReports,
   getAllPromotions,
@@ -829,4 +864,5 @@ module.exports = {
   adminResetUserPassword,
   deleteUserAdmin,
   getAllPostsAdmin,
+  getVisitorStats,
 };

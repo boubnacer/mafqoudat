@@ -148,6 +148,10 @@ app.use(express.urlencoded({ extended: true, limit: '10mb' }));
 
 app.use(cookieParser());
 
+// Visitor tracking middleware - must be after cookieParser to read cookies
+const visitorTracker = require("./middleware/visitorTracker");
+app.use(visitorTracker);
+
 // Session configuration for OAuth
 app.use(session({
   secret: process.env.JWT_SECRET,

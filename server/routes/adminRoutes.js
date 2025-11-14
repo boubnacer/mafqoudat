@@ -16,6 +16,7 @@ const {
   adminResetUserPassword,
   deleteUserAdmin,
   getAllPostsAdmin,
+  getVisitorStats,
 } = require("../controllers/adminController");
 
 // All admin routes require authentication and admin role
@@ -86,6 +87,11 @@ router.patch("/users/:userId/reset-password", adminResetUserPassword);
 // @desc Delete a user and all their posts
 // @access Private (Admin only)
 router.delete("/users/:userId", deleteUserAdmin);
+
+// @route GET /admin/visitor-stats
+// @desc Get visitor statistics
+// @access Private (Admin only)
+router.get("/visitor-stats", getVisitorStats);
 
 // Cities management routes - require admin authentication
 const cityController = require("../controllers/cityController");
