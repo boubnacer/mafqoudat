@@ -829,6 +829,7 @@ const getVisitorStats = async (req, res) => {
     // Get trends for the specified number of days
     const trends = await Visitor.getTrends(parseInt(days));
     
+    
     // Get visitor countries
     const visitorCountries = await Visitor.getVisitorCountries();
 
