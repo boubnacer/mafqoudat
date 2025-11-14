@@ -125,24 +125,10 @@ const visitorTracker = async (req, res, next) => {
 
     let isNewSession = false;
 
-    // Debug: Log cookie status
-    console.log('🔍 Visitor Tracker - Request:', {
-      path: req.path,
-      method: req.method,
-      hasCookie: !!sessionId,
-      cookieValue: sessionId?.substring(0, 8) + '...' || 'none',
-      allCookies: Object.keys(req.cookies || {}),
-      cookieHeader: req.headers.cookie ? 'present' : 'missing',
-      host: req.get('host'),
-      origin: req.get('origin')
-    });
-
     // If no session ID exists (neither header nor cookie), create a new one
     if (!sessionId) {
       sessionId = uuidv4();
       isNewSession = true;
-      
-      console.log('✅ Creating NEW session:', sessionId.substring(0, 8) + '...');
       
       // Return session ID in response header so client can store it in localStorage
       res.setHeader('X-Visitor-Session', sessionId);
@@ -157,17 +143,7 @@ const visitorTracker = async (req, res, next) => {
       };
       
       res.cookie('visitorSession', sessionId, cookieOptions);
-      console.log('🍪 Session ID returned in header and cookie:', {
-        sessionId: sessionId.substring(0, 8) + '...',
-        source: 'new'
-      });
     } else {
-      const sessionSource = req.get('X-Visitor-Session') ? 'header' : 'cookie';
-      console.log('🔄 Existing session found:', {
-        sessionId: sessionId.substring(0, 8) + '...',
-        source: sessionSource
-      });
-      
       // Return session ID in response header to keep it in sync
       res.setHeader('X-Visitor-Session', sessionId);
       
@@ -207,12 +183,8 @@ const visitorTracker = async (req, res, next) => {
                   null;
     
     // If no country from headers, try IP geolocation (async, but we'll await it)
-    const countryFromHeader = country;
     if (!country || country === 'Unknown') {
       country = await getCountryFromIP(ip);
-      if (country !== 'Unknown' && isNewSession) {
-        console.log(`🌍 Country detected via IP geolocation: ${country} for IP: ${ip}`);
-      }
     }
     
     const city = req.headers['cf-ipcity'] || 
@@ -221,24 +193,6 @@ const visitorTracker = async (req, res, next) => {
                 req.headers['cf-ip-city'] ||
                 req.headers['x-geoip-city'] ||
                 'Unknown';
-    
-    // Log country detection for debugging (only log once per session to avoid spam)
-    if (country === 'Unknown' && isNewSession) {
-      console.log('🌍 Country detection - Available headers:', {
-        'cf-ipcountry': req.headers['cf-ipcountry'],
-        'x-vercel-ip-country': req.headers['x-vercel-ip-country'],
-        'x-country-code': req.headers['x-country-code'],
-        'cloudflare-ipcountry': req.headers['cloudflare-ipcountry'],
-        'cf-ip-country': req.headers['cf-ip-country'],
-        'x-geoip-country': req.headers['x-geoip-country'],
-        'cf-ip-country-code': req.headers['cf-ip-country-code'],
-        'x-country': req.headers['x-country'],
-        ip: ip,
-        countryFromHeader: countryFromHeader,
-        countryFromIP: country,
-        allHeaders: Object.keys(req.headers).filter(h => h.toLowerCase().includes('country') || h.toLowerCase().includes('geo') || h.toLowerCase().includes('ip'))
-      });
-    }
     const firstPage = req.path || '/';
 
     try {
@@ -265,28 +219,10 @@ const visitorTracker = async (req, res, next) => {
         }
       );
 
-      // Check if this was a new document (insert) or existing (update)
-      // We can tell by checking if visitedAt was just set (within last second)
-      const wasJustCreated = result.visitedAt && 
-                            (new Date() - new Date(result.visitedAt)) < 1000;
-      
-      if (wasJustCreated) {
-        console.log('✅ NEW visit record created:', {
-          sessionId: sessionId.substring(0, 8) + '...',
-          visitId: result._id,
-          firstPage: firstPage
-        });
-      } else {
-        console.log('⏭️ Session already counted - skipping visit creation:', {
-          sessionId: sessionId.substring(0, 8) + '...',
-          existingVisitId: result._id
-        });
-      }
     } catch (err) {
       // If it's a duplicate key error (E11000), another request already created it - that's fine
-      if (err.code === 11000 || err.name === 'MongoServerError') {
-        console.log('⚠️ Duplicate session detected (race condition) - already counted');
-      } else {
+      // Silently handle duplicate sessions (race condition)
+      if (err.code !== 11000 && err.name !== 'MongoServerError') {
         console.error('❌ Visitor Tracker: Error saving visitor data:', err);
       }
     }

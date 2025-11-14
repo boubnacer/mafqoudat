@@ -63,60 +63,6 @@ visitorSchema.statics.getStats = async function() {
   };
 };
 
-// Static method to get visitor trends
-visitorSchema.statics.getTrends = async function(days = 7) {
-  const startDate = new Date();
-  startDate.setDate(startDate.getDate() - days);
-  
-  const trends = await this.aggregate([
-    {
-      $match: {
-        visitedAt: { $gte: startDate }
-      }
-    },
-    {
-      $group: {
-        _id: {
-          $dateToString: { format: "%Y-%m-%d", date: "$visitedAt" }
-        },
-        count: { $sum: 1 }
-      }
-    },
-    {
-      $project: {
-        date: "$_id",
-        count: 1,
-        _id: 0
-      }
-    },
-    {
-      $sort: { date: 1 }
-    }
-  ]);
-
-  return trends;
-};
-
-// Static method to get visitor countries
-visitorSchema.statics.getVisitorCountries = async function() {
-  const countries = await this.aggregate([
-    {
-      $group: {
-        _id: '$country',
-        count: { $sum: 1 }
-      }
-    },
-    {
-      $sort: { count: -1 }
-    },
-    {
-      $limit: 10
-    }
-  ]);
-
-  return countries;
-};
-
 // Static method to clean old visitor data (older than 90 days)
 visitorSchema.statics.cleanupOldData = async function() {
   const cutoffDate = new Date();
