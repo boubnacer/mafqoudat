@@ -1,13 +1,17 @@
 const Visitor = require('../models/Visitor');
 const { v4: uuidv4 } = require('uuid');
 
+// Cookie lifetime: 24 hours (user needs to close browser and wait 24h for new visit)
+const COOKIE_MAX_AGE = 24 * 60 * 60 * 1000; // 24 hours in milliseconds
+
 /**
  * Visitor tracking middleware
  * Tracks one visit per browser session.
  * 
- * A session is defined as a browser session (cookie expires when browser closes).
+ * A session is defined by a cookie that lasts 24 hours.
  * Each session counts as exactly 1 visit, regardless of how many pages are viewed.
- * When the user refreshes or returns later, a new session starts = new visit.
+ * When the user refreshes the page, it's still the same session (same cookie).
+ * A new visit is counted when the cookie expires (24h) or browser is closed and reopened.
  */
 const visitorTracker = async (req, res, next) => {
   try {
@@ -42,46 +46,52 @@ const visitorTracker = async (req, res, next) => {
       return next();
     }
 
-    // Only track HTML page requests
+    // Only track HTML page requests (initial page loads, not API calls)
     const acceptHeader = req.get('Accept') || '';
-    if (!acceptHeader.includes('text/html') && !acceptHeader.includes('*/*')) {
+    const isHtmlRequest = acceptHeader.includes('text/html');
+    
+    // Also check if this is a navigation request (not an XHR/fetch)
+    const isNavigation = !req.get('X-Requested-With') && 
+                         req.get('Sec-Fetch-Dest') !== 'empty' &&
+                         req.get('Sec-Fetch-Mode') !== 'cors';
+    
+    if (!isHtmlRequest && !isNavigation) {
       return next();
     }
 
-    // Get session ID from cookie, or create a new one
+    // Get session ID from cookie
     let sessionId = req.cookies?.visitorSession;
-    let isNewSession = false;
 
+    // If no cookie exists, this might be a new session
     if (!sessionId) {
-      // No cookie = new session
       sessionId = uuidv4();
-      isNewSession = true;
       
-      // Set session cookie (no maxAge = session cookie, expires when browser closes)
+      // Set cookie with 24 hour expiration
       res.cookie('visitorSession', sessionId, {
+        maxAge: COOKIE_MAX_AGE,
         httpOnly: true,
         secure: process.env.NODE_ENV === 'production',
-        sameSite: 'lax'
+        sameSite: 'lax',
+        path: '/'
+      });
+    } else {
+      // Cookie exists - refresh it to extend the session
+      res.cookie('visitorSession', sessionId, {
+        maxAge: COOKIE_MAX_AGE,
+        httpOnly: true,
+        secure: process.env.NODE_ENV === 'production',
+        sameSite: 'lax',
+        path: '/'
       });
     }
 
-    // Always check database to see if this session has already been counted
-    // This prevents double-counting if cookie wasn't sent or was cleared
+    // Check if this session has already been counted in the database
+    // Use findOneAndUpdate with upsert to prevent race conditions
     const existingVisit = await Visitor.findOne({ sessionId });
     
-    if (existingVisit) {
-      // This session was already counted - don't count again
-      // If cookie is missing, restore it to maintain the session
-      if (!req.cookies?.visitorSession) {
-        res.cookie('visitorSession', sessionId, {
-          httpOnly: true,
-          secure: process.env.NODE_ENV === 'production',
-          sameSite: 'lax'
-        });
-      }
-    } else {
+    if (!existingVisit) {
       // This is a new session that hasn't been counted yet
-      // Record this new visit
+      // Use findOneAndUpdate with upsert to prevent duplicate inserts from race conditions
       const ip = req.headers['x-forwarded-for']?.split(',')[0]?.trim() ||
                  req.ip ||
                  req.connection?.remoteAddress ||
@@ -106,11 +116,24 @@ const visitorTracker = async (req, res, next) => {
         visitedAt: new Date()
       };
 
-      // Save visitor data asynchronously (don't block the request)
-      Visitor.create(visitorData).catch(err => {
-        console.error('❌ Visitor Tracker: Error saving visitor data:', err);
+      // Use findOneAndUpdate with upsert to atomically create or skip
+      // This prevents race conditions where multiple requests try to create the same session
+      await Visitor.findOneAndUpdate(
+        { sessionId },
+        visitorData,
+        { 
+          upsert: true,
+          setDefaultsOnInsert: true,
+          new: true
+        }
+      ).catch(err => {
+        // If it's a duplicate key error, that's okay - another request already created it
+        if (err.code !== 11000) {
+          console.error('❌ Visitor Tracker: Error saving visitor data:', err);
+        }
       });
     }
+    // If existingVisit exists, do nothing - session already counted
 
   } catch (error) {
     // Don't let visitor tracking errors affect the main request
