@@ -60,29 +60,31 @@ const visitorTracker = async (req, res, next) => {
       return next();
     }
 
-    // Only track HTML page requests (initial page loads, not API calls)
+    // Get session ID from header (preferred for cross-origin) or cookie (fallback)
+    // Check header first (for cross-origin support via localStorage)
+    let sessionId = req.get('X-Visitor-Session') ||
+                    req.headers['x-visitor-session'] ||
+                    // Fallback to cookie
+                    req.cookies?.visitorSession || 
+                    req.signedCookies?.visitorSession ||
+                    (req.headers.cookie && req.headers.cookie.match(/visitorSession=([^;]+)/)?.[1]);
+
+    // Also track HTML page requests (for same-origin or direct access)
     const acceptHeader = req.get('Accept') || '';
     const isHtmlRequest = acceptHeader.includes('text/html') || acceptHeader.includes('*/*');
     
-    // Skip if this is clearly an API/XHR request
-    const isXhrRequest = req.get('X-Requested-With') === 'XMLHttpRequest' ||
-                         req.get('Content-Type')?.includes('application/json') ||
-                         (req.get('Sec-Fetch-Mode') === 'cors' && !isHtmlRequest);
+    // Track visits on:
+    // 1. HTML page requests (initial page loads)
+    // 2. Visitor session sync endpoint (called on app initialization)
+    // 3. Dashboard endpoint (first meaningful API call)
+    const isTrackableRequest = isHtmlRequest || 
+                               req.path === '/visitor-session' ||
+                               req.path === '/dashboard';
     
-    // Skip API/XHR requests
-    if (isXhrRequest && !isHtmlRequest) {
+    // Skip if not a trackable request
+    if (!isTrackableRequest) {
       return next();
     }
-    
-    // Track if it's an HTML request or a navigation request
-    if (!isHtmlRequest) {
-      return next();
-    }
-
-    // Get session ID from cookie - check multiple ways cookies might be stored
-    let sessionId = req.cookies?.visitorSession || 
-                    req.signedCookies?.visitorSession ||
-                    (req.headers.cookie && req.headers.cookie.match(/visitorSession=([^;]+)/)?.[1]);
 
     let isNewSession = false;
 
@@ -98,47 +100,50 @@ const visitorTracker = async (req, res, next) => {
       origin: req.get('origin')
     });
 
-    // If no cookie exists, create a new session
+    // If no session ID exists (neither header nor cookie), create a new one
     if (!sessionId) {
       sessionId = uuidv4();
       isNewSession = true;
       
       console.log('✅ Creating NEW session:', sessionId.substring(0, 8) + '...');
       
-      // Set cookie with 24 hour expiration
+      // Return session ID in response header so client can store it in localStorage
+      res.setHeader('X-Visitor-Session', sessionId);
+      
+      // Also try to set cookie as fallback (may not work cross-origin)
       const cookieOptions = {
         maxAge: COOKIE_MAX_AGE,
         httpOnly: true,
-        secure: true, // Always secure in production (HTTPS required)
-        sameSite: 'none', // Changed to 'none' for cross-origin requests
+        secure: true,
+        sameSite: 'none',
         path: '/'
       };
       
-      // For cross-origin cookies, we need sameSite: 'none' and secure: true
-      // Don't set domain - let browser handle it based on the request origin
-      
       res.cookie('visitorSession', sessionId, cookieOptions);
-      console.log('🍪 Cookie SET:', {
+      console.log('🍪 Session ID returned in header and cookie:', {
         sessionId: sessionId.substring(0, 8) + '...',
-        options: cookieOptions,
-        responseHeaders: Object.keys(res.getHeaders())
+        source: 'new'
       });
     } else {
-      console.log('🔄 Existing session found:', sessionId.substring(0, 8) + '...');
+      const sessionSource = req.get('X-Visitor-Session') ? 'header' : 'cookie';
+      console.log('🔄 Existing session found:', {
+        sessionId: sessionId.substring(0, 8) + '...',
+        source: sessionSource
+      });
       
-      // Cookie exists - refresh it to extend the session
+      // Return session ID in response header to keep it in sync
+      res.setHeader('X-Visitor-Session', sessionId);
+      
+      // Also refresh cookie as fallback
       const cookieOptions = {
         maxAge: COOKIE_MAX_AGE,
         httpOnly: true,
-        secure: true, // Always secure in production (HTTPS required)
-        sameSite: 'none', // Changed to 'none' for cross-origin requests
+        secure: true,
+        sameSite: 'none',
         path: '/'
       };
       
       res.cookie('visitorSession', sessionId, cookieOptions);
-      console.log('🔄 Cookie REFRESHED:', {
-        sessionId: sessionId.substring(0, 8) + '...'
-      });
     }
 
     // Always check database first to see if this session was already counted

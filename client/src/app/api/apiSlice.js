@@ -1,6 +1,7 @@
 import { createApi, fetchBaseQuery } from "@reduxjs/toolkit/query/react";
 import { logOut } from "../../features/auth/authSlice";
 import { setMaintenanceMode } from "../state/maintenanceSlice";
+import { getVisitorSessionId } from "../../utils/visitorSession";
 
 // Debug configuration
 const DEBUG_AUTH = false;
@@ -40,6 +41,12 @@ const baseQuery = fetchBaseQuery({
       headers.set("authorization", `Bearer ${token}`);
       debugLog('Added authorization header', { endpoint });
     }
+    
+    // Add visitor session ID header for cross-origin tracking
+    const visitorSessionId = getVisitorSessionId();
+    if (visitorSessionId) {
+      headers.set("X-Visitor-Session", visitorSessionId);
+    }
 
     return headers;
   },
@@ -52,6 +59,10 @@ const baseQueryWithReauth = async (args, api, extraOptions) => {
   });
   
   let result = await baseQuery(args, api, extraOptions);
+  
+  // Sync visitor session from response headers (if available)
+  // Note: RTK Query doesn't expose raw response, so we'll handle this differently
+  // For now, the session ID is sent in headers on every request
 
   debugLog('Base query completed', {
     url: args.url,

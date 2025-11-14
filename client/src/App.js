@@ -20,6 +20,7 @@ import LanguageChangeHandler from "./components/LanguageChangeHandler";
 import ProtectedRoute from "./components/ProtectedRoute";
 import CountryGuard from "./components/CountryGuard";
 import MaintenanceMode from "./components/MaintenanceMode";
+import { initializeVisitorSession } from "./utils/visitorSessionSync";
 
 // Add CSS keyframes for loading animations (mirrorReflection from navbar)
 const loadingStyles = `
@@ -376,6 +377,11 @@ const AppContent = () => {
 
 function App() {
   // useTitle("Dan D. Repairs");
+
+  // Initialize visitor session on app load
+  useEffect(() => {
+    initializeVisitorSession();
+  }, []);
 
   // Initialize localStorage (language is now handled by LanguageProvider)
   useEffect(() => {
