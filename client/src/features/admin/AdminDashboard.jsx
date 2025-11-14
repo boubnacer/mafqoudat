@@ -100,7 +100,6 @@ import {
   PostsFilterBar,
   PostDetailsDialog,
 } from './components';
-import VisitorStats from './components/VisitorStats';
 
 const AdminDashboard = () => {
   const { t, currentLanguage } = useTranslation();
@@ -2200,19 +2199,6 @@ const AdminDashboard = () => {
           </Box>
         </Paper>
       )}
-
-      {/* Visitor Statistics - Always visible in main dashboard */}
-      <Paper sx={{ mt: 3 }}>
-        <Box p={2}>
-          <Box display="flex" alignItems="center" gap={2} mb={2}>
-            <Visibility sx={{ fontSize: 32, color: theme.palette.primary.main }} />
-            <Typography variant="h5" fontWeight="bold">
-              Visitor Statistics
-            </Typography>
-          </Box>
-          <VisitorStats />
-        </Box>
-      </Paper>
 
       {/* Post Details Dialog */}
       <PostDetailsDialog

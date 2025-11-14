@@ -217,12 +217,6 @@ export const adminApiSlice = apiSlice.injectEndpoints({
       invalidatesTags: ['AdminContacts', 'ContactStats'],
     }),
 
-    // Get visitor statistics
-    getVisitorStats: builder.query({
-      query: ({ days = 7 } = {}) => `/admin/visitor-stats?days=${days}&_t=${Date.now()}`,
-      providesTags: ['VisitorStats'],
-    }),
-
     // Get cities by country (admin only) - get all cities including inactive ones
     getCitiesByCountryAdmin: builder.query({
       query: ({ countryId, language = 'en' }) => {
@@ -273,7 +267,6 @@ export const {
   useGetContactStatsQuery,
   useUpdateContactStatusMutation,
   useDeleteContactAdminMutation,
-  useGetVisitorStatsQuery,
   useGetCitiesByCountryAdminQuery,
   useUpdateCityAdminMutation,
   useDeleteCityAdminMutation,
