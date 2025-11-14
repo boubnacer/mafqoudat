@@ -69,10 +69,21 @@ const visitorTracker = async (req, res, next) => {
     let sessionId = req.cookies?.visitorSession;
     let isNewSession = false;
 
+    // Debug: Log cookie status
+    console.log('🔍 Visitor Tracker - Request:', {
+      path: req.path,
+      method: req.method,
+      hasCookie: !!req.cookies?.visitorSession,
+      cookieValue: req.cookies?.visitorSession?.substring(0, 8) + '...' || 'none',
+      allCookies: Object.keys(req.cookies || {})
+    });
+
     // If no cookie exists, create a new session
     if (!sessionId) {
       sessionId = uuidv4();
       isNewSession = true;
+      
+      console.log('✅ Creating NEW session:', sessionId.substring(0, 8) + '...');
       
       // Set cookie with 24 hour expiration
       res.cookie('visitorSession', sessionId, {
@@ -83,6 +94,8 @@ const visitorTracker = async (req, res, next) => {
         path: '/'
       });
     } else {
+      console.log('🔄 Existing session found:', sessionId.substring(0, 8) + '...');
+      
       // Cookie exists - refresh it to extend the session
       res.cookie('visitorSession', sessionId, {
         maxAge: COOKIE_MAX_AGE,
@@ -96,19 +109,15 @@ const visitorTracker = async (req, res, next) => {
     // Always check database first to see if this session was already counted
     const existingVisit = await Visitor.findOne({ sessionId });
     
-    // Debug logging (remove in production)
-    if (process.env.NODE_ENV === 'development') {
-      console.log('🔍 Visitor Tracker:', {
-        path: req.path,
-        hasCookie: !!req.cookies?.visitorSession,
-        sessionId: sessionId?.substring(0, 8) + '...',
-        existingVisit: !!existingVisit,
-        isNewSession
-      });
-    }
+    console.log('🔍 Database check:', {
+      sessionId: sessionId?.substring(0, 8) + '...',
+      existingVisit: !!existingVisit,
+      existingVisitId: existingVisit?._id || 'none'
+    });
     
     // Only create a new visit if this session doesn't exist in the database
     if (!existingVisit) {
+      console.log('📝 Creating NEW visit record for session:', sessionId.substring(0, 8) + '...');
       const ip = req.headers['x-forwarded-for']?.split(',')[0]?.trim() ||
                  req.ip ||
                  req.connection?.remoteAddress ||
@@ -136,17 +145,19 @@ const visitorTracker = async (req, res, next) => {
       // Create the visit record
       // Use create with error handling for duplicate key errors (race condition protection)
       try {
-        await Visitor.create(visitorData);
+        const created = await Visitor.create(visitorData);
+        console.log('✅ Visit record created successfully:', created._id);
       } catch (err) {
         // If it's a duplicate key error (E11000), another request already created it - that's fine
         if (err.code === 11000 || err.name === 'MongoServerError') {
-          // Duplicate session - already counted, ignore
+          console.log('⚠️ Duplicate session detected (race condition) - already counted');
         } else {
           console.error('❌ Visitor Tracker: Error saving visitor data:', err);
         }
       }
+    } else {
+      console.log('⏭️ Session already counted - skipping visit creation');
     }
-    // If existingVisit exists, do nothing - session already counted
 
   } catch (error) {
     // Don't let visitor tracking errors affect the main request
