@@ -48,12 +48,14 @@ const visitorTracker = async (req, res, next) => {
       return next();
     }
 
-    // Get or create session ID from cookie
+    // Get session ID from cookie, or create a new one
     let sessionId = req.cookies?.visitorSession;
+    let isNewSession = false;
 
-    // If no session cookie exists, this is a new session
     if (!sessionId) {
+      // No cookie = new session
       sessionId = uuidv4();
+      isNewSession = true;
       
       // Set session cookie (no maxAge = session cookie, expires when browser closes)
       res.cookie('visitorSession', sessionId, {
@@ -61,43 +63,54 @@ const visitorTracker = async (req, res, next) => {
         secure: process.env.NODE_ENV === 'production',
         sameSite: 'lax'
       });
+    }
 
-      // Check if this session was already recorded (shouldn't happen, but safety check)
-      const existingVisit = await Visitor.findOne({ sessionId });
-      
-      if (!existingVisit) {
-        // Record this new visit
-        const ip = req.headers['x-forwarded-for']?.split(',')[0]?.trim() ||
-                   req.ip ||
-                   req.connection?.remoteAddress ||
-                   req.socket?.remoteAddress ||
-                   'unknown';
-        const userAgent = req.get('User-Agent') || 'unknown';
-        const country = req.headers['cf-ipcountry'] || 
-                       req.headers['x-vercel-ip-country'] || 
-                       'Unknown';
-        const city = req.headers['cf-ipcity'] || 
-                    req.headers['x-vercel-ip-city'] || 
-                    'Unknown';
-        const firstPage = req.path || '/';
-
-        const visitorData = {
-          sessionId,
-          ip,
-          userAgent,
-          country,
-          city,
-          firstPage,
-          visitedAt: new Date()
-        };
-
-        // Save visitor data asynchronously (don't block the request)
-        Visitor.create(visitorData).catch(err => {
-          console.error('❌ Visitor Tracker: Error saving visitor data:', err);
+    // Always check database to see if this session has already been counted
+    // This prevents double-counting if cookie wasn't sent or was cleared
+    const existingVisit = await Visitor.findOne({ sessionId });
+    
+    if (existingVisit) {
+      // This session was already counted - don't count again
+      // If cookie is missing, restore it to maintain the session
+      if (!req.cookies?.visitorSession) {
+        res.cookie('visitorSession', sessionId, {
+          httpOnly: true,
+          secure: process.env.NODE_ENV === 'production',
+          sameSite: 'lax'
         });
       }
+    } else {
+      // This is a new session that hasn't been counted yet
+      // Record this new visit
+      const ip = req.headers['x-forwarded-for']?.split(',')[0]?.trim() ||
+                 req.ip ||
+                 req.connection?.remoteAddress ||
+                 req.socket?.remoteAddress ||
+                 'unknown';
+      const userAgent = req.get('User-Agent') || 'unknown';
+      const country = req.headers['cf-ipcountry'] || 
+                     req.headers['x-vercel-ip-country'] || 
+                     'Unknown';
+      const city = req.headers['cf-ipcity'] || 
+                  req.headers['x-vercel-ip-city'] || 
+                  'Unknown';
+      const firstPage = req.path || '/';
+
+      const visitorData = {
+        sessionId,
+        ip,
+        userAgent,
+        country,
+        city,
+        firstPage,
+        visitedAt: new Date()
+      };
+
+      // Save visitor data asynchronously (don't block the request)
+      Visitor.create(visitorData).catch(err => {
+        console.error('❌ Visitor Tracker: Error saving visitor data:', err);
+      });
     }
-    // If session cookie exists, this is the same session - don't count again
 
   } catch (error) {
     // Don't let visitor tracking errors affect the main request
