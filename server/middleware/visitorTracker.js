@@ -65,17 +65,23 @@ const visitorTracker = async (req, res, next) => {
       return next();
     }
 
-    // Get session ID from cookie
-    let sessionId = req.cookies?.visitorSession;
+    // Get session ID from cookie - check multiple ways cookies might be stored
+    let sessionId = req.cookies?.visitorSession || 
+                    req.signedCookies?.visitorSession ||
+                    (req.headers.cookie && req.headers.cookie.match(/visitorSession=([^;]+)/)?.[1]);
+
     let isNewSession = false;
 
     // Debug: Log cookie status
     console.log('🔍 Visitor Tracker - Request:', {
       path: req.path,
       method: req.method,
-      hasCookie: !!req.cookies?.visitorSession,
-      cookieValue: req.cookies?.visitorSession?.substring(0, 8) + '...' || 'none',
-      allCookies: Object.keys(req.cookies || {})
+      hasCookie: !!sessionId,
+      cookieValue: sessionId?.substring(0, 8) + '...' || 'none',
+      allCookies: Object.keys(req.cookies || {}),
+      cookieHeader: req.headers.cookie ? 'present' : 'missing',
+      host: req.get('host'),
+      origin: req.get('origin')
     });
 
     // If no cookie exists, create a new session
@@ -86,23 +92,42 @@ const visitorTracker = async (req, res, next) => {
       console.log('✅ Creating NEW session:', sessionId.substring(0, 8) + '...');
       
       // Set cookie with 24 hour expiration
-      res.cookie('visitorSession', sessionId, {
+      const cookieOptions = {
         maxAge: COOKIE_MAX_AGE,
         httpOnly: true,
         secure: process.env.NODE_ENV === 'production',
         sameSite: 'lax',
         path: '/'
+      };
+      
+      // In production (Vercel), don't set domain to allow cross-subdomain cookies
+      if (process.env.NODE_ENV === 'production') {
+        // Let browser handle domain automatically
+      } else {
+        // In development, you might want to set domain
+      }
+      
+      res.cookie('visitorSession', sessionId, cookieOptions);
+      console.log('🍪 Cookie SET:', {
+        sessionId: sessionId.substring(0, 8) + '...',
+        options: cookieOptions,
+        responseHeaders: Object.keys(res.getHeaders())
       });
     } else {
       console.log('🔄 Existing session found:', sessionId.substring(0, 8) + '...');
       
       // Cookie exists - refresh it to extend the session
-      res.cookie('visitorSession', sessionId, {
+      const cookieOptions = {
         maxAge: COOKIE_MAX_AGE,
         httpOnly: true,
         secure: process.env.NODE_ENV === 'production',
         sameSite: 'lax',
         path: '/'
+      };
+      
+      res.cookie('visitorSession', sessionId, cookieOptions);
+      console.log('🔄 Cookie REFRESHED:', {
+        sessionId: sessionId.substring(0, 8) + '...'
       });
     }
 
