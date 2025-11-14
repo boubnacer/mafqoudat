@@ -21,21 +21,12 @@ const visitorTracker = async (req, res, next) => {
     }
 
     // Skip API routes, admin routes, and static assets
+    // Note: In a React SPA, page routes like /posts, /dash are valid and should be tracked
+    // We only skip actual API endpoints, not page routes
     const skipPaths = [
       '/api/',
       '/admin/',
       '/system-settings',
-      '/countries',
-      '/floptions',
-      '/categories',
-      '/users',
-      '/posts', // Skip posts API endpoint
-      '/contact',
-      '/cities',
-      '/cities-public',
-      '/cities-api',
-      '/promotion',
-      '/dependencies',
       '/health',
       '/favicon.ico',
       '/robots.txt',
@@ -44,7 +35,23 @@ const visitorTracker = async (req, res, next) => {
       '/_redirects'
     ];
 
-    if (skipPaths.some(path => req.path.startsWith(path))) {
+    // Skip API endpoints (but not page routes that happen to have the same path)
+    // API endpoints typically have specific patterns or are under /api/
+    const isApiEndpoint = skipPaths.some(path => req.path.startsWith(path)) ||
+                         // Skip if it's a JSON request to what looks like an API endpoint
+                         (req.get('Accept')?.includes('application/json') && 
+                          !req.get('Accept')?.includes('text/html') &&
+                          (req.path.startsWith('/countries') ||
+                           req.path.startsWith('/floptions') ||
+                           req.path.startsWith('/categories') ||
+                           req.path.startsWith('/users') ||
+                           req.path.startsWith('/posts') ||
+                           req.path.startsWith('/contact') ||
+                           req.path.startsWith('/cities') ||
+                           req.path.startsWith('/promotion') ||
+                           req.path.startsWith('/dependencies')));
+
+    if (isApiEndpoint) {
       return next();
     }
 
