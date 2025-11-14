@@ -821,24 +821,13 @@ const getAllPostsAdmin = async (req, res) => {
 // @access Private (Admin only)
 const getVisitorStats = async (req, res) => {
   try {
-    const { days = 7 } = req.query;
-    
-    // Get basic statistics
+    // Get basic statistics only
     const stats = await Visitor.getStats();
-    
-    // Get trends for the specified number of days
-    const trends = await Visitor.getTrends(parseInt(days));
-    
-    
-    // Get visitor countries
-    const visitorCountries = await Visitor.getVisitorCountries();
 
     res.status(200).json({
       success: true,
       data: {
-        statistics: stats,
-        trends,
-        visitorCountries
+        statistics: stats
       }
     });
   } catch (error) {

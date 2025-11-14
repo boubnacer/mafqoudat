@@ -219,7 +219,7 @@ export const adminApiSlice = apiSlice.injectEndpoints({
 
     // Get visitor statistics
     getVisitorStats: builder.query({
-      query: ({ days = 7 } = {}) => `/admin/visitor-stats?days=${days}`,
+      query: () => '/admin/visitor-stats',
       providesTags: ['VisitorStats'],
     }),
 
