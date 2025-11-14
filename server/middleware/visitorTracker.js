@@ -48,23 +48,31 @@ const visitorTracker = async (req, res, next) => {
 
     // Only track HTML page requests (initial page loads, not API calls)
     const acceptHeader = req.get('Accept') || '';
-    const isHtmlRequest = acceptHeader.includes('text/html');
+    const isHtmlRequest = acceptHeader.includes('text/html') || acceptHeader.includes('*/*');
     
-    // Also check if this is a navigation request (not an XHR/fetch)
-    const isNavigation = !req.get('X-Requested-With') && 
-                         req.get('Sec-Fetch-Dest') !== 'empty' &&
-                         req.get('Sec-Fetch-Mode') !== 'cors';
+    // Skip if this is clearly an API/XHR request
+    const isXhrRequest = req.get('X-Requested-With') === 'XMLHttpRequest' ||
+                         req.get('Content-Type')?.includes('application/json') ||
+                         (req.get('Sec-Fetch-Mode') === 'cors' && !isHtmlRequest);
     
-    if (!isHtmlRequest && !isNavigation) {
+    // Skip API/XHR requests
+    if (isXhrRequest && !isHtmlRequest) {
+      return next();
+    }
+    
+    // Track if it's an HTML request or a navigation request
+    if (!isHtmlRequest) {
       return next();
     }
 
     // Get session ID from cookie
     let sessionId = req.cookies?.visitorSession;
+    let isNewSession = false;
 
-    // If no cookie exists, this might be a new session
+    // If no cookie exists, create a new session
     if (!sessionId) {
       sessionId = uuidv4();
+      isNewSession = true;
       
       // Set cookie with 24 hour expiration
       res.cookie('visitorSession', sessionId, {
@@ -85,13 +93,22 @@ const visitorTracker = async (req, res, next) => {
       });
     }
 
-    // Check if this session has already been counted in the database
-    // Use findOneAndUpdate with upsert to prevent race conditions
+    // Always check database first to see if this session was already counted
     const existingVisit = await Visitor.findOne({ sessionId });
     
+    // Debug logging (remove in production)
+    if (process.env.NODE_ENV === 'development') {
+      console.log('🔍 Visitor Tracker:', {
+        path: req.path,
+        hasCookie: !!req.cookies?.visitorSession,
+        sessionId: sessionId?.substring(0, 8) + '...',
+        existingVisit: !!existingVisit,
+        isNewSession
+      });
+    }
+    
+    // Only create a new visit if this session doesn't exist in the database
     if (!existingVisit) {
-      // This is a new session that hasn't been counted yet
-      // Use findOneAndUpdate with upsert to prevent duplicate inserts from race conditions
       const ip = req.headers['x-forwarded-for']?.split(',')[0]?.trim() ||
                  req.ip ||
                  req.connection?.remoteAddress ||
@@ -116,22 +133,18 @@ const visitorTracker = async (req, res, next) => {
         visitedAt: new Date()
       };
 
-      // Use findOneAndUpdate with upsert to atomically create or skip
-      // This prevents race conditions where multiple requests try to create the same session
-      await Visitor.findOneAndUpdate(
-        { sessionId },
-        visitorData,
-        { 
-          upsert: true,
-          setDefaultsOnInsert: true,
-          new: true
-        }
-      ).catch(err => {
-        // If it's a duplicate key error, that's okay - another request already created it
-        if (err.code !== 11000) {
+      // Create the visit record
+      // Use create with error handling for duplicate key errors (race condition protection)
+      try {
+        await Visitor.create(visitorData);
+      } catch (err) {
+        // If it's a duplicate key error (E11000), another request already created it - that's fine
+        if (err.code === 11000 || err.name === 'MongoServerError') {
+          // Duplicate session - already counted, ignore
+        } else {
           console.error('❌ Visitor Tracker: Error saving visitor data:', err);
         }
-      });
+      }
     }
     // If existingVisit exists, do nothing - session already counted
 
@@ -144,4 +157,5 @@ const visitorTracker = async (req, res, next) => {
 };
 
 module.exports = visitorTracker;
+
 
