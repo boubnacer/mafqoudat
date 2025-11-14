@@ -73,13 +73,11 @@ const visitorTracker = async (req, res, next) => {
     const acceptHeader = req.get('Accept') || '';
     const isHtmlRequest = acceptHeader.includes('text/html') || acceptHeader.includes('*/*');
     
-    // Track visits on:
-    // 1. HTML page requests (initial page loads)
-    // 2. Visitor session sync endpoint (called on app initialization)
-    // 3. Dashboard endpoint (first meaningful API call)
-    const isTrackableRequest = isHtmlRequest || 
-                               req.path === '/visitor-session' ||
-                               req.path === '/dashboard';
+    // Track visits ONLY on:
+    // 1. HTML page requests (initial page loads) - for direct server access
+    // 2. Visitor session sync endpoint (called FIRST on app initialization) - for SPA
+    // We only track on /visitor-session to avoid duplicate counts from simultaneous requests
+    const isTrackableRequest = isHtmlRequest || req.path === '/visitor-session';
     
     // Skip if not a trackable request
     if (!isTrackableRequest) {
@@ -146,57 +144,70 @@ const visitorTracker = async (req, res, next) => {
       res.cookie('visitorSession', sessionId, cookieOptions);
     }
 
-    // Always check database first to see if this session was already counted
-    const existingVisit = await Visitor.findOne({ sessionId });
-    
-    console.log('🔍 Database check:', {
-      sessionId: sessionId?.substring(0, 8) + '...',
-      existingVisit: !!existingVisit,
-      existingVisitId: existingVisit?._id || 'none'
-    });
-    
-    // Only create a new visit if this session doesn't exist in the database
-    if (!existingVisit) {
-      console.log('📝 Creating NEW visit record for session:', sessionId.substring(0, 8) + '...');
-      const ip = req.headers['x-forwarded-for']?.split(',')[0]?.trim() ||
-                 req.ip ||
-                 req.connection?.remoteAddress ||
-                 req.socket?.remoteAddress ||
-                 'unknown';
-      const userAgent = req.get('User-Agent') || 'unknown';
-      const country = req.headers['cf-ipcountry'] || 
-                     req.headers['x-vercel-ip-country'] || 
-                     'Unknown';
-      const city = req.headers['cf-ipcity'] || 
-                  req.headers['x-vercel-ip-city'] || 
-                  'Unknown';
-      const firstPage = req.path || '/';
+    // Use findOneAndUpdate with upsert to atomically check and create
+    // This prevents race conditions when multiple requests arrive simultaneously
+    const ip = req.headers['x-forwarded-for']?.split(',')[0]?.trim() ||
+               req.ip ||
+               req.connection?.remoteAddress ||
+               req.socket?.remoteAddress ||
+               'unknown';
+    const userAgent = req.get('User-Agent') || 'unknown';
+    const country = req.headers['cf-ipcountry'] || 
+                   req.headers['x-vercel-ip-country'] || 
+                   'Unknown';
+    const city = req.headers['cf-ipcity'] || 
+                req.headers['x-vercel-ip-city'] || 
+                'Unknown';
+    const firstPage = req.path || '/';
 
-      const visitorData = {
-        sessionId,
-        ip,
-        userAgent,
-        country,
-        city,
-        firstPage,
-        visitedAt: new Date()
-      };
-
-      // Create the visit record
-      // Use create with error handling for duplicate key errors (race condition protection)
-      try {
-        const created = await Visitor.create(visitorData);
-        console.log('✅ Visit record created successfully:', created._id);
-      } catch (err) {
-        // If it's a duplicate key error (E11000), another request already created it - that's fine
-        if (err.code === 11000 || err.name === 'MongoServerError') {
-          console.log('⚠️ Duplicate session detected (race condition) - already counted');
-        } else {
-          console.error('❌ Visitor Tracker: Error saving visitor data:', err);
+    try {
+      // Use findOneAndUpdate with upsert: true
+      // This atomically checks if session exists, and only creates if it doesn't
+      // The $setOnInsert ensures we only set these fields on creation, not on update
+      const result = await Visitor.findOneAndUpdate(
+        { sessionId }, // Find by sessionId
+        {
+          $setOnInsert: {
+            sessionId,
+            ip,
+            userAgent,
+            country,
+            city,
+            firstPage,
+            visitedAt: new Date()
+          }
+        },
+        {
+          upsert: true, // Create if doesn't exist
+          new: true, // Return the document after update
+          setDefaultsOnInsert: true // Apply schema defaults on insert
         }
+      );
+
+      // Check if this was a new document (insert) or existing (update)
+      // We can tell by checking if visitedAt was just set (within last second)
+      const wasJustCreated = result.visitedAt && 
+                            (new Date() - new Date(result.visitedAt)) < 1000;
+      
+      if (wasJustCreated) {
+        console.log('✅ NEW visit record created:', {
+          sessionId: sessionId.substring(0, 8) + '...',
+          visitId: result._id,
+          firstPage: firstPage
+        });
+      } else {
+        console.log('⏭️ Session already counted - skipping visit creation:', {
+          sessionId: sessionId.substring(0, 8) + '...',
+          existingVisitId: result._id
+        });
       }
-    } else {
-      console.log('⏭️ Session already counted - skipping visit creation');
+    } catch (err) {
+      // If it's a duplicate key error (E11000), another request already created it - that's fine
+      if (err.code === 11000 || err.name === 'MongoServerError') {
+        console.log('⚠️ Duplicate session detected (race condition) - already counted');
+      } else {
+        console.error('❌ Visitor Tracker: Error saving visitor data:', err);
+      }
     }
 
   } catch (error) {
