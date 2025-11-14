@@ -29,6 +29,13 @@ const visitorTracker = async (req, res, next) => {
       '/floptions',
       '/categories',
       '/users',
+      '/posts', // Skip posts API endpoint
+      '/contact',
+      '/cities',
+      '/cities-public',
+      '/cities-api',
+      '/promotion',
+      '/dependencies',
       '/health',
       '/favicon.ico',
       '/robots.txt',
@@ -95,17 +102,13 @@ const visitorTracker = async (req, res, next) => {
       const cookieOptions = {
         maxAge: COOKIE_MAX_AGE,
         httpOnly: true,
-        secure: process.env.NODE_ENV === 'production',
-        sameSite: 'lax',
+        secure: true, // Always secure in production (HTTPS required)
+        sameSite: 'none', // Changed to 'none' for cross-origin requests
         path: '/'
       };
       
-      // In production (Vercel), don't set domain to allow cross-subdomain cookies
-      if (process.env.NODE_ENV === 'production') {
-        // Let browser handle domain automatically
-      } else {
-        // In development, you might want to set domain
-      }
+      // For cross-origin cookies, we need sameSite: 'none' and secure: true
+      // Don't set domain - let browser handle it based on the request origin
       
       res.cookie('visitorSession', sessionId, cookieOptions);
       console.log('🍪 Cookie SET:', {
@@ -120,8 +123,8 @@ const visitorTracker = async (req, res, next) => {
       const cookieOptions = {
         maxAge: COOKIE_MAX_AGE,
         httpOnly: true,
-        secure: process.env.NODE_ENV === 'production',
-        sameSite: 'lax',
+        secure: true, // Always secure in production (HTTPS required)
+        sameSite: 'none', // Changed to 'none' for cross-origin requests
         path: '/'
       };
       
