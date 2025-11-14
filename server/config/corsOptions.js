@@ -49,23 +49,25 @@ const corsOptions = {
     credentials: true,
     optionsSuccessStatus: 200,
     methods: ['GET', 'POST', 'PUT', 'DELETE', 'PATCH', 'OPTIONS'],
-    allowedHeaders: [
-        'Origin',
-        'X-Requested-With',
-        'Content-Type',
-        'Accept',
-        'Authorization',
-        'Cache-Control',
-        'X-CSRF-Token',
-        'Cookie' // Add Cookie header for cross-domain requests
-    ],
+           allowedHeaders: [
+               'Origin',
+               'X-Requested-With',
+               'Content-Type',
+               'Accept',
+               'Authorization',
+               'Cache-Control',
+               'X-CSRF-Token',
+               'Cookie', // Add Cookie header for cross-domain requests
+               'X-Visitor-Session' // Add visitor session header for cross-origin tracking
+           ],
     exposedHeaders: [
         'X-RateLimit-Limit',
         'X-RateLimit-Remaining',
         'X-RateLimit-Reset',
         'X-Cache',
         'X-Cache-Key',
-        'Set-Cookie' // Expose Set-Cookie header for cross-domain cookies
+        'Set-Cookie', // Expose Set-Cookie header for cross-domain cookies
+        'X-Visitor-Session' // Expose visitor session header for cross-origin tracking
     ],
     maxAge: 86400, // 24 hours
     // Additional CORS options for cross-domain cookie support
