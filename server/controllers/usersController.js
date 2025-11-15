@@ -9,46 +9,56 @@ const { logEvents } = require("../middleware/logger");
 // @route GET /users
 // @access Private
 const getAllUsers = async (req, res) => {
-  // OPTIMIZED: Use aggregation with $lookup to avoid N+1 queries
-  const usersWithCountry = await User.aggregate([
-    {
-      $lookup: {
-        from: "countries",
-        localField: "country",
-        foreignField: "_id",
-        as: "countryData"
-      }
-    },
-    {
-      $project: {
-        _id: 1,
-        username: 1,
-        email: 1,
-        role: 1,
-        isActive: 1,
-        country: 1,
-        createdAt: 1,
-        updatedAt: 1,
-        lastLogin: 1,
-        // Exclude password field
-        password: 0,
-        // Add country code from lookup
-        code: { 
-          $ifNull: [
-            { $arrayElemAt: ["$countryData.code", 0] }, 
-            "Unknown"
-          ]
+  try {
+    // OPTIMIZED: Use aggregation with $lookup to avoid N+1 queries
+    // Handle null/invalid country references gracefully
+    const usersWithCountry = await User.aggregate([
+      {
+        $lookup: {
+          from: "countries",
+          localField: "country",
+          foreignField: "_id",
+          as: "countryData"
+        }
+      },
+      {
+        $project: {
+          _id: 1,
+          username: 1,
+          email: 1,
+          role: 1,
+          isActive: 1,
+          country: 1,
+          createdAt: 1,
+          updatedAt: 1,
+          lastLogin: 1,
+          // Exclude password field
+          password: 0,
+          // Add country code from lookup - handle null/empty arrays gracefully
+          code: { 
+            $ifNull: [
+              { $arrayElemAt: ["$countryData.code", 0] }, 
+              "Unknown"
+            ]
+          }
         }
       }
+    ]);
+
+    // If no users, return empty array instead of error (more RESTful)
+    if (!usersWithCountry || usersWithCountry.length === 0) {
+      return res.json([]);
     }
-  ]);
 
-  // If no users
-  if (!usersWithCountry?.length) {
-    return res.status(400).json({ message: "No users found" });
+    res.json(usersWithCountry);
+  } catch (error) {
+    console.error('Error in getAllUsers:', error);
+    logEvents(
+      `Error fetching users: ${error.message}\t${req.method}\t${req.url}\t${req.ip}`,
+      'errLog.log'
+    );
+    return res.status(500).json({ message: "Failed to fetch users" });
   }
-
-  res.json(usersWithCountry);
 };
 
 // @desc Get single user by ID
