@@ -2343,7 +2343,7 @@ if (typeof document !== 'undefined') {
                 >
                   {/* Cancel Button - Left in LTR, Right in RTL */}
                   <Button 
-                    onClick={() => navigate(`/post/${post._id}`)}
+                    onClick={() => navigate(`/dash/posts/${post._id}`)}
                     variant="outlined" 
                     disabled={isLoading}
                     sx={{ 
