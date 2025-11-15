@@ -470,7 +470,7 @@ const WelcomePage = () => {
             backdropFilter: 'blur(20px)',
             border: theme.palette.mode === 'dark'
               ? `1px solid ${alpha(theme.palette.primary.main || '#4A8BFF', 0.3)}`
-              : `1px solid rgba(255, 255, 255, 0.3)`,
+              : `1px solid rgba(255, 255, 255, 1)`,
           }
         }}
         transformOrigin={{ horizontal: 'right', vertical: 'top' }}
