@@ -1544,28 +1544,30 @@ const NewPostForm = ({ user, countries, categories, flOptions }) => {
                     }
                   </Typography>
                   
-                  {/* Sensitive Information Warning */}
-                  <Alert 
-                    severity="warning" 
-                    sx={{ 
-                      mb: 2,
-                      borderRadius: 2,
-                      backgroundColor: theme.palette.mode === 'dark' 
-                        ? 'rgba(255, 152, 0, 0.1)' 
-                        : 'rgba(255, 152, 0, 0.05)',
-                      border: `1px solid ${theme.palette.mode === 'dark' ? 'rgba(255, 152, 0, 0.3)' : 'rgba(255, 152, 0, 0.2)'}`,
-                      '& .MuiAlert-icon': {
-                        color: theme.palette.mode === 'dark' ? '#ff9800' : '#f57c00',
-                      },
-                      '& .MuiAlert-message': {
-                        color: theme.palette.text.primary,
-                        fontSize: '0.9rem',
-                        fontWeight: 500,
-                      }
-                    }}
-                  >
-                    {t('descriptionSensitiveInfoWarning')}
-                  </Alert>
+                  {/* Sensitive Information Warning - Only show for Found items */}
+                  {getFoundLostType(values.foundLost) === 'FOUND' && (
+                    <Alert 
+                      severity="warning" 
+                      sx={{ 
+                        mb: 2,
+                        borderRadius: 2,
+                        backgroundColor: theme.palette.mode === 'dark' 
+                          ? 'rgba(255, 152, 0, 0.1)' 
+                          : 'rgba(255, 152, 0, 0.05)',
+                        border: `1px solid ${theme.palette.mode === 'dark' ? 'rgba(255, 152, 0, 0.3)' : 'rgba(255, 152, 0, 0.2)'}`,
+                        '& .MuiAlert-icon': {
+                          color: theme.palette.mode === 'dark' ? '#ff9800' : '#f57c00',
+                        },
+                        '& .MuiAlert-message': {
+                          color: theme.palette.text.primary,
+                          fontSize: '0.9rem',
+                          fontWeight: 500,
+                        }
+                      }}
+                    >
+                      {t('descriptionSensitiveInfoWarning')}
+                    </Alert>
+                  )}
                   
                   <Textfield 
                     name="description" 
