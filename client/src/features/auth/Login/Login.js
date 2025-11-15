@@ -528,6 +528,7 @@ const LoginComponent = () => {
               ? 'rgba(30, 30, 30, 0.95)'
               : 'rgba(255, 255, 255, 0.95)',
             backdropFilter: 'blur(20px)',
+            border: 'none',
           }
         }}
         transformOrigin={{ horizontal: 'right', vertical: 'top' }}
