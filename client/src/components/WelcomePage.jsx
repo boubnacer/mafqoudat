@@ -468,7 +468,9 @@ const WelcomePage = () => {
               ? 'rgba(30, 30, 30, 0.95)'
               : 'rgba(255, 255, 255, 0.95)',
             backdropFilter: 'blur(20px)',
-            border: `1px solid ${alpha(theme.palette.primary.main || '#4A8BFF', 0.2)}`,
+            border: theme.palette.mode === 'dark'
+              ? `1px solid ${alpha(theme.palette.primary.main || '#4A8BFF', 0.3)}`
+              : `1px solid rgba(0, 0, 0, 0.08)`,
           }
         }}
         transformOrigin={{ horizontal: 'right', vertical: 'top' }}
