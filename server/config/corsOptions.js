@@ -16,13 +16,9 @@ const normalizeOrigin = (origin) => {
 const corsOptions = {
     origin: (origin, callback) => {
         const normalizedOrigin = normalizeOrigin(origin);
-
-        console.log('CORS: Checking origin:', normalizedOrigin || origin);
-        console.log('CORS: Allowed origins:', allowedOrigins);
         
         // Allow requests with no origin (mobile apps, curl, etc.)
         if (!origin) {
-            console.log('CORS: No origin provided, allowing');
             return callback(null, true);
         }
         
@@ -37,12 +33,10 @@ const corsOptions = {
         });
         
         if (isAllowed) {
-            console.log('CORS: Origin allowed:', origin);
             callback(null, true);
         } else {
-            // Log unauthorized CORS attempts
+            // Log unauthorized CORS attempts (keep warnings for security monitoring)
             console.warn(`CORS: Unauthorized origin attempt: ${origin}`);
-            console.warn(`CORS: Allowed origins: ${allowedOrigins.map(o => typeof o === 'string' ? o : o.toString()).join(', ')}`);
             callback(new Error('Not allowed by CORS policy'));
         }
     },

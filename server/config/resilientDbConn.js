@@ -106,7 +106,6 @@ const connectDB = async () => {
             connectionMetrics.connectionUptime = Date.now();
             
             console.log(`✅ MongoDB Connected: ${connection.connection.host}`);
-            console.log(`📊 Connection Pool: max=${options.maxPoolSize}, min=${options.minPoolSize}`);
             
             return connection;
         }, async () => {
@@ -144,7 +143,6 @@ const connectDB = async () => {
  */
 const setupConnectionEventHandlers = () => {
     mongoose.connection.on('connected', () => {
-        console.log('✅ MongoDB connected successfully');
         connectionState.isConnected = true;
         connectionState.lastError = null;
         connectionMetrics.activeConnections = 1;
@@ -178,7 +176,7 @@ const setupConnectionEventHandlers = () => {
 
     // Monitor connection pool
     mongoose.connection.on('fullsetup', () => {
-        console.log('📊 MongoDB connection pool fully established');
+        // Connection pool fully established
     });
 };
 
