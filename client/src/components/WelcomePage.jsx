@@ -465,12 +465,12 @@ const WelcomePage = () => {
             borderRadius: 2,
             boxShadow: theme.palette.mode === 'dark'
               ? '0 8px 32px rgba(0, 0, 0, 0.4)'
-              : '0 8px 32px rgba(0, 0, 0, 0.1)',
+              : '0 8px 32px rgba(0, 0, 0, 0.2)',
             background: theme.palette.mode === 'dark'
               ? 'rgba(30, 30, 30, 0.95)'
-              : 'rgba(255, 255, 255, 0.95)',
+              : 'rgba(26, 110, 238, 0.95)',
             backdropFilter: 'blur(20px)',
-            border: `1px solid ${alpha(theme.palette.divider, 0.1)}`,
+            border: `1px solid ${alpha(theme.palette.primary.main || '#4A8BFF', 0.3)}`,
           }
         }}
         transformOrigin={{ horizontal: 'right', vertical: 'top' }}
@@ -480,43 +480,55 @@ const WelcomePage = () => {
           onClick={() => handleLanguageChange('en')}
           sx={{
             minWidth: 120,
+            color: '#ffffff',
             '&:hover': {
               backgroundColor: alpha(theme.palette.primary.main, 0.1),
             }
           }}
         >
           <ListItemIcon>
-            <Language sx={{ fontSize: 20 }} />
+            <Language sx={{ fontSize: 20, color: '#ffffff' }} />
           </ListItemIcon>
-          <ListItemText primary="English" />
+          <ListItemText 
+            primary="English" 
+            primaryTypographyProps={{ sx: { color: '#ffffff' } }}
+          />
         </MenuItem>
         <MenuItem 
           onClick={() => handleLanguageChange('ar')}
           sx={{
             minWidth: 120,
+            color: '#ffffff',
             '&:hover': {
               backgroundColor: alpha(theme.palette.primary.main, 0.1),
             }
           }}
         >
           <ListItemIcon>
-            <Language sx={{ fontSize: 20 }} />
+            <Language sx={{ fontSize: 20, color: '#ffffff' }} />
           </ListItemIcon>
-          <ListItemText primary="العربية" />
+          <ListItemText 
+            primary="العربية" 
+            primaryTypographyProps={{ sx: { color: '#ffffff' } }}
+          />
         </MenuItem>
         <MenuItem 
           onClick={() => handleLanguageChange('fr')}
           sx={{
             minWidth: 120,
+            color: '#ffffff',
             '&:hover': {
               backgroundColor: alpha(theme.palette.primary.main, 0.1),
             }
           }}
         >
           <ListItemIcon>
-            <Language sx={{ fontSize: 20 }} />
+            <Language sx={{ fontSize: 20, color: '#ffffff' }} />
           </ListItemIcon>
-          <ListItemText primary="Français" />
+          <ListItemText 
+            primary="Français" 
+            primaryTypographyProps={{ sx: { color: '#ffffff' } }}
+          />
         </MenuItem>
       </Menu>
 
