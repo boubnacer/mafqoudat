@@ -535,12 +535,8 @@ const LoginComponent = () => {
           sx: {
             mt: 1,
             borderRadius: 2,
-            boxShadow: theme.palette.mode === 'dark'
-              ? '0 8px 32px rgba(0, 0, 0, 0.4)'
-              : '0 8px 32px rgba(0, 0, 0, 0.2)',
-            background: theme.palette.mode === 'dark'
-              ? 'rgba(30, 30, 30, 0.95)'
-              : 'rgba(26, 110, 238, 0.95)',
+            boxShadow: '0 8px 32px rgba(0, 0, 0, 0.4)',
+            background: 'rgba(30, 30, 30, 0.95)',
             backdropFilter: 'blur(20px)',
             border: `1px solid ${alpha(theme.palette.primary.main || '#4A8BFF', 0.3)}`,
           }
