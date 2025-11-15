@@ -137,7 +137,7 @@ const LanguageSelector = styled(Box)(({ theme }) => ({
   minHeight: '48px',
   position: 'relative',
   overflow: 'hidden',
-  // Animated gradient border effect
+  // Animated gradient border effect - Blue tones only
   '&::before': {
     content: '""',
     position: 'absolute',
@@ -145,44 +145,22 @@ const LanguageSelector = styled(Box)(({ theme }) => ({
     borderRadius: '14px',
     background: theme?.palette?.mode === 'dark'
       ? `linear-gradient(45deg, 
-          #00D4FF, 
+          #1A6EEE, 
           #4A8BFF, 
-          #9D4EDD, 
-          #FF006E, 
-          #00D4FF)`
+          #6BA3FF, 
+          #8BB5FF, 
+          #1A6EEE)`
       : `linear-gradient(45deg, 
-          #0066FF, 
+          #043FA5, 
+          #1A6EEE, 
           #4A8BFF, 
-          #7B2CBF, 
-          #C1121F, 
-          #0066FF)`,
+          #6BA3FF, 
+          #043FA5)`,
     backgroundSize: '300% 300%',
     animation: 'gradientShift 3s ease infinite',
     opacity: theme?.palette?.mode === 'dark' ? 0.8 : 0.9,
     zIndex: -1,
     filter: 'blur(1px)',
-  },
-  // Pulsing glow effect
-  animation: 'pulseGlow 2.5s ease-in-out infinite',
-  '@keyframes pulseGlow': {
-    '0%, 100%': {
-      boxShadow: theme?.palette?.mode === 'dark'
-        ? `0 0 10px ${alpha('#00D4FF', 0.4)},
-           0 0 20px ${alpha('#4A8BFF', 0.3)},
-           0 0 30px ${alpha('#9D4EDD', 0.2)}`
-        : `0 0 10px ${alpha('#0066FF', 0.4)},
-           0 0 20px ${alpha('#4A8BFF', 0.3)},
-           0 0 30px ${alpha('#7B2CBF', 0.2)}`,
-    },
-    '50%': {
-      boxShadow: theme?.palette?.mode === 'dark'
-        ? `0 0 15px ${alpha('#00D4FF', 0.6)},
-           0 0 30px ${alpha('#4A8BFF', 0.5)},
-           0 0 45px ${alpha('#9D4EDD', 0.4)}`
-        : `0 0 15px ${alpha('#0066FF', 0.6)},
-           0 0 30px ${alpha('#4A8BFF', 0.5)},
-           0 0 45px ${alpha('#7B2CBF', 0.4)}`,
-    },
   },
   '@keyframes gradientShift': {
     '0%': {
@@ -205,7 +183,6 @@ const LanguageSelector = styled(Box)(({ theme }) => ({
       animation: 'gradientShift 1.5s ease infinite',
       filter: 'blur(0.5px)',
     },
-    animation: 'pulseGlow 1.5s ease-in-out infinite',
   },
   '& .MuiSvgIcon-root': {
     marginRight: '12px',
