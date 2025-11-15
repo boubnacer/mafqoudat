@@ -188,9 +188,14 @@ const LanguageSelector = styled(Box)(({ theme }) => ({
     marginRight: '12px',
     fontSize: '24px',
     transition: 'transform 0.3s ease',
+    color: theme?.palette?.mode === 'dark' ? '#ffffff' : '#1a1a1a',
   },
   '&:hover .MuiSvgIcon-root': {
     transform: 'rotate(15deg) scale(1.1)',
+  },
+  // Ensure Typography text color
+  '& .MuiTypography-root': {
+    color: theme?.palette?.mode === 'dark' ? '#ffffff' : '#1a1a1a',
   },
 }));
 
