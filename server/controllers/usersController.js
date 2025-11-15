@@ -185,97 +185,130 @@ const createNewUser = async (req, res) => {
 // @route PATCH /users
 // @access Private
 const updateUser = async (req, res) => {
-  const { id, username, password, country, email, phone } = req.body;
+  try {
+    const { id, username, password, country, email, phone } = req.body;
 
-  // Confirm data
-  if (!id || !username || !country) {
-    return res
-      .status(400)
-      .json({ message: "All fields except password are required" });
-  }
+    // Confirm data
+    if (!id || !username || !country) {
+      return res
+        .status(400)
+        .json({ message: "All fields except password are required" });
+    }
 
-  // Does the user exist to update? - optimized with selective fields
-  const user = await User.findById(id).select('_id username country password email phone').exec();
+    // Does the user exist to update? - optimized with selective fields
+    // Include authProvider to properly handle Google OAuth users
+    const user = await User.findById(id).select('_id username country password email phone authProvider role').exec();
 
-  if (!user) {
-    return res.status(400).json({ message: "User not found" });
-  }
+    if (!user) {
+      return res.status(400).json({ message: "User not found" });
+    }
 
-  // Check for duplicate username - optimized with selective fields
-  const duplicate = await User.findOne({ username })
-    .select('_id')
-    .collation({ locale: "en", strength: 2 })
-    .lean()
-    .exec();
-
-  // Allow updates to the original user
-  if (duplicate && duplicate?._id.toString() !== id) {
-    return res.status(409).json({ message: "Username already exists" });
-  }
-
-  // Check for duplicate email if email is being updated
-  if (email && email !== user.email) {
-    const duplicateEmail = await User.findOne({ email: email.toLowerCase() })
+    // Check for duplicate username - optimized with selective fields
+    const duplicate = await User.findOne({ username })
       .select('_id')
+      .collation({ locale: "en", strength: 2 })
       .lean()
       .exec();
-    
-    if (duplicateEmail && duplicateEmail._id.toString() !== id) {
-      return res.status(409).json({ message: "Email already exists" });
+
+    // Allow updates to the original user
+    if (duplicate && duplicate?._id.toString() !== id) {
+      return res.status(409).json({ message: "Username already exists" });
     }
-  }
 
-  // Check for duplicate phone if phone is being updated
-  if (phone && phone !== user.phone) {
-    const duplicatePhone = await User.findOne({ phone })
-      .select('_id')
-      .lean()
-      .exec();
-    
-    if (duplicatePhone && duplicatePhone._id.toString() !== id) {
-      return res.status(409).json({ message: "Phone number already exists" });
+    // Check for duplicate email if email is being updated
+    if (email && email !== user.email) {
+      const duplicateEmail = await User.findOne({ email: email.toLowerCase() })
+        .select('_id')
+        .lean()
+        .exec();
+      
+      if (duplicateEmail && duplicateEmail._id.toString() !== id) {
+        return res.status(409).json({ message: "Email already exists" });
+      }
     }
-  }
 
-  // Check if username or country is changing (before updating)
-  const usernameChanged = user.username !== username;
-  const countryChanged = user.country.toString() !== country.toString();
+    // Check for duplicate phone if phone is being updated
+    if (phone && phone !== user.phone) {
+      const duplicatePhone = await User.findOne({ phone })
+        .select('_id')
+        .lean()
+        .exec();
+      
+      if (duplicatePhone && duplicatePhone._id.toString() !== id) {
+        return res.status(409).json({ message: "Phone number already exists" });
+      }
+    }
 
-  user.username = username;
-  user.country = country;
+    // Check if username or country is changing (before updating)
+    const usernameChanged = user.username !== username;
+    const countryChanged = user.country.toString() !== country.toString();
 
-  // Update email if provided
-  if (email !== undefined) {
-    user.email = email.toLowerCase() || null;
-  }
+    user.username = username;
+    user.country = country;
 
-  // Update phone if provided
-  if (phone !== undefined) {
-    user.phone = phone || null;
-  }
+    // Update email if provided
+    if (email !== undefined) {
+      user.email = email.toLowerCase() || null;
+    }
 
-  if (password) {
-    // Hash password
-    user.password = await bcrypt.hash(password, 10); // salt rounds
-  }
+    // Update phone if provided
+    if (phone !== undefined) {
+      user.phone = phone || null;
+    }
 
-  const updatedUser = await user.save();
-  
-  let response = { message: `${updatedUser.username} updated` };
-  
-  if (usernameChanged || countryChanged) {
-    const { accessToken } = generateTokens({
-      username: updatedUser.username,
-      id: updatedUser.id,
-      country: updatedUser.country,
-      role: updatedUser.role
-    });
+    // Only update password if provided AND user is not a Google OAuth user
+    // Google OAuth users don't have passwords, so we should only set password for local auth users
+    if (password) {
+      // For Google OAuth users, allow setting a password (linking local auth)
+      // For local auth users, update the password
+      user.password = await bcrypt.hash(password, 10); // salt rounds
+    }
+
+    const updatedUser = await user.save();
     
-    response.accessToken = accessToken;
-    console.log('New access token generated due to username or country change');
-  }
+    let response = { message: `${updatedUser.username} updated` };
+    
+    if (usernameChanged || countryChanged) {
+      const { accessToken } = generateTokens({
+        username: updatedUser.username,
+        id: updatedUser.id,
+        country: updatedUser.country,
+        role: updatedUser.role
+      });
+      
+      response.accessToken = accessToken;
+      console.log('New access token generated due to username or country change');
+    }
 
-  res.json(response);
+    res.json(response);
+  } catch (error) {
+    console.error('Error updating user:', error);
+    
+    // Handle validation errors
+    if (error.name === 'ValidationError') {
+      const errors = Object.values(error.errors).map(err => err.message);
+      return res.status(400).json({ 
+        message: "Validation error",
+        errors: errors
+      });
+    }
+    
+    // Handle duplicate key errors
+    if (error.code === 11000) {
+      const field = Object.keys(error.keyPattern)[0];
+      return res.status(409).json({ 
+        message: `${field} already exists`
+      });
+    }
+    
+    // Generic error response
+    logEvents(
+      `Error updating user: ${error.message}\t${req.method}\t${req.url}\t${req.ip}`,
+      'errLog.log'
+    );
+    
+    return res.status(500).json({ message: "Failed to update profile. Please try again." });
+  }
 };
 
 // @desc Delete a user
