@@ -255,9 +255,7 @@ const LanguageSelector = styled(Box)(({ theme }) => ({
   padding: '12px 20px',
   borderRadius: '12px',
   cursor: 'pointer',
-  background: theme?.palette?.mode === 'dark' 
-    ? 'rgba(255, 255, 255, 0.1)'
-    : 'rgba(0, 0, 0, 0.05)',
+  background: 'rgba(30, 30, 30, 0.9)',
   backdropFilter: 'blur(10px)',
   border: `1px solid ${alpha(theme?.palette?.primary?.main || '#667eea', 0.1)}`,
   transition: 'all 0.3s ease',
@@ -270,22 +268,15 @@ const LanguageSelector = styled(Box)(({ theme }) => ({
     position: 'absolute',
     inset: '-2px',
     borderRadius: '14px',
-    background: theme?.palette?.mode === 'dark'
-      ? `linear-gradient(45deg, 
-          #1A6EEE, 
-          #4A8BFF, 
-          #6BA3FF, 
-          #8BB5FF, 
-          #1A6EEE)`
-      : `linear-gradient(45deg, 
-          #043FA5, 
-          #1A6EEE, 
-          #4A8BFF, 
-          #6BA3FF, 
-          #043FA5)`,
+    background: `linear-gradient(45deg, 
+      #1A6EEE, 
+      #4A8BFF, 
+      #6BA3FF, 
+      #8BB5FF, 
+      #1A6EEE)`,
     backgroundSize: '300% 300%',
     animation: 'gradientShift 3s ease infinite',
-    opacity: theme?.palette?.mode === 'dark' ? 0.8 : 0.9,
+    opacity: 0.8,
     zIndex: -1,
     filter: 'blur(1px)',
   },
@@ -301,9 +292,7 @@ const LanguageSelector = styled(Box)(({ theme }) => ({
     },
   },
   '&:hover': {
-    background: theme?.palette?.mode === 'dark' 
-      ? 'rgba(255, 255, 255, 0.2)'
-      : 'rgba(0, 0, 0, 0.1)',
+    background: 'rgba(30, 30, 30, 1)',
     transform: 'translateY(-2px) scale(1.02)',
     '&::before': {
       opacity: 1,
@@ -315,18 +304,18 @@ const LanguageSelector = styled(Box)(({ theme }) => ({
     marginRight: '12px',
     fontSize: '24px',
     transition: 'transform 0.3s ease',
-    color: `${theme?.palette?.mode === 'dark' ? '#ffffff' : '#1a1a1a'} !important`,
+    color: '#ffffff !important',
   },
   '&:hover .MuiSvgIcon-root': {
     transform: 'rotate(15deg) scale(1.1)',
   },
-  // Ensure Typography text color
+  // Ensure Typography text color - always white
   '& .MuiTypography-root': {
-    color: `${theme?.palette?.mode === 'dark' ? '#ffffff' : '#1a1a1a'} !important`,
+    color: '#ffffff !important',
   },
-  // Target all SVG icons including the dropdown arrow
+  // Target all SVG icons including the dropdown arrow - always white
   '& svg': {
-    color: `${theme?.palette?.mode === 'dark' ? '#ffffff' : '#1a1a1a'} !important`,
+    color: '#ffffff !important',
   },
 }));
 
