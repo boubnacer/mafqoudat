@@ -32,8 +32,7 @@ const getAllUsers = async (req, res) => {
           createdAt: 1,
           updatedAt: 1,
           lastLogin: 1,
-          // Exclude password field
-          password: 0,
+          // Note: password field is automatically excluded by not including it
           // Add country code from lookup - handle null/empty arrays gracefully
           code: { 
             $ifNull: [
