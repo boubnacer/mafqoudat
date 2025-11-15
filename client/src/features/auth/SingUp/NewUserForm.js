@@ -270,14 +270,22 @@ const LanguageSelector = styled(Box)(({ theme }) => ({
     position: 'absolute',
     inset: '-2px',
     borderRadius: '14px',
-    background: `linear-gradient(45deg, 
-      ${alpha('#4A8BFF', 0.8)}, 
-      ${alpha('#1A6EEE', 1)}, 
-      ${alpha('#667eea', 0.8)}, 
-      ${alpha('#4A8BFF', 0.8)})`,
+    background: theme?.palette?.mode === 'dark'
+      ? `linear-gradient(45deg, 
+          #00D4FF, 
+          #4A8BFF, 
+          #9D4EDD, 
+          #FF006E, 
+          #00D4FF)`
+      : `linear-gradient(45deg, 
+          #0066FF, 
+          #4A8BFF, 
+          #7B2CBF, 
+          #C1121F, 
+          #0066FF)`,
     backgroundSize: '300% 300%',
     animation: 'gradientShift 3s ease infinite',
-    opacity: 0.6,
+    opacity: theme?.palette?.mode === 'dark' ? 0.8 : 0.9,
     zIndex: -1,
     filter: 'blur(1px)',
   },
@@ -285,14 +293,22 @@ const LanguageSelector = styled(Box)(({ theme }) => ({
   animation: 'pulseGlow 2.5s ease-in-out infinite',
   '@keyframes pulseGlow': {
     '0%, 100%': {
-      boxShadow: `0 0 10px ${alpha(theme?.palette?.primary?.main || '#4A8BFF', 0.3)},
-                  0 0 20px ${alpha(theme?.palette?.primary?.main || '#4A8BFF', 0.2)},
-                  0 0 30px ${alpha(theme?.palette?.primary?.main || '#4A8BFF', 0.1)}`,
+      boxShadow: theme?.palette?.mode === 'dark'
+        ? `0 0 10px ${alpha('#00D4FF', 0.4)},
+           0 0 20px ${alpha('#4A8BFF', 0.3)},
+           0 0 30px ${alpha('#9D4EDD', 0.2)}`
+        : `0 0 10px ${alpha('#0066FF', 0.4)},
+           0 0 20px ${alpha('#4A8BFF', 0.3)},
+           0 0 30px ${alpha('#7B2CBF', 0.2)}`,
     },
     '50%': {
-      boxShadow: `0 0 15px ${alpha(theme?.palette?.primary?.main || '#4A8BFF', 0.5)},
-                  0 0 30px ${alpha(theme?.palette?.primary?.main || '#4A8BFF', 0.4)},
-                  0 0 45px ${alpha(theme?.palette?.primary?.main || '#4A8BFF', 0.3)}`,
+      boxShadow: theme?.palette?.mode === 'dark'
+        ? `0 0 15px ${alpha('#00D4FF', 0.6)},
+           0 0 30px ${alpha('#4A8BFF', 0.5)},
+           0 0 45px ${alpha('#9D4EDD', 0.4)}`
+        : `0 0 15px ${alpha('#0066FF', 0.6)},
+           0 0 30px ${alpha('#4A8BFF', 0.5)},
+           0 0 45px ${alpha('#7B2CBF', 0.4)}`,
     },
   },
   '@keyframes gradientShift': {
@@ -314,6 +330,7 @@ const LanguageSelector = styled(Box)(({ theme }) => ({
     '&::before': {
       opacity: 1,
       animation: 'gradientShift 1.5s ease infinite',
+      filter: 'blur(0.5px)',
     },
     animation: 'pulseGlow 1.5s ease-in-out infinite',
   },
