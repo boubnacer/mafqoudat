@@ -9,6 +9,7 @@ const { deleteFromCloudinary } = require("../config/cloudinary");
 const mongoose = require("mongoose");
 const TranslationService = require("../services/translationService");
 const { unifiedCacheService } = require("../config/unifiedCache");
+const { getCountryId } = require("../utils/countryCache");
 
 /**
  * Memory-Optimized Posts Controller
@@ -76,21 +77,12 @@ const getAllPosts = async (req, res) => {
       ];
     }
 
-    // Handle country filtering with caching
+    // Handle country filtering with caching (using countryCache utility)
     let countryId = currentCountry;
     if (currentCountry && !mongoose.Types.ObjectId.isValid(currentCountry)) {
-      const countryCacheKey = unifiedCacheService.generateKey('reference', 'country', { code: currentCountry });
-      let country = await unifiedCacheService.get(countryCacheKey);
-      
-      if (!country) {
-        country = await Country.findOne({ code: currentCountry }).select('_id').lean();
-        if (country) {
-          await unifiedCacheService.set(countryCacheKey, country, 86400); // Cache for 24 hours
-        }
-      }
-      
-      if (country) {
-        countryId = country._id;
+      const cachedCountryId = await getCountryId(currentCountry);
+      if (cachedCountryId) {
+        countryId = cachedCountryId;
       } else {
         return res.status(400).json({ 
           message: "Invalid country code",
@@ -466,21 +458,12 @@ const getFilteredPosts = async (req, res) => {
       ];
     }
 
-    // Handle country filtering
+    // Handle country filtering with caching (using countryCache utility)
     let countryId = currentCountry;
     if (currentCountry && !mongoose.Types.ObjectId.isValid(currentCountry)) {
-      const countryCacheKey = unifiedCacheService.generateKey('reference', 'country', { code: currentCountry });
-      let country = await unifiedCacheService.get(countryCacheKey);
-      
-      if (!country) {
-        country = await Country.findOne({ code: currentCountry }).select('_id').lean();
-        if (country) {
-          await unifiedCacheService.set(countryCacheKey, country, 86400);
-        }
-      }
-      
-      if (country) {
-        countryId = country._id;
+      const cachedCountryId = await getCountryId(currentCountry);
+      if (cachedCountryId) {
+        countryId = cachedCountryId;
       } else {
         return res.status(400).json({ 
           message: "Invalid country code",

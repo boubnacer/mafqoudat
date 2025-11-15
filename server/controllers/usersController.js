@@ -9,20 +9,44 @@ const { logEvents } = require("../middleware/logger");
 // @route GET /users
 // @access Private
 const getAllUsers = async (req, res) => {
-  // Get all users from MongoDB
-  const users = await User.find().select("-password").lean();
+  // OPTIMIZED: Use aggregation with $lookup to avoid N+1 queries
+  const usersWithCountry = await User.aggregate([
+    {
+      $lookup: {
+        from: "countries",
+        localField: "country",
+        foreignField: "_id",
+        as: "countryData"
+      }
+    },
+    {
+      $project: {
+        _id: 1,
+        username: 1,
+        email: 1,
+        role: 1,
+        isActive: 1,
+        country: 1,
+        createdAt: 1,
+        updatedAt: 1,
+        lastLogin: 1,
+        // Exclude password field
+        password: 0,
+        // Add country code from lookup
+        code: { 
+          $ifNull: [
+            { $arrayElemAt: ["$countryData.code", 0] }, 
+            "Unknown"
+          ]
+        }
+      }
+    }
+  ]);
 
   // If no users
-  if (!users?.length) {
+  if (!usersWithCountry?.length) {
     return res.status(400).json({ message: "No users found" });
   }
-
-  const usersWithCountry = await Promise.all(
-    users.map(async (user) => {
-      const country = await Country.findById(user.country).select('code').lean().exec();
-      return { ...user, code: country?.code || 'Unknown' };
-    })
-  );
 
   res.json(usersWithCountry);
 };

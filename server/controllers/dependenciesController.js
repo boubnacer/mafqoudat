@@ -656,17 +656,23 @@ const getDashboard = async (req, res) => {
       }
     ]);
 
-    // Extract counts from aggregation result
-    const counts = countsResult[0];
-    const totalFounds = counts.totalFounds[0]?.count || 0;
-    const totalLosts = counts.totalLosts[0]?.count || 0;
-    const totalPosts = counts.totalPosts[0]?.count || 0;
-    const totalReturned = counts.totalReturned[0]?.count || 0;
-    const todaysFoundPosts = counts.todaysFoundPosts[0]?.count || 0;
-    const todaysLostPosts = counts.todaysLostPosts[0]?.count || 0;
+    // Extract counts from aggregation result with safety check
+    const counts = countsResult && countsResult[0] ? countsResult[0] : {};
+    const totalFounds = counts.totalFounds?.[0]?.count || 0;
+    const totalLosts = counts.totalLosts?.[0]?.count || 0;
+    const totalPosts = counts.totalPosts?.[0]?.count || 0;
+    const totalReturned = counts.totalReturned?.[0]?.count || 0;
+    const todaysFoundPosts = counts.todaysFoundPosts?.[0]?.count || 0;
+    const todaysLostPosts = counts.todaysLostPosts?.[0]?.count || 0;
 
     // OPTIMIZED: Get geography data using aggregation with $lookup instead of N+1 queries
+    // CRITICAL FIX: Filter by currentCountry to avoid processing all posts
     const geographyData = await Post.aggregate([
+      {
+        $match: {
+          country: new mongoose.Types.ObjectId(currentCountry)
+        }
+      },
       {
         $lookup: {
           from: "countries",

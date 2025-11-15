@@ -9,6 +9,7 @@ const { deleteFromCloudinary } = require("../config/cloudinary");
 const mongoose = require("mongoose");
 const TranslationService = require("../services/translationService");
 const { cacheService } = require("../config/cache");
+const { getCountryId } = require("../utils/countryCache");
 
 /**
  * OPTIMIZED getAllPosts - Reduced from 5 to 3 $lookup operations
@@ -36,10 +37,10 @@ const getAllPostsOptimized = async (req, res) => {
       });
     }
 
-    // Validate that currentCountry is a valid ObjectId or country code
+    // Validate that currentCountry is a valid ObjectId or country code (using cached lookup)
     if (currentCountry && !mongoose.Types.ObjectId.isValid(currentCountry)) {
-      const country = await Country.findOne({ code: currentCountry }).lean();
-      if (!country) {
+      const countryId = await getCountryId(currentCountry);
+      if (!countryId) {
         return res.status(400).json({ 
           message: "Invalid currentCountry format",
           error: "currentCountry must be a valid MongoDB ObjectId or country code"
