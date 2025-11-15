@@ -1920,8 +1920,8 @@ if (typeof document !== 'undefined') {
                   />
                 </Box>
 
-                {/* Item Details Section - Hidden */}
-                {/* <Typography 
+                {/* Item Details Section */}
+                <Typography 
                   variant="h5" 
                   sx={{ 
                     fontWeight: 700, 
@@ -1958,34 +1958,46 @@ if (typeof document !== 'undefined') {
                     }}
                   >
                     {getFoundLostType(values.foundLost) === 'LOST' 
-                      ? t('descriptionLostPlaceholder') 
-                      : t('descriptionFoundPlaceholder')
-                    }
-                  </Typography>
-                  <Typography 
-                    variant="caption" 
-                    sx={{ 
-                      mb: 1, 
-                      display: "block", 
-                      fontStyle: "italic", 
-                      fontSize: '1rem',
-                      color: theme.palette.mode === 'dark' ? '#ff9800' : '#f57c00',
-                      fontWeight: 500
-                    }}
-                  >
-                    {getFoundLostType(values.foundLost) === 'LOST' 
                       ? (t('descriptionOptionalLostMessage') || "Description is optional but recommended when you don't have an image of the lost item.")
                       : (t('descriptionOptionalFoundMessage') || "Description is optional. You can add an image instead, or provide both for better identification.")
                     }
                   </Typography>
+                  
+                  {/* Sensitive Information Warning */}
+                  <Alert 
+                    severity="warning" 
+                    sx={{ 
+                      mb: 2,
+                      borderRadius: 2,
+                      backgroundColor: theme.palette.mode === 'dark' 
+                        ? 'rgba(255, 152, 0, 0.1)' 
+                        : 'rgba(255, 152, 0, 0.05)',
+                      border: `1px solid ${theme.palette.mode === 'dark' ? 'rgba(255, 152, 0, 0.3)' : 'rgba(255, 152, 0, 0.2)'}`,
+                      '& .MuiAlert-icon': {
+                        color: theme.palette.mode === 'dark' ? '#ff9800' : '#f57c00',
+                      },
+                      '& .MuiAlert-message': {
+                        color: theme.palette.text.primary,
+                        fontSize: '0.9rem',
+                        fontWeight: 500,
+                      }
+                    }}
+                  >
+                    {t('descriptionSensitiveInfoWarning')}
+                  </Alert>
+                  
                   <Textfield 
                     name="description" 
                     variant="outlined" 
                     multiline 
                     rows={4}
-                    placeholder={t('descriptionPlaceholder')}
+                    placeholder={getFoundLostType(values.foundLost) === 'LOST' 
+                      ? t('descriptionPlaceholderLost') 
+                      : t('descriptionPlaceholderFound')
+                    }
+                    data-testid="description"
                   />
-                </Box> */}
+                </Box>
 
                 {/* Contact Information Section */}
                 <Typography 

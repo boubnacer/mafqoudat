@@ -1501,8 +1501,8 @@ const NewPostForm = ({ user, countries, categories, flOptions }) => {
                   />
                 </Box>
 
-                {/* Item Details Section - Hidden */}
-                {/* <Typography 
+                {/* Item Details Section */}
+                <Typography 
                   variant="h5" 
                   sx={{ 
                     fontWeight: 700, 
@@ -1543,14 +1543,42 @@ const NewPostForm = ({ user, countries, categories, flOptions }) => {
                       : (t('descriptionOptionalFoundMessage') || "Description is optional. You can add an image instead, or provide both for better identification.")
                     }
                   </Typography>
+                  
+                  {/* Sensitive Information Warning */}
+                  <Alert 
+                    severity="warning" 
+                    sx={{ 
+                      mb: 2,
+                      borderRadius: 2,
+                      backgroundColor: theme.palette.mode === 'dark' 
+                        ? 'rgba(255, 152, 0, 0.1)' 
+                        : 'rgba(255, 152, 0, 0.05)',
+                      border: `1px solid ${theme.palette.mode === 'dark' ? 'rgba(255, 152, 0, 0.3)' : 'rgba(255, 152, 0, 0.2)'}`,
+                      '& .MuiAlert-icon': {
+                        color: theme.palette.mode === 'dark' ? '#ff9800' : '#f57c00',
+                      },
+                      '& .MuiAlert-message': {
+                        color: theme.palette.text.primary,
+                        fontSize: '0.9rem',
+                        fontWeight: 500,
+                      }
+                    }}
+                  >
+                    {t('descriptionSensitiveInfoWarning')}
+                  </Alert>
+                  
                   <Textfield 
                     name="description" 
                     variant="outlined" 
                     multiline 
                     rows={4}
-                    placeholder={t('descriptionPlaceholder')}
+                    placeholder={getFoundLostType(values.foundLost) === 'LOST' 
+                      ? t('descriptionPlaceholderLost') 
+                      : t('descriptionPlaceholderFound')
+                    }
+                    data-testid="description"
                   />
-                </Box> */}
+                </Box>
 
                 {/* Contact Information Section */}
                 <Typography 
