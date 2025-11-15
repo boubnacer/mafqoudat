@@ -4,6 +4,7 @@ const TranslationService = require("../services/translationService");
 const geonamesService = require("../services/geonamesService");
 const googlePlacesService = require("../services/googlePlacesService");
 const { cacheService } = require("../config/cache");
+const { getCountryId } = require("../utils/countryCache");
 
 // Helper function to check for Arabic text
 const isArabicText = (text) => {
@@ -70,13 +71,13 @@ const getCities = async (req, res) => {
       ];
     }
     
-    // Filter by country
+    // Filter by country (using cached lookup)
     if (countryId) {
       query.country = countryId;
     } else if (countryCode) {
-      const country = await Country.findOne({ code: countryCode.toUpperCase() });
-      if (country) {
-        query.country = country._id;
+      const cachedCountryId = await getCountryId(countryCode.toUpperCase());
+      if (cachedCountryId) {
+        query.country = cachedCountryId;
       }
     }
     
@@ -173,12 +174,14 @@ const searchCities = async (req, res) => {
       ]
     };
 
-    // Filter by country if specified
+    // Filter by country if specified (using cached lookup)
     let country = null;
     if (countryCode) {
-      country = await Country.findOne({ code: countryCode.toUpperCase() });
-      if (country) {
-        query.country = country._id;
+      const cachedCountryId = await getCountryId(countryCode.toUpperCase());
+      if (cachedCountryId) {
+        query.country = cachedCountryId;
+        // Fetch full country data if needed for response
+        country = await Country.findById(cachedCountryId).select('code labels flag').lean();
       }
     }
 
@@ -421,12 +424,15 @@ const createCity = async (req, res) => {
       });
     }
 
-    // Find country
+    // Find country (using cached lookup for code)
     let country;
     if (countryId) {
       country = await Country.findById(countryId);
     } else if (countryCode) {
-      country = await Country.findOne({ code: countryCode.toUpperCase() });
+      const cachedCountryId = await getCountryId(countryCode.toUpperCase());
+      if (cachedCountryId) {
+        country = await Country.findById(cachedCountryId);
+      }
     }
 
     if (!country) {

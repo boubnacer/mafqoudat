@@ -11,6 +11,7 @@ const TranslationService = require("../services/translationService");
 const { cacheService } = require("../config/cache");
 // const getCountryIso3 = require("country-iso-2-to-3");
 const getCountryIso3 = require("country-iso-2-to-3");
+const { getCountryId } = require("../utils/countryCache");
 
 // @desc Get all posts
 // @route GET /posts
@@ -33,17 +34,17 @@ const getAllPosts = async (req, res) => {
       });
     }
 
-    // Validate that currentCountry is a valid ObjectId or country code
-    if (currentCountry && !mongoose.Types.ObjectId.isValid(currentCountry)) {
-      // Check if it's a valid country code
-      const country = await Country.findOne({ code: currentCountry }).lean();
-      if (!country) {
-        return res.status(400).json({ 
-          message: "Invalid currentCountry format",
-          error: "currentCountry must be a valid MongoDB ObjectId or country code"
-        });
-      }
+  // Validate that currentCountry is a valid ObjectId or country code
+  if (currentCountry && !mongoose.Types.ObjectId.isValid(currentCountry)) {
+    // Check if it's a valid country code using cached lookup
+    const countryId = await getCountryId(currentCountry);
+    if (!countryId) {
+      return res.status(400).json({ 
+        message: "Invalid currentCountry format",
+        error: "currentCountry must be a valid MongoDB ObjectId or country code"
+      });
     }
+  }
   
   // Generate cache key
   const cacheKey = cacheService.generateKey('posts', {
@@ -83,13 +84,13 @@ const getAllPosts = async (req, res) => {
     ];
   }
 
-  // First, get the country ID from the country code
+  // First, get the country ID from the country code (using cached lookup)
   let countryId = currentCountry;
   if (currentCountry && !mongoose.Types.ObjectId.isValid(currentCountry)) {
     // If currentCountry is not a valid ObjectId, treat it as a country code
-    const country = await Country.findOne({ code: currentCountry }).lean();
-    if (country) {
-      countryId = country._id;
+    const cachedCountryId = await getCountryId(currentCountry);
+    if (cachedCountryId) {
+      countryId = cachedCountryId;
     } else {
       return res.status(400).json({ 
         message: "Invalid country code",
@@ -430,12 +431,12 @@ const getFilteredPosts = async (req, res) => {
       ];
     }
 
-    // Handle country filtering
+    // Handle country filtering (using cached lookup)
     let countryId = currentCountry;
     if (currentCountry && !mongoose.Types.ObjectId.isValid(currentCountry)) {
-      const country = await Country.findOne({ code: currentCountry }).lean();
-      if (country) {
-        countryId = country._id;
+      const cachedCountryId = await getCountryId(currentCountry);
+      if (cachedCountryId) {
+        countryId = cachedCountryId;
       } else {
         return res.status(400).json({ 
           message: "Invalid country code",
@@ -783,10 +784,6 @@ const getUserPosts = async (req, res) => {
     const totalPosts = await Post.countDocuments({
       user: new mongoose.Types.ObjectId(userId)
     });
-
-
-    // Debug: Check if there are any posts for this user at all
-    const allUserPosts = await Post.find({ user: new mongoose.Types.ObjectId(userId) }).limit(5);
 
     // If no posts
     if (!userPosts?.length) {

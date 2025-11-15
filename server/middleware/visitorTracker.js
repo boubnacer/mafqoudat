@@ -6,6 +6,10 @@ const axios = require('axios');
 const ipCountryCache = new Map();
 const CACHE_DURATION = 24 * 60 * 60 * 1000; // 24 hours
 
+// Cache for visitor sessions to avoid repeated database calls
+const sessionCache = new Map();
+const SESSION_CACHE_TTL = 5 * 60 * 1000; // 5 minutes - cache session lookups
+
 /**
  * Get country code from IP address using free IP geolocation API
  * @param {string} ip - IP address
@@ -144,6 +148,27 @@ const visitorTracker = async (req, res, next) => {
       
       res.cookie('visitorSession', sessionId, cookieOptions);
     } else {
+      // OPTIMIZED: Check session cache first to avoid database query
+      if (sessionCache.has(sessionId)) {
+        const cached = sessionCache.get(sessionId);
+        // Check if cache is still valid
+        if (Date.now() - cached.timestamp < SESSION_CACHE_TTL) {
+          // Session exists in cache, skip database query
+          res.setHeader('X-Visitor-Session', sessionId);
+          res.cookie('visitorSession', sessionId, {
+            maxAge: COOKIE_MAX_AGE,
+            httpOnly: true,
+            secure: true,
+            sameSite: 'none',
+            path: '/'
+          });
+          return next();
+        } else {
+          // Cache expired, remove it
+          sessionCache.delete(sessionId);
+        }
+      }
+      
       // Return session ID in response header to keep it in sync
       res.setHeader('X-Visitor-Session', sessionId);
       
@@ -219,11 +244,25 @@ const visitorTracker = async (req, res, next) => {
         }
       );
 
+      // OPTIMIZED: Cache the session to avoid future database queries
+      if (result) {
+        sessionCache.set(sessionId, {
+          timestamp: Date.now(),
+          sessionId: result.sessionId
+        });
+      }
+
     } catch (err) {
       // If it's a duplicate key error (E11000), another request already created it - that's fine
       // Silently handle duplicate sessions (race condition)
       if (err.code !== 11000 && err.name !== 'MongoServerError') {
         console.error('❌ Visitor Tracker: Error saving visitor data:', err);
+      } else {
+        // Even on duplicate key error, cache the session since it exists
+        sessionCache.set(sessionId, {
+          timestamp: Date.now(),
+          sessionId: sessionId
+        });
       }
     }
 

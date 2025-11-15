@@ -593,50 +593,116 @@ const getDashboard = async (req, res) => {
       recentLosts = [];
     }
 
-    // total Founds
-    const totalFounds = await Post.find({
-      country: currentCountry,
-      foundLost: foundOption._id,
-    }).countDocuments();
-
-    // total Losts
-    const totalLosts = await Post.find({
-      country: currentCountry,
-      foundLost: lostOption._id,
-    }).countDocuments();
-
-    // total posts
-    const totalPosts = await Post.find({
-      country: currentCountry,
-    }).countDocuments();
-
-    // total returned items
-    const totalReturned = await Post.find({
-      country: currentCountry,
-      returned: true,
-    }).countDocuments();
-
-    // get geography
-    const posts = await Post.find();
-
-    const postsWithCountryname = await Promise.all(
-      posts.map(async (post) => {
-        const postcountry = await Country.findById(post.country);
-        const postCategory = await Category.findById(post.category);
-        return {
-          ...post._doc,
-          code: postcountry?.code || "Unknown",
-          categoryname: postCategory?.code || "Unknown",
-        };
-      })
+    // OPTIMIZED: Get all counts in a single aggregation using $facet
+    const todayStart = new Date(
+      currentDate.getFullYear(),
+      currentDate.getMonth(),
+      currentDate.getDate()
+    );
+    const todayEnd = new Date(
+      currentDate.getFullYear(),
+      currentDate.getMonth(),
+      currentDate.getDate() + 1
     );
 
-    const mappedLocations = postsWithCountryname.reduce((acc, { code }) => {
-      const countryISO3 = getCountryIso3(code);
+    const countsResult = await Post.aggregate([
+      {
+        $match: {
+          country: new mongoose.Types.ObjectId(currentCountry)
+        }
+      },
+      {
+        $facet: {
+          totalFounds: [
+            { $match: { foundLost: foundOption._id } },
+            { $count: "count" }
+          ],
+          totalLosts: [
+            { $match: { foundLost: lostOption._id } },
+            { $count: "count" }
+          ],
+          totalPosts: [
+            { $count: "count" }
+          ],
+          totalReturned: [
+            { $match: { returned: true } },
+            { $count: "count" }
+          ],
+          todaysFoundPosts: [
+            {
+              $match: {
+                foundLost: foundOption._id,
+                createdAt: {
+                  $gte: todayStart,
+                  $lt: todayEnd
+                }
+              }
+            },
+            { $count: "count" }
+          ],
+          todaysLostPosts: [
+            {
+              $match: {
+                foundLost: lostOption._id,
+                createdAt: {
+                  $gte: todayStart,
+                  $lt: todayEnd
+                }
+              }
+            },
+            { $count: "count" }
+          ]
+        }
+      }
+    ]);
+
+    // Extract counts from aggregation result
+    const counts = countsResult[0];
+    const totalFounds = counts.totalFounds[0]?.count || 0;
+    const totalLosts = counts.totalLosts[0]?.count || 0;
+    const totalPosts = counts.totalPosts[0]?.count || 0;
+    const totalReturned = counts.totalReturned[0]?.count || 0;
+    const todaysFoundPosts = counts.todaysFoundPosts[0]?.count || 0;
+    const todaysLostPosts = counts.todaysLostPosts[0]?.count || 0;
+
+    // OPTIMIZED: Get geography data using aggregation with $lookup instead of N+1 queries
+    const geographyData = await Post.aggregate([
+      {
+        $lookup: {
+          from: "countries",
+          localField: "country",
+          foreignField: "_id",
+          as: "countryData"
+        }
+      },
+      {
+        $lookup: {
+          from: "categories",
+          localField: "category",
+          foreignField: "_id",
+          as: "categoryData"
+        }
+      },
+      {
+        $project: {
+          code: { $arrayElemAt: ["$countryData.code", 0] },
+          categoryname: { $arrayElemAt: ["$categoryData.code", 0] }
+        }
+      },
+      {
+        $group: {
+          _id: "$code",
+          count: { $sum: 1 }
+        }
+      }
+    ]);
+
+    const mappedLocations = geographyData.reduce((acc, { _id: code, count }) => {
+      const countryISO3 = getCountryIso3(code || "Unknown");
       if (!acc[countryISO3]) {
         acc[countryISO3] = 0;
       }
-      acc[countryISO3]++;
+      acc[countryISO3] += count;
       return acc;
     }, {});
 
@@ -645,42 +711,6 @@ const getDashboard = async (req, res) => {
         return { id: country, value: count };
       }
     );
-
-    // today's total founds
-    const todaysFoundPosts = await Post.find({
-      country: currentCountry,
-      createdAt: {
-        $gte: new Date(
-          currentDate.getFullYear(),
-          currentDate.getMonth(),
-          currentDate.getDate()
-        ),
-        $lt: new Date(
-          currentDate.getFullYear(),
-          currentDate.getMonth(),
-          currentDate.getDate() + 1
-        ),
-      },
-      foundLost: foundOption._id,
-    }).countDocuments();
-
-    // today's total losts
-    const todaysLostPosts = await Post.find({
-      country: currentCountry,
-      createdAt: {
-        $gte: new Date(
-          currentDate.getFullYear(),
-          currentDate.getMonth(),
-          currentDate.getDate()
-        ),
-        $lt: new Date(
-          currentDate.getFullYear(),
-          currentDate.getMonth(),
-          currentDate.getDate() + 1
-        ),
-      },
-      foundLost: lostOption._id,
-    }).countDocuments();
 
     const createdToday = { todaysFoundPosts, todaysLostPosts };
 
