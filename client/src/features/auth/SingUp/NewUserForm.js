@@ -257,7 +257,7 @@ const LanguageSelector = styled(Box)(({ theme }) => ({
   cursor: 'pointer',
   background: 'rgba(30, 30, 30, 0.9)',
   backdropFilter: 'blur(10px)',
-  border: `1px solid ${alpha(theme?.palette?.primary?.main || '#667eea', 0.1)}`,
+  border: 'none',
   transition: 'all 0.3s ease',
   minHeight: '48px',
   position: 'relative',
