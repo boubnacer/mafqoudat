@@ -628,10 +628,14 @@ const NewUserFormComponent = ({ countries }) => {
           sx: {
             mt: 1,
             borderRadius: 2,
-            boxShadow: '0 8px 32px rgba(0, 0, 0, 0.4)',
-            background: 'rgba(30, 30, 30, 0.95)',
+            boxShadow: theme.palette.mode === 'dark'
+              ? '0 8px 32px rgba(0, 0, 0, 0.4)'
+              : '0 8px 32px rgba(0, 0, 0, 0.15)',
+            background: theme.palette.mode === 'dark'
+              ? 'rgba(30, 30, 30, 0.95)'
+              : 'rgba(255, 255, 255, 0.95)',
             backdropFilter: 'blur(20px)',
-            border: `1px solid ${alpha(theme.palette.primary.main || '#4A8BFF', 0.3)}`,
+            border: `1px solid ${alpha(theme.palette.primary.main || '#4A8BFF', 0.2)}`,
           }
         }}
         transformOrigin={{ horizontal: 'right', vertical: 'top' }}
@@ -641,54 +645,69 @@ const NewUserFormComponent = ({ countries }) => {
           onClick={() => handleLanguageChange('en')}
           sx={{
             minWidth: 120,
-            color: '#ffffff',
+            color: theme.palette.mode === 'dark' ? '#ffffff' : '#1a1a1a',
             '&:hover': {
               backgroundColor: alpha(theme.palette.primary.main, 0.1),
             }
           }}
         >
           <ListItemIcon>
-            <Language sx={{ fontSize: 20, color: '#ffffff' }} />
+            <Language sx={{ 
+              fontSize: 20, 
+              color: theme.palette.mode === 'dark' ? '#ffffff' : '#1a1a1a' 
+            }} />
           </ListItemIcon>
           <ListItemText 
             primary="English" 
-            primaryTypographyProps={{ sx: { color: '#ffffff' } }}
+            primaryTypographyProps={{ 
+              sx: { color: theme.palette.mode === 'dark' ? '#ffffff' : '#1a1a1a' } 
+            }}
           />
         </MenuItem>
         <MenuItem 
           onClick={() => handleLanguageChange('ar')}
           sx={{
             minWidth: 120,
-            color: '#ffffff',
+            color: theme.palette.mode === 'dark' ? '#ffffff' : '#1a1a1a',
             '&:hover': {
               backgroundColor: alpha(theme.palette.primary.main, 0.1),
             }
           }}
         >
           <ListItemIcon>
-            <Language sx={{ fontSize: 20, color: '#ffffff' }} />
+            <Language sx={{ 
+              fontSize: 20, 
+              color: theme.palette.mode === 'dark' ? '#ffffff' : '#1a1a1a' 
+            }} />
           </ListItemIcon>
           <ListItemText 
             primary="العربية" 
-            primaryTypographyProps={{ sx: { color: '#ffffff' } }}
+            primaryTypographyProps={{ 
+              sx: { color: theme.palette.mode === 'dark' ? '#ffffff' : '#1a1a1a' } 
+            }}
           />
         </MenuItem>
         <MenuItem 
           onClick={() => handleLanguageChange('fr')}
           sx={{
             minWidth: 120,
-            color: '#ffffff',
+            color: theme.palette.mode === 'dark' ? '#ffffff' : '#1a1a1a',
             '&:hover': {
               backgroundColor: alpha(theme.palette.primary.main, 0.1),
             }
           }}
         >
           <ListItemIcon>
-            <Language sx={{ fontSize: 20, color: '#ffffff' }} />
+            <Language sx={{ 
+              fontSize: 20, 
+              color: theme.palette.mode === 'dark' ? '#ffffff' : '#1a1a1a' 
+            }} />
           </ListItemIcon>
           <ListItemText 
             primary="Français" 
-            primaryTypographyProps={{ sx: { color: '#ffffff' } }}
+            primaryTypographyProps={{ 
+              sx: { color: theme.palette.mode === 'dark' ? '#ffffff' : '#1a1a1a' } 
+            }}
           />
         </MenuItem>
       </Menu>
