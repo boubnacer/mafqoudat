@@ -26,29 +26,33 @@ async function getCountryId(countryIdentifier) {
     }
   }
 
-  // Check cache first
-  if (countryCache.has(countryIdentifier)) {
-    const cached = countryCache.get(countryIdentifier);
+  // Normalize country code to uppercase for consistent cache keys
+  // This prevents duplicate cache entries for "ma" vs "MA"
+  const normalizedCode = countryIdentifier.toUpperCase();
+
+  // Check cache first using normalized key (FIX: use normalizedCode consistently)
+  if (countryCache.has(normalizedCode)) {
+    const cached = countryCache.get(normalizedCode);
     // Check if cache is still valid
     if (Date.now() - cached.timestamp < CACHE_TTL) {
       return cached.countryId;
     } else {
       // Cache expired, remove it
-      countryCache.delete(countryIdentifier);
+      countryCache.delete(normalizedCode);
     }
   }
 
   // Cache miss - query database
   try {
-    const country = await Country.findOne({ code: countryIdentifier.toUpperCase() })
+    const country = await Country.findOne({ code: normalizedCode })
       .select('_id code')
       .lean()
       .exec();
 
     if (country) {
       const countryId = country._id.toString();
-      // Store in cache
-      countryCache.set(countryIdentifier, {
+      // Store in cache using normalized key (FIX: use normalizedCode, not countryIdentifier)
+      countryCache.set(normalizedCode, {
         countryId,
         timestamp: Date.now()
       });
