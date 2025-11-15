@@ -309,7 +309,7 @@ const NewPostForm = ({ user, countries, categories, flOptions }) => {
 
   const initialFormState = {
     country: user.country,
-    contact: user.username,
+    contact: "",
     category: categories[0]?.id || "",
     foundLost: getDefaultFoundLost(),
     city: "",
