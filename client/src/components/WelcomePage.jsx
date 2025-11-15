@@ -423,13 +423,16 @@ const WelcomePage = () => {
               }
             }}
           >
-            <Language />
+            <Language sx={{ 
+              color: theme?.palette?.mode === 'dark' ? '#ffffff' : '#1a1a1a' 
+            }} />
             <Typography
               variant="body2"
               sx={{
                 fontWeight: 600,
                 fontSize: '1rem',
                 display: 'block',
+                color: theme?.palette?.mode === 'dark' ? '#ffffff' : '#1a1a1a',
                 // Arabic font size fix
                 ...(currentLanguage === 'ar' && {
                   fontSize: '1.1rem',
@@ -438,7 +441,11 @@ const WelcomePage = () => {
             >
               {getLanguageDisplayName(currentLanguage || langContext || 'en')}
             </Typography>
-            <KeyboardArrowDown sx={{ fontSize: '20px', ml: 0.5 }} />
+            <KeyboardArrowDown sx={{ 
+              fontSize: '20px', 
+              ml: 0.5,
+              color: theme?.palette?.mode === 'dark' ? '#ffffff' : '#1a1a1a'
+            }} />
           </LanguageSelector>
 
           {/* Dark/Light mode toggle */}
