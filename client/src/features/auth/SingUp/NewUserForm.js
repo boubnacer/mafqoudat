@@ -262,15 +262,68 @@ const LanguageSelector = styled(Box)(({ theme }) => ({
   border: `1px solid ${alpha(theme?.palette?.primary?.main || '#667eea', 0.1)}`,
   transition: 'all 0.3s ease',
   minHeight: '48px',
+  position: 'relative',
+  overflow: 'hidden',
+  // Animated gradient border effect
+  '&::before': {
+    content: '""',
+    position: 'absolute',
+    inset: '-2px',
+    borderRadius: '14px',
+    background: `linear-gradient(45deg, 
+      ${alpha('#4A8BFF', 0.8)}, 
+      ${alpha('#1A6EEE', 1)}, 
+      ${alpha('#667eea', 0.8)}, 
+      ${alpha('#4A8BFF', 0.8)})`,
+    backgroundSize: '300% 300%',
+    animation: 'gradientShift 3s ease infinite',
+    opacity: 0.6,
+    zIndex: -1,
+    filter: 'blur(1px)',
+  },
+  // Pulsing glow effect
+  animation: 'pulseGlow 2.5s ease-in-out infinite',
+  '@keyframes pulseGlow': {
+    '0%, 100%': {
+      boxShadow: `0 0 10px ${alpha(theme?.palette?.primary?.main || '#4A8BFF', 0.3)},
+                  0 0 20px ${alpha(theme?.palette?.primary?.main || '#4A8BFF', 0.2)},
+                  0 0 30px ${alpha(theme?.palette?.primary?.main || '#4A8BFF', 0.1)}`,
+    },
+    '50%': {
+      boxShadow: `0 0 15px ${alpha(theme?.palette?.primary?.main || '#4A8BFF', 0.5)},
+                  0 0 30px ${alpha(theme?.palette?.primary?.main || '#4A8BFF', 0.4)},
+                  0 0 45px ${alpha(theme?.palette?.primary?.main || '#4A8BFF', 0.3)}`,
+    },
+  },
+  '@keyframes gradientShift': {
+    '0%': {
+      backgroundPosition: '0% 50%',
+    },
+    '50%': {
+      backgroundPosition: '100% 50%',
+    },
+    '100%': {
+      backgroundPosition: '0% 50%',
+    },
+  },
   '&:hover': {
     background: theme?.palette?.mode === 'dark' 
       ? 'rgba(255, 255, 255, 0.2)'
       : 'rgba(0, 0, 0, 0.1)',
-    transform: 'translateY(-2px)',
+    transform: 'translateY(-2px) scale(1.02)',
+    '&::before': {
+      opacity: 1,
+      animation: 'gradientShift 1.5s ease infinite',
+    },
+    animation: 'pulseGlow 1.5s ease-in-out infinite',
   },
   '& .MuiSvgIcon-root': {
     marginRight: '12px',
     fontSize: '24px',
+    transition: 'transform 0.3s ease',
+  },
+  '&:hover .MuiSvgIcon-root': {
+    transform: 'rotate(15deg) scale(1.1)',
   },
 }));
 
