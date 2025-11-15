@@ -289,9 +289,11 @@ const getDashboardOptimized = async (req, res) => {
       return res.json(cachedDashboard);
     }
     
-    // Get FoundLost options (cached separately)
-    const foundOption = await FoundLost.findOne({ code: "FOUND" }).lean();
-    const lostOption = await FoundLost.findOne({ code: "LOST" }).lean();
+    // OPTIMIZED: Get FoundLost options - Combined query using Promise.all
+    const [foundOption, lostOption] = await Promise.all([
+      FoundLost.findOne({ code: "FOUND" }).lean(),
+      FoundLost.findOne({ code: "LOST" }).lean()
+    ]);
     
     if (!foundOption || !lostOption) {
       return res.status(500).json({ message: "Found/Lost options not configured" });

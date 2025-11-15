@@ -55,9 +55,12 @@ const getDashboard = async (req, res) => {
 
     console.log("Processing dashboard for country:", currentCountry);
 
-    // Lookup FoundLost IDs by code - Auto-create if missing
-    let foundOption = await FoundLost.findOne({ code: "FOUND" });
-    let lostOption = await FoundLost.findOne({ code: "LOST" });
+    // OPTIMIZED: Lookup FoundLost IDs by code - Combined query using Promise.all
+    // Auto-create if missing
+    const [foundOption, lostOption] = await Promise.all([
+      FoundLost.findOne({ code: "FOUND" }).lean(),
+      FoundLost.findOne({ code: "LOST" }).lean()
+    ]);
     
     // Auto-create FoundLost options if they don't exist
     if (!foundOption || !lostOption) {
@@ -96,13 +99,17 @@ const getDashboard = async (req, res) => {
       await FoundLost.deleteMany({});
       const createdOptions = await FoundLost.insertMany(defaultOptions);
       
-      foundOption = createdOptions.find(opt => opt.code === "FOUND");
-      lostOption = createdOptions.find(opt => opt.code === "LOST");
+      const newFoundOption = createdOptions.find(opt => opt.code === "FOUND");
+      const newLostOption = createdOptions.find(opt => opt.code === "LOST");
       
-      console.log("Created FoundLost options:", { found: foundOption._id, lost: lostOption._id });
+      // Update variables (convert to plain objects for consistency with .lean())
+      foundOption = newFoundOption ? newFoundOption.toObject ? newFoundOption.toObject() : newFoundOption : null;
+      lostOption = newLostOption ? newLostOption.toObject ? newLostOption.toObject() : newLostOption : null;
+      
+      console.log("Created FoundLost options:", { found: foundOption?._id, lost: lostOption?._id });
     }
     
-    console.log("Using FoundLost options:", { found: foundOption.code, lost: lostOption.code });
+    console.log("Using FoundLost options:", { found: foundOption?.code, lost: lostOption?.code });
 
     // Add error handling for aggregation
     let trendingPost = [];
@@ -1122,9 +1129,11 @@ const createFoundLost = async (req, res) => {
 const postsPerDay = async () => {
   const currentDate = new Date();
 
-  // Lookup FoundLost IDs by code - Fix inconsistent code references
-  const foundOption = await FoundLost.findOne({ code: "FOUND" });
-  const lostOption = await FoundLost.findOne({ code: "LOST" });
+  // OPTIMIZED: Lookup FoundLost IDs by code - Combined query using Promise.all
+  const [foundOption, lostOption] = await Promise.all([
+    FoundLost.findOne({ code: "FOUND" }).lean(),
+    FoundLost.findOne({ code: "LOST" }).lean()
+  ]);
   if (!foundOption || !lostOption) {
     console.error("Found/Lost options not set in DB");
     return;
