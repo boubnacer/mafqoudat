@@ -220,12 +220,76 @@ const TrendingItem = ({ trend, isLoading }) => {
 
   if (isLoading) return <TrendingItemSkeleton />;
   if (!trendData) {
-    return <DashboardEmptyStates.NoTrending />;
+    return (
+      <Box sx={{ 
+        minWidth: isMobile ? '100%' : 'auto', 
+        width: isMobile ? '100%' : 'auto',
+        height: '100%',
+        position: 'relative',
+        marginTop: '0px',
+        maxWidth: '100%',
+        minWidth: 0,
+      }}>
+        <Card
+          sx={{
+            background: theme.palette.mode === 'dark'
+              ? 'linear-gradient(135deg, rgba(30,30,30,0.95) 0%, rgba(40,40,40,0.98) 50%, rgba(30,30,30,0.95) 100%)'
+              : 'linear-gradient(135deg, rgba(248,248,248,0.95) 0%, rgba(255,255,255,0.98) 50%, rgba(248,248,248,0.95) 100%)',
+            borderRadius: '8px',
+            border: `2px solid ${theme.palette.mode === 'dark' ? '#333' : '#e0e0e0'} !important`,
+            borderColor: `${theme.palette.mode === 'dark' ? '#333' : '#e0e0e0'} !important`,
+            overflow: 'hidden',
+            height: '100%',
+            minHeight: { xs: '500px', sm: '280px' },
+            position: 'relative',
+            boxShadow: '0 4px 8px rgba(0, 0, 0, 0.15)',
+            display: 'flex',
+            flexDirection: 'column',
+            alignItems: 'center',
+            justifyContent: 'center',
+          }}
+        >
+          <DashboardEmptyStates.NoTrending />
+        </Card>
+      </Box>
+    );
   }
 
   // Additional safety check for required fields
   if (!_id || !categoryname) {
-    return <DashboardEmptyStates.NoTrending />;
+    return (
+      <Box sx={{ 
+        minWidth: isMobile ? '100%' : 'auto', 
+        width: isMobile ? '100%' : 'auto',
+        height: '100%',
+        position: 'relative',
+        marginTop: '0px',
+        maxWidth: '100%',
+        minWidth: 0,
+      }}>
+        <Card
+          sx={{
+            background: theme.palette.mode === 'dark'
+              ? 'linear-gradient(135deg, rgba(30,30,30,0.95) 0%, rgba(40,40,40,0.98) 50%, rgba(30,30,30,0.95) 100%)'
+              : 'linear-gradient(135deg, rgba(248,248,248,0.95) 0%, rgba(255,255,255,0.98) 50%, rgba(248,248,248,0.95) 100%)',
+            borderRadius: '8px',
+            border: `2px solid ${theme.palette.mode === 'dark' ? '#333' : '#e0e0e0'} !important`,
+            borderColor: `${theme.palette.mode === 'dark' ? '#333' : '#e0e0e0'} !important`,
+            overflow: 'hidden',
+            height: '100%',
+            minHeight: { xs: '500px', sm: '280px' },
+            position: 'relative',
+            boxShadow: '0 4px 8px rgba(0, 0, 0, 0.15)',
+            display: 'flex',
+            flexDirection: 'column',
+            alignItems: 'center',
+            justifyContent: 'center',
+          }}
+        >
+          <DashboardEmptyStates.NoTrending />
+        </Card>
+      </Box>
+    );
   }
 
   return (
