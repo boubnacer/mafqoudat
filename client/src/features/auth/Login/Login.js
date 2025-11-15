@@ -272,14 +272,18 @@ const LanguageSelector = styled(Box)(({ theme }) => ({
     marginRight: '12px',
     fontSize: '24px',
     transition: 'transform 0.3s ease',
-    color: theme?.palette?.mode === 'dark' ? '#ffffff' : '#1a1a1a',
+    color: `${theme?.palette?.mode === 'dark' ? '#ffffff' : '#1a1a1a'} !important`,
   },
   '&:hover .MuiSvgIcon-root': {
     transform: 'rotate(15deg) scale(1.1)',
   },
   // Ensure Typography text color
   '& .MuiTypography-root': {
-    color: theme?.palette?.mode === 'dark' ? '#ffffff' : '#1a1a1a',
+    color: `${theme?.palette?.mode === 'dark' ? '#ffffff' : '#1a1a1a'} !important`,
+  },
+  // Target all SVG icons including the dropdown arrow
+  '& svg': {
+    color: `${theme?.palette?.mode === 'dark' ? '#ffffff' : '#1a1a1a'} !important`,
   },
 }));
 
@@ -490,16 +494,13 @@ const LoginComponent = () => {
               }
             }}
           >
-            <Language sx={{ 
-              color: theme?.palette?.mode === 'dark' ? '#ffffff' : '#1a1a1a' 
-            }} />
+            <Language />
             <Typography
               variant="body2"
               sx={{
                 fontWeight: 600,
                 fontSize: '1rem',
                 display: 'block',
-                color: theme?.palette?.mode === 'dark' ? '#ffffff' : '#1a1a1a',
                 // Arabic font size fix
                 ...(currentLanguage === 'ar' && {
                   fontSize: '1.1rem',
@@ -508,11 +509,7 @@ const LoginComponent = () => {
             >
               {getLanguageDisplayName(currentLanguage || langContext || 'en')}
             </Typography>
-            <KeyboardArrowDown sx={{ 
-              fontSize: '20px', 
-              ml: 0.5,
-              color: theme?.palette?.mode === 'dark' ? '#ffffff' : '#1a1a1a'
-            }} />
+            <KeyboardArrowDown sx={{ fontSize: '20px', ml: 0.5 }} />
           </LanguageSelector>
 
           {/* Dark/Light mode toggle */}
