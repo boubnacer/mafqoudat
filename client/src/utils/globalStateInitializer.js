@@ -125,8 +125,6 @@ export const ensureGlobalStateWithUserCountry = (userData) => {
     preserveExisting: true
   });
   
-  console.log('GlobalState initialized with user country:', userCountry);
-  
   return state;
 };
 

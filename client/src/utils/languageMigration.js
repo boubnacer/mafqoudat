@@ -7,7 +7,7 @@
  * It provides backward compatibility during the transition period.
  */
 
-const DEBUG_MIGRATION = true;
+const DEBUG_MIGRATION = false;
 
 // Storage keys
 const PRIMARY_KEY = 'language';

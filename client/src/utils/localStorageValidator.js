@@ -361,8 +361,6 @@ export const validateAndRepairLocalStorage = (options = {}) => {
       if (repairReport) {
         console.info('Auto-repair completed:', repairReport);
       }
-    } else {
-      console.log('localStorage validation: All checks passed ✓');
     }
   }
   

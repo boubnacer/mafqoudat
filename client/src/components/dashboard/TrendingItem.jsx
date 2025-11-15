@@ -143,12 +143,6 @@ const TrendingItem = ({ trend, isLoading }) => {
     return categoryname || t('unknownCategory');
   }, [Category, categoryname, currentLanguage, t]);
 
-  // Debug specific fields - using simple console.log instead of useEffect
-  console.log('TrendingItem - image:', image);
-  console.log('TrendingItem - categoryname:', categoryname);
-  console.log('TrendingItem - Floptions:', Floptions);
-  console.log('TrendingItem - Category:', Category);
-
   // Get category colors using centralized configuration (same as RecentPosts)
   const getCategoryColors = (category) => {
     const config = getCategoryConfig(category);
@@ -164,10 +158,6 @@ const TrendingItem = ({ trend, isLoading }) => {
   };
 
   const categoryStyle = getCategoryColors(categoryname);
-
-  // Debug computed values
-  console.log('TrendingItem - categoryStyle:', categoryStyle);
-  console.log('TrendingItem - categoryDisplayName:', categoryDisplayName);
 
   // Get found/lost status with proper colors from database (same as PostsList)
   const foundLostStatus = useMemo(() => {
@@ -227,10 +217,6 @@ const TrendingItem = ({ trend, isLoading }) => {
 
   // Get optimized image URL - only use Cloudinary if image exists and is uploaded by user
   const finalImageUrl = image ? (image.startsWith('http') ? getOptimizedImageUrl(image, 'card') : `${API_BASE_URL}/${image}`) : noImageSvg;
-  
-  // Debug final image URL
-  console.log('TrendingItem - finalImageUrl:', finalImageUrl);
-  console.log('TrendingItem - categoryStyle:', categoryStyle);
 
   if (isLoading) return <TrendingItemSkeleton />;
   if (!trendData) {

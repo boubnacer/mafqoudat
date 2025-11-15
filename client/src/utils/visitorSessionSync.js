@@ -43,7 +43,6 @@ export const initializeVisitorSession = async () => {
         } catch (e) {
           // localStorage might be disabled, that's okay
         }
-        console.log('✅ Visitor session synced:', data.sessionId.substring(0, 8) + '...');
       }
     }
   } catch (error) {

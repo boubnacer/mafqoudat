@@ -398,7 +398,6 @@ function App() {
     try {
       // Step 1: Ensure globalState ALWAYS exists (critical for app stability)
       ensureGlobalStateAlwaysExists();
-      console.log('✓ GlobalState guaranteed to exist');
       
       // Step 2: Validate and repair localStorage before any other initialization
       const validationReport = validateAndRepairLocalStorage({
