@@ -1,6 +1,7 @@
 const express = require('express');
 const router = express.Router();
 const verifyAdmin = require('../middleware/verifyAdmin');
+const verifyJWT = require('../middleware/verifyJWT');
 const mongoose = require('mongoose');
 const { getConnectionMetrics } = require('../config/resilientDbConn');
 
@@ -40,7 +41,7 @@ const computeOpsPerSec = async () => {
 };
 
 // GET /db-metrics/summary (Admin only)
-router.get('/summary', verifyAdmin, async (req, res) => {
+router.get('/summary', verifyJWT, verifyAdmin, async (req, res) => {
   try {
     if (!mongoose.connection?.db) {
       return res.status(503).json({ success: false, error: 'Database not connected' });
