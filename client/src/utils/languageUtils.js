@@ -11,10 +11,10 @@ export const SUPPORTED_LANGUAGES = {
 // Uses ONLY 'language' key as the single source of truth
 export const getCurrentLanguage = () => {
   try {
-    return localStorage.getItem('language') || 'en';
+    return localStorage.getItem('language') || 'ar';
   } catch (error) {
     console.error('Error getting current language:', error);
-    return 'en';
+    return 'ar';
   }
 };
 
@@ -45,7 +45,7 @@ export const getApiParamsWithLanguage = (additionalParams = {}) => {
   } catch (error) {
     console.error('Error getting API params with language:', error);
     return {
-      language: 'en',
+      language: 'ar',
       ...additionalParams
     };
   }

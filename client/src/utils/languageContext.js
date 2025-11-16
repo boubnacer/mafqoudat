@@ -30,7 +30,7 @@ const resolveLanguage = (preferredLanguage) => {
   if (preferredLanguage && SUPPORTED_LANGUAGES.includes(preferredLanguage)) {
     return preferredLanguage;
   }
-  return 'en';
+  return 'ar';
 };
 
 export const initializeLanguage = (language = null) => {
@@ -54,15 +54,15 @@ export const initializeLanguage = (language = null) => {
     return desiredLanguage;
   } catch (error) {
     console.error('Error initializing language:', error);
-    applyDocumentLanguage('en');
-    return 'en';
+    applyDocumentLanguage('ar');
+    return 'ar';
   }
 };
 
 const LanguageContext = createContext();
 
 export const LanguageProvider = ({ children }) => {
-  const [currentLanguage, setCurrentLanguage] = useState('en');
+  const [currentLanguage, setCurrentLanguage] = useState('ar');
   const [isInitialized, setIsInitialized] = useState(false);
 
   const setLanguage = (language) => {
@@ -111,7 +111,7 @@ export const LanguageProvider = ({ children }) => {
       setIsInitialized(true);
     } catch (error) {
       console.error('Error loading saved language:', error);
-      const fallbackLanguage = initializeLanguage('en');
+      const fallbackLanguage = initializeLanguage('ar');
       setCurrentLanguage(fallbackLanguage);
       setIsInitialized(true);
     }

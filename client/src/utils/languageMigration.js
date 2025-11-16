@@ -63,16 +63,16 @@ export const migrateLanguageStorage = () => {
     });
     
     // Determine the correct language value to use
-    // Priority: language > app_language > currentLanguage > default 'en'
-    let finalLanguage = languageValue || appLanguageValue || currentLanguageValue || 'en';
+    // Priority: language > app_language > currentLanguage > default 'ar'
+    let finalLanguage = languageValue || appLanguageValue || currentLanguageValue || 'ar';
     
     // Validate the language value
     const validLanguages = ['en', 'ar', 'fr'];
     if (!validLanguages.includes(finalLanguage)) {
-      logMigration('Invalid language value detected, defaulting to "en"', {
+      logMigration('Invalid language value detected, defaulting to "ar"', {
         invalidValue: finalLanguage
       });
-      finalLanguage = 'en';
+      finalLanguage = 'ar';
     }
     
     logMigration('Selected final language:', { finalLanguage });
