@@ -101,6 +101,7 @@ import {
   PostDetailsDialog,
 } from './components';
 import VisitorStats from './components/VisitorStats';
+import { useGetDbMetricsQuery } from './dbMetricsApiSlice';
 
 const AdminDashboard = () => {
   const { t, currentLanguage } = useTranslation();
@@ -198,6 +199,7 @@ const AdminDashboard = () => {
     priority: contactsFilters.priority || undefined,
   });
   const { data: contactStatsData } = useGetContactStatsQuery();
+  const { data: dbMetricsData, isLoading: dbMetricsLoading, error: dbMetricsError, refetch: refetchDbMetrics } = useGetDbMetricsQuery();
   
   // Fetch categories and countries for filters
   const { data: categoriesData } = useGetCategoriesQuery({
@@ -1132,6 +1134,14 @@ const AdminDashboard = () => {
               <Box display="flex" alignItems="center" gap={1}>
                 <LocationCity />
                 {t('countriesCitiesManagement') || 'Countries & Cities'}
+              </Box>
+            } 
+          />
+          <Tab 
+            label={
+              <Box display="flex" alignItems="center" gap={1}>
+                <Build />
+                {t('databaseMetrics') || 'Database Metrics'}
               </Box>
             } 
           />
@@ -2196,6 +2206,177 @@ const AdminDashboard = () => {
                   onRowsPerPageChange={handleContactsRowsPerPageChange}
                 />
               </>
+            )}
+          </Box>
+        </Paper>
+      )}
+
+      {/* Database Metrics Tab */}
+      {activeTab === 7 && (
+        <Paper>
+          <Box p={2}>
+            <Box display="flex" justifyContent="space-between" alignItems="center" mb={2}>
+              <Typography variant="h6" fontWeight="bold">
+                {t('databaseMetrics') || 'Database Metrics'}
+              </Typography>
+              <Button
+                size="small"
+                variant="outlined"
+                startIcon={<Refresh />}
+                onClick={() => refetchDbMetrics()}
+              >
+                {t('refresh') || 'Refresh'}
+              </Button>
+            </Box>
+
+            {dbMetricsLoading ? (
+              <Box display="flex" justifyContent="center" p={4}>
+                <CircularProgress />
+              </Box>
+            ) : dbMetricsError ? (
+              <Alert severity="error">
+                {t('errorLoadingMetrics') || 'Error loading metrics'}: {dbMetricsError?.data?.message || dbMetricsError?.message}
+              </Alert>
+            ) : (
+              (() => {
+                const d = dbMetricsData?.data || {};
+                const storageMB = d.storageMB || 0;
+                const dataMB = d.dataMB || 0;
+                const connections = d.connections || 0;
+                const ops = d.opsPerSec || {};
+                const totalOps = (ops.insert || 0) + (ops.query || 0) + (ops.update || 0) + (ops.delete || 0) + (ops.command || 0);
+                const p95 = Math.round(d.p95LatencyMs || 0);
+
+                // Threshold helpers
+                const statusOf = (value, warn, danger) => (value >= danger ? 'error' : value >= warn ? 'warning' : 'success');
+                const colorOf = (status) => (status === 'error' ? 'error.main' : status === 'warning' ? 'warning.main' : 'success.main');
+                const bgOf = (status, mode) => {
+                  if (status === 'error') return mode === 'dark' ? 'rgba(211, 47, 47, 0.12)' : 'rgba(244, 67, 54, 0.10)';
+                  if (status === 'warning') return mode === 'dark' ? 'rgba(237, 108, 2, 0.12)' : 'rgba(255, 152, 0, 0.10)';
+                  return mode === 'dark' ? 'rgba(46, 125, 50, 0.12)' : 'rgba(76, 175, 80, 0.10)';
+                };
+
+                const storageStatus = statusOf(storageMB, 450, 500);
+                const connStatus = statusOf(connections, 50, 80);
+                const latencyStatus = statusOf(p95, 200, 400);
+                const opsStatus = statusOf(totalOps, 50, 100);
+
+                // Overall status (max of individual severities)
+                const severityRank = { success: 0, warning: 1, error: 2 };
+                const overallStatus = [storageStatus, connStatus, latencyStatus, opsStatus].reduce(
+                  (acc, s) => (severityRank[s] > severityRank[acc] ? s : acc),
+                  'success'
+                );
+
+                return (
+                  <>
+                    <Alert
+                      severity={overallStatus === 'error' ? 'error' : overallStatus === 'warning' ? 'warning' : 'success'}
+                      sx={{ mb: 2 }}
+                    >
+                      {overallStatus === 'success' && (t('dbHealthy') || 'Everything looks healthy. No need to switch.')}
+                      {overallStatus === 'warning' && (t('dbWatch') || 'Approaching limits. Prepare to switch to Flex soon.')}
+                      {overallStatus === 'error' && (t('dbSwitchNow') || 'Limits exceeded. Plan immediate switch to Flex.')}
+                    </Alert>
+
+                    <Grid container spacing={2}>
+                      <Grid item xs={12} md={6}>
+                        <Card
+                          sx={{
+                            border: '1px solid',
+                            borderColor: colorOf(storageStatus),
+                            backgroundColor: bgOf(storageStatus, theme.palette.mode),
+                          }}
+                        >
+                          <CardContent>
+                            <Typography variant="subtitle2" color="text.secondary">
+                              {t('storageUsage') || 'Storage Usage'}
+                            </Typography>
+                            <Typography variant="h4" fontWeight={800} color={colorOf(storageStatus)}>
+                              {storageMB.toFixed(1)} MB
+                            </Typography>
+                            <Typography variant="body2" color="text.secondary">
+                              {t('dataSize') || 'Data size'}: {dataMB.toFixed(1)} MB
+                            </Typography>
+                            <Typography variant="caption" color="text.secondary">
+                              {t('m0LimitHint') || 'M0 limit ~512 MB; switch before 500 MB'}
+                            </Typography>
+                          </CardContent>
+                        </Card>
+                      </Grid>
+
+                      <Grid item xs={12} md={6}>
+                        <Card
+                          sx={{
+                            border: '1px solid',
+                            borderColor: colorOf(connStatus),
+                            backgroundColor: bgOf(connStatus, theme.palette.mode),
+                          }}
+                        >
+                          <CardContent>
+                            <Typography variant="subtitle2" color="text.secondary">
+                              {t('activeConnections') || 'Active Connections'}
+                            </Typography>
+                            <Typography variant="h4" fontWeight={800} color={colorOf(connStatus)}>
+                              {connections}
+                            </Typography>
+                            <Typography variant="caption" color="text.secondary">
+                              {t('connectionsHint') || 'Warn > 50, Critical > 80 on Free tier'}
+                            </Typography>
+                          </CardContent>
+                        </Card>
+                      </Grid>
+
+                      <Grid item xs={12} md={6}>
+                        <Card
+                          sx={{
+                            border: '1px solid',
+                            borderColor: colorOf(latencyStatus),
+                            backgroundColor: bgOf(latencyStatus, theme.palette.mode),
+                          }}
+                        >
+                          <CardContent>
+                            <Typography variant="subtitle2" color="text.secondary">
+                              {t('p95Latency') || 'P95 Latency (ms)'}
+                            </Typography>
+                            <Typography variant="h4" fontWeight={800} color={colorOf(latencyStatus)}>
+                              {p95}
+                            </Typography>
+                            <Typography variant="caption" color="text.secondary">
+                              {t('latencyHint') || 'Warn > 200ms, Critical > 400ms'}
+                            </Typography>
+                          </CardContent>
+                        </Card>
+                      </Grid>
+
+                      <Grid item xs={12} md={6}>
+                        <Card
+                          sx={{
+                            border: '1px solid',
+                            borderColor: colorOf(opsStatus),
+                            backgroundColor: bgOf(opsStatus, theme.palette.mode),
+                          }}
+                        >
+                          <CardContent>
+                            <Typography variant="subtitle2" color="text.secondary">
+                              {t('throughputOps') || 'Throughput (ops/sec)'}
+                            </Typography>
+                            <Typography variant="h5" fontWeight={800} color={colorOf(opsStatus)}>
+                              {totalOps.toFixed(1)} ops/sec
+                            </Typography>
+                            <Typography variant="body2" color="text.secondary" sx={{ mt: 1 }}>
+                              ins {ops.insert?.toFixed(1) || 0}, q {ops.query?.toFixed(1) || 0}, upd {ops.update?.toFixed(1) || 0}, del {ops.delete?.toFixed(1) || 0}
+                            </Typography>
+                            <Typography variant="caption" color="text.secondary">
+                              {t('opsHint') || 'Warn > 50, Critical > 100 (sustained) on Free tier'}
+                            </Typography>
+                          </CardContent>
+                        </Card>
+                      </Grid>
+                    </Grid>
+                  </>
+                );
+              })()
             )}
           </Box>
         </Paper>

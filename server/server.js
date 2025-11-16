@@ -210,6 +210,7 @@ app.use("/api/password-reset", require("./routes/passwordResetRoutes"));
 
 app.use("/cost-monitoring", require("./routes/costMonitoringRoutes"));
 app.use("/resilience", require("./routes/resilienceRoutes"));
+app.use("/db-metrics", require("./routes/dbMetricsRoutes"));
 
 // Database health and monitoring routes
 app.use("/db-health", require("./routes/dbHealthRoutes"));
