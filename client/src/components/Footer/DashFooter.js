@@ -45,7 +45,18 @@ const DashFooter = () => {
   const isRTLMode = isRTL();
   
   // Resolve country ID to country name
-  const { countryName, isLoading: isCountryLoading } = useCountryName(country);
+  const getCountryIdFromLocalStorage = () => {
+    try {
+      const savedState = localStorage.getItem('globalState');
+      if (!savedState) return null;
+      const parsed = JSON.parse(savedState);
+      return parsed?.currentCountry || null;
+    } catch (e) {
+      return null;
+    }
+  };
+  const resolvedCountryId = country || getCountryIdFromLocalStorage();
+  const { countryName, isLoading: isCountryLoading } = useCountryName(resolvedCountryId);
 
   const onCreatePostClicked = () => {
     if (!username) {
