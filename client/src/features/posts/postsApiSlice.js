@@ -99,10 +99,15 @@ export const postsApiSlice = apiSlice.injectEndpoints({
 
     // get dashboard ----------------------------------------------------------------------------------
     getDashboard: builder.query({
-      query: ({ currentCountry, language = 'en' }) => ({
+      query: ({ currentCountry, language = 'en', nocache, ts } = {}) => ({
         url: "/dashboard",
         method: "GET",
-        params: { currentCountry, language },
+        params: { 
+          currentCountry, 
+          language,
+          ...(nocache ? { nocache: true } : {}),
+          ...(ts ? { ts } : {})
+        },
         validateStatus: (response, result) => {
           return response.status === 200 && !result.isError;
         },
@@ -130,7 +135,7 @@ export const postsApiSlice = apiSlice.injectEndpoints({
       providesTags: ["Dashboard"],
       // Add cache key based on language to ensure proper cache invalidation
       serializeQueryArgs: ({ queryArgs }) => {
-        return `${queryArgs.currentCountry || ''}-${queryArgs.language || 'en'}`;
+        return `${queryArgs.currentCountry || ''}-${queryArgs.language || 'en'}-${queryArgs.ts || ''}-${queryArgs.nocache ? '1' : '0'}`;
       },
     }),
 

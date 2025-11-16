@@ -1,6 +1,7 @@
 // Utility to force refresh RTK Query cache
 import { store } from '../app/store';
 import { dependencieaApiSlice } from '../features/dependencies/dependenciesApiSlice';
+import { postsApiSlice } from '../features/posts/postsApiSlice';
 
 /**
  * Force refresh categories data by invalidating cache and refetching
@@ -34,7 +35,7 @@ export const forceRefreshCategories = async (language = 'en') => {
  * Force refresh all dependencies (categories, countries, flOptions)
  * @param {string} language - Language code (default: 'en')
  */
-export const forceRefreshAllDependencies = async (language = 'en') => {
+export const forceRefreshAllDependencies = async (language = 'en', currentCountry = '') => {
   try {
     console.log('🔄 Force refreshing all dependencies cache...');
     
@@ -46,7 +47,8 @@ export const forceRefreshAllDependencies = async (language = 'en') => {
     ]));
     
     // Force refetch all with nocache
-    const [categoriesResult, countriesResult, flOptionsResult] = await Promise.all([
+    const ts = Date.now();
+    const [categoriesResult, countriesResult, flOptionsResult, dashboardResult] = await Promise.all([
       store.dispatch(dependencieaApiSlice.endpoints.getCategories.initiate({
         language,
         active: true,
@@ -61,7 +63,16 @@ export const forceRefreshAllDependencies = async (language = 'en') => {
         language,
         active: true,
         nocache: true
-      }))
+      })),
+      // Also refresh dashboard with a cache-buster to bypass server cache
+      currentCountry
+        ? store.dispatch(postsApiSlice.endpoints.getDashboard.initiate({
+            currentCountry,
+            language,
+            nocache: true,
+            ts
+          }))
+        : Promise.resolve(null)
     ]);
     
     console.log('✅ All dependencies cache refreshed:', {
@@ -73,7 +84,8 @@ export const forceRefreshAllDependencies = async (language = 'en') => {
     return {
       categories: categoriesResult,
       countries: countriesResult,
-      flOptions: flOptionsResult
+      flOptions: flOptionsResult,
+      dashboard: dashboardResult
     };
   } catch (error) {
     console.error('❌ Error refreshing dependencies cache:', error);

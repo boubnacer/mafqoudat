@@ -664,33 +664,7 @@ const Navbar = () => {
               {authLoggedIn ? t('createPost') : t('signin')}
             </CreatePostButton>
 
-            {/* Admin-only refresh button */}
-            {authLoggedIn && role === 'admin' && (
-              <Tooltip title="Refresh all data (Categories, Countries, Found/Lost Options)" arrow>
-                <Button
-                  onClick={handleRefreshAllData}
-                  disabled={isRefreshing}
-                  variant="outlined"
-                  size="small"
-                  startIcon={<Refresh />}
-                  sx={{
-                    minWidth: 'auto',
-                    px: 2,
-                    color: theme.palette.mode === 'dark' ? '#fff' : theme.palette.text.primary,
-                    borderColor: theme.palette.mode === 'dark' ? theme.palette.primary.main : theme.palette.divider,
-                    backgroundColor: theme.palette.mode === 'dark' ? 'transparent' : theme.palette.background.paper,
-                    '&:hover': {
-                      backgroundColor: theme.palette.mode === 'dark' ? 'rgba(255, 255, 255, 0.08)' : 'rgba(0, 0, 0, 0.04)',
-                    },
-                    '&:disabled': {
-                      opacity: 0.6,
-                    }
-                  }}
-                >
-                  {isRefreshing ? 'Refreshing...' : 'Refresh'}
-                </Button>
-              </Tooltip>
-            )}
+            {/* Admin-only refresh button removed per request */}
           </Box>
         )}
 
