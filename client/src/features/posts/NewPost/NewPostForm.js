@@ -357,8 +357,20 @@ const NewPostForm = ({ user, countries, categories, flOptions }) => {
         return [];
       }
       
+      // Ensure countryCode is valid (2 uppercase letters) or null
+      const validCountryCode = countryCode && countryCode.length === 2 
+        ? countryCode.toUpperCase() 
+        : null;
+      
       const baseUrl = process.env.REACT_APP_API_URL || "http://localhost:3500";
-      const url = `${baseUrl}/cities/search?q=${encodeURIComponent(searchQuery)}&language=${currentLanguage || 'en'}&countryCode=${countryCode}&limit=10`;
+      let url = `${baseUrl}/cities/search?q=${encodeURIComponent(searchQuery)}&language=${currentLanguage || 'en'}&limit=10`;
+      
+      // Only add countryCode if it's valid
+      if (validCountryCode) {
+        url += `&countryCode=${validCountryCode}`;
+      }
+      
+      console.log(`🔍 Hybrid search: "${searchQuery}" in ${validCountryCode || 'all countries'} (${currentLanguage || 'en'})`);
       
       // Include Authorization header if token exists (needed for admin bypass during maintenance)
       const headers = {};
@@ -367,15 +379,26 @@ const NewPostForm = ({ user, countries, categories, flOptions }) => {
       }
       
       const response = await fetch(url, { headers });
+      
+      if (!response.ok) {
+        console.error(`❌ Search API error: ${response.status} ${response.statusText}`);
+        const errorText = await response.text();
+        console.error('Error response:', errorText);
+        return [];
+      }
+      
       const data = await response.json();
       
       if (data.success) {
-        return data.data;
+        console.log(`✅ Hybrid search found ${data.data?.length || 0} cities`);
+        return data.data || [];
       } else {
+        console.warn(`⚠️ Search API returned success=false:`, data.message);
         return [];
       }
     } catch (error) {
-      console.error('City search error:', error.message);
+      console.error('❌ City search error:', error.message);
+      console.error('Error details:', error);
       return [];
     }
   }, [currentLanguage, token]);
@@ -576,13 +599,26 @@ const NewPostForm = ({ user, countries, categories, flOptions }) => {
       setShowCityDropdown(true);
     }
     
-    // Get country code from selectedCountry object
-    const countryCode = selectedCountry?.code || selectedCountry?.labels?.en || selectedCountry?.names?.en;
+    // Get country code from selectedCountry object - must be ISO code (e.g., 'MA', 'EG')
+    // The code should be a 2-letter ISO country code
+    let countryCode = selectedCountry?.code;
+    
+    // Ensure countryCode is a valid ISO code (2 uppercase letters)
+    if (countryCode && typeof countryCode === 'string' && countryCode.length === 2) {
+      countryCode = countryCode.toUpperCase();
+    } else {
+      // Invalid or missing country code
+      console.warn('⚠️ Invalid or missing country code:', {
+        code: selectedCountry?.code,
+        country: selectedCountry
+      });
+      countryCode = null;
+    }
     
     if (query.length >= 2 && selectedCountry?._id) {
       setIsSearching(true);
       try {
-        // Try hybrid search first
+        // Try hybrid search first (includes Google Places API)
         const results = await searchCitiesHybrid(query, countryCode);
         
         if (results.length > 0) {
@@ -608,6 +644,7 @@ const NewPostForm = ({ user, countries, categories, flOptions }) => {
           }
         }
       } catch (error) {
+        console.error('❌ City search error:', error);
         setSearchResults([]);
       } finally {
         setIsSearching(false);
