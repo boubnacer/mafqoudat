@@ -18,7 +18,6 @@ export const getCurrentLanguage = () => {
   }
 };
 
-
 // Set current language
 // Uses ONLY 'language' key as the single source of truth
 export const setCurrentLanguage = (language) => {
