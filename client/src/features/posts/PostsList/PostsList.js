@@ -94,11 +94,14 @@ const PostsList = () => {
     try {
       const cached = localStorage.getItem('cachedCities');
       if (cached) {
-        return JSON.parse(cached);
+        const parsed = JSON.parse(cached);
+        console.log('✅ Loaded cached cities from localStorage:', parsed.length, 'cities', parsed);
+        return parsed;
       }
     } catch (error) {
-      console.error('Error loading cached cities:', error);
+      console.error('❌ Error loading cached cities:', error);
     }
+    console.log('⚠️ No cached cities found in localStorage');
     return [];
   });
 
@@ -142,9 +145,12 @@ const PostsList = () => {
 
   // Get all cached cities for current country (for showing when focused)
   const allCachedCitiesForCountry = useMemo(() => {
-    if (!currentCountry) return [];
+    if (!currentCountry) {
+      console.log('No currentCountry, returning empty array for cached cities');
+      return [];
+    }
     
-    return cachedCities.filter(city => {
+    const filtered = cachedCities.filter(city => {
       if (!city || !city.labels) return false;
       
       // Filter by country if available
@@ -158,6 +164,15 @@ const PostsList = () => {
       
       return true;
     });
+    
+    console.log('All cached cities for country:', {
+      totalCached: cachedCities.length,
+      currentCountry,
+      filteredCount: filtered.length,
+      filtered: filtered
+    });
+    
+    return filtered;
   }, [cachedCities, currentCountry]);
 
   // Filter cached cities by search term and country
@@ -459,12 +474,47 @@ const PostsList = () => {
     if (newValue) {
       const cityName = getCityDisplayName(newValue);
       setCitySearchTerm(cityName);
+      
+      // Save selected city to cache if not already there
+      setCachedCities(prevCached => {
+        const exists = prevCached.some(c => 
+          (c._id || c.id) === (newValue._id || newValue.id)
+        );
+        if (!exists) {
+          const cityToCache = {
+            ...newValue,
+            country: newValue.country || currentCountry
+          };
+          const newCached = [...prevCached, cityToCache];
+          
+          // Limit cache size to prevent localStorage from getting too large (keep last 100 cities)
+          const limitedCache = newCached.slice(-100);
+          
+          // Save to localStorage
+          try {
+            localStorage.setItem('cachedCities', JSON.stringify(limitedCache));
+          } catch (error) {
+            console.error('Error saving cached cities:', error);
+            // If localStorage is full, try to clear old entries
+            try {
+              const reducedCache = newCached.slice(-50);
+              localStorage.setItem('cachedCities', JSON.stringify(reducedCache));
+              return reducedCache;
+            } catch (e) {
+              console.error('Error saving reduced cached cities:', e);
+            }
+          }
+          
+          return limitedCache;
+        }
+        return prevCached;
+      });
     } else {
       setCitySearchTerm('');
     }
     setPage(1);
     // Dropdown will close automatically because open={citySearchTerm.length >= 1 && !selectedCity}
-  }, [getCityDisplayName]);
+  }, [getCityDisplayName, currentCountry]);
 
   const handleCityInputChange = useCallback((event, newInputValue, reason) => {
     // Only update search term if user is typing (not when selecting)
