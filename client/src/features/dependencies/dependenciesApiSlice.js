@@ -253,10 +253,12 @@ export const dependencieaApiSlice = apiSlice.injectEndpoints({
       },
       transformErrorResponse: (response) => {
         // Handle server error responses
+        // Note: Backend now returns 200 with empty array instead of 404, so this is mainly for other errors
         if (response.status === 404) {
-          return { 
-            status: 404, 
-            data: { message: "No cities found." } 
+          // Return empty data structure instead of error
+          return {
+            ids: [],
+            entities: {}
           };
         }
         if (response.status === 500) {

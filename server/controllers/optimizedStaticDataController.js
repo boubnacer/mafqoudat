@@ -462,12 +462,15 @@ const getCities = async (req, res) => {
     // Get data from static cache
     const cities = staticDataCacheManager.getCities(language, search, finalCountryId, active === 'true');
 
+    // Return empty array instead of error - this allows frontend to handle "no results" gracefully
     if (!cities.length) {
       const response = {
-        success: false,
-        message: "No cities found",
-        data: []
+        success: true,
+        data: [],
+        total: 0
       };
+      // Cache empty results for shorter time (5 minutes)
+      await cacheService.set(responseCacheKey, response, 300);
       return res.json(response);
     }
 

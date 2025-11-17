@@ -62,28 +62,45 @@ const getCities = async (req, res) => {
     
     let query = {};
     
+    // Build query conditions
+    const conditions = [];
+    
     // Filter by active status
     if (active === 'true') {
-      // Handle both true and null values for isActive
-      query.$or = [
-        { isActive: true },
-        { isActive: null }
-      ];
+      conditions.push({
+        $or: [
+          { isActive: true },
+          { isActive: null }
+        ]
+      });
     }
     
     // Filter by country (using cached lookup)
     if (countryId) {
-      query.country = countryId;
+      conditions.push({ country: countryId });
     } else if (countryCode) {
       const cachedCountryId = await getCountryId(countryCode.toUpperCase());
       if (cachedCountryId) {
-        query.country = cachedCountryId;
+        conditions.push({ country: cachedCountryId });
       }
     }
     
-    // Add search functionality
+    // Add search functionality - use regex for partial matching
     if (search) {
-      query.$text = { $search: search };
+      // Use regex for case-insensitive partial matching across all language labels
+      conditions.push({
+        $or: [
+          { 'labels.en': { $regex: search, $options: 'i' } },
+          { 'labels.fr': { $regex: search, $options: 'i' } },
+          { 'labels.ar': { $regex: search, $options: 'i' } },
+          { code: { $regex: search, $options: 'i' } }
+        ]
+      });
+    }
+    
+    // Combine all conditions with $and
+    if (conditions.length > 0) {
+      query.$and = conditions;
     }
     
     const cities = await City.find(query)
@@ -93,11 +110,16 @@ const getCities = async (req, res) => {
       .lean()
       .exec();
 
+    // Return empty array instead of 404 - this allows frontend to handle "no results" gracefully
     if (!cities.length) {
-      return res.status(404).json({ 
-        message: "No cities found",
-        data: []
-      });
+      const response = {
+        success: true,
+        data: [],
+        total: 0
+      };
+      // Cache empty results for shorter time (5 minutes)
+      await cacheService.set(cacheKey, response, 300);
+      return res.json(response);
     }
 
     // Transform response to include language-specific labels
