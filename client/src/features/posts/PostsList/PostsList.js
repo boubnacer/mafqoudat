@@ -151,31 +151,45 @@ const PostsList = () => {
     // Always check localStorage on mount to verify state matches
     try {
       const cached = localStorage.getItem('cachedCities');
+      
       if (cached) {
         const parsed = JSON.parse(cached);
+        
         if (Array.isArray(parsed)) {
           if (parsed.length > 0) {
+            // Normalize country fields in cached cities to ensure consistent filtering
+            const normalizedCities = parsed.map(city => {
+              if (city && city.country) {
+                const normalizedCountry = typeof city.country === 'object' 
+                  ? (city.country._id || city.country.id || city.country)
+                  : city.country;
+                return {
+                  ...city,
+                  country: normalizedCountry ? String(normalizedCountry) : city.country
+                };
+              }
+              return city;
+            });
+            
             // Always update state with localStorage data on mount to ensure sync
             setCachedCities(prevCached => {
               // Only update if different
-              if (prevCached.length !== parsed.length || 
+              if (prevCached.length !== normalizedCities.length || 
                   prevCached.some((city, idx) => {
                     const cachedId = city?._id || city?.id;
-                    const parsedId = parsed[idx]?._id || parsed[idx]?.id;
+                    const parsedId = normalizedCities[idx]?._id || normalizedCities[idx]?.id;
                     return cachedId !== parsedId;
                   })) {
-                console.log('✅ Loading cached cities from localStorage on mount:', parsed.length, 'cities');
-                return parsed;
+                console.log('✅ Loading cached cities from localStorage on mount:', normalizedCities.length, 'cities');
+                return normalizedCities;
               }
-              console.log('✅ Cached cities already in state:', prevCached.length, 'cities');
               return prevCached;
             });
-          } else {
-            console.log('ℹ️ localStorage has empty cached cities array');
           }
+        } else {
+          console.error('❌ Cached data is not an array:', typeof parsed);
+          localStorage.removeItem('cachedCities');
         }
-      } else {
-        console.log('⚠️ No cached cities in localStorage');
       }
     } catch (error) {
       console.error('❌ Error verifying cached cities on mount:', error);
@@ -209,17 +223,26 @@ const PostsList = () => {
     }
     
     const filtered = cachedCities.filter(city => {
-      if (!city || !city.labels) return false;
+      if (!city || !city.labels) {
+        return false;
+      }
       
       // Filter by country if available
       if (currentCountry && city.country) {
         const cityCountryId = typeof city.country === 'object' ? (city.country._id || city.country.id) : city.country;
         const currentCountryId = typeof currentCountry === 'object' ? (currentCountry._id || currentCountry.id) : currentCountry;
-        if (cityCountryId && currentCountryId && cityCountryId.toString() !== currentCountryId.toString()) {
+        
+        const cityCountryStr = cityCountryId ? cityCountryId.toString() : '';
+        const currentCountryStr = currentCountryId ? currentCountryId.toString() : '';
+        
+        // If both have country IDs and they don't match, filter out
+        if (cityCountryStr && currentCountryStr && cityCountryStr !== currentCountryStr) {
           return false;
         }
       }
       
+      // If city has no country info, include it (might be from old cache)
+      // If currentCountry exists but city.country doesn't, include it
       return true;
     });
     
@@ -282,10 +305,20 @@ const PostsList = () => {
             (c._id || c.id) === (city._id || city.id)
           );
           if (!exists) {
+            // Normalize country to always be a string ID for consistent filtering
+            let normalizedCountry = currentCountry;
+            if (city.country) {
+              normalizedCountry = typeof city.country === 'object' 
+                ? (city.country._id || city.country.id || currentCountry)
+                : city.country;
+            }
+            // Ensure it's a string
+            normalizedCountry = normalizedCountry ? String(normalizedCountry) : currentCountry;
+            
             // Add country info to city for filtering
             const cityToCache = {
               ...city,
-              country: city.country || currentCountry
+              country: normalizedCountry
             };
             newCached.push(cityToCache);
             addedCount++;
@@ -547,9 +580,19 @@ const PostsList = () => {
           (c._id || c.id) === (newValue._id || newValue.id)
         );
         if (!exists) {
+          // Normalize country to always be a string ID for consistent filtering
+          let normalizedCountry = currentCountry;
+          if (newValue.country) {
+            normalizedCountry = typeof newValue.country === 'object' 
+              ? (newValue.country._id || newValue.country.id || currentCountry)
+              : newValue.country;
+          }
+          // Ensure it's a string
+          normalizedCountry = normalizedCountry ? String(normalizedCountry) : currentCountry;
+          
           const cityToCache = {
             ...newValue,
-            country: newValue.country || currentCountry
+            country: normalizedCountry
           };
           const newCached = [...prevCached, cityToCache];
           
@@ -559,7 +602,7 @@ const PostsList = () => {
           // Save to localStorage
           try {
             localStorage.setItem('cachedCities', JSON.stringify(limitedCache));
-            console.log(`✅ Saved selected city "${cityName}" to localStorage. Total cached: ${limitedCache.length}`);
+            console.log(`✅ Saved selected city "${cityName}" to localStorage. Total cached: ${limitedCache.length}. Country: ${normalizedCountry}`);
           } catch (error) {
             console.error('❌ Error saving cached cities:', error);
             // If localStorage is full, try to clear old entries
