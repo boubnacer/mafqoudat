@@ -7,7 +7,8 @@ export const cleanupLocalStorage = () => {
     'isLoggedIn',
     'language',
     'currentCountry',
-    'globalState' // Added to preserve Redux global state
+    'globalState', // Added to preserve Redux global state
+    'cachedCities' // Added to preserve cached cities for city search
   ];
 
   // Get all localStorage keys
