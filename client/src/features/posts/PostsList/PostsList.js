@@ -669,7 +669,9 @@ const PostsList = () => {
                   onChange={handleCityChange}
                   onInputChange={handleCityInputChange}
                   inputValue={citySearchTerm}
-                  open={citySearchTerm.length >= 1 && (citiesData?.length > 0 || citiesLoading)}
+                  open={citySearchTerm.length >= 1}
+                  onOpen={() => {}}
+                  onClose={() => {}}
                   openOnFocus={false}
                   getOptionLabel={(option) => {
                     if (typeof option === 'string') return option;
@@ -682,9 +684,8 @@ const PostsList = () => {
                     return optionId && valueId && optionId.toString() === valueId.toString();
                   }}
                   loading={citiesLoading}
-                  filterOptions={(options) => {
-                    // Return all options as-is since we're using server-side search
-                    // Don't filter client-side - server already filtered
+                  filterOptions={(options, state) => {
+                    // Completely disable client-side filtering - return all options from server
                     return options;
                   }}
                   noOptionsText={
