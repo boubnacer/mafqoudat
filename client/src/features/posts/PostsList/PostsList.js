@@ -447,6 +447,7 @@ const PostsList = () => {
       setCitySearchTerm('');
     }
     setPage(1);
+    // Dropdown will close automatically because open={citySearchTerm.length >= 1 && !selectedCity}
   }, [getCityDisplayName]);
 
   const handleCityInputChange = useCallback((event, newInputValue, reason) => {
@@ -774,9 +775,15 @@ const PostsList = () => {
                   onChange={handleCityChange}
                   onInputChange={handleCityInputChange}
                   inputValue={citySearchTerm}
-                  open={citySearchTerm.length >= 1}
+                  open={citySearchTerm.length >= 1 && !selectedCity}
                   onOpen={() => {}}
-                  onClose={() => {}}
+                  onClose={() => {
+                    // When dropdown closes, if a city is selected, keep the city name
+                    if (selectedCity) {
+                      const cityName = getCityDisplayName(selectedCity);
+                      setCitySearchTerm(cityName);
+                    }
+                  }}
                   openOnFocus={false}
                   getOptionLabel={(option) => {
                     if (typeof option === 'string') return option;
@@ -813,9 +820,9 @@ const PostsList = () => {
                   renderOption={(props, option) => {
                     // Show city name in all languages for better search experience
                     const cityNames = [];
-                    if (option.labels?.en) cityNames.push(`🇬🇧 ${option.labels.en}`);
-                    if (option.labels?.fr) cityNames.push(`🇫🇷 ${option.labels.fr}`);
-                    if (option.labels?.ar) cityNames.push(`🇸🇦 ${option.labels.ar}`);
+                    if (option.labels?.en) cityNames.push(option.labels.en);
+                    if (option.labels?.fr) cityNames.push(option.labels.fr);
+                    if (option.labels?.ar) cityNames.push(option.labels.ar);
                     const displayText = cityNames.length > 0 ? cityNames.join(' • ') : getCityDisplayName(option);
                     
                     return (
