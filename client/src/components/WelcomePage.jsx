@@ -103,19 +103,20 @@ const BrandLogo = styled(Box)(({ theme }) => ({
 }));
 
 const FeatureCard = styled(Paper)(({ theme }) => ({
-  padding: theme?.spacing?.(3) || '24px',
-  borderRadius: 16,
+  padding: theme?.spacing?.(1.5) || '12px',
+  borderRadius: 12,
   background: theme?.palette?.mode === 'dark'
-    ? 'rgba(255, 255, 255, 0.05)'
-    : 'rgba(255, 255, 255, 0.7)',
-  border: `1px solid ${alpha(theme?.palette?.divider, 0.1)}`,
-  transition: 'all 0.3s ease',
+    ? 'rgba(255, 255, 255, 0.03)'
+    : 'rgba(255, 255, 255, 0.5)',
+  border: `1px solid ${alpha(theme?.palette?.divider, 0.05)}`,
   // Remove default Paper shadow
   boxShadow: 'none',
+  // Remove hover effects to make it look less clickable
+  cursor: 'default',
   '&:hover': {
-    transform: 'translateY(-2px)',
-    // Keep only border on hover, no shadow
-    border: `1px solid ${alpha(theme?.palette?.primary?.main || '#667eea', 0.3)}`,
+    // No transform or border change on hover
+    transform: 'none',
+    border: `1px solid ${alpha(theme?.palette?.divider, 0.05)}`,
     boxShadow: 'none',
   }
 }));
@@ -840,19 +841,19 @@ const WelcomePage = () => {
             </Button>
           </Box>
 
-          <Grid container spacing={3} sx={{ mt: 4 }}>
+          <Grid container spacing={2} sx={{ mt: 6 }}>
             <Grid item xs={12} md={4}>
               <FeatureCard>
                 <Box sx={{ textAlign: 'center' }}>
                   <Search sx={{ 
-                    fontSize: 40, 
-                    color: theme?.palette?.mode === 'dark' ? 'primary.main' : 'primary.dark', 
-                    mb: 2 
+                    fontSize: 28, 
+                    color: theme?.palette?.mode === 'dark' ? 'text.secondary' : 'text.secondary', 
+                    mb: 1 
                   }} />
-                  <Typography variant="h6" gutterBottom sx={{ fontSize: { xs: '1.1rem', md: '1.2rem' } }}>
+                  <Typography variant="subtitle2" gutterBottom sx={{ fontSize: { xs: '0.9rem', md: '0.95rem' }, fontWeight: 500 }}>
                     {t('searchItems')}
                   </Typography>
-                  <Typography variant="body2" color="text.secondary" sx={{ fontSize: { xs: '1rem', md: '1.1rem' } }}>
+                  <Typography variant="caption" color="text.secondary" sx={{ fontSize: { xs: '0.75rem', md: '0.8rem' }, display: 'block' }}>
                     {t('searchItemsDesc')}
                   </Typography>
                 </Box>
@@ -862,14 +863,14 @@ const WelcomePage = () => {
               <FeatureCard>
                 <Box sx={{ textAlign: 'center' }}>
                   <LocationOn sx={{ 
-                    fontSize: 40, 
-                    color: theme?.palette?.mode === 'dark' ? 'primary.main' : 'primary.dark', 
-                    mb: 2 
+                    fontSize: 28, 
+                    color: theme?.palette?.mode === 'dark' ? 'text.secondary' : 'text.secondary', 
+                    mb: 1 
                   }} />
-                  <Typography variant="h6" gutterBottom sx={{ fontSize: { xs: '1.1rem', md: '1.2rem' } }}>
+                  <Typography variant="subtitle2" gutterBottom sx={{ fontSize: { xs: '0.9rem', md: '0.95rem' }, fontWeight: 500 }}>
                     {t('localPosts')}
                   </Typography>
-                  <Typography variant="body2" color="text.secondary" sx={{ fontSize: { xs: '1rem', md: '1.1rem' } }}>
+                  <Typography variant="caption" color="text.secondary" sx={{ fontSize: { xs: '0.75rem', md: '0.8rem' }, display: 'block' }}>
                     {t('localPostsDesc')}
                   </Typography>
                 </Box>
@@ -879,14 +880,14 @@ const WelcomePage = () => {
               <FeatureCard>
                 <Box sx={{ textAlign: 'center' }}>
                   <Public sx={{ 
-                    fontSize: 40, 
-                    color: theme?.palette?.mode === 'dark' ? 'primary.main' : 'primary.dark', 
-                    mb: 2 
+                    fontSize: 28, 
+                    color: theme?.palette?.mode === 'dark' ? 'text.secondary' : 'text.secondary', 
+                    mb: 1 
                   }} />
-                  <Typography variant="h6" gutterBottom sx={{ fontSize: { xs: '1.1rem', md: '1.2rem' } }}>
+                  <Typography variant="subtitle2" gutterBottom sx={{ fontSize: { xs: '0.9rem', md: '0.95rem' }, fontWeight: 500 }}>
                     {t('communityHelp')}
                   </Typography>
-                  <Typography variant="body2" color="text.secondary" sx={{ fontSize: { xs: '1rem', md: '1.1rem' } }}>
+                  <Typography variant="caption" color="text.secondary" sx={{ fontSize: { xs: '0.75rem', md: '0.8rem' }, display: 'block' }}>
                     {t('communityHelpDesc')}
                   </Typography>
                 </Box>
