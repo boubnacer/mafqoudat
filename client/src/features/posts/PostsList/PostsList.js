@@ -91,6 +91,8 @@ const PostsList = () => {
   const [cityInputFocused, setCityInputFocused] = useState(false);
   const [cachedCities, setCachedCities] = useState(() => {
     // Load cached cities from localStorage
+    if (typeof window === 'undefined') return [];
+    
     try {
       const cached = localStorage.getItem('cachedCities');
       if (cached) {
@@ -98,14 +100,21 @@ const PostsList = () => {
         if (Array.isArray(parsed) && parsed.length > 0) {
           console.log('✅ Loaded cached cities from localStorage:', parsed.length, 'cities');
           return parsed;
+        } else if (Array.isArray(parsed) && parsed.length === 0) {
+          console.log('ℹ️ Cached cities array is empty in localStorage');
         }
+      } else {
+        console.log('⚠️ No cached cities found in localStorage (initial load)');
       }
     } catch (error) {
       console.error('❌ Error loading cached cities:', error);
-    }
-    // Only log warning once on initial mount if truly empty
-    if (typeof window !== 'undefined' && !localStorage.getItem('cachedCities')) {
-      console.log('⚠️ No cached cities found in localStorage (initial load)');
+      // If there's corrupted data, clear it
+      try {
+        localStorage.removeItem('cachedCities');
+        console.log('🧹 Cleared corrupted cached cities from localStorage');
+      } catch (e) {
+        console.error('❌ Error clearing corrupted cache:', e);
+      }
     }
     return [];
   });
@@ -134,6 +143,43 @@ const PostsList = () => {
     // Small delay to ensure store is initialized
     setTimeout(checkStore, 100);
   }, []);
+
+  // Verify cached cities are loaded on mount
+  useEffect(() => {
+    if (typeof window === 'undefined') return;
+    
+    // Always check localStorage on mount to verify state matches
+    try {
+      const cached = localStorage.getItem('cachedCities');
+      if (cached) {
+        const parsed = JSON.parse(cached);
+        if (Array.isArray(parsed)) {
+          if (parsed.length > 0) {
+            if (cachedCities.length === 0) {
+              console.log('✅ Found cached cities in localStorage on mount, loading into state...', parsed.length, 'cities');
+              setCachedCities(parsed);
+            } else {
+              console.log('✅ Cached cities already in state:', cachedCities.length, 'cities. localStorage has:', parsed.length, 'cities');
+            }
+          } else {
+            console.log('ℹ️ localStorage has empty cached cities array');
+          }
+        }
+      } else {
+        if (cachedCities.length > 0) {
+          console.log('⚠️ State has cached cities but localStorage is empty. Saving to localStorage...');
+          try {
+            localStorage.setItem('cachedCities', JSON.stringify(cachedCities));
+            console.log('✅ Saved cached cities from state to localStorage');
+          } catch (error) {
+            console.error('❌ Error saving cached cities to localStorage:', error);
+          }
+        }
+      }
+    } catch (error) {
+      console.error('❌ Error verifying cached cities on mount:', error);
+    }
+  }, []); // Only run once on mount
 
   // Get categories for dynamic filtering (with debouncing to prevent rate limits)
   const { data: categoriesData, isLoading: categoriesLoading, error: categoriesError } = useGetCategoriesQuery({
