@@ -158,6 +158,14 @@ const PostsList = () => {
     }
   }, [foundOrlost, t]);
 
+  // Get cityId from selectedCity
+  const cityId = useMemo(() => {
+    if (!selectedCity) return undefined;
+    const id = selectedCity._id || selectedCity.id;
+    // Convert to string if it's an ObjectId-like object
+    return id ? String(id) : undefined;
+  }, [selectedCity]);
+
   const { data, isLoading, isSuccess, isError, error } = useGetPostsQuery({
     page,
     pageSize,
@@ -165,7 +173,7 @@ const PostsList = () => {
     currentCountry,
     search: debouncedSearchTerm || undefined,
     categoryId: localCategoryFilter !== "all" ? localCategoryFilter : undefined,
-    cityId: selectedCity?._id || selectedCity?.id || undefined,
+    cityId: cityId,
     language: currentLanguage,
   }, {
     // Add debugging
@@ -239,6 +247,14 @@ const PostsList = () => {
     return () => clearTimeout(timer);
   }, [citySearchTerm]);
 
+  // Update city search term display when language changes (if a city is selected)
+  useEffect(() => {
+    if (selectedCity) {
+      const cityName = getCityDisplayName(selectedCity);
+      setCitySearchTerm(cityName);
+    }
+  }, [currentLanguage, selectedCity, getCityDisplayName]);
+
   useEffect(() => {
     // Update currentCountry from Redux state or localStorage
     if (countryId) {
@@ -295,12 +311,30 @@ const PostsList = () => {
 
   const handleCityChange = useCallback((event, newValue) => {
     setSelectedCity(newValue);
+    // Update search term to show selected city name in current language
+    if (newValue) {
+      const cityName = getCityDisplayName(newValue);
+      setCitySearchTerm(cityName);
+    } else {
+      setCitySearchTerm('');
+    }
     setPage(1);
-  }, []);
+  }, [getCityDisplayName]);
 
-  const handleCityInputChange = useCallback((event, newInputValue) => {
-    setCitySearchTerm(newInputValue);
-  }, []);
+  const handleCityInputChange = useCallback((event, newInputValue, reason) => {
+    // Only update search term if user is typing (not when selecting)
+    if (reason === 'input') {
+      setCitySearchTerm(newInputValue);
+      // Clear selected city if user starts typing
+      if (newInputValue && selectedCity) {
+        setSelectedCity(null);
+      }
+    } else if (reason === 'reset' && selectedCity) {
+      // When reset, show the selected city name in current language
+      const cityName = getCityDisplayName(selectedCity);
+      setCitySearchTerm(cityName);
+    }
+  }, [selectedCity, getCityDisplayName]);
 
   const handleClearCityFilter = useCallback(() => {
     setSelectedCity(null);
@@ -352,11 +386,19 @@ const PostsList = () => {
     return searchTerm || localCategoryFilter !== "all" || selectedCity || sortBy !== "newest";
   }, [searchTerm, localCategoryFilter, selectedCity, sortBy]);
 
-  // Helper function to get city display name
+  // Helper function to get city display name - prioritize current language
   const getCityDisplayName = useCallback((city) => {
     if (!city) return '';
-    if (city.labels?.[currentLanguage]) return city.labels[currentLanguage];
-    if (city.label) return city.label;
+    
+    // Priority: current language -> label (pre-computed) -> English -> French -> Arabic -> code
+    if (city.labels?.[currentLanguage]) {
+      return city.labels[currentLanguage];
+    }
+    // Use pre-computed label if available (from API)
+    if (city.label) {
+      return city.label;
+    }
+    // Fallback to other languages
     if (city.labels?.en) return city.labels.en;
     if (city.labels?.fr) return city.labels.fr;
     if (city.labels?.ar) return city.labels.ar;
@@ -619,16 +661,27 @@ const PostsList = () => {
                   onChange={handleCityChange}
                   onInputChange={handleCityInputChange}
                   inputValue={citySearchTerm}
-                  getOptionLabel={(option) => getCityDisplayName(option)}
-                  isOptionEqualToValue={(option, value) => 
-                    (option._id || option.id) === (value?._id || value?.id)
-                  }
+                  getOptionLabel={(option) => {
+                    if (typeof option === 'string') return option;
+                    return getCityDisplayName(option);
+                  }}
+                  isOptionEqualToValue={(option, value) => {
+                    if (!option || !value) return false;
+                    const optionId = option._id || option.id;
+                    const valueId = value._id || value.id;
+                    return optionId && valueId && optionId.toString() === valueId.toString();
+                  }}
                   loading={citiesLoading}
                   noOptionsText={
                     citySearchTerm.length >= 2 
                       ? t('noSearchResults')
                       : t('searchCityPlaceholder')
                   }
+                  renderOption={(props, option) => (
+                    <li {...props} key={option._id || option.id}>
+                      {getCityDisplayName(option)}
+                    </li>
+                  )}
                   renderInput={(params) => (
                     <TextField
                       {...params}
