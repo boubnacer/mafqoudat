@@ -88,6 +88,7 @@ const PostsList = () => {
   const [citySearchTerm, setCitySearchTerm] = useState("");
   const [selectedCity, setSelectedCity] = useState(null);
   const [debouncedCitySearchTerm, setDebouncedCitySearchTerm] = useState("");
+  const [cityAutocompleteOpen, setCityAutocompleteOpen] = useState(false);
 
   const navigate = useNavigate();
   const { pathname, search } = useLocation();
@@ -279,6 +280,13 @@ const PostsList = () => {
     }
   }, [currentLanguage, selectedCity, getCityDisplayName]);
 
+  // Open dropdown when cities data arrives and user has typed at least 1 character
+  useEffect(() => {
+    if (citySearchTerm.length >= 1 && citiesData && citiesData.length > 0 && !cityAutocompleteOpen) {
+      setCityAutocompleteOpen(true);
+    }
+  }, [citiesData, citySearchTerm, cityAutocompleteOpen]);
+
   useEffect(() => {
     // Update currentCountry from Redux state or localStorage
     if (countryId) {
@@ -339,8 +347,10 @@ const PostsList = () => {
     if (newValue) {
       const cityName = getCityDisplayName(newValue);
       setCitySearchTerm(cityName);
+      setCityAutocompleteOpen(false); // Close dropdown when city is selected
     } else {
       setCitySearchTerm('');
+      setCityAutocompleteOpen(false);
     }
     setPage(1);
   }, [getCityDisplayName]);
@@ -349,6 +359,12 @@ const PostsList = () => {
     // Only update search term if user is typing (not when selecting)
     if (reason === 'input') {
       setCitySearchTerm(newInputValue);
+      // Open dropdown if user has typed at least 1 character
+      if (newInputValue.length >= 1) {
+        setCityAutocompleteOpen(true);
+      } else {
+        setCityAutocompleteOpen(false);
+      }
       // Clear selected city if user starts typing
       if (newInputValue && selectedCity) {
         setSelectedCity(null);
@@ -665,6 +681,13 @@ const PostsList = () => {
                   onChange={handleCityChange}
                   onInputChange={handleCityInputChange}
                   inputValue={citySearchTerm}
+                  open={cityAutocompleteOpen}
+                  onOpen={() => {
+                    if (citySearchTerm.length >= 1) {
+                      setCityAutocompleteOpen(true);
+                    }
+                  }}
+                  onClose={() => setCityAutocompleteOpen(false)}
                   getOptionLabel={(option) => {
                     if (typeof option === 'string') return option;
                     return getCityDisplayName(option);
@@ -676,6 +699,7 @@ const PostsList = () => {
                     return optionId && valueId && optionId.toString() === valueId.toString();
                   }}
                   loading={citiesLoading}
+                  filterOptions={(x) => x} // Disable client-side filtering, use server-side search
                   noOptionsText={
                     citySearchTerm.length >= 1 
                       ? t('noSearchResults')
