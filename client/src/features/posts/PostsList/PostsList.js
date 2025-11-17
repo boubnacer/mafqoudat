@@ -95,13 +95,18 @@ const PostsList = () => {
       const cached = localStorage.getItem('cachedCities');
       if (cached) {
         const parsed = JSON.parse(cached);
-        console.log('✅ Loaded cached cities from localStorage:', parsed.length, 'cities', parsed);
-        return parsed;
+        if (Array.isArray(parsed) && parsed.length > 0) {
+          console.log('✅ Loaded cached cities from localStorage:', parsed.length, 'cities');
+          return parsed;
+        }
       }
     } catch (error) {
       console.error('❌ Error loading cached cities:', error);
     }
-    console.log('⚠️ No cached cities found in localStorage');
+    // Only log warning once on initial mount if truly empty
+    if (typeof window !== 'undefined' && !localStorage.getItem('cachedCities')) {
+      console.log('⚠️ No cached cities found in localStorage (initial load)');
+    }
     return [];
   });
 
@@ -215,6 +220,8 @@ const PostsList = () => {
     if (citiesData && citiesData.length > 0 && currentCountry) {
       setCachedCities(prevCached => {
         const newCached = [...prevCached];
+        let addedCount = 0;
+        
         citiesData.forEach(city => {
           // Check if city already exists in cache
           const exists = newCached.some(c => 
@@ -227,27 +234,36 @@ const PostsList = () => {
               country: city.country || currentCountry
             };
             newCached.push(cityToCache);
+            addedCount++;
           }
         });
         
-        // Limit cache size to prevent localStorage from getting too large (keep last 100 cities)
-        const limitedCache = newCached.slice(-100);
-        
-        // Save to localStorage
-        try {
-          localStorage.setItem('cachedCities', JSON.stringify(limitedCache));
-        } catch (error) {
-          console.error('Error saving cached cities:', error);
-          // If localStorage is full, try to clear old entries
+        // Only update if we added new cities
+        if (addedCount > 0) {
+          // Limit cache size to prevent localStorage from getting too large (keep last 100 cities)
+          const limitedCache = newCached.slice(-100);
+          
+          // Save to localStorage
           try {
-            const reducedCache = newCached.slice(-50);
-            localStorage.setItem('cachedCities', JSON.stringify(reducedCache));
-          } catch (e) {
-            console.error('Error saving reduced cached cities:', e);
+            localStorage.setItem('cachedCities', JSON.stringify(limitedCache));
+            console.log(`✅ Saved ${addedCount} new city/cities to localStorage. Total cached: ${limitedCache.length}`);
+          } catch (error) {
+            console.error('❌ Error saving cached cities:', error);
+            // If localStorage is full, try to clear old entries
+            try {
+              const reducedCache = newCached.slice(-50);
+              localStorage.setItem('cachedCities', JSON.stringify(reducedCache));
+              console.log(`✅ Saved reduced cache (50 cities) to localStorage`);
+              return reducedCache;
+            } catch (e) {
+              console.error('❌ Error saving reduced cached cities:', e);
+            }
           }
+          
+          return limitedCache;
         }
         
-        return limitedCache;
+        return prevCached;
       });
     }
   }, [citiesData, currentCountry]);
@@ -485,19 +501,23 @@ const PostsList = () => {
           // Save to localStorage
           try {
             localStorage.setItem('cachedCities', JSON.stringify(limitedCache));
+            console.log(`✅ Saved selected city "${cityName}" to localStorage. Total cached: ${limitedCache.length}`);
           } catch (error) {
-            console.error('Error saving cached cities:', error);
+            console.error('❌ Error saving cached cities:', error);
             // If localStorage is full, try to clear old entries
             try {
               const reducedCache = newCached.slice(-50);
               localStorage.setItem('cachedCities', JSON.stringify(reducedCache));
+              console.log(`✅ Saved reduced cache (50 cities) to localStorage`);
               return reducedCache;
             } catch (e) {
-              console.error('Error saving reduced cached cities:', e);
+              console.error('❌ Error saving reduced cached cities:', e);
             }
           }
           
           return limitedCache;
+        } else {
+          console.log(`ℹ️ City "${cityName}" already in cache`);
         }
         return prevCached;
       });
