@@ -88,7 +88,6 @@ const PostsList = () => {
   const [citySearchTerm, setCitySearchTerm] = useState("");
   const [selectedCity, setSelectedCity] = useState(null);
   const [debouncedCitySearchTerm, setDebouncedCitySearchTerm] = useState("");
-  const [cityAutocompleteOpen, setCityAutocompleteOpen] = useState(false);
 
   const navigate = useNavigate();
   const { pathname, search } = useLocation();
@@ -280,15 +279,6 @@ const PostsList = () => {
     }
   }, [currentLanguage, selectedCity, getCityDisplayName]);
 
-  // Open dropdown when cities data arrives and user has typed at least 1 character
-  useEffect(() => {
-    if (citySearchTerm.length >= 1) {
-      // Always open if user has typed something (will show loading or results)
-      setCityAutocompleteOpen(true);
-    } else {
-      setCityAutocompleteOpen(false);
-    }
-  }, [citySearchTerm, citiesData, citiesLoading]);
 
   useEffect(() => {
     // Update currentCountry from Redux state or localStorage
@@ -350,10 +340,8 @@ const PostsList = () => {
     if (newValue) {
       const cityName = getCityDisplayName(newValue);
       setCitySearchTerm(cityName);
-      setCityAutocompleteOpen(false); // Close dropdown when city is selected
     } else {
       setCitySearchTerm('');
-      setCityAutocompleteOpen(false);
     }
     setPage(1);
   }, [getCityDisplayName]);
@@ -362,12 +350,6 @@ const PostsList = () => {
     // Only update search term if user is typing (not when selecting)
     if (reason === 'input') {
       setCitySearchTerm(newInputValue);
-      // Always open dropdown if user has typed at least 1 character
-      if (newInputValue.length >= 1) {
-        setCityAutocompleteOpen(true);
-      } else {
-        setCityAutocompleteOpen(false);
-      }
       // Clear selected city if user starts typing
       if (newInputValue && selectedCity) {
         setSelectedCity(null);
@@ -376,10 +358,9 @@ const PostsList = () => {
       // When reset, show the selected city name in current language
       const cityName = getCityDisplayName(selectedCity);
       setCitySearchTerm(cityName);
-      setCityAutocompleteOpen(false);
     } else if (reason === 'clear') {
       setCitySearchTerm('');
-      setCityAutocompleteOpen(false);
+      setSelectedCity(null);
     }
   }, [selectedCity, getCityDisplayName]);
 
@@ -688,13 +669,7 @@ const PostsList = () => {
                   onChange={handleCityChange}
                   onInputChange={handleCityInputChange}
                   inputValue={citySearchTerm}
-                  open={cityAutocompleteOpen}
-                  onOpen={() => {
-                    if (citySearchTerm.length >= 1) {
-                      setCityAutocompleteOpen(true);
-                    }
-                  }}
-                  onClose={() => setCityAutocompleteOpen(false)}
+                  open={citySearchTerm.length >= 1 && (citiesData?.length > 0 || citiesLoading)}
                   openOnFocus={false}
                   getOptionLabel={(option) => {
                     if (typeof option === 'string') return option;
@@ -707,7 +682,11 @@ const PostsList = () => {
                     return optionId && valueId && optionId.toString() === valueId.toString();
                   }}
                   loading={citiesLoading}
-                  filterOptions={(options) => options} // Disable client-side filtering, use server-side search
+                  filterOptions={(options) => {
+                    // Return all options as-is since we're using server-side search
+                    // Don't filter client-side - server already filtered
+                    return options;
+                  }}
                   noOptionsText={
                     citiesLoading 
                       ? (t('loading') || 'Loading...')
@@ -715,6 +694,9 @@ const PostsList = () => {
                         ? t('noSearchResults')
                         : t('searchCityPlaceholder')
                   }
+                  ListboxProps={{
+                    style: { maxHeight: '300px' }
+                  }}
                   renderOption={(props, option) => (
                     <li {...props} key={option._id || option.id}>
                       {getCityDisplayName(option)}
