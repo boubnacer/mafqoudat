@@ -1132,18 +1132,22 @@ const PostsList = () => {
           <EmptyState
             icon={Search}
             title={
-              selectedCity 
-                ? t('noPostsInCity', { cityName: getCityDisplayName(selectedCity) })
-                : hasActiveFilters 
-                  ? t('noPostsMatchFilters') 
-                  : t('noPostsFound')
+              selectedCity && localCategoryFilter !== "all"
+                ? t('noPostsInCityWithCategory', { cityName: getCityDisplayName(selectedCity) })
+                : selectedCity 
+                  ? t('noPostsInCity', { cityName: getCityDisplayName(selectedCity) })
+                  : hasActiveFilters 
+                    ? t('noPostsMatchFilters') 
+                    : t('noPostsFound')
             }
             description={
-              selectedCity
-                ? t('noPostsInCityDescription', { cityName: getCityDisplayName(selectedCity) })
-                : hasActiveFilters
-                  ? t('adjustFilters')
-                  : `${t('noPostsInArea')} ${t('tryChangingCountry')}`
+              selectedCity && localCategoryFilter !== "all"
+                ? t('noPostsInCityWithCategoryDescription', { cityName: getCityDisplayName(selectedCity) })
+                : selectedCity
+                  ? t('noPostsInCityDescription', { cityName: getCityDisplayName(selectedCity) })
+                  : hasActiveFilters
+                    ? t('adjustFilters')
+                    : `${t('noPostsInArea')} ${t('tryChangingCountry')}`
             }
             action={
               <Box display="flex" gap={2} flexWrap="wrap" justifyContent="center">
