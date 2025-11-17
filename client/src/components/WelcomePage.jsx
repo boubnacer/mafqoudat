@@ -841,7 +841,21 @@ const WelcomePage = () => {
             </Button>
           </Box>
 
-          <Grid container spacing={2} sx={{ mt: 6 }}>
+          <Typography 
+            variant="subtitle1" 
+            align="center"
+            sx={{ 
+              mt: 5,
+              mb: 2,
+              fontSize: { xs: '1rem', md: '1.1rem' },
+              fontWeight: 500,
+              color: 'text.secondary',
+            }}
+          >
+            {t('websiteFeaturesTitle')}
+          </Typography>
+
+          <Grid container spacing={2} sx={{ mt: 2 }}>
             <Grid item xs={12} md={4}>
               <FeatureCard>
                 <Box sx={{ textAlign: 'center' }}>
