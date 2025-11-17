@@ -88,6 +88,7 @@ const PostsList = () => {
   const [citySearchTerm, setCitySearchTerm] = useState("");
   const [selectedCity, setSelectedCity] = useState(null);
   const [debouncedCitySearchTerm, setDebouncedCitySearchTerm] = useState("");
+  const [cityInputFocused, setCityInputFocused] = useState(false);
   const [cachedCities, setCachedCities] = useState(() => {
     // Load cached cities from localStorage
     try {
@@ -139,12 +140,10 @@ const PostsList = () => {
     refetchOnMountOrArgChange: 500, // 500ms debounce
   });
 
-  // Filter cached cities by search term and country
-  const filteredCachedCities = useMemo(() => {
-    if (!debouncedCitySearchTerm || debouncedCitySearchTerm.length < 1) return [];
+  // Get all cached cities for current country (for showing when focused)
+  const allCachedCitiesForCountry = useMemo(() => {
     if (!currentCountry) return [];
     
-    const searchLower = debouncedCitySearchTerm.toLowerCase();
     return cachedCities.filter(city => {
       if (!city || !city.labels) return false;
       
@@ -157,6 +156,23 @@ const PostsList = () => {
         }
       }
       
+      return true;
+    });
+  }, [cachedCities, currentCountry]);
+
+  // Filter cached cities by search term and country
+  const filteredCachedCities = useMemo(() => {
+    if (!currentCountry) return [];
+    
+    // If no search term, return all cached cities for the country (when focused)
+    if (!debouncedCitySearchTerm || debouncedCitySearchTerm.length < 1) {
+      return allCachedCitiesForCountry;
+    }
+    
+    const searchLower = debouncedCitySearchTerm.toLowerCase();
+    return allCachedCitiesForCountry.filter(city => {
+      if (!city || !city.labels) return false;
+      
       // Filter by search term
       const cityNameEn = city.labels?.en?.toLowerCase() || '';
       const cityNameFr = city.labels?.fr?.toLowerCase() || '';
@@ -168,7 +184,7 @@ const PostsList = () => {
              cityNameAr.includes(searchLower) ||
              cityCode.includes(searchLower);
     });
-  }, [cachedCities, debouncedCitySearchTerm, currentCountry]);
+  }, [allCachedCitiesForCountry, debouncedCitySearchTerm, currentCountry]);
 
   // Get cities for city filter (with debouncing)
   // Fetch when user types at least 1 character to show cities immediately
@@ -775,16 +791,19 @@ const PostsList = () => {
                   onChange={handleCityChange}
                   onInputChange={handleCityInputChange}
                   inputValue={citySearchTerm}
-                  open={citySearchTerm.length >= 1 && !selectedCity}
-                  onOpen={() => {}}
+                  open={(cityInputFocused && !selectedCity && (filteredCachedCities.length > 0 || citySearchTerm.length >= 1)) || (citySearchTerm.length >= 1 && !selectedCity)}
+                  onOpen={() => {
+                    setCityInputFocused(true);
+                  }}
                   onClose={() => {
+                    setCityInputFocused(false);
                     // When dropdown closes, if a city is selected, keep the city name
                     if (selectedCity) {
                       const cityName = getCityDisplayName(selectedCity);
                       setCitySearchTerm(cityName);
                     }
                   }}
-                  openOnFocus={false}
+                  openOnFocus={true}
                   getOptionLabel={(option) => {
                     if (typeof option === 'string') return option;
                     return getCityDisplayName(option);
@@ -841,6 +860,17 @@ const PostsList = () => {
                       label={t('city')}
                       placeholder={t('searchCityPlaceholder')}
                       sx={{ borderRadius: 2 }}
+                      onFocus={() => {
+                        setCityInputFocused(true);
+                        params.inputProps.onFocus?.(params);
+                      }}
+                      onBlur={(e) => {
+                        // Delay to allow option selection
+                        setTimeout(() => {
+                          setCityInputFocused(false);
+                        }, 200);
+                        params.inputProps.onBlur?.(e);
+                      }}
                       InputProps={{
                         ...params.InputProps,
                         endAdornment: (
