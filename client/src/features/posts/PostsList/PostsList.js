@@ -144,7 +144,7 @@ const PostsList = () => {
     setTimeout(checkStore, 100);
   }, []);
 
-  // Verify cached cities are loaded on mount
+  // Verify cached cities are loaded on mount and ensure they're in state
   useEffect(() => {
     if (typeof window === 'undefined') return;
     
@@ -155,29 +155,37 @@ const PostsList = () => {
         const parsed = JSON.parse(cached);
         if (Array.isArray(parsed)) {
           if (parsed.length > 0) {
-            if (cachedCities.length === 0) {
-              console.log('✅ Found cached cities in localStorage on mount, loading into state...', parsed.length, 'cities');
-              setCachedCities(parsed);
-            } else {
-              console.log('✅ Cached cities already in state:', cachedCities.length, 'cities. localStorage has:', parsed.length, 'cities');
-            }
+            // Always update state with localStorage data on mount to ensure sync
+            setCachedCities(prevCached => {
+              // Only update if different
+              if (prevCached.length !== parsed.length || 
+                  prevCached.some((city, idx) => {
+                    const cachedId = city?._id || city?.id;
+                    const parsedId = parsed[idx]?._id || parsed[idx]?.id;
+                    return cachedId !== parsedId;
+                  })) {
+                console.log('✅ Loading cached cities from localStorage on mount:', parsed.length, 'cities');
+                return parsed;
+              }
+              console.log('✅ Cached cities already in state:', prevCached.length, 'cities');
+              return prevCached;
+            });
           } else {
             console.log('ℹ️ localStorage has empty cached cities array');
           }
         }
       } else {
-        if (cachedCities.length > 0) {
-          console.log('⚠️ State has cached cities but localStorage is empty. Saving to localStorage...');
-          try {
-            localStorage.setItem('cachedCities', JSON.stringify(cachedCities));
-            console.log('✅ Saved cached cities from state to localStorage');
-          } catch (error) {
-            console.error('❌ Error saving cached cities to localStorage:', error);
-          }
-        }
+        console.log('⚠️ No cached cities in localStorage');
       }
     } catch (error) {
       console.error('❌ Error verifying cached cities on mount:', error);
+      // If there's corrupted data, clear it
+      try {
+        localStorage.removeItem('cachedCities');
+        console.log('🧹 Cleared corrupted cached cities from localStorage');
+      } catch (e) {
+        console.error('❌ Error clearing corrupted cache:', e);
+      }
     }
   }, []); // Only run once on mount
 
@@ -315,11 +323,15 @@ const PostsList = () => {
   }, [citiesData, currentCountry]);
 
   // Combine cached and API cities, removing duplicates
+  // When focused with no search term, show cached cities
+  // When typing, show filtered cached cities + API results
   const allCitiesData = useMemo(() => {
+    // Start with filtered cached cities (which includes all cached cities when no search term)
     const combined = [...filteredCachedCities];
     const existingIds = new Set(combined.map(c => c._id || c.id));
     
-    if (citiesData) {
+    // Add API results if available (when user is typing)
+    if (citiesData && citiesData.length > 0) {
       citiesData.forEach(city => {
         const cityId = city._id || city.id;
         if (!existingIds.has(cityId)) {
@@ -901,12 +913,15 @@ const PostsList = () => {
                   inputValue={citySearchTerm}
                   open={
                     !selectedCity && (
+                      // Open when focused and there are cached cities OR user is typing
                       (cityInputFocused && (allCachedCitiesForCountry.length > 0 || citySearchTerm.length >= 1)) ||
+                      // Or when user is typing (even if not focused)
                       (citySearchTerm.length >= 1)
                     )
                   }
                   onOpen={() => {
                     setCityInputFocused(true);
+                    console.log('🔍 City search opened. Cached cities:', allCachedCitiesForCountry.length, 'Total options:', allCitiesData.length);
                   }}
                   onClose={() => {
                     setCityInputFocused(false);
@@ -944,7 +959,9 @@ const PostsList = () => {
                       ? (t('loading') || 'Loading...')
                       : citySearchTerm.length >= 1 
                         ? t('noSearchResults')
-                        : t('searchCityPlaceholder')
+                        : allCachedCitiesForCountry.length === 0
+                          ? t('searchCityPlaceholder')
+                          : t('noSearchResults')
                   }
                   ListboxProps={{
                     style: { maxHeight: '300px' }
