@@ -95,31 +95,23 @@ const PostsList = () => {
     
     try {
       const cached = localStorage.getItem('cachedCities');
-      console.log('🔍 Initial state: Checking localStorage for cachedCities...', cached ? `Found ${cached.length} chars` : 'Not found');
-      
       if (cached) {
         const parsed = JSON.parse(cached);
-        console.log('📦 Initial state: Parsed data type:', typeof parsed, 'Is array:', Array.isArray(parsed), 'Length:', Array.isArray(parsed) ? parsed.length : 'N/A');
-        
         if (Array.isArray(parsed) && parsed.length > 0) {
-          console.log('✅ Initial state: Loaded cached cities from localStorage:', parsed.length, 'cities', parsed);
           return parsed;
         } else if (Array.isArray(parsed) && parsed.length === 0) {
-          console.log('ℹ️ Initial state: Cached cities array is empty in localStorage');
+          // Empty array is valid, just return empty
         } else {
-          console.error('❌ Initial state: Cached data is not a valid array:', parsed);
+          console.error('Cached data is not a valid array:', parsed);
         }
-      } else {
-        console.log('⚠️ Initial state: No cached cities found in localStorage (initial load)');
       }
     } catch (error) {
-      console.error('❌ Initial state: Error loading cached cities:', error);
+      console.error('Error loading cached cities:', error);
       // If there's corrupted data, clear it
       try {
         localStorage.removeItem('cachedCities');
-        console.log('🧹 Initial state: Cleared corrupted cached cities from localStorage');
       } catch (e) {
-        console.error('❌ Initial state: Error clearing corrupted cache:', e);
+        console.error('Error clearing corrupted cache:', e);
       }
     }
     return [];
@@ -154,70 +146,50 @@ const PostsList = () => {
   useEffect(() => {
     if (typeof window === 'undefined') return;
     
-    console.log('🔄 useEffect on mount: Checking localStorage for cached cities...');
-    
     // Always check localStorage on mount to verify state matches
     try {
       const cached = localStorage.getItem('cachedCities');
-      console.log('🔄 useEffect on mount: localStorage.getItem result:', cached ? `Found ${cached.length} chars` : 'null/undefined');
-      
       if (cached) {
         const parsed = JSON.parse(cached);
-        console.log('🔄 useEffect on mount: Parsed data:', typeof parsed, 'Is array:', Array.isArray(parsed), 'Length:', Array.isArray(parsed) ? parsed.length : 'N/A');
-        
-        if (Array.isArray(parsed)) {
-          if (parsed.length > 0) {
-            // Normalize country fields in cached cities to ensure consistent filtering
-            const normalizedCities = parsed.map(city => {
-              if (city && city.country) {
-                const normalizedCountry = typeof city.country === 'object' 
-                  ? (city.country._id || city.country.id || city.country)
-                  : city.country;
-                return {
-                  ...city,
-                  country: normalizedCountry ? String(normalizedCountry) : city.country
-                };
-              }
-              return city;
-            });
-            
-            console.log('🔄 useEffect on mount: Normalized cities:', normalizedCities.length, normalizedCities);
-            
-            // Always update state with localStorage data on mount to ensure sync
-            setCachedCities(prevCached => {
-              console.log('🔄 useEffect on mount: Current state has', prevCached.length, 'cities');
-              
-              // Only update if different
-              if (prevCached.length !== normalizedCities.length || 
-                  prevCached.some((city, idx) => {
-                    const cachedId = city?._id || city?.id;
-                    const parsedId = normalizedCities[idx]?._id || normalizedCities[idx]?.id;
-                    return cachedId !== parsedId;
-                  })) {
-                console.log('✅ useEffect on mount: Loading cached cities from localStorage:', normalizedCities.length, 'cities');
-                return normalizedCities;
-              }
-              console.log('ℹ️ useEffect on mount: State already has correct cities, no update needed');
-              return prevCached;
-            });
-          } else {
-            console.log('ℹ️ useEffect on mount: Cached array is empty');
-          }
-        } else {
-          console.error('❌ useEffect on mount: Cached data is not an array:', typeof parsed, parsed);
+        if (Array.isArray(parsed) && parsed.length > 0) {
+          // Normalize country fields in cached cities to ensure consistent filtering
+          const normalizedCities = parsed.map(city => {
+            if (city && city.country) {
+              const normalizedCountry = typeof city.country === 'object' 
+                ? (city.country._id || city.country.id || city.country)
+                : city.country;
+              return {
+                ...city,
+                country: normalizedCountry ? String(normalizedCountry) : city.country
+              };
+            }
+            return city;
+          });
+          
+          // Only update if different to avoid unnecessary re-renders
+          setCachedCities(prevCached => {
+            if (prevCached.length !== normalizedCities.length || 
+                prevCached.some((city, idx) => {
+                  const cachedId = city?._id || city?.id;
+                  const parsedId = normalizedCities[idx]?._id || normalizedCities[idx]?.id;
+                  return cachedId !== parsedId;
+                })) {
+              return normalizedCities;
+            }
+            return prevCached;
+          });
+        } else if (!Array.isArray(parsed)) {
+          console.error('Cached data is not an array:', typeof parsed);
           localStorage.removeItem('cachedCities');
         }
-      } else {
-        console.log('⚠️ useEffect on mount: No cached cities found in localStorage');
       }
     } catch (error) {
-      console.error('❌ useEffect on mount: Error verifying cached cities:', error);
+      console.error('Error verifying cached cities on mount:', error);
       // If there's corrupted data, clear it
       try {
         localStorage.removeItem('cachedCities');
-        console.log('🧹 useEffect on mount: Cleared corrupted cached cities from localStorage');
       } catch (e) {
-        console.error('❌ useEffect on mount: Error clearing corrupted cache:', e);
+        console.error('Error clearing corrupted cache:', e);
       }
     }
   }, []); // Only run once on mount
@@ -351,28 +323,16 @@ const PostsList = () => {
           
           // Save to localStorage
           try {
-            const jsonString = JSON.stringify(limitedCache);
-            localStorage.setItem('cachedCities', jsonString);
-            console.log(`✅ Saved ${addedCount} new city/cities to localStorage. Total cached: ${limitedCache.length}`);
-            
-            // Verify it was saved
-            const verify = localStorage.getItem('cachedCities');
-            if (verify) {
-              const verifyParsed = JSON.parse(verify);
-              console.log(`✅ Verified: localStorage now contains ${verifyParsed.length} cities`);
-            } else {
-              console.error('❌ Verification failed: localStorage is empty after save!');
-            }
+            localStorage.setItem('cachedCities', JSON.stringify(limitedCache));
           } catch (error) {
-            console.error('❌ Error saving cached cities:', error);
+            console.error('Error saving cached cities:', error);
             // If localStorage is full, try to clear old entries
             try {
               const reducedCache = newCached.slice(-50);
               localStorage.setItem('cachedCities', JSON.stringify(reducedCache));
-              console.log(`✅ Saved reduced cache (50 cities) to localStorage`);
               return reducedCache;
             } catch (e) {
-              console.error('❌ Error saving reduced cached cities:', e);
+              console.error('Error saving reduced cached cities:', e);
             }
           }
           
@@ -630,34 +590,20 @@ const PostsList = () => {
           
           // Save to localStorage
           try {
-            const jsonString = JSON.stringify(limitedCache);
-            localStorage.setItem('cachedCities', jsonString);
-            console.log(`✅ Saved selected city "${cityName}" to localStorage. Total cached: ${limitedCache.length}. Country: ${normalizedCountry}`);
-            
-            // Verify it was saved
-            const verify = localStorage.getItem('cachedCities');
-            if (verify) {
-              const verifyParsed = JSON.parse(verify);
-              console.log(`✅ Verified: localStorage now contains ${verifyParsed.length} cities`);
-            } else {
-              console.error('❌ Verification failed: localStorage is empty after save!');
-            }
+            localStorage.setItem('cachedCities', JSON.stringify(limitedCache));
           } catch (error) {
-            console.error('❌ Error saving cached cities:', error);
+            console.error('Error saving cached cities:', error);
             // If localStorage is full, try to clear old entries
             try {
               const reducedCache = newCached.slice(-50);
               localStorage.setItem('cachedCities', JSON.stringify(reducedCache));
-              console.log(`✅ Saved reduced cache (50 cities) to localStorage`);
               return reducedCache;
             } catch (e) {
-              console.error('❌ Error saving reduced cached cities:', e);
+              console.error('Error saving reduced cached cities:', e);
             }
           }
           
           return limitedCache;
-        } else {
-          console.log(`ℹ️ City "${cityName}" already in cache`);
         }
         return prevCached;
       });
@@ -1003,7 +949,6 @@ const PostsList = () => {
                   }
                   onOpen={() => {
                     setCityInputFocused(true);
-                    console.log('🔍 City search opened. Cached cities:', allCachedCitiesForCountry.length, 'Total options:', allCitiesData.length);
                   }}
                   onClose={() => {
                     setCityInputFocused(false);
