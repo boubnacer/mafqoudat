@@ -128,7 +128,7 @@ const PostsList = () => {
   });
 
   // Get cities for city filter (with debouncing)
-  // Only fetch when user types at least 2 characters to minimize database calls
+  // Fetch when user types at least 1 character to show cities immediately
   const { data: citiesData, isLoading: citiesLoading } = useGetCitiesQuery({
     language: currentLanguage,
     search: debouncedCitySearchTerm || undefined,
@@ -139,8 +139,8 @@ const PostsList = () => {
       data: data?.ids?.map((id) => data?.entities[id]) || [],
       isLoading
     }),
-    // Skip if: no country, or search term is less than 2 characters, or no search term at all
-    skip: !currentCountry || !debouncedCitySearchTerm || debouncedCitySearchTerm.length < 2,
+    // Skip if: no country, or no search term at all (allow 1 character minimum)
+    skip: !currentCountry || !debouncedCitySearchTerm || debouncedCitySearchTerm.length < 1,
     refetchOnMountOrArgChange: 500,
   });
 
@@ -677,11 +677,9 @@ const PostsList = () => {
                   }}
                   loading={citiesLoading}
                   noOptionsText={
-                    citySearchTerm.length >= 2 
+                    citySearchTerm.length >= 1 
                       ? t('noSearchResults')
-                      : citySearchTerm.length > 0
-                        ? (t('typeAtLeast2Characters') || 'Type at least 2 characters to search')
-                        : t('searchCityPlaceholder')
+                      : t('searchCityPlaceholder')
                   }
                   renderOption={(props, option) => (
                     <li {...props} key={option._id || option.id}>
