@@ -283,66 +283,6 @@ const PostsList = () => {
     refetchOnMountOrArgChange: 500,
   });
 
-  // Cache cities when they arrive from API
-  useEffect(() => {
-    if (citiesData && citiesData.length > 0 && currentCountry) {
-      setCachedCities(prevCached => {
-        const newCached = [...prevCached];
-        let addedCount = 0;
-        
-        citiesData.forEach(city => {
-          // Check if city already exists in cache
-          const exists = newCached.some(c => 
-            (c._id || c.id) === (city._id || city.id)
-          );
-          if (!exists) {
-            // Normalize country to always be a string ID for consistent filtering
-            let normalizedCountry = currentCountry;
-            if (city.country) {
-              normalizedCountry = typeof city.country === 'object' 
-                ? (city.country._id || city.country.id || currentCountry)
-                : city.country;
-            }
-            // Ensure it's a string
-            normalizedCountry = normalizedCountry ? String(normalizedCountry) : currentCountry;
-            
-            // Add country info to city for filtering
-            const cityToCache = {
-              ...city,
-              country: normalizedCountry
-            };
-            newCached.push(cityToCache);
-            addedCount++;
-          }
-        });
-        
-        // Only update if we added new cities
-        if (addedCount > 0) {
-          // Limit cache size to prevent localStorage from getting too large (keep last 100 cities)
-          const limitedCache = newCached.slice(-100);
-          
-          // Save to localStorage
-          try {
-            localStorage.setItem('cachedCities', JSON.stringify(limitedCache));
-          } catch (error) {
-            console.error('Error saving cached cities:', error);
-            // If localStorage is full, try to clear old entries
-            try {
-              const reducedCache = newCached.slice(-50);
-              localStorage.setItem('cachedCities', JSON.stringify(reducedCache));
-              return reducedCache;
-            } catch (e) {
-              console.error('Error saving reduced cached cities:', e);
-            }
-          }
-          
-          return limitedCache;
-        }
-        
-        return prevCached;
-      });
-    }
-  }, [citiesData, currentCountry]);
 
   // Combine cached and API cities, removing duplicates
   // When focused with no search term, show cached cities
