@@ -128,6 +128,7 @@ const PostsList = () => {
   });
 
   // Get cities for city filter (with debouncing)
+  // Only fetch when user types at least 2 characters to minimize database calls
   const { data: citiesData, isLoading: citiesLoading } = useGetCitiesQuery({
     language: currentLanguage,
     search: debouncedCitySearchTerm || undefined,
@@ -138,7 +139,8 @@ const PostsList = () => {
       data: data?.ids?.map((id) => data?.entities[id]) || [],
       isLoading
     }),
-    skip: !currentCountry || (debouncedCitySearchTerm && debouncedCitySearchTerm.length < 2),
+    // Skip if: no country, or search term is less than 2 characters, or no search term at all
+    skip: !currentCountry || !debouncedCitySearchTerm || debouncedCitySearchTerm.length < 2,
     refetchOnMountOrArgChange: 500,
   });
 
@@ -159,21 +161,23 @@ const PostsList = () => {
   }, [foundOrlost, t]);
 
   // Helper function to get city display name - prioritize current language
+  // Match the Admin Panel logic: use labels directly, not pre-computed label
   const getCityDisplayName = useCallback((city) => {
     if (!city) return '';
     
-    // Priority: current language -> label (pre-computed) -> English -> French -> Arabic -> code
+    // Priority: current language -> English -> French -> Arabic -> pre-computed label -> code
+    // Always prioritize labels object over pre-computed label to ensure correct language
     if (city.labels?.[currentLanguage]) {
       return city.labels[currentLanguage];
     }
-    // Use pre-computed label if available (from API)
-    if (city.label) {
-      return city.label;
-    }
-    // Fallback to other languages
+    // Fallback to other languages in order
     if (city.labels?.en) return city.labels.en;
     if (city.labels?.fr) return city.labels.fr;
     if (city.labels?.ar) return city.labels.ar;
+    // Use pre-computed label only as last resort (might be in wrong language)
+    if (city.label) {
+      return city.label;
+    }
     if (city.code) return city.code;
     return '';
   }, [currentLanguage]);
@@ -675,7 +679,9 @@ const PostsList = () => {
                   noOptionsText={
                     citySearchTerm.length >= 2 
                       ? t('noSearchResults')
-                      : t('searchCityPlaceholder')
+                      : citySearchTerm.length > 0
+                        ? (t('typeAtLeast2Characters') || 'Type at least 2 characters to search')
+                        : t('searchCityPlaceholder')
                   }
                   renderOption={(props, option) => (
                     <li {...props} key={option._id || option.id}>
