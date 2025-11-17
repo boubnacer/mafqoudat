@@ -88,6 +88,18 @@ const PostsList = () => {
   const [citySearchTerm, setCitySearchTerm] = useState("");
   const [selectedCity, setSelectedCity] = useState(null);
   const [debouncedCitySearchTerm, setDebouncedCitySearchTerm] = useState("");
+  const [cachedCities, setCachedCities] = useState(() => {
+    // Load cached cities from localStorage
+    try {
+      const cached = localStorage.getItem('cachedCities');
+      if (cached) {
+        return JSON.parse(cached);
+      }
+    } catch (error) {
+      console.error('Error loading cached cities:', error);
+    }
+    return [];
+  });
 
   const navigate = useNavigate();
   const { pathname, search } = useLocation();
@@ -127,6 +139,37 @@ const PostsList = () => {
     refetchOnMountOrArgChange: 500, // 500ms debounce
   });
 
+  // Filter cached cities by search term and country
+  const filteredCachedCities = useMemo(() => {
+    if (!debouncedCitySearchTerm || debouncedCitySearchTerm.length < 1) return [];
+    if (!currentCountry) return [];
+    
+    const searchLower = debouncedCitySearchTerm.toLowerCase();
+    return cachedCities.filter(city => {
+      if (!city || !city.labels) return false;
+      
+      // Filter by country if available
+      if (currentCountry && city.country) {
+        const cityCountryId = typeof city.country === 'object' ? (city.country._id || city.country.id) : city.country;
+        const currentCountryId = typeof currentCountry === 'object' ? (currentCountry._id || currentCountry.id) : currentCountry;
+        if (cityCountryId && currentCountryId && cityCountryId.toString() !== currentCountryId.toString()) {
+          return false;
+        }
+      }
+      
+      // Filter by search term
+      const cityNameEn = city.labels?.en?.toLowerCase() || '';
+      const cityNameFr = city.labels?.fr?.toLowerCase() || '';
+      const cityNameAr = city.labels?.ar?.toLowerCase() || '';
+      const cityCode = city.code?.toLowerCase() || '';
+      
+      return cityNameEn.includes(searchLower) || 
+             cityNameFr.includes(searchLower) || 
+             cityNameAr.includes(searchLower) ||
+             cityCode.includes(searchLower);
+    });
+  }, [cachedCities, debouncedCitySearchTerm, currentCountry]);
+
   // Get cities for city filter (with debouncing)
   // Fetch when user types at least 1 character to show cities immediately
   const { data: citiesData, isLoading: citiesLoading } = useGetCitiesQuery({
@@ -143,6 +186,66 @@ const PostsList = () => {
     skip: !currentCountry || !debouncedCitySearchTerm || debouncedCitySearchTerm.length < 1,
     refetchOnMountOrArgChange: 500,
   });
+
+  // Cache cities when they arrive from API
+  useEffect(() => {
+    if (citiesData && citiesData.length > 0 && currentCountry) {
+      setCachedCities(prevCached => {
+        const newCached = [...prevCached];
+        citiesData.forEach(city => {
+          // Check if city already exists in cache
+          const exists = newCached.some(c => 
+            (c._id || c.id) === (city._id || city.id)
+          );
+          if (!exists) {
+            // Add country info to city for filtering
+            const cityToCache = {
+              ...city,
+              country: city.country || currentCountry
+            };
+            newCached.push(cityToCache);
+          }
+        });
+        
+        // Limit cache size to prevent localStorage from getting too large (keep last 100 cities)
+        const limitedCache = newCached.slice(-100);
+        
+        // Save to localStorage
+        try {
+          localStorage.setItem('cachedCities', JSON.stringify(limitedCache));
+        } catch (error) {
+          console.error('Error saving cached cities:', error);
+          // If localStorage is full, try to clear old entries
+          try {
+            const reducedCache = newCached.slice(-50);
+            localStorage.setItem('cachedCities', JSON.stringify(reducedCache));
+          } catch (e) {
+            console.error('Error saving reduced cached cities:', e);
+          }
+        }
+        
+        return limitedCache;
+      });
+    }
+  }, [citiesData, currentCountry]);
+
+  // Combine cached and API cities, removing duplicates
+  const allCitiesData = useMemo(() => {
+    const combined = [...filteredCachedCities];
+    const existingIds = new Set(combined.map(c => c._id || c.id));
+    
+    if (citiesData) {
+      citiesData.forEach(city => {
+        const cityId = city._id || city.id;
+        if (!existingIds.has(cityId)) {
+          combined.push(city);
+          existingIds.add(cityId);
+        }
+      });
+    }
+    
+    return combined;
+  }, [filteredCachedCities, citiesData]);
 
   // Memoize effectiveFl computation
   const effectiveFl = useMemo(() => {
@@ -664,7 +767,7 @@ const PostsList = () => {
               <Grid item xs={12} sm={6} md={3}>
                 <Autocomplete
                   fullWidth
-                  options={citiesData || []}
+                  options={allCitiesData || []}
                   value={selectedCity}
                   autoHighlight={false}
                   autoSelect={false}
@@ -677,9 +780,7 @@ const PostsList = () => {
                   openOnFocus={false}
                   getOptionLabel={(option) => {
                     if (typeof option === 'string') return option;
-                    const label = getCityDisplayName(option);
-                    console.log('getOptionLabel for option:', option, 'returns:', label);
-                    return label;
+                    return getCityDisplayName(option);
                   }}
                   isOptionEqualToValue={(option, value) => {
                     if (!option || !value) return false;
@@ -692,11 +793,6 @@ const PostsList = () => {
                     // Completely disable client-side filtering - return all options from server
                     // Server already filtered the results, so show all returned options
                     // IMPORTANT: Return all options without any filtering
-                    console.log('FilterOptions called:', {
-                      optionsCount: options?.length,
-                      inputValue: state?.inputValue,
-                      options: options
-                    });
                     return options || [];
                   }}
                   disableListWrap
@@ -715,11 +811,20 @@ const PostsList = () => {
                     style: { maxHeight: '300px' }
                   }}
                   renderOption={(props, option) => {
-                    const cityName = getCityDisplayName(option);
-                    console.log('Rendering option:', cityName, 'for input:', citySearchTerm);
+                    // Show city name in all languages for better search experience
+                    const cityNames = [];
+                    if (option.labels?.en) cityNames.push(`🇬🇧 ${option.labels.en}`);
+                    if (option.labels?.fr) cityNames.push(`🇫🇷 ${option.labels.fr}`);
+                    if (option.labels?.ar) cityNames.push(`🇸🇦 ${option.labels.ar}`);
+                    const displayText = cityNames.length > 0 ? cityNames.join(' • ') : getCityDisplayName(option);
+                    
                     return (
                       <li {...props} key={option._id || option.id}>
-                        {cityName}
+                        <Box>
+                          <Typography variant="body1" fontWeight={500}>
+                            {displayText}
+                          </Typography>
+                        </Box>
                       </li>
                     );
                   }}
