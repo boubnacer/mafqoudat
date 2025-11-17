@@ -282,10 +282,13 @@ const PostsList = () => {
 
   // Open dropdown when cities data arrives and user has typed at least 1 character
   useEffect(() => {
-    if (citySearchTerm.length >= 1 && citiesData && citiesData.length > 0 && !cityAutocompleteOpen) {
+    if (citySearchTerm.length >= 1) {
+      // Always open if user has typed something (will show loading or results)
       setCityAutocompleteOpen(true);
+    } else {
+      setCityAutocompleteOpen(false);
     }
-  }, [citiesData, citySearchTerm, cityAutocompleteOpen]);
+  }, [citySearchTerm, citiesData, citiesLoading]);
 
   useEffect(() => {
     // Update currentCountry from Redux state or localStorage
@@ -359,7 +362,7 @@ const PostsList = () => {
     // Only update search term if user is typing (not when selecting)
     if (reason === 'input') {
       setCitySearchTerm(newInputValue);
-      // Open dropdown if user has typed at least 1 character
+      // Always open dropdown if user has typed at least 1 character
       if (newInputValue.length >= 1) {
         setCityAutocompleteOpen(true);
       } else {
@@ -373,6 +376,10 @@ const PostsList = () => {
       // When reset, show the selected city name in current language
       const cityName = getCityDisplayName(selectedCity);
       setCitySearchTerm(cityName);
+      setCityAutocompleteOpen(false);
+    } else if (reason === 'clear') {
+      setCitySearchTerm('');
+      setCityAutocompleteOpen(false);
     }
   }, [selectedCity, getCityDisplayName]);
 
@@ -688,6 +695,7 @@ const PostsList = () => {
                     }
                   }}
                   onClose={() => setCityAutocompleteOpen(false)}
+                  openOnFocus={false}
                   getOptionLabel={(option) => {
                     if (typeof option === 'string') return option;
                     return getCityDisplayName(option);
@@ -699,11 +707,13 @@ const PostsList = () => {
                     return optionId && valueId && optionId.toString() === valueId.toString();
                   }}
                   loading={citiesLoading}
-                  filterOptions={(x) => x} // Disable client-side filtering, use server-side search
+                  filterOptions={(options) => options} // Disable client-side filtering, use server-side search
                   noOptionsText={
-                    citySearchTerm.length >= 1 
-                      ? t('noSearchResults')
-                      : t('searchCityPlaceholder')
+                    citiesLoading 
+                      ? (t('loading') || 'Loading...')
+                      : citySearchTerm.length >= 1 
+                        ? t('noSearchResults')
+                        : t('searchCityPlaceholder')
                   }
                   renderOption={(props, option) => (
                     <li {...props} key={option._id || option.id}>
