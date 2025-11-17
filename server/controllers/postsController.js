@@ -24,6 +24,7 @@ const getAllPosts = async (req, res) => {
     const pageSize = Math.min(Math.max(parseInt(req.query.pageSize) || 8, 1), 50); // Min 1, Max 50
     const fl = req.query.fl;
     const categoryId = req.query.categoryId;
+    const cityId = req.query.cityId;
     const search = req.query.search;
     
     // Validate required parameters
@@ -53,6 +54,7 @@ const getAllPosts = async (req, res) => {
     pageSize,
     fl,
     categoryId,
+    cityId,
     search
   });
   
@@ -74,6 +76,10 @@ const getAllPosts = async (req, res) => {
 
   if (req.query.categoryId) {
     match.category = new mongoose.Types.ObjectId(categoryId);
+  }
+
+  if (req.query.cityId && mongoose.Types.ObjectId.isValid(cityId)) {
+    match.city = new mongoose.Types.ObjectId(cityId);
   }
 
   if (search) {
@@ -402,6 +408,7 @@ const getFilteredPosts = async (req, res) => {
     const fl = req.query.fl;
     const currentCountry = req.query.currentCountry;
     const categoryId = req.query.categoryId;
+    const cityId = req.query.cityId;
     const search = req.query.search;
     
     // Validate required parameters
@@ -421,6 +428,10 @@ const getFilteredPosts = async (req, res) => {
 
     if (categoryId) {
       match.category = new mongoose.Types.ObjectId(categoryId);
+    }
+
+    if (cityId && mongoose.Types.ObjectId.isValid(cityId)) {
+      match.city = new mongoose.Types.ObjectId(cityId);
     }
 
     if (search) {

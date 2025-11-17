@@ -12,7 +12,7 @@ export const postsApiSlice = apiSlice.injectEndpoints({
   endpoints: (builder) => ({
     // Get all post and trended one
     getPosts: builder.query({
-      query: ({ page, pageSize, fl, currentCountry, categoryId, search, language = 'en' }) => ({
+      query: ({ page, pageSize, fl, currentCountry, categoryId, cityId, search, language = 'en' }) => ({
         url: "/posts",
         method: "GET",
         params: {
@@ -21,6 +21,7 @@ export const postsApiSlice = apiSlice.injectEndpoints({
           fl: fl || '', // Always send fl parameter
           ...(currentCountry && { currentCountry }),
           ...(categoryId && { categoryId }),
+          ...(cityId && { cityId }),
           ...(search && { search }),
           language
         },
@@ -60,7 +61,7 @@ export const postsApiSlice = apiSlice.injectEndpoints({
       providesTags: ["Post"],
       // Add cache key based on language to ensure proper cache invalidation
       serializeQueryArgs: ({ queryArgs }) => {
-        return `${queryArgs.page || 1}-${queryArgs.pageSize || 10}-${queryArgs.fl || 'all'}-${queryArgs.currentCountry || ''}-${queryArgs.categoryId || ''}-${queryArgs.search || ''}-${queryArgs.language || 'en'}`;
+        return `${queryArgs.page || 1}-${queryArgs.pageSize || 10}-${queryArgs.fl || 'all'}-${queryArgs.currentCountry || ''}-${queryArgs.categoryId || ''}-${queryArgs.cityId || ''}-${queryArgs.search || ''}-${queryArgs.language || 'en'}`;
       },
     }),
 

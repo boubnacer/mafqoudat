@@ -1,5 +1,5 @@
 import { useGetPostsQuery } from "../postsApiSlice";
-import { useGetCategoriesQuery } from "../../dependencies/dependenciesApiSlice";
+import { useGetCategoriesQuery, useGetCitiesQuery } from "../../dependencies/dependenciesApiSlice";
 import { useTranslation } from "../../../utils/translations";
 import Post from "./Post";
 import useTitle from "../../../hooks/useTitle";
@@ -12,7 +12,8 @@ import {
   Add as AddIcon, 
   ViewList as ViewListIcon,
   ViewModule as ViewModuleIcon,
-  Language
+  Language,
+  LocationOn
 } from "@mui/icons-material";
 import { 
   Button, 
@@ -31,6 +32,8 @@ import {
   IconButton,
   Tooltip,
   Grid,
+  Autocomplete,
+  CircularProgress,
 } from "@mui/material";
 import Pagination from "@mui/material/Pagination";
 import { useEffect, useState, useMemo, useCallback } from "react";
@@ -82,6 +85,9 @@ const PostsList = () => {
   const [viewMode, setViewMode] = useState("grid");
   const [localCategoryFilter, setLocalCategoryFilter] = useState("all");
   const [loadingTimeout, setLoadingTimeout] = useState(false);
+  const [citySearchTerm, setCitySearchTerm] = useState("");
+  const [selectedCity, setSelectedCity] = useState(null);
+  const [debouncedCitySearchTerm, setDebouncedCitySearchTerm] = useState("");
 
   const navigate = useNavigate();
   const { pathname, search } = useLocation();
@@ -121,6 +127,21 @@ const PostsList = () => {
     refetchOnMountOrArgChange: 500, // 500ms debounce
   });
 
+  // Get cities for city filter (with debouncing)
+  const { data: citiesData, isLoading: citiesLoading } = useGetCitiesQuery({
+    language: currentLanguage,
+    search: debouncedCitySearchTerm || undefined,
+    countryId: currentCountry,
+    active: true
+  }, {
+    selectFromResult: ({ data, isLoading }) => ({
+      data: data?.ids?.map((id) => data?.entities[id]) || [],
+      isLoading
+    }),
+    skip: !currentCountry || (debouncedCitySearchTerm && debouncedCitySearchTerm.length < 2),
+    refetchOnMountOrArgChange: 500,
+  });
+
   // Memoize effectiveFl computation
   const effectiveFl = useMemo(() => {
     return urlFilter || '';
@@ -144,6 +165,7 @@ const PostsList = () => {
     currentCountry,
     search: debouncedSearchTerm || undefined,
     categoryId: localCategoryFilter !== "all" ? localCategoryFilter : undefined,
+    cityId: selectedCity?._id || selectedCity?.id || undefined,
     language: currentLanguage,
   }, {
     // Add debugging
@@ -208,6 +230,15 @@ const PostsList = () => {
     return () => clearTimeout(timer);
   }, [searchTerm]);
 
+  // Debounce city search term
+  useEffect(() => {
+    const timer = setTimeout(() => {
+      setDebouncedCitySearchTerm(citySearchTerm);
+    }, 300);
+
+    return () => clearTimeout(timer);
+  }, [citySearchTerm]);
+
   useEffect(() => {
     // Update currentCountry from Redux state or localStorage
     if (countryId) {
@@ -262,6 +293,21 @@ const PostsList = () => {
     setPage(1);
   }, []);
 
+  const handleCityChange = useCallback((event, newValue) => {
+    setSelectedCity(newValue);
+    setPage(1);
+  }, []);
+
+  const handleCityInputChange = useCallback((event, newInputValue) => {
+    setCitySearchTerm(newInputValue);
+  }, []);
+
+  const handleClearCityFilter = useCallback(() => {
+    setSelectedCity(null);
+    setCitySearchTerm("");
+    setPage(1);
+  }, []);
+
   const handleViewModeChange = useCallback(() => {
     setViewMode(viewMode === "grid" ? "list" : "grid");
   }, [viewMode]);
@@ -303,8 +349,20 @@ const PostsList = () => {
 
   // Check if we have active filters
   const hasActiveFilters = useMemo(() => {
-    return searchTerm || localCategoryFilter !== "all" || sortBy !== "newest";
-  }, [searchTerm, localCategoryFilter, sortBy]);
+    return searchTerm || localCategoryFilter !== "all" || selectedCity || sortBy !== "newest";
+  }, [searchTerm, localCategoryFilter, selectedCity, sortBy]);
+
+  // Helper function to get city display name
+  const getCityDisplayName = useCallback((city) => {
+    if (!city) return '';
+    if (city.labels?.[currentLanguage]) return city.labels[currentLanguage];
+    if (city.label) return city.label;
+    if (city.labels?.en) return city.labels.en;
+    if (city.labels?.fr) return city.labels.fr;
+    if (city.labels?.ar) return city.labels.ar;
+    if (city.code) return city.code;
+    return '';
+  }, [currentLanguage]);
 
   // Get posts from API response (already filtered by country and found/lost)
   const filteredPosts = useMemo(() => {
@@ -334,6 +392,15 @@ const PostsList = () => {
       });
     }
     
+    if (selectedCity) {
+      chips.push({
+        label: `${t('city')}: ${getCityDisplayName(selectedCity)}`,
+        onDelete: handleClearCityFilter,
+        color: "success",
+        variant: "outlined"
+      });
+    }
+    
     if (localCategoryFilter !== "all") {
       const category = categoriesData?.find(cat => cat._id === localCategoryFilter);
       chips.push({
@@ -354,7 +421,7 @@ const PostsList = () => {
     }
     
     return chips;
-  }, [searchTerm, localCategoryFilter, sortBy, categoriesData, currentLanguage, t, handleClearSearch, handleClearCategoryFilter, handleClearSort]);
+  }, [searchTerm, selectedCity, localCategoryFilter, sortBy, categoriesData, currentLanguage, t, getCityDisplayName, handleClearSearch, handleClearCategoryFilter, handleClearCityFilter, handleClearSort]);
 
   let content;
 
@@ -524,7 +591,7 @@ const PostsList = () => {
               </Grid> */}
 
               {/* Category Filter */}
-              <Grid item xs={12} sm={6} md={6}>
+              <Grid item xs={12} sm={6} md={3}>
                 <FormControl fullWidth>
                   <InputLabel>{t('category')}</InputLabel>
                   <Select
@@ -541,6 +608,50 @@ const PostsList = () => {
                     ))}
                   </Select>
                 </FormControl>
+              </Grid>
+
+              {/* City Filter */}
+              <Grid item xs={12} sm={6} md={3}>
+                <Autocomplete
+                  fullWidth
+                  options={citiesData || []}
+                  value={selectedCity}
+                  onChange={handleCityChange}
+                  onInputChange={handleCityInputChange}
+                  inputValue={citySearchTerm}
+                  getOptionLabel={(option) => getCityDisplayName(option)}
+                  isOptionEqualToValue={(option, value) => 
+                    (option._id || option.id) === (value?._id || value?.id)
+                  }
+                  loading={citiesLoading}
+                  noOptionsText={
+                    citySearchTerm.length >= 2 
+                      ? t('noSearchResults')
+                      : t('searchCityPlaceholder')
+                  }
+                  renderInput={(params) => (
+                    <TextField
+                      {...params}
+                      label={t('city')}
+                      placeholder={t('searchCityPlaceholder')}
+                      sx={{ borderRadius: 2 }}
+                      InputProps={{
+                        ...params.InputProps,
+                        endAdornment: (
+                          <>
+                            {citiesLoading ? <CircularProgress color="inherit" size={20} /> : null}
+                            {params.InputProps.endAdornment}
+                          </>
+                        ),
+                      }}
+                    />
+                  )}
+                  sx={{ 
+                    '& .MuiOutlinedInput-root': { 
+                      borderRadius: 2 
+                    } 
+                  }}
+                />
               </Grid>
 
               {/* View Mode Toggle - Hidden for now */}
@@ -687,11 +798,19 @@ const PostsList = () => {
         ) : (
           <EmptyState
             icon={Search}
-            title={hasActiveFilters ? t('noPostsMatchFilters') : t('noPostsFound')}
+            title={
+              selectedCity 
+                ? t('noPostsInCity', { cityName: getCityDisplayName(selectedCity) })
+                : hasActiveFilters 
+                  ? t('noPostsMatchFilters') 
+                  : t('noPostsFound')
+            }
             description={
-              hasActiveFilters
-                ? t('adjustFilters')
-                : `${t('noPostsInArea')} ${t('tryChangingCountry')}`
+              selectedCity
+                ? t('noPostsInCityDescription', { cityName: getCityDisplayName(selectedCity) })
+                : hasActiveFilters
+                  ? t('adjustFilters')
+                  : `${t('noPostsInArea')} ${t('tryChangingCountry')}`
             }
             action={
               <Box display="flex" gap={2} flexWrap="wrap" justifyContent="center">
@@ -719,33 +838,38 @@ const PostsList = () => {
                       }
                     }}
                   >
-                    {t('addNewPost')}
+                    {selectedCity 
+                      ? t('createPostInCity', { cityName: getCityDisplayName(selectedCity) })
+                      : t('addNewPost')
+                    }
                   </Button>
                 </Link>
-                <Button 
-                  variant="outlined" 
-                  startIcon={<Language />}
-                  onClick={handleSelectCountry}
-                  sx={{ 
-                    borderRadius: '4px',
-                    px: 3,
-                    py: 1,
-                    textTransform: 'none',
-                    fontWeight: 600,
-                    borderColor: '#4A8BFF',
-                    color: '#4A8BFF',
-                    '&:hover': {
-                      borderColor: '#5A9BFF',
-                      backgroundColor: 'rgba(74, 139, 255, 0.1)',
-                    },
-                    '& .MuiButton-startIcon': {
-                      marginRight: currentLanguage === 'ar' ? 0 : '8px',
-                      marginLeft: currentLanguage === 'ar' ? '8px' : 0,
-                    }
-                  }}
-                >
-                  {t('changeCountry')}
-                </Button>
+                {!selectedCity && (
+                  <Button 
+                    variant="outlined" 
+                    startIcon={<Language />}
+                    onClick={handleSelectCountry}
+                    sx={{ 
+                      borderRadius: '4px',
+                      px: 3,
+                      py: 1,
+                      textTransform: 'none',
+                      fontWeight: 600,
+                      borderColor: '#4A8BFF',
+                      color: '#4A8BFF',
+                      '&:hover': {
+                        borderColor: '#5A9BFF',
+                        backgroundColor: 'rgba(74, 139, 255, 0.1)',
+                      },
+                      '& .MuiButton-startIcon': {
+                        marginRight: currentLanguage === 'ar' ? 0 : '8px',
+                        marginLeft: currentLanguage === 'ar' ? '8px' : 0,
+                      }
+                    }}
+                  >
+                    {t('changeCountry')}
+                  </Button>
+                )}
               </Box>
             }
           />
