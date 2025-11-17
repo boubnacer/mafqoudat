@@ -3171,7 +3171,7 @@ export const translations = {
     localPostsDesc: "شاهد المنشورات من بلدك المختار",
     communityHelp: "المساعدة المجتمعية",
     communityHelpDesc: "ساعد الآخرين في العثور على عناصرهم المفقودة",
-    websiteFeaturesTitle: "هذا الموقع يمكنك من",
+    websiteFeaturesTitle: ": هذا الموقع يمكنك من",
     invalidCredentials: "بيانات الاعتماد غير صحيحة",
     networkError: "خطأ في الشبكة",
     serverError: "خطأ في الخادم",

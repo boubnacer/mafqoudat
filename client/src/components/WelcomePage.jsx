@@ -910,7 +910,16 @@ const WelcomePage = () => {
           </Grid>
 
           <Box sx={{ mt: 4, textAlign: 'center' }}>
-            <Typography variant="body2" color="text.secondary" gutterBottom sx={{ fontSize: { xs: '1rem', md: '1.1rem' } }}>
+            <Typography 
+              variant="subtitle1" 
+              align="center"
+              sx={{ 
+                mb: 3,
+                fontSize: { xs: '1rem', md: '1.1rem' },
+                fontWeight: 500,
+                color: 'text.secondary',
+              }}
+            >
               {t('alreadyHaveAccount')}
             </Typography>
             
