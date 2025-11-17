@@ -666,6 +666,8 @@ const PostsList = () => {
                   fullWidth
                   options={citiesData || []}
                   value={selectedCity}
+                  autoHighlight={false}
+                  autoSelect={false}
                   onChange={handleCityChange}
                   onInputChange={handleCityInputChange}
                   inputValue={citySearchTerm}
@@ -675,7 +677,9 @@ const PostsList = () => {
                   openOnFocus={false}
                   getOptionLabel={(option) => {
                     if (typeof option === 'string') return option;
-                    return getCityDisplayName(option);
+                    const label = getCityDisplayName(option);
+                    console.log('getOptionLabel for option:', option, 'returns:', label);
+                    return label;
                   }}
                   isOptionEqualToValue={(option, value) => {
                     if (!option || !value) return false;
@@ -686,8 +690,20 @@ const PostsList = () => {
                   loading={citiesLoading}
                   filterOptions={(options, state) => {
                     // Completely disable client-side filtering - return all options from server
-                    return options;
+                    // Server already filtered the results, so show all returned options
+                    // IMPORTANT: Return all options without any filtering
+                    console.log('FilterOptions called:', {
+                      optionsCount: options?.length,
+                      inputValue: state?.inputValue,
+                      options: options
+                    });
+                    return options || [];
                   }}
+                  disableListWrap
+                  freeSolo={false}
+                  selectOnFocus
+                  clearOnBlur
+                  handleHomeEndKeys
                   noOptionsText={
                     citiesLoading 
                       ? (t('loading') || 'Loading...')
@@ -698,11 +714,15 @@ const PostsList = () => {
                   ListboxProps={{
                     style: { maxHeight: '300px' }
                   }}
-                  renderOption={(props, option) => (
-                    <li {...props} key={option._id || option.id}>
-                      {getCityDisplayName(option)}
-                    </li>
-                  )}
+                  renderOption={(props, option) => {
+                    const cityName = getCityDisplayName(option);
+                    console.log('Rendering option:', cityName, 'for input:', citySearchTerm);
+                    return (
+                      <li {...props} key={option._id || option.id}>
+                        {cityName}
+                      </li>
+                    );
+                  }}
                   renderInput={(params) => (
                     <TextField
                       {...params}
