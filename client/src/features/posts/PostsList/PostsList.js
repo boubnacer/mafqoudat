@@ -158,6 +158,26 @@ const PostsList = () => {
     }
   }, [foundOrlost, t]);
 
+  // Helper function to get city display name - prioritize current language
+  const getCityDisplayName = useCallback((city) => {
+    if (!city) return '';
+    
+    // Priority: current language -> label (pre-computed) -> English -> French -> Arabic -> code
+    if (city.labels?.[currentLanguage]) {
+      return city.labels[currentLanguage];
+    }
+    // Use pre-computed label if available (from API)
+    if (city.label) {
+      return city.label;
+    }
+    // Fallback to other languages
+    if (city.labels?.en) return city.labels.en;
+    if (city.labels?.fr) return city.labels.fr;
+    if (city.labels?.ar) return city.labels.ar;
+    if (city.code) return city.code;
+    return '';
+  }, [currentLanguage]);
+
   // Get cityId from selectedCity
   const cityId = useMemo(() => {
     if (!selectedCity) return undefined;
@@ -385,26 +405,6 @@ const PostsList = () => {
   const hasActiveFilters = useMemo(() => {
     return searchTerm || localCategoryFilter !== "all" || selectedCity || sortBy !== "newest";
   }, [searchTerm, localCategoryFilter, selectedCity, sortBy]);
-
-  // Helper function to get city display name - prioritize current language
-  const getCityDisplayName = useCallback((city) => {
-    if (!city) return '';
-    
-    // Priority: current language -> label (pre-computed) -> English -> French -> Arabic -> code
-    if (city.labels?.[currentLanguage]) {
-      return city.labels[currentLanguage];
-    }
-    // Use pre-computed label if available (from API)
-    if (city.label) {
-      return city.label;
-    }
-    // Fallback to other languages
-    if (city.labels?.en) return city.labels.en;
-    if (city.labels?.fr) return city.labels.fr;
-    if (city.labels?.ar) return city.labels.ar;
-    if (city.code) return city.code;
-    return '';
-  }, [currentLanguage]);
 
   // Get posts from API response (already filtered by country and found/lost)
   const filteredPosts = useMemo(() => {
