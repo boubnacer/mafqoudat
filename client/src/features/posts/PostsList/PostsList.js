@@ -146,7 +146,6 @@ const PostsList = () => {
   // Get all cached cities for current country (for showing when focused)
   const allCachedCitiesForCountry = useMemo(() => {
     if (!currentCountry) {
-      console.log('No currentCountry, returning empty array for cached cities');
       return [];
     }
     
@@ -163,13 +162,6 @@ const PostsList = () => {
       }
       
       return true;
-    });
-    
-    console.log('All cached cities for country:', {
-      totalCached: cachedCities.length,
-      currentCountry,
-      filteredCount: filtered.length,
-      filtered: filtered
     });
     
     return filtered;
@@ -841,7 +833,12 @@ const PostsList = () => {
                   onChange={handleCityChange}
                   onInputChange={handleCityInputChange}
                   inputValue={citySearchTerm}
-                  open={(cityInputFocused && !selectedCity && (filteredCachedCities.length > 0 || citySearchTerm.length >= 1)) || (citySearchTerm.length >= 1 && !selectedCity)}
+                  open={
+                    !selectedCity && (
+                      (cityInputFocused && (allCachedCitiesForCountry.length > 0 || citySearchTerm.length >= 1)) ||
+                      (citySearchTerm.length >= 1)
+                    )
+                  }
                   onOpen={() => {
                     setCityInputFocused(true);
                   }}
@@ -853,7 +850,7 @@ const PostsList = () => {
                       setCitySearchTerm(cityName);
                     }
                   }}
-                  openOnFocus={true}
+                  openOnFocus={false}
                   getOptionLabel={(option) => {
                     if (typeof option === 'string') return option;
                     return getCityDisplayName(option);
@@ -910,9 +907,9 @@ const PostsList = () => {
                       label={t('city')}
                       placeholder={t('searchCityPlaceholder')}
                       sx={{ borderRadius: 2 }}
-                      onFocus={() => {
+                      onFocus={(e) => {
                         setCityInputFocused(true);
-                        params.inputProps.onFocus?.(params);
+                        params.inputProps.onFocus?.(e);
                       }}
                       onBlur={(e) => {
                         // Delay to allow option selection
