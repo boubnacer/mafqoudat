@@ -9,6 +9,7 @@ import { useTranslation } from "../../utils/translations";
 import { selectCurrentToken } from "../../features/auth/authSlice";
 import useAuth from "../../hooks/useAuth";
 import { authStorage } from "../../utils/authStorage";
+import SeoMeta from "../../components/SeoMeta";
 
 // Custom hook
 import { useDashboard } from "../../hooks/useDashboard";
@@ -142,11 +143,13 @@ const Dash = () => {
                    (!data?.recentLosts || data?.recentLosts.length === 0);
 
   return (
-    <Box 
-      pt={{ xs: "5rem", sm: "4rem" }} 
-      width="100%"
-      sx={{
-        transition: 'padding 0.3s ease',
+    <>
+      <SeoMeta pageKey="dash" />
+      <Box 
+        pt={{ xs: "5rem", sm: "4rem" }} 
+        width="100%"
+        sx={{
+          transition: 'padding 0.3s ease',
         background: theme.palette.mode === 'dark' 
           ? 'linear-gradient(180deg, rgba(18,18,18,0.8) 0%, rgba(28,28,28,0.8) 100%)'
           : 'linear-gradient(180deg, rgba(250,250,250,0.95) 0%, rgba(250,250,250,0.95) 100%)',
@@ -745,6 +748,7 @@ const Dash = () => {
 
       
     </Box>
+    </>
   );
 };
 

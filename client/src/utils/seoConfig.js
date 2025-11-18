@@ -233,6 +233,33 @@ export const pageSeoConfig = {
       ]),
     ],
   },
+  dash: {
+    path: '/dash',
+    title: 'Dashboard | Mafqoudat Lost and Found',
+    description:
+      'Browse lost and found items on Mafqoudat dashboard. View trending posts, recent items, and help reunite belongings with their owners across Morocco.',
+    keywords: [...defaultKeywords, 'mafqoudat dashboard', 'lost and found dashboard', 'browse lost items'],
+    structuredData: [
+      createBreadcrumbSchema([
+        { name: 'Home', path: '/' },
+        { name: 'Dashboard', path: '/dash' },
+      ]),
+    ],
+  },
+  dashPosts: {
+    path: '/dash/posts',
+    title: 'Lost and Found Posts | Mafqoudat',
+    description:
+      'Explore all lost and found posts on Mafqoudat. Search and filter by category, location, and status to find or report lost items across Morocco and the Arab world.',
+    keywords: [...defaultKeywords, 'lost and found posts', 'browse posts', 'search lost items', 'found items Morocco'],
+    structuredData: [
+      createBreadcrumbSchema([
+        { name: 'Home', path: '/' },
+        { name: 'Dashboard', path: '/dash' },
+        { name: 'Posts', path: '/dash/posts' },
+      ]),
+    ],
+  },
 };
 
 Object.keys(pageSeoConfig).forEach((key) => {

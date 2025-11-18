@@ -4,6 +4,7 @@ import { useTranslation } from "../../../utils/translations";
 import Post from "./Post";
 import useTitle from "../../../hooks/useTitle";
 import { LoadingState, EmptyState, ErrorState } from "../../../components/LoadingStates";
+import SeoMeta from "../../../components/SeoMeta";
 import { useSelector, useDispatch } from "react-redux";
 import { Link, useLocation, useNavigate } from "react-router-dom";
 import { store } from "../../../app/store";
@@ -1215,7 +1216,12 @@ const PostsList = () => {
     );
   }
   
-  return content;
+  return (
+    <>
+      <SeoMeta pageKey="dashPosts" />
+      {content}
+    </>
+  );
 };
 
 export default PostsList;
