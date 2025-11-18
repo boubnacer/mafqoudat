@@ -1794,17 +1794,6 @@ if (typeof document !== 'undefined') {
                           ) : (
                             <>
                               {/* Show existing cities when not searching */}
-                              <Box sx={{ 
-                                p: 1, 
-                                backgroundColor: theme.palette.mode === 'dark' ? '#1a1a1a' : '#ffffff',
-                                position: 'sticky',
-                                top: 0,
-                                zIndex: 2
-                              }}>
-                                <Typography variant="caption" color="text.secondary" sx={{ fontWeight: 600 }}>
-                                  {currentLanguage === 'ar' ? `المدن المتاحة (${filteredCities.length})` : currentLanguage === 'fr' ? `Villes disponibles (${filteredCities.length})` : `Available Cities (${filteredCities.length})`}
-                                </Typography>
-                              </Box>
                               {filteredCities.length > 0 ? (
                                 filteredCities.map((city, index) => (
                                   <Box
