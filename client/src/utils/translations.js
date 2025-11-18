@@ -2059,7 +2059,7 @@ export const translations = {
     getHelp: "Obtenir de l'aide",
     reportLostItemDesc: "Vous ne trouvez pas quelque chose ? Signalez-le ici",
     reportFoundItemDesc: "Vous avez trouvé quelque chose ? Aidez à le retourner",
-    searchItemsDesc: "Rechercher des objets perdus ou trouvés",
+    searchItemsDesc: "Recherchez des objets perdus ou trouvés dans votre pays",
     getHelpDesc: "Besoin d'assistance ? Nous sommes là pour vous aider",
     
     // Help & Support
@@ -3462,7 +3462,7 @@ export const translations = {
     getHelp: "الحصول على المساعدة",
     reportLostItemDesc: "لا تستطيع العثور على شيء؟ أبلغ عنه هنا",
     reportFoundItemDesc: "وجدت شيئاً؟ ساعد في إرجاعه",
-    searchItemsDesc: "ابحث عن العناصر المفقودة أو التي عثر عليها",
+    searchItemsDesc: "ابحث عن العناصر المفقودة أو التي عثر عليها في بلدك",
     getHelpDesc: "تحتاج مساعدة؟ نحن هنا لمساعدتك",
     
     // Help & Support

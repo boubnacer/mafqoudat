@@ -115,6 +115,9 @@ const FeatureCard = styled(Paper)(({ theme }) => ({
   boxShadow: 'none',
   // Remove hover effects to make it look less clickable
   cursor: 'default',
+  height: '100%',
+  display: 'flex',
+  flexDirection: 'column',
   '&:hover': {
     // No transform or border change on hover
     transform: 'none',
@@ -860,16 +863,36 @@ const WelcomePage = () => {
           <Grid container spacing={2} sx={{ mt: 2 }}>
             <Grid item xs={12} md={4}>
               <FeatureCard>
-                <Box sx={{ textAlign: 'center' }}>
+                <Box sx={{ textAlign: 'center', display: 'flex', flexDirection: 'column', height: '100%', justifyContent: 'center' }}>
                   <Search sx={{ 
                     fontSize: 28, 
                     color: theme?.palette?.mode === 'dark' ? 'text.secondary' : 'text.secondary', 
                     mb: 1 
                   }} />
-                  <Typography variant="subtitle2" gutterBottom sx={{ fontSize: { xs: '0.9rem', md: '0.95rem' }, fontWeight: 500 }}>
+                  <Typography 
+                    variant="subtitle2" 
+                    gutterBottom 
+                    sx={{ 
+                      fontSize: { 
+                        xs: (currentLanguage || langContext) === 'ar' ? '1rem' : '0.9rem', 
+                        md: '0.95rem' 
+                      }, 
+                      fontWeight: 500 
+                    }}
+                  >
                     {t('searchItems')}
                   </Typography>
-                  <Typography variant="caption" color="text.secondary" sx={{ fontSize: { xs: '0.75rem', md: '0.8rem' }, display: 'block' }}>
+                  <Typography 
+                    variant="caption" 
+                    color="text.secondary" 
+                    sx={{ 
+                      fontSize: { 
+                        xs: (currentLanguage || langContext) === 'ar' ? '0.85rem' : '0.75rem', 
+                        md: '0.8rem' 
+                      }, 
+                      display: 'block' 
+                    }}
+                  >
                     {t('searchItemsDesc')}
                   </Typography>
                 </Box>
@@ -877,16 +900,36 @@ const WelcomePage = () => {
             </Grid>
             <Grid item xs={12} md={4}>
               <FeatureCard>
-                <Box sx={{ textAlign: 'center' }}>
+                <Box sx={{ textAlign: 'center', display: 'flex', flexDirection: 'column', height: '100%', justifyContent: 'center' }}>
                   <PostAdd sx={{ 
                     fontSize: 28, 
                     color: theme?.palette?.mode === 'dark' ? 'text.secondary' : 'text.secondary', 
                     mb: 1 
                   }} />
-                  <Typography variant="subtitle2" gutterBottom sx={{ fontSize: { xs: '0.9rem', md: '0.95rem' }, fontWeight: 500 }}>
+                  <Typography 
+                    variant="subtitle2" 
+                    gutterBottom 
+                    sx={{ 
+                      fontSize: { 
+                        xs: (currentLanguage || langContext) === 'ar' ? '1rem' : '0.9rem', 
+                        md: '0.95rem' 
+                      }, 
+                      fontWeight: 500 
+                    }}
+                  >
                     {t('localPosts')}
                   </Typography>
-                  <Typography variant="caption" color="text.secondary" sx={{ fontSize: { xs: '0.75rem', md: '0.8rem' }, display: 'block' }}>
+                  <Typography 
+                    variant="caption" 
+                    color="text.secondary" 
+                    sx={{ 
+                      fontSize: { 
+                        xs: (currentLanguage || langContext) === 'ar' ? '0.85rem' : '0.75rem', 
+                        md: '0.8rem' 
+                      }, 
+                      display: 'block' 
+                    }}
+                  >
                     {t('localPostsDesc')}
                   </Typography>
                 </Box>
@@ -894,16 +937,36 @@ const WelcomePage = () => {
             </Grid>
             <Grid item xs={12} md={4}>
               <FeatureCard>
-                <Box sx={{ textAlign: 'center' }}>
+                <Box sx={{ textAlign: 'center', display: 'flex', flexDirection: 'column', height: '100%', justifyContent: 'center' }}>
                   <FilterList sx={{ 
                     fontSize: 28, 
                     color: theme?.palette?.mode === 'dark' ? 'text.secondary' : 'text.secondary', 
                     mb: 1 
                   }} />
-                  <Typography variant="subtitle2" gutterBottom sx={{ fontSize: { xs: '0.9rem', md: '0.95rem' }, fontWeight: 500 }}>
+                  <Typography 
+                    variant="subtitle2" 
+                    gutterBottom 
+                    sx={{ 
+                      fontSize: { 
+                        xs: (currentLanguage || langContext) === 'ar' ? '1rem' : '0.9rem', 
+                        md: '0.95rem' 
+                      }, 
+                      fontWeight: 500 
+                    }}
+                  >
                     {t('communityHelp')}
                   </Typography>
-                  <Typography variant="caption" color="text.secondary" sx={{ fontSize: { xs: '0.75rem', md: '0.8rem' }, display: 'block' }}>
+                  <Typography 
+                    variant="caption" 
+                    color="text.secondary" 
+                    sx={{ 
+                      fontSize: { 
+                        xs: (currentLanguage || langContext) === 'ar' ? '0.85rem' : '0.75rem', 
+                        md: '0.8rem' 
+                      }, 
+                      display: 'block' 
+                    }}
+                  >
                     {t('communityHelpDesc')}
                   </Typography>
                 </Box>
