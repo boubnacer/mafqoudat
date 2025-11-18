@@ -1,4 +1,12 @@
 User-agent: *
 Allow: /
+# Disallow protected/authenticated routes
+Disallow: /dash/posts/new
+Disallow: /dash/posts/edit/
+Disallow: /dash/profile
+Disallow: /dash/myposts
+Disallow: /dash/admin
+Disallow: /dash/users
+Disallow: /dash/dependencies
 
 Sitemap: https://www.mafqoudat.com/sitemap.xml
