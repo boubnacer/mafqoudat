@@ -32,8 +32,7 @@ import {
   Card,
   CardMedia,
   CardActions,
-  Chip,
-  Autocomplete
+  Chip
 } from "@mui/material";
 import { 
   PhotoCamera, 
@@ -1072,88 +1071,63 @@ const NewPostForm = ({ user, countries, categories, flOptions }) => {
                       : t('chooseCountryFound')
                     }
                   </Typography>
-                  <Autocomplete
-                    options={countries || []}
-                    value={selectedCountry || null}
-                    onChange={(event, newValue) => {
-                      if (newValue) {
-                        handleCountrySelect({ target: { value: newValue._id } });
-                      } else {
-                        // Clear selection if null
-                        setSelectedCountry(null);
-                        setCities([]);
-                        if (formikRef.current) {
-                          formikRef.current.setFieldValue('country', '');
-                          formikRef.current.setFieldValue('city', '');
-                        }
-                        clearFieldError('country');
-                      }
-                    }}
-                    getOptionLabel={(option) => {
-                      if (!option) return '';
-                      return `${getCountryLabel(option)} (${option.code})`;
-                    }}
-                    isOptionEqualToValue={(option, value) => option._id === value._id}
-                    renderOption={(props, option) => (
-                      <Box component="li" {...props} key={option._id}>
-                        <Box display="flex" alignItems="center" gap={1}>
-                          {option.flag ? (
-                            <span style={{ fontSize: '20px' }}>
-                              {option.flag}
-                            </span>
-                          ) : (
-                            <img
-                              loading="lazy"
-                              width="20"
-                              src={`https://flagcdn.com/w20/${option.code.toLowerCase()}.png`}
-                              srcSet={`https://flagcdn.com/w40/${option.code.toLowerCase()}.png 2x`}
-                              alt=""
-                              style={{ marginRight: 8 }}
-                            />
-                          )}
-                          {getCountryLabel(option)} ({option.code})
-                        </Box>
-                      </Box>
-                    )}
-                    renderInput={(params) => (
-                      <TextField
-                        {...params}
-                        data-testid="country-select"
-                        error={!!fieldErrors.country}
-                        helperText={fieldErrors.country}
-                        placeholder={currentLanguage === 'ar' ? 'ابحث عن دولة...' : currentLanguage === 'fr' ? 'Rechercher un pays...' : 'Search for a country...'}
-                        sx={{
-                          '& .MuiOutlinedInput-root': {
-                            borderRadius: 2,
-                            '& fieldset': {
-                              borderColor: theme.palette.mode === 'dark' ? 'rgba(255,255,255,0.3)' : 'rgba(0,0,0,0.2)',
-                            },
-                            '&:hover fieldset': {
-                              borderColor: theme.palette.mode === 'dark' ? 'rgba(255,255,255,0.5)' : 'rgba(0,0,0,0.4)',
-                            },
-                            '&.Mui-focused fieldset': {
-                              borderColor: theme.palette.mode === 'dark' ? '#4CAF50' : '#2E7D32',
-                            },
-                            color: theme.palette.text.primary,
-                            fontWeight: 500
-                          }
+                  <FormControl fullWidth error={!!fieldErrors.country}>
+                    <Select
+                      value={selectedCountry?._id || ""}
+                      onChange={handleCountrySelect}
+                      data-testid="country-select"
+                      displayEmpty
+                      sx={{
+                        borderRadius: 2,
+                        '& .MuiOutlinedInput-notchedOutline': {
+                          borderColor: theme.palette.mode === 'dark' ? 'rgba(255,255,255,0.3)' : 'rgba(0,0,0,0.2)',
+                        },
+                        '&:hover .MuiOutlinedInput-notchedOutline': {
+                          borderColor: theme.palette.mode === 'dark' ? 'rgba(255,255,255,0.5)' : 'rgba(0,0,0,0.4)',
+                        },
+                        '&.Mui-focused .MuiOutlinedInput-notchedOutline': {
+                          borderColor: theme.palette.mode === 'dark' ? '#4CAF50' : '#2E7D32',
+                        },
+                        color: theme.palette.text.primary,
+                        fontWeight: 500
+                      }}
+                    >
+                      {countries?.map((country) => (
+                        <MenuItem key={country._id} value={country._id}>
+                          <Box display="flex" alignItems="center" gap={1}>
+                            {country.flag ? (
+                              <span style={{ fontSize: '20px' }}>
+                                {country.flag}
+                              </span>
+                            ) : (
+                              <img
+                                loading="lazy"
+                                width="20"
+                                src={`https://flagcdn.com/w20/${country.code.toLowerCase()}.png`}
+                                srcSet={`https://flagcdn.com/w40/${country.code.toLowerCase()}.png 2x`}
+                                alt=""
+                                style={{ marginRight: 8 }}
+                              />
+                            )}
+                            {getCountryLabel(country)} ({country.code})
+                          </Box>
+                        </MenuItem>
+                      ))}
+                    </Select>
+                    {fieldErrors.country && (
+                      <Typography 
+                        variant="caption" 
+                        sx={{ 
+                          mt: 1, 
+                          display: 'block',
+                          color: theme.palette.mode === 'dark' ? '#f44336' : '#d32f2f',
+                          fontWeight: 500
                         }}
-                      />
+                      >
+                        {fieldErrors.country}
+                      </Typography>
                     )}
-                    noOptionsText={currentLanguage === 'ar' ? 'لا توجد دول' : currentLanguage === 'fr' ? 'Aucun pays trouvé' : 'No countries found'}
-                    filterOptions={(options, { inputValue }) => {
-                      const searchTerm = inputValue.toLowerCase();
-                      return options.filter((option) => {
-                        const label = getCountryLabel(option).toLowerCase();
-                        const code = option.code?.toLowerCase() || '';
-                        return label.includes(searchTerm) || code.includes(searchTerm);
-                      });
-                    }}
-                    selectOnFocus
-                    clearOnBlur
-                    handleHomeEndKeys
-                    freeSolo={false}
-                  />
+                  </FormControl>
                 </Box>
 
                 <Box>
