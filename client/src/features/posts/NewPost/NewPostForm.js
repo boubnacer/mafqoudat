@@ -1249,7 +1249,11 @@ const NewPostForm = ({ user, countries, categories, flOptions }) => {
                         }}
                       >
                         {/* Search Input inside Dropdown */}
-                        <Box sx={{ p: 2, borderBottom: `1px solid ${theme.palette.divider}` }}>
+                        <Box sx={{ 
+                          p: 2, 
+                          borderBottom: `1px solid ${theme.palette.divider}`,
+                          backgroundColor: theme.palette.mode === 'dark' ? '#1a1a1a' : '#ffffff'
+                        }}>
                           <TextField
                             fullWidth
                             size="small"
@@ -1259,15 +1263,25 @@ const NewPostForm = ({ user, countries, categories, flOptions }) => {
                             autoFocus
                             sx={{
                               '& .MuiOutlinedInput-root': {
+                                backgroundColor: theme.palette.mode === 'dark' ? 'rgba(255,255,255,0.05)' : 'rgba(0,0,0,0.02)',
                                 '& fieldset': {
                                   borderColor: theme.palette.mode === 'dark' ? 'rgba(255,255,255,0.3)' : 'rgba(0,0,0,0.2)',
+                                },
+                                '&:hover': {
+                                  backgroundColor: theme.palette.mode === 'dark' ? 'rgba(255,255,255,0.08)' : 'rgba(0,0,0,0.04)',
                                 },
                                 '&:hover fieldset': {
                                   borderColor: theme.palette.mode === 'dark' ? 'rgba(255,255,255,0.5)' : 'rgba(0,0,0,0.4)',
                                 },
+                                '&.Mui-focused': {
+                                  backgroundColor: theme.palette.mode === 'dark' ? 'rgba(255,255,255,0.08)' : 'rgba(0,0,0,0.04)',
+                                },
                                 '&.Mui-focused fieldset': {
                                   borderColor: theme.palette.mode === 'dark' ? '#4CAF50' : '#2E7D32',
                                 },
+                              },
+                              '& .MuiInputBase-input': {
+                                color: theme.palette.text.primary,
                               }
                             }}
                             InputProps={{
