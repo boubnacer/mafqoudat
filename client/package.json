@@ -36,9 +36,39 @@
   "scripts": {
     "start": "react-scripts start",
     "build": "react-scripts build",
+    "postbuild": "react-snap",
     "test": "react-scripts test",
-    "eject": "react-scripts eject",
-    "postbuild": "echo 'Build completed successfully'"
+    "eject": "react-scripts eject"
+  },
+  "reactSnap": {
+    "include": [
+      "/",
+      "/about",
+      "/contact",
+      "/help",
+      "/privacy",
+      "/terms",
+      "/cookies",
+      "/guidelines",
+      "/safety",
+      "/blog",
+      "/login",
+      "/signup"
+    ],
+    "minifyHtml": {
+      "collapseWhitespace": false,
+      "removeComments": false
+    },
+    "puppeteerArgs": [
+      "--no-sandbox",
+      "--disable-setuid-sandbox",
+      "--disable-dev-shm-usage"
+    ],
+    "skipThirdPartyRequests": true,
+    "cacheAjaxRequests": false,
+    "fixWebpackChunksIssue": false,
+    "removeStyleTags": false,
+    "removeScriptTags": false
   },
   "eslintConfig": {
     "extends": [
@@ -72,6 +102,7 @@
     "npm": ">=8.0.0"
   },
   "devDependencies": {
+    "react-snap": "^1.23.0",
     "source-map-explorer": "^2.5.3",
     "webpack-bundle-analyzer": "^4.10.2"
   }
