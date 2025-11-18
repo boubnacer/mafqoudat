@@ -40,6 +40,7 @@ import {
   Login,
   PersonAdd,
   FilterList,
+  PostAdd,
 } from "@mui/icons-material";
 
 
@@ -877,7 +878,7 @@ const WelcomePage = () => {
             <Grid item xs={12} md={4}>
               <FeatureCard>
                 <Box sx={{ textAlign: 'center' }}>
-                  <LocationOn sx={{ 
+                  <PostAdd sx={{ 
                     fontSize: 28, 
                     color: theme?.palette?.mode === 'dark' ? 'text.secondary' : 'text.secondary', 
                     mb: 1 
