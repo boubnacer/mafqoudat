@@ -107,7 +107,8 @@ const EditPostForm = ({ post, user, countries, flOptions, categories }) => {
   const fileInputRef = useRef(null);
 
   // New state for unified city dropdown (from NewPostForm)
-  const [citySearchQuery, setCitySearchQuery] = useState("");
+  const [citySearchQuery, setCitySearchQuery] = useState(""); // For search input inside dropdown
+  const [cityDisplayValue, setCityDisplayValue] = useState(""); // For display in main read-only input
   const [searchResults, setSearchResults] = useState([]);
   const [isSearching, setIsSearching] = useState(false);
   const [showCityDropdown, setShowCityDropdown] = useState(false);
@@ -295,23 +296,23 @@ if (typeof document !== 'undefined') {
     }
   }, [isSuccess, isDelSuccess, navigate, t]);
 
-  // Set city search query when post and cities are available
+  // Set city display value when post and cities are available
   useEffect(() => {
     if (post?.city) {
       // Handle both database cities (object) and API cities (string)
       if (typeof post.city === 'object' && post.city.id) {
         // Database city object - use cityName or cityLabels for display
         if (post.cityName) {
-          setCitySearchQuery(post.cityName);
+          setCityDisplayValue(post.cityName);
         } else if (post.cityLabels && post.cityLabels[currentLanguage]) {
-          setCitySearchQuery(post.cityLabels[currentLanguage]);
+          setCityDisplayValue(post.cityLabels[currentLanguage]);
         } else if (availableCities.length > 0) {
           const existingCity = availableCities.find(city => 
             city.id === post.city.id || city._id === post.city.id
           );
           
           if (existingCity) {
-            setCitySearchQuery(getCityDisplayName(existingCity, currentLanguage));
+            setCityDisplayValue(getCityDisplayName(existingCity, currentLanguage));
           }
         }
       } else if (typeof post.city === 'string') {
@@ -323,23 +324,23 @@ if (typeof document !== 'undefined') {
           );
           
           if (existingCity) {
-            setCitySearchQuery(getCityDisplayName(existingCity, currentLanguage));
+            setCityDisplayValue(getCityDisplayName(existingCity, currentLanguage));
           } else {
             // It's an API city (string like "EL_JADIDA")
             // Use cityLabels for proper translation, then cityName, then city string
             if (post.cityLabels && post.cityLabels[currentLanguage]) {
-              setCitySearchQuery(post.cityLabels[currentLanguage]);
+              setCityDisplayValue(post.cityLabels[currentLanguage]);
             } else {
-              setCitySearchQuery(post.cityName || post.city);
+              setCityDisplayValue(post.cityName || post.city);
             }
           }
         } else {
           // No available cities yet, but we have a string city - likely API city
           // Use cityLabels for proper translation, then cityName, then city string
           if (post.cityLabels && post.cityLabels[currentLanguage]) {
-            setCitySearchQuery(post.cityLabels[currentLanguage]);
+            setCityDisplayValue(post.cityLabels[currentLanguage]);
           } else {
-            setCitySearchQuery(post.cityName || post.city);
+            setCityDisplayValue(post.cityName || post.city);
           }
         }
       }
@@ -721,7 +722,9 @@ if (typeof document !== 'undefined') {
   // Handle city selection from dropdown (from NewPostForm)
   const handleCitySelect = (city, setFieldValue) => {
     setSelectedCityFromSearch(city);
-    setCitySearchQuery(getCityDisplayName(city, currentLanguage));
+    const cityDisplayName = getCityDisplayName(city, currentLanguage);
+    setCityDisplayValue(cityDisplayName); // Set display value
+    setCitySearchQuery(""); // Clear search query
     setShowCityDropdown(false);
     
     // Set the city value in the form - match NewPostForm logic exactly
@@ -739,13 +742,12 @@ if (typeof document !== 'undefined') {
 
   // Handle dropdown toggle (from NewPostForm)
   const handleCityDropdownToggle = () => {
-    setShowCityDropdown(!showCityDropdown);
-    // If opening dropdown and there's a search query, ensure results are shown
-    if (!showCityDropdown && citySearchQuery.trim().length > 0) {
-      // Trigger search again to ensure results are displayed
-      const event = { target: { value: citySearchQuery } };
-      handleCitySearchChange(event);
+    if (!showCityDropdown) {
+      // Opening dropdown - clear search query to start fresh
+      setCitySearchQuery("");
+      setSearchResults([]);
     }
+    setShowCityDropdown(!showCityDropdown);
   };
 
   // Helper function to get found/lost type from ID
@@ -1605,14 +1607,14 @@ if (typeof document !== 'undefined') {
                   <Box sx={{ 
                     position: 'relative'
                   }} data-testid="city-dropdown">
-                    {/* City Search Input */}
+                    {/* City Display Input (Read-only) */}
                     <TextField
                       fullWidth
-                      placeholder={currentLanguage === 'ar' ? 'ابحث أو اختر مدينة...' : currentLanguage === 'fr' ? 'Rechercher ou sélectionner une ville...' : 'Search or select a city...'}
-                      value={citySearchQuery}
-                      onChange={handleCitySearchChange}
+                      placeholder={currentLanguage === 'ar' ? 'اختر مدينة...' : currentLanguage === 'fr' ? 'Sélectionner une ville...' : 'Select a city...'}
+                      value={cityDisplayValue}
+                      readOnly
                       disabled={!selectedCountry}
-                      data-testid="city-search"
+                      data-testid="city-select"
                       onClick={handleCityDropdownToggle}
                       sx={{
                         borderRadius: 2,
@@ -1625,10 +1627,13 @@ if (typeof document !== 'undefined') {
                         },
                           '& fieldset': {
                             borderColor: theme.palette.mode === 'dark' ? 'rgba(255,255,255,0.3)' : 'rgba(0,0,0,0.2)',
-                        },
+                          },
                         color: theme.palette.text.primary,
                           fontWeight: 500,
-                          cursor: 'pointer'
+                          cursor: 'pointer',
+                          '& .MuiInputBase-input': {
+                            cursor: 'pointer'
+                          }
                         }
                       }}
                       InputProps={{
@@ -1658,6 +1663,38 @@ if (typeof document !== 'undefined') {
                           mt: 0.5
                         }}
                       >
+                        {/* Search Input inside Dropdown */}
+                        <Box sx={{ p: 2, borderBottom: `1px solid ${theme.palette.divider}` }}>
+                          <TextField
+                            fullWidth
+                            size="small"
+                            placeholder={currentLanguage === 'ar' ? 'ابحث عن مدينة...' : currentLanguage === 'fr' ? 'Rechercher une ville...' : 'Search for a city...'}
+                            value={citySearchQuery}
+                            onChange={handleCitySearchChange}
+                            autoFocus
+                            sx={{
+                              '& .MuiOutlinedInput-root': {
+                                '& fieldset': {
+                                  borderColor: theme.palette.mode === 'dark' ? 'rgba(255,255,255,0.3)' : 'rgba(0,0,0,0.2)',
+                                },
+                                '&:hover fieldset': {
+                                  borderColor: theme.palette.mode === 'dark' ? 'rgba(255,255,255,0.5)' : 'rgba(0,0,0,0.4)',
+                                },
+                                '&.Mui-focused fieldset': {
+                                  borderColor: theme.palette.mode === 'dark' ? '#4CAF50' : '#2E7D32',
+                                },
+                              }
+                            }}
+                            InputProps={{
+                              startAdornment: isSearching ? (
+                                <CircularProgress size={16} sx={{ mr: 1 }} />
+                              ) : (
+                                <LocationOn sx={{ color: theme.palette.text.secondary, mr: 1, fontSize: 20 }} />
+                              )
+                            }}
+                          />
+                        </Box>
+
                         {/* Cities List */}
                         <Box sx={{ 
                             maxHeight: 300,

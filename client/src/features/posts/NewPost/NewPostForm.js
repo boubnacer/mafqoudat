@@ -154,7 +154,8 @@ const NewPostForm = ({ user, countries, categories, flOptions }) => {
   const [proceedCountdown, setProceedCountdown] = useState(0);
 
   // New state for unified city dropdown
-  const [citySearchQuery, setCitySearchQuery] = useState("");
+  const [citySearchQuery, setCitySearchQuery] = useState(""); // For search input inside dropdown
+  const [cityDisplayValue, setCityDisplayValue] = useState(""); // For display in main read-only input
   const [searchResults, setSearchResults] = useState([]);
   const [isSearching, setIsSearching] = useState(false);
   const [showCityDropdown, setShowCityDropdown] = useState(false);
@@ -589,7 +590,7 @@ const NewPostForm = ({ user, countries, categories, flOptions }) => {
     setCustomCityName(event.target.value);
   };
 
-  // Handle city search input change
+  // Handle city search input change (only from dropdown search input)
   const handleCitySearchChange = useCallback(async (event) => {
     const query = event.target.value;
     setCitySearchQuery(query);
@@ -668,7 +669,9 @@ const NewPostForm = ({ user, countries, categories, flOptions }) => {
   // Handle city selection from dropdown
   const handleCitySelect = (city) => {
     setSelectedCityFromSearch(city);
-    setCitySearchQuery(getCityDisplayName(city, currentLanguage));
+    const cityDisplayName = getCityDisplayName(city, currentLanguage);
+    setCityDisplayValue(cityDisplayName); // Set display value
+    setCitySearchQuery(""); // Clear search query
     setShowCityDropdown(false);
     
     // Set the city value in the form
@@ -688,13 +691,12 @@ const NewPostForm = ({ user, countries, categories, flOptions }) => {
 
   // Handle dropdown toggle
   const handleCityDropdownToggle = () => {
-    setShowCityDropdown(!showCityDropdown);
-    // If opening dropdown and there's a search query, ensure results are shown
-    if (!showCityDropdown && citySearchQuery.trim().length > 0) {
-      // Trigger search again to ensure results are displayed
-      const event = { target: { value: citySearchQuery } };
-      handleCitySearchChange(event);
+    if (!showCityDropdown) {
+      // Opening dropdown - clear search query to start fresh
+      setCitySearchQuery("");
+      setSearchResults([]);
     }
+    setShowCityDropdown(!showCityDropdown);
   };
 
   // Create custom city in backend
@@ -1190,14 +1192,14 @@ const NewPostForm = ({ user, countries, categories, flOptions }) => {
                   <Box sx={{ 
                     position: 'relative'
                   }} data-testid="city-dropdown">
-                    {/* City Search Input */}
+                    {/* City Display Input (Read-only) */}
                     <TextField
                       fullWidth
-                      placeholder={currentLanguage === 'ar' ? 'ابحث أو اختر مدينة...' : currentLanguage === 'fr' ? 'Rechercher ou sélectionner une ville...' : 'Search or select a city...'}
-                      value={citySearchQuery}
-                      onChange={handleCitySearchChange}
+                      placeholder={currentLanguage === 'ar' ? 'اختر مدينة...' : currentLanguage === 'fr' ? 'Sélectionner une ville...' : 'Select a city...'}
+                      value={cityDisplayValue}
+                      readOnly
                       disabled={!selectedCountry}
-                      data-testid="city-search"
+                      data-testid="city-select"
                       onClick={handleCityDropdownToggle}
                       sx={{
                         borderRadius: 2,
@@ -1213,7 +1215,10 @@ const NewPostForm = ({ user, countries, categories, flOptions }) => {
                           },
                         color: theme.palette.text.primary,
                           fontWeight: 500,
-                          cursor: 'pointer'
+                          cursor: 'pointer',
+                          '& .MuiInputBase-input': {
+                            cursor: 'pointer'
+                          }
                         }
                       }}
                       InputProps={{
@@ -1243,6 +1248,37 @@ const NewPostForm = ({ user, countries, categories, flOptions }) => {
                           mt: 0.5
                         }}
                       >
+                        {/* Search Input inside Dropdown */}
+                        <Box sx={{ p: 2, borderBottom: `1px solid ${theme.palette.divider}` }}>
+                          <TextField
+                            fullWidth
+                            size="small"
+                            placeholder={currentLanguage === 'ar' ? 'ابحث عن مدينة...' : currentLanguage === 'fr' ? 'Rechercher une ville...' : 'Search for a city...'}
+                            value={citySearchQuery}
+                            onChange={handleCitySearchChange}
+                            autoFocus
+                            sx={{
+                              '& .MuiOutlinedInput-root': {
+                                '& fieldset': {
+                                  borderColor: theme.palette.mode === 'dark' ? 'rgba(255,255,255,0.3)' : 'rgba(0,0,0,0.2)',
+                                },
+                                '&:hover fieldset': {
+                                  borderColor: theme.palette.mode === 'dark' ? 'rgba(255,255,255,0.5)' : 'rgba(0,0,0,0.4)',
+                                },
+                                '&.Mui-focused fieldset': {
+                                  borderColor: theme.palette.mode === 'dark' ? '#4CAF50' : '#2E7D32',
+                                },
+                              }
+                            }}
+                            InputProps={{
+                              startAdornment: isSearching ? (
+                                <CircularProgress size={16} sx={{ mr: 1 }} />
+                              ) : (
+                                <LocationOn sx={{ color: theme.palette.text.secondary, mr: 1, fontSize: 20 }} />
+                              )
+                            }}
+                          />
+                        </Box>
 
                         {/* Cities List */}
                         <Box sx={{ 
@@ -2236,6 +2272,10 @@ const NewPostForm = ({ user, countries, categories, flOptions }) => {
                   
                   // Refresh the cities list to get the newly created city
                   await fetchCitiesByCountry(selectedCountry._id);
+                  
+                  // Set the display value
+                  const cityDisplayName = getCityDisplayName(createdCity, currentLanguage);
+                  setCityDisplayValue(cityDisplayName);
                   
                   // Set the field value directly using setFieldValue from Formik
                   if (setFieldValueCallback) {
