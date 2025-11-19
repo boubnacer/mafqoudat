@@ -1,6 +1,7 @@
 // Google Analytics utility functions
 
-const GA_MEASUREMENT_ID = process.env.REACT_APP_GA_MEASUREMENT_ID;
+// Use environment variable if available, otherwise fallback to hardcoded ID
+const GA_MEASUREMENT_ID = process.env.REACT_APP_GA_MEASUREMENT_ID || 'G-6CHWS73F4W';
 let isGAInitialized = false;
 
 /**
