@@ -81,10 +81,13 @@
     <!-- End Facebook Pixel Code -->
     
     <!-- Google Analytics 4 -->
-    <!-- GA script will be loaded dynamically via analytics.js to support environment variables -->
+    <!-- GA_MEASUREMENT_ID_PLACEHOLDER will be replaced at build time -->
+    <script async src="https://www.googletagmanager.com/gtag/js?id=GA_MEASUREMENT_ID_PLACEHOLDER"></script>
     <script>
       window.dataLayer = window.dataLayer || [];
       function gtag(){dataLayer.push(arguments);}
+      gtag('js', new Date());
+      gtag('config', 'GA_MEASUREMENT_ID_PLACEHOLDER');
     </script>
     <!-- End Google Analytics 4 -->
     

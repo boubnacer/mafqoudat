@@ -4,7 +4,20 @@ const GA_MEASUREMENT_ID = process.env.REACT_APP_GA_MEASUREMENT_ID;
 let isGAInitialized = false;
 
 /**
- * Load Google Analytics script dynamically
+ * Check if Google Analytics script is already loaded in the HTML
+ */
+const isGAScriptLoaded = () => {
+  if (typeof window === 'undefined') {
+    return false;
+  }
+  
+  // Check if the script tag exists in the HTML
+  const existingScript = document.querySelector(`script[src*="googletagmanager.com/gtag/js"]`);
+  return !!existingScript;
+};
+
+/**
+ * Load Google Analytics script dynamically (fallback if not in HTML)
  * Returns a Promise that resolves when the script is loaded
  */
 const loadGAScript = () => {
@@ -14,14 +27,13 @@ const loadGAScript = () => {
       return;
     }
 
-    // Check if script is already loaded
-    const existingScript = document.querySelector(`script[src*="googletagmanager.com/gtag/js"]`);
-    if (existingScript) {
+    // Check if script is already loaded in HTML
+    if (isGAScriptLoaded()) {
       resolve();
       return;
     }
 
-    // Load the GA script
+    // Load the GA script dynamically as fallback
     const script = document.createElement('script');
     script.async = true;
     script.src = `https://www.googletagmanager.com/gtag/js?id=${GA_MEASUREMENT_ID}`;
@@ -56,12 +68,29 @@ export const initializeGA = async () => {
   }
 
   try {
-    // Load the GA script and wait for it to load
-    await loadGAScript();
+    // Check if script is already in HTML (from build-time injection)
+    const scriptAlreadyLoaded = isGAScriptLoaded();
+    
+    if (!scriptAlreadyLoaded) {
+      // Load the GA script dynamically if not in HTML
+      await loadGAScript();
+    }
+    
+    // Wait a bit for gtag to be available (especially if script was in HTML)
+    let retries = 0;
+    while (!window.gtag && retries < 10) {
+      await new Promise(resolve => setTimeout(resolve, 100));
+      retries++;
+    }
     
     // Initialize GA once script is loaded
     if (window.gtag) {
-      window.gtag('js', new Date());
+      // Only set 'js' date if not already set (script in HTML already does this)
+      if (!scriptAlreadyLoaded) {
+        window.gtag('js', new Date());
+      }
+      
+      // Update config with current page info
       window.gtag('config', GA_MEASUREMENT_ID, {
         page_path: window.location.pathname + window.location.search,
         page_title: document.title,
