@@ -46,6 +46,57 @@ const loadGAScript = () => {
 };
 
 /**
+ * Check if the GA script in HTML has the placeholder (meaning build-time injection failed)
+ */
+const hasPlaceholderInHTML = () => {
+  if (typeof document === 'undefined') {
+    return false;
+  }
+  
+  const scripts = document.querySelectorAll('script[src*="googletagmanager.com/gtag/js"]');
+  for (const script of scripts) {
+    if (script.src && script.src.includes('GA_MEASUREMENT_ID_PLACEHOLDER')) {
+      return true;
+    }
+  }
+  
+  // Also check inline scripts
+  const inlineScripts = document.querySelectorAll('script:not([src])');
+  for (const script of inlineScripts) {
+    if (script.textContent && script.textContent.includes('GA_MEASUREMENT_ID_PLACEHOLDER')) {
+      return true;
+    }
+  }
+  
+  return false;
+};
+
+/**
+ * Fix placeholder in HTML at runtime (fallback if build-time injection failed)
+ */
+const fixPlaceholderAtRuntime = () => {
+  if (typeof document === 'undefined' || !GA_MEASUREMENT_ID) {
+    return;
+  }
+  
+  // Fix script src
+  const scripts = document.querySelectorAll('script[src*="googletagmanager.com/gtag/js"]');
+  scripts.forEach(script => {
+    if (script.src && script.src.includes('GA_MEASUREMENT_ID_PLACEHOLDER')) {
+      script.src = script.src.replace('GA_MEASUREMENT_ID_PLACEHOLDER', GA_MEASUREMENT_ID);
+    }
+  });
+  
+  // Fix inline config scripts
+  const inlineScripts = document.querySelectorAll('script:not([src])');
+  inlineScripts.forEach(script => {
+    if (script.textContent && script.textContent.includes('GA_MEASUREMENT_ID_PLACEHOLDER')) {
+      script.textContent = script.textContent.replace(/GA_MEASUREMENT_ID_PLACEHOLDER/g, GA_MEASUREMENT_ID);
+    }
+  });
+};
+
+/**
  * Initialize Google Analytics
  * This should be called once when the app loads
  */
@@ -68,7 +119,13 @@ export const initializeGA = async () => {
   }
 
   try {
-    // Check if script is already in HTML (from build-time injection)
+    // Check if placeholder is still in HTML (build-time injection failed)
+    if (hasPlaceholderInHTML()) {
+      console.log('⚠️  GA placeholder found in HTML, fixing at runtime...');
+      fixPlaceholderAtRuntime();
+    }
+    
+    // Check if script is already in HTML (from build-time injection or runtime fix)
     const scriptAlreadyLoaded = isGAScriptLoaded();
     
     if (!scriptAlreadyLoaded) {
