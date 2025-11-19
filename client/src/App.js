@@ -22,6 +22,7 @@ import CountryGuard from "./components/CountryGuard";
 import MaintenanceMode from "./components/MaintenanceMode";
 import { initializeVisitorSession } from "./utils/visitorSessionSync";
 import { getVisitorSessionId } from "./utils/visitorSession";
+import { initializeGA, trackPageView } from "./utils/analytics";
 
 // Add CSS keyframes for loading animations (mirrorReflection from navbar)
 const loadingStyles = `
@@ -178,6 +179,11 @@ const AppContent = () => {
       return createTheme(); // Fallback to a basic theme
     }
   }, [mode, currentLanguage]);
+
+  // Track page views when route changes
+  useEffect(() => {
+    trackPageView(location.pathname + location.search, document.title);
+  }, [location]);
 
   return (
     <ThemeProvider theme={theme}>
@@ -391,6 +397,9 @@ function App() {
     // Then sync with server (this will update the ID if server has a different one)
     // This is async but doesn't block - other API calls will use the localStorage ID
     initializeVisitorSession();
+    
+    // Initialize Google Analytics
+    initializeGA();
   }, []);
 
   // Initialize localStorage (language is now handled by LanguageProvider)
