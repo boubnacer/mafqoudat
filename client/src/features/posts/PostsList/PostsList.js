@@ -755,7 +755,9 @@ const PostsList = () => {
     const { totalPages } = data;
 
     return (
-      <Box sx={{ 
+      <>
+        <SeoMeta pageKey="dashPosts" />
+        <Box sx={{ 
         p: { xs: 2, md: 4 },
         pt: { xs: "6rem", md: "7rem" },
         minHeight: "100vh"
@@ -1213,6 +1215,7 @@ const PostsList = () => {
           />
         )}
       </Box>
+      </>
     );
   }
   

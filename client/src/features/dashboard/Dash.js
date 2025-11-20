@@ -78,15 +78,17 @@ const Dash = () => {
   // If no country is selected, show country selection prompt
   if (!currentCountry) {
     return (
-      <Box 
-        pt={{ xs: "5.5rem", sm: "5.5rem" }} 
-        width="100%"
-        display="flex"
-        justifyContent="center"
-        alignItems="center"
-        minHeight="50vh"
-        px={2}
-      >
+      <>
+        <SeoMeta pageKey="dash" />
+        <Box 
+          pt={{ xs: "5.5rem", sm: "5.5rem" }} 
+          width="100%"
+          display="flex"
+          justifyContent="center"
+          alignItems="center"
+          minHeight="50vh"
+          px={2}
+        >
         <Paper
           elevation={3}
           sx={{
@@ -129,12 +131,18 @@ const Dash = () => {
           </Button>
         </Paper>
       </Box>
+      </>
     );
   }
 
   // Show loading state while data is being fetched
   if (isLoading && !data) {
-    return <LoadingState message={t('loadingDashboardData')} size="large" />;
+    return (
+      <>
+        <SeoMeta pageKey="dash" />
+        <LoadingState message={t('loadingDashboardData')} size="large" />
+      </>
+    );
   }
   
   // Check if all data is empty - show empty state but still show stats
