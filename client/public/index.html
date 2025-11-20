@@ -18,7 +18,16 @@
     <meta name="author" content="Mafqoudat Team" />
     <meta name="robots" content="index, follow" />
     <link rel="manifest" href="%PUBLIC_URL%/manifest.json" />
-    <!-- Canonical URL is set dynamically by SeoMeta component for each page -->
+    <!-- Canonical URL is set dynamically - this script ensures it's set immediately for SEO -->
+    <script>
+      (function() {
+        var path = window.location.pathname;
+        var canonical = document.createElement('link');
+        canonical.setAttribute('rel', 'canonical');
+        canonical.setAttribute('href', 'https://www.mafqoudat.com' + path);
+        document.head.appendChild(canonical);
+      })();
+    </script>
 
     <!-- Open Graph / Facebook Meta Tags -->
     <!-- These are set dynamically by SeoMeta component for each page -->

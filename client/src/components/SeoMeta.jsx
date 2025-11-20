@@ -1,5 +1,6 @@
 import React from 'react';
 import { Helmet } from 'react-helmet-async';
+import { useLocation } from 'react-router-dom';
 import { useLanguage } from '../utils/languageContext';
 import { defaultSeo, pageSeoConfig, SUPPORTED_LANGUAGES, LOCALE_MAP, buildAbsoluteUrl } from '../utils/seoConfig';
 
@@ -16,12 +17,15 @@ const SeoMeta = ({
   children,
 }) => {
   const { currentLanguage } = useLanguage();
+  const location = useLocation();
   const config = pageKey && pageSeoConfig[pageKey] ? pageSeoConfig[pageKey] : {};
 
   const metaTitle = title || config.title || defaultSeo.title;
   const metaDescription = description || config.description || defaultSeo.description;
   const metaKeywords = keywords || config.keywords || defaultSeo.keywords;
-  const metaPath = path || config.path || defaultSeo.path;
+  // Use explicit path from config, or fall back to current location pathname
+  // This ensures canonical is always set correctly even if config path is wrong
+  const metaPath = path || config.path || location.pathname || defaultSeo.path;
   const metaImage = image || config.image || defaultSeo.image;
   const metaAlternates = alternates || config.alternates;
   const metaStructuredData = structuredData || config.structuredData || defaultSeo.structuredData;
