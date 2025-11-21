@@ -270,42 +270,96 @@ const PublicPostsPage = () => {
             borderBottom: `1px solid ${alpha(theme?.palette?.divider, 0.1)}`,
           }}
         >
-          <Toolbar>
-            <Typography variant="h6" component="div" sx={{ flexGrow: 1 }}>
+          <Toolbar sx={{ flexWrap: { xs: 'wrap', sm: 'nowrap' }, gap: { xs: 1, sm: 0 } }}>
+            <Typography 
+              variant="h6" 
+              component="div" 
+              sx={{ 
+                flexGrow: { xs: 1, sm: 1 },
+                fontSize: { xs: '1rem', sm: '1.25rem' },
+                minWidth: 0,
+                overflow: 'hidden',
+                textOverflow: 'ellipsis',
+                whiteSpace: 'nowrap'
+              }}
+            >
               {t('brandName')}
             </Typography>
             
-            <LanguageSelector onClick={handleLanguageClick} sx={{ mr: 2 }}>
-              <Language />
-              <Typography variant="body2" sx={{ display: { xs: 'none', sm: 'block' } }}>
-                {currentLanguage === 'ar' ? 'العربية' : currentLanguage === 'fr' ? 'Français' : 'English'}
-              </Typography>
-              <KeyboardArrowDown />
-            </LanguageSelector>
+            <Box sx={{ display: 'flex', alignItems: 'center', gap: { xs: 0.5, sm: 1 }, flexWrap: 'nowrap' }}>
+              <LanguageSelector 
+                onClick={handleLanguageClick} 
+                sx={{ 
+                  mr: { xs: 0.5, sm: 2 },
+                  px: { xs: 1, sm: 2 },
+                  py: { xs: 0.5, sm: 1 }
+                }}
+              >
+                <Language sx={{ fontSize: { xs: '18px', sm: '20px' } }} />
+                <Typography 
+                  variant="body2" 
+                  sx={{ 
+                    display: { xs: 'none', sm: 'block' },
+                    fontSize: { xs: '0.75rem', sm: '0.875rem' }
+                  }}
+                >
+                  {currentLanguage === 'ar' ? 'العربية' : currentLanguage === 'fr' ? 'Français' : 'English'}
+                </Typography>
+                <KeyboardArrowDown sx={{ fontSize: { xs: '16px', sm: '20px' }, display: { xs: 'none', sm: 'block' } }} />
+              </LanguageSelector>
 
-            <IconButton
-              onClick={() => dispatch(setMode())}
-              sx={{ mr: 2 }}
-            >
-              {theme?.palette?.mode === 'dark' ? '🌞' : '🌙'}
-            </IconButton>
+              <IconButton
+                onClick={() => dispatch(setMode())}
+                sx={{ 
+                  mr: { xs: 0, sm: 2 },
+                  p: { xs: 0.75, sm: 1 },
+                  '& .MuiSvgIcon-root': {
+                    fontSize: { xs: '20px', sm: '24px' }
+                  }
+                }}
+              >
+                {theme?.palette?.mode === 'dark' ? '🌞' : '🌙'}
+              </IconButton>
 
-            <Button
-              variant="outlined"
-              startIcon={<Login />}
-              onClick={() => navigate('/login')}
-              sx={{ mr: 1 }}
-            >
-              {t('signin')}
-            </Button>
+              <Button
+                variant="outlined"
+                startIcon={<Login />}
+                onClick={() => navigate('/login')}
+                sx={{ 
+                  mr: { xs: 0.5, sm: 1 },
+                  px: { xs: 1, sm: 2 },
+                  py: { xs: 0.5, sm: 1 },
+                  fontSize: { xs: '0.75rem', sm: '0.875rem' },
+                  minWidth: { xs: 'auto', sm: '64px' },
+                  '& .MuiButton-startIcon': {
+                    margin: { xs: 0, sm: '0 8px 0 0' }
+                  }
+                }}
+              >
+                <Box component="span" sx={{ display: { xs: 'none', sm: 'inline' } }}>
+                  {t('signin')}
+                </Box>
+              </Button>
 
-            <Button
-              variant="contained"
-              startIcon={<Add />}
-              onClick={() => navigate('/signup')}
-            >
-              {t('createNewPost')}
-            </Button>
+              <Button
+                variant="contained"
+                startIcon={<Add />}
+                onClick={() => navigate('/signup')}
+                sx={{ 
+                  px: { xs: 1, sm: 2 },
+                  py: { xs: 0.5, sm: 1 },
+                  fontSize: { xs: '0.75rem', sm: '0.875rem' },
+                  minWidth: { xs: 'auto', sm: 'auto' },
+                  '& .MuiButton-startIcon': {
+                    margin: { xs: 0, sm: '0 8px 0 0' }
+                  }
+                }}
+              >
+                <Box component="span" sx={{ display: { xs: 'none', sm: 'inline' } }}>
+                  {t('createNewPost')}
+                </Box>
+              </Button>
+            </Box>
           </Toolbar>
         </AppBar>
 
