@@ -107,8 +107,8 @@ const SinglePostPage = ({
   const { t, currentLanguage } = useTranslation();
   const isRTLMode = isRTL();
 
-  const canEdit = user === usernameId && isAuthenticated;
-  const canDelete = canEdit || (role === 'admin' && isAuthenticated);
+  const canEdit = (user === usernameId || role === 'admin') && isAuthenticated;
+  const canDelete = canEdit;
   const [reportDialogOpen, setReportDialogOpen] = useState(false);
   const [submitReport] = useSubmitReportMutation();
   const [deletePost, { isLoading: isDeleting, isSuccess: isDeleteSuccess }] = useDeletePostMutation();
