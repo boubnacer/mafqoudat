@@ -42,6 +42,7 @@ import useAuth from "../../../hooks/useAuth";
 import { selectCurrentCountry, selectFoundOrLost, selectCategoryFilter, selectActiveLink } from "../../../app/state";
 import FlexCenter from "../../../components/FlexCenter";
 import { authStorage } from "../../../utils/authStorage";
+import useCountryName from "../../../hooks/useCountryName";
 
 
 
@@ -128,6 +129,9 @@ const PostsList = () => {
 
   // Get current language
   const { t, currentLanguage } = useTranslation();
+
+  // Get country name for title
+  const { countryName } = useCountryName(currentCountry);
 
   // Check if store is ready
   const [storeReady, setStoreReady] = useState(false);
@@ -314,14 +318,27 @@ const PostsList = () => {
 
   // Memoize dynamic title based on navigation state
   const pageTitle = useMemo(() => {
+    let title;
     if (foundOrlost === 'FOUND') {
-      return t('searchForFoundItems');
+      title = t('searchForFoundItems', { country: countryName || '' });
     } else if (foundOrlost === 'LOST') {
-      return t('searchForLostItems');
+      title = t('searchForLostItems', { country: countryName || '' });
     } else {
-      return t('searchForItems');
+      title = t('searchForItems', { country: countryName || '' });
     }
-  }, [foundOrlost, t]);
+    
+    // Clean up title if country name is not available (remove "in " or "au " or "في ")
+    if (!countryName) {
+      title = title.replace(/\s+in\s+\.\.\./g, '...')
+                   .replace(/\s+au\s+\.\.\./g, '...')
+                   .replace(/\s+في\s+\.\.\./g, '...')
+                   .replace(/\s+in\s*$/g, '')
+                   .replace(/\s+au\s*$/g, '')
+                   .replace(/\s+في\s*$/g, '');
+    }
+    
+    return title;
+  }, [foundOrlost, t, countryName]);
 
   // Helper function to get city display name - prioritize current language
   // Match the Admin Panel logic: use labels directly, not pre-computed label
