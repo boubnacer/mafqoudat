@@ -166,6 +166,16 @@ const getDashboard = async (req, res) => {
           }
         }
       },
+      // Lookup categories array (new format)
+      {
+        $lookup: {
+          from: "categories",
+          localField: "categories",
+          foreignField: "_id",
+          as: "Categories",
+        },
+      },
+      // Lookup single category (legacy format for backward compatibility)
       {
         $lookup: {
           from: "categories",
@@ -239,16 +249,68 @@ const getDashboard = async (req, res) => {
           returned: 1,
           createdAt: 1,
           mainDate: 1, // Add mainDate field to projection
-          categoryname: { $ifNull: ["$Category.code", "ELECTRONICS"] },
+          // Categories array (new format)
+          Categories: {
+            $cond: {
+              if: { $gt: [{ $size: { $ifNull: ["$Categories", []] } }, 0] },
+              then: {
+                $map: {
+                  input: "$Categories",
+                  as: "cat",
+                  in: {
+                    _id: "$$cat._id",
+                    code: "$$cat.code",
+                    labels: "$$cat.labels"
+                  }
+                }
+              },
+              else: {
+                // Fallback to legacy category if Categories array is empty
+                $cond: {
+                  if: { $ne: ["$Category", null] },
+                  then: [{
+                    _id: "$Category._id",
+                    code: "$Category.code",
+                    labels: "$Category.labels"
+                  }],
+                  else: []
+                }
+              }
+            }
+          },
+          // Legacy single category (backward compatibility)
+          categoryname: { 
+            $cond: {
+              if: { $gt: [{ $size: { $ifNull: ["$Categories", []] } }, 0] },
+              then: { $arrayElemAt: ["$Categories.code", 0] },
+              else: {
+                $cond: {
+                  if: { $ne: ["$Category", null] },
+                  then: "$Category.code",
+                  else: "ELECTRONICS"
+                }
+              }
+            }
+          },
           Category: {
             $cond: {
-              if: { $ne: ["$Category", null] },
+              if: { $gt: [{ $size: { $ifNull: ["$Categories", []] } }, 0] },
               then: {
-                _id: "$Category._id",
-                code: "$Category.code", 
-                labels: "$Category.labels"
+                _id: { $arrayElemAt: ["$Categories._id", 0] },
+                code: { $arrayElemAt: ["$Categories.code", 0] },
+                labels: { $arrayElemAt: ["$Categories.labels", 0] }
               },
-              else: null
+              else: {
+                $cond: {
+                  if: { $ne: ["$Category", null] },
+                  then: {
+                    _id: "$Category._id",
+                    code: "$Category.code", 
+                    labels: "$Category.labels"
+                  },
+                  else: null
+                }
+              }
             }
           },
           floptionName: { $ifNull: ["$Floptions.code", "FOUND"] },
@@ -353,6 +415,16 @@ const getDashboard = async (req, res) => {
           }
         }
       },
+      // Lookup categories array (new format)
+      {
+        $lookup: {
+          from: "categories",
+          localField: "categories",
+          foreignField: "_id",
+          as: "Categories",
+        },
+      },
+      // Lookup single category (legacy format for backward compatibility)
       {
         $lookup: {
           from: "categories",
@@ -411,16 +483,68 @@ const getDashboard = async (req, res) => {
           createdAt: 1,
           updatedAt: 1,
           username: { $ifNull: ["$User.username", "Unknown"] },
-          categoryname: { $ifNull: ["$Category.code", "ELECTRONICS"] },
+          // Categories array (new format)
+          Categories: {
+            $cond: {
+              if: { $gt: [{ $size: { $ifNull: ["$Categories", []] } }, 0] },
+              then: {
+                $map: {
+                  input: "$Categories",
+                  as: "cat",
+                  in: {
+                    _id: "$$cat._id",
+                    code: "$$cat.code",
+                    labels: "$$cat.labels"
+                  }
+                }
+              },
+              else: {
+                // Fallback to legacy category if Categories array is empty
+                $cond: {
+                  if: { $ne: ["$Category", null] },
+                  then: [{
+                    _id: "$Category._id",
+                    code: "$Category.code",
+                    labels: "$Category.labels"
+                  }],
+                  else: []
+                }
+              }
+            }
+          },
+          // Legacy single category (backward compatibility)
+          categoryname: { 
+            $cond: {
+              if: { $gt: [{ $size: { $ifNull: ["$Categories", []] } }, 0] },
+              then: { $arrayElemAt: ["$Categories.code", 0] },
+              else: {
+                $cond: {
+                  if: { $ne: ["$Category", null] },
+                  then: "$Category.code",
+                  else: "ELECTRONICS"
+                }
+              }
+            }
+          },
           Category: {
             $cond: {
-              if: { $ne: ["$Category", null] },
+              if: { $gt: [{ $size: { $ifNull: ["$Categories", []] } }, 0] },
               then: {
-                _id: "$Category._id",
-                code: "$Category.code",
-                labels: "$Category.labels"
+                _id: { $arrayElemAt: ["$Categories._id", 0] },
+                code: { $arrayElemAt: ["$Categories.code", 0] },
+                labels: { $arrayElemAt: ["$Categories.labels", 0] }
               },
-              else: null
+              else: {
+                $cond: {
+                  if: { $ne: ["$Category", null] },
+                  then: {
+                    _id: "$Category._id",
+                    code: "$Category.code",
+                    labels: "$Category.labels"
+                  },
+                  else: null
+                }
+              }
             }
           },
           contact: 1,
@@ -506,6 +630,16 @@ const getDashboard = async (req, res) => {
           }
         }
       },
+      // Lookup categories array (new format)
+      {
+        $lookup: {
+          from: "categories",
+          localField: "categories",
+          foreignField: "_id",
+          as: "Categories",
+        },
+      },
+      // Lookup single category (legacy format for backward compatibility)
       {
         $lookup: {
           from: "categories",
@@ -564,16 +698,68 @@ const getDashboard = async (req, res) => {
           createdAt: 1,
           updatedAt: 1,
           username: { $ifNull: ["$User.username", "Unknown"] },
-          categoryname: { $ifNull: ["$Category.code", "ELECTRONICS"] },
+          // Categories array (new format)
+          Categories: {
+            $cond: {
+              if: { $gt: [{ $size: { $ifNull: ["$Categories", []] } }, 0] },
+              then: {
+                $map: {
+                  input: "$Categories",
+                  as: "cat",
+                  in: {
+                    _id: "$$cat._id",
+                    code: "$$cat.code",
+                    labels: "$$cat.labels"
+                  }
+                }
+              },
+              else: {
+                // Fallback to legacy category if Categories array is empty
+                $cond: {
+                  if: { $ne: ["$Category", null] },
+                  then: [{
+                    _id: "$Category._id",
+                    code: "$Category.code",
+                    labels: "$Category.labels"
+                  }],
+                  else: []
+                }
+              }
+            }
+          },
+          // Legacy single category (backward compatibility)
+          categoryname: { 
+            $cond: {
+              if: { $gt: [{ $size: { $ifNull: ["$Categories", []] } }, 0] },
+              then: { $arrayElemAt: ["$Categories.code", 0] },
+              else: {
+                $cond: {
+                  if: { $ne: ["$Category", null] },
+                  then: "$Category.code",
+                  else: "ELECTRONICS"
+                }
+              }
+            }
+          },
           Category: {
             $cond: {
-              if: { $ne: ["$Category", null] },
+              if: { $gt: [{ $size: { $ifNull: ["$Categories", []] } }, 0] },
               then: {
-                _id: "$Category._id",
-                code: "$Category.code",
-                labels: "$Category.labels"
+                _id: { $arrayElemAt: ["$Categories._id", 0] },
+                code: { $arrayElemAt: ["$Categories.code", 0] },
+                labels: { $arrayElemAt: ["$Categories.labels", 0] }
               },
-              else: null
+              else: {
+                $cond: {
+                  if: { $ne: ["$Category", null] },
+                  then: {
+                    _id: "$Category._id",
+                    code: "$Category.code",
+                    labels: "$Category.labels"
+                  },
+                  else: null
+                }
+              }
             }
           },
           contact: 1,
