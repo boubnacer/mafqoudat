@@ -617,4 +617,3 @@ const RecentPosts = ({ _id, categoryname, exactLocation, image, createdAt, count
 };
 
 export default RecentPosts;
-export default RecentPosts;
