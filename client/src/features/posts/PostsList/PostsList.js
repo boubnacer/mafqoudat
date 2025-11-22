@@ -35,6 +35,7 @@ import {
   Grid,
   Autocomplete,
   CircularProgress,
+  Alert,
 } from "@mui/material";
 import Pagination from "@mui/material/Pagination";
 import { useEffect, useState, useMemo, useCallback } from "react";
@@ -946,7 +947,7 @@ const PostsList = () => {
                     citiesLoading 
                       ? (t('loading') || 'Loading...')
                       : citySearchTerm.length >= 1 
-                        ? t('noSearchResults')
+                        ? t('noCityFound')
                         : allCachedCitiesForCountry.length === 0
                           ? t('searchCityPlaceholder')
                           : t('noSearchResults')
@@ -1007,6 +1008,55 @@ const PostsList = () => {
                   }}
                 />
               </Grid>
+
+              {/* City Not Found Message */}
+              {citySearchTerm.length >= 1 && 
+               !citiesLoading && 
+               allCitiesData.length === 0 && 
+               !selectedCity && (
+                <Grid item xs={12}>
+                  <Alert 
+                    severity="info" 
+                    sx={{ 
+                      borderRadius: 2,
+                      '& .MuiAlert-message': {
+                        width: '100%'
+                      }
+                    }}
+                    action={
+                      <Button
+                        variant="contained"
+                        size="small"
+                        startIcon={<AddIcon />}
+                        onClick={handleAddNewPost}
+                        sx={{
+                          borderRadius: '4px',
+                          textTransform: 'none',
+                          fontWeight: 600,
+                          background: 'linear-gradient(45deg, #4A8BFF 30%, #1A6EEE 90%)',
+                          boxShadow: '0 3px 5px 2px rgba(26, 110, 238, .3)',
+                          color: '#fff !important',
+                          '&:hover': {
+                            background: 'linear-gradient(45deg, #5A9BFF 30%, #2A7EFF 90%)',
+                            boxShadow: '0 4px 8px 2px rgba(26, 110, 238, .4)',
+                            color: '#fff !important',
+                          },
+                          '& .MuiButton-startIcon': {
+                            marginRight: currentLanguage === 'ar' ? 0 : '8px',
+                            marginLeft: currentLanguage === 'ar' ? '8px' : 0,
+                          }
+                        }}
+                      >
+                        {t('createPostForCity', { cityName: citySearchTerm })}
+                      </Button>
+                    }
+                  >
+                    <Typography variant="body2">
+                      {t('noCityFoundMessage', { cityName: citySearchTerm })}
+                    </Typography>
+                  </Alert>
+                </Grid>
+              )}
 
               {/* View Mode Toggle - Hidden for now */}
               {/* <Grid item xs={12} md={3}>
