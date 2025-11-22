@@ -1438,37 +1438,41 @@ const NewPostForm = ({ user, countries, categories, flOptions }) => {
                             </>
                           )}
 
-                          {/* Add New City Option */}
-                      <Divider />
-                          <Box
-                            onClick={() => {
-                              setShowCityDropdown(false);
-                              setShowCustomCityInput(true);
-                            }}
-                            sx={{
-                              p: 2,
-                              cursor: 'pointer',
-                              color: theme.palette.mode === 'dark' ? '#ffffff' : '#000000',
-                              fontWeight: 600,
-                              backgroundColor: theme.palette.mode === 'dark' ? '#1a1a1a' : '#ffffff',
-                              border: `1px solid ${theme.palette.divider}`,
-                              margin: '6px 8px',
-                              borderRadius: 2,
-                              transition: 'all 0.2s ease-in-out',
-                              '&:hover': {
-                                backgroundColor: theme.palette.mode === 'dark' ? '#2a2a2a' : '#f5f5f5',
-                                color: theme.palette.mode === 'dark' ? '#ffffff' : '#000000',
-                                borderColor: theme.palette.primary.main,
-                                transform: 'translateY(-1px)',
-                                boxShadow: theme.shadows[4],
-                              }
-                            }}
-                      >
-                        <Box display="flex" alignItems="center" gap={1}>
-                          <AddIcon fontSize="small" />
-                              {t('addNewCity') || 'Add New City'}
-                        </Box>
-                          </Box>
+                          {/* Add New City Option - Only show when search has no results */}
+                          {citySearchQuery.trim().length > 0 && !isSearching && searchResults.length === 0 && (
+                            <>
+                              <Divider />
+                              <Box
+                                onClick={() => {
+                                  setShowCityDropdown(false);
+                                  setShowCustomCityInput(true);
+                                }}
+                                sx={{
+                                  p: 2,
+                                  cursor: 'pointer',
+                                  color: theme.palette.mode === 'dark' ? '#ffffff' : '#000000',
+                                  fontWeight: 600,
+                                  backgroundColor: theme.palette.mode === 'dark' ? '#1a1a1a' : '#ffffff',
+                                  border: `1px solid ${theme.palette.divider}`,
+                                  margin: '6px 8px',
+                                  borderRadius: 2,
+                                  transition: 'all 0.2s ease-in-out',
+                                  '&:hover': {
+                                    backgroundColor: theme.palette.mode === 'dark' ? '#2a2a2a' : '#f5f5f5',
+                                    color: theme.palette.mode === 'dark' ? '#ffffff' : '#000000',
+                                    borderColor: theme.palette.primary.main,
+                                    transform: 'translateY(-1px)',
+                                    boxShadow: theme.shadows[4],
+                                  }
+                                }}
+                              >
+                                <Box display="flex" alignItems="center" gap={1}>
+                                  <AddIcon fontSize="small" />
+                                  {t('addNewCity') || 'Add New City'}
+                                </Box>
+                              </Box>
+                            </>
+                          )}
                         </Box>
                       </Box>
                     )}
