@@ -315,11 +315,11 @@ const PostsList = () => {
   // Memoize dynamic title based on navigation state
   const pageTitle = useMemo(() => {
     if (foundOrlost === 'FOUND') {
-      return t('foundItems');
+      return t('searchForFoundItems');
     } else if (foundOrlost === 'LOST') {
-      return t('lostItems');
+      return t('searchForLostItems');
     } else {
-      return t('postsList');
+      return t('searchForItems');
     }
   }, [foundOrlost, t]);
 
@@ -777,7 +777,8 @@ const PostsList = () => {
                 {pageTitle}
               </Typography>
             </Box>
-            <Button
+            {/* Add New Post button hidden as per requirements */}
+            {/* <Button
               variant="contained"
               startIcon={<AddIcon />}
               onClick={handleAddNewPost}
@@ -798,7 +799,7 @@ const PostsList = () => {
               }}
             >
               {t('addNewPost')}
-            </Button>
+            </Button> */}
           </Box>
 
           {/* Filters and Search - Always visible */}
