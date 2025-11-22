@@ -29,7 +29,7 @@ import { formatDistanceToNow } from 'date-fns';
 import { ar, fr, enUS } from 'date-fns/locale';
 import useAuth from "../../hooks/useAuth";
 import { getCategoryConfig } from "../../config/categories";
-import { useState } from "react";
+import { useState, useMemo } from "react";
 
 // Get the API base URL for image construction
 const API_BASE_URL = process.env.REACT_APP_API_URL || "http://localhost:3500";
