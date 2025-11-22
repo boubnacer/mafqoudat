@@ -1002,44 +1002,75 @@ if (typeof document !== 'undefined') {
       // Use FormData if there's an image, otherwise use regular JSON
       let result;
       if (selectedImage && selectedImage !== "REMOVED") {
+        // Validate that selectedImage is actually a File/Blob object
+        if (!(selectedImage instanceof File) && !(selectedImage instanceof Blob)) {
+          console.error('❌ UPDATE POST - Invalid image type:', typeof selectedImage, selectedImage);
+          setStatus({
+            type: 'error',
+            message: t('invalidImageFile') || 'Invalid image file. Please select a valid image.'
+          });
+          setSubmitting(false);
+          return;
+        }
+        
         // Create FormData for image upload
         const formData = new FormData();
         const postDataWithId = { id: post._id, ...postData };
-        // console.log('🔍 UPDATE POST - Sending FormData with postData:', postDataWithId);
-        // console.log('🔍 UPDATE POST - Image file:', selectedImage);
+        console.log('🔍 UPDATE POST - Sending FormData with postData:', postDataWithId);
+        console.log('🔍 UPDATE POST - Image file:', selectedImage, 'Type:', selectedImage?.constructor?.name, 'Size:', selectedImage?.size);
         formData.append("postData", JSON.stringify(postDataWithId));
         formData.append("image", selectedImage);
         
         // Use fetch directly for FormData
         const baseUrl = process.env.REACT_APP_API_URL || "http://localhost:3500";
-        const response = await fetch(`${baseUrl}/posts`, {
-          method: 'PATCH',
-          headers: {
-            'Authorization': `Bearer ${token}`
-          },
-          body: formData
-        });
-        
-        if (!response.ok) {
-          let errorData;
-          try {
-            errorData = await response.json();
-          } catch (e) {
-            errorData = { message: `HTTP ${response.status}: ${response.statusText}` };
+        try {
+          const response = await fetch(`${baseUrl}/posts`, {
+            method: 'PATCH',
+            headers: {
+              'Authorization': `Bearer ${token}`
+            },
+            body: formData
+          });
+          
+          if (!response.ok) {
+            let errorData;
+            const contentType = response.headers.get("content-type");
+            try {
+              if (contentType && contentType.includes("application/json")) {
+                errorData = await response.json();
+              } else {
+                const text = await response.text();
+                errorData = { 
+                  message: text || `HTTP ${response.status}: ${response.statusText}`,
+                  status: response.status
+                };
+              }
+            } catch (e) {
+              console.error('❌ UPDATE POST - Error parsing error response:', e);
+              errorData = { 
+                message: `HTTP ${response.status}: ${response.statusText}`,
+                status: response.status
+              };
+            }
+            console.error('❌ UPDATE POST - Server error response:', errorData);
+            throw new Error(errorData.message || errorData.error?.message || 'Update failed');
           }
-          // console.error('❌ UPDATE POST - Server error response:', errorData);
-          throw new Error(errorData.message || 'Update failed');
+          
+          result = { data: await response.text() };
+          console.log('✅ UPDATE POST - API call successful:', result);
+          
+          // Manually trigger success flow for FormData requests - show immediately
+          setSuccessMessage(t('postUpdatedSuccessfully') || 'Post updated successfully! Your changes have been saved.');
+          setShowSuccessMessage(true);
+          setTimeout(() => {
+            setShowSuccessMessage(false);
+            navigate("/dash");
+          }, 2000);
+        } catch (fetchError) {
+          // Re-throw fetch errors with better context
+          console.error('❌ UPDATE POST - Fetch error:', fetchError);
+          throw fetchError;
         }
-        
-        result = { data: await response.text() };
-        
-        // Manually trigger success flow for FormData requests - show immediately
-        setSuccessMessage(t('postUpdatedSuccessfully') || 'Post updated successfully! Your changes have been saved.');
-        setShowSuccessMessage(true);
-        setTimeout(() => {
-          setShowSuccessMessage(false);
-          navigate("/dash");
-        }, 2000);
       } else {
         // Use regular JSON for non-image updates
         result = await updatePost({ id: post._id, ...postData }).unwrap();
@@ -1047,19 +1078,32 @@ if (typeof document !== 'undefined') {
       // console.log('✅ UPDATE POST - API call successful:', result);
     } catch (error) {
       console.error('❌ UPDATE POST - Update failed:', error);
-      console.error('❌ UPDATE POST - Error status:', error?.status);
-      console.error('❌ UPDATE POST - Error data:', error?.data);
-      console.error('❌ UPDATE POST - Error message:', error?.data?.message);
-      console.error('❌ UPDATE POST - Error details:', error?.data?.errors);
-      if (error?.data?.errors && error.data.errors.length > 0) {
-        console.error('❌ UPDATE POST - First error:', error.data.errors[0]);
-        console.error('❌ UPDATE POST - Error field:', error.data.errors[0]?.field);
-        console.error('❌ UPDATE POST - Error message:', error.data.errors[0]?.message);
+      console.error('❌ UPDATE POST - Error type:', error?.constructor?.name);
+      console.error('❌ UPDATE POST - Error message:', error?.message);
+      console.error('❌ UPDATE POST - Error stack:', error?.stack);
+      
+      // Handle RTK Query errors (have data property)
+      if (error?.data) {
+        console.error('❌ UPDATE POST - Error status:', error?.status);
+        console.error('❌ UPDATE POST - Error data:', error?.data);
+        console.error('❌ UPDATE POST - Error message:', error?.data?.message);
+        console.error('❌ UPDATE POST - Error details:', error?.data?.errors);
+        if (error?.data?.errors && error.data.errors.length > 0) {
+          console.error('❌ UPDATE POST - First error:', error.data.errors[0]);
+          console.error('❌ UPDATE POST - Error field:', error.data.errors[0]?.field);
+          console.error('❌ UPDATE POST - Error message:', error.data.errors[0]?.message);
+        }
+        setStatus({
+          type: 'error',
+          message: error?.data?.message || error?.data?.error?.message || t('updateFailed')
+        });
+      } else {
+        // Handle regular Error objects (from fetch)
+        setStatus({
+          type: 'error',
+          message: error?.message || t('updateFailed')
+        });
       }
-      setStatus({
-        type: 'error',
-        message: error?.data?.message || t('updateFailed')
-      });
     } finally {
       setSubmitting(false);
     }
