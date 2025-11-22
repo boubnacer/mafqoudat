@@ -902,11 +902,14 @@ const PostsList = () => {
                   onInputChange={handleCityInputChange}
                   inputValue={citySearchTerm}
                   open={
-                    !selectedCity && (
+                    !selectedCity && 
+                    // Only open if there are cities to show
+                    allCitiesData.length > 0 && 
+                    !citiesLoading && (
                       // Open when focused and there are cached cities OR user is typing
                       (cityInputFocused && (allCachedCitiesForCountry.length > 0 || citySearchTerm.length >= 1)) ||
                       // Or when user is typing (even if not focused) AND there are results
-                      (citySearchTerm.length >= 1 && allCitiesData.length > 0)
+                      (citySearchTerm.length >= 1)
                     )
                   }
                   onOpen={() => {
@@ -1020,10 +1023,9 @@ const PostsList = () => {
                     sx={{ 
                       borderRadius: 2,
                       direction: currentLanguage === 'ar' ? 'rtl' : 'ltr',
-                      alignItems: 'flex-start',
+                      alignItems: 'center',
                       '& .MuiAlert-icon': {
-                        alignItems: 'flex-start',
-                        paddingTop: '4px',
+                        alignItems: 'center',
                         marginRight: currentLanguage === 'ar' ? 0 : '12px',
                         marginLeft: currentLanguage === 'ar' ? '12px' : 0,
                         minWidth: '24px',
@@ -1033,7 +1035,7 @@ const PostsList = () => {
                         padding: 0,
                         direction: currentLanguage === 'ar' ? 'rtl' : 'ltr',
                         display: 'flex',
-                        alignItems: 'flex-start',
+                        alignItems: 'center',
                       }
                     }}
                   >
