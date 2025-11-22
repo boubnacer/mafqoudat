@@ -441,6 +441,11 @@ const NewPostForm = ({ user, countries, categories, flOptions }) => {
       setStatus(null);
       setFieldErrors({});
       
+      // Support both new categories array and legacy single category - declare once at the top
+      const selectedCategories = values.categories && Array.isArray(values.categories) && values.categories.length > 0
+        ? values.categories
+        : (values.category ? [values.category] : []);
+      
       // Validate required fields
       const missingFields = [];
       const newFieldErrors = {};
@@ -449,10 +454,7 @@ const NewPostForm = ({ user, countries, categories, flOptions }) => {
         missingFields.push(t('foundOrLost'));
         newFieldErrors.foundLost = t('required');
       }
-      // Validate categories - support both new array format and legacy single category
-      const selectedCategories = values.categories && Array.isArray(values.categories) && values.categories.length > 0
-        ? values.categories
-        : (values.category ? [values.category] : []);
+      // Validate categories
       if (selectedCategories.length === 0) {
         missingFields.push(t('category'));
         newFieldErrors.category = t('required');
@@ -527,11 +529,7 @@ const NewPostForm = ({ user, countries, categories, flOptions }) => {
       const formData = new FormData();
       
       // Combine basic fields into a single JSON object to reduce field count
-      // Support both new categories array and legacy category field
-      const selectedCategories = values.categories && Array.isArray(values.categories) && values.categories.length > 0
-        ? values.categories
-        : (values.category ? [values.category] : []);
-      
+      // selectedCategories is already declared above in validation section
       const postData = {
         user: user._id,
         country: selectedCountry?._id || values.country,
