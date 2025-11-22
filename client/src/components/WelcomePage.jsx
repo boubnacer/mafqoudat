@@ -330,8 +330,8 @@ const WelcomePage = () => {
         localStorage.removeItem('redirectAfterCountrySelection');
         navigate(redirectUrl);
       } else {
-        // Navigate to dashboard (public view)
-        navigate('/dash');
+        // Navigate to posts list page
+        navigate('/dash/posts');
       }
     }
   };
