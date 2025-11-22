@@ -38,7 +38,7 @@ const TrendingItem = ({ trend, isLoading }) => {
   // console.log('TrendingItem - trendData:', trendData);
   // console.log('TrendingItem - trendData keys:', trendData ? Object.keys(trendData) : 'no trendData');
   
-  const { _id, categoryname, floptionName, image, createdAt, mainDate, countryLabels, countryname, city, cityLabels, cityName, Floptions, Category, exactLocation } = trendData || {};
+  const { _id, categoryname, floptionName, image, createdAt, mainDate, countryLabels, countryname, city, cityLabels, cityName, Floptions, Category, Categories, exactLocation } = trendData || {};
   const theme = useTheme();
   const isMobile = useMediaQuery(theme.breakpoints.down('sm'));
   const isTablet = useMediaQuery(theme.breakpoints.down('md'));
@@ -132,32 +132,96 @@ const TrendingItem = ({ trend, isLoading }) => {
     return t('unknownCity') || 'Unknown City';
   }, [cityLabels, cityName, city, currentLanguage, exactLocation, getCityFromLocation, t]);
 
-  // Get category name safely with multilingual support (same as PostsList)
-  const categoryDisplayName = useMemo(() => {
-    // First priority: Use the Category object from API aggregation (with labels)
-    if (Category && Category.labels) {
-      return Category.labels[currentLanguage] || Category.labels.en || Category.code || categoryname;
+  // Memoized categories array computation - support both new Categories array and legacy Category
+  const categories = useMemo(() => {
+    const cats = [];
+    
+    // First priority: Use the Categories array from API aggregation (new format)
+    if (Categories && Array.isArray(Categories) && Categories.length > 0) {
+      Categories.forEach(cat => {
+        if (cat && cat.code) {
+          cats.push({
+            code: cat.code,
+            labels: cat.labels,
+            _id: cat._id
+          });
+        }
+      });
     }
     
-    // Last fallback: return the original categoryname or unknown
-    return categoryname || t('unknownCategory');
-  }, [Category, categoryname, currentLanguage, t]);
-
-  // Get category colors using centralized configuration (same as RecentPosts)
-  const getCategoryColors = (category) => {
-    const config = getCategoryConfig(category);
+    // Fallback: Use the legacy Category object (backward compatibility)
+    if (cats.length === 0 && Category && Category.code) {
+      cats.push({
+        code: Category.code,
+        labels: Category.labels,
+        _id: Category._id
+      });
+    }
     
-    return {
-      main: config.color,
-      light: config.backgroundColor,
-      dark: config.color,
-      icon: config.color,
-      background: config.backgroundColor, // ALWAYS use light mode background
-      text: config.color
-    };
-  };
+    // Last fallback: Use categoryname if available
+    if (cats.length === 0 && categoryname) {
+      cats.push({
+        code: categoryname,
+        labels: null,
+        _id: null
+      });
+    }
+    
+    return cats.length > 0 ? cats : [{ code: 'OTHER', labels: null, _id: null }];
+  }, [Categories, Category, categoryname]);
 
-  const categoryStyle = getCategoryColors(categoryname);
+  // Memoized category display names computation
+  const categoryNames = useMemo(() => {
+    return categories.map(cat => {
+      if (cat.labels) {
+        return cat.labels[currentLanguage] || cat.labels.en || cat.code;
+      }
+      return cat.code || t('unknownCategory');
+    });
+  }, [categories, currentLanguage, t]);
+
+  // Memoized category styles computation
+  const categoryStyles = useMemo(() => {
+    return categories.map(cat => {
+      try {
+        const config = getCategoryConfig(cat.code);
+        return {
+          main: config.color,
+          light: config.backgroundColor,
+          dark: config.color,
+          icon: config.color,
+          background: config.backgroundColor,
+          text: config.color
+        };
+      } catch (error) {
+        return {
+          main: '#2196F3',
+          light: '#E3F2FD',
+          dark: '#1976D2',
+          icon: '#2196F3',
+          background: '#E3F2FD',
+          text: '#2196F3'
+        };
+      }
+    });
+  }, [categories]);
+
+  // Legacy single category name for backward compatibility (first category)
+  const categoryDisplayName = useMemo(() => {
+    return categoryNames[0] || t('unknownCategory');
+  }, [categoryNames, t]);
+
+  // Legacy single category style for backward compatibility (first category)
+  const categoryStyle = useMemo(() => {
+    return categoryStyles[0] || {
+      main: '#2196F3',
+      light: '#E3F2FD',
+      dark: '#1976D2',
+      icon: '#2196F3',
+      background: '#E3F2FD',
+      text: '#2196F3'
+    };
+  }, [categoryStyles]);
 
   // Get found/lost status with proper colors from database (same as PostsList)
   const foundLostStatus = useMemo(() => {
@@ -467,53 +531,64 @@ const TrendingItem = ({ trend, isLoading }) => {
             }}
           />
           
-          {/* Category Badge - Top Left Overlay */}
+          {/* Category Badges - Top Left Overlay - Multiple categories support */}
           <Box
             sx={{
               position: 'absolute',
               top: 16,
               left: 16,
               zIndex: 10,
-              backgroundColor: `${categoryStyle.background} !important`,
-              color: categoryStyle.text,
-              borderRadius: '8px',
               display: 'flex',
-              alignItems: 'center',
+              flexWrap: 'wrap',
               gap: 0.5,
-              padding: { xs: '4px 12px', sm: '10px 16px' },
-              border: `1px solid ${categoryStyle.main}`,
-              opacity: 1,
-              boxShadow: '0 2px 4px rgba(0,0,0,0.3)',
+              alignItems: 'center',
+              maxWidth: 'calc(100% - 120px)', // Prevent overflow
             }}
           >
-            <Box sx={{ 
-              display: 'flex', 
-              alignItems: 'center', 
-              gap: 1.25, // 10px gap (1.25 * 8px = 10px)
-            }}>
-              <RenderIcon 
-                name={`${categoryname?.toLowerCase()}cate`} 
-                sx={{ 
-                  fontSize: { xs: '14px', sm: '16px' }, 
-                  color: categoryStyle.text
-                }} 
-              />
-              <Typography
-                sx={{
-                  color: categoryStyle.text,
-                  fontSize: { xs: '14px', sm: '16px' },
-                  fontWeight: 700,
-                  textTransform: 'uppercase',
-                  letterSpacing: currentLanguage === 'ar' ? 'normal' : '1px',
-                  fontFamily: currentLanguage === 'ar' 
-                    ? '"Noto Sans Arabic", "Segoe UI", "Roboto", "Helvetica", "Arial", sans-serif'
-                    : '"Inter", "Segoe UI", "Roboto", "Helvetica", "Arial", sans-serif',
-                  lineHeight: currentLanguage === 'ar' ? 1.6 : 1.4,
-                }}
-              >
-                {categoryDisplayName}
-              </Typography>
-            </Box>
+            {categories.map((cat, index) => {
+              const catStyle = categoryStyles[index];
+              const catName = categoryNames[index];
+              return (
+                <Box
+                  key={cat.code || index}
+                  sx={{
+                    backgroundColor: `${catStyle.background} !important`,
+                    color: catStyle.text,
+                    borderRadius: '8px',
+                    display: 'flex',
+                    alignItems: 'center',
+                    gap: 0.5,
+                    padding: { xs: '4px 12px', sm: '10px 16px' },
+                    border: `1px solid ${catStyle.main}`,
+                    opacity: 1,
+                    boxShadow: '0 2px 4px rgba(0,0,0,0.3)',
+                  }}
+                >
+                  <RenderIcon 
+                    name={`${cat.code?.toLowerCase() || 'other'}cate`} 
+                    sx={{ 
+                      fontSize: { xs: '14px', sm: '16px' }, 
+                      color: catStyle.text
+                    }} 
+                  />
+                  <Typography
+                    sx={{
+                      color: catStyle.text,
+                      fontSize: { xs: '14px', sm: '16px' },
+                      fontWeight: 700,
+                      textTransform: 'uppercase',
+                      letterSpacing: currentLanguage === 'ar' ? 'normal' : '1px',
+                      fontFamily: currentLanguage === 'ar' 
+                        ? '"Noto Sans Arabic", "Segoe UI", "Roboto", "Helvetica", "Arial", sans-serif'
+                        : '"Inter", "Segoe UI", "Roboto", "Helvetica", "Arial", sans-serif',
+                      lineHeight: currentLanguage === 'ar' ? 1.6 : 1.4,
+                    }}
+                  >
+                    {catName}
+                  </Typography>
+                </Box>
+              );
+            })}
           </Box>
 
           {/* Created Date Badge */}
