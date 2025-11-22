@@ -385,6 +385,16 @@ const getPost = async (req, res) => {
       {
         $match: { _id: new mongoose.Types.ObjectId(id) }
       },
+      // Lookup categories array (new format)
+      {
+        $lookup: {
+          from: "categories",
+          localField: "categories",
+          foreignField: "_id",
+          as: "Categories",
+        },
+      },
+      // Lookup single category (legacy format for backward compatibility)
       {
         $lookup: {
           from: "categories",
@@ -469,16 +479,68 @@ const getPost = async (req, res) => {
           createdAt: 1,
           updatedAt: 1,
           username: "$User.username",
-          categoryname: { $ifNull: ["$Category.code", "OTHER"] },
+          // Categories array (new format)
+          Categories: {
+            $cond: {
+              if: { $gt: [{ $size: { $ifNull: ["$Categories", []] } }, 0] },
+              then: {
+                $map: {
+                  input: "$Categories",
+                  as: "cat",
+                  in: {
+                    _id: "$$cat._id",
+                    code: "$$cat.code",
+                    labels: "$$cat.labels"
+                  }
+                }
+              },
+              else: {
+                // Fallback to legacy category if Categories array is empty
+                $cond: {
+                  if: { $ne: ["$Category", null] },
+                  then: [{
+                    _id: "$Category._id",
+                    code: "$Category.code",
+                    labels: "$Category.labels"
+                  }],
+                  else: []
+                }
+              }
+            }
+          },
+          // Legacy single category (backward compatibility)
+          categoryname: { 
+            $cond: {
+              if: { $gt: [{ $size: { $ifNull: ["$Categories", []] } }, 0] },
+              then: { $arrayElemAt: ["$Categories.code", 0] },
+              else: {
+                $cond: {
+                  if: { $ne: ["$Category", null] },
+                  then: "$Category.code",
+                  else: "OTHER"
+                }
+              }
+            }
+          },
           Category: {
             $cond: {
-              if: { $ne: ["$Category", null] },
+              if: { $gt: [{ $size: { $ifNull: ["$Categories", []] } }, 0] },
               then: {
-                _id: "$Category._id",
-                code: "$Category.code",
-                labels: "$Category.labels"
+                _id: { $arrayElemAt: ["$Categories._id", 0] },
+                code: { $arrayElemAt: ["$Categories.code", 0] },
+                labels: { $arrayElemAt: ["$Categories.labels", 0] }
               },
-              else: null
+              else: {
+                $cond: {
+                  if: { $ne: ["$Category", null] },
+                  then: {
+                    _id: "$Category._id",
+                    code: "$Category.code",
+                    labels: "$Category.labels"
+                  },
+                  else: null
+                }
+              }
             }
           },
           countryname: "$Country.code",

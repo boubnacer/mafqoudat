@@ -95,6 +95,8 @@ const SinglePostPage = ({
   promotionProcessedAt,
   // Category object from aggregation
   Category,
+  // Categories array from aggregation (new format)
+  Categories,
   // API transformation fields
   foundLostLabel,
   // Refetch function
@@ -248,33 +250,99 @@ const SinglePostPage = ({
     });
   }, [updatedAt, locale]);
 
-  // Memoized category colors computation
-  const categoryStyle = useMemo(() => {
-    const config = getCategoryConfig(categoryname);
-    const isDarkMode = theme.palette.mode === 'dark';
-    
-    return {
-      main: config.color,
-      light: config.backgroundColor,
-      dark: config.color,
-      icon: config.color,
-      background: isDarkMode ? alpha(config.backgroundColor, 0.2) : config.backgroundColor,
-      text: config.color
-    };
-  }, [categoryname, theme.palette.mode]);
-
   const isDarkMode = theme.palette.mode === 'dark';
 
-  // Memoized category display name computation
-  const categoryDisplayName = useMemo(() => {
-    // First priority: Use the Category object from API aggregation (with labels)
-    if (Category && Category.labels) {
-      return Category.labels[currentLanguage] || Category.labels.en || Category.code || categoryname;
+  // Memoized categories array computation - support both new Categories array and legacy Category
+  const categories = useMemo(() => {
+    const cats = [];
+    
+    // First priority: Use the Categories array from API aggregation (new format)
+    if (Categories && Array.isArray(Categories) && Categories.length > 0) {
+      Categories.forEach(cat => {
+        if (cat && cat.code) {
+          cats.push({
+            code: cat.code,
+            labels: cat.labels,
+            _id: cat._id
+          });
+        }
+      });
     }
     
-    // Last fallback: return the original categoryname or unknown
-    return categoryname || t('unknownCategory');
-  }, [Category, categoryname, currentLanguage, t]);
+    // Fallback: Use the legacy Category object (backward compatibility)
+    if (cats.length === 0 && Category && Category.code) {
+      cats.push({
+        code: Category.code,
+        labels: Category.labels,
+        _id: Category._id
+      });
+    }
+    
+    // Last fallback: Use categoryname if available
+    if (cats.length === 0 && categoryname) {
+      cats.push({
+        code: categoryname,
+        labels: null,
+        _id: null
+      });
+    }
+    
+    return cats.length > 0 ? cats : [{ code: 'OTHER', labels: null, _id: null }];
+  }, [Categories, Category, categoryname]);
+
+  // Memoized category display names computation
+  const categoryNames = useMemo(() => {
+    return categories.map(cat => {
+      if (cat.labels) {
+        return cat.labels[currentLanguage] || cat.labels.en || cat.code;
+      }
+      return cat.code || t('unknownCategory');
+    });
+  }, [categories, currentLanguage, t]);
+
+  // Memoized category styles computation
+  const categoryStyles = useMemo(() => {
+    return categories.map(cat => {
+      try {
+        const config = getCategoryConfig(cat.code);
+        const isDarkMode = theme.palette.mode === 'dark';
+        return {
+          main: config.color,
+          light: config.backgroundColor,
+          dark: config.color,
+          icon: config.color,
+          background: isDarkMode ? alpha(config.backgroundColor, 0.2) : config.backgroundColor,
+          text: config.color
+        };
+      } catch (error) {
+        return {
+          main: '#2196F3',
+          light: '#E3F2FD',
+          dark: '#1976D2',
+          icon: '#2196F3',
+          background: isDarkMode ? alpha('#E3F2FD', 0.2) : '#E3F2FD',
+          text: '#2196F3'
+        };
+      }
+    });
+  }, [categories, theme.palette.mode]);
+
+  // Legacy single category name for backward compatibility (first category)
+  const categoryDisplayName = useMemo(() => {
+    return categoryNames[0] || t('unknownCategory');
+  }, [categoryNames, t]);
+
+  // Legacy single category style for backward compatibility (first category)
+  const categoryStyle = useMemo(() => {
+    return categoryStyles[0] || {
+      main: '#2196F3',
+      light: '#E3F2FD',
+      dark: '#1976D2',
+      icon: '#2196F3',
+      background: isDarkMode ? alpha('#E3F2FD', 0.2) : '#E3F2FD',
+      text: '#2196F3'
+    };
+  }, [categoryStyles, isDarkMode]);
 
   // Extract city from location (show only city) - helper function
   const getCityFromLocation = useCallback((location) => {
@@ -603,46 +671,59 @@ const SinglePostPage = ({
               )}
               
 
-              {/* Category Badge Overlay */}
+              {/* Category Badges Overlay - Multiple categories support */}
               <Box
                 sx={{
                   position: 'absolute',
                   top: 16,
                   right: 16,
-                  zIndex: 2
+                  zIndex: 2,
+                  display: 'flex',
+                  flexWrap: 'wrap',
+                  gap: 0.5,
+                  alignItems: 'center',
+                  justifyContent: 'flex-end',
+                  maxWidth: 'calc(100% - 32px)',
                 }}
               >
-                <Box
-                  sx={{
-                    backgroundColor: isDarkMode ? 'rgb(232, 245, 233)' : categoryStyle.background,
-                    padding: '6px 12px',
-                    borderRadius: '12px',
-                    display: 'flex',
-                    alignItems: 'center',
-                    gap: 0.5,
-                    backdropFilter: 'blur(10px)',
-                    border: `1px solid ${isDarkMode ? alpha(categoryStyle.main, 0.3) : categoryStyle.main}`,
-                    zIndex: 11
-                  }}
-                >
-                  <RenderIcon 
-                    name={`${categoryname?.toLowerCase()}cate`} 
-                    sx={{ 
-                      fontSize: '18px', 
-                      color: isDarkMode ? categoryStyle.main : categoryStyle.text
-                    }} 
-                  />
-                  <Typography
-                    sx={{
-                      color: isDarkMode ? categoryStyle.main : categoryStyle.text,
-                      fontSize: '14px',
-                      fontWeight: 700,
-                      lineHeight: 1
-                    }}
-                  >
-                    {categoryDisplayName}
-                  </Typography>
-                </Box>
+                {categories.map((cat, index) => {
+                  const catStyle = categoryStyles[index];
+                  const catName = categoryNames[index];
+                  return (
+                    <Box
+                      key={cat.code || index}
+                      sx={{
+                        backgroundColor: isDarkMode ? 'rgb(232, 245, 233)' : catStyle.background,
+                        padding: '6px 12px',
+                        borderRadius: '12px',
+                        display: 'flex',
+                        alignItems: 'center',
+                        gap: 0.5,
+                        backdropFilter: 'blur(10px)',
+                        border: `1px solid ${isDarkMode ? alpha(catStyle.main, 0.3) : catStyle.main}`,
+                        zIndex: 11
+                      }}
+                    >
+                      <RenderIcon 
+                        name={`${cat.code?.toLowerCase() || 'other'}cate`} 
+                        sx={{ 
+                          fontSize: '18px', 
+                          color: isDarkMode ? catStyle.main : catStyle.text
+                        }} 
+                      />
+                      <Typography
+                        sx={{
+                          color: isDarkMode ? catStyle.main : catStyle.text,
+                          fontSize: '14px',
+                          fontWeight: 700,
+                          lineHeight: 1
+                        }}
+                      >
+                        {catName}
+                      </Typography>
+                    </Box>
+                  );
+                })}
               </Box>
             </Box>
 
@@ -756,12 +837,12 @@ const SinglePostPage = ({
                   </Typography>
                     </Box>
 
-                    {/* Category with categoryDisplayName */}
+                    {/* Categories with multiple category badges */}
                     <Box display="flex" 
                          sx={{ 
                            flexDirection: { xs: 'row', sm: 'row' }, 
                            gap: { xs: 1, sm: 2 },
-                           alignItems: { xs: 'center', sm: 'flex-start' }
+                           alignItems: { xs: 'flex-start', sm: 'flex-start' }
                          }}>
                       <Typography 
                         variant="body2" 
@@ -771,23 +852,37 @@ const SinglePostPage = ({
                           fontSize: { xs: '1rem', sm: '1rem', md: '1rem' },
                           minWidth: { xs: 'auto', sm: '120px' },
                           fontWeight: 500,
-                          flexShrink: 0
+                          flexShrink: 0,
+                          pt: 0.5
                         }}
                       >
                         {t('category')}:
                       </Typography>
-                      <Typography 
-                        variant="body2" 
-                        fontWeight={600}
-                        sx={{ 
-                          direction: currentLanguage === 'ar' ? 'rtl' : 'ltr',
-                          color: categoryStyle.text,
-                          fontSize: { xs: '1rem', sm: '1rem', md: '1rem' },
-                          textAlign: currentLanguage === 'ar' ? 'right' : 'left'
-                        }}
-                      >
-                        {categoryDisplayName}
-                      </Typography>
+                      <Box display="flex" flexWrap="wrap" gap={0.5} sx={{ flex: 1 }}>
+                        {categories.map((cat, index) => {
+                          const catStyle = categoryStyles[index];
+                          const catName = categoryNames[index];
+                          return (
+                            <Chip
+                              key={cat.code || index}
+                              label={catName}
+                              size="small"
+                              sx={{
+                                fontSize: '0.75rem',
+                                height: 28,
+                                backgroundColor: isDarkMode ? alpha(catStyle.background, 0.3) : catStyle.background,
+                                color: catStyle.text,
+                                border: `1px solid ${catStyle.main}`,
+                                fontWeight: 600,
+                                '& .MuiChip-label': {
+                                  direction: currentLanguage === 'ar' ? 'rtl' : 'ltr',
+                                  fontWeight: 600
+                                }
+                              }}
+                            />
+                          );
+                        })}
+                      </Box>
                     </Box>
 
                     {/* Status with foundLostStatus */}
