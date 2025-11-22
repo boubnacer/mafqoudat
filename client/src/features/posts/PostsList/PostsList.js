@@ -905,8 +905,8 @@ const PostsList = () => {
                     !selectedCity && (
                       // Open when focused and there are cached cities OR user is typing
                       (cityInputFocused && (allCachedCitiesForCountry.length > 0 || citySearchTerm.length >= 1)) ||
-                      // Or when user is typing (even if not focused)
-                      (citySearchTerm.length >= 1)
+                      // Or when user is typing (even if not focused) AND there are results
+                      (citySearchTerm.length >= 1 && allCitiesData.length > 0)
                     )
                   }
                   onOpen={() => {
@@ -947,7 +947,7 @@ const PostsList = () => {
                     citiesLoading 
                       ? (t('loading') || 'Loading...')
                       : citySearchTerm.length >= 1 
-                        ? t('noCityFound')
+                        ? '' // Empty string to hide dropdown and show feedback message below
                         : allCachedCitiesForCountry.length === 0
                           ? t('searchCityPlaceholder')
                           : t('noSearchResults')
@@ -1023,10 +1023,28 @@ const PostsList = () => {
                         width: '100%'
                       }
                     }}
-                    action={
+                  >
+                    <Box
+                      sx={{
+                        display: 'flex',
+                        flexDirection: { xs: 'column', md: 'row' },
+                        gap: { xs: 2, md: 3 },
+                        alignItems: { xs: 'stretch', md: 'center' },
+                        width: '100%'
+                      }}
+                    >
+                      <Typography 
+                        variant="body2" 
+                        sx={{ 
+                          flex: { xs: 'none', md: 1 },
+                          width: { xs: '100%', md: 'auto' }
+                        }}
+                      >
+                        {t('noCityFoundMessage', { cityName: citySearchTerm })}
+                      </Typography>
                       <Button
                         variant="contained"
-                        size="small"
+                        size="medium"
                         startIcon={<AddIcon />}
                         onClick={handleAddNewPost}
                         sx={{
@@ -1036,6 +1054,9 @@ const PostsList = () => {
                           background: 'linear-gradient(45deg, #4A8BFF 30%, #1A6EEE 90%)',
                           boxShadow: '0 3px 5px 2px rgba(26, 110, 238, .3)',
                           color: '#fff !important',
+                          width: { xs: '100%', md: 'auto' },
+                          minWidth: { xs: '100%', md: '280px' },
+                          px: { xs: 2, md: 4 },
                           '&:hover': {
                             background: 'linear-gradient(45deg, #5A9BFF 30%, #2A7EFF 90%)',
                             boxShadow: '0 4px 8px 2px rgba(26, 110, 238, .4)',
@@ -1049,11 +1070,7 @@ const PostsList = () => {
                       >
                         {t('createPostForCity', { cityName: citySearchTerm })}
                       </Button>
-                    }
-                  >
-                    <Typography variant="body2">
-                      {t('noCityFoundMessage', { cityName: citySearchTerm })}
-                    </Typography>
+                    </Box>
                   </Alert>
                 </Grid>
               )}
