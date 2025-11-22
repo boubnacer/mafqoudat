@@ -3098,7 +3098,7 @@ export const translations = {
     noPostsInCityWithCategoryDescription: "لا توجد منشورات في {cityName} لهذه الفئة بعد. كن أول من ينشئ منشورًا!",
     createPostInCity: "إنشاء منشور في {cityName}",
     noCityFound: "المدينة غير موجودة",
-    noCityFoundMessage: "لم يتم العثور على منشورات لـ \"{cityName}\". كن أول من ينشئ منشورًا في هذه المدينة!",
+    noCityFoundMessage: "لم يتم العثور على منشورات لـ \"{cityName}\". كن أول من ينشئ منشورًا في هذه المدينة !",
     createPostForCity: "إنشاء منشور لـ {cityName}",
     showLess: "عرض أقل",
     gridView: "عرض الشبكة",

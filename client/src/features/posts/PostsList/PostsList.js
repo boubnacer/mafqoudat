@@ -1019,8 +1019,21 @@ const PostsList = () => {
                     severity="info" 
                     sx={{ 
                       borderRadius: 2,
+                      direction: currentLanguage === 'ar' ? 'rtl' : 'ltr',
+                      alignItems: 'flex-start',
+                      '& .MuiAlert-icon': {
+                        alignItems: 'flex-start',
+                        paddingTop: '4px',
+                        marginRight: currentLanguage === 'ar' ? 0 : '12px',
+                        marginLeft: currentLanguage === 'ar' ? '12px' : 0,
+                        minWidth: '24px',
+                      },
                       '& .MuiAlert-message': {
-                        width: '100%'
+                        width: '100%',
+                        padding: 0,
+                        direction: currentLanguage === 'ar' ? 'rtl' : 'ltr',
+                        display: 'flex',
+                        alignItems: 'flex-start',
                       }
                     }}
                   >
@@ -1030,14 +1043,18 @@ const PostsList = () => {
                         flexDirection: { xs: 'column', md: 'row' },
                         gap: { xs: 2, md: 3 },
                         alignItems: { xs: 'stretch', md: 'center' },
-                        width: '100%'
+                        width: '100%',
+                        direction: currentLanguage === 'ar' ? 'rtl' : 'ltr',
                       }}
                     >
                       <Typography 
                         variant="body2" 
                         sx={{ 
                           flex: { xs: 'none', md: 1 },
-                          width: { xs: '100%', md: 'auto' }
+                          width: { xs: '100%', md: 'auto' },
+                          direction: currentLanguage === 'ar' ? 'rtl' : 'ltr',
+                          paddingLeft: currentLanguage === 'ar' ? '8px' : 0,
+                          paddingRight: currentLanguage === 'ar' ? 0 : '8px',
                         }}
                       >
                         {t('noCityFoundMessage', { cityName: citySearchTerm })}
