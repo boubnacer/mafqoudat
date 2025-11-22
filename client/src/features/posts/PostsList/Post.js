@@ -117,42 +117,96 @@ const Post = ({ post, viewMode = "grid" }) => {
     return { isFound, statusColor, statusText };
   }, [post?.Floptions, post?.foundLost, currentLanguage, t, theme.palette.success.main, theme.palette.error.main]);
 
-  // Memoized category display name computation
-  const categoryName = useMemo(() => {
-    // First priority: Use the Category object from API aggregation (with labels)
-    if (post?.Category && post.Category.labels) {
-      return post.Category.labels[currentLanguage] || post.Category.labels.en || post.Category.code || post?.categoryname;
+  // Memoized categories array computation - support both new Categories array and legacy Category
+  const categories = useMemo(() => {
+    const cats = [];
+    
+    // First priority: Use the Categories array from API aggregation (new format)
+    if (post?.Categories && Array.isArray(post.Categories) && post.Categories.length > 0) {
+      post.Categories.forEach(cat => {
+        if (cat && cat.code) {
+          cats.push({
+            code: cat.code,
+            labels: cat.labels,
+            _id: cat._id
+          });
+        }
+      });
     }
     
-    // Last fallback: return the original categoryname or unknown
-    return post?.categoryname || t('unknownCategory');
-  }, [post?.Category, post?.categoryname, currentLanguage, t]);
-
-  // Memoized category colors computation
-  const categoryStyle = useMemo(() => {
-    try {
-      const config = getCategoryConfig(post?.categoryname);
-      
-      return {
-        main: config.color,
-        light: config.backgroundColor,
-        dark: config.color,
-        icon: config.color,
-        background: config.backgroundColor, // Always use light mode background
-        text: config.color
-      };
-    } catch (error) {
-      // Fallback to default colors
-      return {
-        main: '#2196F3',
-        light: '#E3F2FD',
-        dark: '#1976D2',
-        icon: '#2196F3',
-        background: '#E3F2FD', // Always use light mode background
-        text: '#2196F3'
-      };
+    // Fallback: Use the legacy Category object (backward compatibility)
+    if (cats.length === 0 && post?.Category && post.Category.code) {
+      cats.push({
+        code: post.Category.code,
+        labels: post.Category.labels,
+        _id: post.Category._id
+      });
     }
-  }, [post?.categoryname]);
+    
+    // Last fallback: Use categoryname if available
+    if (cats.length === 0 && post?.categoryname) {
+      cats.push({
+        code: post.categoryname,
+        labels: null,
+        _id: null
+      });
+    }
+    
+    return cats.length > 0 ? cats : [{ code: 'OTHER', labels: null, _id: null }];
+  }, [post?.Categories, post?.Category, post?.categoryname]);
+
+  // Memoized category display names computation
+  const categoryNames = useMemo(() => {
+    return categories.map(cat => {
+      if (cat.labels) {
+        return cat.labels[currentLanguage] || cat.labels.en || cat.code;
+      }
+      return cat.code || t('unknownCategory');
+    });
+  }, [categories, currentLanguage, t]);
+
+  // Memoized category styles computation
+  const categoryStyles = useMemo(() => {
+    return categories.map(cat => {
+      try {
+        const config = getCategoryConfig(cat.code);
+        return {
+          main: config.color,
+          light: config.backgroundColor,
+          dark: config.color,
+          icon: config.color,
+          background: config.backgroundColor,
+          text: config.color
+        };
+      } catch (error) {
+        return {
+          main: '#2196F3',
+          light: '#E3F2FD',
+          dark: '#1976D2',
+          icon: '#2196F3',
+          background: '#E3F2FD',
+          text: '#2196F3'
+        };
+      }
+    });
+  }, [categories]);
+
+  // Legacy single category name for backward compatibility (first category)
+  const categoryName = useMemo(() => {
+    return categoryNames[0] || t('unknownCategory');
+  }, [categoryNames, t]);
+
+  // Legacy single category style for backward compatibility (first category)
+  const categoryStyle = useMemo(() => {
+    return categoryStyles[0] || {
+      main: '#2196F3',
+      light: '#E3F2FD',
+      dark: '#1976D2',
+      icon: '#2196F3',
+      background: '#E3F2FD',
+      text: '#2196F3'
+    };
+  }, [categoryStyles]);
 
   const isDarkMode = theme.palette.mode === 'dark';
 
@@ -362,31 +416,47 @@ const Post = ({ post, viewMode = "grid" }) => {
                     />
                     <Box
                       sx={{
-                        backgroundColor: categoryStyle.background, // Always use light mode background
-                        padding: '4px 8px',
-                        borderRadius: '8px', // Match the time badge border radius
                         display: 'flex',
-                        alignItems: 'center',
+                        flexWrap: 'wrap',
                         gap: 0.5,
-                        border: `1px solid ${categoryStyle.main}`, // Always use light mode border
+                        alignItems: 'center',
                       }}
                     >
-                      <RenderIcon 
-                        name={`${post.categoryname?.toLowerCase() || 'other'}cate`} 
-                        sx={{ 
-                          fontSize: '12px', 
-                          color: categoryStyle.text // Always use light mode text color
-                        }} 
-                      />
-                      <Typography
-                        sx={{
-                          color: categoryStyle.text, // Always use light mode text color
-                          fontSize: '11px',
-                          fontWeight: 600,
-                        }}
-                      >
-                        {categoryName}
-                      </Typography>
+                      {categories.map((cat, index) => {
+                        const catStyle = categoryStyles[index];
+                        const catName = categoryNames[index];
+                        return (
+                          <Box
+                            key={cat.code || index}
+                            sx={{
+                              backgroundColor: catStyle.background,
+                              padding: '4px 8px',
+                              borderRadius: '8px',
+                              display: 'flex',
+                              alignItems: 'center',
+                              gap: 0.5,
+                              border: `1px solid ${catStyle.main}`,
+                            }}
+                          >
+                            <RenderIcon 
+                              name={`${cat.code?.toLowerCase() || 'other'}cate`} 
+                              sx={{ 
+                                fontSize: '12px', 
+                                color: catStyle.text
+                              }} 
+                            />
+                            <Typography
+                              sx={{
+                                color: catStyle.text,
+                                fontSize: '11px',
+                                fontWeight: 600,
+                              }}
+                            >
+                              {catName}
+                            </Typography>
+                          </Box>
+                        );
+                      })}
                     </Box>
                   </Box>
                 </Box>
@@ -534,36 +604,52 @@ const Post = ({ post, viewMode = "grid" }) => {
               zIndex: 10, // Ensure badges are above image
             }}
           >
-            {/* Category Badge */}
+            {/* Category Badges - Multiple categories support */}
             <Box
               sx={{
-                backgroundColor: categoryStyle.background, // Always use light mode background
-                padding: '4px 8px',
-                borderRadius: '8px', // Match the time badge border radius
                 display: 'flex',
-                alignItems: 'center',
+                flexWrap: 'wrap',
                 gap: 0.5,
-                backdropFilter: 'blur(10px)',
-                border: `1px solid ${categoryStyle.main}`, // Always use light mode border
-                zIndex: 11, // Higher z-index for category badge
+                alignItems: 'center',
+                zIndex: 11, // Higher z-index for category badges
               }}
             >
-              <RenderIcon 
-                name={`${post?.categoryname?.toLowerCase() || 'other'}cate`} 
-                sx={{ 
-                  fontSize: { xs: '14px', sm: '12px' }, 
-                  color: categoryStyle.text // Always use light mode text color
-                }} 
-              />
-              <Typography
-                sx={{
-                  color: categoryStyle.text, // Always use light mode text color
-                  fontSize: { xs: '14px', sm: '12px' },
-                  fontWeight: 700,
-                }}
-              >
-                {categoryName}
-              </Typography>
+              {categories.map((cat, index) => {
+                const catStyle = categoryStyles[index];
+                const catName = categoryNames[index];
+                return (
+                  <Box
+                    key={cat.code || index}
+                    sx={{
+                      backgroundColor: catStyle.background,
+                      padding: '4px 8px',
+                      borderRadius: '8px',
+                      display: 'flex',
+                      alignItems: 'center',
+                      gap: 0.5,
+                      backdropFilter: 'blur(10px)',
+                      border: `1px solid ${catStyle.main}`,
+                    }}
+                  >
+                    <RenderIcon 
+                      name={`${cat.code?.toLowerCase() || 'other'}cate`} 
+                      sx={{ 
+                        fontSize: { xs: '14px', sm: '12px' }, 
+                        color: catStyle.text
+                      }} 
+                    />
+                    <Typography
+                      sx={{
+                        color: catStyle.text,
+                        fontSize: { xs: '14px', sm: '12px' },
+                        fontWeight: 700,
+                      }}
+                    >
+                      {catName}
+                    </Typography>
+                  </Box>
+                );
+              })}
             </Box>
           </Box>
 
@@ -823,3 +909,4 @@ const Post = ({ post, viewMode = "grid" }) => {
 const memoizedPost = memo(Post);
 
 export default memoizedPost;
+

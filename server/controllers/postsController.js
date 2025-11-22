@@ -23,7 +23,8 @@ const getAllPosts = async (req, res) => {
     const page = Math.max(0, parseInt(req.query.page) - 1) || 0;
     const pageSize = Math.min(Math.max(parseInt(req.query.pageSize) || 8, 1), 50); // Min 1, Max 50
     const fl = req.query.fl;
-    const categoryId = req.query.categoryId;
+    const categoryId = req.query.categoryId; // Single category (backward compatibility)
+    const categoryIds = req.query.categoryIds; // Multiple categories (comma-separated or array)
     const cityId = req.query.cityId;
     const search = req.query.search;
     
@@ -54,6 +55,7 @@ const getAllPosts = async (req, res) => {
     pageSize,
     fl,
     categoryId,
+    categoryIds,
     cityId,
     search
   });
@@ -74,20 +76,63 @@ const getAllPosts = async (req, res) => {
     match.foundLost = new mongoose.Types.ObjectId(req.query.fl);
   }
 
-  if (req.query.categoryId) {
-    match.category = new mongoose.Types.ObjectId(categoryId);
+  // Handle category filtering - support both single categoryId (backward compatibility) and multiple categoryIds
+  if (categoryIds) {
+    // Multiple categories: parse comma-separated string or array
+    let categoryIdArray = [];
+    if (typeof categoryIds === 'string') {
+      categoryIdArray = categoryIds.split(',').map(id => id.trim()).filter(id => id);
+    } else if (Array.isArray(categoryIds)) {
+      categoryIdArray = categoryIds;
+    }
+    
+    if (categoryIdArray.length > 0) {
+      // Filter posts that have ANY of the specified categories
+      match.categories = { 
+        $in: categoryIdArray.map(id => new mongoose.Types.ObjectId(id)) 
+      };
+    }
+  } else if (categoryId) {
+    // Single category (backward compatibility) - check both categories array and legacy category field
+    const categoryObjectId = new mongoose.Types.ObjectId(categoryId);
+    match.$or = [
+      { categories: categoryObjectId },
+      { category: categoryObjectId }
+    ];
+    // If there's already an $or condition from search, combine them
+    if (match.$or && search) {
+      const existingOr = match.$or;
+      match.$or = [
+        ...existingOr,
+        { exactLocation: { $regex: search, $options: 'i' } },
+        { contact: { $regex: search, $options: 'i' } },
+        { description: { $regex: search, $options: 'i' } }
+      ];
+    }
   }
 
   if (req.query.cityId && mongoose.Types.ObjectId.isValid(cityId)) {
     match.city = new mongoose.Types.ObjectId(cityId);
   }
 
+  // Handle search - combine with category $or if it exists
   if (search) {
-    match.$or = [
+    const searchConditions = [
       { exactLocation: { $regex: search, $options: 'i' } },
       { contact: { $regex: search, $options: 'i' } },
       { description: { $regex: search, $options: 'i' } }
     ];
+    
+    if (match.$or) {
+      // Combine with existing $or conditions
+      match.$and = [
+        { $or: match.$or },
+        { $or: searchConditions }
+      ];
+      delete match.$or;
+    } else {
+      match.$or = searchConditions;
+    }
   }
 
   // First, get the country ID from the country code (using cached lookup)
@@ -124,6 +169,16 @@ const getAllPosts = async (req, res) => {
     {
       $limit: pageSize,
     },
+    // Lookup categories array (new format)
+    {
+      $lookup: {
+        from: "categories",
+        localField: "categories",
+        foreignField: "_id",
+        as: "Categories",
+      },
+    },
+    // Lookup single category (legacy format for backward compatibility)
     {
       $lookup: {
         from: "categories",
@@ -199,25 +254,77 @@ const getAllPosts = async (req, res) => {
         createdAt: 1,
         updatedAt: 1,
         username: "$User.username",
+        // Categories array (new format)
+        Categories: {
+          $cond: {
+            if: { $gt: [{ $size: { $ifNull: ["$Categories", []] } }, 0] },
+            then: {
+              $map: {
+                input: "$Categories",
+                as: "cat",
+                in: {
+                  _id: "$$cat._id",
+                  code: "$$cat.code",
+                  labels: "$$cat.labels"
+                }
+              }
+            },
+            else: {
+              // Fallback to legacy category if Categories array is empty
+              $cond: {
+                if: { $ne: ["$Category", null] },
+                then: [{
+                  _id: "$Category._id",
+                  code: "$Category.code",
+                  labels: "$Category.labels"
+                }],
+                else: []
+              }
+            }
+          }
+        },
+        // Legacy single category (backward compatibility)
         categoryname: { 
           $cond: {
-            if: { $ne: ["$Category", null] },
-            then: "$Category.code",
-            else: "OTHER"
+            if: { $gt: [{ $size: { $ifNull: ["$Categories", []] } }, 0] },
+            then: { $arrayElemAt: ["$Categories.code", 0] },
+            else: {
+              $cond: {
+                if: { $ne: ["$Category", null] },
+                then: "$Category.code",
+                else: "OTHER"
+              }
+            }
           }
         },
         Category: {
           $cond: {
-            if: { $ne: ["$Category", null] },
+            if: { $gt: [{ $size: { $ifNull: ["$Categories", []] } }, 0] },
             then: {
-              _id: "$Category._id",
-              code: "$Category.code",
-              labels: "$Category.labels"
+              _id: { $arrayElemAt: ["$Categories._id", 0] },
+              code: { $arrayElemAt: ["$Categories.code", 0] },
+              labels: { $arrayElemAt: ["$Categories.labels", 0] }
             },
-            else: null
+            else: {
+              $cond: {
+                if: { $ne: ["$Category", null] },
+                then: {
+                  _id: "$Category._id",
+                  code: "$Category.code",
+                  labels: "$Category.labels"
+                },
+                else: null
+              }
+            }
           }
         },
-        categoryLabels: { $ifNull: ["$Category.labels", null] },
+        categoryLabels: { 
+          $cond: {
+            if: { $gt: [{ $size: { $ifNull: ["$Categories", []] } }, 0] },
+            then: { $arrayElemAt: ["$Categories.labels", 0] },
+            else: { $ifNull: ["$Category.labels", null] }
+          }
+        },
         countryname: "$Country.code",
         countryLabels: "$Country.names",
         contact: 1,
@@ -407,7 +514,8 @@ const getFilteredPosts = async (req, res) => {
     const pageSize = Math.min(Math.max(parseInt(req.query.pageSize) || 8, 1), 50); // Min 1, Max 50
     const fl = req.query.fl;
     const currentCountry = req.query.currentCountry;
-    const categoryId = req.query.categoryId;
+    const categoryId = req.query.categoryId; // Single category (backward compatibility)
+    const categoryIds = req.query.categoryIds; // Multiple categories (comma-separated or array)
     const cityId = req.query.cityId;
     const search = req.query.search;
     
@@ -426,20 +534,53 @@ const getFilteredPosts = async (req, res) => {
       match.foundLost = new mongoose.Types.ObjectId(fl);
     }
 
-    if (categoryId) {
-      match.category = new mongoose.Types.ObjectId(categoryId);
+    // Handle category filtering - support both single categoryId (backward compatibility) and multiple categoryIds
+    if (categoryIds) {
+      // Multiple categories: parse comma-separated string or array
+      let categoryIdArray = [];
+      if (typeof categoryIds === 'string') {
+        categoryIdArray = categoryIds.split(',').map(id => id.trim()).filter(id => id);
+      } else if (Array.isArray(categoryIds)) {
+        categoryIdArray = categoryIds;
+      }
+      
+      if (categoryIdArray.length > 0) {
+        // Filter posts that have ANY of the specified categories
+        match.categories = { 
+          $in: categoryIdArray.map(id => new mongoose.Types.ObjectId(id)) 
+        };
+      }
+    } else if (categoryId) {
+      // Single category (backward compatibility) - check both categories array and legacy category field
+      const categoryObjectId = new mongoose.Types.ObjectId(categoryId);
+      match.$or = [
+        { categories: categoryObjectId },
+        { category: categoryObjectId }
+      ];
     }
 
     if (cityId && mongoose.Types.ObjectId.isValid(cityId)) {
       match.city = new mongoose.Types.ObjectId(cityId);
     }
 
+    // Handle search - combine with category $or if it exists
     if (search) {
-      match.$or = [
+      const searchConditions = [
         { exactLocation: { $regex: search, $options: 'i' } },
         { contact: { $regex: search, $options: 'i' } },
         { description: { $regex: search, $options: 'i' } }
       ];
+      
+      if (match.$or) {
+        // Combine with existing $or conditions
+        match.$and = [
+          { $or: match.$or },
+          { $or: searchConditions }
+        ];
+        delete match.$or;
+      } else {
+        match.$or = searchConditions;
+      }
     }
 
     // Handle country filtering (using cached lookup)
@@ -466,6 +607,16 @@ const getFilteredPosts = async (req, res) => {
     // Build aggregation pipeline for filtered posts
     const pipeline = [
       { $match: match },
+      // Lookup categories array (new format)
+      {
+        $lookup: {
+          from: "categories",
+          localField: "categories",
+          foreignField: "_id",
+          as: "Categories",
+        },
+      },
+      // Lookup single category (legacy format for backward compatibility)
       {
         $lookup: {
           from: "categories",
@@ -542,11 +693,68 @@ const getFilteredPosts = async (req, res) => {
           createdAt: 1,
           updatedAt: 1,
           username: "$User.username",
+          // Categories array (new format)
+          Categories: {
+            $cond: {
+              if: { $gt: [{ $size: { $ifNull: ["$Categories", []] } }, 0] },
+              then: {
+                $map: {
+                  input: "$Categories",
+                  as: "cat",
+                  in: {
+                    _id: "$$cat._id",
+                    code: "$$cat.code",
+                    labels: "$$cat.labels"
+                  }
+                }
+              },
+              else: {
+                // Fallback to legacy category if Categories array is empty
+                $cond: {
+                  if: { $ne: ["$Category", null] },
+                  then: [{
+                    _id: "$Category._id",
+                    code: "$Category.code",
+                    labels: "$Category.labels"
+                  }],
+                  else: []
+                }
+              }
+            }
+          },
+          // Legacy single category (backward compatibility)
           categoryname: { 
             $cond: {
-              if: { $ne: ["$Category", null] },
-              then: "$Category.code",
-              else: "OTHER"
+              if: { $gt: [{ $size: { $ifNull: ["$Categories", []] } }, 0] },
+              then: { $arrayElemAt: ["$Categories.code", 0] },
+              else: {
+                $cond: {
+                  if: { $ne: ["$Category", null] },
+                  then: "$Category.code",
+                  else: "OTHER"
+                }
+              }
+            }
+          },
+          Category: {
+            $cond: {
+              if: { $gt: [{ $size: { $ifNull: ["$Categories", []] } }, 0] },
+              then: {
+                _id: { $arrayElemAt: ["$Categories._id", 0] },
+                code: { $arrayElemAt: ["$Categories.code", 0] },
+                labels: { $arrayElemAt: ["$Categories.labels", 0] }
+              },
+              else: {
+                $cond: {
+                  if: { $ne: ["$Category", null] },
+                  then: {
+                    _id: "$Category._id",
+                    code: "$Category.code",
+                    labels: "$Category.labels"
+                  },
+                  else: null
+                }
+              }
             }
           },
           countryname: "$Country.code",
@@ -837,14 +1045,15 @@ const createNewPost = async (req, res) => {
   
   try {
     // Use parsed data from validation middleware if available, otherwise parse from req.body
-    let postData, user, country, category, contact, foundLost, city, cityData, exactLocation, exactDate, description, contactPreferences;
+    let postData, user, country, category, categories, contact, foundLost, city, cityData, exactLocation, exactDate, description, contactPreferences;
     
     if (req.parsedPostData) {
       // Use data parsed by validation middleware
       postData = req.parsedPostData;
       user = postData.user;
       country = postData.country;
-      category = postData.category;
+      categories = postData.categories || (postData.category ? [postData.category] : []);
+      category = postData.category || (categories && categories.length > 0 ? categories[0] : null); // Legacy support
       contact = postData.contact;
       foundLost = postData.foundLost;
       city = postData.city;
@@ -858,7 +1067,8 @@ const createNewPost = async (req, res) => {
       postData = JSON.parse(req.body.postData);
       user = postData.user;
       country = postData.country;
-      category = postData.category;
+      categories = postData.categories || (postData.category ? [postData.category] : []);
+      category = postData.category || (categories && categories.length > 0 ? categories[0] : null); // Legacy support
       contact = postData.contact;
       foundLost = postData.foundLost;
       city = postData.city;
@@ -871,7 +1081,8 @@ const createNewPost = async (req, res) => {
       // Legacy format: individual fields
       user = req.body.user;
       country = req.body.country;
-      category = req.body.category;
+      categories = req.body.categories || (req.body.category ? [req.body.category] : []);
+      category = req.body.category || (categories && categories.length > 0 ? categories[0] : null); // Legacy support
       contact = req.body.contact;
       foundLost = req.body.foundLost;
       city = req.body.city;
@@ -887,7 +1098,7 @@ const createNewPost = async (req, res) => {
          // Confirm required data
      const requiredFields = {
        user: !!user,
-       category: !!category,
+       categories: !!(categories && categories.length > 0),
        contact: !!contact,
        country: !!country,
        foundLost: !!foundLost,
@@ -911,14 +1122,26 @@ const createNewPost = async (req, res) => {
      try {
      const userExists = await User.findById(user).select('_id').lean();
      const countryExists = await Country.findById(country).select('_id').lean();
-     const categoryExists = await Category.findById(category).select('_id').lean();
+     
+     // Validate all categories in the array
+     const categoryValidationPromises = categories.map(catId => 
+       Category.findById(catId).select('_id').lean()
+     );
+     const categoryExistsResults = await Promise.all(categoryValidationPromises);
+     const allCategoriesExist = categoryExistsResults.every(cat => cat !== null);
+     const invalidCategoryIndices = categoryExistsResults
+       .map((cat, index) => cat === null ? index : -1)
+       .filter(index => index !== -1);
+     
      const foundLostExists = await FoundLost.findById(foundLost).select('_id').lean();
     
     // Check which references are missing and provide specific error messages
     const missingReferences = [];
     if (!userExists) missingReferences.push('user');
     if (!countryExists) missingReferences.push('country');
-    if (!categoryExists) missingReferences.push('category');
+    if (!allCategoriesExist) {
+      missingReferences.push(`categories at indices: ${invalidCategoryIndices.join(', ')}`);
+    }
     if (!foundLostExists) missingReferences.push('foundLost');
     
          if (missingReferences.length > 0) {
@@ -930,11 +1153,13 @@ const createNewPost = async (req, res) => {
       
              // Check if the IDs exist in the available options (database connection issue workaround)
        const countryExistsInOptions = availableCountries.find(c => c._id.toString() === country);
-       const categoryExistsInOptions = availableCategories.find(c => c._id.toString() === category);
+       const categoriesExistInOptions = categories.every(catId => 
+         availableCategories.find(c => c._id.toString() === catId)
+       );
        const foundLostExistsInOptions = availableFoundLost.find(f => f._id.toString() === foundLost);
        
        // If IDs exist in available options but not in findById, this is a database connection issue
-       if (countryExistsInOptions && categoryExistsInOptions && foundLostExistsInOptions) {
+       if (countryExistsInOptions && categoriesExistInOptions && foundLostExistsInOptions) {
          // Continue with post creation since the data exists
        } else {
         return res.status(400).json({ 
@@ -943,7 +1168,7 @@ const createNewPost = async (req, res) => {
             missingReferences,
             userExists: !!userExists,
             countryExists: !!countryExists,
-            categoryExists: !!categoryExists,
+            categoriesExist: allCategoriesExist,
             foundLostExists: !!foundLostExists,
             availableOptions: {
               countries: availableCountries.map(c => ({ id: c._id, code: c.code, name: c.names?.en || c.code })),
@@ -1063,7 +1288,8 @@ const createNewPost = async (req, res) => {
      // Prepare post data
   const newPostData = {
     user,
-    category,
+    categories: categories, // New: array of categories
+    category: categories && categories.length > 0 ? categories[0] : null, // Legacy: first category for backward compatibility
     country,
     contact,
     foundLost,

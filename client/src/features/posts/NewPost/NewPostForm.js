@@ -32,7 +32,8 @@ import {
   Card,
   CardMedia,
   CardActions,
-  Chip
+  Chip,
+  Autocomplete
 } from "@mui/material";
 import { 
   PhotoCamera, 
@@ -311,7 +312,8 @@ const NewPostForm = ({ user, countries, categories, flOptions }) => {
   const initialFormState = {
     country: user.country,
     contact: "",
-    category: categories[0]?.id || "",
+    categories: [], // Changed to array for multiple categories
+    category: categories[0]?.id || "", // Keep for backward compatibility during transition
     foundLost: getDefaultFoundLost(),
     city: "",
     exactLocation: "",
@@ -447,7 +449,11 @@ const NewPostForm = ({ user, countries, categories, flOptions }) => {
         missingFields.push(t('foundOrLost'));
         newFieldErrors.foundLost = t('required');
       }
-      if (!values.category) {
+      // Validate categories - support both new array format and legacy single category
+      const selectedCategories = values.categories && Array.isArray(values.categories) && values.categories.length > 0
+        ? values.categories
+        : (values.category ? [values.category] : []);
+      if (selectedCategories.length === 0) {
         missingFields.push(t('category'));
         newFieldErrors.category = t('required');
       }
@@ -521,10 +527,16 @@ const NewPostForm = ({ user, countries, categories, flOptions }) => {
       const formData = new FormData();
       
       // Combine basic fields into a single JSON object to reduce field count
+      // Support both new categories array and legacy category field
+      const selectedCategories = values.categories && Array.isArray(values.categories) && values.categories.length > 0
+        ? values.categories
+        : (values.category ? [values.category] : []);
+      
       const postData = {
         user: user._id,
         country: selectedCountry?._id || values.country,
-        category: values.category,
+        categories: selectedCategories, // New: array of category IDs
+        category: selectedCategories.length > 0 ? selectedCategories[0] : null, // Legacy: first category for backward compatibility
         foundLost: values.foundLost,
         exactLocation: values.exactLocation,
         exactDate: values.exactDate, // This gets stored as mainDate in the server
@@ -1007,7 +1019,7 @@ const NewPostForm = ({ user, countries, categories, flOptions }) => {
 
                 <Box>
                   <FormLabel 
-                    htmlFor="category" 
+                    htmlFor="categories" 
                     sx={{ 
                       mb: 1, 
                       display: "block", 
@@ -1021,13 +1033,120 @@ const NewPostForm = ({ user, countries, categories, flOptions }) => {
                       : t('specifyItemTypeFound')
                     } *
                   </FormLabel>
-                  <SelectOption 
-                    name="category" 
-                    options={categories} 
-                    data-testid="category"
-                    error={!!fieldErrors.category}
-                    helperText={fieldErrors.category}
-                    onErrorClear={clearFieldError}
+                  <Typography 
+                    variant="caption" 
+                    sx={{ 
+                      mb: 1, 
+                      display: "block", 
+                      fontSize: '1rem',
+                      color: theme.palette.mode === 'dark' ? 'rgba(255,255,255,0.7)' : 'rgba(0,0,0,0.6)',
+                      fontWeight: 500
+                    }}
+                  >
+                    {currentLanguage === 'ar' 
+                      ? 'يمكنك اختيار عدة فئات (مثال: محفظة، أوراق، بطاقة هوية)'
+                      : currentLanguage === 'fr'
+                        ? 'Vous pouvez sélectionner plusieurs catégories (ex: portefeuille, papiers, carte d\'identité)'
+                        : 'You can select multiple categories (e.g., wallet, papers, ID card)'
+                    }
+                  </Typography>
+                  <Autocomplete
+                    multiple
+                    options={categories || []}
+                    getOptionLabel={(option) => {
+                      if (typeof option === 'string') {
+                        // If option is just an ID string, find the category object
+                        const cat = categories.find(c => c.id === option || c._id === option);
+                        if (cat) {
+                          return cat.labels?.[currentLanguage] || cat.label || cat.code || option;
+                        }
+                        return option;
+                      }
+                      return option.labels?.[currentLanguage] || option.label || option.code || '';
+                    }}
+                    value={values.categories && Array.isArray(values.categories) && values.categories.length > 0
+                      ? categories.filter(cat => values.categories.includes(cat.id || cat._id))
+                      : (values.category ? categories.filter(cat => (cat.id || cat._id) === values.category) : [])
+                    }
+                    onChange={(event, newValue) => {
+                      const categoryIds = newValue.map(cat => cat.id || cat._id);
+                      setFieldValue('categories', categoryIds);
+                      // Also set legacy category field for backward compatibility
+                      if (categoryIds.length > 0) {
+                        setFieldValue('category', categoryIds[0]);
+                      } else {
+                        setFieldValue('category', '');
+                      }
+                      clearFieldError('category');
+                    }}
+                    isOptionEqualToValue={(option, value) => {
+                      const optionId = option.id || option._id;
+                      const valueId = value.id || value._id;
+                      return optionId === valueId;
+                    }}
+                    renderInput={(params) => (
+                      <TextField
+                        {...params}
+                        variant="outlined"
+                        placeholder={currentLanguage === 'ar' 
+                          ? 'اختر الفئات...'
+                          : currentLanguage === 'fr'
+                            ? 'Sélectionner les catégories...'
+                            : 'Select categories...'
+                        }
+                        data-testid="category"
+                        error={!!fieldErrors.category}
+                        helperText={fieldErrors.category || (currentLanguage === 'ar' 
+                          ? 'يمكنك اختيار أكثر من فئة واحدة'
+                          : currentLanguage === 'fr'
+                            ? 'Vous pouvez sélectionner plusieurs catégories'
+                            : 'You can select multiple categories'
+                        )}
+                        sx={{
+                          borderRadius: 2,
+                          '& .MuiOutlinedInput-root': {
+                            '&:hover fieldset': {
+                              borderColor: theme.palette.mode === 'dark' ? 'rgba(255,255,255,0.5)' : 'rgba(0,0,0,0.4)',
+                            },
+                            '&.Mui-focused fieldset': {
+                              borderColor: theme.palette.mode === 'dark' ? '#4CAF50' : '#2E7D32',
+                            },
+                            '& fieldset': {
+                              borderColor: theme.palette.mode === 'dark' ? 'rgba(255,255,255,0.3)' : 'rgba(0,0,0,0.2)',
+                            },
+                          },
+                        }}
+                      />
+                    )}
+                    renderTags={(value, getTagProps) =>
+                      value.map((option, index) => {
+                        const { key, ...tagProps } = getTagProps({ index });
+                        const categoryName = option.labels?.[currentLanguage] || option.label || option.code || '';
+                        return (
+                          <Chip
+                            key={key}
+                            label={categoryName}
+                            {...tagProps}
+                            sx={{
+                              borderRadius: 2,
+                              backgroundColor: theme.palette.mode === 'dark' 
+                                ? 'rgba(76, 175, 80, 0.2)' 
+                                : 'rgba(76, 175, 80, 0.1)',
+                              color: theme.palette.mode === 'dark' ? '#4CAF50' : '#2E7D32',
+                              border: `1px solid ${theme.palette.mode === 'dark' ? '#4CAF50' : '#2E7D32'}`,
+                              '& .MuiChip-deleteIcon': {
+                                color: theme.palette.mode === 'dark' ? '#4CAF50' : '#2E7D32',
+                              },
+                            }}
+                          />
+                        );
+                      })
+                    }
+                    sx={{
+                      '& .MuiOutlinedInput-root': {
+                        borderRadius: 2,
+                      },
+                    }}
                   />
                 </Box>
 

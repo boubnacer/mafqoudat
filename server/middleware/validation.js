@@ -206,7 +206,8 @@ const validationSets = {
       console.log('🔍 Validating required fields...');
       console.log('👤 User:', postData.user);
       console.log('🌍 Country:', postData.country);
-      console.log('📂 Category:', postData.category);
+      console.log('📂 Categories:', postData.categories);
+      console.log('📂 Category (legacy):', postData.category);
       console.log('🔍 Found/Lost:', postData.foundLost);
       console.log('📞 Contact:', postData.contact);
       console.log('📍 Exact Location:', postData.exactLocation);
@@ -220,10 +221,32 @@ const validationSets = {
         console.log('❌ Validation failed: Country ID is required');
         throw new Error('Country ID is required');
       }
-      if (!postData.category) {
-        console.log('❌ Validation failed: Category ID is required');
-        throw new Error('Category ID is required');
+      
+      // Validate categories - support both new array format and legacy single category
+      let categories = postData.categories;
+      if (!categories || !Array.isArray(categories) || categories.length === 0) {
+        // Fallback to legacy category field for backward compatibility
+        if (postData.category) {
+          categories = [postData.category];
+          postData.categories = categories; // Normalize to array format
+        } else {
+          console.log('❌ Validation failed: At least one category is required');
+          throw new Error('At least one category is required');
+        }
       }
+      
+      // Ensure categories is an array with at least one item
+      if (!Array.isArray(categories) || categories.length === 0) {
+        console.log('❌ Validation failed: At least one category is required');
+        throw new Error('At least one category is required');
+      }
+      
+      // Validate maximum categories (reasonable limit)
+      if (categories.length > 10) {
+        console.log('❌ Validation failed: Maximum 10 categories allowed');
+        throw new Error('Maximum 10 categories allowed');
+      }
+      
       if (!postData.foundLost) {
         console.log('❌ Validation failed: Found/Lost ID is required');
         throw new Error('Found/Lost ID is required');
@@ -245,9 +268,18 @@ const validationSets = {
       if (!postData.country.match(/^[0-9a-fA-F]{24}$/)) {
         throw new Error('Invalid country ID format');
       }
-      if (!postData.category.match(/^[0-9a-fA-F]{24}$/)) {
-        throw new Error('Invalid category ID format');
+      
+      // Validate all category IDs in the array
+      for (let i = 0; i < categories.length; i++) {
+        const categoryId = categories[i];
+        if (!categoryId || typeof categoryId !== 'string' || !categoryId.match(/^[0-9a-fA-F]{24}$/)) {
+          throw new Error(`Invalid category ID format at index ${i}`);
+        }
       }
+      
+      // Remove duplicates from categories array
+      postData.categories = [...new Set(categories)];
+      
       if (!postData.foundLost.match(/^[0-9a-fA-F]{24}$/)) {
         throw new Error('Invalid found/lost ID format');
       }

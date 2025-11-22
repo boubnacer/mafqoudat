@@ -87,6 +87,7 @@ const PostsList = () => {
   const [sortBy, setSortBy] = useState("newest");
   const [viewMode, setViewMode] = useState("grid");
   const [localCategoryFilter, setLocalCategoryFilter] = useState("all");
+  const [selectedCategories, setSelectedCategories] = useState([]); // Multiple categories filter
   const [loadingTimeout, setLoadingTimeout] = useState(false);
   const [citySearchTerm, setCitySearchTerm] = useState("");
   const [selectedCity, setSelectedCity] = useState(null);
@@ -377,7 +378,8 @@ const PostsList = () => {
     fl: effectiveFl || '', // Always send fl parameter - empty string for "All", ID for "Found"/"Lost"
     currentCountry,
     search: debouncedSearchTerm || undefined,
-    categoryId: localCategoryFilter !== "all" ? localCategoryFilter : undefined,
+    categoryId: localCategoryFilter !== "all" && selectedCategories.length === 0 ? localCategoryFilter : undefined, // Legacy single category (backward compatibility)
+    categoryIds: selectedCategories.length > 0 ? selectedCategories : undefined, // Multiple categories (new format)
     cityId: cityId,
     language: currentLanguage,
   }, {
@@ -512,6 +514,20 @@ const PostsList = () => {
 
   const handleCategoryFilter = useCallback((e) => {
     setLocalCategoryFilter(e.target.value);
+    // Clear multiple categories when using single category filter
+    if (e.target.value !== "all") {
+      setSelectedCategories([]);
+    }
+    setPage(1);
+  }, []);
+
+  const handleCategoriesFilter = useCallback((event, newValue) => {
+    const categoryIds = newValue.map(cat => cat.id || cat._id || cat);
+    setSelectedCategories(categoryIds);
+    // Clear single category filter when using multiple categories
+    if (categoryIds.length > 0) {
+      setLocalCategoryFilter("all");
+    }
     setPage(1);
   }, []);
 
@@ -614,6 +630,7 @@ const PostsList = () => {
 
   const handleClearCategoryFilter = useCallback(() => {
     setLocalCategoryFilter("all");
+    setSelectedCategories([]);
   }, []);
 
   const handleClearSort = useCallback(() => {
@@ -638,8 +655,8 @@ const PostsList = () => {
 
   // Check if we have active filters
   const hasActiveFilters = useMemo(() => {
-    return searchTerm || localCategoryFilter !== "all" || selectedCity || sortBy !== "newest";
-  }, [searchTerm, localCategoryFilter, selectedCity, sortBy]);
+    return searchTerm || localCategoryFilter !== "all" || selectedCategories.length > 0 || selectedCity || sortBy !== "newest";
+  }, [searchTerm, localCategoryFilter, selectedCategories, selectedCity, sortBy]);
 
   // Get posts from API response (already filtered by country and found/lost)
   const filteredPosts = useMemo(() => {
@@ -678,7 +695,20 @@ const PostsList = () => {
       });
     }
     
-    if (localCategoryFilter !== "all") {
+    if (selectedCategories.length > 0) {
+      selectedCategories.forEach(categoryId => {
+        const category = categoriesData?.find(cat => cat._id === categoryId);
+        chips.push({
+          label: `${t('category')}: ${category?.labels?.[currentLanguage] || category?.code || categoryId}`,
+          onDelete: () => {
+            setSelectedCategories(prev => prev.filter(id => id !== categoryId));
+            setPage(1);
+          },
+          color: "secondary",
+          variant: "outlined"
+        });
+      });
+    } else if (localCategoryFilter !== "all") {
       const category = categoriesData?.find(cat => cat._id === localCategoryFilter);
       chips.push({
         label: `${t('category')}: ${category?.labels?.[currentLanguage] || category?.code || localCategoryFilter}`,
@@ -870,24 +900,60 @@ const PostsList = () => {
                 </FormControl>
               </Grid> */}
 
-              {/* Category Filter */}
+              {/* Category Filter - Multiple categories support */}
               <Grid item xs={12} sm={6} md={3}>
-                <FormControl fullWidth>
-                  <InputLabel>{t('category')}</InputLabel>
-                  <Select
-                    value={localCategoryFilter}
-                    label={t('category')}
-                    onChange={handleCategoryFilter}
-                    sx={{ borderRadius: 2 }}
-                  >
-                    <MenuItem value="all">{t('allCategories')}</MenuItem>
-                    {categoryOptions.map((category) => (
-                      <MenuItem key={category.id} value={category.value}>
-                        {category.label}
-                      </MenuItem>
-                    ))}
-                  </Select>
-                </FormControl>
+                <Autocomplete
+                  multiple
+                  options={categoryOptions || []}
+                  getOptionLabel={(option) => {
+                    if (typeof option === 'string') {
+                      const cat = categoryOptions.find(c => c.id === option || c.value === option);
+                      return cat?.label || option;
+                    }
+                    return option.label || option.id || '';
+                  }}
+                  value={selectedCategories.length > 0
+                    ? categoryOptions.filter(cat => selectedCategories.includes(cat.id || cat.value))
+                    : (localCategoryFilter !== "all" 
+                        ? categoryOptions.filter(cat => (cat.id || cat.value) === localCategoryFilter)
+                        : [])
+                  }
+                  onChange={handleCategoriesFilter}
+                  isOptionEqualToValue={(option, value) => {
+                    const optionId = option.id || option.value;
+                    const valueId = value.id || value.value;
+                    return optionId === valueId;
+                  }}
+                  renderInput={(params) => (
+                    <TextField
+                      {...params}
+                      label={t('category')}
+                      placeholder={selectedCategories.length === 0 
+                        ? (currentLanguage === 'ar' ? 'اختر الفئات...' : currentLanguage === 'fr' ? 'Sélectionner les catégories...' : 'Select categories...')
+                        : ''
+                      }
+                      sx={{ borderRadius: 2 }}
+                    />
+                  )}
+                  renderTags={(value, getTagProps) =>
+                    value.map((option, index) => {
+                      const { key, ...tagProps } = getTagProps({ index });
+                      return (
+                        <Chip
+                          key={key}
+                          label={option.label || option.id}
+                          {...tagProps}
+                          size="small"
+                        />
+                      );
+                    })
+                  }
+                  sx={{ 
+                    '& .MuiOutlinedInput-root': { 
+                      borderRadius: 2 
+                    } 
+                  }}
+                />
               </Grid>
 
               {/* City Filter */}

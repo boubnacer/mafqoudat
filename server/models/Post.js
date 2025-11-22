@@ -14,9 +14,16 @@ const postSchema = new mongoose.Schema(
       required: true,
       ref: "Country",
     },
-    category: {
+    // Multiple categories support - array of category IDs
+    categories: [{
       type: mongoose.Schema.Types.ObjectId,
       required: true,
+      ref: "Category",
+    }],
+    // Legacy single category field - kept for backward compatibility during migration
+    category: {
+      type: mongoose.Schema.Types.ObjectId,
+      required: false, // Made optional to support migration
       ref: "Category",
     },
     foundLost: {
@@ -138,7 +145,9 @@ postSchema.index({
 // 1. Primary query pattern: Country + FoundLost + Status + CreatedAt (most common)
 postSchema.index({ country: 1, foundLost: 1, status: 1, createdAt: -1 });
 
-// 2. Category filtering: Country + Category + Status + CreatedAt
+// 2. Category filtering: Country + Categories + Status + CreatedAt (for array queries)
+postSchema.index({ country: 1, categories: 1, status: 1, createdAt: -1 });
+// Legacy category index (kept for backward compatibility)
 postSchema.index({ country: 1, category: 1, status: 1, createdAt: -1 });
 
 // 3. User posts: User + Status + CreatedAt
@@ -170,6 +179,14 @@ postSchema.index(
   { country: 1, status: 1, exactLocation: "text", description: "text" },
   { name: "country_status_text_search_optimized" }
 );
+
+// Virtual for backward compatibility - get first category from categories array
+postSchema.virtual('firstCategory').get(function() {
+  if (this.categories && this.categories.length > 0) {
+    return this.categories[0];
+  }
+  return this.category; // Return stored category if categories array is empty
+});
 
 // Virtual for backward compatibility
 postSchema.virtual('descriptionText').get(function() {
@@ -207,10 +224,22 @@ postSchema.methods.markAsResolved = function() {
 };
 
 // Pre-save middleware to set expiration date (30 days from creation)
+// Also handle backward compatibility: if category is set but categories is not, populate categories
 postSchema.pre('save', function(next) {
   if (this.isNew && !this.expiresAt) {
     this.expiresAt = new Date(Date.now() + 30 * 24 * 60 * 60 * 1000); // 30 days
   }
+  
+  // Backward compatibility: if categories array is empty but category field exists, populate categories
+  if ((!this.categories || this.categories.length === 0) && this.category) {
+    this.categories = [this.category];
+  }
+  
+  // Ensure at least one category exists
+  if (!this.categories || this.categories.length === 0) {
+    return next(new Error('At least one category is required'));
+  }
+  
   next();
 });
 
