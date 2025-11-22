@@ -23,7 +23,8 @@ const fileFilter = (req, file, cb) => {
     'image/jpeg',
     'image/jpg', 
     'image/png',
-    'image/gif'
+    'image/gif',
+    'image/webp'
   ];
   
   if (!allowedMimeTypes.includes(file.mimetype)) {
@@ -35,7 +36,7 @@ const fileFilter = (req, file, cb) => {
   
   // If filename has an extension, validate it
   if (fileExtension && fileExtension !== '') {
-    const allowedExtensions = ['.jpg', '.jpeg', '.png', '.gif'];
+    const allowedExtensions = ['.jpg', '.jpeg', '.png', '.gif', '.webp'];
     if (!allowedExtensions.includes(fileExtension)) {
       return cb(new Error(`Invalid file extension! Allowed: ${allowedExtensions.join(', ')}`), false);
     }
