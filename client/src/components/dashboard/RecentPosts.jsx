@@ -439,10 +439,10 @@ const RecentPosts = ({ _id, categoryname, exactLocation, image, createdAt, count
               bottom: 12,
               left: 12,
               right: 12,
-              display: 'flex',
-              flexDirection: { xs: 'column', sm: 'row' },
-              gap: { xs: 0.5, sm: 1 },
-              alignItems: { xs: 'flex-start', sm: 'center' },
+              display: 'grid',
+              gridTemplateColumns: '1fr',
+              gap: 0.5,
+              alignItems: 'stretch',
             }}
           >
             {/* No Image Indicator */}
