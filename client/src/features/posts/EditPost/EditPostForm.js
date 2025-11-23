@@ -394,9 +394,13 @@ if (typeof document !== 'undefined') {
       let categoryIds = [];
       
       // Support both new categories array and legacy single category
-      if (post.categories && Array.isArray(post.categories) && post.categories.length > 0) {
-        // New format: categories array
-        categoryIds = post.categories;
+      // Handle Categories (capital C) - array of category objects from API
+      if (post.Categories && Array.isArray(post.Categories) && post.Categories.length > 0) {
+        // Extract IDs from category objects
+        categoryIds = post.Categories.map(cat => String(cat._id || cat.id)).filter(Boolean);
+      } else if (post.categories && Array.isArray(post.categories) && post.categories.length > 0) {
+        // New format: categories array - convert to strings for consistency
+        categoryIds = post.categories.map(id => String(id));
       } else if (post.categoryname && categories.length > 0) {
         // Legacy format: find category by categoryname
         const matchingCategory = categories.find(cat => 
@@ -406,17 +410,19 @@ if (typeof document !== 'undefined') {
           cat.labels?.ar === post.categoryname
         );
         if (matchingCategory) {
-          categoryIds = [matchingCategory._id || matchingCategory.id];
+          categoryIds = [String(matchingCategory._id || matchingCategory.id)];
         }
       } else if (post.category) {
-        // Fallback to direct category field
-        categoryIds = [post.category];
+        // Fallback to direct category field - convert to string
+        categoryIds = [String(post.category)];
       }
       
       // Verify that the category IDs exist in the categories array and update form
       if (categoryIds.length > 0) {
-        const validCategoryIds = categoryIds.filter(catId => 
-          categories.some(cat => (cat.id || cat._id) === catId)
+        // Convert all category IDs to strings for comparison
+        const categoryIdsStr = categoryIds.map(id => String(id));
+        const validCategoryIds = categoryIdsStr.filter(catId => 
+          categories.some(cat => String(cat.id || cat._id) === catId)
         );
         if (validCategoryIds.length > 0) {
           setFieldValueCallback('categories', validCategoryIds);
@@ -918,9 +924,15 @@ if (typeof document !== 'undefined') {
     // Helper function to get category IDs from post
     const getCategoryIds = () => {
       // Support both new categories array and legacy single category
+      // Handle Categories (capital C) - array of category objects from API
+      if (post?.Categories && Array.isArray(post.Categories) && post.Categories.length > 0) {
+        // Extract IDs from category objects
+        return post.Categories.map(cat => cat._id || cat.id).filter(Boolean);
+      }
+      // Handle categories (lowercase c) - array of category IDs
       if (post?.categories && Array.isArray(post.categories) && post.categories.length > 0) {
-        // New format: categories array - return IDs directly
-        return post.categories;
+        // New format: categories array - return IDs directly (convert to strings for consistency)
+        return post.categories.map(id => String(id));
       } else {
         // Legacy format: single category - convert to array
         let categoryValue = "";
@@ -954,10 +966,16 @@ if (typeof document !== 'undefined') {
     categories: getCategoryIds(),
     category: (() => {
       // Keep for backward compatibility during transition
-      // Try to find the category by matching the categoryname with the categories array
+      // Get first category from Categories array, categories array, or legacy category field
+      const categoryIds = getCategoryIds();
+      if (categoryIds.length > 0) {
+        return categoryIds[0];
+      }
+      
+      // Fallback: Try to find the category by matching the categoryname with the categories array
       let categoryValue = "";
       
-      if (post?.categoryname && categories) {
+      if (post?.categoryname && categories && categories.length > 0) {
         // Find category by matching the categoryname (code) with the categories array
         const matchingCategory = categories.find(cat => 
           cat.code === post.categoryname || 
@@ -966,13 +984,13 @@ if (typeof document !== 'undefined') {
           cat.labels?.ar === post.categoryname
         );
         if (matchingCategory) {
-          categoryValue = matchingCategory._id || matchingCategory.id;
+          categoryValue = String(matchingCategory._id || matchingCategory.id);
         }
       }
       
       // Fallback to direct category field
       if (!categoryValue) {
-        categoryValue = post?.category || "";
+        categoryValue = post?.category ? String(post.category) : "";
       }
       
       return categoryValue;
@@ -1655,10 +1673,25 @@ if (typeof document !== 'undefined') {
                       }
                       return option.labels?.[currentLanguage] || option.label || option.code || '';
                     }}
-                    value={values.categories && Array.isArray(values.categories) && values.categories.length > 0
-                      ? categories.filter(cat => values.categories.includes(cat.id || cat._id))
-                      : (values.category ? categories.filter(cat => (cat.id || cat._id) === values.category) : [])
-                    }
+                    value={(() => {
+                      // Get category IDs from form values
+                      const categoryIds = values.categories && Array.isArray(values.categories) && values.categories.length > 0
+                        ? values.categories
+                        : (values.category ? [values.category] : []);
+                      
+                      if (categoryIds.length === 0 || !categories || categories.length === 0) {
+                        return [];
+                      }
+                      
+                      // Convert all IDs to strings for comparison
+                      const categoryIdsStr = categoryIds.map(id => String(id));
+                      
+                      // Filter categories that match any of the category IDs
+                      return categories.filter(cat => {
+                        const catId = String(cat.id || cat._id);
+                        return categoryIdsStr.includes(catId);
+                      });
+                    })()}
                     onChange={(event, newValue) => {
                       const categoryIds = newValue.map(cat => cat.id || cat._id);
                       setFieldValue('categories', categoryIds);
