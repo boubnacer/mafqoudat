@@ -391,92 +391,16 @@ const Post = ({ post, viewMode = "grid" }) => {
                       }}
                     />
                   );
-                })() : categoryIconsData.length === 2 ? (
-                  // Two icons - side by side with elegant spacing
+                })() : (
+                  // Multiple icons - simple flex layout
                   <Box
                     sx={{
                       display: 'flex',
                       alignItems: 'center',
                       justifyContent: 'center',
-                      gap: { xs: 3, sm: 4 },
-                    }}
-                  >
-                    {categoryIconsData.map((iconData, idx) => {
-                      const IconComponent = iconData.IconComponent;
-                      return (
-                        <IconComponent
-                          key={iconData.code || idx}
-                          sx={{
-                            fontSize: { xs: '48px', sm: '56px' },
-                            color: iconData.style?.main || theme.palette.text.secondary,
-                            opacity: 0.85,
-                            filter: 'drop-shadow(0 2px 4px rgba(0,0,0,0.1))',
-                            transition: 'transform 0.2s ease',
-                            '&:hover': {
-                              transform: 'scale(1.1)',
-                            },
-                          }}
-                        />
-                      );
-                    })}
-                  </Box>
-                ) : categoryIconsData.length === 3 ? (() => {
-                  const TopIconComponent = categoryIconsData[0].IconComponent;
-                  return (
-                    // Three icons - triangular arrangement
-                    <Box
-                      sx={{
-                        display: 'flex',
-                        flexDirection: 'column',
-                        alignItems: 'center',
-                        justifyContent: 'center',
-                        gap: { xs: 2, sm: 2.5 },
-                      }}
-                    >
-                      {/* Top icon */}
-                      <TopIconComponent
-                        sx={{
-                          fontSize: { xs: '40px', sm: '48px' },
-                          color: categoryIconsData[0].style?.main || theme.palette.text.secondary,
-                          opacity: 0.85,
-                          filter: 'drop-shadow(0 2px 4px rgba(0,0,0,0.1))',
-                        }}
-                      />
-                    {/* Bottom two icons */}
-                    <Box
-                      sx={{
-                        display: 'flex',
-                        alignItems: 'center',
-                        justifyContent: 'center',
-                        gap: { xs: 3, sm: 4 },
-                      }}
-                    >
-                      {categoryIconsData.slice(1, 3).map((iconData, idx) => {
-                        const IconComponent = iconData.IconComponent;
-                        return (
-                          <IconComponent
-                            key={iconData.code || idx + 1}
-                            sx={{
-                              fontSize: { xs: '40px', sm: '48px' },
-                              color: iconData.style?.main || theme.palette.text.secondary,
-                              opacity: 0.85,
-                              filter: 'drop-shadow(0 2px 4px rgba(0,0,0,0.1))',
-                            }}
-                          />
-                        );
-                      })}
-                    </Box>
-                  </Box>
-                  );
-                })() : (
-                  // Four or more icons - 2x2 grid
-                  <Box
-                    sx={{
-                      display: 'grid',
-                      gridTemplateColumns: 'repeat(2, 1fr)',
-                      gap: { xs: 2.5, sm: 3 },
-                      alignItems: 'center',
-                      justifyContent: 'center',
+                      gap: { xs: 2, sm: 2.5 },
+                      flexWrap: 'wrap',
+                      paddingTop: { xs: 1, sm: 1.5 },
                     }}
                   >
                     {categoryIconsData.slice(0, 4).map((iconData, idx) => {
@@ -485,11 +409,10 @@ const Post = ({ post, viewMode = "grid" }) => {
                         <IconComponent
                           key={iconData.code || idx}
                           sx={{
-                            fontSize: { xs: '36px', sm: '44px' },
+                            fontSize: { xs: '40px', sm: '48px' },
                             color: iconData.style?.main || theme.palette.text.secondary,
                             opacity: 0.85,
                             filter: 'drop-shadow(0 2px 4px rgba(0,0,0,0.1))',
-                            justifySelf: 'center',
                           }}
                         />
                       );
@@ -713,88 +636,16 @@ const Post = ({ post, viewMode = "grid" }) => {
                     }}
                   />
                 );
-              })() : categoryIconsData.length === 2 ? (
-                // Two icons - side by side with elegant spacing
+              })() : (
+                // Multiple icons - simple flex layout
                 <Box
                   sx={{
                     display: 'flex',
                     alignItems: 'center',
                     justifyContent: 'center',
-                    gap: { xs: 4, sm: 5 },
-                  }}
-                >
-                  {categoryIconsData.map((iconData, idx) => {
-                    const IconComponent = iconData.IconComponent;
-                    return (
-                      <IconComponent
-                        key={iconData.code || idx}
-                        sx={{
-                          fontSize: { xs: '56px', sm: '68px' },
-                          color: iconData.style?.main || theme.palette.text.secondary,
-                          opacity: 0.85,
-                          filter: 'drop-shadow(0 2px 4px rgba(0,0,0,0.1))',
-                        }}
-                      />
-                    );
-                  })}
-                </Box>
-              ) : categoryIconsData.length === 3 ? (() => {
-                const TopIconComponent = categoryIconsData[0].IconComponent;
-                return (
-                  // Three icons - triangular arrangement
-                  <Box
-                    sx={{
-                      display: 'flex',
-                      flexDirection: 'column',
-                      alignItems: 'center',
-                      justifyContent: 'center',
-                      gap: { xs: 2.5, sm: 3 },
-                    }}
-                  >
-                    {/* Top icon */}
-                    <TopIconComponent
-                      sx={{
-                        fontSize: { xs: '48px', sm: '56px' },
-                        color: categoryIconsData[0].style?.main || theme.palette.text.secondary,
-                        opacity: 0.85,
-                        filter: 'drop-shadow(0 2px 4px rgba(0,0,0,0.1))',
-                      }}
-                    />
-                  {/* Bottom two icons */}
-                  <Box
-                    sx={{
-                      display: 'flex',
-                      alignItems: 'center',
-                      justifyContent: 'center',
-                      gap: { xs: 4, sm: 5 },
-                    }}
-                  >
-                    {categoryIconsData.slice(1, 3).map((iconData, idx) => {
-                      const IconComponent = iconData.IconComponent;
-                      return (
-                        <IconComponent
-                          key={iconData.code || idx + 1}
-                          sx={{
-                            fontSize: { xs: '48px', sm: '56px' },
-                            color: iconData.style?.main || theme.palette.text.secondary,
-                            opacity: 0.85,
-                            filter: 'drop-shadow(0 2px 4px rgba(0,0,0,0.1))',
-                          }}
-                        />
-                      );
-                    })}
-                  </Box>
-                </Box>
-                );
-              })() : (
-                // Four or more icons - 2x2 grid
-                <Box
-                  sx={{
-                    display: 'grid',
-                    gridTemplateColumns: 'repeat(2, 1fr)',
-                    gap: { xs: 3, sm: 4 },
-                    alignItems: 'center',
-                    justifyContent: 'center',
+                    gap: { xs: 2.5, sm: 3 },
+                    flexWrap: 'wrap',
+                    paddingTop: { xs: 1.5, sm: 2 },
                   }}
                 >
                   {categoryIconsData.slice(0, 4).map((iconData, idx) => {
@@ -803,11 +654,10 @@ const Post = ({ post, viewMode = "grid" }) => {
                       <IconComponent
                         key={iconData.code || idx}
                         sx={{
-                          fontSize: { xs: '44px', sm: '52px' },
+                          fontSize: { xs: '48px', sm: '56px' },
                           color: iconData.style?.main || theme.palette.text.secondary,
                           opacity: 0.85,
                           filter: 'drop-shadow(0 2px 4px rgba(0,0,0,0.1))',
-                          justifySelf: 'center',
                         }}
                       />
                     );
