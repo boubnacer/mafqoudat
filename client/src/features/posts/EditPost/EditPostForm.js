@@ -1070,9 +1070,25 @@ if (typeof document !== 'undefined') {
         newFieldErrors.foundLost = t('required');
       }
       // Validate categories - support both new categories array and legacy single category
-      const selectedCategories = values.categories && Array.isArray(values.categories) && values.categories.length > 0
-        ? values.categories
-        : (values.category ? [values.category] : []);
+      // Ensure categories is always an array of string IDs
+      let selectedCategories = [];
+      if (values.categories && Array.isArray(values.categories) && values.categories.length > 0) {
+        // Convert all category IDs to strings and filter out any invalid values
+        selectedCategories = values.categories
+          .map(cat => {
+            // Handle both ID strings and category objects
+            if (typeof cat === 'string') {
+              return cat;
+            } else if (typeof cat === 'object' && cat !== null) {
+              return String(cat.id || cat._id || '');
+            }
+            return String(cat || '');
+          })
+          .filter(id => id && id !== 'undefined' && id !== 'null');
+      } else if (values.category) {
+        // Fallback to legacy single category
+        selectedCategories = [String(values.category)];
+      }
       
       if (selectedCategories.length === 0) {
         missingFields.push(t('category'));
@@ -1145,11 +1161,16 @@ if (typeof document !== 'undefined') {
 
       // Prepare data for submission (match API expectations)
       // selectedCategories is already declared above in validation section
+      // Ensure categories is an array of valid string IDs
+      const categoriesArray = Array.isArray(selectedCategories) && selectedCategories.length > 0
+        ? selectedCategories.map(id => String(id)).filter(Boolean)
+        : [];
+      
       const postData = {
         user: post.user, // Use the original post's user ID to avoid validation issues
         country: selectedCountry?._id || values.country,
-        categories: selectedCategories, // New: array of category IDs
-        category: selectedCategories.length > 0 ? selectedCategories[0] : null, // Legacy: first category for backward compatibility
+        categories: categoriesArray, // New: array of category IDs (ensured to be strings)
+        category: categoriesArray.length > 0 ? categoriesArray[0] : null, // Legacy: first category for backward compatibility
         foundLost: values.foundLost,
         exactLocation: values.exactLocation,
         mainDate: values.exactDate || "", // Add mainDate field
@@ -1693,7 +1714,14 @@ if (typeof document !== 'undefined') {
                       });
                     })()}
                     onChange={(event, newValue) => {
-                      const categoryIds = newValue.map(cat => cat.id || cat._id);
+                      // Extract category IDs and ensure they're strings
+                      const categoryIds = newValue
+                        .map(cat => {
+                          const id = cat.id || cat._id;
+                          return id ? String(id) : null;
+                        })
+                        .filter(Boolean); // Remove any null/undefined values
+                      
                       setFieldValue('categories', categoryIds);
                       // Also set legacy category field for backward compatibility
                       if (categoryIds.length > 0) {

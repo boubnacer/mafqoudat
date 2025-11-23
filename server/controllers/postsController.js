@@ -1568,6 +1568,7 @@ const updatePost = async (req, res) => {
     user,
     country,
     category,
+    categories, // New: array of category IDs
     city,
     cityData,
     exactLocation,
@@ -1588,21 +1589,31 @@ const updatePost = async (req, res) => {
   console.log('  - id:', id, 'exists:', !!id);
   console.log('  - user:', user, 'exists:', !!user);
   console.log('  - category:', category, 'exists:', !!category);
+  console.log('  - categories:', categories, 'exists:', !!categories, 'isArray:', Array.isArray(categories));
   console.log('  - exactLocation:', exactLocation, 'exists:', !!exactLocation);
   console.log('  - country:', country, 'exists:', !!country);
   console.log('  - contact:', contact, 'exists:', !!contact);
   console.log('  - foundLost:', foundLost, 'exists:', !!foundLost);
   console.log('  - returned:', returned, 'type:', typeof returned, 'isBoolean:', typeof returned === "boolean");
   
+  // Determine which category field to use - prefer categories array, fallback to category
+  const categoryIds = (categories && Array.isArray(categories) && categories.length > 0)
+    ? categories
+    : (category ? [category] : []);
+  
+  // Use first category for legacy category field validation
+  const primaryCategory = categoryIds.length > 0 ? categoryIds[0] : category;
+  
   if (
     !id ||
     !user ||
-    !category ||
+    !primaryCategory ||
     !exactLocation ||
     !country ||
     !contact ||
     !foundLost ||
-    typeof returned !== "boolean"
+    typeof returned !== "boolean" ||
+    categoryIds.length === 0
   ) {
     console.log('❌ UPDATE POST SERVER - Missing required fields');
     return res.status(400).json({ message: "All fields are required" });
@@ -1616,7 +1627,12 @@ const updatePost = async (req, res) => {
   // Validate references - using exists() is already optimized for checking existence
   const userExists = await User.exists({ _id: user });
   const countryExists = await Country.exists({ _id: country });
-  const categoryExists = await Category.exists({ _id: category });
+  
+  // Validate all categories in the array
+  const categoryValidationPromises = categoryIds.map(catId => Category.exists({ _id: catId }));
+  const categoryExistsResults = await Promise.all(categoryValidationPromises);
+  const allCategoriesExist = categoryExistsResults.every(exists => exists === true);
+  
   const foundLostExists = await FoundLost.exists({ _id: foundLost });
   
   // Validate city if it's a valid ObjectId (skip validation for API cities)
@@ -1637,14 +1653,14 @@ const updatePost = async (req, res) => {
   // console.log('  - foundLostExists:', foundLostExists);
   // console.log('  - cityExists:', cityExists);
   
-  if (!userExists || !countryExists || !categoryExists || !foundLostExists || !cityExists) {
+  if (!userExists || !countryExists || !allCategoriesExist || !foundLostExists || !cityExists) {
     // console.log('❌ UPDATE POST SERVER - Database validation failed');
     return res.status(400).json({ message: "Invalid reference in user/country/category/foundLost/city" });
   }
 
   // Confirm post exists to update - only select fields needed for update
   // console.log('🔍 UPDATE POST SERVER - Looking for post with ID:', id);
-  const post = await Post.findById(id).select('_id user country category city exactLocation contact returned foundLost description').exec();
+  const post = await Post.findById(id).select('_id user country category categories city exactLocation contact returned foundLost description').exec();
   // console.log('🔍 UPDATE POST SERVER - Post found:', !!post);
   
   if (!post) {
@@ -1655,7 +1671,28 @@ const updatePost = async (req, res) => {
   // console.log('🔍 UPDATE POST SERVER - Updating post fields...');
   post.user = user;
   post.country = country;
-  post.category = category;
+  
+  // Update categories array (new format)
+  if (categories && Array.isArray(categories) && categories.length > 0) {
+    // Convert all category IDs to ObjectIds
+    post.categories = categories.map(catId => {
+      if (typeof catId === 'string' && mongoose.Types.ObjectId.isValid(catId)) {
+        return new mongoose.Types.ObjectId(catId);
+      }
+      return catId;
+    });
+  } else if (categoryIds.length > 0) {
+    // Fallback: use categoryIds array if categories wasn't provided
+    post.categories = categoryIds.map(catId => {
+      if (typeof catId === 'string' && mongoose.Types.ObjectId.isValid(catId)) {
+        return new mongoose.Types.ObjectId(catId);
+      }
+      return catId;
+    });
+  }
+  
+  // Update legacy category field (first category for backward compatibility)
+  post.category = primaryCategory;
   if (city !== undefined) {
     // Convert string ObjectId to actual ObjectId if needed
     if (typeof city === 'string' && city.match(/^[0-9a-fA-F]{24}$/)) {
