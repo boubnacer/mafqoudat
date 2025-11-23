@@ -1601,6 +1601,11 @@ const updatePost = async (req, res) => {
     ? categories
     : (category ? [category] : []);
   
+  console.log('🔍 UPDATE POST SERVER - Category processing:');
+  console.log('  - categories (from request):', categories);
+  console.log('  - category (from request):', category);
+  console.log('  - categoryIds (processed):', categoryIds);
+  
   // Use first category for legacy category field validation
   const primaryCategory = categoryIds.length > 0 ? categoryIds[0] : category;
   
@@ -1629,9 +1634,41 @@ const updatePost = async (req, res) => {
   const countryExists = await Country.exists({ _id: country });
   
   // Validate all categories in the array
-  const categoryValidationPromises = categoryIds.map(catId => Category.exists({ _id: catId }));
+  // Filter out invalid ObjectIds first, then validate
+  const validCategoryIds = categoryIds.filter(catId => {
+    const idStr = String(catId);
+    return mongoose.Types.ObjectId.isValid(idStr);
+  });
+  
+  if (validCategoryIds.length !== categoryIds.length) {
+    console.log('❌ UPDATE POST SERVER - Invalid category IDs found');
+    console.log('  - Received categoryIds:', categoryIds);
+    console.log('  - Valid categoryIds:', validCategoryIds);
+    return res.status(400).json({ message: "Invalid category ID format" });
+  }
+  
+  console.log('🔍 UPDATE POST SERVER - Validating categories:', validCategoryIds);
+  // Convert to ObjectIds for validation
+  const categoryObjectIds = validCategoryIds.map(catId => {
+    if (typeof catId === 'string' && mongoose.Types.ObjectId.isValid(catId)) {
+      return new mongoose.Types.ObjectId(catId);
+    }
+    return catId;
+  });
+  
+  const categoryValidationPromises = categoryObjectIds.map(catId => Category.exists({ _id: catId }));
   const categoryExistsResults = await Promise.all(categoryValidationPromises);
-  const allCategoriesExist = categoryExistsResults.every(exists => exists === true);
+  console.log('🔍 UPDATE POST SERVER - Category validation results:', categoryExistsResults);
+  
+  // exists() returns the document _id or null, so check for truthy values
+  const allCategoriesExist = categoryExistsResults.every(exists => exists !== null && exists !== undefined);
+  console.log('🔍 UPDATE POST SERVER - All categories exist:', allCategoriesExist);
+  
+  if (!allCategoriesExist) {
+    console.log('❌ UPDATE POST SERVER - Some categories do not exist');
+    console.log('  - Category IDs checked:', categoryObjectIds);
+    console.log('  - Validation results:', categoryExistsResults);
+  }
   
   const foundLostExists = await FoundLost.exists({ _id: foundLost });
   
@@ -1653,9 +1690,33 @@ const updatePost = async (req, res) => {
   // console.log('  - foundLostExists:', foundLostExists);
   // console.log('  - cityExists:', cityExists);
   
+  // Detailed validation error reporting
   if (!userExists || !countryExists || !allCategoriesExist || !foundLostExists || !cityExists) {
-    // console.log('❌ UPDATE POST SERVER - Database validation failed');
-    return res.status(400).json({ message: "Invalid reference in user/country/category/foundLost/city" });
+    console.log('❌ UPDATE POST SERVER - Database validation failed');
+    console.log('  - userExists:', userExists);
+    console.log('  - countryExists:', countryExists);
+    console.log('  - allCategoriesExist:', allCategoriesExist);
+    console.log('  - foundLostExists:', foundLostExists);
+    console.log('  - cityExists:', cityExists);
+    
+    let errorDetails = [];
+    if (!userExists) errorDetails.push('user');
+    if (!countryExists) errorDetails.push('country');
+    if (!allCategoriesExist) errorDetails.push('categories');
+    if (!foundLostExists) errorDetails.push('foundLost');
+    if (!cityExists) errorDetails.push('city');
+    
+    return res.status(400).json({ 
+      message: `Invalid reference in: ${errorDetails.join(', ')}`,
+      details: {
+        userExists,
+        countryExists,
+        allCategoriesExist,
+        foundLostExists,
+        cityExists,
+        categoryIds: validCategoryIds
+      }
+    });
   }
 
   // Confirm post exists to update - only select fields needed for update
