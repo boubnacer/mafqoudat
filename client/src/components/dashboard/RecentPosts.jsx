@@ -437,69 +437,79 @@ const RecentPosts = ({ _id, categoryname, exactLocation, image, createdAt, count
             sx={{
               position: 'absolute',
               bottom: 12,
-              left: '12px',
-              right: '12px',
-              zIndex: 10,
-              display: { xs: 'grid', sm: 'flex' },
-              gridTemplateColumns: { xs: '1fr' },
-              flexDirection: { sm: 'row' },
-              alignItems: { xs: 'stretch', sm: 'center' },
-              justifyContent: { sm: 'space-between' },
-              gap: 1,
+              left: 12,
+              right: 12,
+              display: 'flex',
+              flexDirection: { xs: 'column', sm: 'row' },
+              gap: { xs: 0.5, sm: 1 },
+              alignItems: { xs: 'flex-start', sm: 'center' },
             }}
           >
-            {/* Time - Left in LTR, Right in RTL */}
-            <Box 
-              display="flex" 
-              alignItems="center" 
-              gap={0.5}
-              sx={{
-                backgroundColor: isDarkMode 
-                  ? 'rgba(58, 58, 58, 0.9)' 
-                  : 'rgba(233, 236, 239, 0.9)',
-                padding: { xs: '4px 8px', sm: '2px 6px' },
-                borderRadius: '4px',
-                backdropFilter: 'blur(4px)',
-              }}
-            >
-              <TimeIcon sx={{ fontSize: 16, color: 'text.secondary' }} />
-              <Typography 
-                variant="body2" 
-                color="text.secondary"
-                sx={{ direction: currentLanguage === 'ar' ? 'rtl' : 'ltr' }}
-              >
-                {created}
-              </Typography>
-            </Box>
-            {/* No Image Indicator - Right in LTR, Left in RTL */}
+            {/* No Image Indicator */}
             {!image && (
-              <Box 
-                display="flex" 
-                alignItems="center" 
-                gap={0.5}
+              <Box
                 sx={{
-                  backgroundColor: isDarkMode 
-                    ? 'rgba(58, 58, 58, 0.9)' 
-                    : 'rgba(233, 236, 239, 0.9)',
-                  padding: { xs: '4px 8px', sm: '2px 6px' },
-                  borderRadius: '4px',
-                  backdropFilter: 'blur(4px)',
+                  backgroundColor: theme.palette.mode === 'dark' 
+                    ? 'rgba(0,0,0,0.7)' 
+                    : 'rgba(255,255,255,0.9)',
+                  color: theme.palette.mode === 'dark' ? '#fff' : '#333',
+                  padding: '4px 8px',
+                  borderRadius: '8px',
+                  backdropFilter: 'blur(10px)',
+                  border: `1px solid ${theme.palette.mode === 'dark' ? 'rgba(255,255,255,0.2)' : 'rgba(0,0,0,0.1)'}`,
+                  zIndex: 11,
+                  order: { xs: 0, sm: 1 },
+                  display: 'flex',
+                  alignItems: 'center',
+                  gap: 0.5,
                 }}
               >
-                <NoImageIcon sx={{ fontSize: 14, color: 'text.secondary', opacity: 0.7 }} />
-                <Typography 
-                  variant="caption" 
-                  color="text.secondary"
-                  sx={{ 
-                    fontSize: '11px',
-                    direction: currentLanguage === 'ar' ? 'rtl' : 'ltr',
-                    opacity: 0.7,
+                <NoImageIcon sx={{ 
+                  fontSize: { xs: '12px', sm: '11px' }, 
+                  color: theme.palette.mode === 'dark' ? '#fff' : '#333',
+                  opacity: 0.8,
+                }} />
+                <Typography
+                  sx={{
+                    color: theme.palette.mode === 'dark' ? '#fff' : '#333',
+                    fontSize: { xs: '11px', sm: '10px' },
+                    fontWeight: 600,
                   }}
                 >
                   {t('postHasNoImage')}
                 </Typography>
               </Box>
             )}
+            {/* Time Badge */}
+            <Box
+              sx={{
+                backgroundColor: theme.palette.mode === 'dark' 
+                  ? 'rgba(0,0,0,0.7)' 
+                  : 'rgba(255,255,255,0.9)',
+                color: theme.palette.mode === 'dark' ? '#fff' : '#333',
+                padding: '4px 8px',
+                borderRadius: '8px',
+                backdropFilter: 'blur(10px)',
+                border: `1px solid ${theme.palette.mode === 'dark' ? 'rgba(255,255,255,0.2)' : 'rgba(0,0,0,0.1)'}`,
+                zIndex: 11, // Higher z-index for time badge
+              }}
+            >
+              <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.5 }}>
+                <TimeIcon sx={{ 
+                  fontSize: { xs: '14px', sm: '12px' }, 
+                  color: theme.palette.mode === 'dark' ? '#fff' : '#333'
+                }} />
+                <Typography
+                  sx={{
+                    color: theme.palette.mode === 'dark' ? '#fff' : '#333',
+                    fontSize: { xs: '14px', sm: '12px' },
+                    fontWeight: 600,
+                  }}
+                >
+                  {created}
+                </Typography>
+              </Box>
+            </Box>
           </Box>
         </Box>
 
