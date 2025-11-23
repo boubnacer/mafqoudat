@@ -1244,6 +1244,44 @@ const PostsList = () => {
               </Box>
             </Box>
 
+            {/* Add New Post Button - Shown at the end of posts */}
+            <Box 
+              sx={{ 
+                mb: 4,
+                display: 'flex',
+                justifyContent: 'center',
+                alignItems: 'center'
+              }}
+            >
+              <Button
+                variant="contained"
+                startIcon={<AddIcon />}
+                onClick={handleAddNewPost}
+                sx={{
+                  borderRadius: '4px',
+                  px: 4,
+                  py: 1.5,
+                  textTransform: 'none',
+                  fontWeight: 600,
+                  fontSize: '1rem',
+                  background: 'linear-gradient(45deg, #4A8BFF 30%, #1A6EEE 90%)',
+                  boxShadow: '0 3px 5px 2px rgba(26, 110, 238, .3)',
+                  color: '#fff !important',
+                  '&:hover': {
+                    background: 'linear-gradient(45deg, #5A9BFF 30%, #2A7EFF 90%)',
+                    boxShadow: '0 4px 8px 2px rgba(26, 110, 238, .4)',
+                    color: '#fff !important',
+                  },
+                  '& .MuiButton-startIcon': {
+                    marginRight: currentLanguage === 'ar' ? 0 : '8px',
+                    marginLeft: currentLanguage === 'ar' ? '8px' : 0,
+                  }
+                }}
+              >
+                {t('addNewPost')}
+              </Button>
+            </Box>
+
             {/* Enhanced Pagination */}
             {totalPages > 1 && (
               <Paper 
