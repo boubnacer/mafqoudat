@@ -11,7 +11,7 @@ import {
   Avatar,
   alpha,
 } from "@mui/material";
-import { AccessTime as TimeIcon } from "@mui/icons-material";
+import { AccessTime as TimeIcon, ImageNotSupported as NoImageIcon } from "@mui/icons-material";
 import { useMemo, useEffect, useCallback } from "react";
 import { formatDistanceToNow } from 'date-fns';
 import { ar, fr, enUS } from 'date-fns/locale';
@@ -669,38 +669,89 @@ const TrendingItem = ({ trend, isLoading }) => {
             })}
           </Box>
 
-          {/* Created Date Badge */}
+          {/* Created Date Badge with No Image Indicator */}
           <Box
             sx={{
               position: 'absolute',
               bottom: '16px',
               left: '16px',
               zIndex: 10,
-              backgroundColor: theme.palette.mode === 'dark' 
-                ? 'rgba(0,0,0,0.7)' 
-                : 'rgba(255,255,255,0.9)',
-              color: theme.palette.mode === 'dark' ? '#fff' : '#333',
-              padding: { xs: '0 12px', sm: '0 16px' },
-              borderRadius: '8px',
-              fontSize: { xs: '14px', sm: '16px' },
-              fontWeight: 600,
-              backdropFilter: 'blur(10px)',
-              border: `1px solid ${theme.palette.mode === 'dark' ? 'rgba(255,255,255,0.2)' : 'rgba(0,0,0,0.1)'}`,
-              zIndex: 2,
-              height: { xs: '32px', sm: '36px' },
               display: 'flex',
-              alignItems: 'center',
-              gap: 0.5,
-              fontFamily: currentLanguage === 'ar' 
-                ? '"Noto Sans Arabic", "Segoe UI", "Roboto", "Helvetica", "Arial", sans-serif'
-                : '"Inter", "Segoe UI", "Roboto", "Helvetica", "Arial", sans-serif',
+              flexDirection: { xs: 'column', sm: 'row' },
+              gap: { xs: 0.5, sm: 1 },
+              alignItems: { xs: 'flex-start', sm: 'center' },
             }}
           >
-            <TimeIcon sx={{ 
-              fontSize: { xs: '14px', sm: '16px' }, 
-              color: theme.palette.mode === 'dark' ? '#fff' : '#333'
-            }} />
-            {`${t('posted')} ${created}`}
+            {/* No Image Indicator */}
+            {!image && (
+              <Box
+                sx={{
+                  backgroundColor: theme.palette.mode === 'dark' 
+                    ? 'rgba(0,0,0,0.7)' 
+                    : 'rgba(255,255,255,0.9)',
+                  color: theme.palette.mode === 'dark' ? '#fff' : '#333',
+                  padding: { xs: '0 12px', sm: '0 16px' },
+                  borderRadius: '8px',
+                  backdropFilter: 'blur(10px)',
+                  border: `1px solid ${theme.palette.mode === 'dark' ? 'rgba(255,255,255,0.2)' : 'rgba(0,0,0,0.1)'}`,
+                  zIndex: 2,
+                  height: { xs: '32px', sm: '36px' },
+                  display: 'flex',
+                  alignItems: 'center',
+                  gap: 0.5,
+                  order: { xs: 0, sm: 1 },
+                  fontFamily: currentLanguage === 'ar' 
+                    ? '"Noto Sans Arabic", "Segoe UI", "Roboto", "Helvetica", "Arial", sans-serif'
+                    : '"Inter", "Segoe UI", "Roboto", "Helvetica", "Arial", sans-serif',
+                }}
+              >
+                <NoImageIcon sx={{ 
+                  fontSize: { xs: '14px', sm: '16px' }, 
+                  color: theme.palette.mode === 'dark' ? '#fff' : '#333',
+                  opacity: 0.8,
+                }} />
+                <Typography
+                  sx={{
+                    fontSize: { xs: '12px', sm: '14px' },
+                    fontWeight: 600,
+                    fontFamily: currentLanguage === 'ar' 
+                      ? '"Noto Sans Arabic", "Segoe UI", "Roboto", "Helvetica", "Arial", sans-serif'
+                      : '"Inter", "Segoe UI", "Roboto", "Helvetica", "Arial", sans-serif',
+                  }}
+                >
+                  {t('noImage')}
+                </Typography>
+              </Box>
+            )}
+            {/* Created Date Badge */}
+            <Box
+              sx={{
+                backgroundColor: theme.palette.mode === 'dark' 
+                  ? 'rgba(0,0,0,0.7)' 
+                  : 'rgba(255,255,255,0.9)',
+                color: theme.palette.mode === 'dark' ? '#fff' : '#333',
+                padding: { xs: '0 12px', sm: '0 16px' },
+                borderRadius: '8px',
+                fontSize: { xs: '14px', sm: '16px' },
+                fontWeight: 600,
+                backdropFilter: 'blur(10px)',
+                border: `1px solid ${theme.palette.mode === 'dark' ? 'rgba(255,255,255,0.2)' : 'rgba(0,0,0,0.1)'}`,
+                zIndex: 2,
+                height: { xs: '32px', sm: '36px' },
+                display: 'flex',
+                alignItems: 'center',
+                gap: 0.5,
+                fontFamily: currentLanguage === 'ar' 
+                  ? '"Noto Sans Arabic", "Segoe UI", "Roboto", "Helvetica", "Arial", sans-serif'
+                  : '"Inter", "Segoe UI", "Roboto", "Helvetica", "Arial", sans-serif',
+              }}
+            >
+              <TimeIcon sx={{ 
+                fontSize: { xs: '14px', sm: '16px' }, 
+                color: theme.palette.mode === 'dark' ? '#fff' : '#333'
+              }} />
+              {`${t('posted')} ${created}`}
+            </Box>
           </Box>
         </Box>
       </Card>

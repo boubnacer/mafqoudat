@@ -24,6 +24,7 @@ import {
   ArrowForward as ArrowIcon,
   AccessTime as TimeIcon,
   Event as EventIcon,
+  ImageNotSupported as NoImageIcon,
 } from "@mui/icons-material";
 import { formatDistanceToNow } from 'date-fns';
 import { ar, fr, enUS } from 'date-fns/locale';
@@ -431,37 +432,82 @@ const RecentPosts = ({ _id, categoryname, exactLocation, image, createdAt, count
             </Box>
           </Box>
 
-          {/* Time Badge */}
+          {/* Time Badge with No Image Indicator */}
           <Box
             sx={{
               position: 'absolute',
               bottom: 12,
               left: 12,
-              backgroundColor: theme.palette.mode === 'dark' 
-                ? 'rgba(0,0,0,0.7)' 
-                : 'rgba(255,255,255,0.9)',
-              color: theme.palette.mode === 'dark' ? '#fff' : '#333',
-              padding: '4px 8px',
-              borderRadius: '8px',
-              backdropFilter: 'blur(10px)',
-              border: `1px solid ${theme.palette.mode === 'dark' ? 'rgba(255,255,255,0.2)' : 'rgba(0,0,0,0.1)'}`,
-              zIndex: 11, // Higher z-index for time badge
+              display: 'flex',
+              flexDirection: { xs: 'column', sm: 'row' },
+              gap: { xs: 0.5, sm: 1 },
+              alignItems: { xs: 'flex-start', sm: 'center' },
             }}
           >
-            <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.5 }}>
-              <TimeIcon sx={{ 
-                fontSize: { xs: '14px', sm: '12px' }, 
-                color: theme.palette.mode === 'dark' ? '#fff' : '#333'
-              }} />
-              <Typography
+            {/* No Image Indicator */}
+            {!image && (
+              <Box
                 sx={{
+                  backgroundColor: theme.palette.mode === 'dark' 
+                    ? 'rgba(0,0,0,0.7)' 
+                    : 'rgba(255,255,255,0.9)',
                   color: theme.palette.mode === 'dark' ? '#fff' : '#333',
-                  fontSize: { xs: '14px', sm: '12px' },
-                  fontWeight: 600,
+                  padding: '4px 8px',
+                  borderRadius: '8px',
+                  backdropFilter: 'blur(10px)',
+                  border: `1px solid ${theme.palette.mode === 'dark' ? 'rgba(255,255,255,0.2)' : 'rgba(0,0,0,0.1)'}`,
+                  zIndex: 11,
+                  order: { xs: 0, sm: 1 },
+                  display: 'flex',
+                  alignItems: 'center',
+                  gap: 0.5,
                 }}
               >
-                {created}
-              </Typography>
+                <NoImageIcon sx={{ 
+                  fontSize: { xs: '12px', sm: '11px' }, 
+                  color: theme.palette.mode === 'dark' ? '#fff' : '#333',
+                  opacity: 0.8,
+                }} />
+                <Typography
+                  sx={{
+                    color: theme.palette.mode === 'dark' ? '#fff' : '#333',
+                    fontSize: { xs: '11px', sm: '10px' },
+                    fontWeight: 600,
+                  }}
+                >
+                  {t('noImage')}
+                </Typography>
+              </Box>
+            )}
+            {/* Time Badge */}
+            <Box
+              sx={{
+                backgroundColor: theme.palette.mode === 'dark' 
+                  ? 'rgba(0,0,0,0.7)' 
+                  : 'rgba(255,255,255,0.9)',
+                color: theme.palette.mode === 'dark' ? '#fff' : '#333',
+                padding: '4px 8px',
+                borderRadius: '8px',
+                backdropFilter: 'blur(10px)',
+                border: `1px solid ${theme.palette.mode === 'dark' ? 'rgba(255,255,255,0.2)' : 'rgba(0,0,0,0.1)'}`,
+                zIndex: 11, // Higher z-index for time badge
+              }}
+            >
+              <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.5 }}>
+                <TimeIcon sx={{ 
+                  fontSize: { xs: '14px', sm: '12px' }, 
+                  color: theme.palette.mode === 'dark' ? '#fff' : '#333'
+                }} />
+                <Typography
+                  sx={{
+                    color: theme.palette.mode === 'dark' ? '#fff' : '#333',
+                    fontSize: { xs: '14px', sm: '12px' },
+                    fontWeight: 600,
+                  }}
+                >
+                  {created}
+                </Typography>
+              </Box>
             </Box>
           </Box>
         </Box>

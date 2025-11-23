@@ -27,6 +27,7 @@ import {
   ArrowForward as ArrowIcon,
   AccessTime as TimeIcon,
   Event as EventIcon,
+  ImageNotSupported as NoImageIcon,
 } from "@mui/icons-material";
 import FlexBetween from "../../../components/FlexBetween";
 import { useTranslation } from "../../../utils/translations";
@@ -521,15 +522,47 @@ const Post = ({ post, viewMode = "grid" }) => {
                     {cityName}
                   </Typography>
                 </Box>
-                <Box display="flex" alignItems="center" gap={1}>
-                  <TimeIcon sx={{ fontSize: 16, color: 'text.secondary' }} />
-                  <Typography 
-                    variant="body2" 
-                    color="text.secondary"
-                    sx={{ direction: currentLanguage === 'ar' ? 'rtl' : 'ltr' }}
-                  >
-                    {created}
-                  </Typography>
+                <Box 
+                  display="flex" 
+                  flexDirection={{ xs: 'column', sm: 'row' }}
+                  alignItems={{ xs: 'flex-start', sm: 'center' }}
+                  gap={{ xs: 0.5, sm: 1 }}
+                >
+                  {/* No Image Indicator */}
+                  {!post?.image && (
+                    <Box 
+                      display="flex" 
+                      alignItems="center" 
+                      gap={0.5}
+                      sx={{
+                        order: { xs: 0, sm: 1 },
+                      }}
+                    >
+                      <NoImageIcon sx={{ fontSize: 14, color: 'text.secondary', opacity: 0.7 }} />
+                      <Typography 
+                        variant="caption" 
+                        color="text.secondary"
+                        sx={{ 
+                          fontSize: '11px',
+                          direction: currentLanguage === 'ar' ? 'rtl' : 'ltr',
+                          opacity: 0.7,
+                        }}
+                      >
+                        {t('noImage')}
+                      </Typography>
+                    </Box>
+                  )}
+                  {/* Time */}
+                  <Box display="flex" alignItems="center" gap={0.5}>
+                    <TimeIcon sx={{ fontSize: 16, color: 'text.secondary' }} />
+                    <Typography 
+                      variant="body2" 
+                      color="text.secondary"
+                      sx={{ direction: currentLanguage === 'ar' ? 'rtl' : 'ltr' }}
+                    >
+                      {created}
+                    </Typography>
+                  </Box>
                 </Box>
               </Box>
             </Box>
@@ -732,37 +765,82 @@ const Post = ({ post, viewMode = "grid" }) => {
             </Box>
           </Box>
 
-          {/* Time Badge */}
+          {/* Time Badge with No Image Indicator */}
           <Box
             sx={{
               position: 'absolute',
               bottom: 12,
               left: 12,
-              backgroundColor: theme.palette.mode === 'dark' 
-                ? 'rgba(0,0,0,0.7)' 
-                : 'rgba(255,255,255,0.9)',
-              color: theme.palette.mode === 'dark' ? '#fff' : '#333',
-              padding: '4px 8px',
-              borderRadius: '8px',
-              backdropFilter: 'blur(10px)',
-              border: `1px solid ${theme.palette.mode === 'dark' ? 'rgba(255,255,255,0.2)' : 'rgba(0,0,0,0.1)'}`,
-              zIndex: 11, // Higher z-index for time badge
+              display: 'flex',
+              flexDirection: { xs: 'column', sm: 'row' },
+              gap: { xs: 0.5, sm: 1 },
+              alignItems: { xs: 'flex-start', sm: 'center' },
             }}
           >
-            <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.5 }}>
-              <TimeIcon sx={{ 
-                fontSize: { xs: '14px', sm: '12px' }, 
-                color: theme.palette.mode === 'dark' ? '#fff' : '#333'
-              }} />
-              <Typography
+            {/* No Image Indicator */}
+            {!post?.image && (
+              <Box
                 sx={{
+                  backgroundColor: theme.palette.mode === 'dark' 
+                    ? 'rgba(0,0,0,0.7)' 
+                    : 'rgba(255,255,255,0.9)',
                   color: theme.palette.mode === 'dark' ? '#fff' : '#333',
-                  fontSize: { xs: '14px', sm: '12px' },
-                  fontWeight: 600,
+                  padding: '4px 8px',
+                  borderRadius: '8px',
+                  backdropFilter: 'blur(10px)',
+                  border: `1px solid ${theme.palette.mode === 'dark' ? 'rgba(255,255,255,0.2)' : 'rgba(0,0,0,0.1)'}`,
+                  zIndex: 11,
+                  order: { xs: 0, sm: 1 },
+                  display: 'flex',
+                  alignItems: 'center',
+                  gap: 0.5,
                 }}
               >
-                {created}
-              </Typography>
+                <NoImageIcon sx={{ 
+                  fontSize: { xs: '12px', sm: '11px' }, 
+                  color: theme.palette.mode === 'dark' ? '#fff' : '#333',
+                  opacity: 0.8,
+                }} />
+                <Typography
+                  sx={{
+                    color: theme.palette.mode === 'dark' ? '#fff' : '#333',
+                    fontSize: { xs: '11px', sm: '10px' },
+                    fontWeight: 600,
+                  }}
+                >
+                  {t('noImage')}
+                </Typography>
+              </Box>
+            )}
+            {/* Time Badge */}
+            <Box
+              sx={{
+                backgroundColor: theme.palette.mode === 'dark' 
+                  ? 'rgba(0,0,0,0.7)' 
+                  : 'rgba(255,255,255,0.9)',
+                color: theme.palette.mode === 'dark' ? '#fff' : '#333',
+                padding: '4px 8px',
+                borderRadius: '8px',
+                backdropFilter: 'blur(10px)',
+                border: `1px solid ${theme.palette.mode === 'dark' ? 'rgba(255,255,255,0.2)' : 'rgba(0,0,0,0.1)'}`,
+                zIndex: 11, // Higher z-index for time badge
+              }}
+            >
+              <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.5 }}>
+                <TimeIcon sx={{ 
+                  fontSize: { xs: '14px', sm: '12px' }, 
+                  color: theme.palette.mode === 'dark' ? '#fff' : '#333'
+                }} />
+                <Typography
+                  sx={{
+                    color: theme.palette.mode === 'dark' ? '#fff' : '#333',
+                    fontSize: { xs: '14px', sm: '12px' },
+                    fontWeight: 600,
+                  }}
+                >
+                  {created}
+                </Typography>
+              </Box>
             </Box>
           </Box>
 

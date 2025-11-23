@@ -40,7 +40,8 @@ import {
   Flag as FlagIcon,
   TrendingUp as TrendingUpIcon,
   WhatsApp as WhatsAppIcon,
-  CheckCircle as CheckCircleIcon
+  CheckCircle as CheckCircleIcon,
+  ImageNotSupported as NoImageIcon
 } from "@mui/icons-material";
 
 import "./editpost.css";
@@ -817,18 +818,51 @@ const SinglePostPage = ({
                     </Box>
                   </Grid>
                   <Grid item xs={12} sm={6}>
-                    <Box display="flex" alignItems="center" gap={1} mb={2}>
-                      <TimeIcon sx={{ color: 'text.secondary' }} />
-                      <Typography 
-                        variant="body2" 
-                        color="text.secondary"
-                        sx={{ 
-                          direction: currentLanguage === 'ar' ? 'rtl' : 'ltr',
-                          fontSize: { xs: '1rem', sm: '0.95rem', md: '0.95rem' }
-                        }}
-                      >
-                        {createdDate}
-                      </Typography>
+                    <Box 
+                      display="flex" 
+                      flexDirection={{ xs: 'column', sm: 'row' }}
+                      alignItems={{ xs: 'flex-start', sm: 'center' }}
+                      gap={{ xs: 0.5, sm: 1 }}
+                      mb={2}
+                    >
+                      {/* No Image Indicator */}
+                      {!image && (
+                        <Box 
+                          display="flex" 
+                          alignItems="center" 
+                          gap={0.5}
+                          sx={{
+                            order: { xs: 0, sm: 1 },
+                          }}
+                        >
+                          <NoImageIcon sx={{ fontSize: 16, color: 'text.secondary', opacity: 0.7 }} />
+                          <Typography 
+                            variant="caption" 
+                            color="text.secondary"
+                            sx={{ 
+                              fontSize: { xs: '0.75rem', sm: '0.7rem' },
+                              direction: currentLanguage === 'ar' ? 'rtl' : 'ltr',
+                              opacity: 0.7,
+                            }}
+                          >
+                            {t('noImage')}
+                          </Typography>
+                        </Box>
+                      )}
+                      {/* Time */}
+                      <Box display="flex" alignItems="center" gap={1}>
+                        <TimeIcon sx={{ color: 'text.secondary' }} />
+                        <Typography 
+                          variant="body2" 
+                          color="text.secondary"
+                          sx={{ 
+                            direction: currentLanguage === 'ar' ? 'rtl' : 'ltr',
+                            fontSize: { xs: '1rem', sm: '0.95rem', md: '0.95rem' }
+                          }}
+                        >
+                          {createdDate}
+                        </Typography>
+                      </Box>
                     </Box>
                   </Grid>
                 </Grid>
