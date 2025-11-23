@@ -437,16 +437,15 @@ const RecentPosts = ({ _id, categoryname, exactLocation, image, createdAt, count
             sx={{
               position: 'absolute',
               bottom: 12,
-              left: currentLanguage === 'ar' ? 'auto' : 12,
-              right: currentLanguage === 'ar' ? 12 : 'auto',
+              left: '12px',
+              right: '12px',
               zIndex: 10,
               display: { xs: 'grid', sm: 'flex' },
               gridTemplateColumns: { xs: '1fr' },
               flexDirection: { sm: 'row' },
               alignItems: { xs: 'stretch', sm: 'center' },
-              justifyContent: { sm: 'flex-start' },
+              justifyContent: { sm: 'space-between' },
               gap: 1,
-              maxWidth: { xs: 'calc(100% - 24px)', sm: 'auto' },
             }}
           >
             {/* Time Badge - Left in LTR, Right in RTL */}
@@ -456,7 +455,7 @@ const RecentPosts = ({ _id, categoryname, exactLocation, image, createdAt, count
                   ? 'rgba(0,0,0,0.7)' 
                   : 'rgba(255,255,255,0.9)',
                 color: theme.palette.mode === 'dark' ? '#fff' : '#333',
-                padding: '4px 8px',
+                padding: { xs: '4px 8px', sm: '2px 6px' },
                 borderRadius: '8px',
                 backdropFilter: 'blur(10px)',
                 border: `1px solid ${theme.palette.mode === 'dark' ? 'rgba(255,255,255,0.2)' : 'rgba(0,0,0,0.1)'}`,
@@ -468,14 +467,14 @@ const RecentPosts = ({ _id, categoryname, exactLocation, image, createdAt, count
               }}
             >
               <TimeIcon sx={{ 
-                fontSize: { xs: '14px', sm: '12px' }, 
+                fontSize: { xs: '14px', sm: '14px' }, 
                 color: theme.palette.mode === 'dark' ? '#fff' : '#333'
               }} />
               <Typography
                 sx={{
                   color: theme.palette.mode === 'dark' ? '#fff' : '#333',
-                  fontSize: { xs: '14px', sm: '12px' },
-                  fontWeight: 600,
+                  fontSize: { xs: '14px', sm: '11px' },
+                  fontWeight: { xs: 600, sm: 500 },
                 }}
               >
                 {created}
@@ -489,7 +488,7 @@ const RecentPosts = ({ _id, categoryname, exactLocation, image, createdAt, count
                     ? 'rgba(0,0,0,0.7)' 
                     : 'rgba(255,255,255,0.9)',
                   color: theme.palette.mode === 'dark' ? '#fff' : '#333',
-                  padding: '4px 8px',
+                  padding: { xs: '4px 8px', sm: '2px 6px' },
                   borderRadius: '8px',
                   backdropFilter: 'blur(10px)',
                   border: `1px solid ${theme.palette.mode === 'dark' ? 'rgba(255,255,255,0.2)' : 'rgba(0,0,0,0.1)'}`,
@@ -501,15 +500,16 @@ const RecentPosts = ({ _id, categoryname, exactLocation, image, createdAt, count
                 }}
               >
                 <NoImageIcon sx={{ 
-                  fontSize: { xs: '12px', sm: '11px' }, 
+                  fontSize: { xs: '12px', sm: '12px' }, 
                   color: theme.palette.mode === 'dark' ? '#fff' : '#333',
-                  opacity: 0.8,
+                  opacity: { xs: 0.8, sm: 0.7 },
                 }} />
                 <Typography
                   sx={{
                     color: theme.palette.mode === 'dark' ? '#fff' : '#333',
-                    fontSize: { xs: '11px', sm: '10px' },
-                    fontWeight: 600,
+                    fontSize: { xs: '11px', sm: '11px' },
+                    fontWeight: { xs: 600, sm: 500 },
+                    opacity: { xs: 1, sm: 0.7 },
                   }}
                 >
                   {t('postHasNoImage')}
