@@ -52,7 +52,7 @@ import { formatDistanceToNow } from 'date-fns';
 import { ar, fr, enUS } from 'date-fns/locale';
 import RenderIcon from "../../../components/RenderIcon";
 import { authStorage } from "../../../utils/authStorage";
-import { getCategoryConfig } from "../../../config/categories";
+import { getCategoryConfig, getCategoryIcon } from "../../../config/categories";
 import PromotionDialog from "../../../components/PromotionDialog";
 import ClaimItemDialog from "../../../components/ClaimItemDialog";
 
@@ -558,11 +558,25 @@ const SinglePostPage = ({
 
   // Memoized image URL computation - only use Cloudinary if image exists and is uploaded by user
   const imageUrl = useMemo(() => {
-    if (!image) return noImageSvg;
+    if (!image) return null;
     return image.startsWith('http') 
       ? getOptimizedImageUrl(image, 'large') 
       : image;
   }, [image]);
+
+  // Memoized category icon component for when there's no image
+  const CategoryIconDisplay = useMemo(() => {
+    if (image) return null; // Only show icon when there's no image
+    
+    const firstCategory = categories[0];
+    if (!firstCategory) return null;
+    
+    const IconComponent = getCategoryIcon(firstCategory.code);
+    
+    if (!IconComponent) return null;
+    
+    return IconComponent;
+  }, [image, categories]);
 
   // Sanitize contactPreferences and additionalContact to prevent React errors
   const sanitizedContactPreferences = useMemo(() => {
@@ -612,63 +626,50 @@ const SinglePostPage = ({
             }}
           >
             {/* Image Section */}
-            <Box sx={{ position: 'relative', zIndex: 1 }}>
-              <LazyCardMedia
-                component="img"
-                sx={{
-                  width: '100%',
-                  height: { xs: 300, sm: 400, md: 500 },
-                  objectFit: image ? 'cover' : 'contain',
-                  objectPosition: 'center',
-                  backgroundColor: 'transparent',
-                }}
-                image={imageUrl}
-                alt={categoryDisplayName || 'Post Image'}
-                fallback={noImageSvg}
-              />
-              
-              {/* No Image Overlay */}
-              {!image && (
+            <Box sx={{ 
+              position: 'relative', 
+              zIndex: 1,
+              backgroundColor: image ? 'transparent' : (categoryStyles[0]?.background || (isDarkMode ? '#1a1a1a' : '#f5f5f5')),
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'center',
+            }}>
+              {image && imageUrl ? (
+                <LazyCardMedia
+                  component="img"
+                  sx={{
+                    width: '100%',
+                    height: { xs: 300, sm: 400, md: 500 },
+                    objectFit: 'cover',
+                    objectPosition: 'center',
+                  }}
+                  image={imageUrl}
+                  alt={categoryDisplayName || 'Post Image'}
+                  fallback={noImageSvg}
+                />
+              ) : CategoryIconDisplay ? (
                 <Box
                   sx={{
-                    position: 'absolute',
-                    top: '50%',
-                    left: '50%',
-                    transform: 'translate(-50%, -50%)',
-                    zIndex: 3,
-                    textAlign: 'center',
-                    backgroundColor: alpha(isDarkMode ? '#000' : '#fff', 0.9),
-                    borderRadius: '16px',
-                    padding: '20px 24px',
-                    backdropFilter: 'blur(10px)',
-                    border: `1px solid ${alpha(isDarkMode ? '#fff' : '#000', 0.1)}`,
-                    boxShadow: '0 8px 24px rgba(0,0,0,0.15)',
-                    maxWidth: '80%',
+                    display: 'flex',
+                    flexDirection: 'column',
+                    alignItems: 'center',
+                    justifyContent: 'center',
+                    gap: 1,
+                    padding: 2,
+                    width: '100%',
+                    height: { xs: 300, sm: 400, md: 500 },
+                    zIndex: 1,
                   }}
                 >
-                  <Typography
+                  <CategoryIconDisplay
                     sx={{
-                      color: isDarkMode ? '#fff' : '#000',
-                      fontSize: { xs: '16px', sm: '18px', md: '20px' },
-                      fontWeight: 600,
-                      lineHeight: 1.3,
-                      mb: 1,
+                      fontSize: { xs: '120px', sm: '150px', md: '180px' },
+                      color: categoryStyles[0]?.main || theme.palette.text.secondary,
+                      opacity: 0.8,
                     }}
-                  >
-                    {t('noImageAvailable')}
-                  </Typography>
-                  <Typography
-                    sx={{
-                      color: isDarkMode ? alpha('#fff', 0.7) : alpha('#000', 0.6),
-                      fontSize: { xs: '12px', sm: '14px', md: '16px' },
-                      fontWeight: 400,
-                      lineHeight: 1.4,
-                    }}
-                  >
-                    {t('postHasNoImage')}
-                  </Typography>
+                  />
                 </Box>
-              )}
+              ) : null}
               
 
               {/* Category Badges Overlay - Multiple categories support */}

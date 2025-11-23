@@ -21,7 +21,7 @@ import { TrendingItemSkeleton, DashboardEmptyStates } from "../LoadingStates";
 import { useTranslation } from "../../utils/translations";
 import { getOptimizedImageUrl } from "../../utils/cloudinaryUtils";
 import LazyCardMedia from "../LazyCardMedia";
-import { getCategoryConfig } from "../../config/categories";
+import { getCategoryConfig, getCategoryIcon } from "../../config/categories";
 import { useNavigate } from "react-router-dom";
 import { getLabel } from "../../utils/languageUtils";
 import noImageSvg from "../../img/noimage.svg";
@@ -280,7 +280,21 @@ const TrendingItem = ({ trend, isLoading }) => {
   };
 
   // Get optimized image URL - only use Cloudinary if image exists and is uploaded by user
-  const finalImageUrl = image ? (image.startsWith('http') ? getOptimizedImageUrl(image, 'card') : `${API_BASE_URL}/${image}`) : noImageSvg;
+  const finalImageUrl = image ? (image.startsWith('http') ? getOptimizedImageUrl(image, 'card') : `${API_BASE_URL}/${image}`) : null;
+
+  // Memoized category icon component for when there's no image
+  const CategoryIconDisplay = useMemo(() => {
+    if (image) return null; // Only show icon when there's no image
+    
+    const firstCategory = categories[0];
+    if (!firstCategory) return null;
+    
+    const IconComponent = getCategoryIcon(firstCategory.code);
+    
+    if (!IconComponent) return null;
+    
+    return IconComponent;
+  }, [image, categories]);
 
   if (isLoading) return <TrendingItemSkeleton />;
   if (!trendData) {
@@ -471,30 +485,53 @@ const TrendingItem = ({ trend, isLoading }) => {
             position: 'relative',
             height: { xs: '420px', sm: '200px' },
             overflow: 'hidden',
-            backgroundColor: theme.palette.mode === 'dark' ? '#2a2a2a' : '#f5f5f5',
+            backgroundColor: image ? (theme.palette.mode === 'dark' ? '#2a2a2a' : '#f5f5f5') : (categoryStyles[0]?.background || (theme.palette.mode === 'dark' ? '#1a1a1a' : '#f5f5f5')),
             flex: 1,
             display: 'flex',
-            alignItems: 'stretch',
+            alignItems: 'center',
+            justifyContent: 'center',
           }}
         >
           {/* Background Image */}
-          <LazyCardMedia
-            component="img"
-            image={finalImageUrl}
-            alt={categoryDisplayName || 'Item Image'}
-            fallback={noImageSvg}
-            sx={{
-              position: 'absolute',
-              top: 0,
-              left: 0,
-              right: 0,
-              bottom: 0,
-              width: '100%',
-              height: '100%',
-              objectFit: 'cover',
-              objectPosition: 'center',
-            }}
-          />
+          {image && finalImageUrl ? (
+            <LazyCardMedia
+              component="img"
+              image={finalImageUrl}
+              alt={categoryDisplayName || 'Item Image'}
+              fallback={noImageSvg}
+              sx={{
+                position: 'absolute',
+                top: 0,
+                left: 0,
+                right: 0,
+                bottom: 0,
+                width: '100%',
+                height: '100%',
+                objectFit: 'cover',
+                objectPosition: 'center',
+              }}
+            />
+          ) : CategoryIconDisplay ? (
+            <Box
+              sx={{
+                display: 'flex',
+                flexDirection: 'column',
+                alignItems: 'center',
+                justifyContent: 'center',
+                gap: 1,
+                padding: 2,
+                zIndex: 1,
+              }}
+            >
+              <CategoryIconDisplay
+                sx={{
+                  fontSize: { xs: '100px', sm: '120px' },
+                  color: categoryStyles[0]?.main || theme.palette.text.secondary,
+                  opacity: 0.8,
+                }}
+              />
+            </Box>
+          ) : null}
 
           {/* Status Chip - Bottom Right Overlay */}
           <Chip
