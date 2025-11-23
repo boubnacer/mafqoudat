@@ -1576,6 +1576,7 @@ const updatePost = async (req, res) => {
     returned,
     foundLost,
     description,
+    mainDate,
     image,
   } = requestData;
 
@@ -1721,7 +1722,7 @@ const updatePost = async (req, res) => {
 
   // Confirm post exists to update - only select fields needed for update
   // console.log('🔍 UPDATE POST SERVER - Looking for post with ID:', id);
-  const post = await Post.findById(id).select('_id user country category categories city exactLocation contact returned foundLost description').exec();
+  const post = await Post.findById(id).select('_id user country category categories city exactLocation contact returned foundLost description mainDate').exec();
   // console.log('🔍 UPDATE POST SERVER - Post found:', !!post);
   
   if (!post) {
@@ -1807,6 +1808,9 @@ const updatePost = async (req, res) => {
   post.foundLost = foundLost;
   if (description !== undefined) {
     post.description = description;
+  }
+  if (mainDate !== undefined) {
+    post.mainDate = mainDate || "";
   }
 
   // Handle image update/removal
