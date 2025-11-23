@@ -449,7 +449,19 @@ const RecentPosts = ({ _id, categoryname, exactLocation, image, createdAt, count
             }}
           >
             {/* Time - Left in LTR, Right in RTL */}
-            <Box display="flex" alignItems="center" gap={0.5}>
+            <Box 
+              display="flex" 
+              alignItems="center" 
+              gap={0.5}
+              sx={{
+                backgroundColor: isDarkMode 
+                  ? 'rgba(58, 58, 58, 0.9)' 
+                  : 'rgba(233, 236, 239, 0.9)',
+                padding: { xs: '4px 8px', sm: '2px 6px' },
+                borderRadius: '4px',
+                backdropFilter: 'blur(4px)',
+              }}
+            >
               <TimeIcon sx={{ fontSize: 16, color: 'text.secondary' }} />
               <Typography 
                 variant="body2" 
@@ -465,6 +477,14 @@ const RecentPosts = ({ _id, categoryname, exactLocation, image, createdAt, count
                 display="flex" 
                 alignItems="center" 
                 gap={0.5}
+                sx={{
+                  backgroundColor: isDarkMode 
+                    ? 'rgba(58, 58, 58, 0.9)' 
+                    : 'rgba(233, 236, 239, 0.9)',
+                  padding: { xs: '4px 8px', sm: '2px 6px' },
+                  borderRadius: '4px',
+                  backdropFilter: 'blur(4px)',
+                }}
               >
                 <NoImageIcon sx={{ fontSize: 14, color: 'text.secondary', opacity: 0.7 }} />
                 <Typography 
