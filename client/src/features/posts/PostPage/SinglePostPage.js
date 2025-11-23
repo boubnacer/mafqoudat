@@ -564,19 +564,25 @@ const SinglePostPage = ({
       : image;
   }, [image]);
 
-  // Memoized category icon component for when there's no image
-  const CategoryIconDisplay = useMemo(() => {
-    if (image) return null; // Only show icon when there's no image
+  // Memoized category icons for when there's no image - support multiple categories
+  const categoryIconsData = useMemo(() => {
+    if (image) return []; // Only show icons when there's no image
     
-    const firstCategory = categories[0];
-    if (!firstCategory) return null;
+    if (!categories || categories.length === 0) return [];
     
-    const IconComponent = getCategoryIcon(firstCategory.code);
-    
-    if (!IconComponent) return null;
-    
-    return IconComponent;
-  }, [image, categories]);
+    return categories.map((cat, index) => {
+      const IconComponent = getCategoryIcon(cat.code);
+      const catStyle = categoryStyles[index];
+      
+      if (!IconComponent) return null;
+      
+      return {
+        IconComponent,
+        style: catStyle,
+        code: cat.code
+      };
+    }).filter(Boolean); // Remove null entries
+  }, [image, categories, categoryStyles]);
 
   // Sanitize contactPreferences and additionalContact to prevent React errors
   const sanitizedContactPreferences = useMemo(() => {
@@ -647,7 +653,7 @@ const SinglePostPage = ({
                   alt={categoryDisplayName || 'Post Image'}
                   fallback={noImageSvg}
                 />
-              ) : CategoryIconDisplay ? (
+              ) : categoryIconsData.length > 0 ? (
                 <Box
                   sx={{
                     display: 'flex',
@@ -661,13 +667,59 @@ const SinglePostPage = ({
                     zIndex: 1,
                   }}
                 >
-                  <CategoryIconDisplay
-                    sx={{
-                      fontSize: { xs: '120px', sm: '150px', md: '180px' },
-                      color: categoryStyles[0]?.main || theme.palette.text.secondary,
-                      opacity: 0.8,
-                    }}
-                  />
+                  {categoryIconsData.length === 1 ? (() => {
+                    const IconComponent = categoryIconsData[0].IconComponent;
+                    return (
+                      <IconComponent
+                        sx={{
+                          fontSize: { xs: '120px', sm: '150px', md: '180px' },
+                          color: categoryIconsData[0].style?.main || theme.palette.text.secondary,
+                          opacity: 0.8,
+                        }}
+                      />
+                    );
+                  })() : (
+                    // Multiple icons - grid layout
+                    <Box
+                      sx={{
+                        display: 'grid',
+                        gridTemplateColumns: categoryIconsData.length === 2 ? 'repeat(2, 1fr)' : 
+                                           categoryIconsData.length === 3 ? 'repeat(2, 1fr)' : 
+                                           'repeat(2, 1fr)',
+                        gap: { xs: 2, sm: 2.5, md: 3 },
+                        width: '100%',
+                        maxWidth: { xs: '300px', sm: '360px', md: '400px' },
+                        alignItems: 'center',
+                        justifyContent: 'center',
+                      }}
+                    >
+                      {categoryIconsData.slice(0, 4).map((iconData, idx) => {
+                        const IconComponent = iconData.IconComponent;
+                        return (
+                          <Box
+                            key={iconData.code || idx}
+                            sx={{
+                              display: 'flex',
+                              alignItems: 'center',
+                              justifyContent: 'center',
+                              backgroundColor: alpha(iconData.style?.background || '#f5f5f5', 0.6),
+                              borderRadius: '16px',
+                              padding: { xs: 2, sm: 2.5, md: 3 },
+                              border: `2px solid ${alpha(iconData.style?.main || '#2196F3', 0.3)}`,
+                            }}
+                          >
+                            <IconComponent
+                              sx={{
+                                fontSize: { xs: '56px', sm: '72px', md: '80px' },
+                                color: iconData.style?.main || theme.palette.text.secondary,
+                                opacity: 0.9,
+                              }}
+                            />
+                          </Box>
+                        );
+                      })}
+                    </Box>
+                  )}
                 </Box>
               ) : null}
               
