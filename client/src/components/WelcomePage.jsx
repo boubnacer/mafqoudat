@@ -846,7 +846,8 @@ const WelcomePage = () => {
             </Button>
           </Box>
 
-          <Typography 
+          {/* Hidden: Website features section - removed to reduce confusion for first-time users */}
+          {/* <Typography 
             variant="subtitle1" 
             align="center"
             sx={{ 
@@ -972,9 +973,10 @@ const WelcomePage = () => {
                 </Box>
               </FeatureCard>
             </Grid>
-          </Grid>
+          </Grid> */}
 
-          <Box sx={{ mt: 4, textAlign: 'center' }}>
+          {/* Hidden: Already have an account section - removed to reduce confusion for first-time users */}
+          {/* <Box sx={{ mt: 4, textAlign: 'center' }}>
             <Typography 
               variant="subtitle1" 
               align="center"
@@ -1051,7 +1053,7 @@ const WelcomePage = () => {
                 {t('signup')}
               </Button>
             </Box>
-          </Box>
+          </Box> */}
         </CardContent>
       </WelcomeCard>
     </PageContainer>
