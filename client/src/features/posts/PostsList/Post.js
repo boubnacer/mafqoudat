@@ -35,7 +35,7 @@ import { getOptimizedImageUrl } from "../../../utils/cloudinaryUtils";
 import { formatDistanceToNow } from 'date-fns';
 import { ar, fr, enUS } from 'date-fns/locale';
 import RenderIcon from "../../../components/RenderIcon";
-import { getCategoryConfig } from "../../../config/categories";
+import { getCategoryConfig, getCategoryIcon } from "../../../config/categories";
 import LazyCardMedia from "../../../components/LazyCardMedia";
 
 // Get the API base URL for image construction
@@ -276,11 +276,26 @@ const Post = ({ post, viewMode = "grid" }) => {
 
   // Memoized image URL computation - only use Cloudinary if image exists and is uploaded by user
   const imageUrl = useMemo(() => {
-    if (!post?.image) return noImageSvg;
+    if (!post?.image) return null; // Return null instead of noImageSvg
     return post.image.startsWith('http') 
       ? getOptimizedImageUrl(post.image, 'card') 
       : `${API_BASE_URL}/${post.image}`;
   }, [post?.image]);
+
+  // Memoized category icon component for when there's no image
+  const CategoryIconDisplay = useMemo(() => {
+    if (post?.image) return null; // Only show icon when there's no image
+    
+    const firstCategory = categories[0];
+    if (!firstCategory) return null;
+    
+    const IconComponent = getCategoryIcon(firstCategory.code);
+    const catStyle = categoryStyles[0];
+    
+    if (!IconComponent) return null;
+    
+    return IconComponent;
+  }, [post?.image, categories, categoryStyles]);
 
   // Memoized error handler for image
   const handleImageError = useCallback((e) => {
@@ -327,53 +342,45 @@ const Post = ({ post, viewMode = "grid" }) => {
             height: { xs: 160, sm: 180 },
             flexShrink: 0,
             position: 'relative',
-            backgroundColor: 'transparent'
+            backgroundColor: post?.image ? 'transparent' : (categoryStyles[0]?.background || (theme.palette.mode === 'dark' ? '#1a1a1a' : '#f5f5f5')),
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'center',
           }}>
-            <LazyCardMedia
-              component="img"
-              sx={{ 
-                height: '100%',
-                width: '100%',
-                objectFit: post?.image ? 'cover' : 'contain',
-                objectPosition: 'center',
-                backgroundColor: post?.image ? 'transparent' : (theme.palette.mode === 'dark' ? '#000' : '#fff'),
-              }}
-              image={imageUrl}
-              alt={categoryName || 'Item Image'}
-              fallback={noImageSvg}
-              onError={handleImageError}
-            />
-            
-            {/* No Image Overlay for List View */}
-            {!post?.image && (
+            {post?.image && imageUrl ? (
+              <LazyCardMedia
+                component="img"
+                sx={{ 
+                  height: '100%',
+                  width: '100%',
+                  objectFit: 'cover',
+                  objectPosition: 'center',
+                }}
+                image={imageUrl}
+                alt={categoryName || 'Item Image'}
+                fallback={noImageSvg}
+                onError={handleImageError}
+              />
+            ) : CategoryIconDisplay ? (
               <Box
                 sx={{
-                  position: 'absolute',
-                  top: '50%',
-                  left: '50%',
-                  transform: 'translate(-50%, -50%)',
-                  zIndex: 3,
-                  textAlign: 'center',
-                  backgroundColor: alpha(theme.palette.mode === 'dark' ? '#000' : '#fff', 0.9),
-                  borderRadius: '12px',
-                  padding: '12px 16px',
-                  backdropFilter: 'blur(10px)',
-                  border: `1px solid ${alpha(theme.palette.mode === 'dark' ? '#fff' : '#000', 0.1)}`,
-                  boxShadow: '0 4px 12px rgba(0,0,0,0.15)',
+                  display: 'flex',
+                  flexDirection: 'column',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                  gap: 1,
+                  padding: 2,
                 }}
               >
-                <Typography
+                <CategoryIconDisplay
                   sx={{
-                    color: theme.palette.mode === 'dark' ? '#fff' : '#000',
-                    fontSize: { xs: '12px', sm: '13px' },
-                    fontWeight: 600,
-                    lineHeight: 1.2,
+                    fontSize: { xs: '64px', sm: '80px' },
+                    color: categoryStyles[0]?.main || theme.palette.text.secondary,
+                    opacity: 0.8,
                   }}
-                >
-                  {t('noImageAvailable')}
-                </Typography>
+                />
               </Box>
-            )}
+            ) : null}
           </Box>
 
           {/* Content Section */}
@@ -540,53 +547,50 @@ const Post = ({ post, viewMode = "grid" }) => {
         }}
       >
         {/* Image Section with Overlays */}
-        <Box sx={{ position: 'relative', height: { xs: '260px', sm: '200px' }, backgroundColor: 'transparent' }}>
-          <LazyCardMedia
-            component="img"
-            sx={{
-              height: '100%',
-              width: '100%',
-              objectFit: post?.image ? 'cover' : 'contain',
-              objectPosition: 'center',
-              zIndex: 1, // Base layer for image
-              backgroundColor: post?.image ? 'transparent' : (theme.palette.mode === 'dark' ? '#000' : '#fff'),
-            }}
-            image={imageUrl}
-            alt={categoryName || 'Item Image'}
-            fallback={noImageSvg}
-            onError={handleImageError}
-          />
-          
-          {/* No Image Overlay for Grid View */}
-          {!post?.image && (
+        <Box sx={{ 
+          position: 'relative', 
+          height: { xs: '260px', sm: '200px' }, 
+          backgroundColor: post?.image ? 'transparent' : (categoryStyles[0]?.background || (theme.palette.mode === 'dark' ? '#1a1a1a' : '#f5f5f5')),
+          display: 'flex',
+          alignItems: 'center',
+          justifyContent: 'center',
+        }}>
+          {post?.image && imageUrl ? (
+            <LazyCardMedia
+              component="img"
+              sx={{
+                height: '100%',
+                width: '100%',
+                objectFit: 'cover',
+                objectPosition: 'center',
+                zIndex: 1, // Base layer for image
+              }}
+              image={imageUrl}
+              alt={categoryName || 'Item Image'}
+              fallback={noImageSvg}
+              onError={handleImageError}
+            />
+          ) : CategoryIconDisplay ? (
             <Box
               sx={{
-                position: 'absolute',
-                top: '50%',
-                left: '50%',
-                transform: 'translate(-50%, -50%)',
-                zIndex: 3,
-                textAlign: 'center',
-                backgroundColor: alpha(theme.palette.mode === 'dark' ? '#000' : '#fff', 0.9),
-                borderRadius: '12px',
-                padding: '12px 16px',
-                backdropFilter: 'blur(10px)',
-                border: `1px solid ${alpha(theme.palette.mode === 'dark' ? '#fff' : '#000', 0.1)}`,
-                boxShadow: '0 4px 12px rgba(0,0,0,0.15)',
+                display: 'flex',
+                flexDirection: 'column',
+                alignItems: 'center',
+                justifyContent: 'center',
+                gap: 1,
+                padding: 2,
+                zIndex: 1,
               }}
             >
-              <Typography
+              <CategoryIconDisplay
                 sx={{
-                  color: theme.palette.mode === 'dark' ? '#fff' : '#000',
-                  fontSize: { xs: '12px', sm: '13px' },
-                  fontWeight: 600,
-                  lineHeight: 1.2,
+                  fontSize: { xs: '80px', sm: '100px' },
+                  color: categoryStyles[0]?.main || theme.palette.text.secondary,
+                  opacity: 0.8,
                 }}
-              >
-                {t('noImageAvailable')}
-              </Typography>
+              />
             </Box>
-          )}
+          ) : null}
           
 
 
@@ -687,19 +691,21 @@ const Post = ({ post, viewMode = "grid" }) => {
             </Box>
           </Box>
 
-          {/* Gradient Overlay */}
-          <Box
-            sx={{
-              position: 'absolute',
-              top: 0,
-              left: 0,
-              right: 0,
-              bottom: 0,
-              background: 'linear-gradient(180deg, rgba(0,0,0,0.1) 0%, rgba(0,0,0,0.4) 100%)',
-              pointerEvents: 'none',
-              zIndex: 2, // Above image, below badges
-            }}
-          />
+          {/* Gradient Overlay - Only show when there's an image */}
+          {post?.image && imageUrl && (
+            <Box
+              sx={{
+                position: 'absolute',
+                top: 0,
+                left: 0,
+                right: 0,
+                bottom: 0,
+                background: 'linear-gradient(180deg, rgba(0,0,0,0.1) 0%, rgba(0,0,0,0.4) 100%)',
+                pointerEvents: 'none',
+                zIndex: 2, // Above image, below badges
+              }}
+            />
+          )}
         </Box>
 
         {/* Content Section */}
