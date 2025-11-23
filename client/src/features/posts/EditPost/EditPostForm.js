@@ -1087,11 +1087,7 @@ if (typeof document !== 'undefined') {
       setSubmitting(true);
 
       // Prepare data for submission (match API expectations)
-      // Support both new categories array and legacy single category
-      const selectedCategories = values.categories && Array.isArray(values.categories) && values.categories.length > 0
-        ? values.categories
-        : (values.category ? [values.category] : []);
-      
+      // selectedCategories is already declared above in validation section
       const postData = {
         user: post.user, // Use the original post's user ID to avoid validation issues
         country: selectedCountry?._id || values.country,
