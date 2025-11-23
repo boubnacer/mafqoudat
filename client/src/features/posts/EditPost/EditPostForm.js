@@ -379,24 +379,60 @@ if (typeof document !== 'undefined') {
 
   // Initialize selected country from post data
   useEffect(() => {
-    if (post?.country && countries) {
+    if (post?.country && countries && countries.length > 0) {
       const country = countries.find(c => c._id === post.country);
-      if (country) {
+      if (country && (!selectedCountry || selectedCountry._id !== country._id)) {
         setSelectedCountry(country);
       }
     }
-  }, [post?.country, countries]);
+  }, [post?.country, countries, selectedCountry]);
 
-  // Initialize cities when post data is available
+  // Update form values when categories become available
   useEffect(() => {
-    if (post?.country && !selectedCountry) {
-      const country = countries?.find(c => c._id === post.country);
-      if (country) {
-        setSelectedCountry(country);
-        fetchCitiesByCountry(post.country);
+    if (post && categories && categories.length > 0 && setFieldValueCallback) {
+      // Get category IDs from post
+      let categoryIds = [];
+      
+      // Support both new categories array and legacy single category
+      if (post.categories && Array.isArray(post.categories) && post.categories.length > 0) {
+        // New format: categories array
+        categoryIds = post.categories;
+      } else if (post.categoryname && categories.length > 0) {
+        // Legacy format: find category by categoryname
+        const matchingCategory = categories.find(cat => 
+          cat.code === post.categoryname || 
+          cat.labels?.en === post.categoryname ||
+          cat.labels?.fr === post.categoryname ||
+          cat.labels?.ar === post.categoryname
+        );
+        if (matchingCategory) {
+          categoryIds = [matchingCategory._id || matchingCategory.id];
+        }
+      } else if (post.category) {
+        // Fallback to direct category field
+        categoryIds = [post.category];
+      }
+      
+      // Verify that the category IDs exist in the categories array and update form
+      if (categoryIds.length > 0) {
+        const validCategoryIds = categoryIds.filter(catId => 
+          categories.some(cat => (cat.id || cat._id) === catId)
+        );
+        if (validCategoryIds.length > 0) {
+          setFieldValueCallback('categories', validCategoryIds);
+          // Also update legacy category field
+          setFieldValueCallback('category', validCategoryIds[0]);
+        }
       }
     }
-  }, [post?.country, countries, selectedCountry, fetchCitiesByCountry]);
+  }, [post, categories, setFieldValueCallback]);
+
+  // Update country in form when selectedCountry changes
+  useEffect(() => {
+    if (selectedCountry && selectedCountry._id && setFieldValueCallback) {
+      setFieldValueCallback('country', selectedCountry._id);
+    }
+  }, [selectedCountry, setFieldValueCallback]);
 
   // Set the city value when cities are loaded and we have a post city
   useEffect(() => {
@@ -441,12 +477,12 @@ if (typeof document !== 'undefined') {
     }
   }, [post?.city, post?.cityName, post?.cityLabels, availableCities, setFieldValueCallback, currentLanguage]);
 
-  // Update cities when country changes
+  // Initialize cities when country is selected
   useEffect(() => {
-    if (selectedCountry) {
+    if (selectedCountry && selectedCountry._id) {
       fetchCitiesByCountry(selectedCountry._id);
     }
-  }, [selectedCountry, fetchCitiesByCountry]);
+  }, [selectedCountry?._id, fetchCitiesByCountry]);
 
   // Re-fetch cities when language changes (with debouncing to prevent rate limits)
   useEffect(() => {
@@ -879,19 +915,17 @@ if (typeof document !== 'undefined') {
   const initialFormState = useMemo(() => {
     if (!post) return {};
     
-    return {
-    country: post?.country || "",
-    contact: post?.contact || "",
-    categories: (() => {
+    // Helper function to get category IDs from post
+    const getCategoryIds = () => {
       // Support both new categories array and legacy single category
       if (post?.categories && Array.isArray(post.categories) && post.categories.length > 0) {
-        // New format: categories array
+        // New format: categories array - return IDs directly
         return post.categories;
       } else {
         // Legacy format: single category - convert to array
         let categoryValue = "";
         
-        if (post?.categoryname && categories) {
+        if (post?.categoryname && categories && categories.length > 0) {
           // Find category by matching the categoryname (code) with the categories array
           const matchingCategory = categories.find(cat => 
             cat.code === post.categoryname || 
@@ -912,7 +946,12 @@ if (typeof document !== 'undefined') {
         // Return as array for new format, empty array if no category
         return categoryValue ? [categoryValue] : [];
       }
-    })(),
+    };
+    
+    return {
+    country: post?.country || "",
+    contact: post?.contact || "",
+    categories: getCategoryIds(),
     category: (() => {
       // Keep for backward compatibility during transition
       // Try to find the category by matching the categoryname with the categories array
