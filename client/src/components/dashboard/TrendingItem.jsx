@@ -719,7 +719,7 @@ const TrendingItem = ({ trend, isLoading }) => {
                       : '"Inter", "Segoe UI", "Roboto", "Helvetica", "Arial", sans-serif',
                   }}
                 >
-                  {t('noImage')}
+                  {t('postHasNoImage')}
                 </Typography>
               </Box>
             )}

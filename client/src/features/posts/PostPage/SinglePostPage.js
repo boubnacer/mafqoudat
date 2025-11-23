@@ -845,7 +845,7 @@ const SinglePostPage = ({
                               opacity: 0.7,
                             }}
                           >
-                            {t('noImage')}
+                            {t('postHasNoImage')}
                           </Typography>
                         </Box>
                       )}

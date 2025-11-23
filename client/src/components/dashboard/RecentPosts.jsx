@@ -475,7 +475,7 @@ const RecentPosts = ({ _id, categoryname, exactLocation, image, createdAt, count
                     fontWeight: 600,
                   }}
                 >
-                  {t('noImage')}
+                  {t('postHasNoImage')}
                 </Typography>
               </Box>
             )}
