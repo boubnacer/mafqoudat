@@ -674,16 +674,19 @@ const TrendingItem = ({ trend, isLoading }) => {
             sx={{
               position: 'absolute',
               bottom: '16px',
-              left: '16px',
-              right: '16px',
+              left: currentLanguage === 'ar' ? 'auto' : '16px',
+              right: currentLanguage === 'ar' ? '16px' : 'auto',
               zIndex: 10,
-              display: 'flex',
-              alignItems: 'center',
-              justifyContent: 'space-between',
+              display: { xs: 'grid', sm: 'flex' },
+              gridTemplateColumns: { xs: '1fr' },
+              flexDirection: { sm: 'row' },
+              alignItems: { xs: 'stretch', sm: 'center' },
+              justifyContent: { sm: 'flex-start' },
               gap: 1,
+              maxWidth: { xs: 'calc(100% - 32px)', sm: 'auto' },
             }}
           >
-            {/* Created Date Badge - Left in LTR, Right in RTL */}
+            {/* Created Date Badge */}
             <Box
               sx={{
                 backgroundColor: theme.palette.mode === 'dark' 
@@ -712,7 +715,7 @@ const TrendingItem = ({ trend, isLoading }) => {
               }} />
               {`${t('posted')} ${created}`}
             </Box>
-            {/* No Image Indicator - Right in LTR, Left in RTL */}
+            {/* No Image Indicator */}
             {!image && (
               <Box
                 sx={{
