@@ -128,6 +128,9 @@ const EditPostForm = ({ post, user, countries, flOptions, categories }) => {
   const [showImageDialog, setShowImageDialog] = useState(false);
   const [showImageWarningDialog, setShowImageWarningDialog] = useState(false);
   const [proceedCountdown, setProceedCountdown] = useState(0);
+  
+  // Track if categories have been initialized to prevent resetting user changes
+  const categoriesInitializedRef = useRef(false);
 
   // Click outside handler to close city dropdown
   useEffect(() => {
@@ -387,9 +390,16 @@ if (typeof document !== 'undefined') {
     }
   }, [post?.country, countries, selectedCountry]);
 
-  // Update form values when categories become available
+  // Store setFieldValue in a ref to avoid dependency issues
+  const setFieldValueRef = useRef(null);
+  
+  // Update form values when categories become available (only on initial load)
   useEffect(() => {
-    if (post && categories && categories.length > 0 && setFieldValueCallback) {
+    // Only initialize categories once when post and categories are first available
+    // Don't reset if user has already made changes
+    const setFieldValue = setFieldValueRef.current || setFieldValueCallback;
+    
+    if (post && categories && categories.length > 0 && setFieldValue && !categoriesInitializedRef.current) {
       // Get category IDs from post
       let categoryIds = [];
       
@@ -425,13 +435,20 @@ if (typeof document !== 'undefined') {
           categories.some(cat => String(cat.id || cat._id) === catId)
         );
         if (validCategoryIds.length > 0) {
-          setFieldValueCallback('categories', validCategoryIds);
+          setFieldValue('categories', validCategoryIds);
           // Also update legacy category field
-          setFieldValueCallback('category', validCategoryIds[0]);
+          setFieldValue('category', validCategoryIds[0]);
+          // Mark as initialized to prevent resetting user changes
+          categoriesInitializedRef.current = true;
         }
       }
     }
   }, [post, categories, setFieldValueCallback]);
+  
+  // Reset initialization flag when post changes (user navigates to different post)
+  useEffect(() => {
+    categoriesInitializedRef.current = false;
+  }, [post?._id]);
 
   // Update country in form when selectedCountry changes
   useEffect(() => {
@@ -1509,8 +1526,9 @@ if (typeof document !== 'undefined') {
           enableReinitialize={true}
         >
           {({ isSubmitting, status, setFieldValue, values }) => {
-            // Store setFieldValue function for use in custom city creation
+            // Store setFieldValue function for use in custom city creation and category initialization
             setSetFieldValueCallback(() => setFieldValue);
+            setFieldValueRef.current = setFieldValue;
             
             // Check if form has changed whenever values change (call directly instead of useEffect)
             checkFormChanged(values);
