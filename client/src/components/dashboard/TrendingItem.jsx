@@ -674,16 +674,15 @@ const TrendingItem = ({ trend, isLoading }) => {
             sx={{
               position: 'absolute',
               bottom: '16px',
-              left: currentLanguage === 'ar' ? 'auto' : '16px',
-              right: currentLanguage === 'ar' ? '16px' : 'auto',
+              left: '16px',
+              right: '16px',
               zIndex: 10,
               display: { xs: 'grid', sm: 'flex' },
               gridTemplateColumns: { xs: '1fr' },
               flexDirection: { sm: 'row' },
               alignItems: { xs: 'stretch', sm: 'center' },
-              justifyContent: { sm: 'flex-start' },
+              justifyContent: { sm: 'space-between' },
               gap: 1,
-              maxWidth: { xs: 'calc(100% - 32px)', sm: 'auto' },
             }}
           >
             {/* Created Date Badge */}
