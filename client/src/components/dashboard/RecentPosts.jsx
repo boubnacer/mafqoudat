@@ -437,12 +437,16 @@ const RecentPosts = ({ _id, categoryname, exactLocation, image, createdAt, count
             sx={{
               position: 'absolute',
               bottom: 12,
-              left: 12,
-              right: 12,
-              display: 'flex',
-              alignItems: 'center',
-              justifyContent: 'space-between',
+              left: currentLanguage === 'ar' ? 'auto' : 12,
+              right: currentLanguage === 'ar' ? 12 : 'auto',
+              zIndex: 10,
+              display: { xs: 'grid', sm: 'flex' },
+              gridTemplateColumns: { xs: '1fr' },
+              flexDirection: { sm: 'row' },
+              alignItems: { xs: 'stretch', sm: 'center' },
+              justifyContent: { sm: 'flex-start' },
               gap: 1,
+              maxWidth: { xs: 'calc(100% - 24px)', sm: 'auto' },
             }}
           >
             {/* Time Badge - Left in LTR, Right in RTL */}
@@ -456,24 +460,26 @@ const RecentPosts = ({ _id, categoryname, exactLocation, image, createdAt, count
                 borderRadius: '8px',
                 backdropFilter: 'blur(10px)',
                 border: `1px solid ${theme.palette.mode === 'dark' ? 'rgba(255,255,255,0.2)' : 'rgba(0,0,0,0.1)'}`,
-                zIndex: 11, // Higher z-index for time badge
+                zIndex: 2,
+                height: { xs: '32px', sm: 'auto' },
+                display: 'flex',
+                alignItems: 'center',
+                gap: 0.5,
               }}
             >
-              <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.5 }}>
-                <TimeIcon sx={{ 
-                  fontSize: { xs: '14px', sm: '12px' }, 
-                  color: theme.palette.mode === 'dark' ? '#fff' : '#333'
-                }} />
-                <Typography
-                  sx={{
-                    color: theme.palette.mode === 'dark' ? '#fff' : '#333',
-                    fontSize: { xs: '14px', sm: '12px' },
-                    fontWeight: 600,
-                  }}
-                >
-                  {created}
-                </Typography>
-              </Box>
+              <TimeIcon sx={{ 
+                fontSize: { xs: '14px', sm: '12px' }, 
+                color: theme.palette.mode === 'dark' ? '#fff' : '#333'
+              }} />
+              <Typography
+                sx={{
+                  color: theme.palette.mode === 'dark' ? '#fff' : '#333',
+                  fontSize: { xs: '14px', sm: '12px' },
+                  fontWeight: 600,
+                }}
+              >
+                {created}
+              </Typography>
             </Box>
             {/* No Image Indicator - Right in LTR, Left in RTL */}
             {!image && (
@@ -487,7 +493,8 @@ const RecentPosts = ({ _id, categoryname, exactLocation, image, createdAt, count
                   borderRadius: '8px',
                   backdropFilter: 'blur(10px)',
                   border: `1px solid ${theme.palette.mode === 'dark' ? 'rgba(255,255,255,0.2)' : 'rgba(0,0,0,0.1)'}`,
-                  zIndex: 11,
+                  zIndex: 2,
+                  height: { xs: '32px', sm: 'auto' },
                   display: 'flex',
                   alignItems: 'center',
                   gap: 0.5,

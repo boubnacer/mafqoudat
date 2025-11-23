@@ -523,9 +523,11 @@ const Post = ({ post, viewMode = "grid" }) => {
                   </Typography>
                 </Box>
                 <Box 
-                  display="flex" 
-                  alignItems="center"
-                  justifyContent="space-between"
+                  display={{ xs: 'grid', sm: 'flex' }}
+                  gridTemplateColumns={{ xs: '1fr' }}
+                  flexDirection={{ sm: 'row' }}
+                  alignItems={{ xs: 'stretch', sm: 'center' }}
+                  justifyContent={{ sm: currentLanguage === 'ar' ? 'flex-end' : 'flex-start' }}
                   width="100%"
                   gap={1}
                 >

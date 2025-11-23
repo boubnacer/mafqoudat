@@ -815,43 +815,73 @@ const SinglePostPage = ({
                   </Typography>
                 </Box>
                 <Box 
-                  display="flex" 
-                  alignItems="center" 
-                  justifyContent="space-between"
+                  display={{ xs: 'grid', sm: 'flex' }}
+                  gridTemplateColumns={{ xs: '1fr' }}
+                  flexDirection={{ sm: 'row' }}
+                  alignItems={{ xs: 'stretch', sm: 'center' }}
+                  justifyContent={{ sm: currentLanguage === 'ar' ? 'flex-end' : 'flex-start' }}
                   width="100%"
                   gap={1.5}
-                  flexWrap="wrap"
                   mb={2}
                 >
-                  {/* Time - Left in LTR, Right in RTL */}
-                  <Box display="flex" alignItems="center" gap={1}>
-                    <TimeIcon sx={{ color: 'text.secondary' }} />
+                  {/* Time Badge - Left in LTR, Right in RTL */}
+                  <Box 
+                    display="flex" 
+                    alignItems="center" 
+                    gap={1}
+                    sx={{
+                      backgroundColor: isDarkMode 
+                        ? alpha('#000', 0.3) 
+                        : alpha('#000', 0.05),
+                      padding: { xs: '8px 12px', sm: '6px 12px' },
+                      borderRadius: '8px',
+                      border: `1px solid ${isDarkMode ? alpha('#fff', 0.1) : alpha('#000', 0.1)}`,
+                    }}
+                  >
+                    <TimeIcon sx={{ 
+                      fontSize: { xs: 18, sm: 16 }, 
+                      color: 'text.secondary' 
+                    }} />
                     <Typography 
                       variant="body2" 
                       color="text.secondary"
                       sx={{ 
                         direction: currentLanguage === 'ar' ? 'rtl' : 'ltr',
-                        fontSize: { xs: '1rem', sm: '0.95rem', md: '0.95rem' }
+                        fontSize: { xs: '0.95rem', sm: '0.9rem', md: '0.9rem' },
+                        fontWeight: 500,
                       }}
                     >
                       {createdDate}
                     </Typography>
                   </Box>
-                  {/* No Image Indicator - Right in LTR, Left in RTL */}
+                  {/* No Image Indicator Badge - Right in LTR, Left in RTL */}
                   {!image && (
                     <Box 
                       display="flex" 
                       alignItems="center" 
                       gap={0.5}
+                      sx={{
+                        backgroundColor: isDarkMode 
+                          ? alpha('#000', 0.3) 
+                          : alpha('#000', 0.05),
+                        padding: { xs: '8px 12px', sm: '6px 12px' },
+                        borderRadius: '8px',
+                        border: `1px solid ${isDarkMode ? alpha('#fff', 0.1) : alpha('#000', 0.1)}`,
+                      }}
                     >
-                      <NoImageIcon sx={{ fontSize: 16, color: 'text.secondary', opacity: 0.7 }} />
+                      <NoImageIcon sx={{ 
+                        fontSize: { xs: 18, sm: 16 }, 
+                        color: 'text.secondary', 
+                        opacity: 0.7 
+                      }} />
                       <Typography 
-                        variant="caption" 
+                        variant="body2" 
                         color="text.secondary"
                         sx={{ 
-                          fontSize: { xs: '0.75rem', sm: '0.7rem' },
+                          fontSize: { xs: '0.85rem', sm: '0.8rem' },
                           direction: currentLanguage === 'ar' ? 'rtl' : 'ltr',
                           opacity: 0.7,
+                          fontWeight: 500,
                         }}
                       >
                         {t('postHasNoImage')}
