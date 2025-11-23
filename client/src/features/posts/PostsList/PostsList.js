@@ -1320,7 +1320,7 @@ const PostsList = () => {
                   ? t('noPostsInCityDescription', { cityName: getCityDisplayName(selectedCity) })
                   : hasActiveFilters
                     ? t('adjustFilters')
-                    : `${t('noPostsInArea')} ${t('tryChangingCountry')}`
+                    : t('noPostsInArea')
             }
             action={
               <Box display="flex" gap={2} flexWrap="wrap" justifyContent="center">
