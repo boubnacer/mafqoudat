@@ -524,19 +524,28 @@ const Post = ({ post, viewMode = "grid" }) => {
                 </Box>
                 <Box 
                   display="flex" 
-                  flexDirection={{ xs: 'column', sm: 'row' }}
-                  alignItems={{ xs: 'flex-start', sm: 'center' }}
-                  gap={{ xs: 0.5, sm: 1 }}
+                  alignItems="center"
+                  justifyContent="space-between"
+                  width="100%"
+                  gap={1}
                 >
-                  {/* No Image Indicator */}
+                  {/* Time - Left in LTR, Right in RTL */}
+                  <Box display="flex" alignItems="center" gap={0.5}>
+                    <TimeIcon sx={{ fontSize: 16, color: 'text.secondary' }} />
+                    <Typography 
+                      variant="body2" 
+                      color="text.secondary"
+                      sx={{ direction: currentLanguage === 'ar' ? 'rtl' : 'ltr' }}
+                    >
+                      {created}
+                    </Typography>
+                  </Box>
+                  {/* No Image Indicator - Right in LTR, Left in RTL */}
                   {!post?.image && (
                     <Box 
                       display="flex" 
                       alignItems="center" 
                       gap={0.5}
-                      sx={{
-                        order: { xs: 0, sm: 1 },
-                      }}
                     >
                       <NoImageIcon sx={{ fontSize: 14, color: 'text.secondary', opacity: 0.7 }} />
                       <Typography 
@@ -552,17 +561,6 @@ const Post = ({ post, viewMode = "grid" }) => {
                       </Typography>
                     </Box>
                   )}
-                  {/* Time */}
-                  <Box display="flex" alignItems="center" gap={0.5}>
-                    <TimeIcon sx={{ fontSize: 16, color: 'text.secondary' }} />
-                    <Typography 
-                      variant="body2" 
-                      color="text.secondary"
-                      sx={{ direction: currentLanguage === 'ar' ? 'rtl' : 'ltr' }}
-                    >
-                      {created}
-                    </Typography>
-                  </Box>
                 </Box>
               </Box>
             </Box>

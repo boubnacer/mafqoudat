@@ -802,70 +802,63 @@ const SinglePostPage = ({
 
               {/* Location and Time Info */}
               <Box sx={{ mb: 3 }}>
-                <Grid container spacing={2}>
-                  <Grid item xs={12} sm={6}>
-                    <Box display="flex" alignItems="center" gap={1} mb={2}>
-                      <Typography 
-                        variant="body2" 
-                        color="text.secondary"
-                        sx={{ 
-                          direction: currentLanguage === 'ar' ? 'rtl' : 'ltr',
-                          fontSize: { xs: '1rem', sm: '0.95rem', md: '0.95rem' }
-                        }}
-                      >
-                        {exactLocation || displayCityName}
-                      </Typography>
-                    </Box>
-                  </Grid>
-                  <Grid item xs={12} sm={6}>
+                <Box display="flex" alignItems="center" gap={1} mb={2}>
+                  <Typography 
+                    variant="body2" 
+                    color="text.secondary"
+                    sx={{ 
+                      direction: currentLanguage === 'ar' ? 'rtl' : 'ltr',
+                      fontSize: { xs: '1rem', sm: '0.95rem', md: '0.95rem' }
+                    }}
+                  >
+                    {exactLocation || displayCityName}
+                  </Typography>
+                </Box>
+                <Box 
+                  display="flex" 
+                  alignItems="center" 
+                  justifyContent="space-between"
+                  width="100%"
+                  gap={1.5}
+                  flexWrap="wrap"
+                  mb={2}
+                >
+                  {/* Time - Left in LTR, Right in RTL */}
+                  <Box display="flex" alignItems="center" gap={1}>
+                    <TimeIcon sx={{ color: 'text.secondary' }} />
+                    <Typography 
+                      variant="body2" 
+                      color="text.secondary"
+                      sx={{ 
+                        direction: currentLanguage === 'ar' ? 'rtl' : 'ltr',
+                        fontSize: { xs: '1rem', sm: '0.95rem', md: '0.95rem' }
+                      }}
+                    >
+                      {createdDate}
+                    </Typography>
+                  </Box>
+                  {/* No Image Indicator - Right in LTR, Left in RTL */}
+                  {!image && (
                     <Box 
                       display="flex" 
-                      flexDirection={{ xs: 'column', sm: 'row' }}
-                      alignItems={{ xs: 'flex-start', sm: 'center' }}
-                      gap={{ xs: 0.5, sm: 1 }}
-                      mb={2}
+                      alignItems="center" 
+                      gap={0.5}
                     >
-                      {/* No Image Indicator */}
-                      {!image && (
-                        <Box 
-                          display="flex" 
-                          alignItems="center" 
-                          gap={0.5}
-                          sx={{
-                            order: { xs: 0, sm: 1 },
-                          }}
-                        >
-                          <NoImageIcon sx={{ fontSize: 16, color: 'text.secondary', opacity: 0.7 }} />
-                          <Typography 
-                            variant="caption" 
-                            color="text.secondary"
-                            sx={{ 
-                              fontSize: { xs: '0.75rem', sm: '0.7rem' },
-                              direction: currentLanguage === 'ar' ? 'rtl' : 'ltr',
-                              opacity: 0.7,
-                            }}
-                          >
-                            {t('postHasNoImage')}
-                          </Typography>
-                        </Box>
-                      )}
-                      {/* Time */}
-                      <Box display="flex" alignItems="center" gap={1}>
-                        <TimeIcon sx={{ color: 'text.secondary' }} />
-                        <Typography 
-                          variant="body2" 
-                          color="text.secondary"
-                          sx={{ 
-                            direction: currentLanguage === 'ar' ? 'rtl' : 'ltr',
-                            fontSize: { xs: '1rem', sm: '0.95rem', md: '0.95rem' }
-                          }}
-                        >
-                          {createdDate}
-                        </Typography>
-                      </Box>
+                      <NoImageIcon sx={{ fontSize: 16, color: 'text.secondary', opacity: 0.7 }} />
+                      <Typography 
+                        variant="caption" 
+                        color="text.secondary"
+                        sx={{ 
+                          fontSize: { xs: '0.75rem', sm: '0.7rem' },
+                          direction: currentLanguage === 'ar' ? 'rtl' : 'ltr',
+                          opacity: 0.7,
+                        }}
+                      >
+                        {t('postHasNoImage')}
+                      </Typography>
                     </Box>
-                  </Grid>
-                </Grid>
+                  )}
+                </Box>
               </Box>
 
               {/* Separator Line */}
