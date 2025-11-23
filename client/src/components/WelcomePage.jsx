@@ -331,7 +331,7 @@ const WelcomePage = () => {
         navigate(redirectUrl);
       } else {
         // Navigate to posts list page
-        navigate('/dash/posts');
+        navigate('/dash');
       }
     }
   };
