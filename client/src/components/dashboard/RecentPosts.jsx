@@ -448,68 +448,32 @@ const RecentPosts = ({ _id, categoryname, exactLocation, image, createdAt, count
               gap: 1,
             }}
           >
-            {/* Time Badge - Left in LTR, Right in RTL */}
-            <Box
-              sx={{
-                backgroundColor: theme.palette.mode === 'dark' 
-                  ? 'rgba(0,0,0,0.7)' 
-                  : 'rgba(255,255,255,0.9)',
-                color: theme.palette.mode === 'dark' ? '#fff' : '#333',
-                padding: { xs: '4px 8px', sm: '2px 6px' },
-                borderRadius: '8px',
-                backdropFilter: 'blur(10px)',
-                border: `1px solid ${theme.palette.mode === 'dark' ? 'rgba(255,255,255,0.2)' : 'rgba(0,0,0,0.1)'}`,
-                zIndex: 2,
-                height: { xs: '32px', sm: 'auto' },
-                display: 'flex',
-                alignItems: 'center',
-                gap: 0.5,
-              }}
-            >
-              <TimeIcon sx={{ 
-                fontSize: { xs: '14px', sm: '14px' }, 
-                color: theme.palette.mode === 'dark' ? '#fff' : '#333'
-              }} />
-              <Typography
-                sx={{
-                  color: theme.palette.mode === 'dark' ? '#fff' : '#333',
-                  fontSize: { xs: '14px', sm: '11px' },
-                  fontWeight: { xs: 600, sm: 500 },
-                }}
+            {/* Time - Left in LTR, Right in RTL */}
+            <Box display="flex" alignItems="center" gap={0.5}>
+              <TimeIcon sx={{ fontSize: 16, color: 'text.secondary' }} />
+              <Typography 
+                variant="body2" 
+                color="text.secondary"
+                sx={{ direction: currentLanguage === 'ar' ? 'rtl' : 'ltr' }}
               >
                 {created}
               </Typography>
             </Box>
             {/* No Image Indicator - Right in LTR, Left in RTL */}
             {!image && (
-              <Box
-                sx={{
-                  backgroundColor: theme.palette.mode === 'dark' 
-                    ? 'rgba(0,0,0,0.7)' 
-                    : 'rgba(255,255,255,0.9)',
-                  color: theme.palette.mode === 'dark' ? '#fff' : '#333',
-                  padding: { xs: '4px 8px', sm: '2px 6px' },
-                  borderRadius: '8px',
-                  backdropFilter: 'blur(10px)',
-                  border: `1px solid ${theme.palette.mode === 'dark' ? 'rgba(255,255,255,0.2)' : 'rgba(0,0,0,0.1)'}`,
-                  zIndex: 2,
-                  height: { xs: '32px', sm: 'auto' },
-                  display: 'flex',
-                  alignItems: 'center',
-                  gap: 0.5,
-                }}
+              <Box 
+                display="flex" 
+                alignItems="center" 
+                gap={0.5}
               >
-                <NoImageIcon sx={{ 
-                  fontSize: { xs: '12px', sm: '12px' }, 
-                  color: theme.palette.mode === 'dark' ? '#fff' : '#333',
-                  opacity: { xs: 0.8, sm: 0.7 },
-                }} />
-                <Typography
-                  sx={{
-                    color: theme.palette.mode === 'dark' ? '#fff' : '#333',
-                    fontSize: { xs: '11px', sm: '11px' },
-                    fontWeight: { xs: 600, sm: 500 },
-                    opacity: { xs: 1, sm: 0.7 },
+                <NoImageIcon sx={{ fontSize: 14, color: 'text.secondary', opacity: 0.7 }} />
+                <Typography 
+                  variant="caption" 
+                  color="text.secondary"
+                  sx={{ 
+                    fontSize: '11px',
+                    direction: currentLanguage === 'ar' ? 'rtl' : 'ltr',
+                    opacity: 0.7,
                   }}
                 >
                   {t('postHasNoImage')}
