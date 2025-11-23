@@ -30,7 +30,8 @@ import {
   Card,
   CardMedia,
   CardActions,
-  Chip
+  Chip,
+  Autocomplete
 } from "@mui/material";
 import { 
   LocationOn, 
@@ -167,7 +168,13 @@ const EditPostForm = ({ post, user, countries, flOptions, categories }) => {
       const baseUrl = process.env.REACT_APP_API_URL || "http://localhost:3500";
       const url = `${baseUrl}/cities-public?countryId=${countryId}&language=${currentLanguage || 'en'}`;
       
-      const response = await fetch(url);
+      // Include Authorization header if token exists (needed for admin bypass during maintenance)
+      const headers = {};
+      if (token) {
+        headers['Authorization'] = `Bearer ${token}`;
+      }
+      
+      const response = await fetch(url, { headers });
       const data = await response.json();
       
       if (data.success) {
@@ -182,7 +189,7 @@ const EditPostForm = ({ post, user, countries, flOptions, categories }) => {
     } finally {
       setLoadingCities(false);
     }
-  }, [currentLanguage]);
+  }, [currentLanguage, token]);
 
   // New function to search cities using hybrid search (from NewPostForm)
   const searchCitiesHybrid = useCallback(async (searchQuery, countryCode) => {
@@ -190,30 +197,52 @@ const EditPostForm = ({ post, user, countries, flOptions, categories }) => {
       if (!searchQuery || searchQuery.length < 2) {
         return [];
       }
-
-      const baseUrl = process.env.REACT_APP_API_URL || "http://localhost:3500";
-      const url = `${baseUrl}/cities/search?q=${encodeURIComponent(searchQuery)}&language=${currentLanguage || 'en'}&countryCode=${countryCode}&limit=10`;
       
-      const response = await fetch(url);
+      // Ensure countryCode is valid (2 uppercase letters) or null
+      const validCountryCode = countryCode && countryCode.length === 2 
+        ? countryCode.toUpperCase() 
+        : null;
+      
+      const baseUrl = process.env.REACT_APP_API_URL || "http://localhost:3500";
+      let url = `${baseUrl}/cities/search?q=${encodeURIComponent(searchQuery)}&language=${currentLanguage || 'en'}&limit=10`;
+      
+      // Only add countryCode if it's valid
+      if (validCountryCode) {
+        url += `&countryCode=${validCountryCode}`;
+      }
+      
+      console.log(`🔍 Hybrid search: "${searchQuery}" in ${validCountryCode || 'all countries'} (${currentLanguage || 'en'})`);
+      
+      // Include Authorization header if token exists (needed for admin bypass during maintenance)
+      const headers = {};
+      if (token) {
+        headers['Authorization'] = `Bearer ${token}`;
+      }
+      
+      const response = await fetch(url, { headers });
+      
+      if (!response.ok) {
+        console.error(`❌ Search API error: ${response.status} ${response.statusText}`);
+        const errorText = await response.text();
+        console.error('Error response:', errorText);
+        return [];
+      }
+      
       const data = await response.json();
       
       if (data.success) {
-        // Ensure each city has fallback labels
-        return data.data.map(city => ({
-          ...city,
-          fallbackLabels: city.fallbackLabels || {
-            en: city.labels?.en || city.label || city.name || city.code,
-            fr: city.labels?.fr || city.labels?.en || city.label || city.name || city.code,
-            ar: city.labels?.ar || city.labels?.en || city.label || city.name || city.code
-          }
-        }));
+        console.log(`✅ Hybrid search found ${data.data?.length || 0} cities`);
+        return data.data || [];
+      } else {
+        console.warn(`⚠️ Search API returned success=false:`, data.message);
+        return [];
       }
-      return [];
     } catch (error) {
-      console.error('City search error:', error.message);
+      console.error('❌ City search error:', error.message);
+      console.error('Error details:', error);
       return [];
     }
-  }, [currentLanguage]);
+  }, [currentLanguage, token]);
 
   // Traditional city search function (fallback)
   const searchCitiesTraditional = useCallback(async (searchQuery, countryId) => {
@@ -221,27 +250,28 @@ const EditPostForm = ({ post, user, countries, flOptions, categories }) => {
       const baseUrl = process.env.REACT_APP_API_URL || "http://localhost:3500";
       const url = `${baseUrl}/cities/search-name?query=${encodeURIComponent(searchQuery)}&countryId=${countryId}&limit=10`;
       
-      const response = await fetch(url);
+      // Include Authorization header if token exists (needed for admin bypass during maintenance)
+      const headers = {};
+      if (token) {
+        headers['Authorization'] = `Bearer ${token}`;
+      }
+      
+      const response = await fetch(url, { headers });
       const data = await response.json();
       
       if (data.success) {
-        // Transform traditional results to match hybrid format with fallback labels
+        // Transform traditional results to match hybrid format
         return data.data.map(city => ({
           ...city,
           source: 'database',
-          _id: city._id,
-          fallbackLabels: {
-            en: city.labels?.en || city.label || city.name || city.code,
-            fr: city.labels?.fr || city.labels?.en || city.label || city.name || city.code,
-            ar: city.labels?.ar || city.labels?.en || city.label || city.name || city.code
-          }
+          _id: city._id
         }));
       }
       return [];
     } catch (error) {
       return [];
     }
-  }, []);
+  }, [token]);
 
   // Inject CSS styles for loading animations
   useEffect(() => {
@@ -663,8 +693,21 @@ if (typeof document !== 'undefined') {
       setShowCityDropdown(true);
     }
     
-    // Get country code from selectedCountry object
-    const countryCode = selectedCountry?.code || selectedCountry?.labels?.en || selectedCountry?.names?.en;
+    // Get country code from selectedCountry object - must be ISO code (e.g., 'MA', 'EG')
+    // The code should be a 2-letter ISO country code
+    let countryCode = selectedCountry?.code;
+    
+    // Ensure countryCode is a valid ISO code (2 uppercase letters)
+    if (countryCode && typeof countryCode === 'string' && countryCode.length === 2) {
+      countryCode = countryCode.toUpperCase();
+    } else {
+      // Invalid or missing country code
+      console.warn('⚠️ Invalid or missing country code:', {
+        code: selectedCountry?.code,
+        country: selectedCountry
+      });
+      countryCode = null;
+    }
     
     if (query.length >= 2 && selectedCountry?._id) {
       setIsSearching(true);
@@ -750,6 +793,48 @@ if (typeof document !== 'undefined') {
     setShowCityDropdown(!showCityDropdown);
   };
 
+  // Handle custom city name change
+  const handleCustomCityChange = (event) => {
+    setCustomCityName(event.target.value);
+  };
+
+  // Create custom city in backend
+  const createCustomCity = async (cityName, countryId) => {
+    try {
+      const baseUrl = process.env.REACT_APP_API_URL || "http://localhost:3500";
+      const headers = {
+        'Content-Type': 'application/json',
+      };
+      
+      // Add authentication token if available
+      if (token) {
+        headers['Authorization'] = `Bearer ${token}`;
+      }
+      
+      const response = await fetch(`${baseUrl}/cities/dynamic`, {
+        method: 'POST',
+        headers,
+        body: JSON.stringify({
+          cityName: cityName.trim(),
+          countryId: countryId,
+          sourceLanguage: currentLanguage || 'en'
+        })
+      });
+
+      const data = await response.json();
+      
+      if (data.success) {
+        return data.data; // Return the created city object
+      } else {
+        console.error('Failed to create custom city:', data.message);
+        throw new Error(data.message || 'Failed to create custom city');
+      }
+    } catch (error) {
+      console.error('Error creating custom city:', error);
+      throw error;
+    }
+  };
+
   // Helper function to get found/lost type from ID
   const getFoundLostType = (foundLostId) => {
     const flOption = flOptions.find(option => option._id === foundLostId);
@@ -797,7 +882,39 @@ if (typeof document !== 'undefined') {
     return {
     country: post?.country || "",
     contact: post?.contact || "",
+    categories: (() => {
+      // Support both new categories array and legacy single category
+      if (post?.categories && Array.isArray(post.categories) && post.categories.length > 0) {
+        // New format: categories array
+        return post.categories;
+      } else {
+        // Legacy format: single category - convert to array
+        let categoryValue = "";
+        
+        if (post?.categoryname && categories) {
+          // Find category by matching the categoryname (code) with the categories array
+          const matchingCategory = categories.find(cat => 
+            cat.code === post.categoryname || 
+            cat.labels?.en === post.categoryname ||
+            cat.labels?.fr === post.categoryname ||
+            cat.labels?.ar === post.categoryname
+          );
+          if (matchingCategory) {
+            categoryValue = matchingCategory._id || matchingCategory.id;
+          }
+        }
+        
+        // Fallback to direct category field
+        if (!categoryValue) {
+          categoryValue = post?.category || "";
+        }
+        
+        // Return as array for new format, empty array if no category
+        return categoryValue ? [categoryValue] : [];
+      }
+    })(),
     category: (() => {
+      // Keep for backward compatibility during transition
       // Try to find the category by matching the categoryname with the categories array
       let categoryValue = "";
       
@@ -895,7 +1012,12 @@ if (typeof document !== 'undefined') {
         missingFields.push(t('foundOrLost'));
         newFieldErrors.foundLost = t('required');
       }
-      if (!values.category) {
+      // Validate categories - support both new categories array and legacy single category
+      const selectedCategories = values.categories && Array.isArray(values.categories) && values.categories.length > 0
+        ? values.categories
+        : (values.category ? [values.category] : []);
+      
+      if (selectedCategories.length === 0) {
         missingFields.push(t('category'));
         newFieldErrors.category = t('required');
       }
@@ -965,10 +1087,16 @@ if (typeof document !== 'undefined') {
       setSubmitting(true);
 
       // Prepare data for submission (match API expectations)
+      // Support both new categories array and legacy single category
+      const selectedCategories = values.categories && Array.isArray(values.categories) && values.categories.length > 0
+        ? values.categories
+        : (values.category ? [values.category] : []);
+      
       const postData = {
         user: post.user, // Use the original post's user ID to avoid validation issues
         country: selectedCountry?._id || values.country,
-        category: values.category,
+        categories: selectedCategories, // New: array of category IDs
+        category: selectedCategories.length > 0 ? selectedCategories[0] : null, // Legacy: first category for backward compatibility
         foundLost: values.foundLost,
         exactLocation: values.exactLocation,
         mainDate: values.exactDate || "", // Add mainDate field
@@ -1447,7 +1575,7 @@ if (typeof document !== 'undefined') {
 
                 <Box>
                   <FormLabel 
-                    htmlFor="category" 
+                    htmlFor="categories" 
                     sx={{ 
                       mb: 1, 
                       display: "block", 
@@ -1461,13 +1589,120 @@ if (typeof document !== 'undefined') {
                       : t('specifyItemTypeFound')
                     } *
                   </FormLabel>
-                  <SelectOption 
-                    name="category" 
-                    options={categories} 
-                    data-testid="category"
-                    error={!!fieldErrors.category}
-                    helperText={fieldErrors.category}
-                    onErrorClear={clearFieldError}
+                  <Typography 
+                    variant="caption" 
+                    sx={{ 
+                      mb: 1, 
+                      display: "block", 
+                      fontSize: '1rem',
+                      color: theme.palette.mode === 'dark' ? 'rgba(255,255,255,0.7)' : 'rgba(0,0,0,0.6)',
+                      fontWeight: 500
+                    }}
+                  >
+                    {currentLanguage === 'ar' 
+                      ? 'يمكنك اختيار عدة فئات (مثال: محفظة، أوراق، بطاقة هوية)'
+                      : currentLanguage === 'fr'
+                        ? 'Vous pouvez sélectionner plusieurs catégories (ex: portefeuille, papiers, carte d\'identité)'
+                        : 'You can select multiple categories (e.g., wallet, papers, ID card)'
+                    }
+                  </Typography>
+                  <Autocomplete
+                    multiple
+                    options={categories || []}
+                    getOptionLabel={(option) => {
+                      if (typeof option === 'string') {
+                        // If option is just an ID string, find the category object
+                        const cat = categories.find(c => c.id === option || c._id === option);
+                        if (cat) {
+                          return cat.labels?.[currentLanguage] || cat.label || cat.code || option;
+                        }
+                        return option;
+                      }
+                      return option.labels?.[currentLanguage] || option.label || option.code || '';
+                    }}
+                    value={values.categories && Array.isArray(values.categories) && values.categories.length > 0
+                      ? categories.filter(cat => values.categories.includes(cat.id || cat._id))
+                      : (values.category ? categories.filter(cat => (cat.id || cat._id) === values.category) : [])
+                    }
+                    onChange={(event, newValue) => {
+                      const categoryIds = newValue.map(cat => cat.id || cat._id);
+                      setFieldValue('categories', categoryIds);
+                      // Also set legacy category field for backward compatibility
+                      if (categoryIds.length > 0) {
+                        setFieldValue('category', categoryIds[0]);
+                      } else {
+                        setFieldValue('category', '');
+                      }
+                      clearFieldError('category');
+                    }}
+                    isOptionEqualToValue={(option, value) => {
+                      const optionId = option.id || option._id;
+                      const valueId = value.id || value._id;
+                      return optionId === valueId;
+                    }}
+                    renderInput={(params) => (
+                      <TextField
+                        {...params}
+                        variant="outlined"
+                        placeholder={currentLanguage === 'ar' 
+                          ? 'اختر الفئات...'
+                          : currentLanguage === 'fr'
+                            ? 'Sélectionner les catégories...'
+                            : 'Select categories...'
+                        }
+                        data-testid="category"
+                        error={!!fieldErrors.category}
+                        helperText={fieldErrors.category || (currentLanguage === 'ar' 
+                          ? 'يمكنك اختيار أكثر من فئة واحدة'
+                          : currentLanguage === 'fr'
+                            ? 'Vous pouvez sélectionner plusieurs catégories'
+                            : 'You can select multiple categories'
+                        )}
+                        sx={{
+                          borderRadius: 2,
+                          '& .MuiOutlinedInput-root': {
+                            '&:hover fieldset': {
+                              borderColor: theme.palette.mode === 'dark' ? 'rgba(255,255,255,0.5)' : 'rgba(0,0,0,0.4)',
+                            },
+                            '&.Mui-focused fieldset': {
+                              borderColor: theme.palette.mode === 'dark' ? '#4CAF50' : '#2E7D32',
+                            },
+                            '& fieldset': {
+                              borderColor: theme.palette.mode === 'dark' ? 'rgba(255,255,255,0.3)' : 'rgba(0,0,0,0.2)',
+                            },
+                          },
+                        }}
+                      />
+                    )}
+                    renderTags={(value, getTagProps) =>
+                      value.map((option, index) => {
+                        const { key, ...tagProps } = getTagProps({ index });
+                        const categoryName = option.labels?.[currentLanguage] || option.label || option.code || '';
+                        return (
+                          <Chip
+                            key={key}
+                            label={categoryName}
+                            {...tagProps}
+                            sx={{
+                              borderRadius: 2,
+                              backgroundColor: theme.palette.mode === 'dark' 
+                                ? 'rgba(76, 175, 80, 0.2)' 
+                                : 'rgba(76, 175, 80, 0.1)',
+                              color: theme.palette.mode === 'dark' ? '#4CAF50' : '#2E7D32',
+                              border: `1px solid ${theme.palette.mode === 'dark' ? '#4CAF50' : '#2E7D32'}`,
+                              '& .MuiChip-deleteIcon': {
+                                color: theme.palette.mode === 'dark' ? '#4CAF50' : '#2E7D32',
+                              },
+                            }}
+                          />
+                        );
+                      })
+                    }
+                    sx={{
+                      '& .MuiOutlinedInput-root': {
+                        borderRadius: 2,
+                      },
+                    }}
                   />
                 </Box>
 
@@ -1875,6 +2110,42 @@ if (typeof document !== 'undefined') {
                                   </Typography>
                                 </Box>
                               )}
+                            </>
+                          )}
+
+                          {/* Add New City Option - Only show when search has no results */}
+                          {citySearchQuery.trim().length > 0 && !isSearching && searchResults.length === 0 && (
+                            <>
+                              <Divider />
+                              <Box
+                                onClick={() => {
+                                  setShowCityDropdown(false);
+                                  setShowCustomCityInput(true);
+                                }}
+                                sx={{
+                                  p: 2,
+                                  cursor: 'pointer',
+                                  color: theme.palette.mode === 'dark' ? '#ffffff' : '#000000',
+                                  fontWeight: 600,
+                                  backgroundColor: theme.palette.mode === 'dark' ? '#1a1a1a' : '#ffffff',
+                                  border: `1px solid ${theme.palette.divider}`,
+                                  margin: '6px 8px',
+                                  borderRadius: 2,
+                                  transition: 'all 0.2s ease-in-out',
+                                  '&:hover': {
+                                    backgroundColor: theme.palette.mode === 'dark' ? '#2a2a2a' : '#f5f5f5',
+                                    color: theme.palette.mode === 'dark' ? '#ffffff' : '#000000',
+                                    borderColor: theme.palette.primary.main,
+                                    transform: 'translateY(-1px)',
+                                    boxShadow: theme.shadows[4],
+                                  }
+                                }}
+                              >
+                                <Box display="flex" alignItems="center" gap={1}>
+                                  <AddIcon fontSize="small" />
+                                  {t('addNewCity') || 'Add New City'}
+                                </Box>
+                              </Box>
                             </>
                           )}
                         </Box>
@@ -2775,6 +3046,162 @@ if (typeof document !== 'undefined') {
               />
             </Button>
           )}
+        </DialogActions>
+      </Dialog>
+      
+      {/* Custom City Dialog */}
+      <Dialog
+        open={showCustomCityInput}
+        onClose={() => {
+          if (!isCreatingCity) {
+            setShowCustomCityInput(false);
+            setCustomCityName("");
+          }
+        }}
+        maxWidth="sm"
+        fullWidth
+        sx={{ zIndex: 1300 }}
+        PaperProps={{
+          sx: {
+            borderRadius: 3,
+            background: theme.palette.background.paper,
+            boxShadow: theme.shadows[12]
+          }
+        }}
+      >
+        <DialogTitle
+          sx={{
+            display: 'flex',
+            justifyContent: 'space-between',
+            alignItems: 'center',
+            pb: 1
+          }}
+        >
+          <Typography 
+            variant="h6" 
+            sx={{ 
+              fontWeight: 600, 
+              color: theme.palette.text.primary
+            }}
+          >
+            {t('addNewCity')}
+          </Typography>
+          <IconButton
+            onClick={() => {
+              setShowCustomCityInput(false);
+              setCustomCityName("");
+            }}
+            disabled={isCreatingCity}
+            sx={{
+              color: theme.palette.text.secondary,
+              '&:hover': {
+                backgroundColor: theme.palette.action.hover
+              }
+            }}
+          >
+            <CloseIcon />
+          </IconButton>
+        </DialogTitle>
+        
+        <DialogContent sx={{ pt: 2 }}>
+          <Typography 
+            variant="body2" 
+            sx={{ 
+              mb: 2,
+              color: theme.palette.text.secondary
+            }}
+          >
+            {t('enterCustomCityName')}
+          </Typography>
+          <TextField
+            fullWidth
+            placeholder={t('cityNamePlaceholder')}
+            value={customCityName}
+            onChange={handleCustomCityChange}
+            variant="outlined"
+            autoFocus
+            sx={{ 
+              borderRadius: 2,
+              '& .MuiOutlinedInput-root': {
+                '&:hover fieldset': {
+                  borderColor: theme.palette.mode === 'dark' ? '#4CAF50' : '#2E7D32',
+                },
+                '&.Mui-focused fieldset': {
+                  borderColor: theme.palette.mode === 'dark' ? '#4CAF50' : '#2E7D32',
+                },
+                '& fieldset': {
+                  borderColor: theme.palette.mode === 'dark' ? 'rgba(255,255,255,0.3)' : 'rgba(0,0,0,0.2)',
+                },
+                color: theme.palette.text.primary
+              }
+            }}
+          />
+        </DialogContent>
+        
+        <DialogActions sx={{ p: 2, gap: 1 }}>
+          <Button
+            variant="outlined"
+            onClick={() => {
+              setShowCustomCityInput(false);
+              setCustomCityName("");
+            }}
+            disabled={isCreatingCity}
+            sx={{ 
+              textTransform: 'none',
+              borderRadius: 2,
+              px: 3
+            }}
+          >
+            {t('cancel')}
+          </Button>
+          <Button
+            variant="contained"
+            onClick={async () => {
+              if (customCityName.trim() && selectedCountry?._id) {
+                setIsCreatingCity(true);
+                try {
+                  // Create the custom city in the backend
+                  const createdCity = await createCustomCity(customCityName.trim(), selectedCountry._id);
+                  
+                  // Close the dialog first
+                  setShowCustomCityInput(false);
+                  setCustomCityName("");
+                  
+                  // Refresh the cities list to get the newly created city
+                  await fetchCitiesByCountry(selectedCountry._id);
+                  
+                  // Set the display value
+                  const cityDisplayName = getCityDisplayName(createdCity, currentLanguage);
+                  setCityDisplayValue(cityDisplayName);
+                  
+                  // Set the field value directly using setFieldValue from Formik
+                  if (setFieldValueCallback) {
+                    setFieldValueCallback('city', createdCity._id);
+                  }
+                  
+                } catch (error) {
+                  console.error('Error creating custom city:', error);
+                  // Show error message to user
+                  alert(t('errorCreatingCustomCity') || 'Error creating custom city. Please try again.');
+                } finally {
+                  setIsCreatingCity(false);
+                }
+              }
+            }}
+            disabled={!customCityName.trim() || !selectedCountry?._id || isCreatingCity}
+            sx={{ 
+              textTransform: 'none',
+              borderRadius: 2,
+              px: 3,
+              background: 'linear-gradient(45deg, #4A8BFF 30%, #1A6EEE 90%)',
+              '&:hover': {
+                background: 'linear-gradient(45deg, #5A9BFF 30%, #2A7EFF 90%)',
+              }
+            }}
+            startIcon={isCreatingCity ? <CircularProgress size={16} color="inherit" /> : null}
+          >
+            {isCreatingCity ? (t('creatingCity') || 'Creating City...') : t('confirm')}
+          </Button>
         </DialogActions>
       </Dialog>
     </Box>
