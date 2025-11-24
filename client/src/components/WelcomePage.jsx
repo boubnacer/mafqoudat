@@ -84,7 +84,7 @@ const WelcomeCard = styled(Card)(({ theme }) => ({
 const HeaderSection = styled(Box)(({ theme }) => ({
   textAlign: 'center',
   marginBottom: theme?.spacing?.(4) || '32px',
-  marginTop:'60px',
+  marginTop:'20px',
   position: 'relative',
 }));
 
