@@ -1,9 +1,11 @@
 import { Box, Typography, useTheme } from "@mui/material";
 import React from "react";
 import FlexBetween from "./FlexBetween";
+import { useTranslation } from "../../utils/translations";
 
 const StatBox = ({ title, value, increase, icon, description, titleStyle, valueStyle, descriptionStyle, iconStyle, sx, hasNotification = false, notificationColor }) => {
   const theme = useTheme();
+  const { t } = useTranslation();
   const defaultNotificationColor = notificationColor || (theme.palette.mode === 'dark' ? '#FF6B6B' : '#EF4444');
   
   return (
@@ -119,7 +121,7 @@ const StatBox = ({ title, value, increase, icon, description, titleStyle, valueS
             sx={{
               position: 'absolute',
               top: '-4px',
-              right: '-4px', // Top-right in LTR
+              left: '-4px', // Top-left in LTR
               width: '12px',
               height: '12px',
               borderRadius: '50%',
@@ -137,10 +139,10 @@ const StatBox = ({ title, value, increase, icon, description, titleStyle, valueS
                   opacity: 0.85,
                 },
               },
-              // RTL support
+              // RTL support - inverse position
               '[dir="rtl"] &': {
-                right: 'auto',
-                left: '-4px', // Top-left in RTL
+                left: 'auto',
+                right: '-4px', // Top-right in RTL
               }
             }}
           />
@@ -218,7 +220,7 @@ const StatBox = ({ title, value, increase, icon, description, titleStyle, valueS
                 },
               }}
             >
-              NEW
+              {t('new')}
             </Box>
           )}
         </Box>

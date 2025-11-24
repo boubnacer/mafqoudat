@@ -605,6 +605,7 @@ export const translations = {
     totalItems: "Total Items",
     returnedItems: "Returned Items",
     today: "today",
+    new: "NEW",
     sinceLastMonth: "Since last month",
     
     // Your Posts Section
@@ -2051,6 +2052,7 @@ export const translations = {
     totalItems: "Total des objets",
     returnedItems: "Objets retournés",
     today: "aujourd'hui",
+    new: "NOUVEAU",
     sinceLastMonth: "Depuis le mois dernier",
     
     // Your Posts Section
@@ -3461,6 +3463,7 @@ export const translations = {
     totalItems: "إجمالي العناصر",
     returnedItems: "العناصر المُسترجعة",
     today: "اليوم",
+    new: "جديد",
     sinceLastMonth: "منذ الشهر الماضي",
     
     // Your Posts Section
