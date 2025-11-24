@@ -64,44 +64,115 @@ const LeftSide = ({
   });
 
   // State to track viewed notifications (synced with localStorage)
+  // Initialize from localStorage immediately
   const [viewedNotifications, setViewedNotifications] = useState(() => {
-    return getViewedNotifications();
+    try {
+      return getViewedNotifications();
+    } catch (error) {
+      return {};
+    }
   });
 
   // Clean up old notification data and sync state with localStorage on mount
   useEffect(() => {
-    try {
-      const today = new Date().toISOString().split('T')[0];
-      const keysToRemove = [];
-      
-      // Check all localStorage keys
-      for (let i = 0; i < localStorage.length; i++) {
-        const key = localStorage.key(i);
-        if (key && key.startsWith('viewedNotifications_')) {
-          const date = key.replace('viewedNotifications_', '');
-          if (date !== today) {
-            keysToRemove.push(key);
+    const syncNotifications = () => {
+      try {
+        const today = new Date().toISOString().split('T')[0];
+        const keysToRemove = [];
+        
+        // Check all localStorage keys
+        for (let i = 0; i < localStorage.length; i++) {
+          const key = localStorage.key(i);
+          if (key && key.startsWith('viewedNotifications_')) {
+            const date = key.replace('viewedNotifications_', '');
+            if (date !== today) {
+              keysToRemove.push(key);
+            }
           }
         }
+        
+        // Remove old keys
+        keysToRemove.forEach(key => localStorage.removeItem(key));
+        
+        // Always sync state with localStorage after cleanup (this ensures fresh read on mount/refresh)
+        const currentViewed = getViewedNotifications();
+        setViewedNotifications(currentViewed);
+      } catch (error) {
+        console.error('Error syncing notifications:', error);
+        // Even on error, try to get current viewed state
+        try {
+          setViewedNotifications(getViewedNotifications());
+        } catch (e) {
+          setViewedNotifications({});
+        }
       }
-      
-      // Remove old keys
-      keysToRemove.forEach(key => localStorage.removeItem(key));
-      
-      // Sync state with localStorage after cleanup
-      setViewedNotifications(getViewedNotifications());
-    } catch (error) {
-      console.error('Error cleaning up old notification data:', error);
-    }
+    };
+
+    // Sync on mount
+    syncNotifications();
+
+    // Listen for storage changes (in case localStorage is updated from another tab/window)
+    const handleStorageChange = (e) => {
+      if (e.key && e.key.startsWith('viewedNotifications_')) {
+        syncNotifications();
+      }
+    };
+
+    window.addEventListener('storage', handleStorageChange);
+    
+    // Also sync when window regains focus (helps with refresh scenarios)
+    const handleFocus = () => {
+      syncNotifications();
+    };
+    window.addEventListener('focus', handleFocus);
+
+    return () => {
+      window.removeEventListener('storage', handleStorageChange);
+      window.removeEventListener('focus', handleFocus);
+    };
   }, []);
+
+  // Compute notification visibility - always check current state and localStorage as fallback
+  const showFoundNotification = useMemo(() => {
+    const hasItemsToday = (foundsToday || 0) >= 1;
+    if (!hasItemsToday) return false;
+    
+    // Check both state and localStorage to ensure accuracy
+    const viewedFromStorage = getViewedNotifications();
+    return !(viewedNotifications.found || viewedFromStorage.found);
+  }, [foundsToday, viewedNotifications.found]);
+
+  const showLostNotification = useMemo(() => {
+    const hasItemsToday = (lostsToday || 0) >= 1;
+    if (!hasItemsToday) return false;
+    
+    // Check both state and localStorage to ensure accuracy
+    const viewedFromStorage = getViewedNotifications();
+    return !(viewedNotifications.lost || viewedFromStorage.lost);
+  }, [lostsToday, viewedNotifications.lost]);
 
   // Handler for Found Items
   const handleFoundItemsClick = () => {
     // Mark notification as viewed when clicked
     if ((foundsToday || 0) >= 1) {
-      markNotificationAsViewed('found');
-      // Update state immediately
-      setViewedNotifications(prev => ({ ...prev, found: true }));
+      try {
+        const key = getTodayKey();
+        const currentViewed = getViewedNotifications();
+        currentViewed.found = true;
+        const valueToStore = JSON.stringify(currentViewed);
+        localStorage.setItem(key, valueToStore);
+        
+        // Verify the write succeeded
+        const verify = localStorage.getItem(key);
+        if (verify === valueToStore) {
+          // Update state immediately only if write was successful
+          setViewedNotifications({ ...currentViewed });
+        } else {
+          console.warn('localStorage write verification failed for found notification');
+        }
+      } catch (error) {
+        console.error('Error marking found notification as viewed:', error);
+      }
     }
     
     const foundOption = flOptionsData?.find(option => option.code === 'FOUND');
@@ -118,9 +189,24 @@ const LeftSide = ({
   const handleLostItemsClick = () => {
     // Mark notification as viewed when clicked
     if ((lostsToday || 0) >= 1) {
-      markNotificationAsViewed('lost');
-      // Update state immediately
-      setViewedNotifications(prev => ({ ...prev, lost: true }));
+      try {
+        const key = getTodayKey();
+        const currentViewed = getViewedNotifications();
+        currentViewed.lost = true;
+        const valueToStore = JSON.stringify(currentViewed);
+        localStorage.setItem(key, valueToStore);
+        
+        // Verify the write succeeded
+        const verify = localStorage.getItem(key);
+        if (verify === valueToStore) {
+          // Update state immediately only if write was successful
+          setViewedNotifications({ ...currentViewed });
+        } else {
+          console.warn('localStorage write verification failed for lost notification');
+        }
+      } catch (error) {
+        console.error('Error marking lost notification as viewed:', error);
+      }
     }
     
     const lostOption = flOptionsData?.find(option => option.code === 'LOST');
@@ -208,7 +294,7 @@ const LeftSide = ({
           increase="+14%"
           description={`+ ${foundsToday || 0} ${t('today')}`}
           icon={<RenderIcon name="Found" />}
-          hasNotification={(foundsToday || 0) >= 1 && !viewedNotifications.found}
+          hasNotification={showFoundNotification}
           notificationColor={theme.palette.mode === 'dark' ? '#48BB78' : '#2F855A'}
           onClick={handleFoundItemsClick}
           sx={{
@@ -247,7 +333,7 @@ const LeftSide = ({
           increase="+21%"
           description={`+ ${lostsToday || 0} ${t('today')}`}
           icon={<RenderIcon name="Lost" />}
-          hasNotification={(lostsToday || 0) >= 1 && !viewedNotifications.lost}
+          hasNotification={showLostNotification}
           notificationColor={theme.palette.mode === 'dark' ? '#F56565' : '#C53030'}
           onClick={handleLostItemsClick}
           sx={{
