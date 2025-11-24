@@ -627,9 +627,19 @@ const SinglePostPage = ({
             sx={{ 
               borderRadius: 4,
               overflow: 'hidden',
-              border: `1px solid ${isDarkMode ? alpha('#fff', 0.08) : alpha('#000', 0.12)}`,
+              border: returned 
+                ? `3px solid #4CAF50`
+                : `1px solid ${isDarkMode ? alpha('#fff', 0.08) : alpha('#000', 0.12)}`,
               backgroundColor: isDarkMode ? alpha('#1a1a1a', 0.8) : '#ffffff',
-              boxShadow: 'none'
+              boxShadow: returned 
+                ? '0 4px 12px rgba(76, 175, 80, 0.2), 0 2px 4px rgba(0, 0, 0, 0.1)'
+                : 'none',
+              transition: 'all 0.3s ease',
+              '&:hover': {
+                boxShadow: returned 
+                  ? '0 8px 20px rgba(76, 175, 80, 0.3), 0 4px 8px rgba(0, 0, 0, 0.15)'
+                  : 'none',
+              },
             }}
           >
             {/* Image Section */}
@@ -652,12 +662,12 @@ const SinglePostPage = ({
                     display: 'flex',
                     alignItems: 'center',
                     justifyContent: 'center',
+                    gap: 0.5,
                     background: 'linear-gradient(135deg, #4CAF50 0%, #66BB6A 100%)',
-                    borderRadius: '50%',
-                    width: { xs: '56px', sm: '64px', md: '72px' },
-                    height: { xs: '56px', sm: '64px', md: '72px' },
+                    borderRadius: '24px',
+                    padding: { xs: '8px 14px', sm: '10px 18px', md: '12px 20px' },
                     boxShadow: '0 4px 12px rgba(76, 175, 80, 0.4), 0 2px 4px rgba(0,0,0,0.2)',
-                    border: '3px solid rgba(255, 255, 255, 0.9)',
+                    border: '2px solid rgba(255, 255, 255, 0.9)',
                     animation: 'pulse 2s ease-in-out infinite',
                     '@keyframes pulse': {
                       '0%, 100%': {
@@ -665,7 +675,7 @@ const SinglePostPage = ({
                         boxShadow: '0 4px 12px rgba(76, 175, 80, 0.4), 0 2px 4px rgba(0,0,0,0.2)',
                       },
                       '50%': {
-                        transform: 'scale(1.05)',
+                        transform: 'scale(1.02)',
                         boxShadow: '0 6px 16px rgba(76, 175, 80, 0.6), 0 4px 8px rgba(0,0,0,0.3)',
                       },
                     },
@@ -673,11 +683,27 @@ const SinglePostPage = ({
                 >
                   <CheckCircleIcon
                     sx={{
-                      fontSize: { xs: '32px', sm: '36px', md: '40px' },
+                      fontSize: { xs: '20px', sm: '22px', md: '24px' },
                       color: '#ffffff',
-                      filter: 'drop-shadow(0 2px 4px rgba(0,0,0,0.2))',
+                      filter: 'drop-shadow(0 1px 2px rgba(0,0,0,0.2))',
                     }}
                   />
+                  <Typography
+                    sx={{
+                      color: '#ffffff',
+                      fontSize: { xs: '14px', sm: '15px', md: '16px' },
+                      fontWeight: 700,
+                      textTransform: 'uppercase',
+                      letterSpacing: currentLanguage === 'ar' ? 'normal' : '0.5px',
+                      fontFamily: currentLanguage === 'ar' 
+                        ? '"Noto Sans Arabic", "Segoe UI", "Roboto", "Helvetica", "Arial", sans-serif'
+                        : '"Inter", "Segoe UI", "Roboto", "Helvetica", "Arial", sans-serif',
+                      lineHeight: 1.2,
+                      whiteSpace: 'nowrap',
+                    }}
+                  >
+                    {t('returned')}
+                  </Typography>
                 </Box>
               )}
 
@@ -757,7 +783,7 @@ const SinglePostPage = ({
                 sx={{
                   position: 'absolute',
                   top: 16,
-                  right: returned ? { xs: 80, sm: 88, md: 96 } : 16,
+                  right: returned ? { xs: 180, sm: 200, md: 220 } : 16,
                   zIndex: 2,
                   display: 'flex',
                   flexWrap: 'wrap',

@@ -329,13 +329,20 @@ const Post = ({ post, viewMode = "grid" }) => {
           borderRadius: 4,
           overflow: 'hidden',
           transition: 'all 0.3s ease',
-          border: `1px solid ${isDarkMode ? alpha('#fff', 0.08) : alpha('#000', 0.06)}`,
+          border: post?.returned 
+            ? `3px solid #4CAF50`
+            : `1px solid ${isDarkMode ? alpha('#fff', 0.08) : alpha('#000', 0.06)}`,
+          boxShadow: post?.returned 
+            ? '0 4px 12px rgba(76, 175, 80, 0.2), 0 2px 4px rgba(0, 0, 0, 0.1)'
+            : 'none',
           cursor: 'pointer',
           '&:hover': {
             transform: 'translateY(-2px)',
-            boxShadow: isDarkMode 
-              ? '0 12px 40px rgba(0, 0, 0, 0.3)'
-              : '0 12px 40px rgba(0, 0, 0, 0.1)',
+            boxShadow: post?.returned 
+              ? '0 8px 20px rgba(76, 175, 80, 0.3), 0 4px 8px rgba(0, 0, 0, 0.15)'
+              : (isDarkMode 
+                ? '0 12px 40px rgba(0, 0, 0, 0.3)'
+                : '0 12px 40px rgba(0, 0, 0, 0.1)'),
           },
           direction: currentLanguage === 'ar' ? 'rtl' : 'ltr',
           backgroundColor: isDarkMode ? alpha('#1a1a1a', 0.8) : '#ffffff'
@@ -365,12 +372,12 @@ const Post = ({ post, viewMode = "grid" }) => {
                   display: 'flex',
                   alignItems: 'center',
                   justifyContent: 'center',
+                  gap: 0.5,
                   background: 'linear-gradient(135deg, #4CAF50 0%, #66BB6A 100%)',
-                  borderRadius: '50%',
-                  width: { xs: '40px', sm: '44px' },
-                  height: { xs: '40px', sm: '44px' },
+                  borderRadius: '18px',
+                  padding: { xs: '4px 8px', sm: '5px 10px' },
                   boxShadow: '0 4px 12px rgba(76, 175, 80, 0.4), 0 2px 4px rgba(0,0,0,0.2)',
-                  border: '3px solid rgba(255, 255, 255, 0.9)',
+                  border: '2px solid rgba(255, 255, 255, 0.9)',
                   animation: 'pulse 2s ease-in-out infinite',
                   '@keyframes pulse': {
                     '0%, 100%': {
@@ -378,7 +385,7 @@ const Post = ({ post, viewMode = "grid" }) => {
                       boxShadow: '0 4px 12px rgba(76, 175, 80, 0.4), 0 2px 4px rgba(0,0,0,0.2)',
                     },
                     '50%': {
-                      transform: 'scale(1.05)',
+                      transform: 'scale(1.02)',
                       boxShadow: '0 6px 16px rgba(76, 175, 80, 0.6), 0 4px 8px rgba(0,0,0,0.3)',
                     },
                   },
@@ -386,11 +393,27 @@ const Post = ({ post, viewMode = "grid" }) => {
               >
                 <CheckCircleIcon
                   sx={{
-                    fontSize: { xs: '24px', sm: '26px' },
+                    fontSize: { xs: '14px', sm: '16px' },
                     color: '#ffffff',
-                    filter: 'drop-shadow(0 2px 4px rgba(0,0,0,0.2))',
+                    filter: 'drop-shadow(0 1px 2px rgba(0,0,0,0.2))',
                   }}
                 />
+                <Typography
+                  sx={{
+                    color: '#ffffff',
+                    fontSize: { xs: '10px', sm: '11px' },
+                    fontWeight: 700,
+                    textTransform: 'uppercase',
+                    letterSpacing: currentLanguage === 'ar' ? 'normal' : '0.5px',
+                    fontFamily: currentLanguage === 'ar' 
+                      ? '"Noto Sans Arabic", "Segoe UI", "Roboto", "Helvetica", "Arial", sans-serif'
+                      : '"Inter", "Segoe UI", "Roboto", "Helvetica", "Arial", sans-serif',
+                    lineHeight: 1.2,
+                    whiteSpace: 'nowrap',
+                  }}
+                >
+                  {t('returned')}
+                </Typography>
               </Box>
             )}
             {post?.image && imageUrl ? (
@@ -650,8 +673,12 @@ const Post = ({ post, viewMode = "grid" }) => {
           backgroundColor: isDarkMode ? '#1a1a1a' : '#ffffff',
           background: isDarkMode ? '#1a1a1a' : '#ffffff',
           position: 'relative',
-          boxShadow: 'none',
-          border: `1px solid ${isDarkMode ? alpha('#fff', 0.08) : alpha('#000', 0.06)}`,
+          boxShadow: post?.returned 
+            ? '0 4px 12px rgba(76, 175, 80, 0.2), 0 2px 4px rgba(0, 0, 0, 0.1)'
+            : 'none',
+          border: post?.returned 
+            ? `3px solid #4CAF50`
+            : `1px solid ${isDarkMode ? alpha('#fff', 0.08) : alpha('#000', 0.06)}`,
           height: { xs: 'auto', sm: 'auto' },
           minHeight: { xs: '300px', sm: '350px' },
           width: { xs: '100%', sm: '100%' },
@@ -664,7 +691,9 @@ const Post = ({ post, viewMode = "grid" }) => {
           cursor: 'pointer',
           '&:hover': {
             transform: { xs: 'none', sm: 'translateY(-4px)' },
-            boxShadow: 'none',
+            boxShadow: post?.returned 
+              ? '0 8px 20px rgba(76, 175, 80, 0.3), 0 4px 8px rgba(0, 0, 0, 0.15)'
+              : 'none',
             backgroundColor: isDarkMode ? '#1a1a1a !important' : '#ffffff !important',
             background: isDarkMode ? '#1a1a1a !important' : '#ffffff !important',
           },
@@ -775,13 +804,12 @@ const Post = ({ post, viewMode = "grid" }) => {
                 display: 'flex',
                 alignItems: 'center',
                 justifyContent: 'center',
-                backgroundColor: 'linear-gradient(135deg, #4CAF50 0%, #66BB6A 100%)',
+                gap: 0.5,
                 background: 'linear-gradient(135deg, #4CAF50 0%, #66BB6A 100%)',
-                borderRadius: '50%',
-                width: { xs: '44px', sm: '48px' },
-                height: { xs: '44px', sm: '48px' },
+                borderRadius: '20px',
+                padding: { xs: '5px 10px', sm: '6px 12px' },
                 boxShadow: '0 4px 12px rgba(76, 175, 80, 0.4), 0 2px 4px rgba(0,0,0,0.2)',
-                border: '3px solid rgba(255, 255, 255, 0.9)',
+                border: '2px solid rgba(255, 255, 255, 0.9)',
                 animation: 'pulse 2s ease-in-out infinite',
                 '@keyframes pulse': {
                   '0%, 100%': {
@@ -789,7 +817,7 @@ const Post = ({ post, viewMode = "grid" }) => {
                     boxShadow: '0 4px 12px rgba(76, 175, 80, 0.4), 0 2px 4px rgba(0,0,0,0.2)',
                   },
                   '50%': {
-                    transform: 'scale(1.05)',
+                    transform: 'scale(1.02)',
                     boxShadow: '0 6px 16px rgba(76, 175, 80, 0.6), 0 4px 8px rgba(0,0,0,0.3)',
                   },
                 },
@@ -797,11 +825,27 @@ const Post = ({ post, viewMode = "grid" }) => {
             >
               <CheckCircleIcon
                 sx={{
-                  fontSize: { xs: '26px', sm: '28px' },
+                  fontSize: { xs: '16px', sm: '18px' },
                   color: '#ffffff',
-                  filter: 'drop-shadow(0 2px 4px rgba(0,0,0,0.2))',
+                  filter: 'drop-shadow(0 1px 2px rgba(0,0,0,0.2))',
                 }}
               />
+              <Typography
+                sx={{
+                  color: '#ffffff',
+                  fontSize: { xs: '11px', sm: '12px' },
+                  fontWeight: 700,
+                  textTransform: 'uppercase',
+                  letterSpacing: currentLanguage === 'ar' ? 'normal' : '0.5px',
+                  fontFamily: currentLanguage === 'ar' 
+                    ? '"Noto Sans Arabic", "Segoe UI", "Roboto", "Helvetica", "Arial", sans-serif'
+                    : '"Inter", "Segoe UI", "Roboto", "Helvetica", "Arial", sans-serif',
+                  lineHeight: 1.2,
+                  whiteSpace: 'nowrap',
+                }}
+              >
+                {t('returned')}
+              </Typography>
             </Box>
           )}
 
@@ -811,7 +855,7 @@ const Post = ({ post, viewMode = "grid" }) => {
               position: 'absolute',
               top: 12,
               left: 12,
-              right: post?.returned ? { xs: 64, sm: 68 } : 12,
+              right: post?.returned ? { xs: 120, sm: 130 } : 12,
               display: 'flex',
               justifyContent: 'space-between',
               alignItems: 'flex-start',

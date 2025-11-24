@@ -394,20 +394,28 @@ const TrendingItem = ({ trend, isLoading }) => {
             ? 'linear-gradient(135deg, rgba(30,30,30,0.95) 0%, rgba(40,40,40,0.98) 50%, rgba(30,30,30,0.95) 100%)'
             : 'linear-gradient(135deg, rgba(248,248,248,0.95) 0%, rgba(255,255,255,0.98) 50%, rgba(248,248,248,0.95) 100%)',
           borderRadius: '8px',
-          border: `2px solid ${theme.palette.mode === 'dark' ? '#333' : '#e0e0e0'} !important`,
-          borderColor: `${theme.palette.mode === 'dark' ? '#333' : '#e0e0e0'} !important`,
+          border: returned 
+            ? `3px solid #4CAF50 !important`
+            : `2px solid ${theme.palette.mode === 'dark' ? '#333' : '#e0e0e0'} !important`,
+          borderColor: returned 
+            ? '#4CAF50 !important'
+            : `${theme.palette.mode === 'dark' ? '#333' : '#e0e0e0'} !important`,
           overflow: 'hidden',
           height: '100%',
           minHeight: { xs: '500px', sm: '280px' },
           position: 'relative',
-          boxShadow: '0 4px 8px rgba(0, 0, 0, 0.15)',
+          boxShadow: returned 
+            ? '0 4px 12px rgba(76, 175, 80, 0.3), 0 2px 4px rgba(0, 0, 0, 0.15)'
+            : '0 4px 8px rgba(0, 0, 0, 0.15)',
           cursor: 'pointer',
           transition: 'all 0.3s ease',
           display: 'flex',
           flexDirection: 'column',
           '&:hover': {
             transform: 'translateY(-2px)',
-            boxShadow: '0 8px 16px rgba(0, 0, 0, 0.2)',
+            boxShadow: returned 
+              ? '0 8px 20px rgba(76, 175, 80, 0.4), 0 4px 8px rgba(0, 0, 0, 0.2)'
+              : '0 8px 16px rgba(0, 0, 0, 0.2)',
           },
         }}
       >
@@ -585,12 +593,12 @@ const TrendingItem = ({ trend, isLoading }) => {
                 display: 'flex',
                 alignItems: 'center',
                 justifyContent: 'center',
+                gap: 0.5,
                 background: 'linear-gradient(135deg, #4CAF50 0%, #66BB6A 100%)',
-                borderRadius: '50%',
-                width: { xs: '48px', sm: '56px' },
-                height: { xs: '48px', sm: '56px' },
+                borderRadius: '24px',
+                padding: { xs: '6px 12px', sm: '8px 16px' },
                 boxShadow: '0 4px 12px rgba(76, 175, 80, 0.4), 0 2px 4px rgba(0,0,0,0.2)',
-                border: '3px solid rgba(255, 255, 255, 0.9)',
+                border: '2px solid rgba(255, 255, 255, 0.9)',
                 animation: 'pulse 2s ease-in-out infinite',
                 '@keyframes pulse': {
                   '0%, 100%': {
@@ -598,7 +606,7 @@ const TrendingItem = ({ trend, isLoading }) => {
                     boxShadow: '0 4px 12px rgba(76, 175, 80, 0.4), 0 2px 4px rgba(0,0,0,0.2)',
                   },
                   '50%': {
-                    transform: 'scale(1.05)',
+                    transform: 'scale(1.02)',
                     boxShadow: '0 6px 16px rgba(76, 175, 80, 0.6), 0 4px 8px rgba(0,0,0,0.3)',
                   },
                 },
@@ -606,21 +614,37 @@ const TrendingItem = ({ trend, isLoading }) => {
             >
               <CheckCircleIcon
                 sx={{
-                  fontSize: { xs: '28px', sm: '32px' },
+                  fontSize: { xs: '18px', sm: '20px' },
                   color: '#ffffff',
-                  filter: 'drop-shadow(0 2px 4px rgba(0,0,0,0.2))',
+                  filter: 'drop-shadow(0 1px 2px rgba(0,0,0,0.2))',
                 }}
               />
+              <Typography
+                sx={{
+                  color: '#ffffff',
+                  fontSize: { xs: '12px', sm: '14px' },
+                  fontWeight: 700,
+                  textTransform: 'uppercase',
+                  letterSpacing: currentLanguage === 'ar' ? 'normal' : '0.5px',
+                  fontFamily: currentLanguage === 'ar' 
+                    ? '"Noto Sans Arabic", "Segoe UI", "Roboto", "Helvetica", "Arial", sans-serif'
+                    : '"Inter", "Segoe UI", "Roboto", "Helvetica", "Arial", sans-serif',
+                  lineHeight: 1.2,
+                  whiteSpace: 'nowrap',
+                }}
+              >
+                {t('returned')}
+              </Typography>
             </Box>
           )}
 
-          {/* Status Chip - Bottom Right Overlay (moved down if returned badge is shown) */}
+          {/* Status Chip - Bottom Right Overlay */}
           <Chip
             label={foundLostStatus.label}
             sx={{
               position: 'absolute',
-              top: returned ? { xs: 72, sm: 80 } : 16,
-              right: 16,
+              top: 16,
+              right: returned ? { xs: 140, sm: 160 } : 16,
               zIndex: 10,
               backgroundColor: foundLostStatus.color, // Solid background color
               color: '#fff', // White text for better contrast
