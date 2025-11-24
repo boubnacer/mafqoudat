@@ -70,11 +70,19 @@ const LeftSide = ({
   });
 
   // State to track viewed notifications (synced with localStorage)
-  // Initialize from localStorage immediately
+  // Initialize from localStorage immediately - this runs synchronously before first render
   const [viewedNotifications, setViewedNotifications] = useState(() => {
     try {
-      return getViewedNotifications();
+      const key = getTodayKey();
+      const stored = localStorage.getItem(key);
+      if (stored) {
+        const parsed = JSON.parse(stored);
+        console.log('📋 [Notifications] Initial state from localStorage:', parsed);
+        return parsed;
+      }
+      return {};
     } catch (error) {
+      console.error('❌ Error initializing viewed notifications state:', error);
       return {};
     }
   });
@@ -92,14 +100,19 @@ const LeftSide = ({
           const key = localStorage.key(i);
           if (key && key.startsWith('viewedNotifications_')) {
             const date = key.replace('viewedNotifications_', '');
-            if (date !== today) {
+            // Only remove keys that are NOT today's date
+            if (date !== today && key !== todayKey) {
               keysToRemove.push(key);
             }
           }
         }
         
-        // Remove old keys
-        keysToRemove.forEach(key => localStorage.removeItem(key));
+        // Remove old keys (but never remove today's key)
+        keysToRemove.forEach(key => {
+          if (key !== todayKey) {
+            localStorage.removeItem(key);
+          }
+        });
         
         // Always sync state with localStorage after cleanup (this ensures fresh read on mount/refresh)
         const currentViewed = getViewedNotifications();
@@ -150,63 +163,63 @@ const LeftSide = ({
     };
   }, []);
 
-  // Compute notification visibility directly - always read from localStorage on every render
-  // This ensures we always have the latest value, even after page refresh
-  const getShowFoundNotification = () => {
+  // Compute notification visibility using state (which is synced from localStorage)
+  // Use useMemo to ensure it updates when state or counts change
+  const showFoundNotification = useMemo(() => {
     const hasItemsToday = (foundsToday || 0) >= 1;
     if (!hasItemsToday) return false;
     
-    try {
-      const key = getTodayKey();
-      const stored = localStorage.getItem(key);
-      if (!stored) {
-        return true; // No data means not viewed
+    // Check state first (synced from localStorage in useEffect)
+    const isViewed = viewedNotifications.found === true;
+    
+    // Also double-check localStorage as fallback
+    if (!isViewed) {
+      try {
+        const key = getTodayKey();
+        const stored = localStorage.getItem(key);
+        if (stored) {
+          const parsed = JSON.parse(stored);
+          if (parsed.found === true) {
+            // State is out of sync, update it
+            setViewedNotifications(prev => ({ ...prev, found: true }));
+            return false; // Don't show notification
+          }
+        }
+      } catch (error) {
+        console.error('❌ Error reading found notification from localStorage:', error);
       }
-      
-      const viewedFromStorage = JSON.parse(stored);
-      const isViewed = viewedFromStorage.found === true;
-      
-      // Debug log
-      if (isViewed) {
-        console.log('🔔 Found notification is marked as viewed in localStorage');
-      }
-      
-      return !isViewed;
-    } catch (error) {
-      console.error('❌ Error reading found notification state:', error);
-      return true; // If error reading, show notification to be safe
     }
-  };
+    
+    return !isViewed;
+  }, [foundsToday, viewedNotifications.found]);
 
-  const getShowLostNotification = () => {
+  const showLostNotification = useMemo(() => {
     const hasItemsToday = (lostsToday || 0) >= 1;
     if (!hasItemsToday) return false;
     
-    try {
-      const key = getTodayKey();
-      const stored = localStorage.getItem(key);
-      if (!stored) {
-        return true; // No data means not viewed
+    // Check state first (synced from localStorage in useEffect)
+    const isViewed = viewedNotifications.lost === true;
+    
+    // Also double-check localStorage as fallback
+    if (!isViewed) {
+      try {
+        const key = getTodayKey();
+        const stored = localStorage.getItem(key);
+        if (stored) {
+          const parsed = JSON.parse(stored);
+          if (parsed.lost === true) {
+            // State is out of sync, update it
+            setViewedNotifications(prev => ({ ...prev, lost: true }));
+            return false; // Don't show notification
+          }
+        }
+      } catch (error) {
+        console.error('❌ Error reading lost notification from localStorage:', error);
       }
-      
-      const viewedFromStorage = JSON.parse(stored);
-      const isViewed = viewedFromStorage.lost === true;
-      
-      // Debug log
-      if (isViewed) {
-        console.log('🔔 Lost notification is marked as viewed in localStorage');
-      }
-      
-      return !isViewed;
-    } catch (error) {
-      console.error('❌ Error reading lost notification state:', error);
-      return true; // If error reading, show notification to be safe
     }
-  };
-
-  // Compute on every render to ensure we always have the latest value
-  const showFoundNotification = getShowFoundNotification();
-  const showLostNotification = getShowLostNotification();
+    
+    return !isViewed;
+  }, [lostsToday, viewedNotifications.lost]);
 
   // Handler for Found Items
   const handleFoundItemsClick = () => {
