@@ -1267,34 +1267,31 @@ const Navbar = () => {
           transformOrigin={{ horizontal: 'right', vertical: 'top' }}
           anchorOrigin={{ horizontal: 'right', vertical: 'bottom' }}
         >
-          <Box sx={{ p: 1.5 }}>
+          <Box sx={{ p: 1.5, position: 'relative' }}>
             {/* Close Button - Mobile Menu */}
-            <Box
+            <IconButton
+              onClick={handleMobileMenuClose}
               sx={{
-                display: 'flex',
-                justifyContent: currentLanguage === 'ar' ? 'flex-start' : 'flex-end',
-                mb: 1,
+                position: 'absolute',
+                top: currentLanguage === 'ar' ? '12px' : '12px',
+                right: currentLanguage === 'ar' ? 'auto' : '12px',
+                left: currentLanguage === 'ar' ? '12px' : 'auto',
+                color: theme.palette.mode === 'dark' ? '#fff' : '#1a1a1a',
+                padding: '8px',
+                borderRadius: '8px',
+                background: theme.palette.mode === 'dark' 
+                  ? alpha(theme.palette.common.white, 0.05)
+                  : alpha(theme.palette.common.black, 0.03),
+                zIndex: 1,
+                '&:hover': {
+                  background: theme.palette.mode === 'dark' 
+                    ? alpha(theme.palette.common.white, 0.12)
+                    : alpha(theme.palette.common.black, 0.08),
+                },
               }}
             >
-              <IconButton
-                onClick={handleMobileMenuClose}
-                sx={{
-                  color: theme.palette.mode === 'dark' ? '#fff' : '#1a1a1a',
-                  padding: '8px',
-                  borderRadius: '8px',
-                  background: theme.palette.mode === 'dark' 
-                    ? alpha(theme.palette.common.white, 0.05)
-                    : alpha(theme.palette.common.black, 0.03),
-                  '&:hover': {
-                    background: theme.palette.mode === 'dark' 
-                      ? alpha(theme.palette.common.white, 0.12)
-                      : alpha(theme.palette.common.black, 0.08),
-                  },
-                }}
-              >
-                <Close sx={{ fontSize: '24px' }} />
-              </IconButton>
-            </Box>
+              <Close sx={{ fontSize: '24px' }} />
+            </IconButton>
 
             {/* Maintenance Mode Indicator - Mobile - Only for Admins */}
             {role === 'admin' && isMaintenanceActive && (
@@ -1303,6 +1300,7 @@ const Navbar = () => {
                   sx={{
                     p: 2,
                     mb: 2,
+                    mt: 4,
                     borderRadius: 2,
                     backgroundColor: theme.palette.mode === 'dark'
                       ? 'rgba(237, 108, 2, 0.2)'
@@ -1329,17 +1327,18 @@ const Navbar = () => {
             )}
             
             {/* Navigation Items */}
-            {navigationItems.map((item, index) => (
-              <MenuItem
-                key={item.title}
-                onClick={() => {
-                  item.action();
-                  handleMobileMenuClose();
-                }}
-                sx={{
-                  borderRadius: 1,
-                  mb: 0.5,
-                  py: 1.5,
+            <Box sx={{ mt: role === 'admin' && isMaintenanceActive ? 0 : 4 }}>
+              {navigationItems.map((item, index) => (
+                <MenuItem
+                  key={item.title}
+                  onClick={() => {
+                    item.action();
+                    handleMobileMenuClose();
+                  }}
+                  sx={{
+                    borderRadius: 1,
+                    mb: 0.5,
+                    py: 1.5,
                   '&:hover': {
                     backgroundColor: alpha(theme.palette.primary.main, 0.1),
                   }
@@ -1363,7 +1362,8 @@ const Navbar = () => {
                   }}
                 />
               </MenuItem>
-            ))}
+              ))}
+            </Box>
             
             <Divider sx={{ my: 1.5, opacity: 0.3 }} />
             
