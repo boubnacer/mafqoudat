@@ -11,15 +11,21 @@ import { useGetflOptionsQuery } from "../../features/dependencies/dependenciesAp
 // Utility functions for managing viewed notifications
 const getTodayKey = () => {
   const today = new Date();
-  return `viewedNotifications_${today.toISOString().split('T')[0]}`;
+  const dateStr = today.toISOString().split('T')[0];
+  return `viewedNotifications_${dateStr}`;
 };
 
 const getViewedNotifications = () => {
   try {
     const key = getTodayKey();
     const stored = localStorage.getItem(key);
-    return stored ? JSON.parse(stored) : {};
+    if (stored) {
+      const parsed = JSON.parse(stored);
+      return parsed;
+    }
+    return {};
   } catch (error) {
+    console.error('Error reading viewed notifications:', error);
     return {};
   }
 };
@@ -78,6 +84,7 @@ const LeftSide = ({
     const syncNotifications = () => {
       try {
         const today = new Date().toISOString().split('T')[0];
+        const todayKey = getTodayKey();
         const keysToRemove = [];
         
         // Check all localStorage keys
@@ -96,9 +103,19 @@ const LeftSide = ({
         
         // Always sync state with localStorage after cleanup (this ensures fresh read on mount/refresh)
         const currentViewed = getViewedNotifications();
+        const storedValue = localStorage.getItem(todayKey);
+        
+        // Debug logging
+        console.log('📋 [Notifications] On mount/refresh:');
+        console.log('  - Today key:', todayKey);
+        console.log('  - Stored value:', storedValue);
+        console.log('  - Parsed viewed:', currentViewed);
+        console.log('  - Found viewed:', currentViewed.found);
+        console.log('  - Lost viewed:', currentViewed.lost);
+        
         setViewedNotifications(currentViewed);
       } catch (error) {
-        console.error('Error syncing notifications:', error);
+        console.error('❌ Error syncing notifications:', error);
         // Even on error, try to get current viewed state
         try {
           setViewedNotifications(getViewedNotifications());
@@ -114,6 +131,7 @@ const LeftSide = ({
     // Listen for storage changes (in case localStorage is updated from another tab/window)
     const handleStorageChange = (e) => {
       if (e.key && e.key.startsWith('viewedNotifications_')) {
+        console.log('📦 [Notifications] Storage changed:', e.key, e.newValue);
         syncNotifications();
       }
     };
@@ -139,12 +157,24 @@ const LeftSide = ({
     if (!hasItemsToday) return false;
     
     try {
-      const viewedFromStorage = getViewedNotifications();
+      const key = getTodayKey();
+      const stored = localStorage.getItem(key);
+      if (!stored) {
+        return true; // No data means not viewed
+      }
+      
+      const viewedFromStorage = JSON.parse(stored);
       const isViewed = viewedFromStorage.found === true;
+      
+      // Debug log
+      if (isViewed) {
+        console.log('🔔 Found notification is marked as viewed in localStorage');
+      }
+      
       return !isViewed;
     } catch (error) {
-      console.error('Error reading found notification state:', error);
-      return hasItemsToday; // If error reading, show notification to be safe
+      console.error('❌ Error reading found notification state:', error);
+      return true; // If error reading, show notification to be safe
     }
   };
 
@@ -153,12 +183,24 @@ const LeftSide = ({
     if (!hasItemsToday) return false;
     
     try {
-      const viewedFromStorage = getViewedNotifications();
+      const key = getTodayKey();
+      const stored = localStorage.getItem(key);
+      if (!stored) {
+        return true; // No data means not viewed
+      }
+      
+      const viewedFromStorage = JSON.parse(stored);
       const isViewed = viewedFromStorage.lost === true;
+      
+      // Debug log
+      if (isViewed) {
+        console.log('🔔 Lost notification is marked as viewed in localStorage');
+      }
+      
       return !isViewed;
     } catch (error) {
-      console.error('Error reading lost notification state:', error);
-      return hasItemsToday; // If error reading, show notification to be safe
+      console.error('❌ Error reading lost notification state:', error);
+      return true; // If error reading, show notification to be safe
     }
   };
 
@@ -175,18 +217,26 @@ const LeftSide = ({
         const currentViewed = getViewedNotifications();
         currentViewed.found = true;
         const valueToStore = JSON.stringify(currentViewed);
+        
+        // Write to localStorage
         localStorage.setItem(key, valueToStore);
         
-        // Verify the write succeeded
+        // Double-check: read it back immediately to ensure it persisted
         const verify = localStorage.getItem(key);
-        if (verify === valueToStore) {
-          // Update state immediately only if write was successful
-          setViewedNotifications({ ...currentViewed });
+        if (verify) {
+          const verified = JSON.parse(verify);
+          if (verified.found === true) {
+            // Update state immediately
+            setViewedNotifications({ ...verified });
+            console.log('✅ Found notification marked as viewed and persisted');
+          } else {
+            console.warn('⚠️ Found notification write verification failed - found flag not set');
+          }
         } else {
-          console.warn('localStorage write verification failed for found notification');
+          console.warn('⚠️ Found notification write verification failed - no data in localStorage');
         }
       } catch (error) {
-        console.error('Error marking found notification as viewed:', error);
+        console.error('❌ Error marking found notification as viewed:', error);
       }
     }
     
@@ -209,18 +259,26 @@ const LeftSide = ({
         const currentViewed = getViewedNotifications();
         currentViewed.lost = true;
         const valueToStore = JSON.stringify(currentViewed);
+        
+        // Write to localStorage
         localStorage.setItem(key, valueToStore);
         
-        // Verify the write succeeded
+        // Double-check: read it back immediately to ensure it persisted
         const verify = localStorage.getItem(key);
-        if (verify === valueToStore) {
-          // Update state immediately only if write was successful
-          setViewedNotifications({ ...currentViewed });
+        if (verify) {
+          const verified = JSON.parse(verify);
+          if (verified.lost === true) {
+            // Update state immediately
+            setViewedNotifications({ ...verified });
+            console.log('✅ Lost notification marked as viewed and persisted');
+          } else {
+            console.warn('⚠️ Lost notification write verification failed - lost flag not set');
+          }
         } else {
-          console.warn('localStorage write verification failed for lost notification');
+          console.warn('⚠️ Lost notification write verification failed - no data in localStorage');
         }
       } catch (error) {
-        console.error('Error marking lost notification as viewed:', error);
+        console.error('❌ Error marking lost notification as viewed:', error);
       }
     }
     
