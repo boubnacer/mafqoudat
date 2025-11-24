@@ -641,6 +641,46 @@ const SinglePostPage = ({
               alignItems: 'center',
               justifyContent: 'center',
             }}>
+              {/* Returned Badge - Top Right Overlay (when returned is true) */}
+              {returned && (
+                <Box
+                  sx={{
+                    position: 'absolute',
+                    top: 16,
+                    right: 16,
+                    zIndex: 12,
+                    display: 'flex',
+                    alignItems: 'center',
+                    justifyContent: 'center',
+                    background: 'linear-gradient(135deg, #4CAF50 0%, #66BB6A 100%)',
+                    borderRadius: '50%',
+                    width: { xs: '56px', sm: '64px', md: '72px' },
+                    height: { xs: '56px', sm: '64px', md: '72px' },
+                    boxShadow: '0 4px 12px rgba(76, 175, 80, 0.4), 0 2px 4px rgba(0,0,0,0.2)',
+                    border: '3px solid rgba(255, 255, 255, 0.9)',
+                    animation: 'pulse 2s ease-in-out infinite',
+                    '@keyframes pulse': {
+                      '0%, 100%': {
+                        transform: 'scale(1)',
+                        boxShadow: '0 4px 12px rgba(76, 175, 80, 0.4), 0 2px 4px rgba(0,0,0,0.2)',
+                      },
+                      '50%': {
+                        transform: 'scale(1.05)',
+                        boxShadow: '0 6px 16px rgba(76, 175, 80, 0.6), 0 4px 8px rgba(0,0,0,0.3)',
+                      },
+                    },
+                  }}
+                >
+                  <CheckCircleIcon
+                    sx={{
+                      fontSize: { xs: '32px', sm: '36px', md: '40px' },
+                      color: '#ffffff',
+                      filter: 'drop-shadow(0 2px 4px rgba(0,0,0,0.2))',
+                    }}
+                  />
+                </Box>
+              )}
+
               {image && imageUrl ? (
                 <LazyCardMedia
                   component="img"
@@ -717,7 +757,7 @@ const SinglePostPage = ({
                 sx={{
                   position: 'absolute',
                   top: 16,
-                  right: 16,
+                  right: returned ? { xs: 80, sm: 88, md: 96 } : 16,
                   zIndex: 2,
                   display: 'flex',
                   flexWrap: 'wrap',

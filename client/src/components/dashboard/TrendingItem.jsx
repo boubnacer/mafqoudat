@@ -11,7 +11,7 @@ import {
   Avatar,
   alpha,
 } from "@mui/material";
-import { AccessTime as TimeIcon, ImageNotSupported as NoImageIcon } from "@mui/icons-material";
+import { AccessTime as TimeIcon, ImageNotSupported as NoImageIcon, CheckCircle as CheckCircleIcon } from "@mui/icons-material";
 import { useMemo, useEffect, useCallback } from "react";
 import { formatDistanceToNow } from 'date-fns';
 import { ar, fr, enUS } from 'date-fns/locale';
@@ -38,7 +38,7 @@ const TrendingItem = ({ trend, isLoading }) => {
   // console.log('TrendingItem - trendData:', trendData);
   // console.log('TrendingItem - trendData keys:', trendData ? Object.keys(trendData) : 'no trendData');
   
-  const { _id, categoryname, floptionName, image, createdAt, mainDate, countryLabels, countryname, city, cityLabels, cityName, Floptions, Category, Categories, exactLocation } = trendData || {};
+  const { _id, categoryname, floptionName, image, createdAt, mainDate, countryLabels, countryname, city, cityLabels, cityName, Floptions, Category, Categories, exactLocation, returned } = trendData || {};
   const theme = useTheme();
   const isMobile = useMediaQuery(theme.breakpoints.down('sm'));
   const isTablet = useMediaQuery(theme.breakpoints.down('md'));
@@ -574,12 +574,52 @@ const TrendingItem = ({ trend, isLoading }) => {
             </Box>
           ) : null}
 
-          {/* Status Chip - Bottom Right Overlay */}
+          {/* Returned Badge - Top Right Overlay (when returned is true) */}
+          {returned && (
+            <Box
+              sx={{
+                position: 'absolute',
+                top: 16,
+                right: 16,
+                zIndex: 12,
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+                background: 'linear-gradient(135deg, #4CAF50 0%, #66BB6A 100%)',
+                borderRadius: '50%',
+                width: { xs: '48px', sm: '56px' },
+                height: { xs: '48px', sm: '56px' },
+                boxShadow: '0 4px 12px rgba(76, 175, 80, 0.4), 0 2px 4px rgba(0,0,0,0.2)',
+                border: '3px solid rgba(255, 255, 255, 0.9)',
+                animation: 'pulse 2s ease-in-out infinite',
+                '@keyframes pulse': {
+                  '0%, 100%': {
+                    transform: 'scale(1)',
+                    boxShadow: '0 4px 12px rgba(76, 175, 80, 0.4), 0 2px 4px rgba(0,0,0,0.2)',
+                  },
+                  '50%': {
+                    transform: 'scale(1.05)',
+                    boxShadow: '0 6px 16px rgba(76, 175, 80, 0.6), 0 4px 8px rgba(0,0,0,0.3)',
+                  },
+                },
+              }}
+            >
+              <CheckCircleIcon
+                sx={{
+                  fontSize: { xs: '28px', sm: '32px' },
+                  color: '#ffffff',
+                  filter: 'drop-shadow(0 2px 4px rgba(0,0,0,0.2))',
+                }}
+              />
+            </Box>
+          )}
+
+          {/* Status Chip - Bottom Right Overlay (moved down if returned badge is shown) */}
           <Chip
             label={foundLostStatus.label}
             sx={{
               position: 'absolute',
-              top: 16,
+              top: returned ? { xs: 72, sm: 80 } : 16,
               right: 16,
               zIndex: 10,
               backgroundColor: foundLostStatus.color, // Solid background color

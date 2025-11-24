@@ -28,6 +28,7 @@ import {
   AccessTime as TimeIcon,
   Event as EventIcon,
   ImageNotSupported as NoImageIcon,
+  CheckCircle as CheckCircleIcon,
 } from "@mui/icons-material";
 import FlexBetween from "../../../components/FlexBetween";
 import { useTranslation } from "../../../utils/translations";
@@ -353,6 +354,45 @@ const Post = ({ post, viewMode = "grid" }) => {
             alignItems: 'center',
             justifyContent: 'center',
           }}>
+            {/* Returned Badge - Top Right Overlay (when returned is true) */}
+            {post?.returned && (
+              <Box
+                sx={{
+                  position: 'absolute',
+                  top: 8,
+                  right: 8,
+                  zIndex: 12,
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                  background: 'linear-gradient(135deg, #4CAF50 0%, #66BB6A 100%)',
+                  borderRadius: '50%',
+                  width: { xs: '40px', sm: '44px' },
+                  height: { xs: '40px', sm: '44px' },
+                  boxShadow: '0 4px 12px rgba(76, 175, 80, 0.4), 0 2px 4px rgba(0,0,0,0.2)',
+                  border: '3px solid rgba(255, 255, 255, 0.9)',
+                  animation: 'pulse 2s ease-in-out infinite',
+                  '@keyframes pulse': {
+                    '0%, 100%': {
+                      transform: 'scale(1)',
+                      boxShadow: '0 4px 12px rgba(76, 175, 80, 0.4), 0 2px 4px rgba(0,0,0,0.2)',
+                    },
+                    '50%': {
+                      transform: 'scale(1.05)',
+                      boxShadow: '0 6px 16px rgba(76, 175, 80, 0.6), 0 4px 8px rgba(0,0,0,0.3)',
+                    },
+                  },
+                }}
+              >
+                <CheckCircleIcon
+                  sx={{
+                    fontSize: { xs: '24px', sm: '26px' },
+                    color: '#ffffff',
+                    filter: 'drop-shadow(0 2px 4px rgba(0,0,0,0.2))',
+                  }}
+                />
+              </Box>
+            )}
             {post?.image && imageUrl ? (
               <LazyCardMedia
                 component="img"
@@ -724,13 +764,54 @@ const Post = ({ post, viewMode = "grid" }) => {
           
 
 
+          {/* Returned Badge - Top Right Overlay (when returned is true) */}
+          {post?.returned && (
+            <Box
+              sx={{
+                position: 'absolute',
+                top: 12,
+                right: 12,
+                zIndex: 12,
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+                backgroundColor: 'linear-gradient(135deg, #4CAF50 0%, #66BB6A 100%)',
+                background: 'linear-gradient(135deg, #4CAF50 0%, #66BB6A 100%)',
+                borderRadius: '50%',
+                width: { xs: '44px', sm: '48px' },
+                height: { xs: '44px', sm: '48px' },
+                boxShadow: '0 4px 12px rgba(76, 175, 80, 0.4), 0 2px 4px rgba(0,0,0,0.2)',
+                border: '3px solid rgba(255, 255, 255, 0.9)',
+                animation: 'pulse 2s ease-in-out infinite',
+                '@keyframes pulse': {
+                  '0%, 100%': {
+                    transform: 'scale(1)',
+                    boxShadow: '0 4px 12px rgba(76, 175, 80, 0.4), 0 2px 4px rgba(0,0,0,0.2)',
+                  },
+                  '50%': {
+                    transform: 'scale(1.05)',
+                    boxShadow: '0 6px 16px rgba(76, 175, 80, 0.6), 0 4px 8px rgba(0,0,0,0.3)',
+                  },
+                },
+              }}
+            >
+              <CheckCircleIcon
+                sx={{
+                  fontSize: { xs: '26px', sm: '28px' },
+                  color: '#ffffff',
+                  filter: 'drop-shadow(0 2px 4px rgba(0,0,0,0.2))',
+                }}
+              />
+            </Box>
+          )}
+
           {/* Top Badges Container */}
           <Box
             sx={{
               position: 'absolute',
               top: 12,
               left: 12,
-              right: 12,
+              right: post?.returned ? { xs: 64, sm: 68 } : 12,
               display: 'flex',
               justifyContent: 'space-between',
               alignItems: 'flex-start',

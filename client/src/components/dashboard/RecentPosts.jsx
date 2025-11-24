@@ -25,6 +25,7 @@ import {
   AccessTime as TimeIcon,
   Event as EventIcon,
   ImageNotSupported as NoImageIcon,
+  CheckCircle as CheckCircleIcon,
 } from "@mui/icons-material";
 import { formatDistanceToNow } from 'date-fns';
 import { ar, fr, enUS } from 'date-fns/locale';
@@ -35,7 +36,7 @@ import { useState, useMemo } from "react";
 // Get the API base URL for image construction
 const API_BASE_URL = process.env.REACT_APP_API_URL || "http://localhost:3500";
 
-const RecentPosts = ({ _id, categoryname, exactLocation, image, createdAt, countryLabels, countryname, contact, city, cityLabels, cityName, Category, Categories, mainDate }) => {
+const RecentPosts = ({ _id, categoryname, exactLocation, image, createdAt, countryLabels, countryname, contact, city, cityLabels, cityName, Category, Categories, mainDate, returned }) => {
   const theme = useTheme();
   const navigate = useNavigate();
   const { t, currentLanguage } = useTranslation();
@@ -369,13 +370,53 @@ const RecentPosts = ({ _id, categoryname, exactLocation, image, createdAt, count
             />
           )}
 
+          {/* Returned Badge - Top Right Overlay (when returned is true) */}
+          {returned && (
+            <Box
+              sx={{
+                position: 'absolute',
+                top: 12,
+                right: 12,
+                zIndex: 12,
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+                background: 'linear-gradient(135deg, #4CAF50 0%, #66BB6A 100%)',
+                borderRadius: '50%',
+                width: { xs: '44px', sm: '48px' },
+                height: { xs: '44px', sm: '48px' },
+                boxShadow: '0 4px 12px rgba(76, 175, 80, 0.4), 0 2px 4px rgba(0,0,0,0.2)',
+                border: '3px solid rgba(255, 255, 255, 0.9)',
+                animation: 'pulse 2s ease-in-out infinite',
+                '@keyframes pulse': {
+                  '0%, 100%': {
+                    transform: 'scale(1)',
+                    boxShadow: '0 4px 12px rgba(76, 175, 80, 0.4), 0 2px 4px rgba(0,0,0,0.2)',
+                  },
+                  '50%': {
+                    transform: 'scale(1.05)',
+                    boxShadow: '0 6px 16px rgba(76, 175, 80, 0.6), 0 4px 8px rgba(0,0,0,0.3)',
+                  },
+                },
+              }}
+            >
+              <CheckCircleIcon
+                sx={{
+                  fontSize: { xs: '26px', sm: '28px' },
+                  color: '#ffffff',
+                  filter: 'drop-shadow(0 2px 4px rgba(0,0,0,0.2))',
+                }}
+              />
+            </Box>
+          )}
+
           {/* Top Badges Container */}
           <Box
             sx={{
               position: 'absolute',
               top: 12,
               left: 12,
-              right: 12,
+              right: returned ? { xs: 64, sm: 68 } : 12,
               display: 'flex',
               justifyContent: 'space-between',
               alignItems: 'flex-start',
