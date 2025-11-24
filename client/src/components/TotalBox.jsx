@@ -115,39 +115,40 @@ const StatBox = ({ title, value, increase, icon, description, titleStyle, valueS
         }}
       >
         {icon}
-        {/* Notification Badge on Icon */}
-        {hasNotification && (
-          <Box
-            sx={{
-              position: 'absolute',
-              bottom: '-4px',
-              right: '-4px', // Bottom-right in LTR
-              width: '12px',
-              height: '12px',
-              borderRadius: '50%',
-              background: `linear-gradient(135deg, ${defaultNotificationColor} 0%, ${defaultNotificationColor}DD 100%)`,
-              border: `2px solid ${theme.palette.mode === 'dark' ? 'rgba(18,18,18,0.95)' : 'rgba(255,255,255,0.95)'}`,
-              boxShadow: `0 0 0 2px ${defaultNotificationColor}40, 0 2px 8px 0 ${defaultNotificationColor}60`,
-              animation: 'pulseDot 2s ease-in-out infinite',
-              '@keyframes pulseDot': {
-                '0%, 100%': {
-                  transform: 'scale(1)',
-                  opacity: 1,
-                },
-                '50%': {
-                  transform: 'scale(1.15)',
-                  opacity: 0.85,
-                },
-              },
-              // RTL support - inverse position
-              '[dir="rtl"] &': {
-                right: 'auto',
-                left: '-4px', // Bottom-left in RTL
-              }
-            }}
-          />
-        )}
       </Box>
+
+      {/* Notification Badge on Box Container */}
+      {hasNotification && (
+        <Box
+          sx={{
+            position: 'absolute',
+            bottom: '12px',
+            right: '12px', // Bottom-right in LTR
+            width: '12px',
+            height: '12px',
+            borderRadius: '50%',
+            background: `linear-gradient(135deg, ${defaultNotificationColor} 0%, ${defaultNotificationColor}DD 100%)`,
+            border: `2px solid ${theme.palette.mode === 'dark' ? 'rgba(18,18,18,0.95)' : 'rgba(255,255,255,0.95)'}`,
+            boxShadow: `0 0 0 2px ${defaultNotificationColor}40, 0 2px 8px 0 ${defaultNotificationColor}60`,
+            animation: 'pulseDot 2s ease-in-out infinite',
+            '@keyframes pulseDot': {
+              '0%, 100%': {
+                transform: 'scale(1)',
+                opacity: 1,
+              },
+              '50%': {
+                transform: 'scale(1.15)',
+                opacity: 0.85,
+              },
+            },
+            // RTL support - inverse position
+            '[dir="rtl"] &': {
+              right: 'auto',
+              left: '12px', // Bottom-left in RTL
+            }
+          }}
+        />
+      )}
 
       <Box mt="1rem" sx={{ flexGrow: 1, display: 'flex', flexDirection: 'column', position: 'relative' }}>
         <Typography
