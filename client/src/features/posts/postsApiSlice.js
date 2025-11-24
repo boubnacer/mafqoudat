@@ -203,7 +203,10 @@ export const postsApiSlice = apiSlice.injectEndpoints({
         }
         return response;
       },
-      invalidatesTags: [{ type: "Post", id: "LIST" }],
+      invalidatesTags: [
+        { type: "Post", id: "LIST" },
+        { type: "Dashboard" }
+      ],
     }),
 
     updatePost: builder.mutation({
@@ -332,7 +335,8 @@ export const postsApiSlice = apiSlice.injectEndpoints({
       },
       invalidatesTags: (result, error, arg) => [
         { type: "Post", id: arg },
-        { type: "Post", id: "LIST" }
+        { type: "Post", id: "LIST" },
+        { type: "Dashboard" }
       ],
     }),
   }),
