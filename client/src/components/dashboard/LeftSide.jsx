@@ -3,6 +3,10 @@ import TotalBox from "../TotalBox";
 import { Box, Typography, useTheme, useMediaQuery } from "@mui/material";
 import RenderIcon from "../RenderIcon";
 import { useTranslation } from "../../utils/translations";
+import { useNavigate } from "react-router-dom";
+import { useDispatch } from "react-redux";
+import { setFoundOrLost } from "../../app/state";
+import { useGetflOptionsQuery } from "../../features/dependencies/dependenciesApiSlice";
 
 const LeftSide = ({
   totalFounds,
@@ -15,6 +19,47 @@ const LeftSide = ({
   const theme = useTheme();
   const { t, currentLanguage } = useTranslation();
   const isMobile = useMediaQuery("(max-width:600px)");
+  const navigate = useNavigate();
+  const dispatch = useDispatch();
+
+  // Get found/lost options for navigation
+  const { data: flOptionsData } = useGetflOptionsQuery({
+    language: currentLanguage
+  }, {
+    selectFromResult: ({ data }) => ({
+      data: data?.ids?.map((id) => data?.entities[id]) || [],
+    }),
+  });
+
+  // Handler for Found Items
+  const handleFoundItemsClick = () => {
+    const foundOption = flOptionsData?.find(option => option.code === 'FOUND');
+    if (foundOption) {
+      dispatch(setFoundOrLost({ foundOrlost: foundOption.code }));
+      navigate(`/dash/posts?fl=${foundOption._id}`);
+    } else {
+      // Fallback if options not loaded yet
+      navigate('/dash/posts');
+    }
+  };
+
+  // Handler for Lost Items
+  const handleLostItemsClick = () => {
+    const lostOption = flOptionsData?.find(option => option.code === 'LOST');
+    if (lostOption) {
+      dispatch(setFoundOrLost({ foundOrlost: lostOption.code }));
+      navigate(`/dash/posts?fl=${lostOption._id}`);
+    } else {
+      // Fallback if options not loaded yet
+      navigate('/dash/posts');
+    }
+  };
+
+  // Handler for Returned Items
+  const handleReturnedItemsClick = () => {
+    // Navigate to posts list - returned items can be filtered on the posts page
+    navigate('/dash/posts?status=returned');
+  };
 
   return (
     <Box 
@@ -87,6 +132,7 @@ const LeftSide = ({
           icon={<RenderIcon name="Found" />}
           hasNotification={(foundsToday || 0) >= 1}
           notificationColor={theme.palette.mode === 'dark' ? '#48BB78' : '#2F855A'}
+          onClick={handleFoundItemsClick}
           sx={{
             background: theme.palette.mode === 'dark'
               ? 'linear-gradient(135deg, rgba(72, 187, 120, 0.15) 0%, rgba(72, 187, 120, 0.08) 100%)'
@@ -125,6 +171,7 @@ const LeftSide = ({
           icon={<RenderIcon name="Lost" />}
           hasNotification={(lostsToday || 0) >= 1}
           notificationColor={theme.palette.mode === 'dark' ? '#F56565' : '#C53030'}
+          onClick={handleLostItemsClick}
           sx={{
             background: theme.palette.mode === 'dark'
               ? 'linear-gradient(135deg, rgba(245, 101, 101, 0.15) 0%, rgba(245, 101, 101, 0.08) 100%)'
@@ -197,6 +244,7 @@ const LeftSide = ({
           increase="+5%"
           description={t('sinceLastMonth')}
           icon={<RenderIcon name="returned" />}
+          onClick={handleReturnedItemsClick}
           sx={{
             background: theme.palette.mode === 'dark'
               ? 'linear-gradient(135deg, rgba(159, 122, 234, 0.15) 0%, rgba(159, 122, 234, 0.08) 100%)'
