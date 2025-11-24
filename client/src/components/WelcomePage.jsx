@@ -93,7 +93,7 @@ const HeaderSection = styled(Box)(({ theme }) => ({
   position: 'relative',
   // Mobile-specific: remove top margin to reduce spacing
   [theme?.breakpoints?.down?.('sm') || '@media (max-width: 600px)']: {
-    marginTop: '0px',
+    marginTop: '3rem',
   },
 }));
 
