@@ -511,7 +511,7 @@ const Post = ({ post, viewMode = "grid" }) => {
               </Box>
 
               {/* Location and Time */}
-              <Box display="flex" gap={2} mb={2} flexWrap="wrap" justifyContent="space-between" alignItems="flex-start">
+              <Box display="flex" gap={2} mb={2} flexWrap="wrap" alignItems="flex-start">
                 <Box display="flex" alignItems="center" gap={1}>
                   <LocationIcon sx={{ fontSize: 16, color: 'text.secondary' }} />
                   <Typography 
@@ -528,7 +528,8 @@ const Post = ({ post, viewMode = "grid" }) => {
                   gap={1}
                   justifyItems={currentLanguage === 'ar' ? 'end' : 'start'}
                   sx={{
-                    order: currentLanguage === 'ar' ? -1 : 1,
+                    marginLeft: currentLanguage === 'ar' ? 'auto' : 0,
+                    marginRight: currentLanguage === 'ar' ? 0 : 'auto',
                   }}
                 >
                   {/* Time - Left in LTR, Right in RTL */}
