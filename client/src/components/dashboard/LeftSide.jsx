@@ -1,4 +1,4 @@
-import React from "react";
+import React, { useState, useEffect, useMemo } from "react";
 import TotalBox from "../TotalBox";
 import { Box, Typography, useTheme, useMediaQuery } from "@mui/material";
 import RenderIcon from "../RenderIcon";
@@ -7,6 +7,38 @@ import { useNavigate } from "react-router-dom";
 import { useDispatch } from "react-redux";
 import { setFoundOrLost } from "../../app/state";
 import { useGetflOptionsQuery } from "../../features/dependencies/dependenciesApiSlice";
+
+// Utility functions for managing viewed notifications
+const getTodayKey = () => {
+  const today = new Date();
+  return `viewedNotifications_${today.toISOString().split('T')[0]}`;
+};
+
+const getViewedNotifications = () => {
+  try {
+    const key = getTodayKey();
+    const stored = localStorage.getItem(key);
+    return stored ? JSON.parse(stored) : {};
+  } catch (error) {
+    return {};
+  }
+};
+
+const markNotificationAsViewed = (boxType) => {
+  try {
+    const key = getTodayKey();
+    const viewed = getViewedNotifications();
+    viewed[boxType] = true;
+    localStorage.setItem(key, JSON.stringify(viewed));
+  } catch (error) {
+    console.error('Error marking notification as viewed:', error);
+  }
+};
+
+const isNotificationViewed = (boxType) => {
+  const viewed = getViewedNotifications();
+  return viewed[boxType] === true;
+};
 
 const LeftSide = ({
   totalFounds,
@@ -31,8 +63,37 @@ const LeftSide = ({
     }),
   });
 
+  // Clean up old notification data on mount (keep only today's data)
+  useEffect(() => {
+    try {
+      const today = new Date().toISOString().split('T')[0];
+      const keysToRemove = [];
+      
+      // Check all localStorage keys
+      for (let i = 0; i < localStorage.length; i++) {
+        const key = localStorage.key(i);
+        if (key && key.startsWith('viewedNotifications_')) {
+          const date = key.replace('viewedNotifications_', '');
+          if (date !== today) {
+            keysToRemove.push(key);
+          }
+        }
+      }
+      
+      // Remove old keys
+      keysToRemove.forEach(key => localStorage.removeItem(key));
+    } catch (error) {
+      console.error('Error cleaning up old notification data:', error);
+    }
+  }, []);
+
   // Handler for Found Items
   const handleFoundItemsClick = () => {
+    // Mark notification as viewed when clicked
+    if ((foundsToday || 0) >= 1) {
+      markNotificationAsViewed('found');
+    }
+    
     const foundOption = flOptionsData?.find(option => option.code === 'FOUND');
     if (foundOption) {
       dispatch(setFoundOrLost({ foundOrlost: foundOption.code }));
@@ -45,6 +106,11 @@ const LeftSide = ({
 
   // Handler for Lost Items
   const handleLostItemsClick = () => {
+    // Mark notification as viewed when clicked
+    if ((lostsToday || 0) >= 1) {
+      markNotificationAsViewed('lost');
+    }
+    
     const lostOption = flOptionsData?.find(option => option.code === 'LOST');
     if (lostOption) {
       dispatch(setFoundOrLost({ foundOrlost: lostOption.code }));
@@ -130,7 +196,7 @@ const LeftSide = ({
           increase="+14%"
           description={`+ ${foundsToday || 0} ${t('today')}`}
           icon={<RenderIcon name="Found" />}
-          hasNotification={(foundsToday || 0) >= 1}
+          hasNotification={(foundsToday || 0) >= 1 && !isNotificationViewed('found')}
           notificationColor={theme.palette.mode === 'dark' ? '#48BB78' : '#2F855A'}
           onClick={handleFoundItemsClick}
           sx={{
@@ -169,7 +235,7 @@ const LeftSide = ({
           increase="+21%"
           description={`+ ${lostsToday || 0} ${t('today')}`}
           icon={<RenderIcon name="Lost" />}
-          hasNotification={(lostsToday || 0) >= 1}
+          hasNotification={(lostsToday || 0) >= 1 && !isNotificationViewed('lost')}
           notificationColor={theme.palette.mode === 'dark' ? '#F56565' : '#C53030'}
           onClick={handleLostItemsClick}
           sx={{
