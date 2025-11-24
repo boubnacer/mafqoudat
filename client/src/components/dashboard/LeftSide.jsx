@@ -63,7 +63,12 @@ const LeftSide = ({
     }),
   });
 
-  // Clean up old notification data on mount (keep only today's data)
+  // State to track viewed notifications (synced with localStorage)
+  const [viewedNotifications, setViewedNotifications] = useState(() => {
+    return getViewedNotifications();
+  });
+
+  // Clean up old notification data and sync state with localStorage on mount
   useEffect(() => {
     try {
       const today = new Date().toISOString().split('T')[0];
@@ -82,6 +87,9 @@ const LeftSide = ({
       
       // Remove old keys
       keysToRemove.forEach(key => localStorage.removeItem(key));
+      
+      // Sync state with localStorage after cleanup
+      setViewedNotifications(getViewedNotifications());
     } catch (error) {
       console.error('Error cleaning up old notification data:', error);
     }
@@ -92,6 +100,8 @@ const LeftSide = ({
     // Mark notification as viewed when clicked
     if ((foundsToday || 0) >= 1) {
       markNotificationAsViewed('found');
+      // Update state immediately
+      setViewedNotifications(prev => ({ ...prev, found: true }));
     }
     
     const foundOption = flOptionsData?.find(option => option.code === 'FOUND');
@@ -109,6 +119,8 @@ const LeftSide = ({
     // Mark notification as viewed when clicked
     if ((lostsToday || 0) >= 1) {
       markNotificationAsViewed('lost');
+      // Update state immediately
+      setViewedNotifications(prev => ({ ...prev, lost: true }));
     }
     
     const lostOption = flOptionsData?.find(option => option.code === 'LOST');
@@ -196,7 +208,7 @@ const LeftSide = ({
           increase="+14%"
           description={`+ ${foundsToday || 0} ${t('today')}`}
           icon={<RenderIcon name="Found" />}
-          hasNotification={(foundsToday || 0) >= 1 && !isNotificationViewed('found')}
+          hasNotification={(foundsToday || 0) >= 1 && !viewedNotifications.found}
           notificationColor={theme.palette.mode === 'dark' ? '#48BB78' : '#2F855A'}
           onClick={handleFoundItemsClick}
           sx={{
@@ -235,7 +247,7 @@ const LeftSide = ({
           increase="+21%"
           description={`+ ${lostsToday || 0} ${t('today')}`}
           icon={<RenderIcon name="Lost" />}
-          hasNotification={(lostsToday || 0) >= 1 && !isNotificationViewed('lost')}
+          hasNotification={(lostsToday || 0) >= 1 && !viewedNotifications.lost}
           notificationColor={theme.palette.mode === 'dark' ? '#F56565' : '#C53030'}
           onClick={handleLostItemsClick}
           sx={{
