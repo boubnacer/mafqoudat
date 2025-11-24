@@ -46,6 +46,26 @@ import { authStorage } from "../../../utils/authStorage";
 import useCountryName from "../../../hooks/useCountryName";
 
 
+/**
+ * Normalize Arabic text by removing diacritics and normalizing similar characters
+ * This helps match "اكادير" with "أكادير" (without/with hamza on alif)
+ * @param {string} text - Text to normalize
+ * @returns {string} - Normalized text
+ */
+const normalizeArabicText = (text) => {
+  if (!text || typeof text !== 'string') return '';
+  
+  return text
+    // Remove Arabic diacritics (harakat): fatha, damma, kasra, shadda, sukun, etc.
+    .replace(/[\u064B-\u065F\u0670]/g, '') // Remove combining diacritics
+    // Normalize Arabic characters with hamza to base characters
+    .replace(/أ|إ|آ/g, 'ا') // Normalize alif with hamza variations to plain alif
+    .replace(/ى/g, 'ي') // Normalize alif maksura to ya
+    .replace(/ة/g, 'ه') // Normalize ta marbuta to ha
+    .replace(/[ًٌٍَُِّْ]/g, '') // Remove standalone diacritics
+    .toLowerCase()
+    .trim();
+};
 
 const PostsList = () => {
   useTitle("Mafqoudat | Posts List");
@@ -256,20 +276,40 @@ const PostsList = () => {
       return allCachedCitiesForCountry;
     }
     
+    // Normalize search term for better matching (especially for Arabic)
+    const normalizedSearch = normalizeArabicText(debouncedCitySearchTerm);
     const searchLower = debouncedCitySearchTerm.toLowerCase();
+    
     return allCachedCitiesForCountry.filter(city => {
       if (!city || !city.labels) return false;
       
-      // Filter by search term
-      const cityNameEn = city.labels?.en?.toLowerCase() || '';
-      const cityNameFr = city.labels?.fr?.toLowerCase() || '';
-      const cityNameAr = city.labels?.ar?.toLowerCase() || '';
-      const cityCode = city.code?.toLowerCase() || '';
+      // Get city names in all languages
+      const cityNameEn = city.labels?.en || '';
+      const cityNameFr = city.labels?.fr || '';
+      const cityNameAr = city.labels?.ar || '';
+      const cityCode = city.code || '';
       
-      return cityNameEn.includes(searchLower) || 
-             cityNameFr.includes(searchLower) || 
-             cityNameAr.includes(searchLower) ||
-             cityCode.includes(searchLower);
+      // Normalize Arabic text for better matching
+      const normalizedEn = normalizeArabicText(cityNameEn);
+      const normalizedFr = normalizeArabicText(cityNameFr);
+      const normalizedAr = normalizeArabicText(cityNameAr);
+      const normalizedCode = normalizeArabicText(cityCode);
+      
+      // Also check with lowercase for non-Arabic text
+      const lowerEn = cityNameEn.toLowerCase();
+      const lowerFr = cityNameFr.toLowerCase();
+      const lowerAr = cityNameAr.toLowerCase();
+      const lowerCode = cityCode.toLowerCase();
+      
+      // Match using both normalized (for Arabic) and lowercase (for other languages)
+      return normalizedEn.includes(normalizedSearch) || 
+             normalizedFr.includes(normalizedSearch) || 
+             normalizedAr.includes(normalizedSearch) ||
+             normalizedCode.includes(normalizedSearch) ||
+             lowerEn.includes(searchLower) || 
+             lowerFr.includes(searchLower) || 
+             lowerAr.includes(searchLower) ||
+             lowerCode.includes(searchLower);
     });
   }, [allCachedCitiesForCountry, debouncedCitySearchTerm, currentCountry]);
 

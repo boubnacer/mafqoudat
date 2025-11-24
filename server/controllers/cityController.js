@@ -14,6 +14,27 @@ const isArabicText = (text) => {
   return arabicRegex.test(text);
 };
 
+/**
+ * Normalize Arabic text by removing diacritics and normalizing similar characters
+ * This helps match "اكادير" with "أكادير" (without/with hamza on alif)
+ * @param {string} text - Text to normalize
+ * @returns {string} - Normalized text
+ */
+const normalizeArabicText = (text) => {
+  if (!text || typeof text !== 'string') return '';
+  
+  return text
+    // Remove Arabic diacritics (harakat): fatha, damma, kasra, shadda, sukun, etc.
+    .replace(/[\u064B-\u065F\u0670]/g, '') // Remove combining diacritics
+    // Normalize Arabic characters with hamza to base characters
+    .replace(/أ|إ|آ/g, 'ا') // Normalize alif with hamza variations to plain alif
+    .replace(/ى/g, 'ي') // Normalize alif maksura to ya
+    .replace(/ة/g, 'ه') // Normalize ta marbuta to ha
+    .replace(/[ًٌٍَُِّْ]/g, '') // Remove standalone diacritics
+    .toLowerCase()
+    .trim();
+};
+
 // Helper function to normalize city labels
 const normalizeCityLabels = (labels) => {
   if (!labels) return labels;
@@ -87,13 +108,41 @@ const getCities = async (req, res) => {
     
     // Add search functionality - use regex for partial matching
     if (search) {
+      // Normalize search term for Arabic text matching
+      const normalizedSearch = normalizeArabicText(search);
+      
+      // Create regex pattern that handles Arabic character variations
+      // This allows matching "اكادير" with "أكادير" (with/without hamza)
+      const createArabicRegexPattern = (text) => {
+        if (!text) return text;
+        
+        // Escape special regex characters first (but preserve Arabic characters)
+        // We need to escape before replacing Arabic chars to avoid double-escaping
+        let escaped = text.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+        
+        // Replace normalized Arabic characters with character classes that match variations
+        // This allows matching both normalized and non-normalized versions
+        escaped = escaped
+          .replace(/ا/g, '[اأإآ]') // Match alif variations (ا, أ, إ, آ)
+          .replace(/ي/g, '[يى]') // Match ya and alif maksura
+          .replace(/ه/g, '[هة]'); // Match ha and ta marbuta
+        
+        return escaped;
+      };
+      
+      // For Arabic text, use normalized pattern with character classes
+      // For non-Arabic text, use original search term
+      const searchPattern = isArabicText(search) 
+        ? createArabicRegexPattern(normalizedSearch)
+        : search;
+      
       // Use regex for case-insensitive partial matching across all language labels
       conditions.push({
         $or: [
-          { 'labels.en': { $regex: search, $options: 'i' } },
-          { 'labels.fr': { $regex: search, $options: 'i' } },
-          { 'labels.ar': { $regex: search, $options: 'i' } },
-          { code: { $regex: search, $options: 'i' } }
+          { 'labels.en': { $regex: searchPattern, $options: 'i' } },
+          { 'labels.fr': { $regex: searchPattern, $options: 'i' } },
+          { 'labels.ar': { $regex: searchPattern, $options: 'i' } },
+          { code: { $regex: searchPattern, $options: 'i' } }
         ]
       });
     }
