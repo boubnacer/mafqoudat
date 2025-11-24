@@ -85,6 +85,8 @@ const LeftSide = ({
           increase="+14%"
           description={`+ ${foundsToday || 0} ${t('today')}`}
           icon={<RenderIcon name="Found" />}
+          hasNotification={(foundsToday || 0) >= 1}
+          notificationColor={theme.palette.mode === 'dark' ? '#48BB78' : '#2F855A'}
           sx={{
             background: theme.palette.mode === 'dark'
               ? 'linear-gradient(135deg, rgba(72, 187, 120, 0.15) 0%, rgba(72, 187, 120, 0.08) 100%)'
@@ -121,6 +123,8 @@ const LeftSide = ({
           increase="+21%"
           description={`+ ${lostsToday || 0} ${t('today')}`}
           icon={<RenderIcon name="Lost" />}
+          hasNotification={(lostsToday || 0) >= 1}
+          notificationColor={theme.palette.mode === 'dark' ? '#F56565' : '#C53030'}
           sx={{
             background: theme.palette.mode === 'dark'
               ? 'linear-gradient(135deg, rgba(245, 101, 101, 0.15) 0%, rgba(245, 101, 101, 0.08) 100%)'
