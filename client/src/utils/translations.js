@@ -3921,7 +3921,7 @@ export const translations = {
     exactDate: "التاريخ الدقيق",
     tags: "العلامات",
     postStatus: "حالة المنشور",
-    returned: "تم الإرجاع",
+    returned: "تم استرجاعه",
     yes: "نعم",
     no: "لا",
     unknown: "غير معروف",
