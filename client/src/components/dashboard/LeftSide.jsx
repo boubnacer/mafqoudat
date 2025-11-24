@@ -181,73 +181,80 @@ const LeftSide = ({
   }, []);
 
   // Compute notification visibility using state (which is synced from localStorage)
-  // Use useMemo to ensure it updates when state or counts change
+  // Show notification if current count is higher than the viewed count
   const showFoundNotification = useMemo(() => {
-    const hasItemsToday = (foundsToday || 0) >= 1;
-    if (!hasItemsToday) return false;
+    const currentCount = foundsToday || 0;
+    if (currentCount < 1) return false;
     
     // Check state first (synced from localStorage in useEffect)
-    const isViewed = viewedNotifications.found === true;
+    const viewedCount = viewedNotifications.foundCount || 0;
     
     // Also double-check localStorage as fallback
-    if (!isViewed) {
-      try {
-        const key = getTodayKey();
-        const stored = localStorage.getItem(key);
-        if (stored) {
-          const parsed = JSON.parse(stored);
-          if (parsed.found === true) {
-            // State is out of sync, update it
-            setViewedNotifications(prev => ({ ...prev, found: true }));
-            return false; // Don't show notification
+    let storedViewedCount = viewedCount;
+    try {
+      const key = getTodayKey();
+      const stored = localStorage.getItem(key);
+      if (stored) {
+        const parsed = JSON.parse(stored);
+        if (parsed.foundCount !== undefined) {
+          storedViewedCount = parsed.foundCount;
+          // Update state if it's out of sync
+          if (parsed.foundCount !== viewedCount) {
+            setViewedNotifications(prev => ({ ...prev, foundCount: parsed.foundCount }));
           }
         }
-      } catch (error) {
-        console.error('❌ Error reading found notification from localStorage:', error);
       }
+    } catch (error) {
+      console.error('❌ Error reading found notification from localStorage:', error);
     }
     
-    return !isViewed;
-  }, [foundsToday, viewedNotifications.found]);
+    // Show notification if current count is higher than viewed count
+    const shouldShow = currentCount > storedViewedCount;
+    return shouldShow;
+  }, [foundsToday, viewedNotifications.foundCount]);
 
   const showLostNotification = useMemo(() => {
-    const hasItemsToday = (lostsToday || 0) >= 1;
-    if (!hasItemsToday) return false;
+    const currentCount = lostsToday || 0;
+    if (currentCount < 1) return false;
     
     // Check state first (synced from localStorage in useEffect)
-    const isViewed = viewedNotifications.lost === true;
+    const viewedCount = viewedNotifications.lostCount || 0;
     
     // Also double-check localStorage as fallback
-    if (!isViewed) {
-      try {
-        const key = getTodayKey();
-        const stored = localStorage.getItem(key);
-        if (stored) {
-          const parsed = JSON.parse(stored);
-          if (parsed.lost === true) {
-            // State is out of sync, update it
-            setViewedNotifications(prev => ({ ...prev, lost: true }));
-            return false; // Don't show notification
+    let storedViewedCount = viewedCount;
+    try {
+      const key = getTodayKey();
+      const stored = localStorage.getItem(key);
+      if (stored) {
+        const parsed = JSON.parse(stored);
+        if (parsed.lostCount !== undefined) {
+          storedViewedCount = parsed.lostCount;
+          // Update state if it's out of sync
+          if (parsed.lostCount !== viewedCount) {
+            setViewedNotifications(prev => ({ ...prev, lostCount: parsed.lostCount }));
           }
         }
-      } catch (error) {
-        console.error('❌ Error reading lost notification from localStorage:', error);
       }
+    } catch (error) {
+      console.error('❌ Error reading lost notification from localStorage:', error);
     }
     
-    return !isViewed;
-  }, [lostsToday, viewedNotifications.lost]);
+    // Show notification if current count is higher than viewed count
+    const shouldShow = currentCount > storedViewedCount;
+    return shouldShow;
+  }, [lostsToday, viewedNotifications.lostCount]);
 
   // Handler for Found Items
   const handleFoundItemsClick = () => {
-    // Mark notification as viewed when clicked
+    // Mark notification as viewed when clicked - store the current count
     if ((foundsToday || 0) >= 1) {
       try {
         const key = getTodayKey();
         // Read current state from localStorage
         const stored = localStorage.getItem(key);
         const currentViewed = stored ? JSON.parse(stored) : {};
-        currentViewed.found = true;
+        // Store the count when viewed, not just a boolean
+        currentViewed.foundCount = foundsToday || 0;
         const valueToStore = JSON.stringify(currentViewed);
         
         // Write to localStorage with error handling
@@ -272,6 +279,7 @@ const LeftSide = ({
           console.log('✅ Found notification marked as viewed and persisted');
           console.log('  - Key:', key);
           console.log('  - Value:', verify1);
+          console.log('  - Viewed count:', verified.foundCount);
         } else {
           console.error('❌ Found notification write verification FAILED');
           console.error('  - Expected:', valueToStore);
@@ -294,14 +302,15 @@ const LeftSide = ({
 
   // Handler for Lost Items
   const handleLostItemsClick = () => {
-    // Mark notification as viewed when clicked
+    // Mark notification as viewed when clicked - store the current count
     if ((lostsToday || 0) >= 1) {
       try {
         const key = getTodayKey();
         // Read current state from localStorage
         const stored = localStorage.getItem(key);
         const currentViewed = stored ? JSON.parse(stored) : {};
-        currentViewed.lost = true;
+        // Store the count when viewed, not just a boolean
+        currentViewed.lostCount = lostsToday || 0;
         const valueToStore = JSON.stringify(currentViewed);
         
         // Write to localStorage with error handling
@@ -326,6 +335,7 @@ const LeftSide = ({
           console.log('✅ Lost notification marked as viewed and persisted');
           console.log('  - Key:', key);
           console.log('  - Value:', verify1);
+          console.log('  - Viewed count:', verified.lostCount);
         } else {
           console.error('❌ Lost notification write verification FAILED');
           console.error('  - Expected:', valueToStore);
