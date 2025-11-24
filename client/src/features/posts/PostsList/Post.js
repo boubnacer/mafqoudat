@@ -523,16 +523,23 @@ const Post = ({ post, viewMode = "grid" }) => {
                   </Typography>
                 </Box>
                 <Box 
-                  display={{ xs: 'grid', sm: 'flex' }}
-                  gridTemplateColumns={{ xs: '1fr' }}
-                  flexDirection={{ sm: 'row' }}
-                  alignItems={{ xs: 'stretch', sm: 'center' }}
-                  justifyContent={{ sm: currentLanguage === 'ar' ? 'flex-end' : 'flex-start' }}
-                  width="100%"
+                  display="grid"
+                  gridTemplateColumns="auto"
                   gap={1}
+                  justifyItems={currentLanguage === 'ar' ? 'end' : 'start'}
+                  width="100%"
                 >
                   {/* Time - Left in LTR, Right in RTL */}
-                  <Box display="flex" alignItems="center" gap={0.5}>
+                  <Box 
+                    display="flex" 
+                    alignItems="center" 
+                    gap={0.5}
+                    sx={{
+                      width: 'fit-content',
+                      marginLeft: currentLanguage === 'ar' ? 'auto' : 0,
+                      marginRight: currentLanguage === 'ar' ? 0 : 'auto',
+                    }}
+                  >
                     <TimeIcon sx={{ fontSize: 16, color: 'text.secondary' }} />
                     <Typography 
                       variant="body2" 
@@ -548,6 +555,11 @@ const Post = ({ post, viewMode = "grid" }) => {
                       display="flex" 
                       alignItems="center" 
                       gap={0.5}
+                      sx={{
+                        width: 'fit-content',
+                        marginLeft: currentLanguage === 'ar' ? 'auto' : 0,
+                        marginRight: currentLanguage === 'ar' ? 0 : 'auto',
+                      }}
                     >
                       <NoImageIcon sx={{ fontSize: 14, color: 'text.secondary', opacity: 0.7 }} />
                       <Typography 

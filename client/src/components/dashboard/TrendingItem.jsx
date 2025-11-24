@@ -674,15 +674,13 @@ const TrendingItem = ({ trend, isLoading }) => {
             sx={{
               position: 'absolute',
               bottom: '16px',
-              left: '16px',
-              right: '16px',
+              left: currentLanguage === 'ar' ? 'auto' : '16px',
+              right: currentLanguage === 'ar' ? '16px' : 'auto',
               zIndex: 10,
-              display: { xs: 'grid', sm: 'flex' },
-              gridTemplateColumns: { xs: '1fr' },
-              flexDirection: { sm: 'row' },
-              alignItems: { xs: 'stretch', sm: 'center' },
-              justifyContent: { sm: 'space-between' },
-              gap: 1,
+              display: 'grid',
+              gridTemplateColumns: 'auto',
+              gap: 0.5,
+              justifyItems: currentLanguage === 'ar' ? 'end' : 'start',
             }}
           >
             {/* Created Date Badge */}
@@ -706,6 +704,9 @@ const TrendingItem = ({ trend, isLoading }) => {
                 fontFamily: currentLanguage === 'ar' 
                   ? '"Noto Sans Arabic", "Segoe UI", "Roboto", "Helvetica", "Arial", sans-serif'
                   : '"Inter", "Segoe UI", "Roboto", "Helvetica", "Arial", sans-serif',
+                width: 'fit-content',
+                marginLeft: currentLanguage === 'ar' ? 'auto' : 0,
+                marginRight: currentLanguage === 'ar' ? 0 : 'auto',
               }}
             >
               <TimeIcon sx={{ 
@@ -734,6 +735,9 @@ const TrendingItem = ({ trend, isLoading }) => {
                   fontFamily: currentLanguage === 'ar' 
                     ? '"Noto Sans Arabic", "Segoe UI", "Roboto", "Helvetica", "Arial", sans-serif'
                     : '"Inter", "Segoe UI", "Roboto", "Helvetica", "Arial", sans-serif',
+                  width: 'fit-content',
+                  marginLeft: currentLanguage === 'ar' ? 'auto' : 0,
+                  marginRight: currentLanguage === 'ar' ? 0 : 'auto',
                 }}
               >
                 <NoImageIcon sx={{ 
