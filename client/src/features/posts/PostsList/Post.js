@@ -511,7 +511,14 @@ const Post = ({ post, viewMode = "grid" }) => {
               </Box>
 
               {/* Location and Time */}
-              <Box display="flex" gap={2} mb={2} flexWrap="wrap" alignItems="flex-start">
+              <Box 
+                display="flex" 
+                gap={2} 
+                mb={2} 
+                flexWrap="wrap" 
+                alignItems="flex-start"
+                width="100%"
+              >
                 <Box display="flex" alignItems="center" gap={1}>
                   <LocationIcon sx={{ fontSize: 16, color: 'text.secondary' }} />
                   <Typography 
@@ -539,6 +546,8 @@ const Post = ({ post, viewMode = "grid" }) => {
                     gap={0.5}
                     sx={{
                       width: 'fit-content',
+                      marginLeft: currentLanguage === 'ar' ? 'auto' : 0,
+                      marginRight: currentLanguage === 'ar' ? 0 : 'auto',
                     }}
                   >
                     <TimeIcon sx={{ fontSize: 16, color: 'text.secondary' }} />
@@ -558,6 +567,8 @@ const Post = ({ post, viewMode = "grid" }) => {
                       gap={0.5}
                       sx={{
                         width: 'fit-content',
+                        marginLeft: currentLanguage === 'ar' ? 'auto' : 0,
+                        marginRight: currentLanguage === 'ar' ? 0 : 'auto',
                       }}
                     >
                       <NoImageIcon sx={{ fontSize: 14, color: 'text.secondary', opacity: 0.7 }} />
