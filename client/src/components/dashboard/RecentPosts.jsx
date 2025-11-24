@@ -440,9 +440,9 @@ const RecentPosts = ({ _id, categoryname, exactLocation, image, createdAt, count
               left: 12,
               right: 12,
               display: 'grid',
-              gridTemplateColumns: '1fr',
+              gridTemplateColumns: 'auto',
               gap: 0.5,
-              alignItems: 'stretch',
+              justifyItems: currentLanguage === 'ar' ? 'end' : 'start',
             }}
           >
             {/* No Image Indicator */}
@@ -462,6 +462,7 @@ const RecentPosts = ({ _id, categoryname, exactLocation, image, createdAt, count
                   display: 'flex',
                   alignItems: 'center',
                   gap: 0.5,
+                  width: 'fit-content',
                 }}
               >
                 <NoImageIcon sx={{ 
@@ -492,6 +493,7 @@ const RecentPosts = ({ _id, categoryname, exactLocation, image, createdAt, count
                 backdropFilter: 'blur(10px)',
                 border: `1px solid ${theme.palette.mode === 'dark' ? 'rgba(255,255,255,0.2)' : 'rgba(0,0,0,0.1)'}`,
                 zIndex: 11, // Higher z-index for time badge
+                width: 'fit-content',
               }}
             >
               <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.5 }}>
