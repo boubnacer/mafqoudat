@@ -95,13 +95,16 @@ const LeftSide = ({
         const todayKey = getTodayKey();
         const keysToRemove = [];
         
+        // First, read today's value BEFORE cleanup to preserve it
+        const todayValue = localStorage.getItem(todayKey);
+        
         // Check all localStorage keys
         for (let i = 0; i < localStorage.length; i++) {
           const key = localStorage.key(i);
           if (key && key.startsWith('viewedNotifications_')) {
             const date = key.replace('viewedNotifications_', '');
             // Only remove keys that are NOT today's date
-            if (date !== today && key !== todayKey) {
+            if (date !== today) {
               keysToRemove.push(key);
             }
           }
@@ -113,6 +116,12 @@ const LeftSide = ({
             localStorage.removeItem(key);
           }
         });
+        
+        // Restore today's value if it existed (in case cleanup accidentally removed it)
+        if (todayValue && !localStorage.getItem(todayKey)) {
+          localStorage.setItem(todayKey, todayValue);
+          console.log('🔄 Restored today\'s notification data after cleanup');
+        }
         
         // Always sync state with localStorage after cleanup (this ensures fresh read on mount/refresh)
         const currentViewed = getViewedNotifications();
@@ -126,7 +135,15 @@ const LeftSide = ({
         console.log('  - Found viewed:', currentViewed.found);
         console.log('  - Lost viewed:', currentViewed.lost);
         
-        setViewedNotifications(currentViewed);
+        // Verify localStorage is working
+        if (storedValue === null && todayValue !== null) {
+          console.warn('⚠️ localStorage value was lost! Restoring...');
+          localStorage.setItem(todayKey, todayValue);
+          const restored = JSON.parse(todayValue);
+          setViewedNotifications(restored);
+        } else {
+          setViewedNotifications(currentViewed);
+        }
       } catch (error) {
         console.error('❌ Error syncing notifications:', error);
         // Even on error, try to get current viewed state
@@ -227,26 +244,38 @@ const LeftSide = ({
     if ((foundsToday || 0) >= 1) {
       try {
         const key = getTodayKey();
-        const currentViewed = getViewedNotifications();
+        // Read current state from localStorage
+        const stored = localStorage.getItem(key);
+        const currentViewed = stored ? JSON.parse(stored) : {};
         currentViewed.found = true;
         const valueToStore = JSON.stringify(currentViewed);
         
-        // Write to localStorage
-        localStorage.setItem(key, valueToStore);
-        
-        // Double-check: read it back immediately to ensure it persisted
-        const verify = localStorage.getItem(key);
-        if (verify) {
-          const verified = JSON.parse(verify);
-          if (verified.found === true) {
-            // Update state immediately
-            setViewedNotifications({ ...verified });
-            console.log('✅ Found notification marked as viewed and persisted');
+        // Write to localStorage with error handling
+        try {
+          localStorage.setItem(key, valueToStore);
+        } catch (storageError) {
+          // Handle quota exceeded or other storage errors
+          if (storageError.name === 'QuotaExceededError') {
+            console.error('❌ localStorage quota exceeded');
           } else {
-            console.warn('⚠️ Found notification write verification failed - found flag not set');
+            console.error('❌ localStorage write error:', storageError);
           }
+          return; // Don't proceed if we can't write
+        }
+        
+        // Verify immediately with multiple checks
+        const verify1 = localStorage.getItem(key);
+        if (verify1 === valueToStore) {
+          const verified = JSON.parse(verify1);
+          // Update state immediately
+          setViewedNotifications({ ...verified });
+          console.log('✅ Found notification marked as viewed and persisted');
+          console.log('  - Key:', key);
+          console.log('  - Value:', verify1);
         } else {
-          console.warn('⚠️ Found notification write verification failed - no data in localStorage');
+          console.error('❌ Found notification write verification FAILED');
+          console.error('  - Expected:', valueToStore);
+          console.error('  - Got:', verify1);
         }
       } catch (error) {
         console.error('❌ Error marking found notification as viewed:', error);
@@ -269,26 +298,38 @@ const LeftSide = ({
     if ((lostsToday || 0) >= 1) {
       try {
         const key = getTodayKey();
-        const currentViewed = getViewedNotifications();
+        // Read current state from localStorage
+        const stored = localStorage.getItem(key);
+        const currentViewed = stored ? JSON.parse(stored) : {};
         currentViewed.lost = true;
         const valueToStore = JSON.stringify(currentViewed);
         
-        // Write to localStorage
-        localStorage.setItem(key, valueToStore);
-        
-        // Double-check: read it back immediately to ensure it persisted
-        const verify = localStorage.getItem(key);
-        if (verify) {
-          const verified = JSON.parse(verify);
-          if (verified.lost === true) {
-            // Update state immediately
-            setViewedNotifications({ ...verified });
-            console.log('✅ Lost notification marked as viewed and persisted');
+        // Write to localStorage with error handling
+        try {
+          localStorage.setItem(key, valueToStore);
+        } catch (storageError) {
+          // Handle quota exceeded or other storage errors
+          if (storageError.name === 'QuotaExceededError') {
+            console.error('❌ localStorage quota exceeded');
           } else {
-            console.warn('⚠️ Lost notification write verification failed - lost flag not set');
+            console.error('❌ localStorage write error:', storageError);
           }
+          return; // Don't proceed if we can't write
+        }
+        
+        // Verify immediately with multiple checks
+        const verify1 = localStorage.getItem(key);
+        if (verify1 === valueToStore) {
+          const verified = JSON.parse(verify1);
+          // Update state immediately
+          setViewedNotifications({ ...verified });
+          console.log('✅ Lost notification marked as viewed and persisted');
+          console.log('  - Key:', key);
+          console.log('  - Value:', verify1);
         } else {
-          console.warn('⚠️ Lost notification write verification failed - no data in localStorage');
+          console.error('❌ Lost notification write verification FAILED');
+          console.error('  - Expected:', valueToStore);
+          console.error('  - Got:', verify1);
         }
       } catch (error) {
         console.error('❌ Error marking lost notification as viewed:', error);

@@ -11,13 +11,22 @@ export const cleanupLocalStorage = () => {
     'cachedCities' // Added to preserve cached cities for city search
   ];
 
+  // Keys that should be preserved based on pattern (not exact match)
+  const preservedPatterns = [
+    'viewedNotifications_' // Preserve notification tracking keys
+  ];
+
   // Get all localStorage keys
   const allKeys = Object.keys(localStorage);
   
-  // Remove keys that are not in the allowed list
+  // Remove keys that are not in the allowed list and don't match preserved patterns
   allKeys.forEach(key => {
     if (!allowedKeys.includes(key)) {
-      localStorage.removeItem(key);
+      // Check if key matches any preserved pattern
+      const shouldPreserve = preservedPatterns.some(pattern => key.startsWith(pattern));
+      if (!shouldPreserve) {
+        localStorage.removeItem(key);
+      }
     }
   });
 };
