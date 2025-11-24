@@ -527,7 +527,10 @@ const Post = ({ post, viewMode = "grid" }) => {
                   gridTemplateColumns="auto"
                   gap={1}
                   justifyItems={currentLanguage === 'ar' ? 'end' : 'start'}
-                  width="100%"
+                  sx={{
+                    marginLeft: currentLanguage === 'ar' ? 'auto' : 0,
+                    marginRight: currentLanguage === 'ar' ? 0 : 'auto',
+                  }}
                 >
                   {/* Time - Left in LTR, Right in RTL */}
                   <Box 
@@ -536,8 +539,6 @@ const Post = ({ post, viewMode = "grid" }) => {
                     gap={0.5}
                     sx={{
                       width: 'fit-content',
-                      marginLeft: currentLanguage === 'ar' ? 'auto' : 0,
-                      marginRight: currentLanguage === 'ar' ? 0 : 'auto',
                     }}
                   >
                     <TimeIcon sx={{ fontSize: 16, color: 'text.secondary' }} />
@@ -557,8 +558,6 @@ const Post = ({ post, viewMode = "grid" }) => {
                       gap={0.5}
                       sx={{
                         width: 'fit-content',
-                        marginLeft: currentLanguage === 'ar' ? 'auto' : 0,
-                        marginRight: currentLanguage === 'ar' ? 0 : 'auto',
                       }}
                     >
                       <NoImageIcon sx={{ fontSize: 14, color: 'text.secondary', opacity: 0.7 }} />
