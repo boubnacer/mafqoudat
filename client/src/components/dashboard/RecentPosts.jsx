@@ -437,8 +437,8 @@ const RecentPosts = ({ _id, categoryname, exactLocation, image, createdAt, count
             sx={{
               position: 'absolute',
               bottom: 12,
-              left: 12,
-              right: 12,
+              left: currentLanguage === 'ar' ? 'auto' : 12,
+              right: currentLanguage === 'ar' ? 12 : 'auto',
               display: 'grid',
               gridTemplateColumns: 'auto',
               gap: 0.5,
