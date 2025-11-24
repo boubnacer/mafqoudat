@@ -83,7 +83,11 @@ const WelcomeCard = styled(Card)(({ theme }) => ({
     boxShadow: theme?.palette?.mode === 'dark'
       ? '0 35px 70px rgba(0, 0, 0, 0.6), 0 0 0 1px rgba(255, 255, 255, 0.1)'
       : '0 35px 70px rgba(0, 0, 0, 0.15), 0 0 0 1px rgba(255, 255, 255, 0.9)',
-  }
+  },
+  // Mobile-specific: add margin-top to prevent content from being hidden behind top controls
+  [theme?.breakpoints?.down?.('sm') || '@media (max-width: 600px)']: {
+    marginTop: theme?.spacing?.(8) || '64px',
+  },
 }));
 
 const HeaderSection = styled(Box)(({ theme }) => ({
@@ -93,7 +97,7 @@ const HeaderSection = styled(Box)(({ theme }) => ({
   position: 'relative',
   // Mobile-specific: remove top margin to reduce spacing
   [theme?.breakpoints?.down?.('sm') || '@media (max-width: 600px)']: {
-    marginTop: '3rem',
+    marginTop: '0px',
   },
 }));
 
