@@ -187,15 +187,25 @@ const LeftSide = ({
     // This is important when user adds a new post and comes back to dashboard
     const currentViewed = getViewedNotifications();
     
-    // Only update state if localStorage has different values
+    console.log('🔄 Counts changed - checking for new posts:');
+    console.log('  - foundsToday:', foundsToday);
+    console.log('  - lostsToday:', lostsToday);
+    console.log('  - viewedNotifications from localStorage:', currentViewed);
+    console.log('  - foundCount in state:', viewedNotifications.foundCount);
+    console.log('  - lostCount in state:', viewedNotifications.lostCount);
+    
+    // Always update state with latest from localStorage when counts change
+    // This ensures we detect when new posts are added
     setViewedNotifications(prev => {
-      const hasChanges = 
-        prev.foundCount !== currentViewed.foundCount || 
-        prev.lostCount !== currentViewed.lostCount;
+      const newState = {
+        foundCount: currentViewed.foundCount ?? prev.foundCount ?? 0,
+        lostCount: currentViewed.lostCount ?? prev.lostCount ?? 0,
+      };
       
-      if (hasChanges) {
-        console.log('🔄 Syncing viewed notifications from localStorage:', currentViewed);
-        return { ...currentViewed };
+      // Only update if there are actual changes
+      if (prev.foundCount !== newState.foundCount || prev.lostCount !== newState.lostCount) {
+        console.log('🔄 Updating state with new viewed counts:', newState);
+        return newState;
       }
       return prev;
     });
@@ -205,36 +215,46 @@ const LeftSide = ({
   // Show notification if current count is higher than the viewed count
   const showFoundNotification = useMemo(() => {
     const currentCount = foundsToday || 0;
-    if (currentCount < 1) return false;
     
     // Get viewed count from state (synced from localStorage)
-    const viewedCount = viewedNotifications.foundCount ?? 0;
+    // Use count-based tracking, ignore old boolean values
+    const viewedCount = (viewedNotifications.foundCount !== undefined && viewedNotifications.foundCount !== null) 
+      ? viewedNotifications.foundCount 
+      : 0;
     
-    // Show notification if current count is higher than viewed count
-    const shouldShow = currentCount > viewedCount;
+    // Show notification if: current count >= 1 AND current count > viewed count
+    const shouldShow = currentCount >= 1 && currentCount > viewedCount;
     
-    // Debug logging
-    if (shouldShow) {
-      console.log(`🔔 Found notification should show: ${currentCount} > ${viewedCount}`);
-    }
+    // Debug logging - always log to see what's happening
+    console.log(`🔍 [Found] Notification check:`, {
+      currentCount,
+      viewedCount,
+      shouldShow,
+      condition: `${currentCount} >= 1 && ${currentCount} > ${viewedCount}`
+    });
     
     return shouldShow;
   }, [foundsToday, viewedNotifications.foundCount]);
 
   const showLostNotification = useMemo(() => {
     const currentCount = lostsToday || 0;
-    if (currentCount < 1) return false;
     
     // Get viewed count from state (synced from localStorage)
-    const viewedCount = viewedNotifications.lostCount ?? 0;
+    // Use count-based tracking, ignore old boolean values
+    const viewedCount = (viewedNotifications.lostCount !== undefined && viewedNotifications.lostCount !== null)
+      ? viewedNotifications.lostCount
+      : 0;
     
-    // Show notification if current count is higher than viewed count
-    const shouldShow = currentCount > viewedCount;
+    // Show notification if: current count >= 1 AND current count > viewed count
+    const shouldShow = currentCount >= 1 && currentCount > viewedCount;
     
-    // Debug logging
-    if (shouldShow) {
-      console.log(`🔔 Lost notification should show: ${currentCount} > ${viewedCount}`);
-    }
+    // Debug logging - always log to see what's happening
+    console.log(`🔍 [Lost] Notification check:`, {
+      currentCount,
+      viewedCount,
+      shouldShow,
+      condition: `${currentCount} >= 1 && ${currentCount} > ${viewedCount}`
+    });
     
     return shouldShow;
   }, [lostsToday, viewedNotifications.lostCount]);
@@ -408,7 +428,10 @@ const LeftSide = ({
           increase="+14%"
           description={`+ ${foundsToday || 0} ${t('today')}`}
           icon={<RenderIcon name="Found" />}
-          hasNotification={showFoundNotification}
+          hasNotification={(() => {
+            console.log('🎯 Found notification prop:', showFoundNotification, '| foundsToday:', foundsToday, '| viewedCount:', viewedNotifications.foundCount);
+            return showFoundNotification;
+          })()}
           notificationColor={theme.palette.mode === 'dark' ? '#48BB78' : '#2F855A'}
           onClick={handleFoundItemsClick}
           sx={{
@@ -447,7 +470,10 @@ const LeftSide = ({
           increase="+21%"
           description={`+ ${lostsToday || 0} ${t('today')}`}
           icon={<RenderIcon name="Lost" />}
-          hasNotification={showLostNotification}
+          hasNotification={(() => {
+            console.log('🎯 Lost notification prop:', showLostNotification, '| lostsToday:', lostsToday, '| viewedCount:', viewedNotifications.lostCount);
+            return showLostNotification;
+          })()}
           notificationColor={theme.palette.mode === 'dark' ? '#F56565' : '#C53030'}
           onClick={handleLostItemsClick}
           sx={{
