@@ -120,8 +120,8 @@ const StatBox = ({ title, value, increase, icon, description, titleStyle, valueS
           <Box
             sx={{
               position: 'absolute',
-              top: '-4px',
-              left: '-4px', // Top-left in LTR
+              bottom: '-4px',
+              right: '-4px', // Bottom-right in LTR
               width: '12px',
               height: '12px',
               borderRadius: '50%',
@@ -141,8 +141,8 @@ const StatBox = ({ title, value, increase, icon, description, titleStyle, valueS
               },
               // RTL support - inverse position
               '[dir="rtl"] &': {
-                left: 'auto',
-                right: '-4px', // Top-right in RTL
+                right: 'auto',
+                left: '-4px', // Bottom-left in RTL
               }
             }}
           />
