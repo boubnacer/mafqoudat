@@ -37,6 +37,7 @@ import {
   Person,
   Build,
   Refresh,
+  Close,
 } from "@mui/icons-material";
 import FlexBetween from "./FlexBetween";
 import {
@@ -1267,6 +1268,34 @@ const Navbar = () => {
           anchorOrigin={{ horizontal: 'right', vertical: 'bottom' }}
         >
           <Box sx={{ p: 1.5 }}>
+            {/* Close Button - Mobile Menu */}
+            <Box
+              sx={{
+                display: 'flex',
+                justifyContent: currentLanguage === 'ar' ? 'flex-start' : 'flex-end',
+                mb: 1,
+              }}
+            >
+              <IconButton
+                onClick={handleMobileMenuClose}
+                sx={{
+                  color: theme.palette.mode === 'dark' ? '#fff' : '#1a1a1a',
+                  padding: '8px',
+                  borderRadius: '8px',
+                  background: theme.palette.mode === 'dark' 
+                    ? alpha(theme.palette.common.white, 0.05)
+                    : alpha(theme.palette.common.black, 0.03),
+                  '&:hover': {
+                    background: theme.palette.mode === 'dark' 
+                      ? alpha(theme.palette.common.white, 0.12)
+                      : alpha(theme.palette.common.black, 0.08),
+                  },
+                }}
+              >
+                <Close sx={{ fontSize: '24px' }} />
+              </IconButton>
+            </Box>
+
             {/* Maintenance Mode Indicator - Mobile - Only for Admins */}
             {role === 'admin' && isMaintenanceActive && (
               <>
