@@ -1,7 +1,7 @@
 import { Box, Typography, useTheme } from "@mui/material";
 import React from "react";
 import FlexBetween from "./FlexBetween";
-import { useTranslation } from "../../utils/translations";
+import { useTranslation } from "../utils/translations";
 
 const StatBox = ({ title, value, increase, icon, description, titleStyle, valueStyle, descriptionStyle, iconStyle, sx, hasNotification = false, notificationColor }) => {
   const theme = useTheme();
