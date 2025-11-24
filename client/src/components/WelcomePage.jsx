@@ -58,6 +58,11 @@ const PageContainer = styled(Box)(({ theme }) => ({
   position: 'relative',
   direction: theme?.direction || 'ltr',
   zIndex: 1,
+  // Mobile-specific: reduce spacing between top controls and content
+  [theme?.breakpoints?.down?.('sm') || '@media (max-width: 600px)']: {
+    alignItems: 'flex-start',
+    paddingTop: theme?.spacing?.(8) || '64px',
+  },
 }));
 
 const WelcomeCard = styled(Card)(({ theme }) => ({
@@ -84,8 +89,12 @@ const WelcomeCard = styled(Card)(({ theme }) => ({
 const HeaderSection = styled(Box)(({ theme }) => ({
   textAlign: 'center',
   marginBottom: theme?.spacing?.(4) || '32px',
-  marginTop:'20px',
+  marginTop: '20px',
   position: 'relative',
+  // Mobile-specific: remove top margin to reduce spacing
+  [theme?.breakpoints?.down?.('sm') || '@media (max-width: 600px)']: {
+    marginTop: '0px',
+  },
 }));
 
 const BrandLogo = styled(Box)(({ theme }) => ({
