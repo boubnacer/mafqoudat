@@ -792,11 +792,12 @@ const Post = ({ post, viewMode = "grid" }) => {
             sx={{
               position: 'absolute',
               bottom: 12,
-              left: 12,
-              display: 'flex',
-              flexDirection: { xs: 'column', sm: 'row' },
-              gap: { xs: 0.5, sm: 1 },
-              alignItems: { xs: 'flex-start', sm: 'center' },
+              left: currentLanguage === 'ar' ? 'auto' : 12,
+              right: currentLanguage === 'ar' ? 12 : 'auto',
+              display: 'grid',
+              gridTemplateColumns: 'auto',
+              gap: 0.5,
+              justifyItems: currentLanguage === 'ar' ? 'end' : 'start',
             }}
           >
             {/* No Image Indicator */}
@@ -816,6 +817,9 @@ const Post = ({ post, viewMode = "grid" }) => {
                   display: 'flex',
                   alignItems: 'center',
                   gap: 0.5,
+                  width: 'fit-content',
+                  marginLeft: currentLanguage === 'ar' ? 'auto' : 0,
+                  marginRight: currentLanguage === 'ar' ? 0 : 'auto',
                 }}
               >
                 <NoImageIcon sx={{ 
@@ -830,7 +834,7 @@ const Post = ({ post, viewMode = "grid" }) => {
                     fontWeight: 600,
                   }}
                 >
-                  {t('noImage')}
+                  {t('postHasNoImage')}
                 </Typography>
               </Box>
             )}
@@ -846,6 +850,9 @@ const Post = ({ post, viewMode = "grid" }) => {
                 backdropFilter: 'blur(10px)',
                 border: `1px solid ${theme.palette.mode === 'dark' ? 'rgba(255,255,255,0.2)' : 'rgba(0,0,0,0.1)'}`,
                 zIndex: 11, // Higher z-index for time badge
+                width: 'fit-content',
+                marginLeft: currentLanguage === 'ar' ? 'auto' : 0,
+                marginRight: currentLanguage === 'ar' ? 0 : 'auto',
               }}
             >
               <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.5 }}>
