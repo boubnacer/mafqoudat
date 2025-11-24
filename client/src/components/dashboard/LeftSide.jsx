@@ -132,24 +132,39 @@ const LeftSide = ({
     };
   }, []);
 
-  // Compute notification visibility - always check current state and localStorage as fallback
-  const showFoundNotification = useMemo(() => {
+  // Compute notification visibility directly - always read from localStorage on every render
+  // This ensures we always have the latest value, even after page refresh
+  const getShowFoundNotification = () => {
     const hasItemsToday = (foundsToday || 0) >= 1;
     if (!hasItemsToday) return false;
     
-    // Check both state and localStorage to ensure accuracy
-    const viewedFromStorage = getViewedNotifications();
-    return !(viewedNotifications.found || viewedFromStorage.found);
-  }, [foundsToday, viewedNotifications.found]);
+    try {
+      const viewedFromStorage = getViewedNotifications();
+      const isViewed = viewedFromStorage.found === true;
+      return !isViewed;
+    } catch (error) {
+      console.error('Error reading found notification state:', error);
+      return hasItemsToday; // If error reading, show notification to be safe
+    }
+  };
 
-  const showLostNotification = useMemo(() => {
+  const getShowLostNotification = () => {
     const hasItemsToday = (lostsToday || 0) >= 1;
     if (!hasItemsToday) return false;
     
-    // Check both state and localStorage to ensure accuracy
-    const viewedFromStorage = getViewedNotifications();
-    return !(viewedNotifications.lost || viewedFromStorage.lost);
-  }, [lostsToday, viewedNotifications.lost]);
+    try {
+      const viewedFromStorage = getViewedNotifications();
+      const isViewed = viewedFromStorage.lost === true;
+      return !isViewed;
+    } catch (error) {
+      console.error('Error reading lost notification state:', error);
+      return hasItemsToday; // If error reading, show notification to be safe
+    }
+  };
+
+  // Compute on every render to ensure we always have the latest value
+  const showFoundNotification = getShowFoundNotification();
+  const showLostNotification = getShowLostNotification();
 
   // Handler for Found Items
   const handleFoundItemsClick = () => {
