@@ -463,6 +463,8 @@ const RecentPosts = ({ _id, categoryname, exactLocation, image, createdAt, count
                   alignItems: 'center',
                   gap: 0.5,
                   width: 'fit-content',
+                  marginLeft: currentLanguage === 'ar' ? 'auto' : 0,
+                  marginRight: currentLanguage === 'ar' ? 0 : 'auto',
                 }}
               >
                 <NoImageIcon sx={{ 
@@ -494,6 +496,8 @@ const RecentPosts = ({ _id, categoryname, exactLocation, image, createdAt, count
                 border: `1px solid ${theme.palette.mode === 'dark' ? 'rgba(255,255,255,0.2)' : 'rgba(0,0,0,0.1)'}`,
                 zIndex: 11, // Higher z-index for time badge
                 width: 'fit-content',
+                marginLeft: currentLanguage === 'ar' ? 'auto' : 0,
+                marginRight: currentLanguage === 'ar' ? 0 : 'auto',
               }}
             >
               <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.5 }}>
