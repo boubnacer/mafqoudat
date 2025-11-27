@@ -819,10 +819,14 @@ const getAllPostsAdmin = async (req, res) => {
 // @desc Get visitor statistics (Admin only)
 // @route GET /admin/visitor-stats
 // @access Private (Admin only)
+// @query startDate - Start date for statistics (ISO string, optional)
+// @query endDate - End date for statistics (ISO string, optional)
 const getVisitorStats = async (req, res) => {
   try {
-    // Get basic statistics only
-    const stats = await Visitor.getStats();
+    const { startDate, endDate } = req.query;
+    
+    // Get statistics with optional date range
+    const stats = await Visitor.getStats(startDate || null, endDate || null);
 
     res.status(200).json({
       success: true,

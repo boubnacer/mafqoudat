@@ -219,7 +219,13 @@ export const adminApiSlice = apiSlice.injectEndpoints({
 
     // Get visitor statistics
     getVisitorStats: builder.query({
-      query: () => '/admin/visitor-stats',
+      query: ({ startDate, endDate } = {}) => {
+        const params = new URLSearchParams();
+        if (startDate) params.append('startDate', startDate);
+        if (endDate) params.append('endDate', endDate);
+        const queryString = params.toString();
+        return `/admin/visitor-stats${queryString ? `?${queryString}` : ''}`;
+      },
       providesTags: ['VisitorStats'],
     }),
 

@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useState, useMemo } from 'react';
 import {
   Box,
   Card,
@@ -8,13 +8,19 @@ import {
   CircularProgress,
   Alert,
   useTheme,
-  Button
+  Button,
+  FormControl,
+  InputLabel,
+  Select,
+  MenuItem,
+  Chip
 } from '@mui/material';
 import {
   Visibility,
   TrendingUp,
   CalendarToday,
-  Refresh
+  Refresh,
+  DateRange
 } from '@mui/icons-material';
 import { useTranslation } from '../../../utils/translations';
 import { useGetVisitorStatsQuery } from '../adminApiSlice';
@@ -23,16 +29,70 @@ const VisitorStats = () => {
   const theme = useTheme();
   const { t } = useTranslation();
 
+  // Get current date and calculate available months
+  const now = new Date();
+  const currentYear = now.getFullYear();
+  const currentMonth = now.getMonth();
+  
+  // Generate list of months (current month and previous months)
+  const availableMonths = useMemo(() => {
+    const months = [];
+    for (let i = 0; i <= 11; i++) {
+      const date = new Date(currentYear, currentMonth - i, 1);
+      months.push({
+        year: date.getFullYear(),
+        month: date.getMonth(),
+        label: date.toLocaleDateString('en-US', { month: 'long', year: 'numeric' })
+      });
+    }
+    return months;
+  }, [currentYear, currentMonth]);
+
+  // State for selected month (default to current month)
+  const [selectedMonthIndex, setSelectedMonthIndex] = useState(0);
+
+  // Calculate date range for selected month
+  const dateRange = useMemo(() => {
+    const selectedMonth = availableMonths[selectedMonthIndex];
+    const startDate = new Date(selectedMonth.year, selectedMonth.month, 1);
+    startDate.setHours(0, 0, 0, 0);
+    
+    // If it's the current month, use current date as end date
+    // Otherwise, use the last day of that month
+    let endDate;
+    if (selectedMonthIndex === 0) {
+      endDate = new Date(now);
+      endDate.setHours(23, 59, 59, 999);
+    } else {
+      endDate = new Date(selectedMonth.year, selectedMonth.month + 1, 0);
+      endDate.setHours(23, 59, 59, 999);
+    }
+    
+    return {
+      startDate: startDate.toISOString(),
+      endDate: endDate.toISOString(),
+      startDateFormatted: startDate.toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' }),
+      endDateFormatted: endDate.toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })
+    };
+  }, [selectedMonthIndex, availableMonths, now]);
+
   const {
     data: visitorData,
     isLoading: loading,
     isError: hasError,
     error,
     refetch
-  } = useGetVisitorStatsQuery();
+  } = useGetVisitorStatsQuery({
+    startDate: dateRange.startDate,
+    endDate: dateRange.endDate
+  });
 
   const formatNumber = (num) => {
     return new Intl.NumberFormat().format(num);
+  };
+
+  const handleMonthChange = (event) => {
+    setSelectedMonthIndex(event.target.value);
   };
 
   if (loading) {
@@ -79,15 +139,49 @@ const VisitorStats = () => {
             Visitor Statistics
           </Typography>
         </Box>
-        <Button
+        <Box display="flex" alignItems="center" gap={2} flexWrap="wrap">
+          {/* Month Selector */}
+          <FormControl size="small" sx={{ minWidth: 200 }}>
+            <InputLabel id="month-selector-label">Select Month</InputLabel>
+            <Select
+              labelId="month-selector-label"
+              id="month-selector"
+              value={selectedMonthIndex}
+              label="Select Month"
+              onChange={handleMonthChange}
+            >
+              {availableMonths.map((month, index) => (
+                <MenuItem key={`${month.year}-${month.month}`} value={index}>
+                  {month.label}
+                </MenuItem>
+              ))}
+            </Select>
+          </FormControl>
+          <Button
+            variant="outlined"
+            startIcon={<Refresh />}
+            onClick={refetch}
+            disabled={loading}
+            size="small"
+          >
+            Refresh
+          </Button>
+        </Box>
+      </Box>
+
+      {/* Date Range Display */}
+      <Box mb={3}>
+        <Chip
+          icon={<DateRange />}
+          label={`${dateRange.startDateFormatted} - ${dateRange.endDateFormatted}`}
+          color="primary"
           variant="outlined"
-          startIcon={<Refresh />}
-          onClick={refetch}
-          disabled={loading}
-          size="small"
-        >
-          Refresh
-        </Button>
+          sx={{
+            fontSize: '0.9rem',
+            padding: '8px 12px',
+            height: 'auto'
+          }}
+        />
       </Box>
 
       {/* Statistics Cards */}
@@ -140,13 +234,15 @@ const VisitorStats = () => {
               <Box display="flex" alignItems="center" justifyContent="space-between">
                 <Box>
                   <Typography color="text.secondary" gutterBottom>
-                    This Month's Visits
+                    Selected Period Visits
                   </Typography>
                   <Typography variant="h4" fontWeight="bold">
                     {formatNumber(statistics.thisMonth)}
                   </Typography>
                   <Typography variant="body2" color="text.secondary">
-                    Unique sessions this month
+                    {selectedMonthIndex === 0 
+                      ? 'Unique sessions this month' 
+                      : `Unique sessions in ${availableMonths[selectedMonthIndex].label}`}
                   </Typography>
                 </Box>
                 <TrendingUp sx={{ fontSize: 40, color: theme.palette.warning.main }} />

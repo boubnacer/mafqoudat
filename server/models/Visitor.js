@@ -41,7 +41,7 @@ visitorSchema.index({ visitedAt: -1 });
 visitorSchema.index({ sessionId: 1 });
 
 // Static method to get visitor statistics
-visitorSchema.statics.getStats = async function() {
+visitorSchema.statics.getStats = async function(startDate = null, endDate = null) {
   const now = new Date();
   
   // Get start of today (00:00:00)
@@ -50,16 +50,28 @@ visitorSchema.statics.getStats = async function() {
   // Get start of this month (1st day at 00:00:00)
   const startOfMonth = new Date(now.getFullYear(), now.getMonth(), 1);
   
+  // If date range is provided, use it for the month visitors count
+  let monthVisitorsQuery = { visitedAt: { $gte: startOfMonth } };
+  if (startDate && endDate) {
+    const start = new Date(startDate);
+    start.setHours(0, 0, 0, 0);
+    const end = new Date(endDate);
+    end.setHours(23, 59, 59, 999);
+    monthVisitorsQuery = { visitedAt: { $gte: start, $lte: end } };
+  }
+  
   const [totalVisitors, todayVisitors, monthVisitors] = await Promise.all([
     this.countDocuments(),
     this.countDocuments({ visitedAt: { $gte: startOfDay } }),
-    this.countDocuments({ visitedAt: { $gte: startOfMonth } })
+    this.countDocuments(monthVisitorsQuery)
   ]);
 
   return {
     total: totalVisitors,
     today: todayVisitors,
-    thisMonth: monthVisitors
+    thisMonth: monthVisitors,
+    startDate: startDate ? new Date(startDate) : startOfMonth,
+    endDate: endDate ? new Date(endDate) : now
   };
 };
 
