@@ -224,7 +224,24 @@ export const adminApiSlice = apiSlice.injectEndpoints({
         if (startDate) params.append('startDate', startDate);
         if (endDate) params.append('endDate', endDate);
         const queryString = params.toString();
-        return `/admin/visitor-stats${queryString ? `?${queryString}` : ''}`;
+        const url = `/admin/visitor-stats${queryString ? `?${queryString}` : ''}`;
+        
+        // Log for debugging
+        console.log('📊 [API-SLICE] Fetching visitor stats:', {
+          startDate,
+          endDate,
+          url
+        });
+        
+        return url;
+      },
+      // Use serializable query key to ensure different date ranges create different cache entries
+      serializeQueryArgs: ({ queryArgs }) => {
+        return `visitor-stats-${queryArgs?.startDate || 'all'}-${queryArgs?.endDate || 'all'}`;
+      },
+      // Merge function to ensure we always get fresh data
+      merge: (currentCache, newItems) => {
+        return newItems;
       },
       providesTags: (result, error, arg) => [
         { type: 'VisitorStats', id: `${arg?.startDate || 'all'}-${arg?.endDate || 'all'}` }

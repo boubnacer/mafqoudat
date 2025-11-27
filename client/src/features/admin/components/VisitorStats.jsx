@@ -145,6 +145,11 @@ const VisitorStats = () => {
     };
   }, [selectedMonthIndex, availableMonths, now, currentYear, currentMonth]);
 
+  const queryArgs = useMemo(() => ({
+    startDate: dateRange.startDate,
+    endDate: dateRange.endDate
+  }), [dateRange.startDate, dateRange.endDate]);
+
   const {
     data: visitorData,
     isLoading: loading,
@@ -152,23 +157,56 @@ const VisitorStats = () => {
     error,
     refetch
   } = useGetVisitorStatsQuery(
-    {
-      startDate: dateRange.startDate,
-      endDate: dateRange.endDate
-    },
+    queryArgs,
     {
       // Skip if we don't have date range yet or if initial data is still loading
-      skip: !dateRange.startDate || !dateRange.endDate || initialLoading || availableMonths.length === 0
+      skip: !dateRange.startDate || !dateRange.endDate || initialLoading || availableMonths.length === 0,
+      // Force refetch when arguments change (when month changes)
+      refetchOnMountOrArgChange: true
     }
   );
+
+  // Debug: Log when query data changes
+  useEffect(() => {
+    if (visitorData?.data?.statistics) {
+      console.log('📊 [VISITOR-STATS] Query data received:', {
+        thisMonth: visitorData.data.statistics.thisMonth,
+        dateRange: {
+          start: dateRange.startDate,
+          end: dateRange.endDate
+        }
+      });
+    }
+  }, [visitorData, dateRange]);
 
   const formatNumber = (num) => {
     return new Intl.NumberFormat().format(num);
   };
 
   const handleMonthChange = (event) => {
-    setSelectedMonthIndex(event.target.value);
+    const newIndex = event.target.value;
+    console.log('📊 [VISITOR-STATS] Month changed:', {
+      oldIndex: selectedMonthIndex,
+      newIndex,
+      month: availableMonths[newIndex]?.label,
+      dateRange: dateRange
+    });
+    setSelectedMonthIndex(newIndex);
   };
+
+  // Debug: Log when date range changes
+  useEffect(() => {
+    if (dateRange.startDate && dateRange.endDate) {
+      console.log('📊 [VISITOR-STATS] Date range updated:', {
+        startDate: dateRange.startDate,
+        endDate: dateRange.endDate,
+        startDateFormatted: dateRange.startDateFormatted,
+        endDateFormatted: dateRange.endDateFormatted,
+        selectedMonthIndex,
+        selectedMonth: availableMonths[selectedMonthIndex]?.label
+      });
+    }
+  }, [dateRange.startDate, dateRange.endDate, selectedMonthIndex, availableMonths]);
 
   if (initialLoading || loading) {
     return (

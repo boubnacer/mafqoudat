@@ -58,6 +58,17 @@ visitorSchema.statics.getStats = async function(startDate = null, endDate = null
     const end = new Date(endDate);
     end.setHours(23, 59, 59, 999);
     monthVisitorsQuery = { visitedAt: { $gte: start, $lte: end } };
+    
+    // Log for debugging
+    console.log('📊 [VISITOR-MODEL] Using date range query:', {
+      startDate: startDate,
+      endDate: endDate,
+      start: start.toISOString(),
+      end: end.toISOString(),
+      query: monthVisitorsQuery
+    });
+  } else {
+    console.log('📊 [VISITOR-MODEL] Using default month query (no date range provided)');
   }
   
   // Get first visit date (earliest visitedAt)
