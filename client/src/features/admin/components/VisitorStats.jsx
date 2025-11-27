@@ -29,10 +29,10 @@ const VisitorStats = () => {
   const theme = useTheme();
   const { t } = useTranslation();
 
-  // Get current date
+  // Get current date - use UTC for consistency
   const now = new Date();
-  const currentYear = now.getFullYear();
-  const currentMonth = now.getMonth();
+  const currentYear = now.getUTCFullYear();
+  const currentMonth = now.getUTCMonth();
   
   // First, fetch initial stats to get first visit date
   const {
@@ -51,10 +51,17 @@ const VisitorStats = () => {
       // If no first visit date yet, show last 12 months as fallback
       const months = [];
       for (let i = 0; i <= 11; i++) {
-        const date = new Date(currentYear, currentMonth - i, 1);
+        const monthIndex = currentMonth - i;
+        let year = currentYear;
+        let month = monthIndex;
+        if (month < 0) {
+          month += 12;
+          year--;
+        }
+        const date = new Date(Date.UTC(year, month, 1));
         months.push({
-          year: date.getFullYear(),
-          month: date.getMonth(),
+          year: date.getUTCFullYear(),
+          month: date.getUTCMonth(),
           label: date.toLocaleDateString('en-US', { month: 'long', year: 'numeric' })
         });
       }
@@ -62,8 +69,8 @@ const VisitorStats = () => {
     }
 
     const months = [];
-    const firstYear = firstVisitDate.getFullYear();
-    const firstMonth = firstVisitDate.getMonth();
+    const firstYear = firstVisitDate.getUTCFullYear();
+    const firstMonth = firstVisitDate.getUTCMonth();
     
     // Calculate months from first visit to current month
     // Build array from current month backwards to first visit month
@@ -71,10 +78,10 @@ const VisitorStats = () => {
     let month = currentMonth;
     
     while (year > firstYear || (year === firstYear && month >= firstMonth)) {
-      const date = new Date(year, month, 1);
+      const date = new Date(Date.UTC(year, month, 1));
       months.unshift({ // Use unshift to add to beginning, so current month is at index 0
-        year: date.getFullYear(),
-        month: date.getMonth(),
+        year: date.getUTCFullYear(),
+        month: date.getUTCMonth(),
         label: date.toLocaleDateString('en-US', { month: 'long', year: 'numeric' })
       });
       
@@ -102,46 +109,53 @@ const VisitorStats = () => {
   }, [availableMonths.length, selectedMonthIndex]);
 
   // Calculate date range for selected month
+  // Use UTC dates to avoid timezone issues
   const dateRange = useMemo(() => {
     if (!availableMonths[selectedMonthIndex]) {
       // Fallback if month not available yet
-      const startDate = new Date(now.getFullYear(), now.getMonth(), 1);
-      startDate.setHours(0, 0, 0, 0);
-      const endDate = new Date(now);
-      endDate.setHours(23, 59, 59, 999);
+      const startDate = new Date(Date.UTC(now.getFullYear(), now.getMonth(), 1, 0, 0, 0, 0));
+      const endDate = new Date(Date.UTC(now.getFullYear(), now.getMonth(), now.getDate(), 23, 59, 59, 999));
       return {
         startDate: startDate.toISOString(),
         endDate: endDate.toISOString(),
-        startDateFormatted: startDate.toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' }),
-        endDateFormatted: endDate.toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })
+        startDateFormatted: new Date(startDate).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' }),
+        endDateFormatted: new Date(endDate).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })
       };
     }
 
     const selectedMonth = availableMonths[selectedMonthIndex];
-    const startDate = new Date(selectedMonth.year, selectedMonth.month, 1);
-    startDate.setHours(0, 0, 0, 0);
+    // Use UTC to create dates at midnight UTC for the start of the month
+    const startDate = new Date(Date.UTC(selectedMonth.year, selectedMonth.month, 1, 0, 0, 0, 0));
     
-    // Check if it's the current month (index 0 after reverse, which means it's the most recent)
+    // Check if it's the current month
     const isCurrentMonth = selectedMonthIndex === 0 && 
       selectedMonth.year === currentYear && 
       selectedMonth.month === currentMonth;
     
     // If it's the current month, use current date as end date
-    // Otherwise, use the last day of that month
+    // Otherwise, use the last day of that month at 23:59:59.999 UTC
     let endDate;
     if (isCurrentMonth) {
-      endDate = new Date(now);
-      endDate.setHours(23, 59, 59, 999);
+      // Use current date/time in UTC
+      endDate = new Date(Date.UTC(
+        now.getUTCFullYear(),
+        now.getUTCMonth(),
+        now.getUTCDate(),
+        now.getUTCHours(),
+        now.getUTCMinutes(),
+        now.getUTCSeconds(),
+        now.getUTCMilliseconds()
+      ));
     } else {
-      endDate = new Date(selectedMonth.year, selectedMonth.month + 1, 0);
-      endDate.setHours(23, 59, 59, 999);
+      // Last day of the selected month at 23:59:59.999 UTC
+      endDate = new Date(Date.UTC(selectedMonth.year, selectedMonth.month + 1, 0, 23, 59, 59, 999));
     }
     
     return {
       startDate: startDate.toISOString(),
       endDate: endDate.toISOString(),
-      startDateFormatted: startDate.toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' }),
-      endDateFormatted: endDate.toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })
+      startDateFormatted: new Date(startDate).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' }),
+      endDateFormatted: new Date(endDate).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })
     };
   }, [selectedMonthIndex, availableMonths, now, currentYear, currentMonth]);
 

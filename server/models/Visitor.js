@@ -53,19 +53,24 @@ visitorSchema.statics.getStats = async function(startDate = null, endDate = null
   // If date range is provided, use it for the month visitors count
   let monthVisitorsQuery = { visitedAt: { $gte: startOfMonth } };
   if (startDate && endDate) {
+    // Parse the ISO date strings directly - they're already in UTC
     const start = new Date(startDate);
-    start.setHours(0, 0, 0, 0);
     const end = new Date(endDate);
-    end.setHours(23, 59, 59, 999);
+    
+    // Ensure we're using the exact dates provided (they should already be at correct times)
+    // Don't modify hours since the frontend sends UTC dates with correct times
     monthVisitorsQuery = { visitedAt: { $gte: start, $lte: end } };
     
     // Log for debugging
     console.log('📊 [VISITOR-MODEL] Using date range query:', {
-      startDate: startDate,
-      endDate: endDate,
-      start: start.toISOString(),
-      end: end.toISOString(),
-      query: monthVisitorsQuery
+      startDateInput: startDate,
+      endDateInput: endDate,
+      startParsed: start.toISOString(),
+      endParsed: end.toISOString(),
+      startLocal: start.toLocaleString(),
+      endLocal: end.toLocaleString(),
+      query: monthVisitorsQuery,
+      countResult: 'will be calculated'
     });
   } else {
     console.log('📊 [VISITOR-MODEL] Using default month query (no date range provided)');
@@ -80,6 +85,18 @@ visitorSchema.statics.getStats = async function(startDate = null, endDate = null
     this.countDocuments({ visitedAt: { $gte: startOfDay } }),
     this.countDocuments(monthVisitorsQuery)
   ]);
+  
+  // Log the actual count result for debugging
+  if (startDate && endDate) {
+    console.log('📊 [VISITOR-MODEL] Query result:', {
+      monthVisitors,
+      query: monthVisitorsQuery,
+      dateRange: {
+        start: new Date(startDate).toISOString(),
+        end: new Date(endDate).toISOString()
+      }
+    });
+  }
 
   return {
     total: totalVisitors,
