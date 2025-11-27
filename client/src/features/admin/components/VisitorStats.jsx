@@ -1,4 +1,4 @@
-import React, { useState, useMemo } from 'react';
+import React, { useState, useMemo, useEffect } from 'react';
 import {
   Box,
   Card,
@@ -29,38 +29,107 @@ const VisitorStats = () => {
   const theme = useTheme();
   const { t } = useTranslation();
 
-  // Get current date and calculate available months
+  // Get current date
   const now = new Date();
   const currentYear = now.getFullYear();
   const currentMonth = now.getMonth();
   
-  // Generate list of months (current month and previous months)
+  // First, fetch initial stats to get first visit date
+  const {
+    data: initialData,
+    isLoading: initialLoading
+  } = useGetVisitorStatsQuery({});
+
+  // Get first visit date from initial data
+  const firstVisitDate = initialData?.data?.statistics?.firstVisitDate 
+    ? new Date(initialData.data.statistics.firstVisitDate)
+    : null;
+
+  // Generate list of months from first visit date to current month
   const availableMonths = useMemo(() => {
+    if (!firstVisitDate) {
+      // If no first visit date yet, show last 12 months as fallback
+      const months = [];
+      for (let i = 0; i <= 11; i++) {
+        const date = new Date(currentYear, currentMonth - i, 1);
+        months.push({
+          year: date.getFullYear(),
+          month: date.getMonth(),
+          label: date.toLocaleDateString('en-US', { month: 'long', year: 'numeric' })
+        });
+      }
+      return months;
+    }
+
     const months = [];
-    for (let i = 0; i <= 11; i++) {
-      const date = new Date(currentYear, currentMonth - i, 1);
-      months.push({
+    const firstYear = firstVisitDate.getFullYear();
+    const firstMonth = firstVisitDate.getMonth();
+    
+    // Calculate months from first visit to current month
+    // Build array from current month backwards to first visit month
+    let year = currentYear;
+    let month = currentMonth;
+    
+    while (year > firstYear || (year === firstYear && month >= firstMonth)) {
+      const date = new Date(year, month, 1);
+      months.unshift({ // Use unshift to add to beginning, so current month is at index 0
         year: date.getFullYear(),
         month: date.getMonth(),
         label: date.toLocaleDateString('en-US', { month: 'long', year: 'numeric' })
       });
+      
+      // Move to previous month
+      if (month === 0) {
+        month = 11;
+        year--;
+      } else {
+        month--;
+      }
     }
-    return months;
-  }, [currentYear, currentMonth]);
+    
+    return months; // Current month is at index 0, oldest at last index
+  }, [currentYear, currentMonth, firstVisitDate]);
 
-  // State for selected month (default to current month)
+  // State for selected month (default to current month - index 0)
   const [selectedMonthIndex, setSelectedMonthIndex] = useState(0);
+
+  // Update selectedMonthIndex when availableMonths changes (e.g., when first visit date is loaded)
+  useEffect(() => {
+    if (availableMonths.length > 0 && selectedMonthIndex >= availableMonths.length) {
+      // If current selection is out of bounds, reset to current month (index 0)
+      setSelectedMonthIndex(0);
+    }
+  }, [availableMonths.length, selectedMonthIndex]);
 
   // Calculate date range for selected month
   const dateRange = useMemo(() => {
+    if (!availableMonths[selectedMonthIndex]) {
+      // Fallback if month not available yet
+      const startDate = new Date(now.getFullYear(), now.getMonth(), 1);
+      startDate.setHours(0, 0, 0, 0);
+      const endDate = new Date(now);
+      endDate.setHours(23, 59, 59, 999);
+      return {
+        startDate: startDate.toISOString(),
+        endDate: endDate.toISOString(),
+        startDateFormatted: startDate.toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' }),
+        endDateFormatted: endDate.toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })
+      };
+    }
+
     const selectedMonth = availableMonths[selectedMonthIndex];
     const startDate = new Date(selectedMonth.year, selectedMonth.month, 1);
     startDate.setHours(0, 0, 0, 0);
     
+    // Check if it's the current month (index 0 after reverse, which means it's the most recent)
+    const isCurrentMonth = selectedMonthIndex === 0 && 
+      selectedMonth.year === currentYear && 
+      selectedMonth.month === currentMonth;
+    
     // If it's the current month, use current date as end date
     // Otherwise, use the last day of that month
     let endDate;
-    if (selectedMonthIndex === 0) {
+    if (isCurrentMonth) {
       endDate = new Date(now);
       endDate.setHours(23, 59, 59, 999);
     } else {
@@ -74,7 +143,7 @@ const VisitorStats = () => {
       startDateFormatted: startDate.toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' }),
       endDateFormatted: endDate.toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })
     };
-  }, [selectedMonthIndex, availableMonths, now]);
+  }, [selectedMonthIndex, availableMonths, now, currentYear, currentMonth]);
 
   const {
     data: visitorData,
@@ -82,10 +151,16 @@ const VisitorStats = () => {
     isError: hasError,
     error,
     refetch
-  } = useGetVisitorStatsQuery({
-    startDate: dateRange.startDate,
-    endDate: dateRange.endDate
-  });
+  } = useGetVisitorStatsQuery(
+    {
+      startDate: dateRange.startDate,
+      endDate: dateRange.endDate
+    },
+    {
+      // Skip if we don't have date range yet or if initial data is still loading
+      skip: !dateRange.startDate || !dateRange.endDate || initialLoading || availableMonths.length === 0
+    }
+  );
 
   const formatNumber = (num) => {
     return new Intl.NumberFormat().format(num);
@@ -95,7 +170,7 @@ const VisitorStats = () => {
     setSelectedMonthIndex(event.target.value);
   };
 
-  if (loading) {
+  if (initialLoading || loading) {
     return (
       <Box display="flex" justifyContent="center" alignItems="center" minHeight="200px">
         <CircularProgress />
@@ -170,7 +245,7 @@ const VisitorStats = () => {
       </Box>
 
       {/* Date Range Display */}
-      <Box mb={3}>
+      <Box mb={3} display="flex" alignItems="center" gap={2} flexWrap="wrap">
         <Chip
           icon={<DateRange />}
           label={`${dateRange.startDateFormatted} - ${dateRange.endDateFormatted}`}
@@ -182,6 +257,19 @@ const VisitorStats = () => {
             height: 'auto'
           }}
         />
+        {firstVisitDate && (
+          <Chip
+            label={`First Visit: ${firstVisitDate.toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })}`}
+            color="secondary"
+            variant="outlined"
+            size="small"
+            sx={{
+              fontSize: '0.85rem',
+              padding: '6px 10px',
+              height: 'auto'
+            }}
+          />
+        )}
       </Box>
 
       {/* Statistics Cards */}
@@ -240,9 +328,9 @@ const VisitorStats = () => {
                     {formatNumber(statistics.thisMonth)}
                   </Typography>
                   <Typography variant="body2" color="text.secondary">
-                    {selectedMonthIndex === 0 
+                    {selectedMonthIndex === 0 && availableMonths[0]?.year === currentYear && availableMonths[0]?.month === currentMonth
                       ? 'Unique sessions this month' 
-                      : `Unique sessions in ${availableMonths[selectedMonthIndex].label}`}
+                      : `Unique sessions in ${availableMonths[selectedMonthIndex]?.label || 'selected period'}`}
                   </Typography>
                 </Box>
                 <TrendingUp sx={{ fontSize: 40, color: theme.palette.warning.main }} />

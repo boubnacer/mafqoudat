@@ -226,7 +226,9 @@ export const adminApiSlice = apiSlice.injectEndpoints({
         const queryString = params.toString();
         return `/admin/visitor-stats${queryString ? `?${queryString}` : ''}`;
       },
-      providesTags: ['VisitorStats'],
+      providesTags: (result, error, arg) => [
+        { type: 'VisitorStats', id: `${arg?.startDate || 'all'}-${arg?.endDate || 'all'}` }
+      ],
     }),
 
     // Get cities by country (admin only) - get all cities including inactive ones

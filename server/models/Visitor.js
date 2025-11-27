@@ -60,6 +60,10 @@ visitorSchema.statics.getStats = async function(startDate = null, endDate = null
     monthVisitorsQuery = { visitedAt: { $gte: start, $lte: end } };
   }
   
+  // Get first visit date (earliest visitedAt)
+  const firstVisit = await this.findOne().sort({ visitedAt: 1 }).select('visitedAt').lean();
+  const firstVisitDate = firstVisit ? firstVisit.visitedAt : null;
+  
   const [totalVisitors, todayVisitors, monthVisitors] = await Promise.all([
     this.countDocuments(),
     this.countDocuments({ visitedAt: { $gte: startOfDay } }),
@@ -71,7 +75,8 @@ visitorSchema.statics.getStats = async function(startDate = null, endDate = null
     today: todayVisitors,
     thisMonth: monthVisitors,
     startDate: startDate ? new Date(startDate) : startOfMonth,
-    endDate: endDate ? new Date(endDate) : now
+    endDate: endDate ? new Date(endDate) : now,
+    firstVisitDate: firstVisitDate
   };
 };
 
