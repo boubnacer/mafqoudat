@@ -80,6 +80,16 @@ visitorSchema.statics.getStats = async function(startDate = null, endDate = null
   const firstVisit = await this.findOne().sort({ visitedAt: 1 }).select('visitedAt').lean();
   const firstVisitDate = firstVisit ? firstVisit.visitedAt : null;
   
+  // First, let's verify the query is correct by checking a sample
+  if (startDate && endDate) {
+    const sampleDocs = await this.find(monthVisitorsQuery).limit(5).select('visitedAt').lean();
+    console.log('📊 [VISITOR-MODEL] Sample documents in range:', {
+      count: sampleDocs.length,
+      dates: sampleDocs.map(d => d.visitedAt.toISOString()),
+      query: monthVisitorsQuery
+    });
+  }
+
   const [totalVisitors, todayVisitors, monthVisitors] = await Promise.all([
     this.countDocuments(),
     this.countDocuments({ visitedAt: { $gte: startOfDay } }),
@@ -94,7 +104,9 @@ visitorSchema.statics.getStats = async function(startDate = null, endDate = null
       dateRange: {
         start: new Date(startDate).toISOString(),
         end: new Date(endDate).toISOString()
-      }
+      },
+      startDateParsed: new Date(startDate).toISOString(),
+      endDateParsed: new Date(endDate).toISOString()
     });
   }
 

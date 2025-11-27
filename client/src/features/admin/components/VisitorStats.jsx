@@ -181,9 +181,23 @@ const VisitorStats = () => {
       // Skip if we don't have date range yet or if initial data is still loading
       skip: shouldSkip,
       // Force refetch when arguments change (when month changes)
-      refetchOnMountOrArgChange: true
+      refetchOnMountOrArgChange: true,
+      // Don't use cached data - always fetch fresh
+      refetchOnFocus: false,
+      refetchOnReconnect: false
     }
   );
+
+  // Force refetch when month changes by invalidating the cache
+  useEffect(() => {
+    if (!shouldSkip && dateRange.startDate && dateRange.endDate) {
+      // Small delay to ensure the query args have updated
+      const timeoutId = setTimeout(() => {
+        refetch();
+      }, 100);
+      return () => clearTimeout(timeoutId);
+    }
+  }, [dateRange.startDate, dateRange.endDate, shouldSkip, refetch]);
 
   // Debug: Log query state
   useEffect(() => {
@@ -203,13 +217,17 @@ const VisitorStats = () => {
     if (visitorData?.data?.statistics) {
       console.log('📊 [VISITOR-STATS] Query data received:', {
         thisMonth: visitorData.data.statistics.thisMonth,
+        total: visitorData.data.statistics.total,
+        today: visitorData.data.statistics.today,
         dateRange: {
           start: dateRange.startDate,
           end: dateRange.endDate
-        }
+        },
+        selectedMonth: availableMonths[selectedMonthIndex]?.label,
+        queryArgs
       });
     }
-  }, [visitorData, dateRange]);
+  }, [visitorData, dateRange, selectedMonthIndex, availableMonths, queryArgs]);
 
   const formatNumber = (num) => {
     return new Intl.NumberFormat().format(num);
