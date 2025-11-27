@@ -30,7 +30,8 @@ const VisitorStats = () => {
   const { t } = useTranslation();
 
   // Get current date - use UTC for consistency
-  const now = new Date();
+  // Use useState to stabilize the now value and only update it once per minute
+  const [now] = useState(() => new Date());
   const currentYear = now.getUTCFullYear();
   const currentMonth = now.getUTCMonth();
   
@@ -164,6 +165,10 @@ const VisitorStats = () => {
     endDate: dateRange.endDate
   }), [dateRange.startDate, dateRange.endDate]);
 
+  // Determine if we should skip the query
+  // Don't skip if we have a date range, even if initialLoading is true (we can show data while initial loads)
+  const shouldSkip = !dateRange.startDate || !dateRange.endDate || availableMonths.length === 0;
+
   const {
     data: visitorData,
     isLoading: loading,
@@ -174,11 +179,24 @@ const VisitorStats = () => {
     queryArgs,
     {
       // Skip if we don't have date range yet or if initial data is still loading
-      skip: !dateRange.startDate || !dateRange.endDate || initialLoading || availableMonths.length === 0,
+      skip: shouldSkip,
       // Force refetch when arguments change (when month changes)
       refetchOnMountOrArgChange: true
     }
   );
+
+  // Debug: Log query state
+  useEffect(() => {
+    console.log('📊 [VISITOR-STATS] Query state:', {
+      shouldSkip,
+      initialLoading,
+      availableMonthsLength: availableMonths.length,
+      hasDateRange: !!(dateRange.startDate && dateRange.endDate),
+      isLoading: loading,
+      hasData: !!visitorData,
+      queryArgs
+    });
+  }, [shouldSkip, initialLoading, availableMonths.length, dateRange.startDate, dateRange.endDate, loading, visitorData, queryArgs]);
 
   // Debug: Log when query data changes
   useEffect(() => {
@@ -208,21 +226,29 @@ const VisitorStats = () => {
     setSelectedMonthIndex(newIndex);
   };
 
-  // Debug: Log when date range changes
+  // Debug: Log when date range changes (throttled to avoid spam)
   useEffect(() => {
     if (dateRange.startDate && dateRange.endDate) {
-      console.log('📊 [VISITOR-STATS] Date range updated:', {
-        startDate: dateRange.startDate,
-        endDate: dateRange.endDate,
-        startDateFormatted: dateRange.startDateFormatted,
-        endDateFormatted: dateRange.endDateFormatted,
-        selectedMonthIndex,
-        selectedMonth: availableMonths[selectedMonthIndex]?.label
-      });
+      const timeoutId = setTimeout(() => {
+        console.log('📊 [VISITOR-STATS] Date range updated:', {
+          startDate: dateRange.startDate,
+          endDate: dateRange.endDate,
+          startDateFormatted: dateRange.startDateFormatted,
+          endDateFormatted: dateRange.endDateFormatted,
+          selectedMonthIndex,
+          selectedMonth: availableMonths[selectedMonthIndex]?.label
+        });
+      }, 100);
+      return () => clearTimeout(timeoutId);
     }
   }, [dateRange.startDate, dateRange.endDate, selectedMonthIndex, availableMonths]);
 
-  if (initialLoading || loading) {
+  // Show loading only if we're actually loading the main query (not the initial one)
+  // and we don't have data yet
+  const isMainQueryLoading = loading && !shouldSkip;
+  const showLoading = isMainQueryLoading && !visitorData && !hasError;
+
+  if (showLoading) {
     return (
       <Box display="flex" justifyContent="center" alignItems="center" minHeight="200px">
         <CircularProgress />
@@ -243,6 +269,16 @@ const VisitorStats = () => {
       >
         {error?.data?.message || error?.message || 'Failed to fetch visitor statistics'}
       </Alert>
+    );
+  }
+
+  // If we're still loading initial data but have a date range, show a message
+  if (initialLoading && !visitorData) {
+    return (
+      <Box display="flex" justifyContent="center" alignItems="center" minHeight="200px">
+        <CircularProgress />
+        <Typography sx={{ ml: 2 }}>Loading visitor data...</Typography>
+      </Box>
     );
   }
 
