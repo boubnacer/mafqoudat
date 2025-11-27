@@ -109,47 +109,48 @@ const VisitorStats = () => {
     }
   }, [availableMonths.length, selectedMonthIndex]);
 
-  // Calculate date range for selected month
+  // Calculate date range: Always from first visit date to selected month's end (or current date)
   // Use UTC dates to avoid timezone issues
   const dateRange = useMemo(() => {
-    if (!availableMonths[selectedMonthIndex]) {
-      // Fallback if month not available yet
-      const startDate = new Date(Date.UTC(now.getFullYear(), now.getMonth(), 1, 0, 0, 0, 0));
-      const endDate = new Date(Date.UTC(now.getFullYear(), now.getMonth(), now.getDate(), 23, 59, 59, 999));
-      return {
-        startDate: startDate.toISOString(),
-        endDate: endDate.toISOString(),
-        startDateFormatted: new Date(startDate).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' }),
-        endDateFormatted: new Date(endDate).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })
-      };
+    // Start date is always the first visit date (or fallback to current month start if not loaded yet)
+    let startDate;
+    if (firstVisitDate) {
+      // Use the first visit date as the start
+      startDate = new Date(firstVisitDate);
+      startDate.setUTCHours(0, 0, 0, 0);
+    } else {
+      // Fallback if first visit date not loaded yet
+      startDate = new Date(Date.UTC(now.getUTCFullYear(), now.getUTCMonth(), 1, 0, 0, 0, 0));
     }
 
-    const selectedMonth = availableMonths[selectedMonthIndex];
-    // Use UTC to create dates at midnight UTC for the start of the month
-    const startDate = new Date(Date.UTC(selectedMonth.year, selectedMonth.month, 1, 0, 0, 0, 0));
-    
-    // Check if it's the current month
-    const isCurrentMonth = selectedMonthIndex === 0 && 
-      selectedMonth.year === currentYear && 
-      selectedMonth.month === currentMonth;
-    
-    // If it's the current month, use current date as end date
-    // Otherwise, use the last day of that month at 23:59:59.999 UTC
+    // End date is the end of the selected month (or current date if current month)
     let endDate;
-    if (isCurrentMonth) {
-      // Use current date/time in UTC
-      endDate = new Date(Date.UTC(
-        now.getUTCFullYear(),
-        now.getUTCMonth(),
-        now.getUTCDate(),
-        now.getUTCHours(),
-        now.getUTCMinutes(),
-        now.getUTCSeconds(),
-        now.getUTCMilliseconds()
-      ));
+    if (!availableMonths[selectedMonthIndex]) {
+      // Fallback if month not available yet
+      endDate = new Date(Date.UTC(now.getUTCFullYear(), now.getUTCMonth(), now.getUTCDate(), 23, 59, 59, 999));
     } else {
-      // Last day of the selected month at 23:59:59.999 UTC
-      endDate = new Date(Date.UTC(selectedMonth.year, selectedMonth.month + 1, 0, 23, 59, 59, 999));
+      const selectedMonth = availableMonths[selectedMonthIndex];
+      
+      // Check if it's the current month
+      const isCurrentMonth = selectedMonthIndex === 0 && 
+        selectedMonth.year === currentYear && 
+        selectedMonth.month === currentMonth;
+      
+      if (isCurrentMonth) {
+        // Use current date/time in UTC
+        endDate = new Date(Date.UTC(
+          now.getUTCFullYear(),
+          now.getUTCMonth(),
+          now.getUTCDate(),
+          now.getUTCHours(),
+          now.getUTCMinutes(),
+          now.getUTCSeconds(),
+          now.getUTCMilliseconds()
+        ));
+      } else {
+        // Last day of the selected month at 23:59:59.999 UTC
+        endDate = new Date(Date.UTC(selectedMonth.year, selectedMonth.month + 1, 0, 23, 59, 59, 999));
+      }
     }
     
     return {
@@ -158,7 +159,7 @@ const VisitorStats = () => {
       startDateFormatted: new Date(startDate).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' }),
       endDateFormatted: new Date(endDate).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })
     };
-  }, [selectedMonthIndex, availableMonths, now, currentYear, currentMonth]);
+  }, [selectedMonthIndex, availableMonths, now, currentYear, currentMonth, firstVisitDate]);
 
   const queryArgs = useMemo(() => ({
     startDate: dateRange.startDate,
@@ -365,8 +366,21 @@ const VisitorStats = () => {
         />
         {firstVisitDate && (
           <Chip
-            label={`First Visit: ${firstVisitDate.toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })}`}
+            label={`Cumulative from first visit (${firstVisitDate.toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })})`}
             color="secondary"
+            variant="outlined"
+            size="small"
+            sx={{
+              fontSize: '0.85rem',
+              padding: '6px 10px',
+              height: 'auto'
+            }}
+          />
+        )}
+        {availableMonths[selectedMonthIndex] && (
+          <Chip
+            label={`Up to: ${availableMonths[selectedMonthIndex].label}`}
+            color="info"
             variant="outlined"
             size="small"
             sx={{
@@ -428,15 +442,15 @@ const VisitorStats = () => {
               <Box display="flex" alignItems="center" justifyContent="space-between">
                 <Box>
                   <Typography color="text.secondary" gutterBottom>
-                    Selected Period Visits
+                    Cumulative Visits
                   </Typography>
                   <Typography variant="h4" fontWeight="bold">
                     {formatNumber(statistics.thisMonth)}
                   </Typography>
                   <Typography variant="body2" color="text.secondary">
                     {selectedMonthIndex === 0 && availableMonths[0]?.year === currentYear && availableMonths[0]?.month === currentMonth
-                      ? 'Unique sessions this month' 
-                      : `Unique sessions in ${availableMonths[selectedMonthIndex]?.label || 'selected period'}`}
+                      ? 'From first visit to now' 
+                      : `From first visit to end of ${availableMonths[selectedMonthIndex]?.label || 'selected period'}`}
                   </Typography>
                 </Box>
                 <TrendingUp sx={{ fontSize: 40, color: theme.palette.warning.main }} />
