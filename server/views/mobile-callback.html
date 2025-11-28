@@ -98,7 +98,7 @@
         function openApp() {
             console.log('Attempting to open app with deep link:', deepLink);
             
-            // Try multiple methods
+            // Method 1: window.location.href (most reliable for deep links)
             try {
                 window.location.href = deepLink;
                 console.log('Set window.location.href to deep link');
@@ -106,23 +106,7 @@
                 console.error('Error with window.location.href:', e);
             }
             
-            // Also try with a hidden iframe (works on some browsers)
-            setTimeout(function() {
-                try {
-                    const iframe = document.createElement('iframe');
-                    iframe.style.display = 'none';
-                    iframe.src = deepLink;
-                    document.body.appendChild(iframe);
-                    console.log('Created iframe with deep link');
-                    setTimeout(function() {
-                        document.body.removeChild(iframe);
-                    }, 1000);
-                } catch (e) {
-                    console.error('Error with iframe:', e);
-                }
-            }, 100);
-            
-            // Also try creating and clicking a link
+            // Method 2: Create and click a link (fallback)
             setTimeout(function() {
                 try {
                     const link = document.createElement('a');
@@ -137,19 +121,28 @@
                 } catch (e) {
                     console.error('Error with link click:', e);
                 }
+            }, 100);
+            
+            // Method 3: Try window.open (another fallback)
+            setTimeout(function() {
+                try {
+                    window.open(deepLink, '_self');
+                    console.log('Tried window.open with deep link');
+                } catch (e) {
+                    console.error('Error with window.open:', e);
+                }
             }, 200);
         }
         
-        // Wait for DOM to be ready
-        if (document.readyState === 'loading') {
-            document.addEventListener('DOMContentLoaded', function() {
-                console.log('DOM loaded, starting redirect...');
-                openApp();
-            });
-        } else {
-            console.log('DOM already ready, starting redirect...');
+        // Auto-trigger immediately when page loads
+        console.log('Page loaded, auto-triggering deep link...');
+        openApp();
+        
+        // Also try again after a short delay
+        setTimeout(function() {
+            console.log('Retrying deep link trigger...');
             openApp();
-        }
+        }, 500);
         
         // Show fallback button after 1.5 seconds if still on page
         setTimeout(function() {
