@@ -97,11 +97,11 @@ router.get('/google/callback',
 
         // Redirect based on platform
         if (isMobile) {
-          // For mobile, redirect to a web URL that the app can intercept
-          const mobileWebUrl = `${frontendUrl}/auth/select-country?pendingToken=${pendingToken}&mobile=true`;
-          console.log('🔵 MOBILE REDIRECT (pending):', mobileWebUrl);
+          // For mobile, redirect to deep link (more reliable than web URL)
+          const mobileDeepLink = `mafqoudat://auth/callback?pendingToken=${pendingToken}`;
+          console.log('🔵 MOBILE REDIRECT (pending, deep link):', mobileDeepLink);
           console.log('🔵 Frontend URL used:', frontendUrl);
-          return res.redirect(mobileWebUrl);
+          return res.redirect(mobileDeepLink);
         } else {
           // Redirect to frontend to select country
           const webUrl = `${frontendUrl}/auth/select-country?pendingToken=${pendingToken}`;
@@ -128,14 +128,13 @@ router.get('/google/callback',
 
           // Redirect based on platform
           if (isMobile) {
-            // For mobile, redirect to a web URL that the app can intercept
-            // The web URL will be caught by WebBrowser and we can parse it
-            // IMPORTANT: This URL must match EXACTLY what mobile app expects in WebBrowser.openAuthSessionAsync
-            const mobileWebUrl = `${frontendUrl}/auth/callback?token=${tokens.accessToken}&mobile=true`;
-            console.log('🔵 MOBILE REDIRECT:', mobileWebUrl);
+            // For mobile, redirect to deep link (more reliable than web URL)
+            // The deep link will be caught by the app's Linking handler
+            const mobileDeepLink = `mafqoudat://auth/callback?token=${tokens.accessToken}`;
+            console.log('🔵 MOBILE REDIRECT (deep link):', mobileDeepLink);
             console.log('🔵 Frontend URL used:', frontendUrl);
             console.log('🔵 Token length:', tokens.accessToken?.length);
-            return res.redirect(mobileWebUrl);
+            return res.redirect(mobileDeepLink);
           } else {
             // Redirect to frontend with token
             const webUrl = `${frontendUrl}/auth/callback?token=${tokens.accessToken}`;

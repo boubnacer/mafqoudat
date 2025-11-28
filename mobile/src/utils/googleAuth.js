@@ -26,20 +26,14 @@ export const initiateGoogleAuth = async () => {
     
     console.log('Starting Google OAuth with URL:', authUrl);
     
-    // IMPORTANT: The redirectUrl must match EXACTLY what the server redirects to
-    // Server uses: process.env.FRONTEND_URL || process.env.CLIENT_URL || 'http://localhost:3000'
-    // Then redirects to: ${frontendUrl}/auth/callback?token=...&mobile=true
-    // 
-    // Get frontend URL from environment variable (set in .env file)
-    const frontendUrl = process.env.EXPO_PUBLIC_FRONTEND_URL || 'https://mafqoudat.com';
-    const redirectUrl = `${frontendUrl}/auth/callback`;
+    // Server now redirects to deep link: mafqoudat://auth/callback?token=...
+    // This is more reliable than web URL redirects
+    const redirectUrl = 'mafqoudat://auth/callback';
     
     console.log('📱 Mobile OAuth Configuration:');
-    console.log('📱 Frontend URL from .env:', process.env.EXPO_PUBLIC_FRONTEND_URL || 'NOT SET (using default)');
+    console.log('📱 Server will redirect to deep link: mafqoudat://auth/callback?token=...');
     console.log('📱 Expected redirect URL:', redirectUrl);
-    console.log('📱 IMPORTANT: Server must redirect to this EXACT URL for WebBrowser to catch it');
-    console.log('📱 Server should redirect to:', `${frontendUrl}/auth/callback?token=...&mobile=true`);
-    console.log('📱 Check Railway server logs for: "🔵 MOBILE REDIRECT:" to see actual redirect URL');
+    console.log('📱 Deep link will be handled by App.js Linking handler');
     
     // Set up listeners for both deep links and web URLs BEFORE opening browser
     let callbackReceived = null;
