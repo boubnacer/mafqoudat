@@ -32,6 +32,8 @@ const LoginScreen = ({ navigation }) => {
   const [isLoading, setIsLoading] = useState(false);
   const [isGoogleLoading, setIsGoogleLoading] = useState(false);
   const [error, setError] = useState('');
+  const [showTokenInput, setShowTokenInput] = useState(false);
+  const [tokenInput, setTokenInput] = useState('');
 
   const handleLogin = async () => {
     // Validation
@@ -178,6 +180,60 @@ const LoginScreen = ({ navigation }) => {
             </>
           )}
         </TouchableOpacity>
+
+        {/* Token Input (for manual OAuth token entry) */}
+        <TouchableOpacity
+          style={styles.tokenToggleButton}
+          onPress={() => setShowTokenInput(!showTokenInput)}
+        >
+          <Text style={styles.tokenToggleText}>
+            {showTokenInput ? 'Hide' : 'Paste'} OAuth Token
+          </Text>
+        </TouchableOpacity>
+
+        {showTokenInput && (
+          <View style={styles.tokenInputContainer}>
+            <TextInput
+              style={styles.tokenInput}
+              placeholder="Paste OAuth token here (from browser after Google login)..."
+              placeholderTextColor="#999"
+              value={tokenInput}
+              onChangeText={setTokenInput}
+              multiline
+              autoCapitalize="none"
+            />
+            <TouchableOpacity
+              style={[styles.button, styles.tokenButton]}
+              onPress={async () => {
+                if (!tokenInput.trim()) {
+                  setError('Please paste a token');
+                  return;
+                }
+                try {
+                  const token = tokenInput.trim();
+                  
+                  // Store token securely
+                  await storage.setToken(token);
+
+                  // Decode and store user data
+                  const userData = decodeToken(token);
+                  if (userData) {
+                    await storage.setUserData(userData);
+                    // Navigate to posts list
+                    navigation.replace('PostsList');
+                  } else {
+                    setError('Invalid token format');
+                  }
+                } catch (err) {
+                  console.error('Token login error:', err);
+                  setError('Invalid token');
+                }
+              }}
+            >
+              <Text style={styles.buttonText}>Use Token</Text>
+            </TouchableOpacity>
+          </View>
+        )}
 
         {/* Divider */}
         <View style={styles.dividerContainer}>
@@ -333,6 +389,36 @@ const styles = StyleSheet.create({
     fontSize: 14,
     color: '#999',
     fontWeight: '500',
+  },
+  tokenToggleButton: {
+    marginTop: 8,
+    marginBottom: 8,
+    padding: 8,
+    alignItems: 'center',
+  },
+  tokenToggleText: {
+    fontSize: 14,
+    color: '#2196F3',
+    textDecorationLine: 'underline',
+  },
+  tokenInputContainer: {
+    marginBottom: 16,
+  },
+  tokenInput: {
+    height: 100,
+    borderWidth: 1,
+    borderColor: '#ddd',
+    borderRadius: 8,
+    paddingHorizontal: 16,
+    paddingVertical: 12,
+    marginBottom: 12,
+    fontSize: 12,
+    backgroundColor: '#f9f9f9',
+    fontFamily: Platform.OS === 'ios' ? 'Courier' : 'monospace',
+    textAlignVertical: 'top',
+  },
+  tokenButton: {
+    backgroundColor: '#4CAF50',
   },
 });
 
