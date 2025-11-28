@@ -1,0 +1,71 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Redirecting...</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+            margin: 0;
+            background: #f5f5f5;
+        }
+        .container {
+            text-align: center;
+            padding: 20px;
+        }
+        .spinner {
+            border: 4px solid #f3f3f3;
+            border-top: 4px solid #2196F3;
+            border-radius: 50%;
+            width: 40px;
+            height: 40px;
+            animation: spin 1s linear infinite;
+            margin: 20px auto;
+        }
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="spinner"></div>
+        <p>Redirecting to app...</p>
+    </div>
+    <script>
+        // Extract token or pendingToken from URL
+        const urlParams = new URLSearchParams(window.location.search);
+        const token = urlParams.get('token');
+        const pendingToken = urlParams.get('pendingToken');
+        const error = urlParams.get('error');
+        
+        // Build deep link URL
+        let deepLink = 'mafqoudat://auth/callback?';
+        if (token) {
+            deepLink += 'token=' + encodeURIComponent(token);
+        } else if (pendingToken) {
+            deepLink += 'pendingToken=' + encodeURIComponent(pendingToken);
+        } else if (error) {
+            deepLink += 'error=' + encodeURIComponent(error);
+        }
+        
+        console.log('Redirecting to deep link:', deepLink);
+        
+        // Try to redirect to deep link
+        // This will open the mobile app if it's installed
+        window.location.href = deepLink;
+        
+        // Fallback: If deep link doesn't work after 2 seconds, show message
+        setTimeout(function() {
+            document.body.innerHTML = '<div class="container"><p>Please return to the app manually.</p><p>If the app did not open, please check that it is installed.</p></div>';
+        }, 2000);
+    </script>
+</body>
+</html>
+

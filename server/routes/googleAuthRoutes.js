@@ -1,5 +1,6 @@
 const express = require('express');
 const router = express.Router();
+const path = require('path');
 const crypto = require('crypto');
 const passport = require('../config/passport');
 const User = require('../models/User');
@@ -97,11 +98,14 @@ router.get('/google/callback',
 
         // Redirect based on platform
         if (isMobile) {
-          // For mobile, redirect to web URL for pending registration
-          const mobileWebUrl = `${frontendUrl}/auth/select-country?pendingToken=${pendingToken}&mobile=true`;
-          console.log('🔵 MOBILE REDIRECT (pending, web URL):', mobileWebUrl);
-          console.log('🔵 Frontend URL used:', frontendUrl);
-          return res.redirect(mobileWebUrl);
+          // For mobile, redirect to server HTML page that will redirect to deep link
+          const protocol = req.protocol || 'https';
+          const host = req.get('host') || 'mafqoudat-production.up.railway.app';
+          const serverUrl = `${protocol}://${host}`;
+          const mobileRedirectUrl = `${serverUrl}/auth/mobile-callback?pendingToken=${pendingToken}`;
+          console.log('🔵 MOBILE REDIRECT (pending, to server HTML page):', mobileRedirectUrl);
+          console.log('🔵 HTML page will redirect to: mafqoudat://auth/callback?pendingToken=...');
+          return res.redirect(mobileRedirectUrl);
         } else {
           // Redirect to frontend to select country
           const webUrl = `${frontendUrl}/auth/select-country?pendingToken=${pendingToken}`;
@@ -128,14 +132,19 @@ router.get('/google/callback',
 
           // Redirect based on platform
           if (isMobile) {
-            // For mobile, redirect to web URL - WebBrowser should catch it
-            // The redirectUrl in mobile app must match: ${frontendUrl}/auth/callback
-            const mobileWebUrl = `${frontendUrl}/auth/callback?token=${tokens.accessToken}&mobile=true`;
-            console.log('🔵 MOBILE REDIRECT (web URL):', mobileWebUrl);
+            // For mobile, redirect to a server route that serves HTML page
+            // The HTML page will auto-redirect to deep link using JavaScript
+            // This works better than direct redirect because browser can handle it
+            // Use req.protocol and req.get('host') to get the current server URL
+            const protocol = req.protocol || 'https';
+            const host = req.get('host') || 'mafqoudat-production.up.railway.app';
+            const serverUrl = `${protocol}://${host}`;
+            const mobileRedirectUrl = `${serverUrl}/auth/mobile-callback?token=${tokens.accessToken}`;
+            console.log('🔵 MOBILE REDIRECT (to server HTML page):', mobileRedirectUrl);
             console.log('🔵 Frontend URL used:', frontendUrl);
             console.log('🔵 Token length:', tokens.accessToken?.length);
-            console.log('🔵 Mobile app should catch this with redirectUrl:', `${frontendUrl}/auth/callback`);
-            return res.redirect(mobileWebUrl);
+            console.log('🔵 HTML page will redirect to: mafqoudat://auth/callback?token=...');
+            return res.redirect(mobileRedirectUrl);
           } else {
             // Redirect to frontend with token
             const webUrl = `${frontendUrl}/auth/callback?token=${tokens.accessToken}`;
@@ -361,6 +370,28 @@ router.post('/complete', async (req, res) => {
       isError: true,
       code: 'SERVER_ERROR'
     });
+  }
+});
+
+// @desc Mobile OAuth callback page (serves HTML that redirects to deep link)
+// @route GET /auth/mobile-callback
+// @access Public
+router.get('/mobile-callback', (req, res) => {
+  try {
+    const { token, pendingToken, error } = req.query;
+    
+    console.log('📱 Mobile callback HTML page requested:', { 
+      token: token ? `${token.substring(0, 20)}...` : null,
+      pendingToken: pendingToken ? `${pendingToken.substring(0, 20)}...` : null,
+      error 
+    });
+    
+    // Serve the HTML page that will redirect to deep link
+    const htmlPath = path.join(__dirname, '../views/mobile-callback.html');
+    res.sendFile(htmlPath);
+  } catch (err) {
+    console.error('Error serving mobile callback page:', err);
+    res.status(500).send('Error loading callback page');
   }
 });
 
