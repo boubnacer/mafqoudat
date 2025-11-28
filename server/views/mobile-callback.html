@@ -3,34 +3,22 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Redirecting...</title>
+    <title>Redirecting to App...</title>
     <style>
         body {
             font-family: Arial, sans-serif;
             display: flex;
             justify-content: center;
             align-items: center;
-            height: 100vh;
+            min-height: 100vh;
             margin: 0;
+            padding: 20px;
             background: #f5f5f5;
         }
         .container {
             text-align: center;
-            padding: 20px;
             max-width: 90%;
-        }
-        .spinner {
-            border: 4px solid #f3f3f3;
-            border-top: 4px solid #2196F3;
-            border-radius: 50%;
-            width: 40px;
-            height: 40px;
-            animation: spin 1s linear infinite;
-            margin: 20px auto;
-        }
-        @keyframes spin {
-            0% { transform: rotate(0deg); }
-            100% { transform: rotate(360deg); }
+            width: 100%;
         }
         .button {
             background-color: #2196F3;
@@ -41,707 +29,154 @@
             font-weight: bold;
             border-radius: 8px;
             cursor: pointer;
-            margin-top: 20px;
-            display: inline-block !important;
-            visibility: visible !important;
-            opacity: 1 !important;
-            box-shadow: 0 2px 4px rgba(0,0,0,0.2);
-            width: auto;
+            margin: 10px;
+            display: inline-block;
             min-width: 200px;
         }
-        .button:hover {
-            background-color: #1976D2;
+        .button.green {
+            background-color: #4CAF50;
         }
-        .button:active {
-            background-color: #1565C0;
+        textarea {
+            width: 100%;
+            padding: 15px;
+            font-size: 12px;
+            font-family: monospace;
+            border: 2px solid #2196F3;
+            border-radius: 4px;
+            margin: 20px 0;
+            min-height: 100px;
+            box-sizing: border-box;
         }
-        .message {
-            margin-top: 20px;
-            color: #666;
+        .status {
+            padding: 10px;
+            margin: 10px 0;
+            border-radius: 4px;
             font-size: 14px;
+        }
+        .status.success {
+            background-color: #d4edda;
+            color: #155724;
+            border: 1px solid #c3e6cb;
+        }
+        .status.error {
+            background-color: #f8d7da;
+            color: #721c24;
+            border: 1px solid #f5c6cb;
         }
     </style>
 </head>
 <body>
     <div class="container">
-        <div class="spinner" id="spinner"></div>
-        <p id="message">Redirecting to app...</p>
-        <button class="button" id="openAppBtn" onclick="openApp(); return false;" style="display: inline-block !important; visibility: visible !important; opacity: 1 !important;">Open App</button>
-        <button class="button" id="copyTokenBtn" onclick="copyToken(); return false;" style="display: inline-block !important; visibility: visible !important; opacity: 1 !important; background-color: #4CAF50; margin-top: 10px;">Copy Token</button>
-        <p class="message" id="fallbackMessage" style="display: block; margin-top: 15px;">
-            <strong>Instructions:</strong><br>
-            1. Try "Open App" button above<br>
-            2. OR tap the token below to select it, then copy manually<br>
-            3. Return to the app - it should detect authentication
-        </p>
-        <div id="statusDisplay" style="margin-top: 10px; padding: 10px; background-color: #fff3cd; border: 1px solid #ffc107; border-radius: 4px; font-size: 12px;">
-            <strong>Status:</strong> <span id="statusText">Extracting token from URL...</span>
+        <h2>Authentication Token</h2>
+        <div id="status" class="status">Extracting token...</div>
+        <textarea id="tokenDisplay" readonly></textarea>
+        <div>
+            <button class="button" onclick="openApp()">Open App</button>
+            <button class="button green" onclick="copyToken()">Copy Token</button>
         </div>
-        <p class="message" style="margin-top: 10px; font-size: 12px; color: #999;" id="debugInfo"></p>
-        <textarea id="tokenDisplay" readonly style="display: block !important; margin-top: 15px; width: 100%; max-width: 100%; padding: 10px; font-size: 11px; font-family: monospace; background-color: #f0f0f0; border: 2px solid #2196F3; border-radius: 4px; word-break: break-all; resize: vertical; min-height: 80px; box-sizing: border-box; cursor: text; visibility: visible !important; opacity: 1 !important;"></textarea>
-        <script>
-            // IMMEDIATE inline script - runs as soon as this script tag is parsed
-            (function() {
-                try {
-                    var tokenDisplay = document.getElementById('tokenDisplay');
-                    var search = window.location.search;
-                    var href = window.location.href;
-                    
-                    // Extract token immediately using simple string parsing
-                    var token = null;
-                    if (search) {
-                        var match = search.match(/[?&]token=([^&]*)/);
-                        if (match && match[1]) {
-                            token = decodeURIComponent(match[1]);
-                        }
-                    }
-                    
-                    if (tokenDisplay) {
-                        if (token) {
-                            // Token found - display it immediately
-                            tokenDisplay.value = token;
-                            console.log('✅ Token extracted immediately (length:', token.length, ')');
-                        } else {
-                            // Show debug info
-                            tokenDisplay.value = 'DEBUG: No token found in URL\n\nFull URL: ' + href + '\n\nSearch: ' + search;
-                            console.error('❌ No token found in URL');
-                        }
-                    }
-                } catch (e) {
-                    console.error('Error in inline script:', e);
-                }
-            })();
-        </script>
-        <p style="margin-top: 5px; font-size: 11px; color: #666;">Tap the token above to select it, then copy (long-press → Copy)</p>
+        <p style="margin-top: 20px; color: #666; font-size: 14px;">
+            If the app doesn't open automatically, copy the token above and paste it in the app.
+        </p>
     </div>
+
     <script>
-        // Update status display function with error handling
-        function updateStatus(message, isError) {
-            try {
-                const statusDisplay = document.getElementById('statusDisplay');
-                const statusText = document.getElementById('statusText');
-                if (statusDisplay && statusText) {
-                    statusText.textContent = message;
-                    if (isError) {
-                        statusDisplay.style.backgroundColor = '#f8d7da';
-                        statusDisplay.style.borderColor = '#dc3545';
-                        statusDisplay.style.color = '#721c24';
-                    } else {
-                        statusDisplay.style.backgroundColor = '#d4edda';
-                        statusDisplay.style.borderColor = '#28a745';
-                        statusDisplay.style.color = '#155724';
-                    }
-                    console.log('Status updated:', message);
-                } else {
-                    console.error('Status elements not found!', { statusDisplay: !!statusDisplay, statusText: !!statusText });
-                }
-            } catch (e) {
-                console.error('Error updating status:', e);
-            }
-        }
-        
-        // Also update textarea directly for debugging
-        function updateTextarea(message) {
-            try {
-                const tokenDisplay = document.getElementById('tokenDisplay');
-                if (tokenDisplay) {
-                    tokenDisplay.value = message;
-                    console.log('Textarea updated with:', message.substring(0, 100) + '...');
-                }
-            } catch (e) {
-                console.error('Error updating textarea:', e);
-            }
-        }
-        
-        // IMMEDIATELY extract and display token - don't wait for anything
+        // SIMPLE, DIRECT TOKEN EXTRACTION - NO COMPLEXITY
         (function() {
-            console.log('=== Mobile callback page script starting IMMEDIATELY ===');
-            console.log('Full URL:', window.location.href);
-            console.log('URL search:', window.location.search);
-            console.log('URL hash:', window.location.hash);
+            var search = window.location.search;
+            var token = null;
+            var pendingToken = null;
             
-            // Show raw URL immediately
-            const tokenDisplay = document.getElementById('tokenDisplay');
-            if (tokenDisplay) {
-                const currentValue = tokenDisplay.value || '';
-                if (!currentValue || currentValue.includes('DEBUG') || currentValue.includes('Loading')) {
-                    updateTextarea('DEBUG: Full URL = ' + window.location.href + '\n\nSearch params = ' + window.location.search + '\n\nNow extracting token...');
+            // Extract token from URL - SIMPLE METHOD
+            if (search) {
+                // Method 1: Simple regex
+                var match = search.match(/[?&]token=([^&]*)/);
+                if (match && match[1]) {
+                    token = decodeURIComponent(match[1]);
                 }
-            }
-            
-            updateStatus('Extracting token from URL...', false);
-            
-            // Extract token or pendingToken from URL - try multiple methods
-            let token = null;
-            let pendingToken = null;
-            let error = null;
-            
-            // Method 1: Check if token was already extracted by inline script
-            if (window.extractedToken) {
-                token = window.extractedToken;
-                console.log('Token already extracted by inline script (length:', token.length, ')');
-                updateStatus('✅ Token found (length: ' + token.length + ')', false);
-            }
-            
-            // Method 2: URLSearchParams (standard)
-            if (!token) {
-                try {
-                    const urlParams = new URLSearchParams(window.location.search);
-                    token = urlParams.get('token');
-                    pendingToken = urlParams.get('pendingToken');
-                    error = urlParams.get('error');
-                    console.log('Method 2 (URLSearchParams):', {
-                        token: token ? token.substring(0, 30) + '... (length: ' + token.length + ')' : 'null',
-                        pendingToken: pendingToken ? pendingToken.substring(0, 30) + '... (length: ' + pendingToken.length + ')' : 'null',
-                        error
-                    });
-                    
-                    if (token) {
-                        updateStatus('✅ Token found via URLSearchParams (length: ' + token.length + ')', false);
-                    } else if (pendingToken) {
-                        updateStatus('✅ Pending token found via URLSearchParams (length: ' + pendingToken.length + ')', false);
-                    }
-                } catch (e) {
-                    console.error('URLSearchParams failed:', e);
-                    updateStatus('⚠️ URLSearchParams failed, trying manual parsing...', false);
-                }
-            }
-            
-            // Method 3: Manual parsing (fallback) - handle URL-encoded values
-            if (!token && !pendingToken && !error) {
-                console.log('Trying manual URL parsing...');
-                updateStatus('Trying manual URL parsing...', false);
-                const search = window.location.search.substring(1);
-                const params = search.split('&');
-                for (const param of params) {
-                    const equalIndex = param.indexOf('=');
-                    if (equalIndex > 0) {
-                        const key = param.substring(0, equalIndex);
-                        const value = param.substring(equalIndex + 1);
-                        try {
-                            if (key === 'token') {
-                                token = decodeURIComponent(value || '');
-                            } else if (key === 'pendingToken') {
-                                pendingToken = decodeURIComponent(value || '');
-                            } else if (key === 'error') {
-                                error = decodeURIComponent(value || '');
-                            }
-                        } catch (decodeErr) {
-                            console.error('Decode error for', key, ':', decodeErr);
-                        }
+                
+                // Method 2: URLSearchParams (if regex didn't work)
+                if (!token) {
+                    try {
+                        var params = new URLSearchParams(search);
+                        token = params.get('token');
+                        pendingToken = params.get('pendingToken');
+                    } catch(e) {
+                        console.error('URLSearchParams failed:', e);
                     }
                 }
-                console.log('Method 2 (Manual parsing):', {
-                    token: token ? token.substring(0, 30) + '... (length: ' + token.length + ')' : 'null',
-                    pendingToken: pendingToken ? pendingToken.substring(0, 30) + '... (length: ' + pendingToken.length + ')' : 'null',
-                    error
-                });
-                
-                if (token) {
-                    updateStatus('✅ Token found via manual parsing (length: ' + token.length + ')', false);
-                } else if (pendingToken) {
-                    updateStatus('✅ Pending token found via manual parsing (length: ' + pendingToken.length + ')', false);
-                }
             }
             
-            // Final check
-            console.log('=== FINAL TOKEN STATUS ===');
-            console.log('Token found:', !!token, token ? 'Length: ' + token.length : '');
-            console.log('PendingToken found:', !!pendingToken, pendingToken ? 'Length: ' + pendingToken.length : '');
-            console.log('Error found:', !!error, error || '');
+            // Display token immediately
+            var tokenDisplay = document.getElementById('tokenDisplay');
+            var status = document.getElementById('status');
             
-            if (!token && !pendingToken && !error) {
-                console.error('❌ NO TOKEN, PENDING TOKEN, OR ERROR FOUND IN URL!');
-                console.error('Full URL was:', window.location.href);
-                console.error('Search params were:', window.location.search);
-                updateStatus('❌ ERROR: No token found in URL! URL: ' + window.location.search, true);
+            if (token) {
+                tokenDisplay.value = token;
+                status.textContent = '✅ Token loaded successfully!';
+                status.className = 'status success';
                 
-                // Show full URL in textarea for debugging
+                // Try to open app automatically
+                var deepLink = 'mafqoudat://auth/callback?token=' + encodeURIComponent(token);
                 setTimeout(function() {
-                    const tokenDisplay = document.getElementById('tokenDisplay');
-                    if (tokenDisplay) {
-                        tokenDisplay.value = 'ERROR: No token found in URL!\n\n' +
-                                          'Full URL: ' + window.location.href + '\n\n' +
-                                          'Search params: ' + window.location.search + '\n\n' +
-                                          'This means the server did not pass the token, or it was lost during redirect.\n\n' +
-                                          'Please check Railway logs for the redirect URL.';
-                        tokenDisplay.style.backgroundColor = '#ffebee';
-                        tokenDisplay.style.borderColor = '#f44336';
-                    }
-                }, 200);
-            }
-            
-            // IMMEDIATELY try to set token in textarea (even if DOM might not be ready)
-            function setTokenNow() {
-                const tokenDisplay = document.getElementById('tokenDisplay');
-                if (tokenDisplay) {
-                    if (token) {
-                        console.log('✅ IMMEDIATELY setting TOKEN (length:', token.length, ')');
-                        updateStatus('✅ Token loaded successfully! (length: ' + token.length + ')', false);
-                        tokenDisplay.value = token;
-                        tokenDisplay.placeholder = 'Token loaded - tap to select and copy';
-                        console.log('✅ Token set! Value length:', tokenDisplay.value.length);
-                    } else if (pendingToken) {
-                        console.log('✅ IMMEDIATELY setting PENDING TOKEN (length:', pendingToken.length, ')');
-                        updateStatus('✅ Pending token loaded successfully! (length: ' + pendingToken.length + ')', false);
-                        tokenDisplay.value = pendingToken;
-                        tokenDisplay.placeholder = 'Pending token loaded - tap to select and copy';
-                    } else if (error) {
-                        updateStatus('❌ Error: ' + error, true);
-                        tokenDisplay.value = 'ERROR: ' + error;
-                        tokenDisplay.style.backgroundColor = '#ffebee';
-                    } else {
-                        console.error('❌ NO TOKEN FOUND!');
-                        updateStatus('❌ ERROR: No token in URL!', true);
-                        tokenDisplay.value = 'ERROR: No token in URL.\n\nURL: ' + window.location.href + '\n\nSearch: ' + window.location.search;
-                        tokenDisplay.style.backgroundColor = '#ffebee';
-                        tokenDisplay.style.borderColor = '#f44336';
-                    }
-                } else {
-                    console.log('Textarea not found yet, will retry...');
-                    updateStatus('Waiting for page to load...', false);
-                    setTimeout(setTokenNow, 50);
-                }
-            }
-            
-            // Try immediately
-            setTokenNow();
-            
-            // Also try when DOM is ready
-            if (document.readyState === 'loading') {
-                document.addEventListener('DOMContentLoaded', setTokenNow);
+                    window.location.href = deepLink;
+                }, 500);
+            } else if (pendingToken) {
+                tokenDisplay.value = pendingToken;
+                status.textContent = '✅ Pending token loaded!';
+                status.className = 'status success';
             } else {
-                // DOM already ready, try again
-                setTimeout(setTokenNow, 100);
+                tokenDisplay.value = 'ERROR: No token found in URL.\n\nURL: ' + window.location.href;
+                status.textContent = '❌ No token found in URL';
+                status.className = 'status error';
             }
             
-            // Store in global scope for other functions
-            window.extractedToken = token;
-            window.extractedPendingToken = pendingToken;
-            window.extractedError = error;
+            // Store globally for copy function
+            window.currentToken = token || pendingToken;
         })();
         
-        // Now continue with the rest of the script
-        const token = window.extractedToken || null;
-        const pendingToken = window.extractedPendingToken || null;
-        const error = window.extractedError || null;
-        
-        // Build deep link URL
-        let deepLink = 'mafqoudat://auth/callback?';
-        if (token) {
-            deepLink += 'token=' + encodeURIComponent(token);
-        } else if (pendingToken) {
-            deepLink += 'pendingToken=' + encodeURIComponent(pendingToken);
-        } else if (error) {
-            deepLink += 'error=' + encodeURIComponent(error);
-        }
-        
-        console.log('Deep link URL:', deepLink);
-        
-        // Update debug info
-        const debugInfo = document.getElementById('debugInfo');
-        if (debugInfo) {
-            debugInfo.textContent = 'Deep link: ' + deepLink.substring(0, 50) + '...';
-        }
-        
-        // Show token in textarea for easy copying - DO THIS IMMEDIATELY
-        console.log('=== Setting up token display ===');
-        console.log('Token exists:', !!token, 'Length:', token ? token.length : 0);
-        console.log('PendingToken exists:', !!pendingToken, 'Length:', pendingToken ? pendingToken.length : 0);
-        console.log('Full URL:', window.location.href);
-        console.log('URL search params:', window.location.search);
-        
-        const tokenDisplay = document.getElementById('tokenDisplay');
-        console.log('Token display element found:', !!tokenDisplay);
-        
-        // Wait for DOM to be ready
-        function setTokenInDisplay() {
-            console.log('=== setTokenInDisplay() called ===');
-            const tokenDisplay = document.getElementById('tokenDisplay');
-            if (!tokenDisplay) {
-                console.error('❌ Token display element not found! Retrying...');
-                setTimeout(setTokenInDisplay, 100); // Retry
-                return;
-            }
-            
-            console.log('Token display element found, setting value...');
-            
-            if (token) {
-                console.log('✅ Setting TOKEN in textarea (length:', token.length, ')');
-                console.log('Token preview:', token.substring(0, 50) + '...');
-                tokenDisplay.value = token;
-                tokenDisplay.style.display = 'block';
-                tokenDisplay.style.visibility = 'visible';
-                tokenDisplay.style.opacity = '1';
-                tokenDisplay.style.backgroundColor = '#f0f0f0';
-                tokenDisplay.style.borderColor = '#2196F3';
-                tokenDisplay.placeholder = 'Token loaded - tap to select and copy';
-                console.log('✅ Token value set. Textarea value length:', tokenDisplay.value.length);
-                console.log('✅ Textarea is visible:', tokenDisplay.style.display, tokenDisplay.style.visibility);
-                
-                // Auto-select on focus
-                tokenDisplay.addEventListener('focus', function() {
-                    console.log('Textarea focused, selecting text...');
-                    this.select();
-                });
-                // Also select on click
-                tokenDisplay.addEventListener('click', function() {
-                    console.log('Textarea clicked, selecting text...');
-                    this.select();
-                });
-            } else if (pendingToken) {
-                console.log('✅ Setting PENDING TOKEN in textarea (length:', pendingToken.length, ')');
-                console.log('PendingToken preview:', pendingToken.substring(0, 50) + '...');
-                tokenDisplay.value = pendingToken;
-                tokenDisplay.style.display = 'block';
-                tokenDisplay.style.visibility = 'visible';
-                tokenDisplay.style.opacity = '1';
-                tokenDisplay.style.backgroundColor = '#f0f0f0';
-                tokenDisplay.style.borderColor = '#2196F3';
-                tokenDisplay.placeholder = 'Pending token loaded - tap to select and copy';
-                console.log('✅ Pending token value set. Textarea value length:', tokenDisplay.value.length);
-            } else {
-                console.error('❌ No token or pendingToken available!');
-                console.error('URL search params:', window.location.search);
-                console.error('Full URL:', window.location.href);
-                const errorMsg = 'ERROR: No token received in URL.\n\n' +
-                               'URL: ' + window.location.href + '\n\n' +
-                               'Search params: ' + window.location.search + '\n\n' +
-                               'Please check server logs to see if token was passed correctly.';
-                tokenDisplay.value = errorMsg;
-                tokenDisplay.style.display = 'block';
-                tokenDisplay.style.visibility = 'visible';
-                tokenDisplay.style.opacity = '1';
-                tokenDisplay.style.backgroundColor = '#ffebee';
-                tokenDisplay.style.borderColor = '#f44336';
-                tokenDisplay.style.color = '#d32f2f';
-                console.error('❌ Error message set in textarea');
-            }
-            
-            // Verify the value was set
-            console.log('=== VERIFICATION ===');
-            console.log('Textarea value length:', tokenDisplay.value ? tokenDisplay.value.length : 0);
-            console.log('Textarea value preview:', tokenDisplay.value ? tokenDisplay.value.substring(0, 50) + '...' : 'EMPTY');
-            console.log('Textarea is visible:', window.getComputedStyle(tokenDisplay).display !== 'none');
-        }
-        
-        // Try immediately
-        setTokenInDisplay();
-        
-        // Also try when DOM is ready
-        if (document.readyState === 'loading') {
-            document.addEventListener('DOMContentLoaded', setTokenInDisplay);
-        }
-        
-        // Also update debug info with token status
-        if (debugInfo) {
-            if (token) {
-                debugInfo.textContent = '✅ Token received (length: ' + token.length + ') - See textarea below';
-                debugInfo.style.color = '#4CAF50';
-            } else if (pendingToken) {
-                debugInfo.textContent = '✅ Pending token received (length: ' + pendingToken.length + ') - See textarea below';
-                debugInfo.style.color = '#4CAF50';
-            } else {
-                debugInfo.textContent = '❌ No token received! Check URL: ' + window.location.search;
-                debugInfo.style.color = '#f44336';
-            }
-        }
-        
-        // Function to copy token to clipboard
-        function copyToken() {
-            console.log('=== copyToken() called ===');
-            
-            // Get token from textarea (most reliable source)
-            const tokenDisplay = document.getElementById('tokenDisplay');
-            if (!tokenDisplay) {
-                console.error('Token display element not found!');
-                alert('Error: Token display not found. Please refresh the page.');
-                return;
-            }
-            
-            // Try multiple sources for the token - check textarea first, then global variables
-            const tokenToCopy = tokenDisplay.value || 
-                               window.extractedToken || 
-                               token || 
-                               window.extractedPendingToken || 
-                               pendingToken;
-            
-            console.log('Token sources checked:', {
-                fromTextarea: !!tokenDisplay.value,
-                fromWindowExtracted: !!window.extractedToken,
-                fromLocalToken: !!token,
-                fromWindowPending: !!window.extractedPendingToken,
-                fromLocalPending: !!pendingToken,
-                finalTokenLength: tokenToCopy ? tokenToCopy.length : 0
-            });
-            
-            if (!tokenToCopy || tokenToCopy.trim() === '' || tokenToCopy.includes('ERROR')) {
-                console.error('No valid token to copy');
-                alert('No token available to copy. Please check if the token loaded correctly.');
-                return;
-            }
-            
-            console.log('Token to copy (length):', tokenToCopy.length);
-            console.log('Token preview:', tokenToCopy.substring(0, 50) + '...');
-            
-            // Method 1: Try to select text in textarea and use execCommand
-            try {
-                tokenDisplay.focus();
-                tokenDisplay.select();
-                tokenDisplay.setSelectionRange(0, tokenToCopy.length);
-                
-                // Try execCommand first (works on mobile browsers)
-                if (document.execCommand('copy')) {
-                    console.log('✅ Token copied via execCommand');
-                    showCopySuccess();
-                    return;
-                }
-            } catch (err) {
-                console.log('execCommand on textarea failed:', err);
-            }
-            
-            // Method 2: Create temporary textarea and copy
-            try {
-                const tempTextArea = document.createElement('textarea');
-                tempTextArea.value = tokenToCopy;
-                tempTextArea.style.position = 'fixed';
-                tempTextArea.style.left = '-9999px';
-                tempTextArea.style.top = '0';
-                tempTextArea.style.opacity = '0';
-                document.body.appendChild(tempTextArea);
-                tempTextArea.focus();
-                tempTextArea.select();
-                
-                const copied = document.execCommand('copy');
-                document.body.removeChild(tempTextArea);
-                
-                if (copied) {
-                    console.log('✅ Token copied via temporary textarea');
-                    showCopySuccess();
-                    return;
-                }
-            } catch (err) {
-                console.log('Temporary textarea method failed:', err);
-            }
-            
-            // Method 3: Try modern clipboard API (requires HTTPS and user gesture)
-            if (navigator.clipboard && navigator.clipboard.writeText) {
-                navigator.clipboard.writeText(tokenToCopy).then(function() {
-                    console.log('✅ Token copied via clipboard API');
-                    showCopySuccess();
-                }).catch(function(err) {
-                    console.error('Clipboard API failed:', err);
-                    // Fallback: select text in textarea so user can manually copy
-                    fallbackManualCopy();
-                });
-            } else {
-                console.log('Clipboard API not available');
-                fallbackManualCopy();
-            }
-        }
-        
-        function showCopySuccess() {
-            const debugInfo = document.getElementById('debugInfo');
-            if (debugInfo) {
-                debugInfo.textContent = '✅ Token copied to clipboard! Return to app and paste it.';
-                debugInfo.style.color = '#4CAF50';
-                debugInfo.style.fontWeight = 'bold';
-            }
-            
-            // Also update button text temporarily
-            const copyBtn = document.getElementById('copyTokenBtn');
-            if (copyBtn) {
-                const originalText = copyBtn.textContent;
-                copyBtn.textContent = '✅ Copied!';
-                copyBtn.style.backgroundColor = '#4CAF50';
-                setTimeout(function() {
-                    copyBtn.textContent = originalText;
-                    copyBtn.style.backgroundColor = '#4CAF50';
-                }, 2000);
-            }
-        }
-        
-        function fallbackManualCopy() {
-            console.log('All copy methods failed, selecting text for manual copy');
-            const tokenDisplay = document.getElementById('tokenDisplay');
-            if (tokenDisplay) {
-                tokenDisplay.focus();
-                tokenDisplay.select();
-                const debugInfo = document.getElementById('debugInfo');
-                if (debugInfo) {
-                    debugInfo.textContent = '⚠️ Auto-copy failed. Text is selected - long-press and choose "Copy"';
-                    debugInfo.style.color = '#FF9800';
-                }
-                alert('Auto-copy failed. The token is selected - please long-press and choose "Copy" from the menu.');
-            }
-        }
-        
-        
-        // Function to open the app
         function openApp() {
-            console.log('=== openApp() called ===');
-            console.log('Deep link:', deepLink);
-            
-            const debugInfo = document.getElementById('debugInfo');
-            if (debugInfo) {
-                debugInfo.textContent = 'Attempting to open app...';
-                debugInfo.style.color = '#2196F3';
-            }
-            
-            // Method 1: window.location.href (most reliable for deep links)
-            try {
-                console.log('Method 1: Setting window.location.href to:', deepLink);
+            var token = window.currentToken || document.getElementById('tokenDisplay').value;
+            if (token && !token.includes('ERROR')) {
+                var deepLink = 'mafqoudat://auth/callback?token=' + encodeURIComponent(token);
                 window.location.href = deepLink;
-                console.log('✅ window.location.href set successfully');
-            } catch (e) {
-                console.error('❌ Error with window.location.href:', e);
-            }
-            
-            // Method 2: Create and click a link (fallback)
-            setTimeout(function() {
-                try {
-                    console.log('Method 2: Creating and clicking link with:', deepLink);
-                    const link = document.createElement('a');
-                    link.href = deepLink;
-                    link.target = '_self';
-                    link.style.display = 'none';
-                    document.body.appendChild(link);
-                    link.click();
-                    console.log('✅ Link clicked successfully');
-                    setTimeout(function() {
-                        if (link.parentNode) {
-                            document.body.removeChild(link);
-                        }
-                    }, 1000);
-                } catch (e) {
-                    console.error('❌ Error with link click:', e);
-                }
-            }, 50);
-            
-            // Method 3: Try window.open (another fallback)
-            setTimeout(function() {
-                try {
-                    console.log('Method 3: Trying window.open with:', deepLink);
-                    window.open(deepLink, '_self');
-                    console.log('✅ window.open called');
-                } catch (e) {
-                    console.error('❌ Error with window.open:', e);
-                }
-            }, 100);
-            
-            // Method 4: Try location.replace
-            setTimeout(function() {
-                try {
-                    console.log('Method 4: Trying location.replace with:', deepLink);
-                    window.location.replace(deepLink);
-                    console.log('✅ location.replace called');
-                } catch (e) {
-                    console.error('❌ Error with location.replace:', e);
-                }
-            }, 150);
-            
-            // Update message
-            const message = document.getElementById('message');
-            if (message) {
-                message.textContent = 'Opening app... If it doesn\'t open, return to the app manually.';
+            } else {
+                alert('No token available to open app.');
             }
         }
         
-        // Auto-trigger immediately when page loads
-        console.log('Page loaded, auto-triggering deep link...');
-        console.log('Deep link to trigger:', deepLink);
-        
-        // Try immediately
-        openApp();
-        
-        // Try multiple times with increasing delays
-        [100, 300, 500, 1000, 2000].forEach((delay) => {
-            setTimeout(function() {
-                console.log('Retrying deep link trigger (attempt at ' + delay + 'ms)...');
-                openApp();
-            }, delay);
-        });
-        
-        // Also try on user interaction (tap anywhere)
-        document.addEventListener('click', function() {
-            console.log('User clicked, triggering deep link...');
-            openApp();
-        }, { once: true });
-        
-        // Also try on page visibility change (when user switches back to app)
-        document.addEventListener('visibilitychange', function() {
-            if (!document.hidden) {
-                console.log('Page became visible, triggering deep link...');
-                openApp();
-            }
-        });
-        
-        // Show fallback button immediately (don't wait)
-        setTimeout(function() {
-            console.log('Showing fallback button...');
-            const spinner = document.getElementById('spinner');
-            const message = document.getElementById('message');
-            const button = document.getElementById('openAppBtn');
-            const fallbackMessage = document.getElementById('fallbackMessage');
+        function copyToken() {
+            var tokenDisplay = document.getElementById('tokenDisplay');
+            var token = tokenDisplay.value;
             
-            console.log('Elements found:', {
-                spinner: !!spinner,
-                message: !!message,
-                button: !!button,
-                fallbackMessage: !!fallbackMessage
-            });
+            if (!token || token.includes('ERROR')) {
+                alert('No token available to copy.');
+                return;
+            }
             
-            if (spinner) {
-                spinner.style.display = 'none';
-                console.log('Spinner hidden');
-            }
-            if (message) {
-                message.textContent = 'Tap the button below to open the app:';
-                console.log('Message updated');
-            }
-            if (button) {
-                button.style.display = 'inline-block';
-                button.style.visibility = 'visible';
-                button.style.opacity = '1';
-                console.log('Button shown with display, visibility, and opacity');
-            } else {
-                console.error('Button element not found!');
-                // Try to create button if it doesn't exist
-                const container = document.querySelector('.container');
-                if (container) {
-                    const newButton = document.createElement('button');
-                    newButton.className = 'button';
-                    newButton.textContent = 'Open App';
-                    newButton.onclick = function() { openApp(); return false; };
-                    newButton.style.display = 'inline-block';
-                    newButton.style.visibility = 'visible';
-                    newButton.style.opacity = '1';
-                    container.appendChild(newButton);
-                    console.log('Created new button as fallback');
+            // Select and copy
+            tokenDisplay.select();
+            tokenDisplay.setSelectionRange(0, token.length);
+            
+            try {
+                if (document.execCommand('copy')) {
+                    alert('Token copied! Return to the app and paste it.');
+                    return;
                 }
+            } catch(e) {
+                console.error('execCommand failed:', e);
             }
-            if (fallbackMessage) {
-                fallbackMessage.style.display = 'block';
-                console.log('Fallback message shown');
+            
+            // Fallback: try clipboard API
+            if (navigator.clipboard) {
+                navigator.clipboard.writeText(token).then(function() {
+                    alert('Token copied! Return to the app and paste it.');
+                }).catch(function() {
+                    alert('Auto-copy failed. Please manually select and copy the token.');
+                });
+            } else {
+                alert('Auto-copy not available. Please manually select and copy the token.');
             }
-        }, 1000); // Show button after 1 second
-        
-        // Also show button immediately if redirect fails (after 3 seconds)
-        setTimeout(function() {
-            const button = document.getElementById('openAppBtn');
-            if (button && button.style.display === 'none') {
-                console.log('Force showing button after 3 seconds');
-                button.style.display = 'inline-block';
-                button.style.visibility = 'visible';
-            }
-        }, 3000);
-        
-        // Also try again after 1 second
-        setTimeout(function() {
-            console.log('Retrying deep link redirect...');
-            openApp();
-        }, 1000);
+        }
     </script>
 </body>
 </html>
-
