@@ -387,6 +387,13 @@ router.get('/mobile-callback', (req, res) => {
     });
     
     // Serve the HTML page that will redirect to deep link
+    // Add cache control headers to prevent caching
+    res.set({
+      'Cache-Control': 'no-cache, no-store, must-revalidate',
+      'Pragma': 'no-cache',
+      'Expires': '0'
+    });
+    
     const htmlPath = path.join(__dirname, '../views/mobile-callback.html');
     res.sendFile(htmlPath);
   } catch (err) {

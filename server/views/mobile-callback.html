@@ -17,6 +17,7 @@
         .container {
             text-align: center;
             padding: 20px;
+            max-width: 90%;
         }
         .spinner {
             border: 4px solid #f3f3f3;
@@ -31,19 +32,55 @@
             0% { transform: rotate(0deg); }
             100% { transform: rotate(360deg); }
         }
+        .button {
+            background-color: #2196F3;
+            color: white;
+            border: none;
+            padding: 15px 30px;
+            font-size: 18px;
+            font-weight: bold;
+            border-radius: 8px;
+            cursor: pointer;
+            margin-top: 20px;
+            display: none;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.2);
+        }
+        .button:hover {
+            background-color: #1976D2;
+        }
+        .button:active {
+            background-color: #1565C0;
+        }
+        .message {
+            margin-top: 20px;
+            color: #666;
+            font-size: 14px;
+        }
     </style>
 </head>
 <body>
     <div class="container">
-        <div class="spinner"></div>
-        <p>Redirecting to app...</p>
+        <div class="spinner" id="spinner"></div>
+        <p id="message">Redirecting to app...</p>
+        <button class="button" id="openAppBtn" onclick="openApp()">Open App</button>
+        <p class="message" id="fallbackMessage" style="display: none;">
+            If the app didn't open automatically, tap the button above or return to the app manually.
+        </p>
     </div>
     <script>
+        console.log('Mobile callback page script starting...');
+        
         // Extract token or pendingToken from URL
         const urlParams = new URLSearchParams(window.location.search);
         const token = urlParams.get('token');
         const pendingToken = urlParams.get('pendingToken');
         const error = urlParams.get('error');
+        
+        console.log('Mobile callback page loaded with params:', { 
+            token: token ? token.substring(0, 20) + '...' : null,
+            pendingToken: pendingToken ? pendingToken.substring(0, 20) + '...' : null,
+            error 
+        });
         
         // Build deep link URL
         let deepLink = 'mafqoudat://auth/callback?';
@@ -55,16 +92,127 @@
             deepLink += 'error=' + encodeURIComponent(error);
         }
         
-        console.log('Redirecting to deep link:', deepLink);
+        console.log('Deep link URL:', deepLink);
         
-        // Try to redirect to deep link
-        // This will open the mobile app if it's installed
-        window.location.href = deepLink;
+        // Function to open the app
+        function openApp() {
+            console.log('Attempting to open app with deep link:', deepLink);
+            
+            // Try multiple methods
+            try {
+                window.location.href = deepLink;
+                console.log('Set window.location.href to deep link');
+            } catch (e) {
+                console.error('Error with window.location.href:', e);
+            }
+            
+            // Also try with a hidden iframe (works on some browsers)
+            setTimeout(function() {
+                try {
+                    const iframe = document.createElement('iframe');
+                    iframe.style.display = 'none';
+                    iframe.src = deepLink;
+                    document.body.appendChild(iframe);
+                    console.log('Created iframe with deep link');
+                    setTimeout(function() {
+                        document.body.removeChild(iframe);
+                    }, 1000);
+                } catch (e) {
+                    console.error('Error with iframe:', e);
+                }
+            }, 100);
+            
+            // Also try creating and clicking a link
+            setTimeout(function() {
+                try {
+                    const link = document.createElement('a');
+                    link.href = deepLink;
+                    link.style.display = 'none';
+                    document.body.appendChild(link);
+                    link.click();
+                    console.log('Clicked link with deep link');
+                    setTimeout(function() {
+                        document.body.removeChild(link);
+                    }, 100);
+                } catch (e) {
+                    console.error('Error with link click:', e);
+                }
+            }, 200);
+        }
         
-        // Fallback: If deep link doesn't work after 2 seconds, show message
+        // Wait for DOM to be ready
+        if (document.readyState === 'loading') {
+            document.addEventListener('DOMContentLoaded', function() {
+                console.log('DOM loaded, starting redirect...');
+                openApp();
+            });
+        } else {
+            console.log('DOM already ready, starting redirect...');
+            openApp();
+        }
+        
+        // Show fallback button after 1.5 seconds if still on page
         setTimeout(function() {
-            document.body.innerHTML = '<div class="container"><p>Please return to the app manually.</p><p>If the app did not open, please check that it is installed.</p></div>';
-        }, 2000);
+            console.log('Showing fallback button...');
+            const spinner = document.getElementById('spinner');
+            const message = document.getElementById('message');
+            const button = document.getElementById('openAppBtn');
+            const fallbackMessage = document.getElementById('fallbackMessage');
+            
+            console.log('Elements found:', {
+                spinner: !!spinner,
+                message: !!message,
+                button: !!button,
+                fallbackMessage: !!fallbackMessage
+            });
+            
+            if (spinner) {
+                spinner.style.display = 'none';
+                console.log('Spinner hidden');
+            }
+            if (message) {
+                message.textContent = 'Tap the button below to open the app:';
+                console.log('Message updated');
+            }
+            if (button) {
+                button.style.display = 'inline-block';
+                button.style.visibility = 'visible';
+                console.log('Button shown with display and visibility');
+            } else {
+                console.error('Button element not found!');
+                // Try to create button if it doesn't exist
+                const container = document.querySelector('.container');
+                if (container) {
+                    const newButton = document.createElement('button');
+                    newButton.className = 'button';
+                    newButton.textContent = 'Open App';
+                    newButton.onclick = openApp;
+                    newButton.style.display = 'inline-block';
+                    container.appendChild(newButton);
+                    console.log('Created new button as fallback');
+                }
+            }
+            if (fallbackMessage) {
+                fallbackMessage.style.display = 'block';
+                console.log('Fallback message shown');
+            }
+        }, 1500);
+        
+        // Also show button immediately if redirect fails (after 3 seconds)
+        setTimeout(function() {
+            const button = document.getElementById('openAppBtn');
+            if (button && button.style.display === 'none') {
+                console.log('Force showing button after 3 seconds');
+                button.style.display = 'inline-block';
+                button.style.visibility = 'visible';
+            }
+        }, 3000);
+        
+        // Also try again after 1 second
+        setTimeout(function() {
+            console.log('Retrying deep link redirect...');
+            openApp();
+        }, 1000);
     </script>
 </body>
 </html>
