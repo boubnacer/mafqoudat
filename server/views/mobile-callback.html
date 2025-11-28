@@ -78,25 +78,78 @@
             <strong>Status:</strong> <span id="statusText">Extracting token from URL...</span>
         </div>
         <p class="message" style="margin-top: 10px; font-size: 12px; color: #999;" id="debugInfo"></p>
-        <textarea id="tokenDisplay" readonly style="display: block !important; margin-top: 15px; width: 100%; max-width: 100%; padding: 10px; font-size: 11px; font-family: monospace; background-color: #f0f0f0; border: 2px solid #2196F3; border-radius: 4px; word-break: break-all; resize: vertical; min-height: 80px; box-sizing: border-box; cursor: text; visibility: visible !important; opacity: 1 !important;">Loading token from URL...</textarea>
+        <textarea id="tokenDisplay" readonly style="display: block !important; margin-top: 15px; width: 100%; max-width: 100%; padding: 10px; font-size: 11px; font-family: monospace; background-color: #f0f0f0; border: 2px solid #2196F3; border-radius: 4px; word-break: break-all; resize: vertical; min-height: 80px; box-sizing: border-box; cursor: text; visibility: visible !important; opacity: 1 !important;"></textarea>
+        <script>
+            // IMMEDIATE inline script - runs as soon as this script tag is parsed
+            (function() {
+                try {
+                    var tokenDisplay = document.getElementById('tokenDisplay');
+                    var search = window.location.search;
+                    var href = window.location.href;
+                    
+                    // Extract token immediately using simple string parsing
+                    var token = null;
+                    if (search) {
+                        var match = search.match(/[?&]token=([^&]*)/);
+                        if (match && match[1]) {
+                            token = decodeURIComponent(match[1]);
+                        }
+                    }
+                    
+                    if (tokenDisplay) {
+                        if (token) {
+                            // Token found - display it immediately
+                            tokenDisplay.value = token;
+                            console.log('✅ Token extracted immediately (length:', token.length, ')');
+                        } else {
+                            // Show debug info
+                            tokenDisplay.value = 'DEBUG: No token found in URL\n\nFull URL: ' + href + '\n\nSearch: ' + search;
+                            console.error('❌ No token found in URL');
+                        }
+                    }
+                } catch (e) {
+                    console.error('Error in inline script:', e);
+                }
+            })();
+        </script>
         <p style="margin-top: 5px; font-size: 11px; color: #666;">Tap the token above to select it, then copy (long-press → Copy)</p>
     </div>
     <script>
-        // Update status display function
+        // Update status display function with error handling
         function updateStatus(message, isError) {
-            const statusDisplay = document.getElementById('statusDisplay');
-            const statusText = document.getElementById('statusText');
-            if (statusDisplay && statusText) {
-                statusText.textContent = message;
-                if (isError) {
-                    statusDisplay.style.backgroundColor = '#f8d7da';
-                    statusDisplay.style.borderColor = '#dc3545';
-                    statusDisplay.style.color = '#721c24';
+            try {
+                const statusDisplay = document.getElementById('statusDisplay');
+                const statusText = document.getElementById('statusText');
+                if (statusDisplay && statusText) {
+                    statusText.textContent = message;
+                    if (isError) {
+                        statusDisplay.style.backgroundColor = '#f8d7da';
+                        statusDisplay.style.borderColor = '#dc3545';
+                        statusDisplay.style.color = '#721c24';
+                    } else {
+                        statusDisplay.style.backgroundColor = '#d4edda';
+                        statusDisplay.style.borderColor = '#28a745';
+                        statusDisplay.style.color = '#155724';
+                    }
+                    console.log('Status updated:', message);
                 } else {
-                    statusDisplay.style.backgroundColor = '#d4edda';
-                    statusDisplay.style.borderColor = '#28a745';
-                    statusDisplay.style.color = '#155724';
+                    console.error('Status elements not found!', { statusDisplay: !!statusDisplay, statusText: !!statusText });
                 }
+            } catch (e) {
+                console.error('Error updating status:', e);
+            }
+        }
+        
+        // Also update textarea directly for debugging
+        function updateTextarea(message) {
+            try {
+                const tokenDisplay = document.getElementById('tokenDisplay');
+                if (tokenDisplay) {
+                    tokenDisplay.value = message;
+                    console.log('Textarea updated with:', message.substring(0, 100) + '...');
+                }
+            } catch (e) {
+                console.error('Error updating textarea:', e);
             }
         }
         
@@ -107,13 +160,14 @@
             console.log('URL search:', window.location.search);
             console.log('URL hash:', window.location.hash);
             
-            // First, show the raw URL in textarea so user can see what we're working with
-            setTimeout(function() {
-                const tokenDisplay = document.getElementById('tokenDisplay');
-                if (tokenDisplay && !tokenDisplay.value || tokenDisplay.value === 'Loading token from URL...') {
-                    tokenDisplay.value = 'DEBUG: Full URL = ' + window.location.href + '\n\nSearch params = ' + window.location.search;
+            // Show raw URL immediately
+            const tokenDisplay = document.getElementById('tokenDisplay');
+            if (tokenDisplay) {
+                const currentValue = tokenDisplay.value || '';
+                if (!currentValue || currentValue.includes('DEBUG') || currentValue.includes('Loading')) {
+                    updateTextarea('DEBUG: Full URL = ' + window.location.href + '\n\nSearch params = ' + window.location.search + '\n\nNow extracting token...');
                 }
-            }, 100);
+            }
             
             updateStatus('Extracting token from URL...', false);
             
@@ -122,29 +176,38 @@
             let pendingToken = null;
             let error = null;
             
-            // Method 1: URLSearchParams (standard)
-            try {
-                const urlParams = new URLSearchParams(window.location.search);
-                token = urlParams.get('token');
-                pendingToken = urlParams.get('pendingToken');
-                error = urlParams.get('error');
-                console.log('Method 1 (URLSearchParams):', {
-                    token: token ? token.substring(0, 30) + '... (length: ' + token.length + ')' : 'null',
-                    pendingToken: pendingToken ? pendingToken.substring(0, 30) + '... (length: ' + pendingToken.length + ')' : 'null',
-                    error
-                });
-                
-                if (token) {
-                    updateStatus('✅ Token found via URLSearchParams (length: ' + token.length + ')', false);
-                } else if (pendingToken) {
-                    updateStatus('✅ Pending token found via URLSearchParams (length: ' + pendingToken.length + ')', false);
-                }
-            } catch (e) {
-                console.error('URLSearchParams failed:', e);
-                updateStatus('⚠️ URLSearchParams failed, trying manual parsing...', false);
+            // Method 1: Check if token was already extracted by inline script
+            if (window.extractedToken) {
+                token = window.extractedToken;
+                console.log('Token already extracted by inline script (length:', token.length, ')');
+                updateStatus('✅ Token found (length: ' + token.length + ')', false);
             }
             
-            // Method 2: Manual parsing (fallback) - handle URL-encoded values
+            // Method 2: URLSearchParams (standard)
+            if (!token) {
+                try {
+                    const urlParams = new URLSearchParams(window.location.search);
+                    token = urlParams.get('token');
+                    pendingToken = urlParams.get('pendingToken');
+                    error = urlParams.get('error');
+                    console.log('Method 2 (URLSearchParams):', {
+                        token: token ? token.substring(0, 30) + '... (length: ' + token.length + ')' : 'null',
+                        pendingToken: pendingToken ? pendingToken.substring(0, 30) + '... (length: ' + pendingToken.length + ')' : 'null',
+                        error
+                    });
+                    
+                    if (token) {
+                        updateStatus('✅ Token found via URLSearchParams (length: ' + token.length + ')', false);
+                    } else if (pendingToken) {
+                        updateStatus('✅ Pending token found via URLSearchParams (length: ' + pendingToken.length + ')', false);
+                    }
+                } catch (e) {
+                    console.error('URLSearchParams failed:', e);
+                    updateStatus('⚠️ URLSearchParams failed, trying manual parsing...', false);
+                }
+            }
+            
+            // Method 3: Manual parsing (fallback) - handle URL-encoded values
             if (!token && !pendingToken && !error) {
                 console.log('Trying manual URL parsing...');
                 updateStatus('Trying manual URL parsing...', false);
