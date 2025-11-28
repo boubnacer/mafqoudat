@@ -79,19 +79,64 @@
         <p style="margin-top: 5px; font-size: 11px; color: #666;">Tap the token above to select it, then copy (long-press → Copy)</p>
     </div>
     <script>
-        console.log('Mobile callback page script starting...');
+        console.log('=== Mobile callback page script starting ===');
+        console.log('Full URL:', window.location.href);
+        console.log('URL search:', window.location.search);
+        console.log('URL hash:', window.location.hash);
         
-        // Extract token or pendingToken from URL
-        const urlParams = new URLSearchParams(window.location.search);
-        const token = urlParams.get('token');
-        const pendingToken = urlParams.get('pendingToken');
-        const error = urlParams.get('error');
+        // Extract token or pendingToken from URL - try multiple methods
+        let token = null;
+        let pendingToken = null;
+        let error = null;
         
-        console.log('Mobile callback page loaded with params:', { 
-            token: token ? token.substring(0, 20) + '...' : null,
-            pendingToken: pendingToken ? pendingToken.substring(0, 20) + '...' : null,
-            error 
-        });
+        // Method 1: URLSearchParams (standard)
+        try {
+            const urlParams = new URLSearchParams(window.location.search);
+            token = urlParams.get('token');
+            pendingToken = urlParams.get('pendingToken');
+            error = urlParams.get('error');
+            console.log('Method 1 (URLSearchParams):', {
+                token: token ? token.substring(0, 30) + '... (length: ' + token.length + ')' : 'null',
+                pendingToken: pendingToken ? pendingToken.substring(0, 30) + '... (length: ' + pendingToken.length + ')' : 'null',
+                error
+            });
+        } catch (e) {
+            console.error('URLSearchParams failed:', e);
+        }
+        
+        // Method 2: Manual parsing (fallback)
+        if (!token && !pendingToken && !error) {
+            console.log('Trying manual URL parsing...');
+            const search = window.location.search.substring(1);
+            const params = search.split('&');
+            for (const param of params) {
+                const [key, value] = param.split('=');
+                if (key === 'token') {
+                    token = decodeURIComponent(value || '');
+                } else if (key === 'pendingToken') {
+                    pendingToken = decodeURIComponent(value || '');
+                } else if (key === 'error') {
+                    error = decodeURIComponent(value || '');
+                }
+            }
+            console.log('Method 2 (Manual parsing):', {
+                token: token ? token.substring(0, 30) + '... (length: ' + token.length + ')' : 'null',
+                pendingToken: pendingToken ? pendingToken.substring(0, 30) + '... (length: ' + pendingToken.length + ')' : 'null',
+                error
+            });
+        }
+        
+        // Final check
+        console.log('=== FINAL TOKEN STATUS ===');
+        console.log('Token found:', !!token, token ? 'Length: ' + token.length : '');
+        console.log('PendingToken found:', !!pendingToken, pendingToken ? 'Length: ' + pendingToken.length : '');
+        console.log('Error found:', !!error, error || '');
+        
+        if (!token && !pendingToken && !error) {
+            console.error('❌ NO TOKEN, PENDING TOKEN, OR ERROR FOUND IN URL!');
+            console.error('This means the server did not pass the token correctly.');
+            console.error('Check server logs for the redirect URL.');
+        }
         
         // Build deep link URL
         let deepLink = 'mafqoudat://auth/callback?';
@@ -123,21 +168,28 @@
         
         // Wait for DOM to be ready
         function setTokenInDisplay() {
+            console.log('=== setTokenInDisplay() called ===');
             const tokenDisplay = document.getElementById('tokenDisplay');
             if (!tokenDisplay) {
-                console.error('❌ Token display element not found!');
+                console.error('❌ Token display element not found! Retrying...');
                 setTimeout(setTokenInDisplay, 100); // Retry
                 return;
             }
             
+            console.log('Token display element found, setting value...');
+            
             if (token) {
-                console.log('Setting token in textarea (length:', token.length, ')');
+                console.log('✅ Setting TOKEN in textarea (length:', token.length, ')');
+                console.log('Token preview:', token.substring(0, 50) + '...');
                 tokenDisplay.value = token;
                 tokenDisplay.style.display = 'block';
                 tokenDisplay.style.visibility = 'visible';
                 tokenDisplay.style.opacity = '1';
+                tokenDisplay.style.backgroundColor = '#f0f0f0';
+                tokenDisplay.style.borderColor = '#2196F3';
                 tokenDisplay.placeholder = 'Token loaded - tap to select and copy';
-                console.log('✅ Token set successfully');
+                console.log('✅ Token value set. Textarea value length:', tokenDisplay.value.length);
+                console.log('✅ Textarea is visible:', tokenDisplay.style.display, tokenDisplay.style.visibility);
                 
                 // Auto-select on focus
                 tokenDisplay.addEventListener('focus', function() {
@@ -150,23 +202,39 @@
                     this.select();
                 });
             } else if (pendingToken) {
-                console.log('Setting pendingToken in textarea (length:', pendingToken.length, ')');
+                console.log('✅ Setting PENDING TOKEN in textarea (length:', pendingToken.length, ')');
+                console.log('PendingToken preview:', pendingToken.substring(0, 50) + '...');
                 tokenDisplay.value = pendingToken;
                 tokenDisplay.style.display = 'block';
                 tokenDisplay.style.visibility = 'visible';
                 tokenDisplay.style.opacity = '1';
+                tokenDisplay.style.backgroundColor = '#f0f0f0';
+                tokenDisplay.style.borderColor = '#2196F3';
                 tokenDisplay.placeholder = 'Pending token loaded - tap to select and copy';
-                console.log('✅ Pending token set successfully');
+                console.log('✅ Pending token value set. Textarea value length:', tokenDisplay.value.length);
             } else {
                 console.error('❌ No token or pendingToken available!');
-                console.error('URL params:', window.location.search);
-                tokenDisplay.value = 'ERROR: No token received. URL: ' + window.location.href;
+                console.error('URL search params:', window.location.search);
+                console.error('Full URL:', window.location.href);
+                const errorMsg = 'ERROR: No token received in URL.\n\n' +
+                               'URL: ' + window.location.href + '\n\n' +
+                               'Search params: ' + window.location.search + '\n\n' +
+                               'Please check server logs to see if token was passed correctly.';
+                tokenDisplay.value = errorMsg;
                 tokenDisplay.style.display = 'block';
                 tokenDisplay.style.visibility = 'visible';
                 tokenDisplay.style.opacity = '1';
                 tokenDisplay.style.backgroundColor = '#ffebee';
                 tokenDisplay.style.borderColor = '#f44336';
+                tokenDisplay.style.color = '#d32f2f';
+                console.error('❌ Error message set in textarea');
             }
+            
+            // Verify the value was set
+            console.log('=== VERIFICATION ===');
+            console.log('Textarea value length:', tokenDisplay.value ? tokenDisplay.value.length : 0);
+            console.log('Textarea value preview:', tokenDisplay.value ? tokenDisplay.value.substring(0, 50) + '...' : 'EMPTY');
+            console.log('Textarea is visible:', window.getComputedStyle(tokenDisplay).display !== 'none');
         }
         
         // Try immediately
