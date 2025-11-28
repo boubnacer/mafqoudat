@@ -22,7 +22,7 @@ export default function App() {
   useEffect(() => {
     // Handle deep linking for OAuth callback
     const handleDeepLink = (event) => {
-      const { url } = event;
+      const url = event?.url || event; // Support both event object and direct URL string
       console.log('🔗 Deep link received:', url);
       
       // Check if it's an OAuth callback (deep link or web URL)
@@ -128,11 +128,15 @@ export default function App() {
     });
 
     // Listen for deep links while app is running
+    // This is the PRIMARY way to catch deep links when app is in foreground
     const subscription = Linking.addEventListener('url', (event) => {
       console.log('🔗 Linking event received:', event);
-      handleDeepLink(event);
+      console.log('🔗 Event URL:', event?.url);
+      if (event?.url) {
+        handleDeepLink(event);
+      }
     });
-    console.log('👂 Deep link listener registered');
+    console.log('👂 Deep link listener registered (will catch mafqoudat:// URLs)');
     
     // Also listen for app state changes (when app comes to foreground)
     // This is critical - when user returns from browser, check for deep link
@@ -144,31 +148,37 @@ export default function App() {
       if (appState.match(/inactive|background/) && nextAppState === 'active') {
         console.log('📱 App became active, checking for deep link...');
         
-        // Check for deep link immediately
-        Linking.getInitialURL().then((url) => {
-          console.log('🔍 getInitialURL result:', url);
-          if (url && (url.includes('auth/callback') || url.startsWith('mafqoudat://'))) {
-            console.log('🔗 Found deep link when app became active:', url);
-            handleDeepLink({ url });
-          } else {
-            // Also try to get the current URL (might be different)
-            console.log('ℹ️ No initial URL found, app might have been opened normally');
-          }
-        }).catch((err) => {
-          console.error('Error checking URL on app state change:', err);
-        });
-        
-        // Also check again after a short delay (deep link might arrive slightly after app becomes active)
-        setTimeout(() => {
-          Linking.getInitialURL().then((url) => {
-            if (url && (url.includes('auth/callback') || url.startsWith('mafqoudat://'))) {
-              console.log('🔗 Found deep link on delayed check:', url);
-              handleDeepLink({ url });
+        // Check for deep link immediately - try both getInitialURL and current URL
+        const checkForDeepLink = async () => {
+          try {
+            // Method 1: getInitialURL (works if app was opened via deep link)
+            const initialUrl = await Linking.getInitialURL();
+            console.log('🔍 getInitialURL result:', initialUrl);
+            if (initialUrl && (initialUrl.includes('auth/callback') || initialUrl.startsWith('mafqoudat://'))) {
+              console.log('🔗 Found deep link via getInitialURL:', initialUrl);
+              handleDeepLink({ url: initialUrl });
+              return true;
             }
-          }).catch((err) => {
-            console.error('Error on delayed URL check:', err);
-          });
-        }, 500);
+            
+            // Method 2: Check if there's a pending OAuth (oauthState might have been resolved)
+            // This is handled by the oauthState.waitForCallback() in googleAuth.js
+            console.log('ℹ️ No initial URL found, but AppState listener is active');
+            return false;
+          } catch (err) {
+            console.error('Error checking URL on app state change:', err);
+            return false;
+          }
+        };
+        
+        // Check immediately
+        checkForDeepLink();
+        
+        // Also check again after delays (deep link might arrive slightly after app becomes active)
+        [100, 500, 1000, 2000, 3000].forEach((delay) => {
+          setTimeout(() => {
+            checkForDeepLink();
+          }, delay);
+        });
       }
       
       appState = nextAppState;

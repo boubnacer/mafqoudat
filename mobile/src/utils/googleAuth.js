@@ -40,12 +40,41 @@ export const initiateGoogleAuth = async () => {
         callbackReceived = url;
         // Parse and resolve oauthState immediately
         const parsed = parseAuthCallback(url);
+        console.log('📋 Parsed callback result:', parsed.type);
         if (parsed.type === 'success' || parsed.type === 'pending') {
           console.log('✅ Resolving oauthState from Linking callback');
           oauthState.resolveCallback(parsed);
+        } else {
+          console.warn('⚠️ Parsed callback is not success or pending:', parsed);
         }
       }
     });
+    
+    // Also set up a periodic check for deep links (in case Linking event doesn't fire)
+    let checkCount = 0;
+    const maxChecks = 60; // Check for 30 seconds (every 500ms)
+    const periodicCheck = setInterval(() => {
+      checkCount++;
+      Linking.getInitialURL().then((url) => {
+        if (url && url.startsWith('mafqoudat://auth/callback') && !callbackReceived) {
+          console.log(`✅ Found deep link via periodic check (attempt ${checkCount}):`, url);
+          callbackReceived = url;
+          clearInterval(periodicCheck);
+          const parsed = parseAuthCallback(url);
+          if (parsed.type === 'success' || parsed.type === 'pending') {
+            console.log('✅ Resolving oauthState from periodic check');
+            oauthState.resolveCallback(parsed);
+          }
+        }
+      }).catch((err) => {
+        console.error('Error in periodic check:', err);
+      });
+      
+      if (checkCount >= maxChecks) {
+        clearInterval(periodicCheck);
+        console.log('⏱️ Periodic check timeout');
+      }
+    }, 500);
     
     try {
       // Open browser - server will redirect directly to deep link
@@ -60,12 +89,11 @@ export const initiateGoogleAuth = async () => {
       
       console.log('📱 WebBrowser result:', result.type);
 
-      // Remove the listener
-      linkingSubscription?.remove();
-
       // Check if we received a callback URL while browser was open
       if (callbackReceived) {
         console.log('✅ Processing callback URL received while browser was open:', callbackReceived);
+        clearInterval(periodicCheck);
+        linkingSubscription?.remove();
         return parseAuthCallback(callbackReceived);
       }
 
@@ -74,36 +102,42 @@ export const initiateGoogleAuth = async () => {
       console.log('⏳ Waiting for deep link to be caught by App.js...');
       console.log('📋 Server should redirect to: mafqoudat://auth/callback?token=...');
       console.log('📋 App.js Linking handler will catch it and resolve oauthState');
+      console.log('📋 Also checking periodically for deep link...');
       
       // Wait for oauthState to be resolved (by App.js)
       return Promise.race([
         oauthState.waitForCallback(),
         new Promise((resolve) => {
-          // Also check callbackReceived periodically as fallback
+          // Check callbackReceived periodically as fallback
           const checkInterval = setInterval(() => {
             if (callbackReceived) {
               clearInterval(checkInterval);
-              console.log('✅ Callback received via periodic check:', callbackReceived);
+              clearInterval(periodicCheck);
+              linkingSubscription?.remove();
+              console.log('✅ Callback received via check interval:', callbackReceived);
               resolve(parseAuthCallback(callbackReceived));
             }
           }, 500);
           
           setTimeout(() => {
             clearInterval(checkInterval);
+            clearInterval(periodicCheck);
             linkingSubscription?.remove();
-            console.log('⏱️ Timeout waiting for deep link callback');
+            console.log('⏱️ Timeout waiting for deep link callback (30 seconds)');
             console.log('❌ TROUBLESHOOTING:');
             console.log('❌ 1. Check Railway logs for "🔵 MOBILE REDIRECT:" to see redirect URL');
             console.log('❌ 2. Check mobile logs for "🔗 Deep link received:" in App.js');
             console.log('❌ 3. Verify deep link scheme is configured: mafqoudat://');
             console.log('❌ 4. Make sure App.js Linking handler is active');
+            console.log('❌ 5. Try manually returning to the app - AppState listener should catch it');
             resolve({
               type: 'error',
-              error: 'Deep link callback not received. Check logs and ensure App.js is catching deep links.',
+              error: 'Deep link callback not received. Try manually returning to the app.',
             });
           }, 30000); // Wait 30 seconds
         }),
       ]).finally(() => {
+        clearInterval(periodicCheck);
         linkingSubscription?.remove();
       });
     } catch (error) {

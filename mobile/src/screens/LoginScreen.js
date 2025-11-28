@@ -96,6 +96,15 @@ const LoginScreen = ({ navigation }) => {
 
     try {
       console.log('Initiating Google login...');
+      
+      // Show a message to user that they may need to return to app manually
+      // This is because the browser might not automatically open the app when deep link is triggered
+      Alert.alert(
+        t('continueWithGoogle'),
+        'After choosing your Google account, you may need to manually return to this app. The app will detect the authentication automatically.',
+        [{ text: 'OK' }]
+      );
+      
       const result = await initiateGoogleAuth();
       console.log('Google login result:', result);
 
