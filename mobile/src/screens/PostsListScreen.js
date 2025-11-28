@@ -17,8 +17,12 @@ import {
 import apiClient from '../app/api/apiService';
 import { API_ENDPOINTS, API_BASE_URL } from '../config/api';
 import { storage } from '../utils/storage';
+import { useLanguage } from '../context/LanguageContext';
+import { useTranslation } from '../utils/translations';
 
 const PostsListScreen = ({ navigation }) => {
+  const { currentLanguage } = useLanguage();
+  const { t } = useTranslation();
   const [posts, setPosts] = useState([]);
   const [isLoading, setIsLoading] = useState(true);
   const [isRefreshing, setIsRefreshing] = useState(false);
@@ -32,6 +36,16 @@ const PostsListScreen = ({ navigation }) => {
     loadUserCountry();
     loadPosts();
   }, []);
+
+  // Reload posts when language changes (only if we have a country)
+  useEffect(() => {
+    if (currentCountry && !isLoading) {
+      // Reset to first page and reload
+      setPage(1);
+      loadPosts(1, false);
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [currentLanguage]);
 
   const loadUserCountry = async () => {
     const userData = await storage.getUserData();
@@ -53,7 +67,7 @@ const PostsListScreen = ({ navigation }) => {
       const country = userData?.country || currentCountry;
 
       if (!country) {
-        setError('Country not set. Please login again.');
+        setError(t('countryNotSet'));
         return;
       }
 
@@ -63,16 +77,39 @@ const PostsListScreen = ({ navigation }) => {
           page: pageNum,
           pageSize: 10,
           currentCountry: country,
-          language: 'en',
+          language: currentLanguage || 'en',
         },
       });
 
-      const { posts: newPosts, totalPages, currentPage } = response.data;
+      // Handle API response structure
+      // API returns: { postsWithUser, page, totalPages, total }
+      const responseData = response.data;
+      
+      // Extract posts - API uses 'postsWithUser' not 'posts'
+      const postsArray = responseData.postsWithUser;
+      
+      // Ensure postsArray is an array
+      if (!Array.isArray(postsArray)) {
+        console.error('Posts data is not an array:', postsArray);
+        setPosts([]);
+        setError(t('failedToLoadPosts'));
+        return;
+      }
+      
+      const totalPages = responseData.totalPages || 1;
+      const currentPage = responseData.page || pageNum;
+      
+      console.log('Posts API Response:', {
+        postsCount: postsArray.length,
+        totalPages,
+        currentPage,
+        total: responseData.total
+      });
 
       if (pageNum === 1) {
-        setPosts(newPosts || []);
+        setPosts(postsArray);
       } else {
-        setPosts((prev) => [...prev, ...(newPosts || [])]);
+        setPosts((prev) => [...prev, ...postsArray]);
       }
 
       setHasMore(currentPage < totalPages);
@@ -80,13 +117,20 @@ const PostsListScreen = ({ navigation }) => {
       setError('');
     } catch (err) {
       console.error('Error loading posts:', err);
+      console.error('Error details:', {
+        status: err.response?.status,
+        data: err.response?.data,
+        message: err.message
+      });
       
       if (err.response?.status === 401) {
-        setError('Session expired. Please login again.');
+        setError(t('sessionExpired'));
         // Navigate back to login
         navigation.replace('Login');
+      } else if (err.response?.status === 400) {
+        setError(err.response?.data?.message || t('countryNotSet'));
       } else {
-        setError('Failed to load posts. Please try again.');
+        setError(t('failedToLoadPosts'));
       }
     } finally {
       setIsLoading(false);
@@ -132,11 +176,11 @@ const PostsListScreen = ({ navigation }) => {
     </TouchableOpacity>
   );
 
-  if (isLoading && posts.length === 0) {
+  if (isLoading && (!Array.isArray(posts) || posts.length === 0)) {
     return (
       <View style={styles.centerContainer}>
         <ActivityIndicator size="large" color="#2196F3" />
-        <Text style={styles.loadingText}>Loading posts...</Text>
+        <Text style={styles.loadingText}>{t('loadingPosts')}</Text>
       </View>
     );
   }
@@ -144,7 +188,7 @@ const PostsListScreen = ({ navigation }) => {
   return (
     <View style={styles.container}>
       <View style={styles.header}>
-        <Text style={styles.headerTitle}>Posts</Text>
+        <Text style={styles.headerTitle}>{t('posts')}</Text>
         <TouchableOpacity
           onPress={async () => {
             await storage.clearAll();
@@ -152,7 +196,7 @@ const PostsListScreen = ({ navigation }) => {
           }}
           style={styles.logoutButton}
         >
-          <Text style={styles.logoutText}>Logout</Text>
+          <Text style={styles.logoutText}>{t('logout')}</Text>
         </TouchableOpacity>
       </View>
 
@@ -163,9 +207,9 @@ const PostsListScreen = ({ navigation }) => {
       ) : null}
 
       <FlatList
-        data={posts}
+        data={Array.isArray(posts) ? posts : []}
         renderItem={renderPost}
-        keyExtractor={(item) => item._id || item.id}
+        keyExtractor={(item, index) => item?._id || item?.id || `post-${index}`}
         contentContainerStyle={styles.list}
         refreshControl={
           <RefreshControl
@@ -184,7 +228,7 @@ const PostsListScreen = ({ navigation }) => {
         ListEmptyComponent={
           !isLoading ? (
             <View style={styles.emptyContainer}>
-              <Text style={styles.emptyText}>No posts found</Text>
+              <Text style={styles.emptyText}>{t('noPostsFound')}</Text>
             </View>
           ) : null
         }

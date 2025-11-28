@@ -19,22 +19,29 @@ import apiClient from '../app/api/apiService';
 import { API_ENDPOINTS } from '../config/api';
 import { storage } from '../utils/storage';
 import { decodeToken } from '../utils/tokenUtils';
+import { useLanguage } from '../context/LanguageContext';
+import { useTranslation } from '../utils/translations';
+import LanguageDropdown from '../components/LanguageDropdown';
+import { initiateGoogleAuth } from '../utils/googleAuth';
 
 const LoginScreen = ({ navigation }) => {
+  const { currentLanguage } = useLanguage();
+  const { t } = useTranslation();
   const [emailOrPhone, setEmailOrPhone] = useState('');
   const [password, setPassword] = useState('');
   const [isLoading, setIsLoading] = useState(false);
+  const [isGoogleLoading, setIsGoogleLoading] = useState(false);
   const [error, setError] = useState('');
 
   const handleLogin = async () => {
     // Validation
     if (!emailOrPhone.trim()) {
-      setError('Email or phone is required');
+      setError(t('emailOrPhone') + ' ' + t('required'));
       return;
     }
 
     if (!password.trim()) {
-      setError('Password is required');
+      setError(t('password') + ' ' + t('required'));
       return;
     }
 
@@ -63,23 +70,66 @@ const LoginScreen = ({ navigation }) => {
         // Navigate to posts list
         navigation.replace('PostsList');
       } else {
-        setError('Login failed. Please try again.');
+        setError(t('invalidCredentials'));
       }
     } catch (err) {
       console.error('Login error:', err);
       
       // Handle different error types
       if (err.response?.status === 400 || err.response?.status === 401) {
-        setError('Invalid email/phone or password');
+        setError(t('invalidCredentials'));
       } else if (err.response?.status === 429) {
-        setError('Too many login attempts. Please try again later.');
+        setError(t('tooManyAttempts'));
       } else if (err.response?.status === 503) {
-        setError('Service is under maintenance. Please try again later.');
+        setError(t('maintenanceMode'));
       } else {
-        setError('Network error. Please check your connection.');
+        setError(t('networkError'));
       }
     } finally {
       setIsLoading(false);
+    }
+  };
+
+  const handleGoogleLogin = async () => {
+    setIsGoogleLoading(true);
+    setError('');
+
+    try {
+      console.log('Initiating Google login...');
+      const result = await initiateGoogleAuth();
+      console.log('Google login result:', result);
+
+      if (result.type === 'success' && result.accessToken) {
+        console.log('OAuth successful, storing token...');
+        // Store token securely
+        await storage.setToken(result.accessToken);
+
+        // Decode and store user data
+        const userData = decodeToken(result.accessToken);
+        if (userData) {
+          await storage.setUserData(userData);
+        }
+
+        // Navigate to posts list
+        navigation.replace('PostsList');
+      } else if (result.type === 'pending' && result.pendingToken) {
+        console.log('OAuth pending, navigating to country selection...');
+        // New user - needs country selection
+        navigation.navigate('CountrySelection', { pendingToken: result.pendingToken });
+      } else if (result.type === 'cancel') {
+        console.log('User cancelled OAuth');
+        // User cancelled - do nothing
+        setError('');
+      } else {
+        console.error('OAuth error:', result.error);
+        // Error occurred
+        setError(result.error || t('oauthError') || 'Google authentication failed');
+      }
+    } catch (err) {
+      console.error('Google login error:', err);
+      setError(err.message || t('oauthError') || 'Google authentication failed');
+    } finally {
+      setIsGoogleLoading(false);
     }
   };
 
@@ -89,8 +139,11 @@ const LoginScreen = ({ navigation }) => {
       behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
     >
       <View style={styles.content}>
-        <Text style={styles.title}>Mafqoudat</Text>
-        <Text style={styles.subtitle}>Login to your account</Text>
+        <View style={styles.headerRow}>
+          <Text style={styles.title}>{t('brandName')}</Text>
+          <LanguageDropdown />
+        </View>
+        <Text style={styles.subtitle}>{t('loginToAccount')}</Text>
 
         {error ? (
           <View style={styles.errorContainer}>
@@ -98,10 +151,36 @@ const LoginScreen = ({ navigation }) => {
           </View>
         ) : null}
 
+        {/* Google OAuth Button */}
+        <TouchableOpacity
+          style={[styles.googleButton, isGoogleLoading && styles.buttonDisabled]}
+          onPress={handleGoogleLogin}
+          disabled={isGoogleLoading}
+          activeOpacity={0.7}
+        >
+          {isGoogleLoading ? (
+            <ActivityIndicator color="#333" />
+          ) : (
+            <>
+              <Text style={styles.googleIcon}>G</Text>
+              <Text style={styles.googleButtonText}>
+                {t('continueWithGoogle')}
+              </Text>
+            </>
+          )}
+        </TouchableOpacity>
+
+        {/* Divider */}
+        <View style={styles.dividerContainer}>
+          <View style={styles.dividerLine} />
+          <Text style={styles.dividerText}>{t('or') || 'OR'}</Text>
+          <View style={styles.dividerLine} />
+        </View>
+
         <View style={styles.form}>
           <TextInput
             style={styles.input}
-            placeholder="Email or Phone"
+            placeholder={t('emailOrPhonePlaceholder')}
             placeholderTextColor="#999"
             value={emailOrPhone}
             onChangeText={setEmailOrPhone}
@@ -112,7 +191,7 @@ const LoginScreen = ({ navigation }) => {
 
           <TextInput
             style={styles.input}
-            placeholder="Password"
+            placeholder={t('passwordPlaceholder')}
             placeholderTextColor="#999"
             value={password}
             onChangeText={setPassword}
@@ -129,7 +208,7 @@ const LoginScreen = ({ navigation }) => {
             {isLoading ? (
               <ActivityIndicator color="#fff" />
             ) : (
-              <Text style={styles.buttonText}>Login</Text>
+              <Text style={styles.buttonText}>{t('login')}</Text>
             )}
           </TouchableOpacity>
         </View>
@@ -154,6 +233,13 @@ const styles = StyleSheet.create({
     textAlign: 'center',
     marginBottom: 8,
     color: '#2196F3',
+  },
+  headerRow: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    width: '100%',
+    marginBottom: 8,
   },
   subtitle: {
     fontSize: 16,
@@ -200,6 +286,44 @@ const styles = StyleSheet.create({
     color: '#c62828',
     fontSize: 14,
     textAlign: 'center',
+  },
+  googleButton: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    height: 50,
+    backgroundColor: '#fff',
+    borderRadius: 8,
+    borderWidth: 1,
+    borderColor: '#dadce0',
+    marginBottom: 16,
+    gap: 12,
+  },
+  googleIcon: {
+    fontSize: 20,
+    fontWeight: 'bold',
+    color: '#4285F4',
+  },
+  googleButtonText: {
+    color: '#333',
+    fontSize: 16,
+    fontWeight: '500',
+  },
+  dividerContainer: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    marginVertical: 16,
+  },
+  dividerLine: {
+    flex: 1,
+    height: 1,
+    backgroundColor: '#e0e0e0',
+  },
+  dividerText: {
+    marginHorizontal: 16,
+    fontSize: 14,
+    color: '#999',
+    fontWeight: '500',
   },
 });
 

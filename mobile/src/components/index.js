@@ -3,8 +3,6 @@
  * Export all reusable components here
  */
 
-// Add component exports as you create them
-// Example:
-// export { default as Button } from './Button';
-// export { default as Card } from './Card';
+export { default as LanguageSwitcher } from './LanguageSwitcher';
+export { default as LanguageDropdown } from './LanguageDropdown';
 

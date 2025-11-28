@@ -31,12 +31,24 @@ setInterval(() => {
 // @desc Initiate Google OAuth
 // @route GET /auth/google
 // @access Public
-router.get('/google', 
+router.get('/google', (req, res, next) => {
+  // Check if this is a mobile request
+  const isMobile = req.query.mobile === 'true' || 
+                   req.headers['user-agent']?.includes('Mobile') ||
+                   req.headers['x-requested-with'] === 'mobile';
+  
+  console.log('Google OAuth initiation - isMobile:', isMobile, 'query:', req.query);
+  
+  // Store mobile flag in session/state for callback
+  req.session = req.session || {};
+  req.session.isMobile = isMobile;
+  
   passport.authenticate('google', { 
     session: false,
-    scope: ['profile', 'email']
-  })
-);
+    scope: ['profile', 'email'],
+    state: isMobile ? 'mobile' : undefined
+  })(req, res, next);
+});
 
 // @desc Google OAuth callback
 // @route GET /auth/google/callback
@@ -50,6 +62,13 @@ router.get('/google/callback',
     try {
       const user = req.user;
       const frontendUrl = process.env.FRONTEND_URL || process.env.CLIENT_URL || 'http://localhost:3000';
+      
+      // Check if this is a mobile request (from query param or state)
+      const isMobile = req.query.state === 'mobile' || 
+                       req.query.mobile === 'true' ||
+                       req.headers['user-agent']?.includes('Mobile');
+      
+      console.log('Google OAuth callback - isMobile:', isMobile, 'state:', req.query.state, 'user:', user?.email);
 
       // Check if this is a pending user (new registration)
       if (user && user.isPending) {
@@ -68,10 +87,18 @@ router.get('/google/callback',
           'reqLog.log'
         );
 
-        // Redirect to frontend to select country
-        return res.redirect(
-          `${frontendUrl}/auth/select-country?pendingToken=${pendingToken}`
-        );
+        // Redirect based on platform
+        if (isMobile) {
+          // For mobile, redirect to a web URL that the app can intercept
+          const mobileWebUrl = `${frontendUrl}/auth/select-country?pendingToken=${pendingToken}&mobile=true`;
+          console.log('Redirecting mobile user to web URL (will be intercepted):', mobileWebUrl);
+          return res.redirect(mobileWebUrl);
+        } else {
+          // Redirect to frontend to select country
+          const webUrl = `${frontendUrl}/auth/select-country?pendingToken=${pendingToken}`;
+          console.log('Redirecting web user to:', webUrl);
+          return res.redirect(webUrl);
+        }
       }
 
       // Existing user - generate JWT and redirect
@@ -90,10 +117,19 @@ router.get('/google/callback',
             'reqLog.log'
           );
 
-          // Redirect to frontend with token
-          return res.redirect(
-            `${frontendUrl}/auth/callback?token=${tokens.accessToken}`
-          );
+          // Redirect based on platform
+          if (isMobile) {
+            // For mobile, redirect to a web URL that the app can intercept
+            // The web URL will be caught by WebBrowser and we can parse it
+            const mobileWebUrl = `${frontendUrl}/auth/callback?token=${tokens.accessToken}&mobile=true`;
+            console.log('Redirecting mobile user to web URL (will be intercepted):', mobileWebUrl);
+            return res.redirect(mobileWebUrl);
+          } else {
+            // Redirect to frontend with token
+            const webUrl = `${frontendUrl}/auth/callback?token=${tokens.accessToken}`;
+            console.log('Redirecting web user to:', webUrl);
+            return res.redirect(webUrl);
+          }
         } catch (tokenError) {
           console.error('Token generation error during Google OAuth:', tokenError);
           logEvents(
