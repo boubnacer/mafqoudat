@@ -67,10 +67,15 @@
         <div class="spinner" id="spinner"></div>
         <p id="message">Redirecting to app...</p>
         <button class="button" id="openAppBtn" onclick="openApp(); return false;" style="display: inline-block !important; visibility: visible !important; opacity: 1 !important;">Open App</button>
+        <button class="button" id="copyTokenBtn" onclick="copyToken(); return false;" style="display: inline-block !important; visibility: visible !important; opacity: 1 !important; background-color: #4CAF50; margin-top: 10px;">Copy Token (Fallback)</button>
         <p class="message" id="fallbackMessage" style="display: block; margin-top: 15px;">
-            If the app didn't open automatically, tap the button above or return to the app manually.
+            If the app didn't open automatically:<br>
+            1. Tap "Open App" button above, OR<br>
+            2. Tap "Copy Token" and paste it in the app, OR<br>
+            3. Return to the app manually
         </p>
         <p class="message" style="margin-top: 10px; font-size: 12px; color: #999;" id="debugInfo"></p>
+        <p class="message" style="margin-top: 10px; font-size: 11px; color: #666; word-break: break-all;" id="tokenDisplay" style="display: none;"></p>
     </div>
     <script>
         console.log('Mobile callback page script starting...');
@@ -103,6 +108,32 @@
         const debugInfo = document.getElementById('debugInfo');
         if (debugInfo) {
             debugInfo.textContent = 'Deep link: ' + deepLink.substring(0, 50) + '...';
+        }
+        
+        // Show token for debugging (first 50 chars)
+        const tokenDisplay = document.getElementById('tokenDisplay');
+        if (tokenDisplay && token) {
+            tokenDisplay.textContent = 'Token: ' + token.substring(0, 50) + '...';
+            tokenDisplay.style.display = 'block';
+        }
+        
+        // Function to copy token to clipboard
+        function copyToken() {
+            if (token) {
+                navigator.clipboard.writeText(token).then(function() {
+                    const debugInfo = document.getElementById('debugInfo');
+                    if (debugInfo) {
+                        debugInfo.textContent = 'Token copied to clipboard! Return to app and paste it.';
+                        debugInfo.style.color = '#4CAF50';
+                    }
+                    alert('Token copied! Return to the app and paste it in the login screen.');
+                }).catch(function(err) {
+                    console.error('Failed to copy token:', err);
+                    alert('Failed to copy token. Please return to the app manually.');
+                });
+            } else {
+                alert('No token available to copy.');
+            }
         }
         
         // Function to open the app
