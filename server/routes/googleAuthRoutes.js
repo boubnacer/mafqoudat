@@ -1,6 +1,7 @@
 const express = require('express');
 const router = express.Router();
 const path = require('path');
+const fs = require('fs');
 const crypto = require('crypto');
 const passport = require('../config/passport');
 const User = require('../models/User');
@@ -385,35 +386,37 @@ router.get('/mobile-callback', (req, res) => {
       error 
     });
     
-    // Read the HTML file and inject the token directly
-    const fs = require('fs');
+    // Read the HTML file
     const htmlPath = path.join(__dirname, '../views/mobile-callback.html');
     let html = fs.readFileSync(htmlPath, 'utf8');
     
-    // Inject token directly into HTML - replace placeholder or add script
-    const tokenToUse = token || pendingToken;
-    if (tokenToUse) {
-      // Replace any placeholder or inject into a script tag
+    // Inject token directly into HTML BEFORE the main script
+    if (token) {
       html = html.replace(
-        '<script>',
-        `<script>
-        // Token injected by server
-        window.serverToken = ${JSON.stringify(tokenToUse)};
-        console.log('Server injected token, length:', window.serverToken.length);
-        `
+        '// Token will be injected by server',
+        `// Token injected by server
+        window.serverToken = ${JSON.stringify(token)};
+        console.log('✅ Server injected token, length:', window.serverToken.length);`
       );
-      console.log('✅ Token injected into HTML, length:', tokenToUse.length);
+      console.log('✅ Token injected into HTML, length:', token.length);
+    } else if (pendingToken) {
+      html = html.replace(
+        '// Token will be injected by server',
+        `// Pending token injected by server
+        window.serverPendingToken = ${JSON.stringify(pendingToken)};
+        console.log('✅ Server injected pendingToken, length:', window.serverPendingToken.length);`
+      );
+      console.log('✅ PendingToken injected into HTML, length:', pendingToken.length);
     } else if (error) {
       html = html.replace(
-        '<script>',
-        `<script>
-        // Error injected by server
+        '// Token will be injected by server',
+        `// Error injected by server
         window.serverError = ${JSON.stringify(error)};
-        `
+        console.log('❌ Server injected error:', window.serverError);`
       );
     }
     
-    // Add cache control headers to prevent caching
+    // Add cache control headers
     res.set({
       'Cache-Control': 'no-cache, no-store, must-revalidate',
       'Pragma': 'no-cache',

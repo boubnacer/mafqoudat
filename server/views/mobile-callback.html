@@ -5,82 +5,114 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Redirecting to App...</title>
     <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
         body {
-            font-family: Arial, sans-serif;
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Arial, sans-serif;
             display: flex;
             justify-content: center;
             align-items: center;
             min-height: 100vh;
-            margin: 0;
             padding: 20px;
-            background: #f5f5f5;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
         }
         .container {
-            text-align: center;
-            max-width: 90%;
+            background: white;
+            border-radius: 16px;
+            padding: 30px;
+            max-width: 500px;
             width: 100%;
+            box-shadow: 0 20px 60px rgba(0,0,0,0.3);
+            text-align: center;
         }
-        .button {
-            background-color: #2196F3;
-            color: white;
-            border: none;
-            padding: 15px 30px;
-            font-size: 18px;
-            font-weight: bold;
+        h1 { color: #333; margin-bottom: 20px; font-size: 24px; }
+        .status {
+            padding: 12px;
+            margin: 15px 0;
             border-radius: 8px;
-            cursor: pointer;
-            margin: 10px;
-            display: inline-block;
-            min-width: 200px;
+            font-size: 14px;
+            font-weight: 500;
         }
-        .button.green {
-            background-color: #4CAF50;
+        .status.success {
+            background: #d4edda;
+            color: #155724;
+            border: 1px solid #c3e6cb;
+        }
+        .status.error {
+            background: #f8d7da;
+            color: #721c24;
+            border: 1px solid #f5c6cb;
         }
         textarea {
             width: 100%;
             padding: 15px;
             font-size: 12px;
-            font-family: monospace;
-            border: 2px solid #2196F3;
-            border-radius: 4px;
+            font-family: 'Courier New', monospace;
+            border: 2px solid #e0e0e0;
+            border-radius: 8px;
             margin: 20px 0;
-            min-height: 100px;
-            box-sizing: border-box;
+            min-height: 120px;
+            resize: vertical;
+            background: #f8f9fa;
         }
-        .status {
-            padding: 10px;
-            margin: 10px 0;
-            border-radius: 4px;
-            font-size: 14px;
+        .button {
+            background: #2196F3;
+            color: white;
+            border: none;
+            padding: 15px 30px;
+            font-size: 16px;
+            font-weight: 600;
+            border-radius: 8px;
+            cursor: pointer;
+            margin: 8px;
+            min-width: 150px;
+            transition: all 0.3s;
         }
-        .status.success {
-            background-color: #d4edda;
-            color: #155724;
-            border: 1px solid #c3e6cb;
-        }
-        .status.error {
-            background-color: #f8d7da;
-            color: #721c24;
-            border: 1px solid #f5c6cb;
+        .button:hover { background: #1976D2; transform: translateY(-2px); }
+        .button:active { transform: translateY(0); }
+        .button.green { background: #4CAF50; }
+        .button.green:hover { background: #45a049; }
+        .instructions {
+            margin-top: 20px;
+            color: #666;
+            font-size: 13px;
+            line-height: 1.6;
         }
     </style>
 </head>
 <body>
     <div class="container">
-        <h2>Authentication Token</h2>
-        <div id="status" class="status">Extracting token...</div>
-        <textarea id="tokenDisplay" readonly></textarea>
+        <h1>🔐 Authentication</h1>
+        <div id="status" class="status">Loading...</div>
+        <textarea id="tokenDisplay" readonly placeholder="Token will appear here..."></textarea>
         <div>
             <button class="button" onclick="openApp()">Open App</button>
             <button class="button green" onclick="copyToken()">Copy Token</button>
         </div>
-        <p style="margin-top: 20px; color: #666; font-size: 14px;">
-            If the app doesn't open automatically, copy the token above and paste it in the app.
-        </p>
+        <div class="instructions">
+            <p><strong>Instructions:</strong></p>
+            <p>1. The app should open automatically</p>
+            <p>2. If not, click "Open App" button</p>
+            <p>3. Or copy the token and paste it in the app</p>
+        </div>
     </div>
 
     <script>
-        // Function to display token - check server-injected token first, then URL
+        // Token will be injected by server
+        var token = window.serverToken || null;
+        var pendingToken = window.serverPendingToken || null;
+        var error = window.serverError || null;
+        
+        // Also try to extract from URL as fallback
+        if (!token && !pendingToken && !error) {
+            var search = window.location.search;
+            if (search) {
+                var params = new URLSearchParams(search);
+                token = params.get('token');
+                pendingToken = params.get('pendingToken');
+                error = params.get('error');
+            }
+        }
+        
         function displayToken() {
             var tokenDisplay = document.getElementById('tokenDisplay');
             var status = document.getElementById('status');
@@ -90,72 +122,56 @@
                 return;
             }
             
-            var token = null;
-            
-            // Method 1: Check server-injected token (most reliable)
-            if (window.serverToken) {
-                token = window.serverToken;
-                console.log('✅ Using server-injected token, length:', token.length);
-            }
-            
-            // Method 2: Extract from URL (fallback)
-            if (!token) {
-                var search = window.location.search;
-                if (search) {
-                    // Try simple split first
-                    var parts = search.substring(1).split('&');
-                    for (var i = 0; i < parts.length; i++) {
-                        var pair = parts[i].split('=');
-                        if (pair[0] === 'token' && pair[1]) {
-                            token = decodeURIComponent(pair[1]);
-                            console.log('✅ Token extracted from URL, length:', token.length);
-                            break;
-                        }
-                    }
-                }
-            }
-            
-            // Display token
             if (token) {
                 tokenDisplay.value = token;
-                status.textContent = '✅ Token loaded! (Length: ' + token.length + ')';
+                status.textContent = '✅ Token loaded! Opening app...';
                 status.className = 'status success';
                 window.currentToken = token;
                 
-                // Try to open app automatically after 1 second
-                var deepLink = 'mafqoudat://auth/callback?token=' + encodeURIComponent(token);
+                // Auto-open app after 500ms
                 setTimeout(function() {
-                    console.log('Attempting to open app with deep link...');
+                    var deepLink = 'mafqoudat://auth/callback?token=' + encodeURIComponent(token);
                     window.location.href = deepLink;
-                }, 1000);
-            } else if (window.serverError) {
-                tokenDisplay.value = 'ERROR: ' + window.serverError;
-                status.textContent = '❌ Error: ' + window.serverError;
+                }, 500);
+            } else if (pendingToken) {
+                tokenDisplay.value = pendingToken;
+                status.textContent = '✅ Pending token loaded!';
+                status.className = 'status success';
+                window.currentToken = pendingToken;
+                
+                setTimeout(function() {
+                    var deepLink = 'mafqoudat://auth/callback?pendingToken=' + encodeURIComponent(pendingToken);
+                    window.location.href = deepLink;
+                }, 500);
+            } else if (error) {
+                tokenDisplay.value = 'ERROR: ' + error;
+                status.textContent = '❌ Error: ' + error;
                 status.className = 'status error';
             } else {
-                tokenDisplay.value = 'ERROR: No token found!\n\nURL: ' + window.location.href + '\n\nSearch: ' + window.location.search;
+                tokenDisplay.value = 'ERROR: No token found!\n\nURL: ' + window.location.href;
                 status.textContent = '❌ No token found';
                 status.className = 'status error';
-                console.error('❌ NO TOKEN FOUND!');
             }
-        }
-        
-        // Run immediately
-        displayToken();
-        
-        // Also run when DOM is ready
-        if (document.readyState === 'loading') {
-            document.addEventListener('DOMContentLoaded', displayToken);
         }
         
         function openApp() {
             var token = window.currentToken || document.getElementById('tokenDisplay').value;
-            if (token && !token.includes('ERROR')) {
-                var deepLink = 'mafqoudat://auth/callback?token=' + encodeURIComponent(token);
-                window.location.href = deepLink;
-            } else {
-                alert('No token available to open app.');
+            if (!token || token.includes('ERROR')) {
+                alert('No token available');
+                return;
             }
+            
+            var deepLink = 'mafqoudat://auth/callback?';
+            if (window.currentToken === token && token.includes('.')) {
+                // It's a JWT token
+                deepLink += 'token=' + encodeURIComponent(token);
+            } else if (pendingToken) {
+                deepLink += 'pendingToken=' + encodeURIComponent(token);
+            } else {
+                deepLink += 'token=' + encodeURIComponent(token);
+            }
+            
+            window.location.href = deepLink;
         }
         
         function copyToken() {
@@ -163,33 +179,37 @@
             var token = tokenDisplay.value;
             
             if (!token || token.includes('ERROR')) {
-                alert('No token available to copy.');
+                alert('No token to copy');
                 return;
             }
             
-            // Select and copy
             tokenDisplay.select();
             tokenDisplay.setSelectionRange(0, token.length);
             
             try {
                 if (document.execCommand('copy')) {
-                    alert('Token copied! Return to the app and paste it.');
+                    alert('✅ Token copied! Return to the app and paste it.');
                     return;
                 }
-            } catch(e) {
-                console.error('execCommand failed:', e);
-            }
+            } catch(e) {}
             
-            // Fallback: try clipboard API
             if (navigator.clipboard) {
                 navigator.clipboard.writeText(token).then(function() {
-                    alert('Token copied! Return to the app and paste it.');
+                    alert('✅ Token copied!');
                 }).catch(function() {
-                    alert('Auto-copy failed. Please manually select and copy the token.');
+                    alert('Please manually select and copy the token.');
                 });
             } else {
-                alert('Auto-copy not available. Please manually select and copy the token.');
+                alert('Please manually select and copy the token.');
             }
+        }
+        
+        // Run immediately
+        displayToken();
+        
+        // Also run when DOM ready
+        if (document.readyState === 'loading') {
+            document.addEventListener('DOMContentLoaded', displayToken);
         }
     </script>
 </body>
