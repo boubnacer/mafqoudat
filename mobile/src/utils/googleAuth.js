@@ -26,23 +26,39 @@ export const initiateGoogleAuth = async () => {
     
     console.log('Starting Google OAuth with URL:', authUrl);
     
-    // Server now redirects to deep link: mafqoudat://auth/callback?token=...
-    // This is more reliable than web URL redirects
-    const redirectUrl = 'mafqoudat://auth/callback';
+    // Server redirects to web URL: https://mafqoudat.com/auth/callback?token=...&mobile=true
+    // WebBrowser.openAuthSessionAsync should catch this if redirectUrl matches
+    const frontendUrl = process.env.EXPO_PUBLIC_FRONTEND_URL || 'https://mafqoudat.com';
+    const redirectUrl = `${frontendUrl}/auth/callback`;
     
     console.log('📱 Mobile OAuth Configuration:');
-    console.log('📱 Server will redirect to deep link: mafqoudat://auth/callback?token=...');
-    console.log('📱 Expected redirect URL:', redirectUrl);
-    console.log('📱 Deep link will be handled by App.js Linking handler');
+    console.log('📱 Server will redirect to:', `${frontendUrl}/auth/callback?token=...&mobile=true`);
+    console.log('📱 Expected redirect URL (must match):', redirectUrl);
+    console.log('📱 WebBrowser should catch this redirect');
     
     // Set up listeners for both deep links and web URLs BEFORE opening browser
+    // Keep this active throughout the OAuth flow as a fallback
     let callbackReceived = null;
     const linkingSubscription = Linking.addEventListener('url', (event) => {
       const { url } = event;
-      console.log('🔗 URL received via Linking:', url);
+      console.log('🔗 URL received via Linking (during OAuth):', url);
       if (url && (url.includes('/auth/callback') || url.startsWith('mafqoudat://auth/callback'))) {
-        console.log('✅ Callback URL detected via Linking:', url);
+        console.log('✅ OAuth callback URL detected via Linking:', url);
         callbackReceived = url;
+        // Also resolve oauthState immediately if we get it via Linking
+        if (url.startsWith('mafqoudat://')) {
+          const parsed = parseAuthCallback(url);
+          if (parsed.type === 'success' || parsed.type === 'pending') {
+            console.log('✅ Resolving oauthState from Linking callback');
+            oauthState.resolveCallback(parsed);
+          }
+        } else {
+          const parsed = parseWebCallback(url);
+          if (parsed.type === 'success' || parsed.type === 'pending') {
+            console.log('✅ Resolving oauthState from Linking callback');
+            oauthState.resolveCallback(parsed);
+          }
+        }
       }
     });
     
@@ -51,6 +67,13 @@ export const initiateGoogleAuth = async () => {
       // WebBrowser.openAuthSessionAsync requires the redirect URL to match EXACTLY
       // The server redirects to: ${frontendUrl}/auth/callback?token=...&mobile=true
       // So we need to match: ${frontendUrl}/auth/callback (without query params)
+      // 
+      // IMPORTANT: On some platforms, WebBrowser might not catch web redirects properly
+      // If it doesn't work, the deep link handler in App.js will catch it as fallback
+      console.log('📱 Opening WebBrowser with:');
+      console.log('📱   authUrl:', authUrl);
+      console.log('📱   redirectUrl:', redirectUrl);
+      
       const result = await WebBrowser.openAuthSessionAsync(
         authUrl,
         redirectUrl, // This should match the base URL the server redirects to
@@ -113,11 +136,11 @@ export const initiateGoogleAuth = async () => {
           error: 'User cancelled authentication',
         };
       } else if (result.type === 'dismiss') {
-        console.log('Browser was dismissed - checking for callback URL...');
+        console.log('⚠️ Browser was dismissed - checking for callback...');
         
-        // Check if we got a callback URL while browser was open
+        // Check if we got a callback URL while browser was open (via Linking listener)
         if (callbackReceived) {
-          console.log('✅ Browser dismissed but callback URL was received:', callbackReceived);
+          console.log('✅ Browser dismissed but callback URL was received via Linking:', callbackReceived);
           linkingSubscription?.remove();
           if (callbackReceived.startsWith('mafqoudat://')) {
             return parseAuthCallback(callbackReceived);
@@ -126,36 +149,51 @@ export const initiateGoogleAuth = async () => {
           }
         }
         
-        // Wait for callback via shared state (App.js deep link handler will catch it)
-        console.log('⏳ Waiting for callback via shared state (App.js will handle redirect)...');
-        console.log('📋 Debugging info:');
-        console.log('📋 Mobile app expects redirect to:', redirectUrl);
-        console.log('📋 Mobile app FRONTEND_URL:', frontendUrl);
-        console.log('📋 Server should redirect to:', `${frontendUrl}/auth/callback?token=...&mobile=true`);
-        console.log('📋 Check Railway server logs for:');
-        console.log('📋   - "🔵 Google OAuth initiation:" (should show isMobile: true)');
-        console.log('📋   - "🔵 MOBILE REDIRECT:" (should show the actual redirect URL)');
-        console.log('📋   - "🔵 Frontend URL used:" (should match mobile app URL)');
+        // Browser dismissed - server redirected to web URL
+        // WebBrowser might not have caught it, but Linking listener or App.js handler should
+        console.log('⏳ Waiting for callback via Linking listener or App.js handler...');
+        console.log('📋 Server redirected to:', `${frontendUrl}/auth/callback?token=...&mobile=true`);
+        console.log('📋 This should be caught by either:');
+        console.log('📋   1. WebBrowser (if it worked)');
+        console.log('📋   2. Linking listener (fallback)');
+        console.log('📋   3. App.js deep link handler (fallback)');
         
-        linkingSubscription?.remove(); // Remove this listener, App.js will handle it
-        
+        // Keep Linking listener active and wait
         return Promise.race([
           oauthState.waitForCallback(),
           new Promise((resolve) => {
+            // Also check callbackReceived periodically
+            const checkInterval = setInterval(() => {
+              if (callbackReceived) {
+                clearInterval(checkInterval);
+                linkingSubscription?.remove();
+                console.log('✅ Callback received via periodic check:', callbackReceived);
+                if (callbackReceived.startsWith('mafqoudat://')) {
+                  resolve(parseAuthCallback(callbackReceived));
+                } else {
+                  resolve(parseWebCallback(callbackReceived));
+                }
+              }
+            }, 500);
+            
             setTimeout(() => {
+              clearInterval(checkInterval);
+              linkingSubscription?.remove();
               console.log('⏱️ Timeout waiting for callback');
-              console.log('❌ TROUBLESHOOTING STEPS:');
-              console.log('❌ 1. Check Railway server logs for "🔵 MOBILE REDIRECT:" message');
-              console.log('❌ 2. Compare server redirect URL with mobile expected URL');
-              console.log('❌ 3. Verify Railway FRONTEND_URL =', frontendUrl);
-              console.log('❌ 4. If URLs don\'t match, update Railway FRONTEND_URL or mobile EXPO_PUBLIC_FRONTEND_URL');
+              console.log('❌ TROUBLESHOOTING:');
+              console.log('❌ 1. Check Railway logs for "🔵 MOBILE REDIRECT:" to see actual redirect URL');
+              console.log('❌ 2. Check mobile logs for "🔗 URL received via Linking" messages');
+              console.log('❌ 3. Verify server FRONTEND_URL matches mobile EXPO_PUBLIC_FRONTEND_URL');
+              console.log('❌ 4. WebBrowser might not be catching the redirect - Linking should catch it');
               resolve({
                 type: 'error',
-                error: `OAuth redirect failed. Expected: ${redirectUrl}. Check Railway logs for actual redirect URL. Server FRONTEND_URL must match mobile EXPO_PUBLIC_FRONTEND_URL.`,
+                error: 'OAuth callback not received. Check logs for redirect URL and Linking messages.',
               });
-            }, 15000); // Wait 15 seconds
+            }, 20000); // Wait 20 seconds
           }),
-        ]);
+        ]).finally(() => {
+          linkingSubscription?.remove();
+        });
       } else {
         console.error('OAuth failed with type:', result.type, 'result:', result);
         return {

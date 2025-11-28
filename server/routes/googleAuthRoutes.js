@@ -97,11 +97,11 @@ router.get('/google/callback',
 
         // Redirect based on platform
         if (isMobile) {
-          // For mobile, redirect to deep link (more reliable than web URL)
-          const mobileDeepLink = `mafqoudat://auth/callback?pendingToken=${pendingToken}`;
-          console.log('🔵 MOBILE REDIRECT (pending, deep link):', mobileDeepLink);
+          // For mobile, redirect to web URL for pending registration
+          const mobileWebUrl = `${frontendUrl}/auth/select-country?pendingToken=${pendingToken}&mobile=true`;
+          console.log('🔵 MOBILE REDIRECT (pending, web URL):', mobileWebUrl);
           console.log('🔵 Frontend URL used:', frontendUrl);
-          return res.redirect(mobileDeepLink);
+          return res.redirect(mobileWebUrl);
         } else {
           // Redirect to frontend to select country
           const webUrl = `${frontendUrl}/auth/select-country?pendingToken=${pendingToken}`;
@@ -128,13 +128,14 @@ router.get('/google/callback',
 
           // Redirect based on platform
           if (isMobile) {
-            // For mobile, redirect to deep link (more reliable than web URL)
-            // The deep link will be caught by the app's Linking handler
-            const mobileDeepLink = `mafqoudat://auth/callback?token=${tokens.accessToken}`;
-            console.log('🔵 MOBILE REDIRECT (deep link):', mobileDeepLink);
+            // For mobile, redirect to web URL - WebBrowser should catch it
+            // The redirectUrl in mobile app must match: ${frontendUrl}/auth/callback
+            const mobileWebUrl = `${frontendUrl}/auth/callback?token=${tokens.accessToken}&mobile=true`;
+            console.log('🔵 MOBILE REDIRECT (web URL):', mobileWebUrl);
             console.log('🔵 Frontend URL used:', frontendUrl);
             console.log('🔵 Token length:', tokens.accessToken?.length);
-            return res.redirect(mobileDeepLink);
+            console.log('🔵 Mobile app should catch this with redirectUrl:', `${frontendUrl}/auth/callback`);
+            return res.redirect(mobileWebUrl);
           } else {
             // Redirect to frontend with token
             const webUrl = `${frontendUrl}/auth/callback?token=${tokens.accessToken}`;
