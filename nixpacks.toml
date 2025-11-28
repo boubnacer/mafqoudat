@@ -2,7 +2,7 @@
 # This tells Railway how to build the server
 
 [phases.setup]
-nixPkgs = ["nodejs-18_x", "npm-8_x"]
+nixPkgs = ["nodejs-18_x", "npm-8_x", "python3"]
 
 # Install dependencies in server directory
 [phases.install]
