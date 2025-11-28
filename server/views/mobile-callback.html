@@ -107,46 +107,72 @@
         
         // Function to open the app
         function openApp() {
+            console.log('=== openApp() called ===');
+            console.log('Deep link:', deepLink);
+            
             const debugInfo = document.getElementById('debugInfo');
             if (debugInfo) {
                 debugInfo.textContent = 'Attempting to open app...';
+                debugInfo.style.color = '#2196F3';
             }
-            console.log('Attempting to open app with deep link:', deepLink);
             
             // Method 1: window.location.href (most reliable for deep links)
             try {
+                console.log('Method 1: Setting window.location.href to:', deepLink);
                 window.location.href = deepLink;
-                console.log('Set window.location.href to deep link');
+                console.log('✅ window.location.href set successfully');
             } catch (e) {
-                console.error('Error with window.location.href:', e);
+                console.error('❌ Error with window.location.href:', e);
             }
             
             // Method 2: Create and click a link (fallback)
             setTimeout(function() {
                 try {
+                    console.log('Method 2: Creating and clicking link with:', deepLink);
                     const link = document.createElement('a');
                     link.href = deepLink;
+                    link.target = '_self';
                     link.style.display = 'none';
                     document.body.appendChild(link);
                     link.click();
-                    console.log('Clicked link with deep link');
+                    console.log('✅ Link clicked successfully');
                     setTimeout(function() {
-                        document.body.removeChild(link);
-                    }, 100);
+                        if (link.parentNode) {
+                            document.body.removeChild(link);
+                        }
+                    }, 1000);
                 } catch (e) {
-                    console.error('Error with link click:', e);
+                    console.error('❌ Error with link click:', e);
                 }
-            }, 100);
+            }, 50);
             
             // Method 3: Try window.open (another fallback)
             setTimeout(function() {
                 try {
+                    console.log('Method 3: Trying window.open with:', deepLink);
                     window.open(deepLink, '_self');
-                    console.log('Tried window.open with deep link');
+                    console.log('✅ window.open called');
                 } catch (e) {
-                    console.error('Error with window.open:', e);
+                    console.error('❌ Error with window.open:', e);
                 }
-            }, 200);
+            }, 100);
+            
+            // Method 4: Try location.replace
+            setTimeout(function() {
+                try {
+                    console.log('Method 4: Trying location.replace with:', deepLink);
+                    window.location.replace(deepLink);
+                    console.log('✅ location.replace called');
+                } catch (e) {
+                    console.error('❌ Error with location.replace:', e);
+                }
+            }, 150);
+            
+            // Update message
+            const message = document.getElementById('message');
+            if (message) {
+                message.textContent = 'Opening app... If it doesn\'t open, return to the app manually.';
+            }
         }
         
         // Auto-trigger immediately when page loads

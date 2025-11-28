@@ -33,8 +33,9 @@ export const initiateGoogleAuth = async () => {
     // This is critical - the deep link will be caught by App.js, which will resolve oauthState
     let callbackReceived = null;
     const linkingSubscription = Linking.addEventListener('url', (event) => {
-      const { url } = event;
+      const url = event?.url || (typeof event === 'string' ? event : null);
       console.log('🔗 URL received via Linking (during OAuth):', url);
+      console.log('🔗 Event object:', event);
       if (url && url.startsWith('mafqoudat://auth/callback')) {
         console.log('✅ OAuth callback deep link detected via Linking:', url);
         callbackReceived = url;
@@ -47,6 +48,8 @@ export const initiateGoogleAuth = async () => {
         } else {
           console.warn('⚠️ Parsed callback is not success or pending:', parsed);
         }
+      } else {
+        console.log('ℹ️ URL received but not an OAuth callback:', url);
       }
     });
     

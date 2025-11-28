@@ -130,16 +130,22 @@ export default function App() {
     // Listen for deep links while app is running
     // This is the PRIMARY way to catch deep links when app is in foreground
     const subscription = Linking.addEventListener('url', (event) => {
-      const url = event?.url || event;
-      console.log('🔗 Linking event received:', url);
-      console.log('🔗 Full event object:', JSON.stringify(event, null, 2));
+      const url = event?.url || (typeof event === 'string' ? event : null);
+      console.log('🔗 Linking event received!');
+      console.log('🔗 Event type:', typeof event);
+      console.log('🔗 Event:', event);
+      console.log('🔗 URL extracted:', url);
+      
       if (url) {
+        console.log('✅ Processing deep link URL:', url);
         handleDeepLink({ url });
       } else {
         console.warn('⚠️ Linking event received but no URL found');
+        console.warn('⚠️ Event object:', JSON.stringify(event, null, 2));
       }
     });
     console.log('👂 Deep link listener registered (will catch mafqoudat:// URLs)');
+    console.log('👂 Listening for URLs starting with: mafqoudat://auth/callback');
     
     // Also set up a periodic check for deep links (in case event doesn't fire)
     // This is a fallback for when the app is in background and comes to foreground
