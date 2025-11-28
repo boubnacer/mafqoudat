@@ -37,7 +37,12 @@ router.get('/google', (req, res, next) => {
                    req.headers['user-agent']?.includes('Mobile') ||
                    req.headers['x-requested-with'] === 'mobile';
   
-  console.log('Google OAuth initiation - isMobile:', isMobile, 'query:', req.query);
+  console.log('🔵 Google OAuth initiation:');
+  console.log('🔵 isMobile:', isMobile);
+  console.log('🔵 query.mobile:', req.query.mobile);
+  console.log('🔵 user-agent:', req.headers['user-agent']);
+  console.log('🔵 FRONTEND_URL env:', process.env.FRONTEND_URL || 'NOT SET');
+  console.log('🔵 CLIENT_URL env:', process.env.CLIENT_URL || 'NOT SET');
   
   // Store mobile flag in session/state for callback
   req.session = req.session || {};
@@ -66,9 +71,12 @@ router.get('/google/callback',
       // Check if this is a mobile request (from query param or state)
       const isMobile = req.query.state === 'mobile' || 
                        req.query.mobile === 'true' ||
-                       req.headers['user-agent']?.includes('Mobile');
+                       req.headers['user-agent']?.includes('Mobile') ||
+                       req.headers['user-agent']?.includes('Expo') ||
+                       req.headers['user-agent']?.includes('ReactNative');
       
-      console.log('Google OAuth callback - isMobile:', isMobile, 'state:', req.query.state, 'user:', user?.email);
+      console.log('Google OAuth callback - isMobile:', isMobile, 'state:', req.query.state, 'mobile param:', req.query.mobile, 'user-agent:', req.headers['user-agent'], 'user:', user?.email);
+      console.log('Frontend URL from env:', frontendUrl);
 
       // Check if this is a pending user (new registration)
       if (user && user.isPending) {
@@ -91,12 +99,13 @@ router.get('/google/callback',
         if (isMobile) {
           // For mobile, redirect to a web URL that the app can intercept
           const mobileWebUrl = `${frontendUrl}/auth/select-country?pendingToken=${pendingToken}&mobile=true`;
-          console.log('Redirecting mobile user to web URL (will be intercepted):', mobileWebUrl);
+          console.log('🔵 MOBILE REDIRECT (pending):', mobileWebUrl);
+          console.log('🔵 Frontend URL used:', frontendUrl);
           return res.redirect(mobileWebUrl);
         } else {
           // Redirect to frontend to select country
           const webUrl = `${frontendUrl}/auth/select-country?pendingToken=${pendingToken}`;
-          console.log('Redirecting web user to:', webUrl);
+          console.log('🌐 WEB REDIRECT (pending):', webUrl);
           return res.redirect(webUrl);
         }
       }
@@ -121,13 +130,16 @@ router.get('/google/callback',
           if (isMobile) {
             // For mobile, redirect to a web URL that the app can intercept
             // The web URL will be caught by WebBrowser and we can parse it
+            // IMPORTANT: This URL must match EXACTLY what mobile app expects in WebBrowser.openAuthSessionAsync
             const mobileWebUrl = `${frontendUrl}/auth/callback?token=${tokens.accessToken}&mobile=true`;
-            console.log('Redirecting mobile user to web URL (will be intercepted):', mobileWebUrl);
+            console.log('🔵 MOBILE REDIRECT:', mobileWebUrl);
+            console.log('🔵 Frontend URL used:', frontendUrl);
+            console.log('🔵 Token length:', tokens.accessToken?.length);
             return res.redirect(mobileWebUrl);
           } else {
             // Redirect to frontend with token
             const webUrl = `${frontendUrl}/auth/callback?token=${tokens.accessToken}`;
-            console.log('Redirecting web user to:', webUrl);
+            console.log('🌐 WEB REDIRECT:', webUrl);
             return res.redirect(webUrl);
           }
         } catch (tokenError) {

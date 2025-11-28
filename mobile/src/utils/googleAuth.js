@@ -1,11 +1,9 @@
 /**
  * Google OAuth Utility for Mobile
- * Uses Expo WebBrowser to handle Google OAuth flow
+ * Uses Expo WebBrowser/AuthSession to handle Google OAuth flow
  * Mirrors: client/src/features/auth/Login/Login.js (Google button)
  * 
- * Note: The server's GOOGLE_CALLBACK_URL environment variable should be set to:
- * - For development: mafqoudat://auth/callback
- * - For production: https://your-domain.com/auth/callback (or use deep link)
+ * Note: The server's FRONTEND_URL must match mobile EXPO_PUBLIC_FRONTEND_URL
  */
 
 import * as WebBrowser from 'expo-web-browser';
@@ -36,10 +34,12 @@ export const initiateGoogleAuth = async () => {
     const frontendUrl = process.env.EXPO_PUBLIC_FRONTEND_URL || 'https://mafqoudat.com';
     const redirectUrl = `${frontendUrl}/auth/callback`;
     
-    console.log('⚠️ Expected redirect URL:', redirectUrl);
-    console.log('⚠️ IMPORTANT: Server must redirect to this EXACT URL for WebBrowser to catch it');
-    console.log('⚠️ If server redirects to a different URL, WebBrowser will dismiss without catching it');
-    console.log('⚠️ Check server logs to see what URL it actually redirects to');
+    console.log('📱 Mobile OAuth Configuration:');
+    console.log('📱 Frontend URL from .env:', process.env.EXPO_PUBLIC_FRONTEND_URL || 'NOT SET (using default)');
+    console.log('📱 Expected redirect URL:', redirectUrl);
+    console.log('📱 IMPORTANT: Server must redirect to this EXACT URL for WebBrowser to catch it');
+    console.log('📱 Server should redirect to:', `${frontendUrl}/auth/callback?token=...&mobile=true`);
+    console.log('📱 Check Railway server logs for: "🔵 MOBILE REDIRECT:" to see actual redirect URL');
     
     // Set up listeners for both deep links and web URLs BEFORE opening browser
     let callbackReceived = null;
@@ -54,14 +54,19 @@ export const initiateGoogleAuth = async () => {
     
     try {
       // Open browser and wait for redirect
-      // Try with the expected redirect URL first
+      // WebBrowser.openAuthSessionAsync requires the redirect URL to match EXACTLY
+      // The server redirects to: ${frontendUrl}/auth/callback?token=...&mobile=true
+      // So we need to match: ${frontendUrl}/auth/callback (without query params)
       const result = await WebBrowser.openAuthSessionAsync(
         authUrl,
-        redirectUrl,
+        redirectUrl, // This should match the base URL the server redirects to
         {
           showInRecents: true,
         }
       );
+      
+      console.log('📱 WebBrowser result type:', result.type);
+      console.log('📱 WebBrowser result:', JSON.stringify(result, null, 2));
 
       console.log('OAuth result:', result);
 
@@ -129,6 +134,15 @@ export const initiateGoogleAuth = async () => {
         
         // Wait for callback via shared state (App.js deep link handler will catch it)
         console.log('⏳ Waiting for callback via shared state (App.js will handle redirect)...');
+        console.log('📋 Debugging info:');
+        console.log('📋 Mobile app expects redirect to:', redirectUrl);
+        console.log('📋 Mobile app FRONTEND_URL:', frontendUrl);
+        console.log('📋 Server should redirect to:', `${frontendUrl}/auth/callback?token=...&mobile=true`);
+        console.log('📋 Check Railway server logs for:');
+        console.log('📋   - "🔵 Google OAuth initiation:" (should show isMobile: true)');
+        console.log('📋   - "🔵 MOBILE REDIRECT:" (should show the actual redirect URL)');
+        console.log('📋   - "🔵 Frontend URL used:" (should match mobile app URL)');
+        
         linkingSubscription?.remove(); // Remove this listener, App.js will handle it
         
         return Promise.race([
@@ -136,9 +150,14 @@ export const initiateGoogleAuth = async () => {
           new Promise((resolve) => {
             setTimeout(() => {
               console.log('⏱️ Timeout waiting for callback');
+              console.log('❌ TROUBLESHOOTING STEPS:');
+              console.log('❌ 1. Check Railway server logs for "🔵 MOBILE REDIRECT:" message');
+              console.log('❌ 2. Compare server redirect URL with mobile expected URL');
+              console.log('❌ 3. Verify Railway FRONTEND_URL =', frontendUrl);
+              console.log('❌ 4. If URLs don\'t match, update Railway FRONTEND_URL or mobile EXPO_PUBLIC_FRONTEND_URL');
               resolve({
                 type: 'error',
-                error: 'Authentication was dismissed - no callback received. Please check if the server redirected correctly. Check server logs for redirect URL.',
+                error: `OAuth redirect failed. Expected: ${redirectUrl}. Check Railway logs for actual redirect URL. Server FRONTEND_URL must match mobile EXPO_PUBLIC_FRONTEND_URL.`,
               });
             }, 15000); // Wait 15 seconds
           }),
