@@ -80,59 +80,107 @@
     </div>
 
     <script>
-        // SIMPLE, DIRECT TOKEN EXTRACTION - NO COMPLEXITY
-        (function() {
+        // DEBUG: Show what we're working with
+        console.log('=== TOKEN EXTRACTION DEBUG ===');
+        console.log('Full URL:', window.location.href);
+        console.log('Search:', window.location.search);
+        console.log('Hash:', window.location.hash);
+        
+        // Function to extract and display token
+        function extractAndDisplayToken() {
             var search = window.location.search;
+            var href = window.location.href;
             var token = null;
             var pendingToken = null;
             
-            // Extract token from URL - SIMPLE METHOD
+            console.log('Extracting from search:', search);
+            
+            // Show raw URL in textarea first for debugging
+            var tokenDisplay = document.getElementById('tokenDisplay');
+            var status = document.getElementById('status');
+            
+            if (!tokenDisplay || !status) {
+                console.error('Elements not found! Retrying...');
+                setTimeout(extractAndDisplayToken, 100);
+                return;
+            }
+            
+            // Show debug info first
+            tokenDisplay.value = 'DEBUG:\nFull URL: ' + href + '\n\nSearch: ' + search + '\n\nExtracting...';
+            
+            // Extract token from URL - MULTIPLE METHODS
             if (search) {
-                // Method 1: Simple regex
-                var match = search.match(/[?&]token=([^&]*)/);
-                if (match && match[1]) {
-                    token = decodeURIComponent(match[1]);
+                // Method 1: Simple string split
+                var parts = search.substring(1).split('&');
+                for (var i = 0; i < parts.length; i++) {
+                    var pair = parts[i].split('=');
+                    if (pair[0] === 'token' && pair[1]) {
+                        token = decodeURIComponent(pair[1]);
+                        console.log('✅ Token found via split method, length:', token.length);
+                        break;
+                    }
+                    if (pair[0] === 'pendingToken' && pair[1]) {
+                        pendingToken = decodeURIComponent(pair[1]);
+                        console.log('✅ PendingToken found via split method');
+                    }
                 }
                 
-                // Method 2: URLSearchParams (if regex didn't work)
+                // Method 2: Regex (if split didn't work)
                 if (!token) {
+                    var match = search.match(/[?&]token=([^&]*)/);
+                    if (match && match[1]) {
+                        token = decodeURIComponent(match[1]);
+                        console.log('✅ Token found via regex, length:', token.length);
+                    }
+                }
+                
+                // Method 3: URLSearchParams (if others didn't work)
+                if (!token && !pendingToken) {
                     try {
                         var params = new URLSearchParams(search);
                         token = params.get('token');
                         pendingToken = params.get('pendingToken');
+                        if (token) console.log('✅ Token found via URLSearchParams, length:', token.length);
                     } catch(e) {
                         console.error('URLSearchParams failed:', e);
                     }
                 }
             }
             
-            // Display token immediately
-            var tokenDisplay = document.getElementById('tokenDisplay');
-            var status = document.getElementById('status');
-            
+            // Display result
             if (token) {
                 tokenDisplay.value = token;
-                status.textContent = '✅ Token loaded successfully!';
+                status.textContent = '✅ Token loaded! (Length: ' + token.length + ')';
                 status.className = 'status success';
+                window.currentToken = token;
                 
                 // Try to open app automatically
                 var deepLink = 'mafqoudat://auth/callback?token=' + encodeURIComponent(token);
                 setTimeout(function() {
                     window.location.href = deepLink;
-                }, 500);
+                }, 1000);
             } else if (pendingToken) {
                 tokenDisplay.value = pendingToken;
                 status.textContent = '✅ Pending token loaded!';
                 status.className = 'status success';
+                window.currentToken = pendingToken;
             } else {
-                tokenDisplay.value = 'ERROR: No token found in URL.\n\nURL: ' + window.location.href;
+                tokenDisplay.value = 'ERROR: No token found!\n\nFull URL: ' + href + '\n\nSearch params: ' + search + '\n\nPlease check the URL above.';
                 status.textContent = '❌ No token found in URL';
                 status.className = 'status error';
+                console.error('❌ NO TOKEN FOUND! URL:', href, 'Search:', search);
             }
-            
-            // Store globally for copy function
-            window.currentToken = token || pendingToken;
-        })();
+        }
+        
+        // Run immediately when script loads
+        extractAndDisplayToken();
+        
+        // Also run when DOM is ready (in case elements weren't found)
+        if (document.readyState === 'loading') {
+            document.addEventListener('DOMContentLoaded', extractAndDisplayToken);
+        } else {
+            setTimeout(extractAndDisplayToken, 100);
+        }
         
         function openApp() {
             var token = window.currentToken || document.getElementById('tokenDisplay').value;
