@@ -2,13 +2,15 @@
 # This tells Railway how to build the server
 
 [phases.setup]
-nixPkgs = ["nodejs-18_x", "npm-8_x", "python3"]
+nixPkgs = ["nodejs-18_x", "npm-8_x", "python3", "make", "gcc"]
 
 # Install dependencies in server directory
 [phases.install]
 cmds = [
+  "echo 'Starting installation...'",
+  "pwd",
   "ls -la",
-  "if [ -d 'server' ]; then cd server && npm install; elif [ -f 'package.json' ] && [ -f 'server.js' ]; then npm install; else echo 'ERROR: Cannot find server directory or server files'; exit 1; fi"
+  "if [ -d 'server' ]; then echo 'Found server directory' && cd server && npm install --verbose; elif [ -f 'package.json' ] && [ -f 'server.js' ]; then echo 'Found server files in root' && npm install --verbose; else echo 'ERROR: Cannot find server directory or server files'; exit 1; fi"
 ]
 
 # Start command - try server directory first, then current directory
