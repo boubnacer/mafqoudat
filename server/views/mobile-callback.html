@@ -105,6 +105,15 @@
             console.log('=== Mobile callback page script starting IMMEDIATELY ===');
             console.log('Full URL:', window.location.href);
             console.log('URL search:', window.location.search);
+            console.log('URL hash:', window.location.hash);
+            
+            // First, show the raw URL in textarea so user can see what we're working with
+            setTimeout(function() {
+                const tokenDisplay = document.getElementById('tokenDisplay');
+                if (tokenDisplay && !tokenDisplay.value || tokenDisplay.value === 'Loading token from URL...') {
+                    tokenDisplay.value = 'DEBUG: Full URL = ' + window.location.href + '\n\nSearch params = ' + window.location.search;
+                }
+            }, 100);
             
             updateStatus('Extracting token from URL...', false);
             
@@ -180,7 +189,23 @@
             
             if (!token && !pendingToken && !error) {
                 console.error('❌ NO TOKEN, PENDING TOKEN, OR ERROR FOUND IN URL!');
-                updateStatus('❌ ERROR: No token found in URL! Check URL: ' + window.location.search, true);
+                console.error('Full URL was:', window.location.href);
+                console.error('Search params were:', window.location.search);
+                updateStatus('❌ ERROR: No token found in URL! URL: ' + window.location.search, true);
+                
+                // Show full URL in textarea for debugging
+                setTimeout(function() {
+                    const tokenDisplay = document.getElementById('tokenDisplay');
+                    if (tokenDisplay) {
+                        tokenDisplay.value = 'ERROR: No token found in URL!\n\n' +
+                                          'Full URL: ' + window.location.href + '\n\n' +
+                                          'Search params: ' + window.location.search + '\n\n' +
+                                          'This means the server did not pass the token, or it was lost during redirect.\n\n' +
+                                          'Please check Railway logs for the redirect URL.';
+                        tokenDisplay.style.backgroundColor = '#ffebee';
+                        tokenDisplay.style.borderColor = '#f44336';
+                    }
+                }, 200);
             }
             
             // IMMEDIATELY try to set token in textarea (even if DOM might not be ready)
