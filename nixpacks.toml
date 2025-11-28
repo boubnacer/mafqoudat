@@ -1,14 +1,17 @@
 # Nixpacks configuration for Railway
-# This tells Railway how to build the server from the server/ directory
+# This tells Railway how to build the server
 
 [phases.setup]
 nixPkgs = ["nodejs-18_x", "npm-8_x"]
 
+# Install dependencies in server directory
 [phases.install]
 cmds = [
-  "if [ -d server ]; then cd server && npm install; else echo 'Server directory not found, checking current directory...' && ls -la && npm install; fi"
+  "ls -la",
+  "if [ -d 'server' ]; then cd server && npm install; elif [ -f 'package.json' ] && [ -f 'server.js' ]; then npm install; else echo 'ERROR: Cannot find server directory or server files'; exit 1; fi"
 ]
 
+# Start command - try server directory first, then current directory
 [start]
-cmd = "if [ -d server ]; then cd server && npm start; else npm start; fi"
+cmd = "if [ -d 'server' ]; then cd server && npm start; elif [ -f 'server.js' ]; then npm start; else echo 'ERROR: Cannot find server.js'; exit 1; fi"
 
