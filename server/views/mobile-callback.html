@@ -97,21 +97,31 @@
     </div>
 
     <script>
-        // Token will be injected by server
+        // Token injected by server - check immediately
+        console.log('=== TOKEN EXTRACTION START ===');
+        console.log('window.serverToken:', window.serverToken ? 'EXISTS (length: ' + window.serverToken.length + ')' : 'NOT FOUND');
+        console.log('window.serverPendingToken:', window.serverPendingToken ? 'EXISTS' : 'NOT FOUND');
+        console.log('window.serverError:', window.serverError || 'NOT FOUND');
+        console.log('window.location.search:', window.location.search);
+        
         var token = window.serverToken || null;
         var pendingToken = window.serverPendingToken || null;
         var error = window.serverError || null;
         
         // Also try to extract from URL as fallback
         if (!token && !pendingToken && !error) {
+            console.log('No server-injected token, trying URL extraction...');
             var search = window.location.search;
             if (search) {
                 var params = new URLSearchParams(search);
                 token = params.get('token');
                 pendingToken = params.get('pendingToken');
                 error = params.get('error');
+                console.log('URL extraction result:', { token: !!token, pendingToken: !!pendingToken, error: error });
             }
         }
+        
+        console.log('Final token status:', { token: !!token, pendingToken: !!pendingToken, error: error });
         
         function displayToken() {
             var tokenDisplay = document.getElementById('tokenDisplay');

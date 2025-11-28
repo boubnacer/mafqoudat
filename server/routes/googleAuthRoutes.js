@@ -390,29 +390,39 @@ router.get('/mobile-callback', (req, res) => {
     const htmlPath = path.join(__dirname, '../views/mobile-callback.html');
     let html = fs.readFileSync(htmlPath, 'utf8');
     
-    // Inject token directly into HTML BEFORE the main script
+    // Inject token directly into HTML - add script BEFORE the existing script
     if (token) {
+      // Inject before the main script tag
       html = html.replace(
-        '// Token will be injected by server',
-        `// Token injected by server
+        '<script>',
+        `<script>
+        // Token injected by server
         window.serverToken = ${JSON.stringify(token)};
-        console.log('✅ Server injected token, length:', window.serverToken.length);`
+        console.log('✅ Server injected token, length:', window.serverToken.length);
+        </script>
+        <script>`
       );
       console.log('✅ Token injected into HTML, length:', token.length);
     } else if (pendingToken) {
       html = html.replace(
-        '// Token will be injected by server',
-        `// Pending token injected by server
+        '<script>',
+        `<script>
+        // Pending token injected by server
         window.serverPendingToken = ${JSON.stringify(pendingToken)};
-        console.log('✅ Server injected pendingToken, length:', window.serverPendingToken.length);`
+        console.log('✅ Server injected pendingToken, length:', window.serverPendingToken.length);
+        </script>
+        <script>`
       );
       console.log('✅ PendingToken injected into HTML, length:', pendingToken.length);
     } else if (error) {
       html = html.replace(
-        '// Token will be injected by server',
-        `// Error injected by server
+        '<script>',
+        `<script>
+        // Error injected by server
         window.serverError = ${JSON.stringify(error)};
-        console.log('❌ Server injected error:', window.serverError);`
+        console.log('❌ Server injected error:', window.serverError);
+        </script>
+        <script>`
       );
     }
     
