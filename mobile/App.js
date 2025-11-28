@@ -130,13 +130,54 @@ export default function App() {
     // Listen for deep links while app is running
     // This is the PRIMARY way to catch deep links when app is in foreground
     const subscription = Linking.addEventListener('url', (event) => {
-      console.log('🔗 Linking event received:', event);
-      console.log('🔗 Event URL:', event?.url);
-      if (event?.url) {
-        handleDeepLink(event);
+      const url = event?.url || event;
+      console.log('🔗 Linking event received:', url);
+      console.log('🔗 Full event object:', JSON.stringify(event, null, 2));
+      if (url) {
+        handleDeepLink({ url });
+      } else {
+        console.warn('⚠️ Linking event received but no URL found');
       }
     });
     console.log('👂 Deep link listener registered (will catch mafqoudat:// URLs)');
+    
+    // Also set up a periodic check for deep links (in case event doesn't fire)
+    // This is a fallback for when the app is in background and comes to foreground
+    let deepLinkCheckInterval = null;
+    const startDeepLinkCheck = () => {
+      if (deepLinkCheckInterval) return; // Already running
+      
+      let checkCount = 0;
+      deepLinkCheckInterval = setInterval(() => {
+        checkCount++;
+        Linking.getInitialURL().then((url) => {
+          if (url && url.startsWith('mafqoudat://auth/callback')) {
+            console.log(`✅ Found deep link via periodic check (attempt ${checkCount}):`, url);
+            clearInterval(deepLinkCheckInterval);
+            deepLinkCheckInterval = null;
+            handleDeepLink({ url });
+          }
+        }).catch((err) => {
+          console.error('Error in periodic deep link check:', err);
+        });
+        
+        // Stop after 60 checks (30 seconds)
+        if (checkCount >= 60) {
+          clearInterval(deepLinkCheckInterval);
+          deepLinkCheckInterval = null;
+          console.log('⏱️ Stopped periodic deep link check after 30 seconds');
+        }
+      }, 500);
+    };
+    
+    // Start periodic check when app becomes active
+    const appStateForDeepLink = AppState.currentState;
+    const deepLinkAppStateSubscription = AppState.addEventListener('change', (nextAppState) => {
+      if (appStateForDeepLink.match(/inactive|background/) && nextAppState === 'active') {
+        console.log('📱 App became active, starting periodic deep link check...');
+        startDeepLinkCheck();
+      }
+    });
     
     // Also listen for app state changes (when app comes to foreground)
     // This is critical - when user returns from browser, check for deep link
@@ -188,6 +229,11 @@ export default function App() {
       console.log('🔇 Removing deep link listener');
       subscription?.remove();
       appStateSubscription?.remove();
+      deepLinkAppStateSubscription?.remove();
+      if (deepLinkCheckInterval) {
+        clearInterval(deepLinkCheckInterval);
+        deepLinkCheckInterval = null;
+      }
     };
   }, []);
 

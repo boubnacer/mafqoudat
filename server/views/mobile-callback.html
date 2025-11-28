@@ -62,10 +62,11 @@
     <div class="container">
         <div class="spinner" id="spinner"></div>
         <p id="message">Redirecting to app...</p>
-        <button class="button" id="openAppBtn" onclick="openApp()">Open App</button>
+        <button class="button" id="openAppBtn" onclick="openApp(); return false;">Open App</button>
         <p class="message" id="fallbackMessage" style="display: none;">
             If the app didn't open automatically, tap the button above or return to the app manually.
         </p>
+        <p class="message" style="margin-top: 10px; font-size: 12px; color: #999;" id="debugInfo"></p>
     </div>
     <script>
         console.log('Mobile callback page script starting...');
@@ -94,8 +95,18 @@
         
         console.log('Deep link URL:', deepLink);
         
+        // Update debug info
+        const debugInfo = document.getElementById('debugInfo');
+        if (debugInfo) {
+            debugInfo.textContent = 'Deep link: ' + deepLink.substring(0, 50) + '...';
+        }
+        
         // Function to open the app
         function openApp() {
+            const debugInfo = document.getElementById('debugInfo');
+            if (debugInfo) {
+                debugInfo.textContent = 'Attempting to open app...';
+            }
             console.log('Attempting to open app with deep link:', deepLink);
             
             // Method 1: window.location.href (most reliable for deep links)
@@ -136,15 +147,34 @@
         
         // Auto-trigger immediately when page loads
         console.log('Page loaded, auto-triggering deep link...');
+        console.log('Deep link to trigger:', deepLink);
+        
+        // Try immediately
         openApp();
         
-        // Also try again after a short delay
-        setTimeout(function() {
-            console.log('Retrying deep link trigger...');
-            openApp();
-        }, 500);
+        // Try multiple times with increasing delays
+        [100, 300, 500, 1000, 2000].forEach((delay) => {
+            setTimeout(function() {
+                console.log('Retrying deep link trigger (attempt at ' + delay + 'ms)...');
+                openApp();
+            }, delay);
+        });
         
-        // Show fallback button after 1.5 seconds if still on page
+        // Also try on user interaction (tap anywhere)
+        document.addEventListener('click', function() {
+            console.log('User clicked, triggering deep link...');
+            openApp();
+        }, { once: true });
+        
+        // Also try on page visibility change (when user switches back to app)
+        document.addEventListener('visibilitychange', function() {
+            if (!document.hidden) {
+                console.log('Page became visible, triggering deep link...');
+                openApp();
+            }
+        });
+        
+        // Show fallback button immediately (don't wait)
         setTimeout(function() {
             console.log('Showing fallback button...');
             const spinner = document.getElementById('spinner');
@@ -170,7 +200,8 @@
             if (button) {
                 button.style.display = 'inline-block';
                 button.style.visibility = 'visible';
-                console.log('Button shown with display and visibility');
+                button.style.opacity = '1';
+                console.log('Button shown with display, visibility, and opacity');
             } else {
                 console.error('Button element not found!');
                 // Try to create button if it doesn't exist
@@ -179,8 +210,10 @@
                     const newButton = document.createElement('button');
                     newButton.className = 'button';
                     newButton.textContent = 'Open App';
-                    newButton.onclick = openApp;
+                    newButton.onclick = function() { openApp(); return false; };
                     newButton.style.display = 'inline-block';
+                    newButton.style.visibility = 'visible';
+                    newButton.style.opacity = '1';
                     container.appendChild(newButton);
                     console.log('Created new button as fallback');
                 }
@@ -189,7 +222,7 @@
                 fallbackMessage.style.display = 'block';
                 console.log('Fallback message shown');
             }
-        }, 1500);
+        }, 1000); // Show button after 1 second
         
         // Also show button immediately if redirect fails (after 3 seconds)
         setTimeout(function() {
