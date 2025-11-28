@@ -385,16 +385,43 @@ router.get('/mobile-callback', (req, res) => {
       error 
     });
     
-    // Serve the HTML page that will redirect to deep link
+    // Read the HTML file and inject the token directly
+    const fs = require('fs');
+    const htmlPath = path.join(__dirname, '../views/mobile-callback.html');
+    let html = fs.readFileSync(htmlPath, 'utf8');
+    
+    // Inject token directly into HTML - replace placeholder or add script
+    const tokenToUse = token || pendingToken;
+    if (tokenToUse) {
+      // Replace any placeholder or inject into a script tag
+      html = html.replace(
+        '<script>',
+        `<script>
+        // Token injected by server
+        window.serverToken = ${JSON.stringify(tokenToUse)};
+        console.log('Server injected token, length:', window.serverToken.length);
+        `
+      );
+      console.log('✅ Token injected into HTML, length:', tokenToUse.length);
+    } else if (error) {
+      html = html.replace(
+        '<script>',
+        `<script>
+        // Error injected by server
+        window.serverError = ${JSON.stringify(error)};
+        `
+      );
+    }
+    
     // Add cache control headers to prevent caching
     res.set({
       'Cache-Control': 'no-cache, no-store, must-revalidate',
       'Pragma': 'no-cache',
-      'Expires': '0'
+      'Expires': '0',
+      'Content-Type': 'text/html; charset=utf-8'
     });
     
-    const htmlPath = path.join(__dirname, '../views/mobile-callback.html');
-    res.sendFile(htmlPath);
+    res.send(html);
   } catch (err) {
     console.error('Error serving mobile callback page:', err);
     res.status(500).send('Error loading callback page');
