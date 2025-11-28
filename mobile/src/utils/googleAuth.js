@@ -21,71 +21,44 @@ WebBrowser.maybeCompleteAuthSession();
 export const initiateGoogleAuth = async () => {
   try {
     // Construct the OAuth URL with mobile parameter
-    // This tells the server to redirect to mobile deep link
+    // This tells the server to redirect directly to deep link: mafqoudat://auth/callback?token=...
     const authUrl = `${API_BASE_URL}/auth/google?mobile=true`;
     
-    console.log('Starting Google OAuth with URL:', authUrl);
+    console.log('🚀 Starting Google OAuth flow');
+    console.log('📱 Auth URL:', authUrl);
+    console.log('📱 Server will redirect directly to: mafqoudat://auth/callback?token=...');
+    console.log('📱 App.js Linking handler will catch the deep link');
     
-    // Server redirects to web URL: https://mafqoudat.com/auth/callback?token=...&mobile=true
-    // WebBrowser.openAuthSessionAsync should catch this if redirectUrl matches
-    const frontendUrl = process.env.EXPO_PUBLIC_FRONTEND_URL || 'https://mafqoudat.com';
-    const redirectUrl = `${frontendUrl}/auth/callback`;
-    
-    console.log('📱 Mobile OAuth Configuration:');
-    console.log('📱 Server will redirect to:', `${frontendUrl}/auth/callback?token=...&mobile=true`);
-    console.log('📱 Expected redirect URL (must match):', redirectUrl);
-    console.log('📱 WebBrowser should catch this redirect');
-    
-    // Set up listeners for both deep links and web URLs BEFORE opening browser
-    // Keep this active throughout the OAuth flow as a fallback
+    // Set up a listener to catch the deep link BEFORE opening browser
+    // This is critical - the deep link will be caught by App.js, which will resolve oauthState
     let callbackReceived = null;
     const linkingSubscription = Linking.addEventListener('url', (event) => {
       const { url } = event;
       console.log('🔗 URL received via Linking (during OAuth):', url);
-      if (url && (url.includes('/auth/callback') || url.startsWith('mafqoudat://auth/callback'))) {
-        console.log('✅ OAuth callback URL detected via Linking:', url);
+      if (url && url.startsWith('mafqoudat://auth/callback')) {
+        console.log('✅ OAuth callback deep link detected via Linking:', url);
         callbackReceived = url;
-        // Also resolve oauthState immediately if we get it via Linking
-        if (url.startsWith('mafqoudat://')) {
-          const parsed = parseAuthCallback(url);
-          if (parsed.type === 'success' || parsed.type === 'pending') {
-            console.log('✅ Resolving oauthState from Linking callback');
-            oauthState.resolveCallback(parsed);
-          }
-        } else {
-          const parsed = parseWebCallback(url);
-          if (parsed.type === 'success' || parsed.type === 'pending') {
-            console.log('✅ Resolving oauthState from Linking callback');
-            oauthState.resolveCallback(parsed);
-          }
+        // Parse and resolve oauthState immediately
+        const parsed = parseAuthCallback(url);
+        if (parsed.type === 'success' || parsed.type === 'pending') {
+          console.log('✅ Resolving oauthState from Linking callback');
+          oauthState.resolveCallback(parsed);
         }
       }
     });
     
     try {
-      // Open browser and wait for redirect
-      // WebBrowser.openAuthSessionAsync requires the redirect URL to match EXACTLY
-      // The server redirects to: ${frontendUrl}/auth/callback?token=...&mobile=true
-      // So we need to match: ${frontendUrl}/auth/callback (without query params)
-      // 
-      // IMPORTANT: On some platforms, WebBrowser might not catch web redirects properly
-      // If it doesn't work, the deep link handler in App.js will catch it as fallback
-      console.log('📱 Opening WebBrowser with:');
-      console.log('📱   authUrl:', authUrl);
-      console.log('📱   redirectUrl:', redirectUrl);
+      // Open browser - server will redirect directly to deep link
+      // The deep link will be caught by App.js Linking handler, which resolves oauthState
+      // We wait for oauthState to be resolved
+      console.log('📱 Opening WebBrowser...');
       
-      const result = await WebBrowser.openAuthSessionAsync(
-        authUrl,
-        redirectUrl, // This should match the base URL the server redirects to
-        {
-          showInRecents: true,
-        }
-      );
+      // Open browser without redirectUrl - we're using deep links directly
+      const result = await WebBrowser.openBrowserAsync(authUrl, {
+        showInRecents: true,
+      });
       
-      console.log('📱 WebBrowser result type:', result.type);
-      console.log('📱 WebBrowser result:', JSON.stringify(result, null, 2));
-
-      console.log('OAuth result:', result);
+      console.log('📱 WebBrowser result:', result.type);
 
       // Remove the listener
       linkingSubscription?.remove();
@@ -93,117 +66,49 @@ export const initiateGoogleAuth = async () => {
       // Check if we received a callback URL while browser was open
       if (callbackReceived) {
         console.log('✅ Processing callback URL received while browser was open:', callbackReceived);
-        if (callbackReceived.startsWith('mafqoudat://')) {
-          return parseAuthCallback(callbackReceived);
-        } else {
-          return parseWebCallback(callbackReceived);
-        }
+        return parseAuthCallback(callbackReceived);
       }
 
-      if (result.type === 'success') {
-        // Parse the callback URL (could be deep link or web URL)
-        const { url } = result;
-        console.log('✅ Callback URL received from WebBrowser:', url);
-        
-        if (!url) {
-          console.error('❌ Result type is success but no URL provided');
-          return {
-            type: 'error',
-            error: 'No callback URL received',
-          };
-        }
-        
-        // Check if it's a web URL (server redirected to web instead of deep link)
-        if (url.startsWith('http://') || url.startsWith('https://')) {
-          console.log('✅ Detected web URL callback, parsing...');
-          // Extract token/pendingToken from web URL
-          return parseWebCallback(url);
-        } else if (url.startsWith('mafqoudat://')) {
-          console.log('✅ Detected deep link callback, parsing...');
-          // It's a deep link, parse normally
-          return parseAuthCallback(url);
-        } else {
-          console.error('❌ Unexpected callback URL format:', url);
-          return {
-            type: 'error',
-            error: `Unexpected callback URL format: ${url}`,
-          };
-        }
-      } else if (result.type === 'cancel') {
-        console.log('User cancelled OAuth');
-        return {
-          type: 'cancel',
-          error: 'User cancelled authentication',
-        };
-      } else if (result.type === 'dismiss') {
-        console.log('⚠️ Browser was dismissed - checking for callback...');
-        
-        // Check if we got a callback URL while browser was open (via Linking listener)
-        if (callbackReceived) {
-          console.log('✅ Browser dismissed but callback URL was received via Linking:', callbackReceived);
-          linkingSubscription?.remove();
-          if (callbackReceived.startsWith('mafqoudat://')) {
-            return parseAuthCallback(callbackReceived);
-          } else {
-            return parseWebCallback(callbackReceived);
-          }
-        }
-        
-        // Browser dismissed - server redirected to web URL
-        // WebBrowser might not have caught it, but Linking listener or App.js handler should
-        console.log('⏳ Waiting for callback via Linking listener or App.js handler...');
-        console.log('📋 Server redirected to:', `${frontendUrl}/auth/callback?token=...&mobile=true`);
-        console.log('📋 This should be caught by either:');
-        console.log('📋   1. WebBrowser (if it worked)');
-        console.log('📋   2. Linking listener (fallback)');
-        console.log('📋   3. App.js deep link handler (fallback)');
-        
-        // Keep Linking listener active and wait
-        return Promise.race([
-          oauthState.waitForCallback(),
-          new Promise((resolve) => {
-            // Also check callbackReceived periodically
-            const checkInterval = setInterval(() => {
-              if (callbackReceived) {
-                clearInterval(checkInterval);
-                linkingSubscription?.remove();
-                console.log('✅ Callback received via periodic check:', callbackReceived);
-                if (callbackReceived.startsWith('mafqoudat://')) {
-                  resolve(parseAuthCallback(callbackReceived));
-                } else {
-                  resolve(parseWebCallback(callbackReceived));
-                }
-              }
-            }, 500);
-            
-            setTimeout(() => {
+      // Browser was opened - now wait for deep link to be caught by App.js
+      // App.js will call oauthState.resolveCallback() when it receives the deep link
+      console.log('⏳ Waiting for deep link to be caught by App.js...');
+      console.log('📋 Server should redirect to: mafqoudat://auth/callback?token=...');
+      console.log('📋 App.js Linking handler will catch it and resolve oauthState');
+      
+      // Wait for oauthState to be resolved (by App.js)
+      return Promise.race([
+        oauthState.waitForCallback(),
+        new Promise((resolve) => {
+          // Also check callbackReceived periodically as fallback
+          const checkInterval = setInterval(() => {
+            if (callbackReceived) {
               clearInterval(checkInterval);
-              linkingSubscription?.remove();
-              console.log('⏱️ Timeout waiting for callback');
-              console.log('❌ TROUBLESHOOTING:');
-              console.log('❌ 1. Check Railway logs for "🔵 MOBILE REDIRECT:" to see actual redirect URL');
-              console.log('❌ 2. Check mobile logs for "🔗 URL received via Linking" messages');
-              console.log('❌ 3. Verify server FRONTEND_URL matches mobile EXPO_PUBLIC_FRONTEND_URL');
-              console.log('❌ 4. WebBrowser might not be catching the redirect - Linking should catch it');
-              resolve({
-                type: 'error',
-                error: 'OAuth callback not received. Check logs for redirect URL and Linking messages.',
-              });
-            }, 20000); // Wait 20 seconds
-          }),
-        ]).finally(() => {
-          linkingSubscription?.remove();
-        });
-      } else {
-        console.error('OAuth failed with type:', result.type, 'result:', result);
-        return {
-          type: 'error',
-          error: result.error || `Authentication failed: ${result.type}`,
-        };
-      }
-    } finally {
-      // Make sure to remove listener
+              console.log('✅ Callback received via periodic check:', callbackReceived);
+              resolve(parseAuthCallback(callbackReceived));
+            }
+          }, 500);
+          
+          setTimeout(() => {
+            clearInterval(checkInterval);
+            linkingSubscription?.remove();
+            console.log('⏱️ Timeout waiting for deep link callback');
+            console.log('❌ TROUBLESHOOTING:');
+            console.log('❌ 1. Check Railway logs for "🔵 MOBILE REDIRECT:" to see redirect URL');
+            console.log('❌ 2. Check mobile logs for "🔗 Deep link received:" in App.js');
+            console.log('❌ 3. Verify deep link scheme is configured: mafqoudat://');
+            console.log('❌ 4. Make sure App.js Linking handler is active');
+            resolve({
+              type: 'error',
+              error: 'Deep link callback not received. Check logs and ensure App.js is catching deep links.',
+            });
+          }, 30000); // Wait 30 seconds
+        }),
+      ]).finally(() => {
+        linkingSubscription?.remove();
+      });
+    } catch (error) {
       linkingSubscription?.remove();
+      throw error;
     }
   } catch (error) {
     console.error('Google OAuth error:', error);

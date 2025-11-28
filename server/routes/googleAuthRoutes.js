@@ -98,14 +98,12 @@ router.get('/google/callback',
 
         // Redirect based on platform
         if (isMobile) {
-          // For mobile, redirect to server HTML page that will redirect to deep link
-          const protocol = req.protocol || 'https';
-          const host = req.get('host') || 'mafqoudat-production.up.railway.app';
-          const serverUrl = `${protocol}://${host}`;
-          const mobileRedirectUrl = `${serverUrl}/auth/mobile-callback?pendingToken=${pendingToken}`;
-          console.log('🔵 MOBILE REDIRECT (pending, to server HTML page):', mobileRedirectUrl);
-          console.log('🔵 HTML page will redirect to: mafqoudat://auth/callback?pendingToken=...');
-          return res.redirect(mobileRedirectUrl);
+          // For mobile, redirect DIRECTLY to deep link
+          // The app's Linking handler will catch this
+          const deepLink = `mafqoudat://auth/callback?pendingToken=${encodeURIComponent(pendingToken)}`;
+          console.log('🔵 MOBILE REDIRECT (pending, direct deep link):', deepLink);
+          console.log('🔵 App should catch this via Linking handler');
+          return res.redirect(deepLink);
         } else {
           // Redirect to frontend to select country
           const webUrl = `${frontendUrl}/auth/select-country?pendingToken=${pendingToken}`;
@@ -132,19 +130,14 @@ router.get('/google/callback',
 
           // Redirect based on platform
           if (isMobile) {
-            // For mobile, redirect to a server route that serves HTML page
-            // The HTML page will auto-redirect to deep link using JavaScript
-            // This works better than direct redirect because browser can handle it
-            // Use req.protocol and req.get('host') to get the current server URL
-            const protocol = req.protocol || 'https';
-            const host = req.get('host') || 'mafqoudat-production.up.railway.app';
-            const serverUrl = `${protocol}://${host}`;
-            const mobileRedirectUrl = `${serverUrl}/auth/mobile-callback?token=${tokens.accessToken}`;
-            console.log('🔵 MOBILE REDIRECT (to server HTML page):', mobileRedirectUrl);
+            // For mobile, redirect DIRECTLY to deep link
+            // The app's Linking handler will catch this
+            const deepLink = `mafqoudat://auth/callback?token=${encodeURIComponent(tokens.accessToken)}`;
+            console.log('🔵 MOBILE REDIRECT (direct deep link):', deepLink.substring(0, 50) + '...');
             console.log('🔵 Frontend URL used:', frontendUrl);
             console.log('🔵 Token length:', tokens.accessToken?.length);
-            console.log('🔵 HTML page will redirect to: mafqoudat://auth/callback?token=...');
-            return res.redirect(mobileRedirectUrl);
+            console.log('🔵 App should catch this via Linking handler');
+            return res.redirect(deepLink);
           } else {
             // Redirect to frontend with token
             const webUrl = `${frontendUrl}/auth/callback?token=${tokens.accessToken}`;
