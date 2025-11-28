@@ -1,0 +1,14 @@
+# Nixpacks configuration for Railway
+# This tells Railway how to build the server from the server/ directory
+
+[phases.setup]
+nixPkgs = ["nodejs-18_x", "npm-8_x"]
+
+[phases.install]
+cmds = [
+  "if [ -d server ]; then cd server && npm install; else echo 'Server directory not found, checking current directory...' && ls -la && npm install; fi"
+]
+
+[start]
+cmd = "if [ -d server ]; then cd server && npm start; else npm start; fi"
+
