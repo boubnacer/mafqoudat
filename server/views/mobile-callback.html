@@ -74,16 +74,39 @@
             2. OR tap the token below to select it, then copy manually<br>
             3. Return to the app - it should detect authentication
         </p>
+        <div id="statusDisplay" style="margin-top: 10px; padding: 10px; background-color: #fff3cd; border: 1px solid #ffc107; border-radius: 4px; font-size: 12px;">
+            <strong>Status:</strong> <span id="statusText">Extracting token from URL...</span>
+        </div>
         <p class="message" style="margin-top: 10px; font-size: 12px; color: #999;" id="debugInfo"></p>
         <textarea id="tokenDisplay" readonly style="display: block !important; margin-top: 15px; width: 100%; max-width: 100%; padding: 10px; font-size: 11px; font-family: monospace; background-color: #f0f0f0; border: 2px solid #2196F3; border-radius: 4px; word-break: break-all; resize: vertical; min-height: 80px; box-sizing: border-box; cursor: text; visibility: visible !important; opacity: 1 !important;">Loading token from URL...</textarea>
         <p style="margin-top: 5px; font-size: 11px; color: #666;">Tap the token above to select it, then copy (long-press → Copy)</p>
     </div>
     <script>
+        // Update status display function
+        function updateStatus(message, isError) {
+            const statusDisplay = document.getElementById('statusDisplay');
+            const statusText = document.getElementById('statusText');
+            if (statusDisplay && statusText) {
+                statusText.textContent = message;
+                if (isError) {
+                    statusDisplay.style.backgroundColor = '#f8d7da';
+                    statusDisplay.style.borderColor = '#dc3545';
+                    statusDisplay.style.color = '#721c24';
+                } else {
+                    statusDisplay.style.backgroundColor = '#d4edda';
+                    statusDisplay.style.borderColor = '#28a745';
+                    statusDisplay.style.color = '#155724';
+                }
+            }
+        }
+        
         // IMMEDIATELY extract and display token - don't wait for anything
         (function() {
             console.log('=== Mobile callback page script starting IMMEDIATELY ===');
             console.log('Full URL:', window.location.href);
             console.log('URL search:', window.location.search);
+            
+            updateStatus('Extracting token from URL...', false);
             
             // Extract token or pendingToken from URL - try multiple methods
             let token = null;
@@ -101,13 +124,21 @@
                     pendingToken: pendingToken ? pendingToken.substring(0, 30) + '... (length: ' + pendingToken.length + ')' : 'null',
                     error
                 });
+                
+                if (token) {
+                    updateStatus('✅ Token found via URLSearchParams (length: ' + token.length + ')', false);
+                } else if (pendingToken) {
+                    updateStatus('✅ Pending token found via URLSearchParams (length: ' + pendingToken.length + ')', false);
+                }
             } catch (e) {
                 console.error('URLSearchParams failed:', e);
+                updateStatus('⚠️ URLSearchParams failed, trying manual parsing...', false);
             }
             
             // Method 2: Manual parsing (fallback) - handle URL-encoded values
             if (!token && !pendingToken && !error) {
                 console.log('Trying manual URL parsing...');
+                updateStatus('Trying manual URL parsing...', false);
                 const search = window.location.search.substring(1);
                 const params = search.split('&');
                 for (const param of params) {
@@ -133,6 +164,12 @@
                     pendingToken: pendingToken ? pendingToken.substring(0, 30) + '... (length: ' + pendingToken.length + ')' : 'null',
                     error
                 });
+                
+                if (token) {
+                    updateStatus('✅ Token found via manual parsing (length: ' + token.length + ')', false);
+                } else if (pendingToken) {
+                    updateStatus('✅ Pending token found via manual parsing (length: ' + pendingToken.length + ')', false);
+                }
             }
             
             // Final check
@@ -141,30 +178,40 @@
             console.log('PendingToken found:', !!pendingToken, pendingToken ? 'Length: ' + pendingToken.length : '');
             console.log('Error found:', !!error, error || '');
             
+            if (!token && !pendingToken && !error) {
+                console.error('❌ NO TOKEN, PENDING TOKEN, OR ERROR FOUND IN URL!');
+                updateStatus('❌ ERROR: No token found in URL! Check URL: ' + window.location.search, true);
+            }
+            
             // IMMEDIATELY try to set token in textarea (even if DOM might not be ready)
             function setTokenNow() {
                 const tokenDisplay = document.getElementById('tokenDisplay');
                 if (tokenDisplay) {
                     if (token) {
                         console.log('✅ IMMEDIATELY setting TOKEN (length:', token.length, ')');
+                        updateStatus('✅ Token loaded successfully! (length: ' + token.length + ')', false);
                         tokenDisplay.value = token;
                         tokenDisplay.placeholder = 'Token loaded - tap to select and copy';
                         console.log('✅ Token set! Value length:', tokenDisplay.value.length);
                     } else if (pendingToken) {
                         console.log('✅ IMMEDIATELY setting PENDING TOKEN (length:', pendingToken.length, ')');
+                        updateStatus('✅ Pending token loaded successfully! (length: ' + pendingToken.length + ')', false);
                         tokenDisplay.value = pendingToken;
                         tokenDisplay.placeholder = 'Pending token loaded - tap to select and copy';
                     } else if (error) {
+                        updateStatus('❌ Error: ' + error, true);
                         tokenDisplay.value = 'ERROR: ' + error;
                         tokenDisplay.style.backgroundColor = '#ffebee';
                     } else {
                         console.error('❌ NO TOKEN FOUND!');
+                        updateStatus('❌ ERROR: No token in URL!', true);
                         tokenDisplay.value = 'ERROR: No token in URL.\n\nURL: ' + window.location.href + '\n\nSearch: ' + window.location.search;
                         tokenDisplay.style.backgroundColor = '#ffebee';
                         tokenDisplay.style.borderColor = '#f44336';
                     }
                 } else {
                     console.log('Textarea not found yet, will retry...');
+                    updateStatus('Waiting for page to load...', false);
                     setTimeout(setTokenNow, 50);
                 }
             }
@@ -184,12 +231,6 @@
             window.extractedToken = token;
             window.extractedPendingToken = pendingToken;
             window.extractedError = error;
-            
-            if (!token && !pendingToken && !error) {
-                console.error('❌ NO TOKEN, PENDING TOKEN, OR ERROR FOUND IN URL!');
-                console.error('This means the server did not pass the token correctly.');
-                console.error('Check server logs for the redirect URL.');
-            }
         })();
         
         // Now continue with the rest of the script
