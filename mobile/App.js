@@ -201,15 +201,22 @@ export default function App() {
             // Method 1: getInitialURL (works if app was opened via deep link)
             const initialUrl = await Linking.getInitialURL();
             console.log('🔍 getInitialURL result:', initialUrl);
-            if (initialUrl && (initialUrl.includes('auth/callback') || initialUrl.startsWith('mafqoudat://'))) {
-              console.log('🔗 Found deep link via getInitialURL:', initialUrl);
-              handleDeepLink({ url: initialUrl });
-              return true;
+            if (initialUrl) {
+              // Check if it's an OAuth callback
+              const isOAuthCallback = initialUrl.startsWith('mafqoudat://auth/callback') ||
+                                    initialUrl.includes('auth/callback') ||
+                                    (initialUrl.includes('token=') || initialUrl.includes('pendingToken='));
+              
+              if (isOAuthCallback) {
+                console.log('🔗 Found deep link via getInitialURL:', initialUrl);
+                handleDeepLink({ url: initialUrl });
+                return true;
+              }
             }
             
             // Method 2: Check if there's a pending OAuth (oauthState might have been resolved)
             // This is handled by the oauthState.waitForCallback() in googleAuth.js
-            console.log('ℹ️ No initial URL found, but AppState listener is active');
+            console.log('ℹ️ No OAuth callback URL found in getInitialURL');
             return false;
           } catch (err) {
             console.error('Error checking URL on app state change:', err);
@@ -221,7 +228,8 @@ export default function App() {
         checkForDeepLink();
         
         // Also check again after delays (deep link might arrive slightly after app becomes active)
-        [100, 500, 1000, 2000, 3000].forEach((delay) => {
+        // More frequent checks for better reliability
+        [50, 150, 300, 500, 1000, 2000, 3000, 5000].forEach((delay) => {
           setTimeout(() => {
             checkForDeepLink();
           }, delay);

@@ -80,9 +80,7 @@ export const initiateGoogleAuth = async () => {
     }, 500);
     
     try {
-      // Open browser - server will redirect directly to deep link
-      // The deep link will be caught by App.js Linking handler, which resolves oauthState
-      // We wait for oauthState to be resolved
+      // Open browser - server will redirect to mobile-callback page which triggers deep link
       console.log('📱 Opening WebBrowser...');
       
       // Open browser without redirectUrl - we're using deep links directly
@@ -100,6 +98,35 @@ export const initiateGoogleAuth = async () => {
         return parseAuthCallback(callbackReceived);
       }
 
+      // When browser closes/dismisses, immediately check for deep link
+      // This is critical - the deep link might have been triggered but app was in background
+      if (result.type === 'dismiss' || result.type === 'cancel') {
+        console.log('📱 Browser was dismissed, checking for deep link immediately...');
+        
+        // Give a small delay for the deep link to be processed
+        await new Promise(resolve => setTimeout(resolve, 500));
+        
+        // Check multiple times with increasing delays (deep link might arrive slightly after)
+        for (let i = 0; i < 5; i++) {
+          try {
+            const initialUrl = await Linking.getInitialURL();
+            if (initialUrl && initialUrl.startsWith('mafqoudat://auth/callback')) {
+              console.log(`✅ Found deep link after browser dismiss (check ${i + 1}):`, initialUrl);
+              clearInterval(periodicCheck);
+              linkingSubscription?.remove();
+              return parseAuthCallback(initialUrl);
+            }
+          } catch (err) {
+            console.error('Error checking initial URL:', err);
+          }
+          
+          // Wait before next check
+          if (i < 4) {
+            await new Promise(resolve => setTimeout(resolve, 300 * (i + 1)));
+          }
+        }
+      }
+
       // Browser was opened - now wait for deep link to be caught by App.js
       // App.js will call oauthState.resolveCallback() when it receives the deep link
       console.log('⏳ Waiting for deep link to be caught by App.js...');
@@ -107,7 +134,33 @@ export const initiateGoogleAuth = async () => {
       console.log('📋 App.js Linking handler will catch it and resolve oauthState');
       console.log('📋 Also checking periodically for deep link...');
       
-      // Wait for oauthState to be resolved (by App.js)
+      // Set up AppState listener to check for deep link when app comes to foreground
+      let appStateSubscription = null;
+      const checkDeepLinkOnForeground = async () => {
+        try {
+          const url = await Linking.getInitialURL();
+          if (url && url.startsWith('mafqoudat://auth/callback') && !callbackReceived) {
+            console.log('✅ Found deep link when app came to foreground:', url);
+            callbackReceived = url;
+            const parsed = parseAuthCallback(url);
+            if (parsed.type === 'success' || parsed.type === 'pending') {
+              oauthState.resolveCallback(parsed);
+            }
+          }
+        } catch (err) {
+          console.error('Error checking deep link on foreground:', err);
+        }
+      };
+      
+      const currentAppState = AppState.currentState;
+      appStateSubscription = AppState.addEventListener('change', (nextAppState) => {
+        if (currentAppState.match(/inactive|background/) && nextAppState === 'active') {
+          console.log('📱 App came to foreground, checking for deep link...');
+          checkDeepLinkOnForeground();
+        }
+      });
+      
+      // Wait for oauthState to be resolved (by App.js or our checks)
       return Promise.race([
         oauthState.waitForCallback(),
         new Promise((resolve) => {
@@ -117,31 +170,57 @@ export const initiateGoogleAuth = async () => {
               clearInterval(checkInterval);
               clearInterval(periodicCheck);
               linkingSubscription?.remove();
+              appStateSubscription?.remove();
               console.log('✅ Callback received via check interval:', callbackReceived);
               resolve(parseAuthCallback(callbackReceived));
             }
-          }, 500);
+          }, 300);
+          
+          // Also periodically check getInitialURL as fallback
+          const urlCheckInterval = setInterval(async () => {
+            try {
+              const url = await Linking.getInitialURL();
+              if (url && url.startsWith('mafqoudat://auth/callback') && !callbackReceived) {
+                console.log('✅ Found deep link via URL check interval:', url);
+                callbackReceived = url;
+                clearInterval(checkInterval);
+                clearInterval(urlCheckInterval);
+                clearInterval(periodicCheck);
+                linkingSubscription?.remove();
+                appStateSubscription?.remove();
+                resolve(parseAuthCallback(url));
+              }
+            } catch (err) {
+              // Ignore errors in periodic check
+            }
+          }, 1000);
           
           setTimeout(() => {
             clearInterval(checkInterval);
+            clearInterval(urlCheckInterval);
             clearInterval(periodicCheck);
             linkingSubscription?.remove();
-            console.log('⏱️ Timeout waiting for deep link callback (30 seconds)');
+            appStateSubscription?.remove();
+            console.log('⏱️ Timeout waiting for deep link callback (45 seconds)');
             console.log('❌ TROUBLESHOOTING:');
             console.log('❌ 1. Check Railway logs for "🔵 MOBILE REDIRECT:" to see redirect URL');
             console.log('❌ 2. Check mobile logs for "🔗 Deep link received:" in App.js');
             console.log('❌ 3. Verify deep link scheme is configured: mafqoudat://');
             console.log('❌ 4. Make sure App.js Linking handler is active');
             console.log('❌ 5. Try manually returning to the app - AppState listener should catch it');
+            console.log('❌ 6. Check if browser shows the mobile-callback page with token');
             resolve({
               type: 'error',
-              error: 'Deep link callback not received. Try manually returning to the app.',
+              error: 'Deep link callback not received. Please return to the app manually after selecting your Google account.',
             });
-          }, 30000); // Wait 30 seconds
+          }, 45000); // Wait 45 seconds (increased from 30)
         }),
       ]).finally(() => {
         clearInterval(periodicCheck);
         linkingSubscription?.remove();
+        if (appStateSubscription) {
+          appStateSubscription.remove();
+        }
       });
     } catch (error) {
       linkingSubscription?.remove();
@@ -163,45 +242,76 @@ export const initiateGoogleAuth = async () => {
  */
 const parseAuthCallback = (url) => {
   try {
-    const urlObj = new URL(url);
-    const params = new URLSearchParams(urlObj.search);
+    // Handle deep link format: mafqoudat://auth/callback?token=...
+    let urlObj;
+    let searchParams;
+    
+    try {
+      // Try parsing as-is first
+      urlObj = new URL(url);
+      searchParams = new URLSearchParams(urlObj.search);
+    } catch (e) {
+      // If URL parsing fails, try to construct it for deep links
+      console.log('URL parsing failed, trying alternative format...');
+      if (url.startsWith('mafqoudat://')) {
+        // Replace deep link scheme with https for URL parsing
+        const httpsUrl = url.replace('mafqoudat://', 'https://');
+        urlObj = new URL(httpsUrl);
+        searchParams = new URLSearchParams(urlObj.search);
+      } else {
+        // Try to extract query string manually
+        const queryMatch = url.match(/\?(.+)$/);
+        if (queryMatch) {
+          searchParams = new URLSearchParams(queryMatch[1]);
+        } else {
+          throw new Error('Could not parse URL');
+        }
+      }
+    }
 
     // Check for token (existing user)
-    const token = params.get('token');
-    if (token) {
+    const token = searchParams.get('token');
+    if (token && token.trim()) {
+      console.log('✅ Token found in callback URL');
       return {
         type: 'success',
-        accessToken: token,
+        accessToken: token.trim(),
       };
     }
 
     // Check for pendingToken (new user)
-    const pendingToken = params.get('pendingToken');
-    if (pendingToken) {
+    const pendingToken = searchParams.get('pendingToken');
+    if (pendingToken && pendingToken.trim()) {
+      console.log('✅ PendingToken found in callback URL');
       return {
         type: 'pending',
-        pendingToken: pendingToken,
+        pendingToken: pendingToken.trim(),
       };
     }
 
     // Check for error
-    const error = params.get('error');
+    const error = searchParams.get('error');
     if (error) {
+      console.log('❌ Error found in callback URL:', error);
       return {
         type: 'error',
         error: error,
       };
     }
 
+    console.warn('⚠️ No token, pendingToken, or error in callback URL');
+    console.warn('⚠️ URL was:', url);
+    console.warn('⚠️ Search params:', Array.from(searchParams.entries()));
     return {
       type: 'error',
       error: 'No token or pendingToken in callback',
     };
   } catch (error) {
     console.error('Error parsing callback URL:', error);
+    console.error('URL that failed:', url);
     return {
       type: 'error',
-      error: 'Invalid callback URL',
+      error: 'Invalid callback URL: ' + error.message,
     };
   }
 };

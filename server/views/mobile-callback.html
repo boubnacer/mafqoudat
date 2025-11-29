@@ -90,9 +90,10 @@
         </div>
         <div class="instructions">
             <p><strong>Instructions:</strong></p>
-            <p>1. The app should open automatically</p>
-            <p>2. If not, click "Open App" button</p>
-            <p>3. Or copy the token and paste it in the app</p>
+            <p>1. The app should open automatically in a few seconds</p>
+            <p>2. If the app doesn't open, click the "Open App" button above</p>
+            <p>3. If you're still having issues, copy the token and return to the app manually</p>
+            <p>4. Make sure you have the app installed and it's set as the default handler for mafqoudat:// links</p>
         </div>
     </div>
 
@@ -138,10 +139,43 @@
                 status.className = 'status success';
                 window.currentToken = token;
                 
-                // Auto-open app after 500ms
+                // Auto-open app after 500ms - try multiple methods
                 setTimeout(function() {
                     var deepLink = 'mafqoudat://auth/callback?token=' + encodeURIComponent(token);
-                    window.location.href = deepLink;
+                    console.log('🔗 Attempting to open deep link:', deepLink);
+                    
+                    // Method 1: window.location.href (most common)
+                    try {
+                        window.location.href = deepLink;
+                        console.log('✅ Deep link triggered via window.location.href');
+                    } catch (e) {
+                        console.error('❌ Failed to trigger via window.location.href:', e);
+                    }
+                    
+                    // Method 2: window.location.replace (fallback)
+                    setTimeout(function() {
+                        try {
+                            window.location.replace(deepLink);
+                            console.log('✅ Deep link triggered via window.location.replace');
+                        } catch (e) {
+                            console.error('❌ Failed to trigger via window.location.replace:', e);
+                        }
+                    }, 200);
+                    
+                    // Method 3: Create a link and click it (fallback)
+                    setTimeout(function() {
+                        try {
+                            var link = document.createElement('a');
+                            link.href = deepLink;
+                            link.style.display = 'none';
+                            document.body.appendChild(link);
+                            link.click();
+                            document.body.removeChild(link);
+                            console.log('✅ Deep link triggered via link.click()');
+                        } catch (e) {
+                            console.error('❌ Failed to trigger via link.click():', e);
+                        }
+                    }, 400);
                 }, 500);
             } else if (pendingToken) {
                 tokenDisplay.value = pendingToken;
@@ -151,7 +185,40 @@
                 
                 setTimeout(function() {
                     var deepLink = 'mafqoudat://auth/callback?pendingToken=' + encodeURIComponent(pendingToken);
-                    window.location.href = deepLink;
+                    console.log('🔗 Attempting to open deep link:', deepLink);
+                    
+                    // Method 1: window.location.href (most common)
+                    try {
+                        window.location.href = deepLink;
+                        console.log('✅ Deep link triggered via window.location.href');
+                    } catch (e) {
+                        console.error('❌ Failed to trigger via window.location.href:', e);
+                    }
+                    
+                    // Method 2: window.location.replace (fallback)
+                    setTimeout(function() {
+                        try {
+                            window.location.replace(deepLink);
+                            console.log('✅ Deep link triggered via window.location.replace');
+                        } catch (e) {
+                            console.error('❌ Failed to trigger via window.location.replace:', e);
+                        }
+                    }, 200);
+                    
+                    // Method 3: Create a link and click it (fallback)
+                    setTimeout(function() {
+                        try {
+                            var link = document.createElement('a');
+                            link.href = deepLink;
+                            link.style.display = 'none';
+                            document.body.appendChild(link);
+                            link.click();
+                            document.body.removeChild(link);
+                            console.log('✅ Deep link triggered via link.click()');
+                        } catch (e) {
+                            console.error('❌ Failed to trigger via link.click():', e);
+                        }
+                    }, 400);
                 }, 500);
             } else if (error) {
                 tokenDisplay.value = 'ERROR: ' + error;
@@ -181,7 +248,22 @@
                 deepLink += 'token=' + encodeURIComponent(token);
             }
             
-            window.location.href = deepLink;
+            console.log('🔗 Manual openApp - deep link:', deepLink);
+            // Try multiple methods
+            try {
+                window.location.href = deepLink;
+            } catch (e) {
+                try {
+                    window.location.replace(deepLink);
+                } catch (e2) {
+                    var link = document.createElement('a');
+                    link.href = deepLink;
+                    link.style.display = 'none';
+                    document.body.appendChild(link);
+                    link.click();
+                    document.body.removeChild(link);
+                }
+            }
         }
         
         function copyToken() {
