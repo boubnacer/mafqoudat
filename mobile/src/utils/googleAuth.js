@@ -20,6 +20,13 @@ WebBrowser.maybeCompleteAuthSession();
  */
 export const initiateGoogleAuth = async () => {
   try {
+    // Verify deep link scheme can be opened
+    const canOpen = await Linking.canOpenURL('mafqoudat://auth/callback');
+    console.log('🔗 Can open deep link scheme:', canOpen);
+    if (!canOpen) {
+      console.warn('⚠️ Deep link scheme might not be registered properly');
+    }
+    
     // Construct the OAuth URL with mobile parameter
     // This tells the server to redirect directly to deep link: mafqoudat://auth/callback?token=...
     const authUrl = `${API_BASE_URL}/auth/google?mobile=true`;
@@ -98,9 +105,16 @@ export const initiateGoogleAuth = async () => {
         return parseAuthCallback(callbackReceived);
       }
 
-      // When browser closes/dismisses, immediately check for deep link
-      // This is critical - the deep link might have been triggered but app was in background
-      if (result.type === 'dismiss' || result.type === 'cancel') {
+      // When browser closes/dismisses OR stays open, check for deep link
+      // The browser might stay open showing the callback page, and user needs to manually return
+      // We check both when browser closes and periodically while waiting
+      if (result.type === 'dismiss' || result.type === 'cancel' || result.type === 'opened') {
+        if (result.type === 'opened') {
+          console.log('📱 Browser opened (may stay open). User should return to app after selecting account.');
+          console.log('📱 The callback page will show the token - user can copy it if deep link fails.');
+        } else {
+          console.log('📱 Browser was dismissed, checking for deep link immediately...');
+        }
         console.log('📱 Browser was dismissed, checking for deep link immediately...');
         
         // Give a small delay for the deep link to be processed

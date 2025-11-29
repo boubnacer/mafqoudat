@@ -133,8 +133,27 @@ const LoginScreen = ({ navigation }) => {
         setError('');
       } else {
         console.error('OAuth error:', result.error);
-        // Error occurred
-        setError(result.error || t('oauthError') || 'Google authentication failed');
+        // Error occurred - show token input option
+        const errorMessage = result.error || t('oauthError') || 'Google authentication failed';
+        setError(errorMessage);
+        
+        // If deep link wasn't received, show token input option
+        if (result.error && result.error.includes('Deep link callback not received')) {
+          Alert.alert(
+            'Manual Token Entry',
+            'The app couldn\'t automatically receive the authentication token. Please:\n\n1. Go back to the browser\n2. Copy the token from the page\n3. Return here and paste it below',
+            [
+              { text: 'Cancel', style: 'cancel' },
+              { 
+                text: 'Show Token Input', 
+                onPress: () => {
+                  setShowTokenInput(true);
+                  setError('Please paste the token from the browser page');
+                }
+              }
+            ]
+          );
+        }
       }
     } catch (err) {
       console.error('Google login error:', err);

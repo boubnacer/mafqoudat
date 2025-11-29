@@ -82,8 +82,8 @@
 <body>
     <div class="container">
         <h1>🔐 Authentication</h1>
-        <div id="status" class="status">Loading...</div>
-        <textarea id="tokenDisplay" readonly placeholder="Token will appear here..."></textarea>
+        <div id="status" class="status">Loading token...</div>
+        <textarea id="tokenDisplay" readonly placeholder="Token will appear here... If you see this placeholder, check the browser console (F12) for debugging info."></textarea>
         <div>
             <button class="button" onclick="openApp()">Open App</button>
             <button class="button green" onclick="copyToken()">Copy Token</button>
@@ -91,9 +91,12 @@
         <div class="instructions">
             <p><strong>Instructions:</strong></p>
             <p>1. The app should open automatically in a few seconds</p>
-            <p>2. If the app doesn't open, click the "Open App" button above</p>
-            <p>3. If you're still having issues, copy the token and return to the app manually</p>
-            <p>4. Make sure you have the app installed and it's set as the default handler for mafqoudat:// links</p>
+            <p>2. If the app doesn't open automatically, click the "Open App" button above</p>
+            <p>3. If the app still doesn't open:</p>
+            <p style="margin-left: 20px;">• Click "Copy Token" button</p>
+            <p style="margin-left: 20px;">• Return to the app manually</p>
+            <p style="margin-left: 20px;">• Paste the token in the login screen</p>
+            <p>4. The token is displayed in the text area above - you can also manually select and copy it</p>
         </div>
     </div>
 
@@ -371,52 +374,96 @@
         }
         
         function copyToken() {
-            var tokenDisplay = document.getElementById('tokenDisplay');
-            var token = tokenDisplay.value;
+            // Try multiple sources for token
+            var tokenToCopy = window.currentToken || 
+                            window.token ||
+                            (document.getElementById('tokenDisplay') ? document.getElementById('tokenDisplay').value : null);
             
-            if (!token || token.includes('ERROR')) {
-                alert('No token to copy');
+            // If still no token, try extracting from URL
+            if (!tokenToCopy || tokenToCopy.includes('ERROR')) {
+                try {
+                    var params = new URLSearchParams(window.location.search);
+                    tokenToCopy = params.get('token') || params.get('pendingToken');
+                } catch (e) {
+                    console.error('Error extracting token for copy:', e);
+                }
+            }
+            
+            if (!tokenToCopy || tokenToCopy.includes('ERROR')) {
+                alert('No token available to copy. Please check the token display above.');
+                console.error('No token found for copying');
                 return;
             }
             
-            tokenDisplay.select();
-            tokenDisplay.setSelectionRange(0, token.length);
+            var tokenDisplay = document.getElementById('tokenDisplay');
+            if (tokenDisplay) {
+                tokenDisplay.value = tokenToCopy;
+                tokenDisplay.select();
+                tokenDisplay.setSelectionRange(0, tokenToCopy.length);
+            }
             
-            try {
-                if (document.execCommand('copy')) {
-                    alert('✅ Token copied! Return to the app and paste it.');
-                    return;
-                }
-            } catch(e) {}
-            
-            if (navigator.clipboard) {
-                navigator.clipboard.writeText(token).then(function() {
-                    alert('✅ Token copied!');
-                }).catch(function() {
-                    alert('Please manually select and copy the token.');
+            // Try modern clipboard API first
+            if (navigator.clipboard && navigator.clipboard.writeText) {
+                navigator.clipboard.writeText(tokenToCopy).then(function() {
+                    alert('✅ Token copied to clipboard! Return to the app and paste it in the token input field.');
+                    console.log('✅ Token copied via clipboard API');
+                }).catch(function(err) {
+                    console.error('Clipboard API failed:', err);
+                    // Fallback to execCommand
+                    try {
+                        if (document.execCommand('copy')) {
+                            alert('✅ Token copied! Return to the app and paste it.');
+                            return;
+                        }
+                    } catch(e) {
+                        console.error('execCommand failed:', e);
+                    }
+                    alert('Please manually select and copy the token from the text area above.');
                 });
             } else {
-                alert('Please manually select and copy the token.');
+                // Fallback to execCommand
+                try {
+                    if (document.execCommand('copy')) {
+                        alert('✅ Token copied! Return to the app and paste it.');
+                        return;
+                    }
+                } catch(e) {
+                    console.error('execCommand failed:', e);
+                }
+                alert('Please manually select and copy the token from the text area above.');
             }
         }
         
         // Run immediately and also when DOM is ready
-        if (document.readyState === 'loading') {
-            document.addEventListener('DOMContentLoaded', function() {
-                console.log('DOM loaded, calling displayToken');
+        function initDisplay() {
+            console.log('Initializing token display...');
+            console.log('Document ready state:', document.readyState);
+            console.log('Token available:', !!token, !!pendingToken, !!error);
+            console.log('Window token:', !!window.token);
+            console.log('URL search:', window.location.search);
+            
+            if (document.readyState === 'loading') {
+                document.addEventListener('DOMContentLoaded', function() {
+                    console.log('DOM loaded, calling displayToken');
+                    displayToken();
+                });
+            } else {
+                // DOM already loaded
+                console.log('DOM already loaded, calling displayToken immediately');
                 displayToken();
-            });
-        } else {
-            // DOM already loaded
-            console.log('DOM already loaded, calling displayToken immediately');
-            displayToken();
+            }
         }
         
-        // Also try after a short delay to ensure everything is ready
-        setTimeout(function() {
-            console.log('Delayed displayToken call');
-            displayToken();
-        }, 100);
+        // Start initialization
+        initDisplay();
+        
+        // Also try after delays to ensure everything is ready
+        [100, 300, 500, 1000].forEach(function(delay) {
+            setTimeout(function() {
+                console.log('Delayed displayToken call after', delay, 'ms');
+                displayToken();
+            }, delay);
+        });
     </script>
 </body>
 </html>
