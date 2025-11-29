@@ -98,31 +98,60 @@
     </div>
 
     <script>
-        // Token injected by server - check immediately
+        // Token extraction - try multiple sources
+        // Make variables global so they're accessible everywhere
+        window.token = null;
+        window.pendingToken = null;
+        window.error = null;
+        
         console.log('=== TOKEN EXTRACTION START ===');
         console.log('window.serverToken:', window.serverToken ? 'EXISTS (length: ' + window.serverToken.length + ')' : 'NOT FOUND');
         console.log('window.serverPendingToken:', window.serverPendingToken ? 'EXISTS' : 'NOT FOUND');
         console.log('window.serverError:', window.serverError || 'NOT FOUND');
         console.log('window.location.search:', window.location.search);
+        console.log('window.location.href:', window.location.href);
         
-        var token = window.serverToken || null;
-        var pendingToken = window.serverPendingToken || null;
-        var error = window.serverError || null;
+        // First, try to extract from URL (most reliable)
+        var token = null;
+        var pendingToken = null;
+        var error = null;
         
-        // Also try to extract from URL as fallback
-        if (!token && !pendingToken && !error) {
-            console.log('No server-injected token, trying URL extraction...');
+        try {
             var search = window.location.search;
             if (search) {
                 var params = new URLSearchParams(search);
                 token = params.get('token');
                 pendingToken = params.get('pendingToken');
                 error = params.get('error');
-                console.log('URL extraction result:', { token: !!token, pendingToken: !!pendingToken, error: error });
+                console.log('URL extraction result:', { 
+                    token: token ? token.substring(0, 20) + '...' : null, 
+                    pendingToken: !!pendingToken, 
+                    error: error 
+                });
             }
+        } catch (e) {
+            console.error('Error extracting from URL:', e);
         }
         
-        console.log('Final token status:', { token: !!token, pendingToken: !!pendingToken, error: error });
+        // Fallback to server-injected values if URL extraction failed
+        if (!token && !pendingToken && !error) {
+            console.log('No token in URL, trying server-injected values...');
+            token = window.serverToken || null;
+            pendingToken = window.serverPendingToken || null;
+            error = window.serverError || null;
+        }
+        
+        // Store in global scope
+        window.token = token;
+        window.pendingToken = pendingToken;
+        window.error = error;
+        
+        console.log('Final token status:', { 
+            token: token ? token.substring(0, 20) + '...' : null, 
+            pendingToken: !!pendingToken, 
+            error: error 
+        });
+        console.log('Stored in window.token:', window.token ? window.token.substring(0, 20) + '...' : null);
         
         function displayToken() {
             var tokenDisplay = document.getElementById('tokenDisplay');
@@ -133,15 +162,38 @@
                 return;
             }
             
-            if (token) {
-                tokenDisplay.value = token;
+            // Use global variables or re-extract from URL
+            var tokenToUse = window.token || token;
+            var pendingTokenToUse = window.pendingToken || pendingToken;
+            var errorToUse = window.error || error;
+            
+            // Re-extract token from URL if not already set (fallback)
+            if (!tokenToUse && !pendingTokenToUse && !errorToUse) {
+                try {
+                    var params = new URLSearchParams(window.location.search);
+                    tokenToUse = params.get('token');
+                    pendingTokenToUse = params.get('pendingToken');
+                    errorToUse = params.get('error');
+                    console.log('Re-extracted from URL in displayToken:', { token: !!tokenToUse, pendingToken: !!pendingTokenToUse, error: errorToUse });
+                    // Update global variables
+                    window.token = tokenToUse;
+                    window.pendingToken = pendingTokenToUse;
+                    window.error = errorToUse;
+                } catch (e) {
+                    console.error('Error re-extracting from URL:', e);
+                }
+            }
+            
+            if (tokenToUse) {
+                tokenDisplay.value = tokenToUse;
                 status.textContent = '✅ Token loaded! Opening app...';
                 status.className = 'status success';
-                window.currentToken = token;
+                window.currentToken = tokenToUse;
+                console.log('✅ Token displayed in textarea, length:', tokenToUse.length);
                 
                 // Auto-open app after 500ms - try multiple methods
                 setTimeout(function() {
-                    var deepLink = 'mafqoudat://auth/callback?token=' + encodeURIComponent(token);
+                    var deepLink = 'mafqoudat://auth/callback?token=' + encodeURIComponent(tokenToUse);
                     console.log('🔗 Attempting to open deep link:', deepLink);
                     
                     // Method 1: window.location.href (most common)
@@ -177,14 +229,14 @@
                         }
                     }, 400);
                 }, 500);
-            } else if (pendingToken) {
-                tokenDisplay.value = pendingToken;
+            } else if (pendingTokenToUse) {
+                tokenDisplay.value = pendingTokenToUse;
                 status.textContent = '✅ Pending token loaded!';
                 status.className = 'status success';
-                window.currentToken = pendingToken;
+                window.currentToken = pendingTokenToUse;
                 
                 setTimeout(function() {
-                    var deepLink = 'mafqoudat://auth/callback?pendingToken=' + encodeURIComponent(pendingToken);
+                    var deepLink = 'mafqoudat://auth/callback?pendingToken=' + encodeURIComponent(pendingTokenToUse);
                     console.log('🔗 Attempting to open deep link:', deepLink);
                     
                     // Method 1: window.location.href (most common)
@@ -220,48 +272,100 @@
                         }
                     }, 400);
                 }, 500);
-            } else if (error) {
-                tokenDisplay.value = 'ERROR: ' + error;
-                status.textContent = '❌ Error: ' + error;
+            } else if (errorToUse) {
+                tokenDisplay.value = 'ERROR: ' + errorToUse;
+                status.textContent = '❌ Error: ' + errorToUse;
                 status.className = 'status error';
             } else {
-                tokenDisplay.value = 'ERROR: No token found!\n\nURL: ' + window.location.href;
-                status.textContent = '❌ No token found';
+                var errorMsg = 'ERROR: No token found!\n\n';
+                errorMsg += 'URL: ' + window.location.href + '\n\n';
+                errorMsg += 'Search params: ' + window.location.search + '\n\n';
+                errorMsg += 'Server token: ' + (window.serverToken ? 'EXISTS' : 'NOT FOUND') + '\n';
+                errorMsg += 'URL token: ' + (new URLSearchParams(window.location.search).get('token') ? 'EXISTS' : 'NOT FOUND');
+                tokenDisplay.value = errorMsg;
+                status.textContent = '❌ No token found - check console for details';
                 status.className = 'status error';
+                console.error('❌ No token found!');
+                console.error('URL:', window.location.href);
+                console.error('Search:', window.location.search);
+                console.error('Server token:', window.serverToken);
+                console.error('Token variable:', window.token || token);
+                console.error('URL token:', new URLSearchParams(window.location.search).get('token'));
             }
         }
         
         function openApp() {
-            var token = window.currentToken || document.getElementById('tokenDisplay').value;
-            if (!token || token.includes('ERROR')) {
-                alert('No token available');
+            // Get token from multiple sources
+            var tokenToUse = window.currentToken || 
+                           window.token ||
+                           (document.getElementById('tokenDisplay') ? document.getElementById('tokenDisplay').value : null) || 
+                           null;
+            
+            var pendingTokenToUse = window.pendingToken || null;
+            
+            // If still no token, try extracting from URL one more time
+            if (!tokenToUse && !pendingTokenToUse) {
+                try {
+                    var params = new URLSearchParams(window.location.search);
+                    tokenToUse = params.get('token');
+                    pendingTokenToUse = params.get('pendingToken');
+                    console.log('Extracted from URL in openApp:', { token: !!tokenToUse, pendingToken: !!pendingTokenToUse });
+                } catch (e) {
+                    console.error('Error extracting from URL in openApp:', e);
+                }
+            }
+            
+            if (!tokenToUse && !pendingTokenToUse) {
+                alert('No token available. Please check the token display above.');
+                console.error('No token found for openApp');
                 return;
             }
             
             var deepLink = 'mafqoudat://auth/callback?';
-            if (window.currentToken === token && token.includes('.')) {
-                // It's a JWT token
-                deepLink += 'token=' + encodeURIComponent(token);
-            } else if (pendingToken) {
-                deepLink += 'pendingToken=' + encodeURIComponent(token);
-            } else {
-                deepLink += 'token=' + encodeURIComponent(token);
+            if (tokenToUse) {
+                deepLink += 'token=' + encodeURIComponent(tokenToUse);
+            } else if (pendingTokenToUse) {
+                deepLink += 'pendingToken=' + encodeURIComponent(pendingTokenToUse);
             }
             
-            console.log('🔗 Manual openApp - deep link:', deepLink);
+            console.log('🔗 Manual openApp - deep link:', deepLink.substring(0, 100) + '...');
+            console.log('🔗 Full deep link length:', deepLink.length);
+            
             // Try multiple methods
+            var success = false;
             try {
                 window.location.href = deepLink;
+                success = true;
+                console.log('✅ Deep link set via window.location.href');
             } catch (e) {
+                console.error('❌ Failed window.location.href:', e);
                 try {
                     window.location.replace(deepLink);
+                    success = true;
+                    console.log('✅ Deep link set via window.location.replace');
                 } catch (e2) {
-                    var link = document.createElement('a');
-                    link.href = deepLink;
-                    link.style.display = 'none';
-                    document.body.appendChild(link);
-                    link.click();
-                    document.body.removeChild(link);
+                    console.error('❌ Failed window.location.replace:', e2);
+                    try {
+                        var link = document.createElement('a');
+                        link.href = deepLink;
+                        link.style.display = 'none';
+                        document.body.appendChild(link);
+                        link.click();
+                        document.body.removeChild(link);
+                        success = true;
+                        console.log('✅ Deep link triggered via link.click()');
+                    } catch (e3) {
+                        console.error('❌ All methods failed:', e3);
+                        alert('Failed to open app. Please copy the token and return to the app manually.');
+                    }
+                }
+            }
+            
+            if (success) {
+                // Show message
+                var status = document.getElementById('status');
+                if (status) {
+                    status.textContent = '✅ Opening app... If it doesn\'t open, please return to the app manually.';
                 }
             }
         }
@@ -296,13 +400,23 @@
             }
         }
         
-        // Run immediately
-        displayToken();
-        
-        // Also run when DOM ready
+        // Run immediately and also when DOM is ready
         if (document.readyState === 'loading') {
-            document.addEventListener('DOMContentLoaded', displayToken);
+            document.addEventListener('DOMContentLoaded', function() {
+                console.log('DOM loaded, calling displayToken');
+                displayToken();
+            });
+        } else {
+            // DOM already loaded
+            console.log('DOM already loaded, calling displayToken immediately');
+            displayToken();
         }
+        
+        // Also try after a short delay to ensure everything is ready
+        setTimeout(function() {
+            console.log('Delayed displayToken call');
+            displayToken();
+        }, 100);
     </script>
 </body>
 </html>

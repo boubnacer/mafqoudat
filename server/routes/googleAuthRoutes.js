@@ -391,39 +391,66 @@ router.get('/mobile-callback', (req, res) => {
     let html = fs.readFileSync(htmlPath, 'utf8');
     
     // Inject token directly into HTML - add script BEFORE the existing script
+    // Note: Token is also in URL query string, so this is a fallback
     if (token) {
-      // Inject before the main script tag
-      html = html.replace(
-        '<script>',
-        `<script>
-        // Token injected by server
+      // Try to inject before the first <script> tag
+      const scriptInjection = `<script>
+        // Token injected by server (also available in URL)
         window.serverToken = ${JSON.stringify(token)};
         console.log('✅ Server injected token, length:', window.serverToken.length);
-        </script>
-        <script>`
-      );
+        </script>`;
+      
+      // Try multiple replacement strategies
+      if (html.includes('<script>')) {
+        html = html.replace('<script>', scriptInjection + '\n    <script>');
+      } else if (html.includes('    <script>')) {
+        html = html.replace('    <script>', scriptInjection + '\n    <script>');
+      } else {
+        // Fallback: inject before </head> or <body>
+        if (html.includes('</head>')) {
+          html = html.replace('</head>', scriptInjection + '\n</head>');
+        } else if (html.includes('<body>')) {
+          html = html.replace('<body>', '<body>\n' + scriptInjection);
+        }
+      }
       console.log('✅ Token injected into HTML, length:', token.length);
     } else if (pendingToken) {
-      html = html.replace(
-        '<script>',
-        `<script>
-        // Pending token injected by server
+      const scriptInjection = `<script>
+        // Pending token injected by server (also available in URL)
         window.serverPendingToken = ${JSON.stringify(pendingToken)};
         console.log('✅ Server injected pendingToken, length:', window.serverPendingToken.length);
-        </script>
-        <script>`
-      );
+        </script>`;
+      
+      if (html.includes('<script>')) {
+        html = html.replace('<script>', scriptInjection + '\n    <script>');
+      } else if (html.includes('    <script>')) {
+        html = html.replace('    <script>', scriptInjection + '\n    <script>');
+      } else {
+        if (html.includes('</head>')) {
+          html = html.replace('</head>', scriptInjection + '\n</head>');
+        } else if (html.includes('<body>')) {
+          html = html.replace('<body>', '<body>\n' + scriptInjection);
+        }
+      }
       console.log('✅ PendingToken injected into HTML, length:', pendingToken.length);
     } else if (error) {
-      html = html.replace(
-        '<script>',
-        `<script>
+      const scriptInjection = `<script>
         // Error injected by server
         window.serverError = ${JSON.stringify(error)};
         console.log('❌ Server injected error:', window.serverError);
-        </script>
-        <script>`
-      );
+        </script>`;
+      
+      if (html.includes('<script>')) {
+        html = html.replace('<script>', scriptInjection + '\n    <script>');
+      } else if (html.includes('    <script>')) {
+        html = html.replace('    <script>', scriptInjection + '\n    <script>');
+      } else {
+        if (html.includes('</head>')) {
+          html = html.replace('</head>', scriptInjection + '\n</head>');
+        } else if (html.includes('<body>')) {
+          html = html.replace('<body>', '<body>\n' + scriptInjection);
+        }
+      }
     }
     
     // Add cache control headers
