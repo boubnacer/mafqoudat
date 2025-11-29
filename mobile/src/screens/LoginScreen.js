@@ -139,16 +139,16 @@ const LoginScreen = ({ navigation }) => {
         
         // If deep link wasn't received, show token input option
         if (result.error && result.error.includes('Deep link callback not received')) {
+          // Automatically show token input for Expo Go users
+          setShowTokenInput(true);
           Alert.alert(
-            'Manual Token Entry',
-            'The app couldn\'t automatically receive the authentication token. Please:\n\n1. Go back to the browser\n2. Copy the token from the page\n3. Return here and paste it below',
+            'Manual Token Entry Required',
+            'The app couldn\'t automatically receive the authentication token (this is common in Expo Go).\n\nPlease:\n\n1. Go back to the browser where you selected your Google account\n2. You should see a page with your authentication token\n3. Click "Copy Token" button or manually select and copy the token\n4. Return to this app and paste it in the field below\n5. Click "Use Token" to continue',
             [
-              { text: 'Cancel', style: 'cancel' },
               { 
-                text: 'Show Token Input', 
+                text: 'Got it', 
                 onPress: () => {
-                  setShowTokenInput(true);
-                  setError('Please paste the token from the browser page');
+                  setError('Please paste the token from the browser page in the field below');
                 }
               }
             ]
@@ -212,28 +212,41 @@ const LoginScreen = ({ navigation }) => {
 
         {showTokenInput && (
           <View style={styles.tokenInputContainer}>
+            <Text style={styles.tokenInputLabel}>
+              Paste your authentication token here:
+            </Text>
+            <Text style={styles.tokenInputHint}>
+              (Copy it from the browser page after selecting your Google account)
+            </Text>
             <TextInput
               style={styles.tokenInput}
-              placeholder="Paste OAuth token here (from browser after Google login)..."
+              placeholder="Paste token here..."
               placeholderTextColor="#999"
               value={tokenInput}
-              onChangeText={setTokenInput}
+              onChangeText={(text) => {
+                setTokenInput(text);
+                setError(''); // Clear error when user types
+              }}
               multiline
               autoCapitalize="none"
+              autoCorrect={false}
+              textContentType="none"
             />
             <TouchableOpacity
-              style={[styles.button, styles.tokenButton]}
+              style={[styles.button, styles.tokenButton, !tokenInput.trim() && styles.buttonDisabled]}
               onPress={async () => {
                 if (!tokenInput.trim()) {
                   setError('Please paste a token');
                   return;
                 }
+                setIsLoading(true);
+                setError('');
                 try {
                   const token = tokenInput.trim();
                   
                   // Store token securely
                   await storage.setToken(token);
-
+                  
                   // Decode and store user data
                   const userData = decodeToken(token);
                   if (userData) {
@@ -241,15 +254,26 @@ const LoginScreen = ({ navigation }) => {
                     // Navigate to posts list
                     navigation.replace('PostsList');
                   } else {
-                    setError('Invalid token format');
+                    setError('Invalid token format. Please check the token and try again.');
                   }
                 } catch (err) {
                   console.error('Token login error:', err);
-                  setError('Invalid token');
+                  setError('Invalid token. Please make sure you copied the complete token.');
+                } finally {
+                  setIsLoading(false);
                 }
               }}
+              disabled={!tokenInput.trim() || isLoading}
             >
-              <Text style={styles.buttonText}>Use Token</Text>
+              <Text style={styles.buttonText}>
+                {isLoading ? 'Verifying...' : 'Use Token'}
+              </Text>
+            </TouchableOpacity>
+            <TouchableOpacity
+              onPress={() => setShowTokenInput(false)}
+              style={styles.hideTokenButton}
+            >
+              <Text style={styles.hideTokenText}>Hide Token Input</Text>
             </TouchableOpacity>
           </View>
         )}
@@ -422,9 +446,26 @@ const styles = StyleSheet.create({
   },
   tokenInputContainer: {
     marginBottom: 16,
+    padding: 16,
+    backgroundColor: '#f5f5f5',
+    borderRadius: 8,
+    borderWidth: 1,
+    borderColor: '#e0e0e0',
+  },
+  tokenInputLabel: {
+    fontSize: 16,
+    fontWeight: '600',
+    color: '#333',
+    marginBottom: 4,
+  },
+  tokenInputHint: {
+    fontSize: 12,
+    color: '#666',
+    marginBottom: 12,
+    fontStyle: 'italic',
   },
   tokenInput: {
-    height: 100,
+    height: 120,
     borderWidth: 1,
     borderColor: '#ddd',
     borderRadius: 8,
@@ -432,12 +473,26 @@ const styles = StyleSheet.create({
     paddingVertical: 12,
     marginBottom: 12,
     fontSize: 12,
-    backgroundColor: '#f9f9f9',
+    backgroundColor: '#fff',
     fontFamily: Platform.OS === 'ios' ? 'Courier' : 'monospace',
     textAlignVertical: 'top',
   },
   tokenButton: {
     backgroundColor: '#4CAF50',
+    marginBottom: 8,
+  },
+  buttonDisabled: {
+    backgroundColor: '#ccc',
+    opacity: 0.6,
+  },
+  hideTokenButton: {
+    padding: 8,
+    alignItems: 'center',
+  },
+  hideTokenText: {
+    fontSize: 14,
+    color: '#666',
+    textDecorationLine: 'underline',
   },
 });
 

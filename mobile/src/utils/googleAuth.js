@@ -223,6 +223,11 @@ export const initiateGoogleAuth = async () => {
             console.log('❌ 4. Make sure App.js Linking handler is active');
             console.log('❌ 5. Try manually returning to the app - AppState listener should catch it');
             console.log('❌ 6. Check if browser shows the mobile-callback page with token');
+            console.log('📱 EXPO GO USERS:');
+            console.log('📱 - Deep links may not work in Expo Go');
+            console.log('📱 - Use the manual token entry option that should appear');
+            console.log('📱 - Copy token from browser and paste in the app');
+            console.log('📱 - To see logs: Shake device > "Debug Remote JS" or check Metro bundler terminal');
             resolve({
               type: 'error',
               error: 'Deep link callback not received. Please return to the app manually after selecting your Google account.',

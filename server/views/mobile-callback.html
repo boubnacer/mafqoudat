@@ -81,9 +81,12 @@
 </head>
 <body>
     <div class="container">
-        <h1>🔐 Authentication</h1>
+        <h1>🔐 Authentication Success!</h1>
         <div id="status" class="status">Loading token...</div>
-        <textarea id="tokenDisplay" readonly placeholder="Token will appear here... If you see this placeholder, check the browser console (F12) for debugging info."></textarea>
+        <p style="margin: 10px 0; color: #666; font-size: 14px;">
+            <strong>Your authentication token is below.</strong> Copy it and return to the app.
+        </p>
+        <textarea id="tokenDisplay" readonly placeholder="Token will appear here... If you see this placeholder, the token extraction may have failed. The token should be in the URL above (after ?token=)."></textarea>
         <div>
             <button class="button" onclick="openApp()">Open App</button>
             <button class="button green" onclick="copyToken()">Copy Token</button>
