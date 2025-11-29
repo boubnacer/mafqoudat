@@ -110,13 +110,6 @@
         window.pendingToken = null;
         window.error = null;
         
-        console.log('=== TOKEN EXTRACTION START ===');
-        console.log('window.serverToken:', window.serverToken ? 'EXISTS (length: ' + window.serverToken.length + ')' : 'NOT FOUND');
-        console.log('window.serverPendingToken:', window.serverPendingToken ? 'EXISTS' : 'NOT FOUND');
-        console.log('window.serverError:', window.serverError || 'NOT FOUND');
-        console.log('window.location.search:', window.location.search);
-        console.log('window.location.href:', window.location.href);
-        
         // First, try to extract from URL (most reliable)
         var token = null;
         var pendingToken = null;
@@ -129,19 +122,13 @@
                 token = params.get('token');
                 pendingToken = params.get('pendingToken');
                 error = params.get('error');
-                console.log('URL extraction result:', { 
-                    token: token ? token.substring(0, 20) + '...' : null, 
-                    pendingToken: !!pendingToken, 
-                    error: error 
-                });
             }
         } catch (e) {
-            console.error('Error extracting from URL:', e);
+            // Silent fail, will use fallback
         }
         
         // Fallback to server-injected values if URL extraction failed
         if (!token && !pendingToken && !error) {
-            console.log('No token in URL, trying server-injected values...');
             token = window.serverToken || null;
             pendingToken = window.serverPendingToken || null;
             error = window.serverError || null;
@@ -151,13 +138,6 @@
         window.token = token;
         window.pendingToken = pendingToken;
         window.error = error;
-        
-        console.log('Final token status:', { 
-            token: token ? token.substring(0, 20) + '...' : null, 
-            pendingToken: !!pendingToken, 
-            error: error 
-        });
-        console.log('Stored in window.token:', window.token ? window.token.substring(0, 20) + '...' : null);
         
         function displayToken() {
             var tokenDisplay = document.getElementById('tokenDisplay');
@@ -180,13 +160,12 @@
                     tokenToUse = params.get('token');
                     pendingTokenToUse = params.get('pendingToken');
                     errorToUse = params.get('error');
-                    console.log('Re-extracted from URL in displayToken:', { token: !!tokenToUse, pendingToken: !!pendingTokenToUse, error: errorToUse });
                     // Update global variables
                     window.token = tokenToUse;
                     window.pendingToken = pendingTokenToUse;
                     window.error = errorToUse;
                 } catch (e) {
-                    console.error('Error re-extracting from URL:', e);
+                    // Silent fail
                 }
             }
             
@@ -195,45 +174,31 @@
                 status.textContent = '✅ Token loaded! Opening app...';
                 status.className = 'status success';
                 window.currentToken = tokenToUse;
-                console.log('✅ Token displayed in textarea, length:', tokenToUse.length);
                 
-                // Auto-open app after 500ms - try multiple methods
+                // Auto-open app after 500ms
                 setTimeout(function() {
                     var deepLink = 'mafqoudat://auth/callback?token=' + encodeURIComponent(tokenToUse);
-                    console.log('🔗 Attempting to open deep link:', deepLink);
-                    
-                    // Method 1: window.location.href (most common)
                     try {
                         window.location.href = deepLink;
-                        console.log('✅ Deep link triggered via window.location.href');
                     } catch (e) {
-                        console.error('❌ Failed to trigger via window.location.href:', e);
+                        // Try fallback methods silently
+                        setTimeout(function() {
+                            try {
+                                window.location.replace(deepLink);
+                            } catch (e2) {
+                                try {
+                                    var link = document.createElement('a');
+                                    link.href = deepLink;
+                                    link.style.display = 'none';
+                                    document.body.appendChild(link);
+                                    link.click();
+                                    document.body.removeChild(link);
+                                } catch (e3) {
+                                    // All methods failed
+                                }
+                            }
+                        }, 200);
                     }
-                    
-                    // Method 2: window.location.replace (fallback)
-                    setTimeout(function() {
-                        try {
-                            window.location.replace(deepLink);
-                            console.log('✅ Deep link triggered via window.location.replace');
-                        } catch (e) {
-                            console.error('❌ Failed to trigger via window.location.replace:', e);
-                        }
-                    }, 200);
-                    
-                    // Method 3: Create a link and click it (fallback)
-                    setTimeout(function() {
-                        try {
-                            var link = document.createElement('a');
-                            link.href = deepLink;
-                            link.style.display = 'none';
-                            document.body.appendChild(link);
-                            link.click();
-                            document.body.removeChild(link);
-                            console.log('✅ Deep link triggered via link.click()');
-                        } catch (e) {
-                            console.error('❌ Failed to trigger via link.click():', e);
-                        }
-                    }, 400);
                 }, 500);
             } else if (pendingTokenToUse) {
                 tokenDisplay.value = pendingTokenToUse;
@@ -243,40 +208,26 @@
                 
                 setTimeout(function() {
                     var deepLink = 'mafqoudat://auth/callback?pendingToken=' + encodeURIComponent(pendingTokenToUse);
-                    console.log('🔗 Attempting to open deep link:', deepLink);
-                    
-                    // Method 1: window.location.href (most common)
                     try {
                         window.location.href = deepLink;
-                        console.log('✅ Deep link triggered via window.location.href');
                     } catch (e) {
-                        console.error('❌ Failed to trigger via window.location.href:', e);
+                        setTimeout(function() {
+                            try {
+                                window.location.replace(deepLink);
+                            } catch (e2) {
+                                try {
+                                    var link = document.createElement('a');
+                                    link.href = deepLink;
+                                    link.style.display = 'none';
+                                    document.body.appendChild(link);
+                                    link.click();
+                                    document.body.removeChild(link);
+                                } catch (e3) {
+                                    // All methods failed
+                                }
+                            }
+                        }, 200);
                     }
-                    
-                    // Method 2: window.location.replace (fallback)
-                    setTimeout(function() {
-                        try {
-                            window.location.replace(deepLink);
-                            console.log('✅ Deep link triggered via window.location.replace');
-                        } catch (e) {
-                            console.error('❌ Failed to trigger via window.location.replace:', e);
-                        }
-                    }, 200);
-                    
-                    // Method 3: Create a link and click it (fallback)
-                    setTimeout(function() {
-                        try {
-                            var link = document.createElement('a');
-                            link.href = deepLink;
-                            link.style.display = 'none';
-                            document.body.appendChild(link);
-                            link.click();
-                            document.body.removeChild(link);
-                            console.log('✅ Deep link triggered via link.click()');
-                        } catch (e) {
-                            console.error('❌ Failed to trigger via link.click():', e);
-                        }
-                    }, 400);
                 }, 500);
             } else if (errorToUse) {
                 tokenDisplay.value = 'ERROR: ' + errorToUse;
@@ -289,14 +240,8 @@
                 errorMsg += 'Server token: ' + (window.serverToken ? 'EXISTS' : 'NOT FOUND') + '\n';
                 errorMsg += 'URL token: ' + (new URLSearchParams(window.location.search).get('token') ? 'EXISTS' : 'NOT FOUND');
                 tokenDisplay.value = errorMsg;
-                status.textContent = '❌ No token found - check console for details';
+                status.textContent = '❌ No token found';
                 status.className = 'status error';
-                console.error('❌ No token found!');
-                console.error('URL:', window.location.href);
-                console.error('Search:', window.location.search);
-                console.error('Server token:', window.serverToken);
-                console.error('Token variable:', window.token || token);
-                console.error('URL token:', new URLSearchParams(window.location.search).get('token'));
             }
         }
         
@@ -315,15 +260,13 @@
                     var params = new URLSearchParams(window.location.search);
                     tokenToUse = params.get('token');
                     pendingTokenToUse = params.get('pendingToken');
-                    console.log('Extracted from URL in openApp:', { token: !!tokenToUse, pendingToken: !!pendingTokenToUse });
                 } catch (e) {
-                    console.error('Error extracting from URL in openApp:', e);
+                    // Silent fail
                 }
             }
             
             if (!tokenToUse && !pendingTokenToUse) {
                 alert('No token available. Please check the token display above.');
-                console.error('No token found for openApp');
                 return;
             }
             
@@ -334,23 +277,16 @@
                 deepLink += 'pendingToken=' + encodeURIComponent(pendingTokenToUse);
             }
             
-            console.log('🔗 Manual openApp - deep link:', deepLink.substring(0, 100) + '...');
-            console.log('🔗 Full deep link length:', deepLink.length);
-            
             // Try multiple methods
             var success = false;
             try {
                 window.location.href = deepLink;
                 success = true;
-                console.log('✅ Deep link set via window.location.href');
             } catch (e) {
-                console.error('❌ Failed window.location.href:', e);
                 try {
                     window.location.replace(deepLink);
                     success = true;
-                    console.log('✅ Deep link set via window.location.replace');
                 } catch (e2) {
-                    console.error('❌ Failed window.location.replace:', e2);
                     try {
                         var link = document.createElement('a');
                         link.href = deepLink;
@@ -359,9 +295,7 @@
                         link.click();
                         document.body.removeChild(link);
                         success = true;
-                        console.log('✅ Deep link triggered via link.click()');
                     } catch (e3) {
-                        console.error('❌ All methods failed:', e3);
                         alert('Failed to open app. Please copy the token and return to the app manually.');
                     }
                 }
@@ -388,13 +322,12 @@
                     var params = new URLSearchParams(window.location.search);
                     tokenToCopy = params.get('token') || params.get('pendingToken');
                 } catch (e) {
-                    console.error('Error extracting token for copy:', e);
+                    // Silent fail
                 }
             }
             
             if (!tokenToCopy || tokenToCopy.includes('ERROR')) {
                 alert('No token available to copy. Please check the token display above.');
-                console.error('No token found for copying');
                 return;
             }
             
@@ -409,9 +342,7 @@
             if (navigator.clipboard && navigator.clipboard.writeText) {
                 navigator.clipboard.writeText(tokenToCopy).then(function() {
                     alert('✅ Token copied to clipboard! Return to the app and paste it in the token input field.');
-                    console.log('✅ Token copied via clipboard API');
                 }).catch(function(err) {
-                    console.error('Clipboard API failed:', err);
                     // Fallback to execCommand
                     try {
                         if (document.execCommand('copy')) {
@@ -419,7 +350,7 @@
                             return;
                         }
                     } catch(e) {
-                        console.error('execCommand failed:', e);
+                        // Silent fail
                     }
                     alert('Please manually select and copy the token from the text area above.');
                 });
@@ -431,7 +362,7 @@
                         return;
                     }
                 } catch(e) {
-                    console.error('execCommand failed:', e);
+                    // Silent fail
                 }
                 alert('Please manually select and copy the token from the text area above.');
             }
@@ -439,20 +370,9 @@
         
         // Run immediately and also when DOM is ready
         function initDisplay() {
-            console.log('Initializing token display...');
-            console.log('Document ready state:', document.readyState);
-            console.log('Token available:', !!token, !!pendingToken, !!error);
-            console.log('Window token:', !!window.token);
-            console.log('URL search:', window.location.search);
-            
             if (document.readyState === 'loading') {
-                document.addEventListener('DOMContentLoaded', function() {
-                    console.log('DOM loaded, calling displayToken');
-                    displayToken();
-                });
+                document.addEventListener('DOMContentLoaded', displayToken);
             } else {
-                // DOM already loaded
-                console.log('DOM already loaded, calling displayToken immediately');
                 displayToken();
             }
         }
@@ -462,10 +382,7 @@
         
         // Also try after delays to ensure everything is ready
         [100, 300, 500, 1000].forEach(function(delay) {
-            setTimeout(function() {
-                console.log('Delayed displayToken call after', delay, 'ms');
-                displayToken();
-            }, delay);
+            setTimeout(displayToken, delay);
         });
     </script>
 </body>

@@ -51,6 +51,12 @@ const PostsListScreen = ({ navigation }) => {
     const userData = await storage.getUserData();
     if (userData?.country) {
       setCurrentCountry(userData.country);
+    } else {
+      // Fallback: check stored country from Welcome screen
+      const storedCountry = await storage.getCurrentCountry();
+      if (storedCountry) {
+        setCurrentCountry(storedCountry);
+      }
     }
   };
 
@@ -64,7 +70,12 @@ const PostsListScreen = ({ navigation }) => {
 
       // Get current country (required by API)
       const userData = await storage.getUserData();
-      const country = userData?.country || currentCountry;
+      let country = userData?.country || currentCountry;
+      
+      // Fallback: check stored country from Welcome screen
+      if (!country) {
+        country = await storage.getCurrentCountry();
+      }
 
       if (!country) {
         setError(t('countryNotSet'));

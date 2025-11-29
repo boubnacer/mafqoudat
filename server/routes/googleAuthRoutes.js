@@ -39,12 +39,6 @@ router.get('/google', (req, res, next) => {
                    req.headers['user-agent']?.includes('Mobile') ||
                    req.headers['x-requested-with'] === 'mobile';
   
-  console.log('🔵 Google OAuth initiation:');
-  console.log('🔵 isMobile:', isMobile);
-  console.log('🔵 query.mobile:', req.query.mobile);
-  console.log('🔵 user-agent:', req.headers['user-agent']);
-  console.log('🔵 FRONTEND_URL env:', process.env.FRONTEND_URL || 'NOT SET');
-  console.log('🔵 CLIENT_URL env:', process.env.CLIENT_URL || 'NOT SET');
   
   // Store mobile flag in session/state for callback
   req.session = req.session || {};
@@ -77,8 +71,6 @@ router.get('/google/callback',
                        req.headers['user-agent']?.includes('Expo') ||
                        req.headers['user-agent']?.includes('ReactNative');
       
-      console.log('Google OAuth callback - isMobile:', isMobile, 'state:', req.query.state, 'mobile param:', req.query.mobile, 'user-agent:', req.headers['user-agent'], 'user:', user?.email);
-      console.log('Frontend URL from env:', frontendUrl);
 
       // Check if this is a pending user (new registration)
       if (user && user.isPending) {
@@ -105,13 +97,10 @@ router.get('/google/callback',
           const host = req.get('host') || 'mafqoudat-production.up.railway.app';
           const serverUrl = `${protocol}://${host}`;
           const mobileRedirectUrl = `${serverUrl}/auth/mobile-callback?pendingToken=${encodeURIComponent(pendingToken)}`;
-          console.log('🔵 MOBILE REDIRECT (pending, to HTML page):', mobileRedirectUrl);
-          console.log('🔵 HTML page will trigger: mafqoudat://auth/callback?pendingToken=...');
           return res.redirect(mobileRedirectUrl);
         } else {
           // Redirect to frontend to select country
           const webUrl = `${frontendUrl}/auth/select-country?pendingToken=${pendingToken}`;
-          console.log('🌐 WEB REDIRECT (pending):', webUrl);
           return res.redirect(webUrl);
         }
       }
@@ -140,15 +129,10 @@ router.get('/google/callback',
             const host = req.get('host') || 'mafqoudat-production.up.railway.app';
             const serverUrl = `${protocol}://${host}`;
             const mobileRedirectUrl = `${serverUrl}/auth/mobile-callback?token=${encodeURIComponent(tokens.accessToken)}`;
-            console.log('🔵 MOBILE REDIRECT (to HTML page):', mobileRedirectUrl);
-            console.log('🔵 Frontend URL used:', frontendUrl);
-            console.log('🔵 Token length:', tokens.accessToken?.length);
-            console.log('🔵 HTML page will trigger: mafqoudat://auth/callback?token=...');
             return res.redirect(mobileRedirectUrl);
           } else {
             // Redirect to frontend with token
             const webUrl = `${frontendUrl}/auth/callback?token=${tokens.accessToken}`;
-            console.log('🌐 WEB REDIRECT:', webUrl);
             return res.redirect(webUrl);
           }
         } catch (tokenError) {
@@ -380,11 +364,6 @@ router.get('/mobile-callback', (req, res) => {
   try {
     const { token, pendingToken, error } = req.query;
     
-    console.log('📱 Mobile callback HTML page requested:', { 
-      token: token ? `${token.substring(0, 20)}...` : null,
-      pendingToken: pendingToken ? `${pendingToken.substring(0, 20)}...` : null,
-      error 
-    });
     
     // Read the HTML file
     const htmlPath = path.join(__dirname, '../views/mobile-callback.html');
@@ -397,7 +376,6 @@ router.get('/mobile-callback', (req, res) => {
       const scriptInjection = `<script>
         // Token injected by server (also available in URL)
         window.serverToken = ${JSON.stringify(token)};
-        console.log('✅ Server injected token, length:', window.serverToken.length);
         </script>`;
       
       // Try multiple replacement strategies
@@ -413,12 +391,10 @@ router.get('/mobile-callback', (req, res) => {
           html = html.replace('<body>', '<body>\n' + scriptInjection);
         }
       }
-      console.log('✅ Token injected into HTML, length:', token.length);
     } else if (pendingToken) {
       const scriptInjection = `<script>
         // Pending token injected by server (also available in URL)
         window.serverPendingToken = ${JSON.stringify(pendingToken)};
-        console.log('✅ Server injected pendingToken, length:', window.serverPendingToken.length);
         </script>`;
       
       if (html.includes('<script>')) {
@@ -432,12 +408,10 @@ router.get('/mobile-callback', (req, res) => {
           html = html.replace('<body>', '<body>\n' + scriptInjection);
         }
       }
-      console.log('✅ PendingToken injected into HTML, length:', pendingToken.length);
     } else if (error) {
       const scriptInjection = `<script>
         // Error injected by server
         window.serverError = ${JSON.stringify(error)};
-        console.log('❌ Server injected error:', window.serverError);
         </script>`;
       
       if (html.includes('<script>')) {

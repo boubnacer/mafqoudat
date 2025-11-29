@@ -4,9 +4,11 @@
  */
 
 import * as SecureStore from 'expo-secure-store';
+import AsyncStorage from '@react-native-async-storage/async-storage';
 
 const TOKEN_KEY = 'accessToken';
 const USER_KEY = 'userData';
+const COUNTRY_KEY = 'currentCountry';
 
 export const storage = {
   // Token storage
@@ -70,11 +72,42 @@ export const storage = {
     }
   },
 
+  // Country storage (using AsyncStorage as it's not sensitive)
+  async setCurrentCountry(countryId) {
+    try {
+      await AsyncStorage.setItem(COUNTRY_KEY, countryId);
+      return true;
+    } catch (error) {
+      console.error('Error storing country:', error);
+      return false;
+    }
+  },
+
+  async getCurrentCountry() {
+    try {
+      return await AsyncStorage.getItem(COUNTRY_KEY);
+    } catch (error) {
+      console.error('Error getting country:', error);
+      return null;
+    }
+  },
+
+  async removeCurrentCountry() {
+    try {
+      await AsyncStorage.removeItem(COUNTRY_KEY);
+      return true;
+    } catch (error) {
+      console.error('Error removing country:', error);
+      return false;
+    }
+  },
+
   // Clear all stored data
   async clearAll() {
     try {
       await this.removeToken();
       await this.removeUserData();
+      await this.removeCurrentCountry();
       return true;
     } catch (error) {
       console.error('Error clearing storage:', error);

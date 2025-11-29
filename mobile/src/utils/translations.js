@@ -64,6 +64,7 @@ export const translations = {
     // Google OAuth
     continueWithGoogle: "Continue with Google",
     chooseCountry: "Choose Your Country",
+    chooseCountryTitle: "Select Your Country",
     chooseCountryDescription: "Select your country to see lost and found items in your area",
     searchCountry: "Search country...",
     continueToPosts: "Continue",
@@ -134,6 +135,7 @@ export const translations = {
     // Google OAuth
     continueWithGoogle: "Continuer avec Google",
     chooseCountry: "Choisissez votre pays",
+    chooseCountryTitle: "Sélectionnez votre pays",
     chooseCountryDescription: "Sélectionnez votre pays pour voir les objets perdus et trouvés dans votre région",
     searchCountry: "Rechercher un pays...",
     continueToPosts: "Continuer",
@@ -204,6 +206,7 @@ export const translations = {
     // Google OAuth
     continueWithGoogle: "المتابعة مع جوجل",
     chooseCountry: "اختر بلدك",
+    chooseCountryTitle: "اختر بلدك",
     chooseCountryDescription: "حدد بلدك لرؤية العناصر المفقودة والموجودة في منطقتك",
     searchCountry: "البحث عن بلد...",
     continueToPosts: "متابعة",
