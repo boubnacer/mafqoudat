@@ -4,6 +4,7 @@
     "slug": "mafqoudat",
     "version": "1.0.0",
     "orientation": "portrait",
+    "scheme": "mafqoudat",
     "icon": "./assets/icon.png",
     "userInterfaceStyle": "light",
     "splash": {
@@ -55,4 +56,3 @@
     ]
   }
 }
-

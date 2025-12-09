@@ -39,15 +39,21 @@ router.get('/google', (req, res, next) => {
                    req.headers['user-agent']?.includes('Mobile') ||
                    req.headers['x-requested-with'] === 'mobile';
   
-  
-  // Store mobile flag in session/state for callback
+  // Store mobile flag and redirect_uri in session/state for callback
   req.session = req.session || {};
   req.session.isMobile = isMobile;
+  req.session.redirectUri = req.query.redirect_uri;
+  
+  // Create state with mobile flag and redirect_uri
+  const state = {
+    mobile: isMobile,
+    redirectUri: req.query.redirect_uri
+  };
   
   passport.authenticate('google', { 
     session: false,
     scope: ['profile', 'email'],
-    state: isMobile ? 'mobile' : undefined
+    state: Buffer.from(JSON.stringify(state)).toString('base64')
   })(req, res, next);
 });
 
@@ -64,12 +70,24 @@ router.get('/google/callback',
       const user = req.user;
       const frontendUrl = process.env.FRONTEND_URL || process.env.CLIENT_URL || 'http://localhost:3000';
       
-      // Check if this is a mobile request (from query param or state)
-      const isMobile = req.query.state === 'mobile' || 
-                       req.query.mobile === 'true' ||
-                       req.headers['user-agent']?.includes('Mobile') ||
-                       req.headers['user-agent']?.includes('Expo') ||
-                       req.headers['user-agent']?.includes('ReactNative');
+      // Parse state to get mobile flag and redirect_uri
+      let isMobile = false;
+      let redirectUri = null;
+      
+      try {
+        if (req.query.state) {
+          const stateData = JSON.parse(Buffer.from(req.query.state, 'base64').toString());
+          isMobile = stateData.mobile || false;
+          redirectUri = stateData.redirectUri;
+        }
+      } catch (e) {
+        // Fallback to old detection methods
+        isMobile = req.query.state === 'mobile' || 
+                   req.query.mobile === 'true' ||
+                   req.headers['user-agent']?.includes('Mobile') ||
+                   req.headers['user-agent']?.includes('Expo') ||
+                   req.headers['user-agent']?.includes('ReactNative');
+      }
       
 
       // Check if this is a pending user (new registration)
@@ -443,4 +461,3 @@ router.get('/mobile-callback', (req, res) => {
 });
 
 module.exports = router;
-

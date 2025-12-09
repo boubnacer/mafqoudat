@@ -97,15 +97,7 @@ const LoginScreen = ({ navigation }) => {
     setError('');
 
     try {
-      console.log('Initiating Google login...');
-      
-      // Show a message to user that they may need to return to app manually
-      // This is because the browser might not automatically open the app when deep link is triggered
-      Alert.alert(
-        t('continueWithGoogle'),
-        'After choosing your Google account, you may need to manually return to this app. The app will detect the authentication automatically.',
-        [{ text: 'OK' }]
-      );
+      console.log('Initiating Google login with Expo AuthSession...');
       
       const result = await initiateGoogleAuth();
       console.log('Google login result:', result);
@@ -133,27 +125,9 @@ const LoginScreen = ({ navigation }) => {
         setError('');
       } else {
         console.error('OAuth error:', result.error);
-        // Error occurred - show token input option
+        // Error occurred
         const errorMessage = result.error || t('oauthError') || 'Google authentication failed';
         setError(errorMessage);
-        
-        // If deep link wasn't received, show token input option
-        if (result.error && result.error.includes('Deep link callback not received')) {
-          // Automatically show token input for Expo Go users
-          setShowTokenInput(true);
-          Alert.alert(
-            'Manual Token Entry Required',
-            'The app couldn\'t automatically receive the authentication token (this is common in Expo Go).\n\nPlease:\n\n1. Go back to the browser where you selected your Google account\n2. You should see a page with your authentication token\n3. Click "Copy Token" button or manually select and copy the token\n4. Return to this app and paste it in the field below\n5. Click "Use Token" to continue',
-            [
-              { 
-                text: 'Got it', 
-                onPress: () => {
-                  setError('Please paste the token from the browser page in the field below');
-                }
-              }
-            ]
-          );
-        }
       }
     } catch (err) {
       console.error('Google login error:', err);
@@ -497,4 +471,3 @@ const styles = StyleSheet.create({
 });
 
 export default LoginScreen;
-
