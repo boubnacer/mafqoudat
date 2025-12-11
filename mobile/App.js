@@ -19,14 +19,16 @@ export default function App() {
   const navigationRef = useRef();
   const isReadyRef = useRef(false);
 
-  // Simplified deep linking - Expo AuthSession handles most of this automatically
-  // Only keeping basic deep link handling for manual token entry fallback
+  // Simplified deep linking for OAuth callback
   useEffect(() => {
     const handleDeepLink = (event) => {
       const url = event?.url || event;
       
-      if (url && url.startsWith('mafqoudat://auth/callback')) {
+      console.log('Deep link received:', url);
+      
+      if (url && url.includes('mafqoudat://')) {
         try {
+          // Parse the deep link URL
           const urlObj = new URL(url.replace('mafqoudat://', 'https://'));
           const searchParams = new URLSearchParams(urlObj.search);
           
@@ -34,14 +36,24 @@ export default function App() {
           const pendingToken = searchParams.get('pendingToken');
           const error = searchParams.get('error');
 
+          console.log('Parsed deep link:', { token, pendingToken, error });
+
+          // Navigate based on the response
           if (isReadyRef.current && navigationRef.current) {
             if (token) {
+              console.log('Navigating to OAuthCallback with token');
               navigationRef.current.navigate('OAuthCallback', { token });
             } else if (pendingToken) {
+              console.log('Navigating to CountrySelection with pendingToken');
               navigationRef.current.navigate('CountrySelection', { pendingToken });
             } else if (error) {
+              console.log('Navigating to OAuthCallback with error');
               navigationRef.current.navigate('OAuthCallback', { error });
             }
+          } else {
+            console.log('Navigation not ready, storing deep link for later');
+            // Store the deep link to handle when navigation is ready
+            global.pendingDeepLink = url;
           }
         } catch (err) {
           console.error('Deep link handling error:', err);
@@ -52,16 +64,31 @@ export default function App() {
     // Get initial URL if app was opened via deep link
     Linking.getInitialURL().then((url) => {
       if (url) {
+        console.log('Initial URL found:', url);
         handleDeepLink({ url });
       }
-    }).catch(() => {
-      // Silent fail
+    }).catch((err) => {
+      console.error('Error getting initial URL:', err);
     });
 
+    // Listen for deep links while app is running
     const subscription = Linking.addEventListener('url', handleDeepLink);
+
+    // Handle any pending deep link when navigation becomes ready
+    const checkPendingDeepLink = () => {
+      if (global.pendingDeepLink && isReadyRef.current && navigationRef.current) {
+        console.log('Processing pending deep link:', global.pendingDeepLink);
+        handleDeepLink({ url: global.pendingDeepLink });
+        global.pendingDeepLink = null;
+      }
+    };
+
+    // Check for pending deep links periodically
+    const pendingCheckInterval = setInterval(checkPendingDeepLink, 500);
 
     return () => {
       subscription?.remove();
+      clearInterval(pendingCheckInterval);
     };
   }, []);
 

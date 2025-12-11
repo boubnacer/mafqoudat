@@ -1,67 +1,117 @@
 /**
- * Google OAuth Utility for Mobile using Expo AuthSession
- * Simplified and more reliable implementation
+ * Google OAuth Utility for Mobile - Simple Redirect Approach
+ * Mirrors the website implementation for consistency
  */
 
-import * as AuthSession from 'expo-auth-session';
 import * as WebBrowser from 'expo-web-browser';
+import { Linking } from 'react-native';
 import { API_BASE_URL } from '../config/api';
 
 // Complete the auth session when done
 WebBrowser.maybeCompleteAuthSession();
 
 /**
- * Initiate Google OAuth flow using Expo AuthSession
+ * Initiate Google OAuth flow using simple redirect (like website)
  * @returns {Promise<Object>} Auth result with type and data
  */
 export const initiateGoogleAuth = async () => {
   try {
-    // Use Expo AuthSession for more reliable OAuth handling
-    const redirectUrl = AuthSession.makeRedirectUri({
-      scheme: 'mafqoudat',
-      path: 'auth/callback',
+    console.log('Initiating Google OAuth with simple redirect approach...');
+    
+    // Use the same approach as website - direct redirect to server
+    // This will handle the OAuth flow server-side and redirect back
+    const authUrl = `${API_BASE_URL}/auth/google`;
+    
+    console.log('Auth URL:', authUrl);
+
+    // Open browser for OAuth - let server handle everything
+    const result = await WebBrowser.openBrowserAsync(authUrl, {
+      // Enable JavaScript for proper redirects
+      enableJavaScript: true,
+      // Allow popups for Google OAuth
+      enableDefaultShareMenus: false,
+      // Set a reasonable timeout
+      dismissButtonStyle: 'close',
+      // Reader mode should be disabled for OAuth
+      readerMode: false,
     });
 
+    console.log('Browser result:', result);
+
+    // For simple redirect approach, we rely on deep linking to catch the callback
+    // The result type doesn't matter as much as the deep link handling
+    if (result.type === 'cancel') {
+      return {
+        type: 'cancel',
+      };
+    }
+    
+    // For dismiss or closed, we'll rely on deep link handling in App.js
+    return {
+      type: 'pending',
+      message: 'OAuth initiated, waiting for callback...',
+    };
+  } catch (error) {
+    console.error('Google Auth Error:', error);
+    return {
+      type: 'error',
+      error: error.message || 'Failed to initiate Google authentication',
+    };
+  }
+};
+
+/**
+ * Alternative approach using WebBrowser with auth session
+ * This is more like the original implementation but simplified
+ */
+export const initiateGoogleAuthWithSession = async () => {
+  try {
+    // Create redirect URL for deep linking
+    const redirectUrl = 'mafqoudat://auth/callback';
     console.log('Redirect URL:', redirectUrl);
 
-    // Construct the OAuth URL with mobile parameter and redirect URL
+    // Construct the OAuth URL with mobile parameter
     const authUrl = `${API_BASE_URL}/auth/google?mobile=true&redirect_uri=${encodeURIComponent(redirectUrl)}`;
     
     console.log('Auth URL:', authUrl);
 
-    // Start the auth session
-    const result = await AuthSession.startAsync({
-      authUrl,
-      returnUrl: redirectUrl,
-    });
+    // Open browser for OAuth with session
+    const result = await WebBrowser.openAuthSessionAsync(authUrl, redirectUrl);
 
     console.log('Auth result:', result);
 
     // Handle the result
     if (result.type === 'success') {
-      const { params } = result;
+      const url = result.url;
+      
+      // Parse the URL to extract parameters
+      const urlParams = new URLSearchParams(url.split('?')[1] || '');
+      
+      const token = urlParams.get('token');
+      const pendingToken = urlParams.get('pendingToken');
+      const error = urlParams.get('error');
       
       // Check for token (existing user)
-      if (params.token) {
+      if (token) {
         return {
           type: 'success',
-          accessToken: params.token,
+          accessToken: token,
         };
       }
       
       // Check for pendingToken (new user)
-      if (params.pendingToken) {
+      if (pendingToken) {
         return {
           type: 'pending',
-          pendingToken: params.pendingToken,
+          pendingToken: pendingToken,
         };
       }
       
       // Check for error
-      if (params.error) {
+      if (error) {
         return {
           type: 'error',
-          error: params.error,
+          error: error,
         };
       }
       
@@ -78,8 +128,8 @@ export const initiateGoogleAuth = async () => {
     }
     
     return {
-      type: 'error',
-      error: 'Authentication failed',
+      type: 'dismiss',
+      error: 'Browser closed without successful redirect. Please use manual token entry.',
     };
   } catch (error) {
     console.error('Google Auth Error:', error);

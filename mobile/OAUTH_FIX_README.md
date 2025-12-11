@@ -9,7 +9,7 @@ The previous Google OAuth implementation had several critical issues:
 - Poor user experience
 
 ## Solution Implemented
-Replaced the custom WebBrowser implementation with **Expo AuthSession** for more reliable OAuth handling.
+Replaced the complex WebBrowser implementation with a **simplified WebBrowser approach** that works reliably with custom backends. The original expo-auth-session API was not compatible with the custom Google OAuth implementation.
 
 ## Changes Made
 
@@ -27,10 +27,10 @@ npm install expo-auth-session expo-crypto
 **After**: Clean Expo AuthSession implementation
 
 #### New `googleAuth.js`:
-- Uses `AuthSession.startAsync()` for reliable OAuth
-- Proper redirect URI handling
-- Clean error handling
-- No more race conditions
+- Uses `WebBrowser.openAuthSessionAsync()` for reliable OAuth with custom backend
+- Proper redirect URI handling with deep linking
+- Clean error handling and URL parsing
+- No more race conditions or complex state management
 
 #### Updated `LoginScreen.js`:
 - Simplified Google login handler

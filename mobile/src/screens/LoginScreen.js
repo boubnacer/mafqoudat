@@ -97,43 +97,41 @@ const LoginScreen = ({ navigation }) => {
     setError('');
 
     try {
-      console.log('Initiating Google login with Expo AuthSession...');
+      console.log('Initiating Google login with simple redirect approach...');
       
       const result = await initiateGoogleAuth();
       console.log('Google login result:', result);
 
-      if (result.type === 'success' && result.accessToken) {
-        console.log('OAuth successful, storing token...');
-        // Store token securely
-        await storage.setToken(result.accessToken);
-
-        // Decode and store user data
-        const userData = decodeToken(result.accessToken);
-        if (userData) {
-          await storage.setUserData(userData);
-        }
-
-        // Navigate to posts list
-        navigation.replace('PostsList');
-      } else if (result.type === 'pending' && result.pendingToken) {
-        console.log('OAuth pending, navigating to country selection...');
-        // New user - needs country selection
-        navigation.navigate('CountrySelection', { pendingToken: result.pendingToken });
-      } else if (result.type === 'cancel') {
+      if (result.type === 'cancel') {
         console.log('User cancelled OAuth');
         // User cancelled - do nothing
         setError('');
-      } else {
+      } else if (result.type === 'error') {
         console.error('OAuth error:', result.error);
         // Error occurred
         const errorMessage = result.error || t('oauthError') || 'Google authentication failed';
         setError(errorMessage);
+      } else {
+        // For 'pending' or other types, we rely on deep linking in App.js
+        console.log('OAuth initiated, waiting for deep link callback...');
+        setError('Please complete authentication in the browser...');
+        
+        // Show token input as fallback after a delay
+        setTimeout(() => {
+          if (isGoogleLoading) {
+            setShowTokenInput(true);
+            setError('If automatic redirect fails, please copy the token from the browser and paste it below');
+          }
+        }, 10000); // 10 seconds delay
       }
     } catch (err) {
       console.error('Google login error:', err);
       setError(err.message || t('oauthError') || 'Google authentication failed');
     } finally {
-      setIsGoogleLoading(false);
+      // Don't set loading to false immediately - wait for callback or timeout
+      setTimeout(() => {
+        setIsGoogleLoading(false);
+      }, 15000); // 15 seconds timeout
     }
   };
 
