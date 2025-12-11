@@ -10,6 +10,7 @@ const Visitor = require("../models/Visitor");
 const bcrypt = require("bcrypt");
 const { logEvents } = require("../middleware/logger");
 
+
 // @desc Get all reports with pagination and filtering
 // @route GET /admin/reports
 // @access Private (Admin only)
