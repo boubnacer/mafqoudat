@@ -74,20 +74,30 @@ router.get('/google/callback',
       let isMobile = false;
       let redirectUri = null;
       
+      console.log('🔍 Google OAuth callback analysis:');
+      console.log('   Query params:', req.query);
+      console.log('   User-Agent:', req.headers['user-agent']);
+      console.log('   State:', req.query.state);
+      
       try {
         if (req.query.state) {
           const stateData = JSON.parse(Buffer.from(req.query.state, 'base64').toString());
           isMobile = stateData.mobile || false;
           redirectUri = stateData.redirectUri;
+          console.log('   Parsed state:', { isMobile, redirectUri });
         }
       } catch (e) {
+        console.log('   State parsing failed:', e.message);
         // Fallback to old detection methods
         isMobile = req.query.state === 'mobile' || 
                    req.query.mobile === 'true' ||
                    req.headers['user-agent']?.includes('Mobile') ||
                    req.headers['user-agent']?.includes('Expo') ||
                    req.headers['user-agent']?.includes('ReactNative');
+        console.log('   Fallback detection - isMobile:', isMobile);
       }
+      
+      console.log('   Final mobile detection result:', isMobile);
       
 
       // Check if this is a pending user (new registration)
@@ -382,67 +392,45 @@ router.get('/mobile-callback', (req, res) => {
   try {
     const { token, pendingToken, error } = req.query;
     
+    console.log('🔍 Mobile callback received:', {
+      token: token ? 'EXISTS' : 'MISSING',
+      pendingToken: pendingToken ? 'EXISTS' : 'MISSING',
+      error: error ? 'EXISTS' : 'MISSING',
+      fullUrl: req.originalUrl
+    });
     
     // Read the HTML file
     const htmlPath = path.join(__dirname, '../views/mobile-callback.html');
     let html = fs.readFileSync(htmlPath, 'utf8');
     
-    // Inject token directly into HTML - add script BEFORE the existing script
-    // Note: Token is also in URL query string, so this is a fallback
+    // Simplified token injection - just inject into head
+    let scriptInjection = '';
     if (token) {
-      // Try to inject before the first <script> tag
-      const scriptInjection = `<script>
-        // Token injected by server (also available in URL)
+      scriptInjection = `<script>
+        // Token injected by server
+        console.log('🔑 Server injected token:', ${JSON.stringify(token)});
         window.serverToken = ${JSON.stringify(token)};
-        </script>`;
-      
-      // Try multiple replacement strategies
-      if (html.includes('<script>')) {
-        html = html.replace('<script>', scriptInjection + '\n    <script>');
-      } else if (html.includes('    <script>')) {
-        html = html.replace('    <script>', scriptInjection + '\n    <script>');
-      } else {
-        // Fallback: inject before </head> or <body>
-        if (html.includes('</head>')) {
-          html = html.replace('</head>', scriptInjection + '\n</head>');
-        } else if (html.includes('<body>')) {
-          html = html.replace('<body>', '<body>\n' + scriptInjection);
-        }
-      }
+      </script>`;
     } else if (pendingToken) {
-      const scriptInjection = `<script>
-        // Pending token injected by server (also available in URL)
+      scriptInjection = `<script>
+        // Pending token injected by server
+        console.log('⏳ Server injected pending token:', ${JSON.stringify(pendingToken)});
         window.serverPendingToken = ${JSON.stringify(pendingToken)};
-        </script>`;
-      
-      if (html.includes('<script>')) {
-        html = html.replace('<script>', scriptInjection + '\n    <script>');
-      } else if (html.includes('    <script>')) {
-        html = html.replace('    <script>', scriptInjection + '\n    <script>');
-      } else {
-        if (html.includes('</head>')) {
-          html = html.replace('</head>', scriptInjection + '\n</head>');
-        } else if (html.includes('<body>')) {
-          html = html.replace('<body>', '<body>\n' + scriptInjection);
-        }
-      }
+      </script>`;
     } else if (error) {
-      const scriptInjection = `<script>
+      scriptInjection = `<script>
         // Error injected by server
+        console.log('❌ Server injected error:', ${JSON.stringify(error)});
         window.serverError = ${JSON.stringify(error)};
-        </script>`;
-      
-      if (html.includes('<script>')) {
-        html = html.replace('<script>', scriptInjection + '\n    <script>');
-      } else if (html.includes('    <script>')) {
-        html = html.replace('    <script>', scriptInjection + '\n    <script>');
-      } else {
-        if (html.includes('</head>')) {
-          html = html.replace('</head>', scriptInjection + '\n</head>');
-        } else if (html.includes('<body>')) {
-          html = html.replace('<body>', '<body>\n' + scriptInjection);
-        }
-      }
+      </script>`;
+    }
+    
+    // Inject before </head> tag
+    if (html.includes('</head>')) {
+      html = html.replace('</head>', scriptInjection + '\n</head>');
+    } else {
+      // Fallback: inject at the beginning
+      html = scriptInjection + '\n' + html;
     }
     
     // Add cache control headers
@@ -453,9 +441,10 @@ router.get('/mobile-callback', (req, res) => {
       'Content-Type': 'text/html; charset=utf-8'
     });
     
+    console.log('📤 Sending mobile callback HTML with injection');
     res.send(html);
   } catch (err) {
-    console.error('Error serving mobile callback page:', err);
+    console.error('❌ Error serving mobile callback page:', err);
     res.status(500).send('Error loading callback page');
   }
 });

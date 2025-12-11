@@ -115,6 +115,10 @@
         var pendingToken = null;
         var error = null;
         
+        console.log('🔍 Starting token extraction...');
+        console.log('📍 Current URL:', window.location.href);
+        console.log('🔍 Search params:', window.location.search);
+        
         try {
             var search = window.location.search;
             if (search) {
@@ -122,9 +126,14 @@
                 token = params.get('token');
                 pendingToken = params.get('pendingToken');
                 error = params.get('error');
+                console.log('📋 Extracted from URL:', {
+                    token: token ? 'EXISTS' : 'MISSING',
+                    pendingToken: pendingToken ? 'EXISTS' : 'MISSING',
+                    error: error ? 'EXISTS' : 'MISSING'
+                });
             }
         } catch (e) {
-            // Silent fail, will use fallback
+            console.error('❌ Error extracting from URL:', e);
         }
         
         // Fallback to server-injected values if URL extraction failed
