@@ -18,9 +18,13 @@ export const initiateGoogleAuth = async () => {
   try {
     console.log('Initiating Google OAuth with simple redirect approach...');
     
-    // Use the same approach as website - direct redirect to server
+    // Create redirect URL for deep linking
+    const redirectUrl = 'mafqoudat://auth/callback';
+    console.log('Redirect URL:', redirectUrl);
+
+    // Use the same approach as website but with mobile parameters
     // This will handle the OAuth flow server-side and redirect back
-    const authUrl = `${API_BASE_URL}/auth/google`;
+    const authUrl = `${API_BASE_URL}/auth/google?mobile=true&redirect_uri=${encodeURIComponent(redirectUrl)}`;
     
     console.log('Auth URL:', authUrl);
 
