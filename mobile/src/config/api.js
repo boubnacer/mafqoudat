@@ -8,6 +8,11 @@ export const API_BASE_URL =
   process.env.EXPO_PUBLIC_API_URL || 
   "https://mafqoudat-production.up.railway.app";
 
+// Google OAuth Configuration
+export const GOOGLE_WEB_CLIENT_ID = 
+  process.env.EXPO_PUBLIC_GOOGLE_WEB_CLIENT_ID || 
+  "your-google-web-client-id-here";
+
 export const API_ENDPOINTS = {
   AUTH: {
     LOGIN: "/auth",
@@ -24,4 +29,3 @@ export const API_ENDPOINTS = {
 };
 
 export const API_TIMEOUT = 30000; // 30 seconds
-

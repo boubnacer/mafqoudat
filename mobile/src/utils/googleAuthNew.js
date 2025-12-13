@@ -2,7 +2,7 @@ import * as WebBrowser from 'expo-web-browser';
 import * as AuthSession from 'expo-auth-session';
 import { makeRedirectUri } from 'expo-auth-session';
 import { Platform } from 'react-native';
-import { GOOGLE_WEB_CLIENT_ID, API_BASE_URL } from '../config/constants';
+import { GOOGLE_WEB_CLIENT_ID, API_BASE_URL } from '../config/api';
 
 WebBrowser.maybeCompleteAuthSession();
 
