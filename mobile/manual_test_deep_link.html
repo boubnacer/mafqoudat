@@ -1,0 +1,120 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Test Deep Link</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            padding: 20px;
+            max-width: 600px;
+            margin: 0 auto;
+        }
+        .button {
+            background: #2196F3;
+            color: white;
+            border: none;
+            padding: 15px 30px;
+            font-size: 16px;
+            border-radius: 8px;
+            cursor: pointer;
+            margin: 10px;
+            display: block;
+            width: 100%;
+        }
+        .button:hover { background: #1976D2; }
+        .status {
+            padding: 10px;
+            margin: 10px 0;
+            border-radius: 5px;
+            background: #f0f0f0;
+        }
+    </style>
+</head>
+<body>
+    <h1>🔗 Deep Link Test</h1>
+    <p>This page tests if your app can receive deep links.</p>
+    
+    <div class="status" id="status">Ready to test...</div>
+    
+    <button class="button" onclick="testDeepLink('token')">
+        Test with Token
+    </button>
+    
+    <button class="button" onclick="testDeepLink('pendingToken')">
+        Test with Pending Token
+    </button>
+    
+    <button class="button" onclick="testDeepLink('error')">
+        Test with Error
+    </button>
+    
+    <h3>Instructions:</h3>
+    <ol>
+        <li>Open this page on your mobile device</li>
+        <li>Make sure your app is installed (Expo Go or development build)</li>
+        <li>Click one of the test buttons above</li>
+        <li>The app should open automatically</li>
+        <li>Check the app console logs for deep link messages</li>
+    </ol>
+    
+    <h3>Expected Deep Links:</h3>
+    <ul>
+        <li><code>mafqoudat://auth/callback?token=test123</code></li>
+        <li><code>mafqoudat://auth/callback?pendingToken=test456</code></li>
+        <li><code>mafqoudat://auth/callback?error=test_error</code></li>
+    </ul>
+
+    <script>
+        function testDeepLink(type) {
+            const status = document.getElementById('status');
+            let deepLink = 'mafqoudat://auth/callback?';
+            
+            switch(type) {
+                case 'token':
+                    deepLink += 'token=eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.test';
+                    break;
+                case 'pendingToken':
+                    deepLink += 'pendingToken=pending_test_12345';
+                    break;
+                case 'error':
+                    deepLink += 'error=test_error_message';
+                    break;
+            }
+            
+            status.textContent = 'Attempting to open app with: ' + deepLink;
+            
+            // Try multiple methods
+            const methods = [
+                () => window.location.href = deepLink,
+                () => window.location.replace(deepLink),
+                () => {
+                    const link = document.createElement('a');
+                    link.href = deepLink;
+                    link.style.display = 'none';
+                    document.body.appendChild(link);
+                    link.click();
+                    document.body.removeChild(link);
+                },
+                () => {
+                    const iframe = document.createElement('iframe');
+                    iframe.style.display = 'none';
+                    iframe.src = deepLink;
+                    document.body.appendChild(iframe);
+                    setTimeout(() => document.body.removeChild(iframe), 1000);
+                }
+            ];
+            
+            // Try each method with delays
+            methods.forEach((method, index) => {
+                setTimeout(method, index * 200);
+            });
+            
+            setTimeout(() => {
+                status.textContent = 'If the app didn\'t open, the deep linking might not be configured properly.';
+            }, 2000);
+        }
+    </script>
+</body>
+</html>

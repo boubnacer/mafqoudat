@@ -184,31 +184,44 @@
                 status.className = 'status success';
                 window.currentToken = tokenToUse;
                 
-                // Auto-open app after 500ms
-                setTimeout(function() {
-                    var deepLink = 'mafqoudat://auth/callback?token=' + encodeURIComponent(tokenToUse);
-                    try {
-                        window.location.href = deepLink;
-                    } catch (e) {
-                        // Try fallback methods silently
-                        setTimeout(function() {
-                            try {
-                                window.location.replace(deepLink);
-                            } catch (e2) {
-                                try {
-                                    var link = document.createElement('a');
-                                    link.href = deepLink;
-                                    link.style.display = 'none';
-                                    document.body.appendChild(link);
-                                    link.click();
-                                    document.body.removeChild(link);
-                                } catch (e3) {
-                                    // All methods failed
-                                }
-                            }
-                        }, 200);
-                    }
-                }, 500);
+        // Auto-open app after 500ms
+        setTimeout(function() {
+            var deepLink = 'mafqoudat://auth/callback?token=' + encodeURIComponent(tokenToUse);
+            console.log('🚀 Attempting to open app with deep link:', deepLink);
+            
+            // Try multiple methods to trigger deep link
+            var methods = [
+                function() { window.location.href = deepLink; },
+                function() { window.location.replace(deepLink); },
+                function() { 
+                    var link = document.createElement('a');
+                    link.href = deepLink;
+                    link.style.display = 'none';
+                    document.body.appendChild(link);
+                    link.click();
+                    document.body.removeChild(link);
+                },
+                function() {
+                    // Try iframe method
+                    var iframe = document.createElement('iframe');
+                    iframe.style.display = 'none';
+                    iframe.src = deepLink;
+                    document.body.appendChild(iframe);
+                    setTimeout(function() { document.body.removeChild(iframe); }, 1000);
+                }
+            ];
+            
+            // Try each method with delays
+            methods.forEach(function(method, index) {
+                setTimeout(method, index * 300);
+            });
+            
+            // Update status
+            var status = document.getElementById('status');
+            if (status) {
+                status.textContent = '✅ Token loaded! Attempting to open app...';
+            }
+        }, 500);
             } else if (pendingTokenToUse) {
                 tokenDisplay.value = pendingTokenToUse;
                 status.textContent = '✅ Pending token loaded!';
