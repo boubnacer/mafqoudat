@@ -51,6 +51,23 @@ const RootNavigator = () => {
     handleDeepLinkCallback(event.url);
   };
 
+  // Handle deep link when app is already running
+  useEffect(() => {
+    const subscription = Linking.addEventListener('url', handleDeepLink);
+    
+    // Check if app was opened with a deep link
+    Linking.getInitialURL().then((url) => {
+      if (url) {
+        console.log('🔗 Initial URL:', url);
+        handleDeepLinkCallback(url);
+      }
+    });
+
+    return () => {
+      subscription?.remove();
+    };
+  }, [handleDeepLinkCallback]);
+
   if (isLoading) {
     return (
       <View style={styles.loadingContainer}>
@@ -61,7 +78,11 @@ const RootNavigator = () => {
   }
 
   return (
-    <NavigationContainer linking={linking} onReady={() => console.log('🔗 Navigation ready')}>
+    <NavigationContainer 
+      linking={linking} 
+      onReady={() => console.log('🔗 Navigation ready')}
+      fallback={<Text>Loading...</Text>}
+    >
       {isSignedIn ? <AppNavigator /> : <AuthNavigator />}
     </NavigationContainer>
   );

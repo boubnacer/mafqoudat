@@ -1,4 +1,4 @@
-import React, { createContext, useContext, useReducer, useEffect } from 'react';
+import React, { createContext, useContext, useReducer, useEffect, useCallback } from 'react';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import googleAuthNew from '../utils/googleAuthNew';
 
@@ -166,7 +166,7 @@ export const AuthProviderNew = ({ children }) => {
     }
   };
 
-  const handleDeepLinkCallback = async (url) => {
+  const handleDeepLinkCallback = useCallback(async (url) => {
     try {
       console.log('🔗 Handling deep link callback:', url);
       
@@ -186,7 +186,7 @@ export const AuthProviderNew = ({ children }) => {
         console.log('✅ Received access token for existing user');
         
         // Get user info from token (you might need to decode JWT or call an endpoint)
-        // For now, we'll store the token and assume user info comes with it
+        // For now, we'll store token and assume user info comes with it
         await AsyncStorage.setItem('authToken', token);
         
         // You might want to fetch user info here
@@ -212,7 +212,7 @@ export const AuthProviderNew = ({ children }) => {
       dispatch({ type: AUTH_ACTIONS.SET_ERROR, payload: error.message });
       return { success: false, error: error.message };
     }
-  };
+  }, [dispatch]);
 
   const completeGoogleRegistration = async (pendingToken, countryId) => {
     try {
