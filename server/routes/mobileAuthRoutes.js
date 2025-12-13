@@ -7,6 +7,7 @@ const { generateTokens } = require('../middleware/jwtSecurity');
 const { logEvents } = require('../middleware/logger');
 const { OAuth2Client } = require('google-auth-library');
 
+
 // Initialize Google OAuth2 client
 const googleClient = new OAuth2Client(
   process.env.GOOGLE_CLIENT_ID,
