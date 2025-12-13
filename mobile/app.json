@@ -52,6 +52,9 @@
         {
           "photosPermission": "The app accesses your photos to let you share them for lost and found items."
         }
+      ],
+      [
+        "@react-native-google-signin/google-signin"
       ]
     ]
   }
