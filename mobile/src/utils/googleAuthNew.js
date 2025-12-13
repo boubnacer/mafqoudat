@@ -1,13 +1,13 @@
 import * as WebBrowser from 'expo-web-browser';
 import { Linking } from 'react-native';
-import { API_BASE_URL } from '../config/api';
+import { API_BASE_URL, OAUTH_REDIRECT_URI } from '../config/api';
 
 WebBrowser.maybeCompleteAuthSession();
 
 class GoogleAuthNew {
   constructor() {
-    // Use the same redirect URI as web version
-    this.redirectUri = `${API_BASE_URL}/auth/google/callback`;
+    // Use the mobile-specific redirect URI
+    this.redirectUri = OAUTH_REDIRECT_URI;
   }
 
   // Use the same Google OAuth flow as web version

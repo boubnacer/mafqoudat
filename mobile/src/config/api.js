@@ -6,12 +6,17 @@
 
 export const API_BASE_URL = 
   process.env.EXPO_PUBLIC_API_URL || 
-  "https://mafqoudat-production.up.railway.app";
+  (__DEV__ ? "http://192.168.34.128:5000" : "https://mafqoudat-production.up.railway.app");
 
 // Google OAuth Configuration
 export const GOOGLE_WEB_CLIENT_ID = 
   process.env.EXPO_PUBLIC_GOOGLE_WEB_CLIENT_ID || 
   "571757802995-qg4dvpnaidjh532uo0eu88l1qttmckac.apps.googleusercontent.com";
+
+// OAuth Redirect URIs
+export const OAUTH_REDIRECT_URI = 
+  process.env.EXPO_PUBLIC_OAUTH_REDIRECT_URI || 
+  (__DEV__ ? "http://192.168.34.128:5000/auth/mobile-callback" : "https://mafqoudat-production.up.railway.app/auth/mobile-callback");
 
 export const API_ENDPOINTS = {
   AUTH: {
