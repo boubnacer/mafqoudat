@@ -1,128 +1,93 @@
 import * as WebBrowser from 'expo-web-browser';
-import * as AuthSession from 'expo-auth-session';
-import { makeRedirectUri } from 'expo-auth-session';
-import { Platform } from 'react-native';
-import { GOOGLE_WEB_CLIENT_ID, API_BASE_URL } from '../config/api';
+import { Linking } from 'react-native';
+import { API_BASE_URL } from '../config/api';
 
 WebBrowser.maybeCompleteAuthSession();
 
-// Configuration
-const discovery = {
-  authorizationEndpoint: 'https://accounts.google.com/o/oauth2/v2/auth',
-  tokenEndpoint: 'https://www.googleapis.com/oauth2/v4/token',
-  revocationEndpoint: 'https://oauth2.googleapis.com/revoke',
-};
-
 class GoogleAuthNew {
   constructor() {
-    this.request = null;
-    // Use a simple, fixed redirect URI that Google will accept
-    this.redirectUri = 'mafqoudat://auth';
+    // Use the same redirect URI as web version
+    this.redirectUri = `${API_BASE_URL}/auth/google/callback`;
   }
 
-  // Initialize the auth request
-  async initAuthRequest() {
+  // Use the same Google OAuth flow as web version
+  async authenticate() {
     try {
-      console.log('🔧 Initializing AuthRequest with config:', {
-        clientId: GOOGLE_WEB_CLIENT_ID?.substring(0, 10) + '...',
-        redirectUri: this.redirectUri,
-        responseType: 'code'
+      console.log('🚀 Starting Google OAuth flow (same as web)...');
+      
+      // Use the same endpoint as web version with mobile parameter
+      // The server will handle mobile detection and redirect appropriately
+      const authUrl = `${API_BASE_URL}/auth/google?mobile=true`;
+      
+      console.log('🔗 Opening Google OAuth URL:', authUrl);
+
+      // Open browser for OAuth - let server handle everything like web version
+      const result = await WebBrowser.openBrowserAsync(authUrl, {
+        enableJavaScript: true,
+        enableDefaultShareMenus: false,
+        dismissButtonStyle: 'close',
+        readerMode: false,
       });
 
-      this.request = new AuthSession.AuthRequest({
-        clientId: GOOGLE_WEB_CLIENT_ID,
-        scopes: ['openid', 'profile', 'email'],
-        redirectUri: this.redirectUri,
-        responseType: 'code',
-        extraParams: {
-          access_type: 'offline',
-          prompt: 'consent',
-        },
-      });
+      console.log('📱 Browser result:', result);
 
-      console.log('🔗 Auth request created, prompting user...');
-      const result = await this.request.promptAsync(discovery);
-      console.log('📱 Auth prompt result:', result.type);
-      return result;
+      if (result.type === 'cancel') {
+        return {
+          success: false,
+          error: 'Authentication cancelled by user',
+        };
+      }
+      
+      // For other result types, we rely on deep linking to catch the callback
+      // The server will redirect to mobile-callback page which triggers deep link
+      return {
+        success: false,
+        error: 'Authentication in progress - waiting for callback...',
+        pending: true,
+      };
     } catch (error) {
-      console.error('❌ Auth request initialization failed:', error);
-      throw error;
+      console.error('❌ Google Auth Error:', error);
+      return {
+        success: false,
+        error: error.message || 'Failed to initiate Google authentication',
+      };
     }
   }
 
-  // Exchange authorization code for tokens
-  async exchangeCodeForTokens(code) {
+  // Complete Google OAuth registration (same as web version)
+  async completeRegistration(pendingToken, countryId) {
     try {
-      const response = await fetch(`${API_BASE_URL}/auth/mobile/exchange-code`, {
+      const response = await fetch(`${API_BASE_URL}/auth/google/complete`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
         },
         body: JSON.stringify({
-          code,
-          redirectUri: this.redirectUri,
+          pendingToken,
+          countryId,
         }),
       });
 
       const data = await response.json();
 
-      if (!response.ok) {
-        throw new Error(data.message || 'Token exchange failed');
-      }
-
-      return data;
-    } catch (error) {
-      console.error('Token exchange failed:', error);
-      throw error;
-    }
-  }
-
-  // Complete the authentication flow
-  async authenticate() {
-    try {
-      console.log('🚀 Starting Google OAuth flow...');
-      console.log('📍 Redirect URI:', this.redirectUri);
-
-      // Step 1: Get authorization code
-      const result = await this.initAuthRequest();
-      
-      if (result.type === 'success') {
-        console.log('✅ Authorization successful');
-        
-        const { code } = result.params;
-        
-        if (!code) {
-          throw new Error('No authorization code received');
-        }
-
-        // Step 2: Exchange code for tokens
-        const tokenData = await this.exchangeCodeForTokens(code);
-        
-        console.log('✅ Token exchange successful');
-        
+      if (response.ok && data.accessToken) {
         return {
           success: true,
-          user: tokenData.user,
-          token: tokenData.token,
-        };
-      } else if (result.type === 'cancel') {
-        console.log('❌ User cancelled authentication');
-        return {
-          success: false,
-          error: 'Authentication cancelled by user',
+          accessToken: data.accessToken,
+          username: data.username,
         };
       } else {
-        console.log('❌ Authentication failed:', result);
         return {
           success: false,
-          error: result.params?.error_description || 'Authentication failed',
+          error: data.message || 'Failed to complete registration',
+          code: data.code,
         };
       }
     } catch (error) {
-      console.error('❌ Authentication error:', error);
+      console.error('Complete Google Auth error:', error);
       return {
         success: false,
-        error: error.message || 'Authentication failed',
+        error: error.message || 'Network error',
       };
     }
   }
@@ -130,7 +95,7 @@ class GoogleAuthNew {
   // Sign out user
   async signOut(token) {
     try {
-      const response = await fetch(`${API_BASE_URL}/auth/mobile/signout`, {
+      const response = await fetch(`${API_BASE_URL}/auth/logout`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',

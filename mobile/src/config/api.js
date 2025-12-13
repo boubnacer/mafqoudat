@@ -11,7 +11,7 @@ export const API_BASE_URL =
 // Google OAuth Configuration
 export const GOOGLE_WEB_CLIENT_ID = 
   process.env.EXPO_PUBLIC_GOOGLE_WEB_CLIENT_ID || 
-  "your-google-web-client-id-here";
+  "571757802995-qg4dvpnaidjh532uo0eu88l1qttmckac.apps.googleusercontent.com";
 
 export const API_ENDPOINTS = {
   AUTH: {

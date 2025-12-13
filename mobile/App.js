@@ -7,7 +7,7 @@ import { LanguageProvider } from './src/context/LanguageContext';
 import { AuthProviderNew, useAuthNew } from './src/context/AuthContextNew';
 import LoginScreenNew from './src/screens/LoginScreenNew';
 import PostsListScreen from './src/screens/PostsListScreen';
-import { ActivityIndicator, View, StyleSheet, Text } from 'react-native';
+import { ActivityIndicator, View, StyleSheet, Text, Linking } from 'react-native';
 
 const Stack = createNativeStackNavigator();
 
@@ -32,7 +32,24 @@ const AppNavigator = () => {
 
 // Root navigator that handles auth state
 const RootNavigator = () => {
-  const { isLoading, isSignedIn } = useAuthNew();
+  const { isLoading, isSignedIn, handleDeepLinkCallback } = useAuthNew();
+
+  // Handle deep linking
+  const linking = {
+    prefixes: ['mafqoudat://'],
+    config: {
+      screens: {
+        Login: 'auth/callback',
+        PostsList: 'home',
+      },
+    },
+  };
+
+  // Handle URL event
+  const handleDeepLink = (event) => {
+    console.log('🔗 Deep link received:', event.url);
+    handleDeepLinkCallback(event.url);
+  };
 
   if (isLoading) {
     return (
@@ -44,7 +61,7 @@ const RootNavigator = () => {
   }
 
   return (
-    <NavigationContainer>
+    <NavigationContainer linking={linking} onReady={() => console.log('🔗 Navigation ready')}>
       {isSignedIn ? <AppNavigator /> : <AuthNavigator />}
     </NavigationContainer>
   );
