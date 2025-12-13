@@ -2,53 +2,176 @@ import React, { useState } from 'react';
 import {
   View,
   Text,
-  StyleSheet,
+  TextInput,
   TouchableOpacity,
-  ActivityIndicator,
+  StyleSheet,
   Alert,
-  ScrollView,
+  ActivityIndicator,
   KeyboardAvoidingView,
   Platform,
+  ScrollView,
 } from 'react-native';
 import { useAuthNew } from '../context/AuthContextNew';
+import { useLanguage } from '../context/LanguageContext';
+import { useTranslation } from '../utils/translations';
+import LanguageDropdown from '../components/LanguageDropdown';
+import apiClient from '../app/api/apiService';
+import { API_ENDPOINTS } from '../config/api';
+import { storage } from '../utils/storage';
+import { decodeToken } from '../utils/tokenUtils';
 
 const LoginScreenNew = ({ navigation }) => {
-  const { signInWithGoogle, isLoading, error, clearError } = useAuthNew();
-  const [isSigningIn, setIsSigningIn] = useState(false);
+  const { signInWithGoogle, isLoading: googleLoading, error: googleError, clearError } = useAuthNew();
+  const { currentLanguage } = useLanguage();
+  const { t } = useTranslation();
+  
+  // Form states
+  const [emailOrPhone, setEmailOrPhone] = useState('');
+  const [password, setPassword] = useState('');
+  const [isLoading, setIsLoading] = useState(false);
+  const [isGoogleLoading, setIsGoogleLoading] = useState(false);
+  const [error, setError] = useState('');
+  const [showTokenInput, setShowTokenInput] = useState(false);
+  const [tokenInput, setTokenInput] = useState('');
 
   React.useEffect(() => {
-    if (error) {
-      Alert.alert('Authentication Error', error, [
+    if (googleError) {
+      Alert.alert('Authentication Error', googleError, [
         { text: 'OK', onPress: clearError }
       ]);
     }
-  }, [error, clearError]);
+  }, [googleError, clearError]);
 
-  const handleGoogleSignIn = async () => {
+  // Handle traditional login (username/password)
+  const handleLogin = async () => {
+    // Validation
+    if (!emailOrPhone.trim()) {
+      setError(t('emailOrPhone') + ' ' + t('required'));
+      return;
+    }
+
+    if (!password.trim()) {
+      setError(t('password') + ' ' + t('required'));
+      return;
+    }
+
+    setIsLoading(true);
+    setError('');
+
     try {
-      setIsSigningIn(true);
-      console.log('🚀 Initiating Google Sign In from LoginScreenNew...');
+      // Call login API (mirrors web app: POST /auth)
+      const response = await apiClient.post(API_ENDPOINTS.AUTH.LOGIN, {
+        emailOrPhone: emailOrPhone.trim(),
+        password: password,
+      });
 
-      const result = await signInWithGoogle();
+      const { accessToken } = response.data;
 
-      if (result.success) {
-        console.log('✅ Sign in successful, navigating to Home...');
-        // Navigation will be handled by the main app component
-        // based on the auth state change
+      if (accessToken) {
+        // Store token securely
+        await storage.setToken(accessToken);
+
+        // Decode and store user data
+        const userData = decodeToken(accessToken);
+        if (userData) {
+          await storage.setUserData(userData);
+        }
+
+        // Navigate to posts list
+        navigation.replace('PostsList');
       } else {
-        console.log('❌ Sign in failed:', result.error);
-        Alert.alert('Sign In Failed', result.error);
+        setError(t('invalidCredentials'));
       }
-    } catch (error) {
-      console.error('❌ Unexpected error during sign in:', error);
-      Alert.alert('Error', 'An unexpected error occurred during sign in');
+    } catch (err) {
+      console.error('Login error:', err);
+      
+      // Handle different error types
+      if (err.response?.status === 400 || err.response?.status === 401) {
+        setError(t('invalidCredentials'));
+      } else if (err.response?.status === 429) {
+        setError(t('tooManyAttempts'));
+      } else if (err.response?.status === 503) {
+        setError(t('maintenanceMode'));
+      } else {
+        setError(t('networkError'));
+      }
     } finally {
-      setIsSigningIn(false);
+      setIsLoading(false);
+    }
+  };
+
+  // Handle Google login
+  const handleGoogleLogin = async () => {
+    setIsGoogleLoading(true);
+    setError('');
+
+    try {
+      console.log('🚀 Initiating Google Sign In from LoginScreenNew...');
+      
+      const result = await signInWithGoogle();
+      
+      if (result.success) {
+        console.log('✅ Google sign in successful');
+        // Navigation will be handled by AuthContext
+      } else if (result.pending) {
+        console.log('⏳ Google sign in pending, waiting for callback...');
+        setError('Please complete authentication in the browser...');
+        
+        // Show token input as fallback after a delay
+        setTimeout(() => {
+          if (isGoogleLoading) {
+            setShowTokenInput(true);
+            setError('If automatic redirect fails, please copy the token from the browser and paste it below');
+          }
+        }, 10000); // 10 seconds delay
+      } else {
+        console.error('❌ Google sign in failed:', result.error);
+        setError(result.error || 'Google authentication failed');
+      }
+    } catch (err) {
+      console.error('Google login error:', err);
+      setError(err.message || 'Google authentication failed');
+    } finally {
+      // Don't set loading to false immediately - wait for callback or timeout
+      setTimeout(() => {
+        setIsGoogleLoading(false);
+      }, 15000); // 15 seconds timeout
+    }
+  };
+
+  // Handle manual token input
+  const handleTokenLogin = async () => {
+    if (!tokenInput.trim()) {
+      setError('Please paste a token');
+      return;
+    }
+    setIsLoading(true);
+    setError('');
+    try {
+      const token = tokenInput.trim();
+      
+      // Store token securely
+      await storage.setToken(token);
+      
+      // Decode and store user data
+      const userData = decodeToken(token);
+      if (userData) {
+        await storage.setUserData(userData);
+        // Navigate to posts list
+        navigation.replace('PostsList');
+      } else {
+        setError('Invalid token format. Please check the token and try again.');
+      }
+    } catch (err) {
+      console.error('Token login error:', err);
+      setError('Invalid token. Please make sure you copied the complete token.');
+    } finally {
+      setIsLoading(false);
     }
   };
 
   return (
-    <KeyboardAvoidingView 
+    <KeyboardAvoidingView
       style={styles.container}
       behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
     >
@@ -57,53 +180,143 @@ const LoginScreenNew = ({ navigation }) => {
         keyboardShouldPersistTaps="handled"
       >
         <View style={styles.content}>
-          {/* Logo/Title */}
-          <View style={styles.header}>
-            <Text style={styles.title}>Mafqoudat</Text>
-            <Text style={styles.subtitle}>Find what you've lost</Text>
+          <View style={styles.headerRow}>
+            <Text style={styles.title}>{t('brandName') || 'Mafqoudat'}</Text>
+            <LanguageDropdown />
+          </View>
+          <Text style={styles.subtitle}>{t('loginToAccount') || 'Login to your account'}</Text>
+
+          {error ? (
+            <View style={styles.errorContainer}>
+              <Text style={styles.errorText}>{error}</Text>
+            </View>
+          ) : null}
+
+          {/* Google OAuth Button */}
+          <TouchableOpacity
+            style={[styles.googleButton, isGoogleLoading && styles.buttonDisabled]}
+            onPress={handleGoogleLogin}
+            disabled={isGoogleLoading}
+            activeOpacity={0.7}
+          >
+            {isGoogleLoading ? (
+              <ActivityIndicator color="#333" />
+            ) : (
+              <>
+                <Text style={styles.googleIcon}>G</Text>
+                <Text style={styles.googleButtonText}>
+                  {t('continueWithGoogle') || 'Continue with Google'}
+                </Text>
+              </>
+            )}
+          </TouchableOpacity>
+
+          {/* Token Input Toggle */}
+          <TouchableOpacity
+            style={styles.tokenToggleButton}
+            onPress={() => setShowTokenInput(!showTokenInput)}
+          >
+            <Text style={styles.tokenToggleText}>
+              {showTokenInput ? 'Hide' : 'Paste'} OAuth Token
+            </Text>
+          </TouchableOpacity>
+
+          {/* Token Input Section */}
+          {showTokenInput && (
+            <View style={styles.tokenInputContainer}>
+              <Text style={styles.tokenInputLabel}>
+                Paste your authentication token here:
+              </Text>
+              <Text style={styles.tokenInputHint}>
+                (Copy it from the browser page after selecting your Google account)
+              </Text>
+              <TextInput
+                style={styles.tokenInput}
+                placeholder="Paste token here..."
+                placeholderTextColor="#999"
+                value={tokenInput}
+                onChangeText={(text) => {
+                  setTokenInput(text);
+                  setError(''); // Clear error when user types
+                }}
+                multiline
+                autoCapitalize="none"
+                autoCorrect={false}
+                textContentType="none"
+              />
+              <TouchableOpacity
+                style={[styles.button, styles.tokenButton, !tokenInput.trim() && styles.buttonDisabled]}
+                onPress={handleTokenLogin}
+                disabled={!tokenInput.trim() || isLoading}
+              >
+                <Text style={styles.buttonText}>
+                  {isLoading ? 'Verifying...' : 'Use Token'}
+                </Text>
+              </TouchableOpacity>
+              <TouchableOpacity
+                onPress={() => setShowTokenInput(false)}
+                style={styles.hideTokenButton}
+              >
+                <Text style={styles.hideTokenText}>Hide Token Input</Text>
+              </TouchableOpacity>
+            </View>
+          )}
+
+          {/* Divider */}
+          <View style={styles.dividerContainer}>
+            <View style={styles.dividerLine} />
+            <Text style={styles.dividerText}>{t('or') || 'OR'}</Text>
+            <View style={styles.dividerLine} />
           </View>
 
-          {/* Login Form */}
+          {/* Traditional Login Form */}
           <View style={styles.form}>
-            <Text style={styles.welcomeText}>
-              Welcome back! Sign in to continue
-            </Text>
+            <TextInput
+              style={styles.input}
+              placeholder={t('emailOrPhonePlaceholder') || 'Email or Phone'}
+              placeholderTextColor="#999"
+              value={emailOrPhone}
+              onChangeText={setEmailOrPhone}
+              autoCapitalize="none"
+              keyboardType="email-address"
+              autoComplete="email"
+            />
 
-            {/* Google Sign In Button */}
+            <TextInput
+              style={styles.input}
+              placeholder={t('passwordPlaceholder') || 'Password'}
+              placeholderTextColor="#999"
+              value={password}
+              onChangeText={setPassword}
+              secureTextEntry
+              autoCapitalize="none"
+              autoComplete="password"
+            />
+
             <TouchableOpacity
-              style={[
-                styles.googleButton,
-                (isLoading || isSigningIn) && styles.disabledButton
-              ]}
-              onPress={handleGoogleSignIn}
-              disabled={isLoading || isSigningIn}
+              style={[styles.button, isLoading && styles.buttonDisabled]}
+              onPress={handleLogin}
+              disabled={isLoading}
             >
-              {isSigningIn ? (
-                <ActivityIndicator color="#fff" size="small" />
+              {isLoading ? (
+                <ActivityIndicator color="#fff" />
               ) : (
-                <View style={styles.googleButtonContent}>
-                  <Text style={styles.googleButtonText}>Continue with Google</Text>
-                </View>
+                <Text style={styles.buttonText}>{t('login') || 'Login'}</Text>
               )}
             </TouchableOpacity>
-
-            {/* Debug Info */}
-            {__DEV__ && (
-              <View style={styles.debugInfo}>
-                <Text style={styles.debugTitle}>Debug Information:</Text>
-                <Text style={styles.debugText}>Loading: {isLoading.toString()}</Text>
-                <Text style={styles.debugText}>Signing In: {isSigningIn.toString()}</Text>
-                {error && <Text style={styles.debugError}>Error: {error}</Text>}
-              </View>
-            )}
           </View>
 
-          {/* Footer */}
-          <View style={styles.footer}>
-            <Text style={styles.footerText}>
-              By signing in, you agree to our Terms of Service and Privacy Policy
-            </Text>
-          </View>
+          {/* Debug Info */}
+          {__DEV__ && (
+            <View style={styles.debugInfo}>
+              <Text style={styles.debugTitle}>Debug Information:</Text>
+              <Text style={styles.debugText}>Google Loading: {googleLoading.toString()}</Text>
+              <Text style={styles.debugText}>Form Loading: {isLoading.toString()}</Text>
+              <Text style={styles.debugText}>Google Signing In: {isGoogleLoading.toString()}</Text>
+              {googleError && <Text style={styles.debugError}>Google Error: {googleError}</Text>}
+              {error && <Text style={styles.debugError}>Form Error: {error}</Text>}
+            </View>
+          )}
         </View>
       </ScrollView>
     </KeyboardAvoidingView>
@@ -113,74 +326,171 @@ const LoginScreenNew = ({ navigation }) => {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#f8f9fa',
+    backgroundColor: '#fff',
   },
   scrollContent: {
     flexGrow: 1,
   },
   content: {
     flex: 1,
-    justifyContent: 'space-between',
-    paddingHorizontal: 20,
-    paddingVertical: 40,
-  },
-  header: {
-    alignItems: 'center',
-    marginBottom: 40,
+    justifyContent: 'center',
+    padding: 20,
+    minHeight: '100%',
   },
   title: {
     fontSize: 32,
     fontWeight: 'bold',
-    color: '#2c3e50',
+    textAlign: 'center',
+    marginBottom: 8,
+    color: '#2196F3',
+  },
+  headerRow: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    width: '100%',
     marginBottom: 8,
   },
   subtitle: {
     fontSize: 16,
-    color: '#7f8c8d',
+    textAlign: 'center',
+    marginBottom: 32,
+    color: '#666',
   },
   form: {
-    flex: 1,
-    justifyContent: 'center',
-    minHeight: 200,
+    width: '100%',
   },
-  welcomeText: {
-    fontSize: 18,
-    color: '#2c3e50',
-    textAlign: 'center',
-    marginBottom: 30,
-    fontWeight: '500',
-  },
-  googleButton: {
-    backgroundColor: '#4285f4',
-    paddingVertical: 15,
-    paddingHorizontal: 20,
+  input: {
+    height: 50,
+    borderWidth: 1,
+    borderColor: '#ddd',
     borderRadius: 8,
-    alignItems: 'center',
+    paddingHorizontal: 16,
+    marginBottom: 16,
+    fontSize: 16,
+    backgroundColor: '#f9f9f9',
+  },
+  button: {
+    height: 50,
+    backgroundColor: '#2196F3',
+    borderRadius: 8,
     justifyContent: 'center',
-    minHeight: 50,
-    shadowColor: '#000',
-    shadowOffset: {
-      width: 0,
-      height: 2,
-    },
-    shadowOpacity: 0.1,
-    shadowRadius: 3.84,
-    elevation: 5,
-  },
-  disabledButton: {
-    backgroundColor: '#a0a0a0',
-    shadowOpacity: 0,
-    elevation: 0,
-  },
-  googleButtonContent: {
-    flexDirection: 'row',
     alignItems: 'center',
-    justifyContent: 'center',
+    marginTop: 8,
   },
-  googleButtonText: {
+  buttonDisabled: {
+    opacity: 0.6,
+  },
+  buttonText: {
     color: '#fff',
     fontSize: 16,
     fontWeight: '600',
+  },
+  errorContainer: {
+    backgroundColor: '#ffebee',
+    padding: 12,
+    borderRadius: 8,
+    marginBottom: 16,
+  },
+  errorText: {
+    color: '#c62828',
+    fontSize: 14,
+    textAlign: 'center',
+  },
+  googleButton: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    height: 50,
+    backgroundColor: '#fff',
+    borderRadius: 8,
+    borderWidth: 1,
+    borderColor: '#dadce0',
+    marginBottom: 16,
+    gap: 12,
+  },
+  googleIcon: {
+    fontSize: 20,
+    fontWeight: 'bold',
+    color: '#4285F4',
+  },
+  googleButtonText: {
+    color: '#333',
+    fontSize: 16,
+    fontWeight: '500',
+  },
+  dividerContainer: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    marginVertical: 16,
+  },
+  dividerLine: {
+    flex: 1,
+    height: 1,
+    backgroundColor: '#e0e0e0',
+  },
+  dividerText: {
+    marginHorizontal: 16,
+    fontSize: 14,
+    color: '#999',
+    fontWeight: '500',
+  },
+  tokenToggleButton: {
+    marginTop: 8,
+    marginBottom: 8,
+    padding: 8,
+    alignItems: 'center',
+  },
+  tokenToggleText: {
+    fontSize: 14,
+    color: '#2196F3',
+    textDecorationLine: 'underline',
+  },
+  tokenInputContainer: {
+    marginBottom: 16,
+    padding: 16,
+    backgroundColor: '#f5f5f5',
+    borderRadius: 8,
+    borderWidth: 1,
+    borderColor: '#e0e0e0',
+  },
+  tokenInputLabel: {
+    fontSize: 16,
+    fontWeight: '600',
+    color: '#333',
+    marginBottom: 4,
+  },
+  tokenInputHint: {
+    fontSize: 12,
+    color: '#666',
+    marginBottom: 12,
+    fontStyle: 'italic',
+  },
+  tokenInput: {
+    height: 120,
+    borderWidth: 1,
+    borderColor: '#ddd',
+    borderRadius: 8,
+    paddingHorizontal: 16,
+    paddingVertical: 12,
+    marginBottom: 12,
+    fontSize: 12,
+    backgroundColor: '#fff',
+    fontFamily: Platform.OS === 'ios' ? 'Courier' : 'monospace',
+    textAlignVertical: 'top',
+  },
+  tokenButton: {
+    backgroundColor: '#4CAF50',
+    marginBottom: 8,
+  },
+  hideTokenButton: {
+    padding: 8,
+    alignItems: 'center',
+  },
+  hideTokenText: {
+    fontSize: 14,
+    color: '#666',
+    textDecorationLine: 'underline',
   },
   debugInfo: {
     marginTop: 30,
@@ -205,16 +515,6 @@ const styles = StyleSheet.create({
     fontSize: 12,
     color: '#d32f2f',
     marginTop: 5,
-  },
-  footer: {
-    alignItems: 'center',
-    marginTop: 40,
-  },
-  footerText: {
-    fontSize: 12,
-    color: '#7f8c8d',
-    textAlign: 'center',
-    lineHeight: 18,
   },
 });
 
