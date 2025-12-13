@@ -51,6 +51,176 @@ const verifyGoogleToken = async (idToken) => {
 };
 
 /**
+ * @desc Exchange authorization code for tokens (mobile)
+ * @route POST /auth/mobile/exchange-code
+ * @access Public
+ */
+router.post('/exchange-code', async (req, res) => {
+  try {
+    const { code, redirectUri } = req.body;
+
+    // Validate required fields
+    if (!code || !redirectUri) {
+      return res.status(400).json({
+        message: 'Authorization code and redirect URI are required',
+        isError: true,
+        code: 'VALIDATION_ERROR'
+      });
+    }
+
+    console.log('🔄 Exchanging authorization code for tokens...');
+
+    // Exchange authorization code for tokens
+    const tokenResponse = await googleClient.getToken({
+      code,
+      redirect_uri: redirectUri,
+    });
+
+    const { tokens } = tokenResponse;
+    console.log('✅ Token exchange successful');
+
+    // Get user info with access token
+    const ticket = await googleClient.verifyIdToken({
+      idToken: tokens.id_token,
+      audience: process.env.GOOGLE_CLIENT_ID,
+    });
+
+    const tokenPayload = ticket.getPayload();
+    
+    // Extract user information
+    const googleId = tokenPayload.sub;
+    const email = tokenPayload.email;
+    const emailVerified = tokenPayload.email_verified;
+    const firstName = tokenPayload.given_name || '';
+    const lastName = tokenPayload.family_name || '';
+    const avatar = tokenPayload.picture;
+
+    // Check if email is verified
+    if (!emailVerified) {
+      return res.status(400).json({
+        message: 'Email is not verified with Google',
+        isError: true,
+        code: 'EMAIL_NOT_VERIFIED'
+      });
+    }
+
+    // Check if user already exists
+    const existingUser = await User.findOne({
+      $or: [
+        { email: email },
+        { googleId: googleId }
+      ]
+    }).select('-password');
+
+    if (existingUser) {
+      console.log('👤 Existing user found:', existingUser.username);
+      
+      // Update last login and ensure Google ID is set
+      existingUser.lastLogin = new Date();
+      
+      if (!existingUser.googleId) {
+        existingUser.googleId = googleId;
+        existingUser.authProvider = 'google';
+      }
+
+      // Update profile picture if not set
+      if (!existingUser.profile.avatar && avatar) {
+        existingUser.profile.avatar = avatar;
+      }
+
+      await existingUser.save();
+
+      // Generate JWT tokens
+      const jwtTokens = generateTokens({
+        username: existingUser.username,
+        id: existingUser._id,
+        country: existingUser.country,
+        role: existingUser.role
+      });
+
+      logEvents(
+        `Successful mobile Google OAuth login: ${existingUser.username}\t${req.method}\t${req.url}\t${req.ip}`,
+        'reqLog.log'
+      );
+
+      return res.status(200).json({
+        user: {
+          id: existingUser._id,
+          username: existingUser.username,
+          email: existingUser.email,
+          profile: existingUser.profile,
+          country: existingUser.country,
+          role: existingUser.role
+        },
+        token: jwtTokens.accessToken,
+        isNewUser: false
+      });
+    }
+
+    // New user - create pending registration
+    console.log('🆕 New user, creating pending registration');
+    
+    const pendingToken = crypto.randomBytes(32).toString('hex');
+    
+    // Store user data temporarily
+    pendingRegistrations.set(pendingToken, {
+      userData: {
+        googleId,
+        email,
+        profile: {
+          firstName,
+          lastName,
+          avatar,
+          firstNameLabels: {
+            en: firstName,
+            fr: firstName,
+            ar: firstName
+          },
+          lastNameLabels: {
+            en: lastName,
+            fr: lastName,
+            ar: lastName
+          }
+        },
+        authProvider: 'google'
+      },
+      timestamp: Date.now()
+    });
+
+    logEvents(
+      `Pending mobile Google OAuth registration: ${email}\t${req.method}\t${req.url}\t${req.ip}`,
+      'reqLog.log'
+    );
+
+    return res.status(200).json({
+      pendingToken,
+      user: {
+        email,
+        profile: {
+          firstName,
+          lastName,
+          avatar
+        }
+      },
+      isNewUser: true
+    });
+
+  } catch (error) {
+    console.error('Token exchange error:', error);
+    logEvents(
+      `Mobile Google OAuth token exchange error\t${error.message}\t${req.method}\t${req.url}\t${req.ip}`,
+      'errLog.log'
+    );
+    
+    return res.status(500).json({
+      message: 'Failed to exchange authorization code',
+      isError: true,
+      code: 'TOKEN_EXCHANGE_ERROR'
+    });
+  }
+});
+
+/**
  * @desc Mobile Google OAuth authentication
  * @route POST /auth/google/mobile
  * @access Public

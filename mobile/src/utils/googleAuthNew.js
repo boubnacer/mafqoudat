@@ -16,15 +16,19 @@ const discovery = {
 class GoogleAuthNew {
   constructor() {
     this.request = null;
-    this.redirectUri = makeRedirectUri({
-      scheme: undefined, // Use default scheme
-      path: 'auth',
-    });
+    // Use a simple, fixed redirect URI that Google will accept
+    this.redirectUri = 'mafqoudat://auth';
   }
 
   // Initialize the auth request
   async initAuthRequest() {
     try {
+      console.log('🔧 Initializing AuthRequest with config:', {
+        clientId: GOOGLE_WEB_CLIENT_ID?.substring(0, 10) + '...',
+        redirectUri: this.redirectUri,
+        responseType: 'code'
+      });
+
       this.request = new AuthSession.AuthRequest({
         clientId: GOOGLE_WEB_CLIENT_ID,
         scopes: ['openid', 'profile', 'email'],
@@ -36,10 +40,12 @@ class GoogleAuthNew {
         },
       });
 
+      console.log('🔗 Auth request created, prompting user...');
       const result = await this.request.promptAsync(discovery);
+      console.log('📱 Auth prompt result:', result.type);
       return result;
     } catch (error) {
-      console.error('Auth request initialization failed:', error);
+      console.error('❌ Auth request initialization failed:', error);
       throw error;
     }
   }
