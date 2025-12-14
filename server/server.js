@@ -11,7 +11,6 @@ const {
   requestTimeout: resilientRequestTimeout,
   gracefulShutdownHandler 
 } = require("./middleware/resilientErrorHandler");
-const { authErrorMiddleware } = require("./middleware/authErrorHandler");
 const cookieParser = require("cookie-parser");
 const cors = require("cors");
 const corsOptions = require("./config/corsOptions");
@@ -170,8 +169,6 @@ app.use(passport.session());
 // Serve static files
 app.use("/", express.static(path.join(__dirname, "public")));
 
-// Authentication error handling (must come before routes)
-app.use('/auth', authErrorMiddleware);
 
 // Maintenance mode middleware (after auth setup, before routes)
 const maintenanceMode = require("./middleware/maintenanceMode");
@@ -354,6 +351,10 @@ app.all("*", (req, res) => {
     res.type("txt").send("404 Not Found - API Server");
   }
 });
+
+// Auth-specific error handling (must come before general error handlers)
+const { authErrorMiddleware } = require("./middleware/simpleAuthErrorHandler");
+app.use("/auth", authErrorMiddleware);
 
 // Enhanced error handling with resilience
 app.use(resilientErrorHandler);

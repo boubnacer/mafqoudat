@@ -10,6 +10,16 @@ const resilienceManager = require('../utils/resilienceManager');
  * Enhanced error handler middleware
  */
 const resilientErrorHandler = (err, req, res, next) => {
+  // Don't override if response has already been sent
+  if (res.headersSent) {
+    return next(err);
+  }
+
+  // Don't override auth errors that have been handled by auth middleware
+  if (err.isAuthError || err.isHandled) {
+    return next(err);
+  }
+
   // Log error with context
   const errorContext = {
     endpoint: req.originalUrl,

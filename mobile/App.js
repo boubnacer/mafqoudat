@@ -24,7 +24,7 @@ const AuthNavigator = () => {
 const AppNavigator = () => {
   return (
     <Stack.Navigator screenOptions={{ headerShown: false }}>
-      <Stack.Screen name="PostsList" component={PostsListScreen} />
+      <Stack.Screen name="PostsListScreen" component={PostsListScreen} />
       {/* Add other authenticated screens here */}
     </Stack.Navigator>
   );

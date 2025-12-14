@@ -78,7 +78,7 @@ const LoginScreenNew = ({ navigation }) => {
         }
 
         // Navigate to posts list
-        navigation.replace('PostsList');
+        navigation.replace('PostsListScreen');
       } else {
         setError(t('invalidCredentials'));
       }
@@ -158,7 +158,7 @@ const LoginScreenNew = ({ navigation }) => {
       if (userData) {
         await storage.setUserData(userData);
         // Navigate to posts list
-        navigation.replace('PostsList');
+        navigation.replace('PostsListScreen');
       } else {
         setError('Invalid token format. Please check the token and try again.');
       }

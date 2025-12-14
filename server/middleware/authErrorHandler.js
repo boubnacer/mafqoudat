@@ -314,7 +314,27 @@ const authErrorHandler = new AuthErrorHandler();
 const authErrorMiddleware = (error, req, res, next) => {
   // Only handle authentication-related errors
   if (isAuthError(error, req)) {
-    return authErrorHandler.handleAuthError(error, req, res, next);
+    // Mark error as handled to prevent override
+    error.isAuthError = true;
+    error.isHandled = true;
+    
+    // Handle the error and ensure response is sent
+    try {
+      return authErrorHandler.handleAuthError(error, req, res, next);
+    } catch (handlerError) {
+      console.error('Auth error handler failed:', handlerError);
+      // Fallback to basic error response
+      if (!res.headersSent) {
+        return res.status(500).json({
+          success: false,
+          error: {
+            message: 'Authentication error',
+            code: 'AUTH_ERROR',
+            timestamp: new Date().toISOString()
+          }
+        });
+      }
+    }
   }
   
   // Pass non-auth errors to next error handler

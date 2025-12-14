@@ -3,7 +3,7 @@ const bcrypt = require("bcrypt");
 const Country = require("../models/Country");
 const { generateTokens, logout } = require("../middleware/jwtSecurity");
 const { logEvents } = require("../middleware/logger");
-const { createAuthError, asyncAuthHandler } = require("../middleware/authErrorHandler");
+const { createAuthError, asyncAuthHandler } = require("../middleware/simpleAuthErrorHandler");
 
 // @desc Login
 // @route POST /auth
