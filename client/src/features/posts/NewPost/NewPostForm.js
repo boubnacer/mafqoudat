@@ -4,121 +4,42 @@ import { useAddNewPostMutation } from "../postsApiSlice";
 import { useSelector } from "react-redux";
 import { selectCurrentToken } from "../../auth/authSlice";
 import * as Yup from "yup";
-import { Formik, Form, useField } from "formik";
-import Textfield from "../../../components/Textfield";
-import SubmitButton from "../../../components/SubmitButton";
-import SelectOption from "../../../components/SelectOption";
+import { Formik, Form } from "formik";
 import imageCompression from "browser-image-compression";
-import { 
-  Box, 
-  FormLabel, 
-  Paper, 
-  Typography, 
-  CircularProgress, 
-  useTheme, 
-  Alert, 
+import {
+  Box,
+  Paper,
+  Typography,
+  CircularProgress,
+  useTheme,
+  Alert,
   Button,
-  Select,
-  MenuItem,
-  FormControl,
-  InputLabel,
   TextField,
-  Divider,
   Dialog,
   DialogTitle,
   DialogContent,
   DialogActions,
   IconButton,
-  Card,
-  CardMedia,
-  CardActions,
-  Chip,
-  Autocomplete
+  Stepper,
+  Step,
+  StepButton,
+  LinearProgress
 } from "@mui/material";
-import { 
-  PhotoCamera, 
-  LocationOn, 
-  WhatsApp, 
-  Add as AddIcon, 
+import {
   Close as CloseIcon,
-  Delete as DeleteIcon,
-  Edit as EditIcon,
-  CloudUpload as CloudUploadIcon,
-  WarningAmber as WarningAmberIcon
+  CloudUpload as CloudUploadIcon
 } from '@mui/icons-material';
 import { useTranslation } from "../../../utils/translations";
 import PromotionDialog from "../../../components/PromotionDialog";
-
-// Helper function to get city display name with fallback logic
-const getCityDisplayName = (city, currentLanguage) => {
-  if (!city) return 'Unknown City';
-  
-  // For Arabic language, prioritize Arabic script
-  if (currentLanguage === 'ar') {
-    // Priority: Arabic -> English -> French -> any available
-    const priorityOrder = ['ar', 'en', 'fr'];
-    for (const lang of priorityOrder) {
-      if (city.labels?.[lang]) {
-        return city.labels[lang];
-      }
-    }
-  } else {
-    // For English and French, prioritize Latin script (English/French)
-    // Priority: Current language -> English -> French -> Arabic (as last resort)
-    const priorityOrder = [currentLanguage, 'en', 'fr', 'ar'];
-    for (const lang of priorityOrder) {
-      if (city.labels?.[lang]) {
-        // For English and French, avoid Arabic script if possible
-        if ((currentLanguage === 'en' || currentLanguage === 'fr') && lang === 'ar') {
-          // Only use Arabic if no Latin script is available
-          continue;
-        }
-        return city.labels[lang];
-      }
-    }
-  }
-  
-  // Fallback to any available label
-  if (city.label) return city.label;
-  if (city.name) return city.name;
-  if (city.code) return city.code;
-  
-  return 'Unknown City';
-};
-
-// Custom City Select Option Component (based on SelectOption but with city icons)
-const CitySelectOption = ({ name, cities, disabled, currentLanguage }) => {
-  const [field, meta, helpers] = useField(name);
-
-  const handleChange = (event) => {
-    const { value } = event.target;
-    helpers.setValue(value);
-  };
-
-  const selectConfig = {
-    ...field,
-    select: true,
-    variant: "outlined",
-    fullWidth: true,
-    onChange: handleChange,
-    disabled: disabled,
-  };
-
-  if (meta && meta.touched && meta.error) {
-    selectConfig.error = true;
-    selectConfig.helperText = meta.error;
-  }
-
-  return (
-    <TextField {...selectConfig}>
-      {cities.map((city) => (
-        <MenuItem key={city._id} value={city._id}>
-          {getCityDisplayName(city, currentLanguage)}
-        </MenuItem>
-      ))}
-    </TextField>
-  );
-};
+import StepItem from "./steps/StepItem";
+import StepLocation from "./steps/StepLocation";
+import StepPhoto from "./steps/StepPhoto";
+import StepReview from "./steps/StepReview";
+import StepTransition from "./steps/StepTransition";
+import WizardFooter from "./steps/WizardFooter";
+import ReviewSubmitButton from "./steps/ReviewSubmitButton";
+import { validateStep1, validateStep2, STEP_VALIDATORS, scrollToFirstErrorField } from "./wizardValidation";
+import { getCityDisplayName } from "./cityDisplay";
 
 const NewPostForm = ({ user, countries, categories, flOptions }) => {
   const [addNewPost, { isSuccess, isError, error }] = useAddNewPostMutation();
@@ -143,6 +64,12 @@ const NewPostForm = ({ user, countries, categories, flOptions }) => {
   const [compressionInfo, setCompressionInfo] = useState(null);
   const [setFieldValueCallback, setSetFieldValueCallback] = useState(null);
   const [fieldErrors, setFieldErrors] = useState({});
+  // Wizard step state (component state only - not persisted, see C5)
+  const [activeStep, setActiveStep] = useState(0);
+  const [maxStepReached, setMaxStepReached] = useState(0);
+  // Tracks whether the last step change was a forward or backward move, so
+  // the step transition animation can slide the right way (purely visual).
+  const [stepDirection, setStepDirection] = useState(1);
   const formikRef = useRef(null);
   const fileInputRef = useRef(null);
   // values.country is the single source of truth (Formik); this ref just guards
@@ -153,8 +80,6 @@ const NewPostForm = ({ user, countries, categories, flOptions }) => {
   const [selectedImage, setSelectedImage] = useState(null);
   const [imagePreview, setImagePreview] = useState(null);
   const [showImageDialog, setShowImageDialog] = useState(false);
-  const [showImageWarningDialog, setShowImageWarningDialog] = useState(false);
-  const [proceedCountdown, setProceedCountdown] = useState(0);
 
   // New state for unified city dropdown
   const [citySearchQuery, setCitySearchQuery] = useState(""); // For search input inside dropdown
@@ -295,6 +220,74 @@ const NewPostForm = ({ user, countries, categories, flOptions }) => {
     }
   }, [fetchCitiesByCountry, currentLanguage]);
 
+  // Wizard step labels, in step order.
+  const steps = [
+    { key: 'item', label: t('wizardStepItemTitle'), subtitle: t('wizardStepItemSubtitle') },
+    { key: 'location', label: t('wizardStepLocationTitle'), subtitle: t('wizardStepLocationSubtitle') },
+    { key: 'photo', label: t('wizardStepPhotoTitle'), subtitle: t('wizardStepPhotoSubtitle') },
+    { key: 'rest', label: t('wizardStepReviewTitle'), subtitle: t('wizardStepReviewSubtitle') },
+  ];
+
+  // Single place that changes the active step, so the direction used by the
+  // step transition animation (purely visual) always stays correct.
+  const goToStep = (nextIndex) => {
+    setStepDirection(nextIndex > activeStep ? 1 : -1);
+    setActiveStep(nextIndex);
+  };
+
+  // Gate moving from step 1 ("What happened") to the next step behind its
+  // per-step validators (S2). Reuses the same fieldErrors + scroll-to-error
+  // mechanism as the original single-page handleSubmit validation.
+  const handleNextFromItemStep = (values, setStatus) => {
+    const { missingFields, fieldErrors: newFieldErrors } = validateStep1(values, t);
+
+    if (missingFields.length > 0) {
+      const errorMessage = `${t('fillRequiredFields')}: ${missingFields.join(', ')}`;
+      setStatus({ validationError: errorMessage });
+      setFieldErrors(newFieldErrors);
+      scrollToFirstErrorField(newFieldErrors);
+      return;
+    }
+
+    setStatus(null);
+    setFieldErrors({});
+    goToStep(1);
+    setMaxStepReached((m) => Math.max(m, 1));
+  };
+
+  // Gate moving from step 2 ("Where & when") to the next step (S2).
+  const handleNextFromLocationStep = (values, setStatus) => {
+    const { missingFields, fieldErrors: newFieldErrors } = validateStep2(values, t);
+
+    if (missingFields.length > 0) {
+      const errorMessage = `${t('fillRequiredFields')}: ${missingFields.join(', ')}`;
+      setStatus({ validationError: errorMessage });
+      setFieldErrors(newFieldErrors);
+      scrollToFirstErrorField(newFieldErrors);
+      return;
+    }
+
+    setStatus(null);
+    setFieldErrors({});
+    goToStep(2);
+    setMaxStepReached((m) => Math.max(m, 2));
+  };
+
+  // Step 3 ("Photo") has no required fields (S2), so Next just advances.
+  const handleNextFromPhotoStep = () => {
+    setFieldErrors({});
+    goToStep(3);
+    setMaxStepReached((m) => Math.max(m, 3));
+  };
+
+  // A user can click back to any already-validated step, but never jump
+  // ahead of the furthest step they've passed validation for (S1).
+  const handleStepClick = (index) => {
+    if (index <= maxStepReached) {
+      goToStep(index);
+    }
+  };
+
   // Function to get default foundLost value based on URL parameters
   const getDefaultFoundLost = () => {
     const urlParams = new URLSearchParams(window.location.search);
@@ -324,14 +317,12 @@ const NewPostForm = ({ user, countries, categories, flOptions }) => {
     exactLocation: "",
     exactDate: "", // Empty by default - placeholder will show example
     description: "",
-    image: null,
   };
 
   // Remove Yup validation - we'll handle validation in handleSubmit
   const formValidation = Yup.object().shape({
     // Only validate optional fields, required fields will be validated in handleSubmit
     description: Yup.string().optional(),
-    image: Yup.mixed().nullable(),
   });
 
   // New function to search cities using hybrid search
@@ -426,84 +417,36 @@ const NewPostForm = ({ user, countries, categories, flOptions }) => {
       const selectedCategories = values.categories && Array.isArray(values.categories) && values.categories.length > 0
         ? values.categories
         : (values.category ? [values.category] : []);
-      
-      // Validate required fields
+
+      // Safety net: re-run every step's validator in case a field was somehow
+      // cleared after its step was already passed (S2). Jump to the earliest
+      // offending step rather than just blocking submission.
       const missingFields = [];
       const newFieldErrors = {};
-      
-      if (!values.foundLost) {
-        missingFields.push(t('foundOrLost'));
-        newFieldErrors.foundLost = t('required');
-      }
-      // Validate categories
-      if (selectedCategories.length === 0) {
-        missingFields.push(t('category'));
-        newFieldErrors.category = t('required');
-      }
-      if (!values.country) {
-        missingFields.push(t('country'));
-        newFieldErrors.country = t('required');
-      }
-      if (!values.city || values.city === 'other') {
-        missingFields.push(t('city'));
-        newFieldErrors.city = t('required');
-      }
-      // exactDate is now optional - no validation needed
-      if (!values.exactLocation?.trim()) {
-        missingFields.push(t('exactLocation'));
-        newFieldErrors.exactLocation = t('required');
-      }
-      if (!values.contact?.trim()) {
-        missingFields.push(t('contact'));
-        newFieldErrors.contact = t('required');
-      }
-      
+      let earliestFailingStep = null;
+
+      STEP_VALIDATORS.forEach((validateStep, stepIndex) => {
+        const stepResult = validateStep(values, t);
+        if (stepResult.missingFields.length > 0) {
+          missingFields.push(...stepResult.missingFields);
+          Object.assign(newFieldErrors, stepResult.fieldErrors);
+          if (earliestFailingStep === null) {
+            earliestFailingStep = stepIndex;
+          }
+        }
+      });
+
       if (missingFields.length > 0) {
         const errorMessage = `${t('fillRequiredFields')}: ${missingFields.join(', ')}`;
         setStatus({ validationError: errorMessage });
         setFieldErrors(newFieldErrors);
         setSubmitting(false);
-        
-        // Scroll to first error field
-        setTimeout(() => {
-          let fieldToScroll = null;
-          
-          // Map missing field names to actual field selectors
-          if (missingFields.includes(t('foundOrLost'))) {
-            fieldToScroll = document.querySelector('[data-testid="foundLost"]');
-          } else if (missingFields.includes(t('category'))) {
-            fieldToScroll = document.querySelector('[data-testid="category"]');
-          } else if (missingFields.includes(t('country'))) {
-            fieldToScroll = document.querySelector('[data-testid="country-select"]');
-          } else if (missingFields.includes(t('city'))) {
-            fieldToScroll = document.querySelector('[data-testid="city-select"]');
-          } else if (missingFields.includes(t('exactLocation'))) {
-            fieldToScroll = document.querySelector('[data-testid="exactLocation"]');
-          } else if (missingFields.includes(t('contact'))) {
-            fieldToScroll = document.querySelector('[data-testid="contact"]');
-          }
-          
-          if (fieldToScroll) {
-            // Get the field's position
-            const rect = fieldToScroll.getBoundingClientRect();
-            const scrollTop = window.pageYOffset || document.documentElement.scrollTop;
-            const targetPosition = rect.top + scrollTop - 100; // 100px offset from top
-            
-            // Smooth scroll to the field
-            window.scrollTo({
-              top: targetPosition,
-              behavior: 'smooth'
-            });
-            
-            // Focus the field after scroll
-            setTimeout(() => {
-              fieldToScroll.focus();
-            }, 500);
-          }
-        }, 100);
+        goToStep(earliestFailingStep);
+        setMaxStepReached((m) => Math.max(m, earliestFailingStep));
+        scrollToFirstErrorField(newFieldErrors);
         return;
       }
-      
+
       // Store the submitted values to check if it's a lost item
       setLastSubmittedValues(values);
       
@@ -775,38 +718,13 @@ const NewPostForm = ({ user, countries, categories, flOptions }) => {
     }
   }, []);
 
+  // The privacy warning used to gate this behind a 6-second countdown
+  // dialog; it's now an always-visible inline notice on the Photo step
+  // (S3), so the button just opens the file picker directly.
   const handleImageButtonClick = useCallback(() => {
     if (isCompressing) return;
-    setProceedCountdown(6);
-    setShowImageWarningDialog(true);
-  }, [isCompressing]);
-
-  const handleImageWarningProceed = useCallback(() => {
-    if (proceedCountdown > 0) return;
-    setShowImageWarningDialog(false);
-    setProceedCountdown(0);
-    setTimeout(() => {
-      fileInputRef.current?.click();
-    }, 150);
-  }, [fileInputRef, proceedCountdown]);
-
-  const handleImageWarningClose = useCallback(() => {
-    setShowImageWarningDialog(false);
-    setProceedCountdown(0);
-  }, []);
-
-  useEffect(() => {
-    if (!showImageWarningDialog) {
-      return;
-    }
-    if (proceedCountdown <= 0) {
-      return;
-    }
-    const timer = setTimeout(() => {
-      setProceedCountdown(prev => (prev > 0 ? prev - 1 : 0));
-    }, 1000);
-    return () => clearTimeout(timer);
-  }, [showImageWarningDialog, proceedCountdown]);
+    fileInputRef.current?.click();
+  }, [isCompressing, fileInputRef]);
 
   // Handle image selection
   const handleImageSelect = useCallback(async (event) => {
@@ -920,11 +838,12 @@ const NewPostForm = ({ user, countries, categories, flOptions }) => {
           }}
         />
       )}
-      <Paper 
-        elevation={4} 
-        sx={{ 
-          p: { xs: 3, md: 5 }, 
-          maxWidth: 700, 
+      <Paper
+        elevation={4}
+        sx={{
+          p: { xs: 3, md: 5 },
+          pb: { xs: 11, sm: 5 },
+          maxWidth: 680,
           width: "100%",
           borderRadius: 3,
           boxShadow: theme.shadows[8]
@@ -951,7 +870,7 @@ const NewPostForm = ({ user, countries, categories, flOptions }) => {
           validationSchema={formValidation}
           onSubmit={handleSubmit}
         >
-          {({ isSubmitting, status, setFieldValue, values, errors, touched, handleChange }) => {
+          {({ status, setStatus, setFieldValue, values }) => {
             // Store setFieldValue function for use in custom city creation
             setSetFieldValueCallback(() => setFieldValue);
 
@@ -979,1307 +898,195 @@ const NewPostForm = ({ user, countries, categories, flOptions }) => {
               }
             };
 
+            const accentColor = theme.palette.mode === 'dark' ? '#4CAF50' : '#2E7D32';
+
             return (
             <Form>
+              <Box sx={{ mb: 4 }}>
+                <Box sx={{ display: { xs: 'none', sm: 'block' } }}>
+                  <Stepper
+                    activeStep={activeStep}
+                    alternativeLabel
+                    sx={{
+                      '& .MuiStepIcon-root.Mui-active': { color: accentColor },
+                      '& .MuiStepIcon-root.Mui-completed': { color: accentColor },
+                      '& .MuiStepConnector-root.Mui-active .MuiStepConnector-line, & .MuiStepConnector-root.Mui-completed .MuiStepConnector-line': {
+                        borderColor: accentColor,
+                      },
+                      '& .MuiStepLabel-label': {
+                        fontSize: '0.85rem',
+                        // Longer fr/ar labels shouldn't force the stepper to overflow.
+                        whiteSpace: 'normal',
+                        textAlign: 'center',
+                      },
+                    }}
+                  >
+                    {steps.map((step, index) => (
+                      <Step key={step.key} completed={index < maxStepReached}>
+                        <StepButton onClick={() => handleStepClick(index)} disabled={index > maxStepReached}>
+                          {step.label}
+                        </StepButton>
+                      </Step>
+                    ))}
+                  </Stepper>
+                </Box>
+                <Box sx={{ display: { xs: 'block', sm: 'none' } }}>
+                  <LinearProgress
+                    variant="determinate"
+                    value={((activeStep + 1) / steps.length) * 100}
+                    sx={{
+                      height: 6,
+                      borderRadius: 3,
+                      mb: 1,
+                      backgroundColor: theme.palette.mode === 'dark' ? 'rgba(255,255,255,0.1)' : 'rgba(0,0,0,0.08)',
+                      '& .MuiLinearProgress-bar': { backgroundColor: accentColor, borderRadius: 3 },
+                    }}
+                  />
+                  <Typography variant="caption" sx={{ fontWeight: 600, color: theme.palette.text.secondary }}>
+                    {t('wizardStepProgressShort', { current: activeStep + 1, total: steps.length })}
+                  </Typography>
+                </Box>
+
+                <Box sx={{ mt: 3, textAlign: 'center' }}>
+                  <Typography variant="h5" sx={{ fontWeight: 700, color: accentColor, fontSize: '1.4rem' }}>
+                    {steps[activeStep].label}
+                  </Typography>
+                  <Typography variant="body2" sx={{ color: theme.palette.text.secondary, mt: 0.5 }}>
+                    {steps[activeStep].subtitle}
+                  </Typography>
+                </Box>
+              </Box>
+
               {status?.error && (
                 <Alert severity="error" sx={{ mb: 3 }}>
                   {status.error}
                 </Alert>
               )}
-              
-              <Box display="flex" flexDirection="column" gap={3}>
-                {/* Basic Information Section */}
-                <Typography 
-                  variant="h5" 
-                  sx={{ 
-                    fontWeight: 700, 
-                    color: theme.palette.mode === 'dark' ? '#4CAF50' : '#2E7D32',
-                    fontSize: '1.4rem',
-                    mb: 1,
-                    textShadow: theme.palette.mode === 'dark' ? '0 1px 2px rgba(0,0,0,0.3)' : '0 1px 2px rgba(0,0,0,0.1)'
-                  }}
-                >
-                  {t('basicInformation')}
-                </Typography>
 
-                <Box>
-                  <FormLabel 
-                    htmlFor="foundLost" 
-                    sx={{ 
-                      mb: 1, 
-                      display: "block", 
-                      fontWeight: 600, 
-                      fontSize: '1.15rem',
-                      color: theme.palette.text.primary
-                    }}
-                  >
-                    {t('haveYouLostOrFoundSomething')} *
-                  </FormLabel>
-                  <SelectOption 
-                    name="foundLost" 
-                    options={flOptions} 
-                    data-testid="foundLost"
-                    error={!!fieldErrors.foundLost}
-                    helperText={fieldErrors.foundLost}
-                    onErrorClear={clearFieldError}
-                  />
-                </Box>
-
-                <Box>
-                  <FormLabel 
-                    htmlFor="categories" 
-                    sx={{ 
-                      mb: 1, 
-                      display: "block", 
-                      fontWeight: 600, 
-                      fontSize: '1.15rem',
-                      color: theme.palette.text.primary
-                    }}
-                  >
-                    {getFoundLostType(values.foundLost) === 'LOST' 
-                      ? t('specifyItemTypeLost')
-                      : t('specifyItemTypeFound')
-                    } *
-                  </FormLabel>
-                  <Typography 
-                    variant="caption" 
-                    sx={{ 
-                      mb: 1, 
-                      display: "block", 
-                      fontSize: '1rem',
-                      color: theme.palette.mode === 'dark' ? 'rgba(255,255,255,0.7)' : 'rgba(0,0,0,0.6)',
-                      fontWeight: 500
-                    }}
-                  >
-                    {currentLanguage === 'ar' 
-                      ? 'يمكنك اختيار عدة فئات (مثال: محفظة، أوراق، بطاقة هوية)'
-                      : currentLanguage === 'fr'
-                        ? 'Vous pouvez sélectionner plusieurs catégories (ex: portefeuille, papiers, carte d\'identité)'
-                        : 'You can select multiple categories (e.g., wallet, papers, ID card)'
-                    }
-                  </Typography>
-                  <Autocomplete
-                    multiple
-                    options={categories || []}
-                    getOptionLabel={(option) => {
-                      if (typeof option === 'string') {
-                        // If option is just an ID string, find the category object
-                        const cat = categories.find(c => c.id === option || c._id === option);
-                        if (cat) {
-                          return cat.labels?.[currentLanguage] || cat.label || cat.code || option;
-                        }
-                        return option;
-                      }
-                      return option.labels?.[currentLanguage] || option.label || option.code || '';
-                    }}
-                    value={values.categories && Array.isArray(values.categories) && values.categories.length > 0
-                      ? categories.filter(cat => values.categories.includes(cat.id || cat._id))
-                      : (values.category ? categories.filter(cat => (cat.id || cat._id) === values.category) : [])
-                    }
-                    onChange={(event, newValue) => {
-                      const categoryIds = newValue.map(cat => cat.id || cat._id);
-                      setFieldValue('categories', categoryIds);
-                      // Also set legacy category field for backward compatibility
-                      if (categoryIds.length > 0) {
-                        setFieldValue('category', categoryIds[0]);
-                      } else {
-                        setFieldValue('category', '');
-                      }
-                      clearFieldError('category');
-                    }}
-                    isOptionEqualToValue={(option, value) => {
-                      const optionId = option.id || option._id;
-                      const valueId = value.id || value._id;
-                      return optionId === valueId;
-                    }}
-                    renderInput={(params) => (
-                      <TextField
-                        {...params}
-                        variant="outlined"
-                        placeholder={currentLanguage === 'ar' 
-                          ? 'اختر الفئات...'
-                          : currentLanguage === 'fr'
-                            ? 'Sélectionner les catégories...'
-                            : 'Select categories...'
-                        }
-                        data-testid="category"
-                        error={!!fieldErrors.category}
-                        helperText={fieldErrors.category || (currentLanguage === 'ar' 
-                          ? 'يمكنك اختيار أكثر من فئة واحدة'
-                          : currentLanguage === 'fr'
-                            ? 'Vous pouvez sélectionner plusieurs catégories'
-                            : 'You can select multiple categories'
-                        )}
-                        sx={{
-                          borderRadius: 2,
-                          '& .MuiOutlinedInput-root': {
-                            '&:hover fieldset': {
-                              borderColor: theme.palette.mode === 'dark' ? 'rgba(255,255,255,0.5)' : 'rgba(0,0,0,0.4)',
-                            },
-                            '&.Mui-focused fieldset': {
-                              borderColor: theme.palette.mode === 'dark' ? '#4CAF50' : '#2E7D32',
-                            },
-                            '& fieldset': {
-                              borderColor: theme.palette.mode === 'dark' ? 'rgba(255,255,255,0.3)' : 'rgba(0,0,0,0.2)',
-                            },
-                          },
-                        }}
-                      />
-                    )}
-                    renderTags={(value, getTagProps) =>
-                      value.map((option, index) => {
-                        const { key, ...tagProps } = getTagProps({ index });
-                        const categoryName = option.labels?.[currentLanguage] || option.label || option.code || '';
-                        return (
-                          <Chip
-                            key={key}
-                            label={categoryName}
-                            {...tagProps}
-                            sx={{
-                              borderRadius: 2,
-                              backgroundColor: theme.palette.mode === 'dark' 
-                                ? 'rgba(76, 175, 80, 0.2)' 
-                                : 'rgba(76, 175, 80, 0.1)',
-                              color: theme.palette.mode === 'dark' ? '#4CAF50' : '#2E7D32',
-                              border: `1px solid ${theme.palette.mode === 'dark' ? '#4CAF50' : '#2E7D32'}`,
-                              '& .MuiChip-deleteIcon': {
-                                color: theme.palette.mode === 'dark' ? '#4CAF50' : '#2E7D32',
-                              },
-                            }}
-                          />
-                        );
-                      })
-                    }
+              {/* Rendered at the shell level (not gated by activeStep) so it's
+                  visible whichever step's Next/Submit validation raised it. */}
+              {status?.validationError && (
+                <Box mb={3} sx={{ display: 'flex', justifyContent: 'center', width: '100%' }}>
+                  <Alert
+                    severity="error"
                     sx={{
-                      '& .MuiOutlinedInput-root': {
-                        borderRadius: 2,
-                      },
-                    }}
-                  />
-                </Box>
-
-                {/* Location Section */}
-                <Typography 
-                  variant="h5" 
-                  sx={{ 
-                    fontWeight: 700, 
-                    color: theme.palette.mode === 'dark' ? '#4CAF50' : '#2E7D32',
-                    fontSize: '1.4rem',
-                    mb: 1,
-                    textShadow: theme.palette.mode === 'dark' ? '0 1px 2px rgba(0,0,0,0.3)' : '0 1px 2px rgba(0,0,0,0.1)'
-                  }}
-                >
-                  {t('location')}
-                </Typography>
-
-                <Box>
-                  <FormLabel 
-                    htmlFor="country" 
-                    sx={{ 
-                      mb: 1, 
-                      display: "block", 
-                      fontWeight: 600, 
-                      fontSize: '1.15rem',
-                      color: theme.palette.text.primary
-                    }}
-                  >
-                    {t('country')} *
-                  </FormLabel>
-                  <Typography 
-                    variant="caption" 
-                    sx={{ 
-                      mb: 1, 
-                      display: "block", 
-                      fontSize: '1rem',
-                      color: theme.palette.mode === 'dark' ? 'rgba(255,255,255,0.7)' : 'rgba(0,0,0,0.6)',
-                      fontWeight: 500
-                    }}
-                  >
-                    {getFoundLostType(values.foundLost) === 'LOST' 
-                      ? t('chooseCountryLost') 
-                      : t('chooseCountryFound')
-                    }
-                  </Typography>
-                  <FormControl fullWidth error={!!fieldErrors.country}>
-                    <Select
-                      value={values.country || ""}
-                      onChange={handleCountryChange}
-                      data-testid="country-select"
-                      displayEmpty
-                      sx={{
-                        borderRadius: 2,
-                        '& .MuiOutlinedInput-notchedOutline': {
-                          borderColor: theme.palette.mode === 'dark' ? 'rgba(255,255,255,0.3)' : 'rgba(0,0,0,0.2)',
-                        },
-                        '&:hover .MuiOutlinedInput-notchedOutline': {
-                          borderColor: theme.palette.mode === 'dark' ? 'rgba(255,255,255,0.5)' : 'rgba(0,0,0,0.4)',
-                        },
-                        '&.Mui-focused .MuiOutlinedInput-notchedOutline': {
-                          borderColor: theme.palette.mode === 'dark' ? '#4CAF50' : '#2E7D32',
-                        },
-                        color: theme.palette.text.primary,
-                        fontWeight: 500
-                      }}
-                    >
-                      {countries?.map((country) => (
-                        <MenuItem key={country._id} value={country._id}>
-                          <Box display="flex" alignItems="center" gap={1}>
-                            {country.flag ? (
-                              <span style={{ fontSize: '20px' }}>
-                                {country.flag}
-                              </span>
-                            ) : (
-                              <img
-                                loading="lazy"
-                                width="20"
-                                src={`https://flagcdn.com/w20/${country.code.toLowerCase()}.png`}
-                                srcSet={`https://flagcdn.com/w40/${country.code.toLowerCase()}.png 2x`}
-                                alt=""
-                                style={{ marginRight: 8 }}
-                              />
-                            )}
-                            {getCountryLabel(country)} ({country.code})
-                          </Box>
-                        </MenuItem>
-                      ))}
-                    </Select>
-                    {fieldErrors.country && (
-                      <Typography 
-                        variant="caption" 
-                        sx={{ 
-                          mt: 1, 
-                          display: 'block',
-                          color: theme.palette.mode === 'dark' ? '#f44336' : '#d32f2f',
-                          fontWeight: 500
-                        }}
-                      >
-                        {fieldErrors.country}
-                      </Typography>
-                    )}
-                  </FormControl>
-                </Box>
-
-                <Box>
-                  <FormLabel 
-                    htmlFor="city" 
-                    sx={{ 
-                      mb: 1, 
-                      display: "block", 
-                      fontWeight: 600, 
-                      fontSize: '1.15rem',
-                      color: theme.palette.text.primary
-                    }}
-                  >
-                    {t('city')} *
-                  </FormLabel>
-                  <Typography 
-                    variant="caption" 
-                    sx={{ 
-                      mb: 1, 
-                      display: "block", 
-                      fontSize: '1rem',
-                      color: theme.palette.mode === 'dark' ? 'rgba(255,255,255,0.7)' : 'rgba(0,0,0,0.6)',
-                      fontWeight: 500
-                    }}
-                  >
-                    {!selectedCountryObj
-                      ? t('selectCountryFirst')
-                        : getFoundLostType(values.foundLost) === 'LOST'
-                          ? currentLanguage === 'ar' 
-                            ? 'يرجى تحديد المدينة التي فقدت فيها العنصر أو أقرب مدينة رئيسية إليها'
-                            : currentLanguage === 'fr'
-                              ? 'Veuillez sélectionner la ville où vous avez perdu l\'objet ou la ville principale la plus proche'
-                              : 'Please select the city where you lost the item or the nearest major administrative center'
-                          : currentLanguage === 'ar' 
-                            ? 'يرجى تحديد المدينة التي وجدت فيها العنصر أو أقرب مدينة رئيسية إليها'
-                            : currentLanguage === 'fr'
-                              ? 'Veuillez sélectionner la ville où vous avez trouvé l\'objet ou la ville principale la plus proche'
-                              : 'Please select the city where you found the item or the nearest major administrative center'
-                    }
-                  </Typography>
-                  
-                  {/* Debug info */}
-                  {process.env.NODE_ENV === 'development' && selectedCountryObj && (
-                    <Box>
-                      <Typography
-                        variant="caption"
-                        sx={{
-                          mb: 1,
-                          display: "block",
-                          fontSize: '0.8rem',
-                          color: theme.palette.mode === 'dark' ? '#ff9800' : '#f57c00',
-                          fontWeight: 500
-                        }}
-                      >
-                        Debug: Country: {selectedCountryObj.code || selectedCountryObj.labels?.en || 'No code'} | Cities loaded: {cities.length}
-                      </Typography>
-                    </Box>
-                  )}
-                  
-                  <Box sx={{ 
-                    position: 'relative'
-                  }} data-testid="city-dropdown">
-                    {/* City Display Input (Read-only) */}
-                    <TextField
-                      fullWidth
-                      placeholder={currentLanguage === 'ar' ? 'اختر مدينة...' : currentLanguage === 'fr' ? 'Sélectionner une ville...' : 'Select a city...'}
-                      value={cityDisplayValue}
-                      readOnly
-                      disabled={!selectedCountryObj}
-                      data-testid="city-select"
-                      onClick={handleCityDropdownToggle}
-                      sx={{
-                        borderRadius: 2,
-                        '& .MuiOutlinedInput-root': {
-                          '&:hover fieldset': {
-                          borderColor: theme.palette.mode === 'dark' ? 'rgba(255,255,255,0.5)' : 'rgba(0,0,0,0.4)',
-                        },
-                          '&.Mui-focused fieldset': {
-                          borderColor: theme.palette.mode === 'dark' ? '#4CAF50' : '#2E7D32',
-                        },
-                          '& fieldset': {
-                            borderColor: theme.palette.mode === 'dark' ? 'rgba(255,255,255,0.3)' : 'rgba(0,0,0,0.2)',
-                          },
-                        color: theme.palette.text.primary,
-                          fontWeight: 500,
-                          cursor: 'pointer',
-                          '& .MuiInputBase-input': {
-                            cursor: 'pointer'
-                          }
-                        }
-                      }}
-                      InputProps={{
-                        endAdornment: isSearching ? (
-                          <CircularProgress size={20} />
-                        ) : (
-                          <LocationOn sx={{ color: theme.palette.text.secondary }} />
-                        )
-                      }}
-                    />
-
-                    {/* Unified City Dropdown */}
-                    {showCityDropdown && selectedCountryObj && (
-                      <Box
-                        sx={{
-                          position: 'absolute',
-                          top: '100%',
-                          left: 0,
-                          right: 0,
-                          zIndex: '99999 !important',
-                          backgroundColor: theme.palette.background.paper,
-                          border: `1px solid ${theme.palette.divider}`,
-                          borderRadius: 2,
-                          boxShadow: theme.shadows[8],
-                          maxHeight: 400,
-                          overflow: 'hidden',
-                          mt: 0.5
-                        }}
-                      >
-                        {/* Search Input inside Dropdown */}
-                        <Box sx={{ 
-                          p: 2, 
-                          borderBottom: `1px solid ${theme.palette.divider}`,
-                          backgroundColor: theme.palette.mode === 'dark' ? '#1a1a1a' : '#ffffff'
-                        }}>
-                          <TextField
-                            fullWidth
-                            size="small"
-                            placeholder={currentLanguage === 'ar' ? 'ابحث عن مدينة...' : currentLanguage === 'fr' ? 'Rechercher une ville...' : 'Search for a city...'}
-                            value={citySearchQuery}
-                            onChange={handleCitySearchChange}
-                            autoFocus
-                            sx={{
-                              '& .MuiOutlinedInput-root': {
-                                backgroundColor: theme.palette.mode === 'dark' ? 'rgba(255,255,255,0.05)' : 'rgba(0,0,0,0.02)',
-                                '& fieldset': {
-                                  borderColor: theme.palette.mode === 'dark' ? 'rgba(255,255,255,0.3)' : 'rgba(0,0,0,0.2)',
-                                },
-                                '&:hover': {
-                                  backgroundColor: theme.palette.mode === 'dark' ? 'rgba(255,255,255,0.08)' : 'rgba(0,0,0,0.04)',
-                                },
-                                '&:hover fieldset': {
-                                  borderColor: theme.palette.mode === 'dark' ? 'rgba(255,255,255,0.5)' : 'rgba(0,0,0,0.4)',
-                                },
-                                '&.Mui-focused': {
-                                  backgroundColor: theme.palette.mode === 'dark' ? 'rgba(255,255,255,0.08)' : 'rgba(0,0,0,0.04)',
-                                },
-                                '&.Mui-focused fieldset': {
-                                  borderColor: theme.palette.mode === 'dark' ? '#4CAF50' : '#2E7D32',
-                                },
-                              },
-                              '& .MuiInputBase-input': {
-                                color: theme.palette.text.primary,
-                              }
-                            }}
-                            InputProps={{
-                              startAdornment: isSearching ? (
-                                <CircularProgress size={16} sx={{ mr: 1 }} />
-                              ) : (
-                                <LocationOn sx={{ color: theme.palette.text.secondary, mr: 1, fontSize: 20 }} />
-                              )
-                            }}
-                          />
-                        </Box>
-
-                        {/* Cities List */}
-                        <Box sx={{ 
-                          maxHeight: 300, 
-                          overflow: 'auto',
-                          backgroundColor: theme.palette.mode === 'dark' ? '#1a1a1a' : '#ffffff',
-                          position: 'relative',
-                          zIndex: 1
-                        }}>
-                          {/* Show search results if searching */}
-                          {citySearchQuery.trim() && searchResults.length > 0 ? (
-                            <>
-                              <Box sx={{ 
-                                p: 1, 
-                                backgroundColor: theme.palette.mode === 'dark' ? '#1a1a1a' : '#ffffff',
-                                position: 'sticky',
-                                top: 0,
-                                zIndex: 2
-                              }}>
-                                <Typography variant="caption" color="text.secondary" sx={{ fontWeight: 600 }}>
-                                  {currentLanguage === 'ar' ? 'نتائج البحث' : currentLanguage === 'fr' ? 'Résultats de recherche' : 'Search Results'}
-                                </Typography>
-                              </Box>
-                              {searchResults.map((city, index) => (
-                                <Box
-                                  key={city._id || city.code || city.id || index}
-                                  onClick={() => handleCitySelect(city)}
-                                  sx={{
-                                    p: 2,
-                                    cursor: 'pointer',
-                                    backgroundColor: theme.palette.mode === 'dark' ? '#1a1a1a' : '#ffffff',
-                                    borderBottom: index < searchResults.length - 1 ? `1px solid ${theme.palette.divider}` : 'none',
-                                    position: 'relative',
-                                    zIndex: '999999 !important',
-                                    '&:hover': {
-                                      backgroundColor: theme.palette.mode === 'dark' ? '#2a2a2a' : '#f5f5f5',
-                                      transform: 'translateX(4px)',
-                                      transition: 'all 0.2s ease-in-out'
-                                    },
-                                    display: 'flex',
-                                    alignItems: 'center',
-                                    gap: 1,
-                                    transition: 'all 0.2s ease-in-out'
-                                  }}
-                                >
-                                  <LocationOn fontSize="small" color="primary" sx={{ zIndex: '999999 !important', position: 'relative' }} />
-                                  <Box sx={{ zIndex: '999999 !important', position: 'relative' }}>
-                                    <Typography variant="body2" sx={{ 
-                                      fontWeight: 500,
-                                      zIndex: '999999 !important',
-                                      position: 'relative'
-                                    }}>
-                                      {getCityDisplayName(city, currentLanguage)}
-                                    </Typography>
-                                    <Typography variant="caption" color="text.secondary" sx={{
-                                      zIndex: '999999 !important',
-                                      position: 'relative'
-                                    }}>
-                                      {city.labels?.ar && currentLanguage !== 'ar' && ` • ${city.labels.ar}`}
-                                      {city.labels?.fr && currentLanguage !== 'fr' && ` • ${city.labels.fr}`}
-                                      {city.labels?.en && currentLanguage !== 'en' && ` • ${city.labels.en}`}
-                                    </Typography>
-                                  </Box>
-                                </Box>
-                              ))}
-                            </>
-                          ) : citySearchQuery.trim() && searchResults.length === 0 && !isSearching ? (
-                            <Box sx={{ 
-                              p: 3, 
-                              textAlign: 'center',
-                              backgroundColor: theme.palette.mode === 'dark' ? '#1a1a1a' : '#ffffff',
-                              position: 'relative',
-                              zIndex: '999999 !important'
-                            }}>
-                              <Typography variant="body2" color="text.secondary">
-                                {t('noCitiesFound') || 'No cities found'}
-                              </Typography>
-                              <Typography variant="caption" color="text.secondary" sx={{ mt: 1, display: 'block' }}>
-                                {currentLanguage === 'ar' ? 'أضف اسم المدينة الجديدة' : 
-                                 currentLanguage === 'fr' ? 'Ajouter un nouveau nom de ville' : 
-                                 'Add new city name'}
-                              </Typography>
-                            </Box>
-                          ) : (
-                            <>
-                              {/* Show existing cities when not searching */}
-                              {filteredCities.length > 0 ? (
-                                filteredCities.map((city, index) => (
-                                  <Box
-                                    key={city.id || city._id}
-                                    onClick={() => handleCitySelect(city)}
-                                    sx={{
-                                      p: 2,
-                                      cursor: 'pointer',
-                                      backgroundColor: theme.palette.mode === 'dark' ? '#1a1a1a' : '#ffffff',
-                                      borderBottom: index < filteredCities.length - 1 ? `1px solid ${theme.palette.divider}` : 'none',
-                                      position: 'relative',
-                                      zIndex: '999999 !important',
-                                      '&:hover': {
-                                        backgroundColor: theme.palette.mode === 'dark' ? '#2a2a2a' : '#f5f5f5',
-                                        transform: 'translateX(4px)',
-                                        transition: 'all 0.2s ease-in-out'
-                                      },
-                                      display: 'flex',
-                                      alignItems: 'center',
-                                      gap: 1,
-                                      transition: 'all 0.2s ease-in-out'
-                                    }}
-                                  >
-                                    <LocationOn fontSize="small" color="primary" sx={{ zIndex: '999999 !important', position: 'relative' }} />
-                                    <Box sx={{ zIndex: '999999 !important', position: 'relative' }}>
-                                      <Typography variant="body2" sx={{ 
-                                        fontWeight: 500,
-                                        zIndex: '999999 !important',
-                                        position: 'relative'
-                                      }}>
-                                        {getCityDisplayName(city, currentLanguage)}
-                                      </Typography>
-                                      <Typography variant="caption" color="text.secondary" sx={{
-                                        zIndex: '999999 !important',
-                                        position: 'relative'
-                                      }}>
-                                        {city.labels?.ar && currentLanguage !== 'ar' && ` • ${city.labels.ar}`}
-                                        {city.labels?.fr && currentLanguage !== 'fr' && ` • ${city.labels.fr}`}
-                                        {city.labels?.en && currentLanguage !== 'en' && ` • ${city.labels.en}`}
-                                      </Typography>
-                                    </Box>
-                                  </Box>
-                                ))
-                              ) : (
-                                <Box sx={{ 
-                                  p: 3, 
-                                  textAlign: 'center',
-                                  backgroundColor: theme.palette.mode === 'dark' ? '#1a1a1a' : '#ffffff',
-                                  position: 'relative',
-                                  zIndex: '999999 !important'
-                                }}>
-                                  <Typography variant="body2" color="text.secondary">
-                                    {t('noCitiesAvailable') || 'No cities available'}
-                                  </Typography>
-                                </Box>
-                              )}
-                            </>
-                          )}
-
-                          {/* Add New City Option - Only show when search has no results */}
-                          {citySearchQuery.trim().length > 0 && !isSearching && searchResults.length === 0 && (
-                            <>
-                              <Divider />
-                              <Box
-                                onClick={() => {
-                                  setShowCityDropdown(false);
-                                  setShowCustomCityInput(true);
-                                }}
-                                sx={{
-                                  p: 2,
-                                  cursor: 'pointer',
-                                  color: theme.palette.mode === 'dark' ? '#ffffff' : '#000000',
-                                  fontWeight: 600,
-                                  backgroundColor: theme.palette.mode === 'dark' ? '#1a1a1a' : '#ffffff',
-                                  border: `1px solid ${theme.palette.divider}`,
-                                  margin: '6px 8px',
-                                  borderRadius: 2,
-                                  transition: 'all 0.2s ease-in-out',
-                                  '&:hover': {
-                                    backgroundColor: theme.palette.mode === 'dark' ? '#2a2a2a' : '#f5f5f5',
-                                    color: theme.palette.mode === 'dark' ? '#ffffff' : '#000000',
-                                    borderColor: theme.palette.primary.main,
-                                    transform: 'translateY(-1px)',
-                                    boxShadow: theme.shadows[4],
-                                  }
-                                }}
-                              >
-                                <Box display="flex" alignItems="center" gap={1}>
-                                  <AddIcon fontSize="small" />
-                                  {t('addNewCity') || 'Add New City'}
-                                </Box>
-                              </Box>
-                            </>
-                          )}
-                        </Box>
-                      </Box>
-                    )}
-
-                    {fieldErrors.city && (
-                      <Typography 
-                        variant="caption" 
-                        sx={{ 
-                          mt: 1, 
-                          display: 'block',
-                          color: theme.palette.mode === 'dark' ? '#f44336' : '#d32f2f',
-                          fontWeight: 500
-                        }}
-                      >
-                        {fieldErrors.city}
-                      </Typography>
-                    )}
-                  </Box>
-                </Box>
-
-                <Box>
-                  <FormLabel 
-                    htmlFor="exactLocation" 
-                    sx={{ 
-                      mb: 1, 
-                      display: "block", 
-                      fontWeight: 600, 
-                      fontSize: '1.15rem',
-                      color: theme.palette.text.primary
-                    }}
-                  >
-                    {t('exactLocation')} *
-                  </FormLabel>
-                  <Typography 
-                    variant="caption" 
-                    sx={{ 
-                      mb: 1, 
-                      display: "block", 
-                      fontSize: '1rem',
-                      color: theme.palette.mode === 'dark' ? 'rgba(255,255,255,0.7)' : 'rgba(0,0,0,0.6)',
-                      fontWeight: 500
-                    }}
-                  >
-                    {getFoundLostType(values.foundLost) === 'LOST'
-                      ? currentLanguage === 'ar' 
-                        ? 'يرجى تحديد الموقع الدقيق والتفصيلي حيث فقدت العنصر (مثال: حي النور، شارع الملك، بجانب المسجد، أو أي معلم مميز)'
-                        : currentLanguage === 'fr'
-                          ? 'Veuillez spécifier l\'emplacement exact et détaillé où vous avez perdu l\'objet (ex: Quartier Al-Nour, Rue du Roi, près de la mosquée, ou tout point de repère distinctif)'
-                          : 'Please specify the precise and detailed location where you lost the item (e.g., Al-Nour District, King Street, near the mosque, or any distinctive landmark)'
-                      : currentLanguage === 'ar' 
-                        ? 'يرجى تحديد الموقع الدقيق والتفصيلي حيث وجدت العنصر (مثال: حي النور، شارع الملك، بجانب المسجد، أو أي معلم مميز)'
-                        : currentLanguage === 'fr'
-                          ? 'Veuillez spécifier l\'emplacement exact et détaillé où vous avez trouvé l\'objet (ex: Quartier Al-Nour, Rue du Roi, près de la mosquée, ou tout point de repère distinctif)'
-                          : 'Please specify the precise and detailed location where you found the item (e.g., Al-Nour District, King Street, near the mosque, or any distinctive landmark)'
-                    }
-                  </Typography>
-                  <Textfield 
-                    name="exactLocation" 
-                    variant="outlined" 
-                    multiline
-                    rows={4}
-                    placeholder={t('exactLocationPlaceholder')}
-                    data-testid="exactLocation"
-                    error={!!fieldErrors.exactLocation}
-                    helperText={fieldErrors.exactLocation}
-                    onErrorClear={clearFieldError}
-                  />
-                </Box>
-
-                <Box>
-                  <FormLabel 
-                    htmlFor="exactDate" 
-                    sx={{ 
-                      mb: 1, 
-                      display: "block", 
-                      fontWeight: 600, 
-                      fontSize: '1.15rem',
-                      color: theme.palette.text.primary
-                    }}
-                  >
-                    {getFoundLostType(values.foundLost) === 'LOST' 
-                      ? t('exactDateLost') 
-                      : t('exactDateFound')
-                    } ({t('optional')})
-                  </FormLabel>
-                  <Typography 
-                    variant="caption" 
-                    sx={{ 
-                      mb: 1, 
-                      display: "block", 
-                      fontSize: '1rem',
-                      color: theme.palette.mode === 'dark' ? 'rgba(255,255,255,0.7)' : 'rgba(0,0,0,0.6)',
-                      fontWeight: 500
-                    }}
-                  >
-                    {getFoundLostType(values.foundLost) === 'LOST' 
-                      ? t('exactDateLostPlaceholderOptional') 
-                      : t('exactDateFoundPlaceholderOptional')
-                    }
-                  </Typography>
-                  <Textfield 
-                    name="exactDate" 
-                    variant="outlined" 
-                    placeholder={`${t('exactDatePlaceholder')} ${new Date().toLocaleDateString()})`}
-                    data-testid="exactDate"
-                  />
-                </Box>
-
-                {/* Item Details Section */}
-                <Typography 
-                  variant="h5" 
-                  sx={{ 
-                    fontWeight: 700, 
-                    color: theme.palette.mode === 'dark' ? '#4CAF50' : '#2E7D32',
-                    fontSize: '1.4rem',
-                    mb: 1,
-                    textShadow: theme.palette.mode === 'dark' ? '0 1px 2px rgba(0,0,0,0.3)' : '0 1px 2px rgba(0,0,0,0.1)'
-                  }}
-                >
-                  {t('itemDetails')}
-                </Typography>
-
-                <Box>
-                  <FormLabel 
-                    htmlFor="description" 
-                    sx={{ 
-                      mb: 1, 
-                      display: "block", 
-                      fontWeight: 600, 
-                      fontSize: '1.15rem',
-                      color: theme.palette.text.primary
-                    }}
-                  >
-                    {t('description')} ({t('optional')})
-                  </FormLabel>
-                  <Typography 
-                    variant="caption" 
-                    sx={{ 
-                      mb: 1, 
-                      display: "block", 
-                      fontSize: '1rem',
-                      color: theme.palette.mode === 'dark' ? 'rgba(255,255,255,0.7)' : 'rgba(0,0,0,0.6)',
-                      fontWeight: 500
-                    }}
-                  >
-                    {getFoundLostType(values.foundLost) === 'LOST' 
-                      ? (t('descriptionOptionalLostMessage') || "Description is optional but recommended when you don't have an image of the lost item.")
-                      : (t('descriptionOptionalFoundMessage') || "Description is optional. You can add an image instead, or provide both for better identification.")
-                    }
-                  </Typography>
-                  
-                  {/* Sensitive Information Warning - Only show for Found items */}
-                  {getFoundLostType(values.foundLost) === 'FOUND' && (
-                    <Alert 
-                      severity="warning" 
-                      sx={{ 
-                        mb: 2,
-                        borderRadius: 2,
-                        backgroundColor: theme.palette.mode === 'dark' 
-                          ? 'rgba(255, 152, 0, 0.1)' 
-                          : 'rgba(255, 152, 0, 0.05)',
-                        border: `1px solid ${theme.palette.mode === 'dark' ? 'rgba(255, 152, 0, 0.3)' : 'rgba(255, 152, 0, 0.2)'}`,
-                        '& .MuiAlert-icon': {
-                          color: theme.palette.mode === 'dark' ? '#ff9800' : '#f57c00',
-                        },
-                        '& .MuiAlert-message': {
-                          color: theme.palette.text.primary,
-                          fontSize: '0.9rem',
-                          fontWeight: 500,
-                        }
-                      }}
-                    >
-                      {t('descriptionSensitiveInfoWarning')}
-                    </Alert>
-                  )}
-                  
-                  <Textfield 
-                    name="description" 
-                    variant="outlined" 
-                    multiline 
-                    rows={4}
-                    placeholder={getFoundLostType(values.foundLost) === 'LOST' 
-                      ? t('descriptionPlaceholderLost') 
-                      : t('descriptionPlaceholderFound')
-                    }
-                    data-testid="description"
-                  />
-                </Box>
-
-                {/* Contact Information Section */}
-                <Typography 
-                  variant="h5" 
-                  sx={{ 
-                    fontWeight: 700, 
-                    color: theme.palette.mode === 'dark' ? '#4CAF50' : '#2E7D32',
-                    fontSize: '1.4rem',
-                    mb: 1,
-                    textShadow: theme.palette.mode === 'dark' ? '0 1px 2px rgba(0,0,0,0.3)' : '0 1px 2px rgba(0,0,0,0.1)'
-                  }}
-                >
-                  {t('contactInformation')}
-                </Typography>
-
-                <Box>
-                  <FormLabel 
-                    htmlFor="contact" 
-                    sx={{ 
-                      mb: 1, 
-                      display: "block", 
-                      fontWeight: 600, 
-                      fontSize: '1.15rem',
-                      color: theme.palette.text.primary
-                    }}
-                  >
-                    {t('phoneNumber')} *
-                  </FormLabel>
-                  <Typography 
-                    variant="caption" 
-                    sx={{ 
-                      mb: 1, 
-                      display: "block", 
-                      fontSize: '1rem',
-                      color: theme.palette.mode === 'dark' ? 'rgba(255,255,255,0.7)' : 'rgba(0,0,0,0.6)',
-                      fontWeight: 500
-                    }}
-                  >
-                    {getFoundLostType(values.foundLost) === 'LOST'
-                      ? currentLanguage === 'ar' 
-                        ? 'سنقوم بالتواصل معك عبر هذا الرقم في حالة العثور على عنصرك المفقود من قبل شخص آخر'
-                        : currentLanguage === 'fr'
-                          ? 'Nous vous contacterons via ce numéro si quelqu\'un trouve votre objet perdu'
-                          : 'We will contact you through this number if someone finds your lost item'
-                      : currentLanguage === 'ar' 
-                        ? 'سنقوم بالتواصل معك عبر هذا الرقم في حالة تواصل مالك العنصر معنا'
-                        : currentLanguage === 'fr'
-                          ? 'Nous vous contacterons via ce numéro si le propriétaire de l\'objet nous contacte'
-                          : 'We will contact you through this number if the item owner contacts us'
-                    }
-                  </Typography>
-                  <Textfield 
-                    name="contact" 
-                    variant="outlined" 
-                    placeholder={t('phoneNumberPlaceholder') || "Enter your phone number"}
-                    data-testid="contact"
-                    error={!!fieldErrors.contact}
-                    helperText={fieldErrors.contact}
-                    onErrorClear={clearFieldError}
-                  />
-                </Box>
-
-                {/* Image Section */}
-                <Typography 
-                  variant="h5" 
-                  sx={{ 
-                    fontWeight: 700, 
-                    color: theme.palette.mode === 'dark' ? '#4CAF50' : '#2E7D32',
-                    fontSize: '1.4rem',
-                    mb: 1,
-                    textShadow: theme.palette.mode === 'dark' ? '0 1px 2px rgba(0,0,0,0.3)' : '0 1px 2px rgba(0,0,0,0.1)'
-                  }}
-                >
-                  {t('itemImage')}
-                </Typography>
-
-                <Box>
-                  <FormLabel 
-                    htmlFor="image" 
-                    sx={{ 
-                      mb: 1, 
-                      display: "block", 
-                      fontWeight: 600, 
-                      fontSize: '1.15rem',
-                      color: theme.palette.text.primary
-                    }}
-                  >
-                    {t('itemImage')} ({t('optional')})
-                  </FormLabel>
-                  <Typography 
-                    variant="caption" 
-                    sx={{ 
-                      mb: 1, 
-                      display: "block", 
-                      fontSize: '1rem',
-                      color: theme.palette.mode === 'dark' ? 'rgba(255,255,255,0.7)' : 'rgba(0,0,0,0.6)',
-                      fontWeight: 500
-                    }}
-                  >
-                    {t('imageOptionalMessage')}
-                  </Typography>
-                  
-                  {/* Current Image Display */}
-                  {imagePreview && (
-                    <Box sx={{ mb: 3 }}>
-                      <Card 
-                        sx={{ 
-                          maxWidth: 400,
-                          borderRadius: 3,
-                          overflow: 'hidden',
-                          boxShadow: theme.shadows[4],
-                          border: `2px solid ${theme.palette.mode === 'dark' ? 'rgba(255,255,255,0.1)' : 'rgba(0,0,0,0.1)'}`,
-                          transition: 'all 0.3s ease-in-out',
-                          '&:hover': {
-                            transform: 'translateY(-2px)',
-                            boxShadow: theme.shadows[8],
-                          }
-                        }}
-                      >
-                        <CardMedia
-                          component="img"
-                          height="200"
-                          image={imagePreview}
-                          alt="Selected item image"
-                          sx={{
-                            objectFit: 'cover',
-                            cursor: 'pointer'
-                          }}
-                          onClick={handleImageDialogOpen}
-                        />
-                        <CardActions sx={{ 
-                          justifyContent: 'space-between',
-                          p: 2,
-                          backgroundColor: theme.palette.mode === 'dark' ? 'rgba(255,255,255,0.02)' : 'rgba(0,0,0,0.02)'
-                        }}>
-                          <Box display="flex" alignItems="center" gap={1}>
-                            <Chip 
-                              icon={<PhotoCamera />}
-                              label={t('newImage') || 'New Image'}
-                              color="primary"
-                              size="small"
-                              variant="outlined"
-                              sx={{
-                                color: theme.palette.text.primary,
-                                borderColor: theme.palette.divider,
-                                backgroundColor: theme.palette.mode === 'dark' ? 'rgba(255,255,255,0.1)' : 'rgba(0,0,0,0.05)'
-                              }}
-                            />
-                            {compressionInfo && (
-                              <Chip 
-                                label={`${compressionInfo.compressedSize}MB`}
-                                color="success"
-                                size="small"
-                                variant="outlined"
-                                sx={{
-                                  color: theme.palette.success.main,
-                                  borderColor: theme.palette.success.main,
-                                  backgroundColor: theme.palette.mode === 'dark' ? 'rgba(76, 175, 80, 0.1)' : 'rgba(76, 175, 80, 0.05)'
-                                }}
-                              />
-                            )}
-                          </Box>
-                          <Box display="flex" gap={1}>
-                            <IconButton
-                              size="small"
-                              onClick={handleImageDialogOpen}
-                              sx={{
-                                color: theme.palette.primary.main,
-                                '&:hover': {
-                                  backgroundColor: theme.palette.primary.main + '20'
-                                }
-                              }}
-                            >
-                              <EditIcon />
-                            </IconButton>
-                            <IconButton
-                              size="small"
-                              onClick={handleImageRemove}
-                              sx={{
-                                color: theme.palette.error.main,
-                                '&:hover': {
-                                  backgroundColor: theme.palette.error.main + '20'
-                                }
-                              }}
-                            >
-                              <DeleteIcon />
-                            </IconButton>
-                          </Box>
-                        </CardActions>
-                      </Card>
-                    </Box>
-                  )}
-
-                  {/* Image Upload Controls */}
-                  <Box display="flex" alignItems="center" gap={2} flexWrap="wrap">
-                    <Button
-                      variant="contained"
-                      onClick={handleImageButtonClick}
-                      startIcon={isCompressing ? <CircularProgress size={16} sx={{ color: 'white' }} /> : <CloudUploadIcon sx={{ color: 'white' }} />}
-                      disabled={isCompressing}
-                      sx={{ 
-                        textTransform: 'none', 
-                        borderRadius: 2,
-                        px: 3,
-                        py: 1.5,
-                        fontSize: '1rem',
-                        fontWeight: 600,
-                        color: 'white !important',
-                        background: theme.palette.mode === 'dark'
-                          ? 'linear-gradient(45deg, #4CAF50 30%, #66BB6A 90%)'
-                          : 'linear-gradient(45deg, #2E7D32 30%, #388E3C 90%)',
-                        '&:hover': {
-                          background: theme.palette.mode === 'dark'
-                            ? 'linear-gradient(45deg, #388E3C 30%, #4CAF50 90%)'
-                            : 'linear-gradient(45deg, #1B5E20 30%, #2E7D32 90%)',
-                          transform: 'translateY(-1px)',
-                          boxShadow: theme.shadows[6],
-                          color: 'white !important',
-                        },
-                        '&:disabled': {
-                          background: theme.palette.mode === 'dark' ? 'rgba(76, 175, 80, 0.3)' : 'rgba(46, 125, 50, 0.3)',
-                          color: 'rgba(255,255,255,0.5) !important',
-                          transform: 'none',
-                        },
-                        transition: 'all 0.2s ease-in-out',
-                        boxShadow: theme.shadows[4],
-                        // RTL spacing fix - add space between icon and text
-                        '& .MuiButton-startIcon': {
-                          marginRight: currentLanguage === 'ar' ? '0px' : '8px',
-                          marginLeft: currentLanguage === 'ar' ? '12px' : '0px',
-                        },
-                      }}
-                    >
-                      {isCompressing ? t('compressingImage') : imagePreview ? t('replaceImage') : t('chooseFile')}
-                    </Button>
-                    <input
-                      ref={fileInputRef}
-                      id="image"
-                      name="image"
-                      type="file"
-                      accept="image/*"
-                      hidden
-                      onChange={handleImageSelect}
-                    />
-                    
-                    {selectedFileName && (
-                      <Typography 
-                        variant="body2" 
-                        sx={{ 
-                          color: theme.palette.mode === 'dark' ? 'rgba(255,255,255,0.8)' : 'rgba(0,0,0,0.7)',
-                          fontWeight: 500
-                        }}
-                      >
-                        {selectedFileName}
-                      </Typography>
-                    )}
-                  </Box>
-                  
-                  {compressionInfo && (
-                    <Typography 
-                      variant="caption" 
-                      sx={{ 
-                        display: "block", 
-                        mt: 1,
-                        color: theme.palette.mode === 'dark' ? '#4CAF50' : '#2E7D32',
-                        fontWeight: 500
-                      }}
-                    >
-                      {t('compressionSuccess')}
-                    </Typography>
-                  )}
-                  
-                </Box>
-                
-                <Box 
-                  mt={6} 
-                  sx={{ 
-                    display: 'flex', 
-                    justifyContent: 'center',
-                    width: '100%'
-                  }}
-                >
-                  <Button
-                    type="submit"
-                    disabled={isSubmitting}
-                    sx={{ 
-                      width: { xs: "100%", sm: "100%", md: "100%" },
-                      maxWidth: { xs: "100%", sm: "400px", md: "500px" },
-                      padding: '12px 24px',
-                      fontSize: '1rem',
-                      fontWeight: 600,
+                      width: '100%',
                       borderRadius: 2,
-                      background: 'linear-gradient(45deg, #4A8BFF 30%, #1A6EEE 90%)',
-                      color: '#fff !important',
-                      boxShadow: '0 4px 15px rgba(26, 110, 238, 0.3)',
-                      '&:hover': {
-                        background: 'linear-gradient(45deg, #5A9BFF 30%, #2A7EFF 90%)',
-                        boxShadow: '0 6px 20px rgba(26, 110, 238, 0.4)',
-                        transform: 'translateY(-1px)',
-                        color: '#fff !important',
-                      },
-                      '&:disabled': {
-                        background: theme.palette.mode === 'dark' ? 'rgba(74, 139, 255, 0.3)' : 'rgba(26, 110, 238, 0.3)',
-                        color: theme.palette.mode === 'dark' ? 'rgba(255,255,255,0.5) !important' : 'rgba(255,255,255,0.7) !important',
-                        transform: 'none',
-                        boxShadow: 'none',
-                      },
-                      transition: 'all 0.2s ease-in-out',
+                      '& .MuiAlert-message': {
+                        width: '100%'
+                      }
                     }}
                   >
-                    {isSubmitting ? (
-                      <CircularProgress size={24} color="inherit" />
-                    ) : (
-                      t('createPost')
-                    )}
-                  </Button>
-                </Box>
-                
-                {/* Dynamic validation error message */}
-                {status?.validationError && (
-                  <Box mt={2} sx={{ display: 'flex', justifyContent: 'center', width: '100%' }}>
-                    <Alert 
-                      severity="error" 
-                      sx={{ 
-                        width: '100%',
-                        maxWidth: { xs: "100%", sm: "400px", md: "500px" },
-                        borderRadius: 2,
-                        '& .MuiAlert-message': {
-                          width: '100%'
-                        }
-                      }}
-                    >
-                      <Typography variant="body2" sx={{ fontWeight: 500 }}>
-                        {status.validationError}
-                      </Typography>
-                    </Alert>
-                  </Box>
-                )}
-              </Box>
-
-            <Dialog
-              open={showImageWarningDialog}
-              onClose={handleImageWarningClose}
-              maxWidth="sm"
-              fullWidth
-              PaperProps={{
-                sx: {
-                  borderRadius: 3,
-                  boxShadow: theme.shadows[12],
-                  backgroundColor: theme.palette.mode === 'dark'
-                    ? theme.palette.grey[900]
-                    : theme.palette.common.white,
-                  backgroundImage: 'none'
-                }
-              }}
-              BackdropProps={{
-                sx: {
-                  backgroundColor: theme.palette.mode === 'dark'
-                    ? 'rgba(0,0,0,0.7)'
-                    : 'rgba(0,0,0,0.45)'
-                }
-              }}
-            >
-              <DialogTitle
-                sx={{
-                  px: { xs: 2.5, sm: 3 },
-                  pt: { xs: 2, sm: 3 },
-                  pb: { xs: 1.5, sm: 2 }
-                }}
-              >
-                <Box display="flex" alignItems="center" gap={1.5}>
-                  <WarningAmberIcon
-                    color="warning"
-                    sx={{
-                      fontSize: 30,
-                      flexShrink: 0
-                    }}
-                  />
-                  <Typography
-                    variant="h6"
-                    sx={{
-                      fontWeight: 700,
-                      color: theme.palette.text.primary,
-                      fontSize: { xs: '1.05rem', sm: '1.2rem' }
-                    }}
-                  >
-                    {t('imageWarningTitle')}
-                  </Typography>
-                </Box>
-              </DialogTitle>
-              <DialogContent
-                sx={{
-                  px: { xs: 2.5, sm: 3 },
-                  pb: { xs: 2, sm: 3 }
-                }}
-              >
-                {getFoundLostType(values.foundLost) === 'FOUND' ? (
-                  <>
-                    <Typography
-                      variant="body1"
-                      sx={{
-                        color: theme.palette.text.primary,
-                        mb: 2,
-                        lineHeight: 1.6,
-                        fontSize: { xs: '0.95rem', sm: '1rem' }
-                      }}
-                    >
-                      {t('imageWarningDescriptionFound')}
+                    <Typography variant="body2" sx={{ fontWeight: 500 }}>
+                      {status.validationError}
                     </Typography>
-                    <Box
-                      component="ul"
-                      sx={{
-                        pl: 2.5,
-                        m: 0,
-                        display: 'grid',
-                        gap: 1.25,
-                        color: theme.palette.text.secondary
-                      }}
-                    >
-                      <Typography component="li" variant="body2" sx={{ lineHeight: 1.6 }}>
-                        {t('imageWarningBulletProtectDetails')}
-                      </Typography>
-                      <Typography component="li" variant="body2" sx={{ lineHeight: 1.6 }}>
-                        {t('imageWarningBulletUseNeutralBackground')}
-                      </Typography>
-                    </Box>
+                  </Alert>
+                </Box>
+              )}
+
+              <StepTransition stepKey={activeStep} direction={stepDirection}>
+                {activeStep === 0 && (
+                  <>
+                    <StepItem
+                      flOptions={flOptions}
+                      categories={categories}
+                      fieldErrors={fieldErrors}
+                      clearFieldError={clearFieldError}
+                      getFoundLostType={getFoundLostType}
+                    />
+                    <WizardFooter showBack={false}>
+                      <Button
+                        variant="contained"
+                        onClick={() => handleNextFromItemStep(values, setStatus)}
+                        sx={{ textTransform: 'none', borderRadius: 2, px: 4, py: 1.25, fontWeight: 600 }}
+                      >
+                        {t('wizardNext')}
+                      </Button>
+                    </WizardFooter>
                   </>
-                ) : (
-                  <Typography
-                    variant="body1"
-                    sx={{
-                      color: theme.palette.text.primary,
-                      lineHeight: 1.6,
-                      fontSize: { xs: '0.95rem', sm: '1rem' }
-                    }}
-                  >
-                    {t('imageWarningDescriptionLost')}
-                  </Typography>
                 )}
-              </DialogContent>
-              <DialogActions
-                sx={{
-                  px: { xs: 2.5, sm: 3 },
-                  pb: { xs: 2.5, sm: 3 },
-                  pt: 0,
-                  display: 'flex',
-                  flexWrap: 'wrap',
-                  gap: 1
-                }}
-              >
-                <Button
-                  variant="outlined"
-                  onClick={handleImageWarningClose}
-                  sx={{
-                    textTransform: 'none',
-                    borderRadius: 2,
-                    px: 3,
-                    fontWeight: 600,
-                    borderColor: theme.palette.mode === 'dark' ? 'rgba(255,255,255,0.3)' : 'rgba(0,0,0,0.2)',
-                    color: theme.palette.text.primary,
-                    '&:hover': {
-                      borderColor: theme.palette.mode === 'dark' ? 'rgba(255,255,255,0.5)' : 'rgba(0,0,0,0.4)',
-                      backgroundColor: theme.palette.mode === 'dark' ? 'rgba(255,255,255,0.08)' : 'rgba(0,0,0,0.04)'
-                    }
-                  }}
-                >
-                  {t('cancel')}
-                </Button>
-                <Button
-                  variant="contained"
-                  onClick={handleImageWarningProceed}
-                  disabled={proceedCountdown > 0}
-                  sx={{
-                    textTransform: 'none',
-                    borderRadius: 2,
-                    px: 3,
-                    fontWeight: 700,
-                    background: proceedCountdown > 0
-                      ? 'rgba(74, 139, 255, 0.3)'
-                      : 'linear-gradient(45deg, #4A8BFF 30%, #1A6EEE 90%)',
-                    color: proceedCountdown > 0 ? 'rgba(255,255,255,0.7)' : '#fff',
-                    '&:hover': proceedCountdown > 0 ? {} : {
-                      background: 'linear-gradient(45deg, #5A9BFF 30%, #2A7EFF 90%)'
-                    }
-                  }}
-                >
-                  {proceedCountdown > 0
-                    ? `${t('imageWarningProceed')} (${proceedCountdown})`
-                    : t('imageWarningProceed')}
-                </Button>
-              </DialogActions>
-            </Dialog>
+
+                {activeStep === 1 && (
+                  <>
+                    <StepLocation
+                      countries={countries}
+                      fieldErrors={fieldErrors}
+                      clearFieldError={clearFieldError}
+                      getFoundLostType={getFoundLostType}
+                      getCountryLabel={getCountryLabel}
+                      selectedCountryObj={selectedCountryObj}
+                      handleCountryChange={handleCountryChange}
+                      cities={cities}
+                      citySearchQuery={citySearchQuery}
+                      cityDisplayValue={cityDisplayValue}
+                      searchResults={searchResults}
+                      isSearching={isSearching}
+                      showCityDropdown={showCityDropdown}
+                      filteredCities={filteredCities}
+                      setShowCityDropdown={setShowCityDropdown}
+                      setShowCustomCityInput={setShowCustomCityInput}
+                      handleCityDropdownToggle={handleCityDropdownToggle}
+                      handleCitySearchChange={handleCitySearchChange}
+                      handleCitySelect={handleCitySelect}
+                    />
+                    <WizardFooter onBack={() => goToStep(0)}>
+                      <Button
+                        variant="contained"
+                        onClick={() => handleNextFromLocationStep(values, setStatus)}
+                        sx={{ textTransform: 'none', borderRadius: 2, px: 4, py: 1.25, fontWeight: 600 }}
+                      >
+                        {t('wizardNext')}
+                      </Button>
+                    </WizardFooter>
+                  </>
+                )}
+
+                {activeStep === 2 && (
+                  <>
+                    <StepPhoto
+                      getFoundLostType={getFoundLostType}
+                      imagePreview={imagePreview}
+                      selectedFileName={selectedFileName}
+                      compressionInfo={compressionInfo}
+                      isCompressing={isCompressing}
+                      fileInputRef={fileInputRef}
+                      handleImageButtonClick={handleImageButtonClick}
+                      handleImageSelect={handleImageSelect}
+                      handleImageRemove={handleImageRemove}
+                      handleImageDialogOpen={handleImageDialogOpen}
+                    />
+                    <WizardFooter onBack={() => goToStep(1)}>
+                      <Button
+                        variant="contained"
+                        onClick={handleNextFromPhotoStep}
+                        sx={{ textTransform: 'none', borderRadius: 2, px: 4, py: 1.25, fontWeight: 600 }}
+                      >
+                        {t('wizardNext')}
+                      </Button>
+                    </WizardFooter>
+                  </>
+                )}
+
+                {activeStep === 3 && (
+                  <>
+                    <StepReview
+                      flOptions={flOptions}
+                      categories={categories}
+                      countries={countries}
+                      fieldErrors={fieldErrors}
+                      clearFieldError={clearFieldError}
+                      getFoundLostType={getFoundLostType}
+                      getCountryLabel={getCountryLabel}
+                      cityDisplayValue={cityDisplayValue}
+                      imagePreview={imagePreview}
+                      onEditStep={handleStepClick}
+                    />
+                    <WizardFooter onBack={() => goToStep(2)} stackOnMobile>
+                      <ReviewSubmitButton />
+                    </WizardFooter>
+                  </>
+                )}
+              </StepTransition>
             </Form>
             );
           }}

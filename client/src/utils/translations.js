@@ -470,7 +470,24 @@ export const translations = {
     currentImage: "Current Image",
     replaceImage: "Replace Image",
     imagePreview: "Image Preview",
-    
+
+    // New Post wizard
+    wizardStepItemTitle: "What happened",
+    wizardStepItemSubtitle: "Start with the basics about your item",
+    wizardStepLocationTitle: "Where & when",
+    wizardStepLocationSubtitle: "Help others find the right spot",
+    wizardStepPhotoTitle: "Photo",
+    wizardStepPhotoSubtitle: "A photo helps with identification (optional)",
+    wizardStepReviewTitle: "Contact & review",
+    wizardStepReviewSubtitle: "Double-check everything before you post",
+    wizardNext: "Next",
+    wizardStepProgress: "Step {current} of {total} — {title}",
+    wizardStepProgressShort: "Step {current} of {total}",
+    wizardEdit: "Edit",
+    wizardReviewNoImage: "No image added",
+    wizardDropzoneHint: "Click or drag a photo here",
+    wizardRequiredMark: "required",
+
     // Form fields
     description: "Description",
     descriptionPlaceholder: "Describe the item you found/lost",
@@ -1919,6 +1936,23 @@ export const translations = {
     currentImage: "Image Actuelle",
     replaceImage: "Remplacer l'Image",
     imagePreview: "Aperçu de l'Image",
+
+    // New Post wizard
+    wizardStepItemTitle: "Que s'est-il passé",
+    wizardStepItemSubtitle: "Commencez par les informations de base sur votre objet",
+    wizardStepLocationTitle: "Où et quand",
+    wizardStepLocationSubtitle: "Aidez les autres à trouver le bon endroit",
+    wizardStepPhotoTitle: "Photo",
+    wizardStepPhotoSubtitle: "Une photo facilite l'identification (facultatif)",
+    wizardStepReviewTitle: "Contact et récapitulatif",
+    wizardStepReviewSubtitle: "Vérifiez tout avant de publier",
+    wizardNext: "Suivant",
+    wizardStepProgress: "Étape {current} sur {total} — {title}",
+    wizardStepProgressShort: "Étape {current} sur {total}",
+    wizardEdit: "Modifier",
+    wizardReviewNoImage: "Aucune image ajoutée",
+    wizardDropzoneHint: "Cliquez ou déposez une photo ici",
+    wizardRequiredMark: "obligatoire",
     
     // Form fields
     description: "Description",
@@ -3332,6 +3366,23 @@ export const translations = {
     currentImage: "الصورة الحالية",
     replaceImage: "استبدال الصورة",
     imagePreview: "معاينة الصورة",
+
+    // New Post wizard
+    wizardStepItemTitle: "ماذا حدث",
+    wizardStepItemSubtitle: "ابدأ بالمعلومات الأساسية حول عنصرك",
+    wizardStepLocationTitle: "أين ومتى",
+    wizardStepLocationSubtitle: "ساعد الآخرين في تحديد المكان الصحيح",
+    wizardStepPhotoTitle: "صورة",
+    wizardStepPhotoSubtitle: "تساعد الصورة في التعرف على العنصر (اختياري)",
+    wizardStepReviewTitle: "الاتصال والمراجعة",
+    wizardStepReviewSubtitle: "تحقق من كل شيء قبل النشر",
+    wizardNext: "التالي",
+    wizardStepProgress: "الخطوة {current} من {total} — {title}",
+    wizardStepProgressShort: "الخطوة {current} من {total}",
+    wizardEdit: "تعديل",
+    wizardReviewNoImage: "لم تتم إضافة صورة",
+    wizardDropzoneHint: "انقر أو اسحب صورة هنا",
+    wizardRequiredMark: "مطلوب",
     
     // Form fields
     description: "الوصف",
