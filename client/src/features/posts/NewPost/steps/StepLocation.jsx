@@ -45,6 +45,31 @@ const StepLocation = ({
   const { t, currentLanguage } = useTranslation();
   const theme = useTheme();
 
+  // Maps a city result's `source` field ('database' | 'geonames' | 'google',
+  // set by the backend's DB -> GeoNames -> Google Places cascade) to a
+  // label + color so it's visible in the dropdown which API actually
+  // supplied a given suggestion, without needing devtools.
+  const getCitySourceInfo = (source) => {
+    const sourceMap = {
+      geonames: {
+        label: { en: 'GeoNames', fr: 'GeoNames', ar: 'GeoNames' },
+        color: theme.palette.info.main,
+      },
+      google: {
+        label: { en: 'Google Places', fr: 'Google Places', ar: 'Google Places' },
+        color: theme.palette.warning.main,
+      },
+      database: {
+        label: { en: 'Database', fr: 'Base de données', ar: 'قاعدة البيانات' },
+        color: theme.palette.success.main,
+      },
+    };
+    const entry = sourceMap[source] || sourceMap.database;
+    return { label: entry.label[currentLanguage] || entry.label.en, color: entry.color };
+  };
+
+  const sourceCaptionPrefix = currentLanguage === 'ar' ? 'المصدر' : 'Source';
+
   return (
     <Box display="flex" flexDirection="column" gap={3}>
       {/* Location Section */}
@@ -371,6 +396,15 @@ const StepLocation = ({
                             {city.labels?.fr && currentLanguage !== 'fr' && ` • ${city.labels.fr}`}
                             {city.labels?.en && currentLanguage !== 'en' && ` • ${city.labels.en}`}
                           </Typography>
+                          <Typography variant="caption" sx={{
+                            display: 'block',
+                            fontWeight: 600,
+                            color: getCitySourceInfo(city.source).color,
+                            zIndex: '999999 !important',
+                            position: 'relative'
+                          }}>
+                            {sourceCaptionPrefix}: {getCitySourceInfo(city.source).label}
+                          </Typography>
                         </Box>
                       </Box>
                     ))}
@@ -434,6 +468,15 @@ const StepLocation = ({
                               {city.labels?.ar && currentLanguage !== 'ar' && ` • ${city.labels.ar}`}
                               {city.labels?.fr && currentLanguage !== 'fr' && ` • ${city.labels.fr}`}
                               {city.labels?.en && currentLanguage !== 'en' && ` • ${city.labels.en}`}
+                            </Typography>
+                            <Typography variant="caption" sx={{
+                              display: 'block',
+                              fontWeight: 600,
+                              color: getCitySourceInfo(city.source).color,
+                              zIndex: '999999 !important',
+                              position: 'relative'
+                            }}>
+                              {sourceCaptionPrefix}: {getCitySourceInfo(city.source).label}
                             </Typography>
                           </Box>
                         </Box>
