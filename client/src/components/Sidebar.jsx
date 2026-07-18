@@ -65,7 +65,7 @@ const Sidebar = () => {
             width: "250px",
             "& .MuiDrawer-paper": {
               color: theme.palette.secondary.main,
-              backgroundColor: theme.palette.background,
+              backgroundColor: theme.palette.background.paper,
               boxSizing: "border-box",
               borderWidth: isNonMobile ? 0 : "2px",
               width: "250px",

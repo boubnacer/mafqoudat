@@ -23,7 +23,7 @@ const CountryModal = ({
       open={openModal}
       onClose={() => dispatch(setOpenModal())}
     >
-      <Box p="2rem" backgroundColor={theme.palette.background}>
+      <Box p="2rem" backgroundColor={theme.palette.background.paper}>
         <FormLabel>Choose country</FormLabel>
         <CountryAutoselect
           setCountryId={setCountryId}

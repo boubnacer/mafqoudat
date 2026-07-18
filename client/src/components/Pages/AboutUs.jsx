@@ -75,7 +75,7 @@ const AboutUs = () => {
     <>
       <SeoMeta pageKey="about" />
       <Box width="100%" height="100%">
-        <Box sx={{ backgroundColor: theme.palette.background }}>
+        <Box sx={{ backgroundColor: theme.palette.background.default }}>
           <Navbar />
           <Box
             sx={{

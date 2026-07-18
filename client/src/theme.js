@@ -29,7 +29,10 @@ export const themeSettings = (mode, currentLanguage = 'en') => {
               title: "#CCCCCC",
               links: "#FFFFFF", //#AAAAAA
             },
-            background: "#121212",
+            background: {
+              default: "#121212",
+              paper: "#1E1E1E",
+            },
             category: "#4E4F50",
             // found or lost options ------------------
             floptions: {
@@ -240,7 +243,10 @@ export const themeSettings = (mode, currentLanguage = 'en') => {
               main: "#000000",
               secondary:"#B0B0B0"
             },
-            background: "#fafafa",
+            background: {
+              default: "#fafafa",
+              paper: "#ffffff",
+            },
             category: "#E4E6E9",
             floptions: {
               found: {

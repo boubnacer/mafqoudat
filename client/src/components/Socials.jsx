@@ -8,7 +8,7 @@ const Socials = ({ title, value, increase, icon, description }) => {
     <Box
       mt="1rem"
       p="0.5rem 1rem"
-      backgroundColor={theme.palette.background}
+      backgroundColor={theme.palette.background.default}
       borderRadius="0.55rem"
     >
       <FlexBetween>
