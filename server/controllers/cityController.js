@@ -269,6 +269,7 @@ const searchCities = async (req, res) => {
     let allCities = [...localCities];
     let apiCities = [];
     let googleCities = [];
+    let needsArabicSupplement = false;
 
     // Step 2: If we need more results or found few local results, search GeoNames API
     if (localCities.length < parseInt(limit) && countryCode) {
@@ -289,34 +290,26 @@ const searchCities = async (req, res) => {
         });
 
         console.log(`🌐 GeoNames API found ${apiCities.length} additional cities`);
-        
-        // NEW: Check if GeoNames results have proper translations
-        const hasProperTranslations = apiCities.some(city => {
-          // Check if we have different names for different languages (not all the same)
-          const labels = city.labels;
-          const hasDifferentNames = labels.en !== labels.fr || labels.en !== labels.ar || labels.fr !== labels.ar;
-          
-          // For Arabic language, check if we have actual Arabic text
-          if (language === 'ar') {
-            const hasArabicText = labels.ar && isArabicText(labels.ar);
-            return hasDifferentNames && hasArabicText;
-          }
-          
-          // For other languages, just check if we have different names
-          return hasDifferentNames;
-        });
-        
-        if (apiCities.length > 0 && !hasProperTranslations) {
-          console.log(`⚠️ GeoNames found cities but with poor translations (all names are the same). Skipping to Google Places...`);
-          apiCities = []; // Clear GeoNames results to trigger Google Places search
-        } else {
-          console.log(`✅ GeoNames API found ${apiCities.length} cities with good translations`);
-          console.log(`🔍 API cities:`, apiCities.map(c => c.labels?.en || c.code));
-          
-          // Add API cities to results (limit total results)
-          const remainingSlots = parseInt(limit) - localCities.length;
-          allCities = [...localCities, ...apiCities.slice(0, remainingSlots)];
+
+        // A GeoNames match is real, useful data even when it lacks translated
+        // alternate names (common for small towns/villages) - it just falls
+        // back to showing the Latin name in every language, which is still
+        // correct. It must never be discarded outright just because it isn't
+        // fully translated. We only use translation quality to decide whether
+        // Arabic searches need a Google Places supplement (Google's Place
+        // Details calls can fetch a real Arabic name GeoNames doesn't have).
+        const hasArabicCoverage = apiCities.some(city => city.labels?.ar && isArabicText(city.labels.ar));
+        needsArabicSupplement = language === 'ar' && apiCities.length > 0 && !hasArabicCoverage;
+
+        if (needsArabicSupplement) {
+          console.log(`⚠️ GeoNames results have no Arabic-script names; will supplement with Google Places...`);
         }
+
+        console.log(`🔍 API cities:`, apiCities.map(c => c.labels?.en || c.code));
+
+        // Add API cities to results (limit total results)
+        const remainingSlots = parseInt(limit) - localCities.length;
+        allCities = [...localCities, ...apiCities.slice(0, remainingSlots)];
 
       } catch (apiError) {
         console.warn('⚠️ GeoNames API error:', apiError.message);
@@ -324,21 +317,32 @@ const searchCities = async (req, res) => {
       }
     }
 
-    // Step 3: If we have NO results from database AND GeoNames, OR if GeoNames had poor translations, search Google Places API
-    if ((allCities.length === 0 || apiCities.length === 0) && countryCode) {
+    // Step 3: Search Google Places if we still have nothing at all, or (for
+    // Arabic searches specifically) GeoNames couldn't provide a real Arabic
+    // name. Results are merged into allCities, never replace what's already
+    // been found.
+    if ((allCities.length === 0 || needsArabicSupplement) && countryCode) {
       try {
-        console.log(`🌐 No results from Database/GeoNames or poor translations. Trying Google Places API...`);
+        console.log(`🌐 Trying Google Places API...`);
         console.log(`🔍 Service call: googlePlacesService.searchCities("${q}", "${countryCode}", "${language}")`);
         googleCities = await googlePlacesService.searchCities(q, countryCode, language);
         console.log(`🔍 Service returned ${googleCities.length} cities`);
-        
+
         console.log(`✅ Google Places API found ${googleCities.length} cities`);
         if (googleCities.length > 0) {
           console.log(`🔍 Google cities:`, googleCities.map(c => c.labels?.en || c.code));
         }
-        
-        // Add Google Places cities to results
-        allCities = [...googleCities.slice(0, parseInt(limit))];
+
+        // Merge Google Places cities into the existing results, de-duplicated
+        // by English label, instead of overwriting DB/GeoNames matches.
+        const existingNames = new Set(
+          allCities.map(city => (city.labels?.[language] || city.labels?.en || '').toLowerCase())
+        );
+        const newGoogleCities = googleCities.filter(city => {
+          const name = (city.labels?.[language] || city.labels?.en || '').toLowerCase();
+          return name && !existingNames.has(name);
+        });
+        allCities = [...allCities, ...newGoogleCities].slice(0, parseInt(limit));
 
       } catch (googleError) {
         console.warn('⚠️ Google Places API error:', googleError.message);
