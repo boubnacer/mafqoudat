@@ -89,6 +89,10 @@ const NewPostForm = ({ user, countries, categories, flOptions }) => {
   const [showCityDropdown, setShowCityDropdown] = useState(false);
   const [selectedCityFromSearch, setSelectedCityFromSearch] = useState(null);
   const [filteredCities, setFilteredCities] = useState([]);
+  // Debounce timer + monotonically increasing sequence token for city
+  // search - see handleCitySearchChange/performCitySearch.
+  const citySearchDebounceRef = useRef(null);
+  const citySearchRequestIdRef = useRef(0);
 
   // Click outside handler to close city dropdown
   useEffect(() => {
@@ -103,6 +107,15 @@ const NewPostForm = ({ user, countries, categories, flOptions }) => {
       document.removeEventListener('mousedown', handleClickOutside);
     };
   }, [showCityDropdown]);
+
+  // Cancel any pending debounced city search on unmount
+  useEffect(() => {
+    return () => {
+      if (citySearchDebounceRef.current) {
+        clearTimeout(citySearchDebounceRef.current);
+      }
+    };
+  }, []);
 
   // Update filtered cities when cities or search query changes
   useEffect(() => {
@@ -524,16 +537,14 @@ const NewPostForm = ({ user, countries, categories, flOptions }) => {
     setCustomCityName(event.target.value);
   };
 
-  // Handle city search input change (only from dropdown search input)
-  const handleCitySearchChange = useCallback(async (event) => {
-    const query = event.target.value;
-    setCitySearchQuery(query);
-    
-    // Always show dropdown when there's a query
-    if (query.trim().length > 0) {
-      setShowCityDropdown(true);
-    }
-    
+  // Runs the actual search for one query. `requestId` is a snapshot of
+  // citySearchRequestIdRef taken when this call was scheduled; if the user
+  // has typed something else since (bumping the ref further), every
+  // setSearchResults below is skipped so a slow response for an old,
+  // partial query can never overwrite results for what's currently typed.
+  const performCitySearch = useCallback(async (query, requestId) => {
+    const isStale = () => requestId !== citySearchRequestIdRef.current;
+
     // Read the live Formik country value via ref (this callback is memoized and
     // must not close over a stale country from an earlier render). Falls back
     // to user.country (the value Formik was seeded with) in case the ref isn't
@@ -567,18 +578,20 @@ const NewPostForm = ({ user, countries, categories, flOptions }) => {
       try {
         // Try hybrid search first (includes Google Places API)
         const results = await searchCitiesHybrid(query, countryCode);
+        if (isStale()) return;
 
         if (results.length > 0) {
           setSearchResults(results);
         } else {
           // Fallback to traditional search
           const fallbackResults = await searchCitiesTraditional(query, countryId);
+          if (isStale()) return;
 
           if (fallbackResults.length > 0) {
             setSearchResults(fallbackResults);
           } else {
             // Final fallback: filter existing cities
-            const localResults = cities.filter(city => 
+            const localResults = cities.filter(city =>
               city.label?.toLowerCase().includes(query.toLowerCase()) ||
               city.name?.toLowerCase().includes(query.toLowerCase())
             ).map(city => ({
@@ -586,19 +599,19 @@ const NewPostForm = ({ user, countries, categories, flOptions }) => {
               source: 'database',
               _id: city.id || city._id
             }));
-            
+
             setSearchResults(localResults);
           }
         }
       } catch (error) {
         console.error('❌ City search error:', error);
-        setSearchResults([]);
+        if (!isStale()) setSearchResults([]);
       } finally {
-        setIsSearching(false);
+        if (!isStale()) setIsSearching(false);
       }
     } else if (query.length > 0) {
       // Show local filtered results for shorter queries
-      const localResults = cities.filter(city => 
+      const localResults = cities.filter(city =>
         city.label?.toLowerCase().includes(query.toLowerCase()) ||
         city.name?.toLowerCase().includes(query.toLowerCase())
       ).map(city => ({
@@ -606,11 +619,44 @@ const NewPostForm = ({ user, countries, categories, flOptions }) => {
         source: 'database',
         _id: city.id || city._id
       }));
-      setSearchResults(localResults);
-    } else {
-      setSearchResults([]);
+      if (!isStale()) setSearchResults(localResults);
     }
   }, [searchCitiesHybrid, searchCitiesTraditional, countries, cities, currentLanguage, user.country]);
+
+  // Handle city search input change (only from dropdown search input).
+  // Debounced (300ms) and sequence-guarded: the query only actually fires
+  // after the user pauses typing, and citySearchRequestIdRef is bumped on
+  // every keystroke so any in-flight request from an earlier keystroke gets
+  // ignored by performCitySearch when it resolves. Without this, typing
+  // "Taghazout" fired 9 separate searches against rate-limited external
+  // APIs, and a slower response for an earlier partial query (e.g. "Tagha")
+  // could resolve after a faster one for a later query and overwrite it,
+  // leaving stale suggestions on screen.
+  const handleCitySearchChange = useCallback((event) => {
+    const query = event.target.value;
+    setCitySearchQuery(query);
+
+    // Always show dropdown when there's a query
+    if (query.trim().length > 0) {
+      setShowCityDropdown(true);
+    }
+
+    citySearchRequestIdRef.current += 1;
+    const requestId = citySearchRequestIdRef.current;
+
+    if (citySearchDebounceRef.current) {
+      clearTimeout(citySearchDebounceRef.current);
+    }
+
+    if (!query.trim()) {
+      setSearchResults([]);
+      return;
+    }
+
+    citySearchDebounceRef.current = setTimeout(() => {
+      performCitySearch(query, requestId);
+    }, 300);
+  }, [performCitySearch]);
 
   // Handle city selection from dropdown
   const handleCitySelect = (city) => {
