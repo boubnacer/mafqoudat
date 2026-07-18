@@ -2,75 +2,75 @@
   "rewrites": [
     {
       "source": "/api/:path*",
-      "destination": "https://SERVICE-NAME.onrender.com/api/:path*"
+      "destination": "https://mafqoudat-api.onrender.com/api/:path*"
     },
     {
       "source": "/auth/google",
-      "destination": "https://SERVICE-NAME.onrender.com/auth/google"
+      "destination": "https://mafqoudat-api.onrender.com/auth/google"
     },
     {
       "source": "/auth/google/callback",
-      "destination": "https://SERVICE-NAME.onrender.com/auth/google/callback"
+      "destination": "https://mafqoudat-api.onrender.com/auth/google/callback"
     },
     {
       "source": "/auth/complete",
-      "destination": "https://SERVICE-NAME.onrender.com/auth/complete"
+      "destination": "https://mafqoudat-api.onrender.com/auth/complete"
     },
     {
       "source": "/auth/logout",
-      "destination": "https://SERVICE-NAME.onrender.com/auth/logout"
+      "destination": "https://mafqoudat-api.onrender.com/auth/logout"
     },
     {
       "source": "/auth/register",
-      "destination": "https://SERVICE-NAME.onrender.com/auth/register"
+      "destination": "https://mafqoudat-api.onrender.com/auth/register"
     },
     {
       "source": "/auth",
-      "destination": "https://SERVICE-NAME.onrender.com/auth"
+      "destination": "https://mafqoudat-api.onrender.com/auth"
     },
     {
       "source": "/users/:path*",
-      "destination": "https://SERVICE-NAME.onrender.com/users/:path*"
+      "destination": "https://mafqoudat-api.onrender.com/users/:path*"
     },
     {
       "source": "/posts/:path*",
-      "destination": "https://SERVICE-NAME.onrender.com/posts/:path*"
+      "destination": "https://mafqoudat-api.onrender.com/posts/:path*"
     },
     {
       "source": "/countries/:path*",
-      "destination": "https://SERVICE-NAME.onrender.com/countries/:path*"
+      "destination": "https://mafqoudat-api.onrender.com/countries/:path*"
     },
     {
       "source": "/cities/:path*",
-      "destination": "https://SERVICE-NAME.onrender.com/cities/:path*"
+      "destination": "https://mafqoudat-api.onrender.com/cities/:path*"
     },
     {
       "source": "/cities-public/:path*",
-      "destination": "https://SERVICE-NAME.onrender.com/cities-public/:path*"
+      "destination": "https://mafqoudat-api.onrender.com/cities-public/:path*"
     },
     {
       "source": "/cities-api/:path*",
-      "destination": "https://SERVICE-NAME.onrender.com/cities-api/:path*"
+      "destination": "https://mafqoudat-api.onrender.com/cities-api/:path*"
     },
     {
       "source": "/floptions/:path*",
-      "destination": "https://SERVICE-NAME.onrender.com/floptions/:path*"
+      "destination": "https://mafqoudat-api.onrender.com/floptions/:path*"
     },
     {
       "source": "/categories/:path*",
-      "destination": "https://SERVICE-NAME.onrender.com/categories/:path*"
+      "destination": "https://mafqoudat-api.onrender.com/categories/:path*"
     },
     {
       "source": "/promotion/:path*",
-      "destination": "https://SERVICE-NAME.onrender.com/promotion/:path*"
+      "destination": "https://mafqoudat-api.onrender.com/promotion/:path*"
     },
     {
       "source": "/admin/:path*",
-      "destination": "https://SERVICE-NAME.onrender.com/admin/:path*"
+      "destination": "https://mafqoudat-api.onrender.com/admin/:path*"
     },
     {
       "source": "/uploads/:path*",
-      "destination": "https://SERVICE-NAME.onrender.com/uploads/:path*"
+      "destination": "https://mafqoudat-api.onrender.com/uploads/:path*"
     }
   ],
   "headers": [

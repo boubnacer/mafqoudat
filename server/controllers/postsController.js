@@ -9,6 +9,7 @@ const { deleteFromCloudinary } = require("../config/cloudinary");
 const mongoose = require("mongoose");
 const TranslationService = require("../services/translationService");
 const { cacheService } = require("../config/cache");
+const { escapeRegex } = require("../utils/regexUtils");
 // const getCountryIso3 = require("country-iso-2-to-3");
 const getCountryIso3 = require("country-iso-2-to-3");
 const { getCountryId } = require("../utils/countryCache");
@@ -1100,6 +1101,38 @@ const getUserPosts = async (req, res) => {
   }
 };
 
+const DEFAULT_CONTACT_PREFERENCES = { phone: true, email: false, whatsapp: false };
+const CONTACT_PREFERENCE_KEYS = ['phone', 'email', 'whatsapp'];
+
+// contactPreferences may arrive already parsed (req.parsedPostData) or as a JSON
+// string (legacy/manual postData field) - only JSON.parse strings, never objects.
+const normalizeContactPreferences = (raw) => {
+  if (!raw) return { ...DEFAULT_CONTACT_PREFERENCES };
+
+  let parsed = raw;
+  if (typeof raw === 'string') {
+    try {
+      parsed = JSON.parse(raw);
+    } catch (error) {
+      return { ...DEFAULT_CONTACT_PREFERENCES };
+    }
+  }
+
+  if (typeof parsed !== 'object' || parsed === null) {
+    return { ...DEFAULT_CONTACT_PREFERENCES };
+  }
+
+  // Strip anything that isn't one of the known boolean keys
+  const normalized = {};
+  for (const key of CONTACT_PREFERENCE_KEYS) {
+    if (typeof parsed[key] === 'boolean') {
+      normalized[key] = parsed[key];
+    }
+  }
+
+  return Object.keys(normalized).length > 0 ? normalized : { ...DEFAULT_CONTACT_PREFERENCES };
+};
+
 // @desc Create new post
 // @route POST /posts
 // @access Private
@@ -1197,61 +1230,53 @@ const createNewPost = async (req, res) => {
      
      const foundLostExists = await FoundLost.findById(foundLost).select('_id').lean();
     
-    // Check which references are missing and provide specific error messages
-    const missingReferences = [];
-    if (!userExists) missingReferences.push('user');
-    if (!countryExists) missingReferences.push('country');
-    if (!allCategoriesExist) {
-      missingReferences.push(`categories at indices: ${invalidCategoryIndices.join(', ')}`);
-    }
-    if (!foundLostExists) missingReferences.push('foundLost');
-    
-         if (missingReferences.length > 0) {
-      
-             // Get available options to help the client - only select necessary fields
-       const availableCountries = await Country.find().select('_id code names.en').lean();
-       const availableCategories = await Category.find().select('_id code labels.en').lean();
-       const availableFoundLost = await FoundLost.find().select('_id code labels.en').lean();
-      
-             // Check if the IDs exist in the available options (database connection issue workaround)
-       const countryExistsInOptions = availableCountries.find(c => c._id.toString() === country);
-       const categoriesExistInOptions = categories.every(catId => 
-         availableCategories.find(c => c._id.toString() === catId)
-       );
-       const foundLostExistsInOptions = availableFoundLost.find(f => f._id.toString() === foundLost);
-       
-       // If IDs exist in available options but not in findById, this is a database connection issue
-       if (countryExistsInOptions && categoriesExistInOptions && foundLostExistsInOptions) {
-         // Continue with post creation since the data exists
-       } else {
-        return res.status(400).json({ 
-          message: `Invalid references: ${missingReferences.join(', ')}`,
-          details: {
-            missingReferences,
-            userExists: !!userExists,
-            countryExists: !!countryExists,
-            categoriesExist: allCategoriesExist,
-            foundLostExists: !!foundLostExists,
-            availableOptions: {
-              countries: availableCountries.map(c => ({ id: c._id, code: c.code, name: c.names?.en || c.code })),
-              categories: availableCategories.map(c => ({ id: c._id, code: c.code, name: c.labels?.en || c.code })),
-              foundLost: availableFoundLost.map(f => ({ id: f._id, code: f.code, name: f.labels?.en || f.code }))
-            }
-          }
-        });
+    // Check which references are invalid and report only which field(s) failed -
+    // never dump collection contents to the client.
+    const invalidFields = [];
+    if (!userExists) invalidFields.push('user');
+    if (!countryExists) invalidFields.push('country');
+    if (!allCategoriesExist) invalidFields.push('categories');
+    if (!foundLostExists) invalidFields.push('foundLost');
+
+    if (invalidFields.length > 0) {
+      const response = {
+        message: `Invalid reference data provided: ${invalidFields.join(', ')}`,
+        invalidFields
+      };
+      if (invalidCategoryIndices.length > 0) {
+        response.invalidCategoryIndices = invalidCategoryIndices;
       }
+      return res.status(400).json(response);
     }
   } catch (validationError) {
     console.error('Error during reference validation:', validationError);
-    return res.status(400).json({ 
-      message: "Error validating references",
-      error: validationError.message
+    return res.status(400).json({
+      message: "Invalid reference data provided",
+      error: "Invalid reference data provided"
     });
   }
   
      // Handle city validation
    let cityId = null;
-   
+   // Tracks whether the user/API supplied a city and we failed to resolve it -
+   // as opposed to the user simply not specifying a city at all. Only the
+   // former should surface as a warning: losing a post is worse than losing
+   // a city, so we still create the post, but the city-filtered browsing
+   // gap needs to be visible somewhere instead of disappearing silently.
+   let cityResolutionFailed = false;
+
+   const logCityResolutionFailure = (stage, err) => {
+     cityResolutionFailed = true;
+     console.error('City resolution failed', {
+       stage,
+       city,
+       cityDataProvided: !!cityData,
+       country,
+       user,
+       error: err?.message || String(err)
+     });
+   };
+
    try {
      if (city && mongoose.Types.ObjectId.isValid(city)) {
        // City is a valid ObjectId, verify it exists
@@ -1259,26 +1284,28 @@ const createNewPost = async (req, res) => {
        if (cityDoc) {
          cityId = city;
        } else {
-         console.warn(`City with ID ${city} not found in database`);
+         logCityResolutionFailure('objectId-not-found', `City with ID ${city} not found in database`);
          cityId = null;
        }
      } else if (cityData) {
        // Handle API city data from GeoNames
        try {
-         
+
          // cityData might already be an object or a JSON string
          const apiCityData = typeof cityData === 'string' ? JSON.parse(cityData) : cityData;
-         
-         // Check if city already exists in database
+
+         // Check if city already exists in database (country-scoped; label match
+         // is escaped so metacharacters in the API-supplied name can't break or
+         // hijack the regex)
          const existingCity = await City.findOne({
            country: country,
            $or: [
-             { "labels.en": { $regex: new RegExp(apiCityData.labels.en, 'i') } },
-             { "labels.ar": { $regex: new RegExp(apiCityData.labels.ar, 'i') } },
-             { "labels.fr": { $regex: new RegExp(apiCityData.labels.fr, 'i') } }
+             { "labels.en": { $regex: escapeRegex(apiCityData.labels.en), $options: 'i' } },
+             { "labels.ar": { $regex: escapeRegex(apiCityData.labels.ar), $options: 'i' } },
+             { "labels.fr": { $regex: escapeRegex(apiCityData.labels.fr), $options: 'i' } }
            ]
          });
-         
+
         if (existingCity) {
           cityId = existingCity._id;
         } else {
@@ -1292,7 +1319,7 @@ const createNewPost = async (req, res) => {
             isDynamic: true, // Mark as dynamically created from API
             searchTerms: apiCityData.searchTerms || []
           };
-          
+
           // Add API source and place ID if from Google Places
           if (apiCityData.source === 'google') {
             cityDataToSave.apiSource = 'google';
@@ -1302,12 +1329,12 @@ const createNewPost = async (req, res) => {
             cityDataToSave.apiSource = 'geonames';
             console.log(`🗺️ Saved city from GeoNames: ${apiCityData.labels.en}`);
           }
-          
+
           const newCity = await City.create(cityDataToSave);
           cityId = newCity._id;
         }
        } catch (apiCityError) {
-         console.error('Error processing API city data:', apiCityError.message);
+         logCityResolutionFailure('cityData-processing', apiCityError);
          cityId = null;
        }
      } else if (city && city !== 'other' && typeof city === 'string') {
@@ -1316,11 +1343,11 @@ const createNewPost = async (req, res) => {
        try {
          // Use translation service to get proper translations for the custom city
          const translations = await TranslationService.translateCityName(city, 'en');
-         
+
          // Create a unique code for the custom city
          const baseCode = city.toUpperCase().replace(/\s+/g, '_').replace(/[^\w]/g, '');
          const uniqueCode = `${baseCode}_${Date.now()}`;
-         
+
          // Create a new city record for the custom city name with translations
          const newCity = await City.create({
            code: uniqueCode,
@@ -1333,17 +1360,17 @@ const createNewPost = async (req, res) => {
            isDynamic: true, // Mark as dynamically created
            searchTerms: [city.toLowerCase()]
          });
-         
+
            cityId = newCity._id; // Use the new city's ObjectId
        } catch (cityCreationError) {
-         console.error('Error creating fallback city:', cityCreationError.message);
+         logCityResolutionFailure('fallback-city-creation', cityCreationError);
          cityId = null;
        }
      } else {
        cityId = null;
      }
    } catch (cityError) {
-     console.error('Error during city validation:', cityError.message);
+     logCityResolutionFailure('unexpected', cityError);
      cityId = null;
    }
 
@@ -1358,27 +1385,12 @@ const createNewPost = async (req, res) => {
     exactLocation,
     mainDate: exactDate, // Store the exactDate from form as mainDate in the database
     description: description || "",
-    contactPreferences: contactPreferences || { whatsapp: true, phone: true, email: false },
+    contactPreferences: normalizeContactPreferences(contactPreferences),
   };
 
      // Handle city field - cityId is already processed above
    if (cityId) {
      newPostData.city = cityId;
-   }
-
-   // Add contact preferences if provided
-   if (contactPreferences) {
-     try {
-       const parsedContactPreferences = JSON.parse(contactPreferences);
-       newPostData.contactPreferences = parsedContactPreferences;
-     } catch (error) {
-       // Use default contact preferences
-       newPostData.contactPreferences = {
-         phone: true,
-         email: false,
-         whatsapp: false
-       };
-     }
    }
 
 
@@ -1398,29 +1410,33 @@ const createNewPost = async (req, res) => {
       // Invalidate related cache entries
       await cacheService.invalidatePattern('posts:*');
       await cacheService.invalidatePattern('dashboard:*');
-      
+
       // Created
-      return res.status(201).json({ 
+      const response = {
         message: "New post created",
-        postId: post._id 
-      });
+        postId: post._id
+      };
+      if (cityResolutionFailed) {
+        response.warnings = ["city_not_resolved"];
+      }
+      return res.status(201).json(response);
     } else {
       return res.status(400).json({ message: "Invalid post data received" });
     }
      } catch (postCreationError) {
      console.error('Error creating post in database:', postCreationError);
-    
-         return res.status(500).json({ 
-       message: "Error creating post in database", 
-       error: postCreationError.message
+
+         return res.status(500).json({
+       message: "Failed to create post",
+       error: "Failed to create post"
      });
    }
-   
+
    } catch (error) {
      console.error('Error in createNewPost:', error);
-         return res.status(500).json({ 
-       message: "Error creating post", 
-       error: error.message
+         return res.status(500).json({
+       message: "Failed to create post",
+       error: "Failed to create post"
      });
   }
 };
@@ -1431,11 +1447,11 @@ const createNewPost = async (req, res) => {
 const submitPostReport = async (req, res) => {
   try {
     const { postId, reason, reasonType, reasonLabel, userId } = req.body;
-    
-    // Debug: Check request data
-    console.log('Report submission - req.body:', req.body);
-    console.log('Report submission - req.headers:', req.headers);
-    
+
+    if (process.env.NODE_ENV !== 'production') {
+      console.log('Report submission - body keys:', Object.keys(req.body));
+    }
+
     // For authenticated reports, we'll use the authenticated user's ID
     const reportingUserId = req.user || userId || null;
 
@@ -1479,7 +1495,9 @@ const submitPostReport = async (req, res) => {
       createdAt: post.createdAt
     };
 
-    console.log('Email post data prepared:', emailPostData);
+    if (process.env.NODE_ENV !== 'production') {
+      console.log('Email post data prepared for post:', emailPostData._id);
+    }
 
     // Get user data (if userId is provided and not anonymous) - optimized with selective fields
     let user = null;
@@ -1580,23 +1598,22 @@ const updatePost = async (req, res) => {
     image,
   } = requestData;
 
-  // Debug: Log the request body
-  console.log('🔍 UPDATE POST SERVER - Request body:', req.body);
-  console.log('🔍 UPDATE POST SERVER - Parsed requestData:', requestData);
-  console.log('🔍 UPDATE POST SERVER - City value:', city, 'Type:', typeof city);
-  
-  // Confirm data
-  console.log('🔍 UPDATE POST SERVER - Validation check:');
-  console.log('  - id:', id, 'exists:', !!id);
-  console.log('  - user:', user, 'exists:', !!user);
-  console.log('  - category:', category, 'exists:', !!category);
-  console.log('  - categories:', categories, 'exists:', !!categories, 'isArray:', Array.isArray(categories));
-  console.log('  - exactLocation:', exactLocation, 'exists:', !!exactLocation);
-  console.log('  - country:', country, 'exists:', !!country);
-  console.log('  - contact:', contact, 'exists:', !!contact);
-  console.log('  - foundLost:', foundLost, 'exists:', !!foundLost);
-  console.log('  - returned:', returned, 'type:', typeof returned, 'isBoolean:', typeof returned === "boolean");
-  
+  // Debug: log request shape without leaking PII (contact, exactLocation, description, user id)
+  if (process.env.NODE_ENV !== 'production') {
+    console.log('🔍 UPDATE POST SERVER - Request body keys:', Object.keys(req.body));
+    console.log('🔍 UPDATE POST SERVER - City value present:', !!city, 'Type:', typeof city);
+    console.log('🔍 UPDATE POST SERVER - Validation check:');
+    console.log('  - id exists:', !!id);
+    console.log('  - user exists:', !!user);
+    console.log('  - category exists:', !!category);
+    console.log('  - categories exists:', !!categories, 'isArray:', Array.isArray(categories));
+    console.log('  - exactLocation length:', exactLocation ? String(exactLocation).length : 0);
+    console.log('  - country exists:', !!country);
+    console.log('  - contact length:', contact ? String(contact).length : 0);
+    console.log('  - foundLost exists:', !!foundLost);
+    console.log('  - returned type:', typeof returned, 'isBoolean:', typeof returned === "boolean");
+  }
+
   // Determine which category field to use - prefer categories array, fallback to category
   const categoryIds = (categories && Array.isArray(categories) && categories.length > 0)
     ? categories
@@ -1765,16 +1782,18 @@ const updatePost = async (req, res) => {
       try {
         const apiCityData = typeof cityData === 'string' ? JSON.parse(cityData) : cityData;
         
-        // Check if city already exists in database
+        // Check if city already exists in database (country-scoped; label match
+        // is escaped so metacharacters in the API-supplied name can't break or
+        // hijack the regex)
         const existingCity = await City.findOne({
           country: country,
           $or: [
-            { "labels.en": { $regex: new RegExp(apiCityData.labels.en, 'i') } },
-            { "labels.ar": { $regex: new RegExp(apiCityData.labels.ar, 'i') } },
-            { "labels.fr": { $regex: new RegExp(apiCityData.labels.fr, 'i') } }
+            { "labels.en": { $regex: escapeRegex(apiCityData.labels.en), $options: 'i' } },
+            { "labels.ar": { $regex: escapeRegex(apiCityData.labels.ar), $options: 'i' } },
+            { "labels.fr": { $regex: escapeRegex(apiCityData.labels.fr), $options: 'i' } }
           ]
         });
-        
+
         if (existingCity) {
           post.city = existingCity._id;
         } else {

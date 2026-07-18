@@ -14,7 +14,19 @@ const { generateFieldSelectionDocs, POSTS_SCHEMA } = require("../utils/graphqlFi
 const { upload, uploadWithFields, uploadToCloudinaryMiddleware } = require("../middleware/multer");
 const { validateRequest, validationSets, commonValidations } = require("../middleware/validation");
 const { parseFormData } = require("../middleware/formDataParser");
-const { upload: uploadRateLimit, report: reportRateLimit, search: searchRateLimit } = require("../middleware/rateLimiting");
+const { upload: uploadRateLimit, report: reportRateLimit, search: searchRateLimit, createPost: createPostLimit, imageUpload: imageUploadLimit } = require("../middleware/rateLimiting");
+
+// The image-upload limiter only runs after multer has parsed the multipart body -
+// that's the earliest point req.files is populated, so it's the earliest point we
+// can tell whether this particular request actually contains an image. Requests
+// without an image skip it entirely and are never counted against it.
+const conditionalImageUploadLimit = (req, res, next) => {
+  const hasImage = !!(req.files && req.files.image && req.files.image.length > 0);
+  if (hasImage) {
+    return imageUploadLimit(req, res, next);
+  }
+  next();
+};
 
 // Public routes - no authentication required (using optimized caching)
 router.route("/")
@@ -159,25 +171,26 @@ router.route("/report").post(
 router
   .route("/")
   .post(
-    uploadRateLimit,
+    createPostLimit,
     (req, res, next) => {
       uploadWithFields.fields([
         { name: 'image', maxCount: 1 },
         { name: 'postData', maxCount: 1 }
       ])(req, res, (err) => {
         if (err) {
-          return res.status(400).json({ 
-            success: false, 
-            error: { message: 'File upload error: ' + err.message } 
+          return res.status(400).json({
+            success: false,
+            error: { message: 'File upload error: ' + err.message }
           });
         }
         next();
       });
     },
-    uploadToCloudinaryMiddleware, 
+    conditionalImageUploadLimit,
+    uploadToCloudinaryMiddleware,
     validationSets.postCreation,
     validateRequest,
-    optimizedInvalidateCache([], 'posts'), 
+    optimizedInvalidateCache([], 'posts'),
     postsController.createNewPost
   )
   .patch(

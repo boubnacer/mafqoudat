@@ -455,6 +455,8 @@ export const translations = {
     imageWarningProceed: "Continue",
     errorCreatingPost: "Error Creating Post",
     errorCreatingPostMessage: "An error occurred while creating the post",
+    errorLoadingPostForm: "Failed to Load Post Form",
+    errorLoadingPostFormMessage: "We couldn't load some of the information needed to create a post. Please check your connection and try again.",
     postCreatedSuccessfully: "Post Created Successfully!",
     redirectingToDashboard: "Redirecting to dashboard...",
     
@@ -1902,6 +1904,8 @@ export const translations = {
     imageWarningProceed: "Continuer",
     errorCreatingPost: "Erreur lors de la création de la publication",
     errorCreatingPostMessage: "Une erreur s'est produite lors de la création de la publication",
+    errorLoadingPostForm: "Échec du chargement du formulaire",
+    errorLoadingPostFormMessage: "Nous n'avons pas pu charger certaines informations nécessaires à la création d'une publication. Veuillez vérifier votre connexion et réessayer.",
     postCreatedSuccessfully: "Publication créée avec succès !",
     redirectingToDashboard: "Redirection vers le tableau de bord...",
     
@@ -3313,6 +3317,8 @@ export const translations = {
     imageWarningProceed: "متابعة",
     errorCreatingPost: "خطأ في إنشاء المنشور",
     errorCreatingPostMessage: "حدث خطأ أثناء إنشاء المنشور",
+    errorLoadingPostForm: "فشل تحميل نموذج المنشور",
+    errorLoadingPostFormMessage: "تعذر تحميل بعض المعلومات اللازمة لإنشاء منشور. يرجى التحقق من اتصالك والمحاولة مرة أخرى.",
     postCreatedSuccessfully: "تم إنشاء المنشور بنجاح!",
     redirectingToDashboard: "إعادة التوجيه إلى لوحة التحكم...",
     

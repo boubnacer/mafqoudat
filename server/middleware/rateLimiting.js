@@ -38,6 +38,43 @@ const createRateLimiter = (options) => {
   });
 };
 
+// Key by authenticated user id (attached by verifyJWT as req.user), falling back to
+// IP only if it's somehow absent. IP-only keying under-throttles nothing but instead
+// over-throttles: this platform's users are largely in North Africa where carrier
+// CGNAT and shared cybercafe/campus IPs are the norm, so one IP can legitimately
+// represent many distinct users.
+const userOrIpKeyGenerator = (req) => (req.user ? `user:${req.user}` : `ip:${req.ip}`);
+
+// Custom handler for the post-creation limiters: reports a precise retryAfter (seconds
+// until *this key's* window resets) instead of createRateLimiter's default, which just
+// echoes the full windowMs regardless of how much of the window has already elapsed.
+const postLimitHandler = (req, res, next, options) => {
+  logEvents(
+    `Rate Limit Exceeded: ${options.message}\t${req.method}\t${req.url}\t${userOrIpKeyGenerator(req)}\t${req.headers.origin}`,
+    "errLog.log"
+  );
+
+  const resetTime = req.rateLimit?.resetTime
+    ? new Date(req.rateLimit.resetTime).getTime()
+    : Date.now() + options.windowMs;
+  const retryAfter = Math.max(1, Math.ceil((resetTime - Date.now()) / 1000));
+
+  // Fold the retry estimate into the message itself - the client only surfaces
+  // `.message` today, so a retryAfter field nobody reads wouldn't help the user.
+  const retryMinutes = Math.ceil(retryAfter / 60);
+  const humanRetry = retryAfter < 60
+    ? `${retryAfter} second${retryAfter === 1 ? '' : 's'}`
+    : `${retryMinutes} minute${retryMinutes === 1 ? '' : 's'}`;
+
+  // Keep the standard headers in sync with the precise retry hint
+  res.setHeader('Retry-After', retryAfter);
+  res.status(options.statusCode).json({
+    message: `${options.message} You can try again in about ${humanRetry}.`,
+    retryAfter,
+    isError: true
+  });
+};
+
 // Specific rate limiters for different endpoints
 const rateLimiters = {
   // Strict rate limiter for authentication
@@ -60,6 +97,27 @@ const rateLimiters = {
     windowMs: 60 * 60 * 1000, // 1 hour
     max: 10, // 10 uploads per hour
     message: "Too many file uploads, please try again in an hour"
+  }),
+
+  // Post creation limiter - applies to every POST /posts request (with or
+  // without an image), keyed per-user so it isn't shared across everyone
+  // behind the same carrier/cafe IP.
+  createPost: createRateLimiter({
+    windowMs: 60 * 60 * 1000, // 1 hour
+    max: 20, // 20 posts per hour per user
+    keyGenerator: userOrIpKeyGenerator,
+    handler: postLimitHandler,
+    message: "You've reached the limit of 20 posts per hour."
+  }),
+
+  // Stricter image-upload limiter - only meant to be invoked conditionally,
+  // after multer has parsed the body and an image is confirmed present.
+  imageUpload: createRateLimiter({
+    windowMs: 60 * 60 * 1000, // 1 hour
+    max: 10, // 10 image uploads per hour per user
+    keyGenerator: userOrIpKeyGenerator,
+    handler: postLimitHandler,
+    message: "You've reached the limit of 10 image uploads per hour. You can still post without an image."
   }),
 
   // Very strict rate limiter for sensitive operations

@@ -11,11 +11,12 @@ const validateRequest = (req, res, next) => {
       message: error.msg,
       value: error.value
     }));
-    
-    console.log('🔍 VALIDATION ERROR - Request:', req.method, req.url);
-    console.log('🔍 VALIDATION ERROR - Body:', req.body);
-    console.log('🔍 VALIDATION ERROR - Errors:', errorMessages);
-    
+
+    if (process.env.NODE_ENV !== 'production') {
+      console.log('🔍 VALIDATION ERROR - Request:', req.method, req.url);
+      console.log('🔍 VALIDATION ERROR - Fields:', errorMessages.map(e => ({ field: e.field, message: e.message })));
+    }
+
     logEvents(
       `Validation Error: ${JSON.stringify(errorMessages)}\t${req.method}\t${req.url}\t${req.headers.origin}`,
       'errLog.log'
@@ -85,15 +86,9 @@ const commonValidations = {
   
   // ObjectId validation for request body
   bodyObjectId: (field) => {
-    console.log(`🔍 VALIDATION - Setting up bodyObjectId validation for field: ${field}`);
     return body(field)
       .isMongoId()
-      .withMessage('Invalid ID format')
-      .custom((value, { req }) => {
-        console.log(`🔍 VALIDATION - Validating ${field}:`, value, 'Type:', typeof value);
-        console.log(`🔍 VALIDATION - Request body:`, req.body);
-        return true;
-      });
+      .withMessage('Invalid ID format');
   },
   
   // Email validation
@@ -180,48 +175,44 @@ const validationSets = {
   postCreation: [
     // Custom validation to handle postData JSON format
     body().custom((value, { req }) => {
-      console.log('🔍 Validation middleware - Starting post creation validation');
-      console.log('📥 Request body keys:', Object.keys(req.body));
-      console.log('📥 Request body postData exists:', !!req.body.postData);
-      
       let postData;
-      
+
       // Check if data comes as postData JSON field (new format)
       if (req.body.postData) {
-        console.log('📋 Parsing postData JSON field');
         try {
           postData = JSON.parse(req.body.postData);
-          console.log('✅ Successfully parsed postData:', postData);
         } catch (error) {
-          console.log('❌ Failed to parse postData JSON:', error.message);
           throw new Error('Invalid postData JSON format');
         }
       } else {
         // Legacy format - use individual fields
-        console.log('📋 Using legacy individual fields format');
         postData = req.body;
       }
-      
-      // Validate required fields
-      console.log('🔍 Validating required fields...');
-      console.log('👤 User:', postData.user);
-      console.log('🌍 Country:', postData.country);
-      console.log('📂 Categories:', postData.categories);
-      console.log('📂 Category (legacy):', postData.category);
-      console.log('🔍 Found/Lost:', postData.foundLost);
-      console.log('📞 Contact:', postData.contact);
-      console.log('📍 Exact Location:', postData.exactLocation);
-      console.log('📅 Exact Date (optional):', postData.exactDate);
-      
+
+      if (process.env.NODE_ENV !== 'production') {
+        // Log field presence/length only - never the raw contact, exactLocation,
+        // description, or user id values.
+        console.log('🔍 Validation middleware - post creation payload shape:', {
+          hasUser: !!postData.user,
+          hasCountry: !!postData.country,
+          categoriesCount: Array.isArray(postData.categories)
+            ? postData.categories.length
+            : (postData.category ? 1 : 0),
+          hasFoundLost: !!postData.foundLost,
+          contactLength: postData.contact ? String(postData.contact).length : 0,
+          exactLocationLength: postData.exactLocation ? String(postData.exactLocation).length : 0,
+          descriptionLength: postData.description ? String(postData.description).length : 0,
+          hasExactDate: !!postData.exactDate
+        });
+      }
+
       if (!postData.user) {
-        console.log('❌ Validation failed: User ID is required');
         throw new Error('User ID is required');
       }
       if (!postData.country) {
-        console.log('❌ Validation failed: Country ID is required');
         throw new Error('Country ID is required');
       }
-      
+
       // Validate categories - support both new array format and legacy single category
       let categories = postData.categories;
       if (!categories || !Array.isArray(categories) || categories.length === 0) {
@@ -230,37 +221,31 @@ const validationSets = {
           categories = [postData.category];
           postData.categories = categories; // Normalize to array format
         } else {
-          console.log('❌ Validation failed: At least one category is required');
           throw new Error('At least one category is required');
         }
       }
-      
+
       // Ensure categories is an array with at least one item
       if (!Array.isArray(categories) || categories.length === 0) {
-        console.log('❌ Validation failed: At least one category is required');
         throw new Error('At least one category is required');
       }
-      
+
       // Validate maximum categories (reasonable limit)
       if (categories.length > 10) {
-        console.log('❌ Validation failed: Maximum 10 categories allowed');
         throw new Error('Maximum 10 categories allowed');
       }
-      
+
       if (!postData.foundLost) {
-        console.log('❌ Validation failed: Found/Lost ID is required');
         throw new Error('Found/Lost ID is required');
       }
       if (!postData.contact) {
-        console.log('❌ Validation failed: Contact is required');
         throw new Error('Contact is required');
       }
       if (!postData.exactLocation) {
-        console.log('❌ Validation failed: Exact location is required');
         throw new Error('Exact location is required');
       }
       // exactDate is now optional - removed validation
-      
+
       // Validate field formats
       if (!postData.user.match(/^[0-9a-fA-F]{24}$/)) {
         throw new Error('Invalid user ID format');

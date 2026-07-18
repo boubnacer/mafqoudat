@@ -5,6 +5,7 @@ const geonamesService = require("../services/geonamesService");
 const googlePlacesService = require("../services/googlePlacesService");
 const { cacheService } = require("../config/cache");
 const { getCountryId } = require("../utils/countryCache");
+const { escapeRegex } = require("../utils/regexUtils");
 
 // Helper function to check for Arabic text
 const isArabicText = (text) => {
@@ -131,10 +132,10 @@ const getCities = async (req, res) => {
       };
       
       // For Arabic text, use normalized pattern with character classes
-      // For non-Arabic text, use original search term
-      const searchPattern = isArabicText(search) 
+      // For non-Arabic text, escape regex metacharacters in the raw search term
+      const searchPattern = isArabicText(search)
         ? createArabicRegexPattern(normalizedSearch)
-        : search;
+        : escapeRegex(search);
       
       // Use regex for case-insensitive partial matching across all language labels
       conditions.push({
@@ -729,9 +730,9 @@ const createDynamicCity = async (req, res) => {
      const existingCity = await City.findOne({
        country: countryId,
        $or: [
-         { "labels.en": { $regex: new RegExp(cityName, 'i') } },
-         { "labels.ar": { $regex: new RegExp(cityName, 'i') } },
-         { "labels.fr": { $regex: new RegExp(cityName, 'i') } }
+         { "labels.en": { $regex: escapeRegex(cityName), $options: 'i' } },
+         { "labels.ar": { $regex: escapeRegex(cityName), $options: 'i' } },
+         { "labels.fr": { $regex: escapeRegex(cityName), $options: 'i' } }
        ]
      });
 
@@ -781,9 +782,9 @@ const createDynamicCity = async (req, res) => {
         const existingCity = await City.findOne({
           country: countryId,
           $or: [
-            { "labels.en": { $regex: new RegExp(cityName, 'i') } },
-            { "labels.ar": { $regex: new RegExp(cityName, 'i') } },
-            { "labels.fr": { $regex: new RegExp(cityName, 'i') } }
+            { "labels.en": { $regex: escapeRegex(cityName), $options: 'i' } },
+            { "labels.ar": { $regex: escapeRegex(cityName), $options: 'i' } },
+            { "labels.fr": { $regex: escapeRegex(cityName), $options: 'i' } }
           ]
         });
         
@@ -845,9 +846,9 @@ const cacheApiCityToDatabase = async (apiCity, countryId) => {
     const existingCity = await City.findOne({
       country: countryId,
       $or: [
-        { "labels.en": { $regex: new RegExp(apiCity.labels.en, 'i') } },
-        { "labels.ar": { $regex: new RegExp(apiCity.labels.ar, 'i') } },
-        { "labels.fr": { $regex: new RegExp(apiCity.labels.fr, 'i') } }
+        { "labels.en": { $regex: escapeRegex(apiCity.labels.en), $options: 'i' } },
+        { "labels.ar": { $regex: escapeRegex(apiCity.labels.ar), $options: 'i' } },
+        { "labels.fr": { $regex: escapeRegex(apiCity.labels.fr), $options: 'i' } }
       ]
     });
 
@@ -895,14 +896,15 @@ const searchCitiesByName = async (req, res) => {
       });
     }
 
-         const searchQuery = {
+         const escapedQuery = escapeRegex(query);
+     const searchQuery = {
        country: countryId,
        isActive: true,
        $or: [
-         { "labels.en": { $regex: new RegExp(query, 'i') } },
-         { "labels.ar": { $regex: new RegExp(query, 'i') } },
-         { "labels.fr": { $regex: new RegExp(query, 'i') } },
-         { searchTerms: { $regex: new RegExp(query, 'i') } }
+         { "labels.en": { $regex: escapedQuery, $options: 'i' } },
+         { "labels.ar": { $regex: escapedQuery, $options: 'i' } },
+         { "labels.fr": { $regex: escapedQuery, $options: 'i' } },
+         { searchTerms: { $regex: escapedQuery, $options: 'i' } }
        ]
      };
 

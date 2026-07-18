@@ -134,7 +134,6 @@ const NewPostForm = ({ user, countries, categories, flOptions }) => {
   const [createdPostId, setCreatedPostId] = useState(null);
   const [lastSubmittedValues, setLastSubmittedValues] = useState(null);
   const [isLostItem, setIsLostItem] = useState(true);
-  const [selectedCountry, setSelectedCountry] = useState(null);
   const [cities, setCities] = useState([]);
   const [loadingCities, setLoadingCities] = useState(false);
   const [showCustomCityInput, setShowCustomCityInput] = useState(false);
@@ -146,6 +145,9 @@ const NewPostForm = ({ user, countries, categories, flOptions }) => {
   const [fieldErrors, setFieldErrors] = useState({});
   const formikRef = useRef(null);
   const fileInputRef = useRef(null);
+  // values.country is the single source of truth (Formik); this ref just guards
+  // the one-time initial city preload so it doesn't re-fire on every render.
+  const hasInitializedCitiesRef = useRef(false);
 
   // Image management state
   const [selectedImage, setSelectedImage] = useState(null);
@@ -238,16 +240,14 @@ const NewPostForm = ({ user, countries, categories, flOptions }) => {
     }
   }, [currentLanguage, token]);
 
-  // Initialize selectedCountry with user's country
+  // Preload cities for the initial country (values.country, seeded from user.country)
+  // exactly once - subsequent country changes are handled by handleCountryChange.
   useEffect(() => {
-    if (user.country && countries.length > 0 && !selectedCountry) {
-      const userCountry = countries.find(c => c._id === user.country);
-      if (userCountry) {
-        setSelectedCountry(userCountry);
-        fetchCitiesByCountry(userCountry._id);
-      }
+    if (user.country && countries.length > 0 && !hasInitializedCitiesRef.current) {
+      hasInitializedCitiesRef.current = true;
+      fetchCitiesByCountry(user.country);
     }
-  }, [user.country, countries, selectedCountry, fetchCitiesByCountry]);
+  }, [user.country, countries, fetchCitiesByCountry]);
 
   useEffect(() => {
     if (isSuccess) {
@@ -256,39 +256,44 @@ const NewPostForm = ({ user, countries, categories, flOptions }) => {
       const foundLostOption = lastSubmittedValues && flOptions.find(option => option.id === lastSubmittedValues.foundLost);
       const lostItemStatus = foundLostOption && foundLostOption.code === 'LOST';
       setIsLostItem(lostItemStatus);
-      
-      // Refresh cities list to include any newly created cities
-      if (selectedCountry?._id) {
-        fetchCitiesByCountry(selectedCountry._id);
+
+      // Refresh cities list to include any newly created cities - use the country
+      // that was actually submitted, not whatever the dropdown shows right now
+      if (lastSubmittedValues?.country) {
+        fetchCitiesByCountry(lastSubmittedValues.country);
       }
-      
+
       // Show promotion dialog for both lost and found items
       setShowPromotionDialog(true);
     }
-  }, [isSuccess, navigate, flOptions, lastSubmittedValues, selectedCountry?._id]);
+  }, [isSuccess, navigate, flOptions, lastSubmittedValues]);
 
   // Re-fetch cities when language changes (with debouncing to prevent rate limits)
   useEffect(() => {
     // Check if this is a language change refresh to avoid interference
     const urlParams = new URLSearchParams(window.location.search);
     const isLanguageChange = urlParams.get('lang_changed') === 'true';
-    
-    if (selectedCountry?._id && !isLanguageChange) {
+    // Read the live Formik value via ref rather than a dependency - this effect
+    // is meant to react to language changes, not country changes (those are
+    // already handled directly by handleCountryChange).
+    const countryId = formikRef.current?.values?.country;
+
+    if (countryId && !isLanguageChange) {
       // Add a small delay to prevent multiple simultaneous API calls
       const timeoutId = setTimeout(() => {
-        fetchCitiesByCountry(selectedCountry._id);
+        fetchCitiesByCountry(countryId);
       }, 300);
-      
+
       return () => clearTimeout(timeoutId);
-    } else if (selectedCountry?._id && isLanguageChange) {
+    } else if (countryId && isLanguageChange) {
       // For language changes, wait longer to ensure auth state is restored
       const timeoutId = setTimeout(() => {
-        fetchCitiesByCountry(selectedCountry._id);
+        fetchCitiesByCountry(countryId);
       }, 1000); // Original working delay
-      
+
       return () => clearTimeout(timeoutId);
     }
-  }, [fetchCitiesByCountry, selectedCountry?._id, currentLanguage]);
+  }, [fetchCitiesByCountry, currentLanguage]);
 
   // Function to get default foundLost value based on URL parameters
   const getDefaultFoundLost = () => {
@@ -328,30 +333,6 @@ const NewPostForm = ({ user, countries, categories, flOptions }) => {
     description: Yup.string().optional(),
     image: Yup.mixed().nullable(),
   });
-
-  const handleCountrySelect = (event) => {
-    const countryId = event.target.value;
-    const country = countries.find(c => c._id === countryId);
-    setSelectedCountry(country);
-    
-    // Clear country field error if country is selected
-    if (countryId) {
-      clearFieldError('country');
-    }
-    
-    // Reset cities when country changes
-    setCities([]);
-    
-    // Clear the city field in the form
-    if (formikRef.current) {
-      formikRef.current.setFieldValue('city', '');
-    }
-    
-    // Fetch cities for the selected country
-    if (countryId) {
-      fetchCitiesByCountry(countryId);
-    }
-  };
 
   // New function to search cities using hybrid search
   const searchCitiesHybrid = useCallback(async (searchQuery, countryCode) => {
@@ -459,7 +440,7 @@ const NewPostForm = ({ user, countries, categories, flOptions }) => {
         missingFields.push(t('category'));
         newFieldErrors.category = t('required');
       }
-      if (!selectedCountry) {
+      if (!values.country) {
         missingFields.push(t('country'));
         newFieldErrors.country = t('required');
       }
@@ -532,7 +513,7 @@ const NewPostForm = ({ user, countries, categories, flOptions }) => {
       // selectedCategories is already declared above in validation section
       const postData = {
         user: user._id,
-        country: selectedCountry?._id || values.country,
+        country: values.country,
         categories: selectedCategories, // New: array of category IDs
         category: selectedCategories.length > 0 ? selectedCategories[0] : null, // Legacy: first category for backward compatibility
         foundLost: values.foundLost,
@@ -610,34 +591,39 @@ const NewPostForm = ({ user, countries, categories, flOptions }) => {
       setShowCityDropdown(true);
     }
     
-    // Get country code from selectedCountry object - must be ISO code (e.g., 'MA', 'EG')
+    // Read the live Formik country value via ref (this callback is memoized and
+    // must not close over a stale country from an earlier render).
+    const countryId = formikRef.current?.values?.country;
+    const selectedCountryObj = countries.find(c => c._id === countryId);
+
+    // Get country code from the selected country object - must be ISO code (e.g., 'MA', 'EG')
     // The code should be a 2-letter ISO country code
-    let countryCode = selectedCountry?.code;
-    
+    let countryCode = selectedCountryObj?.code;
+
     // Ensure countryCode is a valid ISO code (2 uppercase letters)
     if (countryCode && typeof countryCode === 'string' && countryCode.length === 2) {
       countryCode = countryCode.toUpperCase();
     } else {
       // Invalid or missing country code
       console.warn('⚠️ Invalid or missing country code:', {
-        code: selectedCountry?.code,
-        country: selectedCountry
+        code: selectedCountryObj?.code,
+        country: selectedCountryObj
       });
       countryCode = null;
     }
-    
-    if (query.length >= 2 && selectedCountry?._id) {
+
+    if (query.length >= 2 && countryId) {
       setIsSearching(true);
       try {
         // Try hybrid search first (includes Google Places API)
         const results = await searchCitiesHybrid(query, countryCode);
-        
+
         if (results.length > 0) {
           setSearchResults(results);
         } else {
           // Fallback to traditional search
-          const fallbackResults = await searchCitiesTraditional(query, selectedCountry._id);
-          
+          const fallbackResults = await searchCitiesTraditional(query, countryId);
+
           if (fallbackResults.length > 0) {
             setSearchResults(fallbackResults);
           } else {
@@ -674,7 +660,7 @@ const NewPostForm = ({ user, countries, categories, flOptions }) => {
     } else {
       setSearchResults([]);
     }
-  }, [searchCitiesHybrid, searchCitiesTraditional, selectedCountry, cities, currentLanguage]);
+  }, [searchCitiesHybrid, searchCitiesTraditional, countries, cities, currentLanguage]);
 
   // Handle city selection from dropdown
   const handleCitySelect = (city) => {
@@ -968,7 +954,31 @@ const NewPostForm = ({ user, countries, categories, flOptions }) => {
           {({ isSubmitting, status, setFieldValue, values, errors, touched, handleChange }) => {
             // Store setFieldValue function for use in custom city creation
             setSetFieldValueCallback(() => setFieldValue);
-            
+
+            // values.country is the single source of truth; derive the full
+            // country object here wherever the UI needs more than the id.
+            const selectedCountryObj = countries.find(c => c._id === values.country) || null;
+
+            const handleCountryChange = (event) => {
+              const countryId = event.target.value;
+              setFieldValue('country', countryId);
+
+              if (countryId) {
+                clearFieldError('country');
+              }
+
+              // Reset cities when country changes
+              setCities([]);
+
+              // Clear the city field in the form
+              setFieldValue('city', '');
+
+              // Fetch cities for the selected country
+              if (countryId) {
+                fetchCitiesByCountry(countryId);
+              }
+            };
+
             return (
             <Form>
               {status?.error && (
@@ -1192,8 +1202,8 @@ const NewPostForm = ({ user, countries, categories, flOptions }) => {
                   </Typography>
                   <FormControl fullWidth error={!!fieldErrors.country}>
                     <Select
-                      value={selectedCountry?._id || ""}
-                      onChange={handleCountrySelect}
+                      value={values.country || ""}
+                      onChange={handleCountryChange}
                       data-testid="country-select"
                       displayEmpty
                       sx={{
@@ -1272,8 +1282,8 @@ const NewPostForm = ({ user, countries, categories, flOptions }) => {
                       fontWeight: 500
                     }}
                   >
-                    {!selectedCountry 
-                      ? t('selectCountryFirst') 
+                    {!selectedCountryObj
+                      ? t('selectCountryFirst')
                         : getFoundLostType(values.foundLost) === 'LOST'
                           ? currentLanguage === 'ar' 
                             ? 'يرجى تحديد المدينة التي فقدت فيها العنصر أو أقرب مدينة رئيسية إليها'
@@ -1289,19 +1299,19 @@ const NewPostForm = ({ user, countries, categories, flOptions }) => {
                   </Typography>
                   
                   {/* Debug info */}
-                  {process.env.NODE_ENV === 'development' && selectedCountry && (
+                  {process.env.NODE_ENV === 'development' && selectedCountryObj && (
                     <Box>
-                      <Typography 
-                        variant="caption" 
-                        sx={{ 
-                          mb: 1, 
-                          display: "block", 
+                      <Typography
+                        variant="caption"
+                        sx={{
+                          mb: 1,
+                          display: "block",
                           fontSize: '0.8rem',
                           color: theme.palette.mode === 'dark' ? '#ff9800' : '#f57c00',
                           fontWeight: 500
                         }}
                       >
-                        Debug: Country: {selectedCountry.code || selectedCountry.labels?.en || 'No code'} | Cities loaded: {cities.length}
+                        Debug: Country: {selectedCountryObj.code || selectedCountryObj.labels?.en || 'No code'} | Cities loaded: {cities.length}
                       </Typography>
                     </Box>
                   )}
@@ -1315,7 +1325,7 @@ const NewPostForm = ({ user, countries, categories, flOptions }) => {
                       placeholder={currentLanguage === 'ar' ? 'اختر مدينة...' : currentLanguage === 'fr' ? 'Sélectionner une ville...' : 'Select a city...'}
                       value={cityDisplayValue}
                       readOnly
-                      disabled={!selectedCountry}
+                      disabled={!selectedCountryObj}
                       data-testid="city-select"
                       onClick={handleCityDropdownToggle}
                       sx={{
@@ -1348,7 +1358,7 @@ const NewPostForm = ({ user, countries, categories, flOptions }) => {
                     />
 
                     {/* Unified City Dropdown */}
-                    {showCityDropdown && selectedCountry && (
+                    {showCityDropdown && selectedCountryObj && (
                       <Box
                         sx={{
                           position: 'absolute',
@@ -2384,19 +2394,20 @@ const NewPostForm = ({ user, countries, categories, flOptions }) => {
           <Button
             variant="contained"
             onClick={async () => {
-              if (customCityName.trim() && selectedCountry?._id) {
+              const countryId = formikRef.current?.values?.country;
+              if (customCityName.trim() && countryId) {
                 setIsCreatingCity(true);
                 try {
                   // Create the custom city in the backend
-                  const createdCity = await createCustomCity(customCityName.trim(), selectedCountry._id);
-                  
+                  const createdCity = await createCustomCity(customCityName.trim(), countryId);
+
                   // Close the dialog first
                   setShowCustomCityInput(false);
                   setCustomCityName("");
-                  
+
                   // Refresh the cities list to get the newly created city
-                  await fetchCitiesByCountry(selectedCountry._id);
-                  
+                  await fetchCitiesByCountry(countryId);
+
                   // Set the display value
                   const cityDisplayName = getCityDisplayName(createdCity, currentLanguage);
                   setCityDisplayValue(cityDisplayName);
@@ -2415,7 +2426,7 @@ const NewPostForm = ({ user, countries, categories, flOptions }) => {
                 }
               }
             }}
-            disabled={!customCityName.trim() || !selectedCountry?._id || isCreatingCity}
+            disabled={!customCityName.trim() || !formikRef.current?.values?.country || isCreatingCity}
             sx={{ 
               textTransform: 'none',
               borderRadius: 2,
