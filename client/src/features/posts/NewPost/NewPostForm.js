@@ -573,53 +573,53 @@ const NewPostForm = ({ user, countries, categories, flOptions }) => {
       countryCode = null;
     }
 
-    if (query.length >= 2 && countryId) {
-      setIsSearching(true);
-      try {
+    try {
+      if (query.length >= 2 && countryId) {
         // Try hybrid search first (includes Google Places API)
         const results = await searchCitiesHybrid(query, countryCode);
         if (isStale()) return;
 
         if (results.length > 0) {
           setSearchResults(results);
-        } else {
-          // Fallback to traditional search
-          const fallbackResults = await searchCitiesTraditional(query, countryId);
-          if (isStale()) return;
-
-          if (fallbackResults.length > 0) {
-            setSearchResults(fallbackResults);
-          } else {
-            // Final fallback: filter existing cities
-            const localResults = cities.filter(city =>
-              city.label?.toLowerCase().includes(query.toLowerCase()) ||
-              city.name?.toLowerCase().includes(query.toLowerCase())
-            ).map(city => ({
-              ...city,
-              source: 'database',
-              _id: city.id || city._id
-            }));
-
-            setSearchResults(localResults);
-          }
+          return;
         }
-      } catch (error) {
-        console.error('❌ City search error:', error);
-        if (!isStale()) setSearchResults([]);
-      } finally {
-        if (!isStale()) setIsSearching(false);
+
+        // Fallback to traditional search
+        const fallbackResults = await searchCitiesTraditional(query, countryId);
+        if (isStale()) return;
+
+        if (fallbackResults.length > 0) {
+          setSearchResults(fallbackResults);
+          return;
+        }
+
+        // Final fallback: filter existing cities
+        const localResults = cities.filter(city =>
+          city.label?.toLowerCase().includes(query.toLowerCase()) ||
+          city.name?.toLowerCase().includes(query.toLowerCase())
+        ).map(city => ({
+          ...city,
+          source: 'database',
+          _id: city.id || city._id
+        }));
+        setSearchResults(localResults);
+      } else if (query.length > 0) {
+        // Show local filtered results for shorter queries
+        const localResults = cities.filter(city =>
+          city.label?.toLowerCase().includes(query.toLowerCase()) ||
+          city.name?.toLowerCase().includes(query.toLowerCase())
+        ).map(city => ({
+          ...city,
+          source: 'database',
+          _id: city.id || city._id
+        }));
+        if (!isStale()) setSearchResults(localResults);
       }
-    } else if (query.length > 0) {
-      // Show local filtered results for shorter queries
-      const localResults = cities.filter(city =>
-        city.label?.toLowerCase().includes(query.toLowerCase()) ||
-        city.name?.toLowerCase().includes(query.toLowerCase())
-      ).map(city => ({
-        ...city,
-        source: 'database',
-        _id: city.id || city._id
-      }));
-      if (!isStale()) setSearchResults(localResults);
+    } catch (error) {
+      console.error('❌ City search error:', error);
+      if (!isStale()) setSearchResults([]);
+    } finally {
+      if (!isStale()) setIsSearching(false);
     }
   }, [searchCitiesHybrid, searchCitiesTraditional, countries, cities, currentLanguage, user.country]);
 
@@ -632,6 +632,14 @@ const NewPostForm = ({ user, countries, categories, flOptions }) => {
   // APIs, and a slower response for an earlier partial query (e.g. "Tagha")
   // could resolve after a faster one for a later query and overwrite it,
   // leaving stale suggestions on screen.
+  //
+  // searchResults is cleared synchronously here, immediately on every
+  // keystroke - not just when performCitySearch's own response comes back.
+  // Otherwise the dropdown keeps showing the previous query's matches under
+  // "Search Results" for the entire debounce + network round-trip (can be
+  // over a second for the GeoNames->Google chain) after the user has
+  // already typed something else, which reads as old and new results being
+  // mixed/stacked together.
   const handleCitySearchChange = useCallback((event) => {
     const query = event.target.value;
     setCitySearchQuery(query);
@@ -648,11 +656,17 @@ const NewPostForm = ({ user, countries, categories, flOptions }) => {
       clearTimeout(citySearchDebounceRef.current);
     }
 
+    // Whatever was shown for the previous query must never linger while the
+    // user edits the text - clear it immediately, before the debounced
+    // fetch even starts.
+    setSearchResults([]);
+
     if (!query.trim()) {
-      setSearchResults([]);
+      setIsSearching(false);
       return;
     }
 
+    setIsSearching(true);
     citySearchDebounceRef.current = setTimeout(() => {
       performCitySearch(query, requestId);
     }, 300);

@@ -344,7 +344,22 @@ const StepLocation = ({
                 zIndex: 1
               }}>
                 {/* Show search results if searching */}
-                {citySearchQuery.trim() && searchResults.length > 0 ? (
+                {citySearchQuery.trim() && isSearching ? (
+                  <Box sx={{
+                    p: 3,
+                    textAlign: 'center',
+                    backgroundColor: theme.palette.background.paper,
+                    display: 'flex',
+                    alignItems: 'center',
+                    justifyContent: 'center',
+                    gap: 1
+                  }}>
+                    <CircularProgress size={16} />
+                    <Typography variant="body2" color="text.secondary">
+                      {currentLanguage === 'ar' ? 'جارٍ البحث...' : currentLanguage === 'fr' ? 'Recherche...' : 'Searching...'}
+                    </Typography>
+                  </Box>
+                ) : citySearchQuery.trim() && searchResults.length > 0 ? (
                   <>
                     <Box sx={{
                       p: 1,
