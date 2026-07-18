@@ -317,11 +317,12 @@ const searchCities = async (req, res) => {
       }
     }
 
-    // Step 3: Search Google Places if we still have nothing at all, or (for
-    // Arabic searches specifically) GeoNames couldn't provide a real Arabic
-    // name. Results are merged into allCities, never replace what's already
-    // been found.
-    if ((allCities.length === 0 || needsArabicSupplement) && countryCode) {
+    // Step 3: Search Google Places if we're still short of the requested
+    // limit (same "keep filling until full" pattern as the GeoNames gate
+    // above), or (for Arabic searches specifically) GeoNames couldn't
+    // provide a real Arabic name. Results are merged into allCities, never
+    // replace what's already been found.
+    if ((allCities.length < parseInt(limit) || needsArabicSupplement) && countryCode) {
       try {
         console.log(`🌐 Trying Google Places API...`);
         console.log(`🔍 Service call: googlePlacesService.searchCities("${q}", "${countryCode}", "${language}")`);

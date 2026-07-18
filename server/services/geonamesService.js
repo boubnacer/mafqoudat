@@ -52,9 +52,13 @@ class GeoNamesService {
 
       console.log(`🔍 GeoNames API: Searching for "${cityName}" in ${countryCode} (${language})`);
 
-      // GeoNames API parameters
+      // GeoNames API parameters. name_startsWith does a genuine prefix match
+      // (needed for type-ahead search as the user types); the generic `q`
+      // param instead does fuzzy full-text relevance search across all
+      // fields, which returns loosely-related places that don't even start
+      // with the typed text and misses real prefixes of multi-syllable names.
       const params = {
-        q: cityName,
+        name_startsWith: cityName,
         country: countryCode,
         featureClass: 'P', // Populated places (cities, towns, villages)
         maxRows: 20, // Limit results
