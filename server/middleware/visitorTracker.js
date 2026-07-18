@@ -195,8 +195,8 @@ const visitorTracker = async (req, res, next) => {
     const userAgent = req.get('User-Agent') || 'unknown';
     
     // Try multiple header variations for country detection
-    // Cloudflare, Vercel, Railway, and other platforms use different headers
-    // Note: Railway doesn't provide country headers by default, so we use IP geolocation as fallback
+    // Cloudflare, Vercel, Render, and other platforms use different headers
+    // Note: Render doesn't provide country headers by default, so we use IP geolocation as fallback
     let country = req.headers['cf-ipcountry'] || 
                   req.headers['x-vercel-ip-country'] ||
                   req.headers['x-country-code'] ||

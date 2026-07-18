@@ -2,3 +2,12 @@ node_modules
 client/node_modules
 logs
 
+# Environment files with real secrets - never commit
+.env
+.env.local
+.env.production
+.env.*.local
+server/.env
+server/env.production
+client/.env
+

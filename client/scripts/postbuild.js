@@ -37,7 +37,7 @@ const injectGoogleAnalytics = () => {
 
   if (!gaMeasurementId) {
     console.log('⚠️  REACT_APP_GA_MEASUREMENT_ID not found, skipping GA injection');
-    console.log('💡 Make sure the environment variable is set in Railway');
+    console.log('💡 Make sure the environment variable is set in Vercel (frontend env vars are not read from the Render backend)');
     return;
   }
 

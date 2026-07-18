@@ -122,7 +122,7 @@ router.get('/google/callback',
           // For mobile, redirect to HTML page that will trigger deep link
           // Browser can't handle deep links directly, so we use an HTML page
           const protocol = req.protocol || 'https';
-          const host = req.get('host') || 'mafqoudat-production.up.railway.app';
+          const host = req.get('host') || 'localhost:3500';
           const serverUrl = `${protocol}://${host}`;
           const mobileRedirectUrl = `${serverUrl}/auth/mobile-callback?pendingToken=${encodeURIComponent(pendingToken)}`;
           return res.redirect(mobileRedirectUrl);
@@ -154,7 +154,7 @@ router.get('/google/callback',
             // For mobile, redirect to HTML page that will trigger deep link
             // Browser can't handle deep links directly, so we use an HTML page
             const protocol = req.protocol || 'https';
-            const host = req.get('host') || 'mafqoudat-production.up.railway.app';
+            const host = req.get('host') || 'localhost:3500';
             const serverUrl = `${protocol}://${host}`;
             const mobileRedirectUrl = `${serverUrl}/auth/mobile-callback?token=${encodeURIComponent(tokens.accessToken)}`;
             return res.redirect(mobileRedirectUrl);

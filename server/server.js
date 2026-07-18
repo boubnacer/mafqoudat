@@ -363,7 +363,7 @@ app.use(resilientErrorHandler);
 let server;
 mongoose.connection.once("open", () => {
   console.log("Connected to MongoDB");
-  server = app.listen(PORT, () => console.log(`Server running on port ${PORT}`));
+  server = app.listen(PORT, '0.0.0.0', () => console.log(`Server running on port ${PORT}`));
 });
 
 mongoose.connection.on("error", (err) => {
