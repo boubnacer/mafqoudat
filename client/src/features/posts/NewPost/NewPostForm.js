@@ -535,22 +535,29 @@ const NewPostForm = ({ user, countries, categories, flOptions }) => {
     }
     
     // Read the live Formik country value via ref (this callback is memoized and
-    // must not close over a stale country from an earlier render).
-    const countryId = formikRef.current?.values?.country;
+    // must not close over a stale country from an earlier render). Falls back
+    // to user.country (the value Formik was seeded with) in case the ref isn't
+    // populated yet for some reason.
+    const formikCountryId = formikRef.current?.values?.country;
+    const countryId = formikCountryId || user.country;
     const selectedCountryObj = countries.find(c => c._id === countryId);
 
     // Get country code from the selected country object - must be ISO code (e.g., 'MA', 'EG')
     // The code should be a 2-letter ISO country code
     let countryCode = selectedCountryObj?.code;
+    if (typeof countryCode === 'string') {
+      countryCode = countryCode.trim().toUpperCase();
+    }
 
     // Ensure countryCode is a valid ISO code (2 uppercase letters)
-    if (countryCode && typeof countryCode === 'string' && countryCode.length === 2) {
-      countryCode = countryCode.toUpperCase();
-    } else {
+    if (!(countryCode && countryCode.length === 2)) {
       // Invalid or missing country code
-      console.warn('⚠️ Invalid or missing country code:', {
-        code: selectedCountryObj?.code,
-        country: selectedCountryObj
+      console.warn('⚠️ Invalid or missing country code. Sources checked:', {
+        formikCountryId,
+        userCountryFallback: user.country,
+        resolvedCountryId: countryId,
+        matchedCountry: selectedCountryObj,
+        rawCode: selectedCountryObj?.code
       });
       countryCode = null;
     }
@@ -603,7 +610,7 @@ const NewPostForm = ({ user, countries, categories, flOptions }) => {
     } else {
       setSearchResults([]);
     }
-  }, [searchCitiesHybrid, searchCitiesTraditional, countries, cities, currentLanguage]);
+  }, [searchCitiesHybrid, searchCitiesTraditional, countries, cities, currentLanguage, user.country]);
 
   // Handle city selection from dropdown
   const handleCitySelect = (city) => {
@@ -865,7 +872,7 @@ const NewPostForm = ({ user, countries, categories, flOptions }) => {
         </Typography>
 
         <Formik
-          ref={formikRef}
+          innerRef={formikRef}
           initialValues={initialFormState}
           validationSchema={formValidation}
           onSubmit={handleSubmit}
