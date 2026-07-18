@@ -31,26 +31,26 @@ const conditionalImageUploadLimit = (req, res, next) => {
 // Public routes - no authentication required (using optimized caching)
 router.route("/")
   .get(
-    searchRateLimit,
+    // searchRateLimit, // TEMPORARILY DISABLED for feature testing - re-enable before shipping to prod
     commonValidations.pagination(),
     validateRequest,
-    optimizedPaginatedCache('posts'), 
+    optimizedPaginatedCache('posts'),
     postsController.getAllPosts
   );
 
 router.route("/filtered")
   .get(
-    searchRateLimit,
+    // searchRateLimit, // TEMPORARILY DISABLED for feature testing - re-enable before shipping to prod
     commonValidations.pagination(),
     validateRequest,
-    searchResultsCache('posts-filtered'), 
+    searchResultsCache('posts-filtered'),
     postsController.getFilteredPosts
   );
 
 router.route("/user")
   .get(
     verifyJWT,
-    searchRateLimit,
+    // searchRateLimit, // TEMPORARILY DISABLED for feature testing - re-enable before shipping to prod
     commonValidations.pagination(),
     validateRequest,
     postsController.getUserPosts
@@ -171,7 +171,7 @@ router.route("/report").post(
 router
   .route("/")
   .post(
-    createPostLimit,
+    // createPostLimit, // TEMPORARILY DISABLED for feature testing - re-enable before shipping to prod
     (req, res, next) => {
       uploadWithFields.fields([
         { name: 'image', maxCount: 1 },

@@ -140,7 +140,8 @@ app.use(requestTimeout(30000)); // 30 second timeout
 app.use(cors(corsOptions));
 
 // Rate limiting
-app.use(generalRateLimit);
+// TEMPORARILY DISABLED for feature testing - re-enable before shipping to prod
+// app.use(generalRateLimit);
 
 app.use(express.json({ limit: '10mb' }));
 app.use(express.urlencoded({ extended: true, limit: '10mb' }));
