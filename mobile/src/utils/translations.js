@@ -72,6 +72,7 @@ export const translations = {
     errorLoadingCountries: "Error loading countries. Please try again.",
     pleaseSelectCountry: "Please select your country",
     registrationFailed: "Failed to complete registration. Please try again.",
+    pendingTokenExpired: "Your Google sign-in session has expired. Please sign in again.",
     oauthError: "Google authentication failed. Please try again.",
     or: "OR",
   },
@@ -143,6 +144,7 @@ export const translations = {
     errorLoadingCountries: "Erreur lors du chargement des pays. Veuillez réessayer.",
     pleaseSelectCountry: "Veuillez sélectionner votre pays",
     registrationFailed: "Échec de l'inscription. Veuillez réessayer.",
+    pendingTokenExpired: "Votre session de connexion Google a expiré. Veuillez vous reconnecter.",
     oauthError: "L'authentification Google a échoué. Veuillez réessayer.",
     or: "OU",
   },
@@ -214,6 +216,7 @@ export const translations = {
     errorLoadingCountries: "خطأ في تحميل البلدان. يرجى المحاولة مرة أخرى.",
     pleaseSelectCountry: "يرجى اختيار بلدك",
     registrationFailed: "فشل إتمام التسجيل. يرجى المحاولة مرة أخرى.",
+    pendingTokenExpired: "انتهت صلاحية جلسة تسجيل الدخول عبر جوجل. يرجى تسجيل الدخول مرة أخرى.",
     oauthError: "فشل المصادقة عبر جوجل. يرجى المحاولة مرة أخرى.",
     or: "أو",
   }

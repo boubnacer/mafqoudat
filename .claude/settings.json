@@ -9,7 +9,8 @@
       "Bash(powershell -Command \"Get-Process node -ErrorAction SilentlyContinue | Select-Object Id,ProcessName,StartTime\")",
       "Bash(node -c controllers/postsController.js)",
       "Bash(node -c middleware/validation.js)",
-      "Bash(node -c scripts/backfill-contact-preferences.js)"
+      "Bash(node -c scripts/backfill-contact-preferences.js)",
+      "Bash(powershell -NoProfile -Command \"Stop-Process -Id 19852,13804,4468,17644 -Force -ErrorAction SilentlyContinue\")"
     ]
   }
 }

@@ -14,6 +14,7 @@ import {
   TextInput,
   KeyboardAvoidingView,
   Platform,
+  Alert,
 } from 'react-native';
 import { useLanguage } from '../context/LanguageContext';
 import { useTranslation } from '../utils/translations';
@@ -109,6 +110,17 @@ const CountrySelectionScreen = ({ navigation }) => {
       const result = await completeGoogleRegistration(countryId);
 
       if (!result.success) {
+        // The pending token is a one-shot, 5-minute window (server-side in-memory map);
+        // once it's dead there's nothing to retry here, so send the user back to restart
+        // Google sign-in rather than leaving them stuck on this screen.
+        if (result.code === 'TOKEN_EXPIRED' || result.code === 'INVALID_TOKEN') {
+          Alert.alert(
+            t('sessionExpired') || 'Session Expired',
+            t('pendingTokenExpired') || 'Your Google sign-in session has expired. Please sign in again.',
+            [{ text: 'OK', onPress: () => navigation.replace('Login') }]
+          );
+          return;
+        }
         setError(result.error || t('registrationFailed') || 'Failed to complete registration');
       }
       // On success, AuthContext's isSignedIn flip drives the RootNavigator to PostsListScreen.
@@ -135,6 +147,7 @@ const CountrySelectionScreen = ({ navigation }) => {
         onPress={() => setSelectedCountry(item)}
         activeOpacity={0.7}
       >
+        <Text style={styles.countryFlag}>{item.flag || '🌍'}</Text>
         <Text
           style={[
             styles.countryName,
@@ -281,9 +294,14 @@ const styles = StyleSheet.create({
     borderColor: '#2196F3',
     borderWidth: 2,
   },
+  countryFlag: {
+    fontSize: 22,
+    marginRight: 12,
+  },
   countryName: {
     fontSize: 16,
     color: '#333',
+    flex: 1,
   },
   countryNameSelected: {
     color: '#2196F3',
