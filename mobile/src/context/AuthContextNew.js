@@ -105,6 +105,21 @@ export const AuthProviderNew = ({ children }) => {
   const [pendingToken, setPendingToken] = useState(null);
   const [request, response, promptAsync] = useGoogleIdTokenAuth();
 
+  // Shared by every path that ends up with a valid access token (password login,
+  // Google sign-in, Google registration): persists it and flips auth state, which
+  // is what drives RootNavigator (App.js) to swap to the signed-in screens.
+  const persistSession = async (accessToken, fallbackUser) => {
+    await storage.setToken(accessToken);
+    const user = decodeToken(accessToken) || fallbackUser || null;
+    if (user) {
+      await storage.setUserData(user);
+    }
+
+    dispatch({ type: AUTH_ACTIONS.SET_TOKEN, payload: accessToken });
+    dispatch({ type: AUTH_ACTIONS.SET_USER, payload: user });
+    return user;
+  };
+
   // Load stored auth data on app start
   React.useEffect(() => {
     loadStoredAuth();
@@ -172,15 +187,7 @@ export const AuthProviderNew = ({ children }) => {
       });
 
       if (authResult.success && authResult.accessToken) {
-        await storage.setToken(authResult.accessToken);
-        const user = decodeToken(authResult.accessToken);
-        if (user) {
-          await storage.setUserData(user);
-        }
-
-        dispatch({ type: AUTH_ACTIONS.SET_TOKEN, payload: authResult.accessToken });
-        dispatch({ type: AUTH_ACTIONS.SET_USER, payload: user });
-
+        const user = await persistSession(authResult.accessToken);
         console.log('✅ Google sign in successful');
         return { success: true, user };
       }
@@ -218,12 +225,7 @@ export const AuthProviderNew = ({ children }) => {
       const result = await googleAuthNew.completeRegistration(pendingToken, countryId);
 
       if (result.success && result.accessToken) {
-        await storage.setToken(result.accessToken);
-        const user = decodeToken(result.accessToken) || { username: result.username };
-        await storage.setUserData(user);
-
-        dispatch({ type: AUTH_ACTIONS.SET_TOKEN, payload: result.accessToken });
-        dispatch({ type: AUTH_ACTIONS.SET_USER, payload: user });
+        const user = await persistSession(result.accessToken, { username: result.username });
         setPendingToken(null);
 
         console.log('✅ Google registration completed successfully');
@@ -240,6 +242,14 @@ export const AuthProviderNew = ({ children }) => {
     } finally {
       dispatch({ type: AUTH_ACTIONS.SET_LOADING, payload: false });
     }
+  };
+
+  // Called by LoginScreenNew after a successful POST /auth (password login) to persist
+  // the token through the same single storage/state path Google sign-in uses, so
+  // isSignedIn flips and RootNavigator swaps to the signed-in screens automatically.
+  const completeLogin = async (accessToken) => {
+    dispatch({ type: AUTH_ACTIONS.CLEAR_ERROR });
+    return persistSession(accessToken);
   };
 
   const signOut = async () => {
@@ -279,6 +289,7 @@ export const AuthProviderNew = ({ children }) => {
     signOut,
     clearError,
     completeGoogleRegistration,
+    completeLogin,
   };
 
   return (

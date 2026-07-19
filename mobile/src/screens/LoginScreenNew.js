@@ -17,11 +17,9 @@ import { useTranslation } from '../utils/translations';
 import LanguageDropdown from '../components/LanguageDropdown';
 import apiClient from '../app/api/apiService';
 import { API_ENDPOINTS } from '../config/api';
-import { storage } from '../utils/storage';
-import { decodeToken } from '../utils/tokenUtils';
 
 const LoginScreenNew = ({ navigation }) => {
-  const { signInWithGoogle, isLoading: googleLoading, error: googleError, clearError } = useAuthNew();
+  const { signInWithGoogle, completeLogin, isLoading: googleLoading, error: googleError, clearError } = useAuthNew();
   const { currentLanguage } = useLanguage();
   const { t } = useTranslation();
   
@@ -66,17 +64,9 @@ const LoginScreenNew = ({ navigation }) => {
       const { accessToken } = response.data;
 
       if (accessToken) {
-        // Store token securely
-        await storage.setToken(accessToken);
-
-        // Decode and store user data
-        const userData = decodeToken(accessToken);
-        if (userData) {
-          await storage.setUserData(userData);
-        }
-
-        // Navigate to posts list
-        navigation.replace('PostsListScreen');
+        // Persisting via context flips isSignedIn, which drives RootNavigator to
+        // PostsListScreen automatically (that screen only exists in the signed-in stack).
+        await completeLogin(accessToken);
       } else {
         setError(t('invalidCredentials'));
       }
