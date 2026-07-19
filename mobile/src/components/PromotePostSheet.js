@@ -8,7 +8,7 @@
 
 import React, { useState } from 'react';
 import { View, Text, StyleSheet, TouchableOpacity, TextInput, Modal, ActivityIndicator } from 'react-native';
-import apiClient from '../app/api/apiService';
+import apiClient from '../api/apiService';
 import { API_ENDPOINTS } from '../config/api';
 
 const PromotePostSheet = ({ visible, onClose, postId, t, isRTL, onSubmitted }) => {

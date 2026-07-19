@@ -8,7 +8,7 @@
 
 import React, { useCallback, useEffect, useState } from 'react';
 import { View, Text, StyleSheet, TouchableOpacity, ActivityIndicator } from 'react-native';
-import apiClient from '../app/api/apiService';
+import apiClient from '../api/apiService';
 import { API_ENDPOINTS } from '../config/api';
 import { useLanguage } from '../context/LanguageContext';
 import { useTranslation } from '../utils/translations';

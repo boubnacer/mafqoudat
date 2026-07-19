@@ -14,7 +14,7 @@
  */
 
 import React, { createContext, useCallback, useContext, useEffect, useRef, useState } from 'react';
-import apiClient from '../app/api/apiService';
+import apiClient from '../api/apiService';
 
 const ReferenceDataContext = createContext();
 

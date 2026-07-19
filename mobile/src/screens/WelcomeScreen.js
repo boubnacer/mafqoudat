@@ -21,7 +21,7 @@ import {
 import { useLanguage } from '../context/LanguageContext';
 import { useTranslation } from '../utils/translations';
 import { storage } from '../utils/storage';
-import apiClient from '../app/api/apiService';
+import apiClient from '../api/apiService';
 import LanguageDropdown from '../components/LanguageDropdown';
 import { getLocalizedLabel } from '../context/ReferenceDataContext';
 

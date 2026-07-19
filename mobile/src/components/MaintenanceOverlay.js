@@ -1,7 +1,7 @@
 /**
  * Maintenance Overlay
  * Full-screen, blocking notice shown whenever the server's maintenance-mode
- * middleware 503s a request (see app/api/apiService.js). Retry just re-fires a
+ * middleware 503s a request (see api/apiService.js). Retry just re-fires a
  * cheap public GET - if maintenance has been lifted, the response interceptor's
  * success handler clears the shared MaintenanceContext state automatically and
  * this overlay unmounts; if it hasn't, the same 503 re-arrives and nothing changes.
@@ -9,7 +9,7 @@
 
 import React, { useState } from 'react';
 import { View, Text, StyleSheet, TouchableOpacity, ActivityIndicator, SafeAreaView } from 'react-native';
-import apiClient from '../app/api/apiService';
+import apiClient from '../api/apiService';
 import { useLanguage } from '../context/LanguageContext';
 import { useTranslation } from '../utils/translations';
 

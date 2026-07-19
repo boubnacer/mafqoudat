@@ -19,7 +19,7 @@ import {
 import { useLanguage } from '../context/LanguageContext';
 import { useTranslation } from '../utils/translations';
 import { useAuth } from '../context/AuthContext';
-import apiClient from '../app/api/apiService';
+import apiClient from '../api/apiService';
 import { getLocalizedLabel } from '../context/ReferenceDataContext';
 
 const CountrySelectionScreen = ({ navigation }) => {

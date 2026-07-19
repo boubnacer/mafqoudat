@@ -15,7 +15,7 @@ import { useAuth } from '../context/AuthContext';
 import { useLanguage } from '../context/LanguageContext';
 import { useTranslation } from '../utils/translations';
 import LanguageDropdown from '../components/LanguageDropdown';
-import apiClient from '../app/api/apiService';
+import apiClient from '../api/apiService';
 import { API_ENDPOINTS } from '../config/api';
 
 const LoginScreen = ({ navigation }) => {

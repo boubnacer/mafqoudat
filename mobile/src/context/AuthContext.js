@@ -5,7 +5,7 @@ import googleAuth, { useGoogleIdTokenAuth } from '../utils/googleAuth';
 import { storage } from '../utils/storage';
 import { decodeToken } from '../utils/tokenUtils';
 import { USE_NATIVE_GOOGLE_AUTH } from '../config/api';
-import { setAuthFailureHandler } from '../app/api/apiService';
+import { setAuthFailureHandler } from '../api/apiService';
 
 // Legacy AsyncStorage keys from the old (pre-SecureStore) storage scheme
 const LEGACY_TOKEN_KEY = 'authToken';

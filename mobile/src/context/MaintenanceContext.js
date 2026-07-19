@@ -1,14 +1,14 @@
 /**
  * Maintenance Context
  * Global "server is in maintenance mode" flag. The axios response interceptor
- * (app/api/apiService.js) has no state of its own - it registers a setter here on
+ * (api/apiService.js) has no state of its own - it registers a setter here on
  * mount and calls it whenever a request hits the 503 maintenanceMode payload (or
  * clears it on any subsequent successful response), so any screen's fetch anywhere
  * in the app can trip the same global overlay.
  */
 
 import React, { createContext, useContext, useEffect, useState } from 'react';
-import { setMaintenanceHandler } from '../app/api/apiService';
+import { setMaintenanceHandler } from '../api/apiService';
 
 const MaintenanceContext = createContext();
 

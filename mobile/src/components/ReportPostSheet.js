@@ -18,7 +18,7 @@ import {
   Modal,
   ActivityIndicator,
 } from 'react-native';
-import apiClient from '../app/api/apiService';
+import apiClient from '../api/apiService';
 import { API_ENDPOINTS } from '../config/api';
 
 const REPORT_REASONS = [

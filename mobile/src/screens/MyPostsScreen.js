@@ -19,7 +19,7 @@ import {
   Alert,
 } from 'react-native';
 import { useFocusEffect } from '@react-navigation/native';
-import apiClient from '../app/api/apiService';
+import apiClient from '../api/apiService';
 import { API_ENDPOINTS, API_BASE_URL } from '../config/api';
 import { useLanguage } from '../context/LanguageContext';
 import { useTranslation } from '../utils/translations';

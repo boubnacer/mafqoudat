@@ -26,7 +26,7 @@ import * as ImagePicker from 'expo-image-picker';
 import * as ImageManipulator from 'expo-image-manipulator';
 import { File } from 'expo-file-system';
 import DateTimePicker from '@react-native-community/datetimepicker';
-import apiClient from '../app/api/apiService';
+import apiClient from '../api/apiService';
 import { API_BASE_URL } from '../config/api';
 import { storage } from '../utils/storage';
 import { useLanguage } from '../context/LanguageContext';

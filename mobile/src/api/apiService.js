@@ -5,7 +5,7 @@
  */
 
 import axios from 'axios';
-import { API_BASE_URL, API_TIMEOUT } from '../../config/api';
+import { API_BASE_URL, API_TIMEOUT } from '../config/api';
 import * as SecureStore from 'expo-secure-store';
 
 // Create axios instance
@@ -115,4 +115,3 @@ apiClient.interceptors.response.use(
 );
 
 export default apiClient;
-

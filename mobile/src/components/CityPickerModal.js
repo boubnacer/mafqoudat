@@ -21,7 +21,7 @@ import {
   FlatList,
   ActivityIndicator,
 } from 'react-native';
-import apiClient from '../app/api/apiService';
+import apiClient from '../api/apiService';
 import { getLocalizedLabel } from '../context/ReferenceDataContext';
 
 const SEARCH_DEBOUNCE_MS = 300;

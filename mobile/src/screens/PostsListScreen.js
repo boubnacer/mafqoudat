@@ -18,7 +18,7 @@ import {
   ScrollView,
 } from 'react-native';
 import axios from 'axios';
-import apiClient from '../app/api/apiService';
+import apiClient from '../api/apiService';
 import { API_ENDPOINTS, API_BASE_URL } from '../config/api';
 import { storage } from '../utils/storage';
 import { useLanguage } from '../context/LanguageContext';
