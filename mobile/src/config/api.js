@@ -32,6 +32,10 @@ export const USE_NATIVE_GOOGLE_AUTH =
 // redirect_uri passed to /auth/google - it is not templated, so this must match exactly.
 export const GOOGLE_MOBILE_CALLBACK_URL = "mafqoudat://auth/callback";
 
+// Canonical marketing site (client/src/utils/seoConfig.js) - used for the
+// Settings screen's Privacy Policy / Terms of Service links.
+export const WEB_BASE_URL = "https://www.mafqoudat.com";
+
 export const API_ENDPOINTS = {
   AUTH: {
     LOGIN: "/auth",

@@ -219,7 +219,7 @@ const createNewUser = async (req, res) => {
 // @access Private
 const updateUser = async (req, res) => {
   try {
-    const { id, username, password, country, email, phone } = req.body;
+    const { id, username, password, country, email, phone, firstName, lastName } = req.body;
 
     // Confirm data
     if (!id || !username || !country) {
@@ -228,9 +228,13 @@ const updateUser = async (req, res) => {
         .json({ message: "All fields except password are required" });
     }
 
+    if (id !== req.user) {
+      return res.status(403).json({ message: "Not authorized to update this user" });
+    }
+
     // Does the user exist to update? - optimized with selective fields
     // Include authProvider to properly handle Google OAuth users
-    const user = await User.findById(id).select('_id username country password email phone authProvider role').exec();
+    const user = await User.findById(id).select('_id username country password email phone authProvider role profile').exec();
 
     if (!user) {
       return res.status(400).json({ message: "User not found" });
@@ -287,6 +291,13 @@ const updateUser = async (req, res) => {
     // Update phone if provided
     if (phone !== undefined) {
       user.phone = phone || null;
+    }
+
+    // Update profile name fields if provided
+    if (firstName !== undefined || lastName !== undefined) {
+      user.profile = user.profile || {};
+      if (firstName !== undefined) user.profile.firstName = firstName;
+      if (lastName !== undefined) user.profile.lastName = lastName;
     }
 
     // Only update password if provided AND user is not a Google OAuth user

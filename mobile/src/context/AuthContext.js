@@ -294,6 +294,13 @@ export const AuthProvider = ({ children }) => {
     dispatch({ type: AUTH_ACTIONS.CLEAR_ERROR });
   };
 
+  // PATCH /users mints a fresh accessToken whenever username or country changes
+  // (the JWT embeds both) - screens that trigger that (e.g. EditProfileScreen)
+  // must call this so the stored/in-memory session isn't left stale.
+  const refreshSession = async (accessToken) => {
+    return persistSession(accessToken);
+  };
+
   const value = {
     ...state,
     pendingToken,
@@ -302,6 +309,7 @@ export const AuthProvider = ({ children }) => {
     clearError,
     completeGoogleRegistration,
     completeLogin,
+    refreshSession,
   };
 
   return (

@@ -4,10 +4,21 @@
  */
 
 import React, { createContext, useContext, useState, useEffect } from 'react';
+import { Alert, I18nManager } from 'react-native';
+import * as Updates from 'expo-updates';
 import { languageStorage } from '../utils/languageStorage';
-import { I18nManager } from 'react-native';
 
 const LanguageContext = createContext();
+
+// I18nManager.forceRTL only takes visual effect after the JS bundle reloads, so
+// this can't go through utils/translations.js (useTranslation itself depends on
+// this context - importing it here would be circular). Kept tiny and duplicated
+// on purpose.
+const RESTART_PROMPT = {
+  en: { title: 'Restart Required', message: 'Please close and reopen the app to apply the new text direction.' },
+  fr: { title: 'Redémarrage requis', message: "Veuillez fermer et rouvrir l'application pour appliquer le nouveau sens du texte." },
+  ar: { title: 'إعادة التشغيل مطلوبة', message: 'يرجى إغلاق التطبيق وإعادة فتحه لتطبيق اتجاه النص الجديد.' },
+};
 
 export const LanguageProvider = ({ children }) => {
   const [currentLanguage, setCurrentLanguage] = useState('en');
@@ -19,6 +30,8 @@ export const LanguageProvider = ({ children }) => {
       try {
         const savedLanguage = await languageStorage.getCurrentLanguage();
         setCurrentLanguage(savedLanguage);
+        // Cold start: just line up I18nManager with the persisted language,
+        // no reload prompt - there's nothing running yet to restart.
         applyLanguageDirection(savedLanguage);
         setIsInitialized(true);
       } catch (error) {
@@ -31,17 +44,29 @@ export const LanguageProvider = ({ children }) => {
     initializeLanguage();
   }, []);
 
-  // Apply RTL/LTR direction based on language
+  // Applies RTL/LTR to I18nManager and reports whether the actual direction
+  // changed (as opposed to e.g. switching en <-> fr, which never touches RTL).
   const applyLanguageDirection = (language) => {
-    if (language === 'ar') {
-      I18nManager.forceRTL(true);
-      I18nManager.allowRTL(true);
-    } else {
-      I18nManager.forceRTL(false);
-      I18nManager.allowRTL(false);
+    const shouldBeRTL = language === 'ar';
+    const directionChanged = I18nManager.isRTL !== shouldBeRTL;
+
+    I18nManager.allowRTL(shouldBeRTL);
+    I18nManager.forceRTL(shouldBeRTL);
+
+    return directionChanged;
+  };
+
+  // I18nManager.forceRTL doesn't visually apply until the JS bundle reloads.
+  // Updates.reloadAsync() does that in a standalone/production build; it's
+  // unsupported in Expo Go/most dev clients, so this falls back to asking the
+  // user to restart manually rather than failing silently.
+  const promptForRestart = async (language) => {
+    try {
+      await Updates.reloadAsync();
+    } catch (error) {
+      const copy = RESTART_PROMPT[language] || RESTART_PROMPT.en;
+      Alert.alert(copy.title, copy.message);
     }
-    // Note: I18nManager changes require app restart on Android
-    // For dynamic changes, you might need to use a library like react-native-restart
   };
 
   /**
@@ -55,7 +80,10 @@ export const LanguageProvider = ({ children }) => {
         const success = await languageStorage.setLanguage(language);
         if (success) {
           setCurrentLanguage(language);
-          applyLanguageDirection(language);
+          const directionChanged = applyLanguageDirection(language);
+          if (directionChanged) {
+            await promptForRestart(language);
+          }
           return true;
         }
       }
@@ -88,4 +116,3 @@ export const useLanguage = () => {
   }
   return context;
 };
-

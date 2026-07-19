@@ -101,18 +101,35 @@ const PostsListScreen = ({ navigation }) => {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [countryId, selectedFl, selectedCategoryIds, selectedCityId, debouncedSearch, currentLanguage]);
 
-  // Regaining focus (e.g. returning from creating a post, or from a post's detail
-  // screen) quietly refreshes page 1 with the current filters - skips the very
-  // first focus since the composing effect above already covers initial mount.
+  // Regaining focus (e.g. returning from creating a post, from a post's detail
+  // screen, or from changing the account country in EditProfileScreen) re-syncs
+  // the browsing country from storage first - storage.setCurrentCountry is the
+  // single source of truth for it, written by both handleSelectCountry above
+  // and EditProfileScreen - then quietly refreshes page 1. Skips the very first
+  // focus since the composing effect above already covers initial mount.
   useFocusEffect(
     useCallback(() => {
       if (isFirstFocusRef.current) {
         isFirstFocusRef.current = false;
         return;
       }
-      if (countryId) {
-        loadPosts(1);
-      }
+      let isActive = true;
+      const resync = async () => {
+        const storedCountry = await storage.getCurrentCountry();
+        if (!isActive) return;
+        if (storedCountry && storedCountry !== countryId) {
+          // The composing effect (countryId is a dependency) reloads posts.
+          setCountryId(storedCountry);
+          return;
+        }
+        if (countryId) {
+          loadPosts(1);
+        }
+      };
+      resync();
+      return () => {
+        isActive = false;
+      };
       // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [countryId, selectedFl, selectedCategoryIds, selectedCityId, debouncedSearch, currentLanguage])
   );
@@ -218,6 +235,10 @@ const PostsListScreen = ({ navigation }) => {
     setCountryId(id);
     setSelectedCityId(null);
     setSelectedCityLabel('');
+    // Persisted so it's the single source of truth for "current browsing
+    // country" - the focus-resync below reads this same value, and an
+    // EditProfileScreen country change writes to it too (see there for why).
+    storage.setCurrentCountry(id);
   };
 
   const handleToggleCategory = (id) => {
@@ -306,14 +327,9 @@ const PostsListScreen = ({ navigation }) => {
     <View style={styles.container}>
       <View style={styles.header}>
         <Text style={styles.headerTitle}>{t('posts')}</Text>
-        <View style={styles.headerActions}>
-          <TouchableOpacity onPress={() => navigation.navigate('MyPostsScreen')} style={styles.myPostsButton}>
-            <Text style={styles.logoutText}>{t('myPosts')}</Text>
-          </TouchableOpacity>
-          <TouchableOpacity onPress={signOut} style={styles.logoutButton}>
-            <Text style={styles.logoutText}>{t('logout')}</Text>
-          </TouchableOpacity>
-        </View>
+        <TouchableOpacity onPress={() => navigation.navigate('ProfileScreen')} style={styles.profileButton}>
+          <Text style={styles.profileButtonText}>{t('profile')}</Text>
+        </TouchableOpacity>
       </View>
 
       <View style={styles.searchRow}>
@@ -467,20 +483,17 @@ const styles = StyleSheet.create({
     fontWeight: 'bold',
     color: '#fff',
   },
-  headerActions: {
-    flexDirection: 'row',
-    alignItems: 'center',
-  },
-  myPostsButton: {
+  profileButton: {
     padding: 8,
-    marginRight: 4,
+    borderWidth: 1,
+    borderColor: 'rgba(255,255,255,0.6)',
+    borderRadius: 16,
+    paddingHorizontal: 14,
   },
-  logoutButton: {
-    padding: 8,
-  },
-  logoutText: {
+  profileButtonText: {
     color: '#fff',
     fontSize: 14,
+    fontWeight: '600',
   },
   searchRow: {
     flexDirection: 'row',
