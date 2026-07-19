@@ -31,8 +31,6 @@ const LoginScreenNew = ({ navigation }) => {
   const [isLoading, setIsLoading] = useState(false);
   const [isGoogleLoading, setIsGoogleLoading] = useState(false);
   const [error, setError] = useState('');
-  const [showTokenInput, setShowTokenInput] = useState(false);
-  const [tokenInput, setTokenInput] = useState('');
 
   React.useEffect(() => {
     if (googleError) {
@@ -107,24 +105,16 @@ const LoginScreenNew = ({ navigation }) => {
 
     try {
       console.log('🚀 Initiating Google Sign In from LoginScreenNew...');
-      
+
       const result = await signInWithGoogle();
-      
+
       if (result.success) {
         console.log('✅ Google sign in successful');
-        // Navigation will be handled by AuthContext
+        // Navigation will be handled by AuthContext (isSignedIn flip)
       } else if (result.pending) {
-        console.log('⏳ Google sign in pending, waiting for callback...');
-        setError('Please complete authentication in the browser...');
-        
-        // Show token input as fallback after a delay
-        setTimeout(() => {
-          if (isGoogleLoading) {
-            setShowTokenInput(true);
-            setError('If automatic redirect fails, please copy the token from the browser and paste it below');
-          }
-        }, 10000); // 10 seconds delay
-      } else {
+        console.log('⏳ New Google user, navigating to country selection...');
+        navigation.navigate('CountrySelection');
+      } else if (!result.cancelled) {
         console.error('❌ Google sign in failed:', result.error);
         setError(result.error || 'Google authentication failed');
       }
@@ -132,41 +122,7 @@ const LoginScreenNew = ({ navigation }) => {
       console.error('Google login error:', err);
       setError(err.message || 'Google authentication failed');
     } finally {
-      // Don't set loading to false immediately - wait for callback or timeout
-      setTimeout(() => {
-        setIsGoogleLoading(false);
-      }, 15000); // 15 seconds timeout
-    }
-  };
-
-  // Handle manual token input
-  const handleTokenLogin = async () => {
-    if (!tokenInput.trim()) {
-      setError('Please paste a token');
-      return;
-    }
-    setIsLoading(true);
-    setError('');
-    try {
-      const token = tokenInput.trim();
-      
-      // Store token securely
-      await storage.setToken(token);
-      
-      // Decode and store user data
-      const userData = decodeToken(token);
-      if (userData) {
-        await storage.setUserData(userData);
-        // Navigate to posts list
-        navigation.replace('PostsListScreen');
-      } else {
-        setError('Invalid token format. Please check the token and try again.');
-      }
-    } catch (err) {
-      console.error('Token login error:', err);
-      setError('Invalid token. Please make sure you copied the complete token.');
-    } finally {
-      setIsLoading(false);
+      setIsGoogleLoading(false);
     }
   };
 
@@ -210,57 +166,6 @@ const LoginScreenNew = ({ navigation }) => {
               </>
             )}
           </TouchableOpacity>
-
-          {/* Token Input Toggle */}
-          <TouchableOpacity
-            style={styles.tokenToggleButton}
-            onPress={() => setShowTokenInput(!showTokenInput)}
-          >
-            <Text style={styles.tokenToggleText}>
-              {showTokenInput ? 'Hide' : 'Paste'} OAuth Token
-            </Text>
-          </TouchableOpacity>
-
-          {/* Token Input Section */}
-          {showTokenInput && (
-            <View style={styles.tokenInputContainer}>
-              <Text style={styles.tokenInputLabel}>
-                Paste your authentication token here:
-              </Text>
-              <Text style={styles.tokenInputHint}>
-                (Copy it from the browser page after selecting your Google account)
-              </Text>
-              <TextInput
-                style={styles.tokenInput}
-                placeholder="Paste token here..."
-                placeholderTextColor="#999"
-                value={tokenInput}
-                onChangeText={(text) => {
-                  setTokenInput(text);
-                  setError(''); // Clear error when user types
-                }}
-                multiline
-                autoCapitalize="none"
-                autoCorrect={false}
-                textContentType="none"
-              />
-              <TouchableOpacity
-                style={[styles.button, styles.tokenButton, !tokenInput.trim() && styles.buttonDisabled]}
-                onPress={handleTokenLogin}
-                disabled={!tokenInput.trim() || isLoading}
-              >
-                <Text style={styles.buttonText}>
-                  {isLoading ? 'Verifying...' : 'Use Token'}
-                </Text>
-              </TouchableOpacity>
-              <TouchableOpacity
-                onPress={() => setShowTokenInput(false)}
-                style={styles.hideTokenButton}
-              >
-                <Text style={styles.hideTokenText}>Hide Token Input</Text>
-              </TouchableOpacity>
-            </View>
-          )}
 
           {/* Divider */}
           <View style={styles.dividerContainer}>
@@ -434,63 +339,6 @@ const styles = StyleSheet.create({
     fontSize: 14,
     color: '#999',
     fontWeight: '500',
-  },
-  tokenToggleButton: {
-    marginTop: 8,
-    marginBottom: 8,
-    padding: 8,
-    alignItems: 'center',
-  },
-  tokenToggleText: {
-    fontSize: 14,
-    color: '#2196F3',
-    textDecorationLine: 'underline',
-  },
-  tokenInputContainer: {
-    marginBottom: 16,
-    padding: 16,
-    backgroundColor: '#f5f5f5',
-    borderRadius: 8,
-    borderWidth: 1,
-    borderColor: '#e0e0e0',
-  },
-  tokenInputLabel: {
-    fontSize: 16,
-    fontWeight: '600',
-    color: '#333',
-    marginBottom: 4,
-  },
-  tokenInputHint: {
-    fontSize: 12,
-    color: '#666',
-    marginBottom: 12,
-    fontStyle: 'italic',
-  },
-  tokenInput: {
-    height: 120,
-    borderWidth: 1,
-    borderColor: '#ddd',
-    borderRadius: 8,
-    paddingHorizontal: 16,
-    paddingVertical: 12,
-    marginBottom: 12,
-    fontSize: 12,
-    backgroundColor: '#fff',
-    fontFamily: Platform.OS === 'ios' ? 'Courier' : 'monospace',
-    textAlignVertical: 'top',
-  },
-  tokenButton: {
-    backgroundColor: '#4CAF50',
-    marginBottom: 8,
-  },
-  hideTokenButton: {
-    padding: 8,
-    alignItems: 'center',
-  },
-  hideTokenText: {
-    fontSize: 14,
-    color: '#666',
-    textDecorationLine: 'underline',
   },
   debugInfo: {
     marginTop: 30,

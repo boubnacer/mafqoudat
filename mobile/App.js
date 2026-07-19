@@ -6,8 +6,9 @@ import { SafeAreaProvider } from 'react-native-safe-area-context';
 import { LanguageProvider } from './src/context/LanguageContext';
 import { AuthProviderNew, useAuthNew } from './src/context/AuthContextNew';
 import LoginScreenNew from './src/screens/LoginScreenNew';
+import CountrySelectionScreen from './src/screens/CountrySelectionScreen';
 import PostsListScreen from './src/screens/PostsListScreen';
-import { ActivityIndicator, View, StyleSheet, Text, Linking } from 'react-native';
+import { ActivityIndicator, View, StyleSheet, Text } from 'react-native';
 
 const Stack = createNativeStackNavigator();
 
@@ -16,6 +17,7 @@ const AuthNavigator = () => {
   return (
     <Stack.Navigator screenOptions={{ headerShown: false }}>
       <Stack.Screen name="Login" component={LoginScreenNew} />
+      <Stack.Screen name="CountrySelection" component={CountrySelectionScreen} />
     </Stack.Navigator>
   );
 };
@@ -32,41 +34,7 @@ const AppNavigator = () => {
 
 // Root navigator that handles auth state
 const RootNavigator = () => {
-  const { isLoading, isSignedIn, handleDeepLinkCallback } = useAuthNew();
-
-  // Handle deep linking
-  const linking = {
-    prefixes: ['mafqoudat://'],
-    config: {
-      screens: {
-        Login: 'auth/callback',
-        PostsList: 'home',
-      },
-    },
-  };
-
-  // Handle URL event
-  const handleDeepLink = (event) => {
-    console.log('🔗 Deep link received:', event.url);
-    handleDeepLinkCallback(event.url);
-  };
-
-  // Handle deep link when app is already running
-  useEffect(() => {
-    const subscription = Linking.addEventListener('url', handleDeepLink);
-    
-    // Check if app was opened with a deep link
-    Linking.getInitialURL().then((url) => {
-      if (url) {
-        console.log('🔗 Initial URL:', url);
-        handleDeepLinkCallback(url);
-      }
-    });
-
-    return () => {
-      subscription?.remove();
-    };
-  }, [handleDeepLinkCallback]);
+  const { isLoading, isSignedIn } = useAuthNew();
 
   if (isLoading) {
     return (
@@ -78,11 +46,7 @@ const RootNavigator = () => {
   }
 
   return (
-    <NavigationContainer 
-      linking={linking} 
-      onReady={() => console.log('🔗 Navigation ready')}
-      fallback={<Text>Loading...</Text>}
-    >
+    <NavigationContainer fallback={<Text>Loading...</Text>}>
       {isSignedIn ? <AppNavigator /> : <AuthNavigator />}
     </NavigationContainer>
   );

@@ -9,14 +9,15 @@ export const API_BASE_URL =
   "https://mafqoudat-production.up.railway.app";
 
 // Google OAuth Configuration
-export const GOOGLE_WEB_CLIENT_ID = 
-  process.env.EXPO_PUBLIC_GOOGLE_WEB_CLIENT_ID || 
+// Web client ID doubles as the Expo Go / auth-proxy client when native iOS/Android
+// client IDs aren't configured for the current build.
+export const GOOGLE_WEB_CLIENT_ID =
+  process.env.EXPO_PUBLIC_GOOGLE_WEB_CLIENT_ID ||
   "571757802995-qg4dvpnaidjh532uo0eu88l1qttmckac.apps.googleusercontent.com";
 
-// OAuth Redirect URIs
-export const OAUTH_REDIRECT_URI = 
-  process.env.EXPO_PUBLIC_OAUTH_REDIRECT_URI || 
-  "https://mafqoudat-production.up.railway.app/auth/mobile-callback";
+export const GOOGLE_IOS_CLIENT_ID = process.env.EXPO_PUBLIC_GOOGLE_IOS_CLIENT_ID;
+
+export const GOOGLE_ANDROID_CLIENT_ID = process.env.EXPO_PUBLIC_GOOGLE_ANDROID_CLIENT_ID;
 
 export const API_ENDPOINTS = {
   AUTH: {
@@ -25,6 +26,8 @@ export const API_ENDPOINTS = {
     GOOGLE: "/auth/google",
     GOOGLE_CALLBACK: "/auth/google/callback",
     GOOGLE_COMPLETE: "/auth/google/complete",
+    GOOGLE_MOBILE: "/auth/google/mobile",
+    GOOGLE_MOBILE_COMPLETE: "/auth/google/mobile/complete",
   },
   POSTS: {
     GET_ALL: "/posts",

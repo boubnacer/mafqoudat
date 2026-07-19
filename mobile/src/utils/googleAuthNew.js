@@ -1,63 +1,77 @@
+import * as Google from 'expo-auth-session/providers/google';
 import * as WebBrowser from 'expo-web-browser';
-import { Linking } from 'react-native';
-import { API_BASE_URL, OAUTH_REDIRECT_URI } from '../config/api';
+import {
+  API_BASE_URL,
+  API_ENDPOINTS,
+  GOOGLE_WEB_CLIENT_ID,
+  GOOGLE_IOS_CLIENT_ID,
+  GOOGLE_ANDROID_CLIENT_ID,
+} from '../config/api';
 
 WebBrowser.maybeCompleteAuthSession();
 
+/**
+ * Hook wrapping expo-auth-session's native Google ID-token flow.
+ * Works in Expo Go (via webClientId + auth proxy) and in dev/production builds
+ * (via iosClientId/androidClientId), per Google's native OAuth client model.
+ */
+export const useGoogleIdTokenAuth = () => {
+  return Google.useIdTokenAuthRequest({
+    iosClientId: GOOGLE_IOS_CLIENT_ID,
+    androidClientId: GOOGLE_ANDROID_CLIENT_ID,
+    webClientId: GOOGLE_WEB_CLIENT_ID,
+  });
+};
+
 class GoogleAuthNew {
-  constructor() {
-    // Use the mobile-specific redirect URI
-    this.redirectUri = OAUTH_REDIRECT_URI;
-  }
-
-  // Use the same Google OAuth flow as web version
-  async authenticate() {
+  // Verify a native Google ID token with the server (POST /auth/google/mobile)
+  async verifyIdToken(idToken, user) {
     try {
-      console.log('🚀 Starting Google OAuth flow (same as web)...');
-      
-      // Use the same endpoint as web version with mobile parameter
-      // The server will handle mobile detection and redirect appropriately
-      const authUrl = `${API_BASE_URL}/auth/google?mobile=true`;
-      
-      console.log('🔗 Opening Google OAuth URL:', authUrl);
-
-      // Open browser for OAuth - let server handle everything like web version
-      const result = await WebBrowser.openBrowserAsync(authUrl, {
-        enableJavaScript: true,
-        enableDefaultShareMenus: false,
-        dismissButtonStyle: 'close',
-        readerMode: false,
+      const response = await fetch(`${API_BASE_URL}${API_ENDPOINTS.AUTH.GOOGLE_MOBILE}`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ idToken, user }),
       });
 
-      console.log('📱 Browser result:', result);
+      const data = await response.json();
 
-      if (result.type === 'cancel') {
+      if (response.ok && data.accessToken) {
         return {
-          success: false,
-          error: 'Authentication cancelled by user',
+          success: true,
+          accessToken: data.accessToken,
+          isNewUser: false,
         };
       }
-      
-      // For other result types, we rely on deep linking to catch the callback
-      // The server will redirect to mobile-callback page which triggers deep link
+
+      if (response.ok && data.pendingToken) {
+        return {
+          success: false,
+          pending: true,
+          pendingToken: data.pendingToken,
+          isNewUser: true,
+        };
+      }
+
       return {
         success: false,
-        error: 'Authentication in progress - waiting for callback...',
-        pending: true,
+        error: data.message || 'Google authentication failed',
+        code: data.code,
       };
     } catch (error) {
-      console.error('❌ Google Auth Error:', error);
+      console.error('Google ID token verification error:', error);
       return {
         success: false,
-        error: error.message || 'Failed to initiate Google authentication',
+        error: error.message || 'Network error',
       };
     }
   }
 
-  // Complete Google OAuth registration (same as web version)
+  // Complete Google OAuth registration (POST /auth/google/mobile/complete)
   async completeRegistration(pendingToken, countryId) {
     try {
-      const response = await fetch(`${API_BASE_URL}/auth/google/complete`, {
+      const response = await fetch(`${API_BASE_URL}${API_ENDPOINTS.AUTH.GOOGLE_MOBILE_COMPLETE}`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -76,13 +90,13 @@ class GoogleAuthNew {
           accessToken: data.accessToken,
           username: data.username,
         };
-      } else {
-        return {
-          success: false,
-          error: data.message || 'Failed to complete registration',
-          code: data.code,
-        };
       }
+
+      return {
+        success: false,
+        error: data.message || 'Failed to complete registration',
+        code: data.code,
+      };
     } catch (error) {
       console.error('Complete Google Auth error:', error);
       return {
@@ -95,7 +109,7 @@ class GoogleAuthNew {
   // Sign out user
   async signOut(token) {
     try {
-      const response = await fetch(`${API_BASE_URL}/auth/logout`, {
+      const response = await fetch(`${API_BASE_URL}${API_ENDPOINTS.AUTH.LOGOUT}`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -114,11 +128,6 @@ class GoogleAuthNew {
       console.error('Sign out failed:', error);
       throw error;
     }
-  }
-
-  // Get current redirect URI (for debugging)
-  getRedirectUri() {
-    return this.redirectUri;
   }
 }
 

@@ -17,17 +17,14 @@ import {
 } from 'react-native';
 import { useLanguage } from '../context/LanguageContext';
 import { useTranslation } from '../utils/translations';
-import { completeGoogleAuth } from '../utils/googleAuth';
-import { storage } from '../utils/storage';
-import { decodeToken } from '../utils/tokenUtils';
+import { useAuthNew } from '../context/AuthContextNew';
 import apiClient from '../app/api/apiService';
-import { API_ENDPOINTS } from '../config/api';
 
-const CountrySelectionScreen = ({ route, navigation }) => {
+const CountrySelectionScreen = ({ navigation }) => {
   const { currentLanguage } = useLanguage();
   const { t } = useTranslation();
-  const { pendingToken } = route.params || {};
-  
+  const { pendingToken, completeGoogleRegistration } = useAuthNew();
+
   const [countries, setCountries] = useState([]);
   const [filteredCountries, setFilteredCountries] = useState([]);
   const [selectedCountry, setSelectedCountry] = useState(null);
@@ -59,9 +56,7 @@ const CountrySelectionScreen = ({ route, navigation }) => {
   const loadCountries = async () => {
     try {
       setIsLoading(true);
-      // Fetch countries from API
-      // Note: Adjust endpoint based on your API structure
-      const response = await apiClient.get('/dependencies/countries', {
+      const response = await apiClient.get('/countries', {
         params: {
           language: currentLanguage || 'en',
           active: true,
@@ -110,24 +105,13 @@ const CountrySelectionScreen = ({ route, navigation }) => {
 
     try {
       const countryId = selectedCountry._id || selectedCountry.id || selectedCountry;
-      
-      const result = await completeGoogleAuth(pendingToken, countryId);
 
-      if (result.success && result.accessToken) {
-        // Store token securely
-        await storage.setToken(result.accessToken);
+      const result = await completeGoogleRegistration(countryId);
 
-        // Decode and store user data
-        const userData = decodeToken(result.accessToken);
-        if (userData) {
-          await storage.setUserData(userData);
-        }
-
-        // Navigate to posts list
-        navigation.replace('PostsList');
-      } else {
+      if (!result.success) {
         setError(result.error || t('registrationFailed') || 'Failed to complete registration');
       }
+      // On success, AuthContext's isSignedIn flip drives the RootNavigator to PostsListScreen.
     } catch (err) {
       console.error('Country selection error:', err);
       setError(t('registrationFailed') || 'Failed to complete registration');

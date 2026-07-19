@@ -14,6 +14,14 @@ const googleClient = new OAuth2Client(
   process.env.GOOGLE_CLIENT_SECRET
 );
 
+// ID tokens issued to the native iOS/Android OAuth clients carry that client's ID as
+// their `aud`, not the web client ID, so all of them must be accepted as valid audiences.
+const GOOGLE_TOKEN_AUDIENCES = [
+  process.env.GOOGLE_CLIENT_ID,
+  process.env.GOOGLE_IOS_CLIENT_ID,
+  process.env.GOOGLE_ANDROID_CLIENT_ID,
+].filter(Boolean);
+
 // Map to store pending OAuth registrations with timestamps
 const pendingRegistrations = new Map();
 const PENDING_TOKEN_EXPIRY = 5 * 60 * 1000; // 5 minutes
@@ -41,7 +49,7 @@ const verifyGoogleToken = async (idToken) => {
   try {
     const ticket = await googleClient.verifyIdToken({
       idToken,
-      audience: process.env.GOOGLE_CLIENT_ID,
+      audience: GOOGLE_TOKEN_AUDIENCES,
     });
     return ticket.getPayload();
   } catch (error) {
@@ -82,7 +90,7 @@ router.post('/exchange-code', async (req, res) => {
     // Get user info with access token
     const ticket = await googleClient.verifyIdToken({
       idToken: tokens.id_token,
-      audience: process.env.GOOGLE_CLIENT_ID,
+      audience: GOOGLE_TOKEN_AUDIENCES,
     });
 
     const tokenPayload = ticket.getPayload();
