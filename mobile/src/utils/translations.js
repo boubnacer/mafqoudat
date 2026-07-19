@@ -80,6 +80,13 @@ export const translations = {
     noImage: "No Image",
     untitledPost: "Untitled",
 
+    // Maintenance / offline / session
+    maintenanceModeTitle: "Under Maintenance",
+    maintenanceModeDefaultMessage: "We're currently performing scheduled maintenance. Please check back shortly.",
+    estimatedReturnLabel: "Estimated return: {time}",
+    sessionExpiredNotice: "Your session has expired. Please sign in again.",
+    offlineMessage: "You're offline. Check your connection.",
+
     // Report Post
     reportThisPost: "Report",
     moreOptions: "More options",
@@ -311,6 +318,13 @@ export const translations = {
     noImage: "Aucune image",
     untitledPost: "Sans titre",
 
+    // Maintenance / offline / session
+    maintenanceModeTitle: "En maintenance",
+    maintenanceModeDefaultMessage: "Nous effectuons actuellement une maintenance planifiée. Veuillez revenir bientôt.",
+    estimatedReturnLabel: "Retour estimé : {time}",
+    sessionExpiredNotice: "Votre session a expiré. Veuillez vous reconnecter.",
+    offlineMessage: "Vous êtes hors ligne. Vérifiez votre connexion.",
+
     // Report Post
     reportThisPost: "Signaler",
     moreOptions: "Plus d'options",
@@ -541,6 +555,13 @@ export const translations = {
     noContactProvided: "لا توجد معلومات تواصل",
     noImage: "لا توجد صورة",
     untitledPost: "بدون عنوان",
+
+    // Maintenance / offline / session
+    maintenanceModeTitle: "الصيانة جارية",
+    maintenanceModeDefaultMessage: "نقوم حاليًا بأعمال صيانة مجدولة. يرجى العودة قريبًا.",
+    estimatedReturnLabel: "العودة المتوقعة: {time}",
+    sessionExpiredNotice: "انتهت صلاحية جلستك. يرجى تسجيل الدخول مرة أخرى.",
+    offlineMessage: "أنت غير متصل بالإنترنت. تحقق من اتصالك.",
 
     // Report Post
     reportThisPost: "الإبلاغ",

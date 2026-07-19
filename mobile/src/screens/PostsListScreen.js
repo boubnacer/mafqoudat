@@ -26,6 +26,7 @@ import { useTranslation } from '../utils/translations';
 import { useAuth } from '../context/AuthContext';
 import { useReferenceData, getLocalizedLabel } from '../context/ReferenceDataContext';
 import PostFilterSheet from '../components/PostFilterSheet';
+import DataStateView from '../components/DataStateView';
 
 const SEARCH_DEBOUNCE_MS = 400;
 const PAGE_SIZE = 10;
@@ -395,42 +396,52 @@ const PostsListScreen = ({ navigation }) => {
         </View>
       ) : null}
 
-      {error ? (
-        <View style={styles.errorContainer}>
-          <Text style={styles.errorText}>{error}</Text>
-        </View>
-      ) : null}
-
-      {isLoading && hasLoadedOnce ? (
-        <ActivityIndicator size="small" color="#2196F3" style={styles.inlineLoader} />
-      ) : null}
-
-      <FlatList
-        data={Array.isArray(posts) ? posts : []}
-        renderItem={renderPost}
-        keyExtractor={(item, index) => item?._id || item?.id || `post-${index}`}
-        contentContainerStyle={styles.list}
-        refreshControl={
-          <RefreshControl refreshing={isRefreshing} onRefresh={handleRefresh} colors={['#2196F3']} />
-        }
-        onEndReached={handleLoadMore}
-        onEndReachedThreshold={0.5}
-        ListFooterComponent={
-          isLoadingMore ? <ActivityIndicator size="small" color="#2196F3" style={styles.footerLoader} /> : null
-        }
-        ListEmptyComponent={
-          !isLoading ? (
-            <View style={styles.emptyContainer}>
-              <Text style={styles.emptyText}>{isFilterActive ? t('noResultsFilters') : t('noPostsFound')}</Text>
-              {isFilterActive ? (
-                <TouchableOpacity style={styles.emptyClearButton} onPress={handleClearAllFilters}>
-                  <Text style={styles.emptyClearButtonText}>{t('clearFilters')}</Text>
-                </TouchableOpacity>
-              ) : null}
+      {error && !isLoading && posts.length === 0 ? (
+        <DataStateView
+          variant="error"
+          message={error}
+          actionLabel={t('retry')}
+          onAction={() => loadPosts(1)}
+          isRTL={isRTL}
+        />
+      ) : (
+        <>
+          {error ? (
+            <View style={styles.errorContainer}>
+              <Text style={styles.errorText}>{error}</Text>
             </View>
-          ) : null
-        }
-      />
+          ) : null}
+
+          {isLoading && hasLoadedOnce ? (
+            <ActivityIndicator size="small" color="#2196F3" style={styles.inlineLoader} />
+          ) : null}
+
+          <FlatList
+            data={Array.isArray(posts) ? posts : []}
+            renderItem={renderPost}
+            keyExtractor={(item, index) => item?._id || item?.id || `post-${index}`}
+            contentContainerStyle={styles.list}
+            refreshControl={
+              <RefreshControl refreshing={isRefreshing} onRefresh={handleRefresh} colors={['#2196F3']} />
+            }
+            onEndReached={handleLoadMore}
+            onEndReachedThreshold={0.5}
+            ListFooterComponent={
+              isLoadingMore ? <ActivityIndicator size="small" color="#2196F3" style={styles.footerLoader} /> : null
+            }
+            ListEmptyComponent={
+              !isLoading ? (
+                <DataStateView
+                  message={isFilterActive ? t('noResultsFilters') : t('noPostsFound')}
+                  actionLabel={isFilterActive ? t('clearFilters') : undefined}
+                  onAction={isFilterActive ? handleClearAllFilters : undefined}
+                  isRTL={isRTL}
+                />
+              ) : null
+            }
+          />
+        </>
+      )}
 
       <TouchableOpacity
         style={styles.fab}
@@ -654,27 +665,6 @@ const styles = StyleSheet.create({
   },
   footerLoader: {
     marginVertical: 16,
-  },
-  emptyContainer: {
-    padding: 32,
-    alignItems: 'center',
-  },
-  emptyText: {
-    fontSize: 16,
-    color: '#999',
-    textAlign: 'center',
-    marginBottom: 16,
-  },
-  emptyClearButton: {
-    paddingHorizontal: 20,
-    paddingVertical: 10,
-    borderRadius: 8,
-    backgroundColor: '#2196F3',
-  },
-  emptyClearButtonText: {
-    color: '#fff',
-    fontWeight: 'bold',
-    fontSize: 14,
   },
   fab: {
     position: 'absolute',

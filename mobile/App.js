@@ -5,7 +5,10 @@ import { createNativeStackNavigator } from '@react-navigation/native-stack';
 import { SafeAreaProvider } from 'react-native-safe-area-context';
 import { LanguageProvider } from './src/context/LanguageContext';
 import { AuthProvider, useAuth } from './src/context/AuthContext';
+import { MaintenanceProvider, useMaintenance } from './src/context/MaintenanceContext';
 import { ReferenceDataProvider } from './src/context/ReferenceDataContext';
+import MaintenanceOverlay from './src/components/MaintenanceOverlay';
+import OfflineBanner from './src/components/OfflineBanner';
 import WelcomeScreen from './src/screens/WelcomeScreen';
 import LoginScreen from './src/screens/LoginScreen';
 import CountrySelectionScreen from './src/screens/CountrySelectionScreen';
@@ -55,6 +58,11 @@ const AppNavigator = () => {
 // Root navigator that handles auth state
 const RootNavigator = () => {
   const { isLoading, isSignedIn } = useAuth();
+  const { isActive, message, estimatedReturn } = useMaintenance();
+
+  if (isActive) {
+    return <MaintenanceOverlay message={message} estimatedReturn={estimatedReturn} />;
+  }
 
   if (isLoading) {
     return (
@@ -107,12 +115,15 @@ export default function App() {
 
   return (
     <LanguageProvider>
-      <AuthProvider>
-        <SafeAreaProvider>
-          <StatusBar style="auto" />
-          <RootNavigator />
-        </SafeAreaProvider>
-      </AuthProvider>
+      <MaintenanceProvider>
+        <AuthProvider>
+          <SafeAreaProvider>
+            <StatusBar style="auto" />
+            <OfflineBanner />
+            <RootNavigator />
+          </SafeAreaProvider>
+        </AuthProvider>
+      </MaintenanceProvider>
     </LanguageProvider>
   );
 }

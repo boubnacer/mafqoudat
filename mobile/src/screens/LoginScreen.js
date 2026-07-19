@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import {
   View,
   Text,
@@ -19,7 +19,15 @@ import apiClient from '../app/api/apiService';
 import { API_ENDPOINTS } from '../config/api';
 
 const LoginScreen = ({ navigation }) => {
-  const { signInWithGoogle, completeLogin, isLoading: googleLoading, error: googleError, clearError } = useAuth();
+  const {
+    signInWithGoogle,
+    completeLogin,
+    isLoading: googleLoading,
+    error: googleError,
+    clearError,
+    sessionExpired,
+    clearSessionExpired,
+  } = useAuth();
   const { currentLanguage } = useLanguage();
   const { t } = useTranslation();
   const isRTL = currentLanguage === 'ar';
@@ -38,6 +46,15 @@ const LoginScreen = ({ navigation }) => {
       ]);
     }
   }, [googleError, clearError]);
+
+  // Shows the notice for as long as this screen stays mounted; cleared on unmount
+  // (successful login, or navigating away) so it doesn't resurface on a later visit.
+  useEffect(() => {
+    return () => {
+      if (sessionExpired) clearSessionExpired();
+    };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
 
   // Handle traditional login (username/password)
   const handleLogin = async () => {
@@ -132,6 +149,12 @@ const LoginScreen = ({ navigation }) => {
             <LanguageDropdown />
           </View>
           <Text style={styles.subtitle}>{t('loginToAccount')}</Text>
+
+          {sessionExpired ? (
+            <View style={styles.sessionExpiredContainer}>
+              <Text style={styles.sessionExpiredText}>{t('sessionExpiredNotice')}</Text>
+            </View>
+          ) : null}
 
           {error ? (
             <View style={styles.errorContainer}>
@@ -290,6 +313,17 @@ const styles = StyleSheet.create({
   },
   errorText: {
     color: '#c62828',
+    fontSize: 14,
+    textAlign: 'center',
+  },
+  sessionExpiredContainer: {
+    backgroundColor: '#FFF3E0',
+    padding: 12,
+    borderRadius: 8,
+    marginBottom: 16,
+  },
+  sessionExpiredText: {
+    color: '#EF6C00',
     fontSize: 14,
     textAlign: 'center',
   },

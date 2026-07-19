@@ -3,7 +3,7 @@
  * Mirrors: client/src/features/posts/PostPage/SinglePost.js (feature parity subset)
  */
 
-import React, { useEffect, useRef, useState } from 'react';
+import React, { useCallback, useEffect, useRef, useState } from 'react';
 import {
   View,
   Text,
@@ -12,6 +12,7 @@ import {
   StyleSheet,
   TouchableOpacity,
   ActivityIndicator,
+  RefreshControl,
   Modal,
   Linking,
   Alert,
@@ -25,6 +26,7 @@ import { useTranslation } from '../utils/translations';
 import { getLocalizedLabel } from '../context/ReferenceDataContext';
 import ReportPostSheet from '../components/ReportPostSheet';
 import PromotePostSheet from '../components/PromotePostSheet';
+import DataStateView from '../components/DataStateView';
 
 const TOAST_DURATION_MS = 3000;
 
@@ -84,6 +86,7 @@ const PostDetailScreen = ({ navigation, route }) => {
 
   const [post, setPost] = useState(null);
   const [isLoading, setIsLoading] = useState(true);
+  const [isRefreshing, setIsRefreshing] = useState(false);
   const [error, setError] = useState('');
   const [imageModalVisible, setImageModalVisible] = useState(false);
   const [menuVisible, setMenuVisible] = useState(false);
@@ -105,40 +108,43 @@ const PostDetailScreen = ({ navigation, route }) => {
     toastTimerRef.current = setTimeout(() => setToast(''), TOAST_DURATION_MS);
   };
 
-  useEffect(() => {
-    if (!id) {
-      setError(t('postNotFound'));
-      setIsLoading(false);
-      return;
-    }
+  const loadPost = useCallback(
+    async (isRefresh = false) => {
+      if (!id) {
+        setError(t('postNotFound'));
+        setIsLoading(false);
+        return;
+      }
 
-    let isMounted = true;
-    const loadPost = async () => {
-      setIsLoading(true);
+      if (isRefresh) {
+        setIsRefreshing(true);
+      } else {
+        setIsLoading(true);
+      }
       setError('');
       try {
         const response = await apiClient.get(API_ENDPOINTS.POSTS.GET_BY_ID(id), {
           params: { language: currentLanguage || 'en' },
         });
-        if (isMounted) {
-          setPost(response.data);
-        }
+        setPost(response.data);
       } catch (err) {
         console.error('Error loading post:', err);
-        if (isMounted) {
-          setError(err.response?.status === 404 ? t('postNotFound') : t('failedToLoadPost'));
-        }
+        setError(err.response?.status === 404 ? t('postNotFound') : !err.response ? t('networkError') : t('failedToLoadPost'));
       } finally {
-        if (isMounted) setIsLoading(false);
+        setIsLoading(false);
+        setIsRefreshing(false);
       }
-    };
+    },
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+    [id, currentLanguage]
+  );
 
-    loadPost();
-    return () => {
-      isMounted = false;
-    };
+  useEffect(() => {
+    loadPost(false);
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [id, currentLanguage]);
+
+  const handleRefresh = () => loadPost(true);
 
   const renderHeader = (showMenu = false) => (
     <View style={styles.header}>
@@ -179,7 +185,13 @@ const PostDetailScreen = ({ navigation, route }) => {
       <View style={styles.container}>
         {renderHeader()}
         <View style={styles.centerContainer}>
-          <Text style={styles.errorText}>{error || t('postNotFound')}</Text>
+          <DataStateView
+            variant="error"
+            message={error || t('postNotFound')}
+            actionLabel={t('retry')}
+            onAction={() => loadPost(false)}
+            isRTL={isRTL}
+          />
         </View>
       </View>
     );
@@ -230,7 +242,10 @@ const PostDetailScreen = ({ navigation, route }) => {
   return (
     <View style={styles.container}>
       {renderHeader(true)}
-      <ScrollView contentContainerStyle={styles.content}>
+      <ScrollView
+        contentContainerStyle={styles.content}
+        refreshControl={<RefreshControl refreshing={isRefreshing} onRefresh={handleRefresh} colors={['#2196F3']} />}
+      >
         {imageUri ? (
           <TouchableOpacity activeOpacity={0.9} onPress={() => setImageModalVisible(true)}>
             <Image source={{ uri: imageUri }} style={styles.postImage} resizeMode="cover" />

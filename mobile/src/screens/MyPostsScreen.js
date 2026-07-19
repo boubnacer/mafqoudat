@@ -24,6 +24,7 @@ import { API_ENDPOINTS, API_BASE_URL } from '../config/api';
 import { useLanguage } from '../context/LanguageContext';
 import { useTranslation } from '../utils/translations';
 import PromotePostSheet from '../components/PromotePostSheet';
+import DataStateView from '../components/DataStateView';
 
 const PAGE_SIZE = 10;
 const TOAST_DURATION_MS = 3000;
@@ -280,31 +281,37 @@ const MyPostsScreen = ({ navigation }) => {
         <View style={styles.backButton} />
       </View>
 
-      {error ? (
-        <View style={styles.errorContainer}>
-          <Text style={styles.errorText}>{error}</Text>
-        </View>
-      ) : null}
-
-      <FlatList
-        data={posts}
-        renderItem={renderPost}
-        keyExtractor={(item, index) => item?._id || `mypost-${index}`}
-        contentContainerStyle={styles.list}
-        refreshControl={<RefreshControl refreshing={isRefreshing} onRefresh={handleRefresh} colors={['#2196F3']} />}
-        onEndReached={handleLoadMore}
-        onEndReachedThreshold={0.5}
-        ListFooterComponent={
-          isLoadingMore ? <ActivityIndicator size="small" color="#2196F3" style={styles.footerLoader} /> : null
-        }
-        ListEmptyComponent={
-          !isLoading ? (
-            <View style={styles.emptyContainer}>
-              <Text style={styles.emptyText}>{t('noMyPosts')}</Text>
+      {error && !isLoading && posts.length === 0 ? (
+        <DataStateView
+          variant="error"
+          message={error}
+          actionLabel={t('retry')}
+          onAction={() => loadPosts(1)}
+          isRTL={isRTL}
+        />
+      ) : (
+        <>
+          {error ? (
+            <View style={styles.errorContainer}>
+              <Text style={styles.errorText}>{error}</Text>
             </View>
-          ) : null
-        }
-      />
+          ) : null}
+
+          <FlatList
+            data={posts}
+            renderItem={renderPost}
+            keyExtractor={(item, index) => item?._id || `mypost-${index}`}
+            contentContainerStyle={styles.list}
+            refreshControl={<RefreshControl refreshing={isRefreshing} onRefresh={handleRefresh} colors={['#2196F3']} />}
+            onEndReached={handleLoadMore}
+            onEndReachedThreshold={0.5}
+            ListFooterComponent={
+              isLoadingMore ? <ActivityIndicator size="small" color="#2196F3" style={styles.footerLoader} /> : null
+            }
+            ListEmptyComponent={!isLoading ? <DataStateView message={t('noMyPosts')} isRTL={isRTL} /> : null}
+          />
+        </>
+      )}
 
       {toast ? (
         <View style={styles.toast}>
@@ -458,15 +465,6 @@ const styles = StyleSheet.create({
   },
   footerLoader: {
     marginVertical: 16,
-  },
-  emptyContainer: {
-    padding: 32,
-    alignItems: 'center',
-  },
-  emptyText: {
-    fontSize: 16,
-    color: '#999',
-    textAlign: 'center',
   },
   toast: {
     position: 'absolute',

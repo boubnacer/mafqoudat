@@ -1,10 +1,11 @@
-import React, { createContext, useContext, useReducer, useState } from 'react';
+import React, { createContext, useCallback, useContext, useEffect, useReducer, useState } from 'react';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { jwtDecode } from 'jwt-decode';
 import googleAuth, { useGoogleIdTokenAuth } from '../utils/googleAuth';
 import { storage } from '../utils/storage';
 import { decodeToken } from '../utils/tokenUtils';
 import { USE_NATIVE_GOOGLE_AUTH } from '../config/api';
+import { setAuthFailureHandler } from '../app/api/apiService';
 
 // Legacy AsyncStorage keys from the old (pre-SecureStore) storage scheme
 const LEGACY_TOKEN_KEY = 'authToken';
@@ -108,6 +109,27 @@ export const AuthProvider = ({ children }) => {
   // in-memory maps server-side, so completion must be routed back to the same one.
   const [pendingAuthMethod, setPendingAuthMethod] = useState('native');
   const [request, response, promptAsync] = useGoogleIdTokenAuth();
+  const [sessionExpired, setSessionExpired] = useState(false);
+
+  // Registered with apiService's response interceptor so a 401/403 that means "your
+  // token is no longer valid" (not a resource-ownership 403 - see apiService.js for the
+  // distinction) can clear the session from outside the React tree. Deliberately removes
+  // only the token/user, not storage.clearAll()'s full wipe: leaving the onboarding-picked
+  // country in place lets WelcomeScreen's checkStoredCountry auto-skip straight to Login
+  // instead of dropping the user back into the full country-picker flow.
+  const forceSignOut = useCallback(async () => {
+    await storage.removeToken();
+    await storage.removeUserData();
+    dispatch({ type: AUTH_ACTIONS.LOGOUT });
+    setSessionExpired(true);
+  }, []);
+
+  useEffect(() => {
+    setAuthFailureHandler(forceSignOut);
+    return () => setAuthFailureHandler(null);
+  }, [forceSignOut]);
+
+  const clearSessionExpired = () => setSessionExpired(false);
 
   // Shared by every path that ends up with a valid access token (password login,
   // Google sign-in, Google registration): persists it and flips auth state, which
@@ -310,6 +332,8 @@ export const AuthProvider = ({ children }) => {
     completeGoogleRegistration,
     completeLogin,
     refreshSession,
+    sessionExpired,
+    clearSessionExpired,
   };
 
   return (

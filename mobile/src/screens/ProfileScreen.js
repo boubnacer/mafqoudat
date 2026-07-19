@@ -5,13 +5,14 @@
  */
 
 import React, { useCallback, useEffect, useRef, useState } from 'react';
-import { View, Text, StyleSheet, ScrollView, TouchableOpacity, ActivityIndicator } from 'react-native';
+import { View, Text, StyleSheet, ScrollView, TouchableOpacity, ActivityIndicator, RefreshControl } from 'react-native';
 import { useFocusEffect } from '@react-navigation/native';
 import apiClient from '../app/api/apiService';
 import { useAuth } from '../context/AuthContext';
 import { useLanguage } from '../context/LanguageContext';
 import { useTranslation } from '../utils/translations';
 import { useReferenceData, getLocalizedLabel } from '../context/ReferenceDataContext';
+import DataStateView from '../components/DataStateView';
 
 const ProfileScreen = ({ navigation }) => {
   const { user: authUser } = useAuth();
@@ -22,25 +23,36 @@ const ProfileScreen = ({ navigation }) => {
 
   const [profile, setProfile] = useState(null);
   const [isLoading, setIsLoading] = useState(true);
+  const [isRefreshing, setIsRefreshing] = useState(false);
   const [error, setError] = useState('');
 
   const isFirstFocusRef = useRef(true);
 
-  const loadProfile = useCallback(async () => {
-    if (!authUser?.id) return;
-    setIsLoading(true);
-    setError('');
-    try {
-      const response = await apiClient.get(`/users/${authUser.id}`);
-      setProfile(response.data);
-    } catch (err) {
-      console.error('Error loading profile:', err);
-      setError(t('failedToLoadProfile'));
-    } finally {
-      setIsLoading(false);
-    }
+  const loadProfile = useCallback(
+    async (isRefresh = false) => {
+      if (!authUser?.id) return;
+      if (isRefresh) {
+        setIsRefreshing(true);
+      } else {
+        setIsLoading(true);
+      }
+      setError('');
+      try {
+        const response = await apiClient.get(`/users/${authUser.id}`);
+        setProfile(response.data);
+      } catch (err) {
+        console.error('Error loading profile:', err);
+        setError(!err.response ? t('networkError') : t('failedToLoadProfile'));
+      } finally {
+        setIsLoading(false);
+        setIsRefreshing(false);
+      }
+    },
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [authUser?.id]);
+    [authUser?.id]
+  );
+
+  const handleRefresh = () => loadProfile(true);
 
   useEffect(() => {
     loadProfile();
@@ -88,10 +100,13 @@ const ProfileScreen = ({ navigation }) => {
       <View style={styles.container}>
         {renderHeader()}
         <View style={styles.centerContainer}>
-          <Text style={[styles.errorText, textStyle]}>{error}</Text>
-          <TouchableOpacity onPress={loadProfile} style={styles.retryButton}>
-            <Text style={styles.retryButtonText}>{t('retry')}</Text>
-          </TouchableOpacity>
+          <DataStateView
+            variant="error"
+            message={error}
+            actionLabel={t('retry')}
+            onAction={() => loadProfile(false)}
+            isRTL={isRTL}
+          />
         </View>
       </View>
     );
@@ -122,7 +137,10 @@ const ProfileScreen = ({ navigation }) => {
   return (
     <View style={styles.container}>
       {renderHeader()}
-      <ScrollView contentContainerStyle={styles.content}>
+      <ScrollView
+        contentContainerStyle={styles.content}
+        refreshControl={<RefreshControl refreshing={isRefreshing} onRefresh={handleRefresh} colors={['#2196F3']} />}
+      >
         <View style={styles.avatarSection}>
           <View style={styles.avatar}>
             <Text style={styles.avatarText}>{initial}</Text>
@@ -220,17 +238,6 @@ const styles = StyleSheet.create({
     fontSize: 14,
     textAlign: 'center',
     marginBottom: 16,
-  },
-  retryButton: {
-    paddingHorizontal: 20,
-    paddingVertical: 10,
-    borderRadius: 8,
-    backgroundColor: '#c62828',
-  },
-  retryButtonText: {
-    color: '#fff',
-    fontWeight: 'bold',
-    fontSize: 14,
   },
   content: {
     padding: 16,
