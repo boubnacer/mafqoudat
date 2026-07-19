@@ -1,3 +1,9 @@
+# Native projects (Continuous Native Generation - regenerated from app.config.js by
+# `expo prebuild` / every EAS build; never hand-edit or commit these, or app.config.js
+# stops being the single source of truth)
+/android
+/ios
+
 # OSX
 .DS_Store
 
@@ -46,9 +52,6 @@ web-build/
 .env
 .env.local
 .env.production
-
-# EAS
-eas.json
 
 # Temporary files
 *.log

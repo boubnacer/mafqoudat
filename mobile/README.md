@@ -66,12 +66,12 @@ mobile/
 ## Store Submission
 
 ### Android (Google Play Store)
-- Ensure `android.package` in `app.json` matches your Play Store package name
+- Ensure `android.package` in `app.config.js` matches your Play Store package name
 - Update `versionCode` for each release
 - Run `npm run build:android` to create APK/AAB
 
 ### iOS (App Store)
-- Ensure `ios.bundleIdentifier` in `app.json` matches your App Store bundle ID
+- Ensure `ios.bundleIdentifier` in `app.config.js` matches your App Store bundle ID
 - Update `buildNumber` for each release
 - Run `npm run build:ios` to create IPA
 

@@ -4,16 +4,16 @@
  * Reference: client/src/app/api/apiSlice.js
  */
 
-export const API_BASE_URL =
-  process.env.EXPO_PUBLIC_API_URL ||
-  "https://mafqoudat-api.onrender.com";
+// No hardcoded fallback, deliberately: every build (local dev, EAS dev/preview/production)
+// must set this via .env / EAS environment variables (see .env.example and BUILD.md) so a
+// misconfigured environment fails loudly (network errors) instead of silently talking to
+// whatever URL happened to be baked into source last.
+export const API_BASE_URL = process.env.EXPO_PUBLIC_API_URL;
 
 // Google OAuth Configuration
 // Web client ID doubles as the Expo Go / auth-proxy client when native iOS/Android
 // client IDs aren't configured for the current build.
-export const GOOGLE_WEB_CLIENT_ID =
-  process.env.EXPO_PUBLIC_GOOGLE_WEB_CLIENT_ID ||
-  "571757802995-qg4dvpnaidjh532uo0eu88l1qttmckac.apps.googleusercontent.com";
+export const GOOGLE_WEB_CLIENT_ID = process.env.EXPO_PUBLIC_GOOGLE_WEB_CLIENT_ID;
 
 export const GOOGLE_IOS_CLIENT_ID = process.env.EXPO_PUBLIC_GOOGLE_IOS_CLIENT_ID;
 
@@ -34,7 +34,7 @@ export const GOOGLE_MOBILE_CALLBACK_URL = "mafqoudat://auth/callback";
 
 // Canonical marketing site (client/src/utils/seoConfig.js) - used for the
 // Settings screen's Privacy Policy / Terms of Service links.
-export const WEB_BASE_URL = "https://www.mafqoudat.com";
+export const WEB_BASE_URL = process.env.EXPO_PUBLIC_WEB_BASE_URL;
 
 export const API_ENDPOINTS = {
   AUTH: {

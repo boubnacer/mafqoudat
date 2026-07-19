@@ -41,10 +41,10 @@ You can use your existing logo from `client/public/maflogo1200-630.png` as a bas
 
 ### 5. Update App Configuration
 
-Edit `app.json` or `app.config.js`:
+Edit `app.config.js` (the single source of truth - see `BUILD.md`):
 
 1. Update `bundleIdentifier` (iOS) and `package` (Android) with your unique identifiers
-2. Update `projectId` in `eas.json` after creating an EAS project
+2. Update `extra.eas.projectId` after creating an EAS project (`eas init`)
 3. Customize app name, description, and colors
 
 ### 6. Start Development Server
@@ -62,7 +62,7 @@ Then:
 
 ### Android (Google Play Store)
 
-1. **Update version in `app.json`**:
+1. **Update version in `app.config.js`**:
    ```json
    "android": {
      "versionCode": 1,  // Increment for each release
@@ -87,7 +87,7 @@ Then:
 
 ### iOS (App Store)
 
-1. **Update version in `app.json`**:
+1. **Update version in `app.config.js`**:
    ```json
    "ios": {
      "buildNumber": "1",  // Increment for each release
@@ -135,7 +135,7 @@ mobile/
 │       └── api.js          # API configuration
 ├── assets/                 # Images, icons, etc.
 ├── App.js                  # Main app entry
-├── app.json                # Expo configuration
+├── app.config.js           # Expo configuration (single source of truth)
 ├── package.json
 └── eas.json                # EAS Build configuration
 ```

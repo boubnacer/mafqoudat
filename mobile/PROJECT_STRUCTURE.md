@@ -9,8 +9,7 @@ The mobile app structure has been created following best practices for both Andr
 ```
 mobile/
 ├── 📄 App.js                    # Main app entry point with navigation
-├── 📄 app.json                  # Expo configuration (Android & iOS)
-├── 📄 app.config.js             # Dynamic Expo configuration
+├── 📄 app.config.js             # Expo configuration (single source of truth - Android & iOS)
 ├── 📄 package.json              # Dependencies and scripts
 ├── 📄 babel.config.js           # Babel configuration
 ├── 📄 eas.json                  # EAS Build configuration
@@ -56,7 +55,7 @@ mobile/
 
 ### Configuration Files
 
-1. **app.json** / **app.config.js**
+1. **app.config.js**
    - ✅ iOS bundle identifier configured
    - ✅ Android package name configured
    - ✅ Permissions for camera, photos, location
@@ -170,10 +169,10 @@ cp .env.example .env
 ```
 
 ### 5. Update App Identifiers
-Edit `app.json`:
+Edit `app.config.js`:
 - Change `bundleIdentifier` (iOS) to your unique ID
 - Change `package` (Android) to your unique ID
-- Update `projectId` in `eas.json` after creating EAS project
+- Update `extra.eas.projectId` after creating an EAS project (`eas init`)
 
 ### 6. Test the App
 ```bash
