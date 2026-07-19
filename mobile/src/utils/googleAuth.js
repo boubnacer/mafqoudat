@@ -28,7 +28,7 @@ export const useGoogleIdTokenAuth = () => {
   });
 };
 
-class GoogleAuthNew {
+class GoogleAuth {
   // Verify a native Google ID token with the server (POST /auth/google/mobile)
   async verifyIdToken(idToken, user) {
     try {
@@ -137,6 +137,6 @@ class GoogleAuthNew {
 }
 
 // Create singleton instance
-const googleAuthNew = new GoogleAuthNew();
+const googleAuth = new GoogleAuth();
 
-export default googleAuthNew;
+export default googleAuth;

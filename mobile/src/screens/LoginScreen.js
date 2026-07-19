@@ -11,15 +11,15 @@ import {
   Platform,
   ScrollView,
 } from 'react-native';
-import { useAuthNew } from '../context/AuthContextNew';
+import { useAuth } from '../context/AuthContext';
 import { useLanguage } from '../context/LanguageContext';
 import { useTranslation } from '../utils/translations';
 import LanguageDropdown from '../components/LanguageDropdown';
 import apiClient from '../app/api/apiService';
 import { API_ENDPOINTS } from '../config/api';
 
-const LoginScreenNew = ({ navigation }) => {
-  const { signInWithGoogle, completeLogin, isLoading: googleLoading, error: googleError, clearError } = useAuthNew();
+const LoginScreen = ({ navigation }) => {
+  const { signInWithGoogle, completeLogin, isLoading: googleLoading, error: googleError, clearError } = useAuth();
   const { currentLanguage } = useLanguage();
   const { t } = useTranslation();
   
@@ -94,7 +94,7 @@ const LoginScreenNew = ({ navigation }) => {
     setError('');
 
     try {
-      console.log('🚀 Initiating Google Sign In from LoginScreenNew...');
+      console.log('🚀 Initiating Google Sign In from LoginScreen...');
 
       const result = await signInWithGoogle();
 
@@ -356,4 +356,4 @@ const styles = StyleSheet.create({
   },
 });
 
-export default LoginScreenNew;
+export default LoginScreen;

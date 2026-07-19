@@ -17,13 +17,13 @@ import {
 } from 'react-native';
 import { useLanguage } from '../context/LanguageContext';
 import { useTranslation } from '../utils/translations';
-import { useAuthNew } from '../context/AuthContextNew';
+import { useAuth } from '../context/AuthContext';
 import apiClient from '../app/api/apiService';
 
 const CountrySelectionScreen = ({ navigation }) => {
   const { currentLanguage } = useLanguage();
   const { t } = useTranslation();
-  const { pendingToken, completeGoogleRegistration } = useAuthNew();
+  const { pendingToken, completeGoogleRegistration } = useAuth();
 
   const [countries, setCountries] = useState([]);
   const [filteredCountries, setFilteredCountries] = useState([]);

@@ -4,8 +4,8 @@ import { NavigationContainer } from '@react-navigation/native';
 import { createNativeStackNavigator } from '@react-navigation/native-stack';
 import { SafeAreaProvider } from 'react-native-safe-area-context';
 import { LanguageProvider } from './src/context/LanguageContext';
-import { AuthProviderNew, useAuthNew } from './src/context/AuthContextNew';
-import LoginScreenNew from './src/screens/LoginScreenNew';
+import { AuthProvider, useAuth } from './src/context/AuthContext';
+import LoginScreen from './src/screens/LoginScreen';
 import CountrySelectionScreen from './src/screens/CountrySelectionScreen';
 import PostsListScreen from './src/screens/PostsListScreen';
 import { ActivityIndicator, View, StyleSheet, Text } from 'react-native';
@@ -16,7 +16,7 @@ const Stack = createNativeStackNavigator();
 const AuthNavigator = () => {
   return (
     <Stack.Navigator screenOptions={{ headerShown: false }}>
-      <Stack.Screen name="Login" component={LoginScreenNew} />
+      <Stack.Screen name="Login" component={LoginScreen} />
       <Stack.Screen name="CountrySelection" component={CountrySelectionScreen} />
     </Stack.Navigator>
   );
@@ -34,7 +34,7 @@ const AppNavigator = () => {
 
 // Root navigator that handles auth state
 const RootNavigator = () => {
-  const { isLoading, isSignedIn } = useAuthNew();
+  const { isLoading, isSignedIn } = useAuth();
 
   if (isLoading) {
     return (
@@ -87,12 +87,12 @@ export default function App() {
 
   return (
     <LanguageProvider>
-      <AuthProviderNew>
+      <AuthProvider>
         <SafeAreaProvider>
           <StatusBar style="auto" />
           <RootNavigator />
         </SafeAreaProvider>
-      </AuthProviderNew>
+      </AuthProvider>
     </LanguageProvider>
   );
 }

@@ -19,12 +19,12 @@ import { API_ENDPOINTS, API_BASE_URL } from '../config/api';
 import { storage } from '../utils/storage';
 import { useLanguage } from '../context/LanguageContext';
 import { useTranslation } from '../utils/translations';
-import { useAuthNew } from '../context/AuthContextNew';
+import { useAuth } from '../context/AuthContext';
 
 const PostsListScreen = ({ navigation }) => {
   const { currentLanguage } = useLanguage();
   const { t } = useTranslation();
-  const { signOut } = useAuthNew();
+  const { signOut } = useAuth();
   const [posts, setPosts] = useState([]);
   const [isLoading, setIsLoading] = useState(true);
   const [isRefreshing, setIsRefreshing] = useState(false);

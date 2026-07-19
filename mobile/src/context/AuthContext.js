@@ -1,7 +1,7 @@
 import React, { createContext, useContext, useReducer, useState } from 'react';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { jwtDecode } from 'jwt-decode';
-import googleAuthNew, { useGoogleIdTokenAuth } from '../utils/googleAuthNew';
+import googleAuth, { useGoogleIdTokenAuth } from '../utils/googleAuth';
 import { storage } from '../utils/storage';
 import { decodeToken } from '../utils/tokenUtils';
 
@@ -72,7 +72,7 @@ const authReducer = (state, action) => {
 };
 
 // Create context
-const AuthContextNew = createContext();
+const AuthContext = createContext();
 
 // One-time migration from the old AsyncStorage-based token/user keys to SecureStore,
 // so users who logged in before the storage consolidation aren't logged out.
@@ -100,7 +100,7 @@ const migrateLegacyStorage = async () => {
 };
 
 // Provider component
-export const AuthProviderNew = ({ children }) => {
+export const AuthProvider = ({ children }) => {
   const [state, dispatch] = useReducer(authReducer, initialState);
   const [pendingToken, setPendingToken] = useState(null);
   const [request, response, promptAsync] = useGoogleIdTokenAuth();
@@ -181,7 +181,7 @@ export const AuthProviderNew = ({ children }) => {
       // Decode the Google ID token client-side just to get the email/name the
       // server's /auth/google/mobile contract cross-checks against the verified token.
       const googlePayload = jwtDecode(idToken);
-      const authResult = await googleAuthNew.verifyIdToken(idToken, {
+      const authResult = await googleAuth.verifyIdToken(idToken, {
         email: googlePayload.email,
         name: googlePayload.name,
       });
@@ -222,7 +222,7 @@ export const AuthProviderNew = ({ children }) => {
       }
 
       console.log('🔄 Completing Google registration...');
-      const result = await googleAuthNew.completeRegistration(pendingToken, countryId);
+      const result = await googleAuth.completeRegistration(pendingToken, countryId);
 
       if (result.success && result.accessToken) {
         const user = await persistSession(result.accessToken, { username: result.username });
@@ -244,7 +244,7 @@ export const AuthProviderNew = ({ children }) => {
     }
   };
 
-  // Called by LoginScreenNew after a successful POST /auth (password login) to persist
+  // Called by LoginScreen after a successful POST /auth (password login) to persist
   // the token through the same single storage/state path Google sign-in uses, so
   // isSignedIn flips and RootNavigator swaps to the signed-in screens automatically.
   const completeLogin = async (accessToken) => {
@@ -258,7 +258,7 @@ export const AuthProviderNew = ({ children }) => {
 
       if (state.token) {
         try {
-          await googleAuthNew.signOut(state.token);
+          await googleAuth.signOut(state.token);
         } catch (error) {
           // Even if server sign out fails, still clear local data below
           console.error('❌ Server sign out failed:', error);
@@ -293,19 +293,19 @@ export const AuthProviderNew = ({ children }) => {
   };
 
   return (
-    <AuthContextNew.Provider value={value}>
+    <AuthContext.Provider value={value}>
       {children}
-    </AuthContextNew.Provider>
+    </AuthContext.Provider>
   );
 };
 
 // Hook to use auth context
-export const useAuthNew = () => {
-  const context = useContext(AuthContextNew);
+export const useAuth = () => {
+  const context = useContext(AuthContext);
   if (!context) {
-    throw new Error('useAuthNew must be used within an AuthProviderNew');
+    throw new Error('useAuth must be used within an AuthProvider');
   }
   return context;
 };
 
-export default AuthContextNew;
+export default AuthContext;
