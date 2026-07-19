@@ -53,7 +53,7 @@ logged in before this change aren't logged out.
 
 | Var | Purpose |
 |---|---|
-| `EXPO_PUBLIC_API_URL` | API base URL (defaults to the Railway production URL) |
+| `EXPO_PUBLIC_API_URL` | API base URL (defaults to the Render production URL) |
 | `EXPO_PUBLIC_GOOGLE_WEB_CLIENT_ID` | Web OAuth client ID — only actually used when running via `expo start --web` in a browser |
 | `EXPO_PUBLIC_GOOGLE_IOS_CLIENT_ID` | iOS OAuth client ID — required for Google sign-in on iOS (dev/production builds) |
 | `EXPO_PUBLIC_GOOGLE_ANDROID_CLIENT_ID` | Android OAuth client ID — required for Google sign-in on Android (dev/production builds) |
@@ -65,7 +65,7 @@ runtime fallback, and throws **during render** if the one it needs is `undefined
 crashing on launch before you've configured the native clients. That fallback does not make
 sign-in work on device; it only avoids the crash.
 
-### Server (Railway)
+### Server (Render)
 
 | Var | Purpose |
 |---|---|
@@ -92,7 +92,7 @@ three IDs for this reason.
        test native Google sign-in from a locally-run debug build.
 2. Set the resulting client IDs:
    - Mobile: `EXPO_PUBLIC_GOOGLE_IOS_CLIENT_ID`, `EXPO_PUBLIC_GOOGLE_ANDROID_CLIENT_ID`.
-   - Server (Railway): `GOOGLE_IOS_CLIENT_ID`, `GOOGLE_ANDROID_CLIENT_ID`.
+   - Server (Render): `GOOGLE_IOS_CLIENT_ID`, `GOOGLE_ANDROID_CLIENT_ID`.
 3. Build and install a **development build** (`eas build --profile development`, or
    `npx expo run:android` / `npx expo run:ios` locally) and test Google sign-in there.
 

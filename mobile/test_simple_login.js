@@ -2,7 +2,7 @@ const axios = require('axios');
 
 async function testLogin() {
   try {
-    const response = await axios.post('https://mafqoudat-production.up.railway.app/auth', {
+    const response = await axios.post('https://mafqoudat-api.onrender.com/auth', {
       emailOrPhone: 'different@test.com',
       password: 'different123'
     }, {

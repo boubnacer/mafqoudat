@@ -25,7 +25,7 @@ cp .env.example .env
 
 Edit `.env`:
 ```
-EXPO_PUBLIC_API_URL=https://mafqoudat-production.up.railway.app
+EXPO_PUBLIC_API_URL=https://mafqoudat-api.onrender.com
 ```
 
 ### 4. Create App Assets

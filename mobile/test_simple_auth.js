@@ -6,7 +6,7 @@ async function testSimpleAuth() {
   try {
     // Test 1: Test the existing auth endpoint with invalid credentials
     console.log('1️⃣ Testing invalid credentials (should return 401):');
-    const invalidResponse = await axios.post('https://mafqoudat-production.up.railway.app/auth', {
+    const invalidResponse = await axios.post('https://mafqoudat-api.onrender.com/auth', {
       emailOrPhone: 'invalid@example.com',
       password: 'wrongpassword'
     }, {
@@ -29,7 +29,7 @@ async function testSimpleAuth() {
     }
 
     console.log('\n2️⃣ Testing validation (empty fields):');
-    const validationResponse = await axios.post('https://mafqoudat-production.up.railway.app/auth', {
+    const validationResponse = await axios.post('https://mafqoudat-api.onrender.com/auth', {
       emailOrPhone: '',
       password: ''
     }, {
@@ -53,7 +53,7 @@ async function testSimpleAuth() {
 
     console.log('\n3️⃣ Testing endpoint availability:');
     try {
-      const healthResponse = await axios.get('https://mafqoudat-production.up.railway.app/health');
+      const healthResponse = await axios.get('https://mafqoudat-api.onrender.com/health');
       console.log(`   Server Health: ${healthResponse.status} - ${healthResponse.data.status}`);
       console.log('   ✅ Server is running and accessible');
     } catch (error) {

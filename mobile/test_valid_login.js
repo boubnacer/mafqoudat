@@ -3,7 +3,7 @@ const axios = require('axios');
 async function testValidLogin() {
   try {
     // Test with a different user agent to bypass rate limiting
-    const response = await axios.post('https://mafqoudat-production.up.railway.app/auth', {
+    const response = await axios.post('https://mafqoudat-api.onrender.com/auth', {
       emailOrPhone: 'nacer@example.com',
       password: 'password123'
     }, {

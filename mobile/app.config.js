@@ -66,7 +66,7 @@ export default {
       ]
     ],
     extra: {
-      apiUrl: process.env.EXPO_PUBLIC_API_URL || "https://mafqoudat-production.up.railway.app"
+      apiUrl: process.env.EXPO_PUBLIC_API_URL || "https://mafqoudat-api.onrender.com"
     },
     scheme: "mafqoudat"
   }

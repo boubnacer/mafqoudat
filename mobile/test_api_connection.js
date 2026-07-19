@@ -3,7 +3,7 @@
 
 const axios = require('axios');
 
-const API_BASE_URL = "https://mafqoudat-production.up.railway.app";
+const API_BASE_URL = "https://mafqoudat-api.onrender.com";
 
 console.log('🔍 Testing API Connection...\n');
 

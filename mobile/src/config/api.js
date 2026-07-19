@@ -4,9 +4,9 @@
  * Reference: client/src/app/api/apiSlice.js
  */
 
-export const API_BASE_URL = 
-  process.env.EXPO_PUBLIC_API_URL || 
-  "https://mafqoudat-production.up.railway.app";
+export const API_BASE_URL =
+  process.env.EXPO_PUBLIC_API_URL ||
+  "https://mafqoudat-api.onrender.com";
 
 // Google OAuth Configuration
 // Web client ID doubles as the Expo Go / auth-proxy client when native iOS/Android
