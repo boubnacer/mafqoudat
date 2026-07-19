@@ -23,6 +23,7 @@ import apiClient from '../app/api/apiService';
 import { API_ENDPOINTS, API_BASE_URL } from '../config/api';
 import { useLanguage } from '../context/LanguageContext';
 import { useTranslation } from '../utils/translations';
+import PromotePostSheet from '../components/PromotePostSheet';
 
 const PAGE_SIZE = 10;
 const TOAST_DURATION_MS = 3000;
@@ -52,6 +53,7 @@ const MyPostsScreen = ({ navigation }) => {
   const [page, setPage] = useState(1);
   const [hasMore, setHasMore] = useState(true);
   const [toast, setToast] = useState('');
+  const [promotePost, setPromotePost] = useState(null);
 
   const isFirstFocusRef = useRef(true);
   const toastTimerRef = useRef(null);
@@ -143,6 +145,17 @@ const MyPostsScreen = ({ navigation }) => {
     navigation.navigate('EditPostScreen', { id: post._id });
   };
 
+  const handlePromote = (post) => {
+    setPromotePost(post);
+  };
+
+  const handlePromotionSubmitted = (message) => {
+    const promotedId = promotePost?._id;
+    setPosts((prev) => prev.map((p) => (p._id === promotedId ? { ...p, promotionRequested: true } : p)));
+    setPromotePost(null);
+    showToast(message);
+  };
+
   const handleMarkReturned = (post) => {
     Alert.alert(t('markReturnedTitle'), t('markReturnedConfirm'), [
       { text: t('cancel'), style: 'cancel' },
@@ -224,6 +237,11 @@ const MyPostsScreen = ({ navigation }) => {
                 <Text style={styles.actionButtonText}>{t('markAsReturned')}</Text>
               </TouchableOpacity>
             ) : null}
+            {!item.promotionRequested ? (
+              <TouchableOpacity style={styles.actionButton} onPress={() => handlePromote(item)}>
+                <Text style={styles.actionButtonText}>{t('promoteThisPost')}</Text>
+              </TouchableOpacity>
+            ) : null}
             <TouchableOpacity style={[styles.actionButton, styles.deleteButton]} onPress={() => handleDelete(item)}>
               <Text style={[styles.actionButtonText, styles.deleteButtonText]}>{t('delete')}</Text>
             </TouchableOpacity>
@@ -293,6 +311,15 @@ const MyPostsScreen = ({ navigation }) => {
           <Text style={styles.toastText}>{toast}</Text>
         </View>
       ) : null}
+
+      <PromotePostSheet
+        visible={!!promotePost}
+        onClose={() => setPromotePost(null)}
+        postId={promotePost?._id}
+        t={t}
+        isRTL={isRTL}
+        onSubmitted={handlePromotionSubmitted}
+      />
     </View>
   );
 };

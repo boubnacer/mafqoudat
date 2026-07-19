@@ -3,7 +3,7 @@
  * Mirrors: client/src/features/posts/PostPage/SinglePost.js (feature parity subset)
  */
 
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useRef, useState } from 'react';
 import {
   View,
   Text,
@@ -20,7 +20,12 @@ import apiClient from '../app/api/apiService';
 import { API_ENDPOINTS, API_BASE_URL } from '../config/api';
 import { getCategoryConfig } from '../config/categories';
 import { useLanguage } from '../context/LanguageContext';
+import { useAuth } from '../context/AuthContext';
 import { useTranslation } from '../utils/translations';
+import ReportPostSheet from '../components/ReportPostSheet';
+import PromotePostSheet from '../components/PromotePostSheet';
+
+const TOAST_DURATION_MS = 3000;
 
 const STATUS_KEYS = {
   active: 'statusActive',
@@ -73,12 +78,31 @@ const PostDetailScreen = ({ navigation, route }) => {
   const { id } = route.params || {};
   const { currentLanguage } = useLanguage();
   const { t } = useTranslation();
+  const { user } = useAuth();
   const isRTL = currentLanguage === 'ar';
 
   const [post, setPost] = useState(null);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState('');
   const [imageModalVisible, setImageModalVisible] = useState(false);
+  const [menuVisible, setMenuVisible] = useState(false);
+  const [reportSheetVisible, setReportSheetVisible] = useState(false);
+  const [promoteSheetVisible, setPromoteSheetVisible] = useState(false);
+  const [toast, setToast] = useState('');
+
+  const toastTimerRef = useRef(null);
+
+  useEffect(() => {
+    return () => {
+      if (toastTimerRef.current) clearTimeout(toastTimerRef.current);
+    };
+  }, []);
+
+  const showToast = (message) => {
+    setToast(message);
+    if (toastTimerRef.current) clearTimeout(toastTimerRef.current);
+    toastTimerRef.current = setTimeout(() => setToast(''), TOAST_DURATION_MS);
+  };
 
   useEffect(() => {
     if (!id) {
@@ -115,7 +139,7 @@ const PostDetailScreen = ({ navigation, route }) => {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [id, currentLanguage]);
 
-  const renderHeader = () => (
+  const renderHeader = (showMenu = false) => (
     <View style={styles.header}>
       <TouchableOpacity onPress={() => navigation.goBack()} style={styles.backButton}>
         <Text style={styles.backButtonText}>‹</Text>
@@ -123,7 +147,17 @@ const PostDetailScreen = ({ navigation, route }) => {
       <Text style={styles.headerTitle} numberOfLines={1}>
         {t('postDetails')}
       </Text>
-      <View style={styles.backButton} />
+      {showMenu ? (
+        <TouchableOpacity
+          onPress={() => setMenuVisible(true)}
+          style={styles.backButton}
+          accessibilityLabel={t('moreOptions')}
+        >
+          <Text style={styles.menuButtonText}>⋮</Text>
+        </TouchableOpacity>
+      ) : (
+        <View style={styles.backButton} />
+      )}
     </View>
   );
 
@@ -180,9 +214,22 @@ const PostDetailScreen = ({ navigation, route }) => {
 
   const contactAction = getContactAction(post.contact);
 
+  const isOwner = !!user?.id && !!post.user && String(post.user) === String(user.id);
+  const canPromote = isOwner && !post.promotionRequested;
+
+  const openReportSheet = () => {
+    setMenuVisible(false);
+    setReportSheetVisible(true);
+  };
+
+  const openPromoteSheet = () => {
+    setMenuVisible(false);
+    setPromoteSheetVisible(true);
+  };
+
   return (
     <View style={styles.container}>
-      {renderHeader()}
+      {renderHeader(true)}
       <ScrollView contentContainerStyle={styles.content}>
         {imageUri ? (
           <TouchableOpacity activeOpacity={0.9} onPress={() => setImageModalVisible(true)}>
@@ -308,6 +355,48 @@ const PostDetailScreen = ({ navigation, route }) => {
           </TouchableOpacity>
         </TouchableOpacity>
       </Modal>
+
+      <Modal visible={menuVisible} transparent animationType="fade" onRequestClose={() => setMenuVisible(false)}>
+        <TouchableOpacity style={styles.menuBackdrop} activeOpacity={1} onPress={() => setMenuVisible(false)}>
+          <View style={styles.menuCard}>
+            <TouchableOpacity style={styles.menuItem} onPress={openReportSheet}>
+              <Text style={[styles.menuItemText, isRTL && styles.textRTL]}>{t('reportThisPost')}</Text>
+            </TouchableOpacity>
+            {canPromote ? (
+              <TouchableOpacity style={styles.menuItem} onPress={openPromoteSheet}>
+                <Text style={[styles.menuItemText, isRTL && styles.textRTL]}>{t('promoteThisPost')}</Text>
+              </TouchableOpacity>
+            ) : null}
+          </View>
+        </TouchableOpacity>
+      </Modal>
+
+      <ReportPostSheet
+        visible={reportSheetVisible}
+        onClose={() => setReportSheetVisible(false)}
+        postId={post._id}
+        t={t}
+        isRTL={isRTL}
+        onSubmitted={showToast}
+      />
+
+      <PromotePostSheet
+        visible={promoteSheetVisible}
+        onClose={() => setPromoteSheetVisible(false)}
+        postId={post._id}
+        t={t}
+        isRTL={isRTL}
+        onSubmitted={(message) => {
+          setPost((prev) => (prev ? { ...prev, promotionRequested: true } : prev));
+          showToast(message);
+        }}
+      />
+
+      {toast ? (
+        <View style={styles.toast}>
+          <Text style={styles.toastText}>{toast}</Text>
+        </View>
+      ) : null}
     </View>
   );
 };
@@ -334,6 +423,12 @@ const styles = StyleSheet.create({
     color: '#fff',
     fontSize: 32,
     lineHeight: 32,
+  },
+  menuButtonText: {
+    color: '#fff',
+    fontSize: 24,
+    lineHeight: 24,
+    fontWeight: 'bold',
   },
   headerTitle: {
     flex: 1,
@@ -497,6 +592,47 @@ const styles = StyleSheet.create({
     color: '#fff',
     fontSize: 16,
     fontWeight: 'bold',
+  },
+  menuBackdrop: {
+    flex: 1,
+    backgroundColor: 'rgba(0,0,0,0.2)',
+    alignItems: 'flex-end',
+  },
+  menuCard: {
+    marginTop: 90,
+    marginRight: 16,
+    backgroundColor: '#fff',
+    borderRadius: 8,
+    minWidth: 180,
+    paddingVertical: 4,
+    elevation: 4,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.2,
+    shadowRadius: 6,
+  },
+  menuItem: {
+    paddingVertical: 14,
+    paddingHorizontal: 16,
+  },
+  menuItemText: {
+    fontSize: 15,
+    color: '#333',
+  },
+  toast: {
+    position: 'absolute',
+    bottom: 24,
+    left: 24,
+    right: 24,
+    backgroundColor: '#333',
+    borderRadius: 8,
+    paddingHorizontal: 16,
+    paddingVertical: 12,
+  },
+  toastText: {
+    color: '#fff',
+    fontSize: 14,
+    textAlign: 'center',
   },
 });
 

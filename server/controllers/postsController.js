@@ -1021,6 +1021,7 @@ const getUserPosts = async (req, res) => {
           returned: 1,
           status: 1,
           mainDate: 1,
+          promotionRequested: 1,
           // Add computed fields for easier frontend usage
           title: {
             $cond: {

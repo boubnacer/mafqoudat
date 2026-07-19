@@ -56,6 +56,10 @@ export const API_ENDPOINTS = {
     UPDATE: "/posts",
     DELETE: "/posts",
     MARK_RETURNED: (id) => `/posts/${id}/mark-returned`,
+    REPORT: "/posts/report",
+  },
+  PROMOTION: {
+    REQUEST: "/promotion/request",
   },
 };
 
