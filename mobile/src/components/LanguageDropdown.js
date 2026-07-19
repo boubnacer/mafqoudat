@@ -147,7 +147,7 @@ const styles = StyleSheet.create({
   },
   flag: {
     fontSize: 18,
-    marginRight: 8,
+    marginEnd: 8,
   },
   languageText: {
     color: '#fff',
@@ -158,7 +158,7 @@ const styles = StyleSheet.create({
   arrow: {
     color: '#fff',
     fontSize: 10,
-    marginLeft: 8,
+    marginStart: 8,
   },
   modalOverlay: {
     flex: 1,
@@ -192,7 +192,7 @@ const styles = StyleSheet.create({
   },
   itemFlag: {
     fontSize: 20,
-    marginRight: 12,
+    marginEnd: 12,
   },
   itemText: {
     fontSize: 16,

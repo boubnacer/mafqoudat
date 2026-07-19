@@ -20,11 +20,13 @@ import { useLanguage } from '../context/LanguageContext';
 import { useTranslation } from '../utils/translations';
 import { useAuth } from '../context/AuthContext';
 import apiClient from '../app/api/apiService';
+import { getLocalizedLabel } from '../context/ReferenceDataContext';
 
 const CountrySelectionScreen = ({ navigation }) => {
   const { currentLanguage } = useLanguage();
   const { t } = useTranslation();
   const { pendingToken, completeGoogleRegistration } = useAuth();
+  const isRTL = currentLanguage === 'ar';
 
   const [countries, setCountries] = useState([]);
   const [filteredCountries, setFilteredCountries] = useState([]);
@@ -78,7 +80,7 @@ const CountrySelectionScreen = ({ navigation }) => {
       setFilteredCountries(countriesList);
     } catch (err) {
       console.error('Error loading countries:', err);
-      setError(t('errorLoadingCountries') || 'Failed to load countries');
+      setError(t('errorLoadingCountries'));
     } finally {
       setIsLoading(false);
     }
@@ -86,18 +88,12 @@ const CountrySelectionScreen = ({ navigation }) => {
 
   const getCountryName = (country) => {
     if (!country) return '';
-    if (country.names && country.names[currentLanguage]) {
-      return country.names[currentLanguage];
-    }
-    if (country.labels && country.labels[currentLanguage]) {
-      return country.labels[currentLanguage];
-    }
-    return country.name || country.code || '';
+    return getLocalizedLabel(country, currentLanguage) || country.name || '';
   };
 
   const handleSubmit = async () => {
     if (!selectedCountry) {
-      setError(t('pleaseSelectCountry') || 'Please select your country');
+      setError(t('pleaseSelectCountry'));
       return;
     }
 
@@ -115,18 +111,18 @@ const CountrySelectionScreen = ({ navigation }) => {
         // Google sign-in rather than leaving them stuck on this screen.
         if (result.code === 'TOKEN_EXPIRED' || result.code === 'INVALID_TOKEN') {
           Alert.alert(
-            t('sessionExpired') || 'Session Expired',
-            t('pendingTokenExpired') || 'Your Google sign-in session has expired. Please sign in again.',
-            [{ text: 'OK', onPress: () => navigation.replace('Login') }]
+            t('sessionExpired'),
+            t('pendingTokenExpired'),
+            [{ text: t('ok'), onPress: () => navigation.replace('Login') }]
           );
           return;
         }
-        setError(result.error || t('registrationFailed') || 'Failed to complete registration');
+        setError(result.error || t('registrationFailed'));
       }
       // On success, AuthContext's isSignedIn flip drives the RootNavigator to PostsListScreen.
     } catch (err) {
       console.error('Country selection error:', err);
-      setError(t('registrationFailed') || 'Failed to complete registration');
+      setError(t('registrationFailed'));
     } finally {
       setIsSubmitting(false);
     }
@@ -151,6 +147,7 @@ const CountrySelectionScreen = ({ navigation }) => {
         <Text
           style={[
             styles.countryName,
+            isRTL && styles.textRTL,
             isSelected && styles.countryNameSelected
           ]}
         >
@@ -168,7 +165,7 @@ const CountrySelectionScreen = ({ navigation }) => {
       <View style={styles.centerContainer}>
         <ActivityIndicator size="large" color="#2196F3" />
         <Text style={styles.loadingText}>
-          {t('loadingCountries') || 'Loading countries...'}
+          {t('loadingCountries')}
         </Text>
       </View>
     );
@@ -181,10 +178,10 @@ const CountrySelectionScreen = ({ navigation }) => {
     >
       <View style={styles.content}>
         <Text style={styles.title}>
-          {t('chooseCountry') || 'Choose Your Country'}
+          {t('chooseCountry')}
         </Text>
         <Text style={styles.subtitle}>
-          {t('chooseCountryDescription') || 'Select your country to see lost and found items in your area'}
+          {t('chooseCountryDescription')}
         </Text>
 
         {error ? (
@@ -195,8 +192,8 @@ const CountrySelectionScreen = ({ navigation }) => {
 
         <View style={styles.searchContainer}>
           <TextInput
-            style={styles.searchInput}
-            placeholder={t('searchCountry') || 'Search country...'}
+            style={[styles.searchInput, isRTL && styles.textRTL]}
+            placeholder={t('searchCountry')}
             placeholderTextColor="#999"
             value={searchQuery}
             onChangeText={setSearchQuery}
@@ -224,7 +221,7 @@ const CountrySelectionScreen = ({ navigation }) => {
             <ActivityIndicator color="#fff" />
           ) : (
             <Text style={styles.submitButtonText}>
-              {t('continueToPosts') || 'Continue'}
+              {t('continueToPosts')}
             </Text>
           )}
         </TouchableOpacity>
@@ -296,7 +293,7 @@ const styles = StyleSheet.create({
   },
   countryFlag: {
     fontSize: 22,
-    marginRight: 12,
+    marginEnd: 12,
   },
   countryName: {
     fontSize: 16,
@@ -342,6 +339,9 @@ const styles = StyleSheet.create({
   loadingText: {
     marginTop: 16,
     color: '#666',
+  },
+  textRTL: {
+    textAlign: 'right',
   },
 });
 

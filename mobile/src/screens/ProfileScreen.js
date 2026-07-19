@@ -63,7 +63,7 @@ const ProfileScreen = ({ navigation }) => {
   const renderHeader = () => (
     <View style={styles.header}>
       <TouchableOpacity onPress={() => navigation.goBack()} style={styles.backButton}>
-        <Text style={styles.backButtonText}>‹</Text>
+        <Text style={styles.backButtonText}>{isRTL ? '›' : '‹'}</Text>
       </TouchableOpacity>
       <Text style={[styles.headerTitle, textStyle]} numberOfLines={1}>
         {t('profile')}
@@ -139,11 +139,11 @@ const ProfileScreen = ({ navigation }) => {
         <View style={styles.infoCard}>
           <View style={styles.infoRow}>
             <Text style={[styles.infoLabel, textStyle]}>{t('contactSeller')}</Text>
-            <Text style={[styles.infoValue, textStyle]}>{contactLine}</Text>
+            <Text style={[styles.infoValue, isRTL && styles.infoValueRTL]}>{contactLine}</Text>
           </View>
           <View style={styles.infoRow}>
             <Text style={[styles.infoLabel, textStyle]}>{t('country')}</Text>
-            <Text style={[styles.infoValue, textStyle]}>
+            <Text style={[styles.infoValue, isRTL && styles.infoValueRTL]}>
               {countryFlag ? `${countryFlag} ` : ''}
               {countryLabel || '-'}
             </Text>
@@ -151,7 +151,7 @@ const ProfileScreen = ({ navigation }) => {
           {joinDate ? (
             <View style={styles.infoRow}>
               <Text style={[styles.infoLabel, textStyle]}>{t('memberSince')}</Text>
-              <Text style={[styles.infoValue, textStyle]}>{joinDate}</Text>
+              <Text style={[styles.infoValue, isRTL && styles.infoValueRTL]}>{joinDate}</Text>
             </View>
           ) : null}
         </View>
@@ -299,7 +299,10 @@ const styles = StyleSheet.create({
     fontWeight: '600',
     flexShrink: 1,
     textAlign: 'right',
-    marginLeft: 12,
+    marginStart: 12,
+  },
+  infoValueRTL: {
+    textAlign: 'left',
   },
   primaryButton: {
     height: 48,

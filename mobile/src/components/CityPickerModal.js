@@ -124,7 +124,7 @@ const CityPickerModal = ({ visible, onClose, t, currentLanguage, isRTL, countryI
         <TouchableOpacity style={styles.backdrop} activeOpacity={1} onPress={onClose} />
         <View style={styles.sheet}>
           <View style={styles.header}>
-            <Text style={styles.headerTitle}>{t('selectCity')}</Text>
+            <Text style={[styles.headerTitle, textStyle]}>{t('selectCity')}</Text>
             <TouchableOpacity onPress={onClose} style={styles.closeButton}>
               <Text style={styles.closeButtonText}>✕</Text>
             </TouchableOpacity>
@@ -225,7 +225,7 @@ const styles = StyleSheet.create({
     marginVertical: 24,
   },
   loaderText: {
-    marginLeft: 8,
+    marginStart: 8,
     color: '#999',
     fontSize: 13,
   },

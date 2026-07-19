@@ -119,7 +119,7 @@ const EditProfileScreen = ({ navigation, route }) => {
     <View style={styles.container}>
       <View style={styles.header}>
         <TouchableOpacity onPress={() => navigation.goBack()} style={styles.backButton}>
-          <Text style={styles.backButtonText}>‹</Text>
+          <Text style={styles.backButtonText}>{isRTL ? '›' : '‹'}</Text>
         </TouchableOpacity>
         <Text style={[styles.headerTitle, textStyle]} numberOfLines={1}>
           {t('editProfile')}
@@ -328,14 +328,14 @@ const styles = StyleSheet.create({
     paddingVertical: 8,
     borderRadius: 18,
     backgroundColor: '#f0f0f0',
-    marginRight: 8,
+    marginEnd: 8,
     marginBottom: 8,
   },
   chipSelected: {
     backgroundColor: '#2196F3',
   },
   chipFlag: {
-    marginRight: 4,
+    marginEnd: 4,
     fontSize: 14,
   },
   chipText: {

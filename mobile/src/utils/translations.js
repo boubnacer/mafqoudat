@@ -78,6 +78,7 @@ export const translations = {
     email: "Email",
     noContactProvided: "No contact information provided",
     noImage: "No Image",
+    untitledPost: "Untitled",
 
     // Report Post
     reportThisPost: "Report",
@@ -208,6 +209,7 @@ export const translations = {
     no: "No",
     all: "All",
     done: "Done",
+    ok: "OK",
 
     // Language
     language: "Language",
@@ -215,9 +217,11 @@ export const translations = {
     english: "English",
     french: "French",
     arabic: "Arabic",
-    
+
     // Google OAuth
     continueWithGoogle: "Continue with Google",
+    authenticationError: "Authentication Error",
+    failedToSaveCountry: "Failed to save country selection. Please try again.",
     chooseCountry: "Choose Your Country",
     chooseCountryTitle: "Select Your Country",
     chooseCountryDescription: "Select your country to see lost and found items in your area",
@@ -305,6 +309,7 @@ export const translations = {
     email: "Email",
     noContactProvided: "Aucune information de contact fournie",
     noImage: "Aucune image",
+    untitledPost: "Sans titre",
 
     // Report Post
     reportThisPost: "Signaler",
@@ -435,6 +440,7 @@ export const translations = {
     no: "Non",
     all: "Tous",
     done: "Terminé",
+    ok: "OK",
 
     // Language
     language: "Langue",
@@ -442,9 +448,11 @@ export const translations = {
     english: "Anglais",
     french: "Français",
     arabic: "Arabe",
-    
+
     // Google OAuth
     continueWithGoogle: "Continuer avec Google",
+    authenticationError: "Erreur d'authentification",
+    failedToSaveCountry: "Échec de l'enregistrement du pays. Veuillez réessayer.",
     chooseCountry: "Choisissez votre pays",
     chooseCountryTitle: "Sélectionnez votre pays",
     chooseCountryDescription: "Sélectionnez votre pays pour voir les objets perdus et trouvés dans votre région",
@@ -532,6 +540,7 @@ export const translations = {
     email: "بريد إلكتروني",
     noContactProvided: "لا توجد معلومات تواصل",
     noImage: "لا توجد صورة",
+    untitledPost: "بدون عنوان",
 
     // Report Post
     reportThisPost: "الإبلاغ",
@@ -662,6 +671,7 @@ export const translations = {
     no: "لا",
     all: "الكل",
     done: "تم",
+    ok: "موافق",
 
     // Language
     language: "اللغة",
@@ -669,9 +679,11 @@ export const translations = {
     english: "الإنجليزية",
     french: "الفرنسية",
     arabic: "العربية",
-    
+
     // Google OAuth
     continueWithGoogle: "المتابعة مع جوجل",
+    authenticationError: "خطأ في المصادقة",
+    failedToSaveCountry: "فشل حفظ اختيار البلد. يرجى المحاولة مرة أخرى.",
     chooseCountry: "اختر بلدك",
     chooseCountryTitle: "اختر بلدك",
     chooseCountryDescription: "حدد بلدك لرؤية العناصر المفقودة والموجودة في منطقتك",

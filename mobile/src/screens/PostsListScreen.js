@@ -301,11 +301,11 @@ const PostsListScreen = ({ navigation }) => {
         </View>
       )}
       <View style={styles.postContent}>
-        <Text style={styles.postTitle} numberOfLines={2}>
-          {item.title || 'Untitled'}
+        <Text style={[styles.postTitle, isRTL && styles.textRTL]} numberOfLines={2}>
+          {item.title || t('untitledPost')}
         </Text>
-        <Text style={styles.postDescription} numberOfLines={3}>
-          {item.description || 'No description'}
+        <Text style={[styles.postDescription, isRTL && styles.textRTL]} numberOfLines={3}>
+          {item.description || t('noDescriptionProvided')}
         </Text>
         <Text style={styles.postDate}>
           {item.createdAt ? new Date(item.createdAt).toLocaleDateString() : ''}
@@ -433,7 +433,7 @@ const PostsListScreen = ({ navigation }) => {
       />
 
       <TouchableOpacity
-        style={[styles.fab, isRTL ? styles.fabRTL : styles.fabLTR]}
+        style={styles.fab}
         onPress={handleNewPostPress}
         accessibilityLabel={t('newPost')}
       >
@@ -519,7 +519,7 @@ const styles = StyleSheet.create({
   filterButton: {
     flexDirection: 'row',
     alignItems: 'center',
-    marginLeft: 8,
+    marginStart: 8,
     paddingHorizontal: 14,
     height: 44,
     borderRadius: 8,
@@ -531,7 +531,7 @@ const styles = StyleSheet.create({
     fontSize: 14,
   },
   filterBadge: {
-    marginLeft: 6,
+    marginStart: 6,
     backgroundColor: '#fff',
     borderRadius: 10,
     minWidth: 18,
@@ -559,12 +559,12 @@ const styles = StyleSheet.create({
     borderRadius: 16,
     paddingHorizontal: 12,
     paddingVertical: 6,
-    marginRight: 8,
+    marginEnd: 8,
   },
   activeChipText: {
     color: '#1565C0',
     fontSize: 13,
-    marginRight: 6,
+    marginEnd: 6,
   },
   activeChipRemove: {
     color: '#1565C0',
@@ -679,6 +679,7 @@ const styles = StyleSheet.create({
   fab: {
     position: 'absolute',
     bottom: 24,
+    end: 20,
     width: 56,
     height: 56,
     borderRadius: 28,
@@ -690,12 +691,6 @@ const styles = StyleSheet.create({
     shadowOffset: { width: 0, height: 3 },
     shadowOpacity: 0.3,
     shadowRadius: 5,
-  },
-  fabLTR: {
-    right: 20,
-  },
-  fabRTL: {
-    left: 20,
   },
   fabIcon: {
     color: '#fff',

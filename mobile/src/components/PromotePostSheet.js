@@ -197,7 +197,7 @@ const styles = StyleSheet.create({
     borderWidth: 1,
     borderColor: '#2196F3',
     alignItems: 'center',
-    marginRight: 8,
+    marginEnd: 8,
   },
   cancelButtonText: {
     color: '#2196F3',

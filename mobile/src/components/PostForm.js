@@ -660,14 +660,14 @@ const styles = StyleSheet.create({
     paddingVertical: 8,
     borderRadius: 18,
     backgroundColor: '#f0f0f0',
-    marginRight: 8,
+    marginEnd: 8,
     marginBottom: 8,
   },
   chipSelected: {
     backgroundColor: '#2196F3',
   },
   chipFlag: {
-    marginRight: 4,
+    marginEnd: 4,
     fontSize: 14,
   },
   chipText: {
@@ -736,7 +736,7 @@ const styles = StyleSheet.create({
     borderRadius: 8,
     borderWidth: 1,
     borderColor: '#2196F3',
-    marginRight: 10,
+    marginEnd: 10,
   },
   imageSecondaryButtonText: {
     color: '#2196F3',
@@ -802,7 +802,7 @@ const styles = StyleSheet.create({
     alignItems: 'center',
   },
   submitButtonTextLoading: {
-    marginLeft: 10,
+    marginStart: 10,
   },
   datePickerOverlay: {
     flex: 1,

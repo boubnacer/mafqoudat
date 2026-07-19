@@ -23,11 +23,13 @@ import { useTranslation } from '../utils/translations';
 import { storage } from '../utils/storage';
 import apiClient from '../app/api/apiService';
 import LanguageDropdown from '../components/LanguageDropdown';
+import { getLocalizedLabel } from '../context/ReferenceDataContext';
 
 const WelcomeScreen = ({ navigation }) => {
   const { currentLanguage } = useLanguage();
   const { t } = useTranslation();
-  
+  const isRTL = currentLanguage === 'ar';
+
   const [countries, setCountries] = useState([]);
   const [filteredCountries, setFilteredCountries] = useState([]);
   const [selectedCountry, setSelectedCountry] = useState(null);
@@ -133,7 +135,7 @@ const WelcomeScreen = ({ navigation }) => {
       setFilteredCountries(validCountries);
     } catch (err) {
       console.error('Error loading countries:', err);
-      setError(t('errorLoadingCountries') || 'Failed to load countries');
+      setError(t('errorLoadingCountries'));
       // Use fallback countries
       setCountries(fallbackCountries);
       setFilteredCountries(fallbackCountries);
@@ -145,33 +147,22 @@ const WelcomeScreen = ({ navigation }) => {
   const getCountryName = (country) => {
     if (!country) return '';
     const currentLang = currentLanguage || 'en';
-    
-    // Get the appropriate name based on language (names field contains actual country names)
-    if (country.names && country.names[currentLang]) {
-      return country.names[currentLang];
+
+    // getLocalizedLabel handles the standard names/labels/code fallback chain;
+    // the extra check below is specific to this app's country data, where
+    // `labels[lang]` sometimes stores a 2-letter placeholder code rather than
+    // an actual name - in that case prefer the static country-name mapping.
+    const label = getLocalizedLabel(country, currentLang);
+    if (label && label.length === 2 && label === label.toUpperCase()) {
+      return countryCodeToName[label]?.[currentLang] || country.code || label;
     }
-    
-    // Fallback to labels if names is not available
-    if (country.labels && country.labels[currentLang]) {
-      const label = country.labels[currentLang];
-      // If label is a 2-letter code, try to get the name from mapping
-      if (label && label.length === 2 && label === label.toUpperCase()) {
-        return countryCodeToName[label]?.[currentLang] || country.code;
-      }
-      return label;
-    }
-    
-    // Final fallback to country code mapping
-    if (country.code && countryCodeToName[country.code]) {
-      return countryCodeToName[country.code][currentLang] || country.code;
-    }
-    
-    return country.label || country.code;
+
+    return label || countryCodeToName[country.code]?.[currentLang] || country.code || '';
   };
 
   const handleContinue = async () => {
     if (!selectedCountry) {
-      setError(t('pleaseSelectCountry') || 'Please select your country');
+      setError(t('pleaseSelectCountry'));
       return;
     }
 
@@ -179,12 +170,12 @@ const WelcomeScreen = ({ navigation }) => {
       // Store the selected country
       const countryId = selectedCountry._id || selectedCountry.id;
       await storage.setCurrentCountry(countryId);
-      
+
       // Navigate to login screen
       navigation.replace('Login');
     } catch (err) {
       console.error('Error saving country:', err);
-      setError('Failed to save country selection. Please try again.');
+      setError(t('failedToSaveCountry'));
     }
   };
 
@@ -211,6 +202,7 @@ const WelcomeScreen = ({ navigation }) => {
         <Text
           style={[
             styles.countryName,
+            isRTL && styles.textRTL,
             isSelected && styles.countryNameSelected
           ]}
         >
@@ -229,7 +221,7 @@ const WelcomeScreen = ({ navigation }) => {
         <View style={styles.loadingContainer}>
           <ActivityIndicator size="large" color="#1A6EEE" />
           <Text style={styles.loadingText}>
-            {t('loadingCountries') || 'Loading countries...'}
+            {t('loadingCountries')}
           </Text>
         </View>
       </SafeAreaView>
@@ -266,7 +258,7 @@ const WelcomeScreen = ({ navigation }) => {
           {/* Country Selection Section */}
           <View style={styles.countrySection}>
             <Text style={styles.sectionTitle}>
-              {t('chooseCountryTitle') || t('chooseCountry')}
+              {t('chooseCountryTitle')}
             </Text>
             <Text style={styles.sectionSubtitle}>
               {t('chooseCountryDescription')}
@@ -290,6 +282,7 @@ const WelcomeScreen = ({ navigation }) => {
               <Text
                 style={[
                   styles.countryButtonText,
+                  isRTL && styles.textRTL,
                   !selectedCountry && styles.countryButtonPlaceholder
                 ]}
               >
@@ -308,8 +301,8 @@ const WelcomeScreen = ({ navigation }) => {
               <View style={styles.countryDropdown}>
                 <View style={styles.searchContainer}>
                   <TextInput
-                    style={styles.searchInput}
-                    placeholder={t('searchCountry') || 'Search country...'}
+                    style={[styles.searchInput, isRTL && styles.textRTL]}
+                    placeholder={t('searchCountry')}
                     placeholderTextColor="#999"
                     value={searchQuery}
                     onChangeText={setSearchQuery}
@@ -478,7 +471,7 @@ const styles = StyleSheet.create({
   dropdownArrow: {
     fontSize: 12,
     color: '#666',
-    marginLeft: 8,
+    marginStart: 8,
   },
   countryDropdown: {
     backgroundColor: '#fff',
@@ -525,7 +518,7 @@ const styles = StyleSheet.create({
   },
   countryFlag: {
     fontSize: 24,
-    marginRight: 12,
+    marginEnd: 12,
   },
   countryName: {
     fontSize: 16,
@@ -540,7 +533,10 @@ const styles = StyleSheet.create({
     fontSize: 20,
     color: '#1A6EEE',
     fontWeight: 'bold',
-    marginLeft: 8,
+    marginStart: 8,
+  },
+  textRTL: {
+    textAlign: 'right',
   },
   continueButton: {
     height: 56,

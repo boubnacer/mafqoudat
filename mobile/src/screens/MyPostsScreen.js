@@ -218,7 +218,7 @@ const MyPostsScreen = ({ navigation }) => {
         <View style={styles.postContent}>
           <View style={styles.titleRow}>
             <Text style={[styles.postTitle, isRTL && styles.textRTL]} numberOfLines={1}>
-              {item.title || 'Untitled'}
+              {item.title || t('untitledPost')}
             </Text>
             <View style={[styles.statusBadge, { backgroundColor: statusColor }]}>
               <Text style={styles.statusBadgeText}>{t(statusLabelKey)}</Text>
@@ -256,7 +256,7 @@ const MyPostsScreen = ({ navigation }) => {
       <View style={styles.container}>
         <View style={styles.header}>
           <TouchableOpacity onPress={() => navigation.goBack()} style={styles.backButton}>
-            <Text style={styles.backButtonText}>‹</Text>
+            <Text style={styles.backButtonText}>{isRTL ? '›' : '‹'}</Text>
           </TouchableOpacity>
           <Text style={styles.headerTitle}>{t('myPosts')}</Text>
           <View style={styles.backButton} />
@@ -272,7 +272,7 @@ const MyPostsScreen = ({ navigation }) => {
     <View style={styles.container}>
       <View style={styles.header}>
         <TouchableOpacity onPress={() => navigation.goBack()} style={styles.backButton}>
-          <Text style={styles.backButtonText}>‹</Text>
+          <Text style={styles.backButtonText}>{isRTL ? '›' : '‹'}</Text>
         </TouchableOpacity>
         <Text style={[styles.headerTitle, isRTL && styles.textRTL]} numberOfLines={1}>
           {t('myPosts')}
@@ -406,7 +406,7 @@ const styles = StyleSheet.create({
     fontSize: 16,
     fontWeight: 'bold',
     color: '#333',
-    marginRight: 8,
+    marginEnd: 8,
   },
   statusBadge: {
     paddingHorizontal: 10,
@@ -432,7 +432,7 @@ const styles = StyleSheet.create({
     borderRadius: 8,
     borderWidth: 1,
     borderColor: '#2196F3',
-    marginRight: 8,
+    marginEnd: 8,
   },
   actionButtonText: {
     color: '#2196F3',

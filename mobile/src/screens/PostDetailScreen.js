@@ -22,6 +22,7 @@ import { getCategoryConfig } from '../config/categories';
 import { useLanguage } from '../context/LanguageContext';
 import { useAuth } from '../context/AuthContext';
 import { useTranslation } from '../utils/translations';
+import { getLocalizedLabel } from '../context/ReferenceDataContext';
 import ReportPostSheet from '../components/ReportPostSheet';
 import PromotePostSheet from '../components/PromotePostSheet';
 
@@ -142,7 +143,7 @@ const PostDetailScreen = ({ navigation, route }) => {
   const renderHeader = (showMenu = false) => (
     <View style={styles.header}>
       <TouchableOpacity onPress={() => navigation.goBack()} style={styles.backButton}>
-        <Text style={styles.backButtonText}>‹</Text>
+        <Text style={styles.backButtonText}>{isRTL ? '›' : '‹'}</Text>
       </TouchableOpacity>
       <Text style={styles.headerTitle} numberOfLines={1}>
         {t('postDetails')}
@@ -195,8 +196,7 @@ const PostDetailScreen = ({ navigation, route }) => {
   const isFoundType = foundLostCode === 'FOUND';
   const isLostType = foundLostCode === 'LOST';
   const badgeLabel =
-    floption?.labels?.[currentLanguage] ||
-    floption?.labels?.en ||
+    (floption && getLocalizedLabel(floption, currentLanguage)) ||
     (isFoundType ? t('foundItem') : isLostType ? t('lostItem') : t('unknownStatus'));
   const badgeColor = isFoundType ? '#4CAF50' : isLostType ? '#F44336' : '#FF9800';
 
@@ -204,7 +204,7 @@ const PostDetailScreen = ({ navigation, route }) => {
 
   const cityLabel =
     post.cityName ||
-    (typeof post.city === 'string' ? post.city : post.city?.labels?.[currentLanguage] || post.city?.labels?.en) ||
+    (typeof post.city === 'string' ? post.city : getLocalizedLabel(post.city, currentLanguage)) ||
     null;
 
   const description = post.description && post.description.trim() ? post.description.trim() : t('noDescriptionProvided');
@@ -258,7 +258,7 @@ const PostDetailScreen = ({ navigation, route }) => {
             <View style={styles.chipsRow}>
               {categories.map((cat) => {
                 const config = getCategoryConfig(cat.code);
-                const label = cat.labels?.[currentLanguage] || cat.labels?.en || cat.code;
+                const label = getLocalizedLabel(cat, currentLanguage);
                 return (
                   <View
                     key={cat._id || cat.code}
@@ -508,7 +508,7 @@ const styles = StyleSheet.create({
     paddingHorizontal: 10,
     paddingVertical: 5,
     borderRadius: 14,
-    marginRight: 8,
+    marginEnd: 8,
     marginBottom: 8,
   },
   categoryChipText: {
@@ -554,7 +554,7 @@ const styles = StyleSheet.create({
     paddingVertical: 12,
     paddingHorizontal: 20,
     borderRadius: 8,
-    marginRight: 12,
+    marginEnd: 12,
     marginTop: 4,
   },
   callButton: {
@@ -585,7 +585,7 @@ const styles = StyleSheet.create({
   modalCloseButton: {
     position: 'absolute',
     top: 50,
-    right: 20,
+    end: 20,
     padding: 12,
   },
   modalCloseText: {
@@ -600,7 +600,7 @@ const styles = StyleSheet.create({
   },
   menuCard: {
     marginTop: 90,
-    marginRight: 16,
+    marginEnd: 16,
     backgroundColor: '#fff',
     borderRadius: 8,
     minWidth: 180,

@@ -64,7 +64,7 @@ const PostFilterSheet = ({
         <TouchableOpacity style={styles.backdrop} activeOpacity={1} onPress={onClose} />
         <View style={styles.sheet}>
           <View style={styles.header}>
-            <Text style={styles.headerTitle}>{t('filters')}</Text>
+            <Text style={[styles.headerTitle, textStyle]}>{t('filters')}</Text>
             <TouchableOpacity onPress={onClose} style={styles.closeButton}>
               <Text style={styles.closeButtonText}>✕</Text>
             </TouchableOpacity>
@@ -253,14 +253,14 @@ const styles = StyleSheet.create({
     paddingVertical: 8,
     borderRadius: 18,
     backgroundColor: '#f0f0f0',
-    marginRight: 8,
+    marginEnd: 8,
     marginBottom: 8,
   },
   chipSelected: {
     backgroundColor: '#2196F3',
   },
   chipFlag: {
-    marginRight: 4,
+    marginEnd: 4,
     fontSize: 14,
   },
   chipText: {
@@ -300,7 +300,7 @@ const styles = StyleSheet.create({
     borderWidth: 1,
     borderColor: '#2196F3',
     alignItems: 'center',
-    marginRight: 8,
+    marginEnd: 8,
   },
   clearButtonText: {
     color: '#2196F3',

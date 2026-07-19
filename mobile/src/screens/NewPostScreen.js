@@ -66,7 +66,7 @@ const NewPostScreen = ({ navigation }) => {
     <View style={styles.container}>
       <View style={styles.header}>
         <TouchableOpacity onPress={() => navigation.goBack()} style={styles.backButton}>
-          <Text style={styles.backButtonText}>‹</Text>
+          <Text style={styles.backButtonText}>{isRTL ? '›' : '‹'}</Text>
         </TouchableOpacity>
         <Text style={[styles.headerTitle, isRTL && styles.textRTL]} numberOfLines={1}>
           {t('createNewPost')}

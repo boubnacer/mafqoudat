@@ -42,7 +42,7 @@ const SettingsScreen = ({ navigation }) => {
     <View style={styles.container}>
       <View style={styles.header}>
         <TouchableOpacity onPress={() => navigation.goBack()} style={styles.backButton}>
-          <Text style={styles.backButtonText}>‹</Text>
+          <Text style={styles.backButtonText}>{isRTL ? '›' : '‹'}</Text>
         </TouchableOpacity>
         <Text style={[styles.headerTitle, textStyle]} numberOfLines={1}>
           {t('settings')}
@@ -145,7 +145,7 @@ const styles = StyleSheet.create({
     backgroundColor: '#fff',
     borderWidth: 1,
     borderColor: '#e0e0e0',
-    marginRight: 8,
+    marginEnd: 8,
     marginBottom: 8,
   },
   chipSelected: {

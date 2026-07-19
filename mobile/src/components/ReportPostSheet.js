@@ -241,7 +241,7 @@ const styles = StyleSheet.create({
     borderColor: '#999',
     justifyContent: 'center',
     alignItems: 'center',
-    marginRight: 12,
+    marginEnd: 12,
   },
   radioOuterSelected: {
     borderColor: '#2196F3',
@@ -289,7 +289,7 @@ const styles = StyleSheet.create({
     borderWidth: 1,
     borderColor: '#2196F3',
     alignItems: 'center',
-    marginRight: 8,
+    marginEnd: 8,
   },
   cancelButtonText: {
     color: '#2196F3',

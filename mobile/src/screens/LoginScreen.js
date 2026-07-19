@@ -22,7 +22,8 @@ const LoginScreen = ({ navigation }) => {
   const { signInWithGoogle, completeLogin, isLoading: googleLoading, error: googleError, clearError } = useAuth();
   const { currentLanguage } = useLanguage();
   const { t } = useTranslation();
-  
+  const isRTL = currentLanguage === 'ar';
+
   // Form states
   const [emailOrPhone, setEmailOrPhone] = useState('');
   const [password, setPassword] = useState('');
@@ -32,8 +33,8 @@ const LoginScreen = ({ navigation }) => {
 
   React.useEffect(() => {
     if (googleError) {
-      Alert.alert('Authentication Error', googleError, [
-        { text: 'OK', onPress: clearError }
+      Alert.alert(t('authenticationError'), googleError, [
+        { text: t('ok'), onPress: clearError }
       ]);
     }
   }, [googleError, clearError]);
@@ -106,11 +107,11 @@ const LoginScreen = ({ navigation }) => {
         navigation.navigate('CountrySelection');
       } else if (!result.cancelled) {
         console.error('❌ Google sign in failed:', result.error);
-        setError(result.error || 'Google authentication failed');
+        setError(result.error || t('oauthError'));
       }
     } catch (err) {
       console.error('Google login error:', err);
-      setError(err.message || 'Google authentication failed');
+      setError(err.message || t('oauthError'));
     } finally {
       setIsGoogleLoading(false);
     }
@@ -127,10 +128,10 @@ const LoginScreen = ({ navigation }) => {
       >
         <View style={styles.content}>
           <View style={styles.headerRow}>
-            <Text style={styles.title}>{t('brandName') || 'Mafqoudat'}</Text>
+            <Text style={styles.title}>{t('brandName')}</Text>
             <LanguageDropdown />
           </View>
-          <Text style={styles.subtitle}>{t('loginToAccount') || 'Login to your account'}</Text>
+          <Text style={styles.subtitle}>{t('loginToAccount')}</Text>
 
           {error ? (
             <View style={styles.errorContainer}>
@@ -151,7 +152,7 @@ const LoginScreen = ({ navigation }) => {
               <>
                 <Text style={styles.googleIcon}>G</Text>
                 <Text style={styles.googleButtonText}>
-                  {t('continueWithGoogle') || 'Continue with Google'}
+                  {t('continueWithGoogle')}
                 </Text>
               </>
             )}
@@ -160,15 +161,15 @@ const LoginScreen = ({ navigation }) => {
           {/* Divider */}
           <View style={styles.dividerContainer}>
             <View style={styles.dividerLine} />
-            <Text style={styles.dividerText}>{t('or') || 'OR'}</Text>
+            <Text style={styles.dividerText}>{t('or')}</Text>
             <View style={styles.dividerLine} />
           </View>
 
           {/* Traditional Login Form */}
           <View style={styles.form}>
             <TextInput
-              style={styles.input}
-              placeholder={t('emailOrPhonePlaceholder') || 'Email or Phone'}
+              style={[styles.input, isRTL && styles.textRTL]}
+              placeholder={t('emailOrPhonePlaceholder')}
               placeholderTextColor="#999"
               value={emailOrPhone}
               onChangeText={setEmailOrPhone}
@@ -178,8 +179,8 @@ const LoginScreen = ({ navigation }) => {
             />
 
             <TextInput
-              style={styles.input}
-              placeholder={t('passwordPlaceholder') || 'Password'}
+              style={[styles.input, isRTL && styles.textRTL]}
+              placeholder={t('passwordPlaceholder')}
               placeholderTextColor="#999"
               value={password}
               onChangeText={setPassword}
@@ -196,7 +197,7 @@ const LoginScreen = ({ navigation }) => {
               {isLoading ? (
                 <ActivityIndicator color="#fff" />
               ) : (
-                <Text style={styles.buttonText}>{t('login') || 'Login'}</Text>
+                <Text style={styles.buttonText}>{t('login')}</Text>
               )}
             </TouchableOpacity>
           </View>
@@ -291,6 +292,9 @@ const styles = StyleSheet.create({
     color: '#c62828',
     fontSize: 14,
     textAlign: 'center',
+  },
+  textRTL: {
+    textAlign: 'right',
   },
   googleButton: {
     flexDirection: 'row',
