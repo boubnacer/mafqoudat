@@ -115,6 +115,7 @@ export const translations = {
     thisFieldRequired: "This field is required",
     pleaseCompleteRequiredFields: "Please complete the required fields above",
     continue: "Continue",
+    failedToLoadFormData: "Failed to load form data. Please check your connection and try again.",
 
     // Common
     loading: "Loading...",
@@ -269,6 +270,7 @@ export const translations = {
     thisFieldRequired: "Ce champ est requis",
     pleaseCompleteRequiredFields: "Veuillez compléter les champs requis ci-dessus",
     continue: "Continuer",
+    failedToLoadFormData: "Échec du chargement des données. Veuillez vérifier votre connexion et réessayer.",
 
     // Common
     loading: "Chargement...",
@@ -423,6 +425,7 @@ export const translations = {
     thisFieldRequired: "هذا الحقل مطلوب",
     pleaseCompleteRequiredFields: "يرجى إكمال الحقول المطلوبة أعلاه",
     continue: "متابعة",
+    failedToLoadFormData: "فشل تحميل بيانات النموذج. يرجى التحقق من اتصالك والمحاولة مرة أخرى.",
 
     // Common
     loading: "جاري التحميل...",

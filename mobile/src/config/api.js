@@ -50,4 +50,7 @@ export const API_ENDPOINTS = {
   },
 };
 
-export const API_TIMEOUT = 30000; // 30 seconds
+// The backend (Render free tier) cold-starts after idling and can take 30-50s
+// to wake up and answer the first request - 30s was cutting that close and
+// causing spurious client-side timeouts right as the server came up.
+export const API_TIMEOUT = 45000; // 45 seconds

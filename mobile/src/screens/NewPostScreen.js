@@ -81,7 +81,15 @@ const compressImageAsset = async (asset) => {
 const NewPostScreen = ({ navigation }) => {
   const { currentLanguage } = useLanguage();
   const { t } = useTranslation();
-  const { floptions, categories, countries, getCities, isLoading: referenceDataLoading } = useReferenceData();
+  const {
+    floptions,
+    categories,
+    countries,
+    getCities,
+    isLoading: referenceDataLoading,
+    error: referenceDataError,
+    retry: retryReferenceData,
+  } = useReferenceData();
   const isRTL = currentLanguage === 'ar';
 
   const [userId, setUserId] = useState(null);
@@ -350,6 +358,20 @@ const NewPostScreen = ({ navigation }) => {
         {renderHeader()}
         <View style={styles.centerContainer}>
           <ActivityIndicator size="large" color="#2196F3" />
+        </View>
+      </View>
+    );
+  }
+
+  if (referenceDataError) {
+    return (
+      <View style={styles.container}>
+        {renderHeader()}
+        <View style={styles.centerContainer}>
+          <Text style={[styles.errorBannerText, textStyle]}>{t('failedToLoadFormData')}</Text>
+          <TouchableOpacity onPress={retryReferenceData} style={styles.retryButton}>
+            <Text style={styles.retryButtonText}>{t('retry')}</Text>
+          </TouchableOpacity>
         </View>
       </View>
     );
