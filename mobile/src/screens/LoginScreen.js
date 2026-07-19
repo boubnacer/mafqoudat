@@ -17,6 +17,7 @@ import { useTranslation } from '../utils/translations';
 import LanguageDropdown from '../components/LanguageDropdown';
 import apiClient from '../api/apiService';
 import { API_ENDPOINTS } from '../config/api';
+import { IS_GOOGLE_AUTH_CONFIGURED } from '../utils/googleAuth';
 
 const LoginScreen = ({ navigation }) => {
   const {
@@ -164,9 +165,12 @@ const LoginScreen = ({ navigation }) => {
 
           {/* Google OAuth Button */}
           <TouchableOpacity
-            style={[styles.googleButton, isGoogleLoading && styles.buttonDisabled]}
+            style={[
+              styles.googleButton,
+              (isGoogleLoading || !IS_GOOGLE_AUTH_CONFIGURED) && styles.buttonDisabled,
+            ]}
             onPress={handleGoogleLogin}
-            disabled={isGoogleLoading}
+            disabled={isGoogleLoading || !IS_GOOGLE_AUTH_CONFIGURED}
             activeOpacity={0.7}
           >
             {isGoogleLoading ? (
@@ -180,6 +184,9 @@ const LoginScreen = ({ navigation }) => {
               </>
             )}
           </TouchableOpacity>
+          {!IS_GOOGLE_AUTH_CONFIGURED ? (
+            <Text style={styles.googleAuthHint}>{t('googleAuthNotConfigured')}</Text>
+          ) : null}
 
           {/* Divider */}
           <View style={styles.dividerContainer}>
@@ -351,6 +358,13 @@ const styles = StyleSheet.create({
     color: '#333',
     fontSize: 16,
     fontWeight: '500',
+  },
+  googleAuthHint: {
+    color: '#999',
+    fontSize: 12,
+    textAlign: 'center',
+    marginTop: -8,
+    marginBottom: 16,
   },
   dividerContainer: {
     flexDirection: 'row',

@@ -3,6 +3,7 @@ import { StatusBar } from 'expo-status-bar';
 import { NavigationContainer } from '@react-navigation/native';
 import { createNativeStackNavigator } from '@react-navigation/native-stack';
 import { SafeAreaProvider } from 'react-native-safe-area-context';
+import { validateEnv } from './src/config/validateEnv';
 import { LanguageProvider } from './src/context/LanguageContext';
 import { AuthProvider, useAuth } from './src/context/AuthContext';
 import { MaintenanceProvider, useMaintenance } from './src/context/MaintenanceContext';
@@ -21,6 +22,9 @@ import ProfileScreen from './src/screens/ProfileScreen';
 import EditProfileScreen from './src/screens/EditProfileScreen';
 import SettingsScreen from './src/screens/SettingsScreen';
 import { ActivityIndicator, View, StyleSheet, Text } from 'react-native';
+
+// Runs once, at module evaluation, before anything renders - see validateEnv.js.
+validateEnv();
 
 const Stack = createNativeStackNavigator();
 

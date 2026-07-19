@@ -1,3 +1,4 @@
+import { Alert, Platform } from 'react-native';
 import * as Google from 'expo-auth-session/providers/google';
 import * as WebBrowser from 'expo-web-browser';
 import {
@@ -8,6 +9,7 @@ import {
   GOOGLE_ANDROID_CLIENT_ID,
   GOOGLE_MOBILE_CALLBACK_URL,
 } from '../config/api';
+import { useTranslation } from './translations';
 
 // Minimal query-string parser for the deep-link callback URL - avoids depending on
 // URLSearchParams, which isn't guaranteed to exist in every Hermes/RN version.
@@ -24,17 +26,41 @@ const parseQueryParams = (url) => {
 
 WebBrowser.maybeCompleteAuthSession();
 
+// expo-auth-session picks iosClientId/androidClientId/webClientId strictly by
+// `Platform.OS` with no fallback, and throws synchronously (crashing the app on
+// render, not just the sign-in button) if the one it needs is `undefined` - which
+// is exactly what happens on any machine without a mobile/.env (see .env.example).
+// EXPO_PUBLIC_* vars are inlined by Metro at build time, so this resolves to the
+// same value for the entire lifetime of a running bundle: computing it once here,
+// at module scope, means the hook below always takes the same branch on every
+// render for a given app instance, which is what keeps the conditional
+// Google.useIdTokenAuthRequest call from violating the Rules of Hooks (the rule
+// is about a condition that can change between renders - this one structurally can't).
+const resolvePlatformClientId = () => {
+  if (Platform.OS === 'ios') return GOOGLE_IOS_CLIENT_ID || GOOGLE_WEB_CLIENT_ID;
+  if (Platform.OS === 'android') return GOOGLE_ANDROID_CLIENT_ID || GOOGLE_WEB_CLIENT_ID;
+  return GOOGLE_WEB_CLIENT_ID;
+};
+
+export const IS_GOOGLE_AUTH_CONFIGURED = Boolean(resolvePlatformClientId());
+
 /**
  * Hook wrapping expo-auth-session's native Google ID-token flow.
- *
- * expo-auth-session picks iosClientId/androidClientId/webClientId strictly by
- * `Platform.OS` with no fallback, and throws synchronously (crashing the app on
- * render, not just the sign-in button) if the one it needs is `undefined`. We fall
- * back to the web client ID here purely to keep the app from crashing before the iOS/
- * Android OAuth clients are configured — actually completing native sign-in still
- * requires the real platform-specific client ID (see mobile/AUTH.md).
+ * When unconfigured, returns the same [request, response, promptAsync] shape
+ * expo-auth-session would, with request/response null and a promptAsync that
+ * surfaces a clear message instead of ever calling into expo-auth-session.
  */
 export const useGoogleIdTokenAuth = () => {
+  const { t } = useTranslation();
+
+  if (!IS_GOOGLE_AUTH_CONFIGURED) {
+    const promptAsync = async () => {
+      Alert.alert(t('error'), t('googleAuthNotConfigured'));
+      return { type: 'error', error: new Error('Google sign-in is not configured for this build') };
+    };
+    return [null, null, promptAsync];
+  }
+
   return Google.useIdTokenAuthRequest({
     iosClientId: GOOGLE_IOS_CLIENT_ID || GOOGLE_WEB_CLIENT_ID,
     androidClientId: GOOGLE_ANDROID_CLIENT_ID || GOOGLE_WEB_CLIENT_ID,

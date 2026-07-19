@@ -28,6 +28,9 @@ cp .env.example .env
 ```bash
 npm start
 ```
+This opens in **Expo Go** mode (the daily-driver workflow) - scan the QR code with the
+Expo Go app. If you've installed a custom development build instead (see `BUILD.md`),
+use `npm run start:dev` instead - its QR code will not open in Expo Go, and vice versa.
 
 ## Development
 
@@ -52,13 +55,12 @@ npm run build:ios
 ```
 mobile/
 ├── src/
-│   ├── features/        # Feature-based modules (auth, posts, etc.)
 │   ├── screens/         # Screen components
 │   ├── components/      # Reusable components
-│   ├── app/            # App configuration, store, API
-│   ├── hooks/          # Custom React hooks
-│   ├── utils/          # Utility functions
-│   └── config/         # Configuration files
+│   ├── context/         # React context providers (auth, language, maintenance...)
+│   ├── api/             # Axios client + interceptors
+│   ├── utils/           # Utility functions
+│   └── config/          # Configuration files, env-var validation
 ├── assets/               # Static assets (images, icons)
 └── App.js              # Main app entry point
 ```

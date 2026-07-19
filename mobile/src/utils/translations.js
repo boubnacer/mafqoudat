@@ -240,6 +240,7 @@ export const translations = {
     registrationFailed: "Failed to complete registration. Please try again.",
     pendingTokenExpired: "Your Google sign-in session has expired. Please sign in again.",
     oauthError: "Google authentication failed. Please try again.",
+    googleAuthNotConfigured: "Google sign-in is not configured for this build.",
     or: "OR",
   },
   
@@ -478,6 +479,7 @@ export const translations = {
     registrationFailed: "Échec de l'inscription. Veuillez réessayer.",
     pendingTokenExpired: "Votre session de connexion Google a expiré. Veuillez vous reconnecter.",
     oauthError: "L'authentification Google a échoué. Veuillez réessayer.",
+    googleAuthNotConfigured: "La connexion Google n'est pas configurée pour cette version.",
     or: "OU",
   },
   
@@ -716,6 +718,7 @@ export const translations = {
     registrationFailed: "فشل إتمام التسجيل. يرجى المحاولة مرة أخرى.",
     pendingTokenExpired: "انتهت صلاحية جلسة تسجيل الدخول عبر جوجل. يرجى تسجيل الدخول مرة أخرى.",
     oauthError: "فشل المصادقة عبر جوجل. يرجى المحاولة مرة أخرى.",
+    googleAuthNotConfigured: "تسجيل الدخول عبر جوجل غير مُهيأ لهذا الإصدار.",
     or: "أو",
   }
 };

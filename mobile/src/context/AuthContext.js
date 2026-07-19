@@ -1,7 +1,7 @@
 import React, { createContext, useCallback, useContext, useEffect, useReducer, useState } from 'react';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { jwtDecode } from 'jwt-decode';
-import googleAuth, { useGoogleIdTokenAuth } from '../utils/googleAuth';
+import googleAuth, { useGoogleIdTokenAuth, IS_GOOGLE_AUTH_CONFIGURED } from '../utils/googleAuth';
 import { storage } from '../utils/storage';
 import { decodeToken } from '../utils/tokenUtils';
 import { USE_NATIVE_GOOGLE_AUTH } from '../config/api';
@@ -175,6 +175,10 @@ export const AuthProvider = ({ children }) => {
 
   // Native path (default): expo-auth-session ID-token request -> POST /auth/google/mobile.
   const signInWithGoogleNative = async () => {
+    if (!IS_GOOGLE_AUTH_CONFIGURED) {
+      return { success: false, error: 'Google sign-in is not configured for this build' };
+    }
+
     if (!request) {
       return { success: false, error: 'Google sign-in is not ready yet, please try again' };
     }

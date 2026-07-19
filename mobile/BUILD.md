@@ -26,6 +26,21 @@ changed in this pass and what's still a manual, one-person-with-credentials step
   and neither file existed. **These are load-bearing placeholders, not real assets -
   see "Flagged for design" below.**
 - Added `expo-dev-client` as a dependency (required for the `development` build profile).
+  Its mere presence makes `expo start` default to development-build mode, whose QR
+  code Expo Go can't open - fixed below in "Local development modes."
+- Removing the hardcoded fallback in `src/config/api.js` surfaced a real crash: without
+  a `mobile/.env`, `GOOGLE_WEB_CLIENT_ID` was `undefined`, and `AuthContext.js` calls
+  `useGoogleIdTokenAuth()` (from `src/utils/googleAuth.js`) unconditionally on every app
+  launch - `expo-auth-session` throws synchronously when the client ID it needs is
+  `undefined`, crashing the whole app at first render (in Expo Go this looked like the
+  splash screen followed by an immediate exit, no visible error). Fixed: `googleAuth.js`
+  now checks `IS_GOOGLE_AUTH_CONFIGURED` (a module-level constant, safe under the Rules
+  of Hooks since it can't change between renders - env vars are inlined at build time)
+  and returns a safe `[null, null, promptAsync]` instead of calling the real hook when
+  unconfigured; `LoginScreen.js` disables the Google button with a hint in that case;
+  `src/config/validateEnv.js` (called once at the top of `App.js`) warns loudly in the
+  Metro log about any other missing `EXPO_PUBLIC_*` vars instead of letting a feature
+  fail silently.
 
 ## One-time setup (you need to do this - requires your Expo account)
 
@@ -62,7 +77,26 @@ cp .env.example .env
 ```
 Fill in `.env` with real values (the committed `.env.example` defaults match what's
 already in `eas.json`'s per-profile `env` blocks, i.e. the current production values -
-copy them across if you don't have different ones).
+copy them across if you don't have different ones). If you skip this, the app now
+degrades gracefully instead of crashing (see `src/config/validateEnv.js`'s Metro-log
+warning and the disabled Google button), but you'll only be able to test password login.
+
+## Local development modes: Expo Go vs. development build
+
+`expo-dev-client` is installed (needed for the `development` EAS profile above), and
+its presence changes what a plain `expo start` defaults to. Two scripts, two purposes:
+
+- **`npm start`** → `expo start --clear --go` - forces **Expo Go** mode. This is the
+  daily-driver command; scan the QR code with the Expo Go app. Use this unless you've
+  specifically installed a development build on your device.
+- **`npm run start:dev`** → `expo start --clear` - **development-build** mode. Only
+  useful once you've installed the `development` EAS profile's build on a device (it
+  replaces Expo Go with a custom client that includes this project's native modules).
+  Its QR code will not open in Expo Go - if you scan it with Expo Go by mistake, the
+  connection will just hang.
+
+If you ever need to swap modes mid-session without restarting, press **`s`** in the
+terminal running either command - it toggles between the two.
 
 ## Flagged for design (placeholder-quality, do not ship as final)
 
