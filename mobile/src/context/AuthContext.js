@@ -4,6 +4,7 @@ import { jwtDecode } from 'jwt-decode';
 import googleAuth, { useGoogleIdTokenAuth } from '../utils/googleAuth';
 import { storage } from '../utils/storage';
 import { decodeToken } from '../utils/tokenUtils';
+import { USE_NATIVE_GOOGLE_AUTH } from '../config/api';
 
 // Legacy AsyncStorage keys from the old (pre-SecureStore) storage scheme
 const LEGACY_TOKEN_KEY = 'authToken';
@@ -103,6 +104,9 @@ const migrateLegacyStorage = async () => {
 export const AuthProvider = ({ children }) => {
   const [state, dispatch] = useReducer(authReducer, initialState);
   const [pendingToken, setPendingToken] = useState(null);
+  // Which flow minted pendingToken ('native' | 'browser') - the two live in separate
+  // in-memory maps server-side, so completion must be routed back to the same one.
+  const [pendingAuthMethod, setPendingAuthMethod] = useState('native');
   const [request, response, promptAsync] = useGoogleIdTokenAuth();
 
   // Shared by every path that ends up with a valid access token (password login,
@@ -147,44 +151,50 @@ export const AuthProvider = ({ children }) => {
     }
   };
 
+  // Native path (default): expo-auth-session ID-token request -> POST /auth/google/mobile.
+  const signInWithGoogleNative = async () => {
+    if (!request) {
+      return { success: false, error: 'Google sign-in is not ready yet, please try again' };
+    }
+
+    console.log('🚀 Starting native Google sign in...');
+    const promptResult = await promptAsync();
+
+    if (promptResult.type === 'cancel' || promptResult.type === 'dismiss') {
+      return { success: false, cancelled: true };
+    }
+
+    if (promptResult.type !== 'success') {
+      return { success: false, error: 'Google sign-in failed' };
+    }
+
+    const idToken = promptResult.params?.id_token;
+    if (!idToken) {
+      return { success: false, error: 'No ID token received from Google' };
+    }
+
+    // Decode the Google ID token client-side just to get the email/name the
+    // server's /auth/google/mobile contract cross-checks against the verified token.
+    const googlePayload = jwtDecode(idToken);
+    return googleAuth.verifyIdToken(idToken, {
+      email: googlePayload.email,
+      name: googlePayload.name,
+    });
+  };
+
   const signInWithGoogle = async () => {
     try {
       dispatch({ type: AUTH_ACTIONS.SET_LOADING, payload: true });
       dispatch({ type: AUTH_ACTIONS.CLEAR_ERROR });
 
-      if (!request) {
-        const message = 'Google sign-in is not ready yet, please try again';
-        dispatch({ type: AUTH_ACTIONS.SET_ERROR, payload: message });
-        return { success: false, error: message };
-      }
+      const method = USE_NATIVE_GOOGLE_AUTH ? 'native' : 'browser';
+      const authResult = USE_NATIVE_GOOGLE_AUTH
+        ? await signInWithGoogleNative()
+        : await googleAuth.signInWithGoogleBrowser();
 
-      console.log('🚀 Starting native Google sign in...');
-      const promptResult = await promptAsync();
-
-      if (promptResult.type === 'cancel' || promptResult.type === 'dismiss') {
+      if (authResult.cancelled) {
         return { success: false, cancelled: true };
       }
-
-      if (promptResult.type !== 'success') {
-        const message = 'Google sign-in failed';
-        dispatch({ type: AUTH_ACTIONS.SET_ERROR, payload: message });
-        return { success: false, error: message };
-      }
-
-      const idToken = promptResult.params?.id_token;
-      if (!idToken) {
-        const message = 'No ID token received from Google';
-        dispatch({ type: AUTH_ACTIONS.SET_ERROR, payload: message });
-        return { success: false, error: message };
-      }
-
-      // Decode the Google ID token client-side just to get the email/name the
-      // server's /auth/google/mobile contract cross-checks against the verified token.
-      const googlePayload = jwtDecode(idToken);
-      const authResult = await googleAuth.verifyIdToken(idToken, {
-        email: googlePayload.email,
-        name: googlePayload.name,
-      });
 
       if (authResult.success && authResult.accessToken) {
         const user = await persistSession(authResult.accessToken);
@@ -195,6 +205,7 @@ export const AuthProvider = ({ children }) => {
       if (authResult.pending && authResult.pendingToken) {
         console.log('⏳ New user, needs country selection');
         setPendingToken(authResult.pendingToken);
+        setPendingAuthMethod(method);
         return { success: false, pending: true, pendingToken: authResult.pendingToken };
       }
 
@@ -222,11 +233,12 @@ export const AuthProvider = ({ children }) => {
       }
 
       console.log('🔄 Completing Google registration...');
-      const result = await googleAuth.completeRegistration(pendingToken, countryId);
+      const result = await googleAuth.completeRegistration(pendingToken, countryId, pendingAuthMethod);
 
       if (result.success && result.accessToken) {
         const user = await persistSession(result.accessToken, { username: result.username });
         setPendingToken(null);
+        setPendingAuthMethod('native');
 
         console.log('✅ Google registration completed successfully');
         return { success: true, user };

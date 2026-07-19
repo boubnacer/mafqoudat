@@ -19,13 +19,26 @@ export const GOOGLE_IOS_CLIENT_ID = process.env.EXPO_PUBLIC_GOOGLE_IOS_CLIENT_ID
 
 export const GOOGLE_ANDROID_CLIENT_ID = process.env.EXPO_PUBLIC_GOOGLE_ANDROID_CLIENT_ID;
 
+// Native ID-token exchange (expo-auth-session, POST /auth/google/mobile) is the default:
+// it works in Expo Go and doesn't leave the app. The legacy in-app-browser + deep-link
+// bridge (server/views/mobile-callback.html) is kept as an instant fallback in case the
+// native flow misbehaves on a real device - flip this to 'false' to switch back to it.
+// Note the browser fallback only works in a standalone/dev-client build: Expo Go doesn't
+// register the app for the `mafqoudat://` scheme, so the deep-link handoff can't resolve there.
+export const USE_NATIVE_GOOGLE_AUTH =
+  process.env.EXPO_PUBLIC_USE_NATIVE_GOOGLE_AUTH !== "false";
+
+// The server's mobile-callback.html always redirects here verbatim regardless of any
+// redirect_uri passed to /auth/google - it is not templated, so this must match exactly.
+export const GOOGLE_MOBILE_CALLBACK_URL = "mafqoudat://auth/callback";
+
 export const API_ENDPOINTS = {
   AUTH: {
     LOGIN: "/auth",
     LOGOUT: "/auth/logout",
     GOOGLE: "/auth/google",
     GOOGLE_CALLBACK: "/auth/google/callback",
-    GOOGLE_COMPLETE: "/auth/google/complete",
+    GOOGLE_COMPLETE: "/auth/complete",
     GOOGLE_MOBILE: "/auth/google/mobile",
     GOOGLE_MOBILE_COMPLETE: "/auth/google/mobile/complete",
   },
