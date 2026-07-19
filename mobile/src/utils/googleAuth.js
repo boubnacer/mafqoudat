@@ -56,7 +56,13 @@ export const useGoogleIdTokenAuth = () => {
   if (!IS_GOOGLE_AUTH_CONFIGURED) {
     const promptAsync = async () => {
       Alert.alert(t('error'), t('googleAuthNotConfigured'));
-      return { type: 'error', error: new Error('Google sign-in is not configured for this build') };
+      // Matches expo-auth-session's real AuthSessionResult shape for the 'error' variant
+      // (errorCode is required there, not optional) in case anything ever inspects it.
+      return {
+        type: 'error',
+        errorCode: 'not_configured',
+        error: new Error('Google sign-in is not configured for this build'),
+      };
     };
     return [null, null, promptAsync];
   }

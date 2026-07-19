@@ -77,7 +77,13 @@ export default {
         {
           photosPermission: "The app accesses your photos to let you share them for lost and found items."
         }
-      ]
+      ],
+      // Required by expo-web-browser v15+ (config plugin sets up the native
+      // browser-session support used by the legacy Google auth fallback flow).
+      "expo-web-browser",
+      // Required by expo-secure-store v15+ (config plugin sets Android's
+      // faceIDPermission / no-op iOS entries; no custom options needed here).
+      "expo-secure-store"
     ],
     // EXPO_PUBLIC_-prefixed vars are inlined directly into the JS bundle at build time
     // (see src/config/api.js, which reads process.env.EXPO_PUBLIC_* directly) - mirroring
