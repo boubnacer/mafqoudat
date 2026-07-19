@@ -164,7 +164,10 @@ const PostsListScreen = ({ navigation }) => {
   };
 
   const renderPost = ({ item }) => (
-    <TouchableOpacity style={styles.postCard}>
+    <TouchableOpacity
+      style={styles.postCard}
+      onPress={() => navigation.navigate('PostDetailScreen', { id: item?._id || item?.id })}
+    >
       {item.image ? (
         <Image
           source={{ uri: item.image.startsWith('http') ? item.image : `${API_BASE_URL}/${item.image}` }}

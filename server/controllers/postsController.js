@@ -549,9 +549,12 @@ const getPost = async (req, res) => {
           contact: 1,
           image: 1,
           foundLost: 1,
+          Floptions: 1,
           description: 1,
           contactPreferences: 1,
           mainDate: 1,
+          status: 1,
+          views: 1,
         },
       },
     ]);
