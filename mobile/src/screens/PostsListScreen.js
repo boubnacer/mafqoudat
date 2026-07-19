@@ -19,10 +19,12 @@ import { API_ENDPOINTS, API_BASE_URL } from '../config/api';
 import { storage } from '../utils/storage';
 import { useLanguage } from '../context/LanguageContext';
 import { useTranslation } from '../utils/translations';
+import { useAuthNew } from '../context/AuthContextNew';
 
 const PostsListScreen = ({ navigation }) => {
   const { currentLanguage } = useLanguage();
   const { t } = useTranslation();
+  const { signOut } = useAuthNew();
   const [posts, setPosts] = useState([]);
   const [isLoading, setIsLoading] = useState(true);
   const [isRefreshing, setIsRefreshing] = useState(false);
@@ -136,8 +138,9 @@ const PostsListScreen = ({ navigation }) => {
       
       if (err.response?.status === 401) {
         setError(t('sessionExpired'));
-        // Navigate back to login
-        navigation.replace('Login');
+        // Clearing auth via context flips isSignedIn, which drives RootNavigator
+        // back to the Login screen automatically.
+        await signOut();
       } else if (err.response?.status === 400) {
         setError(err.response?.data?.message || t('countryNotSet'));
       } else {
@@ -201,10 +204,7 @@ const PostsListScreen = ({ navigation }) => {
       <View style={styles.header}>
         <Text style={styles.headerTitle}>{t('posts')}</Text>
         <TouchableOpacity
-          onPress={async () => {
-            await storage.clearAll();
-            navigation.replace('Login');
-          }}
+          onPress={signOut}
           style={styles.logoutButton}
         >
           <Text style={styles.logoutText}>{t('logout')}</Text>
