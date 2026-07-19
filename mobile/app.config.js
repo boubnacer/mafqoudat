@@ -6,6 +6,17 @@ export default {
     name: "Mafqoudat",
     slug: "mafqoudat",
     version: "1.0.0",
+    // Without an explicit policy, expo-updates (installed but not otherwise configured -
+    // this app doesn't use EAS Update/OTA) defaults a config-driven (CNG) project to a
+    // "fingerprint" runtime version. Expo Go's dev server can only resolve the
+    // "sdkVersion" policy ("Unable to determine redirect location for runtime 'custom'"
+    // otherwise) - pinning this is what makes `expo start --go` work again.
+    runtimeVersion: {
+      policy: "sdkVersion"
+    },
+    updates: {
+      enabled: false
+    },
     orientation: "portrait",
     icon: "./assets/icon.png",
     userInterfaceStyle: "light",
