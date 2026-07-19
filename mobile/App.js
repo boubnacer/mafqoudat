@@ -5,6 +5,7 @@ import { createNativeStackNavigator } from '@react-navigation/native-stack';
 import { SafeAreaProvider } from 'react-native-safe-area-context';
 import { LanguageProvider } from './src/context/LanguageContext';
 import { AuthProvider, useAuth } from './src/context/AuthContext';
+import { ReferenceDataProvider } from './src/context/ReferenceDataContext';
 import WelcomeScreen from './src/screens/WelcomeScreen';
 import LoginScreen from './src/screens/LoginScreen';
 import CountrySelectionScreen from './src/screens/CountrySelectionScreen';
@@ -29,11 +30,13 @@ const AuthNavigator = () => {
 // App navigator component
 const AppNavigator = () => {
   return (
-    <Stack.Navigator screenOptions={{ headerShown: false }}>
-      <Stack.Screen name="PostsListScreen" component={PostsListScreen} />
-      <Stack.Screen name="PostDetailScreen" component={PostDetailScreen} />
-      {/* Add other authenticated screens here */}
-    </Stack.Navigator>
+    <ReferenceDataProvider>
+      <Stack.Navigator screenOptions={{ headerShown: false }}>
+        <Stack.Screen name="PostsListScreen" component={PostsListScreen} />
+        <Stack.Screen name="PostDetailScreen" component={PostDetailScreen} />
+        {/* Add other authenticated screens here */}
+      </Stack.Navigator>
+    </ReferenceDataProvider>
   );
 };
 

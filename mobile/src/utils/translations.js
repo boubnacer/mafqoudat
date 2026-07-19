@@ -35,6 +35,16 @@ export const translations = {
     loadingPosts: "Loading posts...",
     failedToLoadPosts: "Failed to load posts. Please try again.",
     countryNotSet: "Country not set. Please login again.",
+    searchPlaceholder: "Search posts...",
+    filters: "Filters",
+    postType: "Type",
+    categories: "Categories",
+    city: "City",
+    allCities: "All Cities",
+    searchCity: "Search city...",
+    country: "Country",
+    clearFilters: "Clear filters",
+    noResultsFilters: "No posts match your filters",
 
     // Post Details
     postDetails: "Post Details",
@@ -86,7 +96,9 @@ export const translations = {
     confirm: "Confirm",
     yes: "Yes",
     no: "No",
-    
+    all: "All",
+    done: "Done",
+
     // Language
     language: "Language",
     selectLanguage: "Select Language",
@@ -140,6 +152,16 @@ export const translations = {
     loadingPosts: "Chargement des publications...",
     failedToLoadPosts: "Échec du chargement des publications. Veuillez réessayer.",
     countryNotSet: "Pays non défini. Veuillez vous reconnecter.",
+    searchPlaceholder: "Rechercher des publications...",
+    filters: "Filtres",
+    postType: "Type",
+    categories: "Catégories",
+    city: "Ville",
+    allCities: "Toutes les villes",
+    searchCity: "Rechercher une ville...",
+    country: "Pays",
+    clearFilters: "Effacer les filtres",
+    noResultsFilters: "Aucune publication ne correspond à vos filtres",
 
     // Post Details
     postDetails: "Détails de la publication",
@@ -191,7 +213,9 @@ export const translations = {
     confirm: "Confirmer",
     yes: "Oui",
     no: "Non",
-    
+    all: "Tous",
+    done: "Terminé",
+
     // Language
     language: "Langue",
     selectLanguage: "Sélectionner la langue",
@@ -245,6 +269,16 @@ export const translations = {
     loadingPosts: "جاري تحميل المنشورات...",
     failedToLoadPosts: "فشل تحميل المنشورات. يرجى المحاولة مرة أخرى.",
     countryNotSet: "البلد غير محدد. يرجى تسجيل الدخول مرة أخرى.",
+    searchPlaceholder: "البحث في المنشورات...",
+    filters: "الفلاتر",
+    postType: "النوع",
+    categories: "الفئات",
+    city: "المدينة",
+    allCities: "كل المدن",
+    searchCity: "البحث عن مدينة...",
+    country: "البلد",
+    clearFilters: "مسح الفلاتر",
+    noResultsFilters: "لا توجد منشورات تطابق الفلاتر المحددة",
 
     // Post Details
     postDetails: "تفاصيل المنشور",
@@ -296,7 +330,9 @@ export const translations = {
     confirm: "تأكيد",
     yes: "نعم",
     no: "لا",
-    
+    all: "الكل",
+    done: "تم",
+
     // Language
     language: "اللغة",
     selectLanguage: "اختر اللغة",
