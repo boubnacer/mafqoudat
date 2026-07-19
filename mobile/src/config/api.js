@@ -46,6 +46,7 @@ export const API_ENDPOINTS = {
     GET_ALL: "/posts",
     GET_USER_POSTS: "/posts/user",
     GET_BY_ID: (id) => `/posts/${id}`,
+    CREATE: "/posts",
   },
 };
 

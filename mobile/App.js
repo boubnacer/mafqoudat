@@ -11,6 +11,7 @@ import LoginScreen from './src/screens/LoginScreen';
 import CountrySelectionScreen from './src/screens/CountrySelectionScreen';
 import PostsListScreen from './src/screens/PostsListScreen';
 import PostDetailScreen from './src/screens/PostDetailScreen';
+import NewPostScreen from './src/screens/NewPostScreen';
 import { ActivityIndicator, View, StyleSheet, Text } from 'react-native';
 
 const Stack = createNativeStackNavigator();
@@ -34,6 +35,7 @@ const AppNavigator = () => {
       <Stack.Navigator screenOptions={{ headerShown: false }}>
         <Stack.Screen name="PostsListScreen" component={PostsListScreen} />
         <Stack.Screen name="PostDetailScreen" component={PostDetailScreen} />
+        <Stack.Screen name="NewPostScreen" component={NewPostScreen} />
         {/* Add other authenticated screens here */}
       </Stack.Navigator>
     </ReferenceDataProvider>

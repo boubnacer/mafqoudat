@@ -3,7 +3,8 @@
  * Mirrors: client/src/features/posts/PostsList/PostsList.js
  */
 
-import React, { useEffect, useRef, useState } from 'react';
+import React, { useCallback, useEffect, useRef, useState } from 'react';
+import { useFocusEffect } from '@react-navigation/native';
 import {
   View,
   Text,
@@ -56,6 +57,7 @@ const PostsListScreen = ({ navigation }) => {
 
   const requestIdRef = useRef(0);
   const abortControllerRef = useRef(null);
+  const isFirstFocusRef = useRef(true);
 
   // Resolve the browsing country once: the onboarding-selected country (Prompt 0.3)
   // takes priority, falling back to the account's registered country.
@@ -98,6 +100,22 @@ const PostsListScreen = ({ navigation }) => {
     loadPosts(1);
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [countryId, selectedFl, selectedCategoryIds, selectedCityId, debouncedSearch, currentLanguage]);
+
+  // Regaining focus (e.g. returning from creating a post, or from a post's detail
+  // screen) quietly refreshes page 1 with the current filters - skips the very
+  // first focus since the composing effect above already covers initial mount.
+  useFocusEffect(
+    useCallback(() => {
+      if (isFirstFocusRef.current) {
+        isFirstFocusRef.current = false;
+        return;
+      }
+      if (countryId) {
+        loadPosts(1);
+      }
+      // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, [countryId, selectedFl, selectedCategoryIds, selectedCityId, debouncedSearch, currentLanguage])
+  );
 
   const loadPosts = async (pageNum, isRefresh = false) => {
     if (!countryId) return;
@@ -214,6 +232,17 @@ const PostsListScreen = ({ navigation }) => {
       setSelectedCityId(null);
       setSelectedCityLabel('');
     }
+  };
+
+  const handleNewPostPress = async () => {
+    // PostsListScreen only renders once signed in (RootNavigator swaps to the
+    // auth stack otherwise), so this is a defensive check, not the primary gate.
+    const token = await storage.getToken();
+    if (!token) {
+      await signOut();
+      return;
+    }
+    navigation.navigate('NewPostScreen');
   };
 
   const handleClearAllFilters = () => {
@@ -381,6 +410,14 @@ const PostsListScreen = ({ navigation }) => {
           ) : null
         }
       />
+
+      <TouchableOpacity
+        style={[styles.fab, isRTL ? styles.fabRTL : styles.fabLTR]}
+        onPress={handleNewPostPress}
+        accessibilityLabel={t('newPost')}
+      >
+        <Text style={styles.fabIcon}>+</Text>
+      </TouchableOpacity>
 
       <PostFilterSheet
         visible={filterSheetVisible}
@@ -612,6 +649,33 @@ const styles = StyleSheet.create({
     color: '#fff',
     fontWeight: 'bold',
     fontSize: 14,
+  },
+  fab: {
+    position: 'absolute',
+    bottom: 24,
+    width: 56,
+    height: 56,
+    borderRadius: 28,
+    backgroundColor: '#2196F3',
+    justifyContent: 'center',
+    alignItems: 'center',
+    elevation: 6,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 3 },
+    shadowOpacity: 0.3,
+    shadowRadius: 5,
+  },
+  fabLTR: {
+    right: 20,
+  },
+  fabRTL: {
+    left: 20,
+  },
+  fabIcon: {
+    color: '#fff',
+    fontSize: 30,
+    lineHeight: 32,
+    fontWeight: '400',
   },
 });
 
