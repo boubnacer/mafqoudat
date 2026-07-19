@@ -306,9 +306,14 @@ const PostsListScreen = ({ navigation }) => {
     <View style={styles.container}>
       <View style={styles.header}>
         <Text style={styles.headerTitle}>{t('posts')}</Text>
-        <TouchableOpacity onPress={signOut} style={styles.logoutButton}>
-          <Text style={styles.logoutText}>{t('logout')}</Text>
-        </TouchableOpacity>
+        <View style={styles.headerActions}>
+          <TouchableOpacity onPress={() => navigation.navigate('MyPostsScreen')} style={styles.myPostsButton}>
+            <Text style={styles.logoutText}>{t('myPosts')}</Text>
+          </TouchableOpacity>
+          <TouchableOpacity onPress={signOut} style={styles.logoutButton}>
+            <Text style={styles.logoutText}>{t('logout')}</Text>
+          </TouchableOpacity>
+        </View>
       </View>
 
       <View style={styles.searchRow}>
@@ -461,6 +466,14 @@ const styles = StyleSheet.create({
     fontSize: 24,
     fontWeight: 'bold',
     color: '#fff',
+  },
+  headerActions: {
+    flexDirection: 'row',
+    alignItems: 'center',
+  },
+  myPostsButton: {
+    padding: 8,
+    marginRight: 4,
   },
   logoutButton: {
     padding: 8,

@@ -1019,6 +1019,8 @@ const getUserPosts = async (req, res) => {
           createdAt: 1,
           updatedAt: 1,
           returned: 1,
+          status: 1,
+          mainDate: 1,
           // Add computed fields for easier frontend usage
           title: {
             $cond: {
@@ -1742,12 +1744,16 @@ const updatePost = async (req, res) => {
 
   // Confirm post exists to update - only select fields needed for update
   // console.log('🔍 UPDATE POST SERVER - Looking for post with ID:', id);
-  const post = await Post.findById(id).select('_id user country category categories city exactLocation contact returned foundLost description mainDate').exec();
+  const post = await Post.findById(id).select('_id user country category categories city exactLocation contact returned foundLost description mainDate cloudinaryPublicId').exec();
   // console.log('🔍 UPDATE POST SERVER - Post found:', !!post);
-  
+
   if (!post) {
     // console.log('❌ UPDATE POST SERVER - Post not found with ID:', id);
     return res.status(400).json({ message: "Post not found" });
+  }
+
+  if (post.user.toString() !== req.user) {
+    return res.status(403).json({ message: "Not authorized to update this post" });
   }
 
   // console.log('🔍 UPDATE POST SERVER - Updating post fields...');
@@ -1835,22 +1841,23 @@ const updatePost = async (req, res) => {
     post.mainDate = mainDate || "";
   }
 
-  // Handle image update/removal
-  if (image !== undefined) {
-    if (image === null) {
-      // Image removal - clear all image fields
-      post.image = null;
-      post.cloudinaryUrl = null;
-      post.cloudinaryPublicId = null;
-    } else if (image && typeof image === 'object' && image.constructor === File) {
-      // New image file - this will be handled by multer middleware
-      // The image will be processed and uploaded to Cloudinary
-      // The cloudinaryResult will be available in req.cloudinaryResult
+  // Handle image removal (no replacement) - clean up the old Cloudinary asset
+  // so it doesn't leak, then clear all image fields.
+  if (image !== undefined && image === null) {
+    if (post.cloudinaryPublicId) {
+      await deleteFromCloudinary(post.cloudinaryPublicId);
     }
+    post.image = null;
+    post.cloudinaryUrl = null;
+    post.cloudinaryPublicId = null;
   }
 
-  // Handle Cloudinary image data if available (from multer middleware)
+  // Handle Cloudinary image data if available (from multer middleware) - a new
+  // image is replacing the old one, so clean up the old asset first.
   if (req.cloudinaryResult) {
+    if (post.cloudinaryPublicId) {
+      await deleteFromCloudinary(post.cloudinaryPublicId);
+    }
     post.cloudinaryUrl = req.cloudinaryResult.url;
     post.cloudinaryPublicId = req.cloudinaryResult.public_id;
     // Keep backward compatibility with image field
@@ -1884,10 +1891,14 @@ const deletePost = async (req, res) => {
   }
 
   // Confirm post exists to delete - only select fields needed for deletion (cloudinary cleanup)
-  const post = await Post.findById(id).select('_id cloudinaryPublicId').exec();
+  const post = await Post.findById(id).select('_id user cloudinaryPublicId').exec();
 
   if (!post) {
     return res.status(400).json({ message: "Post not found" });
+  }
+
+  if (post.user.toString() !== req.user) {
+    return res.status(403).json({ message: "Not authorized to delete this post" });
   }
 
   // Delete image from Cloudinary if it exists
@@ -1922,12 +1933,19 @@ const markPostAsReturned = async (req, res) => {
     }
 
     // Find the post
-    const post = await Post.findById(postId).select('_id returned').exec();
+    const post = await Post.findById(postId).select('_id user returned').exec();
 
     if (!post) {
-      return res.status(404).json({ 
+      return res.status(404).json({
         success: false,
-        message: "Post not found" 
+        message: "Post not found"
+      });
+    }
+
+    if (post.user.toString() !== req.user) {
+      return res.status(403).json({
+        success: false,
+        message: "Not authorized to update this post"
       });
     }
 

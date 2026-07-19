@@ -46,7 +46,12 @@ export const API_ENDPOINTS = {
     GET_ALL: "/posts",
     GET_USER_POSTS: "/posts/user",
     GET_BY_ID: (id) => `/posts/${id}`,
+    // POST, PATCH and DELETE all target the same "/posts" URL - only the HTTP
+    // method differs - but kept as separate aliases for readability at call sites.
     CREATE: "/posts",
+    UPDATE: "/posts",
+    DELETE: "/posts",
+    MARK_RETURNED: (id) => `/posts/${id}/mark-returned`,
   },
 };
 
