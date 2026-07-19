@@ -1,7 +1,10 @@
 # Mobile Authentication
 
 This document describes the mobile app's two login paths, the env vars they need, and the
-one-time Google Cloud Console setup required for Google sign-in to work outside Expo Go.
+one-time Google Cloud Console setup required for Google sign-in.
+
+**Google sign-in requires a development build — it cannot complete in Expo Go.** See
+"Expo Go limitation" below.
 
 ## Password login
 
@@ -13,8 +16,7 @@ from the JWT (`decodeToken` in `src/utils/tokenUtils.js`) and stored via `storag
 
 The mobile app no longer opens a browser and waits for a deep link back into the app. Instead
 it uses `expo-auth-session`'s native Google provider to get an ID token directly, then hands
-that token to the server for verification. This works in both Expo Go (via the web client ID
-and Expo's auth proxy) and in dev/production builds (via the iOS/Android client IDs).
+that token to the server for verification.
 
 1. `AuthContextNew.js` calls `useGoogleIdTokenAuth()` (`src/utils/googleAuthNew.js`), which wraps
    `Google.useIdTokenAuthRequest` from `expo-auth-session/providers/google`.
@@ -52,9 +54,16 @@ logged in before this change aren't logged out.
 | Var | Purpose |
 |---|---|
 | `EXPO_PUBLIC_API_URL` | API base URL (defaults to the Railway production URL) |
-| `EXPO_PUBLIC_GOOGLE_WEB_CLIENT_ID` | Web OAuth client ID — used by Expo Go via the auth proxy |
-| `EXPO_PUBLIC_GOOGLE_IOS_CLIENT_ID` | iOS OAuth client ID — used in dev/production iOS builds |
-| `EXPO_PUBLIC_GOOGLE_ANDROID_CLIENT_ID` | Android OAuth client ID — used in dev/production Android builds |
+| `EXPO_PUBLIC_GOOGLE_WEB_CLIENT_ID` | Web OAuth client ID — only actually used when running via `expo start --web` in a browser |
+| `EXPO_PUBLIC_GOOGLE_IOS_CLIENT_ID` | iOS OAuth client ID — required for Google sign-in on iOS (dev/production builds) |
+| `EXPO_PUBLIC_GOOGLE_ANDROID_CLIENT_ID` | Android OAuth client ID — required for Google sign-in on Android (dev/production builds) |
+
+`expo-auth-session`'s Google provider selects the client ID strictly by `Platform.OS`
+(`androidClientId` on Android, `iosClientId` on iOS, `webClientId` only on actual web) with no
+runtime fallback, and throws **during render** if the one it needs is `undefined` — so
+`googleAuthNew.js` falls back to the web client ID for the unset ones just to keep the app from
+crashing on launch before you've configured the native clients. That fallback does not make
+sign-in work on device; it only avoids the crash.
 
 ### Server (Railway)
 
@@ -84,6 +93,18 @@ three IDs for this reason.
 2. Set the resulting client IDs:
    - Mobile: `EXPO_PUBLIC_GOOGLE_IOS_CLIENT_ID`, `EXPO_PUBLIC_GOOGLE_ANDROID_CLIENT_ID`.
    - Server (Railway): `GOOGLE_IOS_CLIENT_ID`, `GOOGLE_ANDROID_CLIENT_ID`.
-3. **Expo Go only exercises the web-client path** (it goes through Expo's auth proxy using
-   `EXPO_PUBLIC_GOOGLE_WEB_CLIENT_ID`/`GOOGLE_CLIENT_ID`). Validating the iOS/Android client IDs
-   requires a dev build or production build (`eas build`) installed on a device/simulator.
+3. Build and install a **development build** (`eas build --profile development`, or
+   `npx expo run:android` / `npx expo run:ios` locally) and test Google sign-in there.
+
+### Expo Go limitation
+
+Google sign-in **will not complete inside Expo Go**, even after the client IDs above are set.
+`expo-auth-session` computes the OAuth `redirect_uri` from the running environment
+(`AuthSession.makeRedirectUri`): in Expo Go it's a dynamic `exp://<host>:<port>/--/...` URL,
+because Expo Go's own bundle identity is used, not `com.mafqoudat.app`. Google's Android/iOS
+OAuth client types validate the redirect against the package name / bundle ID the client was
+registered for, so an `exp://` redirect from inside Expo Go gets rejected
+(`redirect_uri_mismatch`) — there is no client type or console setting that can make this pass.
+Only a development or production build, which owns the `com.mafqoudat.app` bundle ID/scheme
+directly, produces a redirect URI Google will accept. Use Expo Go for everything else (password
+login, posts, etc.); switch to a dev build specifically to test Google sign-in.

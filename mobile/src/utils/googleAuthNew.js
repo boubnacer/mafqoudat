@@ -12,13 +12,18 @@ WebBrowser.maybeCompleteAuthSession();
 
 /**
  * Hook wrapping expo-auth-session's native Google ID-token flow.
- * Works in Expo Go (via webClientId + auth proxy) and in dev/production builds
- * (via iosClientId/androidClientId), per Google's native OAuth client model.
+ *
+ * expo-auth-session picks iosClientId/androidClientId/webClientId strictly by
+ * `Platform.OS` with no fallback, and throws synchronously (crashing the app on
+ * render, not just the sign-in button) if the one it needs is `undefined`. We fall
+ * back to the web client ID here purely to keep the app from crashing before the iOS/
+ * Android OAuth clients are configured — actually completing native sign-in still
+ * requires the real platform-specific client ID (see mobile/AUTH.md).
  */
 export const useGoogleIdTokenAuth = () => {
   return Google.useIdTokenAuthRequest({
-    iosClientId: GOOGLE_IOS_CLIENT_ID,
-    androidClientId: GOOGLE_ANDROID_CLIENT_ID,
+    iosClientId: GOOGLE_IOS_CLIENT_ID || GOOGLE_WEB_CLIENT_ID,
+    androidClientId: GOOGLE_ANDROID_CLIENT_ID || GOOGLE_WEB_CLIENT_ID,
     webClientId: GOOGLE_WEB_CLIENT_ID,
   });
 };
