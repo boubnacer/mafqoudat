@@ -33,6 +33,22 @@ export const translations = {
     hidePassword: "Hide",
     signUpPrompt: "Don't have an account?",
 
+    // Sign Up
+    createAccount: "Create Account",
+    createAccountTagline: "Join Mafqoudat to report and find lost items",
+    confirmPasswordPlaceholder: "Re-enter your password",
+    passwordRequirements: "At least 8 characters, with a letter and a number",
+    acceptTermsPrefix: "I agree to the",
+    termsAndConnector: "and",
+    termsRequired: "You must accept the Terms of Service and Privacy Policy to continue",
+    emailAlreadyExists: "This email is already registered",
+    phoneAlreadyExists: "This phone number is already registered",
+    accountAlreadyExists: "An account with this email or phone number already exists",
+    oauthEmailExists: "This email is already registered with Google Sign-In. Please use the 'Continue with Google' button to log in.",
+    signInPrompt: "Already have an account?",
+    signUpWithGoogle: "Sign up with Google",
+    countryNoResults: "No countries found",
+
     // Posts
     posts: "Posts",
     postsList: "Posts List",
@@ -283,6 +299,22 @@ export const translations = {
     hidePassword: "Masquer",
     signUpPrompt: "Vous n'avez pas de compte ?",
 
+    // Sign Up
+    createAccount: "Créer un compte",
+    createAccountTagline: "Rejoignez Mafqoudat pour signaler et retrouver des objets perdus",
+    confirmPasswordPlaceholder: "Ressaisissez votre mot de passe",
+    passwordRequirements: "Au moins 8 caractères, avec une lettre et un chiffre",
+    acceptTermsPrefix: "J'accepte les",
+    termsAndConnector: "et la",
+    termsRequired: "Vous devez accepter les conditions d'utilisation et la politique de confidentialité pour continuer",
+    emailAlreadyExists: "Cet e-mail est déjà enregistré",
+    phoneAlreadyExists: "Ce numéro de téléphone est déjà enregistré",
+    accountAlreadyExists: "Un compte avec cet e-mail ou ce numéro de téléphone existe déjà",
+    oauthEmailExists: "Cet e-mail est déjà enregistré avec Google Sign-In. Veuillez utiliser le bouton 'Continuer avec Google' pour vous connecter.",
+    signInPrompt: "Vous avez déjà un compte ?",
+    signUpWithGoogle: "S'inscrire avec Google",
+    countryNoResults: "Aucun pays trouvé",
+
     // Posts
     posts: "Publications",
     postsList: "Liste des publications",
@@ -532,6 +564,22 @@ export const translations = {
     showPassword: "إظهار",
     hidePassword: "إخفاء",
     signUpPrompt: "ليس لديك حساب؟",
+
+    // Sign Up
+    createAccount: "إنشاء حساب",
+    createAccountTagline: "انضم إلى مفقودات للإبلاغ عن الأغراض المفقودة والعثور عليها",
+    confirmPasswordPlaceholder: "أعد إدخال كلمة المرور",
+    passwordRequirements: "8 أحرف على الأقل، تتضمن حرفًا ورقمًا",
+    acceptTermsPrefix: "أوافق على",
+    termsAndConnector: "و",
+    termsRequired: "يجب الموافقة على شروط الخدمة وسياسة الخصوصية للمتابعة",
+    emailAlreadyExists: "هذا البريد الإلكتروني مسجل بالفعل",
+    phoneAlreadyExists: "رقم الهاتف هذا مسجل بالفعل",
+    accountAlreadyExists: "يوجد حساب بالفعل بهذا البريد الإلكتروني أو رقم الهاتف",
+    oauthEmailExists: "هذا البريد الإلكتروني مسجل بالفعل باستخدام تسجيل الدخول عبر جوجل. يرجى استخدام زر 'المتابعة مع جوجل' لتسجيل الدخول.",
+    signInPrompt: "لديك حساب بالفعل؟",
+    signUpWithGoogle: "التسجيل باستخدام جوجل",
+    countryNoResults: "لم يتم العثور على دول",
 
     // Posts
     posts: "المنشورات",

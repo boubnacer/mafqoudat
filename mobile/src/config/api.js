@@ -46,6 +46,10 @@ export const API_ENDPOINTS = {
     GOOGLE_MOBILE: "/auth/google/mobile",
     GOOGLE_MOBILE_COMPLETE: "/auth/google/mobile/complete",
   },
+  USERS: {
+    // Public (no auth required) - server/routes/userRoutes.js POST / -> createNewUser
+    CREATE: "/users",
+  },
   POSTS: {
     GET_ALL: "/posts",
     GET_USER_POSTS: "/posts/user",
