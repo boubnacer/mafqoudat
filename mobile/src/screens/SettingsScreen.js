@@ -9,6 +9,7 @@ import React from 'react';
 import { View, Text, StyleSheet, TouchableOpacity, Alert, Linking } from 'react-native';
 import { useAuth } from '../context/AuthContext';
 import { useLanguage } from '../context/LanguageContext';
+import { useTheme } from '../context/ThemeContext';
 import { useTranslation } from '../utils/translations';
 import { WEB_BASE_URL } from '../config/api';
 
@@ -18,9 +19,16 @@ const LANGUAGES = [
   { code: 'ar', labelKey: 'arabic' },
 ];
 
+const THEME_MODES = [
+  { code: 'system', labelKey: 'themeSystem' },
+  { code: 'light', labelKey: 'themeLight' },
+  { code: 'dark', labelKey: 'themeDark' },
+];
+
 const SettingsScreen = ({ navigation }) => {
   const { signOut } = useAuth();
   const { currentLanguage, setLanguage } = useLanguage();
+  const { themeMode, setThemeMode } = useTheme();
   const { t } = useTranslation();
   const isRTL = currentLanguage === 'ar';
   const textStyle = isRTL ? styles.textRTL : null;
@@ -51,6 +59,26 @@ const SettingsScreen = ({ navigation }) => {
       </View>
 
       <View style={styles.content}>
+        <View style={styles.section}>
+          <Text style={[styles.sectionLabel, textStyle]}>{t('theme')}</Text>
+          <View style={styles.chipsRow}>
+            {THEME_MODES.map((themeOption) => {
+              const isSelected = themeMode === themeOption.code;
+              return (
+                <TouchableOpacity
+                  key={themeOption.code}
+                  style={[styles.chip, isSelected && styles.chipSelected]}
+                  onPress={() => setThemeMode(themeOption.code)}
+                >
+                  <Text style={[styles.chipText, isSelected && styles.chipTextSelected]}>
+                    {t(themeOption.labelKey)}
+                  </Text>
+                </TouchableOpacity>
+              );
+            })}
+          </View>
+        </View>
+
         <View style={styles.section}>
           <Text style={[styles.sectionLabel, textStyle]}>{t('language')}</Text>
           <View style={styles.chipsRow}>

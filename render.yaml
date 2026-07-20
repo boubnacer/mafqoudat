@@ -46,6 +46,12 @@ services:
       # Set to: https://mafqoudat-api.onrender.com/auth/google/callback
       - key: GOOGLE_CALLBACK_URL
         sync: false
+      # Native mobile Google OAuth clients (iOS/Android), accepted alongside
+      # GOOGLE_CLIENT_ID when verifying mobile ID tokens.
+      - key: GOOGLE_IOS_CLIENT_ID
+        sync: false
+      - key: GOOGLE_ANDROID_CLIENT_ID
+        sync: false
 
       # --- Google Places (city autocomplete) ---
       - key: GOOGLE_PLACES_API_KEY

@@ -3,7 +3,7 @@
  * Mirrors: client/src/features/auth/CountrySelection.jsx
  */
 
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useMemo } from 'react';
 import {
   View,
   Text,
@@ -17,6 +17,7 @@ import {
   Alert,
 } from 'react-native';
 import { useLanguage } from '../context/LanguageContext';
+import { useTheme } from '../context/ThemeContext';
 import { useTranslation } from '../utils/translations';
 import { useAuth } from '../context/AuthContext';
 import apiClient from '../api/apiService';
@@ -24,6 +25,8 @@ import { getLocalizedLabel } from '../context/ReferenceDataContext';
 
 const CountrySelectionScreen = ({ navigation }) => {
   const { currentLanguage } = useLanguage();
+  const { colors } = useTheme();
+  const styles = useMemo(() => createStyles(colors), [colors]);
   const { t } = useTranslation();
   const { pendingToken, completeGoogleRegistration } = useAuth();
   const isRTL = currentLanguage === 'ar';
@@ -163,7 +166,7 @@ const CountrySelectionScreen = ({ navigation }) => {
   if (isLoading) {
     return (
       <View style={styles.centerContainer}>
-        <ActivityIndicator size="large" color="#2196F3" />
+        <ActivityIndicator size="large" color={colors.primary} />
         <Text style={styles.loadingText}>
           {t('loadingCountries')}
         </Text>
@@ -194,7 +197,7 @@ const CountrySelectionScreen = ({ navigation }) => {
           <TextInput
             style={[styles.searchInput, isRTL && styles.textRTL]}
             placeholder={t('searchCountry')}
-            placeholderTextColor="#999"
+            placeholderTextColor={colors.placeholder}
             value={searchQuery}
             onChangeText={setSearchQuery}
             autoCapitalize="none"
@@ -218,7 +221,7 @@ const CountrySelectionScreen = ({ navigation }) => {
           disabled={!selectedCountry || isSubmitting}
         >
           {isSubmitting ? (
-            <ActivityIndicator color="#fff" />
+            <ActivityIndicator color={colors.primaryText} />
           ) : (
             <Text style={styles.submitButtonText}>
               {t('continueToPosts')}
@@ -230,15 +233,16 @@ const CountrySelectionScreen = ({ navigation }) => {
   );
 };
 
-const styles = StyleSheet.create({
+const createStyles = (colors) => StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#fff',
+    backgroundColor: colors.background,
   },
   centerContainer: {
     flex: 1,
     justifyContent: 'center',
     alignItems: 'center',
+    backgroundColor: colors.background,
   },
   content: {
     flex: 1,
@@ -249,13 +253,13 @@ const styles = StyleSheet.create({
     fontWeight: 'bold',
     textAlign: 'center',
     marginBottom: 8,
-    color: '#333',
+    color: colors.textPrimary,
   },
   subtitle: {
     fontSize: 14,
     textAlign: 'center',
     marginBottom: 24,
-    color: '#666',
+    color: colors.textSecondary,
   },
   searchContainer: {
     marginBottom: 16,
@@ -263,11 +267,12 @@ const styles = StyleSheet.create({
   searchInput: {
     height: 50,
     borderWidth: 1,
-    borderColor: '#ddd',
+    borderColor: colors.border,
     borderRadius: 8,
     paddingHorizontal: 16,
     fontSize: 16,
-    backgroundColor: '#f9f9f9',
+    backgroundColor: colors.inputBackground,
+    color: colors.textPrimary,
   },
   countryList: {
     flex: 1,
@@ -282,13 +287,13 @@ const styles = StyleSheet.create({
     padding: 16,
     borderRadius: 8,
     marginBottom: 8,
-    backgroundColor: '#f5f5f5',
+    backgroundColor: colors.inputBackground,
     borderWidth: 1,
-    borderColor: '#e0e0e0',
+    borderColor: colors.border,
   },
   countryItemSelected: {
-    backgroundColor: '#e3f2fd',
-    borderColor: '#2196F3',
+    backgroundColor: colors.primarySoft,
+    borderColor: colors.primary,
     borderWidth: 2,
   },
   countryFlag: {
@@ -297,21 +302,21 @@ const styles = StyleSheet.create({
   },
   countryName: {
     fontSize: 16,
-    color: '#333',
+    color: colors.textPrimary,
     flex: 1,
   },
   countryNameSelected: {
-    color: '#2196F3',
+    color: colors.primary,
     fontWeight: '600',
   },
   checkmark: {
     fontSize: 18,
-    color: '#2196F3',
+    color: colors.primary,
     fontWeight: 'bold',
   },
   submitButton: {
     height: 50,
-    backgroundColor: '#2196F3',
+    backgroundColor: colors.primary,
     borderRadius: 8,
     justifyContent: 'center',
     alignItems: 'center',
@@ -321,24 +326,24 @@ const styles = StyleSheet.create({
     opacity: 0.6,
   },
   submitButtonText: {
-    color: '#fff',
+    color: colors.primaryText,
     fontSize: 16,
     fontWeight: '600',
   },
   errorContainer: {
-    backgroundColor: '#ffebee',
+    backgroundColor: colors.dangerBackground,
     padding: 12,
     borderRadius: 8,
     marginBottom: 16,
   },
   errorText: {
-    color: '#c62828',
+    color: colors.danger,
     fontSize: 14,
     textAlign: 'center',
   },
   loadingText: {
     marginTop: 16,
-    color: '#666',
+    color: colors.textSecondary,
   },
   textRTL: {
     textAlign: 'right',

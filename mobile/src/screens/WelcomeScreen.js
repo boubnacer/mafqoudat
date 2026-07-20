@@ -4,7 +4,7 @@
  * Beautiful welcome screen with country selection
  */
 
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useMemo } from 'react';
 import {
   View,
   Text,
@@ -19,6 +19,7 @@ import {
   SafeAreaView,
 } from 'react-native';
 import { useLanguage } from '../context/LanguageContext';
+import { useTheme } from '../context/ThemeContext';
 import { useTranslation } from '../utils/translations';
 import { storage } from '../utils/storage';
 import apiClient from '../api/apiService';
@@ -27,6 +28,8 @@ import { getLocalizedLabel } from '../context/ReferenceDataContext';
 
 const WelcomeScreen = ({ navigation }) => {
   const { currentLanguage } = useLanguage();
+  const { colors } = useTheme();
+  const styles = useMemo(() => createStyles(colors), [colors]);
   const { t } = useTranslation();
   const isRTL = currentLanguage === 'ar';
 
@@ -219,7 +222,7 @@ const WelcomeScreen = ({ navigation }) => {
     return (
       <SafeAreaView style={styles.container}>
         <View style={styles.loadingContainer}>
-          <ActivityIndicator size="large" color="#1A6EEE" />
+          <ActivityIndicator size="large" color={colors.primary} />
           <Text style={styles.loadingText}>
             {t('loadingCountries')}
           </Text>
@@ -303,7 +306,7 @@ const WelcomeScreen = ({ navigation }) => {
                   <TextInput
                     style={[styles.searchInput, isRTL && styles.textRTL]}
                     placeholder={t('searchCountry')}
-                    placeholderTextColor="#999"
+                    placeholderTextColor={colors.placeholder}
                     value={searchQuery}
                     onChangeText={setSearchQuery}
                     autoCapitalize="none"
@@ -342,10 +345,10 @@ const WelcomeScreen = ({ navigation }) => {
   );
 };
 
-const styles = StyleSheet.create({
+const createStyles = (colors) => StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#fff',
+    backgroundColor: colors.background,
   },
   keyboardView: {
     flex: 1,
@@ -361,12 +364,12 @@ const styles = StyleSheet.create({
     flex: 1,
     justifyContent: 'center',
     alignItems: 'center',
-    backgroundColor: '#fff',
+    backgroundColor: colors.background,
   },
   loadingText: {
     marginTop: 16,
     fontSize: 16,
-    color: '#666',
+    color: colors.textSecondary,
   },
   topControls: {
     flexDirection: 'row',
@@ -386,12 +389,11 @@ const styles = StyleSheet.create({
     width: 80,
     height: 80,
     borderRadius: 40,
-    backgroundColor: 'linear-gradient(135deg, #043FA5 0%, #1B6EEF 100%)',
-    backgroundColor: '#1A6EEE',
+    backgroundColor: colors.primary,
     justifyContent: 'center',
     alignItems: 'center',
     marginBottom: 16,
-    shadowColor: '#1A6EEE',
+    shadowColor: colors.primary,
     shadowOffset: { width: 0, height: 10 },
     shadowOpacity: 0.3,
     shadowRadius: 20,
@@ -400,18 +402,18 @@ const styles = StyleSheet.create({
   logoText: {
     fontSize: 40,
     fontWeight: 'bold',
-    color: '#fff',
+    color: colors.primaryText,
   },
   brandName: {
     fontSize: 32,
     fontWeight: 'bold',
-    color: '#1A6EEE',
+    color: colors.primary,
     marginBottom: 12,
     textAlign: 'center',
   },
   welcomeMessage: {
     fontSize: 16,
-    color: '#666',
+    color: colors.textSecondary,
     textAlign: 'center',
     lineHeight: 24,
     paddingHorizontal: 20,
@@ -423,24 +425,24 @@ const styles = StyleSheet.create({
   sectionTitle: {
     fontSize: 24,
     fontWeight: '600',
-    color: '#333',
+    color: colors.textPrimary,
     textAlign: 'center',
     marginBottom: 8,
   },
   sectionSubtitle: {
     fontSize: 14,
-    color: '#666',
+    color: colors.textSecondary,
     textAlign: 'center',
     marginBottom: 24,
   },
   errorContainer: {
-    backgroundColor: '#ffebee',
+    backgroundColor: colors.dangerBackground,
     padding: 12,
     borderRadius: 8,
     marginBottom: 16,
   },
   errorText: {
-    color: '#c62828',
+    color: colors.danger,
     fontSize: 14,
     textAlign: 'center',
   },
@@ -449,35 +451,35 @@ const styles = StyleSheet.create({
     justifyContent: 'space-between',
     alignItems: 'center',
     height: 56,
-    backgroundColor: '#f9f9f9',
+    backgroundColor: colors.inputBackground,
     borderWidth: 2,
-    borderColor: '#e0e0e0',
+    borderColor: colors.border,
     borderRadius: 12,
     paddingHorizontal: 16,
     marginBottom: 16,
   },
   countryButtonSelected: {
-    borderColor: '#1A6EEE',
-    backgroundColor: '#e3f2fd',
+    borderColor: colors.primary,
+    backgroundColor: colors.primarySoft,
   },
   countryButtonText: {
     fontSize: 16,
-    color: '#333',
+    color: colors.textPrimary,
     flex: 1,
   },
   countryButtonPlaceholder: {
-    color: '#999',
+    color: colors.placeholder,
   },
   dropdownArrow: {
     fontSize: 12,
-    color: '#666',
+    color: colors.textSecondary,
     marginStart: 8,
   },
   countryDropdown: {
-    backgroundColor: '#fff',
+    backgroundColor: colors.surface,
     borderRadius: 12,
     borderWidth: 1,
-    borderColor: '#e0e0e0',
+    borderColor: colors.border,
     marginBottom: 24,
     maxHeight: 300,
     shadowColor: '#000',
@@ -489,15 +491,15 @@ const styles = StyleSheet.create({
   searchContainer: {
     padding: 12,
     borderBottomWidth: 1,
-    borderBottomColor: '#e0e0e0',
+    borderBottomColor: colors.border,
   },
   searchInput: {
     height: 44,
-    backgroundColor: '#f5f5f5',
+    backgroundColor: colors.inputBackground,
     borderRadius: 8,
     paddingHorizontal: 16,
     fontSize: 16,
-    color: '#333',
+    color: colors.textPrimary,
   },
   countryList: {
     maxHeight: 200,
@@ -511,10 +513,10 @@ const styles = StyleSheet.create({
     paddingHorizontal: 16,
     paddingVertical: 14,
     borderBottomWidth: 1,
-    borderBottomColor: '#f0f0f0',
+    borderBottomColor: colors.border,
   },
   countryItemSelected: {
-    backgroundColor: '#e3f2fd',
+    backgroundColor: colors.primarySoft,
   },
   countryFlag: {
     fontSize: 24,
@@ -522,16 +524,16 @@ const styles = StyleSheet.create({
   },
   countryName: {
     fontSize: 16,
-    color: '#333',
+    color: colors.textPrimary,
     flex: 1,
   },
   countryNameSelected: {
-    color: '#1A6EEE',
+    color: colors.primary,
     fontWeight: '600',
   },
   checkmark: {
     fontSize: 20,
-    color: '#1A6EEE',
+    color: colors.primary,
     fontWeight: 'bold',
     marginStart: 8,
   },
@@ -540,23 +542,23 @@ const styles = StyleSheet.create({
   },
   continueButton: {
     height: 56,
-    backgroundColor: '#1A6EEE',
+    backgroundColor: colors.primary,
     borderRadius: 12,
     justifyContent: 'center',
     alignItems: 'center',
-    shadowColor: '#1A6EEE',
+    shadowColor: colors.primary,
     shadowOffset: { width: 0, height: 4 },
     shadowOpacity: 0.3,
     shadowRadius: 8,
     elevation: 4,
   },
   continueButtonDisabled: {
-    backgroundColor: '#ccc',
+    backgroundColor: colors.border,
     shadowOpacity: 0,
     elevation: 0,
   },
   continueButtonText: {
-    color: '#fff',
+    color: colors.primaryText,
     fontSize: 18,
     fontWeight: '600',
   },

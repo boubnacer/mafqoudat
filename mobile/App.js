@@ -1,13 +1,17 @@
 import React, { useEffect, useState } from 'react';
 import { StatusBar } from 'expo-status-bar';
+import { useColorScheme } from 'react-native';
 import { NavigationContainer } from '@react-navigation/native';
 import { createNativeStackNavigator } from '@react-navigation/native-stack';
 import { SafeAreaProvider } from 'react-native-safe-area-context';
 import { validateEnv } from './src/config/validateEnv';
+import { ThemeProvider, useTheme } from './src/context/ThemeContext';
 import { LanguageProvider } from './src/context/LanguageContext';
 import { AuthProvider, useAuth } from './src/context/AuthContext';
 import { MaintenanceProvider, useMaintenance } from './src/context/MaintenanceContext';
 import { ReferenceDataProvider } from './src/context/ReferenceDataContext';
+import { lightColors, darkColors } from './src/theme/tokens';
+import { getNavigationTheme } from './src/theme/navigationTheme';
 import MaintenanceOverlay from './src/components/MaintenanceOverlay';
 import OfflineBanner from './src/components/OfflineBanner';
 import WelcomeScreen from './src/screens/WelcomeScreen';
@@ -31,8 +35,12 @@ const Stack = createNativeStackNavigator();
 // Auth navigator component: Welcome (country/language landing) -> Login -> CountrySelection
 // (the latter only reached mid-flow for brand-new Google sign-ups pending a country pick).
 const AuthNavigator = () => {
+  const { colors } = useTheme();
   return (
-    <Stack.Navigator initialRouteName="Welcome" screenOptions={{ headerShown: false }}>
+    <Stack.Navigator
+      initialRouteName="Welcome"
+      screenOptions={{ headerShown: false, contentStyle: { backgroundColor: colors.background } }}
+    >
       <Stack.Screen name="Welcome" component={WelcomeScreen} />
       <Stack.Screen name="Login" component={LoginScreen} />
       <Stack.Screen name="CountrySelection" component={CountrySelectionScreen} />
@@ -42,9 +50,10 @@ const AuthNavigator = () => {
 
 // App navigator component
 const AppNavigator = () => {
+  const { colors } = useTheme();
   return (
     <ReferenceDataProvider>
-      <Stack.Navigator screenOptions={{ headerShown: false }}>
+      <Stack.Navigator screenOptions={{ headerShown: false, contentStyle: { backgroundColor: colors.background } }}>
         <Stack.Screen name="PostsListScreen" component={PostsListScreen} />
         <Stack.Screen name="PostDetailScreen" component={PostDetailScreen} />
         <Stack.Screen name="NewPostScreen" component={NewPostScreen} />
@@ -63,6 +72,7 @@ const AppNavigator = () => {
 const RootNavigator = () => {
   const { isLoading, isSignedIn } = useAuth();
   const { isActive, message, estimatedReturn } = useMaintenance();
+  const { colors, isDark } = useTheme();
 
   if (isActive) {
     return <MaintenanceOverlay message={message} estimatedReturn={estimatedReturn} />;
@@ -70,33 +80,48 @@ const RootNavigator = () => {
 
   if (isLoading) {
     return (
-      <View style={styles.loadingContainer}>
-        <ActivityIndicator size="large" color="#4285f4" />
-        <Text style={styles.loadingText}>Loading...</Text>
+      <View style={[styles.loadingContainer, { backgroundColor: colors.background }]}>
+        <ActivityIndicator size="large" color={colors.primary} />
+        <Text style={[styles.loadingText, { color: colors.textSecondary }]}>Loading...</Text>
       </View>
     );
   }
 
   return (
-    <NavigationContainer fallback={<Text>Loading...</Text>}>
+    <NavigationContainer theme={getNavigationTheme(colors, isDark)} fallback={<Text>Loading...</Text>}>
       {isSignedIn ? <AppNavigator /> : <AuthNavigator />}
     </NavigationContainer>
+  );
+};
+
+// Renders once ThemeProvider has resolved the active scheme - keeps the status
+// bar and navigation chrome in sync with it (including manual overrides that
+// differ from the OS setting, which plain style="auto" can't express).
+const AppShell = () => {
+  const { isDark } = useTheme();
+  return (
+    <>
+      <StatusBar style={isDark ? 'light' : 'dark'} />
+      <OfflineBanner />
+      <RootNavigator />
+    </>
   );
 };
 
 // Main App component
 export default function App() {
   const [isReady, setIsReady] = useState(false);
+  const systemScheme = useColorScheme();
 
   useEffect(() => {
     // Perform any app initialization here
     const initializeApp = async () => {
       try {
         console.log('🚀 Initializing Mafqoudat Mobile App...');
-        
+
         // Add any initialization logic here
         // For example: checking app updates, loading initial data, etc.
-        
+
         setIsReady(true);
         console.log('✅ App initialization complete');
       } catch (error) {
@@ -109,26 +134,29 @@ export default function App() {
   }, []);
 
   if (!isReady) {
+    // Renders before ThemeProvider mounts, so it follows the raw OS scheme
+    // directly rather than useTheme() (which isn't available yet).
+    const initColors = systemScheme === 'dark' ? darkColors : lightColors;
     return (
-      <View style={styles.loadingContainer}>
-        <ActivityIndicator size="large" color="#4285f4" />
-        <Text style={styles.loadingText}>Initializing App...</Text>
+      <View style={[styles.loadingContainer, { backgroundColor: initColors.background }]}>
+        <ActivityIndicator size="large" color={initColors.primary} />
+        <Text style={[styles.loadingText, { color: initColors.textSecondary }]}>Initializing App...</Text>
       </View>
     );
   }
 
   return (
-    <LanguageProvider>
-      <MaintenanceProvider>
-        <AuthProvider>
-          <SafeAreaProvider>
-            <StatusBar style="auto" />
-            <OfflineBanner />
-            <RootNavigator />
-          </SafeAreaProvider>
-        </AuthProvider>
-      </MaintenanceProvider>
-    </LanguageProvider>
+    <ThemeProvider>
+      <LanguageProvider>
+        <MaintenanceProvider>
+          <AuthProvider>
+            <SafeAreaProvider>
+              <AppShell />
+            </SafeAreaProvider>
+          </AuthProvider>
+        </MaintenanceProvider>
+      </LanguageProvider>
+    </ThemeProvider>
   );
 }
 
@@ -137,11 +165,9 @@ const styles = StyleSheet.create({
     flex: 1,
     justifyContent: 'center',
     alignItems: 'center',
-    backgroundColor: '#f8f9fa',
   },
   loadingText: {
     marginTop: 16,
     fontSize: 16,
-    color: '#666',
   },
 });

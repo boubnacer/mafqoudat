@@ -225,6 +225,12 @@ export const translations = {
     french: "French",
     arabic: "Arabic",
 
+    // Theme
+    theme: "Theme",
+    themeSystem: "System",
+    themeLight: "Light",
+    themeDark: "Dark",
+
     // Google OAuth
     continueWithGoogle: "Continue with Google",
     authenticationError: "Authentication Error",
@@ -464,6 +470,12 @@ export const translations = {
     french: "Français",
     arabic: "Arabe",
 
+    // Theme
+    theme: "Thème",
+    themeSystem: "Système",
+    themeLight: "Clair",
+    themeDark: "Sombre",
+
     // Google OAuth
     continueWithGoogle: "Continuer avec Google",
     authenticationError: "Erreur d'authentification",
@@ -702,6 +714,12 @@ export const translations = {
     english: "الإنجليزية",
     french: "الفرنسية",
     arabic: "العربية",
+
+    // Theme
+    theme: "المظهر",
+    themeSystem: "النظام",
+    themeLight: "فاتح",
+    themeDark: "داكن",
 
     // Google OAuth
     continueWithGoogle: "المتابعة مع جوجل",

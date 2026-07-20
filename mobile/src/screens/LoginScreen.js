@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useState, useMemo } from 'react';
 import {
   View,
   Text,
@@ -13,6 +13,7 @@ import {
 } from 'react-native';
 import { useAuth } from '../context/AuthContext';
 import { useLanguage } from '../context/LanguageContext';
+import { useTheme } from '../context/ThemeContext';
 import { useTranslation } from '../utils/translations';
 import LanguageDropdown from '../components/LanguageDropdown';
 import apiClient from '../api/apiService';
@@ -30,6 +31,8 @@ const LoginScreen = ({ navigation }) => {
     clearSessionExpired,
   } = useAuth();
   const { currentLanguage } = useLanguage();
+  const { colors } = useTheme();
+  const styles = useMemo(() => createStyles(colors), [colors]);
   const { t } = useTranslation();
   const isRTL = currentLanguage === 'ar';
 
@@ -174,7 +177,7 @@ const LoginScreen = ({ navigation }) => {
             activeOpacity={0.7}
           >
             {isGoogleLoading ? (
-              <ActivityIndicator color="#333" />
+              <ActivityIndicator color={colors.textPrimary} />
             ) : (
               <>
                 <Text style={styles.googleIcon}>G</Text>
@@ -200,7 +203,7 @@ const LoginScreen = ({ navigation }) => {
             <TextInput
               style={[styles.input, isRTL && styles.textRTL]}
               placeholder={t('emailOrPhonePlaceholder')}
-              placeholderTextColor="#999"
+              placeholderTextColor={colors.placeholder}
               value={emailOrPhone}
               onChangeText={setEmailOrPhone}
               autoCapitalize="none"
@@ -211,7 +214,7 @@ const LoginScreen = ({ navigation }) => {
             <TextInput
               style={[styles.input, isRTL && styles.textRTL]}
               placeholder={t('passwordPlaceholder')}
-              placeholderTextColor="#999"
+              placeholderTextColor={colors.placeholder}
               value={password}
               onChangeText={setPassword}
               secureTextEntry
@@ -225,7 +228,7 @@ const LoginScreen = ({ navigation }) => {
               disabled={isLoading}
             >
               {isLoading ? (
-                <ActivityIndicator color="#fff" />
+                <ActivityIndicator color={colors.primaryText} />
               ) : (
                 <Text style={styles.buttonText}>{t('login')}</Text>
               )}
@@ -249,10 +252,10 @@ const LoginScreen = ({ navigation }) => {
   );
 };
 
-const styles = StyleSheet.create({
+const createStyles = (colors) => StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#fff',
+    backgroundColor: colors.background,
   },
   scrollContent: {
     flexGrow: 1,
@@ -268,7 +271,7 @@ const styles = StyleSheet.create({
     fontWeight: 'bold',
     textAlign: 'center',
     marginBottom: 8,
-    color: '#2196F3',
+    color: colors.primary,
   },
   headerRow: {
     flexDirection: 'row',
@@ -281,7 +284,7 @@ const styles = StyleSheet.create({
     fontSize: 16,
     textAlign: 'center',
     marginBottom: 32,
-    color: '#666',
+    color: colors.textSecondary,
   },
   form: {
     width: '100%',
@@ -289,16 +292,17 @@ const styles = StyleSheet.create({
   input: {
     height: 50,
     borderWidth: 1,
-    borderColor: '#ddd',
+    borderColor: colors.border,
     borderRadius: 8,
     paddingHorizontal: 16,
     marginBottom: 16,
     fontSize: 16,
-    backgroundColor: '#f9f9f9',
+    backgroundColor: colors.inputBackground,
+    color: colors.textPrimary,
   },
   button: {
     height: 50,
-    backgroundColor: '#2196F3',
+    backgroundColor: colors.primary,
     borderRadius: 8,
     justifyContent: 'center',
     alignItems: 'center',
@@ -308,29 +312,29 @@ const styles = StyleSheet.create({
     opacity: 0.6,
   },
   buttonText: {
-    color: '#fff',
+    color: colors.primaryText,
     fontSize: 16,
     fontWeight: '600',
   },
   errorContainer: {
-    backgroundColor: '#ffebee',
+    backgroundColor: colors.dangerBackground,
     padding: 12,
     borderRadius: 8,
     marginBottom: 16,
   },
   errorText: {
-    color: '#c62828',
+    color: colors.danger,
     fontSize: 14,
     textAlign: 'center',
   },
   sessionExpiredContainer: {
-    backgroundColor: '#FFF3E0',
+    backgroundColor: colors.warningBackground,
     padding: 12,
     borderRadius: 8,
     marginBottom: 16,
   },
   sessionExpiredText: {
-    color: '#EF6C00',
+    color: colors.warning,
     fontSize: 14,
     textAlign: 'center',
   },
@@ -342,10 +346,10 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'center',
     height: 50,
-    backgroundColor: '#fff',
+    backgroundColor: colors.surface,
     borderRadius: 8,
     borderWidth: 1,
-    borderColor: '#dadce0',
+    borderColor: colors.border,
     marginBottom: 16,
     gap: 12,
   },
@@ -355,12 +359,12 @@ const styles = StyleSheet.create({
     color: '#4285F4',
   },
   googleButtonText: {
-    color: '#333',
+    color: colors.textPrimary,
     fontSize: 16,
     fontWeight: '500',
   },
   googleAuthHint: {
-    color: '#999',
+    color: colors.textSecondary,
     fontSize: 12,
     textAlign: 'center',
     marginTop: -8,
@@ -374,36 +378,36 @@ const styles = StyleSheet.create({
   dividerLine: {
     flex: 1,
     height: 1,
-    backgroundColor: '#e0e0e0',
+    backgroundColor: colors.border,
   },
   dividerText: {
     marginHorizontal: 16,
     fontSize: 14,
-    color: '#999',
+    color: colors.textSecondary,
     fontWeight: '500',
   },
   debugInfo: {
     marginTop: 30,
     padding: 15,
-    backgroundColor: '#f0f0f0',
+    backgroundColor: colors.inputBackground,
     borderRadius: 8,
     borderWidth: 1,
-    borderColor: '#ddd',
+    borderColor: colors.border,
   },
   debugTitle: {
     fontSize: 14,
     fontWeight: 'bold',
     marginBottom: 5,
-    color: '#333',
+    color: colors.textPrimary,
   },
   debugText: {
     fontSize: 12,
-    color: '#666',
+    color: colors.textSecondary,
     marginBottom: 2,
   },
   debugError: {
     fontSize: 12,
-    color: '#d32f2f',
+    color: colors.danger,
     marginTop: 5,
   },
 });
