@@ -1,25 +1,34 @@
+import { useEffect, useState } from "react";
 import { useFormikContext } from "formik";
 import {
   Box,
   FormLabel,
   Typography,
   CircularProgress,
-  Alert,
   Card,
   CardMedia,
   Chip,
   IconButton,
+  Dialog,
+  DialogTitle,
+  DialogContent,
+  DialogActions,
+  Button,
   useTheme,
 } from "@mui/material";
 import {
   Delete as DeleteIcon,
   CloudUpload as CloudUploadIcon,
+  Close as CloseIcon,
 } from '@mui/icons-material';
 import { useTranslation } from "../../../../utils/translations";
 
-// Step 3 "Photo" (optional). The 6-second-countdown warning dialog has been
-// removed (S3) - the same privacy copy now renders as an always-visible
-// inline notice above the upload area instead of blocking the flow.
+const WARNING_COUNTDOWN_SECONDS = 6;
+
+// Step 3 "Photo" (optional). Clicking the empty dropzone opens a privacy
+// warning dialog gated behind a 6-second countdown - the "Continue" action
+// only enables once the countdown reaches zero - before it hands off to the
+// existing file-picker flow (handleImageButtonClick/fileInputRef).
 const StepPhoto = ({
   getFoundLostType,
   imagePreview,
@@ -35,7 +44,35 @@ const StepPhoto = ({
   const { values } = useFormikContext();
   const { t, currentLanguage } = useTranslation();
   const theme = useTheme();
-  const accentColor = theme.palette.mode === 'dark' ? '#4CAF50' : '#2E7D32';
+  const accentColor = theme.custom.color.brandPrimary;
+
+  const [showWarningDialog, setShowWarningDialog] = useState(false);
+  const [countdown, setCountdown] = useState(WARNING_COUNTDOWN_SECONDS);
+
+  useEffect(() => {
+    if (!showWarningDialog) return undefined;
+
+    setCountdown(WARNING_COUNTDOWN_SECONDS);
+    const intervalId = setInterval(() => {
+      setCountdown((prev) => (prev > 0 ? prev - 1 : 0));
+    }, 1000);
+
+    return () => clearInterval(intervalId);
+  }, [showWarningDialog]);
+
+  const handleDropzoneClick = () => {
+    if (isCompressing) return;
+    setShowWarningDialog(true);
+  };
+
+  const handleWarningDialogClose = () => {
+    setShowWarningDialog(false);
+  };
+
+  const handleWarningDialogConfirm = () => {
+    setShowWarningDialog(false);
+    handleImageButtonClick();
+  };
 
   return (
     <Box display="flex" flexDirection="column" gap={3}>
@@ -46,8 +83,7 @@ const StepPhoto = ({
           fontWeight: 700,
           color: accentColor,
           fontSize: '1.4rem',
-          mb: 1,
-          textShadow: theme.palette.mode === 'dark' ? '0 1px 2px rgba(0,0,0,0.3)' : '0 1px 2px rgba(0,0,0,0.1)'
+          mb: 1
         }}
       >
         {t('itemImage')}
@@ -78,54 +114,6 @@ const StepPhoto = ({
         >
           {t('imageOptionalMessage')}
         </Typography>
-
-        {/* Privacy notice - always visible, never blocking (S3) */}
-        <Alert
-          severity="warning"
-          sx={{
-            mb: 2,
-            borderRadius: 2,
-            backgroundColor: theme.palette.mode === 'dark'
-              ? 'rgba(255, 152, 0, 0.1)'
-              : 'rgba(255, 152, 0, 0.05)',
-            border: `1px solid ${theme.palette.mode === 'dark' ? 'rgba(255, 152, 0, 0.3)' : 'rgba(255, 152, 0, 0.2)'}`,
-            '& .MuiAlert-icon': {
-              color: theme.palette.mode === 'dark' ? '#ff9800' : '#f57c00',
-            },
-          }}
-        >
-          <Typography sx={{ fontWeight: 700, color: theme.palette.text.primary, mb: 0.5 }}>
-            {t('imageWarningTitle')}
-          </Typography>
-          {getFoundLostType(values.foundLost) === 'FOUND' ? (
-            <>
-              <Typography variant="body2" sx={{ color: theme.palette.text.primary, mb: 1 }}>
-                {t('imageWarningDescriptionFound')}
-              </Typography>
-              <Box
-                component="ul"
-                sx={{
-                  pl: 2.5,
-                  m: 0,
-                  display: 'grid',
-                  gap: 0.75,
-                  color: theme.palette.text.secondary
-                }}
-              >
-                <Typography component="li" variant="body2">
-                  {t('imageWarningBulletProtectDetails')}
-                </Typography>
-                <Typography component="li" variant="body2">
-                  {t('imageWarningBulletUseNeutralBackground')}
-                </Typography>
-              </Box>
-            </>
-          ) : (
-            <Typography variant="body2" sx={{ color: theme.palette.text.primary }}>
-              {t('imageWarningDescriptionLost')}
-            </Typography>
-          )}
-        </Alert>
 
         {imagePreview ? (
           /* Preview - rounded card with an overlay remove button */
@@ -178,15 +166,15 @@ const StepPhoto = ({
             )}
           </Box>
         ) : (
-          /* Dropzone - clicking anywhere on the card opens the file picker */
+          /* Dropzone - clicking anywhere on the card opens the privacy warning dialog first */
           <Box
-            onClick={handleImageButtonClick}
+            onClick={handleDropzoneClick}
             role="button"
             tabIndex={0}
             onKeyDown={(event) => {
               if (event.key === 'Enter' || event.key === ' ') {
                 event.preventDefault();
-                handleImageButtonClick();
+                handleDropzoneClick();
               }
             }}
             sx={{
@@ -200,7 +188,7 @@ const StepPhoto = ({
               transition: 'all 0.2s ease-in-out',
               '&:hover': isCompressing ? {} : {
                 borderColor: accentColor,
-                backgroundColor: theme.palette.mode === 'dark' ? 'rgba(76,175,80,0.06)' : 'rgba(46,125,50,0.04)',
+                backgroundColor: theme.palette.mode === 'dark' ? 'rgba(91,127,255,0.08)' : 'rgba(27,77,255,0.05)',
               },
             }}
           >
@@ -256,6 +244,98 @@ const StepPhoto = ({
           </Typography>
         )}
       </Box>
+
+      {/* Mandatory privacy warning - gated behind a 6-second countdown before Continue enables */}
+      <Dialog
+        open={showWarningDialog}
+        onClose={handleWarningDialogClose}
+        maxWidth="sm"
+        fullWidth
+        PaperProps={{
+          sx: {
+            borderRadius: 3,
+            backgroundColor: theme.palette.background.paper,
+            boxShadow: theme.shadows[12],
+          }
+        }}
+      >
+        <DialogTitle
+          sx={{
+            display: 'flex',
+            justifyContent: 'space-between',
+            alignItems: 'center',
+            pb: 1
+          }}
+        >
+          <Typography variant="h6" sx={{ fontWeight: 700, color: theme.palette.text.primary }}>
+            {t('imageWarningTitle')}
+          </Typography>
+          <IconButton
+            onClick={handleWarningDialogClose}
+            sx={{
+              color: theme.palette.text.secondary,
+              '&:hover': { backgroundColor: theme.palette.action.hover }
+            }}
+          >
+            <CloseIcon />
+          </IconButton>
+        </DialogTitle>
+        <DialogContent sx={{ pt: 1 }}>
+          {getFoundLostType(values.foundLost) === 'FOUND' ? (
+            <>
+              <Typography variant="body2" sx={{ color: theme.palette.text.primary, mb: 1.5 }}>
+                {t('imageWarningDescriptionFound')}
+              </Typography>
+              <Box
+                component="ul"
+                sx={{
+                  pl: 2.5,
+                  m: 0,
+                  display: 'grid',
+                  gap: 0.75,
+                  color: theme.palette.text.secondary
+                }}
+              >
+                <Typography component="li" variant="body2">
+                  {t('imageWarningBulletProtectDetails')}
+                </Typography>
+                <Typography component="li" variant="body2">
+                  {t('imageWarningBulletUseNeutralBackground')}
+                </Typography>
+              </Box>
+            </>
+          ) : (
+            <Typography variant="body2" sx={{ color: theme.palette.text.primary }}>
+              {t('imageWarningDescriptionLost')}
+            </Typography>
+          )}
+        </DialogContent>
+        <DialogActions sx={{ p: 2, gap: 1 }}>
+          <Button
+            variant="outlined"
+            onClick={handleWarningDialogClose}
+            sx={{ textTransform: 'none', borderRadius: 2, px: 3 }}
+          >
+            {t('cancel')}
+          </Button>
+          <Button
+            variant="contained"
+            disabled={countdown > 0}
+            onClick={handleWarningDialogConfirm}
+            sx={{
+              textTransform: 'none',
+              borderRadius: 2,
+              px: 3,
+              backgroundColor: accentColor,
+              '&:hover': { backgroundColor: accentColor },
+            }}
+          >
+            {countdown > 0
+              ? t('imageWarningProceedCountdown', { seconds: countdown })
+              : t('imageWarningProceed')}
+          </Button>
+        </DialogActions>
+      </Dialog>
     </Box>
   );
 };

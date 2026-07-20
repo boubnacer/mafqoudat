@@ -6,6 +6,7 @@ import { selectCurrentToken } from "../../auth/authSlice";
 import * as Yup from "yup";
 import { Formik, Form } from "formik";
 import imageCompression from "browser-image-compression";
+import { lighten } from "@mui/material/styles";
 import {
   Box,
   Paper,
@@ -965,7 +966,7 @@ const NewPostForm = ({ user, countries, categories, flOptions }) => {
               }
             };
 
-            const accentColor = theme.palette.mode === 'dark' ? '#4CAF50' : '#2E7D32';
+            const accentColor = theme.custom.color.brandPrimary;
 
             return (
             <Form>
@@ -1235,10 +1236,10 @@ const NewPostForm = ({ user, countries, categories, flOptions }) => {
               borderRadius: 2,
               '& .MuiOutlinedInput-root': {
                 '&:hover fieldset': {
-                  borderColor: theme.palette.mode === 'dark' ? '#4CAF50' : '#2E7D32',
+                  borderColor: theme.custom.color.brandPrimary,
                 },
                 '&.Mui-focused fieldset': {
-                  borderColor: theme.palette.mode === 'dark' ? '#4CAF50' : '#2E7D32',
+                  borderColor: theme.custom.color.brandPrimary,
                 },
                 '& fieldset': {
                   borderColor: theme.palette.mode === 'dark' ? 'rgba(255,255,255,0.3)' : 'rgba(0,0,0,0.2)',
@@ -1305,9 +1306,9 @@ const NewPostForm = ({ user, countries, categories, flOptions }) => {
               textTransform: 'none',
               borderRadius: 2,
               px: 3,
-              background: 'linear-gradient(45deg, #4A8BFF 30%, #1A6EEE 90%)',
+              background: `linear-gradient(45deg, ${theme.custom.color.brandPrimary} 30%, ${lighten(theme.custom.color.brandPrimary, 0.15)} 90%)`,
               '&:hover': {
-                background: 'linear-gradient(45deg, #5A9BFF 30%, #2A7EFF 90%)',
+                background: `linear-gradient(45deg, ${lighten(theme.custom.color.brandPrimary, 0.08)} 30%, ${lighten(theme.custom.color.brandPrimary, 0.25)} 90%)`,
               }
             }}
             startIcon={isCreatingCity ? <CircularProgress size={16} color="inherit" /> : null}
@@ -1394,13 +1395,9 @@ const NewPostForm = ({ user, countries, categories, flOptions }) => {
                 textTransform: 'none',
                 borderRadius: 2,
                 px: 3,
-                background: theme.palette.mode === 'dark'
-                  ? 'linear-gradient(45deg, #4CAF50 30%, #66BB6A 90%)'
-                  : 'linear-gradient(45deg, #2E7D32 30%, #388E3C 90%)',
+                background: `linear-gradient(45deg, ${theme.custom.color.brandPrimary} 30%, ${lighten(theme.custom.color.brandPrimary, 0.15)} 90%)`,
                 '&:hover': {
-                  background: theme.palette.mode === 'dark'
-                    ? 'linear-gradient(45deg, #388E3C 30%, #4CAF50 90%)'
-                    : 'linear-gradient(45deg, #1B5E20 30%, #2E7D32 90%)',
+                  background: `linear-gradient(45deg, ${lighten(theme.custom.color.brandPrimary, 0.08)} 30%, ${lighten(theme.custom.color.brandPrimary, 0.25)} 90%)`,
                 }
               }}
             >

@@ -31,7 +31,7 @@ const StepReview = ({
   const { values } = useFormikContext();
   const { t, currentLanguage } = useTranslation();
   const theme = useTheme();
-  const accentColor = theme.palette.mode === 'dark' ? '#4CAF50' : '#2E7D32';
+  const accentColor = theme.custom.color.brandPrimary;
 
   const foundLostOption = flOptions.find((opt) => opt.id === values.foundLost);
   const foundLostLabel = foundLostOption
@@ -92,8 +92,7 @@ const StepReview = ({
           fontWeight: 700,
           color: accentColor,
           fontSize: '1.4rem',
-          mb: 1,
-          textShadow: theme.palette.mode === 'dark' ? '0 1px 2px rgba(0,0,0,0.3)' : '0 1px 2px rgba(0,0,0,0.1)'
+          mb: 1
         }}
       >
         {t('contactInformation')}
@@ -151,7 +150,7 @@ const StepReview = ({
 
 const ReviewSection = ({ title, onEdit, children }) => {
   const theme = useTheme();
-  const accentColor = theme.palette.mode === 'dark' ? '#4CAF50' : '#2E7D32';
+  const accentColor = theme.custom.color.brandPrimary;
   const { t } = useTranslation();
 
   return (
@@ -171,9 +170,9 @@ const ReviewSection = ({ title, onEdit, children }) => {
             textTransform: 'none',
             borderRadius: 2,
             fontWeight: 600,
-            color: theme.palette.mode === 'dark' ? '#8ab4ff' : '#1A6EEE',
+            color: accentColor,
             '&:hover': {
-              backgroundColor: theme.palette.mode === 'dark' ? 'rgba(138,180,255,0.1)' : 'rgba(26,110,238,0.08)',
+              backgroundColor: theme.palette.mode === 'dark' ? 'rgba(91,127,255,0.1)' : 'rgba(27,77,255,0.08)',
             },
           }}
         >

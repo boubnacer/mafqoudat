@@ -7,13 +7,24 @@ import {
   Chip,
   Autocomplete,
   Alert,
+  ToggleButtonGroup,
+  ToggleButton,
   useTheme,
 } from "@mui/material";
+import { TaskAltOutlined, SearchOffOutlined } from "@mui/icons-material";
 import Textfield from "../../../../components/Textfield";
-import SelectOption from "../../../../components/SelectOption";
 import { useTranslation } from "../../../../utils/translations";
 import { getCategoryColor, getCategoryBackgroundColor } from "../../../../config/categories";
 import RequiredMark from "./RequiredMark";
+
+// Labeling helper mirrors the one SelectOption used internally, so the
+// displayed text is identical to before the toggle replaced it.
+const getFlOptionLabel = (option, currentLanguage) => {
+  if (option.labels && option.labels[currentLanguage]) {
+    return option.labels[currentLanguage];
+  }
+  return option.label || option.code;
+};
 
 // Step 1 "What happened": foundLost, categories, description
 const StepItem = ({ flOptions, categories, fieldErrors, clearFieldError, getFoundLostType }) => {
@@ -28,10 +39,9 @@ const StepItem = ({ flOptions, categories, fieldErrors, clearFieldError, getFoun
         variant="h5"
         sx={{
           fontWeight: 700,
-          color: theme.palette.mode === 'dark' ? '#4CAF50' : '#2E7D32',
+          color: theme.custom.color.brandPrimary,
           fontSize: '1.4rem',
-          mb: 1,
-          textShadow: theme.palette.mode === 'dark' ? '0 1px 2px rgba(0,0,0,0.3)' : '0 1px 2px rgba(0,0,0,0.1)'
+          mb: 1
         }}
       >
         {t('basicInformation')}
@@ -50,14 +60,58 @@ const StepItem = ({ flOptions, categories, fieldErrors, clearFieldError, getFoun
         >
           {t('haveYouLostOrFoundSomething')}<RequiredMark />
         </FormLabel>
-        <SelectOption
-          name="foundLost"
-          options={flOptions}
+        <ToggleButtonGroup
+          exclusive
+          fullWidth
+          value={values.foundLost || null}
+          onChange={(event, newValue) => {
+            if (newValue === null) return;
+            setFieldValue('foundLost', newValue);
+            clearFieldError('foundLost');
+          }}
           data-testid="foundLost"
-          error={!!fieldErrors.foundLost}
-          helperText={fieldErrors.foundLost}
-          onErrorClear={clearFieldError}
-        />
+          sx={{ gap: 1.5 }}
+        >
+          {flOptions.map((option) => {
+            const isLost = option.code === 'LOST';
+            const tone = isLost ? theme.custom.status.lost : theme.custom.status.found;
+            const Icon = isLost ? SearchOffOutlined : TaskAltOutlined;
+            return (
+              <ToggleButton
+                key={option.id}
+                value={option.id}
+                sx={{
+                  textTransform: 'none',
+                  fontWeight: 600,
+                  borderRadius: 2,
+                  border: `1px solid ${fieldErrors.foundLost ? theme.palette.error.main : theme.palette.divider}`,
+                  color: theme.palette.text.primary,
+                  gap: 1,
+                  py: 1.25,
+                  '&.Mui-selected': {
+                    backgroundColor: tone.bg,
+                    color: tone.main,
+                    borderColor: tone.border,
+                  },
+                  '&.Mui-selected:hover': {
+                    backgroundColor: tone.bg,
+                  },
+                }}
+              >
+                <Icon fontSize="small" />
+                {getFlOptionLabel(option, currentLanguage)}
+              </ToggleButton>
+            );
+          })}
+        </ToggleButtonGroup>
+        {fieldErrors.foundLost && (
+          <Typography
+            variant="caption"
+            sx={{ mt: 1, display: 'block', color: theme.palette.error.main, fontWeight: 500 }}
+          >
+            {fieldErrors.foundLost}
+          </Typography>
+        )}
       </Box>
 
       <Box>
@@ -152,7 +206,7 @@ const StepItem = ({ flOptions, categories, fieldErrors, clearFieldError, getFoun
                     borderColor: theme.palette.mode === 'dark' ? 'rgba(255,255,255,0.5)' : 'rgba(0,0,0,0.4)',
                   },
                   '&.Mui-focused fieldset': {
-                    borderColor: theme.palette.mode === 'dark' ? '#4CAF50' : '#2E7D32',
+                    borderColor: theme.custom.color.brandPrimary,
                   },
                   '& fieldset': {
                     borderColor: theme.palette.mode === 'dark' ? 'rgba(255,255,255,0.3)' : 'rgba(0,0,0,0.2)',
@@ -166,13 +220,13 @@ const StepItem = ({ flOptions, categories, fieldErrors, clearFieldError, getFoun
               const { key, ...tagProps } = getTagProps({ index });
               const categoryName = option.labels?.[currentLanguage] || option.label || option.code || '';
               // Use the category's own color if the data has a code for it;
-              // otherwise fall back to the wizard's default green accent.
+              // otherwise fall back to the wizard's brand accent.
               const chipColor = option.code
                 ? getCategoryColor(option.code)
-                : (theme.palette.mode === 'dark' ? '#4CAF50' : '#2E7D32');
+                : theme.custom.color.brandPrimary;
               const chipBackground = option.code
                 ? getCategoryBackgroundColor(option.code)
-                : (theme.palette.mode === 'dark' ? 'rgba(76, 175, 80, 0.2)' : 'rgba(76, 175, 80, 0.1)');
+                : (theme.palette.mode === 'dark' ? 'rgba(91, 127, 255, 0.2)' : 'rgba(27, 77, 255, 0.1)');
               return (
                 <Chip
                   key={key}
@@ -204,10 +258,9 @@ const StepItem = ({ flOptions, categories, fieldErrors, clearFieldError, getFoun
         variant="h5"
         sx={{
           fontWeight: 700,
-          color: theme.palette.mode === 'dark' ? '#4CAF50' : '#2E7D32',
+          color: theme.custom.color.brandPrimary,
           fontSize: '1.4rem',
-          mb: 1,
-          textShadow: theme.palette.mode === 'dark' ? '0 1px 2px rgba(0,0,0,0.3)' : '0 1px 2px rgba(0,0,0,0.1)'
+          mb: 1
         }}
       >
         {t('itemDetails')}

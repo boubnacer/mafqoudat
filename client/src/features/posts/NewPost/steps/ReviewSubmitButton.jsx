@@ -1,5 +1,6 @@
 import { useFormikContext } from "formik";
 import { Button, CircularProgress, useTheme } from "@mui/material";
+import { lighten } from "@mui/material/styles";
 import { useTranslation } from "../../../../utils/translations";
 
 // The final submit button (S5) - visually distinct from Back/Next, full
@@ -8,6 +9,7 @@ const ReviewSubmitButton = () => {
   const { isSubmitting } = useFormikContext();
   const { t } = useTranslation();
   const theme = useTheme();
+  const brandPrimary = theme.custom.color.brandPrimary;
 
   return (
     <Button
@@ -21,17 +23,17 @@ const ReviewSubmitButton = () => {
         fontWeight: 600,
         borderRadius: 2,
         textTransform: 'none',
-        background: 'linear-gradient(45deg, #4A8BFF 30%, #1A6EEE 90%)',
+        background: `linear-gradient(45deg, ${brandPrimary} 30%, ${lighten(brandPrimary, 0.15)} 90%)`,
         color: '#fff !important',
-        boxShadow: '0 4px 15px rgba(26, 110, 238, 0.3)',
+        boxShadow: `0 4px 15px ${theme.palette.mode === 'dark' ? 'rgba(91, 127, 255, 0.3)' : 'rgba(27, 77, 255, 0.3)'}`,
         '&:hover': {
-          background: 'linear-gradient(45deg, #5A9BFF 30%, #2A7EFF 90%)',
-          boxShadow: '0 6px 20px rgba(26, 110, 238, 0.4)',
+          background: `linear-gradient(45deg, ${lighten(brandPrimary, 0.08)} 30%, ${lighten(brandPrimary, 0.25)} 90%)`,
+          boxShadow: `0 6px 20px ${theme.palette.mode === 'dark' ? 'rgba(91, 127, 255, 0.4)' : 'rgba(27, 77, 255, 0.4)'}`,
           transform: 'translateY(-1px)',
           color: '#fff !important',
         },
         '&:disabled': {
-          background: theme.palette.mode === 'dark' ? 'rgba(74, 139, 255, 0.3)' : 'rgba(26, 110, 238, 0.3)',
+          background: theme.palette.mode === 'dark' ? 'rgba(91, 127, 255, 0.3)' : 'rgba(27, 77, 255, 0.3)',
           color: theme.palette.mode === 'dark' ? 'rgba(255,255,255,0.5) !important' : 'rgba(255,255,255,0.7) !important',
           transform: 'none',
           boxShadow: 'none',

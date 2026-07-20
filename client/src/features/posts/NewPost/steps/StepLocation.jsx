@@ -77,10 +77,9 @@ const StepLocation = ({
         variant="h5"
         sx={{
           fontWeight: 700,
-          color: theme.palette.mode === 'dark' ? '#4CAF50' : '#2E7D32',
+          color: theme.custom.color.brandPrimary,
           fontSize: '1.4rem',
-          mb: 1,
-          textShadow: theme.palette.mode === 'dark' ? '0 1px 2px rgba(0,0,0,0.3)' : '0 1px 2px rgba(0,0,0,0.1)'
+          mb: 1
         }}
       >
         {t('location')}
@@ -129,7 +128,7 @@ const StepLocation = ({
                 borderColor: theme.palette.mode === 'dark' ? 'rgba(255,255,255,0.5)' : 'rgba(0,0,0,0.4)',
               },
               '&.Mui-focused .MuiOutlinedInput-notchedOutline': {
-                borderColor: theme.palette.mode === 'dark' ? '#4CAF50' : '#2E7D32',
+                borderColor: theme.custom.color.brandPrimary,
               },
               color: theme.palette.text.primary,
               fontWeight: 500
@@ -163,7 +162,7 @@ const StepLocation = ({
               sx={{
                 mt: 1,
                 display: 'block',
-                color: theme.palette.mode === 'dark' ? '#f44336' : '#d32f2f',
+                color: theme.palette.error.main,
                 fontWeight: 500
               }}
             >
@@ -212,24 +211,6 @@ const StepLocation = ({
           }
         </Typography>
 
-        {/* Debug info */}
-        {process.env.NODE_ENV === 'development' && selectedCountryObj && (
-          <Box>
-            <Typography
-              variant="caption"
-              sx={{
-                mb: 1,
-                display: "block",
-                fontSize: '0.8rem',
-                color: theme.palette.mode === 'dark' ? '#ff9800' : '#f57c00',
-                fontWeight: 500
-              }}
-            >
-              Debug: Country: {selectedCountryObj.code || selectedCountryObj.labels?.en || 'No code'} | Cities loaded: {cities.length}
-            </Typography>
-          </Box>
-        )}
-
         <Box sx={{
           position: 'relative'
         }} data-testid="city-dropdown">
@@ -249,7 +230,7 @@ const StepLocation = ({
                 borderColor: theme.palette.mode === 'dark' ? 'rgba(255,255,255,0.5)' : 'rgba(0,0,0,0.4)',
               },
                 '&.Mui-focused fieldset': {
-                borderColor: theme.palette.mode === 'dark' ? '#4CAF50' : '#2E7D32',
+                borderColor: theme.custom.color.brandPrimary,
               },
                 '& fieldset': {
                   borderColor: theme.palette.mode === 'dark' ? 'rgba(255,255,255,0.3)' : 'rgba(0,0,0,0.2)',
@@ -318,7 +299,7 @@ const StepLocation = ({
                         backgroundColor: theme.palette.mode === 'dark' ? 'rgba(255,255,255,0.08)' : 'rgba(0,0,0,0.04)',
                       },
                       '&.Mui-focused fieldset': {
-                        borderColor: theme.palette.mode === 'dark' ? '#4CAF50' : '#2E7D32',
+                        borderColor: theme.custom.color.brandPrimary,
                       },
                     },
                     '& .MuiInputBase-input': {
@@ -534,7 +515,7 @@ const StepLocation = ({
                         '&:hover': {
                           backgroundColor: theme.palette.action.hover,
                           color: theme.palette.text.primary,
-                          borderColor: theme.palette.primary.main,
+                          borderColor: theme.custom.color.brandPrimary,
                           transform: 'translateY(-1px)',
                           boxShadow: theme.shadows[4],
                         }
@@ -557,7 +538,7 @@ const StepLocation = ({
               sx={{
                 mt: 1,
                 display: 'block',
-                color: theme.palette.mode === 'dark' ? '#f44336' : '#d32f2f',
+                color: theme.palette.error.main,
                 fontWeight: 500
               }}
             >
