@@ -49,6 +49,9 @@ export const translations = {
     signUpWithGoogle: "Sign up with Google",
     countryNoResults: "No countries found",
 
+    // Navigation
+    home: "Home",
+
     // Posts
     posts: "Posts",
     postsList: "Posts List",
@@ -315,6 +318,9 @@ export const translations = {
     signUpWithGoogle: "S'inscrire avec Google",
     countryNoResults: "Aucun pays trouvé",
 
+    // Navigation
+    home: "Accueil",
+
     // Posts
     posts: "Publications",
     postsList: "Liste des publications",
@@ -580,6 +586,9 @@ export const translations = {
     signInPrompt: "لديك حساب بالفعل؟",
     signUpWithGoogle: "التسجيل باستخدام جوجل",
     countryNoResults: "لم يتم العثور على دول",
+
+    // Navigation
+    home: "الرئيسية",
 
     // Posts
     posts: "المنشورات",

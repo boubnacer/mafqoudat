@@ -264,7 +264,7 @@ const PostsListScreen = ({ navigation }) => {
       await signOut();
       return;
     }
-    navigation.navigate('NewPostScreen');
+    navigation.navigate('NewPost');
   };
 
   const handleClearAllFilters = () => {
@@ -328,9 +328,6 @@ const PostsListScreen = ({ navigation }) => {
     <View style={styles.container}>
       <View style={styles.header}>
         <Text style={styles.headerTitle}>{t('posts')}</Text>
-        <TouchableOpacity onPress={() => navigation.navigate('ProfileScreen')} style={styles.profileButton}>
-          <Text style={styles.profileButtonText}>{t('profile')}</Text>
-        </TouchableOpacity>
       </View>
 
       <View style={styles.searchRow}>
@@ -493,18 +490,6 @@ const styles = StyleSheet.create({
     fontSize: 24,
     fontWeight: 'bold',
     color: '#fff',
-  },
-  profileButton: {
-    padding: 8,
-    borderWidth: 1,
-    borderColor: 'rgba(255,255,255,0.6)',
-    borderRadius: 16,
-    paddingHorizontal: 14,
-  },
-  profileButtonText: {
-    color: '#fff',
-    fontSize: 14,
-    fontWeight: '600',
   },
   searchRow: {
     flexDirection: 'row',

@@ -74,13 +74,9 @@ const ProfileScreen = ({ navigation }) => {
 
   const renderHeader = () => (
     <View style={styles.header}>
-      <TouchableOpacity onPress={() => navigation.goBack()} style={styles.backButton}>
-        <Text style={styles.backButtonText}>{isRTL ? '›' : '‹'}</Text>
-      </TouchableOpacity>
       <Text style={[styles.headerTitle, textStyle]} numberOfLines={1}>
         {t('profile')}
       </Text>
-      <View style={styles.backButton} />
     </View>
   );
 
@@ -181,7 +177,7 @@ const ProfileScreen = ({ navigation }) => {
           <Text style={styles.primaryButtonText}>{t('editProfile')}</Text>
         </TouchableOpacity>
 
-        <TouchableOpacity style={styles.menuRow} onPress={() => navigation.navigate('MyPostsScreen')}>
+        <TouchableOpacity style={styles.menuRow} onPress={() => navigation.navigate('MyPosts')}>
           <Text style={[styles.menuRowText, textStyle]}>{t('myPosts')}</Text>
           <Text style={styles.menuRowChevron}>{isRTL ? '‹' : '›'}</Text>
         </TouchableOpacity>
@@ -206,16 +202,6 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'center',
-  },
-  backButton: {
-    width: 40,
-    justifyContent: 'center',
-    alignItems: 'flex-start',
-  },
-  backButtonText: {
-    color: '#fff',
-    fontSize: 32,
-    lineHeight: 32,
   },
   headerTitle: {
     flex: 1,

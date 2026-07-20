@@ -5,7 +5,7 @@
  */
 
 import React, { useState } from 'react';
-import { View, Text, StyleSheet, TouchableOpacity } from 'react-native';
+import { View, Text, StyleSheet } from 'react-native';
 import apiClient from '../api/apiService';
 import { API_ENDPOINTS } from '../config/api';
 import { useLanguage } from '../context/LanguageContext';
@@ -40,7 +40,16 @@ const NewPostScreen = ({ navigation }) => {
       });
 
       const postId = response.data?.postId;
-      navigation.replace('PostDetailScreen', { id: postId });
+      // Land on the new post's detail with Home as the underlying tab, so
+      // back from the detail screen returns to Home rather than to this
+      // now-submitted form.
+      navigation.getParent()?.reset({
+        index: 1,
+        routes: [
+          { name: 'MainTabs', state: { routes: [{ name: 'Home' }] } },
+          { name: 'PostDetailScreen', params: { id: postId } },
+        ],
+      });
     } catch (err) {
       if (err.response?.status === 429) {
         setSubmitError({ type: 'ratelimit', message: err.response.data?.message || t('postingLimitReached') });
@@ -65,13 +74,9 @@ const NewPostScreen = ({ navigation }) => {
   return (
     <View style={styles.container}>
       <View style={styles.header}>
-        <TouchableOpacity onPress={() => navigation.goBack()} style={styles.backButton}>
-          <Text style={styles.backButtonText}>{isRTL ? '›' : '‹'}</Text>
-        </TouchableOpacity>
         <Text style={[styles.headerTitle, isRTL && styles.textRTL]} numberOfLines={1}>
           {t('createNewPost')}
         </Text>
-        <View style={styles.backButton} />
       </View>
 
       <PostForm
@@ -97,16 +102,6 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'center',
-  },
-  backButton: {
-    width: 40,
-    justifyContent: 'center',
-    alignItems: 'flex-start',
-  },
-  backButtonText: {
-    color: '#fff',
-    fontSize: 32,
-    lineHeight: 32,
   },
   headerTitle: {
     flex: 1,

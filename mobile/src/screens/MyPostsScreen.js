@@ -256,11 +256,7 @@ const MyPostsScreen = ({ navigation }) => {
     return (
       <View style={styles.container}>
         <View style={styles.header}>
-          <TouchableOpacity onPress={() => navigation.goBack()} style={styles.backButton}>
-            <Text style={styles.backButtonText}>{isRTL ? '›' : '‹'}</Text>
-          </TouchableOpacity>
           <Text style={styles.headerTitle}>{t('myPosts')}</Text>
-          <View style={styles.backButton} />
         </View>
         <View style={styles.centerContainer}>
           <ActivityIndicator size="large" color="#2196F3" />
@@ -272,13 +268,9 @@ const MyPostsScreen = ({ navigation }) => {
   return (
     <View style={styles.container}>
       <View style={styles.header}>
-        <TouchableOpacity onPress={() => navigation.goBack()} style={styles.backButton}>
-          <Text style={styles.backButtonText}>{isRTL ? '›' : '‹'}</Text>
-        </TouchableOpacity>
         <Text style={[styles.headerTitle, isRTL && styles.textRTL]} numberOfLines={1}>
           {t('myPosts')}
         </Text>
-        <View style={styles.backButton} />
       </View>
 
       {error && !isLoading && posts.length === 0 ? (
@@ -343,16 +335,6 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'center',
-  },
-  backButton: {
-    width: 40,
-    justifyContent: 'center',
-    alignItems: 'flex-start',
-  },
-  backButtonText: {
-    color: '#fff',
-    fontSize: 32,
-    lineHeight: 32,
   },
   headerTitle: {
     flex: 1,

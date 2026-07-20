@@ -3,6 +3,8 @@ import { StatusBar } from 'expo-status-bar';
 import { useColorScheme } from 'react-native';
 import { NavigationContainer } from '@react-navigation/native';
 import { createNativeStackNavigator } from '@react-navigation/native-stack';
+import { createBottomTabNavigator } from '@react-navigation/bottom-tabs';
+import { Ionicons } from '@expo/vector-icons';
 import { SafeAreaProvider } from 'react-native-safe-area-context';
 import { validateEnv } from './src/config/validateEnv';
 import { ThemeProvider, useTheme } from './src/context/ThemeContext';
@@ -12,6 +14,7 @@ import { MaintenanceProvider, useMaintenance } from './src/context/MaintenanceCo
 import { ReferenceDataProvider } from './src/context/ReferenceDataContext';
 import { lightColors, darkColors } from './src/theme/tokens';
 import { getNavigationTheme } from './src/theme/navigationTheme';
+import { useTranslation } from './src/utils/translations';
 import MaintenanceOverlay from './src/components/MaintenanceOverlay';
 import OfflineBanner from './src/components/OfflineBanner';
 import WelcomeScreen from './src/screens/WelcomeScreen';
@@ -32,6 +35,14 @@ import { ActivityIndicator, View, StyleSheet, Text } from 'react-native';
 validateEnv();
 
 const Stack = createNativeStackNavigator();
+const Tab = createBottomTabNavigator();
+
+const TAB_ICONS = {
+  Home: { focused: 'home', unfocused: 'home-outline' },
+  NewPost: { focused: 'add-circle', unfocused: 'add-circle-outline' },
+  MyPosts: { focused: 'list', unfocused: 'list-outline' },
+  Profile: { focused: 'person', unfocused: 'person-outline' },
+};
 
 // Auth navigator component: Welcome (country/language landing) -> Login -> CountrySelection
 // (the latter only reached mid-flow for brand-new Google sign-ups pending a country pick).
@@ -50,18 +61,48 @@ const AuthNavigator = () => {
   );
 };
 
+// Bottom tab navigator: the four primary authenticated destinations. Detail/edit/settings
+// screens are pushed on top of this from the root stack (AppNavigator below) rather than
+// living inside the tabs, so the tab bar - and each tab's own focus/scroll state - persists
+// underneath them.
+const MainTabs = () => {
+  const { colors } = useTheme();
+  const { t } = useTranslation();
+
+  return (
+    <Tab.Navigator
+      initialRouteName="Home"
+      screenOptions={({ route }) => ({
+        headerShown: false,
+        tabBarActiveTintColor: colors.primary,
+        tabBarInactiveTintColor: colors.textSecondary,
+        tabBarStyle: {
+          backgroundColor: colors.surface,
+          borderTopColor: colors.border,
+        },
+        tabBarIcon: ({ focused, color, size }) => {
+          const icon = TAB_ICONS[route.name];
+          return <Ionicons name={focused ? icon.focused : icon.unfocused} size={size} color={color} />;
+        },
+      })}
+    >
+      <Tab.Screen name="Home" component={PostsListScreen} options={{ tabBarLabel: t('home') }} />
+      <Tab.Screen name="NewPost" component={NewPostScreen} options={{ tabBarLabel: t('newPost') }} />
+      <Tab.Screen name="MyPosts" component={MyPostsScreen} options={{ tabBarLabel: t('myPosts') }} />
+      <Tab.Screen name="Profile" component={ProfileScreen} options={{ tabBarLabel: t('profile') }} />
+    </Tab.Navigator>
+  );
+};
+
 // App navigator component
 const AppNavigator = () => {
   const { colors } = useTheme();
   return (
     <ReferenceDataProvider>
       <Stack.Navigator screenOptions={{ headerShown: false, contentStyle: { backgroundColor: colors.background } }}>
-        <Stack.Screen name="PostsListScreen" component={PostsListScreen} />
+        <Stack.Screen name="MainTabs" component={MainTabs} />
         <Stack.Screen name="PostDetailScreen" component={PostDetailScreen} />
-        <Stack.Screen name="NewPostScreen" component={NewPostScreen} />
         <Stack.Screen name="EditPostScreen" component={EditPostScreen} />
-        <Stack.Screen name="MyPostsScreen" component={MyPostsScreen} />
-        <Stack.Screen name="ProfileScreen" component={ProfileScreen} />
         <Stack.Screen name="EditProfileScreen" component={EditProfileScreen} />
         <Stack.Screen name="SettingsScreen" component={SettingsScreen} />
         {/* Add other authenticated screens here */}
