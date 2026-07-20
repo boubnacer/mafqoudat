@@ -1,8 +1,10 @@
 /**
  * Shared header for the four bottom-tab screens (Home, New Post, My Posts,
- * Profile). Carries the screen title, the current browsing-country chip
- * (opens CountryPickerModal), the language toggle, and the theme toggle -
- * mirroring the web app's Navbar (client/src/components/Navbar).
+ * Profile). A single row: title, country flag (opens CountryPickerModal),
+ * theme toggle, language dropdown, optional rightActions, and the overflow
+ * (⋮) menu - mirroring the web app's Navbar (client/src/components/Navbar).
+ * The country control is flag-only (full name lives in the picker's list) so
+ * six controls plus a title still fit on a ~360dp-wide screen without wrapping.
  *
  * Country selection can be controlled or self-managed:
  * - Controlled (pass `countryId` + `onSelectCountry`): used by PostsListScreen,
@@ -129,7 +131,14 @@ const AppHeader = ({
           {title}
         </Text>
         <View style={styles.controls}>
-          {rightActions}
+          <TouchableOpacity
+            onPress={openCountryPicker}
+            style={styles.iconButton}
+            accessibilityLabel={countryLabel || t('selectCountry')}
+            hitSlop={8}
+          >
+            <Text style={styles.iconButtonText}>{countryFlag}</Text>
+          </TouchableOpacity>
           <TouchableOpacity
             onPress={handleToggleTheme}
             style={styles.iconButton}
@@ -139,6 +148,7 @@ const AppHeader = ({
             <Text style={styles.iconButtonText}>{isDark ? '☀️' : '🌙'}</Text>
           </TouchableOpacity>
           <LanguageDropdown compact onOpen={handleLanguageDropdownOpen} closeSignal={closeLanguageDropdownSignal} />
+          {rightActions}
           {showMenu ? (
             <TouchableOpacity
               onPress={openMenu}
@@ -151,13 +161,6 @@ const AppHeader = ({
           ) : null}
         </View>
       </View>
-
-      <TouchableOpacity style={styles.countryChip} onPress={openCountryPicker}>
-        <Text style={styles.countryFlag}>{countryFlag}</Text>
-        <Text style={[styles.countryLabel, textStyle]} numberOfLines={1}>
-          {countryLabel || t('selectCountry')}
-        </Text>
-      </TouchableOpacity>
 
       <CountryPickerModal
         visible={pickerVisible}
@@ -213,29 +216,6 @@ const createStyles = ({ colors, spacing, radii, fontSizes }) =>
     },
     iconButtonText: {
       fontSize: fontSizes.md,
-    },
-    countryChip: {
-      flexDirection: 'row',
-      alignItems: 'center',
-      alignSelf: 'flex-start',
-      marginTop: spacing.sm,
-      paddingHorizontal: spacing.md,
-      paddingVertical: spacing.xs,
-      borderRadius: radii.full,
-      backgroundColor: 'rgba(255,255,255,0.15)',
-      borderWidth: 1,
-      borderColor: 'rgba(255,255,255,0.35)',
-      maxWidth: '100%',
-    },
-    countryFlag: {
-      fontSize: fontSizes.md,
-      marginEnd: spacing.xs,
-    },
-    countryLabel: {
-      color: colors.primaryText,
-      fontSize: fontSizes.sm,
-      fontWeight: '600',
-      flexShrink: 1,
     },
   });
 

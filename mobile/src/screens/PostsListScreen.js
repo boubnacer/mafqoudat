@@ -29,12 +29,11 @@ import { useTheme } from '../context/ThemeContext';
 import PostFilterSheet from '../components/PostFilterSheet';
 import DataStateView from '../components/DataStateView';
 import AppHeader from '../components/AppHeader';
-import PostTypeSegmentedControl from '../components/PostTypeSegmentedControl';
 
 const SEARCH_DEBOUNCE_MS = 400;
 const PAGE_SIZE = 10;
 
-const PostsListScreen = ({ navigation }) => {
+const PostsListScreen = ({ navigation, route }) => {
   const { currentLanguage } = useLanguage();
   const { t } = useTranslation();
   const { signOut } = useAuth();
@@ -266,14 +265,29 @@ const PostsListScreen = ({ navigation }) => {
     storage.setCurrentCountry(id);
   };
 
-  // Single write path for selectedFl - used by the segmented control, the
-  // filter sheet's post-type chips, and the active-filter chip's remove
-  // button, so all three surfaces read/write the same state and the persisted
-  // value never goes stale relative to what's on screen.
+  // Single write path for selectedFl - used by the filter sheet's post-type
+  // section, the active-filter chip's remove button, and the route-param
+  // effect below (HeaderMenu's Browse section), so every surface reads/writes
+  // the same state and the persisted value never goes stale relative to
+  // what's on screen.
   const handleSelectFl = (id) => {
     setSelectedFl(id);
     storage.setSelectedFl(id);
   };
+
+  // HeaderMenu's Browse section (any tab) navigates here via
+  // navigation.navigate('MainTabs', { screen: 'Home', params: { fl } }).
+  // When Home is already focused, that only updates route.params in place
+  // (no remount), so this effect is what actually applies the filter. The
+  // param is cleared right after so switching away and back to Home doesn't
+  // re-apply a stale selection.
+  useEffect(() => {
+    const requestedFl = route.params?.fl;
+    if (requestedFl === undefined) return;
+    handleSelectFl(requestedFl);
+    navigation.setParams({ fl: undefined });
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [route.params?.fl]);
 
   const handleToggleCategory = (id) => {
     setSelectedCategoryIds((prev) => (prev.includes(id) ? prev.filter((c) => c !== id) : [...prev, id]));
@@ -371,7 +385,6 @@ const PostsListScreen = ({ navigation }) => {
           onSelectCountry={handleSelectCountry}
           rightActions={filterButton}
         />
-        <PostTypeSegmentedControl floptions={floptions} selectedFl={selectedFl} onSelectFl={handleSelectFl} />
         <View style={styles.centerContainer}>
           <ActivityIndicator size="large" color="#2196F3" />
           <Text style={styles.loadingText}>{t('loadingPosts')}</Text>
@@ -388,7 +401,6 @@ const PostsListScreen = ({ navigation }) => {
         onSelectCountry={handleSelectCountry}
         rightActions={filterButton}
       />
-      <PostTypeSegmentedControl floptions={floptions} selectedFl={selectedFl} onSelectFl={handleSelectFl} />
 
       <View style={styles.searchRow}>
         <TextInput

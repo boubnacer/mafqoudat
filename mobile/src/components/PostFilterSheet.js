@@ -1,12 +1,18 @@
 /**
  * Post Filter Sheet
- * Bottom-sheet modal for browsing filters: country, lost/found, categories, city.
+ * Bottom-sheet modal for browsing filters: post type, country, categories, city.
  * Selections apply immediately (parent recomposes the query); this component only
  * owns the sheet's own UI state (open/closed, city search text, fetched city list).
+ *
+ * Post type (All/Lost/Found) is the first, most prominent section - it writes
+ * through the same selectedFl/onSelectFl prop pair the active-filter chip and
+ * HeaderMenu's Browse section use, so there's a single source of truth no
+ * matter which surface changes it.
  */
 
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useMemo, useState } from 'react';
 import { View, Text, StyleSheet, TouchableOpacity, ScrollView, TextInput, Modal, ActivityIndicator } from 'react-native';
+import { useTheme } from '../context/ThemeContext';
 import { getLocalizedLabel } from '../context/ReferenceDataContext';
 
 const PostFilterSheet = ({
@@ -30,9 +36,12 @@ const PostFilterSheet = ({
   onSelectCity,
   onClearAll,
 }) => {
+  const { colors, spacing, radii, fontSizes } = useTheme();
   const [cities, setCities] = useState([]);
   const [citiesLoading, setCitiesLoading] = useState(false);
   const [citySearch, setCitySearch] = useState('');
+
+  const styles = useMemo(() => createStyles({ colors, spacing, radii, fontSizes }), [colors, spacing, radii, fontSizes]);
 
   useEffect(() => {
     if (!visible || !countryId) return;
@@ -56,6 +65,16 @@ const PostFilterSheet = ({
       )
     : cities;
 
+  // Looked up by code (not floptions.map order) so it's always All -> Lost ->
+  // Found regardless of how the backend returns them.
+  const lostOption = floptions.find((fl) => fl.code === 'LOST');
+  const foundOption = floptions.find((fl) => fl.code === 'FOUND');
+  const postTypeOptions = [
+    { id: '', label: t('all'), color: colors.primary },
+    lostOption && { id: lostOption._id, label: getLocalizedLabel(lostOption, currentLanguage), color: lostOption.color },
+    foundOption && { id: foundOption._id, label: getLocalizedLabel(foundOption, currentLanguage), color: foundOption.color },
+  ].filter(Boolean);
+
   const textStyle = isRTL ? styles.textRTL : null;
 
   return (
@@ -71,6 +90,35 @@ const PostFilterSheet = ({
           </View>
 
           <ScrollView style={styles.body} keyboardShouldPersistTaps="handled">
+            <Text style={[styles.sectionLabel, textStyle, styles.firstSectionLabel]}>{t('postType')}</Text>
+            <View style={styles.postTypeRow}>
+              {postTypeOptions.map((option) => {
+                const isSelected = selectedFl === option.id;
+                return (
+                  <TouchableOpacity
+                    key={option.id || 'all'}
+                    style={[
+                      styles.postTypeOption,
+                      { borderColor: option.color },
+                      isSelected && { backgroundColor: option.color },
+                    ]}
+                    onPress={() => onSelectFl(option.id)}
+                    activeOpacity={0.8}
+                  >
+                    <Text
+                      style={[
+                        styles.postTypeOptionText,
+                        { color: isSelected ? colors.primaryText : option.color },
+                      ]}
+                      numberOfLines={1}
+                    >
+                      {option.label}
+                    </Text>
+                  </TouchableOpacity>
+                );
+              })}
+            </View>
+
             <Text style={[styles.sectionLabel, textStyle]}>{t('country')}</Text>
             <View style={styles.chipsRow}>
               {countries.map((country) => {
@@ -85,30 +133,6 @@ const PostFilterSheet = ({
                     {country.flag ? <Text style={styles.chipFlag}>{country.flag}</Text> : null}
                     <Text style={[styles.chipText, isSelected && styles.chipTextSelected]}>
                       {getLocalizedLabel(country, currentLanguage)}
-                    </Text>
-                  </TouchableOpacity>
-                );
-              })}
-            </View>
-
-            <Text style={[styles.sectionLabel, textStyle]}>{t('postType')}</Text>
-            <View style={styles.chipsRow}>
-              <TouchableOpacity
-                style={[styles.chip, selectedFl === '' && styles.chipSelected]}
-                onPress={() => onSelectFl('')}
-              >
-                <Text style={[styles.chipText, selectedFl === '' && styles.chipTextSelected]}>{t('all')}</Text>
-              </TouchableOpacity>
-              {floptions.map((fl) => {
-                const isSelected = selectedFl === fl._id;
-                return (
-                  <TouchableOpacity
-                    key={fl._id}
-                    style={[styles.chip, isSelected && styles.chipSelected]}
-                    onPress={() => onSelectFl(fl._id)}
-                  >
-                    <Text style={[styles.chipText, isSelected && styles.chipTextSelected]}>
-                      {getLocalizedLabel(fl, currentLanguage)}
                     </Text>
                   </TouchableOpacity>
                 );
@@ -145,13 +169,13 @@ const PostFilterSheet = ({
             <TextInput
               style={[styles.searchInput, textStyle]}
               placeholder={t('searchCity')}
-              placeholderTextColor="#999"
+              placeholderTextColor={colors.placeholder}
               value={citySearch}
               onChangeText={setCitySearch}
               autoCapitalize="none"
             />
             {citiesLoading ? (
-              <ActivityIndicator size="small" color="#2196F3" style={styles.cityLoader} />
+              <ActivityIndicator size="small" color={colors.primary} style={styles.cityLoader} />
             ) : (
               <View style={styles.chipsRow}>
                 <TouchableOpacity
@@ -195,130 +219,151 @@ const PostFilterSheet = ({
   );
 };
 
-const styles = StyleSheet.create({
-  overlay: {
-    flex: 1,
-    justifyContent: 'flex-end',
-  },
-  backdrop: {
-    ...StyleSheet.absoluteFillObject,
-    backgroundColor: 'rgba(0,0,0,0.4)',
-  },
-  sheet: {
-    backgroundColor: '#fff',
-    borderTopLeftRadius: 16,
-    borderTopRightRadius: 16,
-    maxHeight: '85%',
-    paddingBottom: 16,
-  },
-  header: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
-    padding: 16,
-    borderBottomWidth: 1,
-    borderBottomColor: '#eee',
-  },
-  headerTitle: {
-    fontSize: 18,
-    fontWeight: 'bold',
-    color: '#333',
-  },
-  closeButton: {
-    padding: 4,
-  },
-  closeButtonText: {
-    fontSize: 18,
-    color: '#666',
-  },
-  body: {
-    paddingHorizontal: 16,
-  },
-  sectionLabel: {
-    fontSize: 12,
-    fontWeight: 'bold',
-    color: '#999',
-    textTransform: 'uppercase',
-    marginTop: 20,
-    marginBottom: 8,
-  },
-  chipsRow: {
-    flexDirection: 'row',
-    flexWrap: 'wrap',
-  },
-  chip: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    paddingHorizontal: 12,
-    paddingVertical: 8,
-    borderRadius: 18,
-    backgroundColor: '#f0f0f0',
-    marginEnd: 8,
-    marginBottom: 8,
-  },
-  chipSelected: {
-    backgroundColor: '#2196F3',
-  },
-  chipFlag: {
-    marginEnd: 4,
-    fontSize: 14,
-  },
-  chipText: {
-    fontSize: 14,
-    color: '#333',
-  },
-  chipTextSelected: {
-    color: '#fff',
-    fontWeight: '600',
-  },
-  searchInput: {
-    height: 44,
-    backgroundColor: '#f5f5f5',
-    borderRadius: 8,
-    paddingHorizontal: 16,
-    fontSize: 15,
-    color: '#333',
-    marginBottom: 12,
-  },
-  cityLoader: {
-    marginVertical: 12,
-  },
-  textRTL: {
-    textAlign: 'right',
-  },
-  footer: {
-    flexDirection: 'row',
-    paddingHorizontal: 16,
-    paddingTop: 12,
-    borderTopWidth: 1,
-    borderTopColor: '#eee',
-  },
-  clearButton: {
-    flex: 1,
-    paddingVertical: 14,
-    borderRadius: 8,
-    borderWidth: 1,
-    borderColor: '#2196F3',
-    alignItems: 'center',
-    marginEnd: 8,
-  },
-  clearButtonText: {
-    color: '#2196F3',
-    fontWeight: 'bold',
-    fontSize: 15,
-  },
-  doneButton: {
-    flex: 1,
-    paddingVertical: 14,
-    borderRadius: 8,
-    backgroundColor: '#2196F3',
-    alignItems: 'center',
-  },
-  doneButtonText: {
-    color: '#fff',
-    fontWeight: 'bold',
-    fontSize: 15,
-  },
-});
+const createStyles = ({ colors, spacing, radii, fontSizes }) =>
+  StyleSheet.create({
+    overlay: {
+      flex: 1,
+      justifyContent: 'flex-end',
+    },
+    backdrop: {
+      ...StyleSheet.absoluteFillObject,
+      backgroundColor: 'rgba(0,0,0,0.4)',
+    },
+    sheet: {
+      backgroundColor: colors.surface,
+      borderTopLeftRadius: radii.xl,
+      borderTopRightRadius: radii.xl,
+      maxHeight: '85%',
+      paddingBottom: spacing.lg,
+    },
+    header: {
+      flexDirection: 'row',
+      justifyContent: 'space-between',
+      alignItems: 'center',
+      padding: spacing.lg,
+      borderBottomWidth: 1,
+      borderBottomColor: colors.border,
+    },
+    headerTitle: {
+      fontSize: fontSizes.lg,
+      fontWeight: 'bold',
+      color: colors.textPrimary,
+    },
+    closeButton: {
+      padding: spacing.xs,
+    },
+    closeButtonText: {
+      fontSize: fontSizes.lg,
+      color: colors.textSecondary,
+    },
+    body: {
+      paddingHorizontal: spacing.lg,
+    },
+    sectionLabel: {
+      fontSize: fontSizes.xs,
+      fontWeight: 'bold',
+      color: colors.textSecondary,
+      textTransform: 'uppercase',
+      marginTop: spacing.xl,
+      marginBottom: spacing.sm,
+    },
+    firstSectionLabel: {
+      marginTop: spacing.md,
+    },
+    postTypeRow: {
+      flexDirection: 'row',
+      gap: spacing.sm,
+      marginBottom: spacing.sm,
+    },
+    postTypeOption: {
+      flex: 1,
+      paddingVertical: spacing.md,
+      borderRadius: radii.lg,
+      borderWidth: 2,
+      alignItems: 'center',
+      justifyContent: 'center',
+    },
+    postTypeOptionText: {
+      fontSize: fontSizes.sm,
+      fontWeight: '700',
+    },
+    chipsRow: {
+      flexDirection: 'row',
+      flexWrap: 'wrap',
+    },
+    chip: {
+      flexDirection: 'row',
+      alignItems: 'center',
+      paddingHorizontal: spacing.md,
+      paddingVertical: spacing.sm,
+      borderRadius: radii.xl,
+      backgroundColor: colors.inputBackground,
+      marginEnd: spacing.sm,
+      marginBottom: spacing.sm,
+    },
+    chipSelected: {
+      backgroundColor: colors.primary,
+    },
+    chipFlag: {
+      marginEnd: spacing.xs,
+      fontSize: fontSizes.sm,
+    },
+    chipText: {
+      fontSize: fontSizes.sm,
+      color: colors.textPrimary,
+    },
+    chipTextSelected: {
+      color: colors.primaryText,
+      fontWeight: '600',
+    },
+    searchInput: {
+      height: 44,
+      backgroundColor: colors.inputBackground,
+      borderRadius: radii.md,
+      paddingHorizontal: spacing.lg,
+      fontSize: fontSizes.sm,
+      color: colors.textPrimary,
+      marginBottom: spacing.md,
+    },
+    cityLoader: {
+      marginVertical: spacing.md,
+    },
+    textRTL: {
+      textAlign: 'right',
+    },
+    footer: {
+      flexDirection: 'row',
+      paddingHorizontal: spacing.lg,
+      paddingTop: spacing.md,
+      borderTopWidth: 1,
+      borderTopColor: colors.border,
+    },
+    clearButton: {
+      flex: 1,
+      paddingVertical: spacing.md + 2,
+      borderRadius: radii.md,
+      borderWidth: 1,
+      borderColor: colors.primary,
+      alignItems: 'center',
+      marginEnd: spacing.sm,
+    },
+    clearButtonText: {
+      color: colors.primary,
+      fontWeight: 'bold',
+      fontSize: fontSizes.sm,
+    },
+    doneButton: {
+      flex: 1,
+      paddingVertical: spacing.md + 2,
+      borderRadius: radii.md,
+      backgroundColor: colors.primary,
+      alignItems: 'center',
+    },
+    doneButtonText: {
+      color: colors.primaryText,
+      fontWeight: 'bold',
+      fontSize: fontSizes.sm,
+    },
+  });
 
 export default PostFilterSheet;

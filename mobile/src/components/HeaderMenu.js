@@ -1,7 +1,8 @@
 /**
- * Overflow (⋮) menu for AppHeader: Settings plus the website's secondary
- * pages (About, Help Center, Safety Tips, Contact Us, Privacy Policy, Terms),
- * and Sign Out. Follows LanguageDropdown's modal-popover pattern (transparent
+ * Overflow (⋮) menu for AppHeader: a Browse section (All Posts/Lost/Found -
+ * jumps to Home already filtered), Settings, the website's secondary pages
+ * (About, Help Center, Safety Tips, Contact Us, Privacy Policy, Terms), and
+ * Sign Out. Follows LanguageDropdown's modal-popover pattern (transparent
  * Modal, tap-outside/back to dismiss) rather than a real navigation drawer.
  *
  * Controlled by the parent (AppHeader): `visible`/`onClose` so AppHeader can
@@ -10,7 +11,7 @@
  */
 
 import React from 'react';
-import { View, Text, TouchableOpacity, StyleSheet, Modal, Linking, Alert } from 'react-native';
+import { View, Text, TouchableOpacity, StyleSheet, Modal, Linking, Alert, ScrollView } from 'react-native';
 import { useNavigation } from '@react-navigation/native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { Ionicons } from '@expo/vector-icons';
@@ -18,6 +19,7 @@ import { useTheme } from '../context/ThemeContext';
 import { useLanguage } from '../context/LanguageContext';
 import { useTranslation } from '../utils/translations';
 import { useAuth } from '../context/AuthContext';
+import { useReferenceData, getLocalizedLabel } from '../context/ReferenceDataContext';
 import { WEB_BASE_URL } from '../config/api';
 
 // Website pages, in the order they should appear in the menu. Opened via the
@@ -31,9 +33,9 @@ const WEBSITE_LINKS = [
   { key: 'termsOfService', path: '/terms', icon: 'document-text-outline' },
 ];
 
-// Roughly the header's own content height (title row + country chip), so the
-// menu pops open just under it rather than overlapping.
-const HEADER_CONTENT_HEIGHT = 92;
+// Roughly the header's own content height (a single title/controls row), so
+// the menu pops open just under it rather than overlapping.
+const HEADER_CONTENT_HEIGHT = 60;
 
 const HeaderMenu = ({ visible, onClose }) => {
   const insets = useSafeAreaInsets();
@@ -41,15 +43,35 @@ const HeaderMenu = ({ visible, onClose }) => {
   const { currentLanguage } = useLanguage();
   const { t } = useTranslation();
   const { signOut } = useAuth();
+  const { floptions } = useReferenceData();
   const navigation = useNavigation();
   const isRTL = currentLanguage === 'ar';
 
   const styles = createStyles({ colors, spacing, radii, fontSizes });
   const textStyle = isRTL ? styles.textRTL : null;
 
+  // Same floptions source PostsListScreen/PostFilterSheet use (ReferenceDataContext,
+  // fetched once app-wide) - looked up by code rather than mapping floptions in
+  // API order, so Lost always precedes Found regardless of backend ordering.
+  const lostOption = floptions.find((fl) => fl.code === 'LOST');
+  const foundOption = floptions.find((fl) => fl.code === 'FOUND');
+
   const runAndClose = (action) => {
     onClose();
     action();
+  };
+
+  // Lands on Home already filtered. Home is a screen nested inside the
+  // MainTabs tab navigator, itself nested inside the root stack - navigate()
+  // bubbles up from wherever this menu is opened (any of the 4 tabs) to find
+  // MainTabs on the root stack, then forwards { screen, params } into it. If
+  // Home is already focused, this just merges the new param in place rather
+  // than remounting the screen; PostsListScreen's route.params.fl effect is
+  // what actually applies the filter.
+  const handleBrowse = (flId) => {
+    runAndClose(() => {
+      navigation.navigate('MainTabs', { screen: 'Home', params: { fl: flId } });
+    });
   };
 
   const handleSettings = () => {
@@ -73,12 +95,12 @@ const HeaderMenu = ({ visible, onClose }) => {
     });
   };
 
-  const renderItem = ({ key, label, icon, onPress, destructive }) => (
+  const renderItem = ({ key, label, icon, iconColor, onPress, destructive }) => (
     <TouchableOpacity key={key} style={styles.item} onPress={onPress} activeOpacity={0.7}>
       <Ionicons
         name={icon}
         size={fontSizes.md}
-        color={destructive ? colors.danger : colors.textSecondary}
+        color={destructive ? colors.danger : iconColor || colors.textSecondary}
         style={styles.itemIcon}
       />
       <Text style={[styles.itemText, textStyle, destructive && { color: colors.danger }]} numberOfLines={1}>
@@ -92,28 +114,53 @@ const HeaderMenu = ({ visible, onClose }) => {
       <View style={styles.overlay}>
         <TouchableOpacity style={styles.backdrop} activeOpacity={1} onPress={onClose} />
         <View style={[styles.menu, { top: insets.top + HEADER_CONTENT_HEIGHT }]}>
-          {renderItem({ key: 'settings', label: t('settings'), icon: 'settings-outline', onPress: handleSettings })}
+          <ScrollView style={styles.scrollArea} showsVerticalScrollIndicator={false} bounces={false}>
+            <Text style={[styles.sectionHeader, textStyle]}>{t('browse')}</Text>
+            {renderItem({ key: 'browseAll', label: t('allPosts'), icon: 'apps-outline', onPress: () => handleBrowse('') })}
+            {lostOption
+              ? renderItem({
+                  key: 'browseLost',
+                  label: getLocalizedLabel(lostOption, currentLanguage),
+                  icon: 'help-buoy-outline',
+                  iconColor: lostOption.color,
+                  onPress: () => handleBrowse(lostOption._id),
+                })
+              : null}
+            {foundOption
+              ? renderItem({
+                  key: 'browseFound',
+                  label: getLocalizedLabel(foundOption, currentLanguage),
+                  icon: 'gift-outline',
+                  iconColor: foundOption.color,
+                  onPress: () => handleBrowse(foundOption._id),
+                })
+              : null}
 
-          <View style={styles.divider} />
+            <View style={styles.divider} />
 
-          {WEBSITE_LINKS.map((link) =>
-            renderItem({
-              key: link.key,
-              label: t(link.key),
-              icon: link.icon,
-              onPress: () => handleOpenLink(link.path),
-            })
-          )}
+            {renderItem({ key: 'settings', label: t('settings'), icon: 'settings-outline', onPress: handleSettings })}
 
-          <View style={styles.divider} />
+            <View style={styles.divider} />
 
-          {renderItem({
-            key: 'signOut',
-            label: t('logout'),
-            icon: 'log-out-outline',
-            onPress: handleSignOut,
-            destructive: true,
-          })}
+            {WEBSITE_LINKS.map((link) =>
+              renderItem({
+                key: link.key,
+                label: t(link.key),
+                icon: link.icon,
+                onPress: () => handleOpenLink(link.path),
+              })
+            )}
+
+            <View style={styles.divider} />
+
+            {renderItem({
+              key: 'signOut',
+              label: t('logout'),
+              icon: 'log-out-outline',
+              onPress: handleSignOut,
+              destructive: true,
+            })}
+          </ScrollView>
         </View>
       </View>
     </Modal>
@@ -134,6 +181,7 @@ const createStyles = ({ colors, spacing, radii, fontSizes }) =>
       end: spacing.lg,
       width: 240,
       maxWidth: '80%',
+      maxHeight: 440,
       backgroundColor: colors.surface,
       borderRadius: radii.lg,
       borderWidth: 1,
@@ -144,6 +192,20 @@ const createStyles = ({ colors, spacing, radii, fontSizes }) =>
       shadowOpacity: 0.2,
       shadowRadius: 8,
       elevation: 8,
+    },
+    scrollArea: {
+      // maxHeight on the ScrollView itself (not just the outer menu View) is
+      // what actually makes RN cap and scroll the content on short screens.
+      maxHeight: 440,
+    },
+    sectionHeader: {
+      fontSize: fontSizes.xs,
+      fontWeight: 'bold',
+      color: colors.textSecondary,
+      textTransform: 'uppercase',
+      paddingHorizontal: spacing.md,
+      paddingTop: spacing.sm,
+      paddingBottom: spacing.xs,
     },
     item: {
       flexDirection: 'row',

@@ -242,6 +242,8 @@ export const translations = {
     yes: "Yes",
     no: "No",
     all: "All",
+    allPosts: "All Posts",
+    browse: "Browse",
     done: "Done",
     ok: "OK",
 
@@ -514,6 +516,8 @@ export const translations = {
     yes: "Oui",
     no: "Non",
     all: "Tous",
+    allPosts: "Toutes les publications",
+    browse: "Parcourir",
     done: "Terminé",
     ok: "OK",
 
@@ -786,6 +790,8 @@ export const translations = {
     yes: "نعم",
     no: "لا",
     all: "الكل",
+    allPosts: "جميع المنشورات",
+    browse: "تصفح",
     done: "تم",
     ok: "موافق",
 
