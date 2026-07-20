@@ -1,14 +1,16 @@
-import React, { useState, useEffect } from "react";
+import React, { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { useDispatch, useSelector } from "react-redux";
 import { useGetPostsQuery } from "../features/posts/postsApiSlice";
 import { useGetCountriesQuery } from "../features/countries/countriesApiSlice";
-import { selectCurrentCountry, setCurrentCountry } from "../app/state";
+import { selectCurrentCountry, setCurrentCountry, setMode } from "../app/state";
 import { useTranslation } from "../utils/translations";
 import { useUnifiedLanguageChange } from "../hooks/useUnifiedLanguageChange";
-import { LoadingState } from "./LoadingStates";
 import LazyCardMedia from "./LazyCardMedia";
+import RenderIcon from "./RenderIcon";
 import SeoMeta from "./SeoMeta";
+import { formatDistanceToNow } from "date-fns";
+import { ar, fr, enUS } from "date-fns/locale";
 import {
   Box,
   Container,
@@ -16,9 +18,7 @@ import {
   Grid,
   Card,
   CardContent,
-  CardMedia,
   Button,
-  Chip,
   TextField,
   InputAdornment,
   FormControl,
@@ -26,7 +26,6 @@ import {
   Select,
   MenuItem,
   useTheme,
-  useMediaQuery,
   alpha,
   styled,
   AppBar,
@@ -35,100 +34,187 @@ import {
   Autocomplete,
   ListItemIcon,
   ListItemText,
+  Menu,
+  ToggleButton,
+  ToggleButtonGroup,
+  Skeleton,
 } from "@mui/material";
 import {
   Search,
-  FilterList,
   LocationOn,
   Category,
-  CalendarToday,
-  Person,
   Visibility,
   Login,
   Add,
   Language,
   KeyboardArrowDown,
-  Menu,
+  TaskAltOutlined,
+  SearchOffOutlined,
 } from "@mui/icons-material";
-import { setMode } from "../app/state";
 
-// Styled components
+const API_BASE_URL = process.env.REACT_APP_API_URL || "http://localhost:3500";
+
+// Styled components — all values sourced from theme.custom (Phase 1 tokens),
+// mirroring the signature established in WelcomePage.jsx: solid-fill status
+// tag + tone-colored borderInlineStart, everything else deliberately quiet.
 const PageContainer = styled(Box)(({ theme }) => ({
-  minHeight: '100vh',
-  background: theme?.palette?.mode === 'dark' 
-    ? 'linear-gradient(135deg, #0a0a0a 0%, #1a1a1a 25%, #2d2d2d 50%, #1a1a1a 75%, #0a0a0a 100%)'
-    : 'linear-gradient(135deg, #f8fafc 0%, #e2e8f0 25%, #cbd5e1 50%, #e2e8f0 75%, #f8fafc 100%)',
-  paddingTop: theme?.spacing?.(8) || '64px',
-  direction: theme?.direction || 'ltr',
+  minHeight: "100vh",
+  backgroundColor: theme.custom.color.surfaceBase,
+  paddingTop: theme.spacing(8),
+  direction: theme.direction || "ltr",
 }));
 
-const PostCard = styled(Card)(({ theme }) => ({
-  height: '100%',
-  display: 'flex',
-  flexDirection: 'column',
-  borderRadius: 16,
-  boxShadow: theme?.palette?.mode === 'dark'
-    ? '0 8px 32px rgba(0, 0, 0, 0.3)'
-    : '0 8px 32px rgba(0, 0, 0, 0.1)',
-  background: theme?.palette?.mode === 'dark'
-    ? 'rgba(30, 30, 30, 0.9)'
-    : 'rgba(255, 255, 255, 0.9)',
-  backdropFilter: 'blur(20px)',
-  border: `1px solid ${alpha(theme?.palette?.divider, 0.1)}`,
-  transition: 'all 0.3s ease',
-  '&:hover': {
-    transform: 'translateY(-4px)',
-    boxShadow: theme?.palette?.mode === 'dark'
-      ? '0 16px 48px rgba(0, 0, 0, 0.4)'
-      : '0 16px 48px rgba(0, 0, 0, 0.15)',
-  }
-}));
-
-const SearchBar = styled(Box)(({ theme }) => ({
-  background: theme?.palette?.mode === 'dark'
-    ? 'rgba(255, 255, 255, 0.05)'
-    : 'rgba(255, 255, 255, 0.7)',
-  borderRadius: 16,
-  padding: theme?.spacing?.(3) || '24px',
-  marginBottom: theme?.spacing?.(3) || '24px',
-  backdropFilter: 'blur(20px)',
-  border: `1px solid ${alpha(theme?.palette?.divider, 0.1)}`,
-}));
-
-const LanguageSelector = styled(Box)(({ theme }) => ({
-  display: 'flex',
-  alignItems: 'center',
-  padding: '8px 16px',
-  borderRadius: '12px',
-  cursor: 'pointer',
-  background: theme?.palette?.mode === 'dark' 
-    ? alpha(theme?.palette?.common?.white, 0.05)
-    : alpha(theme?.palette?.common?.black, 0.05),
-  transition: 'all 0.3s ease',
-  '&:hover': {
-    background: theme?.palette?.mode === 'dark' 
-      ? alpha(theme?.palette?.common?.white, 0.1)
-      : alpha(theme?.palette?.common?.black, 0.1),
-    transform: 'translateY(-2px)',
-  },
-  '& .MuiSvgIcon-root': {
-    marginRight: '8px',
-    fontSize: '20px',
+const ControlButton = styled(Box)(({ theme }) => ({
+  display: "flex",
+  alignItems: "center",
+  gap: theme.spacing(0.75),
+  padding: "8px 14px",
+  borderRadius: theme.custom.radius.md,
+  cursor: "pointer",
+  backgroundColor: theme.custom.color.surfaceRaised,
+  border: `1px solid ${theme.palette.divider}`,
+  boxShadow: theme.custom.elevation.e1,
+  transition: "box-shadow 0.2s ease",
+  "&:hover": {
+    boxShadow: theme.custom.elevation.e2,
   },
 }));
+
+const FilterBar = styled(Box)(({ theme }) => ({
+  display: "flex",
+  flexWrap: "wrap",
+  alignItems: "center",
+  gap: theme.spacing(1.5),
+  padding: theme.spacing(2),
+  marginBottom: theme.spacing(3),
+  backgroundColor: theme.custom.color.surfaceRaised,
+  borderRadius: theme.custom.radius.lg,
+  boxShadow: theme.custom.elevation.e1,
+  border: `1px solid ${theme.palette.divider}`,
+  [theme.breakpoints.up("sm")]: {
+    position: "sticky",
+    top: 64,
+    zIndex: 10,
+  },
+}));
+
+const PostCard = styled(Card)(({ theme, tone }) => ({
+  height: "100%",
+  display: "flex",
+  flexDirection: "column",
+  backgroundColor: theme.custom.color.surfaceRaised,
+  borderRadius: theme.custom.radius.lg,
+  boxShadow: theme.custom.elevation.e1,
+  border: `1px solid ${theme.palette.divider}`,
+  borderInlineStart: `6px solid ${tone}`,
+  overflow: "hidden",
+  transition: "transform 0.2s ease, box-shadow 0.2s ease",
+  "&:hover": {
+    transform: "translateY(-4px)",
+    boxShadow: theme.custom.elevation.e2,
+  },
+}));
+
+const MediaFrame = styled(Box)(({ theme }) => ({
+  position: "relative",
+  width: "100%",
+  paddingTop: "75%",
+  overflow: "hidden",
+  backgroundColor: theme.custom.color.surfaceBase,
+}));
+
+// Solid fill, not a tint — the one place saturated color should dominate,
+// since Lost vs. Found is the single most load-bearing fact about a post.
+const StatusTag = ({ status, label }) => {
+  const theme = useTheme();
+  const tone = status === "found" ? theme.custom.status.found : theme.custom.status.lost;
+  const Icon = status === "found" ? TaskAltOutlined : SearchOffOutlined;
+  return (
+    <Box
+      sx={{
+        position: "absolute",
+        top: 8,
+        insetInlineStart: 8,
+        zIndex: 2,
+        display: "inline-flex",
+        alignItems: "center",
+        gap: 0.5,
+        px: 1,
+        py: 0.375,
+        borderRadius: `${theme.custom.radius.sm}px`,
+        backgroundColor: tone.main,
+      }}
+    >
+      <Icon sx={{ fontSize: 14, color: theme.palette.getContrastText(tone.main) }} />
+      <Typography
+        variant="caption"
+        sx={{ fontWeight: 700, letterSpacing: 0.3, color: theme.palette.getContrastText(tone.main), lineHeight: 1 }}
+      >
+        {label}
+      </Typography>
+    </Box>
+  );
+};
+
+const DateBadge = ({ children }) => {
+  const theme = useTheme();
+  return (
+    <Box
+      sx={{
+        position: "absolute",
+        top: 8,
+        insetInlineEnd: 8,
+        zIndex: 2,
+        px: 1,
+        py: 0.375,
+        borderRadius: `${theme.custom.radius.sm}px`,
+        backgroundColor: alpha(theme.palette.common.black, 0.55),
+      }}
+    >
+      <Typography variant="caption" sx={{ color: theme.palette.common.white, fontWeight: 600, lineHeight: 1 }}>
+        {children}
+      </Typography>
+    </Box>
+  );
+};
+
+const PostCardSkeleton = () => {
+  const theme = useTheme();
+  return (
+    <Box
+      sx={{
+        borderRadius: `${theme.custom.radius.lg}px`,
+        overflow: "hidden",
+        border: `1px solid ${theme.palette.divider}`,
+        backgroundColor: theme.custom.color.surfaceRaised,
+        boxShadow: theme.custom.elevation.e1,
+      }}
+    >
+      <Skeleton variant="rectangular" animation="wave" sx={{ width: "100%", paddingTop: "75%" }} />
+      <Box sx={{ p: 2 }}>
+        <Skeleton variant="text" width="70%" height={28} />
+        <Skeleton variant="text" width="100%" height={20} />
+        <Skeleton variant="text" width="90%" height={20} />
+        <Skeleton variant="text" width="50%" height={18} sx={{ mt: 1 }} />
+        <Skeleton variant="rounded" width="100%" height={36} sx={{ mt: 2, borderRadius: `${theme.custom.radius.md}px` }} />
+      </Box>
+    </Box>
+  );
+};
 
 const PublicPostsPage = () => {
   const theme = useTheme();
-  const isMobile = useMediaQuery("(max-width:600px)");
   const navigate = useNavigate();
   const dispatch = useDispatch();
   const { t, currentLanguage } = useTranslation();
-  const { currentLanguage: langContext, changeLanguage, isChanging } = useUnifiedLanguageChange({
+  const { currentLanguage: langContext, changeLanguage } = useUnifiedLanguageChange({
     showLoadingState: false,
     refetchPriority: 'medium',
     enableLogging: process.env.NODE_ENV === 'development'
   });
-  
+
+  const activeLanguage = currentLanguage || langContext || 'en';
+
   const currentCountry = useSelector(selectCurrentCountry);
   const [searchQuery, setSearchQuery] = useState("");
   const [categoryFilter, setCategoryFilter] = useState("all");
@@ -137,53 +223,108 @@ const PublicPostsPage = () => {
 
   // Get countries list
   const { data: countriesData } = useGetCountriesQuery({
-    language: currentLanguage || langContext || 'en'
+    language: activeLanguage
   });
 
   const countries = countriesData?.ids?.map((id) => countriesData?.entities[id]) || [];
 
   // Get posts for the selected country
-  const { 
-    data: postsData, 
-    isLoading: postsLoading, 
-    error: postsError 
+  const {
+    data: postsData,
+    isLoading: postsLoading,
+    error: postsError
   } = useGetPostsQuery({
     currentCountry,
-    language: currentLanguage || langContext || 'en'
+    language: activeLanguage
   }, {
     skip: !currentCountry
   });
 
-  const posts = postsData?.ids?.map((id) => postsData?.entities[id]) || [];
+  // The endpoint returns { postsWithUser, page, totalPages, total } — not an
+  // entity-adapter { ids, entities } shape. (Confirmed against the real API
+  // response and against how PostsList.js/Post.js already consume this same
+  // query successfully.)
+  const posts = postsData?.postsWithUser || [];
+
+  // foundLost/category come back as populated lookup objects (Floptions[0].code,
+  // categoryname), not plain "found"/"lost"/"electronics" strings — mirroring
+  // the field resolution already proven correct in Post.js.
+  const getFoundLostCode = (post) => {
+    const code = post.Floptions?.[0]?.code;
+    if (code) return code.toLowerCase();
+    if (typeof post.foundLost === 'string' && ['found', 'lost'].includes(post.foundLost.toLowerCase())) {
+      return post.foundLost.toLowerCase();
+    }
+    return 'found';
+  };
+
+  const getCategoryCode = (post) => {
+    return (post.categoryname || post.Category?.code || 'other').toLowerCase();
+  };
+
+  // Posts have no "title" field at all — the production post card (Post.js)
+  // uses the resolved city name as its headline instead, falling back to the
+  // first segment of exactLocation. Same chain, reused here.
+  const getCityDisplayName = (post) => {
+    if (post.cityLabels && typeof post.cityLabels === 'object') {
+      const label = post.cityLabels[activeLanguage] || post.cityLabels.en;
+      if (label && label.trim()) return label.trim();
+    }
+    if (post.city && typeof post.city === 'object' && post.city.labels) {
+      const label = post.city.labels[activeLanguage] || post.city.labels.en;
+      if (label && label.trim()) return label.trim();
+    }
+    if (post.cityName && typeof post.cityName === 'string' && post.cityName.trim()) return post.cityName.trim();
+    if (post.city && typeof post.city === 'string' && post.city.trim()) return post.city.trim();
+    if (post.exactLocation) {
+      const first = post.exactLocation.split(',')[0].split('(')[0].replace(/\d+/g, '').trim();
+      if (first) return first;
+    }
+    return t('unknownCity');
+  };
+
+  const getImageUrl = (post) => {
+    if (!post.image) return null;
+    return post.image.startsWith('http') ? post.image : `${API_BASE_URL}/${post.image}`;
+  };
 
   // Filter posts based on search and filters
   const filteredPosts = posts.filter(post => {
-    const matchesSearch = !searchQuery || 
-      post.title?.toLowerCase().includes(searchQuery.toLowerCase()) ||
+    const cityDisplay = getCityDisplayName(post);
+    const matchesSearch = !searchQuery ||
       post.description?.toLowerCase().includes(searchQuery.toLowerCase()) ||
-      post.region?.toLowerCase().includes(searchQuery.toLowerCase());
-    
-    const matchesCategory = categoryFilter === "all" || post.category === categoryFilter;
-    const matchesFoundLost = foundLostFilter === "all" || post.foundLost === foundLostFilter;
-    
+      post.exactLocation?.toLowerCase().includes(searchQuery.toLowerCase()) ||
+      cityDisplay?.toLowerCase().includes(searchQuery.toLowerCase());
+
+    const matchesCategory = categoryFilter === "all" || getCategoryCode(post) === categoryFilter;
+    const matchesFoundLost = foundLostFilter === "all" || getFoundLostCode(post) === foundLostFilter;
+
     return matchesSearch && matchesCategory && matchesFoundLost;
   });
 
+  const hasActiveFilters = Boolean(searchQuery) || categoryFilter !== "all" || foundLostFilter !== "all";
+
+  const clearFilters = () => {
+    setSearchQuery("");
+    setCategoryFilter("all");
+    setFoundLostFilter("all");
+  };
+
+  const categoryLabels = {
+    electronics: t('categoryElectronics'),
+    documents: t('categoryDocuments'),
+    jewelry: t('categoryJewelry'),
+    clothing: t('categoryClothing'),
+  };
+
   const handleLanguageChange = async (language) => {
-    console.log('🌐 [PUBLIC-POSTS-PAGE] Language change triggered:', { language, currentUrl: window.location.href });
-    
     try {
-      // Use unified language change handler
       const success = await changeLanguage(language);
-      
       if (success) {
         setLanguageAnchorEl(null);
-        console.log('🌐 [PUBLIC-POSTS-PAGE] Language changed successfully to:', language);
-      } else {
-        console.error('🌐 [PUBLIC-POSTS-PAGE] Failed to change language to:', language);
       }
     } catch (error) {
-      console.error('🌐 [PUBLIC-POSTS-PAGE] Error changing language:', error);
+      console.error('[PUBLIC-POSTS-PAGE] Error changing language:', error);
     }
   };
 
@@ -202,8 +343,8 @@ const PublicPostsPage = () => {
   };
 
   const getCountryLabel = (option) => {
-    if (option.labels && option.labels[currentLanguage || langContext || 'en']) {
-      return option.labels[currentLanguage || langContext || 'en'];
+    if (option.labels && option.labels[activeLanguage]) {
+      return option.labels[activeLanguage];
     }
     return option.label || option.code;
   };
@@ -215,16 +356,20 @@ const PublicPostsPage = () => {
     return `https://flagcdn.com/w20/${option.code.toLowerCase()}.png`;
   };
 
+  // Relative "time ago" rather than an absolute date — this is a live lost &
+  // found board, not a catalog, and recency is the whole point of the badge
+  // (matches the pattern already proven in the authenticated Post.js card).
+  const dateLocale = activeLanguage === 'ar' ? ar : activeLanguage === 'fr' ? fr : enUS;
   const formatDate = (dateString) => {
-    return new Date(dateString).toLocaleDateString(
-      currentLanguage === 'ar' ? 'ar-SA' : currentLanguage === 'fr' ? 'fr-FR' : 'en-US',
-      { 
-        year: 'numeric', 
-        month: 'short', 
-        day: 'numeric' 
-      }
-    );
+    if (!dateString) return t('unknownDate');
+    try {
+      return formatDistanceToNow(new Date(dateString), { addSuffix: true, locale: dateLocale });
+    } catch (e) {
+      return t('unknownDate');
+    }
   };
+
+  const getCategoryThemeKey = (post) => `${getCategoryCode(post)}cate`;
 
   const seoMetadata = <SeoMeta pageKey="posts" />;
 
@@ -241,10 +386,15 @@ const PublicPostsPage = () => {
               <Typography variant="body1" color="text.secondary" sx={{ mb: 4 }}>
                 {t('chooseCountryMessage')}
               </Typography>
-              <Button 
-                variant="contained" 
+              <Button
+                variant="contained"
                 onClick={() => navigate('/')}
                 size="large"
+                sx={{
+                  bgcolor: theme.custom.color.brandPrimary,
+                  borderRadius: `${theme.custom.radius.md}px`,
+                  '&:hover': { bgcolor: theme.custom.color.brandPrimary, opacity: 0.9 },
+                }}
               >
                 {t('chooseCountry')}
               </Button>
@@ -260,21 +410,21 @@ const PublicPostsPage = () => {
       {seoMetadata}
       <PageContainer>
         {/* App Bar */}
-        <AppBar 
-          position="fixed" 
-          sx={{ 
-            background: theme?.palette?.mode === 'dark' 
-              ? 'rgba(30, 30, 30, 0.9)' 
-              : 'rgba(255, 255, 255, 0.9)',
+        <AppBar
+          position="fixed"
+          elevation={0}
+          sx={{
+            backgroundColor: theme.custom.color.surfaceRaised,
             backdropFilter: 'blur(20px)',
-            borderBottom: `1px solid ${alpha(theme?.palette?.divider, 0.1)}`,
+            borderBottom: `1px solid ${theme.palette.divider}`,
+            boxShadow: theme.custom.elevation.e1,
           }}
         >
           <Toolbar sx={{ flexWrap: { xs: 'wrap', sm: 'nowrap' }, gap: { xs: 1, sm: 0 } }}>
-            <Typography 
-              variant="h6" 
-              component="div" 
-              sx={{ 
+            <Typography
+              variant="h6"
+              component="div"
+              sx={{
                 flexGrow: { xs: 1, sm: 1 },
                 fontSize: { xs: '1rem', sm: '1.25rem' },
                 minWidth: 0,
@@ -285,32 +435,33 @@ const PublicPostsPage = () => {
             >
               {t('brandName')}
             </Typography>
-            
-            <Box sx={{ display: 'flex', alignItems: 'center', gap: { xs: 0.5, sm: 1 }, flexWrap: 'nowrap' }}>
-              <LanguageSelector 
-                onClick={handleLanguageClick} 
-                sx={{ 
+
+            <Box sx={{ display: 'flex', alignItems: 'center', gap: { xs: 0.5, sm: 1 }, flexWrap: 'nowrap', flexShrink: 0 }}>
+              <ControlButton
+                onClick={handleLanguageClick}
+                sx={{
                   mr: { xs: 0.5, sm: 2 },
                   px: { xs: 1, sm: 2 },
                   py: { xs: 0.5, sm: 1 }
                 }}
               >
-                <Language sx={{ fontSize: { xs: '18px', sm: '20px' } }} />
-                <Typography 
-                  variant="body2" 
-                  sx={{ 
+                <Language sx={{ fontSize: { xs: '18px', sm: '20px' }, color: 'text.secondary' }} />
+                <Typography
+                  variant="body2"
+                  sx={{
                     display: { xs: 'none', sm: 'block' },
-                    fontSize: { xs: '0.75rem', sm: '0.875rem' }
+                    fontSize: { xs: '0.75rem', sm: '0.875rem' },
+                    fontWeight: 600,
                   }}
                 >
-                  {currentLanguage === 'ar' ? 'العربية' : currentLanguage === 'fr' ? 'Français' : 'English'}
+                  {activeLanguage === 'ar' ? 'العربية' : activeLanguage === 'fr' ? 'Français' : 'English'}
                 </Typography>
-                <KeyboardArrowDown sx={{ fontSize: { xs: '16px', sm: '20px' }, display: { xs: 'none', sm: 'block' } }} />
-              </LanguageSelector>
+                <KeyboardArrowDown sx={{ fontSize: { xs: '16px', sm: '20px' }, display: { xs: 'none', sm: 'block' }, color: 'text.secondary' }} />
+              </ControlButton>
 
               <IconButton
                 onClick={() => dispatch(setMode())}
-                sx={{ 
+                sx={{
                   mr: { xs: 0, sm: 2 },
                   p: { xs: 0.75, sm: 1 },
                   '& .MuiSvgIcon-root': {
@@ -318,25 +469,28 @@ const PublicPostsPage = () => {
                   }
                 }}
               >
-                {theme?.palette?.mode === 'dark' ? '🌞' : '🌙'}
+                {theme.palette.mode === 'dark' ? '🌞' : '🌙'}
               </IconButton>
 
               <Button
                 variant="outlined"
                 startIcon={<Login />}
                 onClick={() => navigate('/login')}
-                sx={{ 
+                sx={{
                   mr: { xs: 0.5, sm: 1 },
                   px: { xs: 1, sm: 2 },
                   py: { xs: 0.5, sm: 1 },
                   fontSize: { xs: '0.75rem', sm: '0.875rem' },
                   minWidth: { xs: 'auto', sm: '64px' },
+                  borderRadius: `${theme.custom.radius.md}px`,
+                  borderColor: theme.custom.color.brandPrimary,
+                  color: theme.custom.color.brandPrimary,
                   '& .MuiButton-startIcon': {
                     margin: { xs: 0, sm: '0 8px 0 0' }
                   }
                 }}
               >
-                <Box component="span" sx={{ display: { xs: 'none', sm: 'inline' } }}>
+                <Box component="span" sx={{ display: { xs: 'none', sm: 'inline' }, whiteSpace: 'nowrap' }}>
                   {t('signin')}
                 </Box>
               </Button>
@@ -345,17 +499,20 @@ const PublicPostsPage = () => {
                 variant="contained"
                 startIcon={<Add />}
                 onClick={() => navigate('/signup')}
-                sx={{ 
+                sx={{
                   px: { xs: 1, sm: 2 },
                   py: { xs: 0.5, sm: 1 },
                   fontSize: { xs: '0.75rem', sm: '0.875rem' },
                   minWidth: { xs: 'auto', sm: 'auto' },
+                  borderRadius: `${theme.custom.radius.md}px`,
+                  bgcolor: theme.custom.color.brandPrimary,
+                  '&:hover': { bgcolor: theme.custom.color.brandPrimary, opacity: 0.9 },
                   '& .MuiButton-startIcon': {
                     margin: { xs: 0, sm: '0 8px 0 0' }
                   }
                 }}
               >
-                <Box component="span" sx={{ display: { xs: 'none', sm: 'inline' } }}>
+                <Box component="span" sx={{ display: { xs: 'none', sm: 'inline' }, whiteSpace: 'nowrap' }}>
                   {t('createNewPost')}
                 </Box>
               </Button>
@@ -367,48 +524,62 @@ const PublicPostsPage = () => {
           anchorEl={languageAnchorEl}
           open={Boolean(languageAnchorEl)}
           onClose={handleLanguageClose}
-          PaperProps={{
-            sx: {
-              background: theme?.palette?.mode === 'dark' 
-                ? 'rgba(30, 30, 30, 0.95)'
-                : 'rgba(255, 255, 255, 0.95)',
-              backdropFilter: 'blur(20px)',
-              border: `1px solid ${alpha(theme?.palette?.divider, 0.1)}`,
-            }
-          }}
         >
-                      <MenuItem onClick={() => handleLanguageChange('en')}>
-                <ListItemIcon>
-                  <Language sx={{ fontSize: 20 }} />
-                </ListItemIcon>
-                <ListItemText primary="English" />
-              </MenuItem>
-              <MenuItem onClick={() => handleLanguageChange('ar')}>
-                <ListItemIcon>
-                  <Language sx={{ fontSize: 20 }} />
-                </ListItemIcon>
-                <ListItemText primary="العربية" />
-              </MenuItem>
-              <MenuItem onClick={() => handleLanguageChange('fr')}>
-                <ListItemIcon>
-                  <Language sx={{ fontSize: 20 }} />
-                </ListItemIcon>
-                <ListItemText primary="Français" />
-              </MenuItem>
+          <MenuItem onClick={() => handleLanguageChange('en')}>
+            <ListItemIcon>
+              <Language sx={{ fontSize: 20 }} />
+            </ListItemIcon>
+            <ListItemText primary="English" />
+          </MenuItem>
+          <MenuItem onClick={() => handleLanguageChange('ar')}>
+            <ListItemIcon>
+              <Language sx={{ fontSize: 20 }} />
+            </ListItemIcon>
+            <ListItemText primary="العربية" />
+          </MenuItem>
+          <MenuItem onClick={() => handleLanguageChange('fr')}>
+            <ListItemIcon>
+              <Language sx={{ fontSize: 20 }} />
+            </ListItemIcon>
+            <ListItemText primary="Français" />
+          </MenuItem>
         </Menu>
 
         <Container maxWidth="xl" sx={{ py: 4 }}>
-          {/* Country Selector */}
-          <Box sx={{ mb: 4 }}>
+          {/* Filters: search + country + category + lost/found, one toolbar,
+              stacked on mobile, sticky under the app bar from sm up */}
+          <FilterBar>
+            <TextField
+              placeholder={t('searchPostsPlaceholder')}
+              value={searchQuery}
+              onChange={(e) => setSearchQuery(e.target.value)}
+              size="small"
+              sx={{
+                flex: { xs: '1 1 100%', sm: '1 1 240px' },
+                '& .MuiOutlinedInput-root': {
+                  borderRadius: `${theme.custom.radius.md}px`,
+                },
+              }}
+              InputProps={{
+                startAdornment: (
+                  <InputAdornment position="start">
+                    <Search sx={{ fontSize: 20, color: 'text.secondary' }} />
+                  </InputAdornment>
+                ),
+              }}
+            />
+
             <Autocomplete
               options={countries}
               value={countries.find(c => c._id === currentCountry) || null}
               onChange={handleCountryChange}
               getOptionLabel={(option) => getCountryLabel(option)}
+              size="small"
+              sx={{ flex: { xs: '1 1 100%', sm: '0 0 200px' } }}
               renderOption={(props, option) => (
                 <Box component="li" sx={{ "& > img": { mr: 2, flexShrink: 0 } }} {...props}>
                   {option.flag ? (
-                    <span style={{ marginRight: 8, fontSize: '20px' }}>
+                    <span style={{ marginInlineEnd: 8, fontSize: '20px' }}>
                       {option.flag}
                     </span>
                   ) : (
@@ -428,146 +599,253 @@ const PublicPostsPage = () => {
                   {...params}
                   label={t('chooseCountry')}
                   variant="outlined"
-                  fullWidth
+                  sx={{
+                    '& .MuiOutlinedInput-root': {
+                      borderRadius: `${theme.custom.radius.md}px`,
+                    },
+                  }}
                 />
               )}
             />
-          </Box>
 
-          {/* Search and Filters */}
-          <SearchBar>
-            <Grid container spacing={3}>
-              <Grid item xs={12} md={6}>
-                <TextField
-                  fullWidth
-                  placeholder={t('searchPostsPlaceholder')}
-                  value={searchQuery}
-                  onChange={(e) => setSearchQuery(e.target.value)}
-                  InputProps={{
-                    startAdornment: (
-                      <InputAdornment position="start">
-                        <Search />
-                      </InputAdornment>
-                    ),
-                  }}
-                />
-              </Grid>
-              <Grid item xs={12} md={3}>
-                <FormControl fullWidth>
-                  <InputLabel>{t('category')}</InputLabel>
-                  <Select
-                    value={categoryFilter}
-                    onChange={(e) => setCategoryFilter(e.target.value)}
-                    label={t('category')}
-                  >
-                    <MenuItem value="all">{t('allCategories')}</MenuItem>
-                    <MenuItem value="electronics">Electronics</MenuItem>
-                    <MenuItem value="documents">Documents</MenuItem>
-                    <MenuItem value="jewelry">Jewelry</MenuItem>
-                    <MenuItem value="clothing">Clothing</MenuItem>
-                  </Select>
-                </FormControl>
-              </Grid>
-              <Grid item xs={12} md={3}>
-                <FormControl fullWidth>
-                  <InputLabel>{t('foundOrLost')}</InputLabel>
-                  <Select
-                    value={foundLostFilter}
-                    onChange={(e) => setFoundLostFilter(e.target.value)}
-                    label={t('foundOrLost')}
-                  >
-                    <MenuItem value="all">{t('all')}</MenuItem>
-                    <MenuItem value="found">{t('found')}</MenuItem>
-                    <MenuItem value="lost">{t('lost')}</MenuItem>
-                  </Select>
-                </FormControl>
-              </Grid>
-            </Grid>
-          </SearchBar>
+            <FormControl size="small" sx={{ flex: { xs: '1 1 100%', sm: '0 0 180px' } }}>
+              <InputLabel>{t('category')}</InputLabel>
+              <Select
+                value={categoryFilter}
+                onChange={(e) => setCategoryFilter(e.target.value)}
+                label={t('category')}
+                sx={{ borderRadius: `${theme.custom.radius.md}px` }}
+              >
+                <MenuItem value="all">{t('allCategories')}</MenuItem>
+                <MenuItem value="electronics">{categoryLabels.electronics}</MenuItem>
+                <MenuItem value="documents">{categoryLabels.documents}</MenuItem>
+                <MenuItem value="jewelry">{categoryLabels.jewelry}</MenuItem>
+                <MenuItem value="clothing">{categoryLabels.clothing}</MenuItem>
+              </Select>
+            </FormControl>
+
+            <ToggleButtonGroup
+              value={foundLostFilter}
+              exclusive
+              onChange={(_, value) => value && setFoundLostFilter(value)}
+              aria-label={t('foundOrLost')}
+              size="small"
+              sx={{
+                flex: { xs: '1 1 100%', sm: '0 0 auto' },
+                '& .MuiToggleButton-root': {
+                  flex: { xs: 1, sm: '0 0 auto' },
+                  textTransform: 'none',
+                  fontWeight: 600,
+                  borderRadius: `${theme.custom.radius.md}px !important`,
+                  border: `1px solid ${theme.palette.divider}`,
+                },
+              }}
+            >
+              <ToggleButton
+                value="all"
+                sx={{
+                  '&.Mui-selected': {
+                    backgroundColor: alpha(theme.custom.color.brandPrimary, 0.12),
+                    color: theme.custom.color.brandPrimary,
+                    '&:hover': { backgroundColor: alpha(theme.custom.color.brandPrimary, 0.18) },
+                  },
+                }}
+              >
+                {t('all')}
+              </ToggleButton>
+              <ToggleButton
+                value="found"
+                sx={{
+                  '&.Mui-selected': {
+                    backgroundColor: theme.custom.status.found.bg,
+                    color: theme.custom.status.found.main,
+                    '&:hover': { backgroundColor: theme.custom.status.found.bg },
+                  },
+                }}
+              >
+                {t('found')}
+              </ToggleButton>
+              <ToggleButton
+                value="lost"
+                sx={{
+                  '&.Mui-selected': {
+                    backgroundColor: theme.custom.status.lost.bg,
+                    color: theme.custom.status.lost.main,
+                    '&:hover': { backgroundColor: theme.custom.status.lost.bg },
+                  },
+                }}
+              >
+                {t('lost')}
+              </ToggleButton>
+            </ToggleButtonGroup>
+          </FilterBar>
 
           {/* Posts Grid */}
           {postsLoading ? (
-            <LoadingState message={t('loadingPosts')} />
+            <Grid container spacing={3}>
+              {Array.from({ length: 8 }).map((_, i) => (
+                <Grid item xs={12} sm={6} md={4} lg={3} key={i}>
+                  <PostCardSkeleton />
+                </Grid>
+              ))}
+            </Grid>
           ) : postsError ? (
             <Typography variant="h6" color="error" align="center">
               {t('errorLoadingPosts')}
             </Typography>
           ) : filteredPosts.length === 0 ? (
-            <Box sx={{ textAlign: 'center', py: 8 }}>
-              <Typography variant="h5" gutterBottom>
-                {searchQuery || categoryFilter !== 'all' || foundLostFilter !== 'all' 
-                  ? t('noPostsMatchFilters') 
-                  : t('noPostsInArea')}
+            <Box
+              sx={{
+                textAlign: 'center',
+                py: 8,
+                px: 2,
+                backgroundColor: theme.custom.color.surfaceRaised,
+                border: `1px dashed ${theme.palette.divider}`,
+                borderRadius: `${theme.custom.radius.lg}px`,
+              }}
+            >
+              <SearchOffOutlined sx={{ fontSize: 56, color: 'text.secondary', mb: 2, opacity: 0.7 }} />
+              <Typography variant="h6" gutterBottom>
+                {hasActiveFilters ? t('noPostsMatchFilters') : t('noPostsInArea')}
               </Typography>
-              <Button 
-                variant="contained" 
-                onClick={() => navigate('/signup')}
-                sx={{ mt: 2 }}
-              >
-                {t('createNewPost')}
-              </Button>
+              <Typography variant="body2" color="text.secondary" sx={{ mb: 3, maxWidth: 420, mx: 'auto' }}>
+                {hasActiveFilters ? t('adjustFilters') : t('chooseCountryMessage')}
+              </Typography>
+              <Box sx={{ display: 'flex', gap: 1.5, justifyContent: 'center', flexWrap: 'wrap' }}>
+                {hasActiveFilters && (
+                  <Button
+                    variant="outlined"
+                    onClick={clearFilters}
+                    sx={{
+                      borderRadius: `${theme.custom.radius.md}px`,
+                      borderColor: theme.custom.color.brandPrimary,
+                      color: theme.custom.color.brandPrimary,
+                    }}
+                  >
+                    {t('clearFilters')}
+                  </Button>
+                )}
+                <Button
+                  variant="contained"
+                  onClick={() => navigate('/signup')}
+                  sx={{
+                    borderRadius: `${theme.custom.radius.md}px`,
+                    bgcolor: theme.custom.color.brandPrimary,
+                    '&:hover': { bgcolor: theme.custom.color.brandPrimary, opacity: 0.9 },
+                  }}
+                >
+                  {t('createNewPost')}
+                </Button>
+              </Box>
             </Box>
           ) : (
             <Grid container spacing={3}>
-              {filteredPosts.map((post) => (
-                <Grid item xs={12} sm={6} md={4} key={post.id}>
-                  <PostCard>
-                    {post.image && (
-                      <LazyCardMedia
-                        component="img"
-                        height="200"
-                        image={post.image}
-                        alt={post.title}
-                        sx={{ objectFit: 'cover' }}
-                      />
-                    )}
-                    <CardContent sx={{ flexGrow: 1, display: 'flex', flexDirection: 'column' }}>
-                      <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', mb: 1 }}>
-                        <Chip 
-                          label={t(post.foundLost)} 
-                          color={post.foundLost === 'found' ? 'success' : 'error'}
+              {filteredPosts.map((post) => {
+                const flCode = getFoundLostCode(post);
+                const tone = flCode === 'found' ? theme.custom.status.found : theme.custom.status.lost;
+                const categoryCode = getCategoryCode(post);
+                const cityDisplay = getCityDisplayName(post);
+                const imageUrl = getImageUrl(post);
+                return (
+                  <Grid item xs={12} sm={6} md={4} lg={3} key={post._id}>
+                    <PostCard tone={tone.main}>
+                      <MediaFrame>
+                        {imageUrl ? (
+                          <LazyCardMedia
+                            image={imageUrl}
+                            alt={cityDisplay}
+                            sx={{ position: 'absolute', top: 0, left: 0, right: 0, bottom: 0 }}
+                          />
+                        ) : (
+                          <Box
+                            sx={{
+                              position: 'absolute',
+                              inset: 0,
+                              display: 'flex',
+                              alignItems: 'center',
+                              justifyContent: 'center',
+                              backgroundColor: alpha(tone.main, 0.06),
+                            }}
+                          >
+                            <RenderIcon name={getCategoryThemeKey(post)} />
+                          </Box>
+                        )}
+                        <StatusTag status={flCode} label={t(flCode)} />
+                        <DateBadge>{formatDate(post.createdAt)}</DateBadge>
+                      </MediaFrame>
+
+                      <CardContent sx={{ flexGrow: 1, display: 'flex', flexDirection: 'column', p: 2 }}>
+                        <Typography
+                          variant="subtitle1"
+                          component="h2"
+                          sx={{
+                            fontWeight: 600,
+                            mb: 0.5,
+                            overflow: 'hidden',
+                            textOverflow: 'ellipsis',
+                            whiteSpace: 'nowrap',
+                          }}
+                        >
+                          {cityDisplay}
+                        </Typography>
+
+                        <Typography
+                          variant="body2"
+                          color="text.secondary"
+                          sx={{
+                            mb: 1.5,
+                            display: '-webkit-box',
+                            WebkitLineClamp: 2,
+                            WebkitBoxOrient: 'vertical',
+                            overflow: 'hidden',
+                            minHeight: '2.6em',
+                          }}
+                        >
+                          {post.description}
+                        </Typography>
+
+                        <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.75, mb: 0.75, minWidth: 0 }}>
+                          <Category sx={{ fontSize: 16, color: 'text.secondary', flexShrink: 0 }} />
+                          <Typography
+                            variant="caption"
+                            color="text.secondary"
+                            sx={{ overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}
+                          >
+                            {categoryLabels[categoryCode] || post.categoryname || t('unknownCategory')}
+                          </Typography>
+                        </Box>
+
+                        <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.75, mb: 2, minWidth: 0 }}>
+                          <LocationOn sx={{ fontSize: 16, color: 'text.secondary', flexShrink: 0 }} />
+                          <Typography
+                            variant="caption"
+                            color="text.secondary"
+                            sx={{ overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}
+                          >
+                            {post.exactLocation || t('unknownLocation')}
+                          </Typography>
+                        </Box>
+
+                        <Button
+                          variant="outlined"
                           size="small"
-                        />
-                        <Typography variant="caption" color="text.secondary">
-                          {formatDate(post.createdAt)}
-                        </Typography>
-                      </Box>
-                      
-                      <Typography variant="h6" component="h2" gutterBottom sx={{ flexGrow: 1 }}>
-                        {post.title}
-                      </Typography>
-                      
-                      <Typography variant="body2" color="text.secondary" sx={{ mb: 2, flexGrow: 1 }}>
-                        {post.description?.substring(0, 100)}...
-                      </Typography>
-                      
-                      <Box sx={{ display: 'flex', alignItems: 'center', mb: 1 }}>
-                        <LocationOn sx={{ fontSize: 16, mr: 0.5, color: 'text.secondary' }} />
-                        <Typography variant="caption" color="text.secondary">
-                          {post.region || t('unknownRegion')}
-                        </Typography>
-                      </Box>
-                      
-                      <Box sx={{ display: 'flex', alignItems: 'center', mb: 2 }}>
-                        <Category sx={{ fontSize: 16, mr: 0.5, color: 'text.secondary' }} />
-                        <Typography variant="caption" color="text.secondary">
-                          {post.category || t('unknownCategory')}
-                        </Typography>
-                      </Box>
-                      
-                      <Button
-                        variant="outlined"
-                        size="small"
-                        startIcon={<Visibility />}
-                        onClick={() => navigate('/signup')}
-                        fullWidth
-                      >
-                        {t('viewDetails')}
-                      </Button>
-                    </CardContent>
-                  </PostCard>
-                </Grid>
-              ))}
+                          startIcon={<Visibility />}
+                          onClick={() => navigate('/signup')}
+                          fullWidth
+                          sx={{
+                            mt: 'auto',
+                            borderRadius: `${theme.custom.radius.md}px`,
+                            borderColor: theme.custom.color.brandPrimary,
+                            color: theme.custom.color.brandPrimary,
+                          }}
+                        >
+                          {t('viewDetails')}
+                        </Button>
+                      </CardContent>
+                    </PostCard>
+                  </Grid>
+                );
+              })}
             </Grid>
           )}
         </Container>
