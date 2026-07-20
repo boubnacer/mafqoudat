@@ -25,8 +25,10 @@ import { useLanguage } from '../context/LanguageContext';
 import { useTranslation } from '../utils/translations';
 import { useAuth } from '../context/AuthContext';
 import { useReferenceData, getLocalizedLabel } from '../context/ReferenceDataContext';
+import { useTheme } from '../context/ThemeContext';
 import PostFilterSheet from '../components/PostFilterSheet';
 import DataStateView from '../components/DataStateView';
+import AppHeader from '../components/AppHeader';
 
 const SEARCH_DEBOUNCE_MS = 400;
 const PAGE_SIZE = 10;
@@ -36,6 +38,7 @@ const PostsListScreen = ({ navigation }) => {
   const { t } = useTranslation();
   const { signOut } = useAuth();
   const { floptions, categories, countries, getCities } = useReferenceData();
+  const { colors } = useTheme();
   const isRTL = currentLanguage === 'ar';
 
   const [posts, setPosts] = useState([]);
@@ -285,6 +288,20 @@ const PostsListScreen = ({ navigation }) => {
   const selectedFloption = floptions.find((fl) => fl._id === selectedFl);
   const selectedCategoryChips = categories.filter((cat) => selectedCategoryIds.includes(cat._id));
 
+  const filterButton = (
+    <TouchableOpacity
+      style={[styles.filterButton, { backgroundColor: colors.primaryText }]}
+      onPress={() => setFilterSheetVisible(true)}
+    >
+      <Text style={[styles.filterButtonText, { color: colors.primary }]}>{t('filters')}</Text>
+      {activeFilterCount > 0 ? (
+        <View style={[styles.filterBadge, { backgroundColor: colors.primary }]}>
+          <Text style={[styles.filterBadgeText, { color: colors.primaryText }]}>{activeFilterCount}</Text>
+        </View>
+      ) : null}
+    </TouchableOpacity>
+  );
+
   const renderPost = ({ item }) => (
     <TouchableOpacity
       style={styles.postCard}
@@ -317,18 +334,29 @@ const PostsListScreen = ({ navigation }) => {
 
   if (isLoading && !hasLoadedOnce) {
     return (
-      <View style={styles.centerContainer}>
-        <ActivityIndicator size="large" color="#2196F3" />
-        <Text style={styles.loadingText}>{t('loadingPosts')}</Text>
+      <View style={styles.container}>
+        <AppHeader
+          title={t('posts')}
+          countryId={countryId}
+          onSelectCountry={handleSelectCountry}
+          rightActions={filterButton}
+        />
+        <View style={styles.centerContainer}>
+          <ActivityIndicator size="large" color="#2196F3" />
+          <Text style={styles.loadingText}>{t('loadingPosts')}</Text>
+        </View>
       </View>
     );
   }
 
   return (
     <View style={styles.container}>
-      <View style={styles.header}>
-        <Text style={styles.headerTitle}>{t('posts')}</Text>
-      </View>
+      <AppHeader
+        title={t('posts')}
+        countryId={countryId}
+        onSelectCountry={handleSelectCountry}
+        rightActions={filterButton}
+      />
 
       <View style={styles.searchRow}>
         <TextInput
@@ -339,14 +367,6 @@ const PostsListScreen = ({ navigation }) => {
           onChangeText={setSearchText}
           autoCapitalize="none"
         />
-        <TouchableOpacity style={styles.filterButton} onPress={() => setFilterSheetVisible(true)}>
-          <Text style={styles.filterButtonText}>{t('filters')}</Text>
-          {activeFilterCount > 0 ? (
-            <View style={styles.filterBadge}>
-              <Text style={styles.filterBadgeText}>{activeFilterCount}</Text>
-            </View>
-          ) : null}
-        </TouchableOpacity>
       </View>
 
       {isFilterActive ? (
@@ -478,19 +498,6 @@ const styles = StyleSheet.create({
     flex: 1,
     backgroundColor: '#f5f5f5',
   },
-  header: {
-    backgroundColor: '#2196F3',
-    padding: 16,
-    paddingTop: 50,
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
-  },
-  headerTitle: {
-    fontSize: 24,
-    fontWeight: 'bold',
-    color: '#fff',
-  },
   searchRow: {
     flexDirection: 'row',
     alignItems: 'center',
@@ -515,20 +522,16 @@ const styles = StyleSheet.create({
   filterButton: {
     flexDirection: 'row',
     alignItems: 'center',
-    marginStart: 8,
     paddingHorizontal: 14,
-    height: 44,
-    borderRadius: 8,
-    backgroundColor: '#2196F3',
+    height: 36,
+    borderRadius: 18,
   },
   filterButtonText: {
-    color: '#fff',
     fontWeight: 'bold',
-    fontSize: 14,
+    fontSize: 13,
   },
   filterBadge: {
     marginStart: 6,
-    backgroundColor: '#fff',
     borderRadius: 10,
     minWidth: 18,
     height: 18,
@@ -537,7 +540,6 @@ const styles = StyleSheet.create({
     paddingHorizontal: 4,
   },
   filterBadgeText: {
-    color: '#2196F3',
     fontSize: 11,
     fontWeight: 'bold',
   },

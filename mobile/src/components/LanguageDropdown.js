@@ -25,7 +25,7 @@ const languages = [
 
 const { width: SCREEN_WIDTH } = Dimensions.get('window');
 
-const LanguageDropdown = ({ style }) => {
+const LanguageDropdown = ({ style, compact = false }) => {
   const { currentLanguage, setLanguage } = useLanguage();
   const theme = useTheme();
   const styles = useMemo(() => createStyles(theme), [theme]);
@@ -61,15 +61,20 @@ const LanguageDropdown = ({ style }) => {
         onLayout={onButtonLayout}
       >
         <TouchableOpacity
-          style={styles.dropdownButton}
+          style={compact ? styles.compactButton : styles.dropdownButton}
           onPress={() => setDropdownVisible(!dropdownVisible)}
           activeOpacity={0.7}
+          accessibilityLabel={currentLang?.nativeName || currentLanguage.toUpperCase()}
         >
-          <Text style={styles.flag}>{currentLang?.flag || '🌐'}</Text>
-          <Text style={styles.languageText}>
-            {currentLang?.nativeName || currentLanguage.toUpperCase()}
-          </Text>
-          <Text style={styles.arrow}>{dropdownVisible ? '▲' : '▼'}</Text>
+          <Text style={compact ? styles.compactFlag : styles.flag}>{currentLang?.flag || '🌐'}</Text>
+          {!compact && (
+            <>
+              <Text style={styles.languageText}>
+                {currentLang?.nativeName || currentLanguage.toUpperCase()}
+              </Text>
+              <Text style={styles.arrow}>{dropdownVisible ? '▲' : '▼'}</Text>
+            </>
+          )}
         </TouchableOpacity>
       </View>
 
@@ -163,6 +168,22 @@ const createStyles = ({ colors, spacing, radii, fontSizes }) => StyleSheet.creat
     color: colors.textSecondary,
     fontSize: 10,
     marginStart: spacing.sm,
+  },
+  // Icon-only trigger for use inside colored bars (e.g. AppHeader), where the
+  // full flag+name+arrow button would be too wide and its inputBackground/border
+  // styling would clash with the bar's own color.
+  compactButton: {
+    width: 36,
+    height: 36,
+    borderRadius: radii.full,
+    backgroundColor: 'rgba(255,255,255,0.18)',
+    borderWidth: 1,
+    borderColor: 'rgba(255,255,255,0.4)',
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  compactFlag: {
+    fontSize: fontSizes.md,
   },
   modalOverlay: {
     flex: 1,

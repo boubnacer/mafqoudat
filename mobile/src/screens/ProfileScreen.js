@@ -13,6 +13,7 @@ import { useLanguage } from '../context/LanguageContext';
 import { useTranslation } from '../utils/translations';
 import { useReferenceData, getLocalizedLabel } from '../context/ReferenceDataContext';
 import DataStateView from '../components/DataStateView';
+import AppHeader from '../components/AppHeader';
 
 const ProfileScreen = ({ navigation }) => {
   const { user: authUser } = useAuth();
@@ -72,18 +73,10 @@ const ProfileScreen = ({ navigation }) => {
 
   const textStyle = isRTL ? styles.textRTL : null;
 
-  const renderHeader = () => (
-    <View style={styles.header}>
-      <Text style={[styles.headerTitle, textStyle]} numberOfLines={1}>
-        {t('profile')}
-      </Text>
-    </View>
-  );
-
   if (isLoading && !profile) {
     return (
       <View style={styles.container}>
-        {renderHeader()}
+        <AppHeader title={t('profile')} />
         <View style={styles.centerContainer}>
           <ActivityIndicator size="large" color="#2196F3" />
         </View>
@@ -94,7 +87,7 @@ const ProfileScreen = ({ navigation }) => {
   if (error && !profile) {
     return (
       <View style={styles.container}>
-        {renderHeader()}
+        <AppHeader title={t('profile')} />
         <View style={styles.centerContainer}>
           <DataStateView
             variant="error"
@@ -132,7 +125,7 @@ const ProfileScreen = ({ navigation }) => {
 
   return (
     <View style={styles.container}>
-      {renderHeader()}
+      <AppHeader title={t('profile')} />
       <ScrollView
         contentContainerStyle={styles.content}
         refreshControl={<RefreshControl refreshing={isRefreshing} onRefresh={handleRefresh} colors={['#2196F3']} />}
@@ -194,21 +187,6 @@ const styles = StyleSheet.create({
   container: {
     flex: 1,
     backgroundColor: '#f5f5f5',
-  },
-  header: {
-    backgroundColor: '#2196F3',
-    padding: 16,
-    paddingTop: 50,
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
-  },
-  headerTitle: {
-    flex: 1,
-    fontSize: 20,
-    fontWeight: 'bold',
-    color: '#fff',
-    textAlign: 'center',
   },
   textRTL: {
     textAlign: 'right',

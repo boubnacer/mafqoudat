@@ -25,6 +25,7 @@ import { useLanguage } from '../context/LanguageContext';
 import { useTranslation } from '../utils/translations';
 import PromotePostSheet from '../components/PromotePostSheet';
 import DataStateView from '../components/DataStateView';
+import AppHeader from '../components/AppHeader';
 
 const PAGE_SIZE = 10;
 const TOAST_DURATION_MS = 3000;
@@ -255,9 +256,7 @@ const MyPostsScreen = ({ navigation }) => {
   if (isLoading && !hasLoadedOnce) {
     return (
       <View style={styles.container}>
-        <View style={styles.header}>
-          <Text style={styles.headerTitle}>{t('myPosts')}</Text>
-        </View>
+        <AppHeader title={t('myPosts')} />
         <View style={styles.centerContainer}>
           <ActivityIndicator size="large" color="#2196F3" />
         </View>
@@ -267,11 +266,7 @@ const MyPostsScreen = ({ navigation }) => {
 
   return (
     <View style={styles.container}>
-      <View style={styles.header}>
-        <Text style={[styles.headerTitle, isRTL && styles.textRTL]} numberOfLines={1}>
-          {t('myPosts')}
-        </Text>
-      </View>
+      <AppHeader title={t('myPosts')} />
 
       {error && !isLoading && posts.length === 0 ? (
         <DataStateView
@@ -327,21 +322,6 @@ const styles = StyleSheet.create({
   container: {
     flex: 1,
     backgroundColor: '#f5f5f5',
-  },
-  header: {
-    backgroundColor: '#2196F3',
-    padding: 16,
-    paddingTop: 50,
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
-  },
-  headerTitle: {
-    flex: 1,
-    fontSize: 20,
-    fontWeight: 'bold',
-    color: '#fff',
-    textAlign: 'center',
   },
   textRTL: {
     textAlign: 'right',
