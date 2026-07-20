@@ -3,7 +3,7 @@
  * A dropdown/picker style language selector
  */
 
-import React, { useState, useRef, useEffect } from 'react';
+import React, { useState, useRef, useEffect, useMemo } from 'react';
 import {
   View,
   Text,
@@ -14,6 +14,7 @@ import {
   Dimensions,
 } from 'react-native';
 import { useLanguage } from '../context/LanguageContext';
+import { useTheme } from '../context/ThemeContext';
 import { useTranslation } from '../utils/translations';
 
 const languages = [
@@ -26,6 +27,8 @@ const { width: SCREEN_WIDTH } = Dimensions.get('window');
 
 const LanguageDropdown = ({ style }) => {
   const { currentLanguage, setLanguage } = useLanguage();
+  const { colors } = useTheme();
+  const styles = useMemo(() => createStyles(colors), [colors]);
   const { t } = useTranslation();
   const [dropdownVisible, setDropdownVisible] = useState(false);
   const buttonRef = useRef(null);
@@ -129,7 +132,7 @@ const LanguageDropdown = ({ style }) => {
   );
 };
 
-const styles = StyleSheet.create({
+const createStyles = (colors) => StyleSheet.create({
   container: {
     position: 'relative',
   },
@@ -140,9 +143,9 @@ const styles = StyleSheet.create({
     paddingHorizontal: 12,
     paddingVertical: 8,
     borderRadius: 8,
-    backgroundColor: 'rgba(255, 255, 255, 0.2)',
+    backgroundColor: colors.inputBackground,
     borderWidth: 1,
-    borderColor: 'rgba(255, 255, 255, 0.3)',
+    borderColor: colors.border,
     minWidth: 120,
   },
   flag: {
@@ -150,13 +153,13 @@ const styles = StyleSheet.create({
     marginEnd: 8,
   },
   languageText: {
-    color: '#fff',
+    color: colors.textPrimary,
     fontSize: 14,
     fontWeight: '600',
     flex: 1,
   },
   arrow: {
-    color: '#fff',
+    color: colors.textSecondary,
     fontSize: 10,
     marginStart: 8,
   },
@@ -169,8 +172,10 @@ const styles = StyleSheet.create({
     zIndex: 1000,
   },
   dropdownList: {
-    backgroundColor: '#fff',
+    backgroundColor: colors.surface,
     borderRadius: 8,
+    borderWidth: 1,
+    borderColor: colors.border,
     shadowColor: '#000',
     shadowOffset: { width: 0, height: 2 },
     shadowOpacity: 0.25,
@@ -185,10 +190,10 @@ const styles = StyleSheet.create({
     paddingHorizontal: 16,
     paddingVertical: 12,
     borderBottomWidth: 1,
-    borderBottomColor: '#f0f0f0',
+    borderBottomColor: colors.border,
   },
   dropdownItemActive: {
-    backgroundColor: '#e3f2fd',
+    backgroundColor: colors.primarySoft,
   },
   itemFlag: {
     fontSize: 20,
@@ -196,16 +201,16 @@ const styles = StyleSheet.create({
   },
   itemText: {
     fontSize: 16,
-    color: '#333',
+    color: colors.textPrimary,
     flex: 1,
   },
   itemTextActive: {
-    color: '#2196F3',
+    color: colors.primary,
     fontWeight: '600',
   },
   checkmark: {
     fontSize: 18,
-    color: '#2196F3',
+    color: colors.primary,
     fontWeight: 'bold',
   },
 });

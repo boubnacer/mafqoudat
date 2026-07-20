@@ -27,7 +27,12 @@ export const translations = {
     networkError: "Network error. Please check your connection.",
     maintenanceMode: "Service is under maintenance. Please try again later.",
     sessionExpired: "Session expired. Please login again.",
-    
+    invalidEmailOrPhone: "Enter a valid email address or phone number",
+    oauthLoginAttempt: "This account uses Google Sign-In. Please use the 'Continue with Google' button.",
+    showPassword: "Show",
+    hidePassword: "Hide",
+    signUpPrompt: "Don't have an account?",
+
     // Posts
     posts: "Posts",
     postsList: "Posts List",
@@ -272,7 +277,12 @@ export const translations = {
     networkError: "Erreur réseau. Veuillez vérifier votre connexion.",
     maintenanceMode: "Le service est en maintenance. Veuillez réessayer plus tard.",
     sessionExpired: "Session expirée. Veuillez vous reconnecter.",
-    
+    invalidEmailOrPhone: "Entrez un e-mail ou un numéro de téléphone valide",
+    oauthLoginAttempt: "Ce compte utilise Google Sign-In. Veuillez utiliser le bouton 'Continuer avec Google'.",
+    showPassword: "Afficher",
+    hidePassword: "Masquer",
+    signUpPrompt: "Vous n'avez pas de compte ?",
+
     // Posts
     posts: "Publications",
     postsList: "Liste des publications",
@@ -517,7 +527,12 @@ export const translations = {
     networkError: "خطأ في الشبكة. يرجى التحقق من اتصالك.",
     maintenanceMode: "الخدمة قيد الصيانة. يرجى المحاولة مرة أخرى لاحقاً.",
     sessionExpired: "انتهت الجلسة. يرجى تسجيل الدخول مرة أخرى.",
-    
+    invalidEmailOrPhone: "أدخل بريدًا إلكترونيًا أو رقم هاتف صحيحًا",
+    oauthLoginAttempt: "هذا الحساب يستخدم تسجيل الدخول عبر جوجل. يرجى استخدام زر 'المتابعة مع جوجل'.",
+    showPassword: "إظهار",
+    hidePassword: "إخفاء",
+    signUpPrompt: "ليس لديك حساب؟",
+
     // Posts
     posts: "المنشورات",
     postsList: "قائمة المنشورات",
