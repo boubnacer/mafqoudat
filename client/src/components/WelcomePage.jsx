@@ -2,16 +2,17 @@ import React, { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { useDispatch, useSelector } from "react-redux";
 import { setCurrentCountry, setMode } from "../app/state";
-import { useGetCountriesQuery } from "../features/dependencies/dependenciesApiSlice"; // Fixed: Use dependenciesApiSlice instead of countriesApiSlice
+import { useGetCountriesQuery, useGetCategoriesQuery } from "../features/dependencies/dependenciesApiSlice"; // Fixed: Use dependenciesApiSlice instead of countriesApiSlice
+import { useGetPostsQuery } from "../features/posts/postsApiSlice";
 import { useTranslation } from "../utils/translations";
 import { useLanguage } from "../utils/languageContext";
 import { LoadingState } from "./LoadingStates";
 import { languageStorage } from "../utils/authStorage";
 import SeoMeta from "./SeoMeta";
+import RenderIcon from "./RenderIcon";
+import LazyCardMedia from "./LazyCardMedia";
 import {
   Box,
-  Card,
-  CardContent,
   Typography,
   Button,
   Grid,
@@ -20,15 +21,14 @@ import {
   styled,
   Autocomplete,
   TextField,
-  Paper,
   Menu,
   MenuItem,
   ListItemIcon,
   ListItemText,
   IconButton,
+  Skeleton,
 } from "@mui/material";
 import {
-  Public,
   Search,
   LocationOn,
   ArrowForward,
@@ -41,228 +41,134 @@ import {
   PersonAdd,
   FilterList,
   PostAdd,
+  TaskAltOutlined,
+  SearchOffOutlined,
+  VerifiedUserOutlined,
+  PublicOutlined,
+  CategoryOutlined,
 } from "@mui/icons-material";
 
+// Categories shown in the "browse by category" strip. Icon name + theme key
+// pairs match RenderIcon's existing category switch (client/src/components/RenderIcon.jsx)
+// and theme.palette.categories (client/src/theme.js) — no new colors introduced here.
+const CATEGORY_SHOWCASE = [
+  { themeKey: "devicecate", iconName: "devicecate", labelKey: "devices" },
+  { themeKey: "documentcate", iconName: "Documentcate", labelKey: "document" },
+  { themeKey: "walletcate", iconName: "Walletcate", labelKey: "wallet" },
+  { themeKey: "keyscate", iconName: "keyscate", labelKey: "keys" },
+  { themeKey: "vehiclecate", iconName: "Vehiclecate", labelKey: "vehicle" },
+  { themeKey: "bagcate", iconName: "bagcate", labelKey: "bag" },
+];
 
+// "How it works" reuses the existing feature copy (searchItems/localPosts/communityHelp
+// + their *Desc keys) that used to live in a hidden section of this page.
+const HOW_IT_WORKS = [
+  { Icon: Search, titleKey: "searchItems", descKey: "searchItemsDesc" },
+  { Icon: PostAdd, titleKey: "localPosts", descKey: "localPostsDesc" },
+  { Icon: FilterList, titleKey: "communityHelp", descKey: "communityHelpDesc" },
+];
 
-// Styled components
+const formatShortDate = (dateString, lang) => {
+  try {
+    return new Date(dateString).toLocaleDateString(
+      lang === "ar" ? "ar-SA" : lang === "fr" ? "fr-FR" : "en-US",
+      { month: "short", day: "numeric" }
+    );
+  } catch (e) {
+    return "";
+  }
+};
+
+// Styled components — all values sourced from theme.custom (Phase 1 tokens)
 const PageContainer = styled(Box)(({ theme }) => ({
-  minHeight: '100vh',
-  background: theme?.palette?.mode === 'dark' 
-    ? 'linear-gradient(135deg, #0a0a0a 0%, #1a1a1a 25%, #2d2d2d 50%, #1a1a1a 75%, #0a0a0a 100%)'
-    : 'linear-gradient(135deg, #e3f2fd 0%, #f3e5f5 50%, #fff3e0 100%)',
-  display: 'flex',
-  alignItems: 'center',
-  justifyContent: 'center',
-  padding: theme?.spacing?.(2) || '16px',
-  position: 'relative',
-  direction: theme?.direction || 'ltr',
-  zIndex: 1,
-  // Mobile-specific: reduce spacing between top controls and content
-  [theme?.breakpoints?.down?.('sm') || '@media (max-width: 600px)']: {
-    alignItems: 'flex-start',
-    paddingTop: theme?.spacing?.(8) || '64px',
+  minHeight: "100vh",
+  backgroundColor: theme.custom.color.surfaceBase,
+  direction: theme.direction || "ltr",
+}));
+
+const TopBar = styled(Box)(({ theme }) => ({
+  display: "flex",
+  justifyContent: "flex-end",
+  alignItems: "center",
+  gap: theme.spacing(1),
+  padding: theme.spacing(2),
+  [theme.breakpoints.down("sm")]: {
+    padding: theme.spacing(1.5),
   },
 }));
 
-const WelcomeCard = styled(Card)(({ theme }) => ({
-  width: '100%',
-  maxWidth: 600,
-  borderRadius: 24,
-  boxShadow: theme?.palette?.mode === 'dark'
-    ? '0 25px 50px rgba(0, 0, 0, 0.5), 0 0 0 1px rgba(255, 255, 255, 0.05)'
-    : '0 25px 50px rgba(0, 0, 0, 0.1), 0 0 0 1px rgba(255, 255, 255, 0.8)',
-  backdropFilter: 'blur(20px)',
-  background: theme?.palette?.mode === 'dark'
-    ? 'rgba(30, 30, 30, 0.9)'
-    : 'rgba(255, 255, 255, 0.9)',
-  border: `1px solid ${alpha(theme?.palette?.primary?.main || '#667eea', 0.1)}`,
-  transition: 'all 0.3s ease',
-  '&:hover': {
-    transform: 'translateY(-5px)',
-    boxShadow: theme?.palette?.mode === 'dark'
-      ? '0 35px 70px rgba(0, 0, 0, 0.6), 0 0 0 1px rgba(255, 255, 255, 0.1)'
-      : '0 35px 70px rgba(0, 0, 0, 0.15), 0 0 0 1px rgba(255, 255, 255, 0.9)',
-  },
-  // Mobile-specific: add margin-top to prevent content from being hidden behind top controls
-  [theme?.breakpoints?.down?.('sm') || '@media (max-width: 600px)']: {
-    marginTop: theme?.spacing?.(8) || '64px',
+const ControlButton = styled(Box)(({ theme }) => ({
+  display: "flex",
+  alignItems: "center",
+  gap: theme.spacing(0.75),
+  padding: "8px 14px",
+  borderRadius: theme.custom.radius.md,
+  cursor: "pointer",
+  backgroundColor: theme.custom.color.surfaceRaised,
+  border: `1px solid ${theme.palette.divider}`,
+  boxShadow: theme.custom.elevation.e1,
+  transition: "box-shadow 0.2s ease",
+  "&:hover": {
+    boxShadow: theme.custom.elevation.e2,
   },
 }));
 
-const HeaderSection = styled(Box)(({ theme }) => ({
-  textAlign: 'center',
-  marginBottom: theme?.spacing?.(4) || '32px',
-  marginTop: '20px',
-  position: 'relative',
-  // Mobile-specific: remove top margin to reduce spacing
-  [theme?.breakpoints?.down?.('sm') || '@media (max-width: 600px)']: {
-    marginTop: '0px',
+const SurfaceCard = styled(Box)(({ theme }) => ({
+  backgroundColor: theme.custom.color.surfaceRaised,
+  borderRadius: theme.custom.radius.xl,
+  boxShadow: theme.custom.elevation.e2,
+  border: `1px solid ${theme.palette.divider}`,
+}));
+
+const HeroPostCard = styled(Box)(({ theme, tone }) => ({
+  display: "flex",
+  flexDirection: "column",
+  backgroundColor: theme.custom.color.surfaceRaised,
+  borderRadius: theme.custom.radius.lg,
+  boxShadow: theme.custom.elevation.e1,
+  border: `1px solid ${theme.palette.divider}`,
+  borderInlineStart: `4px solid ${tone}`,
+  overflow: "hidden",
+  transition: "transform 0.2s ease, box-shadow 0.2s ease",
+  "&:hover": {
+    transform: "translateY(-3px)",
+    boxShadow: theme.custom.elevation.e2,
   },
 }));
 
-const BrandLogo = styled(Box)(({ theme }) => ({
-  width: 80,
-  height: 80,
-  borderRadius: '50%',
-  background: 'linear-gradient(135deg, #043FA5 0%, #1B6EEF 100%)',
-  display: 'flex',
-  alignItems: 'center',
-  justifyContent: 'center',
-  margin: '0 auto 16px',
-  boxShadow: '0 10px 30px rgba(4, 63, 165, 0.3)',
-  '& .MuiSvgIcon-root': {
-    fontSize: 40,
-    color: 'white',
-  }
-}));
+const StatusTag = ({ status, label }) => {
+  const theme = useTheme();
+  const tone = status === "found" ? theme.custom.status.found : theme.custom.status.lost;
+  const Icon = status === "found" ? TaskAltOutlined : SearchOffOutlined;
+  return (
+    <Box
+      sx={{
+        display: "inline-flex",
+        alignItems: "center",
+        gap: 0.5,
+        px: 1,
+        py: 0.25,
+        borderRadius: `${theme.custom.radius.sm}px`,
+        backgroundColor: tone.bg,
+        border: `1px solid ${alpha(tone.border, 0.4)}`,
+      }}
+    >
+      <Icon sx={{ fontSize: 14, color: tone.main }} />
+      <Typography variant="caption" sx={{ fontWeight: 600, color: tone.main, lineHeight: 1 }}>
+        {label}
+      </Typography>
+    </Box>
+  );
+};
 
-const FeatureCard = styled(Paper)(({ theme }) => ({
-  padding: theme?.spacing?.(1.5) || '12px',
-  borderRadius: 12,
-  background: theme?.palette?.mode === 'dark'
-    ? 'rgba(255, 255, 255, 0.03)'
-    : 'rgba(255, 255, 255, 0.5)',
-  border: `1px solid ${alpha(theme?.palette?.divider, 0.05)}`,
-  // Remove default Paper shadow
-  boxShadow: 'none',
-  // Remove hover effects to make it look less clickable
-  cursor: 'default',
-  height: '100%',
-  display: 'flex',
-  flexDirection: 'column',
-  '&:hover': {
-    // No transform or border change on hover
-    transform: 'none',
-    border: `1px solid ${alpha(theme?.palette?.divider, 0.05)}`,
-    boxShadow: 'none',
-  }
-}));
-
-
-
-const LanguageSelector = styled(Box)(({ theme }) => ({
-  display: 'flex',
-  alignItems: 'center',
-  padding: '12px 20px',
-  borderRadius: '12px',
-  cursor: 'pointer',
-  background: 'rgba(30, 30, 30, 0.9)',
-  backdropFilter: 'blur(10px)',
-  border: 'none',
-  transition: 'all 0.3s ease',
-  minHeight: '48px',
-  position: 'relative',
-  overflow: 'hidden',
-  // Animated gradient border effect - Blue tones only
-  '&::before': {
-    content: '""',
-    position: 'absolute',
-    inset: '-2px',
-    borderRadius: '14px',
-    background: `linear-gradient(45deg, 
-      #1A6EEE, 
-      #4A8BFF, 
-      #6BA3FF, 
-      #8BB5FF, 
-      #1A6EEE)`,
-    backgroundSize: '300% 300%',
-    animation: 'gradientShift 3s ease infinite',
-    opacity: 0.8,
-    zIndex: -1,
-    filter: 'blur(1px)',
-  },
-  '@keyframes gradientShift': {
-    '0%': {
-      backgroundPosition: '0% 50%',
-    },
-    '50%': {
-      backgroundPosition: '100% 50%',
-    },
-    '100%': {
-      backgroundPosition: '0% 50%',
-    },
-  },
-  '&:hover': {
-    background: 'rgba(30, 30, 30, 1)',
-    transform: 'translateY(-2px) scale(1.02)',
-    '&::before': {
-      opacity: 1,
-      animation: 'gradientShift 1.5s ease infinite',
-      filter: 'blur(0.5px)',
-    },
-  },
-  '& .MuiSvgIcon-root': {
-    marginRight: '12px',
-    fontSize: '24px',
-    transition: 'transform 0.3s ease',
-    color: '#ffffff !important',
-  },
-  '&:hover .MuiSvgIcon-root': {
-    transform: 'rotate(15deg) scale(1.1)',
-  },
-  // Ensure Typography text color - always white
-  '& .MuiTypography-root': {
-    color: '#ffffff !important',
-  },
-  // Target all SVG icons including the dropdown arrow - always white
-  '& svg': {
-    color: '#ffffff !important',
-  },
-}));
-
-const ActionButton = styled(IconButton)(({ theme }) => ({
-  backgroundColor: theme?.palette?.mode === 'dark' 
-    ? 'rgba(255, 255, 255, 0.1)'
-    : 'rgba(0, 0, 0, 0.05)',
-  backdropFilter: 'blur(10px)',
-  border: `1px solid ${alpha(theme?.palette?.primary?.main || '#667eea', 0.1)}`,
-  color: theme?.palette?.text?.primary,
-  transition: 'all 0.3s ease',
-  width: '48px',
-  height: '48px',
-  '&:hover': {
-    backgroundColor: theme?.palette?.mode === 'dark' 
-      ? 'rgba(255, 255, 255, 0.2)'
-      : 'rgba(0, 0, 0, 0.1)',
-    transform: 'scale(1.05)',
-  },
-  '& .MuiSvgIcon-root': {
-    fontSize: '24px',
-  }
-}));
-
-const TopControlsContainer = styled(Box)(({ theme, currentLanguage }) => ({
-  display: 'flex',
-  justifyContent: 'flex-end',
-  alignItems: 'center',
-  width: '100%',
-  padding: theme?.spacing?.(2) || '16px',
-  position: 'absolute',
-  top: '10px',
-  left: '20px',
-  right: 0,
-  zIndex: 10,
-  [theme?.breakpoints?.down?.('sm') || '@media (max-width: 600px)']: {
-    left: 0,
-    right: 0,
-    padding: theme?.spacing?.(1) || '8px',
-  },
-}));
-
-const ControlsGroup = styled(Box)(({ theme, currentLanguage }) => ({
-  display: 'flex',
-  alignItems: 'center',
-  gap: theme?.spacing?.(1) || '8px',
-  marginRight: currentLanguage === 'ar' ? 0 : theme?.spacing?.(2) || '16px',
-  marginLeft: currentLanguage === 'ar' ? theme?.spacing?.(2) || '16px' : 0,
-  [theme?.breakpoints?.down?.('sm') || '@media (max-width: 600px)']: {
-    gap: theme?.spacing?.(2) || '16px',
-    marginTop:'10px',
-    marginRight:  '20px',
-    marginLeft:  '20px',
-  },
-}));
+const SectionEyebrow = ({ children }) => (
+  <Typography
+    variant="overline"
+    sx={{ fontWeight: 600, letterSpacing: 1, color: "text.secondary" }}
+  >
+    {children}
+  </Typography>
+);
 
 const WelcomePage = () => {
   const theme = useTheme();
@@ -270,17 +176,18 @@ const WelcomePage = () => {
   const dispatch = useDispatch();
   const { t, currentLanguage } = useTranslation();
   const { currentLanguage: langContext, setLanguage } = useLanguage();
-  
+  const activeLanguage = currentLanguage || langContext || "en";
+  const isRTL = activeLanguage === "ar";
+
   const [selectedCountry, setSelectedCountry] = useState(null);
   const [languageAnchorEl, setLanguageAnchorEl] = useState(null);
-  
+
   // Get mode from Redux store
   const mode = useSelector((state) => state.global.mode);
 
-
   // Get countries list - Fixed: Use dependenciesApiSlice and proper error handling
   const { data: countriesData, error: countriesError, isLoading: countriesLoading } = useGetCountriesQuery({
-    language: currentLanguage || langContext || 'en'
+    language: activeLanguage
   }, {
     selectFromResult: ({ data, error, isLoading }) => ({
       data: data?.ids?.map((id) => data?.entities[id]) || [],
@@ -288,7 +195,6 @@ const WelcomePage = () => {
       isLoading
     }),
   });
-
 
   // Country code to name mapping for fallback
   const countryCodeToName = {
@@ -327,6 +233,53 @@ const WelcomePage = () => {
   // Use countries from API or fallback
   const countries = countriesData?.length > 0 ? countriesData : fallbackCountries;
 
+  // Real, live category count for the coverage stat below (not a static/guessed number)
+  const { data: categoriesData } = useGetCategoriesQuery({ language: activeLanguage }, {
+    selectFromResult: ({ data }) => ({ data: data?.ids?.length || 0 }),
+  });
+
+  // Pre-select the first available country so the hero can show real, local
+  // content immediately — still fully editable via the selector below.
+  useEffect(() => {
+    if (!selectedCountry && countries.length > 0) {
+      setSelectedCountry(countries[0]);
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [countries.length]);
+
+  const getCountryName = (option) => {
+    if (!option) return '';
+    if (option.names && option.names[activeLanguage]) {
+      return option.names[activeLanguage];
+    }
+    if (option.labels && option.labels[activeLanguage]) {
+      const label = option.labels[activeLanguage];
+      if (label && label.length === 2 && label === label.toUpperCase()) {
+        return countryCodeToName[label]?.[activeLanguage] || option.code;
+      }
+      return label;
+    }
+    if (option.code && countryCodeToName[option.code]) {
+      return countryCodeToName[option.code][activeLanguage] || option.code;
+    }
+    return option.label || option.code;
+  };
+
+  // Live snapshot of a few recent posts for the selected country — the hero's
+  // proof that the platform is active and local, not a marketing claim.
+  const {
+    data: heroPostsData,
+    isLoading: heroPostsLoading,
+  } = useGetPostsQuery({
+    pageSize: 3,
+    currentCountry: selectedCountry?._id,
+    language: activeLanguage,
+    fl: ''
+  }, {
+    skip: !selectedCountry?._id
+  });
+  const heroPosts = heroPostsData?.ids?.map((id) => heroPostsData?.entities[id]) || [];
+
   const handleCountrySelect = (_, value) => {
     setSelectedCountry(value);
   };
@@ -336,7 +289,7 @@ const WelcomePage = () => {
       // Use the selected country ID directly
       const countryId = selectedCountry._id;
       dispatch(setCurrentCountry({ currentCountry: countryId }));
-      
+
       // Check if there's a redirect URL stored after country selection
       const redirectUrl = localStorage.getItem('redirectAfterCountrySelection');
       if (redirectUrl) {
@@ -346,6 +299,13 @@ const WelcomePage = () => {
         // Navigate to posts list page
         navigate('/dash');
       }
+    }
+  };
+
+  const handleReportItem = () => {
+    if (selectedCountry) {
+      dispatch(setCurrentCountry({ currentCountry: selectedCountry._id }));
+      navigate('/dash/posts/new');
     }
   };
 
@@ -367,7 +327,6 @@ const WelcomePage = () => {
     setLanguageAnchorEl(null);
   };
 
-
   const handleModeToggle = () => {
     dispatch(setMode());
   };
@@ -381,11 +340,9 @@ const WelcomePage = () => {
     }
   };
 
-
-
-  // Show loading state only if we're actively loading and have no data
   const seoMetadata = <SeoMeta pageKey="home" />;
 
+  // Show loading state only if we're actively loading and have no data
   if (countriesLoading && countries.length === 0) {
     return (
       <>
@@ -401,21 +358,19 @@ const WelcomePage = () => {
     return (
       <>
         {seoMetadata}
-        <PageContainer>
-          <WelcomeCard>
-            <CardContent>
-              <Typography variant="h6" color="error" align="center">
-                {t('errorLoadingCountries')}
-              </Typography>
-              <Button 
-                variant="contained" 
-                onClick={() => window.location.reload()}
-                sx={{ mt: 2 }}
-              >
-                Retry
-              </Button>
-            </CardContent>
-          </WelcomeCard>
+        <PageContainer sx={{ display: 'flex', alignItems: 'center', justifyContent: 'center', p: 2 }}>
+          <SurfaceCard sx={{ maxWidth: 480, width: '100%', p: 4 }}>
+            <Typography variant="h6" color="error" align="center">
+              {t('errorLoadingCountries')}
+            </Typography>
+            <Button
+              variant="contained"
+              onClick={() => window.location.reload()}
+              sx={{ mt: 2, display: 'block', mx: 'auto', bgcolor: theme.custom.color.brandPrimary }}
+            >
+              Retry
+            </Button>
+          </SurfaceCard>
         </PageContainer>
       </>
     );
@@ -425,655 +380,415 @@ const WelcomePage = () => {
     <>
       {seoMetadata}
       <PageContainer>
-        {/* Top Controls Container */}
-        <TopControlsContainer currentLanguage={currentLanguage || langContext}>
-          {/* Controls Group */}
-          <ControlsGroup currentLanguage={currentLanguage || langContext}>
+        {/* Top controls: language + dark/light mode */}
+        <TopBar>
+          <ControlButton id="language-selector" onClick={handleLanguageClick}>
+            <Language sx={{ fontSize: 20, color: 'text.secondary' }} />
+            <Typography variant="body2" sx={{ fontWeight: 600 }}>
+              {getLanguageDisplayName(activeLanguage)}
+            </Typography>
+            <KeyboardArrowDown sx={{ fontSize: 18, color: 'text.secondary' }} />
+          </ControlButton>
 
-{/* Language Selector */}
-<LanguageSelector 
-            id="language-selector"
-            onClick={handleLanguageClick}
+          <IconButton
+            onClick={handleModeToggle}
             sx={{
-              '&:hover': {
-                cursor: 'pointer',
-              }
+              backgroundColor: theme.custom.color.surfaceRaised,
+              border: `1px solid ${theme.palette.divider}`,
+              boxShadow: theme.custom.elevation.e1,
+              borderRadius: `${theme.custom.radius.md}px`,
+              '&:hover': { boxShadow: theme.custom.elevation.e2 },
             }}
           >
-            <Language />
-            <Typography
-              variant="body2"
-              sx={{
-                fontWeight: 600,
-                fontSize: '1rem',
-                display: 'block',
-                // Arabic font size fix
-                ...(currentLanguage === 'ar' && {
-                  fontSize: '1.1rem',
-                }),
-              }}
-            >
-              {getLanguageDisplayName(currentLanguage || langContext || 'en')}
-            </Typography>
-            <KeyboardArrowDown sx={{ fontSize: '20px', ml: 0.5 }} />
-          </LanguageSelector>
+            {mode === 'light' ? <DarkModeOutlined /> : <LightModeOutlined />}
+          </IconButton>
+        </TopBar>
 
-          {/* Dark/Light mode toggle */}
-          <ActionButton onClick={handleModeToggle} size="large">
-            {mode === 'light' ? (
-              <DarkModeOutlined />
-            ) : (
-              <LightModeOutlined />
-            )}
-          </ActionButton>
-
-          
-        </ControlsGroup>
-      </TopControlsContainer>
-
-      {/* Language Menu - Using Material-UI Menu like Login page */}
-      <Menu
-        anchorEl={languageAnchorEl}
-        open={Boolean(languageAnchorEl)}
-        onClose={handleLanguageClose}
-        PaperProps={{
-          sx: {
-            mt: 1,
-            borderRadius: 2,
-            boxShadow: theme.palette.mode === 'dark'
-              ? '0 8px 32px rgba(0, 0, 0, 0.4)'
-              : '0 8px 32px rgba(0, 0, 0, 0.15)',
-            background: theme.palette.mode === 'dark'
-              ? 'rgba(30, 30, 30, 0.95)'
-              : 'rgba(255, 255, 255, 0.95)',
-            backdropFilter: 'blur(20px)',
-            border: 'none',
-          }
-        }}
-        transformOrigin={{ horizontal: 'right', vertical: 'top' }}
-        anchorOrigin={{ horizontal: 'right', vertical: 'bottom' }}
-      >
-        <MenuItem 
-          onClick={() => handleLanguageChange('en')}
-          sx={{
-            minWidth: 120,
-            color: theme.palette.mode === 'dark' ? '#ffffff' : '#1a1a1a',
-            '&:hover': {
-              backgroundColor: alpha(theme.palette.primary.main, 0.1),
-            }
-          }}
+        <Menu
+          anchorEl={languageAnchorEl}
+          open={Boolean(languageAnchorEl)}
+          onClose={handleLanguageClose}
+          transformOrigin={{ horizontal: isRTL ? 'left' : 'right', vertical: 'top' }}
+          anchorOrigin={{ horizontal: isRTL ? 'left' : 'right', vertical: 'bottom' }}
         >
-          <ListItemIcon>
-            <Language sx={{ 
-              fontSize: 20, 
-              color: theme.palette.mode === 'dark' ? '#ffffff' : '#1a1a1a' 
-            }} />
-          </ListItemIcon>
-          <ListItemText 
-            primary="English" 
-            primaryTypographyProps={{ 
-              sx: { color: theme.palette.mode === 'dark' ? '#ffffff' : '#1a1a1a' } 
+          {['en', 'ar', 'fr'].map((lng) => (
+            <MenuItem key={lng} onClick={() => handleLanguageChange(lng)} sx={{ minWidth: 140 }}>
+              <ListItemIcon>
+                <Language sx={{ fontSize: 20 }} />
+              </ListItemIcon>
+              <ListItemText primary={getLanguageDisplayName(lng)} />
+            </MenuItem>
+          ))}
+        </Menu>
+
+        {/* Hero */}
+        <Box sx={{ maxWidth: 1200, mx: 'auto', px: { xs: 2, md: 4 }, pt: { xs: 2, md: 4 }, pb: 6 }}>
+          <Box
+            component="img"
+            src="/maflogoSVG.svg"
+            alt="Mafqoudat"
+            sx={{
+              height: { xs: '38px', md: '48px' },
+              width: 'auto',
+              display: 'block',
+              mb: { xs: 3, md: 5 },
+              filter: theme.palette.mode === 'dark' ? 'brightness(1.1) contrast(1.1)' : 'none',
             }}
           />
-        </MenuItem>
-        <MenuItem 
-          onClick={() => handleLanguageChange('ar')}
-          sx={{
-            minWidth: 120,
-            color: theme.palette.mode === 'dark' ? '#ffffff' : '#1a1a1a',
-            '&:hover': {
-              backgroundColor: alpha(theme.palette.primary.main, 0.1),
-            }
-          }}
-        >
-          <ListItemIcon>
-            <Language sx={{ 
-              fontSize: 20, 
-              color: theme.palette.mode === 'dark' ? '#ffffff' : '#1a1a1a' 
-            }} />
-          </ListItemIcon>
-          <ListItemText 
-            primary="العربية" 
-            primaryTypographyProps={{ 
-              sx: { color: theme.palette.mode === 'dark' ? '#ffffff' : '#1a1a1a' } 
-            }}
-          />
-        </MenuItem>
-        <MenuItem 
-          onClick={() => handleLanguageChange('fr')}
-          sx={{
-            minWidth: 120,
-            color: theme.palette.mode === 'dark' ? '#ffffff' : '#1a1a1a',
-            '&:hover': {
-              backgroundColor: alpha(theme.palette.primary.main, 0.1),
-            }
-          }}
-        >
-          <ListItemIcon>
-            <Language sx={{ 
-              fontSize: 20, 
-              color: theme.palette.mode === 'dark' ? '#ffffff' : '#1a1a1a' 
-            }} />
-          </ListItemIcon>
-          <ListItemText 
-            primary="Français" 
-            primaryTypographyProps={{ 
-              sx: { color: theme.palette.mode === 'dark' ? '#ffffff' : '#1a1a1a' } 
-            }}
-          />
-        </MenuItem>
-      </Menu>
 
+          <Grid container spacing={{ xs: 4, md: 6 }} alignItems="center">
+            {/* Headline + country + CTAs */}
+            <Grid item xs={12} md={5}>
+              <Typography
+                variant="h1"
+                sx={{ fontSize: { xs: '2rem', md: '2.5rem' }, mb: 2 }}
+              >
+                {t('heroHeadline')}
+              </Typography>
+              <Typography variant="body1" color="text.secondary" sx={{ mb: 4 }}>
+                {t('welcomeMessage')}
+              </Typography>
 
+              <Autocomplete
+                options={countries || []}
+                autoHighlight
+                disableClearable
+                value={selectedCountry}
+                onChange={handleCountrySelect}
+                getOptionLabel={getCountryName}
+                isOptionEqualToValue={(option, value) => option._id === value._id}
+                renderOption={(props, option) => (
+                  <Box component="li" sx={{ "& > img": { mr: 2, flexShrink: 0 } }} {...props}>
+                    {option.flag ? (
+                      <span style={{ marginInlineEnd: 8, fontSize: '20px' }}>{option.flag}</span>
+                    ) : (
+                      <img
+                        loading="lazy"
+                        width="20"
+                        src={`https://flagcdn.com/w20/${option.code.toLowerCase()}.png`}
+                        srcSet={`https://flagcdn.com/w40/${option.code.toLowerCase()}.png 2x`}
+                        alt=""
+                      />
+                    )}
+                    {getCountryName(option)} ({option.code})
+                  </Box>
+                )}
+                renderInput={(params) => (
+                  <TextField
+                    {...params}
+                    label={t('chooseCountry')}
+                    variant="outlined"
+                    fullWidth
+                    sx={{
+                      mb: 2,
+                      '& .MuiOutlinedInput-root': {
+                        borderRadius: `${theme.custom.radius.md}px`,
+                        backgroundColor: theme.custom.color.surfaceRaised,
+                      },
+                    }}
+                    inputProps={{ ...params.inputProps, autoComplete: "new-password" }}
+                  />
+                )}
+              />
 
-
-      <WelcomeCard>
-        <CardContent sx={{ p: { xs: 3, md: 4 } }}>
-          <HeaderSection>
-            <Box
-              component="img"
-              src="/maficonSVG.svg"
-              alt="Mafqoudat Icon"
-              sx={{
-                display: 'none',
-              }}
-            />
-            <Box
-              component="img"
-              src="/maflogoSVG.svg"
-              alt="Mafqoudat"
-              sx={{
-                height: { xs: '45px', md: '60px' },
-                width: 'auto',
-                maxWidth: '100%',
-                objectFit: 'contain',
-                mb: 8,
-                display: 'block',
-                margin: '0 auto',
-                filter: theme?.palette?.mode === 'dark' 
-                  ? 'brightness(1.1) contrast(1.1)' 
-                  : 'none',
-              }}
-            />
-            <Typography 
-              variant="h6" 
-              color="text.secondary" 
-              sx={{ 
-                mb: 3,
-                mt: 4,
-                fontSize: { xs: '1.1rem', md: '1.2rem' },
-                textAlign: 'center',
-                lineHeight: 1.6,
-                // Arabic font size fix
-                ...(currentLanguage === 'ar' && {
-                  fontSize: { xs: '1.2rem', md: '1.3rem' },
-                }),
-              }}
-            >
-              {t('welcomeMessage')}
-            </Typography>
-          </HeaderSection>
-
-          <Box sx={{ mb: 4 }}>
-            <Typography 
-              variant="h5" 
-              gutterBottom 
-              align="center"
-              sx={{ 
-                fontWeight: 600,
-                mb: 2,
-                fontSize: { xs: '1.4rem', md: '1.6rem' }
-              }}
-            >
-              {t('chooseCountryTitle')}
-            </Typography>
-            <Typography 
-              variant="body1" 
-              color="text.secondary" 
-              align="center"
-              sx={{ 
-                mb: 3,
-                fontSize: { xs: '1.1rem', md: '1.2rem' }
-              }}
-            >
-              {t('chooseCountryDescription')}
-            </Typography>
-
-            <Autocomplete
-              options={countries || []}
-              autoHighlight
-              disableClearable
-              value={selectedCountry}
-              onChange={handleCountrySelect}
-              getOptionLabel={(option) => {
-                if (!option) return '';
-                const currentLang = currentLanguage || langContext || 'en';
-                
-                // Get the appropriate name based on language (names field contains actual country names)
-                if (option.names && option.names[currentLang]) {
-                  return option.names[currentLang];
-                }
-                
-                // Fallback to labels if names is not available
-                if (option.labels && option.labels[currentLang]) {
-                  const label = option.labels[currentLang];
-                  // If label is a 2-letter code, try to get the name from mapping
-                  if (label && label.length === 2 && label === label.toUpperCase()) {
-                    // This is likely a country code, try to get the name from mapping
-                    return countryCodeToName[label]?.[currentLang] || option.code;
-                  }
-                  return label;
-                }
-                
-                // Final fallback to country code mapping
-                if (option.code && countryCodeToName[option.code]) {
-                  return countryCodeToName[option.code][currentLang] || option.code;
-                }
-                
-                return option.label || option.code;
-              }}
-              isOptionEqualToValue={(option, value) => option._id === value._id}
-              renderOption={(props, option) => (
-                <Box
-                  component="li"
-                  sx={{ "& > img": { mr: 2, flexShrink: 0 } }}
-                  {...props}
-                >
-                  {option.flag ? (
-                    <span style={{ marginRight: 8, fontSize: '20px' }}>
-                      {option.flag}
-                    </span>
-                  ) : (
-                    <img
-                      loading="lazy"
-                      width="20"
-                      src={`https://flagcdn.com/w20/${option.code.toLowerCase()}.png`}
-                      srcSet={`https://flagcdn.com/w40/${option.code.toLowerCase()}.png 2x`}
-                      alt=""
-                    />
-                  )}
-                  {(() => {
-                    const currentLang = currentLanguage || langContext || 'en';
-                    
-                    // Get the appropriate name based on language
-                    if (option.names && option.names[currentLang]) {
-                      return option.names[currentLang];
-                    }
-                    
-                    // Fallback to labels if names is not available
-                    if (option.labels && option.labels[currentLang]) {
-                      const label = option.labels[currentLang];
-                      // If label is a 2-letter code, try to get the name from mapping
-                      if (label && label.length === 2 && label === label.toUpperCase()) {
-                        return countryCodeToName[label]?.[currentLang] || option.code;
-                      }
-                      return label;
-                    }
-                    
-                    // Final fallback to country code mapping
-                    if (option.code && countryCodeToName[option.code]) {
-                      return countryCodeToName[option.code][currentLang] || option.code;
-                    }
-                    
-                    return option.label || option.code;
-                  })()} ({option.code})
-                </Box>
-              )}
-              renderInput={(params) => (
-                <TextField
-                  {...params}
-                  label={t('chooseCountry')}
-                  variant="outlined"
-                  fullWidth
+              <Box sx={{ display: 'flex', flexDirection: { xs: 'column', sm: 'row' }, gap: 1.5 }}>
+                <Button
+                  variant="contained"
+                  size="large"
+                  disabled={!selectedCountry}
+                  onClick={handleContinue}
+                  endIcon={isRTL ? <ArrowBack /> : <ArrowForward />}
                   sx={{
-                    '& .MuiOutlinedInput-root': {
-                      borderRadius: 4,
-                      fontSize: { xs: '1.1rem', md: '1.2rem' },
-                      padding: { xs: '8px 12px', md: '12px 16px' },
-                      minHeight: { xs: '56px', md: '60px' },
-                      backgroundColor: theme?.palette?.mode === 'dark' 
-                        ? 'rgba(255, 255, 255, 0.05)'
-                        : 'rgba(0, 0, 0, 0.02)',
-                      border: `1px solid ${alpha(theme?.palette?.primary?.main || '#667eea', 0.1)}`,
-                      transition: 'all 0.3s ease',
-                      '&:hover': {
-                        borderColor: alpha(theme?.palette?.primary?.main || '#667eea', 0.3),
-                        backgroundColor: theme?.palette?.mode === 'dark' 
-                          ? 'rgba(255, 255, 255, 0.08)'
-                          : 'rgba(0, 0, 0, 0.04)',
-                      },
-                      '&.Mui-focused': {
-                        borderColor: theme?.palette?.primary?.main || '#667eea',
-                        backgroundColor: theme?.palette?.mode === 'dark' 
-                          ? 'rgba(255, 255, 255, 0.1)'
-                          : 'rgba(0, 0, 0, 0.06)',
-                        boxShadow: `0 0 0 3px ${alpha(theme?.palette?.primary?.main || '#667eea', 0.1)}`,
-                      },
-                      // Enhanced dropdown icon styling
-                      '& .MuiAutocomplete-endAdornment': {
-                        right: '12px',
-                        '& .MuiSvgIcon-root': {
-                          fontSize: '28px',
-                          color: theme?.palette?.text?.secondary,
-                          transition: 'all 0.3s ease',
-                        },
-                        '&:hover .MuiSvgIcon-root': {
-                          color: theme?.palette?.primary?.main || '#667eea',
-                          transform: 'scale(1.1)',
-                        }
-                      }
-                    },
-                    '& .MuiInputLabel-root': {
-                      color: theme?.palette?.text?.secondary,
-                      fontWeight: 500,
-                      fontSize: { xs: '1.1rem', md: '1.2rem' },
-                    },
-                    '& .MuiInputLabel-root.Mui-focused': {
-                      color: theme?.palette?.primary?.main || '#667eea',
-                      fontWeight: 600,
-                    }
-                  }}
-                  inputProps={{
-                    ...params.inputProps,
-                    autoComplete: "new-password",
-                  }}
-                />
-              )}
-              // Enhanced popup styling
-              ListboxProps={{
-                sx: {
-                  '& .MuiAutocomplete-option': {
-                    padding: '12px 16px',
-                    fontSize: { xs: '1.1rem', md: '1.2rem' },
+                    py: 1.5,
+                    borderRadius: `${theme.custom.radius.md}px`,
+                    fontWeight: 600,
+                    bgcolor: theme.custom.color.brandPrimary,
+                    color: theme.palette.getContrastText(theme.custom.color.brandPrimary),
+                    boxShadow: theme.custom.elevation.e1,
                     '&:hover': {
-                      backgroundColor: alpha(theme?.palette?.primary?.main || '#667eea', 0.1),
+                      bgcolor: theme.custom.color.brandPrimary,
+                      opacity: 0.9,
+                      boxShadow: theme.custom.elevation.e2,
                     },
-                    '&.Mui-focused': {
-                      backgroundColor: alpha(theme?.palette?.primary?.main || '#667eea', 0.15),
-                    }
-                  }
-                }
-              }}
-              PaperComponent={({ children, ...other }) => (
-                <Paper
-                  {...other}
-                  sx={{
-                    borderRadius: 2,
-                    boxShadow: theme?.palette?.mode === 'dark'
-                      ? '0 8px 32px rgba(0, 0, 0, 0.4)'
-                      : '0 8px 32px rgba(0, 0, 0, 0.1)',
-                    background: theme?.palette?.mode === 'dark'
-                      ? 'rgba(30, 30, 30, 0.95)'
-                      : 'rgba(255, 255, 255, 0.95)',
-                    backdropFilter: 'blur(20px)',
-                    border: `1px solid ${alpha(theme?.palette?.divider, 0.1)}`,
-                    maxHeight: '300px',
-                    overflow: 'auto',
                   }}
                 >
-                  {children}
-                </Paper>
-              )}
-            />
+                  {t('browseNearYou')}
+                </Button>
+                <Button
+                  variant="outlined"
+                  size="large"
+                  disabled={!selectedCountry}
+                  onClick={handleReportItem}
+                  sx={{
+                    py: 1.5,
+                    borderRadius: `${theme.custom.radius.md}px`,
+                    fontWeight: 600,
+                    borderColor: theme.custom.color.brandPrimary,
+                    color: theme.custom.color.brandPrimary,
+                  }}
+                >
+                  {t('addNewPost')}
+                </Button>
+              </Box>
+            </Grid>
 
-            <Button
-              variant="contained"
-              size="large"
-              fullWidth
-              disabled={!selectedCountry}
-              onClick={handleContinue}
-              endIcon={(currentLanguage || langContext) === 'ar' ? <ArrowBack /> : <ArrowForward />}
+            {/* Live post snapshot */}
+            <Grid item xs={12} md={7}>
+              <SectionEyebrow>{t('recentNearYou')}</SectionEyebrow>
+              <Grid container spacing={2} sx={{ mt: 0.5 }}>
+                {heroPostsLoading ? (
+                  [0, 1, 2].map((i) => (
+                    <Grid item xs={12} sm={4} key={i}>
+                      <Skeleton
+                        variant="rounded"
+                        height={220}
+                        sx={{ borderRadius: `${theme.custom.radius.lg}px` }}
+                      />
+                    </Grid>
+                  ))
+                ) : heroPosts.length > 0 ? (
+                  heroPosts.map((post) => {
+                    const tone = post.foundLost === 'found' ? theme.custom.status.found : theme.custom.status.lost;
+                    return (
+                      <Grid item xs={12} sm={4} key={post.id}>
+                        <HeroPostCard tone={tone.main}>
+                          {post.image ? (
+                            <LazyCardMedia
+                              image={post.image}
+                              alt={post.title}
+                              sx={{ height: 100, width: '100%' }}
+                            />
+                          ) : (
+                            <Box
+                              sx={{
+                                height: 100,
+                                display: 'flex',
+                                alignItems: 'center',
+                                justifyContent: 'center',
+                                backgroundColor: alpha(tone.main, 0.06),
+                              }}
+                            >
+                              <RenderIcon
+                                name={
+                                  typeof post.category === 'string'
+                                    ? `${post.category.toLowerCase()}cate`
+                                    : post.category?.code
+                                    ? `${post.category.code.toLowerCase()}cate`
+                                    : 'Othercate'
+                                }
+                              />
+                            </Box>
+                          )}
+                          <Box sx={{ p: 1.5 }}>
+                            <Box sx={{ mb: 1 }}>
+                              <StatusTag status={post.foundLost} label={t(post.foundLost)} />
+                            </Box>
+                            <Typography
+                              variant="body2"
+                              sx={{
+                                fontWeight: 600,
+                                mb: 0.5,
+                                overflow: 'hidden',
+                                textOverflow: 'ellipsis',
+                                whiteSpace: 'nowrap',
+                              }}
+                            >
+                              {post.title}
+                            </Typography>
+                            <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+                              <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.5, minWidth: 0 }}>
+                                <LocationOn sx={{ fontSize: 14, color: 'text.secondary', flexShrink: 0 }} />
+                                <Typography
+                                  variant="caption"
+                                  color="text.secondary"
+                                  sx={{ overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}
+                                >
+                                  {post.region || t('unknownRegion')}
+                                </Typography>
+                              </Box>
+                              <Typography variant="caption" color="text.secondary" sx={{ flexShrink: 0 }}>
+                                {formatShortDate(post.createdAt, activeLanguage)}
+                              </Typography>
+                            </Box>
+                          </Box>
+                        </HeroPostCard>
+                      </Grid>
+                    );
+                  })
+                ) : (
+                  <Grid item xs={12}>
+                    <SurfaceCard sx={{ p: 3, textAlign: 'center' }}>
+                      <Typography variant="body2" color="text.secondary">
+                        {t('noPostsInArea')}
+                      </Typography>
+                    </SurfaceCard>
+                  </Grid>
+                )}
+              </Grid>
+            </Grid>
+          </Grid>
+        </Box>
+
+        {/* How it works */}
+        <Box sx={{ maxWidth: 1200, mx: 'auto', px: { xs: 2, md: 4 }, py: { xs: 4, md: 6 } }}>
+          <Typography variant="h5" align="center" sx={{ mb: 4 }}>
+            {t('howItWorksTitle')}
+          </Typography>
+          <Grid container spacing={3}>
+            {HOW_IT_WORKS.map(({ Icon, titleKey, descKey }) => (
+              <Grid item xs={12} md={4} key={titleKey}>
+                <SurfaceCard sx={{ p: 3, height: '100%', textAlign: 'center' }}>
+                  <Icon sx={{ fontSize: 32, color: theme.custom.color.brandPrimary, mb: 1.5 }} />
+                  <Typography variant="subtitle1" sx={{ fontWeight: 600, mb: 0.5 }}>
+                    {t(titleKey)}
+                  </Typography>
+                  <Typography variant="body2" color="text.secondary">
+                    {t(descKey)}
+                  </Typography>
+                </SurfaceCard>
+              </Grid>
+            ))}
+          </Grid>
+        </Box>
+
+        {/* Coverage stats */}
+        <Box sx={{ maxWidth: 1200, mx: 'auto', px: { xs: 2, md: 4 }, pb: { xs: 4, md: 6 } }}>
+          <SurfaceCard sx={{ p: { xs: 2.5, md: 3 } }}>
+            <Box
               sx={{
-                mt: 3,
-                py: { xs: 2, md: 2.5 },
-                px: { xs: 3, md: 4 },
-                borderRadius: '4px',
-                fontSize: { xs: '1.1rem', md: '1.2rem' },
-                fontWeight: 600,
-                color: '#ffffff',
-                minHeight: { xs: '56px', md: '60px' },
-                background: 'linear-gradient(45deg, #4A8BFF 30%, #1A6EEE 90%)',
-                boxShadow: '0 3px 5px 2px rgba(26, 110, 238, .3)',
-                transition: 'all 0.3s ease',
-                '&:hover': {
-                  background: 'linear-gradient(45deg, #5A9BFF 30%, #2A7EFF 90%)',
-                  boxShadow: '0 4px 8px 2px rgba(26, 110, 238, .4)',
-                },
-                '&:disabled': {
-                  background: theme?.palette?.mode === 'dark' 
-                    ? 'rgba(255, 255, 255, 0.12)'
-                    : 'rgba(0, 0, 0, 0.12)',
-                  color: theme?.palette?.mode === 'dark' 
-                    ? 'rgba(255, 255, 255, 0.3)'
-                    : 'rgba(0, 0, 0, 0.26)',
-                  transform: 'none',
-                  boxShadow: 'none',
-                },
-                '& .MuiButton-endIcon': {
-                  marginLeft: (currentLanguage || langContext) === 'ar' ? '8px' : '4px',
-                  marginRight: (currentLanguage || langContext) === 'ar' ? '4px' : '8px',
-                }
+                display: 'flex',
+                flexDirection: { xs: 'column', sm: 'row' },
+                alignItems: 'center',
+                justifyContent: 'center',
+                gap: { xs: 2, sm: 5 },
               }}
             >
-              {t('continueToPosts')}
+              <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+                <PublicOutlined sx={{ color: theme.custom.color.brandPrimary }} />
+                <Typography variant="body1" sx={{ fontWeight: 600 }}>
+                  {t('platformCountriesStat', { count: countries.length })}
+                </Typography>
+              </Box>
+              <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+                <CategoryOutlined sx={{ color: theme.custom.color.brandPrimary }} />
+                <Typography variant="body1" sx={{ fontWeight: 600 }}>
+                  {t('platformCategoriesStat', { count: categoriesData || CATEGORY_SHOWCASE.length })}
+                </Typography>
+              </Box>
+            </Box>
+          </SurfaceCard>
+        </Box>
+
+        {/* Browse by category */}
+        <Box sx={{ maxWidth: 1200, mx: 'auto', px: { xs: 2, md: 4 }, pb: { xs: 4, md: 6 } }}>
+          <Typography variant="h5" sx={{ mb: 3 }}>
+            {t('browseByCategory')}
+          </Typography>
+          <Box
+            sx={{
+              display: 'flex',
+              gap: 1.5,
+              overflowX: 'auto',
+              pb: 1,
+              '&::-webkit-scrollbar': { height: 6 },
+            }}
+          >
+            {CATEGORY_SHOWCASE.map((cat) => {
+              const cateColors = theme.palette.categories?.[cat.themeKey];
+              return (
+                <Box
+                  key={cat.themeKey}
+                  onClick={selectedCountry ? handleContinue : undefined}
+                  sx={{
+                    flex: '0 0 auto',
+                    display: 'flex',
+                    flexDirection: 'column',
+                    alignItems: 'center',
+                    gap: 0.75,
+                    p: 2,
+                    minWidth: 96,
+                    borderRadius: `${theme.custom.radius.md}px`,
+                    backgroundColor: cateColors?.back || theme.custom.color.surfaceRaised,
+                    cursor: selectedCountry ? 'pointer' : 'default',
+                    border: `1px solid ${theme.palette.divider}`,
+                    transition: 'transform 0.2s ease',
+                    '&:hover': selectedCountry ? { transform: 'translateY(-2px)' } : {},
+                  }}
+                >
+                  <RenderIcon name={cat.iconName} />
+                  <Typography variant="caption" sx={{ fontWeight: 600, textAlign: 'center' }}>
+                    {t(cat.labelKey)}
+                  </Typography>
+                </Box>
+              );
+            })}
+          </Box>
+        </Box>
+
+        {/* Safety / trust */}
+        <Box sx={{ maxWidth: 1200, mx: 'auto', px: { xs: 2, md: 4 }, pb: { xs: 4, md: 6 } }}>
+          <SurfaceCard
+            sx={{
+              p: { xs: 2.5, md: 3 },
+              display: 'flex',
+              flexDirection: { xs: 'column', sm: 'row' },
+              alignItems: { xs: 'flex-start', sm: 'center' },
+              justifyContent: 'space-between',
+              gap: 2,
+            }}
+          >
+            <Box sx={{ display: 'flex', alignItems: 'flex-start', gap: 1.5 }}>
+              <VerifiedUserOutlined sx={{ color: theme.custom.color.brandPrimary, mt: 0.5 }} />
+              <Box>
+                <Typography variant="subtitle1" sx={{ fontWeight: 600 }}>
+                  {t('securePlatform')}
+                </Typography>
+                <Typography variant="body2" color="text.secondary">
+                  {t('securePlatformDesc')}
+                </Typography>
+              </Box>
+            </Box>
+            <Button
+              variant="text"
+              onClick={() => navigate('/safety')}
+              sx={{ fontWeight: 600, color: theme.custom.color.brandPrimary, flexShrink: 0 }}
+            >
+              {t('viewSafetyTips')}
+            </Button>
+          </SurfaceCard>
+        </Box>
+
+        {/* Already have an account */}
+        <Box sx={{ maxWidth: 1200, mx: 'auto', px: { xs: 2, md: 4 }, pb: { xs: 6, md: 8 }, textAlign: 'center' }}>
+          <Typography variant="body2" color="text.secondary" sx={{ mb: 2 }}>
+            {t('alreadyHaveAccount')}
+          </Typography>
+          <Box sx={{ display: 'flex', gap: 1.5, justifyContent: 'center', flexWrap: 'wrap' }}>
+            <Button
+              variant="outlined"
+              startIcon={<Login />}
+              onClick={() => navigate('/login')}
+              sx={{
+                borderRadius: `${theme.custom.radius.md}px`,
+                borderColor: theme.custom.color.brandPrimary,
+                color: theme.custom.color.brandPrimary,
+              }}
+            >
+              {t('signin')}
+            </Button>
+            <Button
+              variant="text"
+              startIcon={<PersonAdd />}
+              onClick={() => navigate('/signup')}
+              sx={{ borderRadius: `${theme.custom.radius.md}px`, color: theme.custom.color.brandPrimary }}
+            >
+              {t('signup')}
             </Button>
           </Box>
-
-          {/* Hidden: Website features section - removed to reduce confusion for first-time users */}
-          {/* <Typography 
-            variant="subtitle1" 
-            align="center"
-            sx={{ 
-              mt: 5,
-              mb: 2,
-              fontSize: { xs: '1rem', md: '1.1rem' },
-              fontWeight: 500,
-              color: 'text.secondary',
-            }}
-          >
-            {t('websiteFeaturesTitle')}
-          </Typography>
-
-          <Grid container spacing={2} sx={{ mt: 2 }}>
-            <Grid item xs={12} md={4}>
-              <FeatureCard>
-                <Box sx={{ textAlign: 'center', display: 'flex', flexDirection: 'column', height: '100%', justifyContent: 'center' }}>
-                  <Search sx={{ 
-                    fontSize: 28, 
-                    color: theme?.palette?.mode === 'dark' ? 'text.secondary' : 'text.secondary', 
-                    mb: 1 
-                  }} />
-                  <Typography 
-                    variant="subtitle2" 
-                    gutterBottom 
-                    sx={{ 
-                      fontSize: { 
-                        xs: (currentLanguage || langContext) === 'ar' ? '1rem' : '0.9rem', 
-                        md: '0.95rem' 
-                      }, 
-                      fontWeight: 500 
-                    }}
-                  >
-                    {t('searchItems')}
-                  </Typography>
-                  <Typography 
-                    variant="caption" 
-                    color="text.secondary" 
-                    sx={{ 
-                      fontSize: { 
-                        xs: (currentLanguage || langContext) === 'ar' ? '0.85rem' : '0.75rem', 
-                        md: '0.8rem' 
-                      }, 
-                      display: 'block' 
-                    }}
-                  >
-                    {t('searchItemsDesc')}
-                  </Typography>
-                </Box>
-              </FeatureCard>
-            </Grid>
-            <Grid item xs={12} md={4}>
-              <FeatureCard>
-                <Box sx={{ textAlign: 'center', display: 'flex', flexDirection: 'column', height: '100%', justifyContent: 'center' }}>
-                  <PostAdd sx={{ 
-                    fontSize: 28, 
-                    color: theme?.palette?.mode === 'dark' ? 'text.secondary' : 'text.secondary', 
-                    mb: 1 
-                  }} />
-                  <Typography 
-                    variant="subtitle2" 
-                    gutterBottom 
-                    sx={{ 
-                      fontSize: { 
-                        xs: (currentLanguage || langContext) === 'ar' ? '1rem' : '0.9rem', 
-                        md: '0.95rem' 
-                      }, 
-                      fontWeight: 500 
-                    }}
-                  >
-                    {t('localPosts')}
-                  </Typography>
-                  <Typography 
-                    variant="caption" 
-                    color="text.secondary" 
-                    sx={{ 
-                      fontSize: { 
-                        xs: (currentLanguage || langContext) === 'ar' ? '0.85rem' : '0.75rem', 
-                        md: '0.8rem' 
-                      }, 
-                      display: 'block' 
-                    }}
-                  >
-                    {t('localPostsDesc')}
-                  </Typography>
-                </Box>
-              </FeatureCard>
-            </Grid>
-            <Grid item xs={12} md={4}>
-              <FeatureCard>
-                <Box sx={{ textAlign: 'center', display: 'flex', flexDirection: 'column', height: '100%', justifyContent: 'center' }}>
-                  <FilterList sx={{ 
-                    fontSize: 28, 
-                    color: theme?.palette?.mode === 'dark' ? 'text.secondary' : 'text.secondary', 
-                    mb: 1 
-                  }} />
-                  <Typography 
-                    variant="subtitle2" 
-                    gutterBottom 
-                    sx={{ 
-                      fontSize: { 
-                        xs: (currentLanguage || langContext) === 'ar' ? '1rem' : '0.9rem', 
-                        md: '0.95rem' 
-                      }, 
-                      fontWeight: 500 
-                    }}
-                  >
-                    {t('communityHelp')}
-                  </Typography>
-                  <Typography 
-                    variant="caption" 
-                    color="text.secondary" 
-                    sx={{ 
-                      fontSize: { 
-                        xs: (currentLanguage || langContext) === 'ar' ? '0.85rem' : '0.75rem', 
-                        md: '0.8rem' 
-                      }, 
-                      display: 'block' 
-                    }}
-                  >
-                    {t('communityHelpDesc')}
-                  </Typography>
-                </Box>
-              </FeatureCard>
-            </Grid>
-          </Grid> */}
-
-          {/* Hidden: Already have an account section - removed to reduce confusion for first-time users */}
-          {/* <Box sx={{ mt: 4, textAlign: 'center' }}>
-            <Typography 
-              variant="subtitle1" 
-              align="center"
-              sx={{ 
-                mb: 3,
-                fontSize: { xs: '1rem', md: '1.1rem' },
-                fontWeight: 500,
-                color: 'text.secondary',
-              }}
-            >
-              {t('alreadyHaveAccount')}
-            </Typography>
-            
-            <Box sx={{ display: 'flex', gap: 2, justifyContent: 'center', flexWrap: 'wrap' }}>
-              <Button
-                variant="contained"
-                size="large"
-                startIcon={<Login />}
-                onClick={() => navigate('/login')}
-                sx={{ 
-                  minWidth: { xs: '140px', sm: '160px' },
-                  minHeight: { xs: '48px', sm: '52px' },
-                  fontSize: { xs: '1.1rem', sm: '1.2rem' },
-                  fontWeight: 600,
-                  borderRadius: '4px',
-                  textTransform: 'none',
-                  background: 'linear-gradient(45deg, #4A8BFF 30%, #1A6EEE 90%)',
-                  color: 'white',
-                  boxShadow: '0 3px 5px 2px rgba(26, 110, 238, .3)',
-                  transition: 'all 0.3s ease',
-                  '&:hover': {
-                    background: 'linear-gradient(45deg, #5A9BFF 30%, #2A7EFF 90%)',
-                    boxShadow: '0 4px 8px 2px rgba(26, 110, 238, .4)',
-                  },
-                  '& .MuiButton-startIcon': {
-                    marginRight: (currentLanguage || langContext) === 'ar' ? 0 : '8px',
-                    marginLeft: (currentLanguage || langContext) === 'ar' ? '8px' : 0,
-                  }
-                }}
-              >
-                {t('signin')}
-              </Button>
-              
-              <Button
-                variant="outlined"
-                size="large"
-                startIcon={<PersonAdd />}
-                onClick={() => navigate('/signup')}
-                sx={{
-                  minWidth: { xs: '140px', sm: '160px' },
-                  minHeight: { xs: '48px', sm: '52px' },
-                  fontSize: { xs: '1.1rem', sm: '1.2rem' },
-                  fontWeight: 600,
-                  borderRadius: '4px',
-                  textTransform: 'none',
-                  borderColor: '#4A8BFF',
-                  color: '#4A8BFF',
-                  borderWidth: '2px',
-                  transition: 'all 0.3s ease',
-                  '&:hover': {
-                    borderColor: '#3A7BEF',
-                    backgroundColor: alpha('#4A8BFF', 0.05),
-                    color: '#3A7BEF',
-                    borderWidth: '2px',
-                    transform: 'translateY(-1px)',
-                    boxShadow: `0 4px 12px ${alpha('#4A8BFF', 0.2)}`,
-                  },
-                  '& .MuiButton-startIcon': {
-                    marginRight: (currentLanguage || langContext) === 'ar' ? 0 : '8px',
-                    marginLeft: (currentLanguage || langContext) === 'ar' ? '8px' : 0,
-                  }
-                }}
-              >
-                {t('signup')}
-              </Button>
-            </Box>
-          </Box> */}
-        </CardContent>
-      </WelcomeCard>
-    </PageContainer>
+        </Box>
+      </PageContainer>
     </>
   );
 };
-
-
 
 export default WelcomePage;

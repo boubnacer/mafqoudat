@@ -1,10 +1,15 @@
 // mui theme settings
 import { createTheme } from '@mui/material/styles';
+import { fontFamilies, resolveDesignTokens } from './designTokens';
 
 export const themeSettings = (mode, currentLanguage = 'en') => {
   const isRTL = currentLanguage === 'ar'; // Use currentLanguage for RTL detection
-  
+  const tokens = resolveDesignTokens(mode);
+
   return createTheme({
+    // Phase 1 design tokens (client/src/designTokens.js), resolved for this mode.
+    // New work should read colors/radius/elevation from here instead of hardcoding.
+    custom: tokens,
     direction: isRTL ? 'rtl' : 'ltr',
     palette: {
       mode: mode === 'dark' ? 'dark' : 'light',
@@ -425,52 +430,60 @@ export const themeSettings = (mode, currentLanguage = 'en') => {
     },
 
     typography: {
-      // Modern typography with proper Arabic support
-      fontFamily: isRTL 
-        ? ['"Noto Sans Arabic"', '"Segoe UI"', 'Roboto', 'Helvetica', 'Arial', 'sans-serif'].join(',')
-        : ['"Inter"', '"Segoe UI"', 'Roboto', 'Helvetica', 'Arial', 'sans-serif'].join(','),
-      
+      // Phase 1 type system: Cairo (display) + IBM Plex Sans Arabic (body).
+      // Both faces have solid Arabic + Latin coverage, so no per-language font swap is needed.
+      fontFamily: fontFamilies.body,
+
       // Responsive font sizes
       h1: {
-        fontSize: isRTL ? '2.5rem' : '2.5rem',
+        fontFamily: fontFamilies.display,
+        fontSize: '2.5rem',
         fontWeight: 700,
         lineHeight: 1.2,
       },
       h2: {
-        fontSize: isRTL ? '2rem' : '2rem',
-        fontWeight: 600,
+        fontFamily: fontFamilies.display,
+        fontSize: '2rem',
+        fontWeight: 700,
         lineHeight: 1.3,
       },
       h3: {
-        fontSize: isRTL ? '1.75rem' : '1.75rem',
+        fontFamily: fontFamilies.display,
+        fontSize: '1.75rem',
         fontWeight: 600,
         lineHeight: 1.4,
       },
       h4: {
-        fontSize: isRTL ? '1.5rem' : '1.5rem',
-        fontWeight: 500,
+        fontFamily: fontFamilies.display,
+        fontSize: '1.5rem',
+        fontWeight: 600,
         lineHeight: 1.4,
       },
       h5: {
-        fontSize: isRTL ? '1.25rem' : '1.25rem',
-        fontWeight: 500,
+        fontFamily: fontFamilies.display,
+        fontSize: '1.25rem',
+        fontWeight: 600,
         lineHeight: 1.5,
       },
       h6: {
-        fontSize: isRTL ? '1.125rem' : '1.125rem',
-        fontWeight: 500,
+        fontFamily: fontFamilies.display,
+        fontSize: '1.125rem',
+        fontWeight: 600,
         lineHeight: 1.5,
       },
       body1: {
-        fontSize: isRTL ? '1rem' : '1rem',
+        fontSize: '1rem',
+        fontWeight: 400,
         lineHeight: 1.6,
       },
       body2: {
-        fontSize: isRTL ? '0.875rem' : '0.875rem',
+        fontSize: '0.875rem',
+        fontWeight: 400,
         lineHeight: 1.6,
       },
       caption: {
-        fontSize: isRTL ? '0.75rem' : '0.75rem',
+        fontSize: '0.75rem',
+        fontWeight: 500,
         lineHeight: 1.5,
       },
 
