@@ -21,6 +21,7 @@ import React, { useCallback, useState } from 'react';
 import { View, Text, TouchableOpacity, StyleSheet } from 'react-native';
 import { useFocusEffect } from '@react-navigation/native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
+import { Ionicons } from '@expo/vector-icons';
 import { useTheme } from '../context/ThemeContext';
 import { useLanguage } from '../context/LanguageContext';
 import { useTranslation } from '../utils/translations';
@@ -28,6 +29,7 @@ import { useReferenceData, getLocalizedLabel } from '../context/ReferenceDataCon
 import { storage } from '../utils/storage';
 import LanguageDropdown from './LanguageDropdown';
 import CountryPickerModal from './CountryPickerModal';
+import HeaderMenu from './HeaderMenu';
 
 // Mirrors PostsListScreen's own resolveCountry: the onboarding-selected
 // country takes priority, falling back to the account's registered country.
@@ -38,7 +40,13 @@ const resolveBrowsingCountry = async () => {
   return userData?.country || null;
 };
 
-const AppHeader = ({ title, rightActions, countryId: controlledCountryId, onSelectCountry: controlledOnSelectCountry }) => {
+const AppHeader = ({
+  title,
+  rightActions,
+  countryId: controlledCountryId,
+  onSelectCountry: controlledOnSelectCountry,
+  showMenu = true,
+}) => {
   const insets = useSafeAreaInsets();
   const theme = useTheme();
   const { colors, spacing, radii, fontSizes, isDark, setThemeMode } = theme;
@@ -50,6 +58,11 @@ const AppHeader = ({ title, rightActions, countryId: controlledCountryId, onSele
 
   const [selfCountryId, setSelfCountryId] = useState(null);
   const [pickerVisible, setPickerVisible] = useState(false);
+  const [menuVisible, setMenuVisible] = useState(false);
+  // Bumped whenever the country picker or overflow menu opens, to force-close
+  // LanguageDropdown's own internally-managed dropdown - keeps all three
+  // overlays mutually exclusive without lifting LanguageDropdown's state out.
+  const [closeLanguageDropdownSignal, setCloseLanguageDropdownSignal] = useState(0);
 
   const countryId = isControlled ? controlledCountryId : selfCountryId;
 
@@ -83,6 +96,25 @@ const AppHeader = ({ title, rightActions, countryId: controlledCountryId, onSele
     setThemeMode(isDark ? 'light' : 'dark');
   };
 
+  // Keeps the country picker, the overflow menu, and LanguageDropdown's own
+  // dropdown mutually exclusive - opening one closes the other two.
+  const openCountryPicker = () => {
+    setMenuVisible(false);
+    setCloseLanguageDropdownSignal((n) => n + 1);
+    setPickerVisible(true);
+  };
+
+  const openMenu = () => {
+    setPickerVisible(false);
+    setCloseLanguageDropdownSignal((n) => n + 1);
+    setMenuVisible(true);
+  };
+
+  const handleLanguageDropdownOpen = () => {
+    setPickerVisible(false);
+    setMenuVisible(false);
+  };
+
   const countryRef = countries.find((c) => (c._id || c.id) === countryId);
   const countryLabel = countryRef ? getLocalizedLabel(countryRef, currentLanguage) : '';
   const countryFlag = countryRef?.flag || '🌍';
@@ -106,11 +138,21 @@ const AppHeader = ({ title, rightActions, countryId: controlledCountryId, onSele
           >
             <Text style={styles.iconButtonText}>{isDark ? '☀️' : '🌙'}</Text>
           </TouchableOpacity>
-          <LanguageDropdown compact />
+          <LanguageDropdown compact onOpen={handleLanguageDropdownOpen} closeSignal={closeLanguageDropdownSignal} />
+          {showMenu ? (
+            <TouchableOpacity
+              onPress={openMenu}
+              style={styles.iconButton}
+              accessibilityLabel={t('moreOptions')}
+              hitSlop={8}
+            >
+              <Ionicons name="ellipsis-vertical" size={fontSizes.md} color={colors.primaryText} />
+            </TouchableOpacity>
+          ) : null}
         </View>
       </View>
 
-      <TouchableOpacity style={styles.countryChip} onPress={() => setPickerVisible(true)}>
+      <TouchableOpacity style={styles.countryChip} onPress={openCountryPicker}>
         <Text style={styles.countryFlag}>{countryFlag}</Text>
         <Text style={[styles.countryLabel, textStyle]} numberOfLines={1}>
           {countryLabel || t('selectCountry')}
@@ -126,6 +168,8 @@ const AppHeader = ({ title, rightActions, countryId: controlledCountryId, onSele
         currentLanguage={currentLanguage}
         isRTL={isRTL}
       />
+
+      {showMenu ? <HeaderMenu visible={menuVisible} onClose={() => setMenuVisible(false)} /> : null}
     </View>
   );
 };

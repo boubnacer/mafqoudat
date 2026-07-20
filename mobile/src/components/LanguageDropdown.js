@@ -25,7 +25,7 @@ const languages = [
 
 const { width: SCREEN_WIDTH } = Dimensions.get('window');
 
-const LanguageDropdown = ({ style, compact = false }) => {
+const LanguageDropdown = ({ style, compact = false, onOpen, closeSignal }) => {
   const { currentLanguage, setLanguage } = useLanguage();
   const theme = useTheme();
   const styles = useMemo(() => createStyles(theme), [theme]);
@@ -33,6 +33,22 @@ const LanguageDropdown = ({ style, compact = false }) => {
   const [dropdownVisible, setDropdownVisible] = useState(false);
   const buttonRef = useRef(null);
   const [buttonLayout, setButtonLayout] = useState({ x: 0, y: 0, width: 0, height: 0 });
+
+  // Lets a parent that coordinates multiple overlays (e.g. AppHeader, keeping
+  // this, the country picker, and the overflow menu mutually exclusive) force
+  // this dropdown closed by changing closeSignal - this component still owns
+  // dropdownVisible itself, so existing self-managed usages are unaffected.
+  useEffect(() => {
+    if (closeSignal === undefined) return;
+    setDropdownVisible(false);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [closeSignal]);
+
+  const toggleDropdown = () => {
+    const next = !dropdownVisible;
+    setDropdownVisible(next);
+    if (next) onOpen?.();
+  };
 
   const handleLanguageChange = async (languageCode) => {
     try {
@@ -62,7 +78,7 @@ const LanguageDropdown = ({ style, compact = false }) => {
       >
         <TouchableOpacity
           style={compact ? styles.compactButton : styles.dropdownButton}
-          onPress={() => setDropdownVisible(!dropdownVisible)}
+          onPress={toggleDropdown}
           activeOpacity={0.7}
           accessibilityLabel={currentLang?.nativeName || currentLanguage.toUpperCase()}
         >
