@@ -29,6 +29,7 @@ import { useTheme } from '../context/ThemeContext';
 import PostFilterSheet from '../components/PostFilterSheet';
 import DataStateView from '../components/DataStateView';
 import AppHeader from '../components/AppHeader';
+import PostTypeSegmentedControl from '../components/PostTypeSegmentedControl';
 
 const SEARCH_DEBOUNCE_MS = 400;
 const PAGE_SIZE = 10;
@@ -54,6 +55,7 @@ const PostsListScreen = ({ navigation }) => {
   const [searchText, setSearchText] = useState('');
   const [debouncedSearch, setDebouncedSearch] = useState('');
   const [selectedFl, setSelectedFl] = useState('');
+  const [isFlRestored, setIsFlRestored] = useState(false);
   const [selectedCategoryIds, setSelectedCategoryIds] = useState([]);
   const [selectedCityId, setSelectedCityId] = useState(null);
   const [selectedCityLabel, setSelectedCityLabel] = useState('');
@@ -90,6 +92,22 @@ const PostsListScreen = ({ navigation }) => {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
+  // Restore the last-selected post-type segment (All/Lost/Found) before the
+  // first fetch fires - the composing effect below waits on isFlRestored so
+  // the initial load already uses the right filter instead of fetching twice.
+  useEffect(() => {
+    let isMounted = true;
+    storage.getSelectedFl().then((storedFl) => {
+      if (isMounted) {
+        setSelectedFl(storedFl || '');
+        setIsFlRestored(true);
+      }
+    });
+    return () => {
+      isMounted = false;
+    };
+  }, []);
+
   // Debounce free-text search input.
   useEffect(() => {
     const timer = setTimeout(() => {
@@ -99,11 +117,14 @@ const PostsListScreen = ({ navigation }) => {
   }, [searchText]);
 
   // Any filter/search/country/language change resets to page 1 and recomposes the query.
+  // Waits on isFlRestored too, so the very first fetch already carries the
+  // restored post-type filter instead of firing once with the default ('')
+  // and again once storage resolves.
   useEffect(() => {
-    if (!countryId) return;
+    if (!countryId || !isFlRestored) return;
     loadPosts(1);
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [countryId, selectedFl, selectedCategoryIds, selectedCityId, debouncedSearch, currentLanguage]);
+  }, [countryId, isFlRestored, selectedFl, selectedCategoryIds, selectedCityId, debouncedSearch, currentLanguage]);
 
   // Regaining focus (e.g. returning from creating a post, from a post's detail
   // screen, or from changing the account country in EditProfileScreen) re-syncs
@@ -245,6 +266,15 @@ const PostsListScreen = ({ navigation }) => {
     storage.setCurrentCountry(id);
   };
 
+  // Single write path for selectedFl - used by the segmented control, the
+  // filter sheet's post-type chips, and the active-filter chip's remove
+  // button, so all three surfaces read/write the same state and the persisted
+  // value never goes stale relative to what's on screen.
+  const handleSelectFl = (id) => {
+    setSelectedFl(id);
+    storage.setSelectedFl(id);
+  };
+
   const handleToggleCategory = (id) => {
     setSelectedCategoryIds((prev) => (prev.includes(id) ? prev.filter((c) => c !== id) : [...prev, id]));
   };
@@ -271,7 +301,7 @@ const PostsListScreen = ({ navigation }) => {
   };
 
   const handleClearAllFilters = () => {
-    setSelectedFl('');
+    handleSelectFl('');
     setSelectedCategoryIds([]);
     setSelectedCityId(null);
     setSelectedCityLabel('');
@@ -341,6 +371,7 @@ const PostsListScreen = ({ navigation }) => {
           onSelectCountry={handleSelectCountry}
           rightActions={filterButton}
         />
+        <PostTypeSegmentedControl floptions={floptions} selectedFl={selectedFl} onSelectFl={handleSelectFl} />
         <View style={styles.centerContainer}>
           <ActivityIndicator size="large" color="#2196F3" />
           <Text style={styles.loadingText}>{t('loadingPosts')}</Text>
@@ -357,6 +388,7 @@ const PostsListScreen = ({ navigation }) => {
         onSelectCountry={handleSelectCountry}
         rightActions={filterButton}
       />
+      <PostTypeSegmentedControl floptions={floptions} selectedFl={selectedFl} onSelectFl={handleSelectFl} />
 
       <View style={styles.searchRow}>
         <TextInput
@@ -389,7 +421,7 @@ const PostsListScreen = ({ navigation }) => {
               </TouchableOpacity>
             ) : null}
             {selectedFloption ? (
-              <TouchableOpacity style={styles.activeChip} onPress={() => setSelectedFl('')}>
+              <TouchableOpacity style={styles.activeChip} onPress={() => handleSelectFl('')}>
                 <Text style={styles.activeChipText}>{getLocalizedLabel(selectedFloption, currentLanguage)}</Text>
                 <Text style={styles.activeChipRemove}>✕</Text>
               </TouchableOpacity>
@@ -481,7 +513,7 @@ const PostsListScreen = ({ navigation }) => {
         countryId={countryId}
         onSelectCountry={handleSelectCountry}
         selectedFl={selectedFl}
-        onSelectFl={setSelectedFl}
+        onSelectFl={handleSelectFl}
         selectedCategoryIds={selectedCategoryIds}
         onToggleCategory={handleToggleCategory}
         onClearCategories={() => setSelectedCategoryIds([])}

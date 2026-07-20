@@ -9,6 +9,7 @@ import AsyncStorage from '@react-native-async-storage/async-storage';
 const TOKEN_KEY = 'accessToken';
 const USER_KEY = 'userData';
 const COUNTRY_KEY = 'currentCountry';
+const SELECTED_FL_KEY = 'selectedFl';
 
 export const storage = {
   // Token storage
@@ -102,12 +103,43 @@ export const storage = {
     }
   },
 
+  // Lost/found post-type filter storage (using AsyncStorage as it's not sensitive)
+  async setSelectedFl(flId) {
+    try {
+      await AsyncStorage.setItem(SELECTED_FL_KEY, flId || '');
+      return true;
+    } catch (error) {
+      console.error('Error storing selected post type:', error);
+      return false;
+    }
+  },
+
+  async getSelectedFl() {
+    try {
+      return await AsyncStorage.getItem(SELECTED_FL_KEY);
+    } catch (error) {
+      console.error('Error getting selected post type:', error);
+      return null;
+    }
+  },
+
+  async removeSelectedFl() {
+    try {
+      await AsyncStorage.removeItem(SELECTED_FL_KEY);
+      return true;
+    } catch (error) {
+      console.error('Error removing selected post type:', error);
+      return false;
+    }
+  },
+
   // Clear all stored data
   async clearAll() {
     try {
       await this.removeToken();
       await this.removeUserData();
       await this.removeCurrentCountry();
+      await this.removeSelectedFl();
       return true;
     } catch (error) {
       console.error('Error clearing storage:', error);
