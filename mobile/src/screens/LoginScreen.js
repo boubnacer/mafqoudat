@@ -30,7 +30,6 @@ const LoginScreen = ({ navigation }) => {
   const {
     signInWithGoogle,
     completeLogin,
-    isLoading: googleLoading,
     error: googleError,
     clearError,
     sessionExpired,
@@ -38,7 +37,7 @@ const LoginScreen = ({ navigation }) => {
   } = useAuth();
   const { currentLanguage } = useLanguage();
   const theme = useTheme();
-  const { colors } = theme;
+  const { colors, isDark, setThemeMode } = theme;
   const styles = useMemo(() => createStyles(theme), [theme]);
   const { t } = useTranslation();
   const isRTL = currentLanguage === 'ar';
@@ -189,6 +188,10 @@ const LoginScreen = ({ navigation }) => {
     }
   };
 
+  const handleToggleTheme = () => {
+    setThemeMode(isDark ? 'light' : 'dark');
+  };
+
   return (
     <KeyboardAvoidingView
       style={styles.container}
@@ -200,7 +203,16 @@ const LoginScreen = ({ navigation }) => {
         showsVerticalScrollIndicator={false}
       >
         <View style={styles.content}>
-          <View style={styles.languageRow}>
+          <View style={styles.topControlsRow}>
+            <TouchableOpacity
+              onPress={handleToggleTheme}
+              style={styles.themeToggleButton}
+              activeOpacity={0.7}
+              accessibilityLabel={isDark ? t('themeLight') : t('themeDark')}
+              hitSlop={8}
+            >
+              <Text style={styles.themeToggleIcon}>{isDark ? '☀️' : '🌙'}</Text>
+            </TouchableOpacity>
             <LanguageDropdown />
           </View>
 
@@ -331,18 +343,6 @@ const LoginScreen = ({ navigation }) => {
               <Text style={styles.signUpLink}>{t('signup')}</Text>
             </TouchableOpacity>
           </View>
-
-          {/* Debug Info */}
-          {__DEV__ && (
-            <View style={styles.debugInfo}>
-              <Text style={styles.debugTitle}>Debug Information:</Text>
-              <Text style={styles.debugText}>Google Loading: {googleLoading.toString()}</Text>
-              <Text style={styles.debugText}>Form Loading: {isLoading.toString()}</Text>
-              <Text style={styles.debugText}>Google Signing In: {isGoogleLoading.toString()}</Text>
-              {googleError && <Text style={styles.debugError}>Google Error: {googleError}</Text>}
-              {error && <Text style={styles.debugError}>Form Error: {error}</Text>}
-            </View>
-          )}
         </View>
       </ScrollView>
     </KeyboardAvoidingView>
@@ -356,17 +356,32 @@ const createStyles = ({ colors, spacing, radii, fontSizes, isDark }) => StyleShe
   },
   scrollContent: {
     flexGrow: 1,
+    justifyContent: 'center',
   },
   content: {
-    flexGrow: 1,
-    justifyContent: 'center',
+    alignItems: 'stretch',
     paddingHorizontal: spacing.lg,
     paddingVertical: spacing.xl,
   },
-  languageRow: {
+  topControlsRow: {
     flexDirection: 'row',
     justifyContent: 'flex-end',
-    marginBottom: spacing.sm,
+    alignItems: 'center',
+    gap: spacing.sm,
+    marginBottom: spacing.md,
+  },
+  themeToggleButton: {
+    width: 42,
+    height: 42,
+    borderRadius: radii.full,
+    backgroundColor: colors.inputBackground,
+    borderWidth: 1,
+    borderColor: colors.border,
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  themeToggleIcon: {
+    fontSize: fontSizes.lg,
   },
   brandSection: {
     alignItems: 'center',
@@ -573,30 +588,6 @@ const createStyles = ({ colors, spacing, radii, fontSizes, isDark }) => StyleShe
     fontSize: fontSizes.sm,
     color: colors.primary,
     fontWeight: '700',
-  },
-  debugInfo: {
-    marginTop: spacing.xl,
-    padding: spacing.md,
-    backgroundColor: colors.inputBackground,
-    borderRadius: radii.md,
-    borderWidth: 1,
-    borderColor: colors.border,
-  },
-  debugTitle: {
-    fontSize: fontSizes.sm,
-    fontWeight: 'bold',
-    marginBottom: spacing.xs,
-    color: colors.textPrimary,
-  },
-  debugText: {
-    fontSize: fontSizes.xs,
-    color: colors.textSecondary,
-    marginBottom: 2,
-  },
-  debugError: {
-    fontSize: fontSizes.xs,
-    color: colors.danger,
-    marginTop: spacing.xs,
   },
 });
 

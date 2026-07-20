@@ -27,8 +27,8 @@ const { width: SCREEN_WIDTH } = Dimensions.get('window');
 
 const LanguageDropdown = ({ style }) => {
   const { currentLanguage, setLanguage } = useLanguage();
-  const { colors } = useTheme();
-  const styles = useMemo(() => createStyles(colors), [colors]);
+  const theme = useTheme();
+  const styles = useMemo(() => createStyles(theme), [theme]);
   const { t } = useTranslation();
   const [dropdownVisible, setDropdownVisible] = useState(false);
   const buttonRef = useRef(null);
@@ -132,7 +132,7 @@ const LanguageDropdown = ({ style }) => {
   );
 };
 
-const createStyles = (colors) => StyleSheet.create({
+const createStyles = ({ colors, spacing, radii, fontSizes }) => StyleSheet.create({
   container: {
     position: 'relative',
   },
@@ -140,28 +140,29 @@ const createStyles = (colors) => StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'space-between',
-    paddingHorizontal: 12,
-    paddingVertical: 8,
-    borderRadius: 8,
+    paddingHorizontal: spacing.md,
+    paddingVertical: spacing.sm + 2,
+    borderRadius: radii.md,
     backgroundColor: colors.inputBackground,
     borderWidth: 1,
     borderColor: colors.border,
-    minWidth: 120,
+    minWidth: 150,
+    height: 42,
   },
   flag: {
-    fontSize: 18,
-    marginEnd: 8,
+    fontSize: fontSizes.md,
+    marginEnd: spacing.sm,
   },
   languageText: {
     color: colors.textPrimary,
-    fontSize: 14,
+    fontSize: fontSizes.sm,
     fontWeight: '600',
     flex: 1,
   },
   arrow: {
     color: colors.textSecondary,
     fontSize: 10,
-    marginStart: 8,
+    marginStart: spacing.sm,
   },
   modalOverlay: {
     flex: 1,
