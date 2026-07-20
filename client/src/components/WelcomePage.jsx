@@ -29,7 +29,6 @@ import {
   Skeleton,
 } from "@mui/material";
 import {
-  Search,
   LocationOn,
   ArrowForward,
   ArrowBack,
@@ -39,33 +38,32 @@ import {
   LightModeOutlined,
   Login,
   PersonAdd,
-  FilterList,
-  PostAdd,
   TaskAltOutlined,
   SearchOffOutlined,
   VerifiedUserOutlined,
   PublicOutlined,
   CategoryOutlined,
+  PhoneAndroidOutlined,
+  ArticleOutlined,
+  AccountBalanceWalletOutlined,
+  KeyOutlined,
+  DirectionsCarOutlined,
+  LuggageOutlined,
 } from "@mui/icons-material";
 
-// Categories shown in the "browse by category" strip. Icon name + theme key
-// pairs match RenderIcon's existing category switch (client/src/components/RenderIcon.jsx)
-// and theme.palette.categories (client/src/theme.js) — no new colors introduced here.
+// Categories shown in the "browse by category" strip. Rendered directly
+// (not via RenderIcon) — RenderIcon's name-matching routes anything
+// containing "cate" through config/categories.js's separate hardcoded
+// palette rather than theme.palette.categories, which silently produced
+// the wrong icon for names that don't happen to match its plural keys.
+// themeKey pairs with theme.palette.categories in client/src/theme.js.
 const CATEGORY_SHOWCASE = [
-  { themeKey: "devicecate", iconName: "devicecate", labelKey: "devices" },
-  { themeKey: "documentcate", iconName: "Documentcate", labelKey: "document" },
-  { themeKey: "walletcate", iconName: "Walletcate", labelKey: "wallet" },
-  { themeKey: "keyscate", iconName: "keyscate", labelKey: "keys" },
-  { themeKey: "vehiclecate", iconName: "Vehiclecate", labelKey: "vehicle" },
-  { themeKey: "bagcate", iconName: "bagcate", labelKey: "bag" },
-];
-
-// "How it works" reuses the existing feature copy (searchItems/localPosts/communityHelp
-// + their *Desc keys) that used to live in a hidden section of this page.
-const HOW_IT_WORKS = [
-  { Icon: Search, titleKey: "searchItems", descKey: "searchItemsDesc" },
-  { Icon: PostAdd, titleKey: "localPosts", descKey: "localPostsDesc" },
-  { Icon: FilterList, titleKey: "communityHelp", descKey: "communityHelpDesc" },
+  { themeKey: "devicecate", Icon: PhoneAndroidOutlined, labelKey: "devices" },
+  { themeKey: "documentcate", Icon: ArticleOutlined, labelKey: "document" },
+  { themeKey: "walletcate", Icon: AccountBalanceWalletOutlined, labelKey: "wallet" },
+  { themeKey: "keyscate", Icon: KeyOutlined, labelKey: "keys" },
+  { themeKey: "vehiclecate", Icon: DirectionsCarOutlined, labelKey: "vehicle" },
+  { themeKey: "bagcate", Icon: LuggageOutlined, labelKey: "bag" },
 ];
 
 const formatShortDate = (dateString, lang) => {
@@ -127,7 +125,7 @@ const HeroPostCard = styled(Box)(({ theme, tone }) => ({
   borderRadius: theme.custom.radius.lg,
   boxShadow: theme.custom.elevation.e1,
   border: `1px solid ${theme.palette.divider}`,
-  borderInlineStart: `4px solid ${tone}`,
+  borderInlineStart: `6px solid ${tone}`,
   overflow: "hidden",
   transition: "transform 0.2s ease, box-shadow 0.2s ease",
   "&:hover": {
@@ -136,6 +134,9 @@ const HeroPostCard = styled(Box)(({ theme, tone }) => ({
   },
 }));
 
+// Solid fill, not a tint — this is the one place on the page saturated color
+// should dominate, since Lost vs. Found is the single most load-bearing fact
+// about a post. Everything else on the page stays deliberately quieter.
 const StatusTag = ({ status, label }) => {
   const theme = useTheme();
   const tone = status === "found" ? theme.custom.status.found : theme.custom.status.lost;
@@ -147,14 +148,16 @@ const StatusTag = ({ status, label }) => {
         alignItems: "center",
         gap: 0.5,
         px: 1,
-        py: 0.25,
+        py: 0.375,
         borderRadius: `${theme.custom.radius.sm}px`,
-        backgroundColor: tone.bg,
-        border: `1px solid ${alpha(tone.border, 0.4)}`,
+        backgroundColor: tone.main,
       }}
     >
-      <Icon sx={{ fontSize: 14, color: tone.main }} />
-      <Typography variant="caption" sx={{ fontWeight: 600, color: tone.main, lineHeight: 1 }}>
+      <Icon sx={{ fontSize: 14, color: theme.palette.getContrastText(tone.main) }} />
+      <Typography
+        variant="caption"
+        sx={{ fontWeight: 700, letterSpacing: 0.3, color: theme.palette.getContrastText(tone.main), lineHeight: 1 }}
+      >
         {label}
       </Typography>
     </Box>
@@ -629,30 +632,8 @@ const WelcomePage = () => {
           </Grid>
         </Box>
 
-        {/* How it works */}
-        <Box sx={{ maxWidth: 1200, mx: 'auto', px: { xs: 2, md: 4 }, py: { xs: 4, md: 6 } }}>
-          <Typography variant="h5" align="center" sx={{ mb: 4 }}>
-            {t('howItWorksTitle')}
-          </Typography>
-          <Grid container spacing={3}>
-            {HOW_IT_WORKS.map(({ Icon, titleKey, descKey }) => (
-              <Grid item xs={12} md={4} key={titleKey}>
-                <SurfaceCard sx={{ p: 3, height: '100%', textAlign: 'center' }}>
-                  <Icon sx={{ fontSize: 32, color: theme.custom.color.brandPrimary, mb: 1.5 }} />
-                  <Typography variant="subtitle1" sx={{ fontWeight: 600, mb: 0.5 }}>
-                    {t(titleKey)}
-                  </Typography>
-                  <Typography variant="body2" color="text.secondary">
-                    {t(descKey)}
-                  </Typography>
-                </SurfaceCard>
-              </Grid>
-            ))}
-          </Grid>
-        </Box>
-
         {/* Coverage stats */}
-        <Box sx={{ maxWidth: 1200, mx: 'auto', px: { xs: 2, md: 4 }, pb: { xs: 4, md: 6 } }}>
+        <Box sx={{ maxWidth: 1200, mx: 'auto', px: { xs: 2, md: 4 }, pt: { xs: 1, md: 2 }, pb: { xs: 4, md: 6 } }}>
           <SurfaceCard sx={{ p: { xs: 2.5, md: 3 } }}>
             <Box
               sx={{
@@ -664,13 +645,15 @@ const WelcomePage = () => {
               }}
             >
               <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
-                <PublicOutlined sx={{ color: theme.custom.color.brandPrimary }} />
+                <PublicOutlined sx={{ color: 'text.secondary' }} />
                 <Typography variant="body1" sx={{ fontWeight: 600 }}>
-                  {t('platformCountriesStat', { count: countries.length })}
+                  {countries.length === 1
+                    ? t('platformCountriesStatOne')
+                    : t('platformCountriesStat', { count: countries.length })}
                 </Typography>
               </Box>
               <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
-                <CategoryOutlined sx={{ color: theme.custom.color.brandPrimary }} />
+                <CategoryOutlined sx={{ color: 'text.secondary' }} />
                 <Typography variant="body1" sx={{ fontWeight: 600 }}>
                   {t('platformCategoriesStat', { count: categoriesData || CATEGORY_SHOWCASE.length })}
                 </Typography>
@@ -695,6 +678,11 @@ const WelcomePage = () => {
           >
             {CATEGORY_SHOWCASE.map((cat) => {
               const cateColors = theme.palette.categories?.[cat.themeKey];
+              // categories[].back/icon are fixed pastel/saturated tones, not
+              // mode-adaptive — so the label uses the same saturated icon
+              // color rather than the theme's default (light-in-dark-mode)
+              // text color, which would go low-contrast on the pastel chip.
+              const tint = cateColors?.icon || theme.palette.text.primary;
               return (
                 <Box
                   key={cat.themeKey}
@@ -715,8 +703,8 @@ const WelcomePage = () => {
                     '&:hover': selectedCountry ? { transform: 'translateY(-2px)' } : {},
                   }}
                 >
-                  <RenderIcon name={cat.iconName} />
-                  <Typography variant="caption" sx={{ fontWeight: 600, textAlign: 'center' }}>
+                  <cat.Icon sx={{ color: tint, fontSize: 26 }} />
+                  <Typography variant="caption" sx={{ fontWeight: 600, textAlign: 'center', color: tint }}>
                     {t(cat.labelKey)}
                   </Typography>
                 </Box>
@@ -738,7 +726,7 @@ const WelcomePage = () => {
             }}
           >
             <Box sx={{ display: 'flex', alignItems: 'flex-start', gap: 1.5 }}>
-              <VerifiedUserOutlined sx={{ color: theme.custom.color.brandPrimary, mt: 0.5 }} />
+              <VerifiedUserOutlined sx={{ color: 'text.secondary', mt: 0.5 }} />
               <Box>
                 <Typography variant="subtitle1" sx={{ fontWeight: 600 }}>
                   {t('securePlatform')}
