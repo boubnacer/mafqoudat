@@ -168,10 +168,10 @@ const DateBadge = ({ children }) => {
         px: 1,
         py: 0.375,
         borderRadius: `${theme.custom.radius.sm}px`,
-        backgroundColor: alpha(theme.palette.common.black, 0.55),
+        backgroundColor: alpha(theme.custom.color.surfaceRaised, 0.85),
       }}
     >
-      <Typography variant="caption" sx={{ color: theme.palette.common.white, fontWeight: 600, lineHeight: 1 }}>
+      <Typography variant="caption" sx={{ color: theme.custom.color.ink, fontWeight: 600, lineHeight: 1 }}>
         {children}
       </Typography>
     </Box>
