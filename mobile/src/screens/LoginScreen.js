@@ -217,7 +217,7 @@ const LoginScreen = ({ navigation }) => {
           </View>
 
           <View style={styles.brandSection}>
-            <Image source={require('../../assets/icon.png')} style={styles.logo} resizeMode="cover" />
+            <Image source={require('../../assets/icon.png')} style={styles.logo} resizeMode="contain" />
             <Text style={styles.brandName}>{t('brandName')}</Text>
             <Text style={[styles.tagline, textStyle]}>{t('loginToAccount')}</Text>
           </View>
@@ -365,9 +365,8 @@ const createStyles = ({ colors, spacing, radii, fontSizes, isDark }) => StyleShe
   },
   topControlsRow: {
     flexDirection: 'row',
-    justifyContent: 'flex-end',
+    justifyContent: 'space-between',
     alignItems: 'center',
-    gap: spacing.sm,
     marginBottom: spacing.md,
   },
   themeToggleButton: {
@@ -390,13 +389,9 @@ const createStyles = ({ colors, spacing, radii, fontSizes, isDark }) => StyleShe
   logo: {
     width: 72,
     height: 72,
-    borderRadius: radii.xl,
+    marginTop: spacing.sm,
     marginBottom: spacing.md,
-    shadowColor: colors.primary,
-    shadowOffset: { width: 0, height: 6 },
-    shadowOpacity: isDark ? 0 : 0.25,
-    shadowRadius: 12,
-    elevation: isDark ? 0 : 6,
+    backgroundColor: 'transparent',
   },
   brandName: {
     fontSize: fontSizes.xxxl,
