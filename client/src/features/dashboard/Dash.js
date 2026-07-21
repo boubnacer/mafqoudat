@@ -216,18 +216,20 @@ const Dash = () => {
         p={{ xs: 2, sm: 3, md: 4, lg: 5, xl: 6 }}
         gap={{ lg: "32px", xl: "40px" }}
         sx={{
-          display: { xs: "grid", sm: "flex" },
-          gridTemplateColumns: { xs: "repeat(1,1fr)", sm: "repeat(2,1fr)" },
+          // Grid, not flex: grid items with a % height resolve against the
+          // equalized row height once it's indefinite, so LeftSide and
+          // TrendingItem's internal height:'100%' chains land on the same
+          // value. Flex was inconsistent here, which is why Trending read taller.
+          display: "grid",
+          gridTemplateColumns: { xs: "1fr", sm: "repeat(2,1fr)" },
+          alignItems: 'stretch',
           maxWidth: { xs: '100%', sm: '100%', md: '100%', lg: '1400px', xl: '1600px' },
           overflow: 'hidden',
           width: '100%', // Ensure full width
-          alignItems: { xs: 'stretch', sm: 'stretch' }, // Ensure both components stretch to same height
           margin: { xs: 0, sm: '0 auto' }, // Center the container on all screen sizes
           justifyContent: { xs: 'center', sm: 'center' }, // Center content
           '& > *': {
-            flex: { xs: 'none', sm: '1 1 0' }, // Equal flex distribution - both grow equally
-            minWidth: 0, // Prevent flex items from overflowing
-            maxWidth: { xs: '100%', sm: '50%' }, // Ensure neither takes more than 50%
+            minWidth: 0, // Prevent grid items from overflowing
           }
         }}
       >
