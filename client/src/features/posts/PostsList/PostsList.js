@@ -4,6 +4,7 @@ import { useGetCountriesQuery } from "../../countries/countriesApiSlice";
 import { useTranslation } from "../../../utils/translations";
 import Post from "./Post";
 import ExternalResults from "../../externalSearch/ExternalResults";
+import Filter from "../../../components/Filter/Filter";
 import useTitle from "../../../hooks/useTitle";
 import { LoadingState, ErrorState } from "../../../components/LoadingStates";
 import SeoMeta from "../../../components/SeoMeta";
@@ -881,27 +882,10 @@ const PostsList = () => {
             }}
           >
             <Grid container spacing={3} alignItems="center">
-              {/* Search - Hidden for now */}
-              {/* <Grid item xs={12} md={4}>
-                <TextField
-                  fullWidth
-                  placeholder={t('searchPostsPlaceholder')}
-                  value={searchTerm}
-                  onChange={handleSearch}
-                  InputProps={{
-                    startAdornment: (
-                      <InputAdornment position="start">
-                        <Search />
-                      </InputAdornment>
-                    ),
-                  }}
-                  sx={{ 
-                    '& .MuiOutlinedInput-root': { 
-                      borderRadius: 2 
-                    } 
-                  }}
-                />
-              </Grid> */}
+              {/* Search */}
+              <Grid item xs={12} md={4}>
+                <Filter value={searchTerm} onChange={handleSearch} />
+              </Grid>
 
               {/* Sort - Hidden for now */}
               {/* <Grid item xs={12} sm={6} md={3}>
