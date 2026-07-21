@@ -190,44 +190,57 @@ const Post = ({ post, viewMode = "grid" }) => {
     }
   }, [post?.createdAt, locale, t]);
 
-  // Memoized found/lost status computation
+  // Memoized found/lost status computation.
+  // `foundLostValue` starts unset so the ObjectId-reference fallback below only
+  // runs when Floptions genuinely didn't resolve a code — previously it also
+  // re-ran whenever the resolved code happened to be "FOUND", overwriting it
+  // with the raw (never-"FOUND") ObjectId string and flipping every found post
+  // to "lost".
   const foundLostStatus = useMemo(() => {
-    let foundLostValue = "FOUND"; // Default to FOUND
-    let foundLostLabel = t('found'); // Default label
-    let foundLostColor = theme.palette.success.main; // Default color
-    
+    let foundLostValue = null;
+    let foundLostLabel = null;
+    let foundLostColor = null;
+
     // Check Floptions array first (this contains the actual found/lost data from the lookup)
     if (post?.Floptions && post.Floptions.length > 0) {
       const flOption = post.Floptions[0];
       if (flOption && flOption.code) {
         foundLostValue = flOption.code;
-        foundLostLabel = getLabel(flOption.labels, currentLanguage) || 
+        foundLostLabel = getLabel(flOption.labels, currentLanguage) ||
                         (flOption.code === 'FOUND' ? t('found') : t('lost'));
-        foundLostColor = flOption.color || 
+        foundLostColor = flOption.color ||
                         (flOption.code === 'FOUND' ? theme.palette.success.main : theme.palette.error.main);
       }
     }
-    
-    // Fallback: Check foundLost property (this is the ObjectId reference)
-    if (!foundLostValue || foundLostValue === "FOUND") {
-      if (post?.foundLost) {
-        if (typeof post.foundLost === 'string') {
-          foundLostValue = post.foundLost.toUpperCase();
-          foundLostLabel = post.foundLost === 'FOUND' ? t('found') : t('lost');
-          foundLostColor = post.foundLost === 'FOUND' ? theme.palette.success.main : theme.palette.error.main;
-        } else if (post.foundLost.code) {
-          foundLostValue = post.foundLost.code;
-          foundLostLabel = getLabel(post.foundLost.labels, currentLanguage) || 
-                          (post.foundLost.code === 'FOUND' ? t('found') : t('lost'));
-          foundLostColor = post.foundLost.color || 
-                          (post.foundLost.code === 'FOUND' ? theme.palette.success.main : theme.palette.error.main);
+
+    // Fallback: Check foundLost property (this is the ObjectId reference), only
+    // when Floptions didn't already resolve it.
+    if (!foundLostValue && post?.foundLost) {
+      if (typeof post.foundLost === 'string') {
+        const code = post.foundLost.toUpperCase();
+        if (code === 'FOUND' || code === 'LOST') {
+          foundLostValue = code;
+          foundLostLabel = code === 'FOUND' ? t('found') : t('lost');
+          foundLostColor = code === 'FOUND' ? theme.palette.success.main : theme.palette.error.main;
         }
+      } else if (post.foundLost.code) {
+        foundLostValue = post.foundLost.code;
+        foundLostLabel = getLabel(post.foundLost.labels, currentLanguage) ||
+                        (post.foundLost.code === 'FOUND' ? t('found') : t('lost'));
+        foundLostColor = post.foundLost.color ||
+                        (post.foundLost.code === 'FOUND' ? theme.palette.success.main : theme.palette.error.main);
       }
     }
 
-    // Normalize the value and set proper colors
+    // Default to FOUND only if nothing above resolved a value
+    if (!foundLostValue) {
+      foundLostValue = 'FOUND';
+      foundLostLabel = t('found');
+      foundLostColor = theme.palette.success.main;
+    }
+
     const isFound = foundLostValue === "FOUND";
-    const statusColor = foundLostColor || (isFound ? theme.palette.success.main : theme.palette.error.main);
+    const statusColor = foundLostColor;
     const statusText = foundLostLabel;
 
     return { isFound, statusColor, statusText };

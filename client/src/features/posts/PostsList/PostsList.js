@@ -359,30 +359,6 @@ const PostsList = () => {
     return urlFilter || '';
   }, [urlFilter]);
 
-  // Memoize dynamic title based on navigation state
-  const pageTitle = useMemo(() => {
-    let title;
-    if (foundOrlost === 'FOUND') {
-      title = t('searchForFoundItems', { country: countryName || '' });
-    } else if (foundOrlost === 'LOST') {
-      title = t('searchForLostItems', { country: countryName || '' });
-    } else {
-      title = t('searchForItems', { country: countryName || '' });
-    }
-    
-    // Clean up title if country name is not available (remove "in " or "au " or "في ")
-    if (!countryName) {
-      title = title.replace(/\s+in\s+\.\.\./g, '...')
-                   .replace(/\s+au\s+\.\.\./g, '...')
-                   .replace(/\s+في\s+\.\.\./g, '...')
-                   .replace(/\s+in\s*$/g, '')
-                   .replace(/\s+au\s*$/g, '')
-                   .replace(/\s+في\s*$/g, '');
-    }
-    
-    return title;
-  }, [foundOrlost, t, countryName]);
-
   // Helper function to get city display name - prioritize current language
   // Match the Admin Panel logic: use labels directly, not pre-computed label
   const getCityDisplayName = useCallback((city) => {
@@ -830,56 +806,54 @@ const PostsList = () => {
   }
 
   if (isSuccess && currentCountry) {
-    const { totalPages } = data;
+    const { totalPages, total } = data;
+    const activeStatusTone = foundOrlost === 'FOUND'
+      ? theme.custom.status.found
+      : foundOrlost === 'LOST'
+        ? theme.custom.status.lost
+        : null;
 
     return (
       <>
         <SeoMeta pageKey="dashPosts" />
-        <Box sx={{ 
+        <Box sx={{
         p: { xs: 2, md: 4 },
         pt: { xs: "6rem", md: "7rem" },
         minHeight: "100vh"
       }}>
-        {/* Header Section */}
-        <Box sx={{ mb: 4 }}>
-          <Box display="flex" justifyContent="space-between" alignItems="center" mb={3}>
-            <Box>
-              <Typography
-                variant="h3"
-                sx={{
-                  color: theme.custom.color.ink,
-                  fontWeight: 700,
-                  mb: 1
-                }}
-              >
-                {pageTitle}
-              </Typography>
-            </Box>
-            {/* Add New Post button hidden as per requirements */}
-            {/* <Button
-              variant="contained"
-              startIcon={<AddIcon />}
-              onClick={handleAddNewPost}
+        {/* Header Section — a slim results line replaces the old full-sentence
+            "Search for Found Items in Morocco..." title, which just restated
+            what the top nav tab (Found/Lost/All) already told the user. */}
+        <Box sx={{ mb: 3, display: 'flex', alignItems: 'center', flexWrap: 'wrap', gap: 1.25 }}>
+          <Typography
+            variant="overline"
+            sx={{ fontWeight: 600, letterSpacing: 1, color: 'text.secondary' }}
+          >
+            {typeof total === 'number' ? total : filteredPosts.length} {t('posts')}
+            {countryName ? ` • ${countryName}` : ''}
+          </Typography>
+          {activeStatusTone && (
+            <Box
               sx={{
-                borderRadius: '4px',
-                px: 3,
-                py: 1,
-                textTransform: 'none',
-                fontWeight: 600,
-                background: 'linear-gradient(45deg, #4A8BFF 30%, #1A6EEE 90%)',
-                boxShadow: '0 3px 5px 2px rgba(26, 110, 238, .3)',
-                color: '#fff !important',
-                '&:hover': {
-                  background: 'linear-gradient(45deg, #5A9BFF 30%, #2A7EFF 90%)',
-                  boxShadow: '0 4px 8px 2px rgba(26, 110, 238, .4)',
-                  color: '#fff !important',
-                }
+                display: 'inline-flex',
+                alignItems: 'center',
+                px: 1,
+                py: 0.25,
+                borderRadius: `${theme.custom.radius.sm}px`,
+                backgroundColor: activeStatusTone.main,
               }}
             >
-              {t('addNewPost')}
-            </Button> */}
-          </Box>
+              <Typography
+                variant="caption"
+                sx={{ fontWeight: 700, letterSpacing: 0.3, color: theme.palette.getContrastText(activeStatusTone.main) }}
+              >
+                {foundOrlost === 'FOUND' ? t('found') : t('lost')}
+              </Typography>
+            </Box>
+          )}
+        </Box>
 
+        <Box sx={{ mb: 4 }}>
           {/* Filters and Search - Always visible */}
           <Paper
             elevation={0}
