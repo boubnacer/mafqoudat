@@ -155,27 +155,7 @@ const Process = () => {
                   boxShadow: theme.custom.elevation.e1,
                 }}
               >
-                {/* Ghost numeral — brand type, low opacity, behind the icon */}
-                <Typography
-                  aria-hidden="true"
-                  sx={{
-                    position: 'absolute',
-                    top: '50%',
-                    insetInlineStart: '50%',
-                    transform: 'translate(-50%, -50%)',
-                    fontFamily: theme.custom.font.display,
-                    fontWeight: 800,
-                    fontSize: { xs: '2.4rem', md: '2.8rem' },
-                    color: alpha(theme.custom.color.brandPrimary, theme.palette.mode === 'dark' ? 0.18 : 0.12),
-                    lineHeight: 1,
-                    userSelect: 'none',
-                  }}
-                >
-                  {index + 1}
-                </Typography>
-                <Box sx={{ position: 'relative', zIndex: 1, display: 'flex' }}>
-                  <RenderIcon name={step.icon} />
-                </Box>
+                <RenderIcon name={step.icon} />
               </Box>
 
               {/* Text */}
