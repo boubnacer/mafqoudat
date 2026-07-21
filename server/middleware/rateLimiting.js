@@ -174,13 +174,6 @@ const rateLimiters = {
     windowMs: 15 * 60 * 1000, // 15 minutes
     max: 200, // 200 requests per 15 minutes
     message: "Too many requests to public endpoints, please slow down"
-  }),
-
-  // Rate limiter for external web search (Serper.dev pass-through)
-  externalSearchRateLimit: createRateLimiter({
-    windowMs: 5 * 60 * 1000, // 5 minutes
-    max: 20, // 20 requests per 5 minutes per IP
-    message: "Too many external searches, please slow down."
   })
 };
 

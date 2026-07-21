@@ -53,10 +53,6 @@
       "destination": "https://mafqoudat-api.onrender.com/cities-api/:path*"
     },
     {
-      "source": "/external-search/:path*",
-      "destination": "https://mafqoudat-api.onrender.com/external-search/:path*"
-    },
-    {
       "source": "/floptions/:path*",
       "destination": "https://mafqoudat-api.onrender.com/floptions/:path*"
     },
