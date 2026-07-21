@@ -3,7 +3,7 @@ import { useGetCategoriesQuery, useGetCitiesQuery } from "../../dependencies/dep
 import { useTranslation } from "../../../utils/translations";
 import Post from "./Post";
 import useTitle from "../../../hooks/useTitle";
-import { LoadingState, EmptyState, ErrorState } from "../../../components/LoadingStates";
+import { LoadingState, ErrorState } from "../../../components/LoadingStates";
 import SeoMeta from "../../../components/SeoMeta";
 import { useSelector, useDispatch } from "react-redux";
 import { Link, useLocation, useNavigate } from "react-router-dom";
@@ -36,6 +36,7 @@ import {
   Autocomplete,
   CircularProgress,
   Alert,
+  alpha,
 } from "@mui/material";
 import Pagination from "@mui/material/Pagination";
 import { useEffect, useState, useMemo, useCallback } from "react";
@@ -721,20 +722,16 @@ const PostsList = () => {
       chips.push({
         label: `Search: ${searchTerm}`,
         onDelete: handleClearSearch,
-        color: "primary",
-        variant: "outlined"
       });
     }
-    
+
     if (selectedCity) {
       chips.push({
         label: `${t('city')}: ${getCityDisplayName(selectedCity)}`,
         onDelete: handleClearCityFilter,
-        color: "success",
-        variant: "outlined"
       });
     }
-    
+
     if (selectedCategories.length > 0) {
       selectedCategories.forEach(categoryId => {
         const category = categoriesData?.find(cat => cat._id === categoryId);
@@ -744,8 +741,6 @@ const PostsList = () => {
             setSelectedCategories(prev => prev.filter(id => id !== categoryId));
             setPage(1);
           },
-          color: "secondary",
-          variant: "outlined"
         });
       });
     } else if (localCategoryFilter !== "all") {
@@ -753,17 +748,13 @@ const PostsList = () => {
       chips.push({
         label: `${t('category')}: ${category?.labels?.[currentLanguage] || category?.code || localCategoryFilter}`,
         onDelete: handleClearCategoryFilter,
-        color: "secondary",
-        variant: "outlined"
       });
     }
-    
+
     if (sortBy !== "newest") {
       chips.push({
         label: `Sort: ${sortBy}`,
         onDelete: handleClearSort,
-        color: "info",
-        variant: "outlined"
       });
     }
     
@@ -795,12 +786,11 @@ const PostsList = () => {
             startIcon={<Language />}
             onClick={handleSelectCountry}
             sx={{
-              background: "linear-gradient(45deg, #4A8BFF 30%, #1A6EEE 90%)",
-              boxShadow: "0 3px 5px 2px rgba(26, 110, 238, .3)",
-              borderRadius: '4px',
+              backgroundColor: theme.custom.color.brandPrimary,
+              borderRadius: `${theme.custom.radius.md}px`,
               '&:hover': {
-                background: 'linear-gradient(45deg, #5A9BFF 30%, #2A7EFF 90%)',
-                boxShadow: '0 4px 8px 2px rgba(26, 110, 238, .4)',
+                backgroundColor: theme.custom.color.brandPrimary,
+                opacity: 0.9,
               }
             }}
           >
@@ -854,10 +844,10 @@ const PostsList = () => {
         <Box sx={{ mb: 4 }}>
           <Box display="flex" justifyContent="space-between" alignItems="center" mb={3}>
             <Box>
-              <Typography 
-                variant="h3" 
-                sx={{ 
-                  color: theme.palette.textColor.main,
+              <Typography
+                variant="h3"
+                sx={{
+                  color: theme.custom.color.ink,
                   fontWeight: 700,
                   mb: 1
                 }}
@@ -891,12 +881,14 @@ const PostsList = () => {
           </Box>
 
           {/* Filters and Search - Always visible */}
-          <Paper 
-            elevation={2} 
-            sx={{ 
-              p: 3, 
-              borderRadius: 3,
-              background: theme.palette.background.paper
+          <Paper
+            elevation={0}
+            sx={{
+              p: 3,
+              borderRadius: `${theme.custom.radius.lg}px`,
+              backgroundColor: theme.custom.color.surfaceRaised,
+              border: `1px solid ${theme.palette.divider}`,
+              boxShadow: theme.custom.elevation.e1,
             }}
           >
             <Grid container spacing={3} alignItems="center">
@@ -972,7 +964,7 @@ const PostsList = () => {
                         ? (currentLanguage === 'ar' ? 'اختر الفئات...' : currentLanguage === 'fr' ? 'Sélectionner les catégories...' : 'Select categories...')
                         : ''
                       }
-                      sx={{ borderRadius: 2 }}
+                      sx={{ borderRadius: `${theme.custom.radius.md}px` }}
                     />
                   )}
                   renderTags={(value, getTagProps) =>
@@ -988,10 +980,10 @@ const PostsList = () => {
                       );
                     })
                   }
-                  sx={{ 
-                    '& .MuiOutlinedInput-root': { 
-                      borderRadius: 2 
-                    } 
+                  sx={{
+                    '& .MuiOutlinedInput-root': {
+                      borderRadius: `${theme.custom.radius.md}px`
+                    }
                   }}
                 />
               </Grid>
@@ -1087,7 +1079,7 @@ const PostsList = () => {
                       {...params}
                       label={t('city')}
                       placeholder={t('searchCityPlaceholder')}
-                      sx={{ borderRadius: 2 }}
+                      sx={{ borderRadius: `${theme.custom.radius.md}px` }}
                       onFocus={(e) => {
                         setCityInputFocused(true);
                         params.inputProps.onFocus?.(e);
@@ -1110,10 +1102,10 @@ const PostsList = () => {
                       }}
                     />
                   )}
-                  sx={{ 
-                    '& .MuiOutlinedInput-root': { 
-                      borderRadius: 2 
-                    } 
+                  sx={{
+                    '& .MuiOutlinedInput-root': {
+                      borderRadius: `${theme.custom.radius.md}px`
+                    }
                   }}
                 />
               </Grid>
@@ -1124,24 +1116,17 @@ const PostsList = () => {
                allCitiesData.length === 0 && 
                !selectedCity && (
                 <Grid item xs={12}>
-                  <Alert 
-                    severity="info" 
-                    sx={{ 
-                      borderRadius: 2,
-                      direction: currentLanguage === 'ar' ? 'rtl' : 'ltr',
+                  <Alert
+                    severity="info"
+                    icon={false}
+                    sx={{
+                      borderRadius: `${theme.custom.radius.md}px`,
                       alignItems: 'center',
-                      '& .MuiAlert-icon': {
-                        alignItems: 'center',
-                        marginRight: currentLanguage === 'ar' ? 0 : '12px',
-                        marginLeft: currentLanguage === 'ar' ? '12px' : 0,
-                        minWidth: '24px',
-                      },
+                      backgroundColor: alpha(theme.custom.color.brandPrimary, 0.08),
+                      color: theme.custom.color.ink,
                       '& .MuiAlert-message': {
                         width: '100%',
                         padding: 0,
-                        direction: currentLanguage === 'ar' ? 'rtl' : 'ltr',
-                        display: 'flex',
-                        alignItems: 'center',
                       }
                     }}
                   >
@@ -1152,17 +1137,13 @@ const PostsList = () => {
                         gap: { xs: 2, md: 3 },
                         alignItems: { xs: 'stretch', md: 'center' },
                         width: '100%',
-                        direction: currentLanguage === 'ar' ? 'rtl' : 'ltr',
                       }}
                     >
-                      <Typography 
-                        variant="body2" 
-                        sx={{ 
+                      <Typography
+                        variant="body2"
+                        sx={{
                           flex: { xs: 'none', md: 1 },
                           width: { xs: '100%', md: 'auto' },
-                          direction: currentLanguage === 'ar' ? 'rtl' : 'ltr',
-                          paddingLeft: currentLanguage === 'ar' ? '8px' : 0,
-                          paddingRight: currentLanguage === 'ar' ? 0 : '8px',
                         }}
                       >
                         {t('noCityFoundMessage', { cityName: citySearchTerm })}
@@ -1173,24 +1154,17 @@ const PostsList = () => {
                         startIcon={<AddIcon />}
                         onClick={handleAddNewPost}
                         sx={{
-                          borderRadius: '4px',
+                          borderRadius: `${theme.custom.radius.md}px`,
                           textTransform: 'none',
                           fontWeight: 600,
-                          background: 'linear-gradient(45deg, #4A8BFF 30%, #1A6EEE 90%)',
-                          boxShadow: '0 3px 5px 2px rgba(26, 110, 238, .3)',
-                          color: '#fff !important',
+                          backgroundColor: theme.custom.color.brandPrimary,
+                          '&:hover': {
+                            backgroundColor: theme.custom.color.brandPrimary,
+                            opacity: 0.9,
+                          },
                           width: { xs: '100%', md: 'auto' },
                           minWidth: { xs: '100%', md: '280px' },
                           px: { xs: 2, md: 4 },
-                          '&:hover': {
-                            background: 'linear-gradient(45deg, #5A9BFF 30%, #2A7EFF 90%)',
-                            boxShadow: '0 4px 8px 2px rgba(26, 110, 238, .4)',
-                            color: '#fff !important',
-                          },
-                          '& .MuiButton-startIcon': {
-                            marginRight: currentLanguage === 'ar' ? 0 : '8px',
-                            marginLeft: currentLanguage === 'ar' ? '8px' : 0,
-                          }
                         }}
                       >
                         {t('createPostForCity', { cityName: citySearchTerm })}
@@ -1234,12 +1208,20 @@ const PostsList = () => {
               <Grid item xs={12}>
                 <Box display="flex" gap={1} flexWrap="wrap">
                   {activeFilterChips.map((chip, index) => (
-                    <Chip 
+                    <Chip
                       key={index}
-                      label={chip.label} 
+                      label={chip.label}
                       onDelete={chip.onDelete}
-                      color={chip.color}
-                      variant={chip.variant}
+                      variant="outlined"
+                      sx={{
+                        borderRadius: `${theme.custom.radius.sm}px`,
+                        borderColor: theme.custom.color.brandPrimary,
+                        color: theme.custom.color.brandPrimary,
+                        '& .MuiChip-deleteIcon': {
+                          color: alpha(theme.custom.color.brandPrimary, 0.7),
+                          '&:hover': { color: theme.custom.color.brandPrimary },
+                        },
+                      }}
                     />
                   ))}
                 </Box>
@@ -1298,23 +1280,20 @@ const PostsList = () => {
                 startIcon={<AddIcon />}
                 onClick={handleAddNewPost}
                 sx={{
-                  borderRadius: '4px',
+                  borderRadius: `${theme.custom.radius.md}px`,
                   px: 4,
                   py: 1.5,
                   textTransform: 'none',
                   fontWeight: 600,
                   fontSize: '1rem',
-                  background: 'linear-gradient(45deg, #4A8BFF 30%, #1A6EEE 90%)',
-                  boxShadow: '0 3px 5px 2px rgba(26, 110, 238, .3)',
-                  color: '#fff !important',
+                  backgroundColor: theme.custom.color.brandPrimary,
                   '&:hover': {
-                    background: 'linear-gradient(45deg, #5A9BFF 30%, #2A7EFF 90%)',
-                    boxShadow: '0 4px 8px 2px rgba(26, 110, 238, .4)',
-                    color: '#fff !important',
+                    backgroundColor: theme.custom.color.brandPrimary,
+                    opacity: 0.9,
                   },
                   '& .MuiButton-startIcon': {
-                    marginRight: currentLanguage === 'ar' ? 0 : '8px',
-                    marginLeft: currentLanguage === 'ar' ? '8px' : 0,
+                    marginInlineEnd: '8px',
+                    marginInlineStart: 0,
                   }
                 }}
               >
@@ -1324,12 +1303,14 @@ const PostsList = () => {
 
             {/* Enhanced Pagination */}
             {totalPages > 1 && (
-              <Paper 
-                elevation={2} 
-                sx={{ 
-                  p: 3, 
-                  borderRadius: 3,
-                  background: theme.palette.background.paper
+              <Paper
+                elevation={0}
+                sx={{
+                  p: 3,
+                  borderRadius: `${theme.custom.radius.lg}px`,
+                  backgroundColor: theme.custom.color.surfaceRaised,
+                  border: `1px solid ${theme.palette.divider}`,
+                  boxShadow: theme.custom.elevation.e1,
                 }}
               >
                 <Box
@@ -1339,35 +1320,42 @@ const PostsList = () => {
                   alignItems="center"
                   gap={2}
                 >
-                  <Typography variant="body2" color="text.secondary">
+                  <Typography variant="body2" sx={{ color: alpha(theme.custom.color.ink, 0.65) }}>
                     {t('page')} {page} {t('of')} {totalPages} • {filteredPosts.length} {t('posts')}
                   </Typography>
-                  
+
                   <Pagination
                     page={page}
                     count={totalPages}
                     onChange={handlePaginate}
-                    color="primary"
                     size={isMobile ? "small" : "medium"}
                     showFirstButton
                     showLastButton
                     sx={{
                       '& .MuiPaginationItem-root': {
-                        borderRadius: 2,
-                        fontWeight: 600
-                      }
+                        borderRadius: `${theme.custom.radius.sm}px`,
+                        fontWeight: 600,
+                      },
+                      '& .MuiPaginationItem-root.Mui-selected': {
+                        backgroundColor: theme.custom.color.brandPrimary,
+                        color: theme.palette.getContrastText(theme.custom.color.brandPrimary),
+                        '&:hover': {
+                          backgroundColor: theme.custom.color.brandPrimary,
+                          opacity: 0.9,
+                        },
+                      },
                     }}
                   />
-                  
+
                   <Box display="flex" gap={1} alignItems="center">
-                    <Typography variant="body2" color="text.secondary">
+                    <Typography variant="body2" sx={{ color: alpha(theme.custom.color.ink, 0.65) }}>
                       {t('postsPerPage')}:
                     </Typography>
                     <Select
                       value={pageSize}
                       onChange={handlePageSizeChange}
                       size="small"
-                      sx={{ minWidth: 80 }}
+                      sx={{ minWidth: 80, borderRadius: `${theme.custom.radius.md}px` }}
                     >
                       <MenuItem value={4}>4</MenuItem>
                       <MenuItem value={8}>8</MenuItem>
@@ -1380,87 +1368,89 @@ const PostsList = () => {
             )}
           </>
         ) : (
-          <EmptyState
-            icon={Search}
-            title={
-              selectedCity && localCategoryFilter !== "all"
+          // Locally tokenized rather than the shared (untokenized) EmptyState —
+          // mirrors the DashboardEmptyStates.NoRecentFounds/NoRecentLosts
+          // precedent in LoadingStates.jsx without touching that shared file.
+          <Box
+            sx={{
+              display: 'flex',
+              flexDirection: 'column',
+              alignItems: 'center',
+              justifyContent: 'center',
+              py: 8,
+              px: 2,
+              textAlign: 'center',
+              backgroundColor: theme.custom.color.surfaceRaised,
+              borderRadius: `${theme.custom.radius.lg}px`,
+              border: `1px dashed ${alpha(theme.custom.color.ink, 0.15)}`,
+            }}
+          >
+            <Search sx={{ fontSize: 56, color: theme.custom.color.brandPrimary, mb: 2, opacity: 0.6 }} />
+            <Typography variant="h6" sx={{ fontWeight: 700, color: theme.custom.color.ink, mb: 1 }}>
+              {selectedCity && localCategoryFilter !== "all"
                 ? t('noPostsInCityWithCategory', { cityName: getCityDisplayName(selectedCity) })
-                : selectedCity 
+                : selectedCity
                   ? t('noPostsInCity', { cityName: getCityDisplayName(selectedCity) })
-                  : hasActiveFilters 
-                    ? t('noPostsMatchFilters') 
-                    : t('noPostsFound')
-            }
-            description={
-              selectedCity && localCategoryFilter !== "all"
+                  : hasActiveFilters
+                    ? t('noPostsMatchFilters')
+                    : t('noPostsFound')}
+            </Typography>
+            <Typography variant="body2" sx={{ color: alpha(theme.custom.color.ink, 0.65), mb: 3, maxWidth: 420 }}>
+              {selectedCity && localCategoryFilter !== "all"
                 ? t('noPostsInCityWithCategoryDescription', { cityName: getCityDisplayName(selectedCity) })
                 : selectedCity
                   ? t('noPostsInCityDescription', { cityName: getCityDisplayName(selectedCity) })
                   : hasActiveFilters
                     ? t('adjustFilters')
-                    : t('noPostsInArea')
-            }
-            action={
-              <Box display="flex" gap={2} flexWrap="wrap" justifyContent="center">
-                <Link to="/dash/posts/new">
-                  <Button 
-                    variant="contained" 
-                    startIcon={<AddIcon />}
-                    sx={{ 
-                      borderRadius: '4px',
-                      px: 3,
-                      py: 1,
-                      textTransform: 'none',
-                      fontWeight: 600,
-                      background: 'linear-gradient(45deg, #4A8BFF 30%, #1A6EEE 90%)',
-                      boxShadow: '0 3px 5px 2px rgba(26, 110, 238, .3)',
-                      color: '#fff !important',
-                      '&:hover': {
-                        background: 'linear-gradient(45deg, #5A9BFF 30%, #2A7EFF 90%)',
-                        boxShadow: '0 4px 8px 2px rgba(26, 110, 238, .4)',
-                        color: '#fff !important',
-                      },
-                      '& .MuiButton-startIcon': {
-                        marginRight: currentLanguage === 'ar' ? 0 : '8px',
-                        marginLeft: currentLanguage === 'ar' ? '8px' : 0,
-                      }
-                    }}
-                  >
-                    {selectedCity 
-                      ? t('createPostInCity', { cityName: getCityDisplayName(selectedCity) })
-                      : t('addNewPost')
-                    }
-                  </Button>
-                </Link>
-                {!selectedCity && (
-                  <Button 
-                    variant="outlined" 
-                    startIcon={<Language />}
-                    onClick={handleSelectCountry}
-                    sx={{ 
-                      borderRadius: '4px',
-                      px: 3,
-                      py: 1,
-                      textTransform: 'none',
-                      fontWeight: 600,
-                      borderColor: '#4A8BFF',
-                      color: '#4A8BFF',
-                      '&:hover': {
-                        borderColor: '#5A9BFF',
-                        backgroundColor: 'rgba(74, 139, 255, 0.1)',
-                      },
-                      '& .MuiButton-startIcon': {
-                        marginRight: currentLanguage === 'ar' ? 0 : '8px',
-                        marginLeft: currentLanguage === 'ar' ? '8px' : 0,
-                      }
-                    }}
-                  >
-                    {t('changeCountry')}
-                  </Button>
-                )}
-              </Box>
-            }
-          />
+                    : t('noPostsInArea')}
+            </Typography>
+            <Box display="flex" gap={2} flexWrap="wrap" justifyContent="center">
+              <Link to="/dash/posts/new">
+                <Button
+                  variant="contained"
+                  startIcon={<AddIcon />}
+                  sx={{
+                    borderRadius: `${theme.custom.radius.md}px`,
+                    px: 3,
+                    py: 1,
+                    textTransform: 'none',
+                    fontWeight: 600,
+                    backgroundColor: theme.custom.color.brandPrimary,
+                    '&:hover': {
+                      backgroundColor: theme.custom.color.brandPrimary,
+                      opacity: 0.9,
+                    },
+                  }}
+                >
+                  {selectedCity
+                    ? t('createPostInCity', { cityName: getCityDisplayName(selectedCity) })
+                    : t('addNewPost')}
+                </Button>
+              </Link>
+              {!selectedCity && (
+                <Button
+                  variant="outlined"
+                  startIcon={<Language />}
+                  onClick={handleSelectCountry}
+                  sx={{
+                    borderRadius: `${theme.custom.radius.md}px`,
+                    px: 3,
+                    py: 1,
+                    textTransform: 'none',
+                    fontWeight: 600,
+                    borderColor: theme.custom.color.brandPrimary,
+                    color: theme.custom.color.brandPrimary,
+                    '&:hover': {
+                      borderColor: theme.custom.color.brandPrimary,
+                      backgroundColor: alpha(theme.custom.color.brandPrimary, 0.08),
+                    },
+                  }}
+                >
+                  {t('changeCountry')}
+                </Button>
+              )}
+            </Box>
+          </Box>
         )}
       </Box>
       </>

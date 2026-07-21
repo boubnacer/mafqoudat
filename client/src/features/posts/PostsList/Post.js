@@ -12,12 +12,12 @@ import {
   useTheme,
   Box,
   Chip,
-  Avatar,
   IconButton,
   Tooltip,
   useMediaQuery,
   Paper,
   alpha,
+  styled,
 } from "@mui/material";
 import {
   LocationOn as LocationIcon,
@@ -29,6 +29,8 @@ import {
   Event as EventIcon,
   ImageNotSupported as NoImageIcon,
   CheckCircle as CheckCircleIcon,
+  TaskAltOutlined,
+  SearchOffOutlined,
 } from "@mui/icons-material";
 import FlexBetween from "../../../components/FlexBetween";
 import { useTranslation } from "../../../utils/translations";
@@ -42,6 +44,118 @@ import LazyCardMedia from "../../../components/LazyCardMedia";
 
 // Get the API base URL for image construction
 const API_BASE_URL = process.env.REACT_APP_API_URL || "http://localhost:3500";
+
+// Post card DNA — same recipe as PublicPostsPage.jsx / TrendingItem.jsx:
+// surfaceRaised + radius.lg + elevation.e1->e2 hover-lift + status accent bar.
+const PostCardRoot = styled(Card)(({ theme, tone }) => ({
+  height: "100%",
+  display: "flex",
+  flexDirection: "column",
+  backgroundColor: theme.custom.color.surfaceRaised,
+  borderRadius: `${theme.custom.radius.lg}px`,
+  boxShadow: theme.custom.elevation.e1,
+  border: `1px solid ${theme.palette.divider}`,
+  borderInlineStart: `6px solid ${tone}`,
+  overflow: "hidden",
+  cursor: "pointer",
+  transition: "transform 0.2s ease, box-shadow 0.2s ease",
+  "&:hover": {
+    transform: "translateY(-4px)",
+    boxShadow: theme.custom.elevation.e2,
+  },
+}));
+
+const MediaFrame = styled(Box)(({ theme }) => ({
+  position: "relative",
+  width: "100%",
+  overflow: "hidden",
+}));
+
+const StatusTag = ({ isFound, label }) => {
+  const theme = useTheme();
+  const tone = isFound ? theme.custom.status.found : theme.custom.status.lost;
+  const Icon = isFound ? TaskAltOutlined : SearchOffOutlined;
+  return (
+    <Box
+      sx={{
+        position: "absolute",
+        top: 12,
+        insetInlineStart: 12,
+        zIndex: 11,
+        display: "inline-flex",
+        alignItems: "center",
+        gap: 0.5,
+        px: 1,
+        py: 0.375,
+        borderRadius: `${theme.custom.radius.sm}px`,
+        backgroundColor: tone.main,
+      }}
+    >
+      <Icon sx={{ fontSize: 14, color: theme.palette.getContrastText(tone.main) }} />
+      <Typography
+        variant="caption"
+        sx={{ fontWeight: 700, letterSpacing: 0.3, color: theme.palette.getContrastText(tone.main), lineHeight: 1 }}
+      >
+        {label}
+      </Typography>
+    </Box>
+  );
+};
+
+const DateBadge = ({ children }) => {
+  const theme = useTheme();
+  return (
+    <Box
+      sx={{
+        position: "absolute",
+        top: 12,
+        insetInlineEnd: 12,
+        zIndex: 11,
+        px: 1,
+        py: 0.375,
+        borderRadius: `${theme.custom.radius.sm}px`,
+        backgroundColor: alpha(theme.custom.color.surfaceRaised, 0.85),
+      }}
+    >
+      <Typography variant="caption" sx={{ color: theme.custom.color.ink, fontWeight: 600, lineHeight: 1 }}>
+        {children}
+      </Typography>
+    </Box>
+  );
+};
+
+// Resolved/returned is dashboard-specific — public marketing card has no
+// equivalent. Reuses the same solid-fill badge language as StatusTag rather
+// than the old hardcoded-green pulsing overlay.
+const ResolvedBadge = ({ label }) => {
+  const theme = useTheme();
+  const tone = theme.custom.status.found;
+  return (
+    <Box
+      sx={{
+        position: "absolute",
+        bottom: 12,
+        insetInlineEnd: 12,
+        zIndex: 11,
+        display: "inline-flex",
+        alignItems: "center",
+        gap: 0.5,
+        px: 1,
+        py: 0.375,
+        borderRadius: `${theme.custom.radius.sm}px`,
+        backgroundColor: tone.main,
+      }}
+    >
+      <CheckCircleIcon sx={{ fontSize: 14, color: theme.palette.getContrastText(tone.main) }} />
+      <Typography
+        variant="caption"
+        sx={{ fontWeight: 700, letterSpacing: 0.3, color: theme.palette.getContrastText(tone.main), lineHeight: 1 }}
+      >
+        {label}
+      </Typography>
+    </Box>
+  );
+};
 
 const Post = ({ post, viewMode = "grid" }) => {
   const theme = useTheme();
@@ -658,564 +772,160 @@ const Post = ({ post, viewMode = "grid" }) => {
     );
   }
 
-  // Grid view layout - Matching RecentPosts Design
+  // Grid view layout — reuses the Phase 3 post card DNA (surfaceRaised,
+  // radius.lg, elevation.e1->e2 hover-lift, borderInlineStart status accent,
+  // solid-fill StatusTag + translucent DateBadge) rather than the ad hoc
+  // hardcoded-color card this page had before.
+  const tone = foundLostStatus.isFound ? theme.custom.status.found : theme.custom.status.lost;
+
   return (
-    <>
-      <Card
-        className="recent-post-card"
-        onClick={handleViewDetails}
-        style={{
-          backgroundColor: isDarkMode ? '#1a1a1a' : '#ffffff',
-          background: isDarkMode ? '#1a1a1a' : '#ffffff',
-          cursor: 'pointer',
-        }}
-        sx={{
-          backgroundColor: isDarkMode ? '#1a1a1a' : '#ffffff',
-          background: isDarkMode ? '#1a1a1a' : '#ffffff',
-          position: 'relative',
-          boxShadow: post?.returned 
-            ? '0 4px 12px rgba(76, 175, 80, 0.2), 0 2px 4px rgba(0, 0, 0, 0.1)'
-            : 'none',
-          border: post?.returned 
-            ? `3px solid #4CAF50`
-            : `1px solid ${isDarkMode ? alpha('#fff', 0.08) : alpha('#000', 0.06)}`,
-          height: { xs: 'auto', sm: 'auto' },
-          minHeight: { xs: '300px', sm: '350px' },
-          width: { xs: '100%', sm: '100%' },
-          maxWidth: { xs: '100%', sm: '100%' },
-          display: 'flex',
-          flexDirection: 'column',
-          transition: 'all 0.3s cubic-bezier(0.4, 0, 0.2, 1)',
-          borderRadius: '12px',
-          overflow: 'hidden',
-          cursor: 'pointer',
-          '&:hover': {
-            transform: { xs: 'none', sm: 'translateY(-4px)' },
-            boxShadow: post?.returned 
-              ? '0 8px 20px rgba(76, 175, 80, 0.3), 0 4px 8px rgba(0, 0, 0, 0.15)'
-              : 'none',
-            backgroundColor: isDarkMode ? '#1a1a1a !important' : '#ffffff !important',
-            background: isDarkMode ? '#1a1a1a !important' : '#ffffff !important',
-          },
-          direction: currentLanguage === 'ar' ? 'rtl' : 'ltr',
-          // Force white background in light mode with higher specificity
-          '&.MuiCard-root': {
-            backgroundColor: isDarkMode ? '#1a1a1a !important' : '#ffffff !important',
-            background: isDarkMode ? '#1a1a1a !important' : '#ffffff !important',
-          },
-          // Additional override for any inherited styles
-          '&': {
-            backgroundColor: isDarkMode ? '#1a1a1a !important' : '#ffffff !important',
-            background: isDarkMode ? '#1a1a1a !important' : '#ffffff !important',
-          }
-        }}
-      >
-        {/* Image Section with Overlays */}
-        <Box sx={{ 
-          position: 'relative', 
-          height: { xs: '260px', sm: '200px' }, 
-          backgroundColor: post?.image ? 'transparent' : (categoryStyles[0]?.background || (theme.palette.mode === 'dark' ? '#1a1a1a' : '#f5f5f5')),
-          display: 'flex',
-          alignItems: 'center',
-          justifyContent: 'center',
-        }}>
-          {post?.image && imageUrl ? (
-            <LazyCardMedia
-              component="img"
-              sx={{
-                height: '100%',
-                width: '100%',
-                objectFit: 'cover',
-                objectPosition: 'center',
-                zIndex: 1, // Base layer for image
-              }}
-              image={imageUrl}
-              alt={categoryName || 'Item Image'}
-              fallback={noImageSvg}
-              onError={handleImageError}
-            />
-          ) : categoryIconsData.length > 0 ? (
-            <Box
-              sx={{
-                display: 'flex',
-                flexDirection: 'column',
-                alignItems: 'center',
-                justifyContent: 'center',
-                gap: 1,
-                padding: 2,
-                zIndex: 1,
-                width: '100%',
-                height: '100%',
-              }}
-            >
-              {categoryIconsData.length === 1 ? (() => {
-                const IconComponent = categoryIconsData[0].IconComponent;
-                return (
-                  <IconComponent
-                    sx={{
-                      fontSize: { xs: '80px', sm: '100px' },
-                      color: categoryIconsData[0].style?.main || theme.palette.text.secondary,
-                      opacity: 0.85,
-                      filter: 'drop-shadow(0 2px 4px rgba(0,0,0,0.1))',
-                    }}
-                  />
-                );
-              })() : (
-                // Multiple icons - simple flex layout
-                <Box
-                  sx={{
-                    display: 'flex',
-                    alignItems: 'center',
-                    justifyContent: 'center',
-                    gap: { xs: 2.5, sm: 3 },
-                    flexWrap: 'wrap',
-                    paddingTop: { xs: 1.5, sm: 2 },
-                  }}
-                >
-                  {categoryIconsData.slice(0, 4).map((iconData, idx) => {
-                    const IconComponent = iconData.IconComponent;
-                    return (
-                      <IconComponent
-                        key={iconData.code || idx}
-                        sx={{
-                          fontSize: { xs: '48px', sm: '56px' },
-                          color: iconData.style?.main || theme.palette.text.secondary,
-                          opacity: 0.85,
-                          filter: 'drop-shadow(0 2px 4px rgba(0,0,0,0.1))',
-                        }}
-                      />
-                    );
-                  })}
-                </Box>
-              )}
-            </Box>
-          ) : null}
-          
-
-
-          {/* Returned Badge - Top Right Overlay (when returned is true) */}
-          {post?.returned && (
-            <Box
-              sx={{
-                position: 'absolute',
-                top: 12,
-                right: 12,
-                zIndex: 12,
-                display: 'flex',
-                alignItems: 'center',
-                justifyContent: 'center',
-                gap: 0.5,
-                background: 'linear-gradient(135deg, #4CAF50 0%, #66BB6A 100%)',
-                borderRadius: '20px',
-                padding: { xs: '5px 10px', sm: '6px 12px' },
-                boxShadow: '0 4px 12px rgba(76, 175, 80, 0.4), 0 2px 4px rgba(0,0,0,0.2)',
-                border: '2px solid rgba(255, 255, 255, 0.9)',
-                animation: 'pulse 2s ease-in-out infinite',
-                '@keyframes pulse': {
-                  '0%, 100%': {
-                    transform: 'scale(1)',
-                    boxShadow: '0 4px 12px rgba(76, 175, 80, 0.4), 0 2px 4px rgba(0,0,0,0.2)',
-                  },
-                  '50%': {
-                    transform: 'scale(1.02)',
-                    boxShadow: '0 6px 16px rgba(76, 175, 80, 0.6), 0 4px 8px rgba(0,0,0,0.3)',
-                  },
-                },
-              }}
-            >
-              <CheckCircleIcon
-                sx={{
-                  fontSize: { xs: '16px', sm: '18px' },
-                  color: '#ffffff',
-                  filter: 'drop-shadow(0 1px 2px rgba(0,0,0,0.2))',
-                }}
-              />
-              <Typography
-                sx={{
-                  color: '#ffffff',
-                  fontSize: { xs: '11px', sm: '12px' },
-                  fontWeight: 700,
-                  textTransform: 'uppercase',
-                  letterSpacing: currentLanguage === 'ar' ? 'normal' : '0.5px',
-                  fontFamily: currentLanguage === 'ar' 
-                    ? '"Noto Sans Arabic", "Segoe UI", "Roboto", "Helvetica", "Arial", sans-serif'
-                    : '"Inter", "Segoe UI", "Roboto", "Helvetica", "Arial", sans-serif',
-                  lineHeight: 1.2,
-                  whiteSpace: 'nowrap',
-                }}
-              >
-                {t('returned')}
-              </Typography>
-            </Box>
-          )}
-
-          {/* Top Badges Container */}
+    <PostCardRoot tone={tone.main} onClick={handleViewDetails} sx={{ direction: currentLanguage === 'ar' ? 'rtl' : 'ltr' }}>
+      <MediaFrame sx={{ height: { xs: '260px', sm: '200px' }, backgroundColor: post?.image ? 'transparent' : alpha(tone.main, 0.06) }}>
+        {post?.image && imageUrl ? (
+          <LazyCardMedia
+            component="img"
+            sx={{ height: '100%', width: '100%', objectFit: 'cover', objectPosition: 'center' }}
+            image={imageUrl}
+            alt={categoryName || 'Item Image'}
+            fallback={noImageSvg}
+            onError={handleImageError}
+          />
+        ) : categoryIconsData.length > 0 ? (
           <Box
             sx={{
-              position: 'absolute',
-              top: 12,
-              left: 12,
-              right: post?.returned ? { xs: 120, sm: 130 } : 12,
               display: 'flex',
-              justifyContent: 'space-between',
-              alignItems: 'flex-start',
+              flexDirection: 'column',
+              alignItems: 'center',
+              justifyContent: 'center',
               gap: 1,
-              zIndex: 10, // Ensure badges are above image
+              padding: 2,
+              width: '100%',
+              height: '100%',
             }}
           >
-            {/* Category Badges - Multiple categories support */}
-            <Box
-              sx={{
-                display: 'flex',
-                flexWrap: 'wrap',
-                gap: 0.5,
-                alignItems: 'center',
-                zIndex: 11, // Higher z-index for category badges
-              }}
-            >
-              {categories.map((cat, index) => {
-                const catStyle = categoryStyles[index];
-                const catName = categoryNames[index];
-                return (
-                  <Box
-                    key={cat.code || index}
-                    sx={{
-                      backgroundColor: catStyle.background,
-                      padding: '4px 8px',
-                      borderRadius: '8px',
-                      display: 'flex',
-                      alignItems: 'center',
-                      gap: 0.5,
-                      backdropFilter: 'blur(10px)',
-                      border: `1px solid ${catStyle.main}`,
-                    }}
-                  >
-                    <RenderIcon 
-                      name={`${cat.code?.toLowerCase() || 'other'}cate`} 
-                      sx={{ 
-                        fontSize: { xs: '14px', sm: '12px' }, 
-                        color: catStyle.text
-                      }} 
-                    />
-                    <Typography
-                      sx={{
-                        color: catStyle.text,
-                        fontSize: { xs: '14px', sm: '12px' },
-                        fontWeight: 700,
-                      }}
-                    >
-                      {catName}
-                    </Typography>
-                  </Box>
-                );
-              })}
-            </Box>
-          </Box>
-
-          {/* Time Badge with No Image Indicator */}
-          <Box
-            sx={{
-              position: 'absolute',
-              bottom: 12,
-              left: currentLanguage === 'ar' ? 'auto' : 12,
-              right: currentLanguage === 'ar' ? 12 : 'auto',
-              display: 'grid',
-              gridTemplateColumns: 'auto',
-              gap: 0.5,
-              justifyItems: currentLanguage === 'ar' ? 'end' : 'start',
-            }}
-          >
-            {/* No Image Indicator */}
-            {!post?.image && (
+            {categoryIconsData.length === 1 ? (() => {
+              const IconComponent = categoryIconsData[0].IconComponent;
+              return (
+                <IconComponent
+                  sx={{
+                    fontSize: { xs: '80px', sm: '100px' },
+                    color: categoryIconsData[0].style?.main || theme.palette.text.secondary,
+                    opacity: 0.85,
+                  }}
+                />
+              );
+            })() : (
               <Box
                 sx={{
-                  backgroundColor: theme.palette.mode === 'dark' 
-                    ? 'rgba(0,0,0,0.7)' 
-                    : 'rgba(255,255,255,0.9)',
-                  color: theme.palette.mode === 'dark' ? '#fff' : '#333',
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                  gap: { xs: 2.5, sm: 3 },
+                  flexWrap: 'wrap',
+                  paddingTop: { xs: 1.5, sm: 2 },
+                }}
+              >
+                {categoryIconsData.slice(0, 4).map((iconData, idx) => {
+                  const IconComponent = iconData.IconComponent;
+                  return (
+                    <IconComponent
+                      key={iconData.code || idx}
+                      sx={{
+                        fontSize: { xs: '48px', sm: '56px' },
+                        color: iconData.style?.main || theme.palette.text.secondary,
+                        opacity: 0.85,
+                      }}
+                    />
+                  );
+                })}
+              </Box>
+            )}
+          </Box>
+        ) : null}
+
+        <StatusTag isFound={foundLostStatus.isFound} label={foundLostStatus.statusText} />
+        <DateBadge>{created}</DateBadge>
+        {post?.returned && <ResolvedBadge label={t('returned')} />}
+
+        {post?.image && imageUrl && (
+          <Box
+            sx={{
+              position: 'absolute',
+              inset: 0,
+              background: 'linear-gradient(180deg, rgba(0,0,0,0.1) 0%, rgba(0,0,0,0.4) 100%)',
+              pointerEvents: 'none',
+            }}
+          />
+        )}
+      </MediaFrame>
+
+      <CardContent sx={{ flexGrow: 1, display: 'flex', flexDirection: 'column', gap: 1, p: 2.5 }}>
+        {/* Category Badges - Multiple categories support */}
+        <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: 0.5, alignItems: 'center', mb: 0.5 }}>
+          {categories.map((cat, index) => {
+            const catStyle = categoryStyles[index];
+            const catName = categoryNames[index];
+            return (
+              <Box
+                key={cat.code || index}
+                sx={{
+                  backgroundColor: catStyle.background,
                   padding: '4px 8px',
-                  borderRadius: '8px',
-                  backdropFilter: 'blur(10px)',
-                  border: `1px solid ${theme.palette.mode === 'dark' ? 'rgba(255,255,255,0.2)' : 'rgba(0,0,0,0.1)'}`,
-                  zIndex: 11,
-                  order: { xs: 0, sm: 1 },
+                  borderRadius: `${theme.custom.radius.sm}px`,
                   display: 'flex',
                   alignItems: 'center',
                   gap: 0.5,
-                  width: 'fit-content',
-                  marginLeft: currentLanguage === 'ar' ? 'auto' : 0,
-                  marginRight: currentLanguage === 'ar' ? 0 : 'auto',
+                  border: `1px solid ${catStyle.main}`,
                 }}
               >
-                <NoImageIcon sx={{ 
-                  fontSize: { xs: '12px', sm: '11px' }, 
-                  color: theme.palette.mode === 'dark' ? '#fff' : '#333',
-                  opacity: 0.8,
-                }} />
-                <Typography
-                  sx={{
-                    color: theme.palette.mode === 'dark' ? '#fff' : '#333',
-                    fontSize: { xs: '11px', sm: '10px' },
-                    fontWeight: 600,
-                  }}
-                >
-                  {t('postHasNoImage')}
+                <RenderIcon
+                  name={`${cat.code?.toLowerCase() || 'other'}cate`}
+                  sx={{ fontSize: '12px', color: catStyle.text }}
+                />
+                <Typography sx={{ color: catStyle.text, fontSize: '11px', fontWeight: 700 }}>
+                  {catName}
                 </Typography>
               </Box>
-            )}
-            {/* Time Badge */}
-            <Box
-              sx={{
-                backgroundColor: theme.palette.mode === 'dark' 
-                  ? 'rgba(0,0,0,0.7)' 
-                  : 'rgba(255,255,255,0.9)',
-                color: theme.palette.mode === 'dark' ? '#fff' : '#333',
-                padding: '4px 8px',
-                borderRadius: '8px',
-                backdropFilter: 'blur(10px)',
-                border: `1px solid ${theme.palette.mode === 'dark' ? 'rgba(255,255,255,0.2)' : 'rgba(0,0,0,0.1)'}`,
-                zIndex: 11, // Higher z-index for time badge
-                width: 'fit-content',
-                marginLeft: currentLanguage === 'ar' ? 'auto' : 0,
-                marginRight: currentLanguage === 'ar' ? 0 : 'auto',
-              }}
-            >
-              <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.5 }}>
-                <TimeIcon sx={{ 
-                  fontSize: { xs: '14px', sm: '12px' }, 
-                  color: theme.palette.mode === 'dark' ? '#fff' : '#333'
-                }} />
-                <Typography
-                  sx={{
-                    color: theme.palette.mode === 'dark' ? '#fff' : '#333',
-                    fontSize: { xs: '14px', sm: '12px' },
-                    fontWeight: 600,
-                  }}
-                >
-                  {created}
-                </Typography>
-              </Box>
-            </Box>
-          </Box>
-
-          {/* Gradient Overlay - Only show when there's an image */}
-          {post?.image && imageUrl && (
-            <Box
-              sx={{
-                position: 'absolute',
-                top: 0,
-                left: 0,
-                right: 0,
-                bottom: 0,
-                background: 'linear-gradient(180deg, rgba(0,0,0,0.1) 0%, rgba(0,0,0,0.4) 100%)',
-                pointerEvents: 'none',
-                zIndex: 2, // Above image, below badges
-              }}
-            />
-          )}
+            );
+          })}
         </Box>
 
-        {/* Content Section */}
-        <CardContent 
-          sx={{ 
-            flexGrow: 1, 
-            p: { xs: 2.5, sm: 2.5 },
-            display: 'flex',
-            flexDirection: 'column',
-            gap: 1.5,
-            backgroundColor: isDarkMode ? '#3A3A3A' : '#E9ECEF',
-            background: isDarkMode ? '#3A3A3A' : '#E9ECEF',
-            // Force override any Material-UI defaults
-            '&.MuiCardContent-root': {
-              backgroundColor: isDarkMode ? '#3A3A3A' : '#E9ECEF',
-              background: isDarkMode ? '#3A3A3A' : '#E9ECEF',
-            }
-          }}
-        >
-          {/* Location Info - Main Date, City and Exact Location */}
-          <Box 
-            sx={{ 
-              backgroundColor: isDarkMode ? '#3a3a3a' : '#E9ECEF',
+        {/* Main Date with Event Icon */}
+        {post?.mainDate && (
+          <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.75, minWidth: 0 }}>
+            <EventIcon sx={{ fontSize: 16, color: 'text.secondary', flexShrink: 0 }} />
+            <Typography variant="body2" sx={{ color: theme.custom.color.ink, fontWeight: 700 }}>
+              {post.mainDate}
+            </Typography>
+          </Box>
+        )}
+
+        {/* City with Location Icon */}
+        <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.75, minWidth: 0 }}>
+          <LocationIcon sx={{ fontSize: 16, color: 'text.secondary', flexShrink: 0 }} />
+          <Typography variant="body2" sx={{ color: theme.custom.color.ink, fontWeight: 700 }}>
+            {cityName}
+          </Typography>
+        </Box>
+
+        {/* Exact Location */}
+        {post?.exactLocation && (
+          <Typography
+            variant="caption"
+            color="text.secondary"
+            sx={{
+              overflow: 'hidden',
+              textOverflow: 'ellipsis',
+              whiteSpace: 'nowrap',
+              direction: isArabicText(post.exactLocation) ? 'rtl' : 'ltr',
+              textAlign: isArabicText(post.exactLocation) ? 'right' : 'left',
             }}
           >
-            {/* Main Date with Event Icon */}
-            {post?.mainDate && (
-              <Box 
-                sx={{ 
-                  display: 'flex', 
-                  alignItems: 'center', 
-                  gap: 1,
-                  // mb: 0.25,
-                }}
-              >
-                <Avatar
-                  sx={{
-                    width: { xs: 40, sm: 36 },
-                    height: { xs: 40, sm: 36 },
-                    backgroundColor: 'transparent',
-                    color: isDarkMode ? alpha('#fff', 0.8) : alpha('#000', 0.7),
-                    flexShrink: 0,
-                    transition: 'all 0.3s ease',
-                  }}
-                >
-                  <EventIcon sx={{ fontSize: { xs: '20px', sm: '18px' } }} />
-                </Avatar>
-                <Typography
-                  sx={{
-                    color: isDarkMode ? alpha('#fff', 0.9) : alpha('#000', 0.8),
-                    fontSize: { xs: '16px', sm: '14px' },
-                    fontWeight: 700,
-                    lineHeight: 1.2,
-                  }}
-                >
-                  {post.mainDate}
-                </Typography>
-              </Box>
-            )}
-
-            {/* City with Location Icon */}
-            <Box 
-              sx={{ 
-                display: 'flex', 
-                alignItems: 'center', 
-                gap: 1,
-                mb: 0.5,
-                position: 'relative',
-              }}
-            >
-              <Avatar
-                sx={{
-                  width: { xs: 40, sm: 36 },
-                  height: { xs: 40, sm: 36 },
-                  backgroundColor: 'transparent',
-                  color: isDarkMode ? alpha('#fff', 0.8) : alpha('#000', 0.7),
-                  flexShrink: 0,
-                  transition: 'all 0.3s ease',
-                }}
-              >
-                <LocationIcon sx={{ fontSize: { xs: '20px', sm: '18px' } }} />
-              </Avatar>
-              <Typography
-                sx={{
-                  color: isDarkMode ? alpha('#fff', 0.9) : alpha('#000', 0.8),
-                  fontSize: { xs: '16px', sm: '14px' },
-                  fontWeight: 700,
-                  lineHeight: 1.2,
-                }}
-              >
-                {cityName}
-              </Typography>
-            </Box>
-            
-            {/* Exact Location with L-shaped connector */}
-            {post?.exactLocation && (
-              <Box
-                sx={{
-                  position: 'relative',
-                  ml: { xs: 5.5, sm: 5 }, // Align with city text
-                  mr: isArabicText(post.exactLocation) ? { xs: 5.5, sm: 5 } : 0, // RTL support for Arabic text in exactLocation
-                }}
-              >
-                {/* L-shaped connector line */}
-                {isRTLMode() ? (
-                  // RTL Mode
-                  <>
-                    {/* Vertical line */}
-                    <Box
-                      style={{
-                        position: 'absolute',
-                        left: '0px',
-                        right: !isArabicText(post.exactLocation) 
-                          ? (isMobile ? '19px' : '17px')
-                          : (isMobile ? '-25px' : '-23px'),
-                        top: '-10px',
-                        width: '1px',
-                        height: '23px',
-                        backgroundColor: isDarkMode ? 'rgba(255, 255, 255, 0.3)' : 'rgba(0, 0, 0, 0.3)',
-                        borderRadius: '1px',
-                        zIndex: 1,
-                      }}
-                    />
-                    {/* Horizontal line */}
-                    <Box
-                      style={{
-                        position: 'absolute',
-                        left: '0px',
-                        right: !isArabicText(post.exactLocation) 
-                          ? (isMobile ? '19px' : '17px')
-                          : (isMobile ? '-25px' : '-23px'),
-                        bottom: isMobile ? '5px' : '4px',
-                        width: '17px',
-                        height: '1px',
-                        backgroundColor: isDarkMode ? 'rgba(255, 255, 255, 0.3)' : 'rgba(0, 0, 0, 0.3)',
-                        borderRadius: '1px',
-                        zIndex: 1,
-                      }}
-                    />
-                  </>
-                ) : (
-                  // LTR Mode
-                  <>
-                    {/* Vertical line */}
-                    <Box
-                      style={{
-                        position: 'absolute',
-                        left: isMobile ? '-25px' : '-22px',
-                        top: '-10px',
-                        width: '1px',
-                        height: '23px',
-                        backgroundColor: isDarkMode ? 'rgba(255, 255, 255, 0.3)' : 'rgba(0, 0, 0, 0.3)',
-                        borderRadius: '1px',
-                        zIndex: 1,
-                      }}
-                    />
-                    {/* Horizontal line */}
-                    <Box
-                      style={{
-                        position: 'absolute',
-                        left: isMobile ? '-25px' : '-21px',
-                        bottom: isMobile ? '5px' : '4px',
-                        width: '22px',
-                        height: '1px',
-                        backgroundColor: isDarkMode ? 'rgba(255, 255, 255, 0.3)' : 'rgba(0, 0, 0, 0.3)',
-                        borderRadius: '1px',
-                        zIndex: 1,
-                      }}
-                    />
-                  </>
-                )}
-                <Typography
-                  sx={{
-                    color: isDarkMode ? alpha('#fff', 0.7) : alpha('#000', 0.6),
-                    fontSize: { xs: '14px', sm: '13px' },
-                    fontWeight: 500,
-                    lineHeight: 1.3,
-                    wordBreak: 'break-word',
-                    whiteSpace: 'nowrap',
-                    overflow: 'hidden',
-                    textOverflow: 'ellipsis',
-                    textAlign: isArabicText(post.exactLocation) ? 'right' : 'left',
-                    direction: isArabicText(post.exactLocation) ? 'rtl' : 'ltr',
-                    pl: 1, // Add padding to account for connector line
-                    // Add margin-right and force LTR direction for RTL mode when text is not Arabic
-                    ...(isRTLMode() && !isArabicText(post.exactLocation) && {
-                      marginRight: { xs: '48px', sm: '44px' },
-                      textAlign: 'left',
-                      direction: 'ltr !important'
-                    }),
-                  }}
-                >
-                  {post.exactLocation}
-                </Typography>
-              </Box>
-            )}
-          </Box>
-
-          {/* Removed description preview to match RecentPosts design */}
-        </CardContent>
-
-      </Card>
-    </>
+            {post.exactLocation}
+          </Typography>
+        )}
+      </CardContent>
+    </PostCardRoot>
   );
 };
 
