@@ -328,8 +328,6 @@ const LeftSide = ({
         border: `1px solid ${alpha(theme.custom.color.ink, theme.palette.mode === 'dark' ? 0.08 : 0.15)}`,
         padding: isMobile ? '1.5rem' : '2rem',
         boxShadow: theme.custom.elevation.e1,
-        height: '100%', // Allow stretching to match container
-        minHeight: 'fit-content', // Ensure minimum content height
         width: isMobile ? '100%' : 'auto', // Full width on mobile
         mx: isMobile ? 0 : 'auto', // Remove horizontal margin on mobile
         maxWidth: '100%', // Prevent overflow
