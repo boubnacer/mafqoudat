@@ -30,19 +30,6 @@ body {
   direction: rtl;
 }
 
-/* Navbar Layout Override - Keep LTR layout for navbar regardless of language */
-[dir="rtl"] .MuiAppBar-root,
-[dir="rtl"] .MuiAppBar-root *,
-[dir="rtl"] .MuiToolbar-root,
-[dir="rtl"] .MuiToolbar-root * {
-  direction: ltr !important;
-}
-
-/* Ensure navbar flex containers maintain LTR layout */
-[dir="rtl"] .MuiAppBar-root .MuiBox-root {
-  direction: ltr !important;
-}
-
 /* Mobile responsive fixes */
 @media screen and (max-width: 600px) {
   body {

@@ -46,18 +46,6 @@ body[dir="rtl"] * {
   text-align: inherit;
 }
 
-/* Navbar Layout Override - Keep LTR layout for navbar regardless of language */
-body[dir="rtl"] .MuiAppBar-root,
-body[dir="rtl"] .MuiAppBar-root *,
-body[dir="rtl"] .MuiToolbar-root,
-body[dir="rtl"] .MuiToolbar-root * {
-  direction: ltr !important;
-}
-
-/* Ensure navbar flex containers maintain LTR layout */
-body[dir="rtl"] .MuiAppBar-root .MuiBox-root {
-  direction: ltr !important;
-}
 /* Phone number RTL protection */
 .phone-number {
   direction: ltr !important;
