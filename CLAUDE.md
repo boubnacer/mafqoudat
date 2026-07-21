@@ -37,3 +37,6 @@ Note: `theme.js` also still carries a large legacy `palette.floptions` / `palett
 - Always pull user-facing text from [translations.js](client/src/utils/translations.js) via `useTranslation()`; never hardcode English strings.
 - Always verify both light/dark mode and LTR/RTL before considering a page done.
 - For `NewPostForm.js` specifically: styling/layout changes only. Never touch Formik state, validation logic, city search `fetch()` calls, or submission logic without explicit confirmation from the user first.
+
+
+SaaS design
