@@ -1,4 +1,4 @@
-import { Box, Typography, useTheme, Grid, Card, CardContent, Chip, useMediaQuery, Button } from "@mui/material";
+import { Box, Typography, useTheme, Grid, Card, CardContent, Chip, useMediaQuery, Button, alpha } from "@mui/material";
 import { useGetCategoriesQuery } from "../../features/dependencies/dependenciesApiSlice";
 import { LoadingState, DashboardEmptyStates } from "../LoadingStates";
 import { getCategoryIcon, getCategoryColor, getCategoryBackgroundColor } from "../../config/categories";
@@ -62,25 +62,41 @@ const Categories = () => {
               <motion.div
                 initial={{ opacity: 0, y: 20 }}
                 animate={{ opacity: 1, y: 0 }}
-                transition={{ duration: 0.3, delay: index * 0.1 }}
+                transition={{ duration: 0.3, delay: Math.min(index, 6) * 0.06 }}
               >
                 <Card
                   onClick={() => handleCategoryClick(_id)}
+                  onKeyDown={(e) => {
+                    if (e.key === 'Enter' || e.key === ' ') {
+                      e.preventDefault();
+                      handleCategoryClick(_id);
+                    }
+                  }}
+                  role="button"
+                  tabIndex={0}
                   sx={{
                     cursor: 'pointer',
                     transition: 'all 0.3s ease',
                     height: '100%',
                     display: 'flex',
                     flexDirection: 'column',
-                    '&:hover': {
+                    backgroundColor: theme.custom.color.surfaceRaised,
+                    borderRadius: `${theme.custom.radius.lg}px`,
+                    border: `1px solid ${alpha(theme.custom.color.ink, theme.palette.mode === 'dark' ? 0.08 : 0.12)}`,
+                    boxShadow: theme.custom.elevation.e1,
+                    '&:hover, &:focus-visible': {
                       transform: 'translateY(-4px)',
-                      boxShadow: theme.shadows[8],
+                      boxShadow: theme.custom.elevation.e2,
                       backgroundColor: backgroundColor,
                       '& .category-icon': {
                         transform: 'scale(1.1)',
                         color: iconColor
                       }
-                    }
+                    },
+                    '&:focus-visible': {
+                      outline: `2px solid ${theme.custom.color.brandPrimary}`,
+                      outlineOffset: '2px',
+                    },
                   }}
                 >
                   <CardContent
@@ -110,9 +126,8 @@ const Categories = () => {
                       variant="body2"
                       sx={{
                         fontWeight: 600,
-                        color: theme.palette.textColor.main,
+                        color: theme.custom.color.ink,
                         textAlign: 'center',
-                        direction: currentLanguage === 'ar' ? 'rtl' : 'ltr'
                       }}
                     >
                       {labels[currentLanguage] || labels.en}
@@ -132,27 +147,21 @@ const Categories = () => {
           variant="outlined"
           endIcon={showAllCategories ? <ExpandLess /> : <ExpandMore />}
           sx={{
-            color: theme.palette.mode === 'dark' ? '#fff' : theme.palette.text.primary,
-            borderColor: theme.palette.mode === 'dark' ? theme.palette.primary.main : theme.palette.divider,
-            backgroundColor: theme.palette.mode === 'dark' ? 'transparent' : theme.palette.background.paper,
-            borderRadius: '4px',
+            color: theme.custom.color.ink,
+            borderColor: alpha(theme.custom.color.ink, 0.24),
+            backgroundColor: 'transparent',
+            borderRadius: `${theme.custom.radius.sm}px`,
             px: 3,
             py: 1,
             textTransform: 'none',
             fontWeight: 600,
             transition: 'all 0.3s ease',
-            gap: currentLanguage === 'ar' ? 1 : 0.5,
-            direction: currentLanguage === 'ar' ? 'rtl' : 'ltr',
-            '& .MuiButton-endIcon': {
-              marginLeft: currentLanguage === 'ar' ? 0 : '8px',
-              marginRight: currentLanguage === 'ar' ? '8px' : 0,
-              color: theme.palette.mode === 'dark' ? '#fff' : 'inherit',
-            },
             '&:hover': {
-              backgroundColor: theme.palette.mode === 'dark' ? 'rgba(255, 255, 255, 0.08)' : 'rgba(0, 0, 0, 0.04)',
+              backgroundColor: alpha(theme.custom.color.ink, 0.08),
+              borderColor: alpha(theme.custom.color.ink, 0.32),
             },
             '&:active': {
-              backgroundColor: theme.palette.mode === 'dark' ? 'rgba(255, 255, 255, 0.12)' : 'rgba(0, 0, 0, 0.08)',
+              backgroundColor: alpha(theme.custom.color.ink, 0.12),
             }
           }}
         >

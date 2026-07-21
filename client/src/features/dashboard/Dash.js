@@ -1,7 +1,7 @@
 import React from "react";
 import { useDispatch, useSelector } from "react-redux";
 import { useNavigate } from "react-router-dom";
-import { Box, useMediaQuery, useTheme, Typography, Button, Paper, Divider } from "@mui/material";
+import { Box, useMediaQuery, useTheme, Typography, Button, Paper, Divider, alpha } from "@mui/material";
 import { setActiveLink, setFoundOrLost, setOpenModal } from "../../app/state";
 import { LoadingState, DashboardEmptyStates } from "../../components/LoadingStates";
 import { Language } from "@mui/icons-material";
@@ -59,12 +59,44 @@ const Dash = () => {
       // Store the intended destination for redirect after login
       const intendedDestination = `/dash/posts/new?type=${type}`;
       authStorage.setRedirectAfterLoginWithMessage(intendedDestination, 'loginRequiredCreatePost');
-      
+
       navigate('/login');
     } else {
       navigate(`/dash/posts/new?type=${type}`);
     }
   };
+
+  // Mirrors TrendingItem's SectionPanel/SectionTitle chrome (theme.custom
+  // elevation/radius/ink) instead of the old hardcoded-hex panel. Shared
+  // between the empty-state and normal render paths below so the two never drift.
+  const categoriesSection = (
+    <Box mb={4}>
+      <DashRecents
+        cate="cate"
+        sx={{
+          background: `linear-gradient(135deg, ${alpha(theme.custom.color.surfaceRaised, 0.95)} 0%, ${alpha(theme.custom.color.surfaceRaised, 0.95)} 100%)`,
+          backdropFilter: 'blur(10px)',
+          borderRadius: { xs: `${theme.custom.radius.lg}px`, sm: `${theme.custom.radius.xl}px` },
+          boxShadow: theme.custom.elevation.e1,
+          mx: { xs: 1, sm: 2 },
+          border: `1px solid ${alpha(theme.custom.color.ink, theme.palette.mode === 'dark' ? 0.08 : 0.15)}`,
+        }}
+      >
+        <Typography
+          fontWeight="700"
+          sx={{
+            fontSize: { xs: "20px", sm: "24px", md: "26px" },
+            color: theme.custom.color.ink,
+            textAlign: 'center',
+            mb: 2
+          }}
+        >
+          {t('categories')}
+        </Typography>
+        <Categories />
+      </DashRecents>
+    </Box>
+  );
 
 
 
@@ -244,34 +276,7 @@ const Dash = () => {
       {hasNoData && (
         <>
           {/* Categories Section - Show when no posts */}
-          <Box mb={4}>
-            <DashRecents 
-              cate="cate" 
-              sx={{ 
-                borderColor: theme.palette.primary.main,
-                backgroundColor: theme.palette.mode === 'dark' ? '#1a1a1a' : '#ffffff',
-                borderRadius: { xs: '12px', sm: '16px' },
-                boxShadow: theme.palette.mode === 'dark' 
-                  ? '0 8px 32px rgba(0,0,0,0.3)'
-                  : '0 8px 32px rgba(0,0,0,0.1)',
-                mx: { xs: 1, sm: 2 },
-                border: `1px solid ${theme.palette.mode === 'dark' ? 'rgba(255,255,255,0.05)' : 'rgba(0,0,0,0.08)'}`
-              }}
-            >
-              <Typography
-                fontWeight="700"
-                sx={{
-                  fontSize: { xs: "20px", sm: "24px", md: "26px" },
-                  color: theme.palette.mode === 'dark' ? '#ffffff' : '#2c3e50',
-                  textAlign: 'center',
-                  mb: 2
-                }}
-              >
-                {t('categories')}
-              </Typography>
-              <Categories />
-            </DashRecents>
-          </Box>
+          {categoriesSection}
 
           {/* Process Section - Show when no posts */}
           <Box mb={4}>
@@ -362,34 +367,7 @@ const Dash = () => {
           <QuickActions />
 
           {/* Categories Section */}
-          <Box mb={4}>
-            <DashRecents 
-              cate="cate" 
-              sx={{ 
-                borderColor: theme.palette.primary.main,
-                backgroundColor: theme.palette.mode === 'dark' ? '#1a1a1a' : '#ffffff',
-                borderRadius: { xs: '12px', sm: '16px' },
-                boxShadow: theme.palette.mode === 'dark' 
-                  ? '0 8px 32px rgba(0,0,0,0.3)'
-                  : '0 8px 32px rgba(0,0,0,0.1)',
-                mx: { xs: 1, sm: 2 },
-                border: `1px solid ${theme.palette.mode === 'dark' ? 'rgba(255,255,255,0.05)' : 'rgba(0,0,0,0.08)'}`
-              }}
-            >
-              <Typography
-                fontWeight="700"
-                sx={{
-                  fontSize: { xs: "20px", sm: "24px", md: "26px" },
-                  color: theme.palette.mode === 'dark' ? '#ffffff' : '#2c3e50',
-                  textAlign: 'center',
-                  mb: 2
-                }}
-              >
-                {t('categories')}
-              </Typography>
-              <Categories />
-            </DashRecents>
-          </Box>
+          {categoriesSection}
 
           {/* Process Section */}
           <Box mb={4}>
