@@ -1505,10 +1505,7 @@ export const translations = {
     "externalSearch.noResults": "No external results found.",
     "externalSearch.disclaimer": "Results from external sites. Mafqoudat has not verified these.",
     "externalSearch.viewSource": "View on {source}",
-    "externalSearch.degraded": "External search is temporarily unavailable.",
-
-    // Filter search box
-    "filter.searchPlaceholder": "Search posts..."
+    "externalSearch.degraded": "External search is temporarily unavailable."
   },
   fr: {
     // Post-related translations
@@ -2993,10 +2990,7 @@ export const translations = {
     "externalSearch.noResults": "Aucun résultat externe.",
     "externalSearch.disclaimer": "Résultats de sites externes. Non vérifiés par Mafqoudat.",
     "externalSearch.viewSource": "Voir sur {source}",
-    "externalSearch.degraded": "La recherche externe est indisponible.",
-
-    // Filter search box
-    "filter.searchPlaceholder": "Rechercher des annonces..."
+    "externalSearch.degraded": "La recherche externe est indisponible."
   },
   ar: {
     // Post-related translations
@@ -4465,10 +4459,7 @@ export const translations = {
     "externalSearch.noResults": "لا توجد نتائج خارجية.",
     "externalSearch.disclaimer": "نتائج من مواقع خارجية، لم يتم التحقق منها.",
     "externalSearch.viewSource": "عرض على {source}",
-    "externalSearch.degraded": "البحث الخارجي غير متاح مؤقتًا.",
-
-    // Filter search box
-    "filter.searchPlaceholder": "ابحث عن منشور..."
+    "externalSearch.degraded": "البحث الخارجي غير متاح مؤقتًا."
   }
 };
 

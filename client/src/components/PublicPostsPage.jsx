@@ -10,8 +10,6 @@ import LazyCardMedia from "./LazyCardMedia";
 import RenderIcon from "./RenderIcon";
 import SeoMeta from "./SeoMeta";
 import ExternalResults from "../features/externalSearch/ExternalResults";
-import Filter from "./Filter/Filter";
-import useDebounce from "../hooks/useDebounce";
 import { formatDistanceToNow } from "date-fns";
 import { ar, fr, enUS } from "date-fns/locale";
 import {
@@ -23,6 +21,7 @@ import {
   CardContent,
   Button,
   TextField,
+  InputAdornment,
   FormControl,
   InputLabel,
   Select,
@@ -42,6 +41,7 @@ import {
   Skeleton,
 } from "@mui/material";
 import {
+  Search,
   LocationOn,
   Category,
   Visibility,
@@ -217,8 +217,7 @@ const PublicPostsPage = () => {
   const activeLanguage = currentLanguage || langContext || 'en';
 
   const currentCountry = useSelector(selectCurrentCountry);
-  const [searchInput, setSearchInput] = useState("");
-  const debouncedSearch = useDebounce(searchInput, 400);
+  const [searchQuery, setSearchQuery] = useState("");
   const [categoryFilter, setCategoryFilter] = useState("all");
   const [foundLostFilter, setFoundLostFilter] = useState("all");
   const [languageAnchorEl, setLanguageAnchorEl] = useState(null);
@@ -238,8 +237,7 @@ const PublicPostsPage = () => {
     error: postsError
   } = useGetPostsQuery({
     currentCountry,
-    language: activeLanguage,
-    search: debouncedSearch || undefined
+    language: activeLanguage
   }, {
     skip: !currentCountry
   });
@@ -292,16 +290,13 @@ const PublicPostsPage = () => {
     return post.image.startsWith('http') ? post.image : `${API_BASE_URL}/${post.image}`;
   };
 
-  // Filter posts based on search and filters. The server already narrows by
-  // `search` (debouncedSearch), so this is a second, redundant-but-harmless
-  // pass over whatever it returned — kept for the category/foundLost filters,
-  // which the query doesn't take.
+  // Filter posts based on search and filters
   const filteredPosts = posts.filter(post => {
     const cityDisplay = getCityDisplayName(post);
-    const matchesSearch = !debouncedSearch ||
-      post.description?.toLowerCase().includes(debouncedSearch.toLowerCase()) ||
-      post.exactLocation?.toLowerCase().includes(debouncedSearch.toLowerCase()) ||
-      cityDisplay?.toLowerCase().includes(debouncedSearch.toLowerCase());
+    const matchesSearch = !searchQuery ||
+      post.description?.toLowerCase().includes(searchQuery.toLowerCase()) ||
+      post.exactLocation?.toLowerCase().includes(searchQuery.toLowerCase()) ||
+      cityDisplay?.toLowerCase().includes(searchQuery.toLowerCase());
 
     const matchesCategory = categoryFilter === "all" || getCategoryCode(post) === categoryFilter;
     const matchesFoundLost = foundLostFilter === "all" || getFoundLostCode(post) === foundLostFilter;
@@ -309,10 +304,10 @@ const PublicPostsPage = () => {
     return matchesSearch && matchesCategory && matchesFoundLost;
   });
 
-  const hasActiveFilters = Boolean(debouncedSearch) || categoryFilter !== "all" || foundLostFilter !== "all";
+  const hasActiveFilters = Boolean(searchQuery) || categoryFilter !== "all" || foundLostFilter !== "all";
 
   const clearFilters = () => {
-    setSearchInput("");
+    setSearchQuery("");
     setCategoryFilter("all");
     setFoundLostFilter("all");
   };
@@ -556,9 +551,24 @@ const PublicPostsPage = () => {
           {/* Filters: search + country + category + lost/found, one toolbar,
               stacked on mobile, sticky under the app bar from sm up */}
           <FilterBar>
-            <Filter
-              value={searchInput}
-              onChange={(e) => setSearchInput(e.target.value)}
+            <TextField
+              placeholder={t('searchPostsPlaceholder')}
+              value={searchQuery}
+              onChange={(e) => setSearchQuery(e.target.value)}
+              size="small"
+              sx={{
+                flex: { xs: '1 1 100%', sm: '1 1 240px' },
+                '& .MuiOutlinedInput-root': {
+                  borderRadius: `${theme.custom.radius.md}px`,
+                },
+              }}
+              InputProps={{
+                startAdornment: (
+                  <InputAdornment position="start">
+                    <Search sx={{ fontSize: 20, color: 'text.secondary' }} />
+                  </InputAdornment>
+                ),
+              }}
             />
 
             <Autocomplete
@@ -842,7 +852,7 @@ const PublicPostsPage = () => {
           )}
 
           <ExternalResults
-            query={debouncedSearch}
+            query={searchQuery}
             countryCode={selectedCountry?.code}
             language={activeLanguage}
             localResultCount={filteredPosts.length}
