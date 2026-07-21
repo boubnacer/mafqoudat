@@ -35,6 +35,11 @@ import { colorTokens, radiusTokens, fontFamilies } from '../../theme/tokens';
 const { width: SCREEN_WIDTH } = Dimensions.get('window');
 const SLIDE_COUNT = 4;
 
+// The outer slides list drives scrollX with useNativeDriver: true (for smooth
+// per-slide fade/translate + dot interpolation) - a plain FlatList can't back
+// a native-driven onScroll, only an Animated-wrapped one can.
+const AnimatedFlatList = Animated.createAnimatedComponent(FlatList);
+
 const LANGUAGE_CHIPS = [
   { code: 'en', nativeName: 'English', flag: '🇬🇧' },
   { code: 'fr', nativeName: 'Français', flag: '🇫🇷' },
@@ -369,7 +374,7 @@ const OnboardingScreen = ({ navigation }) => {
         )}
       </View>
 
-      <FlatList
+      <AnimatedFlatList
         ref={flatListRef}
         data={[0, 1, 2, 3]}
         keyExtractor={(item) => String(item)}
