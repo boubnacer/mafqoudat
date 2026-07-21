@@ -191,6 +191,7 @@ app.use("/contact", require("./routes/contactRoutes"));
 app.use("/cities-public", require("./routes/citiesPublicRoutes"));
 app.use("/dependencies", require("./routes/dependenciesRoutes"));
 app.use("/cities-api", require("./routes/citiesRoutes"));
+app.use("/external-search", require("./routes/externalSearchRoutes"));
 
 app.use("/promotion", require("./routes/promotionRoutes"));
 app.use("/admin", require("./routes/adminRoutes"));
@@ -218,7 +219,9 @@ app.use("/db-health", require("./routes/dbHealthRoutes"));
 app.get("/cache/stats", async (req, res) => {
   try {
     const { unifiedCacheService } = require("./config/unifiedCache");
+    const externalSearchService = require("./services/externalSearchService");
     const stats = unifiedCacheService.getStats();
+    stats.externalSearch = externalSearchService.getStats();
     res.json({ success: true, data: stats });
   } catch (error) {
     res.status(500).json({ success: false, message: error.message });
@@ -303,12 +306,14 @@ app.use("/uploads", express.static(path.join(__dirname, "uploads")));
 
 // Health check endpoint for deployment monitoring
 app.get("/health", (req, res) => {
-  res.status(200).json({ 
-    status: "OK", 
+  const externalSearchService = require("./services/externalSearchService");
+  res.status(200).json({
+    status: "OK",
     timestamp: new Date().toISOString(),
     uptime: process.uptime(),
     environment: process.env.NODE_ENV || "development",
-    version: process.env.npm_package_version || "1.0.0"
+    version: process.env.npm_package_version || "1.0.0",
+    externalSearch: externalSearchService.getStats()
   });
 });
 

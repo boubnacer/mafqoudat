@@ -99,7 +99,8 @@ const visitorTracker = async (req, res, next) => {
                            req.path.startsWith('/contact') ||
                            req.path.startsWith('/cities') ||
                            req.path.startsWith('/promotion') ||
-                           req.path.startsWith('/dependencies')));
+                           req.path.startsWith('/dependencies') ||
+                           req.path.startsWith('/external-search')));
 
     if (isApiEndpoint) {
       return next();

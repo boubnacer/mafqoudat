@@ -260,3 +260,26 @@ lang/                # LanguageToggle.js
 - **Security posture**: Helmet, per-route-type rate limiting (auth, registration, upload, search, report), input sanitization, strict upload validation (blocks disguised executables), JWT blacklisting on logout, structured logging to files. Undermined by a checked-in `server/env.production` containing live secrets — flagged above, should be rotated/removed before any external sharing of this repo.
 - **No automated test suite** found in `server/` or `client/` beyond a stray root-level `test_oauth.js` — this looks like a manually tested, iteratively hardened codebase rather than a test-driven one.
 - **No real-time layer** (no Socket.io), **no in-app messaging**, and **no payment gateway** — all "contact" between finders and owners happens off-platform via the phone/email/WhatsApp details attached to a post.
+
+---
+
+## 6. External Search
+
+**Purpose**: when a user's search on `PublicPostsPage` or `PostsList` turns up zero or very few (< 3) local posts, an opt-in "search the wider web" CTA lets them additionally check public sites (Facebook, Avito, Marocannonces, …) for a matching lost/found listing. It never fires automatically — the user must click the button.
+
+**Provider**: [Serper.dev](https://serper.dev) (Google Search API pass-through). Backend integration lives in `server/services/externalSearchService.js`, mounted at `GET /external-search` (`server/routes/externalSearchRoutes.js`).
+- **Env vars**: `SERPER_API_KEY` (required — requests fail with a typed error if unset), `SERPER_DAILY_LIMIT` (optional, default `500`).
+- **Quota behavior**: an in-memory daily counter (reset at UTC day rollover, mirroring the pattern already used by `geonamesService.js`) blocks further Serper calls once the daily limit is hit. Usage is logged proactively — a `console.warn` every 50th request of the day, and a `console.error` the first time the daily limit is hit each day — and exposed via `GET /cache/stats`, `GET /health` (both public, folded into the existing payloads), and `GET /external-search/stats` (admin-only, JWT + `role: admin`, for a future admin-dashboard usage widget).
+- On any failure (missing key, quota exceeded, provider error), the route responds **200** with `{ results: [], degraded: true, reason }` rather than a 5xx, so the frontend renders a quiet "unavailable" message instead of an error state.
+
+**Where it's rendered**: `client/src/features/externalSearch/ExternalResults.jsx`, wired into `client/src/components/PublicPostsPage.jsx` and `client/src/features/posts/PostsList/PostsList.js`, directly below each page's posts grid/empty-state.
+
+**Caching**: two independent layers, both keyed on `q`/`countryCode`/`language`/`limit` —
+1. Backend: `unifiedCacheService`, 6-hour TTL, keyed `external-search:${q}:${countryCode}:${language}:${limit}` (in `externalSearchRoutes.js`).
+2. Frontend: RTK Query (`externalSearchApiSlice.js`), `keepUnusedDataFor: 3600` (1 hour), via `useLazySearchExternalQuery`.
+
+**What it does NOT do**:
+- No scraping of the linked pages — only the title/snippet/link Serper itself returns.
+- No storage of external results in MongoDB — this is a pure pass-through with cache-only persistence (nothing touches the `Post` collection or any other model).
+- No mirroring/import of external listings into the platform's own posts.
+- No automatic firing — always a deliberate user click, never on mount or on every keystroke.

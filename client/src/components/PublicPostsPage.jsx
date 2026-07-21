@@ -9,6 +9,7 @@ import { useUnifiedLanguageChange } from "../hooks/useUnifiedLanguageChange";
 import LazyCardMedia from "./LazyCardMedia";
 import RenderIcon from "./RenderIcon";
 import SeoMeta from "./SeoMeta";
+import ExternalResults from "../features/externalSearch/ExternalResults";
 import { formatDistanceToNow } from "date-fns";
 import { ar, fr, enUS } from "date-fns/locale";
 import {
@@ -227,6 +228,7 @@ const PublicPostsPage = () => {
   });
 
   const countries = countriesData?.ids?.map((id) => countriesData?.entities[id]) || [];
+  const selectedCountry = countries.find((c) => c._id === currentCountry);
 
   // Get posts for the selected country
   const {
@@ -848,6 +850,13 @@ const PublicPostsPage = () => {
               })}
             </Grid>
           )}
+
+          <ExternalResults
+            query={searchQuery}
+            countryCode={selectedCountry?.code}
+            language={activeLanguage}
+            localResultCount={filteredPosts.length}
+          />
         </Container>
       </PageContainer>
     </>

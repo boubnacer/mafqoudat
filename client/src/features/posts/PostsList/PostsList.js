@@ -1,7 +1,9 @@
 import { useGetPostsQuery } from "../postsApiSlice";
 import { useGetCategoriesQuery, useGetCitiesQuery } from "../../dependencies/dependenciesApiSlice";
+import { useGetCountriesQuery } from "../../countries/countriesApiSlice";
 import { useTranslation } from "../../../utils/translations";
 import Post from "./Post";
+import ExternalResults from "../../externalSearch/ExternalResults";
 import useTitle from "../../../hooks/useTitle";
 import { LoadingState, ErrorState } from "../../../components/LoadingStates";
 import SeoMeta from "../../../components/SeoMeta";
@@ -234,6 +236,19 @@ const PostsList = () => {
     // Add debouncing to prevent multiple API calls during language switch
     refetchOnMountOrArgChange: 500, // 500ms debounce
   });
+
+  // Resolve the current country's ISO code (for the external-search "gl" param) —
+  // same query useCountryName already relies on, so this dedupes against RTK Query's cache.
+  const { data: countriesData } = useGetCountriesQuery({
+    language: currentLanguage,
+    active: true
+  });
+  const currentCountryCode = useMemo(() => {
+    if (!currentCountry || !countriesData?.entities) return undefined;
+    const country = countriesData.entities[currentCountry] ||
+      Object.values(countriesData.entities).find(c => c._id === currentCountry || c.id === currentCountry);
+    return country?.code;
+  }, [currentCountry, countriesData]);
 
   // Get all cached cities for current country (for showing when focused)
   const allCachedCitiesForCountry = useMemo(() => {
@@ -1240,6 +1255,13 @@ const PostsList = () => {
               </Box>
             </Box>
 
+            <ExternalResults
+              query={debouncedSearchTerm}
+              countryCode={currentCountryCode}
+              language={currentLanguage}
+              localResultCount={filteredPosts.length}
+            />
+
             {/* Add New Post Button - Shown at the end of posts */}
             <Box 
               sx={{ 
@@ -1424,6 +1446,13 @@ const PostsList = () => {
                 </Button>
               )}
             </Box>
+
+            <ExternalResults
+              query={debouncedSearchTerm}
+              countryCode={currentCountryCode}
+              language={currentLanguage}
+              localResultCount={filteredPosts.length}
+            />
           </Box>
         )}
       </Box>

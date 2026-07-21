@@ -1496,7 +1496,16 @@ export const translations = {
     sendEmail: "Send Email",
     phoneSupport: "Phone Support",
     phoneSupportDesc: "Call us for immediate assistance",
-    callNow: "Call Now"
+    callNow: "Call Now",
+
+    // External search (Serper.dev pass-through web search)
+    "externalSearch.title": "Not what you're looking for?",
+    "externalSearch.cta": "Search the wider web",
+    "externalSearch.searching": "Searching the web...",
+    "externalSearch.noResults": "No external results found.",
+    "externalSearch.disclaimer": "Results from external sites. Mafqoudat has not verified these.",
+    "externalSearch.viewSource": "View on {source}",
+    "externalSearch.degraded": "External search is temporarily unavailable."
   },
   fr: {
     // Post-related translations
@@ -2972,7 +2981,16 @@ export const translations = {
     sendEmail: "Envoyer un E-mail",
     phoneSupport: "Support Téléphonique",
     phoneSupportDesc: "Appelez-nous pour une assistance immédiate",
-    callNow: "Appeler Maintenant"
+    callNow: "Appeler Maintenant",
+
+    // External search (Serper.dev pass-through web search)
+    "externalSearch.title": "Vous ne trouvez pas ?",
+    "externalSearch.cta": "Chercher sur le web",
+    "externalSearch.searching": "Recherche en cours...",
+    "externalSearch.noResults": "Aucun résultat externe.",
+    "externalSearch.disclaimer": "Résultats de sites externes. Non vérifiés par Mafqoudat.",
+    "externalSearch.viewSource": "Voir sur {source}",
+    "externalSearch.degraded": "La recherche externe est indisponible."
   },
   ar: {
     // Post-related translations
@@ -4432,7 +4450,16 @@ export const translations = {
     sendEmail: "إرسال بريد إلكتروني",
     phoneSupport: "دعم الهاتف",
     phoneSupportDesc: "اتصل بنا للحصول على مساعدة فورية",
-    callNow: "اتصل الآن"
+    callNow: "اتصل الآن",
+
+    // External search (Serper.dev pass-through web search)
+    "externalSearch.title": "لم تجد ما تبحث عنه؟",
+    "externalSearch.cta": "ابحث على الويب",
+    "externalSearch.searching": "جارٍ البحث...",
+    "externalSearch.noResults": "لا توجد نتائج خارجية.",
+    "externalSearch.disclaimer": "نتائج من مواقع خارجية، لم يتم التحقق منها.",
+    "externalSearch.viewSource": "عرض على {source}",
+    "externalSearch.degraded": "البحث الخارجي غير متاح مؤقتًا."
   }
 };
 
