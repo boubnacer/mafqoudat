@@ -66,14 +66,14 @@ const RenderIcon = ({ name }) => {
   const icon =
     // for left side header ------
     name === "Found" ? (
-      <NorthEast sx={{ fontSize: "20px", color: "#4CAF50" }} data-directional="true" />
+      <NorthEast sx={{ fontSize: "20px", color: theme.custom.status.found.main }} data-directional="true" />
     ) : name === "Lost" ? (
-      <SouthEast sx={{ fontSize: "20px", color: "#757575" }} data-directional="true" />
+      <SouthEast sx={{ fontSize: "20px", color: theme.custom.status.lost.main }} data-directional="true" />
     ) : name === "returned" ? (
       <HomeOutlined
         sx={{
           fontSize: "20px",
-          color: "#ECEFF1",
+          color: theme.custom.status.found.main,
         }}
       />
     ) : name === "home" ? (
@@ -95,8 +95,8 @@ const RenderIcon = ({ name }) => {
             name === "roadmapf" || name === "roadmapl" ? "18px" : "14px",
           color:
             name === "lostfl" || name === "roadmapl"
-              ? theme.palette.floptions.lost.text
-              : theme.palette.floptions.found.text,
+              ? theme.custom.status.lost.main
+              : theme.custom.status.found.main,
         }}
         data-directional="true"
       />

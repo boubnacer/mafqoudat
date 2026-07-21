@@ -967,7 +967,7 @@ const SinglePostPage = ({
                   <Box sx={{ backgroundColor: alpha('#25D366', 0.15), borderRadius: '50%', p: 1.5, display: 'flex' }}>
                     <WhatsAppIcon sx={{ color: '#25D366', fontSize: 24 }} />
                   </Box>
-                  <Typography variant="h6" fontWeight={700} sx={{ color: '#1D8348', fontSize: { xs: '1.1rem', sm: '1.25rem' } }}>
+                  <Typography variant="h6" fontWeight={700} sx={{ color: theme.palette.mode === 'dark' ? '#25D366' : '#1D8348', fontSize: { xs: '1.1rem', sm: '1.25rem' } }}>
                     {foundLostStatus.isFound ? t('promoteYourFoundItem') : t('boostYourChances')}
                   </Typography>
                 </Box>
@@ -987,8 +987,12 @@ const SinglePostPage = ({
                     fontWeight: 600,
                     py: 1.5,
                     backgroundColor: '#25D366',
-                    color: '#ffffff',
-                    '&:hover': { backgroundColor: '#1DA851' },
+                    // white text measures ~2:1 on this green — getContrastText picks dark text instead
+                    color: `${theme.palette.getContrastText('#25D366')} !important`,
+                    '&:hover': {
+                      backgroundColor: '#1DA851',
+                      color: `${theme.palette.getContrastText('#1DA851')} !important`,
+                    },
                   }}
                 >
                   {t('yesPromote')}

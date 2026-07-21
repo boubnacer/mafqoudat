@@ -20,6 +20,7 @@ import {
   ListItemIcon,
   Button,
   Chip,
+  alpha,
 } from '@mui/material';
 import {
   ExpandMore,
@@ -51,7 +52,7 @@ const HelpCenter = () => {
   const faqCategories = [
     {
       category: t('gettingStarted'),
-      icon: <Help color="primary" />,
+      icon: <Help sx={{ color: theme.custom.color.brandPrimary }} />,
       questions: [
         {
           question: t('faq1Question'),
@@ -69,7 +70,7 @@ const HelpCenter = () => {
     },
     {
       category: t('reportingItems'),
-      icon: <QuestionAnswer color="primary" />,
+      icon: <QuestionAnswer sx={{ color: theme.custom.color.brandPrimary }} />,
       questions: [
         {
           question: t('faq4Question'),
@@ -87,7 +88,7 @@ const HelpCenter = () => {
     },
     {
       category: t('safetySecurity'),
-      icon: <Book color="primary" />,
+      icon: <Book sx={{ color: theme.custom.color.brandPrimary }} />,
       questions: [
         {
           question: t('faq7Question'),
@@ -105,7 +106,7 @@ const HelpCenter = () => {
     },
     {
       category: t('accountSettings'),
-      icon: <VideoLibrary color="primary" />,
+      icon: <VideoLibrary sx={{ color: theme.custom.color.brandPrimary }} />,
       questions: [
         {
           question: t('faq10Question'),
@@ -154,19 +155,19 @@ const HelpCenter = () => {
     {
       title: t('liveChat'),
       description: t('liveChatDesc'),
-      icon: <Chat color="primary" />,
+      icon: <Chat sx={{ color: theme.custom.color.brandPrimary }} />,
       action: t('startChat'),
     },
     {
       title: t('emailSupport'),
       description: t('emailSupportDesc'),
-      icon: <Email color="primary" />,
+      icon: <Email sx={{ color: theme.custom.color.brandPrimary }} />,
       action: t('sendEmail'),
     },
     {
       title: t('phoneSupport'),
       description: t('phoneSupportDesc'),
-      icon: <Phone color="primary" />,
+      icon: <Phone sx={{ color: theme.custom.color.brandPrimary }} />,
       action: t('callNow'),
     },
   ];
@@ -175,14 +176,14 @@ const HelpCenter = () => {
     <>
       <SeoMeta pageKey="help" />
       <Box width="100%" height="100%">
-        <Box sx={{ backgroundColor: theme.palette.background.default }}>
+        <Box sx={{ backgroundColor: theme.custom.color.surfaceBase }}>
           <Navbar />
           <Box
             sx={{
               minHeight: '100vh',
               pt: { xs: '6rem', sm: '7rem' },
               pb: 4,
-              backgroundColor: theme.palette.background.default,
+              backgroundColor: theme.custom.color.surfaceBase,
             }}
           >
             <Container maxWidth="xl">
@@ -194,9 +195,7 @@ const HelpCenter = () => {
                   sx={{
                     fontWeight: 'bold',
                     mb: 2,
-                    background: 'linear-gradient(45deg, #2196F3 30%, #21CBF3 90%)',
-                    WebkitBackgroundClip: 'text',
-                    WebkitTextFillColor: 'transparent',
+                    color: theme.custom.color.brandPrimary,
                     fontSize: { xs: '2rem', md: '3rem' },
                   }}
                 >
@@ -261,10 +260,17 @@ const HelpCenter = () => {
                       >
                         <CardContent>
                           <Box display="flex" alignItems="center" mb={2}>
-                            <Box sx={{ mr: 2, color: theme.palette.primary.main }}>
+                            <Box sx={{ mr: 2, color: theme.custom.color.brandPrimary }}>
                               {topic.icon}
                             </Box>
-                            <Chip label={topic.category} size="small" color="primary" />
+                            <Chip
+                              label={topic.category}
+                              size="small"
+                              sx={{
+                                backgroundColor: alpha(theme.custom.color.brandPrimary, 0.12),
+                                color: theme.custom.color.brandPrimary,
+                              }}
+                            />
                           </Box>
                           <Typography variant="h6" component="h3" sx={{ mb: 1, fontWeight: '600' }}>
                             {topic.title}
@@ -312,9 +318,7 @@ const HelpCenter = () => {
                         <AccordionSummary
                           expandIcon={<ExpandMore />}
                           sx={{
-                            backgroundColor: theme.palette.mode === 'dark' 
-                              ? 'rgba(255, 255, 255, 0.05)' 
-                              : 'rgba(0, 0, 0, 0.02)',
+                            backgroundColor: alpha(theme.custom.color.ink, theme.palette.mode === 'dark' ? 0.05 : 0.04),
                           }}
                         >
                           <Typography variant="subtitle1" sx={{ fontWeight: '500' }}>
@@ -344,10 +348,8 @@ const HelpCenter = () => {
                         sx={{
                           height: '100%',
                           textAlign: 'center',
-                          background: theme.palette.mode === 'dark' 
-                            ? 'rgba(33, 150, 243, 0.1)' 
-                            : 'rgba(33, 150, 243, 0.05)',
-                          border: `1px solid ${theme.palette.primary.main}20`,
+                          background: alpha(theme.custom.color.brandPrimary, theme.palette.mode === 'dark' ? 0.1 : 0.05),
+                          border: `1px solid ${alpha(theme.custom.color.brandPrimary, 0.12)}`,
                         }}
                       >
                         <CardContent>
@@ -360,7 +362,18 @@ const HelpCenter = () => {
                           <Typography variant="body2" color="text.secondary" sx={{ mb: 2 }}>
                             {option.description}
                           </Typography>
-                          <Button variant="outlined" fullWidth>
+                          <Button
+                            variant="outlined"
+                            fullWidth
+                            sx={{
+                              borderColor: theme.custom.color.brandPrimary,
+                              color: theme.custom.color.brandPrimary,
+                              '&:hover': {
+                                borderColor: theme.custom.color.brandPrimary,
+                                backgroundColor: alpha(theme.custom.color.brandPrimary, 0.08),
+                              },
+                            }}
+                          >
                             {option.action}
                           </Button>
                         </CardContent>

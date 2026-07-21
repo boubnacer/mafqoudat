@@ -5,6 +5,7 @@ import {
   Typography,
   Button,
   useTheme,
+  alpha,
 } from "@mui/material";
 import { Edit as EditIcon } from '@mui/icons-material';
 import Textfield from "../../../../components/Textfield";
@@ -110,7 +111,7 @@ const StepReview = ({
             mb: 1,
             display: "block",
             fontSize: '1rem',
-            color: theme.palette.mode === 'dark' ? 'rgba(255,255,255,0.7)' : 'rgba(0,0,0,0.6)',
+            color: alpha(theme.custom.color.ink, theme.palette.mode === 'dark' ? 0.7 : 0.6),
             fontWeight: 500
           }}
         >
@@ -152,7 +153,7 @@ const ReviewSection = ({ title, onEdit, children }) => {
         p: 2.5,
         borderRadius: `${theme.custom.radius.md}px`,
         border: `1px solid ${theme.palette.divider}`,
-        backgroundColor: theme.palette.mode === 'dark' ? 'rgba(255,255,255,0.02)' : 'rgba(0,0,0,0.015)',
+        backgroundColor: alpha(theme.custom.color.ink, theme.palette.mode === 'dark' ? 0.02 : 0.015),
       }}
     >
       <Box display="flex" alignItems="center" justifyContent="space-between" mb={1.5}>
@@ -172,7 +173,7 @@ const ReviewSection = ({ title, onEdit, children }) => {
             fontWeight: 600,
             color: accentColor,
             '&:hover': {
-              backgroundColor: theme.palette.mode === 'dark' ? 'rgba(91,127,255,0.1)' : 'rgba(27,77,255,0.08)',
+              backgroundColor: alpha(theme.custom.color.brandPrimary, theme.palette.mode === 'dark' ? 0.1 : 0.08),
             },
           }}
         >

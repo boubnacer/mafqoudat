@@ -161,9 +161,7 @@ const HelpSupportSection = () => {
         data-section="help"
         sx={{
           mx: { xs: 1, sm: 2 },
-          background: theme.palette.mode === 'dark'
-            ? 'linear-gradient(135deg, rgba(18,18,18,0.95) 0%, rgba(28,28,28,0.95) 100%)'
-            : 'linear-gradient(135deg, rgba(255,255,255,0.95) 0%, rgba(255,255,255,0.95) 100%)',
+          background: `linear-gradient(135deg, ${alpha(theme.custom.color.surfaceRaised, 0.95)} 0%, ${alpha(theme.custom.color.surfaceRaised, 0.95)} 100%)`,
           backdropFilter: 'blur(10px)',
           borderRadius: { xs: `${theme.custom.radius.lg}px`, sm: `${theme.custom.radius.xl}px` },
           border: `1px solid ${alpha(theme.custom.color.ink, theme.palette.mode === 'dark' ? 0.08 : 0.15)}`,
@@ -291,7 +289,7 @@ const HelpSupportSection = () => {
                   backgroundColor: theme.custom.color.brandPrimary,
                   boxShadow: 'none',
                   '&:hover': {
-                    backgroundColor: theme.palette.mode === 'dark' ? alpha(theme.custom.color.brandPrimary, 0.85) : '#1640D6',
+                    backgroundColor: alpha(theme.custom.color.brandPrimary, 0.85),
                     boxShadow: 'none',
                   },
                 }}
@@ -536,7 +534,7 @@ const HelpSupportSection = () => {
                             backgroundColor: theme.custom.color.brandPrimary,
                             boxShadow: 'none',
                             '&:hover': {
-                              backgroundColor: theme.palette.mode === 'dark' ? alpha(theme.custom.color.brandPrimary, 0.85) : '#1640D6',
+                              backgroundColor: alpha(theme.custom.color.brandPrimary, 0.85),
                               boxShadow: 'none',
                             },
                             '&:disabled': {

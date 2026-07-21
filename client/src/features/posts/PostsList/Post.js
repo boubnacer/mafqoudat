@@ -209,7 +209,7 @@ const Post = ({ post, viewMode = "grid" }) => {
         foundLostLabel = getLabel(flOption.labels, currentLanguage) ||
                         (flOption.code === 'FOUND' ? t('found') : t('lost'));
         foundLostColor = flOption.color ||
-                        (flOption.code === 'FOUND' ? theme.palette.success.main : theme.palette.error.main);
+                        (flOption.code === 'FOUND' ? theme.custom.status.found.main : theme.custom.status.lost.main);
       }
     }
 
@@ -221,14 +221,14 @@ const Post = ({ post, viewMode = "grid" }) => {
         if (code === 'FOUND' || code === 'LOST') {
           foundLostValue = code;
           foundLostLabel = code === 'FOUND' ? t('found') : t('lost');
-          foundLostColor = code === 'FOUND' ? theme.palette.success.main : theme.palette.error.main;
+          foundLostColor = code === 'FOUND' ? theme.custom.status.found.main : theme.custom.status.lost.main;
         }
       } else if (post.foundLost.code) {
         foundLostValue = post.foundLost.code;
         foundLostLabel = getLabel(post.foundLost.labels, currentLanguage) ||
                         (post.foundLost.code === 'FOUND' ? t('found') : t('lost'));
         foundLostColor = post.foundLost.color ||
-                        (post.foundLost.code === 'FOUND' ? theme.palette.success.main : theme.palette.error.main);
+                        (post.foundLost.code === 'FOUND' ? theme.custom.status.found.main : theme.custom.status.lost.main);
       }
     }
 
@@ -236,7 +236,7 @@ const Post = ({ post, viewMode = "grid" }) => {
     if (!foundLostValue) {
       foundLostValue = 'FOUND';
       foundLostLabel = t('found');
-      foundLostColor = theme.palette.success.main;
+      foundLostColor = theme.custom.status.found.main;
     }
 
     const isFound = foundLostValue === "FOUND";
@@ -244,7 +244,7 @@ const Post = ({ post, viewMode = "grid" }) => {
     const statusText = foundLostLabel;
 
     return { isFound, statusColor, statusText };
-  }, [post?.Floptions, post?.foundLost, currentLanguage, t, theme.palette.success.main, theme.palette.error.main]);
+  }, [post?.Floptions, post?.foundLost, currentLanguage, t, theme.custom.status.found.main, theme.custom.status.lost.main]);
 
   // Memoized categories array computation - support both new Categories array and legacy Category
   const categories = useMemo(() => {
@@ -309,16 +309,16 @@ const Post = ({ post, viewMode = "grid" }) => {
         };
       } catch (error) {
         return {
-          main: '#2196F3',
-          light: '#E3F2FD',
-          dark: '#1976D2',
-          icon: '#2196F3',
-          background: '#E3F2FD',
-          text: '#2196F3'
+          main: theme.custom.color.brandPrimary,
+          light: alpha(theme.custom.color.brandPrimary, 0.08),
+          dark: theme.custom.color.brandPrimary,
+          icon: theme.custom.color.brandPrimary,
+          background: alpha(theme.custom.color.brandPrimary, 0.08),
+          text: theme.custom.color.brandPrimary
         };
       }
     });
-  }, [categories]);
+  }, [categories, theme.custom.color.brandPrimary]);
 
   // Legacy single category name for backward compatibility (first category)
   const categoryName = useMemo(() => {
@@ -328,14 +328,14 @@ const Post = ({ post, viewMode = "grid" }) => {
   // Legacy single category style for backward compatibility (first category)
   const categoryStyle = useMemo(() => {
     return categoryStyles[0] || {
-      main: '#2196F3',
-      light: '#E3F2FD',
-      dark: '#1976D2',
-      icon: '#2196F3',
-      background: '#E3F2FD',
-      text: '#2196F3'
+      main: theme.custom.color.brandPrimary,
+      light: alpha(theme.custom.color.brandPrimary, 0.08),
+      dark: theme.custom.color.brandPrimary,
+      icon: theme.custom.color.brandPrimary,
+      background: alpha(theme.custom.color.brandPrimary, 0.08),
+      text: theme.custom.color.brandPrimary
     };
-  }, [categoryStyles]);
+  }, [categoryStyles, theme.custom.color.brandPrimary]);
 
   const isDarkMode = theme.palette.mode === 'dark';
 
@@ -456,34 +456,34 @@ const Post = ({ post, viewMode = "grid" }) => {
           borderRadius: 4,
           overflow: 'hidden',
           transition: 'all 0.3s ease',
-          border: post?.returned 
-            ? `3px solid #4CAF50`
-            : `1px solid ${isDarkMode ? alpha('#fff', 0.08) : alpha('#000', 0.06)}`,
-          boxShadow: post?.returned 
-            ? '0 4px 12px rgba(76, 175, 80, 0.2), 0 2px 4px rgba(0, 0, 0, 0.1)'
+          border: post?.returned
+            ? `3px solid ${theme.custom.status.found.main}`
+            : `1px solid ${alpha(theme.custom.color.ink, isDarkMode ? 0.08 : 0.06)}`,
+          boxShadow: post?.returned
+            ? `0 4px 12px ${alpha(theme.custom.status.found.main, 0.2)}, 0 2px 4px rgba(0, 0, 0, 0.1)`
             : 'none',
           cursor: 'pointer',
           '&:hover': {
             transform: 'translateY(-2px)',
-            boxShadow: post?.returned 
-              ? '0 8px 20px rgba(76, 175, 80, 0.3), 0 4px 8px rgba(0, 0, 0, 0.15)'
-              : (isDarkMode 
+            boxShadow: post?.returned
+              ? `0 8px 20px ${alpha(theme.custom.status.found.main, 0.3)}, 0 4px 8px rgba(0, 0, 0, 0.15)`
+              : (isDarkMode
                 ? '0 12px 40px rgba(0, 0, 0, 0.3)'
                 : '0 12px 40px rgba(0, 0, 0, 0.1)'),
           },
           direction: currentLanguage === 'ar' ? 'rtl' : 'ltr',
-          backgroundColor: isDarkMode ? alpha('#1a1a1a', 0.8) : '#ffffff'
+          backgroundColor: theme.custom.color.surfaceRaised
         }}
       >
 
         <Box display="flex" sx={{ height: { xs: 'auto', sm: 180 } }}>
           {/* Image Section */}
-          <Box sx={{ 
-            width: { xs: '100%', sm: 200 }, 
+          <Box sx={{
+            width: { xs: '100%', sm: 200 },
             height: { xs: 160, sm: 180 },
             flexShrink: 0,
             position: 'relative',
-            backgroundColor: post?.image ? 'transparent' : (categoryStyles[0]?.background || (theme.palette.mode === 'dark' ? '#1a1a1a' : '#f5f5f5')),
+            backgroundColor: post?.image ? 'transparent' : (categoryStyles[0]?.background || theme.custom.color.surfaceBase),
             display: 'flex',
             alignItems: 'center',
             justifyContent: 'center',
@@ -500,20 +500,20 @@ const Post = ({ post, viewMode = "grid" }) => {
                   alignItems: 'center',
                   justifyContent: 'center',
                   gap: 0.5,
-                  background: 'linear-gradient(135deg, #4CAF50 0%, #66BB6A 100%)',
+                  backgroundColor: theme.custom.status.found.main,
                   borderRadius: '18px',
                   padding: { xs: '4px 8px', sm: '5px 10px' },
-                  boxShadow: '0 4px 12px rgba(76, 175, 80, 0.4), 0 2px 4px rgba(0,0,0,0.2)',
-                  border: '2px solid rgba(255, 255, 255, 0.9)',
+                  boxShadow: `0 4px 12px ${alpha(theme.custom.status.found.main, 0.4)}, 0 2px 4px rgba(0,0,0,0.2)`,
+                  border: `2px solid ${alpha(theme.custom.color.surfaceRaised, 0.9)}`,
                   animation: 'pulse 2s ease-in-out infinite',
                   '@keyframes pulse': {
                     '0%, 100%': {
                       transform: 'scale(1)',
-                      boxShadow: '0 4px 12px rgba(76, 175, 80, 0.4), 0 2px 4px rgba(0,0,0,0.2)',
+                      boxShadow: `0 4px 12px ${alpha(theme.custom.status.found.main, 0.4)}, 0 2px 4px rgba(0,0,0,0.2)`,
                     },
                     '50%': {
                       transform: 'scale(1.02)',
-                      boxShadow: '0 6px 16px rgba(76, 175, 80, 0.6), 0 4px 8px rgba(0,0,0,0.3)',
+                      boxShadow: `0 6px 16px ${alpha(theme.custom.status.found.main, 0.6)}, 0 4px 8px rgba(0,0,0,0.3)`,
                     },
                   },
                 }}
@@ -521,13 +521,13 @@ const Post = ({ post, viewMode = "grid" }) => {
                 <CheckCircleIcon
                   sx={{
                     fontSize: { xs: '14px', sm: '16px' },
-                    color: '#ffffff',
+                    color: theme.palette.getContrastText(theme.custom.status.found.main),
                     filter: 'drop-shadow(0 1px 2px rgba(0,0,0,0.2))',
                   }}
                 />
                 <Typography
                   sx={{
-                    color: '#ffffff',
+                    color: theme.palette.getContrastText(theme.custom.status.found.main),
                     fontSize: { xs: '10px', sm: '11px' },
                     fontWeight: 700,
                     textTransform: 'uppercase',
@@ -632,23 +632,23 @@ const Post = ({ post, viewMode = "grid" }) => {
                     sx={{ 
                       mb: 1,
                       direction: currentLanguage === 'ar' ? 'rtl' : 'ltr',
-                      color: isDarkMode ? '#ffffff' : '#1a1a1a'
+                      color: theme.custom.color.ink
                     }}
                   >
                     {cityName}
                   </Typography>
                   <Box display="flex" gap={1} alignItems="center" flexWrap="wrap">
-                    <Chip 
+                    <Chip
                       label={foundLostStatus.statusText}
                       size="small"
-                      sx={{ 
+                      sx={{
                         fontWeight: 600,
                         backgroundColor: foundLostStatus.statusColor,
-                        color: 'white',
+                        color: theme.palette.getContrastText(foundLostStatus.statusColor),
                         fontSize: '11px',
                         height: 24,
                         '& .MuiChip-label': {
-                          color: 'white'
+                          color: theme.palette.getContrastText(foundLostStatus.statusColor)
                         }
                       }}
                     />

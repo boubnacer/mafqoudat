@@ -926,7 +926,7 @@ const NewPostForm = ({ user, countries, categories, flOptions }) => {
         display: "flex",
         justifyContent: "center",
         alignItems: "flex-start",
-        background: theme.palette.background.default,
+        background: theme.custom.color.surfaceBase,
         position: 'relative',
         // Add shimmer animation styles
         '@keyframes shimmer': {
@@ -961,6 +961,7 @@ const NewPostForm = ({ user, countries, categories, flOptions }) => {
           maxWidth: 960,
           width: "100%",
           borderRadius: 3,
+          backgroundColor: theme.custom.color.surfaceRaised,
           boxShadow: theme.shadows[8]
         }}
       >
@@ -1036,7 +1037,7 @@ const NewPostForm = ({ user, countries, categories, flOptions }) => {
                           borderRadius: `${theme.custom.radius.sm}px`,
                           backgroundColor: index <= activeStep
                             ? accentColor
-                            : (theme.palette.mode === 'dark' ? 'rgba(255,255,255,0.1)' : 'rgba(0,0,0,0.08)'),
+                            : alpha(theme.custom.color.ink, theme.palette.mode === 'dark' ? 0.1 : 0.08),
                         }}
                       />
                     ))}
@@ -1072,7 +1073,7 @@ const NewPostForm = ({ user, countries, categories, flOptions }) => {
                             borderRadius: `${theme.custom.radius.md}px`,
                             py: 1,
                             ...(index === activeStep && {
-                              backgroundColor: theme.palette.mode === 'dark' ? 'rgba(91,127,255,0.08)' : 'rgba(27,77,255,0.06)',
+                              backgroundColor: alpha(theme.custom.color.brandPrimary, theme.palette.mode === 'dark' ? 0.08 : 0.06),
                             }),
                           }}
                         >
@@ -1258,7 +1259,7 @@ const NewPostForm = ({ user, countries, categories, flOptions }) => {
         PaperProps={{
           sx: {
             borderRadius: 3,
-            background: theme.palette.background.paper,
+            background: theme.custom.color.surfaceRaised,
             boxShadow: theme.shadows[12]
           }
         }}
@@ -1324,7 +1325,7 @@ const NewPostForm = ({ user, countries, categories, flOptions }) => {
                   borderColor: theme.custom.color.brandPrimary,
                 },
                 '& fieldset': {
-                  borderColor: theme.palette.mode === 'dark' ? 'rgba(255,255,255,0.3)' : 'rgba(0,0,0,0.2)',
+                  borderColor: alpha(theme.custom.color.ink, theme.palette.mode === 'dark' ? 0.3 : 0.2),
                 },
                 color: theme.palette.text.primary
               }
@@ -1384,11 +1385,12 @@ const NewPostForm = ({ user, countries, categories, flOptions }) => {
               }
             }}
             disabled={!customCityName.trim() || !formikRef.current?.values?.country || isCreatingCity}
-            sx={{ 
+            sx={{
               textTransform: 'none',
               borderRadius: 2,
               px: 3,
               background: `linear-gradient(45deg, ${theme.custom.color.brandPrimary} 30%, ${lighten(theme.custom.color.brandPrimary, 0.15)} 90%)`,
+              color: `${theme.palette.getContrastText(theme.custom.color.brandPrimary)} !important`,
               '&:hover': {
                 background: `linear-gradient(45deg, ${lighten(theme.custom.color.brandPrimary, 0.08)} 30%, ${lighten(theme.custom.color.brandPrimary, 0.25)} 90%)`,
               }
@@ -1409,7 +1411,7 @@ const NewPostForm = ({ user, countries, categories, flOptions }) => {
         PaperProps={{
           sx: {
             borderRadius: 2,
-            backgroundColor: theme.palette.background.paper,
+            backgroundColor: theme.custom.color.surfaceRaised,
             boxShadow: theme.shadows[8],
           }
         }}
@@ -1478,6 +1480,7 @@ const NewPostForm = ({ user, countries, categories, flOptions }) => {
                 borderRadius: 2,
                 px: 3,
                 background: `linear-gradient(45deg, ${theme.custom.color.brandPrimary} 30%, ${lighten(theme.custom.color.brandPrimary, 0.15)} 90%)`,
+                color: `${theme.palette.getContrastText(theme.custom.color.brandPrimary)} !important`,
                 '&:hover': {
                   background: `linear-gradient(45deg, ${lighten(theme.custom.color.brandPrimary, 0.08)} 30%, ${lighten(theme.custom.color.brandPrimary, 0.25)} 90%)`,
                 }

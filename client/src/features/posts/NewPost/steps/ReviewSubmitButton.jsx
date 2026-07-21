@@ -1,5 +1,5 @@
 import { useFormikContext } from "formik";
-import { Button, CircularProgress, useTheme } from "@mui/material";
+import { Button, CircularProgress, useTheme, alpha } from "@mui/material";
 import { lighten } from "@mui/material/styles";
 import { useTranslation } from "../../../../utils/translations";
 
@@ -10,6 +10,9 @@ const ReviewSubmitButton = () => {
   const { t } = useTranslation();
   const theme = useTheme();
   const brandPrimary = theme.custom.color.brandPrimary;
+  // getContrastText rather than a hardcoded white: brandPrimary's dark-mode
+  // value (#5B7FFF) is light enough that white text drops to ~3.5:1.
+  const contrastText = theme.palette.getContrastText(brandPrimary);
 
   return (
     <Button
@@ -24,17 +27,17 @@ const ReviewSubmitButton = () => {
         borderRadius: 2,
         textTransform: 'none',
         background: `linear-gradient(45deg, ${brandPrimary} 30%, ${lighten(brandPrimary, 0.15)} 90%)`,
-        color: '#fff !important',
-        boxShadow: `0 4px 15px ${theme.palette.mode === 'dark' ? 'rgba(91, 127, 255, 0.3)' : 'rgba(27, 77, 255, 0.3)'}`,
+        color: `${contrastText} !important`,
+        boxShadow: `0 4px 15px ${alpha(brandPrimary, 0.3)}`,
         '&:hover': {
           background: `linear-gradient(45deg, ${lighten(brandPrimary, 0.08)} 30%, ${lighten(brandPrimary, 0.25)} 90%)`,
-          boxShadow: `0 6px 20px ${theme.palette.mode === 'dark' ? 'rgba(91, 127, 255, 0.4)' : 'rgba(27, 77, 255, 0.4)'}`,
+          boxShadow: `0 6px 20px ${alpha(brandPrimary, 0.4)}`,
           transform: 'translateY(-1px)',
-          color: '#fff !important',
+          color: `${contrastText} !important`,
         },
         '&:disabled': {
-          background: theme.palette.mode === 'dark' ? 'rgba(91, 127, 255, 0.3)' : 'rgba(27, 77, 255, 0.3)',
-          color: theme.palette.mode === 'dark' ? 'rgba(255,255,255,0.5) !important' : 'rgba(255,255,255,0.7) !important',
+          background: alpha(brandPrimary, 0.3),
+          color: `${alpha(contrastText, theme.palette.mode === 'dark' ? 0.5 : 0.7)} !important`,
           transform: 'none',
           boxShadow: 'none',
         },

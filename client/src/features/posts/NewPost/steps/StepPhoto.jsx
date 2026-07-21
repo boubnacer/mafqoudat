@@ -15,6 +15,7 @@ import {
   DialogActions,
   Button,
   useTheme,
+  alpha,
 } from "@mui/material";
 import {
   Delete as DeleteIcon,
@@ -108,7 +109,7 @@ const StepPhoto = ({
             mb: 1,
             display: "block",
             fontSize: '1rem',
-            color: theme.palette.mode === 'dark' ? 'rgba(255,255,255,0.7)' : 'rgba(0,0,0,0.6)',
+            color: alpha(theme.custom.color.ink, theme.palette.mode === 'dark' ? 0.7 : 0.6),
             fontWeight: 500
           }}
         >
@@ -123,7 +124,7 @@ const StepPhoto = ({
                 borderRadius: 3,
                 overflow: 'hidden',
                 boxShadow: theme.shadows[4],
-                border: `2px solid ${theme.palette.mode === 'dark' ? 'rgba(255,255,255,0.1)' : 'rgba(0,0,0,0.1)'}`,
+                border: `2px solid ${alpha(theme.custom.color.ink, theme.palette.mode === 'dark' ? 0.1 : 0.1)}`,
               }}
             >
               <CardMedia
@@ -184,11 +185,11 @@ const StepPhoto = ({
               cursor: isCompressing ? 'default' : 'pointer',
               borderRadius: 3,
               border: `2px dashed ${theme.palette.divider}`,
-              backgroundColor: theme.palette.mode === 'dark' ? 'rgba(255,255,255,0.02)' : 'rgba(0,0,0,0.02)',
+              backgroundColor: alpha(theme.custom.color.ink, 0.02),
               transition: 'all 0.2s ease-in-out',
               '&:hover': isCompressing ? {} : {
                 borderColor: accentColor,
-                backgroundColor: theme.palette.mode === 'dark' ? 'rgba(91,127,255,0.08)' : 'rgba(27,77,255,0.05)',
+                backgroundColor: alpha(theme.custom.color.brandPrimary, theme.palette.mode === 'dark' ? 0.08 : 0.05),
               },
             }}
           >
@@ -222,7 +223,7 @@ const StepPhoto = ({
           <Typography
             variant="body2"
             sx={{
-              color: theme.palette.mode === 'dark' ? 'rgba(255,255,255,0.8)' : 'rgba(0,0,0,0.7)',
+              color: alpha(theme.custom.color.ink, theme.palette.mode === 'dark' ? 0.8 : 0.7),
               fontWeight: 500
             }}
           >
@@ -254,7 +255,7 @@ const StepPhoto = ({
         PaperProps={{
           sx: {
             borderRadius: 3,
-            backgroundColor: theme.palette.background.paper,
+            backgroundColor: theme.custom.color.surfaceRaised,
             boxShadow: theme.shadows[12],
           }
         }}
@@ -327,6 +328,7 @@ const StepPhoto = ({
               borderRadius: 2,
               px: 3,
               backgroundColor: accentColor,
+              color: `${theme.palette.getContrastText(accentColor)} !important`,
               '&:hover': { backgroundColor: accentColor },
             }}
           >

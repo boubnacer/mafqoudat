@@ -15,12 +15,16 @@ export const colorTokens = {
   surfaceBase: { light: '#F7F8FB', dark: '#0E1116' },
   surfaceRaised: { light: '#FFFFFF', dark: '#171B22' },
   status: {
+    // light-mode `main` deepened slightly from the original #D6483B/#1E8F6B so
+    // getContrastText's white-on-main pick clears 4.5:1 on solid-fill status
+    // tags (was 4.0-4.3:1 — right at the crossover where neither white nor
+    // black text could pass). Dark-mode values are unaffected.
     lost: {
-      light: { main: '#D6483B', bg: '#FBEAE8', border: '#D6483B' },
+      light: { main: '#C64335', bg: '#FBEAE8', border: '#C64335' },
       dark: { main: '#FF6B5E', bg: 'rgba(255, 107, 94, 0.16)', border: '#FF6B5E' },
     },
     found: {
-      light: { main: '#1E8F6B', bg: '#E5F5EF', border: '#1E8F6B' },
+      light: { main: '#1A8563', bg: '#E5F5EF', border: '#1A8563' },
       dark: { main: '#3DDCA6', bg: 'rgba(61, 220, 166, 0.16)', border: '#3DDCA6' },
     },
   },

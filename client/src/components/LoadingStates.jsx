@@ -122,15 +122,20 @@ export const RecentItemsSkeleton = () => {
 };
 
 // Empty State Component
-export const EmptyState = ({ 
-  icon: Icon, 
-  title, 
-  description, 
-  action, 
-  variant = 'info' 
+export const EmptyState = ({
+  icon: Icon,
+  title,
+  description,
+  action,
+  variant = 'info'
 }) => {
   const theme = useTheme();
-  
+  const iconColor = variant === 'success'
+    ? theme.custom.status.found.main
+    : variant === 'error'
+      ? theme.custom.status.lost.main
+      : theme.custom.color.brandPrimary;
+
   return (
     <Box
       sx={{
@@ -141,19 +146,15 @@ export const EmptyState = ({
         py: 6,
         px: 2,
         textAlign: 'center',
-        backgroundColor: theme.palette.mode === 'dark' 
-          ? 'rgba(255,255,255,0.02)' 
-          : 'rgba(0,0,0,0.02)',
+        backgroundColor: alpha(theme.custom.color.ink, 0.02),
         borderRadius: 2,
-        border: `1px dashed ${theme.palette.mode === 'dark' 
-          ? 'rgba(255,255,255,0.1)' 
-          : 'rgba(0,0,0,0.1)'}`,
+        border: `1px dashed ${alpha(theme.custom.color.ink, 0.1)}`,
       }}
     >
       <Icon
         sx={{
           fontSize: 64,
-          color: theme.palette[variant].main,
+          color: iconColor,
           mb: 2,
           opacity: 0.7,
         }}
@@ -186,7 +187,7 @@ export const LoadingState = ({ message = "Loading...", size = "medium" }) => {
         flexDirection: 'column',
         alignItems: 'center',
         justifyContent: 'center',
-        backgroundColor: 'white',
+        backgroundColor: theme.custom.color.surfaceBase,
         transition: 'background 0.3s',
       }}
     >
@@ -301,59 +302,59 @@ export const DashboardEmptyStates = {
         description={description}
         action={
           <Box sx={{ display: 'flex', gap: 2, flexWrap: 'wrap', justifyContent: 'center' }}>
-            <Button 
+            <Button
               variant="contained"
               startIcon={<AddIcon />}
               onClick={() => onCreatePost && onCreatePost('lost')}
-              sx={{
+              sx={(theme) => ({
                 borderRadius: '4px',
                 px: 3,
                 py: 1,
                 textTransform: 'none',
                 fontWeight: 600,
-                background: 'linear-gradient(45deg, #4A8BFF 30%, #1A6EEE 90%)',
-                boxShadow: '0 3px 5px 2px rgba(26, 110, 238, .3)',
-                color: '#fff !important',
+                backgroundColor: theme.custom.color.brandPrimary,
+                boxShadow: `0 3px 5px 2px ${alpha(theme.custom.color.brandPrimary, 0.3)}`,
+                color: `${theme.palette.getContrastText(theme.custom.color.brandPrimary)} !important`,
                 '&:hover': {
-                  background: 'linear-gradient(45deg, #5A9BFF 30%, #2A7EFF 90%)',
-                  boxShadow: '0 4px 8px 2px rgba(26, 110, 238, .4)',
-                  color: '#fff !important',
+                  backgroundColor: theme.custom.color.brandPrimary,
+                  boxShadow: `0 4px 8px 2px ${alpha(theme.custom.color.brandPrimary, 0.4)}`,
+                  color: `${theme.palette.getContrastText(theme.custom.color.brandPrimary)} !important`,
                 },
                 '& .MuiButton-startIcon': {
                   marginRight: currentLanguage === 'ar' ? 0 : '8px',
                   marginLeft: currentLanguage === 'ar' ? '8px' : 0,
                 }
-              }}
+              })}
             >
               {t('reportLostItem')}
             </Button>
-            <Button 
+            <Button
               variant="outlined"
               startIcon={<AddIcon />}
               onClick={() => onCreatePost && onCreatePost('found')}
-              sx={{
+              sx={(theme) => ({
                 borderRadius: '4px',
                 px: 3,
                 py: 1,
                 textTransform: 'none',
                 fontWeight: 600,
-                borderColor: '#4A8BFF',
-                color: '#4A8BFF',
+                borderColor: theme.custom.color.brandPrimary,
+                color: theme.custom.color.brandPrimary,
                 borderWidth: '2px',
                 transition: 'all 0.3s ease',
                 '&:hover': {
-                  borderColor: '#3A7BEF',
-                  backgroundColor: alpha('#4A8BFF', 0.05),
-                  color: '#3A7BEF',
+                  borderColor: theme.custom.color.brandPrimary,
+                  backgroundColor: alpha(theme.custom.color.brandPrimary, 0.05),
+                  color: theme.custom.color.brandPrimary,
                   borderWidth: '2px',
                   transform: 'translateY(-1px)',
-                  boxShadow: `0 4px 12px ${alpha('#4A8BFF', 0.2)}`,
+                  boxShadow: `0 4px 12px ${alpha(theme.custom.color.brandPrimary, 0.2)}`,
                 },
                 '& .MuiButton-startIcon': {
                   marginRight: currentLanguage === 'ar' ? 0 : '8px',
                   marginLeft: currentLanguage === 'ar' ? '8px' : 0,
                 }
-              }}
+              })}
             >
               {t('reportFoundItem')}
             </Button>

@@ -23,7 +23,7 @@ const WizardFooter = ({ showBack = true, onBack, stackOnMobile = false, children
         gap: 2,
         position: { xs: 'sticky', sm: 'static' },
         bottom: 0,
-        backgroundColor: theme.palette.background.paper,
+        backgroundColor: theme.custom.color.surfaceRaised,
         borderTop: { xs: `1px solid ${theme.palette.divider}`, sm: 'none' },
         pb: { xs: 2, sm: 0 },
         zIndex: 2,

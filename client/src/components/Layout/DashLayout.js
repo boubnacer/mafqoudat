@@ -51,7 +51,7 @@ const DashLayout = () => {
         <Sidebar />
         <Box 
           sx={{ 
-            backgroundColor: theme.palette.background.default,
+            backgroundColor: theme.custom.color.surfaceBase,
             maxWidth: '100%',
             overflow: 'hidden',
           }}
