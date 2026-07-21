@@ -135,7 +135,7 @@ const RecentPosts = ({
         sx={{
           position: "relative",
           width: "100%",
-          paddingTop: "62%",
+          paddingTop: "75%",
           overflow: "hidden",
           backgroundColor: theme.custom.color.surfaceBase,
         }}
@@ -255,7 +255,7 @@ const RecentPosts = ({
       </Box>
 
       {/* Content */}
-      <Box sx={{ flexGrow: 1, display: "flex", alignItems: "center", p: 1.5, minWidth: 0 }}>
+      <Box sx={{ flexGrow: 1, display: "flex", alignItems: "center", p: 1.75, minWidth: 0 }}>
         <Box sx={{ display: "flex", alignItems: "center", gap: 0.75, minWidth: 0, width: "100%" }}>
           <LocationOnOutlined sx={{ fontSize: 16, color: alpha(theme.custom.color.ink, 0.55), flexShrink: 0 }} />
           <Typography
