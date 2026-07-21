@@ -4,7 +4,6 @@ import {
   FormLabel,
   Typography,
   Button,
-  Divider,
   useTheme,
 } from "@mui/material";
 import { Edit as EditIcon } from '@mui/icons-material';
@@ -57,16 +56,12 @@ const StepReview = ({
         {values.description && <ReviewRow label={t('description')} value={values.description} />}
       </ReviewSection>
 
-      <Divider />
-
       <ReviewSection title={t('wizardStepLocationTitle')} onEdit={() => onEditStep(1)}>
         <ReviewRow label={t('country')} value={countryLabel || '-'} />
         <ReviewRow label={t('city')} value={cityDisplayValue || '-'} />
         <ReviewRow label={t('exactLocation')} value={values.exactLocation} />
         {values.exactDate && <ReviewRow label={t('exactDateFound')} value={values.exactDate} />}
       </ReviewSection>
-
-      <Divider />
 
       <ReviewSection title={t('wizardStepPhotoTitle')} onEdit={() => onEditStep(2)}>
         {imagePreview ? (
@@ -82,8 +77,6 @@ const StepReview = ({
           </Typography>
         )}
       </ReviewSection>
-
-      <Divider />
 
       {/* Contact Information Section */}
       <Typography
@@ -154,7 +147,14 @@ const ReviewSection = ({ title, onEdit, children }) => {
   const { t } = useTranslation();
 
   return (
-    <Box>
+    <Box
+      sx={{
+        p: 2.5,
+        borderRadius: `${theme.custom.radius.md}px`,
+        border: `1px solid ${theme.palette.divider}`,
+        backgroundColor: theme.palette.mode === 'dark' ? 'rgba(255,255,255,0.02)' : 'rgba(0,0,0,0.015)',
+      }}
+    >
       <Box display="flex" alignItems="center" justifyContent="space-between" mb={1.5}>
         <Typography
           variant="h6"

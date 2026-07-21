@@ -6,7 +6,7 @@ import { selectCurrentToken } from "../../auth/authSlice";
 import * as Yup from "yup";
 import { Formik, Form } from "formik";
 import imageCompression from "browser-image-compression";
-import { lighten } from "@mui/material/styles";
+import { lighten, alpha } from "@mui/material/styles";
 import {
   Box,
   Paper,
@@ -21,14 +21,20 @@ import {
   DialogContent,
   DialogActions,
   IconButton,
+  Divider,
   Stepper,
   Step,
   StepButton,
-  LinearProgress
+  StepLabel
 } from "@mui/material";
 import {
   Close as CloseIcon,
-  CloudUpload as CloudUploadIcon
+  CloudUpload as CloudUploadIcon,
+  HelpOutline as HelpOutlineIcon,
+  LocationOn as LocationOnIcon,
+  PhotoCamera as PhotoCameraIcon,
+  FactCheck as FactCheckIcon,
+  Check as CheckIcon
 } from '@mui/icons-material';
 import { useTranslation } from "../../../utils/translations";
 import PromotionDialog from "../../../components/PromotionDialog";
@@ -41,6 +47,47 @@ import WizardFooter from "./steps/WizardFooter";
 import ReviewSubmitButton from "./steps/ReviewSubmitButton";
 import { validateStep1, validateStep2, STEP_VALIDATORS, scrollToFirstErrorField } from "./wizardValidation";
 import { getCityDisplayName } from "./cityDisplay";
+
+// Maps each step's 1-based position (MUI auto-assigns `icon` = index + 1) to
+// the icon shown in its desktop rail badge.
+const RAIL_STEP_ICONS = {
+  1: HelpOutlineIcon,
+  2: LocationOnIcon,
+  3: PhotoCameraIcon,
+  4: FactCheckIcon,
+};
+
+// Custom step icon for the desktop rail: a circular badge colored from the
+// Phase 1 brand token, swapping to a checkmark once a step is completed.
+// Purely presentational - `active`/`completed` are the same booleans MUI's
+// Stepper already derives from activeStep/maxStepReached.
+const RailStepIcon = ({ active, completed, icon }) => {
+  const theme = useTheme();
+  const accent = theme.custom.color.brandPrimary;
+  const IconComponent = RAIL_STEP_ICONS[icon] || HelpOutlineIcon;
+
+  return (
+    <Box
+      sx={{
+        width: 40,
+        height: 40,
+        borderRadius: '50%',
+        display: 'flex',
+        alignItems: 'center',
+        justifyContent: 'center',
+        flexShrink: 0,
+        backgroundColor: active || completed
+          ? alpha(accent, 0.14)
+          : (theme.palette.mode === 'dark' ? 'rgba(255,255,255,0.06)' : 'rgba(0,0,0,0.04)'),
+        color: active || completed ? accent : theme.palette.text.disabled,
+        border: `2px solid ${active ? accent : 'transparent'}`,
+        transition: 'all 0.2s ease-in-out',
+      }}
+    >
+      {completed ? <CheckIcon fontSize="small" /> : <IconComponent fontSize="small" />}
+    </Box>
+  );
+};
 
 const NewPostForm = ({ user, countries, categories, flOptions }) => {
   const [addNewPost, { isSuccess, isError, error }] = useAddNewPostMutation();
@@ -911,7 +958,7 @@ const NewPostForm = ({ user, countries, categories, flOptions }) => {
         sx={{
           p: { xs: 3, md: 5 },
           pb: { xs: 11, sm: 5 },
-          maxWidth: 680,
+          maxWidth: 960,
           width: "100%",
           borderRadius: 3,
           boxShadow: theme.shadows[8]
@@ -970,191 +1017,226 @@ const NewPostForm = ({ user, countries, categories, flOptions }) => {
 
             return (
             <Form>
-              <Box sx={{ mb: 4 }}>
-                <Box sx={{ display: { xs: 'none', sm: 'block' } }}>
-                  <Stepper
-                    activeStep={activeStep}
-                    alternativeLabel
-                    sx={{
-                      '& .MuiStepIcon-root.Mui-active': { color: accentColor },
-                      '& .MuiStepIcon-root.Mui-completed': { color: accentColor },
-                      '& .MuiStepConnector-root.Mui-active .MuiStepConnector-line, & .MuiStepConnector-root.Mui-completed .MuiStepConnector-line': {
-                        borderColor: accentColor,
-                      },
-                      '& .MuiStepLabel-label': {
-                        fontSize: '0.85rem',
-                        // Longer fr/ar labels shouldn't force the stepper to overflow.
-                        whiteSpace: 'normal',
-                        textAlign: 'center',
-                      },
-                    }}
-                  >
+              <Box
+                sx={{
+                  display: { xs: 'block', sm: 'flex' },
+                  alignItems: 'flex-start',
+                  gap: { sm: 4 },
+                }}
+              >
+                {/* Mobile-only segmented progress bar (replaces the desktop rail) */}
+                <Box sx={{ display: { xs: 'block', sm: 'none' }, mb: 3 }}>
+                  <Box sx={{ display: 'flex', gap: 0.75, mb: 1 }}>
                     {steps.map((step, index) => (
-                      <Step key={step.key} completed={index < maxStepReached}>
-                        <StepButton onClick={() => handleStepClick(index)} disabled={index > maxStepReached}>
-                          {step.label}
-                        </StepButton>
-                      </Step>
+                      <Box
+                        key={step.key}
+                        sx={{
+                          flex: 1,
+                          height: 6,
+                          borderRadius: `${theme.custom.radius.sm}px`,
+                          backgroundColor: index <= activeStep
+                            ? accentColor
+                            : (theme.palette.mode === 'dark' ? 'rgba(255,255,255,0.1)' : 'rgba(0,0,0,0.08)'),
+                        }}
+                      />
                     ))}
-                  </Stepper>
-                </Box>
-                <Box sx={{ display: { xs: 'block', sm: 'none' } }}>
-                  <LinearProgress
-                    variant="determinate"
-                    value={((activeStep + 1) / steps.length) * 100}
-                    sx={{
-                      height: 6,
-                      borderRadius: 3,
-                      mb: 1,
-                      backgroundColor: theme.palette.mode === 'dark' ? 'rgba(255,255,255,0.1)' : 'rgba(0,0,0,0.08)',
-                      '& .MuiLinearProgress-bar': { backgroundColor: accentColor, borderRadius: 3 },
-                    }}
-                  />
+                  </Box>
                   <Typography variant="caption" sx={{ fontWeight: 600, color: theme.palette.text.secondary }}>
                     {t('wizardStepProgressShort', { current: activeStep + 1, total: steps.length })}
                   </Typography>
                 </Box>
 
-                <Box sx={{ mt: 3, textAlign: 'center' }}>
-                  <Typography variant="h5" sx={{ fontWeight: 700, color: accentColor, fontSize: '1.4rem' }}>
-                    {steps[activeStep].label}
-                  </Typography>
-                  <Typography variant="body2" sx={{ color: theme.palette.text.secondary, mt: 0.5 }}>
-                    {steps[activeStep].subtitle}
-                  </Typography>
-                </Box>
-              </Box>
-
-              {status?.error && (
-                <Alert severity="error" sx={{ mb: 3 }}>
-                  {status.error}
-                </Alert>
-              )}
-
-              {/* Rendered at the shell level (not gated by activeStep) so it's
-                  visible whichever step's Next/Submit validation raised it. */}
-              {status?.validationError && (
-                <Box mb={3} sx={{ display: 'flex', justifyContent: 'center', width: '100%' }}>
-                  <Alert
-                    severity="error"
+                {/* Desktop rail: vertical Stepper with icon badges, current step highlighted */}
+                <Box sx={{ display: { xs: 'none', sm: 'block' }, width: 240, flexShrink: 0 }}>
+                  <Stepper
+                    activeStep={activeStep}
+                    orientation="vertical"
                     sx={{
-                      width: '100%',
-                      borderRadius: 2,
-                      '& .MuiAlert-message': {
-                        width: '100%'
-                      }
+                      '& .MuiStepConnector-root.Mui-active .MuiStepConnector-line, & .MuiStepConnector-root.Mui-completed .MuiStepConnector-line': {
+                        borderColor: accentColor,
+                      },
+                      '& .MuiStepLabel-label': {
+                        fontWeight: 600,
+                        color: theme.palette.text.secondary,
+                      },
+                      '& .MuiStepLabel-label.Mui-active': { color: accentColor },
+                      '& .MuiStepLabel-label.Mui-completed': { color: theme.palette.text.primary },
                     }}
                   >
-                    <Typography variant="body2" sx={{ fontWeight: 500 }}>
-                      {status.validationError}
-                    </Typography>
-                  </Alert>
+                    {steps.map((step, index) => (
+                      <Step key={step.key} completed={index < maxStepReached}>
+                        <StepButton
+                          onClick={() => handleStepClick(index)}
+                          disabled={index > maxStepReached}
+                          sx={{
+                            borderRadius: `${theme.custom.radius.md}px`,
+                            py: 1,
+                            ...(index === activeStep && {
+                              backgroundColor: theme.palette.mode === 'dark' ? 'rgba(91,127,255,0.08)' : 'rgba(27,77,255,0.06)',
+                            }),
+                          }}
+                        >
+                          <StepLabel
+                            StepIconComponent={RailStepIcon}
+                            optional={
+                              <Typography variant="caption" sx={{ color: theme.palette.text.secondary }}>
+                                {step.subtitle}
+                              </Typography>
+                            }
+                          >
+                            {step.label}
+                          </StepLabel>
+                        </StepButton>
+                      </Step>
+                    ))}
+                  </Stepper>
                 </Box>
-              )}
 
-              <StepTransition stepKey={activeStep} direction={stepDirection}>
-                {activeStep === 0 && (
-                  <>
-                    <StepItem
-                      flOptions={flOptions}
-                      categories={categories}
-                      fieldErrors={fieldErrors}
-                      clearFieldError={clearFieldError}
-                      getFoundLostType={getFoundLostType}
-                    />
-                    <WizardFooter showBack={false}>
-                      <Button
-                        variant="contained"
-                        onClick={() => handleNextFromItemStep(values, setStatus)}
-                        sx={{ textTransform: 'none', borderRadius: 2, px: 4, py: 1.25, fontWeight: 600 }}
+                <Divider orientation="vertical" flexItem sx={{ display: { xs: 'none', sm: 'block' } }} />
+
+                {/* Content pane */}
+                <Box sx={{ flex: 1, minWidth: 0, width: '100%' }}>
+                  <Box sx={{ mb: 3 }}>
+                    <Typography variant="h5" sx={{ fontWeight: 700, color: accentColor, fontSize: '1.4rem' }}>
+                      {steps[activeStep].label}
+                    </Typography>
+                    <Typography variant="body2" sx={{ color: theme.palette.text.secondary, mt: 0.5 }}>
+                      {steps[activeStep].subtitle}
+                    </Typography>
+                  </Box>
+
+                  {status?.error && (
+                    <Alert severity="error" sx={{ mb: 3 }}>
+                      {status.error}
+                    </Alert>
+                  )}
+
+                  {/* Not gated by activeStep, so it's visible whichever step's
+                      Next/Submit validation raised it. */}
+                  {status?.validationError && (
+                    <Box mb={3} sx={{ display: 'flex', justifyContent: 'center', width: '100%' }}>
+                      <Alert
+                        severity="error"
+                        sx={{
+                          width: '100%',
+                          borderRadius: 2,
+                          '& .MuiAlert-message': {
+                            width: '100%'
+                          }
+                        }}
                       >
-                        {t('wizardNext')}
-                      </Button>
-                    </WizardFooter>
-                  </>
-                )}
+                        <Typography variant="body2" sx={{ fontWeight: 500 }}>
+                          {status.validationError}
+                        </Typography>
+                      </Alert>
+                    </Box>
+                  )}
 
-                {activeStep === 1 && (
-                  <>
-                    <StepLocation
-                      countries={countries}
-                      fieldErrors={fieldErrors}
-                      clearFieldError={clearFieldError}
-                      getFoundLostType={getFoundLostType}
-                      getCountryLabel={getCountryLabel}
-                      selectedCountryObj={selectedCountryObj}
-                      handleCountryChange={handleCountryChange}
-                      cities={cities}
-                      citySearchQuery={citySearchQuery}
-                      cityDisplayValue={cityDisplayValue}
-                      searchResults={searchResults}
-                      isSearching={isSearching}
-                      showCityDropdown={showCityDropdown}
-                      filteredCities={filteredCities}
-                      setShowCityDropdown={setShowCityDropdown}
-                      setShowCustomCityInput={setShowCustomCityInput}
-                      handleCityDropdownToggle={handleCityDropdownToggle}
-                      handleCitySearchChange={handleCitySearchChange}
-                      handleCitySelect={handleCitySelect}
-                    />
-                    <WizardFooter onBack={() => goToStep(0)}>
-                      <Button
-                        variant="contained"
-                        onClick={() => handleNextFromLocationStep(values, setStatus)}
-                        sx={{ textTransform: 'none', borderRadius: 2, px: 4, py: 1.25, fontWeight: 600 }}
-                      >
-                        {t('wizardNext')}
-                      </Button>
-                    </WizardFooter>
-                  </>
-                )}
+                  <StepTransition stepKey={activeStep} direction={stepDirection}>
+                    {activeStep === 0 && (
+                      <>
+                        <StepItem
+                          flOptions={flOptions}
+                          categories={categories}
+                          fieldErrors={fieldErrors}
+                          clearFieldError={clearFieldError}
+                          getFoundLostType={getFoundLostType}
+                        />
+                        <WizardFooter showBack={false}>
+                          <Button
+                            variant="contained"
+                            onClick={() => handleNextFromItemStep(values, setStatus)}
+                            sx={{ textTransform: 'none', borderRadius: 2, px: 4, py: 1.25, fontWeight: 600 }}
+                          >
+                            {t('wizardNext')}
+                          </Button>
+                        </WizardFooter>
+                      </>
+                    )}
 
-                {activeStep === 2 && (
-                  <>
-                    <StepPhoto
-                      getFoundLostType={getFoundLostType}
-                      imagePreview={imagePreview}
-                      selectedFileName={selectedFileName}
-                      compressionInfo={compressionInfo}
-                      isCompressing={isCompressing}
-                      fileInputRef={fileInputRef}
-                      handleImageButtonClick={handleImageButtonClick}
-                      handleImageSelect={handleImageSelect}
-                      handleImageRemove={handleImageRemove}
-                      handleImageDialogOpen={handleImageDialogOpen}
-                    />
-                    <WizardFooter onBack={() => goToStep(1)}>
-                      <Button
-                        variant="contained"
-                        onClick={handleNextFromPhotoStep}
-                        sx={{ textTransform: 'none', borderRadius: 2, px: 4, py: 1.25, fontWeight: 600 }}
-                      >
-                        {t('wizardNext')}
-                      </Button>
-                    </WizardFooter>
-                  </>
-                )}
+                    {activeStep === 1 && (
+                      <>
+                        <StepLocation
+                          countries={countries}
+                          fieldErrors={fieldErrors}
+                          clearFieldError={clearFieldError}
+                          getFoundLostType={getFoundLostType}
+                          getCountryLabel={getCountryLabel}
+                          selectedCountryObj={selectedCountryObj}
+                          handleCountryChange={handleCountryChange}
+                          cities={cities}
+                          citySearchQuery={citySearchQuery}
+                          cityDisplayValue={cityDisplayValue}
+                          searchResults={searchResults}
+                          isSearching={isSearching}
+                          showCityDropdown={showCityDropdown}
+                          filteredCities={filteredCities}
+                          setShowCityDropdown={setShowCityDropdown}
+                          setShowCustomCityInput={setShowCustomCityInput}
+                          handleCityDropdownToggle={handleCityDropdownToggle}
+                          handleCitySearchChange={handleCitySearchChange}
+                          handleCitySelect={handleCitySelect}
+                        />
+                        <WizardFooter onBack={() => goToStep(0)}>
+                          <Button
+                            variant="contained"
+                            onClick={() => handleNextFromLocationStep(values, setStatus)}
+                            sx={{ textTransform: 'none', borderRadius: 2, px: 4, py: 1.25, fontWeight: 600 }}
+                          >
+                            {t('wizardNext')}
+                          </Button>
+                        </WizardFooter>
+                      </>
+                    )}
 
-                {activeStep === 3 && (
-                  <>
-                    <StepReview
-                      flOptions={flOptions}
-                      categories={categories}
-                      countries={countries}
-                      fieldErrors={fieldErrors}
-                      clearFieldError={clearFieldError}
-                      getFoundLostType={getFoundLostType}
-                      getCountryLabel={getCountryLabel}
-                      cityDisplayValue={cityDisplayValue}
-                      imagePreview={imagePreview}
-                      onEditStep={handleStepClick}
-                    />
-                    <WizardFooter onBack={() => goToStep(2)} stackOnMobile>
-                      <ReviewSubmitButton />
-                    </WizardFooter>
-                  </>
-                )}
-              </StepTransition>
+                    {activeStep === 2 && (
+                      <>
+                        <StepPhoto
+                          getFoundLostType={getFoundLostType}
+                          imagePreview={imagePreview}
+                          selectedFileName={selectedFileName}
+                          compressionInfo={compressionInfo}
+                          isCompressing={isCompressing}
+                          fileInputRef={fileInputRef}
+                          handleImageButtonClick={handleImageButtonClick}
+                          handleImageSelect={handleImageSelect}
+                          handleImageRemove={handleImageRemove}
+                          handleImageDialogOpen={handleImageDialogOpen}
+                        />
+                        <WizardFooter onBack={() => goToStep(1)}>
+                          <Button
+                            variant="contained"
+                            onClick={handleNextFromPhotoStep}
+                            sx={{ textTransform: 'none', borderRadius: 2, px: 4, py: 1.25, fontWeight: 600 }}
+                          >
+                            {t('wizardNext')}
+                          </Button>
+                        </WizardFooter>
+                      </>
+                    )}
+
+                    {activeStep === 3 && (
+                      <>
+                        <StepReview
+                          flOptions={flOptions}
+                          categories={categories}
+                          countries={countries}
+                          fieldErrors={fieldErrors}
+                          clearFieldError={clearFieldError}
+                          getFoundLostType={getFoundLostType}
+                          getCountryLabel={getCountryLabel}
+                          cityDisplayValue={cityDisplayValue}
+                          imagePreview={imagePreview}
+                          onEditStep={handleStepClick}
+                        />
+                        <WizardFooter onBack={() => goToStep(2)} stackOnMobile>
+                          <ReviewSubmitButton />
+                        </WizardFooter>
+                      </>
+                    )}
+                  </StepTransition>
+                </Box>
+              </Box>
             </Form>
             );
           }}
