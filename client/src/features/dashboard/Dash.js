@@ -1,7 +1,7 @@
 import React from "react";
 import { useDispatch, useSelector } from "react-redux";
 import { useNavigate } from "react-router-dom";
-import { Box, Skeleton, useMediaQuery, useTheme, Typography, Chip, Button, Paper, Divider } from "@mui/material";
+import { Box, useMediaQuery, useTheme, Typography, Chip, Button, Paper, Divider } from "@mui/material";
 import { setActiveLink, setFoundOrLost, setOpenModal } from "../../app/state";
 import { LoadingState, DashboardEmptyStates } from "../../components/LoadingStates";
 import { WhatshotOutlined, Search, Language } from "@mui/icons-material";
@@ -225,29 +225,9 @@ const Dash = () => {
           }} 
         />
         
-        {isLoading ? (
-          <Skeleton variant="rounded" width={210} height={60} />
-        ) : trend ? (
-          <Box sx={{ display: { xs: hasNoData ? 'none' : 'block', sm: 'block' } }}>
-            <TrendingItem trend={trend} isLoading={isLoading} />
-          </Box>
-        ) : (
-          <Box 
-            sx={{ 
-              p: 3, 
-              textAlign: 'center',
-              backgroundColor: theme.palette.mode === 'dark' ? 'rgba(255,255,255,0.05)' : 'rgba(0,0,0,0.02)',
-              borderRadius: 2,
-              border: `1px dashed ${theme.palette.mode === 'dark' ? 'rgba(255,255,255,0.1)' : 'rgba(0,0,0,0.1)'}`,
-              // Hide on mobile when there are no posts
-              display: { xs: hasNoData ? 'none' : 'block', sm: 'block' }
-            }}
-          >
-            <Typography variant="body2" color="text.secondary">
-              {t('noTrendingItems')}
-            </Typography>
-          </Box>
-        )}
+        <Box sx={{ display: { xs: hasNoData ? 'none' : 'block', sm: 'block' } }}>
+          <TrendingItem trend={trend} isLoading={isLoading} />
+        </Box>
       </Box>
 
       {/* Show empty state if no posts, but still show stats above */}

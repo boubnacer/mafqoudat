@@ -353,7 +353,7 @@ const LeftSide = ({
           fontWeight="700"
           sx={{
             fontSize: { xs: "1.5rem", sm: "1.75rem", md: "2rem" },
-            color: theme.palette.mode === 'dark' ? '#ffffff' : '#2c3e50',
+            color: theme.custom.color.ink,
             mb: 1
           }}
         >
