@@ -541,21 +541,21 @@ const RenderIcon = ({ name }) => {
     name === "share" ? (
       <Share
         sx={{
-          color: theme.palette.mode === 'dark' ? theme.palette.primary.main : '#1976D2',
+          color: theme.custom.color.brandPrimary,
           fontSize: "24px",
         }}
       />
     ) : name === "ad" ? (
       <Campaign
         sx={{
-          color: theme.palette.mode === 'dark' ? theme.palette.primary.main : '#1976D2',
+          color: theme.custom.color.brandPrimary,
           fontSize: "24px",
         }}
       />
     ) : name === "notif" ? (
       <Notifications
         sx={{
-          color: theme.palette.mode === 'dark' ? theme.palette.primary.main : '#1976D2',
+          color: theme.custom.color.brandPrimary,
           fontSize: "24px",
         }}
       />

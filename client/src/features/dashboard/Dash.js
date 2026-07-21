@@ -279,20 +279,8 @@ const Dash = () => {
           {categoriesSection}
 
           {/* Process Section - Show when no posts */}
-          <Box mb={4}>
-            <DashRecents
-              sx={{
-                backgroundColor: theme.palette.mode === 'dark' ? '#1a1a1a' : '#ffffff',
-                borderRadius: { xs: '12px', sm: '16px' },
-                boxShadow: theme.palette.mode === 'dark' 
-                  ? '0 8px 32px rgba(0,0,0,0.3)'
-                  : '0 8px 32px rgba(0,0,0,0.1)',
-                mx: { xs: 1, sm: 2 },
-                border: `1px solid ${theme.palette.mode === 'dark' ? 'rgba(255,255,255,0.05)' : 'rgba(0,0,0,0.08)'}`
-              }}
-            >
-              <Process />
-            </DashRecents>
+          <Box mb={4} mx={{ xs: 1, sm: 2 }}>
+            <Process />
           </Box>
 
           {/* Help &Support Section - Show when no posts */}
@@ -370,20 +358,8 @@ const Dash = () => {
           {categoriesSection}
 
           {/* Process Section */}
-          <Box mb={4}>
-            <DashRecents
-              sx={{
-                backgroundColor: theme.palette.mode === 'dark' ? '#1a1a1a' : '#ffffff',
-                borderRadius: { xs: '12px', sm: '16px' },
-                boxShadow: theme.palette.mode === 'dark' 
-                  ? '0 8px 32px rgba(0,0,0,0.3)'
-                  : '0 8px 32px rgba(0,0,0,0.1)',
-                mx: { xs: 1, sm: 2 },
-                border: `1px solid ${theme.palette.mode === 'dark' ? 'rgba(255,255,255,0.05)' : 'rgba(0,0,0,0.08)'}`
-              }}
-            >
-              <Process />
-            </DashRecents>
+          <Box mb={4} mx={{ xs: 1, sm: 2 }}>
+            <Process />
           </Box>
 
           {/*  Help &Support Section */}

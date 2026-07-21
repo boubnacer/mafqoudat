@@ -725,7 +725,9 @@ export const translations = {
     makeAdvertisingDesc: "Targeted ads to reach more views in the area where you've lost or found items",
     wellNotifyYou: "We'll notify you",
     wellNotifyYouDesc: "Get instant updates",
-    
+    notifyLostHint: "Lost something? We'll alert you the moment a matching Found post appears.",
+    notifyFoundHint: "Found something? We'll notify you when the owner claims it.",
+
     // Recent Sections
     recentFounds: "Recent Founds",
     recentLosts: "Recent Losts",
@@ -2219,7 +2221,9 @@ export const translations = {
     makeAdvertisingDesc: "Publicités ciblées pour atteindre plus de vues dans la zone où vous avez perdu ou trouvé des objets",
     wellNotifyYou: "Nous vous notifierons",
     wellNotifyYouDesc: "Recevez des mises à jour instantanées",
-    
+    notifyLostHint: "Vous avez perdu quelque chose ? Nous vous alertons dès qu'une annonce Trouvé correspondante apparaît.",
+    notifyFoundHint: "Vous avez trouvé quelque chose ? Nous vous notifions quand le propriétaire le réclame.",
+
     // Recent Sections
     recentFounds: "Objets trouvés récents",
     recentLosts: "Objets perdus récents",
@@ -3675,7 +3679,9 @@ export const translations = {
     makeAdvertisingDesc: "إعلانات مستهدفة للوصول إلى المزيد من المشاهدات في المنطقة التي فقدت أو وجدت فيها العناصر",
     wellNotifyYou: "سنخطرك",
     wellNotifyYouDesc: "احصل على تحديثات فورية",
-    
+    notifyLostHint: "فقدت شيئًا؟ سننبهك فور ظهور منشور موجود مطابق.",
+    notifyFoundHint: "وجدت شيئًا؟ سنخطرك عندما يطالب المالك به.",
+
     // Recent Sections
     recentFounds: "العناصر التي عثر عليها حديثاً",
     recentLosts: "العناصر المفقودة حديثاً",
