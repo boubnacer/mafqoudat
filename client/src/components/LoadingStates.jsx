@@ -187,7 +187,7 @@ export const LoadingState = ({ message = "Loading...", size = "medium" }) => {
         flexDirection: 'column',
         alignItems: 'center',
         justifyContent: 'center',
-        backgroundColor: theme.custom.color.surfaceBase,
+        backgroundColor: 'white',
         transition: 'background 0.3s',
       }}
     >
