@@ -128,6 +128,12 @@ const Categories = () => {
                         fontWeight: 600,
                         color: theme.custom.color.ink,
                         textAlign: 'center',
+                        lineHeight: 1.3,
+                        minHeight: '2.6em',
+                        display: '-webkit-box',
+                        WebkitLineClamp: 2,
+                        WebkitBoxOrient: 'vertical',
+                        overflow: 'hidden',
                       }}
                     >
                       {labels[currentLanguage] || labels.en}
