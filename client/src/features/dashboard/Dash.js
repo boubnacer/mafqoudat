@@ -1,10 +1,10 @@
 import React from "react";
 import { useDispatch, useSelector } from "react-redux";
 import { useNavigate } from "react-router-dom";
-import { Box, useMediaQuery, useTheme, Typography, Chip, Button, Paper, Divider } from "@mui/material";
+import { Box, useMediaQuery, useTheme, Typography, Button, Paper, Divider } from "@mui/material";
 import { setActiveLink, setFoundOrLost, setOpenModal } from "../../app/state";
 import { LoadingState, DashboardEmptyStates } from "../../components/LoadingStates";
-import { WhatshotOutlined, Search, Language } from "@mui/icons-material";
+import { Language } from "@mui/icons-material";
 import { useTranslation } from "../../utils/translations";
 import { selectCurrentToken } from "../../features/auth/authSlice";
 import useAuth from "../../hooks/useAuth";
@@ -21,8 +21,7 @@ import QuickActions from "../../components/dashboard/QuickActions";
 import SuccessStories from "../../components/dashboard/SuccessStories";
 import Categories from "../../components/dashboard/Categories";
 import Process from "../../components/dashboard/Process";
-import Recent from "../../components/dashboard/Recent";
-import SeeAll from "../../components/dashboard/SeeAll";
+import RecentSection from "../../components/dashboard/RecentSection";
 import HelpSupportSection from "../../components/dashboard/HelpSupportSection";
 import DashRecents from "../../components/dashboard/DashRecents";
 
@@ -314,355 +313,37 @@ const Dash = () => {
             }}
           />
 
-          {/* Enhanced Recent Founds Section - Only show when there are posts */}
-          {data?.totalFounds > 0 && (
-            <Box mb={4}>
-              <Box
-                sx={{
-                  backgroundColor: theme.palette.mode === 'dark' ? '#1a1a1a' : '#ffffff',
-                  borderRadius: { xs: '16px', sm: '20px' },
-                  boxShadow: theme.palette.mode === 'dark' 
-                    ? '0 8px 32px rgba(0,0,0,0.3)'
-                    : '0 8px 32px rgba(0,0,0,0.1)',
-                  overflow: 'hidden',
-                  mx: { xs: 1, sm: 2 },
-                  maxWidth: '100%',
-                  border: theme.palette.mode === 'dark' 
-                    ? '1px solid rgba(255,255,255,0.1)'
-                    : '1px solid rgba(0,0,0,0.1)',
-                  direction: currentLanguage === 'ar' ? 'rtl' : 'ltr'
-                }}
-              >
-                {/* Header Section */}
-                <Box 
-                  sx={{
-                    background: theme.palette.mode === 'dark'
-                      ? 'linear-gradient(135deg, #1a1a1a 0%, #2d2d2d 100%)'
-                      : '#ffffff',
-                    p: { xs: 2, sm: 3 },
-                    position: 'relative',
-                    overflow: 'hidden',
-                    '&::before': {
-                      content: '""',
-                      position: 'absolute',
-                      top: 0,
-                      left: 0,
-                      right: 0,
-                      bottom: 0,
-                      background: theme.palette.mode === 'dark'
-                        ? 'linear-gradient(45deg, rgba(255,255,255,0.1) 0%, transparent 100%)'
-                        : 'linear-gradient(45deg, rgba(255,255,255,0.2) 0%, transparent 100%)',
-                      pointerEvents: 'none'
-                    }
-                  }}
-                >
-                {/* Mobile Layout */}
-                <Box
-                  sx={{
-                    display: { xs: 'block', sm: 'none' },
-                    textAlign: 'center'
-                  }}
-                >
-                  <Box sx={{ 
-                    display: 'flex', 
-                    alignItems: 'center', 
-                    justifyContent: 'center', 
-                    gap: 1, 
-                    flexDirection: currentLanguage === 'ar' ? 'row-reverse' : 'row',
-                    width: '100%'
-                  }}>
-                    <WhatshotOutlined sx={{ 
-                      color: '#FFA500', 
-                      fontSize: '24px'
-                    }} />
-                    <Typography
-                      variant="h6"
-                      sx={{
-                        color: theme.palette.mode === 'dark' ? '#fff' : '#2c3e50',
-                        fontWeight: 700,
-                        fontSize: '24px',
-                        textAlign: 'center'
-                      }}
-                    >
-                      {t('recentFounds')}
-                    </Typography>
-                  </Box>
-                  
-                                     <Box sx={{ 
-                     display: 'flex', 
-                     alignItems: 'center', 
-                     justifyContent: 'center', 
-                     gap: 2,
-                     flexDirection: currentLanguage === 'ar' ? 'row-reverse' : 'row'
-                   }}>
-
-                   </Box>
-                </Box>
-
-                {/* Desktop Layout */}
-                <Box
-                  sx={{
-                    display: { xs: 'none', sm: 'flex' },
-                    alignItems: 'center',
-                    justifyContent: 'space-between',
-                    flexDirection: currentLanguage === 'ar' ? 'row-reverse' : 'row'
-                  }}
-                >
-                  <Box sx={{ 
-                    display: 'flex', 
-                    alignItems: 'center', 
-                    gap: 2,
-                    order: currentLanguage === 'ar' ? 2 : 1
-                  }}>
-                    <Box sx={{ 
-                      display: 'flex', 
-                      alignItems: 'center', 
-                      gap: 1
-                    }}>
-                      <WhatshotOutlined sx={{ 
-                        color: '#FFA500', 
-                        fontSize: '28px'
-                      }} />
-                      <Typography
-                        variant="h5"
-                        sx={{
-                          color: theme.palette.mode === 'dark' ? '#fff' : '#2c3e50',
-                          fontWeight: 700,
-                          fontSize: { sm: '22px', md: '24px' }
-                        }}
-                      >
-                        {t('recentFounds')}
-                      </Typography>
-                    </Box>
-
-                  </Box>
-                  <Box sx={{ order: currentLanguage === 'ar' ? 1 : 2 }}>
-                    {/* Only show SeeAll button when there are posts */}
-                    {data?.totalFounds > 0 && (
-                      <SeeAll 
-                        foundOrlostId={foundsId} 
-                        totalItems={data?.totalFounds}
-                        variant="desktop"
-                      />
-                    )}
-                  </Box>
-                </Box>
-              </Box>
-
-              {/* Content Section */}
-              <Box 
-                sx={{
-                  p: { xs: 2, sm: 3 },
-                  backgroundColor: theme.palette.mode === 'dark' ? '#2d2d2d' : '#ffffff',
-                  minHeight: '200px',
-                  borderTop: theme.palette.mode === 'dark' 
-                    ? '1px solid rgba(255,255,255,0.1)'
-                    : '1px solid rgba(0,0,0,0.1)',
-                }}
-              >
-                <Recent 
-                  recent={data?.recentFounds}
-                  isLoading={isLoading}
-                  emptyState="NoRecentFounds"
-                  maxItems={{ xs: 2, sm: 4, xxl: 5 }}
-                />
-                 
-                 {/* Mobile See All Button - Bottom (show when there are posts) */}
-                 {data?.totalFounds > 0 && (
-                   <Box
-                     sx={{
-                       display: { xs: 'flex', sm: 'none' },
-                       justifyContent: 'center',
-                       mt: 1.5,
-                       pt: 1,
-                     }}
-                   >
-                     <SeeAll 
-                       foundOrlostId={foundsId} 
-                       totalItems={data?.totalFounds}
-                       variant="mobile"
-                       postType="found"
-                     />
-                   </Box>
-                 )}
-              </Box>
-            </Box>
+          {/* Recent Founds / Recent Losts - paired panels, side by side on
+              desktop, stacked on mobile. Rendered together whenever the
+              country has any data at all; each panel independently falls
+              back to its own empty state + CTA when that type's count is 0,
+              rather than the whole panel disappearing. */}
+          <Box
+            mb={4}
+            mx={{ xs: 1, sm: 2 }}
+            sx={{
+              display: 'grid',
+              gap: { xs: 3, md: 4 },
+              gridTemplateColumns: { xs: '1fr', md: '1fr 1fr' },
+            }}
+          >
+            <RecentSection
+              type="found"
+              items={data?.recentFounds}
+              totalItems={data?.totalFounds}
+              isLoading={isLoading}
+              onCreatePost={handleCreateNewPost}
+              foundOrlostId={foundsId}
+            />
+            <RecentSection
+              type="lost"
+              items={data?.recentLosts}
+              totalItems={data?.totalLosts}
+              isLoading={isLoading}
+              onCreatePost={handleCreateNewPost}
+              foundOrlostId={lostsId}
+            />
           </Box>
-          )}
-
-          {/* Enhanced Recent Losts Section - Only show when there are posts */}
-          {data?.totalLosts > 0 && (
-            <Box mb={4}>
-              <Box
-                sx={{
-                  backgroundColor: theme.palette.mode === 'dark' ? '#1a1a1a' : '#ffffff',
-                  borderRadius: { xs: '16px', sm: '20px' },
-                  boxShadow: theme.palette.mode === 'dark' 
-                    ? '0 8px 32px rgba(0,0,0,0.3)'
-                    : '0 8px 32px rgba(0,0,0,0.1)',
-                  overflow: 'hidden',
-                  mx: { xs: 1, sm: 2 },
-                  maxWidth: '100%',
-                  border: theme.palette.mode === 'dark' 
-                    ? '1px solid rgba(255,255,255,0.1)'
-                    : '1px solid rgba(0,0,0,0.1)',
-                  direction: currentLanguage === 'ar' ? 'rtl' : 'ltr'
-                }}
-              >
-                {/* Header Section */}
-                <Box 
-                  sx={{
-                    background: theme.palette.mode === 'dark'
-                      ? 'linear-gradient(135deg, #1a1a1a 0%, #2d2d2d 100%)'
-                      : '#ffffff',
-                    p: { xs: 2, sm: 3 },
-                    position: 'relative',
-                    overflow: 'hidden',
-                    '&::before': {
-                      content: '""',
-                      position: 'absolute',
-                      top: 0,
-                      left: 0,
-                      right: 0,
-                      bottom: 0,
-                      background: theme.palette.mode === 'dark'
-                        ? 'linear-gradient(45deg, rgba(255,255,255,0.1) 0%, transparent 100%)'
-                        : 'linear-gradient(45deg, rgba(255,255,255,0.2) 0%, transparent 100%)',
-                      pointerEvents: 'none'
-                    }
-                  }}
-                >
-                  {/* Mobile Layout */}
-                  <Box
-                    sx={{
-                      display: { xs: 'block', sm: 'none' },
-                      textAlign: 'center'
-                    }}
-                  >
-                    <Box sx={{ 
-                      display: 'flex', 
-                      alignItems: 'center', 
-                      justifyContent: 'center', 
-                      gap: 1, 
-                      flexDirection: currentLanguage === 'ar' ? 'row-reverse' : 'row',
-                      width: '100%'
-                    }}>
-                      <Search sx={{ 
-                        color: '#FFA500', 
-                        fontSize: '24px'
-                      }} />
-                      <Typography
-                        variant="h6"
-                        sx={{
-                          color: theme.palette.mode === 'dark' ? '#fff' : '#2c3e50',
-                          fontWeight: 700,
-                          fontSize: '24px',
-                          textAlign: 'center'
-                        }}
-                      >
-                        {t('recentLosts')}
-                      </Typography>
-                    </Box>
-                    
-                    <Box sx={{ 
-                      display: 'flex', 
-                      alignItems: 'center', 
-                      justifyContent: 'center', 
-                      gap: 2,
-                      flexDirection: currentLanguage === 'ar' ? 'row-reverse' : 'row'
-                    }}>
-                    </Box>
-                  </Box>
-
-                  {/* Desktop Layout */}
-                  <Box
-                    sx={{
-                      display: { xs: 'none', sm: 'flex' },
-                      alignItems: 'center',
-                      justifyContent: 'space-between',
-                      flexDirection: currentLanguage === 'ar' ? 'row-reverse' : 'row'
-                    }}
-                  >
-                    <Box sx={{ 
-                      display: 'flex', 
-                      alignItems: 'center', 
-                      gap: 2,
-                      order: currentLanguage === 'ar' ? 2 : 1
-                    }}>
-                      <Box sx={{ 
-                        display: 'flex', 
-                        alignItems: 'center', 
-                        gap: 1
-                      }}>
-                        <Search sx={{ 
-                          color: '#FFA500', 
-                          fontSize: '28px'
-                        }} />
-                        <Typography
-                          variant="h5"
-                          sx={{
-                            color: theme.palette.mode === 'dark' ? '#fff' : '#2c3e50',
-                            fontWeight: 700,
-                            fontSize: { sm: '22px', md: '24px' }
-                          }}
-                        >
-                          {t('recentLosts')}
-                        </Typography>
-                      </Box>
-                    </Box>
-                    <Box sx={{ order: currentLanguage === 'ar' ? 1 : 2 }}>
-                      {/* Show SeeAll button when there are posts */}
-                      {data?.totalLosts > 0 && (
-                        <SeeAll 
-                          foundOrlostId={lostsId} 
-                          totalItems={data?.totalLosts}
-                          variant="desktop"
-                        />
-                      )}
-                    </Box>
-                  </Box>
-                </Box>
-
-                {/* Content Section */}
-                <Box 
-                  sx={{
-                    p: { xs: 2, sm: 3 },
-                    backgroundColor: theme.palette.mode === 'dark' ? '#2d2d2d' : '#ffffff',
-                    minHeight: '200px',
-                  borderTop: theme.palette.mode === 'dark' 
-                    ? '1px solid rgba(255,255,255,0.1)'
-                    : '1px solid rgba(0,0,0,0.1)',
-                  }}
-                >
-                  <Recent 
-                    recent={data?.recentLosts}
-                    isLoading={isLoading}
-                    emptyState="NoRecentLosts"
-                    maxItems={{ xs: 2, sm: 4, xxl: 5 }}
-                  />
-                  
-                  {/* Mobile See All Button - Bottom (show when there are posts) */}
-                  {data?.totalLosts > 0 && (
-                    <Box
-                      sx={{
-                        display: { xs: 'flex', sm: 'none' },
-                        justifyContent: 'center',
-                        mt: 1.5,
-                        pt: 1,
-                      }}
-                    >
-                      <SeeAll 
-                        foundOrlostId={lostsId} 
-                        totalItems={data?.totalLosts}
-                        variant="mobile"
-                        postType="lost"
-                      />
-                    </Box>
-                  )}
-                </Box>
-              </Box>
-            </Box>
-          )}
 
           {/* Section Divider */}
           <Box 

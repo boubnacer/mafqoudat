@@ -19,7 +19,8 @@ import {
   Help,
   EmojiEvents,
   Category,
-  WhatshotOutlined,
+  TaskAltOutlined,
+  SearchOffOutlined,
   Add as AddIcon,
 } from '@mui/icons-material';
 import { useTranslation } from '../utils/translations';
@@ -373,8 +374,10 @@ export const DashboardEmptyStates = {
     );
   },
   
-  NoRecentFounds: () => {
+  NoRecentFounds: ({ onCreatePost }) => {
     const { t } = useTranslation();
+    const theme = useTheme();
+    const tone = theme.custom.status.found;
     return (
       <Box
         sx={{
@@ -385,29 +388,50 @@ export const DashboardEmptyStates = {
           py: 6,
           px: 2,
           textAlign: 'center',
-          backgroundColor: 'transparent',
+          borderRadius: `${theme.custom.radius.lg}px`,
+          border: `1px dashed ${alpha(theme.custom.color.ink, 0.15)}`,
         }}
       >
-        <WhatshotOutlined
+        <TaskAltOutlined
           sx={{
-            fontSize: 64,
-            color: '#2196F3',
+            fontSize: 56,
+            color: tone.main,
             mb: 2,
-            opacity: 0.7,
+            opacity: 0.6,
           }}
         />
-        <Typography variant="h6" gutterBottom>
+        <Typography variant="h6" sx={{ fontWeight: 700, color: theme.custom.color.ink, mb: 1 }}>
           {t('noRecentFoundItems')}
         </Typography>
-        <Typography variant="body2" color="text.secondary" sx={{ mb: 3, maxWidth: 400 }}>
+        <Typography variant="body2" sx={{ color: alpha(theme.custom.color.ink, 0.65), mb: 3, maxWidth: 360 }}>
           {t('noRecentFoundItemsDescription')}
         </Typography>
+        {onCreatePost && (
+          <Button
+            variant="contained"
+            startIcon={<AddIcon />}
+            onClick={() => onCreatePost('found')}
+            sx={{
+              borderRadius: `${theme.custom.radius.md}px`,
+              textTransform: 'none',
+              fontWeight: 600,
+              px: 3,
+              backgroundColor: tone.main,
+              color: theme.palette.getContrastText(tone.main),
+              '&:hover': { backgroundColor: tone.main, opacity: 0.9 },
+            }}
+          >
+            {t('reportFoundItem')}
+          </Button>
+        )}
       </Box>
     );
   },
-  
-  NoRecentLosts: () => {
+
+  NoRecentLosts: ({ onCreatePost }) => {
     const { t } = useTranslation();
+    const theme = useTheme();
+    const tone = theme.custom.status.lost;
     return (
       <Box
         sx={{
@@ -418,23 +442,42 @@ export const DashboardEmptyStates = {
           py: 6,
           px: 2,
           textAlign: 'center',
-          backgroundColor: 'transparent',
+          borderRadius: `${theme.custom.radius.lg}px`,
+          border: `1px dashed ${alpha(theme.custom.color.ink, 0.15)}`,
         }}
       >
-        <Search
+        <SearchOffOutlined
           sx={{
-            fontSize: 64,
-            color: '#FFA500',
+            fontSize: 56,
+            color: tone.main,
             mb: 2,
-            opacity: 0.7,
+            opacity: 0.6,
           }}
         />
-        <Typography variant="h6" gutterBottom>
+        <Typography variant="h6" sx={{ fontWeight: 700, color: theme.custom.color.ink, mb: 1 }}>
           {t('noRecentLostItems')}
         </Typography>
-        <Typography variant="body2" color="text.secondary" sx={{ mb: 3, maxWidth: 400 }}>
+        <Typography variant="body2" sx={{ color: alpha(theme.custom.color.ink, 0.65), mb: 3, maxWidth: 360 }}>
           {t('noRecentLostItemsDescription')}
         </Typography>
+        {onCreatePost && (
+          <Button
+            variant="contained"
+            startIcon={<AddIcon />}
+            onClick={() => onCreatePost('lost')}
+            sx={{
+              borderRadius: `${theme.custom.radius.md}px`,
+              textTransform: 'none',
+              fontWeight: 600,
+              px: 3,
+              backgroundColor: tone.main,
+              color: theme.palette.getContrastText(tone.main),
+              '&:hover': { backgroundColor: tone.main, opacity: 0.9 },
+            }}
+          >
+            {t('reportLostItem')}
+          </Button>
+        )}
       </Box>
     );
   },

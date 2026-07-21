@@ -24,12 +24,28 @@ Note: `theme.js` also still carries a large legacy `palette.floptions` / `palett
 
 **Elevation** (`elevationTokens`): `e1`/`e2`/`e3`, separate shadow values per light/dark mode.
 
+## Established component patterns
+
+Reuse these rather than inventing a new card/panel treatment — they're now the house style:
+
+- **Post card DNA** (canonical in [PublicPostsPage.jsx](client/src/components/PublicPostsPage.jsx), reused in [TrendingItem.jsx](client/src/components/dashboard/TrendingItem.jsx)): `surfaceRaised` background, `radius.lg`, `elevation.e1` → `e2` on hover with a `translateY(-4px)` lift, 1px divider border, a `borderInlineStart: 6px solid <status.found|lost main>` accent bar. Status is shown as a solid-fill tag (`TaskAltOutlined`/`SearchOffOutlined` icon + label, `theme.palette.getContrastText()` for the text) positioned `insetInlineStart`, paired with a translucent `alpha(surfaceRaised, 0.85)` date badge `insetInlineEnd`.
+- **Paired dashboard panel** (`SectionPanel` + `SectionTitle` in [LeftSide.jsx](client/src/components/dashboard/LeftSide.jsx) / [TrendingItem.jsx](client/src/components/dashboard/TrendingItem.jsx)): blurred-gradient `surfaceRaised` container, `radius.lg` (16px) mobile / `radius.xl` (24px) desktop, 1px border, centered `ink`-colored title (`h5`, weight 700, `{xs:1.5rem, sm:1.75rem, md:2rem}`). Use this shell for any new dashboard section that should sit alongside the stats/trending row.
+- **Found/Lost duality as one connected shape, not two separate cards** ([FoundLostStrip.jsx](client/src/components/dashboard/FoundLostStrip.jsx)): when a section shows both counts side by side, prefer a single component with a proportional fill (found:lost ratio) over two independent stat boxes — the shape should carry the relationship, not just two numbers.
+- **RTL**: newer components (`PublicPostsPage.jsx`, `FoundLostStrip.jsx`, `TrendingItem.jsx`) use CSS logical properties (`insetInlineStart/End`, `borderInlineStart/End`, `marginInlineStart/End`) which auto-flip with document direction — prefer this over manual `currentLanguage === 'ar' ? ... : ...` checks or `'[dir="rtl"] &'` selector overrides (still present in older dashboard components) when writing new UI.
+- **Data integrity**: don't decorate real numbers with fabricated ones. We found and removed a hardcoded fake `increase` percentage (`+14%` etc., never actually rendered) on the stat boxes, and reframed `TrendingItem` — the query is `$limit: 1` sorted by `createdAt desc` (intentionally "latest post," not a popularity/engagement metric) — so the UI doesn't imply a metric that isn't backed by real data.
+
+## Known tokenization debt (not yet fixed — out of scope so far)
+
+- [RenderIcon.jsx](client/src/components/RenderIcon.jsx): the `Found`/`Lost`/`total`/`returned` icons carry their own hardcoded `sx={{ color: '#...' }}` (e.g. Lost's icon is grey, not red) that don't follow `theme.custom.status`. Newer components (`FoundLostStrip.jsx`, `TrendingItem.jsx`) sidestep this by importing MUI icons directly instead of going through `RenderIcon` for Found/Lost. Worth a real fix if a future phase touches icon rendering broadly.
+- [LoadingStates.jsx](client/src/components/LoadingStates.jsx): the shared `EmptyState` component (used by `NoPosts`, `NoRecentFounds`, `NoTrending`, etc.) still styles off `theme.palette.mode`/`theme.palette[variant]` rather than `theme.custom`. Left alone so far since it's shared across many non-redesigned sections — retheming it is a good candidate for whichever phase does a broader empty-state pass.
+
 ## Design phases
 
 - Phase 1 — design system / [theme.js](client/src/theme.js) + [designTokens.js](client/src/designTokens.js): done
 - Phase 2 — [WelcomePage.jsx](client/src/components/WelcomePage.jsx): done
 - Phase 3 — post card + [PublicPostsPage.jsx](client/src/components/PublicPostsPage.jsx): done
 - Phase 4 — [NewPostForm.js](client/src/features/posts/NewPost/NewPostForm.js): in progress
+- Phase 7 — dashboard header: stats ([LeftSide.jsx](client/src/components/dashboard/LeftSide.jsx) + new [FoundLostStrip.jsx](client/src/components/dashboard/FoundLostStrip.jsx)) and the trending/latest-post spotlight ([TrendingItem.jsx](client/src/components/dashboard/TrendingItem.jsx)), both in [Dash.js](client/src/features/dashboard/Dash.js): done. (Phases 5-6 aren't tracked in this file — fill in if they happened elsewhere.)
 
 ## Rules for this work
 
@@ -37,6 +53,7 @@ Note: `theme.js` also still carries a large legacy `palette.floptions` / `palett
 - Always pull user-facing text from [translations.js](client/src/utils/translations.js) via `useTranslation()`; never hardcode English strings.
 - Always verify both light/dark mode and LTR/RTL before considering a page done.
 - For `NewPostForm.js` specifically: styling/layout changes only. Never touch Formik state, validation logic, city search `fetch()` calls, or submission logic without explicit confirmation from the user first.
+- Don't invent a new card/panel visual language where an established pattern (above) already fits — extend or adapt it instead.
 
 
 SaaS design
