@@ -20,6 +20,11 @@ import {
   Chip,
   Tooltip,
   Drawer,
+  Popper,
+  Grow,
+  ClickAwayListener,
+  Paper,
+  Collapse,
 } from "@mui/material";
 import {
   DarkModeOutlined,
@@ -31,7 +36,8 @@ import {
   Login,
   PersonAdd,
   Search,
-  Explore,
+  Explore as ExploreIcon,
+  Apps,
   Dashboard,
   PostAdd,
   AdminPanelSettings,
@@ -50,7 +56,7 @@ import {
 import { useDispatch, useSelector } from "react-redux";
 import { useSendLogoutMutation } from "../features/auth/authApiSlice";
 import { useNavigate } from "react-router-dom";
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { useGetCountriesQuery } from "../features/countries/countriesApiSlice";
 import useAuth from "../hooks/useAuth";
 import { useTranslation } from "../utils/translations";
@@ -65,7 +71,7 @@ const StyledToolbar = styled(Toolbar)(({ theme }) => ({
   justifyContent: "space-between",
   backgroundColor: alpha(theme.custom.color.surfaceRaised, 0.95),
   backdropFilter: "blur(20px)",
-  padding: "0.75rem 2rem",
+  padding: "0.75rem 2.5rem",
   borderBottom: `1px solid ${alpha(theme.custom.color.ink, 0.08)}`,
   boxShadow: theme.custom.elevation.e1,
   transition: "background-color 0.3s ease",
@@ -76,23 +82,35 @@ const StyledToolbar = styled(Toolbar)(({ theme }) => ({
 }));
 
 const LogoButton = styled(Button)(({ theme }) => ({
-  padding: "8px 12px",
-  borderRadius: theme.custom.radius.sm,
+  padding: "6px 10px 6px 6px",
+  borderRadius: theme.custom.radius.md,
   background: "transparent",
   minWidth: "auto",
   boxShadow: "none",
   display: "flex",
   alignItems: "center",
-  gap: "8px",
+  gap: "10px",
   "&:hover": {
     background: alpha(theme.custom.color.ink, 0.04),
     boxShadow: "none",
+    "& .brand-mark": {
+      transform: "rotate(-6deg) scale(1.06)",
+    },
   },
+}));
+
+const BrandMark = styled(Box)(({ theme }) => ({
+  width: 38,
+  height: 38,
+  borderRadius: theme.custom.radius.md,
+  backgroundColor: alpha(theme.custom.color.brandPrimary, 0.12),
+  display: "flex",
+  alignItems: "center",
+  justifyContent: "center",
+  transition: "transform 0.25s cubic-bezier(0.4, 0, 0.2, 1)",
   "& img": {
-    height: "auto",
-    maxHeight: "35px",
-    width: "auto",
-    objectFit: "contain",
+    width: 20,
+    height: 20,
   },
 }));
 
@@ -108,19 +126,28 @@ const ActionButton = styled(IconButton)(({ theme }) => ({
   },
 }));
 
-const NavigationButton = styled(Button)(({ theme }) => ({
+// Primary-nav trigger — deliberately distinct from the utility RegionSelector
+// pill (bolder border, brand-tinted icon) since it's the main wayfinding entry.
+const ExploreTrigger = styled(Button, { shouldForwardProp: (prop) => prop !== "isOpen" })(({ theme, isOpen }) => ({
   color: theme.custom.color.ink,
   fontSize: "0.9rem",
   fontWeight: 600,
   padding: "8px 14px",
   borderRadius: theme.custom.radius.sm,
-  whiteSpace: "nowrap",
+  border: `1px solid ${alpha(theme.custom.color.ink, isOpen ? 0.18 : 0.1)}`,
+  backgroundColor: isOpen ? alpha(theme.custom.color.brandPrimary, 0.08) : "transparent",
+  transition: "background-color 0.2s ease, border-color 0.2s ease",
   "&:hover": {
-    backgroundColor: alpha(theme.custom.color.ink, 0.06),
+    backgroundColor: alpha(theme.custom.color.brandPrimary, 0.08),
+    borderColor: alpha(theme.custom.color.ink, 0.18),
+  },
+  "& .explore-chevron": {
+    transition: "transform 0.2s ease",
+    transform: isOpen ? "rotate(180deg)" : "rotate(0deg)",
   },
 }));
 
-// Combined country + language entry point (replaces the two separate pills).
+// Combined country + language entry point — unchanged from the previous pass.
 const RegionSelector = styled(Box)(({ theme }) => ({
   display: "flex",
   alignItems: "center",
@@ -165,14 +192,48 @@ const DrawerRow = styled(MenuItem)(({ theme }) => ({
   },
 }));
 
+// One tile inside the Explore panel. `tone` picks the accent — status colors
+// for Found/Lost so the panel echoes the same semantic system as the posts
+// themselves, brand tint for everything else.
+const ExploreTile = styled(Box, { shouldForwardProp: (prop) => prop !== "toneBg" && prop !== "toneBorder" })(
+  ({ theme, toneBg, toneBorder }) => ({
+    display: "flex",
+    alignItems: "flex-start",
+    gap: "12px",
+    padding: "12px",
+    borderRadius: theme.custom.radius.md,
+    cursor: "pointer",
+    backgroundColor: toneBg,
+    border: `1px solid ${toneBorder}`,
+    transition: "transform 0.15s ease, box-shadow 0.15s ease",
+    "&:hover": {
+      transform: "translateY(-2px)",
+      boxShadow: theme.custom.elevation.e1,
+    },
+  })
+);
+
+const ExploreTileIcon = styled(Box)(({ theme }) => ({
+  width: 32,
+  height: 32,
+  minWidth: 32,
+  borderRadius: theme.custom.radius.sm,
+  display: "flex",
+  alignItems: "center",
+  justifyContent: "center",
+  backgroundColor: alpha(theme.custom.color.surfaceRaised, 0.6),
+}));
+
 const Navbar = () => {
   const { country, username, role, isAuthenticated } = useAuth();
   const theme = useTheme();
   const dispatch = useDispatch();
   const navigate = useNavigate();
-  // Single breakpoint: >=900px shows the full desktop bar, below it collapses to the drawer.
-  const showDesktopNav = useMediaQuery(theme.breakpoints.up("md"));
+  // Explore is now a compact dropdown rather than a row of flat buttons, so
+  // the full desktop bar fits comfortably at a narrower width than before.
+  const showDesktopNav = useMediaQuery("(min-width:760px)");
   const { t, currentLanguage } = useTranslation();
+  const isRTL = currentLanguage === "ar";
   const { changeLanguage } = useUnifiedLanguageChange({
     showLoadingState: false,
     refetchPriority: "medium",
@@ -194,6 +255,9 @@ const Navbar = () => {
   const [mobileDrawerOpen, setMobileDrawerOpen] = useState(false);
   const [isInitialized, setIsInitialized] = useState(false);
   const [isRefreshing, setIsRefreshing] = useState(false);
+  const [exploreOpen, setExploreOpen] = useState(false);
+  const [mobileExploreOpen, setMobileExploreOpen] = useState(false);
+  const exploreAnchorRef = useRef(null);
 
   // Get found/lost options for navigation
   const { data: flOptionsData } = useGetflOptionsQuery(
@@ -312,6 +376,18 @@ const Navbar = () => {
   const handleProfileClick = (event) => setProfileAnchorEl(event.currentTarget);
   const handleProfileClose = () => setProfileAnchorEl(null);
 
+  const handleExploreToggle = () => setExploreOpen((prev) => !prev);
+  const handleExploreClose = (event) => {
+    if (exploreAnchorRef.current && exploreAnchorRef.current.contains(event.target)) {
+      return;
+    }
+    setExploreOpen(false);
+  };
+  const handleExploreItemClick = (item) => {
+    item.action();
+    setExploreOpen(false);
+  };
+
   // Admin refresh handler
   const handleRefreshAllData = async () => {
     try {
@@ -360,24 +436,27 @@ const Navbar = () => {
     }
   };
 
-  // Primary navigation items (non-admin). Rendered flat on desktop, and
-  // together with adminNavigationItems in the mobile drawer.
+  // Browse items grouped under the Explore trigger — this is the full list
+  // from the pre-redesign navbar's own "Explore" dropdown (Dashboard, All,
+  // Found, Lost, Blog, Help Center), just restyled.
   const navigationItems = [
     {
       title: t("dashboard"),
       icon: <Dashboard sx={{ fontSize: 20 }} />,
       action: () => navigate("/dash"),
       description: t("goToDashboard"),
+      tone: "neutral",
     },
     {
       title: t("all"),
-      icon: <Explore sx={{ fontSize: 20 }} />,
+      icon: <Apps sx={{ fontSize: 20 }} />,
       action: () => {
         // Reset found/lost state to show all posts
         dispatch(setFoundOrLost({ foundOrlost: "" }));
         navigate("/dash/posts");
       },
       description: t("viewAllPosts"),
+      tone: "neutral",
     },
     ...(flOptionsData?.map((option) => {
       // Use custom Arabic titles for Found and Lost items
@@ -407,6 +486,7 @@ const Navbar = () => {
           navigate(`/dash/posts?fl=${option._id}`);
         },
         description: t(`view${option.code}Items`),
+        tone: option.code === "FOUND" ? "found" : "lost",
       };
     }) || []),
     {
@@ -414,17 +494,29 @@ const Navbar = () => {
       icon: <PostAdd sx={{ fontSize: 20, color: theme.custom.color.brandPrimary }} />,
       action: () => navigate("/blog"),
       description: t("blogSubtitle"),
+      tone: "neutral",
     },
     {
       title: t("helpCenter"),
       icon: <Build sx={{ fontSize: 20, color: theme.custom.color.brandPrimary }} />,
       action: () => navigate("/help"),
       description: t("helpCenterSubtitle"),
+      tone: "neutral",
     },
   ];
 
-  // Admin-only items — surfaced from the avatar menu on desktop, appended to
-  // the drawer list on mobile. Same handlers as before, just relocated.
+  const tileTone = (tone) => {
+    if (tone === "found") {
+      return { bg: theme.custom.status.found.bg, border: theme.custom.status.found.border };
+    }
+    if (tone === "lost") {
+      return { bg: theme.custom.status.lost.bg, border: theme.custom.status.lost.border };
+    }
+    return { bg: alpha(theme.custom.color.ink, 0.03), border: alpha(theme.custom.color.ink, 0.08) };
+  };
+
+  // Admin-only items — surfaced from the avatar menu on desktop, kept as
+  // their own section (not folded into Explore) in the mobile drawer.
   const adminNavigationItems = [];
   if (authLoggedIn && authUser?.role === "admin") {
     adminNavigationItems.push({
@@ -474,29 +566,113 @@ const Navbar = () => {
       }}
     >
       <StyledToolbar>
-        {/* Logo */}
-        <Box sx={{ display: "flex", alignItems: "center" }}>
+        {/* Left cluster: brand + primary nav */}
+        <Box sx={{ display: "flex", alignItems: "center", gap: 1 }}>
           <LogoButton onClick={onGoHomeClicked}>
-            <img
-              src="/maficonSVG.svg"
-              alt="Mafqoudat Icon"
-              loading="lazy"
-              style={{ height: "35px", width: "35px", objectFit: "contain" }}
-            />
-            <img src="/maflogoSVG.svg" alt={t("brandName")} loading="lazy" />
+            <BrandMark className="brand-mark">
+              <img src="/maficonSVG.svg" alt="" loading="lazy" />
+            </BrandMark>
+            <Typography
+              sx={{
+                fontFamily: theme.custom.font.display,
+                fontWeight: 700,
+                fontSize: "1.3rem",
+                color: theme.custom.color.ink,
+                letterSpacing: "0.01em",
+              }}
+            >
+              {t("brandName")}
+            </Typography>
           </LogoButton>
-        </Box>
 
-        {/* Primary nav — desktop only (>=900px) */}
-        {showDesktopNav && (
-          <Box sx={{ display: "flex", alignItems: "center", flex: 1, mx: 2, gap: 0.5, flexWrap: "wrap" }}>
-            {navigationItems.map((item) => (
-              <NavigationButton key={item.title} onClick={item.action} startIcon={item.icon}>
-                {item.title}
-              </NavigationButton>
-            ))}
-          </Box>
-        )}
+          {showDesktopNav && (
+            <>
+              <ExploreTrigger
+                ref={exploreAnchorRef}
+                onClick={handleExploreToggle}
+                isOpen={exploreOpen}
+                startIcon={<ExploreIcon sx={{ fontSize: 20, color: theme.custom.color.brandPrimary }} />}
+                endIcon={<KeyboardArrowDown className="explore-chevron" sx={{ fontSize: "18px" }} />}
+              >
+                {t("explore")}
+              </ExploreTrigger>
+
+              <Popper
+                open={exploreOpen}
+                anchorEl={exploreAnchorRef.current}
+                placement={isRTL ? "bottom-end" : "bottom-start"}
+                transition
+                disablePortal={false}
+                modifiers={[{ name: "offset", options: { offset: [0, 10] } }]}
+                sx={{ zIndex: (theme) => theme.zIndex.drawer + 2, maxWidth: "calc(100vw - 32px)" }}
+              >
+                {({ TransitionProps, placement }) => (
+                  <Grow
+                    {...TransitionProps}
+                    style={{ transformOrigin: placement.includes("end") ? "top right" : "top left" }}
+                    timeout={180}
+                  >
+                    <Paper
+                      elevation={0}
+                      sx={{
+                        width: 460,
+                        borderRadius: `${theme.custom.radius.lg}px`,
+                        overflow: "hidden",
+                        border: `1px solid ${alpha(theme.custom.color.ink, 0.1)}`,
+                        boxShadow: theme.custom.elevation.e3,
+                      }}
+                    >
+                      <ClickAwayListener onClickAway={handleExploreClose}>
+                        <Box>
+                          <Box sx={{ height: 3, backgroundColor: theme.custom.color.brandPrimary }} />
+                          <Box
+                            sx={{
+                              p: 1.5,
+                              display: "grid",
+                              gridTemplateColumns: "repeat(2, 1fr)",
+                              gap: 1,
+                            }}
+                          >
+                            {navigationItems.map((item) => {
+                              const tone = tileTone(item.tone);
+                              return (
+                                <ExploreTile
+                                  key={item.title}
+                                  toneBg={tone.bg}
+                                  toneBorder={tone.border}
+                                  onClick={() => handleExploreItemClick(item)}
+                                >
+                                  <ExploreTileIcon>{item.icon}</ExploreTileIcon>
+                                  <Box sx={{ minWidth: 0 }}>
+                                    <Typography sx={{ fontWeight: 700, fontSize: "0.9rem", color: theme.custom.color.ink }}>
+                                      {item.title}
+                                    </Typography>
+                                    <Typography
+                                      sx={{
+                                        fontSize: "0.75rem",
+                                        color: "text.secondary",
+                                        display: "-webkit-box",
+                                        WebkitLineClamp: 2,
+                                        WebkitBoxOrient: "vertical",
+                                        overflow: "hidden",
+                                      }}
+                                    >
+                                      {item.description}
+                                    </Typography>
+                                  </Box>
+                                </ExploreTile>
+                              );
+                            })}
+                          </Box>
+                        </Box>
+                      </ClickAwayListener>
+                    </Paper>
+                  </Grow>
+                )}
+              </Popper>
+            </>
+          )}
+        </Box>
 
         {/* Right section: Actions */}
         <FlexBetween sx={{ gap: "10px" }}>
@@ -513,6 +689,10 @@ const Navbar = () => {
             >
               {authLoggedIn ? t("createPost") : t("signin")}
             </CreatePostButton>
+          )}
+
+          {showDesktopNav && (
+            <Divider orientation="vertical" flexItem sx={{ my: 1, borderColor: alpha(theme.custom.color.ink, 0.1) }} />
           )}
 
           {showDesktopNav && (
@@ -554,7 +734,7 @@ const Navbar = () => {
             </IconButton>
           )}
 
-          {/* Mobile menu button — everything else lives in the drawer below (<900px) */}
+          {/* Mobile menu button — everything else lives in the drawer below (<760px) */}
           {!showDesktopNav && (
             <ActionButton onClick={() => setMobileDrawerOpen(true)}>
               <MenuIcon sx={{ fontSize: "24px" }} />
@@ -562,8 +742,7 @@ const Navbar = () => {
           )}
         </FlexBetween>
 
-        {/* Combined Region Menu (country search + language) — shared by the
-            desktop RegionSelector and the mobile drawer's Region row. */}
+        {/* Combined Region Menu (country search + language) — unchanged. */}
         <Menu
           anchorEl={regionAnchorEl}
           open={Boolean(regionAnchorEl)}
@@ -792,9 +971,7 @@ const Navbar = () => {
           </MenuItem>
         </Menu>
 
-        {/* Mobile drawer — replaces the old anchored dropdown. Slides from the
-            trailing edge (right in LTR, left in RTL) so it mirrors the hamburger's
-            position once the toolbar itself mirrors under RTL. */}
+        {/* Mobile drawer */}
         <Drawer
           anchor={currentLanguage === "ar" ? "left" : "right"}
           open={mobileDrawerOpen}
@@ -843,24 +1020,61 @@ const Navbar = () => {
             </>
           )}
 
-          {/* Navigation items (includes admin items when applicable) */}
-          {[...navigationItems, ...adminNavigationItems].map((item) => (
-            <DrawerRow
-              key={item.title}
-              onClick={() => {
-                item.action();
-                handleMobileDrawerClose();
-              }}
-            >
-              <ListItemIcon>{item.icon}</ListItemIcon>
-              <ListItemText
-                primary={item.title}
-                secondary={item.description}
-                primaryTypographyProps={{ fontWeight: 600, fontSize: "1rem" }}
-                secondaryTypographyProps={{ fontSize: "0.85rem", color: "text.secondary" }}
-              />
-            </DrawerRow>
-          ))}
+          {/* Explore — collapsed by default so the drawer opens short; expands
+              to the same browse items as the desktop dropdown. */}
+          <DrawerRow onClick={() => setMobileExploreOpen((prev) => !prev)}>
+            <ListItemIcon>
+              <ExploreIcon sx={{ fontSize: 20, color: theme.custom.color.brandPrimary }} />
+            </ListItemIcon>
+            <ListItemText primary={t("explore")} primaryTypographyProps={{ fontWeight: 600, fontSize: "1rem" }} />
+            <KeyboardArrowDown
+              sx={{ fontSize: "20px", transition: "transform 0.2s ease", transform: mobileExploreOpen ? "rotate(180deg)" : "rotate(0deg)" }}
+            />
+          </DrawerRow>
+          <Collapse in={mobileExploreOpen} timeout="auto" unmountOnExit>
+            <Box sx={{ pl: 2, borderInlineStart: `2px solid ${alpha(theme.custom.color.ink, 0.08)}`, ml: 2, mb: 0.5 }}>
+              {navigationItems.map((item) => (
+                <DrawerRow
+                  key={item.title}
+                  onClick={() => {
+                    item.action();
+                    handleMobileDrawerClose();
+                  }}
+                >
+                  <ListItemIcon>{item.icon}</ListItemIcon>
+                  <ListItemText
+                    primary={item.title}
+                    secondary={item.description}
+                    primaryTypographyProps={{ fontWeight: 600, fontSize: "0.95rem" }}
+                    secondaryTypographyProps={{ fontSize: "0.8rem", color: "text.secondary" }}
+                  />
+                </DrawerRow>
+              ))}
+            </Box>
+          </Collapse>
+
+          {adminNavigationItems.length > 0 && (
+            <>
+              <Divider sx={{ my: 1.5 }} />
+              {adminNavigationItems.map((item) => (
+                <DrawerRow
+                  key={item.title}
+                  onClick={() => {
+                    item.action();
+                    handleMobileDrawerClose();
+                  }}
+                >
+                  <ListItemIcon>{item.icon}</ListItemIcon>
+                  <ListItemText
+                    primary={item.title}
+                    secondary={item.description}
+                    primaryTypographyProps={{ fontWeight: 600, fontSize: "1rem" }}
+                    secondaryTypographyProps={{ fontSize: "0.85rem", color: "text.secondary" }}
+                  />
+                </DrawerRow>
+              ))}
+            </>
+          )}
 
           <Divider sx={{ my: 1.5 }} />
 
