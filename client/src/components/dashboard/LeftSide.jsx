@@ -320,18 +320,14 @@ const LeftSide = ({
   };
 
   return (
-    <Box 
+    <Box
       sx={{
-        background: theme.palette.mode === 'dark' 
-          ? 'linear-gradient(135deg, rgba(18,18,18,0.95) 0%, rgba(28,28,28,0.95) 100%)'
-          : 'linear-gradient(135deg, rgba(255,255,255,0.95) 0%, rgba(255,255,255,0.95) 100%)',
+        background: `linear-gradient(135deg, ${alpha(theme.custom.color.surfaceRaised, 0.95)} 0%, ${alpha(theme.custom.color.surfaceRaised, 0.95)} 100%)`,
         backdropFilter: 'blur(10px)',
-        borderRadius: isMobile ? '16px' : '24px',
-        border: `1px solid ${theme.palette.mode === 'dark' ? 'rgba(255,255,255,0.08)' : 'rgba(0,0,0,0.15)'}`,
+        borderRadius: isMobile ? `${theme.custom.radius.lg}px` : `${theme.custom.radius.xl}px`,
+        border: `1px solid ${alpha(theme.custom.color.ink, theme.palette.mode === 'dark' ? 0.08 : 0.15)}`,
         padding: isMobile ? '1.5rem' : '2rem',
-        boxShadow: theme.palette.mode === 'dark'
-          ? '0 8px 32px 0 rgba(0,0,0,0.15)'
-          : '0 8px 32px 0 rgba(0,0,0,0.05)',
+        boxShadow: theme.custom.elevation.e1,
         height: '100%', // Allow stretching to match container
         minHeight: 'fit-content', // Ensure minimum content height
         width: isMobile ? '100%' : 'auto', // Full width on mobile
