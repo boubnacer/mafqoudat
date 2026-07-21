@@ -46,6 +46,23 @@ export const languageStorage = {
   },
 
   /**
+   * Whether a language has ever been explicitly persisted (as opposed to the
+   * in-memory default LanguageContext falls back to). Lets first-launch
+   * onboarding distinguish "nothing chosen yet, safe to default to the
+   * device locale" from "user already has fr/ar saved, don't override it".
+   * @returns {boolean}
+   */
+  async hasStoredLanguage() {
+    try {
+      const language = await AsyncStorage.getItem(LANGUAGE_KEY);
+      return !!language;
+    } catch (error) {
+      console.error('Error checking stored language:', error);
+      return false;
+    }
+  },
+
+  /**
    * Clear stored language
    */
   async clearLanguage() {

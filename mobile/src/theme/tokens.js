@@ -70,3 +70,48 @@ export const fontSizes = {
   xxl: 28,
   xxxl: 32,
 };
+
+/**
+ * Design-system tokens matching client/src/designTokens.js 1:1 (colorTokens,
+ * radiusTokens, fontFamilies). Kept separate from lightColors/darkColors/radii
+ * above - those are the mobile app's pre-existing palette and are still what
+ * most screens read from; new work (onboarding and beyond) should prefer these
+ * instead of hardcoding, same as the web app's theme.custom.*.
+ */
+export const colorTokens = {
+  light: {
+    brandPrimary: '#1B4DFF',
+    ink: '#0B1220',
+    surfaceBase: '#F7F8FB',
+    surfaceRaised: '#FFFFFF',
+    status: {
+      found: { main: '#1A8563', bg: '#E5F5EF' },
+      lost: { main: '#C64335', bg: '#FBEAE8' },
+    },
+  },
+  dark: {
+    brandPrimary: '#5B7FFF',
+    ink: '#EDEFF5',
+    surfaceBase: '#0E1116',
+    surfaceRaised: '#171B22',
+    status: {
+      found: { main: '#3DDCA6', bg: 'rgba(61,220,166,0.16)' },
+      lost: { main: '#FF6B5E', bg: 'rgba(255,107,94,0.16)' },
+    },
+  },
+};
+
+export const radiusTokens = {
+  sm: 8,
+  md: 12,
+  lg: 16,
+  xl: 24,
+};
+
+export const fontFamilies = {
+  display: 'Cairo_700Bold',
+  displayRegular: 'Cairo_400Regular',
+  body: 'IBMPlexSansArabic_400Regular',
+  bodyMedium: 'IBMPlexSansArabic_500Medium',
+  bodySemiBold: 'IBMPlexSansArabic_600SemiBold',
+};

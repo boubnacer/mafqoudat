@@ -6,17 +6,25 @@ import { createNativeStackNavigator } from '@react-navigation/native-stack';
 import { createBottomTabNavigator } from '@react-navigation/bottom-tabs';
 import { Ionicons } from '@expo/vector-icons';
 import { SafeAreaProvider } from 'react-native-safe-area-context';
+import { useFonts, Cairo_700Bold, Cairo_400Regular } from '@expo-google-fonts/cairo';
+import {
+  IBMPlexSansArabic_400Regular,
+  IBMPlexSansArabic_500Medium,
+  IBMPlexSansArabic_600SemiBold,
+} from '@expo-google-fonts/ibm-plex-sans-arabic';
 import { validateEnv } from './src/config/validateEnv';
 import { ThemeProvider, useTheme } from './src/context/ThemeContext';
 import { LanguageProvider } from './src/context/LanguageContext';
 import { AuthProvider, useAuth } from './src/context/AuthContext';
 import { MaintenanceProvider, useMaintenance } from './src/context/MaintenanceContext';
 import { ReferenceDataProvider } from './src/context/ReferenceDataContext';
+import { OnboardingProvider, useOnboarding } from './src/context/OnboardingContext';
 import { lightColors, darkColors } from './src/theme/tokens';
 import { getNavigationTheme } from './src/theme/navigationTheme';
 import { useTranslation } from './src/utils/translations';
 import MaintenanceOverlay from './src/components/MaintenanceOverlay';
 import OfflineBanner from './src/components/OfflineBanner';
+import OnboardingScreen from './src/screens/onboarding/OnboardingScreen';
 import WelcomeScreen from './src/screens/WelcomeScreen';
 import LoginScreen from './src/screens/LoginScreen';
 import SignUpScreen from './src/screens/SignUpScreen';
@@ -44,15 +52,18 @@ const TAB_ICONS = {
   Profile: { focused: 'person', unfocused: 'person-outline' },
 };
 
-// Auth navigator component: Welcome (country/language landing) -> Login -> CountrySelection
-// (the latter only reached mid-flow for brand-new Google sign-ups pending a country pick).
+// Auth navigator component: Onboarding (first launch only) -> Welcome (country/language
+// landing) -> Login -> CountrySelection (the latter only reached mid-flow for brand-new
+// Google sign-ups pending a country pick, unrelated to onboarding).
 const AuthNavigator = () => {
   const { colors } = useTheme();
+  const { hasSeenOnboarding } = useOnboarding();
   return (
     <Stack.Navigator
-      initialRouteName="Welcome"
+      initialRouteName={hasSeenOnboarding ? 'Welcome' : 'Onboarding'}
       screenOptions={{ headerShown: false, contentStyle: { backgroundColor: colors.background } }}
     >
+      <Stack.Screen name="Onboarding" component={OnboardingScreen} />
       <Stack.Screen name="Welcome" component={WelcomeScreen} />
       <Stack.Screen name="Login" component={LoginScreen} />
       <Stack.Screen name="SignUp" component={SignUpScreen} />
@@ -155,6 +166,13 @@ const AppShell = () => {
 export default function App() {
   const [isReady, setIsReady] = useState(false);
   const systemScheme = useColorScheme();
+  const [fontsLoaded, fontError] = useFonts({
+    Cairo_400Regular,
+    Cairo_700Bold,
+    IBMPlexSansArabic_400Regular,
+    IBMPlexSansArabic_500Medium,
+    IBMPlexSansArabic_600SemiBold,
+  });
 
   useEffect(() => {
     // Perform any app initialization here
@@ -176,7 +194,11 @@ export default function App() {
     initializeApp();
   }, []);
 
-  if (!isReady) {
+  if (fontError) {
+    console.error('❌ Font loading failed:', fontError);
+  }
+
+  if (!isReady || (!fontsLoaded && !fontError)) {
     // Renders before ThemeProvider mounts, so it follows the raw OS scheme
     // directly rather than useTheme() (which isn't available yet).
     const initColors = systemScheme === 'dark' ? darkColors : lightColors;
@@ -193,9 +215,11 @@ export default function App() {
       <LanguageProvider>
         <MaintenanceProvider>
           <AuthProvider>
-            <SafeAreaProvider>
-              <AppShell />
-            </SafeAreaProvider>
+            <OnboardingProvider>
+              <SafeAreaProvider>
+                <AppShell />
+              </SafeAreaProvider>
+            </OnboardingProvider>
           </AuthProvider>
         </MaintenanceProvider>
       </LanguageProvider>

@@ -277,8 +277,19 @@ export const translations = {
     oauthError: "Google authentication failed. Please try again.",
     googleAuthNotConfigured: "Google sign-in is not configured for this build.",
     or: "OR",
+
+    // Onboarding
+    skip: "Skip",
+    getStarted: "Get Started",
+    onboardingWelcomeHeadline: "Reunite what's lost with what's found",
+    onboardingReportHeadline: "Report what you lost",
+    onboardingReportBody: "Post details about your lost item in seconds and let the community help you track it down.",
+    onboardingFindHeadline: "Browse items found nearby",
+    onboardingFindBody: "Search found items around you and help reconnect them with their rightful owners.",
+    securePlatform: "Secure & Trusted",
+    securePlatformDesc: "Advanced security measures protect your personal information and ensure safe transactions.",
   },
-  
+
   fr: {
     // Authentication
     brandName: "Mafqoudat",
@@ -551,8 +562,19 @@ export const translations = {
     oauthError: "L'authentification Google a échoué. Veuillez réessayer.",
     googleAuthNotConfigured: "La connexion Google n'est pas configurée pour cette version.",
     or: "OU",
+
+    // Onboarding
+    skip: "Passer",
+    getStarted: "Commencer",
+    onboardingWelcomeHeadline: "Réunissez les objets perdus et trouvés",
+    onboardingReportHeadline: "Signalez ce que vous avez perdu",
+    onboardingReportBody: "Publiez les détails de votre objet perdu en quelques secondes et laissez la communauté vous aider à le retrouver.",
+    onboardingFindHeadline: "Parcourez les objets trouvés à proximité",
+    onboardingFindBody: "Recherchez les objets trouvés autour de vous et aidez à les rendre à leurs propriétaires légitimes.",
+    securePlatform: "Sécurisé et Fiable",
+    securePlatformDesc: "Des mesures de sécurité avancées protègent vos informations personnelles et garantissent des transactions sécurisées.",
   },
-  
+
   ar: {
     // Authentication
     brandName: "مفقودات",
@@ -825,6 +847,17 @@ export const translations = {
     oauthError: "فشل المصادقة عبر جوجل. يرجى المحاولة مرة أخرى.",
     googleAuthNotConfigured: "تسجيل الدخول عبر جوجل غير مُهيأ لهذا الإصدار.",
     or: "أو",
+
+    // Onboarding
+    skip: "تخطي",
+    getStarted: "ابدأ الآن",
+    onboardingWelcomeHeadline: "أعد ربط المفقود بالموجود",
+    onboardingReportHeadline: "أبلغ عمّا فقدته",
+    onboardingReportBody: "انشر تفاصيل غرضك المفقود في ثوانٍ ودع المجتمع يساعدك في العثور عليه.",
+    onboardingFindHeadline: "تصفح الأغراض الموجودة القريبة منك",
+    onboardingFindBody: "ابحث عن الأغراض الموجودة من حولك وساعد في إعادتها إلى أصحابها الحقيقيين.",
+    securePlatform: "منصة آمنة وموثوقة",
+    securePlatformDesc: "تدابير أمنية متقدمة تحمي معلوماتك الشخصية وتضمن المعاملات الآمنة.",
   }
 };
 
