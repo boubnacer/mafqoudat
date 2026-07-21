@@ -1,17 +1,12 @@
-import { 
-  Box, 
-  Button, 
-  CardMedia, 
-  Typography, 
+import {
+  Box,
+  Button,
+  Typography,
   Paper,
   Chip,
-  Avatar,
-  IconButton,
-  Tooltip,
   Divider,
   Grid,
   useTheme,
-  useMediaQuery,
   alpha,
   Alert
 } from "@mui/material";
@@ -26,27 +21,21 @@ import {
   Edit as EditIcon,
   Delete as DeleteIcon,
   LocationOn as LocationIcon,
-  Person as PersonIcon,
   CalendarToday as CalendarIcon,
-  Category as CategoryIcon,
-  ContactPhone as ContactIcon,
-  ReportProblem as ReportIcon,
-  Share as ShareIcon,
-  Visibility as VisibilityIcon,
-  ArrowBack as ArrowBackIcon,
   AccessTime as TimeIcon,
-  Tag as TagIcon,
-  Visibility as ViewIcon,
-  Flag as FlagIcon,
-  TrendingUp as TrendingUpIcon,
+  Public as CountryIcon,
   WhatsApp as WhatsAppIcon,
   CheckCircle as CheckCircleIcon,
-  ImageNotSupported as NoImageIcon
+  ImageNotSupported as NoImageIcon,
+  TaskAltOutlined,
+  SearchOffOutlined,
+  Visibility as ViewIcon,
+  Flag as FlagIcon,
+  VerifiedUser as VerifiedUserIcon,
 } from "@mui/icons-material";
 
 import "./editpost.css";
 import { useTranslation } from "../../../utils/translations";
-import { isRTL, getLabel } from "../../../utils/languageUtils";
 import { getOptimizedImageUrl } from "../../../utils/cloudinaryUtils";
 import LazyCardMedia from "../../../components/LazyCardMedia";
 import { formatDistanceToNow } from 'date-fns';
@@ -56,6 +45,109 @@ import { authStorage } from "../../../utils/authStorage";
 import { getCategoryConfig, getCategoryIcon } from "../../../config/categories";
 import PromotionDialog from "../../../components/PromotionDialog";
 import ClaimItemDialog from "../../../components/ClaimItemDialog";
+
+// Solid-fill tag, same signature as the post card DNA (PublicPostsPage/TrendingItem):
+// this is the single most load-bearing fact on the page, so it lives on the image,
+// not buried in a label:value row further down.
+const StatusTag = ({ tone, icon: Icon, label }) => {
+  const theme = useTheme();
+  return (
+    <Box
+      sx={{
+        position: 'absolute',
+        top: 12,
+        insetInlineStart: 12,
+        zIndex: 3,
+        display: 'inline-flex',
+        alignItems: 'center',
+        gap: 0.75,
+        px: 1.5,
+        py: 0.625,
+        borderRadius: `${theme.custom.radius.sm}px`,
+        backgroundColor: tone.main,
+      }}
+    >
+      <Icon sx={{ fontSize: 18, color: theme.palette.getContrastText(tone.main) }} />
+      <Typography
+        variant="body2"
+        sx={{ fontWeight: 700, letterSpacing: 0.3, color: theme.palette.getContrastText(tone.main), lineHeight: 1 }}
+      >
+        {label}
+      </Typography>
+    </Box>
+  );
+};
+
+const DateBadge = ({ children }) => {
+  const theme = useTheme();
+  return (
+    <Box
+      sx={{
+        position: 'absolute',
+        top: 12,
+        insetInlineEnd: 12,
+        zIndex: 3,
+        px: 1.25,
+        py: 0.625,
+        borderRadius: `${theme.custom.radius.sm}px`,
+        backgroundColor: alpha(theme.custom.color.surfaceRaised, 0.85),
+      }}
+    >
+      <Typography variant="caption" sx={{ color: theme.custom.color.ink, fontWeight: 600, lineHeight: 1 }}>
+        {children}
+      </Typography>
+    </Box>
+  );
+};
+
+const ResolvedRibbon = ({ children }) => {
+  const theme = useTheme();
+  return (
+    <Box
+      sx={{
+        position: 'absolute',
+        top: 12,
+        insetInlineStart: '50%',
+        transform: 'translateX(-50%)',
+        zIndex: 4,
+        display: 'inline-flex',
+        alignItems: 'center',
+        gap: 0.75,
+        px: 2,
+        py: 0.75,
+        borderRadius: `${theme.custom.radius.sm}px`,
+        backgroundColor: theme.custom.status.found.main,
+        boxShadow: theme.custom.elevation.e2,
+      }}
+    >
+      <CheckCircleIcon sx={{ fontSize: 18, color: theme.palette.getContrastText(theme.custom.status.found.main) }} />
+      <Typography
+        variant="body2"
+        sx={{
+          fontWeight: 700,
+          textTransform: 'uppercase',
+          letterSpacing: 0.5,
+          lineHeight: 1,
+          color: theme.palette.getContrastText(theme.custom.status.found.main),
+        }}
+      >
+        {children}
+      </Typography>
+    </Box>
+  );
+};
+
+// One icon + one line of text — the atom the facts strip and the secondary
+// meta row are both built from, so location/time/category/country read as
+// one consistent language instead of a label:value table.
+const FactItem = ({ icon: Icon, children }) => (
+  <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.75, minWidth: 0 }}>
+    {Icon && <Icon sx={{ fontSize: 16, color: 'text.secondary', flexShrink: 0 }} />}
+    <Typography variant="body2" color="text.secondary" sx={{ minWidth: 0 }}>
+      {children}
+    </Typography>
+  </Box>
+);
 
 const SinglePostPage = ({
   _id,
@@ -105,16 +197,15 @@ const SinglePostPage = ({
 }) => {
   const navigate = useNavigate();
   const theme = useTheme();
-  const isMobile = useMediaQuery("(max-width:768px)");
   const { usernameId, isAuthenticated, role } = useAuth();
   const { t, currentLanguage } = useTranslation();
-  const isRTLMode = isRTL();
 
   const canEdit = (user === usernameId || role === 'admin') && isAuthenticated;
   const canDelete = canEdit;
+  const isAuthor = user === usernameId;
   const [reportDialogOpen, setReportDialogOpen] = useState(false);
   const [submitReport] = useSubmitReportMutation();
-  const [deletePost, { isLoading: isDeleting, isSuccess: isDeleteSuccess }] = useDeletePostMutation();
+  const [deletePost, { isLoading: isDeleting }] = useDeletePostMutation();
   const [showSuccessMessage, setShowSuccessMessage] = useState(false);
   const [successMessage, setSuccessMessage] = useState('');
   const [showPromotionDialog, setShowPromotionDialog] = useState(false);
@@ -131,19 +222,15 @@ const SinglePostPage = ({
       // Store the current post URL in localStorage for redirect after login
       const currentPostUrl = window.location.pathname;
       authStorage.setRedirectAfterLoginWithMessage(currentPostUrl, 'loginRequiredReportPost');
-      
+
       // Redirect to login page
       navigate('/login');
       return;
     }
-    
+
     // If authenticated, open the dialog
     setReportDialogOpen(true);
   }, [usernameId, navigate]);
-
-  const handleBack = useCallback(() => {
-    navigate(-1);
-  }, [navigate]);
 
   const handleSubmitReport = useCallback(async (reportData) => {
     try {
@@ -197,12 +284,12 @@ const SinglePostPage = ({
       // Store the current post URL in localStorage for redirect after login
       const currentPostUrl = window.location.pathname;
       authStorage.setRedirectAfterLoginWithMessage(currentPostUrl, 'loginRequiredClaimItem');
-      
+
       // Redirect to login page
       navigate('/login');
       return;
     }
-    
+
     // If authenticated, open the claim dialog
     setShowClaimDialog(true);
   }, [isAuthenticated, usernameId, navigate]);
@@ -237,26 +324,19 @@ const SinglePostPage = ({
   }, [currentLanguage]);
 
   const createdDate = useMemo(() => {
-    const timeAgo = formatDistanceToNow(new Date(createdAt), { 
+    const timeAgo = formatDistanceToNow(new Date(createdAt), {
       addSuffix: true,
       locale
     });
     return `${t('posted')} ${timeAgo}`;
   }, [createdAt, locale, t]);
 
-  const updatedDate = useMemo(() => {
-    return formatDistanceToNow(new Date(updatedAt), { 
-      addSuffix: true,
-      locale
-    });
-  }, [updatedAt, locale]);
-
   const isDarkMode = theme.palette.mode === 'dark';
 
   // Memoized categories array computation - support both new Categories array and legacy Category
   const categories = useMemo(() => {
     const cats = [];
-    
+
     // First priority: Use the Categories array from API aggregation (new format)
     if (Categories && Array.isArray(Categories) && Categories.length > 0) {
       Categories.forEach(cat => {
@@ -269,7 +349,7 @@ const SinglePostPage = ({
         }
       });
     }
-    
+
     // Fallback: Use the legacy Category object (backward compatibility)
     if (cats.length === 0 && Category && Category.code) {
       cats.push({
@@ -278,7 +358,7 @@ const SinglePostPage = ({
         _id: Category._id
       });
     }
-    
+
     // Last fallback: Use categoryname if available
     if (cats.length === 0 && categoryname) {
       cats.push({
@@ -287,7 +367,7 @@ const SinglePostPage = ({
         _id: null
       });
     }
-    
+
     return cats.length > 0 ? cats : [{ code: 'OTHER', labels: null, _id: null }];
   }, [Categories, Category, categoryname]);
 
@@ -306,53 +386,29 @@ const SinglePostPage = ({
     return categories.map(cat => {
       try {
         const config = getCategoryConfig(cat.code);
-        const isDarkMode = theme.palette.mode === 'dark';
         return {
           main: config.color,
-          light: config.backgroundColor,
-          dark: config.color,
-          icon: config.color,
           background: isDarkMode ? alpha(config.backgroundColor, 0.2) : config.backgroundColor,
           text: config.color
         };
       } catch (error) {
         return {
-          main: '#2196F3',
-          light: '#E3F2FD',
-          dark: '#1976D2',
-          icon: '#2196F3',
-          background: isDarkMode ? alpha('#E3F2FD', 0.2) : '#E3F2FD',
-          text: '#2196F3'
+          main: theme.custom.color.brandPrimary,
+          background: isDarkMode ? alpha(theme.custom.color.brandPrimary, 0.15) : alpha(theme.custom.color.brandPrimary, 0.08),
+          text: theme.custom.color.brandPrimary
         };
       }
     });
-  }, [categories, theme.palette.mode]);
-
-  // Legacy single category name for backward compatibility (first category)
-  const categoryDisplayName = useMemo(() => {
-    return categoryNames[0] || t('unknownCategory');
-  }, [categoryNames, t]);
-
-  // Legacy single category style for backward compatibility (first category)
-  const categoryStyle = useMemo(() => {
-    return categoryStyles[0] || {
-      main: '#2196F3',
-      light: '#E3F2FD',
-      dark: '#1976D2',
-      icon: '#2196F3',
-      background: isDarkMode ? alpha('#E3F2FD', 0.2) : '#E3F2FD',
-      text: '#2196F3'
-    };
-  }, [categoryStyles, isDarkMode]);
+  }, [categories, isDarkMode, theme.custom.color.brandPrimary]);
 
   // Extract city from location (show only city) - helper function
   const getCityFromLocation = useCallback((location) => {
     if (!location) return t('unknownLocation');
     // Split by comma and take the first part (usually the city)
     const parts = location.split(',');
-    const city = parts[0].trim();
+    const cityPart = parts[0].trim();
     // Remove any extra location details that might be in parentheses
-    const cleanCity = city.split('(')[0].trim();
+    const cleanCity = cityPart.split('(')[0].trim();
     // Remove any numbers or extra details
     return cleanCity.replace(/\d+/g, '').trim();
   }, [t]);
@@ -367,17 +423,17 @@ const SinglePostPage = ({
         return cityLabel.trim();
       }
     }
-    
+
     // Second priority: Use the cityName field from API
     if (cityName && typeof cityName === 'string' && cityName.trim()) {
       return cityName.trim();
     }
-    
+
     // Third priority: Use the city field directly (for custom city names)
     if (city && typeof city === 'string' && city.trim()) {
       return city.trim();
     }
-    
+
     // Last fallback: extracting from exactLocation
     return getCityFromLocation(exactLocation);
   }, [cityLabels, cityName, city, currentLanguage, exactLocation, getCityFromLocation]);
@@ -387,30 +443,25 @@ const SinglePostPage = ({
 
     let foundLostValue = null;
     let displayLabel = null;
-    let foundLostColor = null;
-    
+
     // Priority 1: Use Floptions.code if available (populated object from server)
     if (Floptions) {
-      
+
       // Handle both array and object formats
       let flOption = Floptions;
       if (Array.isArray(Floptions)) {
         flOption = Floptions[0]; // Take first element if it's an array
       }
-      
+
       if (flOption && flOption.code) {
         foundLostValue = flOption.code;
-        foundLostColor = flOption.color;
-        
-        // Set label and color based on code
+
+        // Set label based on code
         if (flOption.code === 'FOUND') {
           displayLabel = t('found');
-          foundLostColor = foundLostColor || "#4CAF50";
         } else if (flOption.code === 'LOST') {
           displayLabel = t('lost');
-          foundLostColor = foundLostColor || "#F44336";
         }
-      } else {
       }
     }
     // Priority 2: Use foundLost as fallback (could be ObjectId or object)
@@ -426,79 +477,62 @@ const SinglePostPage = ({
           foundLostValue = foundLost.toUpperCase();
           if (foundLost.toUpperCase() === 'FOUND') {
             displayLabel = t('found');
-            foundLostColor = "#4CAF50";
           } else if (foundLost.toUpperCase() === 'LOST') {
             displayLabel = t('lost');
-            foundLostColor = "#F44336";
           }
         }
       } else if (foundLost.code) {
         // It's an object with code
         foundLostValue = foundLost.code;
-        foundLostColor = foundLost.color;
-        
+
         if (foundLost.code === 'FOUND') {
           displayLabel = t('found');
-          foundLostColor = foundLostColor || "#4CAF50";
         } else if (foundLost.code === 'LOST') {
           displayLabel = t('lost');
-          foundLostColor = foundLostColor || "#F44336";
         }
       }
     }
 
     // If we still don't have a value, we need to determine it from the data
-    // Check if we can infer from other fields or if we need to make an API call
     if (!foundLostValue) {
-      
-      // Try to get from the API response or make a fallback determination
-      if (foundLost && typeof foundLost === 'object' && foundLost._id) {
-        // We have an ObjectId reference, but need the actual data
-      }
-      
+
       // Check if we can determine from the post title or description
       // This is a fallback for when the server doesn't populate the foundLost field
       if (titleLabels && titleLabels[currentLanguage]) {
-        const title = titleLabels[currentLanguage].toLowerCase();
-        if (title.includes('lost') || title.includes('perdu') || title.includes('مفقود')) {
+        const titleText = titleLabels[currentLanguage].toLowerCase();
+        if (titleText.includes('lost') || titleText.includes('perdu') || titleText.includes('مفقود')) {
           foundLostValue = "LOST";
           displayLabel = t('lost');
-          foundLostColor = "#F44336";
-        } else if (title.includes('found') || title.includes('trouvé') || title.includes('موجود')) {
+        } else if (titleText.includes('found') || titleText.includes('trouvé') || titleText.includes('موجود')) {
           foundLostValue = "FOUND";
           displayLabel = t('found');
-          foundLostColor = "#4CAF50";
         }
       }
-      
+
       // If still no value, check description
       if (!foundLostValue && description) {
         const desc = description.toLowerCase();
         if (desc.includes('lost') || desc.includes('perdu') || desc.includes('مفقود')) {
           foundLostValue = "LOST";
           displayLabel = t('lost');
-          foundLostColor = "#F44336";
         } else if (desc.includes('found') || desc.includes('trouvé') || desc.includes('موجود')) {
           foundLostValue = "FOUND";
           displayLabel = t('found');
-          foundLostColor = "#4CAF50";
         }
       }
-      
+
       // If still no value, check if we have a foundLostLabel from the API transformation
       if (!foundLostValue && foundLostLabel) {
         const label = foundLostLabel.toLowerCase();
         if (label.includes('lost') || label.includes('perdu') || label.includes('مفقود')) {
           foundLostValue = "LOST";
           displayLabel = t('lost');
-          foundLostColor = "#F44336";
         } else if (label.includes('found') || label.includes('trouvé') || label.includes('موجود')) {
           foundLostValue = "FOUND";
           displayLabel = t('found');
-          foundLostColor = "#4CAF50";
         }
       }
-      
+
       // Additional fallback: Check if there's a foundLostType field
       if (!foundLostValue && foundLost && typeof foundLost === 'object') {
         if (foundLost.foundLostType) {
@@ -506,20 +540,15 @@ const SinglePostPage = ({
           if (type.includes('lost')) {
             foundLostValue = "LOST";
             displayLabel = t('lost');
-            foundLostColor = "#F44336";
           } else if (type.includes('found')) {
             foundLostValue = "FOUND";
             displayLabel = t('found');
-            foundLostColor = "#4CAF50";
           }
         }
       }
-      
+
       // Last resort: Check if there's any other field that might indicate status
       if (!foundLostValue) {
-        
-
-        
         // Additional fallback: Check if we can determine from the foundLost ObjectId
         // This is a last resort when the server doesn't populate the lookup fields
         if (!foundLostValue && foundLost && typeof foundLost === 'string' && foundLost.length === 24) {
@@ -527,56 +556,54 @@ const SinglePostPage = ({
           if (foundLost === '68b708a085dd243c40a90826') { // LOST
             foundLostValue = "LOST";
             displayLabel = t('lost');
-            foundLostColor = "#F44336";
           } else if (foundLost === '68b708a085dd243c40a90825') { // FOUND
             foundLostValue = "FOUND";
             displayLabel = t('found');
-            foundLostColor = "#4CAF50";
           }
         }
-        
-
       }
     }
 
     // Set defaults only if we couldn't determine the actual value
     if (!foundLostValue) {
-      // Try to infer from the post title, description, or other fields
-      // For now, we'll use a neutral approach and let the user know
       foundLostValue = "UNKNOWN";
       displayLabel = t('statusUnknown') || "Status Unknown";
-      foundLostColor = "#FF9800"; // Orange for unknown
     }
 
     const isFound = foundLostValue === "FOUND";
-    const statusColor = isFound ? "success" : foundLostValue === "LOST" ? "error" : "warning";
-    const statusText = displayLabel;
+    const isLost = foundLostValue === "LOST";
 
-    const result = { isFound, statusColor, statusText };
-    
-    return result;
+    return { isFound, isLost, statusText: displayLabel };
   }, [foundLost, Floptions, foundLostLabel, titleLabels, description, currentLanguage, t]);
+
+  // The one tone that drives the image status tag AND the card's accent bar —
+  // reuses theme.custom.status rather than the old hardcoded #4CAF50/#F44336.
+  const statusTone = useMemo(() => {
+    if (foundLostStatus.isFound) return theme.custom.status.found;
+    if (foundLostStatus.isLost) return theme.custom.status.lost;
+    return { main: theme.palette.warning.main, bg: alpha(theme.palette.warning.main, 0.12) };
+  }, [foundLostStatus, theme]);
 
   // Memoized image URL computation - only use Cloudinary if image exists and is uploaded by user
   const imageUrl = useMemo(() => {
     if (!image) return null;
-    return image.startsWith('http') 
-      ? getOptimizedImageUrl(image, 'large') 
+    return image.startsWith('http')
+      ? getOptimizedImageUrl(image, 'large')
       : image;
   }, [image]);
 
   // Memoized category icons for when there's no image - support multiple categories
   const categoryIconsData = useMemo(() => {
     if (image) return []; // Only show icons when there's no image
-    
+
     if (!categories || categories.length === 0) return [];
-    
+
     return categories.map((cat, index) => {
       const IconComponent = getCategoryIcon(cat.code);
       const catStyle = categoryStyles[index];
-      
+
       if (!IconComponent) return null;
-      
+
       return {
         IconComponent,
         style: catStyle,
@@ -608,104 +635,50 @@ const SinglePostPage = ({
     };
   }, [additionalContact]);
 
+  const countryDisplayName = (countryLabels && countryLabels[currentLanguage])
+    || (countryLabels && countryLabels.en)
+    || countryname;
+
   return (
-    <Box 
-      sx={{ 
+    <Box
+      sx={{
         p: { xs: 1.5, sm: 2, md: 4 },
         pt: { xs: "4rem", sm: "4.5rem", md: "5rem" },
         mt: { xs: "2rem", sm: "1.5rem", md: "1rem" },
         minHeight: "100vh",
-        background: isDarkMode ? theme.palette.background.default : '#f5f5f5'
+        backgroundColor: theme.custom.color.surfaceBase
       }}
     >
-
       <Grid container spacing={{ xs: 2, md: 4 }}>
         {/* Main Content */}
         <Grid item xs={12} lg={8}>
-          <Paper 
+          <Paper
             elevation={0}
-            sx={{ 
-              borderRadius: 4,
+            sx={{
+              borderRadius: `${theme.custom.radius.lg}px`,
               overflow: 'hidden',
-              border: returned 
-                ? `3px solid #4CAF50`
-                : `1px solid ${isDarkMode ? alpha('#fff', 0.08) : alpha('#000', 0.12)}`,
-              backgroundColor: isDarkMode ? alpha('#1a1a1a', 0.8) : '#ffffff',
-              boxShadow: returned 
-                ? '0 4px 12px rgba(76, 175, 80, 0.2), 0 2px 4px rgba(0, 0, 0, 0.1)'
-                : 'none',
-              transition: 'all 0.3s ease',
-              '&:hover': {
-                boxShadow: returned 
-                  ? '0 8px 20px rgba(76, 175, 80, 0.3), 0 4px 8px rgba(0, 0, 0, 0.15)'
-                  : 'none',
-              },
+              border: `1px solid ${theme.palette.divider}`,
+              borderInlineStart: `6px solid ${statusTone.main}`,
+              backgroundColor: theme.custom.color.surfaceRaised,
+              boxShadow: theme.custom.elevation.e1,
             }}
           >
             {/* Image Section */}
-            <Box sx={{ 
-              position: 'relative', 
-              zIndex: 1,
-              backgroundColor: image ? 'transparent' : (categoryStyles[0]?.background || (isDarkMode ? '#1a1a1a' : '#f5f5f5')),
+            <Box sx={{
+              position: 'relative',
+              backgroundColor: image ? 'transparent' : alpha(statusTone.main, 0.06),
               display: 'flex',
               alignItems: 'center',
               justifyContent: 'center',
             }}>
-              {/* Returned Badge - Top Right Overlay (when returned is true) */}
-              {returned && (
-                <Box
-                  sx={{
-                    position: 'absolute',
-                    top: 16,
-                    right: 16,
-                    zIndex: 12,
-                    display: 'flex',
-                    alignItems: 'center',
-                    justifyContent: 'center',
-                    gap: 0.5,
-                    background: 'linear-gradient(135deg, #4CAF50 0%, #66BB6A 100%)',
-                    borderRadius: '24px',
-                    padding: { xs: '8px 14px', sm: '10px 18px', md: '12px 20px' },
-                    boxShadow: '0 4px 12px rgba(76, 175, 80, 0.4), 0 2px 4px rgba(0,0,0,0.2)',
-                    border: '2px solid rgba(255, 255, 255, 0.9)',
-                    animation: 'pulse 2s ease-in-out infinite',
-                    '@keyframes pulse': {
-                      '0%, 100%': {
-                        transform: 'scale(1)',
-                        boxShadow: '0 4px 12px rgba(76, 175, 80, 0.4), 0 2px 4px rgba(0,0,0,0.2)',
-                      },
-                      '50%': {
-                        transform: 'scale(1.02)',
-                        boxShadow: '0 6px 16px rgba(76, 175, 80, 0.6), 0 4px 8px rgba(0,0,0,0.3)',
-                      },
-                    },
-                  }}
-                >
-                  <CheckCircleIcon
-                    sx={{
-                      fontSize: { xs: '20px', sm: '22px', md: '24px' },
-                      color: '#ffffff',
-                      filter: 'drop-shadow(0 1px 2px rgba(0,0,0,0.2))',
-                    }}
-                  />
-                  <Typography
-                    sx={{
-                      color: '#ffffff',
-                      fontSize: { xs: '14px', sm: '15px', md: '16px' },
-                      fontWeight: 700,
-                      textTransform: 'uppercase',
-                      letterSpacing: currentLanguage === 'ar' ? 'normal' : '0.5px',
-                      fontFamily: currentLanguage === 'ar' 
-                        ? '"Noto Sans Arabic", "Segoe UI", "Roboto", "Helvetica", "Arial", sans-serif'
-                        : '"Inter", "Segoe UI", "Roboto", "Helvetica", "Arial", sans-serif',
-                      lineHeight: 1.2,
-                      whiteSpace: 'nowrap',
-                    }}
-                  >
-                    {t('returned')}
-                  </Typography>
-                </Box>
-              )}
+              {returned && <ResolvedRibbon>{t('returned')}</ResolvedRibbon>}
+
+              <StatusTag
+                tone={statusTone}
+                icon={foundLostStatus.isFound ? TaskAltOutlined : SearchOffOutlined}
+                label={foundLostStatus.statusText}
+              />
+              <DateBadge>{createdDate}</DateBadge>
 
               {image && imageUrl ? (
                 <LazyCardMedia
@@ -717,7 +690,7 @@ const SinglePostPage = ({
                     objectPosition: 'center',
                   }}
                   image={imageUrl}
-                  alt={categoryDisplayName || 'Post Image'}
+                  alt={displayCityName || 'Post Image'}
                   fallback={noImageSvg}
                 />
               ) : categoryIconsData.length > 0 ? (
@@ -731,7 +704,6 @@ const SinglePostPage = ({
                     padding: 2,
                     width: '100%',
                     height: { xs: 300, sm: 400, md: 500 },
-                    zIndex: 1,
                   }}
                 >
                   {categoryIconsData.length === 1 ? (() => {
@@ -742,12 +714,10 @@ const SinglePostPage = ({
                           fontSize: { xs: '120px', sm: '150px', md: '180px' },
                           color: categoryIconsData[0].style?.main || theme.palette.text.secondary,
                           opacity: 0.85,
-                          filter: 'drop-shadow(0 2px 4px rgba(0,0,0,0.1))',
                         }}
                       />
                     );
-                  })(                  ) : (
-                    // Multiple icons - simple flex layout
+                  })() : (
                     <Box
                       sx={{
                         display: 'flex',
@@ -767,7 +737,6 @@ const SinglePostPage = ({
                               fontSize: { xs: '64px', sm: '80px', md: '96px' },
                               color: iconData.style?.main || theme.palette.text.secondary,
                               opacity: 0.85,
-                              filter: 'drop-shadow(0 2px 4px rgba(0,0,0,0.1))',
                             }}
                           />
                         );
@@ -776,695 +745,167 @@ const SinglePostPage = ({
                   )}
                 </Box>
               ) : null}
-              
 
-              {/* Category Badges Overlay - Multiple categories support */}
-              <Box
-                sx={{
-                  position: 'absolute',
-                  top: 16,
-                  right: returned ? { xs: 180, sm: 200, md: 220 } : 16,
-                  zIndex: 2,
-                  display: 'flex',
-                  flexWrap: 'wrap',
-                  gap: 0.5,
-                  alignItems: 'center',
-                  justifyContent: 'flex-end',
-                  maxWidth: 'calc(100% - 32px)',
-                }}
-              >
-                {categories.map((cat, index) => {
-                  const catStyle = categoryStyles[index];
-                  const catName = categoryNames[index];
-                  return (
-                    <Box
-                      key={cat.code || index}
-                      sx={{
-                        backgroundColor: isDarkMode ? 'rgb(232, 245, 233)' : catStyle.background,
-                        padding: '6px 12px',
-                        borderRadius: '12px',
-                        display: 'flex',
-                        alignItems: 'center',
-                        gap: 0.5,
-                        backdropFilter: 'blur(10px)',
-                        border: `1px solid ${isDarkMode ? alpha(catStyle.main, 0.3) : catStyle.main}`,
-                        zIndex: 11
-                      }}
-                    >
-                      <RenderIcon 
-                        name={`${cat.code?.toLowerCase() || 'other'}cate`} 
-                        sx={{ 
-                          fontSize: '18px', 
-                          color: isDarkMode ? catStyle.main : catStyle.text
-                        }} 
-                      />
-                      <Typography
-                        sx={{
-                          color: isDarkMode ? catStyle.main : catStyle.text,
-                          fontSize: '14px',
-                          fontWeight: 700,
-                          lineHeight: 1
-                        }}
-                      >
-                        {catName}
-                      </Typography>
-                    </Box>
-                  );
-                })}
-              </Box>
+              {!image && (
+                <Box
+                  sx={{
+                    position: 'absolute',
+                    bottom: 12,
+                    insetInlineEnd: 12,
+                    zIndex: 2,
+                    display: 'flex',
+                    alignItems: 'center',
+                    gap: 0.5,
+                    px: 1.25,
+                    py: 0.5,
+                    borderRadius: `${theme.custom.radius.sm}px`,
+                    backgroundColor: alpha(theme.custom.color.surfaceBase, 0.7),
+                  }}
+                >
+                  <NoImageIcon sx={{ fontSize: 16, color: 'text.secondary', opacity: 0.7 }} />
+                  <Typography variant="caption" color="text.secondary" sx={{ opacity: 0.7, fontWeight: 500 }}>
+                    {t('postHasNoImage')}
+                  </Typography>
+                </Box>
+              )}
             </Box>
 
             {/* Content Section */}
             <Box sx={{ p: { xs: 3, md: 4 } }}>
-              {/* Title */}
-              <Typography 
-                variant="h4" 
+              <Typography
+                variant="h4"
                 fontWeight={700}
-                sx={{ 
-                  mb: 3,
-                  direction: currentLanguage === 'ar' ? 'rtl' : 'ltr',
-                  color: isDarkMode ? '#ffffff' : '#1a1a1a',
+                sx={{
+                  mb: 2,
+                  color: theme.custom.color.ink,
                   fontSize: { xs: '1.5rem', sm: '2rem', md: '2.125rem' }
                 }}
               >
                 {displayCityName}
               </Typography>
 
-              {/* Description */}
-              {description && (
-                <Typography 
-                  variant="body1" 
-                  sx={{ 
-                    mb: 3,
-                    lineHeight: 1.6,
-                    direction: currentLanguage === 'ar' ? 'rtl' : 'ltr',
-                    color: isDarkMode ? alpha('#fff', 0.8) : alpha('#000', 0.7),
-                    fontSize: { xs: '1rem', sm: '1rem', md: '1rem' }
-                  }}
-                >
-                  {description}
-                </Typography>
-              )}
-
-              {/* Location and Time Info */}
-              <Box sx={{ mb: 3 }}>
-                <Box display="flex" alignItems="center" gap={1} mb={2}>
-                  <Typography 
-                    variant="body2" 
-                    color="text.secondary"
-                    sx={{ 
-                      direction: currentLanguage === 'ar' ? 'rtl' : 'ltr',
-                      fontSize: { xs: '1rem', sm: '0.95rem', md: '0.95rem' }
-                    }}
-                  >
-                    {exactLocation || displayCityName}
-                  </Typography>
-                </Box>
-                <Box 
-                  display={{ xs: 'grid', sm: 'flex' }}
-                  gridTemplateColumns={{ xs: '1fr' }}
-                  flexDirection={{ sm: 'row' }}
-                  alignItems={{ xs: 'stretch', sm: 'center' }}
-                  justifyContent={{ sm: currentLanguage === 'ar' ? 'flex-end' : 'flex-start' }}
-                  width="100%"
-                  gap={1.5}
-                  mb={2}
-                >
-                  {/* Time Badge - Left in LTR, Right in RTL */}
-                  <Box 
-                    display="flex" 
-                    alignItems="center" 
-                    gap={1}
+              {/* Facts strip — category, location, recency, and the exact lost/found
+                  date all read as one line of icon+text pairs instead of a label:value
+                  table (title/City/Country previously repeated the same fact 3x). */}
+              <Box sx={{ display: 'flex', flexWrap: 'wrap', rowGap: 1, columnGap: 2, alignItems: 'center', mb: 3 }}>
+                {categories.map((cat, index) => (
+                  <Chip
+                    key={cat.code || index}
+                    label={categoryNames[index]}
+                    size="small"
                     sx={{
-                      backgroundColor: isDarkMode 
-                        ? alpha('#000', 0.3) 
-                        : alpha('#000', 0.05),
-                      padding: { xs: '8px 12px', sm: '6px 12px' },
-                      borderRadius: '8px',
-                      border: `1px solid ${isDarkMode ? alpha('#fff', 0.1) : alpha('#000', 0.1)}`,
+                      fontSize: '0.75rem',
+                      height: 26,
+                      backgroundColor: categoryStyles[index].background,
+                      color: categoryStyles[index].text,
+                      border: `1px solid ${alpha(categoryStyles[index].main, 0.4)}`,
+                      fontWeight: 600,
                     }}
-                  >
-                    <TimeIcon sx={{ 
-                      fontSize: { xs: 18, sm: 16 }, 
-                      color: 'text.secondary' 
-                    }} />
-                    <Typography 
-                      variant="body2" 
-                      color="text.secondary"
-                      sx={{ 
-                        direction: currentLanguage === 'ar' ? 'rtl' : 'ltr',
-                        fontSize: { xs: '0.95rem', sm: '0.9rem', md: '0.9rem' },
-                        fontWeight: 500,
-                      }}
-                    >
-                      {createdDate}
-                    </Typography>
-                  </Box>
-                  {/* No Image Indicator Badge - Right in LTR, Left in RTL */}
-                  {!image && (
-                    <Box 
-                      display="flex" 
-                      alignItems="center" 
-                      gap={0.5}
-                      sx={{
-                        backgroundColor: isDarkMode 
-                          ? alpha('#000', 0.3) 
-                          : alpha('#000', 0.05),
-                        padding: { xs: '8px 12px', sm: '6px 12px' },
-                        borderRadius: '8px',
-                        border: `1px solid ${isDarkMode ? alpha('#fff', 0.1) : alpha('#000', 0.1)}`,
-                      }}
-                    >
-                      <NoImageIcon sx={{ 
-                        fontSize: { xs: 18, sm: 16 }, 
-                        color: 'text.secondary', 
-                        opacity: 0.7 
-                      }} />
-                      <Typography 
-                        variant="body2" 
-                        color="text.secondary"
-                        sx={{ 
-                          fontSize: { xs: '0.85rem', sm: '0.8rem' },
-                          direction: currentLanguage === 'ar' ? 'rtl' : 'ltr',
-                          opacity: 0.7,
-                          fontWeight: 500,
-                        }}
-                      >
-                        {t('postHasNoImage')}
-                      </Typography>
-                    </Box>
-                  )}
-                </Box>
+                  />
+                ))}
+                <FactItem icon={LocationIcon}>{exactLocation || displayCityName}</FactItem>
+                <FactItem icon={TimeIcon}>{createdDate}</FactItem>
+                {mainDate && mainDate.trim() && (
+                  <FactItem icon={CalendarIcon}>
+                    {foundLostStatus.isFound ? t('exactDateFound') : t('exactDateLost')}: {mainDate}
+                  </FactItem>
+                )}
+                {countryDisplayName && <FactItem icon={CountryIcon}>{countryDisplayName}</FactItem>}
               </Box>
 
-              {/* Separator Line */}
-              <Divider sx={{ my: 3, borderColor: isDarkMode ? alpha('#fff', 0.1) : alpha('#000', 0.1) }} />
+              {/* Description */}
+              <Typography
+                variant="body1"
+                sx={{
+                  mb: 3,
+                  lineHeight: 1.6,
+                  color: theme.palette.text.secondary,
+                }}
+              >
+                {(descriptionLabels && descriptionLabels[currentLanguage]) || description || t('noDescriptionProvided')}
+              </Typography>
 
-              {/* Additional Post Information */}
-              <Box sx={{ mb: 3 }}>
-                <Box display="flex" flexDirection="column" gap={{ xs: 1.5, sm: 2, md: 2 }}>
-
-                    {/* Description with descriptionLabels support */}
-                    <Box display="flex" 
-                         sx={{ 
-                           flexDirection: { xs: 'row', sm: 'row' }, 
-                           gap: { xs: 1, sm: 2 },
-                           alignItems: { xs: 'center', sm: 'flex-start' }
-                         }}>
-                  <Typography 
-                        variant="body2" 
-                        color="text.secondary"
-                        sx={{ 
-                          direction: currentLanguage === 'ar' ? 'rtl' : 'ltr',
-                          fontSize: { xs: '1rem', sm: '1rem', md: '1rem' },
-                          minWidth: { xs: 'auto', sm: '120px' },
-                          fontWeight: 500,
-                          flexShrink: 0
-                        }}
-                      >
-                        {t('description')}:
-                      </Typography>
-                      <Typography 
-                        variant="body2" 
-                    fontWeight={600}
-                    sx={{ 
-                      direction: currentLanguage === 'ar' ? 'rtl' : 'ltr',
-                      color: isDarkMode ? '#ffffff' : '#1a1a1a',
-                          fontSize: '0.875rem',
-                          textAlign: currentLanguage === 'ar' ? 'right' : 'left',
-                          flex: 1,
-                          lineHeight: 1.4
-                    }}
-                  >
-                        {(descriptionLabels && descriptionLabels[currentLanguage]) || description || t('noDescriptionProvided')}
-                  </Typography>
-                    </Box>
-
-                    {/* Categories with multiple category badges */}
-                    <Box display="flex" 
-                         sx={{ 
-                           flexDirection: { xs: 'row', sm: 'row' }, 
-                           gap: { xs: 1, sm: 2 },
-                           alignItems: { xs: 'flex-start', sm: 'flex-start' }
-                         }}>
-                      <Typography 
-                        variant="body2" 
-                        color="text.secondary"
-                        sx={{ 
-                          direction: currentLanguage === 'ar' ? 'rtl' : 'ltr',
-                          fontSize: { xs: '1rem', sm: '1rem', md: '1rem' },
-                          minWidth: { xs: 'auto', sm: '120px' },
-                          fontWeight: 500,
-                          flexShrink: 0,
-                          pt: 0.5
-                        }}
-                      >
-                        {t('category')}:
-                      </Typography>
-                      <Box display="flex" flexWrap="wrap" gap={0.5} sx={{ flex: 1 }}>
-                        {categories.map((cat, index) => {
-                          const catStyle = categoryStyles[index];
-                          const catName = categoryNames[index];
-                          return (
-                            <Chip
-                              key={cat.code || index}
-                              label={catName}
-                              size="small"
-                              sx={{
-                                fontSize: '0.75rem',
-                                height: 28,
-                                backgroundColor: isDarkMode ? alpha(catStyle.background, 0.3) : catStyle.background,
-                                color: catStyle.text,
-                                border: `1px solid ${catStyle.main}`,
-                                fontWeight: 600,
-                                '& .MuiChip-label': {
-                                  direction: currentLanguage === 'ar' ? 'rtl' : 'ltr',
-                                  fontWeight: 600
-                                }
-                              }}
-                            />
-                          );
-                        })}
-                      </Box>
-                    </Box>
-
-                    {/* Status with foundLostStatus */}
-                    <Box display="flex" 
-                         sx={{ 
-                           flexDirection: { xs: 'row', sm: 'row' }, 
-                           gap: { xs: 1, sm: 2 },
-                           alignItems: { xs: 'center', sm: 'flex-start' }
-                         }}>
-                      <Typography 
-                        variant="body2" 
-                        color="text.secondary"
-                        sx={{ 
-                          direction: currentLanguage === 'ar' ? 'rtl' : 'ltr',
-                          fontSize: { xs: '1rem', sm: '1rem', md: '1rem' },
-                          minWidth: { xs: 'auto', sm: '120px' },
-                          fontWeight: 500,
-                          flexShrink: 0
-                        }}
-                      >
-                        {t('status')}:
-                      </Typography>
+              {/* Secondary meta — views/tags are operational, not primary to the reader,
+                  so they sit quiet at the bottom instead of competing with the facts above. */}
+              {((views !== undefined) || (tags && tags.length > 0)) && (
+                <>
+                  <Divider sx={{ mb: 2, borderColor: theme.palette.divider }} />
+                  <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: 1, alignItems: 'center' }}>
+                    {views !== undefined && (
+                      <FactItem icon={ViewIcon}>{views} {t('views')}</FactItem>
+                    )}
+                    {tags && tags.length > 0 && tags.map((tag, index) => (
                       <Chip
-                        label={foundLostStatus.statusText}
+                        key={index}
+                        label={tag}
                         size="small"
+                        variant="outlined"
                         sx={{
-                          backgroundColor: foundLostStatus.statusColor === 'success' ? '#4CAF50' : 
-                                         foundLostStatus.statusColor === 'error' ? '#F44336' : 
-                                         '#FF9800',
-                          color: '#fff',
-                          fontWeight: 600,
-                          fontSize: '0.75rem',
-                          height: 24,
-                          '& .MuiChip-label': {
-                            direction: currentLanguage === 'ar' ? 'rtl' : 'ltr',
-                            color: 'white',
-                            fontWeight: 600
-                          }
+                          height: 22,
+                          fontSize: '0.7rem',
+                          borderColor: theme.palette.divider,
+                          color: 'text.secondary',
                         }}
                       />
-                    </Box>
-
-                    {/* Country with countryLabels support */}
-                    <Box display="flex" 
-                         sx={{ 
-                           flexDirection: { xs: 'row', sm: 'row' }, 
-                           gap: { xs: 1, sm: 2 },
-                           alignItems: { xs: 'center', sm: 'flex-start' }
-                         }}>
-                      <Typography 
-                        variant="body2" 
-                        color="text.secondary"
-                        sx={{ 
-                          direction: currentLanguage === 'ar' ? 'rtl' : 'ltr',
-                          fontSize: { xs: '1rem', sm: '1rem', md: '1rem' },
-                          minWidth: { xs: 'auto', sm: '120px' },
-                          fontWeight: 500,
-                          flexShrink: 0
-                        }}
-                      >
-                        {t('country')}:
-                      </Typography>
-                      <Typography 
-                        variant="body2" 
-                        fontWeight={600}
-                        sx={{ 
-                          direction: currentLanguage === 'ar' ? 'rtl' : 'ltr',
-                          color: isDarkMode ? '#ffffff' : '#1a1a1a',
-                          fontSize: { xs: '1rem', sm: '1rem', md: '1rem' },
-                          textAlign: currentLanguage === 'ar' ? 'right' : 'left'
-                        }}
-                      >
-                        {(countryLabels && countryLabels[currentLanguage]) || (countryLabels && countryLabels.en) || countryname || t('noCountryProvided')}
-                      </Typography>
-                    </Box>
-
-                    {/* City with displayCityName */}
-                    <Box display="flex" 
-                         sx={{ 
-                           flexDirection: { xs: 'row', sm: 'row' }, 
-                           gap: { xs: 1, sm: 2 },
-                           alignItems: { xs: 'center', sm: 'flex-start' }
-                         }}>
-                      <Typography 
-                        variant="body2" 
-                        color="text.secondary"
-                        sx={{ 
-                          direction: currentLanguage === 'ar' ? 'rtl' : 'ltr',
-                          fontSize: { xs: '1rem', sm: '1rem', md: '1rem' },
-                          minWidth: { xs: 'auto', sm: '120px' },
-                          fontWeight: 500,
-                          flexShrink: 0
-                        }}
-                      >
-                        {t('city')}:
-                      </Typography>
-                      <Typography 
-                        variant="body2" 
-                        fontWeight={600}
-                        sx={{ 
-                          direction: currentLanguage === 'ar' ? 'rtl' : 'ltr',
-                          color: isDarkMode ? '#ffffff' : '#1a1a1a',
-                          fontSize: { xs: '1rem', sm: '1rem', md: '1rem' },
-                          textAlign: currentLanguage === 'ar' ? 'right' : 'left'
-                        }}
-                      >
-                        {displayCityName}
-                      </Typography>
-                    </Box>
-
-
-                    {/* Exact Date (using mainDate string) */}
-                    <Box display="flex" 
-                         sx={{ 
-                           flexDirection: { xs: 'row', sm: 'row' }, 
-                           gap: { xs: 1, sm: 2 },
-                           alignItems: { xs: 'center', sm: 'flex-start' }
-                         }}>
-                      <Typography 
-                        variant="body2" 
-                        color="text.secondary"
-                        sx={{ 
-                          direction: currentLanguage === 'ar' ? 'rtl' : 'ltr',
-                          fontSize: { xs: '1rem', sm: '1rem', md: '1rem' },
-                          minWidth: { xs: 'auto', sm: '120px' },
-                          fontWeight: 500,
-                          flexShrink: 0
-                        }}
-                      >
-                        {foundLostStatus.isFound ? t('exactDateFound') : t('exactDateLost')}:
-                      </Typography>
-                      <Typography 
-                        variant="body2" 
-                        fontWeight={600}
-                        sx={{ 
-                          direction: currentLanguage === 'ar' ? 'rtl' : 'ltr',
-                          color: isDarkMode ? '#ffffff' : '#1a1a1a',
-                          fontSize: { xs: '1rem', sm: '1rem', md: '1rem' },
-                          textAlign: currentLanguage === 'ar' ? 'right' : 'left'
-                        }}
-                      >
-                        {mainDate && mainDate.trim() ? mainDate : t('noDateProvided')}
-                      </Typography>
-                    </Box>
-
-
-                    {/* Tags - if available */}
-                    {tags && tags.length > 0 && (
-                      <Box display="flex" 
-                           sx={{ 
-                             flexDirection: { xs: 'column', sm: 'row' }, 
-                             gap: { xs: 0.5, sm: 2 },
-                             alignItems: { xs: 'flex-start', sm: 'flex-start' }
-                           }}>
-                      <Typography 
-                          variant="body2" 
-                          color="text.secondary"
-                        sx={{ 
-                          direction: currentLanguage === 'ar' ? 'rtl' : 'ltr',
-                            fontSize: '0.875rem',
-                            minWidth: { xs: 'auto', sm: '120px' },
-                            fontWeight: 500,
-                            flexShrink: 0
-                          }}
-                        >
-                          {t('tags')}:
-                      </Typography>
-                        <Box display="flex" flexWrap="wrap" gap={0.5} sx={{ flex: 1 }}>
-                          {tags.map((tag, index) => (
-                            <Chip
-                              key={index}
-                              label={tag}
-                              size="small"
-                              sx={{
-                                fontSize: '0.75rem',
-                                height: 24,
-                                backgroundColor: isDarkMode ? alpha(theme.palette.primary.main, 0.2) : alpha(theme.palette.primary.main, 0.1),
-                                color: theme.palette.primary.main,
-                                border: `1px solid ${alpha(theme.palette.primary.main, 0.3)}`,
-                                '& .MuiChip-label': {
-                                  direction: currentLanguage === 'ar' ? 'rtl' : 'ltr'
-                                }
-                              }}
-                            />
-                          ))}
-                        </Box>
-                      </Box>
-                    )}
-
-
-
-                    {/* Views */}
-                    {views !== undefined && (
-                      <Box display="flex" 
-                           sx={{ 
-                             flexDirection: { xs: 'column', sm: 'row' }, 
-                             gap: { xs: 0.5, sm: 2 },
-                             alignItems: { xs: 'flex-start', sm: 'flex-start' }
-                           }}>
-                        <Typography 
-                          variant="body2" 
-                          color="text.secondary"
-                          sx={{ 
-                            direction: currentLanguage === 'ar' ? 'rtl' : 'ltr',
-                            fontSize: '0.875rem',
-                            minWidth: { xs: 'auto', sm: '120px' },
-                            fontWeight: 500,
-                            flexShrink: 0
-                          }}
-                        >
-                          {t('views')}:
-                        </Typography>
-                        <Typography 
-                          variant="body2" 
-                          fontWeight={600}
-                          sx={{ 
-                            direction: currentLanguage === 'ar' ? 'rtl' : 'ltr',
-                            color: isDarkMode ? '#ffffff' : '#1a1a1a',
-                            fontSize: '0.875rem',
-                            textAlign: currentLanguage === 'ar' ? 'right' : 'left'
-                          }}
-                        >
-                          {views}
-                        </Typography>
+                    ))}
                   </Box>
-                    )}
-
-                    {/* Post status - active/resolved/expired */}
-                    {status && (
-                      <Box display="flex" 
-                           sx={{ 
-                             flexDirection: { xs: 'column', sm: 'row' }, 
-                             gap: { xs: 0.5, sm: 2 },
-                             alignItems: { xs: 'flex-start', sm: 'flex-start' }
-                           }}>
-                        <Typography 
-                          variant="body2" 
-                          color="text.secondary"
-                          sx={{ 
-                            direction: currentLanguage === 'ar' ? 'rtl' : 'ltr',
-                            fontSize: '0.875rem',
-                            minWidth: { xs: 'auto', sm: '120px' },
-                            fontWeight: 500,
-                            flexShrink: 0
-                          }}
-                        >
-                          {t('postStatus')}:
-                        </Typography>
-                        <Chip
-                          label={status}
-                          size="small"
-                          sx={{
-                            backgroundColor: status === 'active' ? '#4CAF50' : 
-                                           status === 'resolved' ? '#2196F3' : 
-                                           status === 'expired' ? '#FF9800' : 
-                                           alpha(theme.palette.primary.main, 0.1),
-                            color: status === 'active' || status === 'resolved' || status === 'expired' ? '#fff' : theme.palette.primary.main,
-                            fontWeight: 600,
-                            fontSize: '0.75rem',
-                            height: 24,
-                            '& .MuiChip-label': {
-                              direction: currentLanguage === 'ar' ? 'rtl' : 'ltr',
-                              fontWeight: 600
-                            }
-                          }}
-                        />
-                </Box>
+                </>
               )}
-
-                    {/* Returned status */}
-                    {returned !== undefined && (
-                      <Box display="flex" 
-                           sx={{ 
-                             flexDirection: { xs: 'row', sm: 'row' }, 
-                             gap: { xs: 1, sm: 2 },
-                             alignItems: { xs: 'center', sm: 'flex-start' }
-                           }}>
-                        <Typography 
-                          variant="body2" 
-                          color="text.secondary"
-                          sx={{ 
-                            direction: currentLanguage === 'ar' ? 'rtl' : 'ltr',
-                            fontSize: '0.875rem',
-                            minWidth: { xs: 'auto', sm: '120px' },
-                            fontWeight: 500,
-                            flexShrink: 0
-                          }}
-                        >
-                          {t('returned')}:
-                        </Typography>
-                        <Chip
-                          label={returned ? t('yes') : t('no')}
-                          size="small"
-                          sx={{
-                            backgroundColor: returned ? '#4CAF50' : '#F44336',
-                            color: '#fff',
-                            fontWeight: 600,
-                            fontSize: '0.75rem',
-                            height: 24,
-                            '& .MuiChip-label': {
-                              direction: currentLanguage === 'ar' ? 'rtl' : 'ltr',
-                              fontWeight: 600
-                            }
-                          }}
-                        />
-                      </Box>
-                    )}
-                </Box>
-              </Box>
-
-              {/* Contact Information - Removed as contact info will be shown in claim dialog */}
-              {/* Additional Contact - Removed as contact info will be shown in claim dialog */}
             </Box>
           </Paper>
         </Grid>
 
         {/* Sidebar */}
         <Grid item xs={12} lg={4}>
-          <Box sx={{ position: { xs: 'static', lg: 'sticky' }, top: { lg: '2rem' } }}>
-            {/* Debug Info - Remove this after testing */}
-            {process.env.NODE_ENV === 'development' && (
-              <Paper sx={{ p: 2, mb: 2, backgroundColor: '#f0f0f0' }}>
-                <Typography variant="caption" display="block">
-                  Debug Info:
-                </Typography>
-                <Typography variant="caption" display="block">
-                  isAuthenticated: {String(isAuthenticated)}
-                </Typography>
-                <Typography variant="caption" display="block">
-                  usernameId: {String(usernameId)}
-                </Typography>
-                <Typography variant="caption" display="block">
-                  user: {String(user)}
-                </Typography>
-                <Typography variant="caption" display="block">
-                  returned: {String(returned)}
-                </Typography>
-                <Typography variant="caption" display="block">
-                  Should show claim: {String(usernameId !== user && !returned)}
-                </Typography>
-              </Paper>
-            )}
+          <Box sx={{ position: { xs: 'static', lg: 'sticky' }, top: { lg: '2rem' }, display: 'flex', flexDirection: 'column', gap: 3 }}>
 
-            {/* Claim Item Section - Show for all users who are NOT the post owner */}
-            {usernameId !== user && !returned && (
-              <Paper 
+            {/* Claim Item — the primary, positive action. Brand-colored (not
+                status-colored) so it reads as "the thing to do here", not as
+                another Lost/Found signal. */}
+            {!isAuthor && !returned && (
+              <Paper
                 elevation={0}
-                sx={{ 
-                  p: 3, 
-                  mb: 3,
-                  borderRadius: 3,
-                  border: `1px solid ${isDarkMode ? alpha('#fff', 0.08) : alpha('#000', 0.12)}`,
-                  backgroundColor: isDarkMode ? alpha('#1a1a1a', 0.8) : '#ffffff',
-                  boxShadow: 'none',
-                  background: isDarkMode 
-                    ? 'linear-gradient(135deg, rgba(33, 150, 243, 0.05) 0%, rgba(66, 165, 245, 0.02) 100%)'
-                    : 'linear-gradient(135deg, rgba(25, 118, 210, 0.05) 0%, rgba(30, 136, 229, 0.02) 100%)',
-                  border: `2px solid ${isDarkMode ? alpha('#2196F3', 0.2) : alpha('#1976D2', 0.2)}`,
+                sx={{
+                  p: 3,
+                  borderRadius: `${theme.custom.radius.lg}px`,
+                  border: `1px solid ${alpha(theme.custom.color.brandPrimary, 0.25)}`,
+                  backgroundColor: theme.custom.color.surfaceRaised,
+                  boxShadow: theme.custom.elevation.e2,
                   position: 'relative',
                   overflow: 'hidden',
                   '&::before': {
                     content: '""',
                     position: 'absolute',
                     top: 0,
-                    left: 0,
-                    right: 0,
+                    insetInlineStart: 0,
+                    insetInlineEnd: 0,
                     height: '3px',
-                    background: isDarkMode 
-                      ? 'linear-gradient(90deg, #2196F3, #42A5F5)' 
-                      : 'linear-gradient(90deg, #1976D2, #1E88E5)',
+                    backgroundColor: theme.custom.color.brandPrimary,
                   }
                 }}
               >
                 <Box display="flex" alignItems="center" gap={2} mb={2}>
                   <Box
                     sx={{
-                      backgroundColor: isDarkMode ? alpha('#2196F3', 0.2) : alpha('#1976D2', 0.1),
+                      backgroundColor: alpha(theme.custom.color.brandPrimary, 0.12),
                       borderRadius: '50%',
                       p: 1.5,
                       display: 'flex',
-                      alignItems: 'center',
-                      justifyContent: 'center'
                     }}
                   >
-                    <CheckCircleIcon sx={{ 
-                      color: isDarkMode ? '#2196F3' : '#1976D2',
-                      fontSize: 24
-                    }} />
+                    <CheckCircleIcon sx={{ color: theme.custom.color.brandPrimary, fontSize: 24 }} />
                   </Box>
-                  <Typography 
-                    variant="h6" 
+                  <Typography
+                    variant="h6"
                     fontWeight={700}
-                    sx={{ 
-                      color: isDarkMode ? '#2196F3' : '#1976D2',
-                      fontSize: { xs: '1.1rem', sm: '1.25rem', md: '1.25rem' },
-                      direction: currentLanguage === 'ar' ? 'rtl' : 'ltr'
-                    }}
+                    sx={{ color: theme.custom.color.brandPrimary, fontSize: { xs: '1.1rem', sm: '1.25rem' } }}
                   >
-                    {foundLostStatus.isFound 
-                      ? t('doYouThinkThisItemIsYours')
-                      : t('didYouFindThisItem')
-                    }
+                    {foundLostStatus.isFound ? t('doYouThinkThisItemIsYours') : t('didYouFindThisItem')}
                   </Typography>
                 </Box>
 
-                <Typography 
-                  variant="body1" 
-                  sx={{ 
-                    mb: 3,
-                    color: isDarkMode ? alpha('#fff', 0.8) : alpha('#000', 0.7),
-                    fontSize: { xs: '1rem', sm: '1rem', md: '1rem' },
-                    lineHeight: 1.6,
-                    direction: currentLanguage === 'ar' ? 'rtl' : 'ltr'
-                  }}
-                >
-                  {foundLostStatus.isFound 
-                    ? t('ifYouLostThisItem')
-                    : t('ifYouFoundThisItem')
-                  }
+                <Typography variant="body1" sx={{ mb: 2.5, color: theme.palette.text.secondary, lineHeight: 1.6 }}>
+                  {foundLostStatus.isFound ? t('ifYouLostThisItem') : t('ifYouFoundThisItem')}
                 </Typography>
 
                 <Button
@@ -1473,110 +914,66 @@ const SinglePostPage = ({
                   fullWidth
                   startIcon={<CheckCircleIcon />}
                   sx={{
-                    borderRadius: 2,
+                    borderRadius: `${theme.custom.radius.md}px`,
                     textTransform: 'none',
                     fontWeight: 600,
-                    direction: currentLanguage === 'ar' ? 'rtl' : 'ltr',
-                    gap: currentLanguage === 'ar' ? 1 : 0.5,
-                    background: isDarkMode
-                      ? 'linear-gradient(45deg, #2196F3 30%, #42A5F5 90%)'
-                      : 'linear-gradient(45deg, #1976D2 30%, #1E88E5 90%)',
-                    color: '#ffffff',
                     py: 1.5,
-                    fontSize: { xs: '1rem', sm: '1rem', md: '1rem' },
+                    fontSize: '1rem',
+                    backgroundColor: theme.custom.color.brandPrimary,
                     '&:hover': {
-                      background: isDarkMode
-                        ? 'linear-gradient(45deg, #1976D2 30%, #2196F3 90%)'
-                        : 'linear-gradient(45deg, #0D47A1 30%, #1565C0 90%)',
-                      transform: 'translateY(-1px)',
-                      boxShadow: isDarkMode
-                        ? '0 8px 20px rgba(33, 150, 243, 0.3)'
-                        : '0 8px 20px rgba(25, 118, 210, 0.3)',
+                      backgroundColor: theme.custom.color.brandPrimary,
+                      opacity: 0.9,
                     },
-                    transition: 'all 0.2s ease-in-out',
-                    boxShadow: isDarkMode
-                      ? '0 4px 12px rgba(33, 150, 243, 0.2)'
-                      : '0 4px 12px rgba(25, 118, 210, 0.2)',
                   }}
                 >
                   {foundLostStatus.isFound ? t('yesThisIsMyItem') : t('yesIFoundThisItem')}
                 </Button>
+
+                <Box sx={{ display: 'flex', alignItems: 'flex-start', gap: 0.75, mt: 2 }}>
+                  <VerifiedUserIcon sx={{ fontSize: 16, color: 'text.secondary', mt: '2px', flexShrink: 0 }} />
+                  <Typography variant="caption" color="text.secondary" sx={{ lineHeight: 1.5 }}>
+                    {t('contactSafetyNote')}
+                  </Typography>
+                </Box>
               </Paper>
             )}
 
-            {/* Promotion Section - Only show for post owner */}
+            {/* Promotion — owner only. WhatsApp green ties it to the channel the
+                action actually uses, kept distinct from both brandPrimary (Claim)
+                and the status colors (Lost/Found) so nothing competes. */}
             {canEdit && !promotionRequested && (
-              <Paper 
+              <Paper
                 elevation={0}
-                sx={{ 
-                  p: 3, 
-                  mb: 3,
-                  borderRadius: 3,
-                  border: `1px solid ${isDarkMode ? alpha('#fff', 0.08) : alpha('#000', 0.12)}`,
-                  backgroundColor: isDarkMode ? alpha('#1a1a1a', 0.8) : '#ffffff',
-                  boxShadow: 'none',
-                  background: isDarkMode 
-                    ? 'linear-gradient(135deg, rgba(76, 175, 80, 0.05) 0%, rgba(102, 187, 106, 0.02) 100%)'
-                    : 'linear-gradient(135deg, rgba(46, 125, 50, 0.05) 0%, rgba(56, 142, 60, 0.02) 100%)',
-                  border: `2px solid ${isDarkMode ? alpha('#4CAF50', 0.2) : alpha('#2E7D32', 0.2)}`,
+                sx={{
+                  p: 3,
+                  borderRadius: `${theme.custom.radius.lg}px`,
+                  border: `1px solid ${alpha('#25D366', 0.3)}`,
+                  backgroundColor: theme.custom.color.surfaceRaised,
+                  boxShadow: theme.custom.elevation.e2,
                   position: 'relative',
                   overflow: 'hidden',
                   '&::before': {
                     content: '""',
                     position: 'absolute',
                     top: 0,
-                    left: 0,
-                    right: 0,
+                    insetInlineStart: 0,
+                    insetInlineEnd: 0,
                     height: '3px',
-                    background: isDarkMode 
-                      ? 'linear-gradient(90deg, #4CAF50, #66BB6A)' 
-                      : 'linear-gradient(90deg, #2E7D32, #388E3C)',
+                    backgroundColor: '#25D366',
                   }
                 }}
               >
                 <Box display="flex" alignItems="center" gap={2} mb={2}>
-                  <Box
-                    sx={{
-                      backgroundColor: isDarkMode ? alpha('#4CAF50', 0.2) : alpha('#2E7D32', 0.1),
-                      borderRadius: '50%',
-                      p: 1.5,
-                      display: 'flex',
-                      alignItems: 'center',
-                      justifyContent: 'center'
-                    }}
-                  >
-                    <TrendingUpIcon sx={{ 
-                      color: isDarkMode ? '#4CAF50' : '#2E7D32',
-                      fontSize: 24
-                    }} />
+                  <Box sx={{ backgroundColor: alpha('#25D366', 0.15), borderRadius: '50%', p: 1.5, display: 'flex' }}>
+                    <WhatsAppIcon sx={{ color: '#25D366', fontSize: 24 }} />
                   </Box>
-                  <Typography 
-                    variant="h6" 
-                    fontWeight={700}
-                    sx={{ 
-                      color: isDarkMode ? '#4CAF50' : '#2E7D32',
-                      fontSize: { xs: '1.1rem', sm: '1.25rem', md: '1.25rem' },
-                      direction: currentLanguage === 'ar' ? 'rtl' : 'ltr'
-                    }}
-                  >
+                  <Typography variant="h6" fontWeight={700} sx={{ color: '#1D8348', fontSize: { xs: '1.1rem', sm: '1.25rem' } }}>
                     {foundLostStatus.isFound ? t('promoteYourFoundItem') : t('boostYourChances')}
                   </Typography>
                 </Box>
 
-                <Typography 
-                  variant="body1" 
-                  sx={{ 
-                    mb: 3,
-                    color: isDarkMode ? alpha('#fff', 0.8) : alpha('#000', 0.7),
-                    fontSize: { xs: '1rem', sm: '1rem', md: '1rem' },
-                    lineHeight: 1.6,
-                    direction: currentLanguage === 'ar' ? 'rtl' : 'ltr'
-                  }}
-                >
-                  {foundLostStatus.isFound 
-                    ? t('teamHasPromotionTechniques') 
-                    : t('teamHasTechniques')
-                  }
+                <Typography variant="body1" sx={{ mb: 2.5, color: theme.palette.text.secondary, lineHeight: 1.6 }}>
+                  {foundLostStatus.isFound ? t('teamHasPromotionTechniques') : t('teamHasTechniques')}
                 </Typography>
 
                 <Button
@@ -1585,30 +982,13 @@ const SinglePostPage = ({
                   fullWidth
                   startIcon={<WhatsAppIcon />}
                   sx={{
-                    borderRadius: 2,
+                    borderRadius: `${theme.custom.radius.md}px`,
                     textTransform: 'none',
                     fontWeight: 600,
-                    direction: currentLanguage === 'ar' ? 'rtl' : 'ltr',
-                    gap: currentLanguage === 'ar' ? 1 : 0.5,
-                    background: isDarkMode
-                      ? 'linear-gradient(45deg, #4CAF50 30%, #66BB6A 90%)'
-                      : 'linear-gradient(45deg, #2E7D32 30%, #388E3C 90%)',
-                    color: '#ffffff',
                     py: 1.5,
-                    fontSize: { xs: '1rem', sm: '1rem', md: '1rem' },
-                    '&:hover': {
-                      background: isDarkMode
-                        ? 'linear-gradient(45deg, #388E3C 30%, #4CAF50 90%)'
-                        : 'linear-gradient(45deg, #1B5E20 30%, #2E7D32 90%)',
-                      transform: 'translateY(-1px)',
-                      boxShadow: isDarkMode
-                        ? '0 8px 20px rgba(76, 175, 80, 0.3)'
-                        : '0 8px 20px rgba(46, 125, 50, 0.3)',
-                    },
-                    transition: 'all 0.2s ease-in-out',
-                    boxShadow: isDarkMode
-                      ? '0 4px 12px rgba(76, 175, 80, 0.2)'
-                      : '0 4px 12px rgba(46, 125, 50, 0.2)',
+                    backgroundColor: '#25D366',
+                    color: '#ffffff',
+                    '&:hover': { backgroundColor: '#1DA851' },
                   }}
                 >
                   {t('yesPromote')}
@@ -1616,113 +996,84 @@ const SinglePostPage = ({
               </Paper>
             )}
 
-            {/* Actions Card */}
-            <Paper 
-              elevation={0}
-              sx={{ 
-                p: 3, 
-                mb: 3,
-                borderRadius: 3,
-                border: `1px solid ${isDarkMode ? alpha('#fff', 0.08) : alpha('#000', 0.12)}`,
-                backgroundColor: isDarkMode ? alpha('#1a1a1a', 0.8) : '#ffffff',
-                boxShadow: 'none'
-              }}
-            >
-              <Typography 
-                variant="h6" 
-                fontWeight={600}
-                sx={{ 
-                  mb: 3,
-                  direction: currentLanguage === 'ar' ? 'rtl' : 'ltr',
-                  color: isDarkMode ? '#ffffff' : '#1a1a1a',
-                  fontSize: { xs: '1.1rem', sm: '1.25rem', md: '1.25rem' }
+            {/* Manage your post — owner only, deliberately neutral (no status
+                or brand accent) so it reads as utility, not as competing with
+                the Claim CTA a visitor would see. */}
+            {canEdit && (
+              <Paper
+                elevation={0}
+                sx={{
+                  p: 3,
+                  borderRadius: `${theme.custom.radius.lg}px`,
+                  border: `1px solid ${theme.palette.divider}`,
+                  backgroundColor: theme.custom.color.surfaceRaised,
+                  boxShadow: theme.custom.elevation.e1,
                 }}
               >
-                {t('actions')}
-              </Typography>
+                <Typography variant="h6" fontWeight={600} sx={{ mb: 2.5, color: theme.custom.color.ink, fontSize: '1.1rem' }}>
+                  {t('manageYourPost')}
+                </Typography>
 
-              <Box display="flex" flexDirection="column" gap={2}>
-                {canEdit && (
+                <Box display="flex" flexDirection="column" gap={1.5}>
                   <Button
-                    variant="contained"
+                    variant="outlined"
                     startIcon={<EditIcon />}
                     onClick={handleEdit}
                     fullWidth
                     sx={{
-                      borderRadius: 2,
+                      borderRadius: `${theme.custom.radius.md}px`,
                       textTransform: 'none',
                       fontWeight: 600,
-                      direction: currentLanguage === 'ar' ? 'rtl' : 'ltr',
-                      gap: currentLanguage === 'ar' ? 1 : 0.5,
-                      boxShadow: 'none',
-                      border: isDarkMode 
-                        ? `1px solid ${theme.palette.primary.main}` 
-                        : `1px solid ${alpha('#000', 0.3)}`,
-                      '&:hover': {
-                        boxShadow: 'none',
-                        backgroundColor: isDarkMode 
-                          ? alpha(theme.palette.primary.main, 0.1) 
-                          : alpha(theme.palette.primary.main, 0.08)
-                      }
+                      borderColor: theme.custom.color.brandPrimary,
+                      color: theme.custom.color.brandPrimary,
+                      '&:hover': { backgroundColor: alpha(theme.custom.color.brandPrimary, 0.08) }
                     }}
                   >
                     {t('editPost')}
                   </Button>
-                )}
-                
-                {canDelete && (
-                  <Button
-                    variant="outlined"
-                    startIcon={<DeleteIcon />}
-                    onClick={handleDeletePost}
-                    disabled={isDeleting}
-                    fullWidth
-                    sx={{
-                      borderRadius: 2,
-                      textTransform: 'none',
-                      fontWeight: 600,
-                      direction: currentLanguage === 'ar' ? 'rtl' : 'ltr',
-                      gap: currentLanguage === 'ar' ? 1 : 0.5,
-                      boxShadow: 'none',
-                      borderColor: theme.palette.error.main,
-                      color: theme.palette.error.main,
-                      '&:hover': {
-                        backgroundColor: theme.palette.error.main,
-                        color: 'white',
-                        boxShadow: 'none'
-                      }
-                    }}
-                  >
-                    {isDeleting ? t('deleting') || 'Deleting...' : t('deletePost')}
-                  </Button>
-                )}
 
-                <Button
-                  variant="outlined"
-                  startIcon={<ReportIcon />}
-                  onClick={handleReport}
-                  fullWidth
-                  sx={{
-                    borderRadius: 2,
-                    textTransform: 'none',
-                    fontWeight: 600,
-                    direction: currentLanguage === 'ar' ? 'rtl' : 'ltr',
-                    gap: currentLanguage === 'ar' ? 1 : 0.5,
-                    borderColor: theme.palette.error.main,
-                    color: theme.palette.error.main,
-                    boxShadow: 'none',
-                    '&:hover': {
-                      backgroundColor: theme.palette.error.main,
-                      color: 'white',
-                      boxShadow: 'none'
-                    }
-                  }}
-                >
-                  {t('report')}
-                </Button>
-              </Box>
-            </Paper>
+                  {canDelete && (
+                    <Button
+                      variant="outlined"
+                      startIcon={<DeleteIcon />}
+                      onClick={handleDeletePost}
+                      disabled={isDeleting}
+                      fullWidth
+                      sx={{
+                        borderRadius: `${theme.custom.radius.md}px`,
+                        textTransform: 'none',
+                        fontWeight: 600,
+                        borderColor: theme.palette.error.main,
+                        color: theme.palette.error.main,
+                        '&:hover': { backgroundColor: theme.palette.error.main, color: '#fff' }
+                      }}
+                    >
+                      {isDeleting ? (t('deleting') || 'Deleting...') : t('deletePost')}
+                    </Button>
+                  )}
+                </Box>
+              </Paper>
+            )}
 
+            {/* Report — the safety valve, not a peer action to Claim. A quiet
+                text link, not a bordered button, and hidden for the post's own
+                author (reporting your own listing isn't a real action). */}
+            {!isAuthor && (
+              <Button
+                onClick={handleReport}
+                startIcon={<FlagIcon sx={{ fontSize: 16 }} />}
+                sx={{
+                  alignSelf: { xs: 'center', lg: 'flex-start' },
+                  textTransform: 'none',
+                  fontWeight: 500,
+                  fontSize: '0.8125rem',
+                  color: 'text.secondary',
+                  '&:hover': { color: theme.palette.error.main, backgroundColor: 'transparent' }
+                }}
+              >
+                {t('reportThisPost')}
+              </Button>
+            )}
           </Box>
         </Grid>
       </Grid>
@@ -1738,35 +1089,17 @@ const SinglePostPage = ({
             zIndex: 9999,
             maxWidth: { xs: '90%', sm: '400px' },
             width: '100%',
-            animation: 'slideDown 0.3s ease-out',
-            '@keyframes slideDown': {
-              '0%': {
-                opacity: 0,
-                transform: 'translateX(-50%) translateY(-20px)',
-              },
-              '100%': {
-                opacity: 1,
-                transform: 'translateX(-50%) translateY(0)',
-              },
-            },
           }}
         >
           <Alert
             severity="success"
             sx={{
-              borderRadius: 3,
-              boxShadow: '0 4px 12px rgba(76, 175, 80, 0.15)',
-              border: `1px solid ${alpha('#4CAF50', 0.2)}`,
-              backgroundColor: isDarkMode ? alpha('#1B5E20', 0.9) : alpha('#E8F5E8', 0.95),
-              backdropFilter: 'blur(10px)',
-              '& .MuiAlert-message': {
-                color: isDarkMode ? '#E8F5E8' : '#2E7D32',
-                fontWeight: 600,
-                direction: currentLanguage === 'ar' ? 'rtl' : 'ltr',
-              },
-              '& .MuiAlert-icon': {
-                color: '#4CAF50',
-              },
+              borderRadius: `${theme.custom.radius.md}px`,
+              boxShadow: theme.custom.elevation.e2,
+              backgroundColor: isDarkMode ? alpha(theme.custom.status.found.main, 0.2) : theme.custom.status.found.bg,
+              border: `1px solid ${alpha(theme.custom.status.found.main, 0.3)}`,
+              '& .MuiAlert-message': { color: theme.custom.color.ink, fontWeight: 600 },
+              '& .MuiAlert-icon': { color: theme.custom.status.found.main },
             }}
           >
             {successMessage}

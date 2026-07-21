@@ -13,12 +13,12 @@ import {
   alpha,
   Divider
 } from '@mui/material';
-import { 
+import {
   CheckCircle as CheckCircleIcon,
   Phone as PhoneIcon,
   Email as EmailIcon,
   WhatsApp as WhatsAppIcon,
-  Close as CloseIcon
+  VerifiedUser as VerifiedUserIcon
 } from '@mui/icons-material';
 import { useTranslation } from '../utils/translations';
 import { useMarkPostAsReturnedMutation } from '../features/posts/postsApiSlice';
@@ -94,13 +94,11 @@ const ClaimItemDialog = ({
       disableEscapeKeyDown={isLoading}
       PaperProps={{
         sx: {
-          borderRadius: 4,
-          backgroundColor: isDarkMode ? alpha('#1a1a1a', 0.95) : '#ffffff',
+          borderRadius: `${theme.custom.radius.lg}px`,
+          backgroundColor: theme.custom.color.surfaceRaised,
           backgroundImage: 'none',
-          border: isDarkMode ? `1px solid ${alpha('#fff', 0.1)}` : 'none',
-          boxShadow: isDarkMode 
-            ? '0 20px 60px rgba(0, 0, 0, 0.5)'
-            : '0 20px 60px rgba(0, 0, 0, 0.15)',
+          border: `1px solid ${theme.palette.divider}`,
+          boxShadow: theme.custom.elevation.e3,
         }
       }}
     >
@@ -117,7 +115,7 @@ const ClaimItemDialog = ({
       >
         <Box
           sx={{
-            backgroundColor: alpha('#4CAF50', 0.15),
+            backgroundColor: alpha(theme.custom.status.found.main, 0.15),
             borderRadius: '50%',
             p: 1.5,
             display: 'flex',
@@ -125,13 +123,13 @@ const ClaimItemDialog = ({
             justifyContent: 'center'
           }}
         >
-          <CheckCircleIcon sx={{ color: '#4CAF50', fontSize: 32 }} />
+          <CheckCircleIcon sx={{ color: theme.custom.status.found.main, fontSize: 32 }} />
         </Box>
-        <Typography 
-          variant="h5" 
+        <Typography
+          variant="h5"
           fontWeight={700}
-          sx={{ 
-            color: isDarkMode ? '#fff' : '#1a1a1a',
+          sx={{
+            color: theme.custom.color.ink,
             fontSize: { xs: '1.25rem', sm: '1.5rem' }
           }}
         >
@@ -151,19 +149,19 @@ const ClaimItemDialog = ({
               },
             }}
           >
-            <Alert 
+            <Alert
               severity="success"
               icon={<CheckCircleIcon />}
               sx={{
                 mb: 2,
                 borderRadius: 2,
-                backgroundColor: isDarkMode ? alpha('#4CAF50', 0.15) : alpha('#4CAF50', 0.1),
-                border: `1px solid ${alpha('#4CAF50', 0.3)}`,
+                backgroundColor: isDarkMode ? alpha(theme.custom.status.found.main, 0.15) : theme.custom.status.found.bg,
+                border: `1px solid ${alpha(theme.custom.status.found.main, 0.3)}`,
                 '& .MuiAlert-icon': {
-                  color: '#4CAF50'
+                  color: theme.custom.status.found.main
                 },
                 '& .MuiAlert-message': {
-                  color: isDarkMode ? '#fff' : '#1a1a1a',
+                  color: theme.custom.color.ink,
                   fontWeight: 600,
                   direction: currentLanguage === 'ar' ? 'rtl' : 'ltr'
                 }
@@ -194,23 +192,23 @@ const ClaimItemDialog = ({
           <Box>
             {/* Celebration Message */}
             <Box sx={{ mb: 3 }}>
-              <Typography 
-                variant="h6" 
+              <Typography
+                variant="h6"
                 fontWeight={700}
-                sx={{ 
+                sx={{
                   mb: 1.5,
-                  color: '#4CAF50',
+                  color: theme.custom.status.found.main,
                   fontSize: { xs: '1.1rem', sm: '1.25rem' },
                   direction: currentLanguage === 'ar' ? 'rtl' : 'ltr'
                 }}
               >
                 {isFoundPost ? t('wonderfulNews') : t('amazingThankYou')}
               </Typography>
-              <Typography 
+              <Typography
                 variant="body1"
-                sx={{ 
+                sx={{
                   lineHeight: 1.6,
-                  color: isDarkMode ? alpha('#fff', 0.8) : alpha('#000', 0.7),
+                  color: theme.palette.text.secondary,
                   fontSize: { xs: '1rem', sm: '1rem' },
                   direction: currentLanguage === 'ar' ? 'rtl' : 'ltr'
                 }}
@@ -219,16 +217,38 @@ const ClaimItemDialog = ({
               </Typography>
             </Box>
 
+            {/* Trust/safety note — sits directly above the contact details being
+                revealed, since this is the moment the user is about to step off
+                the platform to reach a stranger. */}
+            <Box
+              sx={{
+                display: 'flex',
+                alignItems: 'flex-start',
+                gap: 1,
+                p: 1.5,
+                mb: 2,
+                borderRadius: `${theme.custom.radius.sm}px`,
+                backgroundColor: alpha(theme.custom.color.brandPrimary, 0.06),
+                border: `1px solid ${alpha(theme.custom.color.brandPrimary, 0.2)}`,
+                direction: currentLanguage === 'ar' ? 'rtl' : 'ltr'
+              }}
+            >
+              <VerifiedUserIcon sx={{ fontSize: 18, color: theme.custom.color.brandPrimary, mt: '2px', flexShrink: 0 }} />
+              <Typography variant="body2" sx={{ color: theme.palette.text.secondary, lineHeight: 1.5 }}>
+                {t('contactSafetyNote')}
+              </Typography>
+            </Box>
+
             <Divider sx={{ my: 2 }} />
 
             {/* Contact Details Section */}
             <Box sx={{ mb: 2 }}>
-              <Typography 
-                variant="h6" 
+              <Typography
+                variant="h6"
                 fontWeight={600}
-                sx={{ 
+                sx={{
                   mb: 2,
-                  color: isDarkMode ? '#fff' : '#1a1a1a',
+                  color: theme.custom.color.ink,
                   fontSize: { xs: '1.1rem', sm: '1.25rem' },
                   direction: currentLanguage === 'ar' ? 'rtl' : 'ltr'
                 }}
@@ -246,14 +266,14 @@ const ClaimItemDialog = ({
                     sx={{
                       p: 2,
                       borderRadius: 2,
-                      backgroundColor: isDarkMode ? alpha('#fff', 0.05) : alpha('#000', 0.03),
-                      border: `1px solid ${isDarkMode ? alpha('#fff', 0.1) : alpha('#000', 0.1)}`,
+                      backgroundColor: theme.palette.action.hover,
+                      border: `1px solid ${theme.palette.divider}`,
                       direction: currentLanguage === 'ar' ? 'rtl' : 'ltr'
                     }}
                   >
                     <Box
                       sx={{
-                        backgroundColor: alpha(theme.palette.primary.main, 0.15),
+                        backgroundColor: alpha(theme.custom.color.brandPrimary, 0.15),
                         borderRadius: '50%',
                         p: 1,
                         display: 'flex',
@@ -261,7 +281,7 @@ const ClaimItemDialog = ({
                         justifyContent: 'center'
                       }}
                     >
-                      <PhoneIcon sx={{ color: theme.palette.primary.main }} />
+                      <PhoneIcon sx={{ color: theme.custom.color.brandPrimary }} />
                     </Box>
                     <Box>
                       <Typography 
@@ -277,8 +297,8 @@ const ClaimItemDialog = ({
                       <Typography 
                         variant="body1" 
                         fontWeight={600}
-                        sx={{ 
-                          color: isDarkMode ? '#fff' : '#1a1a1a',
+                        sx={{
+                          color: theme.custom.color.ink,
                           direction: 'ltr',
                           textAlign: currentLanguage === 'ar' ? 'right' : 'left'
                         }}
@@ -298,14 +318,14 @@ const ClaimItemDialog = ({
                     sx={{
                       p: 2,
                       borderRadius: 2,
-                      backgroundColor: isDarkMode ? alpha('#fff', 0.05) : alpha('#000', 0.03),
-                      border: `1px solid ${isDarkMode ? alpha('#fff', 0.1) : alpha('#000', 0.1)}`,
+                      backgroundColor: theme.palette.action.hover,
+                      border: `1px solid ${theme.palette.divider}`,
                       direction: currentLanguage === 'ar' ? 'rtl' : 'ltr'
                     }}
                   >
                     <Box
                       sx={{
-                        backgroundColor: alpha(theme.palette.primary.main, 0.15),
+                        backgroundColor: alpha(theme.custom.color.brandPrimary, 0.15),
                         borderRadius: '50%',
                         p: 1,
                         display: 'flex',
@@ -313,7 +333,7 @@ const ClaimItemDialog = ({
                         justifyContent: 'center'
                       }}
                     >
-                      <PhoneIcon sx={{ color: theme.palette.primary.main }} />
+                      <PhoneIcon sx={{ color: theme.custom.color.brandPrimary }} />
                     </Box>
                     <Box>
                       <Typography 
@@ -329,8 +349,8 @@ const ClaimItemDialog = ({
                       <Typography 
                         variant="body1" 
                         fontWeight={600}
-                        sx={{ 
-                          color: isDarkMode ? '#fff' : '#1a1a1a',
+                        sx={{
+                          color: theme.custom.color.ink,
                           direction: 'ltr',
                           textAlign: currentLanguage === 'ar' ? 'right' : 'left'
                         }}
@@ -350,14 +370,14 @@ const ClaimItemDialog = ({
                     sx={{
                       p: 2,
                       borderRadius: 2,
-                      backgroundColor: isDarkMode ? alpha('#fff', 0.05) : alpha('#000', 0.03),
-                      border: `1px solid ${isDarkMode ? alpha('#fff', 0.1) : alpha('#000', 0.1)}`,
+                      backgroundColor: theme.palette.action.hover,
+                      border: `1px solid ${theme.palette.divider}`,
                       direction: currentLanguage === 'ar' ? 'rtl' : 'ltr'
                     }}
                   >
                     <Box
                       sx={{
-                        backgroundColor: alpha('#1976d2', 0.15),
+                        backgroundColor: alpha(theme.custom.color.brandPrimary, 0.15),
                         borderRadius: '50%',
                         p: 1,
                         display: 'flex',
@@ -365,7 +385,7 @@ const ClaimItemDialog = ({
                         justifyContent: 'center'
                       }}
                     >
-                      <EmailIcon sx={{ color: '#1976d2' }} />
+                      <EmailIcon sx={{ color: theme.custom.color.brandPrimary }} />
                     </Box>
                     <Box sx={{ overflow: 'hidden' }}>
                       <Typography 
@@ -382,7 +402,7 @@ const ClaimItemDialog = ({
                         variant="body1" 
                         fontWeight={600}
                         sx={{ 
-                          color: isDarkMode ? '#fff' : '#1a1a1a',
+                          color: theme.custom.color.ink,
                           wordBreak: 'break-all'
                         }}
                       >
@@ -401,8 +421,8 @@ const ClaimItemDialog = ({
                     sx={{
                       p: 2,
                       borderRadius: 2,
-                      backgroundColor: isDarkMode ? alpha('#fff', 0.05) : alpha('#000', 0.03),
-                      border: `1px solid ${isDarkMode ? alpha('#fff', 0.1) : alpha('#000', 0.1)}`,
+                      backgroundColor: theme.palette.action.hover,
+                      border: `1px solid ${theme.palette.divider}`,
                       direction: currentLanguage === 'ar' ? 'rtl' : 'ltr'
                     }}
                   >
@@ -432,8 +452,8 @@ const ClaimItemDialog = ({
                       <Typography 
                         variant="body1" 
                         fontWeight={600}
-                        sx={{ 
-                          color: isDarkMode ? '#fff' : '#1a1a1a',
+                        sx={{
+                          color: theme.custom.color.ink,
                           direction: 'ltr',
                           textAlign: currentLanguage === 'ar' ? 'right' : 'left'
                         }}
@@ -468,7 +488,7 @@ const ClaimItemDialog = ({
                 borderRadius: 2,
                 textTransform: 'none',
                 fontWeight: 600,
-                color: isDarkMode ? '#fff' : 'text.secondary',
+                color: 'text.secondary',
                 direction: currentLanguage === 'ar' ? 'rtl' : 'ltr'
               }}
             >
@@ -483,16 +503,17 @@ const ClaimItemDialog = ({
                 borderRadius: 2,
                 textTransform: 'none',
                 fontWeight: 600,
-                backgroundColor: '#4CAF50',
-                color: '#fff',
+                backgroundColor: theme.custom.status.found.main,
+                color: theme.palette.getContrastText(theme.custom.status.found.main),
                 direction: currentLanguage === 'ar' ? 'rtl' : 'ltr',
                 gap: currentLanguage === 'ar' ? 1 : 0.5,
                 '&:hover': {
-                  backgroundColor: '#388E3C'
+                  backgroundColor: theme.custom.status.found.main,
+                  filter: 'brightness(0.92)'
                 },
                 '&:disabled': {
-                  backgroundColor: alpha('#4CAF50', 0.5),
-                  color: alpha('#fff', 0.7)
+                  backgroundColor: alpha(theme.custom.status.found.main, 0.5),
+                  color: alpha(theme.palette.getContrastText(theme.custom.status.found.main), 0.7)
                 }
               }}
             >
@@ -508,11 +529,12 @@ const ClaimItemDialog = ({
               borderRadius: 2,
               textTransform: 'none',
               fontWeight: 600,
-              backgroundColor: '#4CAF50',
-              color: '#fff',
+              backgroundColor: theme.custom.status.found.main,
+              color: theme.palette.getContrastText(theme.custom.status.found.main),
               direction: currentLanguage === 'ar' ? 'rtl' : 'ltr',
               '&:hover': {
-                backgroundColor: '#388E3C'
+                backgroundColor: theme.custom.status.found.main,
+                filter: 'brightness(0.92)'
               }
             }}
           >

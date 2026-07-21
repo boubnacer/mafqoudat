@@ -620,7 +620,10 @@ export const translations = {
     itemMarkedAsReturned: "Item marked as returned successfully!",
     claimYourItem: "Claim Your Item",
     helpReturnItem: "Help Return Item",
-    
+    manageYourPost: "Manage your post",
+    contactSafetyNote: "For your safety: meet in a public place, verify the item together, and avoid sharing extra personal details.",
+    reportThisPost: "Report this post",
+
     // Edit Post Form translations
     editPost: "Edit Post",
     updatePost: "Update Post",
@@ -2114,7 +2117,10 @@ export const translations = {
     itemMarkedAsReturned: "Article marqué comme retourné avec succès !",
     claimYourItem: "Réclamer votre article",
     helpReturnItem: "Aider à retourner l'article",
-    
+    manageYourPost: "Gérez votre publication",
+    contactSafetyNote: "Pour votre sécurité : rencontrez-vous dans un lieu public, vérifiez l'objet ensemble et évitez de partager des informations personnelles supplémentaires.",
+    reportThisPost: "Signaler cette publication",
+
     // Edit Post Form translations
     editPost: "Modifier la publication",
     updatePost: "Mettre à jour la publication",
@@ -3572,7 +3578,10 @@ export const translations = {
     itemMarkedAsReturned: "تم وضع علامة على العنصر كمُرجع بنجاح!",
     claimYourItem: "المطالبة بعنصرك",
     helpReturnItem: "المساعدة في إعادة العنصر",
-    
+    manageYourPost: "إدارة منشورك",
+    contactSafetyNote: "من أجل سلامتك: التقِ في مكان عام، تحقق من الغرض معًا، وتجنب مشاركة معلومات شخصية إضافية.",
+    reportThisPost: "الإبلاغ عن هذا المنشور",
+
     // Edit Post Form translations
     editPost: "تعديل المنشور",
     updatePost: "تحديث المنشور",
