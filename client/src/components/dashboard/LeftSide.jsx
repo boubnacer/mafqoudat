@@ -1,6 +1,7 @@
 import React, { useState, useEffect, useMemo } from "react";
 import TotalBox from "../TotalBox";
-import { Box, Typography, useTheme, useMediaQuery } from "@mui/material";
+import FoundLostStrip from "./FoundLostStrip";
+import { Box, Typography, useTheme, useMediaQuery, alpha } from "@mui/material";
 import RenderIcon from "../RenderIcon";
 import { useTranslation } from "../../utils/translations";
 import { useNavigate } from "react-router-dom";
@@ -360,175 +361,85 @@ const LeftSide = ({
         </Typography>
       </Box>
 
-      {/* Stats Grid */}
+      {/* Stats Grid — hero Found/Lost strip spans both columns, Total and
+          Returned sit below it as smaller supporting stats */}
       <Box
         gap={isMobile ? "1rem" : "1.5rem"}
         sx={{
           display: "grid",
-          gridTemplateColumns: {
-            xs: "calc(50% - 0.5rem) calc(50% - 0.5rem)", // Fixed equal columns accounting for gap
-            sm: "repeat(2, 1fr)", // 2 columns on tablet
-            md: "repeat(2, 1fr)", // 2 columns on desktop
-          },
-          gridTemplateRows: {
-            xs: "repeat(2, 240px)", // Increased height rows on mobile - exactly 240px each
-            sm: "auto", // Auto rows on desktop
-            md: "auto", // Auto rows on desktop
-          },
-          height: "auto", // Let content determine height
-          minHeight: "fit-content", // Ensure minimum content height
-          alignContent: "start", // Align content to top
-          alignItems: "stretch", // Ensure all grid items have same height
+          gridTemplateColumns: "repeat(2, 1fr)",
+          alignItems: "stretch",
         }}
       >
-        <TotalBox
-          title={t('foundItems')}
-          value={totalFounds || 0}
-          increase="+14%"
-          description={`+ ${foundsToday || 0} ${t('today')}`}
-          icon={<RenderIcon name="Found" />}
-          hasNotification={showFoundNotification}
-          notificationColor={theme.palette.mode === 'dark' ? '#48BB78' : '#2F855A'}
-          onClick={handleFoundItemsClick}
-          sx={{
-            background: theme.palette.mode === 'dark'
-              ? 'linear-gradient(135deg, rgba(72, 187, 120, 0.15) 0%, rgba(72, 187, 120, 0.08) 100%)'
-              : 'linear-gradient(135deg, rgba(72, 187, 120, 0.2) 0%, rgba(72, 187, 120, 0.15) 100%)',
-            border: `1px solid ${theme.palette.mode === 'dark' ? 'rgba(72, 187, 120, 0.3)' : 'rgba(72, 187, 120, 0.4)'}`,
-            padding: isMobile ? '1.25rem' : '1.5rem',
-            // minHeight handled by TotalBox component for consistency
-          }}
-          titleStyle={{ 
-            color: theme.palette.mode === 'dark' ? '#E0E0E0' : '#2D3748',
-            fontSize: isMobile ? '1.1rem' : '1.1rem', // Increased for mobile
-            fontWeight: 600
-          }}
-          valueStyle={{ 
-            color: theme.palette.mode === 'dark' ? '#48BB78' : '#2F855A',
-            fontSize: isMobile ? '2rem' : '2rem', // Increased for mobile
-            fontWeight: 700
-          }}
-          descriptionStyle={{ 
-            color: theme.palette.mode === 'dark' ? '#A0AEC0' : '#4A5568',
-            fontSize: isMobile ? '1rem' : '0.9rem' // Increased for mobile
-          }}
-          iconStyle={{
-            background: theme.palette.mode === 'dark'
-              ? 'rgba(72, 187, 120, 0.2)'
-              : 'rgba(72, 187, 120, 0.15)',
-            color: theme.palette.mode === 'dark' ? '#48BB78' : '#2F855A'
-          }}
-        />
-
-        <TotalBox
-          title={t('lostItems')}
-          value={totalLosts || 0}
-          increase="+21%"
-          description={`+ ${lostsToday || 0} ${t('today')}`}
-          icon={<RenderIcon name="Lost" />}
-          hasNotification={showLostNotification}
-          notificationColor={theme.palette.mode === 'dark' ? '#F56565' : '#C53030'}
-          onClick={handleLostItemsClick}
-          sx={{
-            background: theme.palette.mode === 'dark'
-              ? 'linear-gradient(135deg, rgba(245, 101, 101, 0.15) 0%, rgba(245, 101, 101, 0.08) 100%)'
-              : 'linear-gradient(135deg, rgba(245, 101, 101, 0.2) 0%, rgba(245, 101, 101, 0.15) 100%)',
-            border: `1px solid ${theme.palette.mode === 'dark' ? 'rgba(245, 101, 101, 0.3)' : 'rgba(245, 101, 101, 0.4)'}`,
-            padding: isMobile ? '1.25rem' : '1.5rem',
-            // minHeight handled by TotalBox component for consistency
-          }}
-          titleStyle={{ 
-            color: theme.palette.mode === 'dark' ? '#E0E0E0' : '#2D3748',
-            fontSize: isMobile ? '1.1rem' : '1.1rem', // Increased for mobile
-            fontWeight: 600
-          }}
-          valueStyle={{ 
-            color: theme.palette.mode === 'dark' ? '#F56565' : '#C53030',
-            fontSize: isMobile ? '2rem' : '2rem', // Increased for mobile
-            fontWeight: 700
-          }}
-          descriptionStyle={{ 
-            color: theme.palette.mode === 'dark' ? '#A0AEC0' : '#4A5568',
-            fontSize: isMobile ? '1rem' : '0.9rem' // Increased for mobile
-          }}
-          iconStyle={{
-            background: theme.palette.mode === 'dark'
-              ? 'rgba(245, 101, 101, 0.2)'
-              : 'rgba(245, 101, 101, 0.15)',
-            color: theme.palette.mode === 'dark' ? '#F56565' : '#C53030'
-          }}
+        <FoundLostStrip
+          totalFounds={totalFounds || 0}
+          totalLosts={totalLosts || 0}
+          foundsToday={foundsToday || 0}
+          lostsToday={lostsToday || 0}
+          showFoundNotification={showFoundNotification}
+          showLostNotification={showLostNotification}
+          onFoundClick={handleFoundItemsClick}
+          onLostClick={handleLostItemsClick}
         />
 
         <TotalBox
           title={t('totalItems')}
           value={totalPosts || 0}
-          increase="+5%"
           description={t('sinceLastMonth')}
           icon={<RenderIcon name="total" />}
           sx={{
-            background: theme.palette.mode === 'dark'
-              ? 'linear-gradient(135deg, rgba(66, 153, 225, 0.15) 0%, rgba(66, 153, 225, 0.08) 100%)'
-              : 'linear-gradient(135deg, rgba(66, 153, 225, 0.2) 0%, rgba(66, 153, 225, 0.15) 100%)',
-            border: `1px solid ${theme.palette.mode === 'dark' ? 'rgba(66, 153, 225, 0.3)' : 'rgba(66, 153, 225, 0.4)'}`,
+            backgroundColor: alpha(theme.custom.color.brandPrimary, theme.palette.mode === 'dark' ? 0.14 : 0.08),
+            border: `1px solid ${alpha(theme.custom.color.brandPrimary, 0.3)}`,
             padding: isMobile ? '1.25rem' : '1.5rem',
-            // minHeight handled by TotalBox component for consistency
           }}
-          titleStyle={{ 
-            color: theme.palette.mode === 'dark' ? '#E0E0E0' : '#2D3748',
-            fontSize: isMobile ? '1.1rem' : '1.1rem', // Increased for mobile
+          titleStyle={{
+            color: theme.custom.color.ink,
+            fontSize: '1.1rem',
             fontWeight: 600
           }}
-          valueStyle={{ 
-            color: theme.palette.mode === 'dark' ? '#4299E1' : '#2B6CB0',
-            fontSize: isMobile ? '2rem' : '2rem', // Increased for mobile
+          valueStyle={{
+            color: theme.custom.color.brandPrimary,
+            fontSize: '2rem',
             fontWeight: 700
           }}
-          descriptionStyle={{ 
-            color: theme.palette.mode === 'dark' ? '#A0AEC0' : '#4A5568',
-            fontSize: isMobile ? '1rem' : '0.9rem' // Increased for mobile
+          descriptionStyle={{
+            color: alpha(theme.custom.color.ink, 0.65),
+            fontSize: isMobile ? '1rem' : '0.9rem'
           }}
           iconStyle={{
-            background: theme.palette.mode === 'dark'
-              ? 'rgba(66, 153, 225, 0.2)'
-              : 'rgba(66, 153, 225, 0.15)',
-            color: theme.palette.mode === 'dark' ? '#4299E1' : '#2B6CB0'
+            background: alpha(theme.custom.color.brandPrimary, 0.15),
+            color: theme.custom.color.brandPrimary
           }}
         />
 
         <TotalBox
           title={t('returnedItems')}
           value={totalReturned?.toString() || "0"}
-          increase="+5%"
           description={t('sinceLastMonth')}
           icon={<RenderIcon name="returned" />}
           onClick={handleReturnedItemsClick}
           sx={{
-            background: theme.palette.mode === 'dark'
-              ? 'linear-gradient(135deg, rgba(159, 122, 234, 0.15) 0%, rgba(159, 122, 234, 0.08) 100%)'
-              : 'linear-gradient(135deg, rgba(159, 122, 234, 0.2) 0%, rgba(159, 122, 234, 0.15) 100%)',
-            border: `1px solid ${theme.palette.mode === 'dark' ? 'rgba(159, 122, 234, 0.3)' : 'rgba(159, 122, 234, 0.4)'}`,
+            backgroundColor: theme.custom.color.surfaceRaised,
+            border: `1px solid ${alpha(theme.custom.status.found.main, 0.35)}`,
             padding: isMobile ? '1.25rem' : '1.5rem',
-            // minHeight handled by TotalBox component for consistency
           }}
-          titleStyle={{ 
-            color: theme.palette.mode === 'dark' ? '#E0E0E0' : '#2D3748',
-            fontSize: isMobile ? '1.1rem' : '1.1rem', // Increased for mobile
+          titleStyle={{
+            color: theme.custom.color.ink,
+            fontSize: '1.1rem',
             fontWeight: 600
           }}
-          valueStyle={{ 
-            color: theme.palette.mode === 'dark' ? '#9F7AEA' : '#6B46C1',
-            fontSize: isMobile ? '2rem' : '2rem', // Increased for mobile
+          valueStyle={{
+            color: theme.custom.status.found.main,
+            fontSize: '2rem',
             fontWeight: 700
           }}
-          descriptionStyle={{ 
-            color: theme.palette.mode === 'dark' ? '#A0AEC0' : '#4A5568',
-            fontSize: isMobile ? '1rem' : '0.9rem' // Increased for mobile
+          descriptionStyle={{
+            color: alpha(theme.custom.color.ink, 0.65),
+            fontSize: isMobile ? '1rem' : '0.9rem'
           }}
           iconStyle={{
-            background: theme.palette.mode === 'dark'
-              ? 'rgba(159, 122, 234, 0.2)'
-              : 'rgba(159, 122, 234, 0.15)',
-            color: theme.palette.mode === 'dark' ? '#9F7AEA' : '#6B46C1'
+            background: alpha(theme.custom.status.found.main, 0.12),
+            color: theme.custom.status.found.main
           }}
         />
       </Box>

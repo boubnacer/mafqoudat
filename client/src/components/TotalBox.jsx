@@ -3,7 +3,7 @@ import React from "react";
 import FlexBetween from "./FlexBetween";
 import { useTranslation } from "../utils/translations";
 
-const StatBox = ({ title, value, increase, icon, description, titleStyle, valueStyle, descriptionStyle, iconStyle, sx, hasNotification = false, notificationColor, onClick }) => {
+const StatBox = ({ title, value, icon, description, titleStyle, valueStyle, descriptionStyle, iconStyle, sx, hasNotification = false, notificationColor, onClick }) => {
   const theme = useTheme();
   const { t } = useTranslation();
   const defaultNotificationColor = notificationColor || (theme.palette.mode === 'dark' ? '#FF6B6B' : '#EF4444');
