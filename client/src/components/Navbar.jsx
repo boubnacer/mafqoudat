@@ -46,7 +46,6 @@ import {
   Refresh,
   Close,
 } from "@mui/icons-material";
-import FlexBetween from "./FlexBetween";
 import {
   selectCurrentCountry,
   setMode,
@@ -67,8 +66,13 @@ import { selectIsLoggedIn, selectCurrentUser } from "../features/auth/authSlice"
 import { useGetSystemSettingsQuery } from "../features/admin/systemSettingsApiSlice";
 
 // Phase 1 tokens only (theme.custom.*) — see designTokens.js / CLAUDE.md.
+// Three-column grid (not flex space-between) so the center cluster is
+// genuinely centered regardless of how wide the left/right clusters are.
 const StyledToolbar = styled(Toolbar)(({ theme }) => ({
-  justifyContent: "space-between",
+  display: "grid",
+  gridTemplateColumns: "minmax(0, 1fr) auto minmax(0, 1fr)",
+  alignItems: "center",
+  columnGap: "16px",
   backgroundColor: alpha(theme.custom.color.surfaceRaised, 0.95),
   backdropFilter: "blur(20px)",
   padding: "0.75rem 2.5rem",
@@ -100,17 +104,33 @@ const LogoButton = styled(Button)(({ theme }) => ({
 }));
 
 const BrandMark = styled(Box)(({ theme }) => ({
-  width: 38,
-  height: 38,
+  width: 34,
+  height: 34,
   borderRadius: theme.custom.radius.md,
   backgroundColor: alpha(theme.custom.color.brandPrimary, 0.12),
   display: "flex",
   alignItems: "center",
   justifyContent: "center",
+  flexShrink: 0,
   transition: "transform 0.25s cubic-bezier(0.4, 0, 0.2, 1)",
   "& img": {
-    width: 20,
-    height: 20,
+    width: 18,
+    height: 18,
+  },
+}));
+
+const SecondaryButton = styled(Button)(({ theme }) => ({
+  color: theme.custom.color.ink,
+  fontSize: "0.9rem",
+  fontWeight: 600,
+  padding: "8px 16px",
+  borderRadius: theme.custom.radius.sm,
+  border: `1px solid ${alpha(theme.custom.color.ink, 0.18)}`,
+  backgroundColor: "transparent",
+  whiteSpace: "nowrap",
+  "&:hover": {
+    backgroundColor: alpha(theme.custom.color.ink, 0.05),
+    borderColor: alpha(theme.custom.color.ink, 0.3),
   },
 }));
 
@@ -566,25 +586,24 @@ const Navbar = () => {
       }}
     >
       <StyledToolbar>
-        {/* Left cluster: brand + primary nav */}
-        <Box sx={{ display: "flex", alignItems: "center", gap: 1 }}>
+        {/* Left: brand only */}
+        <Box sx={{ display: "flex", alignItems: "center", justifySelf: "start", minWidth: 0 }}>
           <LogoButton onClick={onGoHomeClicked}>
             <BrandMark className="brand-mark">
               <img src="/maficonSVG.svg" alt="" loading="lazy" />
             </BrandMark>
-            <Typography
-              sx={{
-                fontFamily: theme.custom.font.display,
-                fontWeight: 700,
-                fontSize: "1.3rem",
-                color: theme.custom.color.ink,
-                letterSpacing: "0.01em",
-              }}
-            >
-              {t("brandName")}
-            </Typography>
+            <img
+              src="/maflogoSVG.svg"
+              alt={t("brandName")}
+              loading="lazy"
+              style={{ height: "auto", maxHeight: "28px", width: "auto" }}
+            />
           </LogoButton>
+        </Box>
 
+        {/* Center: Explore + primary CTA, genuinely centered via the grid
+            column above rather than whatever space is left over. */}
+        <Box sx={{ display: "flex", alignItems: "center", justifySelf: "center", gap: 1 }}>
           {showDesktopNav && (
             <>
               <ExploreTrigger
@@ -670,31 +689,25 @@ const Navbar = () => {
                   </Grow>
                 )}
               </Popper>
+
+              <CreatePostButton
+                onClick={() => {
+                  if (authLoggedIn) {
+                    navigate("/dash/posts/new");
+                  } else {
+                    navigate("/login");
+                  }
+                }}
+                startIcon={authLoggedIn ? <PostAdd /> : <Login />}
+              >
+                {authLoggedIn ? t("createPost") : t("signin")}
+              </CreatePostButton>
             </>
           )}
         </Box>
 
-        {/* Right section: Actions */}
-        <FlexBetween sx={{ gap: "10px" }}>
-          {showDesktopNav && (
-            <CreatePostButton
-              onClick={() => {
-                if (authLoggedIn) {
-                  navigate("/dash/posts/new");
-                } else {
-                  navigate("/login");
-                }
-              }}
-              startIcon={authLoggedIn ? <PostAdd /> : <Login />}
-            >
-              {authLoggedIn ? t("createPost") : t("signin")}
-            </CreatePostButton>
-          )}
-
-          {showDesktopNav && (
-            <Divider orientation="vertical" flexItem sx={{ my: 1, borderColor: alpha(theme.custom.color.ink, 0.1) }} />
-          )}
-
+        {/* Right: region/locale + remaining auth actions + utilities */}
+        <Box sx={{ display: "flex", alignItems: "center", justifySelf: "end", gap: "10px" }}>
           {showDesktopNav && (
             <RegionSelector onClick={handleRegionClick}>
               {isInitialized && currentCountryData ? (
@@ -707,6 +720,12 @@ const Navbar = () => {
               </Typography>
               <KeyboardArrowDown sx={{ fontSize: "16px" }} />
             </RegionSelector>
+          )}
+
+          {showDesktopNav && !authLoggedIn && (
+            <SecondaryButton onClick={() => navigate("/signup")} startIcon={<PersonAdd sx={{ fontSize: 18 }} />}>
+              {t("signup")}
+            </SecondaryButton>
           )}
 
           {showDesktopNav && maintenanceChip}
@@ -740,7 +759,7 @@ const Navbar = () => {
               <MenuIcon sx={{ fontSize: "24px" }} />
             </ActionButton>
           )}
-        </FlexBetween>
+        </Box>
 
         {/* Combined Region Menu (country search + language) — unchanged. */}
         <Menu
@@ -971,11 +990,14 @@ const Navbar = () => {
           </MenuItem>
         </Menu>
 
-        {/* Mobile drawer */}
+        {/* Mobile drawer. Explicit zIndex above theme.zIndex.appBar (which the
+            AppBar above is pinned to at drawer+1) — without this the drawer's
+            default zIndex.drawer level renders it BEHIND the fixed navbar. */}
         <Drawer
           anchor={currentLanguage === "ar" ? "left" : "right"}
           open={mobileDrawerOpen}
           onClose={handleMobileDrawerClose}
+          sx={{ zIndex: (theme) => theme.zIndex.modal }}
           PaperProps={{
             sx: {
               width: 300,
@@ -993,35 +1015,32 @@ const Navbar = () => {
 
           {/* Maintenance Mode Indicator - Mobile - Only for Admins */}
           {role === "admin" && isMaintenanceActive && (
-            <>
-              <Box
-                sx={{
-                  p: 2,
-                  mb: 2,
-                  borderRadius: `${theme.custom.radius.md}px`,
-                  backgroundColor: theme.custom.status.lost.bg,
-                  border: `1px solid ${theme.custom.status.lost.border}`,
-                  display: "flex",
-                  alignItems: "center",
-                  gap: 1.5,
-                }}
-              >
-                <Build sx={{ color: theme.custom.status.lost.main, fontSize: 24 }} />
-                <Box flex={1}>
-                  <Typography variant="body2" fontWeight={700} sx={{ color: theme.custom.status.lost.main }}>
-                    ⚠️ Maintenance Mode Active
-                  </Typography>
-                  <Typography variant="caption" color="text.secondary">
-                    Site is inaccessible to non-admin users
-                  </Typography>
-                </Box>
+            <Box
+              sx={{
+                p: 2,
+                mb: 2,
+                borderRadius: `${theme.custom.radius.md}px`,
+                backgroundColor: theme.custom.status.lost.bg,
+                border: `1px solid ${theme.custom.status.lost.border}`,
+                display: "flex",
+                alignItems: "center",
+                gap: 1.5,
+              }}
+            >
+              <Build sx={{ color: theme.custom.status.lost.main, fontSize: 24 }} />
+              <Box flex={1}>
+                <Typography variant="body2" fontWeight={700} sx={{ color: theme.custom.status.lost.main }}>
+                  ⚠️ Maintenance Mode Active
+                </Typography>
+                <Typography variant="caption" color="text.secondary">
+                  Site is inaccessible to non-admin users
+                </Typography>
               </Box>
-              <Divider sx={{ mb: 1 }} />
-            </>
+            </Box>
           )}
 
-          {/* Explore — collapsed by default so the drawer opens short; expands
-              to the same browse items as the desktop dropdown. */}
+          {/* Group: Explore — collapsed by default so the drawer opens short;
+              expands to the same browse items as the desktop dropdown. */}
           <DrawerRow onClick={() => setMobileExploreOpen((prev) => !prev)}>
             <ListItemIcon>
               <ExploreIcon sx={{ fontSize: 20, color: theme.custom.color.brandPrimary }} />
@@ -1053,68 +1072,87 @@ const Navbar = () => {
             </Box>
           </Collapse>
 
+          {/* Group: Preferences — region/language + theme, visually boxed so
+              it reads as one cluster rather than more flat rows. */}
+          <Divider sx={{ my: 1.5 }} />
+          <Box
+            sx={{
+              p: 0.5,
+              borderRadius: `${theme.custom.radius.md}px`,
+              backgroundColor: alpha(theme.custom.color.ink, 0.03),
+            }}
+          >
+            <DrawerRow onClick={handleRegionClick} sx={{ mb: 0.5 }}>
+              <ListItemIcon>
+                {isInitialized && currentCountryData ? (
+                  <img width="20" height="15" src={regionFlagUrl} srcSet={`${regionFlagUrl2x} 2x`} alt="" style={{ borderRadius: 2 }} />
+                ) : (
+                  <Language sx={{ fontSize: 20 }} />
+                )}
+              </ListItemIcon>
+              <ListItemText
+                primary={t("region")}
+                secondary={`${(currentCountryData?.code || "").toUpperCase()} · ${getLanguageDisplayName(currentLanguage)}`}
+                primaryTypographyProps={{ fontWeight: 600, fontSize: "1rem" }}
+              />
+              <KeyboardArrowDown sx={{ fontSize: "18px" }} />
+            </DrawerRow>
+
+            <DrawerRow onClick={handleModeToggle} sx={{ mb: 0 }}>
+              <ListItemIcon>
+                {mode === "light" ? <DarkModeOutlined sx={{ fontSize: 22 }} /> : <LightModeOutlined sx={{ fontSize: 22 }} />}
+              </ListItemIcon>
+              <ListItemText
+                primary={mode === "light" ? t("darkMode") : t("lightMode")}
+                primaryTypographyProps={{ fontWeight: 600, fontSize: "1rem" }}
+              />
+            </DrawerRow>
+          </Box>
+
+          {/* Group: Admin (only for admins) — kept separate from Explore and
+              from Account since it's a different kind of action entirely. */}
           {adminNavigationItems.length > 0 && (
             <>
               <Divider sx={{ my: 1.5 }} />
-              {adminNavigationItems.map((item) => (
-                <DrawerRow
-                  key={item.title}
-                  onClick={() => {
-                    item.action();
-                    handleMobileDrawerClose();
-                  }}
-                >
-                  <ListItemIcon>{item.icon}</ListItemIcon>
-                  <ListItemText
-                    primary={item.title}
-                    secondary={item.description}
-                    primaryTypographyProps={{ fontWeight: 600, fontSize: "1rem" }}
-                    secondaryTypographyProps={{ fontSize: "0.85rem", color: "text.secondary" }}
-                  />
-                </DrawerRow>
-              ))}
+              <Box
+                sx={{
+                  p: 0.5,
+                  borderRadius: `${theme.custom.radius.md}px`,
+                  backgroundColor: theme.custom.status.lost.bg,
+                }}
+              >
+                {adminNavigationItems.map((item) => (
+                  <DrawerRow
+                    key={item.title}
+                    onClick={() => {
+                      item.action();
+                      handleMobileDrawerClose();
+                    }}
+                  >
+                    <ListItemIcon>{item.icon}</ListItemIcon>
+                    <ListItemText
+                      primary={item.title}
+                      secondary={item.description}
+                      primaryTypographyProps={{ fontWeight: 600, fontSize: "1rem" }}
+                      secondaryTypographyProps={{ fontSize: "0.85rem", color: "text.secondary" }}
+                    />
+                  </DrawerRow>
+                ))}
+              </Box>
             </>
           )}
 
+          {/* Group: Account — auth actions grouped together, sign-in/sign-up
+              rendered as clear primary/secondary buttons rather than rows. */}
           <Divider sx={{ my: 1.5 }} />
-
-          {/* Region row — opens the same combined Region Menu used on desktop */}
-          <DrawerRow onClick={handleRegionClick}>
-            <ListItemIcon>
-              {isInitialized && currentCountryData ? (
-                <img width="20" height="15" src={regionFlagUrl} srcSet={`${regionFlagUrl2x} 2x`} alt="" style={{ borderRadius: 2 }} />
-              ) : (
-                <Language sx={{ fontSize: 20 }} />
-              )}
-            </ListItemIcon>
-            <ListItemText
-              primary={t("region")}
-              secondary={`${(currentCountryData?.code || "").toUpperCase()} · ${getLanguageDisplayName(currentLanguage)}`}
-              primaryTypographyProps={{ fontWeight: 600, fontSize: "1rem" }}
-            />
-            <KeyboardArrowDown sx={{ fontSize: "18px" }} />
-          </DrawerRow>
-
-          {/* Theme Toggle */}
-          <DrawerRow
-            onClick={() => {
-              handleModeToggle();
-            }}
-          >
-            <ListItemIcon>
-              {mode === "light" ? <DarkModeOutlined sx={{ fontSize: 22 }} /> : <LightModeOutlined sx={{ fontSize: 22 }} />}
-            </ListItemIcon>
-            <ListItemText
-              primary={mode === "light" ? t("darkMode") : t("lightMode")}
-              primaryTypographyProps={{ fontWeight: 600, fontSize: "1rem" }}
-            />
-          </DrawerRow>
-
-          <Divider sx={{ my: 1.5 }} />
-
-          {/* Authentication Section */}
           {authLoggedIn ? (
-            <>
+            <Box
+              sx={{
+                p: 0.5,
+                borderRadius: `${theme.custom.radius.md}px`,
+                backgroundColor: alpha(theme.custom.color.ink, 0.03),
+              }}
+            >
               <DrawerRow
                 onClick={() => {
                   handleMobileDrawerClose();
@@ -1131,6 +1169,7 @@ const Navbar = () => {
                   handleMobileDrawerClose();
                   sendLogout();
                 }}
+                sx={{ mb: 0 }}
               >
                 <ListItemIcon>
                   <LogoutOutlined sx={{ fontSize: 22, color: theme.custom.status.lost.main }} />
@@ -1140,32 +1179,30 @@ const Navbar = () => {
                   primaryTypographyProps={{ fontWeight: 600, fontSize: "1rem", color: theme.custom.status.lost.main }}
                 />
               </DrawerRow>
-            </>
+            </Box>
           ) : (
-            <>
-              <DrawerRow
+            <Box sx={{ display: "flex", flexDirection: "column", gap: 1 }}>
+              <CreatePostButton
+                fullWidth
+                startIcon={<Login sx={{ fontSize: 18 }} />}
                 onClick={() => {
                   handleMobileDrawerClose();
                   navigate("/login");
                 }}
               >
-                <ListItemIcon>
-                  <Login sx={{ fontSize: 22 }} />
-                </ListItemIcon>
-                <ListItemText primary={t("signin")} primaryTypographyProps={{ fontWeight: 600, fontSize: "1rem" }} />
-              </DrawerRow>
-              <DrawerRow
+                {t("signin")}
+              </CreatePostButton>
+              <SecondaryButton
+                fullWidth
+                startIcon={<PersonAdd sx={{ fontSize: 18 }} />}
                 onClick={() => {
                   handleMobileDrawerClose();
                   navigate("/signup");
                 }}
               >
-                <ListItemIcon>
-                  <PersonAdd sx={{ fontSize: 22 }} />
-                </ListItemIcon>
-                <ListItemText primary={t("signup")} primaryTypographyProps={{ fontWeight: 600, fontSize: "1rem" }} />
-              </DrawerRow>
-            </>
+                {t("signup")}
+              </SecondaryButton>
+            </Box>
           )}
         </Drawer>
       </StyledToolbar>
