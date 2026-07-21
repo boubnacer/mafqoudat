@@ -3,8 +3,6 @@ import User from "./User";
 import useTitle from "../../../hooks/useTitle";
 import { LoadingState, ErrorState } from "../../../components/LoadingStates";
 
-import "./users.css";
-
 const UsersList = () => {
   useTitle("Mafqoudat | Users List");
 

@@ -39,18 +39,6 @@ export const themeSettings = (mode, currentLanguage = 'en') => {
               paper: "#1E1E1E",
             },
             category: "#4E4F50",
-            // found or lost options ------------------
-            floptions: {
-              found: {
-                back: "#D3FBD8",
-                // text: "#007C4F",
-                text: "#00FF00", // for recent icon color #ADD8E6 
-              },
-              lost: {
-                back: "#FF8B9B",
-                text: "#FFA500",  // 
-              },
-            },
             // caetgories -----
             categories: {
               // Electronics
@@ -211,13 +199,6 @@ export const themeSettings = (mode, currentLanguage = 'en') => {
                 back: "#EFEBE9",
                 icon: "#795548",
               },
-              text: {},
-              icon: {
-                cateIconMain: "#00bcd4",
-                cateIconBack: "#006064",
-              },
-              back: "#006064",
-              text: "#00bcd4",
             },
             // Text color :
             text: {
@@ -253,16 +234,6 @@ export const themeSettings = (mode, currentLanguage = 'en') => {
               paper: "#ffffff",
             },
             category: "#E4E6E9",
-            floptions: {
-              found: {
-                back: "#D3FBD8",
-                text: "#007C4F",
-              },
-              lost: {
-                back: "#FF8B9B",
-                text: "#AD0000",
-              },
-            },
             // categories - using centralized configuration
             categories: {
               // Electronics

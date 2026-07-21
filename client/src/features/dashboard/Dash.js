@@ -25,8 +25,6 @@ import RecentSection from "../../components/dashboard/RecentSection";
 import HelpSupportSection from "../../components/dashboard/HelpSupportSection";
 import DashRecents from "../../components/dashboard/DashRecents";
 
-import "./dash.css";
-
 // Updated FoundLost IDs from the database
 const lostsId = "68b708a085dd243c40a90826"; // LOST
 const foundsId = "68b708a085dd243c40a90825"; // FOUND

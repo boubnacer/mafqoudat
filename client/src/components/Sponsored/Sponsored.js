@@ -1,7 +1,6 @@
 import React, { useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import noImageSvg from "../../img/noimage.svg";
-import "./sponsored.css";
 import { useTranslation } from "../../utils/translations";
 import { getOptimizedImageUrl } from "../../utils/cloudinaryUtils";
 import LazyImage from "../LazyImage";

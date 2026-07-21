@@ -9,7 +9,6 @@ import {
 } from "@mui/icons-material";
 import useAuth from "../../hooks/useAuth";
 import useCountryName from "../../hooks/useCountryName";
-import "./footer.css";
 import { authStorage } from "../../utils/authStorage";
 import { useTranslation } from "../../utils/translations";
 import { useSelector } from "react-redux";

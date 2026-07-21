@@ -1,7 +1,6 @@
 import { useNavigate } from "react-router-dom";
 import { memo, useState, useCallback, useMemo } from "react";
 import React from "react";
-// import "./postslist.css"; // Removed to prevent CSS conflicts with Material-UI
 import noImageSvg from "../../../img/noimage.svg";
 import {
   Button,

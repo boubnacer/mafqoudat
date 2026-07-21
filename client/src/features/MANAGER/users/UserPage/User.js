@@ -4,8 +4,6 @@ import { useNavigate } from "react-router-dom";
 import { useGetUsersQuery } from "../usersApiSlice";
 import { memo } from "react";
 
-import "./users.css";
-
 const User = ({ userId }) => {
   const { user } = useGetUsersQuery("usersList", {
     selectFromResult: ({ data }) => ({

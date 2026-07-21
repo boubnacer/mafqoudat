@@ -34,7 +34,6 @@ import {
   VerifiedUser as VerifiedUserIcon,
 } from "@mui/icons-material";
 
-import "./editpost.css";
 import { useTranslation } from "../../../utils/translations";
 import { getOptimizedImageUrl } from "../../../utils/cloudinaryUtils";
 import LazyCardMedia from "../../../components/LazyCardMedia";

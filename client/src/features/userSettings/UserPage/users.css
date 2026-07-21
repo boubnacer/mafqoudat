@@ -48,8 +48,4 @@ tr {
   .table {
     font-size: 1.5rem;
   }
-
-  .table--posts {
-    grid-template-columns: repeat(3, 1fr) 2fr repeat(2, 1fr);
-  }
 }

@@ -928,11 +928,6 @@ const NewPostForm = ({ user, countries, categories, flOptions }) => {
         alignItems: "flex-start",
         background: theme.custom.color.surfaceBase,
         position: 'relative',
-        // Add shimmer animation styles
-        '@keyframes shimmer': {
-          '0%': { transform: 'translateX(-100%)' },
-          '100%': { transform: 'translateX(100%)' }
-        }
       }}
     >
       {/* Backdrop overlay when dialog is open */}
