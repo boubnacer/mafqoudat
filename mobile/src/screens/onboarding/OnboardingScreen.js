@@ -80,6 +80,10 @@ const OnboardingScreen = ({ navigation }) => {
 
   const flatListRef = useRef(null);
   const scrollX = useRef(new Animated.Value(0)).current;
+  // Own, JS-driven Animated.Values for the dot widths - 'width' isn't a style
+  // property the native driver supports, so these can't be interpolated from
+  // scrollX (which is native-driven for the opacity/transform slide fades).
+  const dotWidths = useRef([0, 1, 2, 3].map(() => new Animated.Value(8))).current;
   const [activeIndex, setActiveIndex] = useState(0);
 
   const [countries, setCountries] = useState([]);
@@ -112,6 +116,17 @@ const OnboardingScreen = ({ navigation }) => {
     loadCountries();
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [currentLanguage]);
+
+  useEffect(() => {
+    dotWidths.forEach((value, i) => {
+      Animated.timing(value, {
+        toValue: activeIndex === i ? 24 : 8,
+        duration: 220,
+        useNativeDriver: false,
+      }).start();
+    });
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [activeIndex]);
 
   useEffect(() => {
     if (countrySearch.trim()) {
@@ -393,16 +408,12 @@ const OnboardingScreen = ({ navigation }) => {
 
       <View style={styles.footer}>
         <View style={[styles.dotsRow, isRTL && styles.rowReverse]}>
-          {[0, 1, 2, 3].map((i) => {
-            const inputRange = [(i - 1) * SCREEN_WIDTH, i * SCREEN_WIDTH, (i + 1) * SCREEN_WIDTH];
-            const width = scrollX.interpolate({ inputRange, outputRange: [8, 24, 8], extrapolate: 'clamp' });
-            return (
-              <Animated.View
-                key={i}
-                style={[styles.dot, { width }, activeIndex === i ? styles.dotActive : styles.dotInactive]}
-              />
-            );
-          })}
+          {[0, 1, 2, 3].map((i) => (
+            <Animated.View
+              key={i}
+              style={[styles.dot, { width: dotWidths[i] }, activeIndex === i ? styles.dotActive : styles.dotInactive]}
+            />
+          ))}
         </View>
 
         <TouchableOpacity
@@ -463,8 +474,8 @@ const createStyles = (tokens) =>
     slideContent: {
       flex: 1,
       alignItems: 'center',
+      justifyContent: 'center',
       paddingHorizontal: 28,
-      paddingTop: 12,
     },
     logoCircle: {
       width: 72,
