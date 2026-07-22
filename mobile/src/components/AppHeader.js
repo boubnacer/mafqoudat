@@ -22,7 +22,7 @@
 
 import React, { useCallback, useState } from 'react';
 import { View, Text, TouchableOpacity, StyleSheet, Image } from 'react-native';
-import { useFocusEffect } from '@react-navigation/native';
+import { useFocusEffect, useNavigation } from '@react-navigation/native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { Ionicons } from '@expo/vector-icons';
 import { useTheme } from '../context/ThemeContext';
@@ -35,6 +35,8 @@ import CountryPickerModal from './CountryPickerModal';
 import HeaderMenu from './HeaderMenu';
 
 const BRAND_MARK = require('../../assets/icon.png');
+const BRAND_WORDMARK = require('../../assets/mafWordmark.png');
+const WORDMARK_RATIO = 984 / 213;
 
 // Mirrors PostsListScreen's own resolveCountry: the onboarding-selected
 // country takes priority, falling back to the account's registered country.
@@ -54,6 +56,7 @@ const AppHeader = ({
   onBack,
 }) => {
   const insets = useSafeAreaInsets();
+  const navigation = useNavigation();
   const theme = useTheme();
   const { isDark, setThemeMode } = theme;
   const tokens = isDark ? colorTokens.dark : colorTokens.light;
@@ -121,25 +124,17 @@ const AppHeader = ({
             <Ionicons name={isRTL ? 'arrow-forward' : 'arrow-back'} size={20} color={tokens.ink} />
           </TouchableOpacity>
         ) : (
-          <View style={styles.brand}>
+          <TouchableOpacity
+            style={styles.brand}
+            onPress={() => navigation.navigate('Home')}
+            accessibilityLabel={t('brandName')}
+            activeOpacity={0.75}
+          >
             <View style={styles.brandMark}>
               <Image source={BRAND_MARK} style={styles.brandMarkImg} resizeMode="contain" />
             </View>
-            <View style={styles.brandTextWrap}>
-              <Text style={styles.brandWordmark} numberOfLines={1}>
-                {t('brandName')}
-              </Text>
-              {/* Small screen-label under the wordmark - the website's navbar never
-                  shows a page title (its own page content carries that), but a phone
-                  screen has no URL bar or breadcrumb to fall back on, so this keeps
-                  the logo primary while still surfacing which tab is active. */}
-              {title ? (
-                <Text style={[styles.brandSubtitle, textStyle]} numberOfLines={1}>
-                  {title}
-                </Text>
-              ) : null}
-            </View>
-          </View>
+            <Image source={BRAND_WORDMARK} style={styles.brandWordmarkImg} resizeMode="contain" />
+          </TouchableOpacity>
         )}
 
         {onBack && title ? (
@@ -218,20 +213,9 @@ const createStyles = ({ tokens, isDark }) =>
       width: 19,
       height: 19,
     },
-    brandTextWrap: {
-      flexShrink: 1,
-    },
-    brandWordmark: {
-      fontFamily: fontFamilies.display,
-      fontSize: 17,
-      color: tokens.ink,
-      flexShrink: 1,
-    },
-    brandSubtitle: {
-      fontFamily: fontFamilies.body,
-      fontSize: 12,
-      color: `${tokens.ink}80`,
-      marginTop: 1,
+    brandWordmarkImg: {
+      height: 20,
+      width: 20 * WORDMARK_RATIO,
     },
     backButton: {
       width: 36,

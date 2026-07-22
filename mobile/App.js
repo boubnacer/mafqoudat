@@ -73,10 +73,11 @@ const AuthNavigator = () => {
   );
 };
 
-// Bottom tab navigator: the four primary authenticated destinations. Detail/edit/settings
-// screens are pushed on top of this from the root stack (AppNavigator below) rather than
-// living inside the tabs, so the tab bar - and each tab's own focus/scroll state - persists
-// underneath them.
+// Bottom tab navigator: the four primary authenticated destinations, plus two hidden
+// tabs (PostsListScreen, PostDetailScreen) that keep the floating bar visible while
+// browsing - see the comment above those Tab.Screens below. Edit/settings screens still
+// push from the root stack (AppNavigator below), outside the tabs entirely, since hiding
+// the bar for those focused, form-style flows is the expected pattern.
 //
 // Styled as a floating card (surfaceRaised, radiusTokens.xl, elevation) using the same
 // brand tokens as the web app's theme.custom - the active tab gets a brandPrimary-tinted
@@ -92,6 +93,11 @@ const MainTabs = () => {
   return (
     <Tab.Navigator
       initialRouteName="Home"
+      // 'history' (not the default 'firstRoute') so goBack() from a hidden tab
+      // (PostsListScreen/PostDetailScreen) returns to whichever tab it was actually
+      // opened from - Home, MyPosts, or wherever the header menu's Browse was tapped -
+      // instead of always landing on Home regardless of where the user came from.
+      backBehavior="history"
       screenOptions={({ route }) => ({
         headerShown: false,
         tabBarActiveTintColor: tokens.brandPrimary,
@@ -138,7 +144,11 @@ const MainTabs = () => {
               </View>
             );
           }
+          // PostsListScreen/PostDetailScreen (below) are hidden tabs - present so the
+          // floating bar stays mounted and visible while browsing into them, but not
+          // in TAB_ICONS since they never render a tab bar button of their own.
           const icon = TAB_ICONS[route.name];
+          if (!icon) return null;
           return (
             <View style={[tabBarStyles.iconWrap, focused && { backgroundColor: `${tokens.brandPrimary}1F` }]}>
               <Ionicons name={focused ? icon.focused : icon.unfocused} size={20} color={color} />
@@ -155,6 +165,24 @@ const MainTabs = () => {
       />
       <Tab.Screen name="MyPosts" component={MyPostsScreen} options={{ tabBarLabel: t('myPosts') }} />
       <Tab.Screen name="Profile" component={ProfileScreen} options={{ tabBarLabel: t('profile') }} />
+
+      {/* Hidden tabs: reachable via navigation.navigate() from anywhere inside MainTabs
+          (Home's "see all", HeaderMenu's Browse section, MyPosts' post rows, ...) but
+          not shown as a tab bar button - this is what keeps the floating bottom bar
+          visible while browsing posts/post detail instead of it disappearing the way
+          a plain stack push would hide it. backBehavior="history" above means goBack()
+          from either of these returns to whichever tab/screen was focused before, so
+          PostsListScreen/PostDetailScreen's own back buttons keep working unchanged. */}
+      <Tab.Screen
+        name="PostsListScreen"
+        component={PostsListScreen}
+        options={{ tabBarButton: () => null }}
+      />
+      <Tab.Screen
+        name="PostDetailScreen"
+        component={PostDetailScreen}
+        options={{ tabBarButton: () => null }}
+      />
     </Tab.Navigator>
   );
 };
@@ -188,8 +216,8 @@ const AppNavigator = () => {
     <ReferenceDataProvider>
       <Stack.Navigator screenOptions={{ headerShown: false, contentStyle: { backgroundColor: colors.background } }}>
         <Stack.Screen name="MainTabs" component={MainTabs} />
-        <Stack.Screen name="PostsListScreen" component={PostsListScreen} />
-        <Stack.Screen name="PostDetailScreen" component={PostDetailScreen} />
+        {/* PostsListScreen/PostDetailScreen now live inside MainTabs (as hidden tabs)
+            so the floating bottom bar stays visible while browsing - see MainTabs above. */}
         <Stack.Screen name="EditPostScreen" component={EditPostScreen} />
         <Stack.Screen name="EditProfileScreen" component={EditProfileScreen} />
         <Stack.Screen name="SettingsScreen" component={SettingsScreen} />

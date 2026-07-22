@@ -8,9 +8,10 @@ import { Formik, Form } from "formik";
 import Textfield from "../../../components/Textfield";
 import SelectOption from "../../../components/SelectOption";
 import imageCompression from "browser-image-compression";
-import { 
-  Box, 
-  FormLabel, 
+import { lighten, alpha } from "@mui/material/styles";
+import {
+  Box,
+  FormLabel,
   Paper, 
   Typography, 
   CircularProgress, 
@@ -46,6 +47,7 @@ import {
 import { useTranslation } from "../../../utils/translations";
 import useAuth from "../../../hooks/useAuth";
 import { getOptimizedImageUrl } from "../../../utils/cloudinaryUtils";
+import { getCategoryColor, getCategoryBackgroundColor } from "../../../config/categories";
 
 // CSS keyframes for loading animations will be injected in useEffect
 
@@ -1405,7 +1407,7 @@ if (typeof document !== 'undefined') {
         display: "flex",
         justifyContent: "center",
         alignItems: "flex-start",
-        background: theme.palette.background.default,
+        background: theme.custom.color.surfaceBase,
         position: 'relative'
       }}
     >
@@ -1413,13 +1415,14 @@ if (typeof document !== 'undefined') {
       {/* {showCustomCityInput && (
         <Box>...</Box>
       )} */}
-      <Paper 
-        elevation={4} 
-        sx={{ 
-          p: { xs: 3, md: 5 }, 
-          maxWidth: 700, 
+      <Paper
+        elevation={4}
+        sx={{
+          p: { xs: 3, md: 5 },
+          maxWidth: 700,
           width: "100%",
           borderRadius: 3,
+          backgroundColor: theme.custom.color.surfaceRaised,
           boxShadow: theme.shadows[8]
         }}
       >
@@ -1466,22 +1469,18 @@ if (typeof document !== 'undefined') {
               severity="success"
               sx={{
                 borderRadius: 3,
-                boxShadow: theme.palette.mode === 'dark'
-                  ? '0 8px 32px rgba(76, 175, 80, 0.3)'
-                  : '0 8px 32px rgba(76, 175, 80, 0.2)',
-                border: `2px solid ${theme.palette.mode === 'dark' ? 'rgba(76, 175, 80, 0.3)' : 'rgba(76, 175, 80, 0.2)'}`,
-                backgroundColor: theme.palette.mode === 'dark'
-                  ? 'rgba(76, 175, 80, 0.2)'
-                  : 'rgba(76, 175, 80, 0.15)',
+                boxShadow: `0 8px 32px ${alpha(theme.palette.success.main, theme.palette.mode === 'dark' ? 0.3 : 0.2)}`,
+                border: `2px solid ${alpha(theme.palette.success.main, theme.palette.mode === 'dark' ? 0.3 : 0.2)}`,
+                backgroundColor: alpha(theme.palette.success.main, theme.palette.mode === 'dark' ? 0.2 : 0.15),
                 backdropFilter: 'blur(10px)',
                 '& .MuiAlert-icon': {
                   fontSize: '1.5rem',
-                  color: theme.palette.mode === 'dark' ? '#4CAF50' : '#2E7D32',
+                  color: theme.palette.success.main,
                 },
                 '& .MuiAlert-message': {
                   fontSize: '1rem',
                   fontWeight: 600,
-                  color: theme.palette.mode === 'dark' ? '#4CAF50' : '#2E7D32',
+                  color: theme.palette.success.main,
                   display: 'flex',
                   alignItems: 'center',
                   gap: 1,
@@ -1494,7 +1493,7 @@ if (typeof document !== 'undefined') {
                     width: 8,
                     height: 8,
                     borderRadius: '50%',
-                    backgroundColor: theme.palette.mode === 'dark' ? '#4CAF50' : '#2E7D32',
+                    backgroundColor: theme.palette.success.main,
                     animation: 'pulse 1.5s ease-in-out infinite',
                     '@keyframes pulse': {
                       '0%': {
@@ -1565,24 +1564,16 @@ if (typeof document !== 'undefined') {
                     p: 3,
                     borderRadius: 3,
                     border: `2px solid ${values.returned ? theme.palette.success.main : theme.palette.divider}`,
-                    backgroundColor: values.returned 
-                      ? theme.palette.mode === 'dark' 
-                        ? 'rgba(76, 175, 80, 0.1)' 
-                        : 'rgba(76, 175, 80, 0.05)'
-                      : theme.palette.mode === 'dark' 
-                        ? 'rgba(255, 255, 255, 0.02)' 
-                        : 'rgba(0, 0, 0, 0.02)',
+                    backgroundColor: values.returned
+                      ? alpha(theme.palette.success.main, theme.palette.mode === 'dark' ? 0.1 : 0.05)
+                      : alpha(theme.custom.color.ink, 0.02),
                     transition: 'all 0.3s ease-in-out',
                     cursor: 'pointer',
                     '&:hover': {
-                      borderColor: values.returned ? theme.palette.success.dark : theme.palette.primary.main,
-                      backgroundColor: values.returned 
-                        ? theme.palette.mode === 'dark' 
-                          ? 'rgba(76, 175, 80, 0.15)' 
-                          : 'rgba(76, 175, 80, 0.08)'
-                        : theme.palette.mode === 'dark' 
-                          ? 'rgba(255, 255, 255, 0.04)' 
-                          : 'rgba(0, 0, 0, 0.04)',
+                      borderColor: values.returned ? theme.palette.success.dark : theme.custom.color.brandPrimary,
+                      backgroundColor: values.returned
+                        ? alpha(theme.palette.success.main, theme.palette.mode === 'dark' ? 0.15 : 0.08)
+                        : alpha(theme.custom.color.ink, 0.04),
                       transform: 'translateY(-2px)',
                       boxShadow: theme.palette.mode === 'dark'
                         ? '0 8px 25px rgba(0, 0, 0, 0.3)'
@@ -1630,13 +1621,12 @@ if (typeof document !== 'undefined') {
 
                 {/* Basic Information Section */}
                 <Typography 
-                  variant="h5" 
-                  sx={{ 
-                    fontWeight: 700, 
-                    color: theme.palette.mode === 'dark' ? '#4CAF50' : '#2E7D32',
+                  variant="h5"
+                  sx={{
+                    fontWeight: 700,
+                    color: theme.custom.color.brandPrimary,
                     fontSize: '1.4rem',
-                    mb: 1,
-                    textShadow: theme.palette.mode === 'dark' ? '0 1px 2px rgba(0,0,0,0.3)' : '0 1px 2px rgba(0,0,0,0.1)'
+                    mb: 1
                   }}
                 >
                   {t('basicInformation')}
@@ -1779,7 +1769,7 @@ if (typeof document !== 'undefined') {
                               borderColor: theme.palette.mode === 'dark' ? 'rgba(255,255,255,0.5)' : 'rgba(0,0,0,0.4)',
                             },
                             '&.Mui-focused fieldset': {
-                              borderColor: theme.palette.mode === 'dark' ? '#4CAF50' : '#2E7D32',
+                              borderColor: theme.custom.color.brandPrimary,
                             },
                             '& fieldset': {
                               borderColor: theme.palette.mode === 'dark' ? 'rgba(255,255,255,0.3)' : 'rgba(0,0,0,0.2)',
@@ -1792,6 +1782,14 @@ if (typeof document !== 'undefined') {
                       value.map((option, index) => {
                         const { key, ...tagProps } = getTagProps({ index });
                         const categoryName = option.labels?.[currentLanguage] || option.label || option.code || '';
+                        // Use the category's own color if the data has a code for it;
+                        // otherwise fall back to the wizard's brand accent.
+                        const chipColor = option.code
+                          ? getCategoryColor(option.code)
+                          : theme.custom.color.brandPrimary;
+                        const chipBackground = option.code
+                          ? getCategoryBackgroundColor(option.code)
+                          : (theme.palette.mode === 'dark' ? 'rgba(91, 127, 255, 0.2)' : 'rgba(27, 77, 255, 0.1)');
                         return (
                           <Chip
                             key={key}
@@ -1799,13 +1797,11 @@ if (typeof document !== 'undefined') {
                             {...tagProps}
                             sx={{
                               borderRadius: 2,
-                              backgroundColor: theme.palette.mode === 'dark' 
-                                ? 'rgba(76, 175, 80, 0.2)' 
-                                : 'rgba(76, 175, 80, 0.1)',
-                              color: theme.palette.mode === 'dark' ? '#4CAF50' : '#2E7D32',
-                              border: `1px solid ${theme.palette.mode === 'dark' ? '#4CAF50' : '#2E7D32'}`,
+                              backgroundColor: theme.palette.mode === 'dark' ? `${chipColor}33` : chipBackground,
+                              color: chipColor,
+                              border: `1px solid ${chipColor}`,
                               '& .MuiChip-deleteIcon': {
-                                color: theme.palette.mode === 'dark' ? '#4CAF50' : '#2E7D32',
+                                color: chipColor,
                               },
                             }}
                           />
@@ -1822,13 +1818,12 @@ if (typeof document !== 'undefined') {
 
                 {/* Location Section */}
                 <Typography 
-                  variant="h5" 
-                  sx={{ 
-                    fontWeight: 700, 
-                    color: theme.palette.mode === 'dark' ? '#4CAF50' : '#2E7D32',
+                  variant="h5"
+                  sx={{
+                    fontWeight: 700,
+                    color: theme.custom.color.brandPrimary,
                     fontSize: '1.4rem',
-                    mb: 1,
-                    textShadow: theme.palette.mode === 'dark' ? '0 1px 2px rgba(0,0,0,0.3)' : '0 1px 2px rgba(0,0,0,0.1)'
+                    mb: 1
                   }}
                 >
                   {t('location')}
@@ -1877,7 +1872,7 @@ if (typeof document !== 'undefined') {
                           borderColor: theme.palette.mode === 'dark' ? 'rgba(255,255,255,0.5)' : 'rgba(0,0,0,0.4)',
                         },
                         '&.Mui-focused .MuiOutlinedInput-notchedOutline': {
-                          borderColor: theme.palette.mode === 'dark' ? '#4CAF50' : '#2E7D32',
+                          borderColor: theme.custom.color.brandPrimary,
                         },
                         color: theme.palette.text.primary,
                         fontWeight: 500
@@ -1911,7 +1906,7 @@ if (typeof document !== 'undefined') {
                         sx={{ 
                           mt: 1, 
                           display: 'block',
-                          color: theme.palette.mode === 'dark' ? '#f44336' : '#d32f2f',
+                          color: theme.palette.error.main,
                           fontWeight: 500
                         }}
                       >
@@ -1969,7 +1964,7 @@ if (typeof document !== 'undefined') {
                           mb: 1, 
                           display: "block", 
                           fontSize: '0.8rem',
-                          color: theme.palette.mode === 'dark' ? '#ff9800' : '#f57c00',
+                          color: theme.palette.warning.main,
                           fontWeight: 500
                         }}
                       >
@@ -1997,7 +1992,7 @@ if (typeof document !== 'undefined') {
                           borderColor: theme.palette.mode === 'dark' ? 'rgba(255,255,255,0.5)' : 'rgba(0,0,0,0.4)',
                         },
                           '&.Mui-focused fieldset': {
-                          borderColor: theme.palette.mode === 'dark' ? '#4CAF50' : '#2E7D32',
+                          borderColor: theme.custom.color.brandPrimary,
                         },
                           '& fieldset': {
                             borderColor: theme.palette.mode === 'dark' ? 'rgba(255,255,255,0.3)' : 'rgba(0,0,0,0.2)',
@@ -2038,10 +2033,10 @@ if (typeof document !== 'undefined') {
                         }}
                       >
                         {/* Search Input inside Dropdown */}
-                        <Box sx={{ 
-                          p: 2, 
+                        <Box sx={{
+                          p: 2,
                           borderBottom: `1px solid ${theme.palette.divider}`,
-                          backgroundColor: theme.palette.mode === 'dark' ? '#1a1a1a' : '#ffffff'
+                          backgroundColor: theme.palette.background.paper
                         }}>
                           <TextField
                             fullWidth
@@ -2066,7 +2061,7 @@ if (typeof document !== 'undefined') {
                                   backgroundColor: theme.palette.mode === 'dark' ? 'rgba(255,255,255,0.08)' : 'rgba(0,0,0,0.04)',
                                 },
                                 '&.Mui-focused fieldset': {
-                                  borderColor: theme.palette.mode === 'dark' ? '#4CAF50' : '#2E7D32',
+                                  borderColor: theme.custom.color.brandPrimary,
                                 },
                               },
                               '& .MuiInputBase-input': {
@@ -2084,19 +2079,19 @@ if (typeof document !== 'undefined') {
                         </Box>
 
                         {/* Cities List */}
-                        <Box sx={{ 
+                        <Box sx={{
                             maxHeight: 300,
                           overflow: 'auto',
-                          backgroundColor: theme.palette.mode === 'dark' ? '#1a1a1a' : '#ffffff',
+                          backgroundColor: theme.palette.background.paper,
                           position: 'relative',
                           zIndex: 1
                         }}>
                           {/* Show search results if searching */}
                           {citySearchQuery.trim() && searchResults.length > 0 ? (
                             <>
-                              <Box sx={{ 
-                                p: 1, 
-                                backgroundColor: theme.palette.mode === 'dark' ? '#1a1a1a' : '#ffffff',
+                              <Box sx={{
+                                p: 1,
+                                backgroundColor: theme.palette.background.paper,
                                 position: 'sticky',
                                 top: 0,
                                 zIndex: 2
@@ -2112,12 +2107,12 @@ if (typeof document !== 'undefined') {
                                   sx={{
                                     p: 2,
                                     cursor: 'pointer',
-                                    backgroundColor: theme.palette.mode === 'dark' ? '#1a1a1a' : '#ffffff',
+                                    backgroundColor: theme.palette.background.paper,
                                     borderBottom: index < searchResults.length - 1 ? `1px solid ${theme.palette.divider}` : 'none',
                                     position: 'relative',
                                     zIndex: '999999 !important',
                                     '&:hover': {
-                                      backgroundColor: theme.palette.mode === 'dark' ? '#2a2a2a' : '#f5f5f5',
+                                      backgroundColor: theme.palette.action.hover,
                                       transform: 'translateX(4px)',
                                       transition: 'all 0.2s ease-in-out'
                                     },
@@ -2149,10 +2144,10 @@ if (typeof document !== 'undefined') {
                               ))}
                             </>
                           ) : citySearchQuery.trim() && searchResults.length === 0 && !isSearching ? (
-                            <Box sx={{ 
-                              p: 3, 
+                            <Box sx={{
+                              p: 3,
                               textAlign: 'center',
-                              backgroundColor: theme.palette.mode === 'dark' ? '#1a1a1a' : '#ffffff',
+                              backgroundColor: theme.palette.background.paper,
                               position: 'relative',
                               zIndex: '999999 !important'
                             }}>
@@ -2173,15 +2168,15 @@ if (typeof document !== 'undefined') {
                                   <Box
                                     key={city.id || city._id}
                                     onClick={() => handleCitySelect(city, setFieldValue)}
-                        sx={{ 
+                                    sx={{
                                       p: 2,
                                       cursor: 'pointer',
-                                      backgroundColor: theme.palette.mode === 'dark' ? '#1a1a1a' : '#ffffff',
+                                      backgroundColor: theme.palette.background.paper,
                                       borderBottom: index < filteredCities.length - 1 ? `1px solid ${theme.palette.divider}` : 'none',
                                       position: 'relative',
                                       zIndex: '999999 !important',
-                          '&:hover': {
-                                        backgroundColor: theme.palette.mode === 'dark' ? '#2a2a2a' : '#f5f5f5',
+                                      '&:hover': {
+                                        backgroundColor: theme.palette.action.hover,
                                         transform: 'translateX(4px)',
                                         transition: 'all 0.2s ease-in-out'
                                       },
@@ -2212,10 +2207,10 @@ if (typeof document !== 'undefined') {
                                   </Box>
                                 ))
                               ) : (
-                                <Box sx={{ 
-                                  p: 3, 
+                                <Box sx={{
+                                  p: 3,
                                   textAlign: 'center',
-                                  backgroundColor: theme.palette.mode === 'dark' ? '#1a1a1a' : '#ffffff',
+                                  backgroundColor: theme.palette.background.paper,
                                   position: 'relative',
                                   zIndex: '999999 !important'
                                 }}>
@@ -2239,17 +2234,17 @@ if (typeof document !== 'undefined') {
                                 sx={{
                                   p: 2,
                                   cursor: 'pointer',
-                                  color: theme.palette.mode === 'dark' ? '#ffffff' : '#000000',
+                                  color: theme.palette.text.primary,
                                   fontWeight: 600,
-                                  backgroundColor: theme.palette.mode === 'dark' ? '#1a1a1a' : '#ffffff',
+                                  backgroundColor: theme.palette.background.paper,
                                   border: `1px solid ${theme.palette.divider}`,
                                   margin: '6px 8px',
                                   borderRadius: 2,
                                   transition: 'all 0.2s ease-in-out',
                                   '&:hover': {
-                                    backgroundColor: theme.palette.mode === 'dark' ? '#2a2a2a' : '#f5f5f5',
-                                    color: theme.palette.mode === 'dark' ? '#ffffff' : '#000000',
-                                    borderColor: theme.palette.primary.main,
+                                    backgroundColor: theme.palette.action.hover,
+                                    color: theme.palette.text.primary,
+                                    borderColor: theme.custom.color.brandPrimary,
                                     transform: 'translateY(-1px)',
                                     boxShadow: theme.shadows[4],
                                   }
@@ -2272,7 +2267,7 @@ if (typeof document !== 'undefined') {
                         sx={{ 
                           mt: 1, 
                           display: 'block',
-                          color: theme.palette.mode === 'dark' ? '#f44336' : '#d32f2f',
+                          color: theme.palette.error.main,
                           fontWeight: 500
                         }}
                       >
@@ -2372,13 +2367,12 @@ if (typeof document !== 'undefined') {
 
                 {/* Item Details Section */}
                 <Typography 
-                  variant="h5" 
-                  sx={{ 
-                    fontWeight: 700, 
-                    color: theme.palette.mode === 'dark' ? '#4CAF50' : '#2E7D32',
+                  variant="h5"
+                  sx={{
+                    fontWeight: 700,
+                    color: theme.custom.color.brandPrimary,
                     fontSize: '1.4rem',
-                    mb: 1,
-                    textShadow: theme.palette.mode === 'dark' ? '0 1px 2px rgba(0,0,0,0.3)' : '0 1px 2px rgba(0,0,0,0.1)'
+                    mb: 1
                   }}
                 >
                   {t('itemDetails')}
@@ -2453,13 +2447,12 @@ if (typeof document !== 'undefined') {
 
                 {/* Contact Information Section */}
                 <Typography 
-                  variant="h5" 
-                  sx={{ 
-                    fontWeight: 700, 
-                    color: theme.palette.mode === 'dark' ? '#4CAF50' : '#2E7D32',
+                  variant="h5"
+                  sx={{
+                    fontWeight: 700,
+                    color: theme.custom.color.brandPrimary,
                     fontSize: '1.4rem',
-                    mb: 1,
-                    textShadow: theme.palette.mode === 'dark' ? '0 1px 2px rgba(0,0,0,0.3)' : '0 1px 2px rgba(0,0,0,0.1)'
+                    mb: 1
                   }}
                 >
                   {t('contactInformation')}
@@ -2513,13 +2506,12 @@ if (typeof document !== 'undefined') {
 
                 {/* Image Section */}
                 <Typography 
-                  variant="h5" 
-                  sx={{ 
-                    fontWeight: 700, 
-                    color: theme.palette.mode === 'dark' ? '#4CAF50' : '#2E7D32',
+                  variant="h5"
+                  sx={{
+                    fontWeight: 700,
+                    color: theme.custom.color.brandPrimary,
                     fontSize: '1.4rem',
-                    mb: 1,
-                    textShadow: theme.palette.mode === 'dark' ? '0 1px 2px rgba(0,0,0,0.3)' : '0 1px 2px rgba(0,0,0,0.1)'
+                    mb: 1
                   }}
                 >
                   {t('itemImage')}
@@ -2542,13 +2534,13 @@ if (typeof document !== 'undefined') {
                   {/* Current Image Display */}
                   {getCurrentImageUrl() && (
                     <Box sx={{ mb: 3 }}>
-                      <Card 
-                        sx={{ 
+                      <Card
+                        sx={{
                           maxWidth: 400,
                           borderRadius: 3,
                           overflow: 'hidden',
                           boxShadow: theme.shadows[4],
-                          border: `2px solid ${theme.palette.mode === 'dark' ? 'rgba(255,255,255,0.1)' : 'rgba(0,0,0,0.1)'}`,
+                          border: `2px solid ${alpha(theme.custom.color.ink, 0.1)}`,
                           transition: 'all 0.3s ease-in-out',
                           '&:hover': {
                             transform: 'translateY(-2px)',
@@ -2567,34 +2559,32 @@ if (typeof document !== 'undefined') {
                           }}
                           onClick={handleImageDialogOpen}
                         />
-                        <CardActions sx={{ 
+                        <CardActions sx={{
                           justifyContent: 'space-between',
                           p: 2,
-                          backgroundColor: theme.palette.mode === 'dark' ? 'rgba(255,255,255,0.02)' : 'rgba(0,0,0,0.02)'
+                          backgroundColor: alpha(theme.custom.color.ink, 0.02)
                         }}>
                           <Box display="flex" alignItems="center" gap={1}>
-                            <Chip 
+                            <Chip
                               icon={<PhotoCamera />}
                               label={imagePreview ? t('newImage') : t('currentImage')}
-                              color={imagePreview ? 'primary' : 'default'}
                               size="small"
                               variant="outlined"
                               sx={{
                                 color: theme.palette.text.primary,
                                 borderColor: theme.palette.divider,
-                                backgroundColor: theme.palette.mode === 'dark' ? 'rgba(255,255,255,0.1)' : 'rgba(0,0,0,0.05)'
+                                backgroundColor: alpha(theme.custom.color.ink, 0.05)
                               }}
                             />
                             {compressionInfo && (
-                              <Chip 
+                              <Chip
                                 label={`${compressionInfo.compressedSize}MB`}
-                                color="success"
                                 size="small"
                                 variant="outlined"
                                 sx={{
                                   color: theme.palette.success.main,
                                   borderColor: theme.palette.success.main,
-                                  backgroundColor: theme.palette.mode === 'dark' ? 'rgba(76, 175, 80, 0.1)' : 'rgba(76, 175, 80, 0.05)'
+                                  backgroundColor: alpha(theme.palette.success.main, 0.08)
                                 }}
                               />
                             )}
@@ -2604,9 +2594,9 @@ if (typeof document !== 'undefined') {
                               size="small"
                               onClick={handleImageDialogOpen}
                               sx={{
-                                color: theme.palette.primary.main,
+                                color: theme.custom.color.brandPrimary,
                                 '&:hover': {
-                                  backgroundColor: theme.palette.primary.main + '20'
+                                  backgroundColor: alpha(theme.custom.color.brandPrimary, 0.12)
                                 }
                               }}
                             >
@@ -2618,7 +2608,7 @@ if (typeof document !== 'undefined') {
                               sx={{
                                 color: theme.palette.error.main,
                                 '&:hover': {
-                                  backgroundColor: theme.palette.error.main + '20'
+                                  backgroundColor: alpha(theme.palette.error.main, 0.12)
                                 }
                               }}
                             >
@@ -2637,34 +2627,26 @@ if (typeof document !== 'undefined') {
                       onClick={handleImageButtonClick}
                       startIcon={isCompressing ? <CircularProgress size={16} sx={{ color: 'white' }} /> : <CloudUploadIcon sx={{ color: 'white' }} />}
                       disabled={isCompressing}
-                      sx={{ 
-                        textTransform: 'none', 
-                        borderRadius: 3,
+                      sx={{
+                        textTransform: 'none',
+                        borderRadius: 2,
                         px: 3,
                         py: 1.5,
                         fontSize: '1rem',
                         fontWeight: 600,
-                        color: 'white',
-                        background: theme.palette.mode === 'dark'
-                          ? 'linear-gradient(45deg, #4CAF50 30%, #66BB6A 90%)'
-                          : 'linear-gradient(45deg, #2E7D32 30%, #388E3C 90%)',
+                        color: `${theme.palette.getContrastText(theme.custom.color.brandPrimary)} !important`,
+                        background: `linear-gradient(45deg, ${theme.custom.color.brandPrimary} 30%, ${lighten(theme.custom.color.brandPrimary, 0.15)} 90%)`,
                         '&:hover': {
-                          background: theme.palette.mode === 'dark'
-                            ? 'linear-gradient(45deg, #388E3C 30%, #4CAF50 90%)'
-                            : 'linear-gradient(45deg, #1B5E20 30%, #2E7D32 90%)',
+                          background: `linear-gradient(45deg, ${lighten(theme.custom.color.brandPrimary, 0.08)} 30%, ${lighten(theme.custom.color.brandPrimary, 0.25)} 90%)`,
                           transform: 'translateY(-1px)',
-                          boxShadow: theme.palette.mode === 'dark'
-                            ? '0 6px 16px rgba(76, 175, 80, 0.3)'
-                            : '0 6px 16px rgba(46, 125, 50, 0.3)',
+                          boxShadow: `0 6px 16px ${alpha(theme.custom.color.brandPrimary, 0.3)}`,
                         },
                         '&:disabled': {
-                          background: theme.palette.mode === 'dark' ? 'rgba(76, 175, 80, 0.3)' : 'rgba(46, 125, 50, 0.3)',
+                          background: alpha(theme.custom.color.brandPrimary, 0.3),
                           color: 'rgba(255,255,255,0.5)',
                         },
                         transition: 'all 0.2s ease-in-out',
-                        boxShadow: theme.palette.mode === 'dark'
-                          ? '0 3px 8px rgba(76, 175, 80, 0.2)'
-                          : '0 3px 8px rgba(46, 125, 50, 0.2)',
+                        boxShadow: `0 3px 8px ${alpha(theme.custom.color.brandPrimary, 0.2)}`,
                       }}
                     >
                       {isCompressing ? t('compressingImage') : getCurrentImageUrl() ? t('replaceImage') : t('chooseFile')}
@@ -2693,12 +2675,12 @@ if (typeof document !== 'undefined') {
                   </Box>
                   
                   {compressionInfo && (
-                    <Typography 
-                      variant="caption" 
-                      sx={{ 
-                        display: "block", 
+                    <Typography
+                      variant="caption"
+                      sx={{
+                        display: "block",
                         mt: 1,
-                        color: theme.palette.mode === 'dark' ? '#4CAF50' : '#2E7D32',
+                        color: theme.custom.color.brandPrimary,
                         fontWeight: 500
                       }}
                     >
@@ -2724,14 +2706,13 @@ if (typeof document !== 'undefined') {
                 {/* Status Section - Only visible for admin */}
                 {role === 'admin' && (
                   <>
-                    <Typography 
-                      variant="h5" 
-                      sx={{ 
-                        fontWeight: 700, 
-                        color: theme.palette.mode === 'dark' ? '#4CAF50' : '#2E7D32',
+                    <Typography
+                      variant="h5"
+                      sx={{
+                        fontWeight: 700,
+                        color: theme.custom.color.brandPrimary,
                         fontSize: '1.4rem',
-                        mb: 1,
-                        textShadow: theme.palette.mode === 'dark' ? '0 1px 2px rgba(0,0,0,0.3)' : '0 1px 2px rgba(0,0,0,0.1)'
+                        mb: 1
                       }}
                     >
                       {t('status')}
@@ -2765,7 +2746,7 @@ if (typeof document !== 'undefined') {
                               borderColor: theme.palette.mode === 'dark' ? 'rgba(255,255,255,0.5)' : 'rgba(0,0,0,0.4)',
                             },
                             '&.Mui-focused .MuiOutlinedInput-notchedOutline': {
-                              borderColor: theme.palette.mode === 'dark' ? '#4CAF50' : '#2E7D32',
+                              borderColor: theme.custom.color.brandPrimary,
                             },
                             color: theme.palette.text.primary,
                             fontWeight: 500
@@ -2792,105 +2773,80 @@ if (typeof document !== 'undefined') {
                   sx={{ mt: 4 }}
                 >
                   {/* Cancel Button - Left in LTR, Right in RTL */}
-                  <Button 
+                  <Button
                     onClick={() => navigate(`/dash/posts/${post._id}`)}
-                    variant="outlined" 
+                    variant="outlined"
                     disabled={isLoading}
-                    sx={{ 
+                    sx={{
                       width: { xs: "90%", sm: "100%" },
                       justifySelf: { xs: "center", sm: "stretch" },
                       py: 1.5,
                       px: 3,
                       fontSize: '1rem',
                       fontWeight: 600,
-                      borderRadius: '4px',
+                      borderRadius: 2,
                       textTransform: 'none',
-                      borderColor: theme.palette.mode === 'dark' ? 'rgba(255,255,255,0.3)' : 'rgba(0,0,0,0.2)',
-                      color: theme.palette.text.primary,
-                      '&:hover': {
-                        borderColor: theme.palette.mode === 'dark' ? 'rgba(255,255,255,0.5)' : 'rgba(0,0,0,0.4)',
-                        backgroundColor: theme.palette.mode === 'dark' ? 'rgba(255,255,255,0.08)' : 'rgba(0,0,0,0.04)',
-                        transform: 'translateY(-1px)',
-                        boxShadow: theme.palette.mode === 'dark'
-                          ? '0 6px 16px rgba(0,0,0,0.3)'
-                          : '0 6px 16px rgba(0,0,0,0.1)',
-                      },
-                      '&:disabled': {
-                        borderColor: theme.palette.mode === 'dark' ? 'rgba(255,255,255,0.1)' : 'rgba(0,0,0,0.1)',
-                        color: theme.palette.mode === 'dark' ? 'rgba(255,255,255,0.3)' : 'rgba(0,0,0,0.3)',
-                      },
-                      transition: 'all 0.2s ease-in-out',
-                      boxShadow: theme.palette.mode === 'dark'
-                        ? '0 3px 8px rgba(0,0,0,0.2)'
-                        : '0 3px 8px rgba(0,0,0,0.05)',
                     }}
                   >
                     {t('cancel')}
                   </Button>
 
                   {/* Delete Button - Center */}
-                  <Button 
+                  <Button
                     onClick={handleDeletePost}
-                    variant="outlined" 
+                    variant="outlined"
                     disabled={isLoading}
-                    sx={{ 
+                    sx={{
                       width: { xs: "90%", sm: "100%" },
                       justifySelf: { xs: "center", sm: "stretch" },
                       py: 1.5,
                       px: 3,
                       fontSize: '1rem',
                       fontWeight: 600,
-                      borderRadius: '4px',
+                      borderRadius: 2,
                       textTransform: 'none',
-                      borderColor: theme.palette.mode === 'dark' ? '#f44336' : '#d32f2f',
-                      color: theme.palette.mode === 'dark' ? '#f44336' : '#d32f2f',
+                      borderColor: theme.palette.error.main,
+                      color: theme.palette.error.main,
                       '&:hover': {
-                        borderColor: theme.palette.mode === 'dark' ? '#e53935' : '#c62828',
-                        backgroundColor: theme.palette.mode === 'dark' ? 'rgba(244, 67, 54, 0.08)' : 'rgba(211, 47, 47, 0.08)',
-                        transform: 'translateY(-1px)',
-                        boxShadow: theme.palette.mode === 'dark'
-                          ? '0 6px 16px rgba(244, 67, 54, 0.3)'
-                          : '0 6px 16px rgba(211, 47, 47, 0.3)',
+                        borderColor: theme.palette.error.dark,
+                        backgroundColor: alpha(theme.palette.error.main, 0.08),
                       },
                       '&:disabled': {
-                        borderColor: theme.palette.mode === 'dark' ? 'rgba(244, 67, 54, 0.3)' : 'rgba(211, 47, 47, 0.3)',
-                        color: theme.palette.mode === 'dark' ? 'rgba(244, 67, 54, 0.5)' : 'rgba(211, 47, 47, 0.7)',
+                        borderColor: alpha(theme.palette.error.main, 0.3),
+                        color: alpha(theme.palette.error.main, 0.5),
                       },
                       transition: 'all 0.2s ease-in-out',
-                      boxShadow: theme.palette.mode === 'dark'
-                        ? '0 3px 8px rgba(244, 67, 54, 0.2)'
-                        : '0 3px 8px rgba(211, 47, 47, 0.2)',
                     }}
                   >
                     {t('deletePost')}
                   </Button>
-                  
+
                   {/* Update Button - Right in LTR, Left in RTL */}
-                  <Button 
+                  <Button
                     type="submit"
                     disabled={isSubmitting || !selectedCountry || !values.city || !hasFormChanged}
-                    sx={{ 
+                    sx={{
                       width: { xs: "90%", sm: "100%" },
                       justifySelf: { xs: "center", sm: "stretch" },
                       py: 1.5,
                       px: 3,
                       fontSize: '1rem',
                       fontWeight: 600,
-                      borderRadius: '4px',
+                      borderRadius: 2,
                       textTransform: 'none',
-                      background: hasFormChanged 
-                        ? 'linear-gradient(45deg, #4A8BFF 30%, #1A6EEE 90%)'
-                        : 'rgba(74, 139, 255, 0.3)',
-                      color: hasFormChanged ? '#ffffff !important' : 'rgba(255,255,255,0.7)',
-                      boxShadow: hasFormChanged ? '0 3px 5px 2px rgba(26, 110, 238, .3)' : 'none',
+                      background: hasFormChanged
+                        ? `linear-gradient(45deg, ${theme.custom.color.brandPrimary} 30%, ${lighten(theme.custom.color.brandPrimary, 0.15)} 90%)`
+                        : alpha(theme.custom.color.brandPrimary, 0.3),
+                      color: `${theme.palette.getContrastText(theme.custom.color.brandPrimary)} !important`,
+                      boxShadow: hasFormChanged ? `0 4px 15px ${alpha(theme.custom.color.brandPrimary, 0.3)}` : 'none',
                       '&:hover': hasFormChanged ? {
-                        background: 'linear-gradient(45deg, #5A9BFF 30%, #2A7EFF 90%)',
-                        boxShadow: '0 4px 8px 2px rgba(26, 110, 238, .4)',
+                        background: `linear-gradient(45deg, ${lighten(theme.custom.color.brandPrimary, 0.08)} 30%, ${lighten(theme.custom.color.brandPrimary, 0.25)} 90%)`,
+                        boxShadow: `0 6px 20px ${alpha(theme.custom.color.brandPrimary, 0.4)}`,
                         transform: 'translateY(-1px)',
                       } : {},
                       '&:disabled': {
-                        background: 'rgba(74, 139, 255, 0.3)',
-                        color: 'rgba(255,255,255,0.7)',
+                        background: alpha(theme.custom.color.brandPrimary, 0.3),
+                        color: `${alpha(theme.palette.getContrastText(theme.custom.color.brandPrimary), theme.palette.mode === 'dark' ? 0.5 : 0.7)} !important`,
                       },
                       transition: 'all 0.2s ease-in-out',
                     }}
@@ -2909,9 +2865,7 @@ if (typeof document !== 'undefined') {
                 sx: {
                   borderRadius: 3,
                   boxShadow: theme.shadows[12],
-                  backgroundColor: theme.palette.mode === 'dark'
-                    ? theme.palette.grey[900]
-                    : theme.palette.common.white,
+                  backgroundColor: theme.custom.color.surfaceRaised,
                   backgroundImage: 'none'
                 }
               }}
@@ -3018,12 +2972,6 @@ if (typeof document !== 'undefined') {
                     borderRadius: 2,
                     px: 3,
                     fontWeight: 600,
-                    borderColor: theme.palette.mode === 'dark' ? 'rgba(255,255,255,0.3)' : 'rgba(0,0,0,0.2)',
-                    color: theme.palette.text.primary,
-                    '&:hover': {
-                      borderColor: theme.palette.mode === 'dark' ? 'rgba(255,255,255,0.5)' : 'rgba(0,0,0,0.4)',
-                      backgroundColor: theme.palette.mode === 'dark' ? 'rgba(255,255,255,0.08)' : 'rgba(0,0,0,0.04)'
-                    }
                   }}
                 >
                   {t('cancel')}
@@ -3037,13 +2985,13 @@ if (typeof document !== 'undefined') {
                     borderRadius: 2,
                     px: 3,
                     fontWeight: 700,
-                    background: proceedCountdown > 0
-                      ? 'rgba(74, 139, 255, 0.3)'
-                      : 'linear-gradient(45deg, #4A8BFF 30%, #1A6EEE 90%)',
-                    color: proceedCountdown > 0 ? 'rgba(255,255,255,0.7)' : '#fff',
-                    '&:hover': proceedCountdown > 0 ? {} : {
-                      background: 'linear-gradient(45deg, #5A9BFF 30%, #2A7EFF 90%)'
-                    }
+                    backgroundColor: theme.custom.color.brandPrimary,
+                    color: `${theme.palette.getContrastText(theme.custom.color.brandPrimary)} !important`,
+                    '&:hover': { backgroundColor: theme.custom.color.brandPrimary },
+                    '&:disabled': {
+                      backgroundColor: alpha(theme.custom.color.brandPrimary, 0.3),
+                      color: 'rgba(255,255,255,0.7)',
+                    },
                   }}
                 >
                   {proceedCountdown > 0
@@ -3067,12 +3015,12 @@ if (typeof document !== 'undefined') {
         sx={{
           '& .MuiDialog-paper': {
             borderRadius: 3,
-            backgroundColor: theme.palette.background.paper,
+            backgroundColor: theme.custom.color.surfaceRaised,
             boxShadow: theme.shadows[12],
           }
         }}
       >
-        <DialogTitle sx={{ 
+        <DialogTitle sx={{
           display: 'flex', 
           justifyContent: 'space-between', 
           alignItems: 'center',
@@ -3136,13 +3084,10 @@ if (typeof document !== 'undefined') {
                 textTransform: 'none',
                 borderRadius: 2,
                 px: 3,
-                background: theme.palette.mode === 'dark'
-                  ? 'linear-gradient(45deg, #4CAF50 30%, #66BB6A 90%)'
-                  : 'linear-gradient(45deg, #2E7D32 30%, #388E3C 90%)',
+                background: `linear-gradient(45deg, ${theme.custom.color.brandPrimary} 30%, ${lighten(theme.custom.color.brandPrimary, 0.15)} 90%)`,
+                color: `${theme.palette.getContrastText(theme.custom.color.brandPrimary)} !important`,
                 '&:hover': {
-                  background: theme.palette.mode === 'dark'
-                    ? 'linear-gradient(45deg, #388E3C 30%, #4CAF50 90%)'
-                    : 'linear-gradient(45deg, #1B5E20 30%, #2E7D32 90%)',
+                  background: `linear-gradient(45deg, ${lighten(theme.custom.color.brandPrimary, 0.08)} 30%, ${lighten(theme.custom.color.brandPrimary, 0.25)} 90%)`,
                 },
                 // RTL spacing fix - add space between icon and text
                 '& .MuiButton-startIcon': {
@@ -3178,7 +3123,7 @@ if (typeof document !== 'undefined') {
         PaperProps={{
           sx: {
             borderRadius: 3,
-            background: theme.palette.background.paper,
+            background: theme.custom.color.surfaceRaised,
             boxShadow: theme.shadows[12]
           }
         }}
@@ -3191,10 +3136,10 @@ if (typeof document !== 'undefined') {
             pb: 1
           }}
         >
-          <Typography 
-            variant="h6" 
-            sx={{ 
-              fontWeight: 600, 
+          <Typography
+            variant="h6"
+            sx={{
+              fontWeight: 600,
               color: theme.palette.text.primary
             }}
           >
@@ -3234,17 +3179,17 @@ if (typeof document !== 'undefined') {
             onChange={handleCustomCityChange}
             variant="outlined"
             autoFocus
-            sx={{ 
+            sx={{
               borderRadius: 2,
               '& .MuiOutlinedInput-root': {
                 '&:hover fieldset': {
-                  borderColor: theme.palette.mode === 'dark' ? '#4CAF50' : '#2E7D32',
+                  borderColor: theme.custom.color.brandPrimary,
                 },
                 '&.Mui-focused fieldset': {
-                  borderColor: theme.palette.mode === 'dark' ? '#4CAF50' : '#2E7D32',
+                  borderColor: theme.custom.color.brandPrimary,
                 },
                 '& fieldset': {
-                  borderColor: theme.palette.mode === 'dark' ? 'rgba(255,255,255,0.3)' : 'rgba(0,0,0,0.2)',
+                  borderColor: alpha(theme.custom.color.ink, theme.palette.mode === 'dark' ? 0.3 : 0.2),
                 },
                 color: theme.palette.text.primary
               }
@@ -3303,13 +3248,14 @@ if (typeof document !== 'undefined') {
               }
             }}
             disabled={!customCityName.trim() || !selectedCountry?._id || isCreatingCity}
-            sx={{ 
+            sx={{
               textTransform: 'none',
               borderRadius: 2,
               px: 3,
-              background: 'linear-gradient(45deg, #4A8BFF 30%, #1A6EEE 90%)',
+              background: `linear-gradient(45deg, ${theme.custom.color.brandPrimary} 30%, ${lighten(theme.custom.color.brandPrimary, 0.15)} 90%)`,
+              color: `${theme.palette.getContrastText(theme.custom.color.brandPrimary)} !important`,
               '&:hover': {
-                background: 'linear-gradient(45deg, #5A9BFF 30%, #2A7EFF 90%)',
+                background: `linear-gradient(45deg, ${lighten(theme.custom.color.brandPrimary, 0.08)} 30%, ${lighten(theme.custom.color.brandPrimary, 0.25)} 90%)`,
               }
             }}
             startIcon={isCreatingCity ? <CircularProgress size={16} color="inherit" /> : null}

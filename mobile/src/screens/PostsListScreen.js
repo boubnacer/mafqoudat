@@ -66,6 +66,7 @@ const PostsListScreen = ({ navigation, route }) => {
   const abortControllerRef = useRef(null);
   const isFirstFocusRef = useRef(true);
   const isFirstInitialFlParamRef = useRef(true);
+  const isFirstInitialCategoryParamRef = useRef(true);
 
   // Resolve the browsing country once: the onboarding-selected country (Prompt 0.3)
   // takes priority, falling back to the account's registered country.
@@ -129,6 +130,24 @@ const PostsListScreen = ({ navigation, route }) => {
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
+
+  // This screen now lives inside MainTabs (a hidden tab, so the bottom bar stays
+  // visible while browsing - see App.js), which means it's never remounted between
+  // visits the way a stack push used to remount it. Mirrors the initialFl effect
+  // above: applies a category change from a second visit to an already-mounted
+  // instance (e.g. tapping a different category chip on Home after already having
+  // browsed once) instead of silently keeping the stale filter from the first visit.
+  useEffect(() => {
+    if (isFirstInitialCategoryParamRef.current) {
+      isFirstInitialCategoryParamRef.current = false;
+      return;
+    }
+    const requestedCategoryId = route.params?.initialCategoryId;
+    if (!requestedCategoryId) return;
+    setSelectedCategoryIds([requestedCategoryId]);
+    navigation.setParams({ initialCategoryId: undefined });
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [route.params?.initialCategoryId]);
 
   // Debounce free-text search input.
   useEffect(() => {
