@@ -326,14 +326,23 @@ class GooglePlacesService {
    */
   async enrichWithTranslations(cityData) {
     try {
+      const isArabicScript = (text) => /[؀-ۿ]/.test(text || '');
+
       const nativeNames = {
-        en: cityData.labels.en, // Already have this
+        en: cityData.labels.en, // Already have this (unless search was Arabic)
         fr: cityData.labels.en, // Will fetch
         ar: cityData.labels.en  // Will fetch
       };
-      
-      // Fetch native names for French and Arabic by calling Place Details API
+
+      // Fetch native names for French and Arabic by calling Place Details API.
+      // If the base name came from an Arabic-language search it is Arabic
+      // script, so the English name must be fetched too - otherwise the city
+      // gets persisted with Arabic in labels.en and becomes unfindable (and
+      // duplicated) for Latin-script searches.
       const languagesToFetch = ['fr', 'ar'];
+      if (isArabicScript(nativeNames.en)) {
+        languagesToFetch.unshift('en');
+      }
       let translationQuality = 0;
       
       for (const lang of languagesToFetch) {
@@ -380,7 +389,14 @@ class GooglePlacesService {
       // NEW: If we only have Arabic script, try to get Latin version
       // If we only have Latin script, try to get Arabic version
       cityData.labels = this.ensureBothScripts(cityData.labels);
-      
+
+      // The code was derived from the search-language name in formatCityData;
+      // if that was Arabic script, rebuild it from the freshly-fetched Latin
+      // (English) name so city codes stay Latin regardless of UI language.
+      if (isArabicScript(cityData.code) && !isArabicScript(cityData.labels.en)) {
+        cityData.code = cityData.labels.en.toUpperCase().replace(/\s+/g, '_');
+      }
+
       // Add translation quality score
       cityData.translationQuality = translationQuality;
       

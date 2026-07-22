@@ -378,6 +378,48 @@ class TranslationService {
     const arabicRegex = /[\u0600-\u06FF\u0750-\u077F\u08A0-\u08FF\uFB50-\uFDFF\uFE70-\uFEFF]/;
     return arabicRegex.test(text);
   }
+
+  /**
+   * Guarantee script-correct multilingual labels for a city before it is
+   * persisted: `en`/`fr` must be Latin script and `ar` must be Arabic script.
+   * API results (GeoNames/Google) localized to the searcher's language can
+   * arrive with one script copied into all three labels; saving that as-is
+   * makes the city unfindable in the other script and causes duplicates.
+   * Fills whichever script is missing via the known-cities mapping or
+   * transliteration. Never returns empty labels: falls back to whatever
+   * script is available rather than dropping a name.
+   * @param {Object} labels - { en, fr, ar } as supplied by the API/client
+   * @returns {Promise<Object>} - { en, fr, ar } script-corrected
+   */
+  static async ensureMultiScriptLabels(labels = {}) {
+    const values = [labels.en, labels.fr, labels.ar].filter(Boolean);
+    const latinCandidate = values.find((v) => !this.isArabicText(v)) || null;
+    const arabicCandidate =
+      [labels.ar, labels.en, labels.fr].filter(Boolean).find((v) => this.isArabicText(v)) || null;
+
+    let en = labels.en && !this.isArabicText(labels.en) ? labels.en : latinCandidate;
+    let fr = labels.fr && !this.isArabicText(labels.fr) ? labels.fr : latinCandidate;
+    let ar = arabicCandidate;
+
+    if (!en && ar) {
+      // Only Arabic available: map to known Latin name or transliterate
+      const translated = await this.translateCityName(ar, 'ar');
+      en = translated.en && !this.isArabicText(translated.en) ? translated.en : null;
+      fr = translated.fr && !this.isArabicText(translated.fr) ? translated.fr : en;
+    }
+
+    if (!ar && en) {
+      // Only Latin available: map to known Arabic name or transliterate
+      const translated = await this.translateCityName(en, 'en');
+      ar = translated.ar && this.isArabicText(translated.ar) ? translated.ar : null;
+    }
+
+    return {
+      en: en || ar || labels.en || '',
+      fr: fr || en || ar || labels.fr || '',
+      ar: ar || en || labels.ar || ''
+    };
+  }
   
   /**
    * Try to translate using an external API

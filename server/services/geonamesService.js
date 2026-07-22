@@ -128,34 +128,40 @@ class GeoNamesService {
    */
   formatCityData(place, language) {
     // Determine if this is a capital city
-    const isCapital = place.fcode === 'PPLC' || 
-                     place.fcode === 'PPLA' || 
+    const isCapital = place.fcode === 'PPLC' ||
+                     place.fcode === 'PPLA' ||
                      place.name.toLowerCase().includes('capital');
 
-    // Create multilingual labels
-    const labels = {
-      en: place.name,
-      fr: place.alternateNames?.find(name => name.lang === 'fr')?.name || place.name,
-      ar: place.alternateNames?.find(name => name.lang === 'ar')?.name || place.name
-    };
+    const isArabicScript = (text) => /[؀-ۿ]/.test(text || '');
 
-    // If we have alternate names, try to get better translations
-    if (place.alternateNames && place.alternateNames.length > 0) {
-      place.alternateNames.forEach(altName => {
-        if (altName.lang === 'fr' && altName.name) {
-          labels.fr = altName.name;
-        }
-        if (altName.lang === 'ar' && altName.name) {
-          labels.ar = altName.name;
-        }
-      });
-    }
+    // place.name is localized by the request's `lang` param, so when the user
+    // searched in Arabic it IS the Arabic name - it must never be blindly
+    // assigned to labels.en/fr. toponymName is the canonical (usually Latin)
+    // name, always present with style=FULL. Pick each label by script:
+    const altEn = place.alternateNames?.find(name => name.lang === 'en')?.name;
+    const altFr = place.alternateNames?.find(name => name.lang === 'fr')?.name;
+    const altAr = place.alternateNames?.find(name => name.lang === 'ar')?.name;
+
+    const latinName = [altEn, place.toponymName, place.name]
+      .find(name => name && !isArabicScript(name)) || null;
+    const arabicName = [altAr, place.name, place.toponymName]
+      .find(name => name && isArabicScript(name)) || null;
+
+    // Create multilingual labels: en/fr Latin, ar Arabic, each falling back
+    // to the other script only when its own isn't available at all.
+    const labels = {
+      en: latinName || arabicName || place.name,
+      fr: (altFr && !isArabicScript(altFr) ? altFr : null) || latinName || arabicName || place.name,
+      ar: arabicName || latinName || place.name
+    };
 
     // Normalize labels to ensure Latin script consistency
     const normalizedLabels = this.normalizeLabels(labels);
 
     return {
-      code: place.name.toUpperCase().replace(/\s+/g, '_'),
+      // Codes are derived from the Latin name so an Arabic-language search
+      // doesn't produce an Arabic-script city code.
+      code: (latinName || place.name).toUpperCase().replace(/\s+/g, '_'),
       labels: normalizedLabels,
       isCapital: isCapital,
       isActive: true,

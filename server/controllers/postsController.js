@@ -1300,16 +1300,30 @@ const createNewPost = async (req, res) => {
          // cityData might already be an object or a JSON string
          const apiCityData = typeof cityData === 'string' ? JSON.parse(cityData) : cityData;
 
+         // API results localized to the searcher's language can arrive with a
+         // single script copied into all three labels (e.g. Arabic in en/fr/ar
+         // after an Arabic-UI search). Guarantee en/fr are Latin and ar is
+         // Arabic before matching/persisting, otherwise the city is invisible
+         // to searches in the other script and gets re-created as a duplicate.
+         const safeLabels = await TranslationService.ensureMultiScriptLabels(apiCityData.labels || {});
+
          // Check if city already exists in database (country-scoped; label match
          // is escaped so metacharacters in the API-supplied name can't break or
-         // hijack the regex)
+         // hijack the regex). Both the original API labels and the
+         // script-corrected ones are candidates, so an Arabic-UI submit still
+         // matches a city previously saved from a Latin-UI submit and vice versa.
+         const labelCandidates = [...new Set([
+           safeLabels.en, safeLabels.fr, safeLabels.ar,
+           apiCityData.labels?.en, apiCityData.labels?.fr, apiCityData.labels?.ar
+         ].filter(Boolean))];
+
          const existingCity = await City.findOne({
            country: country,
-           $or: [
-             { "labels.en": { $regex: escapeRegex(apiCityData.labels.en), $options: 'i' } },
-             { "labels.ar": { $regex: escapeRegex(apiCityData.labels.ar), $options: 'i' } },
-             { "labels.fr": { $regex: escapeRegex(apiCityData.labels.fr), $options: 'i' } }
-           ]
+           $or: labelCandidates.flatMap((value) => ([
+             { "labels.en": { $regex: escapeRegex(value), $options: 'i' } },
+             { "labels.ar": { $regex: escapeRegex(value), $options: 'i' } },
+             { "labels.fr": { $regex: escapeRegex(value), $options: 'i' } }
+           ]))
          });
 
         if (existingCity) {
@@ -1319,11 +1333,14 @@ const createNewPost = async (req, res) => {
           const cityDataToSave = {
             code: apiCityData.code,
             country: country,
-            labels: apiCityData.labels,
+            labels: safeLabels,
             isCapital: apiCityData.isCapital || false,
             isActive: true,
             isDynamic: true, // Mark as dynamically created from API
-            searchTerms: apiCityData.searchTerms || []
+            searchTerms: [...new Set([
+              ...(apiCityData.searchTerms || []),
+              ...labelCandidates.map((v) => v.toLowerCase())
+            ])]
           };
 
           // Add API source and place ID if from Google Places
