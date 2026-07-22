@@ -290,7 +290,7 @@ const StepPhoto = ({
               <Box
                 component="ul"
                 sx={{
-                  pl: 2.5,
+                  paddingInlineStart: 2.5,
                   m: 0,
                   display: 'grid',
                   gap: 0.75,

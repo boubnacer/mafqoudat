@@ -16,7 +16,7 @@ import { useAuth } from '../context/AuthContext';
 import { useLanguage } from '../context/LanguageContext';
 import { useTheme } from '../context/ThemeContext';
 import { useTranslation } from '../utils/translations';
-import LanguageDropdown from '../components/LanguageDropdown';
+import { colorTokens, radiusTokens, fontFamilies } from '../theme/tokens';
 import apiClient from '../api/apiService';
 import { API_ENDPOINTS } from '../config/api';
 import { IS_GOOGLE_AUTH_CONFIGURED } from '../utils/googleAuth';
@@ -25,6 +25,25 @@ import { IS_GOOGLE_AUTH_CONFIGURED } from '../utils/googleAuth';
 // mobile and web apps agree on what counts as a plausible email/phone.
 const EMAIL_REGEX = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 const PHONE_REGEX = /^[+]?[\d\s\-()]{7,20}$/;
+
+// Mirrors client/src/designTokens.js's elevationTokens (e1/e2 boxShadow strings)
+// as RN shadow/elevation props - same shadow color/opacity the web cards use.
+const getElevation = (isDark, level = 1) =>
+  level === 2
+    ? {
+        shadowColor: '#000',
+        shadowOffset: { width: 0, height: 4 },
+        shadowOpacity: isDark ? 0.45 : 0.1,
+        shadowRadius: 16,
+        elevation: 4,
+      }
+    : {
+        shadowColor: '#000',
+        shadowOffset: { width: 0, height: 1 },
+        shadowOpacity: isDark ? 0.4 : 0.06,
+        shadowRadius: 2,
+        elevation: 2,
+      };
 
 const LoginScreen = ({ navigation }) => {
   const {
@@ -36,9 +55,9 @@ const LoginScreen = ({ navigation }) => {
     clearSessionExpired,
   } = useAuth();
   const { currentLanguage } = useLanguage();
-  const theme = useTheme();
-  const { colors, isDark, setThemeMode } = theme;
-  const styles = useMemo(() => createStyles(theme), [theme]);
+  const { isDark } = useTheme();
+  const tokens = isDark ? colorTokens.dark : colorTokens.light;
+  const styles = useMemo(() => createStyles(tokens, isDark), [tokens, isDark]);
   const { t } = useTranslation();
   const isRTL = currentLanguage === 'ar';
   const textStyle = isRTL ? styles.textRTL : null;
@@ -188,10 +207,6 @@ const LoginScreen = ({ navigation }) => {
     }
   };
 
-  const handleToggleTheme = () => {
-    setThemeMode(isDark ? 'light' : 'dark');
-  };
-
   return (
     <KeyboardAvoidingView
       style={styles.container}
@@ -203,19 +218,6 @@ const LoginScreen = ({ navigation }) => {
         showsVerticalScrollIndicator={false}
       >
         <View style={styles.content}>
-          <View style={styles.topControlsRow}>
-            <TouchableOpacity
-              onPress={handleToggleTheme}
-              style={styles.themeToggleButton}
-              activeOpacity={0.7}
-              accessibilityLabel={isDark ? t('themeLight') : t('themeDark')}
-              hitSlop={8}
-            >
-              <Text style={styles.themeToggleIcon}>{isDark ? '☀️' : '🌙'}</Text>
-            </TouchableOpacity>
-            <LanguageDropdown />
-          </View>
-
           <View style={styles.brandSection}>
             <Image source={require('../../assets/icon.png')} style={styles.logo} resizeMode="contain" />
             <Text style={styles.brandName}>{t('brandName')}</Text>
@@ -245,7 +247,7 @@ const LoginScreen = ({ navigation }) => {
                   fieldErrors.emailOrPhone && styles.inputError,
                 ]}
                 placeholder={t('emailOrPhonePlaceholder')}
-                placeholderTextColor={colors.placeholder}
+                placeholderTextColor={styles.placeholderColor.color}
                 value={emailOrPhone}
                 onChangeText={handleEmailChange}
                 autoCapitalize="none"
@@ -267,7 +269,7 @@ const LoginScreen = ({ navigation }) => {
                   ref={passwordInputRef}
                   style={[styles.passwordInput, isRTL && styles.textRTL]}
                   placeholder={t('passwordPlaceholder')}
-                  placeholderTextColor={colors.placeholder}
+                  placeholderTextColor={styles.placeholderColor.color}
                   value={password}
                   onChangeText={handlePasswordChange}
                   secureTextEntry={!showPassword}
@@ -298,7 +300,7 @@ const LoginScreen = ({ navigation }) => {
               activeOpacity={0.85}
             >
               {isLoading ? (
-                <ActivityIndicator color={colors.primaryText} />
+                <ActivityIndicator color="#FFFFFF" />
               ) : (
                 <Text style={styles.buttonText}>{t('login')}</Text>
               )}
@@ -322,7 +324,7 @@ const LoginScreen = ({ navigation }) => {
               activeOpacity={0.7}
             >
               {isGoogleLoading ? (
-                <ActivityIndicator color={colors.textPrimary} />
+                <ActivityIndicator color={tokens.ink} />
               ) : (
                 <>
                   <Text style={styles.googleIcon}>G</Text>
@@ -349,10 +351,10 @@ const LoginScreen = ({ navigation }) => {
   );
 };
 
-const createStyles = ({ colors, spacing, radii, fontSizes, isDark }) => StyleSheet.create({
+const createStyles = (tokens, isDark) => StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: colors.background,
+    backgroundColor: tokens.surfaceBase,
   },
   scrollContent: {
     flexGrow: 1,
@@ -360,126 +362,110 @@ const createStyles = ({ colors, spacing, radii, fontSizes, isDark }) => StyleShe
   },
   content: {
     alignItems: 'stretch',
-    paddingHorizontal: spacing.lg,
-    paddingVertical: spacing.xl,
-  },
-  topControlsRow: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
-    marginBottom: spacing.md,
-  },
-  themeToggleButton: {
-    width: 42,
-    height: 42,
-    borderRadius: radii.full,
-    backgroundColor: colors.inputBackground,
-    borderWidth: 1,
-    borderColor: colors.border,
-    justifyContent: 'center',
-    alignItems: 'center',
-  },
-  themeToggleIcon: {
-    fontSize: fontSizes.lg,
+    paddingHorizontal: 20,
+    paddingVertical: 24,
   },
   brandSection: {
     alignItems: 'center',
-    marginBottom: spacing.xl,
+    marginBottom: 28,
   },
   logo: {
     width: 72,
     height: 72,
-    marginTop: spacing.sm,
-    marginBottom: spacing.md,
+    marginTop: 8,
+    marginBottom: 14,
     backgroundColor: 'transparent',
   },
   brandName: {
-    fontSize: fontSizes.xxxl,
-    fontWeight: 'bold',
-    color: colors.primary,
-    marginBottom: spacing.xs,
+    fontFamily: fontFamilies.display,
+    fontSize: 30,
+    color: tokens.brandPrimary,
+    marginBottom: 6,
     textAlign: 'center',
   },
   tagline: {
-    fontSize: fontSizes.sm,
-    color: colors.textSecondary,
+    fontFamily: fontFamilies.body,
+    fontSize: 14,
+    color: `${tokens.ink}99`,
     textAlign: 'center',
   },
   card: {
-    backgroundColor: colors.surface,
-    borderRadius: radii.xl,
-    padding: spacing.xl,
-    borderWidth: isDark ? 1 : 0,
-    borderColor: colors.border,
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 4 },
-    shadowOpacity: isDark ? 0 : 0.08,
-    shadowRadius: 16,
-    elevation: isDark ? 0 : 3,
+    backgroundColor: tokens.surfaceRaised,
+    borderRadius: radiusTokens.xl,
+    padding: 22,
+    borderWidth: 1,
+    borderColor: `${tokens.ink}${isDark ? '14' : '26'}`,
+    ...getElevation(isDark, 2),
   },
   fieldGroup: {
-    marginBottom: spacing.lg,
+    marginBottom: 18,
   },
   label: {
-    fontSize: fontSizes.sm,
-    fontWeight: '600',
-    color: colors.textSecondary,
-    marginBottom: spacing.xs,
+    fontFamily: fontFamilies.bodySemiBold,
+    fontSize: 13,
+    color: `${tokens.ink}99`,
+    marginBottom: 8,
   },
   input: {
     height: 52,
     borderWidth: 1,
-    borderColor: colors.border,
-    borderRadius: radii.md,
-    paddingHorizontal: spacing.md,
-    fontSize: fontSizes.md,
-    backgroundColor: colors.inputBackground,
-    color: colors.textPrimary,
+    borderColor: `${tokens.ink}${isDark ? '1F' : '14'}`,
+    borderRadius: radiusTokens.md,
+    paddingHorizontal: 14,
+    fontFamily: fontFamilies.body,
+    fontSize: 16,
+    backgroundColor: `${tokens.ink}0A`,
+    color: tokens.ink,
   },
   inputError: {
-    borderColor: colors.danger,
+    borderColor: tokens.status.lost.main,
+  },
+  placeholderColor: {
+    color: `${tokens.ink}66`,
   },
   passwordWrapper: {
     flexDirection: 'row',
     alignItems: 'center',
     height: 52,
     borderWidth: 1,
-    borderColor: colors.border,
-    borderRadius: radii.md,
-    backgroundColor: colors.inputBackground,
-    paddingStart: spacing.md,
+    borderColor: `${tokens.ink}${isDark ? '1F' : '14'}`,
+    borderRadius: radiusTokens.md,
+    backgroundColor: `${tokens.ink}0A`,
+    paddingStart: 14,
   },
   passwordInput: {
     flex: 1,
     height: '100%',
-    fontSize: fontSizes.md,
-    color: colors.textPrimary,
+    fontFamily: fontFamilies.body,
+    fontSize: 16,
+    color: tokens.ink,
   },
   togglePasswordButton: {
-    paddingHorizontal: spacing.md,
+    paddingHorizontal: 14,
     height: '100%',
     justifyContent: 'center',
   },
   togglePasswordText: {
-    fontSize: fontSizes.xs,
-    fontWeight: '700',
-    color: colors.primary,
+    fontFamily: fontFamilies.bodySemiBold,
+    fontSize: 12,
+    color: tokens.brandPrimary,
     textTransform: 'uppercase',
     letterSpacing: 0.5,
   },
   fieldError: {
-    marginTop: spacing.xs,
-    fontSize: fontSizes.xs,
-    color: colors.danger,
+    marginTop: 6,
+    fontFamily: fontFamilies.body,
+    fontSize: 12,
+    color: tokens.status.lost.main,
   },
   button: {
     height: 52,
-    backgroundColor: colors.primary,
-    borderRadius: radii.md,
+    backgroundColor: tokens.brandPrimary,
+    borderRadius: radiusTokens.md,
     justifyContent: 'center',
     alignItems: 'center',
-    marginTop: spacing.xs,
-    shadowColor: colors.primary,
+    marginTop: 4,
+    shadowColor: tokens.brandPrimary,
     shadowOffset: { width: 0, height: 4 },
     shadowOpacity: isDark ? 0 : 0.25,
     shadowRadius: 8,
@@ -491,32 +477,33 @@ const createStyles = ({ colors, spacing, radii, fontSizes, isDark }) => StyleShe
     elevation: 0,
   },
   buttonText: {
-    color: colors.primaryText,
-    fontSize: fontSizes.md,
-    fontWeight: '700',
+    color: '#FFFFFF',
+    fontFamily: fontFamilies.bodySemiBold,
+    fontSize: 16,
     letterSpacing: 0.3,
   },
   errorContainer: {
-    backgroundColor: colors.dangerBackground,
-    padding: spacing.md,
-    borderRadius: radii.md,
-    marginBottom: spacing.md,
+    backgroundColor: tokens.status.lost.bg,
+    padding: 14,
+    borderRadius: radiusTokens.md,
+    marginBottom: 14,
   },
   errorText: {
-    color: colors.danger,
-    fontSize: fontSizes.sm,
+    color: tokens.status.lost.main,
+    fontFamily: fontFamilies.bodyMedium,
+    fontSize: 14,
     textAlign: 'center',
-    fontWeight: '500',
   },
   noticeContainer: {
-    backgroundColor: colors.warningBackground,
-    padding: spacing.md,
-    borderRadius: radii.md,
-    marginBottom: spacing.md,
+    backgroundColor: isDark ? '#3A2E1A' : '#FFF3E0',
+    padding: 14,
+    borderRadius: radiusTokens.md,
+    marginBottom: 14,
   },
   noticeText: {
-    color: colors.warning,
-    fontSize: fontSizes.sm,
+    color: isDark ? '#FFB74D' : '#EF6C00',
+    fontFamily: fontFamilies.body,
+    fontSize: 13,
     textAlign: 'center',
   },
   textRTL: {
@@ -525,18 +512,18 @@ const createStyles = ({ colors, spacing, radii, fontSizes, isDark }) => StyleShe
   dividerContainer: {
     flexDirection: 'row',
     alignItems: 'center',
-    marginVertical: spacing.lg,
+    marginVertical: 18,
   },
   dividerLine: {
     flex: 1,
     height: 1,
-    backgroundColor: colors.border,
+    backgroundColor: `${tokens.ink}${isDark ? '1F' : '14'}`,
   },
   dividerText: {
-    marginHorizontal: spacing.md,
-    fontSize: fontSizes.xs,
-    color: colors.textSecondary,
-    fontWeight: '600',
+    marginHorizontal: 14,
+    fontFamily: fontFamilies.bodySemiBold,
+    fontSize: 12,
+    color: `${tokens.ink}80`,
     textTransform: 'uppercase',
     letterSpacing: 0.5,
   },
@@ -545,44 +532,46 @@ const createStyles = ({ colors, spacing, radii, fontSizes, isDark }) => StyleShe
     alignItems: 'center',
     justifyContent: 'center',
     height: 52,
-    backgroundColor: colors.surfaceElevated,
-    borderRadius: radii.md,
+    backgroundColor: `${tokens.ink}0A`,
+    borderRadius: radiusTokens.md,
     borderWidth: 1,
-    borderColor: colors.border,
-    gap: spacing.sm,
+    borderColor: `${tokens.ink}${isDark ? '1F' : '14'}`,
+    gap: 10,
   },
   googleIcon: {
-    fontSize: fontSizes.lg,
+    fontSize: 18,
     fontWeight: 'bold',
     color: '#4285F4',
   },
   googleButtonText: {
-    color: colors.textPrimary,
-    fontSize: fontSizes.md,
-    fontWeight: '600',
+    color: tokens.ink,
+    fontFamily: fontFamilies.bodySemiBold,
+    fontSize: 15,
   },
   googleAuthHint: {
-    color: colors.textSecondary,
-    fontSize: fontSizes.xs,
+    color: `${tokens.ink}80`,
+    fontFamily: fontFamilies.body,
+    fontSize: 12,
     textAlign: 'center',
-    marginTop: spacing.sm,
+    marginTop: 8,
   },
   signUpRow: {
     flexDirection: 'row',
     justifyContent: 'center',
     alignItems: 'center',
     flexWrap: 'wrap',
-    marginTop: spacing.xl,
+    marginTop: 24,
   },
   signUpPrompt: {
-    fontSize: fontSizes.sm,
-    color: colors.textSecondary,
-    marginEnd: spacing.xs,
+    fontFamily: fontFamilies.body,
+    fontSize: 14,
+    color: `${tokens.ink}99`,
+    marginEnd: 6,
   },
   signUpLink: {
-    fontSize: fontSizes.sm,
-    color: colors.primary,
-    fontWeight: '700',
+    fontFamily: fontFamilies.bodySemiBold,
+    fontSize: 14,
+    color: tokens.brandPrimary,
   },
 });
 

@@ -2,25 +2,52 @@
  * Profile Screen
  * Mirrors: client/src/features/userSettings/UserProfile/UserProfile.jsx
  * Acts as a small hub: profile summary + links out to My Posts and Settings.
+ * Styling mirrors HomeScreen.js / LoginScreen.js's shared design language
+ * (colorTokens/radiusTokens/fontFamilies + surfaceRaised panels).
  */
 
-import React, { useCallback, useEffect, useRef, useState } from 'react';
+import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { View, Text, StyleSheet, ScrollView, TouchableOpacity, ActivityIndicator, RefreshControl } from 'react-native';
 import { useFocusEffect } from '@react-navigation/native';
+import { Ionicons } from '@expo/vector-icons';
 import apiClient from '../api/apiService';
 import { useAuth } from '../context/AuthContext';
+import { useTheme } from '../context/ThemeContext';
 import { useLanguage } from '../context/LanguageContext';
 import { useTranslation } from '../utils/translations';
 import { useReferenceData, getLocalizedLabel } from '../context/ReferenceDataContext';
+import { colorTokens, radiusTokens, fontFamilies } from '../theme/tokens';
 import DataStateView from '../components/DataStateView';
 import AppHeader from '../components/AppHeader';
 
+// Mirrors client/src/designTokens.js's elevationTokens (e1/e2 boxShadow strings)
+// as RN shadow/elevation props - same shadow color/opacity HomeScreen/LoginScreen use.
+const getElevation = (isDark, level = 1) =>
+  level === 2
+    ? {
+        shadowColor: '#000',
+        shadowOffset: { width: 0, height: 4 },
+        shadowOpacity: isDark ? 0.45 : 0.1,
+        shadowRadius: 16,
+        elevation: 4,
+      }
+    : {
+        shadowColor: '#000',
+        shadowOffset: { width: 0, height: 1 },
+        shadowOpacity: isDark ? 0.4 : 0.06,
+        shadowRadius: 2,
+        elevation: 2,
+      };
+
 const ProfileScreen = ({ navigation }) => {
   const { user: authUser } = useAuth();
+  const { isDark } = useTheme();
   const { currentLanguage } = useLanguage();
   const { t } = useTranslation();
   const { countries } = useReferenceData();
   const isRTL = currentLanguage === 'ar';
+  const tokens = isDark ? colorTokens.dark : colorTokens.light;
+  const styles = useMemo(() => createStyles(tokens, isRTL, isDark), [tokens, isRTL, isDark]);
 
   const [profile, setProfile] = useState(null);
   const [isLoading, setIsLoading] = useState(true);
@@ -78,7 +105,7 @@ const ProfileScreen = ({ navigation }) => {
       <View style={styles.container}>
         <AppHeader title={t('profile')} />
         <View style={styles.centerContainer}>
-          <ActivityIndicator size="large" color="#2196F3" />
+          <ActivityIndicator size="large" color={tokens.brandPrimary} />
         </View>
       </View>
     );
@@ -123,12 +150,22 @@ const ProfileScreen = ({ navigation }) => {
     ? new Date(profile.createdAt).toLocaleDateString(currentLanguage)
     : '';
 
+  const chevronIcon = isRTL ? 'chevron-back' : 'chevron-forward';
+
   return (
     <View style={styles.container}>
       <AppHeader title={t('profile')} />
       <ScrollView
         contentContainerStyle={styles.content}
-        refreshControl={<RefreshControl refreshing={isRefreshing} onRefresh={handleRefresh} colors={['#2196F3']} />}
+        showsVerticalScrollIndicator={false}
+        refreshControl={
+          <RefreshControl
+            refreshing={isRefreshing}
+            onRefresh={handleRefresh}
+            colors={[tokens.brandPrimary]}
+            tintColor={tokens.brandPrimary}
+          />
+        }
       >
         <View style={styles.avatarSection}>
           <View style={styles.avatar}>
@@ -137,6 +174,11 @@ const ProfileScreen = ({ navigation }) => {
           <Text style={[styles.displayName, textStyle]}>{displayName || profile?.username}</Text>
           <Text style={[styles.username, textStyle]}>@{profile?.username}</Text>
           <View style={styles.providerBadge}>
+            <Ionicons
+              name={isGoogleAccount ? 'logo-google' : 'lock-closed-outline'}
+              size={13}
+              color={tokens.brandPrimary}
+            />
             <Text style={styles.providerBadgeText}>
               {isGoogleAccount ? t('googleAccount') : t('localAccount')}
             </Text>
@@ -145,168 +187,259 @@ const ProfileScreen = ({ navigation }) => {
 
         <View style={styles.infoCard}>
           <View style={styles.infoRow}>
-            <Text style={[styles.infoLabel, textStyle]}>{t('contactSeller')}</Text>
-            <Text style={[styles.infoValue, isRTL && styles.infoValueRTL]}>{contactLine}</Text>
+            <View style={styles.infoRowIcon}>
+              <Ionicons name="mail-outline" size={18} color={tokens.brandPrimary} />
+            </View>
+            <View style={styles.infoRowTextWrap}>
+              <Text style={[styles.infoLabel, textStyle]}>{t('contactSeller')}</Text>
+              <Text style={[styles.infoValue, textStyle]} numberOfLines={1}>
+                {contactLine}
+              </Text>
+            </View>
           </View>
-          <View style={styles.infoRow}>
-            <Text style={[styles.infoLabel, textStyle]}>{t('country')}</Text>
-            <Text style={[styles.infoValue, isRTL && styles.infoValueRTL]}>
-              {countryFlag ? `${countryFlag} ` : ''}
-              {countryLabel || '-'}
-            </Text>
+
+          <View style={[styles.infoRow, styles.infoRowDivider]}>
+            <View style={styles.infoRowIcon}>
+              <Ionicons name="earth-outline" size={18} color={tokens.brandPrimary} />
+            </View>
+            <View style={styles.infoRowTextWrap}>
+              <Text style={[styles.infoLabel, textStyle]}>{t('country')}</Text>
+              <Text style={[styles.infoValue, textStyle]} numberOfLines={1}>
+                {countryFlag ? `${countryFlag} ` : ''}
+                {countryLabel || '-'}
+              </Text>
+            </View>
           </View>
+
           {joinDate ? (
-            <View style={styles.infoRow}>
-              <Text style={[styles.infoLabel, textStyle]}>{t('memberSince')}</Text>
-              <Text style={[styles.infoValue, isRTL && styles.infoValueRTL]}>{joinDate}</Text>
+            <View style={[styles.infoRow, styles.infoRowDivider]}>
+              <View style={styles.infoRowIcon}>
+                <Ionicons name="calendar-outline" size={18} color={tokens.brandPrimary} />
+              </View>
+              <View style={styles.infoRowTextWrap}>
+                <Text style={[styles.infoLabel, textStyle]}>{t('memberSince')}</Text>
+                <Text style={[styles.infoValue, textStyle]} numberOfLines={1}>
+                  {joinDate}
+                </Text>
+              </View>
             </View>
           ) : null}
         </View>
 
         <TouchableOpacity
           style={styles.primaryButton}
+          activeOpacity={0.85}
           onPress={() => navigation.navigate('EditProfileScreen', { user: profile })}
         >
+          <Ionicons name="create-outline" size={18} color="#FFFFFF" />
           <Text style={styles.primaryButtonText}>{t('editProfile')}</Text>
         </TouchableOpacity>
 
-        <TouchableOpacity style={styles.menuRow} onPress={() => navigation.navigate('MyPosts')}>
-          <Text style={[styles.menuRowText, textStyle]}>{t('myPosts')}</Text>
-          <Text style={styles.menuRowChevron}>{isRTL ? '‹' : '›'}</Text>
-        </TouchableOpacity>
-        <TouchableOpacity style={styles.menuRow} onPress={() => navigation.navigate('SettingsScreen')}>
-          <Text style={[styles.menuRowText, textStyle]}>{t('settings')}</Text>
-          <Text style={styles.menuRowChevron}>{isRTL ? '‹' : '›'}</Text>
-        </TouchableOpacity>
+        <View style={styles.menuCard}>
+          <TouchableOpacity
+            style={styles.menuRow}
+            activeOpacity={0.7}
+            onPress={() => navigation.navigate('MyPosts')}
+          >
+            <View style={styles.menuRowIcon}>
+              <Ionicons name="albums-outline" size={19} color={tokens.brandPrimary} />
+            </View>
+            <Text style={[styles.menuRowText, textStyle]}>{t('myPosts')}</Text>
+            <Ionicons name={chevronIcon} size={18} color={`${tokens.ink}66`} />
+          </TouchableOpacity>
+
+          <View style={styles.menuRowDivider} />
+
+          <TouchableOpacity
+            style={styles.menuRow}
+            activeOpacity={0.7}
+            onPress={() => navigation.navigate('SettingsScreen')}
+          >
+            <View style={styles.menuRowIcon}>
+              <Ionicons name="settings-outline" size={19} color={tokens.brandPrimary} />
+            </View>
+            <Text style={[styles.menuRowText, textStyle]}>{t('settings')}</Text>
+            <Ionicons name={chevronIcon} size={18} color={`${tokens.ink}66`} />
+          </TouchableOpacity>
+        </View>
       </ScrollView>
     </View>
   );
 };
 
-const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-    backgroundColor: '#f5f5f5',
-  },
-  textRTL: {
-    textAlign: 'right',
-  },
-  centerContainer: {
-    flex: 1,
-    justifyContent: 'center',
-    alignItems: 'center',
-    padding: 24,
-  },
-  errorText: {
-    color: '#c62828',
-    fontSize: 14,
-    textAlign: 'center',
-    marginBottom: 16,
-  },
-  content: {
-    padding: 16,
-    paddingBottom: 40,
-  },
-  avatarSection: {
-    alignItems: 'center',
-    marginBottom: 20,
-  },
-  avatar: {
-    width: 84,
-    height: 84,
-    borderRadius: 42,
-    backgroundColor: '#2196F3',
-    justifyContent: 'center',
-    alignItems: 'center',
-    marginBottom: 12,
-  },
-  avatarText: {
-    color: '#fff',
-    fontSize: 34,
-    fontWeight: 'bold',
-  },
-  displayName: {
-    fontSize: 20,
-    fontWeight: 'bold',
-    color: '#333',
-  },
-  username: {
-    fontSize: 14,
-    color: '#999',
-    marginTop: 2,
-  },
-  providerBadge: {
-    marginTop: 10,
-    paddingHorizontal: 12,
-    paddingVertical: 4,
-    borderRadius: 12,
-    backgroundColor: '#e3f2fd',
-  },
-  providerBadgeText: {
-    color: '#1565C0',
-    fontSize: 12,
-    fontWeight: '600',
-  },
-  infoCard: {
-    backgroundColor: '#fff',
-    borderRadius: 8,
-    padding: 16,
-    marginBottom: 20,
-  },
-  infoRow: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    paddingVertical: 8,
-    borderBottomWidth: 1,
-    borderBottomColor: '#f0f0f0',
-  },
-  infoLabel: {
-    fontSize: 13,
-    color: '#999',
-  },
-  infoValue: {
-    fontSize: 14,
-    color: '#333',
-    fontWeight: '600',
-    flexShrink: 1,
-    textAlign: 'right',
-    marginStart: 12,
-  },
-  infoValueRTL: {
-    textAlign: 'left',
-  },
-  primaryButton: {
-    height: 48,
-    borderRadius: 8,
-    backgroundColor: '#2196F3',
-    justifyContent: 'center',
-    alignItems: 'center',
-    marginBottom: 20,
-  },
-  primaryButtonText: {
-    color: '#fff',
-    fontWeight: 'bold',
-    fontSize: 15,
-  },
-  menuRow: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
-    backgroundColor: '#fff',
-    borderRadius: 8,
-    paddingHorizontal: 16,
-    paddingVertical: 16,
-    marginBottom: 10,
-  },
-  menuRowText: {
-    fontSize: 15,
-    color: '#333',
-    fontWeight: '600',
-  },
-  menuRowChevron: {
-    fontSize: 20,
-    color: '#999',
-  },
-});
+const createStyles = (tokens, isRTL, isDark) =>
+  StyleSheet.create({
+    container: {
+      flex: 1,
+      backgroundColor: tokens.surfaceBase,
+    },
+    textRTL: {
+      textAlign: 'right',
+    },
+    centerContainer: {
+      flex: 1,
+      justifyContent: 'center',
+      alignItems: 'center',
+      padding: 24,
+    },
+    content: {
+      padding: 16,
+      paddingBottom: 40,
+    },
+
+    // Avatar header
+    avatarSection: {
+      alignItems: 'center',
+      marginBottom: 24,
+      marginTop: 4,
+    },
+    avatar: {
+      width: 92,
+      height: 92,
+      borderRadius: 46,
+      backgroundColor: tokens.brandPrimary,
+      justifyContent: 'center',
+      alignItems: 'center',
+      marginBottom: 14,
+      ...getElevation(isDark, 2),
+      shadowColor: tokens.brandPrimary,
+    },
+    avatarText: {
+      fontFamily: fontFamilies.display,
+      color: '#FFFFFF',
+      fontSize: 36,
+    },
+    displayName: {
+      fontFamily: fontFamilies.display,
+      fontSize: 21,
+      color: tokens.ink,
+      textAlign: 'center',
+    },
+    username: {
+      fontFamily: fontFamilies.body,
+      fontSize: 14,
+      color: `${tokens.ink}80`,
+      marginTop: 2,
+      textAlign: 'center',
+    },
+    providerBadge: {
+      flexDirection: 'row',
+      alignItems: 'center',
+      gap: 6,
+      marginTop: 12,
+      paddingHorizontal: 12,
+      paddingVertical: 6,
+      borderRadius: radiusTokens.md,
+      backgroundColor: `${tokens.brandPrimary}1A`,
+    },
+    providerBadgeText: {
+      fontFamily: fontFamilies.bodySemiBold,
+      color: tokens.brandPrimary,
+      fontSize: 12,
+    },
+
+    // Info panel - mirrors HomeScreen.js's panelContainer shell.
+    infoCard: {
+      backgroundColor: tokens.surfaceRaised,
+      borderRadius: radiusTokens.lg,
+      borderWidth: 1,
+      borderColor: `${tokens.ink}${isDark ? '14' : '26'}`,
+      padding: 8,
+      marginBottom: 20,
+      ...getElevation(isDark, 1),
+    },
+    infoRow: {
+      flexDirection: 'row',
+      alignItems: 'center',
+      gap: 12,
+      paddingHorizontal: 10,
+      paddingVertical: 12,
+    },
+    infoRowDivider: {
+      borderTopWidth: 1,
+      borderTopColor: `${tokens.ink}12`,
+    },
+    infoRowIcon: {
+      width: 36,
+      height: 36,
+      borderRadius: radiusTokens.sm,
+      backgroundColor: `${tokens.brandPrimary}14`,
+      justifyContent: 'center',
+      alignItems: 'center',
+    },
+    infoRowTextWrap: {
+      flex: 1,
+    },
+    infoLabel: {
+      fontFamily: fontFamilies.body,
+      fontSize: 12,
+      color: `${tokens.ink}80`,
+    },
+    infoValue: {
+      fontFamily: fontFamilies.bodySemiBold,
+      fontSize: 15,
+      color: tokens.ink,
+      marginTop: 2,
+    },
+
+    // Primary CTA - mirrors LoginScreen.js's button.
+    primaryButton: {
+      flexDirection: 'row',
+      alignItems: 'center',
+      justifyContent: 'center',
+      gap: 8,
+      height: 52,
+      borderRadius: radiusTokens.md,
+      backgroundColor: tokens.brandPrimary,
+      marginBottom: 20,
+      shadowColor: tokens.brandPrimary,
+      shadowOffset: { width: 0, height: 4 },
+      shadowOpacity: isDark ? 0 : 0.25,
+      shadowRadius: 8,
+      elevation: isDark ? 0 : 3,
+    },
+    primaryButtonText: {
+      color: '#FFFFFF',
+      fontFamily: fontFamilies.bodySemiBold,
+      fontSize: 15,
+    },
+
+    // Menu list
+    menuCard: {
+      backgroundColor: tokens.surfaceRaised,
+      borderRadius: radiusTokens.lg,
+      borderWidth: 1,
+      borderColor: `${tokens.ink}${isDark ? '14' : '26'}`,
+      overflow: 'hidden',
+      ...getElevation(isDark, 1),
+    },
+    menuRow: {
+      flexDirection: 'row',
+      alignItems: 'center',
+      gap: 12,
+      paddingHorizontal: 14,
+      paddingVertical: 16,
+    },
+    menuRowDivider: {
+      height: 1,
+      backgroundColor: `${tokens.ink}12`,
+      marginHorizontal: 14,
+    },
+    menuRowIcon: {
+      width: 36,
+      height: 36,
+      borderRadius: radiusTokens.sm,
+      backgroundColor: `${tokens.brandPrimary}14`,
+      justifyContent: 'center',
+      alignItems: 'center',
+    },
+    menuRowText: {
+      flex: 1,
+      fontFamily: fontFamilies.bodySemiBold,
+      fontSize: 15,
+      color: tokens.ink,
+      textAlign: isRTL ? 'right' : 'left',
+    },
+  });
 
 export default ProfileScreen;

@@ -1,9 +1,12 @@
 /**
  * Post Detail Screen
  * Mirrors: client/src/features/posts/PostPage/SinglePost.js (feature parity subset)
+ * Visual language matches HomeScreen.js/AppHeader.js's colorTokens-based
+ * styling (surfaceRaised cards, brandPrimary accents, status.found/lost
+ * tones) rather than the screen's original ad-hoc blue/grey palette.
  */
 
-import React, { useCallback, useEffect, useRef, useState } from 'react';
+import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import {
   View,
   Text,
@@ -17,13 +20,17 @@ import {
   Linking,
   Alert,
 } from 'react-native';
+import { Ionicons } from '@expo/vector-icons';
 import apiClient from '../api/apiService';
 import { API_ENDPOINTS, API_BASE_URL } from '../config/api';
 import { getCategoryConfig } from '../config/categories';
 import { useLanguage } from '../context/LanguageContext';
 import { useAuth } from '../context/AuthContext';
+import { useTheme } from '../context/ThemeContext';
 import { useTranslation } from '../utils/translations';
 import { getLocalizedLabel } from '../context/ReferenceDataContext';
+import { colorTokens, radiusTokens, fontFamilies, lightColors, darkColors } from '../theme/tokens';
+import AppHeader from '../components/AppHeader';
 import ReportPostSheet from '../components/ReportPostSheet';
 import PromotePostSheet from '../components/PromotePostSheet';
 import DataStateView from '../components/DataStateView';
@@ -36,6 +43,26 @@ const STATUS_KEYS = {
   expired: 'statusExpired',
   suspended: 'statusSuspended',
 };
+
+// Mirrors client/src/designTokens.js's elevationTokens (e1/e2 boxShadow
+// strings) as RN shadow/elevation props - same values HomeScreen.js/
+// PostsListScreen.js use for their surfaceRaised cards.
+const getElevation = (isDark, level = 1) =>
+  level === 2
+    ? {
+        shadowColor: '#000',
+        shadowOffset: { width: 0, height: 4 },
+        shadowOpacity: isDark ? 0.45 : 0.1,
+        shadowRadius: 16,
+        elevation: 4,
+      }
+    : {
+        shadowColor: '#000',
+        shadowOffset: { width: 0, height: 1 },
+        shadowOpacity: isDark ? 0.4 : 0.06,
+        shadowRadius: 2,
+        elevation: 2,
+      };
 
 const formatRelativeTime = (dateString, t) => {
   const date = new Date(dateString);
@@ -82,7 +109,11 @@ const PostDetailScreen = ({ navigation, route }) => {
   const { currentLanguage } = useLanguage();
   const { t } = useTranslation();
   const { user } = useAuth();
+  const { isDark } = useTheme();
   const isRTL = currentLanguage === 'ar';
+  const tokens = isDark ? colorTokens.dark : colorTokens.light;
+  const legacyColors = isDark ? darkColors : lightColors;
+  const styles = useMemo(() => createStyles(tokens, isRTL, isDark), [tokens, isRTL, isDark]);
 
   const [post, setPost] = useState(null);
   const [isLoading, setIsLoading] = useState(true);
@@ -146,34 +177,23 @@ const PostDetailScreen = ({ navigation, route }) => {
 
   const handleRefresh = () => loadPost(true);
 
-  const renderHeader = (showMenu = false) => (
-    <View style={styles.header}>
-      <TouchableOpacity onPress={() => navigation.goBack()} style={styles.backButton}>
-        <Text style={styles.backButtonText}>{isRTL ? '›' : '‹'}</Text>
-      </TouchableOpacity>
-      <Text style={styles.headerTitle} numberOfLines={1}>
-        {t('postDetails')}
-      </Text>
-      {showMenu ? (
-        <TouchableOpacity
-          onPress={() => setMenuVisible(true)}
-          style={styles.backButton}
-          accessibilityLabel={t('moreOptions')}
-        >
-          <Text style={styles.menuButtonText}>⋮</Text>
-        </TouchableOpacity>
-      ) : (
-        <View style={styles.backButton} />
-      )}
-    </View>
+  const menuButton = (
+    <TouchableOpacity
+      onPress={() => setMenuVisible(true)}
+      style={styles.headerMenuButton}
+      accessibilityLabel={t('moreOptions')}
+      hitSlop={8}
+    >
+      <Ionicons name="ellipsis-vertical" size={18} color={tokens.ink} />
+    </TouchableOpacity>
   );
 
   if (isLoading) {
     return (
       <View style={styles.container}>
-        {renderHeader()}
+        <AppHeader title={t('postDetails')} showMenu={false} onBack={() => navigation.goBack()} />
         <View style={styles.centerContainer}>
-          <ActivityIndicator size="large" color="#2196F3" />
+          <ActivityIndicator size="large" color={tokens.brandPrimary} />
           <Text style={styles.loadingText}>{t('loadingPost')}</Text>
         </View>
       </View>
@@ -183,7 +203,7 @@ const PostDetailScreen = ({ navigation, route }) => {
   if (error || !post) {
     return (
       <View style={styles.container}>
-        {renderHeader()}
+        <AppHeader title={t('postDetails')} showMenu={false} onBack={() => navigation.goBack()} />
         <View style={styles.centerContainer}>
           <DataStateView
             variant="error"
@@ -210,7 +230,11 @@ const PostDetailScreen = ({ navigation, route }) => {
   const badgeLabel =
     (floption && getLocalizedLabel(floption, currentLanguage)) ||
     (isFoundType ? t('foundItem') : isLostType ? t('lostItem') : t('unknownStatus'));
-  const badgeColor = isFoundType ? '#4CAF50' : isLostType ? '#F44336' : '#FF9800';
+  const badgeTone = isFoundType
+    ? tokens.status.found
+    : isLostType
+    ? tokens.status.lost
+    : { main: legacyColors.warning, bg: legacyColors.warningBackground };
 
   const categories = Array.isArray(post.Categories) ? post.Categories : [];
 
@@ -241,10 +265,18 @@ const PostDetailScreen = ({ navigation, route }) => {
 
   return (
     <View style={styles.container}>
-      {renderHeader(true)}
+      <AppHeader title={t('postDetails')} showMenu={false} onBack={() => navigation.goBack()} rightActions={menuButton} />
       <ScrollView
         contentContainerStyle={styles.content}
-        refreshControl={<RefreshControl refreshing={isRefreshing} onRefresh={handleRefresh} colors={['#2196F3']} />}
+        showsVerticalScrollIndicator={false}
+        refreshControl={
+          <RefreshControl
+            refreshing={isRefreshing}
+            onRefresh={handleRefresh}
+            colors={[tokens.brandPrimary]}
+            tintColor={tokens.brandPrimary}
+          />
+        }
       >
         {imageUri ? (
           <TouchableOpacity activeOpacity={0.9} onPress={() => setImageModalVisible(true)}>
@@ -252,20 +284,29 @@ const PostDetailScreen = ({ navigation, route }) => {
           </TouchableOpacity>
         ) : (
           <View style={styles.postImagePlaceholder}>
+            <Ionicons name="image-outline" size={48} color={`${tokens.ink}40`} />
             <Text style={styles.placeholderText}>{t('noImage')}</Text>
           </View>
         )}
 
         <View style={styles.body}>
           <View style={styles.badgeRow}>
-            <View style={[styles.badge, { backgroundColor: badgeColor }]}>
+            <View style={[styles.badge, { backgroundColor: badgeTone.main }]}>
+              <Ionicons
+                name={isFoundType ? 'checkmark-circle' : isLostType ? 'search' : 'help-circle'}
+                size={14}
+                color="#FFFFFF"
+              />
               <Text style={styles.badgeText}>{badgeLabel}</Text>
             </View>
           </View>
 
           {isResolved && (
-            <View style={styles.resolvedBanner}>
-              <Text style={styles.resolvedBannerText}>{statusLabel || t('resolvedBanner')}</Text>
+            <View style={[styles.resolvedBanner, { backgroundColor: tokens.status.found.bg }]}>
+              <Ionicons name="ribbon-outline" size={16} color={tokens.status.found.main} />
+              <Text style={[styles.resolvedBannerText, { color: tokens.status.found.main }]}>
+                {statusLabel || t('resolvedBanner')}
+              </Text>
             </View>
           )}
 
@@ -279,6 +320,7 @@ const PostDetailScreen = ({ navigation, route }) => {
                     key={cat._id || cat.code}
                     style={[styles.categoryChip, { backgroundColor: config.backgroundColor }]}
                   >
+                    <Ionicons name={config.icon} size={13} color={config.color} style={styles.categoryChipIcon} />
                     <Text style={[styles.categoryChipText, { color: config.color }]}>{label}</Text>
                   </View>
                 );
@@ -311,10 +353,16 @@ const PostDetailScreen = ({ navigation, route }) => {
 
           <View style={styles.metaRow}>
             {post.createdAt ? (
-              <Text style={styles.metaText}>{t('posted', { time: formatRelativeTime(post.createdAt, t) })}</Text>
+              <View style={styles.metaItem}>
+                <Ionicons name="time-outline" size={14} color={`${tokens.ink}80`} />
+                <Text style={styles.metaText}>{t('posted', { time: formatRelativeTime(post.createdAt, t) })}</Text>
+              </View>
             ) : null}
             {typeof post.views === 'number' ? (
-              <Text style={styles.metaText}>{t('views', { count: post.views })}</Text>
+              <View style={styles.metaItem}>
+                <Ionicons name="eye-outline" size={14} color={`${tokens.ink}80`} />
+                <Text style={styles.metaText}>{t('views', { count: post.views })}</Text>
+              </View>
             ) : null}
           </View>
 
@@ -322,24 +370,32 @@ const PostDetailScreen = ({ navigation, route }) => {
             <Text style={styles.sectionLabel}>{t('contactSeller')}</Text>
             {contactAction.type === 'email' && (
               <TouchableOpacity
-                style={[styles.contactButton, styles.emailButton]}
+                style={[styles.contactButton, styles.brandButton]}
                 onPress={() => openLink(`mailto:${contactAction.contact}`, t)}
+                activeOpacity={0.85}
               >
+                <Ionicons name="mail-outline" size={16} color="#FFFFFF" />
                 <Text style={styles.contactButtonText}>{t('email')}</Text>
               </TouchableOpacity>
             )}
             {contactAction.type === 'phone' && (
               <View style={styles.contactButtonsRow}>
                 <TouchableOpacity
-                  style={[styles.contactButton, styles.callButton]}
+                  style={[styles.contactButton, styles.brandButton]}
                   onPress={() => openLink(`tel:${contactAction.contact}`, t)}
+                  activeOpacity={0.85}
                 >
+                  <Ionicons name="call-outline" size={16} color="#FFFFFF" />
                   <Text style={styles.contactButtonText}>{t('call')}</Text>
                 </TouchableOpacity>
+                {/* #25D366 is WhatsApp's own brand color, kept literal rather than
+                    tokenized since it identifies the service, not this app's theme. */}
                 <TouchableOpacity
                   style={[styles.contactButton, styles.whatsappButton]}
                   onPress={() => openLink(`https://wa.me/${contactAction.digits}`, t)}
+                  activeOpacity={0.85}
                 >
+                  <Ionicons name="logo-whatsapp" size={16} color="#FFFFFF" />
                   <Text style={styles.contactButtonText}>{t('whatsapp')}</Text>
                 </TouchableOpacity>
               </View>
@@ -365,8 +421,13 @@ const PostDetailScreen = ({ navigation, route }) => {
           {imageUri ? (
             <Image source={{ uri: imageUri }} style={styles.fullscreenImage} resizeMode="contain" />
           ) : null}
-          <TouchableOpacity style={styles.modalCloseButton} onPress={() => setImageModalVisible(false)}>
-            <Text style={styles.modalCloseText}>{t('close')}</Text>
+          <TouchableOpacity
+            style={styles.modalCloseButton}
+            onPress={() => setImageModalVisible(false)}
+            accessibilityLabel={t('close')}
+            hitSlop={8}
+          >
+            <Ionicons name="close" size={22} color="#FFFFFF" />
           </TouchableOpacity>
         </TouchableOpacity>
       </Modal>
@@ -374,11 +435,13 @@ const PostDetailScreen = ({ navigation, route }) => {
       <Modal visible={menuVisible} transparent animationType="fade" onRequestClose={() => setMenuVisible(false)}>
         <TouchableOpacity style={styles.menuBackdrop} activeOpacity={1} onPress={() => setMenuVisible(false)}>
           <View style={styles.menuCard}>
-            <TouchableOpacity style={styles.menuItem} onPress={openReportSheet}>
+            <TouchableOpacity style={styles.menuItem} onPress={openReportSheet} activeOpacity={0.7}>
+              <Ionicons name="flag-outline" size={18} color={`${tokens.ink}99`} style={styles.menuItemIcon} />
               <Text style={[styles.menuItemText, isRTL && styles.textRTL]}>{t('reportThisPost')}</Text>
             </TouchableOpacity>
             {canPromote ? (
-              <TouchableOpacity style={styles.menuItem} onPress={openPromoteSheet}>
+              <TouchableOpacity style={styles.menuItem} onPress={openPromoteSheet} activeOpacity={0.7}>
+                <Ionicons name="megaphone-outline" size={18} color={`${tokens.ink}99`} style={styles.menuItemIcon} />
                 <Text style={[styles.menuItemText, isRTL && styles.textRTL]}>{t('promoteThisPost')}</Text>
               </TouchableOpacity>
             ) : null}
@@ -416,239 +479,260 @@ const PostDetailScreen = ({ navigation, route }) => {
   );
 };
 
-const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-    backgroundColor: '#f5f5f5',
-  },
-  header: {
-    backgroundColor: '#2196F3',
-    padding: 16,
-    paddingTop: 50,
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
-  },
-  backButton: {
-    width: 40,
-    justifyContent: 'center',
-    alignItems: 'flex-start',
-  },
-  backButtonText: {
-    color: '#fff',
-    fontSize: 32,
-    lineHeight: 32,
-  },
-  menuButtonText: {
-    color: '#fff',
-    fontSize: 24,
-    lineHeight: 24,
-    fontWeight: 'bold',
-  },
-  headerTitle: {
-    flex: 1,
-    fontSize: 20,
-    fontWeight: 'bold',
-    color: '#fff',
-    textAlign: 'center',
-  },
-  centerContainer: {
-    flex: 1,
-    justifyContent: 'center',
-    alignItems: 'center',
-    padding: 24,
-  },
-  loadingText: {
-    marginTop: 16,
-    color: '#666',
-  },
-  errorText: {
-    color: '#c62828',
-    fontSize: 14,
-    textAlign: 'center',
-  },
-  content: {
-    paddingBottom: 32,
-  },
-  postImage: {
-    width: '100%',
-    height: 280,
-    backgroundColor: '#f0f0f0',
-  },
-  postImagePlaceholder: {
-    width: '100%',
-    height: 280,
-    backgroundColor: '#e0e0e0',
-    justifyContent: 'center',
-    alignItems: 'center',
-  },
-  placeholderText: {
-    color: '#999',
-    fontSize: 14,
-  },
-  body: {
-    padding: 16,
-  },
-  badgeRow: {
-    flexDirection: 'row',
-    marginBottom: 12,
-  },
-  badge: {
-    paddingHorizontal: 12,
-    paddingVertical: 6,
-    borderRadius: 16,
-  },
-  badgeText: {
-    color: '#fff',
-    fontWeight: 'bold',
-    fontSize: 14,
-  },
-  resolvedBanner: {
-    backgroundColor: '#E8F5E9',
-    borderRadius: 8,
-    padding: 12,
-    marginBottom: 12,
-  },
-  resolvedBannerText: {
-    color: '#2E7D32',
-    fontWeight: '600',
-    textAlign: 'center',
-  },
-  chipsRow: {
-    flexDirection: 'row',
-    flexWrap: 'wrap',
-    marginBottom: 12,
-  },
-  categoryChip: {
-    paddingHorizontal: 10,
-    paddingVertical: 5,
-    borderRadius: 14,
-    marginEnd: 8,
-    marginBottom: 8,
-  },
-  categoryChipText: {
-    fontSize: 13,
-    fontWeight: '600',
-  },
-  section: {
-    marginBottom: 16,
-  },
-  sectionLabel: {
-    fontSize: 12,
-    fontWeight: 'bold',
-    color: '#999',
-    textTransform: 'uppercase',
-    marginBottom: 4,
-  },
-  bodyText: {
-    fontSize: 16,
-    color: '#333',
-    lineHeight: 22,
-  },
-  bodyTextSecondary: {
-    fontSize: 14,
-    color: '#666',
-    marginTop: 2,
-  },
-  textRTL: {
-    textAlign: 'right',
-  },
-  metaRow: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    marginBottom: 16,
-  },
-  metaText: {
-    fontSize: 12,
-    color: '#999',
-  },
-  contactButtonsRow: {
-    flexDirection: 'row',
-  },
-  contactButton: {
-    paddingVertical: 12,
-    paddingHorizontal: 20,
-    borderRadius: 8,
-    marginEnd: 12,
-    marginTop: 4,
-  },
-  callButton: {
-    backgroundColor: '#2196F3',
-  },
-  whatsappButton: {
-    backgroundColor: '#25D366',
-  },
-  emailButton: {
-    backgroundColor: '#2196F3',
-    alignSelf: 'flex-start',
-  },
-  contactButtonText: {
-    color: '#fff',
-    fontWeight: 'bold',
-    fontSize: 15,
-  },
-  modalOverlay: {
-    flex: 1,
-    backgroundColor: 'rgba(0,0,0,0.9)',
-    justifyContent: 'center',
-    alignItems: 'center',
-  },
-  fullscreenImage: {
-    width: '100%',
-    height: '80%',
-  },
-  modalCloseButton: {
-    position: 'absolute',
-    top: 50,
-    end: 20,
-    padding: 12,
-  },
-  modalCloseText: {
-    color: '#fff',
-    fontSize: 16,
-    fontWeight: 'bold',
-  },
-  menuBackdrop: {
-    flex: 1,
-    backgroundColor: 'rgba(0,0,0,0.2)',
-    alignItems: 'flex-end',
-  },
-  menuCard: {
-    marginTop: 90,
-    marginEnd: 16,
-    backgroundColor: '#fff',
-    borderRadius: 8,
-    minWidth: 180,
-    paddingVertical: 4,
-    elevation: 4,
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.2,
-    shadowRadius: 6,
-  },
-  menuItem: {
-    paddingVertical: 14,
-    paddingHorizontal: 16,
-  },
-  menuItemText: {
-    fontSize: 15,
-    color: '#333',
-  },
-  toast: {
-    position: 'absolute',
-    bottom: 24,
-    left: 24,
-    right: 24,
-    backgroundColor: '#333',
-    borderRadius: 8,
-    paddingHorizontal: 16,
-    paddingVertical: 12,
-  },
-  toastText: {
-    color: '#fff',
-    fontSize: 14,
-    textAlign: 'center',
-  },
-});
+const createStyles = (tokens, isRTL, isDark) =>
+  StyleSheet.create({
+    container: {
+      flex: 1,
+      backgroundColor: tokens.surfaceBase,
+    },
+    headerMenuButton: {
+      width: 38,
+      height: 38,
+      borderRadius: radiusTokens.md,
+      backgroundColor: `${tokens.ink}0A`,
+      borderWidth: 1,
+      borderColor: `${tokens.ink}${isDark ? '1F' : '14'}`,
+      justifyContent: 'center',
+      alignItems: 'center',
+    },
+    centerContainer: {
+      flex: 1,
+      justifyContent: 'center',
+      alignItems: 'center',
+      padding: 24,
+    },
+    loadingText: {
+      marginTop: 16,
+      fontFamily: fontFamilies.body,
+      color: `${tokens.ink}99`,
+    },
+    content: {
+      paddingBottom: 32,
+    },
+    postImage: {
+      width: '100%',
+      height: 300,
+      backgroundColor: tokens.surfaceBase,
+    },
+    postImagePlaceholder: {
+      width: '100%',
+      height: 300,
+      backgroundColor: tokens.surfaceBase,
+      justifyContent: 'center',
+      alignItems: 'center',
+      gap: 8,
+    },
+    placeholderText: {
+      fontFamily: fontFamilies.body,
+      color: `${tokens.ink}66`,
+      fontSize: 13,
+    },
+    body: {
+      backgroundColor: tokens.surfaceRaised,
+      borderTopLeftRadius: radiusTokens.xl,
+      borderTopRightRadius: radiusTokens.xl,
+      marginTop: -24,
+      paddingTop: 24,
+      paddingHorizontal: 20,
+      paddingBottom: 8,
+      ...getElevation(isDark, 2),
+    },
+    badgeRow: {
+      flexDirection: 'row',
+      marginBottom: 14,
+    },
+    badge: {
+      flexDirection: 'row',
+      alignItems: 'center',
+      gap: 6,
+      paddingHorizontal: 12,
+      paddingVertical: 7,
+      borderRadius: radiusTokens.sm,
+    },
+    badgeText: {
+      color: '#FFFFFF',
+      fontFamily: fontFamilies.bodySemiBold,
+      fontSize: 13,
+      textTransform: 'uppercase',
+    },
+    resolvedBanner: {
+      flexDirection: 'row',
+      alignItems: 'center',
+      justifyContent: 'center',
+      gap: 8,
+      borderRadius: radiusTokens.md,
+      paddingVertical: 12,
+      marginBottom: 14,
+    },
+    resolvedBannerText: {
+      fontFamily: fontFamilies.bodySemiBold,
+      fontSize: 14,
+      textAlign: 'center',
+    },
+    chipsRow: {
+      flexDirection: 'row',
+      flexWrap: 'wrap',
+      marginBottom: 8,
+    },
+    categoryChip: {
+      flexDirection: 'row',
+      alignItems: 'center',
+      paddingHorizontal: 10,
+      paddingVertical: 6,
+      borderRadius: radiusTokens.sm,
+      marginEnd: 8,
+      marginBottom: 8,
+    },
+    categoryChipIcon: {
+      marginEnd: 5,
+    },
+    categoryChipText: {
+      fontFamily: fontFamilies.bodyMedium,
+      fontSize: 13,
+    },
+    section: {
+      marginTop: 16,
+    },
+    sectionLabel: {
+      fontFamily: fontFamilies.bodySemiBold,
+      fontSize: 12,
+      color: `${tokens.ink}99`,
+      textTransform: 'uppercase',
+      letterSpacing: 0.5,
+      marginBottom: 5,
+    },
+    bodyText: {
+      fontFamily: fontFamilies.body,
+      fontSize: 16,
+      color: tokens.ink,
+      lineHeight: 22,
+    },
+    bodyTextSecondary: {
+      fontFamily: fontFamilies.body,
+      fontSize: 14,
+      color: `${tokens.ink}99`,
+      marginTop: 2,
+    },
+    textRTL: {
+      textAlign: 'right',
+    },
+    metaRow: {
+      flexDirection: 'row',
+      gap: 18,
+      marginTop: 16,
+      paddingTop: 16,
+      borderTopWidth: 1,
+      borderTopColor: `${tokens.ink}${isDark ? '1F' : '14'}`,
+    },
+    metaItem: {
+      flexDirection: 'row',
+      alignItems: 'center',
+      gap: 5,
+    },
+    metaText: {
+      fontFamily: fontFamilies.body,
+      fontSize: 12,
+      color: `${tokens.ink}80`,
+    },
+    contactButtonsRow: {
+      flexDirection: 'row',
+      gap: 12,
+    },
+    contactButton: {
+      flexDirection: 'row',
+      alignItems: 'center',
+      justifyContent: 'center',
+      gap: 8,
+      paddingVertical: 13,
+      paddingHorizontal: 20,
+      borderRadius: radiusTokens.md,
+      marginTop: 4,
+    },
+    brandButton: {
+      backgroundColor: tokens.brandPrimary,
+    },
+    whatsappButton: {
+      backgroundColor: '#25D366',
+    },
+    contactButtonText: {
+      color: '#FFFFFF',
+      fontFamily: fontFamilies.bodySemiBold,
+      fontSize: 15,
+    },
+    modalOverlay: {
+      flex: 1,
+      backgroundColor: 'rgba(0,0,0,0.92)',
+      justifyContent: 'center',
+      alignItems: 'center',
+    },
+    fullscreenImage: {
+      width: '100%',
+      height: '80%',
+    },
+    modalCloseButton: {
+      position: 'absolute',
+      top: 50,
+      end: 20,
+      width: 40,
+      height: 40,
+      borderRadius: 20,
+      backgroundColor: 'rgba(255,255,255,0.15)',
+      justifyContent: 'center',
+      alignItems: 'center',
+    },
+    menuBackdrop: {
+      flex: 1,
+      backgroundColor: 'rgba(0,0,0,0.3)',
+      alignItems: 'flex-end',
+    },
+    menuCard: {
+      marginTop: 90,
+      marginEnd: 16,
+      backgroundColor: tokens.surfaceRaised,
+      borderRadius: radiusTokens.lg,
+      borderWidth: 1,
+      borderColor: `${tokens.ink}${isDark ? '1F' : '14'}`,
+      minWidth: 200,
+      paddingVertical: 6,
+      shadowColor: '#000',
+      shadowOffset: { width: 0, height: 4 },
+      shadowOpacity: isDark ? 0.5 : 0.2,
+      shadowRadius: 8,
+      elevation: 8,
+    },
+    menuItem: {
+      flexDirection: 'row',
+      alignItems: 'center',
+      paddingVertical: 12,
+      paddingHorizontal: 16,
+    },
+    menuItemIcon: {
+      marginEnd: 10,
+    },
+    menuItemText: {
+      fontFamily: fontFamilies.bodyMedium,
+      fontSize: 15,
+      color: tokens.ink,
+    },
+    toast: {
+      position: 'absolute',
+      bottom: 24,
+      start: 24,
+      end: 24,
+      backgroundColor: `${tokens.ink}E6`,
+      borderRadius: radiusTokens.md,
+      paddingHorizontal: 16,
+      paddingVertical: 12,
+    },
+    toastText: {
+      // Contrast text for the toast chip - inverse of `ink` the same way
+      // HomeScreen's statusTagText/dateBadgeText use literal contrast colors
+      // over a solid-fill background rather than a themed token.
+      color: isDark ? '#0B1220' : '#FFFFFF',
+      fontFamily: fontFamilies.bodyMedium,
+      fontSize: 14,
+      textAlign: 'center',
+    },
+  });
 
 export default PostDetailScreen;

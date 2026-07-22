@@ -45,14 +45,13 @@ const NewPostScreen = ({ navigation }) => {
       const postId = response.data?.postId;
       // Land on the new post's detail with Home as the underlying tab, so
       // back from the detail screen returns to Home rather than to this
-      // now-submitted form.
-      navigation.getParent()?.reset({
-        index: 1,
-        routes: [
-          { name: 'MainTabs', state: { routes: [{ name: 'Home' }] } },
-          { name: 'PostDetailScreen', params: { id: postId } },
-        ],
-      });
+      // now-submitted form. NewPost, Home and PostDetailScreen are all tabs
+      // of the same Tab.Navigator (MainTabs), so navigating there directly
+      // (rather than reset()-ing a parent that doesn't own PostDetailScreen
+      // as a top-level route) moves Home to the front of the "history"
+      // backBehavior order before landing on PostDetailScreen.
+      navigation.navigate('Home');
+      navigation.navigate('PostDetailScreen', { id: postId });
     } catch (err) {
       if (err.response?.status === 429) {
         setSubmitError({ type: 'ratelimit', message: err.response.data?.message || t('postingLimitReached') });

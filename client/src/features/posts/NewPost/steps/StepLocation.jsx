@@ -10,6 +10,7 @@ import {
   Divider,
   CircularProgress,
   useTheme,
+  alpha,
 } from "@mui/material";
 import { LocationOn, Add as AddIcon } from '@mui/icons-material';
 import Textfield from "../../../../components/Textfield";
@@ -104,7 +105,7 @@ const StepLocation = ({
             mb: 1,
             display: "block",
             fontSize: '1rem',
-            color: theme.palette.mode === 'dark' ? 'rgba(255,255,255,0.7)' : 'rgba(0,0,0,0.6)',
+            color: alpha(theme.custom.color.ink, theme.palette.mode === 'dark' ? 0.7 : 0.6),
             fontWeight: 500
           }}
         >
@@ -122,10 +123,10 @@ const StepLocation = ({
             sx={{
               borderRadius: 2,
               '& .MuiOutlinedInput-notchedOutline': {
-                borderColor: theme.palette.mode === 'dark' ? 'rgba(255,255,255,0.3)' : 'rgba(0,0,0,0.2)',
+                borderColor: alpha(theme.custom.color.ink, theme.palette.mode === 'dark' ? 0.3 : 0.2),
               },
               '&:hover .MuiOutlinedInput-notchedOutline': {
-                borderColor: theme.palette.mode === 'dark' ? 'rgba(255,255,255,0.5)' : 'rgba(0,0,0,0.4)',
+                borderColor: alpha(theme.custom.color.ink, theme.palette.mode === 'dark' ? 0.5 : 0.4),
               },
               '&.Mui-focused .MuiOutlinedInput-notchedOutline': {
                 borderColor: theme.custom.color.brandPrimary,
@@ -191,7 +192,7 @@ const StepLocation = ({
             mb: 1,
             display: "block",
             fontSize: '1rem',
-            color: theme.palette.mode === 'dark' ? 'rgba(255,255,255,0.7)' : 'rgba(0,0,0,0.6)',
+            color: alpha(theme.custom.color.ink, theme.palette.mode === 'dark' ? 0.7 : 0.6),
             fontWeight: 500
           }}
         >
@@ -227,13 +228,13 @@ const StepLocation = ({
               borderRadius: 2,
               '& .MuiOutlinedInput-root': {
                 '&:hover fieldset': {
-                borderColor: theme.palette.mode === 'dark' ? 'rgba(255,255,255,0.5)' : 'rgba(0,0,0,0.4)',
+                borderColor: alpha(theme.custom.color.ink, theme.palette.mode === 'dark' ? 0.5 : 0.4),
               },
                 '&.Mui-focused fieldset': {
                 borderColor: theme.custom.color.brandPrimary,
               },
                 '& fieldset': {
-                  borderColor: theme.palette.mode === 'dark' ? 'rgba(255,255,255,0.3)' : 'rgba(0,0,0,0.2)',
+                  borderColor: alpha(theme.custom.color.ink, theme.palette.mode === 'dark' ? 0.3 : 0.2),
                 },
               color: theme.palette.text.primary,
                 fontWeight: 500,
@@ -258,8 +259,8 @@ const StepLocation = ({
               sx={{
                 position: 'absolute',
                 top: '100%',
-                left: 0,
-                right: 0,
+                insetInlineStart: 0,
+                insetInlineEnd: 0,
                 zIndex: '99999 !important',
                 backgroundColor: theme.palette.background.paper,
                 border: `1px solid ${theme.palette.divider}`,
@@ -285,18 +286,18 @@ const StepLocation = ({
                   autoFocus
                   sx={{
                     '& .MuiOutlinedInput-root': {
-                      backgroundColor: theme.palette.mode === 'dark' ? 'rgba(255,255,255,0.05)' : 'rgba(0,0,0,0.02)',
+                      backgroundColor: alpha(theme.custom.color.ink, theme.palette.mode === 'dark' ? 0.05 : 0.02),
                       '& fieldset': {
-                        borderColor: theme.palette.mode === 'dark' ? 'rgba(255,255,255,0.3)' : 'rgba(0,0,0,0.2)',
+                        borderColor: alpha(theme.custom.color.ink, theme.palette.mode === 'dark' ? 0.3 : 0.2),
                       },
                       '&:hover': {
-                        backgroundColor: theme.palette.mode === 'dark' ? 'rgba(255,255,255,0.08)' : 'rgba(0,0,0,0.04)',
+                        backgroundColor: alpha(theme.custom.color.ink, theme.palette.mode === 'dark' ? 0.08 : 0.04),
                       },
                       '&:hover fieldset': {
-                        borderColor: theme.palette.mode === 'dark' ? 'rgba(255,255,255,0.5)' : 'rgba(0,0,0,0.4)',
+                        borderColor: alpha(theme.custom.color.ink, theme.palette.mode === 'dark' ? 0.5 : 0.4),
                       },
                       '&.Mui-focused': {
-                        backgroundColor: theme.palette.mode === 'dark' ? 'rgba(255,255,255,0.08)' : 'rgba(0,0,0,0.04)',
+                        backgroundColor: alpha(theme.custom.color.ink, theme.palette.mode === 'dark' ? 0.08 : 0.04),
                       },
                       '&.Mui-focused fieldset': {
                         borderColor: theme.custom.color.brandPrimary,
@@ -308,9 +309,9 @@ const StepLocation = ({
                   }}
                   InputProps={{
                     startAdornment: isSearching ? (
-                      <CircularProgress size={16} sx={{ mr: 1 }} />
+                      <CircularProgress size={16} sx={{ marginInlineEnd: 1 }} />
                     ) : (
-                      <LocationOn sx={{ color: theme.palette.text.secondary, mr: 1, fontSize: 20 }} />
+                      <LocationOn sx={{ color: theme.palette.text.secondary, marginInlineEnd: 1, fontSize: 20 }} />
                     )
                   }}
                 />
@@ -567,7 +568,7 @@ const StepLocation = ({
             mb: 1,
             display: "block",
             fontSize: '1rem',
-            color: theme.palette.mode === 'dark' ? 'rgba(255,255,255,0.7)' : 'rgba(0,0,0,0.6)',
+            color: alpha(theme.custom.color.ink, theme.palette.mode === 'dark' ? 0.7 : 0.6),
             fontWeight: 500
           }}
         >
@@ -619,7 +620,7 @@ const StepLocation = ({
             mb: 1,
             display: "block",
             fontSize: '1rem',
-            color: theme.palette.mode === 'dark' ? 'rgba(255,255,255,0.7)' : 'rgba(0,0,0,0.6)',
+            color: alpha(theme.custom.color.ink, theme.palette.mode === 'dark' ? 0.7 : 0.6),
             fontWeight: 500
           }}
         >

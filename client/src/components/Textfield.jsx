@@ -1,8 +1,10 @@
-import { TextField } from "@mui/material";
+import { TextField, alpha } from "@mui/material";
+import { useTheme } from "@mui/material/styles";
 import { useField } from "formik";
 
 const Textfield = ({ name, variant, error, helperText, onErrorClear, ...otherProps }) => {
   const [field, mata] = useField(name);
+  const theme = useTheme();
 
   const handleChange = (event) => {
     const { value } = event.target;
@@ -35,8 +37,19 @@ const Textfield = ({ name, variant, error, helperText, onErrorClear, ...otherPro
     <TextField
       {...textFieldConfig}
       sx={{
-        "& .MuiOutlinedInput-notchedOutline": {
-          borderColor: "#3F3D56",
+        "& .MuiOutlinedInput-root": {
+          "& fieldset": {
+            borderColor: alpha(theme.custom.color.ink, theme.palette.mode === "dark" ? 0.3 : 0.2),
+          },
+          "&:hover fieldset": {
+            borderColor: alpha(theme.custom.color.ink, theme.palette.mode === "dark" ? 0.5 : 0.4),
+          },
+          "&.Mui-focused fieldset": {
+            borderColor: theme.custom.color.brandPrimary,
+          },
+          "&.Mui-error fieldset": {
+            borderColor: theme.palette.error.main,
+          },
         },
       }}
     />

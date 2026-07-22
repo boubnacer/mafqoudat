@@ -170,7 +170,7 @@ const Process = () => {
                 <Typography
                   sx={{
                     fontWeight: 700,
-                    fontSize: { xs: '1.05rem', md: '1rem' },
+                    fontSize: { xs: '1.2rem', md: '1.15rem' },
                     color: theme.custom.color.ink,
                   }}
                 >
@@ -179,7 +179,7 @@ const Process = () => {
                 <Typography
                   sx={{
                     mt: 0.5,
-                    fontSize: { xs: '0.95rem', md: '0.875rem' },
+                    fontSize: { xs: '1.05rem', md: '1rem' },
                     color: alpha(theme.custom.color.ink, 0.7),
                   }}
                 >
@@ -201,7 +201,7 @@ const Process = () => {
                           backgroundColor: theme.custom.status.lost.main,
                         }}
                       />
-                      <Typography sx={{ fontSize: '0.8rem', color: alpha(theme.custom.color.ink, 0.65) }}>
+                      <Typography sx={{ fontSize: '0.9rem', color: alpha(theme.custom.color.ink, 0.65) }}>
                         {t('notifyLostHint')}
                       </Typography>
                     </Box>
@@ -216,7 +216,7 @@ const Process = () => {
                           backgroundColor: theme.custom.status.found.main,
                         }}
                       />
-                      <Typography sx={{ fontSize: '0.8rem', color: alpha(theme.custom.color.ink, 0.65) }}>
+                      <Typography sx={{ fontSize: '0.9rem', color: alpha(theme.custom.color.ink, 0.65) }}>
                         {t('notifyFoundHint')}
                       </Typography>
                     </Box>

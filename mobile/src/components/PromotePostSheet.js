@@ -6,12 +6,19 @@
  * ownership (403 if the caller isn't post.user) regardless of this UI gate.
  */
 
-import React, { useState } from 'react';
+import React, { useMemo, useState } from 'react';
 import { View, Text, StyleSheet, TouchableOpacity, TextInput, Modal, ActivityIndicator } from 'react-native';
+import { Ionicons } from '@expo/vector-icons';
 import apiClient from '../api/apiService';
 import { API_ENDPOINTS } from '../config/api';
+import { useTheme } from '../context/ThemeContext';
+import { colorTokens, radiusTokens, fontFamilies } from '../theme/tokens';
 
 const PromotePostSheet = ({ visible, onClose, postId, t, isRTL, onSubmitted }) => {
+  const { isDark } = useTheme();
+  const tokens = isDark ? colorTokens.dark : colorTokens.light;
+  const styles = useMemo(() => createStyles(tokens, isDark), [tokens, isDark]);
+
   const [phoneNumber, setPhoneNumber] = useState('');
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [error, setError] = useState('');
@@ -68,8 +75,8 @@ const PromotePostSheet = ({ visible, onClose, postId, t, isRTL, onSubmitted }) =
         <View style={styles.sheet}>
           <View style={styles.header}>
             <Text style={[styles.headerTitle, textStyle]}>{t('promotePostTitle')}</Text>
-            <TouchableOpacity onPress={resetAndClose} style={styles.closeButton}>
-              <Text style={styles.closeButtonText}>✕</Text>
+            <TouchableOpacity onPress={resetAndClose} style={styles.closeButton} hitSlop={8}>
+              <Ionicons name="close" size={20} color={`${tokens.ink}CC`} />
             </TouchableOpacity>
           </View>
 
@@ -80,7 +87,7 @@ const PromotePostSheet = ({ visible, onClose, postId, t, isRTL, onSubmitted }) =
             <TextInput
               style={[styles.input, textStyle]}
               placeholder={t('enterPhoneNumber')}
-              placeholderTextColor="#999"
+              placeholderTextColor={`${tokens.ink}66`}
               value={phoneNumber}
               onChangeText={(value) => {
                 setPhoneNumber(value);
@@ -114,111 +121,118 @@ const PromotePostSheet = ({ visible, onClose, postId, t, isRTL, onSubmitted }) =
   );
 };
 
-const styles = StyleSheet.create({
-  overlay: {
-    flex: 1,
-    justifyContent: 'flex-end',
-  },
-  backdrop: {
-    ...StyleSheet.absoluteFillObject,
-    backgroundColor: 'rgba(0,0,0,0.4)',
-  },
-  sheet: {
-    backgroundColor: '#fff',
-    borderTopLeftRadius: 16,
-    borderTopRightRadius: 16,
-    paddingBottom: 16,
-  },
-  header: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
-    padding: 16,
-    borderBottomWidth: 1,
-    borderBottomColor: '#eee',
-  },
-  headerTitle: {
-    fontSize: 18,
-    fontWeight: 'bold',
-    color: '#333',
-  },
-  closeButton: {
-    padding: 4,
-  },
-  closeButtonText: {
-    fontSize: 18,
-    color: '#666',
-  },
-  body: {
-    paddingHorizontal: 16,
-  },
-  description: {
-    fontSize: 14,
-    color: '#666',
-    marginTop: 16,
-    marginBottom: 8,
-    lineHeight: 20,
-  },
-  sectionLabel: {
-    fontSize: 12,
-    fontWeight: 'bold',
-    color: '#999',
-    textTransform: 'uppercase',
-    marginTop: 16,
-    marginBottom: 8,
-  },
-  input: {
-    height: 48,
-    backgroundColor: '#f5f5f5',
-    borderRadius: 8,
-    paddingHorizontal: 16,
-    fontSize: 15,
-    color: '#333',
-  },
-  errorText: {
-    color: '#c62828',
-    fontSize: 14,
-    marginTop: 12,
-  },
-  textRTL: {
-    textAlign: 'right',
-  },
-  footer: {
-    flexDirection: 'row',
-    paddingHorizontal: 16,
-    paddingTop: 16,
-    borderTopWidth: 1,
-    borderTopColor: '#eee',
-  },
-  cancelButton: {
-    flex: 1,
-    paddingVertical: 14,
-    borderRadius: 8,
-    borderWidth: 1,
-    borderColor: '#2196F3',
-    alignItems: 'center',
-    marginEnd: 8,
-  },
-  cancelButtonText: {
-    color: '#2196F3',
-    fontWeight: 'bold',
-    fontSize: 15,
-  },
-  submitButton: {
-    flex: 1,
-    paddingVertical: 14,
-    borderRadius: 8,
-    backgroundColor: '#2196F3',
-    alignItems: 'center',
-  },
-  submitButtonDisabled: {
-    opacity: 0.6,
-  },
-  submitButtonText: {
-    color: '#fff',
-    fontWeight: 'bold',
-    fontSize: 15,
-  },
-});
+const createStyles = (tokens, isDark) =>
+  StyleSheet.create({
+    overlay: {
+      flex: 1,
+      justifyContent: 'flex-end',
+    },
+    backdrop: {
+      ...StyleSheet.absoluteFillObject,
+      backgroundColor: 'rgba(0,0,0,0.4)',
+    },
+    sheet: {
+      backgroundColor: tokens.surfaceRaised,
+      borderTopLeftRadius: radiusTokens.xl,
+      borderTopRightRadius: radiusTokens.xl,
+      paddingBottom: 16,
+    },
+    header: {
+      flexDirection: 'row',
+      justifyContent: 'space-between',
+      alignItems: 'center',
+      padding: 16,
+      borderBottomWidth: 1,
+      borderBottomColor: `${tokens.ink}${isDark ? '1F' : '14'}`,
+    },
+    headerTitle: {
+      fontFamily: fontFamilies.display,
+      fontSize: 18,
+      color: tokens.ink,
+    },
+    closeButton: {
+      width: 32,
+      height: 32,
+      borderRadius: radiusTokens.sm,
+      justifyContent: 'center',
+      alignItems: 'center',
+      backgroundColor: `${tokens.ink}0A`,
+    },
+    body: {
+      paddingHorizontal: 16,
+    },
+    description: {
+      fontFamily: fontFamilies.body,
+      fontSize: 14,
+      color: `${tokens.ink}99`,
+      marginTop: 16,
+      marginBottom: 8,
+      lineHeight: 20,
+    },
+    sectionLabel: {
+      fontFamily: fontFamilies.bodySemiBold,
+      fontSize: 12,
+      color: `${tokens.ink}80`,
+      textTransform: 'uppercase',
+      marginTop: 16,
+      marginBottom: 8,
+    },
+    input: {
+      height: 48,
+      backgroundColor: tokens.surfaceBase,
+      borderRadius: radiusTokens.md,
+      paddingHorizontal: 16,
+      fontFamily: fontFamilies.body,
+      fontSize: 15,
+      color: tokens.ink,
+      borderWidth: 1,
+      borderColor: `${tokens.ink}${isDark ? '1F' : '14'}`,
+    },
+    errorText: {
+      fontFamily: fontFamilies.bodyMedium,
+      color: tokens.status.lost.main,
+      fontSize: 14,
+      marginTop: 12,
+    },
+    textRTL: {
+      textAlign: 'right',
+    },
+    footer: {
+      flexDirection: 'row',
+      paddingHorizontal: 16,
+      paddingTop: 16,
+      borderTopWidth: 1,
+      borderTopColor: `${tokens.ink}${isDark ? '1F' : '14'}`,
+    },
+    cancelButton: {
+      flex: 1,
+      paddingVertical: 14,
+      borderRadius: radiusTokens.md,
+      borderWidth: 1,
+      borderColor: tokens.brandPrimary,
+      alignItems: 'center',
+      marginEnd: 8,
+    },
+    cancelButtonText: {
+      fontFamily: fontFamilies.bodySemiBold,
+      color: tokens.brandPrimary,
+      fontSize: 15,
+    },
+    submitButton: {
+      flex: 1,
+      paddingVertical: 14,
+      borderRadius: radiusTokens.md,
+      backgroundColor: tokens.brandPrimary,
+      alignItems: 'center',
+    },
+    submitButtonDisabled: {
+      opacity: 0.6,
+    },
+    submitButtonText: {
+      fontFamily: fontFamilies.bodySemiBold,
+      color: '#FFFFFF',
+      fontSize: 15,
+    },
+  });
 
 export default PromotePostSheet;

@@ -7,9 +7,11 @@ import {
   Chip,
   Autocomplete,
   Alert,
-  ToggleButtonGroup,
-  ToggleButton,
+  Select,
+  MenuItem,
+  FormControl,
   useTheme,
+  alpha,
 } from "@mui/material";
 import { TaskAltOutlined, SearchOffOutlined } from "@mui/icons-material";
 import Textfield from "../../../../components/Textfield";
@@ -60,50 +62,87 @@ const StepItem = ({ flOptions, categories, fieldErrors, clearFieldError, getFoun
         >
           {t('haveYouLostOrFoundSomething')}<RequiredMark />
         </FormLabel>
-        <ToggleButtonGroup
-          exclusive
-          fullWidth
-          value={values.foundLost || null}
-          onChange={(event, newValue) => {
-            if (newValue === null) return;
-            setFieldValue('foundLost', newValue);
-            clearFieldError('foundLost');
-          }}
-          data-testid="foundLost"
-          sx={{ gap: 1.5 }}
-        >
-          {flOptions.map((option) => {
-            const isLost = option.code === 'LOST';
-            const tone = isLost ? theme.custom.status.lost : theme.custom.status.found;
-            const Icon = isLost ? SearchOffOutlined : TaskAltOutlined;
-            return (
-              <ToggleButton
-                key={option.id}
-                value={option.id}
-                sx={{
-                  textTransform: 'none',
-                  fontWeight: 600,
-                  borderRadius: 2,
-                  border: `1px solid ${fieldErrors.foundLost ? theme.palette.error.main : theme.palette.divider}`,
-                  color: theme.palette.text.primary,
-                  gap: 1,
-                  py: 1.25,
-                  '&.Mui-selected': {
-                    backgroundColor: tone.bg,
-                    color: tone.main,
-                    borderColor: tone.border,
-                  },
-                  '&.Mui-selected:hover': {
-                    backgroundColor: tone.bg,
-                  },
-                }}
-              >
-                <Icon fontSize="small" />
-                {getFlOptionLabel(option, currentLanguage)}
-              </ToggleButton>
-            );
-          })}
-        </ToggleButtonGroup>
+        <FormControl fullWidth error={!!fieldErrors.foundLost}>
+          <Select
+            value={values.foundLost || ''}
+            onChange={(event) => {
+              setFieldValue('foundLost', event.target.value);
+              clearFieldError('foundLost');
+            }}
+            displayEmpty
+            data-testid="foundLost"
+            renderValue={(selected) => {
+              const option = flOptions.find((opt) => opt.id === selected);
+              if (!option) {
+                return (
+                  <Typography sx={{ color: theme.palette.text.secondary, fontWeight: 500 }}>
+                    {t('haveYouLostOrFoundSomething')}
+                  </Typography>
+                );
+              }
+              const isLost = option.code === 'LOST';
+              const tone = isLost ? theme.custom.status.lost : theme.custom.status.found;
+              const Icon = isLost ? SearchOffOutlined : TaskAltOutlined;
+              return (
+                <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, color: tone.main, fontWeight: 700 }}>
+                  <Icon fontSize="small" />
+                  {getFlOptionLabel(option, currentLanguage)}
+                </Box>
+              );
+            }}
+            sx={{
+              borderRadius: 2,
+              '& .MuiOutlinedInput-notchedOutline': {
+                borderColor: fieldErrors.foundLost
+                  ? theme.palette.error.main
+                  : alpha(theme.custom.color.ink, theme.palette.mode === 'dark' ? 0.3 : 0.2),
+              },
+              '&:hover .MuiOutlinedInput-notchedOutline': {
+                borderColor: fieldErrors.foundLost
+                  ? theme.palette.error.main
+                  : alpha(theme.custom.color.ink, theme.palette.mode === 'dark' ? 0.5 : 0.4),
+              },
+              '&.Mui-focused .MuiOutlinedInput-notchedOutline': {
+                borderColor: theme.custom.color.brandPrimary,
+              },
+            }}
+            MenuProps={{
+              PaperProps: {
+                sx: { borderRadius: 2, mt: 0.5 },
+              },
+            }}
+          >
+            {flOptions.map((option) => {
+              const isLost = option.code === 'LOST';
+              const tone = isLost ? theme.custom.status.lost : theme.custom.status.found;
+              const Icon = isLost ? SearchOffOutlined : TaskAltOutlined;
+              return (
+                <MenuItem
+                  key={option.id}
+                  value={option.id}
+                  sx={{
+                    display: 'flex',
+                    alignItems: 'center',
+                    gap: 1,
+                    fontWeight: 600,
+                    py: 1.25,
+                    color: theme.palette.text.primary,
+                    '&.Mui-selected': {
+                      backgroundColor: tone.bg,
+                      color: tone.main,
+                    },
+                    '&.Mui-selected:hover': {
+                      backgroundColor: tone.bg,
+                    },
+                  }}
+                >
+                  <Icon fontSize="small" sx={{ color: tone.main }} />
+                  {getFlOptionLabel(option, currentLanguage)}
+                </MenuItem>
+              );
+            })}
+          </Select>
+        </FormControl>
         {fieldErrors.foundLost && (
           <Typography
             variant="caption"
@@ -136,7 +175,7 @@ const StepItem = ({ flOptions, categories, fieldErrors, clearFieldError, getFoun
             mb: 1,
             display: "block",
             fontSize: '1rem',
-            color: theme.palette.mode === 'dark' ? 'rgba(255,255,255,0.7)' : 'rgba(0,0,0,0.6)',
+            color: alpha(theme.custom.color.ink, theme.palette.mode === 'dark' ? 0.7 : 0.6),
             fontWeight: 500
           }}
         >
@@ -203,13 +242,13 @@ const StepItem = ({ flOptions, categories, fieldErrors, clearFieldError, getFoun
                 borderRadius: 2,
                 '& .MuiOutlinedInput-root': {
                   '&:hover fieldset': {
-                    borderColor: theme.palette.mode === 'dark' ? 'rgba(255,255,255,0.5)' : 'rgba(0,0,0,0.4)',
+                    borderColor: alpha(theme.custom.color.ink, theme.palette.mode === 'dark' ? 0.5 : 0.4),
                   },
                   '&.Mui-focused fieldset': {
                     borderColor: theme.custom.color.brandPrimary,
                   },
                   '& fieldset': {
-                    borderColor: theme.palette.mode === 'dark' ? 'rgba(255,255,255,0.3)' : 'rgba(0,0,0,0.2)',
+                    borderColor: alpha(theme.custom.color.ink, theme.palette.mode === 'dark' ? 0.3 : 0.2),
                   },
                 },
               }}
@@ -285,7 +324,7 @@ const StepItem = ({ flOptions, categories, fieldErrors, clearFieldError, getFoun
             mb: 1,
             display: "block",
             fontSize: '1rem',
-            color: theme.palette.mode === 'dark' ? 'rgba(255,255,255,0.7)' : 'rgba(0,0,0,0.6)',
+            color: alpha(theme.custom.color.ink, theme.palette.mode === 'dark' ? 0.7 : 0.6),
             fontWeight: 500
           }}
         >

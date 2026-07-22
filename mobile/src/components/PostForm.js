@@ -150,8 +150,11 @@ const PostForm = ({ mode, initialPost, isSubmitting, submitError, submitButtonLa
   const [fieldErrors, setFieldErrors] = useState({});
   const [validationError, setValidationError] = useState(null);
 
-  const [activeStep, setActiveStep] = useState(0);
-  const [maxStepReached, setMaxStepReached] = useState(0);
+  // Edit mode lands directly on the Review step - the user is changing an
+  // existing, already-complete post, not filling one out from scratch, so
+  // every earlier step is "reached" and reviewable/editable immediately.
+  const [activeStep, setActiveStep] = useState(isEdit ? 3 : 0);
+  const [maxStepReached, setMaxStepReached] = useState(isEdit ? 3 : 0);
   const scrollViewRef = useRef(null);
 
   // Prefill country + contact from the account profile - only relevant for a
@@ -502,6 +505,7 @@ const PostForm = ({ mode, initialPost, isSubmitting, submitError, submitButtonLa
                 {t('postType')}
                 <Text style={styles.requiredMark}> *</Text>
               </Text>
+              <Text style={[styles.helperText, textStyle]}>{t('haveYouLostOrFoundSomething')}</Text>
               <FieldButton
                 styles={styles}
                 textStyle={textStyle}
@@ -523,6 +527,9 @@ const PostForm = ({ mode, initialPost, isSubmitting, submitError, submitButtonLa
               <Text style={[styles.sectionLabel, textStyle]}>
                 {t('categories')}
                 <Text style={styles.requiredMark}> *</Text>
+              </Text>
+              <Text style={[styles.helperText, textStyle]}>
+                {foundLost ? (isFoundType ? t('specifyItemTypeFound') : t('specifyItemTypeLost')) : t('selectCategories')}
               </Text>
               <FieldButton
                 styles={styles}
@@ -564,6 +571,14 @@ const PostForm = ({ mode, initialPost, isSubmitting, submitError, submitButtonLa
               <Text style={[styles.sectionLabel, textStyle]}>
                 {t('description')} ({t('optional')})
               </Text>
+              <Text style={[styles.helperText, textStyle]}>
+                {isFoundType ? t('descriptionOptionalFoundMessage') : t('descriptionOptionalLostMessage')}
+              </Text>
+              {isFoundType ? (
+                <View style={styles.warningBanner}>
+                  <Text style={[styles.warningBannerText, textStyle]}>{t('descriptionSensitiveInfoWarning')}</Text>
+                </View>
+              ) : null}
               <TextInput
                 style={[styles.textInput, styles.textArea, textStyle]}
                 placeholder={t('descriptionPlaceholder')}
@@ -585,6 +600,9 @@ const PostForm = ({ mode, initialPost, isSubmitting, submitError, submitButtonLa
                 {t('country')}
                 <Text style={styles.requiredMark}> *</Text>
               </Text>
+              <Text style={[styles.helperText, textStyle]}>
+                {isFoundType ? t('chooseCountryFound') : t('chooseCountryLost')}
+              </Text>
               <FieldButton
                 styles={styles}
                 textStyle={textStyle}
@@ -601,6 +619,9 @@ const PostForm = ({ mode, initialPost, isSubmitting, submitError, submitButtonLa
               <Text style={[styles.sectionLabel, textStyle]}>
                 {t('city')}
                 <Text style={styles.requiredMark}> *</Text>
+              </Text>
+              <Text style={[styles.helperText, textStyle]}>
+                {!countryId ? t('selectCountryFirst') : isFoundType ? t('chooseCityFound') : t('chooseCityLost')}
               </Text>
               <FieldButton
                 styles={styles}
@@ -620,6 +641,9 @@ const PostForm = ({ mode, initialPost, isSubmitting, submitError, submitButtonLa
                 {t('location')}
                 <Text style={styles.requiredMark}> *</Text>
               </Text>
+              <Text style={[styles.helperText, textStyle]}>
+                {isFoundType ? t('exactLocationHintFound') : t('exactLocationHintLost')}
+              </Text>
               <TextInput
                 style={[styles.textInput, textStyle, fieldErrors.exactLocation && styles.inputError]}
                 placeholder={t('exactLocationPlaceholder')}
@@ -635,7 +659,12 @@ const PostForm = ({ mode, initialPost, isSubmitting, submitError, submitButtonLa
             </View>
 
             <View style={styles.section}>
-              <Text style={[styles.sectionLabel, textStyle]}>{t('date')}</Text>
+              <Text style={[styles.sectionLabel, textStyle]}>
+                {isFoundType ? t('exactDateFound') : t('exactDateLost')} ({t('optional')})
+              </Text>
+              <Text style={[styles.helperText, textStyle]}>
+                {isFoundType ? t('exactDateFoundPlaceholderOptional') : t('exactDateLostPlaceholderOptional')}
+              </Text>
               <FieldButton
                 styles={styles}
                 textStyle={textStyle}
@@ -702,7 +731,13 @@ const PostForm = ({ mode, initialPost, isSubmitting, submitError, submitButtonLa
               <ReviewRow styles={styles} label={t('country')} value={countryLabel || '-'} />
               <ReviewRow styles={styles} label={t('city')} value={cityValue?.label || '-'} />
               <ReviewRow styles={styles} label={t('location')} value={exactLocation || '-'} />
-              {exactDateText ? <ReviewRow styles={styles} label={t('date')} value={exactDateText} /> : null}
+              {exactDateText ? (
+                <ReviewRow
+                  styles={styles}
+                  label={isFoundType ? t('exactDateFound') : t('exactDateLost')}
+                  value={exactDateText}
+                />
+              ) : null}
             </ReviewSection>
 
             <ReviewSection styles={styles} title={steps[2].title} onEdit={() => handleEditStep(2)} t={t}>
@@ -717,6 +752,9 @@ const PostForm = ({ mode, initialPost, isSubmitting, submitError, submitButtonLa
               <Text style={[styles.sectionLabel, textStyle]}>
                 {t('contactSeller')}
                 <Text style={styles.requiredMark}> *</Text>
+              </Text>
+              <Text style={[styles.helperText, textStyle]}>
+                {isFoundType ? t('contactHintFound') : t('contactHintLost')}
               </Text>
               <TextInput
                 style={[styles.textInput, textStyle, fieldErrors.contact && styles.inputError]}
@@ -1212,6 +1250,17 @@ const createStyles = (tokens, legacy, isDark) => {
       fontFamily: fontFamilies.body,
       fontSize: 14,
       textAlign: 'center',
+    },
+    warningBanner: {
+      backgroundColor: legacy.warningBackground,
+      borderRadius: radiusTokens.md,
+      padding: 12,
+      marginBottom: 10,
+    },
+    warningBannerText: {
+      color: legacy.warning,
+      fontFamily: fontFamilies.bodyMedium,
+      fontSize: 12,
     },
     retryButton: {
       marginTop: 10,

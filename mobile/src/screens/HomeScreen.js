@@ -7,7 +7,7 @@
  */
 
 import React, { useEffect, useMemo, useRef, useState } from 'react';
-import { View, Text, StyleSheet, ScrollView, TouchableOpacity, Image, Animated, RefreshControl } from 'react-native';
+import { View, Text, StyleSheet, ScrollView, TouchableOpacity, Image, Animated, RefreshControl, Linking } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { useTheme } from '../context/ThemeContext';
 import { useLanguage } from '../context/LanguageContext';
@@ -20,7 +20,33 @@ import { colorTokens, radiusTokens, fontFamilies } from '../theme/tokens';
 import AppHeader from '../components/AppHeader';
 import DataStateView from '../components/DataStateView';
 
-const SECTION_COUNT = 6;
+const SECTION_COUNT = 7;
+
+// Same accounts as client/src/components/Footer/DashFooter.js's socialLinks -
+// kept in sync manually since the mobile app has no shared config module yet.
+const SOCIAL_LINKS = [
+  {
+    key: 'facebook',
+    labelKey: 'socialFacebook',
+    icon: 'logo-facebook',
+    brandColor: '#1877F2',
+    url: 'https://www.facebook.com/profile.php?id=100075968495897',
+  },
+  {
+    key: 'instagram',
+    labelKey: 'socialInstagram',
+    icon: 'logo-instagram',
+    brandColor: '#E1306C',
+    url: 'https://www.instagram.com/mafkoudat?igsh=d29saTdtajZ5dWpu',
+  },
+  {
+    key: 'whatsapp',
+    labelKey: 'socialWhatsapp',
+    icon: 'logo-whatsapp',
+    brandColor: '#25D366',
+    url: 'https://wa.me/212711621132',
+  },
+];
 
 const getImageUri = (image) => (image ? (image.startsWith('http') ? image : `${API_BASE_URL}/${image}`) : null);
 
@@ -406,6 +432,31 @@ const EmptyStateCallout = ({ t, styles, onCreatePost }) => (
   </View>
 );
 
+// Mirrors DashFooter.js's social row (same brand icons/links) but reframed
+// as its own panel rather than a footer strip, since the mobile Home tab has
+// no persistent site footer for it to live in.
+const SocialSection = ({ t, styles }) => (
+  <View style={styles.socialPanel}>
+    <Text style={styles.socialTitle}>{t('followUsTitle')}</Text>
+    <Text style={styles.socialSubtitle}>{t('followUsSubtitle')}</Text>
+    <View style={styles.socialRow}>
+      {SOCIAL_LINKS.map((social) => (
+        <TouchableOpacity
+          key={social.key}
+          style={styles.socialButton}
+          activeOpacity={0.75}
+          onPress={() => Linking.openURL(social.url)}
+        >
+          <View style={[styles.socialIconCircle, { backgroundColor: `${social.brandColor}1A` }]}>
+            <Ionicons name={social.icon} size={26} color={social.brandColor} />
+          </View>
+          <Text style={styles.socialLabel}>{t(social.labelKey)}</Text>
+        </TouchableOpacity>
+      ))}
+    </View>
+  </View>
+);
+
 const SafetyFooter = ({ t, styles }) => (
   <View style={styles.safetyFooter}>
     <Ionicons name="shield-checkmark-outline" size={18} color={styles.safetyFooterIconColor.color} />
@@ -567,7 +618,11 @@ const HomeScreen = ({ navigation }) => {
           </ScrollView>
         </Animated.View>
 
-        <Animated.View style={[styles.section, styles.lastSection, animatedSectionStyle(5)]}>
+        <Animated.View style={[styles.section, animatedSectionStyle(5)]}>
+          <SocialSection t={t} styles={styles} />
+        </Animated.View>
+
+        <Animated.View style={[styles.section, styles.lastSection, animatedSectionStyle(6)]}>
           <SafetyFooter t={t} styles={styles} />
         </Animated.View>
       </ScrollView>
@@ -964,6 +1019,55 @@ const createStyles = (tokens, isRTL, isDark) =>
       fontFamily: fontFamilies.bodySemiBold,
       fontSize: 13,
       color: '#FFFFFF',
+    },
+
+    // Social section - mirrors the panelContainer shell but with a centered
+    // title/subtitle pair (like panelTitleCentered) above a row of circular
+    // brand-colored icon buttons.
+    socialPanel: {
+      backgroundColor: tokens.surfaceRaised,
+      borderRadius: radiusTokens.lg,
+      borderWidth: 1,
+      borderColor: `${tokens.ink}${isDark ? '14' : '26'}`,
+      paddingVertical: 22,
+      paddingHorizontal: 20,
+      alignItems: 'center',
+      ...getElevation(isDark, 1),
+    },
+    socialTitle: {
+      fontFamily: fontFamilies.display,
+      fontSize: 20,
+      color: tokens.ink,
+      textAlign: 'center',
+    },
+    socialSubtitle: {
+      fontFamily: fontFamilies.body,
+      fontSize: 13,
+      color: `${tokens.ink}99`,
+      textAlign: 'center',
+      marginTop: 6,
+      marginBottom: 18,
+      maxWidth: 260,
+    },
+    socialRow: {
+      flexDirection: 'row',
+      gap: 28,
+    },
+    socialButton: {
+      alignItems: 'center',
+      gap: 8,
+    },
+    socialIconCircle: {
+      width: 56,
+      height: 56,
+      borderRadius: 28,
+      justifyContent: 'center',
+      alignItems: 'center',
+    },
+    socialLabel: {
+      fontFamily: fontFamilies.bodyMedium,
+      fontSize: 12,
+      color: `${tokens.ink}CC`,
     },
 
     // Safety footer
