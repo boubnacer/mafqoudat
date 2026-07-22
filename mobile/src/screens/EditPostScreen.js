@@ -6,18 +6,25 @@
  * in which case it's multipart (mirrors EditPostForm.js's dual-path submit).
  */
 
-import React, { useCallback, useEffect, useState } from 'react';
+import React, { useCallback, useEffect, useMemo, useState } from 'react';
 import { View, Text, StyleSheet, TouchableOpacity, ActivityIndicator } from 'react-native';
 import apiClient from '../api/apiService';
 import { API_ENDPOINTS } from '../config/api';
 import { useLanguage } from '../context/LanguageContext';
 import { useTranslation } from '../utils/translations';
+import { useTheme } from '../context/ThemeContext';
+import { colorTokens, lightColors, darkColors } from '../theme/tokens';
 import PostForm from '../components/PostForm';
+import AppHeader from '../components/AppHeader';
 
 const EditPostScreen = ({ navigation, route }) => {
   const { id } = route.params || {};
   const { currentLanguage } = useLanguage();
   const { t } = useTranslation();
+  const { isDark } = useTheme();
+  const tokens = isDark ? colorTokens.dark : colorTokens.light;
+  const legacy = isDark ? darkColors : lightColors;
+  const styles = useMemo(() => createStyles(tokens, legacy), [tokens, legacy]);
   const isRTL = currentLanguage === 'ar';
 
   const [post, setPost] = useState(null);
@@ -93,19 +100,11 @@ const EditPostScreen = ({ navigation, route }) => {
 
   return (
     <View style={styles.container}>
-      <View style={styles.header}>
-        <TouchableOpacity onPress={() => navigation.goBack()} style={styles.backButton}>
-          <Text style={styles.backButtonText}>{isRTL ? '›' : '‹'}</Text>
-        </TouchableOpacity>
-        <Text style={[styles.headerTitle, isRTL && styles.textRTL]} numberOfLines={1}>
-          {t('editPost')}
-        </Text>
-        <View style={styles.backButton} />
-      </View>
+      <AppHeader title={t('editPost')} onBack={() => navigation.goBack()} />
 
       {isLoading ? (
         <View style={styles.centerContainer}>
-          <ActivityIndicator size="large" color="#2196F3" />
+          <ActivityIndicator size="large" color={tokens.brandPrimary} />
         </View>
       ) : loadError ? (
         <View style={styles.centerContainer}>
@@ -128,62 +127,38 @@ const EditPostScreen = ({ navigation, route }) => {
   );
 };
 
-const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-    backgroundColor: '#f5f5f5',
-  },
-  header: {
-    backgroundColor: '#2196F3',
-    padding: 16,
-    paddingTop: 50,
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
-  },
-  backButton: {
-    width: 40,
-    justifyContent: 'center',
-    alignItems: 'flex-start',
-  },
-  backButtonText: {
-    color: '#fff',
-    fontSize: 32,
-    lineHeight: 32,
-  },
-  headerTitle: {
-    flex: 1,
-    fontSize: 20,
-    fontWeight: 'bold',
-    color: '#fff',
-    textAlign: 'center',
-  },
-  textRTL: {
-    textAlign: 'right',
-  },
-  centerContainer: {
-    flex: 1,
-    justifyContent: 'center',
-    alignItems: 'center',
-    padding: 24,
-  },
-  errorText: {
-    color: '#c62828',
-    fontSize: 14,
-    textAlign: 'center',
-    marginBottom: 16,
-  },
-  retryButton: {
-    paddingHorizontal: 20,
-    paddingVertical: 10,
-    borderRadius: 8,
-    backgroundColor: '#c62828',
-  },
-  retryButtonText: {
-    color: '#fff',
-    fontWeight: 'bold',
-    fontSize: 14,
-  },
-});
+const createStyles = (tokens, legacy) =>
+  StyleSheet.create({
+    container: {
+      flex: 1,
+      backgroundColor: tokens.surfaceBase,
+    },
+    textRTL: {
+      textAlign: 'right',
+    },
+    centerContainer: {
+      flex: 1,
+      justifyContent: 'center',
+      alignItems: 'center',
+      padding: 24,
+    },
+    errorText: {
+      color: legacy.danger,
+      fontSize: 14,
+      textAlign: 'center',
+      marginBottom: 16,
+    },
+    retryButton: {
+      paddingHorizontal: 20,
+      paddingVertical: 10,
+      borderRadius: 8,
+      backgroundColor: legacy.danger,
+    },
+    retryButtonText: {
+      color: '#fff',
+      fontWeight: 'bold',
+      fontSize: 14,
+    },
+  });
 
 export default EditPostScreen;

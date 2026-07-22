@@ -8,6 +8,8 @@
  * A search result with no Mongo _id (API-sourced, GeoNames/Google) is returned to the caller
  * as { id: null, isApi: true, code, raw } so the caller can submit it as `city`/`cityData`.
  * "Create custom city" (web's dynamic-city creation dialog) is intentionally out of scope for v1.
+ * Visual language mirrors SelectModal.js (colorTokens-based sheet/search/row styling), so this
+ * picker reads as the same component family even though its search logic is bespoke.
  */
 
 import React, { useEffect, useRef, useState } from 'react';
@@ -21,13 +23,20 @@ import {
   FlatList,
   ActivityIndicator,
 } from 'react-native';
+import { Ionicons } from '@expo/vector-icons';
 import apiClient from '../api/apiService';
 import { getLocalizedLabel } from '../context/ReferenceDataContext';
+import { useTheme } from '../context/ThemeContext';
+import { colorTokens, radiusTokens, fontFamilies } from '../theme/tokens';
 
 const SEARCH_DEBOUNCE_MS = 300;
 const MIN_SEARCH_LENGTH = 2;
 
 const CityPickerModal = ({ visible, onClose, t, currentLanguage, isRTL, countryId, countryCode, getCities, onSelect }) => {
+  const { isDark } = useTheme();
+  const tokens = isDark ? colorTokens.dark : colorTokens.light;
+  const styles = useMemoStyles(tokens, isDark);
+
   const [plainCities, setPlainCities] = useState([]);
   const [citiesLoading, setCitiesLoading] = useState(false);
   const [query, setQuery] = useState('');
@@ -124,25 +133,30 @@ const CityPickerModal = ({ visible, onClose, t, currentLanguage, isRTL, countryI
         <TouchableOpacity style={styles.backdrop} activeOpacity={1} onPress={onClose} />
         <View style={styles.sheet}>
           <View style={styles.header}>
-            <Text style={[styles.headerTitle, textStyle]}>{t('selectCity')}</Text>
-            <TouchableOpacity onPress={onClose} style={styles.closeButton}>
-              <Text style={styles.closeButtonText}>✕</Text>
+            <Text style={[styles.headerTitle, textStyle]} numberOfLines={1}>
+              {t('selectCity')}
+            </Text>
+            <TouchableOpacity onPress={onClose} style={styles.closeButton} hitSlop={8}>
+              <Ionicons name="close" size={20} color={tokens.ink} />
             </TouchableOpacity>
           </View>
 
-          <TextInput
-            style={[styles.searchInput, textStyle]}
-            placeholder={t('searchCity')}
-            placeholderTextColor="#999"
-            value={query}
-            onChangeText={handleQueryChange}
-            autoCapitalize="none"
-            autoFocus
-          />
+          <View style={styles.searchRow}>
+            <Ionicons name="search-outline" size={18} color={`${tokens.ink}80`} style={styles.searchIcon} />
+            <TextInput
+              style={[styles.searchInput, textStyle]}
+              placeholder={t('searchCity')}
+              placeholderTextColor={`${tokens.ink}80`}
+              value={query}
+              onChangeText={handleQueryChange}
+              autoCapitalize="none"
+              autoFocus
+            />
+          </View>
 
           {citiesLoading || isSearching ? (
             <View style={styles.loaderRow}>
-              <ActivityIndicator size="small" color="#2196F3" />
+              <ActivityIndicator size="small" color={tokens.brandPrimary} />
               {isSearching ? <Text style={[styles.loaderText, textStyle]}>{t('searchingCities')}</Text> : null}
             </View>
           ) : (
@@ -150,15 +164,20 @@ const CityPickerModal = ({ visible, onClose, t, currentLanguage, isRTL, countryI
               data={displayedCities}
               keyExtractor={(city, index) => city._id || city.id || city.code || `city-${index}`}
               renderItem={({ item }) => (
-                <TouchableOpacity style={styles.cityRow} onPress={() => handleSelect(item)}>
-                  <Text style={[styles.cityRowText, textStyle]}>{getLocalizedLabel(item, currentLanguage)}</Text>
-                  {!item._id && !item.id ? <Text style={styles.citySourceBadge}>{item.source || ''}</Text> : null}
+                <TouchableOpacity style={styles.row} onPress={() => handleSelect(item)} activeOpacity={0.7}>
+                  <Text style={[styles.rowLabel, textStyle]} numberOfLines={1}>
+                    {getLocalizedLabel(item, currentLanguage)}
+                  </Text>
+                  {!item._id && !item.id ? (
+                    <Text style={styles.citySourceBadge}>{item.source || ''}</Text>
+                  ) : null}
                 </TouchableOpacity>
               )}
               ListEmptyComponent={
                 <Text style={[styles.emptyText, textStyle]}>{t('cityNoResults')}</Text>
               }
               style={styles.list}
+              contentContainerStyle={styles.listContent}
               keyboardShouldPersistTaps="handled"
             />
           )}
@@ -168,92 +187,130 @@ const CityPickerModal = ({ visible, onClose, t, currentLanguage, isRTL, countryI
   );
 };
 
-const styles = StyleSheet.create({
-  overlay: {
-    flex: 1,
-    justifyContent: 'flex-end',
-  },
-  backdrop: {
-    ...StyleSheet.absoluteFillObject,
-    backgroundColor: 'rgba(0,0,0,0.4)',
-  },
-  sheet: {
-    backgroundColor: '#fff',
-    borderTopLeftRadius: 16,
-    borderTopRightRadius: 16,
-    maxHeight: '85%',
-    minHeight: '50%',
-    paddingBottom: 16,
-  },
-  header: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
-    padding: 16,
-    borderBottomWidth: 1,
-    borderBottomColor: '#eee',
-  },
-  headerTitle: {
-    fontSize: 18,
-    fontWeight: 'bold',
-    color: '#333',
-  },
-  closeButton: {
-    padding: 4,
-  },
-  closeButtonText: {
-    fontSize: 18,
-    color: '#666',
-  },
-  searchInput: {
-    height: 44,
-    backgroundColor: '#f5f5f5',
-    borderRadius: 8,
-    paddingHorizontal: 16,
-    fontSize: 15,
-    color: '#333',
-    margin: 16,
-    marginBottom: 8,
-  },
-  textRTL: {
-    textAlign: 'right',
-  },
-  loaderRow: {
-    flexDirection: 'row',
-    justifyContent: 'center',
-    alignItems: 'center',
-    marginVertical: 24,
-  },
-  loaderText: {
-    marginStart: 8,
-    color: '#999',
-    fontSize: 13,
-  },
-  list: {
-    paddingHorizontal: 16,
-  },
-  cityRow: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
-    paddingVertical: 14,
-    borderBottomWidth: 1,
-    borderBottomColor: '#f0f0f0',
-  },
-  cityRowText: {
-    fontSize: 15,
-    color: '#333',
-  },
-  citySourceBadge: {
-    fontSize: 11,
-    color: '#999',
-    textTransform: 'uppercase',
-  },
-  emptyText: {
-    textAlign: 'center',
-    color: '#999',
-    marginTop: 24,
-  },
-});
+// Small inline hook so createStyles is memoized without pulling in useMemo
+// at every call site above - keeps the component body focused on logic.
+function useMemoStyles(tokens, isDark) {
+  const ref = useRef({ tokens: null, isDark: null, styles: null });
+  if (ref.current.tokens !== tokens || ref.current.isDark !== isDark) {
+    ref.current = { tokens, isDark, styles: createStyles(tokens, isDark) };
+  }
+  return ref.current.styles;
+}
+
+const createStyles = (tokens, isDark) =>
+  StyleSheet.create({
+    overlay: {
+      flex: 1,
+      justifyContent: 'flex-end',
+    },
+    backdrop: {
+      ...StyleSheet.absoluteFillObject,
+      backgroundColor: 'rgba(0,0,0,0.5)',
+    },
+    sheet: {
+      backgroundColor: tokens.surfaceRaised,
+      borderTopLeftRadius: radiusTokens.xl,
+      borderTopRightRadius: radiusTokens.xl,
+      maxHeight: '85%',
+      minHeight: '50%',
+      paddingBottom: 16,
+    },
+    header: {
+      flexDirection: 'row',
+      justifyContent: 'space-between',
+      alignItems: 'center',
+      paddingHorizontal: 20,
+      paddingTop: 18,
+      paddingBottom: 14,
+      borderBottomWidth: 1,
+      borderBottomColor: `${tokens.ink}${isDark ? '1F' : '14'}`,
+    },
+    headerTitle: {
+      flex: 1,
+      fontFamily: fontFamilies.displayRegular,
+      fontWeight: '700',
+      fontSize: 18,
+      color: tokens.ink,
+    },
+    closeButton: {
+      width: 32,
+      height: 32,
+      borderRadius: radiusTokens.md,
+      backgroundColor: `${tokens.ink}0A`,
+      justifyContent: 'center',
+      alignItems: 'center',
+      marginStart: 8,
+    },
+    searchRow: {
+      flexDirection: 'row',
+      alignItems: 'center',
+      backgroundColor: `${tokens.ink}0A`,
+      borderRadius: radiusTokens.md,
+      borderWidth: 1,
+      borderColor: `${tokens.ink}${isDark ? '1F' : '14'}`,
+      marginHorizontal: 16,
+      marginTop: 14,
+      marginBottom: 6,
+      paddingHorizontal: 12,
+    },
+    searchIcon: {
+      marginEnd: 8,
+    },
+    searchInput: {
+      flex: 1,
+      height: 44,
+      fontFamily: fontFamilies.body,
+      fontSize: 15,
+      color: tokens.ink,
+    },
+    textRTL: {
+      textAlign: 'right',
+    },
+    loaderRow: {
+      flexDirection: 'row',
+      justifyContent: 'center',
+      alignItems: 'center',
+      marginVertical: 28,
+    },
+    loaderText: {
+      marginStart: 8,
+      color: `${tokens.ink}99`,
+      fontFamily: fontFamilies.body,
+      fontSize: 13,
+    },
+    list: {
+      paddingHorizontal: 16,
+    },
+    listContent: {
+      paddingVertical: 8,
+      paddingBottom: 16,
+    },
+    row: {
+      flexDirection: 'row',
+      justifyContent: 'space-between',
+      alignItems: 'center',
+      paddingVertical: 13,
+      borderBottomWidth: 1,
+      borderBottomColor: `${tokens.ink}${isDark ? '14' : '0F'}`,
+    },
+    rowLabel: {
+      flex: 1,
+      fontFamily: fontFamilies.body,
+      fontSize: 15,
+      color: tokens.ink,
+    },
+    citySourceBadge: {
+      fontSize: 11,
+      color: `${tokens.ink}80`,
+      textTransform: 'uppercase',
+      marginStart: 8,
+    },
+    emptyText: {
+      textAlign: 'center',
+      color: `${tokens.ink}80`,
+      fontFamily: fontFamilies.body,
+      marginTop: 32,
+    },
+  });
 
 export default CityPickerModal;

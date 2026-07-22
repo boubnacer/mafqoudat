@@ -4,16 +4,21 @@
  * submit request (always multipart - POST /posts requires it), and error/nav.
  */
 
-import React, { useState } from 'react';
+import React, { useMemo, useState } from 'react';
 import { View, StyleSheet } from 'react-native';
 import apiClient from '../api/apiService';
 import { API_ENDPOINTS } from '../config/api';
 import { useTranslation } from '../utils/translations';
+import { useTheme } from '../context/ThemeContext';
+import { colorTokens } from '../theme/tokens';
 import PostForm from '../components/PostForm';
 import AppHeader from '../components/AppHeader';
 
 const NewPostScreen = ({ navigation }) => {
   const { t } = useTranslation();
+  const { isDark } = useTheme();
+  const tokens = isDark ? colorTokens.dark : colorTokens.light;
+  const styles = useMemo(() => createStyles(tokens), [tokens]);
 
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [submitError, setSubmitError] = useState(null);
@@ -84,11 +89,12 @@ const NewPostScreen = ({ navigation }) => {
   );
 };
 
-const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-    backgroundColor: '#f5f5f5',
-  },
-});
+const createStyles = (tokens) =>
+  StyleSheet.create({
+    container: {
+      flex: 1,
+      backgroundColor: tokens.surfaceBase,
+    },
+  });
 
 export default NewPostScreen;
