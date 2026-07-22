@@ -201,8 +201,8 @@ const createStyles = ({ tokens, isDark }) =>
       flexShrink: 1,
     },
     brandMark: {
-      width: 34,
-      height: 34,
+      width: 40,
+      height: 40,
       borderRadius: radiusTokens.md,
       backgroundColor: `${tokens.brandPrimary}1F`,
       justifyContent: 'center',
@@ -210,12 +210,12 @@ const createStyles = ({ tokens, isDark }) =>
       marginEnd: 10,
     },
     brandMarkImg: {
-      width: 19,
-      height: 19,
+      width: 23,
+      height: 23,
     },
     brandWordmarkImg: {
-      height: 20,
-      width: 20 * WORDMARK_RATIO,
+      height: 26,
+      width: 26 * WORDMARK_RATIO,
     },
     backButton: {
       width: 36,

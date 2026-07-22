@@ -30,14 +30,19 @@ const Recent = ({ recent, type, maxItems }) => {
       display="grid"
       gap={2}
       sx={{
+        // Found/Lost panels sit side-by-side from `md` up (see RecentSection's
+        // parent grid in Dash.js), so each panel only ever gets ~half the
+        // viewport width. Column counts stay low across the board to match
+        // that half-width context instead of the full-row counts a single
+        // panel would otherwise support.
         gridTemplateColumns: {
           xs: "repeat(2, 1fr)",
           sm: "repeat(2, 1fr)",
-          md: "repeat(3, 1fr)",
-          lg: "repeat(4, 1fr)",
+          md: "repeat(2, 1fr)",
+          lg: "repeat(2, 1fr)",
         },
         '@media (min-width: 1920px)': {
-          gridTemplateColumns: "repeat(5, 1fr)",
+          gridTemplateColumns: "repeat(3, 1fr)",
         },
       }}
     >
