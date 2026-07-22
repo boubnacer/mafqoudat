@@ -96,7 +96,32 @@ const EditPostForm = ({ post, user, countries, flOptions, categories }) => {
   const token = useSelector(selectCurrentToken);
   const navigate = useNavigate();
   const theme = useTheme();
-  
+
+  // Maps a city result's `source` field ('database' | 'geonames' | 'google',
+  // set by the backend's DB -> GeoNames -> Google Places cascade) to a
+  // label + color, same as NewPostForm's StepLocation.jsx, so it's visible
+  // in the dropdown which API actually supplied a given suggestion.
+  const getCitySourceInfo = (source) => {
+    const sourceMap = {
+      geonames: {
+        label: { en: 'GeoNames', fr: 'GeoNames', ar: 'GeoNames' },
+        color: theme.palette.info.main,
+      },
+      google: {
+        label: { en: 'Google Places', fr: 'Google Places', ar: 'Google Places' },
+        color: theme.palette.warning.main,
+      },
+      database: {
+        label: { en: 'Database', fr: 'Base de données', ar: 'قاعدة البيانات' },
+        color: theme.palette.success.main,
+      },
+    };
+    const entry = sourceMap[source] || sourceMap.database;
+    return { label: entry.label[currentLanguage] || entry.label.en, color: entry.color };
+  };
+
+  const sourceCaptionPrefix = currentLanguage === 'ar' ? 'المصدر' : 'Source';
+
   // State for cities
   const [selectedCountry, setSelectedCountry] = useState(null);
   const [availableCities, setAvailableCities] = useState([]);
@@ -120,6 +145,13 @@ const EditPostForm = ({ post, user, countries, flOptions, categories }) => {
   const [showCustomCityInput, setShowCustomCityInput] = useState(false);
   const [customCityName, setCustomCityName] = useState("");
   const [isCreatingCity, setIsCreatingCity] = useState(false);
+  // Debounce timer + monotonically increasing sequence token for city
+  // search - see handleCitySearchChange/performCitySearch. Same pattern as
+  // NewPostForm: avoids hammering rate-limited external APIs on every
+  // keystroke and prevents a slow response for an old query from
+  // overwriting results for what's currently typed.
+  const citySearchDebounceRef = useRef(null);
+  const citySearchRequestIdRef = useRef(0);
 
   // Image management state
   const [selectedImage, setSelectedImage] = useState(null);
@@ -153,7 +185,7 @@ const EditPostForm = ({ post, user, countries, flOptions, categories }) => {
     if (availableCities.length > 0) {
       if (citySearchQuery.trim()) {
         // Filter existing cities based on search query
-        const filtered = availableCities.filter(city => 
+        const filtered = availableCities.filter(city =>
           getCityDisplayName(city, currentLanguage).toLowerCase().includes(citySearchQuery.toLowerCase()) ||
           city.labels?.en?.toLowerCase().includes(citySearchQuery.toLowerCase()) ||
           city.labels?.ar?.toLowerCase().includes(citySearchQuery.toLowerCase()) ||
@@ -165,6 +197,15 @@ const EditPostForm = ({ post, user, countries, flOptions, categories }) => {
       }
     }
   }, [availableCities, citySearchQuery, currentLanguage]);
+
+  // Cancel any pending debounced city search on unmount
+  useEffect(() => {
+    return () => {
+      if (citySearchDebounceRef.current) {
+        clearTimeout(citySearchDebounceRef.current);
+      }
+    };
+  }, []);
 
   // Define fetchCitiesByCountry function FIRST, before any useEffect that uses it
   const fetchCitiesByCountry = useCallback(async (countryId) => {
@@ -744,84 +785,113 @@ if (typeof document !== 'undefined') {
     }
   };
 
-  // Handle city search input change (from NewPostForm)
-  const handleCitySearchChange = useCallback(async (event) => {
-    const query = event.target.value;
-    setCitySearchQuery(query);
-    
-    // Always show dropdown when there's a query
-    if (query.trim().length > 0) {
-      setShowCityDropdown(true);
-    }
-    
+  // Runs the actual search for one query. `requestId` is a snapshot of
+  // citySearchRequestIdRef taken when this call was scheduled; if the user
+  // has typed something else since (bumping the ref further), every
+  // setSearchResults below is skipped so a slow response for an old,
+  // partial query can never overwrite results for what's currently typed.
+  const performCitySearch = useCallback(async (query, requestId) => {
+    const isStale = () => requestId !== citySearchRequestIdRef.current;
+
     // Get country code from selectedCountry object - must be ISO code (e.g., 'MA', 'EG')
-    // The code should be a 2-letter ISO country code
     let countryCode = selectedCountry?.code;
-    
-    // Ensure countryCode is a valid ISO code (2 uppercase letters)
     if (countryCode && typeof countryCode === 'string' && countryCode.length === 2) {
       countryCode = countryCode.toUpperCase();
     } else {
-      // Invalid or missing country code
       console.warn('⚠️ Invalid or missing country code:', {
         code: selectedCountry?.code,
         country: selectedCountry
       });
       countryCode = null;
     }
-    
-    if (query.length >= 2 && selectedCountry?._id) {
-      setIsSearching(true);
-      try {
-        // Try hybrid search first
+
+    try {
+      if (query.length >= 2 && selectedCountry?._id) {
+        // Try hybrid search first (includes GeoNames + Google Places API)
         const results = await searchCitiesHybrid(query, countryCode);
-        
+        if (isStale()) return;
+
         if (results.length > 0) {
           setSearchResults(results);
-        } else {
-          // Fallback to traditional search
-          const fallbackResults = await searchCitiesTraditional(query, selectedCountry._id);
-          
-          if (fallbackResults.length > 0) {
-            setSearchResults(fallbackResults);
-          } else {
-            // Final fallback: filter existing cities
-            const localResults = availableCities.filter(city => 
-              getCityDisplayName(city, currentLanguage).toLowerCase().includes(query.toLowerCase()) ||
-              city.labels?.en?.toLowerCase().includes(query.toLowerCase()) ||
-              city.labels?.ar?.toLowerCase().includes(query.toLowerCase()) ||
-              city.labels?.fr?.toLowerCase().includes(query.toLowerCase())
-            ).map(city => ({
-              ...city,
-              source: 'database',
-              _id: city.id || city._id
-            }));
-            
-            setSearchResults(localResults);
-          }
+          return;
         }
-      } catch (error) {
-        setSearchResults([]);
-      } finally {
-        setIsSearching(false);
+
+        // Fallback to traditional search
+        const fallbackResults = await searchCitiesTraditional(query, selectedCountry._id);
+        if (isStale()) return;
+
+        if (fallbackResults.length > 0) {
+          setSearchResults(fallbackResults);
+          return;
+        }
+
+        // Final fallback: filter existing cities
+        const localResults = availableCities.filter(city =>
+          getCityDisplayName(city, currentLanguage).toLowerCase().includes(query.toLowerCase()) ||
+          city.labels?.en?.toLowerCase().includes(query.toLowerCase()) ||
+          city.labels?.ar?.toLowerCase().includes(query.toLowerCase()) ||
+          city.labels?.fr?.toLowerCase().includes(query.toLowerCase())
+        ).map(city => ({
+          ...city,
+          source: 'database',
+          _id: city.id || city._id
+        }));
+        setSearchResults(localResults);
+      } else if (query.length > 0) {
+        // Show local filtered results for shorter queries
+        const localResults = availableCities.filter(city =>
+          getCityDisplayName(city, currentLanguage).toLowerCase().includes(query.toLowerCase()) ||
+          city.labels?.en?.toLowerCase().includes(query.toLowerCase()) ||
+          city.labels?.ar?.toLowerCase().includes(query.toLowerCase()) ||
+          city.labels?.fr?.toLowerCase().includes(query.toLowerCase())
+        ).map(city => ({
+          ...city,
+          source: 'database',
+          _id: city.id || city._id
+        }));
+        if (!isStale()) setSearchResults(localResults);
       }
-    } else if (query.length > 0) {
-      // Show local filtered results for shorter queries
-      const localResults = availableCities.filter(city => 
-        getCityDisplayName(city, currentLanguage).toLowerCase().includes(query.toLowerCase()) ||
-        city.labels?.en?.toLowerCase().includes(query.toLowerCase()) ||
-        city.labels?.ar?.toLowerCase().includes(query.toLowerCase()) ||
-        city.labels?.fr?.toLowerCase().includes(query.toLowerCase())
-      ).map(city => ({
-        ...city,
-        source: 'database',
-        _id: city.id || city._id
-      }));
-      setSearchResults(localResults);
-    } else {
-      setSearchResults([]);
+    } catch (error) {
+      console.error('❌ City search error:', error);
+      if (!isStale()) setSearchResults([]);
+    } finally {
+      if (!isStale()) setIsSearching(false);
     }
   }, [searchCitiesHybrid, searchCitiesTraditional, selectedCountry, availableCities, currentLanguage]);
+
+  // Handle city search input change (only from dropdown search input).
+  // Debounced (300ms) and sequence-guarded - see performCitySearch above and
+  // the matching comment in NewPostForm.js for why this is needed.
+  const handleCitySearchChange = useCallback((event) => {
+    const query = event.target.value;
+    setCitySearchQuery(query);
+
+    if (query.trim().length > 0) {
+      setShowCityDropdown(true);
+    }
+
+    citySearchRequestIdRef.current += 1;
+    const requestId = citySearchRequestIdRef.current;
+
+    if (citySearchDebounceRef.current) {
+      clearTimeout(citySearchDebounceRef.current);
+    }
+
+    // Whatever was shown for the previous query must never linger while the
+    // user edits the text - clear it immediately, before the debounced
+    // fetch even starts.
+    setSearchResults([]);
+
+    if (!query.trim()) {
+      setIsSearching(false);
+      return;
+    }
+
+    setIsSearching(true);
+    citySearchDebounceRef.current = setTimeout(() => {
+      performCitySearch(query, requestId);
+    }, 300);
+  }, [performCitySearch]);
 
   // Handle city selection from dropdown (from NewPostForm)
   const handleCitySelect = (city, setFieldValue) => {
@@ -2087,7 +2157,22 @@ if (typeof document !== 'undefined') {
                           zIndex: 1
                         }}>
                           {/* Show search results if searching */}
-                          {citySearchQuery.trim() && searchResults.length > 0 ? (
+                          {citySearchQuery.trim() && isSearching ? (
+                            <Box sx={{
+                              p: 3,
+                              textAlign: 'center',
+                              backgroundColor: theme.palette.background.paper,
+                              display: 'flex',
+                              alignItems: 'center',
+                              justifyContent: 'center',
+                              gap: 1
+                            }}>
+                              <CircularProgress size={16} />
+                              <Typography variant="body2" color="text.secondary">
+                                {currentLanguage === 'ar' ? 'جارٍ البحث...' : currentLanguage === 'fr' ? 'Recherche...' : 'Searching...'}
+                              </Typography>
+                            </Box>
+                          ) : citySearchQuery.trim() && searchResults.length > 0 ? (
                             <>
                               <Box sx={{
                                 p: 1,
@@ -2138,6 +2223,15 @@ if (typeof document !== 'undefined') {
                                       {city.labels?.ar && currentLanguage !== 'ar' && ` • ${city.labels.ar}`}
                                       {city.labels?.fr && currentLanguage !== 'fr' && ` • ${city.labels.fr}`}
                                       {city.labels?.en && currentLanguage !== 'en' && ` • ${city.labels.en}`}
+                                    </Typography>
+                                    <Typography variant="caption" sx={{
+                                      display: 'block',
+                                      fontWeight: 600,
+                                      color: getCitySourceInfo(city.source).color,
+                                      zIndex: '999999 !important',
+                                      position: 'relative'
+                                    }}>
+                                      {sourceCaptionPrefix}: {getCitySourceInfo(city.source).label}
                                     </Typography>
                                   </Box>
                                 </Box>
@@ -2202,6 +2296,15 @@ if (typeof document !== 'undefined') {
                                         {city.labels?.ar && currentLanguage !== 'ar' && ` • ${city.labels.ar}`}
                                         {city.labels?.fr && currentLanguage !== 'fr' && ` • ${city.labels.fr}`}
                                         {city.labels?.en && currentLanguage !== 'en' && ` • ${city.labels.en}`}
+                                      </Typography>
+                                      <Typography variant="caption" sx={{
+                                        display: 'block',
+                                        fontWeight: 600,
+                                        color: getCitySourceInfo(city.source).color,
+                                        zIndex: '999999 !important',
+                                        position: 'relative'
+                                      }}>
+                                        {sourceCaptionPrefix}: {getCitySourceInfo(city.source).label}
                                       </Typography>
                         </Box>
                                   </Box>

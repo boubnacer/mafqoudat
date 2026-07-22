@@ -229,17 +229,28 @@ const OnboardingScreen = () => {
     }
   };
 
-  const getSlideAnimatedStyle = (index) => {
-    const inputRange = [(index - 1) * SCREEN_WIDTH, index * SCREEN_WIDTH, (index + 1) * SCREEN_WIDTH];
-    return {
-      opacity: scrollX.interpolate({ inputRange, outputRange: [0, 1, 0], extrapolate: 'clamp' }),
-      transform: [
-        {
-          translateY: scrollX.interpolate({ inputRange, outputRange: [16, 0, 16], extrapolate: 'clamp' }),
-        },
-      ],
-    };
-  };
+  // Built once per slide index and reused across renders - scrollX.interpolate()
+  // creates a native-driven Animated node, and recreating it on every render (as
+  // a plain per-call function would) tears down/reattaches that node while a
+  // scroll animation may be in flight (setActiveIndex in scrollToIndex re-renders
+  // this component the instant "Next" is pressed, right as the native scroll
+  // starts), which is what caused the black-flash glitch on slide transitions.
+  const slideAnimatedStyles = useMemo(
+    () =>
+      [0, 1, 2, 3].map((index) => {
+        const inputRange = [(index - 1) * SCREEN_WIDTH, index * SCREEN_WIDTH, (index + 1) * SCREEN_WIDTH];
+        return {
+          opacity: scrollX.interpolate({ inputRange, outputRange: [0, 1, 0], extrapolate: 'clamp' }),
+          transform: [
+            {
+              translateY: scrollX.interpolate({ inputRange, outputRange: [16, 0, 16], extrapolate: 'clamp' }),
+            },
+          ],
+        };
+      }),
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+    []
+  );
 
   const renderIconCircle = (iconName) => (
     <View style={styles.iconCircle}>
@@ -248,7 +259,7 @@ const OnboardingScreen = () => {
   );
 
   const renderLanguageSlide = () => (
-    <Animated.View style={[styles.slideContent, getSlideAnimatedStyle(0)]}>
+    <Animated.View style={[styles.slideContent, slideAnimatedStyles[0]]}>
       <View style={styles.logoCircle}>
         <Text style={styles.logoText}>M</Text>
       </View>
@@ -278,7 +289,7 @@ const OnboardingScreen = () => {
   );
 
   const renderInfoSlide = (index, iconName, headlineKey, bodyKey) => (
-    <Animated.View style={[styles.slideContent, getSlideAnimatedStyle(index)]}>
+    <Animated.View style={[styles.slideContent, slideAnimatedStyles[index]]}>
       {renderIconCircle(iconName)}
       <Text style={styles.headline}>{t(headlineKey)}</Text>
       <Text style={styles.body}>{t(bodyKey)}</Text>
@@ -286,7 +297,7 @@ const OnboardingScreen = () => {
   );
 
   const renderCountrySlide = () => (
-    <Animated.View style={[styles.slideContent, getSlideAnimatedStyle(3)]}>
+    <Animated.View style={[styles.slideContent, slideAnimatedStyles[3]]}>
       {renderIconCircle('verified-user')}
       <Text style={styles.headline}>{t('securePlatform')}</Text>
       <Text style={styles.body}>{t('securePlatformDesc')}</Text>
@@ -402,6 +413,10 @@ const OnboardingScreen = () => {
         snapToAlignment="center"
         decelerationRate="fast"
         bounces={false}
+        // Android clips/recycles offscreen subviews by default, which can flash
+        // blank/black mid-transition on an Animated-opacity FlatList like this one.
+        removeClippedSubviews={false}
+        getItemLayout={(_, index) => ({ length: SCREEN_WIDTH, offset: SCREEN_WIDTH * index, index })}
         scrollEventThrottle={16}
         onScroll={Animated.event([{ nativeEvent: { contentOffset: { x: scrollX } } }], { useNativeDriver: true })}
         onMomentumScrollEnd={handleMomentumScrollEnd}
