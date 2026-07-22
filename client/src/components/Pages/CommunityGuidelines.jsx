@@ -236,7 +236,7 @@ const CommunityGuidelines = () => {
                         >
                           <CardContent>
                             <Box display="flex" alignItems="center" mb={2}>
-                              <ListItemIcon sx={{ minWidth: 'auto', mr: 1 }}>
+                              <ListItemIcon sx={{ minWidth: 'auto', marginInlineEnd: 1 }}>
                                 {guideline.icon}
                               </ListItemIcon>
                               <Typography variant="h6" component="h3">
@@ -248,7 +248,7 @@ const CommunityGuidelines = () => {
                             </Typography>
                             <List dense>
                               {guideline.rules.map((rule, ruleIndex) => (
-                                <ListItem key={ruleIndex} sx={{ pl: 0 }}>
+                                <ListItem key={ruleIndex} sx={{ paddingInlineStart: 0 }}>
                                   <ListItemText
                                     primary={rule}
                                     primaryTypographyProps={{
@@ -296,7 +296,7 @@ const CommunityGuidelines = () => {
                         >
                           <CardContent>
                             <Box display="flex" alignItems="center" mb={2}>
-                              <ListItemIcon sx={{ minWidth: 'auto', mr: 2 }}>
+                              <ListItemIcon sx={{ minWidth: 'auto', marginInlineEnd: 2 }}>
                                 {action.icon}
                               </ListItemIcon>
                               <Typography
@@ -310,7 +310,7 @@ const CommunityGuidelines = () => {
                                 label={action.severity === 'high' ? t('high') : t('medium')}
                                 color={action.severity === 'high' ? 'error' : 'warning'}
                                 size="small"
-                                sx={{ ml: 'auto' }}
+                                sx={{ marginInlineStart: 'auto' }}
                               />
                             </Box>
                             
@@ -361,7 +361,7 @@ const CommunityGuidelines = () => {
                               <Chip
                                 label={step.step}
                                 color="primary"
-                                sx={{ mr: 2 }}
+                                sx={{ marginInlineEnd: 2 }}
                               />
                               <Typography
                                 variant="h6"

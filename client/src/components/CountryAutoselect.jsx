@@ -67,11 +67,11 @@ const CountryAutoselect = ({ countries, setCountryId, language = 'en' }) => {
       renderOption={(props, option) => (
         <Box
           component="li"
-          sx={{ "& > img": { mr: 2, flexShrink: 0 } }}
+          sx={{ "& > img": { marginInlineEnd: 2, flexShrink: 0 } }}
           {...getValidLiProps(props)}
         >
           {option.flag ? (
-            <span style={{ marginRight: 8, fontSize: '20px' }}>
+            <span style={{ marginInlineEnd: 8, fontSize: '20px' }}>
               {option.flag}
             </span>
           ) : (

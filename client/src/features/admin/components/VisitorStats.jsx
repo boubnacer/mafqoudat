@@ -296,7 +296,7 @@ const VisitorStats = () => {
     return (
       <Box display="flex" justifyContent="center" alignItems="center" minHeight="200px">
         <CircularProgress />
-        <Typography sx={{ ml: 2 }}>Loading visitor data...</Typography>
+        <Typography sx={{ marginInlineStart: 2 }}>Loading visitor data...</Typography>
       </Box>
     );
   }

@@ -175,7 +175,7 @@ const TermsOfUse = () => {
                   {sections.map((section, index) => (
                     <Box key={index} mb={4}>
                       <Box display="flex" alignItems="center" mb={2}>
-                        <ListItemIcon sx={{ minWidth: 'auto', mr: 2 }}>
+                        <ListItemIcon sx={{ minWidth: 'auto', marginInlineEnd: 2 }}>
                           {section.icon}
                         </ListItemIcon>
                         <Typography
@@ -200,7 +200,7 @@ const TermsOfUse = () => {
 
                       <List dense>
                         {section.items.map((item, itemIndex) => (
-                          <ListItem key={itemIndex} sx={{ pl: 0 }}>
+                          <ListItem key={itemIndex} sx={{ paddingInlineStart: 0 }}>
                             <ListItemText
                               primary={item}
                               primaryTypographyProps={{
@@ -242,7 +242,7 @@ const TermsOfUse = () => {
                     {t('terminationContent')}
                   </Typography>
                   <List dense>
-                    <ListItem sx={{ pl: 0 }}>
+                    <ListItem sx={{ paddingInlineStart: 0 }}>
                       <ListItemText
                         primary={t('violationOfTerms')}
                         primaryTypographyProps={{
@@ -251,7 +251,7 @@ const TermsOfUse = () => {
                         }}
                       />
                     </ListItem>
-                    <ListItem sx={{ pl: 0 }}>
+                    <ListItem sx={{ paddingInlineStart: 0 }}>
                       <ListItemText
                         primary={t('fraudulentActivity')}
                         primaryTypographyProps={{
@@ -260,7 +260,7 @@ const TermsOfUse = () => {
                         }}
                       />
                     </ListItem>
-                    <ListItem sx={{ pl: 0 }}>
+                    <ListItem sx={{ paddingInlineStart: 0 }}>
                       <ListItemText
                         primary={t('legalRequirements')}
                         primaryTypographyProps={{

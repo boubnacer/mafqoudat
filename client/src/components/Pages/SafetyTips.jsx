@@ -251,7 +251,7 @@ const SafetyTips = () => {
                       >
                         <CardContent>
                           <Box display="flex" alignItems="center" mb={2}>
-                            <ListItemIcon sx={{ minWidth: 'auto', mr: 1 }}>
+                            <ListItemIcon sx={{ minWidth: 'auto', marginInlineEnd: 1 }}>
                               {category.icon}
                             </ListItemIcon>
                             <Typography variant="h6" component="h3">
@@ -263,7 +263,7 @@ const SafetyTips = () => {
                           </Typography>
                           <List dense>
                             {category.tips.map((tip, tipIndex) => (
-                              <ListItem key={tipIndex} sx={{ pl: 0 }}>
+                              <ListItem key={tipIndex} sx={{ paddingInlineStart: 0 }}>
                                 <ListItemText
                                   primary={tip}
                                   primaryTypographyProps={{
@@ -309,7 +309,7 @@ const SafetyTips = () => {
                       >
                         <CardContent>
                           <Box display="flex" alignItems="center" mb={2}>
-                            <ListItemIcon sx={{ minWidth: 'auto', mr: 1 }}>
+                            <ListItemIcon sx={{ minWidth: 'auto', marginInlineEnd: 1 }}>
                               {contact.icon}
                             </ListItemIcon>
                             <Typography variant="h6" component="h3">
@@ -357,14 +357,14 @@ const SafetyTips = () => {
                       >
                         <CardContent>
                           <Box display="flex" alignItems="center" mb={2}>
-                            <CheckCircle color="success" sx={{ mr: 1 }} />
+                            <CheckCircle color="success" sx={{ marginInlineEnd: 1 }} />
                             <Typography variant="h6" component="h3">
                               {checklist.title}
                             </Typography>
                           </Box>
                           <List dense>
                             {checklist.items.map((item, itemIndex) => (
-                              <ListItem key={itemIndex} sx={{ pl: 0 }}>
+                              <ListItem key={itemIndex} sx={{ paddingInlineStart: 0 }}>
                                 <ListItemText
                                   primary={item}
                                   primaryTypographyProps={{

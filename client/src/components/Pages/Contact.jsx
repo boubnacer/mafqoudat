@@ -310,7 +310,7 @@ const Contact = () => {
                       >
                         <CardContent>
                           <Box display="flex" alignItems="center" mb={2}>
-                            <Box sx={{ mr: 2 }}>
+                            <Box sx={{ marginInlineEnd: 2 }}>
                               {info.icon}
                             </Box>
                             <Typography variant="h6" component="h3">

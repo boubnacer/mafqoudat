@@ -461,7 +461,7 @@ const WelcomePage = () => {
                 getOptionLabel={getCountryName}
                 isOptionEqualToValue={(option, value) => option._id === value._id}
                 renderOption={(props, option) => (
-                  <Box component="li" sx={{ "& > img": { mr: 2, flexShrink: 0 } }} {...props}>
+                  <Box component="li" sx={{ "& > img": { marginInlineEnd: 2, flexShrink: 0 } }} {...props}>
                     {option.flag ? (
                       <span style={{ marginInlineEnd: 8, fontSize: '20px' }}>{option.flag}</span>
                     ) : (

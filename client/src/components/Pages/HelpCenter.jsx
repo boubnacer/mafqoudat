@@ -260,7 +260,7 @@ const HelpCenter = () => {
                       >
                         <CardContent>
                           <Box display="flex" alignItems="center" mb={2}>
-                            <Box sx={{ mr: 2, color: theme.custom.color.brandPrimary }}>
+                            <Box sx={{ marginInlineEnd: 2, color: theme.custom.color.brandPrimary }}>
                               {topic.icon}
                             </Box>
                             <Chip
@@ -294,7 +294,7 @@ const HelpCenter = () => {
                 {faqCategories.map((category, categoryIndex) => (
                   <Box key={categoryIndex} mb={3}>
                     <Box display="flex" alignItems="center" mb={2}>
-                      <Box sx={{ mr: 2 }}>
+                      <Box sx={{ marginInlineEnd: 2 }}>
                         {category.icon}
                       </Box>
                       <Typography variant="h6" component="h3" sx={{ fontWeight: '600' }}>

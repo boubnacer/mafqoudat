@@ -1892,7 +1892,7 @@ if (typeof document !== 'undefined') {
                                 src={`https://flagcdn.com/w20/${country.code.toLowerCase()}.png`}
                                 srcSet={`https://flagcdn.com/w40/${country.code.toLowerCase()}.png 2x`}
                                 alt=""
-                                style={{ marginRight: 8 }}
+                                style={{ marginInlineEnd: 8 }}
                               />
                             )}
                             {getCountryLabel(country)} ({country.code})
@@ -2070,9 +2070,9 @@ if (typeof document !== 'undefined') {
                             }}
                             InputProps={{
                               startAdornment: isSearching ? (
-                                <CircularProgress size={16} sx={{ mr: 1 }} />
+                                <CircularProgress size={16} sx={{ marginInlineEnd: 1 }} />
                               ) : (
-                                <LocationOn sx={{ color: theme.palette.text.secondary, mr: 1, fontSize: 20 }} />
+                                <LocationOn sx={{ color: theme.palette.text.secondary, marginInlineEnd: 1, fontSize: 20 }} />
                               )
                             }}
                           />
@@ -2926,7 +2926,7 @@ if (typeof document !== 'undefined') {
                     <Box
                       component="ul"
                       sx={{
-                        pl: 2.5,
+                        paddingInlineStart: 2.5,
                         m: 0,
                         display: 'grid',
                         gap: 1.25,
@@ -3088,11 +3088,6 @@ if (typeof document !== 'undefined') {
                 color: `${theme.palette.getContrastText(theme.custom.color.brandPrimary)} !important`,
                 '&:hover': {
                   background: `linear-gradient(45deg, ${lighten(theme.custom.color.brandPrimary, 0.08)} 30%, ${lighten(theme.custom.color.brandPrimary, 0.25)} 90%)`,
-                },
-                // RTL spacing fix - add space between icon and text
-                '& .MuiButton-startIcon': {
-                  marginRight: '0px',
-                  marginLeft: currentLanguage === 'ar' ? '12px' : '0px',
                 },
               }}
             >

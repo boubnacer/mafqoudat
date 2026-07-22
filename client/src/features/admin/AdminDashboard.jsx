@@ -1507,7 +1507,7 @@ const AdminDashboard = () => {
                   color="primary"
                   size="small"
                   onClick={() => window.open(`/dash/posts/${selectedReport.postId?._id}`, '_blank')}
-                  sx={{ ml: 1, textTransform: 'none' }}
+                  sx={{ marginInlineStart: 1, textTransform: 'none' }}
                 >
                   {t('viewPost')}
                 </Button>
@@ -1623,7 +1623,7 @@ const AdminDashboard = () => {
                   color="primary"
                   size="small"
                   onClick={() => window.open(`/dash/posts/${selectedPromotion._id}`, '_blank')}
-                  sx={{ ml: 1, textTransform: 'none' }}
+                  sx={{ marginInlineStart: 1, textTransform: 'none' }}
                 >
                   {t('viewPost')}
                 </Button>

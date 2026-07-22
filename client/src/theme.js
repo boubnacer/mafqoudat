@@ -511,6 +511,45 @@ export const themeSettings = (mode, currentLanguage = 'en') => {
             '& .MuiChip-label': {
               textAlign: 'center',
             },
+            // Same physical-margin issue as MuiButton's icons: these mirror MUI's
+            // default icon/deleteIcon spacing but as logical properties so the gap
+            // stays between the icon and the label when RTL swaps their sides.
+            '& .MuiChip-icon': {
+              marginRight: 0,
+              marginLeft: 0,
+              marginInlineStart: 5,
+              marginInlineEnd: -6,
+            },
+            '&.MuiChip-sizeSmall .MuiChip-icon': {
+              marginInlineStart: 4,
+              marginInlineEnd: -4,
+            },
+            '& .MuiChip-deleteIcon': {
+              marginRight: 0,
+              marginLeft: 0,
+              marginInlineEnd: 5,
+              marginInlineStart: -6,
+            },
+            '&.MuiChip-sizeSmall .MuiChip-deleteIcon': {
+              marginInlineEnd: 4,
+              marginInlineStart: -4,
+            },
+          },
+        },
+      },
+      MuiInputAdornment: {
+        styleOverrides: {
+          // Positional margins are physical by default, which loses the gap toward
+          // the input's text once RTL mirrors which side the adornment sits on.
+          positionStart: {
+            marginRight: 0,
+            marginLeft: 0,
+            marginInlineEnd: 8,
+          },
+          positionEnd: {
+            marginRight: 0,
+            marginLeft: 0,
+            marginInlineStart: 8,
           },
         },
       },
@@ -520,6 +559,28 @@ export const themeSettings = (mode, currentLanguage = 'en') => {
             // Ensure proper RTL support for buttons
             textTransform: 'none',
             fontWeight: 500,
+          },
+          // MUI's default startIcon/endIcon margins are physical (marginLeft/marginRight),
+          // so they don't follow the button when RTL flips the icon to the other side —
+          // this is what collapses the gap between icon and label in Arabic. Logical
+          // properties resolve relative to direction, so the gap follows the icon in both modes.
+          startIcon: {
+            marginRight: 0,
+            marginLeft: 0,
+            marginInlineEnd: 8,
+            marginInlineStart: -4,
+            '&.MuiButton-iconSizeSmall': {
+              marginInlineStart: -2,
+            },
+          },
+          endIcon: {
+            marginRight: 0,
+            marginLeft: 0,
+            marginInlineStart: 8,
+            marginInlineEnd: -4,
+            '&.MuiButton-iconSizeSmall': {
+              marginInlineEnd: -2,
+            },
           },
         },
       },

@@ -23,7 +23,7 @@ import { useTranslation } from '../utils/translations';
 import { useRequestPromotionMutation } from '../features/posts/postsApiSlice';
 
 const PromotionDialog = ({ open, onClose, postId, onPromotionRequested, isLostItem = true, showSuccessMessage = true }) => {
-  const { t, currentLanguage } = useTranslation();
+  const { t } = useTranslation();
   const theme = useTheme();
   const [isSuccess, setIsSuccess] = useState(false);
   const [error, setError] = useState(null);
@@ -326,7 +326,7 @@ const PromotionDialog = ({ open, onClose, postId, onPromotionRequested, isLostIt
                   error={!!phoneError}
                   helperText={phoneError || (isLostItem ? t('phoneNumberDescriptionLost') : t('phoneNumberDescriptionFound'))}
                   InputProps={{
-                    startAdornment: <PhoneIcon sx={{ mr: 1, color: theme.palette.text.secondary }} />
+                    startAdornment: <PhoneIcon sx={{ marginInlineEnd: 1, color: theme.palette.text.secondary }} />
                   }}
                   sx={{
                     '& .MuiOutlinedInput-root': {
@@ -392,9 +392,9 @@ const PromotionDialog = ({ open, onClose, postId, onPromotionRequested, isLostIt
             onClick={handlePromotionRequest}
             disabled={isLoading}
             variant="contained"
-            startIcon={isLoading ? <CircularProgress size={20} /> : <WhatsAppIcon sx={{ 
-              ml: currentLanguage === 'ar' ? 1 : 0.5,
-              mr: currentLanguage === 'ar' ? 0.5 : 0
+            startIcon={isLoading ? <CircularProgress size={20} /> : <WhatsAppIcon sx={{
+              marginInlineStart: 0.5,
+              marginInlineEnd: 0
             }} />}
             sx={{ 
               minWidth: { xs: 140, md: 160 },

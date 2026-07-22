@@ -90,7 +90,7 @@ export const TrendingItemSkeleton = () => {
     <Card sx={{ height: '100%', p: 2 }}>
       <Box sx={{ display: 'flex', flexDirection: { xs: 'column', sm: 'row' }, height: '100%' }}>
         <Skeleton variant="rectangular" width="100%" height={200} sx={{ borderRadius: 1, mb: 2 }} />
-        <Box sx={{ flex: 1, ml: { xs: 0, sm: 2 } }}>
+        <Box sx={{ flex: 1, marginInlineStart: { xs: 0, sm: 2 } }}>
           <Skeleton variant="text" width="60%" height={24} />
           <Skeleton variant="text" width="40%" height={20} sx={{ mt: 1 }} />
           <Skeleton variant="text" width="80%" height={16} sx={{ mt: 1 }} />
@@ -320,10 +320,6 @@ export const DashboardEmptyStates = {
                   boxShadow: `0 4px 8px 2px ${alpha(theme.custom.color.brandPrimary, 0.4)}`,
                   color: `${theme.palette.getContrastText(theme.custom.color.brandPrimary)} !important`,
                 },
-                '& .MuiButton-startIcon': {
-                  marginRight: currentLanguage === 'ar' ? 0 : '8px',
-                  marginLeft: currentLanguage === 'ar' ? '8px' : 0,
-                }
               })}
             >
               {t('reportLostItem')}
@@ -350,10 +346,6 @@ export const DashboardEmptyStates = {
                   transform: 'translateY(-1px)',
                   boxShadow: `0 4px 12px ${alpha(theme.custom.color.brandPrimary, 0.2)}`,
                 },
-                '& .MuiButton-startIcon': {
-                  marginRight: currentLanguage === 'ar' ? 0 : '8px',
-                  marginLeft: currentLanguage === 'ar' ? '8px' : 0,
-                }
               })}
             >
               {t('reportFoundItem')}
@@ -568,10 +560,6 @@ export const SearchLoadingStates = {
                   boxShadow: '0 4px 8px 2px rgba(26, 110, 238, .4)',
                   color: '#fff !important',
                 },
-                '& .MuiButton-startIcon': {
-                  marginRight: currentLanguage === 'ar' ? 0 : '8px',
-                  marginLeft: currentLanguage === 'ar' ? '8px' : 0,
-                }
               }}
             >
               {t('reportLostItem')}
@@ -598,10 +586,6 @@ export const SearchLoadingStates = {
                   transform: 'translateY(-1px)',
                   boxShadow: `0 4px 12px ${alpha('#4A8BFF', 0.2)}`,
                 },
-                '& .MuiButton-startIcon': {
-                  marginRight: currentLanguage === 'ar' ? 0 : '8px',
-                  marginLeft: currentLanguage === 'ar' ? '8px' : 0,
-                }
               }}
             >
               {t('reportFoundItem')}

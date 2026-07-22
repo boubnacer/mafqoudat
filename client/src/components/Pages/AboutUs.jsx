@@ -133,7 +133,7 @@ const AboutUs = () => {
                 {/* Mission Section */}
                 <Box mb={4}>
                   <Box display="flex" alignItems="center" mb={2}>
-                    <ListItemIcon sx={{ minWidth: 'auto', mr: 2 }}>
+                    <ListItemIcon sx={{ minWidth: 'auto', marginInlineEnd: 2 }}>
                       <Info color="primary" />
                     </ListItemIcon>
                     <Typography
@@ -183,7 +183,7 @@ const AboutUs = () => {
                         >
                           <CardContent>
                             <Box display="flex" alignItems="center" mb={2}>
-                              <ListItemIcon sx={{ minWidth: 'auto', mr: 1 }}>
+                              <ListItemIcon sx={{ minWidth: 'auto', marginInlineEnd: 1 }}>
                                 {feature.icon}
                               </ListItemIcon>
                               <Typography variant="h6" component="h3">

@@ -268,7 +268,7 @@ const SuccessStories = () => {
                         <CheckCircle 
                           sx={{ 
                             color: theme.palette.mode === 'dark' ? '#FFD700' : '#2196F3',
-                            mr: 1 
+                            marginInlineEnd: 1
                           }} 
                         />
                         <Typography 

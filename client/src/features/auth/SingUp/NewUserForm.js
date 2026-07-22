@@ -344,7 +344,7 @@ const NewUserFormComponent = ({ countries }) => {
                                 src={`https://flagcdn.com/w20/${country.code.toLowerCase()}.png`}
                                 srcSet={`https://flagcdn.com/w40/${country.code.toLowerCase()}.png 2x`}
                                 alt=""
-                                style={{ marginRight: 8 }}
+                                style={{ marginInlineEnd: 8 }}
                               />
                             )}
                             {getCountryLabel(country)} ({country.code})

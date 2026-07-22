@@ -440,7 +440,7 @@ const PublicPostsPage = () => {
               <ControlButton
                 onClick={handleLanguageClick}
                 sx={{
-                  mr: { xs: 0.5, sm: 2 },
+                  marginInlineEnd: { xs: 0.5, sm: 2 },
                   px: { xs: 1, sm: 2 },
                   py: { xs: 0.5, sm: 1 }
                 }}
@@ -462,7 +462,7 @@ const PublicPostsPage = () => {
               <IconButton
                 onClick={() => dispatch(setMode())}
                 sx={{
-                  mr: { xs: 0, sm: 2 },
+                  marginInlineEnd: { xs: 0, sm: 2 },
                   p: { xs: 0.75, sm: 1 },
                   '& .MuiSvgIcon-root': {
                     fontSize: { xs: '20px', sm: '24px' }
@@ -477,7 +477,7 @@ const PublicPostsPage = () => {
                 startIcon={<Login />}
                 onClick={() => navigate('/login')}
                 sx={{
-                  mr: { xs: 0.5, sm: 1 },
+                  marginInlineEnd: { xs: 0.5, sm: 1 },
                   px: { xs: 1, sm: 2 },
                   py: { xs: 0.5, sm: 1 },
                   fontSize: { xs: '0.75rem', sm: '0.875rem' },
@@ -486,7 +486,8 @@ const PublicPostsPage = () => {
                   borderColor: theme.custom.color.brandPrimary,
                   color: theme.custom.color.brandPrimary,
                   '& .MuiButton-startIcon': {
-                    margin: { xs: 0, sm: '0 8px 0 0' }
+                    marginInlineStart: 0,
+                    marginInlineEnd: { xs: 0, sm: '8px' },
                   }
                 }}
               >
@@ -508,7 +509,8 @@ const PublicPostsPage = () => {
                   bgcolor: theme.custom.color.brandPrimary,
                   '&:hover': { bgcolor: theme.custom.color.brandPrimary, opacity: 0.9 },
                   '& .MuiButton-startIcon': {
-                    margin: { xs: 0, sm: '0 8px 0 0' }
+                    marginInlineStart: 0,
+                    marginInlineEnd: { xs: 0, sm: '8px' },
                   }
                 }}
               >
@@ -577,7 +579,7 @@ const PublicPostsPage = () => {
               size="small"
               sx={{ flex: { xs: '1 1 100%', sm: '0 0 200px' } }}
               renderOption={(props, option) => (
-                <Box component="li" sx={{ "& > img": { mr: 2, flexShrink: 0 } }} {...props}>
+                <Box component="li" sx={{ "& > img": { marginInlineEnd: 2, flexShrink: 0 } }} {...props}>
                   {option.flag ? (
                     <span style={{ marginInlineEnd: 8, fontSize: '20px' }}>
                       {option.flag}

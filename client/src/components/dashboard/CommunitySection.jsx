@@ -110,7 +110,7 @@ const CommunitySection = () => {
               >
                 <CardContent>
                   <Box display="flex" alignItems="center" mb={2}>
-                    <People sx={{ mr: 1, color: 'primary.main' }} />
+                    <People sx={{ marginInlineEnd: 1, color: 'primary.main' }} />
                     <Typography variant="h6" color={theme.palette.text.primary}>Active Users</Typography>
                   </Box>
                   <Typography variant="h4" color="primary.main" gutterBottom>
@@ -164,7 +164,7 @@ const CommunitySection = () => {
               >
                 <CardContent>
                   <Box display="flex" alignItems="center" mb={2}>
-                    <EmojiEvents sx={{ mr: 1, color: 'warning.main' }} />
+                    <EmojiEvents sx={{ marginInlineEnd: 1, color: 'warning.main' }} />
                     <Typography variant="h6" color={theme.palette.text.primary}>Top Helpers</Typography>
                   </Box>
                   <List>
@@ -213,7 +213,7 @@ const CommunitySection = () => {
               >
                 <CardContent>
                   <Box display="flex" alignItems="center" mb={2}>
-                    <Notifications sx={{ mr: 1, color: 'error.main' }} />
+                    <Notifications sx={{ marginInlineEnd: 1, color: 'error.main' }} />
                     <Typography variant="h6" color={theme.palette.text.primary}>Recent Activity</Typography>
                   </Box>
                   <List>

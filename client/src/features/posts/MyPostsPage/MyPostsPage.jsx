@@ -139,10 +139,6 @@ const MyPostsPage = () => {
                   '&:hover': {
                     backgroundColor: theme.palette.mode === 'dark' ? 'rgba(255,255,255,0.1)' : 'rgba(0,0,0,0.1)',
                   },
-                  '& .MuiButton-startIcon': {
-                    marginRight: currentLanguage === 'ar' ? '0' : '8px',
-                    marginLeft: currentLanguage === 'ar' ? '8px' : '0'
-                  }
                 }}
               >
                 {t('back')}
@@ -182,10 +178,6 @@ const MyPostsPage = () => {
                   background: 'linear-gradient(45deg, #66BB6A 30%, #81C784 90%)',
                 },
                 display: { xs: 'none', sm: 'flex' },
-                '& .MuiButton-startIcon': {
-                  marginRight: currentLanguage === 'ar' ? '0' : '8px',
-                  marginLeft: currentLanguage === 'ar' ? '8px' : '0'
-                }
               }}
             >
               {t('createNewPost')}
@@ -235,10 +227,6 @@ const MyPostsPage = () => {
                     transform: 'translateY(-2px)',
                     boxShadow: '0 6px 10px 2px rgba(76, 175, 80, .4)',
                   },
-                  '& .MuiButton-startIcon': {
-                    marginRight: currentLanguage === 'ar' ? '0' : '8px',
-                    marginLeft: currentLanguage === 'ar' ? '8px' : '0'
-                  }
                 }}
               >
                 {t('createNewPost')}
@@ -377,10 +365,6 @@ const MyPostsPage = () => {
                                 borderColor: theme.palette.mode === 'dark' ? '#66BB6A' : '#34495e',
                                 backgroundColor: theme.palette.mode === 'dark' ? 'rgba(76, 175, 80, 0.1)' : 'rgba(44, 62, 80, 0.1)',
                               },
-                              '& .MuiButton-startIcon': {
-                                marginRight: currentLanguage === 'ar' ? '4px' : '8px',
-                                marginLeft: currentLanguage === 'ar' ? '8px' : '0px'
-                              }
                             }}
                           >
                             {t('view')}
@@ -400,10 +384,6 @@ const MyPostsPage = () => {
                                 borderColor: theme.palette.mode === 'dark' ? '#FFB74D' : '#34495e',
                                 backgroundColor: theme.palette.mode === 'dark' ? 'rgba(255, 152, 0, 0.1)' : 'rgba(44, 62, 80, 0.1)',
                               },
-                              '& .MuiButton-startIcon': {
-                                marginRight: currentLanguage === 'ar' ? '4px' : '8px',
-                                marginLeft: currentLanguage === 'ar' ? '8px' : '0px'
-                              }
                             }}
                           >
                             {t('editPost')}

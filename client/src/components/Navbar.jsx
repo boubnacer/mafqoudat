@@ -1051,7 +1051,7 @@ const Navbar = () => {
             />
           </DrawerRow>
           <Collapse in={mobileExploreOpen} timeout="auto" unmountOnExit>
-            <Box sx={{ pl: 2, borderInlineStart: `2px solid ${alpha(theme.custom.color.ink, 0.08)}`, ml: 2, mb: 0.5 }}>
+            <Box sx={{ paddingInlineStart: 2, borderInlineStart: `2px solid ${alpha(theme.custom.color.ink, 0.08)}`, marginInlineStart: 2, mb: 0.5 }}>
               {navigationItems.map((item) => (
                 <DrawerRow
                   key={item.title}

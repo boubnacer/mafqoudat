@@ -170,7 +170,7 @@ const CookieNotice = () => {
                 {/* What are Cookies Section */}
                 <Box mb={4}>
                   <Box display="flex" alignItems="center" mb={2}>
-                    <ListItemIcon sx={{ minWidth: 'auto', mr: 2 }}>
+                    <ListItemIcon sx={{ minWidth: 'auto', marginInlineEnd: 2 }}>
                       <Cookie color="primary" />
                     </ListItemIcon>
                     <Typography
@@ -220,7 +220,7 @@ const CookieNotice = () => {
                         >
                           <CardContent>
                             <Box display="flex" alignItems="center" mb={2}>
-                              <ListItemIcon sx={{ minWidth: 'auto', mr: 1 }}>
+                              <ListItemIcon sx={{ minWidth: 'auto', marginInlineEnd: 1 }}>
                                 {type.icon}
                               </ListItemIcon>
                               <Typography variant="h6" component="h3">
@@ -231,7 +231,7 @@ const CookieNotice = () => {
                                   label={t('required')} 
                                   size="small" 
                                   color="primary" 
-                                  sx={{ ml: 1 }}
+                                  sx={{ marginInlineStart: 1 }}
                                 />
                               )}
                             </Box>
@@ -240,7 +240,7 @@ const CookieNotice = () => {
                             </Typography>
                             <List dense>
                               {type.examples.map((example, exampleIndex) => (
-                                <ListItem key={exampleIndex} sx={{ pl: 0 }}>
+                                <ListItem key={exampleIndex} sx={{ paddingInlineStart: 0 }}>
                                   <ListItemText
                                     primary={example}
                                     primaryTypographyProps={{
@@ -285,7 +285,7 @@ const CookieNotice = () => {
                         >
                           <CardContent>
                             <Box display="flex" alignItems="center" mb={2}>
-                              <ListItemIcon sx={{ minWidth: 'auto', mr: 1 }}>
+                              <ListItemIcon sx={{ minWidth: 'auto', marginInlineEnd: 1 }}>
                                 {item.icon}
                               </ListItemIcon>
                               <Typography variant="h6" component="h3">
