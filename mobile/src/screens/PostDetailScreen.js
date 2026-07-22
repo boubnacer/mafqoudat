@@ -108,7 +108,7 @@ const PostDetailScreen = ({ navigation, route }) => {
   const { id } = route.params || {};
   const { currentLanguage } = useLanguage();
   const { t } = useTranslation();
-  const { user } = useAuth();
+  const { user, setLoginNotice } = useAuth();
   const { isDark } = useTheme();
   const isRTL = currentLanguage === 'ar';
   const tokens = isDark ? colorTokens.dark : colorTokens.light;
@@ -255,6 +255,11 @@ const PostDetailScreen = ({ navigation, route }) => {
 
   const openReportSheet = () => {
     setMenuVisible(false);
+    if (!user) {
+      setLoginNotice('loginRequiredReportPost');
+      navigation.navigate('Login');
+      return;
+    }
     setReportSheetVisible(true);
   };
 

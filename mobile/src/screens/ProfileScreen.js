@@ -19,7 +19,6 @@ import { useReferenceData, getLocalizedLabel } from '../context/ReferenceDataCon
 import { colorTokens, radiusTokens, fontFamilies } from '../theme/tokens';
 import DataStateView from '../components/DataStateView';
 import AppHeader from '../components/AppHeader';
-import GuestGate from '../components/GuestGate';
 
 // Mirrors client/src/designTokens.js's elevationTokens (e1/e2 boxShadow strings)
 // as RN shadow/elevation props - same shadow color/opacity HomeScreen/LoginScreen use.
@@ -41,7 +40,7 @@ const getElevation = (isDark, level = 1) =>
       };
 
 const ProfileScreen = ({ navigation }) => {
-  const { user: authUser } = useAuth();
+  const { user: authUser, setLoginNotice } = useAuth();
   const { isDark } = useTheme();
   const { currentLanguage } = useLanguage();
   const { t } = useTranslation();
@@ -101,8 +100,19 @@ const ProfileScreen = ({ navigation }) => {
 
   const textStyle = isRTL ? styles.textRTL : null;
 
+  // Guest tapping the Profile tab is bounced straight to Login (mirrors
+  // client's ProtectedRoute) instead of showing an inline gate.
+  useFocusEffect(
+    useCallback(() => {
+      if (!authUser) {
+        setLoginNotice('loginRequiredProfile');
+        navigation.navigate('Login');
+      }
+    }, [authUser, navigation, setLoginNotice])
+  );
+
   if (!authUser) {
-    return <GuestGate title={t('profile')} />;
+    return null;
   }
 
   if (isLoading && !profile) {

@@ -4,8 +4,9 @@
  * submit request (always multipart - POST /posts requires it), and error/nav.
  */
 
-import React, { useMemo, useState } from 'react';
+import React, { useCallback, useMemo, useState } from 'react';
 import { View, StyleSheet } from 'react-native';
+import { useFocusEffect } from '@react-navigation/native';
 import apiClient from '../api/apiService';
 import { API_ENDPOINTS } from '../config/api';
 import { useAuth } from '../context/AuthContext';
@@ -14,11 +15,10 @@ import { useTheme } from '../context/ThemeContext';
 import { colorTokens } from '../theme/tokens';
 import PostForm from '../components/PostForm';
 import AppHeader from '../components/AppHeader';
-import GuestGate from '../components/GuestGate';
 
 const NewPostScreen = ({ navigation }) => {
   const { t } = useTranslation();
-  const { isSignedIn } = useAuth();
+  const { isSignedIn, setLoginNotice } = useAuth();
   const { isDark } = useTheme();
   const tokens = isDark ? colorTokens.dark : colorTokens.light;
   const styles = useMemo(() => createStyles(tokens), [tokens]);
@@ -76,8 +76,19 @@ const NewPostScreen = ({ navigation }) => {
     }
   };
 
+  // Guest tapping the New Post tab is bounced straight to Login (mirrors
+  // client's ProtectedRoute) instead of showing an inline gate.
+  useFocusEffect(
+    useCallback(() => {
+      if (!isSignedIn) {
+        setLoginNotice('loginRequiredCreatePost');
+        navigation.navigate('Login');
+      }
+    }, [isSignedIn, navigation, setLoginNotice])
+  );
+
   if (!isSignedIn) {
-    return <GuestGate title={t('createNewPost')} />;
+    return null;
   }
 
   return (

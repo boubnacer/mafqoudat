@@ -53,6 +53,8 @@ const LoginScreen = ({ navigation }) => {
     clearError,
     sessionExpired,
     clearSessionExpired,
+    loginNotice,
+    clearLoginNotice,
   } = useAuth();
   const { currentLanguage } = useLanguage();
   const { isDark } = useTheme();
@@ -86,9 +88,14 @@ const LoginScreen = ({ navigation }) => {
   useEffect(() => {
     return () => {
       if (sessionExpired) clearSessionExpired();
+      if (loginNotice) clearLoginNotice();
     };
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
+
+  // sessionExpired (forced sign-out) takes priority over a screen-specific
+  // loginNotice (e.g. "please log in to create a post") if both are somehow set.
+  const noticeKey = sessionExpired ? 'sessionExpiredNotice' : loginNotice;
 
   const handleEmailChange = (value) => {
     setEmailOrPhone(value);
@@ -228,9 +235,9 @@ const LoginScreen = ({ navigation }) => {
           </View>
 
           <View style={styles.card}>
-            {sessionExpired ? (
+            {noticeKey ? (
               <View style={styles.noticeContainer}>
-                <Text style={styles.noticeText}>{t('sessionExpiredNotice')}</Text>
+                <Text style={styles.noticeText}>{t(noticeKey)}</Text>
               </View>
             ) : null}
 

@@ -210,11 +210,12 @@ const tabBarStyles = StyleSheet.create({
 
 // App navigator component: MainTabs (Home etc.) is reachable here whether or
 // not the user is signed in (guest browsing) - Login/SignUp/CountrySelection
-// live in this same stack so a guest can reach them from any tab (e.g. the
-// header menu, or a protected tab's sign-in prompt) without a navigator swap.
-// Screens that require a session (NewPost, MyPosts, Profile, SettingsScreen)
-// check isSignedIn themselves and show a sign-in prompt instead of their real
-// content when it's false.
+// live in this same stack so a guest can reach them from any tab without a
+// navigator swap. Screens that require a session (NewPost, MyPosts, Profile)
+// check isSignedIn themselves and redirect straight to Login (with a notice
+// banner via AuthContext's loginNotice) instead of rendering their real
+// content when it's false - mirrors client's ProtectedRoute. SettingsScreen
+// stays guest-accessible; it only swaps its bottom button between Login/Logout.
 const AppNavigator = () => {
   const { colors } = useTheme();
   return (

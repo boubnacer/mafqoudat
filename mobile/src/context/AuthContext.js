@@ -115,6 +115,10 @@ export const AuthProvider = ({ children }) => {
   const [pendingAuthMethod, setPendingAuthMethod] = useState('native');
   const [request, response, promptAsync] = useGoogleIdTokenAuth();
   const [sessionExpired, setSessionExpired] = useState(false);
+  // Translation key for the notice banner shown on LoginScreen when a guest is
+  // redirected there from a protected screen/action (mirrors client's
+  // authStorage.setRedirectAfterLoginWithMessage + Login.js's loginNotice).
+  const [loginNotice, setLoginNotice] = useState(null);
 
   // Registered with apiService's response interceptor so a 401/403 that means "your
   // token is no longer valid" (not a resource-ownership 403 - see apiService.js for the
@@ -135,6 +139,7 @@ export const AuthProvider = ({ children }) => {
   }, [forceSignOut]);
 
   const clearSessionExpired = () => setSessionExpired(false);
+  const clearLoginNotice = () => setLoginNotice(null);
 
   // Shared by every path that ends up with a valid access token (password login,
   // Google sign-in, Google registration): persists it and flips auth state, which
@@ -363,6 +368,9 @@ export const AuthProvider = ({ children }) => {
     refreshSession,
     sessionExpired,
     clearSessionExpired,
+    loginNotice,
+    setLoginNotice,
+    clearLoginNotice,
   };
 
   return (

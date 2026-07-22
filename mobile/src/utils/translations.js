@@ -33,8 +33,11 @@ export const translations = {
     showPassword: "Show",
     hidePassword: "Hide",
     signUpPrompt: "Don't have an account?",
-    signInRequiredTitle: "Sign in required",
-    signInRequiredMessage: "Create an account or sign in to continue.",
+    loginRequiredDefault: "Please log in to continue.",
+    loginRequiredCreatePost: "Please log in to create a post.",
+    loginRequiredReportPost: "Please log in to report this post.",
+    loginRequiredProfile: "Please log in to view your profile.",
+    loginRequiredMyPosts: "Please log in to view your posts.",
 
     // Sign Up
     createAccount: "Create Account",
@@ -382,8 +385,11 @@ export const translations = {
     showPassword: "Afficher",
     hidePassword: "Masquer",
     signUpPrompt: "Vous n'avez pas de compte ?",
-    signInRequiredTitle: "Connexion requise",
-    signInRequiredMessage: "Créez un compte ou connectez-vous pour continuer.",
+    loginRequiredDefault: "Veuillez vous connecter pour continuer.",
+    loginRequiredCreatePost: "Veuillez vous connecter pour créer une publication.",
+    loginRequiredReportPost: "Veuillez vous connecter pour signaler cette publication.",
+    loginRequiredProfile: "Veuillez vous connecter pour voir votre profil.",
+    loginRequiredMyPosts: "Veuillez vous connecter pour voir vos publications.",
 
     // Sign Up
     createAccount: "Créer un compte",
@@ -731,8 +737,11 @@ export const translations = {
     showPassword: "إظهار",
     hidePassword: "إخفاء",
     signUpPrompt: "ليس لديك حساب؟",
-    signInRequiredTitle: "تسجيل الدخول مطلوب",
-    signInRequiredMessage: "أنشئ حسابًا أو سجّل الدخول للمتابعة.",
+    loginRequiredDefault: "يرجى تسجيل الدخول للمتابعة.",
+    loginRequiredCreatePost: "يرجى تسجيل الدخول لإنشاء منشور.",
+    loginRequiredReportPost: "يرجى تسجيل الدخول للإبلاغ عن هذا المنشور.",
+    loginRequiredProfile: "يرجى تسجيل الدخول لعرض ملفك الشخصي.",
+    loginRequiredMyPosts: "يرجى تسجيل الدخول لعرض منشوراتك.",
 
     // Sign Up
     createAccount: "إنشاء حساب",

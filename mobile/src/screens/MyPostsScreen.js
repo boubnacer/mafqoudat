@@ -38,7 +38,6 @@ import { getCategoryConfig } from '../config/categories';
 import PromotePostSheet from '../components/PromotePostSheet';
 import DataStateView from '../components/DataStateView';
 import AppHeader from '../components/AppHeader';
-import GuestGate from '../components/GuestGate';
 
 const PAGE_SIZE = 10;
 const TOAST_DURATION_MS = 3000;
@@ -131,7 +130,7 @@ const ActionButton = ({ icon, label, tone, onPress, styles }) => (
 );
 
 const MyPostsScreen = ({ navigation }) => {
-  const { isSignedIn } = useAuth();
+  const { isSignedIn, setLoginNotice } = useAuth();
   const { currentLanguage } = useLanguage();
   const { isDark } = useTheme();
   const { t } = useTranslation();
@@ -398,8 +397,19 @@ const MyPostsScreen = ({ navigation }) => {
     );
   };
 
+  // Guest tapping the My Posts tab is bounced straight to Login (mirrors
+  // client's ProtectedRoute) instead of showing an inline gate.
+  useFocusEffect(
+    useCallback(() => {
+      if (!isSignedIn) {
+        setLoginNotice('loginRequiredMyPosts');
+        navigation.navigate('Login');
+      }
+    }, [isSignedIn, navigation, setLoginNotice])
+  );
+
   if (!isSignedIn) {
-    return <GuestGate title={t('myPosts')} />;
+    return null;
   }
 
   if (isLoading && !hasLoadedOnce) {
