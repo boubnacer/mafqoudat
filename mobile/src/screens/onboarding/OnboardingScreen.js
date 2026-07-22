@@ -22,12 +22,12 @@ import {
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { Ionicons, MaterialIcons } from '@expo/vector-icons';
+import { useAuth } from '../../context/AuthContext';
 import { useLanguage } from '../../context/LanguageContext';
 import { useTheme } from '../../context/ThemeContext';
 import { useOnboarding } from '../../context/OnboardingContext';
 import { useTranslation } from '../../utils/translations';
 import { languageStorage } from '../../utils/languageStorage';
-import { storage } from '../../utils/storage';
 import apiClient from '../../api/apiService';
 import { getLocalizedLabel } from '../../context/ReferenceDataContext';
 import { colorTokens, radiusTokens, fontFamilies } from '../../theme/tokens';
@@ -68,7 +68,8 @@ const getDeviceLanguage = () => {
   }
 };
 
-const OnboardingScreen = ({ navigation }) => {
+const OnboardingScreen = () => {
+  const { selectCountry } = useAuth();
   const { currentLanguage, setLanguage } = useLanguage();
   const { isDark } = useTheme();
   const { completeOnboarding } = useOnboarding();
@@ -216,9 +217,11 @@ const OnboardingScreen = ({ navigation }) => {
     setIsSubmitting(true);
     try {
       const countryId = selectedCountry._id || selectedCountry.id;
-      await storage.setCurrentCountry(countryId);
       await completeOnboarding();
-      navigation.replace('Login');
+      // Flips AuthContext's hasCountry, which drives RootNavigator (App.js)
+      // to swap into the guest-eligible AppNavigator and land on Home - no
+      // explicit navigation call needed here.
+      await selectCountry(countryId);
     } catch (error) {
       console.error('Error completing onboarding:', error);
       setCountryError(t('failedToSaveCountry'));

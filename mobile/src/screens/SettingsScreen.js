@@ -26,7 +26,7 @@ const THEME_MODES = [
 ];
 
 const SettingsScreen = ({ navigation }) => {
-  const { signOut } = useAuth();
+  const { isSignedIn, signOut } = useAuth();
   const { currentLanguage, setLanguage } = useLanguage();
   const { themeMode, setThemeMode } = useTheme();
   const { t } = useTranslation();
@@ -38,6 +38,14 @@ const SettingsScreen = ({ navigation }) => {
       { text: t('cancel'), style: 'cancel' },
       { text: t('logout'), style: 'destructive', onPress: signOut },
     ]);
+  };
+
+  const handleAuthButtonPress = () => {
+    if (isSignedIn) {
+      handleSignOut();
+    } else {
+      navigation.navigate('Login');
+    }
   };
 
   const openLink = (path) => {
@@ -109,8 +117,8 @@ const SettingsScreen = ({ navigation }) => {
           </TouchableOpacity>
         </View>
 
-        <TouchableOpacity style={styles.signOutButton} onPress={handleSignOut}>
-          <Text style={styles.signOutButtonText}>{t('logout')}</Text>
+        <TouchableOpacity style={styles.signOutButton} onPress={handleAuthButtonPress}>
+          <Text style={styles.signOutButtonText}>{isSignedIn ? t('logout') : t('login')}</Text>
         </TouchableOpacity>
       </View>
     </View>

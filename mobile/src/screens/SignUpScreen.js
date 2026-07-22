@@ -175,8 +175,11 @@ const SignUpScreen = ({ navigation }) => {
       const { accessToken } = response.data;
 
       if (accessToken) {
-        // Same storage/state path as password login - lands signed-in on HomeScreen.
+        // Same storage/state path as password login. Login/SignUp share a
+        // stack with MainTabs (guest browsing - see App.js), so isSignedIn
+        // flipping doesn't remount the tree; navigate to Home explicitly.
         await completeLogin(accessToken);
+        navigation.navigate('MainTabs');
       } else {
         setError(t('networkError'));
       }
@@ -219,7 +222,7 @@ const SignUpScreen = ({ navigation }) => {
       const result = await signInWithGoogle();
 
       if (result.success) {
-        // Navigation will be handled by AuthContext (isSignedIn flip)
+        navigation.navigate('MainTabs');
       } else if (result.pending) {
         navigation.navigate('CountrySelection');
       } else if (!result.cancelled) {

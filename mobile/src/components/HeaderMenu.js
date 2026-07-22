@@ -57,7 +57,7 @@ const HeaderMenu = ({ visible, onClose, countryFlag, countryLabel, onOpenCountry
   const tokens = isDark ? colorTokens.dark : colorTokens.light;
   const { currentLanguage, setLanguage } = useLanguage();
   const { t } = useTranslation();
-  const { signOut } = useAuth();
+  const { isSignedIn, signOut } = useAuth();
   const { floptions } = useReferenceData();
   const navigation = useNavigation();
   const isRTL = currentLanguage === 'ar';
@@ -105,6 +105,10 @@ const HeaderMenu = ({ visible, onClose, countryFlag, countryLabel, onOpenCountry
         { text: t('logout'), style: 'destructive', onPress: signOut },
       ]);
     });
+  };
+
+  const handleSignIn = () => {
+    runAndClose(() => navigation.navigate('Login'));
   };
 
   const handleOpenCountryPicker = () => {
@@ -230,13 +234,20 @@ const HeaderMenu = ({ visible, onClose, countryFlag, countryLabel, onOpenCountry
 
             <View style={styles.divider} />
 
-            {renderItem({
-              key: 'signOut',
-              label: t('logout'),
-              icon: 'log-out-outline',
-              onPress: handleSignOut,
-              destructive: true,
-            })}
+            {isSignedIn
+              ? renderItem({
+                  key: 'signOut',
+                  label: t('logout'),
+                  icon: 'log-out-outline',
+                  onPress: handleSignOut,
+                  destructive: true,
+                })
+              : renderItem({
+                  key: 'signIn',
+                  label: t('login'),
+                  icon: 'log-in-outline',
+                  onPress: handleSignIn,
+                })}
           </ScrollView>
         </View>
       </View>

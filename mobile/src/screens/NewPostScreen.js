@@ -8,14 +8,17 @@ import React, { useMemo, useState } from 'react';
 import { View, StyleSheet } from 'react-native';
 import apiClient from '../api/apiService';
 import { API_ENDPOINTS } from '../config/api';
+import { useAuth } from '../context/AuthContext';
 import { useTranslation } from '../utils/translations';
 import { useTheme } from '../context/ThemeContext';
 import { colorTokens } from '../theme/tokens';
 import PostForm from '../components/PostForm';
 import AppHeader from '../components/AppHeader';
+import GuestGate from '../components/GuestGate';
 
 const NewPostScreen = ({ navigation }) => {
   const { t } = useTranslation();
+  const { isSignedIn } = useAuth();
   const { isDark } = useTheme();
   const tokens = isDark ? colorTokens.dark : colorTokens.light;
   const styles = useMemo(() => createStyles(tokens), [tokens]);
@@ -72,6 +75,10 @@ const NewPostScreen = ({ navigation }) => {
       setIsSubmitting(false);
     }
   };
+
+  if (!isSignedIn) {
+    return <GuestGate title={t('createNewPost')} />;
+  }
 
   return (
     <View style={styles.container}>

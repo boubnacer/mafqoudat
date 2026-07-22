@@ -36,6 +36,32 @@ const normalizeArabicText = (text) => {
     .trim();
 };
 
+/**
+ * Build a case-insensitive regex pattern for a city search term.
+ * Arabic input is normalized (diacritics stripped) and expanded into
+ * character classes so variants like "اكادير" / "أكادير" (hamza, ta
+ * marbuta, alif maksura) all match. Latin input is just regex-escaped.
+ * @param {string} text - Raw search term
+ * @returns {string} - Regex pattern string
+ */
+const buildSearchPattern = (text) => {
+  if (!isArabicText(text)) {
+    return escapeRegex(text);
+  }
+
+  const normalized = normalizeArabicText(text);
+  // Escape special regex characters first (but preserve Arabic characters).
+  // We need to escape before replacing Arabic chars to avoid double-escaping.
+  let escaped = normalized.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+
+  // Replace normalized Arabic characters with character classes that match
+  // both normalized and non-normalized versions.
+  return escaped
+    .replace(/ا/g, '[اأإآ]') // Match alif variations (ا, أ, إ, آ)
+    .replace(/ي/g, '[يى]') // Match ya and alif maksura
+    .replace(/ه/g, '[هة]'); // Match ha and ta marbuta
+};
+
 // Helper function to normalize city labels
 const normalizeCityLabels = (labels) => {
   if (!labels) return labels;
@@ -109,34 +135,9 @@ const getCities = async (req, res) => {
     
     // Add search functionality - use regex for partial matching
     if (search) {
-      // Normalize search term for Arabic text matching
-      const normalizedSearch = normalizeArabicText(search);
-      
-      // Create regex pattern that handles Arabic character variations
-      // This allows matching "اكادير" with "أكادير" (with/without hamza)
-      const createArabicRegexPattern = (text) => {
-        if (!text) return text;
-        
-        // Escape special regex characters first (but preserve Arabic characters)
-        // We need to escape before replacing Arabic chars to avoid double-escaping
-        let escaped = text.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
-        
-        // Replace normalized Arabic characters with character classes that match variations
-        // This allows matching both normalized and non-normalized versions
-        escaped = escaped
-          .replace(/ا/g, '[اأإآ]') // Match alif variations (ا, أ, إ, آ)
-          .replace(/ي/g, '[يى]') // Match ya and alif maksura
-          .replace(/ه/g, '[هة]'); // Match ha and ta marbuta
-        
-        return escaped;
-      };
-      
-      // For Arabic text, use normalized pattern with character classes
-      // For non-Arabic text, escape regex metacharacters in the raw search term
-      const searchPattern = isArabicText(search)
-        ? createArabicRegexPattern(normalizedSearch)
-        : escapeRegex(search);
-      
+      // Arabic-aware pattern: matches "اكادير" with "أكادير" (with/without hamza)
+      const searchPattern = buildSearchPattern(search);
+
       // Use regex for case-insensitive partial matching across all language labels
       conditions.push({
         $or: [
@@ -257,14 +258,47 @@ const searchCities = async (req, res) => {
       }
     }
 
-    const localCities = await City.find(query)
+    let localCities = await City.find(query)
       .populate('country', 'code labels flag')
       .select('code labels isCapital country isDynamic')
       .limit(parseInt(limit))
       .lean()
       .exec();
 
-    console.log(`📊 Local database found ${localCities.length} cities`);
+    console.log(`📊 Local database found ${localCities.length} cities ($text search)`);
+
+    // Fallback: $text only matches whole words, so partial queries ("Dchei")
+    // and Arabic spelling variants ("اكادير" vs "أكادير") find nothing.
+    // Retry with an Arabic-aware, case-insensitive regex over labels and
+    // searchTerms before going to the external APIs.
+    if (localCities.length === 0) {
+      const searchPattern = buildSearchPattern(q.trim());
+      const regexQuery = {
+        $and: [
+          { $or: [{ isActive: true }, { isActive: null }] },
+          {
+            $or: [
+              { 'labels.en': { $regex: searchPattern, $options: 'i' } },
+              { 'labels.fr': { $regex: searchPattern, $options: 'i' } },
+              { 'labels.ar': { $regex: searchPattern, $options: 'i' } },
+              { searchTerms: { $regex: searchPattern, $options: 'i' } }
+            ]
+          }
+        ]
+      };
+      if (query.country) {
+        regexQuery.country = query.country;
+      }
+
+      localCities = await City.find(regexQuery)
+        .populate('country', 'code labels flag')
+        .select('code labels isCapital country isDynamic')
+        .limit(parseInt(limit))
+        .lean()
+        .exec();
+
+      console.log(`📊 Local database found ${localCities.length} cities (regex fallback)`);
+    }
 
     let allCities = [...localCities];
     let apiCities = [];

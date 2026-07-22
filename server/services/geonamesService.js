@@ -57,8 +57,7 @@ class GeoNamesService {
       // param instead does fuzzy full-text relevance search across all
       // fields, which returns loosely-related places that don't even start
       // with the typed text and misses real prefixes of multi-syllable names.
-      const params = {
-        name_startsWith: cityName,
+      const baseParams = {
         country: countryCode,
         featureClass: 'P', // Populated places (cities, towns, villages)
         maxRows: 20, // Limit results
@@ -68,18 +67,42 @@ class GeoNamesService {
 
       // Add language parameter if supported
       if (language && language !== 'en') {
-        params.lang = language;
+        baseParams.lang = language;
       }
 
       const response = await axios.get(`${this.baseURL}/searchJSON`, {
-        params,
+        params: { ...baseParams, name_startsWith: cityName },
         timeout: 10000 // 10 second timeout
       });
 
       this.incrementRequestCounter();
 
-      if (response.data && response.data.geonames) {
-        const cities = response.data.geonames.map(place => this.formatCityData(place, language));
+      // GeoNames reports errors (bad username, credit limit, ...) as HTTP 200
+      // with a `status` object instead of a `geonames` array - surface them
+      // rather than silently returning no results.
+      if (response.data && response.data.status) {
+        throw new Error(response.data.status.message || 'GeoNames returned an error status');
+      }
+
+      let places = (response.data && response.data.geonames) || [];
+
+      // Typo-tolerance fallback: prefix search found nothing, so retry with
+      // GeoNames' Lucene fuzzy matching on the name field (0.6 similarity
+      // allows 1-2 character edits, e.g. "Dchira" -> "Dcheira"). Only fires
+      // on zero prefix results, so correctly-typed searches cost one request.
+      if (places.length === 0 && this.canMakeRequest()) {
+        console.log(`🔎 GeoNames API: No prefix match for "${cityName}", retrying with fuzzy search...`);
+        const fuzzyResponse = await axios.get(`${this.baseURL}/searchJSON`, {
+          params: { ...baseParams, name: cityName, fuzzy: 0.6 },
+          timeout: 10000
+        });
+
+        this.incrementRequestCounter();
+        places = (fuzzyResponse.data && fuzzyResponse.data.geonames) || [];
+      }
+
+      if (places.length > 0) {
+        const cities = places.map(place => this.formatCityData(place, language));
         console.log(`✅ GeoNames API: Found ${cities.length} cities for "${cityName}"`);
         return cities;
       }

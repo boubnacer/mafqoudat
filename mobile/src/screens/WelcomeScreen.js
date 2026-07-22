@@ -19,17 +19,18 @@ import {
   SafeAreaView,
   Image,
 } from 'react-native';
+import { useAuth } from '../context/AuthContext';
 import { useLanguage } from '../context/LanguageContext';
 import { useTheme } from '../context/ThemeContext';
 import { useTranslation } from '../utils/translations';
-import { storage } from '../utils/storage';
 import apiClient from '../api/apiService';
 import LanguageDropdown from '../components/LanguageDropdown';
 import { getLocalizedLabel } from '../context/ReferenceDataContext';
 
 const BRAND_MARK = require('../../assets/icon.png');
 
-const WelcomeScreen = ({ navigation }) => {
+const WelcomeScreen = () => {
+  const { selectCountry } = useAuth();
   const { currentLanguage } = useLanguage();
   const { colors } = useTheme();
   const styles = useMemo(() => createStyles(colors), [colors]);
@@ -76,7 +77,6 @@ const WelcomeScreen = ({ navigation }) => {
 
   useEffect(() => {
     loadCountries();
-    checkStoredCountry();
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
@@ -99,20 +99,6 @@ const WelcomeScreen = ({ navigation }) => {
       setFilteredCountries(countries);
     }
   }, [searchQuery, countries, currentLanguage]);
-
-  const checkStoredCountry = async () => {
-    try {
-      // This screen only ever mounts while signed out (RootNavigator swaps to the
-      // authenticated stack otherwise), so a stored country alone means the user
-      // already picked one on a previous cold start - skip straight to Login.
-      const countryId = await storage.getCurrentCountry();
-      if (countryId) {
-        navigation.replace('Login');
-      }
-    } catch (error) {
-      console.error('Error checking stored country:', error);
-    }
-  };
 
   const loadCountries = async () => {
     try {
@@ -173,12 +159,11 @@ const WelcomeScreen = ({ navigation }) => {
     }
 
     try {
-      // Store the selected country
       const countryId = selectedCountry._id || selectedCountry.id;
-      await storage.setCurrentCountry(countryId);
-
-      // Navigate to login screen
-      navigation.replace('Login');
+      // Flips AuthContext's hasCountry, which drives RootNavigator (App.js) to
+      // swap into the guest-eligible AppNavigator and land on Home - no
+      // explicit navigation call needed here.
+      await selectCountry(countryId);
     } catch (err) {
       console.error('Error saving country:', err);
       setError(t('failedToSaveCountry'));

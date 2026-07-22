@@ -29,6 +29,7 @@ import { useFocusEffect } from '@react-navigation/native';
 import { Ionicons } from '@expo/vector-icons';
 import apiClient from '../api/apiService';
 import { API_ENDPOINTS, API_BASE_URL } from '../config/api';
+import { useAuth } from '../context/AuthContext';
 import { useLanguage } from '../context/LanguageContext';
 import { useTheme } from '../context/ThemeContext';
 import { useTranslation } from '../utils/translations';
@@ -37,6 +38,7 @@ import { getCategoryConfig } from '../config/categories';
 import PromotePostSheet from '../components/PromotePostSheet';
 import DataStateView from '../components/DataStateView';
 import AppHeader from '../components/AppHeader';
+import GuestGate from '../components/GuestGate';
 
 const PAGE_SIZE = 10;
 const TOAST_DURATION_MS = 3000;
@@ -129,6 +131,7 @@ const ActionButton = ({ icon, label, tone, onPress, styles }) => (
 );
 
 const MyPostsScreen = ({ navigation }) => {
+  const { isSignedIn } = useAuth();
   const { currentLanguage } = useLanguage();
   const { isDark } = useTheme();
   const { t } = useTranslation();
@@ -165,6 +168,7 @@ const MyPostsScreen = ({ navigation }) => {
   }, []);
 
   const loadPosts = async (pageNum, isRefresh = false) => {
+    if (!isSignedIn) return;
     if (isRefresh) {
       setIsRefreshing(true);
     } else if (pageNum === 1) {
@@ -393,6 +397,10 @@ const MyPostsScreen = ({ navigation }) => {
       </TouchableOpacity>
     );
   };
+
+  if (!isSignedIn) {
+    return <GuestGate title={t('myPosts')} />;
+  }
 
   if (isLoading && !hasLoadedOnce) {
     return (

@@ -139,9 +139,12 @@ const LoginScreen = ({ navigation }) => {
       const { accessToken } = response.data;
 
       if (accessToken) {
-        // Persisting via context flips isSignedIn, which drives RootNavigator to
-        // HomeScreen automatically (that screen only exists in the signed-in stack).
+        // Login/SignUp/CountrySelection live in the same stack as MainTabs
+        // (guest browsing shares it - see App.js), so isSignedIn flipping
+        // doesn't remount into a signed-in tree the way it used to; navigate
+        // back to MainTabs (Home) explicitly instead.
         await completeLogin(accessToken);
+        navigation.navigate('MainTabs');
       } else {
         setError(t('invalidCredentials'));
       }
@@ -181,7 +184,7 @@ const LoginScreen = ({ navigation }) => {
 
       if (result.success) {
         console.log('✅ Google sign in successful');
-        // Navigation will be handled by AuthContext (isSignedIn flip)
+        navigation.navigate('MainTabs');
       } else if (result.pending) {
         console.log('⏳ New Google user, navigating to country selection...');
         navigation.navigate('CountrySelection');

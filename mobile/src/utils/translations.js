@@ -33,6 +33,8 @@ export const translations = {
     showPassword: "Show",
     hidePassword: "Hide",
     signUpPrompt: "Don't have an account?",
+    signInRequiredTitle: "Sign in required",
+    signInRequiredMessage: "Create an account or sign in to continue.",
 
     // Sign Up
     createAccount: "Create Account",
@@ -380,6 +382,8 @@ export const translations = {
     showPassword: "Afficher",
     hidePassword: "Masquer",
     signUpPrompt: "Vous n'avez pas de compte ?",
+    signInRequiredTitle: "Connexion requise",
+    signInRequiredMessage: "Créez un compte ou connectez-vous pour continuer.",
 
     // Sign Up
     createAccount: "Créer un compte",
@@ -727,6 +731,8 @@ export const translations = {
     showPassword: "إظهار",
     hidePassword: "إخفاء",
     signUpPrompt: "ليس لديك حساب؟",
+    signInRequiredTitle: "تسجيل الدخول مطلوب",
+    signInRequiredMessage: "أنشئ حسابًا أو سجّل الدخول للمتابعة.",
 
     // Sign Up
     createAccount: "إنشاء حساب",

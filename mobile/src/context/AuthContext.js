@@ -6,6 +6,7 @@ import { storage } from '../utils/storage';
 import { decodeToken } from '../utils/tokenUtils';
 import { USE_NATIVE_GOOGLE_AUTH } from '../config/api';
 import { setAuthFailureHandler } from '../api/apiService';
+import { resetToLogin } from '../navigation/navigationRef';
 
 // Legacy AsyncStorage keys from the old (pre-SecureStore) storage scheme
 const LEGACY_TOKEN_KEY = 'authToken';
@@ -104,6 +105,10 @@ const migrateLegacyStorage = async () => {
 // Provider component
 export const AuthProvider = ({ children }) => {
   const [state, dispatch] = useReducer(authReducer, initialState);
+  // Whether a country has been picked on WelcomeScreen - separate from
+  // isSignedIn, this is what lets RootNavigator (App.js) put a not-yet-signed-in
+  // user straight into guest browsing (Home) instead of forcing Login first.
+  const [hasCountry, setHasCountry] = useState(false);
   const [pendingToken, setPendingToken] = useState(null);
   // Which flow minted pendingToken ('native' | 'browser') - the two live in separate
   // in-memory maps server-side, so completion must be routed back to the same one.
@@ -115,8 +120,8 @@ export const AuthProvider = ({ children }) => {
   // token is no longer valid" (not a resource-ownership 403 - see apiService.js for the
   // distinction) can clear the session from outside the React tree. Deliberately removes
   // only the token/user, not storage.clearAll()'s full wipe: leaving the onboarding-picked
-  // country in place lets WelcomeScreen's checkStoredCountry auto-skip straight to Login
-  // instead of dropping the user back into the full country-picker flow.
+  // country (and hasCountry) in place drops the user into guest browsing instead of the
+  // full country-picker flow.
   const forceSignOut = useCallback(async () => {
     await storage.removeToken();
     await storage.removeUserData();
@@ -159,6 +164,8 @@ export const AuthProvider = ({ children }) => {
 
       const storedToken = await storage.getToken();
       const storedUser = await storage.getUserData();
+      const storedCountry = await storage.getCurrentCountry();
+      setHasCountry(!!storedCountry);
 
       if (storedToken && storedUser) {
         dispatch({ type: AUTH_ACTIONS.SET_TOKEN, payload: storedToken });
@@ -171,6 +178,15 @@ export const AuthProvider = ({ children }) => {
     } finally {
       dispatch({ type: AUTH_ACTIONS.SET_LOADING, payload: false });
     }
+  };
+
+  // Called by WelcomeScreen once the user picks a country. Flips hasCountry,
+  // which drives RootNavigator (App.js) to swap from the pre-country
+  // AuthNavigator into the guest-eligible AppNavigator (landing on Home)
+  // without any manual navigation call.
+  const selectCountry = async (countryId) => {
+    await storage.setCurrentCountry(countryId);
+    setHasCountry(true);
   };
 
   // Native path (default): expo-auth-session ID-token request -> POST /auth/google/mobile.
@@ -290,6 +306,11 @@ export const AuthProvider = ({ children }) => {
     return persistSession(accessToken);
   };
 
+  // Clears the session but deliberately keeps the selected country (see
+  // storage.clearSession) so RootNavigator stays on the guest-eligible
+  // AppNavigator instead of remounting into AuthNavigator - resetToLogin()
+  // below then explicitly lands the user on the Login screen within that
+  // same stack, per this app's "sign out -> sign in page" requirement.
   const signOut = async () => {
     try {
       dispatch({ type: AUTH_ACTIONS.SET_LOADING, payload: true });
@@ -303,14 +324,16 @@ export const AuthProvider = ({ children }) => {
         }
       }
 
-      await storage.clearAll();
+      await storage.clearSession();
       dispatch({ type: AUTH_ACTIONS.LOGOUT });
+      resetToLogin();
 
       console.log('✅ Sign out successful');
     } catch (error) {
       console.error('❌ Sign out error:', error);
-      await storage.clearAll();
+      await storage.clearSession();
       dispatch({ type: AUTH_ACTIONS.LOGOUT });
+      resetToLogin();
     } finally {
       dispatch({ type: AUTH_ACTIONS.SET_LOADING, payload: false });
     }
@@ -329,6 +352,8 @@ export const AuthProvider = ({ children }) => {
 
   const value = {
     ...state,
+    hasCountry,
+    selectCountry,
     pendingToken,
     signInWithGoogle,
     signOut,

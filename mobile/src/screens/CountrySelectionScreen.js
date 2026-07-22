@@ -121,8 +121,13 @@ const CountrySelectionScreen = ({ navigation }) => {
           return;
         }
         setError(result.error || t('registrationFailed'));
+        return;
       }
-      // On success, AuthContext's isSignedIn flip drives the RootNavigator to HomeScreen.
+
+      // Login/SignUp/CountrySelection share a stack with MainTabs (guest
+      // browsing - see App.js), so isSignedIn flipping doesn't remount the
+      // tree the way it used to; navigate to Home explicitly.
+      navigation.navigate('MainTabs');
     } catch (err) {
       console.error('Country selection error:', err);
       setError(t('registrationFailed'));

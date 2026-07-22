@@ -133,7 +133,22 @@ export const storage = {
     }
   },
 
-  // Clear all stored data
+  // Clears the signed-in session (token/user) but keeps the selected country,
+  // so a manual sign-out drops the user into guest browsing (RootNavigator's
+  // AppNavigator stays mounted) instead of back through the country picker.
+  async clearSession() {
+    try {
+      await this.removeToken();
+      await this.removeUserData();
+      await this.removeSelectedFl();
+      return true;
+    } catch (error) {
+      console.error('Error clearing session:', error);
+      return false;
+    }
+  },
+
+  // Clear all stored data, including the selected country
   async clearAll() {
     try {
       await this.removeToken();

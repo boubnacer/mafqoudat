@@ -13,6 +13,7 @@ import {
   IBMPlexSansArabic_600SemiBold,
 } from '@expo-google-fonts/ibm-plex-sans-arabic';
 import { validateEnv } from './src/config/validateEnv';
+import { navigationRef } from './src/navigation/navigationRef';
 import { ThemeProvider, useTheme } from './src/context/ThemeContext';
 import { LanguageProvider } from './src/context/LanguageContext';
 import { AuthProvider, useAuth } from './src/context/AuthContext';
@@ -53,9 +54,10 @@ const TAB_ICONS = {
   Profile: { focused: 'person', unfocused: 'person-outline' },
 };
 
-// Auth navigator component: Onboarding (first launch only) -> Welcome (country/language
-// landing) -> Login -> CountrySelection (the latter only reached mid-flow for brand-new
-// Google sign-ups pending a country pick, unrelated to onboarding).
+// Pre-country navigator: Onboarding (first launch only) -> Welcome (country/language
+// landing). Only mounted before a country has ever been picked - once it has
+// (RootNavigator's hasCountry), AppNavigator takes over even for a signed-out
+// user (guest browsing), so Login/SignUp/CountrySelection live there instead.
 const AuthNavigator = () => {
   const { colors } = useTheme();
   const { hasSeenOnboarding } = useOnboarding();
@@ -66,9 +68,6 @@ const AuthNavigator = () => {
     >
       <Stack.Screen name="Onboarding" component={OnboardingScreen} />
       <Stack.Screen name="Welcome" component={WelcomeScreen} />
-      <Stack.Screen name="Login" component={LoginScreen} />
-      <Stack.Screen name="SignUp" component={SignUpScreen} />
-      <Stack.Screen name="CountrySelection" component={CountrySelectionScreen} />
     </Stack.Navigator>
   );
 };
@@ -209,7 +208,13 @@ const tabBarStyles = StyleSheet.create({
   },
 });
 
-// App navigator component
+// App navigator component: MainTabs (Home etc.) is reachable here whether or
+// not the user is signed in (guest browsing) - Login/SignUp/CountrySelection
+// live in this same stack so a guest can reach them from any tab (e.g. the
+// header menu, or a protected tab's sign-in prompt) without a navigator swap.
+// Screens that require a session (NewPost, MyPosts, Profile, SettingsScreen)
+// check isSignedIn themselves and show a sign-in prompt instead of their real
+// content when it's false.
 const AppNavigator = () => {
   const { colors } = useTheme();
   return (
@@ -218,18 +223,21 @@ const AppNavigator = () => {
         <Stack.Screen name="MainTabs" component={MainTabs} />
         {/* PostsListScreen/PostDetailScreen now live inside MainTabs (as hidden tabs)
             so the floating bottom bar stays visible while browsing - see MainTabs above. */}
+        <Stack.Screen name="Login" component={LoginScreen} />
+        <Stack.Screen name="SignUp" component={SignUpScreen} />
+        <Stack.Screen name="CountrySelection" component={CountrySelectionScreen} />
         <Stack.Screen name="EditPostScreen" component={EditPostScreen} />
         <Stack.Screen name="EditProfileScreen" component={EditProfileScreen} />
         <Stack.Screen name="SettingsScreen" component={SettingsScreen} />
-        {/* Add other authenticated screens here */}
+        {/* Add other screens here */}
       </Stack.Navigator>
     </ReferenceDataProvider>
   );
 };
 
-// Root navigator that handles auth state
+// Root navigator that handles auth/country state
 const RootNavigator = () => {
-  const { isLoading, isSignedIn } = useAuth();
+  const { isLoading, isSignedIn, hasCountry } = useAuth();
   const { isActive, message, estimatedReturn } = useMaintenance();
   const { colors, isDark } = useTheme();
 
@@ -246,9 +254,14 @@ const RootNavigator = () => {
     );
   }
 
+  // A country pick (even without signing in) is enough to unlock guest
+  // browsing - only a user who has never chosen one gets funneled through
+  // AuthNavigator's Onboarding/Welcome first.
+  const showAppShell = isSignedIn || hasCountry;
+
   return (
-    <NavigationContainer theme={getNavigationTheme(colors, isDark)} fallback={<Text>Loading...</Text>}>
-      {isSignedIn ? <AppNavigator /> : <AuthNavigator />}
+    <NavigationContainer ref={navigationRef} theme={getNavigationTheme(colors, isDark)} fallback={<Text>Loading...</Text>}>
+      {showAppShell ? <AppNavigator /> : <AuthNavigator />}
     </NavigationContainer>
   );
 };

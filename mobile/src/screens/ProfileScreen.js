@@ -19,6 +19,7 @@ import { useReferenceData, getLocalizedLabel } from '../context/ReferenceDataCon
 import { colorTokens, radiusTokens, fontFamilies } from '../theme/tokens';
 import DataStateView from '../components/DataStateView';
 import AppHeader from '../components/AppHeader';
+import GuestGate from '../components/GuestGate';
 
 // Mirrors client/src/designTokens.js's elevationTokens (e1/e2 boxShadow strings)
 // as RN shadow/elevation props - same shadow color/opacity HomeScreen/LoginScreen use.
@@ -99,6 +100,10 @@ const ProfileScreen = ({ navigation }) => {
   );
 
   const textStyle = isRTL ? styles.textRTL : null;
+
+  if (!authUser) {
+    return <GuestGate title={t('profile')} />;
+  }
 
   if (isLoading && !profile) {
     return (

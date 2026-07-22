@@ -117,7 +117,10 @@ class GooglePlacesService {
               const matchesCountry = this.matchesCountryCode(place, countryCode);
               return isLocality && matchesCountry;
             })
-            .slice(0, 20) // Limit to 20 results
+            // Keep this small: enrichWithTranslations makes 2 extra Place
+            // Details calls (fr + ar) per result, so 5 results = up to 11
+            // requests per search against the 100/day budget.
+            .slice(0, 5)
             .map(place => this.formatCityData(place, countryCode, requestLanguage))
         );
 
