@@ -24,6 +24,26 @@ const SECTION_COUNT = 6;
 
 const getImageUri = (image) => (image ? (image.startsWith('http') ? image : `${API_BASE_URL}/${image}`) : null);
 
+// Mirrors client/src/designTokens.js's elevationTokens (e1/e2 boxShadow
+// strings, resolved per light/dark mode) as RN shadow/elevation props -
+// same shadow color/opacity the web panels use, not an arbitrary RN default.
+const getElevation = (isDark, level = 1) =>
+  level === 2
+    ? {
+        shadowColor: '#000',
+        shadowOffset: { width: 0, height: 4 },
+        shadowOpacity: isDark ? 0.45 : 0.1,
+        shadowRadius: 16,
+        elevation: 4,
+      }
+    : {
+        shadowColor: '#000',
+        shadowOffset: { width: 0, height: 1 },
+        shadowOpacity: isDark ? 0.4 : 0.06,
+        shadowRadius: 2,
+        elevation: 2,
+      };
+
 // Dashboard aggregation projects Categories (array, new format) with a
 // Category/categoryname fallback for legacy posts - same shape trending and
 // recent items share (see server/controllers/dependenciesController.js).
@@ -79,12 +99,22 @@ const SkeletonBlock = ({ style, tokens }) => (
 
 const SectionHeader = ({ title, onSeeAll, t, styles }) => (
   <View style={styles.sectionHeaderRow}>
-    <Text style={styles.sectionTitle}>{title}</Text>
+    <Text style={styles.panelTitleInline}>{title}</Text>
     {onSeeAll ? (
       <TouchableOpacity onPress={onSeeAll} hitSlop={8}>
         <Text style={styles.seeAllText}>{t('seeAll')}</Text>
       </TouchableOpacity>
     ) : null}
+  </View>
+);
+
+// Mirrors the blurred surfaceRaised panel shell shared by LeftSide.jsx /
+// TrendingItem.jsx's SectionPanel on web - every dashboard section now sits
+// in the same bordered/elevated card instead of floating on the page background.
+const Panel = ({ title, accentColor, style, styles, children }) => (
+  <View style={[styles.panelContainer, accentColor && { borderStartWidth: 4, borderStartColor: accentColor }, style]}>
+    {title ? <Text style={styles.panelTitleCentered}>{title}</Text> : null}
+    {children}
   </View>
 );
 
@@ -171,18 +201,18 @@ const BigStatCard = ({ icon, title, value, description, tone, styles }) => (
 const StatsSection = ({ data, isLoading, t, styles, tokens, onFoundPress, onLostPress }) => {
   if (isLoading && !data) {
     return (
-      <View>
+      <Panel title={t('statistics')} styles={styles}>
         <SkeletonBlock tokens={tokens} style={styles.foundLostSkeleton} />
         <View style={styles.bigStatsRow}>
           <SkeletonBlock tokens={tokens} style={styles.bigStatSkeleton} />
           <SkeletonBlock tokens={tokens} style={styles.bigStatSkeleton} />
         </View>
-      </View>
+      </Panel>
     );
   }
 
   return (
-    <View>
+    <Panel title={t('statistics')} styles={styles}>
       <FoundLostStrip data={data} t={t} styles={styles} tokens={tokens} onFoundPress={onFoundPress} onLostPress={onLostPress} />
       <View style={styles.bigStatsRow}>
         <BigStatCard
@@ -202,30 +232,28 @@ const StatsSection = ({ data, isLoading, t, styles, tokens, onFoundPress, onLost
           styles={styles}
         />
       </View>
-    </View>
+    </Panel>
   );
 };
 
 const TrendingSection = ({ trend, isLoading, t, currentLanguage, styles, tokens, onPress }) => {
   if (isLoading && !trend) {
     return (
-      <View>
-        <Text style={styles.sectionTitle}>{t('trending')}</Text>
+      <Panel title={t('trending')} styles={styles}>
         <SkeletonBlock tokens={tokens} style={styles.trendingSkeleton} />
-      </View>
+      </Panel>
     );
   }
 
   if (!trend || !trend._id) {
     return (
-      <View>
-        <Text style={styles.sectionTitle}>{t('trending')}</Text>
+      <Panel title={t('trending')} styles={styles}>
         <View style={styles.trendingEmpty}>
           <Ionicons name="trending-up-outline" size={40} color={`${tokens.ink}40`} />
           <Text style={styles.trendingEmptyTitle}>{t('noTrendingItems')}</Text>
           <Text style={styles.trendingEmptyBody}>{t('noTrendingItemsDescription')}</Text>
         </View>
-      </View>
+      </Panel>
     );
   }
 
@@ -237,8 +265,7 @@ const TrendingSection = ({ trend, isLoading, t, currentLanguage, styles, tokens,
   const cityLabel = getCityLabel(trend, currentLanguage);
 
   return (
-    <View>
-      <Text style={styles.sectionTitle}>{t('trending')}</Text>
+    <Panel title={t('trending')} styles={styles}>
       <TouchableOpacity
         activeOpacity={0.85}
         onPress={onPress}
@@ -279,7 +306,7 @@ const TrendingSection = ({ trend, isLoading, t, currentLanguage, styles, tokens,
           ) : null}
         </View>
       </TouchableOpacity>
-    </View>
+    </Panel>
   );
 };
 
@@ -325,7 +352,7 @@ const RecentSection = ({ type, items, isLoading, currentLanguage, t, styles, tok
   const tone = type === 'found' ? tokens.status.found.main : tokens.status.lost.main;
 
   return (
-    <View>
+    <Panel accentColor={tone} styles={styles}>
       <SectionHeader title={title} onSeeAll={items.length > 0 ? onSeeAll : undefined} t={t} styles={styles} />
       {isLoading && items.length === 0 ? (
         <View style={styles.recentColumn}>
@@ -347,11 +374,11 @@ const RecentSection = ({ type, items, isLoading, currentLanguage, t, styles, tok
           ))}
         </View>
       ) : (
-        <View style={[styles.recentEmpty, { borderStartColor: tone }]}>
+        <View style={styles.recentEmpty}>
           <Text style={styles.recentEmptyText}>{t('noPostsFound')}</Text>
         </View>
       )}
-    </View>
+    </Panel>
   );
 };
 
@@ -397,7 +424,7 @@ const HomeScreen = ({ navigation }) => {
   const { data, isLoading, isError, refetch, countryId, handleSelectCountry } = useDashboardData();
   const isRTL = currentLanguage === 'ar';
   const tokens = isDark ? colorTokens.dark : colorTokens.light;
-  const styles = useMemo(() => createStyles(tokens, isRTL), [tokens, isRTL]);
+  const styles = useMemo(() => createStyles(tokens, isRTL, isDark), [tokens, isRTL, isDark]);
 
   const [isRefreshing, setIsRefreshing] = useState(false);
 
@@ -548,7 +575,7 @@ const HomeScreen = ({ navigation }) => {
   );
 };
 
-const createStyles = (tokens, isRTL) =>
+const createStyles = (tokens, isRTL, isDark) =>
   StyleSheet.create({
     container: {
       flex: 1,
@@ -560,7 +587,7 @@ const createStyles = (tokens, isRTL) =>
       paddingBottom: 32,
     },
     section: {
-      marginTop: 30,
+      marginTop: 20,
     },
     lastSection: {
       marginBottom: 8,
@@ -570,6 +597,30 @@ const createStyles = (tokens, isRTL) =>
       fontSize: 20,
       color: tokens.ink,
       marginBottom: 14,
+      textAlign: isRTL ? 'right' : 'left',
+    },
+
+    // Panel shell - mirrors LeftSide.jsx / TrendingItem.jsx's SectionPanel:
+    // blurred-gradient surfaceRaised card, 1px ink-alpha border, elevation e1.
+    panelContainer: {
+      backgroundColor: tokens.surfaceRaised,
+      borderRadius: radiusTokens.lg,
+      borderWidth: 1,
+      borderColor: `${tokens.ink}${isDark ? '14' : '26'}`,
+      padding: 20,
+      ...getElevation(isDark, 1),
+    },
+    panelTitleCentered: {
+      fontFamily: fontFamilies.display,
+      fontSize: 22,
+      color: tokens.ink,
+      textAlign: 'center',
+      marginBottom: 16,
+    },
+    panelTitleInline: {
+      fontFamily: fontFamilies.display,
+      fontSize: 19,
+      color: tokens.ink,
       textAlign: isRTL ? 'right' : 'left',
     },
     sectionHeaderRow: {
@@ -589,11 +640,7 @@ const createStyles = (tokens, isRTL) =>
       backgroundColor: tokens.surfaceRaised,
       borderRadius: radiusTokens.lg,
       overflow: 'hidden',
-      shadowColor: '#000',
-      shadowOffset: { width: 0, height: 2 },
-      shadowOpacity: 0.08,
-      shadowRadius: 6,
-      elevation: 2,
+      ...getElevation(isDark, 1),
     },
     foundLostSkeleton: {
       height: 220,
@@ -660,11 +707,7 @@ const createStyles = (tokens, isRTL) =>
       backgroundColor: tokens.surfaceRaised,
       borderRadius: radiusTokens.lg,
       padding: 18,
-      shadowColor: '#000',
-      shadowOffset: { width: 0, height: 1 },
-      shadowOpacity: 0.06,
-      shadowRadius: 4,
-      elevation: 1,
+      ...getElevation(isDark, 1),
     },
     bigStatCardTop: {
       flexDirection: 'row',
@@ -729,11 +772,9 @@ const createStyles = (tokens, isRTL) =>
       borderRadius: radiusTokens.lg,
       overflow: 'hidden',
       borderStartWidth: 6,
-      shadowColor: '#000',
-      shadowOffset: { width: 0, height: 2 },
-      shadowOpacity: 0.08,
-      shadowRadius: 6,
-      elevation: 2,
+      borderWidth: 1,
+      borderColor: `${tokens.ink}${isDark ? '14' : '26'}`,
+      ...getElevation(isDark, 1),
     },
     trendingMedia: {
       width: '100%',
@@ -807,18 +848,20 @@ const createStyles = (tokens, isRTL) =>
     },
     recentCard: {
       flexDirection: 'row',
+      alignItems: 'stretch',
       backgroundColor: tokens.surfaceRaised,
       borderRadius: radiusTokens.lg,
+      borderWidth: 1,
+      borderColor: `${tokens.ink}${isDark ? '14' : '26'}`,
       overflow: 'hidden',
-      shadowColor: '#000',
-      shadowOffset: { width: 0, height: 1 },
-      shadowOpacity: 0.06,
-      shadowRadius: 4,
-      elevation: 1,
+      ...getElevation(isDark, 1),
     },
+    // No fixed height - stretches (flexDirection: 'row' default cross-axis
+    // align) to match recentContent's natural height, so the image always
+    // fills the card top-to-bottom instead of stopping partway down a card
+    // that grew taller than a hardcoded thumbnail size.
     recentThumb: {
       width: 112,
-      height: 112,
     },
     recentThumbPlaceholder: {
       justifyContent: 'center',
@@ -855,10 +898,12 @@ const createStyles = (tokens, isRTL) =>
       textAlign: isRTL ? 'right' : 'left',
     },
     recentEmpty: {
-      borderStartWidth: 4,
-      backgroundColor: tokens.surfaceRaised,
+      alignItems: 'center',
       borderRadius: radiusTokens.md,
-      padding: 18,
+      borderWidth: 1,
+      borderStyle: 'dashed',
+      borderColor: `${tokens.ink}26`,
+      padding: 24,
     },
     recentEmptyText: {
       fontFamily: fontFamilies.body,
