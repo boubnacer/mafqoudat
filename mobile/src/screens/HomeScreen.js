@@ -88,73 +88,120 @@ const SectionHeader = ({ title, onSeeAll, t, styles }) => (
   </View>
 );
 
-const StatCard = ({ icon, label, value, tone, onPress, styles, tokens }) => {
+// Mirrors client/src/components/dashboard/FoundLostStrip.jsx's mobile (xs)
+// layout: Found and Lost aren't independent metrics, so they render as one
+// connected strip - each a full-width stacked segment (icon, big number,
+// "+N today") - with a proportional fill bar underneath carrying the
+// found:lost balance, rather than two identical small tiles.
+const StatSegment = ({ icon, label, value, todayValue, tone, onPress, isLast, styles, t }) => {
   const Wrapper = onPress ? TouchableOpacity : View;
   return (
     <Wrapper
-      {...(onPress ? { onPress, activeOpacity: 0.8 } : {})}
-      style={[styles.statCard, { borderColor: `${tone}33` }]}
+      {...(onPress ? { onPress, activeOpacity: 0.75 } : {})}
+      style={[styles.statSegment, !isLast && styles.statSegmentDivider]}
     >
-      <View style={[styles.statIconCircle, { backgroundColor: `${tone}1A` }]}>
-        <Ionicons name={icon} size={16} color={tone} />
+      <View style={styles.statSegmentHeader}>
+        <View style={[styles.statSegmentIcon, { backgroundColor: tone.bg }]}>
+          <Ionicons name={icon} size={20} color={tone.main} />
+        </View>
+        <Text style={styles.statSegmentLabel}>{label}</Text>
       </View>
-      <Text style={styles.statValue}>{value}</Text>
-      <Text style={styles.statLabel} numberOfLines={1}>
-        {label}
+      <Text style={[styles.statSegmentValue, { color: tone.main }]}>{value}</Text>
+      <Text style={styles.statSegmentToday}>
+        + {todayValue} {t('today')}
       </Text>
     </Wrapper>
   );
 };
 
-const StatsStrip = ({ data, isLoading, t, styles, tokens, onFoundPress, onLostPress }) => {
+const FoundLostStrip = ({ data, t, styles, tokens, onFoundPress, onLostPress }) => {
+  const totalFounds = data?.totalFounds || 0;
+  const totalLosts = data?.totalLosts || 0;
+  const total = totalFounds + totalLosts;
+  const foundPct = total > 0 ? (totalFounds / total) * 100 : 50;
+  const lostPct = 100 - foundPct;
+
+  return (
+    <View style={styles.foundLostStrip}>
+      <StatSegment
+        icon="checkmark-circle-outline"
+        label={t('foundItems')}
+        value={totalFounds}
+        todayValue={data?.createdToday?.todaysFoundPosts || 0}
+        tone={tokens.status.found}
+        onPress={onFoundPress}
+        styles={styles}
+        t={t}
+      />
+      <StatSegment
+        icon="help-circle-outline"
+        label={t('lostItems')}
+        value={totalLosts}
+        todayValue={data?.createdToday?.todaysLostPosts || 0}
+        tone={tokens.status.lost}
+        onPress={onLostPress}
+        isLast
+        styles={styles}
+        t={t}
+      />
+      <View style={styles.foundLostFillRow}>
+        <View style={{ flex: foundPct, backgroundColor: tokens.status.found.main }} />
+        <View style={{ flex: lostPct, backgroundColor: tokens.status.lost.main }} />
+      </View>
+    </View>
+  );
+};
+
+// Mirrors TotalBox.jsx's mobile treatment (tall card, icon top-corner, big
+// value, caption pinned to the bottom) for the two supporting stats below
+// the Found/Lost hero strip.
+const BigStatCard = ({ icon, title, value, description, tone, styles }) => (
+  <View style={styles.bigStatCard}>
+    <View style={styles.bigStatCardTop}>
+      <Text style={styles.bigStatCardTitle}>{title}</Text>
+      <View style={[styles.bigStatCardIcon, { backgroundColor: `${tone}1A` }]}>
+        <Ionicons name={icon} size={20} color={tone} />
+      </View>
+    </View>
+    <Text style={[styles.bigStatCardValue, { color: tone }]}>{value}</Text>
+    <Text style={styles.bigStatCardDescription}>{description}</Text>
+  </View>
+);
+
+const StatsSection = ({ data, isLoading, t, styles, tokens, onFoundPress, onLostPress }) => {
   if (isLoading && !data) {
     return (
-      <View style={styles.statsRow}>
-        {[0, 1, 2, 3].map((i) => (
-          <SkeletonBlock key={i} tokens={tokens} style={styles.statCardSkeleton} />
-        ))}
+      <View>
+        <SkeletonBlock tokens={tokens} style={styles.foundLostSkeleton} />
+        <View style={styles.bigStatsRow}>
+          <SkeletonBlock tokens={tokens} style={styles.bigStatSkeleton} />
+          <SkeletonBlock tokens={tokens} style={styles.bigStatSkeleton} />
+        </View>
       </View>
     );
   }
 
-  const todayCount = (data?.createdToday?.todaysFoundPosts || 0) + (data?.createdToday?.todaysLostPosts || 0);
-
   return (
-    <View style={styles.statsRow}>
-      <StatCard
-        icon="checkmark-circle-outline"
-        label={t('found')}
-        value={data?.totalFounds || 0}
-        tone={tokens.status.found.main}
-        onPress={onFoundPress}
-        styles={styles}
-        tokens={tokens}
-      />
-      <StatCard
-        icon="help-circle-outline"
-        label={t('lost')}
-        value={data?.totalLosts || 0}
-        tone={tokens.status.lost.main}
-        onPress={onLostPress}
-        styles={styles}
-        tokens={tokens}
-      />
-      <StatCard
-        icon="ribbon-outline"
-        label={t('returnedItems')}
-        value={data?.totalReturned || 0}
-        tone={tokens.brandPrimary}
-        styles={styles}
-        tokens={tokens}
-      />
-      <StatCard
-        icon="today-outline"
-        label={t('today')}
-        value={todayCount}
-        tone={tokens.ink}
-        styles={styles}
-        tokens={tokens}
-      />
+    <View>
+      <FoundLostStrip data={data} t={t} styles={styles} tokens={tokens} onFoundPress={onFoundPress} onLostPress={onLostPress} />
+      <View style={styles.bigStatsRow}>
+        <BigStatCard
+          icon="albums-outline"
+          title={t('totalItems')}
+          value={data?.totalPosts || 0}
+          description={t('sinceLastMonth')}
+          tone={tokens.brandPrimary}
+          styles={styles}
+        />
+        <BigStatCard
+          icon="ribbon-outline"
+          title={t('returnedItems')}
+          value={data?.totalReturned || 0}
+          description={t('sinceLastMonth')}
+          tone={tokens.status.found.main}
+          styles={styles}
+        />
+      </View>
     </View>
   );
 };
@@ -174,7 +221,7 @@ const TrendingSection = ({ trend, isLoading, t, currentLanguage, styles, tokens,
       <View>
         <Text style={styles.sectionTitle}>{t('trending')}</Text>
         <View style={styles.trendingEmpty}>
-          <Ionicons name="trending-up-outline" size={32} color={`${tokens.ink}40`} />
+          <Ionicons name="trending-up-outline" size={40} color={`${tokens.ink}40`} />
           <Text style={styles.trendingEmptyTitle}>{t('noTrendingItems')}</Text>
           <Text style={styles.trendingEmptyBody}>{t('noTrendingItemsDescription')}</Text>
         </View>
@@ -202,11 +249,11 @@ const TrendingSection = ({ trend, isLoading, t, currentLanguage, styles, tokens,
             <Image source={{ uri: imageUri }} style={styles.trendingImage} resizeMode="cover" />
           ) : (
             <View style={[styles.trendingImagePlaceholder, { backgroundColor: categoryConfig.backgroundColor }]}>
-              <Ionicons name={categoryConfig.icon} size={40} color={categoryConfig.color} />
+              <Ionicons name={categoryConfig.icon} size={64} color={categoryConfig.color} />
             </View>
           )}
           <View style={[styles.statusTag, { backgroundColor: tone.main }]}>
-            <Ionicons name={found ? 'checkmark-circle' : 'search'} size={12} color="#FFFFFF" />
+            <Ionicons name={found ? 'checkmark-circle' : 'search'} size={14} color="#FFFFFF" />
             <Text style={styles.statusTagText}>{found ? t('found') : t('lost')}</Text>
           </View>
           <View style={styles.dateBadge}>
@@ -216,7 +263,7 @@ const TrendingSection = ({ trend, isLoading, t, currentLanguage, styles, tokens,
         <View style={styles.trendingBody}>
           {cityLabel ? (
             <View style={styles.infoRow}>
-              <Ionicons name="location-outline" size={14} color={`${tokens.ink}90`} />
+              <Ionicons name="location-outline" size={16} color={`${tokens.ink}90`} />
               <Text style={styles.infoRowText} numberOfLines={1}>
                 {cityLabel}
               </Text>
@@ -224,7 +271,7 @@ const TrendingSection = ({ trend, isLoading, t, currentLanguage, styles, tokens,
           ) : null}
           {categoryLabel ? (
             <View style={styles.infoRow}>
-              <Ionicons name="pricetag-outline" size={14} color={`${tokens.ink}90`} />
+              <Ionicons name="pricetag-outline" size={16} color={`${tokens.ink}90`} />
               <Text style={styles.infoRowText} numberOfLines={1}>
                 {categoryLabel}
               </Text>
@@ -250,7 +297,7 @@ const RecentPreviewCard = ({ item, currentLanguage, t, styles, tokens, onPress }
         <Image source={{ uri: imageUri }} style={styles.recentThumb} resizeMode="cover" />
       ) : (
         <View style={[styles.recentThumb, styles.recentThumbPlaceholder, { backgroundColor: categoryConfig.backgroundColor }]}>
-          <Ionicons name={categoryConfig.icon} size={22} color={categoryConfig.color} />
+          <Ionicons name={categoryConfig.icon} size={32} color={categoryConfig.color} />
         </View>
       )}
       <View style={styles.recentContent}>
@@ -313,7 +360,7 @@ const CategoryChip = ({ category, currentLanguage, styles, onPress }) => {
   return (
     <TouchableOpacity activeOpacity={0.8} onPress={onPress} style={styles.categoryChip}>
       <View style={[styles.categoryChipCircle, { backgroundColor: config.backgroundColor }]}>
-        <Ionicons name={config.icon} size={22} color={config.color} />
+        <Ionicons name={config.icon} size={30} color={config.color} />
       </View>
       <Text style={styles.categoryChipLabel} numberOfLines={1}>
         {getLocalizedLabel(category, currentLanguage)}
@@ -412,7 +459,7 @@ const HomeScreen = ({ navigation }) => {
 
   return (
     <View style={styles.container}>
-      <AppHeader title={t('home')} />
+      <AppHeader title={t('home')} countryId={countryId} onSelectCountry={handleSelectCountry} />
       <ScrollView
         contentContainerStyle={styles.scrollContent}
         showsVerticalScrollIndicator={false}
@@ -421,7 +468,7 @@ const HomeScreen = ({ navigation }) => {
         }
       >
         <Animated.View style={animatedSectionStyle(0)}>
-          <StatsStrip
+          <StatsSection
             data={data}
             isLoading={isLoading}
             t={t}
@@ -513,84 +560,153 @@ const createStyles = (tokens, isRTL) =>
       paddingBottom: 32,
     },
     section: {
-      marginTop: 24,
+      marginTop: 30,
     },
     lastSection: {
       marginBottom: 8,
     },
     sectionTitle: {
       fontFamily: fontFamilies.bodySemiBold,
-      fontSize: 17,
+      fontSize: 20,
       color: tokens.ink,
-      marginBottom: 12,
+      marginBottom: 14,
       textAlign: isRTL ? 'right' : 'left',
     },
     sectionHeaderRow: {
       flexDirection: 'row',
       alignItems: 'center',
       justifyContent: 'space-between',
-      marginBottom: 12,
+      marginBottom: 14,
     },
     seeAllText: {
       fontFamily: fontFamilies.bodyMedium,
-      fontSize: 13,
+      fontSize: 14,
       color: tokens.brandPrimary,
     },
 
-    // Stats strip
-    statsRow: {
-      flexDirection: 'row',
-      gap: 10,
-    },
-    statCard: {
-      flex: 1,
-      alignItems: 'center',
+    // Found/Lost hero strip
+    foundLostStrip: {
       backgroundColor: tokens.surfaceRaised,
-      borderRadius: radiusTokens.md,
-      borderWidth: 1,
-      paddingVertical: 12,
-      paddingHorizontal: 6,
+      borderRadius: radiusTokens.lg,
+      overflow: 'hidden',
+      shadowColor: '#000',
+      shadowOffset: { width: 0, height: 2 },
+      shadowOpacity: 0.08,
+      shadowRadius: 6,
+      elevation: 2,
+    },
+    foundLostSkeleton: {
+      height: 220,
+      borderRadius: radiusTokens.lg,
+    },
+    statSegment: {
+      paddingVertical: 20,
+      paddingHorizontal: 20,
+    },
+    statSegmentDivider: {
+      borderBottomWidth: 1,
+      borderBottomColor: `${tokens.ink}12`,
+    },
+    statSegmentHeader: {
+      flexDirection: 'row',
+      alignItems: 'center',
+      gap: 10,
+      marginBottom: 10,
+    },
+    statSegmentIcon: {
+      width: 36,
+      height: 36,
+      borderRadius: radiusTokens.sm,
+      justifyContent: 'center',
+      alignItems: 'center',
+    },
+    statSegmentLabel: {
+      fontFamily: fontFamilies.bodySemiBold,
+      fontSize: 15,
+      color: tokens.ink,
+    },
+    statSegmentValue: {
+      fontFamily: fontFamilies.display,
+      fontSize: 36,
+      lineHeight: 40,
+    },
+    statSegmentToday: {
+      fontFamily: fontFamilies.body,
+      fontSize: 13,
+      color: `${tokens.ink}99`,
+      marginTop: 4,
+    },
+    foundLostFillRow: {
+      flexDirection: 'row',
+      height: 6,
+      backgroundColor: `${tokens.ink}0F`,
+    },
+
+    // Total/Returned supporting stats
+    bigStatsRow: {
+      flexDirection: 'row',
+      gap: 12,
+      marginTop: 12,
+    },
+    bigStatSkeleton: {
+      flex: 1,
+      height: 158,
+      borderRadius: radiusTokens.lg,
+    },
+    bigStatCard: {
+      flex: 1,
+      minHeight: 158,
+      justifyContent: 'space-between',
+      backgroundColor: tokens.surfaceRaised,
+      borderRadius: radiusTokens.lg,
+      padding: 18,
       shadowColor: '#000',
       shadowOffset: { width: 0, height: 1 },
       shadowOpacity: 0.06,
-      shadowRadius: 3,
+      shadowRadius: 4,
       elevation: 1,
     },
-    statCardSkeleton: {
+    bigStatCardTop: {
+      flexDirection: 'row',
+      alignItems: 'flex-start',
+      justifyContent: 'space-between',
+      gap: 8,
+    },
+    bigStatCardTitle: {
       flex: 1,
-      height: 84,
-      borderRadius: radiusTokens.md,
-    },
-    statIconCircle: {
-      width: 30,
-      height: 30,
-      borderRadius: 15,
-      justifyContent: 'center',
-      alignItems: 'center',
-      marginBottom: 6,
-    },
-    statValue: {
-      fontFamily: fontFamilies.display,
-      fontSize: 16,
+      fontFamily: fontFamilies.bodySemiBold,
+      fontSize: 14,
       color: tokens.ink,
     },
-    statLabel: {
+    bigStatCardIcon: {
+      width: 36,
+      height: 36,
+      borderRadius: radiusTokens.sm,
+      justifyContent: 'center',
+      alignItems: 'center',
+    },
+    bigStatCardValue: {
+      fontFamily: fontFamilies.display,
+      fontSize: 30,
+      marginTop: 20,
+    },
+    bigStatCardDescription: {
       fontFamily: fontFamilies.body,
-      fontSize: 11,
+      fontSize: 12,
       color: `${tokens.ink}99`,
-      marginTop: 2,
+      marginTop: 6,
     },
 
     // Trending
     trendingSkeleton: {
-      height: 200,
+      height: 320,
       borderRadius: radiusTokens.lg,
     },
     trendingEmpty: {
       alignItems: 'center',
       justifyContent: 'center',
-      gap: 6,
-      paddingVertical: 28,
+      gap: 8,
+      paddingVertical: 36,
       borderRadius: radiusTokens.lg,
       borderWidth: 1,
       borderStyle: 'dashed',
@@ -598,21 +714,21 @@ const createStyles = (tokens, isRTL) =>
     },
     trendingEmptyTitle: {
       fontFamily: fontFamilies.bodySemiBold,
-      fontSize: 14,
+      fontSize: 15,
       color: tokens.ink,
     },
     trendingEmptyBody: {
       fontFamily: fontFamilies.body,
-      fontSize: 12,
+      fontSize: 13,
       color: `${tokens.ink}99`,
       textAlign: 'center',
-      maxWidth: 240,
+      maxWidth: 260,
     },
     trendingCard: {
       backgroundColor: tokens.surfaceRaised,
       borderRadius: radiusTokens.lg,
       overflow: 'hidden',
-      borderStartWidth: 5,
+      borderStartWidth: 6,
       shadowColor: '#000',
       shadowOffset: { width: 0, height: 2 },
       shadowOpacity: 0.08,
@@ -621,7 +737,7 @@ const createStyles = (tokens, isRTL) =>
     },
     trendingMedia: {
       width: '100%',
-      height: 160,
+      height: 260,
       backgroundColor: tokens.surfaceBase,
     },
     trendingImage: {
@@ -636,73 +752,73 @@ const createStyles = (tokens, isRTL) =>
     },
     statusTag: {
       position: 'absolute',
-      top: 8,
-      start: 8,
+      top: 12,
+      start: 12,
       flexDirection: 'row',
       alignItems: 'center',
-      gap: 4,
-      paddingHorizontal: 8,
-      paddingVertical: 4,
+      gap: 5,
+      paddingHorizontal: 10,
+      paddingVertical: 6,
       borderRadius: radiusTokens.sm,
     },
     statusTagText: {
       fontFamily: fontFamilies.bodySemiBold,
-      fontSize: 11,
+      fontSize: 12,
       color: '#FFFFFF',
       textTransform: 'uppercase',
     },
     dateBadge: {
       position: 'absolute',
-      top: 8,
-      end: 8,
+      top: 12,
+      end: 12,
       backgroundColor: 'rgba(255,255,255,0.85)',
-      paddingHorizontal: 8,
-      paddingVertical: 4,
+      paddingHorizontal: 10,
+      paddingVertical: 6,
       borderRadius: radiusTokens.sm,
     },
     dateBadgeText: {
       fontFamily: fontFamilies.bodyMedium,
-      fontSize: 11,
+      fontSize: 12,
       color: '#0B1220',
     },
     trendingBody: {
-      padding: 14,
-      gap: 6,
+      padding: 18,
+      gap: 10,
     },
     infoRow: {
       flexDirection: 'row',
       alignItems: 'center',
-      gap: 6,
+      gap: 8,
     },
     infoRowText: {
       fontFamily: fontFamilies.body,
-      fontSize: 13,
+      fontSize: 15,
       color: `${tokens.ink}CC`,
       flexShrink: 1,
     },
 
     // Recent founds/losts
     recentColumn: {
-      gap: 10,
+      gap: 14,
     },
     recentCardSkeleton: {
-      height: 76,
-      borderRadius: radiusTokens.md,
+      height: 112,
+      borderRadius: radiusTokens.lg,
     },
     recentCard: {
       flexDirection: 'row',
       backgroundColor: tokens.surfaceRaised,
-      borderRadius: radiusTokens.md,
+      borderRadius: radiusTokens.lg,
       overflow: 'hidden',
       shadowColor: '#000',
       shadowOffset: { width: 0, height: 1 },
       shadowOpacity: 0.06,
-      shadowRadius: 3,
+      shadowRadius: 4,
       elevation: 1,
     },
     recentThumb: {
-      width: 76,
-      height: 76,
+      width: 112,
+      height: 112,
     },
     recentThumbPlaceholder: {
       justifyContent: 'center',
@@ -710,31 +826,31 @@ const createStyles = (tokens, isRTL) =>
     },
     recentContent: {
       flex: 1,
-      padding: 10,
+      padding: 14,
       justifyContent: 'center',
-      gap: 3,
+      gap: 4,
     },
     recentStatusPill: {
       alignSelf: isRTL ? 'flex-end' : 'flex-start',
-      paddingHorizontal: 7,
-      paddingVertical: 2,
+      paddingHorizontal: 9,
+      paddingVertical: 3,
       borderRadius: radiusTokens.sm,
-      marginBottom: 2,
+      marginBottom: 3,
     },
     recentStatusPillText: {
       fontFamily: fontFamilies.bodySemiBold,
-      fontSize: 10,
+      fontSize: 11,
       textTransform: 'uppercase',
     },
     recentTitle: {
       fontFamily: fontFamilies.bodySemiBold,
-      fontSize: 14,
+      fontSize: 16,
       color: tokens.ink,
       textAlign: isRTL ? 'right' : 'left',
     },
     recentMeta: {
       fontFamily: fontFamilies.body,
-      fontSize: 12,
+      fontSize: 13,
       color: `${tokens.ink}99`,
       textAlign: isRTL ? 'right' : 'left',
     },
@@ -742,35 +858,35 @@ const createStyles = (tokens, isRTL) =>
       borderStartWidth: 4,
       backgroundColor: tokens.surfaceRaised,
       borderRadius: radiusTokens.md,
-      padding: 16,
+      padding: 18,
     },
     recentEmptyText: {
       fontFamily: fontFamilies.body,
-      fontSize: 13,
+      fontSize: 14,
       color: `${tokens.ink}99`,
       textAlign: isRTL ? 'right' : 'left',
     },
 
     // Categories
     categoryRow: {
-      gap: 14,
+      gap: 16,
       paddingEnd: 4,
     },
     categoryChip: {
       alignItems: 'center',
-      width: 76,
+      width: 88,
     },
     categoryChipCircle: {
-      width: 56,
-      height: 56,
-      borderRadius: 28,
+      width: 68,
+      height: 68,
+      borderRadius: 34,
       justifyContent: 'center',
       alignItems: 'center',
-      marginBottom: 6,
+      marginBottom: 8,
     },
     categoryChipLabel: {
       fontFamily: fontFamilies.body,
-      fontSize: 11,
+      fontSize: 12,
       color: tokens.ink,
       textAlign: 'center',
     },
