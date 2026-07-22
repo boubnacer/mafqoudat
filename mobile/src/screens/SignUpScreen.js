@@ -156,7 +156,7 @@ const SignUpScreen = ({ navigation }) => {
       const { accessToken } = response.data;
 
       if (accessToken) {
-        // Same storage/state path as password login - lands signed-in on PostsListScreen.
+        // Same storage/state path as password login - lands signed-in on HomeScreen.
         await completeLogin(accessToken);
       } else {
         setError(t('networkError'));

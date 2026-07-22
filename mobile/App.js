@@ -29,6 +29,7 @@ import WelcomeScreen from './src/screens/WelcomeScreen';
 import LoginScreen from './src/screens/LoginScreen';
 import SignUpScreen from './src/screens/SignUpScreen';
 import CountrySelectionScreen from './src/screens/CountrySelectionScreen';
+import HomeScreen from './src/screens/HomeScreen';
 import PostsListScreen from './src/screens/PostsListScreen';
 import PostDetailScreen from './src/screens/PostDetailScreen';
 import NewPostScreen from './src/screens/NewPostScreen';
@@ -97,7 +98,7 @@ const MainTabs = () => {
         },
       })}
     >
-      <Tab.Screen name="Home" component={PostsListScreen} options={{ tabBarLabel: t('home') }} />
+      <Tab.Screen name="Home" component={HomeScreen} options={{ tabBarLabel: t('home') }} />
       <Tab.Screen name="NewPost" component={NewPostScreen} options={{ tabBarLabel: t('newPost') }} />
       <Tab.Screen name="MyPosts" component={MyPostsScreen} options={{ tabBarLabel: t('myPosts') }} />
       <Tab.Screen name="Profile" component={ProfileScreen} options={{ tabBarLabel: t('profile') }} />
@@ -112,6 +113,7 @@ const AppNavigator = () => {
     <ReferenceDataProvider>
       <Stack.Navigator screenOptions={{ headerShown: false, contentStyle: { backgroundColor: colors.background } }}>
         <Stack.Screen name="MainTabs" component={MainTabs} />
+        <Stack.Screen name="PostsListScreen" component={PostsListScreen} />
         <Stack.Screen name="PostDetailScreen" component={PostDetailScreen} />
         <Stack.Screen name="EditPostScreen" component={EditPostScreen} />
         <Stack.Screen name="EditProfileScreen" component={EditProfileScreen} />

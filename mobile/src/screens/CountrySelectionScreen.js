@@ -122,7 +122,7 @@ const CountrySelectionScreen = ({ navigation }) => {
         }
         setError(result.error || t('registrationFailed'));
       }
-      // On success, AuthContext's isSignedIn flip drives the RootNavigator to PostsListScreen.
+      // On success, AuthContext's isSignedIn flip drives the RootNavigator to HomeScreen.
     } catch (err) {
       console.error('Country selection error:', err);
       setError(t('registrationFailed'));

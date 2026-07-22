@@ -121,7 +121,7 @@ const LoginScreen = ({ navigation }) => {
 
       if (accessToken) {
         // Persisting via context flips isSignedIn, which drives RootNavigator to
-        // PostsListScreen automatically (that screen only exists in the signed-in stack).
+        // HomeScreen automatically (that screen only exists in the signed-in stack).
         await completeLogin(accessToken);
       } else {
         setError(t('invalidCredentials'));

@@ -48,6 +48,7 @@ const AppHeader = ({
   countryId: controlledCountryId,
   onSelectCountry: controlledOnSelectCountry,
   showMenu = true,
+  onBack,
 }) => {
   const insets = useSafeAreaInsets();
   const theme = useTheme();
@@ -127,6 +128,11 @@ const AppHeader = ({
   return (
     <View style={[styles.container, { paddingTop: insets.top + spacing.sm }]}>
       <View style={styles.topRow}>
+        {onBack ? (
+          <TouchableOpacity onPress={onBack} style={styles.backButton} accessibilityLabel={t('back')} hitSlop={8}>
+            <Ionicons name={isRTL ? 'arrow-forward' : 'arrow-back'} size={fontSizes.lg} color={colors.primaryText} />
+          </TouchableOpacity>
+        ) : null}
         <Text style={[styles.title, textStyle]} numberOfLines={1}>
           {title}
         </Text>
@@ -194,6 +200,9 @@ const createStyles = ({ colors, spacing, radii, fontSizes }) =>
       fontSize: fontSizes.xl,
       fontWeight: 'bold',
       color: colors.primaryText,
+      marginEnd: spacing.sm,
+    },
+    backButton: {
       marginEnd: spacing.sm,
     },
     textRTL: {

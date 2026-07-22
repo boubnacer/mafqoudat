@@ -288,6 +288,24 @@ export const translations = {
     onboardingFindBody: "Search found items around you and help reconnect them with their rightful owners.",
     securePlatform: "Secure & Trusted",
     securePlatformDesc: "Advanced security measures protect your personal information and ensure safe transactions.",
+
+    // Home dashboard
+    trending: "Trending",
+    noTrendingItems: "No trending items",
+    noTrendingItemsDescription: "There are no trending items at the moment. Check back later!",
+    recentFounds: "Recent Founds",
+    recentLosts: "Recent Losts",
+    seeAll: "See All",
+    statistics: "Statistics",
+    totalItems: "Total Items",
+    returnedItems: "Returned Items",
+    today: "Today",
+    found: "Found",
+    lost: "Lost",
+    returned: "Returned",
+    noPostsInArea: "There are no posts in your area yet. Be the first to create a post!",
+    createPost: "Create Post",
+    browseByCategory: "Browse by category",
   },
 
   fr: {
@@ -573,6 +591,24 @@ export const translations = {
     onboardingFindBody: "Recherchez les objets trouvés autour de vous et aidez à les rendre à leurs propriétaires légitimes.",
     securePlatform: "Sécurisé et Fiable",
     securePlatformDesc: "Des mesures de sécurité avancées protègent vos informations personnelles et garantissent des transactions sécurisées.",
+
+    // Home dashboard
+    trending: "Tendance",
+    noTrendingItems: "Aucun élément tendance",
+    noTrendingItemsDescription: "Il n'y a pas d'éléments tendance pour le moment. Revenez plus tard !",
+    recentFounds: "Objets trouvés récents",
+    recentLosts: "Objets perdus récents",
+    seeAll: "Voir Tout",
+    statistics: "Statistiques",
+    totalItems: "Total des objets",
+    returnedItems: "Objets retournés",
+    today: "Aujourd'hui",
+    found: "Trouvé",
+    lost: "Perdu",
+    returned: "Retourné",
+    noPostsInArea: "Il n'y a pas encore de publications dans votre région. Soyez le premier à créer une publication !",
+    createPost: "Créer une publication",
+    browseByCategory: "Parcourir par catégorie",
   },
 
   ar: {
@@ -858,6 +894,24 @@ export const translations = {
     onboardingFindBody: "ابحث عن الأغراض الموجودة من حولك وساعد في إعادتها إلى أصحابها الحقيقيين.",
     securePlatform: "منصة آمنة وموثوقة",
     securePlatformDesc: "تدابير أمنية متقدمة تحمي معلوماتك الشخصية وتضمن المعاملات الآمنة.",
+
+    // Home dashboard
+    trending: "رائج",
+    noTrendingItems: "لا توجد عناصر رائجة",
+    noTrendingItemsDescription: "لا توجد عناصر رائجة في الوقت الحالي. تحقق مرة أخرى لاحقاً!",
+    recentFounds: "العناصر التي عثر عليها حديثاً",
+    recentLosts: "العناصر المفقودة حديثاً",
+    seeAll: "عرض الكل",
+    statistics: "الإحصائيات",
+    totalItems: "إجمالي العناصر",
+    returnedItems: "العناصر المُسترجعة",
+    today: "اليوم",
+    found: "عثر عليه",
+    lost: "مفقود",
+    returned: "تم إرجاعه",
+    noPostsInArea: "لا توجد منشورات في منطقتك بعد. كن أول من ينشئ منشور!",
+    createPost: "إنشاء منشور",
+    browseByCategory: "تصفح حسب الفئة",
   }
 };
 

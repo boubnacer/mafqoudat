@@ -61,16 +61,13 @@ const HeaderMenu = ({ visible, onClose }) => {
     action();
   };
 
-  // Lands on Home already filtered. Home is a screen nested inside the
-  // MainTabs tab navigator, itself nested inside the root stack - navigate()
-  // bubbles up from wherever this menu is opened (any of the 4 tabs) to find
-  // MainTabs on the root stack, then forwards { screen, params } into it. If
-  // Home is already focused, this just merges the new param in place rather
-  // than remounting the screen; PostsListScreen's route.params.fl effect is
-  // what actually applies the filter.
+  // PostsListScreen lives on the root stack (a sibling of MainTabs, pushed
+  // from HomeScreen's "See all" links) - navigate() bubbles up from wherever
+  // this menu is opened (any of the 4 tabs, nested inside MainTabs) to find
+  // it there. initialFl is read once on mount to pre-apply the filter.
   const handleBrowse = (flId) => {
     runAndClose(() => {
-      navigation.navigate('MainTabs', { screen: 'Home', params: { fl: flId } });
+      navigation.navigate('PostsListScreen', { initialFl: flId });
     });
   };
 

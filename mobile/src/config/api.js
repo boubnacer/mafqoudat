@@ -50,6 +50,9 @@ export const API_ENDPOINTS = {
     // Public (no auth required) - server/routes/userRoutes.js POST / -> createNewUser
     CREATE: "/users",
   },
+  DASHBOARD: {
+    GET: "/dashboard",
+  },
   POSTS: {
     GET_ALL: "/posts",
     GET_USER_POSTS: "/posts/user",

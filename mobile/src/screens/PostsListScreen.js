@@ -63,6 +63,7 @@ const PostsListScreen = ({ navigation, route }) => {
   const requestIdRef = useRef(0);
   const abortControllerRef = useRef(null);
   const isFirstFocusRef = useRef(true);
+  const isFirstInitialFlParamRef = useRef(true);
 
   // Resolve the browsing country once: the onboarding-selected country (Prompt 0.3)
   // takes priority, falling back to the account's registered country.
@@ -94,8 +95,16 @@ const PostsListScreen = ({ navigation, route }) => {
   // Restore the last-selected post-type segment (All/Lost/Found) before the
   // first fetch fires - the composing effect below waits on isFlRestored so
   // the initial load already uses the right filter instead of fetching twice.
+  // A caller that pushed this screen with an explicit initialFl (HomeScreen's
+  // stat cards / "See all" links) takes priority over the stored segment.
   useEffect(() => {
     let isMounted = true;
+    const initialFl = route.params?.initialFl;
+    if (initialFl !== undefined) {
+      setSelectedFl(initialFl || '');
+      setIsFlRestored(true);
+      return undefined;
+    }
     storage.getSelectedFl().then((storedFl) => {
       if (isMounted) {
         setSelectedFl(storedFl || '');
@@ -105,6 +114,18 @@ const PostsListScreen = ({ navigation, route }) => {
     return () => {
       isMounted = false;
     };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
+
+  // HomeScreen's category quick-access strip pushes this screen with an
+  // explicit initialCategoryId to pre-filter by - applied once on mount,
+  // same as initialFl above.
+  useEffect(() => {
+    const initialCategoryId = route.params?.initialCategoryId;
+    if (initialCategoryId) {
+      setSelectedCategoryIds([initialCategoryId]);
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   // Debounce free-text search input.
@@ -275,19 +296,23 @@ const PostsListScreen = ({ navigation, route }) => {
     storage.setSelectedFl(id);
   };
 
-  // HeaderMenu's Browse section (any tab) navigates here via
-  // navigation.navigate('MainTabs', { screen: 'Home', params: { fl } }).
-  // When Home is already focused, that only updates route.params in place
-  // (no remount), so this effect is what actually applies the filter. The
-  // param is cleared right after so switching away and back to Home doesn't
-  // re-apply a stale selection.
+  // HeaderMenu's Browse section navigates here via navigation.navigate('PostsListScreen',
+  // { initialFl }). If this screen is already the focused route, that only merges the
+  // new param in place (no remount) - the mount-time restore effect above has already
+  // run by then, so this effect is what applies a filter change on an already-mounted
+  // screen. Skips its own first firing since the mount effect already covers initial
+  // load; the param is cleared right after so refocusing doesn't re-apply a stale value.
   useEffect(() => {
-    const requestedFl = route.params?.fl;
+    if (isFirstInitialFlParamRef.current) {
+      isFirstInitialFlParamRef.current = false;
+      return;
+    }
+    const requestedFl = route.params?.initialFl;
     if (requestedFl === undefined) return;
     handleSelectFl(requestedFl);
-    navigation.setParams({ fl: undefined });
+    navigation.setParams({ initialFl: undefined });
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [route.params?.fl]);
+  }, [route.params?.initialFl]);
 
   const handleToggleCategory = (id) => {
     setSelectedCategoryIds((prev) => (prev.includes(id) ? prev.filter((c) => c !== id) : [...prev, id]));
@@ -384,6 +409,7 @@ const PostsListScreen = ({ navigation, route }) => {
           countryId={countryId}
           onSelectCountry={handleSelectCountry}
           rightActions={filterButton}
+          onBack={() => navigation.goBack()}
         />
         <View style={styles.centerContainer}>
           <ActivityIndicator size="large" color="#2196F3" />
