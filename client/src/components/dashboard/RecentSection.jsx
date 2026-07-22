@@ -69,7 +69,7 @@ const RecentSection = ({ type, items, totalItems, isLoading, onCreatePost, found
       {isLoading ? (
         <RecentItemsSkeleton />
       ) : hasItems ? (
-        <Recent recent={items} type={type} maxItems={{ xs: 2, sm: 4, xxl: 6 }} />
+        <Recent recent={items} type={type} maxItems={2} />
       ) : (
         <EmptyStateComponent onCreatePost={onCreatePost} />
       )}
