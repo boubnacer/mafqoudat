@@ -17,6 +17,7 @@ import {
   Platform,
   ScrollView,
   SafeAreaView,
+  Image,
 } from 'react-native';
 import { useLanguage } from '../context/LanguageContext';
 import { useTheme } from '../context/ThemeContext';
@@ -25,6 +26,8 @@ import { storage } from '../utils/storage';
 import apiClient from '../api/apiService';
 import LanguageDropdown from '../components/LanguageDropdown';
 import { getLocalizedLabel } from '../context/ReferenceDataContext';
+
+const BRAND_MARK = require('../../assets/icon.png');
 
 const WelcomeScreen = ({ navigation }) => {
   const { currentLanguage } = useLanguage();
@@ -250,7 +253,7 @@ const WelcomeScreen = ({ navigation }) => {
           {/* Logo and Welcome Section */}
           <View style={styles.headerSection}>
             <View style={styles.logoContainer}>
-              <Text style={styles.logoText}>M</Text>
+              <Image source={BRAND_MARK} style={styles.logoImage} resizeMode="contain" />
             </View>
             <Text style={styles.brandName}>{t('brandName')}</Text>
             <Text style={styles.welcomeMessage}>
@@ -386,10 +389,10 @@ const createStyles = (colors) => StyleSheet.create({
     paddingBottom: 40,
   },
   logoContainer: {
-    width: 80,
-    height: 80,
-    borderRadius: 40,
-    backgroundColor: colors.primary,
+    width: 88,
+    height: 88,
+    borderRadius: 44,
+    backgroundColor: colors.primarySoft,
     justifyContent: 'center',
     alignItems: 'center',
     marginBottom: 16,
@@ -399,10 +402,9 @@ const createStyles = (colors) => StyleSheet.create({
     shadowRadius: 20,
     elevation: 10,
   },
-  logoText: {
-    fontSize: 40,
-    fontWeight: 'bold',
-    color: colors.primaryText,
+  logoImage: {
+    width: 48,
+    height: 48,
   },
   brandName: {
     fontSize: 32,

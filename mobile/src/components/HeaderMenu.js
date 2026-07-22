@@ -1,13 +1,20 @@
 /**
- * Overflow (⋮) menu for AppHeader: a Browse section (All Posts/Lost/Found -
+ * Overflow (☰) menu for AppHeader: everything that used to live as separate
+ * icon buttons in the header bar - country, language, theme - now lives here
+ * as rows, alongside the original Browse section (All Posts/Lost/Found -
  * jumps to Home already filtered), Settings, the website's secondary pages
  * (About, Help Center, Safety Tips, Contact Us, Privacy Policy, Terms), and
- * Sign Out. Follows LanguageDropdown's modal-popover pattern (transparent
- * Modal, tap-outside/back to dismiss) rather than a real navigation drawer.
+ * Sign Out. Mirrors the web app's mobile Drawer (client/src/components/Navbar.jsx,
+ * <760px) which collapses the same set of controls behind one menu icon.
+ * Follows LanguageDropdown's modal-popover pattern (transparent Modal,
+ * tap-outside/back to dismiss) rather than a real navigation drawer.
  *
  * Controlled by the parent (AppHeader): `visible`/`onClose` so AppHeader can
- * keep this, the country picker, and the language dropdown mutually
- * exclusive - only one overlay open at a time.
+ * keep this and the country picker mutually exclusive - only one overlay open
+ * at a time. `countryFlag`/`countryLabel`/`onOpenCountryPicker` are threaded
+ * through from AppHeader since it already owns the controlled/self-managed
+ * country state; theme and language are read directly from their own
+ * contexts here since both are global, not per-header state.
  */
 
 import React from 'react';
@@ -21,6 +28,7 @@ import { useTranslation } from '../utils/translations';
 import { useAuth } from '../context/AuthContext';
 import { useReferenceData, getLocalizedLabel } from '../context/ReferenceDataContext';
 import { WEB_BASE_URL } from '../config/api';
+import { colorTokens, radiusTokens, fontFamilies } from '../theme/tokens';
 
 // Website pages, in the order they should appear in the menu. Opened via the
 // site's own base URL (EXPO_PUBLIC_WEB_BASE_URL) rather than a hardcoded domain.
@@ -33,21 +41,28 @@ const WEBSITE_LINKS = [
   { key: 'termsOfService', path: '/terms', icon: 'document-text-outline' },
 ];
 
+const LANGUAGES = [
+  { code: 'en', short: 'EN' },
+  { code: 'fr', short: 'FR' },
+  { code: 'ar', short: 'AR' },
+];
+
 // Roughly the header's own content height (a single title/controls row), so
 // the menu pops open just under it rather than overlapping.
 const HEADER_CONTENT_HEIGHT = 60;
 
-const HeaderMenu = ({ visible, onClose }) => {
+const HeaderMenu = ({ visible, onClose, countryFlag, countryLabel, onOpenCountryPicker }) => {
   const insets = useSafeAreaInsets();
-  const { colors, spacing, radii, fontSizes } = useTheme();
-  const { currentLanguage } = useLanguage();
+  const { isDark, setThemeMode } = useTheme();
+  const tokens = isDark ? colorTokens.dark : colorTokens.light;
+  const { currentLanguage, setLanguage } = useLanguage();
   const { t } = useTranslation();
   const { signOut } = useAuth();
   const { floptions } = useReferenceData();
   const navigation = useNavigation();
   const isRTL = currentLanguage === 'ar';
 
-  const styles = createStyles({ colors, spacing, radii, fontSizes });
+  const styles = createStyles({ tokens, isDark });
   const textStyle = isRTL ? styles.textRTL : null;
 
   // Same floptions source PostsListScreen/PostFilterSheet use (ReferenceDataContext,
@@ -92,15 +107,24 @@ const HeaderMenu = ({ visible, onClose }) => {
     });
   };
 
+  const handleOpenCountryPicker = () => {
+    onClose();
+    onOpenCountryPicker();
+  };
+
+  const handleToggleTheme = () => {
+    setThemeMode(isDark ? 'light' : 'dark');
+  };
+
   const renderItem = ({ key, label, icon, iconColor, onPress, destructive }) => (
     <TouchableOpacity key={key} style={styles.item} onPress={onPress} activeOpacity={0.7}>
       <Ionicons
         name={icon}
-        size={fontSizes.md}
-        color={destructive ? colors.danger : iconColor || colors.textSecondary}
+        size={19}
+        color={destructive ? tokens.status.lost.main : iconColor || `${tokens.ink}99`}
         style={styles.itemIcon}
       />
-      <Text style={[styles.itemText, textStyle, destructive && { color: colors.danger }]} numberOfLines={1}>
+      <Text style={[styles.itemText, textStyle, destructive && { color: tokens.status.lost.main }]} numberOfLines={1}>
         {label}
       </Text>
     </TouchableOpacity>
@@ -135,6 +159,62 @@ const HeaderMenu = ({ visible, onClose }) => {
 
             <View style={styles.divider} />
 
+            {/* Preferences cluster - country, language, theme. Visually boxed
+                so it reads as one group, mirroring the web mobile drawer's
+                own Preferences box. */}
+            <View style={styles.prefsBox}>
+              <TouchableOpacity style={styles.prefRow} onPress={handleOpenCountryPicker} activeOpacity={0.7}>
+                <Text style={styles.prefFlag}>{countryFlag}</Text>
+                <View style={styles.prefTextWrap}>
+                  <Text style={[styles.itemText, textStyle]} numberOfLines={1}>
+                    {t('country')}
+                  </Text>
+                  {countryLabel ? (
+                    <Text style={[styles.prefSubtext, textStyle]} numberOfLines={1}>
+                      {countryLabel}
+                    </Text>
+                  ) : null}
+                </View>
+                <Ionicons name={isRTL ? 'chevron-back' : 'chevron-forward'} size={16} color={`${tokens.ink}66`} />
+              </TouchableOpacity>
+
+              <View style={styles.prefRow}>
+                <Ionicons name="language-outline" size={19} color={`${tokens.ink}99`} style={styles.itemIcon} />
+                <Text style={[styles.itemText, textStyle, styles.prefTextWrap]} numberOfLines={1}>
+                  {t('language')}
+                </Text>
+                <View style={styles.langPills}>
+                  {LANGUAGES.map((lang) => {
+                    const active = currentLanguage === lang.code;
+                    return (
+                      <TouchableOpacity
+                        key={lang.code}
+                        onPress={() => setLanguage(lang.code)}
+                        style={[styles.langPill, active && { backgroundColor: tokens.brandPrimary }]}
+                        activeOpacity={0.75}
+                      >
+                        <Text style={[styles.langPillText, active && styles.langPillTextActive]}>{lang.short}</Text>
+                      </TouchableOpacity>
+                    );
+                  })}
+                </View>
+              </View>
+
+              <TouchableOpacity style={[styles.prefRow, styles.prefRowLast]} onPress={handleToggleTheme} activeOpacity={0.7}>
+                <Ionicons
+                  name={isDark ? 'sunny-outline' : 'moon-outline'}
+                  size={19}
+                  color={`${tokens.ink}99`}
+                  style={styles.itemIcon}
+                />
+                <Text style={[styles.itemText, textStyle]} numberOfLines={1}>
+                  {isDark ? t('themeLight') : t('themeDark')}
+                </Text>
+              </TouchableOpacity>
+            </View>
+
+            <View style={styles.divider} />
+
             {renderItem({ key: 'settings', label: t('settings'), icon: 'settings-outline', onPress: handleSettings })}
 
             <View style={styles.divider} />
@@ -164,7 +244,7 @@ const HeaderMenu = ({ visible, onClose }) => {
   );
 };
 
-const createStyles = ({ colors, spacing, radii, fontSizes }) =>
+const createStyles = ({ tokens, isDark }) =>
   StyleSheet.create({
     overlay: {
       flex: 1,
@@ -175,58 +255,107 @@ const createStyles = ({ colors, spacing, radii, fontSizes }) =>
     },
     menu: {
       position: 'absolute',
-      end: spacing.lg,
-      width: 240,
-      maxWidth: '80%',
-      maxHeight: 440,
-      backgroundColor: colors.surface,
-      borderRadius: radii.lg,
+      end: 16,
+      width: 264,
+      maxWidth: '85%',
+      maxHeight: 520,
+      backgroundColor: tokens.surfaceRaised,
+      borderRadius: radiusTokens.lg,
       borderWidth: 1,
-      borderColor: colors.border,
-      paddingVertical: spacing.xs,
+      borderColor: `${tokens.ink}${isDark ? '1F' : '14'}`,
+      paddingVertical: 6,
       shadowColor: '#000',
       shadowOffset: { width: 0, height: 4 },
-      shadowOpacity: 0.2,
+      shadowOpacity: isDark ? 0.5 : 0.2,
       shadowRadius: 8,
       elevation: 8,
     },
     scrollArea: {
       // maxHeight on the ScrollView itself (not just the outer menu View) is
       // what actually makes RN cap and scroll the content on short screens.
-      maxHeight: 440,
+      maxHeight: 520,
     },
     sectionHeader: {
-      fontSize: fontSizes.xs,
-      fontWeight: 'bold',
-      color: colors.textSecondary,
+      fontFamily: fontFamilies.bodySemiBold,
+      fontSize: 11,
+      color: `${tokens.ink}99`,
       textTransform: 'uppercase',
-      paddingHorizontal: spacing.md,
-      paddingTop: spacing.sm,
-      paddingBottom: spacing.xs,
+      letterSpacing: 0.5,
+      paddingHorizontal: 14,
+      paddingTop: 10,
+      paddingBottom: 6,
     },
     item: {
       flexDirection: 'row',
       alignItems: 'center',
-      paddingHorizontal: spacing.md,
-      paddingVertical: spacing.sm + 2,
+      paddingHorizontal: 14,
+      paddingVertical: 10,
     },
     itemIcon: {
-      marginEnd: spacing.sm,
+      marginEnd: 10,
     },
     itemText: {
       flex: 1,
-      fontSize: fontSizes.sm,
-      color: colors.textPrimary,
-      fontWeight: '500',
+      fontFamily: fontFamilies.bodyMedium,
+      fontSize: 14,
+      color: tokens.ink,
     },
     textRTL: {
       textAlign: 'right',
     },
     divider: {
       height: 1,
-      backgroundColor: colors.border,
-      marginVertical: spacing.xs,
-      marginHorizontal: spacing.md,
+      backgroundColor: `${tokens.ink}${isDark ? '1F' : '14'}`,
+      marginVertical: 4,
+      marginHorizontal: 14,
+    },
+    prefsBox: {
+      marginHorizontal: 8,
+      borderRadius: radiusTokens.md,
+      backgroundColor: `${tokens.ink}0A`,
+      overflow: 'hidden',
+    },
+    prefRow: {
+      flexDirection: 'row',
+      alignItems: 'center',
+      paddingHorizontal: 10,
+      paddingVertical: 10,
+      borderBottomWidth: 1,
+      borderBottomColor: `${tokens.ink}${isDark ? '1F' : '14'}`,
+    },
+    prefRowLast: {
+      borderBottomWidth: 0,
+    },
+    prefFlag: {
+      fontSize: 18,
+      marginEnd: 10,
+    },
+    prefTextWrap: {
+      flex: 1,
+    },
+    prefSubtext: {
+      fontFamily: fontFamilies.body,
+      fontSize: 12,
+      color: `${tokens.ink}80`,
+      marginTop: 1,
+    },
+    langPills: {
+      flexDirection: 'row',
+      gap: 4,
+    },
+    langPill: {
+      paddingHorizontal: 8,
+      paddingVertical: 4,
+      borderRadius: radiusTokens.sm,
+      backgroundColor: `${tokens.ink}0F`,
+    },
+    langPillText: {
+      fontFamily: fontFamilies.bodySemiBold,
+      fontSize: 11,
+      color: `${tokens.ink}99`,
+    },
+    langPillTextActive: {
+      color: '#FFFFFF',
     },
   });
 

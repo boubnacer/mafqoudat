@@ -26,6 +26,7 @@ import { useTranslation } from '../utils/translations';
 import { useAuth } from '../context/AuthContext';
 import { useReferenceData, getLocalizedLabel } from '../context/ReferenceDataContext';
 import { useTheme } from '../context/ThemeContext';
+import { colorTokens } from '../theme/tokens';
 import PostFilterSheet from '../components/PostFilterSheet';
 import DataStateView from '../components/DataStateView';
 import AppHeader from '../components/AppHeader';
@@ -38,7 +39,8 @@ const PostsListScreen = ({ navigation, route }) => {
   const { t } = useTranslation();
   const { signOut } = useAuth();
   const { floptions, categories, countries, getCities } = useReferenceData();
-  const { colors } = useTheme();
+  const { isDark } = useTheme();
+  const tokens = isDark ? colorTokens.dark : colorTokens.light;
   const isRTL = currentLanguage === 'ar';
 
   const [posts, setPosts] = useState([]);
@@ -359,13 +361,16 @@ const PostsListScreen = ({ navigation, route }) => {
 
   const filterButton = (
     <TouchableOpacity
-      style={[styles.filterButton, { backgroundColor: colors.primaryText }]}
+      style={[
+        styles.filterButton,
+        { backgroundColor: `${tokens.brandPrimary}1F`, borderWidth: 1, borderColor: `${tokens.brandPrimary}40` },
+      ]}
       onPress={() => setFilterSheetVisible(true)}
     >
-      <Text style={[styles.filterButtonText, { color: colors.primary }]}>{t('filters')}</Text>
+      <Text style={[styles.filterButtonText, { color: tokens.brandPrimary }]}>{t('filters')}</Text>
       {activeFilterCount > 0 ? (
-        <View style={[styles.filterBadge, { backgroundColor: colors.primary }]}>
-          <Text style={[styles.filterBadgeText, { color: colors.primaryText }]}>{activeFilterCount}</Text>
+        <View style={[styles.filterBadge, { backgroundColor: tokens.brandPrimary }]}>
+          <Text style={[styles.filterBadgeText, { color: '#FFFFFF' }]}>{activeFilterCount}</Text>
         </View>
       ) : null}
     </TouchableOpacity>

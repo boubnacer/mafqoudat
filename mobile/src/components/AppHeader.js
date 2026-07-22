@@ -1,10 +1,11 @@
 /**
  * Shared header for the four bottom-tab screens (Home, New Post, My Posts,
- * Profile). A single row: title, country flag (opens CountryPickerModal),
- * theme toggle, language dropdown, optional rightActions, and the overflow
- * (⋮) menu - mirroring the web app's Navbar (client/src/components/Navbar).
- * The country control is flag-only (full name lives in the picker's list) so
- * six controls plus a title still fit on a ~360dp-wide screen without wrapping.
+ * Profile) plus stack screens that push on top of them (e.g. PostsListScreen).
+ * Mirrors the web app's Navbar (client/src/components/Navbar.jsx) in its
+ * mobile/responsive (<760px) form: brand logo on the start side, a single
+ * overflow "menu" icon on the end - everything else (country, theme,
+ * language, browse shortcuts, settings, sign out) lives behind that menu,
+ * same as the web navbar's mobile Drawer.
  *
  * Country selection can be controlled or self-managed:
  * - Controlled (pass `countryId` + `onSelectCountry`): used by PostsListScreen,
@@ -20,7 +21,7 @@
  */
 
 import React, { useCallback, useState } from 'react';
-import { View, Text, TouchableOpacity, StyleSheet } from 'react-native';
+import { View, Text, TouchableOpacity, StyleSheet, Image } from 'react-native';
 import { useFocusEffect } from '@react-navigation/native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { Ionicons } from '@expo/vector-icons';
@@ -29,9 +30,11 @@ import { useLanguage } from '../context/LanguageContext';
 import { useTranslation } from '../utils/translations';
 import { useReferenceData, getLocalizedLabel } from '../context/ReferenceDataContext';
 import { storage } from '../utils/storage';
-import LanguageDropdown from './LanguageDropdown';
+import { colorTokens, radiusTokens, fontFamilies } from '../theme/tokens';
 import CountryPickerModal from './CountryPickerModal';
 import HeaderMenu from './HeaderMenu';
+
+const BRAND_MARK = require('../../assets/icon.png');
 
 // Mirrors PostsListScreen's own resolveCountry: the onboarding-selected
 // country takes priority, falling back to the account's registered country.
@@ -52,7 +55,8 @@ const AppHeader = ({
 }) => {
   const insets = useSafeAreaInsets();
   const theme = useTheme();
-  const { colors, spacing, radii, fontSizes, isDark, setThemeMode } = theme;
+  const { isDark, setThemeMode } = theme;
+  const tokens = isDark ? colorTokens.dark : colorTokens.light;
   const { currentLanguage } = useLanguage();
   const { t } = useTranslation();
   const { countries } = useReferenceData();
@@ -62,10 +66,6 @@ const AppHeader = ({
   const [selfCountryId, setSelfCountryId] = useState(null);
   const [pickerVisible, setPickerVisible] = useState(false);
   const [menuVisible, setMenuVisible] = useState(false);
-  // Bumped whenever the country picker or overflow menu opens, to force-close
-  // LanguageDropdown's own internally-managed dropdown - keeps all three
-  // overlays mutually exclusive without lifting LanguageDropdown's state out.
-  const [closeLanguageDropdownSignal, setCloseLanguageDropdownSignal] = useState(0);
 
   const countryId = isControlled ? controlledCountryId : selfCountryId;
 
@@ -99,73 +99,64 @@ const AppHeader = ({
     setThemeMode(isDark ? 'light' : 'dark');
   };
 
-  // Keeps the country picker, the overflow menu, and LanguageDropdown's own
-  // dropdown mutually exclusive - opening one closes the other two.
   const openCountryPicker = () => {
     setMenuVisible(false);
-    setCloseLanguageDropdownSignal((n) => n + 1);
     setPickerVisible(true);
   };
 
-  const openMenu = () => {
-    setPickerVisible(false);
-    setCloseLanguageDropdownSignal((n) => n + 1);
-    setMenuVisible(true);
-  };
-
-  const handleLanguageDropdownOpen = () => {
-    setPickerVisible(false);
-    setMenuVisible(false);
-  };
+  const openMenu = () => setMenuVisible(true);
 
   const countryRef = countries.find((c) => (c._id || c.id) === countryId);
   const countryLabel = countryRef ? getLocalizedLabel(countryRef, currentLanguage) : '';
   const countryFlag = countryRef?.flag || '🌍';
 
-  const styles = createStyles({ colors, spacing, radii, fontSizes });
+  const styles = createStyles({ tokens, isDark });
   const textStyle = isRTL ? styles.textRTL : null;
 
   return (
-    <View style={[styles.container, { paddingTop: insets.top + spacing.sm }]}>
+    <View style={[styles.container, { paddingTop: insets.top + 10 }]}>
       <View style={styles.topRow}>
         {onBack ? (
           <TouchableOpacity onPress={onBack} style={styles.backButton} accessibilityLabel={t('back')} hitSlop={8}>
-            <Ionicons name={isRTL ? 'arrow-forward' : 'arrow-back'} size={fontSizes.lg} color={colors.primaryText} />
+            <Ionicons name={isRTL ? 'arrow-forward' : 'arrow-back'} size={20} color={tokens.ink} />
+          </TouchableOpacity>
+        ) : (
+          <View style={styles.brand}>
+            <View style={styles.brandMark}>
+              <Image source={BRAND_MARK} style={styles.brandMarkImg} resizeMode="contain" />
+            </View>
+            <View style={styles.brandTextWrap}>
+              <Text style={styles.brandWordmark} numberOfLines={1}>
+                {t('brandName')}
+              </Text>
+              {/* Small screen-label under the wordmark - the website's navbar never
+                  shows a page title (its own page content carries that), but a phone
+                  screen has no URL bar or breadcrumb to fall back on, so this keeps
+                  the logo primary while still surfacing which tab is active. */}
+              {title ? (
+                <Text style={[styles.brandSubtitle, textStyle]} numberOfLines={1}>
+                  {title}
+                </Text>
+              ) : null}
+            </View>
+          </View>
+        )}
+
+        {onBack && title ? (
+          <Text style={[styles.title, textStyle]} numberOfLines={1}>
+            {title}
+          </Text>
+        ) : null}
+
+        <View style={styles.spacer} />
+
+        {rightActions}
+
+        {showMenu ? (
+          <TouchableOpacity onPress={openMenu} style={styles.menuButton} accessibilityLabel={t('menu')} hitSlop={8}>
+            <Ionicons name="menu-outline" size={22} color={tokens.ink} />
           </TouchableOpacity>
         ) : null}
-        <Text style={[styles.title, textStyle]} numberOfLines={1}>
-          {title}
-        </Text>
-        <View style={styles.controls}>
-          <TouchableOpacity
-            onPress={openCountryPicker}
-            style={styles.iconButton}
-            accessibilityLabel={countryLabel || t('selectCountry')}
-            hitSlop={8}
-          >
-            <Text style={styles.iconButtonText}>{countryFlag}</Text>
-          </TouchableOpacity>
-          <TouchableOpacity
-            onPress={handleToggleTheme}
-            style={styles.iconButton}
-            accessibilityLabel={isDark ? t('themeLight') : t('themeDark')}
-            hitSlop={8}
-          >
-            <Text style={styles.iconButtonText}>{isDark ? '☀️' : '🌙'}</Text>
-          </TouchableOpacity>
-          <LanguageDropdown compact onOpen={handleLanguageDropdownOpen} closeSignal={closeLanguageDropdownSignal} />
-          {rightActions}
-          {showMenu ? (
-            <TouchableOpacity
-              onPress={openMenu}
-              style={styles.iconButton}
-              accessibilityLabel={t('moreOptions')}
-              hitSlop={8}
-            >
-              <Ionicons name="ellipsis-vertical" size={fontSizes.md} color={colors.primaryText} />
-            </TouchableOpacity>
-          ) : null}
-        </View>
       </View>
 
       <CountryPickerModal
@@ -178,53 +169,101 @@ const AppHeader = ({
         isRTL={isRTL}
       />
 
-      {showMenu ? <HeaderMenu visible={menuVisible} onClose={() => setMenuVisible(false)} /> : null}
+      {showMenu ? (
+        <HeaderMenu
+          visible={menuVisible}
+          onClose={() => setMenuVisible(false)}
+          countryFlag={countryFlag}
+          countryLabel={countryLabel}
+          onOpenCountryPicker={openCountryPicker}
+        />
+      ) : null}
     </View>
   );
 };
 
-const createStyles = ({ colors, spacing, radii, fontSizes }) =>
+const createStyles = ({ tokens, isDark }) =>
   StyleSheet.create({
     container: {
-      backgroundColor: colors.primary,
-      paddingHorizontal: spacing.lg,
-      paddingBottom: spacing.md,
+      backgroundColor: tokens.surfaceRaised,
+      paddingHorizontal: 16,
+      paddingBottom: 12,
+      borderBottomWidth: 1,
+      borderBottomColor: `${tokens.ink}${isDark ? '1F' : '14'}`,
+      shadowColor: '#000',
+      shadowOffset: { width: 0, height: 2 },
+      shadowOpacity: isDark ? 0.35 : 0.06,
+      shadowRadius: 8,
+      elevation: 3,
     },
     topRow: {
       flexDirection: 'row',
       alignItems: 'center',
-      justifyContent: 'space-between',
     },
-    title: {
-      flex: 1,
-      fontSize: fontSizes.xl,
-      fontWeight: 'bold',
-      color: colors.primaryText,
-      marginEnd: spacing.sm,
+    brand: {
+      flexDirection: 'row',
+      alignItems: 'center',
+      flexShrink: 1,
+    },
+    brandMark: {
+      width: 34,
+      height: 34,
+      borderRadius: radiusTokens.md,
+      backgroundColor: `${tokens.brandPrimary}1F`,
+      justifyContent: 'center',
+      alignItems: 'center',
+      marginEnd: 10,
+    },
+    brandMarkImg: {
+      width: 19,
+      height: 19,
+    },
+    brandTextWrap: {
+      flexShrink: 1,
+    },
+    brandWordmark: {
+      fontFamily: fontFamilies.display,
+      fontSize: 17,
+      color: tokens.ink,
+      flexShrink: 1,
+    },
+    brandSubtitle: {
+      fontFamily: fontFamilies.body,
+      fontSize: 12,
+      color: `${tokens.ink}80`,
+      marginTop: 1,
     },
     backButton: {
-      marginEnd: spacing.sm,
+      width: 36,
+      height: 36,
+      borderRadius: radiusTokens.md,
+      backgroundColor: `${tokens.ink}0A`,
+      justifyContent: 'center',
+      alignItems: 'center',
+      marginEnd: 8,
+    },
+    title: {
+      fontFamily: fontFamilies.bodySemiBold,
+      fontSize: 17,
+      color: tokens.ink,
+      flexShrink: 1,
     },
     textRTL: {
       textAlign: 'right',
     },
-    controls: {
-      flexDirection: 'row',
-      alignItems: 'center',
-      gap: spacing.sm,
+    spacer: {
+      flex: 1,
     },
-    iconButton: {
-      width: 36,
-      height: 36,
-      borderRadius: radii.full,
-      backgroundColor: 'rgba(255,255,255,0.18)',
+    menuButton: {
+      width: 38,
+      height: 38,
+      borderRadius: radiusTokens.md,
+      backgroundColor: `${tokens.ink}0A`,
       borderWidth: 1,
-      borderColor: 'rgba(255,255,255,0.4)',
+      borderColor: `${tokens.ink}${isDark ? '1F' : '14'}`,
       justifyContent: 'center',
       alignItems: 'center',
-    },
-    iconButtonText: {
-      fontSize: fontSizes.md,
+      marginStart: 8,
     },
   });
 

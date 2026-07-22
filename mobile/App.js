@@ -5,7 +5,7 @@ import { NavigationContainer } from '@react-navigation/native';
 import { createNativeStackNavigator } from '@react-navigation/native-stack';
 import { createBottomTabNavigator } from '@react-navigation/bottom-tabs';
 import { Ionicons } from '@expo/vector-icons';
-import { SafeAreaProvider } from 'react-native-safe-area-context';
+import { SafeAreaProvider, useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useFonts, Cairo_700Bold, Cairo_400Regular } from '@expo-google-fonts/cairo';
 import {
   IBMPlexSansArabic_400Regular,
@@ -19,7 +19,7 @@ import { AuthProvider, useAuth } from './src/context/AuthContext';
 import { MaintenanceProvider, useMaintenance } from './src/context/MaintenanceContext';
 import { ReferenceDataProvider } from './src/context/ReferenceDataContext';
 import { OnboardingProvider, useOnboarding } from './src/context/OnboardingContext';
-import { lightColors, darkColors } from './src/theme/tokens';
+import { lightColors, darkColors, colorTokens, radiusTokens, fontFamilies } from './src/theme/tokens';
 import { getNavigationTheme } from './src/theme/navigationTheme';
 import { useTranslation } from './src/utils/translations';
 import MaintenanceOverlay from './src/components/MaintenanceOverlay';
@@ -77,34 +77,109 @@ const AuthNavigator = () => {
 // screens are pushed on top of this from the root stack (AppNavigator below) rather than
 // living inside the tabs, so the tab bar - and each tab's own focus/scroll state - persists
 // underneath them.
+//
+// Styled as a floating card (surfaceRaised, radiusTokens.xl, elevation) using the same
+// brand tokens as the web app's theme.custom - the active tab gets a brandPrimary-tinted
+// pill behind its icon, and NewPost (the primary action) renders as a raised brandPrimary
+// FAB circle instead of a plain icon, so it reads as the one action distinct from the
+// three destinations around it.
 const MainTabs = () => {
-  const { colors } = useTheme();
+  const { isDark } = useTheme();
   const { t } = useTranslation();
+  const insets = useSafeAreaInsets();
+  const tokens = isDark ? colorTokens.dark : colorTokens.light;
 
   return (
     <Tab.Navigator
       initialRouteName="Home"
       screenOptions={({ route }) => ({
         headerShown: false,
-        tabBarActiveTintColor: colors.primary,
-        tabBarInactiveTintColor: colors.textSecondary,
+        tabBarActiveTintColor: tokens.brandPrimary,
+        tabBarInactiveTintColor: `${tokens.ink}80`,
+        tabBarHideOnKeyboard: true,
+        // Deliberately NOT position:'absolute' - bottom-tabs lays the bar out as a
+        // normal flex sibling of the screen container, so the margin below reserves
+        // real space and screens are never hidden behind the floating card. Using
+        // absolute positioning here would overlay it on top of every screen's content.
         tabBarStyle: {
-          backgroundColor: colors.surface,
-          borderTopColor: colors.border,
+          marginHorizontal: 16,
+          marginBottom: insets.bottom + 12,
+          height: 66,
+          paddingTop: 0,
+          paddingBottom: 0,
+          borderRadius: radiusTokens.xl,
+          backgroundColor: tokens.surfaceRaised,
+          borderTopWidth: 0,
+          borderWidth: 1,
+          borderColor: `${tokens.ink}${isDark ? '1F' : '14'}`,
+          paddingHorizontal: 6,
+          shadowColor: '#000',
+          shadowOffset: { width: 0, height: 8 },
+          shadowOpacity: isDark ? 0.45 : 0.12,
+          shadowRadius: 16,
+          elevation: 12,
         },
-        tabBarIcon: ({ focused, color, size }) => {
+        tabBarLabelStyle: {
+          fontFamily: fontFamilies.bodySemiBold,
+          fontSize: 11,
+          marginTop: 2,
+          marginBottom: 4,
+        },
+        tabBarIcon: ({ focused, color }) => {
+          if (route.name === 'NewPost') {
+            return (
+              <View
+                style={[
+                  tabBarStyles.fab,
+                  { backgroundColor: tokens.brandPrimary, shadowColor: tokens.brandPrimary },
+                ]}
+              >
+                <Ionicons name="add" size={26} color="#FFFFFF" />
+              </View>
+            );
+          }
           const icon = TAB_ICONS[route.name];
-          return <Ionicons name={focused ? icon.focused : icon.unfocused} size={size} color={color} />;
+          return (
+            <View style={[tabBarStyles.iconWrap, focused && { backgroundColor: `${tokens.brandPrimary}1F` }]}>
+              <Ionicons name={focused ? icon.focused : icon.unfocused} size={20} color={color} />
+            </View>
+          );
         },
       })}
     >
       <Tab.Screen name="Home" component={HomeScreen} options={{ tabBarLabel: t('home') }} />
-      <Tab.Screen name="NewPost" component={NewPostScreen} options={{ tabBarLabel: t('newPost') }} />
+      <Tab.Screen
+        name="NewPost"
+        component={NewPostScreen}
+        options={{ tabBarLabel: () => null }}
+      />
       <Tab.Screen name="MyPosts" component={MyPostsScreen} options={{ tabBarLabel: t('myPosts') }} />
       <Tab.Screen name="Profile" component={ProfileScreen} options={{ tabBarLabel: t('profile') }} />
     </Tab.Navigator>
   );
 };
+
+const tabBarStyles = StyleSheet.create({
+  iconWrap: {
+    width: 40,
+    height: 30,
+    borderRadius: radiusTokens.md,
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  fab: {
+    width: 48,
+    height: 48,
+    borderRadius: 24,
+    justifyContent: 'center',
+    alignItems: 'center',
+    marginTop: -18,
+    shadowOffset: { width: 0, height: 6 },
+    shadowOpacity: 0.4,
+    shadowRadius: 10,
+    elevation: 6,
+  },
+});
 
 // App navigator component
 const AppNavigator = () => {

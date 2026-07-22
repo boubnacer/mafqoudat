@@ -114,6 +114,7 @@ export const translations = {
     // Report Post
     reportThisPost: "Report",
     moreOptions: "More options",
+    menu: "Menu",
     reportPost: "Report Post",
     reportPostDescription: "Help us understand what's wrong with this post.",
     selectReportReason: "Select a reason",
@@ -420,6 +421,7 @@ export const translations = {
     // Report Post
     reportThisPost: "Signaler",
     moreOptions: "Plus d'options",
+    menu: "Menu",
     reportPost: "Signaler la publication",
     reportPostDescription: "Aidez-nous à comprendre ce qui ne va pas avec cette publication.",
     selectReportReason: "Sélectionnez une raison",
@@ -726,6 +728,7 @@ export const translations = {
     // Report Post
     reportThisPost: "الإبلاغ",
     moreOptions: "خيارات إضافية",
+    menu: "القائمة",
     reportPost: "الإبلاغ عن المنشور",
     reportPostDescription: "ساعدنا في فهم المشكلة في هذا المنشور.",
     selectReportReason: "اختر سببًا",
