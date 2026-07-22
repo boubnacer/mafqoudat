@@ -3500,7 +3500,7 @@ export const translations = {
     searchingCities: "البحث في المدن...",
     creatingCity: "جاري إنشاء المدينة...",
     exactDate: "التاريخ الدقيق",
-    exactDateFound: "التاريخ الذي تم العثور على العنصر فيه",
+    exactDateFound: "التاريخ الذي تم العثور فيه على العنصر ",
     exactDateLost: "التاريخ الذي فقد فيه العنصر",
     exactDatePlaceholder: "أدخل التاريخ (مثال:",
     exactLocation: "المكان بالتحديد",
@@ -3692,8 +3692,8 @@ export const translations = {
     notifyFoundHint: "وجدت شيئًا؟ سنخطرك عندما يطالب المالك به.",
 
     // Recent Sections
-    recentFounds: "العناصر التي عثر عليها حديثاً",
-    recentLosts: "العناصر المفقودة حديثاً",
+    recentFounds: "أحدث العناصر التي عثر عليها",
+    recentLosts: "أحدث العناصر المفقودة",
     items: "عناصر",
     seeAll: "عرض الكل",
     onlyOneFoundPost: "يوجد منشور واحد فقط للعناصر التي عثر عليها في بلدك. أضف منشوراً آخر لمساعدة الآخرين في العثور على عناصرهم المفقودة.",
