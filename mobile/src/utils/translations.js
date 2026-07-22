@@ -69,6 +69,9 @@ export const translations = {
     country: "Country",
     clearFilters: "Clear filters",
     noResultsFilters: "No posts match your filters",
+    noSearchResults: "No results found",
+    adjustFilters: "There are no posts matching your current filters. Try adjusting your search criteria or be the first to create a post!",
+    searchCategories: "Search categories...",
 
     // Post Details
     postDetails: "Post Details",
@@ -378,6 +381,9 @@ export const translations = {
     country: "Pays",
     clearFilters: "Effacer les filtres",
     noResultsFilters: "Aucune publication ne correspond à vos filtres",
+    noSearchResults: "Aucun résultat trouvé",
+    adjustFilters: "Il n'y a pas de publications correspondant à vos filtres actuels. Essayez d'ajuster vos critères de recherche ou soyez le premier à créer une publication !",
+    searchCategories: "Rechercher des catégories...",
 
     // Post Details
     postDetails: "Détails de la publication",
@@ -687,6 +693,9 @@ export const translations = {
     country: "البلد",
     clearFilters: "مسح الفلاتر",
     noResultsFilters: "لا توجد منشورات تطابق الفلاتر المحددة",
+    noSearchResults: "لم يتم العثور على نتائج",
+    adjustFilters: "لا توجد منشورات تطابق تصفياتك الحالية. حاول تعديل معايير البحث أو كن أول من ينشئ منشور!",
+    searchCategories: "البحث عن الفئات...",
 
     // Post Details
     postDetails: "تفاصيل المنشور",

@@ -655,12 +655,37 @@ const PostsListScreen = ({ navigation, route }) => {
             }
             ListEmptyComponent={
               !isLoading ? (
-                <DataStateView
-                  message={isFilterActive ? t('noResultsFilters') : t('noPostsFound')}
-                  actionLabel={isFilterActive ? t('clearFilters') : undefined}
-                  onAction={isFilterActive ? handleClearAllFilters : undefined}
-                  isRTL={isRTL}
-                />
+                <View style={styles.emptyState}>
+                  <Ionicons name="search-outline" size={48} color={`${tokens.brandPrimary}99`} />
+                  <Text style={[styles.emptyStateTitle, isRTL && styles.textRTL]}>
+                    {isFilterActive ? t('noResultsFilters') : t('noPostsFound')}
+                  </Text>
+                  <Text style={[styles.emptyStateBody, isRTL && styles.textRTL]}>
+                    {isFilterActive ? t('adjustFilters') : t('noPostsInArea')}
+                  </Text>
+                  <View style={styles.emptyStateActions}>
+                    {isFilterActive ? (
+                      <TouchableOpacity style={styles.emptyStateSecondaryButton} onPress={handleClearAllFilters}>
+                        <Text style={styles.emptyStateSecondaryButtonText}>{t('clearFilters')}</Text>
+                      </TouchableOpacity>
+                    ) : null}
+                    <TouchableOpacity style={styles.emptyStatePrimaryButton} onPress={handleNewPostPress}>
+                      <Ionicons name="add" size={16} color="#FFFFFF" />
+                      <Text style={styles.emptyStatePrimaryButtonText}>{t('createPost')}</Text>
+                    </TouchableOpacity>
+                  </View>
+                </View>
+              ) : null
+            }
+            // "Shown at the end of posts", mirroring client/src/features/posts/PostsList/PostsList.js -
+            // only appears once the current page's posts have actually rendered (i.e. the user has
+            // browsed all of them), not as a persistent floating action button.
+            ListFooterComponent={
+              !isLoading && posts.length > 0 ? (
+                <TouchableOpacity style={styles.addPostButton} onPress={handleNewPostPress} activeOpacity={0.85}>
+                  <Ionicons name="add" size={18} color="#FFFFFF" />
+                  <Text style={styles.addPostButtonText}>{t('createPost')}</Text>
+                </TouchableOpacity>
               ) : null
             }
           />
@@ -704,14 +729,6 @@ const PostsListScreen = ({ navigation, route }) => {
           ) : null}
         </View>
       )}
-
-      <TouchableOpacity
-        style={styles.fab}
-        onPress={handleNewPostPress}
-        accessibilityLabel={t('newPost')}
-      >
-        <Ionicons name="add" size={28} color="#FFFFFF" />
-      </TouchableOpacity>
 
       <PostFilterSheet
         visible={filterSheetVisible}
@@ -1014,17 +1031,82 @@ const createStyles = (tokens, isRTL, isDark) =>
       color: `${tokens.ink}CC`,
     },
 
-    fab: {
-      position: 'absolute',
-      bottom: 24,
-      end: 20,
-      width: 56,
-      height: 56,
-      borderRadius: 28,
-      backgroundColor: tokens.brandPrimary,
-      justifyContent: 'center',
+    // "Add new post" - shown after the last card once the user has browsed
+    // all of the current page's posts, mirroring PostsList.js's button placed
+    // right after the grid, rather than a persistent floating action button.
+    addPostButton: {
+      flexDirection: 'row',
       alignItems: 'center',
-      ...getElevation(isDark, 2),
+      justifyContent: 'center',
+      gap: 8,
+      alignSelf: 'center',
+      marginTop: 4,
+      marginBottom: 8,
+      paddingHorizontal: 22,
+      paddingVertical: 13,
+      borderRadius: radiusTokens.md,
+      backgroundColor: tokens.brandPrimary,
+      ...getElevation(isDark, 1),
+    },
+    addPostButtonText: {
+      fontFamily: fontFamilies.bodySemiBold,
+      fontSize: 14,
+      color: '#FFFFFF',
+    },
+
+    // Empty state - locally tokenized (bespoke, not the shared untokenized
+    // DataStateView) so it can carry two actions like the web empty state:
+    // clear filters (when a filter/search is active) and always an add-post CTA.
+    emptyState: {
+      alignItems: 'center',
+      paddingVertical: 40,
+      paddingHorizontal: 24,
+    },
+    emptyStateTitle: {
+      fontFamily: fontFamilies.bodySemiBold,
+      fontSize: 16,
+      color: tokens.ink,
+      textAlign: 'center',
+      marginTop: 14,
+    },
+    emptyStateBody: {
+      fontFamily: fontFamilies.body,
+      fontSize: 13,
+      color: `${tokens.ink}99`,
+      textAlign: 'center',
+      marginTop: 6,
+      marginBottom: 20,
+      maxWidth: 320,
+    },
+    emptyStateActions: {
+      flexDirection: 'row',
+      gap: 10,
+    },
+    emptyStatePrimaryButton: {
+      flexDirection: 'row',
+      alignItems: 'center',
+      gap: 6,
+      paddingHorizontal: 18,
+      paddingVertical: 11,
+      borderRadius: radiusTokens.md,
+      backgroundColor: tokens.brandPrimary,
+    },
+    emptyStatePrimaryButtonText: {
+      fontFamily: fontFamilies.bodySemiBold,
+      fontSize: 13,
+      color: '#FFFFFF',
+    },
+    emptyStateSecondaryButton: {
+      paddingHorizontal: 18,
+      paddingVertical: 11,
+      borderRadius: radiusTokens.md,
+      borderWidth: 1,
+      borderColor: tokens.brandPrimary,
+    },
+    emptyStateSecondaryButtonText: {
+      fontFamily: fontFamilies.bodySemiBold,
+      fontSize: 13,
+      color: tokens.brandPrimary,
     },
   });
 
