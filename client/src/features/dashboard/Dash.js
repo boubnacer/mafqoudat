@@ -18,7 +18,6 @@ import { useDashboard } from "../../hooks/useDashboard";
 import LeftSide from "../../components/dashboard/LeftSide";
 import TrendingItem from "../../components/dashboard/TrendingItem";
 import QuickActions from "../../components/dashboard/QuickActions";
-import SuccessStories from "../../components/dashboard/SuccessStories";
 import Categories from "../../components/dashboard/Categories";
 import Process from "../../components/dashboard/Process";
 import RecentSection from "../../components/dashboard/RecentSection";
@@ -119,14 +118,15 @@ const Dash = () => {
           px={2}
         >
         <Paper
-          elevation={3}
+          elevation={0}
           sx={{
             p: 4,
-            borderRadius: 3,
+            borderRadius: `${theme.custom.radius.xl}px`,
             textAlign: 'center',
             maxWidth: 400,
             background: `linear-gradient(135deg, ${alpha(theme.custom.color.surfaceRaised, 0.95)} 0%, ${alpha(theme.custom.color.surfaceRaised, 0.95)} 100%)`,
             backdropFilter: 'blur(10px)',
+            boxShadow: theme.custom.elevation.e2,
             border: `1px solid ${alpha(theme.custom.color.ink, theme.palette.mode === 'dark' ? 0.08 : 0.15)}`,
           }}
         >
@@ -142,15 +142,16 @@ const Dash = () => {
             startIcon={<Language />}
             onClick={() => dispatch(setOpenModal())}
             sx={{
-              background: "linear-gradient(45deg, #2196F3 30%, #21CBF3 90%)",
-              boxShadow: "0 4px 15px rgba(33, 150, 243, 0.3)",
-              borderRadius: 2,
+              backgroundColor: theme.custom.color.brandPrimary,
+              color: theme.palette.getContrastText(theme.custom.color.brandPrimary),
+              boxShadow: theme.custom.elevation.e1,
+              borderRadius: `${theme.custom.radius.md}px`,
               px: 3,
               py: 1.5,
               '&:hover': {
-                background: "linear-gradient(45deg, #1976D2 30%, #1E88E5 90%)",
-                transform: 'translateY(-2px)',
-                boxShadow: "0 6px 20px rgba(33, 150, 243, 0.4)",
+                backgroundColor: theme.custom.color.brandPrimary,
+                opacity: 0.9,
+                boxShadow: theme.custom.elevation.e2,
               }
             }}
           >
