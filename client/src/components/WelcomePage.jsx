@@ -120,21 +120,57 @@ const SurfaceCard = styled(Box)(({ theme }) => ({
   border: `1px solid ${theme.palette.divider}`,
 }));
 
-const HeroPostCard = styled(Box)(({ theme, tone }) => ({
-  display: "flex",
-  flexDirection: "column",
-  backgroundColor: theme.custom.color.surfaceRaised,
-  borderRadius: theme.custom.radius.lg,
-  boxShadow: theme.custom.elevation.e1,
-  border: `1px solid ${theme.palette.divider}`,
-  borderInlineStart: `6px solid ${tone}`,
+// A fanned "hand of cards" stack — each card tilted outward from the center
+// card by getFanGeometry() below. Deliberately not a new bespoke card DNA:
+// same rounded/elevated/clickable card as the rest of the site, just laid
+// out in a fan instead of a row. Category color (from config/categories.js,
+// already an established token, not a new palette) fills the card solid so
+// each one reads as visually distinct, mirroring the reference's bold-color
+// card-stack look without introducing off-brand hues.
+const FannedCard = styled(Box, {
+  shouldForwardProp: (prop) => !["tilt", "lift", "isFront"].includes(prop),
+})(({ theme, tilt, lift, isFront }) => ({
+  position: "relative",
+  width: 168,
+  height: 224,
+  flexShrink: 0,
+  borderRadius: `${theme.custom.radius.lg}px`,
   overflow: "hidden",
-  transition: "transform 0.2s ease, box-shadow 0.2s ease",
-  "&:hover": {
-    transform: "translateY(-3px)",
+  cursor: "pointer",
+  outline: "none",
+  border: `1px solid ${alpha("#000000", 0.08)}`,
+  boxShadow: isFront ? theme.custom.elevation.e2 : theme.custom.elevation.e1,
+  transform: `rotate(${tilt}deg) translateY(${lift}px) scale(${isFront ? 1.05 : 1})`,
+  transformOrigin: "bottom center",
+  transition: "transform 0.25s ease, box-shadow 0.25s ease",
+  marginInlineStart: -20,
+  "&:first-of-type": { marginInlineStart: 0 },
+  "&:hover, &:focus-visible": {
+    transform: "rotate(0deg) translateY(-18px) scale(1.08)",
     boxShadow: theme.custom.elevation.e2,
+    zIndex: 30,
+  },
+  [theme.breakpoints.down("sm")]: {
+    width: 140,
+    height: 188,
+    marginInlineStart: -16,
   },
 }));
+
+// Symmetric outward tilt/lift around the middle card, independent of
+// LTR/RTL — the fan mirrors automatically because it's built with logical
+// flexbox order rather than hardcoded left/right positioning.
+const getFanGeometry = (index, count) => {
+  const centerIndex = Math.floor((count - 1) / 2);
+  const offset = index - centerIndex;
+  const isFront = offset === 0;
+  return {
+    tilt: offset * 6,
+    lift: isFront ? -14 : Math.abs(offset) * 16,
+    zIndex: 10 - Math.abs(offset),
+    isFront,
+  };
+};
 
 // Solid fill, not a tint — this is the one place on the page saturated color
 // should dominate, since Lost vs. Found is the single most load-bearing fact
@@ -373,6 +409,12 @@ const WelcomePage = () => {
     }
   };
 
+  const handleViewHeroPost = (post) => {
+    if (!selectedCountry?._id) return;
+    dispatch(setCurrentCountry({ currentCountry: selectedCountry._id }));
+    navigate(`/dash/posts/${post._id}`);
+  };
+
   const handleLanguageChange = (newLanguage) => {
     // Use centralized language storage utility with page refresh
     languageStorage.setLanguage(newLanguage, true); // true = refresh page
@@ -596,22 +638,33 @@ const WelcomePage = () => {
               </Box>
             </Grid>
 
-            {/* Live post snapshot */}
+            {/* Live post snapshot — fanned card stack */}
             <Grid item xs={12} md={7}>
               <SectionEyebrow>{t('recentNearYou')}</SectionEyebrow>
-              <Grid container spacing={2} sx={{ mt: 0.5 }}>
+              <Box
+                sx={{
+                  display: 'flex',
+                  justifyContent: 'center',
+                  alignItems: 'flex-end',
+                  flexWrap: 'nowrap',
+                  overflowX: 'auto',
+                  overflowY: 'visible',
+                  mt: 3,
+                  py: 2,
+                  px: { xs: 3, sm: 1 },
+                }}
+              >
                 {heroPostsLoading ? (
-                  [0, 1, 2].map((i) => (
-                    <Grid item xs={12} sm={4} key={i}>
-                      <Skeleton
-                        variant="rounded"
-                        height={220}
-                        sx={{ borderRadius: `${theme.custom.radius.lg}px` }}
-                      />
-                    </Grid>
-                  ))
+                  [0, 1, 2].map((i) => {
+                    const { tilt, lift, zIndex } = getFanGeometry(i, 3);
+                    return (
+                      <FannedCard key={i} tilt={tilt} lift={lift} isFront={false} sx={{ zIndex }}>
+                        <Skeleton variant="rectangular" sx={{ width: '100%', height: '100%' }} />
+                      </FannedCard>
+                    );
+                  })
                 ) : heroPosts.length > 0 ? (
-                  heroPosts.map((post) => {
+                  heroPosts.map((post, index) => {
                     const status = getHeroPostStatus(post);
                     const tone = status === 'found' ? theme.custom.status.found : theme.custom.status.lost;
                     const categoryCode = getHeroPostCategoryCode(post);
@@ -620,76 +673,127 @@ const WelcomePage = () => {
                     const imageUrl = getHeroPostImageUrl(post);
                     const cityName = getHeroPostCityName(post);
                     const categoryLabel = getHeroPostCategoryLabel(post, categoryCode);
+                    const { tilt, lift, zIndex, isFront } = getFanGeometry(index, heroPosts.length);
+                    const cardColor = categoryStyle?.color || tone.main;
+                    const textColor = imageUrl ? '#FFFFFF' : theme.palette.getContrastText(cardColor);
                     return (
-                      <Grid item xs={12} sm={4} key={post._id}>
-                        <HeroPostCard tone={tone.main}>
-                          {imageUrl ? (
-                            <LazyCardMedia
-                              image={imageUrl}
-                              alt={cityName}
-                              sx={{ height: 100, width: '100%' }}
-                            />
-                          ) : (
-                            <Box
-                              sx={{
-                                height: 100,
-                                display: 'flex',
-                                alignItems: 'center',
-                                justifyContent: 'center',
-                                backgroundColor: categoryStyle?.backgroundColor || alpha(tone.main, 0.06),
-                              }}
-                            >
-                              {FallbackIcon && (
-                                <FallbackIcon sx={{ fontSize: 36, color: categoryStyle?.color || tone.main, opacity: 0.85 }} />
-                              )}
+                      <FannedCard
+                        key={post._id}
+                        tilt={tilt}
+                        lift={lift}
+                        isFront={isFront}
+                        role="button"
+                        tabIndex={0}
+                        onClick={() => handleViewHeroPost(post)}
+                        onKeyDown={(e) => {
+                          if (e.key === 'Enter' || e.key === ' ') {
+                            e.preventDefault();
+                            handleViewHeroPost(post);
+                          }
+                        }}
+                        sx={{ zIndex, backgroundColor: cardColor }}
+                      >
+                        {imageUrl ? (
+                          <LazyCardMedia
+                            image={imageUrl}
+                            alt={cityName}
+                            sx={{ position: 'absolute', inset: 0, width: '100%', height: '100%', objectFit: 'cover' }}
+                          />
+                        ) : (
+                          FallbackIcon && (
+                            <Box sx={{ position: 'absolute', inset: 0, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                              <FallbackIcon sx={{ fontSize: 64, color: textColor, opacity: 0.9 }} />
                             </Box>
-                          )}
-                          <Box sx={{ p: 1.5 }}>
-                            <Box sx={{ mb: 1 }}>
-                              <StatusTag status={status} label={t(status)} />
-                            </Box>
+                          )
+                        )}
+
+                        {imageUrl && (
+                          <Box
+                            sx={{
+                              position: 'absolute',
+                              inset: 0,
+                              background: `linear-gradient(to top, ${alpha('#000000', 0.6)} 0%, ${alpha('#000000', 0.05)} 45%, ${alpha('#000000', 0.45)} 100%)`,
+                            }}
+                          />
+                        )}
+
+                        <Box sx={{ position: 'relative', height: '100%', display: 'flex', flexDirection: 'column', justifyContent: 'space-between', p: 1.25 }}>
+                          <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', gap: 0.5 }}>
                             <Typography
-                              variant="body2"
+                              variant="caption"
                               sx={{
-                                fontWeight: 600,
-                                mb: 0.5,
+                                fontWeight: 800,
+                                color: textColor,
+                                lineHeight: 1.15,
                                 overflow: 'hidden',
                                 textOverflow: 'ellipsis',
-                                whiteSpace: 'nowrap',
+                                display: '-webkit-box',
+                                WebkitLineClamp: 2,
+                                WebkitBoxOrient: 'vertical',
+                                flex: '1 1 auto',
+                                minWidth: 44,
                               }}
                             >
                               {categoryLabel}
                             </Typography>
-                            <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+                            <Box sx={{ flexShrink: 0 }}>
+                              <StatusTag status={status} label={t(status)} />
+                            </Box>
+                          </Box>
+
+                          <Box>
+                            <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 0.5 }}>
                               <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.5, minWidth: 0 }}>
-                                <LocationOn sx={{ fontSize: 14, color: 'text.secondary', flexShrink: 0 }} />
+                                <LocationOn sx={{ fontSize: 13, color: textColor, flexShrink: 0, opacity: 0.9 }} />
                                 <Typography
                                   variant="caption"
-                                  color="text.secondary"
-                                  sx={{ overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}
+                                  sx={{ color: textColor, fontWeight: 600, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}
                                 >
                                   {cityName}
                                 </Typography>
                               </Box>
-                              <Typography variant="caption" color="text.secondary" sx={{ flexShrink: 0 }}>
+                              <Typography variant="caption" sx={{ color: alpha(textColor, 0.8), flexShrink: 0 }}>
                                 {formatShortDate(post.createdAt, activeLanguage)}
                               </Typography>
                             </Box>
+                            {isFront && (
+                              <Box
+                                sx={{
+                                  mt: 1,
+                                  display: 'inline-flex',
+                                  alignItems: 'center',
+                                  gap: 0.5,
+                                  px: 1.25,
+                                  py: 0.5,
+                                  borderRadius: 999,
+                                  backgroundColor: alpha('#FFFFFF', 0.92),
+                                  // This pill is always near-white regardless of theme mode (it
+                                  // sits on the category color, not the page background), so its
+                                  // text needs a color computed from that fixed background rather
+                                  // than theme.custom.color.ink — which flips to near-white in
+                                  // dark mode and would disappear here.
+                                  color: theme.palette.getContrastText('#FFFFFF'),
+                                  fontSize: '0.7rem',
+                                  fontWeight: 700,
+                                }}
+                              >
+                                {t('viewPost')}
+                                {isRTL ? <ArrowBack sx={{ fontSize: 13 }} /> : <ArrowForward sx={{ fontSize: 13 }} />}
+                              </Box>
+                            )}
                           </Box>
-                        </HeroPostCard>
-                      </Grid>
+                        </Box>
+                      </FannedCard>
                     );
                   })
                 ) : (
-                  <Grid item xs={12}>
-                    <SurfaceCard sx={{ p: 3, textAlign: 'center' }}>
-                      <Typography variant="body2" color="text.secondary">
-                        {t('noPostsInArea')}
-                      </Typography>
-                    </SurfaceCard>
-                  </Grid>
+                  <SurfaceCard sx={{ p: 3, textAlign: 'center', width: '100%' }}>
+                    <Typography variant="body2" color="text.secondary">
+                      {t('noPostsInArea')}
+                    </Typography>
+                  </SurfaceCard>
                 )}
-              </Grid>
+              </Box>
             </Grid>
           </Grid>
         </Box>

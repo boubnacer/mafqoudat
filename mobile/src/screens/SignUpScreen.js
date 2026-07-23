@@ -510,7 +510,7 @@ const createStyles = (tokens, isDark) => StyleSheet.create({
   logo: {
     width: 64,
     height: 64,
-    marginTop: 8,
+    marginTop: 32,
     marginBottom: 14,
     backgroundColor: 'transparent',
   },
