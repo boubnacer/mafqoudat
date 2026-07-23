@@ -1,7 +1,7 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useRef } from "react";
 import { useNavigate } from "react-router-dom";
 import { useDispatch, useSelector } from "react-redux";
-import { setCurrentCountry, setMode } from "../app/state";
+import { setCurrentCountry, setMode, selectCurrentCountry } from "../app/state";
 import { useGetCountriesQuery, useGetCategoriesQuery } from "../features/dependencies/dependenciesApiSlice"; // Fixed: Use dependenciesApiSlice instead of countriesApiSlice
 import { useGetPostsQuery } from "../features/posts/postsApiSlice";
 import { useTranslation } from "../utils/translations";
@@ -205,6 +205,16 @@ const WelcomePage = () => {
   // Get mode from Redux store
   const mode = useSelector((state) => state.global.mode);
 
+  // Persisted country choice (only ever written by handleContinue below, on
+  // explicit user confirmation) — used only to gate whether we bother doing
+  // an IP-geolocation lookup at all; never written to by that lookup.
+  const persistedCurrentCountry = useSelector(selectCurrentCountry);
+  const [geoCountryCode, setGeoCountryCode] = useState(null);
+  // Tracks explicit user interaction with the picker so a late-arriving geo
+  // match never clobbers a choice the user already made by hand.
+  const userSelectedCountryRef = useRef(false);
+  const geoAppliedRef = useRef(false);
+
   // Get countries list - Fixed: Use dependenciesApiSlice and proper error handling
   const { data: countriesData, error: countriesError, isLoading: countriesLoading } = useGetCountriesQuery({
     language: activeLanguage
@@ -277,6 +287,62 @@ const WelcomePage = () => {
     });
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [countries.length, hasRealCountries]);
+
+  // First-visit-only IP geolocation pre-selection. This never writes to the
+  // Redux `global` slice / localStorage — it only nudges the local
+  // `selectedCountry` UI state above, so the user still has to click Continue
+  // to confirm exactly as before. `persistedCurrentCountry` is read once at
+  // mount (deliberately not a dep here) to decide whether a lookup is even
+  // warranted: if the user already has a country choice persisted, skip the
+  // network call entirely rather than second-guessing it.
+  useEffect(() => {
+    if (persistedCurrentCountry) return;
+
+    const controller = new AbortController();
+    const timeoutId = setTimeout(() => controller.abort(), 3500);
+
+    fetch("https://ipwho.is/", { signal: controller.signal })
+      .then((res) => (res.ok ? res.json() : null))
+      .then((data) => {
+        if (data && data.success !== false && data.country_code) {
+          setGeoCountryCode(data.country_code);
+        }
+      })
+      .catch(() => {
+        // Silent fail by design: timeout, network error, or malformed
+        // response should never surface to the user — the picker just shows
+        // with no preselection.
+      })
+      .finally(() => clearTimeout(timeoutId));
+
+    return () => {
+      clearTimeout(timeoutId);
+      controller.abort();
+    };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
+
+  // Apply the geo match once both the lookup and the real countries list
+  // have resolved, and only if the user hasn't already picked (or started
+  // picking) something themselves. Runs after the countries[0] default-select
+  // effect above, so a match here overrides that placeholder default.
+  useEffect(() => {
+    if (!geoCountryCode) return;
+    if (geoAppliedRef.current) return;
+    if (userSelectedCountryRef.current) return;
+    if (!hasRealCountries) return;
+
+    const match = countriesData.find(
+      (c) => c.code && c.code.toUpperCase() === geoCountryCode.toUpperCase()
+    );
+    geoAppliedRef.current = true;
+    if (match) {
+      setSelectedCountry(match);
+    }
+    // countriesData/countries change identity each render (see fallback
+    // effect above); gate on primitive counts instead to avoid re-running.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [geoCountryCode, hasRealCountries]);
 
   const getCountryName = (option) => {
     if (!option) return '';
@@ -362,6 +428,7 @@ const WelcomePage = () => {
   };
 
   const handleCountrySelect = (_, value) => {
+    userSelectedCountryRef.current = true;
     setSelectedCountry(value);
   };
 

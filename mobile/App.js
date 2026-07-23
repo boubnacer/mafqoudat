@@ -20,7 +20,7 @@ import { AuthProvider, useAuth } from './src/context/AuthContext';
 import { MaintenanceProvider, useMaintenance } from './src/context/MaintenanceContext';
 import { ReferenceDataProvider } from './src/context/ReferenceDataContext';
 import { OnboardingProvider, useOnboarding } from './src/context/OnboardingContext';
-import { lightColors, darkColors, colorTokens, radiusTokens, fontFamilies } from './src/theme/tokens';
+import { lightColors, darkColors, colorTokens, fontFamilies } from './src/theme/tokens';
 import { getNavigationTheme } from './src/theme/navigationTheme';
 import { useTranslation } from './src/utils/translations';
 import MaintenanceOverlay from './src/components/MaintenanceOverlay';
@@ -78,16 +78,25 @@ const AuthNavigator = () => {
 // push from the root stack (AppNavigator below), outside the tabs entirely, since hiding
 // the bar for those focused, form-style flows is the expected pattern.
 //
-// Styled as a floating card (surfaceRaised, radiusTokens.xl, elevation) using the same
-// brand tokens as the web app's theme.custom - the active tab gets a brandPrimary-tinted
-// pill behind its icon, and NewPost (the primary action) renders as a raised brandPrimary
-// FAB circle instead of a plain icon, so it reads as the one action distinct from the
-// three destinations around it.
+// Styled as a floating capsule (surfaceRaised, full pill radius, elevation) using the
+// same brand tokens as the web app's theme.custom - the active tab renders as an
+// ink-filled pill with its icon + label inline (contrast text via surfaceRaised, mirroring
+// the solid-fill status tag pattern from the post card), inactive tabs are icon-only. NewPost
+// (the primary action) still renders as a raised brandPrimary FAB circle instead of a plain
+// icon, so it reads as the one action distinct from the three destinations around it.
 const MainTabs = () => {
   const { isDark } = useTheme();
   const { t } = useTranslation();
   const insets = useSafeAreaInsets();
   const tokens = isDark ? colorTokens.dark : colorTokens.light;
+
+  // Labels rendered inline inside the active tab's pill (see tabBarIcon below) -
+  // keyed the same way as the tabBarLabel options passed to each Tab.Screen further down.
+  const TAB_LABELS = {
+    Home: t('home'),
+    MyPosts: t('myPosts'),
+    Profile: t('profile'),
+  };
 
   return (
     <Tab.Navigator
@@ -100,8 +109,11 @@ const MainTabs = () => {
       screenOptions={({ route }) => ({
         headerShown: false,
         tabBarActiveTintColor: tokens.brandPrimary,
-        tabBarInactiveTintColor: `${tokens.ink}80`,
+        tabBarInactiveTintColor: `${tokens.ink}B3`,
         tabBarHideOnKeyboard: true,
+        // Own label rendered inline inside the active pill (tabBarIcon below) instead
+        // of the library's default stacked icon-over-label layout.
+        tabBarShowLabel: false,
         // Deliberately NOT position:'absolute' - bottom-tabs lays the bar out as a
         // normal flex sibling of the screen container, so the margin below reserves
         // real space and screens are never hidden behind the floating card. Using
@@ -109,26 +121,20 @@ const MainTabs = () => {
         tabBarStyle: {
           marginHorizontal: 16,
           marginBottom: insets.bottom + 12,
-          height: 66,
+          height: BAR_HEIGHT,
           paddingTop: 0,
           paddingBottom: 0,
-          borderRadius: radiusTokens.xl,
+          borderRadius: PILL_RADIUS,
           backgroundColor: tokens.surfaceRaised,
           borderTopWidth: 0,
           borderWidth: 1,
           borderColor: `${tokens.ink}${isDark ? '1F' : '14'}`,
-          paddingHorizontal: 6,
+          paddingHorizontal: 10,
           shadowColor: '#000',
           shadowOffset: { width: 0, height: 8 },
           shadowOpacity: isDark ? 0.45 : 0.12,
           shadowRadius: 16,
           elevation: 12,
-        },
-        tabBarLabelStyle: {
-          fontFamily: fontFamilies.bodySemiBold,
-          fontSize: 11,
-          marginTop: 2,
-          marginBottom: 4,
         },
         tabBarIcon: ({ focused, color }) => {
           if (route.name === 'NewPost') {
@@ -148,9 +154,19 @@ const MainTabs = () => {
           // in TAB_ICONS since they never render a tab bar button of their own.
           const icon = TAB_ICONS[route.name];
           if (!icon) return null;
+          if (focused) {
+            return (
+              <View style={[tabBarStyles.activePill, { backgroundColor: tokens.ink }]}>
+                <Ionicons name={icon.focused} size={18} color={tokens.surfaceRaised} />
+                <Text style={[tabBarStyles.activeLabel, { color: tokens.surfaceRaised }]}>
+                  {TAB_LABELS[route.name]}
+                </Text>
+              </View>
+            );
+          }
           return (
-            <View style={[tabBarStyles.iconWrap, focused && { backgroundColor: `${tokens.brandPrimary}1F` }]}>
-              <Ionicons name={focused ? icon.focused : icon.unfocused} size={20} color={color} />
+            <View style={tabBarStyles.inactiveIconWrap}>
+              <Ionicons name={icon.unfocused} size={22} color={color} />
             </View>
           );
         },
@@ -186,13 +202,30 @@ const MainTabs = () => {
   );
 };
 
+// Full pill/capsule shape - deliberately not part of radiusTokens' 8px-based
+// sm/md/lg/xl scale, since a capsule needs "half of whatever the height ends
+// up being", not a fixed step. 999 is the standard RN trick for that.
+const PILL_RADIUS = 999;
+const BAR_HEIGHT = 64;
+
 const tabBarStyles = StyleSheet.create({
-  iconWrap: {
-    width: 40,
-    height: 30,
-    borderRadius: radiusTokens.md,
+  inactiveIconWrap: {
+    width: 44,
+    height: 44,
     justifyContent: 'center',
     alignItems: 'center',
+  },
+  activePill: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    height: 44,
+    paddingHorizontal: 16,
+    borderRadius: PILL_RADIUS,
+  },
+  activeLabel: {
+    fontFamily: fontFamilies.bodySemiBold,
+    fontSize: 13,
+    marginStart: 6,
   },
   fab: {
     width: 48,
