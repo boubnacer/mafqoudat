@@ -1,4 +1,5 @@
-import { useState, useEffect, useCallback, useRef } from "react";
+import { useState, useEffect, useCallback, useRef, useLayoutEffect } from "react";
+import { motion } from "framer-motion";
 import { useNavigate } from "react-router-dom";
 import { useAddNewPostMutation } from "../postsApiSlice";
 import { useSelector } from "react-redux";
@@ -62,13 +63,14 @@ const RAIL_STEP_ICONS = {
 // Phase 1 brand token, swapping to a checkmark once a step is completed.
 // Purely presentational - `active`/`completed` are the same booleans MUI's
 // Stepper already derives from activeStep/maxStepReached.
-const RailStepIcon = ({ active, completed, icon }) => {
+const RailStepIcon = ({ active, completed, icon, iconRef }) => {
   const theme = useTheme();
   const accent = theme.custom.color.brandPrimary;
   const IconComponent = RAIL_STEP_ICONS[icon] || HelpOutlineIcon;
 
   return (
     <Box
+      ref={iconRef}
       sx={{
         width: 40,
         height: 40,
@@ -121,6 +123,13 @@ const NewPostForm = ({ user, countries, categories, flOptions }) => {
   const [stepDirection, setStepDirection] = useState(1);
   const formikRef = useRef(null);
   const fileInputRef = useRef(null);
+  // Desktop rail connector line (see railLineMetrics effect below): measured
+  // from the actual rendered badge positions rather than assumed, since step
+  // subtitles wrap to different numbers of lines per language, so a fixed
+  // CSS percentage/offset can't reliably hit each badge's center.
+  const railContainerRef = useRef(null);
+  const railIconRefs = useRef([]);
+  const [railLineMetrics, setRailLineMetrics] = useState(null);
   // values.country is the single source of truth (Formik); this ref just guards
   // the one-time initial city preload so it doesn't re-fire on every render.
   const hasInitializedCitiesRef = useRef(false);
@@ -289,6 +298,45 @@ const NewPostForm = ({ user, countries, categories, flOptions }) => {
     { key: 'photo', label: t('wizardStepPhotoTitle'), subtitle: t('wizardStepPhotoSubtitle') },
     { key: 'rest', label: t('wizardStepReviewTitle'), subtitle: t('wizardStepReviewSubtitle') },
   ];
+
+  // Measures the first/last rail badge centers (relative to the rail
+  // container) so the connector line drawn below can be anchored exactly on
+  // them, in both LTR and RTL - getBoundingClientRect reflects wherever the
+  // browser actually placed the badge, so no direction-specific math is
+  // needed. Re-measures on resize and whenever the rail's content changes
+  // size (e.g. a subtitle wrapping to a different number of lines after a
+  // language switch).
+  useLayoutEffect(() => {
+    const measure = () => {
+      const container = railContainerRef.current;
+      const icons = railIconRefs.current;
+      if (!container || icons.length < 2 || icons.some((el) => !el)) return;
+
+      const containerRect = container.getBoundingClientRect();
+      const firstRect = icons[0].getBoundingClientRect();
+      const lastRect = icons[icons.length - 1].getBoundingClientRect();
+
+      setRailLineMetrics({
+        left: firstRect.left - containerRect.left + firstRect.width / 2,
+        top: firstRect.top - containerRect.top + firstRect.height / 2,
+        bottom: containerRect.bottom - lastRect.bottom + lastRect.height / 2,
+      });
+    };
+
+    measure();
+
+    const container = railContainerRef.current;
+    if (!container) return undefined;
+
+    const resizeObserver = new ResizeObserver(measure);
+    resizeObserver.observe(container);
+    window.addEventListener('resize', measure);
+
+    return () => {
+      resizeObserver.disconnect();
+      window.removeEventListener('resize', measure);
+    };
+  }, [currentLanguage, steps.length]);
 
   // Single place that changes the active step, so the direction used by the
   // step transition animation (purely visual) always stays correct.
@@ -1044,33 +1092,55 @@ const NewPostForm = ({ user, countries, categories, flOptions }) => {
                 </Box>
 
                 {/* Desktop rail: vertical Stepper with icon badges, current step highlighted */}
-                <Box sx={{ display: { xs: 'none', sm: 'block' }, width: 240, flexShrink: 0 }}>
+                <Box ref={railContainerRef} sx={{ display: { xs: 'none', sm: 'block' }, width: 240, flexShrink: 0, position: 'relative' }}>
+                  {/* Connector line linking the rail badges (Process.jsx's
+                      linked-circles style) - a static track plus a colored
+                      overlay that grows to reflect wizard progress. Positioned
+                      from railLineMetrics (measured badge centers) rather than
+                      MUI's built-in StepConnector, which assumes a standard
+                      24px icon and physical offsets that don't line up with
+                      our 40px badges or follow them over in RTL. */}
+                  {railLineMetrics && (
+                    <>
+                      <Box
+                        sx={{
+                          position: 'absolute',
+                          left: railLineMetrics.left,
+                          top: railLineMetrics.top,
+                          bottom: railLineMetrics.bottom,
+                          width: 2,
+                          borderRadius: 1,
+                          backgroundColor: alpha(theme.custom.color.ink, theme.palette.mode === 'dark' ? 0.14 : 0.1),
+                          zIndex: 0,
+                        }}
+                      />
+                      <Box
+                        component={motion.div}
+                        initial={false}
+                        animate={{ scaleY: maxStepReached / (steps.length - 1) }}
+                        transition={{ duration: 0.35, ease: 'easeInOut' }}
+                        sx={{
+                          position: 'absolute',
+                          left: railLineMetrics.left,
+                          top: railLineMetrics.top,
+                          bottom: railLineMetrics.bottom,
+                          width: 2,
+                          borderRadius: 1,
+                          background: `linear-gradient(180deg, ${accentColor}, ${lighten(accentColor, 0.2)})`,
+                          transformOrigin: 'top',
+                          zIndex: 0,
+                        }}
+                      />
+                    </>
+                  )}
+
                   <Stepper
                     activeStep={activeStep}
                     orientation="vertical"
+                    connector={null}
                     sx={{
-                      // Default connector aligns to a standard 24px StepIcon via a
-                      // physical marginLeft, so against our 40px RailStepIcon badges
-                      // (center at 20px) it renders as a thin, off-center bar - and
-                      // being physical rather than logical, it doesn't follow the
-                      // badge over to the RTL side in Arabic either. Re-anchor it to
-                      // the badge center with logical properties instead, so it stays
-                      // centered under the rail icons in both directions.
-                      '& .MuiStepConnector-vertical': {
-                        marginLeft: 0,
-                        marginInlineStart: '19px',
-                      },
-                      '& .MuiStepConnector-lineVertical': {
-                        borderLeftWidth: 0,
-                        borderInlineStartWidth: 2,
-                        minHeight: 20,
-                      },
-                      '& .MuiStepConnector-line': {
-                        borderColor: alpha(theme.custom.color.ink, theme.palette.mode === 'dark' ? 0.14 : 0.1),
-                      },
-                      '& .MuiStepConnector-root.Mui-active .MuiStepConnector-line, & .MuiStepConnector-root.Mui-completed .MuiStepConnector-line': {
-                        borderColor: accentColor,
-                      },
+                      position: 'relative',
+                      zIndex: 1,
                       '& .MuiStepLabel-label': {
                         fontWeight: 600,
                         color: theme.palette.text.secondary,
@@ -1094,6 +1164,7 @@ const NewPostForm = ({ user, countries, categories, flOptions }) => {
                         >
                           <StepLabel
                             StepIconComponent={RailStepIcon}
+                            StepIconProps={{ iconRef: (el) => { railIconRefs.current[index] = el; } }}
                             optional={
                               <Typography variant="caption" sx={{ color: theme.palette.text.secondary }}>
                                 {step.subtitle}

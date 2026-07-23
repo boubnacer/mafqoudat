@@ -1,4 +1,4 @@
-import { Box, Typography, useTheme, alpha } from "@mui/material";
+import { Box, Typography, useTheme, useMediaQuery, alpha } from "@mui/material";
 import { useNavigate } from "react-router-dom";
 import {
   LocationOnOutlined,
@@ -37,6 +37,7 @@ const RecentPosts = ({
   returned,
 }) => {
   const theme = useTheme();
+  const isMobile = useMediaQuery(theme.breakpoints.down("sm"));
   const navigate = useNavigate();
   const { t, currentLanguage } = useTranslation();
 
@@ -79,6 +80,15 @@ const RecentPosts = ({
     return categoryname || "OTHER";
   }, [Categories, Category, categoryname]);
 
+  // Category label as text — only needed for the mobile row layout, which
+  // shows a title (mirrors mobile app's RecentPreviewCard) instead of relying
+  // on the thumbnail's fallback icon alone.
+  const categoryLabel = useMemo(() => {
+    const cat = (Categories && Array.isArray(Categories) && Categories[0]) || Category;
+    if (cat?.labels) return cat.labels[currentLanguage] || cat.labels.en || cat.code;
+    return categoryCode || t("unknownCategory");
+  }, [Categories, Category, categoryCode, currentLanguage, t]);
+
   const categoryStyle = useMemo(() => {
     try {
       const config = getCategoryConfig(categoryCode);
@@ -101,6 +111,149 @@ const RecentPosts = ({
     : null;
 
   const handleViewDetails = () => navigate(`/dash/posts/${_id}`);
+
+  // Mobile: a horizontal row card (fixed-width thumbnail + content beside it,
+  // stacked one per row) — matches the mobile app's RecentPreviewCard
+  // (mobile/src/screens/HomeScreen.js) instead of the desktop's image-on-top
+  // card, since squeezing that vertical card into a narrow single column
+  // read as small/cramped. Desktop layout below is untouched.
+  if (isMobile) {
+    return (
+      <Box
+        role="button"
+        tabIndex={0}
+        onClick={handleViewDetails}
+        onKeyDown={(e) => {
+          if (e.key === "Enter" || e.key === " ") {
+            e.preventDefault();
+            handleViewDetails();
+          }
+        }}
+        sx={{
+          display: "flex",
+          flexDirection: "row",
+          alignItems: "stretch",
+          backgroundColor: theme.custom.color.surfaceRaised,
+          borderRadius: `${theme.custom.radius.lg}px`,
+          boxShadow: theme.custom.elevation.e1,
+          border: `1px solid ${theme.palette.divider}`,
+          overflow: "hidden",
+          cursor: "pointer",
+          outline: "none",
+          transition: "box-shadow 0.2s ease",
+          "&:hover": { boxShadow: theme.custom.elevation.e2 },
+          "&:focus-visible": { boxShadow: `0 0 0 2px ${tone.main}` },
+        }}
+      >
+        {/* Thumbnail — fixed width, stretches full row height */}
+        <Box
+          sx={{
+            position: "relative",
+            width: 112,
+            flexShrink: 0,
+            backgroundColor: theme.custom.color.surfaceBase,
+          }}
+        >
+          {finalImageUrl ? (
+            <LazyCardMedia
+              component="img"
+              image={finalImageUrl}
+              alt={displayCityName}
+              fallback={noImageSvg}
+              sx={{ position: "absolute", inset: 0, width: "100%", height: "100%", objectFit: "cover" }}
+            />
+          ) : (
+            <Box
+              sx={{
+                position: "absolute",
+                inset: 0,
+                display: "flex",
+                alignItems: "center",
+                justifyContent: "center",
+                backgroundColor: categoryStyle.background,
+              }}
+            >
+              {FallbackIcon && (
+                <FallbackIcon sx={{ fontSize: 32, color: categoryStyle.main, opacity: 0.85 }} />
+              )}
+            </Box>
+          )}
+        </Box>
+
+        {/* Content */}
+        <Box sx={{ flex: 1, minWidth: 0, display: "flex", flexDirection: "column", justifyContent: "center", gap: 0.5, p: 1.75 }}>
+          <Box sx={{ display: "flex", alignItems: "center", flexWrap: "wrap", gap: 0.5 }}>
+            <Box
+              component="span"
+              sx={{
+                alignSelf: "flex-start",
+                px: 1.1,
+                py: 0.35,
+                borderRadius: `${theme.custom.radius.sm}px`,
+                backgroundColor: tone.bg,
+              }}
+            >
+              <Typography
+                variant="caption"
+                sx={{ fontWeight: 700, fontSize: "10px", letterSpacing: 0.3, textTransform: "uppercase", color: tone.main, lineHeight: 1.4 }}
+              >
+                {t(type)}
+              </Typography>
+            </Box>
+            {returned && (
+              <Box
+                component="span"
+                sx={{
+                  display: "inline-flex",
+                  alignItems: "center",
+                  gap: 0.4,
+                  px: 1.1,
+                  py: 0.35,
+                  borderRadius: `${theme.custom.radius.sm}px`,
+                  backgroundColor: theme.custom.status.found.bg,
+                }}
+              >
+                <CheckCircleIcon sx={{ fontSize: 11, color: theme.custom.status.found.main }} />
+                <Typography
+                  variant="caption"
+                  sx={{ fontWeight: 700, fontSize: "10px", textTransform: "uppercase", color: theme.custom.status.found.main, lineHeight: 1.4 }}
+                >
+                  {t("returned")}
+                </Typography>
+              </Box>
+            )}
+          </Box>
+
+          <Typography
+            variant="body2"
+            sx={{
+              fontWeight: 700,
+              color: theme.custom.color.ink,
+              overflow: "hidden",
+              textOverflow: "ellipsis",
+              whiteSpace: "nowrap",
+            }}
+          >
+            {categoryLabel}
+          </Typography>
+
+          <Box sx={{ display: "flex", alignItems: "center", gap: 0.5, minWidth: 0 }}>
+            <LocationOnOutlined sx={{ fontSize: 14, color: alpha(theme.custom.color.ink, 0.55), flexShrink: 0 }} />
+            <Typography
+              variant="caption"
+              sx={{ color: alpha(theme.custom.color.ink, 0.7), overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}
+            >
+              {displayCityName}
+            </Typography>
+          </Box>
+
+          <Typography variant="caption" sx={{ color: alpha(theme.custom.color.ink, 0.6) }}>
+            {created}
+          </Typography>
+        </Box>
+      </Box>
+    );
+  }
 
   return (
     <Box

@@ -28,15 +28,14 @@ const Recent = ({ recent, type, maxItems }) => {
     <Box
       width="100%"
       display="grid"
-      gap={2}
+      gap={isMobile ? 1.75 : 2}
       sx={{
         // Found/Lost panels sit side-by-side from `md` up (see RecentSection's
         // parent grid in Dash.js), so each panel only ever gets ~half the
-        // viewport width there — 2 columns still reads fine. Below `sm` each
-        // panel is already full-width and stacked, but squeezing 2 cards into
-        // that single narrow column made every card (image + text) tiny, so
-        // stack to 1 column there instead — same 2 posts, just full-width and
-        // legible.
+        // viewport width there — 2 columns still reads fine, unchanged.
+        // Below `sm`, RecentPosts switches to the mobile app's horizontal row
+        // card (mirrors mobile/src/screens/HomeScreen.js's RecentPreviewCard),
+        // which is designed to stack full-width one per row, not sit 2-up.
         gridTemplateColumns: isMobile ? "1fr" : "repeat(2, 1fr)",
       }}
     >
