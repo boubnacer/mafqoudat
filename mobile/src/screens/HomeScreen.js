@@ -424,10 +424,9 @@ const RecentPreviewCard = ({ item, currentLanguage, t, styles, tokens, isRTL, on
 
 const RecentSection = ({ type, items, isLoading, currentLanguage, t, styles, tokens, isRTL, onSeeAll, onPressItem }) => {
   const title = type === 'found' ? t('recentFounds') : t('recentLosts');
-  const tone = type === 'found' ? tokens.status.found.main : tokens.status.lost.main;
 
   return (
-    <Panel accentColor={tone} styles={styles}>
+    <Panel styles={styles}>
       <SectionHeader title={title} onSeeAll={items.length > 0 ? onSeeAll : undefined} t={t} styles={styles} />
       {isLoading && items.length === 0 ? (
         <View style={styles.recentGrid}>
