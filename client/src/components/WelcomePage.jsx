@@ -628,19 +628,22 @@ const WelcomePage = () => {
             }}
           />
 
-          <Grid container spacing={{ xs: 4, md: 6 }} alignItems="center">
-            {/* Headline + country + CTAs */}
-            <Grid item xs={12} md={5}>
-              <Typography
-                variant="h1"
-                sx={{ fontSize: { xs: '2rem', md: '2.5rem' }, mb: 2 }}
-              >
-                {t('heroHeadline')}
-              </Typography>
-              <Typography variant="body1" color="text.secondary" sx={{ mb: 4 }}>
-                {t('welcomeMessage')}
-              </Typography>
+          <Typography
+            variant="h1"
+            sx={{ fontSize: { xs: '2rem', md: '2.5rem' }, mb: 2 }}
+          >
+            {t('heroHeadline')}
+          </Typography>
+          <Typography variant="body1" color="text.secondary" sx={{ mb: 4 }}>
+            {t('welcomeMessage')}
+          </Typography>
 
+          {/* Country selector + CTAs sit in their own row, aligned (flex-start
+              below) with "Recently posted near you" so the two line up at the
+              top on desktop instead of the taller fan pushing it down when
+              centered against the whole left column including the headline. */}
+          <Grid container spacing={{ xs: 4, md: 6 }} alignItems="flex-start">
+            <Grid item xs={12} md={5}>
               <Autocomplete
                 options={countries || []}
                 autoHighlight
@@ -923,19 +926,14 @@ const WelcomePage = () => {
             }}
           >
             {categoriesData.map((category, index) => {
-              // theme.palette.categories keys are `${code.toLowerCase()}cate`
-              // (e.g. ELECTRONICS -> electronicscate) — covers every real
-              // category code. Icon component still comes from
-              // config/categories.js's getCategoryIcon (same helper already
-              // used for hero post cards above), not routed through
-              // RenderIcon.jsx, which has a separate known icon-matching bug.
-              const themeKey = `${category.code?.toLowerCase()}cate`;
-              const cateColors = theme.palette.categories?.[themeKey];
-              // categories[].back/icon are fixed pastel/saturated tones, not
-              // mode-adaptive — so the label uses the same saturated icon
-              // color rather than the theme's default (light-in-dark-mode)
-              // text color, which would go low-contrast on the pastel chip.
-              const tint = cateColors?.icon || theme.palette.text.primary;
+              // Sourced from config/categories.js's CATEGORY_CONFIG (same helper
+              // Categories.jsx in the dashboard uses) rather than the legacy
+              // theme.palette.categories block — that block's keys are stale
+              // (e.g. "luggagecate"/"gamingcate") and don't cover every real
+              // category code, so BAGS/BOOKS/CAMERAS/GLASSES/HEADPHONES fell
+              // back to a plain grey tile instead of their real color.
+              const categoryStyle = getCategoryConfig(category.code);
+              const tint = categoryStyle.color;
               const CategoryIcon = getCategoryIcon(category.code);
               const label = category.labels?.[activeLanguage] || category.labels?.en || category.code;
               const { yOffset, rotate, size, duration, delay } = CATEGORY_SCATTER[index % CATEGORY_SCATTER.length];
@@ -957,7 +955,7 @@ const WelcomePage = () => {
                       display: 'flex',
                       alignItems: 'center',
                       justifyContent: 'center',
-                      backgroundColor: cateColors?.back || theme.custom.color.surfaceRaised,
+                      backgroundColor: categoryStyle.backgroundColor,
                       border: `1px solid ${theme.palette.divider}`,
                       boxShadow: theme.custom.elevation.e1,
                     }}

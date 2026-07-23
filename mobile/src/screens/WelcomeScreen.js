@@ -4,7 +4,7 @@
  * Beautiful welcome screen with country selection
  */
 
-import React, { useState, useEffect, useMemo } from 'react';
+import React, { useState, useEffect, useMemo, useRef } from 'react';
 import {
   View,
   Text,
@@ -30,7 +30,7 @@ import { getLocalizedLabel } from '../context/ReferenceDataContext';
 const BRAND_MARK = require('../../assets/icon.png');
 
 const WelcomeScreen = () => {
-  const { selectCountry } = useAuth();
+  const { selectCountry, hasCountry } = useAuth();
   const { currentLanguage } = useLanguage();
   const { colors } = useTheme();
   const styles = useMemo(() => createStyles(colors), [colors]);
@@ -44,6 +44,16 @@ const WelcomeScreen = () => {
   const [isLoading, setIsLoading] = useState(true);
   const [showCountryDropdown, setShowCountryDropdown] = useState(false);
   const [error, setError] = useState('');
+  // Whether the last loadCountries() call resolved a real API list (as
+  // opposed to falling back to the hardcoded single-country list below) -
+  // gates applying an IP-geolocation match so it never fires against the
+  // placeholder fallback.
+  const [hasRealCountries, setHasRealCountries] = useState(false);
+  const [geoCountryCode, setGeoCountryCode] = useState(null);
+  // Tracks explicit user interaction with the picker so a late-arriving geo
+  // match never clobbers a choice the user already made by hand.
+  const userSelectedCountryRef = useRef(false);
+  const geoAppliedRef = useRef(false);
 
   // Country code to name mapping for fallback
   const countryCodeToName = {
@@ -100,6 +110,63 @@ const WelcomeScreen = () => {
     }
   }, [searchQuery, countries, currentLanguage]);
 
+  // First-visit-only IP geolocation pre-selection. Never writes to
+  // AuthContext/storage - only nudges the local `selectedCountry` UI state
+  // below, so the user still has to tap Continue to confirm exactly as
+  // before. `hasCountry` (from AuthContext, backed by storage.getCurrentCountry())
+  // is read once at mount to decide whether a lookup is even warranted: if a
+  // country is already persisted, skip the network call entirely. In
+  // practice RootNavigator (App.js) only mounts this screen while hasCountry
+  // is false, but the check is kept as an explicit, defensive gate.
+  useEffect(() => {
+    if (hasCountry) return;
+
+    const controller = new AbortController();
+    const timeoutId = setTimeout(() => controller.abort(), 3500);
+
+    fetch('https://ipwho.is/', { signal: controller.signal })
+      .then((res) => (res.ok ? res.json() : null))
+      .then((data) => {
+        if (data && data.success !== false && data.country_code) {
+          setGeoCountryCode(data.country_code);
+        }
+      })
+      .catch(() => {
+        // Silent fail by design: timeout, network error, or malformed
+        // response should never surface to the user - the picker just shows
+        // with no preselection.
+      })
+      .finally(() => clearTimeout(timeoutId));
+
+    return () => {
+      clearTimeout(timeoutId);
+      controller.abort();
+    };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
+
+  // Apply the geo match once both the lookup and the real countries list
+  // have resolved, and only if the user hasn't already picked (or started
+  // picking) something themselves.
+  useEffect(() => {
+    if (!geoCountryCode) return;
+    if (geoAppliedRef.current) return;
+    if (userSelectedCountryRef.current) return;
+    if (!hasRealCountries) return;
+
+    const match = countries.find(
+      (c) => c.code && c.code.toUpperCase() === geoCountryCode.toUpperCase()
+    );
+    geoAppliedRef.current = true;
+    if (match) {
+      setSelectedCountry(match);
+    }
+    // `countries` changes identity on every loadCountries() call (including
+    // language-change reloads); gate on the hasRealCountries flag instead of
+    // the array itself to avoid re-running unnecessarily.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [geoCountryCode, hasRealCountries]);
+
   const loadCountries = async () => {
     try {
       setIsLoading(true);
@@ -125,12 +192,14 @@ const WelcomeScreen = () => {
       const validCountries = countriesList.length > 0 ? countriesList : fallbackCountries;
       setCountries(validCountries);
       setFilteredCountries(validCountries);
+      setHasRealCountries(countriesList.length > 0);
     } catch (err) {
       console.error('Error loading countries:', err);
       setError(t('errorLoadingCountries'));
       // Use fallback countries
       setCountries(fallbackCountries);
       setFilteredCountries(fallbackCountries);
+      setHasRealCountries(false);
     } finally {
       setIsLoading(false);
     }
@@ -181,6 +250,7 @@ const WelcomeScreen = () => {
           isSelected && styles.countryItemSelected
         ]}
         onPress={() => {
+          userSelectedCountryRef.current = true;
           setSelectedCountry(item);
           setShowCountryDropdown(false);
           setSearchQuery('');
