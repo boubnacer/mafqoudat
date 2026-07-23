@@ -982,14 +982,52 @@ const getDashboard = async (req, res) => {
 
     // City-level activity for the map's city markers, scoped to
     // currentCountry (the map is always zoomed to one country, so no need
-    // for this to be platform-wide the way worldActivity is). Posts often
-    // don't carry a linked City document — many countries have zero City
-    // records in this DB, since city search creates free-text "dynamic"
-    // cities that are never persisted — so the city name comes from
-    // whichever of city/exactLocation is usable, the same fallback order
-    // client components already use when showing a single post's location.
+    // for this to be platform-wide the way worldActivity is).
+    //
+    // First cut of this used exactLocation as the primary city signal,
+    // based on how the local seed data happened to look ("Casablanca, near
+    // Gare Routière" — city name first). Real production data disproves
+    // that: posts do carry a properly-linked city ObjectId (resolving to a
+    // real City doc with labels.en/fr/ar, exactly like recentFounds'
+    // cityName below), while exactLocation turns out to hold street/
+    // neighborhood detail instead ("سباتة، شارع جمال الذرة", "Euueueue") —
+    // rarely a usable city name at all. That mismatch is why this shipped
+    // working locally but came back empty in production: every real post
+    // has a resolvable city, but the code was reading the wrong field.
+    // City.labels.en is now the primary geocoding key (matches the English
+    // dataset in cityGeocode.js), display name follows the requested
+    // language, and free-text is only a last-resort fallback for posts
+    // with no linked City doc at all.
+    const cityObjectIdConversion = {
+      $cond: {
+        if: {
+          $and: [
+            { $ne: ["$city", null] },
+            { $ne: ["$city", ""] },
+            { $regexMatch: { input: { $toString: "$city" }, regex: "^[0-9a-fA-F]{24}$" } },
+          ],
+        },
+        then: { $toObjectId: "$city" },
+        else: null,
+      },
+    };
+    const cityActivityPosts = await Post.aggregate([
+      { $match: { country: new mongoose.Types.ObjectId(currentCountry) } },
+      { $addFields: { cityObjectId: cityObjectIdConversion } },
+      { $lookup: { from: "cities", localField: "cityObjectId", foreignField: "_id", as: "CityDoc" } },
+      { $unwind: { path: "$CityDoc", preserveNullAndEmptyArrays: true } },
+      {
+        $project: {
+          geocodeName: { $ifNull: ["$CityDoc.labels.en", null] },
+          displayName: { $ifNull: [`$CityDoc.labels.${language}`, `$CityDoc.labels.en`] },
+          city: 1,
+          exactLocation: 1,
+        },
+      },
+    ]);
+
     const CITY_OBJECT_ID_RE = /^[0-9a-fA-F]{24}$/;
-    const extractCityName = (post) => {
+    const extractFallbackCityName = (post) => {
       if (typeof post.city === "string" && post.city.trim() && !CITY_OBJECT_ID_RE.test(post.city.trim())) {
         return post.city.trim();
       }
@@ -1002,25 +1040,33 @@ const getDashboard = async (req, res) => {
     };
 
     const currentCountryDoc = await Country.findById(currentCountry).select("code").lean();
-    const postsForCities = await Post.find({ country: new mongoose.Types.ObjectId(currentCountry) })
-      .select("city exactLocation")
-      .lean();
-
     const cityCounts = new Map();
-    postsForCities.forEach((post) => {
-      const name = extractCityName(post);
-      if (!name) return;
-      const key = name.toLowerCase();
+    cityActivityPosts.forEach((post) => {
+      const hasCityDoc = Boolean(post.geocodeName);
+      const geocodeName = post.geocodeName || extractFallbackCityName(post);
+      if (!geocodeName) return;
+      const displayName = post.displayName || geocodeName;
+      const key = geocodeName.toLowerCase();
       const existing = cityCounts.get(key);
-      if (existing) existing.count += 1;
-      else cityCounts.set(key, { name, count: 1 });
+      if (existing) {
+        existing.count += 1;
+        // Prefer the linked City doc's localized label over a name
+        // recovered from free text, regardless of which post the grouping
+        // happened to see first.
+        if (hasCityDoc && !existing.hasCityDoc) {
+          existing.displayName = displayName;
+          existing.hasCityDoc = true;
+        }
+      } else {
+        cityCounts.set(key, { geocodeName, displayName, count: 1, hasCityDoc });
+      }
     });
 
     const cityActivity = [];
     if (currentCountryDoc?.code) {
-      cityCounts.forEach(({ name, count }) => {
-        const geo = geocodeCityName(name, currentCountryDoc.code);
-        if (geo) cityActivity.push({ name, count, lon: geo.lon, lat: geo.lat });
+      cityCounts.forEach(({ geocodeName, displayName, count }) => {
+        const geo = geocodeCityName(geocodeName, currentCountryDoc.code);
+        if (geo) cityActivity.push({ name: displayName, count, lon: geo.lon, lat: geo.lat });
       });
     }
 
