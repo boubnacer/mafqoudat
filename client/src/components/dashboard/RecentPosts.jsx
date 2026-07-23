@@ -36,6 +36,7 @@ const RecentPosts = ({
   Category,
   Categories,
   returned,
+  fillHeight,
 }) => {
   const theme = useTheme();
   const navigate = useNavigate();
@@ -128,7 +129,8 @@ const RecentPosts = ({
       sx={{
         position: "relative",
         width: "100%",
-        aspectRatio: "3 / 4",
+        height: fillHeight ? "100%" : undefined,
+        aspectRatio: fillHeight ? undefined : "3 / 4",
         borderRadius: `${theme.custom.radius.lg}px`,
         overflow: "hidden",
         cursor: "pointer",

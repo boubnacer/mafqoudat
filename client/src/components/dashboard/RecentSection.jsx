@@ -33,7 +33,6 @@ const RecentSection = ({ type, items, totalItems, isLoading, onCreatePost, found
         backdropFilter: "blur(10px)",
         borderRadius: isMobile ? `${theme.custom.radius.lg}px` : `${theme.custom.radius.xl}px`,
         border: `1px solid ${alpha(theme.custom.color.ink, theme.palette.mode === "dark" ? 0.08 : 0.15)}`,
-        borderInlineStart: `4px solid ${tone.main}`,
         padding: isMobile ? "1.5rem" : "2rem",
         boxShadow: theme.custom.elevation.e1,
       }}

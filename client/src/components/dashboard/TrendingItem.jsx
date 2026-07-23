@@ -1,51 +1,9 @@
-import { Box, Typography, useTheme, useMediaQuery, alpha } from "@mui/material";
+import { Box, Typography, useTheme, alpha } from "@mui/material";
 import { TrendingUpOutlined } from "@mui/icons-material";
 import { useMemo } from "react";
 import { TrendingItemSkeleton } from "../LoadingStates";
 import { useTranslation } from "../../utils/translations";
 import RecentPosts from "./RecentPosts";
-
-// Shared chrome for the section — mirrors LeftSide's "Statistics" panel so
-// the two halves of the dashboard header read as one paired system.
-const SectionPanel = ({ isMobile, children }) => {
-  const theme = useTheme();
-  return (
-    <Box
-      sx={{
-        height: "100%",
-        display: "flex",
-        flexDirection: "column",
-        background: `linear-gradient(135deg, ${alpha(theme.custom.color.surfaceRaised, 0.95)} 0%, ${alpha(theme.custom.color.surfaceRaised, 0.95)} 100%)`,
-        backdropFilter: "blur(10px)",
-        borderRadius: isMobile ? `${theme.custom.radius.lg}px` : `${theme.custom.radius.xl}px`,
-        border: `1px solid ${alpha(theme.custom.color.ink, theme.palette.mode === "dark" ? 0.08 : 0.15)}`,
-        padding: isMobile ? "1.5rem" : "2rem",
-        boxShadow: theme.custom.elevation.e1,
-      }}
-    >
-      {children}
-    </Box>
-  );
-};
-
-const SectionTitle = ({ isMobile, children }) => {
-  const theme = useTheme();
-  return (
-    <Box mb={isMobile ? 2 : 3} sx={{ textAlign: "center" }}>
-      <Typography
-        variant="h5"
-        fontWeight="700"
-        sx={{
-          fontSize: { xs: "1.5rem", sm: "1.75rem", md: "2rem" },
-          color: theme.custom.color.ink,
-          mb: 1,
-        }}
-      >
-        {children}
-      </Typography>
-    </Box>
-  );
-};
 
 // Resolves the FOUND/LOST type string RecentPosts expects from whichever
 // shape the trending aggregation returned (Floptions.code or floptionName).
@@ -56,7 +14,6 @@ const resolveType = (item) => {
 
 const TrendingItem = ({ trend, isLoading }) => {
   const theme = useTheme();
-  const isMobile = useMediaQuery(theme.breakpoints.down("sm"));
   const { t } = useTranslation();
 
   const trendItems = useMemo(() => {
@@ -66,17 +23,15 @@ const TrendingItem = ({ trend, isLoading }) => {
 
   if (isLoading) {
     return (
-      <SectionPanel isMobile={isMobile}>
-        <SectionTitle isMobile={isMobile}>{t("trending")}</SectionTitle>
+      <Box sx={{ height: "100%", display: "flex", flexDirection: "column" }}>
         <TrendingItemSkeleton />
-      </SectionPanel>
+      </Box>
     );
   }
 
   if (trendItems.length === 0) {
     return (
-      <SectionPanel isMobile={isMobile}>
-        <SectionTitle isMobile={isMobile}>{t("trending")}</SectionTitle>
+      <Box sx={{ height: "100%", display: "flex", flexDirection: "column" }}>
         <Box
           sx={{
             flex: 1,
@@ -100,23 +55,24 @@ const TrendingItem = ({ trend, isLoading }) => {
             {t("noTrendingItemsDescription")}
           </Typography>
         </Box>
-      </SectionPanel>
+      </Box>
     );
   }
 
   return (
-    <SectionPanel isMobile={isMobile}>
-      <SectionTitle isMobile={isMobile}>{t("trending")}</SectionTitle>
-
-      {/* 3-up row of the latest posts — layout only borrowed from the
-          reference mock (badge-over-image, cards laid out side by side);
-          the card itself is RecentPosts, same as the dashboard's Recent
-          Founds/Losts panels, so the two sections share one visual language. */}
+    <Box sx={{ height: "100%", display: "flex", flexDirection: "column" }}>
+      {/* No panel chrome here — the cards themselves (RecentPosts, same DNA
+          as the dashboard's Recent Founds/Losts) carry the visual weight,
+          sitting directly inline next to LeftSide's boxed stats panel.
+          fillHeight lets each card stretch to the row's full height instead
+          of its usual fixed 3:4 aspect ratio, so this side visually matches
+          LeftSide's stats panel height rather than leaving space below. */}
       <Box
         sx={{
           flex: 1,
           display: "grid",
-          gap: isMobile ? 1.5 : 2,
+          gap: { xs: 2, md: 3 },
+          alignItems: "stretch",
           gridTemplateColumns: { xs: "repeat(2, 1fr)", md: `repeat(${trendItems.length}, 1fr)` },
         }}
       >
@@ -130,11 +86,11 @@ const TrendingItem = ({ trend, isLoading }) => {
               },
             }}
           >
-            <RecentPosts type={resolveType(item)} {...item} />
+            <RecentPosts type={resolveType(item)} {...item} fillHeight />
           </Box>
         ))}
       </Box>
-    </SectionPanel>
+    </Box>
   );
 };
 
