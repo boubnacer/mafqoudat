@@ -215,39 +215,47 @@ const Dash = () => {
         />
       </Box> */}
 
-      {/* Stats Panel — its own row now (used to share a flex row with the
-          trend chart, stretched to match its height; the map that replaced
-          that chart needs its own full-width section instead, see below). */}
+      {/* Header Section with Stats and World Activity Map — same paired
+          flex row LeftSide has always shared with whatever sits beside it
+          (Trending, then the chart, now the map), stretched to match
+          height and capped/centered at the same max width. */}
       <Box
         mb={4}
         p={{ xs: 2, sm: 3, md: 4, lg: 5, xl: 6 }}
+        gap={{ lg: "32px", xl: "40px" }}
         sx={{
+          display: { xs: "grid", sm: "flex" },
+          gridTemplateColumns: { xs: "repeat(1,1fr)", sm: "repeat(2,1fr)" },
           maxWidth: { xs: '100%', sm: '100%', md: '100%', lg: '1400px', xl: '1600px' },
+          overflow: 'hidden',
           width: '100%',
+          alignItems: { xs: 'stretch', sm: 'stretch' },
           margin: { xs: 0, sm: '0 auto' },
+          justifyContent: { xs: 'center', sm: 'center' },
+          '& > *': {
+            flex: { xs: 'none', sm: '1 1 0' },
+            minWidth: 0,
+            maxWidth: { xs: '100%', sm: '50%' },
+          }
         }}
       >
-        <Box sx={{ maxWidth: { xs: '100%', sm: '640px', lg: '720px' }, mx: { xs: 0, sm: 'auto' } }}>
-          <LeftSide
-            totalFounds={data?.totalFounds}
-            totalLosts={data?.totalLosts}
-            totalPosts={data?.totalPosts}
-            totalReturned={data?.totalReturned}
-            foundsToday={data?.createdToday?.todaysFoundPosts}
-            lostsToday={data?.createdToday?.todaysLostPosts}
+        <LeftSide
+          totalFounds={data?.totalFounds}
+          totalLosts={data?.totalLosts}
+          totalPosts={data?.totalPosts}
+          totalReturned={data?.totalReturned}
+          foundsToday={data?.createdToday?.todaysFoundPosts}
+          lostsToday={data?.createdToday?.todaysLostPosts}
+        />
+
+        <Box sx={{ display: { xs: hasNoData ? 'none' : 'block', sm: 'block' } }}>
+          <WorldActivityMap
+            worldActivity={data?.worldActivity}
+            currentCountryCode={countriesData?.entities?.[currentCountry]?.code}
+            countriesByCode={countriesByCode}
+            isLoading={isLoading}
           />
         </Box>
-      </Box>
-
-      {/* World activity map — full width/height of its own section rather
-          than squeezed into half of the stats row. */}
-      <Box sx={{ display: { xs: hasNoData ? 'none' : 'block', sm: 'block' } }}>
-        <WorldActivityMap
-          worldActivity={data?.worldActivity}
-          currentCountryCode={countriesData?.entities?.[currentCountry]?.code}
-          countriesByCode={countriesByCode}
-          isLoading={isLoading}
-        />
       </Box>
 
       {/* Show empty state if no posts, but still show stats above */}

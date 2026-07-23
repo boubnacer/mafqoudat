@@ -2,13 +2,12 @@ import { useEffect, useMemo, useState } from "react";
 import { Box, Typography, useTheme, useMediaQuery, alpha } from "@mui/material";
 import { PublicOutlined } from "@mui/icons-material";
 import { ComposableMap, Geographies, Geography } from "react-simple-maps";
+import { geoMercator, geoPath, geoBounds } from "d3-geo";
 import { useTranslation } from "../../utils/translations";
 import { TrendingItemSkeleton } from "../LoadingStates";
 
-// Replaces the header's trend-chart slot entirely (per the user's request to
-// take it out of that half-width container): a world map is the only thing
-// in this row worth full width, so it gets its own full-bleed section below
-// LeftSide instead of sharing a row with it.
+// Sits inline with LeftSide (same flex row, height-matched via fillHeight),
+// zoomed to the selected country rather than the whole world.
 //
 // Real, free, no-API-key map data: world-atlas's countries-50m topojson
 // (Natural Earth, public domain) — no tile server, no key, no network call
@@ -21,6 +20,18 @@ import { TrendingItemSkeleton } from "../LoadingStates";
 // geographically accurate regardless of reading direction — real maps on
 // Arabic sites are never horizontally flipped. Only the surrounding chrome
 // (title, legend, info strip) follows the usual RTL/logical-property rules.
+//
+// Zoom math note: react-simple-maps' projectionConfig only forwards
+// center/scale/rotate/parallels to the underlying d3 projection — it always
+// hardcodes translate to the canvas center (see its makeProjection()), so
+// d3's usual fitExtent() (which computes scale AND a possibly-off-center
+// translate) can't be used directly; passing fitExtent's translate is
+// silently ignored, which very nearly shipped a broken zoom. Instead:
+// center on the country's bounding-box midpoint (not its true centroid —
+// those differ for an irregular shape, and only the bbox midpoint lands the
+// bbox itself in the middle of a fixed-translate canvas), then solve for
+// the scale that fits that bbox into the padded target area by measuring
+// the projected bounds at a reference scale of 1 and dividing.
 
 // ISO 3166-1 alpha-2 -> UN M49 numeric code, for exactly the 25 countries
 // this platform actually serves (verified against the app's /countries
@@ -80,6 +91,29 @@ const WorldActivityMap = ({ worldActivity, currentCountryCode, countriesByCode, 
 
   const currentNumericId = currentCountryCode ? ISO2_TO_NUMERIC[currentCountryCode] : null;
 
+  const currentFeature = useMemo(() => {
+    if (!geoFeatures || !currentNumericId) return null;
+    return geoFeatures.find((f) => f.id === currentNumericId) || null;
+  }, [geoFeatures, currentNumericId]);
+
+  // Internal coordinate system for ComposableMap — independent of the CSS
+  // box it's displayed at. Squarish on desktop (it now sits in a narrower
+  // column next to LeftSide, not a wide full-width band); a landscape
+  // fallback on mobile, matching the card's own aspect ratio there.
+  const MAP_WIDTH = isMobile ? 560 : 520;
+  const mapHeight = isMobile ? 350 : 520;
+
+  const mapView = useMemo(() => {
+    if (!currentFeature) return { center: [15, 20], scale: 220 };
+    const padding = 22;
+    const [[minLon, minLat], [maxLon, maxLat]] = geoBounds(currentFeature);
+    const center = [(minLon + maxLon) / 2, (minLat + maxLat) / 2];
+    const reference = geoMercator().center(center).translate([MAP_WIDTH / 2, mapHeight / 2]).scale(1);
+    const [[x0, y0], [x1, y1]] = geoPath(reference).bounds(currentFeature);
+    const scale = Math.min((MAP_WIDTH - padding * 2) / Math.max(x1 - x0, 0.001), (mapHeight - padding * 2) / Math.max(y1 - y0, 0.001));
+    return { center, scale };
+  }, [currentFeature, MAP_WIDTH, mapHeight]);
+
   const countryDisplayName = (numericId, fallbackName) => {
     const entry = activityByNumericId.get(numericId);
     const localized = entry && countriesByCode ? countriesByCode[entry.code]?.names?.[currentLanguage] : null;
@@ -99,7 +133,7 @@ const WorldActivityMap = ({ worldActivity, currentCountryCode, countriesByCode, 
 
   if (isLoading) {
     return (
-      <Box sx={{ mb: 4, mx: { xs: 1, sm: 2 } }}>
+      <Box sx={{ height: "100%", display: "flex", flexDirection: "column" }}>
         <TrendingItemSkeleton />
       </Box>
     );
@@ -108,63 +142,72 @@ const WorldActivityMap = ({ worldActivity, currentCountryCode, countriesByCode, 
   const countriesReached = (worldActivity || []).length;
 
   return (
-    <Box
-      sx={{
-        mb: 4,
-        mx: { xs: 1, sm: 2 },
-        background: `linear-gradient(135deg, ${alpha(panel, 0.95)} 0%, ${alpha(panel, 0.95)} 100%)`,
-        backdropFilter: "blur(10px)",
-        borderRadius: isMobile ? `${theme.custom.radius.lg}px` : `${theme.custom.radius.xl}px`,
-        border: `1px solid ${alpha(ink, isDark ? 0.08 : 0.15)}`,
-        boxShadow: theme.custom.elevation.e1,
-        padding: isMobile ? "1.5rem" : "2rem",
-      }}
-    >
+    <Box sx={{ height: "100%", display: "flex", flexDirection: "column" }}>
       <Box
         sx={{
+          flex: 1,
+          minHeight: isMobile ? undefined : 320,
           display: "flex",
-          flexWrap: "wrap",
-          alignItems: "center",
-          justifyContent: "space-between",
-          gap: 2,
-          mb: isMobile ? 2 : 3,
+          flexDirection: "column",
+          background: `linear-gradient(135deg, ${alpha(panel, 0.95)} 0%, ${alpha(panel, 0.95)} 100%)`,
+          backdropFilter: "blur(10px)",
+          borderRadius: isMobile ? `${theme.custom.radius.lg}px` : `${theme.custom.radius.xl}px`,
+          border: `1px solid ${alpha(ink, isDark ? 0.08 : 0.15)}`,
+          boxShadow: theme.custom.elevation.e1,
+          padding: isMobile ? "1.5rem" : "2rem",
         }}
       >
-        <Box sx={{ display: "flex", alignItems: "center", gap: 1 }}>
-          <PublicOutlined sx={{ color: brand, fontSize: { xs: 24, sm: 28 } }} />
-          <Typography variant="h5" fontWeight="700" sx={{ fontSize: { xs: "1.25rem", sm: "1.5rem", md: "1.65rem" }, color: ink }}>
-            {t("worldActivityTitle")}
-          </Typography>
+        {/* Title centered on its own row, mirroring LeftSide's title
+            treatment, since this now sits right next to it. */}
+        <Box sx={{ textAlign: "center", mb: isMobile ? 1.5 : 2 }}>
+          <Box sx={{ display: "inline-flex", alignItems: "center", gap: 1 }}>
+            <PublicOutlined sx={{ color: brand, fontSize: { xs: 22, sm: 24 } }} />
+            <Typography variant="h5" fontWeight="700" sx={{ fontSize: { xs: "1.25rem", sm: "1.4rem" }, color: ink }}>
+              {t("worldActivityTitle")}
+            </Typography>
+          </Box>
         </Box>
 
-        <Box sx={{ display: "flex", alignItems: "center", gap: 3, flexWrap: "wrap" }}>
-          <Typography sx={{ fontSize: "0.9rem", fontWeight: 600, color: alpha(ink, 0.7) }}>
+        <Box
+          sx={{
+            display: "flex",
+            flexWrap: "wrap",
+            alignItems: "center",
+            justifyContent: "center",
+            gap: 2,
+            mb: isMobile ? 1.5 : 2,
+          }}
+        >
+          <Typography sx={{ fontSize: "0.8rem", fontWeight: 600, color: alpha(ink, 0.7) }}>
             {t("worldActivityCountries", { count: countriesReached })}
           </Typography>
 
           {/* sequential-ramp legend (fewer -> more) */}
-          <Box sx={{ display: "flex", alignItems: "center", gap: 1 }}>
-            <Box
-              sx={{
-                width: 64,
-                height: 8,
-                borderRadius: 4,
-                background: `linear-gradient(${isRTL ? "to left" : "to right"}, ${alpha(brand, 0.2)}, ${alpha(brand, 0.95)})`,
-              }}
-            />
-          </Box>
+          <Box
+            sx={{
+              width: 48,
+              height: 7,
+              borderRadius: 4,
+              background: `linear-gradient(${isRTL ? "to left" : "to right"}, ${alpha(brand, 0.2)}, ${alpha(brand, 0.95)})`,
+            }}
+          />
 
           {/* current-country stroke legend */}
-          <Box sx={{ display: "flex", alignItems: "center", gap: 0.75 }}>
-            <Box sx={{ width: 12, height: 12, borderRadius: "3px", border: `2px solid ${brand}`, backgroundColor: alpha(brand, 0.15) }} />
-            <Typography sx={{ fontSize: "0.8rem", fontWeight: 600, color: alpha(ink, 0.7) }}>{t("worldActivityCurrent")}</Typography>
+          <Box sx={{ display: "flex", alignItems: "center", gap: 0.6 }}>
+            <Box sx={{ width: 10, height: 10, borderRadius: "3px", border: `2px solid ${brand}`, backgroundColor: alpha(brand, 0.15) }} />
+            <Typography sx={{ fontSize: "0.75rem", fontWeight: 600, color: alpha(ink, 0.7) }}>{t("worldActivityCurrent")}</Typography>
           </Box>
         </Box>
-      </Box>
 
-      <Box sx={{ width: "100%", aspectRatio: isMobile ? "4 / 3" : "21 / 8" }}>
-        {geoFeatures ? (
-          <ComposableMap projection="geoEqualEarth" projectionConfig={{ scale: 148 }} style={{ width: "100%", height: "100%" }}>
+        <Box sx={{ width: "100%", flex: isMobile ? undefined : 1, minHeight: isMobile ? undefined : 0, aspectRatio: isMobile ? "4 / 3" : undefined }}>
+          {geoFeatures ? (
+          <ComposableMap
+            width={MAP_WIDTH}
+            height={mapHeight}
+            projection="geoMercator"
+            projectionConfig={{ center: mapView.center, scale: mapView.scale }}
+            style={{ width: "100%", height: "100%" }}
+          >
             <Geographies geography={geoFeatures}>
               {({ geographies }) =>
                 geographies.map((geo) => {
@@ -222,6 +265,7 @@ const WorldActivityMap = ({ worldActivity, currentCountryCode, countriesByCode, 
             </Typography>
           </Typography>
         )}
+        </Box>
       </Box>
     </Box>
   );
