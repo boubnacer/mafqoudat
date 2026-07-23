@@ -190,6 +190,48 @@ const SectionEyebrow = ({ children }) => (
   </Typography>
 );
 
+// Per-item scatter: vertical resting offset, tilt, size, and float timing
+// vary across items so they read as a loosely scattered "mix" rather than a
+// uniform row — a fixed, repeating sequence (not random) so the layout is
+// stable across re-renders/languages and however many real categories load.
+const CATEGORY_SCATTER = [
+  { yOffset: 0, rotate: -6, size: "lg", duration: 4.2, delay: 0 },
+  { yOffset: 20, rotate: 4, size: "md", duration: 3.6, delay: 0.4 },
+  { yOffset: -14, rotate: -3, size: "sm", duration: 5, delay: 0.8 },
+  { yOffset: 14, rotate: 6, size: "lg", duration: 4.6, delay: 0.2 },
+  { yOffset: -8, rotate: -5, size: "md", duration: 3.9, delay: 0.6 },
+  { yOffset: 10, rotate: 3, size: "sm", duration: 4.4, delay: 1 },
+];
+const CATEGORY_TILE_SIZE = { sm: 56, md: 68, lg: 80 };
+const CATEGORY_ICON_SIZE = { sm: 22, md: 27, lg: 32 };
+
+// A gently bobbing "icon cloud" rather than a static row — each tile floats
+// on its own independent timer (see CATEGORY_SCATTER) so the group never
+// moves in lockstep. Purely decorative motion: paused on hover for a clear
+// interactive cue, and dropped entirely under prefers-reduced-motion.
+const FloatingCategoryTile = styled(Box, {
+  shouldForwardProp: (prop) => !["yOffset", "rotateDeg", "duration", "delay"].includes(prop),
+})(({ yOffset, rotateDeg, duration, delay }) => ({
+  "@keyframes categoryFloat": {
+    "0%, 100%": { transform: `translateY(${yOffset}px) rotate(${rotateDeg}deg)` },
+    "50%": { transform: `translateY(${yOffset - 12}px) rotate(${rotateDeg}deg)` },
+  },
+  display: "flex",
+  flexDirection: "column",
+  alignItems: "center",
+  gap: 6,
+  transform: `translateY(${yOffset}px) rotate(${rotateDeg}deg)`,
+  animation: `categoryFloat ${duration}s ease-in-out ${delay}s infinite`,
+  transition: "transform 0.25s ease",
+  "&:hover": {
+    animationPlayState: "paused",
+    transform: `translateY(${yOffset - 6}px) rotate(0deg) scale(1.08)`,
+  },
+  "@media (prefers-reduced-motion: reduce)": {
+    animation: "none",
+  },
+}));
+
 const WelcomePage = () => {
   const theme = useTheme();
   const navigate = useNavigate();
@@ -872,13 +914,15 @@ const WelcomePage = () => {
           <Box
             sx={{
               display: 'flex',
-              gap: 1.5,
-              overflowX: 'auto',
-              pb: 1,
-              '&::-webkit-scrollbar': { height: 6 },
+              flexWrap: 'wrap',
+              justifyContent: 'center',
+              alignItems: 'center',
+              rowGap: 4,
+              columnGap: { xs: 3, sm: 5 },
+              py: 3,
             }}
           >
-            {categoriesData.map((category) => {
+            {categoriesData.map((category, index) => {
               // theme.palette.categories keys are `${code.toLowerCase()}cate`
               // (e.g. ELECTRONICS -> electronicscate) — covers every real
               // category code. Icon component still comes from
@@ -894,31 +938,36 @@ const WelcomePage = () => {
               const tint = cateColors?.icon || theme.palette.text.primary;
               const CategoryIcon = getCategoryIcon(category.code);
               const label = category.labels?.[activeLanguage] || category.labels?.en || category.code;
+              const { yOffset, rotate, size, duration, delay } = CATEGORY_SCATTER[index % CATEGORY_SCATTER.length];
               return (
-                <Box
+                <FloatingCategoryTile
                   key={category._id}
+                  yOffset={yOffset}
+                  rotateDeg={rotate}
+                  duration={duration}
+                  delay={delay}
                   onClick={selectedCountry ? handleContinue : undefined}
-                  sx={{
-                    flex: '0 0 auto',
-                    display: 'flex',
-                    flexDirection: 'column',
-                    alignItems: 'center',
-                    gap: 0.75,
-                    p: 2,
-                    minWidth: 96,
-                    borderRadius: `${theme.custom.radius.md}px`,
-                    backgroundColor: cateColors?.back || theme.custom.color.surfaceRaised,
-                    cursor: selectedCountry ? 'pointer' : 'default',
-                    border: `1px solid ${theme.palette.divider}`,
-                    transition: 'transform 0.2s ease',
-                    '&:hover': selectedCountry ? { transform: 'translateY(-2px)' } : {},
-                  }}
+                  sx={{ cursor: selectedCountry ? 'pointer' : 'default' }}
                 >
-                  <CategoryIcon sx={{ color: tint, fontSize: 26 }} />
-                  <Typography variant="caption" sx={{ fontWeight: 600, textAlign: 'center', color: tint }}>
+                  <Box
+                    sx={{
+                      width: CATEGORY_TILE_SIZE[size],
+                      height: CATEGORY_TILE_SIZE[size],
+                      borderRadius: '50%',
+                      display: 'flex',
+                      alignItems: 'center',
+                      justifyContent: 'center',
+                      backgroundColor: cateColors?.back || theme.custom.color.surfaceRaised,
+                      border: `1px solid ${theme.palette.divider}`,
+                      boxShadow: theme.custom.elevation.e1,
+                    }}
+                  >
+                    <CategoryIcon sx={{ color: tint, fontSize: CATEGORY_ICON_SIZE[size] }} />
+                  </Box>
+                  <Typography variant="caption" sx={{ fontWeight: 600, textAlign: 'center', color: theme.palette.text.primary }}>
                     {label}
                   </Typography>
-                </Box>
+                </FloatingCategoryTile>
               );
             })}
           </Box>
