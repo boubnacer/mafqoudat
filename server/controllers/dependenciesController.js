@@ -345,7 +345,7 @@ const getDashboard = async (req, res) => {
         },
       },
       {
-        $limit: 3,
+        $limit: 6,
       },
     ]);
     console.log('Dashboard: Trending post aggregation result:', {
