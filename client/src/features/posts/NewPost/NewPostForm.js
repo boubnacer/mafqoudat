@@ -1165,6 +1165,7 @@ const NewPostForm = ({ user, countries, categories, flOptions }) => {
                           sx={{
                             borderRadius: `${theme.custom.radius.md}px`,
                             py: 1,
+                            mb: index < steps.length - 1 ? 1 : 0,
                             ...(index === activeStep && {
                               backgroundColor: alpha(theme.custom.color.brandPrimary, theme.palette.mode === 'dark' ? 0.08 : 0.06),
                             }),

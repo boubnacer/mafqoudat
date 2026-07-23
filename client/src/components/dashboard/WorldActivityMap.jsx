@@ -104,11 +104,11 @@ const WorldActivityMap = ({ worldActivity, cityActivity, currentCountryCode, cou
   }, [geoFeatures, currentNumericId]);
 
   // Internal coordinate system for ComposableMap — independent of the CSS
-  // box it's displayed at. Squarish on desktop (it now sits in a narrower
-  // column next to LeftSide, not a wide full-width band); a landscape
-  // fallback on mobile, matching the card's own aspect ratio there.
-  const MAP_WIDTH = isMobile ? 560 : 520;
-  const mapHeight = isMobile ? 350 : 520;
+  // box it's displayed at, but should still match its aspect ratio or the
+  // map letterboxes inside it instead of filling the space. Square on both
+  // mobile and desktop now (matches the CSS box below on each).
+  const MAP_WIDTH = 520;
+  const mapHeight = 520;
 
   const mapView = useMemo(() => {
     if (!currentFeature) return { center: [15, 20], scale: 220 };
@@ -176,11 +176,15 @@ const WorldActivityMap = ({ worldActivity, cityActivity, currentCountryCode, cou
         }}
       >
         {/* Title centered on its own row, mirroring LeftSide's title
-            treatment, since this now sits right next to it. */}
-        <Box sx={{ textAlign: "center", mb: isMobile ? 1.5 : 2 }}>
-          <Box sx={{ display: "inline-flex", alignItems: "center", gap: 1 }}>
-            <PublicOutlined sx={{ color: brand, fontSize: { xs: 22, sm: 24 } }} />
-            <Typography variant="h5" fontWeight="700" sx={{ fontSize: { xs: "1.25rem", sm: "1.4rem" }, color: ink }}>
+            treatment, since this now sits right next to it. Sized down
+            harder on mobile than the desktop title — this is a long
+            sentence-style phrase (not a short label like "Statistics"), so
+            at desktop sizes on a narrow screen it was taking more vertical
+            room than the map itself. */}
+        <Box sx={{ textAlign: "center", mb: isMobile ? 1 : 2 }}>
+          <Box sx={{ display: "inline-flex", alignItems: "center", gap: 0.75 }}>
+            <PublicOutlined sx={{ color: brand, fontSize: { xs: 18, sm: 24 } }} />
+            <Typography variant="h5" fontWeight="700" sx={{ fontSize: { xs: "0.95rem", sm: "1.4rem" }, lineHeight: 1.25, color: ink }}>
               {t("worldActivityTitle", { country: currentCountryName })}
             </Typography>
           </Box>
@@ -192,32 +196,52 @@ const WorldActivityMap = ({ worldActivity, cityActivity, currentCountryCode, cou
             flexWrap: "wrap",
             alignItems: "center",
             justifyContent: "center",
-            gap: 2,
-            mb: isMobile ? 1.5 : 2,
+            gap: { xs: 1, sm: 2 },
+            mb: isMobile ? 1 : 2,
           }}
         >
-          <Typography sx={{ fontSize: "0.8rem", fontWeight: 600, color: alpha(ink, 0.7) }}>
+          <Typography sx={{ fontSize: { xs: "0.7rem", sm: "0.8rem" }, fontWeight: 600, color: alpha(ink, 0.7) }}>
             {t("worldActivityCountries", { posts: citiesPostCount, cities: cities.length })}
           </Typography>
 
-          {/* sequential-ramp legend (fewer -> more) */}
-          <Box
-            sx={{
-              width: 48,
-              height: 7,
-              borderRadius: 4,
-              background: `linear-gradient(${isRTL ? "to left" : "to right"}, ${alpha(brand, 0.2)}, ${alpha(brand, 0.95)})`,
-            }}
-          />
+          {/* sequential-ramp legend (fewer -> more) — dropped on mobile,
+              the least essential of the three header items and the
+              biggest offender for wrapping onto its own line there. */}
+          {!isMobile && (
+            <Box
+              sx={{
+                width: 48,
+                height: 7,
+                borderRadius: 4,
+                background: `linear-gradient(${isRTL ? "to left" : "to right"}, ${alpha(brand, 0.2)}, ${alpha(brand, 0.95)})`,
+              }}
+            />
+          )}
 
           {/* current-country stroke legend */}
           <Box sx={{ display: "flex", alignItems: "center", gap: 0.6 }}>
             <Box sx={{ width: 10, height: 10, borderRadius: "3px", border: `2px solid ${brand}`, backgroundColor: alpha(brand, 0.15) }} />
-            <Typography sx={{ fontSize: "0.75rem", fontWeight: 600, color: alpha(ink, 0.7) }}>{t("worldActivityCurrent")}</Typography>
+            <Typography sx={{ fontSize: { xs: "0.68rem", sm: "0.75rem" }, fontWeight: 600, color: alpha(ink, 0.7) }}>
+              {t("worldActivityCurrent")}
+            </Typography>
           </Box>
         </Box>
 
-        <Box sx={{ width: "100%", flex: isMobile ? undefined : 1, minHeight: isMobile ? undefined : 0, aspectRatio: isMobile ? "4 / 3" : undefined }}>
+        {/* Desktop: flex:1 fills the row-stretched height LeftSide drives
+            (see Dash.js's alignItems:'stretch' flex row). Mobile has no
+            such external height to grow into — it's a single-column grid
+            row there, not a stretched flex row — so it needs its own
+            explicit size instead; square (1/1) rather than the previous
+            4/3 specifically because 4/3 was reading as noticeably short
+            once the header above it got more compact. */}
+        <Box
+          sx={{
+            width: "100%",
+            flex: isMobile ? undefined : 1,
+            minHeight: isMobile ? 300 : 0,
+            aspectRatio: isMobile ? "1 / 1" : undefined,
+          }}
+        >
           {geoFeatures ? (
           <ComposableMap
             width={MAP_WIDTH}
