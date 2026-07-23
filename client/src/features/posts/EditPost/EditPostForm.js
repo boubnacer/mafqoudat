@@ -34,15 +34,24 @@ import {
   Chip,
   Autocomplete
 } from "@mui/material";
-import { 
-  LocationOn, 
-  Add as AddIcon, 
-  Close as CloseIcon, 
-  PhotoCamera, 
+import {
+  LocationOn,
+  Add as AddIcon,
+  Close as CloseIcon,
+  PhotoCamera,
   Delete as DeleteIcon,
   Edit as EditIcon,
   CloudUpload as CloudUploadIcon,
-  WarningAmber as WarningAmberIcon
+  WarningAmber as WarningAmberIcon,
+  ArrowBackRounded,
+  ArrowForwardRounded,
+  ExpandLess as ExpandLessIcon,
+  LocalOfferOutlined,
+  DescriptionOutlined,
+  CallOutlined,
+  AdminPanelSettingsOutlined,
+  TaskAltOutlined,
+  SearchOffOutlined
 } from '@mui/icons-material';
 import { useTranslation } from "../../../utils/translations";
 import useAuth from "../../../hooks/useAuth";
@@ -88,6 +97,111 @@ const getCityDisplayName = (city, currentLanguage) => {
   return 'Unknown City';
 };
 
+// Reusable "view -> edit" row used inside a collapsed EditableSection to show
+// the current value of a field before the user opts to edit it.
+const SummaryRow = ({ theme, label, value }) => (
+  <Box
+    sx={{
+      display: "flex",
+      alignItems: "flex-start",
+      justifyContent: "space-between",
+      gap: 2,
+      py: 0.75,
+    }}
+  >
+    <Typography variant="body2" sx={{ color: theme.palette.text.secondary, fontWeight: 500, flexShrink: 0 }}>
+      {label}
+    </Typography>
+    <Typography
+      variant="body2"
+      sx={{ color: theme.palette.text.primary, fontWeight: 600, textAlign: "end", overflowWrap: "anywhere" }}
+    >
+      {value}
+    </Typography>
+  </Box>
+);
+
+// Collapsible "view -> edit" section shell, modeled on the mobile app's
+// Review step (mobile/src/components/PostForm.js ReviewSection): collapsed by
+// default showing a read-only summary, with a pencil toggle that reveals the
+// real editable fields (passed as children) in place. Purely a display
+// wrapper - it holds no Formik state of its own.
+const EditableSection = ({ theme, icon: Icon, title, editing, onToggle, summary, children }) => (
+  <Box
+    sx={{
+      borderRadius: `${theme.custom.radius.lg}px`,
+      border: `1px solid ${editing ? alpha(theme.custom.color.brandPrimary, 0.35) : theme.palette.divider}`,
+      backgroundColor: theme.custom.color.surfaceRaised,
+      boxShadow: editing ? theme.custom.elevation.e2 : theme.custom.elevation.e1,
+      overflow: "hidden",
+      transition: "box-shadow 0.2s ease-in-out, border-color 0.2s ease-in-out",
+    }}
+  >
+    <Box
+      onClick={onToggle}
+      sx={{
+        display: "flex",
+        alignItems: "center",
+        justifyContent: "space-between",
+        gap: 1.5,
+        px: { xs: 2, sm: 3 },
+        py: 2,
+        cursor: "pointer",
+        "&:hover": {
+          backgroundColor: alpha(theme.custom.color.brandPrimary, theme.palette.mode === "dark" ? 0.08 : 0.04),
+        },
+      }}
+    >
+      <Box sx={{ display: "flex", alignItems: "center", gap: 1.5, minWidth: 0 }}>
+        <Box
+          sx={{
+            width: 36,
+            height: 36,
+            borderRadius: `${theme.custom.radius.md}px`,
+            display: "flex",
+            alignItems: "center",
+            justifyContent: "center",
+            flexShrink: 0,
+            backgroundColor: alpha(theme.custom.color.brandPrimary, theme.palette.mode === "dark" ? 0.18 : 0.1),
+            color: theme.custom.color.brandPrimary,
+          }}
+        >
+          <Icon fontSize="small" />
+        </Box>
+        <Typography variant="subtitle1" sx={{ fontWeight: 700, color: theme.palette.text.primary }}>
+          {title}
+        </Typography>
+      </Box>
+      <IconButton
+        size="small"
+        onClick={(e) => {
+          e.stopPropagation();
+          onToggle();
+        }}
+        sx={{
+          color: editing ? theme.custom.color.brandPrimary : theme.palette.text.secondary,
+          backgroundColor: editing
+            ? alpha(theme.custom.color.brandPrimary, theme.palette.mode === "dark" ? 0.18 : 0.1)
+            : "transparent",
+          "&:hover": {
+            backgroundColor: alpha(theme.custom.color.brandPrimary, theme.palette.mode === "dark" ? 0.24 : 0.14),
+          },
+        }}
+      >
+        {editing ? <ExpandLessIcon fontSize="small" /> : <EditIcon fontSize="small" />}
+      </IconButton>
+    </Box>
+
+    {!editing && <Box sx={{ px: { xs: 2, sm: 3 }, pb: 2.5 }}>{summary}</Box>}
+
+    {editing && (
+      <Box sx={{ px: { xs: 2, sm: 3 }, pb: 3, pt: 0.5, display: "flex", flexDirection: "column", gap: 2.5 }}>
+        {children}
+      </Box>
+    )}
+  </Box>
+);
+
 const EditPostForm = ({ post, user, countries, flOptions, categories }) => {
   const [updatePost, { isLoading, isSuccess, isError, error }] = useUpdatePostMutation();
   const [deletePost, { isSuccess: isDelSuccess, isError: isDelError, error: delerror }] = useDeletePostMutation();
@@ -131,6 +245,21 @@ const EditPostForm = ({ post, user, countries, flOptions, categories }) => {
   const [hasFormChanged, setHasFormChanged] = useState(false);
   const [showSuccessMessage, setShowSuccessMessage] = useState(false);
   const [successMessage, setSuccessMessage] = useState('');
+
+  // UI-only state for the collapsible "view -> edit" sections (design-only
+  // change - never read by Formik, validation, or submission). Every section
+  // starts collapsed so the user first sees a summary of their existing post.
+  const [editingSection, setEditingSection] = useState({
+    basicInfo: false,
+    location: false,
+    itemDetails: false,
+    contact: false,
+    image: false,
+    status: false,
+  });
+  const toggleSection = (key) => {
+    setEditingSection((prev) => ({ ...prev, [key]: !prev[key] }));
+  };
   const formikRef = useRef(null);
   const fileInputRef = useRef(null);
 
@@ -604,6 +733,19 @@ if (typeof document !== 'undefined') {
       }
     }
   }, [availableCities, citySearchQuery, currentLanguage]);
+
+  // Auto-expand whichever collapsed section a validation error belongs to,
+  // so handleSubmit's existing scroll-to-error behavior can still find and
+  // focus the field. Purely reactive to fieldErrors - never sets it.
+  useEffect(() => {
+    if (!fieldErrors || Object.keys(fieldErrors).length === 0) return;
+    setEditingSection((prev) => ({
+      ...prev,
+      basicInfo: prev.basicInfo || !!fieldErrors.foundLost || !!fieldErrors.category,
+      location: prev.location || !!fieldErrors.country || !!fieldErrors.city || !!fieldErrors.exactLocation,
+      contact: prev.contact || !!fieldErrors.contact,
+    }));
+  }, [fieldErrors]);
 
   // Function to clear specific field error
   const clearFieldError = (fieldName) => {
@@ -1467,50 +1609,105 @@ if (typeof document !== 'undefined') {
     );
   }
 
+  const headerFlType = getFoundLostType(post.foundLost);
+  const headerTone = headerFlType === 'FOUND'
+    ? theme.custom.status.found
+    : headerFlType === 'LOST'
+      ? theme.custom.status.lost
+      : null;
+  const HeaderStatusIcon = headerFlType === 'FOUND' ? TaskAltOutlined : SearchOffOutlined;
+
   return (
-    <Box 
-      sx={{ 
+    <Box
+      sx={{
         minHeight: "100vh",
         pt: { xs: "6rem", md: "8rem" },
         pb: { xs: "4rem", md: "6rem" },
         px: { xs: 2, md: 4 },
         display: "flex",
-        justifyContent: "center",
-        alignItems: "flex-start",
+        flexDirection: "column",
+        alignItems: "center",
         background: theme.custom.color.surfaceBase,
         position: 'relative'
       }}
     >
-      {/* Backdrop overlay - temporarily disabled */}
-      {/* {showCustomCityInput && (
-        <Box>...</Box>
-      )} */}
+      {/* Page header - back navigation, title, and a quick Lost/Found identity badge for the post being edited */}
+      <Box sx={{ maxWidth: 700, width: "100%", mb: 3 }}>
+        <Box sx={{ display: "flex", alignItems: "center", gap: 1.5 }}>
+          <IconButton
+            onClick={() => navigate(`/dash/posts/${post._id}`)}
+            aria-label={t('cancel')}
+            sx={{
+              border: `1px solid ${theme.palette.divider}`,
+              borderRadius: `${theme.custom.radius.md}px`,
+              backgroundColor: theme.custom.color.surfaceRaised,
+              color: theme.palette.text.primary,
+              flexShrink: 0,
+              '&:hover': {
+                backgroundColor: alpha(theme.custom.color.brandPrimary, 0.08),
+                borderColor: theme.custom.color.brandPrimary,
+              },
+            }}
+          >
+            {currentLanguage === 'ar' ? <ArrowForwardRounded fontSize="small" /> : <ArrowBackRounded fontSize="small" />}
+          </IconButton>
+          <Box sx={{ minWidth: 0, flexGrow: 1 }}>
+            <Typography
+              variant="h4"
+              sx={{
+                fontFamily: theme.custom.font.display,
+                fontWeight: 800,
+                fontSize: { xs: '1.5rem', md: '1.85rem' },
+                color: theme.palette.text.primary,
+                lineHeight: 1.2,
+              }}
+            >
+              {t('editPost')}
+            </Typography>
+            <Typography variant="body2" sx={{ color: theme.palette.text.secondary, mt: 0.25 }}>
+              {currentLanguage === 'ar'
+                ? 'راجع تفاصيل إعلانك وعدّل ما تريد'
+                : currentLanguage === 'fr'
+                  ? 'Consultez votre annonce et modifiez ce que vous voulez'
+                  : 'Review your listing and edit any section'}
+            </Typography>
+          </Box>
+          {headerTone && (
+            <Box
+              sx={{
+                display: { xs: "none", sm: "inline-flex" },
+                alignItems: "center",
+                gap: 0.75,
+                px: 1.5,
+                py: 0.75,
+                borderRadius: `${theme.custom.radius.md}px`,
+                backgroundColor: headerTone.bg,
+                border: `1px solid ${headerTone.border}`,
+                color: headerTone.main,
+                fontWeight: 700,
+                fontSize: "0.8rem",
+                flexShrink: 0,
+              }}
+            >
+              <HeaderStatusIcon fontSize="inherit" />
+              {t(headerFlType.toLowerCase())}
+            </Box>
+          )}
+        </Box>
+      </Box>
+
       <Paper
-        elevation={4}
+        elevation={0}
         sx={{
-          p: { xs: 3, md: 5 },
+          p: { xs: 2.5, sm: 4 },
           maxWidth: 700,
           width: "100%",
-          borderRadius: 3,
+          borderRadius: `${theme.custom.radius.xl}px`,
           backgroundColor: theme.custom.color.surfaceRaised,
-          boxShadow: theme.shadows[8]
+          border: `1px solid ${theme.palette.divider}`,
+          boxShadow: theme.custom.elevation.e2,
         }}
       >
-        <Typography 
-          variant="h3" 
-          gutterBottom 
-          textAlign="center" 
-          sx={{ 
-            color: theme.palette.text.primary,
-            mb: 4,
-            fontWeight: 700,
-            fontSize: { xs: '1.8rem', md: '2.2rem' },
-            textShadow: theme.palette.mode === 'dark' ? '0 2px 4px rgba(0,0,0,0.3)' : '0 1px 2px rgba(0,0,0,0.1)'
-          }}
-        >
-          {t('editPost')}
-        </Typography>
-
         {/* Success Message */}
         {showSuccessMessage && (
           <Box
@@ -1627,27 +1824,20 @@ if (typeof document !== 'undefined') {
                 </Alert>
               )}
               
-              <Box display="flex" flexDirection="column" gap={3}>
+              <Box display="flex" flexDirection="column" gap={2.5}>
                 {/* Item Returned Status */}
                 <Box
                   sx={{
-                    p: 3,
-                    borderRadius: 3,
-                    border: `2px solid ${values.returned ? theme.palette.success.main : theme.palette.divider}`,
-                    backgroundColor: values.returned
-                      ? alpha(theme.palette.success.main, theme.palette.mode === 'dark' ? 0.1 : 0.05)
-                      : alpha(theme.custom.color.ink, 0.02),
-                    transition: 'all 0.3s ease-in-out',
+                    p: 2.5,
+                    borderRadius: `${theme.custom.radius.lg}px`,
+                    border: `1.5px solid ${values.returned ? theme.custom.status.found.border : theme.palette.divider}`,
+                    backgroundColor: values.returned ? theme.custom.status.found.bg : theme.custom.color.surfaceRaised,
+                    transition: 'all 0.2s ease-in-out',
                     cursor: 'pointer',
+                    boxShadow: theme.custom.elevation.e1,
                     '&:hover': {
-                      borderColor: values.returned ? theme.palette.success.dark : theme.custom.color.brandPrimary,
-                      backgroundColor: values.returned
-                        ? alpha(theme.palette.success.main, theme.palette.mode === 'dark' ? 0.15 : 0.08)
-                        : alpha(theme.custom.color.ink, 0.04),
-                      transform: 'translateY(-2px)',
-                      boxShadow: theme.palette.mode === 'dark'
-                        ? '0 8px 25px rgba(0, 0, 0, 0.3)'
-                        : '0 8px 25px rgba(0, 0, 0, 0.1)',
+                      borderColor: values.returned ? theme.custom.status.found.main : theme.custom.color.brandPrimary,
+                      boxShadow: theme.custom.elevation.e2,
                     }
                   }}
                   onClick={() => setFieldValue('returned', !values.returned)}
@@ -1658,66 +1848,92 @@ if (typeof document !== 'undefined') {
                         width: 24,
                         height: 24,
                         borderRadius: '50%',
-                        border: `2px solid ${values.returned ? theme.palette.success.main : theme.palette.text.secondary}`,
-                        backgroundColor: values.returned ? theme.palette.success.main : 'transparent',
+                        border: `2px solid ${values.returned ? theme.custom.status.found.main : theme.palette.text.secondary}`,
+                        backgroundColor: values.returned ? theme.custom.status.found.main : 'transparent',
                         display: 'flex',
                         alignItems: 'center',
                         justifyContent: 'center',
                         transition: 'all 0.2s ease-in-out',
                         position: 'relative',
+                        flexShrink: 0,
                         '&::after': values.returned ? {
                           content: '"✓"',
-                          color: 'white',
+                          color: theme.palette.getContrastText(theme.custom.status.found.main),
                           fontSize: '14px',
                           fontWeight: 'bold',
                           position: 'absolute',
                         } : {}
                       }}
                     />
-                    <Box>
-                      <Typography 
-                        variant="body1" 
-                        sx={{ 
-                          fontWeight: 600,
-                          color: values.returned ? theme.palette.success.main : theme.palette.text.primary,
-                          transition: 'color 0.2s ease-in-out'
-                        }}
-                      >
-                        {t('itemReturned')}
-                      </Typography>
-                    </Box>
+                    <Typography
+                      variant="body1"
+                      sx={{
+                        fontWeight: 600,
+                        color: values.returned ? theme.custom.status.found.main : theme.palette.text.primary,
+                        transition: 'color 0.2s ease-in-out'
+                      }}
+                    >
+                      {t('itemReturned')}
+                    </Typography>
                   </Box>
                 </Box>
 
                 {/* Basic Information Section */}
-                <Typography 
-                  variant="h5"
-                  sx={{
-                    fontWeight: 700,
-                    color: theme.custom.color.brandPrimary,
-                    fontSize: '1.4rem',
-                    mb: 1
-                  }}
+                <EditableSection
+                  theme={theme}
+                  icon={LocalOfferOutlined}
+                  title={t('basicInformation')}
+                  editing={editingSection.basicInfo}
+                  onToggle={() => toggleSection('basicInfo')}
+                  summary={
+                    <>
+                      <SummaryRow
+                        theme={theme}
+                        label={t('haveYouLostOrFoundSomething')}
+                        value={
+                          flOptions.find((o) => o._id === values.foundLost)
+                            ? (flOptions.find((o) => o._id === values.foundLost).labels?.[currentLanguage]
+                              || flOptions.find((o) => o._id === values.foundLost).label
+                              || flOptions.find((o) => o._id === values.foundLost).code)
+                            : (currentLanguage === 'ar' ? 'غير محدد' : currentLanguage === 'fr' ? 'Non défini' : 'Not set')
+                        }
+                      />
+                      <SummaryRow
+                        theme={theme}
+                        label={t('category')}
+                        value={(() => {
+                          const categoryIds = values.categories && Array.isArray(values.categories) && values.categories.length > 0
+                            ? values.categories
+                            : (values.category ? [values.category] : []);
+                          if (categoryIds.length === 0 || !categories || categories.length === 0) {
+                            return currentLanguage === 'ar' ? 'لم يتم التحديد' : currentLanguage === 'fr' ? 'Aucune sélection' : 'None selected';
+                          }
+                          const idsStr = categoryIds.map((id) => String(id));
+                          const selected = categories.filter((cat) => idsStr.includes(String(cat.id || cat._id)));
+                          return selected.length > 0
+                            ? selected.map((c) => c.labels?.[currentLanguage] || c.label || c.code).join(', ')
+                            : (currentLanguage === 'ar' ? 'لم يتم التحديد' : currentLanguage === 'fr' ? 'Aucune sélection' : 'None selected');
+                        })()}
+                      />
+                    </>
+                  }
                 >
-                  {t('basicInformation')}
-                </Typography>
-
                 <Box>
-                  <FormLabel 
-                    htmlFor="foundLost" 
-                    sx={{ 
-                      mb: 1, 
-                      display: "block", 
-                      fontWeight: 600, 
+                  <FormLabel
+                    htmlFor="foundLost"
+                    sx={{
+                      mb: 1,
+                      display: "block",
+                      fontWeight: 600,
                       fontSize: '1.15rem',
                       color: theme.palette.text.primary
                     }}
                   >
                     {t('haveYouLostOrFoundSomething')} *
                   </FormLabel>
-                  <SelectOption 
-                    name="foundLost" 
-                    options={flOptions} 
+                  <SelectOption
+                    name="foundLost"
+                    options={flOptions}
                     data-testid="foundLost"
                     error={!!fieldErrors.foundLost}
                     helperText={fieldErrors.foundLost}
@@ -1726,32 +1942,32 @@ if (typeof document !== 'undefined') {
                 </Box>
 
                 <Box>
-                  <FormLabel 
-                    htmlFor="categories" 
-                    sx={{ 
-                      mb: 1, 
-                      display: "block", 
-                      fontWeight: 600, 
+                  <FormLabel
+                    htmlFor="categories"
+                    sx={{
+                      mb: 1,
+                      display: "block",
+                      fontWeight: 600,
                       fontSize: '1.15rem',
                       color: theme.palette.text.primary
                     }}
                   >
-                    {getFoundLostType(values.foundLost) === 'LOST' 
+                    {getFoundLostType(values.foundLost) === 'LOST'
                       ? t('specifyItemTypeLost')
                       : t('specifyItemTypeFound')
                     } *
                   </FormLabel>
-                  <Typography 
-                    variant="caption" 
-                    sx={{ 
-                      mb: 1, 
-                      display: "block", 
+                  <Typography
+                    variant="caption"
+                    sx={{
+                      mb: 1,
+                      display: "block",
                       fontSize: '1rem',
-                      color: theme.palette.mode === 'dark' ? 'rgba(255,255,255,0.7)' : 'rgba(0,0,0,0.6)',
+                      color: theme.palette.text.secondary,
                       fontWeight: 500
                     }}
                   >
-                    {currentLanguage === 'ar' 
+                    {currentLanguage === 'ar'
                       ? 'يمكنك اختيار عدة فئات (مثال: محفظة، أوراق، بطاقة هوية)'
                       : currentLanguage === 'fr'
                         ? 'Vous pouvez sélectionner plusieurs catégories (ex: portefeuille, papiers, carte d\'identité)'
@@ -1885,45 +2101,67 @@ if (typeof document !== 'undefined') {
                     }}
                   />
                 </Box>
+                </EditableSection>
 
                 {/* Location Section */}
-                <Typography 
-                  variant="h5"
-                  sx={{
-                    fontWeight: 700,
-                    color: theme.custom.color.brandPrimary,
-                    fontSize: '1.4rem',
-                    mb: 1
-                  }}
+                <EditableSection
+                  theme={theme}
+                  icon={LocationOn}
+                  title={t('location')}
+                  editing={editingSection.location}
+                  onToggle={() => toggleSection('location')}
+                  summary={
+                    <>
+                      <SummaryRow
+                        theme={theme}
+                        label={t('country')}
+                        value={selectedCountry ? getCountryLabel(selectedCountry) : (currentLanguage === 'ar' ? 'غير محدد' : currentLanguage === 'fr' ? 'Non défini' : 'Not set')}
+                      />
+                      <SummaryRow
+                        theme={theme}
+                        label={t('city')}
+                        value={cityDisplayValue || (currentLanguage === 'ar' ? 'غير محدد' : currentLanguage === 'fr' ? 'Non définie' : 'Not set')}
+                      />
+                      <SummaryRow
+                        theme={theme}
+                        label={t('exactLocation')}
+                        value={values.exactLocation?.trim() || (currentLanguage === 'ar' ? 'غير محدد' : currentLanguage === 'fr' ? 'Non définie' : 'Not set')}
+                      />
+                      {values.exactDate?.trim() && (
+                        <SummaryRow
+                          theme={theme}
+                          label={getFoundLostType(values.foundLost) === 'LOST' ? t('exactDateLost') : t('exactDateFound')}
+                          value={values.exactDate}
+                        />
+                      )}
+                    </>
+                  }
                 >
-                  {t('location')}
-                </Typography>
-
                 <Box>
-                  <FormLabel 
-                    htmlFor="country" 
-                    sx={{ 
-                      mb: 1, 
-                      display: "block", 
-                      fontWeight: 600, 
+                  <FormLabel
+                    htmlFor="country"
+                    sx={{
+                      mb: 1,
+                      display: "block",
+                      fontWeight: 600,
                       fontSize: '1.15rem',
                       color: theme.palette.text.primary
                     }}
                   >
                     {t('country')} *
                   </FormLabel>
-                  <Typography 
-                    variant="caption" 
-                    sx={{ 
-                      mb: 1, 
-                      display: "block", 
+                  <Typography
+                    variant="caption"
+                    sx={{
+                      mb: 1,
+                      display: "block",
                       fontSize: '1rem',
-                      color: theme.palette.mode === 'dark' ? 'rgba(255,255,255,0.7)' : 'rgba(0,0,0,0.6)',
+                      color: theme.palette.text.secondary,
                       fontWeight: 500
                     }}
                   >
-                    {getFoundLostType(values.foundLost) === 'LOST' 
-                      ? t('chooseCountryLost') 
+                    {getFoundLostType(values.foundLost) === 'LOST'
+                      ? t('chooseCountryLost')
                       : t('chooseCountryFound')
                     }
                   </Typography>
@@ -2460,47 +2698,50 @@ if (typeof document !== 'undefined') {
                       : t('exactDateFoundPlaceholderOptional')
                     }
                   </Typography>
-                  <Textfield 
-                    name="exactDate" 
-                    variant="outlined" 
+                  <Textfield
+                    name="exactDate"
+                    variant="outlined"
                     placeholder={`${t('exactDatePlaceholder')} ${new Date().toLocaleDateString()})`}
                     data-testid="exactDate"
                   />
                 </Box>
+                </EditableSection>
 
                 {/* Item Details Section */}
-                <Typography 
-                  variant="h5"
-                  sx={{
-                    fontWeight: 700,
-                    color: theme.custom.color.brandPrimary,
-                    fontSize: '1.4rem',
-                    mb: 1
-                  }}
+                <EditableSection
+                  theme={theme}
+                  icon={DescriptionOutlined}
+                  title={t('itemDetails')}
+                  editing={editingSection.itemDetails}
+                  onToggle={() => toggleSection('itemDetails')}
+                  summary={
+                    <SummaryRow
+                      theme={theme}
+                      label={t('description')}
+                      value={values.description?.trim() || (currentLanguage === 'ar' ? 'لا يوجد وصف' : currentLanguage === 'fr' ? 'Aucune description' : 'No description provided')}
+                    />
+                  }
                 >
-                  {t('itemDetails')}
-                </Typography>
-
                 <Box>
-                  <FormLabel 
-                    htmlFor="description" 
-                    sx={{ 
-                      mb: 1, 
-                      display: "block", 
-                      fontWeight: 600, 
+                  <FormLabel
+                    htmlFor="description"
+                    sx={{
+                      mb: 1,
+                      display: "block",
+                      fontWeight: 600,
                       fontSize: '1.15rem',
                       color: theme.palette.text.primary
                     }}
                   >
                     {t('description')} ({t('optional')})
                   </FormLabel>
-                  <Typography 
-                    variant="caption" 
-                    sx={{ 
-                      mb: 1, 
-                      display: "block", 
+                  <Typography
+                    variant="caption"
+                    sx={{
+                      mb: 1,
+                      display: "block",
                       fontSize: '1rem',
-                      color: theme.palette.mode === 'dark' ? 'rgba(255,255,255,0.7)' : 'rgba(0,0,0,0.6)',
+                      color: theme.palette.text.secondary,
                       fontWeight: 500
                     }}
                   >
@@ -2535,105 +2776,130 @@ if (typeof document !== 'undefined') {
                     </Alert>
                   )}
                   
-                  <Textfield 
-                    name="description" 
-                    variant="outlined" 
-                    multiline 
+                  <Textfield
+                    name="description"
+                    variant="outlined"
+                    multiline
                     rows={4}
-                    placeholder={getFoundLostType(values.foundLost) === 'LOST' 
-                      ? t('descriptionPlaceholderLost') 
+                    placeholder={getFoundLostType(values.foundLost) === 'LOST'
+                      ? t('descriptionPlaceholderLost')
                       : t('descriptionPlaceholderFound')
                     }
                     data-testid="description"
                   />
                 </Box>
+                </EditableSection>
 
                 {/* Contact Information Section */}
-                <Typography 
-                  variant="h5"
-                  sx={{
-                    fontWeight: 700,
-                    color: theme.custom.color.brandPrimary,
-                    fontSize: '1.4rem',
-                    mb: 1
-                  }}
+                <EditableSection
+                  theme={theme}
+                  icon={CallOutlined}
+                  title={t('contactInformation')}
+                  editing={editingSection.contact}
+                  onToggle={() => toggleSection('contact')}
+                  summary={
+                    <SummaryRow
+                      theme={theme}
+                      label={t('phoneNumber')}
+                      value={values.contact?.trim() || (currentLanguage === 'ar' ? 'غير محدد' : currentLanguage === 'fr' ? 'Non défini' : 'Not set')}
+                    />
+                  }
                 >
-                  {t('contactInformation')}
-                </Typography>
-
                 <Box>
-                  <FormLabel 
-                    htmlFor="contact" 
-                    sx={{ 
-                      mb: 1, 
-                      display: "block", 
-                      fontWeight: 600, 
+                  <FormLabel
+                    htmlFor="contact"
+                    sx={{
+                      mb: 1,
+                      display: "block",
+                      fontWeight: 600,
                       fontSize: '1.15rem',
                       color: theme.palette.text.primary
                     }}
                   >
                     {t('phoneNumber')} *
                   </FormLabel>
-                  <Typography 
-                    variant="caption" 
-                    sx={{ 
-                      mb: 1, 
-                      display: "block", 
+                  <Typography
+                    variant="caption"
+                    sx={{
+                      mb: 1,
+                      display: "block",
                       fontSize: '1rem',
-                      color: theme.palette.mode === 'dark' ? 'rgba(255,255,255,0.7)' : 'rgba(0,0,0,0.6)',
+                      color: theme.palette.text.secondary,
                       fontWeight: 500
                     }}
                   >
                     {getFoundLostType(values.foundLost) === 'LOST'
-                      ? currentLanguage === 'ar' 
+                      ? currentLanguage === 'ar'
                         ? 'سنقوم بالتواصل معك عبر هذا الرقم في حالة العثور على عنصرك المفقود من قبل شخص آخر'
                         : currentLanguage === 'fr'
                           ? 'Nous vous contacterons via ce numéro si quelqu\'un trouve votre objet perdu'
                           : 'We will contact you through this number if someone finds your lost item'
-                      : currentLanguage === 'ar' 
+                      : currentLanguage === 'ar'
                         ? 'سنقوم بالتواصل معك عبر هذا الرقم في حالة تواصل مالك العنصر معنا'
                         : currentLanguage === 'fr'
                           ? 'Nous vous contacterons via ce numéro si le propriétaire de l\'objet nous contacte'
                           : 'We will contact you through this number if the item owner contacts us'
                     }
                   </Typography>
-                  <Textfield 
-                    name="contact" 
-                    variant="outlined" 
+                  <Textfield
+                    name="contact"
+                    variant="outlined"
                     data-testid="contact"
                     error={!!fieldErrors.contact}
                     helperText={fieldErrors.contact}
                     onErrorClear={clearFieldError}
                   />
                 </Box>
+                </EditableSection>
 
                 {/* Image Section */}
-                <Typography 
-                  variant="h5"
-                  sx={{
-                    fontWeight: 700,
-                    color: theme.custom.color.brandPrimary,
-                    fontSize: '1.4rem',
-                    mb: 1
-                  }}
+                <EditableSection
+                  theme={theme}
+                  icon={PhotoCamera}
+                  title={t('itemImage')}
+                  editing={editingSection.image}
+                  onToggle={() => toggleSection('image')}
+                  summary={
+                    getCurrentImageUrl() ? (
+                      <Box sx={{ display: 'flex', alignItems: 'center', gap: 1.5 }}>
+                        <Box
+                          component="img"
+                          src={getCurrentImageUrl()}
+                          alt=""
+                          sx={{
+                            width: 56,
+                            height: 56,
+                            borderRadius: `${theme.custom.radius.md}px`,
+                            objectFit: 'cover',
+                            border: `1px solid ${theme.palette.divider}`,
+                            flexShrink: 0,
+                          }}
+                        />
+                        <Typography variant="body2" sx={{ color: theme.palette.text.secondary, fontWeight: 500 }}>
+                          {imagePreview ? t('newImage') : t('currentImage')}
+                        </Typography>
+                      </Box>
+                    ) : (
+                      <Typography variant="body2" sx={{ color: theme.palette.text.secondary }}>
+                        {currentLanguage === 'ar' ? 'لم تتم إضافة صورة' : currentLanguage === 'fr' ? 'Aucune image ajoutée' : 'No image added'}
+                      </Typography>
+                    )
+                  }
                 >
-                  {t('itemImage')}
-                </Typography>
-
                 <Box>
-                  <FormLabel 
-                    htmlFor="image" 
-                    sx={{ 
-                      mb: 1, 
-                      display: "block", 
-                      fontWeight: 600, 
+                  <FormLabel
+                    htmlFor="image"
+                    sx={{
+                      mb: 1,
+                      display: "block",
+                      fontWeight: 600,
                       fontSize: '1.15rem',
                       color: theme.palette.text.primary
                     }}
                   >
                     {t('itemImage')} ({t('optional')})
                   </FormLabel>
-                  
+
                   {/* Current Image Display */}
                   {getCurrentImageUrl() && (
                     <Box sx={{ mb: 3 }}>
@@ -2791,39 +3057,36 @@ if (typeof document !== 'undefined') {
                     </Typography>
                   )}
                   
-                  <Typography 
-                    variant="caption" 
-                    sx={{ 
-                      mt: 1, 
-                      display: "block", 
+                  <Typography
+                    variant="caption"
+                    sx={{
+                      mt: 1,
+                      display: "block",
                       fontSize: '1rem',
-                      color: theme.palette.mode === 'dark' ? 'rgba(255,255,255,0.7)' : 'rgba(0,0,0,0.6)',
+                      color: theme.palette.text.secondary,
                       fontWeight: 500
                     }}
                   >
                     {t('imageOptionalMessage')}
                   </Typography>
                 </Box>
-
+                </EditableSection>
 
                 {/* Status Section - Only visible for admin */}
                 {role === 'admin' && (
-                  <>
-                    <Typography
-                      variant="h5"
-                      sx={{
-                        fontWeight: 700,
-                        color: theme.custom.color.brandPrimary,
-                        fontSize: '1.4rem',
-                        mb: 1
-                      }}
+                    <EditableSection
+                      theme={theme}
+                      icon={AdminPanelSettingsOutlined}
+                      title={t('status')}
+                      editing={editingSection.status}
+                      onToggle={() => toggleSection('status')}
+                      summary={
+                        <SummaryRow theme={theme} label={t('postStatus')} value={t(values.status) || values.status} />
+                      }
                     >
-                      {t('status')}
-                    </Typography>
-
                     <Box>
-                      <FormLabel 
-                        htmlFor="status" 
+                      <FormLabel
+                        htmlFor="status"
                         sx={{ 
                           mb: 1, 
                           display: "block", 
@@ -2862,56 +3125,63 @@ if (typeof document !== 'undefined') {
                         </Select>
                       </FormControl>
                     </Box>
-                  </>
+                    </EditableSection>
                 )}
+              </Box>
 
-
-                {/* Action Buttons */}
-                <Box 
-                  display="grid"
-                  gridTemplateColumns={{ xs: "1fr", sm: "1fr 1fr 1fr" }}
-                  gap={2} 
-                  justifyContent="center" 
-                  alignItems="center"
-                  sx={{ mt: 4 }}
-                >
-                  {/* Cancel Button - Left in LTR, Right in RTL */}
+              {/* Action Bar - Cancel/Delete grouped as secondary actions, Update as the prominent primary action */}
+              <Box
+                sx={{
+                  mt: 3,
+                  pt: 3,
+                  borderTop: `1px solid ${theme.palette.divider}`,
+                  display: 'flex',
+                  flexDirection: { xs: 'column-reverse', sm: 'row' },
+                  alignItems: 'center',
+                  justifyContent: 'space-between',
+                  gap: 2,
+                }}
+              >
+                <Box sx={{ display: 'flex', gap: 1.5, width: { xs: '100%', sm: 'auto' } }}>
                   <Button
                     onClick={() => navigate(`/dash/posts/${post._id}`)}
-                    variant="outlined"
+                    variant="text"
                     disabled={isLoading}
                     sx={{
-                      width: { xs: "90%", sm: "100%" },
-                      justifySelf: { xs: "center", sm: "stretch" },
-                      py: 1.5,
-                      px: 3,
-                      fontSize: '1rem',
+                      flex: { xs: 1, sm: 'initial' },
+                      py: 1.25,
+                      px: 2.5,
+                      fontSize: '0.95rem',
                       fontWeight: 600,
-                      borderRadius: 2,
+                      borderRadius: `${theme.custom.radius.md}px`,
                       textTransform: 'none',
+                      color: theme.palette.text.secondary,
+                      '&:hover': {
+                        backgroundColor: alpha(theme.custom.color.ink, 0.06),
+                        color: theme.palette.text.primary,
+                      },
                     }}
                   >
                     {t('cancel')}
                   </Button>
 
-                  {/* Delete Button - Center */}
                   <Button
                     onClick={handleDeletePost}
                     variant="outlined"
                     disabled={isLoading}
+                    startIcon={<DeleteIcon fontSize="small" />}
                     sx={{
-                      width: { xs: "90%", sm: "100%" },
-                      justifySelf: { xs: "center", sm: "stretch" },
-                      py: 1.5,
-                      px: 3,
-                      fontSize: '1rem',
+                      flex: { xs: 1, sm: 'initial' },
+                      py: 1.25,
+                      px: 2.5,
+                      fontSize: '0.95rem',
                       fontWeight: 600,
-                      borderRadius: 2,
+                      borderRadius: `${theme.custom.radius.md}px`,
                       textTransform: 'none',
-                      borderColor: theme.palette.error.main,
+                      borderColor: alpha(theme.palette.error.main, 0.5),
                       color: theme.palette.error.main,
                       '&:hover': {
-                        borderColor: theme.palette.error.dark,
+                        borderColor: theme.palette.error.main,
                         backgroundColor: alpha(theme.palette.error.main, 0.08),
                       },
                       '&:disabled': {
@@ -2923,40 +3193,39 @@ if (typeof document !== 'undefined') {
                   >
                     {t('deletePost')}
                   </Button>
-
-                  {/* Update Button - Right in LTR, Left in RTL */}
-                  <Button
-                    type="submit"
-                    disabled={isSubmitting || !selectedCountry || !values.city || !hasFormChanged}
-                    sx={{
-                      width: { xs: "90%", sm: "100%" },
-                      justifySelf: { xs: "center", sm: "stretch" },
-                      py: 1.5,
-                      px: 3,
-                      fontSize: '1rem',
-                      fontWeight: 600,
-                      borderRadius: 2,
-                      textTransform: 'none',
-                      background: hasFormChanged
-                        ? `linear-gradient(45deg, ${theme.custom.color.brandPrimary} 30%, ${lighten(theme.custom.color.brandPrimary, 0.15)} 90%)`
-                        : alpha(theme.custom.color.brandPrimary, 0.3),
-                      color: `${theme.palette.getContrastText(theme.custom.color.brandPrimary)} !important`,
-                      boxShadow: hasFormChanged ? `0 4px 15px ${alpha(theme.custom.color.brandPrimary, 0.3)}` : 'none',
-                      '&:hover': hasFormChanged ? {
-                        background: `linear-gradient(45deg, ${lighten(theme.custom.color.brandPrimary, 0.08)} 30%, ${lighten(theme.custom.color.brandPrimary, 0.25)} 90%)`,
-                        boxShadow: `0 6px 20px ${alpha(theme.custom.color.brandPrimary, 0.4)}`,
-                        transform: 'translateY(-1px)',
-                      } : {},
-                      '&:disabled': {
-                        background: alpha(theme.custom.color.brandPrimary, 0.3),
-                        color: `${alpha(theme.palette.getContrastText(theme.custom.color.brandPrimary), theme.palette.mode === 'dark' ? 0.5 : 0.7)} !important`,
-                      },
-                      transition: 'all 0.2s ease-in-out',
-                    }}
-                  >
-                    {isSubmitting ? <CircularProgress size={24} color="inherit" /> : t('updatePost')}
-                  </Button>
                 </Box>
+
+                {/* Update Button - the primary action */}
+                <Button
+                  type="submit"
+                  disabled={isSubmitting || !selectedCountry || !values.city || !hasFormChanged}
+                  sx={{
+                    width: { xs: "100%", sm: "auto" },
+                    py: 1.5,
+                    px: 4,
+                    fontSize: '1rem',
+                    fontWeight: 700,
+                    borderRadius: `${theme.custom.radius.md}px`,
+                    textTransform: 'none',
+                    background: hasFormChanged
+                      ? `linear-gradient(45deg, ${theme.custom.color.brandPrimary} 30%, ${lighten(theme.custom.color.brandPrimary, 0.15)} 90%)`
+                      : alpha(theme.custom.color.brandPrimary, 0.3),
+                    color: `${theme.palette.getContrastText(theme.custom.color.brandPrimary)} !important`,
+                    boxShadow: hasFormChanged ? `0 4px 15px ${alpha(theme.custom.color.brandPrimary, 0.3)}` : 'none',
+                    '&:hover': hasFormChanged ? {
+                      background: `linear-gradient(45deg, ${lighten(theme.custom.color.brandPrimary, 0.08)} 30%, ${lighten(theme.custom.color.brandPrimary, 0.25)} 90%)`,
+                      boxShadow: `0 6px 20px ${alpha(theme.custom.color.brandPrimary, 0.4)}`,
+                      transform: 'translateY(-1px)',
+                    } : {},
+                    '&:disabled': {
+                      background: alpha(theme.custom.color.brandPrimary, 0.3),
+                      color: `${alpha(theme.palette.getContrastText(theme.custom.color.brandPrimary), theme.palette.mode === 'dark' ? 0.5 : 0.7)} !important`,
+                    },
+                    transition: 'all 0.2s ease-in-out',
+                  }}
+                >
+                  {isSubmitting ? <CircularProgress size={24} color="inherit" /> : t('updatePost')}
+                </Button>
               </Box>
 
             <Dialog

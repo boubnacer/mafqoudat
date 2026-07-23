@@ -584,6 +584,19 @@ export const themeSettings = (mode, currentLanguage = 'en') => {
           },
         },
       },
+      MuiStepLabel: {
+        styleOverrides: {
+          // Same physical-padding issue as MuiButton/MuiChip's icon margins above:
+          // MUI's default iconContainer uses paddingRight (physical), which collapses
+          // the gap between the step icon and its label once RTL puts the label on
+          // the icon's other side. paddingInlineEnd keeps the gap on the correct side
+          // in both directions.
+          iconContainer: {
+            paddingRight: 0,
+            paddingInlineEnd: 8,
+          },
+        },
+      },
       MuiIconButton: {
         styleOverrides: {
           root: {
