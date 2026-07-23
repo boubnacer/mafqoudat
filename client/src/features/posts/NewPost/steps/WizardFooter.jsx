@@ -23,7 +23,13 @@ const WizardFooter = ({ showBack = true, onBack, stackOnMobile = false, children
         gap: 2,
         position: { xs: 'sticky', sm: 'static' },
         bottom: 0,
-        backgroundColor: theme.custom.color.surfaceRaised,
+        // Only needed on mobile, to occlude content scrolling behind the sticky
+        // bar. On desktop this sits statically inline in the form, so a flat
+        // fill here reads as a mismatched block against the Paper's actual
+        // rendered surface (MUI layers a subtle elevation overlay on Paper in
+        // dark mode, which this flat token color doesn't pick up) - transparent
+        // lets it blend into the card instead.
+        backgroundColor: { xs: theme.custom.color.surfaceRaised, sm: 'transparent' },
         borderTop: { xs: `1px solid ${theme.palette.divider}`, sm: 'none' },
         pb: { xs: 2, sm: 0 },
         zIndex: 2,

@@ -9,8 +9,8 @@ import { useLanguage } from "../utils/languageContext";
 import { LoadingState } from "./LoadingStates";
 import { languageStorage } from "../utils/authStorage";
 import SeoMeta from "./SeoMeta";
-import RenderIcon from "./RenderIcon";
 import LazyCardMedia from "./LazyCardMedia";
+import { getCategoryConfig, getCategoryIcon } from "../config/categories";
 import {
   Box,
   Typography,
@@ -65,6 +65,8 @@ const CATEGORY_SHOWCASE = [
   { themeKey: "vehiclecate", Icon: DirectionsCarOutlined, labelKey: "vehicle" },
   { themeKey: "bagcate", Icon: LuggageOutlined, labelKey: "bag" },
 ];
+
+const API_BASE_URL = process.env.REACT_APP_API_URL || "http://localhost:3500";
 
 const formatShortDate = (dateString, lang) => {
   try {
@@ -242,13 +244,22 @@ const WelcomePage = () => {
   });
 
   // Pre-select the first available country so the hero can show real, local
-  // content immediately — still fully editable via the selector below.
+  // content immediately — still fully editable via the selector below. The
+  // fallback list's id is a hardcoded placeholder that won't match a real
+  // country document, so once the real API data loads, swap out a selection
+  // that came from the fallback for the real first country — otherwise the
+  // hero stays locked onto a country id that returns zero posts forever.
+  const hasRealCountries = countriesData?.length > 0;
   useEffect(() => {
-    if (!selectedCountry && countries.length > 0) {
-      setSelectedCountry(countries[0]);
-    }
+    if (countries.length === 0) return;
+    setSelectedCountry((prev) => {
+      if (!prev) return countries[0];
+      if (!hasRealCountries) return prev;
+      const isFallbackSelection = fallbackCountries.some((fc) => fc._id === prev._id);
+      return isFallbackSelection ? countries[0] : prev;
+    });
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [countries.length]);
+  }, [countries.length, hasRealCountries]);
 
   const getCountryName = (option) => {
     if (!option) return '';
@@ -281,7 +292,57 @@ const WelcomePage = () => {
   }, {
     skip: !selectedCountry?._id
   });
-  const heroPosts = heroPostsData?.ids?.map((id) => heroPostsData?.entities[id]) || [];
+  // The endpoint returns { postsWithUser, page, totalPages, total } — not an
+  // entity-adapter { ids, entities } shape (see PublicPostsPage.jsx / TrendingItem.jsx).
+  const heroPosts = heroPostsData?.postsWithUser || [];
+
+  const getHeroPostStatus = (post) => {
+    const code = post.Floptions?.[0]?.code;
+    if (code) return code.toLowerCase();
+    if (typeof post.foundLost === 'string' && ['found', 'lost'].includes(post.foundLost.toLowerCase())) {
+      return post.foundLost.toLowerCase();
+    }
+    return 'found';
+  };
+
+  const getHeroPostCategoryCode = (post) => {
+    if (post.Categories?.length > 0) return post.Categories[0].code;
+    if (post.Category?.code) return post.Category.code;
+    return post.categoryname || 'OTHER';
+  };
+
+  const getHeroPostCategoryLabel = (post, categoryCode) => {
+    const labels = post.Categories?.[0]?.labels || post.Category?.labels || post.categoryLabels;
+    if (labels && typeof labels === 'object') {
+      const label = labels[activeLanguage] || labels.en;
+      if (label && label.trim()) return label.trim();
+    }
+    return categoryCode;
+  };
+
+  // Posts have no "title" field — mirror TrendingItem/PublicPostsPage's city
+  // resolution chain, falling back to exactLocation.
+  const getHeroPostCityName = (post) => {
+    if (post.cityLabels && typeof post.cityLabels === 'object') {
+      const label = post.cityLabels[activeLanguage] || post.cityLabels.en;
+      if (label && label.trim()) return label.trim();
+    }
+    if (post.city && typeof post.city === 'object' && post.city.labels) {
+      const label = post.city.labels[activeLanguage] || post.city.labels.en;
+      if (label && label.trim()) return label.trim();
+    }
+    if (post.cityName && typeof post.cityName === 'string' && post.cityName.trim()) return post.cityName.trim();
+    if (post.exactLocation) {
+      const first = post.exactLocation.split(',')[0].split('(')[0].replace(/\d+/g, '').trim();
+      if (first) return first;
+    }
+    return t('unknownCity');
+  };
+
+  const getHeroPostImageUrl = (post) => {
+    if (!post.image) return null;
+    return post.image.startsWith('http') ? post.image : `${API_BASE_URL}/${post.image}`;
+  };
 
   const handleCountrySelect = (_, value) => {
     setSelectedCountry(value);
@@ -551,14 +612,21 @@ const WelcomePage = () => {
                   ))
                 ) : heroPosts.length > 0 ? (
                   heroPosts.map((post) => {
-                    const tone = post.foundLost === 'found' ? theme.custom.status.found : theme.custom.status.lost;
+                    const status = getHeroPostStatus(post);
+                    const tone = status === 'found' ? theme.custom.status.found : theme.custom.status.lost;
+                    const categoryCode = getHeroPostCategoryCode(post);
+                    const FallbackIcon = getCategoryIcon(categoryCode);
+                    const categoryStyle = getCategoryConfig(categoryCode);
+                    const imageUrl = getHeroPostImageUrl(post);
+                    const cityName = getHeroPostCityName(post);
+                    const categoryLabel = getHeroPostCategoryLabel(post, categoryCode);
                     return (
-                      <Grid item xs={12} sm={4} key={post.id}>
+                      <Grid item xs={12} sm={4} key={post._id}>
                         <HeroPostCard tone={tone.main}>
-                          {post.image ? (
+                          {imageUrl ? (
                             <LazyCardMedia
-                              image={post.image}
-                              alt={post.title}
+                              image={imageUrl}
+                              alt={cityName}
                               sx={{ height: 100, width: '100%' }}
                             />
                           ) : (
@@ -568,23 +636,17 @@ const WelcomePage = () => {
                                 display: 'flex',
                                 alignItems: 'center',
                                 justifyContent: 'center',
-                                backgroundColor: alpha(tone.main, 0.06),
+                                backgroundColor: categoryStyle?.backgroundColor || alpha(tone.main, 0.06),
                               }}
                             >
-                              <RenderIcon
-                                name={
-                                  typeof post.category === 'string'
-                                    ? `${post.category.toLowerCase()}cate`
-                                    : post.category?.code
-                                    ? `${post.category.code.toLowerCase()}cate`
-                                    : 'Othercate'
-                                }
-                              />
+                              {FallbackIcon && (
+                                <FallbackIcon sx={{ fontSize: 36, color: categoryStyle?.color || tone.main, opacity: 0.85 }} />
+                              )}
                             </Box>
                           )}
                           <Box sx={{ p: 1.5 }}>
                             <Box sx={{ mb: 1 }}>
-                              <StatusTag status={post.foundLost} label={t(post.foundLost)} />
+                              <StatusTag status={status} label={t(status)} />
                             </Box>
                             <Typography
                               variant="body2"
@@ -596,7 +658,7 @@ const WelcomePage = () => {
                                 whiteSpace: 'nowrap',
                               }}
                             >
-                              {post.title}
+                              {categoryLabel}
                             </Typography>
                             <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
                               <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.5, minWidth: 0 }}>
@@ -606,7 +668,7 @@ const WelcomePage = () => {
                                   color="text.secondary"
                                   sx={{ overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}
                                 >
-                                  {post.region || t('unknownRegion')}
+                                  {cityName}
                                 </Typography>
                               </Box>
                               <Typography variant="caption" color="text.secondary" sx={{ flexShrink: 0 }}>
