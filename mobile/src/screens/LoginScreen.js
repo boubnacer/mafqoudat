@@ -26,6 +26,10 @@ import { IS_GOOGLE_AUTH_CONFIGURED } from '../utils/googleAuth';
 const EMAIL_REGEX = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 const PHONE_REGEX = /^[+]?[\d\s\-()]{7,20}$/;
 
+// Same wordmark AppHeader uses in place of a text brand name.
+const BRAND_WORDMARK = require('../../assets/mafWordmark.png');
+const WORDMARK_RATIO = 984 / 213;
+
 // Mirrors client/src/designTokens.js's elevationTokens (e1/e2 boxShadow strings)
 // as RN shadow/elevation props - same shadow color/opacity the web cards use.
 const getElevation = (isDark, level = 1) =>
@@ -230,7 +234,12 @@ const LoginScreen = ({ navigation }) => {
         <View style={styles.content}>
           <View style={styles.brandSection}>
             <Image source={require('../../assets/icon.png')} style={styles.logo} resizeMode="contain" />
-            <Text style={styles.brandName}>{t('brandName')}</Text>
+            <Image
+              source={BRAND_WORDMARK}
+              style={styles.brandWordmarkImg}
+              resizeMode="contain"
+              accessibilityLabel={t('brandName')}
+            />
             <Text style={[styles.tagline, textStyle]}>{t('loginToAccount')}</Text>
           </View>
 
@@ -386,12 +395,10 @@ const createStyles = (tokens, isDark) => StyleSheet.create({
     marginBottom: 14,
     backgroundColor: 'transparent',
   },
-  brandName: {
-    fontFamily: fontFamilies.display,
-    fontSize: 30,
-    color: tokens.brandPrimary,
+  brandWordmarkImg: {
+    height: 34,
+    width: 34 * WORDMARK_RATIO,
     marginBottom: 6,
-    textAlign: 'center',
   },
   tagline: {
     fontFamily: fontFamilies.body,

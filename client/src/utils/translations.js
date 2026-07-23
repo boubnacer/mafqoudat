@@ -676,6 +676,7 @@ export const translations = {
     reportLostItemDesc: "Can't find something? Report it here",
     reportFoundItemDesc: "Found something? Help return it",
     getHelpDesc: "Need assistance? We're here to help",
+    browseBeforePostTip: "Before you post, browse existing posts — someone may have already reported it",
     
     // Help & Support
     helpAndSupport: "HELP & SUPPORT",
@@ -2175,6 +2176,7 @@ export const translations = {
     reportFoundItemDesc: "Vous avez trouvé quelque chose ? Aidez à le retourner",
     searchItemsDesc: "Recherchez des objets perdus ou trouvés dans votre pays",
     getHelpDesc: "Besoin d'assistance ? Nous sommes là pour vous aider",
+    browseBeforePostTip: "Avant de publier, parcourez les annonces existantes — quelqu'un l'a peut-être déjà signalé",
     
     // Help & Support
     helpAndSupport: "AIDE ET SUPPORT",
@@ -3636,6 +3638,7 @@ export const translations = {
     reportFoundItemDesc: "وجدت شيئاً؟ ساعد في إرجاعه",
     searchItemsDesc: "ابحث عن العناصر المفقودة أو التي عثر عليها في بلدك",
     getHelpDesc: "تحتاج مساعدة؟ نحن هنا لمساعدتك",
+    browseBeforePostTip: "قبل النشر، تصفح المنشورات الحالية — ربما يكون شخص آخر قد أبلغ عنه بالفعل",
     
     // Help & Support
     helpAndSupport: "المساعدة والدعم",

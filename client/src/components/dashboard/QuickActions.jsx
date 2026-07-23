@@ -12,6 +12,7 @@ import {
   Search,
   HelpOutline,
   ArrowForwardIosRounded,
+  InfoOutlined,
 } from "@mui/icons-material";
 
 // Reporting a Lost or Found item is the same duality FoundLostStrip and
@@ -255,6 +256,34 @@ const QuickActions = () => {
           }}
         >
           {t('quickActionsDesc')}
+        </Typography>
+      </Box>
+
+      {/* Nudge to search before posting — avoids duplicate reports of the
+          same item by another user */}
+      <Box
+        sx={{
+          display: 'flex',
+          alignItems: 'flex-start',
+          gap: 1,
+          borderRadius: `${theme.custom.radius.md}px`,
+          border: `1px solid ${alpha(theme.custom.color.brandPrimary, 0.25)}`,
+          backgroundColor: alpha(theme.custom.color.brandPrimary, theme.palette.mode === 'dark' ? 0.1 : 0.06),
+          p: { xs: 1.25, sm: 1.5 },
+          mb: { xs: 2, sm: 2.5 },
+        }}
+      >
+        <InfoOutlined sx={{ fontSize: 20, color: theme.custom.color.brandPrimary, flexShrink: 0, mt: '1px' }} />
+        <Typography
+          variant="body2"
+          sx={{
+            fontFamily: theme.custom.font.body,
+            color: alpha(theme.custom.color.ink, 0.8),
+            fontSize: { xs: '0.82rem', sm: '0.88rem' },
+            lineHeight: 1.4,
+          }}
+        >
+          {t('browseBeforePostTip')}
         </Typography>
       </Box>
 
