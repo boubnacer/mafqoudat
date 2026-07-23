@@ -127,6 +127,13 @@ const WorldActivityMap = ({ worldActivity, cityActivity, currentCountryCode, cou
     return localized || countriesByCode?.[entry?.code]?.names?.en || fallbackName;
   };
 
+  const currentCountryName =
+    countriesByCode?.[currentCountryCode]?.names?.[currentLanguage] ||
+    countriesByCode?.[currentCountryCode]?.names?.en ||
+    currentCountryCode ||
+    "";
+  const citiesPostCount = cities.reduce((sum, c) => sum + (c.count || 0), 0);
+
   const hovered = useMemo(() => {
     // A hovered city marker takes priority over the country fill beneath it.
     if (hoveredCityIndex != null && cities[hoveredCityIndex]) {
@@ -152,8 +159,6 @@ const WorldActivityMap = ({ worldActivity, cityActivity, currentCountryCode, cou
     );
   }
 
-  const countriesReached = (worldActivity || []).length;
-
   return (
     <Box sx={{ height: "100%", display: "flex", flexDirection: "column" }}>
       <Box
@@ -176,7 +181,7 @@ const WorldActivityMap = ({ worldActivity, cityActivity, currentCountryCode, cou
           <Box sx={{ display: "inline-flex", alignItems: "center", gap: 1 }}>
             <PublicOutlined sx={{ color: brand, fontSize: { xs: 22, sm: 24 } }} />
             <Typography variant="h5" fontWeight="700" sx={{ fontSize: { xs: "1.25rem", sm: "1.4rem" }, color: ink }}>
-              {t("worldActivityTitle")}
+              {t("worldActivityTitle", { country: currentCountryName })}
             </Typography>
           </Box>
         </Box>
@@ -192,7 +197,7 @@ const WorldActivityMap = ({ worldActivity, cityActivity, currentCountryCode, cou
           }}
         >
           <Typography sx={{ fontSize: "0.8rem", fontWeight: 600, color: alpha(ink, 0.7) }}>
-            {t("worldActivityCountries", { count: countriesReached })}
+            {t("worldActivityCountries", { posts: citiesPostCount, cities: cities.length })}
           </Typography>
 
           {/* sequential-ramp legend (fewer -> more) */}
