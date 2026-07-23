@@ -258,7 +258,9 @@ const RecentPosts = ({
         </Box>
       </Box>
 
-      {/* Bottom row: location + relative date */}
+      {/* Bottom row: location + relative date — stacked as a grid on mobile
+          (2-up narrow cards leave too little width for both side by side),
+          back to a single row from `sm` up where the card has more room. */}
       <Box
         sx={{
           position: "absolute",
@@ -267,10 +269,11 @@ const RecentPosts = ({
           insetInlineEnd: 0,
           zIndex: 2,
           p: 1.25,
-          display: "flex",
-          alignItems: "center",
-          justifyContent: "space-between",
-          gap: 0.75,
+          display: { xs: "grid", sm: "flex" },
+          gridTemplateColumns: { xs: "1fr" },
+          alignItems: { xs: "flex-start", sm: "center" },
+          justifyContent: { xs: "flex-start", sm: "space-between" },
+          gap: { xs: 0.375, sm: 0.75 },
         }}
       >
         <Box sx={{ display: "flex", alignItems: "center", gap: 0.5, minWidth: 0 }}>

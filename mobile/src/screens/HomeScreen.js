@@ -106,6 +106,18 @@ const isFoundType = (item) => {
   return true;
 };
 
+// Mirrors MUI's theme.palette.getContrastText() used by web's RecentPosts.jsx
+// to pick legible text/icon color against a solid category-color card fill.
+const getContrastText = (hexColor) => {
+  if (!hexColor) return '#FFFFFF';
+  const hex = hexColor.replace('#', '');
+  const r = parseInt(hex.substring(0, 2), 16);
+  const g = parseInt(hex.substring(2, 4), 16);
+  const b = parseInt(hex.substring(4, 6), 16);
+  const luminance = (0.299 * r + 0.587 * g + 0.114 * b) / 255;
+  return luminance > 0.6 ? '#0B1220' : '#FFFFFF';
+};
+
 const formatRelativeTime = (dateString, t) => {
   const date = new Date(dateString);
   if (!dateString || isNaN(date.getTime())) return '';
@@ -336,36 +348,73 @@ const TrendingSection = ({ trend, isLoading, t, currentLanguage, styles, tokens,
   );
 };
 
-const RecentPreviewCard = ({ item, currentLanguage, t, styles, tokens, onPress }) => {
+// Poster-style preview card - mirrors web's
+// client/src/components/dashboard/RecentPosts.jsx: full-bleed image (or solid
+// category-color fill) with a dark scrim, category label + status tag
+// overlaid top, location + relative date overlaid bottom (stacked, matching
+// the web card's own xs/mobile layout since these are always narrow 2-up
+// cards here). Laid out 2-up by RecentSection, same as web's Recent.jsx grid.
+const RecentPreviewCard = ({ item, currentLanguage, t, styles, tokens, isRTL, onPress }) => {
   const found = isFoundType(item);
   const tone = found ? tokens.status.found : tokens.status.lost;
   const imageUri = getImageUri(item.image);
   const categoryConfig = getCategoryConfig(getCategoryInfo(item)?.code);
-  const categoryLabel = getCategoryLabel(item, currentLanguage);
-  const cityLabel = getCityLabel(item, currentLanguage);
+  const categoryLabel = getCategoryLabel(item, currentLanguage) || t('categories');
+  const cityLabel = getCityLabel(item, currentLanguage) || t('unknownCity');
+  const textColor = imageUri ? '#FFFFFF' : getContrastText(categoryConfig.color);
+  const rowDirection = isRTL ? 'row-reverse' : 'row';
 
   return (
-    <TouchableOpacity activeOpacity={0.85} onPress={onPress} style={styles.recentCard}>
+    <TouchableOpacity
+      activeOpacity={0.9}
+      onPress={onPress}
+      style={[styles.posterCard, { backgroundColor: imageUri ? tokens.surfaceBase : categoryConfig.color }]}
+    >
       {imageUri ? (
-        <Image source={{ uri: imageUri }} style={styles.recentThumb} resizeMode="cover" />
+        <Image source={{ uri: imageUri }} style={styles.posterImage} resizeMode="cover" />
       ) : (
-        <View style={[styles.recentThumb, styles.recentThumbPlaceholder, { backgroundColor: categoryConfig.backgroundColor }]}>
-          <Ionicons name={categoryConfig.icon} size={32} color={categoryConfig.color} />
+        <View style={styles.posterFallback}>
+          <Ionicons name={categoryConfig.icon} size={40} color={textColor} style={{ opacity: 0.9 }} />
         </View>
       )}
-      <View style={styles.recentContent}>
-        <View style={[styles.recentStatusPill, { backgroundColor: tone.bg }]}>
-          <Text style={[styles.recentStatusPillText, { color: tone.main }]}>{found ? t('found') : t('lost')}</Text>
-        </View>
-        <Text style={styles.recentTitle} numberOfLines={1}>
-          {categoryLabel || t('categories')}
+
+      {imageUri ? (
+        <>
+          <View style={styles.posterScrimTop} pointerEvents="none" />
+          <View style={styles.posterScrimBottom} pointerEvents="none" />
+        </>
+      ) : null}
+
+      <View style={[styles.posterTopRow, { flexDirection: rowDirection }]}>
+        <Text style={[styles.posterCategoryLabel, { color: textColor }]} numberOfLines={2}>
+          {categoryLabel}
         </Text>
-        {cityLabel ? (
-          <Text style={styles.recentMeta} numberOfLines={1}>
+        <View style={styles.posterBadgeColumn}>
+          <View style={[styles.posterStatusPill, { backgroundColor: tone.main }]}>
+            <Ionicons name={found ? 'checkmark-circle' : 'search'} size={12} color={getContrastText(tone.main)} />
+            <Text style={[styles.posterStatusPillText, { color: getContrastText(tone.main) }]}>
+              {found ? t('found') : t('lost')}
+            </Text>
+          </View>
+          {item.returned ? (
+            <View style={[styles.posterReturnedPill, { backgroundColor: tokens.status.found.main }]}>
+              <Ionicons name="checkmark-circle" size={11} color={getContrastText(tokens.status.found.main)} />
+              <Text style={[styles.posterReturnedPillText, { color: getContrastText(tokens.status.found.main) }]}>
+                {t('returned')}
+              </Text>
+            </View>
+          ) : null}
+        </View>
+      </View>
+
+      <View style={styles.posterBottomRow}>
+        <View style={[styles.posterLocationRow, { flexDirection: rowDirection }]}>
+          <Ionicons name="location-outline" size={13} color={textColor} style={{ opacity: 0.9 }} />
+          <Text style={[styles.posterLocationText, { color: textColor }]} numberOfLines={1}>
             {cityLabel}
           </Text>
-        ) : null}
-        <Text style={styles.recentMeta} numberOfLines={1}>
+        </View>
+        <Text style={[styles.posterDateText, { color: textColor }]} numberOfLines={1}>
           {formatRelativeTime(item.createdAt, t)}
         </Text>
       </View>
@@ -373,7 +422,7 @@ const RecentPreviewCard = ({ item, currentLanguage, t, styles, tokens, onPress }
   );
 };
 
-const RecentSection = ({ type, items, isLoading, currentLanguage, t, styles, tokens, onSeeAll, onPressItem }) => {
+const RecentSection = ({ type, items, isLoading, currentLanguage, t, styles, tokens, isRTL, onSeeAll, onPressItem }) => {
   const title = type === 'found' ? t('recentFounds') : t('recentLosts');
   const tone = type === 'found' ? tokens.status.found.main : tokens.status.lost.main;
 
@@ -381,12 +430,12 @@ const RecentSection = ({ type, items, isLoading, currentLanguage, t, styles, tok
     <Panel accentColor={tone} styles={styles}>
       <SectionHeader title={title} onSeeAll={items.length > 0 ? onSeeAll : undefined} t={t} styles={styles} />
       {isLoading && items.length === 0 ? (
-        <View style={styles.recentColumn}>
+        <View style={styles.recentGrid}>
           <SkeletonBlock tokens={tokens} style={styles.recentCardSkeleton} />
           <SkeletonBlock tokens={tokens} style={styles.recentCardSkeleton} />
         </View>
       ) : items.length > 0 ? (
-        <View style={styles.recentColumn}>
+        <View style={styles.recentGrid}>
           {items.map((item) => (
             <RecentPreviewCard
               key={item._id}
@@ -395,6 +444,7 @@ const RecentSection = ({ type, items, isLoading, currentLanguage, t, styles, tok
               t={t}
               styles={styles}
               tokens={tokens}
+              isRTL={isRTL}
               onPress={() => onPressItem(item._id)}
             />
           ))}
@@ -578,6 +628,7 @@ const HomeScreen = ({ navigation }) => {
             t={t}
             styles={styles}
             tokens={tokens}
+            isRTL={isRTL}
             onSeeAll={() => goToPosts({ initialFl: foundOption?._id || '' })}
             onPressItem={goToPost}
           />
@@ -592,6 +643,7 @@ const HomeScreen = ({ navigation }) => {
             t={t}
             styles={styles}
             tokens={tokens}
+            isRTL={isRTL}
             onSeeAll={() => goToPosts({ initialFl: lostOption?._id || '' })}
             onPressItem={goToPost}
           />
@@ -893,63 +945,128 @@ const createStyles = (tokens, isRTL, isDark) =>
       flexShrink: 1,
     },
 
-    // Recent founds/losts
-    recentColumn: {
+    // Recent founds/losts - poster-style card mirrors web's
+    // client/src/components/dashboard/RecentPosts.jsx: full-bleed image (or
+    // solid category-color fill), gradient-ish scrim, category label +
+    // status tag overlaid top, location + relative date overlaid bottom
+    // (stacked, matching the web card's own mobile/xs layout). Always 2-up,
+    // same as web's Recent.jsx grid.
+    recentGrid: {
+      flexDirection: 'row',
       gap: 14,
     },
     recentCardSkeleton: {
-      height: 112,
+      flex: 1,
+      aspectRatio: 3 / 4,
       borderRadius: radiusTokens.lg,
     },
-    recentCard: {
-      flexDirection: 'row',
-      alignItems: 'stretch',
-      backgroundColor: tokens.surfaceRaised,
+    posterCard: {
+      flex: 1,
+      aspectRatio: 3 / 4,
       borderRadius: radiusTokens.lg,
+      overflow: 'hidden',
       borderWidth: 1,
       borderColor: `${tokens.ink}${isDark ? '14' : '26'}`,
-      overflow: 'hidden',
       ...getElevation(isDark, 1),
     },
-    // No fixed height - stretches (flexDirection: 'row' default cross-axis
-    // align) to match recentContent's natural height, so the image always
-    // fills the card top-to-bottom instead of stopping partway down a card
-    // that grew taller than a hardcoded thumbnail size.
-    recentThumb: {
-      width: 112,
+    posterImage: {
+      ...StyleSheet.absoluteFillObject,
     },
-    recentThumbPlaceholder: {
+    posterFallback: {
+      ...StyleSheet.absoluteFillObject,
       justifyContent: 'center',
       alignItems: 'center',
     },
-    recentContent: {
+    // Approximates the web card's linear-gradient scrim (no gradient lib in
+    // mobile) with two flat semi-transparent bands, just enough to keep the
+    // overlaid text legible on top of a photo.
+    posterScrimTop: {
+      position: 'absolute',
+      top: 0,
+      start: 0,
+      end: 0,
+      height: '38%',
+      backgroundColor: 'rgba(0,0,0,0.32)',
+    },
+    posterScrimBottom: {
+      position: 'absolute',
+      bottom: 0,
+      start: 0,
+      end: 0,
+      height: '48%',
+      backgroundColor: 'rgba(0,0,0,0.55)',
+    },
+    posterTopRow: {
+      position: 'absolute',
+      top: 0,
+      start: 0,
+      end: 0,
+      padding: 10,
+      justifyContent: 'space-between',
+      alignItems: 'flex-start',
+      gap: 6,
+    },
+    posterCategoryLabel: {
       flex: 1,
-      padding: 14,
-      justifyContent: 'center',
-      gap: 4,
-    },
-    recentStatusPill: {
-      alignSelf: isRTL ? 'flex-end' : 'flex-start',
-      paddingHorizontal: 9,
-      paddingVertical: 3,
-      borderRadius: radiusTokens.sm,
-      marginBottom: 3,
-    },
-    recentStatusPillText: {
       fontFamily: fontFamilies.bodySemiBold,
-      fontSize: 11,
-      textTransform: 'uppercase',
-    },
-    recentTitle: {
-      fontFamily: fontFamilies.bodySemiBold,
-      fontSize: 16,
-      color: tokens.ink,
+      fontSize: 12,
+      lineHeight: 15,
       textAlign: isRTL ? 'right' : 'left',
     },
-    recentMeta: {
+    posterBadgeColumn: {
+      alignItems: isRTL ? 'flex-start' : 'flex-end',
+      gap: 4,
+    },
+    posterStatusPill: {
+      flexDirection: 'row',
+      alignItems: 'center',
+      gap: 4,
+      paddingHorizontal: 7,
+      paddingVertical: 3,
+      borderRadius: radiusTokens.sm,
+    },
+    posterStatusPillText: {
+      fontFamily: fontFamilies.bodySemiBold,
+      fontSize: 9,
+      textTransform: 'uppercase',
+      letterSpacing: 0.3,
+    },
+    posterReturnedPill: {
+      flexDirection: 'row',
+      alignItems: 'center',
+      gap: 4,
+      paddingHorizontal: 7,
+      paddingVertical: 3,
+      borderRadius: radiusTokens.sm,
+    },
+    posterReturnedPillText: {
+      fontFamily: fontFamilies.bodySemiBold,
+      fontSize: 9,
+      textTransform: 'uppercase',
+    },
+    posterBottomRow: {
+      position: 'absolute',
+      bottom: 0,
+      start: 0,
+      end: 0,
+      padding: 10,
+      gap: 2,
+    },
+    posterLocationRow: {
+      flexDirection: 'row',
+      alignItems: 'center',
+      gap: 4,
+    },
+    posterLocationText: {
+      fontFamily: fontFamilies.bodySemiBold,
+      fontSize: 11,
+      flexShrink: 1,
+      textAlign: isRTL ? 'right' : 'left',
+    },
+    posterDateText: {
       fontFamily: fontFamilies.body,
-      fontSize: 13,
-      color: `${tokens.ink}99`,
+      fontSize: 10,
+      opacity: 0.85,
       textAlign: isRTL ? 'right' : 'left',
     },
     recentEmpty: {

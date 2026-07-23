@@ -82,22 +82,32 @@ export const DashboardStatsSkeleton = () => {
   );
 };
 
-// Loading Skeleton for Trending Item
+// Loading Skeleton for Trending Item — mirrors the 3-up poster-card row
+// (RecentPosts DNA) that TrendingItem now renders.
 export const TrendingItemSkeleton = () => {
   const theme = useTheme();
-  
+
   return (
-    <Card sx={{ height: '100%', p: 2 }}>
-      <Box sx={{ display: 'flex', flexDirection: { xs: 'column', sm: 'row' }, height: '100%' }}>
-        <Skeleton variant="rectangular" width="100%" height={200} sx={{ borderRadius: 1, mb: 2 }} />
-        <Box sx={{ flex: 1, marginInlineStart: { xs: 0, sm: 2 } }}>
-          <Skeleton variant="text" width="60%" height={24} />
-          <Skeleton variant="text" width="40%" height={20} sx={{ mt: 1 }} />
-          <Skeleton variant="text" width="80%" height={16} sx={{ mt: 1 }} />
-          <Skeleton variant="text" width="70%" height={16} sx={{ mt: 1 }} />
-        </Box>
-      </Box>
-    </Card>
+    <Box
+      sx={{
+        display: 'grid',
+        gap: { xs: 1.5, sm: 2 },
+        gridTemplateColumns: { xs: 'repeat(2, 1fr)', md: 'repeat(3, 1fr)' },
+      }}
+    >
+      {[1, 2, 3].map((item) => (
+        <Skeleton
+          key={item}
+          variant="rectangular"
+          sx={{
+            width: '100%',
+            aspectRatio: '3 / 4',
+            borderRadius: `${theme.custom.radius.lg}px`,
+            display: { xs: item === 3 ? 'none' : 'block', md: 'block' },
+          }}
+        />
+      ))}
+    </Box>
   );
 };
 
