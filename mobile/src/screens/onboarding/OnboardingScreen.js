@@ -1,7 +1,8 @@
 /**
  * First-launch onboarding slider - shown once (gated by OnboardingContext's
- * hasSeenOnboarding flag), then never again. Slide 1 picks a language, slides
- * 2-3 introduce the app, slide 4 requires a country before "Get Started".
+ * hasSeenOnboarding flag), then never again. Slide 1 picks a language and
+ * light/dark mode, slides 2-4 introduce the app (report, browse, filter),
+ * slide 5 requires a country before "Get Started".
  * FlatList + Animated only (no reanimated/carousel/swiper lib), per the
  * mobile app's existing dependency footprint.
  */
@@ -33,7 +34,8 @@ import { getLocalizedLabel } from '../../context/ReferenceDataContext';
 import { colorTokens, radiusTokens, fontFamilies } from '../../theme/tokens';
 
 const { width: SCREEN_WIDTH } = Dimensions.get('window');
-const SLIDE_COUNT = 4;
+const SLIDE_COUNT = 5;
+const SLIDE_INDICES = Array.from({ length: SLIDE_COUNT }, (_, i) => i);
 
 // The outer slides list drives scrollX with useNativeDriver: true (for smooth
 // per-slide fade/translate + dot interpolation) - a plain FlatList can't back
@@ -71,7 +73,7 @@ const getDeviceLanguage = () => {
 const OnboardingScreen = () => {
   const { selectCountry } = useAuth();
   const { currentLanguage, setLanguage } = useLanguage();
-  const { isDark } = useTheme();
+  const { isDark, setThemeMode } = useTheme();
   const { completeOnboarding } = useOnboarding();
   const { t } = useTranslation();
 
@@ -84,7 +86,7 @@ const OnboardingScreen = () => {
   // Own, JS-driven Animated.Values for the dot widths - 'width' isn't a style
   // property the native driver supports, so these can't be interpolated from
   // scrollX (which is native-driven for the opacity/transform slide fades).
-  const dotWidths = useRef([0, 1, 2, 3].map(() => new Animated.Value(8))).current;
+  const dotWidths = useRef(SLIDE_INDICES.map(() => new Animated.Value(8))).current;
   const [activeIndex, setActiveIndex] = useState(0);
 
   const [countries, setCountries] = useState([]);
@@ -237,7 +239,7 @@ const OnboardingScreen = () => {
   // starts), which is what caused the black-flash glitch on slide transitions.
   const slideAnimatedStyles = useMemo(
     () =>
-      [0, 1, 2, 3].map((index) => {
+      SLIDE_INDICES.map((index) => {
         const inputRange = [(index - 1) * SCREEN_WIDTH, index * SCREEN_WIDTH, (index + 1) * SCREEN_WIDTH];
         return {
           opacity: scrollX.interpolate({ inputRange, outputRange: [0, 1, 0], extrapolate: 'clamp' }),
@@ -285,6 +287,30 @@ const OnboardingScreen = () => {
           );
         })}
       </View>
+
+      <Text style={styles.themeLabel}>{t('onboardingThemeLabel')}</Text>
+      <View style={[styles.themeToggleTrack, isRTL && styles.rowReverse]}>
+        <TouchableOpacity
+          style={[styles.themeToggleOption, !isDark && styles.themeToggleOptionActive]}
+          onPress={() => setThemeMode('light')}
+          activeOpacity={0.8}
+        >
+          <Ionicons name="sunny" size={16} color={!isDark ? '#FFFFFF' : tokens.ink} />
+          <Text style={[styles.themeToggleText, !isDark && styles.themeToggleTextActive]}>
+            {t('themeLight')}
+          </Text>
+        </TouchableOpacity>
+        <TouchableOpacity
+          style={[styles.themeToggleOption, isDark && styles.themeToggleOptionActive]}
+          onPress={() => setThemeMode('dark')}
+          activeOpacity={0.8}
+        >
+          <Ionicons name="moon" size={16} color={isDark ? '#FFFFFF' : tokens.ink} />
+          <Text style={[styles.themeToggleText, isDark && styles.themeToggleTextActive]}>
+            {t('themeDark')}
+          </Text>
+        </TouchableOpacity>
+      </View>
     </Animated.View>
   );
 
@@ -296,8 +322,31 @@ const OnboardingScreen = () => {
     </Animated.View>
   );
 
-  const renderCountrySlide = () => (
+  const renderFilterSlide = () => (
     <Animated.View style={[styles.slideContent, slideAnimatedStyles[3]]}>
+      {renderIconCircle('tune')}
+      <Text style={styles.headline}>{t('onboardingFilterHeadline')}</Text>
+      <Text style={styles.body}>{t('onboardingFilterBody')}</Text>
+
+      <View style={[styles.filterPillsRow, isRTL && styles.rowReverse]}>
+        <View style={styles.filterPill}>
+          <Ionicons name="earth" size={14} color={tokens.brandPrimary} />
+          <Text style={styles.filterPillText}>{t('country')}</Text>
+        </View>
+        <View style={styles.filterPill}>
+          <Ionicons name="location" size={14} color={tokens.brandPrimary} />
+          <Text style={styles.filterPillText}>{t('city')}</Text>
+        </View>
+        <View style={styles.filterPill}>
+          <Ionicons name="pricetag" size={14} color={tokens.brandPrimary} />
+          <Text style={styles.filterPillText}>{t('categories')}</Text>
+        </View>
+      </View>
+    </Animated.View>
+  );
+
+  const renderCountrySlide = () => (
+    <Animated.View style={[styles.slideContent, slideAnimatedStyles[4]]}>
       {renderIconCircle('verified-user')}
       <Text style={styles.headline}>{t('securePlatform')}</Text>
       <Text style={styles.body}>{t('securePlatformDesc')}</Text>
@@ -383,6 +432,8 @@ const OnboardingScreen = () => {
           </View>
         );
       case 3:
+        return <View style={styles.slide}>{renderFilterSlide()}</View>;
+      case 4:
       default:
         return <View style={styles.slide}>{renderCountrySlide()}</View>;
     }
@@ -405,7 +456,7 @@ const OnboardingScreen = () => {
 
       <AnimatedFlatList
         ref={flatListRef}
-        data={[0, 1, 2, 3]}
+        data={SLIDE_INDICES}
         keyExtractor={(item) => String(item)}
         horizontal
         pagingEnabled
@@ -426,7 +477,7 @@ const OnboardingScreen = () => {
 
       <View style={styles.footer}>
         <View style={[styles.dotsRow, isRTL && styles.rowReverse]}>
-          {[0, 1, 2, 3].map((i) => (
+          {SLIDE_INDICES.map((i) => (
             <Animated.View
               key={i}
               style={[styles.dot, { width: dotWidths[i] }, activeIndex === i ? styles.dotActive : styles.dotInactive]}
@@ -582,6 +633,66 @@ const createStyles = (tokens) =>
     languageChipTextActive: {
       color: tokens.brandPrimary,
       fontFamily: fontFamilies.bodySemiBold,
+    },
+    themeLabel: {
+      fontFamily: fontFamilies.bodyMedium,
+      fontSize: 13,
+      color: tokens.ink,
+      opacity: 0.6,
+      textAlign: 'center',
+      marginTop: 28,
+      marginBottom: 10,
+    },
+    themeToggleTrack: {
+      flexDirection: 'row',
+      backgroundColor: `${tokens.ink}0D`,
+      borderRadius: radiusTokens.md,
+      padding: 4,
+      gap: 4,
+    },
+    themeToggleOption: {
+      flexDirection: 'row',
+      alignItems: 'center',
+      justifyContent: 'center',
+      gap: 6,
+      paddingVertical: 9,
+      paddingHorizontal: 20,
+      borderRadius: radiusTokens.sm,
+    },
+    themeToggleOptionActive: {
+      backgroundColor: tokens.brandPrimary,
+    },
+    themeToggleText: {
+      fontFamily: fontFamilies.bodyMedium,
+      fontSize: 13,
+      color: tokens.ink,
+    },
+    themeToggleTextActive: {
+      color: '#FFFFFF',
+      fontFamily: fontFamilies.bodySemiBold,
+    },
+    filterPillsRow: {
+      flexDirection: 'row',
+      flexWrap: 'wrap',
+      justifyContent: 'center',
+      gap: 10,
+      marginTop: 4,
+    },
+    filterPill: {
+      flexDirection: 'row',
+      alignItems: 'center',
+      gap: 6,
+      paddingVertical: 9,
+      paddingHorizontal: 16,
+      borderRadius: radiusTokens.md,
+      backgroundColor: `${tokens.brandPrimary}14`,
+      borderWidth: 1,
+      borderColor: `${tokens.brandPrimary}33`,
+    },
+    filterPillText: {
+      fontFamily: fontFamilies.bodyMedium,
+      fontSize: 13,
+      color: tokens.brandPrimary,
     },
     countrySection: {
       width: '100%',

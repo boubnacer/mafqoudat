@@ -327,6 +327,9 @@ export const translations = {
     onboardingReportBody: "Post details about your lost item in seconds and let the community help you track it down.",
     onboardingFindHeadline: "Browse items found nearby",
     onboardingFindBody: "Search found items around you and help reconnect them with their rightful owners.",
+    onboardingThemeLabel: "Pick your look",
+    onboardingFilterHeadline: "Find exactly what you're looking for",
+    onboardingFilterBody: "Narrow results by country, city, and category to spot your item in seconds.",
     securePlatform: "Secure & Trusted",
     securePlatformDesc: "Advanced security measures protect your personal information and ensure safe transactions.",
 
@@ -679,6 +682,9 @@ export const translations = {
     onboardingReportBody: "Publiez les détails de votre objet perdu en quelques secondes et laissez la communauté vous aider à le retrouver.",
     onboardingFindHeadline: "Parcourez les objets trouvés à proximité",
     onboardingFindBody: "Recherchez les objets trouvés autour de vous et aidez à les rendre à leurs propriétaires légitimes.",
+    onboardingThemeLabel: "Choisissez votre style",
+    onboardingFilterHeadline: "Trouvez exactement ce que vous cherchez",
+    onboardingFilterBody: "Affinez les résultats par pays, ville et catégorie pour repérer votre objet en quelques secondes.",
     securePlatform: "Sécurisé et Fiable",
     securePlatformDesc: "Des mesures de sécurité avancées protègent vos informations personnelles et garantissent des transactions sécurisées.",
 
@@ -1031,6 +1037,9 @@ export const translations = {
     onboardingReportBody: "انشر تفاصيل غرضك المفقود في ثوانٍ ودع المجتمع يساعدك في العثور عليه.",
     onboardingFindHeadline: "تصفح الأغراض الموجودة القريبة منك",
     onboardingFindBody: "ابحث عن الأغراض الموجودة من حولك وساعد في إعادتها إلى أصحابها الحقيقيين.",
+    onboardingThemeLabel: "اختر المظهر المفضل لديك",
+    onboardingFilterHeadline: "اعثر بالضبط على ما تبحث عنه",
+    onboardingFilterBody: "صفِّ النتائج حسب البلد والمدينة والفئة لتحديد غرضك في ثوانٍ.",
     securePlatform: "منصة آمنة وموثوقة",
     securePlatformDesc: "تدابير أمنية متقدمة تحمي معلوماتك الشخصية وتضمن المعاملات الآمنة.",
 
