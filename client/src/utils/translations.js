@@ -3205,7 +3205,7 @@ export const translations = {
     trendingItemDescription: "آخر عنصر شائع في منطقتك",
     trending: "رائج",
     activityTrend: "النشاط",
-    worldActivityTitle: "الأشياء المفقودة والتي عثر عليها في دولة {country}",
+    worldActivityTitle: "الأشياء المفقودة والتي عثر عليها في  {country}",
     worldActivityCountries: "{posts} إعلان {cities} مدن مختلفة",
     worldActivityPosts: "{count} منشور",
     worldActivityNoPosts: "لا توجد منشورات بعد",
