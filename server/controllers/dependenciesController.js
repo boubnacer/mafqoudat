@@ -8,6 +8,7 @@ const getCountryIso3 = require("country-iso-2-to-3");
 const Category = require("../models/Category");
 const City = require("../models/City");
 const { cacheService } = require("../config/cache");
+const { geocodeCityName } = require("../utils/cityGeocode");
 
 // Get Dashboard
 const getDashboard = async (req, res) => {
@@ -979,6 +980,50 @@ const getDashboard = async (req, res) => {
       .filter((row) => row._id)
       .map((row) => ({ code: row._id, count: row.count }));
 
+    // City-level activity for the map's city markers, scoped to
+    // currentCountry (the map is always zoomed to one country, so no need
+    // for this to be platform-wide the way worldActivity is). Posts often
+    // don't carry a linked City document — many countries have zero City
+    // records in this DB, since city search creates free-text "dynamic"
+    // cities that are never persisted — so the city name comes from
+    // whichever of city/exactLocation is usable, the same fallback order
+    // client components already use when showing a single post's location.
+    const CITY_OBJECT_ID_RE = /^[0-9a-fA-F]{24}$/;
+    const extractCityName = (post) => {
+      if (typeof post.city === "string" && post.city.trim() && !CITY_OBJECT_ID_RE.test(post.city.trim())) {
+        return post.city.trim();
+      }
+      if (post.exactLocation) {
+        const firstPart = post.exactLocation.split(",")[0].split("(")[0].trim();
+        const cleaned = firstPart.replace(/\d+/g, "").trim();
+        return cleaned || null;
+      }
+      return null;
+    };
+
+    const currentCountryDoc = await Country.findById(currentCountry).select("code").lean();
+    const postsForCities = await Post.find({ country: new mongoose.Types.ObjectId(currentCountry) })
+      .select("city exactLocation")
+      .lean();
+
+    const cityCounts = new Map();
+    postsForCities.forEach((post) => {
+      const name = extractCityName(post);
+      if (!name) return;
+      const key = name.toLowerCase();
+      const existing = cityCounts.get(key);
+      if (existing) existing.count += 1;
+      else cityCounts.set(key, { name, count: 1 });
+    });
+
+    const cityActivity = [];
+    if (currentCountryDoc?.code) {
+      cityCounts.forEach(({ name, count }) => {
+        const geo = geocodeCityName(name, currentCountryDoc.code);
+        if (geo) cityActivity.push({ name, count, lon: geo.lon, lat: geo.lat });
+      });
+    }
+
     const response = {
       trendingPost,
       recentFounds,
@@ -991,6 +1036,7 @@ const getDashboard = async (req, res) => {
       createdToday,
       dailyActivity,
       worldActivity,
+      cityActivity,
     };
 
     // Cache the response for 5 minutes (dynamic data)

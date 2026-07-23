@@ -251,6 +251,7 @@ const Dash = () => {
         <Box sx={{ display: { xs: hasNoData ? 'none' : 'block', sm: 'block' } }}>
           <WorldActivityMap
             worldActivity={data?.worldActivity}
+            cityActivity={data?.cityActivity}
             currentCountryCode={countriesData?.entities?.[currentCountry]?.code}
             countriesByCode={countriesByCode}
             isLoading={isLoading}

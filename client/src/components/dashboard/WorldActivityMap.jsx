@@ -1,7 +1,7 @@
 import { useEffect, useMemo, useState } from "react";
 import { Box, Typography, useTheme, useMediaQuery, alpha } from "@mui/material";
 import { PublicOutlined } from "@mui/icons-material";
-import { ComposableMap, Geographies, Geography } from "react-simple-maps";
+import { ComposableMap, Geographies, Geography, Marker } from "react-simple-maps";
 import { geoMercator, geoPath, geoBounds } from "d3-geo";
 import { useTranslation } from "../../utils/translations";
 import { TrendingItemSkeleton } from "../LoadingStates";
@@ -45,13 +45,14 @@ const ISO2_TO_NUMERIC = {
   TN: "788",
 };
 
-const WorldActivityMap = ({ worldActivity, currentCountryCode, countriesByCode, isLoading }) => {
+const WorldActivityMap = ({ worldActivity, cityActivity, currentCountryCode, countriesByCode, isLoading }) => {
   const theme = useTheme();
   const isMobile = useMediaQuery(theme.breakpoints.down("sm"));
   const { t, currentLanguage } = useTranslation();
   const isRTL = currentLanguage === "ar";
   const [geoFeatures, setGeoFeatures] = useState(null);
   const [hoveredNumericId, setHoveredNumericId] = useState(null);
+  const [hoveredCityIndex, setHoveredCityIndex] = useState(null);
 
   const ink = theme.custom.color.ink;
   const panel = theme.custom.color.surfaceRaised;
@@ -89,6 +90,12 @@ const WorldActivityMap = ({ worldActivity, currentCountryCode, countriesByCode, 
     [worldActivity]
   );
 
+  const cities = useMemo(() => (Array.isArray(cityActivity) ? cityActivity : []), [cityActivity]);
+  const maxCityCount = useMemo(() => cities.reduce((m, c) => Math.max(m, c.count || 0), 0) || 1, [cities]);
+  const CITY_MIN_RADIUS = 4;
+  const CITY_MAX_RADIUS = 12;
+  const cityRadius = (count) => CITY_MIN_RADIUS + (count / maxCityCount) * (CITY_MAX_RADIUS - CITY_MIN_RADIUS);
+
   const currentNumericId = currentCountryCode ? ISO2_TO_NUMERIC[currentCountryCode] : null;
 
   const currentFeature = useMemo(() => {
@@ -121,15 +128,21 @@ const WorldActivityMap = ({ worldActivity, currentCountryCode, countriesByCode, 
   };
 
   const hovered = useMemo(() => {
+    // A hovered city marker takes priority over the country fill beneath it.
+    if (hoveredCityIndex != null && cities[hoveredCityIndex]) {
+      const city = cities[hoveredCityIndex];
+      return { name: city.name, count: city.count, isCurrent: false, isCity: true };
+    }
     if (!hoveredNumericId) return null;
     const entry = activityByNumericId.get(hoveredNumericId);
     return {
       name: countryDisplayName(hoveredNumericId, hoveredNumericId),
       count: entry?.count || 0,
       isCurrent: hoveredNumericId === currentNumericId,
+      isCity: false,
     };
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [hoveredNumericId, activityByNumericId, currentNumericId, currentLanguage]);
+  }, [hoveredCityIndex, cities, hoveredNumericId, activityByNumericId, currentNumericId, currentLanguage]);
 
   if (isLoading) {
     return (
@@ -243,6 +256,39 @@ const WorldActivityMap = ({ worldActivity, currentCountryCode, countriesByCode, 
                 })
               }
             </Geographies>
+
+            {/* City markers — proportional-symbol dots (radius scaled by
+                post count) layered on top of the country fill. Panel-filled
+                with a brand stroke so they read as solid pins regardless of
+                the fill tone beneath them; labels get a panel-colored text
+                outline (paintOrder="stroke") for the same reason, rather
+                than a background pill shape. */}
+            {cities.map((city, index) => (
+              <Marker key={`${city.name}-${index}`} coordinates={[city.lon, city.lat]}>
+                <circle
+                  r={cityRadius(city.count)}
+                  fill={panel}
+                  stroke={brand}
+                  strokeWidth={2}
+                  onMouseEnter={() => setHoveredCityIndex(index)}
+                  onMouseLeave={() => setHoveredCityIndex((prev) => (prev === index ? null : prev))}
+                  style={{ cursor: "pointer" }}
+                />
+                <text
+                  y={cityRadius(city.count) + 12}
+                  textAnchor="middle"
+                  fontSize={10}
+                  fontWeight={600}
+                  fill={ink}
+                  stroke={panel}
+                  strokeWidth={3}
+                  paintOrder="stroke"
+                  pointerEvents="none"
+                >
+                  {city.name}
+                </text>
+              </Marker>
+            ))}
           </ComposableMap>
         ) : (
           <Box sx={{ width: "100%", height: "100%", borderRadius: `${theme.custom.radius.md}px`, backgroundColor: alpha(ink, 0.05) }} />
