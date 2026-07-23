@@ -1,7 +1,7 @@
-import React from "react";
+import React, { useMemo } from "react";
 import { useDispatch, useSelector } from "react-redux";
 import { useNavigate } from "react-router-dom";
-import { Box, useMediaQuery, useTheme, Typography, Button, Paper, Divider, alpha } from "@mui/material";
+import { Box, useMediaQuery, useTheme, Typography, Button, Paper, alpha } from "@mui/material";
 import { setActiveLink, setFoundOrLost, setOpenModal } from "../../app/state";
 import { LoadingState, DashboardEmptyStates } from "../../components/LoadingStates";
 import { Language } from "@mui/icons-material";
@@ -16,7 +16,7 @@ import { useDashboard } from "../../hooks/useDashboard";
 
 // Components
 import LeftSide from "../../components/dashboard/LeftSide";
-import SearchPartyHero from "../../components/dashboard/SearchPartyHero";
+import WorldActivityMap from "../../components/dashboard/WorldActivityMap";
 import QuickActions from "../../components/dashboard/QuickActions";
 import Categories from "../../components/dashboard/Categories";
 import Process from "../../components/dashboard/Process";
@@ -48,6 +48,17 @@ const Dash = () => {
     currentCountry,
     countriesData,
   } = useDashboard();
+
+  // Keyed by ISO2 code (rather than countriesData's default _id keying) so
+  // WorldActivityMap can look up a localized country name from the
+  // aggregation's { code, count } rows without a linear search.
+  const countriesByCode = useMemo(() => {
+    const map = {};
+    Object.values(countriesData?.entities || {}).forEach((c) => {
+      if (c?.code) map[c.code] = c;
+    });
+    return map;
+  }, [countriesData]);
 
 
   const handleCreateNewPost = (type) => {
@@ -204,55 +215,39 @@ const Dash = () => {
         />
       </Box> */}
 
-      {/* Header Section with Stats and Trending */}
+      {/* Stats Panel — its own row now (used to share a flex row with the
+          trend chart, stretched to match its height; the map that replaced
+          that chart needs its own full-width section instead, see below). */}
       <Box
         mb={4}
         p={{ xs: 2, sm: 3, md: 4, lg: 5, xl: 6 }}
-        gap={{ lg: "32px", xl: "40px" }}
         sx={{
-          display: { xs: "grid", sm: "flex" },
-          gridTemplateColumns: { xs: "repeat(1,1fr)", sm: "repeat(2,1fr)" },
           maxWidth: { xs: '100%', sm: '100%', md: '100%', lg: '1400px', xl: '1600px' },
-          overflow: 'hidden',
-          width: '100%', // Ensure full width
-          alignItems: { xs: 'stretch', sm: 'stretch' }, // Ensure both components stretch to same height
-          margin: { xs: 0, sm: '0 auto' }, // Center the container on all screen sizes
-          justifyContent: { xs: 'center', sm: 'center' }, // Center content
-          '& > *': {
-            flex: { xs: 'none', sm: '1 1 0' }, // Equal flex distribution - both grow equally
-            minWidth: 0, // Prevent flex items from overflowing
-            maxWidth: { xs: '100%', sm: '50%' }, // Ensure neither takes more than 50%
-          }
+          width: '100%',
+          margin: { xs: 0, sm: '0 auto' },
         }}
       >
-        <LeftSide
-          totalFounds={data?.totalFounds}
-          totalLosts={data?.totalLosts}
-          totalPosts={data?.totalPosts}
-          totalReturned={data?.totalReturned}
-          foundsToday={data?.createdToday?.todaysFoundPosts}
-          lostsToday={data?.createdToday?.todaysLostPosts}
-        />
-        
-        {/* Mobile-only divider between stats and trending */}
-        <Divider 
-          sx={{ 
-            display: { xs: 'block', sm: 'none' },
-            my: 2,
-            borderColor: theme.palette.mode === 'dark' 
-              ? 'rgba(255,255,255,0.12)' 
-              : 'rgba(0,0,0,0.12)',
-            '&::before, &::after': {
-              borderColor: theme.palette.mode === 'dark' 
-                ? 'rgba(255,255,255,0.12)' 
-                : 'rgba(0,0,0,0.12)'
-            }
-          }} 
-        />
-        
-        <Box sx={{ display: { xs: hasNoData ? 'none' : 'block', sm: 'block' } }}>
-          <SearchPartyHero totalReturned={data?.totalReturned} isLoading={isLoading} />
+        <Box sx={{ maxWidth: { xs: '100%', sm: '640px', lg: '720px' }, mx: { xs: 0, sm: 'auto' } }}>
+          <LeftSide
+            totalFounds={data?.totalFounds}
+            totalLosts={data?.totalLosts}
+            totalPosts={data?.totalPosts}
+            totalReturned={data?.totalReturned}
+            foundsToday={data?.createdToday?.todaysFoundPosts}
+            lostsToday={data?.createdToday?.todaysLostPosts}
+          />
         </Box>
+      </Box>
+
+      {/* World activity map — full width/height of its own section rather
+          than squeezed into half of the stats row. */}
+      <Box sx={{ display: { xs: hasNoData ? 'none' : 'block', sm: 'block' } }}>
+        <WorldActivityMap
+          worldActivity={data?.worldActivity}
+          currentCountryCode={countriesData?.entities?.[currentCountry]?.code}
+          countriesByCode={countriesByCode}
+          isLoading={isLoading}
+        />
       </Box>
 
       {/* Show empty state if no posts, but still show stats above */}

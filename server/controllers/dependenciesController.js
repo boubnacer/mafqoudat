@@ -913,6 +913,72 @@ const getDashboard = async (req, res) => {
 
     const createdToday = { todaysFoundPosts, todaysLostPosts };
 
+    // Daily Found/Lost activity for the header's trend chart — a dense
+    // day-by-day series (zero-filled, not just the days that had posts) so
+    // the client can plot it directly without backfilling missing dates.
+    const DAILY_TREND_DAYS = 14;
+    const trendRangeStart = new Date(todayStart);
+    trendRangeStart.setDate(trendRangeStart.getDate() - (DAILY_TREND_DAYS - 1));
+
+    const dailyActivityResult = await Post.aggregate([
+      {
+        $match: {
+          country: new mongoose.Types.ObjectId(currentCountry),
+          createdAt: { $gte: trendRangeStart, $lt: todayEnd },
+        },
+      },
+      {
+        $group: {
+          _id: {
+            day: { $dateToString: { format: "%Y-%m-%d", date: "$createdAt" } },
+            foundLost: "$foundLost",
+          },
+          count: { $sum: 1 },
+        },
+      },
+    ]);
+
+    const dailyMap = new Map();
+    for (let i = 0; i < DAILY_TREND_DAYS; i++) {
+      const d = new Date(trendRangeStart);
+      d.setDate(d.getDate() + i);
+      const key = d.toISOString().slice(0, 10);
+      dailyMap.set(key, { date: key, found: 0, lost: 0 });
+    }
+    dailyActivityResult.forEach((row) => {
+      const day = dailyMap.get(row._id.day);
+      if (!day) return;
+      if (String(row._id.foundLost) === String(foundOption._id)) day.found = row.count;
+      else if (String(row._id.foundLost) === String(lostOption._id)) day.lost = row.count;
+    });
+    const dailyActivity = Array.from(dailyMap.values());
+
+    // Platform-wide posts-per-country, for the header's world activity map.
+    // Deliberately NOT scoped to currentCountry (unlike formattedLocations
+    // above, which matches currentCountry first and so can only ever
+    // resolve to that one country) — this is meant to show reach across
+    // the whole platform, not just the selected country.
+    const worldActivityResult = await Post.aggregate([
+      {
+        $lookup: {
+          from: "countries",
+          localField: "country",
+          foreignField: "_id",
+          as: "countryData",
+        },
+      },
+      { $unwind: "$countryData" },
+      {
+        $group: {
+          _id: "$countryData.code",
+          count: { $sum: 1 },
+        },
+      },
+    ]);
+    const worldActivity = worldActivityResult
+      .filter((row) => row._id)
+      .map((row) => ({ code: row._id, count: row.count }));
+
     const response = {
       trendingPost,
       recentFounds,
@@ -923,6 +989,8 @@ const getDashboard = async (req, res) => {
       totalReturned,
       formattedLocations,
       createdToday,
+      dailyActivity,
+      worldActivity,
     };
 
     // Cache the response for 5 minutes (dynamic data)
