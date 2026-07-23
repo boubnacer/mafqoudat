@@ -11,3 +11,10 @@ server/.env
 server/env.production
 client/.env
 
+# Ad-hoc dev-server/verification scratch files (not part of the app)
+client/.devserver.log
+server/.devserver.log
+client/verify_hero.js
+client/dbg_initial*.png
+client/shot_*.png
+
