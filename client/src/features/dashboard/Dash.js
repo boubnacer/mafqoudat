@@ -16,7 +16,7 @@ import { useDashboard } from "../../hooks/useDashboard";
 
 // Components
 import LeftSide from "../../components/dashboard/LeftSide";
-import TrendingItem from "../../components/dashboard/TrendingItem";
+import SearchPartyHero from "../../components/dashboard/SearchPartyHero";
 import QuickActions from "../../components/dashboard/QuickActions";
 import Categories from "../../components/dashboard/Categories";
 import Process from "../../components/dashboard/Process";
@@ -45,7 +45,6 @@ const Dash = () => {
     isError,
     error,
     isLoading,
-    trend,
     currentCountry,
     countriesData,
   } = useDashboard();
@@ -63,9 +62,9 @@ const Dash = () => {
     }
   };
 
-  // Mirrors TrendingItem's SectionPanel/SectionTitle chrome (theme.custom
-  // elevation/radius/ink) instead of the old hardcoded-hex panel. Shared
-  // between the empty-state and normal render paths below so the two never drift.
+  // Mirrors LeftSide's panel chrome (theme.custom elevation/radius/ink)
+  // instead of the old hardcoded-hex panel. Shared between the empty-state
+  // and normal render paths below so the two never drift.
   const categoriesSection = (
     <Box mb={4}>
       <DashRecents
@@ -252,7 +251,7 @@ const Dash = () => {
         />
         
         <Box sx={{ display: { xs: hasNoData ? 'none' : 'block', sm: 'block' } }}>
-          <TrendingItem trend={trend} isLoading={isLoading} />
+          <SearchPartyHero totalReturned={data?.totalReturned} isLoading={isLoading} />
         </Box>
       </Box>
 
