@@ -299,13 +299,14 @@ const NewPostForm = ({ user, countries, categories, flOptions }) => {
     { key: 'rest', label: t('wizardStepReviewTitle'), subtitle: t('wizardStepReviewSubtitle') },
   ];
 
-  // Measures the first/last rail badge centers (relative to the rail
-  // container) so the connector line drawn below can be anchored exactly on
-  // them, in both LTR and RTL - getBoundingClientRect reflects wherever the
-  // browser actually placed the badge, so no direction-specific math is
-  // needed. Re-measures on resize and whenever the rail's content changes
-  // size (e.g. a subtitle wrapping to a different number of lines after a
-  // language switch).
+  // Measures each rail badge's edges (relative to the rail container) so the
+  // connector line drawn below is built from one segment per gap between
+  // consecutive badges, stopping exactly at each circle's edge instead of
+  // running through its (semi-transparent) fill - getBoundingClientRect
+  // reflects wherever the browser actually placed the badge, so no
+  // direction-specific math is needed for LTR vs RTL. Re-measures on resize
+  // and whenever the rail's content changes size (e.g. a subtitle wrapping to
+  // a different number of lines after a language switch).
   useLayoutEffect(() => {
     const measure = () => {
       const container = railContainerRef.current;
@@ -313,13 +314,18 @@ const NewPostForm = ({ user, countries, categories, flOptions }) => {
       if (!container || icons.length < 2 || icons.some((el) => !el)) return;
 
       const containerRect = container.getBoundingClientRect();
-      const firstRect = icons[0].getBoundingClientRect();
-      const lastRect = icons[icons.length - 1].getBoundingClientRect();
+      const iconRects = icons.map((el) => el.getBoundingClientRect());
+
+      const segments = [];
+      for (let i = 0; i < iconRects.length - 1; i++) {
+        const top = iconRects[i].bottom - containerRect.top;
+        const bottom = iconRects[i + 1].top - containerRect.top;
+        segments.push({ top, height: Math.max(0, bottom - top) });
+      }
 
       setRailLineMetrics({
-        left: firstRect.left - containerRect.left + firstRect.width / 2,
-        top: firstRect.top - containerRect.top + firstRect.height / 2,
-        bottom: containerRect.bottom - lastRect.bottom + lastRect.height / 2,
+        left: iconRects[0].left - containerRect.left + iconRects[0].width / 2,
+        segments,
       });
     };
 
@@ -1094,20 +1100,22 @@ const NewPostForm = ({ user, countries, categories, flOptions }) => {
                 {/* Desktop rail: vertical Stepper with icon badges, current step highlighted */}
                 <Box ref={railContainerRef} sx={{ display: { xs: 'none', sm: 'block' }, width: 240, flexShrink: 0, position: 'relative' }}>
                   {/* Connector line linking the rail badges (Process.jsx's
-                      linked-circles style) - a static track plus a colored
-                      overlay that grows to reflect wizard progress. Positioned
-                      from railLineMetrics (measured badge centers) rather than
+                      linked-circles style) - one static track + animated
+                      overlay segment per gap between consecutive badges, so
+                      the line stops right at each circle's edge instead of
+                      running through its (semi-transparent) fill. Positioned
+                      from railLineMetrics (measured badge edges) rather than
                       MUI's built-in StepConnector, which assumes a standard
                       24px icon and physical offsets that don't line up with
                       our 40px badges or follow them over in RTL. */}
-                  {railLineMetrics && (
-                    <>
+                  {railLineMetrics?.segments.map((segment, index) => (
+                    <Box key={index}>
                       <Box
                         sx={{
                           position: 'absolute',
                           left: railLineMetrics.left,
-                          top: railLineMetrics.top,
-                          bottom: railLineMetrics.bottom,
+                          top: segment.top,
+                          height: segment.height,
                           width: 2,
                           borderRadius: 1,
                           backgroundColor: alpha(theme.custom.color.ink, theme.palette.mode === 'dark' ? 0.14 : 0.1),
@@ -1117,13 +1125,13 @@ const NewPostForm = ({ user, countries, categories, flOptions }) => {
                       <Box
                         component={motion.div}
                         initial={false}
-                        animate={{ scaleY: maxStepReached / (steps.length - 1) }}
+                        animate={{ scaleY: index < maxStepReached ? 1 : 0 }}
                         transition={{ duration: 0.35, ease: 'easeInOut' }}
                         sx={{
                           position: 'absolute',
                           left: railLineMetrics.left,
-                          top: railLineMetrics.top,
-                          bottom: railLineMetrics.bottom,
+                          top: segment.top,
+                          height: segment.height,
                           width: 2,
                           borderRadius: 1,
                           background: `linear-gradient(180deg, ${accentColor}, ${lighten(accentColor, 0.2)})`,
@@ -1131,8 +1139,8 @@ const NewPostForm = ({ user, countries, categories, flOptions }) => {
                           zIndex: 0,
                         }}
                       />
-                    </>
-                  )}
+                    </Box>
+                  ))}
 
                   <Stepper
                     activeStep={activeStep}
