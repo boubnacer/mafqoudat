@@ -43,28 +43,7 @@ import {
   VerifiedUserOutlined,
   PublicOutlined,
   CategoryOutlined,
-  PhoneAndroidOutlined,
-  ArticleOutlined,
-  AccountBalanceWalletOutlined,
-  KeyOutlined,
-  DirectionsCarOutlined,
-  LuggageOutlined,
 } from "@mui/icons-material";
-
-// Categories shown in the "browse by category" strip. Rendered directly
-// (not via RenderIcon) — RenderIcon's name-matching routes anything
-// containing "cate" through config/categories.js's separate hardcoded
-// palette rather than theme.palette.categories, which silently produced
-// the wrong icon for names that don't happen to match its plural keys.
-// themeKey pairs with theme.palette.categories in client/src/theme.js.
-const CATEGORY_SHOWCASE = [
-  { themeKey: "devicecate", Icon: PhoneAndroidOutlined, labelKey: "devices" },
-  { themeKey: "documentcate", Icon: ArticleOutlined, labelKey: "document" },
-  { themeKey: "walletcate", Icon: AccountBalanceWalletOutlined, labelKey: "wallet" },
-  { themeKey: "keyscate", Icon: KeyOutlined, labelKey: "keys" },
-  { themeKey: "vehiclecate", Icon: DirectionsCarOutlined, labelKey: "vehicle" },
-  { themeKey: "bagcate", Icon: LuggageOutlined, labelKey: "bag" },
-];
 
 const API_BASE_URL = process.env.REACT_APP_API_URL || "http://localhost:3500";
 
@@ -274,9 +253,11 @@ const WelcomePage = () => {
   // Use countries from API or fallback
   const countries = countriesData?.length > 0 ? countriesData : fallbackCountries;
 
-  // Real, live category count for the coverage stat below (not a static/guessed number)
+  // Real, live category list — drives both the coverage stat and the
+  // "browse by category" strip below, so neither is capped at a hardcoded
+  // subset of categories.
   const { data: categoriesData } = useGetCategoriesQuery({ language: activeLanguage }, {
-    selectFromResult: ({ data }) => ({ data: data?.ids?.length || 0 }),
+    selectFromResult: ({ data }) => ({ data: data?.ids?.map((id) => data?.entities[id]) || [] }),
   });
 
   // Pre-select the first available country so the hero can show real, local
@@ -402,13 +383,6 @@ const WelcomePage = () => {
     }
   };
 
-  const handleReportItem = () => {
-    if (selectedCountry) {
-      dispatch(setCurrentCountry({ currentCountry: selectedCountry._id }));
-      navigate('/dash/posts/new');
-    }
-  };
-
   const handleViewHeroPost = (post) => {
     if (!selectedCountry?._id) return;
     dispatch(setCurrentCountry({ currentCountry: selectedCountry._id }));
@@ -448,8 +422,11 @@ const WelcomePage = () => {
 
   const seoMetadata = <SeoMeta pageKey="home" />;
 
-  // Show loading state only if we're actively loading and have no data
-  if (countriesLoading && countries.length === 0) {
+  // Show the site loading state until countries have actually been fetched —
+  // countries falls back to a placeholder list while loading, so gating on
+  // countriesLoading itself (not countries.length) is what keeps the welcome
+  // page from rendering against fake data.
+  if (countriesLoading) {
     return (
       <>
         {seoMetadata}
@@ -601,7 +578,7 @@ const WelcomePage = () => {
                 <Button
                   variant="contained"
                   size="large"
-                  disabled={!selectedCountry}
+                  disabled={countriesLoading || !selectedCountry}
                   onClick={handleContinue}
                   endIcon={isRTL ? <ArrowBack /> : <ArrowForward />}
                   sx={{
@@ -620,21 +597,6 @@ const WelcomePage = () => {
                 >
                   {t('browseNearYou')}
                 </Button>
-                <Button
-                  variant="outlined"
-                  size="large"
-                  disabled={!selectedCountry}
-                  onClick={handleReportItem}
-                  sx={{
-                    py: 1.5,
-                    borderRadius: `${theme.custom.radius.md}px`,
-                    fontWeight: 600,
-                    borderColor: theme.custom.color.brandPrimary,
-                    color: theme.custom.color.brandPrimary,
-                  }}
-                >
-                  {t('addNewPost')}
-                </Button>
               </Box>
             </Grid>
 
@@ -647,10 +609,17 @@ const WelcomePage = () => {
                   justifyContent: 'center',
                   alignItems: 'flex-end',
                   flexWrap: 'nowrap',
+                  // overflowX:'auto' paired with overflowY:'visible' isn't valid per the
+                  // CSS overflow spec — a non-'visible' value on one axis forces the other
+                  // to compute as 'auto' too, so this was silently clipping the fan
+                  // vertically (cutting off the permanently-raised front card's top edge,
+                  // and clipping further on hover-lift). Instead of fighting that, the
+                  // container just gets enough top/bottom headroom that the tilt/lift/scale
+                  // transforms never need to escape its box in the first place.
                   overflowX: 'auto',
-                  overflowY: 'visible',
                   mt: 3,
-                  py: 2,
+                  pt: 6,
+                  pb: 3,
                   px: { xs: 3, sm: 1 },
                 }}
               >
@@ -821,7 +790,7 @@ const WelcomePage = () => {
               <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
                 <CategoryOutlined sx={{ color: 'text.secondary' }} />
                 <Typography variant="body1" sx={{ fontWeight: 600 }}>
-                  {t('platformCategoriesStat', { count: categoriesData || CATEGORY_SHOWCASE.length })}
+                  {t('platformCategoriesStat', { count: categoriesData.length })}
                 </Typography>
               </Box>
             </Box>
@@ -842,16 +811,25 @@ const WelcomePage = () => {
               '&::-webkit-scrollbar': { height: 6 },
             }}
           >
-            {CATEGORY_SHOWCASE.map((cat) => {
-              const cateColors = theme.palette.categories?.[cat.themeKey];
+            {categoriesData.map((category) => {
+              // theme.palette.categories keys are `${code.toLowerCase()}cate`
+              // (e.g. ELECTRONICS -> electronicscate) — covers every real
+              // category code. Icon component still comes from
+              // config/categories.js's getCategoryIcon (same helper already
+              // used for hero post cards above), not routed through
+              // RenderIcon.jsx, which has a separate known icon-matching bug.
+              const themeKey = `${category.code?.toLowerCase()}cate`;
+              const cateColors = theme.palette.categories?.[themeKey];
               // categories[].back/icon are fixed pastel/saturated tones, not
               // mode-adaptive — so the label uses the same saturated icon
               // color rather than the theme's default (light-in-dark-mode)
               // text color, which would go low-contrast on the pastel chip.
               const tint = cateColors?.icon || theme.palette.text.primary;
+              const CategoryIcon = getCategoryIcon(category.code);
+              const label = category.labels?.[activeLanguage] || category.labels?.en || category.code;
               return (
                 <Box
-                  key={cat.themeKey}
+                  key={category._id}
                   onClick={selectedCountry ? handleContinue : undefined}
                   sx={{
                     flex: '0 0 auto',
@@ -869,9 +847,9 @@ const WelcomePage = () => {
                     '&:hover': selectedCountry ? { transform: 'translateY(-2px)' } : {},
                   }}
                 >
-                  <cat.Icon sx={{ color: tint, fontSize: 26 }} />
+                  <CategoryIcon sx={{ color: tint, fontSize: 26 }} />
                   <Typography variant="caption" sx={{ fontWeight: 600, textAlign: 'center', color: tint }}>
-                    {t(cat.labelKey)}
+                    {label}
                   </Typography>
                 </Box>
               );
