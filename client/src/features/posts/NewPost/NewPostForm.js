@@ -44,6 +44,7 @@ import StepPhoto from "./steps/StepPhoto";
 import StepReview from "./steps/StepReview";
 import StepTransition from "./steps/StepTransition";
 import WizardFooter from "./steps/WizardFooter";
+import WizardNextButton from "./steps/WizardNextButton";
 import ReviewSubmitButton from "./steps/ReviewSubmitButton";
 import { validateStep1, validateStep2, STEP_VALIDATORS, scrollToFirstErrorField } from "./wizardValidation";
 import { getCityDisplayName } from "./cityDisplay";
@@ -1048,6 +1049,25 @@ const NewPostForm = ({ user, countries, categories, flOptions }) => {
                     activeStep={activeStep}
                     orientation="vertical"
                     sx={{
+                      // Default connector aligns to a standard 24px StepIcon via a
+                      // physical marginLeft, so against our 40px RailStepIcon badges
+                      // (center at 20px) it renders as a thin, off-center bar - and
+                      // being physical rather than logical, it doesn't follow the
+                      // badge over to the RTL side in Arabic either. Re-anchor it to
+                      // the badge center with logical properties instead, so it stays
+                      // centered under the rail icons in both directions.
+                      '& .MuiStepConnector-vertical': {
+                        marginLeft: 0,
+                        marginInlineStart: '19px',
+                      },
+                      '& .MuiStepConnector-lineVertical': {
+                        borderLeftWidth: 0,
+                        borderInlineStartWidth: 2,
+                        minHeight: 20,
+                      },
+                      '& .MuiStepConnector-line': {
+                        borderColor: alpha(theme.custom.color.ink, theme.palette.mode === 'dark' ? 0.14 : 0.1),
+                      },
                       '& .MuiStepConnector-root.Mui-active .MuiStepConnector-line, & .MuiStepConnector-root.Mui-completed .MuiStepConnector-line': {
                         borderColor: accentColor,
                       },
@@ -1139,13 +1159,7 @@ const NewPostForm = ({ user, countries, categories, flOptions }) => {
                           getFoundLostType={getFoundLostType}
                         />
                         <WizardFooter showBack={false}>
-                          <Button
-                            variant="contained"
-                            onClick={() => handleNextFromItemStep(values, setStatus)}
-                            sx={{ textTransform: 'none', borderRadius: 2, px: 4, py: 1.25, fontWeight: 600 }}
-                          >
-                            {t('wizardNext')}
-                          </Button>
+                          <WizardNextButton onClick={() => handleNextFromItemStep(values, setStatus)} />
                         </WizardFooter>
                       </>
                     )}
@@ -1174,13 +1188,7 @@ const NewPostForm = ({ user, countries, categories, flOptions }) => {
                           handleCitySelect={handleCitySelect}
                         />
                         <WizardFooter onBack={() => goToStep(0)}>
-                          <Button
-                            variant="contained"
-                            onClick={() => handleNextFromLocationStep(values, setStatus)}
-                            sx={{ textTransform: 'none', borderRadius: 2, px: 4, py: 1.25, fontWeight: 600 }}
-                          >
-                            {t('wizardNext')}
-                          </Button>
+                          <WizardNextButton onClick={() => handleNextFromLocationStep(values, setStatus)} />
                         </WizardFooter>
                       </>
                     )}
@@ -1200,13 +1208,7 @@ const NewPostForm = ({ user, countries, categories, flOptions }) => {
                           handleImageDialogOpen={handleImageDialogOpen}
                         />
                         <WizardFooter onBack={() => goToStep(1)}>
-                          <Button
-                            variant="contained"
-                            onClick={handleNextFromPhotoStep}
-                            sx={{ textTransform: 'none', borderRadius: 2, px: 4, py: 1.25, fontWeight: 600 }}
-                          >
-                            {t('wizardNext')}
-                          </Button>
+                          <WizardNextButton onClick={handleNextFromPhotoStep} />
                         </WizardFooter>
                       </>
                     )}

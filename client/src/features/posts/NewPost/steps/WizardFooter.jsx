@@ -1,4 +1,4 @@
-import { Box, Button, useTheme } from "@mui/material";
+import { Box, Button, useTheme, alpha } from "@mui/material";
 import { useTranslation } from "../../../../utils/translations";
 
 // Shared Back/Next action bar for the wizard steps. Anchored to the bottom
@@ -33,7 +33,17 @@ const WizardFooter = ({ showBack = true, onBack, stackOnMobile = false, children
         <Button
           variant="outlined"
           onClick={onBack}
-          sx={{ textTransform: 'none', borderRadius: 2, px: 3 }}
+          sx={{
+            textTransform: 'none',
+            borderRadius: 2,
+            px: 3,
+            color: theme.custom.color.brandPrimary,
+            borderColor: alpha(theme.custom.color.brandPrimary, 0.5),
+            '&:hover': {
+              borderColor: theme.custom.color.brandPrimary,
+              backgroundColor: alpha(theme.custom.color.brandPrimary, theme.palette.mode === 'dark' ? 0.12 : 0.06),
+            },
+          }}
         >
           {t('back')}
         </Button>

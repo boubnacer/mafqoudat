@@ -32,8 +32,12 @@ const Recent = ({ recent, type, maxItems }) => {
       sx={{
         // Found/Lost panels sit side-by-side from `md` up (see RecentSection's
         // parent grid in Dash.js), so each panel only ever gets ~half the
-        // viewport width. Fixed at 2 columns since only 2 posts are shown.
-        gridTemplateColumns: "repeat(2, 1fr)",
+        // viewport width there — 2 columns still reads fine. Below `sm` each
+        // panel is already full-width and stacked, but squeezing 2 cards into
+        // that single narrow column made every card (image + text) tiny, so
+        // stack to 1 column there instead — same 2 posts, just full-width and
+        // legible.
+        gridTemplateColumns: isMobile ? "1fr" : "repeat(2, 1fr)",
       }}
     >
       {displayItems.map((post) => (
