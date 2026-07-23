@@ -1,4 +1,4 @@
-import { Box, Typography, useTheme, useMediaQuery, alpha } from "@mui/material";
+import { Box, Typography, useTheme, alpha } from "@mui/material";
 import { useNavigate } from "react-router-dom";
 import {
   LocationOnOutlined,
@@ -17,11 +17,12 @@ import { getCategoryConfig, getCategoryIcon } from "../../config/categories";
 
 const API_BASE_URL = process.env.REACT_APP_API_URL || "http://localhost:3500";
 
-// Compact preview card for the dashboard's Recent Founds/Losts panels.
-// Same DNA as the canonical post card (TrendingItem.jsx / PublicPostsPage.jsx):
-// surfaceRaised + radius.lg + e1->e2 hover lift + status-tone accent bar,
-// just denser — one info row instead of three, since this is a glanceable
-// preview, not the full post view.
+// Poster-style preview card for the dashboard's Recent Founds/Losts panels —
+// same DNA as the "Recently posted near you" hero card on WelcomePage.jsx
+// (FannedCard): full-bleed image or solid category-color fill, gradient scrim
+// for legibility, category label + status tag overlaid top, location + date
+// overlaid bottom. Laid out here in a plain responsive grid (see Recent.jsx)
+// rather than the hero's fanned stack — only the per-card look is reused.
 const RecentPosts = ({
   _id,
   type,
@@ -37,7 +38,6 @@ const RecentPosts = ({
   returned,
 }) => {
   const theme = useTheme();
-  const isMobile = useMediaQuery(theme.breakpoints.down("sm"));
   const navigate = useNavigate();
   const { t, currentLanguage } = useTranslation();
 
@@ -80,9 +80,6 @@ const RecentPosts = ({
     return categoryname || "OTHER";
   }, [Categories, Category, categoryname]);
 
-  // Category label as text — only needed for the mobile row layout, which
-  // shows a title (mirrors mobile app's RecentPreviewCard) instead of relying
-  // on the thumbnail's fallback icon alone.
   const categoryLabel = useMemo(() => {
     const cat = (Categories && Array.isArray(Categories) && Categories[0]) || Category;
     if (cat?.labels) return cat.labels[currentLanguage] || cat.labels.en || cat.code;
@@ -112,148 +109,10 @@ const RecentPosts = ({
 
   const handleViewDetails = () => navigate(`/dash/posts/${_id}`);
 
-  // Mobile: a horizontal row card (fixed-width thumbnail + content beside it,
-  // stacked one per row) — matches the mobile app's RecentPreviewCard
-  // (mobile/src/screens/HomeScreen.js) instead of the desktop's image-on-top
-  // card, since squeezing that vertical card into a narrow single column
-  // read as small/cramped. Desktop layout below is untouched.
-  if (isMobile) {
-    return (
-      <Box
-        role="button"
-        tabIndex={0}
-        onClick={handleViewDetails}
-        onKeyDown={(e) => {
-          if (e.key === "Enter" || e.key === " ") {
-            e.preventDefault();
-            handleViewDetails();
-          }
-        }}
-        sx={{
-          display: "flex",
-          flexDirection: "row",
-          alignItems: "stretch",
-          backgroundColor: theme.custom.color.surfaceRaised,
-          borderRadius: `${theme.custom.radius.lg}px`,
-          boxShadow: theme.custom.elevation.e1,
-          border: `1px solid ${theme.palette.divider}`,
-          overflow: "hidden",
-          cursor: "pointer",
-          outline: "none",
-          transition: "box-shadow 0.2s ease",
-          "&:hover": { boxShadow: theme.custom.elevation.e2 },
-          "&:focus-visible": { boxShadow: `0 0 0 2px ${tone.main}` },
-        }}
-      >
-        {/* Thumbnail — fixed width, stretches full row height */}
-        <Box
-          sx={{
-            position: "relative",
-            width: 112,
-            flexShrink: 0,
-            backgroundColor: theme.custom.color.surfaceBase,
-          }}
-        >
-          {finalImageUrl ? (
-            <LazyCardMedia
-              component="img"
-              image={finalImageUrl}
-              alt={displayCityName}
-              fallback={noImageSvg}
-              sx={{ position: "absolute", inset: 0, width: "100%", height: "100%", objectFit: "cover" }}
-            />
-          ) : (
-            <Box
-              sx={{
-                position: "absolute",
-                inset: 0,
-                display: "flex",
-                alignItems: "center",
-                justifyContent: "center",
-                backgroundColor: categoryStyle.background,
-              }}
-            >
-              {FallbackIcon && (
-                <FallbackIcon sx={{ fontSize: 32, color: categoryStyle.main, opacity: 0.85 }} />
-              )}
-            </Box>
-          )}
-        </Box>
-
-        {/* Content */}
-        <Box sx={{ flex: 1, minWidth: 0, display: "flex", flexDirection: "column", justifyContent: "center", gap: 0.5, p: 1.75 }}>
-          <Box sx={{ display: "flex", alignItems: "center", flexWrap: "wrap", gap: 0.5 }}>
-            <Box
-              component="span"
-              sx={{
-                alignSelf: "flex-start",
-                px: 1.1,
-                py: 0.35,
-                borderRadius: `${theme.custom.radius.sm}px`,
-                backgroundColor: tone.bg,
-              }}
-            >
-              <Typography
-                variant="caption"
-                sx={{ fontWeight: 700, fontSize: "10px", letterSpacing: 0.3, textTransform: "uppercase", color: tone.main, lineHeight: 1.4 }}
-              >
-                {t(type)}
-              </Typography>
-            </Box>
-            {returned && (
-              <Box
-                component="span"
-                sx={{
-                  display: "inline-flex",
-                  alignItems: "center",
-                  gap: 0.4,
-                  px: 1.1,
-                  py: 0.35,
-                  borderRadius: `${theme.custom.radius.sm}px`,
-                  backgroundColor: theme.custom.status.found.bg,
-                }}
-              >
-                <CheckCircleIcon sx={{ fontSize: 11, color: theme.custom.status.found.main }} />
-                <Typography
-                  variant="caption"
-                  sx={{ fontWeight: 700, fontSize: "10px", textTransform: "uppercase", color: theme.custom.status.found.main, lineHeight: 1.4 }}
-                >
-                  {t("returned")}
-                </Typography>
-              </Box>
-            )}
-          </Box>
-
-          <Typography
-            variant="body2"
-            sx={{
-              fontWeight: 700,
-              color: theme.custom.color.ink,
-              overflow: "hidden",
-              textOverflow: "ellipsis",
-              whiteSpace: "nowrap",
-            }}
-          >
-            {categoryLabel}
-          </Typography>
-
-          <Box sx={{ display: "flex", alignItems: "center", gap: 0.5, minWidth: 0 }}>
-            <LocationOnOutlined sx={{ fontSize: 14, color: alpha(theme.custom.color.ink, 0.55), flexShrink: 0 }} />
-            <Typography
-              variant="caption"
-              sx={{ color: alpha(theme.custom.color.ink, 0.7), overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}
-            >
-              {displayCityName}
-            </Typography>
-          </Box>
-
-          <Typography variant="caption" sx={{ color: alpha(theme.custom.color.ink, 0.6) }}>
-            {created}
-          </Typography>
-        </Box>
-      </Box>
-    );
-  }
+  // Text sits on top of the image (gradient scrim) or the solid category
+  // fill, so it always needs to read as light — same contrast logic as
+  // WelcomePage.jsx's FannedCard.
+  const textColor = finalImageUrl ? "#FFFFFF" : theme.palette.getContrastText(categoryStyle.main);
 
   return (
     <Box
@@ -267,155 +126,160 @@ const RecentPosts = ({
         }
       }}
       sx={{
-        height: "100%",
-        display: "flex",
-        flexDirection: "column",
-        backgroundColor: theme.custom.color.surfaceRaised,
+        position: "relative",
+        width: "100%",
+        aspectRatio: "3 / 4",
         borderRadius: `${theme.custom.radius.lg}px`,
-        boxShadow: theme.custom.elevation.e1,
-        border: `1px solid ${theme.palette.divider}`,
-        borderInlineStart: `6px solid ${tone.main}`,
         overflow: "hidden",
         cursor: "pointer",
         outline: "none",
+        border: `1px solid ${theme.palette.divider}`,
+        boxShadow: theme.custom.elevation.e1,
+        backgroundColor: finalImageUrl ? theme.custom.color.surfaceBase : categoryStyle.main,
         transition: "transform 0.2s ease, box-shadow 0.2s ease",
         "&:hover": { transform: "translateY(-4px)", boxShadow: theme.custom.elevation.e2 },
         "&:focus-visible": { boxShadow: `0 0 0 2px ${tone.main}` },
       }}
     >
-      {/* Media */}
+      {finalImageUrl ? (
+        <LazyCardMedia
+          component="img"
+          image={finalImageUrl}
+          alt={displayCityName}
+          fallback={noImageSvg}
+          sx={{ position: "absolute", inset: 0, width: "100%", height: "100%", objectFit: "cover" }}
+        />
+      ) : (
+        FallbackIcon && (
+          <Box sx={{ position: "absolute", inset: 0, display: "flex", alignItems: "center", justifyContent: "center" }}>
+            <FallbackIcon sx={{ fontSize: 48, color: textColor, opacity: 0.9 }} />
+          </Box>
+        )
+      )}
+
+      {finalImageUrl && (
+        <Box
+          sx={{
+            position: "absolute",
+            inset: 0,
+            background: `linear-gradient(to top, ${alpha("#000000", 0.65)} 0%, ${alpha("#000000", 0.05)} 45%, ${alpha("#000000", 0.4)} 100%)`,
+          }}
+        />
+      )}
+
+      {/* Top row: category label + status tag (+ returned, stacked under it) */}
       <Box
         sx={{
-          position: "relative",
-          width: "100%",
-          paddingTop: "75%",
-          overflow: "hidden",
-          backgroundColor: theme.custom.color.surfaceBase,
+          position: "absolute",
+          top: 0,
+          insetInlineStart: 0,
+          insetInlineEnd: 0,
+          zIndex: 2,
+          p: 1.25,
+          display: "flex",
+          justifyContent: "space-between",
+          alignItems: "flex-start",
+          gap: 0.75,
         }}
       >
-        {finalImageUrl ? (
-          <LazyCardMedia
-            component="img"
-            image={finalImageUrl}
-            alt={displayCityName}
-            fallback={noImageSvg}
-            sx={{ position: "absolute", inset: 0, width: "100%", height: "100%", objectFit: "cover" }}
-          />
-        ) : (
-          <Box
-            sx={{
-              position: "absolute",
-              inset: 0,
-              display: "flex",
-              alignItems: "center",
-              justifyContent: "center",
-              backgroundColor: categoryStyle.background,
-            }}
-          >
-            {FallbackIcon && (
-              <FallbackIcon sx={{ fontSize: 40, color: categoryStyle.main, opacity: 0.85 }} />
-            )}
-          </Box>
-        )}
-
-        {/* Status tag */}
-        <Box
+        <Typography
+          variant="caption"
           sx={{
-            position: "absolute",
-            top: 8,
-            insetInlineStart: 8,
-            zIndex: 2,
-            display: "inline-flex",
-            alignItems: "center",
-            gap: 0.5,
-            px: 1,
-            py: 0.375,
-            borderRadius: `${theme.custom.radius.sm}px`,
-            backgroundColor: tone.main,
+            fontWeight: 800,
+            color: textColor,
+            lineHeight: 1.2,
+            overflow: "hidden",
+            textOverflow: "ellipsis",
+            display: "-webkit-box",
+            WebkitLineClamp: 2,
+            WebkitBoxOrient: "vertical",
+            flex: "1 1 auto",
+            minWidth: 0,
           }}
         >
-          <StatusIcon sx={{ fontSize: 12, color: theme.palette.getContrastText(tone.main) }} />
-          <Typography
-            variant="caption"
-            sx={{
-              fontWeight: 700,
-              fontSize: "10px",
-              letterSpacing: 0.3,
-              textTransform: "uppercase",
-              color: theme.palette.getContrastText(tone.main),
-              lineHeight: 1,
-            }}
-          >
-            {t(type)}
-          </Typography>
-        </Box>
+          {categoryLabel}
+        </Typography>
 
-        {/* Date badge */}
-        <Box
-          sx={{
-            position: "absolute",
-            top: 8,
-            insetInlineEnd: 8,
-            zIndex: 2,
-            px: 1,
-            py: 0.375,
-            borderRadius: `${theme.custom.radius.sm}px`,
-            backgroundColor: alpha(theme.custom.color.surfaceRaised, 0.85),
-          }}
-        >
-          <Typography
-            variant="caption"
-            sx={{ color: theme.custom.color.ink, fontWeight: 600, fontSize: "10px", lineHeight: 1 }}
-          >
-            {created}
-          </Typography>
-        </Box>
-
-        {/* Returned badge */}
-        {returned && (
+        <Box sx={{ flexShrink: 0, display: "flex", flexDirection: "column", alignItems: "flex-end", gap: 0.5 }}>
           <Box
             sx={{
-              position: "absolute",
-              bottom: 8,
-              insetInlineEnd: 8,
-              zIndex: 2,
               display: "inline-flex",
               alignItems: "center",
               gap: 0.5,
               px: 1,
               py: 0.375,
               borderRadius: `${theme.custom.radius.sm}px`,
-              backgroundColor: theme.custom.status.found.main,
+              backgroundColor: tone.main,
             }}
           >
-            <CheckCircleIcon
-              sx={{ fontSize: 12, color: theme.palette.getContrastText(theme.custom.status.found.main) }}
-            />
+            <StatusIcon sx={{ fontSize: 14, color: theme.palette.getContrastText(tone.main) }} />
             <Typography
               variant="caption"
               sx={{
                 fontWeight: 700,
                 fontSize: "10px",
+                letterSpacing: 0.3,
                 textTransform: "uppercase",
-                color: theme.palette.getContrastText(theme.custom.status.found.main),
+                color: theme.palette.getContrastText(tone.main),
                 lineHeight: 1,
               }}
             >
-              {t("returned")}
+              {t(type)}
             </Typography>
           </Box>
-        )}
+
+          {returned && (
+            <Box
+              sx={{
+                display: "inline-flex",
+                alignItems: "center",
+                gap: 0.5,
+                px: 1,
+                py: 0.375,
+                borderRadius: `${theme.custom.radius.sm}px`,
+                backgroundColor: theme.custom.status.found.main,
+              }}
+            >
+              <CheckCircleIcon sx={{ fontSize: 12, color: theme.palette.getContrastText(theme.custom.status.found.main) }} />
+              <Typography
+                variant="caption"
+                sx={{
+                  fontWeight: 700,
+                  fontSize: "10px",
+                  textTransform: "uppercase",
+                  color: theme.palette.getContrastText(theme.custom.status.found.main),
+                  lineHeight: 1,
+                }}
+              >
+                {t("returned")}
+              </Typography>
+            </Box>
+          )}
+        </Box>
       </Box>
 
-      {/* Content */}
-      <Box sx={{ flexGrow: 1, display: "flex", alignItems: "center", p: 1.75, minWidth: 0 }}>
-        <Box sx={{ display: "flex", alignItems: "center", gap: 0.75, minWidth: 0, width: "100%" }}>
-          <LocationOnOutlined sx={{ fontSize: 16, color: alpha(theme.custom.color.ink, 0.55), flexShrink: 0 }} />
+      {/* Bottom row: location + relative date */}
+      <Box
+        sx={{
+          position: "absolute",
+          bottom: 0,
+          insetInlineStart: 0,
+          insetInlineEnd: 0,
+          zIndex: 2,
+          p: 1.25,
+          display: "flex",
+          alignItems: "center",
+          justifyContent: "space-between",
+          gap: 0.75,
+        }}
+      >
+        <Box sx={{ display: "flex", alignItems: "center", gap: 0.5, minWidth: 0 }}>
+          <LocationOnOutlined sx={{ fontSize: 14, color: textColor, opacity: 0.9, flexShrink: 0 }} />
           <Typography
-            variant="body2"
+            variant="caption"
             sx={{
+              color: textColor,
               fontWeight: 600,
-              color: theme.custom.color.ink,
               overflow: "hidden",
               textOverflow: "ellipsis",
               whiteSpace: "nowrap",
@@ -424,6 +288,9 @@ const RecentPosts = ({
             {displayCityName}
           </Typography>
         </Box>
+        <Typography variant="caption" sx={{ color: alpha(textColor, 0.85), flexShrink: 0, whiteSpace: "nowrap" }}>
+          {created}
+        </Typography>
       </Box>
     </Box>
   );

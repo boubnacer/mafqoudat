@@ -28,15 +28,12 @@ const Recent = ({ recent, type, maxItems }) => {
     <Box
       width="100%"
       display="grid"
-      gap={isMobile ? 1.75 : 2}
+      gap={isMobile ? 1.5 : 2}
       sx={{
-        // Found/Lost panels sit side-by-side from `md` up (see RecentSection's
-        // parent grid in Dash.js), so each panel only ever gets ~half the
-        // viewport width there — 2 columns still reads fine, unchanged.
-        // Below `sm`, RecentPosts switches to the mobile app's horizontal row
-        // card (mirrors mobile/src/screens/HomeScreen.js's RecentPreviewCard),
-        // which is designed to stack full-width one per row, not sit 2-up.
-        gridTemplateColumns: isMobile ? "1fr" : "repeat(2, 1fr)",
+        // RecentPosts is now a compact poster-style card (same DNA as the
+        // WelcomePage hero card) rather than a full-width horizontal row, so
+        // it reads fine 2-up even on mobile — no need to collapse to 1 column.
+        gridTemplateColumns: "repeat(2, 1fr)",
       }}
     >
       {displayItems.map((post) => (

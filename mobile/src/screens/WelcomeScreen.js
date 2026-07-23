@@ -19,23 +19,98 @@ import {
   SafeAreaView,
   Image,
 } from 'react-native';
+import { Ionicons } from '@expo/vector-icons';
 import { useAuth } from '../context/AuthContext';
 import { useLanguage } from '../context/LanguageContext';
 import { useTheme } from '../context/ThemeContext';
 import { useTranslation } from '../utils/translations';
 import apiClient from '../api/apiService';
+import { API_BASE_URL } from '../config/api';
+import { colorTokens, radiusTokens } from '../theme/tokens';
+import { getCategoryConfig } from '../config/categories';
 import LanguageDropdown from '../components/LanguageDropdown';
 import { getLocalizedLabel } from '../context/ReferenceDataContext';
 
 const BRAND_MARK = require('../../assets/icon.png');
 
+const HERO_CARD_WIDTH = 140;
+const HERO_CARD_HEIGHT = 188;
+
+// Mirrors client/src/designTokens.js's elevationTokens as RN shadow/elevation
+// props (same helper already used in PostsListScreen.js).
+const getElevation = (isDark, level = 1) =>
+  level === 2
+    ? { shadowColor: '#000', shadowOffset: { width: 0, height: 4 }, shadowOpacity: isDark ? 0.45 : 0.1, shadowRadius: 16, elevation: 4 }
+    : { shadowColor: '#000', shadowOffset: { width: 0, height: 1 }, shadowOpacity: isDark ? 0.4 : 0.06, shadowRadius: 2, elevation: 2 };
+
+// Symmetric outward tilt/lift around the middle card — same geometry as the
+// web hero's getFanGeometry() in client/src/components/WelcomePage.jsx.
+const getFanGeometry = (index, count) => {
+  const centerIndex = Math.floor((count - 1) / 2);
+  const offset = index - centerIndex;
+  const isFront = offset === 0;
+  return { tilt: offset * 6, lift: isFront ? -14 : Math.abs(offset) * 16, zIndex: 10 - Math.abs(offset), isFront };
+};
+
+const getHeroImageUri = (image) => (image ? (image.startsWith('http') ? image : `${API_BASE_URL}/${image}`) : null);
+
+// getAllPosts's aggregation returns a Categories array (new format) with a
+// Category/categoryname fallback for legacy posts — same helpers as
+// PostsListScreen.js's getCategoryInfo/getCategoryLabel/getCityLabel.
+const getHeroCategoryInfo = (item) => {
+  if (Array.isArray(item?.Categories) && item.Categories.length > 0) return item.Categories[0];
+  if (item?.Category?.code) return item.Category;
+  if (item?.categoryname) return { code: item.categoryname, labels: null };
+  return null;
+};
+
+const getHeroCategoryLabel = (item, lang) => {
+  const cat = getHeroCategoryInfo(item);
+  if (!cat) return null;
+  return cat.labels ? cat.labels[lang] || cat.labels.en || cat.code : cat.code;
+};
+
+const getHeroCityLabelBase = (item, lang) => {
+  if (item?.cityLabels && typeof item.cityLabels === 'object') {
+    const label = item.cityLabels[lang] || item.cityLabels.en;
+    if (label && label.trim()) return label.trim();
+  }
+  if (item?.city?.labels && typeof item.city.labels === 'object') {
+    const label = item.city.labels[lang] || item.city.labels.en;
+    if (label && label.trim()) return label.trim();
+  }
+  if (item?.cityName && item.cityName.trim()) return item.cityName.trim();
+  return null;
+};
+
+const isHeroPostFound = (item) => {
+  if (Array.isArray(item?.Floptions) && item.Floptions.length > 0) return item.Floptions[0].code !== 'LOST';
+  if (item?.Floptions?.code) return item.Floptions.code !== 'LOST';
+  if (typeof item?.foundLost === 'string' && ['found', 'lost'].includes(item.foundLost.toLowerCase())) {
+    return item.foundLost.toLowerCase() === 'found';
+  }
+  return true;
+};
+
+const formatHeroShortDate = (dateString, lang) => {
+  try {
+    return new Date(dateString).toLocaleDateString(lang === 'ar' ? 'ar-SA' : lang === 'fr' ? 'fr-FR' : 'en-US', {
+      month: 'short',
+      day: 'numeric',
+    });
+  } catch (e) {
+    return '';
+  }
+};
+
 const WelcomeScreen = () => {
   const { selectCountry, hasCountry } = useAuth();
   const { currentLanguage } = useLanguage();
-  const { colors } = useTheme();
+  const { colors, isDark } = useTheme();
+  const tokens = isDark ? colorTokens.dark : colorTokens.light;
+  const isRTL = currentLanguage === 'ar';
   const styles = useMemo(() => createStyles(colors), [colors]);
   const { t } = useTranslation();
-  const isRTL = currentLanguage === 'ar';
 
   const [countries, setCountries] = useState([]);
   const [filteredCountries, setFilteredCountries] = useState([]);
@@ -44,6 +119,12 @@ const WelcomeScreen = () => {
   const [isLoading, setIsLoading] = useState(true);
   const [showCountryDropdown, setShowCountryDropdown] = useState(false);
   const [error, setError] = useState('');
+  // Live snapshot of a few recent posts for the selected country — mirrors
+  // client/src/components/WelcomePage.jsx's hero fan (same endpoint/shape,
+  // same fan geometry), proof the platform is active and local before the
+  // user even finishes onboarding.
+  const [heroPosts, setHeroPosts] = useState([]);
+  const [heroPostsLoading, setHeroPostsLoading] = useState(false);
   // Whether the last loadCountries() call resolved a real API list (as
   // opposed to falling back to the hardcoded single-country list below) -
   // gates applying an IP-geolocation match so it never fires against the
@@ -205,6 +286,46 @@ const WelcomeScreen = () => {
     }
   };
 
+  // Fetch a small hero snapshot of recent posts once a country is picked —
+  // same endpoint/params as the web hero (pageSize 3, fl: '' so both found
+  // and lost show up), re-fetched on language change so labels stay in sync.
+  useEffect(() => {
+    if (!selectedCountry?._id) {
+      setHeroPosts([]);
+      return;
+    }
+
+    const controller = new AbortController();
+    let cancelled = false;
+    setHeroPostsLoading(true);
+
+    apiClient
+      .get('/posts', {
+        signal: controller.signal,
+        params: {
+          pageSize: 3,
+          currentCountry: selectedCountry._id,
+          language: currentLanguage || 'en',
+          fl: '',
+        },
+      })
+      .then((response) => {
+        if (cancelled) return;
+        setHeroPosts(response.data?.postsWithUser || []);
+      })
+      .catch(() => {
+        if (!cancelled) setHeroPosts([]);
+      })
+      .finally(() => {
+        if (!cancelled) setHeroPostsLoading(false);
+      });
+
+    return () => {
+      cancelled = true;
+      controller.abort();
+    };
+  }, [selectedCountry?._id, currentLanguage]);
+
   const getCountryName = (country) => {
     if (!country) return '';
     const currentLang = currentLanguage || 'en';
@@ -273,6 +394,70 @@ const WelcomeScreen = () => {
           <Text style={styles.checkmark}>✓</Text>
         )}
       </TouchableOpacity>
+    );
+  };
+
+  const renderHeroCard = (item, index, total) => {
+    const found = isHeroPostFound(item);
+    const tone = found ? tokens.status.found : tokens.status.lost;
+    const categoryConfig = getCategoryConfig(getHeroCategoryInfo(item)?.code);
+    const categoryLabel = getHeroCategoryLabel(item, currentLanguage);
+    const imageUri = getHeroImageUri(item.image);
+    let cityLabel = getHeroCityLabelBase(item, currentLanguage);
+    if (!cityLabel && item?.exactLocation) {
+      const first = item.exactLocation.split(',')[0].split('(')[0].replace(/\d+/g, '').trim();
+      if (first) cityLabel = first;
+    }
+    if (!cityLabel) cityLabel = t('unknownCity');
+
+    const { tilt, lift, zIndex, isFront } = getFanGeometry(index, total);
+    const overlapStyle = index === 0 ? null : isRTL ? { marginRight: -16 } : { marginLeft: -16 };
+
+    return (
+      <View
+        key={item._id || item.id || index}
+        style={[
+          styles.heroCard,
+          overlapStyle,
+          getElevation(isDark, isFront ? 2 : 1),
+          {
+            backgroundColor: categoryConfig.color,
+            zIndex,
+            transform: [{ rotate: `${tilt}deg` }, { translateY: lift }, { scale: isFront ? 1.05 : 1 }],
+          },
+        ]}
+      >
+        {imageUri ? (
+          <Image source={{ uri: imageUri }} style={StyleSheet.absoluteFill} resizeMode="cover" />
+        ) : (
+          <View style={[StyleSheet.absoluteFill, styles.heroCardIconWrap]}>
+            <Ionicons name={categoryConfig.icon} size={40} color="#FFFFFF" />
+          </View>
+        )}
+        {imageUri && <View style={[StyleSheet.absoluteFill, styles.heroCardScrim]} />}
+
+        <View style={styles.heroCardContent}>
+          <View style={styles.heroCardTopRow}>
+            <Text style={styles.heroCardCategory} numberOfLines={2}>
+              {categoryLabel}
+            </Text>
+            <View style={[styles.heroStatusTag, { backgroundColor: tone.main }]}>
+              <Ionicons name={found ? 'checkmark-circle' : 'search'} size={12} color="#FFFFFF" />
+              <Text style={styles.heroStatusTagText}>{found ? t('found') : t('lost')}</Text>
+            </View>
+          </View>
+
+          <View style={styles.heroCardBottomRow}>
+            <View style={styles.heroCardCityRow}>
+              <Ionicons name="location-outline" size={12} color="#FFFFFF" />
+              <Text style={styles.heroCardCityText} numberOfLines={1}>
+                {cityLabel}
+              </Text>
+            </View>
+            <Text style={styles.heroCardDateText}>{formatHeroShortDate(item.createdAt, currentLanguage)}</Text>
+          </View>
+        </View>
+      </View>
     );
   };
 
@@ -397,6 +582,22 @@ const WelcomeScreen = () => {
               </Text>
             </TouchableOpacity>
           </View>
+
+          {/* Live snapshot of recent posts — mirrors the web welcome page's
+              fanned card stack (client/src/components/WelcomePage.jsx). */}
+          {selectedCountry && (
+            <View style={styles.heroSection}>
+              {heroPostsLoading ? (
+                <ActivityIndicator size="small" color={colors.primary} />
+              ) : heroPosts.length > 0 ? (
+                <View style={[styles.heroFan, isRTL && styles.heroFanRTL]}>
+                  {heroPosts.map((item, index) => renderHeroCard(item, index, heroPosts.length))}
+                </View>
+              ) : (
+                <Text style={styles.heroEmptyText}>{t('noPostsInArea')}</Text>
+              )}
+            </View>
+          )}
         </ScrollView>
       </KeyboardAvoidingView>
     </SafeAreaView>
@@ -618,6 +819,85 @@ const createStyles = (colors) => StyleSheet.create({
     color: colors.primaryText,
     fontSize: 18,
     fontWeight: '600',
+  },
+  heroSection: {
+    paddingHorizontal: 20,
+    paddingTop: 8,
+    paddingBottom: 16,
+    alignItems: 'center',
+  },
+  heroFan: {
+    flexDirection: 'row',
+    alignItems: 'flex-end',
+  },
+  heroFanRTL: {
+    flexDirection: 'row-reverse',
+  },
+  heroCard: {
+    width: HERO_CARD_WIDTH,
+    height: HERO_CARD_HEIGHT,
+    borderRadius: radiusTokens.lg,
+    overflow: 'hidden',
+  },
+  heroCardIconWrap: {
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  heroCardScrim: {
+    backgroundColor: 'rgba(0,0,0,0.35)',
+  },
+  heroCardContent: {
+    flex: 1,
+    justifyContent: 'space-between',
+    padding: 10,
+  },
+  heroCardTopRow: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'flex-start',
+    gap: 4,
+  },
+  heroCardCategory: {
+    flex: 1,
+    fontSize: 12,
+    fontWeight: '800',
+    color: '#FFFFFF',
+  },
+  heroStatusTag: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 4,
+    paddingHorizontal: 6,
+    paddingVertical: 3,
+    borderRadius: radiusTokens.sm,
+  },
+  heroStatusTagText: {
+    fontSize: 10,
+    fontWeight: '700',
+    color: '#FFFFFF',
+  },
+  heroCardBottomRow: {
+    gap: 2,
+  },
+  heroCardCityRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 4,
+  },
+  heroCardCityText: {
+    fontSize: 11,
+    fontWeight: '600',
+    color: '#FFFFFF',
+    flexShrink: 1,
+  },
+  heroCardDateText: {
+    fontSize: 10,
+    color: 'rgba(255,255,255,0.8)',
+  },
+  heroEmptyText: {
+    fontSize: 13,
+    color: colors.textSecondary,
+    textAlign: 'center',
   },
 });
 

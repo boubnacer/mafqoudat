@@ -106,35 +106,64 @@ const SurfaceCard = styled(Box)(({ theme }) => ({
 // already an established token, not a new palette) fills the card solid so
 // each one reads as visually distinct, mirroring the reference's bold-color
 // card-stack look without introducing off-brand hues.
+// Feed-in timing shared between the styled component's keyframes and the
+// mount-timer in WelcomePage that decides when the animation is "done" (see
+// heroEntranceArmedRef) — kept in one place so the two stay in sync.
+const HERO_ENTRANCE_DURATION_MS = 650;
+const HERO_ENTRANCE_STAGGER_MS = 120;
+
 const FannedCard = styled(Box, {
-  shouldForwardProp: (prop) => !["tilt", "lift", "isFront"].includes(prop),
-})(({ theme, tilt, lift, isFront }) => ({
-  position: "relative",
-  width: 168,
-  height: 224,
-  flexShrink: 0,
-  borderRadius: `${theme.custom.radius.lg}px`,
-  overflow: "hidden",
-  cursor: "pointer",
-  outline: "none",
-  border: `1px solid ${alpha("#000000", 0.08)}`,
-  boxShadow: isFront ? theme.custom.elevation.e2 : theme.custom.elevation.e1,
-  transform: `rotate(${tilt}deg) translateY(${lift}px) scale(${isFront ? 1.05 : 1})`,
-  transformOrigin: "bottom center",
-  transition: "transform 0.25s ease, box-shadow 0.25s ease",
-  marginInlineStart: -20,
-  "&:first-of-type": { marginInlineStart: 0 },
-  "&:hover, &:focus-visible": {
-    transform: "rotate(0deg) translateY(-18px) scale(1.08)",
-    boxShadow: theme.custom.elevation.e2,
-    zIndex: 30,
-  },
-  [theme.breakpoints.down("sm")]: {
-    width: 140,
-    height: 188,
-    marginInlineStart: -16,
-  },
-}));
+  shouldForwardProp: (prop) => !["tilt", "lift", "isFront", "entranceIndex", "entranceActive"].includes(prop),
+})(({ theme, tilt, lift, isFront, entranceIndex, entranceActive }) => {
+  const restingTransform = `rotate(${tilt}deg) translateY(${lift}px) scale(${isFront ? 1.05 : 1})`;
+  return {
+    position: "relative",
+    width: 168,
+    height: 224,
+    flexShrink: 0,
+    borderRadius: `${theme.custom.radius.lg}px`,
+    overflow: "hidden",
+    cursor: "pointer",
+    outline: "none",
+    border: `1px solid ${alpha("#000000", 0.08)}`,
+    boxShadow: isFront ? theme.custom.elevation.e2 : theme.custom.elevation.e1,
+    transformOrigin: "bottom center",
+    transition: "transform 0.25s ease, box-shadow 0.25s ease",
+    marginInlineStart: -20,
+    "&:first-of-type": { marginInlineStart: 0 },
+    "&:hover, &:focus-visible": {
+      transform: "rotate(0deg) translateY(-18px) scale(1.08)",
+      boxShadow: theme.custom.elevation.e2,
+      zIndex: 30,
+    },
+    [theme.breakpoints.down("sm")]: {
+      width: 140,
+      height: 188,
+      marginInlineStart: -16,
+    },
+    // Entrance animation only plays once, right after mount/load (see
+    // heroEntranceDone in WelcomePage) — once it's finished this branch
+    // stops applying so the plain `transform`/hover rules above take back
+    // over exactly at the same resting values the keyframe ends on.
+    ...(entranceActive
+      ? {
+          opacity: 0,
+          "@keyframes heroCardFeedIn": {
+            "0%": { opacity: 0, transform: "translateY(64px) scale(0.92)" },
+            "100%": { opacity: 1, transform: restingTransform },
+          },
+          animation: `heroCardFeedIn ${HERO_ENTRANCE_DURATION_MS}ms cubic-bezier(0.16, 1, 0.3, 1) ${
+            entranceIndex * HERO_ENTRANCE_STAGGER_MS
+          }ms both`,
+          "@media (prefers-reduced-motion: reduce)": {
+            animation: "none",
+            opacity: 1,
+            transform: restingTransform,
+          },
+        }
+      : { transform: restingTransform }),
+  };
+});
 
 // Symmetric outward tilt/lift around the middle card, independent of
 // LTR/RTL — the fan mirrors automatically because it's built with logical
@@ -180,15 +209,6 @@ const StatusTag = ({ status, label }) => {
     </Box>
   );
 };
-
-const SectionEyebrow = ({ children }) => (
-  <Typography
-    variant="overline"
-    sx={{ fontWeight: 600, letterSpacing: 1, color: "text.secondary" }}
-  >
-    {children}
-  </Typography>
-);
 
 // Per-item scatter: vertical resting offset, tilt, size, and float timing
 // vary across items so they read as a loosely scattered "mix" rather than a
@@ -421,6 +441,22 @@ const WelcomePage = () => {
   // entity-adapter { ids, entities } shape (see PublicPostsPage.jsx / TrendingItem.jsx).
   const heroPosts = heroPostsData?.postsWithUser || [];
 
+  // One-time "feed in" entrance for the fanned hero cards: staggered by
+  // index so they slide up into place one after another instead of popping
+  // in together. Guarded by a ref (not just the `animationDone` state) so a
+  // later refetch of heroPosts — e.g. switching selectedCountry — never
+  // re-arms the timer and replays the animation; it only ever plays once,
+  // on the first successful load.
+  const [heroEntranceDone, setHeroEntranceDone] = useState(false);
+  const heroEntranceArmedRef = useRef(false);
+  useEffect(() => {
+    if (heroPostsLoading || heroPosts.length === 0 || heroEntranceArmedRef.current) return;
+    heroEntranceArmedRef.current = true;
+    const totalMs = HERO_ENTRANCE_DURATION_MS + (heroPosts.length - 1) * HERO_ENTRANCE_STAGGER_MS + 100;
+    const timer = setTimeout(() => setHeroEntranceDone(true), totalMs);
+    return () => clearTimeout(timer);
+  }, [heroPostsLoading, heroPosts.length]);
+
   const getHeroPostStatus = (post) => {
     const code = post.Floptions?.[0]?.code;
     if (code) return code.toLowerCase();
@@ -615,35 +651,36 @@ const WelcomePage = () => {
 
         {/* Hero */}
         <Box sx={{ maxWidth: 1200, mx: 'auto', px: { xs: 2, md: 4 }, pt: { xs: 2, md: 4 }, pb: 6 }}>
-          <Box
-            component="img"
-            src="/maflogoSVG.svg"
-            alt="Mafqoudat"
-            sx={{
-              height: { xs: '38px', md: '48px' },
-              width: 'auto',
-              display: 'block',
-              mb: { xs: 3, md: 5 },
-              filter: theme.palette.mode === 'dark' ? 'brightness(1.1) contrast(1.1)' : 'none',
-            }}
-          />
-
-          <Typography
-            variant="h1"
-            sx={{ fontSize: { xs: '2rem', md: '2.5rem' }, mb: 2 }}
-          >
-            {t('heroHeadline')}
-          </Typography>
-          <Typography variant="body1" color="text.secondary" sx={{ mb: 4 }}>
-            {t('welcomeMessage')}
-          </Typography>
-
-          {/* Country selector + CTAs sit in their own row, aligned (flex-start
-              below) with "Recently posted near you" so the two line up at the
-              top on desktop instead of the taller fan pushing it down when
-              centered against the whole left column including the headline. */}
+          {/* The whole left block (logo, headline, subtext, selector, CTA) is
+              one flex column running inline/side-by-side with "Recently
+              posted near you" — both Grid items start at the same top row
+              via alignItems="flex-start" rather than the logo/headline
+              sitting full-width above the two-column split. */}
           <Grid container spacing={{ xs: 4, md: 6 }} alignItems="flex-start">
             <Grid item xs={12} md={5}>
+              <Box
+                component="img"
+                src="/maflogoSVG.svg"
+                alt="Mafqoudat"
+                sx={{
+                  height: { xs: '38px', md: '48px' },
+                  width: 'auto',
+                  display: 'block',
+                  mb: { xs: 3, md: 5 },
+                  filter: theme.palette.mode === 'dark' ? 'brightness(1.1) contrast(1.1)' : 'none',
+                }}
+              />
+
+              <Typography
+                variant="h1"
+                sx={{ fontSize: { xs: '2rem', md: '2.5rem' }, mb: 2 }}
+              >
+                {t('heroHeadline')}
+              </Typography>
+              <Typography variant="body1" color="text.secondary" sx={{ mb: 4 }}>
+                {t('welcomeMessage')}
+              </Typography>
+
               <Autocomplete
                 options={countries || []}
                 autoHighlight
@@ -714,7 +751,6 @@ const WelcomePage = () => {
 
             {/* Live post snapshot — fanned card stack */}
             <Grid item xs={12} md={7}>
-              <SectionEyebrow>{t('recentNearYou')}</SectionEyebrow>
               <Box
                 sx={{
                   display: 'flex',
@@ -729,7 +765,6 @@ const WelcomePage = () => {
                   // container just gets enough top/bottom headroom that the tilt/lift/scale
                   // transforms never need to escape its box in the first place.
                   overflowX: 'auto',
-                  mt: 3,
                   pt: 6,
                   pb: 3,
                   px: { xs: 3, sm: 1 },
@@ -763,6 +798,8 @@ const WelcomePage = () => {
                         tilt={tilt}
                         lift={lift}
                         isFront={isFront}
+                        entranceActive={!heroEntranceDone}
+                        entranceIndex={index}
                         role="button"
                         tabIndex={0}
                         onClick={() => handleViewHeroPost(post)}
