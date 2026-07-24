@@ -115,7 +115,7 @@ const WorldActivityMap = ({ worldActivity, cityActivity, currentCountryCode, cou
 
   const mapView = useMemo(() => {
     if (!currentFeature) return { center: [15, 20], scale: 220 };
-    const padding = isMobile ? 8 : 170;
+    const padding = isMobile ? 8 : 70;
     const [[minLon, minLat], [maxLon, maxLat]] = geoBounds(currentFeature);
     const center = [(minLon + maxLon) / 2, (minLat + maxLat) / 2];
     const reference = geoMercator().center(center).translate([MAP_WIDTH / 2, mapHeight / 2]).scale(1);
