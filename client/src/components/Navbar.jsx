@@ -578,7 +578,14 @@ const Navbar = () => {
 
   return (
     <AppBar
+      color="transparent"
       sx={{
+        // AppBar defaults to color="primary", which paints its own opaque
+        // Paper background *underneath* StyledToolbar's translucent one —
+        // color="transparent" plus these two kill that layer so only
+        // StyledToolbar's alpha'd background/blur is visible.
+        backgroundColor: "transparent",
+        backgroundImage: "none",
         boxShadow: "none",
         position: "fixed",
         top: 0,
