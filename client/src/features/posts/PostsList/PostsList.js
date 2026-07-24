@@ -1240,40 +1240,43 @@ const PostsList = () => {
               </Box>
             </Box>
 
-            {/* Add New Post Button - Shown at the end of posts */}
-            <Box 
-              sx={{ 
-                mb: 4,
-                display: 'flex',
-                justifyContent: 'center',
-                alignItems: 'center'
-              }}
-            >
-              <Button
-                variant="contained"
-                startIcon={<AddIcon />}
-                onClick={handleAddNewPost}
+            {/* Add New Post Button - only shown once the user has paged to
+                the last page (no more "next" page to reach) */}
+            {page >= totalPages && (
+              <Box
                 sx={{
-                  borderRadius: `${theme.custom.radius.md}px`,
-                  px: 4,
-                  py: 1.5,
-                  textTransform: 'none',
-                  fontWeight: 600,
-                  fontSize: '1rem',
-                  backgroundColor: theme.custom.color.brandPrimary,
-                  '&:hover': {
-                    backgroundColor: theme.custom.color.brandPrimary,
-                    opacity: 0.9,
-                  },
-                  '& .MuiButton-startIcon': {
-                    marginInlineEnd: '8px',
-                    marginInlineStart: 0,
-                  }
+                  mb: 4,
+                  display: 'flex',
+                  justifyContent: 'center',
+                  alignItems: 'center'
                 }}
               >
-                {t('addNewPost')}
-              </Button>
-            </Box>
+                <Button
+                  variant="contained"
+                  startIcon={<AddIcon />}
+                  onClick={handleAddNewPost}
+                  sx={{
+                    borderRadius: `${theme.custom.radius.md}px`,
+                    px: 4,
+                    py: 1.5,
+                    textTransform: 'none',
+                    fontWeight: 600,
+                    fontSize: '1rem',
+                    backgroundColor: theme.custom.color.brandPrimary,
+                    '&:hover': {
+                      backgroundColor: theme.custom.color.brandPrimary,
+                      opacity: 0.9,
+                    },
+                    '& .MuiButton-startIcon': {
+                      marginInlineEnd: '8px',
+                      marginInlineStart: 0,
+                    }
+                  }}
+                >
+                  {t('addNewPost')}
+                </Button>
+              </Box>
+            )}
 
             {/* Enhanced Pagination */}
             {totalPages > 1 && (
