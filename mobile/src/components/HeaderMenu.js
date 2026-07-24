@@ -8,8 +8,16 @@
  * Contact Us, Privacy Policy, Terms), and Sign Out. Mirrors the web app's
  * mobile Drawer (client/src/components/Navbar.jsx, <760px) which collapses
  * the same set of controls behind one menu icon.
- * Follows LanguageDropdown's modal-popover pattern (transparent Modal,
- * tap-outside/back to dismiss) rather than a real navigation drawer.
+ *
+ * Implemented as a real slide-in side drawer (full height, opens from the
+ * logical start edge - left in LTR, right in RTL) rather than the small
+ * centered popover this used to be, so the longer content list (now
+ * including full-name language options and Sign Out) has room to breathe.
+ * Driven by RN's own Animated API (already used for entrance transitions in
+ * HomeScreen.js/OnboardingScreen.js) rather than a new library: the Modal
+ * itself has no animation, a translateX Animated.Value slides the drawer in/
+ * out and a parallel opacity value fades the backdrop, with the Modal kept
+ * mounted for the short exit animation before actually closing.
  *
  * Controlled by the parent (AppHeader): `visible`/`onClose` so AppHeader can
  * keep this and the country picker mutually exclusive - only one overlay open
@@ -19,8 +27,8 @@
  * contexts here since both are global, not per-header state.
  */
 
-import React from 'react';
-import { View, Text, TouchableOpacity, StyleSheet, Modal, Linking, Alert, ScrollView } from 'react-native';
+import React, { useEffect, useRef, useState } from 'react';
+import { View, Text, TouchableOpacity, StyleSheet, Modal, Linking, Alert, ScrollView, Animated, Dimensions } from 'react-native';
 import { useNavigation } from '@react-navigation/native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { Ionicons } from '@expo/vector-icons';
@@ -43,15 +51,20 @@ const WEBSITE_LINKS = [
   { key: 'termsOfService', path: '/terms', icon: 'document-text-outline' },
 ];
 
+// Full endonyms (each language's own name, in its own script) rather than
+// short codes - shown the same regardless of the app's current language, so
+// these are deliberately not routed through t(). Mirrors the web app's own
+// hardcoded LANGUAGE_LABELS (client/src/features/auth/authShared.jsx).
 const LANGUAGES = [
-  { code: 'en', short: 'EN' },
-  { code: 'fr', short: 'FR' },
-  { code: 'ar', short: 'AR' },
+  { code: 'en', label: 'English' },
+  { code: 'fr', label: 'Français' },
+  { code: 'ar', label: 'العربية' },
 ];
 
-// Roughly the header's own content height (a single title/controls row), so
-// the menu pops open just under it rather than overlapping.
-const HEADER_CONTENT_HEIGHT = 60;
+const SCREEN_WIDTH = Dimensions.get('window').width;
+// Comfortable drawer width, capped so it doesn't swallow the whole screen on
+// wider devices/tablets.
+const DRAWER_WIDTH = Math.min(360, SCREEN_WIDTH * 0.86);
 
 const HeaderMenu = ({ visible, onClose, countryFlag, countryLabel, onOpenCountryPicker }) => {
   const insets = useSafeAreaInsets();
@@ -66,6 +79,37 @@ const HeaderMenu = ({ visible, onClose, countryFlag, countryLabel, onOpenCountry
 
   const styles = createStyles({ tokens, isDark });
   const textStyle = isRTL ? styles.textRTL : null;
+
+  // Off-screen resting position is on the far side of the drawer's own start
+  // edge: in LTR that's to the left (negative translateX), in RTL - where the
+  // drawer is anchored to the right via the `start: 0` logical style below -
+  // it's to the right (positive translateX). transform values are raw pixels
+  // and don't auto-flip for RTL the way `start`/`end` do, so this has to be
+  // computed explicitly.
+  const hiddenOffset = isRTL ? DRAWER_WIDTH : -DRAWER_WIDTH;
+  const translateX = useRef(new Animated.Value(hiddenOffset)).current;
+  const backdropOpacity = useRef(new Animated.Value(0)).current;
+  // Kept mounted a beat longer than `visible` so the close animation can play
+  // out before the Modal actually unmounts (Modal's own `visible` prop has no
+  // exit-transition concept).
+  const [isMounted, setIsMounted] = useState(visible);
+
+  useEffect(() => {
+    if (visible) {
+      setIsMounted(true);
+      translateX.setValue(hiddenOffset);
+      Animated.parallel([
+        Animated.timing(translateX, { toValue: 0, duration: 260, useNativeDriver: true }),
+        Animated.timing(backdropOpacity, { toValue: 1, duration: 260, useNativeDriver: true }),
+      ]).start();
+    } else if (isMounted) {
+      Animated.parallel([
+        Animated.timing(translateX, { toValue: hiddenOffset, duration: 220, useNativeDriver: true }),
+        Animated.timing(backdropOpacity, { toValue: 0, duration: 200, useNativeDriver: true }),
+      ]).start(() => setIsMounted(false));
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [visible]);
 
   // Same floptions source PostsListScreen/PostFilterSheet use (ReferenceDataContext,
   // fetched once app-wide) - looked up by code rather than mapping floptions in
@@ -150,12 +194,31 @@ const HeaderMenu = ({ visible, onClose, countryFlag, countryLabel, onOpenCountry
     </TouchableOpacity>
   );
 
+  if (!isMounted) return null;
+
   return (
-    <Modal transparent visible={visible} animationType="fade" onRequestClose={onClose}>
+    <Modal transparent visible={isMounted} animationType="none" onRequestClose={onClose}>
       <View style={styles.overlay}>
-        <TouchableOpacity style={styles.backdrop} activeOpacity={1} onPress={onClose} />
-        <View style={[styles.menu, { top: insets.top + HEADER_CONTENT_HEIGHT }]}>
-          <ScrollView style={styles.scrollArea} showsVerticalScrollIndicator={false} bounces={false}>
+        <Animated.View style={[styles.backdrop, { opacity: backdropOpacity }]}>
+          <TouchableOpacity style={StyleSheet.absoluteFill} activeOpacity={1} onPress={onClose} />
+        </Animated.View>
+
+        <Animated.View style={[styles.drawer, { transform: [{ translateX }] }]}>
+          <View style={[styles.drawerHeader, { paddingTop: insets.top + 14 }]}>
+            <Text style={[styles.drawerTitle, textStyle]} numberOfLines={1}>
+              {t('menu')}
+            </Text>
+            <TouchableOpacity onPress={onClose} style={styles.closeButton} hitSlop={10} accessibilityLabel={t('close')}>
+              <Ionicons name="close" size={22} color={tokens.ink} />
+            </TouchableOpacity>
+          </View>
+
+          <ScrollView
+            style={styles.scrollArea}
+            contentContainerStyle={{ paddingBottom: insets.bottom + 20 }}
+            showsVerticalScrollIndicator={false}
+            bounces={false}
+          >
             <Text style={[styles.sectionHeader, textStyle]}>{t('browse')}</Text>
             {renderItem({ key: 'browseAll', label: t('allPosts'), icon: 'apps-outline', onPress: () => handleBrowse('') })}
             {lostOption
@@ -198,22 +261,30 @@ const HeaderMenu = ({ visible, onClose, countryFlag, countryLabel, onOpenCountry
                 <Ionicons name={isRTL ? 'chevron-back' : 'chevron-forward'} size={16} color={`${tokens.ink}66`} />
               </TouchableOpacity>
 
-              <View style={styles.prefRow}>
-                <Ionicons name="language-outline" size={19} color={`${tokens.ink}99`} style={styles.itemIcon} />
-                <Text style={[styles.itemText, textStyle, styles.prefTextWrap]} numberOfLines={1}>
-                  {t('language')}
-                </Text>
-                <View style={styles.langPills}>
+              <View style={styles.prefLangBlock}>
+                <View style={styles.prefLangHeaderRow}>
+                  <Ionicons name="language-outline" size={19} color={`${tokens.ink}99`} style={styles.itemIcon} />
+                  <Text style={[styles.itemText, textStyle]} numberOfLines={1}>
+                    {t('language')}
+                  </Text>
+                </View>
+                <View style={styles.langOptionsWrap}>
                   {LANGUAGES.map((lang) => {
                     const active = currentLanguage === lang.code;
                     return (
                       <TouchableOpacity
                         key={lang.code}
                         onPress={() => setLanguage(lang.code)}
-                        style={[styles.langPill, active && { backgroundColor: tokens.brandPrimary }]}
+                        style={[styles.langOption, active && styles.langOptionActive]}
                         activeOpacity={0.75}
                       >
-                        <Text style={[styles.langPillText, active && styles.langPillTextActive]}>{lang.short}</Text>
+                        <Text
+                          style={[styles.langOptionText, textStyle, active && styles.langOptionTextActive]}
+                          numberOfLines={1}
+                        >
+                          {lang.label}
+                        </Text>
+                        {active ? <Ionicons name="checkmark" size={16} color={tokens.brandPrimary} /> : null}
                       </TouchableOpacity>
                     );
                   })}
@@ -268,7 +339,7 @@ const HeaderMenu = ({ visible, onClose, countryFlag, countryLabel, onOpenCountry
                   onPress: handleSignIn,
                 })}
           </ScrollView>
-        </View>
+        </Animated.View>
       </View>
     </Modal>
   );
@@ -281,29 +352,51 @@ const createStyles = ({ tokens, isDark }) =>
     },
     backdrop: {
       ...StyleSheet.absoluteFillObject,
-      backgroundColor: 'rgba(0,0,0,0.3)',
+      backgroundColor: 'rgba(0,0,0,0.4)',
     },
-    menu: {
+    drawer: {
       position: 'absolute',
-      end: 16,
-      width: 264,
-      maxWidth: '85%',
-      maxHeight: 520,
+      start: 0,
+      top: 0,
+      bottom: 0,
+      width: DRAWER_WIDTH,
       backgroundColor: tokens.surfaceRaised,
-      borderRadius: radiusTokens.lg,
-      borderWidth: 1,
-      borderColor: `${tokens.ink}${isDark ? '1F' : '14'}`,
-      paddingVertical: 6,
+      // No border - separated from the backdrop by elevation alone, per the
+      // platform-wide "no borders on containers" rule. Only the inner edge
+      // (facing into the screen) is rounded since the outer/top/bottom edges
+      // sit flush against the device edges.
+      borderTopEndRadius: radiusTokens.xl,
+      borderBottomEndRadius: radiusTokens.xl,
       shadowColor: '#000',
-      shadowOffset: { width: 0, height: 4 },
-      shadowOpacity: isDark ? 0.5 : 0.2,
-      shadowRadius: 8,
-      elevation: 8,
+      shadowOffset: { width: 0, height: 0 },
+      shadowOpacity: isDark ? 0.55 : 0.2,
+      shadowRadius: 20,
+      elevation: 20,
+    },
+    drawerHeader: {
+      flexDirection: 'row',
+      alignItems: 'center',
+      justifyContent: 'space-between',
+      paddingHorizontal: 18,
+      paddingBottom: 14,
+      borderBottomWidth: 1,
+      borderBottomColor: `${tokens.ink}${isDark ? '1F' : '14'}`,
+    },
+    drawerTitle: {
+      fontFamily: fontFamilies.display,
+      fontSize: 19,
+      color: tokens.ink,
+    },
+    closeButton: {
+      width: 34,
+      height: 34,
+      borderRadius: radiusTokens.md,
+      backgroundColor: `${tokens.ink}0A`,
+      justifyContent: 'center',
+      alignItems: 'center',
     },
     scrollArea: {
-      // maxHeight on the ScrollView itself (not just the outer menu View) is
-      // what actually makes RN cap and scroll the content on short screens.
-      maxHeight: 520,
+      flex: 1,
     },
     sectionHeader: {
       fontFamily: fontFamilies.bodySemiBold,
@@ -311,15 +404,15 @@ const createStyles = ({ tokens, isDark }) =>
       color: `${tokens.ink}99`,
       textTransform: 'uppercase',
       letterSpacing: 0.5,
-      paddingHorizontal: 14,
-      paddingTop: 10,
+      paddingHorizontal: 18,
+      paddingTop: 14,
       paddingBottom: 6,
     },
     item: {
       flexDirection: 'row',
       alignItems: 'center',
-      paddingHorizontal: 14,
-      paddingVertical: 10,
+      paddingHorizontal: 18,
+      paddingVertical: 12,
     },
     itemIcon: {
       marginEnd: 10,
@@ -327,7 +420,7 @@ const createStyles = ({ tokens, isDark }) =>
     itemText: {
       flex: 1,
       fontFamily: fontFamilies.bodyMedium,
-      fontSize: 14,
+      fontSize: 15,
       color: tokens.ink,
     },
     textRTL: {
@@ -336,11 +429,11 @@ const createStyles = ({ tokens, isDark }) =>
     divider: {
       height: 1,
       backgroundColor: `${tokens.ink}${isDark ? '1F' : '14'}`,
-      marginVertical: 4,
-      marginHorizontal: 14,
+      marginVertical: 6,
+      marginHorizontal: 18,
     },
     prefsBox: {
-      marginHorizontal: 8,
+      marginHorizontal: 12,
       borderRadius: radiusTokens.md,
       backgroundColor: `${tokens.ink}0A`,
       overflow: 'hidden',
@@ -348,8 +441,8 @@ const createStyles = ({ tokens, isDark }) =>
     prefRow: {
       flexDirection: 'row',
       alignItems: 'center',
-      paddingHorizontal: 10,
-      paddingVertical: 10,
+      paddingHorizontal: 12,
+      paddingVertical: 12,
       borderBottomWidth: 1,
       borderBottomColor: `${tokens.ink}${isDark ? '1F' : '14'}`,
     },
@@ -369,23 +462,40 @@ const createStyles = ({ tokens, isDark }) =>
       color: `${tokens.ink}80`,
       marginTop: 1,
     },
-    langPills: {
+    prefLangBlock: {
+      paddingHorizontal: 12,
+      paddingVertical: 12,
+      borderBottomWidth: 1,
+      borderBottomColor: `${tokens.ink}${isDark ? '1F' : '14'}`,
+    },
+    prefLangHeaderRow: {
       flexDirection: 'row',
-      gap: 4,
+      alignItems: 'center',
+      marginBottom: 8,
     },
-    langPill: {
-      paddingHorizontal: 8,
-      paddingVertical: 4,
+    langOptionsWrap: {
+      paddingStart: 29,
+      gap: 2,
+    },
+    langOption: {
+      flexDirection: 'row',
+      alignItems: 'center',
+      justifyContent: 'space-between',
+      paddingHorizontal: 10,
+      paddingVertical: 9,
       borderRadius: radiusTokens.sm,
-      backgroundColor: `${tokens.ink}0F`,
     },
-    langPillText: {
+    langOptionActive: {
+      backgroundColor: `${tokens.brandPrimary}14`,
+    },
+    langOptionText: {
+      fontFamily: fontFamilies.bodyMedium,
+      fontSize: 14,
+      color: `${tokens.ink}CC`,
+    },
+    langOptionTextActive: {
       fontFamily: fontFamilies.bodySemiBold,
-      fontSize: 11,
-      color: `${tokens.ink}99`,
-    },
-    langPillTextActive: {
-      color: '#FFFFFF',
+      color: tokens.brandPrimary,
     },
   });
 
