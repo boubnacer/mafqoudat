@@ -124,10 +124,10 @@ const CountrySelectionScreen = ({ navigation }) => {
         return;
       }
 
-      // Login/SignUp/CountrySelection share a stack with MainTabs (guest
+      // Login/SignUp/CountrySelection share a stack with Home (guest
       // browsing - see App.js), so isSignedIn flipping doesn't remount the
       // tree the way it used to; navigate to Home explicitly.
-      navigation.navigate('MainTabs');
+      navigation.navigate('Home');
     } catch (err) {
       console.error('Country selection error:', err);
       setError(t('registrationFailed'));

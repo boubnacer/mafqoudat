@@ -46,13 +46,11 @@ const NewPostScreen = ({ navigation }) => {
       });
 
       const postId = response.data?.postId;
-      // Land on the new post's detail with Home as the underlying tab, so
-      // back from the detail screen returns to Home rather than to this
-      // now-submitted form. NewPost, Home and PostDetailScreen are all tabs
-      // of the same Tab.Navigator (MainTabs), so navigating there directly
-      // (rather than reset()-ing a parent that doesn't own PostDetailScreen
-      // as a top-level route) moves Home to the front of the "history"
-      // backBehavior order before landing on PostDetailScreen.
+      // Land on the new post's detail with Home underneath it, so back from
+      // the detail screen returns to Home rather than to this now-submitted
+      // form. NewPost, Home and PostDetailScreen are all screens on the same
+      // stack, so navigating to Home first pops back to that existing screen
+      // instead of pushing a duplicate, then PostDetailScreen pushes on top.
       navigation.navigate('Home');
       navigation.navigate('PostDetailScreen', { id: postId });
     } catch (err) {
@@ -93,7 +91,7 @@ const NewPostScreen = ({ navigation }) => {
 
   return (
     <View style={styles.container}>
-      <AppHeader title={t('createNewPost')} />
+      <AppHeader title={t('createNewPost')} onBack={() => navigation.goBack()} />
 
       <PostForm
         mode="create"

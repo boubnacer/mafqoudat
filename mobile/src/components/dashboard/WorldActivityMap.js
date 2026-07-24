@@ -122,6 +122,18 @@ const WorldActivityMap = ({
   );
   const pathGenerator = useMemo(() => geoPath(projection), [projection]);
 
+  // d3-geo's per-feature projection (~177 countries) is the expensive part of
+  // rendering this map - memoized separately from fill/stroke (which only
+  // depend on cheap theme/activity lookups below) so a theme or language
+  // change, which re-renders this whole component with new `tokens`/`isDark`
+  // but the same `geoFeatures`/`projection`, doesn't redo it.
+  const countryShapes = useMemo(() => {
+    if (!geoFeatures) return [];
+    return geoFeatures
+      .map((geoFeat) => ({ geoFeat, d: pathGenerator(geoFeat) }))
+      .filter((shape) => shape.d);
+  }, [geoFeatures, pathGenerator]);
+
   const ink = tokens.ink;
   const panel = tokens.surfaceRaised;
   const brand = tokens.brandPrimary;
@@ -133,14 +145,12 @@ const WorldActivityMap = ({
   return (
     <View style={styles.mapBox}>
       <Svg width="100%" height="100%" viewBox={`0 0 ${MAP_WIDTH} ${MAP_HEIGHT}`}>
-        {geoFeatures.map((geoFeat, index) => {
+        {countryShapes.map(({ geoFeat, d }, index) => {
           const entry = activityByNumericId.get(geoFeat.id);
           const isCurrent = geoFeat.id === currentNumericId;
           const fill = entry
             ? hexToRgba(brand, 0.22 + (entry.count / maxCount) * 0.68)
             : hexToRgba(ink, isDark ? 0.14 : 0.08);
-          const d = pathGenerator(geoFeat);
-          if (!d) return null;
           return (
             <Path
               key={`${geoFeat.id}-${index}`}
@@ -159,17 +169,34 @@ const WorldActivityMap = ({
           return (
             <React.Fragment key={`${city.name}-${index}`}>
               <Circle cx={x} cy={y} r={r} fill={panel} stroke={brand} strokeWidth={2} />
+              {/* Halo-then-fill instead of paintOrder="stroke": paintOrder
+                  support is inconsistent on react-native-svg's native
+                  (iOS/Android) renderer, so a thick stroke could paint back
+                  over the fill and turn labels into solid blobs regardless
+                  of weight/stroke tuning. Two separately-ordered Text nodes
+                  (stroke-only halo behind, fill-only text in front) gets the
+                  same outlined-label look without depending on that. */}
               <SvgText
                 x={x}
                 y={y + r + 12}
                 fontSize="10"
-                fontWeight="600"
-                fill={ink}
+                fontWeight="normal"
+                fill="none"
                 stroke={panel}
-                strokeWidth={3}
-                paintOrder="stroke"
+                strokeWidth={2}
                 textAnchor="middle"
-                style={{ fontSize: 10, fontWeight: '600' }}
+                style={{ fontSize: 10, fontWeight: 'normal' }}
+              >
+                {city.name}
+              </SvgText>
+              <SvgText
+                x={x}
+                y={y + r + 12}
+                fontSize="10"
+                fontWeight="normal"
+                fill={ink}
+                textAnchor="middle"
+                style={{ fontSize: 10, fontWeight: 'normal' }}
               >
                 {city.name}
               </SvgText>

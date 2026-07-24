@@ -415,7 +415,7 @@ const MyPostsScreen = ({ navigation }) => {
   if (isLoading && !hasLoadedOnce) {
     return (
       <View style={styles.container}>
-        <AppHeader title={t('myPosts')} />
+        <AppHeader title={t('myPosts')} onBack={() => navigation.goBack()} />
         <View style={styles.centerContainer}>
           <ActivityIndicator size="large" color={tokens.brandPrimary} />
         </View>
@@ -425,7 +425,7 @@ const MyPostsScreen = ({ navigation }) => {
 
   return (
     <View style={styles.container}>
-      <AppHeader title={t('myPosts')} />
+      <AppHeader title={t('myPosts')} onBack={() => navigation.goBack()} />
 
       {total > 0 ? (
         <Text style={[styles.resultsCount, isRTL && styles.textRTL]}>
@@ -536,13 +536,10 @@ const createStyles = (tokens, isRTL, isDark) =>
     },
 
     // Post card - mirrors PostsListScreen's post card DNA: surfaceRaised,
-    // radius.lg, 1px border, borderStart accent bar in the Found/Lost tone,
-    // elevation e1.
+    // radius.lg, borderStart accent bar in the Found/Lost tone, elevation e1.
     postCard: {
       backgroundColor: tokens.surfaceRaised,
       borderRadius: radiusTokens.lg,
-      borderWidth: 1,
-      borderColor: `${tokens.ink}${isDark ? '14' : '26'}`,
       borderStartWidth: 6,
       marginBottom: 16,
       overflow: 'hidden',

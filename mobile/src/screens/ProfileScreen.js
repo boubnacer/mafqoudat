@@ -118,7 +118,7 @@ const ProfileScreen = ({ navigation }) => {
   if (isLoading && !profile) {
     return (
       <View style={styles.container}>
-        <AppHeader title={t('profile')} />
+        <AppHeader title={t('profile')} onBack={() => navigation.goBack()} />
         <View style={styles.centerContainer}>
           <ActivityIndicator size="large" color={tokens.brandPrimary} />
         </View>
@@ -129,7 +129,7 @@ const ProfileScreen = ({ navigation }) => {
   if (error && !profile) {
     return (
       <View style={styles.container}>
-        <AppHeader title={t('profile')} />
+        <AppHeader title={t('profile')} onBack={() => navigation.goBack()} />
         <View style={styles.centerContainer}>
           <DataStateView
             variant="error"
@@ -169,7 +169,7 @@ const ProfileScreen = ({ navigation }) => {
 
   return (
     <View style={styles.container}>
-      <AppHeader title={t('profile')} />
+      <AppHeader title={t('profile')} onBack={() => navigation.goBack()} />
       <ScrollView
         contentContainerStyle={styles.content}
         showsVerticalScrollIndicator={false}
@@ -357,8 +357,6 @@ const createStyles = (tokens, isRTL, isDark) =>
     infoCard: {
       backgroundColor: tokens.surfaceRaised,
       borderRadius: radiusTokens.lg,
-      borderWidth: 1,
-      borderColor: `${tokens.ink}${isDark ? '14' : '26'}`,
       padding: 8,
       marginBottom: 20,
       ...getElevation(isDark, 1),
@@ -423,8 +421,6 @@ const createStyles = (tokens, isRTL, isDark) =>
     menuCard: {
       backgroundColor: tokens.surfaceRaised,
       borderRadius: radiusTokens.lg,
-      borderWidth: 1,
-      borderColor: `${tokens.ink}${isDark ? '14' : '26'}`,
       overflow: 'hidden',
       ...getElevation(isDark, 1),
     },

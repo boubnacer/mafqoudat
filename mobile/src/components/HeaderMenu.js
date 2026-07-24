@@ -2,10 +2,12 @@
  * Overflow (☰) menu for AppHeader: everything that used to live as separate
  * icon buttons in the header bar - country, language, theme - now lives here
  * as rows, alongside the original Browse section (All Posts/Lost/Found -
- * jumps to Home already filtered), Settings, the website's secondary pages
- * (About, Help Center, Safety Tips, Contact Us, Privacy Policy, Terms), and
- * Sign Out. Mirrors the web app's mobile Drawer (client/src/components/Navbar.jsx,
- * <760px) which collapses the same set of controls behind one menu icon.
+ * jumps to Home already filtered), an account section (New Post/My Posts/
+ * Profile - formerly bottom-tab buttons, now that the tab bar is gone),
+ * Settings, the website's secondary pages (About, Help Center, Safety Tips,
+ * Contact Us, Privacy Policy, Terms), and Sign Out. Mirrors the web app's
+ * mobile Drawer (client/src/components/Navbar.jsx, <760px) which collapses
+ * the same set of controls behind one menu icon.
  * Follows LanguageDropdown's modal-popover pattern (transparent Modal,
  * tap-outside/back to dismiss) rather than a real navigation drawer.
  *
@@ -76,14 +78,28 @@ const HeaderMenu = ({ visible, onClose, countryFlag, countryLabel, onOpenCountry
     action();
   };
 
-  // PostsListScreen lives on the root stack (a sibling of MainTabs, pushed
-  // from HomeScreen's "See all" links) - navigate() bubbles up from wherever
-  // this menu is opened (any of the 4 tabs, nested inside MainTabs) to find
-  // it there. initialFl is read once on mount to pre-apply the filter.
+  // All screens now live on one root stack (see App.js) - navigate() reaches
+  // any of them from wherever this menu is opened. initialFl is read once on
+  // mount to pre-apply the filter.
   const handleBrowse = (flId) => {
     runAndClose(() => {
       navigation.navigate('PostsListScreen', { initialFl: flId });
     });
+  };
+
+  // New Post/My Posts/Profile used to be bottom-tab buttons; now that the tab
+  // bar is gone, this menu is their only entry point. Each screen still
+  // self-guards on isSignedIn (redirecting a guest to Login), same as before.
+  const handleNewPost = () => {
+    runAndClose(() => navigation.navigate('NewPost'));
+  };
+
+  const handleMyPosts = () => {
+    runAndClose(() => navigation.navigate('MyPosts'));
+  };
+
+  const handleProfile = () => {
+    runAndClose(() => navigation.navigate('Profile'));
   };
 
   const handleSettings = () => {
@@ -219,6 +235,9 @@ const HeaderMenu = ({ visible, onClose, countryFlag, countryLabel, onOpenCountry
 
             <View style={styles.divider} />
 
+            {renderItem({ key: 'newPost', label: t('createNewPost'), icon: 'add-circle-outline', onPress: handleNewPost })}
+            {renderItem({ key: 'myPosts', label: t('myPosts'), icon: 'list-outline', onPress: handleMyPosts })}
+            {renderItem({ key: 'profile', label: t('profile'), icon: 'person-outline', onPress: handleProfile })}
             {renderItem({ key: 'settings', label: t('settings'), icon: 'settings-outline', onPress: handleSettings })}
 
             <View style={styles.divider} />

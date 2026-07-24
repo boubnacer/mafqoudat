@@ -219,9 +219,8 @@ const PostsListScreen = ({ navigation, route }) => {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
-  // This screen now lives inside MainTabs (a hidden tab, so the bottom bar stays
-  // visible while browsing - see App.js), which means it's never remounted between
-  // visits the way a stack push used to remount it. Mirrors the initialFl effect
+  // navigate() to a screen already present on the stack pops back to that existing
+  // instance instead of pushing (and remounting) a new one - see App.js. Mirrors the initialFl effect
   // above: applies a category change from a second visit to an already-mounted
   // instance (e.g. tapping a different category chip on Home after already having
   // browsed once) instead of silently keeping the stale filter from the first visit.
@@ -554,6 +553,7 @@ const PostsListScreen = ({ navigation, route }) => {
         countryId={countryId}
         onSelectCountry={handleSelectCountry}
         rightActions={filterButton}
+        onBack={() => navigation.goBack()}
       />
 
       <View style={styles.searchRow}>
@@ -797,8 +797,7 @@ const createStyles = (tokens, isRTL, isDark) =>
       height: 36,
       borderRadius: radiusTokens.md,
       backgroundColor: tokens.surfaceRaised,
-      borderWidth: 1,
-      borderColor: `${tokens.ink}${isDark ? '1F' : '14'}`,
+      ...getElevation(isDark, 1),
     },
     filterButtonText: {
       fontFamily: fontFamilies.bodySemiBold,
@@ -889,12 +888,10 @@ const createStyles = (tokens, isRTL, isDark) =>
     },
 
     // Post card - mirrors the web post card DNA: surfaceRaised, radius.lg,
-    // 1px border, borderStart accent bar in the status color, elevation e1.
+    // borderStart accent bar in the status color, elevation e1.
     postCard: {
       backgroundColor: tokens.surfaceRaised,
       borderRadius: radiusTokens.lg,
-      borderWidth: 1,
-      borderColor: `${tokens.ink}${isDark ? '14' : '26'}`,
       borderStartWidth: 6,
       marginBottom: 16,
       overflow: 'hidden',
@@ -1003,8 +1000,7 @@ const createStyles = (tokens, isRTL, isDark) =>
       paddingHorizontal: 16,
       paddingVertical: 12,
       backgroundColor: tokens.surfaceRaised,
-      borderTopWidth: 1,
-      borderTopColor: `${tokens.ink}${isDark ? '1F' : '14'}`,
+      ...getElevation(isDark, 1),
     },
     pageButton: {
       flexDirection: 'row',

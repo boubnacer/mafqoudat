@@ -150,12 +150,12 @@ const LoginScreen = ({ navigation }) => {
       const { accessToken } = response.data;
 
       if (accessToken) {
-        // Login/SignUp/CountrySelection live in the same stack as MainTabs
+        // Login/SignUp/CountrySelection live in the same stack as Home
         // (guest browsing shares it - see App.js), so isSignedIn flipping
         // doesn't remount into a signed-in tree the way it used to; navigate
-        // back to MainTabs (Home) explicitly instead.
+        // back to Home explicitly instead.
         await completeLogin(accessToken);
-        navigation.navigate('MainTabs');
+        navigation.navigate('Home');
       } else {
         setError(t('invalidCredentials'));
       }
@@ -195,7 +195,7 @@ const LoginScreen = ({ navigation }) => {
 
       if (result.success) {
         console.log('✅ Google sign in successful');
-        navigation.navigate('MainTabs');
+        navigation.navigate('Home');
       } else if (result.pending) {
         console.log('⏳ New Google user, navigating to country selection...');
         navigation.navigate('CountrySelection');
@@ -410,8 +410,6 @@ const createStyles = (tokens, isDark) => StyleSheet.create({
     backgroundColor: tokens.surfaceRaised,
     borderRadius: radiusTokens.xl,
     padding: 22,
-    borderWidth: 1,
-    borderColor: `${tokens.ink}${isDark ? '14' : '26'}`,
     ...getElevation(isDark, 2),
   },
   fieldGroup: {

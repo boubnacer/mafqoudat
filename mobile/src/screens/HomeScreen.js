@@ -673,12 +673,10 @@ const createStyles = (tokens, isRTL, isDark) =>
     },
 
     // Panel shell - mirrors LeftSide.jsx / TrendingItem.jsx's SectionPanel:
-    // blurred-gradient surfaceRaised card, 1px ink-alpha border, elevation e1.
+    // blurred-gradient surfaceRaised card, elevation e1.
     panelContainer: {
       backgroundColor: tokens.surfaceRaised,
       borderRadius: radiusTokens.lg,
-      borderWidth: 1,
-      borderColor: `${tokens.ink}${isDark ? '14' : '26'}`,
       padding: 20,
       ...getElevation(isDark, 1),
     },
@@ -832,8 +830,6 @@ const createStyles = (tokens, isRTL, isDark) =>
       aspectRatio: 3 / 4,
       borderRadius: radiusTokens.lg,
       overflow: 'hidden',
-      borderWidth: 1,
-      borderColor: `${tokens.ink}${isDark ? '14' : '26'}`,
       ...getElevation(isDark, 1),
     },
     posterImage: {
@@ -939,10 +935,9 @@ const createStyles = (tokens, isRTL, isDark) =>
     recentEmpty: {
       alignItems: 'center',
       borderRadius: radiusTokens.md,
-      borderWidth: 1,
-      borderStyle: 'dashed',
-      borderColor: `${tokens.ink}26`,
+      backgroundColor: `${tokens.ink}08`,
       padding: 24,
+      ...getElevation(isDark, 1),
     },
     recentEmptyText: {
       fontFamily: fontFamilies.body,
@@ -1011,8 +1006,6 @@ const createStyles = (tokens, isRTL, isDark) =>
     socialPanel: {
       backgroundColor: tokens.surfaceRaised,
       borderRadius: radiusTokens.lg,
-      borderWidth: 1,
-      borderColor: `${tokens.ink}${isDark ? '14' : '26'}`,
       paddingVertical: 22,
       paddingHorizontal: 20,
       alignItems: 'center',

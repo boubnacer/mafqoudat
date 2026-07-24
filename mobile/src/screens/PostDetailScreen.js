@@ -495,8 +495,6 @@ const createStyles = (tokens, isRTL, isDark) =>
       height: 38,
       borderRadius: radiusTokens.md,
       backgroundColor: `${tokens.ink}0A`,
-      borderWidth: 1,
-      borderColor: `${tokens.ink}${isDark ? '1F' : '14'}`,
       justifyContent: 'center',
       alignItems: 'center',
     },
