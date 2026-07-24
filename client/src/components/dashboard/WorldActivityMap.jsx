@@ -5,17 +5,19 @@ import { geoMercator, geoPath, geoBounds } from "d3-geo";
 import { useTranslation } from "../../utils/translations";
 import { TrendingItemSkeleton } from "../LoadingStates";
 
-// Desktop: a single chrome-less, full-bleed map filling the whole header
-// section behind BOTH LeftSide and this component's own title — not a
-// second map, the same instance just zoomed out and given the full section
-// to render into instead of its own half-width card. LeftSide's own card
-// goes translucent (see LeftSide.jsx) so it reads as a glass panel floating
-// over the same map rather than a separate boxed section next to it.
+// A single chrome-less, full-bleed map filling the whole header section
+// behind BOTH LeftSide and this component's own title — not a second map,
+// the same instance just zoomed out and given the full section to render
+// into instead of its own dedicated card. LeftSide's own card goes
+// translucent (see LeftSide.jsx) so it reads as a glass panel floating over
+// the same map rather than a separate boxed section next to/above it.
 //
-// Mobile keeps the previous boxed-card treatment unchanged: LeftSide and
-// this map stack vertically there (a CSS Grid single column, not the
-// side-by-side flex row), so "two halves sharing one backdrop" doesn't
-// really apply — there's only one column, not two to unify.
+// Desktop splits LeftSide and the map side by side (a flex row), so the
+// map is panned/cropped horizontally to land the country back where its
+// old half-width card used to show it. Mobile stacks them vertically
+// instead (LeftSide above, map below, in a single-column grid), so the
+// same pan/crop trick runs on the vertical axis there — see the render
+// below for both.
 //
 // Real, free, no-API-key map data: world-atlas's countries-50m topojson
 // (Natural Earth, public domain) — no tile server, no key, no network call
@@ -107,15 +109,16 @@ const WorldActivityMap = ({ worldActivity, cityActivity, currentCountryCode, cou
     return geoFeatures.find((f) => f.id === currentNumericId) || null;
   }, [geoFeatures, currentNumericId]);
 
-  // Mobile: square card, tightly zoomed (unchanged from before). Desktop:
-  // wide canvas matching the full header's rough proportions, zoomed out a
-  // lot further so the surrounding world reads as a backdrop, not a crop.
+  // Mobile: square reference canvas, kept tightly zoomed (the vertical
+  // crop below handles positioning, not this). Desktop: wide canvas
+  // matching the full header's rough proportions, zoomed out a lot further
+  // so the surrounding world reads as a backdrop, not a crop.
   const MAP_WIDTH = isMobile ? 520 : 1100;
   const mapHeight = isMobile ? 520 : 480;
 
   const mapView = useMemo(() => {
     if (!currentFeature) return { center: [15, 20], scale: 220 };
-    const padding = isMobile ? 8 : 70;
+    const padding = isMobile ? 60 : 70;
     const [[minLon, minLat], [maxLon, maxLat]] = geoBounds(currentFeature);
     const center = [(minLon + maxLon) / 2, (minLat + maxLat) / 2];
     const reference = geoMercator().center(center).translate([MAP_WIDTH / 2, mapHeight / 2]).scale(1);
@@ -226,69 +229,46 @@ const WorldActivityMap = ({ worldActivity, cityActivity, currentCountryCode, cou
     />
   );
 
-  if (isMobile) {
-    // Unchanged boxed-card treatment.
-    return (
-      <Box sx={{ height: "100%", display: "flex", flexDirection: "column" }}>
-        <Box
-          sx={{
-            flex: 1,
-            display: "flex",
-            flexDirection: "column",
-            background: `linear-gradient(135deg, ${alpha(panel, 0.95)} 0%, ${alpha(panel, 0.95)} 100%)`,
-            backdropFilter: "blur(10px)",
-            borderRadius: `${theme.custom.radius.lg}px`,
-            border: `1px solid ${alpha(ink, isDark ? 0.08 : 0.15)}`,
-            boxShadow: theme.custom.elevation.e1,
-            padding: "1.5rem",
-          }}
-        >
-          <Box sx={{ display: "flex", flexWrap: "wrap", alignItems: "center", justifyContent: "center", gap: 1.25, mb: 2 }}>
-            {titleNode}
-          </Box>
-          <Box sx={{ width: "100%", minHeight: 300, aspectRatio: "1 / 1" }}>{mapNode}</Box>
-        </Box>
-      </Box>
-    );
-  }
-
-  // Desktop: chrome-less full-bleed map. Dash.js renders this absolutely
-  // positioned to fill the whole header section (behind LeftSide too), so
-  // here it just needs to fill 100% of whatever box it's given. Title sits
-  // as an overlay near the top, offset toward the side LeftSide *isn't* on
-  // (LeftSide is always the first flex child, so under the header's
-  // direction-aware flex row it sits at the logical start — this puts the
-  // title at the logical end, mirroring where it visually sat back when
-  // this was its own half-width card).
+  // Chrome-less full-bleed map. Dash.js renders this absolutely positioned
+  // to fill the whole header section (behind LeftSide too — on mobile
+  // that's LeftSide's own row plus a reserved spacer row below it; on
+  // desktop it's the whole side-by-side row), so here it just needs to
+  // fill 100% of whatever box it's given.
   //
   // Pan/crop for "same place as before": react-simple-maps always renders
   // the projection centered on its own canvas (translate can't be
   // customized — see the note above), so the chosen country would otherwise
-  // land dead-center of the full header and get hidden behind LeftSide.
-  // To put it back where the old half-width map card used to show it
-  // (~75% across from the logical start, i.e. 25% in from the end), the
-  // map is rendered at 165% of the container's width and shifted via
-  // insetInlineStart so ITS center — always where the country renders —
-  // lands at that 75% mark; Dash.js's header container clips the overflow.
-  // The CSS width stretch (100% of an already-165%-wide box) scales the SVG
-  // non-uniformly the same way it always did pre-crop (viewBox aspect ratio
-  // never matched the container's), so the zoom/padding math above is
-  // untouched by this — it still targets the same on-canvas fit as before.
+  // land dead-center of the full header and get hidden behind LeftSide. To
+  // put it back where its old dedicated card used to show it, the map is
+  // rendered oversized on the axis LeftSide pushes it along, then shifted
+  // so ITS center — always where the country renders — lands at roughly
+  // the old card's center; Dash.js's header container clips the overflow.
+  // Desktop: LeftSide sits beside the map (a flex row), so the crop runs
+  // horizontally, landing the country ~75% across from the logical start
+  // (~25% in from the end), mirroring the old half-width card. Mobile:
+  // LeftSide sits above the map (a single-column stack), so the crop runs
+  // vertically instead, landing the country ~81% down (roughly where the
+  // old square card's center sat below LeftSide's — measured taller — stats
+  // panel). The enlarged height (271%) is chosen as roughly
+  // totalHeaderHeight/spacerHeight, so the vertical CSS stretch on the
+  // visible crop works out the same as when the map had its own ~37%-tall
+  // dedicated card — same apparent zoom, just repositioned. The CSS stretch
+  // (100% of an already-oversized box) scales the SVG non-uniformly the
+  // same way it always did pre-crop (viewBox aspect ratio never matched the
+  // container's), so the zoom/padding math above is untouched by this — it
+  // still targets the same on-canvas fit as before.
+  const mapCropSx = isMobile
+    ? { position: "absolute", insetInlineStart: 0, width: "100%", top: "-54%", height: "271%" }
+    : { position: "absolute", top: 0, bottom: 0, insetInlineStart: "-7.5%", width: "165%" };
+
+  const titleOverlaySx = isMobile
+    ? { position: "absolute", top: "63%", insetInlineStart: 0, insetInlineEnd: 0, display: "flex", flexDirection: "column", alignItems: "center", gap: 1 }
+    : { position: "absolute", top: 24, insetInlineEnd: 32, insetInlineStart: "52%", display: "flex", flexDirection: "column", alignItems: "center", gap: 1 };
+
   return (
     <Box sx={{ width: "100%", height: "100%", position: "relative", overflow: "hidden" }}>
-      <Box sx={{ position: "absolute", top: 0, bottom: 0, insetInlineStart: "-7.5%", width: "165%" }}>{mapNode}</Box>
-      <Box
-        sx={{
-          position: "absolute",
-          top: 24,
-          insetInlineEnd: 32,
-          insetInlineStart: "52%",
-          display: "flex",
-          flexDirection: "column",
-          alignItems: "center",
-          gap: 1,
-        }}
-      >
+      <Box sx={mapCropSx}>{mapNode}</Box>
+      <Box sx={titleOverlaySx}>
         {titleNode}
         {legendSwatch}
       </Box>

@@ -218,32 +218,51 @@ const Dash = () => {
       {/* Header Section with Stats and World Activity Map. Two genuinely
           different layouts (branched in JS via the existing `isMobile`,
           not CSS display toggling) rather than mounting WorldActivityMap
-          twice — mobile keeps LeftSide and the map as separate stacked
-          boxed cards; desktop unifies them into one section where the map
-          is a full-bleed backdrop behind a translucent LeftSide panel. */}
+          twice — both unify LeftSide and the map into one section where
+          the map is a full-bleed backdrop behind a translucent LeftSide
+          panel: side by side on desktop, stacked (LeftSide above a
+          reserved spacer row) on mobile. */}
       {isMobile ? (
         <Box
           mb={4}
-          p={2}
-          sx={{ width: '100%', display: 'grid', gridTemplateColumns: '1fr', gap: '20px' }}
+          sx={{
+            position: 'relative',
+            overflow: 'hidden',
+            width: '100%',
+            borderRadius: `${theme.custom.radius.lg}px`,
+            backgroundColor: theme.custom.color.surfaceBase,
+            border: `1px solid ${alpha(theme.custom.color.ink, theme.palette.mode === 'dark' ? 0.08 : 0.15)}`,
+            boxShadow: theme.custom.elevation.e1,
+          }}
         >
-          <LeftSide
-            totalFounds={data?.totalFounds}
-            totalLosts={data?.totalLosts}
-            totalPosts={data?.totalPosts}
-            totalReturned={data?.totalReturned}
-            foundsToday={data?.createdToday?.todaysFoundPosts}
-            lostsToday={data?.createdToday?.todaysLostPosts}
-          />
           {!hasNoData && (
-            <WorldActivityMap
-              worldActivity={data?.worldActivity}
-              cityActivity={data?.cityActivity}
-              currentCountryCode={countriesData?.entities?.[currentCountry]?.code}
-              countriesByCode={countriesByCode}
-              isLoading={isLoading}
-            />
+            <Box sx={{ position: 'absolute', inset: 0 }}>
+              <WorldActivityMap
+                worldActivity={data?.worldActivity}
+                cityActivity={data?.cityActivity}
+                currentCountryCode={countriesData?.entities?.[currentCountry]?.code}
+                countriesByCode={countriesByCode}
+                isLoading={isLoading}
+              />
+            </Box>
           )}
+          <Box sx={{ position: 'relative', p: 2, display: 'grid', gridTemplateColumns: '1fr', gap: '20px' }}>
+            <LeftSide
+              totalFounds={data?.totalFounds}
+              totalLosts={data?.totalLosts}
+              totalPosts={data?.totalPosts}
+              totalReturned={data?.totalReturned}
+              foundsToday={data?.createdToday?.todaysFoundPosts}
+              lostsToday={data?.createdToday?.todaysLostPosts}
+            />
+            {/* Reserves the vertical space the map's own visual area used
+                to occupy as its own square card — the actual map now
+                renders behind this (and behind LeftSide) via the
+                absolutely-positioned layer above, panned/cropped to land
+                the country back in roughly this spot (see
+                WorldActivityMap's mobile crop math). */}
+            {!hasNoData && <Box sx={{ width: '100%', aspectRatio: '1 / 1', minHeight: 300 }} />}
+          </Box>
         </Box>
       ) : (
         <Box
