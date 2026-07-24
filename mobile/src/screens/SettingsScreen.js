@@ -1,17 +1,41 @@
 /**
  * Settings Screen
  * Language picker (wired to LanguageContext, which persists the selection and
- * handles the RTL reload prompt), sign out, and a placeholder About section
- * linking out to the website's privacy/terms pages.
+ * handles the RTL reload prompt), theme picker, sign out, and a placeholder
+ * About section linking out to the website's privacy/terms pages.
+ * Styling mirrors ProfileScreen.js's shared design language (colorTokens/
+ * radiusTokens/fontFamilies + surfaceRaised panels).
  */
 
-import React from 'react';
-import { View, Text, StyleSheet, TouchableOpacity, Alert, Linking } from 'react-native';
+import React, { useMemo } from 'react';
+import { View, Text, StyleSheet, TouchableOpacity, ScrollView, Alert, Linking } from 'react-native';
+import { Ionicons } from '@expo/vector-icons';
 import { useAuth } from '../context/AuthContext';
 import { useLanguage } from '../context/LanguageContext';
 import { useTheme } from '../context/ThemeContext';
 import { useTranslation } from '../utils/translations';
 import { WEB_BASE_URL } from '../config/api';
+import { colorTokens, radiusTokens, fontFamilies } from '../theme/tokens';
+import AppHeader from '../components/AppHeader';
+
+// Mirrors client/src/designTokens.js's elevationTokens (e1/e2 boxShadow strings)
+// as RN shadow/elevation props - same shadow color/opacity ProfileScreen/LoginScreen use.
+const getElevation = (isDark, level = 1) =>
+  level === 2
+    ? {
+        shadowColor: '#000',
+        shadowOffset: { width: 0, height: 4 },
+        shadowOpacity: isDark ? 0.45 : 0.1,
+        shadowRadius: 16,
+        elevation: 4,
+      }
+    : {
+        shadowColor: '#000',
+        shadowOffset: { width: 0, height: 1 },
+        shadowOpacity: isDark ? 0.4 : 0.06,
+        shadowRadius: 2,
+        elevation: 2,
+      };
 
 const LANGUAGES = [
   { code: 'en', labelKey: 'english' },
@@ -20,18 +44,22 @@ const LANGUAGES = [
 ];
 
 const THEME_MODES = [
-  { code: 'system', labelKey: 'themeSystem' },
-  { code: 'light', labelKey: 'themeLight' },
-  { code: 'dark', labelKey: 'themeDark' },
+  { code: 'system', labelKey: 'themeSystem', icon: 'phone-portrait-outline' },
+  { code: 'light', labelKey: 'themeLight', icon: 'sunny-outline' },
+  { code: 'dark', labelKey: 'themeDark', icon: 'moon-outline' },
 ];
 
 const SettingsScreen = ({ navigation }) => {
   const { isSignedIn, signOut } = useAuth();
   const { currentLanguage, setLanguage } = useLanguage();
-  const { themeMode, setThemeMode } = useTheme();
+  const { isDark, themeMode, setThemeMode } = useTheme();
   const { t } = useTranslation();
   const isRTL = currentLanguage === 'ar';
+
+  const tokens = isDark ? colorTokens.dark : colorTokens.light;
+  const styles = useMemo(() => createStyles(tokens, isDark, isRTL), [tokens, isDark, isRTL]);
   const textStyle = isRTL ? styles.textRTL : null;
+  const chevronIcon = isRTL ? 'chevron-back' : 'chevron-forward';
 
   const handleSignOut = () => {
     Alert.alert(t('logout'), t('signOutConfirm'), [
@@ -56,19 +84,10 @@ const SettingsScreen = ({ navigation }) => {
 
   return (
     <View style={styles.container}>
-      <View style={styles.header}>
-        <TouchableOpacity onPress={() => navigation.goBack()} style={styles.backButton}>
-          <Text style={styles.backButtonText}>{isRTL ? '›' : '‹'}</Text>
-        </TouchableOpacity>
-        <Text style={[styles.headerTitle, textStyle]} numberOfLines={1}>
-          {t('settings')}
-        </Text>
-        <View style={styles.backButton} />
-      </View>
-
-      <View style={styles.content}>
-        <View style={styles.section}>
-          <Text style={[styles.sectionLabel, textStyle]}>{t('theme')}</Text>
+      <AppHeader title={t('settings')} showMenu={false} onBack={() => navigation.goBack()} />
+      <ScrollView contentContainerStyle={styles.content} showsVerticalScrollIndicator={false}>
+        <Text style={[styles.sectionLabel, textStyle]}>{t('theme')}</Text>
+        <View style={styles.card}>
           <View style={styles.chipsRow}>
             {THEME_MODES.map((themeOption) => {
               const isSelected = themeMode === themeOption.code;
@@ -77,7 +96,14 @@ const SettingsScreen = ({ navigation }) => {
                   key={themeOption.code}
                   style={[styles.chip, isSelected && styles.chipSelected]}
                   onPress={() => setThemeMode(themeOption.code)}
+                  activeOpacity={0.75}
                 >
+                  <Ionicons
+                    name={themeOption.icon}
+                    size={15}
+                    color={isSelected ? '#FFFFFF' : tokens.ink}
+                    style={styles.chipIcon}
+                  />
                   <Text style={[styles.chipText, isSelected && styles.chipTextSelected]}>
                     {t(themeOption.labelKey)}
                   </Text>
@@ -87,8 +113,8 @@ const SettingsScreen = ({ navigation }) => {
           </View>
         </View>
 
-        <View style={styles.section}>
-          <Text style={[styles.sectionLabel, textStyle]}>{t('language')}</Text>
+        <Text style={[styles.sectionLabel, textStyle]}>{t('language')}</Text>
+        <View style={styles.card}>
           <View style={styles.chipsRow}>
             {LANGUAGES.map((lang) => {
               const isSelected = currentLanguage === lang.code;
@@ -97,6 +123,7 @@ const SettingsScreen = ({ navigation }) => {
                   key={lang.code}
                   style={[styles.chip, isSelected && styles.chipSelected]}
                   onPress={() => setLanguage(lang.code)}
+                  activeOpacity={0.75}
                 >
                   <Text style={[styles.chipText, isSelected && styles.chipTextSelected]}>{t(lang.labelKey)}</Text>
                 </TouchableOpacity>
@@ -105,129 +132,124 @@ const SettingsScreen = ({ navigation }) => {
           </View>
         </View>
 
-        <View style={styles.section}>
-          <Text style={[styles.sectionLabel, textStyle]}>{t('about')}</Text>
-          <TouchableOpacity style={styles.menuRow} onPress={() => openLink('/privacy')}>
+        <Text style={[styles.sectionLabel, textStyle]}>{t('about')}</Text>
+        <View style={styles.menuCard}>
+          <TouchableOpacity style={styles.menuRow} activeOpacity={0.7} onPress={() => openLink('/privacy')}>
             <Text style={[styles.menuRowText, textStyle]}>{t('privacyPolicy')}</Text>
-            <Text style={styles.menuRowChevron}>{isRTL ? '‹' : '›'}</Text>
+            <Ionicons name={chevronIcon} size={18} color={`${tokens.ink}66`} />
           </TouchableOpacity>
-          <TouchableOpacity style={styles.menuRow} onPress={() => openLink('/terms')}>
+          <View style={styles.menuRowDivider} />
+          <TouchableOpacity style={styles.menuRow} activeOpacity={0.7} onPress={() => openLink('/terms')}>
             <Text style={[styles.menuRowText, textStyle]}>{t('termsOfService')}</Text>
-            <Text style={styles.menuRowChevron}>{isRTL ? '‹' : '›'}</Text>
+            <Ionicons name={chevronIcon} size={18} color={`${tokens.ink}66`} />
           </TouchableOpacity>
         </View>
 
-        <TouchableOpacity style={styles.signOutButton} onPress={handleAuthButtonPress}>
+        <TouchableOpacity style={styles.signOutButton} onPress={handleAuthButtonPress} activeOpacity={0.85}>
           <Text style={styles.signOutButtonText}>{isSignedIn ? t('logout') : t('login')}</Text>
         </TouchableOpacity>
-      </View>
+      </ScrollView>
     </View>
   );
 };
 
-const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-    backgroundColor: '#f5f5f5',
-  },
-  header: {
-    backgroundColor: '#2196F3',
-    padding: 16,
-    paddingTop: 50,
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
-  },
-  backButton: {
-    width: 40,
-    justifyContent: 'center',
-    alignItems: 'flex-start',
-  },
-  backButtonText: {
-    color: '#fff',
-    fontSize: 32,
-    lineHeight: 32,
-  },
-  headerTitle: {
-    flex: 1,
-    fontSize: 20,
-    fontWeight: 'bold',
-    color: '#fff',
-    textAlign: 'center',
-  },
-  textRTL: {
-    textAlign: 'right',
-  },
-  content: {
-    padding: 16,
-  },
-  section: {
-    marginBottom: 24,
-  },
-  sectionLabel: {
-    fontSize: 14,
-    fontWeight: 'bold',
-    color: '#333',
-    marginBottom: 10,
-  },
-  chipsRow: {
-    flexDirection: 'row',
-    flexWrap: 'wrap',
-  },
-  chip: {
-    paddingHorizontal: 16,
-    paddingVertical: 10,
-    borderRadius: 20,
-    backgroundColor: '#fff',
-    borderWidth: 1,
-    borderColor: '#e0e0e0',
-    marginEnd: 8,
-    marginBottom: 8,
-  },
-  chipSelected: {
-    backgroundColor: '#2196F3',
-    borderColor: '#2196F3',
-  },
-  chipText: {
-    fontSize: 14,
-    color: '#333',
-  },
-  chipTextSelected: {
-    color: '#fff',
-    fontWeight: '600',
-  },
-  menuRow: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
-    backgroundColor: '#fff',
-    borderRadius: 8,
-    paddingHorizontal: 16,
-    paddingVertical: 16,
-    marginBottom: 10,
-  },
-  menuRowText: {
-    fontSize: 15,
-    color: '#333',
-  },
-  menuRowChevron: {
-    fontSize: 20,
-    color: '#999',
-  },
-  signOutButton: {
-    height: 48,
-    borderRadius: 8,
-    borderWidth: 1,
-    borderColor: '#c62828',
-    justifyContent: 'center',
-    alignItems: 'center',
-    marginTop: 8,
-  },
-  signOutButtonText: {
-    color: '#c62828',
-    fontWeight: 'bold',
-    fontSize: 15,
-  },
-});
+const createStyles = (tokens, isDark, isRTL) =>
+  StyleSheet.create({
+    container: {
+      flex: 1,
+      backgroundColor: tokens.surfaceBase,
+    },
+    textRTL: {
+      textAlign: 'right',
+    },
+    content: {
+      padding: 16,
+      paddingBottom: 40,
+    },
+    sectionLabel: {
+      fontFamily: fontFamilies.bodySemiBold,
+      fontSize: 13,
+      color: `${tokens.ink}99`,
+      marginBottom: 10,
+      marginTop: 4,
+    },
+    card: {
+      backgroundColor: tokens.surfaceRaised,
+      borderRadius: radiusTokens.lg,
+      padding: 14,
+      marginBottom: 22,
+      ...getElevation(isDark, 1),
+    },
+    chipsRow: {
+      flexDirection: 'row',
+      flexWrap: 'wrap',
+      gap: 8,
+    },
+    chip: {
+      flexDirection: 'row',
+      alignItems: 'center',
+      paddingHorizontal: 14,
+      paddingVertical: 9,
+      borderRadius: radiusTokens.md,
+      backgroundColor: `${tokens.ink}0A`,
+      borderWidth: 1,
+      borderColor: `${tokens.ink}${isDark ? '1F' : '14'}`,
+    },
+    chipSelected: {
+      backgroundColor: tokens.brandPrimary,
+      borderColor: tokens.brandPrimary,
+    },
+    chipIcon: {
+      marginEnd: 6,
+    },
+    chipText: {
+      fontFamily: fontFamilies.bodyMedium,
+      fontSize: 13,
+      color: tokens.ink,
+    },
+    chipTextSelected: {
+      color: '#FFFFFF',
+      fontFamily: fontFamilies.bodySemiBold,
+    },
+    menuCard: {
+      backgroundColor: tokens.surfaceRaised,
+      borderRadius: radiusTokens.lg,
+      overflow: 'hidden',
+      marginBottom: 26,
+      ...getElevation(isDark, 1),
+    },
+    menuRow: {
+      flexDirection: 'row',
+      justifyContent: 'space-between',
+      alignItems: 'center',
+      paddingHorizontal: 16,
+      paddingVertical: 16,
+    },
+    menuRowDivider: {
+      height: 1,
+      backgroundColor: `${tokens.ink}12`,
+      marginHorizontal: 16,
+    },
+    menuRowText: {
+      flex: 1,
+      fontFamily: fontFamilies.body,
+      fontSize: 15,
+      color: tokens.ink,
+      textAlign: isRTL ? 'right' : 'left',
+    },
+    signOutButton: {
+      height: 50,
+      borderRadius: radiusTokens.md,
+      borderWidth: 1,
+      borderColor: tokens.status.lost.main,
+      justifyContent: 'center',
+      alignItems: 'center',
+    },
+    signOutButtonText: {
+      color: tokens.status.lost.main,
+      fontFamily: fontFamilies.bodySemiBold,
+      fontSize: 15,
+    },
+  });
 
 export default SettingsScreen;
