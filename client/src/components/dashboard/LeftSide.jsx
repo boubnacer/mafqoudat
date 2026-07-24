@@ -322,8 +322,18 @@ const LeftSide = ({
   return (
     <Box
       sx={{
-        background: `linear-gradient(135deg, ${alpha(theme.custom.color.surfaceRaised, 0.95)} 0%, ${alpha(theme.custom.color.surfaceRaised, 0.95)} 100%)`,
-        backdropFilter: 'blur(10px)',
+        // Desktop: genuinely translucent now that this floats over Dash.js's
+        // full-bleed world-map backdrop instead of sitting next to its own
+        // boxed card — a much lower fill so the map actually shows through,
+        // with a heavier blur than before (10px -> 18px) so the busier map
+        // detail behind it doesn't fight with the stat numbers' legibility.
+        // Mobile is unchanged: LeftSide still sits on its own there (the
+        // map backdrop is desktop-only), so it keeps the original ~opaque
+        // panel look plain transparency would have no map to read over.
+        background: isMobile
+          ? `linear-gradient(135deg, ${alpha(theme.custom.color.surfaceRaised, 0.95)} 0%, ${alpha(theme.custom.color.surfaceRaised, 0.95)} 100%)`
+          : `linear-gradient(135deg, ${alpha(theme.custom.color.surfaceRaised, 0.28)} 0%, ${alpha(theme.custom.color.surfaceRaised, 0.28)} 100%)`,
+        backdropFilter: isMobile ? 'blur(10px)' : 'blur(18px)',
         borderRadius: isMobile ? `${theme.custom.radius.lg}px` : `${theme.custom.radius.xl}px`,
         border: `1px solid ${alpha(theme.custom.color.ink, theme.palette.mode === 'dark' ? 0.08 : 0.15)}`,
         padding: isMobile ? '1.5rem' : '2rem',

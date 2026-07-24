@@ -5,8 +5,17 @@ import { geoMercator, geoPath, geoBounds } from "d3-geo";
 import { useTranslation } from "../../utils/translations";
 import { TrendingItemSkeleton } from "../LoadingStates";
 
-// Sits inline with LeftSide (same flex row, height-matched via fillHeight),
-// zoomed to the selected country rather than the whole world.
+// Desktop: a single chrome-less, full-bleed map filling the whole header
+// section behind BOTH LeftSide and this component's own title — not a
+// second map, the same instance just zoomed out and given the full section
+// to render into instead of its own half-width card. LeftSide's own card
+// goes translucent (see LeftSide.jsx) so it reads as a glass panel floating
+// over the same map rather than a separate boxed section next to it.
+//
+// Mobile keeps the previous boxed-card treatment unchanged: LeftSide and
+// this map stack vertically there (a CSS Grid single column, not the
+// side-by-side flex row), so "two halves sharing one backdrop" doesn't
+// really apply — there's only one column, not two to unify.
 //
 // Real, free, no-API-key map data: world-atlas's countries-50m topojson
 // (Natural Earth, public domain) — no tile server, no key, no network call
@@ -30,12 +39,12 @@ import { TrendingItemSkeleton } from "../LoadingStates";
 // those differ for an irregular shape, and only the bbox midpoint lands the
 // bbox itself in the middle of a fixed-translate canvas), then solve for
 // the scale that fits that bbox into the padded target area by measuring
-// the projected bounds at a reference scale of 1 and dividing.
-
-// ISO 3166-1 alpha-2 -> UN M49 numeric code, for exactly the 25 countries
-// this platform actually serves (verified against the app's /countries
-// endpoint) — small enough to hand-maintain rather than pulling in a full
-// ISO country-code package for a 25-row lookup.
+// the projected bounds at a reference scale of 1 and dividing. Same
+// constraint is why the country can't be pinned to one side of the wide
+// desktop canvas the way "same place" might suggest — translate always
+// lands it dead-center of whatever canvas size we give the map, so a wider
+// canvas with more padding just reads as "more of the world around it,"
+// not "shifted to the right."
 const ISO2_TO_NUMERIC = {
   AE: "784", BH: "048", CF: "140", TD: "148", KM: "174", DZ: "012",
   DJ: "262", EG: "818", IQ: "368", JO: "400", KW: "414", LB: "422",
@@ -71,8 +80,6 @@ const WorldActivityMap = ({ worldActivity, cityActivity, currentCountryCode, cou
     };
   }, []);
 
-  // Activity keyed by numeric id (what the topojson shapes use), carrying
-  // the raw ISO2 code along so we can look up the localized country name.
   const activityByNumericId = useMemo(() => {
     const map = new Map();
     (worldActivity || []).forEach(({ code, count }) => {
@@ -100,20 +107,15 @@ const WorldActivityMap = ({ worldActivity, cityActivity, currentCountryCode, cou
     return geoFeatures.find((f) => f.id === currentNumericId) || null;
   }, [geoFeatures, currentNumericId]);
 
-  // Internal coordinate system for ComposableMap — independent of the CSS
-  // box it's displayed at, but should still match its aspect ratio or the
-  // map letterboxes inside it instead of filling the space. Square on both
-  // mobile and desktop now (matches the CSS box below on each).
-  const MAP_WIDTH = 520;
-  const mapHeight = 520;
+  // Mobile: square card, tightly zoomed (unchanged from before). Desktop:
+  // wide canvas matching the full header's rough proportions, zoomed out a
+  // lot further so the surrounding world reads as a backdrop, not a crop.
+  const MAP_WIDTH = isMobile ? 520 : 1100;
+  const mapHeight = isMobile ? 520 : 480;
 
   const mapView = useMemo(() => {
     if (!currentFeature) return { center: [15, 20], scale: 220 };
-    // Smaller padding = the country's bounding box fills more of the frame
-    // (more zoomed in). A bit tighter on mobile specifically, per request —
-    // the square card there has more room per pixel of country than the
-    // desktop layout does.
-    const padding = isMobile ? 8 : 22;
+    const padding = isMobile ? 8 : 170;
     const [[minLon, minLat], [maxLon, maxLat]] = geoBounds(currentFeature);
     const center = [(minLon + maxLon) / 2, (minLat + maxLat) / 2];
     const reference = geoMercator().center(center).translate([MAP_WIDTH / 2, mapHeight / 2]).scale(1);
@@ -136,142 +138,159 @@ const WorldActivityMap = ({ worldActivity, cityActivity, currentCountryCode, cou
     );
   }
 
+  const mapNode = geoFeatures ? (
+    <ComposableMap
+      width={MAP_WIDTH}
+      height={mapHeight}
+      projection="geoMercator"
+      projectionConfig={{ center: mapView.center, scale: mapView.scale }}
+      style={{ width: "100%", height: "100%" }}
+    >
+      <Geographies geography={geoFeatures}>
+        {({ geographies }) =>
+          geographies.map((geo) => {
+            const entry = activityByNumericId.get(geo.id);
+            const isCurrent = geo.id === currentNumericId;
+            const baseFill = entry
+              ? alpha(brand, 0.22 + (entry.count / maxCount) * 0.68)
+              : alpha(ink, isDark ? 0.14 : 0.08);
+            return (
+              <Geography
+                key={geo.rsmKey}
+                geography={geo}
+                style={{
+                  default: {
+                    fill: baseFill,
+                    stroke: isCurrent ? brand : alpha(panel, isDark ? 0.4 : 0.8),
+                    strokeWidth: isCurrent ? 1.6 : 0.5,
+                    outline: "none",
+                  },
+                  hover: {
+                    fill: entry ? alpha(brand, 0.9) : alpha(ink, isDark ? 0.22 : 0.16),
+                    stroke: isCurrent ? brand : alpha(panel, isDark ? 0.4 : 0.8),
+                    strokeWidth: isCurrent ? 1.6 : 0.5,
+                    outline: "none",
+                    cursor: "pointer",
+                  },
+                  pressed: { outline: "none" },
+                }}
+              />
+            );
+          })
+        }
+      </Geographies>
+
+      {/* City markers — proportional-symbol dots (radius scaled by post
+          count) layered on top of the country fill. Panel-filled with a
+          brand stroke so they read as solid pins regardless of the fill
+          tone beneath them; labels get a panel-colored text outline
+          (paintOrder="stroke") for the same reason, rather than a
+          background pill shape. */}
+      {cities.map((city, index) => (
+        <Marker key={`${city.name}-${index}`} coordinates={[city.lon, city.lat]}>
+          <circle r={cityRadius(city.count)} fill={panel} stroke={brand} strokeWidth={2} />
+          <text
+            y={cityRadius(city.count) + 12}
+            textAnchor="middle"
+            fontSize={10}
+            fontWeight={600}
+            fill={ink}
+            stroke={panel}
+            strokeWidth={3}
+            paintOrder="stroke"
+            pointerEvents="none"
+          >
+            {city.name}
+          </text>
+        </Marker>
+      ))}
+    </ComposableMap>
+  ) : (
+    <Box sx={{ width: "100%", height: "100%", backgroundColor: alpha(ink, 0.05) }} />
+  );
+
+  const titleNode = (
+    <Typography sx={{ fontSize: { xs: "0.95rem", sm: "1.05rem" }, fontWeight: 700, color: ink, textAlign: "center" }}>
+      {t("worldActivityCountries", { country: currentCountryName })}
+    </Typography>
+  );
+
+  const legendSwatch = (
+    <Box
+      sx={{
+        width: 48,
+        height: 7,
+        borderRadius: 4,
+        background: `linear-gradient(${isRTL ? "to left" : "to right"}, ${alpha(brand, 0.2)}, ${alpha(brand, 0.95)})`,
+      }}
+    />
+  );
+
+  if (isMobile) {
+    // Unchanged boxed-card treatment.
+    return (
+      <Box sx={{ height: "100%", display: "flex", flexDirection: "column" }}>
+        <Box
+          sx={{
+            flex: 1,
+            display: "flex",
+            flexDirection: "column",
+            background: `linear-gradient(135deg, ${alpha(panel, 0.95)} 0%, ${alpha(panel, 0.95)} 100%)`,
+            backdropFilter: "blur(10px)",
+            borderRadius: `${theme.custom.radius.lg}px`,
+            border: `1px solid ${alpha(ink, isDark ? 0.08 : 0.15)}`,
+            boxShadow: theme.custom.elevation.e1,
+            padding: "1.5rem",
+          }}
+        >
+          <Box sx={{ display: "flex", flexWrap: "wrap", alignItems: "center", justifyContent: "center", gap: 1.25, mb: 2 }}>
+            {titleNode}
+          </Box>
+          <Box sx={{ width: "100%", minHeight: 300, aspectRatio: "1 / 1" }}>{mapNode}</Box>
+        </Box>
+      </Box>
+    );
+  }
+
+  // Desktop: chrome-less full-bleed map. Dash.js renders this absolutely
+  // positioned to fill the whole header section (behind LeftSide too), so
+  // here it just needs to fill 100% of whatever box it's given. Title sits
+  // as an overlay near the top, offset toward the side LeftSide *isn't* on
+  // (LeftSide is always the first flex child, so under the header's
+  // direction-aware flex row it sits at the logical start — this puts the
+  // title at the logical end, mirroring where it visually sat back when
+  // this was its own half-width card).
+  //
+  // Pan/crop for "same place as before": react-simple-maps always renders
+  // the projection centered on its own canvas (translate can't be
+  // customized — see the note above), so the chosen country would otherwise
+  // land dead-center of the full header and get hidden behind LeftSide.
+  // To put it back where the old half-width map card used to show it
+  // (~75% across from the logical start, i.e. 25% in from the end), the
+  // map is rendered at 165% of the container's width and shifted via
+  // insetInlineStart so ITS center — always where the country renders —
+  // lands at that 75% mark; Dash.js's header container clips the overflow.
+  // The CSS width stretch (100% of an already-165%-wide box) scales the SVG
+  // non-uniformly the same way it always did pre-crop (viewBox aspect ratio
+  // never matched the container's), so the zoom/padding math above is
+  // untouched by this — it still targets the same on-canvas fit as before.
   return (
-    <Box sx={{ height: "100%", display: "flex", flexDirection: "column" }}>
+    <Box sx={{ width: "100%", height: "100%", position: "relative", overflow: "hidden" }}>
+      <Box sx={{ position: "absolute", top: 0, bottom: 0, insetInlineStart: "-7.5%", width: "165%" }}>{mapNode}</Box>
       <Box
         sx={{
-          flex: 1,
-          minHeight: isMobile ? undefined : 320,
+          position: "absolute",
+          top: 24,
+          insetInlineEnd: 32,
+          insetInlineStart: "52%",
           display: "flex",
           flexDirection: "column",
-          background: `linear-gradient(135deg, ${alpha(panel, 0.95)} 0%, ${alpha(panel, 0.95)} 100%)`,
-          backdropFilter: "blur(10px)",
-          borderRadius: isMobile ? `${theme.custom.radius.lg}px` : `${theme.custom.radius.xl}px`,
-          border: `1px solid ${alpha(ink, isDark ? 0.08 : 0.15)}`,
-          boxShadow: theme.custom.elevation.e1,
-          padding: isMobile ? "1.5rem" : "2rem",
+          alignItems: "center",
+          gap: 1,
         }}
       >
-        {/* Single descriptive line naming the selected country — no separate
-            "your selected country" marker anymore, since the whole map is
-            always zoomed to that one country already, and no hover info
-            strip below the map either (removed to reclaim vertical space,
-            especially on mobile — the map's own hover/fill states already
-            give feedback without needing a text readout). */}
-        <Box
-          sx={{
-            display: "flex",
-            flexWrap: "wrap",
-            alignItems: "center",
-            justifyContent: "center",
-            gap: { xs: 1.25, sm: 2 },
-            mb: isMobile ? 2 : 3,
-          }}
-        >
-          <Typography sx={{ fontSize: { xs: "0.95rem", sm: "1.05rem" }, fontWeight: 700, color: ink, textAlign: "center" }}>
-            {t("worldActivityCountries", { country: currentCountryName })}
-          </Typography>
-
-          {/* sequential-ramp legend (fewer -> more) — dropped on mobile,
-              wraps onto its own line there otherwise. */}
-          {!isMobile && (
-            <Box
-              sx={{
-                width: 48,
-                height: 7,
-                borderRadius: 4,
-                background: `linear-gradient(${isRTL ? "to left" : "to right"}, ${alpha(brand, 0.2)}, ${alpha(brand, 0.95)})`,
-              }}
-            />
-          )}
-        </Box>
-
-        {/* Desktop: flex:1 fills the row-stretched height LeftSide drives
-            (see Dash.js's alignItems:'stretch' flex row). Mobile has no
-            such external height to grow into — it's a single-column grid
-            row there, not a stretched flex row — so it needs its own
-            explicit size instead; square (1/1) rather than the previous
-            4/3 specifically because 4/3 was reading as noticeably short
-            once the header above it got more compact. */}
-        <Box
-          sx={{
-            width: "100%",
-            flex: isMobile ? undefined : 1,
-            minHeight: isMobile ? 300 : 0,
-            aspectRatio: isMobile ? "1 / 1" : undefined,
-          }}
-        >
-          {geoFeatures ? (
-          <ComposableMap
-            width={MAP_WIDTH}
-            height={mapHeight}
-            projection="geoMercator"
-            projectionConfig={{ center: mapView.center, scale: mapView.scale }}
-            style={{ width: "100%", height: "100%" }}
-          >
-            <Geographies geography={geoFeatures}>
-              {({ geographies }) =>
-                geographies.map((geo) => {
-                  const entry = activityByNumericId.get(geo.id);
-                  const isCurrent = geo.id === currentNumericId;
-                  const baseFill = entry
-                    ? alpha(brand, 0.22 + (entry.count / maxCount) * 0.68)
-                    : alpha(ink, isDark ? 0.14 : 0.08);
-                  return (
-                    <Geography
-                      key={geo.rsmKey}
-                      geography={geo}
-                      style={{
-                        default: {
-                          fill: baseFill,
-                          stroke: isCurrent ? brand : alpha(panel, isDark ? 0.4 : 0.8),
-                          strokeWidth: isCurrent ? 1.6 : 0.5,
-                          outline: "none",
-                        },
-                        hover: {
-                          fill: entry ? alpha(brand, 0.9) : alpha(ink, isDark ? 0.22 : 0.16),
-                          stroke: isCurrent ? brand : alpha(panel, isDark ? 0.4 : 0.8),
-                          strokeWidth: isCurrent ? 1.6 : 0.5,
-                          outline: "none",
-                          cursor: "pointer",
-                        },
-                        pressed: { outline: "none" },
-                      }}
-                    />
-                  );
-                })
-              }
-            </Geographies>
-
-            {/* City markers — proportional-symbol dots (radius scaled by
-                post count) layered on top of the country fill. Panel-filled
-                with a brand stroke so they read as solid pins regardless of
-                the fill tone beneath them; labels get a panel-colored text
-                outline (paintOrder="stroke") for the same reason, rather
-                than a background pill shape. */}
-            {cities.map((city, index) => (
-              <Marker key={`${city.name}-${index}`} coordinates={[city.lon, city.lat]}>
-                <circle r={cityRadius(city.count)} fill={panel} stroke={brand} strokeWidth={2} />
-                <text
-                  y={cityRadius(city.count) + 12}
-                  textAnchor="middle"
-                  fontSize={10}
-                  fontWeight={600}
-                  fill={ink}
-                  stroke={panel}
-                  strokeWidth={3}
-                  paintOrder="stroke"
-                  pointerEvents="none"
-                >
-                  {city.name}
-                </text>
-              </Marker>
-            ))}
-          </ComposableMap>
-        ) : (
-          <Box sx={{ width: "100%", height: "100%", borderRadius: `${theme.custom.radius.md}px`, backgroundColor: alpha(ink, 0.05) }} />
-        )}
-      </Box>
+        {titleNode}
+        {legendSwatch}
       </Box>
     </Box>
   );

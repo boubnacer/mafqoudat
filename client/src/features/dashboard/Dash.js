@@ -215,49 +215,80 @@ const Dash = () => {
         />
       </Box> */}
 
-      {/* Header Section with Stats and World Activity Map — same paired
-          flex row LeftSide has always shared with whatever sits beside it
-          (Trending, then the chart, now the map), stretched to match
-          height and capped/centered at the same max width. */}
-      <Box
-        mb={4}
-        p={{ xs: 2, sm: 3, md: 4, lg: 5, xl: 6 }}
-        gap={{ xs: "20px", sm: "24px", md: "28px", lg: "32px", xl: "40px" }}
-        sx={{
-          display: { xs: "grid", sm: "flex" },
-          gridTemplateColumns: { xs: "repeat(1,1fr)", sm: "repeat(2,1fr)" },
-          maxWidth: { xs: '100%', sm: '100%', md: '100%', lg: '1400px', xl: '1600px' },
-          overflow: 'hidden',
-          width: '100%',
-          alignItems: { xs: 'stretch', sm: 'stretch' },
-          margin: { xs: 0, sm: '0 auto' },
-          justifyContent: { xs: 'center', sm: 'center' },
-          '& > *': {
-            flex: { xs: 'none', sm: '1 1 0' },
-            minWidth: 0,
-            maxWidth: { xs: '100%', sm: '50%' },
-          }
-        }}
-      >
-        <LeftSide
-          totalFounds={data?.totalFounds}
-          totalLosts={data?.totalLosts}
-          totalPosts={data?.totalPosts}
-          totalReturned={data?.totalReturned}
-          foundsToday={data?.createdToday?.todaysFoundPosts}
-          lostsToday={data?.createdToday?.todaysLostPosts}
-        />
-
-        <Box sx={{ display: { xs: hasNoData ? 'none' : 'block', sm: 'block' } }}>
-          <WorldActivityMap
-            worldActivity={data?.worldActivity}
-            cityActivity={data?.cityActivity}
-            currentCountryCode={countriesData?.entities?.[currentCountry]?.code}
-            countriesByCode={countriesByCode}
-            isLoading={isLoading}
+      {/* Header Section with Stats and World Activity Map. Two genuinely
+          different layouts (branched in JS via the existing `isMobile`,
+          not CSS display toggling) rather than mounting WorldActivityMap
+          twice — mobile keeps LeftSide and the map as separate stacked
+          boxed cards; desktop unifies them into one section where the map
+          is a full-bleed backdrop behind a translucent LeftSide panel. */}
+      {isMobile ? (
+        <Box
+          mb={4}
+          p={2}
+          sx={{ width: '100%', display: 'grid', gridTemplateColumns: '1fr', gap: '20px' }}
+        >
+          <LeftSide
+            totalFounds={data?.totalFounds}
+            totalLosts={data?.totalLosts}
+            totalPosts={data?.totalPosts}
+            totalReturned={data?.totalReturned}
+            foundsToday={data?.createdToday?.todaysFoundPosts}
+            lostsToday={data?.createdToday?.todaysLostPosts}
           />
+          {!hasNoData && (
+            <WorldActivityMap
+              worldActivity={data?.worldActivity}
+              cityActivity={data?.cityActivity}
+              currentCountryCode={countriesData?.entities?.[currentCountry]?.code}
+              countriesByCode={countriesByCode}
+              isLoading={isLoading}
+            />
+          )}
         </Box>
-      </Box>
+      ) : (
+        <Box
+          mb={4}
+          sx={{
+            position: 'relative',
+            maxWidth: { sm: '100%', md: '100%', lg: '1400px', xl: '1600px' },
+            overflow: 'hidden',
+            width: '100%',
+            margin: '0 auto',
+            borderRadius: `${theme.custom.radius.xl}px`,
+            // Fallback tone for the map's "ocean" — the SVG has no fill of
+            // its own outside the country shapes, so without this the gaps
+            // would just show the plain page background.
+            backgroundColor: theme.custom.color.surfaceBase,
+            border: `1px solid ${alpha(theme.custom.color.ink, theme.palette.mode === 'dark' ? 0.08 : 0.15)}`,
+            boxShadow: theme.custom.elevation.e1,
+          }}
+        >
+          {!hasNoData && (
+            <Box sx={{ position: 'absolute', inset: 0 }}>
+              <WorldActivityMap
+                worldActivity={data?.worldActivity}
+                cityActivity={data?.cityActivity}
+                currentCountryCode={countriesData?.entities?.[currentCountry]?.code}
+                countriesByCode={countriesByCode}
+                isLoading={isLoading}
+              />
+            </Box>
+          )}
+
+          <Box sx={{ position: 'relative', display: 'flex', justifyContent: 'flex-start' }}>
+            <Box sx={{ width: '50%', minWidth: 0, p: { sm: 3, md: 4, lg: 5, xl: 6 } }}>
+              <LeftSide
+                totalFounds={data?.totalFounds}
+                totalLosts={data?.totalLosts}
+                totalPosts={data?.totalPosts}
+                totalReturned={data?.totalReturned}
+                foundsToday={data?.createdToday?.todaysFoundPosts}
+                lostsToday={data?.createdToday?.todaysLostPosts}
+              />
+            </Box>
+          </Box>
+        </Box>
+      )}
 
       {/* Show empty state if no posts, but still show stats above */}
       {hasNoData && (
