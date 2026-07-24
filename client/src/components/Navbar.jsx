@@ -74,7 +74,10 @@ const StyledToolbar = styled(Toolbar)(({ theme }) => ({
   alignItems: "center",
   columnGap: "16px",
   backgroundColor: alpha(theme.custom.color.surfaceRaised, 0.7),
-  backdropFilter: "blur(20px)",
+  // Kept low enough that content behind the navbar (e.g. Dash.js's map
+  // header section) stays legible through it instead of blurring into a
+  // flat wash — a heavier blur reads as opaque even at low background alpha.
+  backdropFilter: "blur(6px)",
   padding: "0.75rem 2.5rem",
   boxShadow: theme.custom.elevation.e1,
   transition: "background-color 0.3s ease",
