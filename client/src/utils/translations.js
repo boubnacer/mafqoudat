@@ -1375,6 +1375,11 @@ export const translations = {
     crossBorder: "Cross-Border",
     app: "App",
     convenience: "Convenience",
+    documents: "Documents",
+    casablanca: "Casablanca",
+    publicTransport: "Public Transport",
+    market: "Market",
+    labeling: "Labeling",
 
     // Blog post titles and content
     blogPost1Title: "Essential Safety Tips for Meeting Strangers",
@@ -2865,6 +2870,11 @@ export const translations = {
     crossBorder: "Transfrontalier",
     app: "Application",
     convenience: "Commodité",
+    documents: "Documents",
+    casablanca: "Casablanca",
+    publicTransport: "Transport en commun",
+    market: "Marché",
+    labeling: "Étiquetage",
 
     // Blog post titles and content
     blogPost1Title: "Conseils de Sécurité Essentiels pour Rencontrer des Inconnus",
@@ -4339,6 +4349,11 @@ export const translations = {
     crossBorder: "عبر الحدود",
     app: "التطبيق",
     convenience: "الراحة",
+    documents: "وثائق",
+    casablanca: "الدار البيضاء",
+    publicTransport: "النقل العام",
+    market: "السوق",
+    labeling: "وضع العلامات",
 
     // Blog post titles and content
     blogPost1Title: "نصائح السلامة الأساسية للقاء الغرباء",
