@@ -14,11 +14,11 @@ import {
   ScrollView,
   StyleSheet,
   TouchableOpacity,
-  ActivityIndicator,
   RefreshControl,
   Modal,
   Linking,
   Alert,
+  Animated,
 } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import apiClient from '../api/apiService';
@@ -34,8 +34,43 @@ import AppHeader from '../components/AppHeader';
 import ReportPostSheet from '../components/ReportPostSheet';
 import PromotePostSheet from '../components/PromotePostSheet';
 import DataStateView from '../components/DataStateView';
+import SkeletonBlock from '../components/SkeletonBlock';
+import { useStaggeredFadeIn } from '../hooks/useStaggeredFadeIn';
 
 const TOAST_DURATION_MS = 3000;
+const SECTION_COUNT = 2;
+
+// Shaped like the real image + body block below (badge, resolved banner slot,
+// category chips, the location/date/description/contact sections).
+const PostDetailSkeleton = ({ styles, tokens }) => (
+  <View>
+    <SkeletonBlock tokens={tokens} style={styles.postImageSkeleton} />
+    <View style={styles.body}>
+      <SkeletonBlock tokens={tokens} style={styles.badgeSkeleton} />
+      <View style={styles.chipsRowSkeleton}>
+        <SkeletonBlock tokens={tokens} style={styles.chipSkeleton} />
+        <SkeletonBlock tokens={tokens} style={styles.chipSkeleton} />
+      </View>
+      {[
+        { labelWidth: 60, lines: 1 },
+        { labelWidth: 90, lines: 1 },
+        { labelWidth: 80, lines: 3 },
+      ].map((section, i) => (
+        <View key={i} style={styles.section}>
+          <SkeletonBlock tokens={tokens} style={[styles.sectionLabelSkeleton, { width: section.labelWidth }]} />
+          {Array.from({ length: section.lines }).map((_, j) => (
+            <SkeletonBlock
+              key={j}
+              tokens={tokens}
+              style={[styles.sectionBodyLineSkeleton, j === section.lines - 1 && styles.sectionBodyLineLastSkeleton]}
+            />
+          ))}
+        </View>
+      ))}
+      <SkeletonBlock tokens={tokens} style={styles.contactButtonSkeleton} />
+    </View>
+  </View>
+);
 
 const STATUS_KEYS = {
   active: 'statusActive',
@@ -127,6 +162,8 @@ const PostDetailScreen = ({ navigation, route }) => {
 
   const toastTimerRef = useRef(null);
 
+  const getSectionStyle = useStaggeredFadeIn(SECTION_COUNT, !isLoading);
+
   useEffect(() => {
     return () => {
       if (toastTimerRef.current) clearTimeout(toastTimerRef.current);
@@ -192,10 +229,9 @@ const PostDetailScreen = ({ navigation, route }) => {
     return (
       <View style={styles.container}>
         <AppHeader title={t('postDetails')} showMenu={false} onBack={() => navigation.goBack()} />
-        <View style={styles.centerContainer}>
-          <ActivityIndicator size="large" color={tokens.brandPrimary} />
-          <Text style={styles.loadingText}>{t('loadingPost')}</Text>
-        </View>
+        <ScrollView showsVerticalScrollIndicator={false}>
+          <PostDetailSkeleton styles={styles} tokens={tokens} />
+        </ScrollView>
       </View>
     );
   }
@@ -283,18 +319,20 @@ const PostDetailScreen = ({ navigation, route }) => {
           />
         }
       >
-        {imageUri ? (
-          <TouchableOpacity activeOpacity={0.9} onPress={() => setImageModalVisible(true)}>
-            <Image source={{ uri: imageUri }} style={styles.postImage} resizeMode="cover" />
-          </TouchableOpacity>
-        ) : (
-          <View style={styles.postImagePlaceholder}>
-            <Ionicons name="image-outline" size={48} color={`${tokens.ink}40`} />
-            <Text style={styles.placeholderText}>{t('noImage')}</Text>
-          </View>
-        )}
+        <Animated.View style={getSectionStyle(0)}>
+          {imageUri ? (
+            <TouchableOpacity activeOpacity={0.9} onPress={() => setImageModalVisible(true)}>
+              <Image source={{ uri: imageUri }} style={styles.postImage} resizeMode="cover" />
+            </TouchableOpacity>
+          ) : (
+            <View style={styles.postImagePlaceholder}>
+              <Ionicons name="image-outline" size={48} color={`${tokens.ink}40`} />
+              <Text style={styles.placeholderText}>{t('noImage')}</Text>
+            </View>
+          )}
+        </Animated.View>
 
-        <View style={styles.body}>
+        <Animated.View style={[styles.body, getSectionStyle(1)]}>
           <View style={styles.badgeRow}>
             <View style={[styles.badge, { backgroundColor: badgeTone.main }]}>
               <Ionicons
@@ -409,7 +447,7 @@ const PostDetailScreen = ({ navigation, route }) => {
               <Text style={[styles.bodyTextSecondary, isRTL && styles.textRTL]}>{t('noContactProvided')}</Text>
             )}
           </View>
-        </View>
+        </Animated.View>
       </ScrollView>
 
       <Modal
@@ -503,11 +541,6 @@ const createStyles = (tokens, isRTL, isDark) =>
       justifyContent: 'center',
       alignItems: 'center',
       padding: 24,
-    },
-    loadingText: {
-      marginTop: 16,
-      fontFamily: fontFamilies.body,
-      color: `${tokens.ink}99`,
     },
     content: {
       paddingBottom: 32,
@@ -735,6 +768,49 @@ const createStyles = (tokens, isRTL, isDark) =>
       fontFamily: fontFamilies.bodyMedium,
       fontSize: 14,
       textAlign: 'center',
+    },
+
+    // Initial-load skeleton - mirrors the image + body block above (badge,
+    // category chips, location/date/description/contact sections). Visible
+    // immediately (see useStaggeredFadeIn); the real content fades/slides in
+    // once loading finishes.
+    postImageSkeleton: {
+      width: '100%',
+      height: 300,
+      borderRadius: 0,
+    },
+    badgeSkeleton: {
+      width: 100,
+      height: 27,
+      marginBottom: 14,
+    },
+    chipsRowSkeleton: {
+      flexDirection: 'row',
+      gap: 8,
+      marginBottom: 8,
+    },
+    chipSkeleton: {
+      width: 74,
+      height: 24,
+    },
+    sectionLabelSkeleton: {
+      height: 12,
+      marginBottom: 8,
+    },
+    sectionBodyLineSkeleton: {
+      height: 16,
+      width: '80%',
+      marginBottom: 6,
+    },
+    sectionBodyLineLastSkeleton: {
+      width: '45%',
+      marginBottom: 0,
+    },
+    contactButtonSkeleton: {
+      height: 46,
+      width: '50%',
+      borderRadius: radiusTokens.md,
+      marginTop: 16,
     },
   });
 

@@ -24,6 +24,7 @@ import {
   TouchableOpacity,
   Image,
   Alert,
+  Animated,
 } from 'react-native';
 import { useFocusEffect } from '@react-navigation/native';
 import { Ionicons } from '@expo/vector-icons';
@@ -37,10 +38,41 @@ import { colorTokens, radiusTokens, fontFamilies, lightColors, darkColors } from
 import { getCategoryConfig } from '../config/categories';
 import PromotePostSheet from '../components/PromotePostSheet';
 import DataStateView from '../components/DataStateView';
+import SkeletonBlock from '../components/SkeletonBlock';
 import AppHeader from '../components/AppHeader';
+import { useStaggeredFadeIn } from '../hooks/useStaggeredFadeIn';
 
 const PAGE_SIZE = 10;
 const TOAST_DURATION_MS = 3000;
+const SECTION_COUNT = 2;
+const SKELETON_CARD_COUNT = 3;
+
+// Shaped like the real post card below, plus the owner-only lifecycle badge
+// and actions row that PostsListScreen's cards don't have.
+const MyPostsSkeleton = ({ styles, tokens }) => (
+  <View style={styles.skeletonWrap}>
+    {Array.from({ length: SKELETON_CARD_COUNT }).map((_, i) => (
+      <View key={i} style={styles.postCardSkeleton}>
+        <SkeletonBlock tokens={tokens} style={styles.postMediaSkeleton} />
+        <View style={styles.postContent}>
+          <View style={styles.titleRowSkeleton}>
+            <SkeletonBlock tokens={tokens} style={styles.titleLineSkeleton} />
+            <SkeletonBlock tokens={tokens} style={styles.lifecycleBadgeSkeleton} />
+          </View>
+          <View style={styles.metaRowSkeleton}>
+            <SkeletonBlock tokens={tokens} style={styles.metaPillSkeleton} />
+            <SkeletonBlock tokens={tokens} style={styles.metaPillSkeleton} />
+          </View>
+          <View style={styles.actionsRowSkeleton}>
+            <SkeletonBlock tokens={tokens} style={styles.actionPillSkeleton} />
+            <SkeletonBlock tokens={tokens} style={styles.actionPillSkeleton} />
+            <SkeletonBlock tokens={tokens} style={styles.actionPillSkeleton} />
+          </View>
+        </View>
+      </View>
+    ))}
+  </View>
+);
 
 // markPostAsReturned only flips `returned`, not `status` (a real backend
 // inconsistency) - `returned` is the reliable "resolved" signal.
@@ -153,6 +185,8 @@ const MyPostsScreen = ({ navigation }) => {
 
   const isFirstFocusRef = useRef(true);
   const toastTimerRef = useRef(null);
+
+  const getSectionStyle = useStaggeredFadeIn(SECTION_COUNT, hasLoadedOnce);
 
   const showToast = (message) => {
     setToast(message);
@@ -412,81 +446,78 @@ const MyPostsScreen = ({ navigation }) => {
     return null;
   }
 
-  if (isLoading && !hasLoadedOnce) {
-    return (
-      <View style={styles.container}>
-        <AppHeader title={t('myPosts')} onBack={() => navigation.goBack()} />
-        <View style={styles.centerContainer}>
-          <ActivityIndicator size="large" color={tokens.brandPrimary} />
-        </View>
-      </View>
-    );
-  }
-
   return (
     <View style={styles.container}>
       <AppHeader title={t('myPosts')} onBack={() => navigation.goBack()} />
 
-      {total > 0 ? (
-        <Text style={[styles.resultsCount, isRTL && styles.textRTL]}>
-          {total} {t('posts')}
-        </Text>
-      ) : null}
-
-      {error && !isLoading && posts.length === 0 ? (
-        <DataStateView
-          variant="error"
-          message={error}
-          actionLabel={t('retry')}
-          onAction={() => loadPosts(1)}
-          isRTL={isRTL}
-        />
+      {!hasLoadedOnce ? (
+        <MyPostsSkeleton styles={styles} tokens={tokens} />
       ) : (
         <>
-          {error ? (
-            <View style={styles.errorContainer}>
-              <Text style={styles.errorText}>{error}</Text>
-            </View>
-          ) : null}
+          <Animated.View style={getSectionStyle(0)}>
+            {total > 0 ? (
+              <Text style={[styles.resultsCount, isRTL && styles.textRTL]}>
+                {total} {t('posts')}
+              </Text>
+            ) : null}
+          </Animated.View>
 
-          <FlatList
-            data={posts}
-            renderItem={renderPost}
-            keyExtractor={(item, index) => item?._id || `mypost-${index}`}
-            contentContainerStyle={styles.list}
-            refreshControl={
-              <RefreshControl
-                refreshing={isRefreshing}
-                onRefresh={handleRefresh}
-                colors={[tokens.brandPrimary]}
-                tintColor={tokens.brandPrimary}
-              />
-            }
-            onEndReached={handleLoadMore}
-            onEndReachedThreshold={0.5}
-            ListFooterComponent={
-              isLoadingMore ? (
-                <ActivityIndicator size="small" color={tokens.brandPrimary} style={styles.footerLoader} />
-              ) : posts.length > 0 && !hasMore ? (
-                <TouchableOpacity style={styles.addPostButton} onPress={handleNewPostPress} activeOpacity={0.85}>
-                  <Ionicons name="add" size={18} color="#FFFFFF" />
-                  <Text style={styles.addPostButtonText}>{t('createPost')}</Text>
-                </TouchableOpacity>
-              ) : null
-            }
-            ListEmptyComponent={
-              !isLoading ? (
-                <View style={styles.emptyState}>
-                  <Ionicons name="person-outline" size={48} color={`${tokens.brandPrimary}99`} />
-                  <Text style={[styles.emptyStateTitle, isRTL && styles.textRTL]}>{t('noMyPosts')}</Text>
-                  <TouchableOpacity style={styles.emptyStatePrimaryButton} onPress={handleNewPostPress}>
-                    <Ionicons name="add" size={16} color="#FFFFFF" />
-                    <Text style={styles.emptyStatePrimaryButtonText}>{t('createPost')}</Text>
-                  </TouchableOpacity>
+          {error && !isLoading && posts.length === 0 ? (
+            <DataStateView
+              variant="error"
+              message={error}
+              actionLabel={t('retry')}
+              onAction={() => loadPosts(1)}
+              isRTL={isRTL}
+            />
+          ) : (
+            <Animated.View style={[styles.listFlex, getSectionStyle(1)]}>
+              {error ? (
+                <View style={styles.errorContainer}>
+                  <Text style={styles.errorText}>{error}</Text>
                 </View>
-              ) : null
-            }
-          />
+              ) : null}
+
+              <FlatList
+                data={posts}
+                renderItem={renderPost}
+                keyExtractor={(item, index) => item?._id || `mypost-${index}`}
+                contentContainerStyle={styles.list}
+                refreshControl={
+                  <RefreshControl
+                    refreshing={isRefreshing}
+                    onRefresh={handleRefresh}
+                    colors={[tokens.brandPrimary]}
+                    tintColor={tokens.brandPrimary}
+                  />
+                }
+                onEndReached={handleLoadMore}
+                onEndReachedThreshold={0.5}
+                ListFooterComponent={
+                  isLoadingMore ? (
+                    <ActivityIndicator size="small" color={tokens.brandPrimary} style={styles.footerLoader} />
+                  ) : posts.length > 0 && !hasMore ? (
+                    <TouchableOpacity style={styles.addPostButton} onPress={handleNewPostPress} activeOpacity={0.85}>
+                      <Ionicons name="add" size={18} color="#FFFFFF" />
+                      <Text style={styles.addPostButtonText}>{t('createPost')}</Text>
+                    </TouchableOpacity>
+                  ) : null
+                }
+                ListEmptyComponent={
+                  !isLoading ? (
+                    <View style={styles.emptyState}>
+                      <Ionicons name="person-outline" size={48} color={`${tokens.brandPrimary}99`} />
+                      <Text style={[styles.emptyStateTitle, isRTL && styles.textRTL]}>{t('noMyPosts')}</Text>
+                      <TouchableOpacity style={styles.emptyStatePrimaryButton} onPress={handleNewPostPress}>
+                        <Ionicons name="add" size={16} color="#FFFFFF" />
+                        <Text style={styles.emptyStatePrimaryButtonText}>{t('createPost')}</Text>
+                      </TouchableOpacity>
+                    </View>
+                  ) : null
+                }
+              />
+            </Animated.View>
+          )}
         </>
       )}
 
@@ -517,11 +548,6 @@ const createStyles = (tokens, isRTL, isDark) =>
     textRTL: {
       textAlign: 'right',
     },
-    centerContainer: {
-      flex: 1,
-      justifyContent: 'center',
-      alignItems: 'center',
-    },
     resultsCount: {
       paddingHorizontal: 16,
       paddingTop: 12,
@@ -531,8 +557,74 @@ const createStyles = (tokens, isRTL, isDark) =>
       textTransform: 'uppercase',
       color: `${tokens.ink}99`,
     },
+    listFlex: {
+      flex: 1,
+    },
     list: {
       padding: 16,
+    },
+
+    // Initial-load skeleton - post-card-shaped placeholders including the
+    // lifecycle badge + actions row this screen's real cards have (unlike
+    // PostsListScreen's). Visible immediately (see useStaggeredFadeIn); the
+    // real content fades/slides in once hasLoadedOnce flips.
+    skeletonWrap: {
+      padding: 16,
+    },
+    postCardSkeleton: {
+      backgroundColor: tokens.surfaceRaised,
+      borderRadius: radiusTokens.lg,
+      borderStartWidth: 6,
+      borderStartColor: `${tokens.ink}14`,
+      marginBottom: 16,
+      overflow: 'hidden',
+      ...getElevation(isDark, 1),
+    },
+    postMediaSkeleton: {
+      width: '100%',
+      height: 180,
+      borderRadius: 0,
+    },
+    // Row direction matches the real titleRow/postMetaRow/actionsRow below,
+    // which don't flip for RTL either (only their text does) - kept in sync
+    // so the skeleton doesn't visually jump when real content swaps in.
+    titleRowSkeleton: {
+      flexDirection: 'row',
+      alignItems: 'center',
+      justifyContent: 'space-between',
+      gap: 8,
+      marginBottom: 12,
+    },
+    titleLineSkeleton: {
+      flex: 1,
+      height: 17,
+      maxWidth: '55%',
+    },
+    lifecycleBadgeSkeleton: {
+      width: 64,
+      height: 20,
+    },
+    metaRowSkeleton: {
+      flexDirection: 'row',
+      gap: 14,
+      marginBottom: 14,
+    },
+    metaPillSkeleton: {
+      width: 80,
+      height: 13,
+    },
+    actionsRowSkeleton: {
+      flexDirection: 'row',
+      flexWrap: 'wrap',
+      gap: 8,
+      borderTopWidth: 1,
+      borderTopColor: `${tokens.ink}${isDark ? '1A' : '0F'}`,
+      paddingTop: 12,
+    },
+    actionPillSkeleton: {
+      width: 78,
+      height: 30,
+      borderRadius: radiusTokens.md,
     },
 
     // Post card - mirrors PostsListScreen's post card DNA: surfaceRaised,

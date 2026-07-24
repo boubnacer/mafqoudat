@@ -21,6 +21,7 @@ import {
   Image,
   TextInput,
   ScrollView,
+  Animated,
 } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import axios from 'axios';
@@ -36,10 +37,33 @@ import { colorTokens, radiusTokens, fontFamilies } from '../theme/tokens';
 import { getCategoryConfig } from '../config/categories';
 import PostFilterSheet from '../components/PostFilterSheet';
 import DataStateView from '../components/DataStateView';
+import SkeletonBlock from '../components/SkeletonBlock';
 import AppHeader from '../components/AppHeader';
+import { useStaggeredFadeIn } from '../hooks/useStaggeredFadeIn';
 
 const SEARCH_DEBOUNCE_MS = 400;
 const PAGE_SIZE = 5;
+const SECTION_COUNT = 2;
+const SKELETON_CARD_COUNT = 3;
+
+// Shaped like the real postCard below (media block, borderStart accent bar,
+// title/description/meta lines) but with a neutral (non Found/Lost) accent
+// tint since the skeleton doesn't know the post type yet.
+const PostsListSkeleton = ({ styles, tokens }) => (
+  <View style={styles.skeletonWrap}>
+    <SkeletonBlock tokens={tokens} style={styles.searchSkeleton} />
+    {Array.from({ length: SKELETON_CARD_COUNT }).map((_, i) => (
+      <View key={i} style={styles.postCardSkeleton}>
+        <SkeletonBlock tokens={tokens} style={styles.postMediaSkeleton} />
+        <View style={styles.postContent}>
+          <SkeletonBlock tokens={tokens} style={styles.titleLineSkeleton} />
+          <SkeletonBlock tokens={tokens} style={styles.bodyLineSkeleton} />
+          <SkeletonBlock tokens={tokens} style={styles.bodyLineShortSkeleton} />
+        </View>
+      </View>
+    ))}
+  </View>
+);
 
 const getImageUri = (image) => (image ? (image.startsWith('http') ? image : `${API_BASE_URL}/${image}`) : null);
 
@@ -138,6 +162,8 @@ const PostsListScreen = ({ navigation, route }) => {
   const [page, setPage] = useState(1);
   const [totalPages, setTotalPages] = useState(1);
   const [total, setTotal] = useState(0);
+
+  const getSectionStyle = useStaggeredFadeIn(SECTION_COUNT, hasLoadedOnce);
 
   const [countryId, setCountryId] = useState(null);
   const [searchText, setSearchText] = useState('');
@@ -528,24 +554,6 @@ const PostsListScreen = ({ navigation, route }) => {
     );
   };
 
-  if (isLoading && !hasLoadedOnce) {
-    return (
-      <View style={styles.container}>
-        <AppHeader
-          title={t('posts')}
-          countryId={countryId}
-          onSelectCountry={handleSelectCountry}
-          rightActions={filterButton}
-          onBack={() => navigation.goBack()}
-        />
-        <View style={styles.centerContainer}>
-          <ActivityIndicator size="large" color={tokens.brandPrimary} />
-          <Text style={styles.loadingText}>{t('loadingPosts')}</Text>
-        </View>
-      </View>
-    );
-  }
-
   return (
     <View style={styles.container}>
       <AppHeader
@@ -556,178 +564,186 @@ const PostsListScreen = ({ navigation, route }) => {
         onBack={() => navigation.goBack()}
       />
 
-      <View style={styles.searchRow}>
-        <Ionicons name="search-outline" size={18} color={`${tokens.ink}80`} style={styles.searchIcon} />
-        <TextInput
-          style={[styles.searchInput, isRTL && styles.textRTL]}
-          placeholder={t('searchPlaceholder')}
-          placeholderTextColor={`${tokens.ink}66`}
-          value={searchText}
-          onChangeText={setSearchText}
-          autoCapitalize="none"
-        />
-      </View>
-
-      {isFilterActive ? (
-        <View style={styles.activeFiltersRow}>
-          <ScrollView
-            horizontal
-            showsHorizontalScrollIndicator={false}
-            contentContainerStyle={styles.activeFiltersContent}
-          >
-            {debouncedSearch ? (
-              <TouchableOpacity
-                style={styles.activeChip}
-                onPress={() => {
-                  setSearchText('');
-                  setDebouncedSearch('');
-                }}
-              >
-                <Text style={styles.activeChipText}>"{debouncedSearch}"</Text>
-                <Text style={styles.activeChipRemove}>✕</Text>
-              </TouchableOpacity>
-            ) : null}
-            {selectedFloption ? (
-              <TouchableOpacity style={styles.activeChip} onPress={() => handleSelectFl('')}>
-                <Text style={styles.activeChipText}>{getLocalizedLabel(selectedFloption, currentLanguage)}</Text>
-                <Text style={styles.activeChipRemove}>✕</Text>
-              </TouchableOpacity>
-            ) : null}
-            {selectedCategoryChips.map((cat) => (
-              <TouchableOpacity key={cat._id} style={styles.activeChip} onPress={() => handleToggleCategory(cat._id)}>
-                <Text style={styles.activeChipText}>{getLocalizedLabel(cat, currentLanguage)}</Text>
-                <Text style={styles.activeChipRemove}>✕</Text>
-              </TouchableOpacity>
-            ))}
-            {selectedCityId ? (
-              <TouchableOpacity style={styles.activeChip} onPress={() => handleSelectCity(null)}>
-                <Text style={styles.activeChipText}>{selectedCityLabel}</Text>
-                <Text style={styles.activeChipRemove}>✕</Text>
-              </TouchableOpacity>
-            ) : null}
-            <TouchableOpacity onPress={handleClearAllFilters} style={styles.clearAllLink}>
-              <Text style={styles.clearAllLinkText}>{t('clearFilters')}</Text>
-            </TouchableOpacity>
-          </ScrollView>
-        </View>
-      ) : null}
-
-      {total > 0 ? (
-        <Text style={[styles.resultsCount, isRTL && styles.textRTL]}>
-          {total} {t('posts')}
-        </Text>
-      ) : null}
-
-      {error && !isLoading && posts.length === 0 ? (
-        <DataStateView
-          variant="error"
-          message={error}
-          actionLabel={t('retry')}
-          onAction={() => loadPosts(page)}
-          isRTL={isRTL}
-        />
+      {!hasLoadedOnce ? (
+        <PostsListSkeleton styles={styles} tokens={tokens} />
       ) : (
-        <View style={styles.listWrap}>
-          {error ? (
-            <View style={styles.errorContainer}>
-              <Text style={styles.errorText}>{error}</Text>
-            </View>
-          ) : null}
-
-          {isLoading && hasLoadedOnce ? (
-            <ActivityIndicator size="small" color={tokens.brandPrimary} style={styles.inlineLoader} />
-          ) : null}
-
-          <FlatList
-            ref={listRef}
-            style={styles.list}
-            data={Array.isArray(posts) ? posts : []}
-            renderItem={renderPost}
-            keyExtractor={(item, index) => item?._id || item?.id || `post-${index}`}
-            contentContainerStyle={styles.listContent}
-            refreshControl={
-              <RefreshControl
-                refreshing={isRefreshing}
-                onRefresh={handleRefresh}
-                colors={[tokens.brandPrimary]}
-                tintColor={tokens.brandPrimary}
+        <>
+          <Animated.View style={getSectionStyle(0)}>
+            <View style={styles.searchRow}>
+              <Ionicons name="search-outline" size={18} color={`${tokens.ink}80`} style={styles.searchIcon} />
+              <TextInput
+                style={[styles.searchInput, isRTL && styles.textRTL]}
+                placeholder={t('searchPlaceholder')}
+                placeholderTextColor={`${tokens.ink}66`}
+                value={searchText}
+                onChangeText={setSearchText}
+                autoCapitalize="none"
               />
-            }
-            ListEmptyComponent={
-              !isLoading ? (
-                <View style={styles.emptyState}>
-                  <Ionicons name="search-outline" size={48} color={`${tokens.brandPrimary}99`} />
-                  <Text style={[styles.emptyStateTitle, isRTL && styles.textRTL]}>
-                    {isFilterActive ? t('noResultsFilters') : t('noPostsFound')}
-                  </Text>
-                  <Text style={[styles.emptyStateBody, isRTL && styles.textRTL]}>
-                    {isFilterActive ? t('adjustFilters') : t('noPostsInArea')}
-                  </Text>
-                  <View style={styles.emptyStateActions}>
-                    {isFilterActive ? (
-                      <TouchableOpacity style={styles.emptyStateSecondaryButton} onPress={handleClearAllFilters}>
-                        <Text style={styles.emptyStateSecondaryButtonText}>{t('clearFilters')}</Text>
-                      </TouchableOpacity>
-                    ) : null}
-                    <TouchableOpacity style={styles.emptyStatePrimaryButton} onPress={handleNewPostPress}>
-                      <Ionicons name="add" size={16} color="#FFFFFF" />
-                      <Text style={styles.emptyStatePrimaryButtonText}>{t('createPost')}</Text>
-                    </TouchableOpacity>
-                  </View>
-                </View>
-              ) : null
-            }
-            // "Shown at the end of posts", mirroring client/src/features/posts/PostsList/PostsList.js -
-            // only appears once the current page's posts have actually rendered (i.e. the user has
-            // browsed all of them), not as a persistent floating action button.
-            ListFooterComponent={
-              !isLoading && posts.length > 0 ? (
-                <TouchableOpacity style={styles.addPostButton} onPress={handleNewPostPress} activeOpacity={0.85}>
-                  <Ionicons name="add" size={18} color="#FFFFFF" />
-                  <Text style={styles.addPostButtonText}>{t('createPost')}</Text>
-                </TouchableOpacity>
-              ) : null
-            }
-          />
-
-          {totalPages > 1 ? (
-            <View style={styles.paginationBar}>
-              <TouchableOpacity
-                style={[styles.pageButton, page <= 1 && styles.pageButtonDisabled]}
-                onPress={handlePrevPage}
-                disabled={page <= 1}
-              >
-                <Ionicons
-                  name={isRTL ? 'chevron-forward' : 'chevron-back'}
-                  size={18}
-                  color={page <= 1 ? `${tokens.ink}40` : tokens.brandPrimary}
-                />
-                <Text style={[styles.pageButtonText, page <= 1 && styles.pageButtonTextDisabled]}>
-                  {t('previous')}
-                </Text>
-              </TouchableOpacity>
-
-              <Text style={styles.pageIndicatorText}>
-                {t('page')} {page} {t('of')} {totalPages}
-              </Text>
-
-              <TouchableOpacity
-                style={[styles.pageButton, page >= totalPages && styles.pageButtonDisabled]}
-                onPress={handleNextPage}
-                disabled={page >= totalPages}
-              >
-                <Text style={[styles.pageButtonText, page >= totalPages && styles.pageButtonTextDisabled]}>
-                  {t('next')}
-                </Text>
-                <Ionicons
-                  name={isRTL ? 'chevron-back' : 'chevron-forward'}
-                  size={18}
-                  color={page >= totalPages ? `${tokens.ink}40` : tokens.brandPrimary}
-                />
-              </TouchableOpacity>
             </View>
-          ) : null}
-        </View>
+
+            {isFilterActive ? (
+              <View style={styles.activeFiltersRow}>
+                <ScrollView
+                  horizontal
+                  showsHorizontalScrollIndicator={false}
+                  contentContainerStyle={styles.activeFiltersContent}
+                >
+                  {debouncedSearch ? (
+                    <TouchableOpacity
+                      style={styles.activeChip}
+                      onPress={() => {
+                        setSearchText('');
+                        setDebouncedSearch('');
+                      }}
+                    >
+                      <Text style={styles.activeChipText}>"{debouncedSearch}"</Text>
+                      <Text style={styles.activeChipRemove}>✕</Text>
+                    </TouchableOpacity>
+                  ) : null}
+                  {selectedFloption ? (
+                    <TouchableOpacity style={styles.activeChip} onPress={() => handleSelectFl('')}>
+                      <Text style={styles.activeChipText}>{getLocalizedLabel(selectedFloption, currentLanguage)}</Text>
+                      <Text style={styles.activeChipRemove}>✕</Text>
+                    </TouchableOpacity>
+                  ) : null}
+                  {selectedCategoryChips.map((cat) => (
+                    <TouchableOpacity key={cat._id} style={styles.activeChip} onPress={() => handleToggleCategory(cat._id)}>
+                      <Text style={styles.activeChipText}>{getLocalizedLabel(cat, currentLanguage)}</Text>
+                      <Text style={styles.activeChipRemove}>✕</Text>
+                    </TouchableOpacity>
+                  ))}
+                  {selectedCityId ? (
+                    <TouchableOpacity style={styles.activeChip} onPress={() => handleSelectCity(null)}>
+                      <Text style={styles.activeChipText}>{selectedCityLabel}</Text>
+                      <Text style={styles.activeChipRemove}>✕</Text>
+                    </TouchableOpacity>
+                  ) : null}
+                  <TouchableOpacity onPress={handleClearAllFilters} style={styles.clearAllLink}>
+                    <Text style={styles.clearAllLinkText}>{t('clearFilters')}</Text>
+                  </TouchableOpacity>
+                </ScrollView>
+              </View>
+            ) : null}
+
+            {total > 0 ? (
+              <Text style={[styles.resultsCount, isRTL && styles.textRTL]}>
+                {total} {t('posts')}
+              </Text>
+            ) : null}
+          </Animated.View>
+
+          {error && !isLoading && posts.length === 0 ? (
+            <DataStateView
+              variant="error"
+              message={error}
+              actionLabel={t('retry')}
+              onAction={() => loadPosts(page)}
+              isRTL={isRTL}
+            />
+          ) : (
+            <Animated.View style={[styles.listWrap, getSectionStyle(1)]}>
+              {error ? (
+                <View style={styles.errorContainer}>
+                  <Text style={styles.errorText}>{error}</Text>
+                </View>
+              ) : null}
+
+              {isLoading && hasLoadedOnce ? (
+                <ActivityIndicator size="small" color={tokens.brandPrimary} style={styles.inlineLoader} />
+              ) : null}
+
+              <FlatList
+                ref={listRef}
+                style={styles.list}
+                data={Array.isArray(posts) ? posts : []}
+                renderItem={renderPost}
+                keyExtractor={(item, index) => item?._id || item?.id || `post-${index}`}
+                contentContainerStyle={styles.listContent}
+                refreshControl={
+                  <RefreshControl
+                    refreshing={isRefreshing}
+                    onRefresh={handleRefresh}
+                    colors={[tokens.brandPrimary]}
+                    tintColor={tokens.brandPrimary}
+                  />
+                }
+                ListEmptyComponent={
+                  !isLoading ? (
+                    <View style={styles.emptyState}>
+                      <Ionicons name="search-outline" size={48} color={`${tokens.brandPrimary}99`} />
+                      <Text style={[styles.emptyStateTitle, isRTL && styles.textRTL]}>
+                        {isFilterActive ? t('noResultsFilters') : t('noPostsFound')}
+                      </Text>
+                      <Text style={[styles.emptyStateBody, isRTL && styles.textRTL]}>
+                        {isFilterActive ? t('adjustFilters') : t('noPostsInArea')}
+                      </Text>
+                      <View style={styles.emptyStateActions}>
+                        {isFilterActive ? (
+                          <TouchableOpacity style={styles.emptyStateSecondaryButton} onPress={handleClearAllFilters}>
+                            <Text style={styles.emptyStateSecondaryButtonText}>{t('clearFilters')}</Text>
+                          </TouchableOpacity>
+                        ) : null}
+                        <TouchableOpacity style={styles.emptyStatePrimaryButton} onPress={handleNewPostPress}>
+                          <Ionicons name="add" size={16} color="#FFFFFF" />
+                          <Text style={styles.emptyStatePrimaryButtonText}>{t('createPost')}</Text>
+                        </TouchableOpacity>
+                      </View>
+                    </View>
+                  ) : null
+                }
+                // "Shown at the end of posts", mirroring client/src/features/posts/PostsList/PostsList.js -
+                // only appears once the current page's posts have actually rendered (i.e. the user has
+                // browsed all of them), not as a persistent floating action button.
+                ListFooterComponent={
+                  !isLoading && posts.length > 0 ? (
+                    <TouchableOpacity style={styles.addPostButton} onPress={handleNewPostPress} activeOpacity={0.85}>
+                      <Ionicons name="add" size={18} color="#FFFFFF" />
+                      <Text style={styles.addPostButtonText}>{t('createPost')}</Text>
+                    </TouchableOpacity>
+                  ) : null
+                }
+              />
+
+              {totalPages > 1 ? (
+                <View style={styles.paginationBar}>
+                  <TouchableOpacity
+                    style={[styles.pageButton, page <= 1 && styles.pageButtonDisabled]}
+                    onPress={handlePrevPage}
+                    disabled={page <= 1}
+                  >
+                    <Ionicons
+                      name={isRTL ? 'chevron-forward' : 'chevron-back'}
+                      size={18}
+                      color={page <= 1 ? `${tokens.ink}40` : tokens.brandPrimary}
+                    />
+                    <Text style={[styles.pageButtonText, page <= 1 && styles.pageButtonTextDisabled]}>
+                      {t('previous')}
+                    </Text>
+                  </TouchableOpacity>
+
+                  <Text style={styles.pageIndicatorText}>
+                    {t('page')} {page} {t('of')} {totalPages}
+                  </Text>
+
+                  <TouchableOpacity
+                    style={[styles.pageButton, page >= totalPages && styles.pageButtonDisabled]}
+                    onPress={handleNextPage}
+                    disabled={page >= totalPages}
+                  >
+                    <Text style={[styles.pageButtonText, page >= totalPages && styles.pageButtonTextDisabled]}>
+                      {t('next')}
+                    </Text>
+                    <Ionicons
+                      name={isRTL ? 'chevron-back' : 'chevron-forward'}
+                      size={18}
+                      color={page >= totalPages ? `${tokens.ink}40` : tokens.brandPrimary}
+                    />
+                  </TouchableOpacity>
+                </View>
+              ) : null}
+            </Animated.View>
+          )}
+        </>
       )}
 
       <PostFilterSheet
@@ -864,16 +880,6 @@ const createStyles = (tokens, isRTL, isDark) =>
       textTransform: 'uppercase',
       color: `${tokens.ink}99`,
     },
-    centerContainer: {
-      flex: 1,
-      justifyContent: 'center',
-      alignItems: 'center',
-    },
-    loadingText: {
-      marginTop: 16,
-      fontFamily: fontFamilies.body,
-      color: `${tokens.ink}99`,
-    },
     inlineLoader: {
       marginTop: 12,
     },
@@ -885,6 +891,47 @@ const createStyles = (tokens, isRTL, isDark) =>
     },
     listContent: {
       padding: 16,
+    },
+
+    // Initial-load skeleton - shaped like the search row + a handful of
+    // postCard-shaped placeholders below, so the transition into real
+    // content doesn't jump. Visible immediately (see useStaggeredFadeIn),
+    // the real content is what fades/slides in once hasLoadedOnce flips.
+    skeletonWrap: {
+      padding: 16,
+    },
+    searchSkeleton: {
+      height: 44,
+      borderRadius: radiusTokens.md,
+      marginBottom: 16,
+    },
+    postCardSkeleton: {
+      backgroundColor: tokens.surfaceRaised,
+      borderRadius: radiusTokens.lg,
+      borderStartWidth: 6,
+      borderStartColor: `${tokens.ink}14`,
+      marginBottom: 16,
+      overflow: 'hidden',
+      ...getElevation(isDark, 1),
+    },
+    postMediaSkeleton: {
+      width: '100%',
+      height: 180,
+      borderRadius: 0,
+    },
+    titleLineSkeleton: {
+      height: 17,
+      width: '70%',
+      marginBottom: 10,
+    },
+    bodyLineSkeleton: {
+      height: 13,
+      width: '100%',
+      marginBottom: 8,
+    },
+    bodyLineShortSkeleton: {
+      height: 13,
+      width: '55%',
     },
 
     // Post card - mirrors the web post card DNA: surfaceRaised, radius.lg,

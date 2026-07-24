@@ -7,7 +7,7 @@
  */
 
 import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react';
-import { View, Text, StyleSheet, ScrollView, TouchableOpacity, ActivityIndicator, RefreshControl } from 'react-native';
+import { View, Text, StyleSheet, ScrollView, TouchableOpacity, RefreshControl, Animated } from 'react-native';
 import { useFocusEffect } from '@react-navigation/native';
 import { Ionicons } from '@expo/vector-icons';
 import apiClient from '../api/apiService';
@@ -18,7 +18,47 @@ import { useTranslation } from '../utils/translations';
 import { useReferenceData, getLocalizedLabel } from '../context/ReferenceDataContext';
 import { colorTokens, radiusTokens, fontFamilies } from '../theme/tokens';
 import DataStateView from '../components/DataStateView';
+import SkeletonBlock from '../components/SkeletonBlock';
 import AppHeader from '../components/AppHeader';
+import { useStaggeredFadeIn } from '../hooks/useStaggeredFadeIn';
+
+const SECTION_COUNT = 3;
+
+// Shaped like the real avatar header / info card / primary-button+menu
+// blocks below (see the render fn), since Profile's content isn't a list.
+const ProfileSkeleton = ({ styles, tokens }) => (
+  <View style={styles.content}>
+    <View style={styles.avatarSection}>
+      <SkeletonBlock tokens={tokens} style={styles.avatarSkeleton} />
+      <SkeletonBlock tokens={tokens} style={styles.displayNameSkeleton} />
+      <SkeletonBlock tokens={tokens} style={styles.usernameSkeleton} />
+      <SkeletonBlock tokens={tokens} style={styles.providerBadgeSkeleton} />
+    </View>
+
+    <View style={styles.infoCard}>
+      {[0, 1, 2].map((i) => (
+        <View key={i} style={[styles.infoRow, i > 0 && styles.infoRowDivider]}>
+          <SkeletonBlock tokens={tokens} style={styles.infoRowIconSkeleton} />
+          <View style={styles.infoRowTextWrap}>
+            <SkeletonBlock tokens={tokens} style={styles.infoLabelSkeleton} />
+            <SkeletonBlock tokens={tokens} style={styles.infoValueSkeleton} />
+          </View>
+        </View>
+      ))}
+    </View>
+
+    <SkeletonBlock tokens={tokens} style={styles.primaryButtonSkeleton} />
+
+    <View style={styles.menuCard}>
+      {[0, 1].map((i) => (
+        <View key={i} style={[styles.menuRow, i > 0 && styles.infoRowDivider]}>
+          <SkeletonBlock tokens={tokens} style={styles.menuRowIconSkeleton} />
+          <SkeletonBlock tokens={tokens} style={styles.menuRowTextSkeleton} />
+        </View>
+      ))}
+    </View>
+  </View>
+);
 
 // Mirrors client/src/designTokens.js's elevationTokens (e1/e2 boxShadow strings)
 // as RN shadow/elevation props - same shadow color/opacity HomeScreen/LoginScreen use.
@@ -55,6 +95,9 @@ const ProfileScreen = ({ navigation }) => {
   const [error, setError] = useState('');
 
   const isFirstFocusRef = useRef(true);
+
+  const isReady = !isLoading || !!profile;
+  const getSectionStyle = useStaggeredFadeIn(SECTION_COUNT, isReady);
 
   const loadProfile = useCallback(
     async (isRefresh = false) => {
@@ -119,9 +162,7 @@ const ProfileScreen = ({ navigation }) => {
     return (
       <View style={styles.container}>
         <AppHeader title={t('profile')} onBack={() => navigation.goBack()} />
-        <View style={styles.centerContainer}>
-          <ActivityIndicator size="large" color={tokens.brandPrimary} />
-        </View>
+        <ProfileSkeleton styles={styles} tokens={tokens} />
       </View>
     );
   }
@@ -182,101 +223,107 @@ const ProfileScreen = ({ navigation }) => {
           />
         }
       >
-        <View style={styles.avatarSection}>
-          <View style={styles.avatar}>
-            <Text style={styles.avatarText}>{initial}</Text>
-          </View>
-          <Text style={[styles.displayName, textStyle]}>{displayName || profile?.username}</Text>
-          <Text style={[styles.username, textStyle]}>@{profile?.username}</Text>
-          <View style={styles.providerBadge}>
-            <Ionicons
-              name={isGoogleAccount ? 'logo-google' : 'lock-closed-outline'}
-              size={13}
-              color={tokens.brandPrimary}
-            />
-            <Text style={styles.providerBadgeText}>
-              {isGoogleAccount ? t('googleAccount') : t('localAccount')}
-            </Text>
-          </View>
-        </View>
-
-        <View style={styles.infoCard}>
-          <View style={styles.infoRow}>
-            <View style={styles.infoRowIcon}>
-              <Ionicons name="mail-outline" size={18} color={tokens.brandPrimary} />
+        <Animated.View style={getSectionStyle(0)}>
+          <View style={styles.avatarSection}>
+            <View style={styles.avatar}>
+              <Text style={styles.avatarText}>{initial}</Text>
             </View>
-            <View style={styles.infoRowTextWrap}>
-              <Text style={[styles.infoLabel, textStyle]}>{t('contactSeller')}</Text>
-              <Text style={[styles.infoValue, textStyle]} numberOfLines={1}>
-                {contactLine}
+            <Text style={[styles.displayName, textStyle]}>{displayName || profile?.username}</Text>
+            <Text style={[styles.username, textStyle]}>@{profile?.username}</Text>
+            <View style={styles.providerBadge}>
+              <Ionicons
+                name={isGoogleAccount ? 'logo-google' : 'lock-closed-outline'}
+                size={13}
+                color={tokens.brandPrimary}
+              />
+              <Text style={styles.providerBadgeText}>
+                {isGoogleAccount ? t('googleAccount') : t('localAccount')}
               </Text>
             </View>
           </View>
+        </Animated.View>
 
-          <View style={[styles.infoRow, styles.infoRowDivider]}>
-            <View style={styles.infoRowIcon}>
-              <Ionicons name="earth-outline" size={18} color={tokens.brandPrimary} />
-            </View>
-            <View style={styles.infoRowTextWrap}>
-              <Text style={[styles.infoLabel, textStyle]}>{t('country')}</Text>
-              <Text style={[styles.infoValue, textStyle]} numberOfLines={1}>
-                {countryFlag ? `${countryFlag} ` : ''}
-                {countryLabel || '-'}
-              </Text>
-            </View>
-          </View>
-
-          {joinDate ? (
-            <View style={[styles.infoRow, styles.infoRowDivider]}>
+        <Animated.View style={getSectionStyle(1)}>
+          <View style={styles.infoCard}>
+            <View style={styles.infoRow}>
               <View style={styles.infoRowIcon}>
-                <Ionicons name="calendar-outline" size={18} color={tokens.brandPrimary} />
+                <Ionicons name="mail-outline" size={18} color={tokens.brandPrimary} />
               </View>
               <View style={styles.infoRowTextWrap}>
-                <Text style={[styles.infoLabel, textStyle]}>{t('memberSince')}</Text>
+                <Text style={[styles.infoLabel, textStyle]}>{t('contactSeller')}</Text>
                 <Text style={[styles.infoValue, textStyle]} numberOfLines={1}>
-                  {joinDate}
+                  {contactLine}
                 </Text>
               </View>
             </View>
-          ) : null}
-        </View>
 
-        <TouchableOpacity
-          style={styles.primaryButton}
-          activeOpacity={0.85}
-          onPress={() => navigation.navigate('EditProfileScreen', { user: profile })}
-        >
-          <Ionicons name="create-outline" size={18} color="#FFFFFF" />
-          <Text style={styles.primaryButtonText}>{t('editProfile')}</Text>
-        </TouchableOpacity>
-
-        <View style={styles.menuCard}>
-          <TouchableOpacity
-            style={styles.menuRow}
-            activeOpacity={0.7}
-            onPress={() => navigation.navigate('MyPosts')}
-          >
-            <View style={styles.menuRowIcon}>
-              <Ionicons name="albums-outline" size={19} color={tokens.brandPrimary} />
+            <View style={[styles.infoRow, styles.infoRowDivider]}>
+              <View style={styles.infoRowIcon}>
+                <Ionicons name="earth-outline" size={18} color={tokens.brandPrimary} />
+              </View>
+              <View style={styles.infoRowTextWrap}>
+                <Text style={[styles.infoLabel, textStyle]}>{t('country')}</Text>
+                <Text style={[styles.infoValue, textStyle]} numberOfLines={1}>
+                  {countryFlag ? `${countryFlag} ` : ''}
+                  {countryLabel || '-'}
+                </Text>
+              </View>
             </View>
-            <Text style={[styles.menuRowText, textStyle]}>{t('myPosts')}</Text>
-            <Ionicons name={chevronIcon} size={18} color={`${tokens.ink}66`} />
+
+            {joinDate ? (
+              <View style={[styles.infoRow, styles.infoRowDivider]}>
+                <View style={styles.infoRowIcon}>
+                  <Ionicons name="calendar-outline" size={18} color={tokens.brandPrimary} />
+                </View>
+                <View style={styles.infoRowTextWrap}>
+                  <Text style={[styles.infoLabel, textStyle]}>{t('memberSince')}</Text>
+                  <Text style={[styles.infoValue, textStyle]} numberOfLines={1}>
+                    {joinDate}
+                  </Text>
+                </View>
+              </View>
+            ) : null}
+          </View>
+        </Animated.View>
+
+        <Animated.View style={getSectionStyle(2)}>
+          <TouchableOpacity
+            style={styles.primaryButton}
+            activeOpacity={0.85}
+            onPress={() => navigation.navigate('EditProfileScreen', { user: profile })}
+          >
+            <Ionicons name="create-outline" size={18} color="#FFFFFF" />
+            <Text style={styles.primaryButtonText}>{t('editProfile')}</Text>
           </TouchableOpacity>
 
-          <View style={styles.menuRowDivider} />
+          <View style={styles.menuCard}>
+            <TouchableOpacity
+              style={styles.menuRow}
+              activeOpacity={0.7}
+              onPress={() => navigation.navigate('MyPosts')}
+            >
+              <View style={styles.menuRowIcon}>
+                <Ionicons name="albums-outline" size={19} color={tokens.brandPrimary} />
+              </View>
+              <Text style={[styles.menuRowText, textStyle]}>{t('myPosts')}</Text>
+              <Ionicons name={chevronIcon} size={18} color={`${tokens.ink}66`} />
+            </TouchableOpacity>
 
-          <TouchableOpacity
-            style={styles.menuRow}
-            activeOpacity={0.7}
-            onPress={() => navigation.navigate('SettingsScreen')}
-          >
-            <View style={styles.menuRowIcon}>
-              <Ionicons name="settings-outline" size={19} color={tokens.brandPrimary} />
-            </View>
-            <Text style={[styles.menuRowText, textStyle]}>{t('settings')}</Text>
-            <Ionicons name={chevronIcon} size={18} color={`${tokens.ink}66`} />
-          </TouchableOpacity>
-        </View>
+            <View style={styles.menuRowDivider} />
+
+            <TouchableOpacity
+              style={styles.menuRow}
+              activeOpacity={0.7}
+              onPress={() => navigation.navigate('SettingsScreen')}
+            >
+              <View style={styles.menuRowIcon}>
+                <Ionicons name="settings-outline" size={19} color={tokens.brandPrimary} />
+              </View>
+              <Text style={[styles.menuRowText, textStyle]}>{t('settings')}</Text>
+              <Ionicons name={chevronIcon} size={18} color={`${tokens.ink}66`} />
+            </TouchableOpacity>
+          </View>
+        </Animated.View>
       </ScrollView>
     </View>
   );
@@ -450,6 +497,60 @@ const createStyles = (tokens, isRTL, isDark) =>
       fontSize: 15,
       color: tokens.ink,
       textAlign: isRTL ? 'right' : 'left',
+    },
+
+    // Initial-load skeleton - mirrors the avatar header / info card /
+    // primary-button+menu blocks above. Visible immediately (see
+    // useStaggeredFadeIn); the real content fades/slides in once ready.
+    avatarSkeleton: {
+      width: 92,
+      height: 92,
+      borderRadius: 46,
+      marginBottom: 14,
+    },
+    displayNameSkeleton: {
+      width: 140,
+      height: 21,
+      marginBottom: 8,
+    },
+    usernameSkeleton: {
+      width: 100,
+      height: 14,
+      marginBottom: 12,
+    },
+    providerBadgeSkeleton: {
+      width: 120,
+      height: 26,
+      borderRadius: radiusTokens.md,
+    },
+    infoRowIconSkeleton: {
+      width: 36,
+      height: 36,
+      borderRadius: radiusTokens.sm,
+    },
+    infoLabelSkeleton: {
+      width: 70,
+      height: 12,
+      marginBottom: 6,
+    },
+    infoValueSkeleton: {
+      width: '60%',
+      height: 15,
+    },
+    primaryButtonSkeleton: {
+      height: 52,
+      borderRadius: radiusTokens.md,
+      marginBottom: 20,
+    },
+    menuRowIconSkeleton: {
+      width: 36,
+      height: 36,
+      borderRadius: radiusTokens.sm,
+    },
+    menuRowTextSkeleton: {
+      flex: 1,
+      height: 15,
+      maxWidth: '50%',
     },
   });
 

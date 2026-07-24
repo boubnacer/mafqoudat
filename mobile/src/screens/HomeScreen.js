@@ -7,7 +7,7 @@
  * (useDashboardData.js).
  */
 
-import React, { useEffect, useMemo, useRef, useState } from 'react';
+import React, { useMemo, useState } from 'react';
 import { View, Text, StyleSheet, ScrollView, TouchableOpacity, Image, Animated, RefreshControl, Linking } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { useTheme } from '../context/ThemeContext';
@@ -20,7 +20,9 @@ import { API_BASE_URL } from '../config/api';
 import { colorTokens, radiusTokens, fontFamilies } from '../theme/tokens';
 import AppHeader from '../components/AppHeader';
 import DataStateView from '../components/DataStateView';
+import SkeletonBlock from '../components/SkeletonBlock';
 import WorldActivityMap from '../components/dashboard/WorldActivityMap';
+import { useStaggeredFadeIn } from '../hooks/useStaggeredFadeIn';
 
 const SECTION_COUNT = 6;
 
@@ -132,10 +134,6 @@ const formatRelativeTime = (dateString, t) => {
   const diffDay = Math.floor(diffHour / 24);
   return t('daysAgo', { count: diffDay });
 };
-
-const SkeletonBlock = ({ style, tokens }) => (
-  <View style={[{ backgroundColor: `${tokens.ink}14`, borderRadius: radiusTokens.sm }, style]} />
-);
 
 const SectionHeader = ({ title, onSeeAll, t, styles }) => (
   <View style={styles.sectionHeaderRow}>
@@ -456,27 +454,8 @@ const HomeScreen = ({ navigation }) => {
 
   const [isRefreshing, setIsRefreshing] = useState(false);
 
-  const sectionAnims = useRef([...Array(SECTION_COUNT)].map(() => new Animated.Value(0))).current;
-
-  useEffect(() => {
-    if (isLoading && !data) return;
-    Animated.stagger(
-      70,
-      sectionAnims.map((value) =>
-        Animated.timing(value, { toValue: 1, duration: 320, useNativeDriver: true })
-      )
-    ).start();
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [isLoading && !data]);
-
-  const animatedSectionStyle = (index) => ({
-    opacity: sectionAnims[index],
-    transform: [
-      {
-        translateY: sectionAnims[index].interpolate({ inputRange: [0, 1], outputRange: [14, 0] }),
-      },
-    ],
-  });
+  const isReady = !isLoading || !!data;
+  const animatedSectionStyle = useStaggeredFadeIn(SECTION_COUNT, isReady);
 
   const handleRefresh = async () => {
     setIsRefreshing(true);
