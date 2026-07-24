@@ -63,7 +63,7 @@ export const defaultSeo = {
   ],
 };
 
-const createBreadcrumbSchema = (items = []) => ({
+export const createBreadcrumbSchema = (items = []) => ({
   '@context': 'https://schema.org',
   '@type': 'BreadcrumbList',
   itemListElement: items.map((item, index) => ({
@@ -72,6 +72,39 @@ const createBreadcrumbSchema = (items = []) => ({
     name: item.name,
     item: buildAbsoluteUrl(item.path),
   })),
+});
+
+export const createArticleSchema = ({
+  title,
+  description,
+  image,
+  path,
+  datePublished,
+  authorName,
+  inLanguage,
+}) => ({
+  '@context': 'https://schema.org',
+  '@type': 'BlogPosting',
+  headline: title,
+  description,
+  image: image ? buildAbsoluteUrl(image) : defaultSeo.image,
+  url: buildAbsoluteUrl(path),
+  mainEntityOfPage: buildAbsoluteUrl(path),
+  datePublished,
+  dateModified: datePublished,
+  inLanguage: inLanguage || 'en',
+  author: {
+    '@type': 'Organization',
+    name: authorName || defaultSeo.siteName,
+  },
+  publisher: {
+    '@type': 'Organization',
+    name: defaultSeo.siteName,
+    logo: {
+      '@type': 'ImageObject',
+      url: defaultSeo.image,
+    },
+  },
 });
 
 export const buildAbsoluteUrl = (path = '/') => {

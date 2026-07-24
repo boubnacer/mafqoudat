@@ -74,6 +74,7 @@ const CommunityGuidelines = lazy(() => import("./components/Pages/CommunityGuide
 const SafetyTips = lazy(() => import("./components/Pages/SafetyTips"));
 const AboutUs = lazy(() => import("./components/Pages/AboutUs"));
 const Blog = lazy(() => import("./components/Pages/Blog"));
+const BlogPostPage = lazy(() => import("./components/Pages/BlogPostPage"));
 const Contact = lazy(() => import("./components/Pages/Contact"));
 const HelpCenter = lazy(() => import("./components/Pages/HelpCenter"));
 
@@ -250,6 +251,11 @@ const AppContent = () => {
         <Route path="/blog" element={
           <Suspense fallback={<LoadingFallback />}>
             <Blog />
+          </Suspense>
+        } />
+        <Route path="/blog/:slug" element={
+          <Suspense fallback={<LoadingFallback />}>
+            <BlogPostPage />
           </Suspense>
         } />
         <Route path="/help" element={
