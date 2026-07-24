@@ -269,13 +269,20 @@ const Dash = () => {
             maxWidth: { sm: '100%', md: '100%', lg: '1400px', xl: '1600px' },
             overflow: 'hidden',
             width: '100%',
-            margin: '0 auto',
+            mx: 'auto',
             borderRadius: `${theme.custom.radius.xl}px`,
             // Fallback tone for the map's "ocean" — the SVG has no fill of
             // its own outside the country shapes, so without this the gaps
             // would just show the plain page background.
             backgroundColor: theme.custom.color.surfaceBase,
             boxShadow: theme.custom.elevation.e1,
+            // Pull the section up behind the fixed, translucent navbar (whose
+            // height matches the page wrapper's sm+ pt of 4rem) so the map
+            // backdrop shows through behind it too. The inner content row
+            // below is pt'd by the same amount so LeftSide/the map's own pan
+            // stay exactly where they were — only the extra revealed strip at
+            // the top (now covered by the full-bleed map layer) is new.
+            mt: { sm: '-4rem' },
           }}
         >
           {!hasNoData && (
@@ -290,7 +297,7 @@ const Dash = () => {
             </Box>
           )}
 
-          <Box sx={{ position: 'relative', display: 'flex', justifyContent: 'flex-start' }}>
+          <Box sx={{ position: 'relative', display: 'flex', justifyContent: 'flex-start', pt: { sm: '4rem' } }}>
             <Box sx={{ width: '50%', minWidth: 0, p: { sm: 3, md: 4, lg: 5, xl: 6 } }}>
               <LeftSide
                 totalFounds={data?.totalFounds}
