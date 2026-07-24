@@ -73,10 +73,9 @@ const StyledToolbar = styled(Toolbar)(({ theme }) => ({
   gridTemplateColumns: "minmax(0, 1fr) auto minmax(0, 1fr)",
   alignItems: "center",
   columnGap: "16px",
-  backgroundColor: alpha(theme.custom.color.surfaceRaised, 0.95),
+  backgroundColor: alpha(theme.custom.color.surfaceRaised, 0.7),
   backdropFilter: "blur(20px)",
   padding: "0.75rem 2.5rem",
-  borderBottom: `1px solid ${alpha(theme.custom.color.ink, 0.08)}`,
   boxShadow: theme.custom.elevation.e1,
   transition: "background-color 0.3s ease",
   [theme.breakpoints.down("md")]: {
