@@ -1,11 +1,12 @@
-// Create a comprehensive blog page with multiple articles about lost and found topics
+// Blog listing page: sources articles from ../../data/blogPosts.json (single source of
+// truth, shared with BlogPostPage.jsx and the build-time SEO prerender script).
 // File: client/src/components/Pages/Blog.jsx
 
 import React, { useState } from 'react';
+import { Link } from 'react-router-dom';
 import {
   Box,
   Typography,
-  Paper,
   Container,
   useTheme,
   useMediaQuery,
@@ -25,12 +26,12 @@ import {
   CalendarToday,
   Person,
   Visibility,
-  Bookmark,
 } from '@mui/icons-material';
 import { useTranslation } from '../../utils/translations';
 import Navbar from '../Navbar';
 import DashFooter from '../Footer/DashFooter';
 import SeoMeta from '../SeoMeta';
+import blogPostsData from '../../data/blogPosts.json';
 
 const Blog = () => {
   const theme = useTheme();
@@ -40,129 +41,21 @@ const Blog = () => {
   const [currentPage, setCurrentPage] = useState(1);
   const postsPerPage = 6;
 
-  // Blog articles data
-  const blogPosts = [
-    {
-      id: 1,
-      title: t('blogPost1Title'),
-      excerpt: t('blogPost1Excerpt'),
-      content: t('blogPost1Content'),
-      author: t('mafqoudatTeam'),
-      date: '2024-01-15',
-      category: t('safety'),
-      readTime: '5 min',
-      image: '/blog-images/safety-tips.png',
-      tags: [t('safety'), t('meeting'), t('tips')],
-    },
-    {
-      id: 2,
-      title: t('blogPost2Title'),
-      excerpt: t('blogPost2Excerpt'),
-      content: t('blogPost2Content'),
-      author: t('mafqoudatTeam'),
-      date: '2024-01-10',
-      category: t('guidelines'),
-      readTime: '7 min',
-      image: '/blog-images/community-guidelines.png',
-      tags: [t('community'), t('guidelines'), t('respect')],
-    },
-    {
-      id: 3,
-      title: t('blogPost3Title'),
-      excerpt: t('blogPost3Excerpt'),
-      content: t('blogPost3Content'),
-      author: t('mafqoudatTeam'),
-      date: '2024-01-05',
-      category: t('success'),
-      readTime: '4 min',
-      image: '/blog-images/success-story.png',
-      tags: [t('success'), t('story'), t('reunion')],
-    },
-    {
-      id: 4,
-      title: t('blogPost4Title'),
-      excerpt: t('blogPost4Excerpt'),
-      content: t('blogPost4Content'),
-      author: t('mafqoudatTeam'),
-      date: '2024-01-01',
-      category: t('tips'),
-      readTime: '6 min',
-      image: '/blog-images/photo-tips.png',
-      tags: [t('photography'), t('tips'), t('description')],
-    },
-    {
-      id: 5,
-      title: t('blogPost5Title'),
-      excerpt: t('blogPost5Excerpt'),
-      content: t('blogPost5Content'),
-      author: t('mafqoudatTeam'),
-      date: '2023-12-28',
-      category: t('legal'),
-      readTime: '8 min',
-      image: '/blog-images/legal-aspects.png',
-      tags: [t('legal'), t('rights'), t('responsibilities')],
-    },
-    {
-      id: 6,
-      title: t('blogPost6Title'),
-      excerpt: t('blogPost6Excerpt'),
-      content: t('blogPost6Content'),
-      author: t('mafqoudatTeam'),
-      date: '2023-12-25',
-      category: t('technology'),
-      readTime: '5 min',
-      image: '/blog-images/technology.png',
-      tags: [t('technology'), t('platform'), t('features')],
-    },
-    {
-      id: 7,
-      title: t('blogPost7Title'),
-      excerpt: t('blogPost7Excerpt'),
-      content: t('blogPost7Content'),
-      author: t('mafqoudatTeam'),
-      date: '2023-12-20',
-      category: t('community'),
-      readTime: '6 min',
-      image: '/blog-images/community-building.png',
-      tags: [t('community'), t('building'), t('trust')],
-    },
-    {
-      id: 8,
-      title: t('blogPost8Title'),
-      excerpt: t('blogPost8Excerpt'),
-      content: t('blogPost8Content'),
-      author: t('mafqoudatTeam'),
-      date: '2023-12-15',
-      category: t('prevention'),
-      readTime: '4 min',
-      image: '/blog-images/prevention.png',
-      tags: [t('prevention'), t('tips'), t('security')],
-    },
-    {
-      id: 9,
-      title: t('blogPost9Title'),
-      excerpt: t('blogPost9Excerpt'),
-      content: t('blogPost9Content'),
-      author: t('mafqoudatTeam'),
-      date: '2023-12-10',
-      category: t('international'),
-      readTime: '7 min',
-      image: '/blog-images/international.png',
-      tags: [t('international'), t('travel'), t('crossBorder')],
-    },
-    {
-      id: 10,
-      title: t('blogPost10Title'),
-      excerpt: t('blogPost10Excerpt'),
-      content: t('blogPost10Content'),
-      author: t('mafqoudatTeam'),
-      date: '2023-12-05',
-      category: t('mobile'),
-      readTime: '5 min',
-      image: '/blog-images/mobile-app.png',
-      tags: [t('mobile'), t('app'), t('convenience')],
-    },
-  ];
+  const blogPosts = blogPostsData.map((post) => {
+    const localized = post.i18n[currentLanguage] || post.i18n.en;
+    return {
+      id: post.id,
+      slug: post.slug,
+      title: localized.title,
+      excerpt: localized.excerpt,
+      author: t(post.authorKey),
+      date: post.date,
+      category: t(post.categoryKey),
+      readTime: post.readTime,
+      image: post.image,
+      tags: post.tagKeys.map((key) => t(key)),
+    };
+  });
 
   const filteredPosts = blogPosts.filter(post =>
     post.title.toLowerCase().includes(searchTerm.toLowerCase()) ||
@@ -340,10 +233,8 @@ const Blog = () => {
                             variant="outlined"
                             fullWidth
                             startIcon={<Article />}
-                            onClick={() => {
-                              // Navigate to full article (you can implement this later)
-                              console.log('Navigate to article:', post.id);
-                            }}
+                            component={Link}
+                            to={`/blog/${post.slug}`}
                           >
                             {t('readMore')}
                           </Button>
