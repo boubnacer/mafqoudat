@@ -9,6 +9,7 @@ export const LOCALE_MAP = {
 };
 
 export const defaultKeywords = [
+  // Brand name - Latin transliteration variants (q/k/g for ق, ou/u/o for و)
   'mafqoudat',
   'mafqudat',
   'mafqodat',
@@ -19,16 +20,31 @@ export const defaultKeywords = [
   'mafkodat',
   'mafkoud',
   'mafkod',
+  'mafgoudat',
+  'mafgudat',
+  'mafgodat',
+  'mafgoud',
+  'mafgod',
+  'mafoudat',
+  'mafodat',
+  'maf9oudat',
+  'mafkouda',
+  'mafqouda',
   'mafqoudat.com',
+  // Brand name - Arabic script variants
   'مفقودات',
   'مفقود',
+  'مفقودة',
+  'مفكودات',
   'موجودات',
+  'موجود',
   'فقد',
   'فقدان',
   'ضياع',
   'وجدت',
   'وجد',
   'منصة مفقودات',
+  // English search intent
   'lost and found',
   'lost and found Morocco',
   'lost and found platform',
@@ -37,6 +53,13 @@ export const defaultKeywords = [
   'community lost and found',
   'Morocco lost and found',
   'Arab world lost and found',
+  // French search intent
+  'objets perdus',
+  'objets trouvés',
+  'objets perdus et trouvés',
+  'objet perdu Maroc',
+  'objet trouvé Maroc',
+  'plateforme objets perdus Maroc',
 ];
 
 export const defaultSeo = {
