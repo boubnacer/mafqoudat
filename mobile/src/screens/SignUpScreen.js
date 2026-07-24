@@ -260,7 +260,6 @@ const SignUpScreen = ({ navigation }) => {
       >
         <View style={styles.content}>
           <View style={styles.brandSection}>
-            <Image source={require('../../assets/icon.png')} style={styles.logo} resizeMode="contain" />
             <Image
               source={BRAND_WORDMARK}
               style={styles.brandWordmarkImg}
@@ -507,16 +506,10 @@ const createStyles = (tokens, isDark) => StyleSheet.create({
     alignItems: 'center',
     marginBottom: 24,
   },
-  logo: {
-    width: 64,
-    height: 64,
-    marginTop: 32,
-    marginBottom: 14,
-    backgroundColor: 'transparent',
-  },
   brandWordmarkImg: {
     height: 30,
     width: 30 * WORDMARK_RATIO,
+    marginTop: 32,
     marginBottom: 6,
   },
   tagline: {

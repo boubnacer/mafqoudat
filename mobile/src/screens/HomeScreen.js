@@ -137,12 +137,12 @@ const SkeletonBlock = ({ style, tokens }) => (
   <View style={[{ backgroundColor: `${tokens.ink}14`, borderRadius: radiusTokens.sm }, style]} />
 );
 
-const SectionHeader = ({ title, onSeeAll, t, styles }) => (
+const SectionHeader = ({ title, onSeeAll, seeAllColor, t, styles }) => (
   <View style={styles.sectionHeaderRow}>
     <Text style={styles.panelTitleInline}>{title}</Text>
     {onSeeAll ? (
       <TouchableOpacity onPress={onSeeAll} hitSlop={8}>
-        <Text style={styles.seeAllText}>{t('seeAll')}</Text>
+        <Text style={[styles.seeAllText, seeAllColor && { color: seeAllColor }]}>{t('seeAll')}</Text>
       </TouchableOpacity>
     ) : null}
   </View>
@@ -355,7 +355,13 @@ const RecentSection = ({ type, items, isLoading, currentLanguage, t, styles, tok
 
   return (
     <Panel styles={styles}>
-      <SectionHeader title={title} onSeeAll={items.length > 0 ? onSeeAll : undefined} t={t} styles={styles} />
+      <SectionHeader
+        title={title}
+        onSeeAll={items.length > 0 ? onSeeAll : undefined}
+        seeAllColor={tokens.status[type].main}
+        t={t}
+        styles={styles}
+      />
       {isLoading && items.length === 0 ? (
         <View style={styles.recentGrid}>
           <SkeletonBlock tokens={tokens} style={styles.recentCardSkeleton} />

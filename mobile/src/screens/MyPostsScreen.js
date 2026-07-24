@@ -97,6 +97,13 @@ const getCategoryLabel = (item, currentLanguage) => {
   return cat.labels ? cat.labels[currentLanguage] || cat.labels.en || cat.code : cat.code;
 };
 
+// Post model has no "title" field (see server/models/Post.js) - synthesize a
+// short one from data that actually exists instead of a fake "Untitled" label.
+const getPostDisplayTitle = (found, categoryLabel, t) => {
+  const statusLabel = found ? t('found') : t('lost');
+  return categoryLabel ? `${statusLabel} — ${categoryLabel}` : statusLabel;
+};
+
 const getCityLabel = (item, currentLanguage) => {
   if (item?.city?.labels && typeof item.city.labels === 'object') {
     const label = item.city.labels[currentLanguage] || item.city.labels.en;
@@ -332,7 +339,7 @@ const MyPostsScreen = ({ navigation }) => {
         <View style={styles.postContent}>
           <View style={styles.titleRow}>
             <Text style={[styles.postTitle, isRTL && styles.textRTL]} numberOfLines={1}>
-              {item.title || t('untitledPost')}
+              {item.title || getPostDisplayTitle(found, categoryLabel, t)}
             </Text>
             <View style={[styles.lifecycleBadge, { backgroundColor: statusTone.bg }]}>
               <Text style={[styles.lifecycleBadgeText, { color: statusTone.main }]}>{t(statusLabelKey)}</Text>
