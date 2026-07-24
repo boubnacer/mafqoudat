@@ -1,6 +1,5 @@
 import { useEffect, useMemo, useState } from "react";
 import { Box, Typography, useTheme, useMediaQuery, alpha } from "@mui/material";
-import { PublicOutlined } from "@mui/icons-material";
 import { ComposableMap, Geographies, Geography, Marker } from "react-simple-maps";
 import { geoMercator, geoPath, geoBounds } from "d3-geo";
 import { useTranslation } from "../../utils/translations";
@@ -112,14 +111,18 @@ const WorldActivityMap = ({ worldActivity, cityActivity, currentCountryCode, cou
 
   const mapView = useMemo(() => {
     if (!currentFeature) return { center: [15, 20], scale: 220 };
-    const padding = 22;
+    // Smaller padding = the country's bounding box fills more of the frame
+    // (more zoomed in). A bit tighter on mobile specifically, per request —
+    // the square card there has more room per pixel of country than the
+    // desktop layout does.
+    const padding = isMobile ? 8 : 22;
     const [[minLon, minLat], [maxLon, maxLat]] = geoBounds(currentFeature);
     const center = [(minLon + maxLon) / 2, (minLat + maxLat) / 2];
     const reference = geoMercator().center(center).translate([MAP_WIDTH / 2, mapHeight / 2]).scale(1);
     const [[x0, y0], [x1, y1]] = geoPath(reference).bounds(currentFeature);
     const scale = Math.min((MAP_WIDTH - padding * 2) / Math.max(x1 - x0, 0.001), (mapHeight - padding * 2) / Math.max(y1 - y0, 0.001));
     return { center, scale };
-  }, [currentFeature, MAP_WIDTH, mapHeight]);
+  }, [currentFeature, MAP_WIDTH, mapHeight, isMobile]);
 
   const countryDisplayName = (numericId, fallbackName) => {
     const entry = activityByNumericId.get(numericId);
@@ -127,11 +130,6 @@ const WorldActivityMap = ({ worldActivity, cityActivity, currentCountryCode, cou
     return localized || countriesByCode?.[entry?.code]?.names?.en || fallbackName;
   };
 
-  const currentCountryName =
-    countriesByCode?.[currentCountryCode]?.names?.[currentLanguage] ||
-    countriesByCode?.[currentCountryCode]?.names?.en ||
-    currentCountryCode ||
-    "";
   const citiesPostCount = cities.reduce((sum, c) => sum + (c.count || 0), 0);
 
   const hovered = useMemo(() => {
@@ -175,32 +173,22 @@ const WorldActivityMap = ({ worldActivity, cityActivity, currentCountryCode, cou
           padding: isMobile ? "1.5rem" : "2rem",
         }}
       >
-        {/* Title centered on its own row, mirroring LeftSide's title
-            treatment, since this now sits right next to it. Sized down
-            harder on mobile than the desktop title — this is a long
-            sentence-style phrase (not a short label like "Statistics"), so
-            at desktop sizes on a narrow screen it was taking more vertical
-            room than the map itself. */}
-        <Box sx={{ textAlign: "center", mb: isMobile ? 1 : 2 }}>
-          <Box sx={{ display: "inline-flex", alignItems: "center", gap: 0.75 }}>
-            <PublicOutlined sx={{ color: brand, fontSize: { xs: 18, sm: 24 } }} />
-            <Typography variant="h5" fontWeight="700" sx={{ fontSize: { xs: "0.95rem", sm: "1.4rem" }, lineHeight: 1.25, color: ink }}>
-              {t("worldActivityTitle", { country: currentCountryName })}
-            </Typography>
-          </Box>
-        </Box>
-
+        {/* No sentence-style title anymore — it read as more prominent than
+            the map itself, especially on mobile. These two lines (real
+            counts + the current-country marker) now carry the header alone,
+            sized up a little since they're no longer a secondary line under
+            a headline. */}
         <Box
           sx={{
             display: "flex",
             flexWrap: "wrap",
             alignItems: "center",
             justifyContent: "center",
-            gap: { xs: 1, sm: 2 },
-            mb: isMobile ? 1 : 2,
+            gap: { xs: 1.25, sm: 2 },
+            mb: isMobile ? 1.25 : 2,
           }}
         >
-          <Typography sx={{ fontSize: { xs: "0.7rem", sm: "0.8rem" }, fontWeight: 600, color: alpha(ink, 0.7) }}>
+          <Typography sx={{ fontSize: { xs: "0.95rem", sm: "1.05rem" }, fontWeight: 700, color: ink }}>
             {t("worldActivityCountries", { posts: citiesPostCount, cities: cities.length })}
           </Typography>
 
@@ -220,8 +208,8 @@ const WorldActivityMap = ({ worldActivity, cityActivity, currentCountryCode, cou
 
           {/* current-country stroke legend */}
           <Box sx={{ display: "flex", alignItems: "center", gap: 0.6 }}>
-            <Box sx={{ width: 10, height: 10, borderRadius: "3px", border: `2px solid ${brand}`, backgroundColor: alpha(brand, 0.15) }} />
-            <Typography sx={{ fontSize: { xs: "0.68rem", sm: "0.75rem" }, fontWeight: 600, color: alpha(ink, 0.7) }}>
+            <Box sx={{ width: 11, height: 11, borderRadius: "3px", border: `2px solid ${brand}`, backgroundColor: alpha(brand, 0.15) }} />
+            <Typography sx={{ fontSize: { xs: "0.82rem", sm: "0.9rem" }, fontWeight: 600, color: alpha(ink, 0.7) }}>
               {t("worldActivityCurrent")}
             </Typography>
           </Box>

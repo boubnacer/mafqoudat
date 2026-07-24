@@ -222,7 +222,7 @@ const Dash = () => {
       <Box
         mb={4}
         p={{ xs: 2, sm: 3, md: 4, lg: 5, xl: 6 }}
-        gap={{ lg: "32px", xl: "40px" }}
+        gap={{ xs: "20px", sm: "24px", md: "28px", lg: "32px", xl: "40px" }}
         sx={{
           display: { xs: "grid", sm: "flex" },
           gridTemplateColumns: { xs: "repeat(1,1fr)", sm: "repeat(2,1fr)" },
