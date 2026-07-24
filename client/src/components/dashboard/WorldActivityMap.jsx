@@ -18,7 +18,7 @@ import { TrendingItemSkeleton } from "../LoadingStates";
 // Deliberately NOT mirrored for RTL: an actual world map has to stay
 // geographically accurate regardless of reading direction — real maps on
 // Arabic sites are never horizontally flipped. Only the surrounding chrome
-// (title, legend, info strip) follows the usual RTL/logical-property rules.
+// (title, legend) follows the usual RTL/logical-property rules.
 //
 // Zoom math note: react-simple-maps' projectionConfig only forwards
 // center/scale/rotate/parallels to the underlying d3 projection — it always
@@ -50,8 +50,6 @@ const WorldActivityMap = ({ worldActivity, cityActivity, currentCountryCode, cou
   const { t, currentLanguage } = useTranslation();
   const isRTL = currentLanguage === "ar";
   const [geoFeatures, setGeoFeatures] = useState(null);
-  const [hoveredNumericId, setHoveredNumericId] = useState(null);
-  const [hoveredCityIndex, setHoveredCityIndex] = useState(null);
 
   const ink = theme.custom.color.ink;
   const panel = theme.custom.color.surfaceRaised;
@@ -124,30 +122,11 @@ const WorldActivityMap = ({ worldActivity, cityActivity, currentCountryCode, cou
     return { center, scale };
   }, [currentFeature, MAP_WIDTH, mapHeight, isMobile]);
 
-  const countryDisplayName = (numericId, fallbackName) => {
-    const entry = activityByNumericId.get(numericId);
-    const localized = entry && countriesByCode ? countriesByCode[entry.code]?.names?.[currentLanguage] : null;
-    return localized || countriesByCode?.[entry?.code]?.names?.en || fallbackName;
-  };
-
-  const citiesPostCount = cities.reduce((sum, c) => sum + (c.count || 0), 0);
-
-  const hovered = useMemo(() => {
-    // A hovered city marker takes priority over the country fill beneath it.
-    if (hoveredCityIndex != null && cities[hoveredCityIndex]) {
-      const city = cities[hoveredCityIndex];
-      return { name: city.name, count: city.count, isCurrent: false, isCity: true };
-    }
-    if (!hoveredNumericId) return null;
-    const entry = activityByNumericId.get(hoveredNumericId);
-    return {
-      name: countryDisplayName(hoveredNumericId, hoveredNumericId),
-      count: entry?.count || 0,
-      isCurrent: hoveredNumericId === currentNumericId,
-      isCity: false,
-    };
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [hoveredCityIndex, cities, hoveredNumericId, activityByNumericId, currentNumericId, currentLanguage]);
+  const currentCountryName =
+    countriesByCode?.[currentCountryCode]?.names?.[currentLanguage] ||
+    countriesByCode?.[currentCountryCode]?.names?.en ||
+    currentCountryCode ||
+    "";
 
   if (isLoading) {
     return (
@@ -173,11 +152,12 @@ const WorldActivityMap = ({ worldActivity, cityActivity, currentCountryCode, cou
           padding: isMobile ? "1.5rem" : "2rem",
         }}
       >
-        {/* No sentence-style title anymore — it read as more prominent than
-            the map itself, especially on mobile. These two lines (real
-            counts + the current-country marker) now carry the header alone,
-            sized up a little since they're no longer a secondary line under
-            a headline. */}
+        {/* Single descriptive line naming the selected country — no separate
+            "your selected country" marker anymore, since the whole map is
+            always zoomed to that one country already, and no hover info
+            strip below the map either (removed to reclaim vertical space,
+            especially on mobile — the map's own hover/fill states already
+            give feedback without needing a text readout). */}
         <Box
           sx={{
             display: "flex",
@@ -185,16 +165,15 @@ const WorldActivityMap = ({ worldActivity, cityActivity, currentCountryCode, cou
             alignItems: "center",
             justifyContent: "center",
             gap: { xs: 1.25, sm: 2 },
-            mb: isMobile ? 1.25 : 2,
+            mb: isMobile ? 2 : 3,
           }}
         >
-          <Typography sx={{ fontSize: { xs: "0.95rem", sm: "1.05rem" }, fontWeight: 700, color: ink }}>
-            {t("worldActivityCountries", { posts: citiesPostCount, cities: cities.length })}
+          <Typography sx={{ fontSize: { xs: "0.95rem", sm: "1.05rem" }, fontWeight: 700, color: ink, textAlign: "center" }}>
+            {t("worldActivityCountries", { country: currentCountryName })}
           </Typography>
 
           {/* sequential-ramp legend (fewer -> more) — dropped on mobile,
-              the least essential of the three header items and the
-              biggest offender for wrapping onto its own line there. */}
+              wraps onto its own line there otherwise. */}
           {!isMobile && (
             <Box
               sx={{
@@ -205,14 +184,6 @@ const WorldActivityMap = ({ worldActivity, cityActivity, currentCountryCode, cou
               }}
             />
           )}
-
-          {/* current-country stroke legend */}
-          <Box sx={{ display: "flex", alignItems: "center", gap: 0.6 }}>
-            <Box sx={{ width: 11, height: 11, borderRadius: "3px", border: `2px solid ${brand}`, backgroundColor: alpha(brand, 0.15) }} />
-            <Typography sx={{ fontSize: { xs: "0.82rem", sm: "0.9rem" }, fontWeight: 600, color: alpha(ink, 0.7) }}>
-              {t("worldActivityCurrent")}
-            </Typography>
-          </Box>
         </Box>
 
         {/* Desktop: flex:1 fills the row-stretched height LeftSide drives
@@ -250,8 +221,6 @@ const WorldActivityMap = ({ worldActivity, cityActivity, currentCountryCode, cou
                     <Geography
                       key={geo.rsmKey}
                       geography={geo}
-                      onMouseEnter={() => setHoveredNumericId(geo.id)}
-                      onMouseLeave={() => setHoveredNumericId((prev) => (prev === geo.id ? null : prev))}
                       style={{
                         default: {
                           fill: baseFill,
@@ -282,15 +251,7 @@ const WorldActivityMap = ({ worldActivity, cityActivity, currentCountryCode, cou
                 than a background pill shape. */}
             {cities.map((city, index) => (
               <Marker key={`${city.name}-${index}`} coordinates={[city.lon, city.lat]}>
-                <circle
-                  r={cityRadius(city.count)}
-                  fill={panel}
-                  stroke={brand}
-                  strokeWidth={2}
-                  onMouseEnter={() => setHoveredCityIndex(index)}
-                  onMouseLeave={() => setHoveredCityIndex((prev) => (prev === index ? null : prev))}
-                  style={{ cursor: "pointer" }}
-                />
+                <circle r={cityRadius(city.count)} fill={panel} stroke={brand} strokeWidth={2} />
                 <text
                   y={cityRadius(city.count) + 12}
                   textAnchor="middle"
@@ -311,24 +272,6 @@ const WorldActivityMap = ({ worldActivity, cityActivity, currentCountryCode, cou
           <Box sx={{ width: "100%", height: "100%", borderRadius: `${theme.custom.radius.md}px`, backgroundColor: alpha(ink, 0.05) }} />
         )}
       </Box>
-
-      {/* hover info strip, instead of a floating tooltip that would need
-          its own RTL-aware position math on top of the map's own. */}
-      <Box sx={{ mt: 1.5, minHeight: 24, textAlign: isRTL ? "right" : "left" }}>
-        {hovered && (
-          <Typography sx={{ fontSize: "0.9rem", fontWeight: 600, color: ink }}>
-            {hovered.name}
-            {hovered.isCurrent && (
-              <Typography component="span" sx={{ fontSize: "0.8rem", fontWeight: 600, color: brand, mx: 1 }}>
-                · {t("worldActivityCurrent")}
-              </Typography>
-            )}
-            <Typography component="span" sx={{ fontSize: "0.85rem", fontWeight: 500, color: alpha(ink, 0.65), mx: 1 }}>
-              {hovered.count > 0 ? t("worldActivityPosts", { count: hovered.count }) : t("worldActivityNoPosts")}
-            </Typography>
-          </Typography>
-        )}
-        </Box>
       </Box>
     </Box>
   );
