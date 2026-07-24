@@ -22,8 +22,8 @@
  * worth chasing here.
  */
 import React, { useEffect, useMemo, useState } from 'react';
-import { View, StyleSheet } from 'react-native';
-import Svg, { Path, Circle, Text as SvgText } from 'react-native-svg';
+import { View, Text, StyleSheet } from 'react-native';
+import Svg, { Path, Circle } from 'react-native-svg';
 import { geoMercator, geoPath, geoBounds } from 'd3-geo';
 import { feature as topojsonFeature } from 'topojson-client';
 import countriesTopoJson from 'world-atlas/countries-50m.json';
@@ -51,6 +51,71 @@ const hexToRgba = (hex, alpha) => {
   return `rgba(${r},${g},${b},${alpha})`;
 };
 
+const CITY_LABEL_FONT_SIZE = 10;
+// 8-direction offset duplicates instead of a single textShadow: RN's
+// textShadow* props render as one soft-blurred shadow (and historically had
+// inconsistent Android support), which can't reproduce a crisp stroke-style
+// halo. Stacking the label 8x in a 1px ring (scaled with the map) behind an
+// unshifted fill copy gets the same outlined look as the old stroke+fill
+// SvgText pair.
+const CITY_LABEL_HALO_OFFSETS = [
+  [-1, -1], [0, -1], [1, -1],
+  [-1, 0], [1, 0],
+  [-1, 1], [0, 1], [1, 1],
+];
+
+// City labels: a plain RN `Text` overlay positioned on top of the SVG map,
+// anchored to the same projected x/y used for the marker circle. Unlike
+// react-native-svg's `SvgText`, RN `Text` goes through the platform's native
+// text shaping, so Arabic city names render as properly joined script
+// instead of isolated letters.
+const CityLabel = ({ x, y, text, ink, panel, scale }) => {
+  const [width, setWidth] = useState(0);
+  const fontSize = CITY_LABEL_FONT_SIZE * scale;
+  const haloOffset = scale;
+  return (
+    <View
+      style={{
+        position: 'absolute',
+        left: `${(x / MAP_WIDTH) * 100}%`,
+        top: `${(y / MAP_HEIGHT) * 100}%`,
+      }}
+    >
+      <View
+        onLayout={(e) => setWidth(e.nativeEvent.layout.width)}
+        style={{ transform: [{ translateX: -width / 2 }], opacity: width ? 1 : 0 }}
+      >
+        {CITY_LABEL_HALO_OFFSETS.map(([dx, dy], i) => (
+          <Text
+            key={i}
+            numberOfLines={1}
+            allowFontScaling={false}
+            style={[
+              styles.cityLabelText,
+              {
+                position: 'absolute',
+                left: dx * haloOffset,
+                top: dy * haloOffset,
+                fontSize,
+                color: panel,
+              },
+            ]}
+          >
+            {text}
+          </Text>
+        ))}
+        <Text
+          numberOfLines={1}
+          allowFontScaling={false}
+          style={[styles.cityLabelText, { fontSize, color: ink }]}
+        >
+          {text}
+        </Text>
+      </View>
+    </View>
+  );
+};
+
 const WorldActivityMap = ({
   worldActivity,
   cityActivity,
@@ -60,6 +125,12 @@ const WorldActivityMap = ({
   isDark,
 }) => {
   const [geoFeatures, setGeoFeatures] = useState(null);
+  // Actual rendered pixel width of mapBox (square, so height matches). The
+  // SVG's viewBox scales its coordinate space - including stroke widths and
+  // font sizes - to fit whatever size the box actually renders at (e.g.
+  // larger on a tablet), but RN `Text` has no equivalent auto-scaling, so
+  // this measurement drives an explicit scale factor for the label overlay.
+  const [boxSize, setBoxSize] = useState(null);
 
   useEffect(() => {
     let cancelled = false;
@@ -142,8 +213,19 @@ const WorldActivityMap = ({
     return <View style={[styles.mapBox, { backgroundColor: hexToRgba(ink, 0.05) }]} />;
   }
 
+  const scale = boxSize && boxSize.width ? boxSize.width / MAP_WIDTH : 1;
+
+  const cityPoints = cities
+    .map((city) => {
+      const point = projection([city.lon, city.lat]);
+      if (!point) return null;
+      const [x, y] = point;
+      return { city, x, y, r: cityRadius(city.count) };
+    })
+    .filter(Boolean);
+
   return (
-    <View style={styles.mapBox}>
+    <View style={styles.mapBox} onLayout={(e) => setBoxSize(e.nativeEvent.layout)}>
       <Svg width="100%" height="100%" viewBox={`0 0 ${MAP_WIDTH} ${MAP_HEIGHT}`}>
         {countryShapes.map(({ geoFeat, d }, index) => {
           const entry = activityByNumericId.get(geoFeat.id);
@@ -161,49 +243,29 @@ const WorldActivityMap = ({
             />
           );
         })}
-        {cities.map((city, index) => {
-          const point = projection([city.lon, city.lat]);
-          if (!point) return null;
-          const [x, y] = point;
-          const r = cityRadius(city.count);
-          return (
-            <React.Fragment key={`${city.name}-${index}`}>
-              <Circle cx={x} cy={y} r={r} fill={panel} stroke={brand} strokeWidth={2} />
-              {/* Halo-then-fill instead of paintOrder="stroke": paintOrder
-                  support is inconsistent on react-native-svg's native
-                  (iOS/Android) renderer, so a thick stroke could paint back
-                  over the fill and turn labels into solid blobs regardless
-                  of weight/stroke tuning. Two separately-ordered Text nodes
-                  (stroke-only halo behind, fill-only text in front) gets the
-                  same outlined-label look without depending on that. */}
-              <SvgText
-                x={x}
-                y={y + r + 12}
-                fontSize="10"
-                fontWeight="normal"
-                fill="none"
-                stroke={panel}
-                strokeWidth={2}
-                textAnchor="middle"
-                style={{ fontSize: 10, fontWeight: 'normal' }}
-              >
-                {city.name}
-              </SvgText>
-              <SvgText
-                x={x}
-                y={y + r + 12}
-                fontSize="10"
-                fontWeight="normal"
-                fill={ink}
-                textAnchor="middle"
-                style={{ fontSize: 10, fontWeight: 'normal' }}
-              >
-                {city.name}
-              </SvgText>
-            </React.Fragment>
-          );
-        })}
+        {cityPoints.map(({ city, x, y, r }, index) => (
+          <Circle key={`${city.name}-${index}`} cx={x} cy={y} r={r} fill={panel} stroke={brand} strokeWidth={2} />
+        ))}
       </Svg>
+      {/* City labels are drawn as a plain RN `Text` overlay, not SvgText -
+          react-native-svg's native text renderer doesn't perform Arabic
+          shaping/ligature joining, so Arabic city names would render as
+          isolated letters. Positions reuse the same projected x/y as the
+          markers above; not mirrored for RTL, matching the map itself
+          (see file header). */}
+      <View style={StyleSheet.absoluteFill} pointerEvents="none">
+        {cityPoints.map(({ city, x, y, r }, index) => (
+          <CityLabel
+            key={`${city.name}-${index}`}
+            x={x}
+            y={y + r + 4}
+            text={city.name}
+            ink={ink}
+            panel={panel}
+            scale={scale}
+          />
+        ))}
+      </View>
     </View>
   );
 };
@@ -214,6 +276,10 @@ const styles = StyleSheet.create({
     aspectRatio: 1,
     borderRadius: 12,
     overflow: 'hidden',
+  },
+  cityLabelText: {
+    fontWeight: '400',
+    textAlign: 'center',
   },
 });
 
