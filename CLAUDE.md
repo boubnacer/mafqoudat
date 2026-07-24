@@ -2,6 +2,11 @@
 
 Multi-country/multilingual (en/fr/ar, full RTL) lost-and-found classifieds platform. `client/` is CRA + MUI v5 + Emotion, `server/` is Express. `mobile/` exists but is OUT OF SCOPE for the current design work — only `client/` is being touched.
 
+## Git workflow
+- Never push to GitHub. Make changes and commit locally only.
+- Never add a "Co-Authored-By: Claude" trailer or any AI-attribution footer to commit messages.
+- Leave the branch ready for the user to review and push themselves.
+
 ## Design tokens
 
 Source of truth: [client/src/designTokens.js](client/src/designTokens.js), resolved per light/dark mode and consumed by [client/src/theme.js](client/src/theme.js) (`themeSettings(mode, currentLanguage)`, exposed on the MUI theme as `theme.custom`). New work should read from `theme.custom.*`, never hardcode.
