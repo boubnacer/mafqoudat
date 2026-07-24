@@ -32,6 +32,7 @@ const SelectModal = ({
   maxSelected,
   confirmLabel,
   isRTL,
+  searchable = true,
 }) => {
   const { isDark } = useTheme();
   const tokens = isDark ? colorTokens.dark : colorTokens.light;
@@ -48,7 +49,7 @@ const SelectModal = ({
     setDraftIds(selectedIds);
   };
 
-  const filtered = query.trim()
+  const filtered = searchable && query.trim()
     ? options.filter((item) => getLabel(item).toLowerCase().includes(query.trim().toLowerCase()))
     : options;
 
@@ -87,17 +88,19 @@ const SelectModal = ({
             </TouchableOpacity>
           </View>
 
-          <View style={styles.searchRow}>
-            <Ionicons name="search-outline" size={18} color={`${tokens.ink}80`} style={styles.searchIcon} />
-            <TextInput
-              style={[styles.searchInput, textStyle]}
-              placeholder={searchPlaceholder}
-              placeholderTextColor={`${tokens.ink}80`}
-              value={query}
-              onChangeText={setQuery}
-              autoCapitalize="none"
-            />
-          </View>
+          {searchable ? (
+            <View style={styles.searchRow}>
+              <Ionicons name="search-outline" size={18} color={`${tokens.ink}80`} style={styles.searchIcon} />
+              <TextInput
+                style={[styles.searchInput, textStyle]}
+                placeholder={searchPlaceholder}
+                placeholderTextColor={`${tokens.ink}80`}
+                value={query}
+                onChangeText={setQuery}
+                autoCapitalize="none"
+              />
+            </View>
+          ) : null}
 
           <FlatList
             data={filtered}

@@ -8,9 +8,12 @@
  *
  * Presented as a 4-step wizard (Item -> Location -> Photo -> Review), mirroring
  * the web app's NewPost wizard (client/src/features/posts/NewPost/NewPostForm.js)
- * so the create/edit flow feels the same on both platforms. Type, Categories and
- * Country are searchable dropdowns (SelectModal); City keeps its own bespoke
- * local+remote type-ahead (CityPickerModal), just restyled to match.
+ * so the create/edit flow feels the same on both platforms. Categories and
+ * Country are searchable dropdowns (SelectModal); Type uses the same modal
+ * without the search UI since the option list is just two items. City keeps
+ * its own bespoke local+remote type-ahead (CityPickerModal), just restyled
+ * to match. The date field is a plain text input, validated client-side to
+ * dd/mm/yyyy.
  */
 
 import React, { useEffect, useMemo, useRef, useState } from 'react';
@@ -26,13 +29,11 @@ import {
   Alert,
   Platform,
   KeyboardAvoidingView,
-  Modal,
 } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import * as ImagePicker from 'expo-image-picker';
 import * as ImageManipulator from 'expo-image-manipulator';
 import { File } from 'expo-file-system';
-import DateTimePicker from '@react-native-community/datetimepicker';
 import apiClient from '../api/apiService';
 import { API_BASE_URL } from '../config/api';
 import { storage } from '../utils/storage';
@@ -50,12 +51,63 @@ const TARGET_IMAGE_BYTES = 1024 * 1024; // 1MB - the target we compress toward
 const HARD_CAP_IMAGE_BYTES = 2 * 1024 * 1024; // 2MB - the server's hard limit
 const MAX_CATEGORIES = 10;
 
-const formatDateDisplay = (date) => {
-  if (!date) return '';
-  const yyyy = date.getFullYear();
-  const mm = String(date.getMonth() + 1).padStart(2, '0');
-  const dd = String(date.getDate()).padStart(2, '0');
-  return `${yyyy}-${mm}-${dd}`;
+// Masks free-typed digits into dd/mm/yyyy as the user types (e.g. "24072026" -> "24/07/2026").
+const maskDateInput = (text) => {
+  const digits = text.replace(/[^\d]/g, '').slice(0, 8);
+  if (digits.length > 4) return `${digits.slice(0, 2)}/${digits.slice(2, 4)}/${digits.slice(4)}`;
+  if (digits.length > 2) return `${digits.slice(0, 2)}/${digits.slice(2)}`;
+  return digits;
+};
+
+const EXACT_DATE_FORMAT = /^(\d{2})\/(\d{2})\/(\d{4})$/;
+
+// Parses a strict dd/mm/yyyy string into a Date, rejecting out-of-range
+// day/month values and non-existent calendar dates (e.g. 31/02/2026).
+const parseExactDateText = (text) => {
+  const match = EXACT_DATE_FORMAT.exec(text.trim());
+  if (!match) return null;
+  const day = parseInt(match[1], 10);
+  const month = parseInt(match[2], 10);
+  const year = parseInt(match[3], 10);
+  if (month < 1 || month > 12 || day < 1 || day > 31) return null;
+  const date = new Date(year, month - 1, day);
+  if (date.getFullYear() !== year || date.getMonth() !== month - 1 || date.getDate() !== day) return null;
+  return date;
+};
+
+// Returns a translation key for the first validation failure, or null if the
+// (optional) field is empty or holds a valid, non-future date - mirrors the
+// maximumDate={new Date()} constraint the native date picker used to enforce.
+// `initialValue` is the value the field was seeded with (from an existing
+// post being edited): older posts may carry a mainDate that predates this
+// dd/mm/yyyy input - either the old picker's yyyy-mm-dd output, or arbitrary
+// free text from the web form (which has never validated this field). If the
+// user hasn't touched the field since it was seeded, that legacy value is
+// grandfathered through unvalidated rather than blocking an unrelated edit.
+const validateExactDateText = (text, initialValue = '') => {
+  const trimmed = text.trim();
+  if (!trimmed) return null;
+  if (initialValue && trimmed === initialValue.trim()) return null;
+  const date = parseExactDateText(trimmed);
+  if (!date) return 'exactDateInvalidFormat';
+  const endOfToday = new Date();
+  endOfToday.setHours(23, 59, 59, 999);
+  if (date.getTime() > endOfToday.getTime()) return 'exactDateFutureNotAllowed';
+  return null;
+};
+
+const LEGACY_ISO_DATE_FORMAT = /^(\d{4})-(\d{2})-(\d{2})$/;
+
+// The old native picker wrote exactDateText as yyyy-mm-dd. Convert that
+// specific shape to dd/mm/yyyy so edits of older posts start in the new
+// format; any other pre-existing text (free text from the web form) is left
+// untouched and handled by the grandfathering above.
+const normalizeInitialExactDateText = (text) => {
+  const trimmed = (text || '').trim();
+  const match = LEGACY_ISO_DATE_FORMAT.exec(trimmed);
+  if (!match) return trimmed;
+  const [, year, month, day] = match;
+  return `${day}/${month}/${year}`;
 };
 
 // Resizes to <=1920px on the long edge, then steps compression quality down
@@ -135,8 +187,8 @@ const PostForm = ({ mode, initialPost, isSubmitting, submitError, submitButtonLa
   const [cityValue, setCityValue] = useState(buildInitialCityValue(initialPost, currentLanguage));
   const [cityPickerVisible, setCityPickerVisible] = useState(false);
   const [exactLocation, setExactLocation] = useState(initialPost?.exactLocation || '');
-  const [exactDateText, setExactDateText] = useState(initialPost?.mainDate || '');
-  const [showDatePicker, setShowDatePicker] = useState(false);
+  const initialExactDateText = useRef(normalizeInitialExactDateText(initialPost?.mainDate)).current;
+  const [exactDateText, setExactDateText] = useState(initialExactDateText);
   const [description, setDescription] = useState(initialPost?.description || '');
   const [contact, setContact] = useState(initialPost?.contact || '');
   const [imageAsset, setImageAsset] = useState(null);
@@ -231,24 +283,22 @@ const PostForm = ({ mode, initialPost, isSubmitting, submitError, submitButtonLa
     clearFieldError('city');
   };
 
-  const handleDateChange = (event, selected) => {
-    if (Platform.OS === 'android') {
-      setShowDatePicker(false);
-    }
-    if (event.type !== 'dismissed' && selected) {
-      setExactDateText(formatDateDisplay(selected));
-    }
+  const handleExactDateChange = (text) => {
+    setExactDateText(maskDateInput(text));
+    clearFieldError('exactDate');
   };
 
-  // Best-effort parse of whatever's currently in exactDateText just to seed
-  // where the wheel/calendar opens - falls back to today if it isn't a real
-  // date (free text from a legacy web-created post, or simply empty).
-  const datePickerValue = () => {
-    if (exactDateText) {
-      const parsed = new Date(exactDateText);
-      if (!isNaN(parsed.getTime())) return parsed;
-    }
-    return new Date();
+  const handleExactDateBlur = () => {
+    const error = validateExactDateText(exactDateText, initialExactDateText);
+    setFieldErrors((prev) => {
+      if (!error) {
+        if (!prev.exactDate) return prev;
+        const next = { ...prev };
+        delete next.exactDate;
+        return next;
+      }
+      return { ...prev, exactDate: error };
+    });
   };
 
   const selectedFloption = floptions.find((fl) => fl._id === foundLost);
@@ -316,6 +366,8 @@ const PostForm = ({ mode, initialPost, isSubmitting, submitError, submitButtonLa
     if (!countryId) errors.country = true;
     if (!cityValue) errors.city = true;
     if (!exactLocation.trim()) errors.exactLocation = true;
+    const dateError = validateExactDateText(exactDateText, initialExactDateText);
+    if (dateError) errors.exactDate = dateError;
     return errors;
   };
   const validateReviewStep = () => {
@@ -665,14 +717,17 @@ const PostForm = ({ mode, initialPost, isSubmitting, submitError, submitButtonLa
               <Text style={[styles.helperText, textStyle]}>
                 {isFoundType ? t('exactDateFoundPlaceholderOptional') : t('exactDateLostPlaceholderOptional')}
               </Text>
-              <FieldButton
-                styles={styles}
-                textStyle={textStyle}
-                label={exactDateText}
-                placeholder={t('selectDate')}
-                onPress={() => setShowDatePicker(true)}
-                leading={<Ionicons name="calendar-outline" size={18} color={`${tokens.ink}99`} />}
+              <TextInput
+                style={[styles.textInput, textStyle, fieldErrors.exactDate && styles.inputError]}
+                placeholder={t('exactDateFormatExample')}
+                placeholderTextColor={`${tokens.ink}80`}
+                value={exactDateText}
+                onChangeText={handleExactDateChange}
+                onBlur={handleExactDateBlur}
+                keyboardType="number-pad"
+                maxLength={10}
               />
+              {fieldErrors.exactDate ? <Text style={styles.fieldError}>{t(fieldErrors.exactDate)}</Text> : null}
             </View>
           </>
         )}
@@ -797,29 +852,6 @@ const PostForm = ({ mode, initialPost, isSubmitting, submitError, submitButtonLa
         </TouchableOpacity>
       </View>
 
-      {showDatePicker && Platform.OS === 'android' ? (
-        <DateTimePicker value={datePickerValue()} mode="date" display="default" onChange={handleDateChange} maximumDate={new Date()} />
-      ) : null}
-
-      {Platform.OS === 'ios' ? (
-        <Modal visible={showDatePicker} transparent animationType="slide" onRequestClose={() => setShowDatePicker(false)}>
-          <View style={styles.datePickerOverlay}>
-            <View style={styles.datePickerSheet}>
-              <DateTimePicker
-                value={datePickerValue()}
-                mode="date"
-                display="spinner"
-                onChange={handleDateChange}
-                maximumDate={new Date()}
-              />
-              <TouchableOpacity style={styles.datePickerDoneButton} onPress={() => setShowDatePicker(false)}>
-                <Text style={styles.datePickerDoneText}>{t('done')}</Text>
-              </TouchableOpacity>
-            </View>
-          </View>
-        </Modal>
-      ) : null}
-
       <SelectModal
         visible={typePickerVisible}
         onClose={() => setTypePickerVisible(false)}
@@ -838,6 +870,7 @@ const PostForm = ({ mode, initialPost, isSubmitting, submitError, submitButtonLa
         selectedIds={foundLost ? [foundLost] : []}
         onSelect={handleSelectFoundLost}
         isRTL={isRTL}
+        searchable={false}
       />
 
       <SelectModal
@@ -902,8 +935,8 @@ const PostForm = ({ mode, initialPost, isSubmitting, submitError, submitButtonLa
 };
 
 // A tappable "input" that opens one of the SelectModal/CityPickerModal
-// dropdowns - shared shell for Type/Country/City/Date so they all read as
-// the same control despite triggering different modals.
+// dropdowns - shared shell for Type/Categories/Country/City so they all read
+// as the same control despite triggering different modals.
 const FieldButton = ({ styles, textStyle, label, placeholder, error, disabled, onPress, leading, tone, badge }) => (
   <TouchableOpacity
     style={[
@@ -1320,28 +1353,6 @@ const createStyles = (tokens, legacy, isDark) => {
     },
     submitButtonTextLoading: {
       marginStart: 10,
-    },
-    datePickerOverlay: {
-      flex: 1,
-      justifyContent: 'flex-end',
-      backgroundColor: 'rgba(0,0,0,0.4)',
-    },
-    datePickerSheet: {
-      backgroundColor: tokens.surfaceRaised,
-      borderTopLeftRadius: radiusTokens.xl,
-      borderTopRightRadius: radiusTokens.xl,
-      paddingBottom: 20,
-    },
-    datePickerDoneButton: {
-      alignSelf: 'center',
-      paddingHorizontal: 24,
-      paddingVertical: 10,
-      marginTop: 4,
-    },
-    datePickerDoneText: {
-      color: tokens.brandPrimary,
-      fontFamily: fontFamilies.bodySemiBold,
-      fontSize: 16,
     },
   });
 
