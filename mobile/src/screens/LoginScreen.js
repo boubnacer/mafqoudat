@@ -233,7 +233,6 @@ const LoginScreen = ({ navigation }) => {
       >
         <View style={styles.content}>
           <View style={styles.brandSection}>
-            <Image source={require('../../assets/icon.png')} style={styles.logo} resizeMode="contain" />
             <Image
               source={BRAND_WORDMARK}
               style={styles.brandWordmarkImg}
@@ -388,16 +387,10 @@ const createStyles = (tokens, isDark) => StyleSheet.create({
     alignItems: 'center',
     marginBottom: 28,
   },
-  logo: {
-    width: 72,
-    height: 72,
-    marginTop: 32,
-    marginBottom: 14,
-    backgroundColor: 'transparent',
-  },
   brandWordmarkImg: {
     height: 34,
     width: 34 * WORDMARK_RATIO,
+    marginTop: 32,
     marginBottom: 6,
   },
   tagline: {

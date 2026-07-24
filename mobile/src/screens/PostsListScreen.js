@@ -102,6 +102,13 @@ const getCategoryLabel = (item, currentLanguage) => {
   return cat.labels ? cat.labels[currentLanguage] || cat.labels.en || cat.code : cat.code;
 };
 
+// Post model has no "title" field (see server/models/Post.js) - synthesize a
+// short one from data that actually exists instead of a fake "Untitled" label.
+const getPostDisplayTitle = (found, categoryLabel, t) => {
+  const statusLabel = found ? t('found') : t('lost');
+  return categoryLabel ? `${statusLabel} — ${categoryLabel}` : statusLabel;
+};
+
 // city here can be an object ({ labels, code, ... }) or absent - never a bare
 // ObjectId string like the dashboard aggregation's city field.
 const getCityLabel = (item, currentLanguage) => {
@@ -526,7 +533,7 @@ const PostsListScreen = ({ navigation, route }) => {
         </View>
         <View style={styles.postContent}>
           <Text style={[styles.postTitle, isRTL && styles.textRTL]} numberOfLines={2}>
-            {item.title || t('untitledPost')}
+            {item.title || getPostDisplayTitle(found, categoryLabel, t)}
           </Text>
           <Text style={[styles.postDescription, isRTL && styles.textRTL]} numberOfLines={2}>
             {item.description || t('noDescriptionProvided')}
