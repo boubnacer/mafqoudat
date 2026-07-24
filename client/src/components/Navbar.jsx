@@ -73,11 +73,8 @@ const StyledToolbar = styled(Toolbar)(({ theme }) => ({
   gridTemplateColumns: "minmax(0, 1fr) auto minmax(0, 1fr)",
   alignItems: "center",
   columnGap: "16px",
-  backgroundColor: alpha(theme.custom.color.surfaceRaised, 0.7),
-  // Kept low enough that content behind the navbar (e.g. Dash.js's map
-  // header section) stays legible through it instead of blurring into a
-  // flat wash — a heavier blur reads as opaque even at low background alpha.
-  backdropFilter: "blur(6px)",
+  backgroundColor: alpha(theme.custom.color.surfaceRaised, 0.95),
+  backdropFilter: "blur(20px)",
   padding: "0.75rem 2.5rem",
   boxShadow: theme.custom.elevation.e1,
   transition: "background-color 0.3s ease",
@@ -578,14 +575,7 @@ const Navbar = () => {
 
   return (
     <AppBar
-      color="transparent"
       sx={{
-        // AppBar defaults to color="primary", which paints its own opaque
-        // Paper background *underneath* StyledToolbar's translucent one —
-        // color="transparent" plus these two kill that layer so only
-        // StyledToolbar's alpha'd background/blur is visible.
-        backgroundColor: "transparent",
-        backgroundImage: "none",
         boxShadow: "none",
         position: "fixed",
         top: 0,
