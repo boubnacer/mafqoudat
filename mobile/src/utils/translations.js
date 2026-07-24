@@ -119,6 +119,7 @@ export const translations = {
     estimatedReturnLabel: "Estimated return: {time}",
     sessionExpiredNotice: "Your session has expired. Please sign in again.",
     offlineMessage: "You're offline. Check your connection.",
+    languageDirectionNotice: "Switching to English. Full layout will update the next time you open the app.",
 
     // Report Post
     reportThisPost: "Report this post",
@@ -476,6 +477,7 @@ export const translations = {
     estimatedReturnLabel: "Retour estimé : {time}",
     sessionExpiredNotice: "Votre session a expiré. Veuillez vous reconnecter.",
     offlineMessage: "Vous êtes hors ligne. Vérifiez votre connexion.",
+    languageDirectionNotice: "Passage au français. La mise en page complète s'appliquera au prochain démarrage de l'application.",
 
     // Report Post
     reportThisPost: "Signaler cette publication",
@@ -833,6 +835,7 @@ export const translations = {
     estimatedReturnLabel: "العودة المتوقعة: {time}",
     sessionExpiredNotice: "انتهت صلاحية جلستك. يرجى تسجيل الدخول مرة أخرى.",
     offlineMessage: "أنت غير متصل بالإنترنت. تحقق من اتصالك.",
+    languageDirectionNotice: "جارٍ التبديل إلى العربية. سيتم تطبيق التخطيط الكامل في المرة القادمة التي تفتح فيها التطبيق.",
 
     // Report Post
     reportThisPost: "الإبلاغ عن هذا المنشور",

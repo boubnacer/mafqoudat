@@ -4,25 +4,20 @@
  */
 
 import React, { createContext, useContext, useState, useEffect } from 'react';
-import { Alert, I18nManager } from 'react-native';
+import { I18nManager } from 'react-native';
 import * as Updates from 'expo-updates';
 import { languageStorage } from '../utils/languageStorage';
 
 const LanguageContext = createContext();
 
-// I18nManager.forceRTL only takes visual effect after the JS bundle reloads, so
-// this can't go through utils/translations.js (useTranslation itself depends on
-// this context - importing it here would be circular). Kept tiny and duplicated
-// on purpose.
-const RESTART_PROMPT = {
-  en: { title: 'Restart Required', message: 'Please close and reopen the app to apply the new text direction.' },
-  fr: { title: 'Redémarrage requis', message: "Veuillez fermer et rouvrir l'application pour appliquer le nouveau sens du texte." },
-  ar: { title: 'إعادة التشغيل مطلوبة', message: 'يرجى إغلاق التطبيق وإعادة فتحه لتطبيق اتجاه النص الجديد.' },
-};
-
 export const LanguageProvider = ({ children }) => {
   const [currentLanguage, setCurrentLanguage] = useState('en');
   const [isInitialized, setIsInitialized] = useState(false);
+  // Set (never cleared by this file) whenever a direction change couldn't be
+  // applied automatically, so a non-blocking banner can tell the user without
+  // demanding a manual restart - see promptForRestart below. Consumed by
+  // components/RestartNotice.js, which owns clearing it again.
+  const [directionChangeNotice, setDirectionChangeNotice] = useState(false);
 
   // Initialize language on mount
   useEffect(() => {
@@ -57,17 +52,24 @@ export const LanguageProvider = ({ children }) => {
   };
 
   // I18nManager.forceRTL doesn't visually apply until the JS bundle reloads.
-  // Updates.reloadAsync() does that in a standalone/production build; it's
-  // unsupported in Expo Go/most dev clients, so this falls back to asking the
-  // user to restart manually rather than failing silently.
-  const promptForRestart = async (language) => {
+  // Updates.reloadAsync() would do that silently, but it rejects (ERR_UPDATES_DISABLED)
+  // whenever expo-updates isn't both running outside dev/Expo Go AND enabled+configured
+  // for OTA - this app has updates.enabled: false in app.config.js (no EAS Update
+  // channel/project is set up), so today that's every environment, not just Expo Go/dev
+  // client. Kept here anyway: it's a harmless no-op call now and becomes a real silent
+  // reload for free if OTA updates are ever enabled later. Until then, there is no
+  // automatic-reload path available, so we surface a brief non-blocking notice instead
+  // of a blocking "please restart" instruction - the new direction still applies fully
+  // the next time the user opens the app on their own.
+  const promptForRestart = async () => {
     try {
       await Updates.reloadAsync();
     } catch (error) {
-      const copy = RESTART_PROMPT[language] || RESTART_PROMPT.en;
-      Alert.alert(copy.title, copy.message);
+      setDirectionChangeNotice(true);
     }
   };
+
+  const dismissDirectionChangeNotice = () => setDirectionChangeNotice(false);
 
   /**
    * Set language and save to storage
@@ -82,7 +84,7 @@ export const LanguageProvider = ({ children }) => {
           setCurrentLanguage(language);
           const directionChanged = applyLanguageDirection(language);
           if (directionChanged) {
-            await promptForRestart(language);
+            await promptForRestart();
           }
           return true;
         }
@@ -100,7 +102,9 @@ export const LanguageProvider = ({ children }) => {
   }
 
   return (
-    <LanguageContext.Provider value={{ currentLanguage, setLanguage }}>
+    <LanguageContext.Provider
+      value={{ currentLanguage, setLanguage, directionChangeNotice, dismissDirectionChangeNotice }}
+    >
       {children}
     </LanguageContext.Provider>
   );
