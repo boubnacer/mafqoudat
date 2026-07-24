@@ -43,7 +43,6 @@ const Process = () => {
         background: `linear-gradient(135deg, ${alpha(theme.custom.color.surfaceRaised, 0.95)} 0%, ${alpha(theme.custom.color.surfaceRaised, 0.95)} 100%)`,
         backdropFilter: 'blur(10px)',
         borderRadius: { xs: `${theme.custom.radius.lg}px`, sm: `${theme.custom.radius.xl}px` },
-        border: `1px solid ${alpha(theme.custom.color.ink, theme.palette.mode === 'dark' ? 0.08 : 0.15)}`,
         boxShadow: theme.custom.elevation.e1,
         padding: { xs: '1.5rem', sm: '2.5rem', md: '3rem' },
       }}
@@ -149,7 +148,6 @@ const Process = () => {
                   alignItems: 'center',
                   justifyContent: 'center',
                   backgroundColor: theme.custom.color.surfaceRaised,
-                  border: `2px solid ${alpha(theme.custom.color.brandPrimary, 0.35 + index * 0.2)}`,
                   boxShadow: theme.custom.elevation.e1,
                 }}
               >
@@ -163,7 +161,6 @@ const Process = () => {
                   p: { xs: 0, md: 2 },
                   borderRadius: `${theme.custom.radius.lg}px`,
                   backgroundColor: { xs: 'transparent', md: alpha(theme.custom.color.surfaceRaised, 0.6) },
-                  border: { xs: 'none', md: `1px solid ${alpha(theme.custom.color.ink, 0.08)}` },
                   maxWidth: { md: 240 },
                 }}
               >
@@ -251,7 +248,6 @@ const Process = () => {
               height: 48,
               borderRadius: '50%',
               backgroundColor: theme.custom.color.surfaceRaised,
-              border: `1px solid ${alpha(theme.custom.color.ink, theme.palette.mode === 'dark' ? 0.1 : 0.12)}`,
               boxShadow: theme.custom.elevation.e1,
               transition: 'transform 0.2s ease, box-shadow 0.2s ease',
               '&:hover': {

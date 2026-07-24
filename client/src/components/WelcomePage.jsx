@@ -84,7 +84,6 @@ const ControlButton = styled(Box)(({ theme }) => ({
   borderRadius: theme.custom.radius.md,
   cursor: "pointer",
   backgroundColor: theme.custom.color.surfaceRaised,
-  border: `1px solid ${theme.palette.divider}`,
   boxShadow: theme.custom.elevation.e1,
   transition: "box-shadow 0.2s ease",
   "&:hover": {
@@ -96,7 +95,6 @@ const SurfaceCard = styled(Box)(({ theme }) => ({
   backgroundColor: theme.custom.color.surfaceRaised,
   borderRadius: theme.custom.radius.xl,
   boxShadow: theme.custom.elevation.e2,
-  border: `1px solid ${theme.palette.divider}`,
 }));
 
 // A fanned "hand of cards" stack — each card tilted outward from the center
@@ -125,7 +123,6 @@ const FannedCard = styled(Box, {
     overflow: "hidden",
     cursor: "pointer",
     outline: "none",
-    border: `1px solid ${alpha("#000000", 0.08)}`,
     boxShadow: isFront ? theme.custom.elevation.e2 : theme.custom.elevation.e1,
     transformOrigin: "bottom center",
     transition: "transform 0.25s ease, box-shadow 0.25s ease",
@@ -622,7 +619,6 @@ const WelcomePage = () => {
             onClick={handleModeToggle}
             sx={{
               backgroundColor: theme.custom.color.surfaceRaised,
-              border: `1px solid ${theme.palette.divider}`,
               boxShadow: theme.custom.elevation.e1,
               borderRadius: `${theme.custom.radius.md}px`,
               '&:hover': { boxShadow: theme.custom.elevation.e2 },
@@ -993,7 +989,6 @@ const WelcomePage = () => {
                       alignItems: 'center',
                       justifyContent: 'center',
                       backgroundColor: categoryStyle.backgroundColor,
-                      border: `1px solid ${theme.palette.divider}`,
                       boxShadow: theme.custom.elevation.e1,
                     }}
                   >

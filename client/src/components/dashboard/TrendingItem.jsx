@@ -61,7 +61,8 @@ const TrendingItem = ({ trend, isLoading }) => {
             p: 4,
             minHeight: 220,
             borderRadius: `${theme.custom.radius.lg}px`,
-            border: `1px dashed ${alpha(theme.custom.color.ink, 0.15)}`,
+            backgroundColor: alpha(theme.custom.color.ink, 0.03),
+            boxShadow: theme.custom.elevation.e1,
           }}
         >
           <TrendingUpOutlined sx={{ fontSize: 44, color: alpha(theme.custom.color.ink, 0.25) }} />

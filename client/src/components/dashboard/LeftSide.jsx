@@ -331,7 +331,6 @@ const LeftSide = ({
         background: `linear-gradient(135deg, ${alpha(theme.custom.color.surfaceRaised, 0.28)} 0%, ${alpha(theme.custom.color.surfaceRaised, 0.28)} 100%)`,
         backdropFilter: 'blur(18px)',
         borderRadius: isMobile ? `${theme.custom.radius.lg}px` : `${theme.custom.radius.xl}px`,
-        border: `1px solid ${alpha(theme.custom.color.ink, theme.palette.mode === 'dark' ? 0.08 : 0.15)}`,
         padding: isMobile ? '1.5rem' : '2rem',
         boxShadow: theme.custom.elevation.e1,
         width: isMobile ? '100%' : 'auto', // Full width on mobile
@@ -389,7 +388,6 @@ const LeftSide = ({
           icon={<RenderIcon name="total" />}
           sx={{
             backgroundColor: alpha(theme.custom.color.brandPrimary, theme.palette.mode === 'dark' ? 0.14 : 0.08),
-            border: `1px solid ${alpha(theme.custom.color.brandPrimary, 0.3)}`,
             padding: isMobile ? '1.25rem' : '1.5rem',
           }}
           titleStyle={{
@@ -420,7 +418,6 @@ const LeftSide = ({
           onClick={handleReturnedItemsClick}
           sx={{
             backgroundColor: theme.custom.color.surfaceRaised,
-            border: `1px solid ${alpha(theme.custom.status.found.main, 0.35)}`,
             padding: isMobile ? '1.25rem' : '1.5rem',
           }}
           titleStyle={{

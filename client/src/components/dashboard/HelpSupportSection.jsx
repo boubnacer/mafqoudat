@@ -143,15 +143,14 @@ const HelpSupportSection = () => {
   ];
 
   // Shared "generic surface card" treatment (SurfaceCard pattern) for the
-  // FAQ/Guidelines panels; Contact gets a slightly stronger border+elevation
-  // below to read as the primary option without borrowing the status
-  // accent-bar idiom, which is reserved for lost/found semantics elsewhere.
+  // FAQ/Guidelines panels; Contact gets a stronger elevation below to read
+  // as the primary option without borrowing the status accent-bar idiom,
+  // which is reserved for lost/found semantics elsewhere.
   const surfaceCardSx = {
     height: '100%',
     p: { xs: 2.5, sm: 3 },
     borderRadius: `${theme.custom.radius.lg}px`,
     backgroundColor: theme.custom.color.surfaceRaised,
-    border: `1px solid ${alpha(theme.custom.color.ink, theme.palette.mode === 'dark' ? 0.08 : 0.1)}`,
     boxShadow: theme.custom.elevation.e1,
   };
 
@@ -164,7 +163,6 @@ const HelpSupportSection = () => {
           background: `linear-gradient(135deg, ${alpha(theme.custom.color.surfaceRaised, 0.95)} 0%, ${alpha(theme.custom.color.surfaceRaised, 0.95)} 100%)`,
           backdropFilter: 'blur(10px)',
           borderRadius: { xs: `${theme.custom.radius.lg}px`, sm: `${theme.custom.radius.xl}px` },
-          border: `1px solid ${alpha(theme.custom.color.ink, theme.palette.mode === 'dark' ? 0.08 : 0.15)}`,
           boxShadow: theme.custom.elevation.e1,
           padding: { xs: '1.5rem', sm: '2.5rem', md: '3rem' },
         }}
@@ -201,7 +199,6 @@ const HelpSupportSection = () => {
             <Box
               sx={{
                 ...surfaceCardSx,
-                border: `1.5px solid ${alpha(theme.custom.color.brandPrimary, 0.35)}`,
                 boxShadow: theme.custom.elevation.e2,
               }}
             >

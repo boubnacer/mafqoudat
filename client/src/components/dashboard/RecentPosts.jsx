@@ -135,7 +135,6 @@ const RecentPosts = ({
         overflow: "hidden",
         cursor: "pointer",
         outline: "none",
-        border: `1px solid ${theme.palette.divider}`,
         boxShadow: theme.custom.elevation.e1,
         backgroundColor: finalImageUrl ? theme.custom.color.surfaceBase : categoryStyle.main,
         transition: "transform 0.2s ease, box-shadow 0.2s ease",

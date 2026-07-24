@@ -241,7 +241,7 @@ const BigStatCard = ({ icon, title, value, description, tone, styles }) => (
 const StatsSection = ({ data, isLoading, t, styles, tokens, onFoundPress, onLostPress }) => {
   if (isLoading && !data) {
     return (
-      <Panel title={t('statistics')} style={styles.statsPanelGlass} styles={styles}>
+      <Panel title={t('statistics')} styles={styles}>
         <SkeletonBlock tokens={tokens} style={styles.foundLostSkeleton} />
         <View style={styles.bigStatsRow}>
           <SkeletonBlock tokens={tokens} style={styles.bigStatSkeleton} />
@@ -508,6 +508,12 @@ const HomeScreen = ({ navigation }) => {
     return match?.code || null;
   }, [countries, countryId]);
 
+  const currentCountryName =
+    countriesByCode?.[currentCountryCode]?.names?.[currentLanguage] ||
+    countriesByCode?.[currentCountryCode]?.names?.en ||
+    currentCountryCode ||
+    '';
+
   const recentFounds = Array.isArray(data?.recentFounds) ? data.recentFounds.slice(0, 2) : [];
   const recentLosts = Array.isArray(data?.recentLosts) ? data.recentLosts.slice(0, 2) : [];
 
@@ -538,42 +544,37 @@ const HomeScreen = ({ navigation }) => {
           <RefreshControl refreshing={isRefreshing} onRefresh={handleRefresh} colors={[tokens.brandPrimary]} tintColor={tokens.brandPrimary} />
         }
       >
-        {/* Header: Statistics panel floating (translucent) over the world
-            activity map, mirroring Dash.js's mobile branch - map absolutely
-            positioned full-bleed behind, LeftSide-equivalent panel above it,
-            then a reserved spacer box the size the map's own visual area
-            occupies. TrendingSection has been retired - this header now
-            covers the space it and StatsSection used to share. */}
-        <Animated.View style={animatedSectionStyle(0)}>
-          <View style={styles.headerContainer}>
-            {!hasNoData && (
-              <View style={StyleSheet.absoluteFill}>
-                <WorldActivityMap
-                  worldActivity={data?.worldActivity}
-                  cityActivity={data?.cityActivity}
-                  currentCountryCode={currentCountryCode}
-                  countriesByCode={countriesByCode}
-                  isLoading={isLoading}
-                  tokens={tokens}
-                  isDark={isDark}
-                  t={t}
-                  currentLanguage={currentLanguage}
-                />
-              </View>
-            )}
-            <View style={styles.headerContent}>
-              <StatsSection
-                data={data}
+        {/* Header: Statistics panel, then (below it, its own card - not a
+            layered backdrop) the world activity map. Web's Dash.js runs the
+            map as a full-bleed backdrop cropped/panned behind a translucent
+            LeftSide via CSS percentage positioning; react-native-svg's
+            percentage sizing doesn't resolve the same way on a `flex: 1`
+            parent (it rendered corrupted, not just imprecisely positioned -
+            confirmed live via expo web), so this stays a plain bounded card
+            instead of chasing that. TrendingSection has been retired - this
+            header now covers the space it and StatsSection used to share. */}
+        <Animated.View style={[animatedSectionStyle(0), styles.headerStack]}>
+          <StatsSection
+            data={data}
+            isLoading={isLoading}
+            t={t}
+            styles={styles}
+            tokens={tokens}
+            onFoundPress={() => goToPosts({ initialFl: foundOption?._id || '' })}
+            onLostPress={() => goToPosts({ initialFl: lostOption?._id || '' })}
+          />
+          {!hasNoData && (
+            <Panel title={t('worldActivityCountries', { country: currentCountryName })} styles={styles}>
+              <WorldActivityMap
+                worldActivity={data?.worldActivity}
+                cityActivity={data?.cityActivity}
+                currentCountryCode={currentCountryCode}
                 isLoading={isLoading}
-                t={t}
-                styles={styles}
                 tokens={tokens}
-                onFoundPress={() => goToPosts({ initialFl: foundOption?._id || '' })}
-                onLostPress={() => goToPosts({ initialFl: lostOption?._id || '' })}
+                isDark={isDark}
               />
-              {!hasNoData && <View style={styles.mapSpacer} />}
-            </View>
-          </View>
+            </Panel>
+          )}
         </Animated.View>
 
         <Animated.View style={[styles.section, animatedSectionStyle(1)]}>
@@ -664,35 +665,11 @@ const createStyles = (tokens, isRTL, isDark) =>
       textAlign: isRTL ? 'right' : 'left',
     },
 
-    // Dashboard header - mirrors Dash.js's mobile branch: WorldActivityMap
-    // absolutely-positioned full-bleed behind, the Statistics panel (made
-    // translucent via statsPanelGlass below) stacked above it, then a
-    // reserved spacer box the size the map's own visual area occupies.
-    headerContainer: {
-      position: 'relative',
-      overflow: 'hidden',
-      width: '100%',
-      borderRadius: radiusTokens.lg,
-      backgroundColor: tokens.surfaceBase,
-      borderWidth: 1,
-      borderColor: `${tokens.ink}${isDark ? '14' : '26'}`,
-      ...getElevation(isDark, 1),
-    },
-    headerContent: {
-      padding: 16,
+    // Dashboard header: Statistics panel then the world activity map panel,
+    // stacked as two independent bounded cards (see the comment above their
+    // render for why this isn't a layered/cropped backdrop like web).
+    headerStack: {
       gap: 20,
-    },
-    mapSpacer: {
-      width: '100%',
-      aspectRatio: 1,
-      minHeight: 300,
-    },
-    // Lets the map read through behind the Statistics panel instead of the
-    // panel fully hiding it, echoing LeftSide.jsx's translucent glass-panel
-    // treatment over WorldActivityMap on web (no blur lib in mobile, so this
-    // is alpha-only, same tradeoff already made elsewhere in this file).
-    statsPanelGlass: {
-      backgroundColor: `${tokens.surfaceRaised}E6`,
     },
 
     // Panel shell - mirrors LeftSide.jsx / TrendingItem.jsx's SectionPanel:

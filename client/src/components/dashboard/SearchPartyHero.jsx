@@ -57,7 +57,6 @@ const SearchPartyHero = ({ totalReturned, isLoading }) => {
           borderRadius: `${theme.custom.radius.xl}px`,
           background: `linear-gradient(135deg, ${alpha(panel, 0.95)} 0%, ${alpha(panel, 0.95)} 100%)`,
           backdropFilter: "blur(10px)",
-          border: `1px solid ${alpha(ink, theme.palette.mode === "dark" ? 0.08 : 0.15)}`,
           boxShadow: theme.custom.elevation.e1,
           overflow: "hidden",
 

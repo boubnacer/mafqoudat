@@ -72,7 +72,6 @@ const ControlButton = styled(Box)(({ theme }) => ({
   borderRadius: theme.custom.radius.md,
   cursor: "pointer",
   backgroundColor: theme.custom.color.surfaceRaised,
-  border: `1px solid ${theme.palette.divider}`,
   boxShadow: theme.custom.elevation.e1,
   transition: "box-shadow 0.2s ease",
   "&:hover": {
@@ -90,7 +89,6 @@ const FilterBar = styled(Box)(({ theme }) => ({
   backgroundColor: theme.custom.color.surfaceRaised,
   borderRadius: theme.custom.radius.lg,
   boxShadow: theme.custom.elevation.e1,
-  border: `1px solid ${theme.palette.divider}`,
   [theme.breakpoints.up("sm")]: {
     position: "sticky",
     top: 64,
@@ -105,7 +103,6 @@ const PostCard = styled(Card)(({ theme, tone }) => ({
   backgroundColor: theme.custom.color.surfaceRaised,
   borderRadius: theme.custom.radius.lg,
   boxShadow: theme.custom.elevation.e1,
-  border: `1px solid ${theme.palette.divider}`,
   borderInlineStart: `6px solid ${tone}`,
   overflow: "hidden",
   transition: "transform 0.2s ease, box-shadow 0.2s ease",
@@ -185,7 +182,6 @@ const PostCardSkeleton = () => {
       sx={{
         borderRadius: `${theme.custom.radius.lg}px`,
         overflow: "hidden",
-        border: `1px solid ${theme.palette.divider}`,
         backgroundColor: theme.custom.color.surfaceRaised,
         boxShadow: theme.custom.elevation.e1,
       }}
@@ -416,7 +412,6 @@ const PublicPostsPage = () => {
           sx={{
             backgroundColor: theme.custom.color.surfaceRaised,
             backdropFilter: 'blur(20px)',
-            borderBottom: `1px solid ${theme.palette.divider}`,
             boxShadow: theme.custom.elevation.e1,
           }}
         >
@@ -702,7 +697,7 @@ const PublicPostsPage = () => {
                 py: 8,
                 px: 2,
                 backgroundColor: theme.custom.color.surfaceRaised,
-                border: `1px dashed ${theme.palette.divider}`,
+                boxShadow: theme.custom.elevation.e1,
                 borderRadius: `${theme.custom.radius.lg}px`,
               }}
             >

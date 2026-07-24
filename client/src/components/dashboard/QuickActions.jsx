@@ -226,7 +226,6 @@ const QuickActions = () => {
         background: `linear-gradient(135deg, ${alpha(theme.custom.color.surfaceRaised, 0.95)} 0%, ${alpha(theme.custom.color.surfaceRaised, 0.95)} 100%)`,
         backdropFilter: 'blur(10px)',
         borderRadius: isMobile ? `${theme.custom.radius.lg}px` : `${theme.custom.radius.xl}px`,
-        border: `1px solid ${alpha(theme.custom.color.ink, theme.palette.mode === 'dark' ? 0.08 : 0.15)}`,
         boxShadow: theme.custom.elevation.e1,
         padding: isMobile ? '1.5rem' : '2rem',
       }}
@@ -267,8 +266,8 @@ const QuickActions = () => {
           alignItems: 'flex-start',
           gap: 1,
           borderRadius: `${theme.custom.radius.md}px`,
-          border: `1px solid ${alpha(theme.custom.color.brandPrimary, 0.25)}`,
           backgroundColor: alpha(theme.custom.color.brandPrimary, theme.palette.mode === 'dark' ? 0.1 : 0.06),
+          boxShadow: theme.custom.elevation.e1,
           p: { xs: 1.25, sm: 1.5 },
           mb: { xs: 2, sm: 2.5 },
         }}
@@ -291,7 +290,6 @@ const QuickActions = () => {
       <Box
         sx={{
           borderRadius: `${theme.custom.radius.lg}px`,
-          border: `1px solid ${alpha(theme.custom.color.ink, 0.08)}`,
           overflow: 'hidden',
           boxShadow: theme.custom.elevation.e1,
           transition: 'box-shadow 0.3s ease',
