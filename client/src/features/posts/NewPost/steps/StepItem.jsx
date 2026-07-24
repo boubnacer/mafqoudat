@@ -3,9 +3,6 @@ import {
   Box,
   FormLabel,
   Typography,
-  TextField,
-  Chip,
-  Autocomplete,
   Alert,
   Select,
   MenuItem,
@@ -15,8 +12,8 @@ import {
 } from "@mui/material";
 import { TaskAltOutlined, SearchOffOutlined } from "@mui/icons-material";
 import Textfield from "../../../../components/Textfield";
+import CategoryPickerField from "../../../../components/CategoryPickerField";
 import { useTranslation } from "../../../../utils/translations";
-import { getCategoryColor, getCategoryBackgroundColor } from "../../../../config/categories";
 import RequiredMark from "./RequiredMark";
 
 // Labeling helper mirrors the one SelectOption used internally, so the
@@ -186,26 +183,13 @@ const StepItem = ({ flOptions, categories, fieldErrors, clearFieldError, getFoun
               : 'You can select multiple categories (e.g., wallet, papers, ID card)'
           }
         </Typography>
-        <Autocomplete
-          multiple
-          options={categories || []}
-          getOptionLabel={(option) => {
-            if (typeof option === 'string') {
-              // If option is just an ID string, find the category object
-              const cat = categories.find(c => c.id === option || c._id === option);
-              if (cat) {
-                return cat.labels?.[currentLanguage] || cat.label || cat.code || option;
-              }
-              return option;
-            }
-            return option.labels?.[currentLanguage] || option.label || option.code || '';
-          }}
+        <CategoryPickerField
+          categories={categories}
           value={values.categories && Array.isArray(values.categories) && values.categories.length > 0
-            ? categories.filter(cat => values.categories.includes(cat.id || cat._id))
-            : (values.category ? categories.filter(cat => (cat.id || cat._id) === values.category) : [])
+            ? values.categories
+            : (values.category ? [values.category] : [])
           }
-          onChange={(event, newValue) => {
-            const categoryIds = newValue.map(cat => cat.id || cat._id);
+          onChange={(categoryIds) => {
             setFieldValue('categories', categoryIds);
             // Also set legacy category field for backward compatibility
             if (categoryIds.length > 0) {
@@ -215,80 +199,9 @@ const StepItem = ({ flOptions, categories, fieldErrors, clearFieldError, getFoun
             }
             clearFieldError('category');
           }}
-          isOptionEqualToValue={(option, value) => {
-            const optionId = option.id || option._id;
-            const valueId = value.id || value._id;
-            return optionId === valueId;
-          }}
-          renderInput={(params) => (
-            <TextField
-              {...params}
-              variant="outlined"
-              placeholder={currentLanguage === 'ar'
-                ? 'اختر الفئات...'
-                : currentLanguage === 'fr'
-                  ? 'Sélectionner les catégories...'
-                  : 'Select categories...'
-              }
-              data-testid="category"
-              error={!!fieldErrors.category}
-              helperText={fieldErrors.category || (currentLanguage === 'ar'
-                ? 'يمكنك اختيار أكثر من فئة واحدة'
-                : currentLanguage === 'fr'
-                  ? 'Vous pouvez sélectionner plusieurs catégories'
-                  : 'You can select multiple categories'
-              )}
-              sx={{
-                borderRadius: 2,
-                '& .MuiOutlinedInput-root': {
-                  '&:hover fieldset': {
-                    borderColor: alpha(theme.custom.color.ink, theme.palette.mode === 'dark' ? 0.5 : 0.4),
-                  },
-                  '&.Mui-focused fieldset': {
-                    borderColor: theme.custom.color.brandPrimary,
-                  },
-                  '& fieldset': {
-                    borderColor: alpha(theme.custom.color.ink, theme.palette.mode === 'dark' ? 0.3 : 0.2),
-                  },
-                },
-              }}
-            />
-          )}
-          renderTags={(value, getTagProps) =>
-            value.map((option, index) => {
-              const { key, ...tagProps } = getTagProps({ index });
-              const categoryName = option.labels?.[currentLanguage] || option.label || option.code || '';
-              // Use the category's own color if the data has a code for it;
-              // otherwise fall back to the wizard's brand accent.
-              const chipColor = option.code
-                ? getCategoryColor(option.code)
-                : theme.custom.color.brandPrimary;
-              const chipBackground = option.code
-                ? getCategoryBackgroundColor(option.code)
-                : (theme.palette.mode === 'dark' ? 'rgba(91, 127, 255, 0.2)' : 'rgba(27, 77, 255, 0.1)');
-              return (
-                <Chip
-                  key={key}
-                  label={categoryName}
-                  {...tagProps}
-                  sx={{
-                    borderRadius: 2,
-                    backgroundColor: theme.palette.mode === 'dark' ? `${chipColor}33` : chipBackground,
-                    color: chipColor,
-                    border: `1px solid ${chipColor}`,
-                    '& .MuiChip-deleteIcon': {
-                      color: chipColor,
-                    },
-                  }}
-                />
-              );
-            })
-          }
-          sx={{
-            '& .MuiOutlinedInput-root': {
-              borderRadius: 2,
-            },
-          }}
+          error={!!fieldErrors.category}
+          errorText={fieldErrors.category}
+          dataTestId="category"
         />
       </Box>
 
