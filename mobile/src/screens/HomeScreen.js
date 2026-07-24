@@ -1,9 +1,10 @@
 /**
  * Home tab - compact discovery feed.
- * Mirrors client/src/features/dashboard/Dash.js structurally (stats, trending,
- * recent founds/losts, categories) but adapted for a phone: everything is a
- * lean "See all" handoff into PostsListScreen rather than a full section.
- * Data comes from the same GET /dashboard endpoint (useDashboardData.js).
+ * Mirrors client/src/features/dashboard/Dash.js structurally (stats + world
+ * activity map header, recent founds/losts, categories) but adapted for a
+ * phone: everything is a lean "See all" handoff into PostsListScreen rather
+ * than a full section. Data comes from the same GET /dashboard endpoint
+ * (useDashboardData.js).
  */
 
 import React, { useEffect, useMemo, useRef, useState } from 'react';
@@ -19,8 +20,9 @@ import { API_BASE_URL } from '../config/api';
 import { colorTokens, radiusTokens, fontFamilies } from '../theme/tokens';
 import AppHeader from '../components/AppHeader';
 import DataStateView from '../components/DataStateView';
+import WorldActivityMap from '../components/dashboard/WorldActivityMap';
 
-const SECTION_COUNT = 7;
+const SECTION_COUNT = 6;
 
 // Same accounts as client/src/components/Footer/DashFooter.js's socialLinks -
 // kept in sync manually since the mobile app has no shared config module yet.
@@ -239,7 +241,7 @@ const BigStatCard = ({ icon, title, value, description, tone, styles }) => (
 const StatsSection = ({ data, isLoading, t, styles, tokens, onFoundPress, onLostPress }) => {
   if (isLoading && !data) {
     return (
-      <Panel title={t('statistics')} styles={styles}>
+      <Panel title={t('statistics')} style={styles.statsPanelGlass} styles={styles}>
         <SkeletonBlock tokens={tokens} style={styles.foundLostSkeleton} />
         <View style={styles.bigStatsRow}>
           <SkeletonBlock tokens={tokens} style={styles.bigStatSkeleton} />
@@ -250,7 +252,7 @@ const StatsSection = ({ data, isLoading, t, styles, tokens, onFoundPress, onLost
   }
 
   return (
-    <Panel title={t('statistics')} styles={styles}>
+    <Panel title={t('statistics')} style={styles.statsPanelGlass} styles={styles}>
       <FoundLostStrip data={data} t={t} styles={styles} tokens={tokens} onFoundPress={onFoundPress} onLostPress={onLostPress} />
       <View style={styles.bigStatsRow}>
         <BigStatCard
@@ -270,80 +272,6 @@ const StatsSection = ({ data, isLoading, t, styles, tokens, onFoundPress, onLost
           styles={styles}
         />
       </View>
-    </Panel>
-  );
-};
-
-const TrendingSection = ({ trend, isLoading, t, currentLanguage, styles, tokens, onPress }) => {
-  if (isLoading && !trend) {
-    return (
-      <Panel title={t('trending')} styles={styles}>
-        <SkeletonBlock tokens={tokens} style={styles.trendingSkeleton} />
-      </Panel>
-    );
-  }
-
-  if (!trend || !trend._id) {
-    return (
-      <Panel title={t('trending')} styles={styles}>
-        <View style={styles.trendingEmpty}>
-          <Ionicons name="trending-up-outline" size={40} color={`${tokens.ink}40`} />
-          <Text style={styles.trendingEmptyTitle}>{t('noTrendingItems')}</Text>
-          <Text style={styles.trendingEmptyBody}>{t('noTrendingItemsDescription')}</Text>
-        </View>
-      </Panel>
-    );
-  }
-
-  const found = isFoundType(trend);
-  const tone = found ? tokens.status.found : tokens.status.lost;
-  const imageUri = getImageUri(trend.image);
-  const categoryLabel = getCategoryLabel(trend, currentLanguage);
-  const categoryConfig = getCategoryConfig(getCategoryInfo(trend)?.code);
-  const cityLabel = getCityLabel(trend, currentLanguage);
-
-  return (
-    <Panel title={t('trending')} styles={styles}>
-      <TouchableOpacity
-        activeOpacity={0.85}
-        onPress={onPress}
-        style={[styles.trendingCard, { borderStartColor: tone.main }]}
-      >
-        <View style={styles.trendingMedia}>
-          {imageUri ? (
-            <Image source={{ uri: imageUri }} style={styles.trendingImage} resizeMode="cover" />
-          ) : (
-            <View style={[styles.trendingImagePlaceholder, { backgroundColor: categoryConfig.backgroundColor }]}>
-              <Ionicons name={categoryConfig.icon} size={64} color={categoryConfig.color} />
-            </View>
-          )}
-          <View style={[styles.statusTag, { backgroundColor: tone.main }]}>
-            <Ionicons name={found ? 'checkmark-circle' : 'search'} size={14} color="#FFFFFF" />
-            <Text style={styles.statusTagText}>{found ? t('found') : t('lost')}</Text>
-          </View>
-          <View style={styles.dateBadge}>
-            <Text style={styles.dateBadgeText}>{formatRelativeTime(trend.createdAt, t)}</Text>
-          </View>
-        </View>
-        <View style={styles.trendingBody}>
-          {cityLabel ? (
-            <View style={styles.infoRow}>
-              <Ionicons name="location-outline" size={16} color={`${tokens.ink}90`} />
-              <Text style={styles.infoRowText} numberOfLines={1}>
-                {cityLabel}
-              </Text>
-            </View>
-          ) : null}
-          {categoryLabel ? (
-            <View style={styles.infoRow}>
-              <Ionicons name="pricetag-outline" size={16} color={`${tokens.ink}90`} />
-              <Text style={styles.infoRowText} numberOfLines={1}>
-                {categoryLabel}
-              </Text>
-            </View>
-          ) : null}
-        </View>
-      </TouchableOpacity>
     </Panel>
   );
 };
@@ -520,7 +448,7 @@ const HomeScreen = ({ navigation }) => {
   const { isDark } = useTheme();
   const { currentLanguage } = useLanguage();
   const { t } = useTranslation();
-  const { floptions, categories } = useReferenceData();
+  const { floptions, categories, countries } = useReferenceData();
   const { data, isLoading, isError, refetch, countryId, handleSelectCountry } = useDashboardData();
   const isRTL = currentLanguage === 'ar';
   const tokens = isDark ? colorTokens.dark : colorTokens.light;
@@ -563,7 +491,23 @@ const HomeScreen = ({ navigation }) => {
   const goToPost = (id) => navigation.navigate('PostDetailScreen', { id });
   const goToNewPost = () => navigation.navigate('NewPost');
 
-  const trend = Array.isArray(data?.trendingPost) ? data.trendingPost[0] : data?.trendingPost;
+  // Keyed by ISO2 code so WorldActivityMap can look up a localized country
+  // name from the aggregation's { code, count } rows - mirrors
+  // Dash.js's countriesByCode (there keyed off countriesData.entities, here
+  // off useReferenceData's flat countries array).
+  const countriesByCode = useMemo(() => {
+    const map = {};
+    (countries || []).forEach((c) => {
+      if (c?.code) map[c.code] = c;
+    });
+    return map;
+  }, [countries]);
+
+  const currentCountryCode = useMemo(() => {
+    const match = (countries || []).find((c) => (c._id || c.id) === countryId);
+    return match?.code || null;
+  }, [countries, countryId]);
+
   const recentFounds = Array.isArray(data?.recentFounds) ? data.recentFounds.slice(0, 2) : [];
   const recentLosts = Array.isArray(data?.recentLosts) ? data.recentLosts.slice(0, 2) : [];
 
@@ -594,31 +538,45 @@ const HomeScreen = ({ navigation }) => {
           <RefreshControl refreshing={isRefreshing} onRefresh={handleRefresh} colors={[tokens.brandPrimary]} tintColor={tokens.brandPrimary} />
         }
       >
+        {/* Header: Statistics panel floating (translucent) over the world
+            activity map, mirroring Dash.js's mobile branch - map absolutely
+            positioned full-bleed behind, LeftSide-equivalent panel above it,
+            then a reserved spacer box the size the map's own visual area
+            occupies. TrendingSection has been retired - this header now
+            covers the space it and StatsSection used to share. */}
         <Animated.View style={animatedSectionStyle(0)}>
-          <StatsSection
-            data={data}
-            isLoading={isLoading}
-            t={t}
-            styles={styles}
-            tokens={tokens}
-            onFoundPress={() => goToPosts({ initialFl: foundOption?._id || '' })}
-            onLostPress={() => goToPosts({ initialFl: lostOption?._id || '' })}
-          />
+          <View style={styles.headerContainer}>
+            {!hasNoData && (
+              <View style={StyleSheet.absoluteFill}>
+                <WorldActivityMap
+                  worldActivity={data?.worldActivity}
+                  cityActivity={data?.cityActivity}
+                  currentCountryCode={currentCountryCode}
+                  countriesByCode={countriesByCode}
+                  isLoading={isLoading}
+                  tokens={tokens}
+                  isDark={isDark}
+                  t={t}
+                  currentLanguage={currentLanguage}
+                />
+              </View>
+            )}
+            <View style={styles.headerContent}>
+              <StatsSection
+                data={data}
+                isLoading={isLoading}
+                t={t}
+                styles={styles}
+                tokens={tokens}
+                onFoundPress={() => goToPosts({ initialFl: foundOption?._id || '' })}
+                onLostPress={() => goToPosts({ initialFl: lostOption?._id || '' })}
+              />
+              {!hasNoData && <View style={styles.mapSpacer} />}
+            </View>
+          </View>
         </Animated.View>
 
         <Animated.View style={[styles.section, animatedSectionStyle(1)]}>
-          <TrendingSection
-            trend={trend}
-            isLoading={isLoading}
-            t={t}
-            currentLanguage={currentLanguage}
-            styles={styles}
-            tokens={tokens}
-            onPress={() => trend?._id && goToPost(trend._id)}
-          />
-        </Animated.View>
-
-        <Animated.View style={[styles.section, animatedSectionStyle(2)]}>
           <RecentSection
             type="found"
             items={recentFounds}
@@ -633,7 +591,7 @@ const HomeScreen = ({ navigation }) => {
           />
         </Animated.View>
 
-        <Animated.View style={[styles.section, animatedSectionStyle(3)]}>
+        <Animated.View style={[styles.section, animatedSectionStyle(2)]}>
           <RecentSection
             type="lost"
             items={recentLosts}
@@ -654,7 +612,7 @@ const HomeScreen = ({ navigation }) => {
           </View>
         ) : null}
 
-        <Animated.View style={[styles.section, animatedSectionStyle(4)]}>
+        <Animated.View style={[styles.section, animatedSectionStyle(3)]}>
           <Text style={styles.sectionTitle}>{t('browseByCategory')}</Text>
           <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={styles.categoryRow}>
             {categories.map((cat) => (
@@ -669,11 +627,11 @@ const HomeScreen = ({ navigation }) => {
           </ScrollView>
         </Animated.View>
 
-        <Animated.View style={[styles.section, animatedSectionStyle(5)]}>
+        <Animated.View style={[styles.section, animatedSectionStyle(4)]}>
           <SocialSection t={t} styles={styles} />
         </Animated.View>
 
-        <Animated.View style={[styles.section, styles.lastSection, animatedSectionStyle(6)]}>
+        <Animated.View style={[styles.section, styles.lastSection, animatedSectionStyle(5)]}>
           <SafetyFooter t={t} styles={styles} />
         </Animated.View>
       </ScrollView>
@@ -704,6 +662,37 @@ const createStyles = (tokens, isRTL, isDark) =>
       color: tokens.ink,
       marginBottom: 14,
       textAlign: isRTL ? 'right' : 'left',
+    },
+
+    // Dashboard header - mirrors Dash.js's mobile branch: WorldActivityMap
+    // absolutely-positioned full-bleed behind, the Statistics panel (made
+    // translucent via statsPanelGlass below) stacked above it, then a
+    // reserved spacer box the size the map's own visual area occupies.
+    headerContainer: {
+      position: 'relative',
+      overflow: 'hidden',
+      width: '100%',
+      borderRadius: radiusTokens.lg,
+      backgroundColor: tokens.surfaceBase,
+      borderWidth: 1,
+      borderColor: `${tokens.ink}${isDark ? '14' : '26'}`,
+      ...getElevation(isDark, 1),
+    },
+    headerContent: {
+      padding: 16,
+      gap: 20,
+    },
+    mapSpacer: {
+      width: '100%',
+      aspectRatio: 1,
+      minHeight: 300,
+    },
+    // Lets the map read through behind the Statistics panel instead of the
+    // panel fully hiding it, echoing LeftSide.jsx's translucent glass-panel
+    // treatment over WorldActivityMap on web (no blur lib in mobile, so this
+    // is alpha-only, same tradeoff already made elsewhere in this file).
+    statsPanelGlass: {
+      backgroundColor: `${tokens.surfaceRaised}E6`,
     },
 
     // Panel shell - mirrors LeftSide.jsx / TrendingItem.jsx's SectionPanel:
@@ -844,104 +833,6 @@ const createStyles = (tokens, isRTL, isDark) =>
       fontSize: 12,
       color: `${tokens.ink}99`,
       marginTop: 6,
-    },
-
-    // Trending
-    trendingSkeleton: {
-      height: 320,
-      borderRadius: radiusTokens.lg,
-    },
-    trendingEmpty: {
-      alignItems: 'center',
-      justifyContent: 'center',
-      gap: 8,
-      paddingVertical: 36,
-      borderRadius: radiusTokens.lg,
-      borderWidth: 1,
-      borderStyle: 'dashed',
-      borderColor: `${tokens.ink}26`,
-    },
-    trendingEmptyTitle: {
-      fontFamily: fontFamilies.bodySemiBold,
-      fontSize: 15,
-      color: tokens.ink,
-    },
-    trendingEmptyBody: {
-      fontFamily: fontFamilies.body,
-      fontSize: 13,
-      color: `${tokens.ink}99`,
-      textAlign: 'center',
-      maxWidth: 260,
-    },
-    trendingCard: {
-      backgroundColor: tokens.surfaceRaised,
-      borderRadius: radiusTokens.lg,
-      overflow: 'hidden',
-      borderStartWidth: 6,
-      borderWidth: 1,
-      borderColor: `${tokens.ink}${isDark ? '14' : '26'}`,
-      ...getElevation(isDark, 1),
-    },
-    trendingMedia: {
-      width: '100%',
-      height: 260,
-      backgroundColor: tokens.surfaceBase,
-    },
-    trendingImage: {
-      width: '100%',
-      height: '100%',
-    },
-    trendingImagePlaceholder: {
-      width: '100%',
-      height: '100%',
-      justifyContent: 'center',
-      alignItems: 'center',
-    },
-    statusTag: {
-      position: 'absolute',
-      top: 12,
-      start: 12,
-      flexDirection: 'row',
-      alignItems: 'center',
-      gap: 5,
-      paddingHorizontal: 10,
-      paddingVertical: 6,
-      borderRadius: radiusTokens.sm,
-    },
-    statusTagText: {
-      fontFamily: fontFamilies.bodySemiBold,
-      fontSize: 12,
-      color: '#FFFFFF',
-      textTransform: 'uppercase',
-    },
-    dateBadge: {
-      position: 'absolute',
-      top: 12,
-      end: 12,
-      backgroundColor: 'rgba(255,255,255,0.85)',
-      paddingHorizontal: 10,
-      paddingVertical: 6,
-      borderRadius: radiusTokens.sm,
-    },
-    dateBadgeText: {
-      fontFamily: fontFamilies.bodyMedium,
-      fontSize: 12,
-      color: '#0B1220',
-    },
-    trendingBody: {
-      padding: 18,
-      gap: 10,
-    },
-    infoRow: {
-      flexDirection: 'row',
-      alignItems: 'center',
-      gap: 8,
-    },
-    infoRowText: {
-      fontFamily: fontFamilies.body,
-      fontSize: 15,
-      color: `${tokens.ink}CC`,
-      flexShrink: 1,
     },
 
     // Recent founds/losts - poster-style card mirrors web's
