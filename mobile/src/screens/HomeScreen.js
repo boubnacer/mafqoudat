@@ -159,8 +159,7 @@ const Panel = ({ title, accentColor, style, styles, children }) => (
 // Mirrors client/src/components/dashboard/FoundLostStrip.jsx's mobile (xs)
 // layout: Found and Lost aren't independent metrics, so they render as one
 // connected strip - each a full-width stacked segment (icon, big number,
-// "+N today") - with a proportional fill bar underneath carrying the
-// found:lost balance, rather than two identical small tiles.
+// "+N today") - rather than two identical small tiles.
 const StatSegment = ({ icon, label, value, todayValue, tone, onPress, isLast, styles, t }) => {
   const Wrapper = onPress ? TouchableOpacity : View;
   return (
@@ -185,9 +184,6 @@ const StatSegment = ({ icon, label, value, todayValue, tone, onPress, isLast, st
 const FoundLostStrip = ({ data, t, styles, tokens, onFoundPress, onLostPress }) => {
   const totalFounds = data?.totalFounds || 0;
   const totalLosts = data?.totalLosts || 0;
-  const total = totalFounds + totalLosts;
-  const foundPct = total > 0 ? (totalFounds / total) * 100 : 50;
-  const lostPct = 100 - foundPct;
 
   return (
     <View style={styles.foundLostStrip}>
@@ -212,10 +208,6 @@ const FoundLostStrip = ({ data, t, styles, tokens, onFoundPress, onLostPress }) 
         styles={styles}
         t={t}
       />
-      <View style={styles.foundLostFillRow}>
-        <View style={{ flex: foundPct, backgroundColor: tokens.status.found.main }} />
-        <View style={{ flex: lostPct, backgroundColor: tokens.status.lost.main }} />
-      </View>
     </View>
   );
 };
@@ -732,12 +724,6 @@ const createStyles = (tokens, isRTL, isDark) =>
       color: `${tokens.ink}99`,
       marginTop: 4,
     },
-    foundLostFillRow: {
-      flexDirection: 'row',
-      height: 6,
-      backgroundColor: `${tokens.ink}0F`,
-    },
-
     // Total/Returned supporting stats
     bigStatsRow: {
       flexDirection: 'row',

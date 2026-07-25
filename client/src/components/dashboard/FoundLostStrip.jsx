@@ -131,8 +131,7 @@ const Segment = ({ tone, Icon, label, value, todayLabel, hasNotification, onClic
 
 // Found and Lost aren't independent metrics — they're two halves of the same
 // duality the whole product is built on. Rendering them as one connected
-// strip with a proportional fill (instead of two identical cards) lets the
-// shape itself carry the found:lost balance, not just the two numbers.
+// strip (instead of two identical cards) carries that relationship.
 const FoundLostStrip = ({
   totalFounds = 0,
   totalLosts = 0,
@@ -146,10 +145,6 @@ const FoundLostStrip = ({
   const theme = useTheme();
   const { t, currentLanguage } = useTranslation();
   const isRTL = currentLanguage === "ar";
-
-  const total = totalFounds + totalLosts;
-  const foundPct = total > 0 ? (totalFounds / total) * 100 : 50;
-  const lostPct = 100 - foundPct;
 
   return (
     <Box
@@ -195,30 +190,6 @@ const FoundLostStrip = ({
           todayLabel={`+ ${lostsToday} ${t("today")}`}
           hasNotification={showLostNotification}
           onClick={onLostClick}
-        />
-      </Box>
-
-      <Box
-        sx={{
-          display: "flex",
-          flexDirection: isRTL ? "row-reverse" : "row",
-          height: 6,
-          backgroundColor: alpha(theme.custom.color.ink, 0.06),
-        }}
-      >
-        <Box
-          sx={{
-            flex: `0 0 ${foundPct}%`,
-            backgroundColor: theme.custom.status.found.main,
-            transition: "flex-basis 0.6s ease",
-          }}
-        />
-        <Box
-          sx={{
-            flex: `0 0 ${lostPct}%`,
-            backgroundColor: theme.custom.status.lost.main,
-            transition: "flex-basis 0.6s ease",
-          }}
         />
       </Box>
     </Box>
