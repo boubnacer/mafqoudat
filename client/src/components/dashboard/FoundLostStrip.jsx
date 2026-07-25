@@ -152,10 +152,8 @@ const FoundLostStrip = ({
         gridColumn: "1 / -1",
         borderRadius: `${theme.custom.radius.lg}px`,
         backgroundColor: theme.custom.color.surfaceRaised,
-        boxShadow: theme.custom.elevation.e1,
+        boxShadow: 'none',
         overflow: "hidden",
-        transition: "box-shadow 0.3s ease",
-        "&:hover": { boxShadow: theme.custom.elevation.e2 },
       }}
     >
       <Box

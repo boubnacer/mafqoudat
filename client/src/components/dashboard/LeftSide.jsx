@@ -328,11 +328,11 @@ const LeftSide = ({
         // actually shows through, with a heavier blur (10px -> 18px) so the
         // busier map detail behind it doesn't fight with the stat numbers'
         // legibility.
-        background: `linear-gradient(135deg, ${alpha(theme.custom.color.surfaceRaised, 0.28)} 0%, ${alpha(theme.custom.color.surfaceRaised, 0.28)} 100%)`,
+        background: `linear-gradient(135deg, ${alpha(theme.custom.color.surfaceRaised, 0.14)} 0%, ${alpha(theme.custom.color.surfaceRaised, 0.14)} 100%)`,
         backdropFilter: 'blur(18px)',
         borderRadius: isMobile ? `${theme.custom.radius.lg}px` : `${theme.custom.radius.xl}px`,
         padding: isMobile ? '1.5rem' : '2rem',
-        boxShadow: theme.custom.elevation.e1,
+        boxShadow: 'none',
         width: isMobile ? '100%' : 'auto', // Full width on mobile
         mx: isMobile ? 0 : 'auto', // Remove horizontal margin on mobile
         maxWidth: '100%', // Prevent overflow

@@ -82,10 +82,9 @@ const Categories = () => {
                     flexDirection: 'column',
                     backgroundColor: theme.custom.color.surfaceRaised,
                     borderRadius: `${theme.custom.radius.lg}px`,
-                    boxShadow: theme.custom.elevation.e1,
+                    boxShadow: 'none',
                     '&:hover, &:focus-visible': {
                       transform: 'translateY(-4px)',
-                      boxShadow: theme.custom.elevation.e2,
                       backgroundColor: backgroundColor,
                       '& .category-icon': {
                         transform: 'scale(1.1)',

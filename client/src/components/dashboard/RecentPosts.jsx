@@ -135,10 +135,10 @@ const RecentPosts = ({
         overflow: "hidden",
         cursor: "pointer",
         outline: "none",
-        boxShadow: theme.custom.elevation.e1,
+        boxShadow: 'none',
         backgroundColor: finalImageUrl ? theme.custom.color.surfaceBase : categoryStyle.main,
         transition: "transform 0.2s ease, box-shadow 0.2s ease",
-        "&:hover": { transform: "translateY(-4px)", boxShadow: theme.custom.elevation.e2 },
+        "&:hover": { transform: "translateY(-4px)" },
         "&:focus-visible": { boxShadow: `0 0 0 2px ${tone.main}` },
       }}
     >

@@ -33,7 +33,7 @@ const RecentSection = ({ type, items, totalItems, isLoading, onCreatePost, found
         backdropFilter: "blur(10px)",
         borderRadius: isMobile ? `${theme.custom.radius.lg}px` : `${theme.custom.radius.xl}px`,
         padding: isMobile ? "1.5rem" : "2rem",
-        boxShadow: theme.custom.elevation.e1,
+        boxShadow: 'none',
       }}
     >
       <Box

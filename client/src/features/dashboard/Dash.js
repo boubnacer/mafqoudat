@@ -84,7 +84,7 @@ const Dash = () => {
           background: `linear-gradient(135deg, ${alpha(theme.custom.color.surfaceRaised, 0.95)} 0%, ${alpha(theme.custom.color.surfaceRaised, 0.95)} 100%)`,
           backdropFilter: 'blur(10px)',
           borderRadius: { xs: `${theme.custom.radius.lg}px`, sm: `${theme.custom.radius.xl}px` },
-          boxShadow: theme.custom.elevation.e1,
+          boxShadow: 'none',
           mx: { xs: 1, sm: 2 },
         }}
       >
@@ -135,7 +135,7 @@ const Dash = () => {
             maxWidth: 400,
             background: `linear-gradient(135deg, ${alpha(theme.custom.color.surfaceRaised, 0.95)} 0%, ${alpha(theme.custom.color.surfaceRaised, 0.95)} 100%)`,
             backdropFilter: 'blur(10px)',
-            boxShadow: theme.custom.elevation.e2,
+            boxShadow: 'none',
           }}
         >
           <Typography variant="h5" mb={2} fontWeight={600}>
@@ -229,7 +229,7 @@ const Dash = () => {
             width: '100%',
             borderRadius: `${theme.custom.radius.lg}px`,
             backgroundColor: theme.custom.color.surfaceBase,
-            boxShadow: theme.custom.elevation.e1,
+            boxShadow: 'none',
           }}
         >
           {!hasNoData && (
@@ -275,7 +275,7 @@ const Dash = () => {
             // its own outside the country shapes, so without this the gaps
             // would just show the plain page background.
             backgroundColor: theme.custom.color.surfaceBase,
-            boxShadow: theme.custom.elevation.e1,
+            boxShadow: 'none',
           }}
         >
           {!hasNoData && (

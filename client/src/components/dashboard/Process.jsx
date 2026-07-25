@@ -43,7 +43,7 @@ const Process = () => {
         background: `linear-gradient(135deg, ${alpha(theme.custom.color.surfaceRaised, 0.95)} 0%, ${alpha(theme.custom.color.surfaceRaised, 0.95)} 100%)`,
         backdropFilter: 'blur(10px)',
         borderRadius: { xs: `${theme.custom.radius.lg}px`, sm: `${theme.custom.radius.xl}px` },
-        boxShadow: theme.custom.elevation.e1,
+        boxShadow: 'none',
         padding: { xs: '1.5rem', sm: '2.5rem', md: '3rem' },
       }}
     >
@@ -148,7 +148,7 @@ const Process = () => {
                   alignItems: 'center',
                   justifyContent: 'center',
                   backgroundColor: theme.custom.color.surfaceRaised,
-                  boxShadow: theme.custom.elevation.e1,
+                  boxShadow: 'none',
                 }}
               >
                 <RenderIcon name={step.icon} />
@@ -248,11 +248,10 @@ const Process = () => {
               height: 48,
               borderRadius: '50%',
               backgroundColor: theme.custom.color.surfaceRaised,
-              boxShadow: theme.custom.elevation.e1,
-              transition: 'transform 0.2s ease, box-shadow 0.2s ease',
+              boxShadow: 'none',
+              transition: 'transform 0.2s ease',
               '&:hover': {
                 transform: 'translateY(-3px)',
-                boxShadow: theme.custom.elevation.e2,
               },
             }}
           >
