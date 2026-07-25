@@ -24,9 +24,7 @@ const StatBox = ({ title, value, icon, description, titleStyle, valueStyle, desc
           ? theme.palette.mode === 'dark'
             ? `0 8px 32px 0 ${defaultNotificationColor}30, 0 0 20px 0 ${defaultNotificationColor}20`
             : `0 8px 32px 0 ${defaultNotificationColor}25, 0 0 20px 0 ${defaultNotificationColor}15`
-          : theme.palette.mode === 'dark'
-            ? '0 8px 32px 0 rgba(0,0,0,0.1)'
-            : '0 8px 32px 0 rgba(0,0,0,0.05)',
+          : 'none',
         transition: 'transform 0.3s ease, box-shadow 0.3s ease, border 0.3s ease',
         ...(hasNotification && {
           animation: 'pulseGlow 2s ease-in-out infinite',
@@ -49,9 +47,7 @@ const StatBox = ({ title, value, icon, description, titleStyle, valueStyle, desc
             ? theme.palette.mode === 'dark'
               ? `0 12px 48px 0 ${defaultNotificationColor}40, 0 0 30px 0 ${defaultNotificationColor}30`
               : `0 12px 48px 0 ${defaultNotificationColor}35, 0 0 30px 0 ${defaultNotificationColor}25`
-            : theme.palette.mode === 'dark'
-              ? '0 12px 40px 0 rgba(0,0,0,0.15)'
-              : '0 12px 40px 0 rgba(0,0,0,0.1)',
+            : 'none',
         },
         height: { xs: '240px', sm: 'auto' }, // Increased height for longer text in mobile
         minHeight: { xs: '240px', sm: '180px' }, // Increased minimum height for desktop mode

@@ -151,7 +151,7 @@ const HelpSupportSection = () => {
     p: { xs: 2.5, sm: 3 },
     borderRadius: `${theme.custom.radius.lg}px`,
     backgroundColor: theme.custom.color.surfaceRaised,
-    boxShadow: theme.custom.elevation.e1,
+    boxShadow: 'none',
   };
 
   return (
@@ -163,7 +163,7 @@ const HelpSupportSection = () => {
           background: `linear-gradient(135deg, ${alpha(theme.custom.color.surfaceRaised, 0.95)} 0%, ${alpha(theme.custom.color.surfaceRaised, 0.95)} 100%)`,
           backdropFilter: 'blur(10px)',
           borderRadius: { xs: `${theme.custom.radius.lg}px`, sm: `${theme.custom.radius.xl}px` },
-          boxShadow: theme.custom.elevation.e1,
+          boxShadow: 'none',
           padding: { xs: '1.5rem', sm: '2.5rem', md: '3rem' },
         }}
       >
@@ -196,12 +196,7 @@ const HelpSupportSection = () => {
         <Grid container spacing={3}>
           {/* Contact — primary option, real tel:/mailto: links, direct path to a human */}
           <Grid item xs={12} md={4}>
-            <Box
-              sx={{
-                ...surfaceCardSx,
-                boxShadow: theme.custom.elevation.e2,
-              }}
-            >
+            <Box sx={surfaceCardSx}>
               <Box display="flex" alignItems="center" mb={2}>
                 <ContactMail sx={{ marginInlineEnd: 1, color: theme.custom.color.brandPrimary }} />
                 <Typography variant="h6" fontWeight={700} sx={{ color: theme.custom.color.ink }}>
