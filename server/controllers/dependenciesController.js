@@ -36,6 +36,7 @@ const getDashboard = async (req, res) => {
     // Generate cache key
     const cacheKey = cacheService.generateKey('dashboard', {
       currentCountry,
+      language,
       user: req.user?.id || 'anonymous'
     });
     
