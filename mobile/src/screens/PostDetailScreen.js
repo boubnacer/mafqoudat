@@ -155,7 +155,6 @@ const PostDetailScreen = ({ navigation, route }) => {
   const [isRefreshing, setIsRefreshing] = useState(false);
   const [error, setError] = useState('');
   const [imageModalVisible, setImageModalVisible] = useState(false);
-  const [menuVisible, setMenuVisible] = useState(false);
   const [reportSheetVisible, setReportSheetVisible] = useState(false);
   const [promoteSheetVisible, setPromoteSheetVisible] = useState(false);
   const [toast, setToast] = useState('');
@@ -213,17 +212,6 @@ const PostDetailScreen = ({ navigation, route }) => {
   }, [id, currentLanguage]);
 
   const handleRefresh = () => loadPost(true);
-
-  const menuButton = (
-    <TouchableOpacity
-      onPress={() => setMenuVisible(true)}
-      style={styles.headerMenuButton}
-      accessibilityLabel={t('moreOptions')}
-      hitSlop={8}
-    >
-      <Ionicons name="ellipsis-vertical" size={18} color={tokens.ink} />
-    </TouchableOpacity>
-  );
 
   if (isLoading) {
     return (
@@ -290,7 +278,6 @@ const PostDetailScreen = ({ navigation, route }) => {
   const canPromote = isOwner && !post.promotionRequested;
 
   const openReportSheet = () => {
-    setMenuVisible(false);
     if (!user) {
       setLoginNotice('loginRequiredReportPost');
       navigation.navigate('Login');
@@ -300,13 +287,12 @@ const PostDetailScreen = ({ navigation, route }) => {
   };
 
   const openPromoteSheet = () => {
-    setMenuVisible(false);
     setPromoteSheetVisible(true);
   };
 
   return (
     <View style={styles.container}>
-      <AppHeader title={t('postDetails')} showMenu={false} onBack={() => navigation.goBack()} rightActions={menuButton} />
+      <AppHeader title={t('postDetails')} showMenu={false} onBack={() => navigation.goBack()} />
       <ScrollView
         contentContainerStyle={styles.content}
         showsVerticalScrollIndicator={false}
@@ -447,6 +433,29 @@ const PostDetailScreen = ({ navigation, route }) => {
               <Text style={[styles.bodyTextSecondary, isRTL && styles.textRTL]}>{t('noContactProvided')}</Text>
             )}
           </View>
+
+          <View style={styles.section}>
+            <View style={styles.contactButtonsRow}>
+              <TouchableOpacity
+                style={[styles.contactButton, styles.reportButton]}
+                onPress={openReportSheet}
+                activeOpacity={0.85}
+              >
+                <Ionicons name="flag-outline" size={16} color="#FFFFFF" />
+                <Text style={styles.contactButtonText}>{t('reportThisPost')}</Text>
+              </TouchableOpacity>
+              {canPromote ? (
+                <TouchableOpacity
+                  style={[styles.contactButton, styles.brandButton]}
+                  onPress={openPromoteSheet}
+                  activeOpacity={0.85}
+                >
+                  <Ionicons name="megaphone-outline" size={16} color="#FFFFFF" />
+                  <Text style={styles.contactButtonText}>{t('promoteThisPost')}</Text>
+                </TouchableOpacity>
+              ) : null}
+            </View>
+          </View>
         </Animated.View>
       </ScrollView>
 
@@ -472,23 +481,6 @@ const PostDetailScreen = ({ navigation, route }) => {
           >
             <Ionicons name="close" size={22} color="#FFFFFF" />
           </TouchableOpacity>
-        </TouchableOpacity>
-      </Modal>
-
-      <Modal visible={menuVisible} transparent animationType="fade" onRequestClose={() => setMenuVisible(false)}>
-        <TouchableOpacity style={styles.menuBackdrop} activeOpacity={1} onPress={() => setMenuVisible(false)}>
-          <View style={styles.menuCard}>
-            <TouchableOpacity style={styles.menuItem} onPress={openReportSheet} activeOpacity={0.7}>
-              <Ionicons name="flag-outline" size={18} color={`${tokens.ink}99`} style={styles.menuItemIcon} />
-              <Text style={[styles.menuItemText, isRTL && styles.textRTL]}>{t('reportThisPost')}</Text>
-            </TouchableOpacity>
-            {canPromote ? (
-              <TouchableOpacity style={styles.menuItem} onPress={openPromoteSheet} activeOpacity={0.7}>
-                <Ionicons name="megaphone-outline" size={18} color={`${tokens.ink}99`} style={styles.menuItemIcon} />
-                <Text style={[styles.menuItemText, isRTL && styles.textRTL]}>{t('promoteThisPost')}</Text>
-              </TouchableOpacity>
-            ) : null}
-          </View>
         </TouchableOpacity>
       </Modal>
 
@@ -527,14 +519,6 @@ const createStyles = (tokens, isRTL, isDark) =>
     container: {
       flex: 1,
       backgroundColor: tokens.surfaceBase,
-    },
-    headerMenuButton: {
-      width: 38,
-      height: 38,
-      borderRadius: radiusTokens.md,
-      backgroundColor: `${tokens.ink}0A`,
-      justifyContent: 'center',
-      alignItems: 'center',
     },
     centerContainer: {
       flex: 1,
@@ -690,6 +674,9 @@ const createStyles = (tokens, isRTL, isDark) =>
     whatsappButton: {
       backgroundColor: '#25D366',
     },
+    reportButton: {
+      backgroundColor: tokens.status.lost.main,
+    },
     contactButtonText: {
       color: '#FFFFFF',
       fontFamily: fontFamilies.bodySemiBold,
@@ -715,40 +702,6 @@ const createStyles = (tokens, isRTL, isDark) =>
       backgroundColor: 'rgba(255,255,255,0.15)',
       justifyContent: 'center',
       alignItems: 'center',
-    },
-    menuBackdrop: {
-      flex: 1,
-      backgroundColor: 'rgba(0,0,0,0.3)',
-      alignItems: 'flex-end',
-    },
-    menuCard: {
-      marginTop: 90,
-      marginEnd: 16,
-      backgroundColor: tokens.surfaceRaised,
-      borderRadius: radiusTokens.lg,
-      borderWidth: 1,
-      borderColor: `${tokens.ink}${isDark ? '1F' : '14'}`,
-      minWidth: 200,
-      paddingVertical: 6,
-      shadowColor: '#000',
-      shadowOffset: { width: 0, height: 4 },
-      shadowOpacity: isDark ? 0.5 : 0.2,
-      shadowRadius: 8,
-      elevation: 8,
-    },
-    menuItem: {
-      flexDirection: 'row',
-      alignItems: 'center',
-      paddingVertical: 12,
-      paddingHorizontal: 16,
-    },
-    menuItemIcon: {
-      marginEnd: 10,
-    },
-    menuItemText: {
-      fontFamily: fontFamilies.bodyMedium,
-      fontSize: 15,
-      color: tokens.ink,
     },
     toast: {
       position: 'absolute',
