@@ -4,11 +4,19 @@
  */
 
 import React, { createContext, useContext, useState, useEffect } from 'react';
-import { I18nManager } from 'react-native';
+import { I18nManager, NativeModules } from 'react-native';
 import * as Updates from 'expo-updates';
+import RNRestart from 'react-native-restart';
 import { languageStorage } from '../utils/languageStorage';
 
 const LanguageContext = createContext();
+
+// RNRestart (react-native-restart) does a real native app restart, but the native
+// module it relies on only exists in dev-client/production builds after a native
+// rebuild - Expo Go can never load it (custom native modules aren't supported there).
+// Checked once, synchronously, so the UI can offer a working "Reopen app" button only
+// where one would actually do something, instead of a button that silently fails.
+const canRestartNatively = !!NativeModules.RNRestart;
 
 export const LanguageProvider = ({ children }) => {
   const [currentLanguage, setCurrentLanguage] = useState('en');
@@ -71,6 +79,16 @@ export const LanguageProvider = ({ children }) => {
 
   const dismissDirectionChangeNotice = () => setDirectionChangeNotice(false);
 
+  // Only ever called from a user tap (RestartNotice's "Reopen app" button) - a real
+  // process restart is more jarring than the silent reloadAsync path above, so it's
+  // opt-in rather than automatic. No-op (button isn't rendered in the first place)
+  // when canRestartNatively is false.
+  const restartApp = () => {
+    if (canRestartNatively) {
+      RNRestart.restart();
+    }
+  };
+
   /**
    * Set language and save to storage
    * @param {string} language - Language code (en, fr, ar)
@@ -103,7 +121,14 @@ export const LanguageProvider = ({ children }) => {
 
   return (
     <LanguageContext.Provider
-      value={{ currentLanguage, setLanguage, directionChangeNotice, dismissDirectionChangeNotice }}
+      value={{
+        currentLanguage,
+        setLanguage,
+        directionChangeNotice,
+        dismissDirectionChangeNotice,
+        canRestartNatively,
+        restartApp,
+      }}
     >
       {children}
     </LanguageContext.Provider>

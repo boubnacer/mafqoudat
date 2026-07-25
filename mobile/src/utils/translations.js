@@ -120,6 +120,7 @@ export const translations = {
     sessionExpiredNotice: "Your session has expired. Please sign in again.",
     offlineMessage: "You're offline. Check your connection.",
     languageDirectionNotice: "Switching to English. Full layout will update the next time you open the app.",
+    reopenAppNow: "Reopen App",
 
     // Report Post
     reportThisPost: "Report this post",
@@ -481,6 +482,7 @@ export const translations = {
     sessionExpiredNotice: "Votre session a expiré. Veuillez vous reconnecter.",
     offlineMessage: "Vous êtes hors ligne. Vérifiez votre connexion.",
     languageDirectionNotice: "Passage au français. La mise en page complète s'appliquera au prochain démarrage de l'application.",
+    reopenAppNow: "Rouvrir l'application",
 
     // Report Post
     reportThisPost: "Signaler cette publication",
@@ -842,6 +844,7 @@ export const translations = {
     sessionExpiredNotice: "انتهت صلاحية جلستك. يرجى تسجيل الدخول مرة أخرى.",
     offlineMessage: "أنت غير متصل بالإنترنت. تحقق من اتصالك.",
     languageDirectionNotice: "جارٍ التبديل إلى العربية. سيتم تطبيق التخطيط الكامل في المرة القادمة التي تفتح فيها التطبيق.",
+    reopenAppNow: "إعادة فتح التطبيق",
 
     // Report Post
     reportThisPost: "الإبلاغ عن هذا المنشور",
