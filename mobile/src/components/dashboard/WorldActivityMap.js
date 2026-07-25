@@ -74,13 +74,15 @@ const CityLabel = ({ x, y, text, ink, panel, scale }) => {
   const fontSize = CITY_LABEL_FONT_SIZE * scale;
   const haloOffset = scale;
   return (
-    <View
-      style={{
-        position: 'absolute',
-        left: `${(x / MAP_WIDTH) * 100}%`,
-        top: `${(y / MAP_HEIGHT) * 100}%`,
-      }}
-    >
+    // Positioned with `transform: translateX/Y`, never `left`/`top`: RN
+    // auto-swaps `left`<->`right` (and any style using those names, like the
+    // halo offsets below) under RTL by default
+    // (I18nManager.doLeftAndRightSwapInRTL), which would drag these labels
+    // sideways on an Arabic language switch even though the underlying SVG
+    // map/markers - plain `cx`/`cy` attributes, not RN layout styles - never
+    // move. `transform` is exempt from that auto-mirroring, which is what
+    // keeps the map deliberately unmirrored for RTL (see file header).
+    <View style={{ position: 'absolute', transform: [{ translateX: x * scale }, { translateY: y * scale }] }}>
       <View
         onLayout={(e) => setWidth(e.nativeEvent.layout.width)}
         style={{ transform: [{ translateX: -width / 2 }], opacity: width ? 1 : 0 }}
@@ -94,8 +96,7 @@ const CityLabel = ({ x, y, text, ink, panel, scale }) => {
               styles.cityLabelText,
               {
                 position: 'absolute',
-                left: dx * haloOffset,
-                top: dy * haloOffset,
+                transform: [{ translateX: dx * haloOffset }, { translateY: dy * haloOffset }],
                 fontSize,
                 color: panel,
               },
