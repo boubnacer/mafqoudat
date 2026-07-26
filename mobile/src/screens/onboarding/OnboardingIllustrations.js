@@ -23,6 +23,11 @@ const BRAND_BLUE = '#3498DB';
 
 const AnimatedG = Animated.createAnimatedComponent(G);
 
+// ~1cm at standard density-independent-pixel scale (96dpi reference, same
+// approximation CSS uses for physical units) - the gap between each slide's
+// illustration and the headline/body text below it.
+const ILLUSTRATION_GAP = 38;
+
 const shadowSm = {
   shadowColor: '#000',
   shadowOffset: { width: 0, height: 2 },
@@ -434,20 +439,20 @@ const styles = StyleSheet.create({
     height: 140,
     alignItems: 'center',
     justifyContent: 'center',
-    marginBottom: 6,
+    marginBottom: ILLUSTRATION_GAP,
   },
   reportScene: {
     width: 170,
     height: 170,
     alignItems: 'center',
     justifyContent: 'center',
-    marginBottom: 12,
+    marginBottom: ILLUSTRATION_GAP,
   },
   filterScene: {
     width: FUNNEL_SIZE,
     height: 230,
     alignSelf: 'center',
-    marginBottom: 6,
+    marginBottom: ILLUSTRATION_GAP,
   },
   chip: {
     position: 'absolute',
@@ -511,7 +516,7 @@ const stylesLegacy = StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'center',
     marginTop: 16,
-    marginBottom: 16,
+    marginBottom: ILLUSTRATION_GAP,
   },
   backdrop: {
     position: 'absolute',

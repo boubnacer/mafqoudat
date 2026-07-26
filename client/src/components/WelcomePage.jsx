@@ -17,6 +17,7 @@ import {
   Typography,
   Button,
   useTheme,
+  useMediaQuery,
   alpha,
   styled,
   Autocomplete,
@@ -99,12 +100,12 @@ const SurfaceCard = styled(Box)(({ theme }) => ({
 
 // Glass panel for the hero text block sitting on top of the full-bleed
 // WorldActivityMap backdrop (mirrors LeftSide.jsx's translucent-over-map
-// treatment in Dash.js). Higher opacity than LeftSide's own panel (0.14) —
-// LeftSide only holds big bold stat numbers that stay legible at low
-// opacity, while this panel carries a full headline/paragraph/input stack
-// that needs stronger contrast against a busy multi-colored map.
+// treatment in Dash.js). Lower opacity than a plain SurfaceCard so the map
+// actually reads through behind it — the heavy blur (18px) smooths the
+// busy multi-colored map into a soft wash first, which is what keeps the
+// headline/paragraph/input stack legible even at this opacity.
 const HeroGlassPanel = styled(Box)(({ theme }) => ({
-  background: `linear-gradient(135deg, ${alpha(theme.custom.color.surfaceRaised, 0.82)} 0%, ${alpha(theme.custom.color.surfaceRaised, 0.82)} 100%)`,
+  background: `linear-gradient(135deg, ${alpha(theme.custom.color.surfaceRaised, 0.5)} 0%, ${alpha(theme.custom.color.surfaceRaised, 0.5)} 100%)`,
   backdropFilter: "blur(18px)",
   borderRadius: theme.custom.radius.xl,
   boxShadow: theme.custom.elevation.e2,
@@ -264,6 +265,7 @@ const FloatingCategoryTile = styled(Box, {
 
 const WelcomePage = () => {
   const theme = useTheme();
+  const isMobile = useMediaQuery("(max-width:600px)");
   const navigate = useNavigate();
   const dispatch = useDispatch();
   const { t, currentLanguage } = useTranslation();
@@ -599,6 +601,102 @@ const WelcomePage = () => {
 
   const seoMetadata = <SeoMeta pageKey="home" />;
 
+  // Shared between the mobile (stacked) and desktop (flex row) hero
+  // branches below so the two never drift out of sync.
+  const heroPanelContent = (
+    <>
+      <Box
+        component="img"
+        src="/maflogoSVG.svg"
+        alt="Mafqoudat"
+        sx={{
+          height: { xs: '38px', md: '48px' },
+          width: 'auto',
+          display: 'block',
+          mb: { xs: 3, md: 5 },
+          filter: theme.palette.mode === 'dark' ? 'brightness(1.1) contrast(1.1)' : 'none',
+        }}
+      />
+
+      <Typography
+        variant="h1"
+        sx={{ fontSize: { xs: '2rem', md: '2.5rem' }, mb: 2 }}
+      >
+        {t('heroHeadline')}
+      </Typography>
+      <Typography variant="body1" color="text.secondary" sx={{ mb: 4 }}>
+        {t('welcomeMessage')}
+      </Typography>
+
+      <Autocomplete
+        options={countries || []}
+        autoHighlight
+        disableClearable
+        value={selectedCountry}
+        onChange={handleCountrySelect}
+        getOptionLabel={getCountryName}
+        isOptionEqualToValue={(option, value) => option._id === value._id}
+        renderOption={(props, option) => (
+          <Box component="li" sx={{ "& > img": { marginInlineEnd: 2, flexShrink: 0 } }} {...props}>
+            {option.flag ? (
+              <span style={{ marginInlineEnd: 8, fontSize: '20px' }}>{option.flag}</span>
+            ) : (
+              <img
+                loading="lazy"
+                width="20"
+                src={`https://flagcdn.com/w20/${option.code.toLowerCase()}.png`}
+                srcSet={`https://flagcdn.com/w40/${option.code.toLowerCase()}.png 2x`}
+                alt=""
+              />
+            )}
+            {getCountryName(option)} ({option.code})
+          </Box>
+        )}
+        renderInput={(params) => (
+          <TextField
+            {...params}
+            label={t('chooseCountry')}
+            variant="outlined"
+            fullWidth
+            sx={{
+              mb: 2,
+              '& .MuiOutlinedInput-root': {
+                borderRadius: `${theme.custom.radius.md}px`,
+                backgroundColor: theme.custom.color.surfaceRaised,
+              },
+            }}
+            inputProps={{ ...params.inputProps, autoComplete: "new-password" }}
+          />
+        )}
+      />
+
+      <Box sx={{ display: 'flex', flexDirection: { xs: 'column', sm: 'row' }, gap: 1.5 }}>
+        <Button
+          variant="contained"
+          size="large"
+          disabled={countriesLoading || !selectedCountry}
+          onClick={handleContinue}
+          endIcon={isRTL ? <ArrowBack /> : <ArrowForward />}
+          sx={{
+            py: 1.5,
+            borderRadius: `${theme.custom.radius.md}px`,
+            fontWeight: 600,
+            bgcolor: theme.custom.color.brandPrimary,
+            color: theme.palette.getContrastText(theme.custom.color.brandPrimary),
+            boxShadow: theme.custom.elevation.e1,
+            '&:hover': {
+              bgcolor: theme.custom.color.brandPrimary,
+              opacity: 0.9,
+              boxShadow: theme.custom.elevation.e2,
+            },
+          }}
+        >
+          {t('browseNearYou')}
+        </Button>
+      </Box>
+    </>
+  );
+
   // Show the site loading state until countries have actually been fetched —
   // countries falls back to a placeholder list while loading, so gating on
   // countriesLoading itself (not countries.length) is what keeps the welcome
@@ -640,29 +738,6 @@ const WelcomePage = () => {
     <>
       {seoMetadata}
       <PageContainer>
-        {/* Top controls: language + dark/light mode */}
-        <TopBar>
-          <ControlButton id="language-selector" onClick={handleLanguageClick}>
-            <Language sx={{ fontSize: 20, color: 'text.secondary' }} />
-            <Typography variant="body2" sx={{ fontWeight: 600 }}>
-              {getLanguageDisplayName(activeLanguage)}
-            </Typography>
-            <KeyboardArrowDown sx={{ fontSize: 18, color: 'text.secondary' }} />
-          </ControlButton>
-
-          <IconButton
-            onClick={handleModeToggle}
-            sx={{
-              backgroundColor: theme.custom.color.surfaceRaised,
-              boxShadow: theme.custom.elevation.e1,
-              borderRadius: `${theme.custom.radius.md}px`,
-              '&:hover': { boxShadow: theme.custom.elevation.e2 },
-            }}
-          >
-            {mode === 'light' ? <DarkModeOutlined /> : <LightModeOutlined />}
-          </IconButton>
-        </TopBar>
-
         <Menu
           anchorEl={languageAnchorEl}
           open={Boolean(languageAnchorEl)}
@@ -682,11 +757,13 @@ const WelcomePage = () => {
 
         {/* Hero — full-bleed WorldActivityMap backdrop (same map component
             Dash.js's header uses) showing the selected country, with the
-            rest of the map covering the remainder of the header. The
-            logo/headline/subtext/selector/CTA float on top in a translucent
-            glass panel so they stay legible over the map. The live post
-            snapshot that used to sit here moved into its own "Recently
-            posted near you" section further down the page. */}
+            rest of the map covering the whole header, INCLUDING behind the
+            language/mode controls — those now render inside this section
+            (on top of the map layer) instead of above it on the plain page
+            background. The logo/headline/subtext/selector/CTA float on top
+            in a translucent glass panel so they stay legible over the map.
+            The live post snapshot that used to sit here moved into its own
+            "Recently posted near you" section further down the page. */}
         <Box
           sx={{
             position: 'relative',
@@ -707,115 +784,57 @@ const WelcomePage = () => {
             />
           </Box>
 
-          <Box
-            sx={{
-              position: 'relative',
-              maxWidth: 1200,
-              mx: 'auto',
-              px: { xs: 2, md: 4 },
-              pt: { xs: 3, md: 5 },
-              pb: { xs: 10, md: 12 },
-              display: 'flex',
-              justifyContent: 'flex-start',
-            }}
-          >
-            <HeroGlassPanel
-              sx={{
-                maxWidth: { xs: '100%', sm: 440, md: 480 },
-                width: '100%',
-                p: { xs: 2.5, sm: 3, md: 3.5 },
-              }}
-            >
-              <Box
-                component="img"
-                src="/maflogoSVG.svg"
-                alt="Mafqoudat"
+          <Box sx={{ position: 'relative' }}>
+            <TopBar>
+              <ControlButton id="language-selector" onClick={handleLanguageClick}>
+                <Language sx={{ fontSize: 20, color: 'text.secondary' }} />
+                <Typography variant="body2" sx={{ fontWeight: 600 }}>
+                  {getLanguageDisplayName(activeLanguage)}
+                </Typography>
+                <KeyboardArrowDown sx={{ fontSize: 18, color: 'text.secondary' }} />
+              </ControlButton>
+
+              <IconButton
+                onClick={handleModeToggle}
                 sx={{
-                  height: { xs: '38px', md: '48px' },
-                  width: 'auto',
-                  display: 'block',
-                  mb: { xs: 3, md: 5 },
-                  filter: theme.palette.mode === 'dark' ? 'brightness(1.1) contrast(1.1)' : 'none',
+                  backgroundColor: theme.custom.color.surfaceRaised,
+                  boxShadow: theme.custom.elevation.e1,
+                  borderRadius: `${theme.custom.radius.md}px`,
+                  '&:hover': { boxShadow: theme.custom.elevation.e2 },
                 }}
-              />
-
-              <Typography
-                variant="h1"
-                sx={{ fontSize: { xs: '2rem', md: '2.5rem' }, mb: 2 }}
               >
-                {t('heroHeadline')}
-              </Typography>
-              <Typography variant="body1" color="text.secondary" sx={{ mb: 4 }}>
-                {t('welcomeMessage')}
-              </Typography>
+                {mode === 'light' ? <DarkModeOutlined /> : <LightModeOutlined />}
+              </IconButton>
+            </TopBar>
 
-              <Autocomplete
-                options={countries || []}
-                autoHighlight
-                disableClearable
-                value={selectedCountry}
-                onChange={handleCountrySelect}
-                getOptionLabel={getCountryName}
-                isOptionEqualToValue={(option, value) => option._id === value._id}
-                renderOption={(props, option) => (
-                  <Box component="li" sx={{ "& > img": { marginInlineEnd: 2, flexShrink: 0 } }} {...props}>
-                    {option.flag ? (
-                      <span style={{ marginInlineEnd: 8, fontSize: '20px' }}>{option.flag}</span>
-                    ) : (
-                      <img
-                        loading="lazy"
-                        width="20"
-                        src={`https://flagcdn.com/w20/${option.code.toLowerCase()}.png`}
-                        srcSet={`https://flagcdn.com/w40/${option.code.toLowerCase()}.png 2x`}
-                        alt=""
-                      />
-                    )}
-                    {getCountryName(option)} ({option.code})
-                  </Box>
-                )}
-                renderInput={(params) => (
-                  <TextField
-                    {...params}
-                    label={t('chooseCountry')}
-                    variant="outlined"
-                    fullWidth
-                    sx={{
-                      mb: 2,
-                      '& .MuiOutlinedInput-root': {
-                        borderRadius: `${theme.custom.radius.md}px`,
-                        backgroundColor: theme.custom.color.surfaceRaised,
-                      },
-                    }}
-                    inputProps={{ ...params.inputProps, autoComplete: "new-password" }}
-                  />
-                )}
-              />
-
-              <Box sx={{ display: 'flex', flexDirection: { xs: 'column', sm: 'row' }, gap: 1.5 }}>
-                <Button
-                  variant="contained"
-                  size="large"
-                  disabled={countriesLoading || !selectedCountry}
-                  onClick={handleContinue}
-                  endIcon={isRTL ? <ArrowBack /> : <ArrowForward />}
-                  sx={{
-                    py: 1.5,
-                    borderRadius: `${theme.custom.radius.md}px`,
-                    fontWeight: 600,
-                    bgcolor: theme.custom.color.brandPrimary,
-                    color: theme.palette.getContrastText(theme.custom.color.brandPrimary),
-                    boxShadow: theme.custom.elevation.e1,
-                    '&:hover': {
-                      bgcolor: theme.custom.color.brandPrimary,
-                      opacity: 0.9,
-                      boxShadow: theme.custom.elevation.e2,
-                    },
-                  }}
-                >
-                  {t('browseNearYou')}
-                </Button>
+            {isMobile ? (
+              // Mobile: stack the panel above a reserved square spacer (mirrors
+              // Dash.js's mobile header branch) instead of relying on padding
+              // alone — WorldActivityMap's internal mobile crop math always
+              // lands the selected country ~81% down the TOTAL height of this
+              // section, so the spacer is what pushes that landing point below
+              // the panel instead of underneath/behind it.
+              <Box sx={{ px: 2, pb: 3, display: 'grid', gridTemplateColumns: '1fr', gap: '20px' }}>
+                <HeroGlassPanel sx={{ p: 2.5 }}>{heroPanelContent}</HeroGlassPanel>
+                <Box sx={{ width: '100%', aspectRatio: '1 / 1', minHeight: 300 }} />
               </Box>
-            </HeroGlassPanel>
+            ) : (
+              <Box
+                sx={{
+                  maxWidth: 1200,
+                  mx: 'auto',
+                  px: 4,
+                  pt: 2,
+                  pb: 12,
+                  display: 'flex',
+                  justifyContent: 'flex-start',
+                }}
+              >
+                <HeroGlassPanel sx={{ maxWidth: { sm: 440, md: 480 }, width: '100%', p: { sm: 3, md: 3.5 } }}>
+                  {heroPanelContent}
+                </HeroGlassPanel>
+              </Box>
+            )}
           </Box>
         </Box>
 
