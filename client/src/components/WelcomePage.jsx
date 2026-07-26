@@ -105,7 +105,7 @@ const SurfaceCard = styled(Box)(({ theme }) => ({
 // busy multi-colored map into a soft wash first, which is what keeps the
 // headline/paragraph/input stack legible even at this opacity.
 const HeroGlassPanel = styled(Box)(({ theme }) => ({
-  background: `linear-gradient(135deg, ${alpha(theme.custom.color.surfaceRaised, 0.5)} 0%, ${alpha(theme.custom.color.surfaceRaised, 0.5)} 100%)`,
+  background: `linear-gradient(135deg, ${alpha(theme.custom.color.surfaceRaised, 0.3)} 0%, ${alpha(theme.custom.color.surfaceRaised, 0.3)} 100%)`,
   backdropFilter: "blur(18px)",
   borderRadius: theme.custom.radius.xl,
   boxShadow: theme.custom.elevation.e2,
@@ -781,6 +781,18 @@ const WelcomePage = () => {
               currentCountryCode={selectedCountry?.code}
               countriesByCode={countriesByCode}
               isLoading={heroMapLoading}
+              // Desktop: push the built-in title down clear of the
+              // language/mode controls in TopBar below (see titleOffsetTop's
+              // own comment in WorldActivityMap.jsx). Mobile: hide it
+              // entirely — WorldActivityMap positions its title as a % of
+              // this section's TOTAL height, which on Dash.js (no extra
+              // chrome above the map) lands it just above the country, but
+              // here it lands wherever the hero panel happens to end,
+              // sometimes mid-map. A normal-flow label between the panel
+              // and the reserved map spacer below is positioned correctly
+              // by construction instead.
+              hideTitle={isMobile}
+              titleOffsetTop={isMobile ? 0 : 56}
             />
           </Box>
 
@@ -816,6 +828,25 @@ const WelcomePage = () => {
               // the panel instead of underneath/behind it.
               <Box sx={{ px: 2, pb: 3, display: 'grid', gridTemplateColumns: '1fr', gap: '20px' }}>
                 <HeroGlassPanel sx={{ p: 2.5 }}>{heroPanelContent}</HeroGlassPanel>
+                {selectedCountry && (
+                  <Box sx={{ textAlign: 'center', mb: -1 }}>
+                    <Typography
+                      variant="overline"
+                      sx={{ display: 'block', fontWeight: 600, letterSpacing: 1, color: 'text.secondary', mb: 0.5 }}
+                    >
+                      {t('worldActivityCountries', { country: getCountryName(selectedCountry) })}
+                    </Typography>
+                    <Box
+                      sx={{
+                        width: 48,
+                        height: 7,
+                        borderRadius: 4,
+                        mx: 'auto',
+                        background: `linear-gradient(${isRTL ? 'to left' : 'to right'}, ${alpha(theme.custom.color.brandPrimary, 0.2)}, ${alpha(theme.custom.color.brandPrimary, 0.95)})`,
+                      }}
+                    />
+                  </Box>
+                )}
                 <Box sx={{ width: '100%', aspectRatio: '1 / 1', minHeight: 300 }} />
               </Box>
             ) : (
