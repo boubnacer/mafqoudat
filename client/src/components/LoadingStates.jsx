@@ -2,9 +2,6 @@ import React from 'react';
 import {
   Box,
   Typography,
-  Skeleton,
-  Card,
-  CardContent,
   Grid,
   useTheme,
   CircularProgress,
@@ -24,6 +21,7 @@ import {
   Add as AddIcon,
 } from '@mui/icons-material';
 import { useTranslation } from '../utils/translations';
+import SkeletonBlock from './SkeletonBlock';
 
 // Add CSS keyframes for loading animations (mirrorReflection from navbar)
 const loadingStyles = `
@@ -61,21 +59,21 @@ if (typeof document !== 'undefined') {
 // Loading Skeleton for Dashboard Stats
 export const DashboardStatsSkeleton = () => {
   const theme = useTheme();
-  
+
   return (
     <Box sx={{ p: 2 }}>
       <Grid container spacing={2}>
         <Grid item xs={12} sm={6} md={3}>
-          <Skeleton variant="rectangular" height={120} sx={{ borderRadius: 2 }} />
+          <SkeletonBlock radius={theme.custom.radius.lg} sx={{ height: 120 }} />
         </Grid>
         <Grid item xs={12} sm={6} md={3}>
-          <Skeleton variant="rectangular" height={120} sx={{ borderRadius: 2 }} />
+          <SkeletonBlock radius={theme.custom.radius.lg} sx={{ height: 120 }} />
         </Grid>
         <Grid item xs={12} sm={6} md={3}>
-          <Skeleton variant="rectangular" height={120} sx={{ borderRadius: 2 }} />
+          <SkeletonBlock radius={theme.custom.radius.lg} sx={{ height: 120 }} />
         </Grid>
         <Grid item xs={12} sm={6} md={3}>
-          <Skeleton variant="rectangular" height={120} sx={{ borderRadius: 2 }} />
+          <SkeletonBlock radius={theme.custom.radius.lg} sx={{ height: 120 }} />
         </Grid>
       </Grid>
     </Box>
@@ -96,13 +94,12 @@ export const TrendingItemSkeleton = () => {
       }}
     >
       {[1, 2, 3].map((item) => (
-        <Skeleton
+        <SkeletonBlock
           key={item}
-          variant="rectangular"
+          radius={theme.custom.radius.lg}
           sx={{
             width: '100%',
             aspectRatio: '3 / 4',
-            borderRadius: `${theme.custom.radius.lg}px`,
             display: { xs: item === 3 ? 'none' : 'block', md: 'block' },
           }}
         />
@@ -111,23 +108,27 @@ export const TrendingItemSkeleton = () => {
   );
 };
 
-// Loading Skeleton for Recent Items
+// Loading Skeleton for Recent Items — mirrors the 2-up poster-card grid
+// (Recent.jsx / RecentPosts DNA) that RecentSection renders once loaded.
 export const RecentItemsSkeleton = () => {
+  const theme = useTheme();
+
   return (
-    <Grid container spacing={2}>
-      {[1, 2, 3, 4].map((item) => (
-        <Grid item xs={12} sm={6} md={3} key={item}>
-          <Card>
-            <Skeleton variant="rectangular" height={140} />
-            <CardContent>
-              <Skeleton variant="text" width="80%" height={20} />
-              <Skeleton variant="text" width="60%" height={16} sx={{ mt: 1 }} />
-              <Skeleton variant="text" width="40%" height={16} sx={{ mt: 1 }} />
-            </CardContent>
-          </Card>
-        </Grid>
+    <Box
+      sx={{
+        display: 'grid',
+        gap: { xs: 1.5, sm: 2 },
+        gridTemplateColumns: 'repeat(2, 1fr)',
+      }}
+    >
+      {[1, 2].map((item) => (
+        <SkeletonBlock
+          key={item}
+          radius={theme.custom.radius.lg}
+          sx={{ width: '100%', aspectRatio: '3 / 4' }}
+        />
       ))}
-    </Grid>
+    </Box>
   );
 };
 

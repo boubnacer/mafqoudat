@@ -56,7 +56,8 @@ const Categories = () => {
           const IconComponent = getCategoryIcon(code);
           const iconColor = getCategoryColor(code);
           const backgroundColor = getCategoryBackgroundColor(code);
-          
+          const hoverTextColor = theme.palette.getContrastText(backgroundColor);
+
           return (
             <Grid item xs={6} sm={4} md={3} lg={2} key={_id}>
               <motion.div
@@ -82,13 +83,18 @@ const Categories = () => {
                     flexDirection: 'column',
                     backgroundColor: theme.custom.color.surfaceRaised,
                     borderRadius: `${theme.custom.radius.lg}px`,
+                    border: `1px solid ${alpha(theme.custom.color.ink, 0.1)}`,
                     boxShadow: 'none',
                     '&:hover, &:focus-visible': {
                       transform: 'translateY(-4px)',
                       backgroundColor: backgroundColor,
+                      borderColor: alpha(iconColor, 0.4),
                       '& .category-icon': {
                         transform: 'scale(1.1)',
                         color: iconColor
+                      },
+                      '& .category-label': {
+                        color: hoverTextColor
                       }
                     },
                     '&:focus-visible': {
@@ -122,6 +128,7 @@ const Categories = () => {
                     
                     <Typography
                       variant="body2"
+                      className="category-label"
                       sx={{
                         fontWeight: 600,
                         color: theme.custom.color.ink,
@@ -132,6 +139,7 @@ const Categories = () => {
                         WebkitLineClamp: 2,
                         WebkitBoxOrient: 'vertical',
                         overflow: 'hidden',
+                        transition: 'color 0.3s ease',
                       }}
                     >
                       {labels[currentLanguage] || labels.en}
