@@ -6,11 +6,12 @@ import { useGetCountriesQuery, useGetCategoriesQuery } from "../features/depende
 import { useGetPostsQuery, useGetDashboardQuery } from "../features/posts/postsApiSlice";
 import { useTranslation } from "../utils/translations";
 import { useLanguage } from "../utils/languageContext";
-import { LoadingState } from "./LoadingStates";
 import { languageStorage } from "../utils/authStorage";
 import SeoMeta from "./SeoMeta";
 import LazyCardMedia from "./LazyCardMedia";
 import WorldActivityMap from "./dashboard/WorldActivityMap";
+import SkeletonBlock from "./SkeletonBlock";
+import WelcomePageSkeleton from "./WelcomePageSkeleton";
 import { getCategoryConfig, getCategoryIcon } from "../config/categories";
 import {
   Box,
@@ -27,7 +28,6 @@ import {
   ListItemIcon,
   ListItemText,
   IconButton,
-  Skeleton,
 } from "@mui/material";
 import {
   LocationOn,
@@ -705,7 +705,7 @@ const WelcomePage = () => {
     return (
       <>
         {seoMetadata}
-        <LoadingState message={t('loadingCountries')} />
+        <WelcomePageSkeleton />
       </>
     );
   }
@@ -991,7 +991,7 @@ const WelcomePage = () => {
                 const { tilt, lift, zIndex } = getFanGeometry(i, 3);
                 return (
                   <FannedCard key={i} tilt={tilt} lift={lift} isFront={false} sx={{ zIndex }}>
-                    <Skeleton variant="rectangular" sx={{ width: '100%', height: '100%' }} />
+                    <SkeletonBlock radius={0} sx={{ width: '100%', height: '100%' }} />
                   </FannedCard>
                 );
               })

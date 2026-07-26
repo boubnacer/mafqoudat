@@ -3,7 +3,7 @@ import { Box, Typography, useTheme, useMediaQuery, alpha } from "@mui/material";
 import { ComposableMap, Geographies, Geography, Marker } from "react-simple-maps";
 import { geoMercator, geoPath, geoBounds } from "d3-geo";
 import { useTranslation } from "../../utils/translations";
-import { TrendingItemSkeleton } from "../LoadingStates";
+import SkeletonBlock from "../SkeletonBlock";
 
 // A single chrome-less, full-bleed map filling the whole header section
 // behind BOTH LeftSide and this component's own title — not a second map,
@@ -142,11 +142,7 @@ const WorldActivityMap = ({
     "";
 
   if (isLoading) {
-    return (
-      <Box sx={{ height: "100%", display: "flex", flexDirection: "column" }}>
-        <TrendingItemSkeleton />
-      </Box>
-    );
+    return <SkeletonBlock radius={0} sx={{ width: "100%", height: "100%" }} />;
   }
 
   const mapNode = geoFeatures ? (
