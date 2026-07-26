@@ -1,21 +1,21 @@
-import React, { useState, useEffect, useRef } from "react";
+import React, { useState, useEffect, useMemo, useRef } from "react";
 import { useNavigate } from "react-router-dom";
 import { useDispatch, useSelector } from "react-redux";
 import { setCurrentCountry, setMode, selectCurrentCountry } from "../app/state";
 import { useGetCountriesQuery, useGetCategoriesQuery } from "../features/dependencies/dependenciesApiSlice"; // Fixed: Use dependenciesApiSlice instead of countriesApiSlice
-import { useGetPostsQuery } from "../features/posts/postsApiSlice";
+import { useGetPostsQuery, useGetDashboardQuery } from "../features/posts/postsApiSlice";
 import { useTranslation } from "../utils/translations";
 import { useLanguage } from "../utils/languageContext";
 import { LoadingState } from "./LoadingStates";
 import { languageStorage } from "../utils/authStorage";
 import SeoMeta from "./SeoMeta";
 import LazyCardMedia from "./LazyCardMedia";
+import WorldActivityMap from "./dashboard/WorldActivityMap";
 import { getCategoryConfig, getCategoryIcon } from "../config/categories";
 import {
   Box,
   Typography,
   Button,
-  Grid,
   useTheme,
   alpha,
   styled,
@@ -93,6 +93,19 @@ const ControlButton = styled(Box)(({ theme }) => ({
 
 const SurfaceCard = styled(Box)(({ theme }) => ({
   backgroundColor: theme.custom.color.surfaceRaised,
+  borderRadius: theme.custom.radius.xl,
+  boxShadow: theme.custom.elevation.e2,
+}));
+
+// Glass panel for the hero text block sitting on top of the full-bleed
+// WorldActivityMap backdrop (mirrors LeftSide.jsx's translucent-over-map
+// treatment in Dash.js). Higher opacity than LeftSide's own panel (0.14) —
+// LeftSide only holds big bold stat numbers that stay legible at low
+// opacity, while this panel carries a full headline/paragraph/input stack
+// that needs stronger contrast against a busy multi-colored map.
+const HeroGlassPanel = styled(Box)(({ theme }) => ({
+  background: `linear-gradient(135deg, ${alpha(theme.custom.color.surfaceRaised, 0.82)} 0%, ${alpha(theme.custom.color.surfaceRaised, 0.82)} 100%)`,
+  backdropFilter: "blur(18px)",
   borderRadius: theme.custom.radius.xl,
   boxShadow: theme.custom.elevation.e2,
 }));
@@ -322,6 +335,17 @@ const WelcomePage = () => {
   // Use countries from API or fallback
   const countries = countriesData?.length > 0 ? countriesData : fallbackCountries;
 
+  // Keyed by ISO2 code so WorldActivityMap can resolve a localized country
+  // name — mirrors Dash.js's countriesByCode built from countriesData.
+  const countriesByCode = useMemo(() => {
+    const map = {};
+    countries.forEach((c) => {
+      if (c?.code) map[c.code] = c;
+    });
+    return map;
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [countries.length]);
+
   // Real, live category list — drives both the coverage stat and the
   // "browse by category" strip below, so neither is capped at a hardcoded
   // subset of categories.
@@ -437,6 +461,17 @@ const WelcomePage = () => {
   // The endpoint returns { postsWithUser, page, totalPages, total } — not an
   // entity-adapter { ids, entities } shape (see PublicPostsPage.jsx / TrendingItem.jsx).
   const heroPosts = heroPostsData?.postsWithUser || [];
+
+  // Same public /dashboard endpoint Dash.js's useDashboard hook reads for
+  // its worldActivity/cityActivity map data — used here only to feed the
+  // header map's country fill + city markers, never written to Redux, so
+  // it doesn't disturb the "Continue" confirmation flow above.
+  const { data: heroDashboardData, isFetching: heroMapLoading } = useGetDashboardQuery({
+    currentCountry: selectedCountry?._id,
+    language: activeLanguage,
+  }, {
+    skip: !selectedCountry?._id,
+  });
 
   // One-time "feed in" entrance for the fanned hero cards: staggered by
   // index so they slide up into place one after another instead of popping
@@ -645,15 +680,52 @@ const WelcomePage = () => {
           ))}
         </Menu>
 
-        {/* Hero */}
-        <Box sx={{ maxWidth: 1200, mx: 'auto', px: { xs: 2, md: 4 }, pt: { xs: 2, md: 4 }, pb: 6 }}>
-          {/* The whole left block (logo, headline, subtext, selector, CTA) is
-              one flex column running inline/side-by-side with "Recently
-              posted near you" — both Grid items start at the same top row
-              via alignItems="flex-start" rather than the logo/headline
-              sitting full-width above the two-column split. */}
-          <Grid container spacing={{ xs: 4, md: 6 }} alignItems="flex-start">
-            <Grid item xs={12} md={5}>
+        {/* Hero — full-bleed WorldActivityMap backdrop (same map component
+            Dash.js's header uses) showing the selected country, with the
+            rest of the map covering the remainder of the header. The
+            logo/headline/subtext/selector/CTA float on top in a translucent
+            glass panel so they stay legible over the map. The live post
+            snapshot that used to sit here moved into its own "Recently
+            posted near you" section further down the page. */}
+        <Box
+          sx={{
+            position: 'relative',
+            overflow: 'hidden',
+            width: '100%',
+            borderRadius: { xs: `${theme.custom.radius.lg}px`, md: `${theme.custom.radius.xl}px` },
+            backgroundColor: theme.custom.color.surfaceBase,
+            mb: { xs: 4, md: 6 },
+          }}
+        >
+          <Box sx={{ position: 'absolute', inset: 0 }}>
+            <WorldActivityMap
+              worldActivity={heroDashboardData?.worldActivity}
+              cityActivity={heroDashboardData?.cityActivity}
+              currentCountryCode={selectedCountry?.code}
+              countriesByCode={countriesByCode}
+              isLoading={heroMapLoading}
+            />
+          </Box>
+
+          <Box
+            sx={{
+              position: 'relative',
+              maxWidth: 1200,
+              mx: 'auto',
+              px: { xs: 2, md: 4 },
+              pt: { xs: 3, md: 5 },
+              pb: { xs: 10, md: 12 },
+              display: 'flex',
+              justifyContent: 'flex-start',
+            }}
+          >
+            <HeroGlassPanel
+              sx={{
+                maxWidth: { xs: '100%', sm: 440, md: 480 },
+                width: '100%',
+                p: { xs: 2.5, sm: 3, md: 3.5 },
+              }}
+            >
               <Box
                 component="img"
                 src="/maflogoSVG.svg"
@@ -743,173 +815,8 @@ const WelcomePage = () => {
                   {t('browseNearYou')}
                 </Button>
               </Box>
-            </Grid>
-
-            {/* Live post snapshot — fanned card stack */}
-            <Grid item xs={12} md={7}>
-              <Box
-                sx={{
-                  display: 'flex',
-                  justifyContent: 'center',
-                  alignItems: 'flex-end',
-                  flexWrap: 'nowrap',
-                  // overflowX:'auto' paired with overflowY:'visible' isn't valid per the
-                  // CSS overflow spec — a non-'visible' value on one axis forces the other
-                  // to compute as 'auto' too, so this was silently clipping the fan
-                  // vertically (cutting off the permanently-raised front card's top edge,
-                  // and clipping further on hover-lift). Instead of fighting that, the
-                  // container just gets enough top/bottom headroom that the tilt/lift/scale
-                  // transforms never need to escape its box in the first place.
-                  overflowX: 'auto',
-                  pt: 6,
-                  pb: 3,
-                  px: { xs: 3, sm: 1 },
-                }}
-              >
-                {heroPostsLoading ? (
-                  [0, 1, 2].map((i) => {
-                    const { tilt, lift, zIndex } = getFanGeometry(i, 3);
-                    return (
-                      <FannedCard key={i} tilt={tilt} lift={lift} isFront={false} sx={{ zIndex }}>
-                        <Skeleton variant="rectangular" sx={{ width: '100%', height: '100%' }} />
-                      </FannedCard>
-                    );
-                  })
-                ) : heroPosts.length > 0 ? (
-                  heroPosts.map((post, index) => {
-                    const status = getHeroPostStatus(post);
-                    const tone = status === 'found' ? theme.custom.status.found : theme.custom.status.lost;
-                    const categoryCode = getHeroPostCategoryCode(post);
-                    const FallbackIcon = getCategoryIcon(categoryCode);
-                    const categoryStyle = getCategoryConfig(categoryCode);
-                    const imageUrl = getHeroPostImageUrl(post);
-                    const cityName = getHeroPostCityName(post);
-                    const categoryLabel = getHeroPostCategoryLabel(post, categoryCode);
-                    const { tilt, lift, zIndex, isFront } = getFanGeometry(index, heroPosts.length);
-                    const cardColor = categoryStyle?.color || tone.main;
-                    const textColor = imageUrl ? '#FFFFFF' : theme.palette.getContrastText(cardColor);
-                    return (
-                      <FannedCard
-                        key={post._id}
-                        tilt={tilt}
-                        lift={lift}
-                        isFront={isFront}
-                        entranceActive={!heroEntranceDone}
-                        entranceIndex={index}
-                        role="button"
-                        tabIndex={0}
-                        onClick={() => handleViewHeroPost(post)}
-                        onKeyDown={(e) => {
-                          if (e.key === 'Enter' || e.key === ' ') {
-                            e.preventDefault();
-                            handleViewHeroPost(post);
-                          }
-                        }}
-                        sx={{ zIndex, backgroundColor: cardColor }}
-                      >
-                        {imageUrl ? (
-                          <LazyCardMedia
-                            image={imageUrl}
-                            alt={cityName}
-                            sx={{ position: 'absolute', inset: 0, width: '100%', height: '100%', objectFit: 'cover' }}
-                          />
-                        ) : (
-                          FallbackIcon && (
-                            <Box sx={{ position: 'absolute', inset: 0, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-                              <FallbackIcon sx={{ fontSize: 64, color: textColor, opacity: 0.9 }} />
-                            </Box>
-                          )
-                        )}
-
-                        {imageUrl && (
-                          <Box
-                            sx={{
-                              position: 'absolute',
-                              inset: 0,
-                              background: `linear-gradient(to top, ${alpha('#000000', 0.6)} 0%, ${alpha('#000000', 0.05)} 45%, ${alpha('#000000', 0.45)} 100%)`,
-                            }}
-                          />
-                        )}
-
-                        <Box sx={{ position: 'relative', height: '100%', display: 'flex', flexDirection: 'column', justifyContent: 'space-between', p: 1.25 }}>
-                          <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', gap: 0.5 }}>
-                            <Typography
-                              variant="caption"
-                              sx={{
-                                fontWeight: 800,
-                                color: textColor,
-                                lineHeight: 1.15,
-                                overflow: 'hidden',
-                                textOverflow: 'ellipsis',
-                                display: '-webkit-box',
-                                WebkitLineClamp: 2,
-                                WebkitBoxOrient: 'vertical',
-                                flex: '1 1 auto',
-                                minWidth: 44,
-                              }}
-                            >
-                              {categoryLabel}
-                            </Typography>
-                            <Box sx={{ flexShrink: 0 }}>
-                              <StatusTag status={status} label={t(status)} />
-                            </Box>
-                          </Box>
-
-                          <Box>
-                            <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 0.5 }}>
-                              <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.5, minWidth: 0 }}>
-                                <LocationOn sx={{ fontSize: 13, color: textColor, flexShrink: 0, opacity: 0.9 }} />
-                                <Typography
-                                  variant="caption"
-                                  sx={{ color: textColor, fontWeight: 600, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}
-                                >
-                                  {cityName}
-                                </Typography>
-                              </Box>
-                              <Typography variant="caption" sx={{ color: alpha(textColor, 0.8), flexShrink: 0 }}>
-                                {formatShortDate(post.createdAt, activeLanguage)}
-                              </Typography>
-                            </Box>
-                            {isFront && (
-                              <Box
-                                sx={{
-                                  mt: 1,
-                                  display: 'inline-flex',
-                                  alignItems: 'center',
-                                  gap: 0.5,
-                                  px: 1.25,
-                                  py: 0.5,
-                                  borderRadius: 999,
-                                  backgroundColor: alpha('#FFFFFF', 0.92),
-                                  // This pill is always near-white regardless of theme mode (it
-                                  // sits on the category color, not the page background), so its
-                                  // text needs a color computed from that fixed background rather
-                                  // than theme.custom.color.ink — which flips to near-white in
-                                  // dark mode and would disappear here.
-                                  color: theme.palette.getContrastText('#FFFFFF'),
-                                  fontSize: '0.7rem',
-                                  fontWeight: 700,
-                                }}
-                              >
-                                {t('viewPost')}
-                                {isRTL ? <ArrowBack sx={{ fontSize: 13 }} /> : <ArrowForward sx={{ fontSize: 13 }} />}
-                              </Box>
-                            )}
-                          </Box>
-                        </Box>
-                      </FannedCard>
-                    );
-                  })
-                ) : (
-                  <SurfaceCard sx={{ p: 3, textAlign: 'center', width: '100%' }}>
-                    <Typography variant="body2" color="text.secondary">
-                      {t('noPostsInArea')}
-                    </Typography>
-                  </SurfaceCard>
-                )}
-              </Box>
-            </Grid>
-          </Grid>
+            </HeroGlassPanel>
+          </Box>
         </Box>
 
         {/* Coverage stats */}
@@ -1000,6 +907,176 @@ const WelcomePage = () => {
                 </FloatingCategoryTile>
               );
             })}
+          </Box>
+        </Box>
+
+        {/* Recently posted near you — live post snapshot (fanned card stack),
+            moved out of the header now that the header shows the
+            WorldActivityMap instead. */}
+        <Box sx={{ maxWidth: 1200, mx: 'auto', px: { xs: 2, md: 4 }, pb: { xs: 4, md: 6 } }}>
+          <Typography variant="h5" sx={{ mb: 3 }}>
+            {t('recentNearYou')}
+          </Typography>
+          <Box
+            sx={{
+              display: 'flex',
+              justifyContent: 'center',
+              alignItems: 'flex-end',
+              flexWrap: 'nowrap',
+              // overflowX:'auto' paired with overflowY:'visible' isn't valid per the
+              // CSS overflow spec — a non-'visible' value on one axis forces the other
+              // to compute as 'auto' too, so this was silently clipping the fan
+              // vertically (cutting off the permanently-raised front card's top edge,
+              // and clipping further on hover-lift). Instead of fighting that, the
+              // container just gets enough top/bottom headroom that the tilt/lift/scale
+              // transforms never need to escape its box in the first place.
+              overflowX: 'auto',
+              pt: 6,
+              pb: 3,
+              px: { xs: 3, sm: 1 },
+            }}
+          >
+            {heroPostsLoading ? (
+              [0, 1, 2].map((i) => {
+                const { tilt, lift, zIndex } = getFanGeometry(i, 3);
+                return (
+                  <FannedCard key={i} tilt={tilt} lift={lift} isFront={false} sx={{ zIndex }}>
+                    <Skeleton variant="rectangular" sx={{ width: '100%', height: '100%' }} />
+                  </FannedCard>
+                );
+              })
+            ) : heroPosts.length > 0 ? (
+              heroPosts.map((post, index) => {
+                const status = getHeroPostStatus(post);
+                const tone = status === 'found' ? theme.custom.status.found : theme.custom.status.lost;
+                const categoryCode = getHeroPostCategoryCode(post);
+                const FallbackIcon = getCategoryIcon(categoryCode);
+                const categoryStyle = getCategoryConfig(categoryCode);
+                const imageUrl = getHeroPostImageUrl(post);
+                const cityName = getHeroPostCityName(post);
+                const categoryLabel = getHeroPostCategoryLabel(post, categoryCode);
+                const { tilt, lift, zIndex, isFront } = getFanGeometry(index, heroPosts.length);
+                const cardColor = categoryStyle?.color || tone.main;
+                const textColor = imageUrl ? '#FFFFFF' : theme.palette.getContrastText(cardColor);
+                return (
+                  <FannedCard
+                    key={post._id}
+                    tilt={tilt}
+                    lift={lift}
+                    isFront={isFront}
+                    entranceActive={!heroEntranceDone}
+                    entranceIndex={index}
+                    role="button"
+                    tabIndex={0}
+                    onClick={() => handleViewHeroPost(post)}
+                    onKeyDown={(e) => {
+                      if (e.key === 'Enter' || e.key === ' ') {
+                        e.preventDefault();
+                        handleViewHeroPost(post);
+                      }
+                    }}
+                    sx={{ zIndex, backgroundColor: cardColor }}
+                  >
+                    {imageUrl ? (
+                      <LazyCardMedia
+                        image={imageUrl}
+                        alt={cityName}
+                        sx={{ position: 'absolute', inset: 0, width: '100%', height: '100%', objectFit: 'cover' }}
+                      />
+                    ) : (
+                      FallbackIcon && (
+                        <Box sx={{ position: 'absolute', inset: 0, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                          <FallbackIcon sx={{ fontSize: 64, color: textColor, opacity: 0.9 }} />
+                        </Box>
+                      )
+                    )}
+
+                    {imageUrl && (
+                      <Box
+                        sx={{
+                          position: 'absolute',
+                          inset: 0,
+                          background: `linear-gradient(to top, ${alpha('#000000', 0.6)} 0%, ${alpha('#000000', 0.05)} 45%, ${alpha('#000000', 0.45)} 100%)`,
+                        }}
+                      />
+                    )}
+
+                    <Box sx={{ position: 'relative', height: '100%', display: 'flex', flexDirection: 'column', justifyContent: 'space-between', p: 1.25 }}>
+                      <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', gap: 0.5 }}>
+                        <Typography
+                          variant="caption"
+                          sx={{
+                            fontWeight: 800,
+                            color: textColor,
+                            lineHeight: 1.15,
+                            overflow: 'hidden',
+                            textOverflow: 'ellipsis',
+                            display: '-webkit-box',
+                            WebkitLineClamp: 2,
+                            WebkitBoxOrient: 'vertical',
+                            flex: '1 1 auto',
+                            minWidth: 44,
+                          }}
+                        >
+                          {categoryLabel}
+                        </Typography>
+                        <Box sx={{ flexShrink: 0 }}>
+                          <StatusTag status={status} label={t(status)} />
+                        </Box>
+                      </Box>
+
+                      <Box>
+                        <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 0.5 }}>
+                          <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.5, minWidth: 0 }}>
+                            <LocationOn sx={{ fontSize: 13, color: textColor, flexShrink: 0, opacity: 0.9 }} />
+                            <Typography
+                              variant="caption"
+                              sx={{ color: textColor, fontWeight: 600, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}
+                            >
+                              {cityName}
+                            </Typography>
+                          </Box>
+                          <Typography variant="caption" sx={{ color: alpha(textColor, 0.8), flexShrink: 0 }}>
+                            {formatShortDate(post.createdAt, activeLanguage)}
+                          </Typography>
+                        </Box>
+                        {isFront && (
+                          <Box
+                            sx={{
+                              mt: 1,
+                              display: 'inline-flex',
+                              alignItems: 'center',
+                              gap: 0.5,
+                              px: 1.25,
+                              py: 0.5,
+                              borderRadius: 999,
+                              backgroundColor: alpha('#FFFFFF', 0.92),
+                              // This pill is always near-white regardless of theme mode (it
+                              // sits on the category color, not the page background), so its
+                              // text needs a color computed from that fixed background rather
+                              // than theme.custom.color.ink — which flips to near-white in
+                              // dark mode and would disappear here.
+                              color: theme.palette.getContrastText('#FFFFFF'),
+                              fontSize: '0.7rem',
+                              fontWeight: 700,
+                            }}
+                          >
+                            {t('viewPost')}
+                            {isRTL ? <ArrowBack sx={{ fontSize: 13 }} /> : <ArrowForward sx={{ fontSize: 13 }} />}
+                          </Box>
+                        )}
+                      </Box>
+                    </Box>
+                  </FannedCard>
+                );
+              })
+            ) : (
+              <SurfaceCard sx={{ p: 3, textAlign: 'center', width: '100%' }}>
+                <Typography variant="body2" color="text.secondary">
+                  {t('noPostsInArea')}
+                </Typography>
+              </SurfaceCard>
+            )}
           </Box>
         </Box>
 
