@@ -55,7 +55,15 @@ const ISO2_TO_NUMERIC = {
   TN: "788",
 };
 
-const WorldActivityMap = ({ worldActivity, cityActivity, currentCountryCode, countriesByCode, isLoading }) => {
+const WorldActivityMap = ({
+  worldActivity,
+  cityActivity,
+  currentCountryCode,
+  countriesByCode,
+  isLoading,
+  hideTitle = false,
+  titleOffsetTop = 0,
+}) => {
   const theme = useTheme();
   const isMobile = useMediaQuery(theme.breakpoints.down("sm"));
   const { t, currentLanguage } = useTranslation();
@@ -261,17 +269,24 @@ const WorldActivityMap = ({ worldActivity, cityActivity, currentCountryCode, cou
     ? { position: "absolute", insetInlineStart: 0, width: "100%", top: "-54%", height: "271%" }
     : { position: "absolute", top: 0, bottom: 0, insetInlineStart: "-7.5%", width: "165%" };
 
+  // titleOffsetTop: lets a caller with extra chrome above this component
+  // (e.g. WelcomePage's language/mode controls, which sit inside the same
+  // full-bleed section on desktop) push the desktop title down clear of it,
+  // without affecting Dash.js's own header, which has no such chrome and
+  // never passes this prop (defaults to 0 — pixel-identical to before).
   const titleOverlaySx = isMobile
     ? { position: "absolute", top: "63%", insetInlineStart: 0, insetInlineEnd: 0, display: "flex", flexDirection: "column", alignItems: "center", gap: 1 }
-    : { position: "absolute", top: 24, insetInlineEnd: 32, insetInlineStart: "52%", display: "flex", flexDirection: "column", alignItems: "center", gap: 1 };
+    : { position: "absolute", top: 24 + titleOffsetTop, insetInlineEnd: 32, insetInlineStart: "52%", display: "flex", flexDirection: "column", alignItems: "center", gap: 1 };
 
   return (
     <Box sx={{ width: "100%", height: "100%", position: "relative", overflow: "hidden" }}>
       <Box sx={mapCropSx}>{mapNode}</Box>
-      <Box sx={titleOverlaySx}>
-        {titleNode}
-        {legendSwatch}
-      </Box>
+      {!hideTitle && (
+        <Box sx={titleOverlaySx}>
+          {titleNode}
+          {legendSwatch}
+        </Box>
+      )}
     </Box>
   );
 };
