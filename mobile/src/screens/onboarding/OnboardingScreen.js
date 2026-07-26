@@ -11,6 +11,7 @@ import React, { useState, useRef, useMemo, useEffect } from 'react';
 import {
   View,
   Text,
+  Image,
   TouchableOpacity,
   StyleSheet,
   FlatList,
@@ -22,7 +23,7 @@ import {
   Platform,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
-import { Ionicons, MaterialIcons } from '@expo/vector-icons';
+import { Ionicons } from '@expo/vector-icons';
 import { useAuth } from '../../context/AuthContext';
 import { useLanguage } from '../../context/LanguageContext';
 import { useTheme } from '../../context/ThemeContext';
@@ -31,21 +32,40 @@ import { useTranslation } from '../../utils/translations';
 import { languageStorage } from '../../utils/languageStorage';
 import apiClient from '../../api/apiService';
 import { getLocalizedLabel } from '../../context/ReferenceDataContext';
-import { colorTokens, radiusTokens, fontFamilies } from '../../theme/tokens';
+import { colorTokens, radiusTokens, fontFamilies, lightColors } from '../../theme/tokens';
+import {
+  WelcomeMascotIllustration,
+  ReportIllustration,
+  FindIllustration,
+  FilterIllustration,
+  SecureIllustration,
+} from './OnboardingIllustrations';
 
 const { width: SCREEN_WIDTH } = Dimensions.get('window');
 const SLIDE_COUNT = 5;
 const SLIDE_INDICES = Array.from({ length: SLIDE_COUNT }, (_, i) => i);
+
+// The website's brand blue (client/src/theme.js's secondary.main, shared by
+// both its light and dark palettes) and the same fixed blue the onboarding
+// mascot/icons already use - kept as one flat value (not per-theme) rather
+// than colorTokens.brandPrimary so every slide/button reads as one system
+// with the illustrations instead of the newer, different-shade brand token.
+const BRAND_BLUE = lightColors.primary;
 
 // The outer slides list drives scrollX with useNativeDriver: true (for smooth
 // per-slide fade/translate + dot interpolation) - a plain FlatList can't back
 // a native-driven onScroll, only an Animated-wrapped one can.
 const AnimatedFlatList = Animated.createAnimatedComponent(FlatList);
 
+// Same wordmark image LoginScreen/SignUpScreen/AppHeader use in place of a
+// text brand name.
+const BRAND_WORDMARK = require('../../../assets/mafWordmark.png');
+const WORDMARK_RATIO = 984 / 213;
+
 const LANGUAGE_CHIPS = [
-  { code: 'en', nativeName: 'English', flag: '🇬🇧' },
-  { code: 'fr', nativeName: 'Français', flag: '🇫🇷' },
-  { code: 'ar', nativeName: 'العربية', flag: '🇸🇦' },
+  { code: 'en', nativeName: 'English' },
+  { code: 'fr', nativeName: 'Français' },
+  { code: 'ar', nativeName: 'العربية' },
 ];
 
 // Fallback used only if /countries can't be reached during onboarding - keeps
@@ -254,20 +274,16 @@ const OnboardingScreen = () => {
     []
   );
 
-  const renderIconCircle = (iconName) => (
-    <View style={styles.iconCircle}>
-      <MaterialIcons name={iconName} size={48} color={tokens.brandPrimary} />
-    </View>
-  );
-
   const renderLanguageSlide = () => (
     <Animated.View style={[styles.slideContent, slideAnimatedStyles[0]]}>
-      <View style={styles.logoCircle}>
-        <Text style={styles.logoText}>M</Text>
-      </View>
-      <Text style={styles.brandName}>{t('brandName')}</Text>
+      <WelcomeMascotIllustration isDark={isDark} />
+      <Image
+        source={BRAND_WORDMARK}
+        resizeMode="contain"
+        accessibilityLabel={t('brandName')}
+        style={styles.brandWordmarkImg}
+      />
       <Text style={styles.headline}>{t('onboardingWelcomeHeadline')}</Text>
-      <Text style={styles.body}>{t('welcomeMessage')}</Text>
 
       <View style={[styles.languageChipsRow, isRTL && styles.rowReverse]}>
         {LANGUAGE_CHIPS.map((lang) => {
@@ -279,7 +295,6 @@ const OnboardingScreen = () => {
               onPress={() => handleLanguageSelect(lang.code)}
               activeOpacity={0.8}
             >
-              <Text style={styles.languageChipFlag}>{lang.flag}</Text>
               <Text style={[styles.languageChipText, isActive && styles.languageChipTextActive]}>
                 {lang.nativeName}
               </Text>
@@ -314,9 +329,9 @@ const OnboardingScreen = () => {
     </Animated.View>
   );
 
-  const renderInfoSlide = (index, iconName, headlineKey, bodyKey) => (
+  const renderInfoSlide = (index, IllustrationComponent, headlineKey, bodyKey) => (
     <Animated.View style={[styles.slideContent, slideAnimatedStyles[index]]}>
-      {renderIconCircle(iconName)}
+      <IllustrationComponent isDark={isDark} />
       <Text style={styles.headline}>{t(headlineKey)}</Text>
       <Text style={styles.body}>{t(bodyKey)}</Text>
     </Animated.View>
@@ -324,21 +339,21 @@ const OnboardingScreen = () => {
 
   const renderFilterSlide = () => (
     <Animated.View style={[styles.slideContent, slideAnimatedStyles[3]]}>
-      {renderIconCircle('tune')}
+      <FilterIllustration />
       <Text style={styles.headline}>{t('onboardingFilterHeadline')}</Text>
       <Text style={styles.body}>{t('onboardingFilterBody')}</Text>
 
       <View style={[styles.filterPillsRow, isRTL && styles.rowReverse]}>
         <View style={styles.filterPill}>
-          <Ionicons name="earth" size={14} color={tokens.brandPrimary} />
+          <Ionicons name="earth" size={14} color={BRAND_BLUE} />
           <Text style={styles.filterPillText}>{t('country')}</Text>
         </View>
         <View style={styles.filterPill}>
-          <Ionicons name="location" size={14} color={tokens.brandPrimary} />
+          <Ionicons name="location" size={14} color={BRAND_BLUE} />
           <Text style={styles.filterPillText}>{t('city')}</Text>
         </View>
         <View style={styles.filterPill}>
-          <Ionicons name="pricetag" size={14} color={tokens.brandPrimary} />
+          <Ionicons name="pricetag" size={14} color={BRAND_BLUE} />
           <Text style={styles.filterPillText}>{t('categories')}</Text>
         </View>
       </View>
@@ -347,7 +362,7 @@ const OnboardingScreen = () => {
 
   const renderCountrySlide = () => (
     <Animated.View style={[styles.slideContent, slideAnimatedStyles[4]]}>
-      {renderIconCircle('verified-user')}
+      <SecureIllustration />
       <Text style={styles.headline}>{t('securePlatform')}</Text>
       <Text style={styles.body}>{t('securePlatformDesc')}</Text>
 
@@ -382,7 +397,7 @@ const OnboardingScreen = () => {
               autoCapitalize="none"
             />
             {isLoadingCountries ? (
-              <ActivityIndicator style={styles.countryListLoading} color={tokens.brandPrimary} />
+              <ActivityIndicator style={styles.countryListLoading} color={BRAND_BLUE} />
             ) : (
               <FlatList
                 data={filteredCountries}
@@ -403,7 +418,7 @@ const OnboardingScreen = () => {
                       <Text style={[styles.countryName, isRTL && styles.textRTL]} numberOfLines={1}>
                         {getCountryName(item)}
                       </Text>
-                      {isSelected && <Ionicons name="checkmark" size={18} color={tokens.brandPrimary} />}
+                      {isSelected && <Ionicons name="checkmark" size={18} color={BRAND_BLUE} />}
                     </TouchableOpacity>
                   );
                 }}
@@ -422,13 +437,13 @@ const OnboardingScreen = () => {
       case 1:
         return (
           <View style={styles.slide}>
-            {renderInfoSlide(1, 'search-off', 'onboardingReportHeadline', 'onboardingReportBody')}
+            {renderInfoSlide(1, ReportIllustration, 'onboardingReportHeadline', 'onboardingReportBody')}
           </View>
         );
       case 2:
         return (
           <View style={styles.slide}>
-            {renderInfoSlide(2, 'task-alt', 'onboardingFindHeadline', 'onboardingFindBody')}
+            {renderInfoSlide(2, FindIllustration, 'onboardingFindHeadline', 'onboardingFindBody')}
           </View>
         );
       case 3:
@@ -546,40 +561,10 @@ const createStyles = (tokens) =>
       justifyContent: 'center',
       paddingHorizontal: 28,
     },
-    logoCircle: {
-      width: 72,
-      height: 72,
-      borderRadius: 36,
-      backgroundColor: tokens.brandPrimary,
-      justifyContent: 'center',
-      alignItems: 'center',
+    brandWordmarkImg: {
+      height: 30,
+      width: 30 * WORDMARK_RATIO,
       marginBottom: 16,
-      shadowColor: tokens.brandPrimary,
-      shadowOffset: { width: 0, height: 8 },
-      shadowOpacity: 0.3,
-      shadowRadius: 16,
-      elevation: 8,
-    },
-    logoText: {
-      fontSize: 34,
-      fontFamily: fontFamilies.display,
-      color: '#FFFFFF',
-    },
-    brandName: {
-      fontSize: 24,
-      fontFamily: fontFamilies.display,
-      color: tokens.brandPrimary,
-      marginBottom: 16,
-    },
-    iconCircle: {
-      width: 96,
-      height: 96,
-      borderRadius: 48,
-      backgroundColor: `${tokens.brandPrimary}1A`,
-      justifyContent: 'center',
-      alignItems: 'center',
-      marginTop: 24,
-      marginBottom: 24,
     },
     headline: {
       fontSize: 22,
@@ -618,12 +603,8 @@ const createStyles = (tokens) =>
       borderColor: `${tokens.ink}1A`,
     },
     languageChipActive: {
-      borderColor: tokens.brandPrimary,
-      backgroundColor: `${tokens.brandPrimary}14`,
-    },
-    languageChipFlag: {
-      fontSize: 18,
-      marginEnd: 8,
+      borderColor: BRAND_BLUE,
+      backgroundColor: `${BRAND_BLUE}14`,
     },
     languageChipText: {
       fontFamily: fontFamilies.bodyMedium,
@@ -631,7 +612,7 @@ const createStyles = (tokens) =>
       color: tokens.ink,
     },
     languageChipTextActive: {
-      color: tokens.brandPrimary,
+      color: BRAND_BLUE,
       fontFamily: fontFamilies.bodySemiBold,
     },
     themeLabel: {
@@ -660,7 +641,7 @@ const createStyles = (tokens) =>
       borderRadius: radiusTokens.sm,
     },
     themeToggleOptionActive: {
-      backgroundColor: tokens.brandPrimary,
+      backgroundColor: BRAND_BLUE,
     },
     themeToggleText: {
       fontFamily: fontFamilies.bodyMedium,
@@ -685,14 +666,14 @@ const createStyles = (tokens) =>
       paddingVertical: 9,
       paddingHorizontal: 16,
       borderRadius: radiusTokens.md,
-      backgroundColor: `${tokens.brandPrimary}14`,
+      backgroundColor: `${BRAND_BLUE}14`,
       borderWidth: 1,
-      borderColor: `${tokens.brandPrimary}33`,
+      borderColor: `${BRAND_BLUE}33`,
     },
     filterPillText: {
       fontFamily: fontFamilies.bodyMedium,
       fontSize: 13,
-      color: tokens.brandPrimary,
+      color: BRAND_BLUE,
     },
     countrySection: {
       width: '100%',
@@ -732,7 +713,7 @@ const createStyles = (tokens) =>
       paddingHorizontal: 16,
     },
     countryButtonSelected: {
-      borderColor: tokens.brandPrimary,
+      borderColor: BRAND_BLUE,
     },
     countryButtonText: {
       fontFamily: fontFamilies.body,
@@ -775,7 +756,7 @@ const createStyles = (tokens) =>
       gap: 10,
     },
     countryItemSelected: {
-      backgroundColor: `${tokens.brandPrimary}14`,
+      backgroundColor: `${BRAND_BLUE}14`,
     },
     countryFlag: {
       fontSize: 20,
@@ -806,7 +787,7 @@ const createStyles = (tokens) =>
       borderRadius: 4,
     },
     dotActive: {
-      backgroundColor: tokens.brandPrimary,
+      backgroundColor: BRAND_BLUE,
     },
     dotInactive: {
       backgroundColor: `${tokens.ink}33`,
@@ -814,10 +795,10 @@ const createStyles = (tokens) =>
     ctaButton: {
       height: 54,
       borderRadius: radiusTokens.md,
-      backgroundColor: tokens.brandPrimary,
+      backgroundColor: BRAND_BLUE,
       justifyContent: 'center',
       alignItems: 'center',
-      shadowColor: tokens.brandPrimary,
+      shadowColor: BRAND_BLUE,
       shadowOffset: { width: 0, height: 6 },
       shadowOpacity: 0.3,
       shadowRadius: 12,

@@ -427,7 +427,7 @@ const NewPostForm = ({ user, countries, categories, flOptions }) => {
     country: user.country,
     contact: "",
     categories: [], // Changed to array for multiple categories
-    category: categories[0]?.id || "", // Keep for backward compatibility during transition
+    category: "", // Keep for backward compatibility during transition
     foundLost: getDefaultFoundLost(),
     city: "",
     exactLocation: "",

@@ -3,7 +3,7 @@ import { useDispatch, useSelector } from "react-redux";
 import { useNavigate } from "react-router-dom";
 import { Box, useMediaQuery, useTheme, Typography, Button, Paper, alpha } from "@mui/material";
 import { setActiveLink, setFoundOrLost, setOpenModal } from "../../app/state";
-import { LoadingState, DashboardEmptyStates } from "../../components/LoadingStates";
+import { DashboardEmptyStates } from "../../components/LoadingStates";
 import { Language } from "@mui/icons-material";
 import { useTranslation } from "../../utils/translations";
 import { selectCurrentToken } from "../../features/auth/authSlice";
@@ -23,6 +23,7 @@ import Process from "../../components/dashboard/Process";
 import RecentSection from "../../components/dashboard/RecentSection";
 import HelpSupportSection from "../../components/dashboard/HelpSupportSection";
 import DashRecents from "../../components/dashboard/DashRecents";
+import DashboardSkeleton from "../../components/dashboard/DashboardSkeleton";
 
 // Updated FoundLost IDs from the database
 const lostsId = "68b708a085dd243c40a90826"; // LOST
@@ -171,12 +172,25 @@ const Dash = () => {
     );
   }
 
-  // Show loading state while data is being fetched
+  // Show loading state while data is being fetched — mirrors mobile's
+  // HomeScreen approach of rendering the real page shell with skeleton
+  // placeholders in place, instead of blocking behind a full-page spinner.
   if (isLoading && !data) {
     return (
       <>
         <SeoMeta pageKey="dash" />
-        <LoadingState message={t('loadingDashboardData')} size="large" />
+        <Box
+          pt={{ xs: "5rem", sm: "4rem" }}
+          width="100%"
+          sx={{
+            background: `linear-gradient(180deg, ${theme.custom.color.surfaceBase} 0%, ${theme.custom.color.surfaceBase} 100%)`,
+            minHeight: '100vh',
+            direction: currentLanguage === 'ar' ? 'rtl' : 'ltr',
+            overflowX: 'hidden',
+          }}
+        >
+          <DashboardSkeleton />
+        </Box>
       </>
     );
   }
