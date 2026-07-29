@@ -4,7 +4,7 @@ import { useDispatch } from "react-redux";
 import { setCredentials } from "./authSlice";
 import { useGetCountriesQuery } from "../dependencies/dependenciesApiSlice";
 import useTitle from "../../hooks/useTitle";
-import { LoadingState } from "../../components/LoadingStates";
+import AuthPageSkeleton from "./AuthPageSkeleton";
 import { useTranslation } from "../../utils/translations";
 import axios from "axios";
 
@@ -118,7 +118,7 @@ const CountrySelection = () => {
 
   // Show loading state while fetching countries
   if (countriesLoading) {
-    return <LoadingState message={t('loadingCountries')} />;
+    return <AuthPageSkeleton fields={1} />;
   }
 
   // Show error if countries failed to load

@@ -3,7 +3,8 @@ import { useGetCategoriesQuery, useGetCitiesQuery } from "../../dependencies/dep
 import { useTranslation } from "../../../utils/translations";
 import Post from "./Post";
 import useTitle from "../../../hooks/useTitle";
-import { LoadingState, ErrorState } from "../../../components/LoadingStates";
+import { ErrorState } from "../../../components/LoadingStates";
+import PostsListSkeleton from "./PostsListSkeleton";
 import SeoMeta from "../../../components/SeoMeta";
 import { useSelector, useDispatch } from "react-redux";
 import { Link, useLocation, useNavigate } from "react-router-dom";
@@ -785,7 +786,7 @@ const PostsList = () => {
         />
       );
     } else {
-      content = <LoadingState message={t('loadingPosts')} />;
+      content = <PostsListSkeleton />;
     }
   } else if (isError) {
     content = (

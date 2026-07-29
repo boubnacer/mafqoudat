@@ -9,6 +9,7 @@ import { useUnifiedLanguageChange } from "../hooks/useUnifiedLanguageChange";
 import LazyCardMedia from "./LazyCardMedia";
 import RenderIcon from "./RenderIcon";
 import SeoMeta from "./SeoMeta";
+import PostCardSkeleton from "./PostCardSkeleton";
 import { formatDistanceToNow } from "date-fns";
 import { ar, fr, enUS } from "date-fns/locale";
 import {
@@ -37,7 +38,6 @@ import {
   Menu,
   ToggleButton,
   ToggleButtonGroup,
-  Skeleton,
 } from "@mui/material";
 import {
   Search,
@@ -171,29 +171,6 @@ const DateBadge = ({ children }) => {
       <Typography variant="caption" sx={{ color: theme.custom.color.ink, fontWeight: 600, lineHeight: 1 }}>
         {children}
       </Typography>
-    </Box>
-  );
-};
-
-const PostCardSkeleton = () => {
-  const theme = useTheme();
-  return (
-    <Box
-      sx={{
-        borderRadius: `${theme.custom.radius.lg}px`,
-        overflow: "hidden",
-        backgroundColor: theme.custom.color.surfaceRaised,
-        boxShadow: theme.custom.elevation.e1,
-      }}
-    >
-      <Skeleton variant="rectangular" animation="wave" sx={{ width: "100%", paddingTop: "75%" }} />
-      <Box sx={{ p: 2 }}>
-        <Skeleton variant="text" width="70%" height={28} />
-        <Skeleton variant="text" width="100%" height={20} />
-        <Skeleton variant="text" width="90%" height={20} />
-        <Skeleton variant="text" width="50%" height={18} sx={{ mt: 1 }} />
-        <Skeleton variant="rounded" width="100%" height={36} sx={{ mt: 2, borderRadius: `${theme.custom.radius.md}px` }} />
-      </Box>
     </Box>
   );
 };

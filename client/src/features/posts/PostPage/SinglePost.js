@@ -3,13 +3,14 @@ import { useParams } from "react-router-dom";
 import useAuth from "../../../hooks/useAuth";
 import { useGetPostQuery, useGetPostsQuery } from "../postsApiSlice";
 import SinglePostPage from "./SinglePostPage";
-import { LoadingState, ErrorState } from "../../../components/LoadingStates";
+import { ErrorState } from "../../../components/LoadingStates";
+import SinglePostSkeleton from "../../../components/SinglePostSkeleton";
 import { useTranslation } from "../../../utils/translations";
 
 const SinglePost = () => {
   const { country } = useAuth();
   const { id } = useParams();
-  const { t, currentLanguage } = useTranslation();
+  const { currentLanguage } = useTranslation();
 
   const { data: post, isLoading, isError, error, refetch } = useGetPostQuery({
     postId: id,
@@ -17,7 +18,7 @@ const SinglePost = () => {
   });
 
   if (isLoading) {
-    return <LoadingState message={t('loadingPostDetails')} />;
+    return <SinglePostSkeleton />;
   }
 
   if (isError) {

@@ -3,7 +3,7 @@ import { useEffect } from "react";
 import EditPostForm from "./EditPostForm";
 import { useGetPostQuery } from "../postsApiSlice";
 import { useGetUsersQuery } from "../../userSettings/usersApiSlice";
-import { LoadingState } from "../../../components/LoadingStates";
+import PostFormSkeleton from "../../../components/PostFormSkeleton";
 import useTitle from "../../../hooks/useTitle";
 import useAuth from "../../../hooks/useAuth";
 import { useTranslation } from "../../../utils/translations";
@@ -16,7 +16,7 @@ import {
 const EditPost = () => {
   useTitle("mafqoudat: Edit Post");
 
-  const { t, currentLanguage } = useTranslation();
+  const { currentLanguage } = useTranslation();
 
   const { usernameId } = useAuth();
 
@@ -66,7 +66,7 @@ const EditPost = () => {
 
 
   if (!data || !user || !countries || !categories || !flOptions)
-    return <LoadingState message={t('loadingEditForm')} />;
+    return <PostFormSkeleton />;
 
 
   const content = (

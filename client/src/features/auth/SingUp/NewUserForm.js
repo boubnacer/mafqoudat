@@ -9,7 +9,6 @@ import { useTranslation } from "../../../utils/translations";
 import authErrorHandler from "../../../utils/authErrorHandler";
 import AuthErrorBoundary from "../../../components/AuthErrorBoundary";
 
-import { LoadingState } from "../../../components/LoadingStates";
 import {
   Box,
   CardContent,
@@ -68,7 +67,7 @@ const NewUserFormComponent = ({ countries }) => {
   }, [navigate]);
 
   // API
-  const [addNewUser, { isLoading }] = useAddNewUserMutation();
+  const [addNewUser] = useAddNewUserMutation();
 
   // State
   const [formData, setFormData] = useState({
@@ -205,10 +204,6 @@ const NewUserFormComponent = ({ countries }) => {
       setIsSubmitting(false);
     }
   };
-
-  if (isLoading) {
-    return <LoadingState message={t('loadingSignupForm')} />;
-  }
 
   return (
     <AuthPageContainer key={currentLanguage}>

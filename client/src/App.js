@@ -23,6 +23,13 @@ import MaintenanceMode from "./components/MaintenanceMode";
 import { initializeVisitorSession } from "./utils/visitorSessionSync";
 import { getVisitorSessionId } from "./utils/visitorSession";
 import { initializeGA, trackPageView } from "./utils/analytics";
+import WelcomePageSkeleton from "./components/WelcomePageSkeleton";
+import InfoPageSkeleton from "./components/InfoPageSkeleton";
+import PostFormSkeleton from "./components/PostFormSkeleton";
+import SinglePostSkeleton from "./components/SinglePostSkeleton";
+import AuthPageSkeleton from "./features/auth/AuthPageSkeleton";
+import DashboardSkeleton from "./components/dashboard/DashboardSkeleton";
+import PostsListSkeleton from "./features/posts/PostsList/PostsListSkeleton";
 
 // Add CSS keyframes for loading animations (mirrorReflection from navbar)
 const loadingStyles = `
@@ -203,85 +210,85 @@ const AppContent = () => {
         <Routes>
         {/* Welcome page - first time access */}
         <Route path="/" element={
-          <Suspense fallback={<LoadingFallback />}>
+          <Suspense fallback={<WelcomePageSkeleton />}>
             <WelcomePage />
           </Suspense>
         } />
-        
+
         {/* Public routes - require country selection but no authentication */}
         <Route path="/posts" element={
           <CountryGuard allowAuthenticatedWithoutCountry={false}>
-            <Suspense fallback={<LoadingFallback />}>
+            <Suspense fallback={<PostsListSkeleton />}>
               <PublicPostsPage />
             </Suspense>
           </CountryGuard>
         } />
-        
+
         {/* Legal and Information Pages - Public Access */}
         <Route path="/privacy" element={
-          <Suspense fallback={<LoadingFallback />}>
+          <Suspense fallback={<InfoPageSkeleton />}>
             <PrivacyPolicy />
           </Suspense>
         } />
         <Route path="/terms" element={
-          <Suspense fallback={<LoadingFallback />}>
+          <Suspense fallback={<InfoPageSkeleton />}>
             <TermsOfUse />
           </Suspense>
         } />
         <Route path="/cookies" element={
-          <Suspense fallback={<LoadingFallback />}>
+          <Suspense fallback={<InfoPageSkeleton />}>
             <CookieNotice />
           </Suspense>
         } />
         <Route path="/guidelines" element={
-          <Suspense fallback={<LoadingFallback />}>
+          <Suspense fallback={<InfoPageSkeleton />}>
             <CommunityGuidelines />
           </Suspense>
         } />
         <Route path="/safety" element={
-          <Suspense fallback={<LoadingFallback />}>
+          <Suspense fallback={<InfoPageSkeleton />}>
             <SafetyTips />
           </Suspense>
         } />
         <Route path="/about" element={
-          <Suspense fallback={<LoadingFallback />}>
+          <Suspense fallback={<InfoPageSkeleton />}>
             <AboutUs />
           </Suspense>
         } />
         <Route path="/blog" element={
-          <Suspense fallback={<LoadingFallback />}>
+          <Suspense fallback={<InfoPageSkeleton />}>
             <Blog />
           </Suspense>
         } />
         <Route path="/blog/:slug" element={
-          <Suspense fallback={<LoadingFallback />}>
+          <Suspense fallback={<InfoPageSkeleton />}>
             <BlogPostPage />
           </Suspense>
         } />
         <Route path="/help" element={
-          <Suspense fallback={<LoadingFallback />}>
+          <Suspense fallback={<InfoPageSkeleton />}>
             <HelpCenter />
           </Suspense>
         } />
         <Route path="/contact" element={
-          <Suspense fallback={<LoadingFallback />}>
+          <Suspense fallback={<InfoPageSkeleton />}>
             <Contact />
           </Suspense>
         } />
-        
+
         {/* Authentication routes */}
         <Route path="/login" element={
-          <Suspense fallback={<LoadingFallback />}>
+          <Suspense fallback={<AuthPageSkeleton fields={2} />}>
             <Login />
           </Suspense>
         } />
         <Route path="/signup" element={
-          <Suspense fallback={<LoadingFallback />}>
+          <Suspense fallback={<AuthPageSkeleton fields={5} />}>
             <NewUser />
           </Suspense>
         } />
         <Route path="/auth/select-country" element={
-          <Suspense fallback={<LoadingFallback />}>
+          <Suspense fallback={<AuthPageSkeleton fields={1} />}>
             <CountrySelection />
           </Suspense>
         } />
@@ -302,26 +309,26 @@ const AppContent = () => {
           {/* Dashboard home - public access */}
           <Route index element={
             <PrefetchDependencies>
-              <Suspense fallback={<LoadingFallback />}>
+              <Suspense fallback={<DashboardSkeleton />}>
                 <Dash />
               </Suspense>
             </PrefetchDependencies>
           } />
-          
+
           {/* Posts routes - public access with dependency prefetching */}
           <Route path="posts" element={
             <PrefetchDependencies>
-              <Suspense fallback={<LoadingFallback />}>
+              <Suspense fallback={<PostsListSkeleton />}>
                 <PostsList />
               </Suspense>
             </PrefetchDependencies>
           } />
           <Route path="posts/:id" element={
-            <Suspense fallback={<LoadingFallback />}>
+            <Suspense fallback={<SinglePostSkeleton />}>
               <SinglePost />
             </Suspense>
           } />
-           
+
           {/* Protected routes - require authentication for creating/editing posts and admin actions */}
           <Route element={
             <ProtectedRoute requireAuth={true} requireCountry={true}>
@@ -331,12 +338,12 @@ const AppContent = () => {
             </ProtectedRoute>
           }>
             <Route path="posts/new" element={
-              <Suspense fallback={<LoadingFallback />}>
+              <Suspense fallback={<PostFormSkeleton />}>
                 <NewPost />
               </Suspense>
             } />
             <Route path="posts/edit/:id" element={
-              <Suspense fallback={<LoadingFallback />}>
+              <Suspense fallback={<PostFormSkeleton />}>
                 <EditPost />
               </Suspense>
             } />

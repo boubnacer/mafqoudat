@@ -1,6 +1,7 @@
 import NewPostForm from "./NewPostForm";
 import { useGetUsersQuery } from "../../userSettings/usersApiSlice";
-import { LoadingState, ErrorState } from "../../../components/LoadingStates";
+import { ErrorState } from "../../../components/LoadingStates";
+import PostFormSkeleton from "../../../components/PostFormSkeleton";
 import useTitle from "../../../hooks/useTitle";
 import {
   useGetCategoriesQuery,
@@ -97,7 +98,7 @@ const NewPost = () => {
   }
 
   if (!user || !countries || !flOptions || !categories)
-    return <LoadingState message={t('loadingPostForm')} />;
+    return <PostFormSkeleton />;
 
   const content = (
     <NewPostForm

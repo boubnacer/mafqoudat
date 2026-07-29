@@ -5,7 +5,6 @@ import { setCredentials } from "../authSlice";
 import { useLoginMutation } from "../authApiSlice";
 import { authStorage } from "../../../utils/authStorage";
 import useTitle from "../../../hooks/useTitle";
-import { LoadingState } from "../../../components/LoadingStates";
 import { useTranslation } from "../../../utils/translations";
 import authErrorHandler from "../../../utils/authErrorHandler";
 import AuthErrorBoundary from "../../../components/AuthErrorBoundary";
@@ -79,7 +78,7 @@ const LoginComponent = () => {
   const warningMessage = oauthWarningCode ? t(OAUTH_WARNING_MESSAGE_KEYS[oauthWarningCode]) : "";
 
   // API
-  const [login, { isLoading }] = useLoginMutation();
+  const [login] = useLoginMutation();
 
   useEffect(() => {
     if (hasLoadedRedirectMessage.current) return;
@@ -190,10 +189,6 @@ const LoginComponent = () => {
       setIsSubmitting(false);
     }
   };
-
-  if (isLoading) {
-    return <LoadingState message={t('signingIn')} />;
-  }
 
   return (
     <AuthPageContainer key={currentLanguage}>
