@@ -13,7 +13,6 @@ import { Language, KeyboardArrowDown } from '@mui/icons-material';
 import { useDispatch } from 'react-redux';
 import { setCurrentCountry } from '../app/state';
 import { useGetCountriesQuery } from '../features/countries/countriesApiSlice';
-import { LoadingState } from './LoadingStates';
 import { SUPPORTED_LANGUAGES } from '../utils/languageUtils';
 import { useUnifiedLanguageChange } from '../hooks/useUnifiedLanguageChange';
 

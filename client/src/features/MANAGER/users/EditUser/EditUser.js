@@ -1,7 +1,7 @@
 import { useParams } from "react-router-dom";
+import { Box, CircularProgress } from "@mui/material";
 import EditUserForm from "./EditUserForm";
 import { useGetUsersQuery } from "../usersApiSlice";
-import { LoadingState } from "../../../components/LoadingStates";
 import useTitle from "../../../hooks/useTitle";
 import { useGetCountriesQuery } from "../../dependencies/dependenciesApiSlice";
 
@@ -24,7 +24,13 @@ const EditUser = () => {
     }),
   });
 
-  if (!user || !countries) return <LoadingState message="Loading user data..." />;
+  if (!user || !countries) {
+    return (
+      <Box sx={{ display: "flex", justifyContent: "center", py: 8 }}>
+        <CircularProgress />
+      </Box>
+    );
+  }
 
   const content = <EditUserForm user={user} countries={countries} />;
 

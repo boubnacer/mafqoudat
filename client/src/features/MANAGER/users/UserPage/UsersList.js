@@ -1,7 +1,8 @@
+import { Box, CircularProgress } from "@mui/material";
 import { useGetUsersQuery } from "../usersApiSlice";
 import User from "./User";
 import useTitle from "../../../hooks/useTitle";
-import { LoadingState, ErrorState } from "../../../components/LoadingStates";
+import { ErrorState } from "../../../components/LoadingStates";
 
 const UsersList = () => {
   useTitle("Mafqoudat | Users List");
@@ -20,7 +21,13 @@ const UsersList = () => {
 
   let content;
 
-  if (isLoading) content = <LoadingState message="Loading users..." />;
+  if (isLoading) {
+    content = (
+      <Box sx={{ display: "flex", justifyContent: "center", py: 8 }}>
+        <CircularProgress />
+      </Box>
+    );
+  }
 
   if (isError) {
     content = (

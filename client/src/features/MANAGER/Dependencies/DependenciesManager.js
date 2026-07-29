@@ -24,7 +24,8 @@ import {
   Divider,
   Alert,
   useTheme,
-  useMediaQuery
+  useMediaQuery,
+  CircularProgress
 } from "@mui/material";
 import { 
   Add as AddIcon, 
@@ -35,7 +36,6 @@ import {
   Settings as SettingsIcon
 } from "@mui/icons-material";
 import { useGetCountriesQuery, useGetCategoriesQuery, useGetflOptionsQuery, useCreateCountryMutation, useCreateCategoryMutation, useCreateFoundLostMutation } from "../../dependencies/dependenciesApiSlice";
-import { LoadingState } from "../../../components/LoadingStates";
 import useTitle from "../../../hooks/useTitle";
 import { useLanguage } from "../../../utils/languageContext";
 
@@ -127,7 +127,11 @@ const DependenciesManager = () => {
   const isLoading = countriesLoading || categoriesLoading || flOptionsLoading;
 
   if (isLoading) {
-    return <LoadingState message="Loading dependencies..." />;
+    return (
+      <Box sx={{ display: "flex", justifyContent: "center", py: 8 }}>
+        <CircularProgress />
+      </Box>
+    );
   }
 
   const currentData = getCurrentData();

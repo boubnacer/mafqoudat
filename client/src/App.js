@@ -1,7 +1,7 @@
 // Fixed Vercel routing - added basename and removed homepage field
 import { Routes, Route } from "react-router-dom";
 import { Suspense, lazy } from "react";
-import { CssBaseline, ThemeProvider } from "@mui/material";
+import { Box, CircularProgress, CssBaseline, ThemeProvider } from "@mui/material";
 import { createTheme } from "@mui/material/styles";
 import React, { useEffect } from "react";
 import { useSelector, useDispatch } from "react-redux";
@@ -30,39 +30,6 @@ import SinglePostSkeleton from "./components/SinglePostSkeleton";
 import AuthPageSkeleton from "./features/auth/AuthPageSkeleton";
 import DashboardSkeleton from "./components/dashboard/DashboardSkeleton";
 import PostsListSkeleton from "./features/posts/PostsList/PostsListSkeleton";
-
-// Add CSS keyframes for loading animations (mirrorReflection from navbar)
-const loadingStyles = `
-@keyframes mirrorReflection {
-  0% {
-    left: 0px;
-    opacity: 0;
-    transform: translateY(-50%) skew(-15deg) scaleX(0.5);
-  }
-  15% {
-    opacity: 1;
-    transform: translateY(-50%) skew(-15deg) scaleX(1);
-  }
-  85% {
-    left: 100%;
-    opacity: 1;
-    transform: translateY(-50%) skew(-15deg) scaleX(1);
-  }
-  100% {
-    left: 100%;
-    opacity: 0;
-    transform: translateY(-50%) skew(-15deg) scaleX(0.5);
-  }
-}
-`;
-
-// Inject styles into the document
-if (typeof document !== 'undefined') {
-  const styleSheet = document.createElement("style");
-  styleSheet.type = "text/css";
-  styleSheet.innerText = loadingStyles;
-  document.head.appendChild(styleSheet);
-}
 
 // Lazy load all major page components for better code splitting
 const WelcomePage = lazy(() => import("./components/WelcomePage"));
@@ -103,60 +70,23 @@ const Dash = lazy(() => import("./features/dashboard/Dash"));
 const DependenciesManager = lazy(() => import("./features/MANAGER/Dependencies/DependenciesManager"));
 const AdminDashboard = lazy(() => import("./features/admin/AdminDashboard"));
 
-// Enhanced loading component for lazy-loaded routes
+// Minimal fallback for the handful of routes that don't have a page-shaped
+// skeleton yet (admin/manager tools, profile, myposts, the dash layout
+// shell, auth callback) — a small centered spinner rather than the old
+// full-viewport logo splash, which never matched the destination page.
 const LoadingFallback = () => (
-  <div style={{ 
-    display: 'flex', 
-    justifyContent: 'center', 
-    alignItems: 'center', 
-    height: '100vh',
-    width: '100vw',
-    fontSize: '1.2rem',
-    color: '#666',
-    flexDirection: 'column',
-    gap: '1rem',
-    backgroundColor: 'white',
-    position: 'fixed',
-    top: 0,
-    left: 0,
-    zIndex: 9999
-  }}>
-    <div style={{
-      width: '150px',
-      height: '150px',
+  <Box
+    sx={{
       display: 'flex',
-      alignItems: 'center',
       justifyContent: 'center',
-      position: 'relative',
-      overflow: 'hidden'
-    }}>
-      <img
-        src="/maflogoSVG.svg"
-        alt="Loading..."
-        style={{
-          width: '100%',
-          height: '100%',
-          objectFit: 'contain',
-          position: 'relative',
-          zIndex: 2
-        }}
-      />
-      <div style={{
-        position: 'absolute',
-        top: '50%',
-        left: '0px',
-        width: '30px',
-        height: '80%',
-        background: 'linear-gradient(45deg, transparent, rgba(255, 255, 255, 0.8), rgba(255, 255, 255, 0.4), transparent)',
-        transform: 'translateY(-50%) skew(-15deg)',
-        borderRadius: '2px',
-        zIndex: 3,
-        animation: 'mirrorReflection 1s ease-in-out infinite',
-        boxShadow: '0 0 10px rgba(255, 255, 255, 0.3)',
-        pointerEvents: 'none',
-      }} />
-    </div>
-  </div>
+      alignItems: 'center',
+      minHeight: '40vh',
+      width: '100%',
+      py: 8,
+    }}
+  >
+    <CircularProgress />
+  </Box>
 );
 
 // Inner App component that has access to language context

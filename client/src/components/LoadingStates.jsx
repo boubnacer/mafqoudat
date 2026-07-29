@@ -23,39 +23,6 @@ import {
 import { useTranslation } from '../utils/translations';
 import SkeletonBlock from './SkeletonBlock';
 
-// Add CSS keyframes for loading animations (mirrorReflection from navbar)
-const loadingStyles = `
-@keyframes mirrorReflection {
-  0% {
-    left: 0px;
-    opacity: 0;
-    transform: translateY(-50%) skew(-15deg) scaleX(0.5);
-  }
-  15% {
-    opacity: 1;
-    transform: translateY(-50%) skew(-15deg) scaleX(1);
-  }
-  85% {
-    left: 100%;
-    opacity: 1;
-    transform: translateY(-50%) skew(-15deg) scaleX(1);
-  }
-  100% {
-    left: 100%;
-    opacity: 0;
-    transform: translateY(-50%) skew(-15deg) scaleX(0.5);
-  }
-}
-`;
-
-// Inject styles into the document
-if (typeof document !== 'undefined') {
-  const styleSheet = document.createElement("style");
-  styleSheet.type = "text/css";
-  styleSheet.innerText = loadingStyles;
-  document.head.appendChild(styleSheet);
-}
-
 // Loading Skeleton for Dashboard Stats
 export const DashboardStatsSkeleton = () => {
   const theme = useTheme();
@@ -177,68 +144,6 @@ export const EmptyState = ({
         {description}
       </Typography>
       {action && action}
-    </Box>
-  );
-};
-
-// Loading State with Message
-export const LoadingState = ({ message = "Loading...", size = "medium" }) => {
-  const theme = useTheme();
-
-  return (
-    <Box
-      sx={{
-        position: 'fixed',
-        top: 0,
-        left: 0,
-        width: '100vw',
-        height: '100vh',
-        zIndex: 9999,
-        display: 'flex',
-        flexDirection: 'column',
-        alignItems: 'center',
-        justifyContent: 'center',
-        backgroundColor: 'white',
-        transition: 'background 0.3s',
-      }}
-    >
-      <Box
-        sx={{
-          width: 150,
-          height: 150,
-          display: 'flex',
-          alignItems: 'center',
-          justifyContent: 'center',
-        }}
-      >
-        <div style={{ position: 'relative', width: '100%', height: '100%', overflow: 'hidden' }}>
-          <img
-            src="/maflogoSVG.svg"
-            alt="Loading..."
-            style={{
-              width: '100%',
-              height: '100%',
-              objectFit: 'contain',
-              position: 'relative',
-              zIndex: 2
-            }}
-          />
-          <div style={{
-            position: 'absolute',
-            top: '50%',
-            left: '0px',
-            width: '30px',
-            height: '80%',
-            background: 'linear-gradient(45deg, transparent, rgba(255, 255, 255, 0.8), rgba(255, 255, 255, 0.4), transparent)',
-            transform: 'translateY(-50%) skew(-15deg)',
-            borderRadius: '2px',
-            zIndex: 3,
-            animation: 'mirrorReflection 1s ease-in-out infinite',
-            boxShadow: '0 0 10px rgba(255, 255, 255, 0.3)',
-            pointerEvents: 'none',
-          }} />
-        </div>
-      </Box>
     </Box>
   );
 };
@@ -536,10 +441,12 @@ export const SearchLoadingStates = {
   Searching: () => {
     const { t } = useTranslation();
     return (
-      <LoadingState 
-        message={t('searchingForItems')} 
-        size="small"
-      />
+      <Box sx={{ display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', py: 6 }}>
+        <CircularProgress size={32} sx={{ mb: 2 }} />
+        <Typography variant="body2" color="text.secondary">
+          {t('searchingForItems')}
+        </Typography>
+      </Box>
     );
   },
   
@@ -613,8 +520,7 @@ export default {
   TrendingItemSkeleton,
   RecentItemsSkeleton,
   EmptyState,
-  LoadingState,
   ErrorState,
   DashboardEmptyStates,
   SearchLoadingStates,
-}; 
+};

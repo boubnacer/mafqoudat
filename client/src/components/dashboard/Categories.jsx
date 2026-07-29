@@ -1,6 +1,7 @@
 import { Box, Typography, useTheme, Grid, Card, CardContent, Chip, useMediaQuery, Button, alpha } from "@mui/material";
 import { useGetCategoriesQuery } from "../../features/dependencies/dependenciesApiSlice";
-import { LoadingState, DashboardEmptyStates } from "../LoadingStates";
+import { DashboardEmptyStates } from "../LoadingStates";
+import SkeletonBlock from "../SkeletonBlock";
 import { getCategoryIcon, getCategoryColor, getCategoryBackgroundColor } from "../../config/categories";
 import { useTranslation } from "../../utils/translations";
 import { useLanguage } from "../../utils/languageContext";
@@ -43,7 +44,22 @@ const Categories = () => {
     setShowAllCategories(!showAllCategories);
   };
 
-  if (!categories || isLoading || isFetching) return <LoadingState message={t('loadingCategories')} />;
+  if (!categories || isLoading || isFetching) {
+    return (
+      <Box sx={{ py: 4 }}>
+        <Grid container spacing={isMobile ? 2 : 3} justifyContent="center">
+          {Array.from({ length: 6 }).map((_, i) => (
+            <Grid item xs={6} sm={4} md={3} lg={2} key={i}>
+              <SkeletonBlock
+                radius={theme.custom.radius.lg}
+                sx={{ height: isMobile ? 120 : 140 }}
+              />
+            </Grid>
+          ))}
+        </Grid>
+      </Box>
+    );
+  }
 
   // Determine how many categories to show
   const categoriesToShow = showAllCategories ? categories : categories.slice(0, 4);
