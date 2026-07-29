@@ -151,7 +151,7 @@ const HelpSupportSection = () => {
     p: { xs: 2.5, sm: 3 },
     borderRadius: `${theme.custom.radius.lg}px`,
     backgroundColor: theme.custom.color.surfaceRaised,
-    boxShadow: 'none',
+    boxShadow: theme.custom.elevation.e2,
   };
 
   return (
