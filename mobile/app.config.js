@@ -97,10 +97,9 @@ export default {
       useNativeGoogleAuth: process.env.EXPO_PUBLIC_USE_NATIVE_GOOGLE_AUTH,
       webBaseUrl: process.env.EXPO_PUBLIC_WEB_BASE_URL,
       eas: {
-        // Replaced automatically the first time `eas init` (or `eas build:configure`)
-        // runs against this project - see BUILD.md. Every `eas build`/`eas submit`
-        // invocation before that will fail until this is a real project id.
-        projectId: "REPLACE_WITH_EAS_PROJECT_ID"
+        // @mafnacer/mafqoudat - created via `eas init`:
+        // https://expo.dev/accounts/mafnacer/projects/mafqoudat
+        projectId: "0af1537e-6e29-4127-badc-c7f16884e198"
       }
     },
     scheme: "mafqoudat"

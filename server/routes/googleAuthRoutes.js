@@ -34,11 +34,14 @@ setInterval(() => {
 // @route GET /auth/google
 // @access Public
 router.get('/google', (req, res, next) => {
-  // Check if this is a mobile request
-  const isMobile = req.query.mobile === 'true' || 
-                   req.headers['user-agent']?.includes('Mobile') ||
+  // Check if this is a request from the native mobile app. The app always
+  // passes ?mobile=true explicitly (see mobile/src/utils/googleAuth.js) — we
+  // must NOT sniff the User-Agent for "Mobile", since that substring is present
+  // on every phone's browser too and would misroute the website's mobile-web
+  // login (real UA, no ?mobile=true) into the native app's deep-link callback.
+  const isMobile = req.query.mobile === 'true' ||
                    req.headers['x-requested-with'] === 'mobile';
-  
+
   // Store mobile flag and redirect_uri in session/state for callback
   req.session = req.session || {};
   req.session.isMobile = isMobile;
@@ -88,10 +91,12 @@ router.get('/google/callback',
         }
       } catch (e) {
         console.log('   State parsing failed:', e.message);
-        // Fallback to old detection methods
-        isMobile = req.query.state === 'mobile' || 
+        // Fallback to old detection methods. Deliberately excludes a generic
+        // "Mobile" UA substring check — that matches every phone's browser,
+        // not just the native app, and would misroute mobile-web logins into
+        // the native app's deep-link callback (see the /google handler above).
+        isMobile = req.query.state === 'mobile' ||
                    req.query.mobile === 'true' ||
-                   req.headers['user-agent']?.includes('Mobile') ||
                    req.headers['user-agent']?.includes('Expo') ||
                    req.headers['user-agent']?.includes('ReactNative');
         console.log('   Fallback detection - isMobile:', isMobile);
