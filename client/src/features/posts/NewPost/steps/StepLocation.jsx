@@ -7,20 +7,19 @@ import {
   Select,
   MenuItem,
   FormControl,
-  Divider,
   CircularProgress,
   useTheme,
   alpha,
 } from "@mui/material";
-import { LocationOn, Add as AddIcon } from '@mui/icons-material';
+import { LocationOn } from '@mui/icons-material';
 import Textfield from "../../../../components/Textfield";
 import { useTranslation } from "../../../../utils/translations";
 import { getCityDisplayName } from "../cityDisplay";
 import RequiredMark from "./RequiredMark";
 
-// Step 2 "Where & when": country, city (dropdown + search + Add New City
-// trigger), exactLocation, exactDate. City search/dialog state is owned by
-// the shell (NewPostForm.js) and passed down as props (C3/C4).
+// Step 2 "Where & when": country, city (dropdown + search - selection only,
+// no manual/custom city entry), exactLocation, exactDate. City search state
+// is owned by the shell (NewPostForm.js) and passed down as props (C3/C4).
 const StepLocation = ({
   countries,
   fieldErrors,
@@ -36,8 +35,6 @@ const StepLocation = ({
   isSearching,
   showCityDropdown,
   filteredCities,
-  setShowCityDropdown,
-  setShowCustomCityInput,
   handleCityDropdownToggle,
   handleCitySearchChange,
   handleCitySelect,
@@ -80,7 +77,7 @@ const StepLocation = ({
     if (city.source === 'google' && city.formattedAddress) {
       return city.formattedAddress;
     }
-    if (city.source === 'geonames' && city.adminName1) {
+    if ((city.source === 'google' || city.source === 'geonames') && city.adminName1) {
       const countryLabel = city.country?.label;
       return countryLabel ? `${city.adminName1}, ${countryLabel}` : city.adminName1;
     }
@@ -443,9 +440,9 @@ const StepLocation = ({
                       {t('noCitiesFound') || 'No cities found'}
                     </Typography>
                     <Typography variant="caption" color="text.secondary" sx={{ mt: 1, display: 'block' }}>
-                      {currentLanguage === 'ar' ? 'أضف اسم المدينة الجديدة' :
-                       currentLanguage === 'fr' ? 'Ajouter un nouveau nom de ville' :
-                       'Add new city name'}
+                      {currentLanguage === 'ar' ? 'جرّب تهجئة مختلفة أو اختر أقرب مدينة رئيسية' :
+                       currentLanguage === 'fr' ? 'Essayez une autre orthographe ou choisissez la ville principale la plus proche' :
+                       'Try a different spelling or pick the nearest major city'}
                     </Typography>
                   </Box>
                 ) : (
@@ -525,42 +522,6 @@ const StepLocation = ({
                         </Typography>
                       </Box>
                     )}
-                  </>
-                )}
-
-                {/* Add New City Option - Only show when search has no results */}
-                {citySearchQuery.trim().length > 0 && !isSearching && searchResults.length === 0 && (
-                  <>
-                    <Divider />
-                    <Box
-                      onClick={() => {
-                        setShowCityDropdown(false);
-                        setShowCustomCityInput(true);
-                      }}
-                      sx={{
-                        p: 2,
-                        cursor: 'pointer',
-                        color: theme.palette.text.primary,
-                        fontWeight: 600,
-                        backgroundColor: theme.palette.background.paper,
-                        border: `1px solid ${theme.palette.divider}`,
-                        margin: '6px 8px',
-                        borderRadius: 2,
-                        transition: 'all 0.2s ease-in-out',
-                        '&:hover': {
-                          backgroundColor: theme.palette.action.hover,
-                          color: theme.palette.text.primary,
-                          borderColor: theme.custom.color.brandPrimary,
-                          transform: 'translateY(-1px)',
-                          boxShadow: theme.shadows[4],
-                        }
-                      }}
-                    >
-                      <Box display="flex" alignItems="center" gap={1}>
-                        <AddIcon fontSize="small" />
-                        {t('addNewCity') || 'Add New City'}
-                      </Box>
-                    </Box>
                   </>
                 )}
               </Box>

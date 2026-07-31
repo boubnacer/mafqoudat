@@ -344,16 +344,26 @@ class GooglePlacesService {
         languagesToFetch.unshift('en');
       }
       let translationQuality = 0;
-      
+      // Text Search's `formatted_address` for a locality is often just
+      // "City, Country" (no region) - Place Details returns the fuller
+      // address plus address_components, which is where GeoNames-equivalent
+      // admin-region (state/province) data comes from for Google results.
+      // Piggyback this onto the first Details call already being made below
+      // (for name translation) instead of firing an extra request - both
+      // fields are "Basic Data" on the same SKU as `name`, so this adds no
+      // additional cost.
+      let addressDetailsFetched = false;
+
       for (const lang of languagesToFetch) {
         if (!this.canMakeRequest()) {
           break;
         }
-        
+
         try {
+          const needsAddressDetails = !addressDetailsFetched;
           const params = {
             place_id: cityData.placeId,
-            fields: 'name',
+            fields: needsAddressDetails ? 'name,address_components,formatted_address' : 'name',
             language: lang,
             key: this.apiKey
           };
@@ -366,12 +376,28 @@ class GooglePlacesService {
           this.incrementRequestCounter();
 
           if (response.data && response.data.status === 'OK' && response.data.result) {
-            const translatedName = response.data.result.name;
+            const result = response.data.result;
+            const translatedName = result.name;
             nativeNames[lang] = translatedName;
-            
+
             // If we got a different name, that's a good translation
             if (translatedName !== cityData.labels.en) {
               translationQuality++;
+            }
+
+            if (needsAddressDetails) {
+              addressDetailsFetched = true;
+
+              const adminComponent = result.address_components?.find(component =>
+                component.types.includes('administrative_area_level_1')
+              );
+              if (adminComponent) {
+                cityData.adminName1 = adminComponent.long_name;
+              }
+
+              if (result.formatted_address) {
+                cityData.formattedAddress = result.formatted_address;
+              }
             }
           }
         } catch (error) {

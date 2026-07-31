@@ -7,7 +7,11 @@
  *      GET /cities/search?q=...&countryCode=...&language=... for cities not in the local list.
  * A search result with no Mongo _id (API-sourced, GeoNames/Google) is returned to the caller
  * as { id: null, isApi: true, code, raw } so the caller can submit it as `city`/`cityData`.
- * "Create custom city" (web's dynamic-city creation dialog) is intentionally out of scope for v1.
+ * Selection-only by design: there is no "create custom city" / manual entry path here (nor on
+ * web anymore) - the user must pick one of the returned rows.
+ * A GeoNames/Google row also shows a secondary line (state/province or full formatted address)
+ * via getCityExtraInfo, so same-named cities in different regions/countries stay disambiguated -
+ * never persisted, display only. Same behavior as NewPostForm's StepLocation.jsx on web.
  * Visual language mirrors SelectModal.js (colorTokens-based sheet/search/row styling), so this
  * picker reads as the same component family even though its search logic is bespoke.
  */
@@ -115,6 +119,22 @@ const CityPickerModal = ({ visible, onClose, t, currentLanguage, isRTL, countryI
     : plainCities;
   const displayedCities = isActivelySearching ? searchResults : localMatches;
 
+  // Extra disambiguation context for a search result - state/province
+  // (GeoNames/Google) or a full formatted address incl. street/locality/
+  // country (Google Places). Never saved with the post; shown only so the
+  // user can confirm it's the right place among same-named cities.
+  // Mirrors NewPostForm's StepLocation.jsx on the web.
+  const getCityExtraInfo = (city) => {
+    if (city.source === 'google' && city.formattedAddress) {
+      return city.formattedAddress;
+    }
+    if ((city.source === 'google' || city.source === 'geonames') && city.adminName1) {
+      const countryLabel = city.country?.label;
+      return countryLabel ? `${city.adminName1}, ${countryLabel}` : city.adminName1;
+    }
+    return null;
+  };
+
   const handleSelect = (city) => {
     const id = city._id || city.id || null;
     const label = getLocalizedLabel(city, currentLanguage);
@@ -165,9 +185,16 @@ const CityPickerModal = ({ visible, onClose, t, currentLanguage, isRTL, countryI
               keyExtractor={(city, index) => city._id || city.id || city.code || `city-${index}`}
               renderItem={({ item }) => (
                 <TouchableOpacity style={styles.row} onPress={() => handleSelect(item)} activeOpacity={0.7}>
-                  <Text style={[styles.rowLabel, textStyle]} numberOfLines={1}>
-                    {getLocalizedLabel(item, currentLanguage)}
-                  </Text>
+                  <View style={styles.rowTextContainer}>
+                    <Text style={[styles.rowLabel, textStyle]} numberOfLines={1}>
+                      {getLocalizedLabel(item, currentLanguage)}
+                    </Text>
+                    {getCityExtraInfo(item) ? (
+                      <Text style={[styles.rowExtraInfo, textStyle]} numberOfLines={1}>
+                        {getCityExtraInfo(item)}
+                      </Text>
+                    ) : null}
+                  </View>
                   {!item._id && !item.id ? (
                     <Text style={styles.citySourceBadge}>{item.source || ''}</Text>
                   ) : null}
@@ -293,11 +320,20 @@ const createStyles = (tokens, isDark) =>
       borderBottomWidth: 1,
       borderBottomColor: `${tokens.ink}${isDark ? '14' : '0F'}`,
     },
-    rowLabel: {
+    rowTextContainer: {
       flex: 1,
+      marginEnd: 8,
+    },
+    rowLabel: {
       fontFamily: fontFamilies.body,
       fontSize: 15,
       color: tokens.ink,
+    },
+    rowExtraInfo: {
+      fontFamily: fontFamilies.body,
+      fontSize: 12,
+      color: `${tokens.ink}80`,
+      marginTop: 2,
     },
     citySourceBadge: {
       fontSize: 11,

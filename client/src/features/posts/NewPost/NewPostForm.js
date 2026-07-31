@@ -108,10 +108,7 @@ const NewPostForm = ({ user, countries, categories, flOptions }) => {
   const [isLostItem, setIsLostItem] = useState(true);
   const [cities, setCities] = useState([]);
   const [loadingCities, setLoadingCities] = useState(false);
-  const [showCustomCityInput, setShowCustomCityInput] = useState(false);
-  const [customCityName, setCustomCityName] = useState("");
   const [isCompressing, setIsCompressing] = useState(false);
-  const [isCreatingCity, setIsCreatingCity] = useState(false);
   const [compressionInfo, setCompressionInfo] = useState(null);
   const [setFieldValueCallback, setSetFieldValueCallback] = useState(null);
   const [fieldErrors, setFieldErrors] = useState({});
@@ -635,11 +632,6 @@ const NewPostForm = ({ user, countries, categories, flOptions }) => {
   };
 
 
-  // Handle custom city name change
-  const handleCustomCityChange = (event) => {
-    setCustomCityName(event.target.value);
-  };
-
   // Runs the actual search for one query. `requestId` is a snapshot of
   // citySearchRequestIdRef taken when this call was scheduled; if the user
   // has typed something else since (bumping the ref further), every
@@ -808,43 +800,6 @@ const NewPostForm = ({ user, countries, categories, flOptions }) => {
     setShowCityDropdown(!showCityDropdown);
   };
 
-  // Create custom city in backend
-  const createCustomCity = async (cityName, countryId) => {
-    try {
-      const baseUrl = process.env.REACT_APP_API_URL || "http://localhost:3500";
-      const headers = {
-        'Content-Type': 'application/json',
-      };
-      
-      // Add authentication token if available
-      if (token) {
-        headers['Authorization'] = `Bearer ${token}`;
-      }
-      
-      const response = await fetch(`${baseUrl}/cities/dynamic`, {
-        method: 'POST',
-        headers,
-        body: JSON.stringify({
-          cityName: cityName.trim(),
-          countryId: countryId,
-          sourceLanguage: currentLanguage || 'en'
-        })
-      });
-
-      const data = await response.json();
-      
-      if (data.success) {
-        return data.data; // Return the created city object
-      } else {
-        console.error('Failed to create custom city:', data.message);
-        throw new Error(data.message || 'Failed to create custom city');
-      }
-    } catch (error) {
-      console.error('Error creating custom city:', error);
-      throw error;
-    }
-  };
-
   // Image compression function
   const compressImage = useCallback(async (file) => {
     if (!file) return null;
@@ -985,24 +940,6 @@ const NewPostForm = ({ user, countries, categories, flOptions }) => {
         position: 'relative',
       }}
     >
-      {/* Backdrop overlay when dialog is open */}
-      {showCustomCityInput && (
-        <Box
-          sx={{
-            position: 'fixed',
-            top: 0,
-            left: 0,
-            right: 0,
-            bottom: 0,
-            backgroundColor: theme.palette.mode === 'dark' 
-              ? 'rgba(0, 0, 0, 0.7)' 
-              : 'rgba(0, 0, 0, 0.5)',
-            backdropFilter: 'blur(4px)',
-            zIndex: 1200,
-            pointerEvents: 'auto'
-          }}
-        />
-      )}
       <Paper
         elevation={4}
         sx={{
@@ -1261,8 +1198,6 @@ const NewPostForm = ({ user, countries, categories, flOptions }) => {
                           isSearching={isSearching}
                           showCityDropdown={showCityDropdown}
                           filteredCities={filteredCities}
-                          setShowCityDropdown={setShowCityDropdown}
-                          setShowCustomCityInput={setShowCustomCityInput}
                           handleCityDropdownToggle={handleCityDropdownToggle}
                           handleCitySearchChange={handleCitySearchChange}
                           handleCitySelect={handleCitySelect}
@@ -1320,164 +1255,6 @@ const NewPostForm = ({ user, countries, categories, flOptions }) => {
           }}
         </Formik>
       </Paper>
-      
-      {/* Custom City Dialog */}
-      <Dialog
-        open={showCustomCityInput}
-        onClose={() => {
-          if (!isCreatingCity) {
-            setShowCustomCityInput(false);
-            setCustomCityName("");
-          }
-        }}
-        maxWidth="sm"
-        fullWidth
-        sx={{ zIndex: 1300 }}
-        PaperProps={{
-          sx: {
-            borderRadius: 3,
-            background: theme.custom.color.surfaceRaised,
-            boxShadow: theme.shadows[12]
-          }
-        }}
-      >
-        <DialogTitle
-          sx={{
-            display: 'flex',
-            justifyContent: 'space-between',
-            alignItems: 'center',
-            pb: 1
-          }}
-        >
-          <Typography 
-            variant="h6" 
-            sx={{ 
-              fontWeight: 600, 
-              color: theme.palette.text.primary
-            }}
-          >
-            {t('addNewCity')}
-          </Typography>
-          <IconButton
-            onClick={() => {
-              setShowCustomCityInput(false);
-              setCustomCityName("");
-            }}
-            disabled={isCreatingCity}
-            sx={{
-              color: theme.palette.text.secondary,
-              '&:hover': {
-                backgroundColor: theme.palette.action.hover
-              }
-            }}
-          >
-            <CloseIcon />
-          </IconButton>
-        </DialogTitle>
-        
-        <DialogContent sx={{ pt: 2 }}>
-          <Typography 
-            variant="body2" 
-            sx={{ 
-              mb: 2,
-              color: theme.palette.text.secondary
-            }}
-          >
-            {t('enterCustomCityName')}
-          </Typography>
-          <TextField
-            fullWidth
-            placeholder={t('cityNamePlaceholder')}
-            value={customCityName}
-            onChange={handleCustomCityChange}
-            variant="outlined"
-            autoFocus
-            sx={{ 
-              borderRadius: 2,
-              '& .MuiOutlinedInput-root': {
-                '&:hover fieldset': {
-                  borderColor: theme.custom.color.brandPrimary,
-                },
-                '&.Mui-focused fieldset': {
-                  borderColor: theme.custom.color.brandPrimary,
-                },
-                '& fieldset': {
-                  borderColor: alpha(theme.custom.color.ink, theme.palette.mode === 'dark' ? 0.3 : 0.2),
-                },
-                color: theme.palette.text.primary
-              }
-            }}
-          />
-        </DialogContent>
-        
-        <DialogActions sx={{ p: 2, gap: 1 }}>
-          <Button
-            variant="outlined"
-            onClick={() => {
-              setShowCustomCityInput(false);
-              setCustomCityName("");
-            }}
-            disabled={isCreatingCity}
-            sx={{ 
-              textTransform: 'none',
-              borderRadius: 2,
-              px: 3
-            }}
-          >
-            {t('cancel')}
-          </Button>
-          <Button
-            variant="contained"
-            onClick={async () => {
-              const countryId = formikRef.current?.values?.country;
-              if (customCityName.trim() && countryId) {
-                setIsCreatingCity(true);
-                try {
-                  // Create the custom city in the backend
-                  const createdCity = await createCustomCity(customCityName.trim(), countryId);
-
-                  // Close the dialog first
-                  setShowCustomCityInput(false);
-                  setCustomCityName("");
-
-                  // Refresh the cities list to get the newly created city
-                  await fetchCitiesByCountry(countryId);
-
-                  // Set the display value
-                  const cityDisplayName = getCityDisplayName(createdCity, currentLanguage);
-                  setCityDisplayValue(cityDisplayName);
-                  
-                  // Set the field value directly using setFieldValue from Formik
-                  if (setFieldValueCallback) {
-                    setFieldValueCallback('city', createdCity._id);
-                  }
-                  
-                } catch (error) {
-                  console.error('Error creating custom city:', error);
-                  // Show error message to user
-                  alert(t('errorCreatingCustomCity') || 'Error creating custom city. Please try again.');
-                } finally {
-                  setIsCreatingCity(false);
-                }
-              }
-            }}
-            disabled={!customCityName.trim() || !formikRef.current?.values?.country || isCreatingCity}
-            sx={{
-              textTransform: 'none',
-              borderRadius: 2,
-              px: 3,
-              background: `linear-gradient(45deg, ${theme.custom.color.brandPrimary} 30%, ${lighten(theme.custom.color.brandPrimary, 0.15)} 90%)`,
-              color: `${theme.palette.getContrastText(theme.custom.color.brandPrimary)} !important`,
-              '&:hover': {
-                background: `linear-gradient(45deg, ${lighten(theme.custom.color.brandPrimary, 0.08)} 30%, ${lighten(theme.custom.color.brandPrimary, 0.25)} 90%)`,
-              }
-            }}
-            startIcon={isCreatingCity ? <CircularProgress size={16} color="inherit" /> : null}
-          >
-            {isCreatingCity ? (t('creatingCity') || 'Creating City...') : t('confirm')}
-          </Button>
-        </DialogActions>
-      </Dialog>
       
       {/* Image Preview Dialog */}
       <Dialog

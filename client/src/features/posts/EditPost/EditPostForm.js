@@ -22,7 +22,6 @@ import {
   MenuItem,
   FormControl,
   TextField,
-  Divider,
   Dialog,
   DialogTitle,
   DialogContent,
@@ -35,7 +34,6 @@ import {
 } from "@mui/material";
 import {
   LocationOn,
-  Add as AddIcon,
   Close as CloseIcon,
   PhotoCamera,
   Delete as DeleteIcon,
@@ -235,6 +233,23 @@ const EditPostForm = ({ post, user, countries, flOptions, categories }) => {
 
   const sourceCaptionPrefix = currentLanguage === 'ar' ? 'المصدر' : 'Source';
 
+  // Extra disambiguation context for a search result - state/province
+  // (GeoNames/Google) or a full formatted address incl. street/locality/
+  // country (Google Places). Never saved with the post; shown only so the
+  // user can confirm it's the right place among same-named cities.
+  // DB-sourced cities carry neither field, so this naturally renders
+  // nothing for them. Same as NewPostForm's StepLocation.jsx.
+  const getCityExtraInfo = (city) => {
+    if (city.source === 'google' && city.formattedAddress) {
+      return city.formattedAddress;
+    }
+    if ((city.source === 'google' || city.source === 'geonames') && city.adminName1) {
+      const countryLabel = city.country?.label;
+      return countryLabel ? `${city.adminName1}, ${countryLabel}` : city.adminName1;
+    }
+    return null;
+  };
+
   // State for cities
   const [selectedCountry, setSelectedCountry] = useState(null);
   const [availableCities, setAvailableCities] = useState([]);
@@ -270,9 +285,6 @@ const EditPostForm = ({ post, user, countries, flOptions, categories }) => {
   const [showCityDropdown, setShowCityDropdown] = useState(false);
   const [selectedCityFromSearch, setSelectedCityFromSearch] = useState(null);
   const [filteredCities, setFilteredCities] = useState([]);
-  const [showCustomCityInput, setShowCustomCityInput] = useState(false);
-  const [customCityName, setCustomCityName] = useState("");
-  const [isCreatingCity, setIsCreatingCity] = useState(false);
   // Debounce timer + monotonically increasing sequence token for city
   // search - see handleCitySearchChange/performCitySearch. Same pattern as
   // NewPostForm: avoids hammering rate-limited external APIs on every
@@ -1063,48 +1075,6 @@ if (typeof document !== 'undefined') {
       setSearchResults([]);
     }
     setShowCityDropdown(!showCityDropdown);
-  };
-
-  // Handle custom city name change
-  const handleCustomCityChange = (event) => {
-    setCustomCityName(event.target.value);
-  };
-
-  // Create custom city in backend
-  const createCustomCity = async (cityName, countryId) => {
-    try {
-      const baseUrl = process.env.REACT_APP_API_URL || "http://localhost:3500";
-      const headers = {
-        'Content-Type': 'application/json',
-      };
-      
-      // Add authentication token if available
-      if (token) {
-        headers['Authorization'] = `Bearer ${token}`;
-      }
-      
-      const response = await fetch(`${baseUrl}/cities/dynamic`, {
-        method: 'POST',
-        headers,
-        body: JSON.stringify({
-          cityName: cityName.trim(),
-          countryId: countryId,
-          sourceLanguage: currentLanguage || 'en'
-        })
-      });
-
-      const data = await response.json();
-      
-      if (data.success) {
-        return data.data; // Return the created city object
-      } else {
-        console.error('Failed to create custom city:', data.message);
-        throw new Error(data.message || 'Failed to create custom city');
-      }
-    } catch (error) {
-      console.error('Error creating custom city:', error);
-      throw error;
-    }
   };
 
   // Helper function to get found/lost type from ID
@@ -2355,6 +2325,15 @@ if (typeof document !== 'undefined') {
                                       {city.labels?.fr && currentLanguage !== 'fr' && ` • ${city.labels.fr}`}
                                       {city.labels?.en && currentLanguage !== 'en' && ` • ${city.labels.en}`}
                                     </Typography>
+                                    {getCityExtraInfo(city) && (
+                                      <Typography variant="caption" color="text.secondary" sx={{
+                                        display: 'block',
+                                        zIndex: '999999 !important',
+                                        position: 'relative'
+                                      }}>
+                                        {getCityExtraInfo(city)}
+                                      </Typography>
+                                    )}
                                     <Typography variant="caption" sx={{
                                       display: 'block',
                                       fontWeight: 600,
@@ -2380,9 +2359,9 @@ if (typeof document !== 'undefined') {
                                 {t('noCitiesFound') || 'No cities found'}
                               </Typography>
                               <Typography variant="caption" color="text.secondary" sx={{ mt: 1, display: 'block' }}>
-                                {currentLanguage === 'ar' ? 'أضف اسم المدينة الجديدة' : 
-                                 currentLanguage === 'fr' ? 'Ajouter un nouveau nom de ville' : 
-                                 'Add new city name'}
+                                {currentLanguage === 'ar' ? 'جرّب تهجئة مختلفة أو اختر أقرب مدينة رئيسية' :
+                                 currentLanguage === 'fr' ? 'Essayez une autre orthographe ou choisissez la ville principale la plus proche' :
+                                 'Try a different spelling or pick the nearest major city'}
                               </Typography>
                             </Box>
                           ) : (
@@ -2428,6 +2407,15 @@ if (typeof document !== 'undefined') {
                                         {city.labels?.fr && currentLanguage !== 'fr' && ` • ${city.labels.fr}`}
                                         {city.labels?.en && currentLanguage !== 'en' && ` • ${city.labels.en}`}
                                       </Typography>
+                                      {getCityExtraInfo(city) && (
+                                        <Typography variant="caption" color="text.secondary" sx={{
+                                          display: 'block',
+                                          zIndex: '999999 !important',
+                                          position: 'relative'
+                                        }}>
+                                          {getCityExtraInfo(city)}
+                                        </Typography>
+                                      )}
                                       <Typography variant="caption" sx={{
                                         display: 'block',
                                         fontWeight: 600,
@@ -2453,42 +2441,6 @@ if (typeof document !== 'undefined') {
                                   </Typography>
                                 </Box>
                               )}
-                            </>
-                          )}
-
-                          {/* Add New City Option - Only show when search has no results */}
-                          {citySearchQuery.trim().length > 0 && !isSearching && searchResults.length === 0 && (
-                            <>
-                              <Divider />
-                              <Box
-                                onClick={() => {
-                                  setShowCityDropdown(false);
-                                  setShowCustomCityInput(true);
-                                }}
-                                sx={{
-                                  p: 2,
-                                  cursor: 'pointer',
-                                  color: theme.palette.text.primary,
-                                  fontWeight: 600,
-                                  backgroundColor: theme.palette.background.paper,
-                                  border: `1px solid ${theme.palette.divider}`,
-                                  margin: '6px 8px',
-                                  borderRadius: 2,
-                                  transition: 'all 0.2s ease-in-out',
-                                  '&:hover': {
-                                    backgroundColor: theme.palette.action.hover,
-                                    color: theme.palette.text.primary,
-                                    borderColor: theme.custom.color.brandPrimary,
-                                    transform: 'translateY(-1px)',
-                                    boxShadow: theme.shadows[4],
-                                  }
-                                }}
-                              >
-                                <Box display="flex" alignItems="center" gap={1}>
-                                  <AddIcon fontSize="small" />
-                                  {t('addNewCity') || 'Add New City'}
-                                </Box>
-                              </Box>
                             </>
                           )}
                         </Box>
@@ -3365,163 +3317,6 @@ if (typeof document !== 'undefined') {
               />
             </Button>
           )}
-        </DialogActions>
-      </Dialog>
-      
-      {/* Custom City Dialog */}
-      <Dialog
-        open={showCustomCityInput}
-        onClose={() => {
-          if (!isCreatingCity) {
-            setShowCustomCityInput(false);
-            setCustomCityName("");
-          }
-        }}
-        maxWidth="sm"
-        fullWidth
-        sx={{ zIndex: 1300 }}
-        PaperProps={{
-          sx: {
-            borderRadius: 3,
-            background: theme.custom.color.surfaceRaised,
-            boxShadow: theme.shadows[12]
-          }
-        }}
-      >
-        <DialogTitle
-          sx={{
-            display: 'flex',
-            justifyContent: 'space-between',
-            alignItems: 'center',
-            pb: 1
-          }}
-        >
-          <Typography
-            variant="h6"
-            sx={{
-              fontWeight: 600,
-              color: theme.palette.text.primary
-            }}
-          >
-            {t('addNewCity')}
-          </Typography>
-          <IconButton
-            onClick={() => {
-              setShowCustomCityInput(false);
-              setCustomCityName("");
-            }}
-            disabled={isCreatingCity}
-            sx={{
-              color: theme.palette.text.secondary,
-              '&:hover': {
-                backgroundColor: theme.palette.action.hover
-              }
-            }}
-          >
-            <CloseIcon />
-          </IconButton>
-        </DialogTitle>
-        
-        <DialogContent sx={{ pt: 2 }}>
-          <Typography 
-            variant="body2" 
-            sx={{ 
-              mb: 2,
-              color: theme.palette.text.secondary
-            }}
-          >
-            {t('enterCustomCityName')}
-          </Typography>
-          <TextField
-            fullWidth
-            placeholder={t('cityNamePlaceholder')}
-            value={customCityName}
-            onChange={handleCustomCityChange}
-            variant="outlined"
-            autoFocus
-            sx={{
-              borderRadius: 2,
-              '& .MuiOutlinedInput-root': {
-                '&:hover fieldset': {
-                  borderColor: theme.custom.color.brandPrimary,
-                },
-                '&.Mui-focused fieldset': {
-                  borderColor: theme.custom.color.brandPrimary,
-                },
-                '& fieldset': {
-                  borderColor: alpha(theme.custom.color.ink, theme.palette.mode === 'dark' ? 0.3 : 0.2),
-                },
-                color: theme.palette.text.primary
-              }
-            }}
-          />
-        </DialogContent>
-        
-        <DialogActions sx={{ p: 2, gap: 1 }}>
-          <Button
-            variant="outlined"
-            onClick={() => {
-              setShowCustomCityInput(false);
-              setCustomCityName("");
-            }}
-            disabled={isCreatingCity}
-            sx={{ 
-              textTransform: 'none',
-              borderRadius: 2,
-              px: 3
-            }}
-          >
-            {t('cancel')}
-          </Button>
-          <Button
-            variant="contained"
-            onClick={async () => {
-              if (customCityName.trim() && selectedCountry?._id) {
-                setIsCreatingCity(true);
-                try {
-                  // Create the custom city in the backend
-                  const createdCity = await createCustomCity(customCityName.trim(), selectedCountry._id);
-                  
-                  // Close the dialog first
-                  setShowCustomCityInput(false);
-                  setCustomCityName("");
-                  
-                  // Refresh the cities list to get the newly created city
-                  await fetchCitiesByCountry(selectedCountry._id);
-                  
-                  // Set the display value
-                  const cityDisplayName = getCityDisplayName(createdCity, currentLanguage);
-                  setCityDisplayValue(cityDisplayName);
-                  
-                  // Set the field value directly using setFieldValue from Formik
-                  if (setFieldValueCallback) {
-                    setFieldValueCallback('city', createdCity._id);
-                  }
-                  
-                } catch (error) {
-                  console.error('Error creating custom city:', error);
-                  // Show error message to user
-                  alert(t('errorCreatingCustomCity') || 'Error creating custom city. Please try again.');
-                } finally {
-                  setIsCreatingCity(false);
-                }
-              }
-            }}
-            disabled={!customCityName.trim() || !selectedCountry?._id || isCreatingCity}
-            sx={{
-              textTransform: 'none',
-              borderRadius: 2,
-              px: 3,
-              background: `linear-gradient(45deg, ${theme.custom.color.brandPrimary} 30%, ${lighten(theme.custom.color.brandPrimary, 0.15)} 90%)`,
-              color: `${theme.palette.getContrastText(theme.custom.color.brandPrimary)} !important`,
-              '&:hover': {
-                background: `linear-gradient(45deg, ${lighten(theme.custom.color.brandPrimary, 0.08)} 30%, ${lighten(theme.custom.color.brandPrimary, 0.25)} 90%)`,
-              }
-            }}
-            startIcon={isCreatingCity ? <CircularProgress size={16} color="inherit" /> : null}
-          >
-            {isCreatingCity ? (t('creatingCity') || 'Creating City...') : t('confirm')}
-          </Button>
         </DialogActions>
       </Dialog>
     </Box>
