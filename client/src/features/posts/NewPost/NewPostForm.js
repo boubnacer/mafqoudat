@@ -38,7 +38,7 @@ import {
   Check as CheckIcon
 } from '@mui/icons-material';
 import { useTranslation } from "../../../utils/translations";
-import PromotionDialog from "../../../components/PromotionDialog";
+import PostSuccessDialog from "../../../components/PostSuccessDialog";
 import StepItem from "./steps/StepItem";
 import StepLocation from "./steps/StepLocation";
 import StepPhoto from "./steps/StepPhoto";
@@ -102,8 +102,7 @@ const NewPostForm = ({ user, countries, categories, flOptions }) => {
   
   const [showSuccess, setShowSuccess] = useState(false);
   const [selectedFileName, setSelectedFileName] = useState("");
-  const [showPromotionDialog, setShowPromotionDialog] = useState(false);
-  const [createdPostId, setCreatedPostId] = useState(null);
+  const [showPostSuccessDialog, setShowPostSuccessDialog] = useState(false);
   const [lastSubmittedValues, setLastSubmittedValues] = useState(null);
   const [isLostItem, setIsLostItem] = useState(true);
   const [cities, setCities] = useState([]);
@@ -260,7 +259,7 @@ const NewPostForm = ({ user, countries, categories, flOptions }) => {
       }
 
       // Show promotion dialog for both lost and found items
-      setShowPromotionDialog(true);
+      setShowPostSuccessDialog(true);
     }
   }, [isSuccess, navigate, flOptions, lastSubmittedValues]);
 
@@ -602,12 +601,7 @@ const NewPostForm = ({ user, countries, categories, flOptions }) => {
         formData.append("image", selectedImage);
       }
 
-      const result = await addNewPost(formData);
-      
-      // Store the created post ID for promotion dialog
-      if (result.data?.postId) {
-        setCreatedPostId(result.data.postId);
-      }
+      await addNewPost(formData);
     } catch (error) {
       console.error('Error in handleSubmit:', error);
       setStatus({ error: error.message });
@@ -960,7 +954,7 @@ const NewPostForm = ({ user, countries, categories, flOptions }) => {
     );
   }
 
-  if (showSuccess && !showPromotionDialog) {
+  if (showSuccess && !showPostSuccessDialog) {
     return (
       <Box display="flex" justifyContent="center" alignItems="center" minHeight="50vh">
         <Alert severity="success" sx={{ maxWidth: 600 }}>
@@ -1575,19 +1569,15 @@ const NewPostForm = ({ user, countries, categories, flOptions }) => {
         </DialogActions>
       </Dialog>
       
-      {/* Promotion Dialog */}
-      <PromotionDialog
-        open={showPromotionDialog}
+      {/* Post Success / App Download Dialog */}
+      <PostSuccessDialog
+        open={showPostSuccessDialog}
         onClose={() => {
-          setShowPromotionDialog(false);
+          setShowPostSuccessDialog(false);
           setShowSuccess(false);
           navigate("/dash");
         }}
-        postId={createdPostId}
         isLostItem={isLostItem}
-        onPromotionRequested={() => {
-          // Handle successful promotion request
-        }}
       />
     </Box>
   );
