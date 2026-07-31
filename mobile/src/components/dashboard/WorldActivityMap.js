@@ -82,7 +82,19 @@ const CityLabel = ({ x, y, text, ink, panel, scale }) => {
     // map/markers - plain `cx`/`cy` attributes, not RN layout styles - never
     // move. `transform` is exempt from that auto-mirroring, which is what
     // keeps the map deliberately unmirrored for RTL (see file header).
-    <View style={{ position: 'absolute', transform: [{ translateX: x * scale }, { translateY: y * scale }] }}>
+    //
+    // `left: 0, top: 0` are still set explicitly (as plain numeric, RTL-swap-
+    // -immune zeros) alongside the transform - leaving them unset entirely
+    // made Yoga fall back to its own direction-aware default static position
+    // for an offset-less absolute node, which resolves from the trailing
+    // edge under an RTL layout tree instead of the leading one. That flip is
+    // a separate mechanism from doLeftAndRightSwapInRTL (it fires even
+    // though nothing here is named `left`/`right`), and was still shifting
+    // the whole label anchor - transform offsets got added on top of a base
+    // position that had already silently moved. Pinning both to a definite
+    // 0 removes that ambiguity so `transform` is the only thing moving these
+    // nodes, in both directions.
+    <View style={{ position: 'absolute', left: 0, top: 0, transform: [{ translateX: x * scale }, { translateY: y * scale }] }}>
       <View
         onLayout={(e) => setWidth(e.nativeEvent.layout.width)}
         style={{ transform: [{ translateX: -width / 2 }], opacity: width ? 1 : 0 }}
@@ -96,6 +108,8 @@ const CityLabel = ({ x, y, text, ink, panel, scale }) => {
               styles.cityLabelText,
               {
                 position: 'absolute',
+                left: 0,
+                top: 0,
                 transform: [{ translateX: dx * haloOffset }, { translateY: dy * haloOffset }],
                 fontSize,
                 color: panel,
