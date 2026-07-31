@@ -7,7 +7,7 @@
  * stored (and shown to admins) as the report's `reason` field.
  */
 
-import React, { useState } from 'react';
+import React, { useMemo, useState } from 'react';
 import {
   View,
   Text,
@@ -37,6 +37,7 @@ const ReportPostSheet = ({ visible, onClose, postId, t, isRTL, onSubmitted }) =>
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [error, setError] = useState('');
 
+  const styles = useMemo(() => createStyles(isRTL), [isRTL]);
   const textStyle = isRTL ? styles.textRTL : null;
 
   const resetAndClose = () => {
@@ -169,7 +170,12 @@ const ReportPostSheet = ({ visible, onClose, postId, t, isRTL, onSubmitted }) =>
   );
 };
 
-const styles = StyleSheet.create({
+// Manually driven by isRTL rather than left to RN's native auto-mirror:
+// forceRTL only takes visual effect after a real app restart (see
+// LanguageContext), so a live language switch needs these rows to flip
+// immediately. marginEnd resolves just as statically, so the gaps below are
+// picked explicitly by physical side too.
+const createStyles = (isRTL) => StyleSheet.create({
   overlay: {
     flex: 1,
     justifyContent: 'flex-end',
@@ -186,7 +192,7 @@ const styles = StyleSheet.create({
     paddingBottom: 16,
   },
   header: {
-    flexDirection: 'row',
+    flexDirection: isRTL ? 'row-reverse' : 'row',
     justifyContent: 'space-between',
     alignItems: 'center',
     padding: 16,
@@ -223,7 +229,7 @@ const styles = StyleSheet.create({
     marginBottom: 8,
   },
   reasonRow: {
-    flexDirection: 'row',
+    flexDirection: isRTL ? 'row-reverse' : 'row',
     alignItems: 'center',
     paddingVertical: 10,
     paddingHorizontal: 12,
@@ -241,7 +247,8 @@ const styles = StyleSheet.create({
     borderColor: '#999',
     justifyContent: 'center',
     alignItems: 'center',
-    marginEnd: 12,
+    marginRight: isRTL ? 0 : 12,
+    marginLeft: isRTL ? 12 : 0,
   },
   radioOuterSelected: {
     borderColor: '#2196F3',
@@ -276,7 +283,7 @@ const styles = StyleSheet.create({
     textAlign: 'right',
   },
   footer: {
-    flexDirection: 'row',
+    flexDirection: isRTL ? 'row-reverse' : 'row',
     paddingHorizontal: 16,
     paddingTop: 12,
     borderTopWidth: 1,
@@ -289,7 +296,8 @@ const styles = StyleSheet.create({
     borderWidth: 1,
     borderColor: '#2196F3',
     alignItems: 'center',
-    marginEnd: 8,
+    marginRight: isRTL ? 0 : 8,
+    marginLeft: isRTL ? 8 : 0,
   },
   cancelButtonText: {
     color: '#2196F3',

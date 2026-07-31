@@ -812,8 +812,14 @@ const createStyles = (tokens, isRTL, isDark) =>
     textRTL: {
       textAlign: 'right',
     },
+    // Manually driven by isRTL rather than left to RN's native auto-mirror:
+    // forceRTL only takes visual effect after a real app restart (see
+    // LanguageContext), so a live language switch needs icon+label order to
+    // flip immediately. `gap` handles the base spacing either way, but
+    // filterBadge's extra nudge below is a plain margin, which resolves just
+    // as statically as flexDirection - picked explicitly by side too.
     filterButton: {
-      flexDirection: 'row',
+      flexDirection: isRTL ? 'row-reverse' : 'row',
       alignItems: 'center',
       gap: 6,
       paddingHorizontal: 14,
@@ -828,7 +834,8 @@ const createStyles = (tokens, isRTL, isDark) =>
       fontSize: 13,
     },
     filterBadge: {
-      marginStart: 2,
+      marginRight: isRTL ? 0 : 2,
+      marginLeft: isRTL ? 2 : 0,
       borderRadius: radiusTokens.sm,
       minWidth: 18,
       height: 18,
@@ -850,7 +857,7 @@ const createStyles = (tokens, isRTL, isDark) =>
       alignItems: 'center',
     },
     activeChip: {
-      flexDirection: 'row',
+      flexDirection: isRTL ? 'row-reverse' : 'row',
       alignItems: 'center',
       backgroundColor: `${tokens.brandPrimary}1F`,
       borderRadius: radiusTokens.xl,
@@ -862,7 +869,8 @@ const createStyles = (tokens, isRTL, isDark) =>
       color: tokens.brandPrimary,
       fontFamily: fontFamilies.bodyMedium,
       fontSize: 13,
-      marginEnd: 6,
+      marginRight: isRTL ? 0 : 6,
+      marginLeft: isRTL ? 6 : 0,
     },
     activeChipRemove: {
       color: tokens.brandPrimary,
@@ -970,7 +978,7 @@ const createStyles = (tokens, isRTL, isDark) =>
       position: 'absolute',
       top: 10,
       start: 10,
-      flexDirection: 'row',
+      flexDirection: isRTL ? 'row-reverse' : 'row',
       alignItems: 'center',
       gap: 4,
       paddingHorizontal: 9,
@@ -1019,7 +1027,7 @@ const createStyles = (tokens, isRTL, isDark) =>
       gap: 14,
     },
     infoRow: {
-      flexDirection: 'row',
+      flexDirection: isRTL ? 'row-reverse' : 'row',
       alignItems: 'center',
       gap: 5,
       flexShrink: 1,
@@ -1047,8 +1055,11 @@ const createStyles = (tokens, isRTL, isDark) =>
 
     // Pagination footer - 5-posts-per-page prev/next controls, mirrors the
     // web PostsList.js "Page X of Y" + Pagination footer bar.
+    // Manually driven by isRTL (see filterButton above) so prev/next swap
+    // sides, and each button's own icon/label order flips, immediately on a
+    // live language switch rather than only after an app restart.
     paginationBar: {
-      flexDirection: 'row',
+      flexDirection: isRTL ? 'row-reverse' : 'row',
       alignItems: 'center',
       justifyContent: 'space-between',
       paddingHorizontal: 16,
@@ -1057,7 +1068,7 @@ const createStyles = (tokens, isRTL, isDark) =>
       ...getElevation(isDark, 1),
     },
     pageButton: {
-      flexDirection: 'row',
+      flexDirection: isRTL ? 'row-reverse' : 'row',
       alignItems: 'center',
       gap: 4,
       paddingHorizontal: 10,
@@ -1085,7 +1096,7 @@ const createStyles = (tokens, isRTL, isDark) =>
     // all of the current page's posts, mirroring PostsList.js's button placed
     // right after the grid, rather than a persistent floating action button.
     addPostButton: {
-      flexDirection: 'row',
+      flexDirection: isRTL ? 'row-reverse' : 'row',
       alignItems: 'center',
       justifyContent: 'center',
       gap: 8,

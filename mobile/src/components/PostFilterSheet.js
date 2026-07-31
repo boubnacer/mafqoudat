@@ -147,7 +147,7 @@ const PostFilterSheet = ({
   const [categoryQuery, setCategoryQuery] = useState('');
   const [citySearch, setCitySearch] = useState('');
 
-  const styles = useMemo(() => createStyles({ tokens, isDark }), [tokens, isDark]);
+  const styles = useMemo(() => createStyles({ tokens, isDark, isRTL }), [tokens, isDark, isRTL]);
 
   useEffect(() => {
     if (!visible || !countryId) return;
@@ -385,7 +385,7 @@ const selectedCityLabelFor = (cities, selectedCityId, currentLanguage) => {
   return match ? getLocalizedLabel(match, currentLanguage) : '';
 };
 
-const createStyles = ({ tokens, isDark }) =>
+const createStyles = ({ tokens, isDark, isRTL }) =>
   StyleSheet.create({
     overlay: {
       flex: 1,
@@ -402,8 +402,12 @@ const createStyles = ({ tokens, isDark }) =>
       maxHeight: '85%',
       paddingBottom: 16,
     },
+    // Manually driven by isRTL rather than left to RN's native auto-mirror:
+    // forceRTL only takes visual effect after a real app restart (see
+    // LanguageContext), so a live language switch needs these rows to flip
+    // immediately.
     header: {
-      flexDirection: 'row',
+      flexDirection: isRTL ? 'row-reverse' : 'row',
       justifyContent: 'space-between',
       alignItems: 'center',
       padding: 20,
@@ -464,7 +468,7 @@ const createStyles = ({ tokens, isDark }) =>
       marginBottom: 4,
     },
     dropdownHeader: {
-      flexDirection: 'row',
+      flexDirection: isRTL ? 'row-reverse' : 'row',
       alignItems: 'center',
       justifyContent: 'space-between',
       height: 46,
@@ -508,7 +512,7 @@ const createStyles = ({ tokens, isDark }) =>
       maxHeight: 220,
     },
     dropdownOption: {
-      flexDirection: 'row',
+      flexDirection: isRTL ? 'row-reverse' : 'row',
       alignItems: 'center',
       gap: 8,
       paddingHorizontal: 12,
@@ -548,7 +552,7 @@ const createStyles = ({ tokens, isDark }) =>
       marginTop: 10,
     },
     selectedChip: {
-      flexDirection: 'row',
+      flexDirection: isRTL ? 'row-reverse' : 'row',
       alignItems: 'center',
       gap: 6,
       paddingHorizontal: 10,

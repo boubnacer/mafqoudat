@@ -384,8 +384,13 @@ const createStyles = (tokens, isRTL, isDark) =>
       marginTop: 2,
       textAlign: 'center',
     },
+    // Manually driven by isRTL rather than left to RN's native auto-mirror:
+    // forceRTL only takes visual effect after a real app restart (see
+    // LanguageContext), so a live language switch needs icon/text order to
+    // flip immediately. `gap` (not marginEnd) handles the spacing, so it
+    // stays correct either way - only the order needs this override.
     providerBadge: {
-      flexDirection: 'row',
+      flexDirection: isRTL ? 'row-reverse' : 'row',
       alignItems: 'center',
       gap: 6,
       marginTop: 12,
@@ -409,7 +414,7 @@ const createStyles = (tokens, isRTL, isDark) =>
       ...getElevation(isDark, 1),
     },
     infoRow: {
-      flexDirection: 'row',
+      flexDirection: isRTL ? 'row-reverse' : 'row',
       alignItems: 'center',
       gap: 12,
       paddingHorizontal: 10,
@@ -444,7 +449,7 @@ const createStyles = (tokens, isRTL, isDark) =>
 
     // Primary CTA - mirrors LoginScreen.js's button.
     primaryButton: {
-      flexDirection: 'row',
+      flexDirection: isRTL ? 'row-reverse' : 'row',
       alignItems: 'center',
       justifyContent: 'center',
       gap: 8,
@@ -472,7 +477,7 @@ const createStyles = (tokens, isRTL, isDark) =>
       ...getElevation(isDark, 1),
     },
     menuRow: {
-      flexDirection: 'row',
+      flexDirection: isRTL ? 'row-reverse' : 'row',
       alignItems: 'center',
       gap: 12,
       paddingHorizontal: 14,

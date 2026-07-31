@@ -77,7 +77,7 @@ const HeaderMenu = ({ visible, onClose, countryFlag, countryLabel, onOpenCountry
   const navigation = useNavigation();
   const isRTL = currentLanguage === 'ar';
 
-  const styles = createStyles({ tokens, isDark });
+  const styles = createStyles({ tokens, isDark, isRTL });
   const textStyle = isRTL ? styles.textRTL : null;
 
   // Off-screen resting position is on the far side of the drawer's own start
@@ -345,7 +345,7 @@ const HeaderMenu = ({ visible, onClose, countryFlag, countryLabel, onOpenCountry
   );
 };
 
-const createStyles = ({ tokens, isDark }) =>
+const createStyles = ({ tokens, isDark, isRTL }) =>
   StyleSheet.create({
     overlay: {
       flex: 1,
@@ -373,8 +373,14 @@ const createStyles = ({ tokens, isDark }) =>
       shadowRadius: 20,
       elevation: 20,
     },
+    // Manually driven by isRTL rather than left to RN's native auto-mirror:
+    // forceRTL only takes visual effect after a real app restart (see
+    // LanguageContext), so a live language switch needs these rows to flip
+    // immediately. Icon/gap margins below are picked explicitly by physical
+    // side (not marginStart/End) for the same reason - those resolve just as
+    // statically as flexDirection does.
     drawerHeader: {
-      flexDirection: 'row',
+      flexDirection: isRTL ? 'row-reverse' : 'row',
       alignItems: 'center',
       justifyContent: 'space-between',
       paddingHorizontal: 18,
@@ -409,13 +415,14 @@ const createStyles = ({ tokens, isDark }) =>
       paddingBottom: 6,
     },
     item: {
-      flexDirection: 'row',
+      flexDirection: isRTL ? 'row-reverse' : 'row',
       alignItems: 'center',
       paddingHorizontal: 18,
       paddingVertical: 12,
     },
     itemIcon: {
-      marginEnd: 10,
+      marginRight: isRTL ? 0 : 10,
+      marginLeft: isRTL ? 10 : 0,
     },
     itemText: {
       flex: 1,
@@ -439,7 +446,7 @@ const createStyles = ({ tokens, isDark }) =>
       overflow: 'hidden',
     },
     prefRow: {
-      flexDirection: 'row',
+      flexDirection: isRTL ? 'row-reverse' : 'row',
       alignItems: 'center',
       paddingHorizontal: 12,
       paddingVertical: 12,
@@ -451,7 +458,8 @@ const createStyles = ({ tokens, isDark }) =>
     },
     prefFlag: {
       fontSize: 18,
-      marginEnd: 10,
+      marginRight: isRTL ? 0 : 10,
+      marginLeft: isRTL ? 10 : 0,
     },
     prefTextWrap: {
       flex: 1,
@@ -469,7 +477,7 @@ const createStyles = ({ tokens, isDark }) =>
       borderBottomColor: `${tokens.ink}${isDark ? '1F' : '14'}`,
     },
     prefLangHeaderRow: {
-      flexDirection: 'row',
+      flexDirection: isRTL ? 'row-reverse' : 'row',
       alignItems: 'center',
       marginBottom: 8,
     },
@@ -478,7 +486,7 @@ const createStyles = ({ tokens, isDark }) =>
       gap: 2,
     },
     langOption: {
-      flexDirection: 'row',
+      flexDirection: isRTL ? 'row-reverse' : 'row',
       alignItems: 'center',
       justifyContent: 'space-between',
       paddingHorizontal: 10,

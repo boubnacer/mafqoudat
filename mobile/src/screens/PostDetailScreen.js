@@ -561,8 +561,12 @@ const createStyles = (tokens, isRTL, isDark) =>
       flexDirection: 'row',
       marginBottom: 14,
     },
+    // Manually driven by isRTL rather than left to RN's native auto-mirror:
+    // forceRTL only takes visual effect after a real app restart (see
+    // LanguageContext), so a live language switch needs icon+label order to
+    // flip immediately. `gap` (not marginEnd) handles the spacing either way.
     badge: {
-      flexDirection: 'row',
+      flexDirection: isRTL ? 'row-reverse' : 'row',
       alignItems: 'center',
       gap: 6,
       paddingHorizontal: 12,
@@ -576,7 +580,7 @@ const createStyles = (tokens, isRTL, isDark) =>
       textTransform: 'uppercase',
     },
     resolvedBanner: {
-      flexDirection: 'row',
+      flexDirection: isRTL ? 'row-reverse' : 'row',
       alignItems: 'center',
       justifyContent: 'center',
       gap: 8,
@@ -595,7 +599,7 @@ const createStyles = (tokens, isRTL, isDark) =>
       marginBottom: 8,
     },
     categoryChip: {
-      flexDirection: 'row',
+      flexDirection: isRTL ? 'row-reverse' : 'row',
       alignItems: 'center',
       paddingHorizontal: 10,
       paddingVertical: 6,
@@ -603,8 +607,12 @@ const createStyles = (tokens, isRTL, isDark) =>
       marginEnd: 8,
       marginBottom: 8,
     },
+    // Gap between the chip's own icon and label, so it needs to flip with
+    // categoryChip's manual reversal above - marginEnd resolves just as
+    // statically as flexDirection does (see comment on `badge` above).
     categoryChipIcon: {
-      marginEnd: 5,
+      marginRight: isRTL ? 0 : 5,
+      marginLeft: isRTL ? 5 : 0,
     },
     categoryChipText: {
       fontFamily: fontFamilies.bodyMedium,
@@ -645,7 +653,7 @@ const createStyles = (tokens, isRTL, isDark) =>
       borderTopColor: `${tokens.ink}${isDark ? '1F' : '14'}`,
     },
     metaItem: {
-      flexDirection: 'row',
+      flexDirection: isRTL ? 'row-reverse' : 'row',
       alignItems: 'center',
       gap: 5,
     },
@@ -659,7 +667,7 @@ const createStyles = (tokens, isRTL, isDark) =>
       gap: 12,
     },
     contactButton: {
-      flexDirection: 'row',
+      flexDirection: isRTL ? 'row-reverse' : 'row',
       alignItems: 'center',
       justifyContent: 'center',
       gap: 8,

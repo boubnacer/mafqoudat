@@ -24,7 +24,7 @@ import { getLocalizedLabel } from '../context/ReferenceDataContext';
 
 const CountryPickerModal = ({ visible, onClose, onSelect, selectedCountryId, t, currentLanguage, isRTL }) => {
   const theme = useTheme();
-  const styles = useMemo(() => createStyles(theme), [theme]);
+  const styles = useMemo(() => createStyles(theme, isRTL), [theme, isRTL]);
   const { colors } = theme;
 
   const [countries, setCountries] = useState([]);
@@ -146,7 +146,7 @@ const CountryPickerModal = ({ visible, onClose, onSelect, selectedCountryId, t, 
   );
 };
 
-const createStyles = ({ colors, spacing, radii, fontSizes }) => StyleSheet.create({
+const createStyles = ({ colors, spacing, radii, fontSizes }, isRTL) => StyleSheet.create({
   overlay: {
     flex: 1,
     justifyContent: 'flex-end',
@@ -163,8 +163,13 @@ const createStyles = ({ colors, spacing, radii, fontSizes }) => StyleSheet.creat
     minHeight: '50%',
     paddingBottom: spacing.lg,
   },
+  // Manually driven by isRTL rather than left to RN's native auto-mirror:
+  // forceRTL only takes visual effect after a real app restart (see
+  // LanguageContext), so a live language switch needs these rows to flip
+  // immediately. marginEnd/marginStart resolve just as statically, so gaps
+  // below are picked explicitly by physical side too.
   header: {
-    flexDirection: 'row',
+    flexDirection: isRTL ? 'row-reverse' : 'row',
     justifyContent: 'space-between',
     alignItems: 'center',
     padding: spacing.lg,
@@ -197,13 +202,14 @@ const createStyles = ({ colors, spacing, radii, fontSizes }) => StyleSheet.creat
     textAlign: 'right',
   },
   loaderRow: {
-    flexDirection: 'row',
+    flexDirection: isRTL ? 'row-reverse' : 'row',
     justifyContent: 'center',
     alignItems: 'center',
     marginVertical: spacing.xl,
   },
   loaderText: {
-    marginStart: spacing.sm,
+    marginLeft: isRTL ? 0 : spacing.sm,
+    marginRight: isRTL ? spacing.sm : 0,
     color: colors.textSecondary,
     fontSize: fontSizes.xs,
   },
@@ -211,7 +217,7 @@ const createStyles = ({ colors, spacing, radii, fontSizes }) => StyleSheet.creat
     paddingHorizontal: spacing.lg,
   },
   countryRow: {
-    flexDirection: 'row',
+    flexDirection: isRTL ? 'row-reverse' : 'row',
     alignItems: 'center',
     paddingVertical: spacing.md,
     borderBottomWidth: 1,
@@ -222,7 +228,8 @@ const createStyles = ({ colors, spacing, radii, fontSizes }) => StyleSheet.creat
   },
   countryFlag: {
     fontSize: fontSizes.lg,
-    marginEnd: spacing.sm,
+    marginRight: isRTL ? 0 : spacing.sm,
+    marginLeft: isRTL ? spacing.sm : 0,
   },
   countryRowText: {
     flex: 1,

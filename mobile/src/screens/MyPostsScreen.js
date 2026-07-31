@@ -592,11 +592,14 @@ const createStyles = (tokens, isRTL, isDark) =>
       height: 180,
       borderRadius: 0,
     },
-    // Row direction matches the real titleRow/postMetaRow/actionsRow below,
-    // which don't flip for RTL either (only their text does) - kept in sync
-    // so the skeleton doesn't visually jump when real content swaps in.
+    // Row direction matches the real titleRow below (also isRTL-driven, not
+    // left to RN's native auto-mirror - see titleRow) - kept in sync so the
+    // skeleton doesn't visually jump when real content swaps in. postMetaRow/
+    // actionsRow below are left as plain 'row' (multi-item toolbars, not an
+    // icon+label pair), so their skeletons (metaRowSkeleton/actionsRowSkeleton)
+    // stay plain 'row' too.
     titleRowSkeleton: {
-      flexDirection: 'row',
+      flexDirection: isRTL ? 'row-reverse' : 'row',
       alignItems: 'center',
       justifyContent: 'space-between',
       gap: 8,
@@ -659,11 +662,15 @@ const createStyles = (tokens, isRTL, isDark) =>
       justifyContent: 'center',
       alignItems: 'center',
     },
+    // Manually driven by isRTL rather than left to RN's native auto-mirror:
+    // forceRTL only takes visual effect after a real app restart (see
+    // LanguageContext), so a live language switch needs icon+label order to
+    // flip immediately. `gap` (not marginEnd) handles the spacing either way.
     statusTag: {
       position: 'absolute',
       top: 10,
       start: 10,
-      flexDirection: 'row',
+      flexDirection: isRTL ? 'row-reverse' : 'row',
       alignItems: 'center',
       gap: 4,
       paddingHorizontal: 9,
@@ -694,7 +701,7 @@ const createStyles = (tokens, isRTL, isDark) =>
       padding: 14,
     },
     titleRow: {
-      flexDirection: 'row',
+      flexDirection: isRTL ? 'row-reverse' : 'row',
       alignItems: 'flex-start',
       justifyContent: 'space-between',
       gap: 8,
@@ -723,7 +730,7 @@ const createStyles = (tokens, isRTL, isDark) =>
       marginBottom: 14,
     },
     infoRow: {
-      flexDirection: 'row',
+      flexDirection: isRTL ? 'row-reverse' : 'row',
       alignItems: 'center',
       gap: 5,
       flexShrink: 1,
@@ -744,7 +751,7 @@ const createStyles = (tokens, isRTL, isDark) =>
       paddingTop: 12,
     },
     actionButton: {
-      flexDirection: 'row',
+      flexDirection: isRTL ? 'row-reverse' : 'row',
       alignItems: 'center',
       gap: 6,
       paddingHorizontal: 12,

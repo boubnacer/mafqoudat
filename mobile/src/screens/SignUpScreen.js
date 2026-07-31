@@ -59,9 +59,9 @@ const SignUpScreen = ({ navigation }) => {
   const { currentLanguage } = useLanguage();
   const { isDark } = useTheme();
   const tokens = isDark ? colorTokens.dark : colorTokens.light;
-  const styles = useMemo(() => createStyles(tokens, isDark), [tokens, isDark]);
-  const { t } = useTranslation();
   const isRTL = currentLanguage === 'ar';
+  const styles = useMemo(() => createStyles(tokens, isDark, isRTL), [tokens, isDark, isRTL]);
+  const { t } = useTranslation();
   const textStyle = isRTL ? styles.textRTL : null;
 
   const passwordInputRef = useRef(null);
@@ -488,7 +488,7 @@ const SignUpScreen = ({ navigation }) => {
   );
 };
 
-const createStyles = (tokens, isDark) => StyleSheet.create({
+const createStyles = (tokens, isDark, isRTL) => StyleSheet.create({
   container: {
     flex: 1,
     backgroundColor: tokens.surfaceBase,
@@ -550,15 +550,21 @@ const createStyles = (tokens, isDark) => StyleSheet.create({
   placeholderColor: {
     color: `${tokens.ink}66`,
   },
+  // Manually driven by isRTL rather than left to RN's native auto-mirror:
+  // forceRTL only takes visual effect after a real app restart (see
+  // LanguageContext), so a live language switch needs these rows to flip
+  // immediately. paddingStart/marginStart/marginEnd resolve just as
+  // statically, so gaps below are picked explicitly by physical side too.
   passwordWrapper: {
-    flexDirection: 'row',
+    flexDirection: isRTL ? 'row-reverse' : 'row',
     alignItems: 'center',
     height: 52,
     borderWidth: 1,
     borderColor: `${tokens.ink}${isDark ? '1F' : '14'}`,
     borderRadius: radiusTokens.md,
     backgroundColor: `${tokens.ink}0A`,
-    paddingStart: 14,
+    paddingLeft: isRTL ? 0 : 14,
+    paddingRight: isRTL ? 14 : 0,
   },
   passwordInput: {
     flex: 1,
@@ -598,7 +604,7 @@ const createStyles = (tokens, isDark) => StyleSheet.create({
     color: tokens.status.lost.main,
   },
   countryInput: {
-    flexDirection: 'row',
+    flexDirection: isRTL ? 'row-reverse' : 'row',
     alignItems: 'center',
     justifyContent: 'space-between',
   },
@@ -617,15 +623,17 @@ const createStyles = (tokens, isDark) => StyleSheet.create({
   countryInputChevron: {
     fontSize: 18,
     color: `${tokens.ink}99`,
-    marginStart: 8,
+    marginLeft: isRTL ? 0 : 8,
+    marginRight: isRTL ? 8 : 0,
   },
   termsRow: {
-    flexDirection: 'row',
+    flexDirection: isRTL ? 'row-reverse' : 'row',
     alignItems: 'flex-start',
   },
   checkboxTouchable: {
     paddingTop: 2,
-    paddingEnd: 10,
+    paddingRight: isRTL ? 0 : 10,
+    paddingLeft: isRTL ? 10 : 0,
   },
   checkboxBox: {
     width: 22,
@@ -715,7 +723,7 @@ const createStyles = (tokens, isDark) => StyleSheet.create({
     letterSpacing: 0.5,
   },
   googleButton: {
-    flexDirection: 'row',
+    flexDirection: isRTL ? 'row-reverse' : 'row',
     alignItems: 'center',
     justifyContent: 'center',
     height: 52,
@@ -743,7 +751,7 @@ const createStyles = (tokens, isDark) => StyleSheet.create({
     marginTop: 8,
   },
   signInRow: {
-    flexDirection: 'row',
+    flexDirection: isRTL ? 'row-reverse' : 'row',
     justifyContent: 'center',
     alignItems: 'center',
     flexWrap: 'wrap',
@@ -753,7 +761,8 @@ const createStyles = (tokens, isDark) => StyleSheet.create({
     fontFamily: fontFamilies.body,
     fontSize: 14,
     color: `${tokens.ink}99`,
-    marginEnd: 6,
+    marginRight: isRTL ? 0 : 6,
+    marginLeft: isRTL ? 6 : 0,
   },
   signInLink: {
     fontFamily: fontFamilies.bodySemiBold,
