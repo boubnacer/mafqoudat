@@ -71,6 +71,22 @@ const StepLocation = ({
 
   const sourceCaptionPrefix = currentLanguage === 'ar' ? 'المصدر' : 'Source';
 
+  // Extra disambiguation context for a search result - state/province
+  // (GeoNames) or a full formatted address incl. street/locality/country
+  // (Google Places). Never saved with the post; shown only so the user can
+  // confirm it's the right place among same-named cities. DB-sourced cities
+  // carry neither field, so this naturally renders nothing for them.
+  const getCityExtraInfo = (city) => {
+    if (city.source === 'google' && city.formattedAddress) {
+      return city.formattedAddress;
+    }
+    if (city.source === 'geonames' && city.adminName1) {
+      const countryLabel = city.country?.label;
+      return countryLabel ? `${city.adminName1}, ${countryLabel}` : city.adminName1;
+    }
+    return null;
+  };
+
   return (
     <Box display="flex" flexDirection="column" gap={3}>
       {/* Location Section */}
@@ -393,6 +409,15 @@ const StepLocation = ({
                             {city.labels?.fr && currentLanguage !== 'fr' && ` • ${city.labels.fr}`}
                             {city.labels?.en && currentLanguage !== 'en' && ` • ${city.labels.en}`}
                           </Typography>
+                          {getCityExtraInfo(city) && (
+                            <Typography variant="caption" color="text.secondary" sx={{
+                              display: 'block',
+                              zIndex: '999999 !important',
+                              position: 'relative'
+                            }}>
+                              {getCityExtraInfo(city)}
+                            </Typography>
+                          )}
                           <Typography variant="caption" sx={{
                             display: 'block',
                             fontWeight: 600,
@@ -466,6 +491,15 @@ const StepLocation = ({
                               {city.labels?.fr && currentLanguage !== 'fr' && ` • ${city.labels.fr}`}
                               {city.labels?.en && currentLanguage !== 'en' && ` • ${city.labels.en}`}
                             </Typography>
+                            {getCityExtraInfo(city) && (
+                              <Typography variant="caption" color="text.secondary" sx={{
+                                display: 'block',
+                                zIndex: '999999 !important',
+                                position: 'relative'
+                              }}>
+                                {getCityExtraInfo(city)}
+                              </Typography>
+                            )}
                             <Typography variant="caption" sx={{
                               display: 'block',
                               fontWeight: 600,

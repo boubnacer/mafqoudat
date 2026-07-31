@@ -433,6 +433,12 @@ const searchCities = async (req, res) => {
           population: city.population,
           coordinates: city.coordinates,
           placeId: city.placeId, // Google Places ID
+          // Disambiguation context surfaced in the NewPost form's city
+          // dropdown only (not saved) - GeoNames supplies the admin region
+          // (state/province), Google Places supplies a full formatted
+          // address (locality, region, country).
+          adminName1: city.adminName1,
+          formattedAddress: city.formattedAddress,
           country: country ? {
             _id: country._id,
             code: country.code,
