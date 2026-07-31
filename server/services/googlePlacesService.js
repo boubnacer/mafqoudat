@@ -126,7 +126,7 @@ class GooglePlacesService {
 
         // Fetch additional language variants if needed
         const enrichedCities = await Promise.all(
-          cities.map(city => this.enrichWithTranslations(city))
+          cities.map(city => this.enrichWithTranslations(city, requestLanguage))
         );
 
         console.log(`✅ Google Places: ${enrichedCities.length} cities found`);
@@ -226,6 +226,11 @@ class GooglePlacesService {
     // Extract city name
     const cityName = this.extractCityName(place);
 
+    // State/province/region, e.g. "Grand Casablanca" - same disambiguation
+    // role as GeoNames' adminName1, so the two sources render identically in
+    // the NewPost city dropdown (StepLocation.jsx/CityPickerModal.js).
+    const adminName1 = this.extractAdminArea(place);
+
     // Determine if this is a capital city (basic check)
     const isCapital = place.types.includes('political') || 
                      place.name.toLowerCase().includes('capital') ||
@@ -255,8 +260,25 @@ class GooglePlacesService {
         longitude: place.geometry.location.lng
       } : null,
       formattedAddress: place.formatted_address,
+      adminName1: adminName1,
       types: place.types
     };
+  }
+
+  /**
+   * Extract the state/province/region name from a place's address components
+   * (Google's `administrative_area_level_1`). Not populated for every
+   * country - Google's admin-area coverage is thinner than GeoNames' for
+   * some regions, so this can legitimately come back null.
+   * @param {Object} place - Google Places result
+   * @returns {string|null}
+   */
+  extractAdminArea(place) {
+    if (!place.address_components) return null;
+    const adminComponent = place.address_components.find(component =>
+      component.types.includes('administrative_area_level_1')
+    );
+    return adminComponent ? adminComponent.long_name : null;
   }
 
   /**
@@ -322,9 +344,11 @@ class GooglePlacesService {
    * Enrich city data with NATIVE names in all languages (like GeoNames does)
    * This makes 3 API calls to get the native name in each language
    * @param {Object} cityData - Formatted city data
+   * @param {string} requestLanguage - The language the original search was made in;
+   *  used to prefer an admin-area name in that language when one is found.
    * @returns {Promise<Object>} Enriched city data with native names
    */
-  async enrichWithTranslations(cityData) {
+  async enrichWithTranslations(cityData, requestLanguage = 'en') {
     try {
       const isArabicScript = (text) => /[؀-ۿ]/.test(text || '');
 
@@ -344,16 +368,23 @@ class GooglePlacesService {
         languagesToFetch.unshift('en');
       }
       let translationQuality = 0;
-      
+      // Google's Text Search results don't include address_components (only
+      // Place Details does) - the initial formatCityData() call already ran
+      // extractAdminArea() and came up empty, so this stays null unless one
+      // of the Details calls below finds it. Rides along on the same
+      // requests already being made for name translation - address_components
+      // costs nothing extra on top of the 'name' field.
+      let adminName1 = cityData.adminName1 || null;
+
       for (const lang of languagesToFetch) {
         if (!this.canMakeRequest()) {
           break;
         }
-        
+
         try {
           const params = {
             place_id: cityData.placeId,
-            fields: 'name',
+            fields: 'name,address_components',
             language: lang,
             key: this.apiKey
           };
@@ -368,17 +399,26 @@ class GooglePlacesService {
           if (response.data && response.data.status === 'OK' && response.data.result) {
             const translatedName = response.data.result.name;
             nativeNames[lang] = translatedName;
-            
+
             // If we got a different name, that's a good translation
             if (translatedName !== cityData.labels.en) {
               translationQuality++;
+            }
+
+            // Prefer the admin-area name in the UI's own language; otherwise
+            // take whichever language's response has it first.
+            const extractedAdminArea = this.extractAdminArea(response.data.result);
+            if (extractedAdminArea && (!adminName1 || lang === requestLanguage)) {
+              adminName1 = extractedAdminArea;
             }
           }
         } catch (error) {
           // Silently continue with default name
         }
       }
-      
+
+      cityData.adminName1 = adminName1;
+
       // Update cityData with native names, but keep fallbacks
       cityData.labels = {
         en: nativeNames.en || cityData.labels.en || cityData.code,

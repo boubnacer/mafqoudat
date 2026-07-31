@@ -224,63 +224,79 @@ const WorldActivityMap = ({
   const panel = tokens.surfaceRaised;
   const brand = tokens.brandPrimary;
 
-  if (isLoading || !geoFeatures) {
-    return <View style={[styles.mapBox, { backgroundColor: hexToRgba(ink, 0.05) }]} />;
-  }
-
+  const ready = !isLoading && !!geoFeatures;
   const scale = boxSize && boxSize.width ? boxSize.width / MAP_WIDTH : 1;
 
-  const cityPoints = cities
-    .map((city) => {
-      const point = projection([city.lon, city.lat]);
-      if (!point) return null;
-      const [x, y] = point;
-      return { city, x, y, r: cityRadius(city.count) };
-    })
-    .filter(Boolean);
+  const cityPoints = ready
+    ? cities
+        .map((city) => {
+          const point = projection([city.lon, city.lat]);
+          if (!point) return null;
+          const [x, y] = point;
+          return { city, x, y, r: cityRadius(city.count) };
+        })
+        .filter(Boolean)
+    : [];
 
+  // Always the same outer node (loading placeholder and loaded content are
+  // both children of it) so `onLayout` reliably fires on first mount and
+  // `boxSize` gets measured - previously the loading state returned a whole
+  // separate <View> without onLayout, and swapping to the loaded <View> once
+  // data arrived didn't trigger a new layout event (same width/aspectRatio,
+  // so Yoga saw no size change), leaving boxSize stuck at null and city
+  // labels positioned using the unscaled 520-coordinate space instead of the
+  // box's actual on-screen size - pushing them outside the clipped box on
+  // any cold start where the dashboard fetch was still in flight when this
+  // component first mounted.
   return (
-    <View style={styles.mapBox} onLayout={(e) => setBoxSize(e.nativeEvent.layout)}>
-      <Svg width="100%" height="100%" viewBox={`0 0 ${MAP_WIDTH} ${MAP_HEIGHT}`}>
-        {countryShapes.map(({ geoFeat, d }, index) => {
-          const entry = activityByNumericId.get(geoFeat.id);
-          const isCurrent = geoFeat.id === currentNumericId;
-          const fill = entry
-            ? hexToRgba(brand, 0.22 + (entry.count / maxCount) * 0.68)
-            : hexToRgba(ink, isDark ? 0.14 : 0.08);
-          return (
-            <Path
-              key={`${geoFeat.id}-${index}`}
-              d={d}
-              fill={fill}
-              stroke={isCurrent ? brand : hexToRgba(panel, isDark ? 0.4 : 0.8)}
-              strokeWidth={isCurrent ? 1.6 : 0.5}
-            />
-          );
-        })}
-        {cityPoints.map(({ city, x, y, r }, index) => (
-          <Circle key={`${city.name}-${index}`} cx={x} cy={y} r={r} fill={panel} stroke={brand} strokeWidth={2} />
-        ))}
-      </Svg>
-      {/* City labels are drawn as a plain RN `Text` overlay, not SvgText -
-          react-native-svg's native text renderer doesn't perform Arabic
-          shaping/ligature joining, so Arabic city names would render as
-          isolated letters. Positions reuse the same projected x/y as the
-          markers above; not mirrored for RTL, matching the map itself
-          (see file header). */}
-      <View style={StyleSheet.absoluteFill} pointerEvents="none">
-        {cityPoints.map(({ city, x, y, r }, index) => (
-          <CityLabel
-            key={`${city.name}-${index}`}
-            x={x}
-            y={y + r + 4}
-            text={city.name}
-            ink={ink}
-            panel={panel}
-            scale={scale}
-          />
-        ))}
-      </View>
+    <View
+      style={[styles.mapBox, !ready && { backgroundColor: hexToRgba(ink, 0.05) }]}
+      onLayout={(e) => setBoxSize(e.nativeEvent.layout)}
+    >
+      {ready && (
+        <>
+          <Svg width="100%" height="100%" viewBox={`0 0 ${MAP_WIDTH} ${MAP_HEIGHT}`}>
+            {countryShapes.map(({ geoFeat, d }, index) => {
+              const entry = activityByNumericId.get(geoFeat.id);
+              const isCurrent = geoFeat.id === currentNumericId;
+              const fill = entry
+                ? hexToRgba(brand, 0.22 + (entry.count / maxCount) * 0.68)
+                : hexToRgba(ink, isDark ? 0.14 : 0.08);
+              return (
+                <Path
+                  key={`${geoFeat.id}-${index}`}
+                  d={d}
+                  fill={fill}
+                  stroke={isCurrent ? brand : hexToRgba(panel, isDark ? 0.4 : 0.8)}
+                  strokeWidth={isCurrent ? 1.6 : 0.5}
+                />
+              );
+            })}
+            {cityPoints.map(({ city, x, y, r }, index) => (
+              <Circle key={`${city.name}-${index}`} cx={x} cy={y} r={r} fill={panel} stroke={brand} strokeWidth={2} />
+            ))}
+          </Svg>
+          {/* City labels are drawn as a plain RN `Text` overlay, not SvgText -
+              react-native-svg's native text renderer doesn't perform Arabic
+              shaping/ligature joining, so Arabic city names would render as
+              isolated letters. Positions reuse the same projected x/y as the
+              markers above; not mirrored for RTL, matching the map itself
+              (see file header). */}
+          <View style={StyleSheet.absoluteFill} pointerEvents="none">
+            {cityPoints.map(({ city, x, y, r }, index) => (
+              <CityLabel
+                key={`${city.name}-${index}`}
+                x={x}
+                y={y + r + 4}
+                text={city.name}
+                ink={ink}
+                panel={panel}
+                scale={scale}
+              />
+            ))}
+          </View>
+        </>
+      )}
     </View>
   );
 };

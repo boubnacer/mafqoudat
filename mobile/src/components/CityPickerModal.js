@@ -32,6 +32,41 @@ import { colorTokens, radiusTokens, fontFamilies } from '../theme/tokens';
 const SEARCH_DEBOUNCE_MS = 300;
 const MIN_SEARCH_LENGTH = 2;
 
+// Mirrors web's getCitySourceInfo/getCityExtraInfo (StepLocation.jsx) so the
+// mobile picker shows the same "which API answered" + disambiguation context
+// as the web dropdown, not just a bare city name.
+const CITY_SOURCE_KEYS = {
+  geonames: 'citySourceGeonames',
+  google: 'citySourceGoogle',
+  database: 'citySourceDatabase',
+};
+
+const getCitySourceLabel = (source, t) => t(CITY_SOURCE_KEYS[source] || CITY_SOURCE_KEYS.database);
+
+const getCityExtraInfo = (city) => {
+  if (city.adminName1) {
+    const countryLabel = city.country?.label;
+    return countryLabel ? `${city.adminName1}, ${countryLabel}` : city.adminName1;
+  }
+  if (city.source === 'google' && city.formattedAddress) {
+    return city.formattedAddress;
+  }
+  return null;
+};
+
+// Other-language labels shown under the primary one, e.g. primary "الرباط"
+// with a secondary "• Rabat • Rabat" line - same bilingual display as web's
+// dropdown (StepLocation.jsx), so a result is recognizable regardless of
+// which script the user is more familiar with.
+const getSecondaryLabels = (city, currentLanguage) => {
+  if (!city.labels) return '';
+  const order = ['ar', 'fr', 'en'].filter((lang) => lang !== currentLanguage);
+  return order
+    .map((lang) => city.labels[lang])
+    .filter(Boolean)
+    .join(' • ');
+};
+
 const CityPickerModal = ({ visible, onClose, t, currentLanguage, isRTL, countryId, countryCode, getCities, onSelect }) => {
   const { isDark } = useTheme();
   const tokens = isDark ? colorTokens.dark : colorTokens.light;
@@ -163,16 +198,34 @@ const CityPickerModal = ({ visible, onClose, t, currentLanguage, isRTL, countryI
             <FlatList
               data={displayedCities}
               keyExtractor={(city, index) => city._id || city.id || city.code || `city-${index}`}
-              renderItem={({ item }) => (
-                <TouchableOpacity style={styles.row} onPress={() => handleSelect(item)} activeOpacity={0.7}>
-                  <Text style={[styles.rowLabel, textStyle]} numberOfLines={1}>
-                    {getLocalizedLabel(item, currentLanguage)}
-                  </Text>
-                  {!item._id && !item.id ? (
-                    <Text style={styles.citySourceBadge}>{item.source || ''}</Text>
-                  ) : null}
-                </TouchableOpacity>
-              )}
+              renderItem={({ item }) => {
+                const secondaryLabels = getSecondaryLabels(item, currentLanguage);
+                const extraInfo = getCityExtraInfo(item);
+                return (
+                  <TouchableOpacity style={styles.row} onPress={() => handleSelect(item)} activeOpacity={0.7}>
+                    <View style={styles.rowTextGroup}>
+                      <Text style={[styles.rowLabel, textStyle]} numberOfLines={1}>
+                        {getLocalizedLabel(item, currentLanguage)}
+                      </Text>
+                      {secondaryLabels ? (
+                        <Text style={[styles.rowSecondaryLabel, textStyle]} numberOfLines={1}>
+                          {secondaryLabels}
+                        </Text>
+                      ) : null}
+                      {extraInfo ? (
+                        <Text style={[styles.rowExtraInfo, textStyle]} numberOfLines={1}>
+                          {extraInfo}
+                        </Text>
+                      ) : null}
+                      {item.source ? (
+                        <Text style={[styles.citySourceBadge, textStyle]} numberOfLines={1}>
+                          {`${t('citySourceLabel')}: ${getCitySourceLabel(item.source, t)}`}
+                        </Text>
+                      ) : null}
+                    </View>
+                  </TouchableOpacity>
+                );
+              }}
               ListEmptyComponent={
                 <Text style={[styles.emptyText, textStyle]}>{t('cityNoResults')}</Text>
               }
@@ -286,24 +339,35 @@ const createStyles = (tokens, isDark) =>
       paddingBottom: 16,
     },
     row: {
-      flexDirection: 'row',
-      justifyContent: 'space-between',
-      alignItems: 'center',
       paddingVertical: 13,
       borderBottomWidth: 1,
       borderBottomColor: `${tokens.ink}${isDark ? '14' : '0F'}`,
     },
-    rowLabel: {
+    rowTextGroup: {
       flex: 1,
+    },
+    rowLabel: {
       fontFamily: fontFamilies.body,
       fontSize: 15,
       color: tokens.ink,
     },
+    rowSecondaryLabel: {
+      fontFamily: fontFamilies.body,
+      fontSize: 12,
+      color: `${tokens.ink}99`,
+      marginTop: 2,
+    },
+    rowExtraInfo: {
+      fontFamily: fontFamilies.body,
+      fontSize: 12,
+      color: `${tokens.ink}99`,
+      marginTop: 2,
+    },
     citySourceBadge: {
       fontSize: 11,
-      color: `${tokens.ink}80`,
-      textTransform: 'uppercase',
-      marginStart: 8,
+      fontWeight: '600',
+      color: tokens.brandPrimary,
+      marginTop: 2,
     },
     emptyText: {
       textAlign: 'center',

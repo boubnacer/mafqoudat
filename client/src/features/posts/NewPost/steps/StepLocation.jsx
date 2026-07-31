@@ -71,18 +71,20 @@ const StepLocation = ({
 
   const sourceCaptionPrefix = currentLanguage === 'ar' ? 'المصدر' : 'Source';
 
-  // Extra disambiguation context for a search result - state/province
-  // (GeoNames) or a full formatted address incl. street/locality/country
-  // (Google Places). Never saved with the post; shown only so the user can
-  // confirm it's the right place among same-named cities. DB-sourced cities
-  // carry neither field, so this naturally renders nothing for them.
+  // Extra disambiguation context for a search result - state/province/region
+  // (adminName1, from GeoNames or, when available, Google's
+  // administrative_area_level_1) or, failing that, Google's full formatted
+  // address incl. street/locality/country. Never saved with the post; shown
+  // only so the user can confirm it's the right place among same-named
+  // cities. DB-sourced cities carry none of these fields, so this naturally
+  // renders nothing for them.
   const getCityExtraInfo = (city) => {
-    if (city.source === 'google' && city.formattedAddress) {
-      return city.formattedAddress;
-    }
-    if (city.source === 'geonames' && city.adminName1) {
+    if (city.adminName1) {
       const countryLabel = city.country?.label;
       return countryLabel ? `${city.adminName1}, ${countryLabel}` : city.adminName1;
+    }
+    if (city.source === 'google' && city.formattedAddress) {
+      return city.formattedAddress;
     }
     return null;
   };
