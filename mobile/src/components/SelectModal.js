@@ -36,7 +36,7 @@ const SelectModal = ({
 }) => {
   const { isDark } = useTheme();
   const tokens = isDark ? colorTokens.dark : colorTokens.light;
-  const styles = useMemo(() => createStyles(tokens, isDark), [tokens, isDark]);
+  const styles = useMemo(() => createStyles(tokens, isDark, isRTL), [tokens, isDark, isRTL]);
   const textStyle = isRTL ? styles.textRTL : null;
 
   const [query, setQuery] = useState('');
@@ -143,7 +143,7 @@ const SelectModal = ({
   );
 };
 
-const createStyles = (tokens, isDark) =>
+const createStyles = (tokens, isDark, isRTL) =>
   StyleSheet.create({
     overlay: {
       flex: 1,
@@ -161,8 +161,13 @@ const createStyles = (tokens, isDark) =>
       minHeight: '45%',
       paddingBottom: 16,
     },
+    // Manually driven by isRTL rather than left to RN's native auto-mirror:
+    // forceRTL only takes visual effect after a real app restart (see
+    // LanguageContext), so a live language switch needs these rows to flip
+    // immediately. marginEnd/marginStart resolve just as statically, so gaps
+    // below are picked explicitly by physical side too.
     header: {
-      flexDirection: 'row',
+      flexDirection: isRTL ? 'row-reverse' : 'row',
       justifyContent: 'space-between',
       alignItems: 'center',
       paddingHorizontal: 20,
@@ -185,10 +190,11 @@ const createStyles = (tokens, isDark) =>
       backgroundColor: `${tokens.ink}0A`,
       justifyContent: 'center',
       alignItems: 'center',
-      marginStart: 8,
+      marginLeft: isRTL ? 0 : 8,
+      marginRight: isRTL ? 8 : 0,
     },
     searchRow: {
-      flexDirection: 'row',
+      flexDirection: isRTL ? 'row-reverse' : 'row',
       alignItems: 'center',
       backgroundColor: `${tokens.ink}0A`,
       borderRadius: radiusTokens.md,
@@ -200,7 +206,8 @@ const createStyles = (tokens, isDark) =>
       paddingHorizontal: 12,
     },
     searchIcon: {
-      marginEnd: 8,
+      marginRight: isRTL ? 0 : 8,
+      marginLeft: isRTL ? 8 : 0,
     },
     searchInput: {
       flex: 1,
@@ -224,14 +231,15 @@ const createStyles = (tokens, isDark) =>
       paddingBottom: 8,
     },
     row: {
-      flexDirection: 'row',
+      flexDirection: isRTL ? 'row-reverse' : 'row',
       alignItems: 'center',
       paddingVertical: 13,
       borderBottomWidth: 1,
       borderBottomColor: `${tokens.ink}${isDark ? '14' : '0F'}`,
     },
     rowLeading: {
-      marginEnd: 12,
+      marginRight: isRTL ? 0 : 12,
+      marginLeft: isRTL ? 12 : 0,
     },
     rowLabel: {
       flex: 1,
@@ -247,7 +255,8 @@ const createStyles = (tokens, isDark) =>
       borderColor: `${tokens.ink}40`,
       justifyContent: 'center',
       alignItems: 'center',
-      marginStart: 8,
+      marginLeft: isRTL ? 0 : 8,
+      marginRight: isRTL ? 8 : 0,
     },
     checkboxChecked: {
       backgroundColor: tokens.brandPrimary,

@@ -70,7 +70,7 @@ const getSecondaryLabels = (city, currentLanguage) => {
 const CityPickerModal = ({ visible, onClose, t, currentLanguage, isRTL, countryId, countryCode, getCities, onSelect }) => {
   const { isDark } = useTheme();
   const tokens = isDark ? colorTokens.dark : colorTokens.light;
-  const styles = useMemoStyles(tokens, isDark);
+  const styles = useMemoStyles(tokens, isDark, isRTL);
 
   const [plainCities, setPlainCities] = useState([]);
   const [citiesLoading, setCitiesLoading] = useState(false);
@@ -242,15 +242,15 @@ const CityPickerModal = ({ visible, onClose, t, currentLanguage, isRTL, countryI
 
 // Small inline hook so createStyles is memoized without pulling in useMemo
 // at every call site above - keeps the component body focused on logic.
-function useMemoStyles(tokens, isDark) {
-  const ref = useRef({ tokens: null, isDark: null, styles: null });
-  if (ref.current.tokens !== tokens || ref.current.isDark !== isDark) {
-    ref.current = { tokens, isDark, styles: createStyles(tokens, isDark) };
+function useMemoStyles(tokens, isDark, isRTL) {
+  const ref = useRef({ tokens: null, isDark: null, isRTL: null, styles: null });
+  if (ref.current.tokens !== tokens || ref.current.isDark !== isDark || ref.current.isRTL !== isRTL) {
+    ref.current = { tokens, isDark, isRTL, styles: createStyles(tokens, isDark, isRTL) };
   }
   return ref.current.styles;
 }
 
-const createStyles = (tokens, isDark) =>
+const createStyles = (tokens, isDark, isRTL) =>
   StyleSheet.create({
     overlay: {
       flex: 1,
@@ -268,8 +268,13 @@ const createStyles = (tokens, isDark) =>
       minHeight: '50%',
       paddingBottom: 16,
     },
+    // Manually driven by isRTL rather than left to RN's native auto-mirror:
+    // forceRTL only takes visual effect after a real app restart (see
+    // LanguageContext), so a live language switch needs these rows to flip
+    // immediately. marginEnd/marginStart resolve just as statically, so gaps
+    // below are picked explicitly by physical side too.
     header: {
-      flexDirection: 'row',
+      flexDirection: isRTL ? 'row-reverse' : 'row',
       justifyContent: 'space-between',
       alignItems: 'center',
       paddingHorizontal: 20,
@@ -292,10 +297,11 @@ const createStyles = (tokens, isDark) =>
       backgroundColor: `${tokens.ink}0A`,
       justifyContent: 'center',
       alignItems: 'center',
-      marginStart: 8,
+      marginLeft: isRTL ? 0 : 8,
+      marginRight: isRTL ? 8 : 0,
     },
     searchRow: {
-      flexDirection: 'row',
+      flexDirection: isRTL ? 'row-reverse' : 'row',
       alignItems: 'center',
       backgroundColor: `${tokens.ink}0A`,
       borderRadius: radiusTokens.md,
@@ -307,7 +313,8 @@ const createStyles = (tokens, isDark) =>
       paddingHorizontal: 12,
     },
     searchIcon: {
-      marginEnd: 8,
+      marginRight: isRTL ? 0 : 8,
+      marginLeft: isRTL ? 8 : 0,
     },
     searchInput: {
       flex: 1,
@@ -320,13 +327,14 @@ const createStyles = (tokens, isDark) =>
       textAlign: 'right',
     },
     loaderRow: {
-      flexDirection: 'row',
+      flexDirection: isRTL ? 'row-reverse' : 'row',
       justifyContent: 'center',
       alignItems: 'center',
       marginVertical: 28,
     },
     loaderText: {
-      marginStart: 8,
+      marginLeft: isRTL ? 0 : 8,
+      marginRight: isRTL ? 8 : 0,
       color: `${tokens.ink}99`,
       fontFamily: fontFamilies.body,
       fontSize: 13,

@@ -113,7 +113,7 @@ const AppHeader = ({
   const countryLabel = countryRef ? getLocalizedLabel(countryRef, currentLanguage) : '';
   const countryFlag = countryRef?.flag || '🌍';
 
-  const styles = createStyles({ tokens, isDark });
+  const styles = createStyles({ tokens, isDark, isRTL });
   const textStyle = isRTL ? styles.textRTL : null;
 
   return (
@@ -177,7 +177,7 @@ const AppHeader = ({
   );
 };
 
-const createStyles = ({ tokens, isDark }) =>
+const createStyles = ({ tokens, isDark, isRTL }) =>
   StyleSheet.create({
     container: {
       backgroundColor: tokens.surfaceRaised,
@@ -189,12 +189,18 @@ const createStyles = ({ tokens, isDark }) =>
       shadowRadius: 8,
       elevation: 3,
     },
+    // Manually driven by isRTL rather than left to RN's native auto-mirror:
+    // I18nManager.forceRTL only takes visual effect after a real app restart
+    // (see LanguageContext), so a live language switch needs this order to
+    // flip immediately. marginEnd/marginStart resolve the same stale way, so
+    // the backButton/brandMark gaps below are also picked explicitly by side
+    // rather than logically, to land on the correct edge right away too.
     topRow: {
-      flexDirection: 'row',
+      flexDirection: isRTL ? 'row-reverse' : 'row',
       alignItems: 'center',
     },
     brand: {
-      flexDirection: 'row',
+      flexDirection: isRTL ? 'row-reverse' : 'row',
       alignItems: 'center',
       flexShrink: 1,
     },
@@ -205,7 +211,8 @@ const createStyles = ({ tokens, isDark }) =>
       backgroundColor: `${tokens.brandPrimary}1F`,
       justifyContent: 'center',
       alignItems: 'center',
-      marginEnd: 10,
+      marginRight: isRTL ? 0 : 10,
+      marginLeft: isRTL ? 10 : 0,
     },
     brandMarkImg: {
       width: 23,
@@ -222,7 +229,8 @@ const createStyles = ({ tokens, isDark }) =>
       backgroundColor: `${tokens.ink}0A`,
       justifyContent: 'center',
       alignItems: 'center',
-      marginEnd: 8,
+      marginRight: isRTL ? 0 : 8,
+      marginLeft: isRTL ? 8 : 0,
     },
     title: {
       fontFamily: fontFamilies.bodySemiBold,

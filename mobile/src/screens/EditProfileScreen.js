@@ -65,7 +65,7 @@ const EditProfileScreen = ({ navigation, route }) => {
 
   const tokens = isDark ? colorTokens.dark : colorTokens.light;
   const legacy = isDark ? darkColors : lightColors;
-  const styles = useMemo(() => createStyles(tokens, legacy, isDark), [tokens, legacy, isDark]);
+  const styles = useMemo(() => createStyles(tokens, legacy, isDark, isRTL), [tokens, legacy, isDark, isRTL]);
   const textStyle = isRTL ? styles.textRTL : null;
 
   const [firstName, setFirstName] = useState(user?.profile?.firstName || '');
@@ -312,7 +312,7 @@ const EditProfileScreen = ({ navigation, route }) => {
   );
 };
 
-const createStyles = (tokens, legacy, isDark) =>
+const createStyles = (tokens, legacy, isDark, isRTL) =>
   StyleSheet.create({
     container: {
       flex: 1,
@@ -396,8 +396,13 @@ const createStyles = (tokens, legacy, isDark) =>
       fontSize: 12,
       marginTop: 6,
     },
+    // Manually driven by isRTL rather than left to RN's native auto-mirror:
+    // forceRTL only takes visual effect after a real app restart (see
+    // LanguageContext), so a live language switch needs icon/label order to
+    // flip immediately. marginEnd resolves just as statically, so the gaps
+    // below are picked explicitly by physical side too.
     selectButton: {
-      flexDirection: 'row',
+      flexDirection: isRTL ? 'row-reverse' : 'row',
       alignItems: 'center',
       height: 52,
       paddingHorizontal: 14,
@@ -407,11 +412,13 @@ const createStyles = (tokens, legacy, isDark) =>
       borderColor: `${tokens.ink}${isDark ? '1F' : '14'}`,
     },
     selectButtonIcon: {
-      marginEnd: 10,
+      marginRight: isRTL ? 0 : 10,
+      marginLeft: isRTL ? 10 : 0,
     },
     countryFlagText: {
       fontSize: 18,
-      marginEnd: 10,
+      marginRight: isRTL ? 0 : 10,
+      marginLeft: isRTL ? 10 : 0,
     },
     selectButtonText: {
       flex: 1,

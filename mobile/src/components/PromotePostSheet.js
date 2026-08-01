@@ -17,7 +17,7 @@ import { colorTokens, radiusTokens, fontFamilies } from '../theme/tokens';
 const PromotePostSheet = ({ visible, onClose, postId, t, isRTL, onSubmitted }) => {
   const { isDark } = useTheme();
   const tokens = isDark ? colorTokens.dark : colorTokens.light;
-  const styles = useMemo(() => createStyles(tokens, isDark), [tokens, isDark]);
+  const styles = useMemo(() => createStyles(tokens, isDark, isRTL), [tokens, isDark, isRTL]);
 
   const [phoneNumber, setPhoneNumber] = useState('');
   const [isSubmitting, setIsSubmitting] = useState(false);
@@ -121,7 +121,12 @@ const PromotePostSheet = ({ visible, onClose, postId, t, isRTL, onSubmitted }) =
   );
 };
 
-const createStyles = (tokens, isDark) =>
+// Manually driven by isRTL rather than left to RN's native auto-mirror:
+// forceRTL only takes visual effect after a real app restart (see
+// LanguageContext), so a live language switch needs these rows to flip
+// immediately. marginEnd resolves just as statically, so the gap below is
+// picked explicitly by physical side too.
+const createStyles = (tokens, isDark, isRTL) =>
   StyleSheet.create({
     overlay: {
       flex: 1,
@@ -138,7 +143,7 @@ const createStyles = (tokens, isDark) =>
       paddingBottom: 16,
     },
     header: {
-      flexDirection: 'row',
+      flexDirection: isRTL ? 'row-reverse' : 'row',
       justifyContent: 'space-between',
       alignItems: 'center',
       padding: 16,
@@ -198,7 +203,7 @@ const createStyles = (tokens, isDark) =>
       textAlign: 'right',
     },
     footer: {
-      flexDirection: 'row',
+      flexDirection: isRTL ? 'row-reverse' : 'row',
       paddingHorizontal: 16,
       paddingTop: 16,
       borderTopWidth: 1,
@@ -211,7 +216,8 @@ const createStyles = (tokens, isDark) =>
       borderWidth: 1,
       borderColor: tokens.brandPrimary,
       alignItems: 'center',
-      marginEnd: 8,
+      marginRight: isRTL ? 0 : 8,
+      marginLeft: isRTL ? 8 : 0,
     },
     cancelButtonText: {
       fontFamily: fontFamilies.bodySemiBold,

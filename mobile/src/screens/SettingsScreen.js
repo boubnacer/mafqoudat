@@ -185,8 +185,13 @@ const createStyles = (tokens, isDark, isRTL) =>
       flexWrap: 'wrap',
       gap: 8,
     },
+    // Manually driven by isRTL rather than left to RN's native auto-mirror:
+    // forceRTL only takes visual effect after a real app restart (see
+    // LanguageContext), so a live language switch needs icon+label order (and
+    // the accompanying gap margin, which resolves just as statically) to flip
+    // immediately.
     chip: {
-      flexDirection: 'row',
+      flexDirection: isRTL ? 'row-reverse' : 'row',
       alignItems: 'center',
       paddingHorizontal: 14,
       paddingVertical: 9,
@@ -200,7 +205,8 @@ const createStyles = (tokens, isDark, isRTL) =>
       borderColor: tokens.brandPrimary,
     },
     chipIcon: {
-      marginEnd: 6,
+      marginRight: isRTL ? 0 : 6,
+      marginLeft: isRTL ? 6 : 0,
     },
     chipText: {
       fontFamily: fontFamilies.bodyMedium,
@@ -219,7 +225,7 @@ const createStyles = (tokens, isDark, isRTL) =>
       ...getElevation(isDark, 1),
     },
     menuRow: {
-      flexDirection: 'row',
+      flexDirection: isRTL ? 'row-reverse' : 'row',
       justifyContent: 'space-between',
       alignItems: 'center',
       paddingHorizontal: 16,

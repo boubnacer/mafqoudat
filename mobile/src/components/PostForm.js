@@ -164,7 +164,8 @@ const PostForm = ({ mode, initialPost, isSubmitting, submitError, submitButtonLa
   const { isDark } = useTheme();
   const tokens = isDark ? colorTokens.dark : colorTokens.light;
   const legacy = isDark ? darkColors : lightColors;
-  const styles = useMemo(() => createStyles(tokens, legacy, isDark), [tokens, legacy, isDark]);
+  const isRTL = currentLanguage === 'ar';
+  const styles = useMemo(() => createStyles(tokens, legacy, isDark, isRTL), [tokens, legacy, isDark, isRTL]);
   const {
     floptions,
     categories,
@@ -174,7 +175,6 @@ const PostForm = ({ mode, initialPost, isSubmitting, submitError, submitButtonLa
     error: referenceDataError,
     retry: retryReferenceData,
   } = useReferenceData();
-  const isRTL = currentLanguage === 'ar';
   const isEdit = mode === 'edit';
   const textStyle = isRTL ? styles.textRTL : null;
 
@@ -992,7 +992,7 @@ const ReviewRow = ({ styles, label, value }) => (
   </View>
 );
 
-const createStyles = (tokens, legacy, isDark) => {
+const createStyles = (tokens, legacy, isDark, isRTL) => {
   const base = StyleSheet.create({
     flex: {
       flex: 1,
@@ -1072,8 +1072,13 @@ const createStyles = (tokens, legacy, isDark) => {
       marginBottom: 8,
       marginTop: -4,
     },
+    // Manually driven by isRTL rather than left to RN's native auto-mirror:
+    // forceRTL only takes visual effect after a real app restart (see
+    // LanguageContext), so a live language switch needs icon/label/badge
+    // order to flip immediately. marginEnd below resolves just as statically,
+    // so those gaps are picked explicitly by physical side too.
     selectButton: {
-      flexDirection: 'row',
+      flexDirection: isRTL ? 'row-reverse' : 'row',
       alignItems: 'center',
       height: 50,
       paddingHorizontal: 14,
@@ -1089,7 +1094,8 @@ const createStyles = (tokens, legacy, isDark) => {
       opacity: 0.5,
     },
     selectButtonLeading: {
-      marginEnd: 10,
+      marginRight: isRTL ? 0 : 10,
+      marginLeft: isRTL ? 10 : 0,
     },
     selectButtonText: {
       flex: 1,
@@ -1108,7 +1114,8 @@ const createStyles = (tokens, legacy, isDark) => {
       justifyContent: 'center',
       alignItems: 'center',
       paddingHorizontal: 5,
-      marginEnd: 8,
+      marginRight: isRTL ? 0 : 8,
+      marginLeft: isRTL ? 8 : 0,
     },
     selectButtonBadgeText: {
       color: '#fff',
@@ -1122,7 +1129,7 @@ const createStyles = (tokens, legacy, isDark) => {
       gap: 8,
     },
     categoryChip: {
-      flexDirection: 'row',
+      flexDirection: isRTL ? 'row-reverse' : 'row',
       alignItems: 'center',
       paddingHorizontal: 10,
       paddingVertical: 6,
@@ -1131,12 +1138,14 @@ const createStyles = (tokens, legacy, isDark) => {
       maxWidth: '100%',
     },
     categoryChipIcon: {
-      marginEnd: 5,
+      marginRight: isRTL ? 0 : 5,
+      marginLeft: isRTL ? 5 : 0,
     },
     categoryChipText: {
       fontFamily: fontFamilies.bodyMedium,
       fontSize: 13,
-      marginEnd: 6,
+      marginRight: isRTL ? 0 : 6,
+      marginLeft: isRTL ? 6 : 0,
       maxWidth: 140,
     },
     categoryIconBubble: {
@@ -1221,7 +1230,7 @@ const createStyles = (tokens, legacy, isDark) => {
       backgroundColor: isDark ? `${tokens.ink}0A` : `${tokens.ink}05`,
     },
     reviewSectionHeader: {
-      flexDirection: 'row',
+      flexDirection: isRTL ? 'row-reverse' : 'row',
       justifyContent: 'space-between',
       alignItems: 'center',
       marginBottom: 10,
@@ -1232,7 +1241,7 @@ const createStyles = (tokens, legacy, isDark) => {
       color: tokens.brandPrimary,
     },
     reviewEditButton: {
-      flexDirection: 'row',
+      flexDirection: isRTL ? 'row-reverse' : 'row',
       alignItems: 'center',
       gap: 4,
       paddingHorizontal: 8,
@@ -1245,7 +1254,7 @@ const createStyles = (tokens, legacy, isDark) => {
       fontSize: 12,
     },
     reviewRow: {
-      flexDirection: 'row',
+      flexDirection: isRTL ? 'row-reverse' : 'row',
       marginBottom: 6,
       gap: 8,
     },
@@ -1308,8 +1317,11 @@ const createStyles = (tokens, legacy, isDark) => {
       fontFamily: fontFamilies.bodySemiBold,
       fontSize: 13,
     },
+    // Manually driven by isRTL (see selectButton above) so Back/Submit swap
+    // sides, and backStepButton's own icon+label order flips, immediately on
+    // a live language switch rather than only after an app restart.
     footer: {
-      flexDirection: 'row',
+      flexDirection: isRTL ? 'row-reverse' : 'row',
       gap: 10,
       padding: 16,
       backgroundColor: tokens.surfaceRaised,
@@ -1317,7 +1329,7 @@ const createStyles = (tokens, legacy, isDark) => {
       borderTopColor: `${tokens.ink}${isDark ? '1F' : '14'}`,
     },
     backStepButton: {
-      flexDirection: 'row',
+      flexDirection: isRTL ? 'row-reverse' : 'row',
       alignItems: 'center',
       gap: 6,
       paddingHorizontal: 16,
@@ -1348,11 +1360,12 @@ const createStyles = (tokens, legacy, isDark) => {
       fontSize: 16,
     },
     submitButtonRow: {
-      flexDirection: 'row',
+      flexDirection: isRTL ? 'row-reverse' : 'row',
       alignItems: 'center',
     },
     submitButtonTextLoading: {
-      marginStart: 10,
+      marginLeft: isRTL ? 0 : 10,
+      marginRight: isRTL ? 10 : 0,
     },
   });
 
