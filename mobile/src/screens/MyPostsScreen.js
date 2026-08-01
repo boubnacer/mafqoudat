@@ -514,7 +514,7 @@ const MyPostsScreen = ({ navigation }) => {
                   !isLoading ? (
                     <View style={styles.emptyState}>
                       <Ionicons name="person-outline" size={48} color={`${tokens.brandPrimary}99`} />
-                      <Text style={[styles.emptyStateTitle, isRTL && styles.textRTL]}>{t('noMyPosts')}</Text>
+                      <Text style={styles.emptyStateTitle}>{t('noMyPosts')}</Text>
                       <TouchableOpacity style={styles.emptyStatePrimaryButton} onPress={handleNewPostPress}>
                         <Ionicons name="add" size={16} color="#FFFFFF" />
                         <Text style={styles.emptyStatePrimaryButtonText}>{t('createPost')}</Text>
@@ -554,6 +554,7 @@ const createStyles = (tokens, isRTL, isDark) =>
     },
     textRTL: {
       textAlign: 'right',
+      writingDirection: 'rtl',
     },
     resultsCount: {
       paddingHorizontal: 16,

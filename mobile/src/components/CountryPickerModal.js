@@ -114,7 +114,7 @@ const CountryPickerModal = ({ visible, onClose, onSelect, selectedCountryId, t, 
               <Text style={[styles.loaderText, textStyle]}>{t('loadingCountries')}</Text>
             </View>
           ) : loadError ? (
-            <Text style={[styles.emptyText, textStyle]}>{loadError}</Text>
+            <Text style={styles.emptyText}>{loadError}</Text>
           ) : (
             <FlatList
               data={filteredCountries}
@@ -135,7 +135,7 @@ const CountryPickerModal = ({ visible, onClose, onSelect, selectedCountryId, t, 
                   </TouchableOpacity>
                 );
               }}
-              ListEmptyComponent={<Text style={[styles.emptyText, textStyle]}>{t('countryNoResults')}</Text>}
+              ListEmptyComponent={<Text style={styles.emptyText}>{t('countryNoResults')}</Text>}
               style={styles.list}
               keyboardShouldPersistTaps="handled"
             />
@@ -200,6 +200,7 @@ const createStyles = ({ colors, spacing, radii, fontSizes }, isRTL) => StyleShee
   },
   textRTL: {
     textAlign: 'right',
+    writingDirection: 'rtl',
   },
   loaderRow: {
     flexDirection: isRTL ? 'row-reverse' : 'row',

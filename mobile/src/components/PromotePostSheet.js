@@ -201,6 +201,7 @@ const createStyles = (tokens, isDark, isRTL) =>
     },
     textRTL: {
       textAlign: 'right',
+      writingDirection: 'rtl',
     },
     footer: {
       flexDirection: isRTL ? 'row-reverse' : 'row',

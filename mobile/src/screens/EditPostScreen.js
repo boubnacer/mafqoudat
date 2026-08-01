@@ -25,7 +25,6 @@ const EditPostScreen = ({ navigation, route }) => {
   const tokens = isDark ? colorTokens.dark : colorTokens.light;
   const legacy = isDark ? darkColors : lightColors;
   const styles = useMemo(() => createStyles(tokens, legacy), [tokens, legacy]);
-  const isRTL = currentLanguage === 'ar';
 
   const [post, setPost] = useState(null);
   const [isLoading, setIsLoading] = useState(true);
@@ -108,7 +107,7 @@ const EditPostScreen = ({ navigation, route }) => {
         </View>
       ) : loadError ? (
         <View style={styles.centerContainer}>
-          <Text style={[styles.errorText, isRTL && styles.textRTL]}>{loadError}</Text>
+          <Text style={styles.errorText}>{loadError}</Text>
           <TouchableOpacity onPress={loadPost} style={styles.retryButton}>
             <Text style={styles.retryButtonText}>{t('retry')}</Text>
           </TouchableOpacity>
@@ -132,9 +131,6 @@ const createStyles = (tokens, legacy) =>
     container: {
       flex: 1,
       backgroundColor: tokens.surfaceBase,
-    },
-    textRTL: {
-      textAlign: 'right',
     },
     centerContainer: {
       flex: 1,

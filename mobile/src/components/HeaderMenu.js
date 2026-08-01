@@ -432,6 +432,7 @@ const createStyles = ({ tokens, isDark, isRTL }) =>
     },
     textRTL: {
       textAlign: 'right',
+      writingDirection: 'rtl',
     },
     divider: {
       height: 1,

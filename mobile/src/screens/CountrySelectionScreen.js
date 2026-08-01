@@ -352,6 +352,7 @@ const createStyles = (colors) => StyleSheet.create({
   },
   textRTL: {
     textAlign: 'right',
+    writingDirection: 'rtl',
   },
 });
 

@@ -74,27 +74,50 @@ const CityLabel = ({ x, y, text, ink, panel, scale }) => {
   const fontSize = CITY_LABEL_FONT_SIZE * scale;
   const haloOffset = scale;
   return (
-    // Positioned with `transform: translateX/Y`, never `left`/`top`: RN
-    // auto-swaps `left`<->`right` (and any style using those names, like the
-    // halo offsets below) under RTL by default
-    // (I18nManager.doLeftAndRightSwapInRTL), which would drag these labels
-    // sideways on an Arabic language switch even though the underlying SVG
-    // map/markers - plain `cx`/`cy` attributes, not RN layout styles - never
-    // move. `transform` is exempt from that auto-mirroring, which is what
-    // keeps the map deliberately unmirrored for RTL (see file header).
+    // Positioned with `transform: translateX/Y`, never relying on RN's RTL
+    // handling for the offset itself: `transform` is exempt from any
+    // auto-mirroring, which is what keeps the map deliberately unmirrored
+    // for RTL (see file header) - the underlying SVG map/markers (plain
+    // `cx`/`cy` attributes, not RN layout styles) never move either.
     //
-    // `left: 0, top: 0` are still set explicitly (as plain numeric, RTL-swap-
-    // -immune zeros) alongside the transform - leaving them unset entirely
-    // made Yoga fall back to its own direction-aware default static position
-    // for an offset-less absolute node, which resolves from the trailing
-    // edge under an RTL layout tree instead of the leading one. That flip is
-    // a separate mechanism from doLeftAndRightSwapInRTL (it fires even
-    // though nothing here is named `left`/`right`), and was still shifting
-    // the whole label anchor - transform offsets got added on top of a base
-    // position that had already silently moved. Pinning both to a definite
-    // 0 removes that ambiguity so `transform` is the only thing moving these
-    // nodes, in both directions.
-    <View style={{ position: 'absolute', left: 0, top: 0, transform: [{ translateX: x * scale }, { translateY: y * scale }] }}>
+    // `left: 0, top: 0` are still set explicitly - leaving them unset
+    // entirely made Yoga fall back to its own direction-aware default
+    // static position for an offset-less absolute node, silently moving the
+    // whole label anchor before the transform offset is even added. Simply
+    // hardcoding `left: 0` isn't enough on its own though: RN converts JS
+    // `left`/`right` to Yoga's logical START/END edges whenever
+    // I18nManager.doLeftAndRightSwapInRTL is on (the default) - see
+    // react-native's LayoutShadowNode.maybeTransformLeftRightToStartEnd -
+    // and START only resolves to the physical left edge under LTR. Under
+    // real native RTL it resolves to the physical *right* edge instead,
+    // re-anchoring every label to the box's right edge (then clipped by
+    // mapBox's overflow: hidden). Whether that's "real" at any given moment
+    // is unreliable to reason about from JS - I18nManager.isRTL can flip
+    // immediately on a language switch while already-mounted native nodes
+    // stay visually frozen at the old direction until reload (per
+    // LanguageContext.js's note on forceRTL), but a *freshly mounted* node
+    // (e.g. this component remounting on navigating back to Home) picks up
+    // whatever's current at mount time - so the same `left: 0` can resolve
+    // correctly right after a language switch and then wrongly the next
+    // time this remounts, with no code change in between.
+    //
+    // `direction: 'ltr'` on mapBox (below) sidesteps that ambiguity at the
+    // source: Fabric wires the JS `direction` style straight to Yoga's
+    // per-node setDirection (see
+    // ReactCommon/.../view/propsConversions.h), independent of
+    // I18nManager's global/possibly-stale-until-reload state entirely, and
+    // it's inherited by this whole subtree. With the subtree's direction
+    // pinned to LTR outright, plain `left: 0` always means physical left,
+    // permanently - matching the map's stated intent of staying
+    // geographically unmirrored no matter the reading direction.
+    <View
+      style={{
+        position: 'absolute',
+        left: 0,
+        top: 0,
+        transform: [{ translateX: x * scale }, { translateY: y * scale }],
+      }}
+    >
       <View
         onLayout={(e) => setWidth(e.nativeEvent.layout.width)}
         style={{ transform: [{ translateX: -width / 2 }], opacity: width ? 1 : 0 }}
@@ -307,6 +330,15 @@ const styles = StyleSheet.create({
     aspectRatio: 1,
     borderRadius: 12,
     overflow: 'hidden',
+    // Pins this whole subtree's Yoga layout direction to LTR, independent
+    // of I18nManager's global RTL state - see the long comment on
+    // CityLabel's positioning View for why relying on that global state
+    // (even just to read I18nManager.isRTL) is unreliable here. Requires
+    // Fabric (React Native's new architecture, on by default since Expo
+    // SDK 52+ and not overridden in this app's app.config.js) - Fabric
+    // wires the JS `direction` style straight to Yoga's per-node
+    // setDirection; the older bridge architecture only exposed this on iOS.
+    direction: 'ltr',
   },
   cityLabelText: {
     fontWeight: '400',

@@ -542,7 +542,7 @@ const PostsListScreen = ({ navigation, route }) => {
             {cityLabel ? (
               <View style={styles.infoRow}>
                 <Ionicons name="location-outline" size={14} color={`${tokens.ink}99`} />
-                <Text style={styles.infoRowText} numberOfLines={1}>
+                <Text style={[styles.infoRowText, isRTL && styles.textRTL]} numberOfLines={1}>
                   {cityLabel}
                 </Text>
               </View>
@@ -550,7 +550,7 @@ const PostsListScreen = ({ navigation, route }) => {
             {categoryLabel ? (
               <View style={styles.infoRow}>
                 <Ionicons name="pricetag-outline" size={14} color={`${tokens.ink}99`} />
-                <Text style={styles.infoRowText} numberOfLines={1}>
+                <Text style={[styles.infoRowText, isRTL && styles.textRTL]} numberOfLines={1}>
                   {categoryLabel}
                 </Text>
               </View>
@@ -678,10 +678,10 @@ const PostsListScreen = ({ navigation, route }) => {
                   !isLoading ? (
                     <View style={styles.emptyState}>
                       <Ionicons name="search-outline" size={48} color={`${tokens.brandPrimary}99`} />
-                      <Text style={[styles.emptyStateTitle, isRTL && styles.textRTL]}>
+                      <Text style={styles.emptyStateTitle}>
                         {isFilterActive ? t('noResultsFilters') : t('noPostsFound')}
                       </Text>
-                      <Text style={[styles.emptyStateBody, isRTL && styles.textRTL]}>
+                      <Text style={styles.emptyStateBody}>
                         {isFilterActive ? t('adjustFilters') : t('noPostsInArea')}
                       </Text>
                       <View style={styles.emptyStateActions}>
@@ -811,6 +811,7 @@ const createStyles = (tokens, isRTL, isDark) =>
     },
     textRTL: {
       textAlign: 'right',
+      writingDirection: 'rtl',
     },
     // Manually driven by isRTL rather than left to RN's native auto-mirror:
     // forceRTL only takes visual effect after a real app restart (see

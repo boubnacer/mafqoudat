@@ -240,6 +240,7 @@ const createStyles = ({ tokens, isDark, isRTL }) =>
     },
     textRTL: {
       textAlign: 'right',
+      writingDirection: 'rtl',
     },
     spacer: {
       flex: 1,

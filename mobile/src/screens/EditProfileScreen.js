@@ -323,6 +323,7 @@ const createStyles = (tokens, legacy, isDark, isRTL) =>
     },
     textRTL: {
       textAlign: 'right',
+      writingDirection: 'rtl',
     },
     content: {
       padding: 16,

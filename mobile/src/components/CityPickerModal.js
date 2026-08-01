@@ -227,7 +227,7 @@ const CityPickerModal = ({ visible, onClose, t, currentLanguage, isRTL, countryI
                 );
               }}
               ListEmptyComponent={
-                <Text style={[styles.emptyText, textStyle]}>{t('cityNoResults')}</Text>
+                <Text style={styles.emptyText}>{t('cityNoResults')}</Text>
               }
               style={styles.list}
               contentContainerStyle={styles.listContent}
@@ -325,6 +325,7 @@ const createStyles = (tokens, isDark, isRTL) =>
     },
     textRTL: {
       textAlign: 'right',
+      writingDirection: 'rtl',
     },
     loaderRow: {
       flexDirection: isRTL ? 'row-reverse' : 'row',

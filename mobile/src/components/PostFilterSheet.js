@@ -461,6 +461,7 @@ const createStyles = ({ tokens, isDark, isRTL }) =>
     },
     textRTL: {
       textAlign: 'right',
+      writingDirection: 'rtl',
     },
 
     // Dropdown field (accordion)

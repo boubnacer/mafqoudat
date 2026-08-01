@@ -411,7 +411,7 @@ const WelcomeScreen = () => {
     if (!cityLabel) cityLabel = t('unknownCity');
 
     const { tilt, lift, zIndex, isFront } = getFanGeometry(index, total);
-    const overlapStyle = index === 0 ? null : isRTL ? { marginRight: -16 } : { marginLeft: -16 };
+    const overlapStyle = index === 0 ? null : { marginLeft: -16 };
 
     return (
       <View
@@ -590,7 +590,7 @@ const WelcomeScreen = () => {
               {heroPostsLoading ? (
                 <ActivityIndicator size="small" color={colors.primary} />
               ) : heroPosts.length > 0 ? (
-                <View style={[styles.heroFan, isRTL && styles.heroFanRTL]}>
+                <View style={styles.heroFan}>
                   {heroPosts.map((item, index) => renderHeroCard(item, index, heroPosts.length))}
                 </View>
               ) : (
@@ -797,6 +797,7 @@ const createStyles = (colors) => StyleSheet.create({
   },
   textRTL: {
     textAlign: 'right',
+    writingDirection: 'rtl',
   },
   continueButton: {
     height: 56,
@@ -829,9 +830,6 @@ const createStyles = (colors) => StyleSheet.create({
   heroFan: {
     flexDirection: 'row',
     alignItems: 'flex-end',
-  },
-  heroFanRTL: {
-    flexDirection: 'row-reverse',
   },
   heroCard: {
     width: HERO_CARD_WIDTH,

@@ -484,7 +484,7 @@ const PostForm = ({ mode, initialPost, isSubmitting, submitError, submitButtonLa
   if (referenceDataError) {
     return (
       <View style={styles.centerContainer}>
-        <Text style={[styles.errorBannerText, textStyle]}>{t('failedToLoadFormData')}</Text>
+        <Text style={styles.errorBannerText}>{t('failedToLoadFormData')}</Text>
         <TouchableOpacity onPress={retryReferenceData} style={styles.retryButton}>
           <Text style={styles.retryButtonText}>{t('retry')}</Text>
         </TouchableOpacity>
@@ -1064,6 +1064,7 @@ const createStyles = (tokens, legacy, isDark, isRTL) => {
     },
     textRTL: {
       textAlign: 'right',
+      writingDirection: 'rtl',
     },
     helperText: {
       fontFamily: fontFamilies.body,

@@ -703,6 +703,7 @@ const createStyles = (tokens, isDark, isRTL) => StyleSheet.create({
   },
   textRTL: {
     textAlign: 'right',
+    writingDirection: 'rtl',
   },
   dividerContainer: {
     flexDirection: 'row',

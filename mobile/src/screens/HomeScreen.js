@@ -272,7 +272,7 @@ const StatsSection = ({ data, isLoading, t, styles, tokens, onFoundPress, onLost
 // overlaid top, location + relative date overlaid bottom (stacked, matching
 // the web card's own xs/mobile layout since these are always narrow 2-up
 // cards here). Laid out 2-up by RecentSection, same as web's Recent.jsx grid.
-const RecentPreviewCard = ({ item, currentLanguage, t, styles, tokens, isRTL, onPress }) => {
+const RecentPreviewCard = ({ item, currentLanguage, t, styles, tokens, onPress }) => {
   const found = isFoundType(item);
   const tone = found ? tokens.status.found : tokens.status.lost;
   const imageUri = getImageUri(item.image);
@@ -280,7 +280,6 @@ const RecentPreviewCard = ({ item, currentLanguage, t, styles, tokens, isRTL, on
   const categoryLabel = getCategoryLabel(item, currentLanguage) || t('categories');
   const cityLabel = getCityLabel(item, currentLanguage) || t('unknownCity');
   const textColor = imageUri ? '#FFFFFF' : getContrastText(categoryConfig.color);
-  const rowDirection = isRTL ? 'row-reverse' : 'row';
 
   return (
     <TouchableOpacity
@@ -303,7 +302,7 @@ const RecentPreviewCard = ({ item, currentLanguage, t, styles, tokens, isRTL, on
         </>
       ) : null}
 
-      <View style={[styles.posterTopRow, { flexDirection: rowDirection }]}>
+      <View style={[styles.posterTopRow, { flexDirection: 'row' }]}>
         <Text style={[styles.posterCategoryLabel, { color: textColor }]} numberOfLines={2}>
           {categoryLabel}
         </Text>
@@ -326,7 +325,7 @@ const RecentPreviewCard = ({ item, currentLanguage, t, styles, tokens, isRTL, on
       </View>
 
       <View style={styles.posterBottomRow}>
-        <View style={[styles.posterLocationRow, { flexDirection: rowDirection }]}>
+        <View style={styles.posterLocationRow}>
           <Ionicons name="location-outline" size={13} color={textColor} style={{ opacity: 0.9 }} />
           <Text style={[styles.posterLocationText, { color: textColor }]} numberOfLines={1}>
             {cityLabel}
@@ -340,7 +339,7 @@ const RecentPreviewCard = ({ item, currentLanguage, t, styles, tokens, isRTL, on
   );
 };
 
-const RecentSection = ({ type, items, isLoading, currentLanguage, t, styles, tokens, isRTL, onSeeAll, onPressItem }) => {
+const RecentSection = ({ type, items, isLoading, currentLanguage, t, styles, tokens, onSeeAll, onPressItem }) => {
   const title = type === 'found' ? t('recentFounds') : t('recentLosts');
 
   return (
@@ -367,7 +366,6 @@ const RecentSection = ({ type, items, isLoading, currentLanguage, t, styles, tok
               t={t}
               styles={styles}
               tokens={tokens}
-              isRTL={isRTL}
               onPress={() => onPressItem(item._id)}
             />
           ))}
@@ -1020,7 +1018,7 @@ const createStyles = (tokens, isRTL, isDark) =>
 
     // Safety footer
     safetyFooter: {
-      flexDirection: isRTL ? 'row-reverse' : 'row',
+      flexDirection: 'row',
       alignItems: 'flex-start',
       gap: 10,
       paddingHorizontal: 4,

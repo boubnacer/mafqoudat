@@ -218,6 +218,7 @@ const createStyles = (tokens, isDark, isRTL) =>
     },
     textRTL: {
       textAlign: 'right',
+      writingDirection: 'rtl',
     },
     list: {
       paddingHorizontal: 16,

@@ -643,6 +643,7 @@ const createStyles = (tokens, isRTL, isDark) =>
     },
     textRTL: {
       textAlign: 'right',
+      writingDirection: 'rtl',
     },
     metaRow: {
       flexDirection: 'row',

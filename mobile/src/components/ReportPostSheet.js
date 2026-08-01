@@ -281,6 +281,7 @@ const createStyles = (isRTL) => StyleSheet.create({
   },
   textRTL: {
     textAlign: 'right',
+    writingDirection: 'rtl',
   },
   footer: {
     flexDirection: isRTL ? 'row-reverse' : 'row',
