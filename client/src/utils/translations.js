@@ -613,7 +613,14 @@ export const translations = {
     phoneNumberRequiredFound: "Phone number is required for found item promotion",
     invalidPhoneNumber: "Please enter a valid phone number",
     noPhoneNumber: "No phone number provided",
-    
+
+    // Post Success / App Download Dialog translations
+    downloadAppNotifyLost: "Download our mobile app to get notified as soon as someone finds your item",
+    downloadAppNotifyFound: "Download our mobile app to get notified as soon as someone requests the item you found",
+    downloadOnAppStore: "Download on the App Store",
+    getItOnGooglePlay: "Get it on Google Play",
+    continueToDashboard: "Continue",
+
     // Claim Item Dialog translations
     doYouThinkThisItemIsYours: "Do you think this item belongs to you?",
     ifYouLostThisItem: "If you've lost this item and believe it's yours, click below to view contact details and claim it.",
@@ -2129,7 +2136,14 @@ export const translations = {
     phoneNumberRequiredFound: "Le numéro de téléphone est requis pour la promotion d'objets trouvés",
     invalidPhoneNumber: "Veuillez entrer un numéro de téléphone valide",
     noPhoneNumber: "Aucun numéro de téléphone fourni",
-    
+
+    // Post Success / App Download Dialog translations
+    downloadAppNotifyLost: "Téléchargez notre application mobile pour être averti dès que quelqu'un retrouve votre objet",
+    downloadAppNotifyFound: "Téléchargez notre application mobile pour être averti dès que quelqu'un réclame l'objet que vous avez trouvé",
+    downloadOnAppStore: "Télécharger sur l'App Store",
+    getItOnGooglePlay: "Disponible sur Google Play",
+    continueToDashboard: "Continuer",
+
     // Claim Item Dialog translations
     doYouThinkThisItemIsYours: "Pensez-vous que cet article vous appartient ?",
     ifYouLostThisItem: "Si vous avez perdu cet article et pensez qu'il est à vous, cliquez ci-dessous pour voir les coordonnées et le réclamer.",
@@ -3609,7 +3623,14 @@ export const translations = {
     phoneNumberRequiredFound: "رقم الهاتف مطلوب لترويج العناصر الموجودة",
     invalidPhoneNumber: "يرجى إدخال رقم هاتف صحيح",
     noPhoneNumber: "لم يتم توفير رقم هاتف",
-    
+
+    // Post Success / App Download Dialog translations
+    downloadAppNotifyLost: "حمّل تطبيقنا لتصلك إشعار فور عثور أحدهم على غرضك",
+    downloadAppNotifyFound: "حمّل تطبيقنا لتصلك إشعار فور مطالبة أحدهم بالغرض الذي وجدته",
+    downloadOnAppStore: "التحميل من App Store",
+    getItOnGooglePlay: "متوفر على Google Play",
+    continueToDashboard: "متابعة",
+
     // Claim Item Dialog translations
     doYouThinkThisItemIsYours: "هل تعتقد أن هذا العنصر يخصك؟",
     ifYouLostThisItem: "إذا فقدت هذا العنصر وتعتقد أنه ملكك، انقر أدناه لعرض تفاصيل الاتصال والمطالبة به.",
