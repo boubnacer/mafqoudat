@@ -802,7 +802,7 @@ const SinglePostPage = ({
                     }}
                   />
                 ))}
-                <FactItem icon={LocationIcon}>{exactLocation || displayCityName}</FactItem>
+                <FactItem icon={LocationIcon}>{displayCityName}</FactItem>
                 <FactItem icon={TimeIcon}>{createdDate}</FactItem>
                 {mainDate && mainDate.trim() && (
                   <FactItem icon={CalendarIcon}>
