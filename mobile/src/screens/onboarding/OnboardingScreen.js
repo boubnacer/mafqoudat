@@ -285,7 +285,7 @@ const OnboardingScreen = () => {
       />
       <Text style={styles.headline}>{t('onboardingWelcomeHeadline')}</Text>
 
-      <View style={styles.languageChipsRow}>
+      <View style={[styles.languageChipsRow, isRTL && styles.rowReverse]}>
         {LANGUAGE_CHIPS.map((lang) => {
           const isActive = currentLanguage === lang.code;
           return (
@@ -304,7 +304,7 @@ const OnboardingScreen = () => {
       </View>
 
       <Text style={styles.themeLabel}>{t('onboardingThemeLabel')}</Text>
-      <View style={styles.themeToggleTrack}>
+      <View style={[styles.themeToggleTrack, isRTL && styles.rowReverse]}>
         <TouchableOpacity
           style={[styles.themeToggleOption, !isDark && styles.themeToggleOptionActive]}
           onPress={() => setThemeMode('light')}
@@ -343,7 +343,7 @@ const OnboardingScreen = () => {
       <Text style={styles.headline}>{t('onboardingFilterHeadline')}</Text>
       <Text style={styles.body}>{t('onboardingFilterBody')}</Text>
 
-      <View style={styles.filterPillsRow}>
+      <View style={[styles.filterPillsRow, isRTL && styles.rowReverse]}>
         <View style={styles.filterPill}>
           <Ionicons name="earth" size={14} color={BRAND_BLUE} />
           <Text style={styles.filterPillText}>{t('country')}</Text>
@@ -509,7 +509,7 @@ const OnboardingScreen = () => {
           {isSubmitting ? (
             <ActivityIndicator color="#FFFFFF" />
           ) : (
-            <View style={styles.ctaContent}>
+            <View style={[styles.ctaContent, isRTL && styles.rowReverse]}>
               <Text style={styles.ctaText}>{isLastSlide ? t('getStarted') : t('next')}</Text>
               <Ionicons
                 name={isRTL ? 'arrow-back' : 'arrow-forward'}
