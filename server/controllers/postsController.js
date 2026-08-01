@@ -1288,7 +1288,11 @@ const createNewPost = async (req, res) => {
        // City is a valid ObjectId, verify it exists
        const cityDoc = await City.findById(city).select('_id').lean();
        if (cityDoc) {
-         cityId = city;
+         // Post.city is a Mixed-type field, so Mongoose won't cast this -
+         // use the real ObjectId from the fetched doc (not the raw string),
+         // otherwise downstream $lookup(localField: "city", foreignField: "_id")
+         // aggregations silently fail to match (string vs ObjectId BSON type).
+         cityId = cityDoc._id;
        } else {
          logCityResolutionFailure('objectId-not-found', `City with ID ${city} not found in database`);
          cityId = null;
