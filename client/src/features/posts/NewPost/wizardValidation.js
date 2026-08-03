@@ -77,7 +77,10 @@ export const validateStep4 = (values, t) => {
 export const STEP_VALIDATORS = [validateStep1, validateStep2, validateStep3, validateStep4];
 
 // Scrolls to and focuses the first field with an error, matching the
-// original handleSubmit scroll-and-focus behavior.
+// original handleSubmit scroll-and-focus behavior. Scrolls
+// #dash-scroll-container (not window) when present - see the id comment in
+// DashLayout.js for why that Box, not window/body/html, is the real scroll
+// container on /dash/* routes.
 export const scrollToFirstErrorField = (fieldErrors) => {
   setTimeout(() => {
     const key = PRIORITY_ORDER.find((k) => fieldErrors[k]);
@@ -85,11 +88,18 @@ export const scrollToFirstErrorField = (fieldErrors) => {
     const fieldToScroll = testId ? document.querySelector(`[data-testid="${testId}"]`) : null;
 
     if (fieldToScroll) {
+      const scrollContainer = document.getElementById('dash-scroll-container');
       const rect = fieldToScroll.getBoundingClientRect();
-      const scrollTop = window.pageYOffset || document.documentElement.scrollTop;
-      const targetPosition = rect.top + scrollTop - 100;
 
-      window.scrollTo({ top: targetPosition, behavior: 'smooth' });
+      if (scrollContainer) {
+        const containerRect = scrollContainer.getBoundingClientRect();
+        const targetPosition = scrollContainer.scrollTop + (rect.top - containerRect.top) - 100;
+        scrollContainer.scrollTo({ top: targetPosition, behavior: 'smooth' });
+      } else {
+        const scrollTop = window.pageYOffset || document.documentElement.scrollTop;
+        const targetPosition = rect.top + scrollTop - 100;
+        window.scrollTo({ top: targetPosition, behavior: 'smooth' });
+      }
 
       setTimeout(() => {
         fieldToScroll.focus();

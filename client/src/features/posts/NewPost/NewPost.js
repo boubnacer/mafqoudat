@@ -11,6 +11,7 @@ import {
 } from "../../dependencies/dependenciesApiSlice";
 import useAuth from "../../../hooks/useAuth";
 import { useTranslation } from "../../../utils/translations";
+import scrollToTop from "../../../utils/scrollToTop";
 
 const NewPost = () => {
   useTitle("Mafqoudat| New Post");
@@ -20,16 +21,8 @@ const NewPost = () => {
   // page opens wherever the previous route left the scroll offset, and the
   // loading skeleton below is short enough that a deep offset clamps to the
   // very bottom of the page - the footer - until the fetches resolve.
-  // Setting scrollTop directly (rather than window.scrollTo) is the only way
-  // to force an instant jump here: index.css sets html { scroll-behavior:
-  // smooth }, and per spec scrollTo's 'auto' behavior defers to that CSS
-  // property instead of overriding it, so it animates too - and that
-  // animation gets interrupted (and can end up stuck) when the skeleton
-  // swaps for the real form moments later. Both html and body are set for
-  // cross-browser support (Safari historically scrolls body).
   useEffect(() => {
-    document.documentElement.scrollTop = 0;
-    document.body.scrollTop = 0;
+    scrollToTop();
   }, []);
 
   const { usernameId } = useAuth();
