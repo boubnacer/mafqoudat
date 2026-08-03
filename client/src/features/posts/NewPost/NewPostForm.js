@@ -345,9 +345,12 @@ const NewPostForm = ({ user, countries, categories, flOptions }) => {
 
   // React Router doesn't reset scroll position on navigation, so arriving
   // here after scrolling down elsewhere (e.g. the dashboard) opens the form
-  // already scrolled past the top of its content.
+  // already scrolled past the top of its content. NewPost.js resets scroll
+  // on its own mount too (before this component exists, while its data
+  // dependencies are still loading) - this is a second pass for the actual
+  // form's mount, once real content (not the loading skeleton) is in the DOM.
   useEffect(() => {
-    window.scrollTo(0, 0);
+    window.scrollTo({ top: 0, behavior: 'auto' });
   }, []);
 
   // Single place that changes the active step, so the direction used by the
