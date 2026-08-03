@@ -343,11 +343,22 @@ const NewPostForm = ({ user, countries, categories, flOptions }) => {
     };
   }, [currentLanguage, steps.length]);
 
+  // React Router doesn't reset scroll position on navigation, so arriving
+  // here after scrolling down elsewhere (e.g. the dashboard) opens the form
+  // already scrolled past the top of its content.
+  useEffect(() => {
+    window.scrollTo(0, 0);
+  }, []);
+
   // Single place that changes the active step, so the direction used by the
-  // step transition animation (purely visual) always stays correct.
+  // step transition animation (purely visual) always stays correct. Also
+  // resets scroll to the top of the page - each step's field count/height
+  // differs, so keeping the previous step's scroll offset can land the next
+  // step's content mid-form or past its end.
   const goToStep = (nextIndex) => {
     setStepDirection(nextIndex > activeStep ? 1 : -1);
     setActiveStep(nextIndex);
+    window.scrollTo({ top: 0, behavior: 'smooth' });
   };
 
   // Gate moving from step 1 ("What happened") to the next step behind its
