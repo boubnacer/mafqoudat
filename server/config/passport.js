@@ -99,7 +99,12 @@ passport.use(new FacebookStrategy({
   clientID: process.env.FACEBOOK_APP_ID,
   clientSecret: process.env.FACEBOOK_APP_SECRET,
   callbackURL: process.env.FACEBOOK_CALLBACK_URL,
-  profileFields: ['id', 'emails', 'name', 'photos']
+  profileFields: ['id', 'emails', 'name', 'photos'],
+  // passport-facebook defaults to Graph API v3.2, which Meta has long since
+  // sunset — without an explicit supported version the profile fetch after
+  // token exchange fails and passport surfaces it as an unhandled error.
+  graphAPIVersion: 'v21.0',
+  enableProof: true
 },
 async (accessToken, refreshToken, profile, done) => {
   try {
