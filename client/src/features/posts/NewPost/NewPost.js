@@ -1,3 +1,4 @@
+import { useEffect } from "react";
 import NewPostForm from "./NewPostForm";
 import { useGetUsersQuery } from "../../userSettings/usersApiSlice";
 import { ErrorState } from "../../../components/LoadingStates";
@@ -13,6 +14,18 @@ import { useTranslation } from "../../../utils/translations";
 
 const NewPost = () => {
   useTitle("Mafqoudat| New Post");
+
+  // Resets scroll as soon as this route mounts, before dependencies
+  // (user/countries/categories/flOptions) finish loading. Without this, the
+  // page opens wherever the previous route left the scroll offset, and the
+  // loading skeleton below is short enough that a deep offset clamps to the
+  // very bottom of the page - the footer - until the fetches resolve.
+  // Explicit 'auto' behavior bypasses index.css's global smooth-scroll so
+  // this jump is instant rather than an animated scroll from wherever the
+  // user was.
+  useEffect(() => {
+    window.scrollTo({ top: 0, behavior: 'auto' });
+  }, []);
 
   const { usernameId } = useAuth();
 
