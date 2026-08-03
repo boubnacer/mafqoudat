@@ -53,8 +53,8 @@ const login = async (req, res) => {
     });
   }
 
-  // Check if user is an OAuth user (e.g., Google Sign-In)
-  if (foundUser.authProvider === 'google') {
+  // Check if user is an OAuth user (Google or Facebook Sign-In)
+  if (foundUser.authProvider === 'google' || foundUser.authProvider === 'facebook') {
     throw createAuthError('OAUTH_USER', "OAUTH_LOGIN_ATTEMPT", {
       username: foundUser.username,
       authProvider: foundUser.authProvider,

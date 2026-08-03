@@ -35,6 +35,11 @@ export const redirectToGoogleAuth = () => {
   window.location.href = `${apiUrl}/auth/google`;
 };
 
+export const redirectToFacebookAuth = () => {
+  const apiUrl = process.env.REACT_APP_API_URL || "http://localhost:3500";
+  window.location.href = `${apiUrl}/auth/facebook`;
+};
+
 // Server error-message codes that mean "this account uses the other auth method" —
 // rendered as a warning notice with an inline Google CTA rather than a plain error.
 export const OAUTH_WARNING_MESSAGE_KEYS = {
@@ -152,6 +157,21 @@ export const AuthGoogleButton = styled(Button)(({ theme }) => ({
   },
 }));
 
+export const AuthFacebookButton = styled(Button)(({ theme }) => ({
+  borderRadius: theme.custom.radius.md,
+  padding: theme.spacing(1.5, 3),
+  fontWeight: 500,
+  textTransform: "none",
+  fontSize: "1rem",
+  color: theme.custom.color.ink,
+  backgroundColor: theme.custom.color.surfaceRaised,
+  borderColor: alpha(theme.custom.color.ink, 0.16),
+  "&:hover": {
+    borderColor: theme.custom.color.brandPrimary,
+    backgroundColor: alpha(theme.custom.color.brandPrimary, 0.05),
+  },
+}));
+
 export const AuthOutlineButton = styled(Button)(({ theme }) => ({
   borderRadius: theme.custom.radius.md,
   textTransform: "none",
@@ -186,6 +206,15 @@ export const GoogleGlyph = () => (
     alt="Google"
     sx={{ width: 20, height: 20 }}
   />
+);
+
+export const FacebookGlyph = () => (
+  <Box component="svg" viewBox="0 0 36 36" sx={{ width: 20, height: 20 }}>
+    <path
+      fill="#1877F2"
+      d="M36 18c0-9.941-8.059-18-18-18S0 8.059 0 18c0 8.981 6.581 16.42 15.19 17.771V23.203h-4.57V18h4.57v-3.967c0-4.511 2.687-7.005 6.797-7.005 1.968 0 4.028.352 4.028.352v4.43h-2.269c-2.237 0-2.934 1.389-2.934 2.814V18h4.994l-.798 5.203h-4.196v12.568C29.419 34.42 36 26.981 36 18"
+    />
+  </Box>
 );
 
 export const AuthHeader = ({ eyebrow, title, subtitle }) => {

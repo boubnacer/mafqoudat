@@ -38,10 +38,13 @@ import {
   AuthSelectField,
   AuthPrimaryButton,
   AuthGoogleButton,
+  AuthFacebookButton,
   AuthOutlineButton,
   AuthNeutralButton,
   GoogleGlyph,
+  FacebookGlyph,
   redirectToGoogleAuth,
+  redirectToFacebookAuth,
   OAUTH_WARNING_MESSAGE_KEYS,
 } from "../authShared";
 
@@ -251,6 +254,16 @@ const NewUserFormComponent = ({ countries }) => {
                   >
                     {t('continueWithGoogle')}
                   </AuthGoogleButton>
+
+                  <AuthFacebookButton
+                    fullWidth
+                    variant="outlined"
+                    onClick={redirectToFacebookAuth}
+                    startIcon={<FacebookGlyph />}
+                    sx={{ mb: 1 }}
+                  >
+                    {t('continueWithFacebook')}
+                  </AuthFacebookButton>
 
                   <AuthDivider />
                 </Grid>
