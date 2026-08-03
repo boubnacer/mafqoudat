@@ -349,8 +349,12 @@ const NewPostForm = ({ user, countries, categories, flOptions }) => {
   // on its own mount too (before this component exists, while its data
   // dependencies are still loading) - this is a second pass for the actual
   // form's mount, once real content (not the loading skeleton) is in the DOM.
+  // Direct scrollTop assignment (not window.scrollTo) so it's instant - see
+  // the matching comment in NewPost.js for why scrollTo can't be trusted
+  // here (index.css's global scroll-behavior: smooth).
   useEffect(() => {
-    window.scrollTo({ top: 0, behavior: 'auto' });
+    document.documentElement.scrollTop = 0;
+    document.body.scrollTop = 0;
   }, []);
 
   // Single place that changes the active step, so the direction used by the
