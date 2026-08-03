@@ -49,6 +49,7 @@ import WizardNextButton from "./steps/WizardNextButton";
 import ReviewSubmitButton from "./steps/ReviewSubmitButton";
 import { validateStep1, validateStep2, STEP_VALIDATORS, scrollToFirstErrorField } from "./wizardValidation";
 import { getCityDisplayName } from "./cityDisplay";
+import scrollToTop, { smoothScrollToTop } from "../../../utils/scrollToTop";
 
 // Maps each step's 1-based position (MUI auto-assigns `icon` = index + 1) to
 // the icon shown in its desktop rail badge.
@@ -349,12 +350,8 @@ const NewPostForm = ({ user, countries, categories, flOptions }) => {
   // on its own mount too (before this component exists, while its data
   // dependencies are still loading) - this is a second pass for the actual
   // form's mount, once real content (not the loading skeleton) is in the DOM.
-  // Direct scrollTop assignment (not window.scrollTo) so it's instant - see
-  // the matching comment in NewPost.js for why scrollTo can't be trusted
-  // here (index.css's global scroll-behavior: smooth).
   useEffect(() => {
-    document.documentElement.scrollTop = 0;
-    document.body.scrollTop = 0;
+    scrollToTop();
   }, []);
 
   // Single place that changes the active step, so the direction used by the
@@ -365,7 +362,7 @@ const NewPostForm = ({ user, countries, categories, flOptions }) => {
   const goToStep = (nextIndex) => {
     setStepDirection(nextIndex > activeStep ? 1 : -1);
     setActiveStep(nextIndex);
-    window.scrollTo({ top: 0, behavior: 'smooth' });
+    smoothScrollToTop();
   };
 
   // Gate moving from step 1 ("What happened") to the next step behind its
