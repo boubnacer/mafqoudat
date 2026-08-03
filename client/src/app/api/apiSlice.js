@@ -86,22 +86,23 @@ const baseQueryWithReauth = async (args, api, extraOptions) => {
     return result;
   }
 
-  // Handle authentication errors - long-lived tokens should rarely expire
-  // If they do, user needs to login again
-  if ((result?.error?.status === 401 || result?.error?.status === 403) && !args.url?.includes("/dashboard")) {
+  // 401 = invalid/missing/expired token -> force logout.
+  // 403 = valid token, insufficient permission for this action -> let the
+  // caller handle it (e.g. show "not authorized"), do NOT log the user out.
+  if (result?.error?.status === 401 && !args.url?.includes("/dashboard")) {
     debugLog('Authentication error detected, token may be expired', {
       status: result?.error?.status,
       code: result?.error?.data?.code
     });
-    
+
     // Logout user - no refresh token available with simplified auth
     api.dispatch(logOut({ reason: 'Token expired or invalid' }));
-    
+
     // Return user-friendly error message
-    const errorMessage = isNetworkError(result?.error) 
+    const errorMessage = isNetworkError(result?.error)
       ? "Network error. Please check your connection and try again."
       : "Your session has expired. Please log in again.";
-    
+
     return {
       error: {
         status: result?.error?.status || 401,

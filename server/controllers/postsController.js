@@ -1774,7 +1774,7 @@ const updatePost = async (req, res) => {
     return res.status(400).json({ message: "Post not found" });
   }
 
-  if (post.user.toString() !== req.user) {
+  if (post.user.toString() !== req.user && req.role !== 'admin') {
     return res.status(403).json({ message: "Not authorized to update this post" });
   }
 
@@ -1936,7 +1936,7 @@ const deletePost = async (req, res) => {
     return res.status(400).json({ message: "Post not found" });
   }
 
-  if (post.user.toString() !== req.user) {
+  if (post.user.toString() !== req.user && req.role !== 'admin') {
     return res.status(403).json({ message: "Not authorized to delete this post" });
   }
 
@@ -1981,7 +1981,7 @@ const markPostAsReturned = async (req, res) => {
       });
     }
 
-    if (post.user.toString() !== req.user) {
+    if (post.user.toString() !== req.user && req.role !== 'admin') {
       return res.status(403).json({
         success: false,
         message: "Not authorized to update this post"
