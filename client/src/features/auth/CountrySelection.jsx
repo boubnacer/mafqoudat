@@ -30,8 +30,12 @@ const CountrySelection = () => {
   const theme = useTheme();
   const { t, currentLanguage } = useTranslation();
 
-  // Get pending token from URL
+  // Get pending token from URL. `provider` selects which OAuth provider's
+  // /auth/<provider>/complete endpoint owns this pendingToken — each provider
+  // route keeps its own pending-registrations map, so this must match the
+  // provider that issued the token. Defaults to 'google' for old links.
   const pendingToken = searchParams.get('pendingToken');
+  const provider = searchParams.get('provider') || 'google';
 
   // State
   const [selectedCountry, setSelectedCountry] = useState("");
@@ -83,7 +87,12 @@ const CountrySelection = () => {
 
     try {
       const apiUrl = process.env.REACT_APP_API_URL || "http://localhost:3500";
-      const response = await axios.post(`${apiUrl}/auth/complete`, {
+      // Google's completion route is legacy-named `/auth/complete`; every
+      // provider added since (Facebook, etc.) lives at `/auth/<provider>/complete`.
+      const completeUrl = provider === 'google'
+        ? `${apiUrl}/auth/complete`
+        : `${apiUrl}/auth/${provider}/complete`;
+      const response = await axios.post(completeUrl, {
         pendingToken,
         countryId: selectedCountry
       });

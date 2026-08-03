@@ -37,9 +37,14 @@ const userSchema = new mongoose.Schema({
     unique: true,
     sparse: true
   },
+  facebookId: {
+    type: String,
+    unique: true,
+    sparse: true
+  },
   authProvider: {
     type: String,
-    enum: ['local', 'google'],
+    enum: ['local', 'google', 'facebook'],
     default: 'local'
   },
   country: {
@@ -118,6 +123,7 @@ userSchema.index({ username: 1 });
 userSchema.index({ email: 1 }, { sparse: true });
 userSchema.index({ phone: 1 }, { sparse: true });
 userSchema.index({ googleId: 1 }, { sparse: true, unique: true });
+userSchema.index({ facebookId: 1 }, { sparse: true, unique: true });
 
 // 2. User management indexes
 userSchema.index({ country: 1, isActive: 1 });

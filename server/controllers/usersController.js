@@ -111,8 +111,8 @@ const createNewUser = async (req, res) => {
     console.log('Checking for duplicate email:', username.toLowerCase(), 'Found:', !!duplicateEmail);
 
     if (duplicateEmail) {
-      // Check if it's a Google OAuth account
-      if (duplicateEmail.authProvider === 'google') {
+      // Check if it's a Google or Facebook OAuth account
+      if (duplicateEmail.authProvider === 'google' || duplicateEmail.authProvider === 'facebook') {
         return res.status(409).json({ 
           message: "OAUTH_EMAIL_EXISTS",
           code: 'OAUTH_USER'

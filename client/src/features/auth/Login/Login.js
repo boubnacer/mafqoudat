@@ -33,10 +33,13 @@ import {
   AuthTextField,
   AuthPrimaryButton,
   AuthGoogleButton,
+  AuthFacebookButton,
   AuthOutlineButton,
   AuthNeutralButton,
   GoogleGlyph,
+  FacebookGlyph,
   redirectToGoogleAuth,
+  redirectToFacebookAuth,
   OAUTH_WARNING_MESSAGE_KEYS,
   OAUTH_CALLBACK_ERROR_KEYS,
 } from "../authShared";
@@ -243,6 +246,16 @@ const LoginComponent = () => {
             >
               {t('continueWithGoogle')}
             </AuthGoogleButton>
+
+            <AuthFacebookButton
+              fullWidth
+              variant="outlined"
+              onClick={redirectToFacebookAuth}
+              startIcon={<FacebookGlyph />}
+              sx={{ mb: 2 }}
+            >
+              {t('continueWithFacebook')}
+            </AuthFacebookButton>
 
             <AuthDivider />
 

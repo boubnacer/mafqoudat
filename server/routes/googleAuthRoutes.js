@@ -133,7 +133,7 @@ router.get('/google/callback',
           return res.redirect(mobileRedirectUrl);
         } else {
           // Redirect to frontend to select country
-          const webUrl = `${frontendUrl}/auth/select-country?pendingToken=${pendingToken}`;
+          const webUrl = `${frontendUrl}/auth/select-country?pendingToken=${pendingToken}&provider=google`;
           return res.redirect(webUrl);
         }
       }
