@@ -20,11 +20,16 @@ const NewPost = () => {
   // page opens wherever the previous route left the scroll offset, and the
   // loading skeleton below is short enough that a deep offset clamps to the
   // very bottom of the page - the footer - until the fetches resolve.
-  // Explicit 'auto' behavior bypasses index.css's global smooth-scroll so
-  // this jump is instant rather than an animated scroll from wherever the
-  // user was.
+  // Setting scrollTop directly (rather than window.scrollTo) is the only way
+  // to force an instant jump here: index.css sets html { scroll-behavior:
+  // smooth }, and per spec scrollTo's 'auto' behavior defers to that CSS
+  // property instead of overriding it, so it animates too - and that
+  // animation gets interrupted (and can end up stuck) when the skeleton
+  // swaps for the real form moments later. Both html and body are set for
+  // cross-browser support (Safari historically scrolls body).
   useEffect(() => {
-    window.scrollTo({ top: 0, behavior: 'auto' });
+    document.documentElement.scrollTop = 0;
+    document.body.scrollTop = 0;
   }, []);
 
   const { usernameId } = useAuth();
