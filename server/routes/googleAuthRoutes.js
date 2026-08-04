@@ -396,57 +396,33 @@ router.post('/complete', async (req, res) => {
 router.get('/mobile-callback', (req, res) => {
   try {
     const { token, pendingToken, error } = req.query;
-    
+
     console.log('🔍 Mobile callback received:', {
       token: token ? 'EXISTS' : 'MISSING',
       pendingToken: pendingToken ? 'EXISTS' : 'MISSING',
       error: error ? 'EXISTS' : 'MISSING',
       fullUrl: req.originalUrl
     });
-    
-    // Read the HTML file
+
+    // Served as-is: /js/mobile-callback.js (server/public/js/) reads token/
+    // pendingToken/error straight from window.location.search client-side, so
+    // no server-side templating/injection into the HTML is needed. There used
+    // to be one (an inline <script> injecting window.serverToken etc. before
+    // </head>) but the site-wide CSP (server/middleware/securityHeaders.js,
+    // script-src 'self' with no 'unsafe-inline') silently blocks inline
+    // scripts - that injected block, and the page's own inline script that
+    // read it, never actually ran. Moving the logic to this same-origin file
+    // fixed both at once, and made the injection moot as well as broken.
     const htmlPath = path.join(__dirname, '../views/mobile-callback.html');
-    let html = fs.readFileSync(htmlPath, 'utf8');
-    
-    // Simplified token injection - just inject into head
-    let scriptInjection = '';
-    if (token) {
-      scriptInjection = `<script>
-        // Token injected by server
-        console.log('🔑 Server injected token:', ${JSON.stringify(token)});
-        window.serverToken = ${JSON.stringify(token)};
-      </script>`;
-    } else if (pendingToken) {
-      scriptInjection = `<script>
-        // Pending token injected by server
-        console.log('⏳ Server injected pending token:', ${JSON.stringify(pendingToken)});
-        window.serverPendingToken = ${JSON.stringify(pendingToken)};
-      </script>`;
-    } else if (error) {
-      scriptInjection = `<script>
-        // Error injected by server
-        console.log('❌ Server injected error:', ${JSON.stringify(error)});
-        window.serverError = ${JSON.stringify(error)};
-      </script>`;
-    }
-    
-    // Inject before </head> tag
-    if (html.includes('</head>')) {
-      html = html.replace('</head>', scriptInjection + '\n</head>');
-    } else {
-      // Fallback: inject at the beginning
-      html = scriptInjection + '\n' + html;
-    }
-    
-    // Add cache control headers
+    const html = fs.readFileSync(htmlPath, 'utf8');
+
     res.set({
       'Cache-Control': 'no-cache, no-store, must-revalidate',
       'Pragma': 'no-cache',
       'Expires': '0',
       'Content-Type': 'text/html; charset=utf-8'
     });
-    
-    console.log('📤 Sending mobile callback HTML with injection');
+
     res.send(html);
   } catch (err) {
     console.error('❌ Error serving mobile callback page:', err);
