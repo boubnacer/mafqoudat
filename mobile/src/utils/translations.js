@@ -53,6 +53,7 @@ export const translations = {
     oauthEmailExists: "This email is already registered with Google Sign-In. Please use the 'Continue with Google' button to log in.",
     signInPrompt: "Already have an account?",
     signUpWithGoogle: "Sign up with Google",
+    signUpWithFacebook: "Sign up with Facebook",
     countryNoResults: "No countries found",
 
     // Navigation
@@ -312,6 +313,7 @@ export const translations = {
 
     // Google OAuth
     continueWithGoogle: "Continue with Google",
+    continueWithFacebook: "Continue with Facebook",
     authenticationError: "Authentication Error",
     failedToSaveCountry: "Failed to save country selection. Please try again.",
     chooseCountry: "Choose Country",
@@ -419,6 +421,7 @@ export const translations = {
     oauthEmailExists: "Cet e-mail est déjà enregistré avec Google Sign-In. Veuillez utiliser le bouton 'Continuer avec Google' pour vous connecter.",
     signInPrompt: "Vous avez déjà un compte ?",
     signUpWithGoogle: "S'inscrire avec Google",
+    signUpWithFacebook: "S'inscrire avec Facebook",
     countryNoResults: "Aucun pays trouvé",
 
     // Navigation
@@ -678,6 +681,7 @@ export const translations = {
 
     // Google OAuth
     continueWithGoogle: "Continuer avec Google",
+    continueWithFacebook: "Continuer avec Facebook",
     authenticationError: "Erreur d'authentification",
     failedToSaveCountry: "Échec de l'enregistrement du pays. Veuillez réessayer.",
     chooseCountry: "Choisir le pays",
@@ -785,6 +789,7 @@ export const translations = {
     oauthEmailExists: "هذا البريد الإلكتروني مسجل بالفعل باستخدام تسجيل الدخول عبر جوجل. يرجى استخدام زر 'المتابعة مع جوجل' لتسجيل الدخول.",
     signInPrompt: "لديك حساب بالفعل؟",
     signUpWithGoogle: "التسجيل باستخدام جوجل",
+    signUpWithFacebook: "التسجيل باستخدام فيسبوك",
     countryNoResults: "لم يتم العثور على دول",
 
     // Navigation
@@ -1044,6 +1049,7 @@ export const translations = {
 
     // Google OAuth
     continueWithGoogle: "المتابعة مع جوجل",
+    continueWithFacebook: "المتابعة مع فيسبوك",
     authenticationError: "خطأ في المصادقة",
     failedToSaveCountry: "فشل حفظ اختيار البلد. يرجى المحاولة مرة أخرى.",
     chooseCountry: "اختر البلد",

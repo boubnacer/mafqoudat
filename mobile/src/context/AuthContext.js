@@ -2,6 +2,7 @@ import React, { createContext, useCallback, useContext, useEffect, useReducer, u
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { jwtDecode } from 'jwt-decode';
 import googleAuth, { useGoogleIdTokenAuth, IS_GOOGLE_AUTH_CONFIGURED } from '../utils/googleAuth';
+import facebookAuth from '../utils/facebookAuth';
 import { storage } from '../utils/storage';
 import { decodeToken } from '../utils/tokenUtils';
 import { USE_NATIVE_GOOGLE_AUTH } from '../config/api';
@@ -113,6 +114,12 @@ export const AuthProvider = ({ children }) => {
   // Which flow minted pendingToken ('native' | 'browser') - the two live in separate
   // in-memory maps server-side, so completion must be routed back to the same one.
   const [pendingAuthMethod, setPendingAuthMethod] = useState('native');
+  // Which OAuth provider minted pendingToken ('google' | 'facebook') - each provider
+  // route keeps its own pending-registrations map server-side (see
+  // server/routes/facebookAuthRoutes.js), so CountrySelectionScreen must call the
+  // matching complete*Registration function, not just whichever one exists.
+  // Defaults to 'google' since that's the only provider that existed before this.
+  const [pendingProvider, setPendingProvider] = useState('google');
   const [request, response, promptAsync] = useGoogleIdTokenAuth();
   const [sessionExpired, setSessionExpired] = useState(false);
   // Translation key for the notice banner shown on LoginScreen when a guest is
@@ -253,6 +260,7 @@ export const AuthProvider = ({ children }) => {
         console.log('⏳ New user, needs country selection');
         setPendingToken(authResult.pendingToken);
         setPendingAuthMethod(method);
+        setPendingProvider('google');
         return { success: false, pending: true, pendingToken: authResult.pendingToken };
       }
 
@@ -295,6 +303,79 @@ export const AuthProvider = ({ children }) => {
       return { success: false, error: result.error };
     } catch (error) {
       console.error('❌ Complete Google registration error:', error);
+      const errorMessage = error.message || 'Failed to complete registration';
+      dispatch({ type: AUTH_ACTIONS.SET_ERROR, payload: errorMessage });
+      return { success: false, error: errorMessage };
+    } finally {
+      dispatch({ type: AUTH_ACTIONS.SET_LOADING, payload: false });
+    }
+  };
+
+  // Facebook only has the browser flow (see facebookAuth.js) - no native/legacy
+  // branch to pick between, unlike signInWithGoogle.
+  const signInWithFacebook = async () => {
+    try {
+      dispatch({ type: AUTH_ACTIONS.SET_LOADING, payload: true });
+      dispatch({ type: AUTH_ACTIONS.CLEAR_ERROR });
+
+      const authResult = await facebookAuth.signInWithFacebookBrowser();
+
+      if (authResult.cancelled) {
+        return { success: false, cancelled: true };
+      }
+
+      if (authResult.success && authResult.accessToken) {
+        const user = await persistSession(authResult.accessToken);
+        console.log('✅ Facebook sign in successful');
+        return { success: true, user };
+      }
+
+      if (authResult.pending && authResult.pendingToken) {
+        console.log('⏳ New Facebook user, needs country selection');
+        setPendingToken(authResult.pendingToken);
+        setPendingProvider('facebook');
+        return { success: false, pending: true, pendingToken: authResult.pendingToken };
+      }
+
+      dispatch({ type: AUTH_ACTIONS.SET_ERROR, payload: authResult.error });
+      return { success: false, error: authResult.error };
+    } catch (error) {
+      console.error('❌ Facebook sign in error:', error);
+      const errorMessage = error.message || 'Failed to sign in with Facebook';
+      dispatch({ type: AUTH_ACTIONS.SET_ERROR, payload: errorMessage });
+      return { success: false, error: errorMessage };
+    } finally {
+      dispatch({ type: AUTH_ACTIONS.SET_LOADING, payload: false });
+    }
+  };
+
+  const completeFacebookRegistration = async (countryId) => {
+    try {
+      dispatch({ type: AUTH_ACTIONS.SET_LOADING, payload: true });
+      dispatch({ type: AUTH_ACTIONS.CLEAR_ERROR });
+
+      if (!pendingToken) {
+        const message = 'No pending Facebook registration found';
+        dispatch({ type: AUTH_ACTIONS.SET_ERROR, payload: message });
+        return { success: false, error: message };
+      }
+
+      console.log('🔄 Completing Facebook registration...');
+      const result = await facebookAuth.completeRegistration(pendingToken, countryId);
+
+      if (result.success && result.accessToken) {
+        const user = await persistSession(result.accessToken, { username: result.username });
+        setPendingToken(null);
+        setPendingProvider('google');
+
+        console.log('✅ Facebook registration completed successfully');
+        return { success: true, user };
+      }
+
+      dispatch({ type: AUTH_ACTIONS.SET_ERROR, payload: result.error });
+      return { success: false, error: result.error };
+    } catch (error) {
+      console.error('❌ Complete Facebook registration error:', error);
       const errorMessage = error.message || 'Failed to complete registration';
       dispatch({ type: AUTH_ACTIONS.SET_ERROR, payload: errorMessage });
       return { success: false, error: errorMessage };
@@ -360,10 +441,13 @@ export const AuthProvider = ({ children }) => {
     hasCountry,
     selectCountry,
     pendingToken,
+    pendingProvider,
     signInWithGoogle,
+    signInWithFacebook,
     signOut,
     clearError,
     completeGoogleRegistration,
+    completeFacebookRegistration,
     completeLogin,
     refreshSession,
     sessionExpired,

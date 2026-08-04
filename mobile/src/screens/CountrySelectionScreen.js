@@ -1,5 +1,5 @@
 /**
- * Country Selection Screen for Google OAuth
+ * Country Selection Screen for OAuth sign-up (Google or Facebook)
  * Mirrors: client/src/features/auth/CountrySelection.jsx
  */
 
@@ -28,7 +28,7 @@ const CountrySelectionScreen = ({ navigation }) => {
   const { colors } = useTheme();
   const styles = useMemo(() => createStyles(colors), [colors]);
   const { t } = useTranslation();
-  const { pendingToken, completeGoogleRegistration } = useAuth();
+  const { pendingToken, pendingProvider, completeGoogleRegistration, completeFacebookRegistration } = useAuth();
   const isRTL = currentLanguage === 'ar';
 
   const [countries, setCountries] = useState([]);
@@ -106,7 +106,12 @@ const CountrySelectionScreen = ({ navigation }) => {
     try {
       const countryId = selectedCountry._id || selectedCountry.id || selectedCountry;
 
-      const result = await completeGoogleRegistration(countryId);
+      // pendingToken lives in a provider-specific in-memory map server-side
+      // (see server/routes/facebookAuthRoutes.js vs googleAuthRoutes.js), so
+      // completion must go through the matching provider's function.
+      const result = pendingProvider === 'facebook'
+        ? await completeFacebookRegistration(countryId)
+        : await completeGoogleRegistration(countryId);
 
       if (!result.success) {
         // The pending token is a one-shot, 5-minute window (server-side in-memory map);

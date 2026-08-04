@@ -45,6 +45,11 @@ export const API_ENDPOINTS = {
     GOOGLE_COMPLETE: "/auth/complete",
     GOOGLE_MOBILE: "/auth/google/mobile",
     GOOGLE_MOBILE_COMPLETE: "/auth/google/mobile/complete",
+    // Facebook only has the passport/browser flow server-side (see
+    // server/routes/facebookAuthRoutes.js) - no native ID-token equivalent of
+    // GOOGLE_MOBILE exists, so there's no FACEBOOK_MOBILE endpoint to mirror.
+    FACEBOOK: "/auth/facebook",
+    FACEBOOK_COMPLETE: "/auth/facebook/complete",
   },
   USERS: {
     // Public (no auth required) - server/routes/userRoutes.js POST / -> createNewUser
