@@ -4,7 +4,7 @@
  */
 
 import React, { createContext, useContext, useState, useEffect } from 'react';
-import { I18nManager, NativeModules } from 'react-native';
+import { I18nManager, NativeModules, TurboModuleRegistry } from 'react-native';
 import * as Updates from 'expo-updates';
 import RNRestart from 'react-native-restart';
 import { languageStorage } from '../utils/languageStorage';
@@ -14,18 +14,41 @@ const LanguageContext = createContext();
 // RNRestart (react-native-restart) does a real native app restart, but the native
 // module it relies on only exists in dev-client/production builds after a native
 // rebuild - Expo Go can never load it (custom native modules aren't supported there).
-// Checked once, synchronously, so the UI can offer a working "Reopen app" button only
-// where one would actually do something, instead of a button that silently fails.
-const canRestartNatively = !!NativeModules.RNRestart;
+//
+// It ships as a legacy (non-TurboModule - its package.json declares no
+// codegenConfig) native module, so on this app's New Architecture runtime
+// (Expo SDK 54 / RN 0.81, bridgeless by default) it is reached through the
+// interop layer rather than the classic bridge. Probe both registries:
+// NativeModules covers the classic path, TurboModuleRegistry.get the interop
+// one. The library's own JS wrapper is useless for detection - it defines
+// restart()/Restart() as plain closures whether or not the native side loaded,
+// and only throws once actually called.
+const findRestartModule = () => {
+  try {
+    if (NativeModules?.RNRestart) return NativeModules.RNRestart;
+  } catch (error) {
+    // Accessing a missing module can throw rather than return undefined.
+  }
+  try {
+    return TurboModuleRegistry?.get?.('RNRestart') || null;
+  } catch (error) {
+    return null;
+  }
+};
+
+const canRestartNatively = !!findRestartModule();
 
 export const LanguageProvider = ({ children }) => {
   const [currentLanguage, setCurrentLanguage] = useState('en');
   const [isInitialized, setIsInitialized] = useState(false);
   // Set (never cleared by this file) whenever a direction change couldn't be
-  // applied automatically, so a non-blocking banner can tell the user without
-  // demanding a manual restart - see promptForRestart below. Consumed by
-  // components/RestartNotice.js, which owns clearing it again.
+  // applied automatically, so the user can be asked to reopen the app - see
+  // promptForRestart below. Consumed by components/DirectionChangeDialog.js,
+  // which owns clearing it again.
   const [directionChangeNotice, setDirectionChangeNotice] = useState(false);
+  // Set when a restart was offered but the call actually failed, so the dialog
+  // can stop offering a button that doesn't work. See restartApp below.
+  const [restartUnavailable, setRestartUnavailable] = useState(false);
 
   // Initialize language on mount
   useEffect(() => {
@@ -66,9 +89,9 @@ export const LanguageProvider = ({ children }) => {
   // channel/project is set up), so today that's every environment, not just Expo Go/dev
   // client. Kept here anyway: it's a harmless no-op call now and becomes a real silent
   // reload for free if OTA updates are ever enabled later. Until then, there is no
-  // automatic-reload path available, so we surface a brief non-blocking notice instead
-  // of a blocking "please restart" instruction - the new direction still applies fully
-  // the next time the user opens the app on their own.
+  // automatic path available, so we raise the direction-change dialog, which offers
+  // a real native restart where one is available and otherwise explains that the new
+  // direction applies the next time the user opens the app.
   const promptForRestart = async () => {
     try {
       await Updates.reloadAsync();
@@ -79,13 +102,30 @@ export const LanguageProvider = ({ children }) => {
 
   const dismissDirectionChangeNotice = () => setDirectionChangeNotice(false);
 
-  // Only ever called from a user tap (RestartNotice's "Reopen app" button) - a real
-  // process restart is more jarring than the silent reloadAsync path above, so it's
-  // opt-in rather than automatic. No-op (button isn't rendered in the first place)
-  // when canRestartNatively is false.
-  const restartApp = () => {
-    if (canRestartNatively) {
+  // Only ever called from a user tap (the direction-change dialog's "Reopen app"
+  // button) - a real process restart is more jarring than the silent reloadAsync
+  // path above, so it's opt-in rather than automatic.
+  //
+  // Tries the JS-level reload first (cheaper, and enough for RTL to take effect
+  // since the root view is recreated), then falls back to a full native restart.
+  // Detection above can only tell us the native module is registered, not that
+  // the call will succeed, so a throw here flips restartUnavailable and the
+  // dialog degrades to "this applies next time you open the app" rather than
+  // leaving the user tapping a dead button.
+  const restartApp = async () => {
+    try {
+      await Updates.reloadAsync();
+      return true;
+    } catch (error) {
+      // Expected whenever expo-updates is disabled - fall through to RNRestart.
+    }
+    try {
       RNRestart.restart();
+      return true;
+    } catch (error) {
+      console.error('Native restart unavailable:', error);
+      setRestartUnavailable(true);
+      return false;
     }
   };
 
@@ -126,7 +166,8 @@ export const LanguageProvider = ({ children }) => {
         setLanguage,
         directionChangeNotice,
         dismissDirectionChangeNotice,
-        canRestartNatively,
+        // Offer the restart button only while we still believe it can work.
+        canRestartNatively: canRestartNatively && !restartUnavailable,
         restartApp,
       }}
     >
