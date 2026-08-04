@@ -3,104 +3,67 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Redirecting to App...</title>
+    <title>Signing you in…</title>
     <style>
         * { margin: 0; padding: 0; box-sizing: border-box; }
         body {
-            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Arial, sans-serif;
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Arial, sans-serif;
             display: flex;
+            flex-direction: column;
             justify-content: center;
             align-items: center;
             min-height: 100vh;
-            padding: 20px;
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-        }
-        .container {
-            background: white;
-            border-radius: 16px;
-            padding: 30px;
-            max-width: 500px;
-            width: 100%;
-            box-shadow: 0 20px 60px rgba(0,0,0,0.3);
+            padding: 24px;
+            background: #F7F8FB;
+            color: #0B1220;
             text-align: center;
         }
-        h1 { color: #333; margin-bottom: 20px; font-size: 24px; }
-        .status {
-            padding: 12px;
-            margin: 15px 0;
-            border-radius: 8px;
+        @media (prefers-color-scheme: dark) {
+            body { background: #0E1116; color: #EDEFF5; }
+        }
+        .spinner {
+            width: 38px;
+            height: 38px;
+            border: 3px solid rgba(27, 77, 255, 0.18);
+            border-top-color: #1B4DFF;
+            border-radius: 50%;
+            animation: spin 0.8s linear infinite;
+            margin-bottom: 18px;
+        }
+        @keyframes spin { to { transform: rotate(360deg); } }
+        p { font-size: 15px; font-weight: 500; }
+        /* Manual escape hatch, revealed only if the automatic redirect hasn't
+           taken effect - some in-app browsers refuse scheme redirects. */
+        #fallback {
+            display: none;
+            margin-top: 22px;
             font-size: 14px;
-            font-weight: 500;
         }
-        .status.success {
-            background: #d4edda;
-            color: #155724;
-            border: 1px solid #c3e6cb;
-        }
-        .status.error {
-            background: #f8d7da;
-            color: #721c24;
-            border: 1px solid #f5c6cb;
-        }
-        textarea {
-            width: 100%;
-            padding: 15px;
-            font-size: 12px;
-            font-family: 'Courier New', monospace;
-            border: 2px solid #e0e0e0;
-            border-radius: 8px;
-            margin: 20px 0;
-            min-height: 120px;
-            resize: vertical;
-            background: #f8f9fa;
-        }
-        .button {
-            background: #2196F3;
-            color: white;
-            border: none;
-            padding: 15px 30px;
-            font-size: 16px;
+        #fallback a {
+            display: inline-block;
+            margin-top: 10px;
+            padding: 12px 26px;
+            background: #1B4DFF;
+            color: #FFFFFF;
+            border-radius: 12px;
+            text-decoration: none;
             font-weight: 600;
-            border-radius: 8px;
-            cursor: pointer;
-            margin: 8px;
-            min-width: 150px;
-            transition: all 0.3s;
         }
-        .button:hover { background: #1976D2; transform: translateY(-2px); }
-        .button:active { transform: translateY(0); }
-        .button.green { background: #4CAF50; }
-        .button.green:hover { background: #45a049; }
-        .instructions {
-            margin-top: 20px;
-            color: #666;
-            font-size: 13px;
-            line-height: 1.6;
-        }
+        #error { display: none; font-size: 15px; font-weight: 500; }
+        .hidden { display: none !important; }
     </style>
 </head>
 <body>
-    <div class="container">
-        <h1>🔐 Authentication Success!</h1>
-        <div id="status" class="status">Loading token...</div>
-        <p style="margin: 10px 0; color: #666; font-size: 14px;">
-            <strong>Your authentication token is below.</strong> Copy it and return to the app.
-        </p>
-        <textarea id="tokenDisplay" readonly placeholder="Token will appear here... If you see this placeholder, the token extraction may have failed. The token should be in the URL above (after ?token=)."></textarea>
-        <div>
-            <button id="openAppBtn" class="button">Open App</button>
-            <button id="copyTokenBtn" class="button green">Copy Token</button>
-        </div>
-        <div class="instructions">
-            <p><strong>Instructions:</strong></p>
-            <p>1. The app should open automatically in a few seconds</p>
-            <p>2. If the app doesn't open automatically, click the "Open App" button above</p>
-            <p>3. If the app still doesn't open:</p>
-            <p style="margin-left: 20px;">• Click "Copy Token" button</p>
-            <p style="margin-left: 20px;">• Return to the app manually</p>
-            <p style="margin-left: 20px;">• Paste the token in the login screen</p>
-            <p>4. The token is displayed in the text area above - you can also manually select and copy it</p>
-        </div>
+    <div id="loading">
+        <div class="spinner"></div>
+        <p>Signing you in…</p>
+    </div>
+
+    <p id="error"></p>
+
+    <div id="fallback">
+        <p>Not redirected automatically?</p>
+        <a id="fallbackLink" href="#">Return to Mafqoudat</a>
     </div>
 
     <!-- External file, not inline: the site-wide CSP (server/middleware/securityHeaders.js)

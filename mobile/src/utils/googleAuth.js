@@ -7,7 +7,7 @@ import {
   GOOGLE_WEB_CLIENT_ID,
   GOOGLE_IOS_CLIENT_ID,
   GOOGLE_ANDROID_CLIENT_ID,
-  GOOGLE_MOBILE_CALLBACK_URL,
+  MOBILE_OAUTH_CALLBACK_URL,
 } from '../config/api';
 import { useTranslation } from './translations';
 
@@ -78,14 +78,14 @@ class GoogleAuth {
   // Legacy fallback path (behind USE_NATIVE_GOOGLE_AUTH): opens the server's passport
   // Google OAuth flow (GET /auth/google) in an ephemeral auth-session browser. The
   // server's callback redirects through server/views/mobile-callback.html, which
-  // navigates to GOOGLE_MOBILE_CALLBACK_URL with ?token= or ?pendingToken= - the
+  // navigates to MOBILE_OAUTH_CALLBACK_URL with ?token= or ?pendingToken= - the
   // auth-session intercepts that navigation directly, without ever handing off to the
   // OS (no Linking listener needed) or actually leaving the app.
   async signInWithGoogleBrowser() {
     try {
-      const authUrl = `${API_BASE_URL}${API_ENDPOINTS.AUTH.GOOGLE}?mobile=true&redirect_uri=${encodeURIComponent(GOOGLE_MOBILE_CALLBACK_URL)}`;
+      const authUrl = `${API_BASE_URL}${API_ENDPOINTS.AUTH.GOOGLE}?mobile=true&redirect_uri=${encodeURIComponent(MOBILE_OAUTH_CALLBACK_URL)}`;
 
-      const result = await WebBrowser.openAuthSessionAsync(authUrl, GOOGLE_MOBILE_CALLBACK_URL);
+      const result = await WebBrowser.openAuthSessionAsync(authUrl, MOBILE_OAUTH_CALLBACK_URL);
 
       if (result.type === 'cancel' || result.type === 'dismiss') {
         return { success: false, cancelled: true };

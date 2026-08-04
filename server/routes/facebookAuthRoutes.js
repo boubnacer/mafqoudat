@@ -131,7 +131,10 @@ const processFacebookCallback = async (req, res) => {
         const protocol = req.protocol || 'https';
         const host = req.get('host') || 'localhost:3500';
         const serverUrl = `${protocol}://${host}`;
-        return `${serverUrl}/auth/mobile-callback?pendingToken=${encodeURIComponent(pendingToken)}&provider=facebook`;
+        // No provider param here, unlike the web redirect below: the app already
+        // knows which provider it started (AuthContext sets pendingProvider when
+        // signInWithFacebook runs), and the deep link never forwarded it anyway.
+        return `${serverUrl}/auth/mobile-callback?pendingToken=${encodeURIComponent(pendingToken)}`;
       }
       // Distinct pendingToken namespace from Google's, so /auth/select-country
       // needs to know which provider's /complete endpoint to call.

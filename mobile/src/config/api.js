@@ -29,8 +29,9 @@ export const USE_NATIVE_GOOGLE_AUTH =
   process.env.EXPO_PUBLIC_USE_NATIVE_GOOGLE_AUTH !== "false";
 
 // The server's mobile-callback.html always redirects here verbatim regardless of any
-// redirect_uri passed to /auth/google - it is not templated, so this must match exactly.
-export const GOOGLE_MOBILE_CALLBACK_URL = "mafqoudat://auth/callback";
+// redirect_uri passed to /auth/google or /auth/facebook - it is not templated, so this
+// must match exactly. Shared by every provider's browser flow, hence no provider prefix.
+export const MOBILE_OAUTH_CALLBACK_URL = "mafqoudat://auth/callback";
 
 // Canonical marketing site (client/src/utils/seoConfig.js) - used for the
 // Settings screen's Privacy Policy / Terms of Service links.

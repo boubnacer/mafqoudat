@@ -395,15 +395,6 @@ router.post('/complete', async (req, res) => {
 // @access Public
 router.get('/mobile-callback', (req, res) => {
   try {
-    const { token, pendingToken, error } = req.query;
-
-    console.log('🔍 Mobile callback received:', {
-      token: token ? 'EXISTS' : 'MISSING',
-      pendingToken: pendingToken ? 'EXISTS' : 'MISSING',
-      error: error ? 'EXISTS' : 'MISSING',
-      fullUrl: req.originalUrl
-    });
-
     // Served as-is: /js/mobile-callback.js (server/public/js/) reads token/
     // pendingToken/error straight from window.location.search client-side, so
     // no server-side templating/injection into the HTML is needed. There used
@@ -413,6 +404,8 @@ router.get('/mobile-callback', (req, res) => {
     // scripts - that injected block, and the page's own inline script that
     // read it, never actually ran. Moving the logic to this same-origin file
     // fixed both at once, and made the injection moot as well as broken.
+    //
+    // Deliberately does not log the query string: it carries the access token.
     const htmlPath = path.join(__dirname, '../views/mobile-callback.html');
     const html = fs.readFileSync(htmlPath, 'utf8');
 
