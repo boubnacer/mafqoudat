@@ -57,10 +57,32 @@ router.get('/facebook', (req, res, next) => {
 // @route GET /auth/facebook/callback
 // @access Public
 router.get('/facebook/callback',
-  passport.authenticate('facebook', {
-    session: false,
-    failureRedirect: `${process.env.FRONTEND_URL || process.env.CLIENT_URL || 'http://localhost:3000'}/login?error=oauth_failed`
-  }),
+  (req, res, next) => {
+    // Custom callback instead of the array-style passport.authenticate(...) —
+    // that form hands any strategy error (e.g. a failed token exchange or
+    // profile fetch inside passport-facebook itself) straight to Express's
+    // generic error handler, which in production logs nothing and returns a
+    // bare "Internal Server Error". This logs the real error unconditionally.
+    passport.authenticate('facebook', { session: false }, (err, user) => {
+      const frontendUrl = process.env.FRONTEND_URL || process.env.CLIENT_URL || 'http://localhost:3000';
+
+      if (err) {
+        console.error('Facebook OAuth authenticate error:', err);
+        logEvents(
+          `Facebook OAuth authenticate error: ${err.message}\t${req.method}\t${req.url}\t${req.ip}`,
+          'errLog.log'
+        );
+        return res.redirect(`${frontendUrl}/login?error=oauth_failed`);
+      }
+
+      if (!user) {
+        return res.redirect(`${frontendUrl}/login?error=oauth_failed`);
+      }
+
+      req.user = user;
+      next();
+    })(req, res, next);
+  },
   async (req, res) => {
     try {
       const user = req.user;
