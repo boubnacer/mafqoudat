@@ -55,7 +55,7 @@ const getElevation = (isDark, level = 1) =>
       };
 
 const SignUpScreen = ({ navigation }) => {
-  const { signInWithGoogle, completeLogin } = useAuth();
+  const { signInWithGoogle, signInWithFacebook, completeLogin } = useAuth();
   const { currentLanguage } = useLanguage();
   const { isDark } = useTheme();
   const tokens = isDark ? colorTokens.dark : colorTokens.light;
@@ -84,6 +84,7 @@ const SignUpScreen = ({ navigation }) => {
   });
   const [isLoading, setIsLoading] = useState(false);
   const [isGoogleLoading, setIsGoogleLoading] = useState(false);
+  const [isFacebookLoading, setIsFacebookLoading] = useState(false);
   const [error, setError] = useState('');
 
   const passwordMeetsRequirements = PASSWORD_REGEX.test(password);
@@ -237,6 +238,29 @@ const SignUpScreen = ({ navigation }) => {
       setError(err.message || t('oauthError'));
     } finally {
       setIsGoogleLoading(false);
+    }
+  };
+
+  // Facebook sign-up and sign-in are the same entry point, same as Google above.
+  const handleFacebookSignUp = async () => {
+    setIsFacebookLoading(true);
+    setError('');
+
+    try {
+      const result = await signInWithFacebook();
+
+      if (result.success) {
+        navigation.navigate('Home');
+      } else if (result.pending) {
+        navigation.navigate('CountrySelection');
+      } else if (!result.cancelled) {
+        setError(result.error || t('oauthError'));
+      }
+    } catch (err) {
+      console.error('Facebook sign up error:', err);
+      setError(err.message || t('oauthError'));
+    } finally {
+      setIsFacebookLoading(false);
     }
   };
 
@@ -464,6 +488,22 @@ const SignUpScreen = ({ navigation }) => {
             {!IS_GOOGLE_AUTH_CONFIGURED ? (
               <Text style={styles.googleAuthHint}>{t('googleAuthNotConfigured')}</Text>
             ) : null}
+
+            <TouchableOpacity
+              style={[styles.facebookButton, isFacebookLoading && styles.buttonDisabled]}
+              onPress={handleFacebookSignUp}
+              disabled={isFacebookLoading}
+              activeOpacity={0.7}
+            >
+              {isFacebookLoading ? (
+                <ActivityIndicator color={tokens.ink} />
+              ) : (
+                <>
+                  <Text style={styles.facebookIcon}>f</Text>
+                  <Text style={styles.googleButtonText}>{t('signUpWithFacebook')}</Text>
+                </>
+              )}
+            </TouchableOpacity>
           </View>
 
           <View style={styles.signInRow}>
@@ -750,6 +790,23 @@ const createStyles = (tokens, isDark, isRTL) => StyleSheet.create({
     fontSize: 12,
     textAlign: 'center',
     marginTop: 8,
+  },
+  facebookButton: {
+    flexDirection: isRTL ? 'row-reverse' : 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    height: 52,
+    marginTop: 12,
+    backgroundColor: `${tokens.ink}0A`,
+    borderRadius: radiusTokens.md,
+    borderWidth: 1,
+    borderColor: `${tokens.ink}${isDark ? '1F' : '14'}`,
+    gap: 10,
+  },
+  facebookIcon: {
+    fontSize: 18,
+    fontWeight: 'bold',
+    color: '#1877F2',
   },
   signInRow: {
     flexDirection: isRTL ? 'row-reverse' : 'row',
