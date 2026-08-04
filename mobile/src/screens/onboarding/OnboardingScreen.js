@@ -21,6 +21,7 @@ import {
   ActivityIndicator,
   NativeModules,
   Platform,
+  I18nManager,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { Ionicons } from '@expo/vector-icons';
@@ -100,6 +101,12 @@ const OnboardingScreen = () => {
   const tokens = isDark ? colorTokens.dark : colorTokens.light;
   const isRTL = currentLanguage === 'ar';
   const styles = useMemo(() => createStyles(tokens), [tokens]);
+
+  // Once I18nManager.isRTL actually flips (post-reload, after picking Arabic),
+  // Android/iOS report/expect NEGATIVE contentOffset.x for horizontal scroll -
+  // this custom carousel's offset math otherwise stays LTR-only and scrolls
+  // past real content into blank space on "Next", which is the white-screen bug.
+  const scrollDir = I18nManager.isRTL ? -1 : 1;
 
   const flatListRef = useRef(null);
   const scrollX = useRef(new Animated.Value(0)).current;
@@ -203,12 +210,12 @@ const OnboardingScreen = () => {
   };
 
   const scrollToIndex = (index) => {
-    flatListRef.current?.scrollToOffset({ offset: index * SCREEN_WIDTH, animated: true });
+    flatListRef.current?.scrollToOffset({ offset: index * SCREEN_WIDTH * scrollDir, animated: true });
     setActiveIndex(index);
   };
 
   const handleMomentumScrollEnd = (event) => {
-    const index = Math.round(event.nativeEvent.contentOffset.x / SCREEN_WIDTH);
+    const index = Math.round((event.nativeEvent.contentOffset.x * scrollDir) / SCREEN_WIDTH);
     setActiveIndex(index);
   };
 
@@ -260,7 +267,15 @@ const OnboardingScreen = () => {
   const slideAnimatedStyles = useMemo(
     () =>
       SLIDE_INDICES.map((index) => {
-        const inputRange = [(index - 1) * SCREEN_WIDTH, index * SCREEN_WIDTH, (index + 1) * SCREEN_WIDTH];
+        // interpolate() requires an ascending inputRange - scrollDir === -1 makes
+        // the raw (index-1, index, index+1) offsets descend, so flip the array
+        // order (outputs are symmetric, so no output-side reversal is needed).
+        const raw = [
+          (index - 1) * SCREEN_WIDTH * scrollDir,
+          index * SCREEN_WIDTH * scrollDir,
+          (index + 1) * SCREEN_WIDTH * scrollDir,
+        ];
+        const inputRange = scrollDir === 1 ? raw : [...raw].reverse();
         return {
           opacity: scrollX.interpolate({ inputRange, outputRange: [0, 1, 0], extrapolate: 'clamp' }),
           transform: [
@@ -373,12 +388,20 @@ const OnboardingScreen = () => {
         {countryError ? <Text style={styles.errorText}>{countryError}</Text> : null}
 
         <TouchableOpacity
-          style={[styles.countryButton, selectedCountry && styles.countryButtonSelected]}
+          style={[
+            styles.countryButton,
+            selectedCountry && styles.countryButtonSelected,
+            isRTL && styles.rowReverse,
+          ]}
           onPress={() => setShowCountryList((prev) => !prev)}
           activeOpacity={0.8}
         >
           <Text
-            style={[styles.countryButtonText, !selectedCountry && styles.countryButtonPlaceholder]}
+            style={[
+              styles.countryButtonText,
+              !selectedCountry && styles.countryButtonPlaceholder,
+              isRTL && styles.textRTL,
+            ]}
             numberOfLines={1}
           >
             {selectedCountry ? `${selectedCountry.flag || '🌍'} ${getCountryName(selectedCountry)}` : t('chooseCountry')}
@@ -410,7 +433,11 @@ const OnboardingScreen = () => {
                     (selectedCountry?.id && selectedCountry.id === item.id);
                   return (
                     <TouchableOpacity
-                      style={[styles.countryItem, isSelected && styles.countryItemSelected]}
+                      style={[
+                        styles.countryItem,
+                        isSelected && styles.countryItemSelected,
+                        isRTL && styles.rowReverse,
+                      ]}
                       onPress={() => handleCountrySelect(item)}
                       activeOpacity={0.7}
                     >
@@ -459,7 +486,7 @@ const OnboardingScreen = () => {
 
   return (
     <SafeAreaView style={styles.safeArea} edges={['top', 'bottom']}>
-      <View style={styles.header}>
+      <View style={[styles.header, isRTL && styles.headerRTL]}>
         {!isLastSlide ? (
           <TouchableOpacity onPress={handleSkip} hitSlop={{ top: 12, bottom: 12, left: 12, right: 12 }}>
             <Text style={styles.skipText}>{t('skip')}</Text>
@@ -482,7 +509,7 @@ const OnboardingScreen = () => {
         // Android clips/recycles offscreen subviews by default, which can flash
         // blank/black mid-transition on an Animated-opacity FlatList like this one.
         removeClippedSubviews={false}
-        getItemLayout={(_, index) => ({ length: SCREEN_WIDTH, offset: SCREEN_WIDTH * index, index })}
+        getItemLayout={(_, index) => ({ length: SCREEN_WIDTH, offset: SCREEN_WIDTH * index * scrollDir, index })}
         scrollEventThrottle={16}
         onScroll={Animated.event([{ nativeEvent: { contentOffset: { x: scrollX } } }], { useNativeDriver: true })}
         onMomentumScrollEnd={handleMomentumScrollEnd}
@@ -537,6 +564,9 @@ const createStyles = (tokens) =>
       justifyContent: 'flex-end',
       alignItems: 'center',
       paddingHorizontal: 20,
+    },
+    headerRTL: {
+      justifyContent: 'flex-start',
     },
     skipText: {
       fontFamily: fontFamilies.bodyMedium,
