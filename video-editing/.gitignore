@@ -1,4 +1,6 @@
 node_modules
 out
 .env*
+public/*.mp4
+public/*.mov
 !public/.gitkeep
