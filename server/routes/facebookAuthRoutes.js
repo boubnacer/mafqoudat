@@ -53,68 +53,103 @@ router.get('/facebook', (req, res, next) => {
   })(req, res, next);
 });
 
-// @desc Facebook OAuth callback
-// @route GET /auth/facebook/callback
-// @access Public
-router.get('/facebook/callback',
-  (req, res, next) => {
-    // Custom callback instead of the array-style passport.authenticate(...) —
-    // that form hands any strategy error (e.g. a failed token exchange or
-    // profile fetch inside passport-facebook itself) straight to Express's
-    // generic error handler, which in production logs nothing and returns a
-    // bare "Internal Server Error". This logs the real error unconditionally.
-    passport.authenticate('facebook', { session: false }, (err, user) => {
-      const frontendUrl = process.env.FRONTEND_URL || process.env.CLIENT_URL || 'http://localhost:3000';
+// Facebook authorization codes are single-use. Mobile browsers that preload/
+// prefetch links (observed with Samsung Internet) can fire a second, silent
+// request at this callback URL before or alongside the real navigation —
+// both requests then try to redeem the same code, and whichever loses the
+// race gets "This authorization code has been used" from Facebook.
+// inFlightCallbacks memoizes in-progress callback handling by `code` so a
+// duplicate request reuses the first request's outcome instead of making its
+// own (doomed) token exchange.
+const inFlightCallbacks = new Map(); // code -> Promise<string redirectUrl>
+const INFLIGHT_ENTRY_TTL = 15 * 1000; // keep entries around briefly to catch near-simultaneous duplicates
 
-      if (err) {
-        console.error('Facebook OAuth authenticate error:', err);
-        logEvents(
-          `Facebook OAuth authenticate error: ${err.message}\t${req.method}\t${req.url}\t${req.ip}`,
-          'errLog.log'
-        );
-        return res.redirect(`${frontendUrl}/login?error=oauth_failed`);
-      }
+const authenticateFacebook = (req, res) => new Promise((resolve, reject) => {
+  // Custom callback instead of the array-style passport.authenticate(...) —
+  // that form hands any strategy error (e.g. a failed token exchange or
+  // profile fetch inside passport-facebook itself) straight to Express's
+  // generic error handler, which in production logs nothing and returns a
+  // bare "Internal Server Error". This lets us log the real error unconditionally.
+  passport.authenticate('facebook', { session: false }, (err, user) => {
+    if (err) return reject(err);
+    if (!user) return reject(new Error('NO_USER'));
+    resolve(user);
+  })(req, res, () => {});
+});
 
-      if (!user) {
-        return res.redirect(`${frontendUrl}/login?error=oauth_failed`);
-      }
+// Runs the full callback flow once and resolves to the redirect URL the
+// browser should end up at. Never rejects — all failure paths resolve to an
+// error redirect URL, so duplicate requests sharing this promise all land
+// on the same, consistent outcome.
+const processFacebookCallback = async (req, res) => {
+  const frontendUrl = process.env.FRONTEND_URL || process.env.CLIENT_URL || 'http://localhost:3000';
 
-      req.user = user;
-      next();
-    })(req, res, next);
-  },
-  async (req, res) => {
+  let user;
+  try {
+    user = await authenticateFacebook(req, res);
+  } catch (err) {
+    console.error('Facebook OAuth authenticate error:', err);
+    logEvents(
+      `Facebook OAuth authenticate error: ${err.message}\t${req.method}\t${req.url}\t${req.ip}`,
+      'errLog.log'
+    );
+    return `${frontendUrl}/login?error=oauth_failed`;
+  }
+
+  try {
+    // Parse state to get mobile flag and redirect_uri
+    let isMobile = false;
+
     try {
-      const user = req.user;
-      const frontendUrl = process.env.FRONTEND_URL || process.env.CLIENT_URL || 'http://localhost:3000';
-
-      // Parse state to get mobile flag and redirect_uri
-      let isMobile = false;
-
-      try {
-        if (req.query.state) {
-          const stateData = JSON.parse(Buffer.from(req.query.state, 'base64').toString());
-          isMobile = stateData.mobile || false;
-        }
-      } catch (e) {
-        // Fallback to old detection methods, same rationale as googleAuthRoutes.js
-        isMobile = req.query.state === 'mobile' ||
-                   req.query.mobile === 'true' ||
-                   req.headers['user-agent']?.includes('Expo') ||
-                   req.headers['user-agent']?.includes('ReactNative');
+      if (req.query.state) {
+        const stateData = JSON.parse(Buffer.from(req.query.state, 'base64').toString());
+        isMobile = stateData.mobile || false;
       }
+    } catch (e) {
+      // Fallback to old detection methods, same rationale as googleAuthRoutes.js
+      isMobile = req.query.state === 'mobile' ||
+                 req.query.mobile === 'true' ||
+                 req.headers['user-agent']?.includes('Expo') ||
+                 req.headers['user-agent']?.includes('ReactNative');
+    }
 
-      // Check if this is a pending user (new registration)
-      if (user && user.isPending) {
-        const pendingToken = crypto.randomBytes(32).toString('hex');
+    // Check if this is a pending user (new registration)
+    if (user && user.isPending) {
+      const pendingToken = crypto.randomBytes(32).toString('hex');
 
-        pendingRegistrations.set(pendingToken, {
-          userData: user,
-          timestamp: Date.now()
+      pendingRegistrations.set(pendingToken, {
+        userData: user,
+        timestamp: Date.now()
+      });
+
+      logEvents(
+        `Pending Facebook OAuth registration: ${user.email || user.facebookId}\t${req.method}\t${req.url}\t${req.ip}`,
+        'reqLog.log'
+      );
+
+      if (isMobile) {
+        const protocol = req.protocol || 'https';
+        const host = req.get('host') || 'localhost:3500';
+        const serverUrl = `${protocol}://${host}`;
+        return `${serverUrl}/auth/mobile-callback?pendingToken=${encodeURIComponent(pendingToken)}&provider=facebook`;
+      }
+      // Distinct pendingToken namespace from Google's, so /auth/select-country
+      // needs to know which provider's /complete endpoint to call.
+      return `${frontendUrl}/auth/select-country?pendingToken=${pendingToken}&provider=facebook`;
+    }
+
+    // Existing user - generate JWT and redirect
+    if (user && user._id) {
+      try {
+        const tokens = generateTokens({
+          username: user.username,
+          id: user._id,
+          country: user.country,
+          role: user.role
         });
 
         logEvents(
-          `Pending Facebook OAuth registration: ${user.email || user.facebookId}\t${req.method}\t${req.url}\t${req.ip}`,
+          `Successful Facebook OAuth login: ${user.username}\t${req.method}\t${req.url}\t${req.ip}`,
           'reqLog.log'
         );
 
@@ -122,73 +157,57 @@ router.get('/facebook/callback',
           const protocol = req.protocol || 'https';
           const host = req.get('host') || 'localhost:3500';
           const serverUrl = `${protocol}://${host}`;
-          const mobileRedirectUrl = `${serverUrl}/auth/mobile-callback?pendingToken=${encodeURIComponent(pendingToken)}&provider=facebook`;
-          return res.redirect(mobileRedirectUrl);
-        } else {
-          // Distinct pendingToken namespace from Google's, so /auth/select-country
-          // needs to know which provider's /complete endpoint to call.
-          const webUrl = `${frontendUrl}/auth/select-country?pendingToken=${pendingToken}&provider=facebook`;
-          return res.redirect(webUrl);
+          return `${serverUrl}/auth/mobile-callback?token=${encodeURIComponent(tokens.accessToken)}`;
         }
+        return `${frontendUrl}/auth/callback?token=${tokens.accessToken}`;
+      } catch (tokenError) {
+        console.error('Token generation error during Facebook OAuth:', tokenError);
+        logEvents(
+          `Token generation error for Facebook OAuth: ${user.username}\t${tokenError.message}`,
+          'errLog.log'
+        );
+        return `${frontendUrl}/login?error=token_generation_failed`;
       }
-
-      // Existing user - generate JWT and redirect
-      if (user && user._id) {
-        try {
-          const tokens = generateTokens({
-            username: user.username,
-            id: user._id,
-            country: user.country,
-            role: user.role
-          });
-
-          logEvents(
-            `Successful Facebook OAuth login: ${user.username}\t${req.method}\t${req.url}\t${req.ip}`,
-            'reqLog.log'
-          );
-
-          if (isMobile) {
-            const protocol = req.protocol || 'https';
-            const host = req.get('host') || 'localhost:3500';
-            const serverUrl = `${protocol}://${host}`;
-            const mobileRedirectUrl = `${serverUrl}/auth/mobile-callback?token=${encodeURIComponent(tokens.accessToken)}`;
-            return res.redirect(mobileRedirectUrl);
-          } else {
-            const webUrl = `${frontendUrl}/auth/callback?token=${tokens.accessToken}`;
-            return res.redirect(webUrl);
-          }
-        } catch (tokenError) {
-          console.error('Token generation error during Facebook OAuth:', tokenError);
-          logEvents(
-            `Token generation error for Facebook OAuth: ${user.username}\t${tokenError.message}`,
-            'errLog.log'
-          );
-          return res.redirect(
-            `${frontendUrl}/login?error=token_generation_failed`
-          );
-        }
-      }
-
-      logEvents(
-        `Facebook OAuth unexpected state\t${req.method}\t${req.url}\t${req.ip}`,
-        'errLog.log'
-      );
-      return res.redirect(
-        `${frontendUrl}/login?error=unexpected_state`
-      );
-    } catch (error) {
-      console.error('Facebook OAuth callback error:', error);
-      logEvents(
-        `Facebook OAuth callback error\t${error.message}\t${req.method}\t${req.url}\t${req.ip}`,
-        'errLog.log'
-      );
-      const frontendUrl = process.env.FRONTEND_URL || process.env.CLIENT_URL || 'http://localhost:3000';
-      return res.redirect(
-        `${frontendUrl}/login?error=oauth_error`
-      );
     }
+
+    logEvents(
+      `Facebook OAuth unexpected state\t${req.method}\t${req.url}\t${req.ip}`,
+      'errLog.log'
+    );
+    return `${frontendUrl}/login?error=unexpected_state`;
+  } catch (error) {
+    console.error('Facebook OAuth callback error:', error);
+    logEvents(
+      `Facebook OAuth callback error\t${error.message}\t${req.method}\t${req.url}\t${req.ip}`,
+      'errLog.log'
+    );
+    return `${frontendUrl}/login?error=oauth_error`;
   }
-);
+};
+
+// @desc Facebook OAuth callback
+// @route GET /auth/facebook/callback
+// @access Public
+router.get('/facebook/callback', async (req, res) => {
+  const code = req.query.code;
+
+  if (!code) {
+    const frontendUrl = process.env.FRONTEND_URL || process.env.CLIENT_URL || 'http://localhost:3000';
+    return res.redirect(`${frontendUrl}/login?error=oauth_failed`);
+  }
+
+  let resultPromise = inFlightCallbacks.get(code);
+  if (!resultPromise) {
+    resultPromise = processFacebookCallback(req, res);
+    inFlightCallbacks.set(code, resultPromise);
+    resultPromise.finally(() => {
+      setTimeout(() => inFlightCallbacks.delete(code), INFLIGHT_ENTRY_TTL);
+    });
+  }
+
+  const redirectUrl = await resultPromise;
+  return res.redirect(redirectUrl);
+});
 
 // @desc Complete Facebook OAuth registration
 // @route POST /auth/facebook/complete
