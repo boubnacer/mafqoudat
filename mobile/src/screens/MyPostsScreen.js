@@ -349,7 +349,7 @@ const MyPostsScreen = ({ navigation }) => {
 
     return (
       <TouchableOpacity
-        style={[styles.postCard, isRTL ? { borderRightColor: tone.main } : { borderLeftColor: tone.main }]}
+        style={[styles.postCard, { borderStartColor: tone.main }]}
         activeOpacity={0.9}
         onPress={() => navigation.navigate('PostDetailScreen', { id: item._id })}
       >
@@ -582,11 +582,8 @@ const createStyles = (tokens, isRTL, isDark) =>
     postCardSkeleton: {
       backgroundColor: tokens.surfaceRaised,
       borderRadius: radiusTokens.lg,
-      // Physical left/right (see postCard below) so the accent bar renders on
-      // the correct side immediately on a live language switch.
-      ...(isRTL
-        ? { borderRightWidth: 6, borderRightColor: `${tokens.ink}14` }
-        : { borderLeftWidth: 6, borderLeftColor: `${tokens.ink}14` }),
+      borderStartWidth: 6,
+      borderStartColor: `${tokens.ink}14`,
       marginBottom: 16,
       overflow: 'hidden',
       ...getElevation(isDark, 1),
@@ -643,13 +640,10 @@ const createStyles = (tokens, isRTL, isDark) =>
 
     // Post card - mirrors PostsListScreen's post card DNA: surfaceRaised,
     // radius.lg, borderStart accent bar in the Found/Lost tone, elevation e1.
-    // Width picked by physical side (isRTL), not borderStartWidth: logical
-    // start/end only flips after a real app restart (color applied inline
-    // in renderPost, same reason).
     postCard: {
       backgroundColor: tokens.surfaceRaised,
       borderRadius: radiusTokens.lg,
-      ...(isRTL ? { borderRightWidth: 6 } : { borderLeftWidth: 6 }),
+      borderStartWidth: 6,
       marginBottom: 16,
       overflow: 'hidden',
       ...getElevation(isDark, 1),
@@ -676,8 +670,7 @@ const createStyles = (tokens, isRTL, isDark) =>
     statusTag: {
       position: 'absolute',
       top: 10,
-      // Physical left/right rather than logical start (see postCard above).
-      ...(isRTL ? { right: 10 } : { left: 10 }),
+      start: 10,
       flexDirection: isRTL ? 'row-reverse' : 'row',
       alignItems: 'center',
       gap: 4,
@@ -694,8 +687,7 @@ const createStyles = (tokens, isRTL, isDark) =>
     dateBadge: {
       position: 'absolute',
       top: 10,
-      // Physical left/right rather than logical end (see postCard above).
-      ...(isRTL ? { left: 10 } : { right: 10 }),
+      end: 10,
       backgroundColor: `${tokens.surfaceRaised}D9`,
       paddingHorizontal: 9,
       paddingVertical: 5,
@@ -794,7 +786,7 @@ const createStyles = (tokens, isRTL, isDark) =>
     // "Add new post" - mirrors PostsListScreen's addPostButton, shown once
     // the user has browsed all of their own posts.
     addPostButton: {
-      flexDirection: isRTL ? 'row-reverse' : 'row',
+      flexDirection: 'row',
       alignItems: 'center',
       justifyContent: 'center',
       gap: 8,
@@ -827,7 +819,7 @@ const createStyles = (tokens, isRTL, isDark) =>
       marginBottom: 20,
     },
     emptyStatePrimaryButton: {
-      flexDirection: isRTL ? 'row-reverse' : 'row',
+      flexDirection: 'row',
       alignItems: 'center',
       gap: 6,
       paddingHorizontal: 18,

@@ -443,7 +443,7 @@ const createStyles = ({ tokens, isDark, isRTL }) =>
       marginTop: 16,
     },
     postTypeRow: {
-      flexDirection: isRTL ? 'row-reverse' : 'row',
+      flexDirection: 'row',
       gap: 10,
       marginBottom: 4,
     },
@@ -568,8 +568,7 @@ const createStyles = ({ tokens, isDark, isRTL }) =>
     },
 
     footer: {
-      flexDirection: isRTL ? 'row-reverse' : 'row',
-      gap: 10,
+      flexDirection: 'row',
       paddingHorizontal: 20,
       paddingTop: 14,
       borderTopWidth: 1,
@@ -582,6 +581,7 @@ const createStyles = ({ tokens, isDark, isRTL }) =>
       borderWidth: 1,
       borderColor: tokens.brandPrimary,
       alignItems: 'center',
+      marginEnd: 10,
     },
     clearButtonText: {
       color: tokens.brandPrimary,

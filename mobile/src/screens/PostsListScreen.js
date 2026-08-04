@@ -511,7 +511,7 @@ const PostsListScreen = ({ navigation, route }) => {
 
     return (
       <TouchableOpacity
-        style={[styles.postCard, isRTL ? { borderRightColor: tone.main } : { borderLeftColor: tone.main }]}
+        style={[styles.postCard, { borderStartColor: tone.main }]}
         activeOpacity={0.9}
         onPress={() => navigation.navigate('PostDetailScreen', { id: item?._id || item?.id })}
       >
@@ -793,11 +793,7 @@ const createStyles = (tokens, isRTL, isDark) =>
     },
     searchIcon: {
       position: 'absolute',
-      // Physical left/right rather than logical start: start resolves off
-      // native I18nManager.isRTL, which only takes visual effect after a real
-      // app restart - a live language switch needs the icon to actually jump
-      // sides immediately.
-      ...(isRTL ? { right: 28 } : { left: 28 }),
+      start: 28,
       zIndex: 1,
     },
     searchInput: {
@@ -805,8 +801,8 @@ const createStyles = (tokens, isRTL, isDark) =>
       height: 44,
       backgroundColor: tokens.surfaceRaised,
       borderRadius: radiusTokens.md,
-      paddingLeft: isRTL ? 16 : 40,
-      paddingRight: isRTL ? 40 : 16,
+      paddingStart: 40,
+      paddingEnd: 16,
       fontFamily: fontFamilies.body,
       fontSize: 15,
       color: tokens.ink,
@@ -868,8 +864,7 @@ const createStyles = (tokens, isRTL, isDark) =>
       borderRadius: radiusTokens.xl,
       paddingHorizontal: 12,
       paddingVertical: 6,
-      marginRight: isRTL ? 0 : 8,
-      marginLeft: isRTL ? 8 : 0,
+      marginEnd: 8,
     },
     activeChipText: {
       color: tokens.brandPrimary,
@@ -929,11 +924,8 @@ const createStyles = (tokens, isRTL, isDark) =>
     postCardSkeleton: {
       backgroundColor: tokens.surfaceRaised,
       borderRadius: radiusTokens.lg,
-      // Physical left/right (see postCard below) so the accent bar renders on
-      // the correct side immediately on a live language switch.
-      ...(isRTL
-        ? { borderRightWidth: 6, borderRightColor: `${tokens.ink}14` }
-        : { borderLeftWidth: 6, borderLeftColor: `${tokens.ink}14` }),
+      borderStartWidth: 6,
+      borderStartColor: `${tokens.ink}14`,
       marginBottom: 16,
       overflow: 'hidden',
       ...getElevation(isDark, 1),
@@ -959,14 +951,11 @@ const createStyles = (tokens, isRTL, isDark) =>
     },
 
     // Post card - mirrors the web post card DNA: surfaceRaised, radius.lg,
-    // borderStart accent bar in the status color, elevation e1. Width picked
-    // by physical side (isRTL) rather than borderStartWidth: logical start/end
-    // only flips after a real app restart, and this needs to move immediately
-    // on a live language switch (color is applied inline in renderPost, same reason).
+    // borderStart accent bar in the status color, elevation e1.
     postCard: {
       backgroundColor: tokens.surfaceRaised,
       borderRadius: radiusTokens.lg,
-      ...(isRTL ? { borderRightWidth: 6 } : { borderLeftWidth: 6 }),
+      borderStartWidth: 6,
       marginBottom: 16,
       overflow: 'hidden',
       ...getElevation(isDark, 1),
@@ -989,8 +978,7 @@ const createStyles = (tokens, isRTL, isDark) =>
     statusTag: {
       position: 'absolute',
       top: 10,
-      // Physical left/right rather than logical start (see searchIcon above).
-      ...(isRTL ? { right: 10 } : { left: 10 }),
+      start: 10,
       flexDirection: isRTL ? 'row-reverse' : 'row',
       alignItems: 'center',
       gap: 4,
@@ -1007,8 +995,7 @@ const createStyles = (tokens, isRTL, isDark) =>
     dateBadge: {
       position: 'absolute',
       top: 10,
-      // Physical left/right rather than logical end (see searchIcon above).
-      ...(isRTL ? { left: 10 } : { right: 10 }),
+      end: 10,
       backgroundColor: `${tokens.surfaceRaised}D9`,
       paddingHorizontal: 9,
       paddingVertical: 5,
@@ -1154,11 +1141,11 @@ const createStyles = (tokens, isRTL, isDark) =>
       maxWidth: 320,
     },
     emptyStateActions: {
-      flexDirection: isRTL ? 'row-reverse' : 'row',
+      flexDirection: 'row',
       gap: 10,
     },
     emptyStatePrimaryButton: {
-      flexDirection: isRTL ? 'row-reverse' : 'row',
+      flexDirection: 'row',
       alignItems: 'center',
       gap: 6,
       paddingHorizontal: 18,

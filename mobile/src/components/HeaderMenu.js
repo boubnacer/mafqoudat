@@ -82,9 +82,10 @@ const HeaderMenu = ({ visible, onClose, countryFlag, countryLabel, onOpenCountry
 
   // Off-screen resting position is on the far side of the drawer's own start
   // edge: in LTR that's to the left (negative translateX), in RTL - where the
-  // drawer is anchored to the right via the explicit `right: 0` style below -
+  // drawer is anchored to the right via the `start: 0` logical style below -
   // it's to the right (positive translateX). transform values are raw pixels
-  // and don't auto-flip for RTL, so this has to be computed explicitly.
+  // and don't auto-flip for RTL the way `start`/`end` do, so this has to be
+  // computed explicitly.
   const hiddenOffset = isRTL ? DRAWER_WIDTH : -DRAWER_WIDTH;
   const translateX = useRef(new Animated.Value(hiddenOffset)).current;
   const backdropOpacity = useRef(new Animated.Value(0)).current;
@@ -355,11 +356,7 @@ const createStyles = ({ tokens, isDark, isRTL }) =>
     },
     drawer: {
       position: 'absolute',
-      // Physical left/right rather than logical start/end: start/end resolve
-      // off native I18nManager.isRTL, which (per the note above) only takes
-      // visual effect after a real app restart - a live language switch needs
-      // the drawer to actually jump sides immediately.
-      ...(isRTL ? { right: 0 } : { left: 0 }),
+      start: 0,
       top: 0,
       bottom: 0,
       width: DRAWER_WIDTH,
@@ -368,9 +365,8 @@ const createStyles = ({ tokens, isDark, isRTL }) =>
       // platform-wide "no borders on containers" rule. Only the inner edge
       // (facing into the screen) is rounded since the outer/top/bottom edges
       // sit flush against the device edges.
-      ...(isRTL
-        ? { borderTopLeftRadius: radiusTokens.xl, borderBottomLeftRadius: radiusTokens.xl }
-        : { borderTopRightRadius: radiusTokens.xl, borderBottomRightRadius: radiusTokens.xl }),
+      borderTopEndRadius: radiusTokens.xl,
+      borderBottomEndRadius: radiusTokens.xl,
       shadowColor: '#000',
       shadowOffset: { width: 0, height: 0 },
       shadowOpacity: isDark ? 0.55 : 0.2,
@@ -487,8 +483,7 @@ const createStyles = ({ tokens, isDark, isRTL }) =>
       marginBottom: 8,
     },
     langOptionsWrap: {
-      paddingLeft: isRTL ? 0 : 29,
-      paddingRight: isRTL ? 29 : 0,
+      paddingStart: 29,
       gap: 2,
     },
     langOption: {
