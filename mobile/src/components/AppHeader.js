@@ -252,7 +252,8 @@ const createStyles = ({ tokens, isDark, isRTL }) =>
       backgroundColor: `${tokens.ink}0A`,
       justifyContent: 'center',
       alignItems: 'center',
-      marginStart: 8,
+      marginLeft: isRTL ? 0 : 8,
+      marginRight: isRTL ? 8 : 0,
     },
   });
 
