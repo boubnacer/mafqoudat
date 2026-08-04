@@ -1013,7 +1013,7 @@ const createStyles = (tokens, legacy, isDark, isRTL) => {
       borderBottomColor: `${tokens.ink}${isDark ? '1F' : '14'}`,
     },
     progressRow: {
-      flexDirection: 'row',
+      flexDirection: isRTL ? 'row-reverse' : 'row',
       gap: 6,
       marginBottom: 8,
     },
@@ -1124,7 +1124,7 @@ const createStyles = (tokens, legacy, isDark, isRTL) => {
       fontFamily: fontFamilies.bodySemiBold,
     },
     chipsRow: {
-      flexDirection: 'row',
+      flexDirection: isRTL ? 'row-reverse' : 'row',
       flexWrap: 'wrap',
       marginTop: 10,
       gap: 8,
@@ -1191,7 +1191,7 @@ const createStyles = (tokens, legacy, isDark, isRTL) => {
       backgroundColor: `${tokens.ink}0F`,
     },
     imageButtonsRow: {
-      flexDirection: 'row',
+      flexDirection: isRTL ? 'row-reverse' : 'row',
       marginTop: 10,
       gap: 10,
     },
